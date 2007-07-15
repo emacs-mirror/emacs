@@ -626,9 +626,7 @@ is nil, ask the user where to save the desktop."
       (setq desktop-dirname
             (file-name-as-directory
              (expand-file-name
-              (call-interactively
-               (lambda (dir)
-                 (interactive "DDirectory for desktop file: ") dir))))))
+	      (read-directory-name "Directory for desktop file: " nil nil t)))))
     (condition-case err
 	(desktop-save desktop-dirname t)
       (file-error
@@ -654,7 +652,7 @@ is nil, ask the user where to save the desktop."
   (set-buffer buffer)
   (list
    ;; basic information
-   (desktop-file-name (buffer-file-name) dirname)
+   (desktop-file-name (buffer-file-name) desktop-dirname)
    (buffer-name)
    major-mode
    ;; minor modes
@@ -675,7 +673,7 @@ is nil, ask the user where to save the desktop."
    buffer-read-only
    ;; auxiliary information
    (when (functionp desktop-save-buffer)
-     (funcall desktop-save-buffer dirname))
+     (funcall desktop-save-buffer desktop-dirname))
    ;; local variables
    (let ((locals desktop-locals-to-save)
 	 (loclist (buffer-local-variables))
@@ -898,7 +896,7 @@ See also `desktop-base-file-name'."
 		(insert "\n  " (desktop-value-to-string e)))
 	      (insert ")\n\n")))
 
-	  (setq default-directory dirname)
+	  (setq default-directory desktop-dirname)
 	  (let ((coding-system-for-write 'emacs-mule))
 	    (write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
 	  ;; We remember when it was modified (which is presumably just now).
@@ -964,9 +962,9 @@ It returns t if a desktop file was loaded, nil otherwise."
 		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
 Using it may cause conflicts.  Use it anyway? " owner)))))
 	      (progn
-		(setq desktop-dirname nil)
 		(let ((default-directory desktop-dirname))
 		  (run-hooks 'desktop-not-loaded-hook))
+		(setq desktop-dirname nil)
 		(message "Desktop file in use; not loaded."))
 	    (desktop-lazy-abort)
 	    ;; Evaluate desktop buffer and remember when it was modified.

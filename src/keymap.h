@@ -34,7 +34,7 @@ EXFUN (Fkey_binding, 4);
 EXFUN (Fkey_description, 2);
 EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 5);
-EXFUN (Fcurrent_active_maps, 1);
+EXFUN (Fcurrent_active_maps, 2);
 extern Lisp_Object access_keymap P_ ((Lisp_Object, Lisp_Object, int, int, int));
 extern Lisp_Object get_keyelt P_ ((Lisp_Object, int));
 extern Lisp_Object get_keymap P_ ((Lisp_Object, int, int));
@@ -48,7 +48,7 @@ extern void syms_of_keymap P_ ((void));
 extern void keys_of_keymap P_ ((void));
 
 typedef void (*map_keymap_function_t)
-     P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
+     P_ ((Lisp_Object key, Lisp_Object val, Lisp_Object args, void* data));
 extern void map_keymap P_ ((Lisp_Object map, map_keymap_function_t fun, Lisp_Object largs, void* cargs, int autoload));
 
 #endif

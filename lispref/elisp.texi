@@ -15,7 +15,7 @@
 @end direntry
 
 @c in general, keep the following line commented out, unless doing a
-@c copy of this manual that will be published.  the manual should go
+@c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
 @c set smallbook
 
@@ -29,13 +29,11 @@
 @tex
 @ifset smallbook
 @fonttextsize 10
-@set EMACSVER 22
+@set EMACSVER 22.1
 \global\let\urlcolor=\Black % don't print links in grayscale
 \global\let\linkcolor=\Black
 @end ifset
 \global\hbadness=6666 % don't worry about not-too-underfull boxes
-\global\let\urlcolor=\Black % don't print links in grayscale
-\global\let\linkcolor=\Black
 @end tex
 
 @c Combine indices.
@@ -63,9 +61,9 @@ Front-Cover texts being ``A GNU Manual,'' and with the Back-Cover
 Texts as in (a) below.  A copy of the license is included in the
 section entitled ``GNU Free Documentation License.''
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+(a) The FSF's Back-Cover Text is: ``You are free to copy and modify
+this GNU Manual. Buying copies from GNU Press supports the FSF in
+developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 

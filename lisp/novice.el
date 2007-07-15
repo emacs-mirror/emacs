@@ -88,8 +88,9 @@ n   to cancel--don't try the command, and it remains disabled.
 SPC to try the command just this once, but leave it disabled.
 !   to try it, and enable all disabled commands for this session only.")
        (save-excursion
-	(set-buffer standard-output)
-	(help-mode)))
+	 (set-buffer standard-output)
+	 (help-mode)))
+     (fit-window-to-buffer (get-buffer-window "*Disabled Command*"))
      (message "Type y, n, ! or SPC (the space bar): ")
      (let ((cursor-in-echo-area t))
        (while (progn (setq char (read-event))

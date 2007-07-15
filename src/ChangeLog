@@ -1,3 +1,219 @@
+2007-07-14  Jason Rumney  <jasonr@gnu.org>
+
+	* process.c [WINDOWSNT]: Don't undefine AF_INET6.
+
+2007-07-14  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (maybe_call_debugger): New function.
+	(find_handler_clause): Use maybe_call_debugger.
+	Call it when the handler says `debug'.
+	Eliminate DEBUGGER_VALUE_PTR.
+	(Fsignal): Eliminate debugger_value.
+	(Qdebug): New variable.
+	(syms_of_eval): Initialize it.
+
+2007-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fprogn):
+	* keyboard.c (Ftrack_mouse):
+	* print.c (Fwith_output_to_temp_buffer):
+	* window.c (Fsave_window_excursion): Doc fix.
+
+2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (init_eval_once): Bump max_lisp_eval_depth to 400.
+
+2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.h (struct Lisp_Process): Turn slots infd, outfd,
+	kill_without_query, pty_flag, tick, update_tick, decoding_carryover,
+	inherit_coding_system_flag, filter_multibyte, adaptive_read_buffering,
+	read_output_delay, and read_output_skip from Lisp_Objects to ints.
+	Remove unused encoding_carryover.
+	* process.c: Adjust all functions accordingly.
+
+2007-07-12  Richard Stallman  <rms@gnu.org>
+
+	* term.c: Include unistd.h only if HAVE_UNISTD_H.
+
+2007-07-11  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (LIBS): Include OLE32.
+
+	* w32fns.c (w32_msg_pump) <WM_EMACS_CREATEWINDOW>: Initialize COM.
+	(w32_msg_pump) <WM_DESTROY>: Uninitialize COM.
+
+2007-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Hash_Table): Turn next_weak into a bare pointer.
+	* fns.c (weak_hash_tables): Rename from Vweak_hash_tables and turned
+	from a Lisp_Object into a bare pointer.
+	(make_hash_table, copy_hash_table, sweep_weak_hash_tables, init_fns):
+	Adjust the code correspondingly.
+
+	* alloc.c (emacs_blocked_free): Remove unused var `bytes_used_now'.
+
+	* term.c: Include unistd.h for ttyname, used in handle_one_term_event.
+	(term_show_mouse_face): Remove unused var `j'.
+	(handle_one_term_event): Remove unused vars `i' and `j'.
+	Don't cast return value of ttyname since it's not necessary.
+
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (mark_maybe_pointer): Enforce mult-of-8 alignment when using
+	USE_LSB_TAG.  Suggested by Dmitry Antipov <dmantipov@yandex.ru>.
+
+	* fns.c (map_char_table): Use an array of int for `indices' rather than
+	an array of Lisp_Objects (which are only ever integers anyway).
+	(Fmap_char_table): Update caller.
+	* lisp.h: Update prototype.
+	* keymap.c (Fset_keymap_parent, map_keymap, Fcopy_keymap):
+	* fontset.c (Ffontset_info):
+	* casetab.c (set_case_table): Update callers.
+
+	* editfns.c (Ftranspose_regions): Use EMACS_INT for positions.
+
+	* keymap.c (struct accessible_keymaps_data)
+	(struct where_is_internal_data): New structures.
+	(accessible_keymaps_1, where_is_internal_1): Use them to change
+	interface to adhere to the one used by map_keymap.
+	(Faccessible_keymaps, where_is_internal): Use map_keymap.
+	(accessible_keymaps_char_table, where_is_internal_2): Remove.
+
+	* keymap.h (map_keymap_function_t): More informative prototype.
+
+2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* search.c (Vinhibit_changing_match_data, search_regs_1): New vars.
+	(looking_at_1): Don't change search_regs and last_thing_searched
+	if `inhibit-changing-match-data' is non-nil.
+	(string_match_1, search_buffer, set_search_regs): Likewise.
+	(syms_of_search): Add Lisp level definition for
+	`inhibit-changing-match-data' and set it to nil.
+	(boyer_moore): If `inhibit-changing-match-data' is non-nil, compute
+	start and end of the match, instead of using values in search_regs.
+
+2007-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fcompleting_read): New value `confirm-only'
+	for `require-match'.
+
+2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fdo_auto_save): Revert last patch installed unwillingly as
+	part of the 2007-06-27 change to syms_of_fileio.
+
+2007-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event):
+	Check WINDOWP before using XWINDOW.  Consolidate return statements.
+
+2007-06-27  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (syms_of_fileio) <after-insert-file-functions>: Doc fix.
+
+2007-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <selective-display>: Fix typo in docstring.
+
+2007-06-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gmalloc.c [HAVE_GTK_AND_PTHREAD]: Check this after including config.h.
+	(_aligned_blocks_mutex) [USE_PTHREAD]: New variable.
+	(LOCK_ALIGNED_BLOCKS, UNLOCK_ALIGNED_BLOCKS): New macros.
+	(_free_internal, memalign): Use them.
+	(_malloc_mutex, _aligned_blocks_mutex) [USE_PTHREAD]:
+	Initialize to PTHREAD_MUTEX_INITIALIZER.
+	(malloc_initialize_1) [USE_PTHREAD]: Don't use recursive mutex.
+	(morecore_nolock): Rename from morecore.  All uses changed.
+	Use only nolock versions of internal allocation functions.
+	(_malloc_internal_nolock, _realloc_internal_nolock)
+	(_free_internal_nolock): New functions created from
+	_malloc_internal, _realloc_internal, and _free_internal.
+	(_malloc_internal, _realloc_internal, _free_internal): Use them.
+	Copy hook value to automatic variable before its use.
+	(memalign): Copy hook value to automatic variable before its use.
+
+2007-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Ffind_operation_coding_system): Docstring improved.
+	(syms_of_coding): Docstring of `file-coding-system-alist' improved.
+
+2007-06-25  David Kastrup  <dak@gnu.org>
+
+	* keymap.c (Fcurrent_active_maps): Add `position' argument.
+	(Fwhere_is_internal): Adjust call to `current-active-maps' to
+	cater for additional parameter.
+
+	* keymap.h: Adjust number of parameters to `current-active-maps'.
+
+	* doc.c (Fsubstitute_command_keys): Adjust call of
+	`current-active-maps'.
+
+2007-06-25  David Kastrup  <dak@gnu.org>
+
+	* callint.c (Fcall_interactively): Make the parsing of interactive
+	specs somewhat more readable.
+
+2007-06-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_draw_fringe_bitmap) [MAC_OSX]: Extend fringe background
+	to scroll bar gap also when bitmap fills fringe.  Draw only foreground
+	if extended background has already been filled.
+
+2007-06-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (USE_CG_DRAWING): Don't require USE_ATSUI.
+	(USE_MAC_TOOLBAR): Require USE_CG_DRAWING.
+
+	* macmenu.c (mac_dialog_modal_filter, Fx_popup_dialog) [MAC_OSX]:
+	Put special treatment for Fmessage_box, Fyes_or_no_p, and Fy_or_n_p
+	in #if 0 as it is not compatible with y-or-n-p-with-timeout.
+	(timer_check) [TARGET_API_MAC_CARBON]: Add extern.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Use QuitEventLoop
+	instead of QuitAppModalLoopForWindow.  Consolidate QuitEventLoop calls.
+	(pop_down_dialog) [TARGET_API_MAC_CARBON]: New function.
+	[TARGET_API_MAC_CARBON] (create_and_show_dialog): Use it for unwind.
+	Run timers during dialog popup.
+	(Fmenu_or_popup_active_p) [TARGET_API_MAC_CARBON]: Use popup_activated.
+
+2007-06-21  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (convert_mono_to_color_image): Swap fore and background.
+
+2007-06-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c (w32_BDF_to_x_font): Unmap memory when finished.
+	(w32_free_bdf_font): Unmap memory not handle.
+
+2007-06-20  Sam Steingold  <sds@gnu.org>
+
+	* gmalloc.c (__morecore): Fix the declaration to comply with the
+	definition.
+
+2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32term.c (w32_delete_display): Remove leftover declaration.
+	(w32_define_cursor, w32_initialize): Make static.
+
+	* w32.c (_wsa_errlist): Fix typo in error message.
+	(init_environment): Ignore any environment variable from the
+	registry having a null value.
+
+2007-06-20  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBGIF): Default to -lgif.
+
+2007-06-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (add_menu_item): Don't use multibyte string functions on
+	unicode strings.
+
+2007-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <auto-resize-tool-bars>:
+	Fix typo in docstring.
+
 2007-06-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32menu.c (add_menu_item): Escape `&' characters in menu items
@@ -92,7 +308,7 @@
 
 	* w32fns.c (Fx_file_dialog): Take size from struct not pointer.
 
-2007-06-08  Juanma Barranquero	<lekktu@gmail.com>
+2007-06-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* callint.c (Fcall_interactively):
 	* editfns.c (Fdelete_and_extract_region):
@@ -110,7 +326,7 @@
 	* xselect.c (Fx_get_atom_name):
 	* xterm.c (x_term_init): Use empty_unibyte_string.
 
-2007-06-08  Dmitry Antipov  <dmitry.antipov@mail.ru>  (tiny change)
+2007-06-08  Dmitry Antipov  <dmantipov@yandex.ru>  (tiny change)
 
 	* alloc.c (init_strings): Initialize canonical empty strings.
 	(make_uninit_string, make_uninit_multibyte_string): Return appropriate
@@ -145,7 +361,7 @@
 	[TARGET_API_MAC_CARBON] (install_menu_target_item_handler):
 	Remove argument.  Install handler to application.
 	(set_frame_menubar): Don't change deep_p.
-	(mac_menu_show):  Use FRAME_OUTER_TO_INNER_DIFF_X and
+	(mac_menu_show): Use FRAME_OUTER_TO_INNER_DIFF_X and
 	FRAME_OUTER_TO_INNER_DIFF_Y.
 	(DIALOG_BUTTON_COMMAND_ID_OFFSET, DIALOG_BUTTON_COMMAND_ID_P)
 	(DIALOG_BUTTON_COMMAND_ID_VALUE, DIALOG_BUTTON_MAKE_COMMAND_ID)
@@ -494,6 +710,10 @@
 
 	* gtkutil.c (xg_update_menubar, create_menus): Create empty
 	submenu for menu bar items.
+
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Branch for 22.1.
 
 2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -993,13 +1213,13 @@
 	when popup menu finishes.
 
 	* w32fns.c (menubar_in_use): New flag.
-	(w32_wnd_proc) [WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND]:
+	(w32_wnd_proc) <WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND>:
 	Use it.
 
 	* w32menu.c (Fx_popup_menu): Don't free menu strings here.
 	(w32_menu_show): Do it here instead.
 
-	* w32fns.c (w32_wnd_proc) [WM_INITMENU]: Set menubar_active frame
+	* w32fns.c (w32_wnd_proc) <WM_INITMENU>: Set menubar_active frame
 	parameter.
 
 	* w32menu.c (current_popup_menu): Make available globally.
@@ -1007,7 +1227,7 @@
 	menu event into the keyboard buffer.  Remove menu_command_in_progress.
 
 	* w32fns.c (current_popup_menu): Use from w32menu.c.
-	(w32_wnd_proc) [WM_EXITMENULOOP, WM_TIMER]: Use menubar_active
+	(w32_wnd_proc) <WM_EXITMENULOOP, WM_TIMER>: Use menubar_active
 	and current_popup_menu to determine whether a menubar menu has
 	been cancelled.
 
@@ -10118,7 +10338,7 @@
 	* w32term.h (x_output): Add focus_state.
 
 	* w32term.c (x_focus_changed, w32_detect_focus_change): New functions.
-	(w32_read_socket) [WM_SETFOCUS]: Call w32_detect_focus_change.
+	(w32_read_socket) <WM_SETFOCUS>: Call w32_detect_focus_change.
 
 2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -10517,7 +10737,7 @@
 	(XTread_socket) [!MAC_OSX]: Don't pass keyboard events to TSM.
 	[MAC_OS8] (make_mac_terminal_frame) [TARGET_API_MAC_CARBON]:
 	Set default cursors.
-	(mac_initialize) [USE_CARBON_EVENTS && !MAC_OSX] : Don't call
+	(mac_initialize) [USE_CARBON_EVENTS && !MAC_OSX]: Don't call
 	init_service_handler or init_quit_char_handler.
 	(mac_initialize) [!MAC_OSX]: Don't call MakeMeTheFrontProcess.
 
@@ -11454,7 +11674,7 @@
 	(install_window_handler) [TARGET_API_MAC_CARBON]:
 	Register handlers for tracking/receiving drag-and-drop items.
 	(do_ae_open_documents): Generate unibyte strings for filenames.
-	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.
+	(mac_do_receive_drag) [TARGET_API_MAC_CARBON]: Likewise.
 	Reject only non-filename items.  Set event modifiers, and return value.
 
 2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -13411,7 +13631,7 @@
 
 	* w32term.h (AppendMenuW_Proc): Move declaration from w32menu.c.
 
-	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]:
+	* w32fns.c (w32_wnd_proc) <WM_MEASUREITEM, WM_DRAWITEM>:
 	Handle Unicode menu titles.
 
 2004-09-07  Kim F. Storm  <storm@cua.dk>
@@ -15844,7 +16064,7 @@
 
 	* macgui.h [MAC_OSX]: Include Carbon/Carbon.h.
 	(mktime, DEBUG, Z, free, malloc, realloc, max, min)
-	(init_process) [MAC_OSX] : Avoid conflicts with Carbon/Carbon.h.
+	(init_process) [MAC_OSX]: Avoid conflicts with Carbon/Carbon.h.
 	[!MAC_OSX]: Include QDOffscreen.h and Controls.h.
 	(INFINITY) [MAC_OSX]: Avoid conflict with definition in math.h.
 	(Bitmap): Remove typedef.
@@ -16149,7 +16369,7 @@
 
 	* cmds.c (Fend_of_line): Doc fix.
 
-2004-02-16  Dmitry Antipov  <dmitry.antipov@mail.ru>  (tiny change)
+2004-02-16  Dmitry Antipov  <dmantipov@yandex.ru>  (tiny change)
 
 	* keyboard.c (prev_read): New static variable.
 	(read_avail_input): Use it to zero out only those slots in buf[]
@@ -21965,7 +22185,7 @@
 	(best_matching_font, choose_face_font): Add `needs_overstrike'
 	argument, and use it to return whether overstriking is desirable
 	for this face/font combo.
-	(set_font_frame_param: Pass new argument to choose_face_font.
+	(set_font_frame_param): Pass new argument to choose_face_font.
 
 2002-11-17  Ben Key  <BKey1@tampabay.rr.com>
 

@@ -628,13 +628,13 @@ this command arranges for all errors to enter the debugger."
   (interactive "P")
   (if (null eval-expression-debug-on-error)
       (eval-last-sexp-1 eval-last-sexp-arg-internal)
-    (let ((old-value eval-last-sexp-fake-value) new-value value)
-      (let ((debug-on-error old-value))
-	(setq value (eval-last-sexp-1 eval-last-sexp-arg-internal))
-	(setq new-value debug-on-error))
-      (unless (eq old-value new-value)
-	(setq debug-on-error new-value))
-      value)))
+    (let ((value
+	   (let ((debug-on-error eval-last-sexp-fake-value))
+	     (cons (eval-last-sexp-1 eval-last-sexp-arg-internal)
+		   debug-on-error))))
+      (unless (eq (cdr value) eval-last-sexp-fake-value)
+	(setq debug-on-error (cdr value)))
+      (car value))))
 
 (defun eval-defun-1 (form)
   "Treat some expressions specially.
@@ -730,7 +730,9 @@ If the current defun is actually a call to `defvar' or `defcustom',
 evaluating it this way resets the variable using its initial value
 expression even if the variable already has some other value.
 \(Normally `defvar' and `defcustom' do not alter the value if there
-already is one.)
+already is one.)  In an analogous way, evaluating a `defface'
+overrides any customizations of the face, so that it becomes
+defined exactly as the `defface' expression says.
 
 If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger.

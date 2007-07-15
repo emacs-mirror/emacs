@@ -1036,14 +1036,23 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
+ ;;; make f10 activate the real menubar rather than the mini-buffer menu
+ ;;; navigation feature.
+ (defun menu-bar-open (&optional frame)
+   "Start key navigation of the menu bar in FRAME.
+ 
+ This initially activates the first menu-bar item, and you can then navigate
+ with the arrow keys, select a menu entry with the Return key or cancel with
+ the Escape key.  If FRAME has no menu bar, this function does nothing.
+ 
+ If FRAME is nil or not given, use the selected frame."
+   (interactive "i")
+   (w32-send-sys-command ?\xf100 frame))
+
 (defun x-setup-function-keys (frame)
   "Setup Function Keys for w32."
-  ;; make f10 activate the real menubar rather than the mini-buffer menu
-  ;; navigation feature.
   (with-selected-frame frame
-     (define-key local-function-key-map [f10]
-       (lambda ()
-         (interactive) (w32-send-sys-command ?\xf100)))
+     (define-key local-function-key-map [f10] 'menu-bar-open)
 
      (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
                                 local-function-key-map global-map)

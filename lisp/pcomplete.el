@@ -711,6 +711,7 @@ If PREDICATE is non-nil, it will also be used to refine the match
 If no directory information can be extracted from the completed
 component, `default-directory' is used as the basis for completion."
   (let* ((name (substitute-env-vars pcomplete-stub))
+         (completion-ignore-case pcomplete-ignore-case)
 	 (default-directory (expand-file-name
 			     (or (file-name-directory name)
 				 default-directory)))

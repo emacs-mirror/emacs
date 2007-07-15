@@ -105,7 +105,9 @@
 ;;
 ;; * registered (file)
 ;;
-;;   Return non-nil if FILE is registered in this backend.
+;;   Return non-nil if FILE is registered in this backend.  Both this
+;;   function as well as `state' should be careful to fail gracefully in the
+;;   event that the backend executable is absent.
 ;;
 ;; * state (file)
 ;;
@@ -222,7 +224,7 @@
 ;;   The implementation should pass the value of vc-checkout-switches
 ;;   to the backend command.
 ;;
-;; * checkout (file &optional editable rev)
+;; - checkout (file &optional editable rev)
 ;;
 ;;   Check out revision REV of FILE into the working area.  If EDITABLE
 ;;   is non-nil, FILE should be writable by the user and if locking is
@@ -270,6 +272,12 @@
 ;;   Insert the revision log of FILE into BUFFER, or the *vc* buffer
 ;;   if BUFFER is nil.
 ;;
+;; - log-view-mode ()
+;;
+;;   Mode to use for the output of print-log.  This defaults to
+;;   `log-view-mode' and is expected to be changed (if at all) to a derived
+;;   mode of `log-view-mode'.
+;;
 ;; - show-log-entry (version)
 ;;
 ;;   If provided, search the log entry for VERSION in the current buffer,
@@ -314,6 +322,11 @@
 ;;   BACKEND 'diff) to the backend command.  It should return a status
 ;;   of either 0 (no differences found), or 1 (either non-empty diff
 ;;   or the diff is run asynchronously).
+;;
+;; - revision-completion-table (file)
+;;
+;;   Return a completion table for existing revisions of FILE.
+;;   The default is to not use any completion table.
 ;;
 ;; - diff-tree (dir &optional rev1 rev2)
 ;;
@@ -939,6 +952,8 @@ Else, add CODE to the process' sentinel."
      ;; lost.  Terminated processes get deleted automatically
      ;; anyway. -- cyd
      ((or (null proc) (eq (process-status proc) 'exit))
+      ;; Make sure we've read the process's output before going further.
+      (if proc (accept-process-output proc))
       (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
@@ -946,12 +961,13 @@ Else, add CODE to the process' sentinel."
 	(set-process-sentinel proc
 	  `(lambda (p s)
 	     (with-current-buffer ',(current-buffer)
-	       (goto-char (process-mark p))
-	       ,@(append (cdr (cdr (cdr ;strip off `with-current-buffer buf
-                                        ;             (goto-char...)'
-			   (car (cdr (cdr ;strip off `lambda (p s)'
-			    sentinel))))))
-			 (list `(vc-exec-after ',code))))))))
+               (save-excursion
+                (goto-char (process-mark p))
+ 	        ,@(append (cdr (cdr (car   ;Strip off (save-exc (goto-char...)
+                           (cdr (cdr       ;Strip off (with-current-buffer buf
+ 			    (car (cdr (cdr ;Strip off (lambda (p s)
+                             sentinel))))))))
+ 			  (list `(vc-exec-after ',code)))))))))
      (t (error "Unexpected process state"))))
   nil)
 
@@ -1740,6 +1756,8 @@ saving the buffer."
 	  (message "No changes to %s since latest version" file)
 	(vc-version-diff file nil nil)))))
 
+(defun vc-default-revision-completion-table (backend file) nil)
+
 (defun vc-version-diff (file rev1 rev2)
   "List the differences between FILE's versions REV1 and REV2.
 If REV1 is empty or nil it means to use the current workfile version;
@@ -1747,12 +1765,13 @@ REV2 empty or nil means the current file contents.  FILE may also be
 a directory, in that case, generate diffs between the correponding
 versions of all registered files in or below it."
   (interactive
-   (let ((file (expand-file-name
-                (read-file-name (if buffer-file-name
-                                    "File or dir to diff (default visited file): "
-                                  "File or dir to diff: ")
-                                default-directory buffer-file-name t)))
-         (rev1-default nil) (rev2-default nil))
+   (let* ((file (expand-file-name
+                 (read-file-name (if buffer-file-name
+                                     "File or dir to diff (default visited file): "
+                                   "File or dir to diff: ")
+                                 default-directory buffer-file-name t)))
+          (rev1-default nil) (rev2-default nil)
+          (completion-table (vc-call revision-completion-table file)))
      ;; compute default versions based on the file state
      (cond
       ;; if it's a directory, don't supply any version default
@@ -1764,21 +1783,25 @@ versions of all registered files in or below it."
       ;; if the file is not locked, use last and previous version as default
       (t
        (setq rev1-default (vc-call previous-version file
-                                   (vc-workfile-version file)))
+				   (vc-workfile-version file)))
        (if (string= rev1-default "") (setq rev1-default nil))
        (setq rev2-default (vc-workfile-version file))))
      ;; construct argument list
-     (list file
-           (read-string (if rev1-default
-			    (concat "Older version (default "
-				    rev1-default "): ")
-			  "Older version: ")
-			nil nil rev1-default)
-           (read-string (if rev2-default
-			    (concat "Newer version (default "
-				    rev2-default "): ")
-			  "Newer version (default current source): ")
-			nil nil rev2-default))))
+     (let* ((rev1-prompt (if rev1-default
+			     (concat "Older version (default "
+				     rev1-default "): ")
+			   "Older version: "))
+	    (rev2-prompt (concat "Newer version (default "
+				 (or rev2-default "current source") "): "))
+	    (rev1 (if completion-table
+		      (completing-read rev1-prompt completion-table
+                                       nil nil nil nil rev1-default)
+		    (read-string rev1-prompt nil nil rev1-default)))
+	    (rev2 (if completion-table
+		      (completing-read rev2-prompt completion-table
+                                       nil nil nil nil rev2-default)
+		    (read-string rev2-prompt nil nil rev2-default))))
+       (list file rev1 rev2))))
   (if (file-directory-p file)
       ;; recursive directory diff
       (progn
@@ -1933,7 +1956,16 @@ The meaning of REV1 and REV2 is the same as for `vc-version-diff'."
   "Visit version REV of the current file in another window.
 If the current file is named `F', the version is named `F.~REV~'.
 If `F.~REV~' already exists, use it instead of checking it out again."
-  (interactive "sVersion to visit (default is workfile version): ")
+  (interactive
+   (save-current-buffer
+     (vc-ensure-vc-buffer)
+     (let ((completion-table
+            (vc-call revision-completion-table buffer-file-name))
+           (prompt "Version to visit (default is workfile version): "))
+       (list
+        (if completion-table
+            (completing-read prompt completion-table)
+          (read-string prompt))))))
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
 	 (version (if (string-equal rev "")
@@ -2453,7 +2485,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
     (pop-to-buffer (current-buffer))
     (vc-exec-after
      `(let ((inhibit-read-only t))
-    	(log-view-mode)
+    	(vc-call-backend ',(vc-backend file) 'log-view-mode)
 	(goto-char (point-max)) (forward-line -1)
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))
@@ -2468,6 +2500,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
 			 ',focus-rev)
         (set-buffer-modified-p nil)))))
 
+(defun vc-default-log-view-mode (backend) (log-view-mode))
 (defun vc-default-show-log-entry (backend rev)
   (with-no-warnings
    (log-view-goto-rev rev)))
@@ -3026,13 +3059,13 @@ cover the range from the oldest annotation to the newest."
     ;; Run through this file and find the oldest and newest dates annotated.
     (save-excursion
       (goto-char (point-min))
-      (while (setq date (prog1 (vc-call-backend vc-annotate-backend
-                                                'annotate-time)
-                          (forward-line 1)))
-	(if (> date newest)
-	    (setq newest date))
-	(if (< date oldest)
-	    (setq oldest date))))
+      (while (not (eobp))
+        (when (setq date (vc-call-backend vc-annotate-backend 'annotate-time))
+          (if (> date newest)
+              (setq newest date))
+          (if (< date oldest)
+              (setq oldest date)))
+        (forward-line 1)))
     (vc-annotate-display
      (/ (- (if full newest current) oldest)
         (vc-annotate-oldest-in-map vc-annotate-color-map))
@@ -3097,9 +3130,9 @@ use; you may override this using the second optional arg MODE."
 	 (vc-annotate-display-default (or vc-annotate-ratio 1.0)))
         ;; One of the auto-scaling modes
 	((eq vc-annotate-display-mode 'scale)
-	 (vc-annotate-display-autoscale))
+	 (vc-exec-after `(vc-annotate-display-autoscale)))
 	((eq vc-annotate-display-mode 'fullscale)
-	 (vc-annotate-display-autoscale t))
+	 (vc-exec-after `(vc-annotate-display-autoscale t)))
 	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
 	 (vc-annotate-display-default
 	  (/ vc-annotate-display-mode
@@ -3176,9 +3209,13 @@ colors. `vc-annotate-background' specifies the background color."
         (set (make-local-variable 'vc-annotate-parent-rev) rev)
         (set (make-local-variable 'vc-annotate-parent-display-mode)
              display-mode)))
-    (when current-line
-      (goto-line current-line temp-buffer-name))
-    (message "Annotating... done")))
+
+    (vc-exec-after
+     `(progn
+        (when ,current-line
+          (goto-line ,current-line ,temp-buffer-name))
+        (unless (active-minibuffer-window)
+          (message "Annotating... done"))))))
 
 (defun vc-annotate-prev-version (prefix)
   "Visit the annotation of the version previous to this one.
@@ -3353,30 +3390,30 @@ The annotations are relative to the current time, unless overridden by OFFSET."
   (font-lock-mode 1))
 
 (defun vc-annotate-lines (limit)
-  (let (difference)
-    (while (and (< (point) limit)
-		(setq difference (vc-annotate-difference vc-annotate-offset)))
-      (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
-			(cons nil vc-annotate-very-old-color)))
-	     ;; substring from index 1 to remove any leading `#' in the name
-	     (face-name (concat "vc-annotate-face-"
-				(if (string-equal
-				     (substring (cdr color) 0 1) "#")
-				    (substring (cdr color) 1)
-				  (cdr color))))
-	     ;; Make the face if not done.
-	     (face (or (intern-soft face-name)
-		       (let ((tmp-face (make-face (intern face-name))))
-			 (set-face-foreground tmp-face (cdr color))
-			 (if vc-annotate-background
-			     (set-face-background tmp-face
-						  vc-annotate-background))
-			 tmp-face)))	; Return the face
-	     (point (point)))
-	(forward-line 1)
-	(put-text-property point (point) 'face face)))
-    ;; Pretend to font-lock there were no matches.
-    nil))
+  (while (< (point) limit)
+    (let ((difference (vc-annotate-difference vc-annotate-offset))
+          (start (point))
+          (end (progn (forward-line 1) (point))))
+      (when difference
+        (let* ((color (or (vc-annotate-compcar difference vc-annotate-color-map)
+                          (cons nil vc-annotate-very-old-color)))
+               ;; substring from index 1 to remove any leading `#' in the name
+               (face-name (concat "vc-annotate-face-"
+                                  (if (string-equal
+                                       (substring (cdr color) 0 1) "#")
+                                      (substring (cdr color) 1)
+                                    (cdr color))))
+               ;; Make the face if not done.
+               (face (or (intern-soft face-name)
+                         (let ((tmp-face (make-face (intern face-name))))
+                           (set-face-foreground tmp-face (cdr color))
+                           (if vc-annotate-background
+                               (set-face-background tmp-face
+                                                    vc-annotate-background))
+                           tmp-face))))	; Return the face
+          (put-text-property start end 'face face)))))
+  ;; Pretend to font-lock there were no matches.
+  nil)
 
 ;; Collect back-end-dependent stuff here
 

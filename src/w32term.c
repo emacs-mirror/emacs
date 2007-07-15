@@ -218,10 +218,9 @@ extern int errno;
 extern EMACS_INT extra_keyboard_modifiers;
 
 static void x_update_window_end P_ ((struct window *, int, int));
-void w32_delete_display P_ ((struct w32_display_info *));
 static void w32_handle_tool_bar_click P_ ((struct frame *,
                                           struct input_event *));
-void w32_define_cursor P_ ((Window, Cursor));
+static void w32_define_cursor P_ ((Window, Cursor));
 
 void x_lower_frame P_ ((struct frame *));
 void x_scroll_bar_clear P_ ((struct frame *));
@@ -3255,7 +3254,7 @@ redo_mouse_highlight ()
 			  HIWORD (last_mouse_motion_event.lParam));
 }
 
-void
+static void
 w32_define_cursor (window, cursor)
      Window window;
      Cursor cursor;

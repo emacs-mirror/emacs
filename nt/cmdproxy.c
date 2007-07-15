@@ -466,6 +466,12 @@ main (int argc, char ** argv)
   SetCurrentDirectory (modname);
   *progname = '\\';
 
+  /* Due to problems with interaction between API functions that use "OEM"
+     codepage vs API functions that use the "ANSI" codepage, we need to
+     make things consistent by choosing one and sticking with it.  */
+  SetConsoleCP (GetACP());
+  SetConsoleOutputCP (GetACP());
+
   /* Although Emacs always sets argv[0] to an absolute pathname, we
      might get run in other ways as well, so convert argv[0] to an
      absolute name before comparing to the module name.  Don't get

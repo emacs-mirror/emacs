@@ -4408,11 +4408,11 @@ Deleting parts may malfunction or destroy the article; continue? ")
 	  (gnus-summary-edit-article-done
 	   ,(or (mail-header-references gnus-current-headers) "")
 	   ,(gnus-group-read-only-p)
-	   ,gnus-summary-buffer no-highlight)))))
-  ;; Not in `gnus-mime-save-part-and-strip':
-  (gnus-article-edit-done)
-  (gnus-summary-expand-window)
-  (gnus-summary-show-article))
+	   ,gnus-summary-buffer no-highlight))))
+    ;; Not in `gnus-mime-save-part-and-strip':
+    (gnus-article-edit-done)
+    (gnus-summary-expand-window)
+    (gnus-summary-show-article)))
 
 (defun gnus-mime-save-part ()
   "Save the MIME part under point."
@@ -5607,7 +5607,7 @@ not have a face in `gnus-article-boring-faces'."
   "Execute the last keystroke in the summary buffer."
   (interactive)
   (let (func)
-    (pop-to-buffer gnus-article-current-summary nil 'norecord)
+    (pop-to-buffer gnus-article-current-summary nil (not (featurep 'xemacs)))
     (setq func (lookup-key (current-local-map) (this-command-keys)))
     (call-interactively func)))
 
@@ -5646,7 +5646,8 @@ not have a face in `gnus-article-boring-faces'."
 	    (member keys nosave-in-article))
 	(let (func)
 	  (save-window-excursion
-	    (pop-to-buffer gnus-article-current-summary nil 'norecord)
+	    (pop-to-buffer gnus-article-current-summary
+			   nil (not (featurep 'xemacs)))
 	    ;; We disable the pick minor mode commands.
 	    (let (gnus-pick-mode)
 	      (setq func (lookup-key (current-local-map) keys))))
@@ -5658,14 +5659,16 @@ not have a face in `gnus-article-boring-faces'."
 	    (call-interactively func)
 	    (setq new-sum-point (point)))
 	  (when (member keys nosave-but-article)
-	    (pop-to-buffer gnus-article-buffer nil 'norecord)))
+	    (pop-to-buffer gnus-article-buffer
+			   nil (not (featurep 'xemacs)))))
       ;; These commands should restore window configuration.
       (let ((obuf (current-buffer))
 	    (owin (current-window-configuration))
 	    (opoint (point))
 	    win func in-buffer selected new-sum-start new-sum-hscroll)
 	(cond (not-restore-window
-	       (pop-to-buffer gnus-article-current-summary nil 'norecord))
+	       (pop-to-buffer gnus-article-current-summary
+			      nil (not (featurep 'xemacs))))
 	      ((setq win (get-buffer-window gnus-article-current-summary))
 	       (select-window win))
 	      (t

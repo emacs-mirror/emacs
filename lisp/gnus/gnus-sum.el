@@ -10514,7 +10514,8 @@ The number of articles marked as read is returned."
 		      (gnus-sorted-nunion
                        (gnus-sorted-intersection gnus-newsgroup-unreads
 						 gnus-newsgroup-downloadable)
-                       gnus-newsgroup-unfetched)))
+		       (gnus-sorted-difference gnus-newsgroup-unfetched
+					       gnus-newsgroup-cached))))
 	    ;; We actually mark all articles as canceled, which we
 	    ;; have to do when using auto-expiry or adaptive scoring.
 	    (gnus-summary-show-all-threads)

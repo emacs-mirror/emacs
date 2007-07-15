@@ -239,7 +239,7 @@ MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 	$(lisp)/mh-e/mh-xface.el
 
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
+$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
 	echo "" >> $@
 	echo ";; Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc." >> $@
@@ -275,6 +275,9 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 # an up-to-date copy of loaddefs.el that is uncorrupted by
 # local changes.  (Because loaddefs.el is an automatically generated
 # file, we don't want to store it in the source repository).
+#
+# The chmod +w is to handle env var CVSREAD=1.  Files named
+# are identified by being the value of `generated-autoload-file'.
 
 bootstrap-prepare:
 	if test -x $(EMACS); then				\
@@ -282,6 +285,9 @@ bootstrap-prepare:
 	else							\
 	  cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;		\
 	fi
+	chmod +w $(lisp)/loaddefs.el		\
+	  $(lisp)/ps-print.el			\
+	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
 maintainer-clean: distclean
 	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)

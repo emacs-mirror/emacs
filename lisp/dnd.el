@@ -149,7 +149,7 @@ Return nil if URI is not a local file."
 	       "%[A-Fa-f0-9][A-Fa-f0-9]"
 	       (lambda (arg)
 		 (format "%c" (string-to-number (substring arg 1) 16)))
-	       f nil t))
+	       f t t))
       (let* ((decoded-f (decode-coding-string
 			 f
 			 (or file-name-coding-system

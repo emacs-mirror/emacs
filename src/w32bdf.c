@@ -302,7 +302,7 @@ w32_free_bdf_font(bdffont *fontp)
   font_char *pch;
   cache_bitmap *pcb;
 
-  UnmapViewOfFile(fontp->hfilemap);
+  UnmapViewOfFile(fontp->font);
   CloseHandle(fontp->hfilemap);
   CloseHandle(fontp->hfile);
 
@@ -867,6 +867,7 @@ int w32_BDF_to_x_font (char *file, char* xstr, int len)
           retval = 1;
         }
     }
+  UnmapViewOfFile (font);
   CloseHandle (hfile);
   CloseHandle (hfilemap);
   return retval;

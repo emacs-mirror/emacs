@@ -2825,8 +2825,8 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
 void
 map_char_table (c_function, function, table, subtable, arg, depth, indices)
      void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, table, subtable, arg, *indices;
-     int depth;
+     Lisp_Object function, table, subtable, arg;
+     int depth, *indices;
 {
   int i, to;
   struct gcpro gcpro1, gcpro2,  gcpro3, gcpro4;
@@ -2860,7 +2860,7 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
     }
   else
     {
-      int charset = XFASTINT (indices[0]) - 128;
+      int charset = indices[0] - 128;
 
       i = 32;
       to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
@@ -2874,8 +2874,8 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
       int charset;
 
       elt = XCHAR_TABLE (subtable)->contents[i];
-      XSETFASTINT (indices[depth], i);
-      charset = XFASTINT (indices[0]) - 128;
+      indices[depth] = i;
+      charset = indices[0] - 128;
       if (depth == 0
 	  && (!CHARSET_DEFINED_P (charset)
 	      || charset == CHARSET_8_BIT_CONTROL
@@ -2892,8 +2892,8 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
 	{
 	  int c1, c2, c;
 
-	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
-	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
+	  c1 = depth >= 1 ? indices[1] : 0;
+	  c2 = depth >= 2 ? indices[2] : 0;
 	  c = MAKE_CHAR (charset, c1, c2);
 
 	  if (NILP (elt))
@@ -2927,14 +2927,14 @@ The key is always a possible IDX argument to `aref'.  */)
      Lisp_Object function, char_table;
 {
   /* The depth of char table is at most 3. */
-  Lisp_Object indices[3];
+  int indices[3];
 
   CHECK_CHAR_TABLE (char_table);
 
   /* When Lisp_Object is represented as a union, `call2' cannot directly
      be passed to map_char_table because it returns a Lisp_Object rather
      than returning nothing.
-     Casting leads to crashes on some architectures.  -stef  */
+     Casting leads to crashes on some architectures.  --Stef  */
   map_char_table (void_call2, Qnil, char_table, char_table, function, 0, indices);
   return Qnil;
 }
@@ -4271,7 +4271,7 @@ base64_decode_1 (from, to, length, multibyte, nchars_return)
 
 /* The list of all weak hash tables.  Don't staticpro this one.  */
 
-Lisp_Object Vweak_hash_tables;
+struct Lisp_Hash_Table *weak_hash_tables;
 
 /* Various symbols.  */
 
@@ -4617,11 +4617,11 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
 
   /* Maybe add this hash table to the list of all weak hash tables.  */
   if (NILP (h->weak))
-    h->next_weak = Qnil;
+    h->next_weak = NULL;
   else
     {
-      h->next_weak = Vweak_hash_tables;
-      Vweak_hash_tables = table;
+      h->next_weak = weak_hash_tables;
+      weak_hash_tables = h;
     }
 
   return table;
@@ -4652,8 +4652,8 @@ copy_hash_table (h1)
   /* Maybe add this hash table to the list of all weak hash tables.  */
   if (!NILP (h2->weak))
     {
-      h2->next_weak = Vweak_hash_tables;
-      Vweak_hash_tables = table;
+      h2->next_weak = weak_hash_tables;
+      weak_hash_tables = h2;
     }
 
   return table;
@@ -4972,13 +4972,12 @@ sweep_weak_table (h, remove_entries_p)
 
 /* Remove elements from weak hash tables that don't survive the
    current garbage collection.  Remove weak tables that don't survive
-   from Vweak_hash_tables.  Called from gc_sweep.  */
+   from weak_hash_tables.  Called from gc_sweep.  */
 
 void
 sweep_weak_hash_tables ()
 {
-  Lisp_Object table, used, next;
-  struct Lisp_Hash_Table *h;
+  struct Lisp_Hash_Table *h, *used, *next;
   int marked;
 
   /* Mark all keys and values that are in use.  Keep on marking until
@@ -4990,9 +4989,8 @@ sweep_weak_hash_tables ()
   do
     {
       marked = 0;
-      for (table = Vweak_hash_tables; !GC_NILP (table); table = h->next_weak)
+      for (h = weak_hash_tables; h; h = h->next_weak)
 	{
-	  h = XHASH_TABLE (table);
 	  if (h->size & ARRAY_MARK_FLAG)
 	    marked |= sweep_weak_table (h, 0);
 	}
@@ -5000,9 +4998,8 @@ sweep_weak_hash_tables ()
   while (marked);
 
   /* Remove tables and entries that aren't used.  */
-  for (table = Vweak_hash_tables, used = Qnil; !GC_NILP (table); table = next)
+  for (h = weak_hash_tables, used = NULL; h; h = next)
     {
-      h = XHASH_TABLE (table);
       next = h->next_weak;
 
       if (h->size & ARRAY_MARK_FLAG)
@@ -5013,11 +5010,11 @@ sweep_weak_hash_tables ()
 
 	  /* Add table to the list of used weak hash tables.  */
 	  h->next_weak = used;
-	  used = table;
+	  used = h;
 	}
     }
 
-  Vweak_hash_tables = used;
+  weak_hash_tables = used;
 }
 
 
@@ -5918,7 +5915,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
 void
 init_fns ()
 {
-  Vweak_hash_tables = Qnil;
+  weak_hash_tables = NULL;
 }
 
 /* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31

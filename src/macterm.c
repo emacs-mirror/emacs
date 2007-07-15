@@ -2196,11 +2196,12 @@ x_draw_fringe_bitmap (w, row, p)
   Display *display = FRAME_MAC_DISPLAY (f);
   struct face *face = p->face;
   int rowY;
+  int overlay_p = p->overlay_p;
 
 #ifdef MAC_OSX
-  if (p->bx >= 0 && !p->overlay_p)
+  if (!overlay_p)
     {
-      int bx = p->bx, nx = p->nx;
+      int bx = p->bx, by = p->by, nx = p->nx, ny = p->ny;
 
 #if 0  /* MAC_TODO: stipple */
       /* In case the same realized face is used for fringes and
@@ -2229,17 +2230,40 @@ x_draw_fringe_bitmap (w, row, p)
 	      int width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
 			   * FRAME_COLUMN_WIDTH (f));
 
-	      if (left + width == bx)
+	      if (bx < 0
+		  && (left + width == p->x
+		      || p->x + p->wd == left))
 		{
-		  bx = left + sb_width;
-		  nx += width - sb_width;
+		  /* Bitmap fills the fringe and we need background
+		     extension.  */
+		  int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+
+		  bx = p->x;
+		  nx = p->wd;
+		  by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
+							row->y));
+		  ny = row->visible_height;
 		}
-	      else if (bx + nx == left)
-		nx += width - sb_width;
+
+	      if (bx >= 0)
+		{
+		  if (left + width == bx)
+		    {
+		      bx = left + sb_width;
+		      nx += width - sb_width;
+		    }
+		  else if (bx + nx == left)
+		    nx += width - sb_width;
+		}
 	    }
 	}
 
-      mac_erase_rectangle (f, face->gc, bx, p->by, nx, p->ny);
+      if (bx >= 0)
+	{
+	  mac_erase_rectangle (f, face->gc, bx, by, nx, ny);
+	  /* The fringe background has already been filled.  */
+	  overlay_p = 1;
+	}
 
 #if 0  /* MAC_TODO: stipple */
       if (!face->stipple)
@@ -2304,10 +2328,10 @@ x_draw_fringe_bitmap (w, row, p)
 		       : face->foreground));
 #if USE_CG_DRAWING
       mac_draw_cg_image (fringe_bmp[p->which], f, face->gc, 0, p->dh,
-			 p->wd, p->h, p->x, p->y, p->overlay_p);
+			 p->wd, p->h, p->x, p->y, overlay_p);
 #else
       mac_draw_bitmap (f, face->gc, p->x, p->y,
-		       p->wd, p->h, p->bits + p->dh, p->overlay_p);
+		       p->wd, p->h, p->bits + p->dh, overlay_p);
 #endif
       XSetForeground (display, face->gc, gcv.foreground);
     }
@@ -11135,7 +11159,7 @@ mac_handle_text_input_event (next_handler, event, data)
      EventRef event;
      void *data;
 {
-  OSStatus result, err = noErr;
+  OSStatus err, result;
   Lisp_Object id_key = Qnil;
   int num_params;
   const EventParamName *names;
@@ -11196,6 +11220,7 @@ mac_handle_text_input_event (next_handler, event, data)
       SetEventParameter (event, EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER,
 			 typeUInt32, sizeof (UInt32), &seqno_uaia);
       seqno_uaia++;
+      result = noErr;
       break;
 
     case kEventTextInputUnicodeForKeyEvent:
@@ -11213,7 +11238,7 @@ mac_handle_text_input_event (next_handler, event, data)
 	if (err == noErr && mac_mapped_modifiers (modifiers))
 	  /* There're mapped modifier keys.  Process it in
 	     do_keystroke.  */
-	  return eventNotHandledErr;
+	  break;
 	if (err == noErr)
 	  err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
 				   typeUnicodeText, NULL, 0, &actual_size,
@@ -11252,16 +11277,20 @@ mac_handle_text_input_event (next_handler, event, data)
 			XSETFRAME (read_socket_inev->frame_or_window, f);
 		      }
 		  }
-		return eventNotHandledErr;
+		break;
 	      }
 	  }
+	if (err == noErr)
+	  {
+	    /* Non-ASCII keystrokes without mapped modifiers are
+	       processed at the Lisp level.  */
+	    id_key = Qunicode_for_key_event;
+	    num_params = sizeof (names_ufke) / sizeof (names_ufke[0]);
+	    names = names_ufke;
+	    types = types_ufke;
+	    result = noErr;
+	  }
       }
-      /* Non-ASCII keystrokes without mapped modifiers are processed
-	 at the Lisp level.  */
-      id_key = Qunicode_for_key_event;
-      num_params = sizeof (names_ufke) / sizeof (names_ufke[0]);
-      names = names_ufke;
-      types = types_ufke;
       break;
 
     case kEventTextInputOffsetToPos:
@@ -11271,22 +11300,24 @@ mac_handle_text_input_event (next_handler, event, data)
 	Point p;
 
 	if (!OVERLAYP (Vmac_ts_active_input_overlay))
-	  return eventNotHandledErr;
+	  break;
 
 	/* Strictly speaking, this is not always correct because
 	   previous events may change some states about display.  */
-	if (NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
+	if (!NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
+	  {
+	    /* Active input area is displayed around the current point.  */
+	    f = SELECTED_FRAME ();
+	    w = XWINDOW (f->selected_window);
+	  }
+	else if (WINDOWP (echo_area_window))
 	  {
 	    /* Active input area is displayed in the echo area.  */
 	    w = XWINDOW (echo_area_window);
 	    f = WINDOW_XFRAME (w);
 	  }
 	else
-	  {
-	    /* Active input area is displayed around the current point.  */
-	    f = SELECTED_FRAME ();
-	    w = XWINDOW (f->selected_window);
-	  }
+	  break;
 
 	p.h = (WINDOW_TO_FRAME_PIXEL_X (w, w->cursor.x)
 	       + WINDOW_LEFT_FRINGE_WIDTH (w)
@@ -11296,6 +11327,8 @@ mac_handle_text_input_event (next_handler, event, data)
 	       + f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f));
 	err = SetEventParameter (event, kEventParamTextInputReplyPoint,
 				 typeQDPoint, sizeof (typeQDPoint), &p);
+	if (err == noErr)
+	  result = noErr;
       }
       break;
 
@@ -11307,9 +11340,6 @@ mac_handle_text_input_event (next_handler, event, data)
     err = mac_store_event_ref_as_apple_event (0, 0, Qtext_input, id_key,
 					      event, num_params,
 					      names, types);
-  if (err == noErr)
-    result = noErr;
-
   return result;
 }
 #endif

@@ -2587,7 +2587,6 @@ first, before handlers for jobs such as remote file access.
 @code{directory-file-name},
 @code{directory-files},
 @code{directory-files-and-attributes},
-@code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},@*
 @code{expand-file-name},
 @code{file-accessible-directory-p},
@@ -2614,8 +2613,10 @@ first, before handlers for jobs such as remote file access.
 @code{make-directory},
 @code{make-directory-internal},
 @code{make-symbolic-link},@*
+@code{process-file},
 @code{rename-file}, @code{set-file-modes}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},
+@code{start-file-process},
 @code{substitute-in-file-name},@*
 @code{unhandled-file-name-directory},
 @code{vc-registered},
@@ -2633,7 +2634,6 @@ first, before handlers for jobs such as remote file access.
 @code{directory-file-name},
 @code{directory-files},
 @code{directory-files-and-at@discretionary{}{}{}tributes},
-@code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},
 @code{expand-file-name},
 @code{file-accessible-direc@discretionary{}{}{}tory-p},
@@ -2658,8 +2658,10 @@ first, before handlers for jobs such as remote file access.
 @code{load}, @code{make-direc@discretionary{}{}{}tory},
 @code{make-direc@discretionary{}{}{}tory-internal},
 @code{make-symbolic-link},
+@code{process-file},
 @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{shell-command},
+@code{start-file-process},
 @code{substitute-in-file-name},
 @code{unhandled-file-name-directory},
 @code{vc-regis@discretionary{}{}{}tered},
@@ -2766,7 +2768,7 @@ nothing and returns @code{nil}.  Otherwise it returns the file name
 of the local copy file.
 @end defun
 
-@defun file-remote-p filename
+@defun file-remote-p filename &optional connected
 This function tests whether @var{filename} is a remote file.  If
 @var{filename} is local (not remote), the return value is @code{nil}.
 If @var{filename} is indeed remote, the return value is a string that
@@ -2775,7 +2777,7 @@ identifies the remote system.
 This identifier string can include a host name and a user name, as
 well as characters designating the method used to access the remote
 system.  For example, the remote identifier string for the filename
-@code{/ssh:user@@host:/some/file} is @code{/ssh:user@@host:}.
+@code{/sudo::/some/file} is @code{/sudo:root@@localhost:}.
 
 If @code{file-remote-p} returns the same identifier for two different
 filenames, that means they are stored on the same file system and can
@@ -2783,6 +2785,11 @@ be accessed locally with respect to each other.  This means, for
 example, that it is possible to start a remote process accessing both
 files at the same time.  Implementors of file handlers need to ensure
 this principle is valid.
+
+If @var{connected} is non-@code{nil}, this function returns @code{nil}
+even if @var{filename} is remote, if Emacs has no network connection
+to its host.  This is useful when you want to avoid the delay of
+making connections when they don't exist.
 @end defun
 
 @defun unhandled-file-name-directory filename
@@ -3071,8 +3078,10 @@ have been dealt with by this function.
 
 @defvar after-insert-file-functions
 Each function in this list is called by @code{insert-file-contents}
-with one argument, the number of characters inserted, and should
-return the new character count, leaving point the same.
+with one argument, the number of characters inserted, and with point
+at the beginning of the inserted text.  Each function should leave
+point unchanged, and return the new character count describing the
+inserted text as modified by the function.
 @c ??? The docstring mentions a handler from `file-name-handler-alist'
 @c     "intercepting" `insert-file-contents'.  Hmmm.  --ttn
 @end defvar

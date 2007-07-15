@@ -27,7 +27,10 @@ Boston, MA 02110-1301, USA.  */
 #include <string.h>
 #include <errno.h>
 #include <sys/file.h>
-#include <unistd.h>             /* For isatty. */
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #if HAVE_TERMIOS_H
 #include <termios.h>		/* For TIOCNOTTY. */
@@ -2343,9 +2346,9 @@ the currently selected frame. */)
 void
 term_mouse_moveto (int x, int y)
 {
+  /* TODO: how to set mouse position?
   const char *name;
   int fd;
-  /* TODO: how to set mouse position?
   name = (const char *) ttyname (0);
   fd = open (name, O_WRONLY);
      SOME_FUNCTION (x, y, fd);
@@ -2359,7 +2362,7 @@ term_show_mouse_face (enum draw_glyphs_face draw)
 {
   struct window *w = XWINDOW (Qmouse_face_window);
   int save_x, save_y;
-  int i, j;
+  int i;
 
   struct frame *f = XFRAME (w->frame);
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -2882,7 +2885,7 @@ int
 handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct input_event* hold_quit)
 {
   struct frame *f = XFRAME (tty->top_frame);
-  int i, j, fd;
+  int fd;
   struct input_event ie;
   int do_help = 0;
   int count = 0;
@@ -2906,7 +2909,7 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct in
     arg[1] = arg[3] = (unsigned short) event->y + gpm_zerobased;
     arg[4] = (unsigned short) 3;
     
-    name = (const char *) ttyname (0);
+    name = ttyname (0);
     fd = open (name, O_WRONLY);
     ioctl (fd, TIOCLINUX, buf + sizeof (short) - 1);
     close (fd);

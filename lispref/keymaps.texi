@@ -655,12 +655,15 @@ events within @code{read-key-sequence}.  @xref{Translation Keymaps}.
 
   @xref{Standard Keymaps}, for a list of standard keymaps.
 
-@defun current-active-maps &optional olp
+@defun current-active-maps &optional olp position
 This returns the list of active keymaps that would be used by the
 command loop in the current circumstances to look up a key sequence.
 Normally it ignores @code{overriding-local-map} and
-@code{overriding-terminal-local-map}, but if @var{olp} is
-non-@code{nil} then it pays attention to them.
+@code{overriding-terminal-local-map}, but if @var{olp} is non-@code{nil}
+then it pays attention to them.  @var{position} can optionally be either
+an event position as returned by @code{event-start} or a buffer
+position, and may change the keymaps as described for
+@code{key-binding}.
 @end defun
 
 @defun key-binding key &optional accept-defaults no-remap position

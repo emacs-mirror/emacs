@@ -103,7 +103,7 @@ change the list."
 When COND yields non-nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none.
 
-\(fn COND BODY ...)"
+\(fn COND BODY...)"
   (declare (indent 1) (debug t))
   (list 'if cond (cons 'progn body)))
 
@@ -112,7 +112,7 @@ value of last one, or nil if there are none.
 When COND yields nil, eval BODY forms sequentially and return
 value of last one, or nil if there are none.
 
-\(fn COND BODY ...)"
+\(fn COND BODY...)"
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
@@ -510,6 +510,7 @@ Don't call this function; it is for internal use only."
 			       (if (integerp b) (< a b)
 				 t)
 			     (if (integerp b) t
+                               ;; string< also accepts symbols.
 			       (string< a b))))))
 	(dolist (p list)
 	  (funcall function (car p) (cdr p))))
@@ -1219,7 +1220,8 @@ if it is empty or a duplicate."
 Execution is delayed if `delay-mode-hooks' is non-nil.
 If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
 after running the mode hooks.
-Major mode functions should use this."
+Major mode functions should use this instead of `run-hooks' when running their
+FOO-mode-hook."
   (if delay-mode-hooks
       ;; Delaying case.
       (dolist (hook hooks)
@@ -2501,6 +2503,29 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
 	   (or (input-pending-p)
 	       ,@body))))))
 
+(defmacro condition-case-no-debug (var bodyform &rest handlers)
+  "Like `condition-case' except that it does not catch anything when debugging.
+More specifically if `debug-on-error' is set, then it does not catch any signal."
+  (declare (debug condition-case) (indent 2))
+  (let ((bodysym (make-symbol "body")))
+    `(let ((,bodysym (lambda () ,bodyform)))
+       (if debug-on-error
+           (funcall ,bodysym)
+         (condition-case ,var
+             (funcall ,bodysym)
+           ,@handlers)))))
+
+(defmacro with-demoted-errors (&rest body)
+  "Run BODY and demote any errors to simple messages.
+If `debug-on-error' is non-nil, run BODY without catching its errors.
+This is to be used around code which is not expected to signal an error
+but which should be robust in the unexpected case that an error is signalled."
+  (declare (debug t) (indent 0))
+  (let ((err (make-symbol "err")))
+    `(condition-case-no-debug ,err
+         (progn ,@body)
+       (error (message "Error: %s" ,err) nil))))
+
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
 If BODY makes changes in the buffer, they are recorded
@@ -2535,6 +2560,20 @@ The value returned is the value of the last form in BODY."
 
 ;;;; Constructing completion tables.
 
+(defun complete-with-action (action table string pred)
+  "Perform completion ACTION.
+STRING is the string to complete.
+TABLE is the completion table, which should not be a function.
+PRED is a completion predicate.
+ACTION can be one of nil, t or `lambda'."
+  ;; (assert (not (functionp table)))
+  (funcall
+   (cond
+    ((null action) 'try-completion)
+    ((eq action t) 'all-completions)
+    (t 'test-completion))
+   string table pred))
+
 (defmacro dynamic-completion-table (fun)
   "Use function FUN as a dynamic completion table.
 FUN is called with one argument, the string for which completion is required,
@@ -2556,10 +2595,7 @@ that can be used as the ALIST argument to `try-completion' and
        (with-current-buffer (let ((,win (minibuffer-selected-window)))
                               (if (window-live-p ,win) (window-buffer ,win)
                                 (current-buffer)))
-         (cond
-          ((eq ,mode t) (all-completions ,string (,fun ,string) ,predicate))
-          ((not ,mode) (try-completion ,string (,fun ,string) ,predicate))
-          (t (test-completion ,string (,fun ,string) ,predicate)))))))
+         (complete-with-action ,mode (,fun ,string) ,string ,predicate)))))
 
 (defmacro lazy-completion-table (var fun)
   ;; We used to have `&rest args' where `args' were evaluated late (at the
@@ -2684,6 +2720,18 @@ of a match for REGEXP."
 	    (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
     (not (null pos))))
 
+(defsubst looking-at-p (regexp)
+  "\
+Same as `looking-at' except this function does not change the match data."
+  (let ((inhibit-changing-match-data t))
+    (looking-at regexp)))
+
+(defsubst string-match-p (regexp string &optional start)
+  "\
+Same as `string-match' except this function does not change the match data."
+  (let ((inhibit-changing-match-data t))
+    (string-match regexp string start)))
+
 (defun subregexp-context-p (regexp pos &optional start)
   "Return non-nil if POS is in a normal subregexp context in REGEXP.
 A subregexp context is one where a sub-regexp can appear.
@@ -2785,6 +2833,36 @@ Modifies the match data; use `save-match-data' if necessary."
 	      (cons (substring string start)
 		    list)))
     (nreverse list)))
+
+;; (string->strings (strings->string X)) == X
+(defun strings->string (strings &optional separator)
+  "Concatenate the STRINGS, adding the SEPARATOR (default \" \").
+This tries to quote the strings to avoid ambiguity such that
+  (string->strings (strings->string strs)) == strs
+Only some SEPARATORs will work properly."
+  (let ((sep (or separator " ")))
+    (mapconcat
+     (lambda (str)
+       (if (string-match "[\\\"]" str)
+	   (concat "\"" (replace-regexp-in-string "[\\\"]" "\\\\\\&" str) "\"")
+	 str))
+     strings sep)))
+
+;; (string->strings (strings->string X)) == X
+(defun string->strings (string &optional separator)
+  "Split the STRING into a list of strings.
+It understands elisp style quoting within STRING such that
+  (string->strings (strings->string strs)) == strs
+The SEPARATOR regexp defaults to \"\\s-+\"."
+  (let ((sep (or separator "\\s-+"))
+	(i (string-match "[\"]" string)))
+    (if (null i) (split-string string sep t)	; no quoting:  easy
+      (append (unless (eq i 0) (split-string (substring string 0 i) sep t))
+	      (let ((rfs (read-from-string string i)))
+		(cons (car rfs)
+		      (string->strings (substring string (cdr rfs))
+					   sep)))))))
+
 
 ;;;; Replacement in strings.
 

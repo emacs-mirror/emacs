@@ -222,13 +222,6 @@ second TAB brings up the `*Completions*' buffer."
 	 (remove-hook 'find-file-not-found-functions 'PC-look-for-include-file))
 	((not PC-disable-includes)
 	 (add-hook 'find-file-not-found-functions 'PC-look-for-include-file)))
-  ;; ... with some underhand redefining.
-  (cond ((not partial-completion-mode)
-         (ad-disable-advice 'read-file-name-internal 'around 'PC-include-file)
-         (ad-activate 'read-file-name-internal))
-	((not PC-disable-includes)
-         (ad-enable-advice 'read-file-name-internal 'around 'PC-include-file)
-         (ad-activate 'read-file-name-internal)))
   ;; Adjust the completion selection in *Completion* buffers to the way
   ;; we work.  The default minibuffer completion code only completes the
   ;; text before point and leaves the text after point alone (new in
@@ -335,14 +328,24 @@ See `PC-complete' for details."
     (PC-do-complete-and-exit)))
 
 (defun PC-do-complete-and-exit ()
-  (if (= (point-max) (minibuffer-prompt-end))  ; Duplicate the "bug" that Info-menu relies on...
-      (exit-minibuffer)
+  (cond
+   ((= (point-max) (minibuffer-prompt-end))
+    ;; Duplicate the "bug" that Info-menu relies on...
+    (exit-minibuffer))
+   ((eq minibuffer-completion-confirm 'confirm-only)
+    (if (or (eq last-command this-command)
+            (test-completion (field-string)
+                             minibuffer-completion-table
+                             minibuffer-completion-predicate))
+        (exit-minibuffer)
+      (PC-temp-minibuffer-message " [Confirm]")))
+   (t
     (let ((flag (PC-do-completion 'exit)))
       (and flag
 	   (if (or (eq flag 'complete)
 		   (not minibuffer-completion-confirm))
 	       (exit-minibuffer)
-	     (PC-temp-minibuffer-message " [Confirm]"))))))
+	     (PC-temp-minibuffer-message " [Confirm]")))))))
 
 
 (defun PC-completion-help ()
@@ -430,7 +433,9 @@ point-max (as is appropriate for completing a file name).  If
 GOTO-END is non-nil, however, it instead replaces up to END."
   (or beg (setq beg (minibuffer-prompt-end)))
   (or end (setq end (point-max)))
-  (let* ((table minibuffer-completion-table)
+  (let* ((table (if (eq minibuffer-completion-table 'read-file-name-internal)
+                    'PC-read-file-name-internal
+                    minibuffer-completion-table))
 	 (pred minibuffer-completion-predicate)
 	 (filename (funcall PC-completion-as-file-name-predicate))
 	 (dirname nil) ; non-nil only if a filename is being completed
@@ -523,11 +528,11 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 		     (insert str)
 		     (setq end (+ beg (length str)))))
 	       (if origstr
-                   ;; If the wildcards were introduced by us, it's possible
-                   ;; that read-file-name-internal (especially our
-                   ;; PC-include-file advice) can still find matches for the
-                   ;; original string even if we couldn't, so remove the
-                   ;; added wildcards.
+                       ;; If the wildcards were introduced by us, it's
+                       ;; possible that PC-read-file-name-internal can
+                       ;; still find matches for the original string
+                       ;; even if we couldn't, so remove the added
+                       ;; wildcards.
                    (setq str origstr)
 		 (setq filename nil table nil pred nil)))))
 
@@ -912,7 +917,7 @@ or properties are considered."
 				       (point-min) t)
                    (+ (point) 2)
                    (point-min)))
-          (minibuffer-completion-table 'read-file-name-internal)
+          (minibuffer-completion-table 'PC-read-file-name-internal)
           (minibuffer-completion-predicate "")
           (PC-not-minibuffer t))
      (goto-char end)
@@ -1098,24 +1103,23 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	  (setq sorted (cdr sorted)))
 	compressed))))
 
-(defadvice read-file-name-internal (around PC-include-file disable)
-  (if (string-match "<\\([^\"<>]*\\)>?\\'" (ad-get-arg 0))
-      (let* ((string (ad-get-arg 0))
-             (action (ad-get-arg 2))
-             (name (match-string 1 string))
+(defun PC-read-file-name-internal (string dir action)
+  "Extend `read-file-name-internal' to handle include files.
+This is only used by "
+  (if (string-match "<\\([^\"<>]*\\)>?\\'" string)
+      (let* ((name (match-string 1 string))
 	     (str2 (substring string (match-beginning 0)))
 	     (completion-table
 	      (mapcar (lambda (x)
                         (format (if (string-match "/\\'" x) "<%s" "<%s>") x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
-        (setq ad-return-value
               (cond
                ((not completion-table) nil)
                ((eq action 'lambda) (test-completion str2 completion-table nil))
                ((eq action nil) (PC-try-completion str2 completion-table nil))
-               ((eq action t) (all-completions str2 completion-table nil)))))
-    ad-do-it))
+          ((eq action t) (all-completions str2 completion-table nil))))
+    (read-file-name-internal string dir action)))
 
 
 (provide 'complete)

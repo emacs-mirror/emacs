@@ -121,14 +121,6 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
-/* Disable IPv6 support for w32 until someone figures out how to do it
-   properly.  */
-#ifdef WINDOWSNT
-# ifdef AF_INET6
-#  undef AF_INET6
-# endif
-#endif
-
 #include "lisp.h"
 #include "systime.h"
 #include "systty.h"
@@ -393,7 +385,7 @@ struct sockaddr_and_len {
   int len;
 } datagram_address[MAXDESC];
 #define DATAGRAM_CHAN_P(chan)	(datagram_address[chan].sa != 0)
-#define DATAGRAM_CONN_P(proc)	(PROCESSP (proc) && datagram_address[XINT (XPROCESS (proc)->infd)].sa != 0)
+#define DATAGRAM_CONN_P(proc)	(PROCESSP (proc) && datagram_address[XPROCESS (proc)->infd].sa != 0)
 #else
 #define DATAGRAM_CHAN_P(chan)	(0)
 #define DATAGRAM_CONN_P(proc)	(0)
@@ -628,19 +620,19 @@ make_process (name)
 
   p = allocate_process ();
 
-  XSETINT (p->infd, -1);
-  XSETINT (p->outfd, -1);
-  XSETFASTINT (p->tick, 0);
-  XSETFASTINT (p->update_tick, 0);
+  p->infd = -1;
+  p->outfd = -1;
+  p->tick = 0;
+  p->update_tick = 0;
   p->pid = 0;
   p->raw_status_new = 0;
   p->status = Qrun;
   p->mark = Fmake_marker ();
 
 #ifdef ADAPTIVE_READ_BUFFERING
-  p->adaptive_read_buffering = Qnil;
-  XSETFASTINT (p->read_output_delay, 0);
-  p->read_output_skip = Qnil;
+  p->adaptive_read_buffering = 0;
+  p->read_output_delay = 0;
+  p->read_output_skip = 0;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
@@ -679,8 +671,8 @@ setup_process_coding_systems (process)
      Lisp_Object process;
 {
   struct Lisp_Process *p = XPROCESS (process);
-  int inch = XINT (p->infd);
-  int outch = XINT (p->outfd);
+  int inch = p->infd;
+  int outch = p->outfd;
 
   if (inch < 0 || outch < 0)
     return;
@@ -692,7 +684,7 @@ setup_process_coding_systems (process)
 		       proc_decode_coding_system[inch]);
   if (! NILP (p->filter))
     {
-      if (NILP (p->filter_multibyte))
+      if (!p->filter_multibyte)
 	setup_raw_text_coding_system (proc_decode_coding_system[inch]);
     }
   else if (BUFFERP (p->buffer))
@@ -815,10 +807,10 @@ nil, indicating the current buffer's process.  */)
   if (NETCONN1_P (p))
     {
       p->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
-      XSETINT (p->tick, ++process_tick);
+      p->tick = ++process_tick;
       status_notify (p);
     }
-  else if (XINT (p->infd) >= 0)
+  else if (p->infd >= 0)
     {
 #ifdef SIGCHLD
       Lisp_Object symbol;
@@ -846,7 +838,7 @@ nil, indicating the current buffer's process.  */)
 	  /* Do this now, since remove_process will make sigchld_handler do nothing.  */
 	  p->status
 	    = Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil));
-	  XSETINT (p->tick, ++process_tick);
+	  p->tick = ++process_tick;
 	  status_notify (p);
 	}
     }
@@ -1038,18 +1030,18 @@ The string argument is normally a multibyte string, except:
      (debug)
      (set-process-filter process ...)  */
 
-  if (XINT (p->infd) >= 0)
+  if (p->infd >= 0)
     {
       if (EQ (filter, Qt) && !EQ (p->status, Qlisten))
 	{
-	  FD_CLR (XINT (p->infd), &input_wait_mask);
-	  FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
+	  FD_CLR (p->infd, &input_wait_mask);
+	  FD_CLR (p->infd, &non_keyboard_wait_mask);
 	}
       else if (EQ (p->filter, Qt)
 	       && !EQ (p->command, Qt)) /* Network process not stopped. */
 	{
-	  FD_SET (XINT (p->infd), &input_wait_mask);
-	  FD_SET (XINT (p->infd), &non_keyboard_wait_mask);
+	  FD_SET (p->infd, &input_wait_mask);
+	  FD_SET (p->infd, &non_keyboard_wait_mask);
 	}
     }
 
@@ -1111,8 +1103,8 @@ DEFUN ("set-process-window-size", Fset_process_window_size,
   CHECK_NATNUM (height);
   CHECK_NATNUM (width);
 
-  if (XINT (XPROCESS (process)->infd) < 0
-      || set_window_size (XINT (XPROCESS (process)->infd),
+  if (XPROCESS (process)->infd < 0
+      || set_window_size (XPROCESS (process)->infd,
 			  XINT (height), XINT (width)) <= 0)
     return Qnil;
   else
@@ -1140,7 +1132,7 @@ for the process which will run.  */)
      register Lisp_Object process, flag;
 {
   CHECK_PROCESS (process);
-  XPROCESS (process)->inherit_coding_system_flag = flag;
+  XPROCESS (process)->inherit_coding_system_flag = !NILP (flag);
   return flag;
 }
 
@@ -1155,7 +1147,7 @@ the process output.  */)
      register Lisp_Object process;
 {
   CHECK_PROCESS (process);
-  return XPROCESS (process)->inherit_coding_system_flag;
+  return XPROCESS (process)->inherit_coding_system_flag ? Qt : Qnil;
 }
 
 DEFUN ("set-process-query-on-exit-flag",
@@ -1168,7 +1160,7 @@ exiting if PROCESS is running.  */)
      register Lisp_Object process, flag;
 {
   CHECK_PROCESS (process);
-  XPROCESS (process)->kill_without_query = Fnull (flag);
+  XPROCESS (process)->kill_without_query = NILP (flag);
   return flag;
 }
 
@@ -1180,7 +1172,7 @@ DEFUN ("process-query-on-exit-flag",
      register Lisp_Object process;
 {
   CHECK_PROCESS (process);
-  return Fnull (XPROCESS (process)->kill_without_query);
+  return (XPROCESS (process)->kill_without_query ? Qnil : Qt);
 }
 
 #ifdef DATAGRAM_SOCKETS
@@ -1355,7 +1347,7 @@ list_processes_1 (query_only)
       p = XPROCESS (proc);
       if (NILP (p->childp))
 	continue;
-      if (!NILP (query_only) && !NILP (p->kill_without_query))
+      if (!NILP (query_only) && p->kill_without_query)
 	continue;
       if (STRINGP (p->name)
 	  && ( i = SCHARS (p->name), (i > w_proc)))
@@ -1418,7 +1410,7 @@ list_processes_1 (query_only)
       p = XPROCESS (proc);
       if (NILP (p->childp))
 	continue;
-      if (!NILP (query_only) && !NILP (p->kill_without_query))
+      if (!NILP (query_only) && p->kill_without_query)
 	continue;
 
       Finsert (1, &p->name);
@@ -1494,7 +1486,7 @@ list_processes_1 (query_only)
 	  if (NILP (port))
 	    port = Fformat_network_address (Fplist_get (p->childp, QClocal), Qnil);
 	  sprintf (tembuf, "(network %s server on %s)\n",
-		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
+		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
 		   (STRINGP (port) ? (char *)SDATA (port) : "?"));
 	  insert_string (tembuf);
 	}
@@ -1512,7 +1504,7 @@ list_processes_1 (query_only)
 	  if (NILP (host))
 	    host = Fformat_network_address (Fplist_get (p->childp, QCremote), Qnil);
 	  sprintf (tembuf, "(network %s connection to %s)\n",
-		   (DATAGRAM_CHAN_P (XINT (p->infd)) ? "datagram" : "stream"),
+		   (DATAGRAM_CHAN_P (p->infd) ? "datagram" : "stream"),
 		   (STRINGP (host) ? (char *)SDATA (host) : "?"));
 	  insert_string (tembuf);
         }
@@ -1643,11 +1635,13 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   XPROCESS (proc)->sentinel = Qnil;
   XPROCESS (proc)->filter = Qnil;
   XPROCESS (proc)->filter_multibyte
-    = buffer_defaults.enable_multibyte_characters;
+    = !NILP (buffer_defaults.enable_multibyte_characters);
   XPROCESS (proc)->command = Flist (nargs - 2, args + 2);
 
 #ifdef ADAPTIVE_READ_BUFFERING
-  XPROCESS (proc)->adaptive_read_buffering = Vprocess_adaptive_read_buffering;
+  XPROCESS (proc)->adaptive_read_buffering
+    = (NILP (Vprocess_adaptive_read_buffering) ? 0
+       : EQ (Vprocess_adaptive_read_buffering, Qt) ? 1 : 2);
 #endif
 
   /* Make the process marker point into the process buffer (if any).  */
@@ -1778,13 +1772,11 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 #endif /* not VMS */
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
-  XPROCESS (proc)->decoding_carryover = make_number (0);
+  XPROCESS (proc)->decoding_carryover = 0;
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
-  XPROCESS (proc)->encoding_carryover = make_number (0);
 
   XPROCESS (proc)->inherit_coding_system_flag
-    = (NILP (buffer) || !inherit_process_coding_system
-       ? Qnil : Qt);
+    = (NILP (buffer) || !inherit_process_coding_system);
 
   create_process (proc, (char **) new_argv, current_dir);
 
@@ -1956,15 +1948,15 @@ create_process (process, new_argv, current_dir)
   /* Record this as an active process, with its channels.
      As a result, child_setup will close Emacs's side of the pipes.  */
   chan_process[inchannel] = process;
-  XSETINT (XPROCESS (process)->infd, inchannel);
-  XSETINT (XPROCESS (process)->outfd, outchannel);
+  XPROCESS (process)->infd = inchannel;
+  XPROCESS (process)->outfd = outchannel;
 
   /* Previously we recorded the tty descriptor used in the subprocess.
      It was only used for getting the foreground tty process, so now
      we just reopen the device (see emacs_get_tty_pgrp) as this is
      more portable (see USG_SUBTTY_WORKS above).  */
 
-  XPROCESS (process)->pty_flag = (pty_flag ? Qt : Qnil);
+  XPROCESS (process)->pty_flag = pty_flag;
   XPROCESS (process)->status = Qrun;
   setup_process_coding_systems (process);
 
@@ -2481,7 +2473,7 @@ DEFUN ("process-datagram-address", Fprocess_datagram_address, Sprocess_datagram_
   if (!DATAGRAM_CONN_P (process))
     return Qnil;
 
-  channel = XINT (XPROCESS (process)->infd);
+  channel = XPROCESS (process)->infd;
   return conv_sockaddr_to_lisp (datagram_address[channel].sa,
 				datagram_address[channel].len);
 }
@@ -2501,7 +2493,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
   if (!DATAGRAM_CONN_P (process))
     return Qnil;
 
-  channel = XINT (XPROCESS (process)->infd);
+  channel = XPROCESS (process)->infd;
 
   len = get_lisp_to_sockaddr_size (address, &family);
   if (datagram_address[channel].len != len)
@@ -2666,7 +2658,7 @@ OPTION is not a supported option, return nil instead; otherwise return t.  */)
   if (!NETCONN1_P (p))
     error ("Process is not a network process");
 
-  s = XINT (p->infd);
+  s = p->infd;
   if (s < 0)
     error ("Process is not running");
 
@@ -3425,18 +3417,18 @@ usage: (make-network-process &rest ARGS)  */)
   p->buffer = buffer;
   p->sentinel = sentinel;
   p->filter = filter;
-  p->filter_multibyte = buffer_defaults.enable_multibyte_characters;
+  p->filter_multibyte = !NILP (buffer_defaults.enable_multibyte_characters);
   /* Override the above only if :filter-multibyte is specified.  */
   if (! NILP (Fplist_member (contact, QCfilter_multibyte)))
-    p->filter_multibyte = Fplist_get (contact, QCfilter_multibyte);
+    p->filter_multibyte = !NILP (Fplist_get (contact, QCfilter_multibyte));
   p->log = Fplist_get (contact, QClog);
   if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
-    p->kill_without_query = Qt;
+    p->kill_without_query = 1;
   if ((tem = Fplist_get (contact, QCstop), !NILP (tem)))
     p->command = Qt;
   p->pid = 0;
-  XSETINT (p->infd, inch);
-  XSETINT (p->outfd, outch);
+  p->infd  = inch;
+  p->outfd = outch;
   if (is_server && socktype == SOCK_STREAM)
     p->status = Qlisten;
 
@@ -3557,13 +3549,11 @@ usage: (make-network-process &rest ARGS)  */)
   setup_process_coding_systems (proc);
 
   p->decoding_buf = make_uninit_string (0);
-  p->decoding_carryover = make_number (0);
+  p->decoding_carryover = 0;
   p->encoding_buf = make_uninit_string (0);
-  p->encoding_carryover = make_number (0);
 
   p->inherit_coding_system_flag
-    = (!NILP (tem) || NILP (buffer) || !inherit_process_coding_system
-       ? Qnil : Qt);
+    = (!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
 
   UNGCPRO;
   return proc;
@@ -3826,16 +3816,16 @@ deactivate_process (proc)
   register int inchannel, outchannel;
   register struct Lisp_Process *p = XPROCESS (proc);
 
-  inchannel = XINT (p->infd);
-  outchannel = XINT (p->outfd);
+  inchannel  = p->infd;
+  outchannel = p->outfd;
 
 #ifdef ADAPTIVE_READ_BUFFERING
-  if (XINT (p->read_output_delay) > 0)
+  if (p->read_output_delay > 0)
     {
       if (--process_output_delay_count < 0)
 	process_output_delay_count = 0;
-      XSETINT (p->read_output_delay, 0);
-      p->read_output_skip = Qnil;
+      p->read_output_delay = 0;
+      p->read_output_skip = 0;
     }
 #endif
 
@@ -3857,8 +3847,8 @@ deactivate_process (proc)
  	emacs_close (outchannel);
 #endif
 
-      XSETINT (p->infd, -1);
-      XSETINT (p->outfd, -1);
+      p->infd  = -1;
+      p->outfd = -1;
 #ifdef DATAGRAM_SOCKETS
       if (DATAGRAM_CHAN_P (inchannel))
 	{
@@ -3906,8 +3896,8 @@ close_process_descs ()
       process = chan_process[i];
       if (!NILP (process))
 	{
-	  int in = XINT (XPROCESS (process)->infd);
-	  int out = XINT (XPROCESS (process)->outfd);
+	  int in  = XPROCESS (process)->infd;
+	  int out = XPROCESS (process)->outfd;
 	  if (in >= 0)
 	    emacs_close (in);
 	  if (out >= 0 && in != out)
@@ -4151,8 +4141,8 @@ server_accept_connection (server, channel)
   p->filter = ps->filter;
   p->command = Qnil;
   p->pid = 0;
-  XSETINT (p->infd, s);
-  XSETINT (p->outfd, s);
+  p->infd  = s;
+  p->outfd = s;
   p->status = Qrun;
 
   /* Client processes for accepted connections are not stopped initially.  */
@@ -4175,12 +4165,11 @@ server_accept_connection (server, channel)
   setup_process_coding_systems (proc);
 
   p->decoding_buf = make_uninit_string (0);
-  p->decoding_carryover = make_number (0);
+  p->decoding_carryover = 0;
   p->encoding_buf = make_uninit_string (0);
-  p->encoding_carryover = make_number (0);
 
   p->inherit_coding_system_flag
-    = (NILP (buffer) ? Qnil : ps->inherit_coding_system_flag);
+    = (NILP (buffer) ? 0 : ps->inherit_coding_system_flag);
 
   if (!NILP (ps->log))
       call3 (ps->log, server, proc,
@@ -4305,7 +4294,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 
   /* If wait_proc is a process to watch, set wait_channel accordingly.  */
   if (wait_proc != NULL)
-    wait_channel = XINT (wait_proc->infd);
+    wait_channel = wait_proc->infd;
 
   record_unwind_protect (wait_reading_process_output_unwind,
 			 make_number (waiting_for_user_input_p));
@@ -4490,9 +4479,9 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  XSETPROCESS (proc, wait_proc);
 
 	  /* Read data from the process, until we exhaust it.  */
-	  while (XINT (wait_proc->infd) >= 0)
+	  while (wait_proc->infd >= 0)
 	    {
-	      nread = read_process_output (proc, XINT (wait_proc->infd));
+	      nread = read_process_output (proc, wait_proc->infd);
 
 	      if (nread == 0)
 		break;
@@ -4522,9 +4511,9 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 
       if (wait_proc && just_wait_proc)
 	{
-	  if (XINT (wait_proc->infd) < 0)  /* Terminated */
+	  if (wait_proc->infd < 0)  /* Terminated */
 	    break;
-	  FD_SET (XINT (wait_proc->infd), &Available);
+	  FD_SET (wait_proc->infd, &Available);
 	  check_delay = 0;
 	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
 	}
@@ -4572,7 +4561,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 
 #ifdef ADAPTIVE_READ_BUFFERING
 	  /* Set the timeout for adaptive read buffering if any
-	     process has non-nil read_output_skip and non-zero
+	     process has non-zero read_output_skip and non-zero
 	     read_output_delay, and we are not reading output for a
 	     specific wait_channel.  It is not executed if
 	     Vprocess_adaptive_read_buffering is nil.  */
@@ -4587,16 +4576,16 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		  if (NILP (proc))
 		    continue;
 		  /* Find minimum non-zero read_output_delay among the
-		     processes with non-nil read_output_skip.  */
-		  if (XINT (XPROCESS (proc)->read_output_delay) > 0)
+		     processes with non-zero read_output_skip.  */
+		  if (XPROCESS (proc)->read_output_delay > 0)
 		    {
 		      check_delay--;
-		      if (NILP (XPROCESS (proc)->read_output_skip))
+		      if (!XPROCESS (proc)->read_output_skip)
 			continue;
 		      FD_CLR (channel, &Available);
-		      XPROCESS (proc)->read_output_skip = Qnil;
-		      if (XINT (XPROCESS (proc)->read_output_delay) < usecs)
-			usecs = XINT (XPROCESS (proc)->read_output_delay);
+		      XPROCESS (proc)->read_output_skip = 0;
+		      if (XPROCESS (proc)->read_output_delay < usecs)
+			usecs = XPROCESS (proc)->read_output_delay;
 		    }
 		}
 	      EMACS_SET_SECS_USECS (timeout, 0, usecs);
@@ -4869,7 +4858,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      else
 		{
 		  /* Preserve status of processes already terminated.  */
-		  XSETINT (XPROCESS (proc)->tick, ++process_tick);
+		  XPROCESS (proc)->tick = ++process_tick;
 		  deactivate_process (proc);
 		  if (XPROCESS (proc)->raw_status_new)
 		    update_status (XPROCESS (proc));
@@ -4921,7 +4910,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 #endif
 	      if (xerrno)
 		{
-		  XSETINT (p->tick, ++process_tick);
+		  p->tick = ++process_tick;
 		  p->status = Fcons (Qfailed, Fcons (make_number (xerrno), Qnil));
 		  deactivate_process (proc);
 		}
@@ -4934,8 +4923,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		  exec_sentinel (proc, build_string ("open\n"));
 		  if (!EQ (p->filter, Qt) && !EQ (p->command, Qt))
 		    {
-		      FD_SET (XINT (p->infd), &input_wait_mask);
-		      FD_SET (XINT (p->infd), &non_keyboard_wait_mask);
+		      FD_SET (p->infd, &input_wait_mask);
+		      FD_SET (p->infd, &non_keyboard_wait_mask);
 		    }
 		}
 	    }
@@ -5009,7 +4998,7 @@ read_process_output (proc, channel)
   register struct Lisp_Process *p = XPROCESS (proc);
   register int opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
-  int carryover = XINT (p->decoding_carryover);
+  int carryover = p->decoding_carryover;
   int readmax = 4096;
 
 #ifdef VMS
@@ -5062,9 +5051,9 @@ read_process_output (proc, channel)
     {
       nbytes = emacs_read (channel, chars + carryover, readmax);
 #ifdef ADAPTIVE_READ_BUFFERING
-      if (nbytes > 0 && !NILP (p->adaptive_read_buffering))
+      if (nbytes > 0 && p->adaptive_read_buffering)
 	{
-	  int delay = XINT (p->read_output_delay);
+	  int delay = p->read_output_delay;
 	  if (nbytes < 256)
 	    {
 	      if (delay < READ_OUTPUT_DELAY_MAX_MAX)
@@ -5080,10 +5069,10 @@ read_process_output (proc, channel)
 	      if (delay == 0)
 		process_output_delay_count--;
 	    }
-	  XSETINT (p->read_output_delay, delay);
+	  p->read_output_delay = delay;
 	  if (delay)
 	    {
-	      p->read_output_skip = Qt;
+	      p->read_output_skip = 1;
 	      process_output_skip = 1;
 	    }
 	}
@@ -5101,7 +5090,7 @@ read_process_output (proc, channel)
     }
 #endif /* not VMS */
 
-  XSETINT (p->decoding_carryover, 0);
+  p->decoding_carryover = 0;
 
   /* At this point, NBYTES holds number of bytes just received
      (including the one in proc_buffered_char[channel]).  */
@@ -5175,14 +5164,14 @@ read_process_output (proc, channel)
 	     valid memory because p->outfd will be changed once EOF is
 	     sent to the process.  */
 	  if (NILP (p->encode_coding_system)
-	      && proc_encode_coding_system[XINT (p->outfd)])
+	      && proc_encode_coding_system[p->outfd])
 	    {
 	      p->encode_coding_system = coding->symbol;
 	      setup_coding_system (coding->symbol,
-				   proc_encode_coding_system[XINT (p->outfd)]);
-	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
+				   proc_encode_coding_system[p->outfd]);
+	      if (proc_encode_coding_system[p->outfd]->eol_type
 		  == CODING_EOL_UNDECIDED)
-		proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		proc_encode_coding_system[p->outfd]->eol_type
 		  = system_eol_type;
 	    }
 	}
@@ -5195,9 +5184,9 @@ read_process_output (proc, channel)
 	p->decoding_buf = make_uninit_string (carryover);
       bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
-      XSETINT (p->decoding_carryover, carryover);
+      p->decoding_carryover = carryover;
       /* Adjust the multibyteness of TEXT to that of the filter.  */
-      if (NILP (p->filter_multibyte) != ! STRING_MULTIBYTE (text))
+      if (p->filter_multibyte != STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_to_multibyte (text));
@@ -5289,14 +5278,14 @@ read_process_output (proc, channel)
 	{
 	  p->decode_coding_system = coding->symbol;
 	  if (NILP (p->encode_coding_system)
-	      && proc_encode_coding_system[XINT (p->outfd)])
+	      && proc_encode_coding_system[p->outfd])
 	    {
 	      p->encode_coding_system = coding->symbol;
 	      setup_coding_system (coding->symbol,
-				   proc_encode_coding_system[XINT (p->outfd)]);
-	      if (proc_encode_coding_system[XINT (p->outfd)]->eol_type
+				   proc_encode_coding_system[p->outfd]);
+	      if (proc_encode_coding_system[p->outfd]->eol_type
 		  == CODING_EOL_UNDECIDED)
-		proc_encode_coding_system[XINT (p->outfd)]->eol_type
+		proc_encode_coding_system[p->outfd]->eol_type
 		  = system_eol_type;
 	    }
 	}
@@ -5308,7 +5297,7 @@ read_process_output (proc, channel)
 	p->decoding_buf = make_uninit_string (carryover);
       bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
-      XSETINT (p->decoding_carryover, carryover);
+      p->decoding_carryover = carryover;
 
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (current_buffer->enable_multibyte_characters)
@@ -5427,10 +5416,10 @@ send_process (proc, buf, len, object)
     update_status (p);
   if (! EQ (p->status, Qrun))
     error ("Process %s not running", SDATA (p->name));
-  if (XINT (p->outfd) < 0)
+  if (p->outfd < 0)
     error ("Output file descriptor of %s is closed", SDATA (p->name));
 
-  coding = proc_encode_coding_system[XINT (p->outfd)];
+  coding = proc_encode_coding_system[p->outfd];
   Vlast_coding_system_used = coding->symbol;
 
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
@@ -5523,7 +5512,7 @@ send_process (proc, buf, len, object)
   if (pty_max_bytes == 0)
     {
 #if defined (HAVE_FPATHCONF) && defined (_PC_MAX_CANON)
-      pty_max_bytes = fpathconf (XFASTINT (p->outfd), _PC_MAX_CANON);
+      pty_max_bytes = fpathconf (p->outfd, _PC_MAX_CANON);
       if (pty_max_bytes < 0)
 	pty_max_bytes = 250;
 #else
@@ -5545,7 +5534,7 @@ send_process (proc, buf, len, object)
 
 	  /* Decide how much data we can send in one batch.
 	     Long lines need to be split into multiple batches.  */
-	  if (!NILP (p->pty_flag))
+	  if (p->pty_flag)
 	    {
 	      /* Starting this at zero is always correct when not the first
                  iteration because the previous iteration ended by sending C-d.
@@ -5574,7 +5563,7 @@ send_process (proc, buf, len, object)
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
-	      int outfd = XINT (p->outfd);
+	      int outfd = p->outfd;
 	      old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
@@ -5594,12 +5583,12 @@ send_process (proc, buf, len, object)
 		{
 		  rv = emacs_write (outfd, (char *) buf, this);
 #ifdef ADAPTIVE_READ_BUFFERING
-		  if (XINT (p->read_output_delay) > 0
-		      && EQ (p->adaptive_read_buffering, Qt))
+		  if (p->read_output_delay > 0
+		      && p->adaptive_read_buffering == 1)
 		    {
-		      XSETFASTINT (p->read_output_delay, 0);
+		      p->read_output_delay = 0;
 		      process_output_delay_count--;
-		      p->read_output_skip = Qnil;
+		      p->read_output_skip = 0;
 		    }
 #endif
 		}
@@ -5642,7 +5631,7 @@ send_process (proc, buf, len, object)
 		      if (errno == EAGAIN)
 			{
 			  int flags = FWRITE;
-			  ioctl (XINT (p->outfd), TIOCFLUSH, &flags);
+			  ioctl (p->outfd, TIOCFLUSH, &flags);
 			}
 #endif /* BROKEN_PTY_READ_AFTER_EAGAIN */
 
@@ -5691,7 +5680,7 @@ send_process (proc, buf, len, object)
 #endif
       p->raw_status_new = 0;
       p->status = Fcons (Qexit, Fcons (make_number (256), Qnil));
-      XSETINT (p->tick, ++process_tick);
+      p->tick = ++process_tick;
       deactivate_process (proc);
 #ifdef VMS
       error ("Error writing to process %s; closed it", SDATA (p->name));
@@ -5743,10 +5732,10 @@ send_process_object (proc, start, end)
 	update_status (p);
       if (! EQ (p->status, Qrun))
 	error ("Process %s not running", SDATA (p->name));
-      if (XINT (p->outfd) < 0)
+      if (p->outfd < 0)
 	error ("Output file descriptor of %s is closed", SDATA (p->name));
 
-      coding = proc_encode_coding_system[XINT (p->outfd)];
+      coding = proc_encode_coding_system[p->outfd];
       if (! EQ (coding->symbol, p->encode_coding_system))
 	/* The coding system for encoding was changed to raw-text
 	   because we sent a unibyte text previously.  Now we are
@@ -5835,7 +5824,7 @@ emacs_get_tty_pgrp (p)
   int gid = -1;
 
 #ifdef TIOCGPGRP
-  if (ioctl (XINT (p->infd), TIOCGPGRP, &gid) == -1 && ! NILP (p->tty_name))
+  if (ioctl (p->infd, TIOCGPGRP, &gid) == -1 && ! NILP (p->tty_name))
     {
       int fd;
       /* Some OS:es (Solaris 8/9) does not allow TIOCGPGRP from the
@@ -5873,7 +5862,7 @@ return t unconditionally.  */)
   if (!EQ (p->childp, Qt))
     error ("Process %s is not a subprocess",
 	   SDATA (p->name));
-  if (XINT (p->infd) < 0)
+  if (p->infd < 0)
     error ("Process %s is not active",
 	   SDATA (p->name));
 
@@ -5916,11 +5905,11 @@ process_send_signal (process, signo, current_group, nomsg)
   if (!EQ (p->childp, Qt))
     error ("Process %s is not a subprocess",
 	   SDATA (p->name));
-  if (XINT (p->infd) < 0)
+  if (p->infd < 0)
     error ("Process %s is not active",
 	   SDATA (p->name));
 
-  if (NILP (p->pty_flag))
+  if (!p->pty_flag)
     current_group = Qnil;
 
   /* If we are using pgrps, get a pgrp number and make it negative.  */
@@ -5939,7 +5928,7 @@ process_send_signal (process, signo, current_group, nomsg)
       struct termios t;
       cc_t *sig_char = NULL;
 
-      tcgetattr (XINT (p->infd), &t);
+      tcgetattr (p->infd, &t);
 
       switch (signo)
 	{
@@ -5979,16 +5968,16 @@ process_send_signal (process, signo, current_group, nomsg)
       switch (signo)
 	{
 	case SIGINT:
-	  ioctl (XINT (p->infd), TIOCGETC, &c);
+	  ioctl (p->infd, TIOCGETC, &c);
 	  send_process (proc, &c.t_intrc, 1, Qnil);
 	  return;
 	case SIGQUIT:
-	  ioctl (XINT (p->infd), TIOCGETC, &c);
+	  ioctl (p->infd, TIOCGETC, &c);
 	  send_process (proc, &c.t_quitc, 1, Qnil);
 	  return;
 #ifdef SIGTSTP
 	case SIGTSTP:
-	  ioctl (XINT (p->infd), TIOCGLTC, &lc);
+	  ioctl (p->infd, TIOCGLTC, &lc);
 	  send_process (proc, &lc.t_suspc, 1, Qnil);
 	  return;
 #endif /* ! defined (SIGTSTP) */
@@ -6003,16 +5992,16 @@ process_send_signal (process, signo, current_group, nomsg)
       switch (signo)
 	{
 	case SIGINT:
-	  ioctl (XINT (p->infd), TCGETA, &t);
+	  ioctl (p->infd, TCGETA, &t);
 	  send_process (proc, &t.c_cc[VINTR], 1, Qnil);
 	  return;
 	case SIGQUIT:
-	  ioctl (XINT (p->infd), TCGETA, &t);
+	  ioctl (p->infd, TCGETA, &t);
 	  send_process (proc, &t.c_cc[VQUIT], 1, Qnil);
 	  return;
 #ifdef SIGTSTP
 	case SIGTSTP:
-	  ioctl (XINT (p->infd), TCGETA, &t);
+	  ioctl (p->infd, TCGETA, &t);
 	  send_process (proc, &t.c_cc[VSWTCH], 1, Qnil);
 	  return;
 #endif /* ! defined (SIGTSTP) */
@@ -6070,7 +6059,7 @@ process_send_signal (process, signo, current_group, nomsg)
     case SIGCONT:
       p->raw_status_new = 0;
       p->status = Qrun;
-      XSETINT (p->tick, ++process_tick);
+      p->tick = ++process_tick;
       if (!nomsg)
 	status_notify (NULL);
       break;
@@ -6090,7 +6079,7 @@ process_send_signal (process, signo, current_group, nomsg)
       sys$forcex (&(p->pid), 0, 1);
       whoosh:
 #endif
-      flush_pending_output (XINT (p->infd));
+      flush_pending_output (p->infd);
       break;
     }
 
@@ -6107,7 +6096,7 @@ process_send_signal (process, signo, current_group, nomsg)
 #ifdef TIOCSIGSEND
   if (!NILP (current_group))
     {
-      if (ioctl (XINT (p->infd), TIOCSIGSEND, signo) == -1)
+      if (ioctl (p->infd, TIOCSIGSEND, signo) == -1)
 	EMACS_KILLPG (gid, signo);
     }
   else
@@ -6173,10 +6162,10 @@ If PROCESS is a network process, inhibit handling of incoming traffic.  */)
 
       p = XPROCESS (process);
       if (NILP (p->command)
-	  && XINT (p->infd) >= 0)
+	  && p->infd >= 0)
 	{
-	  FD_CLR (XINT (p->infd), &input_wait_mask);
-	  FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
+	  FD_CLR (p->infd, &input_wait_mask);
+	  FD_CLR (p->infd, &non_keyboard_wait_mask);
 	}
       p->command = Qt;
       return process;
@@ -6204,11 +6193,11 @@ If PROCESS is a network process, resume handling of incoming traffic.  */)
 
       p = XPROCESS (process);
       if (EQ (p->command, Qt)
-	  && XINT (p->infd) >= 0
+	  && p->infd >= 0
 	  && (!EQ (p->filter, Qt) || EQ (p->status, Qlisten)))
 	{
-	  FD_SET (XINT (p->infd), &input_wait_mask);
-	  FD_SET (XINT (p->infd), &non_keyboard_wait_mask);
+	  FD_SET (p->infd, &input_wait_mask);
+	  FD_SET (p->infd, &non_keyboard_wait_mask);
 	}
       p->command = Qnil;
       return process;
@@ -6405,7 +6394,7 @@ text to PROCESS after you call this function.  */)
     return process;
 
   proc = get_process (process);
-  coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
+  coding = proc_encode_coding_system[XPROCESS (proc)->outfd];
 
   /* Make sure the process is really alive.  */
   if (XPROCESS (proc)->raw_status_new)
@@ -6422,7 +6411,7 @@ text to PROCESS after you call this function.  */)
 #ifdef VMS
   send_process (proc, "\032", 1, Qnil); 	/* ^z */
 #else
-  if (!NILP (XPROCESS (proc)->pty_flag))
+  if (XPROCESS (proc)->pty_flag)
     send_process (proc, "\004", 1, Qnil);
   else
     {
@@ -6434,18 +6423,18 @@ text to PROCESS after you call this function.  */)
 	 (In some old system, shutdown to socketpair doesn't work.
 	 Then we just can't win.)  */
       if (XPROCESS (proc)->pid == 0
-	  || XINT (XPROCESS (proc)->outfd) == XINT (XPROCESS (proc)->infd))
-	shutdown (XINT (XPROCESS (proc)->outfd), 1);
+	  || XPROCESS (proc)->outfd == XPROCESS (proc)->infd)
+	shutdown (XPROCESS (proc)->outfd, 1);
       /* In case of socketpair, outfd == infd, so don't close it.  */
-      if (XINT (XPROCESS (proc)->outfd) != XINT (XPROCESS (proc)->infd))
-	emacs_close (XINT (XPROCESS (proc)->outfd));
+      if (XPROCESS (proc)->outfd != XPROCESS (proc)->infd)
+	emacs_close (XPROCESS (proc)->outfd);
 #else /* not HAVE_SHUTDOWN */
-      emacs_close (XINT (XPROCESS (proc)->outfd));
+      emacs_close (XPROCESS (proc)->outfd);
 #endif /* not HAVE_SHUTDOWN */
       new_outfd = emacs_open (NULL_DEVICE, O_WRONLY, 0);
       if (new_outfd < 0)
 	abort ();
-      old_outfd = XINT (XPROCESS (proc)->outfd);
+      old_outfd = XPROCESS (proc)->outfd;
 
       if (!proc_encode_coding_system[new_outfd])
 	proc_encode_coding_system[new_outfd]
@@ -6456,7 +6445,7 @@ text to PROCESS after you call this function.  */)
       bzero (proc_encode_coding_system[old_outfd],
 	     sizeof (struct coding_system));
 
-      XSETINT (XPROCESS (proc)->outfd, new_outfd);
+      XPROCESS (proc)->outfd = new_outfd;
     }
 #endif /* VMS */
   return process;
@@ -6479,7 +6468,7 @@ kill_buffer_processes (buffer)
 	{
 	  if (NETCONN_P (proc))
 	    Fdelete_process (proc);
-	  else if (XINT (XPROCESS (proc)->infd) >= 0)
+	  else if (XPROCESS (proc)->infd >= 0)
 	    process_send_signal (proc, SIGHUP, Qnil, 1);
 	}
     }
@@ -6609,21 +6598,21 @@ sigchld_handler (signo)
 	  union { int i; WAITTYPE wt; } u;
 	  int clear_desc_flag = 0;
 
-	  XSETINT (p->tick, ++process_tick);
+	  p->tick = ++process_tick;
 	  u.wt = w;
 	  p->raw_status = u.i;
 	  p->raw_status_new = 1;
 
 	  /* If process has terminated, stop waiting for its output.  */
 	  if ((WIFSIGNALED (w) || WIFEXITED (w))
-	      && XINT (p->infd) >= 0)
+	      && p->infd >= 0)
 	    clear_desc_flag = 1;
 
 	  /* We use clear_desc_flag to avoid a compiler bug in Microsoft C.  */
 	  if (clear_desc_flag)
 	    {
-	      FD_CLR (XINT (p->infd), &input_wait_mask);
-	      FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
+	      FD_CLR (p->infd, &input_wait_mask);
+	      FD_CLR (p->infd, &non_keyboard_wait_mask);
 	    }
 
 	  /* Tell wait_reading_process_output that it needs to wake up and
@@ -6800,18 +6789,18 @@ status_notify (deleting_process)
       proc = Fcdr (Fcar (tail));
       p = XPROCESS (proc);
 
-      if (XINT (p->tick) != XINT (p->update_tick))
+      if (p->tick != p->update_tick)
 	{
-	  XSETINT (p->update_tick, XINT (p->tick));
+	  p->update_tick = p->tick;
 
 	  /* If process is still active, read any output that remains.  */
 	  while (! EQ (p->filter, Qt)
 		 && ! EQ (p->status, Qconnect)
 		 && ! EQ (p->status, Qlisten)
 		 && ! EQ (p->command, Qt)  /* Network process not stopped.  */
-		 && XINT (p->infd) >= 0
+		 && p->infd >= 0
 		 && p != deleting_process
-		 && read_process_output (proc, XINT (p->infd)) > 0);
+		 && read_process_output (proc, p->infd) > 0);
 
 	  buffer = p->buffer;
 
@@ -6838,7 +6827,7 @@ status_notify (deleting_process)
 	     So set p->update_tick again
 	     so that an error in the sentinel will not cause
 	     this code to be run again.  */
-	  XSETINT (p->update_tick, XINT (p->tick));
+	  p->update_tick = p->tick;
 	  /* Now output the message suitably.  */
 	  if (!NILP (p->sentinel))
 	    exec_sentinel (proc, msg);
@@ -6911,9 +6900,9 @@ encode subprocess input.  */)
 
   CHECK_PROCESS (process);
   p = XPROCESS (process);
-  if (XINT (p->infd) < 0)
+  if (p->infd < 0)
     error ("Input file descriptor of %s closed", SDATA (p->name));
-  if (XINT (p->outfd) < 0)
+  if (p->outfd < 0)
     error ("Output file descriptor of %s closed", SDATA (p->name));
   Fcheck_coding_system (decoding);
   Fcheck_coding_system (encoding);
@@ -6950,7 +6939,7 @@ suppressed.  */)
 
   CHECK_PROCESS (process);
   p = XPROCESS (process);
-  p->filter_multibyte = flag;
+  p->filter_multibyte = !NILP (flag);
   setup_process_coding_systems (process);
 
   return Qnil;
@@ -6967,7 +6956,7 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
   CHECK_PROCESS (process);
   p = XPROCESS (process);
 
-  return (NILP (p->filter_multibyte) ? Qnil : Qt);
+  return (p->filter_multibyte ? Qt : Qnil);
 }
 
 

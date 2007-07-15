@@ -41,15 +41,19 @@
 A `.el' file can set this in its local variables section to make its
 autoloads go somewhere else.  The autoload file is assumed to contain a
 trailer starting with a FormFeed character.")
+;;;###autoload
+(put 'generated-autoload-file 'safe-local-variable 'stringp)
 
-(defconst generate-autoload-cookie ";;;###autoload"
+;; This feels like it should be a defconst, but MH-E sets it to
+;; ";;;###mh-autoload" for the autoloads that are to go into mh-loaddefs.el.
+(defvar generate-autoload-cookie ";;;###autoload"
   "Magic comment indicating the following form should be autoloaded.
 Used by \\[update-file-autoloads].  This string should be
 meaningless to Lisp (e.g., a comment).
 
 This string is used:
 
-;;;###autoload
+\;;;###autoload
 \(defun function-to-be-autoloaded () ...)
 
 If this string appears alone on a line, the following form will be
@@ -64,6 +68,8 @@ that text will be copied verbatim to `generated-autoload-file'.")
 
 (defconst generate-autoload-section-continuation ";;;;;; "
   "String to add on each continuation of the section header form.")
+
+(defvar autoload-modified-buffers)      ;Dynamically scoped var.
 
 (defun make-autoload (form file)
   "Turn FORM into an autoload or defvar for source file FILE.
@@ -149,16 +155,14 @@ or macro definition or a defcustom)."
 ;; the doc-string in FORM.
 ;; Those properties are now set in lisp-mode.el.
 
+(defun autoload-generated-file ()
+  (expand-file-name generated-autoload-file
+                    ;; File-local settings of generated-autoload-file should
+                    ;; be interpreted relative to the file's location,
+                    ;; of course.
+                    (if (not (local-variable-p 'generated-autoload-file))
+                        (expand-file-name "lisp" source-directory))))
 
-(defun autoload-trim-file-name (file)
-  ;; Returns a relative file path for FILE
-  ;; starting from the directory that loaddefs.el is in.
-  ;; That is normally a directory in load-path,
-  ;; which means Emacs will be able to find FILE when it looks.
-  ;; Any extra directory names here would prevent finding the file.
-  (setq file (expand-file-name file))
-  (file-relative-name file
-		      (file-name-directory generated-autoload-file)))
 
 (defun autoload-read-section-header ()
   "Read a section header form.
@@ -253,9 +257,7 @@ put the output in."
   "Insert the section-header line,
 which lists the file name and which functions are in it, etc."
   (insert generate-autoload-section-header)
-  (prin1 (list 'autoloads autoloads load-name
-	       (if (stringp file) (autoload-trim-file-name file) file)
-	       time)
+  (prin1 (list 'autoloads autoloads load-name file time)
 	 outbuf)
   (terpri outbuf)
   ;; Break that line at spaces, to avoid very long lines.
@@ -272,12 +274,14 @@ which lists the file name and which functions are in it, etc."
 (defun autoload-find-file (file)
   "Fetch file and put it in a temp buffer.  Return the buffer."
   ;; It is faster to avoid visiting the file.
+  (setq file (expand-file-name file))
   (with-current-buffer (get-buffer-create " *autoload-file*")
     (kill-all-local-variables)
     (erase-buffer)
     (setq buffer-undo-list t
           buffer-read-only nil)
     (emacs-lisp-mode)
+    (setq default-directory (file-name-directory file))
     (insert-file-contents file nil)
     (let ((enable-local-variables :safe))
       (hack-local-variables))
@@ -285,6 +289,12 @@ which lists the file name and which functions are in it, etc."
 
 (defvar no-update-autoloads nil
   "File local variable to prevent scanning this file for autoload cookies.")
+
+(defun autoload-file-load-name (file)
+  (let ((name (file-name-nondirectory file)))
+    (if (string-match "\\.elc?\\(\\.\\|\\'\\)" name)
+        (substring name 0 (match-beginning 0))
+      name)))
 
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
@@ -294,100 +304,155 @@ If FILE is being visited in a buffer, the contents of the buffer
 are used.
 Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
-  (let ((outbuf (current-buffer))
-	(autoloads-done '())
-	(load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
-			 (substring name 0 (match-beginning 0))
-		       name)))
-	(print-length nil)
-	(print-readably t)		; This does something in Lucid Emacs.
-	(float-output-format nil)
-	(done-any nil)
-	(visited (get-file-buffer file))
-        output-start)
+  (autoload-generate-file-autoloads file (current-buffer)))
 
-    ;; If the autoload section we create here uses an absolute
-    ;; file name for FILE in its header, and then Emacs is installed
-    ;; under a different path on another system,
-    ;; `update-autoloads-here' won't be able to find the files to be
-    ;; autoloaded.  So, if FILE is in the same directory or a
-    ;; subdirectory of the current buffer's directory, we'll make it
-    ;; relative to the current buffer's directory.
-    (setq file (expand-file-name file))
-    (let* ((source-truename (file-truename file))
-	   (dir-truename (file-name-as-directory
-			  (file-truename default-directory)))
-	   (len (length dir-truename)))
-      (if (and (< len (length source-truename))
-	       (string= dir-truename (substring source-truename 0 len)))
-	  (setq file (substring source-truename len))))
+;; When called from `generate-file-autoloads' we should ignore
+;; `generated-autoload-file' altogether.  When called from
+;; `update-file-autoloads' we don't know `outbuf'.  And when called from
+;; `update-directory-autoloads' it's in between: we know the default
+;; `outbuf' but we should obey any file-local setting of
+;; `generated-autoload-file'.
+(defun autoload-generate-file-autoloads (file &optional outbuf outfile)
+  "Insert an autoload section for FILE in the appropriate buffer.
+Autoloads are generated for defuns and defmacros in FILE
+marked by `generate-autoload-cookie' (which see).
+If FILE is being visited in a buffer, the contents of the buffer are used.
+OUTBUF is the buffer in which the autoload statements should be inserted.
+If OUTBUF is nil, it will be determined by `autoload-generated-file'.
 
-    (with-current-buffer (or visited
-                             ;; It is faster to avoid visiting the file.
-                             (autoload-find-file file))
-      ;; Obey the no-update-autoloads file local variable.
-      (unless no-update-autoloads
-        (message "Generating autoloads for %s..." file)
-        (setq output-start (with-current-buffer outbuf (point)))
-        (save-excursion
-          (save-restriction
-            (widen)
-            (goto-char (point-min))
-            (while (not (eobp))
-              (skip-chars-forward " \t\n\f")
-              (cond
-               ((looking-at (regexp-quote generate-autoload-cookie))
-                (search-forward generate-autoload-cookie)
-                (skip-chars-forward " \t")
-                (setq done-any t)
-                (if (eolp)
-                    ;; Read the next form and make an autoload.
-                    (let* ((form (prog1 (read (current-buffer))
-                                   (or (bolp) (forward-line 1))))
-                           (autoload (make-autoload form load-name)))
-                      (if autoload
-                          (push (nth 1 form) autoloads-done)
-                        (setq autoload form))
-                      (let ((autoload-print-form-outbuf outbuf))
-                        (autoload-print-form autoload)))
+If provided, OUTFILE is expected to be the file name of OUTBUF.
+If OUTFILE is non-nil and FILE specifies a `generated-autoload-file'
+different from OUTFILE, then OUTBUF is ignored.
 
-                  ;; Copy the rest of the line to the output.
-                  (princ (buffer-substring
-                          (progn
-                            ;; Back up over whitespace, to preserve it.
-                            (skip-chars-backward " \f\t")
-                            (if (= (char-after (1+ (point))) ? )
-                                ;; Eat one space.
-                                (forward-char 1))
-                            (point))
-                          (progn (forward-line 1) (point)))
-                         outbuf)))
-               ((looking-at ";")
-                ;; Don't read the comment.
-                (forward-line 1))
-               (t
-                (forward-sexp 1)
-                (forward-line 1))))))
+Return non-nil iff FILE adds no autoloads to OUTFILE
+\(or OUTBUF if OUTFILE is nil)."
+  (catch 'done
+    (let ((autoloads-done '())
+          (load-name (autoload-file-load-name file))
+          (print-length nil)
+          (print-readably t)           ; This does something in Lucid Emacs.
+          (float-output-format nil)
+          (visited (get-file-buffer file))
+          (otherbuf nil)
+          (absfile (expand-file-name file))
+          relfile
+          ;; nil until we found a cookie.
+          output-start)
 
-        (when done-any
-          (with-current-buffer outbuf
-            (save-excursion
-              ;; Insert the section-header line which lists the file name
-              ;; and which functions are in it, etc.
-              (goto-char output-start)
-              (autoload-insert-section-header
-               outbuf autoloads-done load-name file
-               (nth 5 (file-attributes file)))
-              (insert ";;; Generated autoloads from "
-                      (autoload-trim-file-name file) "\n"))
-            (insert generate-autoload-section-trailer)))
-        (message "Generating autoloads for %s...done" file))
-      (or visited
-          ;; We created this buffer, so we should kill it.
-          (kill-buffer (current-buffer))))
-    (not done-any)))
+      (with-current-buffer (or visited
+                               ;; It is faster to avoid visiting the file.
+                               (autoload-find-file file))
+        ;; Obey the no-update-autoloads file local variable.
+        (unless no-update-autoloads
+          (message "Generating autoloads for %s..." file)
+          (save-excursion
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              (while (not (eobp))
+                (skip-chars-forward " \t\n\f")
+                (cond
+                 ((looking-at (regexp-quote generate-autoload-cookie))
+                  ;; If not done yet, figure out where to insert this text.
+                  (unless output-start
+                    (when (and outfile
+                               (not (equal outfile (autoload-generated-file))))
+                      ;; A file-local setting of autoload-generated-file says
+                      ;; we should ignore OUTBUF.
+                      (setq outbuf nil)
+                      (setq otherbuf t))
+                    (unless outbuf
+                      (setq outbuf (autoload-find-destination absfile))
+                      (unless outbuf
+                        ;; The file has autoload cookies, but they're
+                        ;; already up-to-date.  If OUTFILE is nil, the
+                        ;; entries are in the expected OUTBUF, otherwise
+                        ;; they're elsewhere.
+                        (throw 'done outfile)))
+                    (with-current-buffer outbuf
+                      (setq relfile (file-relative-name absfile))
+                      (setq output-start (point)))
+                    ;; (message "file=%S, relfile=%S, dest=%S"
+                    ;;          file relfile (autoload-generated-file))
+                    )
+                  (search-forward generate-autoload-cookie)
+                  (skip-chars-forward " \t")
+                  (if (eolp)
+                      (condition-case err
+                          ;; Read the next form and make an autoload.
+                          (let* ((form (prog1 (read (current-buffer))
+                                         (or (bolp) (forward-line 1))))
+                                 (autoload (make-autoload form load-name)))
+                            (if autoload
+                                (push (nth 1 form) autoloads-done)
+                              (setq autoload form))
+                            (let ((autoload-print-form-outbuf outbuf))
+                              (autoload-print-form autoload)))
+                        (error
+                         (message "Error in %s: %S" file err)))
+
+                    ;; Copy the rest of the line to the output.
+                    (princ (buffer-substring
+                            (progn
+                              ;; Back up over whitespace, to preserve it.
+                              (skip-chars-backward " \f\t")
+                              (if (= (char-after (1+ (point))) ? )
+                                  ;; Eat one space.
+                                  (forward-char 1))
+                              (point))
+                            (progn (forward-line 1) (point)))
+                           outbuf)))
+                 ((looking-at ";")
+                  ;; Don't read the comment.
+                  (forward-line 1))
+                 (t
+                  (forward-sexp 1)
+                  (forward-line 1))))))
+
+          (when output-start
+            (let ((secondary-autoloads-file-buf
+                   (if (local-variable-p 'generated-autoload-file)
+                       (current-buffer))))
+              (with-current-buffer outbuf
+                (save-excursion
+                  ;; Insert the section-header line which lists the file name
+                  ;; and which functions are in it, etc.
+                  (goto-char output-start)
+                  (autoload-insert-section-header
+                   outbuf autoloads-done load-name relfile
+                   (if secondary-autoloads-file-buf
+                       ;; MD5 checksums are much better because they do not
+                       ;; change unless the file changes (so they'll be
+                       ;; equal on two different systems and will change
+                       ;; less often than time-stamps, thus leading to fewer
+                       ;; unneeded changes causing spurious conflicts), but
+                       ;; using time-stamps is a very useful optimization,
+                       ;; so we use time-stamps for the main autoloads file
+                       ;; (loaddefs.el) where we have special ways to
+                       ;; circumvent the "random change problem", and MD5
+                       ;; checksum in secondary autoload files where we do
+                       ;; not need the time-stamp optimization because it is
+                       ;; already provided by the primary autoloads file.
+                       (md5 secondary-autoloads-file-buf
+                            ;; We'd really want to just use
+                            ;; `emacs-internal' instead.
+                            nil nil 'emacs-mule-unix)
+                     (nth 5 (file-attributes relfile))))
+                  (insert ";;; Generated autoloads from " relfile "\n"))
+                (insert generate-autoload-section-trailer))))
+          (message "Generating autoloads for %s...done" file))
+        (or visited
+            ;; We created this buffer, so we should kill it.
+            (kill-buffer (current-buffer))))
+      ;; If the entries were added to some other buffer, then the file
+      ;; doesn't add entries to OUTFILE.
+      (or (not output-start) otherbuf))))
 
+(defun autoload-save-buffers ()
+  (while autoload-modified-buffers
+    (with-current-buffer (pop autoload-modified-buffers)
+      (save-buffer))))
+
 ;;;###autoload
 (defun update-file-autoloads (file &optional save-after)
   "Update the autoloads for FILE in `generated-autoload-file'
@@ -397,80 +462,80 @@ save the buffer too.
 
 Return FILE if there was no autoload cookie in it, else nil."
   (interactive "fUpdate autoloads for file: \np")
-  (let ((load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
-			 (substring name 0 (match-beginning 0))
-		       name)))
-	(found nil)
-	(existing-buffer (get-file-buffer file))
-	(no-autoloads nil))
-    (save-excursion
-      ;; We want to get a value for generated-autoload-file from
-      ;; the local variables section if it's there.
-      (if existing-buffer
-	  (set-buffer existing-buffer))
-      ;; We must read/write the file without any code conversion,
-      ;; but still decode EOLs.
-      (let ((coding-system-for-read 'raw-text))
-	(set-buffer (find-file-noselect
-		     (autoload-ensure-default-file
-		      (expand-file-name generated-autoload-file
-					(expand-file-name "lisp"
-							  source-directory)))))
-	;; This is to make generated-autoload-file have Unix EOLs, so
-	;; that it is portable to all platforms.
-	(setq buffer-file-coding-system 'raw-text-unix))
-      (or (> (buffer-size) 0)
-	  (error "Autoloads file %s does not exist" buffer-file-name))
-      (or (file-writable-p buffer-file-name)
-	  (error "Autoloads file %s is not writable" buffer-file-name))
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (goto-char (point-min))
-	  ;; Look for the section for LOAD-NAME.
-	  (while (and (not found)
-		      (search-forward generate-autoload-section-header nil t))
-	    (let ((form (autoload-read-section-header)))
-	      (cond ((string= (nth 2 form) load-name)
-		     ;; We found the section for this file.
-		     ;; Check if it is up to date.
-		     (let ((begin (match-beginning 0))
-			   (last-time (nth 4 form))
-			   (file-time (nth 5 (file-attributes file))))
-		       (if (and (or (null existing-buffer)
-				    (not (buffer-modified-p existing-buffer)))
-				(listp last-time) (= (length last-time) 2)
-				(not (time-less-p last-time file-time)))
-			   (progn
-			     (if (interactive-p)
-				 (message "\
-Autoload section for %s is up to date."
-					  file))
-			     (setq found 'up-to-date))
-			 (search-forward generate-autoload-section-trailer)
-			 (delete-region begin (point))
-			 (setq found t))))
-		    ((string< load-name (nth 2 form))
-		     ;; We've come to a section alphabetically later than
-		     ;; LOAD-NAME.  We assume the file is in order and so
-		     ;; there must be no section for LOAD-NAME.  We will
-		     ;; insert one before the section here.
-		     (goto-char (match-beginning 0))
-		     (setq found 'new)))))
-	  (or found
-	      (progn
-		(setq found 'new)
-		;; No later sections in the file.  Put before the last page.
-		(goto-char (point-max))
-		(search-backward "\f" nil t)))
-	  (or (eq found 'up-to-date)
-	      (setq no-autoloads (generate-file-autoloads file)))))
-      (and save-after
-	   (buffer-modified-p)
-	   (save-buffer))
+  (let* ((autoload-modified-buffers nil)
+         (no-autoloads (autoload-generate-file-autoloads file)))
+    (if autoload-modified-buffers
+        (if save-after (autoload-save-buffers))
+      (if (interactive-p)
+          (message "Autoload section for %s is up to date." file)))
+    (if no-autoloads file)))
 
-      (if no-autoloads file))))
+(defun autoload-find-destination (file)
+  "Find the destination point of the current buffer's autoloads.
+FILE is the file name of the current buffer.
+Returns a buffer whose point is placed at the requested location.
+Returns nil if the file's autoloads are uptodate, otherwise
+removes any prior now out-of-date autoload entries."
+  (catch 'up-to-date
+    (let* ((load-name (autoload-file-load-name file))
+           (buf (current-buffer))
+           (existing-buffer (if buffer-file-name buf))
+           (found nil))
+      (with-current-buffer
+          ;; We must read/write the file without any code conversion,
+          ;; but still decode EOLs.
+          (let ((coding-system-for-read 'raw-text))
+            (find-file-noselect
+             (autoload-ensure-default-file (autoload-generated-file))))
+        ;; This is to make generated-autoload-file have Unix EOLs, so
+        ;; that it is portable to all platforms.
+        (setq buffer-file-coding-system 'raw-text-unix)
+        (or (> (buffer-size) 0)
+            (error "Autoloads file %s does not exist" buffer-file-name))
+        (or (file-writable-p buffer-file-name)
+            (error "Autoloads file %s is not writable" buffer-file-name))
+        (widen)
+        (goto-char (point-min))
+        ;; Look for the section for LOAD-NAME.
+        (while (and (not found)
+                    (search-forward generate-autoload-section-header nil t))
+          (let ((form (autoload-read-section-header)))
+            (cond ((string= (nth 2 form) load-name)
+                   ;; We found the section for this file.
+                   ;; Check if it is up to date.
+                   (let ((begin (match-beginning 0))
+                         (last-time (nth 4 form))
+                         (file-time (nth 5 (file-attributes file))))
+                     (if (and (or (null existing-buffer)
+                                  (not (buffer-modified-p existing-buffer)))
+                              (or
+                               ;; last-time is the time-stamp (specifying
+                               ;; the last time we looked at the file) and
+                               ;; the file hasn't been changed since.
+                               (and (listp last-time) (= (length last-time) 2)
+                                    (not (time-less-p last-time file-time)))
+                               ;; last-time is an MD5 checksum instead.
+                               (and (stringp last-time)
+                                    (equal last-time
+                                           (md5 buf nil nil 'emacs-mule)))))
+                         (throw 'up-to-date nil)
+                       (autoload-remove-section begin)
+                       (setq found t))))
+                  ((string< load-name (nth 2 form))
+                   ;; We've come to a section alphabetically later than
+                   ;; LOAD-NAME.  We assume the file is in order and so
+                   ;; there must be no section for LOAD-NAME.  We will
+                   ;; insert one before the section here.
+                   (goto-char (match-beginning 0))
+                   (setq found t)))))
+        (or found
+            (progn
+              ;; No later sections in the file.  Put before the last page.
+              (goto-char (point-max))
+              (search-backward "\f" nil t)))
+        (unless (memq (current-buffer) autoload-modified-buffers)
+          (push (current-buffer) autoload-modified-buffers))
+        (current-buffer)))))
 
 (defun autoload-remove-section (begin)
   (goto-char begin)
@@ -498,20 +563,21 @@ directory or directories specified."
 				 (directory-files (expand-file-name dir)
 						  t files-re))
 			       dirs)))
+         (done ())
 	 (this-time (current-time))
-	 (no-autoloads nil)		;files with no autoload cookies.
-	 (autoloads-file
-	  (expand-file-name generated-autoload-file
-			    (expand-file-name "lisp" source-directory)))
-	 (top-dir (file-name-directory autoloads-file)))
+         ;; Files with no autoload cookies or whose autoloads go to other
+         ;; files because of file-local autoload-generated-file settings.
+	 (no-autoloads nil)
+         (autoload-modified-buffers nil))
 
     (with-current-buffer
-	(find-file-noselect (autoload-ensure-default-file autoloads-file))
+	(find-file-noselect
+         (autoload-ensure-default-file (autoload-generated-file)))
       (save-excursion
 
 	;; Canonicalize file names and remove the autoload file itself.
-	(setq files (delete (autoload-trim-file-name buffer-file-name)
-			    (mapcar 'autoload-trim-file-name files)))
+	(setq files (delete (file-relative-name buffer-file-name)
+			    (mapcar 'file-relative-name files)))
 
 	(goto-char (point-min))
 	(while (search-forward generate-autoload-section-header nil t)
@@ -531,19 +597,27 @@ directory or directories specified."
 			   (push file no-autoloads)
 			   (setq files (delete file files)))))))
 		  ((not (stringp file)))
-		  ((not (file-exists-p (expand-file-name file top-dir)))
-		   ;; Remove the obsolete section.
+		  ((or (not (file-exists-p file))
+                       ;; Remove duplicates as well, just in case.
+                       (member file done))
+                   ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
-		  ((equal (nth 4 form) (nth 5 (file-attributes file)))
+		  ((not (time-less-p (nth 4 form)
+                                     (nth 5 (file-attributes file))))
 		   ;; File hasn't changed.
 		   nil)
 		  (t
-		   (update-file-autoloads file)))
+                   (autoload-remove-section (match-beginning 0))
+                   (if (autoload-generate-file-autoloads
+                        file (current-buffer) buffer-file-name)
+                       (push file no-autoloads))))
+            (push file done)
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
-      (setq no-autoloads
-	    (append no-autoloads
-		    (delq nil (mapcar 'update-file-autoloads files))))
+      (dolist (file files)
+        (if (autoload-generate-file-autoloads file nil buffer-file-name)
+            (push file no-autoloads)))
+
       (when no-autoloads
 	;; Sort them for better readability.
 	(setq no-autoloads (sort no-autoloads 'string<))
@@ -554,7 +628,10 @@ directory or directories specified."
 	 (current-buffer) nil nil no-autoloads this-time)
 	(insert generate-autoload-section-trailer))
 
-      (save-buffer))))
+      (save-buffer)
+      ;; In case autoload entries were added to other files because of
+      ;; file-local autoload-generated-file settings.
+      (autoload-save-buffers))))
 
 (define-obsolete-function-alias 'update-autoloads-from-directories
     'update-directory-autoloads "22.1")

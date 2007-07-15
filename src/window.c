@@ -6645,7 +6645,7 @@ and the value of point and mark for each window.
 Also restore the choice of selected window.
 Also restore which buffer is current.
 Does not restore the value of point in current buffer.
-usage: (save-window-excursion BODY ...)  */)
+usage: (save-window-excursion BODY...)  */)
      (args)
      Lisp_Object args;
 {

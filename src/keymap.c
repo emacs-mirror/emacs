@@ -422,7 +422,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 
       if (CHAR_TABLE_P (XCAR (list)))
 	{
-	  Lisp_Object indices[3];
+	  int indices[3];
 
 	  map_char_table (fix_submap_inheritance, Qnil,
 			  XCAR (list), XCAR (list),
@@ -721,7 +721,7 @@ map_keymap (map, fun, args, data, autoload)
 	}
       else if (CHAR_TABLE_P (binding))
 	{
-	  Lisp_Object indices[3];
+	  int indices[3];
 	  map_char_table (map_keymap_char_table_item, Qnil, binding, binding,
 			  Fcons (make_save_value (fun, 0),
 				 Fcons (make_save_value (data, 0),
@@ -1072,7 +1072,7 @@ is not copied.  */)
       Lisp_Object elt = XCAR (keymap);
       if (CHAR_TABLE_P (elt))
 	{
-	  Lisp_Object indices[3];
+	  int indices[3];
 	  elt = Fcopy_sequence (elt);
 	  map_char_table (copy_keymap_1, Qnil, elt, elt, elt, 0, indices);
 	}
@@ -1149,7 +1149,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
     Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
 
-  meta_bit = (VECTORP (key) || STRINGP (key) && STRING_MULTIBYTE (key)
+  meta_bit = (VECTORP (key) || (STRINGP (key) && STRING_MULTIBYTE (key))
 	      ? meta_modifier : 0x80);
 
   if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, 0)))
@@ -1534,14 +1534,47 @@ current_minor_maps (modeptr, mapptr)
 }
 
 DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
-       0, 1, 0,
+       0, 2, 0,
        doc: /* Return a list of the currently active keymaps.
 OLP if non-nil indicates that we should obey `overriding-local-map' and
-`overriding-terminal-local-map'.  */)
-     (olp)
-     Lisp_Object olp;
+`overriding-terminal-local-map'.  POSITION can specify a click position
+like in the respective argument of `key-binding'. */)
+    (olp, position)
+    Lisp_Object olp, position;
 {
-  Lisp_Object keymaps = Fcons (current_global_map, Qnil);
+  int count = SPECPDL_INDEX ();
+
+  Lisp_Object keymaps;
+
+  /* If a mouse click position is given, our variables are based on
+     the buffer clicked on, not the current buffer.  So we may have to
+     switch the buffer here. */
+  
+  if (CONSP (position))
+    {
+      Lisp_Object window;
+      
+      window = POSN_WINDOW (position);
+	  
+      if (WINDOWP (window)
+	  && BUFFERP (XWINDOW (window)->buffer)
+	  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+	{
+	  /* Arrange to go back to the original buffer once we're done
+	     processing the key sequence.  We don't use
+	     save_excursion_{save,restore} here, in analogy to
+	     `read-key-sequence' to avoid saving point.  Maybe this
+	     would not be a problem here, but it is easier to keep
+	     things the same.
+	  */
+	      
+	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  
+	  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+	}
+    }
+
+  keymaps = Fcons (current_global_map, Qnil);  
 
   if (!NILP (olp))
     {
@@ -1555,15 +1588,76 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
     }
   if (NILP (XCDR (keymaps)))
     {
-      Lisp_Object local;
       Lisp_Object *maps;
       int nmaps, i;
 
-      /* This usually returns the buffer's local map,
-	 but that can be overridden by a `local-map' property.  */
-      local = get_local_map (PT, current_buffer, Qlocal_map);
-      if (!NILP (local))
-	keymaps = Fcons (local, keymaps);
+      Lisp_Object keymap, local_map;
+      EMACS_INT pt;
+
+      pt = INTEGERP (position) ? XINT (position)
+	: MARKERP (position) ? marker_position (position)
+	: PT;
+
+      /* Get the buffer local maps, possibly overriden by text or
+	 overlay properties */
+
+      local_map = get_local_map (pt, current_buffer, Qlocal_map); 
+      keymap = get_local_map (pt, current_buffer, Qkeymap); 
+
+      if (CONSP (position))
+	{
+	  Lisp_Object string;
+
+	  /* For a mouse click, get the local text-property keymap
+	     of the place clicked on, rather than point.  */
+	  
+	  if (POSN_INBUFFER_P (position))
+	    {
+	      Lisp_Object pos;
+
+	      pos = POSN_BUFFER_POSN (position);
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= BEG && XINT (pos) <= Z)
+		{
+		  local_map = get_local_map (XINT (pos),
+					     current_buffer, Qlocal_map);
+		  
+		  keymap = get_local_map (XINT (pos),
+					  current_buffer, Qkeymap);
+		}
+	    }
+
+	  /* If on a mode line string with a local keymap,
+	     or for a click on a string, i.e. overlay string or a
+	     string displayed via the `display' property,
+	     consider `local-map' and `keymap' properties of
+	     that string.  */
+	  
+	  if (string = POSN_STRING (position),
+	      (CONSP (string) && STRINGP (XCAR (string))))
+	    {
+	      Lisp_Object pos, map;
+	      
+	      pos = XCDR (string);
+	      string = XCAR (string);
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= 0
+		  && XINT (pos) < SCHARS (string))
+		{
+		  map = Fget_text_property (pos, Qlocal_map, string);
+		  if (!NILP (map))
+		    local_map = map;
+
+		  map = Fget_text_property (pos, Qkeymap, string);
+		  if (!NILP (map))
+		    keymap = map;
+		}
+	    }
+	  
+	}
+
+      if (!NILP (local_map))
+	keymaps = Fcons (local_map, keymaps);
 
       /* Now put all the minor mode keymaps on the list.  */
       nmaps = current_minor_maps (0, &maps);
@@ -1572,11 +1666,11 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
 	if (!NILP (maps[i]))
 	  keymaps = Fcons (maps[i], keymaps);
 
-      /* This returns nil unless there is a `keymap' property.  */
-      local = get_local_map (PT, current_buffer, Qkeymap);
-      if (!NILP (local))
-	keymaps = Fcons (local, keymaps);
+      if (!NILP (keymap))
+	keymaps = Fcons (keymap, keymaps);
     }
+
+  unbind_to (count, Qnil);
 
   return keymaps;
 }
@@ -1945,12 +2039,23 @@ DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_
 
 /* Help functions for describing and documenting keymaps.		*/
 
+struct accessible_keymaps_data {
+  Lisp_Object maps, tail, thisseq;
+  /* Does the current sequence end in the meta-prefix-char?  */
+  int is_metized;
+};
 
 static void
-accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
-     Lisp_Object maps, tail, thisseq, key, cmd;
-     int is_metized;		/* If 1, `key' is assumed to be INTEGERP.  */
+accessible_keymaps_1 (key, cmd, args, data)
+     Lisp_Object key, cmd, args;
+     /* Use void* to be compatible with map_keymap_function_t.  */
+     void *data;
 {
+  struct accessible_keymaps_data *d = data; /* Cast! */
+  Lisp_Object maps = d->maps;
+  Lisp_Object tail = d->tail;
+  Lisp_Object thisseq = d->thisseq;
+  int is_metized = d->is_metized && INTEGERP (key);
   Lisp_Object tem;
 
   cmd = get_keymap (get_keyelt (cmd, 0), 0, 0);
@@ -2004,17 +2109,6 @@ accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
     }
 }
 
-static void
-accessible_keymaps_char_table (args, index, cmd)
-     Lisp_Object args, index, cmd;
-{
-  accessible_keymaps_1 (index, cmd,
-			XCAR (XCAR (args)),
-			XCAR (XCDR (args)),
-			XCDR (XCDR (args)),
-			XINT (XCDR (XCAR (args))));
-}
-
 /* This function cannot GC.  */
 
 DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
@@ -2029,12 +2123,9 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
      Lisp_Object keymap, prefix;
 {
   Lisp_Object maps, tail;
-  int prefixlen = 0;
+  int prefixlen = XINT (Flength (prefix));
 
   /* no need for gcpro because we don't autoload any keymaps.  */
-
-  if (!NILP (prefix))
-    prefixlen = XINT (Flength (prefix));
 
   if (!NILP (prefix))
     {
@@ -2046,7 +2137,9 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	 if the prefix is not defined in this particular map.
 	 It might even give us a list that isn't a keymap.  */
       tem = get_keymap (tem, 0, 0);
-      if (CONSP (tem))
+      /* If the keymap is autoloaded `tem' is not a cons-cell, but we still
+	 want to return it.  */
+      if (!NILP (tem))
 	{
 	  /* Convert PREFIX to a vector now, so that later on
 	     we don't have to deal with the possibility of a string.  */
@@ -2086,57 +2179,26 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 
   for (tail = maps; CONSP (tail); tail = XCDR (tail))
     {
-      register Lisp_Object thisseq, thismap;
+      struct accessible_keymaps_data data;
+      register Lisp_Object thismap = Fcdr (XCAR (tail));
       Lisp_Object last;
-      /* Does the current sequence end in the meta-prefix-char?  */
-      int is_metized;
 
-      thisseq = Fcar (Fcar (tail));
-      thismap = Fcdr (Fcar (tail));
-      last = make_number (XINT (Flength (thisseq)) - 1);
-      is_metized = (XINT (last) >= 0
+      data.thisseq = Fcar (XCAR (tail));
+      data.maps = maps;
+      data.tail = tail;
+      last = make_number (XINT (Flength (data.thisseq)) - 1);
+      /* Does the current sequence end in the meta-prefix-char?  */
+      data.is_metized = (XINT (last) >= 0
 		    /* Don't metize the last char of PREFIX.  */
 		    && XINT (last) >= prefixlen
-		    && EQ (Faref (thisseq, last), meta_prefix_char));
+		    && EQ (Faref (data.thisseq, last), meta_prefix_char));
 
-      for (; CONSP (thismap); thismap = XCDR (thismap))
-	{
-	  Lisp_Object elt;
-
-	  elt = XCAR (thismap);
-
-	  QUIT;
-
-	  if (CHAR_TABLE_P (elt))
-	    {
-	      Lisp_Object indices[3];
-
-	      map_char_table (accessible_keymaps_char_table, Qnil, elt,
-			      elt, Fcons (Fcons (maps, make_number (is_metized)),
-					  Fcons (tail, thisseq)),
-			      0, indices);
-	    }
-	  else if (VECTORP (elt))
-	    {
-	      register int i;
-
-	      /* Vector keymap.  Scan all the elements.  */
-	      for (i = 0; i < ASIZE (elt); i++)
-		accessible_keymaps_1 (make_number (i), AREF (elt, i),
-				      maps, tail, thisseq, is_metized);
-
-	    }
-	  else if (CONSP (elt))
-	    accessible_keymaps_1 (XCAR (elt), XCDR (elt),
-				  maps, tail, thisseq,
-				  is_metized && INTEGERP (XCAR (elt)));
-
-	}
+      /* Since we can't run lisp code, we can't scan autoloaded maps.  */
+      if (CONSP (thismap))
+	map_keymap (thismap, accessible_keymaps_1, Qnil, &data, 0);
     }
-
   return maps;
 }
-
 Lisp_Object Qsingle_key_description, Qkey_description;
 
 /* This function cannot GC.  */
@@ -2407,7 +2469,7 @@ around function keys and event symbols.  */)
 	{
 	  char buf[256];
 
-	  sprintf (buf, "Invalid char code %d", XINT (key));
+	  sprintf (buf, "Invalid char code %ld", XINT (key));
 	  return build_string (buf);
 	}
       else if (charset
@@ -2550,8 +2612,8 @@ ascii_sequence_p (seq)
 /* where-is - finding a command in a set of keymaps.			*/
 
 static Lisp_Object where_is_internal ();
-static Lisp_Object where_is_internal_1 ();
-static void where_is_internal_2 ();
+static void where_is_internal_1 P_ ((Lisp_Object key, Lisp_Object binding,
+				     Lisp_Object args, void *data));
 
 /* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
    Returns the first non-nil binding found in any of those maps.  */
@@ -2579,6 +2641,12 @@ shadow_lookup (shadow, key, flag)
 }
 
 static Lisp_Object Vmouse_events;
+
+struct where_is_internal_data {
+  Lisp_Object definition, noindirect, this, last;
+  int last_is_meta;
+  Lisp_Object sequences;
+};
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
@@ -2617,6 +2685,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
     {
       /* Key sequence to reach map, and the map that it reaches */
       register Lisp_Object this, map, tem;
+      struct where_is_internal_data data;
 
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
@@ -2641,148 +2710,94 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
       QUIT;
 
-      while (CONSP (map))
+      data.definition = definition;
+      data.noindirect = noindirect;
+      data.this = this;
+      data.last = last;
+      data.last_is_meta = last_is_meta;
+      data.sequences = Qnil;
+
+      if (CONSP (map))
+	map_keymap (map, where_is_internal_1, Qnil, &data, 0);
+
+      sequences = data.sequences;
+
+      while (CONSP (sequences))
 	{
-	  /* Because the code we want to run on each binding is rather
-	     large, we don't want to have two separate loop bodies for
-	     sparse keymap bindings and tables; we want to iterate one
-	     loop body over both keymap and vector bindings.
+	  Lisp_Object sequence, remapped, function;
+	  
+	  sequence = XCAR (sequences);
+	  sequences = XCDR (sequences);
 
-	     For this reason, if Fcar (map) is a vector, we don't
-	     advance map to the next element until i indicates that we
-	     have finished off the vector.  */
-	  Lisp_Object elt, key, binding;
-	  elt = XCAR (map);
-	  map = XCDR (map);
-
-	  sequences = Qnil;
-
-	  QUIT;
-
-	  /* Set key and binding to the current key and binding, and
-	     advance map and i to the next binding.  */
-	  if (VECTORP (elt))
+	  /* If the current sequence is a command remapping with
+	     format [remap COMMAND], find the key sequences
+	     which run COMMAND, and use those sequences instead.  */
+	  remapped = Qnil;
+	  if (NILP (no_remap)
+	      && VECTORP (sequence) && XVECTOR (sequence)->size == 2
+	      && EQ (AREF (sequence, 0), Qremap)
+	      && (function = AREF (sequence, 1), SYMBOLP (function)))
 	    {
-	      Lisp_Object sequence;
-	      int i;
-	      /* In a vector, look at each element.  */
-	      for (i = 0; i < XVECTOR (elt)->size; i++)
+	      Lisp_Object remapped1;
+	      
+	      remapped1 = where_is_internal (function, keymaps, firstonly, noindirect, Qt);
+	      if (CONSP (remapped1))
 		{
-		  binding = AREF (elt, i);
-		  XSETFASTINT (key, i);
-		  sequence = where_is_internal_1 (binding, key, definition,
-						  noindirect, this,
-						  last, nomenus, last_is_meta);
-		  if (!NILP (sequence))
-		    sequences = Fcons (sequence, sequences);
-		}
-	    }
-	  else if (CHAR_TABLE_P (elt))
-	    {
-	      Lisp_Object indices[3];
-	      Lisp_Object args;
-
-	      args = Fcons (Fcons (Fcons (definition, noindirect),
-				   Qnil), /* Result accumulator.  */
-			    Fcons (Fcons (this, last),
-				   Fcons (make_number (nomenus),
-					  make_number (last_is_meta))));
-	      map_char_table (where_is_internal_2, Qnil, elt, elt, args,
-			      0, indices);
-	      sequences = XCDR (XCAR (args));
-	    }
-	  else if (CONSP (elt))
-	    {
-	      Lisp_Object sequence;
-
-	      key = XCAR (elt);
-	      binding = XCDR (elt);
-
-	      sequence = where_is_internal_1 (binding, key, definition,
-					      noindirect, this,
-					      last, nomenus, last_is_meta);
-	      if (!NILP (sequence))
-		sequences = Fcons (sequence, sequences);
-	    }
-
-
-	  while (!NILP (sequences))
-	    {
-	      Lisp_Object sequence, remapped, function;
-
-	      sequence = XCAR (sequences);
-	      sequences = XCDR (sequences);
-
-	      /* If the current sequence is a command remapping with
-		 format [remap COMMAND], find the key sequences
-		 which run COMMAND, and use those sequences instead.  */
-	      remapped = Qnil;
-	      if (NILP (no_remap)
-		  && VECTORP (sequence) && XVECTOR (sequence)->size == 2
-		  && EQ (AREF (sequence, 0), Qremap)
-		  && (function = AREF (sequence, 1), SYMBOLP (function)))
-		{
-		  Lisp_Object remapped1;
-
-		  remapped1 = where_is_internal (function, keymaps, firstonly, noindirect, Qt);
-		  if (CONSP (remapped1))
-		    {
-		      /* Verify that this key binding actually maps to the
-			 remapped command (see below).  */
-		      if (!EQ (shadow_lookup (keymaps, XCAR (remapped1), Qnil), function))
-			continue;
-		      sequence = XCAR (remapped1);
-		      remapped = XCDR (remapped1);
-		      goto record_sequence;
-		    }
-		}
-
-	      /* Verify that this key binding is not shadowed by another
-		 binding for the same key, before we say it exists.
-
-		 Mechanism: look for local definition of this key and if
-		 it is defined and does not match what we found then
-		 ignore this key.
-
-		 Either nil or number as value from Flookup_key
-		 means undefined.  */
-	      if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
-		continue;
-
-	    record_sequence:
-	      /* Don't annoy user with strings from a menu such as
-		 Select Paste.  Change them all to "(any string)",
-		 so that there seems to be only one menu item
-		 to report. */
-	      if (! NILP (sequence))
-		{
-		  Lisp_Object tem;
-		  tem = Faref (sequence, make_number (XVECTOR (sequence)->size - 1));
-		  if (STRINGP (tem))
-		    Faset (sequence, make_number (XVECTOR (sequence)->size - 1),
-			   build_string ("(any string)"));
-		}
-
-	      /* It is a true unshadowed match.  Record it, unless it's already
-		 been seen (as could happen when inheriting keymaps).  */
-	      if (NILP (Fmember (sequence, found)))
-		found = Fcons (sequence, found);
-
-	      /* If firstonly is Qnon_ascii, then we can return the first
-		 binding we find.  If firstonly is not Qnon_ascii but not
-		 nil, then we should return the first ascii-only binding
-		 we find.  */
-	      if (EQ (firstonly, Qnon_ascii))
-		RETURN_UNGCPRO (sequence);
-	      else if (!NILP (firstonly) && ascii_sequence_p (sequence))
-		RETURN_UNGCPRO (sequence);
-
-	      if (CONSP (remapped))
-		{
-		  sequence = XCAR (remapped);
-		  remapped = XCDR (remapped);
+		  /* Verify that this key binding actually maps to the
+		     remapped command (see below).  */
+		  if (!EQ (shadow_lookup (keymaps, XCAR (remapped1), Qnil), function))
+		    continue;
+		  sequence = XCAR (remapped1);
+		  remapped = XCDR (remapped1);
 		  goto record_sequence;
 		}
+	    }
+
+	  /* Verify that this key binding is not shadowed by another
+	     binding for the same key, before we say it exists.
+
+	     Mechanism: look for local definition of this key and if
+	     it is defined and does not match what we found then
+	     ignore this key.
+
+	     Either nil or number as value from Flookup_key
+	     means undefined.  */
+	  if (!EQ (shadow_lookup (keymaps, sequence, Qnil), definition))
+	    continue;
+
+	record_sequence:
+	  /* Don't annoy user with strings from a menu such as
+	     Select Paste.  Change them all to "(any string)",
+	     so that there seems to be only one menu item
+	     to report. */
+	  if (! NILP (sequence))
+	    {
+	      Lisp_Object tem;
+	      tem = Faref (sequence, make_number (XVECTOR (sequence)->size - 1));
+	      if (STRINGP (tem))
+		Faset (sequence, make_number (XVECTOR (sequence)->size - 1),
+		       build_string ("(any string)"));
+	    }
+
+	  /* It is a true unshadowed match.  Record it, unless it's already
+	     been seen (as could happen when inheriting keymaps).  */
+	  if (NILP (Fmember (sequence, found)))
+	    found = Fcons (sequence, found);
+
+	  /* If firstonly is Qnon_ascii, then we can return the first
+	     binding we find.  If firstonly is not Qnon_ascii but not
+	     nil, then we should return the first ascii-only binding
+	     we find.  */
+	  if (EQ (firstonly, Qnon_ascii))
+	    RETURN_UNGCPRO (sequence);
+	  else if (!NILP (firstonly) && ascii_sequence_p (sequence))
+	    RETURN_UNGCPRO (sequence);
+
+	  if (CONSP (remapped))
+	    {
+	      sequence = XCAR (remapped);
+	      remapped = XCDR (remapped);
+	      goto record_sequence;
 	    }
 	}
     }
@@ -2835,7 +2850,7 @@ remapped command in the returned list.  */)
   else if (!NILP (keymap))
     keymaps = Fcons (keymap, Fcons (current_global_map, Qnil));
   else
-    keymaps = Fcurrent_active_maps (Qnil);
+    keymaps = Fcurrent_active_maps (Qnil, Qnil);
 
   /* Only use caching for the menubar (i.e. called with (def nil t nil).
      We don't really need to check `keymap'.  */
@@ -2901,53 +2916,19 @@ remapped command in the returned list.  */)
   return result;
 }
 
-/* This is the function that Fwhere_is_internal calls using map_char_table.
-   ARGS has the form
-   (((DEFINITION . NOINDIRECT) . (KEYMAP . RESULT))
-    .
-    ((THIS . LAST) . (NOMENUS . LAST_IS_META)))
-   Since map_char_table doesn't really use the return value from this function,
-   we the result append to RESULT, the slot in ARGS.
-
-   This function can GC because it calls where_is_internal_1 which can
-   GC.  */
-
-static void
-where_is_internal_2 (args, key, binding)
-     Lisp_Object args, key, binding;
-{
-  Lisp_Object definition, noindirect, this, last;
-  Lisp_Object result, sequence;
-  int nomenus, last_is_meta;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-
-  GCPRO3 (args, key, binding);
-  result = XCDR (XCAR (args));
-  definition = XCAR (XCAR (XCAR (args)));
-  noindirect = XCDR (XCAR (XCAR (args)));
-  this = XCAR (XCAR (XCDR (args)));
-  last = XCDR (XCAR (XCDR (args)));
-  nomenus = XFASTINT (XCAR (XCDR (XCDR (args))));
-  last_is_meta = XFASTINT (XCDR (XCDR (XCDR (args))));
-
-  sequence = where_is_internal_1 (binding, key, definition, noindirect,
-				  this, last, nomenus, last_is_meta);
-
-  if (!NILP (sequence))
-    XSETCDR (XCAR (args), Fcons (sequence, result));
-
-  UNGCPRO;
-}
-
-
 /* This function can GC because get_keyelt can.  */
 
-static Lisp_Object
-where_is_internal_1 (binding, key, definition, noindirect, this, last,
-		     nomenus, last_is_meta)
-     Lisp_Object binding, key, definition, noindirect, this, last;
-     int nomenus, last_is_meta;
+static void
+where_is_internal_1 (key, binding, args, data)
+     Lisp_Object key, binding, args;
+     void *data;
 {
+  struct where_is_internal_data *d = data; /* Cast! */
+  Lisp_Object definition = d->definition;
+  Lisp_Object noindirect = d->noindirect;
+  Lisp_Object this = d->this;
+  Lisp_Object last = d->last;
+  int last_is_meta = d->last_is_meta;
   Lisp_Object sequence;
 
   /* Search through indirections unless that's not wanted.  */
@@ -2961,7 +2942,7 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
 	|| EQ (binding, definition)
 	|| (CONSP (definition) && !NILP (Fequal (binding, definition)))))
     /* Doesn't match.  */
-    return Qnil;
+    return;
 
   /* We have found a match.  Construct the key sequence where we found it.  */
   if (INTEGERP (key) && last_is_meta)
@@ -2976,10 +2957,9 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
     {
       Lisp_Object sequences = Fgethash (binding, where_is_cache, Qnil);
       Fputhash (binding, Fcons (sequence, sequences), where_is_cache);
-      return Qnil;
     }
   else
-    return sequence;
+    d->sequences = Fcons (sequence, d->sequences);
 }
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */

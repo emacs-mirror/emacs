@@ -162,7 +162,7 @@ The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories."
   :type 'boolean
   :group 'find-file)
-(put 'find-file-visit-truename 'safe-local-variable 'boolean)
+(put 'find-file-visit-truename 'safe-local-variable 'booleanp)
 
 (defcustom revert-without-query nil
   "Specify which files should be reverted without query.
@@ -727,17 +727,23 @@ This is an interface to the function `load'."
 			  (cons load-path (get-load-suffixes)))))
   (load library))
 
-(defun file-remote-p (file)
+(defun file-remote-p (file &optional connected)
   "Test whether FILE specifies a location on a remote system.
 Return an identification of the system if the location is indeed
 remote.  The identification of the system may comprise a method
 to access the system and its hostname, amongst other things.
 
 For example, the filename \"/user@host:/foo\" specifies a location
-on the system \"/user@host:\"."
+on the system \"/user@host:\".
+
+If CONNECTED is non-nil, the function returns an identification only
+if FILE is located on a remote system, and a connection is established
+to that remote system.
+
+`file-remote-p' will never open a connection on its own."
   (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
-	(funcall handler 'file-remote-p file)
+	(funcall handler 'file-remote-p file connected)
       nil)))
 
 (defun file-local-copy (file)
@@ -1051,6 +1057,12 @@ Recursive uses of the minibuffer will not be affected."
 	     ,@body)
 	 (remove-hook 'minibuffer-setup-hook ,hook)))))
 
+(defcustom find-file-confirm-nonexistent-file nil
+  "If non-nil, `find-file' requires confirmation before visiting a new file."
+  :group 'find-file
+  :version "23.1"
+  :type 'boolean)
+
 (defun find-file-read-args (prompt mustmatch)
   (list (let ((find-file-default
 	       (and buffer-file-name
@@ -1074,7 +1086,9 @@ suppress wildcard expansion by setting `find-file-wildcards' to nil.
 
 To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
-  (interactive (find-file-read-args "Find file: " nil))
+  (interactive
+   (find-file-read-args "Find file: "
+                        (if find-file-confirm-nonexistent-file 'confirm-only)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -1091,7 +1105,9 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive (find-file-read-args "Find file in other window: " nil))
+  (interactive
+   (find-file-read-args "Find file in other window: "
+                        (if find-file-confirm-nonexistent-file 'confirm-only)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1111,7 +1127,9 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive (find-file-read-args "Find file in other frame: " nil))
+  (interactive
+   (find-file-read-args "Find file in other frame: "
+                        (if find-file-confirm-nonexistent-file 'confirm-only)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -1134,7 +1152,9 @@ file names with wildcards."
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only: " nil))
+  (interactive
+   (find-file-read-args "Find file read-only: "
+                        (if find-file-confirm-nonexistent-file 'confirm-only)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1149,7 +1169,9 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only other window: " nil))
+  (interactive
+   (find-file-read-args "Find file read-only other window: "
+                        (if find-file-confirm-nonexistent-file 'confirm-only)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -1164,7 +1186,9 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "Find file read-only other frame: " nil))
+  (interactive
+   (find-file-read-args "Find file read-only other frame: "
+                        (if find-file-confirm-nonexistent-file 'confirm-only)))
   (unless (or (and wildcards find-file-wildcards
 		   (not (string-match "\\`/:" filename))
 		   (string-match "[[*?]" filename))
@@ -4022,6 +4046,8 @@ or multiple mail buffers, etc."
 
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and any nonexistent parent dirs.
+If DIR already exists as a directory, do nothing.
+
 Interactively, the default choice of directory to create
 is the current default directory for file names.
 That is useful when you have visited a file in a nonexistent directory.

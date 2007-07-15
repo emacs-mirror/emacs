@@ -883,7 +883,7 @@ a new string, without any text properties, is returned.  */)
 	  struct buffer *oldbuf;
 	  int start_idx;
 	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
-	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil);
+	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
 	  Lisp_Object earlier_maps;
 
 	  changed = 1;

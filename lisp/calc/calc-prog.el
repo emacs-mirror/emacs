@@ -568,7 +568,7 @@
 			  (set-buffer calc-buf)
 			  (let ((calc-user-parse-tables nil)
 				(calc-language nil)
-				(math-expr-opers math-standard-opers)
+				(math-expr-opers (math-standard-ops))
 				(calc-hashes-used 0))
 			    (math-read-expr
 			     (if (string-match ",[ \t]*\\'" str)

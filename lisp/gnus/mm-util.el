@@ -36,11 +36,7 @@
        (if (fboundp (car elem))
 	   (defalias nfunc (car elem))
 	 (defalias nfunc (cdr elem)))))
-   '((decode-coding-string . (lambda (s a) s))
-     (encode-coding-string . (lambda (s a) s))
-     (encode-coding-region . ignore)
-     (coding-system-list . ignore)
-     (decode-coding-region . ignore)
+   '((coding-system-list . ignore)
      (char-int . identity)
      (coding-system-equal . equal)
      (annotationp . ignore)
@@ -95,6 +91,34 @@
      (multibyte-string-p . ignore)
      (insert-byte . insert-char)
      (multibyte-char-to-unibyte . identity))))
+
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (if (featurep 'file-coding)
+	  ;; Don't modify string if CODING-SYSTEM is nil.
+	  (progn
+	    (defun mm-decode-coding-string (str coding-system)
+	      (if coding-system
+		  (decode-coding-string str coding-system)
+		str))
+	    (defun mm-encode-coding-string (str coding-system)
+	      (if coding-system
+		  (encode-coding-string str coding-system)
+		str))
+	    (defun mm-decode-coding-region (start end coding-system)
+	      (if coding-system
+		  (decode-coding-region start end coding-system)))
+	    (defun mm-encode-coding-region (start end coding-system)
+	      (if coding-system
+		  (encode-coding-region start end coding-system))))
+	(defun mm-decode-coding-string (str coding-system) str)
+	(defun mm-encode-coding-string (str coding-system) str)
+	(defalias 'mm-decode-coding-region 'ignore)
+	(defalias 'mm-encode-coding-region 'ignore))
+    (defalias 'mm-decode-coding-string 'decode-coding-string)
+    (defalias 'mm-encode-coding-string 'encode-coding-string)
+    (defalias 'mm-decode-coding-region 'decode-coding-region)
+    (defalias 'mm-encode-coding-region 'encode-coding-region)))
 
 (eval-and-compile
   (cond
