@@ -41,6 +41,7 @@
 A `.el' file can set this in its local variables section to make its
 autoloads go somewhere else.  The autoload file is assumed to contain a
 trailer starting with a FormFeed character.")
+;;;###autoload
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 
 ;; This feels like it should be a defconst, but MH-E sets it to
@@ -432,7 +433,10 @@ Return non-nil iff FILE adds no autoloads to OUTFILE
                        ;; checksum in secondary autoload files where we do
                        ;; not need the time-stamp optimization because it is
                        ;; already provided by the primary autoloads file.
-                       (md5 secondary-autoloads-file-buf nil nil 'emacs-mule)
+                       (md5 secondary-autoloads-file-buf
+                            ;; We'd really want to just use
+                            ;; `emacs-internal' instead.
+                            nil nil 'emacs-mule-unix)
                      (nth 5 (file-attributes relfile))))
                   (insert ";;; Generated autoloads from " relfile "\n"))
                 (insert generate-autoload-section-trailer))))
@@ -559,6 +563,7 @@ directory or directories specified."
 				 (directory-files (expand-file-name dir)
 						  t files-re))
 			       dirs)))
+         (done ())
 	 (this-time (current-time))
          ;; Files with no autoload cookies or whose autoloads go to other
          ;; files because of file-local autoload-generated-file settings.
@@ -592,10 +597,10 @@ directory or directories specified."
 			   (push file no-autoloads)
 			   (setq files (delete file files)))))))
 		  ((not (stringp file)))
-		  ((not (and (file-exists-p file)
-                             ;; Remove duplicates as well, just in case.
-                             (member file files)))
-		   ;; Remove the obsolete section.
+		  ((or (not (file-exists-p file))
+                       ;; Remove duplicates as well, just in case.
+                       (member file done))
+                   ;; Remove the obsolete section.
 		   (autoload-remove-section (match-beginning 0)))
 		  ((not (time-less-p (nth 4 form)
                                      (nth 5 (file-attributes file))))
@@ -606,6 +611,7 @@ directory or directories specified."
                    (if (autoload-generate-file-autoloads
                         file (current-buffer) buffer-file-name)
                        (push file no-autoloads))))
+            (push file done)
 	    (setq files (delete file files)))))
       ;; Elements remaining in FILES have no existing autoload sections yet.
       (dolist (file files)

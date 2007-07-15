@@ -1,6 +1,51 @@
+2007-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/emacs-mime): Use --enable-encoding.
+
+	* makefile.w32-in ($(infodir)/emacs-mime): Ditto.
+
+	* emacs-mime.texi: Add @documentencoding directive.
+
+2007-07-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tramp.texi (Remote processes): Add an anchor to the subsection
+	"Running a debugger on a remote host".
+
+	* building.texi (Starting GUD): Add xref to this anchor.
+
+2007-07-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): Don't call it "experimental" any
+	longer.  Add subsection about running a debugger on a remote host.
+
+2007-07-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Properties and columns): Chapter rewritten.
+
+2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi:
+	* trampver.texi: Migrate to Tramp 2.1.
+
 2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Properties): New chapter.
+
+2007-07-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([3.2]): Fix locating of environment variables in the
+	Control Panel.
+
+	* gnus.texi (Misc Article): Add index entry for
+	gnus-single-article-buffer.
+
+2007-06-27  Andreas Seltenreich  <andreas@gate450.dyndns.org>
+
+	* gnus.texi (Starting Up): Fix typo.
+
+2007-06-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Asynchronous Fetching): Fix typo.
 
 2007-06-24  Karl Berry  <karl@gnu.org>
 

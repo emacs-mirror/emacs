@@ -1,3 +1,325 @@
+2007-07-15  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Revert revision 1.90 (commitid mWoPbju3pgNotDps),
+	thus restoring bookmark bindings to three slots under C-x r.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00705.html.
+
+2007-07-15  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
+
+	* calendar/cal-bahai.el (calendar-goto-bahai-date): Add autoload
+	cookie.
+
+2007-07-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (set-default-process-coding-system): Use dos line ends
+	for input to cmdproxy on all versions of Windows.
+	Use dos line ends for input to plink.
+
+	* comint.el (comint-simple-send): Concat newline before sending.
+	(comint-password-prompt-regexp): Recognize plink's passphrase prompt.
+
+2007-07-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (generated-autoload-file): Autoload the
+	safe-local-variable setting.
+
+2007-07-14  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp/advice.el (defadvice): Doc fix.
+
+2007-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (when, unless): Doc fix.
+
+2007-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* replace.el (match): Use yellow1 instead of yellow.
+
+	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
+	red. 
+
+	* pcvs-info.el (cvs-unknown): Likewise.
+
+2007-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-lisp-SH, install-lisp-CMD): New targets.
+	(install): Use them to copy all *.el files before *.elc.
+
+2007-07-13  Drew Adams <drew.adams@oracle.com>
+
+	* bookmark.el (bookmark-jump-other-window): New function.
+	(bookmark-map): Bind it to "o".
+
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html
+	and its thread contains discussion about this change.
+	The original patch was slightly tweaked by Karl Fogel
+	<kfogel@red-bean.com> before committing.
+
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Shorten some comments to fit within 80 lines.
+
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Don't define bookmark keys under the "C-xr" map;
+	instead, make "C-xp" a prefix for bookmark-map.  Patch by Drew
+	Adams <drew.adams@oracle.com>, mildly tweaked by me.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html.
+
+2007-07-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Bug fixes.
+	(org-end-of-line): Move to end of line if in headline without tags.
+
+2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el: Remove spurious * in docstrings.
+	(vc-handled-backends): Add BZR.
+
+	* vc-hooks.el (vc-find-file-hook): Use with-demoted-errors.
+
+2007-07-12  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-buffer-info, desktop-save):
+	Use `desktop-dirname' instead of `dirname'.
+
+2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/which-func.el (which-func-modes): Add `python-mode'.
+
+	* progmodes/python.el (python-which-func-length-limit): New var.
+	(python-which-func): New function.
+	(python-current-defun): Add optional `length-limit' and try to fit
+	computed function name to that length.
+	(python-mode): Hook `python-which-func' up.
+
+2007-07-12  Sean O'Rourke  <sorourke@cs.ucsd.edu>  (tiny change)
+
+	* pcomplete.el (pcomplete-entries): Obey pcomplete-ignore-case.
+
+	* comint.el (comint-dynamic-complete-as-filename):
+	Use read-file-name-completion-ignore-case.
+
+2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-dynamic-list-filename-completions):
+	Use read-file-name-completion-ignore-case.
+
+	* vc-cvs.el: Require CL.
+	(vc-cvs-revision-table, vc-cvs-revision-completion-table):
+	New functions to provide completion of revision names.
+
+	* vc-cvs.el (vc-functions): Clear up the cache when reloading the file.
+	(vc-cvs-annotate-first-line-re): New const.
+	(vc-cvs-annotate-process-filter): New fun.
+	(vc-cvs-annotate-command): Use them and run the command asynchronously.
+
+2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* emacs-lisp/eldoc.el (eldoc-last-data): Revise documentation.
+	(eldoc-print-current-symbol-info): Adjust for changed helper
+	function signatures.
+	(eldoc-get-fnsym-args-string): Add `args' argument.  Use new
+	`eldoc-highlight-function-argument'.
+	(eldoc-highlight-function-argument): New function.
+	(eldoc-get-var-docstring): Format documentation with
+	`font-lock-variable-name-face'.
+	(eldoc-docstring-format-sym-doc): Add `face' argument and apply it
+	where suited.
+	(eldoc-fnsym-in-current-sexp): Return a list with argument index.
+	(eldoc-beginning-of-sexp): Return number of skipped sexps.
+
+2007-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/compile.el (compilation-start): `start-process' must
+	still be redefined when calling `start-process-shell-command'.
+
+	* progmodes/gud.el (gud-file-name): When `default-directory' is a
+	remote file name, prepend its remote part to the filename.
+	(gud-common-init): When `default-directory' is a remote file name,
+	make the filename relative to it.
+	Based on a patch by Nick Roberts <nickrob@snap.net.nz>.
+
+2007-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-default-mode-line-string): Add a mouse face,
+	mouse binding and a tooltip.
+
+2007-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (vc-menu-map): New defalias.
+
+2007-07-10  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun):
+	Explain special handling of `defface'.
+
+2007-07-10  Jim Meyering  <jim@meyering.net>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-current-gpl-version): Set to 3.
+
+	* autoinsert.el (auto-insert-alist): s/2/3/ in the generated comment.
+
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el: Load cl-loaddefs.el quietly.
+
+	* vc-arch.el (vc-arch-complete): Remove.
+	(vc-arch-revision-completion-table): Use complete-with-action.
+
+	* subr.el (condition-case-no-debug, with-demoted-errors): New macros.
+	(complete-with-action): New function.
+	(dynamic-completion-table): Use it.
+
+2007-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* comint.el (make-comint, make-comint-in-buffer)
+	(comint-exec-1): Replace `start-process' by `start-file-process'.
+
+	* progmodes/compile.el (compilation-start): Revert redefining
+	`start-process'.
+
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Be careful
+	with EOLs when generating MD5 checksums.
+
+	* follow.el: Don't change the global map from the follow-mode-map
+	defvar, but from the toplevel.  Use easy-menu to unify the Emacs and
+	XEmacs code.
+	(turn-on-follow-mode, turn-off-follow-mode): Remove interactive spec
+	since `follow-mode' should be used instead for that.
+
+	* emacs-lisp/easymenu.el (easy-menu-binding): New function.
+	(easy-menu-do-define): Use it.
+	(easy-menu-do-add-item): Inline into easy-menu-add-item and then remove.
+
+	* progmodes/compile.el (compilation-auto-jump-to-first-error)
+	(compilation-auto-jump-to-next): New vars.
+	(compilation-auto-jump): New function.
+	(compilation-error-properties): Use them to jump to first error.
+	(compilation-start): Set the var if requested.
+
+	* emacs-lisp/autoload.el (update-directory-autoloads): Remove
+	duplicates without also removing entries from other directories.
+
+2007-07-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-day-view, org-agenda-week-view):
+	Remember span as default.
+	(org-columns-edit-value): Rename from `org-column-edit'.
+	(org-columns-display-here-title): Rename from
+	`org-overlay-columns-title'.
+	(org-columns-remove-overlays): Rename from org-remove-column-overlays.
+	(org-columns-get-autowidth-alist): Rename from
+	`org-get-columns-autowidth-alist'.
+	(org-columns-display-here): Rename from `org-overlay-columns'.
+	(org-columns-new-overlay): Rename from `org-new-column-overlay'.
+	(org-columns-quit): Rename from `org-column-quit'.
+	(org-columns-show-value): Rename from `org-column-show-value'.
+	(org-columns-content, org-columns-widen)
+	(org-columns-next-allowed-value)
+	(org-columns-edit-allowed, org-columns-store-format)
+	(org-columns-uncompile-format, org-columns-redo)
+	(org-columns-edit-attributes, org-delete-property)
+	(org-set-property, org-columns-update)
+	(org-columns-compute, org-columns-eval)
+	(org-columns-not-in-agenda, org-columns-compute-all)
+	(org-property-next-allowed-value)
+	(org-columns-compile-format)
+	(org-fill-paragraph-experimental)
+	(org-string-to-number, org-property-action)
+	(org-columns-move-left, org-columns-new )
+	(org-column-number-to-string)
+	(org-property-previous-allowed-value)
+	(org-at-property-p, org-columns-delete)
+	(org-columns-previous-allowed-value)
+	(org-columns-move-right, org-columns-narrow)
+	(org-property-get-allowed-values)
+	(org-verify-version, org-column-string-to-number)
+	(org-delete-property-globally): New functions.
+	(org-columns-current-fmt): Rename from `org-current-columns-fmt'.
+	(org-columns-overlays): Rename from `org-column-overlays'.
+	(org-columns-map): Rename from `org-column-map'.
+	(org-columns-current-maxwidths): Rename from
+	`org-current-columns-maxwidths'.
+	(org-columns-begin-marker, org-columns-current-fmt-compiled)
+	(org-previous-header-line-format)
+	(org-columns-inhibit-recalculation)
+	(org-columns-top-level-marker): New variables.
+	(org-columns-default-format): Rename from `org-default-columns-format'.
+	(org-property-re): New constant.
+
+2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* subr.el (looking-at-p, string-match-p): New functions.
+
+2007-07-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/tex-mode.el (tex-fontify-script)
+	(tex-font-script-display): New variables to make display of
+	superscripts and subscripts customizable.
+	(tex-font-lock-suscript, tex-font-lock-match-suscript): Use them.
+
+2007-07-09  Richard Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-edit-string): Call to isearch-push-state
+	after the search.
+
+2007-07-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.el (fit-window-to-buffer): Remove setting of window-min-height
+	to 1 as enlarge-window uses the value to resize/shrink windows other
+	than WINDOW if needed.
+
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
+2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-wrap-region): Avoid marking buffer as
+	modified.
+	(longlines-auto-wrap, longlines-window-change-function):
+	Remove unnecessary calls to set-buffer-modified-p.
+
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
+2007-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-cvs.el (vc-cvs-revert): Use vc-default-revert.
+	(vc-cvs-checkout): Remove last arg now unused; simplify.
+
+2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-remote-p): Introduce optional parameter CONNECTED.
+
+	* net/tramp.el:
+	* net/tramp-ftp.el:
+	* net/tramp-smb.el:
+	* net/tramp-uu.el:
+	* net/trampver.el: Migrate to Tramp 2.1.
+
+	* net/tramp-cache.el:
+	* net/tramp-fish.el:
+	* net/tramp-gw.el: New Tramp packages.
+
+	* net/tramp-util.el:
+	* net/tramp-vc.el: Removed.
+
+	* net/ange-ftp.el: Add ange-ftp property to 'start-file-process
+	(ange-ftp-file-remote-p): Handle optional parameter CONNECTED.
+
+	* net/rcompile.el (remote-compile): Handle Tramp 2.1 arguments.
+
+	* progmodes/compile.el (compilation-start): Redefine
+	`start-process' temporarily when `default-directory' is remote.
+	Remove case of synchronous compilation, this won't happen ever.
+	(compilation-setup): Make local variable `comint-file-name-prefix'
+	for remote compilation.
+
 2007-07-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* novice.el (disabled-command-function): Fit window to buffer to
@@ -16,20 +338,21 @@
 	(math-bignum-digit-power-of-two): Evaluate when compiled.
 
 	* calc/calc-comb.el (math-small-factorial-table)
-	(math-init-random-base,math-prime-test): Remove unnecessary calls
+	(math-init-random-base, math-prime-test): Remove unnecessary calls
 	to `math-read-number-simple'.
 
-	* calc/calc-ext.el (math-approx-pi,math-approx-sqrt-e)
+	* calc/calc-ext.el (math-approx-pi, math-approx-sqrt-e)
 	(math-approx-gamma-const): Add docstrings.
 
 	* calc/calc-forms.el (math-julian-date-beginning)
-	(math-julian-date-beginning-int) New constants.
-	(math-format-date-part,math-parse-standard-date,calcFunc-julian):
+	(math-julian-date-beginning-int): New constants.
+	(math-format-date-part, math-parse-standard-date, calcFunc-julian):
 	Use the new constants.
 
 	* calc/calc-funcs.el (math-gammap1-raw): Add docstring.
 
-	* calc/calc-math.el (math-approx-ln-10,math-approx-ln-2): Add docstrings.
+	* calc/calc-math.el (math-approx-ln-10, math-approx-ln-2):
+	Add docstrings.
 
 2007-07-07  Tom Tromey  <tromey@redhat.com>
 
@@ -106,8 +429,8 @@
 
 	* calc/calc-bin.el (math-bignum-logb-digit-size)
 	(math-bignum-digit-power-of-two): New constants.
-	(math-and-bignum,math-or-bignum,math-xor-bignum,math-diff-bignum)
-	(math-not-bignum,math-clip-bignum): Use the constants
+	(math-and-bignum, math-or-bignum, math-xor-bignum, math-diff-bignum)
+	(math-not-bignum, math-clip-bignum): Use the constants
 	`math-bignum-digit-power-of-two' and `math-bignum-logb-digit-size'
 	instead of their values.
 	(math-clip): Use math-small-integer-size instead of its value.
@@ -186,6 +509,11 @@
 	* calculator.el (calculator-expt): Use more cases to determine
 	the value.
 
+2007-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/gud.el (auto-mode-alist): Match more valid gdb init
+	file names.
+
 2007-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calculator.el (calculator-expt, calculator-integer-p):
@@ -261,11 +589,15 @@
 
 2007-07-02  Martin Rudalics  <rudalics@gmx.at>
 
-	* help-mode.el (help-make-xrefs):  Skip spaces too when
+	* help-mode.el (help-make-xrefs): Skip spaces too when
 	skipping tabs.
 
 	* ffap.el (dired-at-point-prompter): Improve prompt in
 	list-directory case.
+
+2007-07-01  Richard Stallman  <rms@gnu.org>
+
+	* files.el (find-file-visit-truename): Fix safe-local-variable value.
 
 2007-07-01  Richard Stallman  <rms@gnu.org>
 
@@ -918,7 +1250,7 @@
 	post-command-hook.
 	(rcirc-window-configuration-change-1): Update mode-line and
 	overlay arrows here.
-	(rcirc-authenticate): Fix chanserv identification.
+	(rcirc-authenticate): Fixc hanserv identification.
 	(rcirc-default-server): Remove variable.
 	(rcirc): Connect according to rcirc-connections.
 	(rcirc-connections): Add variable.
@@ -1536,7 +1868,7 @@
 
 	* files.el (auto-mode-alist): Open `.asd' files in lisp-mode.
 
-2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mail-extr.el (mail-extract-address-components):
 	Recognize non-ASCII characters except for NBSP as words.

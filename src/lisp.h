@@ -56,7 +56,7 @@ Boston, MA 02110-1301, USA.  */
 #ifdef GC_CHECK_CONS_LIST
 #define CHECK_CONS_LIST() check_cons_list()
 #else
-#define CHECK_CONS_LIST() 0
+#define CHECK_CONS_LIST() ((void)0)
 #endif
 
 /* These are default choices for the types to use.  */
@@ -3234,6 +3234,7 @@ EXFUN (Fx_file_dialog, 5);
 #endif
 
 /* Defined in xfaces.c */
+EXFUN (Fclear_face_cache, 1);
 extern void syms_of_xfaces P_ ((void));
 
 #ifndef HAVE_GETLOADAVG
@@ -3249,6 +3250,7 @@ extern void syms_of_xfns P_ ((void));
 extern void syms_of_xsmfns P_ ((void));
 
 /* Defined in xselect.c */
+EXFUN (Fx_send_client_event, 6);
 extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */

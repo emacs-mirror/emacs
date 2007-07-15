@@ -124,8 +124,8 @@ directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
 (defconst eldoc-last-data (make-vector 3 nil)
   "Bookkeeping; elements are as follows:
   0 - contains the last symbol read from the buffer.
-  1 - contains the string last displayed in the echo area for that
-      symbol, so it can be printed again if necessary without reconsing.
+  1 - contains the string last displayed in the echo area for variables,
+      or argument string for functions.
   2 - 'function if function args, 'variable if variable documentation.")
 (defvar eldoc-last-message nil)
 
@@ -249,12 +249,16 @@ Emacs Lisp mode) that support Eldoc.")
 	     (let* ((current-symbol (eldoc-current-symbol))
 		    (current-fnsym  (eldoc-fnsym-in-current-sexp))
 		    (doc (cond
-			  ((eq current-symbol current-fnsym)
-			   (or (eldoc-get-fnsym-args-string current-fnsym)
+			  ((null current-fnsym)
+			   nil)
+			  ((eq current-symbol (car current-fnsym))
+			   (or (apply 'eldoc-get-fnsym-args-string
+				      current-fnsym)
 			       (eldoc-get-var-docstring current-symbol)))
 			  (t
 			   (or (eldoc-get-var-docstring current-symbol)
-			       (eldoc-get-fnsym-args-string current-fnsym))))))
+			       (apply 'eldoc-get-fnsym-args-string
+				      current-fnsym))))))
 	       (eldoc-message doc))))
     ;; This is run from post-command-hook or some idle timer thing,
     ;; so we need to be careful that errors aren't ignored.
@@ -263,23 +267,61 @@ Emacs Lisp mode) that support Eldoc.")
 ;; Return a string containing the function parameter list, or 1-line
 ;; docstring if function is a subr and no arglist is obtainable from the
 ;; docstring or elsewhere.
-(defun eldoc-get-fnsym-args-string (sym)
+(defun eldoc-get-fnsym-args-string (sym argument-index)
   (let ((args nil)
         (doc nil))
     (cond ((not (and sym (symbolp sym) (fboundp sym))))
           ((and (eq sym (aref eldoc-last-data 0))
                 (eq 'function (aref eldoc-last-data 2)))
-           (setq doc (aref eldoc-last-data 1)))
+           (setq args (aref eldoc-last-data 1)))
 	  ((setq doc (help-split-fundoc (documentation sym t) sym))
 	   (setq args (car doc))
 	   (string-match "\\`[^ )]* ?" args)
-	   (setq args (concat "(" (substring args (match-end 0)))))
+	   (setq args (concat "(" (substring args (match-end 0))))
+	   (eldoc-last-data-store sym args 'function))
           (t
            (setq args (eldoc-function-argstring sym))))
-    (cond (args
-           (setq doc (eldoc-docstring-format-sym-doc sym args))
-           (eldoc-last-data-store sym doc 'function)))
+    (when args
+      (setq doc (eldoc-highlight-function-argument sym args argument-index)))
     doc))
+
+;; Highlight argument INDEX in ARGS list for SYM.
+(defun eldoc-highlight-function-argument (sym args index)
+  (let ((start          nil)
+	(end            0)
+	(argument-face  'bold))
+    ;; Find the current argument in the argument string.  We need to
+    ;; handle `&rest' and informal `...' properly.
+    ;;
+    ;; FIXME: What to do with optional arguments, like in
+    ;;        (defun NAME ARGLIST [DOCSTRING] BODY...) case?
+    ;;        The problem is there is no robust way to determine if
+    ;;        the current argument is indeed a docstring.
+    (while (>= index 1)
+      (if (string-match "[^ ()]+" args end)
+	  (progn
+	    (setq start (match-beginning 0)
+		  end   (match-end 0))
+	    (let ((argument (match-string 0 args)))
+	      (cond ((string= argument "&rest")
+		     ;; All the rest arguments are the same.
+		     (setq index 1))
+		    ((string= argument "&optional"))
+		    ((string-match "\\.\\.\\.$" argument)
+		     (setq index 0))
+		    (t
+		     (setq index (1- index))))))
+	(setq end           (length args)
+	      start         (1- end)
+	      argument-face 'font-lock-warning-face
+	      index         0)))
+    (let ((doc args))
+      (when start
+	(setq doc (copy-sequence args))
+	(add-text-properties start end (list 'face argument-face) doc))
+      (setq doc (eldoc-docstring-format-sym-doc
+		 sym doc 'font-lock-function-name-face))
+      doc)))
 
 ;; Return a string containing a brief (one-line) documentation string for
 ;; the variable.
@@ -292,7 +334,8 @@ Emacs Lisp mode) that support Eldoc.")
 	   (let ((doc (documentation-property sym 'variable-documentation t)))
 	     (cond (doc
 		    (setq doc (eldoc-docstring-format-sym-doc
-			       sym (eldoc-docstring-first-line doc)))
+			       sym (eldoc-docstring-first-line doc)
+			       'font-lock-variable-name-face))
 		    (eldoc-last-data-store sym doc 'variable)))
 	     doc)))))
 
@@ -316,7 +359,7 @@ Emacs Lisp mode) that support Eldoc.")
 ;; If the entire line cannot fit in the echo area, the symbol name may be
 ;; truncated or eliminated entirely from the output to make room for the
 ;; description.
-(defun eldoc-docstring-format-sym-doc (sym doc)
+(defun eldoc-docstring-format-sym-doc (sym doc face)
   (save-match-data
     (let* ((name (symbol-name sym))
            (ea-multi eldoc-echo-area-use-multiline-p)
@@ -328,7 +371,7 @@ Emacs Lisp mode) that support Eldoc.")
       (cond ((or (<= strip 0)
                  (eq ea-multi t)
                  (and ea-multi (> (length doc) ea-width)))
-             (format "%s: %s" sym doc))
+             (format "%s: %s" (propertize name 'face face) doc))
             ((> (length doc) ea-width)
              (substring (format "%s" doc) 0 ea-width))
             ((>= strip (length name))
@@ -338,27 +381,44 @@ Emacs Lisp mode) that support Eldoc.")
              ;; than the beginning, since the former is more likely
              ;; to be unique given package namespace conventions.
              (setq name (substring name strip))
-             (format "%s: %s" name doc))))))
+             (format "%s: %s" (propertize name 'face face) doc))))))
 
 
+;; Return a list of current function name and argument index.
 (defun eldoc-fnsym-in-current-sexp ()
-  (let ((p (point)))
-    (eldoc-beginning-of-sexp)
-    (prog1
-        ;; Don't do anything if current word is inside a string.
-        (if (= (or (char-after (1- (point))) 0) ?\")
-            nil
-          (eldoc-current-symbol))
-      (goto-char p))))
+  (save-excursion
+    (let ((argument-index (1- (eldoc-beginning-of-sexp))))
+      ;; If we are at the beginning of function name, this will be -1.
+      (when (< argument-index 0)
+	(setq argument-index 0))
+      ;; Don't do anything if current word is inside a string.
+      (if (= (or (char-after (1- (point))) 0) ?\")
+	  nil
+	(list (eldoc-current-symbol) argument-index)))))
 
+;; Move to the beginnig of current sexp.  Return the number of nested
+;; sexp the point was over or after.
 (defun eldoc-beginning-of-sexp ()
-  (let ((parse-sexp-ignore-comments t))
+  (let ((parse-sexp-ignore-comments t)
+	(num-skipped-sexps 0))
     (condition-case err
-        (while (progn
-                 (forward-sexp -1)
-                 (or (= (char-before) ?\")
-                     (> (point) (point-min)))))
-      (error nil))))
+	(progn
+	  ;; First account for the case the point is directly over a
+	  ;; beginning of a nested sexp.
+	  (condition-case err
+	      (let ((p (point)))
+		(forward-sexp -1)
+		(forward-sexp 1)
+		(when (< (point) p)
+		  (setq num-skipped-sexps 1)))
+	    (error))
+	  (while
+	      (let ((p (point)))
+		(forward-sexp -1)
+		(when (< (point) p)
+		  (setq num-skipped-sexps (1+ num-skipped-sexps))))))
+      (error))
+    num-skipped-sexps))
 
 ;; returns nil unless current word is an interned symbol.
 (defun eldoc-current-symbol ()

@@ -73,6 +73,9 @@ recenter the visited source file.  Its value can be a number (for example,
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
+** compilation-auto-jump-to-first-error tells `compile' to jump to
+the first error encountered during compilations.
+
 ** In the `copyright' package, you can specify your copyright holders's names.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
@@ -95,8 +98,48 @@ identify cited keys in BibTeX entries, used by `bibtex-find-crossref.
 
 *** Command `bibtex-url' now allows multiple URLs per entry.
 
++++
+** Tramp
+
+*** New connection methods.
+The new methods "plinkx", "plink2", "psftp", "sftp" and "fish" have
+been introduced.  There are also new so-called gateway methods
+"tunnel" and "socks".
+
+*** Multihop syntax has been removed.
+The pseudo-method "multi" has been removed.  Instead of, multi hops
+can be specified by the new variable `tramp-default-proxies-alist'.
+
+*** More default settings.
+Default values can be set via the variables `tramp-default-user',
+`tramp-default-user-alist' and `tramp-default-host'.
+
+*** Connection information is cached.
+In order to reduce connection setup, information about used
+connections are kept persistent in a file.  The name of this file is
+defined in the variable `tramp-persistency-file-name'.
+
+*** Control of remote processes.
+Running processes on a remote host can be controlled by settings in
+`tramp-remote-path' and `tramp-remote-process-environment'.
+
+*** Success of remote copy is checked.
+When the variable `file-precious-flag' is set, the success of a remote
+file copy is checked via the file's checksum.
+
+** comint-mode uses `start-file-process' now (see Lisp Changes).
+If `default-directory' is a remote file name, subprocesses are started
+on the corresponding remote system.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
+
+---
+** IPv6 is supported on MS-Windows.
+Emacs now supports IPv6 on Windows XP and later, and earlier versions
+of Windows with third party IPv6 stacks installed. Previously IPv6 was
+supported on other platforms, but not on Windows due to using the winsock
+1.1 header file, even though Emacs was linking to the winsock 2 library.
 
 
 * Incompatible Lisp Changes in Emacs 23.1
@@ -106,6 +149,16 @@ identify cited keys in BibTeX entries, used by `bibtex-find-crossref.
 
 
 * Lisp Changes in Emacs 23.1
+
++++ 
+** In `condition-case', a handler can specify "let the debugger run first".
+
+You do this by writing `debug' in the list of conditions to be handled,
+like this:
+
+    (condition-case nil
+	(foo bar)
+      ((debug error) nil))
 
 ** The `require-match' argument to `completing-read' accepts a new value
 `confirm-only'.
@@ -126,6 +179,14 @@ with a given image specification.
 but obeys file handlers.  The file handler is chosen based on
 `default-directory'.
 
++++
+** `file-remote-p' has a new optional parameter CONNECTED.
+With this paramter passed non-nil, it is checked whether a remote
+connection has been established already.
+
+** The two new functions `looking-at-p' and `string-match-p' can do
+the same matching as `looking-at' and `string-match' without changing
+the match data.
 
 * New Packages for Lisp Programming in Emacs 23.1
 

@@ -46,6 +46,11 @@ before deleting/copying the indicated directory recursively.
 than the window, the usual keys for moving the cursor cause the image
 to be scrolled horizontally or vertically instead.
 
+** Scrollbars follow the system theme on Windows XP and later.
+Windows XP introduced themed scrollbars, but applications have to take
+special steps to use them. Emacs now has the appropriate resources linked
+in to make it use the scrollbars from the system theme.
+
 * New Modes and Packages in Emacs 22.2
 
 ** The new package css-mode.el provides a major mode for editing CSS files.

@@ -1,3 +1,42 @@
+2007-07-14  David Kastrup  <dak@gnu.org>
+
+	* gnus-art.el (gnus-mime-delete-part): Don't go through article-edit
+	finishing actions if we did not edit the article.
+
+2007-07-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-srvr.el (gnus-server-agent-face, gnus-server-opened-face)
+	(gnus-server-closed-face, gnus-server-denied-face)
+	(gnus-server-offline-face): Remove variable.
+	(gnus-server-font-lock-keywords): Use faces that are not aliases.
+
+	* mm-util.el (mm-decode-coding-string, mm-encode-coding-string)
+	(mm-decode-coding-region, mm-encode-coding-region): Don't modify string
+	if the coding-system argument is nil for XEmacs.
+
+	* nnrss.el (nnrss-compatible-encoding-alist): Inherit the value of
+	mm-charset-override-alist.
+
+	* rfc2047.el: Don't require base64; require rfc2045 for the function
+	rfc2045-encode-string.
+	(rfc2047-encode-parameter): Use rfc2045-encode-string to quote or not
+	to quote the parameter value.
+
+2007-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-catchup): Don't recognize cached articles
+	as unfetched articles.
+
+2007-07-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-level-unsubscribed): Improve doc string.
+
+2007-06-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-summary-command-nosave)
+	(gnus-article-read-summary-keys): Don't set the 3rd arg of
+	pop-to-buffer for XEmacs.
+
 2007-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-agent.el (gnus-agent-fetch-headers)

@@ -628,7 +628,7 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (fmakunbound 'dolist)
 (fmakunbound 'dotimes)
 (fmakunbound 'declare)
-(load "cl-loaddefs")
+(load "cl-loaddefs" nil 'quiet)
 
 ;; This goes here so that cl-macs can find it if it loads right now.
 (provide 'cl-19)     ; usage: (require 'cl-19 "cl")

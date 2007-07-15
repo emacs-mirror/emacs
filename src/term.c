@@ -25,6 +25,9 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "termchar.h"
 #include "termopts.h"
@@ -2493,9 +2496,9 @@ set_tty_color_mode (f, val)
 void
 term_mouse_moveto (int x, int y)
 {
+  /* TODO: how to set mouse position?
   const char *name;
   int fd;
-  /* TODO: how to set mouse position?
   name = (const char *) ttyname (0);
   fd = open (name, O_WRONLY);
      SOME_FUNCTION (x, y, fd);
@@ -2509,7 +2512,7 @@ term_show_mouse_face (enum draw_glyphs_face draw)
 {
   struct window *w = XWINDOW (Qmouse_face_window);
   int save_x, save_y;
-  int i, j;
+  int i;
 
   if (/* If window is in the process of being destroyed, don't bother
 	 to do anything.  */
@@ -3029,7 +3032,7 @@ int
 handle_one_term_event (Gpm_Event *event, struct input_event* hold_quit)
 {
   struct frame *f = SELECTED_FRAME ();
-  int i, j, fd;
+  int fd;
   struct input_event ie;
   int do_help = 0;
   int count = 0;
@@ -3053,7 +3056,7 @@ handle_one_term_event (Gpm_Event *event, struct input_event* hold_quit)
     arg[1] = arg[3] = (unsigned short) event->y + gpm_zerobased;
     arg[4] = (unsigned short) 3;
     
-    name = (const char *) ttyname (0);
+    name = ttyname (0);
     fd = open (name, O_WRONLY);
     ioctl (fd, TIOCLINUX, buf + sizeof (short) - 1);
     close (fd);

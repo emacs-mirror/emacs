@@ -1092,8 +1092,8 @@
 	North American rule.  Replace "daylight savings" with "daylight
 	saving" in doc.
 
-	* calendar/cal-china.el,cal-dst.el,calendar.el,diary-lib.el:
-	* calendar/lunar.el,solar.el: Replace "daylight savings" with
+	* calendar/cal-china.el, cal-dst.el, calendar.el, diary-lib.el:
+	* calendar/lunar.el, solar.el: Replace "daylight savings" with
 	"daylight saving" in text.
 
 	* woman.el (woman-change-fonts): Tweak previous change by using
@@ -8709,7 +8709,7 @@
 	* term.el (term-handle-scroll, term-delete-lines)
 	(term-insert-lines): Fix off by one errors.
 
-2006-06-15  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2006-06-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/tramp.el (tramp-touch): Use UTC to express time.
 
@@ -22969,7 +22969,7 @@
 
 	* menu-bar.el (menu-bar-showhide-menu): Add `showhide-battery'.
 
-2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/ange-ftp.el (ange-ftp-send-cmd): Make it work properly with
 	uploading files.

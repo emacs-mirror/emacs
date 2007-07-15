@@ -1,3 +1,98 @@
+2007-07-14  Jason Rumney  <jasonr@gnu.org>
+
+	* process.c [WINDOWSNT]: Don't undefine AF_INET6.
+
+2007-07-14  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (maybe_call_debugger): New function.
+	(find_handler_clause): Use maybe_call_debugger.
+	Call it when the handler says `debug'.
+	Eliminate DEBUGGER_VALUE_PTR.
+	(Fsignal): Eliminate debugger_value.
+	(Qdebug): New variable.
+	(syms_of_eval): Initialize it.
+
+2007-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fprogn):
+	* keyboard.c (Ftrack_mouse):
+	* print.c (Fwith_output_to_temp_buffer):
+	* window.c (Fsave_window_excursion): Doc fix.
+
+2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (init_eval_once): Bump max_lisp_eval_depth to 400.
+
+2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.h (struct Lisp_Process): Turn slots infd, outfd,
+	kill_without_query, pty_flag, tick, update_tick, decoding_carryover,
+	inherit_coding_system_flag, filter_multibyte, adaptive_read_buffering,
+	read_output_delay, and read_output_skip from Lisp_Objects to ints.
+	Remove unused encoding_carryover.
+	* process.c: Adjust all functions accordingly.
+
+2007-07-12  Richard Stallman  <rms@gnu.org>
+
+	* term.c: Include unistd.h only if HAVE_UNISTD_H.
+
+2007-07-11  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (LIBS): Include OLE32.
+
+	* w32fns.c (w32_msg_pump) <WM_EMACS_CREATEWINDOW>: Initialize COM.
+	(w32_msg_pump) <WM_DESTROY>: Uninitialize COM.
+
+2007-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Hash_Table): Turn next_weak into a bare pointer.
+	* fns.c (weak_hash_tables): Rename from Vweak_hash_tables and turned
+	from a Lisp_Object into a bare pointer.
+	(make_hash_table, copy_hash_table, sweep_weak_hash_tables, init_fns):
+	Adjust the code correspondingly.
+
+	* alloc.c (emacs_blocked_free): Remove unused var `bytes_used_now'.
+
+	* term.c: Include unistd.h for ttyname, used in handle_one_term_event.
+	(term_show_mouse_face): Remove unused var `j'.
+	(handle_one_term_event): Remove unused vars `i' and `j'.
+	Don't cast return value of ttyname since it's not necessary.
+
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (mark_maybe_pointer): Enforce mult-of-8 alignment when using
+	USE_LSB_TAG.  Suggested by Dmitry Antipov <dmantipov@yandex.ru>.
+
+	* fns.c (map_char_table): Use an array of int for `indices' rather than
+	an array of Lisp_Objects (which are only ever integers anyway).
+	(Fmap_char_table): Update caller.
+	* lisp.h: Update prototype.
+	* keymap.c (Fset_keymap_parent, map_keymap, Fcopy_keymap):
+	* fontset.c (Ffontset_info):
+	* casetab.c (set_case_table): Update callers.
+
+	* editfns.c (Ftranspose_regions): Use EMACS_INT for positions.
+
+	* keymap.c (struct accessible_keymaps_data)
+	(struct where_is_internal_data): New structures.
+	(accessible_keymaps_1, where_is_internal_1): Use them to change
+	interface to adhere to the one used by map_keymap.
+	(Faccessible_keymaps, where_is_internal): Use map_keymap.
+	(accessible_keymaps_char_table, where_is_internal_2): Remove.
+
+	* keymap.h (map_keymap_function_t): More informative prototype.
+
+2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* search.c (Vinhibit_changing_match_data, search_regs_1): New vars.
+	(looking_at_1): Don't change search_regs and last_thing_searched
+	if `inhibit-changing-match-data' is non-nil.
+	(string_match_1, search_buffer, set_search_regs): Likewise.
+	(syms_of_search): Add Lisp level definition for
+	`inhibit-changing-match-data' and set it to nil.
+	(boyer_moore): If `inhibit-changing-match-data' is non-nil, compute
+	start and end of the match, instead of using values in search_regs.
+
 2007-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fcompleting_read): New value `confirm-only'
@@ -1118,13 +1213,13 @@
 	when popup menu finishes.
 
 	* w32fns.c (menubar_in_use): New flag.
-	(w32_wnd_proc) [WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND]:
+	(w32_wnd_proc) <WM_INITMENU, WM_EXITMENULOOP, WM_TIMER, WM_COMMAND>:
 	Use it.
 
 	* w32menu.c (Fx_popup_menu): Don't free menu strings here.
 	(w32_menu_show): Do it here instead.
 
-	* w32fns.c (w32_wnd_proc) [WM_INITMENU]: Set menubar_active frame
+	* w32fns.c (w32_wnd_proc) <WM_INITMENU>: Set menubar_active frame
 	parameter.
 
 	* w32menu.c (current_popup_menu): Make available globally.
@@ -1132,7 +1227,7 @@
 	menu event into the keyboard buffer.  Remove menu_command_in_progress.
 
 	* w32fns.c (current_popup_menu): Use from w32menu.c.
-	(w32_wnd_proc) [WM_EXITMENULOOP, WM_TIMER]: Use menubar_active
+	(w32_wnd_proc) <WM_EXITMENULOOP, WM_TIMER>: Use menubar_active
 	and current_popup_menu to determine whether a menubar menu has
 	been cancelled.
 
@@ -10243,7 +10338,7 @@
 	* w32term.h (x_output): Add focus_state.
 
 	* w32term.c (x_focus_changed, w32_detect_focus_change): New functions.
-	(w32_read_socket) [WM_SETFOCUS]: Call w32_detect_focus_change.
+	(w32_read_socket) <WM_SETFOCUS>: Call w32_detect_focus_change.
 
 2005-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -13531,7 +13626,7 @@
 
 	* w32term.h (AppendMenuW_Proc): Move declaration from w32menu.c.
 
-	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]:
+	* w32fns.c (w32_wnd_proc) <WM_MEASUREITEM, WM_DRAWITEM>:
 	Handle Unicode menu titles.
 
 2004-09-07  Kim F. Storm  <storm@cua.dk>

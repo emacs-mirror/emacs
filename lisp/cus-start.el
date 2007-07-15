@@ -125,8 +125,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				  :value (undecided . undecided)
 				  (coding-system :tag "Decoding")
 				  (coding-system :tag "Encoding"))
-			    (coding-system :tag "Single coding system"
-					   :value undecided)
+			    (coding-system
+			     :tag "Single coding system"
+			     :value undecided
+			     :match (lambda (widget value)
+				      (and value (not (functionp value)))))
 			    (function :value ignore))))
 	     (selection-coding-system mule coding-system)
 	     ;; dired.c

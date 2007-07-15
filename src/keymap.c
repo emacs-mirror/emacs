@@ -1179,7 +1179,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
     Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
 
-  meta_bit = (VECTORP (key) || STRINGP (key) && STRING_MULTIBYTE (key)
+  meta_bit = (VECTORP (key) || (STRINGP (key) && STRING_MULTIBYTE (key))
 	      ? meta_modifier : 0x80);
 
   if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, 0)))
@@ -2079,12 +2079,23 @@ DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_
 
 /* Help functions for describing and documenting keymaps.		*/
 
+struct accessible_keymaps_data {
+  Lisp_Object maps, tail, thisseq;
+  /* Does the current sequence end in the meta-prefix-char?  */
+  int is_metized;
+};
 
 static void
-accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
-     Lisp_Object maps, tail, thisseq, key, cmd;
-     int is_metized;		/* If 1, `key' is assumed to be INTEGERP.  */
+accessible_keymaps_1 (key, cmd, args, data)
+     Lisp_Object key, cmd, args;
+     /* Use void* to be compatible with map_keymap_function_t.  */
+     void *data;
 {
+  struct accessible_keymaps_data *d = data; /* Cast! */
+  Lisp_Object maps = d->maps;
+  Lisp_Object tail = d->tail;
+  Lisp_Object thisseq = d->thisseq;
+  int is_metized = d->is_metized && INTEGERP (key);
   Lisp_Object tem;
 
   cmd = get_keymap (get_keyelt (cmd, 0), 0, 0);
@@ -2138,17 +2149,6 @@ accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
     }
 }
 
-static void
-accessible_keymaps_char_table (args, index, cmd)
-     Lisp_Object args, index, cmd;
-{
-  accessible_keymaps_1 (index, cmd,
-			XCAR (XCAR (args)),
-			XCAR (XCDR (args)),
-			XCDR (XCDR (args)),
-			XINT (XCDR (XCAR (args))));
-}
-
 /* This function cannot GC.  */
 
 DEFUN ("accessible-keymaps", Faccessible_keymaps, Saccessible_keymaps,
@@ -2163,12 +2163,9 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
      Lisp_Object keymap, prefix;
 {
   Lisp_Object maps, tail;
-  int prefixlen = 0;
+  int prefixlen = XINT (Flength (prefix));
 
   /* no need for gcpro because we don't autoload any keymaps.  */
-
-  if (!NILP (prefix))
-    prefixlen = XINT (Flength (prefix));
 
   if (!NILP (prefix))
     {
@@ -2180,7 +2177,9 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	 if the prefix is not defined in this particular map.
 	 It might even give us a list that isn't a keymap.  */
       tem = get_keymap (tem, 0, 0);
-      if (CONSP (tem))
+      /* If the keymap is autoloaded `tem' is not a cons-cell, but we still
+	 want to return it.  */
+      if (!NILP (tem))
 	{
 	  /* Convert PREFIX to a vector now, so that later on
 	     we don't have to deal with the possibility of a string.  */
@@ -2620,8 +2619,8 @@ ascii_sequence_p (seq)
 /* where-is - finding a command in a set of keymaps.			*/
 
 static Lisp_Object where_is_internal ();
-static Lisp_Object where_is_internal_1 ();
-static void where_is_internal_2 ();
+static void where_is_internal_1 P_ ((Lisp_Object key, Lisp_Object binding,
+				     Lisp_Object args, void *data));
 
 /* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
    Returns the first non-nil binding found in any of those maps.  */
@@ -2649,6 +2648,12 @@ shadow_lookup (shadow, key, flag)
 }
 
 static Lisp_Object Vmouse_events;
+
+struct where_is_internal_data {
+  Lisp_Object definition, noindirect, this, last;
+  int last_is_meta;
+  Lisp_Object sequences;
+};
 
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
@@ -2687,6 +2692,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
     {
       /* Key sequence to reach map, and the map that it reaches */
       register Lisp_Object this, map, tem;
+      struct where_is_internal_data data;
 
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
@@ -3059,7 +3065,7 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
 	|| EQ (binding, definition)
 	|| (CONSP (definition) && !NILP (Fequal (binding, definition)))))
     /* Doesn't match.  */
-    return Qnil;
+    return;
 
   /* We have found a match.  Construct the key sequence where we found it.  */
   if (INTEGERP (key) && last_is_meta)
@@ -3074,10 +3080,9 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
     {
       Lisp_Object sequences = Fgethash (binding, where_is_cache, Qnil);
       Fputhash (binding, Fcons (sequence, sequences), where_is_cache);
-      return Qnil;
     }
   else
-    return sequence;
+    d->sequences = Fcons (sequence, d->sequences);
 }
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */

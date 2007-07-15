@@ -147,7 +147,7 @@ LIBS =  $(TLIB0)	\
 	$(TLIB1)	\
 	$(TLIBW32)	\
 	$(TLASTLIB)	\
-	$(WINMM)    \
+	$(WINMM)	\
 	$(ADVAPI32)	\
 	$(GDI32)	\
 	$(COMDLG32)	\
@@ -155,6 +155,7 @@ LIBS =  $(TLIB0)	\
 	$(MPR)		\
 	$(SHELL32)	\
 	$(WINSPOOL)	\
+	$(OLE32)	\
 	$(libc)
 
 #

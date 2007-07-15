@@ -162,7 +162,7 @@ The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories."
   :type 'boolean
   :group 'find-file)
-(put 'find-file-visit-truename 'safe-local-variable 'boolean)
+(put 'find-file-visit-truename 'safe-local-variable 'booleanp)
 
 (defcustom revert-without-query nil
   "Specify which files should be reverted without query.
@@ -727,17 +727,23 @@ This is an interface to the function `load'."
 			  (cons load-path (get-load-suffixes)))))
   (load library))
 
-(defun file-remote-p (file)
+(defun file-remote-p (file &optional connected)
   "Test whether FILE specifies a location on a remote system.
 Return an identification of the system if the location is indeed
 remote.  The identification of the system may comprise a method
 to access the system and its hostname, amongst other things.
 
 For example, the filename \"/user@host:/foo\" specifies a location
-on the system \"/user@host:\"."
+on the system \"/user@host:\".
+
+If CONNECTED is non-nil, the function returns an identification only
+if FILE is located on a remote system, and a connection is established
+to that remote system.
+
+`file-remote-p' will never open a connection on its own."
   (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
-	(funcall handler 'file-remote-p file)
+	(funcall handler 'file-remote-p file connected)
       nil)))
 
 (defun file-local-copy (file)

@@ -1179,8 +1179,6 @@ emacs_blocked_free (ptr, ptr2)
      void *ptr;
      const void *ptr2;
 {
-  EMACS_INT bytes_used_now;
-
   BLOCK_INPUT_ALLOC;
 
 #ifdef GC_MALLOC_CHECK
@@ -4220,9 +4218,14 @@ mark_maybe_pointer (p)
 {
   struct mem_node *m;
 
-  /* Quickly rule out some values which can't point to Lisp data.  We
-     assume that Lisp data is aligned on even addresses.  */
-  if ((EMACS_INT) p & 1)
+  /* Quickly rule out some values which can't point to Lisp data.  */
+  if ((EMACS_INT) p %
+#ifdef USE_LSB_TAG
+      8 /* USE_LSB_TAG needs Lisp data to be aligned on multiples of 8.  */
+#else
+      2 /* We assume that Lisp data is aligned on even addresses.  */
+#endif
+      )
     return;
 
   m = mem_find (p);
