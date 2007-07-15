@@ -1,3 +1,7 @@
+2007-07-15  Aaron Hawley  <aaronh@garden.org>
+
+	* tar-mode.el (tar-get-descriptor): No error for zero-length file.
+
 2007-07-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* mouse.el (mouse-drag-track): Reset transient-mark-mode to nil
