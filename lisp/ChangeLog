@@ -1,3 +1,10 @@
+2007-07-15  Juri Linkov  <juri@jurta.org>
+
+	* delsel.el (delete-selection-pre-hook):
+	* emulation/cua-base.el (cua-paste): Before a yank command,
+	check also whether last-command is one of mouse-save-then-kill,
+	mouse-secondary-save-then-kill, mouse-set-region, mouse-drag-region.
+
 2007-07-15  Michael Albinus  <albinus@localhost>
 
 	* recentf.el (recentf-keep-default-predicate): New defun.
