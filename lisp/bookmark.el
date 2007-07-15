@@ -224,6 +224,10 @@ following in your `.emacs' file:
 ;; Set up these bindings dumping time *only*;
 ;; if the user alters them, don't override the user when loading bookmark.el.
 
+;;;###autoload (define-key ctl-x-map "rb" 'bookmark-jump)
+;;;###autoload (define-key ctl-x-map "rm" 'bookmark-set)
+;;;###autoload (define-key ctl-x-map "rl" 'bookmark-bmenu-list)
+
 ;;;###autoload
 (defvar bookmark-map nil
   "Keymap containing bindings to bookmark functions.
@@ -233,8 +237,6 @@ key of your choice to `bookmark-map'.  All interactive bookmark
 functions have a binding in this keymap.")
 
 ;;;###autoload (define-prefix-command 'bookmark-map)
-
-;;;###autoload (define-key ctl-x-map "p" bookmark-map)
 
 ;; Read the help on all of these functions for details...
 ;;;###autoload (define-key bookmark-map "x" 'bookmark-set)

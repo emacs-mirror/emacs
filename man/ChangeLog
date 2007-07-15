@@ -1,9 +1,3 @@
-2007-07-13  Karl Fogel  <kfogel@red-bean.com>
-
-	* regs.texi (Bookmarks): Adjust for recent keybinding changes in
-	bookmark.el, namely revision 1.90 (commitid mWoPbju3pgNotDps) and
-	revision 1.92 (commitid iTjqYHP9NtkZuDps).
-
 2007-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (../info/emacs-mime): Use --enable-encoding.

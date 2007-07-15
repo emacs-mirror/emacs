@@ -1,3 +1,9 @@
+2007-07-15  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Revert revision 1.90 (commitid mWoPbju3pgNotDps),
+	thus restoring bookmark bindings to three slots under C-x r.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00705.html.
+
 2007-07-15  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
 
 	* calendar/cal-bahai.el (calendar-goto-bahai-date): Add autoload

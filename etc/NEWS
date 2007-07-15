@@ -57,9 +57,6 @@ recenter the visited source file.  Its value can be a number (for example,
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
 
-** Bookmark commands live under prefix C-x p now, instead of C-x r.  Some of
-   the individual bindings have changed; do C-x p C-h for details.
-
 
 * New Modes and Packages in Emacs 23.1
 
