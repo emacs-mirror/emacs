@@ -674,8 +674,6 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
       (make-local-variable 'input-method-function))
   (setq input-method-function nil)
 
-  (setq cursor-in-echo-area t)
-
   (looking-at "")
   (setq isearch-window-configuration
 	(if isearch-slow-terminal-mode (current-window-configuration) nil))
@@ -799,8 +797,6 @@ NOPUSH is t and EDIT is t."
   (if isearch-input-method-local-p
       (setq input-method-function isearch-input-method-function)
     (kill-local-variable 'input-method-function))
-
-  (setq cursor-in-echo-area nil)
 
   (force-mode-line-update)
 
