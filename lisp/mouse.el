@@ -1013,6 +1013,11 @@ should only be used by mouse-drag-region."
 			      (overlay-start mouse-drag-overlay))
 			   region-termination))
 		       last-command this-command)
+		  (when (eq transient-mark-mode 'identity)
+		    ;; Reset `transient-mark-mode' to avoid expanding the region
+		    ;; while scrolling (compare thread on "Erroneous selection
+		    ;; extension ..." on bug-gnu-emacs from 2007-06-10).
+		    (setq transient-mark-mode nil))
 		  (push-mark region-commencement t t)
 		  (goto-char region-termination)
 		  (if (not do-mouse-drag-region-post-process)
