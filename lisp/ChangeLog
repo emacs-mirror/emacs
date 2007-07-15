@@ -1,3 +1,8 @@
+2007-07-15  Michael Albinus  <albinus@localhost>
+
+	* recentf.el (recentf-keep-default-predicate): New defun.
+	(recentf-keep): Use it as initial value.
+
 2007-07-15  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Revert revision 1.90 (commitid mWoPbju3pgNotDps),
@@ -35,7 +40,7 @@
 	* replace.el (match): Use yellow1 instead of yellow.
 
 	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
-	red. 
+	red.
 
 	* pcvs-info.el (cvs-unknown): Likewise.
 

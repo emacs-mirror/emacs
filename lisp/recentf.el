@@ -89,7 +89,7 @@ file.  See also the function `set-file-modes'."
   :group 'recentf
   :type '(choice (const :tag "Don't change" nil)
           integer))
-  
+
 (defcustom recentf-exclude nil
   "*List of regexps and predicates for filenames excluded from the recent list.
 When a filename matches any of the regexps or satisfies any of the
@@ -99,19 +99,27 @@ must return non-nil to exclude it."
   :group 'recentf
   :type '(repeat (choice regexp function)))
 
+(defun recentf-keep-default-predicate (file)
+  "Return non-nil if FILE should be kept in the recent list.
+It handles the case of remote files as well."
+  (cond
+   ((file-remote-p file t) (file-readable-p file))
+   ((file-remote-p file))
+   ((file-readable-p file))))
+
 (defcustom recentf-keep
-  '(file-readable-p)
+  '(recentf-keep-default-predicate)
   "*List of regexps and predicates for filenames kept in the recent list.
 Regexps and predicates are tried in the specified order.
 When nil all filenames are kept in the recent list.
 When a filename matches any of the regexps or satisfies any of the
 predicates it is kept in the recent list.
-The default is to keep readable files.
+The default is to keep readable files.  Remote files are checked
+for readability only in case a connection is established to that
+remote system, otherwise they are kept in the recent list without
+checking their readability.
 A predicate is a function that is passed a filename to check and that
-must return non-nil to keep it.  For example, you can add the
-`file-remote-p' predicate in front of this list to keep remote file
-names in the recent list without checking their readability through a
-remote access."
+must return non-nil to keep it."
   :group 'recentf
   :type '(repeat (choice regexp function)))
 
