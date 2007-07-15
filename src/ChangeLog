@@ -1,3 +1,18 @@
+2007-07-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (window_min_size_2): New function.
+	(window_min_size_1, size_window, Fdisplay_buffer)
+	(Fsplit_window, adjust_window_trailing_edge): Use it to avoid
+	windows without mode- or header-lines when window-min-height is
+	too small.
+	(size_window): Reset nodelete_p after testing it, following an
+	earlier note by Kim F. Storm.
+	(display_buffer): Do not set split_height_threshold to twice the
+	value of window_min_height to avoid changing the value of a
+	customizable variable.  Rather explicitly check whether the
+	height of the window that shall be splitted is at least as large
+	as split_height_threshold.
+
 2007-07-14  Jason Rumney  <jasonr@gnu.org>
 
 	* process.c [WINDOWSNT]: Don't undefine AF_INET6.
