@@ -6,7 +6,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
+;; $Id: vc-cvs.el,v 1.2 2007/07/09 11:14:40 esr Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -532,12 +532,18 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-cvs-print-log (file &optional buffer)
+(defun vc-cvs-print-log (files &optional buffer)
   "Get change log associated with FILE."
   (vc-cvs-command
    buffer
-   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-   file "log"))
+   (if (apply 'and (map 'vc-all-local-p files))
+		    (fboundp 'start-process)) 'async 0)
+   files "log")))
+
+(defun vc-cvs-wash-log ()
+  "Remove all non-comment information from log output."
+  (vc-call-backend 'RCS 'wash-log)
+  nil)
 
 (defun vc-cvs-diff (file &optional oldvers newvers buffer)
   "Get a difference report using CVS between two versions of FILE."
@@ -712,17 +718,15 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;; Internal functions
 ;;;
 
-(defun vc-cvs-command (buffer okstatus file &rest flags)
+(defun vc-cvs-command (buffer okstatus files &rest flags)
   "A wrapper around `vc-do-command' for use in vc-cvs.el.
 The difference to vc-do-command is that this function always invokes `cvs',
 and that it passes `vc-cvs-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "cvs" file
+  (apply 'vc-do-command buffer okstatus "cvs" files
          (if (stringp vc-cvs-global-switches)
              (cons vc-cvs-global-switches flags)
            (append vc-cvs-global-switches
                    flags))))
-
-(defalias 'vc-cvs-stay-local-p 'vc-stay-local-p)  ;Back-compatibility.
 
 (defun vc-cvs-repository-hostname (dirname)
   "Hostname of the CVS server associated to workarea DIRNAME."

@@ -1,9 +1,0 @@
-# Source files which don't match the usual naming conventions, mostly dot files
-source ^\.(gdbinit|dbxinit)$
-
-# Auto-generated files, which ignore
-precious ^(config\.stamp|config\.h|epaths\.h|buildobj\.lst)$
-
-backup ^(stamp-oldxmenu|prefix-args|temacs|emacs|emacs-[0-9.]*)$
-
-# arch-tag: 277cc7ae-b3f5-44af-abf1-84c073164543

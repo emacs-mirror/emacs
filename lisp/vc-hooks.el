@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
+;; $Id: vc-hooks.el,v 1.7 2007/07/10 14:38:10 esr Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -71,8 +71,8 @@ An empty list disables VC altogether."
   :group 'vc)
 
 (defcustom vc-path
-  (if (file-directory-p "/usr/sccs")
-      '("/usr/sccs")
+  (if (file-directory-p "/usr/lib/cssc")
+      '("/usr/lib/cssc")
     nil)
   "*List of extra directories to search for version control commands."
   :type '(repeat directory)
@@ -336,7 +336,10 @@ file was previously registered under a certain backend, then that
 backend is tried first."
   (let (handler)
     (cond
-     ((string-match vc-ignore-dir-regexp (file-name-directory file)) nil)
+     ((and
+       (file-name-directory file)
+       (string-match vc-ignore-dir-regexp (file-name-directory file)))
+      nil)
      ((and (boundp 'file-name-handler-alist)
           (setq handler (find-file-name-handler file 'vc-registered)))
       ;; handler should set vc-backend and return t if registered
@@ -465,7 +468,7 @@ For registered files, the value returned is one of:
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (if (vc-backend file)
+      (if (and (> (length file) 0) (vc-backend file))
           (vc-file-setprop file 'vc-state
                            (vc-call state-heuristic file)))))
 
@@ -517,7 +520,7 @@ Return non-nil if FILE is unchanged."
               (vc-call diff file))))))
 
 (defun vc-workfile-version (file)
-  "Return the version level of the current workfile FILE.
+  "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-workfile-version)
       (if (vc-backend file)
@@ -847,7 +850,7 @@ Used in `find-file-not-found-functions'."
   (let ((map (make-sparse-keymap)))
     (define-key map "a" 'vc-update-change-log)
     (define-key map "b" 'vc-switch-backend)
-    (define-key map "c" 'vc-cancel-version)
+    (define-key map "c" 'vc-rollback)
     (define-key map "d" 'vc-directory)
     (define-key map "g" 'vc-annotate)
     (define-key map "h" 'vc-insert-headers)
@@ -856,9 +859,11 @@ Used in `find-file-not-found-functions'."
     (define-key map "m" 'vc-merge)
     (define-key map "r" 'vc-retrieve-snapshot)
     (define-key map "s" 'vc-create-snapshot)
-    (define-key map "u" 'vc-revert-buffer)
+    (define-key map "u" 'vc-revert)
     (define-key map "v" 'vc-next-action)
-    (define-key map "=" 'vc-diff)
+    (define-key map "-" 'vc-workfile-diff)
+    (define-key map "+" 'vc-update)
+    (define-key map "=" 'vc-history-diff)
     (define-key map "~" 'vc-version-other-window)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
@@ -887,9 +892,9 @@ Used in `find-file-not-found-functions'."
   (define-key vc-menu-map [separator2] '("----"))
   (define-key vc-menu-map [vc-insert-header]
     '("Insert Header" . vc-insert-headers))
-  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
-  (define-key vc-menu-map [vc-revert-buffer]
-    '("Revert to Base Version" . vc-revert-buffer))
+  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-rollback))
+  (define-key vc-menu-map [vc-revert]
+    '("Revert to Base Version" . vc-revert))
   (define-key vc-menu-map [vc-update]
     '("Update to Latest Version" . vc-update))
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
@@ -906,8 +911,8 @@ Used in `find-file-not-found-functions'."
 ;;(put 'vc-update-change-log 'menu-enable
 ;;     '(member (vc-buffer-backend) '(RCS CVS)))
 ;;(put 'vc-print-log 'menu-enable 'vc-mode)
-;;(put 'vc-cancel-version 'menu-enable 'vc-mode)
-;;(put 'vc-revert-buffer 'menu-enable 'vc-mode)
+;;(put 'vc-rollback 'menu-enable 'vc-mode)
+;;(put 'vc-revert 'menu-enable 'vc-mode)
 ;;(put 'vc-insert-headers 'menu-enable 'vc-mode)
 ;;(put 'vc-next-action 'menu-enable 'vc-mode)
 ;;(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))

@@ -421,15 +421,22 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-mcvs-print-log (file &optional buffer)
+(defun vc-mcvs-print-log (files &optional buffer)
   "Get change log associated with FILE."
-  (let ((default-directory (vc-mcvs-root file)))
+  (let ((default-directory 
+	  (if files (vc-mcvs-root (car files)) default-directory)))
     ;; Run the command from the root dir so that `mcvs filt' returns
     ;; valid relative names.
     (vc-mcvs-command
      buffer
-     (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
+     (if (apply 'and (map 'vc-all-local-p files))
+		    (fboundp 'start-process)) 'async 0)
      file "log")))
+
+(defun vc-mcvs-wash-log ()
+  "Remove all non-comment information from log output."
+  (vc-call-backend 'RCS 'wash-log)
+  nil)
 
 (defun vc-mcvs-diff (file &optional oldvers newvers buffer)
   "Get a difference report using Meta-CVS between two versions of FILE."

@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
+;; $Id: vc-sccs.el,v 1.14 2007/07/10 14:38:33 esr Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -31,6 +31,7 @@
 
 (eval-when-compile
   (require 'vc))
+
 
 ;;;
 ;;; Customization options
@@ -242,6 +243,19 @@ locked.  REV is the revision to check out."
 		 switches))))
     (message "Checking out %s...done" file)))
 
+(defun vc-sccs-cancel-version (files)
+  "Roll back, undoing the most recent checkins of FILES."
+  (if (not files)
+      (error "SCCS backend doesn't support directory-level rollback."))
+  (dolist (file files)
+	  (let ((discard (vc-workfile-version file)))
+	    (if (null (yes-or-no-p (format "Remove version %s from %s history? " 
+					   discard file)))
+		(error "Aborted"))
+	    (message "Removing revision %s from %s..." discard file)
+	    (vc-do-command nil 0 "rmdel" (vc-name file) (concat "-r" discard))
+	    (vc-do-command nil 0 "get" (vc-name file) nil))))
+
 (defun vc-sccs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (vc-do-command nil 0 "unget" (vc-name file))
@@ -250,16 +264,6 @@ locked.  REV is the revision to check out."
   ;; We always "revert" to the latest version; therefore
   ;; vc-workfile-version is cleared here so that it gets recomputed.
   (vc-file-setprop file 'vc-workfile-version nil))
-
-(defun vc-sccs-cancel-version (file editable)
-  "Undo the most recent checkin of FILE.
-EDITABLE non-nil means previous version should be locked."
-  (vc-do-command nil 0 "rmdel"
-		 (vc-name file)
-		 (concat "-r" (vc-workfile-version file)))
-  (vc-do-command nil 0 "get"
-		 (vc-name file)
-		 (if editable "-e")))
 
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
@@ -271,9 +275,14 @@ EDITABLE non-nil means previous version should be locked."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (file &optional buffer)
-  "Get change log associated with FILE."
-  (vc-do-command buffer 0 "prs" (vc-name file)))
+(defun vc-sccs-print-log (files &optional buffer)
+  "Get change log associated with FILES."
+  (vc-do-command buffer 0 "prs" (mapcar 'vc-name files)))
+
+(defun vc-sccs-wash-log ()
+  "Remove all non-comment information from log output."
+  ;; FIXME: not implemented for SCCS
+  nil)
 
 (defun vc-sccs-logentry-check ()
   "Check that the log entry in the current buffer is acceptable for SCCS."

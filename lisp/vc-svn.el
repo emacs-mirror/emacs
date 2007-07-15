@@ -183,9 +183,9 @@ This is only meaningful if you don't use the implicit checkout model
 
 (defun vc-svn-next-version (file rev)
   (let ((newrev (1+ (string-to-number rev))))
-    ;; The "workfile version" is an uneasy conceptual fit under Subversion;
+    ;; The "tip version" is an uneasy conceptual fit under Subversion;
     ;; we use it as the upper bound until a better idea comes along.  If the
-    ;; workfile version W coincides with the tree's latest revision R, then
+    ;; tip version W coincides with the tree's latest revision R, then
     ;; this check prevents a "no such revision: R+1" error.  Otherwise, it
     ;; inhibits showing of W+1 through R, which could be considered anywhere
     ;; from gracious to impolite.
@@ -241,6 +241,28 @@ This is only possible if SVN is responsible for FILE's directory.")
     ;; (vc-file-setprop
     ;;  file 'vc-workfile-version
     ;;  (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
+    ))
+
+(defun vc-svn-commit (files comment)
+  "SVN-specific version of `vc-backend-commit'."
+  (let ((status (apply
+                 'vc-svn-command nil 1 files "ci"
+                 (nconc (list "-m" comment) (vc-switches 'SVN 'checkin)))))
+    (set-buffer "*vc*")
+    (goto-char (point-min))
+    (unless (equal status 0)
+      ;; Check checkin problem.
+      (cond
+       ((search-forward "Transaction is out of date" nil t)
+        (mapcar (lambda (f) 'vc-file-setprop f 'vc-state 'needs-merge) files)
+        (error (substitute-command-keys
+                (concat "Up-to-date check failed: "
+                        "type \\[vc-next-action] to merge in changes"))))
+       (t
+        (pop-to-buffer (current-buffer))
+        (goto-char (point-min))
+        (shrink-window-if-larger-than-buffer)
+        (error "Check-in failed"))))
     ))
 
 (defun vc-svn-find-version (file rev buffer)
@@ -359,22 +381,25 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-svn-print-log (file &optional buffer)
+(defun vc-svn-print-log (files &optional buffer)
   "Get change log associated with FILE."
   (save-current-buffer
     (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-min))
-      ;; Add a line to tell log-view-mode what file this is.
-      (insert "Working file: " (file-relative-name file) "\n"))
     (vc-svn-command
      buffer
-     (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-     file "log"
+     (if (and (vc-stay-local-p files) (fboundp 'start-process)) 'async 0)
+     files "log"
      ;; By default Subversion only shows the log upto the working version,
      ;; whereas we also want the log of the subsequent commits.  At least
      ;; that's what the vc-cvs.el code does.
      "-rHEAD:0")))
+
+(defun vc-svn-wash-log ()
+  "Remove all non-comment information from log output."
+  ;; FIXME: not implemented for SVN
+  nil)
 
 (defun vc-svn-diff (file &optional oldvers newvers buffer)
   "Get a difference report using SVN between two versions of FILE."
@@ -461,11 +486,11 @@ NAME is assumed to be a URL."
 ;;; Internal functions
 ;;;
 
-(defun vc-svn-command (buffer okstatus file &rest flags)
+(defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
 and that it passes `vc-svn-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "svn" file
+  (apply 'vc-do-command buffer okstatus "svn" file-or-list
          (if (stringp vc-svn-global-switches)
              (cons vc-svn-global-switches flags)
            (append vc-svn-global-switches
