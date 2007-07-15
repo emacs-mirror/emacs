@@ -149,7 +149,6 @@ Defaults to today's date if DATE is not given."
   (message "Baha'i date: %s"
            (calendar-bahai-date-string (calendar-cursor-to-date t))))
 
-;;;###autoload
 (defun calendar-goto-bahai-date (date &optional noecho)
   "Move cursor to Baha'i date DATE.
 Echo Baha'i date unless NOECHO is t."
