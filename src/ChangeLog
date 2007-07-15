@@ -1,3 +1,9 @@
+2007-07-15  Richard Stallman  <rms@gnu.org>
+
+	* data.c (Fsetq_default): Doc fix.
+
+	* eval.c (Fsetq): Doc fix.
+
 2007-07-11  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (LIBS): Include OLE32.
