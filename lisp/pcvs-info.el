@@ -85,9 +85,9 @@ to confuse some users sometimes."
 
 (defface cvs-unknown
   '((((class color) (background dark))
-     (:foreground "red"))
+     (:foreground "red1"))
     (((class color) (background light))
-     (:foreground "red"))
+     (:foreground "red1"))
     (t (:slant italic)))
   "PCL-CVS face used to highlight unknown file status."
   :group 'pcl-cvs)

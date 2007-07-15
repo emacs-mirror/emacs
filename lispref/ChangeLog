@@ -2,6 +2,10 @@
 
 	* control.texi (Handling Errors): Document `debug' in handler list.
 
+2007-07-10  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Faces): Explain C-M-x feature for defface.
+
 2007-07-09  Richard Stallman  <rms@gnu.org>
 
 	* files.texi (Magic File Names): Rewrite previous change.

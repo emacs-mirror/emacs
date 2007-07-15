@@ -85,7 +85,12 @@ ARTICLE is the article number of the current headline.")
 (defvar nnrss-file-coding-system mm-universal-coding-system
   "Coding system used when reading and writing files.")
 
-(defvar nnrss-compatible-encoding-alist '((iso-8859-1 . windows-1252))
+(defvar nnrss-compatible-encoding-alist
+  (delq nil (mapcar (lambda (elem)
+		      (if (and (mm-coding-system-p (car elem))
+			       (mm-coding-system-p (cdr elem)))
+			  elem))
+		    mm-charset-override-alist))
   "Alist of encodings and those supersets.
 The cdr of each element is used to decode data if it is available when
 the car is what the data specify as the encoding.  Or, the car is used
