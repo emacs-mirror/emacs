@@ -3030,7 +3030,7 @@ It's used only when `ps-print-color-p' is non-nil."
   :version "20"
   :group 'ps-print-color)
 
-(defcustom ps-default-bg 'frame-parameter
+(defcustom ps-default-bg "white"
   "*RGB values of the default background color.
 
 The `ps-default-bg' variable contains the default background color used by
