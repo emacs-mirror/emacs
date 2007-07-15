@@ -6,8 +6,7 @@
 
 2007-07-15  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
 
-	* calendar/cal-bahai.el (calendar-goto-bahai-date): Add autoload
-	cookie.
+	* calendar/calendar.el (calendar-goto-bahai-date): Autoload it.
 
 2007-07-15  Jason Rumney  <jasonr@gnu.org>
 
