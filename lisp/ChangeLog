@@ -1,3 +1,8 @@
+2007-07-15  Richard Stallman  <rms@gnu.org>
+
+	* tutorial.el (tutorial--find-changed-keys):
+	Handle C-x specially like ESC.
+
 2007-07-15  Roland McGrath  <roland@frob.com>
 
 	* add-log.el (add-change-log-entry): Check add-log-full-name
