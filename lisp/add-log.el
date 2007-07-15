@@ -509,19 +509,19 @@ non-nil, otherwise in local time."
 	 (file-name (expand-file-name (find-change-log file-name buffer-file)))
 	 ;; Set ITEM to the file name to use in the new item.
 	 (item (add-log-file-name buffer-file file-name))
-	 bound
-	 (full-name (or add-log-full-name (user-full-name)))
-	 (mailing-address (or add-log-mailing-address user-mail-address)))
+	 bound full-name mailing-address)
 
     (if whoami
 	(progn
-	  (setq full-name (read-string "Full name: " full-name))
+	  (setq full-name (read-string "Full name: "
+				       (or add-log-full-name (user-full-name))))
 	  ;; Note that some sites have room and phone number fields in
 	  ;; full name which look silly when inserted.  Rather than do
 	  ;; anything about that here, let user give prefix argument so that
 	  ;; s/he can edit the full name field in prompter if s/he wants.
 	  (setq mailing-address
-		(read-string "Mailing address: " mailing-address))))
+		(read-string "Mailing address: "
+			     (or add-log-mailing-address user-mail-address)))))
 
     (unless (equal file-name buffer-file-name)
       (if (or other-window (window-dedicated-p (selected-window)))
@@ -531,6 +531,11 @@ non-nil, otherwise in local time."
 	(change-log-mode))
     (undo-boundary)
     (goto-char (point-min))
+
+    (or full-name
+	(setq full-name (or add-log-full-name (user-full-name))))
+    (or mailing-address
+	 (setq mailing-address (or add-log-mailing-address user-mail-address)))
 
     ;; If file starts with a copyright and permission notice, skip them.
     ;; Assume they end at first blank line.
