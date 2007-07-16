@@ -1,3 +1,7 @@
+2007-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (clean): Don't delete *~.
+
 2007-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-verbatim-environments):
