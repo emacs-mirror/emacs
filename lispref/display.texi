@@ -1760,10 +1760,10 @@ When @code{defface} executes, it defines the face according to
 @var{spec}, then uses any customizations that were read from the
 init file (@pxref{Init File}) to override that specification.
 
-When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs
+When you evaluate a @code{defface} form with @kbd{C-M-x} in Emacs
 Lisp mode (@code{eval-defun}), a special feature of @code{eval-defun}
 overrides any customizations of the face.  This way, the face reflects
-exactly what the @code{defcustom} says.
+exactly what the @code{defface} says.
 
 The purpose of @var{spec} is to specify how the face should appear on
 different kinds of terminals.  It should be an alist whose elements
