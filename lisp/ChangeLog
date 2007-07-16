@@ -1,3 +1,8 @@
+2007-07-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* bookmark.el (bookmark-show-all-annotations):
+	Make sure each inserted annotation ends with newline.
+
 2007-07-15  Juri Linkov  <juri@jurta.org>
 
 	* delsel.el (delete-selection-pre-hook):
