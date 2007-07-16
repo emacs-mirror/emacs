@@ -1,5 +1,10 @@
 2007-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/tex-mode.el (tex-verbatim-environments):
+	Add safe-local-variable property.
+	(tex-font-lock-syntactic-keywords): Lookup tex-verbatim-environments
+	when starting font-lock rather than when loading tex-mode.el.
+
 	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Skip over the
 	whole $( rather than just the $.  Rename from sh-quoted-subshell.
 	(sh-font-lock-syntactic-keywords): Adjust call accordingly.
