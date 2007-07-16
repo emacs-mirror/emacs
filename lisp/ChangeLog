@@ -1,5 +1,7 @@
 2007-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hooks.el (vc-handled-backends): Move BZR later in the list.
+
 	* term/xterm.el (xterm-turn-on-modify-other-keys)
 	(xterm-turn-off-modify-other-keys): New functions.
 	(terminal-init-xterm): Enable the modifyOtherKeys feature if the
