@@ -138,10 +138,12 @@ maybe-bootstrap-SH: doit
 	  exit -1; \
 	fi
 
-bootstrap:	addsection bootstrap-$(MAKETYPE)
+# Bootstrap depends on cmdproxy because some Lisp functions
+# loaded during bootstrap may need to run shell commands.
+bootstrap:	addsection cmdproxy bootstrap-$(MAKETYPE)
 	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 
-bootstrap-nmake: addsection
+bootstrap-nmake: addsection cmdproxy
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\src
@@ -151,18 +153,20 @@ bootstrap-nmake: addsection
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
+	$(CP) $(BLD)/cmdproxy.exe ../bin
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) SHELL=$(SHELLTYPE) bootstrap
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) DOC
 	cd ..\nt
 
-bootstrap-gmake: addsection
+bootstrap-gmake: addsection cmdproxy
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
+	$(CP) $(BLD)/cmdproxy.exe ../bin
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src DOC
 
@@ -248,7 +252,7 @@ info-gmake:
 # Maintenance
 #
 clean:	clean-other-dirs-$(MAKETYPE)
-	- $(DEL) *~ $(COMPILER_TEMP_FILES)
+	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
 	- $(DEL) stamp_BLD
 	- $(DEL) ../etc/DOC ../etc/DOC-X
@@ -287,6 +291,8 @@ cleanall-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src cleanall
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src cleanall
 
+# We used to delete *~ here, but that might inadvertently remove
+# precious files if it happens to match their short 8+3 aliases.
 cleanall: clean cleanall-other-dirs-$(MAKETYPE)
 	 - $(DEL_TREE) obj
 	 - $(DEL_TREE) obj-spd
