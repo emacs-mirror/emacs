@@ -1,3 +1,10 @@
+2007-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-turn-on-modify-other-keys)
+	(xterm-turn-off-modify-other-keys): New functions.
+	(terminal-init-xterm): Enable the modifyOtherKeys feature if the
+	terminal supports it.
+
 2007-07-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* bookmark.el (bookmark-show-all-annotations):
