@@ -42,13 +42,13 @@
 ;; * registered (file)                         OK
 ;; * state (file)                              OK
 ;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
-;; - dir-state (dir)                           NEEDED
+;; - dir-state (dir)                           OK
 ;; * workfile-version (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (file)                     OK
 ;; - workfile-unchanged-p (file)               ??
 ;; - mode-line-string (file)                   NOT NEEDED
-;; - dired-state-info (file)                   NEEDED
+;; - dired-state-info (file)                   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (file &optional rev comment)     OK
 ;; - init-version ()                           NOT NEEDED
@@ -58,7 +58,7 @@
 ;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
 ;; * checkin (file rev comment)                OK
 ;; * find-version (file rev buffer)            OK
-;; * checkout (file &optional editable rev)    NOT NEEDED, COMMENTED OUT
+;; * checkout (file &optional editable rev)    OK
 ;; * revert (file &optional contents-done)     OK
 ;; - cancel-version (file editable)            ?? PROBABLY NOT NEEDED   
 ;; - merge (file rev1 rev2)                    NEEDED
@@ -113,10 +113,6 @@
 (eval-when-compile
   (require 'vc))
 
-;; XXX This should be moved to vc-hooks after this gets a bit more
-;; testing in the trunk.
-(add-to-list 'vc-handled-backends 'HG)
-
 ;;; Customization options
 
 (defcustom vc-hg-global-switches nil
@@ -165,11 +161,38 @@
       (if (eq 0 (length out)) 'up-to-date
 	(let ((state (aref out 0)))
 	  (cond
-	   ((eq state ?M) 'edited)
 	   ((eq state ?A) 'edited)
-	   ((eq state ?P) 'needs-patch)
+	   ((eq state ?M) 'edited)
+	   ((eq state ?R) nil)
 	   ((eq state ??) nil)
 	   (t 'up-to-date)))))))
+
+(defun vc-hg-dir-state (dir)
+  (with-temp-buffer
+    (vc-hg-command (current-buffer) nil nil "status")
+    (goto-char (point-min))
+    (let ((status-char nil)
+	  (file nil))
+      (while (eq 0 (forward-line))
+	(setq status-char (char-after))
+	(setq file 
+	      (expand-file-name
+	       (buffer-substring-no-properties (+ (point) 2) (line-end-position))))
+	(cond
+	 ;; The rest of the possible states in "hg status" output:
+	 ;; 	 R = removed
+	 ;; 	 ! = deleted, but still tracked
+	 ;; 	 ? = not tracked
+	 ;; should not show up in vc-dired, so don't deal with them
+	 ;; here.
+	 ((eq status-char ?A)
+	  (vc-file-setprop file 'vc-workfile-version "0")
+	  (vc-file-setprop file 'vc-state 'edited))
+	 ((eq status-char ?M)
+	  (vc-file-setprop file 'vc-state 'edited))
+	 ((eq status-char ??)
+	  (vc-file-setprop file 'vc-backend 'none)
+	  (vc-file-setprop file 'vc-state 'nil)))))))
 
 (defun vc-hg-workfile-version (file)
   "Hg-specific version of `vc-workfile-version'."
@@ -355,21 +378,28 @@ REV is ignored."
 ;; Modelled after the similar function in vc-bzr.el
 ;; This should not be needed, `vc-hg-find-version' provides the same
 ;; functionality.
-;; (defun vc-hg-checkout (file &optional editable rev workfile)
-;;   "Retrieve a revision of FILE into a WORKFILE.
-;; EDITABLE is ignored.
-;; REV is the revision to check out into WORKFILE."
-;;   (unless workfile
-;;     (setq workfile (vc-version-backup-file-name file rev)))
-;;   (let ((coding-system-for-read 'binary)
-;;         (coding-system-for-write 'binary))
-;;   (with-temp-file workfile
-;;     (if rev
-;;         (vc-hg-command t nil file "cat" "-r" rev)
-;;       (vc-hg-command t nil file "cat")))))
+(defun vc-hg-checkout (file &optional editable rev)
+  "Retrieve a revision of FILE.
+EDITABLE is ignored.
+REV is the revision to check out into WORKFILE."
+  (let ((coding-system-for-read 'binary)
+        (coding-system-for-write 'binary))
+  (with-current-buffer (or (get-file-buffer file) (current-buffer))
+    (if rev
+        (vc-hg-command t nil file "cat" "-r" rev)
+      (vc-hg-command t nil file "cat")))))
 
 (defun vc-hg-checkout-model (file)
   'implicit)
+
+(defun vc-hg-dired-state-info (file)
+  "Hg-specific version of `vc-dired-state-info'."
+  (let ((hg-state (vc-state file)))
+    (if (eq hg-state 'edited)
+	(if (equal (vc-workfile-version file) "0")
+	    "(added)" "(modified)")
+      ;; fall back to the default VC representation
+      (vc-default-dired-state-info 'HG file))))
 
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
