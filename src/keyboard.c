@@ -1422,7 +1422,7 @@ DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
 Within a `track-mouse' form, mouse motion generates input events that
 you can read with `read-event'.
 Normally, mouse motion is ignored.
-usage: (track-mouse BODY ...)  */)
+usage: (track-mouse BODY...)  */)
      (args)
      Lisp_Object args;
 {
