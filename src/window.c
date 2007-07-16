@@ -3757,7 +3757,7 @@ displayed.  */)
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	      && (EQ (window, selected_window)
-		  || EQ (XWINDOW (window)->parent, Qnil))
+		  || NILP (XWINDOW (window)->parent))
 	      && window_height (window) >= split_height_threshold
 	      && (window_height (window)
 		  >= (2 * window_min_size_2 (XWINDOW (window), 0))))
@@ -6909,7 +6909,7 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 	vertical_type = Qnil;
     }
 
-  if (!(EQ (vertical_type, Qnil)
+  if (!(NILP (vertical_type)
 	|| EQ (vertical_type, Qleft)
 	|| EQ (vertical_type, Qright)
 	|| EQ (vertical_type, Qt)))
