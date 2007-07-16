@@ -1,3 +1,8 @@
+2007-07-13  Drew Adams  <drew.adams@oracle.com>
+
+	* mouse.el (mouse-yank-secondary): Better error message if no
+	secondary selection.
+
 2007-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-handled-backends): Move BZR later in the list.
