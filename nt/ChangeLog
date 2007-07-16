@@ -1,3 +1,9 @@
+2007-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap, bootstrap-nmake, bootstrap-gmake):
+	Depend on cmdproxy.
+	(cleanall): Don't delete *~.
+
 2007-07-15  Jason Rumney  <jasonr@gnu.org>
 
 	* inc/sys/socket.h (uint16_t): Define if C99 does not appear to
