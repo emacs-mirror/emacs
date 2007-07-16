@@ -1,3 +1,7 @@
+2007-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (clean): Don't delete *~.
+
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* etags.c (print_version): Add `emacs_copyright' string, for
