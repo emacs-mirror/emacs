@@ -1,3 +1,9 @@
+2007-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Skip over the
+	whole $( rather than just the $.  Rename from sh-quoted-subshell.
+	(sh-font-lock-syntactic-keywords): Adjust call accordingly.
+
 2007-07-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): In the
