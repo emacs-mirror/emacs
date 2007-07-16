@@ -1,3 +1,8 @@
+2007-07-16  Andreas Schwab  <schwab@suse.de>
+
+	* window.c (Fdisplay_buffer): Use NILP.
+	(Fset_window_scroll_bars): Likewise.
+
 2007-07-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (window_min_size_2): New function.
