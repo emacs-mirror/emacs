@@ -1,3 +1,11 @@
+2007-07-16  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp/advice.el (defadvice): Doc fix.
+
+2007-07-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (when, unless): Doc fix.
+
 2007-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-state): Handle removed files.
@@ -45,8 +53,7 @@
 
 	* replace.el (match): Use yellow1 instead of yellow.
 
-	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
-	red.
+	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of red.
 
 	* pcvs-info.el (cvs-unknown): Likewise.
 
@@ -126,7 +133,7 @@
 
 2007-07-02  Martin Rudalics  <rudalics@gmx.at>
 
-	* help-mode.el (help-make-xrefs): Skip spaces too when skipping tabs. 
+	* help-mode.el (help-make-xrefs): Skip spaces too when skipping tabs.
 
 	* mouse.el (mouse-drag-mode-line-1): Quit mouse tracking when
 	event is not a cons cell.  Do not unread drag-mouse-1 events.
