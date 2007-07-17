@@ -1794,7 +1794,8 @@ if an annotation exists."
          (if (and ann (not (string-equal ann "")))
              ;; insert the annotation, indented by 4 spaces.
              (progn
-               (save-excursion (insert ann))
+               (save-excursion (insert ann) (unless (bolp)
+                                              (insert "\n")))
                (while (< (point) (point-max))
                  (beginning-of-line) ; paranoia
                  (insert "    ")
