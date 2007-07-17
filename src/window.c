@@ -3738,12 +3738,13 @@ displayed.  */)
       else
 	window = Fget_largest_window (frames, Qt);
 
-      /* If we got a tall enough full-width window that can be split,
-	 split it.  */
+      /* If the largest window is tall enough, full-width, and either eligible
+	 for splitting or the only window, split it.  */
       if (!NILP (window)
 	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	  && WINDOW_FULL_WIDTH_P (XWINDOW (window))
-	  && window_height (window) >= split_height_threshold
+	  && (window_height (window) >= split_height_threshold
+	      || (NILP (XWINDOW (window)->parent)))
 	  && (window_height (window)
 	      >= (2 * window_min_size_2 (XWINDOW (window), 0))))
 	window = Fsplit_window (window, Qnil, Qnil);
@@ -3752,13 +3753,13 @@ displayed.  */)
 	  Lisp_Object upper, lower, other;
 
 	  window = Fget_lru_window (frames, Qt);
-	  /* If the LRU window is selected, and big enough,
-	     and can be split, split it.  */
+	  /* If the LRU window is tall enough, and either eligible for splitting
+	  and selected or the only window, split it.  */
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	      && (EQ (window, selected_window)
-		  || NILP (XWINDOW (window)->parent))
-	      && window_height (window) >= split_height_threshold
+	      && ((EQ (window, selected_window)
+		   && window_height (window) >= split_height_threshold)
+		  || (NILP (XWINDOW (window)->parent)))
 	      && (window_height (window)
 		  >= (2 * window_min_size_2 (XWINDOW (window), 0))))
 	    window = Fsplit_window (window, Qnil, Qnil);
@@ -7601,4 +7602,4 @@ keys_of_window ()
 }
 
 /* arch-tag: 90a9c576-0590-48f1-a5f1-6c96a0452d9f
-   (do not change this comment) */
+   (do not change thisc omment) */
