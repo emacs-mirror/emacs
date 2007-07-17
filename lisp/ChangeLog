@@ -1,3 +1,13 @@
+2007-07-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* bookmark.el (bookmark-show-all-annotations):
+	Make sure each inserted annotation ends with newline.
+
+	(bookmark-maybe-sort-alist): Don't modify
+	bookmark-alist.  Instead, if not sorting, simply return it.
+	(bookmark-bmenu-list): Call bookmark-maybe-sort-alist
+	for its return value, not for its side effect.
+
 2007-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Add more info about the vc-registered function.
