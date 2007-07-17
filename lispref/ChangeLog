@@ -1,3 +1,8 @@
+2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Introduce optional parameter
+	IDENTIFICATION for `file-remote-p'.
+
 2007-07-14  Richard Stallman  <rms@gnu.org>
 
 	* control.texi (Handling Errors): Document `debug' in handler list.
