@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c %**start of header
 @setfilename ../info/tramp
+@c %**start of header
 @settitle TRAMP User Manual
 @setchapternewpage odd
 @c %**end of header
@@ -2306,7 +2306,7 @@ uid=0(root) gid=0(root) groups=0(root)
 @end example
 
 
-@anchor{Running a debugger on a remote host} 
+@anchor{Running a debugger on a remote host}
 @subsection Running a debugger on a remote host
 @cindex gud
 @cindex gdb
@@ -2337,7 +2337,12 @@ Given you are in a buffer that belongs to the remote directory
 @end example
 
 It is not possible to use just the absolute local part of a remote
-file name, like @kbd{perl -d /home/user/myprog.pl}, though.
+file name as program to debug, like @kbd{perl -d
+/home/user/myprog.pl}, though.
+
+Arguments of the program to be debugged are taken literally.  That
+means file names as arguments must be given as ordinary relative or
+absolute file names, without any remote specification.
 
 
 @node Bug Reports
@@ -2838,8 +2843,6 @@ their readability through a remote access:
 
 @lisp
 @ifset emacs
-(require 'recentf)
-(add-to-list 'recentf-keep 'file-remote-p)
 (recentf-mode 1)
 @end ifset
 @ifset xemacs

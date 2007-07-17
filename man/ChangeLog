@@ -1,7 +1,15 @@
+2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Move @setfilename ../info/tramp up, outside the header
+	section.  Reported by <poti@potis.org>.
+	(Remote processes): Arguments of the program to be debugged are taken
+	literally.
+	(Frequently Asked Questions): Simplify recentf example.
+
 2007-07-14  Karl Berry  <karl@gnu.org>
 
 	* info.texi (@copying): New Back-Cover Text.
-	
+
 	* info.texi (Quitting Info): Move to proper place in source.
 	(Reported by Benno Schulenberg.)
 
