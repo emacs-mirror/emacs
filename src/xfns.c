@@ -308,10 +308,10 @@ x_window_to_frame (dpyinfo, wdesc)
 
   if (wdesc == None) return 0;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
@@ -360,10 +360,10 @@ x_any_window_to_frame (dpyinfo, wdesc)
   if (wdesc == None) return NULL;
 
   found = NULL;
-  for (tail = Vframe_list; GC_CONSP (tail) && !found; tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail) && !found; tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
 
       f = XFRAME (frame);
@@ -415,10 +415,10 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
 
   if (wdesc == None) return 0;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
@@ -463,10 +463,10 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
 
   if (wdesc == None) return 0;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
@@ -510,10 +510,10 @@ x_top_window_to_frame (dpyinfo, wdesc)
 
   if (wdesc == None) return 0;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)

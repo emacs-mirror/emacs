@@ -877,21 +877,36 @@ The font must be already used by Emacs."
       (let ((requested (car elt)))
 	(if (stringp requested)
 	    (insert "\n    " requested)
-	  (let ((family (aref requested 0))
-		(registry (aref requested 5)))
+	  (let (family registry weight slant width adstyle)
+	    (if (fontp requested)
+		(setq family (font-get requested :family)
+		      registry (font-get requested :registry)
+		      weight (font-get requested :weight)
+		      slant (font-get requested :slant)
+		      width (font-get requested :width)
+		      adstyle (font-get requested :adstyle))
+	      (setq family (aref requested 0)
+		    registry (aref requested 5)
+		    weight (aref requested 1)
+		    slant (aref requested 2)
+		    width (aref requested 3)
+		    adstyle (aref requested 4)))
 	    (if (not family)
 		(setq family "*-*")
+	      (if (symbolp family)
+		  (setq family (symbol-name family)))
 	      (or (string-match "-" family)
 		  (setq family (concat "*-" family))))
-	    (or (string-match "-" registry)
-		(= (aref registry (1- (length registry))) ?*)
-		(setq registry (concat registry "*")))
-	    (insert "\n    -" family
-		    ?- (or (aref requested 1) ?*) ; weight
-		    ?- (or (aref requested 2) ?*) ; slant
-		    ?- (or (aref requested 3) ?*) ; width
-		    ?- (or (aref requested 4) ?*) ; adstyle
-		    "-*-*-*-*-*-*-" registry))))
+	    (if (not registry)
+		(setq registry "*-*")
+	      (if (symbolp registry)
+		  (setq registry (symbol-name registry)))
+	      (or (string-match "-" registry)
+		  (= (aref registry (1- (length registry))) ?*)
+		  (setq registry (concat registry "*"))))
+	    (insert (format"\n    -%s-%s-%s-%s-%s-*-*-*-*-*-*-%s"
+			   family (or weight "*") (or slant "*") (or width "*")
+			   (or adstyle "*") registry)))))
 
       ;; Insert opened font names (if any).
       (if (and (boundp 'print-opened) (symbol-value 'print-opened))

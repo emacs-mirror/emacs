@@ -156,6 +156,15 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :group 'next-error
   :version "22.1")
 
+(defcustom next-error-recenter nil
+  "*Display the line in the visited source file recentered as specified.
+If non-nil, the value is passed directly to `recenter'."
+  :type '(choice (integer :tag "Line to recenter to")
+                 (const :tag "Center of window" (4))
+                 (const :tag "No recentering" nil))
+  :group 'next-error
+  :version "23.1")
+
 (defcustom next-error-hook nil
   "*List of hook functions run by `next-error' after visiting source file."
   :type 'hook
@@ -305,6 +314,8 @@ See variables `compilation-parse-errors-function' and
     ;; we know here that next-error-function is a valid symbol we can funcall
     (with-current-buffer next-error-last-buffer
       (funcall next-error-function (prefix-numeric-value arg) reset)
+      (when next-error-recenter
+        (recenter next-error-recenter))
       (run-hooks 'next-error-hook))))
 
 (defun next-error-internal ()
@@ -313,6 +324,8 @@ See variables `compilation-parse-errors-function' and
   ;; we know here that next-error-function is a valid symbol we can funcall
   (with-current-buffer next-error-last-buffer
     (funcall next-error-function 0 nil)
+    (when next-error-recenter
+      (recenter next-error-recenter))
     (run-hooks 'next-error-hook)))
 
 (defalias 'goto-next-locus 'next-error)
@@ -2188,6 +2201,18 @@ value passed."
             (when stderr-file (copy-file stderr-file (cadr buffer)))))
       (when stderr-file (delete-file stderr-file))
       (when lc (delete-file lc)))))
+
+(defun start-file-process (name buffer program &rest program-args)
+  "Start a program in a subprocess.  Return the process object for it.
+Similar to `start-process', but may invoke a file handler based on
+`default-directory'.  The current working directory of the
+subprocess is `default-directory'.
+
+PROGRAM and PROGRAM-ARGS might be file names.  They are not
+objects of file handler invocation."
+  (let ((fh (find-file-name-handler default-directory 'start-file-process)))
+    (if fh (apply fh 'start-file-process name buffer program program-args)
+      (apply 'start-process name buffer program program-args))))
 
 
 
@@ -5246,10 +5271,10 @@ PREFIX is the string that represents this modifier in an event type symbol."
 
 ;;;; Keypad support.
 
-;;; Make the keypad keys act like ordinary typing keys.  If people add
-;;; bindings for the function key symbols, then those bindings will
-;;; override these, so this shouldn't interfere with any existing
-;;; bindings.
+;; Make the keypad keys act like ordinary typing keys.  If people add
+;; bindings for the function key symbols, then those bindings will
+;; override these, so this shouldn't interfere with any existing
+;; bindings.
 
 ;; Also tell read-char how to handle these keys.
 (mapc

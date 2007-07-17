@@ -53,6 +53,7 @@ Boston, MA 02110-1301, USA.  */
 #include <shellapi.h>
 #include <ctype.h>
 #include <winspool.h>
+#include <objbase.h>
 
 #include <dlgs.h>
 #define FILE_NAME_TEXT_FIELD edt1
@@ -387,10 +388,10 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
@@ -2467,8 +2468,8 @@ register_hot_keys (hwnd)
 {
   Lisp_Object keylist;
 
-  /* Use GC_CONSP, since we are called asynchronously.  */
-  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+  /* Use CONSP, since we are called asynchronously.  */
+  for (keylist = w32_grabbed_keys; CONSP (keylist); keylist = XCDR (keylist))
     {
       Lisp_Object key = XCAR (keylist);
 
@@ -2487,8 +2488,7 @@ unregister_hot_keys (hwnd)
 {
   Lisp_Object keylist;
 
-  /* Use GC_CONSP, since we are called asynchronously.  */
-  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+  for (keylist = w32_grabbed_keys; CONSP (keylist); keylist = XCDR (keylist))
     {
       Lisp_Object key = XCAR (keylist);
 
@@ -2520,6 +2520,13 @@ w32_msg_pump (deferred_msg * msg_buf)
 	      /* Produced by complete_deferred_msg; just ignore.  */
 	      break;
 	    case WM_EMACS_CREATEWINDOW:
+              /* Initialize COM for this window. Even though we don't use it,
+                 some third party shell extensions can cause it to be used in
+                 system dialogs, which causes a crash if it is not initialized.
+                 This is a known bug in Windows, which was fixed long ago, but
+                 the patch for XP is not publically available until XP SP3,
+                 and older versions will never be patched.  */
+              CoInitialize (NULL);
 	      w32_createwindow ((struct frame *) msg.wParam);
 	      if (!PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0))
 		abort ();
@@ -3665,6 +3672,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
+
+    case WM_DESTROY:
+      CoUninitialize ();
+      return 0;
 
     case WM_CLOSE:
       wmsg.dwModifiers = w32_get_modifiers ();

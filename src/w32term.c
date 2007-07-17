@@ -249,10 +249,9 @@ extern int errno;
 extern EMACS_INT extra_keyboard_modifiers;
 
 static void x_update_window_end P_ ((struct window *, int, int));
-void w32_delete_display P_ ((struct w32_display_info *));
 static void w32_handle_tool_bar_click P_ ((struct frame *,
                                           struct input_event *));
-void w32_define_cursor P_ ((Window, Cursor));
+static void w32_define_cursor P_ ((Window, Cursor));
 
 void x_lower_frame P_ ((struct frame *));
 void x_scroll_bar_clear P_ ((struct frame *));
@@ -261,7 +260,7 @@ void x_raise_frame P_ ((struct frame *));
 void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-void w32_initialize P_ ((void));
+static void w32_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
@@ -3318,9 +3317,9 @@ x_focus_changed (type, state, dpyinfo, frame, bufp)
 
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
-          if (GC_NILP (Vterminal_frame)
-              && GC_CONSP (Vframe_list)
-              && !GC_NILP (XCDR (Vframe_list)))
+          if (NILP (Vterminal_frame)
+              && CONSP (Vframe_list)
+              && !NILP (XCDR (Vframe_list)))
             {
               bufp->kind = FOCUS_IN_EVENT;
               XSETFRAME (bufp->frame_or_window, frame);
@@ -3406,7 +3405,7 @@ x_frame_rehighlight (dpyinfo)
   if (dpyinfo->w32_focus_frame)
     {
       dpyinfo->x_highlight_frame
-	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame)))
+	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame)))
 	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame))
 	   : dpyinfo->w32_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
@@ -3717,7 +3716,7 @@ redo_mouse_highlight ()
 			  HIWORD (last_mouse_motion_event.lParam));
 }
 
-void
+static void
 w32_define_cursor (window, cursor)
      Window window;
      Cursor cursor;
@@ -3874,15 +3873,13 @@ x_window_to_scroll_bar (window_id)
 {
   Lisp_Object tail;
 
-  for (tail = Vframe_list;
-       XGCTYPE (tail) == Lisp_Cons;
-       tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object frame, bar, condemned;
 
       frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
-      if (! GC_FRAMEP (frame))
+      if (! FRAMEP (frame))
 	abort ();
 
       /* Scan this frame's scroll bar list for a scroll bar with the
@@ -3891,9 +3888,9 @@ x_window_to_scroll_bar (window_id)
       for (bar = FRAME_SCROLL_BARS (XFRAME (frame));
 	   /* This trick allows us to search both the ordinary and
 	      condemned scroll bar lists with one loop.  */
-	   ! GC_NILP (bar) || (bar = condemned,
+	   ! NILP (bar) || (bar = condemned,
 			       condemned = Qnil,
-			       ! GC_NILP (bar));
+			       ! NILP (bar));
 	   bar = XSCROLL_BAR (bar)->next)
 	if (SCROLL_BAR_W32_WINDOW (XSCROLL_BAR (bar)) == window_id)
 	  return XSCROLL_BAR (bar);
@@ -4365,7 +4362,7 @@ w32_scroll_bar_handle_click (bar, msg, emacs_event)
      W32Msg *msg;
      struct input_event *emacs_event;
 {
-  if (! GC_WINDOWP (bar->window))
+  if (! WINDOWP (bar->window))
     abort ();
 
   emacs_event->kind = W32_SCROLL_BAR_CLICK_EVENT;
@@ -6872,7 +6869,7 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_shift_glyphs_for_insert
 };
 
-void
+static void
 w32_initialize ()
 {
   rif = &w32_redisplay_interface;

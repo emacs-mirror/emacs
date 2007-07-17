@@ -4132,8 +4132,15 @@ directory, so that Emacs will know its current contents."
 				       (format "Getting %s" fn1))
 	  tmp1))))
 
-(defun ange-ftp-file-remote-p (file)
-  (ange-ftp-replace-name-component file ""))
+(defun ange-ftp-file-remote-p (file &optional connected)
+  (and (or (not connected)
+	   (let* ((parsed (ange-ftp-ftp-name file))
+		  (host (nth 0 parsed))
+		  (user (nth 1 parsed))
+		  (proc (get-process (ange-ftp-ftp-process-buffer host user))))
+	     (and proc (processp proc)
+		  (memq (process-status proc) '(run open)))))
+       (ange-ftp-replace-name-component file "")))
 
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix)
   (if (ange-ftp-ftp-name file)
@@ -4360,7 +4367,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; This returns nil for any file name as argument.
 (put 'vc-registered 'ange-ftp 'null)
 
-(put 'dired-call-process 'ange-ftp 'ange-ftp-dired-call-process)
+;; We can handle process-file in a restricted way (just for chown).
+;; Nothing possible for start-file-process.
+(put 'process-file 'ange-ftp 'ange-ftp-process-file)
+(put 'start-file-process 'ange-ftp 'ignore)
 (put 'shell-command 'ange-ftp 'ange-ftp-shell-command)
 
 ;;; Define ways of getting at unmodified Emacs primitives,
@@ -4523,8 +4533,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       ;; default-directory is in ange-ftp syntax for remote file names.
       (ange-ftp-real-shell-command command output-buffer error-buffer))))
 
-;;; This is the handler for call-process.
-(defun ange-ftp-dired-call-process (program discard &rest arguments)
+;;; This is the handler for process-file.
+(defun ange-ftp-process-file (program infile buffer display &rest arguments)
   ;; PROGRAM is always one of those below in the cond in dired.el.
   ;; The ARGUMENTS are (nearly) always files.
   (if (ange-ftp-ftp-name default-directory)
@@ -4544,7 +4554,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		   1)
 	(error (insert (format "%s\n" (nth 1 oops)))
 	       1))
-    (apply 'call-process program nil (not discard) nil arguments)))
+    (apply 'call-process program infile buffer display arguments)))
 
 ;; Handle an attempt to run chmod on a remote file
 ;; by using the ftp chmod command.

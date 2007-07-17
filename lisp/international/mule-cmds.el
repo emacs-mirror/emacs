@@ -2020,27 +2020,29 @@ Setting this variable directly does not take effect.  See
 		  (insert "Sample text:\n  " str "\n\n")))
 	  (error nil))
 	(let ((input-method (get-language-info language-name 'input-method))
-	      (l (copy-sequence input-method-alist)))
-	  (insert "Input methods")
-	  (when input-method
-	    (insert " (default " input-method ")")
-	    (setq input-method (assoc input-method input-method-alist))
-	    (setq l (cons input-method (delete input-method l))))
-	  (insert ":\n")
-	  (while l
-	    (when (eq t (compare-strings language-name nil nil
-					 (nth 1 (car l)) nil nil t))
-	      (insert "  " (car (car l)))
-	      (search-backward (car (car l)))
-	      (help-xref-button 0 'help-input-method (car (car l)))
+	      (l (copy-sequence input-method-alist))
+	      (first t))
+	  (when (and input-method
+		     (setq input-method (assoc input-method l)))
+	    (insert "Input methods (default " (car input-method) ")\n")
+	    (setq l (cons input-method (delete input-method l))
+		  first nil))
+	  (dolist (elt l)
+	    (when (or (eq input-method elt)
+		      (eq t (compare-strings language-name nil nil
+					     (nth 1 elt) nil nil t)))
+	      (when first
+		(insert "Input methods:\n")
+		(setq first nil))
+	      (insert "  " (car elt))
+	      (search-backward (car elt))
+	      (help-xref-button 0 'help-input-method (car elt))
 	      (goto-char (point-max))
 	      (insert " (\""
-		      (if (stringp (nth 3 (car l)))
-			  (nth 3 (car l))
-			(car (nth 3 (car l))))
-		      "\" in mode line)\n"))
-	    (setq l (cdr l)))
-	  (insert "\n"))
+		      (if (stringp (nth 3 elt)) (nth 3 elt) (car (nth 3 elt)))
+		      "\" in mode line)\n")))
+	  (or first
+	      (insert "\n")))
 	(insert "Character sets:\n")
 	(let ((l (get-language-info language-name 'charset)))
 	  (if (null l)

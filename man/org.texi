@@ -3,8 +3,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.77
-@set DATE June 2007
+@set VERSION 5.03
+@set DATE July 2007
 
 @dircategory Emacs
 @direntry
@@ -80,8 +80,9 @@ Software Foundation raise funds for GNU development.''
 * Tables::                      Pure magic for quick formatting
 * Hyperlinks::                  Notes in context
 * TODO items::                  Every tree branch can be a TODO item
-* Timestamps::                  Assign date and time to items
 * Tags::                        Tagging headlines and matching sets of tags
+* Properties and columns::      
+* Timestamps::                  Assign date and time to items
 * Agenda views::                Collecting information into views
 * Embedded LaTeX::              LaTeX fragments and formulas
 * Exporting::                   Sharing and publishing of notes
@@ -112,6 +113,8 @@ Document Structure
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Additional structure within an entry
+* Drawers::                     Tucking stuff away
+* orgstruct-mode::              Structure editing outside Org-mode
 
 Archiving
 
@@ -173,6 +176,30 @@ Extended use of TODO keywords
 * Multiple sets in one file::   Mixing it all, and still finding your way
 * Per file keywords::           Different files, different requirements
 
+Tags
+
+* Tag inheritance::             Tags use the tree structure of the outline
+* Setting tags::                How to assign tags to a headline
+* Tag searches::                Searching for combinations of tags
+
+Properties and Columns
+
+* Property syntax::             How properties are spelled out
+* Special properties::          Access to other Org-mode features
+* Property searches::           Matching property values
+* Column view::                 Tabular viewing and editing
+* Property API::                Properties for Lisp programmers
+
+Column View
+
+* Defining columns::            The COLUMNS format property
+* Using column view::           How to create and use column view
+
+Defining Columns
+
+* Scope of column definitions:: 
+* Column attributes::           
+
 Timestamps
 
 * Time stamps::                 Assigning a time to a tree entry
@@ -196,12 +223,6 @@ Progress Logging
 * Tracking TODO state changes::  When did the status change?
 * Clocking work time::          When exactly did you work on this item?
 
-Tags
-
-* Tag inheritance::             Tags use the tree structure of the outline
-* Setting tags::                How to assign tags to a headline
-* Tag searches::                Searching for combinations of tags
-
 Agenda Views
 
 * Agenda files::                Files being searched for agenda information
@@ -215,7 +236,7 @@ The built-in agenda views
 
 * Weekly/Daily agenda::         The calendar page with current tasks
 * Global TODO list::            All unfinished action items
-* Matching headline tags::      Structured information with fine-tuned search
+* Matching tags and properties::  Structured information with fine-tuned search
 * Timeline::                    Time-sorted view for single file
 * Stuck projects::              Find projects you need to review
 
@@ -308,6 +329,7 @@ Extensions, Hooks and Hacking
 * Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
 * Special agenda views::        Customized views
+* Using the property API::      Writing programs that use entry properties
 
 Tables in arbitrary syntax
 
@@ -333,7 +355,7 @@ Tables in arbitrary syntax
 @section Summary
 @cindex summary
 
-Org-mode is a mode for keeping notes, maintaining ToDo lists, and doing
+Org-mode is a mode for keeping notes, maintaining TODO lists, and doing
 project planning with a fast and effective plain-text system.
 
 Org-mode develops organizational tasks around NOTES files that contain
@@ -341,7 +363,7 @@ lists or information about projects as plain text.  Org-mode is
 implemented on top of outline-mode, which makes it possible to keep the
 content of large files well structured.  Visibility cycling and
 structure editing help to work with the tree.  Tables are easily created
-with a built-in table editor.  Org-mode supports ToDo items, deadlines,
+with a built-in table editor.  Org-mode supports TODO items, deadlines,
 time stamps, and scheduling.  It dynamically compiles entries into an
 agenda that utilizes and smoothly integrates much of the Emacs calendar
 and diary.  Plain text URL-like links connect to websites, emails,
@@ -363,7 +385,7 @@ tags etc are created dynamically when you need them.
 Org-mode keeps simple things simple.  When first fired up, it should
 feel like a straightforward, easy to use outliner.  Complexity is not
 imposed, but a large amount of functionality is available when you need
-it.  Org-mode can be used on different levels and in different ways, for
+it.  Org-mode is a toolbox and can be used in different ways, for
 example as:
 
 @example
@@ -373,6 +395,7 @@ example as:
 @r{@bullet{} TODO list editor}
 @r{@bullet{} full agenda and planner with deadlines and work scheduling}
 @r{@bullet{} environment to implement David Allen's GTD system}
+@r{@bullet{} a basic database application}
 @r{@bullet{} simple hypertext system, with HTML export}
 @r{@bullet{} publishing tool to create a set of interlinked webpages}
 @end example
@@ -380,7 +403,9 @@ example as:
 Org-mode's automatic, context sensitive table editor with spreadsheet
 capabilities can be integrated into any major mode by activating the
 minor Orgtbl-mode.  Using a translation step, it can be used to maintain
-tables in arbitrary file types, for example in LaTeX.
+tables in arbitrary file types, for example in LaTeX.  The structure
+editing and list creation capabilities can be used outside Org-mode with
+the minor Orgstruct-mode.
 
 @cindex FAQ
 There is a website for Org-mode which provides links to the newest
@@ -452,9 +477,10 @@ make install-info
 
 @iftex
 @b{Important:} @i{If you use copy-and-paste to copy lisp code from the
-PDF documentation to your .emacs file, the single quote character comes
-out incorrectly and the code will not work.  You need to fix the single
-quotes by hand, or copy from Info documentation.}
+PDF documentation as viewed by Acrobat reader to your .emacs file, the
+single quote character comes out incorrectly and the code will not work.
+You need to fix the single quotes by hand, or copy from Info
+documentation.}
 @end iftex
 
 Add the following lines to your @file{.emacs} file.  The last two lines
@@ -564,6 +590,8 @@ edit the structure of the document.
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Additional structure within an entry
+* Drawers::                     Tucking stuff away
+* orgstruct-mode::              Structure editing outside Org-mode
 @end menu
 
 @node Outlines, Headlines, Document structure, Document structure
@@ -588,8 +616,8 @@ key.
 
 Headlines define the structure of an outline tree.  The headlines in
 Org-mode start with one or more stars, on the left margin@footnote{See
-the variable @code{org-special-ctrl-a} to configure special behavior of
-@kbd{C-a} in headlines.}.  For example:
+the variable @code{org-special-ctrl-a/e} to configure special behavior
+of @kbd{C-a} and @kbd{C-e} in headlines.}.  For example:
 
 @example
 * Top level headline
@@ -991,7 +1019,7 @@ XEmacs uses selective display for outlining, not text properties.}.
 Or you can use the command @kbd{C-c C-e v} to export only the visible
 part of the document and print the resulting file.
 
-@node Plain lists,  , Sparse trees, Document structure
+@node Plain lists, Drawers, Sparse trees, Document structure
 @section Plain lists
 @cindex plain lists
 @cindex lists, plain
@@ -1017,9 +1045,9 @@ the 2--digit numbers must be written left-aligned with the other numbers
 in the list.  Indentation also determines the end of a list item.  It
 ends before the next line that is indented like the bullet/number, or
 less.  Empty lines are part of the previous item, so you can have
-several paragraphs in one item.  If you would like an emtpy line to
+several paragraphs in one item.  If you would like an empty line to
 terminate all currently open plain lists, configure the variable
-@code{org-empty-line-terminates-plain-lists}.  Here is an for example:
+@code{org-empty-line-terminates-plain-lists}.  Here is an example:
 
 @example
 @group
@@ -1040,10 +1068,7 @@ Org-mode supports these lists by tuning filling and wrapping commands to
 deal with them correctly@footnote{Org-mode only changes the filling
 settings for Emacs.  For XEmacs, you should use Kyle E. Jones'
 @file{filladapt.el}.  To turn this on,  put into @file{.emacs}:
-@example
-(require 'filladapt)
-@end example
-}.
+@code{(require 'filladapt)}}. 
 
 The following commands act on items when the cursor is in the first line
 of an item (the line with the bullet or number).
@@ -1056,6 +1081,9 @@ Items can be folded just like headline levels if you set the variable
 given by the indentation of the bullet/number.  Items are always
 subordinate to real headlines, however; the hierarchies remain
 completely separated.
+
+If @code{org-cycle-include-plain-lists} has not been set, @key{TAB}
+fixes the indentation of the curent line in a heuristic way.
 @kindex M-@key{RET}
 @item M-@key{RET}
 Insert new item at current level.  With prefix arg, force a new heading
@@ -1094,9 +1122,63 @@ the command chain with a cursor motion or so.
 @kindex C-c C-c
 @item C-c C-c
 If there is a checkbox (@pxref{Checkboxes}) in the item line, toggle the
-state of the checkbox.  Otherwise, if this is an ordered list, renumber
-the ordered list at the cursor.
+state of the checkbox.  If not, make this command makes sure that all
+the items on this list level use the same bullet.  Furthermore, if this
+is an ordered list, make sure the numbering is ok.
+@kindex C-c -
+@item C-c -
+Cycle the entire list level through the different itemize/enumerate
+bullets (@samp{-}, @samp{+}, @samp{*}, @samp{1.}, @samp{1)}).
+With prefix arg, select the nth bullet from this list.
 @end table
+
+@node Drawers, orgstruct-mode, Plain lists, Document structure
+@section Drawers
+@cindex drawers
+@cindex visibility cycling, drawers
+
+Sometimes you want to keep information associated with an entry, but you
+normally don't want to see it.  For this, Org-mode has @emph{drawers}.
+Drawers need to be configured with the variable @code{org-drawers}, and
+look like this:
+
+@example
+** This is a headline
+   Still outside the drawer
+   :DRAWERNAME:
+      This is inside the drawer.
+   :END:
+   After the drawer.
+@end example
+
+Visibility cycling (@pxref{Visibility cycling}) on the headline will
+hide and show the entry, but keep the drawer collapsed to a single line.
+In order to look inside the drawer, you need to move the cursor to the
+drawer line and press @key{TAB} there.  Org-mode uses a drawer for
+storing properties (@pxref{Properties and columns}).
+
+@node orgstruct-mode,  , Drawers, Document structure
+@section The Orgstruct minor mode
+@cindex orgstruct-mode
+@cindex minor mode for structure editing
+
+If you like the intuitive way the Org-mode structure editing and list
+formatting works, you might want to use these commands in other modes
+like text-mode or mail-mode as well.  The minor mode Orgstruct-mode
+makes this possible.  You can always toggle the mode with @kbd{M-x
+orgstruct-mode}.  To turn it on by default, for example in mail mode,
+use
+
+@lisp
+(add-hook 'mail-mode-hook 'turn-on-orgstruct)
+@end lisp
+
+When this mode is active and the cursor is on a line that looks to
+Org-mode like a headline of the first line of a list item, most
+structure editing commands will work, even if the same keys normally
+have different functionality in the major mode you are using.  If the
+cursor is not in one of those special lines, Orgstruct-mode lurks
+silently in the shadow.
 
 @node Tables, Hyperlinks, Document structure, Top
 @chapter Tables
@@ -1556,12 +1638,23 @@ see the @samp{E} mode switch below).  If there are no non-empty fields,
 
 @samp{$name} is interpreted as the name of a column, parameter or
 constant.  Constants are defined globally through the variable
-@code{org-table-formula-constants}.  If you have the @file{constants.el}
-package, it will also be used to resolve constants, including natural
-constants like @samp{$h} for Planck's constant, and units like
-@samp{$km} for kilometers@footnote{@file{Constant.el} can supply the
-values of constants in two different unit systems, @code{SI} and
-@code{cgs}.  Which one is used depends on the value of the variable
+@code{org-table-formula-constants}, and locally (for the file) through a
+line like
+
+@example
+#+CONSTANTS: c=299792458. pi=3.14 eps=2.4e-6
+@end example
+
+@noindent
+Also properties (@pxref{Properties and columns}) can be used as
+constants in table formulas: For a property @samp{:XYZ:} use the name
+@samp{$PROP_XYZ}, and the property will be searched in the current
+outline entry and in the hierarchy above it.  If you have the
+@file{constants.el} package, it will also be used to resolve constants,
+including natural constants like @samp{$h} for Planck's constant, and
+units like @samp{$km} for kilometers@footnote{@file{Constant.el} can
+supply the values of constants in two different unit systems, @code{SI}
+and @code{cgs}.  Which one is used depends on the value of the variable
 @code{constants-unit-system}.  You can use the @code{#+STARTUP} options
 @code{constSI} and @code{constcgs} to set this value for the current
 buffer.}.  Column names and parameters can be specified in special table
@@ -1641,12 +1734,18 @@ functionality is not enough.  If a formula starts with a single quote
 followed by an opening parenthesis, then it is evaluated as a lisp form.
 The evaluation should return either a string or a number.  Just as with
 @file{calc} formulas, you can specify modes and a printf format after a
-semicolon.  A reference will be replaced with a string (in double
-quotes) containing the field.  If you provide the @samp{N} mode switch,
-all referenced elements will be numbers.  Ranges are inserted as
-space-separated fields, so you can embed them in list or vector syntax.
-A few examples, note how the @samp{N} mode is used when we do
-computations in lisp.
+semicolon.  With Emacs Lisp forms, you need to be concious about the way
+field references are interpolated into the form.  By default, a
+reference will be interpolated as a Lisp string (in double quotes)
+containing the field.  If you provide the @samp{N} mode switch, all
+referenced elements will be numbers (non-number fields will be zero) and
+interpolated as Lisp numbers, without quotes.  If you provide the
+@samp{L} flag, all fields will be interpolated literally, without quotes.
+I.e., if you want a reference to be interpreted as a string by the Lisp
+form, enclode the reference operator itself in double quotes, like
+@code{"$3"}.  Ranges are inserted as space-separated fields, so you can
+embed them in list or vector syntax.  A few examples, note how the
+@samp{N} mode is used when we do computations in lisp.
 
 @example
 @r{Swap the first two characters of the content of column 1}
@@ -2042,8 +2141,8 @@ convenient to put them into a comment line. For example
 
 @noindent In HTML export (@pxref{HTML export}), such targets will become
 named anchors for direct access through @samp{http} links@footnote{Note
-that text before the first headline will never be exported, so the first
-such target must be after the first headline.}.
+that text before the first headline is usually not exported, so the
+first such target should be after the first headline.}.
 
 If no dedicated target exists, Org-mode will search for the words in the
 link.  In the above example the search would be for @samp{my target}.
@@ -2504,6 +2603,8 @@ insertion of content:
 %a          @r{annotation, normally the link created with @code{org-store-link}}
 %i          @r{initial content, the region when remember is called with C-u.}
             @r{The entire text will be indented like @code{%i} itself.}
+%^g         @r{prompt for tags, with completion on tags in target file.}
+%^G         @r{prompt for tags, with completion all tags in all agenda files.}
 %:keyword   @r{specific information for certain link types, see below}
 @end example
 
@@ -2581,7 +2682,7 @@ non-nil, the entire text is also indented so that it starts in the
 same column as the headline (after the asterisks).
 
 
-@node TODO items, Timestamps, Hyperlinks, Top
+@node TODO items, Tags, Hyperlinks, Top
 @chapter TODO items
 @cindex TODO items
 
@@ -2656,6 +2757,9 @@ the TODO entries directly from that buffer (@pxref{Agenda commands}).
 @c @item @code{org-agenda-include-all-todo}
 @c If you would like to have all your TODO items listed as part of your
 @c agenda, customize the variable @code{org-agenda-include-all-todo}.
+@kindex S-M-@key{RET}
+@item S-M-@key{RET}
+Insert a new TODO entry below the current one.
 @end table
 
 @node TODO extensions, Priorities, TODO basics, TODO items
@@ -2929,7 +3033,8 @@ percentage of checkboxes checked (in the above example, this would be
 @table @kbd
 @kindex C-c C-c
 @item C-c C-c
-Toggle checkbox at point.
+Toggle checkbox at point.  With prefix argument, set it to @samp{[-]},
+which is considered to be an intermediate state.
 @kindex C-c C-x C-b
 @item C-c C-x C-b
 Toggle checkbox at point.
@@ -2960,7 +3065,571 @@ delete boxes or add/change them by hand, use this command to get things
 back into synch.  Or simply toggle any checkbox twice with @kbd{C-c C-c}.
 @end table
 
-@node Timestamps, Tags, TODO items, Top
+
+@node Tags, Properties and columns, TODO items, Top
+@chapter Tags
+@cindex tags
+@cindex headline tagging
+@cindex matching, tags
+@cindex sparse tree, tag based
+
+If you wish to implement a system of labels and contexts for
+cross-correlating information, an excellent way is to assign @i{tags} to
+headlines.  Org-mode has extensive support for using tags.
+
+Every headline can contain a list of tags, at the end of the headline.
+Tags are normal words containing letters, numbers, @samp{_}, and
+@samp{@@}.  Tags must be preceded and followed by a single colon; like
+@samp{:WORK:}.  Several tags can be specified like @samp{:WORK:URGENT:}.
+
+@menu
+* Tag inheritance::             Tags use the tree structure of the outline
+* Setting tags::                How to assign tags to a headline
+* Tag searches::                Searching for combinations of tags
+@end menu
+
+@node Tag inheritance, Setting tags, Tags, Tags
+@section Tag inheritance
+@cindex inheritance, of tags
+@cindex sublevels, inclusion into tags match
+
+@i{Tags} make use of the hierarchical structure of outline trees.  If a
+heading has a certain tag, all subheadings will inherit the tag as
+well.  For example, in the list
+
+@example
+* Meeting with the French group      :WORK:
+** Summary by Frank                  :BOSS:NOTES:
+*** TODO Prepare slides for him      :ACTION:
+@end example
+
+@noindent
+the final heading will have the tags @samp{:WORK:}, @samp{:BOSS:},
+@samp{:NOTES:}, and @samp{:ACTION:}.  When executing tag searches and
+Org-mode finds that a certain headline matches the search criterion, it
+will not check any sublevel headline, assuming that these likely also
+match, and that the list of matches can become very long.  This may
+not be what you want, however, and you can influence inheritance and
+searching using the variables @code{org-use-tag-inheritance} and
+@code{org-tags-match-list-sublevels}.
+
+@node Setting tags, Tag searches, Tag inheritance, Tags
+@section Setting tags
+@cindex setting tags
+@cindex tags, setting
+
+@kindex M-@key{TAB}
+Tags can simply be typed into the buffer at the end of a headline.
+After a colon, @kbd{M-@key{TAB}} offers completion on tags.  There is
+also a special command for inserting tags:
+
+@table @kbd
+@kindex C-c C-c
+@item C-c C-c
+@cindex completion, of tags
+Enter new tags for the current headline.  Org-mode will either offer
+completion or a special single-key interface for setting tags, see
+below.  After pressing @key{RET}, the tags will be inserted and aligned
+to @code{org-tags-column}.  When called with a @kbd{C-u} prefix, all
+tags in the current buffer will be aligned to that column, just to make
+things look nice.  TAGS are automatically realigned after promotion,
+demotion, and TODO state changes (@pxref{TODO basics}).
+@end table
+
+Org will support tag insertion based on a @emph{list of tags}.  By
+default this list is constructed dynamically, containing all tags
+currently used in the buffer.  You may also globally specify a hard list
+of tags with the variable @code{org-tag-alist}.  Finally you can set
+the default tags for a given file with lines like
+
+@example
+#+TAGS: @@WORK @@HOME @@TENNISCLUB
+#+TAGS: Laptop Car PC Sailboat
+@end example
+
+If you have globally defined your preferred set of tags using the
+variable @code{org-tag-alist}, but would like to use a dynamic tag list
+in a specific file: Just add an empty TAGS option line to that file:
+
+@example
+#+TAGS:
+@end example
+
+The default support method for entering tags is minibuffer completion.
+However, Org-mode also implements a much better method: @emph{fast tag
+selection}.  This method allows to select and deselect tags with a
+single key per tag.  To function efficiently, you should assign unique
+keys to most tags.  This can be done globally with
+
+@lisp
+(setq org-tag-alist '(("@@WORK" . ?w) ("@@HOME" . ?h) ("Laptop" . ?l)))
+@end lisp
+
+@noindent or on a per-file basis with
+
+@example
+#+TAGS: @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t)  Laptop(l)  PC(p)
+@end example
+
+@noindent
+You can also group together tags that are mutually exclusive.  With
+curly braces@footnote{In @code{org-mode-alist} use
+@code{'(:startgroup)} and @code{'(:endgroup)}, respectively.  Several
+groups are allowed.}
+
+@example
+#+TAGS: @{ @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t) @}  Laptop(l)  PC(p)
+@end example
+
+@noindent you indicate that at most one of @samp{@@WORK}, @samp{@@HOME},
+and @samp{@@TENNISCLUB} should be selected.
+
+@noindent Don't forget to press @kbd{C-c C-c} with the cursor in one of
+these lines to activate any changes.
+
+If at least one tag has a selection key, pressing @kbd{C-c C-c} will
+automatically present you with a special interface, listing inherited
+tags, the tags of the current headline, and a list of all legal tags
+with corresponding keys@footnote{Keys will automatically be assigned to
+tags which have no configured keys.}.  In this interface, you can use
+the following keys:
+
+@table @kbd
+@item a-z...
+Pressing keys assigned to tags will add or remove them from the list of
+tags in the current line.  Selecting a tag in a group of mutually
+exclusive tags will turn off any other tags from that group.
+@kindex @key{TAB}
+@item @key{TAB}
+Enter a tag in the minibuffer, even if the tag is not in the predefined
+list.  You will be able to complete on all tags present in the buffer.
+@kindex @key{SPC}
+@item @key{SPC}
+Clear all tags for this line.
+@kindex @key{RET}
+@item @key{RET}
+Accept the modified set.
+@item C-g
+Abort without installing changes.
+@item q
+If @kbd{q} is not assigned to a tag, it aborts like @kbd{C-g}.
+@item !
+Turn off groups of mutually exclusive tags.  Use this to (as an
+exception) assign several tags from such a group.
+@item C-c
+Toggle auto-exit after the next change (see below).
+If you are using expert mode, the first @kbd{C-c} will display the
+selection window.
+@end table
+
+@noindent
+This method lets you assign tags to a headline with very few keys.  With
+the above setup, you could clear the current tags and set @samp{@@HOME},
+@samp{Laptop} and @samp{PC} tags with just the following keys: @kbd{C-c
+C-c @key{SPC} h l p @key{RET}}.  Switching from @samp{@@HOME} to
+@samp{@@WORK} would be done with @kbd{C-c C-c w @key{RET}} or
+alternatively with @kbd{C-c C-c C-c w}.  Adding the non-predefined tag
+@samp{Sarah} could be done with @kbd{C-c C-c @key{TAB} S a r a h
+@key{RET} @key{RET}}.
+
+If you find that most of the time, you need only a single keypress to
+modify your list of tags, set the variable
+@code{org-fast-tag-selection-single-key}.  Then you no longer have to
+press @key{RET} to exit fast tag selection - it will immediately exit
+after the first change.  If you then occasionally need more keys, press
+@kbd{C-c} to turn off auto-exit for the current tag selection process
+(in effect: start selection with @kbd{C-c C-c C-c} instead of @kbd{C-c
+C-c}).  If you set the variable to the value @code{expert}, the special
+window is not even shown for single-key tag selection, it comes up only
+when you press an extra @kbd{C-c}.
+
+@node Tag searches,  , Setting tags, Tags
+@section Tag searches
+@cindex tag searches
+@cindex searching for tags
+
+Once a tags system has been set up, it can be used to collect related
+information into special lists.
+
+@table @kbd
+@kindex C-c \
+@item C-c \
+Create a sparse tree with all headlines matching a tags search.  With a
+@kbd{C-u} prefix argument, ignore headlines that are not a TODO line.
+@kindex C-c a m
+@item C-c a m
+Create a global list of tag matches from all agenda files.
+@xref{Matching tags and properties}.
+@kindex C-c a M
+@item C-c a M
+Create a global list of tag matches from all agenda files, but check
+only TODO items and force checking subitems (see variable
+@code{org-tags-match-list-sublevels}).
+@end table
+
+@cindex Boolean logic, for tag searches
+A @i{tags} search string can use Boolean operators @samp{&} for AND and
+@samp{|} for OR.  @samp{&} binds more strongly than @samp{|}.
+Parenthesis are currently not implemented.  A tag may also be preceded
+by @samp{-}, to select against it, and @samp{+} is syntactic sugar for
+positive selection.  The AND operator @samp{&} is optional when @samp{+}
+or @samp{-} is present.  Examples:
+
+@table @samp
+@item +WORK-BOSS
+Select headlines tagged @samp{:WORK:}, but discard those also tagged
+@samp{:BOSS:}.
+@item WORK|LAPTOP
+Selects lines tagged @samp{:WORK:} or @samp{:LAPTOP:}.
+@item WORK|LAPTOP&NIGHT
+Like before, but require the @samp{:LAPTOP:} lines to be tagged also
+@samp{NIGHT}.
+@end table
+
+@cindex TODO keyword matching, with tags search
+If you are using multi-state TODO keywords (@pxref{TODO extensions}), it
+can be useful to also match on the TODO keyword.  This can be done by
+adding a condition after a slash to a tags match.  The syntax is similar
+to the tag matches, but should be applied with consideration: For
+example, a positive selection on several TODO keywords can not
+meaningfully be combined with boolean AND.  However, @emph{negative
+selection} combined with AND can be meaningful.  To make sure that only
+lines are checked that actually have any TODO keyword, use @kbd{C-c a
+M}, or equivalently start the todo part after the slash with @samp{!}.
+Examples:
+
+@table @samp
+@item WORK/WAITING
+Select @samp{:WORK:}-tagged TODO lines with the specific TODO
+keyword @samp{WAITING}.
+@item WORK/!-WAITING-NEXT
+Select @samp{:WORK:}-tagged TODO lines that are neither @samp{WAITING}
+nor @samp{NEXT}
+@item WORK/+WAITING|+NEXT
+Select @samp{:WORK:}-tagged TODO lines that are either @samp{WAITING} or
+@samp{NEXT}.
+@end table
+
+@cindex regular expressions, with tags search
+Any element of the tag/todo match can be a regular expression - in this
+case it must be enclosed in curly braces.  For example,
+@samp{WORK+@{^BOSS.*@}} matches headlines that contain the tag
+@samp{WORK} and any tag @i{starting} with @samp{BOSS}.
+
+@cindex level, require for tags match
+You can also require a headline to be of a certain level, by writing
+instead of any TAG an expression like @samp{LEVEL=3}.  For example, a
+search @samp{+LEVEL=3+BOSS/-DONE} lists all level three headlines that
+have the tag BOSS and are @emph{not} marked with the todo keyword DONE.
+
+@node Properties and columns, Timestamps, Tags, Top
+@chapter Properties and Columns
+@cindex properties
+
+Properties are a set of key-value pairs associated with an entry.  There
+are two main applications for properties in Org-mode.  First, properties
+are like tags, but with a value.  For example, in a file where you
+document bugs and plan releases of a piece of software, instead of using
+tags like @code{:release_1:}, @code{:release_2:}, it can be more
+efficient to use a property @code{RELEASE} with a value @code{1.0} or
+@code{2.0}.  Second, you can use properties to implement (very basic)
+database capabilities in an Org-mode buffer, for example to create a
+list of Music CD's you own.  You can edit and view properties
+conveniently in column view (@pxref{Column view}).
+
+@menu
+* Property syntax::             How properties are spelled out
+* Special properties::          Access to other Org-mode features
+* Property searches::           Matching property values
+* Column view::                 Tabular viewing and editing
+* Property API::                Properties for Lisp programmers
+@end menu
+
+@node Property syntax, Special properties, Properties and columns, Properties and columns
+@section Property Syntax
+@cindex property syntax
+@cindex drawer, for properties
+
+Properties are key-value pairs.  They need to be inserted into a special
+drawer (@pxref{Drawers}) with the name @code{PROPERTIES}.  Each property
+is specified on a single line, with the key (surrounded by colons)
+first, and the value after it.  Here is an example:
+
+@example
+* CD collection
+** Classic
+*** Goldberg Variations
+    :PROPERTIES:
+    :Title:     Goldberg Variations
+    :Composer:  J.S. Bach
+    :Artist:    Glen Gould 
+    :Publisher: Deutsche Grammphon
+    :NDisks:    1
+    :END:       
+@end example
+
+You may define the allowed values for a particular property @samp{XYZ}
+by setting a property @samp{XYZ_ALL}.  This special property is
+@emph{inherited}, so if you set it in a level 1 entry, it will apply to
+the entire tree.  When allowed values are defined, setting the
+corresponding property becomes easier and is less prone to typing
+errors.  For the example with the CD collection, we can predefine
+publishers and the number of disks in a box like this:
+
+@example
+* CD collection
+  :PROPERTIES:
+  :NDisks_ALL:  1 2 3 4
+  :Publisher_ALL: "Deutsche Grammophon" Phillips EMI
+  :END:
+@end example
+
+@noindent
+The following commands help to work with properties:
+
+@table @kbd
+@kindex M-@key{TAB}
+@item M-@key{TAB}
+After an initial colon in a line, complete property keys.  All keys used
+in the current file will be offered as possible completions.
+@item M-x org-insert-property-drawer
+Insert a property drawer into the current entry.  The drawer will be
+inserted early in the entry, but after the lines with planning
+information like deadlines.
+@kindex C-c C-c
+@item C-c C-c
+With the cursor in a property drawer, this executes property commands.
+@item C-c C-c s
+Set a property in the current entry.  Both the property and the value
+can be inserted using completion.
+@kindex S-@key{right}
+@kindex S-@key{left}
+@item S-@key{left}/@key{right}
+Switch property at point to the next/previous allowed value.
+@item C-c C-c d
+Remove a property from the current entry.
+@item C-c C-c D
+Globally remove a property, from all entries in the current file.
+@end table
+
+@node Special properties, Property searches, Property syntax, Properties and columns
+@section Special Properties
+@cindex properties, special
+
+Special properties provide alternative access method to Org-mode
+features discussed in the previous chapters, like the TODO state or the
+priority of an entry.  This interface exists so that you can include
+these states into columns view (@pxref{Column view}).  The following
+property names are special and should not be used as keys in the
+properties drawer:
+
+@example
+TODO         @r{The TODO keyword of the entry.}
+TAGS         @r{The tags defined directly in the headline.}
+ALLTAGS      @r{All tags, including inherited ones.}
+PRIORITY     @r{The priority of the entry, a string with a single letter.}
+DEADLINE     @r{The deadline time string, without the angular brackets.}
+SCHEDULED    @r{The scheduling time stamp, without the angular brackets.}
+@end example
+
+@node Property searches, Column view, Special properties, Properties and columns
+@section Property searches
+@cindex properties, searching
+
+To create sparse trees and special lists with selection based on
+properties, the same commands are used as for tag searches (@pxref{Tag
+searches}), and the same logic applies.  For example, a search string
+
+@example
++WORK-BOSS+PRIORITY="A"+coffee="unlimited"+with=@{Sarah\|Denny@}
+@end example
+
+@noindent
+finds entries tagged @samp{:WORK:} but not @samp{:BOSS:}, which
+also have a priority value @samp{A}, a @samp{:coffee:} property with the
+value @samp{unlimited}, and a @samp{:with:} property that is matched by
+the regular expression @samp{Sarah\|Denny}.
+
+@node Column view, Property API, Property searches, Properties and columns
+@section Column View
+
+A great way to view and edit properties in an outline tree is
+@emph{column view}.  In column view, each outline item is turned into a
+table row.  Columns in this table provide access to properties of the
+entries.  Org-mode implements columns by overlaying a tabular structure
+over the headline of each item.  While the headlines have been turned
+into a table row, you can still change the visibility of the outline
+tree.  For example, you get a compact table by switching to CONTENTS
+view (@kbd{S-@key{TAB} S-@key{TAB}}, or simply @kbd{c} while column view
+is active), but you can still open, read, and edit the entry below each
+headline.  Or, you can switch to column view after executing a sparse
+tree command and in this way get a table only for the selected items.
+Column view also works in agenda buffers (@pxref{Agenda views}) where
+queries have collected selected items, possibly from a number of files.
+
+@menu
+* Defining columns::            The COLUMNS format property
+* Using column view::           How to create and use column view
+@end menu
+
+@node Defining columns, Using column view, Column view, Column view
+@subsection Defining Columns
+@cindex column view, for properties
+@cindex properties, column view
+
+Setting up a column view first requires defining the columns.  This is
+done by defining a column format line.
+
+@menu
+* Scope of column definitions::  Where defined, where valid?
+* Column attributes::           Appearance and content of a column
+@end menu
+
+@node Scope of column definitions, Column attributes, Defining columns, Defining columns
+@subsubsection Scope of column definitions
+
+To define a column format for an entire file, use a line like
+
+@example
+#+COLUMNS: %25ITEM %TAGS %PRIORITY %TODO
+@end example
+
+To specify a format that only applies to a specific tree, add a COLUMNS
+property to the top node of that tree, for example
+@example
+** Top node for columns view
+   :PROPERTIES:
+   :COLUMNS: %25ITEM %TAGS %PRIORITY %TODO
+   :END:
+@end example
+
+If a @code{COLUMNS} property is present in an entry, it defines columns
+for the entry itself, and for the entire subtree below it.  Since the
+column definition is part of the hierarchical structure of the document,
+you can define columns on level 1 that are general enough for all
+sublevels, and more specific columns further down, when you edit a
+deeper part of the tree.
+
+@node Column attributes,  , Scope of column definitions, Defining columns
+@subsubsection Column attributes
+A column definition sets the attributes of a column.  The general
+definition looks like this:
+
+@example
+ %[width]property[(title)][@{summary-type@}]
+@end example
+
+@noindent
+Except for the percent sign and the property name, all items are
+optional.  The individual parts have the following meaning:
+
+@example
+width           @r{An integer specifying the width of the column in characters.}
+                @r{If omitted, the width will be determined automatically.}
+property        @r{The property that should be edited in this column.}
+(title)         @r{The header text for the column. If omitted, the}
+                @r{property name is used.}
+@{summary-type@}  @r{The summary type.  If specified, the column values for}
+                @r{parent nodes are computed from the children.}
+                @r{Supported summary types are:}
+                @{+@}  @r{Sum numbers in this column.}
+                @{:@}  @r{Sum times, HH:MM:SS, plain numbers are hours.}
+                @{X@}  @r{Checkbox status, [X] if all children are [X].}
+@end example
+
+@noindent
+Here is an example for a complete columns definition, along with allowed
+values.
+
+@example
+:COLUMNS:  %20ITEM %9Approved(Approved?)@{X@} %Owner %11Status %10Time_Spent@{:@}
+:Owner_ALL:    Tammy Mark Karl Lisa Don
+:Status_ALL:   "In progress" "Not started yet" "Finished" ""
+:Approved_ALL: "[ ]" "[X]"
+@end example
+
+The first column, @samp{%25ITEM}, means the first 25 characters of the
+item itself, i.e. of the headline.  You probably always should start the
+column definition with the ITEM specifier.  The other specifiers create
+columns @samp{Owner} with a list of names as allowed values, for
+@samp{Status} with four different possible values, and for a checkbox
+field @samp{Approved}.  When no width is given after the @samp{%}
+character, the column will be exactly as wide as it needs to be in order
+to fully display all values.  The @samp{Approved} column does have a
+modified title (@samp{Approved?}, with a question mark).  Summaries will
+be created for the @samp{Time_Spent} column by adding time duration
+expressions like HH:MM, and for the @samp{Approved} column, by providing
+an @samp{[X]} status if all children have been checked.
+
+@node Using column view,  , Defining columns, Column view
+@subsection Using Column View
+
+@table @kbd
+@tsubheading{Turning column view on and off}
+@kindex C-c C-x C-c
+@item C-c C-x C-c
+Create the column view for the local environment.  This command searches
+the hierarchy, up from point, for a @code{COLUMNS} property that defines
+a format.  When one is found, the column view table is established for
+the entire tree, starting from the entry that contains the @code{COLUMNS}
+property.  If none is found, the format is taken from the @code{#+COLUMNS}
+line or from the variable @code{org-columns-default-format}, and column
+view is established for the current entry and its subtree.
+@kindex q
+@item q
+Exit column view.
+@tsubheading{Editing values}
+@item @key{left} @key{right} @key{up} @key{down}
+Move through the column view from field to field.
+@kindex S-@key{left}
+@kindex S-@key{right}
+@item  S-@key{left}/@key{right}
+Switch to the next/previous allowed value of the field.  For this, you
+have to have specified allowed values for a property.
+@kindex n
+@kindex p
+@itemx  n / p
+Same as @kbd{S-@key{left}/@key{right}}
+@kindex e
+@item e
+Edit the property at point.  For the special properties, this will
+invoke the same interface that you normally use to change that
+property.  For example, when editing a TAGS property, the tag completion
+or fast selection interface will pop up.
+@kindex v
+@item v
+View the full value of this property.  This is useful if the width of
+the column is smaller than that of the value.
+@kindex a
+@item a
+Edit the list of allowed values for this property.  If the list is found
+in the hierarchy, the modified values is stored there.  If no list is
+found, the new value is stored in the first entry that is part of the
+current column view.
+@tsubheading{Modifying the table structure}
+@kindex <
+@kindex >
+@item < / >
+Make the column narrower/wider by one character.
+@kindex S-M-@key{right}
+@item S-M-@key{right}
+Insert a new column, to the right of the current column.
+@kindex S-M-@key{left}
+@item S-M-@key{left}
+Delete the current column.
+@end table
+
+@node Property API,  , Column view, Properties and columns
+@section The Property API
+@cindex properties, API
+@cindex API, for properties
+
+There is a full API for accessing and changing properties.  This API can
+be used by Emacs Lisp programs to work with properties and to implement
+features based on them.  For more information see @ref{Using the
+property API}.
+
+@node Timestamps, Agenda views, Properties and columns, Top
 @chapter Timestamps
 @cindex time stamps
 @cindex date stamps
@@ -2984,12 +3653,13 @@ planning.
 @cindex deadlines
 @cindex scheduling
 
-A time stamp is a specification of a date (possibly with time) in a
-special format, either @samp{<2003-09-16 Tue>} or @samp{<2003-09-16 Tue
-09:39>}@footnote{This is the standard ISO date/time format.  If you
-cannot get used to these, see @ref{Custom time format}}.  A time stamp
-can appear anywhere in the headline or body of an org-tree entry.  Its
-presence causes entries to be shown on specific dates in the agenda
+A time stamp is a specification of a date (possibly with time or a range
+of times) in a special format, either @samp{<2003-09-16 Tue>} or
+@samp{<2003-09-16 Tue 09:39>} or @samp{<2003-09-16 Tue
+12:00-12:30>}@footnote{This is the standard ISO date/time format.  If
+you cannot get used to these, see @ref{Custom time format}}.  A time
+stamp can appear anywhere in the headline or body of an org-tree entry.
+Its presence causes entries to be shown on specific dates in the agenda
 (@pxref{Weekly/Daily agenda}).  We distinguish:
 
 @table @var
@@ -3003,6 +3673,7 @@ associated with a plain time stamp will be shown exactly on that date.
 
 @example
 * Meet Peter at the movies <2006-11-01 Wed 19:15>
+* Discussion on climate change <2006-11-02 Thu 20:00-22:00>
 @end example
 
 @item Time stamp with repeater interval
@@ -3226,6 +3897,9 @@ each component of a time stamp.  If the cursor is at the beginning of
 the stamp, @kbd{S-@key{up}/@key{down}} will change the stamp by one day,
 just like @kbd{S-@key{left}/@key{right}}.  At the end of the stamp, the
 time will be changed by one minute.
+@item
+If the time stamp contains a range of clock times or a repeater, these
+will not be overlayed, but remain in the buffer as they were.
 @item
 When you delete a time stamp character-by-character, it will only
 disappear from the buffer after @emph{all} (invisible) characters
@@ -3508,263 +4182,7 @@ The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
 the agenda (@pxref{Weekly/Daily agenda}) to show which tasks have been
 worked on or closed during a day.
 
-@node Tags, Agenda views, Timestamps, Top
-@chapter Tags
-@cindex tags
-@cindex headline tagging
-@cindex matching, tags
-@cindex sparse tree, tag based
-
-If you wish to implement a system of labels and contexts for
-cross-correlating information, an excellent way is to assign @i{tags} to
-headlines.  Org-mode has extensive support for using tags.
-
-Every headline can contain a list of tags, at the end of the headline.
-Tags are normal words containing letters, numbers, @samp{_}, and
-@samp{@@}.  Tags must be preceded and followed by a single colon; like
-@samp{:WORK:}.  Several tags can be specified like @samp{:WORK:URGENT:}.
-
-@menu
-* Tag inheritance::             Tags use the tree structure of the outline
-* Setting tags::                How to assign tags to a headline
-* Tag searches::                Searching for combinations of tags
-@end menu
-
-@node Tag inheritance, Setting tags, Tags, Tags
-@section Tag inheritance
-@cindex inheritance, of tags
-@cindex sublevels, inclusion into tags match
-
-@i{Tags} make use of the hierarchical structure of outline trees.  If a
-heading has a certain tag, all subheadings will inherit the tag as
-well.  For example, in the list
-
-@example
-* Meeting with the French group      :WORK:
-** Summary by Frank                  :BOSS:NOTES:
-*** TODO Prepare slides for him      :ACTION:
-@end example
-
-@noindent
-the final heading will have the tags @samp{:WORK:}, @samp{:BOSS:},
-@samp{:NOTES:}, and @samp{:ACTION:}.  When executing tag searches and
-Org-mode finds that a certain headline matches the search criterion, it
-will not check any sublevel headline, assuming that these likely also
-match, and that the list of matches can become very long.  This may
-not be what you want, however, and you can influence inheritance and
-searching using the variables @code{org-use-tag-inheritance} and
-@code{org-tags-match-list-sublevels}.
-
-@node Setting tags, Tag searches, Tag inheritance, Tags
-@section Setting tags
-@cindex setting tags
-@cindex tags, setting
-
-@kindex M-@key{TAB}
-Tags can simply be typed into the buffer at the end of a headline.
-After a colon, @kbd{M-@key{TAB}} offers completion on tags.  There is
-also a special command for inserting tags:
-
-@table @kbd
-@kindex C-c C-c
-@item C-c C-c
-@cindex completion, of tags
-Enter new tags for the current headline.  Org-mode will either offer
-completion or a special single-key interface for setting tags, see
-below.  After pressing @key{RET}, the tags will be inserted and aligned
-to @code{org-tags-column}.  When called with a @kbd{C-u} prefix, all
-tags in the current buffer will be aligned to that column, just to make
-things look nice.  TAGS are automatically realigned after promotion,
-demotion, and TODO state changes (@pxref{TODO basics}).
-@end table
-
-Org will support tag insertion based on a @emph{list of tags}.  By
-default this list is constructed dynamically, containing all tags
-currently used in the buffer.  You may also globally specify a hard list
-of tags with the variable @code{org-tag-alist}.  Finally you can set
-the default tags for a given file with lines like
-
-@example
-#+TAGS: @@WORK @@HOME @@TENNISCLUB
-#+TAGS: Laptop Car PC Sailboat
-@end example
-
-If you have globally defined your preferred set of tags using the
-variable @code{org-tag-alist}, but would like to use a dynamic tag list
-in a specific file: Just add an empty TAGS option line to that file:
-
-@example
-#+TAGS:
-@end example
-
-The default support method for entering tags is minibuffer completion.
-However, Org-mode also implements a much better method: @emph{fast tag
-selection}.  This method allows to select and deselect tags with a
-single key per tag.  To function efficiently, you should assign unique
-keys to most tags.  This can be done globally with
-
-@lisp
-(setq org-tag-alist '(("@@WORK" . ?w) ("@@HOME" . ?h) ("Laptop" . ?l)))
-@end lisp
-
-@noindent or on a per-file basis with
-
-@example
-#+TAGS: @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t)  Laptop(l)  PC(p)
-@end example
-
-@noindent
-You can also group together tags that are mutually exclusive.  With
-curly braces@footnote{In @code{org-mode-alist} use
-@code{'(:startgroup)} and @code{'(:endgroup)}, respectively.  Several
-groups are allowed.}
-
-@example
-#+TAGS: @{ @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t) @}  Laptop(l)  PC(p)
-@end example
-
-@noindent you indicate that at most one of @samp{@@WORK}, @samp{@@HOME},
-and @samp{@@TENNISCLUB} should be selected.
-
-@noindent Don't forget to press @kbd{C-c C-c} with the cursor in one of
-these lines to activate any changes.
-
-If at least one tag has a selection key, pressing @kbd{C-c C-c} will
-automatically present you with a special interface, listing inherited
-tags, the tags of the current headline, and a list of all legal tags
-with corresponding keys@footnote{Keys will automatically be assigned to
-tags which have no configured keys.}.  In this interface, you can use
-the following keys:
-
-@table @kbd
-@item a-z...
-Pressing keys assigned to tags will add or remove them from the list of
-tags in the current line.  Selecting a tag in a group of mutually
-exclusive tags will turn off any other tags from that group.
-@kindex @key{TAB}
-@item @key{TAB}
-Enter a tag in the minibuffer, even if the tag is not in the predefined
-list.  You will be able to complete on all tags present in the buffer.
-@kindex @key{SPC}
-@item @key{SPC}
-Clear all tags for this line.
-@kindex @key{RET}
-@item @key{RET}
-Accept the modified set.
-@item C-g
-Abort without installing changes.
-@item q
-If @kbd{q} is not assigned to a tag, it aborts like @kbd{C-g}.
-@item !
-Turn off groups of mutually exclusive tags.  Use this to (as an
-exception) assign several tags from such a group.
-@item C-c
-Toggle auto-exit after the next change (see below).
-If you are using expert mode, the first @kbd{C-c} will display the
-selection window.
-@end table
-
-@noindent
-This method lets you assign tags to a headline with very few keys.  With
-the above setup, you could clear the current tags and set @samp{@@HOME},
-@samp{Laptop} and @samp{PC} tags with just the following keys: @kbd{C-c
-C-c @key{SPC} h l p @key{RET}}.  Switching from @samp{@@HOME} to
-@samp{@@WORK} would be done with @kbd{C-c C-c w @key{RET}} or
-alternatively with @kbd{C-c C-c C-c w}.  Adding the non-predefined tag
-@samp{Sarah} could be done with @kbd{C-c C-c @key{TAB} S a r a h
-@key{RET} @key{RET}}.
-
-If you find that most of the time, you need only a single keypress to
-modify your list of tags, set the variable
-@code{org-fast-tag-selection-single-key}.  Then you no longer have to
-press @key{RET} to exit fast tag selection - it will immediately exit
-after the first change.  If you then occasionally need more keys, press
-@kbd{C-c} to turn off auto-exit for the current tag selection process
-(in effect: start selection with @kbd{C-c C-c C-c} instead of @kbd{C-c
-C-c}).  If you set the variable to the value @code{expert}, the special
-window is not even shown for single-key tag selection, it comes up only
-when you press an extra @kbd{C-c}.
-
-@node Tag searches,  , Setting tags, Tags
-@section Tag searches
-@cindex tag searches
-@cindex searching for tags
-
-Once a tags system has been set up, it can be used to collect related
-information into special lists.
-
-@table @kbd
-@kindex C-c \
-@item C-c \
-Create a sparse tree with all headlines matching a tags search.  With a
-@kbd{C-u} prefix argument, ignore headlines that are not a TODO line.
-@kindex C-c a m
-@item C-c a m
-Create a global list of tag matches from all agenda files.
-@xref{Matching headline tags}.
-@kindex C-c a M
-@item C-c a M
-Create a global list of tag matches from all agenda files, but check
-only TODO items and force checking subitems (see variable
-@code{org-tags-match-list-sublevels}).
-@end table
-
-@cindex Boolean logic, for tag searches
-A @i{tags} search string can use Boolean operators @samp{&} for AND and
-@samp{|} for OR.  @samp{&} binds more strongly than @samp{|}.
-Parenthesis are currently not implemented.  A tag may also be preceded
-by @samp{-}, to select against it, and @samp{+} is syntactic sugar for
-positive selection.  The AND operator @samp{&} is optional when @samp{+}
-or @samp{-} is present.  Examples:
-
-@table @samp
-@item +WORK-BOSS
-Select headlines tagged @samp{:WORK:}, but discard those also tagged
-@samp{:BOSS:}.
-@item WORK|LAPTOP
-Selects lines tagged @samp{:WORK:} or @samp{:LAPTOP:}.
-@item WORK|LAPTOP&NIGHT
-Like before, but require the @samp{:LAPTOP:} lines to be tagged also
-@samp{NIGHT}.
-@end table
-
-@cindex TODO keyword matching, with tags search
-If you are using multi-state TODO keywords (@pxref{TODO extensions}), it
-can be useful to also match on the TODO keyword.  This can be done by
-adding a condition after a slash to a tags match.  The syntax is similar
-to the tag matches, but should be applied with consideration: For
-example, a positive selection on several TODO keywords can not
-meaningfully be combined with boolean AND.  However, @emph{negative
-selection} combined with AND can be meaningful.  To make sure that only
-lines are checked that actually have any TODO keyword, use @kbd{C-c a
-M}, or equivalently start the todo part after the slash with @samp{!}.
-Examples:
-
-@table @samp
-@item WORK/WAITING
-Select @samp{:WORK:}-tagged TODO lines with the specific TODO
-keyword @samp{WAITING}.
-@item WORK/!-WAITING-NEXT
-Select @samp{:WORK:}-tagged TODO lines that are neither @samp{WAITING}
-nor @samp{NEXT}
-@item WORK/+WAITING|+NEXT
-Select @samp{:WORK:}-tagged TODO lines that are either @samp{WAITING} or
-@samp{NEXT}.
-@end table
-
-@cindex regular expressions, with tags search
-Any element of the tag/todo match can be a regular expression - in this
-case it must be enclosed in curly braces.  For example,
-@samp{WORK+@{^BOSS.*@}} matches headlines that contain the tag
-@samp{WORK} and any tag @i{starting} with @samp{BOSS}.
-
-@cindex level, require for tags match
-You can also require a headline to be of a certain level, by writing
-instead of any TAG an expression like @samp{LEVEL=3}.  For example, a
-search @samp{+LEVEL=3+BOSS/-DONE} lists all level three headlines that
-have the tag BOSS and are @emph{not} marked with the todo keyword DONE.
-
-@node Agenda views, Embedded LaTeX, Tags, Top
+@node Agenda views, Embedded LaTeX, Timestamps, Top
 @chapter Agenda Views
 @cindex agenda views
 
@@ -3872,7 +4290,7 @@ Create the calendar-like agenda (@pxref{Weekly/Daily agenda}).
 Create a list of all TODO items (@pxref{Global TODO list}).
 @item m @r{/} M
 Create a list of headlines matching a TAGS expression (@pxref{Matching
-headline tags}).
+tags and properties}).
 @item L
 Create the timeline view for the current buffer (@pxref{Timeline}).
 @item # @r{/} !
@@ -3901,7 +4319,7 @@ In this section we describe the built-in views.
 @menu
 * Weekly/Daily agenda::         The calendar page with current tasks
 * Global TODO list::            All unfinished action items
-* Matching headline tags::      Structured information with fine-tuned search
+* Matching tags and properties::  Structured information with fine-tuned search
 * Timeline::                    Time-sorted view for single file
 * Stuck projects::              Find projects you need to review
 @end menu
@@ -3975,11 +4393,11 @@ will be made in the agenda:
 #+CATEGORY: Holiday
 %%(org-calendar-holiday)   ; special function for holiday names
 #+CATEGORY: Ann
-%%(diary-anniversary 14  5 1956) Artur Dent %d is years old
+%%(diary-anniversary 14  5 1956) Arthur Dent is %d years old
 %%(diary-anniversary  2 10 1869) Mahatma Gandhi would be %d years old
 @end example
 
-@node Global TODO list, Matching headline tags, Weekly/Daily agenda, Built-in agenda views
+@node Global TODO list, Matching tags and properties, Weekly/Daily agenda, Built-in agenda views
 @subsection The global TODO list
 @cindex global TODO list
 @cindex TODO list, global
@@ -4033,9 +4451,10 @@ and omit the sublevels from the global list.  Configure the variable
 @code{org-agenda-todo-list-sublevels} to get this behavior.
 @end itemize
 
-@node Matching headline tags, Timeline, Global TODO list, Built-in agenda views
-@subsection Matching headline tags
+@node Matching tags and properties, Timeline, Global TODO list, Built-in agenda views
+@subsection Matching Tags and Properties
 @cindex matching, of tags
+@cindex matching, of properties
 @cindex tags view
 
 If headlines in the agenda files are marked with @emph{tags}
@@ -4061,7 +4480,7 @@ together with a tags match is also possible, see @ref{Tag searches}.
 The commands available in the tags list are described in @ref{Agenda
 commands}.
 
-@node Timeline, Stuck projects, Matching headline tags, Built-in agenda views
+@node Timeline, Stuck projects, Matching tags and properties, Built-in agenda views
 @subsection Timeline for a single file
 @cindex timeline, single file
 @cindex time-sorted view
@@ -4071,7 +4490,7 @@ file in a @emph{time-sorted view}.  The main purpose of this command is
 to give an overview over events in a project.
 
 @table @kbd
-@kindex C-a a L
+@kindex C-c a L
 @item C-c a L
 Show a time-sorted view of the org file, with all time-stamped items.
 When called with a @kbd{C-u} prefix, all unfinished TODO entries
@@ -4315,13 +4734,14 @@ as are entries that have been clocked on that day.
 @item o
 Delete other windows.
 @c
-@kindex w
-@item w
-Switch to weekly view (7 days displayed together).
-@c
 @kindex d
-@item d
-Switch to daily view (just one day displayed).
+@kindex w
+@kindex m
+@kindex y
+@item d w m y
+Switch to day/week/month/year view.  When switching to day or week view,
+this setting becomes the default for subseqent agenda commands.  Since
+month and year views are slow to create, the do not become the default.
 @c
 @kindex D
 @item D
@@ -5578,8 +5998,8 @@ separator line will be formatted as table header fields.
 @item
 If a headline starts with the word @samp{QUOTE}, the text below the
 headline will be typeset as fixed-width, to allow quoting of computer
-codes etc.  Lines starting with @samp{:} are also typeset in
-fixed-width font.
+codes etc.  Lines starting with @samp{:} are also typeset in fixed-width
+font. 
 @table @kbd
 @kindex C-c :
 @item C-c :
@@ -5624,7 +6044,7 @@ Insert template with export options, see example below.
 #+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
 #+TEXT:      Some descriptive text to be inserted at the beginning.
 #+TEXT:      Several lines may be given.
-#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t *:nil TeX:t LaTeX:t skip:t
+#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t *:nil TeX:t LaTeX:t skip:t
 @end example
 
 @noindent
@@ -5638,6 +6058,7 @@ you can:
 @cindex fixed-width sections
 @cindex tables
 @cindex @TeX{}-like syntax for sub- and superscripts
+@cindex footnotes
 @cindex emphasized text
 @cindex @TeX{} macros
 @cindex La@TeX{} fragments
@@ -5652,6 +6073,7 @@ toc:    @r{turn on/off table of contents, or set level limit (integer)}
 ^:      @r{turn on/off @TeX{}-like syntax for sub- and superscripts.  If}
         @r{you write "^:@{@}", @code{a_@{b@}} will be interpreted, but}
         @r{the simple @code{a_b} will be left as it is.}
+f:      @r{turn on/off foototes like this[1].}
 *:      @r{turn on/off emphasized text (bold, italic, underlined)}
 TeX:    @r{turn on/off simple @TeX{} macros in plain text}
 LaTeX:  @r{turn on/off La@TeX{} fragments}
@@ -5662,16 +6084,15 @@ skip:   @r{turn on/off skipping the text before the first heading}
 @chapter Publishing
 @cindex publishing
 
-Org-mode includes@footnote{@file{org-publish.el} is not yet part of
-Emacs, so if you are using @file{org.el} as it comes with Emacs, you
-need to download this file separately.  Also make sure org.el is at
-least version 4.27.} a publishing management system
-that allows you to configure automatic HTML conversion of
-@emph{projects} composed of interlinked org files.  This system is
-called @emph{org-publish}.  You can also configure org-publish to
-automatically upload your exported HTML pages and related attachments,
-such as images and source code files, to a web server.  Org-publish turns
-org-mode into a web-site authoring tool.
+Org-mode includes@footnote{@file{org-publish.el} is not distributed with
+Emacs 21, if you are still using Emacs 21, you need you need to download
+this file separately.} a publishing management system that allows you to
+configure automatic HTML conversion of @emph{projects} composed of
+interlinked org files.  This system is called @emph{org-publish}.  You
+can also configure org-publish to automatically upload your exported
+HTML pages and related attachments, such as images and source code
+files, to a web server.  Org-publish turns org-mode into a web-site
+authoring tool.
 
 Org-publish has been contributed to Org-mode by David O'Toole.
 
@@ -5833,7 +6254,7 @@ respective variable for details.
 
 When a property is given a value in org-publish-project-alist, its
 setting overrides the value of the corresponding user variable (if any)
-during publishing.  options set within a file (@pxref{Export
+during publishing.  Options set within a file (@pxref{Export
 options}), however, override everything.
 
 @node Publishing links, Project page index, Publishing options, Configuration
@@ -6018,6 +6439,7 @@ force publishing of all files by giving a prefix argument.
 @cindex completion, of dictionary words
 @cindex completion, of option keywords
 @cindex completion, of tags
+@cindex completion, of property keys
 @cindex completion, of link abbreviations
 @cindex @TeX{} symbol completion
 @cindex TODO keywords completion
@@ -6043,10 +6465,14 @@ After @samp{\}, complete @TeX{} symbols supported by the exporter.
 After @samp{*}, complete headlines in the current buffer so that they
 can be used in search links like @samp{[[*find this headline]]}.
 @item
-After @samp{:}, complete tags.  The list of tags is taken from the
-variable @code{org-tag-alist} (possibly set through the @samp{#+TAGS}
-in-buffer option, @pxref{Setting tags}), or it is created dynamically
-from all tags used in the current buffer.
+After @samp{:} in a headline, complete tags.  The list of tags is taken
+from the variable @code{org-tag-alist} (possibly set through the
+@samp{#+TAGS} in-buffer option, @pxref{Setting tags}), or it is created
+dynamically from all tags used in the current buffer.
+@item
+After @samp{:} and not in a headline, complete property keys.  The list
+of keys is constructed dynamically from all keys used in the current
+buffer.
 @item
 After @samp{[}, complete link abbreviations (@pxref{Link abbreviations}).
 @item
@@ -6092,6 +6518,32 @@ activate the changes immediately.  Otherwise they become effective only
 when the file is visited again in a new Emacs session.
 
 @table @kbd
+@item #+ARCHIVE: %s_done::
+This line sets the archive location for the agenda file.  It applies for
+all subsequent lines until the next @samp{#+CATEGORY} line, or the end
+of the file.  The first such line also applies to any entries before it.
+The corresponding variable is @code{org-archive-location}.
+@item #+CATEGORY:
+This line sets the category for the agenda file.  The category applies
+for all subsequent lines until the next @samp{#+CATEGORY} line, or the
+end of the file.  The first such line also applies to any entries before it.
+@item #+COLUMNS: %25ITEM .....
+Set the default format for columns view.  This format applies when
+columns view is invoked in location where no COLUMNS property applies.
+@item #+CONSTANTS: name1=value1 ...
+Set file-local values for constants to be used in table formulas.  This
+line set the local variable @code{org-table-formula-constants-local}.
+The global version of theis variable is
+@code{org-table-formula-constants}.
+corresponding 
+@item #+LINK:  linkword replace
+These lines (several are allowed) specify link abbreviations.
+@xref{Link abbreviations}.  The corresponding variable is
+@code{org-link-abbrev-alist}.
+@item #+PRIORITIES: highest lowest default
+This line sets the limits and the default for the priorities.  All three
+must be either letters A-Z or numbers 0-9.  The highest priority must
+have a lower ASCII number that the lowest priority.
 @item #+STARTUP:
 This line sets options to be used at startup of org-mode, when an
 Org-mode file is being visited.  The first set of options deals with the
@@ -6129,8 +6581,8 @@ Logging TODO state changes and clock intervals (variable
 logging          @r{record a timestamp when an item is marked DONE}
 nologging        @r{don't record when items are marked DONE}
 lognotedone      @r{record timestamp and a note when DONE}
-lognotestate     @r{record timestamp, note when TODO state changes}
-logrepeat        @r{record a not when re-instating a repeating item}
+lognotestate     @r{record timestamp and a note when TODO state changes}
+logrepeat        @r{record a note when re-instating a repeating item}
 nologrepeat      @r{do not record when re-instating repeating item}
 lognoteclock-out @r{record timestamp and a note when clocking out}
 @end example
@@ -6163,36 +6615,19 @@ The following options influence the table spreadsheet (variable
 constcgs   @r{@file{constants.el} should use the c-g-s unit system}
 constSI    @r{@file{constants.el} should use the SI unit system}
 @end example
-@item #+SEQ_TODO:   #+TYP_TODO:
-These lines set the TODO keywords and their interpretation in the
-current file.  The corresponding variables are @code{org-todo-keywords}
-and @code{org-todo-interpretation}.
 @item #+TAGS:  TAG1(c1) TAG2(c2)
 These lines (several such lines are allowed) specify the legal tags in
 this file, and (potentially) the corresponding @emph{fast tag selection}
 keys.  The corresponding variable is @code{org-tag-alist}.
-@item #+LINK:  linkword replace
-These lines (several are allowed) specify link abbreviations.
-@xref{Link abbreviations}.  The corresponding variable is
-@code{org-link-abbrev-alist}.
-@item #+CATEGORY:
-This line sets the category for the agenda file.  The category applies
-for all subsequent lines until the next @samp{#+CATEGORY} line, or the
-end of the file.  The first such line also applies to any entries before it.
-@item #+ARCHIVE: %s_done::
-This line sets the archive location for the agenda file.  It applies for
-all subsequent lines until the next @samp{#+CATEGORY} line, or the end
-of the file.  The first such line also applies to any entries before it.
-The corresponding variable is @code{org-archive-location}.
-@item #+PRIORITIES: highest lowest default
-This line sets the limits and the default for the priorities.  All three
-must be either letters A-Z or numbers 0-9.  The highest priority must
-have a lower ASCII number that the lowest priority.
 @item #+TBLFM:
 This line contains the formulas for the table directly above the line.
 @item #+TITLE:, #+AUTHOR:, #+EMAIL:, #+LANGUAGE:, #+TEXT:, #+OPTIONS:
 These lines provide settings for exporting files.  For more details see
 @ref{Export options}.
+@item #+SEQ_TODO:   #+TYP_TODO:
+These lines set the TODO keywords and their interpretation in the
+current file.  The corresponding variables are @code{org-todo-keywords}
+and @code{org-todo-interpretation}.
 @end table
 
 @node The very busy C-c C-c key, Clean view, In-buffer settings, Miscellaneous
@@ -6231,6 +6666,9 @@ default location.
 @item
 If the cursor is on a @code{<<<target>>>}, update radio targets and
 corresponding links in this buffer.
+@item
+If the cursor is in a property line or at the start or end of a property
+drawer, offer property commands.
 @item
 If the cursor is in a plain list item with a checkbox, toggle the status
 of the checkbox.
@@ -6560,6 +6998,7 @@ Org-mode.
 * Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
 * Special agenda views::        Customized views
+* Using the property API::      Writing programs that use entry properties
 @end menu
 
 @node Extensions, Tables in arbitrary syntax, Extensions and Hacking, Extensions and Hacking
@@ -6933,7 +7372,7 @@ you could add the function @code{org-update-all-dblocks} to a hook, for
 example @code{before-save-hook}.  @code{org-update-all-dblocks} is
 written in a way that is does nothing in buffers that are not in Org-mode.
 
-@node Special agenda views,  , Dynamic blocks, Extensions and Hacking
+@node Special agenda views, Using the property API, Dynamic blocks, Extensions and Hacking
 @section Special Agenda Views
 @cindex agenda views, user-defined
 
@@ -6986,6 +7425,45 @@ MATCH is being ignored."
     (org-todo-list "PROJECT")))
 @end lisp
 
+@node Using the property API,  , Special agenda views, Extensions and Hacking
+@section Using the property API
+@cindex API, for properties
+@cindex properties, API
+
+Here is a description of the functions that can be used to work with
+properties.
+
+@defun org-entry-properties &optional pom which
+Get all properties of the entry at point-or-marker POM.
+This includes the TODO keyword, the tags, time strings for deadline,
+scheduled, and clocking, and any additional properties defined in the
+entry.  The return value is an alist, keys may occur multiple times
+if the property key was used several times.
+POM may also be nil, in which case the current entry is used.
+If WHICH is nil or `all', get all properties.  If WHICH is
+`special' or `standard', only get that subclass.
+@end defun
+@defun org-entry-get pom property &optional inherit
+Get value of PROPERTY for entry at point-or-marker POM.
+If INHERIT is non-nil and the entry does not have the property,
+then also check higher levels of the hierarchy.
+@end defun
+
+@defun org-entry-delete pom property
+Delete the property PROPERTY from entry at point-or-marker POM.
+@end defun
+
+@defun org-entry-put pom property value
+Set PROPERTY to VALUE for entry at point-or-marker POM.
+@end defun
+
+@defun org-buffer-property-keys &optional include-specials
+Get all property keys in the current buffer.
+@end defun
+
+@defun org-insert-property-drawer
+Insert a property drawer at point.
+@end defun
 
 @node History and Acknowledgments, Index, Extensions and Hacking, Top
 @appendix History and Acknowledgments
@@ -7010,7 +7488,7 @@ goals that Org-mode still has today: To create a new, outline-based,
 plain text mode with innovative and intuitive editing features, and to
 incorporate project planning functionality directly into a notes file.
 
-Since the first release, hundreds of emails to me or on
+Since the first release, literally thousands of emails to me or on
 @code{emacs-orgmode@@gnu.org} have provided a constant stream of bug
 reports, feedback, new ideas, and sometimes patches and add-on code.
 Many thanks to everyone who has helped to improve this package.  I am
@@ -7021,6 +7499,8 @@ let me know.
 
 @itemize @bullet
 
+@item
+@i{Russel Adams} came up with the idea for drawers.
 @item
 @i{Thomas Baumann} contributed the code for links to the MH-E email
 system.
@@ -7039,7 +7519,9 @@ calculations and improved XEmacs compatibility, in particular by porting
 @item
 @i{Sacha Chua} suggested to copy some linking code from Planner.
 @item
-@i{Eddward DeVilla} proposed and tested checkbox statistics.
+@i{Eddward DeVilla} proposed and tested checkbox statistics.  He also
+came up with the idea of properties, and that there should be an API for
+them.
 @item
 @i{Kees Dullemond} used to edit projects lists directly in HTML and so
 inspired some of the early development, including HTML export.  He also
@@ -7062,6 +7544,9 @@ around a match in a hidden outline tree.
 translated David O'Toole's tutorial into French.
 @item
 @i{Kai Grossjohann} pointed out key-binding conflicts with other packages.
+@item
+@i{Scott Jaderholm} proposed footnotes, control over whitespace between
+folded entries, and column view for properties.
 @item
 @i{Shidai Liu} ("Leo") asked for embedded LaTeX and tested it.  He also
 provided frequent feedback and some patches.

@@ -93,7 +93,7 @@ proceed_file_line(char *key, char *start, int *len, char **val, char **next)
   return 1;
 }
 
-char*
+static char*
 get_quoted_string(char *start, char *end)
 {
   char *p, *q, *result;
@@ -302,7 +302,7 @@ w32_free_bdf_font(bdffont *fontp)
   font_char *pch;
   cache_bitmap *pcb;
 
-  UnmapViewOfFile(fontp->hfilemap);
+  UnmapViewOfFile(fontp->font);
   CloseHandle(fontp->hfilemap);
   CloseHandle(fontp->hfile);
 
@@ -867,6 +867,7 @@ int w32_BDF_to_x_font (char *file, char* xstr, int len)
           retval = 1;
         }
     }
+  UnmapViewOfFile (font);
   CloseHandle (hfile);
   CloseHandle (hfilemap);
   return retval;

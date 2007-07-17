@@ -958,7 +958,7 @@ ftfont_font_format (FcPattern *pattern)
     return Qnil;
   if (strcmp ((char *) str, "TrueType") == 0)
     return intern ("truetype");
-  if (strcmp ((char *) str, "Tyep 1") == 0)
+  if (strcmp ((char *) str, "Type 1") == 0)
     return intern ("type1");
   if (strcmp ((char *) str, "PCF") == 0)  
     return intern ("pcf");

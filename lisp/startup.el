@@ -1056,7 +1056,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (if (get-buffer "*scratch*")
       (with-current-buffer "*scratch*"
 	(if (eq major-mode 'fundamental-mode)
-	    (funcall initial-major-mode))))
+	    (funcall initial-major-mode))
+	;; Don't lose text that users type in *scratch*.
+	(setq buffer-offer-save t)
+	(auto-save-mode 1)))
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.

@@ -115,7 +115,7 @@ wrong_type_argument (predicate, value)
 {
   /* If VALUE is not even a valid Lisp object, abort here
      where we can get a backtrace showing where it came from.  */
-  if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
+  if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
     abort ();
 
   xsignal2 (Qwrong_type_argument, predicate, value);
@@ -187,7 +187,7 @@ for example, (type-of 1) returns `integer'.  */)
      (object)
      Lisp_Object object;
 {
-  switch (XGCTYPE (object))
+  switch (XTYPE (object))
     {
     case Lisp_Int:
       return Qinteger;
@@ -214,25 +214,25 @@ for example, (type-of 1) returns `integer'.  */)
       abort ();
 
     case Lisp_Vectorlike:
-      if (GC_WINDOW_CONFIGURATIONP (object))
+      if (WINDOW_CONFIGURATIONP (object))
 	return Qwindow_configuration;
-      if (GC_PROCESSP (object))
+      if (PROCESSP (object))
 	return Qprocess;
-      if (GC_WINDOWP (object))
+      if (WINDOWP (object))
 	return Qwindow;
-      if (GC_SUBRP (object))
+      if (SUBRP (object))
 	return Qsubr;
-      if (GC_COMPILEDP (object))
+      if (COMPILEDP (object))
 	return Qcompiled_function;
-      if (GC_BUFFERP (object))
+      if (BUFFERP (object))
 	return Qbuffer;
-      if (GC_CHAR_TABLE_P (object))
+      if (CHAR_TABLE_P (object))
 	return Qchar_table;
-      if (GC_BOOL_VECTOR_P (object))
+      if (BOOL_VECTOR_P (object))
 	return Qbool_vector;
-      if (GC_FRAMEP (object))
+      if (FRAMEP (object))
 	return Qframe;
-      if (GC_HASH_TABLE_P (object))
+      if (HASH_TABLE_P (object))
 	return Qhash_table;
       return Qvector;
 

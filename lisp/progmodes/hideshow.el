@@ -508,8 +508,8 @@ Original match data is restored upon return."
 (defun hs-hide-comment-region (beg end &optional repos-end)
   "Hide a region from BEG to END, marking it as a comment.
 Optional arg REPOS-END means reposition at end."
-  (let ((beg-eol (progn (goto-char beg) (end-of-line) (point)))
-        (end-eol (progn (goto-char end) (end-of-line) (point))))
+  (let ((beg-eol (progn (goto-char beg) (line-end-position)))
+        (end-eol (progn (goto-char end) (line-end-position))))
     (hs-discard-overlays beg-eol end-eol)
     (hs-make-overlay beg-eol end-eol 'comment beg end))
   (goto-char (if repos-end end beg)))
@@ -536,8 +536,7 @@ and then further adjusted to be at the end of the line."
                                         'identity)
                                     pure-p))
                 ;; whatever the adjustment, we move to eol
-                (end-of-line)
-                (point)))
+                (line-end-position)))
              (q
               ;; `q' is the point at the end of the block
               (progn (hs-forward-sexp mdata 1)
@@ -705,7 +704,7 @@ and `case-fold-search' are both t."
       (if (and c-reg (nth 0 c-reg))
           ;; point is inside a comment, and that comment is hidable
           (goto-char (nth 0 c-reg))
-	(end-of-line)
+        (end-of-line)
         (when (and (not c-reg)
                    (hs-find-block-beginning)
                    (looking-at hs-block-start-regexp))
@@ -734,12 +733,12 @@ Move point to the beginning of the line, and run the normal hook
 If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
   (interactive)
   (hs-life-goes-on
-   (message "Hiding all blocks ...")
    (save-excursion
      (unless hs-allow-nesting
        (hs-discard-overlays (point-min) (point-max)))
      (goto-char (point-min))
-     (let ((count 0)
+     (let ((spew (make-progress-reporter "Hiding all blocks..."
+                                         (point-min) (point-max)))
            (re (concat "\\("
                        hs-block-start-regexp
                        "\\)"
@@ -765,9 +764,9 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
                    (hs-hide-block-at-point t c-reg)
                  (goto-char (nth 1 c-reg))))))
-         (message "Hiding ... %d" (setq count (1+ count))))))
+         (progress-reporter-update spew (point)))
+       (progress-reporter-done spew)))
    (beginning-of-line)
-   (message "Hiding all blocks ... done")
    (run-hooks 'hs-hide-hook)))
 
 (defun hs-show-all ()
@@ -806,7 +805,7 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
   (hs-life-goes-on
    (or
     ;; first see if we have something at the end of the line
-    (let ((ov (hs-overlay-at (save-excursion (end-of-line) (point))))
+    (let ((ov (hs-overlay-at (line-end-position)))
           (here (point)))
       (when ov
         (goto-char
@@ -906,9 +905,9 @@ Key bindings:
       (progn
         (hs-grok-mode-type)
         ;; Turn off this mode if we change major modes.
-	(add-hook 'change-major-mode-hook
-		  'turn-off-hideshow
-		  nil t)
+        (add-hook 'change-major-mode-hook
+                  'turn-off-hideshow
+                  nil t)
         (easy-menu-add hs-minor-mode-menu)
         (set (make-local-variable 'line-move-ignore-invisible) t)
         (add-to-invisibility-spec '(hs . t)))

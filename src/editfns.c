@@ -4256,9 +4256,9 @@ Transposing beyond buffer boundaries is an error.  */)
      (startr1, endr1, startr2, endr2, leave_markers)
      Lisp_Object startr1, endr1, startr2, endr2, leave_markers;
 {
-  register int start1, end1, start2, end2;
-  int start1_byte, start2_byte, len1_byte, len2_byte;
-  int gap, len1, len_mid, len2;
+  register EMACS_INT start1, end1, start2, end2;
+  EMACS_INT start1_byte, start2_byte, len1_byte, len2_byte;
+  EMACS_INT gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
 
   INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2, tmp_interval3;

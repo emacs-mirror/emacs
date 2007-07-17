@@ -645,10 +645,7 @@ header-line."
 	  ;; desired-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
 	  (- (max (min desired-height max-height)
 		  (or min-height window-min-height))
-	     window-height))
-	 ;; We do our own height checking, so avoid any restrictions due to
-	 ;; window-min-height.
-	 (window-min-height 1))
+	     window-height)))
 
     ;; Don't try to redisplay with the cursor at the end
     ;; on its own line--that would force a scroll and spoil things.

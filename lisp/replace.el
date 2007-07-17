@@ -860,7 +860,7 @@ Compatibility function for \\[next-error] invocations."
 
 (defface match
   '((((class color) (min-colors 88) (background light))
-     :background "yellow")
+     :background "yellow1")
     (((class color) (min-colors 88) (background dark))
      :background "RoyalBlue3")
     (((class color) (min-colors 8) (background light))

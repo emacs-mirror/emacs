@@ -151,7 +151,7 @@ Return nil if URI is not a local file."
 		 (let ((str (make-string 1 0)))
 		   (aset str 0 (string-to-number (substring arg 1) 16))
 		   str))
-	       f nil t))
+	       f t t))
       (let* ((decoded-f (decode-coding-string
 			 f
 			 (or file-name-coding-system

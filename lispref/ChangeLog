@@ -1,3 +1,54 @@
+2007-07-14  Richard Stallman  <rms@gnu.org>
+
+	* control.texi (Handling Errors): Document `debug' in handler list.
+
+2007-07-10  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Faces): Explain C-M-x feature for defface.
+
+2007-07-09  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Magic File Names): Rewrite previous change.
+
+2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Introduce optional parameter
+	CONNECTED for `file-remote-p'.
+
+2007-07-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* processes.texi (Asynchronous Processes):
+	* files.texi (Magic File Names): Add `start-file-process'.
+
+2007-06-27  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Format Conversion Piecemeal): Clarify
+	`after-insert-file-functions' calling convention.
+
+2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Remove `dired-call-process'.  Add
+	`process-file'.
+
+2007-06-27  Kenichi Handa  <handa@m17n.org>
+
+	* text.texi (Special Properties): Fix description about
+	`compostion' property.
+
+2007-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Default Coding Systems): Document about the
+	return value `undecided'.
+
+2007-06-25  David Kastrup  <dak@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Document new POSITION argument of
+	`current-active-maps'.
+
+2007-06-24  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi, vol1.texi, vol2.texi: new Back-Cover Text.
+
 2007-06-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* display.texi (Overlay Arrow): Doc fix.

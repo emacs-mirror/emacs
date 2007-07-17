@@ -333,12 +333,13 @@ This variable is buffer-local."
 ;; kinit prints a prompt like `Password for devnull@GNU.ORG: '.
 ;; ksu prints a prompt like `Kerberos password for devnull/root@GNU.ORG: '.
 ;; ssh-add prints a prompt like `Enter passphrase: '.
+;; plink prints a prompt like `Passphrase for key "root@GNU.ORG": '.
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 (defcustom comint-password-prompt-regexp
   "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
 Kerberos \\|CVS \\|UNIX \\| SMB \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
-pass phrase\\|\\(Enter\\|Repeat\\|Bad\\) passphrase\\)\
+pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
 \\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
@@ -670,13 +671,13 @@ BUFFER can be either a buffer or the name of one."
   "Make a Comint process NAME in BUFFER, running PROGRAM.
 If BUFFER is nil, it defaults to NAME surrounded by `*'s.
 PROGRAM should be either a string denoting an executable program to create
-via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
-connection to be opened via `open-network-stream'.  If there is already a
-running process in that buffer, it is not restarted.  Optional fourth arg
+via `start-file-process', or a cons pair of the form (HOST . SERVICE) denoting
+a TCP connection to be opened via `open-network-stream'.  If there is already
+a running process in that buffer, it is not restarted.  Optional fourth arg
 STARTFILE is the name of a file to send the contents of to the process.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
-  (or (fboundp 'start-process)
+  (or (fboundp 'start-file-process)
       (error "Multi-processing is not supported for this system"))
   (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
   ;; If no process, or nuked process, crank up a new one and put buffer in
@@ -693,9 +694,9 @@ If PROGRAM is a string, any more args are arguments to PROGRAM."
   "Make a Comint process NAME in a buffer, running PROGRAM.
 The name of the buffer is made by surrounding NAME with `*'s.
 PROGRAM should be either a string denoting an executable program to create
-via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
-connection to be opened via `open-network-stream'.  If there is already a
-running process in that buffer, it is not restarted.  Optional third arg
+via `start-file-process', or a cons pair of the form (HOST . SERVICE) denoting
+a TCP connection to be opened via `open-network-stream'.  If there is already
+a running process in that buffer, it is not restarted.  Optional third arg
 STARTFILE is the name of a file to send the contents of the process to.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
@@ -781,17 +782,17 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 			 ;; If the command has slashes, make sure we
 			 ;; first look relative to the current directory.
 			 (cons default-directory exec-path) exec-path)))
-      (setq proc (apply 'start-process name buffer command switches)))
+      (setq proc (apply 'start-file-process name buffer command switches)))
     (let ((coding-systems (process-coding-system proc)))
       (setq decoding (car coding-systems)
 	    encoding (cdr coding-systems)))
-    ;; If start-process decided to use some coding system for decoding
+    ;; If start-file-process decided to use some coding system for decoding
     ;; data sent from the process and the coding system doesn't
     ;; specify EOL conversion, we had better convert CRLF to LF.
     (if (vectorp (coding-system-eol-type decoding))
 	(setq decoding (coding-system-change-eol-conversion decoding 'dos)
 	      changed t))
-    ;; Even if start-process left the coding system for encoding data
+    ;; Even if start-file-process left the coding system for encoding data
     ;; sent from the process undecided, we had better use the same one
     ;; as what we use for decoding.  But, we should suppress EOL
     ;; conversion.
@@ -1953,11 +1954,16 @@ If this takes us past the end of the current line, don't skip at all."
   "Default function for sending to PROC input STRING.
 This just sends STRING plus a newline.  To override this,
 set the hook `comint-input-sender'."
-  (comint-send-string proc string)
-  (if comint-input-sender-no-newline
-      (if (not (string-equal string ""))
-	  (process-send-eof))
-    (comint-send-string proc "\n")))
+  (let ((send-string
+         (if comint-input-sender-no-newline
+             string
+           ;; Sending as two separate strings does not work
+           ;; on Windows, so concat the \n before sending.
+           (concat string "\n"))))
+    (comint-send-string proc send-string))
+  (if (and comint-input-sender-no-newline
+	   (not (string-equal string "")))
+      (process-send-eof)))
 
 (defun comint-line-beginning-position ()
   "Return the buffer position of the beginning of the line, after any prompt.
@@ -2805,7 +2811,7 @@ Returns t if successful."
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
+  (let* ((completion-ignore-case read-file-name-completion-ignore-case)
 	 (completion-ignored-extensions comint-completion-fignore)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
@@ -2934,7 +2940,7 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
   (interactive)
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
+  (let* ((completion-ignore-case read-file-name-completion-ignore-case)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
 	 ;; but subsequent changes may have made this unnecessary.  sm.

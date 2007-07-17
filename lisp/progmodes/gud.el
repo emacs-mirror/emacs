@@ -237,7 +237,7 @@ Used to grey out relevant toolbar icons.")
        ([menu-bar run] menu-item
 	,(propertize "run" 'face 'font-lock-doc-face) gud-run
 	:visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
-       ([menu-bar go] menu-item 
+       ([menu-bar go] menu-item
 	,(propertize " go " 'face 'font-lock-doc-face) gud-go
 	:visible (and (not gud-running)
 		      (eq gud-minor-mode 'gdba)))
@@ -292,6 +292,11 @@ Used to grey out relevant toolbar icons.")
 (defun gud-file-name (f)
   "Transform a relative file name to an absolute file name.
 Uses `gud-<MINOR-MODE>-directories' to find the source files."
+  ;; When `default-directory' is a remote file name, prepend its
+  ;; remote part to f, which is the local file name.  Fortunately,
+  ;; `file-remote-p' returns exactly this remote file name part (or
+  ;; nil otherwise).
+  (setq f (concat (or (file-remote-p default-directory) "") f))
   (if (file-exists-p f) (expand-file-name f)
     (let ((directories (gud-val 'directories))
 	  (result nil))
@@ -2462,7 +2467,7 @@ comint mode, which see."
 ;; for local variables in the debugger buffer.
 (defun gud-common-init (command-line massage-args marker-filter
 				     &optional find-file)
-  (let* ((words (split-string command-line))
+  (let* ((words (string->strings command-line))
 	 (program (car words))
 	 (dir default-directory)
 	 ;; Extract the file name from WORDS
@@ -2510,7 +2515,10 @@ comint mode, which see."
       (while (and w (not (eq (car w) t)))
 	(setq w (cdr w)))
       (if w
-	  (setcar w file)))
+ 	  (setcar w
+ 		  (if (file-remote-p default-directory)
+ 		      (setq file (file-name-nondirectory file))
+ 		    file))))
     (apply 'make-comint (concat "gud" filepart) program nil
 	   (if massage-args (funcall massage-args file args) args))
     ;; Since comint clobbered the mode, we don't set it until now.
@@ -3114,7 +3122,7 @@ class of the file (using s to separate nested class ids)."
                              'syntax-table (eval-when-compile
                                              (string-to-syntax "> b")))
           ;; Make sure that rehighlighting the previous line won't erase our
-          ;; syntax-table property.  
+          ;; syntax-table property.
           (put-text-property (1- (match-beginning 0)) (match-end 0)
                              'font-lock-multiline t)
           nil)))))
@@ -3193,8 +3201,12 @@ Treats actions as defuns."
     (goto-char (point-max)))
   t)
 
+;; Besides .gdbinit, gdb documents other names to be usable for init
+;; files, cross-debuggers can use something like
+;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
+;; don't interfere with each other.
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/\\.gdbinit" . gdb-script-mode))
+(add-to-list 'auto-mode-alist '("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode))
 
 ;;;###autoload
 (define-derived-mode gdb-script-mode nil "GDB-Script"

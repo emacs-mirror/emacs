@@ -1,3 +1,8 @@
+2007-07-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-display-color-cells): Fix on XEmacs 21.5b28.
+	Thanks to Henrique Martins for the help (closes SF #1749774).
+
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-mime.el (mh-mh-directive-present-p):

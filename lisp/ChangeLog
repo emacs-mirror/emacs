@@ -1,3 +1,1125 @@
+2007-07-15  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Revert 2007-07-13T18:16:17Z!kfogel@red-bean.com,
+	thus restoring bookmark bindings to three slots under C-x r.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00705.html.
+
+2007-07-15  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
+
+	* calendar/cal-bahai.el (calendar-goto-bahai-date): Add autoload
+	cookie.
+
+2007-07-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (set-default-process-coding-system): Use dos line ends
+	for input to cmdproxy on all versions of Windows.
+	Use dos line ends for input to plink.
+
+	* comint.el (comint-simple-send): Concat newline before sending.
+	(comint-password-prompt-regexp): Recognize plink's passphrase prompt.
+
+2007-07-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (generated-autoload-file): Autoload the
+	safe-local-variable setting.
+
+2007-07-14  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp/advice.el (defadvice): Doc fix.
+
+2007-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (when, unless): Doc fix.
+
+2007-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* replace.el (match): Use yellow1 instead of yellow.
+
+	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
+	red. 
+
+	* pcvs-info.el (cvs-unknown): Likewise.
+
+2007-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-lisp-SH, install-lisp-CMD): New targets.
+	(install): Use them to copy all *.el files before *.elc.
+
+2007-07-13  Drew Adams <drew.adams@oracle.com>
+
+	* bookmark.el (bookmark-jump-other-window): New function.
+	(bookmark-map): Bind it to "o".
+
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html
+	and its thread contains discussion about this change.
+	The original patch was slightly tweaked by Karl Fogel
+	<kfogel@red-bean.com> before committing.
+
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Shorten some comments to fit within 80 lines.
+
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el: Don't define bookmark keys under the "C-xr" map;
+	instead, make "C-xp" a prefix for bookmark-map.  Patch by Drew
+	Adams <drew.adams@oracle.com>, mildly tweaked by me.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00633.html.
+
+2007-07-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Bug fixes.
+	(org-end-of-line): Move to end of line if in headline without tags.
+
+2007-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el: Remove spurious * in docstrings.
+	(vc-handled-backends): Add BZR.
+
+	* vc-hooks.el (vc-find-file-hook): Use with-demoted-errors.
+
+2007-07-12  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-buffer-info, desktop-save):
+	Use `desktop-dirname' instead of `dirname'.
+
+2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/which-func.el (which-func-modes): Add `python-mode'.
+
+	* progmodes/python.el (python-which-func-length-limit): New var.
+	(python-which-func): New function.
+	(python-current-defun): Add optional `length-limit' and try to fit
+	computed function name to that length.
+	(python-mode): Hook `python-which-func' up.
+
+2007-07-12  Sean O'Rourke  <sorourke@cs.ucsd.edu>  (tiny change)
+
+	* pcomplete.el (pcomplete-entries): Obey pcomplete-ignore-case.
+
+	* comint.el (comint-dynamic-complete-as-filename):
+	Use read-file-name-completion-ignore-case.
+
+2007-07-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-dynamic-list-filename-completions):
+	Use read-file-name-completion-ignore-case.
+
+	* vc-cvs.el: Require CL.
+	(vc-cvs-revision-table, vc-cvs-revision-completion-table):
+	New functions to provide completion of revision names.
+
+	* vc-cvs.el (vc-functions): Clear up the cache when reloading the file.
+	(vc-cvs-annotate-first-line-re): New const.
+	(vc-cvs-annotate-process-filter): New fun.
+	(vc-cvs-annotate-command): Use them and run the command asynchronously.
+
+2007-07-12  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* emacs-lisp/eldoc.el (eldoc-last-data): Revise documentation.
+	(eldoc-print-current-symbol-info): Adjust for changed helper
+	function signatures.
+	(eldoc-get-fnsym-args-string): Add `args' argument.  Use new
+	`eldoc-highlight-function-argument'.
+	(eldoc-highlight-function-argument): New function.
+	(eldoc-get-var-docstring): Format documentation with
+	`font-lock-variable-name-face'.
+	(eldoc-docstring-format-sym-doc): Add `face' argument and apply it
+	where suited.
+	(eldoc-fnsym-in-current-sexp): Return a list with argument index.
+	(eldoc-beginning-of-sexp): Return number of skipped sexps.
+
+2007-07-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/compile.el (compilation-start): `start-process' must
+	still be redefined when calling `start-process-shell-command'.
+
+	* progmodes/gud.el (gud-file-name): When `default-directory' is a
+	remote file name, prepend its remote part to the filename.
+	(gud-common-init): When `default-directory' is a remote file name,
+	make the filename relative to it.
+	Based on a patch by Nick Roberts <nickrob@snap.net.nz>.
+
+2007-07-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-default-mode-line-string): Add a mouse face,
+	mouse binding and a tooltip.
+
+2007-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (vc-menu-map): New defalias.
+
+2007-07-10  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun):
+	Explain special handling of `defface'.
+
+2007-07-10  Jim Meyering  <jim@meyering.net>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-current-gpl-version): Set to 3.
+
+	* autoinsert.el (auto-insert-alist): s/2/3/ in the generated comment.
+
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el: Load cl-loaddefs.el quietly.
+
+	* vc-arch.el (vc-arch-complete): Remove.
+	(vc-arch-revision-completion-table): Use complete-with-action.
+
+	* subr.el (condition-case-no-debug, with-demoted-errors): New macros.
+	(complete-with-action): New function.
+	(dynamic-completion-table): Use it.
+
+2007-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* comint.el (make-comint, make-comint-in-buffer)
+	(comint-exec-1): Replace `start-process' by `start-file-process'.
+
+	* progmodes/compile.el (compilation-start): Revert redefining
+	`start-process'.
+
+2007-07-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads): Be careful
+	with EOLs when generating MD5 checksums.
+
+	* follow.el: Don't change the global map from the follow-mode-map
+	defvar, but from the toplevel.  Use easy-menu to unify the Emacs and
+	XEmacs code.
+	(turn-on-follow-mode, turn-off-follow-mode): Remove interactive spec
+	since `follow-mode' should be used instead for that.
+
+	* emacs-lisp/easymenu.el (easy-menu-binding): New function.
+	(easy-menu-do-define): Use it.
+	(easy-menu-do-add-item): Inline into easy-menu-add-item and then remove.
+
+	* progmodes/compile.el (compilation-auto-jump-to-first-error)
+	(compilation-auto-jump-to-next): New vars.
+	(compilation-auto-jump): New function.
+	(compilation-error-properties): Use them to jump to first error.
+	(compilation-start): Set the var if requested.
+
+	* emacs-lisp/autoload.el (update-directory-autoloads): Remove
+	duplicates without also removing entries from other directories.
+
+2007-07-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-day-view, org-agenda-week-view):
+	Remember span as default.
+	(org-columns-edit-value): Rename from `org-column-edit'.
+	(org-columns-display-here-title): Rename from
+	`org-overlay-columns-title'.
+	(org-columns-remove-overlays): Rename from org-remove-column-overlays.
+	(org-columns-get-autowidth-alist): Rename from
+	`org-get-columns-autowidth-alist'.
+	(org-columns-display-here): Rename from `org-overlay-columns'.
+	(org-columns-new-overlay): Rename from `org-new-column-overlay'.
+	(org-columns-quit): Rename from `org-column-quit'.
+	(org-columns-show-value): Rename from `org-column-show-value'.
+	(org-columns-content, org-columns-widen)
+	(org-columns-next-allowed-value)
+	(org-columns-edit-allowed, org-columns-store-format)
+	(org-columns-uncompile-format, org-columns-redo)
+	(org-columns-edit-attributes, org-delete-property)
+	(org-set-property, org-columns-update)
+	(org-columns-compute, org-columns-eval)
+	(org-columns-not-in-agenda, org-columns-compute-all)
+	(org-property-next-allowed-value)
+	(org-columns-compile-format)
+	(org-fill-paragraph-experimental)
+	(org-string-to-number, org-property-action)
+	(org-columns-move-left, org-columns-new )
+	(org-column-number-to-string)
+	(org-property-previous-allowed-value)
+	(org-at-property-p, org-columns-delete)
+	(org-columns-previous-allowed-value)
+	(org-columns-move-right, org-columns-narrow)
+	(org-property-get-allowed-values)
+	(org-verify-version, org-column-string-to-number)
+	(org-delete-property-globally): New functions.
+	(org-columns-current-fmt): Rename from `org-current-columns-fmt'.
+	(org-columns-overlays): Rename from `org-column-overlays'.
+	(org-columns-map): Rename from `org-column-map'.
+	(org-columns-current-maxwidths): Rename from
+	`org-current-columns-maxwidths'.
+	(org-columns-begin-marker, org-columns-current-fmt-compiled)
+	(org-previous-header-line-format)
+	(org-columns-inhibit-recalculation)
+	(org-columns-top-level-marker): New variables.
+	(org-columns-default-format): Rename from `org-default-columns-format'.
+	(org-property-re): New constant.
+
+2007-07-10  Guanpeng Xu  <herberteuler@hotmail.com>
+
+	* subr.el (looking-at-p, string-match-p): New functions.
+
+2007-07-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/tex-mode.el (tex-fontify-script)
+	(tex-font-script-display): New variables to make display of
+	superscripts and subscripts customizable.
+	(tex-font-lock-suscript, tex-font-lock-match-suscript): Use them.
+
+2007-07-09  Richard Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-edit-string): Call to isearch-push-state
+	after the search.
+
+2007-07-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.el (fit-window-to-buffer): Remove setting of window-min-height
+	to 1 as enlarge-window uses the value to resize/shrink windows other
+	than WINDOW if needed.
+
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
+2007-07-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-wrap-region): Avoid marking buffer as
+	modified.
+	(longlines-auto-wrap, longlines-window-change-function):
+	Remove unnecessary calls to set-buffer-modified-p.
+
+2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* cus-start.el (file-coding-system-alist): Fix custom type.
+
+2007-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-cvs.el (vc-cvs-revert): Use vc-default-revert.
+	(vc-cvs-checkout): Remove last arg now unused; simplify.
+
+2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-remote-p): Introduce optional parameter CONNECTED.
+
+	* net/tramp.el:
+	* net/tramp-ftp.el:
+	* net/tramp-smb.el:
+	* net/tramp-uu.el:
+	* net/trampver.el: Migrate to Tramp 2.1.
+
+	* net/tramp-cache.el:
+	* net/tramp-fish.el:
+	* net/tramp-gw.el: New Tramp packages.
+
+	* net/tramp-util.el:
+	* net/tramp-vc.el: Removed.
+
+	* net/ange-ftp.el: Add ange-ftp property to 'start-file-process
+	(ange-ftp-file-remote-p): Handle optional parameter CONNECTED.
+
+	* net/rcompile.el (remote-compile): Handle Tramp 2.1 arguments.
+
+	* progmodes/compile.el (compilation-start): Redefine
+	`start-process' temporarily when `default-directory' is remote.
+	Remove case of synchronous compilation, this won't happen ever.
+	(compilation-setup): Make local variable `comint-file-name-prefix'
+	for remote compilation.
+
+2007-07-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* novice.el (disabled-command-function): Fit window to buffer to
+	make last line visible.
+	Reported by Stephen Berman <Stephen.Berman at gmx.net>.
+
+	* mouse.el (mouse-drag-track): Reset transient-mark-mode to nil
+	when handling the terminating event.
+
+2007-07-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-read-number-simple): Remove leading 0s.
+	(math-bignum-digit-length): Change to optimal value.
+
+	* calc/calc-bin.el (math-bignum-logb-digit-size)
+	(math-bignum-digit-power-of-two): Evaluate when compiled.
+
+	* calc/calc-comb.el (math-small-factorial-table)
+	(math-init-random-base, math-prime-test): Remove unnecessary calls
+	to `math-read-number-simple'.
+
+	* calc/calc-ext.el (math-approx-pi, math-approx-sqrt-e)
+	(math-approx-gamma-const): Add docstrings.
+
+	* calc/calc-forms.el (math-julian-date-beginning)
+	(math-julian-date-beginning-int): New constants.
+	(math-format-date-part, math-parse-standard-date, calcFunc-julian):
+	Use the new constants.
+
+	* calc/calc-funcs.el (math-gammap1-raw): Add docstring.
+
+	* calc/calc-math.el (math-approx-ln-10, math-approx-ln-2):
+	Add docstrings.
+
+2007-07-07  Tom Tromey  <tromey@redhat.com>
+
+	* vc.el (vc-annotate): Jump to line and output message only after the
+	process is really all done.
+
+2007-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-exec-after): Don't move point from the sentinel.
+	Forcefully read all the remaining text in the pipe upon process exit.
+	(vc-annotate-display-autoscale, vc-annotate-lines):
+	Don't stop at the first unrecognized line.
+	(vc-annotate-display-select): Run autoscale after the process is done
+	since it depends on the whole result.
+
+2007-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term/w32-win.el (menu-bar-open): New function.
+	Bind <f10> to it.
+
+2007-07-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* simple.el (start-file-process): New defun.
+
+2007-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file-confirm-nonexistent-file): Rename from
+	find-file-confirm-inexistent-file.  Update users.
+
+	* emacs-lisp/autoload.el (autoload-find-destination): Understand a new
+	format of autoload block where the file's time-stamp is replaced by its
+	MD5 checksum.
+	(autoload-generate-file-autoloads): Use MD5 checksum instead of
+	time-stamp for secondary autoloads files.
+	(update-directory-autoloads): Remove duplicate entries.
+	Use time-less-p for time-stamps, as done in autoload-find-destination.
+
+2007-07-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-read-number): Replace number by variable.
+	(math-read-number-simple): Properly parse small integers.
+
+2007-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Fix doc for the checkout function.
+
+2007-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-root): New function.
+	(vc-hg-registered): Use it.
+	(vc-hg-diff-tree): New defalias.
+	(vc-hg-responsible-p): Likewise.
+	(vc-hg-checkout): Comment out, not needed.
+	(vc-hg-delete-file, vc-hg-rename-file, vc-hg-could-register)
+	(vc-hg-find-version, vc-hg-next-version): New functions.
+
+2007-07-06  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp): Avoid introducing any
+	dynamic bindings around the evaluation of the expression.
+	Reported by Jay Belanger <jay.p.belanger@gmail.com>.
+
+2007-07-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* autorevert.el (auto-revert-tail-handler): Use inhibit-read-only.
+	Run before-revert-hook.  Suggested by Denis Bueno <denbuen@sandia.gov>.
+	Use run-hooks rather than run-mode-hooks.
+
+2007-07-05  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-comb.el (math-random-digit): Rename to
+	`math-random-three-digit-number'.
+	(math-random-digits): Don't depend on representation of integer.
+
+	* calc/calc-bin.el (math-bignum-logb-digit-size)
+	(math-bignum-digit-power-of-two): New constants.
+	(math-and-bignum, math-or-bignum, math-xor-bignum, math-diff-bignum)
+	(math-not-bignum, math-clip-bignum): Use the constants
+	`math-bignum-digit-power-of-two' and `math-bignum-logb-digit-size'
+	instead of their values.
+	(math-clip): Use math-small-integer-size instead of its value.
+
+	* calc/calc.el (math-add-bignum): Replace number by constant.
+
+2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-documentation-string-value-create):
+	Insert indentation spaces.
+
+2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* emacs-lisp/byte-opt.el: Revert last change.
+
+2007-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-handled-backends): Add HG.
+
+	* vc-hg.el (vc-handled-backends): Remove, done in vc-hooks.el now.
+
+2007-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-complete-and-exit): Add support for the new
+	`confirm-only' confirmation mode.
+
+2007-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-commands): New variable.
+	(custom-tool-bar-map): New variable.  Initialize using
+	`custom-commands'.
+	(custom-mode): Use `custom-tool-bar-map'.
+	(custom-buffer-create-internal): Insert action buttons only if
+	tool bar is not used.  Use `custom-commands'.
+	(Custom-help, custom-command-apply): New function.
+	(custom-command-apply, Custom-set, Custom-save)
+	(Custom-reset-current, Custom-reset-saved, Custom-reset-standard):
+	Use `custom-command-apply' instead of duplicating code.
+	(customize-group-other-window): Call `customize-group' instead of
+	duplicating code.
+	(customize-face-other-window): Call `customize-face' instead of
+	duplicating code.
+	(customize-group, customize-face): Add optional args for opening
+	in another window.
+	(custom-variable-tag): Don't inherit `variable-pitch' face.
+	(custom-group-tag): Inherit `variable-pitch' face.
+	(custom-variable-value-create): Set documentation indentation.
+	(custom-group-value-create): Make group name a link, instead of
+	using an extra "go to group" button.
+	(custom-prompt-variable, custom-group-set, custom-group-save)
+	(custom-group-reset-current, custom-group-reset-saved)
+	(custom-group-reset-standard): Minor cleanup.
+
+2007-07-05  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* Makefile.in (bootstrap-prepare): When copying from
+	ldefs-boot.el, make sure loaddefs.el is writeable.
+
+	(bootstrap-prepare): Make $(lisp)/ps-print.el
+	and $(lisp)/emacs-lisp/cl-loaddefs.el writable, as well.
+
+2007-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-internal-status): Inline in `vc-hg-state', the
+	only caller, and delete.
+	(vc-hg-state): Deal with exceptions and only parse the output on
+	successful return.
+	(vc-hg-internal-log): Inline in `vc-hg-workfile-version', the only
+	caller, and delete.
+	(vc-hg-workfile-version): Deal with exceptions and only parse the
+	output on successful return.
+	(vc-hg-revert): New function.
+
+2007-07-04  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calculator.el (calculator-expt): Use more cases to determine
+	the value.
+
+2007-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/gud.el (auto-mode-alist): Match more valid gdb init
+	file names.
+
+2007-07-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calculator.el (calculator-expt, calculator-integer-p):
+	New functions.
+	(calculator-fact): Check to see if the factorial will be too
+	large before computing it.
+	(calculator-initial-operators): Use `calculator-expt' to
+	compute "^".
+	(calculator-mode): Mention that results which are too large
+	will return inf.
+	* calc/calc-comb.el (math-small-factorial-table): Replace list
+	by vector.
+
+2007-07-03  David Kastrup  <dak@gnu.org>
+
+	* shell.el: On request of the authors, remove their addresses for
+	the sake of bug reports, and add the developer list address as
+	maintainer information.
+
+2007-07-03  Richard Stallman  <rms@gnu.org>
+
+	* files.el (make-directory): Doc fix.
+	(find-file-confirm-inexistent-file): Make it a defcustom.
+	Make nil the default.
+
+2007-07-02  Richard Stallman  <rms@gnu.org>
+
+	* startup.el (command-line): Set buffer-offer-save in *scratch*
+	and enable auto-save in it.
+
+2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (orgstruct-mode-map): New variable.
+	(orgstruct-mode): New minor mode.
+	(turn-on-orgstruct, orgstruct-error, orgstruct-setup)
+	(orgstruct-make-binding, org-context-p, org-get-local-variables)
+	(org-run-like-in-org-mode): New functions.
+	(org-cycle-list-bullet): New command.
+	(org-special-properties, org-property-start-re)
+	(org-property-end-re): New constants.
+	(org-with-point-at): New macro.
+	(org-get-property-block, org-entry-properties, org-entry-get)
+	(org-entry-delete, org-entry-get-with-inheritance)
+	(org-entry-put, org-buffer-property-keys): New functions.
+	(org-insert-property-drawer): New command.
+	(org-entry-property-inherited-from): New variable.
+	(org-column): New face.
+	(org-column-overlays, org-current-columns-fmt)
+	(org-current-columns-maxwidths, org-column-map): New variables.
+	(org-column-menu): New menu.
+	(org-new-column-overlay, org-overlay-columns)
+	(org-overlay-columns-title, org-remove-column-overlays)
+	(org-column-show-value, org-column-quit, org-column-edit): New
+	functions.
+	(org-columns, org-agenda-columns): New commands.
+	(org-get-columns-autowidth-alist): New functions.
+	(org-properties): New customize group.
+	(org-default-columns-format): New option.
+	(org-priority): Realign tags after changing priority.
+	(org-preserve-lc): New macro.
+	(org-update-checkbox-count): Catch case when there is no headline.
+	(org-agenda-quit): Remove any column overlays.
+	(org-beginning-of-item-list): Fixed bug when non-item line is
+	indented too deep.
+	(org-cached-props): New variable.
+	(org-cached-entry-get): New function.
+	(org-make-tags-matcher): Handle property matches.
+	(org-table-recalculate): Swap evaluation order: Field formula
+	first, then column formulas, but don't allow them to overwrite the
+	field formulas.
+	(org-table-eval-formula): New argument untouchable.
+	(org-table-put-field-property): New function.
+
+2007-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* help-mode.el (help-make-xrefs): Skip spaces too when
+	skipping tabs.
+
+	* ffap.el (dired-at-point-prompter): Improve prompt in
+	list-directory case.
+
+2007-07-01  Richard Stallman  <rms@gnu.org>
+
+	* files.el (find-file-visit-truename): Fix safe-local-variable value.
+
+2007-07-01  Richard Stallman  <rms@gnu.org>
+
+	* cus-start.el (max-mini-window-height): Added.
+
+2007-07-01  Sean O'Rourke  <sorourke@cs.ucsd.edu>  (tiny change)
+
+	* complete.el (partial-completion-mode): Remove advice of
+	read-file-name-internal.
+	(PC-do-completion): Rebind minibuffer-completion-table.
+	(PC-read-file-name-internal): New function doing what
+	read-file-name-internal advice did.
+
+2007-07-01  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* emacs-lisp/byte-opt.el: Set `binding-is-magic'
+	property on a few symbols.
+	(byte-compile-side-effect-free-dynamically-safe-ops): New defconst.
+	(byte-optimize-lapcode): Remove bindings that are not referenced
+	and certainly will not effect through dynamic scoping.
+
+2007-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file-confirm-inexistent-file): New var.
+	(find-file, find-file-other-window, find-file-other-frame)
+	(find-file-read-only, find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Use it.
+
+2007-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/rx.el (rx-constituents): Fix up `anything'.
+
+2007-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* generic-x.el (generic-define-mswindows-modes)
+	(generic-define-unix-modes, apache-log-generic-mode)
+	(bat-generic-mode-keymap, java-manifest-generic-mode)
+	(show-tabs-generic-mode): Fix typos in docstrings.
+
+2007-06-29  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-server-alist): Rename from rcirc-connections.
+	(rcirc-default-full-name): Rename from rcirc-default-user-full-name.
+	(rcirc-clear-activity): Make sure RCIRC-ACTIVITY isn't modified.
+	(rcirc-print): Never ignore messages from ourself.
+
+2007-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Recognize the new \(?1:..\)
+	syntax as well.  Reported by Juri Linkov <juri@jurta.org>.
+
+2007-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
+	replace-regexp-in-string.
+
+2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el: Set edebug and indentation before loading
+	cl-loaddefs.el so that its use of dolist doesn't load cl-macs.
+
+2007-06-28  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Depend on
+	$(lisp)/subdirs.el.
+
+2007-06-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* speedbar.el (speedbar-handle-delete-frame): Don't try to delete
+	the speedbar frame if nil; that deletes the current frame or
+	causes an error if it is the only frame.
+	Reported by Angelo Graziosi <Angelo.Graziosi@roma1.infn.it>.
+
+2007-06-28  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/nroff-mode.el: Groff \# comments.
+	(nroff-mode-syntax-table): \# comment intro,
+	plain # as punct per global table.
+	(nroff-font-lock-keywords): Add # as a single char escape.
+	(nroff-mode): In comment-start-skip, match \#.
+
+2007-06-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-functions): Clear up the cache when reloading the file.
+	(vc-bzr-workfile-version, vc-bzr-could-register): Don't hardcode
+	point-min == 1.
+
+2007-06-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* pcvs-util.el (cvs-strings->string, cvs-string->strings):
+	Rename and move to...
+
+	* subr.el (strings->string, string->strings): ...here.
+
+	* pcvs.el (cvs-reread-cvsrc, cvs-header-msg, cvs-checkout)
+	(cvs-mode-checkout, cvs-execute-single-file): Use new function names.
+
+	* progmodes/gud.el (gud-common-init): Call string->strings instead
+	of split-string.
+
+2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dired-aux.el: Remove `dired-call-process'.
+	(dired-check-process): Call `process-file'.
+
+	* wdired.el (wdired-do-perm-changes): Call `process-file'.
+
+	* net/ange-ftp.el (ange-ftp-dired-call-process): Reimplement it as
+	`ange-ftp-process-file'.
+
+2007-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl.el: Use cl-loaddefs.el rather than manual autoloads.
+
+	* emacs-lisp/cl-extra.el:
+	* emacs-lisp/cl-seq.el:
+	* emacs-lisp/cl-macs.el: Set generated-autoload-file to cl-loaddefs.el.
+	Add autoload cookies on all defs autoloaded manually in cl.el.
+
+	* emacs-lisp/cl-loaddefs.el: New file.
+
+	* textmodes/texinfmt.el (texinfo-raisesections-alist)
+	(texinfo-lowersections-alist): Merge definition and declaration.
+	(texinfo-start-of-header, texinfo-end-of-header): Remove.
+	(texinfo-format-syntax-table): Merge init into declaration.
+	(texinfo-format-parse-line-args, texinfo-format-parse-args)
+	(texinfo-format-parse-defun-args, texinfo-format-node)
+	(texinfo-push-stack, texinfo-multitable-widths)
+	(texinfo-define-info-enclosure, texinfo-alias)
+	(texinfo-format-defindex, batch-texinfo-format): Use push.
+	(texinfo-footnote-number): Remove duplicate declaration.
+
+	* ps-print.el: Update with auto-generated autoloads.
+
+	* ps-mule.el: Set generated-autoload-file to "ps-print.el".
+
+2007-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generated-file): Interpret names
+	relative to current dir for file-local settings.
+	(autoload-generate-file-autoloads): Add `outfile' arg.
+	(update-directory-autoloads): Use it to directly call
+	autoload-generate-file-autoloads instead of going through
+	update-file-autoloads so we avoid redundant searches and so we can know
+	the set of buffers changed so we can save them all.
+
+	* emacs-lisp/autoload.el (autoload-find-destination): Return nil
+	rather than throwing `up-to-date'.
+	(autoload-generate-file-autoloads): Adjust correspondingly.
+	(update-file-autoloads): Be careful to let-bind
+	autoload-modified-buffers and adjust to new calling conventions.
+	(autoload-modified-buffers): Make it a dynamically scoped var.
+	(update-directory-autoloads): Use file-relative-name instead of
+	autoload-trim-file-name.
+	(autoload-insert-section-header): Don't use autoload-trim-file-name
+	since the file is already relative now.
+	(autoload-trim-file-name): Remove.
+
+	* vc-arch.el (vc-arch-add-tagline): Do a slightly cleaner job.
+	(vc-arch-complete, vc-arch--version-completion-table)
+	(vc-arch-revision-completion-table): New functions to provide
+	completion of revision names.
+	(vc-arch-trim-find-least-useful-rev, vc-arch-trim-make-sentinel)
+	(vc-arch-trim-one-revlib, vc-arch-trim-revlib): New functions
+	to let the user trim the revlib.
+
+	* vc.el: Add new VC operation `revision-completion-table'.
+	(vc-default-revision-completion-table): New function.
+	(vc-version-diff, vc-version-other-window): Use it to provide
+	completion of revision names if the backend provides it.
+
+	* log-edit.el (log-edit-changelog-entries): Use with-current-buffer.
+
+	* vc-svn.el (vc-svn-repository-hostname): Adjust to non-XML format
+	of newer .svn/entries.
+
+2007-06-25  David Kastrup  <dak@gnu.org>
+
+	* calc/calc-poly.el (math-padded-polynomial)
+	(math-partial-fractions): Add some function comments.
+
+2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generate-file-autoloads):
+	Make `outbuf' optional.
+	(update-file-autoloads): Use it.
+
+2007-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-modified-buffers): New var.
+	(autoload-find-destination): Keep it uptodate.
+	(autoload-save-buffers): New fun.
+	(update-file-autoloads): Use it.  Re-add the "up to date" message.
+
+	* emacs-lisp/autoload.el: Refactor for upcoming changes.
+	(autoload-find-destination): New function extracted from
+	update-file-autoloads.
+	(update-file-autoloads): Use it.
+	(autoload-generate-file-autoloads): New function extracted from
+	generate-file-autoloads.  Use file-relative-name.  Delay computation of
+	output-start to the first cookie.  Remove done-any, replaced by
+	output-start.
+	(generate-file-autoloads): Use it.
+
+2007-06-24  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-comb.el (math-init-random-base, math-prime-test):
+	Use math-read-number-simple to insert constants.
+	(math-prime-test): Redo calculation of sum.
+
+	* calc/calc-misc.el (math-div2-bignum): Use math-bignum-digit-size.
+
+	* calc/calc-math.el (math-scale-bignum-digit-size): Rename from
+	math-scale-bignum-3.
+	(math-isqrt-bignum): Use math-scale-bignum-digit-size and
+	math-bignum-digit-size.
+	(math-isqrt-small): Add another possible initial guess.
+
+2007-06-23  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-entry-format): New options
+	`whitespace', `braces', and `string'.
+	(bibtex-field-braces-alist, bibtex-field-strings-alist)
+	(bibtex-field-braces-opt, bibtex-field-strings-opt)
+	(bibtex-cite-matcher-alist): New variables.
+	(bibtex-font-lock-keywords): Use bibtex-cite-matcher-alist.
+	(bibtex-flash-head): Use blink-matching-delay.
+	(bibtex-insert-kill, bibtex-mark-entry): Use push-mark.
+	(bibtex-format-entry, bibtex-reformat): Handle new options of
+	bibtex-entry-format.
+	(bibtex-field-re-init, bibtex-font-lock-cite, bibtex-dist):
+	New functions.
+	(bibtex-complete-internal): Do not display messages while
+	minibuffer is used.  Do not leave around a completions buffer
+	that is out of date.
+	(bibtex-copy-summary-as-kill): New optional arg.
+	(bibtex-font-lock-url): New optional arg no-button.
+	(bibtex-find-crossref): Use `bibtex-cite-matcher-alist'.
+	(bibtex-url): Allow multiple URLs per entry.
+
+2007-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-generated-file): New function.
+	(update-file-autoloads, update-directory-autoloads): Use it.
+	(autoload-file-load-name): New function.
+	(generate-file-autoloads, update-file-autoloads): Use it.
+	(autoload-find-file): Accept non-absolute argument.  Set default-dir.
+	(generate-file-autoloads): If the autoloaded form is malformed,
+	indicate the problem with a warning instead of aborting.
+
+2007-06-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* simple.el (next-error-recenter): Accept `(4)' as well;
+	also, specify `integer' instead of `number'.
+
+2007-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (insert-directory): If an invalid regexp error is
+	thrown, try using FILE as a literal file name, not a wildcard.
+
+2007-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ruler-mode.el (ruler-mode): Prevent clobbering the original
+	`header-line-format' when reentering ruler mode.
+
+2007-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (insert-directory): Don't treat FILE as a wildcard if
+	FILE exists as a file.
+
+2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-bignum-digit-length)
+	(math-bignum-digit-size, math-small-integer-size):
+	New constants.
+	(math-normalize, math-bignum-big, math-make-float)
+	(math-div10-bignum, math-scale-left, math-scale-left-bignum)
+	(math-scale-right, math-scale-right-bignum, math-scale-rounding)
+	(math-add, math-add-bignum, math-sub-bignum, math-sub, math-mul)
+	(math-mul-bignum, math-mul-bignum-digit, math-idivmod)
+	(math-quotient, math-div-bignum, math-div-bignum-digit)
+	(math-div-bignum-part, math-format-bignum-decimal)
+	(math-read-bignum): Use math-bignum-digit-length,
+	math-bignum-digit-size and math-small-integer-size.
+
+	* calc/calc-ext.el (math-fixnum-big): Use the variable
+	math-bignum-digit-size.
+
+2007-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-mode-menu): New menu.
+
+2007-06-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-font-lock-keywords): Fix M. Kifer's last change
+	differently.
+
+	* vc-hg.el (vc-hg-registered): Add an autoloaded version.
+	(vc-hg-log-view-mode): Use log-view-font-lock-keywords.
+
+2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-print-log): Insert the file name.
+	(vc-hg-log-view-mode): Fontify the file name.
+
+2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (math-format-date-part, calc-parse-standard-date)
+	(calcFunc-julian): Fix incorrect number used in calculations.
+
+2007-06-22  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* simple.el (next-error-recenter): New defcustom.
+	(next-error, next-error-internal): Recenter if specified,
+	immediately prior to running `next-error-hook'.
+
+	* progmodes/hideshow.el (hs-show-block): Use line-end-position.
+	(hs-hide-block-at-point, hs-hide-comment-region): Likewise.
+
+	* progmodes/hideshow.el (hs-hide-all): Use progress reporter.
+
+2007-06-22  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-comb.el (math-small-factorial-table): New variable.
+	(calcFunc-fact): Use `math-small-factorial-table'.
+
+	* calc/calc-ext.el (math-defcache): Allow forms to evaluate
+	initial values.
+	(math-approx-pi, math-approx-sqrt-e, math-approx-gamma-const):
+	New variables to use in caches.
+
+	* calc/calc-forms.el (math-format-date-part, math-parse-standard-date)
+	(calcFunc-julian): Use `math-read-number-simple' to insert bignums.
+
+	* calc/calc-func.el (math-besJ0, math-besJ1, math-besY0, math-besY1)
+	(math-bernoulli-b-cache): Use math-read-number-simple to insert
+	bignums.
+
+	* calc/calc-math.el (math-approx-ln-10, math-approx-ln-2):
+	New variables to use in caches.
+
+2007-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-log-view-mode): Add + to the email address regexp.
+
+	* vc-hg.el (vc-hg-log-view-mode): New mode.
+
+2007-06-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-read-number-simple): New function.
+
+2007-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vera-mode.el (vera-mode): Fix `commend-end-skip' setting.
+	(vera-font-lock-match-item): Fix doc string.
+	(vera-in-comment-p): Remove unused function.
+	(vera-skip-forward-literal, vera-skip-backward-literal): Improve code,
+	use `syntax-ppss'.
+	(vera-forward-syntactic-ws): Fix argument order.
+	(vera-prepare-search): Use `with-syntax-table'.
+	(vera-indent-line): Fix doc string.
+	(vera-electric-tab): Fix doc string.
+	(vera-expand-abbrev): Define alias instead of using `fset'.
+	(vera-comment-uncomment-region): Use `comment-start-skip'.
+
+2007-06-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-export-with-footnotes): New option.
+	(org-export-as-html): Fix replacement bug for XEmacs.
+	(org-agenda-default-appointment-duration): New option.
+
+2007-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el: Add to do items.
+	(vc-hg-diff): Add support for comparing different revisions.
+	(vc-hg-diff, vc-hg-annotate-command, vc-hg-annotate-time)
+	(vc-hg-annotate-extract-revision-at-line)
+	(vc-hg-previous-version, vc-hg-checkin): New functions.
+	(vc-hg-annotate-re): New constant.
+
+2007-06-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-standard-ops): Fix precedence of multiplication.
+
+2007-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-font-lock-keywords): Use `eval' to consult the
+	buffer-local value of log-view-*-re if applicable.
+
+	* vc-bzr.el (vc-bzr-dir-state): Use setq rather than set.
+	Use vc-bzr-command rather than the ill defined vc-bzr-command*.
+	(vc-bzr-command*): Remove both (incompatible) versions.
+	(vc-bzr-do-command*): Remove.
+	(vc-bzr-with-process-environment, vc-bzr-std-process-invocation):
+	Remove by folding into its only caller vc-bzr-command.
+	(vc-bzr-command): Always set the environment, even when ineffective.
+	(vc-bzr-version): Minor fix up.
+	(vc-bzr-admin-dirname): New var.
+	(vc-bzr-bzr-dir): Remove.
+	(vc-bzr-root-dir): New fun.
+	(vc-bzr-registered): Use it.  Add an autoloaded version.
+	(vc-bzr-responsible-p): Use vc-bzr-root-dir as well.
+	(vc-bzr-view-log-function): Remove.
+	(vc-bzr-log-view-mode): New major mode to replace it.
+	(vc-bzr-print-log): Only activate the old hack if needed.
+
+	* vc.el (vc-default-log-view-mode): New function.
+	(vc-print-log): Add new `log-view-mode' VC operation.
+
+2007-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-find-file-in-dir): Don't signal an error for
+	empty directories.
+
+	* add-log.el (change-log-mode): Set `show-trailing-whitespace'.
+
+	* desktop.el (desktop-read): Run `desktop-not-loaded-hook' in the
+	directory where the desktop file was found, as the docstring says.
+	(desktop-kill): Use `read-directory-name'.
+
+2007-06-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-remove-any-local-eval-or-mode-variables):
+	When removing lines, also remove the \n.  Correction of patch of
+	2007-04-21.
+
+2007-06-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* mouse.el (mouse-drag-mode-line-1): Quit mouse tracking when
+	event is not a cons cell.  Do not unread drag-mouse-1 events.
+	Select right window in check whether space was stolen from
+	window above.
+
+	* help-mode.el (help-make-xrefs): Adjust position of new forward
+	button.
+
+2007-06-20  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-with-process-environment)
+	(vc-bzr-std-process-invocation): New macros.
+	(vc-bzr-command, vc-bzr-command*): Use them.
+	(vc-bzr-with-c-locale): Remove.
+	(vc-bzr-dir-state): Replace its use with vc-bzr-command.
+	(vc-bzr-buffer-nonblank-p): New function.
+	(vc-bzr-state-words): New const.
+	(vc-bzr-state): Look for `bzr status` keywords in output.
+	Display everything else as a warning message to the user.
+	Fix status report with bzr >= 0.15.
+
+2007-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-global-switches): Simplify.
+	(vc-hg-state): Handle more states.
+	(vc-hg-diff): Fix doc-string.
+	(vc-hg-register): New function.
+	(vc-hg-checkout): Likewise.
+
+2007-06-20  Reto Zimmermann  <reto@gnu.org>
+
+	* progmodes/vera-mode.el: New file.
+
+2007-06-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-multiplication-has-precendence):
+	New variable.
+	(math-standard-ops, math-standard-ops-p, math-expr-ops):
+	New functions.
+	(math-expr-opers): Define using math-standard-ops rather than
+	math-standard-opers.
+	* calc/calc-aent.el (calc-do-calc-eval): Let math-expr-opers
+	equal the function math-standard-ops rather than the variable
+	math-standard-opers.
+	(calc-algebraic-entry): Let math-expr-opers equal
+	math-standard-ops or math-expr-ops, as appropriate.
+	(math-expr-read-level, math-read-factor): Let math-expr-opers
+	equal math-expr-ops.
+	* calc/calc-embed.el (calc-embedded-finish-edit):
+	Let math-expr-opers equal the function math-standard-ops
+	rather than the variable math-standard-opers.
+	* calc/calc-ext.el (math-read-plain-expr)
+	(math-format-flat-expr-fancy): Let math-expr-opers equal the
+	function math-standard-ops rather than the variable
+	math-standard-opers.
+	* calc/calc-lang.el (calc-set-language, math-read-big-rec):
+	Let math-expr-opers equal the function math-standard-ops rather
+	than the variable math-standard-opers.
+	* calc/calc-prog.el (calc-read-parse-table): Let math-expr-opers
+	equal the function math-standard-ops rather than the variable
+	math-standard-opers.
+	* calc/calc-yank.el (calc-finish-stack-edit): Let math-expr-opers
+	equal the function math-standard-ops rather than the variable
+	math-standard-opers.
+	* calc/calccomp.el (math-compose-expr): Let math-expr-opers equal
+	math-expr-ops.
+
+2007-06-19  Ivan Kanis  <apple@kanis.eu>
+
+	* vc-hg.el: New file.
+
+2007-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Mark the relevant text
+	with font-lock-multiline.
+
+2007-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* lpr.el (lpr-page-header-switches): Move %s to separate element
+	for correct quoting.  Doc fix.
+
+2007-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-xml-guess): Return the result rather
+	than setting sgml-xml-mode.
+	(sgml-mode, html-mode): Set sgml-xml-mode.
+	(sgml-skip-tag-backward): Tell if we skipped over matched tags.
+	(sgml-skip-tag-backward, sgml-electric-tag-pair-overlays): New var.
+	(sgml-electric-tag-pair-before-change-function)
+	(sgml-electric-tag-pair-flush-overlays): New functions.
+	(sgml-electric-tag-pair-mode): New minor mode.
+	(sgml-font-lock-keywords-2, sgml-get-context, sgml-unclosed-tag-p)
+	(sgml-calculate-indent): Use assoc-string.
+
 2007-06-16  Karl Fogel  <kfogel@red-bean.com>
 
 	* thingatpt.el (thing-at-point-email-regexp): Don't require two
@@ -11,19 +1133,18 @@
 	(thing-at-point-email-regexp): New variable.
 	(`email'): Put `bounds-of-thing-at-point' and `thing-at-point'
 	properties on this symbol, with lambda forms for values.
-	
+
 2007-06-15  Masatake YAMATO  <jet@gyve.org>
 
-	* vc-bzr.el (vc-bzr-root): Cache the output of shell command
-	execution.
+	* vc-bzr.el (vc-bzr-root): Cache the output of shell command execution.
 
-	* vc.el (vc-dired-hook): Check the backend returned from 
+	* vc.el (vc-dired-hook): Check the backend returned from
 	`vc-responsible-backend' can really handle `subdir'.
 
 2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
 
-	* wid-edit.el (widget-add-documentation-string-button): Fix
-	handling of documentation indent.
+	* wid-edit.el (widget-add-documentation-string-button):
+	Fix handling of documentation indent.
 
 2007-06-15  Miles Bader  <miles@fencepost.gnu.org>
 
@@ -47,8 +1168,8 @@
 	(custom-variable-value-create, custom-face-value-create)
 	(custom-visibility): New widget.
 	(custom-visibility): New face.
-	(custom-group-value-create): Call
-	widget-add-documentation-string-button, using `custom-visibility'.
+	(custom-group-value-create):
+	Call widget-add-documentation-string-button, using `custom-visibility'.
 
 2007-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -60,8 +1181,8 @@
 2007-06-14  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.el (viper-describe-key-ad, viper-describe-key-briefly-ad):
-	different advices for Emacs and XEmacs.  Compile them conditionally.
-	(viper-version): belated version change.
+	Different advices for Emacs and XEmacs.  Compile them conditionally.
+	(viper-version): Belated version change.
 
 2007-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -129,7 +1250,7 @@
 	post-command-hook.
 	(rcirc-window-configuration-change-1): Update mode-line and
 	overlay arrows here.
-	(rcirc-authenticate): Fix chanserv identification.
+	(rcirc-authenticate): Fixc hanserv identification.
 	(rcirc-default-server): Remove variable.
 	(rcirc): Connect according to rcirc-connections.
 	(rcirc-connections): Add variable.
@@ -155,6 +1276,11 @@
 	(sh-font-lock-syntactic-keywords): Adjust call to sh-quoted-subshell.
 
 	* vc-arch.el (vc-arch-command): Remove bzr.  It's a different program.
+
+2007-06-13  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-ptch.el (ediff-context-diff-label-regexp): Partially undo
+	previous change.
 
 2007-06-12  Tom Tromey  <tromey@redhat.com>
 
@@ -260,7 +1386,7 @@
 	(desktop-kill): Tell `desktop-save' that this is the last save.
 	Release the lock afterwards.
 	(desktop-buffer-info): New function.
-	(desktop-save): Use it.	 Run `desktop-save-hook' where the doc
+	(desktop-save): Use it.  Run `desktop-save-hook' where the doc
 	says to.  Detect conflicts, and manage the lock.
 	(desktop-read): Detect conflicts.  Manage the lock.
 
@@ -270,7 +1396,7 @@
 
 	* emulation/tpu-edt.el (tpu-gold-map): Rename from GOLD-map.
 	(tpu-lucid-emacs-p): Remove.  Use (featurep 'xemacs) instead.
-	(CSI-map, GOLD-CSI-map, GOLD-SS3-map, SS3-map):	Delete vars.
+	(CSI-map, GOLD-CSI-map, GOLD-SS3-map, SS3-map): Delete vars.
 	(tpu-gold-map, tpu-global-map): Add all the SS3 and CSI bindings, using
 	keysyms rather than byte sequences.
 	(tpu-copy-keyfile): Don't force the user to use tpu-mapper.el.
@@ -469,9 +1595,9 @@
 	(org-table-use-standard-references, org-disputed-keys)
 	(org-export-skip-text-before-1st-heading, org-agenda-with-colors)
 	(org-agenda-export-html-style): New option.
-	(org-allow-auto-repeat,  org-agenda-remove-tags-when-in-prefix)
+	(org-allow-auto-repeat, org-agenda-remove-tags-when-in-prefix)
 	(org-CUA-compatible): Option removed.
-	(org-agenda-structure,  org-sexp-date): New face.
+	(org-agenda-structure, org-sexp-date): New face.
 	(org-todo-keywords-for-agenda, org-not-done-keywords)
 	(org-planning-or-clock-line-re, org-agenda-name)
 	(org-table-colgroup-info, org-todo-sets)
@@ -487,7 +1613,7 @@
 	(org-repeat-re, org-todo-kwd-max-priority)
 	(org-version, org-done-string)
 	(org-table-clean-did-remove-column-1, org-disputed-keys):
-	Remove Variables.
+	Remove variables.
 	(org-table-translate-regexp, org-repeat-re, org-version): New consts.
 	(org-ts-lengths): Constant removed.
 	(org-follow-gnus-link): Don't ask how many articles to read.
@@ -644,7 +1770,7 @@
 2007-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/derived.el (define-derived-mode): Remove bogus
-	compatibiity code.
+	compatibility code.
 
 	* emacs-lisp/copyright.el (copyright-names-regexp): New var.
 	(copyright-update-year): Use it.
@@ -742,7 +1868,7 @@
 
 	* files.el (auto-mode-alist): Open `.asd' files in lisp-mode.
 
-2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2007-05-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mail-extr.el (mail-extract-address-components):
 	Recognize non-ASCII characters except for NBSP as words.

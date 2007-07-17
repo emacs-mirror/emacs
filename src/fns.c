@@ -3641,7 +3641,7 @@ base64_decode_1 (from, to, length, multibyte, nchars_return)
 
 /* The list of all weak hash tables.  Don't staticpro this one.  */
 
-Lisp_Object Vweak_hash_tables;
+struct Lisp_Hash_Table *weak_hash_tables;
 
 /* Various symbols.  */
 
@@ -3831,7 +3831,7 @@ hashfn_eq (h, key)
      struct Lisp_Hash_Table *h;
      Lisp_Object key;
 {
-  unsigned hash = XUINT (key) ^ XGCTYPE (key);
+  unsigned hash = XUINT (key) ^ XTYPE (key);
   xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
@@ -3850,7 +3850,7 @@ hashfn_eql (h, key)
   if (FLOATP (key))
     hash = sxhash (key, 0);
   else
-    hash = XUINT (key) ^ XGCTYPE (key);
+    hash = XUINT (key) ^ XTYPE (key);
   xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
@@ -3987,11 +3987,11 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
 
   /* Maybe add this hash table to the list of all weak hash tables.  */
   if (NILP (h->weak))
-    h->next_weak = Qnil;
+    h->next_weak = NULL;
   else
     {
-      h->next_weak = Vweak_hash_tables;
-      Vweak_hash_tables = table;
+      h->next_weak = weak_hash_tables;
+      weak_hash_tables = h;
     }
 
   return table;
@@ -4022,8 +4022,8 @@ copy_hash_table (h1)
   /* Maybe add this hash table to the list of all weak hash tables.  */
   if (!NILP (h2->weak))
     {
-      h2->next_weak = Vweak_hash_tables;
-      Vweak_hash_tables = table;
+      h2->next_weak = weak_hash_tables;
+      weak_hash_tables = h2;
     }
 
   return table;
@@ -4271,7 +4271,7 @@ sweep_weak_table (h, remove_entries_p)
       /* Follow collision chain, removing entries that
 	 don't survive this garbage collection.  */
       prev = Qnil;
-      for (idx = HASH_INDEX (h, bucket); !GC_NILP (idx); idx = next)
+      for (idx = HASH_INDEX (h, bucket); !NILP (idx); idx = next)
 	{
 	  int i = XFASTINT (idx);
 	  int key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
@@ -4296,7 +4296,7 @@ sweep_weak_table (h, remove_entries_p)
 	      if (remove_p)
 		{
 		  /* Take out of collision chain.  */
-		  if (GC_NILP (prev))
+		  if (NILP (prev))
 		    HASH_INDEX (h, bucket) = next;
 		  else
 		    HASH_NEXT (h, XFASTINT (prev)) = next;
@@ -4347,8 +4347,7 @@ sweep_weak_table (h, remove_entries_p)
 void
 sweep_weak_hash_tables ()
 {
-  Lisp_Object table, used, next;
-  struct Lisp_Hash_Table *h;
+  struct Lisp_Hash_Table *h, *used, *next;
   int marked;
 
   /* Mark all keys and values that are in use.  Keep on marking until
@@ -4360,9 +4359,8 @@ sweep_weak_hash_tables ()
   do
     {
       marked = 0;
-      for (table = Vweak_hash_tables; !GC_NILP (table); table = h->next_weak)
+      for (h = weak_hash_tables; h; h = h->next_weak)
 	{
-	  h = XHASH_TABLE (table);
 	  if (h->size & ARRAY_MARK_FLAG)
 	    marked |= sweep_weak_table (h, 0);
 	}
@@ -4370,9 +4368,8 @@ sweep_weak_hash_tables ()
   while (marked);
 
   /* Remove tables and entries that aren't used.  */
-  for (table = Vweak_hash_tables, used = Qnil; !GC_NILP (table); table = next)
+  for (h = weak_hash_tables, used = NULL; h; h = next)
     {
-      h = XHASH_TABLE (table);
       next = h->next_weak;
 
       if (h->size & ARRAY_MARK_FLAG)
@@ -4383,11 +4380,11 @@ sweep_weak_hash_tables ()
 
 	  /* Add table to the list of used weak hash tables.  */
 	  h->next_weak = used;
-	  used = table;
+	  used = h;
 	}
     }
 
-  Vweak_hash_tables = used;
+  weak_hash_tables = used;
 }
 
 
@@ -5277,7 +5274,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
 void
 init_fns ()
 {
-  Vweak_hash_tables = Qnil;
+  weak_hash_tables = NULL;
 }
 
 /* arch-tag: 787f8219-5b74-46bd-8469-7e1cc475fa31

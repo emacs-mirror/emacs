@@ -5295,7 +5295,7 @@
 	(reb-lisp-syntax-p, reb-change-syntax): `rx' is a Lisp syntax.
 	(reb-cook-regexp): Call `rx-to-string' when `re-reb-syntax' is `rx'.
 
-2004-08-05  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2004-08-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/mail-extr.el (mail-extr-disable-voodoo): New variable.
 	(mail-extr-voodoo): Check mail-extr-disable-voodoo.

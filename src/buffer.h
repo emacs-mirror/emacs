@@ -919,7 +919,7 @@ extern Lisp_Object Vtransient_mark_mode;
    We assume you know which buffer it's pointing into.  */
 
 #define OVERLAY_POSITION(P) \
- (GC_MARKERP (P) ? marker_position (P) : (abort (), 0))
+ (MARKERP (P) ? marker_position (P) : (abort (), 0))
 
 
 /***********************************************************************

@@ -1161,6 +1161,7 @@ mail status in mode line"))
   '("--"))
 
 (defvar vc-menu-map (make-sparse-keymap "Version Control"))
+(defalias 'vc-menu-map vc-menu-map)
 (define-key menu-bar-tools-menu [pcl-cvs]
   '(menu-item "PCL-CVS" cvs-global-menu))
 (define-key menu-bar-tools-menu [vc]

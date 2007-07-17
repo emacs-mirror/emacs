@@ -93,6 +93,11 @@ Lisp_Object Qsearch_failed;
 
 Lisp_Object Vsearch_spaces_regexp;
 
+/* If non-nil, the match data will not be changed during call to
+   searching or matching functions.  This variable is for internal use
+   only.  */
+Lisp_Object Vinhibit_changing_match_data;
+
 static void set_search_regs ();
 static void save_search_regs ();
 static int simple_search ();
@@ -289,7 +294,9 @@ looking_at_1 (string, posix)
     = current_buffer->case_eqv_table;
 
   CHECK_STRING (string);
-  bufp = compile_pattern (string, &search_regs,
+  bufp = compile_pattern (string,
+			  (NILP (Vinhibit_changing_match_data)
+			   ? &search_regs : NULL),
 			  (!NILP (current_buffer->case_fold_search)
 			   ? current_buffer->case_canon_table : Qnil),
 			  posix,
@@ -320,7 +327,9 @@ looking_at_1 (string, posix)
   re_match_object = Qnil;
 
   i = re_match_2 (bufp, (char *) p1, s1, (char *) p2, s2,
-		  PT_BYTE - BEGV_BYTE, &search_regs,
+		  PT_BYTE - BEGV_BYTE,
+		  (NILP (Vinhibit_changing_match_data)
+		   ? &search_regs : NULL),
 		  ZV_BYTE - BEGV_BYTE);
   immediate_quit = 0;
 
@@ -328,7 +337,7 @@ looking_at_1 (string, posix)
     matcher_overflow ();
 
   val = (0 <= i ? Qt : Qnil);
-  if (i >= 0)
+  if (NILP (Vinhibit_changing_match_data) && i >= 0)
     for (i = 0; i < search_regs.num_regs; i++)
       if (search_regs.start[i] >= 0)
 	{
@@ -337,7 +346,11 @@ looking_at_1 (string, posix)
 	  search_regs.end[i]
 	    = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
 	}
-  XSETBUFFER (last_thing_searched, current_buffer);
+
+  /* Set last_thing_searched only when match data is changed.  */
+  if (NILP (Vinhibit_changing_match_data))
+    XSETBUFFER (last_thing_searched, current_buffer);
+
   return val;
 }
 
@@ -399,7 +412,9 @@ string_match_1 (regexp, string, start, posix)
   XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
     = current_buffer->case_eqv_table;
 
-  bufp = compile_pattern (regexp, &search_regs,
+  bufp = compile_pattern (regexp,
+			  (NILP (Vinhibit_changing_match_data)
+			   ? &search_regs : NULL),
 			  (!NILP (current_buffer->case_fold_search)
 			   ? current_buffer->case_canon_table : Qnil),
 			  posix,
@@ -410,21 +425,27 @@ string_match_1 (regexp, string, start, posix)
   val = re_search (bufp, (char *) SDATA (string),
 		   SBYTES (string), pos_byte,
 		   SBYTES (string) - pos_byte,
-		   &search_regs);
+		   (NILP (Vinhibit_changing_match_data)
+		    ? &search_regs : NULL));
   immediate_quit = 0;
-  last_thing_searched = Qt;
+
+  /* Set last_thing_searched only when match data is changed.  */
+  if (NILP (Vinhibit_changing_match_data))
+    last_thing_searched = Qt;
+
   if (val == -2)
     matcher_overflow ();
   if (val < 0) return Qnil;
 
-  for (i = 0; i < search_regs.num_regs; i++)
-    if (search_regs.start[i] >= 0)
-      {
-	search_regs.start[i]
-	  = string_byte_to_char (string, search_regs.start[i]);
-	search_regs.end[i]
-	  = string_byte_to_char (string, search_regs.end[i]);
-      }
+  if (NILP (Vinhibit_changing_match_data))
+    for (i = 0; i < search_regs.num_regs; i++)
+      if (search_regs.start[i] >= 0)
+	{
+	  search_regs.start[i]
+	    = string_byte_to_char (string, search_regs.start[i]);
+	  search_regs.end[i]
+	    = string_byte_to_char (string, search_regs.end[i]);
+	}
 
   return make_number (string_byte_to_char (string, val));
 }
@@ -1042,6 +1063,11 @@ do						\
   }						\
 while (0)
 
+/* Only used in search_buffer, to record the end position of the match
+   when searching regexps and SEARCH_REGS should not be changed
+   (i.e. Vinhibit_changing_match_data is non-nil).  */
+static struct re_registers search_regs_1;
+
 static int
 search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	       RE, trt, inverse_trt, posix)
@@ -1077,7 +1103,10 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       int s1, s2;
       struct re_pattern_buffer *bufp;
 
-      bufp = compile_pattern (string, &search_regs, trt, posix,
+      bufp = compile_pattern (string,
+			      (NILP (Vinhibit_changing_match_data)
+			       ? &search_regs : &search_regs_1),
+			      trt, posix,
 			      !NILP (current_buffer->enable_multibyte_characters));
 
       immediate_quit = 1;	/* Quit immediately if user types ^G,
@@ -1110,7 +1139,8 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	  int val;
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
-			     &search_regs,
+			     (NILP (Vinhibit_changing_match_data)
+			      ? &search_regs : &search_regs_1),
 			     /* Don't allow match past current point */
 			     pos_byte - BEGV_BYTE);
 	  if (val == -2)
@@ -1119,18 +1149,27 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	    }
 	  if (val >= 0)
 	    {
-	      pos_byte = search_regs.start[0] + BEGV_BYTE;
-	      for (i = 0; i < search_regs.num_regs; i++)
-		if (search_regs.start[i] >= 0)
-		  {
-		    search_regs.start[i]
-		      = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
-		    search_regs.end[i]
-		      = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
-		  }
-	      XSETBUFFER (last_thing_searched, current_buffer);
-	      /* Set pos to the new position. */
-	      pos = search_regs.start[0];
+	      if (NILP (Vinhibit_changing_match_data))
+		{
+		  pos_byte = search_regs.start[0] + BEGV_BYTE;
+		  for (i = 0; i < search_regs.num_regs; i++)
+		    if (search_regs.start[i] >= 0)
+		      {
+			search_regs.start[i]
+			  = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
+			search_regs.end[i]
+			  = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
+		      }
+		  XSETBUFFER (last_thing_searched, current_buffer);
+		  /* Set pos to the new position. */
+		  pos = search_regs.start[0];
+		}
+	      else
+		{
+		  pos_byte = search_regs_1.start[0] + BEGV_BYTE;
+		  /* Set pos to the new position.  */
+		  pos = BYTE_TO_CHAR (search_regs_1.start[0] + BEGV_BYTE);
+		}
 	    }
 	  else
 	    {
@@ -1144,7 +1183,8 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	  int val;
 	  val = re_search_2 (bufp, (char *) p1, s1, (char *) p2, s2,
 			     pos_byte - BEGV_BYTE, lim_byte - pos_byte,
-			     &search_regs,
+			     (NILP (Vinhibit_changing_match_data)
+			      ? &search_regs : &search_regs_1),
 			     lim_byte - BEGV_BYTE);
 	  if (val == -2)
 	    {
@@ -1152,17 +1192,25 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	    }
 	  if (val >= 0)
 	    {
-	      pos_byte = search_regs.end[0] + BEGV_BYTE;
-	      for (i = 0; i < search_regs.num_regs; i++)
-		if (search_regs.start[i] >= 0)
-		  {
-		    search_regs.start[i]
-		      = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
-		    search_regs.end[i]
-		      = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
-		  }
-	      XSETBUFFER (last_thing_searched, current_buffer);
-	      pos = search_regs.end[0];
+	      if (NILP (Vinhibit_changing_match_data))
+		{
+		  pos_byte = search_regs.end[0] + BEGV_BYTE;
+		  for (i = 0; i < search_regs.num_regs; i++)
+		    if (search_regs.start[i] >= 0)
+		      {
+			search_regs.start[i]
+			  = BYTE_TO_CHAR (search_regs.start[i] + BEGV_BYTE);
+			search_regs.end[i]
+			  = BYTE_TO_CHAR (search_regs.end[i] + BEGV_BYTE);
+		      }
+		  XSETBUFFER (last_thing_searched, current_buffer);
+		  pos = search_regs.end[0];
+		}
+	      else
+		{
+		  pos_byte = search_regs_1.end[0] + BEGV_BYTE;
+		  pos = BYTE_TO_CHAR (search_regs_1.end[0] + BEGV_BYTE);
+		}
 	    }
 	  else
 	    {
@@ -1907,7 +1955,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      cursor += dirlen - i - direction;	/* fix cursor */
 	      if (i + direction == 0)
 		{
-		  int position;
+		  int position, start, end;
 
 		  cursor -= direction;
 
@@ -1915,11 +1963,24 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 						       ? 1 - len_byte : 0);
 		  set_search_regs (position, len_byte);
 
+		  if (NILP (Vinhibit_changing_match_data))
+		    {
+		      start = search_regs.start[0];
+		      end = search_regs.end[0];
+		    }
+		  else
+		    /* If Vinhibit_changing_match_data is non-nil,
+		       search_regs will not be changed.  So let's
+		       compute start and end here.  */
+		    {
+		      start = BYTE_TO_CHAR (position);
+		      end = BYTE_TO_CHAR (position + len_byte);
+		    }
+
 		  if ((n -= direction) != 0)
 		    cursor += dirlen; /* to resume search */
 		  else
-		    return ((direction > 0)
-			    ? search_regs.end[0] : search_regs.start[0]);
+		    return direction > 0 ? end : start;
 		}
 	      else
 		cursor += stride_for_teases; /* <sigh> we lose -  */
@@ -1984,18 +2045,30 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      pos_byte += dirlen - i- direction;
 	      if (i + direction == 0)
 		{
-		  int position;
+		  int position, start, end;
 		  pos_byte -= direction;
 
 		  position = pos_byte + ((direction > 0) ? 1 - len_byte : 0);
-
 		  set_search_regs (position, len_byte);
+
+		  if (NILP (Vinhibit_changing_match_data))
+		    {
+		      start = search_regs.start[0];
+		      end = search_regs.end[0];
+		    }
+		  else
+		    /* If Vinhibit_changing_match_data is non-nil,
+		       search_regs will not be changed.  So let's
+		       compute start and end here.  */
+		    {
+		      start = BYTE_TO_CHAR (position);
+		      end = BYTE_TO_CHAR (position + len_byte);
+		    }
 
 		  if ((n -= direction) != 0)
 		    pos_byte += dirlen; /* to resume search */
 		  else
-		    return ((direction > 0)
-			    ? search_regs.end[0] : search_regs.start[0]);
+		    return direction > 0 ? end : start;
 		}
 	      else
 		pos_byte += stride_for_teases;
@@ -2017,6 +2090,9 @@ set_search_regs (beg_byte, nbytes)
      int beg_byte, nbytes;
 {
   int i;
+
+  if (!NILP (Vinhibit_changing_match_data))
+    return;
 
   /* Make sure we have registers in which to store
      the match position.  */
@@ -3144,6 +3220,13 @@ Spaces that occur inside character classes or repetition operators
 or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
   Vsearch_spaces_regexp = Qnil;
+
+  DEFVAR_LISP ("inhibit-changing-match-data", &Vinhibit_changing_match_data,
+      doc: /* Internal use only.
+If non-nil, the match data will not be changed during call to searching or
+matching functions, such as `looking-at', `string-match', `re-search-forward'
+etc.  */);
+  Vinhibit_changing_match_data = Qnil;
 
   defsubr (&Slooking_at);
   defsubr (&Sposix_looking_at);

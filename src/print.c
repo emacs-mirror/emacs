@@ -690,7 +690,7 @@ If variable `temp-buffer-show-function' is non-nil, call it at the end
 to get the buffer displayed instead of just displaying the non-selected
 buffer and calling the hook.  It gets one argument, the buffer to display.
 
-usage: (with-output-to-temp-buffer BUFNAME BODY ...)  */)
+usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -1425,7 +1425,7 @@ print_preprocess (obj)
 	  print_number_index++;
 	}
 
-      switch (XGCTYPE (obj))
+      switch (XTYPE (obj))
 	{
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
@@ -1626,7 +1626,7 @@ print_object (obj, printcharfun, escapeflag)
     }
 #endif /* MAX_PRINT_CHARS */
 
-  switch (XGCTYPE (obj))
+  switch (XTYPE (obj))
     {
     case Lisp_Int:
       if (sizeof (int) == sizeof (EMACS_INT))

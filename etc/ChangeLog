@@ -1,3 +1,40 @@
+2007-07-15  Karl Fogel  <kfogel@red-bean.com>
+
+	* NEWS: Revert 2007-07-13T23:20:21Z!kfogel@red-bean.com, which
+	documented bookmark keybinding changes that were later reverted.
+
+2007-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Mention gtk-engines-qt problem.
+
+2007-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* NEWS: Update for recent bookmark keybinding changes.
+
+2007-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add Tramp and comint-mode changes.
+
+2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `file-remote-p' has a new optional parameter CONNECTED.
+
+2007-07-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: New function `start-file-process'.
+
+2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version 5.01
+
+2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `dired-call-process' has been removed.
+
+2007-06-20  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: configure prefers libgif over libungif.
+
 2007-06-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* NEWS: Mention mouse highlighting in a GNU/Linux console.

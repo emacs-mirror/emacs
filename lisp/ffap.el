@@ -1793,7 +1793,11 @@ ffap most of the time."
   ;; Extra complication for the temporary highlighting.
   (unwind-protect
       (ffap-read-file-or-url
-       (if ffap-url-regexp "Dired file or URL: " "Dired file: ")
+       (cond
+	((eq ffap-directory-finder 'list-directory)
+	 "List directory (brief): ")
+	(ffap-url-regexp "Dired file or URL: ")
+	(t "Dired file: "))
        (prog1
 	   (setq guess (or guess
                            (let ((guess (ffap-guesser)))

@@ -125,8 +125,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				  :value (undecided . undecided)
 				  (coding-system :tag "Decoding")
 				  (coding-system :tag "Encoding"))
-			    (coding-system :tag "Single coding system"
-					   :value undecided)
+			    (coding-system
+			     :tag "Single coding system"
+			     :value undecided
+			     :match (lambda (widget value)
+				      (and value (not (functionp value)))))
 			    (function :value ignore))))
 	     (selection-coding-system mule coding-system)
 	     ;; dired.c
@@ -142,6 +145,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; eval.c
 	     (max-specpdl-size limits integer)
 	     (max-lisp-eval-depth limits integer)
+	     (max-mini-window-height limits
+				     (choice (const :tag "quarter screen" nil)
+					     number))
 	     (stack-trace-on-error debug
 				   (choice (const :tag "off")
 					   (repeat :menu-tag "When"
