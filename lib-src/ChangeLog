@@ -1,3 +1,7 @@
+2007-07-17  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (C_entries): Reset the fvdef machine when out of function.
+
 2007-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (clean): Don't delete *~.
