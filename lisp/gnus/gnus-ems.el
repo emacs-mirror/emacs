@@ -183,6 +183,7 @@
 	(file (nnheader-find-etc-directory "images/gnus/x-splash" t))
 	pixmap fcw fch width height fringes sbars left yoffset top ls)
     (erase-buffer)
+    (sit-for 0) ;; Necessary for measuring the window size correctly.
     (when (and file
 	       (ignore-errors
 		(let ((coding-system-for-read 'raw-text)

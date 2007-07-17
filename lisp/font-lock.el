@@ -698,6 +698,14 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	 ;; contain the new keywords.
 	 (font-lock-update-removed-keyword-alist mode keywords how))
 	(t
+         (when (and font-lock-mode
+                    (not (or font-lock-keywords font-lock-defaults)))
+           ;; The major mode has not set any keywords, so when we enabled
+           ;; font-lock-mode it only enabled the font-core.el part, not the
+           ;; font-lock-mode-internal.  Try again.
+           (font-lock-mode -1)
+           (set (make-local-variable 'font-lock-defaults) '(nil t))
+           (font-lock-mode 1))
 	 ;; Otherwise set or add the keywords now.
 	 ;; This is a no-op if it has been done already in this buffer
 	 ;; for the correct major mode.

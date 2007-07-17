@@ -33,57 +33,26 @@
 
 ;; See http://home.netscape.com/newsref/std/cookie_spec.html for the
 ;; 'open standard' defining this crap.
-;;
-;; A cookie is stored internally as a vector of 7 slots
-;; [ cookie NAME VALUE EXPIRES LOCALPART DOMAIN SECURE ]
-
-(defsubst url-cookie-name    (cookie) (aref cookie 1))
-(defsubst url-cookie-value   (cookie) (aref cookie 2))
-(defsubst url-cookie-expires (cookie) (aref cookie 3))
-(defsubst url-cookie-localpart    (cookie) (aref cookie 4))
-(defsubst url-cookie-domain  (cookie) (aref cookie 5))
-(defsubst url-cookie-secure  (cookie) (aref cookie 6))
-
-(defsubst url-cookie-set-name    (cookie val) (aset cookie 1 val))
-(defsubst url-cookie-set-value   (cookie val) (aset cookie 2 val))
-(defsubst url-cookie-set-expires (cookie val) (aset cookie 3 val))
-(defsubst url-cookie-set-localpart (cookie val) (aset cookie 4 val))
-(defsubst url-cookie-set-domain  (cookie val) (aset cookie 5 val))
-(defsubst url-cookie-set-secure  (cookie val) (aset cookie 6 val))
-(defsubst url-cookie-retrieve-arg (key args) (nth 1 (memq key args)))
-
-(defsubst url-cookie-create (&rest args)
-  "Create a cookie vector object from keyword-value pairs ARGS.
-The keywords allowed are
-  :name NAME
-  :value VALUE
-  :expires TIME
-  :localpart LOCALPAR
-  :domain DOMAIN
-  :secure ???
-Could someone fill in more information?"
-  (let ((retval (make-vector 7 nil)))
-    (aset retval 0 'cookie)
-    (url-cookie-set-name retval (url-cookie-retrieve-arg :name args))
-    (url-cookie-set-value retval (url-cookie-retrieve-arg :value args))
-    (url-cookie-set-expires retval (url-cookie-retrieve-arg :expires args))
-    (url-cookie-set-localpart retval (url-cookie-retrieve-arg :localpart args))
-    (url-cookie-set-domain retval (url-cookie-retrieve-arg :domain args))
-    (url-cookie-set-secure retval (url-cookie-retrieve-arg :secure args))
-    retval))
-
-(defun url-cookie-p (obj)
-  "Return non-nil if OBJ is a cookie vector object.
-These objects represent cookies in the URL package.
-A cookie vector object is a vector of 7 slots:
- [cookie NAME VALUE EXPIRES LOCALPART DOMAIN SECURE]."
-  (and (vectorp obj) (= (length obj) 7) (eq (aref obj 0) 'cookie)))
 
 (defgroup url-cookie nil
   "URL cookies."
   :prefix "url-"
   :prefix "url-cookie-"
   :group 'url)
+
+;; A cookie is stored internally as a vector of 7 slots
+;; [ cookie NAME VALUE EXPIRES LOCALPART DOMAIN SECURE ]
+
+(defstruct (url-cookie
+            (:constructor url-cookie-create)
+            (:copier nil)
+            ;; For compatibility with a previous version which did not use
+            ;; defstruct, and also in order to make sure that the printed
+            ;; representation does not depend on CL internals, we use an
+            ;; explicitly managed tag.
+            (:type vector))
+  (tag 'cookie :read-only t)
+  name value expires localpart domain secure)
 
 (defvar url-cookie-storage nil         "Where cookies are stored.")
 (defvar url-cookie-secure-storage nil  "Where secure cookies are stored.")
@@ -199,8 +168,8 @@ telling Microsoft that."
 	    (if (and (equal localpart (url-cookie-localpart cur))
 		     (equal name (url-cookie-name cur)))
 		(progn
-		  (url-cookie-set-expires cur expires)
-		  (url-cookie-set-value cur value)
+		  (setf (url-cookie-expires cur) expires)
+		  (setf (url-cookie-value cur) value)
 		  (setq tmp t))))
 	  (if (not tmp)
 	      ;; New cookie

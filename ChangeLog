@@ -1,3 +1,30 @@
+2007-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for all image libraries before exiting.
+
+2007-06-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Exit with error if image libraries aren't found.
+
+2007-06-13  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-ptch.el (ediff-context-diff-label-regexp): partially undid
+	previous patch
+
+2007-06-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Merge xaw3d and libXaw checks.  Check xaw3d even
+	when compiling without scrollbars.
+
+2007-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_GIF): If -lungif fails, try -lgif.
+
+2007-06-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Change wording about yes/gtk and lucid/athena being
+	synonyms.
+
 2007-06-08  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Make gtk the default toolkit.

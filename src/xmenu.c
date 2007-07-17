@@ -82,7 +82,11 @@ Boston, MA 02110-1301, USA.  */
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>
 #ifdef USE_LUCID
+#ifdef HAVE_XAW3D
+#include <X11/Xaw3d/Paned.h>
+#else /* !HAVE_XAW3D */
 #include <X11/Xaw/Paned.h>
+#endif /* HAVE_XAW3D */
 #endif /* USE_LUCID */
 #include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */

@@ -932,7 +932,8 @@ usage: (string &rest CHARACTERS)  */)
 }
 
 DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
-       doc: /* Concatenate all the argument bytes and make the result a unibyte string.  */)
+       doc: /* Concatenate all the argument bytes and make the result a unibyte string.
+usage: (unibyte-string &rest BYTES)  */)
      (n, args)
      int n;
      Lisp_Object *args;

@@ -111,7 +111,7 @@ Several simplifications have been made to mouse support:
 @item
 Clicking @kbd{mouse-1} won't follow links, as that is alien to the
 spirit of Emacs.  Therefore, the @code{follow-link} property doesn't
-has any special meaning, and the function @code{mouse-on-link-p} has
+have any special meaning, and the function @code{mouse-on-link-p} has
 been removed.
 
 @item

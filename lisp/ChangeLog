@@ -1,7 +1,318 @@
+2007-06-16  Karl Fogel  <kfogel@red-bean.com>
+
+	* thingatpt.el (thing-at-point-email-regexp): Don't require two
+	chars before the "@" in an email address.  Andreas Roehler noticed
+	this problem.
+
+2007-06-15  Karl Fogel  <kfogel@red-bean.com>
+
+	* thingatpt.el: Add support for email addresses (`email').
+	(thing-at-point, bounds-of-thing-at-point): Document `email' support.
+	(thing-at-point-email-regexp): New variable.
+	(`email'): Put `bounds-of-thing-at-point' and `thing-at-point'
+	properties on this symbol, with lambda forms for values.
+	
+2007-06-15  Masatake YAMATO  <jet@gyve.org>
+
+	* vc-bzr.el (vc-bzr-root): Cache the output of shell command
+	execution.
+
+	* vc.el (vc-dired-hook): Check the backend returned from 
+	`vc-responsible-backend' can really handle `subdir'.
+
+2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-add-documentation-string-button): Fix
+	handling of documentation indent.
+
+2007-06-15  Miles Bader  <miles@fencepost.gnu.org>
+
+	* mb-depth.el: New file.
+
+2007-06-15  Masatake YAMATO  <jet@gyve.org>
+
+	* vc.el (vc-dired-mode): Show backend name as part of mode name.
+
+2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-default-create): Move ?h handling here...
+	(widget-default-format-handler): ...from here.
+	(widget-docstring, widget-add-documentation-string-button): New funs.
+	(documentation-string): Add :visibility-widget property.
+	(widget-documentation-string-value-create): Use it.
+
+	* cus-edit.el (custom-split-regexp-maybe): Simplify.
+	(custom-buffer-create-internal): Simplify message.
+	(custom-variable-tag): Reduce height to normal.
+	(custom-variable-value-create, custom-face-value-create)
+	(custom-visibility): New widget.
+	(custom-visibility): New face.
+	(custom-group-value-create): Call
+	widget-add-documentation-string-button, using `custom-visibility'.
+
+2007-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-group)
+	(byte-compile-nogroup-warn, byte-compile-file): Revert part of last
+	change.  Apparently the "warning even if the group is implicit" is
+	a feature rather than a bug.
+
+2007-06-14  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper.el (viper-describe-key-ad, viper-describe-key-briefly-ad):
+	different advices for Emacs and XEmacs.  Compile them conditionally.
+	(viper-version): belated version change.
+
+2007-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-all-followers, follow-generic-filter):
+	* pcomplete.el (pcomplete-restore-windows):
+	* x-dnd.el (x-dnd-maybe-call-test-function, x-dnd-save-state)
+	(x-dnd-drop-data):
+	* emacs-lisp/edebug.el (edebug-pop-to-buffer, edebug-display):
+	* progmodes/python.el (python-complete-symbol):
+	* term/mac-win.el (mac-dnd-drop-data): Remove redundant check.
+
+2007-06-13  Ryan Yeske  <rcyeske@gmail.com>
+
+	* rcirc.el (rcirc-format-response-string): Use rcirc-nick-syntax
+	around bright and dim regexps. Make sure bright and dim matches
+	use word anchors.  Send text through rcirc-markup functions.
+	(rcirc-url-regexp): Add single quote character.
+	(rcirc-connect): Write logs to disk on auto-save-hook.
+	Make server a non-optional argument.
+	(rcirc-log-alist): New variable.
+	(rcirc-log-directory): Make customizable.
+	(rcirc-log-flag): New customizable variable.
+	(rcirc-log): New function.
+	(rcirc-print): Use above function.
+	(rcirc-log-write): New function.
+	(rcirc-generate-new-buffer-name): Strip text properties.
+	(rcirc-switch-to-buffer-function): Remove variable.
+	(rcirc-last-non-irc-buffer): Remove variable.
+	(rcirc-non-irc-buffer): Add function.
+	(rcirc-next-active-buffer): Use above function.
+	(rcirc-keepalive): Send KEEPALIVE ctcp instead of a PING.
+	(rcirc-handler-ctcp-KEEPALIVE): Add handler.
+	(rcirc-handler-CTCP): Don't print KEEPALIVE responses.
+	(rcirc-omit-mode): Add minor-mode.
+	(rcirc-mode-map): Change C-c C-o binding.
+	(rcirc-mode): Clear mode-line-process. Use a custom
+	fill-paragraph-function.  Set up buffer-invisibility-spec.
+	(rcirc-response-formats): Remove timestamp code.
+	(rcirc-omit-responses): Add variable.
+	(rcirc-print): Don't put the overlay arrow on potentially omitted
+	lines.  Log line to disk.  Record activity for private messages
+	from /dim nicks.  Facify the fill-prefix with rcirc-timestamp face.
+	(rcirc-jump-to-first-unread-line): Print message if there is no
+	unread text.
+	(rcirc-clear-unread): New function.
+	(rcirc-markup-text-functions): Add variable.
+	(rcirc-markup-timestamp, rcirc-markup-fill): Add functions.
+	(rcirc-debug): Don't mess with window configuration.
+	(rcirc-send-message): Send message before printing locally.
+	Add SILENT argument, do not print message if non-nil.
+	(rcirc-visible-buffers): New function and variable.
+	(rcirc-window-configuration-change-1): Add function.
+	(rcirc-target-buffer): Make sure ACTIONs don't get sent to the
+	server buffer.
+	(rcirc-clean-up-buffer): Set rcirc-target to nil when finished.
+	(rcirc-fill-paragraph): Add function.
+	(rcirc-record-activity, rcirc-window-configuration-change-1):
+	Only update the activity string if it has actually changed.
+	(rcirc-update-activity-string): Remove padding characters from the
+	mode-line string.
+	(rcirc-disconnect-buffer): New function to be called when a
+	channel is parted or the user quits.
+	(rcirc-server-name): Warn when the server-name hasn't been set.
+	(rcirc-window-configuration-change): Postpone work until
+	post-command-hook.
+	(rcirc-window-configuration-change-1): Update mode-line and
+	overlay arrows here.
+	(rcirc-authenticate): Fix chanserv identification.
+	(rcirc-default-server): Remove variable.
+	(rcirc): Connect according to rcirc-connections.
+	(rcirc-connections): Add variable.
+	(rcirc-startup-channels-alist): Remove variable.
+	(rcirc-startup-channels): Remove function.
+
+2007-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-font-lock-keywords): Fix M. Kifer's last change.
+
+2007-06-13  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+
+	* term/xterm.el (terminal-init-xterm): Escape parens in character
+	constants.
+
+2007-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el: Remove unneeded * from docstrings.
+	Use [:alpha:] and [:alnum:] where applicable.
+	(sh-quoted-subshell): Rewrite to correctly
+	handle nested mixes of `...` and $(...).
+	(sh-apply-quoted-subshell): Remove.
+	(sh-font-lock-syntactic-keywords): Adjust call to sh-quoted-subshell.
+
+	* vc-arch.el (vc-arch-command): Remove bzr.  It's a different program.
+
+2007-06-12  Tom Tromey  <tromey@redhat.com>
+
+	* subr.el (user-emacs-directory): New defconst.
+	* cmuscheme.el (scheme-start-file):
+	* shell.el (shell):
+	* completion.el (save-completions-file-name):
+	* custom.el (custom-theme-directory):
+	* term/x-win.el (emacs-session-filename):
+	* filesets.el (filesets-menu-cache-file):
+	* thumbs.el (thumbs-thumbsdir):
+	* server.el (server-auth-dir):
+	* image-dired.el (image-dired-dir):
+	(image-dired-db-file):
+	(image-dired-temp-image-file):
+	(image-dired-gallery-dir):
+	(image-dired-temp-rotate-image-file):
+	* play/gamegrid.el (gamegrid-user-score-file-directory):
+	* savehist.el (savehist-file):
+	* tutorial.el (tutorial--saved-dir):
+	* startup.el (auto-save-list-file-prefix): Use user-emacs-directory.
+
+2007-06-12  Ralf Angeli  <angeli@caeruleus.net>
+
+	* scroll-lock.el (scroll-lock-mode): Doc fix.
+
+2007-06-12  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-ptch.el (ediff-context-diff-label-regexp): Spurious parenthesis.
+
+	* ediff-init.el: Doc strings.
+
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-current-group): New var.
+	(byte-compile-file): Bind it.
+	(byte-compile-nogroup-warn): Use it to avoid spurious warnings when the
+	group argument is provided implicitly.
+	(byte-compile-format-warn, byte-compile-from-buffer)
+	(byte-compile-insert-header): Don't hardcode point-min==1.
+	(byte-compile-file-form-require): Remove unused var old-load-list.
+	(byte-compile-eval): Remove unused vars old-autoloads and hist-nil-new.
+
+2007-06-12  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* emulation/viper-cmd.el (viper-prefix-arg-com, viper-prefix-arg-value):
+	Display error messages.
+	(viper-prev-destructive-command, viper-insert-prev-from-insertion-ring):
+	Get rid of cl.el dependencies.
+
+	* emulation/viper-init.el (viper-suppress-input-method-change-message):
+	New variable.
+	(viper-activate-input-method-action)
+	(viper-inactivate-input-method-action):
+	Use viper-suppress-input-method-change-message.
+
+	* emulation/viper-kem.el (viper-vi-basic-map): Disable the bindings
+	for C-s, C-r.
+
+	* emulation/viper-util.el (viper-set-cursor-color-according-to-state):
+	Use viper-replace-overlay-cursor-color instead of
+	viper-replace-overlay-cursor-color.
+	(viper-sit-for-short): Use sit-for with 3 arguments.
+
+	* emulation/viper.el (viper-insert-state-mode-list): Add gud-mode.
+	(viper-major-mode-modifier-list): Add viper-comint-mode-modifier-map
+	to gud-mode.
+
+	* ediff-mult.el (ediff-meta-buffer-brief-message)
+	(ediff-meta-buffer-verbose-message): New variables.
+	(ediff-meta-buffer-message): Variable deleted.
+	(ediff-verbose-help-enabled): New variable.
+	(ediff-toggle-verbose-help-meta-buffer): New function.
+	(ediff-redraw-directory-group-buffer): Made aware of short/verbose
+	message options
+
+	* ediff-ptch.el (ediff-context-diff-label-regexp): Better regexp.
+	(ediff-fixup-patch-map): Improve heuristic.
+
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-file-re, log-view-message-re): Use \(?1:...\).
+	(log-view-font-lock-keywords): Simplify.
+	(log-view-current-file, log-view-current-tag): Simplify.
+
+2007-06-12  Sam Steingold  <sds@gnu.org>
+
+	* vc-arch.el (vc-arch-command): Also try "baz" and "bzr".
+
+2007-06-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-load-locked-desktop): New option.
+	(desktop-read): Use it.
+	(desktop-truncate, desktop-outvar, desktop-restore-file-buffer):
+	Use `when'.
+
+2007-06-12  Davis Herring  <herring@lanl.gov>
+
+	* desktop.el (desktop-save-mode-off): New function.
+	(desktop-base-lock-name, desktop-not-loaded-hook): New variables.
+	(desktop-full-lock-name, desktop-file-modtime, desktop-owner)
+	(desktop-claim-lock, desktop-release-lock): New functions.
+	(desktop-kill): Tell `desktop-save' that this is the last save.
+	Release the lock afterwards.
+	(desktop-buffer-info): New function.
+	(desktop-save): Use it.	 Run `desktop-save-hook' where the doc
+	says to.  Detect conflicts, and manage the lock.
+	(desktop-read): Detect conflicts.  Manage the lock.
+
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/tpu-mapper.el (tpu-emacs-map-key): Use new keymap names.
+
+	* emulation/tpu-edt.el (tpu-gold-map): Rename from GOLD-map.
+	(tpu-lucid-emacs-p): Remove.  Use (featurep 'xemacs) instead.
+	(CSI-map, GOLD-CSI-map, GOLD-SS3-map, SS3-map):	Delete vars.
+	(tpu-gold-map, tpu-global-map): Add all the SS3 and CSI bindings, using
+	keysyms rather than byte sequences.
+	(tpu-copy-keyfile): Don't force the user to use tpu-mapper.el.
+
+2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-add-keywords): In case font-lock was only
+	half-activated, forcefully activate it completely.
+
+2007-06-11  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-variable-type): Doc fix.
+
+2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-backslash-quote)
+	(sh-font-lock-flush-syntax-ppss-cache): New functions.
+	(sh-font-lock-syntactic-keywords): Use them to distinguish the
+	different possible cases for \'.
+
+	* complete.el (PC-bindings): Don't bind things already bound in the
+	parent keymap.
+
+	* textmodes/bibtex-style.el: New file.
+
+2007-06-11  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: New file.
+
+2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-program): New var.
+	(vc-svn-command): Use it.
+
+2007-06-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-switch-buffer): Remove redundant check.
+
 2007-06-10  Martin Rudalics  <rudalics@gmx.at>
 
-	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions): Match
-	against file-name-nondirectory.
+	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
+	Match against file-name-nondirectory.
 	Fix text on user customization variables.
 	Reported by Johan Bockg,Ae(Brd <bojohan@dd.chalmers.se>.
 

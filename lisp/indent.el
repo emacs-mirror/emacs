@@ -50,8 +50,8 @@ Don't rebind TAB unless you really need to.")
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
 If nil, hitting TAB indents the current line if point is at the left margin
-or in the line's indentation, otherwise it insert a \"real\" TAB character.
-Most programming language modes have their own variable to control this,
+or in the line's indentation, otherwise it inserts a \"real\" TAB character.
+Some programming language modes have their own variable to control this,
 e.g., `c-tab-always-indent', and do not respect this variable."
   :group 'indent
   :type '(choice (const nil) (const t) (const always)))

@@ -105,7 +105,7 @@ If set, the server accepts remote connections; otherwise it is local."
   :version "22.1")
 (put 'server-host 'risky-local-variable t)
 
-(defcustom server-auth-dir "~/.emacs.d/server/"
+(defcustom server-auth-dir (concat user-emacs-directory "server/")
   "Directory for server authentication files."
   :group 'server
   :type 'directory
@@ -735,8 +735,7 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
                 (select-window win)
                 (set-buffer next-buffer))
 	    ;; Otherwise, let's find an appropriate window.
-	    (cond ((and (windowp server-window)
-			(window-live-p server-window))
+	    (cond ((window-live-p server-window)
 		   (select-window server-window))
 		  ((framep server-window)
 		   (unless (frame-live-p server-window)

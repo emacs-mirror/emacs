@@ -102,7 +102,7 @@ that Ediff doesn't know about.")
        (boundp 'ediff-use-toolbar-p)
        ediff-use-toolbar-p))		;Does the user want it ?
 
-;; Defines SYMBOL as an advertised local variable.
+;; Defines VAR as an advertised local variable.
 ;; Performs a defvar, then executes `make-variable-buffer-local' on
 ;; the variable.  Also sets the `permanent-local' property,
 ;; so that `kill-all-local-variables' (called by major-mode setting
@@ -110,6 +110,7 @@ that Ediff doesn't know about.")
 ;;
 ;; Plagiarised from `emerge-defvar-local' for XEmacs.
 (defmacro ediff-defvar-local (var value doc)
+  "Defines VAR as a local variable."
   (declare (indent defun))
   `(progn
      (defvar ,var ,value ,doc)
@@ -259,6 +260,7 @@ It needs to be killed when we quit the session.")
 ;; Doesn't save the point and mark.
 ;; This is `with-current-buffer' with the added test for live buffers."
 (defmacro ediff-with-current-buffer (buffer &rest body)
+  "Evaluates BODY in BUFFER."
   (declare (indent 1) (debug (form body)))
   `(if (ediff-buffer-live-p ,buffer)
        (save-current-buffer

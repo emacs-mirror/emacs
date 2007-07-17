@@ -369,7 +369,7 @@ Return the result of the last expression in BODY."
   ;; Otherwise, find a new window, possibly splitting one.
   (setq window
 	(cond
-	 ((and (windowp window) (edebug-window-live-p window)
+	 ((and (edebug-window-live-p window)
 	       (eq (window-buffer window) buffer))
 	  window)
 	 ((eq (window-buffer (selected-window)) buffer)
@@ -2739,7 +2739,7 @@ MSG is printed after `::::} '."
 
 		  ;; Unrestore edebug-buffer's window-start, if displayed.
 		  (let ((window (car edebug-window-data)))
-		    (if (and window (edebug-window-live-p window)
+		    (if (and (edebug-window-live-p window)
 			     (eq (window-buffer) edebug-buffer))
 			(progn
 			  (set-window-start window (cdr edebug-window-data)

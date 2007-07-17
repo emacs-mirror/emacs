@@ -317,7 +317,7 @@ w32font_close (f, font)
   if (font->font.font)
     {
       W32FontStruct *old_w32_font = (W32FontStruct *)font->font.font;
-      DeleteObject (font->font.font);
+      DeleteObject (old_w32_font->hfont);
       xfree (old_w32_font);
       font->font.font = 0;
     }

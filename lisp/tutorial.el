@@ -623,8 +623,7 @@ with some explanatory links."
 
 (defun tutorial--saved-dir ()
   "Directory to which tutorials are saved."
-  (expand-file-name "tutorial"
-		    (if (eq system-type 'ms-dos) "~/_emacs.d/" "~/.emacs.d/")))
+  (expand-file-name "tutorial" user-emacs-directory))
 
 (defun tutorial--saved-file ()
   "File name in which to save tutorials."

@@ -557,7 +557,7 @@ Otherwise, one argument `-i' is passed to the shell.
 	   (startfile (concat "~/.emacs_" name))
 	   (xargs-name (intern-soft (concat "explicit-" name "-args"))))
       (unless (file-exists-p startfile)
-	(setq startfile (concat "~/.emacs.d/init_" name ".sh")))
+	(setq startfile (concat user-emacs-directory "init_" name ".sh")))
       (apply 'make-comint-in-buffer "shell" buffer prog
 	     (if (file-exists-p startfile) startfile)
 	     (if (and xargs-name (boundp xargs-name))

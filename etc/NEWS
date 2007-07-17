@@ -3,7 +3,7 @@ GNU Emacs NEWS -- history of user-visible changes.
 Copyright (C) 2007 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
+Please send Emacs bug reports to emacs-pretest-bug@gnu.org.
 If possible, use M-x report-emacs-bug.
 
 This file is about changes in Emacs version 23.
@@ -13,13 +13,31 @@ for changes in older Emacs versions.
 
 You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
+
+Temporary note:
+ +++ indicates that the appropriate manual has already been updated.
+ --- means no change in the manuals is called for.
+When you add a new item, please add it without either +++ or ---
+so we will look at it and add it to the manual.
+
 
 * About external Lisp packages
 
 
 * Installation Changes in Emacs 23.1
 
-** The default X toolkit has changed from Lucid to Gtk+.
+** The default X toolkit is now Gtk+, rather than Lucid.
+
+** configure now checks for libgif (as well as libungif) when
+searching for a GIF library.
+
+
+* Changes in Emacs 23.1
+
+** If the gpm mouse server is running and t-mouse-mode enabled, Emacs uses a
+Unix socket in a GNU/Linux console to talk to server, rather than faking events
+using the client program mev.  This C level approach provides mouse
+highlighting, and help echoing in the minibuffer.
 
 
 * Startup Changes in Emacs 23.1
@@ -37,7 +55,11 @@ with a prefix argument or by typing C-u C-h C-n.
 
 ** css-mode to edit Cascading Style Sheets.
 
+** bibtex-style-mode helps you write BibTeX's *.bst files.
+
 ** socks.el (which had been part of W3) is now part of Emacs.
+
+** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
@@ -45,6 +67,9 @@ with a prefix argument or by typing C-u C-h C-n.
 ** In the `copyright' package, you can specify your copyright holders's names.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
+
+
+** VC has some support for Bazaar (bzr).
 
 
 * Changes in Emacs 23.1 on non-free operating systems
@@ -54,6 +79,17 @@ considered for update.
 
 
 * Lisp Changes in Emacs 23.1
+
++++
+** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
+
++++
+** New variable `user-emacs-directory'.
+Use this instead of "~/.emacs.d".
+
++++
+** The new function `image-refresh' refreshes all images associated
+with a given image specification.
 
 
 * New Packages for Lisp Programming in Emacs 23.1

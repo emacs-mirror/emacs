@@ -463,8 +463,12 @@ Return nil if current line isn't annotated."
 ;; if there are any symbolic links.
 (defun vc-bzr-root (dir)
   "Return the root directory of the bzr repository containing DIR."
-  (substring 
-   (shell-command-to-string (concat vc-bzr-program " root " dir)) 0 -1))
+  ;; Cache technique copied from vc-arch.el.
+  (or (vc-file-getprop dir 'bzr-root)
+      (vc-file-setprop
+       dir 'bzr-root
+       (substring 
+	(shell-command-to-string (concat vc-bzr-program " root " dir)) 0 -1))))
 
 ;; TODO: it would be nice to mark the conflicted files in  VC Dired,
 ;; and implement a command to run ediff and `bzr resolve' once the 

@@ -1,3 +1,21 @@
+2007-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el
+	(select-safe-coding-system-interactively): Fix printing of
+	rejected and unsafe coding-systems.
+
+	* international/fontset.el (setup-default-fontset): Add tai-viet.
+
+	* international/characters.el: Setup syntax/category table for Tai
+	Viet.
+	(script-list): Add tai-viet.
+
+	* loadup.el: Load "language/tai-viet".
+
+	* language/tai-viet.el: New file.
+
+	* language/tv-util.el: New file.
+
 2007-06-01  Jason Rumney  <jasonr@gnu.org>
 
 	* faces.el (font-weight-table): Use defaults on w32 that match
@@ -22,6 +40,8 @@
 
 	* disp-table.el (make-glyph-code): Fix for a new character code
 	space (22-bit).
+	(glyph-char): Likewise.
+	(glyph-face): Likewise.
 
 2007-05-16  Juanma Barranquero  <lekktu@gmail.com>
 

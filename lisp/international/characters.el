@@ -72,7 +72,7 @@
 (define-category ?1 "base (independent) vowel")
 (define-category ?2 "upper diacritical mark (including upper vowel)")
 (define-category ?3 "lower diacritical mark (including lower vowel)")
-(define-category ?4 "tone mark")
+(define-category ?4 "combining tone mark")
 (define-category ?5 "symbol")
 (define-category ?6 "digit")
 (define-category ?7 "vowel-modifying diacritical mark")
@@ -427,6 +427,29 @@
       (if lc (modify-category-entry lc ?v)))
     (setq i (1+ i))))
 
+;; Tai Viet
+(let ((deflist '(;; chars	syntax	category
+		 ((?ꪀ.  ?ꪯ)	"w"	?0) ; cosonant
+		 ("ꪱꪵꪶ"		"w"	?1) ; vowel base
+		 ((?ꪹ . ?ꪽ)	"w"	?1) ; vowel base
+		 ("ꪰꪲꪳꪷꪸꪾ"	"w"	?2) ; vowel upper
+		 ("ꪴ"		"w"	?3) ; vowel lower
+		 ("ꫀꫂ"		"w"	?1) ; non-combining tone-mark
+		 ("꪿꫁"		"w"	?4) ; combining tone-mark
+		 ((?ꫛ . ?꫟)	"_"	?5) ; symbol
+		 )))
+  (dolist (elm deflist)
+    (let ((chars (car elm))
+	  (syntax (nth 1 elm))
+	  (category (nth 2 elm)))
+      (if (consp chars)
+	  (progn
+	    (modify-syntax-entry chars syntax)
+	    (modify-category-entry chars category))
+	(mapc #'(lambda (x)
+		  (modify-syntax-entry x syntax)
+		  (modify-category-entry x category))
+	      chars)))))
 
 ;; Latin
 
@@ -1043,6 +1066,7 @@
 	 (#x31A0 #x31BF bopomofo)
 	 (#x3400 #x9FAF han)
 	 (#xA000 #xA4CF yi)
+	 (#xAA80 #xAADF tai-viet)
 	 (#xAC00 #xD7AF hangul)
 	 (#xF900 #xFAFF han)
 	 (#xFB1D #xFB4F hebrew)

@@ -134,11 +134,13 @@ patch.  So, don't change these variables, unless the default doesn't work."
   :type '(choice (const nil) string)
   :group 'ediff-ptch)
 
+;; This context diff does not recognize spaces inside files, but removing ' '
+;; from [^ \t] breaks normal patches for some reason
 (defcustom ediff-context-diff-label-regexp
   (concat "\\(" 	; context diff 2-liner
-	  "^\\*\\*\\* \\([^ \t]+\\)[^*]+[\t ]*\n--- \\([^ \t]+\\)"
+	  "^\\*\\*\\* +\\([^ \t]+\\)[^*]+[\t ]*\n--- +\\([^ \t]+\\)"
 	  "\\|" 	; GNU unified format diff 2-liner
-	  "^--- \\([^ \t]+\\)[\t ]+.*\n\\+\\+\\+ \\([^ \t]+\\)"
+	  "^--- +\\([^ \t]+\\)[\t ]+.*\n\\+\\+\\+ +\\([^ \t]+\\)"
 	  "\\)")
   "*Regexp matching filename 2-liners at the start of each context diff.
 You probably don't want to change that, unless you are using an obscure patch
@@ -231,7 +233,7 @@ program."
 	    ;; possible-file-names is holding the new file names until we
 	    ;; insert the old file name in the patch map
 	    ;; It is a pair
-	    ;;     (filename-from-1st-header-line . fn from 2nd line)
+	    ;;     (filename-from-1st-header-line . filename-from-2nd-line)
 	    (setq possible-file-names
 		  (cons (if (and beg1 end1)
 			    (buffer-substring beg1 end1)
@@ -309,12 +311,13 @@ program."
 		;; these dirs lead to the actual files starting at the present
 		;; directory. So, we don't strip these relative dirs from the
 		;; file names. This is a heuristic intended to improve guessing
-		(unless (or (file-name-absolute-p base-dir1)
-			    (file-name-absolute-p base-dir2)
-			    (not (file-exists-p base-dir1))
-			    (not (file-exists-p base-dir2)))
-		  (setq base-dir1 ""
-			base-dir2 ""))
+		(let ((default-directory (file-name-directory filename)))
+		  (unless (or (file-name-absolute-p base-dir1)
+			      (file-name-absolute-p base-dir2)
+			      (not (file-exists-p base-dir1))
+			      (not (file-exists-p base-dir2)))
+		    (setq base-dir1 ""
+			  base-dir2 "")))
 		(or (string= (car proposed-file-names) "/dev/null")
 		    (setcar proposed-file-names
 			    (ediff-file-name-sans-prefix

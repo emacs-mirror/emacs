@@ -62,7 +62,7 @@
 ;;;
 
 (defvar vc-arch-command
-  (let ((candidates '("tla")))
+  (let ((candidates '("tla" "baz")))
     (while (and candidates (not (executable-find (car candidates))))
       (setq candidates (cdr candidates)))
     (or (car candidates) "tla")))

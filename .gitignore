@@ -41,3 +41,5 @@ leim*.tar.gz
 lock
 *.xdelta
 autom4te.cache
+site-lisp
+data

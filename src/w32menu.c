@@ -23,6 +23,7 @@ Boston, MA 02110-1301, USA.  */
 #include <signal.h>
 
 #include <stdio.h>
+#include <mbstring.h>
 #include "lisp.h"
 #include "termhooks.h"
 #include "keyboard.h"
@@ -32,6 +33,7 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "buffer.h"
 #include "charset.h"
+#include "character.h"
 #include "coding.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -2261,8 +2263,9 @@ static int
 add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 {
   UINT fuFlags;
-  char *out_string;
+  char *out_string, *p, *q;
   int return_value;
+  size_t nlen, orig_len;
 
   if (name_is_separator (wv->name))
     {
@@ -2285,6 +2288,33 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	}
       else
 	out_string = wv->name;
+
+      /* Quote any special characters within the menu item's text and
+	 key binding.  */
+      nlen = orig_len = strlen (out_string);
+      for (p = out_string; *p; p = _mbsinc (p))
+	{
+	  if (_mbsnextc (p) == '&')
+	    nlen++;
+	}
+      if (nlen > orig_len)
+	{
+	  p = out_string;
+	  out_string = alloca (nlen + 1);
+	  q = out_string;
+	  while (*p)
+	    {
+	      if (_mbsnextc (p) == '&')
+		{
+		  _mbsncpy (q, p, 1);
+		  q = _mbsinc (q);
+		}
+	      _mbsncpy (q, p, 1);
+	      p = _mbsinc (p);
+	      q = _mbsinc (q);
+	    }
+	  *q = '\0';
+	}
 
       if (item != NULL)
 	fuFlags = MF_POPUP;
@@ -2543,14 +2573,13 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 
 void syms_of_w32menu ()
 {
-	globals_of_w32menu ();
+  globals_of_w32menu ();
   staticpro (&menu_items);
   menu_items = Qnil;
 
   current_popup_menu = NULL;
 
-  Qdebug_on_next_call = intern ("debug-on-next-call");
-  staticpro (&Qdebug_on_next_call);
+  DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
 
   defsubr (&Sx_popup_menu);
   defsubr (&Smenu_or_popup_active_p);

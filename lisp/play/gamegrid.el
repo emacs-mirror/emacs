@@ -66,7 +66,8 @@
 (defvar gamegrid-score-file-length 50
   "Number of high scores to keep")
 
-(defvar gamegrid-user-score-file-directory "~/.emacs.d/games"
+(defvar gamegrid-user-score-file-directory
+  (concat user-emacs-directory "games")
   "A directory for game scores which can't be shared.
 If Emacs was built without support for shared game scores, then this
 directory will be used.")

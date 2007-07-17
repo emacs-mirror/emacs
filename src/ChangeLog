@@ -1,3 +1,93 @@
+2007-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (add_menu_item): Escape `&' characters in menu items
+	and their keybindings.
+
+2007-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* composite.c (update_compositions): Fix last fix.
+
+2007-06-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (get_process_times_fn): New function pointer.
+	(globals_of_w32): Intialize it if present in kernel32.dll.
+	(w32_get_internal_run_time): New function.
+
+	* editfns.c (Fget_internal_run_time) [WINDOWSNT]: Use it.
+
+2007-06-14  Kenichi Handa  <handa@etlken.m17n.org>
+
+	* composite.c (update_compositions): Check the validness of
+	compositions.
+
+2007-06-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.h (struct frame) [MAC_OS]: New member external_tool_bar.
+	(FRAME_EXTERNAL_TOOL_BAR) [MAC_OS]: Use it.
+
+	* macfns.c (mac_window) [USE_MAC_TOOLBAR]: Set toolbar_win_gravity.
+	(x_set_tool_bar_lines) [USE_MAC_TOOLBAR]: Set FRAME_EXTERNAL_TOOL_BAR.
+
+	* macgui.h (USE_MAC_TOOLBAR): New define.
+
+	* macmenu.c [TARGET_API_MAC_CARBON] (menu_target_item_handler):
+	Return immediately unless popup is activated.
+
+	* macterm.c (x_draw_fringe_bitmap) [MAC_OSX]: Extend fringe
+	background to scroll bar gap.
+	(x_scroll_bar_create) [MAC_OSX]: Set bar->fringe_extended_p.
+	(XTset_vertical_scroll_bar) [MAC_OSX]: Put leftmost/rightmost
+	scroll bars on frame edge.  Check fringe background extension.
+	Don't clear extended fringe background area.
+	(TOOLBAR_IDENTIFIER, TOOLBAR_ICON_ITEM_IDENTIFIER)
+	(TOOLBAR_ITEM_COMMAND_ID_OFFSET, TOOLBAR_ITEM_COMMAND_ID_P)
+	(TOOLBAR_ITEM_COMMAND_ID_VALUE, TOOLBAR_ITEM_MAKE_COMMAND_ID):
+	[USE_MAC_TOOLBAR]: New macros.
+	(mac_move_window_with_gravity, mac_get_window_origin_with_gravity)
+	(mac_handle_toolbar_event, mac_image_spec_to_cg_image)
+	(mac_create_frame_tool_bar, update_frame_tool_bar, free_frame_tool_bar)
+	(mac_tool_bar_note_mouse_movement, mac_handle_toolbar_command_event)
+	[USE_MAC_TOOLBAR]: New functions.
+	(mac_handle_window_event) [USE_MAC_TOOLBAR]: Reposition window
+	manually if previous repositioning has failed.
+	(mac_handle_keyboard_event): Use precomputed event kind.
+	(XTread_socket) [USE_MAC_TOOLBAR]: Handle click in structure region
+	as tool bar item click.  Handle mouse movement over tool bar items.
+
+	* macterm.h (struct mac_output) [USE_MAC_TOOLBAR]: New member
+	toolbar_win_gravity.
+	(struct scroll_bar) [MAC_OSX]: New member fringe_extended_p.
+	(update_frame_tool_bar, free_frame_tool_bar) [USE_MAC_TOOLBAR]:
+	Add externs.
+
+	* xdisp.c (update_tool_bar, redisplay_tool_bar, redisplay_window)
+	[USE_MAC_TOOLBAR]: Sync with GTK+ tool bar display.
+
+2007-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (search_image_cache): Remove unused variable.
+
+2007-06-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c, xmenu.c: Link to xaw3d if available.
+
+2007-06-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct image) [HAVE_WINDOW_SYSTEM]: New members
+	frame_foreground and frame_background.
+
+	* image.c (lookup_image): Save frame foreground and background colors.
+	(search_image_cache): Check if saved and current frame colors match.
+
+2007-06-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (regex_compile): Remove the `regnum' counter.
+	Use bufp->re_nsub instead.  Add support for \(?N:RE\).
+
+2007-06-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c: Include intervals.h to declare Fget_text_property.
+
 2007-06-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_file_dialog): Take size from struct not pointer.
@@ -106,11 +196,11 @@
 	New function.
 	(init_dm_notification_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
 	Register it.
-	(XTread_socket) [TARGET_API_MAC_CARBON]: Consolidate
-	SendEventToEventTarget calls.  Use FRAME_OUTER_TO_INNER_DIFF_X and
-	FRAME_OUTER_TO_INNER_DIFF_Y.  Move application activation handler
-	to mac_handle_application_event.  Move keyboard handler to
-	mac_handle_keyboard_event.
+	(XTread_socket) [TARGET_API_MAC_CARBON]:
+	Consolidate SendEventToEventTarget calls.
+	Use FRAME_OUTER_TO_INNER_DIFF_X and FRAME_OUTER_TO_INNER_DIFF_Y.
+	Move application activation handler to mac_handle_application_event.
+	Move keyboard handler to mac_handle_keyboard_event.
 	(XTread_socket) [!TARGET_API_MAC_CARBON]: Use do_keystroke.
 	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
 	init_command_handler.  Call install_application_handler.
@@ -124,8 +214,7 @@
 
 2007-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* image.c (xpm_load): Remove spurious call to
-	xpm_init_color_cache.
+	* image.c (xpm_load): Remove spurious call to xpm_init_color_cache.
 
 2007-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

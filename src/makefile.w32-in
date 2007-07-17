@@ -1071,6 +1071,7 @@ $(BLD)/w32proc.$(O) : \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
 	$(SRC)/config.h \
+	$(SRC)/character.h \
 	$(SRC)/process.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \

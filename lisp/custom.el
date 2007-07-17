@@ -1009,10 +1009,7 @@ Every theme X has a property `provide-theme' whose value is \"X-theme\".
 ;;; Loading themes.
 
 (defcustom custom-theme-directory
-  (if (eq system-type 'ms-dos)
-	 ;; MS-DOS cannot have initial dot.
-	 "~/_emacs.d/"
-      "~/.emacs.d/")
+  user-emacs-directory
   "Directory in which Custom theme files should be written.
 `load-theme' searches this directory in addition to load-path.
 The command `customize-create-theme' writes the files it produces

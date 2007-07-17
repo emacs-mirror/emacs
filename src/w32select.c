@@ -82,6 +82,7 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"	/* cmd_error_internal() */
 #include "charset.h"
 #include "coding.h"
+#include "character.h"
 #include "composite.h"
 
 
@@ -1089,13 +1090,13 @@ next communication only.  After the communication, this variable is
 set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
-  QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
+  DEFSYM (QCLIPBOARD, "CLIPBOARD");
 
   cfg_coding_system = Qnil;     staticpro (&cfg_coding_system);
   current_text = Qnil;		staticpro (&current_text);
   current_coding_system = Qnil; staticpro (&current_coding_system);
 
-  QUNICODE = intern ("utf-16le-dos"); staticpro (&QUNICODE);
+  DEFSYM (QUNICODE, "utf-16le-dos");
   QANSICP = Qnil; staticpro (&QANSICP);
   QOEMCP = Qnil;  staticpro (&QOEMCP);
 }

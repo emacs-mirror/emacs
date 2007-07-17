@@ -464,11 +464,16 @@ NAME is assumed to be a URL."
 ;;; Internal functions
 ;;;
 
+(defcustom vc-svn-program "svn"
+  "Name of the svn executable."
+  :type 'string
+  :group 'vc)
+
 (defun vc-svn-command (buffer okstatus file &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
 and that it passes `vc-svn-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "svn" file
+  (apply 'vc-do-command buffer okstatus vc-svn-program file
          (if (stringp vc-svn-global-switches)
              (cons vc-svn-global-switches flags)
            (append vc-svn-global-switches

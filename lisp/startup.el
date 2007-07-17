@@ -263,9 +263,9 @@ init file is read, in case it sets `mail-host-address'."
 (defcustom auto-save-list-file-prefix
   (cond ((eq system-type 'ms-dos)
 	 ;; MS-DOS cannot have initial dot, and allows only 8.3 names
-	 "~/_emacs.d/auto-save.list/_s")
+	 (concat user-emacs-directory "auto-save.list/_s"))
 	(t
-	 "~/.emacs.d/auto-save-list/.saves-"))
+	 (concat user-emacs-directory "auto-save-list/.saves-")))
   "Prefix for generating `auto-save-list-file-name'.
 This is used after reading your `.emacs' file to initialize
 `auto-save-list-file-name', by appending Emacs's pid and the system name,

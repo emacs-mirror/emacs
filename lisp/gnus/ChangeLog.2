@@ -6370,8 +6370,7 @@
 
 	* message.el (message-required-headers): Add From.
 
-2003-01-02  Katsumi Yamaoka  <yamaoka@jpl.org>
-	Trivial patch from Norbert Koch <nk@viteno.net>.
+2003-01-02  Norbert Koch  <nk@viteno.net>  (tiny change)
 
 	* gnus-msg.el (gnus-gcc-externalize-attachments): Fix typo.
 
@@ -6984,8 +6983,7 @@
 	* nnmaildir.el (nnmaildir-request-group): bugfix: don't erase
 	nntp-server-buffer if we aren't going to write to it.
 
-2002-12-04  Katsumi Yamaoka  <yamaoka@jpl.org>
-	Trivial patch from Itai Zukerman <zukerman@math-hat.com>.
+2002-12-04  Itai Zukerman  <zukerman@math-hat.com>  (tiny change)
 
 	* mm-decode.el (mm-w3m-safe-url-regexp): Fix parenthesis.
 
@@ -7233,8 +7231,7 @@
 	* nnimap.el (nnimap-request-expire-articles): Compress sequence
 	before storing \Deleted mark on expired articles.
 
-2002-11-17  Shenghuo Zhu  <zsh@cs.rochester.edu>
-	Trivial patch from Markus Rost <rost@math.ohio-state.edu>
+2002-11-17  Markus Rost  <rost@math.ohio-state.edu>  (tiny change)
 
 	* gnus-sum.el (gnus-summary-goto-unread): Doc fix - escape open
 	parens in column 0.
@@ -7906,10 +7903,12 @@
 	(mml1991-pgg-sign, mml1991-pgg-encrypt): New functions.
 	(mml1991-pgg-encrypt): Fix recipients querying.
 
+2002-09-28  <dme@dme.org>  (tiny change)
+
+	* mml2015.el (autoload): Autoload correct files.
+
 2002-09-28  Simon Josefsson  <jas@extundo.com>
 
-	* mml2015.el (autoload): Autoload correct files.  Trivial patch
-	from dme@dme.org.
 	(mml2015-pgg-decrypt, mml2015-pgg-verify): Make sure either nil or
 	handle is returned.
 
@@ -8486,12 +8485,10 @@
 	* imap.el (imap-shell-open): Allow non-list `imap-shell-program'.
 	(imap-shell-open): Skip initial junk before IMAP greeting.
 
-2002-08-11  Simon Josefsson  <jas@extundo.com>
+2002-08-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* message-utils.el (message-xpost-default,
-	message-xpost-fup2-header, message-xpost-fup2): Fixed
-	Typos.  Trivial changes from Reiner Steib
-	<4uce.02.r.steib@gmx.net>.
+	* message-utils.el (message-xpost-default)
+	(message-xpost-fup2-header, message-xpost-fup2): Fixed Typos.
 
 2002-08-09  Simon Josefsson  <jas@extundo.com>
 
@@ -9915,10 +9912,9 @@
 	(mm-inline-wash-with-file): New function.
 	(mm-inline-wash-with-stdin): New function.
 
-2002-02-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-02-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message-utils.el: Fix installation doc.
-	From: Reiner Steib <4uce.02.r.steib@gmx.net>
 
 2002-02-16  ShengHuo ZHU  <zsh@cs.rochester.edu>
 

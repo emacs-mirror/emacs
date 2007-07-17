@@ -268,6 +268,8 @@
 
      (lao  (nil . "MuleLao-1"))
 
+     (tai-viet ("TaiViet" . "iso10646-1"))
+
      ;; both for script and charset.
      (tibetan (nil . "muletibetan-2"))
 

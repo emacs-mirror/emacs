@@ -113,6 +113,7 @@
 (load "language/japanese")
 (load "language/korean")
 (load "language/lao")
+(load "language/tai-viet")
 (load "language/thai")
 (load "language/tibetan")
 (load "language/vietnamese")

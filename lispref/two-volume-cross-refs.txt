@@ -5,7 +5,24 @@ Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
 Two Volume Cross References
 ===========================
 
-18 March 1992
+12 June 2007 (karl)
+
+For lispref 2.9 (for Emacs 22, June 2007), I created a very ugly
+Makefile, in the file two-volume.make, to encapsulate all the steps
+below, without manual intervention.  In theory, simply running "make -f
+two-volume.make" should create a vol1.pdf and vol2.pdf with all the
+niceties worked out.
+
+One issue not explicitly discussed below is getting page numbers right.
+It's not enough to go through the whole process.  You have to go through
+the whole process twice -- otherwise, some index entries and/or toc
+entries will be off by one.  See two-volume.make for a few more comments.
+
+For future editions, it should suffice to update the usual things in
+vol[12].texi (as well as elisp.texi).  That was my hope, anyway.
+
+
+18 March 1992 (bob)
 
 This enables you to create manuals in *two* volumes, with tables of
 contents, cross references, and indices in each volume referring to
@@ -57,23 +74,23 @@ Here are the steps in detail:
 % cp vol1.aux elisp1-aux
 % cp vol2.aux elisp2-aux
 
-% cp vol1.aux elisp1-aux-vol-number-added
-% cp vol2.aux elisp2-aux-vol-number-added
+% cp vol1.aux elisp1-aux-vol-added
+% cp vol2.aux elisp2-aux-vol-added
 
 on elisp1-aux-vol-number-added
-(volume-aux-markup 1)           see defun for volum-aux-markup below.
-to create             elisp1-aux-vol-number-added
+(volume-aux-markup 1)           see defun for volume-aux-markup below.
+to create             elisp1-aux-vol-added
 
 on elisp2-aux-vol-number-added
 (volume-aux-markup 2)
-to create             elisp2-aux-vol-number-added
+to create             elisp2-aux-vol-added
 
-insert elisp2-aux-vol-number-added into vol1.aux  (append)
-insert elisp1-aux-vol-number-added into vol2.aux  (prepend)
+insert elisp2-aux-vol-added into vol1.aux  (append)
+insert elisp1-aux-vol-added into vol2.aux  (prepend)
 
 (so you dont have to do it again)
-% cp vol1.aux elisp1-aux-2vol-ready
-% cp vol2.aux elisp2-aux-2vol-ready
+% cp vol1.aux elisp1-aux-ready
+% cp vol2.aux elisp2-aux-ready
 
 
 ### Create .fn files with volume numbers for other volume.
@@ -165,45 +182,6 @@ Do not change the .texi files; they will call the elisp-toc-2vol.toc file.
 
 % tex vol1.texi
 % tex vol2.texi
-
-================================================================
-
-@c ================================================================
-@tex
-% Special @contents  command
-% This inputs fixed up table of contents file rather than create new one.
-\global\def\contents{%
-   \startcontents{Table of Contents}%
-      \input elisp-toc-2vol.toc
-   \endgroup
-   \vfill \eject
-}
-
-% Special @summarycontents  command
-% This inputs fixed up table of contents file rather than create new one.
-\outer\def\summarycontents{%
-   \startcontents{Short Contents}%
-      %
-      \let\chapentry = \shortchapentry
-      \let\unnumbchapentry = \shortunnumberedentry
-      % We want a true roman here for the page numbers.
-      \secfonts
-      \let\rm=\shortcontrm \let\bf=\shortcontbf \let\sl=\shortcontsl
-      \rm
-      \advance\baselineskip by 1pt % Open it up a little.
-      \def\secentry ##1##2##3##4{}
-      \def\unnumbsecentry ##1##2{}
-      \def\subsecentry ##1##2##3##4##5{}
-      \def\unnumbsubsecentry ##1##2{}
-      \def\subsubsecentry ##1##2##3##4##5##6{}
-      \def\unnumbsubsubsecentry ##1##2{}
-      \input elisp-toc-2vol.toc
-   \endgroup
-   \vfill \eject
-}
-@end tex
-@c ================================================================
-
 
 ================================================================
 

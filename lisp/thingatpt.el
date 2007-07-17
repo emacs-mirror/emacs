@@ -67,7 +67,7 @@
   "Determine the start and end buffer locations for the THING at point.
 THING is a symbol which specifies the kind of syntactic entity you want.
 Possibilities include `symbol', `list', `sexp', `defun', `filename', `url',
-`word', `sentence', `whitespace', `line', `page' and others.
+`email', `word', `sentence', `whitespace', `line', `page' and others.
 
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING.
@@ -124,7 +124,7 @@ of the textual entity that was found."
   "Return the THING at point.
 THING is a symbol which specifies the kind of syntactic entity you want.
 Possibilities include `symbol', `list', `sexp', `defun', `filename', `url',
-`word', `sentence', `whitespace', `line', `page' and others.
+`email', `word', `sentence', `whitespace', `line', `page' and others.
 
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
@@ -339,6 +339,33 @@ point."
          (if bounds
              (goto-char (car bounds))
            (error "No URL here")))))
+
+;;   Email addresses
+(defvar thing-at-point-email-regexp
+  "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?"
+  "A regular expression probably matching an email address.
+This does not match the real name portion, only the address, optionally
+with angle brackets.")
+
+;; Haven't set 'forward-op on 'email nor defined 'forward-email' because
+;; not sure they're actually needed, and URL seems to skip them too.
+;; Note that (end-of-thing 'email) and (beginning-of-thing 'email)
+;; work automagically, though.
+
+(put 'email 'bounds-of-thing-at-point
+     (lambda ()
+       (let ((thing (thing-at-point-looking-at thing-at-point-email-regexp)))
+         (if thing
+             (let ((beginning (match-beginning 0))
+                   (end (match-end 0)))
+               (cons beginning end))))))
+
+(put 'email 'thing-at-point
+     (lambda ()
+       (let ((boundary-pair (bounds-of-thing-at-point 'email)))
+         (if boundary-pair
+             (buffer-substring-no-properties
+              (car boundary-pair) (cdr boundary-pair))))))
 
 ;;  Whitespace
 
