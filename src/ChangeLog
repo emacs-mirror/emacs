@@ -1,3 +1,10 @@
+2007-07-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fdisplay_buffer): If largest or LRU window is the
+	only window, split it even if it is not eligible for splitting.
+	This restores the original behavior broken by the 2007-07-15
+	change.
+
 2007-07-17  Glenn Morris  <rgm@gnu.org>
 
 	* abbrev.c (abbrev_check_chars): New function.
