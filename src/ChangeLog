@@ -1,3 +1,8 @@
+2007-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Fstart_process, Fmake_network_process)
+	(read_process_output): Fix up last changes.
+
 2007-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (clean): Don't delete *~.
