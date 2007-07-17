@@ -1,3 +1,52 @@
+2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-remote-p): Introduce optional parameter
+	IDENTIFICATION.
+
+	* recentf.el (recentf-keep-default-predicate): Adapt call of
+	`file-remote-p'.
+
+	* progmodes/grep.el (grep-probe): Use `process-file'.
+	(grep-compute-defaults): Handle variables host specific.
+
+	* net/ange-ftp.el: (ange-ftp-file-remote-p): Handle optional
+	parameter IDENTIFICATION.
+
+	* net/tramp.el (tramp-handle-file-remote-p): Handle optional
+	parameter IDENTIFICATION.
+	(tramp-handle-set-file-times): New defun.  Replaces `tramp-touch'.
+	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
+	Add entry for `set-file-times'.
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-out-of-band): Use `set-file-times'.
+	(tramp-handle-unhandled-file-name-directory): Rewrite.
+	(tramp-convert-file-attributes): Add error handling when inode is
+	extraordinary big.
+	(tramp-get-inode): Change parameter from FILE to VEC.
+	(tramp-handle-start-file-process ): Use (current-buffer) if BUFFER
+	is NIL.  This is according to the specification.  Goto (point-max)
+	when ready.
+	(tramp-handle-shell-command): Rewrite completely, using
+	`process-file' and `start-file-process'.
+	(tramp-methods, tramp-find-shell)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-maybe-open-connection): Guard against $PROMPT_COMMAND shell
+	var.  Reported by Steve Youngs <steve@sxemacs.org>.
+
+	* net/tramp-fish.el (tramp-fish-file-name-handler-alist): Add
+	entry for `set-file-times'.  Rename `start-process' into
+	`start-file-process'.  Remove `call-process' entry.
+	(tramp-fish-handle-set-file-times): New defun.
+	(tramp-fish-handle-executable-find): Use `process-file'.
+	(tramp-fish-handle-process-file): New defun.  Replaces
+	`tramp-fish-handle-call-process'.
+	(tramp-fish-do-copy-or-rename-file-directly): Use
+	`set-file-times'.
+	(tramp-fish-get-file-entries): Change `tramp-get-inode' parameter.
+
+	* net/tramp-smb.el (tramp-smb-handle-file-attributes): Change
+	`tramp-get-inode' parameter.
+
 2007-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-version, vc-bzr-at-least-version)
