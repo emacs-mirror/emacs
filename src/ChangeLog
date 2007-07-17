@@ -1,3 +1,10 @@
+2007-07-17  Glenn Morris  <rgm@gnu.org>
+
+	* abbrev.c (abbrev_check_chars): New function.
+	(Fdefine_global_abbrev, Fdefine_mode_abbrev): Call
+	abbrev_check_chars to check abbrev characters are word
+	constituents.  Doc fix.
+
 2007-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (Fstart_process, Fmake_network_process)
