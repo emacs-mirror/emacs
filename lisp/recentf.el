@@ -103,7 +103,7 @@ must return non-nil to exclude it."
   "Return non-nil if FILE should be kept in the recent list.
 It handles the case of remote files as well."
   (cond
-   ((file-remote-p file t) (file-readable-p file))
+   ((file-remote-p file nil t) (file-readable-p file))
    ((file-remote-p file))
    ((file-readable-p file))))
 
