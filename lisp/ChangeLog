@@ -1,3 +1,7 @@
+2007-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Add more info about the vc-registered function.
+
 2007-07-16  David Kastrup  <dak@gnu.org>
 
 	* emacs-lisp/advice.el (defadvice): Doc fix.

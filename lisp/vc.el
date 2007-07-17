@@ -106,8 +106,12 @@
 ;; * registered (file)
 ;;
 ;;   Return non-nil if FILE is registered in this backend.  Both this
-;;   function as well as `state' should be careful to fail gracefully in the
-;;   event that the backend executable is absent.
+;;   function as well as `state' should be careful to fail gracefully
+;;   in the event that the backend executable is absent.  It is
+;;   preferable that this function's body is autoloaded, that way only
+;;   calling vc-registered does not cause the backend to be loaded
+;;   (all the vc-FOO-registered functions are called to try to find
+;;   the controlling backend for FILE.
 ;;
 ;; * state (file)
 ;;
