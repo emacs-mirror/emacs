@@ -1,3 +1,10 @@
+2007-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-version, vc-bzr-at-least-version)
+	(vc-bzr-post-command-function): Remove.  Version 0.8 is already old
+	nowadays, and by the time Emacs-23 comes out, nobody will even remember
+	it has ever existed.
+
 2007-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Undo previous change.
