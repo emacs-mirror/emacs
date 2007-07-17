@@ -480,7 +480,8 @@ code to which they apply.
 .comment.column: Columnar comments appear in a column to the right of the 
 code.  They should be used sparingly, since they clutter the code and make it 
 hard to edit.  Use them on variable declarations and structure, union, or enum 
-declarations.  They should start at least at column 32, and should be terse 
+declarations.  They should start at least at column 32 (counting from 0,
+that is, on a tab-stop), and should be terse 
 descriptive text.  Abandon English sentence structure if this makes the comment 
 clearer.  Don't write more than one line.  Here's an example:
 </p>
@@ -498,6 +499,37 @@ clearer.  Don't write more than one line.  Here's an example:
     struct SpanStruct *spans; /* span chain */
   } PoolMVStruct;
 </pre>
+
+<h3>Macros</h3>
+
+<p>
+.macro.careful: Macros in C are a real horror bag, be extra careful.
+There's lots that could go here, but proper coverage probably
+deserves a separate document.  Which isn't written yet.
+</p>
+
+<p>
+.macro.general: 
+Do try and follow the other formatting conventions for code
+in macro definitions.
+</p>
+
+<p>
+.macro.backslash:
+Backslashes used for continuation lines in macro definitions should be
+put on the right in column 72 (counting from 0) where they will be less
+in the way.  Example:
+</p>
+
+<pre>
+#define RAMP_RELATION(X)                                                \
+  X(RampOUTSIDE,        "outside ramp")                                 \
+  X(RampBEGIN,          "begin ramp")                                   \
+  X(RampRAMPING,        "ramping")                                      \
+  X(RampFINISH,         "finish ramp")                                  \
+  X(RampCOLLECTING,     "collecting ramp")
+</pre>
+
 
 <h2 id="section-B">B. History</h2>
 
@@ -537,6 +569,12 @@ is a mess, so lay down a neat new law.
 </td>
 </tr>
 
+<tr valign='top'>
+<td>2007-07-17</td>
+<td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+<td>Added .macro.*</td>
+</td>
+</tr>
 </table>
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
