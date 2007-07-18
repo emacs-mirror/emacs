@@ -330,7 +330,7 @@ DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields non-nil, then return that value.
 The remaining args are not evalled at all.
 If all args return nil, return nil.
-usage: (or CONDITIONS ...)  */)
+usage: (or CONDITIONS...)  */)
      (args)
      Lisp_Object args;
 {
@@ -355,7 +355,7 @@ DEFUN ("and", Fand, Sand, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields nil, then return nil.
 The remaining args are not evalled at all.
 If no arg yields nil, return the last arg's value.
-usage: (and CONDITIONS ...)  */)
+usage: (and CONDITIONS...)  */)
      (args)
      Lisp_Object args;
 {
