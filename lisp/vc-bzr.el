@@ -88,30 +88,6 @@
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-bzr)
 
-(defvar vc-bzr-version nil
-  "Internal use.")
-
-;; Could be used for compatibility checks if bzr changes.
-(defun vc-bzr-version ()
-  "Return a three-numeric element list with components of the bzr version.
-This is of the form (X Y Z) for revision X.Y.Z.  The elements are zero
-if running `vc-bzr-program' doesn't produce the expected output."
-  (or vc-bzr-version
-      (setq vc-bzr-version
-            (let ((s (shell-command-to-string
-                      (concat (shell-quote-argument vc-bzr-program)
-                              " --version"))))
-              (if (string-match "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)$" s)
-                  (list (string-to-number (match-string 1 s))
-                        (string-to-number (match-string 2 s))
-                        (string-to-number (match-string 3 s)))
-                '(0 0 0))))))
-
-(defun vc-bzr-at-least-version (vers)
-  "Return t if the bzr command reports being a least version VERS.
-First argument VERS is a list of the form (X Y Z), as returned by `vc-bzr-version'."
-  (version-list-<= vers (vc-bzr-version)))
-
 ;; since v0.9, bzr supports removing the progress indicators
 ;; by setting environment variable BZR_PROGRESS_BAR to "none".
 (defun vc-bzr-command (bzr-command buffer okstatus file &rest args)
@@ -128,29 +104,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
         (process-connection-type nil))
     (apply 'vc-do-command buffer okstatus vc-bzr-program
            file bzr-command (append vc-bzr-program-args args))))
-  
-(unless (vc-bzr-at-least-version '(0 9))
-  ;; For older versions, we fall back to washing the log buffer
-  ;; when all output has been gathered.
-  (defun vc-bzr-post-command-function (command file flags)
-    "`vc-post-command-functions' function to remove progress messages."
-    ;; Note that using this requires that the vc command is run
-    ;; synchronously.  Otherwise, the ^Ms in the leading progress
-    ;; message on stdout cause the stream to be interpreted as having
-    ;; DOS line endings, losing the ^Ms, so the search fails.  I don't
-    ;; know how this works under Windows.
-    (when (equal command vc-bzr-program)
-      (save-excursion
-        (goto-char (point-min))
-        (if (looking-at "^\\(\r.*\r\\)[^\r]+$")
-            (replace-match "" nil nil nil 1)))
-      (save-excursion
-        (goto-char (point-min))
-        ;; This is inserted by bzr 0.11 `log', at least
-        (while (looking-at "read knit.*\n")
-          (replace-match "")))))
 
-  (add-hook 'vc-post-command-functions 'vc-bzr-post-command-function))
 
 ;;;###autoload
 (defconst vc-bzr-admin-dirname ".bzr")    ; FIXME: "_bzr" on w32?

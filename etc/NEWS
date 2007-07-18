@@ -150,7 +150,7 @@ supported on other platforms, but not on Windows due to using the winsock
 
 * Lisp Changes in Emacs 23.1
 
-+++ 
++++
 ** In `condition-case', a handler can specify "let the debugger run first".
 
 You do this by writing `debug' in the list of conditions to be handled,
@@ -180,9 +180,10 @@ but obeys file handlers.  The file handler is chosen based on
 `default-directory'.
 
 +++
-** `file-remote-p' has a new optional parameter CONNECTED.
-With this paramter passed non-nil, it is checked whether a remote
-connection has been established already.
+** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
+IDENTIFICATION specifies which part of the remote identifier has to be
+returned.  With CONNECTED passed non-nil, it is checked whether a
+remote connection has been established already.
 
 ** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing

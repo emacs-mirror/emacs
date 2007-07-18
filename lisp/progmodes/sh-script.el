@@ -986,7 +986,7 @@ Point is at the beginning of the next line."
   ;; This looks silly, but it's because `sh-here-doc-re' keeps changing.
   (re-search-forward sh-here-doc-re limit t))
 
-(defun sh-quoted-subshell (limit)
+(defun sh-font-lock-quoted-subshell (limit)
   "Search for a subshell embedded in a string.
 Find all the unescaped \" characters within said subshell, remembering that
 subshells can nest."
@@ -1018,6 +1018,7 @@ subshells can nest."
                  (t (push state states) (setq state 'backquote))))
           (?\$ (if (not (eq (char-after (1+ (point))) ?\())
                    nil
+                 (forward-char 1)
                  (case state
                    (t (push state states) (setq state 'code)))))
           (?\( (case state
@@ -1026,7 +1027,7 @@ subshells can nest."
           (?\) (case state
                  (double-quote nil)
                  (t (setq state (pop states)))))
-          (t (error "Internal error in sh-quoted-subshell")))
+          (t (error "Internal error in sh-font-lock-quoted-subshell")))
         (forward-char 1)))
     t))
             
@@ -1111,7 +1112,7 @@ subshells can nest."
     (")" 0 (sh-font-lock-paren (match-beginning 0)))
     ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
     ;; This should be at the very end because it uses syntax-ppss.
-    (sh-quoted-subshell)))
+    (sh-font-lock-quoted-subshell)))
 
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))

@@ -346,7 +346,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 			 (assoc (file-name-nondirectory filename) entries)))
 	     (uid (if (and id-format (equal id-format 'string)) "nobody" -1))
 	     (gid (if (and id-format (equal id-format 'string)) "nogroup" -1))
-	     (inode (tramp-get-inode filename))
+	     (inode (tramp-get-inode v))
 	     (device (tramp-get-device v)))
 
         ;; Check result.

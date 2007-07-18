@@ -53,6 +53,11 @@ Boston, MA 02110-1301, USA.  */
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
+/* process.c uses uint16_t (from C99) for IPv6, but
+   apparently it is not defined in some versions of mingw and msvc.  */
+#ifndef UINT16_C
+typedef unsigned short uint16_t;
+#endif
 
 /* redefine select to reference our version */
 #ifdef MUST_REDEF_SELECT

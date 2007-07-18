@@ -637,26 +637,31 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
 (defvar tex-verbatim-environments
   '("verbatim" "verbatim*"))
+(put 'tex-verbatim-environments 'safe-local-variable
+     (lambda (x) (require 'cl) (every 'stringp x)))
 
 (defvar tex-font-lock-syntactic-keywords
-  (let ((verbs (regexp-opt tex-verbatim-environments t)))
-    `((,(concat "^\\\\begin *{" verbs "}.*\\(\n\\)") 2 "|")
-      ;; Technically, we'd like to put the "|" property on the \n preceding
-      ;; the \end, but this would have 2 disadvantages:
-      ;; 1 - it's wrong if the verbatim env is empty (the same \n is used to
-      ;;     start and end the fenced-string).
-      ;; 2 - font-lock considers the preceding \n as being part of the
-      ;;     preceding line, so things gets screwed every time the previous
-      ;;     line is re-font-locked on its own.
-      ;; There's a hack in tex-font-lock-keywords-1 to remove the verbatim
-      ;; face from the \ but C-M-f still jumps to the wrong spot :-(  --Stef
-      (,(concat "^\\(\\\\\\)end *{" verbs "}\\(.?\\)") (1 "|") (3 "<"))
-      ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
-      ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
-      ("\\\\verb\\**\\([^a-z@*]\\)"
-       ;; Do it last, because it uses syntax-ppss which needs the
-       ;; syntax-table properties of previous entries.
-       1 (tex-font-lock-verb (match-end 1))))))
+  '((eval . `(,(concat "^\\\\begin *{"
+                       (regexp-opt tex-verbatim-environments t)
+                       "}.*\\(\n\\)") 2 "|"))
+    ;; Technically, we'd like to put the "|" property on the \n preceding
+    ;; the \end, but this would have 2 disadvantages:
+    ;; 1 - it's wrong if the verbatim env is empty (the same \n is used to
+    ;;     start and end the fenced-string).
+    ;; 2 - font-lock considers the preceding \n as being part of the
+    ;;     preceding line, so things gets screwed every time the previous
+    ;;     line is re-font-locked on its own.
+    ;; There's a hack in tex-font-lock-keywords-1 to remove the verbatim
+    ;; face from the \ but C-M-f still jumps to the wrong spot :-(  --Stef
+    (eval . `(,(concat "^\\(\\\\\\)end *{"
+                       (regexp-opt tex-verbatim-environments t)
+                       "}\\(.?\\)") (1 "|") (3 "<")))
+    ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
+    ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
+    ("\\\\verb\\**\\([^a-z@*]\\)"
+     ;; Do it last, because it uses syntax-ppss which needs the
+     ;; syntax-table properties of previous entries.
+     1 (tex-font-lock-verb (match-end 1)))))
 
 (defun tex-font-lock-unfontify-region (beg end)
   (font-lock-default-unfontify-region beg end)

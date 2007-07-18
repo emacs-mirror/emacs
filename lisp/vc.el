@@ -224,7 +224,7 @@
 ;;   The implementation should pass the value of vc-checkout-switches
 ;;   to the backend command.
 ;;
-;; - checkout (file &optional editable rev)
+;; * checkout (file &optional editable rev)
 ;;
 ;;   Check out revision REV of FILE into the working area.  If EDITABLE
 ;;   is non-nil, FILE should be writable by the user and if locking is

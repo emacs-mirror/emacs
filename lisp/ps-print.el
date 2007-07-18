@@ -6467,10 +6467,8 @@ If FACE is not a valid face name, use default face."
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
 
-;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
-;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
-;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
-;;;;;;  "ps-mule" "ps-mule.el" "464a9fb9d59f7561a46bcd5ca87d85db")
+;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "bb18668f99d691db470ec2a32753ba28")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -6518,60 +6516,10 @@ Any other value is treated as nil.")
 
 (custom-autoload (quote ps-multibyte-buffer) "ps-mule" t)
 
-(autoload (quote ps-mule-prepare-ascii-font) "ps-mule" "\
-Setup special ASCII font for STRING.
-STRING should contain only ASCII characters.
-
-\(fn STRING)" nil nil)
-
-(autoload (quote ps-mule-set-ascii-font) "ps-mule" "\
-Not documented
-
-\(fn)" nil nil)
-
-(autoload (quote ps-mule-plot-string) "ps-mule" "\
-Generate PostScript code for plotting characters in the region FROM and TO.
-
-It is assumed that all characters in this region belong to the same charset.
-
-Optional argument BG-COLOR specifies background color.
-
-Returns the value:
-
-	(ENDPOS . RUN-WIDTH)
-
-Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.
-
-\(fn FROM TO &optional BG-COLOR)" nil nil)
-
-(autoload (quote ps-mule-plot-composition) "ps-mule" "\
-Generate PostScript code for plotting composition in the region FROM and TO.
-
-It is assumed that all characters in this region belong to the same
-composition.
-
-Optional argument BG-COLOR specifies background color.
-
-Returns the value:
-
-	(ENDPOS . RUN-WIDTH)
-
-Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.
-
-\(fn FROM TO &optional BG-COLOR)" nil nil)
-
 (autoload (quote ps-mule-initialize) "ps-mule" "\
 Initialize global data for printing multi-byte characters.
 
 \(fn)" nil nil)
-
-(autoload (quote ps-mule-encode-header-string) "ps-mule" "\
-Generate PostScript code for ploting STRING by font FONTTAG.
-FONTTAG should be a string \"/h0\" or \"/h1\".
-
-\(fn STRING FONTTAG)" nil nil)
 
 (autoload (quote ps-mule-begin-job) "ps-mule" "\
 Start printing job for multi-byte chars between FROM and TO.
@@ -6579,8 +6527,8 @@ This checks if all multi-byte characters in the region are printable or not.
 
 \(fn FROM TO)" nil nil)
 
-(autoload (quote ps-mule-begin-page) "ps-mule" "\
-Not documented
+(autoload (quote ps-mule-end-job) "ps-mule" "\
+Finish printing job for multi-byte chars.
 
 \(fn)" nil nil)
 

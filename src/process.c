@@ -1775,7 +1775,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
 
   XPROCESS (proc)->inherit_coding_system_flag
-    = (NILP (buffer) || !inherit_process_coding_system);
+    = !(NILP (buffer) || !inherit_process_coding_system);
 
   create_process (proc, (char **) new_argv, current_dir);
 
@@ -3547,7 +3547,7 @@ usage: (make-network-process &rest ARGS)  */)
   p->encoding_buf = make_uninit_string (0);
 
   p->inherit_coding_system_flag
-    = (!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
+    = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
 
   UNGCPRO;
   return proc;
@@ -5176,7 +5176,7 @@ read_process_output (proc, channel)
 	  p->decoding_carryover = coding->carryover_bytes;
 	}
       /* Adjust the multibyteness of TEXT to that of the filter.  */
-      if (p->filter_multibyte != STRING_MULTIBYTE (text))
+      if (!p->filter_multibyte != !STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_to_multibyte (text));

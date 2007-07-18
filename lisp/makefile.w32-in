@@ -444,5 +444,7 @@ install-lisp-CMD:
 #
 # Maintenance
 #
+# We used to delete *~ here, but that might inadvertently remove
+# precious files if it happens to match their short 8+3 aliases.
 clean:
-		- $(DEL) *~
+		- $(DEL) *.el~
