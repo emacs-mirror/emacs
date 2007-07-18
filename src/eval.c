@@ -531,7 +531,7 @@ Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.
 The second VAL is not computed until after the first SYM is set, and so on;
 each VAL can use the new value of variables set earlier in the `setq'.
 The return value of the `setq' form is the value of the last VAL.
-usage: (setq SYM VAL SYM VAL ...)  */)
+usage: (setq [SYM VAL]...)  */)
      (args)
      Lisp_Object args;
 {
