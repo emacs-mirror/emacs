@@ -242,7 +242,7 @@
 ;;   already been reverted from a version backup, and this function
 ;;   only needs to update the status of FILE within the backend.
 ;;
-;; - cancel-version (file editable)
+;; - rollback (file editable)
 ;;
 ;;   Cancel the current workfile version of FILE, i.e. remove it from the
 ;;   master.  EDITABLE non-nil means that FILE should be writable
@@ -588,7 +588,7 @@ to use -L and sets this variable to remember whether it worked."
   :group 'vc)
 
 (defcustom vc-allow-async-revert nil
-  "Specifies whether the diff during \\[vc-revert-buffer] may be asynchronous.
+  "Specifies whether the diff during \\[vc-revert] may be asynchronous.
 Enabling this option means that you can confirm a revert operation even
 if the local changes in the file have not been found and displayed yet."
   :type '(choice (const :tag "No" nil)
@@ -1274,7 +1274,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	  ;; DO NOT revert the file without asking the user!
 	  (if (not visited) (find-file-other-window file))
 	  (if (yes-or-no-p "Revert to master version? ")
-	      (vc-revert-buffer)))
+	      (vc-revert)))
 	 (t ;; normal action
 	  (if (not verbose)
 	      (vc-checkin file nil comment)
@@ -2534,7 +2534,7 @@ it if their logs are not in RCS format."
       (delete-region (match-beginning 0) (match-end 0)))))
 
 ;;;###autoload
-(defun vc-revert-buffer ()
+(defun vc-revert ()
   "Revert the current buffer's file to the version it was based on.
 This asks for confirmation if the buffer contents are not identical
 to that version.  This function does not automatically pick up newer
@@ -2593,7 +2593,7 @@ the current branch are merged into the working file."
           (if (eq (vc-state file) 'edited)
               (error
                (substitute-command-keys
-           "File is locked--type \\[vc-revert-buffer] to discard changes"))
+           "File is locked--type \\[vc-revert] to discard changes"))
             (error
              (substitute-command-keys
            "Unexpected file state (%s)--type \\[vc-next-action] to correct")
@@ -2659,7 +2659,7 @@ return its name; otherwise return nil."
   (vc-resynch-buffer file t t))
 
 ;;;###autoload
-(defun vc-cancel-version (norevert)
+(defun vc-rollback (norevert)
   "Get rid of most recently checked in version of this file.
 A prefix argument NOREVERT means do not revert the buffer afterwards."
   (interactive "P")
@@ -2668,12 +2668,12 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
 	 (backend (vc-backend file))
          (target (vc-workfile-version file)))
     (cond
-     ((not (vc-find-backend-function backend 'cancel-version))
+     ((not (vc-find-backend-function backend 'rollback))
       (error "Sorry, canceling versions is not supported under %s" backend))
      ((not (vc-call latest-on-branch-p file))
       (error "This is not the latest version; VC cannot cancel it"))
      ((not (vc-up-to-date-p file))
-      (error "%s" (substitute-command-keys "File is not up to date; use \\[vc-revert-buffer] to discard changes"))))
+      (error "%s" (substitute-command-keys "File is not up to date; use \\[vc-revert] to discard changes"))))
     (if (null (yes-or-no-p (format "Remove version %s from master? " target)))
 	(error "Aborted")
       (setq norevert (or norevert (not
@@ -2682,7 +2682,7 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
       (message "Removing last change from %s..." file)
       (with-vc-properties
        file
-       (vc-call cancel-version file norevert)
+       (vc-call rollback file norevert)
        `((vc-state . ,(if norevert 'edited 'up-to-date))
 	 (vc-checkout-time . ,(if norevert
 				0
