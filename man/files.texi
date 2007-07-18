@@ -1258,10 +1258,31 @@ this section if you are already familiar with the version control system
 you want to use.
 
 @menu
+* Why Version Control?:: Understanding the problems it addresses
 * Version Systems::  Supported version control back-end systems.
 * VC Concepts::      Words and concepts related to version control.
 * Types of Log File::    The per-file VC log in contrast to the ChangeLog.
 @end menu
+
+@node Why Version Control?
+@subsubsection Understanding the problems it addresses
+
+  Version control systems provide you with three important capabilities: 
+@dfn{reversibility}. @dfn{concurrency}, and @dfn{history}.
+
+  The most basic capability you get from a version-control system is
+reversibility, the ability to back up to a saved, known-good state when
+you discover that some modification you did was a mistake or a bad idea.
+
+  Version-control systems also support concurrency, the ability to
+have many people modifying the same collection of code or documents
+knowing that conflicting modifications can be detected and resolved.
+
+  Version-control systems give you the capability to attach a history
+to your data, explanatory comments about the intention behind each 
+change to it.  Even for a programmer working solo change histories
+are an important aid to memory; for a multi-person project they 
+become a vitally important form of communication among developers.
 
 @node Version Systems
 @subsubsection Supported Version Control Systems
@@ -1351,34 +1372,102 @@ After you are done with a set of changes, you @dfn{check the file in},
 which records the changes in the master file, along with a log entry for
 them.
 
-  With CVS, there are usually multiple work files corresponding to a
-single master file---often each user has his own copy.  It is also
-possible to use RCS in this way, but this is not the usual way to use
-RCS.
+  To go beyond these basic concepts, you will need to understand three
+ways in which version-control systems can differ from each other.  They
+can be locking or merging; they can be file-based or changeset-based;
+and they can be centralized or decentralized.  VC handles all these
+choices, but they lead to differing behaviors which you will need
+to understand as you use it.
 
-@cindex locking and version control
+@cindex locking versus merging
   A version control system typically has some mechanism to coordinate
 between users who want to change the same file.  One method is
 @dfn{locking} (analogous to the locking that Emacs uses to detect
-simultaneous editing of a file, but distinct from it).  The other method
-is to merge your changes with other people's changes when you check them
-in.
+simultaneous editing of a file, but distinct from it).  In a locking
+system, such as SCCS, you must @dfn{lock} a file before you start to
+edit it.  The other method is @dfn{merging}; the system tries to 
+merge your changes with other people's changes when you check them in.
 
   With version control locking, work files are normally read-only so
 that you cannot change them.  You ask the version control system to make
 a work file writable for you by locking it; only one user can do
 this at any given time.  When you check in your changes, that unlocks
 the file, making the work file read-only again.  This allows other users
-to lock the file to make further changes.  SCCS always uses locking, and
-RCS normally does.
+to lock the file to make further changes.
 
-  The other alternative for RCS is to let each user modify the work file
-at any time.  In this mode, locking is not required, but it is
-permitted; check-in is still the way to record a new version.
+  By contrast, a merging system lets each user check out and modify a
+work file at any time.  When you check in a a file, the system will
+attempt to merge your changes with any others checked into the
+repository since you checked out the file.
 
-  CVS normally allows each user to modify his own copy of the work file
-at any time, but requires merging with changes from other users at
-check-in time.  However, CVS can also be set up to require locking.
+  Both locking and merging systems can have problems when multiple users
+try to modify the same file at the same time.  Locking systems have
+@dfn{lock conflicts}; a user may try to check a file out and be unable
+to because it is locked.  In merging systems, @dfn{merge conflicts}
+happen when you check in a change to a file that conflicts with a change
+checked in by someone else after your checkout.  Both kinds of conflict
+have to be resolved by human judgment and communication.
+
+  SCCS always uses locking. RCS is lock-based by default but can be told
+to operate in a merging style.  CVS is merge-based by default but can
+be told to operate in a locking mode.  Most later version-control
+systems, such as Subversion and GNU Arch, have been fundamentally
+merging-based rather than locking-based.  This is because experience
+has shown that the merging-based approach is generally superior to
+the locking one, both in convenience to developers and in minimizing
+the number and severity of conflicts that actually occur.
+
+   While it is rather unlikely that anyone will ever again build a
+fundamentally locking-based rather than merging-based version-control
+system in the future, merging-based version-systems sometimes have locks
+retrofitted onto them for reasons having nothing to do with technology.
+@footnote{Usually the control-freak instincts of managers}  For this
+reason, and to support older systems still in use, VC mode supports
+both locking and merging version control and tries to hide the differences
+between them as much as possible.
+
+@cindex files versus changesets.
+
+  On SCCS. RCS, CVS, and other early version-control systems, checkins
+and other operations are @dfn{file-based}; each file has its own
+@dfn{master file} with its own comment- and revision history separate
+from that of all other files in the system.  Later systems, beginning
+with Subversion, are @dfn{changeset-based}; a checkin may include
+changes to several files and that change set is treated as a unit by the
+system.  Any comment associated with the change doesn't belong to any
+one file, but is attached to the changeset itself.
+
+  Changeset-based version control is in general both more flexible and
+more powerful than file-based version control; usually, when a change to
+multiple files has to be backed out, it's good to be able to easily
+identify and remove all of it.  But it took some years for designers to
+figure that out, and while file-based systems are passing out of use
+there are lots of legacy repositories still to be dealt with at time of
+writing in 2007.
+
+@cindex centralized vs. decentralized
+
+  Early version-control systems were designed around a @dfn{centralized}
+model in which each project has only one repository used by all
+developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
+It has two important problems. One is that a single repository is a
+single point of failure--if the repository server is down all work
+stops.  The other is that you need to be connected live to the server to
+do checkins and checkouts; if you're offline, you can't work.
+
+  Newer version-control systems like GNU Arch are @dfn{decentralized}.
+A project may have several different repositories, and these systems
+support a sort of super-merge between repositories that tries to
+reconcile their change histories.  At the limit, each developer has
+his/her own repository, and repository merges replace checkin/commit
+operations.
+
+  VC's job is to help you manage the traffic between your personal
+workfiles and a repository.  Whether that repository is a single master
+or one of a network of peer repositories is not something VC has to care
+about.  Thus, the difference between a centralized and a decentralized
+version-control system is invisible to VC mode.
+
 @iftex
 (@pxref{CVS Options,,,emacs-xtra, Specialized Emacs Features}).
 @end iftex
