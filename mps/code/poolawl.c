@@ -672,7 +672,7 @@ static void awlRangeWhiten(AWLSeg awlseg, Index base, Index limit)
   }
 }
 
-Res AWLWhiten(Pool pool, Trace trace, Seg seg)
+static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 {
   AWL awl;
   AWLSeg awlseg;
@@ -691,7 +691,7 @@ Res AWLWhiten(Pool pool, Trace trace, Seg seg)
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   if(buffer == NULL) {
-    AWLRangeWhiten(awlseg, 0, awlseg->grains);
+    awlRangeWhiten(awlseg, 0, awlseg->grains);
     trace->condemned += SegSize(seg);
   } else {
     /* Whiten everything except the buffer. */
@@ -701,8 +701,8 @@ Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     Index limitIndex = awlIndexOfAddr(base, awl,
                                       BufferLimit(buffer));
 
-    AWLRangeWhiten(awlseg, 0, scanLimitIndex);
-    AWLRangeWhiten(awlseg, limitIndex, awlseg->grains);
+    awlRangeWhiten(awlseg, 0, scanLimitIndex);
+    awlRangeWhiten(awlseg, limitIndex, awlseg->grains);
 
     /* Check the buffer is black. */
     /* This really ought to change when we have a non-trivial */
