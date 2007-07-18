@@ -198,16 +198,17 @@ Only the value `maybe' can be trusted :-(."
        ;; creates a {arch} directory somewhere.
        file 'arch-root (vc-find-root file "{arch}/=tagging-method"))))
 
-(defun vc-arch-register (file &optional rev comment)
+(defun vc-arch-register (files &optional rev comment)
   (if rev (error "Explicit initial revision not supported for Arch"))
-  (let ((tagmet (vc-arch-tagging-method file)))
-    (if (and (memq tagmet '(tagline implicit)) comment-start)
-	(with-current-buffer (find-file-noselect file)
-	  (if (buffer-modified-p)
-	      (error "Save %s first" (buffer-name)))
-	  (vc-arch-add-tagline)
-	  (save-buffer))
-      (vc-arch-command nil 0 file "add"))))
+  (dolist (file files)
+    (let ((tagmet (vc-arch-tagging-method file)))
+      (if (and (memq tagmet '(tagline implicit)) comment-start)
+	  (with-current-buffer (find-file-noselect file)
+	    (if (buffer-modified-p)
+		(error "Save %s first" (buffer-name)))
+	    (vc-arch-add-tagline)
+	    (save-buffer)))))
+  (vc-arch-command nil 0 files "add"))
 
 (defun vc-arch-registered (file)
   ;; Don't seriously check whether it's source or not.  Checking would
@@ -371,22 +372,24 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-checkout-model (file) 'implicit)
 
-(defun vc-arch-checkin (file rev comment)
+(defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))
-  (let ((summary (file-relative-name file (vc-arch-root file))))
+  ;; FIXME: This implementation probably only works for singleton filesets
+  (let ((summary (file-relative-name (car file) (vc-arch-root (car files)))))
     ;; Extract a summary from the comment.
     (when (or (string-match "\\`Summary:[ \t]*\\(.*[^ \t\n]\\)\\([ \t]*\n\\)*" comment)
 	      (string-match "\\`[ \t]*\\(.*[^ \t\n]\\)[ \t]*\\(\n?\\'\\|\n\\([ \t]*\n\\)+\\)" comment))
       (setq summary (match-string 1 comment))
       (setq comment (substring comment (match-end 0))))
-    (vc-arch-command nil 0 file "commit" "-s" summary "-L" comment "--"
+    (vc-arch-command nil 0 files "commit" "-s" summary "-L" comment "--"
 		     (vc-switches 'Arch 'checkin))))
 
-(defun vc-arch-diff (file &optional oldvers newvers buffer)
-  "Get a difference report using Arch between two versions of FILE."
+(defun vc-arch-diff (files &optional oldvers newvers buffer)
+  "Get a difference report using Arch between two versions of FILES."
+  ;; FIXME: This implementation probably only works for singleton filesets
   (if (and newvers
 	   (vc-up-to-date-p file)
-	   (equal newvers (vc-workfile-version file)))
+	   (equal newvers (vc-workfile-version (car files))))
       ;; Newvers is the base revision and the current file is unchanged,
       ;; so we can diff with the current file.
       (setq newvers nil))
@@ -394,7 +397,7 @@ Return non-nil if FILE is unchanged."
       (error "Diffing specific revisions not implemented")
     (let* ((async (and (not vc-disable-async-diff) (fboundp 'start-process)))
 	   ;; Run the command from the root dir.
-	   (default-directory (vc-arch-root file))
+	   (default-directory (vc-arch-root (car files)))
 	   (status
 	    (vc-arch-command
 	     (or buffer "*vc-diff*")
@@ -402,8 +405,8 @@ Return non-nil if FILE is unchanged."
 	     nil "file-diffs"
 	     ;; Arch does not support the typical flags.
 	     ;; (vc-switches 'Arch 'diff)
-	     (file-relative-name file)
-	     (if (equal oldvers (vc-workfile-version file))
+	     (mapcar 'file-relative-name files)
+	     (if (equal oldvers (vc-workfile-version (car files)))
 		 nil
 	       oldvers))))
       (if async 1 status))))	       ; async diff, pessimistic assumption.
