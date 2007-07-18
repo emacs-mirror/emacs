@@ -64,10 +64,10 @@ typedef struct amcNailboardStruct {
   Sig sig;
   int type;         /* AMCPTypeNailboard for a nailboard */
   amcGen gen;       /* generation of this segment */
-  Count nails;      /* number of ambigFixes, not necessarily distinct */
+  Count nails;      /* no. of ambigFixes, not necessarily distinct */
   Count distinctNails; /* number of distinct ambigFixes */
   Bool newMarks;    /* set to TRUE if a new mark bit is added */
-  Shift markShift;  /* shift to convert offset into bit index for mark */
+  Shift markShift;  /* to convert offset into bit index for mark */
   BT mark;          /* mark table used to record ambiguous fixes */
 } amcNailboardStruct;
 
@@ -389,20 +389,20 @@ static amcGen amcSegGen(Seg seg)
 
 #define AMCSig          ((Sig)0x519A3C99) /* SIGnature AMC */
 
-typedef struct AMCStruct {      /* <design/poolamc/#struct> */
-  PoolStruct poolStruct;        /* generic pool structure */
-  RankSet rankSet;              /* rankSet for entire pool */
-  RingStruct genRing;           /* ring of generations */
-  Bool gensBooted;              /* used during boot (init) */
-  Chain chain;                  /* chain used by this pool */
-  size_t gens;                  /* number of generations */
-  amcGen *gen;                  /* (pointer to) array of generations */
-  amcGen nursery;               /* the default mutator generation */
-  amcGen rampGen;               /* the ramp generation */
-  amcGen afterRampGen;          /* the generation after rampGen */
-  unsigned rampCount;           /* <design/poolamc/#ramp.count> */
-  int rampMode;                 /* <design/poolamc/#ramp.mode> */
-  Sig sig;                      /* <design/pool/#outer-structure.sig> */
+typedef struct AMCStruct { /* <design/poolamc/#struct> */
+  PoolStruct poolStruct;   /* generic pool structure */
+  RankSet rankSet;         /* rankSet for entire pool */
+  RingStruct genRing;      /* ring of generations */
+  Bool gensBooted;         /* used during boot (init) */
+  Chain chain;             /* chain used by this pool */
+  size_t gens;             /* number of generations */
+  amcGen *gen;             /* (pointer to) array of generations */
+  amcGen nursery;          /* the default mutator generation */
+  amcGen rampGen;          /* the ramp generation */
+  amcGen afterRampGen;     /* the generation after rampGen */
+  unsigned rampCount;      /* <design/poolamc/#ramp.count> */
+  int rampMode;            /* <design/poolamc/#ramp.mode> */
+  Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
 
 #define Pool2AMC(pool) PARENT(AMCStruct, poolStruct, (pool))
@@ -437,11 +437,12 @@ static Bool amcNailboardCheck(amcNailboard board)
   CHECKS(amcNailboard, board);
   CHECKL(board->type == AMCPTypeNailboard);
   CHECKD(amcGen, board->gen);
-  /* nails is >= number of set bits in mark, but we can't check this. */
-  /* We know that shift corresponds to pool->align */
+  /* nails is >= number of set bits in mark, but we can't check this */
+  /* We know that shift corresponds to pool->align. */
   CHECKL(BoolCheck(board->newMarks));
   CHECKL(board->distinctNails <= board->nails);
-  CHECKL(1uL << board->markShift == PoolAlignment(amcGenPool(board->gen)));
+  CHECKL(1uL << board->markShift
+         == PoolAlignment(amcGenPool(board->gen)));
   /* weak check for BTs @@@@ */
   CHECKL(board->mark != NULL);
   return TRUE;
@@ -458,9 +459,9 @@ static Bool amcNailboardCheck(amcNailboard board)
 typedef struct amcBufStruct *amcBuf;
 
 typedef struct amcBufStruct {
-  SegBufStruct segbufStruct;      /* superclass fields must come first */
-  amcGen gen;                     /* The AMC generation */
-  Sig sig;                        /* <design/sig/> */
+  SegBufStruct segbufStruct;    /* superclass fields must come first */
+  amcGen gen;                   /* The AMC generation */
+  Sig sig;                      /* <design/sig/> */
 } amcBufStruct;
 
 
@@ -531,7 +532,8 @@ static Res AMCBufInit(Buffer buffer, Pool pool, va_list args)
     /* Set up the buffer to be allocating in the nursery. */
     amcbuf->gen = amc->nursery;
   } else {
-    amcbuf->gen = NULL; /* no gen yet -- see <design/poolamc/#gen.forward> */
+    /* No gen yet -- see <design/poolamc/#gen.forward>. */
+    amcbuf->gen = NULL;
   }
   amcbuf->sig = amcBufSig;
   AVERT(amcBuf, amcbuf);
@@ -652,10 +654,13 @@ static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-               "  amcGen $P ($U) {\n", (WriteFP)gen, (WriteFU)amcGenNr(gen),
+               "  amcGen $P ($U) {\n",
+               (WriteFP)gen, (WriteFU)amcGenNr(gen),
                "   buffer $P\n", gen->forward,
-               "   segs $U, totalSize $U, newSize $U\n", (WriteFU)gen->segs,
-               (WriteFU)gen->pgen.totalSize, (WriteFU)gen->pgen.newSize,
+               "   segs $U, totalSize $U, newSize $U\n",
+               (WriteFU)gen->segs,
+               (WriteFU)gen->pgen.totalSize,
+               (WriteFU)gen->pgen.newSize,
                "  } amcGen\n", NULL);
   return res;
 }
@@ -769,8 +774,8 @@ static Bool amcNailGetAndSetMark(Seg seg, Ref ref)
 /* amcNailMarkRange -- nail a range in the board
  *
  * We nail the objects laying between base and limit, i.e., mark the
- * bits that correspond to client pointers for them.  We may assume that
- * the range is unmarked.
+ * bits that correspond to client pointers for them.  We may assume
+ * that the range is unmarked.
  */
 static void amcNailMarkRange(Seg seg, Addr base, Addr limit)
 {
@@ -787,8 +792,10 @@ static void amcNailMarkRange(Seg seg, Addr base, Addr limit)
   board = amcSegNailboard(seg);
   AVERT(amcNailboard, board);
   headerSize = SegPool(seg)->format->headerSize;
-  ibase = (AddrOffset(SegBase(seg), base) + headerSize) >> board->markShift;
-  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize) >> board->markShift;
+  ibase = (AddrOffset(SegBase(seg), base) + headerSize)
+          >> board->markShift;
+  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize)
+           >> board->markShift;
   AVER(BTIsResRange(board->mark, ibase, ilimit));
 
   BTSetRange(board->mark, ibase, ilimit);
@@ -817,8 +824,10 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
   board = amcSegNailboard(seg);
   AVERT(amcNailboard, board);
   headerSize = SegPool(seg)->format->headerSize;
-  ibase = (AddrOffset(SegBase(seg), base) + headerSize) >> board->markShift;
-  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize) >> board->markShift;
+  ibase = (AddrOffset(SegBase(seg), base) + headerSize)
+          >> board->markShift;
+  ilimit = (AddrOffset(SegBase(seg), limit) + headerSize)
+           >> board->markShift;
   return BTIsSetRange(board->mark, ibase, ilimit);
 }
 
@@ -944,14 +953,15 @@ static void AMCFinish(Pool pool)
 
   EVENT_P(AMCFinish, amc);
 
-  /* @@@@ Make sure that segments aren't buffered by forwarding buffers. */
-  /* This is a hack which allows the pool to be destroyed */
+  /* @@@@ Make sure that segments aren't buffered by forwarding */
+  /* buffers.  This is a hack which allows the pool to be destroyed */
   /* while it is collecting.  Note that there aren't any mutator */
   /* buffers by this time. */
   RING_FOR(node, &amc->genRing, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
     BufferDetach(gen->forward, pool);
-    gen->pgen.newSize = (Size)0; /* to maintain invariant < totalSize */
+    /* Maintain invariant < totalSize. */
+    gen->pgen.newSize = (Size)0;
   }
 
   ring = PoolSegRing(pool);
@@ -967,7 +977,8 @@ static void AMCFinish(Pool pool)
     SegFree(seg);
   }
 
-  /* Disassociate forwarding buffers from gens before they are destroyed */
+  /* Disassociate forwarding buffers from gens before they are */
+  /* destroyed. */
   ring = &amc->genRing;
   RING_FOR(node, ring, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
@@ -1062,7 +1073,8 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
  *
  * See <design/poolamc/#flush>.
  */
-static void AMCBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
+static void AMCBufferEmpty(Pool pool, Buffer buffer,
+                           Addr init, Addr limit)
 {
   AMC amc;
   Size size;
@@ -1130,13 +1142,15 @@ static void AMCRampEnd(Pool pool, Buffer buf)
     PoolGen pgen = &amc->rampGen->pgen;
     Ring node, nextNode;
 
-    if(amc->rampMode == RampRAMPING)    /* if we are ramping, clean up */
+    if(amc->rampMode == RampRAMPING) {
+      /* We were ramping, so clean up. */
       amc->rampMode = RampFINISH;
-    else
+    } else {
       amc->rampMode = RampOUTSIDE;
+    }
 
-    /* Adjust amc->rampGen->pgen.newSize: Now count all the segments in the */
-    /* ramp generation as new (except if they're white). */
+    /* Adjust amc->rampGen->pgen.newSize: Now count all the segments */
+    /* in the ramp generation as new (except if they're white). */
     RING_FOR(node, PoolSegRing(pool), nextNode) {
       Seg seg = SegOfPoolRing(node);
 
@@ -1183,7 +1197,8 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
       /*  1998-10-08.  It has never worked.  RHSK 2007-01-16] */
       /* else if (BufferScanLimit(buffer) == BufferLimit(buffer)) { */
         /* The buffer is full, so it won't be used by the mutator. */
-        /* @@@@ We should detach it, but can't for technical reasons. */
+        /* @@@@ We should detach it, but can't for technical */
+        /* reasons. */
         /* BufferDetach(buffer, pool); */
       /* } */
       else {
@@ -1282,7 +1297,8 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   p = AddrAdd(SegBase(seg), format->headerSize);
   while(SegBuffer(seg) != NULL) {
-    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)), format->headerSize);
+    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
+                    format->headerSize);
     if(p >= limit) {
       AVER(p == limit);
       goto returnGood;
@@ -1393,7 +1409,8 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
        * use if0 to comment it out.  RHSK 2007-04-18.
        */
       (void) WriteF(mps_lib_get_stdout(),
-        "amcScanNailed completed, but had to loop $U times:\n", (WriteFU)loops,
+        "amcScanNailed completed, but had to loop $U times:\n",
+        (WriteFU)loops,
         " SegSummary:        $B\n", (WriteFB)SegSummary(seg),
         " ss.white:          $B\n", (WriteFB)ss->white,
         " ss.unfixedSummary: $B", (WriteFB)ss->unfixedSummary,
@@ -1448,10 +1465,13 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   EVENT_PPP(AMCScanBegin, amc, seg, ss);
 
   base = AddrAdd(SegBase(seg), format->headerSize);
-  while(SegBuffer(seg) != NULL) {  /* <design/poolamc/#seg-scan.loop> */
-    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)), format->headerSize);
+  /* <design/poolamc/#seg-scan.loop> */
+  while(SegBuffer(seg) != NULL) {
+    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
+                    format->headerSize);
     if(base >= limit) {
-      /* @@@@ Are we sure we don't need scan the rest of the segment? */
+      /* @@@@ Are we sure we don't need scan the rest of the */
+      /* segment? */
       AVER(base == limit);
       *totalReturn = TRUE;
       return ResOK;
@@ -1502,8 +1522,9 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
   ref = (Addr)*refIO;
   /* An ambiguous reference can point before the header. */
   AVER(SegBase(seg) <= ref);
-  /* .ref-limit: A reference passed to Fix can't be beyond the segment, */
-  /* because then TraceFix would not have picked this segment. */
+  /* .ref-limit: A reference passed to Fix can't be beyond the */
+  /* segment, because then TraceFix would not have picked this */
+  /* segment. */
   AVER(ref < SegLimit(seg));
 
   EVENT_0(AMCFixInPlace);
@@ -1527,7 +1548,8 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
  *
  * See <design/poolamc/#emergency.fix>.
  */
-static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
+                           Ref *refIO)
 {
   Arena arena;
   AMC amc;
@@ -1573,17 +1595,17 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Arena arena;
   AMC amc;
   Res res;
-  Format format;        /* cache of pool->format */
-  Ref ref;              /* reference to be fixed */
-  Ref newRef;           /* new location, if moved */
-  Size length;          /* length of object to be relocated */
-  Buffer buffer;        /* buffer to allocate new copy into */
-  amcGen gen;           /* generation of old copy of object */
-  TraceSet grey;        /* greyness of object being relocated */
-  TraceSet toGrey;      /* greyness of object's destination */
-  RefSet summary;       /* summary of object being relocated */
-  RefSet toSummary;     /* summary of object's destination */
-  Seg toSeg;            /* segment to which object is being relocated */
+  Format format;       /* cache of pool->format */
+  Ref ref;             /* reference to be fixed */
+  Ref newRef;          /* new location, if moved */
+  Size length;         /* length of object to be relocated */
+  Buffer buffer;       /* buffer to allocate new copy into */
+  amcGen gen;          /* generation of old copy of object */
+  TraceSet grey;       /* greyness of object being relocated */
+  TraceSet toGrey;     /* greyness of object's destination */
+  RefSet summary;      /* summary of object being relocated */
+  RefSet toSummary;    /* summary of object's destination */
+  Seg toSeg;           /* segment to which object is being relocated */
 
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Pool, pool);
@@ -1603,8 +1625,8 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* .nail.new: Check to see whether we need a Nailboard for */
     /* this seg.  We use "SegNailed(seg) == TraceSetEMPTY" */
     /* rather than "!amcSegHasNailboard(seg)" because this avoids */
-    /* setting up a new nailboard when the segment was nailed, but had */
-    /* no nailboard.  This must be avoided because otherwise */
+    /* setting up a new nailboard when the segment was nailed, but */
+    /* had no nailboard.  This must be avoided because otherwise */
     /* assumptions in AMCFixEmergency will be wrong (essentially */
     /* we will lose some pointer fixes because we introduced a */
     /* nailboard). */
@@ -1635,8 +1657,8 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* If object is nailed already then we mustn't copy it: */
     if(SegNailed(seg) != TraceSetEMPTY
        && (!amcSegHasNailboard(seg) || amcNailGetMark(seg, ref))) {
-      /* Segment only needs greying if there are new traces for which */
-      /* we are nailing. */
+      /* Segment only needs greying if there are new traces for */
+      /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
         if(SegRankSet(seg) != RankSetEMPTY) {
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
@@ -1722,18 +1744,18 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Arena arena;
   AMC amc;
   Res res;
-  Format format;        /* cache of pool->format */
-  Ref ref;              /* reference to be fixed */
-  Ref newRef;           /* new location, if moved */
-  Addr newBase;         /* base address of new copy */
-  Size length;          /* length of object to be relocated */
-  Buffer buffer;        /* buffer to allocate new copy into */
-  amcGen gen;           /* generation of old copy of object */
-  TraceSet grey;        /* greyness of object being relocated */
-  TraceSet toGrey;      /* greyness of object's destination */
-  RefSet summary;       /* summary of object being relocated */
-  RefSet toSummary;     /* summary of object's destination */
-  Seg toSeg;            /* segment to which object is being relocated */
+  Format format;       /* cache of pool->format */
+  Ref ref;             /* reference to be fixed */
+  Ref newRef;          /* new location, if moved */
+  Addr newBase;        /* base address of new copy */
+  Size length;         /* length of object to be relocated */
+  Buffer buffer;       /* buffer to allocate new copy into */
+  amcGen gen;          /* generation of old copy of object */
+  TraceSet grey;       /* greyness of object being relocated */
+  TraceSet toGrey;     /* greyness of object's destination */
+  RefSet summary;      /* summary of object being relocated */
+  RefSet toSummary;    /* summary of object's destination */
+  Seg toSeg;           /* segment to which object is being relocated */
 
   /* <design/trace/#fix.noaver> */
   AVERT_CRITICAL(Pool, pool);
@@ -1750,13 +1772,14 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   /* managing a nailed segment.  This involves marking the segment */
   /* as nailed, and setting up a per-word mark table */
   if(ss->rank == RankAMBIG) {
-    /* .nail.new: Check to see whether we need a Nailboard for this seg. */
-    /* We use "SegNailed(seg) == TraceSetEMPTY" rather than */
-    /* "!amcSegHasNailboard(seg)" because this avoids setting up a new */
-    /* nailboard when the segment was nailed, but had no nailboard. */
-    /* This must be avoided because otherwise assumptions in */
-    /* AMCFixEmergency will be wrong (essentially we will lose some */
-    /* pointer fixes because we introduced a nailboard). */
+    /* .nail.new: Check to see whether we need a Nailboard for */
+    /* this seg.  We use "SegNailed(seg) == TraceSetEMPTY" */
+    /* rather than "!amcSegHasNailboard(seg)" because this avoids */
+    /* setting up a new nailboard when the segment was nailed, but */
+    /* had no nailboard.  This must be avoided because otherwise */
+    /* assumptions in AMCFixEmergency will be wrong (essentially */
+    /* we will lose some pointer fixes because we introduced a */
+    /* nailboard). */
     if(SegNailed(seg) == TraceSetEMPTY) {
       res = amcSegCreateNailboard(seg, pool);
       if(res != ResOK)
@@ -1772,7 +1795,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
   ref = *refIO;
-  AVER_CRITICAL(AddrAdd(SegBase(seg), pool->format->headerSize) <= ref);
+  AVER_CRITICAL(AddrAdd(SegBase(seg), pool->format->headerSize)
+                <= ref);
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
@@ -1784,8 +1808,8 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* If object is nailed already then we mustn't copy it: */
     if(SegNailed(seg) != TraceSetEMPTY
        && (!amcSegHasNailboard(seg) || amcNailGetMark(seg, ref))) {
-      /* Segment only needs greying if there are new traces for which */
-      /* we are nailing. */
+      /* Segment only needs greying if there are new traces for */
+      /* which we are nailing. */
       if(!TraceSetSub(ss->traces, SegNailed(seg))) {
         if(SegRankSet(seg) != RankSetEMPTY)
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
@@ -1901,9 +1925,9 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     length = AddrOffset(p, q);
     if(amcSegHasNailboard(seg)
         ? !amcNailGetMark(seg, p)
-        /* If there's no mark table, retain all that hasn't been       */
-        /* forwarded.  In this case, preservedInPlace* become somewhat */
-        /* overstated. */
+        /* If there's no mark table, retain all that hasn't been */
+        /* forwarded.  In this case, preservedInPlace* become */
+        /* somewhat overstated. */
         : (*format->isMoved)(p) != NULL)
     {
       (*format->pad)(AddrSub(p, headerSize), length);
@@ -2178,10 +2202,10 @@ mps_class_t mps_class_amcz(void)
 /* mps_amc_apply -- apply function to all objects in pool
  *
  * The iterator that is passed by the client is stored in a closure
- * structure which is passed to a local iterator in order to ensure that
- * any type conversion necessary between Addr and mps_addr_t happen.
- * They are almost certainly the same on all platforms, but this is the
- * correct way to do it.
+ * structure which is passed to a local iterator in order to ensure
+ * that any type conversion necessary between Addr and mps_addr_t
+ * happen. They are almost certainly the same on all platforms, but 
+ * this is the correct way to do it.
 */
 
 typedef struct mps_amc_apply_closure_s {
