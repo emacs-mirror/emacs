@@ -606,8 +606,11 @@ An argument of zero means repeat until error."
   (unless executing-kbd-macro
     (end-kbd-macro arg #'kmacro-loop-setup-function)
     (when (and last-kbd-macro (= (length last-kbd-macro) 0))
+      (setq last-kbd-macro nil)
       (message "Ignore empty macro")
-      (kmacro-pop-ring))))
+      ;; Don't call `kmacro-ring-empty-p' to avoid its messages.
+      (while (and (null last-kbd-macro) kmacro-ring)
+	(kmacro-pop-ring1)))))
 
 
 ;;;###autoload
