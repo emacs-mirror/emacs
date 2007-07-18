@@ -1,3 +1,12 @@
+2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-mode-hook, follow-mode-off-hook, follow-mode)
+	(follow-delete-other-windows-and-split, follow-recenter)
+	(follow-windows-aligned-p, follow-point-visible-all-windows-p)
+	(follow-redisplay, follow-estimate-first-window-start)
+	(follow-xemacs-scrollbar-support, follow-intercept-process-output):
+	Fix typos in docstrings.
+
 2007-07-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* add-log.el (change-log-mode): Use fill-nobreak-predicate to
@@ -5,7 +14,7 @@
 
 	* kmacro.el (kmacro-end-macro): When ignoring empty macro
 	avoid incorrect kmacro-ring-empty-p messages.
-	Reported by Michael Schierl <schierlm@gmx.de>
+	Reported by Michael Schierl <schierlm@gmx.de>.
 
 2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -18,7 +27,7 @@
 	* progmodes/grep.el (grep-probe): Use `process-file'.
 	(grep-compute-defaults): Handle variables host specific.
 
-	* net/ange-ftp.el: (ange-ftp-file-remote-p): Handle optional
+	* net/ange-ftp.el (ange-ftp-file-remote-p): Handle optional
 	parameter IDENTIFICATION.
 
 	* net/tramp.el (tramp-handle-file-remote-p): Handle optional
@@ -32,8 +41,8 @@
 	(tramp-convert-file-attributes): Add error handling when inode is
 	extraordinary big.
 	(tramp-get-inode): Change parameter from FILE to VEC.
-	(tramp-handle-start-file-process ): Use (current-buffer) if BUFFER
-	is NIL.  This is according to the specification.  Goto (point-max)
+	(tramp-handle-start-file-process): Use (current-buffer) if BUFFER
+	is nil.  This is according to the specification.  Goto (point-max)
 	when ready.
 	(tramp-handle-shell-command): Rewrite completely, using
 	`process-file' and `start-file-process'.
@@ -354,7 +363,7 @@
 	(org-columns-compile-format)
 	(org-fill-paragraph-experimental)
 	(org-string-to-number, org-property-action)
-	(org-columns-move-left, org-columns-new )
+	(org-columns-move-left, org-columns-new)
 	(org-column-number-to-string)
 	(org-property-previous-allowed-value)
 	(org-at-property-p, org-columns-delete)
