@@ -12,6 +12,7 @@
 rmdir /q/s w3i3mv
 nmake /f w3i3mv.nmk VARIETY=we mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=hi mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
+nmake /f w3i3mv.nmk VARIETY=di mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 nmake /f w3i3mv.nmk VARIETY=ci mps.lib mpsplan.lib mpsplcb.lib mpsdy.dll
 
 rmdir /q/s %mpsreleasename%
@@ -53,6 +54,14 @@ copy w3i3mv\hi\mpsplan.lib %mpsreleasename%\lib\w3i3\hi
 copy w3i3mv\hi\mpsplcb.lib %mpsreleasename%\lib\w3i3\hi
 copy w3i3mv\hi\mpsdy.dll %mpsreleasename%\lib\w3i3\hi
 copy w3i3mv\hi\mpsdy.lib %mpsreleasename%\lib\w3i3\hi
+
+mkdir %mpsreleasename%\lib\w3i3\di
+@echo di-%mpsreleasename% > %mpsreleasename%\lib\w3i3\di\di-%mpsreleasename%.txt
+copy w3i3mv\di\mps.lib %mpsreleasename%\lib\w3i3\di
+copy w3i3mv\di\mpsplan.lib %mpsreleasename%\lib\w3i3\di
+copy w3i3mv\di\mpsplcb.lib %mpsreleasename%\lib\w3i3\di
+copy w3i3mv\di\mpsdy.dll %mpsreleasename%\lib\w3i3\di
+copy w3i3mv\di\mpsdy.lib %mpsreleasename%\lib\w3i3\di
 
 mkdir %mpsreleasename%\lib\w3i3\ci
 @echo ci-%mpsreleasename% > %mpsreleasename%\lib\w3i3\ci\ci-%mpsreleasename%.txt
