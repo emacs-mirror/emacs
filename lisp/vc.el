@@ -101,6 +101,12 @@
 ;; with `vc-sys-'.  Some of the functions are mandatory (marked with a
 ;; `*'), others are optional (`-').
 ;;
+;; BACKEND PROPERTIES
+;;
+;; * revision-granularity
+;;
+;;   Takes no arguments.  Returns either 'file or 'repository.
+;;
 ;; STATE-QUERYING FUNCTIONS
 ;;
 ;; * registered (file)
@@ -171,12 +177,20 @@
 ;;
 ;; STATE-CHANGING FUNCTIONS
 ;;
-;; * register (file &optional rev comment)
+;; * create-repo (backend)
 ;;
-;;   Register FILE in this backend.  Optionally, an initial revision REV
-;;   and an initial description of the file, COMMENT, may be specified.
+;;   Create an empty repository in the current directory and initialize 
+;;   it so VC mode can add files to it.  For file-oriented systems, this 
+;;   need do no more than create a subdirectory with the right name.
+;;
+;; * register (files &optional rev comment)
+;;
+;;   Register FILES in this backend.  Optionally, an initial revision REV
+;;   and an initial description of the file, COMMENT, may be specified,
+;;   but it is not guaranteed that the backend will do anything with this.
 ;;   The implementation should pass the value of vc-register-switches
-;;   to the backend command.
+;;   to the backend command.  (Note: in older versions of VC, this 
+;;   command took a single file argument and not a list.)
 ;;
 ;; - init-version (file)
 ;;
@@ -210,12 +224,14 @@
 ;;   Unregister FILE from this backend.  This is only needed if this
 ;;   backend may be used as a "more local" backend for temporary editing.
 ;;
-;; * checkin (file rev comment)
+;; * checkin (files rev comment)
 ;;
-;;   Commit changes in FILE to this backend.  If REV is non-nil, that
-;;   should become the new revision number.  COMMENT is used as a
-;;   check-in comment.  The implementation should pass the value of
-;;   vc-checkin-switches to the backend command.
+;;   Commit changes in FILES to this backend.  If REV is non-nil, that
+;;   should become the new revision number (not all backends do
+;;   anything with it).  COMMENT is used as a check-in comment.  The
+;;   implementation should pass the value of vc-checkin-switches to
+;;   the backend command. (Note: in older versions of VC, this 
+;;   command took a single file argument and not a list.)
 ;;
 ;; * find-version (file rev buffer)
 ;;
@@ -242,13 +258,14 @@
 ;;   already been reverted from a version backup, and this function
 ;;   only needs to update the status of FILE within the backend.
 ;;
-;; - rollback (file editable)
+;; - rollback (files)
 ;;
-;;   Cancel the current workfile version of FILE, i.e. remove it from the
-;;   master.  EDITABLE non-nil means that FILE should be writable
-;;   afterwards, and if locking is used for FILE, then a lock should also
-;;   be set.  If this function is not provided, trying to cancel a
-;;   version is caught as an error.
+;;   Remove the tip version of each of FILES from the repository.  If
+;;   this function is not provided, trying to cancel a version is
+;;   caught as an error.  (Most backends don't provide it.)  (Also
+;;   note that older versions of this backend command were called
+;;   'cancel-version' and took a single file arg, not a list of
+;;   files.)
 ;;
 ;; - merge (file rev1 rev2)
 ;;
@@ -267,10 +284,11 @@
 ;;
 ;; HISTORY FUNCTIONS
 ;;
-;; * print-log (file &optional buffer)
+;; * print-log (files &optional buffer)
 ;;
-;;   Insert the revision log of FILE into BUFFER, or the *vc* buffer
-;;   if BUFFER is nil.
+;;   Insert the revision log for FILES into BUFFER, or the *vc* buffer
+;;   if BUFFER is nil.  (Note: older versions of this function expected
+;;   only a single file argument.)
 ;;
 ;; - log-view-mode ()
 ;;
@@ -976,9 +994,15 @@ Else, add CODE to the process' sentinel."
 Each function is called inside the buffer in which the command was run
 and is passed 3 arguments: the COMMAND, the FILE and the FLAGS.")
 
+(defun vc-delistify (filelist)
+  "Smash a FILELIST into a file list string suitable for info messages."
+  (cond ((not filelist) ".")
+        ((= (length filelist) 1) (car filelist)) 
+	(t (concat (car filelist) " " (vc-delistify (cdr filelist))))))
+
 (defvar w32-quote-process-args)
 ;;;###autoload
-(defun vc-do-command (buffer okstatus command file &rest flags)
+(defun vc-do-command (buffer okstatus command file-or-list &rest flags)
   "Execute a VC command, notifying user and checking for errors.
 Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
 current buffer if BUFFER is t.  If the destination buffer is not
@@ -986,65 +1010,71 @@ already current, set it up properly and erase it.  The command is
 considered successful if its exit status does not exceed OKSTATUS (if
 OKSTATUS is nil, that means to ignore error status, if it is `async', that
 means not to wait for termination of the subprocess; if it is t it means to
-ignore all execution errors).  FILE is the
-name of the working file (may also be nil, to execute commands that
-don't expect a file name).  If an optional list of FLAGS is present,
+ignore all execution errors).  FILE-OR-LIST is the name of a working file;
+it may be a list of files or be nil (to execute commands that don't expect 
+a file name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename."
-  (and file (setq file (expand-file-name file)))
-  (if vc-command-messages
-      (message "Running %s on %s..." command file))
-  (save-current-buffer
-    (unless (or (eq buffer t)
-                (and (stringp buffer)
-                     (string= (buffer-name) buffer))
-                (eq buffer (current-buffer)))
-      (vc-setup-buffer buffer))
-    (let ((squeezed (remq nil flags))
-	  (inhibit-read-only t)
-	  (status 0))
-      (when file
-	;; FIXME: file-relative-name can return a bogus result because
-	;; it doesn't look at the actual file-system to see if symlinks
-	;; come into play.
-	(setq squeezed (append squeezed (list (file-relative-name file)))))
-      (let ((exec-path (append vc-path exec-path))
-	    ;; Add vc-path to PATH for the execution of this command.
-	    (process-environment
-	     (cons (concat "PATH=" (getenv "PATH")
-			   path-separator
-			   (mapconcat 'identity vc-path path-separator))
-		   process-environment))
-	    (w32-quote-process-args t))
-	(if (and (eq okstatus 'async) (file-remote-p default-directory))
-	    ;; start-process does not support remote execution
-	    (setq okstatus nil))
-	(if (eq okstatus 'async)
-	    (let ((proc
-		   (let ((process-connection-type nil))
-		     (apply 'start-process command (current-buffer) command
-			    squeezed))))
-              (unless (active-minibuffer-window)
-                (message "Running %s in the background..." command))
-	      ;;(set-process-sentinel proc (lambda (p msg) (delete-process p)))
-	      (set-process-filter proc 'vc-process-filter)
-	      (vc-exec-after
-	       `(unless (active-minibuffer-window)
-                  (message "Running %s in the background... done" ',command))))
-	  (let ((buffer-undo-list t))
-            (setq status (apply 'process-file command nil t nil squeezed)))
-	  (when (and (not (eq t okstatus))
-                     (or (not (integerp status))
-                         (and okstatus (< okstatus status))))
-	    (pop-to-buffer (current-buffer))
-	    (goto-char (point-min))
-	    (shrink-window-if-larger-than-buffer)
-	    (error "Running %s...FAILED (%s)" command
-		   (if (integerp status) (format "status %d" status) status))))
-	(if vc-command-messages
-	    (message "Running %s...OK" command)))
-      (vc-exec-after
-       `(run-hook-with-args 'vc-post-command-functions ',command ',file ',flags))
-      status)))
+  ;; FIXME: file-relative-name can return a bogus result because
+  ;; it doesn't look at the actual file-system to see if symlinks
+  ;; come into play.
+  (let* ((files 
+	  (mapcar 'file-relative-name
+		  (cond ((not file-or-list) '())
+			((listp file-or-list) (mapcar 'expand-file-name file-or-list)) 
+			(t (list (expand-file-name file-or-list))))))
+	 (full-command
+	  (concat command " " (vc-delistify flags) " " (vc-delistify files))))
+    (if vc-command-messages
+	(message "Running %s..." full-command))
+    (save-current-buffer
+      (unless (or (eq buffer t)
+		  (and (stringp buffer)
+		       (string= (buffer-name) buffer))
+		  (eq buffer (current-buffer)))
+	(vc-setup-buffer buffer))
+      (let ((squeezed (remq nil flags))
+	    (inhibit-read-only t)
+	    (status 0))
+	(when files
+	  (setq squeezed (nconc squeezed files)))
+	(let ((exec-path (append vc-path exec-path))
+	      ;; Add vc-path to PATH for the execution of this command.
+	      (process-environment
+	       (cons (concat "PATH=" (getenv "PATH")
+			     path-separator
+			     (mapconcat 'identity vc-path path-separator))
+		     process-environment))
+	      (w32-quote-process-args t))
+	  (if (and (eq okstatus 'async) (file-remote-p default-directory))
+	      ;; start-process does not support remote execution
+	      (setq okstatus nil))
+	  (if (eq okstatus 'async)
+	      (let ((proc
+		     (let ((process-connection-type nil))
+		       (apply 'start-process command (current-buffer) command
+			      squeezed))))
+		(unless (active-minibuffer-window)
+		  (message "Running %s in the background..." full-command))
+		;;(set-process-sentinel proc (lambda (p msg) (delete-process p)))
+		(set-process-filter proc 'vc-process-filter)
+		(vc-exec-after
+		 `(unless (active-minibuffer-window)
+		    (message "Running %s in the background... done" ',full-command))))
+	    (let ((buffer-undo-list t))
+	      (setq status (apply 'process-file command nil t nil squeezed)))
+	    (when (and (not (eq t okstatus))
+		       (or (not (integerp status))
+			   (and okstatus (< okstatus status))))
+	      (pop-to-buffer (current-buffer))
+	      (goto-char (point-min))
+	      (shrink-window-if-larger-than-buffer)
+	      (error "Running %s...FAILED (%s)" full-command
+		     (if (integerp status) (format "status %d" status) status))))
+	  (if vc-command-messages
+	      (message "Running %s...OK" full-command)))
+	(vc-exec-after
+	 `(run-hook-with-args 'vc-post-command-functions ',command ',file-or-list ',flags))
+	status))))
 
 (defun vc-position-context (posn)
   "Save a bit of the text around POSN in the current buffer.
@@ -1464,7 +1494,7 @@ first backend that could register the file is used."
 		    (message "Registering %s... " file)
 		    (let ((backend (vc-responsible-backend file t)))
 		      (vc-file-clearprops file)
-		      (vc-call-backend backend 'register file rev comment)
+		      (vc-call-backend backend 'register (list file) rev comment)
 		      (vc-file-setprop file 'vc-backend backend)
 		      (unless vc-make-backup-files
 			(make-local-variable 'backup-inhibited)
@@ -1519,6 +1549,14 @@ The default is to return nil always."
   "Return non-nil if BACKEND could be used to register FILE.
 The default implementation returns t for all files."
   t)
+
+(defun vc-expand-dirs (file-or-dir-list)
+  "Expands directories in a file list specification.
+Only files already under version control are noticed."
+  (let ((flattened '()))
+    (dolist (node file-or-dir-list)
+      (vc-file-tree-walk node (lambda (f) (if (vc-backend f) (setq flattened (cons f flattened))))))
+    (nreverse flattened)))
 
 (defun vc-resynch-window (file &optional keep noquery)
   "If FILE is in the current buffer, either revert or unvisit it.
@@ -1676,7 +1714,7 @@ Runs the normal hook `vc-checkin-hook'."
       ;; Change buffers to get local value of vc-checkin-switches.
       (with-current-buffer (or (get-file-buffer file) (current-buffer))
 	(progn
-	  (vc-call checkin file rev comment)
+	  (vc-call checkin (list file) rev comment)
 	  (vc-delete-automatic-version-backups file)))
       `((vc-state . up-to-date)
 	(vc-checkout-time . ,(nth 5 (file-attributes file)))
@@ -1896,7 +1934,7 @@ actually call the backend, but performs a local diff."
                 (error "diff failed"))
             (if (not vc-diff-knows-L) (setq vc-diff-knows-L 'yes)))
           status)
-      (vc-call diff file rev1 rev2))))
+      (vc-call diff (list file) rev1 rev2))))
 
 (defun vc-switches (backend op)
   (let ((switches
@@ -2480,7 +2518,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
                (not (eq (caddr err) 2)))
            (signal (car err) (cdr err))
          ;; for backward compatibility
-         (vc-call print-log file)
+         (vc-call print-log (list file))
          (set-buffer "*vc*"))))
     (pop-to-buffer (current-buffer))
     (vc-exec-after
@@ -2659,9 +2697,8 @@ return its name; otherwise return nil."
   (vc-resynch-buffer file t t))
 
 ;;;###autoload
-(defun vc-rollback (norevert)
-  "Get rid of most recently checked in version of this file.
-A prefix argument NOREVERT means do not revert the buffer afterwards."
+(defun vc-rollback ()
+  "Get rid of most recently checked in version of this file."
   (interactive "P")
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
@@ -2682,7 +2719,7 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
       (message "Removing last change from %s..." file)
       (with-vc-properties
        file
-       (vc-call rollback file norevert)
+       (vc-call rollback (list file))
        `((vc-state . ,(if norevert 'edited 'up-to-date))
 	 (vc-checkout-time . ,(if norevert
 				0
