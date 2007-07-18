@@ -1,3 +1,12 @@
+2007-07-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-mode): Use fill-nobreak-predicate to
+	avoid that filling introduces lines with a single asterisk.
+
+	* kmacro.el (kmacro-end-macro): When ignoring empty macro
+	avoid incorrect kmacro-ring-empty-p messages.
+	Reported by Michael Schierl <schierlm@gmx.de>
+
 2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (file-remote-p): Introduce optional parameter
