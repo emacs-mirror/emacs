@@ -109,6 +109,11 @@ This is only meaningful if you don't use the implicit checkout model
   :version "22.1"
   :group 'vc)
 
+;;; Properties of the backend
+
+(defun vc-mcvs-revision-granularity ()
+     'file)
+
 ;;;
 ;;; State-querying functions
 ;;;
@@ -202,13 +207,20 @@ This is only meaningful if you don't use the implicit checkout model
 ;;; State-changing functions
 ;;;
 
-(defun vc-mcvs-register (file &optional rev comment)
-  "Register FILE into the Meta-CVS version-control system.
+(defun vc-cvs-create-repo ()
+  "Create a new CVS repository."
+  (error "Creation of CVS repositories is not supported."))
+
+(defun vc-mcvs-register (files &optional rev comment)
+  "Register FILES into the Meta-CVS version-control system.
 COMMENT can be used to provide an initial description of FILE.
 
 `vc-register-switches' and `vc-mcvs-register-switches' are passed to
 the Meta-CVS command (in that order)."
-  (let* ((filename (file-name-nondirectory file))
+  ;; FIXME: multiple-file case should be made to work
+  (if (> (length files) 1) (error "Registering filesets is not yet supported."))
+  (let* ((file (car files)) 
+	 (filename (file-name-nondirectory file))
 	 (extpos (string-match "\\." filename))
 	 (ext (if extpos (substring filename (1+ extpos))))
 	 (root (vc-mcvs-root file))
@@ -257,7 +269,7 @@ the Meta-CVS command (in that order)."
   "Return non-nil if FILE could be registered in Meta-CVS.
 This is only possible if Meta-CVS is responsible for FILE's directory.")
 
-(defun vc-mcvs-checkin (file rev comment)
+(defun vc-mcvs-checkin (files rev comment)
   "Meta-CVS-specific version of `vc-backend-checkin'."
   (unless (or (not rev) (vc-mcvs-valid-version-number-p rev))
     (if (not (vc-mcvs-valid-symbolic-tag-name-p rev))
@@ -267,14 +279,15 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
       ;; This file-specific form of branching is deprecated.
       ;; We can't use `mcvs branch' and `mcvs switch' because they cannot
       ;; be applied just to this one file.
-      (apply 'vc-mcvs-command nil 0 file "tag" "-b" (list rev))
-      (apply 'vc-mcvs-command nil 0 file "update" "-r" (list rev))
-      (vc-file-setprop file 'vc-mcvs-sticky-tag rev)
+      (apply 'vc-mcvs-command nil 0 files "tag" "-b" (list rev))
+      (apply 'vc-mcvs-command nil 0 files "update" "-r" (list rev))
+      (mapcar (lambda (file) (vc-file-setprop file 'vc-mcvs-sticky-tag rev))
+	      files)
       (setq rev nil)))
   ;; This commit might cvs-commit several files (e.g. MAP and TYPES)
   ;; so using numbered revs here is dangerous and somewhat meaningless.
   (when rev (error "Cannot commit to a specific revision number"))
-  (let ((status (apply 'vc-mcvs-command nil 1 file
+  (let ((status (apply 'vc-mcvs-command nil 1 files
 		       "ci" "-m" comment
 		       (vc-switches 'MCVS 'checkin))))
     (set-buffer "*vc*")
@@ -283,7 +296,8 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
       ;; Check checkin problem.
       (cond
        ((re-search-forward "Up-to-date check failed" nil t)
-        (vc-file-setprop file 'vc-state 'needs-merge)
+	(mapcar (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
+	      files)
         (error (substitute-command-keys
                 (concat "Up-to-date check failed: "
                         "type \\[vc-next-action] to merge in changes"))))
@@ -292,20 +306,25 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
         (goto-char (point-min))
         (shrink-window-if-larger-than-buffer)
         (error "Check-in failed"))))
-    ;; Update file properties
-    (vc-file-setprop
-     file 'vc-workfile-version
-     (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
-    ;; Forget the checkout model of the file, because we might have
+    ;; Single-file commit?  Then update the version by parsing the buffer.
+    ;; Otherwise we can't necessarily tell what goes with what; clear
+    ;; its properties so they have to be refetched.
+    (if (= (length files) 1)
+	(vc-file-setprop
+	 (car files) 'vc-workfile-version
+	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
+      (mapc (lambda (file) (vc-file-clearprops file)) files))
+    ;; Anyway, forget the checkout model of the file, because we might have
     ;; guessed wrong when we found the file.  After commit, we can
     ;; tell it from the permissions of the file (see
     ;; vc-mcvs-checkout-model).
-    (vc-file-setprop file 'vc-checkout-model nil)
+    (mapc (lambda (file) (vc-file-setprop file 'vc-checkout-model nil))
+	    files)
 
     ;; if this was an explicit check-in (does not include creation of
     ;; a branch), remove the sticky tag.
     (if (and rev (not (vc-mcvs-valid-symbolic-tag-name-p rev)))
-	(vc-mcvs-command nil 0 file "update" "-A"))))
+	(vc-mcvs-command nil 0 files "update" "-A"))))
 
 (defun vc-mcvs-find-version (file rev buffer)
   (apply 'vc-mcvs-command
@@ -421,44 +440,32 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-mcvs-print-log (file &optional buffer)
-  "Get change log associated with FILE."
-  (let ((default-directory (vc-mcvs-root file)))
+(defun vc-mcvs-print-log (files &optional buffer)
+  "Get change log associated with FILES."
+  (let ((default-directory (vc-mcvs-root (car files))))
     ;; Run the command from the root dir so that `mcvs filt' returns
     ;; valid relative names.
     (vc-mcvs-command
      buffer
-     (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-     file "log")))
+     (if (and (vc-stay-local-p files) (fboundp 'start-process)) 'async 0)
+     files "log")))
 
-(defun vc-mcvs-diff (file &optional oldvers newvers buffer)
-  "Get a difference report using Meta-CVS between two versions of FILE."
-  (if (string= (vc-workfile-version file) "0")
-      ;; This file is added but not yet committed; there is no master file.
-      (if (or oldvers newvers)
-	  (error "No revisions of %s exist" file)
-	;; We regard this as "changed".
-	;; Diff it against /dev/null.
-	;; Note: this is NOT a "mcvs diff".
-	(apply 'vc-do-command (or buffer "*vc-diff*")
-	       1 "diff" file
-	       (append (vc-switches nil 'diff) '("/dev/null")))
-	;; Even if it's empty, it's locally modified.
-	1)
+(defun vc-mcvs-diff (files &optional oldvers newvers buffer)
+  "Get a difference report using Meta-CVS between two versions of FILES."
     (let* ((async (and (not vc-disable-async-diff)
-                       (vc-stay-local-p file)
+                       (vc-stay-local-p files)
                        (fboundp 'start-process)))
 	   ;; Run the command from the root dir so that `mcvs filt' returns
 	   ;; valid relative names.
-	   (default-directory (vc-mcvs-root file))
+	   (default-directory (vc-mcvs-root (car files)))
 	   (status
 	    (apply 'vc-mcvs-command (or buffer "*vc-diff*")
 		   (if async 'async 1)
-		   file "diff"
+		   files "diff"
 		   (and oldvers (concat "-r" oldvers))
 		   (and newvers (concat "-r" newvers))
 		   (vc-switches 'MCVS 'diff))))
-      (if async 1 status))))	       ; async diff, pessimistic assumption.
+      (if async 1 status)))	       ; async diff, pessimistic assumption.
 
 (defun vc-mcvs-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
