@@ -160,31 +160,33 @@ by these regular expressions."
 (defun vc-stay-local-p (file)
   "Return non-nil if VC should stay local when handling FILE.
 This uses the `repository-hostname' backend operation."
-  (let* ((backend (vc-backend file))
-	 (sym (vc-make-backend-sym backend 'stay-local))
-	 (stay-local (if (boundp sym) (symbol-value sym) t)))
-    (if (eq stay-local t) (setq stay-local vc-stay-local))
-    (if (symbolp stay-local) stay-local
-      (let ((dirname (if (file-directory-p file)
-			 (directory-file-name file)
-		       (file-name-directory file))))
-	(eq 'yes
-	    (or (vc-file-getprop dirname 'vc-stay-local-p)
-		(vc-file-setprop
-		 dirname 'vc-stay-local-p
-		 (let ((hostname (vc-call-backend
-				  backend 'repository-hostname dirname)))
-		   (if (not hostname)
-		       'no
-		     (let ((default t))
-		       (if (eq (car-safe stay-local) 'except)
-			   (setq default nil stay-local (cdr stay-local)))
-		       (when (consp stay-local)
-			 (setq stay-local
-			       (mapconcat 'identity stay-local "\\|")))
-		       (if (if (string-match stay-local hostname)
-			       default (not default))
-			   'yes 'no)))))))))))
+  (if (listp file)
+      (if (remove-if-not (lambda (x) (not (vc-stay-local-p x))) file) 'no 'yes)
+    (let* ((backend (vc-backend file))
+	   (sym (vc-make-backend-sym backend 'stay-local))
+	   (stay-local (if (boundp sym) (symbol-value sym) t)))
+      (if (eq stay-local t) (setq stay-local vc-stay-local))
+      (if (symbolp stay-local) stay-local
+	(let ((dirname (if (file-directory-p file)
+			   (directory-file-name file)
+			 (file-name-directory file))))
+	  (eq 'yes
+	      (or (vc-file-getprop dirname 'vc-stay-local-p)
+		  (vc-file-setprop
+		   dirname 'vc-stay-local-p
+		   (let ((hostname (vc-call-backend
+				    backend 'repository-hostname dirname)))
+		     (if (not hostname)
+			 'no
+		       (let ((default t))
+			 (if (eq (car-safe stay-local) 'except)
+			     (setq default nil stay-local (cdr stay-local)))
+			 (when (consp stay-local)
+			   (setq stay-local
+				 (mapconcat 'identity stay-local "\\|")))
+			 (if (if (string-match stay-local hostname)
+				 default (not default))
+			     'yes 'no))))))))))))
 
 ;;; This is handled specially now.
 ;; Tell Emacs about this new kind of minor mode
@@ -373,20 +375,26 @@ backend is tried first."
         (vc-file-setprop file 'vc-backend 'none)
         nil)))))
 
-(defun vc-backend (file)
-  "Return the version control type of FILE, nil if it is not registered."
+(defun vc-backend (file-or-list)
+  "Return the version control type of FILE-OR-LIST, nil if it's not registered.
+If the argument is a list, the files must all have the same back end."
   ;; `file' can be nil in several places (typically due to the use of
   ;; code like (vc-backend buffer-file-name)).
-  (when (stringp file)
-    (let ((property (vc-file-getprop file 'vc-backend)))
-      ;; Note that internally, Emacs remembers unregistered
-      ;; files by setting the property to `none'.
-      (cond ((eq property 'none) nil)
-	    (property)
-	    ;; vc-registered sets the vc-backend property
-	    (t (if (vc-registered file)
-		   (vc-file-getprop file 'vc-backend)
-		 nil))))))
+  (cond ((stringp file-or-list)
+	 (let ((property (vc-file-getprop file-or-list 'vc-backend)))
+	   ;; Note that internally, Emacs remembers unregistered
+	   ;; files by setting the property to `none'.
+	   (cond ((eq property 'none) nil)
+		 (property)
+		 ;; vc-registered sets the vc-backend property
+		 (t (if (vc-registered file-or-list)
+			(vc-file-getprop file-or-list 'vc-backend)
+		      nil)))))
+	((and file-or-list (listp file-or-list))
+	 (vc-backend (car file-or-list)))
+	(t
+	 nil)))
+
 
 (defun vc-backend-subdirectory-name (file)
   "Return where the master and lock FILEs for the current directory are kept."
@@ -480,7 +488,7 @@ For registered files, the value returned is one of:
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (if (vc-backend file)
+      (if (and (> (length file) 0) (vc-backend file))
           (vc-file-setprop file 'vc-state
                            (vc-call state-heuristic file)))))
 
@@ -532,7 +540,7 @@ Return non-nil if FILE is unchanged."
               (vc-call diff file))))))
 
 (defun vc-workfile-version (file)
-  "Return the version level of the current workfile FILE.
+  "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-workfile-version)
       (if (vc-backend file)
@@ -873,7 +881,7 @@ Used in `find-file-not-found-functions'."
   (let ((map (make-sparse-keymap)))
     (define-key map "a" 'vc-update-change-log)
     (define-key map "b" 'vc-switch-backend)
-    (define-key map "c" 'vc-cancel-version)
+    (define-key map "c" 'vc-rollback)
     (define-key map "d" 'vc-directory)
     (define-key map "g" 'vc-annotate)
     (define-key map "h" 'vc-insert-headers)
@@ -882,8 +890,9 @@ Used in `find-file-not-found-functions'."
     (define-key map "m" 'vc-merge)
     (define-key map "r" 'vc-retrieve-snapshot)
     (define-key map "s" 'vc-create-snapshot)
-    (define-key map "u" 'vc-revert-buffer)
+    (define-key map "u" 'vc-revert)
     (define-key map "v" 'vc-next-action)
+    (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-version-other-window)
     map))
@@ -913,9 +922,9 @@ Used in `find-file-not-found-functions'."
   (define-key vc-menu-map [separator2] '("----"))
   (define-key vc-menu-map [vc-insert-header]
     '("Insert Header" . vc-insert-headers))
-  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
-  (define-key vc-menu-map [vc-revert-buffer]
-    '("Revert to Base Version" . vc-revert-buffer))
+  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-rollback))
+  (define-key vc-menu-map [vc-revert]
+    '("Revert to Base Version" . vc-revert))
   (define-key vc-menu-map [vc-update]
     '("Update to Latest Version" . vc-update))
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
@@ -932,8 +941,8 @@ Used in `find-file-not-found-functions'."
 ;;(put 'vc-update-change-log 'menu-enable
 ;;     '(member (vc-buffer-backend) '(RCS CVS)))
 ;;(put 'vc-print-log 'menu-enable 'vc-mode)
-;;(put 'vc-cancel-version 'menu-enable 'vc-mode)
-;;(put 'vc-revert-buffer 'menu-enable 'vc-mode)
+;;(put 'vc-rollback 'menu-enable 'vc-mode)
+;;(put 'vc-revert 'menu-enable 'vc-mode)
 ;;(put 'vc-insert-headers 'menu-enable 'vc-mode)
 ;;(put 'vc-next-action 'menu-enable 'vc-mode)
 ;;(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
