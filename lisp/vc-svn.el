@@ -390,7 +390,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
      ;; By default Subversion only shows the log upto the working version,
      ;; whereas we also want the log of the subsequent commits.  At least
      ;; that's what the vc-cvs.el code does.
-     "-rHEAD:0"))))
+     "-rHEAD:0")))
 
 (defun vc-svn-wash-log ()
   "Remove all non-comment information from log output."
