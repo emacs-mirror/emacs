@@ -54,11 +54,11 @@ typedef struct amcGenStruct {
 #define amcGenNr(amcgen) ((amcgen)->pgen.nr)
 
 
-#define RAMP_RELATION(X) \
-  X(RampOUTSIDE,        "outside ramp") \
-  X(RampBEGIN,          "begin ramp") \
-  X(RampRAMPING,        "ramping") \
-  X(RampFINISH,         "finish ramp") \
+#define RAMP_RELATION(X)                        \
+  X(RampOUTSIDE,        "outside ramp")         \
+  X(RampBEGIN,          "begin ramp")           \
+  X(RampRAMPING,        "ramping")              \
+  X(RampFINISH,         "finish ramp")          \
   X(RampCOLLECTING,     "collecting ramp")
 
 #define RAMP_ENUM(e, s) e,
@@ -66,6 +66,7 @@ enum {
     RAMP_RELATION(RAMP_ENUM)
     RampLIMIT
 };
+#undef RAMP_ENUM
 
 
 /* amcNailboard -- the nailboard */
@@ -2091,14 +2092,19 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream)
     return res;
 
   switch(amc->rampMode) {
-#define RAMP_DESCRIBE(e, s) \
-    case e:     \
-      rampmode = s; \
+
+#define RAMP_DESCRIBE(e, s)     \
+    case e:                     \
+      rampmode = s;             \
       break;
+
     RAMP_RELATION(RAMP_DESCRIBE)
+#undef RAMP_DESCRIBE
+
     default:
       rampmode = "unknown ramp mode";
       break;
+
   }
   res = WriteF(stream,
                "  ", rampmode, " ($U)\n", (WriteFU)amc->rampCount,
