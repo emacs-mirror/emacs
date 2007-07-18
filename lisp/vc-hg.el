@@ -50,29 +50,29 @@
 ;; - mode-line-string (file)                   NOT NEEDED
 ;; - dired-state-info (file)                   NEEDED
 ;; STATE-CHANGING FUNCTIONS
-;; * register (file &optional rev comment)     OK
+;; * register (files &optional rev comment)    OK
 ;; - init-version ()                           NOT NEEDED
 ;; - responsible-p (file)                      OK
 ;; - could-register (file)                     OK
 ;; - receive-file (file rev)                   ?? PROBABLY NOT NEEDED
 ;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
-;; * checkin (file rev comment)                OK
+;; * checkin (files rev comment)               OK
 ;; * find-version (file rev buffer)            OK
 ;; * checkout (file &optional editable rev)    NOT NEEDED, COMMENTED OUT
 ;; * revert (file &optional contents-done)     OK
-;; - cancel-version (file editable)            ?? PROBABLY NOT NEEDED   
+;; - rollback (files)                          ?? PROBABLY NOT NEEDED   
 ;; - merge (file rev1 rev2)                    NEEDED
 ;; - merge-news (file)                         NEEDED
 ;; - steal-lock (file &optional version)       NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (file &optional buffer)         OK
+;; * print-log (files &optional buffer)        OK
 ;; - log-view-mode ()                          OK
 ;; - show-log-entry (version)                  NOT NEEDED, DEFAULT IS GOOD
 ;; - wash-log (file)                           ??
 ;; - logentry-check ()                         NOT NEEDED
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
-;; * diff (file &optional rev1 rev2 buffer)    OK
+;; * diff (files &optional rev1 rev2 buffer)   OK
 ;; - revision-completion-table (file)          ??
 ;; - diff-tree (dir &optional rev1 rev2)       TEST IT
 ;; - annotate-command (file buf &optional rev) OK
@@ -124,6 +124,12 @@
              string))
   :version "22.2"
   :group 'vc)
+
+
+;;; Properties of the backend
+
+(defun vc-hg-revision-granularity ()
+     'repository)
 
 ;;; State querying functions
 
@@ -191,8 +197,8 @@
 
 ;;; History functions
 
-(defun vc-hg-print-log(file &optional buffer)
-  "Get change log associated with FILE."
+(defun vc-hg-print-log(files &optional buffer)
+  "Get change log associated with FILES."
   ;; `log-view-mode' needs to have the file name in order to function
   ;; correctly. "hg log" does not print it, so we insert it here by
   ;; hand.
@@ -205,11 +211,11 @@
   (let ((inhibit-read-only t))
     (with-current-buffer
 	buffer
-      (insert "File:        " (file-name-nondirectory file) "\n")))
+      (insert "File:        " (vc-delistify (mapcar (lambda (file) (file-name-nondirectory file)) files)) "\n")))
   (vc-hg-command
    buffer
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-   file "log"))
+   files "log"))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -236,24 +242,25 @@
 	  ("^date: \\(.+\\)" (1 'change-log-date))
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
-(defun vc-hg-diff (file &optional oldvers newvers buffer)
-  "Get a difference report using hg between two versions of FILE."
-  (let ((working (vc-workfile-version file)))
+(defun vc-hg-diff (files &optional oldvers newvers buffer)
+  "Get a difference report using hg between two versions of FILES."
+  (let ((working (vc-workfile-version (car files))))
     (if (and (equal oldvers working) (not newvers))
 	(setq oldvers nil))
     (if (and (not oldvers) newvers)
 	(setq oldvers working))
     (apply 'call-process "hg" nil (or buffer "*vc-diff*") nil
-	   "--cwd" (file-name-directory file) "diff"
+	   "--cwd" (file-name-directory (car files)) "diff"
 	   (append
 	    (if oldvers
 		(if newvers
 		    (list "-r" oldvers "-r" newvers)
 		  (list "-r" oldvers))
 	      (list ""))
-            (list (file-name-nondirectory file))))))
+            (mapcar (lambda (file) (file-name-nondirectory file)) files)))))
 
-(defalias 'vc-hg-diff-tree 'vc-hg-diff)
+(defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
+  (vc-hg-diff (list file) oldvers newvers buffer))
 
 (defun vc-hg-annotate-command (file buffer &optional version)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
@@ -312,11 +319,15 @@ Optional arg VERSION is a version to annotate from."
   "Rename file from OLD to NEW using `hg mv'."
   (vc-hg-command nil nil new old "mv"))
 
-(defun vc-hg-register (file &optional rev comment)
-  "Register FILE under hg.
+(defun vc-hg-register (files &optional rev comment)
+  "Register FILES under hg.
 REV is ignored.
 COMMENT is ignored."
-  (vc-hg-command nil nil file "add"))
+  (vc-hg-command nil nil files "add"))
+
+(defun vc-hg-create-repo ()
+  "Create a new Mercurial repository."
+  (vc-do-command nil 0 "svn" '("init")))
 
 (defalias 'vc-hg-responsible-p 'vc-hg-root)
 
@@ -336,10 +347,10 @@ COMMENT is ignored."
 ;;   "Unregister FILE from hg."
 ;;   (vc-hg-command nil nil file "remove"))
 
-(defun vc-hg-checkin (file rev comment)
+(defun vc-hg-checkin (files rev comment)
   "HG-specific version of `vc-backend-checkin'.
 REV is ignored."
-  (vc-hg-command nil nil file  "commit" "-m" comment))
+  (vc-hg-command nil nil files  "commit" "-m" comment))
 
 (defun vc-hg-find-version (file rev buffer)
   (let ((coding-system-for-read 'binary)
@@ -374,11 +385,11 @@ REV is ignored."
 
 ;;; Internal functions
 
-(defun vc-hg-command (buffer okstatus file &rest flags)
+(defun vc-hg-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 The difference to vc-do-command is that this function always invokes `hg',
 and that it passes `vc-hg-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "hg" file
+  (apply 'vc-do-command buffer okstatus "hg" file-or-list
          (if (stringp vc-hg-global-switches)
              (cons vc-hg-global-switches flags)
            (append vc-hg-global-switches
