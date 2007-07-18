@@ -1440,7 +1440,7 @@ More generally, you can use multiple variables and values, as in
 This sets each VAR's default value to the corresponding VALUE.
 The VALUE for the Nth VAR can refer to the new default values
 of previous VARs.
-usage: (setq-default [VAR VALUE...])  */)
+usage: (setq-default [VAR VALUE]...)  */)
      (args)
      Lisp_Object args;
 {
