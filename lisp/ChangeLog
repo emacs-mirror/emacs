@@ -1,5 +1,9 @@
-2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
+2007-07-18  Eric S. Raymond  <esr@snark.thyrsus.com>
 
+	* vc-hooks.el: Generalize stay-local-p to operate on lists of
+	files.  Change two keybindings to point to new function names.
+
+2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
 	* follow.el (follow-mode-hook, follow-mode-off-hook, follow-mode)
 	(follow-delete-other-windows-and-split, follow-recenter)
 	(follow-windows-aligned-p, follow-point-visible-all-windows-p)
