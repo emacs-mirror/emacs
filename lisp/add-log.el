@@ -699,6 +699,11 @@ Runs `change-log-mode-hook'.
 	show-trailing-whitespace t)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
+  ;; Avoid that filling leaves behind a single "*" on a line.
+  (add-hook 'fill-nobreak-predicate
+	    '(lambda ()
+	       (looking-back "^\\s *\\*\\s *" (line-beginning-position))) 
+	    nil t)
   (set (make-local-variable 'indent-line-function) 'change-log-indent)
   (set (make-local-variable 'tab-always-indent) nil)
   ;; We really do want "^" in paragraph-start below: it is only the
