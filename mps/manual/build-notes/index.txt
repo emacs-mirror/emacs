@@ -6,9 +6,10 @@ Richard Kistruck, Ravenbrook Limited, 2005-02-02
 CONTENTS
 
   1. Introduction
-  2. Unix
-  2.1. Mac OS X
-  3. Windows
+  2. Platform support
+  3. Unix
+  3.1. Mac OS X
+  4. Windows
   A. References
   B. Document history
   C. Copyright and license
@@ -28,7 +29,99 @@ easy to modify such that it builds on many more.
 This document is not confidential.
 
 
-2. UNIX
+2. PLATFORM SUPPORT
+
+The MPS has historically been built on many platforms that are either
+now obsolete or to which we don't have convenient access.
+
+Operating Systems
+
+  OS????
+
+  ia    Irix 6 N32 ABI
+  li    Linux
+  o1    OSF/1 aka Tru64
+  so    Solaris 5.x and successors
+  su    SunOS 4.x
+  s7    Mac OS 7 through 9
+
+CPU Architectures
+
+  ??AR??
+
+  al    ALPHA AXP
+  i3    Intel IA-32
+  i4    Same as i3 (a mistake)
+  m4    MIPS IV
+  pp    PowerPC (32-bit)
+  s8    SPARC v8
+  s9    SPARC v9 (32-bit)
+  m6    Motorola 68K family
+
+Compiler Toolchains
+
+  ????CC
+
+  cc    Vendor Supplied CC
+  gc    GCC
+  eg    EGCS
+  cx    SunPro C CXREF tool
+  gp    GCC with profiling
+  mv    Microsoft Visual C
+  sc    SunPro C
+  ac    Apple Mr C
+  mw    Metrowerks Codewarrior
+
+The full list of platforms that have ever been supported:
+
+fri4gc  Maintained
+i5m2cc  Not maintained (no makefile)
+iam4cc  Not maintained
+lii3eg  Not maintained
+lii4gc  Maintained
+lippgc  Not maintained
+o1alcc  Not maintained
+o1algc  Not maintained
+s7m6mw  Not maintained (no makefile)
+s7ppac  Not maintained
+s7ppmw  Not maintained
+sos8cx  Not maintained
+sos8gc  Not maintained
+sos8gp  Not maintained
+sos9sc  Not maintained
+sus8gc  Not maintained
+w3almv  Not maintained
+w3i3mv  Maintained
+w3ppmv  Not Maintained
+xci3gc  Maintained
+xcppgc  Maintained (in sunset)
+
+Platforms listed as "maintained" are used at Ravenbrook and the MPS
+should work well on them.  OS X on PowerPC (xcppgc) is in decline as
+Apple have moved to Intel architecture and are no longer shipping
+PowerPC based systems.
+
+Platforms are generally listed as "not maintained" if Ravenbrook
+doesn't have access to a suitable machine.  Should you have access
+to such a platform though, you should find that the MPS works on
+it.  You may have to spring-clean and update the relevant makefiles
+(which we have left for exactly this purpose, even though we are unable
+to maintain them).  New files are added and sometimes reorganised
+which sometimes requires changes to makefiles; we can't do this for
+platforms we don't have access to.  Also compiler options often
+need tweaking from release to release.
+
+Generally support is modularised in way that makes it fairly easy to
+"fill in the gaps".  So that, for example, the MPS support for the SPARC
+architecture could in principle be used on a Linux/SPARC platform.  In
+practice the interfaces to architecture dependent stuff tends to be
+dependent on the operating system and toolchain being used.  For
+combinations like FreeBSD/MIPS, Solaris/IA-32 which exist, but which
+we've never had access to, it wouldn't be hard to get the MPS going on
+them.
+
+
+3. UNIX
 
 Note that the first build in a clean directory will produce warnings 
 because the dependency files (*.d) do not yet exist.  The warnings look 
@@ -40,7 +133,7 @@ Subsequent builds in the non-clean directory see these dependency files
 and do not emit the warning.
 
 
-2.1. MAC OS X
+3.1. MAC OS X
 
 2005-02-02
 Building on early releases of Mac OS X (DP3? 10.1?) required various 
@@ -50,10 +143,10 @@ See <http://www.ravenbrook.com/project/mps/issue/job000602/>
 
 2006-10-10
 Intel Macs.  It's now possible to use xci3gc.gmk to build on Intel
-architectures.  Protection and threads not supported.
+architectures.  Threads not supported.
 
 
-3. WINDOWS
+4. WINDOWS
 
 2005-10-06 (1.105)
 All MPS versions are now built with /Gs (for compilations) and /GZ 
@@ -71,6 +164,7 @@ B. DOCUMENT HISTORY
 
 2005-02-02  RHSK  Created based on mps kit readme.txt.
 2006-10-10  DRJ   Note re Intel Macs.
+2007-07-18  DRJ   Added platform support section.
 
 
 C. COPYRIGHT AND LICENSE
