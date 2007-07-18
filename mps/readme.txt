@@ -258,35 +258,33 @@ others you will need to get and install it.  (It's available free from
 <ftp://ftp.gnu.org/gnu/make/>.)  On Windows platforms the NMAKE tool is
 used.  This comes with Microsoft Visual C++.
 
-The MPS can also be built on Mac OS 7 through Mac OS 9 using MPW or
-Metrowerks Codewarrior, but neither of these builds have been maintained
-for some time, and probably no longer work.  We've included the
-makefiles/project files as a starting point.
+The MPS uses a 6 character platform code to express a combination of
+OS/CPU architecture/compiler toolchain.  Each 6 character code breaks
+down into 3 groups of 2 characters, like this:
+
+  OSARCT
+
+Where OS denotes the operating system, AR denotes the CPU architecture,
+and CT denotes compiler toolchain.  Table 1 lists the platforms that we
+have regular access to and on which the MPS works well.
+
 
               Table 1. MPS makefiles and platforms
 
   Makefile        OS              Architecture    Compiler
 
   fri4gc.gmk      FreeBSD         Intel IA32      GCC
-  iam4cc.gmk      Irix 6 N32      MIPS IV         CC
-  lii3eg.gmk      Linux           Intel IA32      EGCS
   lii4gc.gmk      Linux           Intel IA32      GCC
-  lippgc.gmk      Linux           POWER(32)       GCC
-  o1alcc.gmk      OSF/1           Alpha           Digital C
-  o1algc.gmk      OSF/1           Alpha           GCC
-  sos8cx.gmk      Solaris         SPARC V8        CXREF
-  sos8gc.gmk      Solaris         SPARC V8        GCC
-  sos8gp.gmk      Solaris         SPARC V8        GCC with profiling
-  sos9sc.gmk      Solaris         SPARC V9        SunPro C
-  sus8gc.gmk      SunOS           SPARC V8        GCC
   xcppgc.gmk      Mac OS X        PowerPC         GCC
-
-  w3almv.nmk      Windows         Alpha           Microsoft C
   w3i3mv.nmk      Windows         Intel IA32      Microsoft C
-  w3ppmv.nmk      Windows         PowerPC         Microsoft C
 
-  s7ppac/Makefile Mac OS 7-9      PowerPC         Apple Mr C
-  s7ppmw.sit      Mac OS 7-9      PowerPC         Metrowerks Codewarrior
+Historically the MPS has worked on a much wider variety of platforms and
+still would if we had access to them.  The MPS has worked on various
+combinations of operating systems, IRIX / OSF/1 (Tru64) / Solaris / SunOS /
+Class Mac OS, CPU architectures, MIPS / PowerPC / ALPHA / SPARC v8 /
+SPARC v9, and compiler toolchains, Metrowerks Codewarrior / SunPro C /
+Digital C.  The full list of platforms that were supported historically
+is available in manual/build-notes/ .
 
 To build all MPS targets on Unix-like platforms, change to the "code"
 directory and type:
