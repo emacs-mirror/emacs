@@ -1,3 +1,7 @@
+2007-07-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32proc.c (w32_executable_type): Handle 64 bit executables.
+
 2007-07-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c (Ffind_operation_coding_system):
