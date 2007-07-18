@@ -7474,7 +7474,7 @@ contents (not yet decoded).  If `file-coding-system-alist' specifies a
 function to call for FILENAME, that function should examine the
 contents of BUFFER instead of reading the file.
 
-usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
+usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
