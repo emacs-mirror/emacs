@@ -1,3 +1,12 @@
+2007-07-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_focus_frame): Call x_ewmh_activate_frame
+
+	* xterm.h: Declare x_ewmh_activate_frame
+
+	* xterm.c (x_ewmh_activate_frame): New function.
+	(XTframe_raise_lower): Move code to x_ewmh_activate_frame.
+
 2007-07-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fdisplay_buffer): If largest or LRU window is the
