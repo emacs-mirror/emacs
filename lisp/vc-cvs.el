@@ -281,21 +281,25 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
-(defun vc-cvs-register (file &optional rev comment)
-  "Register FILE into the CVS version-control system.
-COMMENT can be used to provide an initial description of FILE.
+(defun vc-cvs-create-repo ()
+  "Create a new CVS repository."
+  (error "Creation of CVS repositories is not supported."))
+
+(defun vc-cvs-register (files &optional rev comment)
+  "Register FILES into the CVS version-control system.
+COMMENT can be used to provide an initial description of FILES.
 
 `vc-register-switches' and `vc-cvs-register-switches' are passed to
 the CVS command (in that order)."
   (when (and (not (vc-cvs-responsible-p file))
-	     (vc-cvs-could-register file))
-    ;; Register the directory if needed.
-    (vc-cvs-register (directory-file-name (file-name-directory file))))
-  (apply 'vc-cvs-command nil 0 file
-	 "add"
-	 (and comment (string-match "[^\t\n ]" comment)
-	      (concat "-m" comment))
-	 (vc-switches 'CVS 'register)))
+	       (vc-cvs-could-register file))
+      ;; Register the directory if needed.
+      (vc-cvs-register (directory-file-name (file-name-directory file))))
+    (apply 'vc-cvs-command nil 0 files
+	   "add"
+	   (and comment (string-match "[^\t\n ]" comment)
+		(concat "-m" comment))
+	   (vc-switches 'CVS 'register)))
 
 (defun vc-cvs-responsible-p (file)
   "Return non-nil if CVS thinks it is responsible for FILE."
@@ -317,15 +321,15 @@ its parents."
                     t (directory-file-name dir))))
     (eq dir t)))
 
-(defun vc-cvs-checkin (file rev comment)
+(defun vc-cvs-checkin (files rev comment)
   "CVS-specific version of `vc-backend-checkin'."
   (unless (or (not rev) (vc-cvs-valid-version-number-p rev))
     (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
       ;; If the input revison is a valid symbolic tag name, we create it
       ;; as a branch, commit and switch to it.
-      (apply 'vc-cvs-command nil 0 file "tag" "-b" (list rev))
-      (apply 'vc-cvs-command nil 0 file "update" "-r" (list rev))
+      (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
+      (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
       (vc-file-setprop file 'vc-cvs-sticky-tag rev)))
   (let ((status (apply 'vc-cvs-command nil 1 file
 		       "ci" (if rev (concat "-r" rev))
@@ -346,20 +350,25 @@ its parents."
         (goto-char (point-min))
         (shrink-window-if-larger-than-buffer)
         (error "Check-in failed"))))
-    ;; Update file properties
-    (vc-file-setprop
-     file 'vc-workfile-version
-     (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
-    ;; Forget the checkout model of the file, because we might have
+    ;; Single-file commit?  Then update the version by parsing the buffer.
+    ;; Otherwise we can't necessarily tell what goes with what; clear
+    ;; its properties so they have to be refetched.
+    (if (= (length files) 1)
+	(vc-file-setprop
+	 (car files) 'vc-workfile-version
+	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
+      (mapc (lambda (file) (vc-file-clearprops file)) files))
+    ;; Anyway, forget the checkout model of the file, because we might have
     ;; guessed wrong when we found the file.  After commit, we can
     ;; tell it from the permissions of the file (see
     ;; vc-cvs-checkout-model).
-    (vc-file-setprop file 'vc-checkout-model nil)
+    (mapc (lambda (file) (vc-file-setprop file 'vc-checkout-model nil))
+	  files)
 
     ;; if this was an explicit check-in (does not include creation of
     ;; a branch), remove the sticky tag.
     (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
-	(vc-cvs-command nil 0 file "update" "-A"))))
+	(vc-cvs-command nil 0 files "update" "-A"))))
 
 (defun vc-cvs-find-version (file rev buffer)
   (apply 'vc-cvs-command
@@ -481,37 +490,30 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-cvs-print-log (file &optional buffer)
+(defun vc-cvs-print-log (files &optional buffer)
   "Get change log associated with FILE."
   (vc-cvs-command
    buffer
-   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-   file "log"))
+   (if (and (vc-stay-local-p files) (fboundp 'start-process)) 'async 0)
+   files "log"))
 
-(defun vc-cvs-diff (file &optional oldvers newvers buffer)
+(defun vc-cvs-wash-log ()
+  "Remove all non-comment information from log output."
+  (vc-call-backend 'RCS 'wash-log)
+  nil)
+
+(defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two versions of FILE."
-  (if (string= (vc-workfile-version file) "0")
-      ;; This file is added but not yet committed; there is no master file.
-      (if (or oldvers newvers)
-	  (error "No revisions of %s exist" file)
-	;; We regard this as "changed".
-	;; Diff it against /dev/null.
-	;; Note: this is NOT a "cvs diff".
-	(apply 'vc-do-command (or buffer "*vc-diff*")
-	       1 "diff" file
-	       (append (vc-switches nil 'diff) '("/dev/null")))
-	;; Even if it's empty, it's locally modified.
-	1)
-    (let* ((async (and (not vc-disable-async-diff)
-                       (vc-stay-local-p file)
-                       (fboundp 'start-process)))
+    (let* ((async (and (not vc-disable-async-diff) 
+		       (vc-stay-local-p files)
+		       (fboundp 'start-process)))
 	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")
 			  (if async 'async 1)
 			  file "diff"
 			  (and oldvers (concat "-r" oldvers))
 			  (and newvers (concat "-r" newvers))
 			  (vc-switches 'CVS 'diff))))
-      (if async 1 status))))		; async diff, pessimistic assumption
+      (if async 1 status)))		; async diff, pessimistic assumption
 
 (defun vc-cvs-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
@@ -683,11 +685,11 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;; Internal functions
 ;;;
 
-(defun vc-cvs-command (buffer okstatus file &rest flags)
+(defun vc-cvs-command (buffer okstatus files &rest flags)
   "A wrapper around `vc-do-command' for use in vc-cvs.el.
 The difference to vc-do-command is that this function always invokes `cvs',
 and that it passes `vc-cvs-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus "cvs" file
+  (apply 'vc-do-command buffer okstatus "cvs" files
          (if (stringp vc-cvs-global-switches)
              (cons vc-cvs-global-switches flags)
            (append vc-cvs-global-switches
