@@ -1,3 +1,8 @@
+2007-07-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/grep.el (grep-host-defaults-alist): New defvar.
+	(grep-compute-defaults): Use it.
+
 2007-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el: Docstring fixes.

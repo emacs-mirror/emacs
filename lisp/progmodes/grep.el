@@ -343,6 +343,12 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defvar grep-regexp-history nil)
 (defvar grep-files-history '("ch" "el"))
 
+(defvar grep-host-defaults-alist nil
+  "Default values depending on target host.
+`grep-compute-defaults' returns default values for every local or
+remote host `grep' runs.  These values can differ from host to
+host.  Once computed, the default values are kept here in order
+to avoid computing them again.")
 
 ;;;###autoload
 (defun grep-process-setup ()
@@ -383,31 +389,38 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     ;; computed for every host once, then they are kept in the
     ;; variables' property host-id for reuse.
     (setq grep-command
-	  (or (get 'grep-command host-id)
+	  (or (cadr (assq 'grep-command
+			  (assq host-id grep-host-defaults-alist)))
 	      (eval (car (get 'grep-command 'standard-value))))
 
 	  grep-template
-          (or (get 'grep-template host-id)
+          (or (cadr (assq 'grep-template
+			  (assq host-id grep-host-defaults-alist)))
 	      (eval (car (get 'grep-template 'standard-value))))
 
 	  grep-use-null-device
-	  (or (get 'grep-use-null-device host-id)
+	  (or (cadr (assq 'grep-use-null-device
+			  (assq host-id grep-host-defaults-alist)))
 	      (eval (car (get 'grep-use-null-device 'standard-value))))
 
 	  grep-find-command
-	  (or (get 'grep-find-command host-id)
+	  (or (cadr (assq 'grep-find-command
+			  (assq host-id grep-host-defaults-alist)))
 	      (eval (car (get 'grep-find-command 'standard-value))))
 
 	  grep-find-template
-	  (or (get 'grep-find-template host-id)
+	  (or (cadr (assq 'grep-find-template
+			  (assq host-id grep-host-defaults-alist)))
 	      (eval (car (get 'grep-find-template 'standard-value))))
 
 	  grep-find-use-xargs
-	  (or (get 'grep-find-use-xargs host-id)
+	  (or (cadr (assq 'grep-find-use-xargs
+			  (assq host-id grep-host-defaults-alist)))
 	      (eval (car (get 'grep-find-use-xargs 'standard-value))))
 
 	  grep-highlight-matches
-	  (or (get 'grep-highlight-matches host-id)
+	  (or (cadr (assq 'grep-highlight-matches
+			  (assq host-id grep-host-defaults-alist)))
 	      (eval (car (get 'grep-highlight-matches 'standard-value)))))
 
     (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
@@ -492,13 +505,19 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		   t))))
 
     ;; Save defaults for this host.
-    (put 'grep-command host-id grep-command)
-    (put 'grep-template host-id grep-template)
-    (put 'grep-use-null-device host-id grep-use-null-device)
-    (put 'grep-find-command host-id grep-find-command)
-    (put 'grep-find-template host-id grep-find-template)
-    (put 'grep-find-use-xargs host-id grep-find-use-xargs)
-    (put 'grep-highlight-matches host-id grep-highlight-matches)))
+    (setq grep-host-defaults-alist
+	  (delete (assq host-id grep-host-defaults-alist)
+		  grep-host-defaults-alist))
+    (add-to-list
+     'grep-host-defaults-alist
+     (cons host-id
+	   `((grep-command ,grep-command)
+	     (grep-template ,grep-template)
+	     (grep-use-null-device ,grep-use-null-device)
+	     (grep-find-command ,grep-find-command)
+	     (grep-find-template ,grep-find-template)
+	     (grep-find-use-xargs ,grep-find-use-xargs)
+	     (grep-highlight-matches ,grep-highlight-matches))))))
 
 (defun grep-tag-default ()
   (or (and transient-mark-mode mark-active
