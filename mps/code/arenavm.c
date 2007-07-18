@@ -197,6 +197,7 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
   VMArena vmArena;
+  Index gen;
 
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -213,17 +214,23 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
    *
   */
 
-  AVER(3 < VMArenaGenCount);
+  for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
+    if(vmArena->genZoneSet[gen] != ZoneSetEMPTY) {
+      res = WriteF(stream,
+                   "  genZoneSet[$U]: $B\n",
+                   (WriteFU)gen, (WriteFB)vmArena->genZoneSet[gen],
+                   NULL);
+      if(res != ResOK)
+        return res;
+    }
+  }
+  
   res = WriteF(stream,
-    "  blacklist:     $B\n", (WriteFB)vmArena->blacklist,
-    "  genZoneSet[0]: $B\n", (WriteFB)vmArena->genZoneSet[0],
-    "  genZoneSet[1]: $B\n", (WriteFB)vmArena->genZoneSet[1],
-    "  genZoneSet[2]: $B\n", (WriteFB)vmArena->genZoneSet[2],
-    "  genZoneSet[3]: $B\n", (WriteFB)vmArena->genZoneSet[3],
-    "  freeSet:       $B\n", (WriteFB)vmArena->freeSet,
-    NULL
-  );
-  if (res != ResOK) return res;
+               "  freeSet:       $B\n", (WriteFB)vmArena->freeSet,
+               "  blacklist:     $B\n", (WriteFB)vmArena->blacklist,
+               NULL);
+  if(res != ResOK)
+    return res;
 
   /* (incomplete: some fields are not Described) */
 
@@ -1051,6 +1058,13 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   /* more than vmArena->extendBy (because there will be fewer than */
   /* size bytes free in the new chunk).  Fix this. */
   chunkSize = vmArena->extendBy + size;
+
+#if 0
+  /* diagnostic: report when VM arena is extended */
+  DIAG_WRITEF(( DIAG_STREAM, "\n** vmArenaExtend $U\n", chunkSize, 
+                NULL ));
+  DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
+#endif
 
   res = VMChunkCreate(&newChunk, vmArena, chunkSize);
   /* .improve.chunk-create.fail: If we fail we could try again */
