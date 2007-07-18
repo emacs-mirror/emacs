@@ -1,3 +1,12 @@
+2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-mode-hook, follow-mode-off-hook, follow-mode)
+	(follow-delete-other-windows-and-split, follow-recenter)
+	(follow-windows-aligned-p, follow-point-visible-all-windows-p)
+	(follow-redisplay, follow-estimate-first-window-start)
+	(follow-xemacs-scrollbar-support, follow-intercept-process-output):
+	Fix typos in docstrings.
+
 2007-07-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* bookmark.el (bookmark-show-all-annotations):
