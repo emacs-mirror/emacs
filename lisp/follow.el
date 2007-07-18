@@ -501,7 +501,7 @@ of two major techniques:
   movement commands.
 
 Follow mode comes to its prime when used on a large screen and two
-side-by-side windows are used. The user can, with the help of Follow
+side-by-side windows are used.  The user can, with the help of Follow
 mode, use two full-height windows as though they would have been
 one.  Imagine yourself editing a large function, or section of text,
 and being able to use 144 lines instead of the normal 72... (your
