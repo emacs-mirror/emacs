@@ -1,8 +1,20 @@
+2007-07-18  Richard Stallman  <rms@gnu.org>
+
+	* data.c (Fsetq_default): Doc fix.
+
+	* eval.c (Fsetq): Doc fix.
+
+2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (Ffind_operation_coding_system):
+	* eval.c (For, Fand): Doc fixes.
+	Reported by Johan Bockg,Ae(Brd.
+
 2007-07-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xfns.c (Fx_focus_frame): Call x_ewmh_activate_frame
+	* xfns.c (Fx_focus_frame): Call x_ewmh_activate_frame.
 
-	* xterm.h: Declare x_ewmh_activate_frame
+	* xterm.h: Declare x_ewmh_activate_frame.
 
 	* xterm.c (x_ewmh_activate_frame): New function.
 	(XTframe_raise_lower): Move code to x_ewmh_activate_frame.
@@ -8106,7 +8118,7 @@
 2005-09-19  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Don't scan past end of format string that
-	ends in %.  Reported by: Johan Bockg,Ae(Brd.
+	ends in %.  Reported by Johan Bockg,Ae(Brd.
 
 2005-09-18  Andreas Schwab  <schwab@suse.de>
 
