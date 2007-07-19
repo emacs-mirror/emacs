@@ -1807,6 +1807,9 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         /* of references in the segment intersects with the */
         /* approximation to the white set. */
         if (ZoneSetInter(SegSummary(seg), trace->white) != ZoneSetEMPTY) {
+          /* Note: can a white seg get greyed as well?  At this point */
+          /* we still assume it may.  (This assumption runs out in */
+          /* PoolTrivGrey). */
           PoolGrey(SegPool(seg), trace, seg);
           if (TraceSetIsMember(SegGrey(seg), trace)) {
             trace->foundation += size;
