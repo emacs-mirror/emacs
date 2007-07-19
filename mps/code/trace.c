@@ -19,7 +19,7 @@ Rank traceBand(Trace);
 Bool traceBandAdvance(Trace);
 Bool traceBandFirstStretch(Trace);
 void traceBandFirstStretchDone(Trace);
-static void traceFindGrey_diag(Bool found, Rank rank);
+DIAG_DECL( static void traceFindGrey_diag(Bool found, Rank rank); )
 
 /* Types */
 
@@ -1157,6 +1157,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
 
 
 /* diagnostic output for traceFindGrey */
+DIAG_DECL( 
 static void traceFindGrey_diag(Bool found, Rank rank)
 {
   char this;
@@ -1216,7 +1217,7 @@ static void traceFindGrey_diag(Bool found, Rank rank)
   }
   return;
 }
-
+)
 
 /* ScanStateSetSummary -- set the summary of scanned references
  *
