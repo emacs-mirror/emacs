@@ -1096,7 +1096,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
-  /* @@@@ never frees a segment */
+  /* @@@@ never frees a segment, see job001687. */
   return;
 }
 
