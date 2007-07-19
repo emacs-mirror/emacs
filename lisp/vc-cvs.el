@@ -342,7 +342,8 @@ its parents."
       ;; Check checkin problem.
       (cond
        ((re-search-forward "Up-to-date check failed" nil t)
-        (vc-file-setprop file 'vc-state 'needs-merge)
+	(mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
+	      files)
         (error (substitute-command-keys
                 (concat "Up-to-date check failed: "
                         "type \\[vc-next-action] to merge in changes"))))
