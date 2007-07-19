@@ -470,8 +470,12 @@ void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
   AVERT(Trace, trace);
   AVERT(Seg, seg);
 
-  /* @@@@ The trivial grey method probably shouldn't exclude */
-  /* the white segments, since they might also contain grey objects. */
+  /* If we had a (partially) white seg, then other parts of the */
+  /* same seg might need to get greyed. In fact, all current pools */
+  /* only ever Whiten a whole seg, so we never need to Greyen any */
+  /* part of an already Whitened seg.  So we hereby exclude white */
+  /* segs. */
+  /* @@@@ This should not really be called 'trivial'! */
   if(!TraceSetIsMember(SegWhite(seg), trace))
     SegSetGrey(seg, TraceSetSingle(trace));
 }
