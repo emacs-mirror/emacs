@@ -1,3 +1,8 @@
+2007-07-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-registered): Replace if with when.
+	(vc-hg-state): Deal with nonexistent files.
+
 2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el (follow-mode-hook, follow-mode-off-hook, follow-mode)

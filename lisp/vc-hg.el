@@ -4,7 +4,6 @@
 
 ;; Author: Ivan Kanis
 ;; Keywords: tools
-;; Version: 1889
 
 ;; This file is part of GNU Emacs.
 
@@ -137,8 +136,8 @@
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
-  (if (vc-hg-root file)               ; short cut
-      (vc-hg-state file)))            ; expensive
+  (when (vc-hg-root file)           ; short cut
+    (vc-hg-state file)))            ; expensive
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
@@ -159,13 +158,14 @@
 		    (error nil)))))))
     (when (eq 0 status)
       (if (eq 0 (length out)) 'up-to-date
-	(let ((state (aref out 0)))
-	  (cond
-	   ((eq state ?A) 'edited)
-	   ((eq state ?M) 'edited)
-	   ((eq state ?R) nil)
-	   ((eq state ??) nil)
-	   (t 'up-to-date)))))))
+	(when (null (string-match ".*: No such file or directory$" out))
+	  (let ((state (aref out 0)))
+	    (cond
+	     ((eq state ?A) 'edited)
+	     ((eq state ?M) 'edited)
+	     ((eq state ?R) nil)
+	     ((eq state ??) nil)
+	     (t 'up-to-date))))))))
 
 (defun vc-hg-dir-state (dir)
   (with-temp-buffer
