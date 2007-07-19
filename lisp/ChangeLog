@@ -24,6 +24,9 @@
 
 	* vc-hooks.el: Generalize stay-local-p to operate on lists of
 	files.  Change two keybindings to point to new function names.
+	* vc.arch.el, vc-bzr.el, vc-cvs.el, vc-hg.el, vc-mcvs.el, vc-rcs.el,
+	vc-sccs.el, vc-svn.el: These now implement the NewVC-fileset.
+	* vc.el: Adapted for NewVC-fileset, but no functional changes yet.
 
 2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
