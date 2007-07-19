@@ -1,10 +1,14 @@
+2007-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Walk up the tree to find an existing
+	`file' from which to start the search.
+
 2007-07-19  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-cvs.el: vc-cvs-checkin had some reference problems, now
-	fixed.
-	
+	* vc-cvs.el: vc-cvs-checkin had some reference problems, now fixed.
 
 2007-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* files.el (locate-dominating-file): New function.
 
 2007-07-18  Michael Albinus  <michael.albinus@gmx.de>
