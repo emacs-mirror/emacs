@@ -1934,7 +1934,7 @@ actually call the backend, but performs a local diff."
                 (error "diff failed"))
             (if (not vc-diff-knows-L) (setq vc-diff-knows-L 'yes)))
           status)
-      (vc-call diff (list file) rev1 rev2))))
+      (vc-call diff (list file) rev1 rev2 "*vc-diff"))))
 
 (defun vc-switches (backend op)
   (let ((switches
