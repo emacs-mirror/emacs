@@ -949,11 +949,12 @@ extern void StackProbe(Size depth);
 
 /* ------------ DIAG_WITH_STREAM_AND_WRITEF --------------- */
 
+Bool DiagIsOn(void);
+mps_lib_FILE *DiagStream(void);
+
 #if defined(DIAG_WITH_STREAM_AND_WRITEF)
 
 /* Diagnostic Calculation and Output */
-Bool DiagIsOn(void);
-mps_lib_FILE *DiagStream(void);
 #define DIAG_DECL(decl) decl
 #define DIAG_STREAM (DiagStream())
 #define DIAG(s) BEGIN \

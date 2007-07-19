@@ -10,7 +10,11 @@
 #include "mpm.h"
 #include "mpslib.h" /* for mps_lib_stdout */
 
-#if defined(DIAG_WITH_STREAM_AND_WRITEF)
+
+/* DIAG_WITH_STREAM_AND_WRITEF -- Diagnostic output channel
+ *
+ * Only used for DIAG_WITH_STREAM_AND_WRITEF; see config.h.
+ */
 
 Bool DiagEnabledGlobal = TRUE;
 
@@ -23,8 +27,6 @@ mps_lib_FILE *DiagStream(void)
 {
   return mps_lib_stdout;
 }
-
-#endif
 
 /* C. COPYRIGHT AND LICENSE
  *
