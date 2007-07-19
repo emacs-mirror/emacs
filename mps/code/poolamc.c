@@ -1402,14 +1402,10 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
     
       refset = ScanStateSummary(ss);
 
-#if 0
-      /* This might become useful diagnostic feedback.  
-       * (A rare event, which might prompt a rare defect to appear).
-       * For now (diagnostic feedback system still being developed), 
-       * use if0 to comment it out.  RHSK 2007-04-18.
-       */
-      (void) WriteF(mps_lib_get_stdout(),
-        "amcScanNailed completed, but had to loop $U times:\n",
+#if 1
+      /* A rare event, which might prompt a rare defect to appear. */
+      DIAG_WRITEF(( DIAG_STREAM,
+        "MPS: amcScanNailed completed, but had to loop $U times:\n",
         (WriteFU)loops,
         " SegSummary:        $B\n", (WriteFB)SegSummary(seg),
         " ss.white:          $B\n", (WriteFB)ss->white,
@@ -1423,7 +1419,7 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
         "ScanStateSummary:   $B\n", (WriteFB)refset,
         "MOVING ScanStateSummary TO fixedSummary, "
         "RESETTING unfixedSummary.\n", NULL
-      );
+      ));
 #endif
     
       ScanStateSetSummary(ss, refset);
