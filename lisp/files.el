@@ -711,6 +711,24 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
        ((null action) (try-completion string names))
        (t (test-completion string names))))))
 
+(defun locate-dominating-file (file regexp)
+  "Look up the directory hierarchy from FILE for a file matching REGEXP."
+  (while (and file (not (file-directory-p file)))
+    (setq file (file-name-directory (directory-file-name file))))
+  (catch 'found
+    (let ((user (nth 2 (file-attributes file)))
+          ;; Abbreviate, so as to stop when we cross ~/.
+          (dir (abbreviate-file-name (file-name-as-directory file)))
+          files)
+      (while (and dir (equal user (nth 2 (file-attributes dir))))
+        (if (setq files (directory-files dir 'full regexp))
+            (throw 'found (car files))
+          (if (equal dir
+                     (setq dir (file-name-directory
+                                (directory-file-name dir))))
+              (setq dir nil))))
+      nil)))
+
 (defun executable-find (command)
   "Search for COMMAND in `exec-path' and return the absolute file name.
 Return nil if COMMAND is not found anywhere in `exec-path'."

@@ -1,3 +1,7 @@
+2007-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-file): New function.
+
 2007-07-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* progmodes/grep.el (grep-host-defaults-alist): New defvar.
@@ -13,6 +17,7 @@
 	files.  Change two keybindings to point to new function names.
 
 2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
 	* follow.el (follow-mode-hook, follow-mode-off-hook, follow-mode)
 	(follow-delete-other-windows-and-split, follow-recenter)
 	(follow-windows-aligned-p, follow-point-visible-all-windows-p)
