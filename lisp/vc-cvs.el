@@ -330,8 +330,9 @@ its parents."
       ;; as a branch, commit and switch to it.
       (apply 'vc-cvs-command nil 0 files "tag" "-b" (list rev))
       (apply 'vc-cvs-command nil 0 files "update" "-r" (list rev))
-      (vc-file-setprop file 'vc-cvs-sticky-tag rev)))
-  (let ((status (apply 'vc-cvs-command nil 1 file
+      (mapc (lambda (file) (vc-file-setprop file 'vc-cvs-sticky-tag rev))
+	    files)))
+  (let ((status (apply 'vc-cvs-command nil 1 files
 		       "ci" (if rev (concat "-r" rev))
 		       (concat "-m" comment)
 		       (vc-switches 'CVS 'checkin))))
@@ -509,7 +510,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 		       (fboundp 'start-process)))
 	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")
 			  (if async 'async 1)
-			  file "diff"
+			  files "diff"
 			  (and oldvers (concat "-r" oldvers))
 			  (and newvers (concat "-r" newvers))
 			  (vc-switches 'CVS 'diff))))
