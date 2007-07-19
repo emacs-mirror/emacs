@@ -954,6 +954,7 @@ extern void StackProbe(Size depth);
 /* Diagnostic Calculation and Output */
 Bool DiagIsOn(void);
 mps_lib_FILE *DiagStream(void);
+#define DIAG_DECL(decl) decl
 #define DIAG_STREAM (DiagStream())
 #define DIAG(s) BEGIN \
     s \
@@ -973,6 +974,7 @@ mps_lib_FILE *DiagStream(void);
 #else
 
 /* Diagnostic Calculation and Output */
+#define DIAG_DECL(decl)
 #define DIAG(s) BEGIN END
 #define DIAG_WRITEF(args) BEGIN END
 
