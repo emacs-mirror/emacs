@@ -1140,7 +1140,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
           }
           *segReturn = seg;
           *rankReturn = rank;
-          traceFindGrey_diag(TRUE, rank);
+          DIAG( traceFindGrey_diag(TRUE, rank); );
           return TRUE;
         }
       }
@@ -1149,7 +1149,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
     AVER(RingIsSingle(ArenaGreyRing(arena, RankAMBIG)));
     if(!traceBandAdvance(trace)) {
       /* No grey segments for this trace. */
-      traceFindGrey_diag(FALSE, rank);
+      DIAG( traceFindGrey_diag(FALSE, rank); );
       return FALSE;
     }
   }
@@ -1162,8 +1162,9 @@ static void traceFindGrey_diag(Bool found, Rank rank)
   char this;
   static char prev = '.';
   static int segcount;
-  static char report_array[10000];
+  static char report_array[20];
   static char *report_lim;
+  int report_maxchars = sizeof(report_array) - 2; /* '.' + '\0' */
 
   this = (char)(!found ? '.'
                 : (rank == RankAMBIG) ? 'A'
@@ -1182,16 +1183,21 @@ static void traceFindGrey_diag(Bool found, Rank rank)
   if(this == prev) {
     segcount += 1;
   } else {
-    /* Change of rank: */
-    /* add prev rank to report */
-    *report_lim++ = prev;
-    /* add segcount [0..9, a..z (x10), or *] to report */
-    if(segcount < 10) {
-      *report_lim++ = (char)('0' + segcount);
-    } else if(segcount < 260) {
-      *report_lim++ = (char)(('a' - 1) + (segcount / 10));
+    /* Change of rank: add prev rank and segcount to report */
+    if( (report_lim - report_array) + 2 > report_maxchars) {
+      /* no space to add 2 chars */
+      report_array[0] = '!';
     } else {
-      *report_lim++ = '*';
+      /* prev rank */
+      *report_lim++ = prev;
+      /* prev rank's segcount [0..9, a..z (x10), or *] */
+      if(segcount < 10) {
+        *report_lim++ = (char)('0' + segcount);
+      } else if(segcount < 260) {
+        *report_lim++ = (char)(('a' - 1) + (segcount / 10));
+      } else {
+        *report_lim++ = '*';
+      }
     }
     /* begin new rank */
     prev = this;
@@ -1204,8 +1210,9 @@ static void traceFindGrey_diag(Bool found, Rank rank)
     AVER(segcount == 1);  /* single failed attempt to find a seg */
     *report_lim++ = this;
     *report_lim++ = '\0';
-    DIAG_PRINTF(( " MPS: traceFindGrey rank sequence: %s\n",
-                  report_array ));
+    DIAG_WRITEF(( DIAG_STREAM, " MPS: traceFindGrey rank sequence: $S\n",
+                  (WriteFS)report_array,
+                  NULL ));
   }
   return;
 }

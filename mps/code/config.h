@@ -59,8 +59,8 @@
  * (We need to choose because the DIAG output system is under 
  * development.  RHSK 2007-05-21).
  */
-/* #define DIAG_WITH_STREAM_AND_WRITEF -- this does not work in CET */
-#define DIAG_WITH_PRINTF
+#define DIAG_WITH_STREAM_AND_WRITEF
+/* #define DIAG_WITH_PRINTF */
 /* no telemetry log events */
 
 #elif defined(CONFIG_VAR_CI) || defined(CONFIG_VAR_CE) /* Cool varieties */
