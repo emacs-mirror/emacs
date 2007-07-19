@@ -1,21 +1,18 @@
 # gc.gmk: GNUMAKEFILE FRAGMENT FOR GNU CC
 #
 # $Id$
-# Copyright (c) 2001,2007 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the GNU CC
 # compiler.  It defines the compiler-specific variables that the
 # common makefile fragment (<code/comm.gmk>) requires.
 
 CC = gcc
-# no-unused-function stops GCC from complaing about unused static
-# functions (which we sometimes have, because of macrology)
 CFLAGSCOMPILER := \
 	-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
-	-Wcast-qual -Wshadow \
-        -Wno-unused-function
+	-Wcast-qual -Wshadow
 CFLAGSDEBUG = -g -ggdb3
 CFLAGSOPT = -O -g -ggdb3
 CFLAGSOPTNODEBUG = -O -g0
@@ -35,7 +32,7 @@ endef
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
