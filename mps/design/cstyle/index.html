@@ -517,16 +517,15 @@ in macro definitions.
 <p>
 .macro.backslash:
 Backslashes used for continuation lines in macro definitions should be
-put on the right in column 72 (counting from 0) where they will be less
-in the way.  Example:
+put on the right somewhere where they will be less in the way.  Example:
 </p>
 
 <pre>
-#define RAMP_RELATION(X)                                                \
-  X(RampOUTSIDE,        "outside ramp")                                 \
-  X(RampBEGIN,          "begin ramp")                                   \
-  X(RampRAMPING,        "ramping")                                      \
-  X(RampFINISH,         "finish ramp")                                  \
+#define RAMP_RELATION(X)                       \
+  X(RampOUTSIDE,        "outside ramp")        \
+  X(RampBEGIN,          "begin ramp")          \
+  X(RampRAMPING,        "ramping")             \
+  X(RampFINISH,         "finish ramp")         \
   X(RampCOLLECTING,     "collecting ramp")
 </pre>
 
