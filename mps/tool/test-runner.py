@@ -120,7 +120,7 @@ runtestlist([
     "awluthe",
     "mpsicv",
     "messtest",
- ], ["ci", "ce", "hi", "he", "we", "wi", "ti"], testout)
+ ], ["we", "hi", "di", "ci"], testout)
 
 os.system("echo DONE")
 
