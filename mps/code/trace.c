@@ -1876,6 +1876,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         DIAG_WRITEF(( DIAG_STREAM,
           "MPS:     GenDesc [$U] $P capacity: $U KiB, mortality $D\n",
           i, (void *)desc, desc->capacity, desc->mortality,
+          "MPS:     ZoneSet: $B\n", desc->zones,
           NULL ));
         RING_FOR(n, &desc->locusRing, nn) {
           PoolGen gen = RING_ELT(PoolGen, genRing, n);
