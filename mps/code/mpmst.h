@@ -511,9 +511,12 @@ typedef struct TraceStruct {
   Sig sig;                      /* <design/sig/> */
   TraceId ti;                   /* index into TraceSets */
   Arena arena;                  /* owning arena */
+  int why;                      /* why the trace began */
   ZoneSet white;                /* zones in the white set */
   ZoneSet mayMove;              /* zones containing possibly moving objs */
   TraceState state;             /* current state of trace */
+  Rank band;                    /* current band */
+  Bool firstStretch;            /* in first stretch of band (see accessor) */
   Bool emergency;               /* ran out of memory during trace */
   Chain chain;                  /* chain being incrementally collected */
   Size condemned;               /* condemned bytes */
