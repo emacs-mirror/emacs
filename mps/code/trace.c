@@ -1878,6 +1878,15 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     "MPS: TraceStart, because code $U: $S\n",
     trace->why, traceStartWhyToString(trace->why),
     NULL ));
+
+  /* This one makes too much output; should be #if0 in master */
+  DIAG( ArenaDescribe(arena, DIAG_STREAM); );
+
+  DIAG_WRITEF(( DIAG_STREAM,
+    "MPS:   white set:$B\n",
+    trace->white,
+    NULL ));
+
   { /* @@ */
     /* Iterate over all chains, all GenDescs within a chain, and all */
     /* PoolGens within a GenDesc.  */
@@ -1896,7 +1905,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         DIAG_WRITEF(( DIAG_STREAM,
           "MPS:     GenDesc [$U] $P capacity: $U KiB, mortality $D\n",
           i, (void *)desc, desc->capacity, desc->mortality,
-          "MPS:     ZoneSet: $B\n", desc->zones,
+          "MPS:     ZoneSet:$B\n", desc->zones,
           NULL ));
         RING_FOR(n, &desc->locusRing, nn) {
           PoolGen gen = RING_ELT(PoolGen, genRing, n);
