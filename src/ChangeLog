@@ -1,5 +1,7 @@
 2007-07-20  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (clean): Don't delete *~.
+
 	* w32proc.c (IMAGE_NT_OPTIONAL_HDR32_MAGIC, IMAGE_OPTIONAL_HEADER32):
 	Define if not defined.
 
