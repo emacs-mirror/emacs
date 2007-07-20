@@ -1862,7 +1862,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     /* Iterate over all chains, all GenDescs within a chain, and all */
     /* PoolGens within a GenDesc.  */
     Ring node, nextNode;
-    int i;
+    Index i;
 
     RING_FOR(node, &arena->chainRing, nextNode) {
       Chain chain = RING_ELT(Chain, chainRing, node);
@@ -1874,13 +1874,13 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         Ring n, nn;
         GenDesc desc = &chain->gens[i];
         DIAG_WRITEF(( DIAG_STREAM,
-          "MPS:     GenDesc $P capacity: $U KiB, mortality $D\n",
-          (void *)desc, desc->capacity, desc->mortality,
+          "MPS:     GenDesc [$U] $P capacity: $U KiB, mortality $D\n",
+          i, (void *)desc, desc->capacity, desc->mortality,
           NULL ));
         RING_FOR(n, &desc->locusRing, nn) {
           PoolGen gen = RING_ELT(PoolGen, genRing, n);
           DIAG_WRITEF(( DIAG_STREAM,
-            "MPS:       PoolGen $U", gen->nr,
+            "MPS:       PoolGen $U ($S)", gen->nr, gen->pool->class->name,
             " totalSize $U", gen->totalSize,
             " newSize $U\n", gen->newSizeAtCreate,
             NULL ));
