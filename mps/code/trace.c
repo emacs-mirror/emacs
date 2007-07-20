@@ -224,22 +224,16 @@ static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
   return;
 }
 
-/* traceStartWhyToString
+
+/* traceStartWhyToString -- why-code to text
  *
- * Converts a TraceStartWhy* code into a string description.
- * s specifies the beginning of the buffer to write the string
- * into, len specifies the length of the buffer.
- * The string written into will be NUL terminated (truncated if
- * necessary). */
-static void traceStartWhyToString(char *s, size_t len, int why)
+ * Converts a TraceStartWhy* code into a constant string describing 
+ * why a trace started.
+ */
+ 
+static const char *traceStartWhyToString(int why)
 {
   const char *r;
-  size_t i;
-
-  AVER(s);
-  /* len can be anything, including 0. */
-  AVER(TraceStartWhyBASE <= why);
-  AVER(why < TraceStartWhyLIMIT);
 
   switch(why) {
   case TraceStartWhyCHAIN_GEN0CAP:
@@ -268,6 +262,32 @@ static void traceStartWhyToString(char *s, size_t len, int why)
     r = "Unknown reason (internal error).";
     break;
   }
+
+  return r;
+}
+
+
+/* traceStartWhyToTextBuffer
+ *
+ * Converts a TraceStartWhy* code into a string describing why a trace
+ * started, and copies that into the text buffer the caller provides.
+ * s specifies the beginning of the buffer to write the string
+ * into, len specifies the length of the buffer.
+ * The string written into will be NUL terminated (truncated if
+ * necessary).
+ */
+
+static void traceStartWhyToTextBuffer(char *s, size_t len, int why)
+{
+  const char *r;
+  size_t i;
+
+  AVER(s);
+  /* len can be anything, including 0. */
+  AVER(TraceStartWhyBASE <= why);
+  AVER(why < TraceStartWhyLIMIT);
+
+  r = traceStartWhyToString(why);
 
   for(i=0; i<len; ++i) {
     s[i] = r[i];
@@ -900,8 +920,8 @@ found:
   trace->arena = arena;
   trace->why = why;
   TraceStartMessageInit(arena, &trace->startMessage);
-  traceStartWhyToString(trace->startMessage.why,
-    sizeof trace->startMessage.why, why);
+  traceStartWhyToTextBuffer(trace->startMessage.why,
+                            sizeof trace->startMessage.why, why);
   trace->white = ZoneSetEMPTY;
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
@@ -1856,7 +1876,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
   DIAG_WRITEF(( DIAG_STREAM,
     "MPS: TraceStart, because code $U: $S\n",
-    trace->why, trace->startMessage.why,
+    trace->why, traceStartWhyToString(trace->why),
     NULL ));
   { /* @@ */
     /* Iterate over all chains, all GenDescs within a chain, and all */
