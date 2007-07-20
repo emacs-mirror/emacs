@@ -9,6 +9,8 @@
 	(vc-hg-create-repo): Fix typos.
 
 	* vc.el: Fix typo.
+	(vc-print-log): Fix call to print-log.
+	(vc-default-comment-history): Likewise.
 
 	* vc-mcvs.el (vc-mcvs-create-repo): Fix typos.
 

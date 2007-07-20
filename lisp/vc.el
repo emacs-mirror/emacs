@@ -2505,7 +2505,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
     ;; buffer can be accessed by the command.
     (condition-case err
         (progn
-          (vc-call print-log file "*vc-change-log*")
+          (vc-call print-log (list file) "*vc-change-log*")
           (set-buffer "*vc-change-log*"))
       (wrong-number-of-arguments
        ;; If this error came from the above call to print-log, try again
@@ -2547,7 +2547,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
   "Return a string with all log entries stored in BACKEND for FILE."
   (if (vc-find-backend-function backend 'print-log)
       (with-current-buffer "*vc*"
-	(vc-call print-log file)
+	(vc-call print-log (list file))
 	(vc-call wash-log file)
 	(buffer-string))))
 
