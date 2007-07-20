@@ -720,6 +720,10 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
           ;; Abbreviate, so as to stop when we cross ~/.
           (dir (abbreviate-file-name (file-name-as-directory file)))
           files)
+      ;; As a heuristic, we stop looking up the hierarchy of directories as
+      ;; soon as we find a directory belonging to another user.  This should
+      ;; save us from looking in things like /net and /afs.  This assumes
+      ;; that all the files inside a project belong to the same user.
       (while (and dir (equal user (nth 2 (file-attributes dir))))
         (if (setq files (directory-files dir 'full regexp))
             (throw 'found (car files))
