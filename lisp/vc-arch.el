@@ -386,30 +386,35 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-diff (files &optional oldvers newvers buffer)
   "Get a difference report using Arch between two versions of FILES."
-  ;; FIXME: This implementation probably only works for singleton filesets
-  (if (and newvers
-	   (vc-up-to-date-p file)
-	   (equal newvers (vc-workfile-version (car files))))
-      ;; Newvers is the base revision and the current file is unchanged,
-      ;; so we can diff with the current file.
-      (setq newvers nil))
-  (if newvers
-      (error "Diffing specific revisions not implemented")
-    (let* ((async (and (not vc-disable-async-diff) (fboundp 'start-process)))
-	   ;; Run the command from the root dir.
-	   (default-directory (vc-arch-root (car files)))
-	   (status
-	    (vc-arch-command
-	     (or buffer "*vc-diff*")
-	     (if async 'async 1)
-	     nil "file-diffs"
-	     ;; Arch does not support the typical flags.
-	     ;; (vc-switches 'Arch 'diff)
-	     (mapcar 'file-relative-name files)
-	     (if (equal oldvers (vc-workfile-version (car files)))
-		 nil
-	       oldvers))))
-      (if async 1 status))))	       ; async diff, pessimistic assumption.
+  ;; FIXME: This implementation only works for singleton filesets.  To make
+  ;; it work for more cases, we have to either call `file-diffs' manually on
+  ;; each and every `file' in the fileset, or use `changes --diffs' (and
+  ;; variants) and maybe filter the output with `filterdiff' to only include
+  ;; the files in which we're interested.
+  (let ((file (car files)))
+    (if (and newvers
+             (vc-up-to-date-p file)
+             (equal newvers (vc-workfile-version file)))
+        ;; Newvers is the base revision and the current file is unchanged,
+        ;; so we can diff with the current file.
+        (setq newvers nil))
+    (if newvers
+        (error "Diffing specific revisions not implemented")
+      (let* ((async (and (not vc-disable-async-diff) (fboundp 'start-process)))
+             ;; Run the command from the root dir.
+             (default-directory (vc-arch-root file))
+             (status
+              (vc-arch-command
+               (or buffer "*vc-diff*")
+               (if async 'async 1)
+               nil "file-diffs"
+               ;; Arch does not support the typical flags.
+               ;; (vc-switches 'Arch 'diff)
+               (file-relative-name file)
+               (if (equal oldvers (vc-workfile-version file))
+                   nil
+                 oldvers))))
+        (if async 1 status)))))	       ; async diff, pessimistic assumption.
 
 (defun vc-arch-delete-file (file)
   (vc-arch-command nil 0 file "rm"))
