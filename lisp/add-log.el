@@ -55,7 +55,7 @@
 ;; Many modes set this variable, so avoid warnings.
 ;;;###autoload
 (defcustom add-log-current-defun-function nil
-  "*If non-nil, function to guess name of surrounding function.
+  "If non-nil, function to guess name of surrounding function.
 It is used by `add-log-current-defun' in preference to built-in rules.
 Returns function's name as a string, or nil if outside a function."
   :type '(choice (const nil) function)
@@ -63,7 +63,7 @@ Returns function's name as a string, or nil if outside a function."
 
 ;;;###autoload
 (defcustom add-log-full-name nil
-  "*Full name of user, for inclusion in ChangeLog daily headers.
+  "Full name of user, for inclusion in ChangeLog daily headers.
 This defaults to the value returned by the function `user-full-name'."
   :type '(choice (const :tag "Default" nil)
 		 string)
@@ -148,7 +148,7 @@ use the file's name relative to the directory of the change log file."
 
 
 (defcustom change-log-version-info-enabled nil
-  "*If non-nil, enable recording version numbers with the changes."
+  "If non-nil, enable recording version numbers with the changes."
   :version "21.1"
   :type 'boolean
   :group 'change-log)
@@ -160,7 +160,7 @@ use the file's name relative to the directory of the change log file."
      (concat "^(def[^ \t\n]+[ \t]+[^ \t\n][ \t]\"" re)
      ;; Revision: pcl-cvs.el,v 1.72 1999/09/05 20:21:54 monnier Exp
      (concat "^;+ *Revision: +[^ \t\n]+[ \t]+" re)))
-  "*List of regexps to search for version number.
+  "List of regexps to search for version number.
 The version number must be in group 1.
 Note: The search is conducted only within 10%, at the beginning of the file."
   :version "21.1"
@@ -510,7 +510,7 @@ non-nil, otherwise in local time."
       (if (or other-window (window-dedicated-p (selected-window)))
 	  (find-file-other-window file-name)
 	(find-file file-name)))
-    (or (eq major-mode 'change-log-mode)
+    (or (derived-mode-p 'change-log-mode)
 	(change-log-mode))
     (undo-boundary)
     (goto-char (point-min))
@@ -751,7 +751,7 @@ Prefix arg means justify as well."
 
 ;;;###autoload
 (defvar add-log-tex-like-modes
-  '(TeX-mode plain-TeX-mode LaTeX-mode plain-tex-mode latex-mode)
+  '(TeX-mode plain-TeX-mode LaTeX-mode tex-mode)
   "*Modes that look like TeX to `add-log-current-defun'.")
 
 ;;;###autoload
@@ -773,7 +773,7 @@ Has a preference of looking backwards."
 	(let ((location (point)))
 	  (cond (add-log-current-defun-function
 		 (funcall add-log-current-defun-function))
-		((memq major-mode add-log-lisp-like-modes)
+		((apply 'derived-mode-p add-log-lisp-like-modes)
 		 ;; If we are now precisely at the beginning of a defun,
 		 ;; make sure beginning-of-defun finds that one
 		 ;; rather than the previous one.
@@ -797,7 +797,7 @@ Has a preference of looking backwards."
 		   (buffer-substring-no-properties (point)
 						   (progn (forward-sexp 1)
 							  (point)))))
-		((and (memq major-mode add-log-c-like-modes)
+		((and (apply 'derived-mode-p add-log-c-like-modes)
 		      (save-excursion
 			(beginning-of-line)
 			;; Use eq instead of = here to avoid
@@ -815,7 +815,7 @@ Has a preference of looking backwards."
 		 (buffer-substring-no-properties (point)
 						 (progn (forward-sexp 1)
 							(point))))
-		((memq major-mode add-log-c-like-modes)
+		((apply 'derived-mode-p add-log-c-like-modes)
 		 ;; See whether the point is inside a defun.
 		 (let (having-previous-defun
 		       having-next-defun
@@ -957,7 +957,7 @@ Has a preference of looking backwards."
 				   (setq end (point)))
 				 (buffer-substring-no-properties
 				  middle end)))))))))
-		((memq major-mode add-log-tex-like-modes)
+		((apply 'derived-mode-p add-log-tex-like-modes)
 		 (if (re-search-backward
 		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)"
 		      nil t)
@@ -966,17 +966,17 @@ Has a preference of looking backwards."
 		       (buffer-substring-no-properties
 			(1+ (point))	; without initial backslash
 			(line-end-position)))))
-		((eq major-mode 'texinfo-mode)
+		((derived-mode-p 'texinfo-mode)
 		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
-		((memq major-mode '(perl-mode cperl-mode))
+		((derived-mode-p '(perl-mode cperl-mode))
 		 (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
 		;; Emacs's autoconf-mode installs its own
 		;; `add-log-current-defun-function'.  This applies to
 		;; a different mode apparently for editing .m4
 		;; autoconf source.
-                ((eq major-mode 'autoconf-mode)
+                ((derived-mode-p 'autoconf-mode)
                  (if (re-search-backward
 		      "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
                      (match-string-no-properties 3)))
@@ -1065,7 +1065,7 @@ or a buffer.
 Entries are inserted in chronological order.  Both the current and
 old-style time formats for entries are supported."
   (interactive "*fLog file name to merge: ")
-  (if (not (eq major-mode 'change-log-mode))
+  (if (not (derived-mode-p 'change-log-mode))
       (error "Not in Change Log mode"))
   (let ((other-buf (if (bufferp other-log) other-log
 		     (find-file-noselect other-log)))
@@ -1075,7 +1075,7 @@ old-style time formats for entries are supported."
       (goto-char (point-min))
       (set-buffer other-buf)
       (goto-char (point-min))
-      (if (not (eq major-mode 'change-log-mode))
+      (if (not (derived-mode-p 'change-log-mode))
 	  (error "%s not found in Change Log mode" other-log))
       ;; Loop through all the entries in OTHER-LOG.
       (while (not (eobp))
