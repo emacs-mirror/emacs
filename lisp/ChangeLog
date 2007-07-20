@@ -1,3 +1,10 @@
+2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-start): Remember the original
+	directory in a buffer-local compilation-directory.
+	(compile): Set the global value of compilation-directory.
+	(recompile): Use compilation-directory even in the compilation buffer.
+
 2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-diff): Use vc-hg-command.

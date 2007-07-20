@@ -934,7 +934,7 @@ to a function that generates a unique name."
   (unless (equal command (eval compile-command))
     (setq compile-command command))
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (setq compilation-directory default-directory)
+  (setq-default compilation-directory default-directory)
   (compilation-start command comint))
 
 ;; run compile with the default command line
@@ -944,10 +944,7 @@ If this is run in a Compilation mode buffer, re-use the arguments from the
 original use.  Otherwise, recompile using `compile-command'."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (let ((default-directory
-          (or (and (not (eq major-mode (nth 1 compilation-arguments)))
-                   compilation-directory)
-              default-directory)))
+  (let ((default-directory (or compilation-directory default-directory)))
     (apply 'compilation-start (or compilation-arguments
 				  `(,(eval compile-command))))))
 
@@ -1042,6 +1039,10 @@ Returns the compilation buffer created."
       (buffer-disable-undo (current-buffer))
       ;; first transfer directory from where M-x compile was called
       (setq default-directory thisdir)
+      ;; Remember the original dir, so we can use it when we recompile.
+      ;; default-directory' can't be used reliably for that because it may be
+      ;; affected by the special handling of "cd ...;".
+      (set (make-local-variable 'compilation-directory) thisdir)
       ;; Make compilation buffer read-only.  The filter can still write it.
       ;; Clear out the compilation buffer.
       (let ((inhibit-read-only t)
