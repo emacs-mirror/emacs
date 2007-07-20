@@ -1,6 +1,8 @@
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* add-log.el (add-log-file-name): Use file-relative-name.
+	(add-change-log-entry): Delay reading add-log-(full-name|mailing-address)
+	to after we've switched to the ChangeLog buffer so we get the right value.
 
 	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use a directory
 	name for buffer-file-name if it refers to a directory.

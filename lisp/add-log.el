@@ -504,20 +504,7 @@ non-nil, otherwise in local time."
 	 (buffer-file (if buf-file-name (expand-file-name buf-file-name)))
 	 (file-name (expand-file-name (find-change-log file-name buffer-file)))
 	 ;; Set ITEM to the file name to use in the new item.
-	 (item (add-log-file-name buffer-file file-name))
-	 bound
-	 (full-name (or add-log-full-name (user-full-name)))
-	 (mailing-address (or add-log-mailing-address user-mail-address)))
-
-    (if whoami
-	(progn
-	  (setq full-name (read-string "Full name: " full-name))
-	  ;; Note that some sites have room and phone number fields in
-	  ;; full name which look silly when inserted.  Rather than do
-	  ;; anything about that here, let user give prefix argument so that
-	  ;; s/he can edit the full name field in prompter if s/he wants.
-	  (setq mailing-address
-		(read-string "Mailing address: " mailing-address))))
+	 (item (add-log-file-name buffer-file file-name)))
 
     (unless (equal file-name buffer-file-name)
       (if (or other-window (window-dedicated-p (selected-window)))
@@ -528,88 +515,102 @@ non-nil, otherwise in local time."
     (undo-boundary)
     (goto-char (point-min))
 
-    ;; If file starts with a copyright and permission notice, skip them.
-    ;; Assume they end at first blank line.
-    (when (looking-at "Copyright")
-      (search-forward "\n\n")
-      (skip-chars-forward "\n"))
+    (let ((full-name (or add-log-full-name (user-full-name)))
+          (mailing-address (or add-log-mailing-address user-mail-address)))
 
-    ;; Advance into first entry if it is usable; else make new one.
-    (let ((new-entries
-           (mapcar (lambda (addr)
-                     (concat
-                      (if (stringp add-log-time-zone-rule)
-                          (let ((tz (getenv "TZ")))
-                            (unwind-protect
-                                (progn
-                                  (set-time-zone-rule add-log-time-zone-rule)
-                                  (funcall add-log-time-format))
-                              (set-time-zone-rule tz)))
-                        (funcall add-log-time-format))
-                      "  " full-name
-                      "  <" addr ">"))
-                   (if (consp mailing-address)
-                       mailing-address
-                     (list mailing-address)))))
-      (if (and (not add-log-always-start-new-record)
-               (let ((hit nil))
-		 (dolist (entry new-entries hit)
-		   (when (looking-at (regexp-quote entry))
-		     (setq hit t)))))
-	  (forward-line 1)
-	(insert (nth (random (length new-entries))
-		     new-entries)
-		(if use-hard-newlines hard-newline "\n")
-		(if use-hard-newlines hard-newline "\n"))
-	(forward-line -1)))
+      (when whoami
+        (setq full-name (read-string "Full name: "
+                                     (or add-log-full-name (user-full-name))))
+        ;; Note that some sites have room and phone number fields in
+        ;; full name which look silly when inserted.  Rather than do
+        ;; anything about that here, let user give prefix argument so that
+        ;; s/he can edit the full name field in prompter if s/he wants.
+        (setq mailing-address
+              (read-string "Mailing address: "
+                           (or add-log-mailing-address user-mail-address))))
+
+      ;; If file starts with a copyright and permission notice, skip them.
+      ;; Assume they end at first blank line.
+      (when (looking-at "Copyright")
+        (search-forward "\n\n")
+        (skip-chars-forward "\n"))
+
+      ;; Advance into first entry if it is usable; else make new one.
+      (let ((new-entries
+             (mapcar (lambda (addr)
+                       (concat
+                        (if (stringp add-log-time-zone-rule)
+                            (let ((tz (getenv "TZ")))
+                              (unwind-protect
+                                  (progn
+                                    (set-time-zone-rule add-log-time-zone-rule)
+                                    (funcall add-log-time-format))
+                                (set-time-zone-rule tz)))
+                          (funcall add-log-time-format))
+                        "  " full-name
+                        "  <" addr ">"))
+                     (if (consp mailing-address)
+                         mailing-address
+                       (list mailing-address)))))
+        (if (and (not add-log-always-start-new-record)
+                 (let ((hit nil))
+                   (dolist (entry new-entries hit)
+                     (when (looking-at (regexp-quote entry))
+                       (setq hit t)))))
+            (forward-line 1)
+          (insert (nth (random (length new-entries))
+                       new-entries)
+                  (if use-hard-newlines hard-newline "\n")
+                  (if use-hard-newlines hard-newline "\n"))
+          (forward-line -1))))
 
     ;; Determine where we should stop searching for a usable
     ;; item to add to, within this entry.
-    (setq bound
-	  (save-excursion
-            (if (looking-at "\n*[^\n* \t]")
-                (skip-chars-forward "\n")
-	      (if add-log-keep-changes-together
-		  (forward-page)	; page delimits entries for date
-		(forward-paragraph)))	; paragraph delimits entries for file
-	    (point)))
+    (let ((bound
+           (save-excursion
+             (if (looking-at "\n*[^\n* \t]")
+                 (skip-chars-forward "\n")
+               (if add-log-keep-changes-together
+                   (forward-page)      ; page delimits entries for date
+                 (forward-paragraph))) ; paragraph delimits entries for file
+             (point))))
 
-    ;; Now insert the new line for this item.
-    (cond ((re-search-forward "^\\s *\\*\\s *$" bound t)
-	   ;; Put this file name into the existing empty item.
-	   (if item
-	       (insert item)))
-	  ((and (not new-entry)
-		(let (case-fold-search)
-		  (re-search-forward
-		   (concat (regexp-quote (concat "* " item))
-			   ;; Don't accept `foo.bar' when
-			   ;; looking for `foo':
-			   "\\(\\s \\|[(),:]\\)")
-		   bound t)))
-	   ;; Add to the existing item for the same file.
-	   (re-search-forward "^\\s *$\\|^\\s \\*")
-	   (goto-char (match-beginning 0))
-	   ;; Delete excess empty lines; make just 2.
-	   (while (and (not (eobp)) (looking-at "^\\s *$"))
-	     (delete-region (point) (line-beginning-position 2)))
-	   (insert (if use-hard-newlines hard-newline "\n")
-		   (if use-hard-newlines hard-newline "\n"))
-	   (forward-line -2)
-	   (indent-relative-maybe))
-	  (t
-	   ;; Make a new item.
-	   (while (looking-at "\\sW")
-	     (forward-line 1))
-	   (while (and (not (eobp)) (looking-at "^\\s *$"))
-	     (delete-region (point) (line-beginning-position 2)))
-	   (insert (if use-hard-newlines hard-newline "\n")
-		   (if use-hard-newlines hard-newline "\n")
-		   (if use-hard-newlines hard-newline "\n"))
-	   (forward-line -2)
-	   (indent-to left-margin)
-	   (insert "* ")
-	   (if item (insert item))))
+      ;; Now insert the new line for this item.
+      (cond ((re-search-forward "^\\s *\\*\\s *$" bound t)
+             ;; Put this file name into the existing empty item.
+             (if item
+                 (insert item)))
+            ((and (not new-entry)
+                  (let (case-fold-search)
+                    (re-search-forward
+                     (concat (regexp-quote (concat "* " item))
+                             ;; Don't accept `foo.bar' when
+                             ;; looking for `foo':
+                             "\\(\\s \\|[(),:]\\)")
+                     bound t)))
+             ;; Add to the existing item for the same file.
+             (re-search-forward "^\\s *$\\|^\\s \\*")
+             (goto-char (match-beginning 0))
+             ;; Delete excess empty lines; make just 2.
+             (while (and (not (eobp)) (looking-at "^\\s *$"))
+               (delete-region (point) (line-beginning-position 2)))
+             (insert (if use-hard-newlines hard-newline "\n")
+                     (if use-hard-newlines hard-newline "\n"))
+             (forward-line -2)
+             (indent-relative-maybe))
+            (t
+             ;; Make a new item.
+             (while (looking-at "\\sW")
+               (forward-line 1))
+             (while (and (not (eobp)) (looking-at "^\\s *$"))
+               (delete-region (point) (line-beginning-position 2)))
+             (insert (if use-hard-newlines hard-newline "\n")
+                     (if use-hard-newlines hard-newline "\n")
+                     (if use-hard-newlines hard-newline "\n"))
+             (forward-line -2)
+             (indent-to left-margin)
+             (insert "* ")
+             (if item (insert item)))))
     ;; Now insert the function name, if we have one.
     ;; Point is at the item for this file,
     ;; either at the end of the line or at the first blank line.
