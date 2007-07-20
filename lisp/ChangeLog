@@ -1,3 +1,8 @@
+2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* add-log.el (change-log-resolve-conflict): Don't lose data if the
+	merge fails.
+
 2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/compile.el (compilation-auto-jump-to-first-error):

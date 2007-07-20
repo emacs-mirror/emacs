@@ -1043,17 +1043,32 @@ Point is assumed to be at the start of the entry."
 
 (defun change-log-resolve-conflict ()
   "Function to be used in `smerge-resolve-function'."
-  (let ((buf (current-buffer)))
-    (with-temp-buffer
-      (insert-buffer-substring buf (match-beginning 1) (match-end 1))
-      (save-match-data (change-log-mode))
-      (let ((other-buf (current-buffer)))
-	(with-current-buffer buf
-	  (save-excursion
-	    (save-restriction
-	      (narrow-to-region (match-beginning 0) (match-end 0))
-	      (replace-match (match-string 3) t t)
-	      (change-log-merge other-buf))))))))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region (match-beginning 0) (match-end 0))
+      (let ((mb1 (match-beginning 1))
+            (me1 (match-end 1))
+            (mb3 (match-beginning 3))
+            (me3 (match-end 3))
+            (tmp1 (generate-new-buffer " *changelog-resolve-1*"))
+	    (tmp2 (generate-new-buffer " *changelog-resolve-2*")))
+	(unwind-protect
+	    (let ((buf (current-buffer)))
+	      (with-current-buffer tmp1
+                (change-log-mode)
+		(insert-buffer-substring buf mb1 me1))
+	      (with-current-buffer tmp2
+                (change-log-mode)
+		(insert-buffer-substring buf mb3 me3)
+                ;; Do the merge here instead of inside `buf' so as to be
+                ;; more robust in case change-log-merge fails.
+		(change-log-merge tmp1))
+	      (goto-char (point-max))
+	      (delete-region (point-min)
+			     (prog1 (point)
+			       (insert-buffer-substring tmp2))))
+	  (kill-buffer tmp1)
+	  (kill-buffer tmp2))))))
 
 ;;;###autoload
 (defun change-log-merge (other-log)
