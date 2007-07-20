@@ -1188,10 +1188,16 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
   AMC amc;
   Buffer buffer;
   Res res;
+  /* Sizes, in bytes, of stuff that is condemned and not-condemned */
+  /* (normally everything is condemned, but not for buffers). */
+  Size condemned, notcondemned;
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
   AVERT(Seg, seg);
+
+  condemned = SegSize(seg);
+  notcondemned = 0;
 
   buffer = SegBuffer(seg);
   if(buffer != NULL) {
@@ -1242,23 +1248,28 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
           SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace));
         }
         /* We didn't condemn the buffer, subtract it from the count. */
+#if 0
+        notcondemned = AddrOffset(BufferScanLimit(buffer),
+                                  BufferLimit(buffer));
+        condemned -= notcondemned;
+#endif
         /* @@@@ We could subtract all the nailed grains. */
-        /* Relies on unsigned arithmetic wrapping round */
-        /* on under- and overflow (which it does). */
-        trace->condemned -= AddrOffset(BufferScanLimit(buffer),
-                                       BufferLimit(buffer));
       }
     }
   }
 
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
-  trace->condemned += SegSize(seg);
+  trace->condemned += condemned;
 
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
+
+  /* Report accounting to PoolGen. */
   if(Seg2amcSeg(seg)->new) {
-    gen->pgen.newSize -= SegSize(seg);
+    PoolGenNoteCondemned(&gen->pgen, condemned, 0, notcondemned, 0);
     Seg2amcSeg(seg)->new = FALSE;
+  } else {
+    PoolGenNoteCondemned(&gen->pgen, 0, condemned, notcondemned, 0);
   }
 
   /* Ensure we are forwarding into the right generation. */
@@ -1896,7 +1907,7 @@ returnRes:
 
 /* amcReclaimNailed -- reclaim what you can from a nailed segment */
 
-static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
+static void amcReclaimNailed(Pool pool, Trace trace, Seg seg, amcGen gen)
 {
   Addr p, limit;
   Arena arena;
@@ -1961,6 +1972,8 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   trace->reclaimSize += bytesReclaimed;
   trace->preservedInPlaceCount += preservedInPlaceCount;
   trace->preservedInPlaceSize += preservedInPlaceSize;
+  PoolGenNoteReclaimed(&gen->pgen, 0, 0, SegSize(seg), 0);
+  return;
 }
 
 
@@ -1997,13 +2010,13 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   }
 
   if(SegNailed(seg) != TraceSetEMPTY) {
-    amcReclaimNailed(pool, trace, seg);
+    amcReclaimNailed(pool, trace, seg, gen);
     return;
   }
 
   --gen->segs;
   size = SegSize(seg);
-  gen->pgen.totalSize -= size;
+  PoolGenNoteReclaimed(&gen->pgen, 0, 0, 0, size);
 
   trace->reclaimSize += size;
 
