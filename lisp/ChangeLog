@@ -2,6 +2,7 @@
 
 	* progmodes/vera-mode.el (vera-re-search-forward)
 	(vera-re-search-backward): Remove use of store-match-data.
+	(vera-mode-map): Move initialization into declaration.
 
 	* progmodes/flymake.el (flymake-buildfile-dirs): Remove.
 	(flymake-find-buildfile): Use locate-dominating-file.
