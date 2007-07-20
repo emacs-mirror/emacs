@@ -1,5 +1,7 @@
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* add-log.el (add-log-file-name): Use file-relative-name.
+
 	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use a directory
 	name for buffer-file-name if it refers to a directory.
 

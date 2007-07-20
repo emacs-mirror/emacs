@@ -460,11 +460,7 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
     (if add-log-file-name-function
 	(funcall add-log-file-name-function buffer-file)
       (setq buffer-file
-	    (if (string-match
-		 (concat "^" (regexp-quote (file-name-directory log-file)))
-		 buffer-file)
-		(substring buffer-file (match-end 0))
-	      (file-name-nondirectory buffer-file)))
+            (file-relative-name buffer-file (file-name-directory log-file)))
       ;; If we have a backup file, it's presumably because we're
       ;; comparing old and new versions (e.g. for deleted
       ;; functions) and we'll want to use the original name.
