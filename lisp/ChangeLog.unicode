@@ -1,3 +1,15 @@
+2007-07-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Problem with foreground and background color when
+	printing a buffer with and without faces.  Reported by Christian
+	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
+	(ps-print-version): New version 7.2.4.
+	(ps-default-fg): Change default value to nil, so black color is used
+	when a face does not specify a foreground color.
+	(ps-default-bg): Change default value to nil, so white color is used
+	for background color.
+	(ps-begin-job): Fix code.
+
 2007-06-26  Kenichi Handa  <handa@m17n.org>
 
 	* dnd.el (dnd-get-local-file-name): Call replace-regexp-in-string
