@@ -281,10 +281,6 @@ committed and support display of sticky tags."
 ;;; State-changing functions
 ;;;
 
-(defun vc-cvs-create-repo ()
-  "Create a new CVS repository."
-  (error "Creation of CVS repositories is not supported."))
-
 (defun vc-cvs-register (files &optional rev comment)
   "Register FILES into the CVS version-control system.
 COMMENT can be used to provide an initial description of FILES.

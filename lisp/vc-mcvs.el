@@ -207,10 +207,6 @@ This is only meaningful if you don't use the implicit checkout model
 ;;; State-changing functions
 ;;;
 
-(defun vc-mcvs-create-repo ()
-  "Create a new Meta-CVS repository."
-  (error "Creation of Meta-CVS repositories is not supported."))
-
 (defun vc-mcvs-register (files &optional rev comment)
   "Register FILES into the Meta-CVS version-control system.
 COMMENT can be used to provide an initial description of FILE.

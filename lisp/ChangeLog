@@ -1,5 +1,8 @@
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-mcvs.el (vc-mcvs-create-repo):
+	* vc-cvs.el (vc-cvs-create-repo): Remove.
+
 	* vc-hooks.el (vc-find-root): Fix case where `file' is the current
 	directory and the root as well.
 
