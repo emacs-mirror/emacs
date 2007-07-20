@@ -1,3 +1,8 @@
+2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Fix case where `file' is the current
+	directory and the root as well.
+
 2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-default-workfile-unchanged-p): Pass a list
@@ -5,8 +10,7 @@
 
 	* vc-hg.el (vc-hg-print-log): Deal with multiple file arguments.
 	(vc-hg-registered): Replace if with when.
-	(vc-hg-state): Deal with nonexistent files and handle removed
-	files.
+	(vc-hg-state): Deal with nonexistent files and handle removed files.
 	(vc-hg-dir-state, vc-hg-dired-state-info): New functions.
 	(vc-hg-checkout): Re-enable.
 	(vc-hg-create-repo): Fix typos.

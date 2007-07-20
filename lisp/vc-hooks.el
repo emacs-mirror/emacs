@@ -317,24 +317,25 @@ The function walks up the directory tree from FILE looking for WITNESS.
 If WITNESS if not found, return nil, otherwise return the root."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; witnesses in /home or in /.
-  (while (not (file-exists-p file))
+  (while (not (file-directory-p file))
     (setq file (file-name-directory (directory-file-name file))))
   (setq file (abbreviate-file-name file))
   (let ((root nil)
         (user (nth 2 (file-attributes file))))
     (while (not (or root
-                   (equal file (setq file (file-name-directory file)))
-                   (null file)
-                   ;; As a heuristic, we stop looking up the hierarchy of
-                   ;; directories as soon as we find a directory belonging
-                   ;; to another user.  This should save us from looking in
-                   ;; things like /net and /afs.  This assumes that all the
-                   ;; files inside a project belong to the same user.
-                   (not (equal user (nth 2 (file-attributes file))))
-                   (string-match vc-ignore-dir-regexp file)))
+                    (null file)
+                    ;; As a heuristic, we stop looking up the hierarchy of
+                    ;; directories as soon as we find a directory belonging
+                    ;; to another user.  This should save us from looking in
+                    ;; things like /net and /afs.  This assumes that all the
+                    ;; files inside a project belong to the same user.
+                    (not (equal user (nth 2 (file-attributes file))))
+                    (string-match vc-ignore-dir-regexp file)))
       (if (file-exists-p (expand-file-name witness file))
-         (setq root file)
-       (setq file (directory-file-name file))))
+          (setq root file)
+        (if (equal file
+                   (setq file (file-name-directory (directory-file-name file))))
+            (setq file nil))))
     root))
 
 ;; Access functions to file properties
