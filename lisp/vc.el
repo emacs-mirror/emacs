@@ -998,9 +998,7 @@ and is passed 3 arguments: the COMMAND, the FILE and the FLAGS.")
 
 (defun vc-delistify (filelist)
   "Smash a FILELIST into a file list string suitable for info messages."
-  (cond ((not filelist) ".")
-        ((= (length filelist) 1) (car filelist)) 
-	(t (concat (car filelist) " " (vc-delistify (cdr filelist))))))
+  (if (not filelist) "."  (mapconcat 'identity filelist " ")))
 
 (defvar w32-quote-process-args)
 ;;;###autoload
@@ -1019,12 +1017,10 @@ that is inserted into the command line before the filename."
   ;; FIXME: file-relative-name can return a bogus result because
   ;; it doesn't look at the actual file-system to see if symlinks
   ;; come into play.
-  (let* ((files 
-	  (mapcar 'file-relative-name
-		  (cond ((not file-or-list) '())
-			((listp file-or-list) (mapcar 'expand-file-name file-or-list)) 
-			(t (list (expand-file-name file-or-list))))))
-	 (full-command
+  (let* ((files
+	  (mapcar (lambda (f) (file-relative-name (expand-file-name f)))
+		  (if (listp file-or-list) file-or-list (list file-or-list))))
+         (full-command
 	  (concat command " " (vc-delistify flags) " " (vc-delistify files))))
     (if vc-command-messages
 	(message "Running %s..." full-command))
@@ -1555,9 +1551,11 @@ The default implementation returns t for all files."
 (defun vc-expand-dirs (file-or-dir-list)
   "Expands directories in a file list specification.
 Only files already under version control are noticed."
+  ;; FIXME: Kill this function.
   (let ((flattened '()))
     (dolist (node file-or-dir-list)
-      (vc-file-tree-walk node (lambda (f) (if (vc-backend f) (setq flattened (cons f flattened))))))
+      (vc-file-tree-walk
+       node (lambda (f) (if (vc-backend f) (push f flattened)))))
     (nreverse flattened)))
 
 (defun vc-resynch-window (file &optional keep noquery)
@@ -3492,6 +3490,7 @@ The annotations are relative to the current time, unless overridden by OFFSET."
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.
 Invoke FUNC f ARGS on each VC-managed file f underneath it."
+  ;; FIXME: Kill this function.
   (vc-file-tree-walk-internal (expand-file-name dirname) func args)
   (message "Traversing directory %s...done" dirname))
 
@@ -3502,13 +3501,13 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
     (let ((dir (file-name-as-directory file)))
       (mapcar
        (lambda (f) (or
-		    (string-equal f ".")
-		    (string-equal f "..")
-		    (member f vc-directory-exclusion-list)
-		    (let ((dirf (expand-file-name f dir)))
-		      (or
-		       (file-symlink-p dirf);; Avoid possible loops
-		       (vc-file-tree-walk-internal dirf func args)))))
+               (string-equal f ".")
+               (string-equal f "..")
+               (member f vc-directory-exclusion-list)
+               (let ((dirf (expand-file-name f dir)))
+                 (or
+                  (file-symlink-p dirf) ;; Avoid possible loops.
+                  (vc-file-tree-walk-internal dirf func args)))))
        (directory-files dir)))))
 
 (provide 'vc)
