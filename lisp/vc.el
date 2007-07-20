@@ -46,8 +46,9 @@
 
 ;; This mode is fully documented in the Emacs user's manual.
 ;;
-;; Supported version-control systems presently include CVS, RCS, GNU Arch,
-;; Subversion, Meta-CVS, and SCCS (or its free replacement, CSSC).
+;; Supported version-control systems presently include CVS, RCS, GNU
+;; Arch, Subversion, Bzr, Mercurial, Meta-CVS, and SCCS (or its free
+;; replacement, CSSC).
 ;;
 ;; Some features will not work with old RCS versions.  Where
 ;; appropriate, VC finds out which version you have, and allows or
@@ -578,7 +579,8 @@ These are passed to the checkin program by \\[vc-register]."
   :group 'vc
   :version "20.3")
 
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn" "{arch}")
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn" 
+					 ".hg" ".bzr" "{arch}")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
@@ -1934,7 +1936,7 @@ actually call the backend, but performs a local diff."
                 (error "diff failed"))
             (if (not vc-diff-knows-L) (setq vc-diff-knows-L 'yes)))
           status)
-      (vc-call diff (list file) rev1 rev2 "*vc-diff"))))
+      (vc-call diff (list file) rev1 rev2 "*vc-diff*"))))
 
 (defun vc-switches (backend op)
   (let ((switches

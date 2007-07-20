@@ -248,11 +248,7 @@
       (with-current-buffer
 	  buffer
 	(insert "File:        " (file-name-nondirectory file) "\n"))
-      (vc-hg-command
-       buffer
-       ;; XXX Is this stuff really needed?
-       (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-       file "log"))))
+      (vc-hg-command buffer nil file "log"))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)

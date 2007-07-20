@@ -1,5 +1,8 @@
 2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Pass a list
+	instead of a file.
+
 	* vc-hg.el (vc-hg-print-log): Deal with multiple file arguments.
 	(vc-hg-registered): Replace if with when.
 	(vc-hg-state): Deal with nonexistent files and handle removed
@@ -7,10 +10,13 @@
 	(vc-hg-dir-state, vc-hg-dired-state-info): New functions.
 	(vc-hg-checkout): Re-enable.
 	(vc-hg-create-repo): Fix typos.
+	(vc-hg-print-log): Fix for multiple files.
 
 	* vc.el: Fix typo.
 	(vc-print-log): Fix call to print-log.
 	(vc-default-comment-history): Likewise.
+	(vc-directory-exclusion-list): Add .hg and .bzr.
+	(vc-diff-internal): Pass a list instead of a file.
 
 	* vc-mcvs.el (vc-mcvs-create-repo): Fix typos.
 

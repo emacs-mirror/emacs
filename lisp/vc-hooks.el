@@ -528,7 +528,7 @@ Return non-nil if FILE is unchanged."
   (zerop (condition-case err
              ;; If the implementation supports it, let the output
              ;; go to *vc*, not *vc-diff*, since this is an internal call.
-             (vc-call diff file nil nil "*vc*")
+             (vc-call diff (list file) nil nil "*vc*")
            (wrong-number-of-arguments
             ;; If this error came from the above call to vc-BACKEND-diff,
             ;; try again without the optional buffer argument (for
@@ -539,7 +539,7 @@ Return non-nil if FILE is unchanged."
                                                         'diff))))
                     (not (eq (caddr err) 4)))
                 (signal (car err) (cdr err))
-              (vc-call diff file))))))
+              (vc-call diff (list file)))))))
 
 (defun vc-workfile-version (file)
   "Return the repository version from which FILE was checked out.
