@@ -1,5 +1,8 @@
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use a directory
+	name for buffer-file-name if it refers to a directory.
+
 	* vc-arch.el (vc-arch-diff): Fix last change.
 
 	* progmodes/compile.el (compilation-start): Remember the original
