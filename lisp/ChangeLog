@@ -1,13 +1,15 @@
 2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/compile.el (compilation-auto-jump-to-first-error): Add
-	group and version.
+	* progmodes/compile.el (compilation-auto-jump-to-first-error):
+	Add group and version.
 
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* add-log.el (add-log-file-name): Use file-relative-name.
 	(add-change-log-entry): Delay reading add-log-(full-name|mailing-address)
 	to after we've switched to the ChangeLog buffer so we get the right value.
+	(add-change-log-entry, add-log-current-defun, change-log-merge):
+	Use derived-mode-p rather than checking major-mode directly.
 
 	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use a directory
 	name for buffer-file-name if it refers to a directory.
