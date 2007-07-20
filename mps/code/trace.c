@@ -20,6 +20,7 @@ Bool traceBandAdvance(Trace);
 Bool traceBandFirstStretch(Trace);
 void traceBandFirstStretchDone(Trace);
 DIAG_DECL( static void traceFindGrey_diag(Bool found, Rank rank); )
+static void TraceStartGenDesc_diag(GenDesc desc);
 
 /* Types */
 
@@ -1879,7 +1880,6 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     trace->why, traceStartWhyToString(trace->why),
     NULL ));
 
-  /* This one makes too much output; should be #if0 in master */
   DIAG( ArenaDescribe(arena, DIAG_STREAM); );
 
   DIAG_WRITEF(( DIAG_STREAM,
@@ -1887,9 +1887,10 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     trace->white,
     NULL ));
 
-  { /* @@ */
-    /* Iterate over all chains, all GenDescs within a chain, and all */
-    /* PoolGens within a GenDesc.  */
+  {
+    /* @@ */
+    /* Iterate over all chains, all GenDescs within a chain, */
+    /* (and all PoolGens within a GenDesc).  */
     Ring node, nextNode;
     Index i;
 
@@ -1900,23 +1901,16 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         NULL ));
 
       for(i = 0; i < chain->genCount; ++i) {
-        Ring n, nn;
         GenDesc desc = &chain->gens[i];
-        DIAG_WRITEF(( DIAG_STREAM,
-          "MPS:     GenDesc [$U] $P capacity: $U KiB, mortality $D\n",
-          i, (void *)desc, desc->capacity, desc->mortality,
-          "MPS:     ZoneSet:$B\n", desc->zones,
-          NULL ));
-        RING_FOR(n, &desc->locusRing, nn) {
-          PoolGen gen = RING_ELT(PoolGen, genRing, n);
-          DIAG_WRITEF(( DIAG_STREAM,
-            "MPS:       PoolGen $U ($S)", gen->nr, gen->pool->class->name,
-            " totalSize $U", gen->totalSize,
-            " newSize $U\n", gen->newSizeAtCreate,
-            NULL ));
-        }
+        TraceStartGenDesc_diag(desc);
       }
     }
+
+    /* Now do topgen GenDesc (and all PoolGens within it). */
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:   topGen\n",
+      NULL ));
+    TraceStartGenDesc_diag(&arena->topGen);
   }
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
@@ -1952,6 +1946,25 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   traceFlip(trace);
 
   return;
+}
+
+
+static void TraceStartGenDesc_diag(GenDesc desc)
+{
+  Ring n, nn;
+  DIAG_WRITEF(( DIAG_STREAM,
+    "MPS:     GenDesc [top] $P capacity: $U KiB, mortality $D\n",
+    (void *)desc, desc->capacity, desc->mortality,
+    "MPS:     ZoneSet:$B\n", desc->zones,
+    NULL ));
+  RING_FOR(n, &desc->locusRing, nn) {
+    PoolGen gen = RING_ELT(PoolGen, genRing, n);
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:       PoolGen $U ($S)", gen->nr, gen->pool->class->name,
+      " totalSize $U", gen->totalSize,
+      " newSize $U\n", gen->newSizeAtCreate,
+      NULL ));
+  }
 }
 
 
