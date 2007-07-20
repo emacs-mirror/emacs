@@ -282,15 +282,16 @@
 	(setq oldvers nil))
     (if (and (not oldvers) newvers)
 	(setq oldvers working))
-    (apply 'call-process "hg" nil (or buffer "*vc-diff*") nil
-	   "--cwd" (file-name-directory (car files)) "diff"
+    (apply #'vc-hg-command (or buffer "*vc-diff*") nil
+	   (mapcar (lambda (file) (file-name-nondirectory file)) files)
+	   "--cwd" (file-name-directory (car files))
+	   "diff"
 	   (append
 	    (if oldvers
 		(if newvers
 		    (list "-r" oldvers "-r" newvers)
 		  (list "-r" oldvers))
-	      (list ""))
-            (mapcar (lambda (file) (file-name-nondirectory file)) files)))))
+	      (list ""))))))
 
 (defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
   (vc-hg-diff (list file) oldvers newvers buffer))

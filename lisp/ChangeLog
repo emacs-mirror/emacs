@@ -1,3 +1,7 @@
+2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-diff): Use vc-hg-command.
+
 2007-07-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Problem with foreground and background color when
