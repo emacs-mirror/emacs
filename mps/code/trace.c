@@ -836,6 +836,33 @@ static void traceFlip(Trace trace)
   return;
 }
 
+/* traceCopySizes -- preserve size information for later use
+ *
+ * A PoolGen's newSize is important information that we want to emit in
+ * a diagnostic message at TraceStart.  In order to do that we must copy
+ * the information before Whiten changes it.  This function does that.
+ */
+
+static void traceCopySizes(Trace trace)
+{
+  Ring node, nextNode;
+  int i;
+  Arena arena = trace->arena;
+
+  RING_FOR(node, &arena->chainRing, nextNode) {
+    Chain chain = RING_ELT(Chain, chainRing, node);
+
+    for(i = 0; i < chain->genCount; ++i) {
+      Ring n, nn;
+      GenDesc desc = &chain->gens[i];
+      RING_FOR(n, &desc->locusRing, nn) {
+        PoolGen gen = RING_ELT(PoolGen, genRing, n);
+        gen->newSizeAtCreate = gen->newSize;
+      }
+    }
+  }
+  return;
+}
 
 /* TraceCreate -- create a Trace object
  *
@@ -871,6 +898,10 @@ found:
   AVER(trace->sig == SigInvalid);       /* <design/arena/#trace.invalid> */
 
   trace->arena = arena;
+  trace->why = why;
+  TraceStartMessageInit(arena, &trace->startMessage);
+  traceStartWhyToString(trace->startMessage.why,
+    sizeof trace->startMessage.why, why);
   trace->white = ZoneSetEMPTY;
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
@@ -906,9 +937,6 @@ found:
   trace->preservedInPlaceSize = (Size)0;  /* see .message.data */
   STATISTIC(trace->reclaimCount = (Count)0);
   STATISTIC(trace->reclaimSize = (Size)0);
-  TraceStartMessageInit(arena, &trace->startMessage);
-  traceStartWhyToString(trace->startMessage.why,
-    sizeof trace->startMessage.why, why);
   trace->sig = TraceSig;
   arena->busyTraces = TraceSetAdd(arena->busyTraces, trace);
   AVERT(Trace, trace);
@@ -918,6 +946,8 @@ found:
   /* buffers under our feet. */
   /* @@@@ This is a short-term fix for request.dylan.160098. */
   ShieldSuspend(arena);
+
+  traceCopySizes(trace);
 
   *traceReturn = trace;
   return ResOK;
@@ -1825,7 +1855,8 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   }
 
   DIAG_WRITEF(( DIAG_STREAM,
-    "MPS: TraceStart\n",
+    "MPS: TraceStart, because code $U: $S\n",
+    trace->why, trace->startMessage.why,
     NULL ));
   { /* @@ */
     /* Iterate over all chains, all GenDescs within a chain, and all */
@@ -1850,7 +1881,8 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
           PoolGen gen = RING_ELT(PoolGen, genRing, n);
           DIAG_WRITEF(( DIAG_STREAM,
             "MPS:       PoolGen $U", gen->nr,
-            " totalSize $U newSize $U\n", gen->totalSize, gen->newSize,
+            " totalSize $U", gen->totalSize,
+            " newSize $U\n", gen->newSizeAtCreate,
             NULL ));
         }
       }
