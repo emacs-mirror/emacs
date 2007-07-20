@@ -177,7 +177,7 @@
 ;;
 ;; STATE-CHANGING FUNCTIONS
 ;;
-;; * create-repo (backend)
+;; * create-repo ()
 ;;
 ;;   Create an empty repository in the current directory and initialize 
 ;;   it so VC mode can add files to it.  For file-oriented systems, this 

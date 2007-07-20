@@ -4,7 +4,6 @@
 
 ;; Author: Ivan Kanis
 ;; Keywords: tools
-;; Version: 1889
 
 ;; This file is part of GNU Emacs.
 
@@ -39,18 +38,22 @@
 ;; beginning of vc.el. The current status is:
 
 ;; FUNCTION NAME                               STATUS
+;; BACKEND PROPERTIES
+;; * revision-granularity                      OK
+;; STATE-QUERYING FUNCTIONS
 ;; * registered (file)                         OK
 ;; * state (file)                              OK
 ;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
-;; - dir-state (dir)                           NEEDED
+;; - dir-state (dir)                           OK
 ;; * workfile-version (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (file)                     OK
 ;; - workfile-unchanged-p (file)               ??
 ;; - mode-line-string (file)                   NOT NEEDED
-;; - dired-state-info (file)                   NEEDED
+;; - dired-state-info (file)                   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
+;; * create-repo ()                            OK
 ;; - init-version ()                           NOT NEEDED
 ;; - responsible-p (file)                      OK
 ;; - could-register (file)                     OK
@@ -58,7 +61,7 @@
 ;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
 ;; * checkin (files rev comment)               OK
 ;; * find-version (file rev buffer)            OK
-;; * checkout (file &optional editable rev)    NOT NEEDED, COMMENTED OUT
+;; * checkout (file &optional editable rev)    OK
 ;; * revert (file &optional contents-done)     OK
 ;; - rollback (files)                          ?? PROBABLY NOT NEEDED   
 ;; - merge (file rev1 rev2)                    NEEDED
@@ -75,6 +78,7 @@
 ;; * diff (files &optional rev1 rev2 buffer)   OK
 ;; - revision-completion-table (file)          ??
 ;; - diff-tree (dir &optional rev1 rev2)       TEST IT
+;; - revision-completion-table (file)          ??
 ;; - annotate-command (file buf &optional rev) OK
 ;; - annotate-time ()                          OK
 ;; - annotate-current-time ()                  ?? NOT NEEDED
@@ -143,8 +147,8 @@
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
-  (if (vc-hg-root file)               ; short cut
-      (vc-hg-state file)))            ; expensive
+  (when (vc-hg-root file)           ; short cut
+    (vc-hg-state file)))            ; expensive
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
@@ -165,13 +169,41 @@
 		    (error nil)))))))
     (when (eq 0 status)
       (if (eq 0 (length out)) 'up-to-date
-	(let ((state (aref out 0)))
-	  (cond
-	   ((eq state ?M) 'edited)
-	   ((eq state ?A) 'edited)
-	   ((eq state ?P) 'needs-patch)
-	   ((eq state ??) nil)
-	   (t 'up-to-date)))))))
+	(when (null (string-match ".*: No such file or directory$" out))
+	  (let ((state (aref out 0)))
+	    (cond
+	     ((eq state ?A) 'edited)
+	     ((eq state ?M) 'edited)
+	     ((eq state ?R) nil)
+	     ((eq state ??) nil)
+	     (t 'up-to-date))))))))
+
+(defun vc-hg-dir-state (dir)
+  (with-temp-buffer
+    (vc-hg-command (current-buffer) nil nil "status")
+    (goto-char (point-min))
+    (let ((status-char nil)
+	  (file nil))
+      (while (eq 0 (forward-line))
+	(setq status-char (char-after))
+	(setq file 
+	      (expand-file-name
+	       (buffer-substring-no-properties (+ (point) 2) (line-end-position))))
+	(cond
+	 ;; The rest of the possible states in "hg status" output:
+	 ;; 	 R = removed
+	 ;; 	 ! = deleted, but still tracked
+	 ;; 	 ? = not tracked
+	 ;; should not show up in vc-dired, so don't deal with them
+	 ;; here.
+	 ((eq status-char ?A)
+	  (vc-file-setprop file 'vc-workfile-version "0")
+	  (vc-file-setprop file 'vc-state 'edited))
+	 ((eq status-char ?M)
+	  (vc-file-setprop file 'vc-state 'edited))
+	 ((eq status-char ??)
+	  (vc-file-setprop file 'vc-backend 'none)
+	  (vc-file-setprop file 'vc-state 'nil)))))))
 
 (defun vc-hg-workfile-version (file)
   "Hg-specific version of `vc-workfile-version'."
@@ -209,13 +241,18 @@
   ;; If the buffer exists from a previous invocation it might be
   ;; read-only.
   (let ((inhibit-read-only t))
-    (with-current-buffer
-	buffer
-      (insert "File:        " (vc-delistify (mapcar (lambda (file) (file-name-nondirectory file)) files)) "\n")))
-  (vc-hg-command
-   buffer
-   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-   files "log"))
+    ;; We need to loop and call "hg log" on each file separately. 
+    ;; "hg log" with multiple file arguments mashes all the logs
+    ;; together.
+    (dolist (file files)
+      (with-current-buffer
+	  buffer
+	(insert "File:        " (file-name-nondirectory file) "\n"))
+      (vc-hg-command
+       buffer
+       ;; XXX Is this stuff really needed?
+       (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
+       file "log"))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -327,7 +364,7 @@ COMMENT is ignored."
 
 (defun vc-hg-create-repo ()
   "Create a new Mercurial repository."
-  (vc-do-command nil 0 "svn" '("init")))
+  (vc-hg-command nil nil nil "init"))
 
 (defalias 'vc-hg-responsible-p 'vc-hg-root)
 
@@ -360,23 +397,28 @@ REV is ignored."
       (vc-hg-command buffer nil file "cat"))))
 
 ;; Modelled after the similar function in vc-bzr.el
-;; This should not be needed, `vc-hg-find-version' provides the same
-;; functionality.
-;; (defun vc-hg-checkout (file &optional editable rev workfile)
-;;   "Retrieve a revision of FILE into a WORKFILE.
-;; EDITABLE is ignored.
-;; REV is the revision to check out into WORKFILE."
-;;   (unless workfile
-;;     (setq workfile (vc-version-backup-file-name file rev)))
-;;   (let ((coding-system-for-read 'binary)
-;;         (coding-system-for-write 'binary))
-;;   (with-temp-file workfile
-;;     (if rev
-;;         (vc-hg-command t nil file "cat" "-r" rev)
-;;       (vc-hg-command t nil file "cat")))))
+(defun vc-hg-checkout (file &optional editable rev)
+  "Retrieve a revision of FILE.
+EDITABLE is ignored.
+REV is the revision to check out into WORKFILE."
+  (let ((coding-system-for-read 'binary)
+        (coding-system-for-write 'binary))
+  (with-current-buffer (or (get-file-buffer file) (current-buffer))
+    (if rev
+        (vc-hg-command t nil file "cat" "-r" rev)
+      (vc-hg-command t nil file "cat")))))
 
 (defun vc-hg-checkout-model (file)
   'implicit)
+
+(defun vc-hg-dired-state-info (file)
+  "Hg-specific version of `vc-dired-state-info'."
+  (let ((hg-state (vc-state file)))
+    (if (eq hg-state 'edited)
+	(if (equal (vc-workfile-version file) "0")
+	    "(added)" "(modified)")
+      ;; fall back to the default VC representation
+      (vc-default-dired-state-info 'HG file))))
 
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)

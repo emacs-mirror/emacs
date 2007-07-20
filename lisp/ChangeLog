@@ -1,3 +1,19 @@
+2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-print-log): Deal with multiple file arguments.
+	(vc-hg-registered): Replace if with when.
+	(vc-hg-state): Deal with nonexistent files and handle removed
+	files.
+	(vc-hg-dir-state, vc-hg-dired-state-info): New functions.
+	(vc-hg-checkout): Re-enable.
+	(vc-hg-create-repo): Fix typos.
+
+	* vc.el: Fix typo.
+
+	* vc-mcvs.el (vc-mcvs-create-repo): Fix typos.
+
+	* vc-bzr.el (vc-bzr-create-repo): New function.
+
 2007-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-find-root): Walk up the tree to find an existing

@@ -196,6 +196,10 @@ Return nil if there isn't one."
 (defun vc-bzr-checkout-model (file)
   'implicit)
 
+(defun vc-bzr-create-repo ()
+  "Create a new BZR repository."
+  (vc-bzr-command "init" nil 0 nil))
+
 (defun vc-bzr-register (files &optional rev comment)
   "Register FILE under bzr.
 Signal an error unless REV is nil.
