@@ -590,6 +590,13 @@ get_result:
   return pid;
 }
 
+/* Old versions of w32api headers don't have separate 32-bit and
+   64-bit defines, but the one they have matches the 32-bit variety.  */
+#ifndef IMAGE_NT_OPTIONAL_HDR32_MAGIC
+# define IMAGE_NT_OPTIONAL_HDR32_MAGIC IMAGE_NT_OPTIONAL_HDR_MAGIC
+# define IMAGE_OPTIONAL_HEADER32 IMAGE_OPTIONAL_HEADER
+#endif
+
 void
 w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int * is_gui_app)
 {
