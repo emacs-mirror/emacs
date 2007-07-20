@@ -440,6 +440,7 @@ void PoolGenNoteCondemned(PoolGen gen,
   Size notCondemned,
   Size free)
 {
+  UNUSED(notCondemned);
   AVERT(PoolGen, gen);
   /* In fact, no current pool uses free.  So it's always 0. */
   AVER(free == 0);
