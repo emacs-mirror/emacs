@@ -844,21 +844,19 @@ This function does not modify point or mark."
 
 (defsubst vera-re-search-forward (regexp &optional bound noerror)
   "Like `re-search-forward', but skips over matches in literals."
-  (store-match-data '(nil nil))
-  (while (and (re-search-forward regexp bound noerror)
-	      (vera-skip-forward-literal)
-	      (progn (store-match-data '(nil nil))
-		     (if bound (< (point) bound) t))))
-  (match-end 0))
+  (let (ret)
+    (while (and (setq ret (re-search-forward regexp bound noerror))
+                (vera-skip-forward-literal)
+                (if bound (< (point) bound) t)))
+    ret))
 
 (defsubst vera-re-search-backward (regexp &optional bound noerror)
   "Like `re-search-backward', but skips over matches in literals."
-  (store-match-data '(nil nil))
-  (while (and (re-search-backward regexp bound noerror)
-	      (vera-skip-backward-literal)
-	      (progn (store-match-data '(nil nil))
-		     (if bound (> (point) bound) t))))
-  (match-end 0))
+  (let (ret)
+    (while (and (setq ret (re-search-backward regexp bound noerror))
+                (vera-skip-backward-literal)
+                (if bound (> (point) bound) t)))
+    ret))
 
 (defun vera-forward-syntactic-ws (&optional lim skip-directive)
   "Forward skip of syntactic whitespace."
