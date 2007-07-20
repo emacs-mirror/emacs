@@ -1,3 +1,8 @@
+2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-auto-jump-to-first-error): Add
+	group and version.
+
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* add-log.el (add-log-file-name): Use file-relative-name.

@@ -607,7 +607,9 @@ Faces `compilation-error-face', `compilation-warning-face',
 
 (defcustom compilation-auto-jump-to-first-error nil
   "If non-nil, automatically jump to the first error after `compile'."
-  :type 'boolean)
+  :type 'boolean
+  :group 'compilation
+  :version "23.1")
 
 (defvar compilation-auto-jump-to-next nil
   "If non-nil, automatically jump to the next error encountered.")
