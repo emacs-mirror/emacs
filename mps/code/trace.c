@@ -1824,6 +1824,36 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     } while (SegNext(&seg, arena, base));
   }
 
+  DIAG_WRITEF(( DIAG_STREAM,
+    "MPS: TraceStart\n",
+    NULL ));
+  { /* @@ */
+    Ring node, nextNode;
+    int i;
+
+    RING_FOR(node, &arena->chainRing, nextNode) {
+      Chain chain = RING_ELT(Chain, chainRing, node);
+      DIAG_WRITEF(( DIAG_STREAM,
+        "MPS:   Chain $P\n", (void *)chain,
+        NULL ));
+
+      for(i = 0; i < chain->genCount; ++i) {
+        GenDesc desc = &chain->gens[i];
+        DIAG_WRITEF(( DIAG_STREAM,
+          "MPS:     GenDesc $P capacity: $U KiB, mortality $D\n",
+          (void *)desc, desc->capacity, desc->mortality,
+          NULL ));
+#if 0
+        for all poolGens {
+          DIAG_WRITEF(( DIAG_STREAM,
+            "MPS:      $S$D/$D blah blah\n",
+            NULL ));
+        }
+#endif
+      }
+    }
+  }
+
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
 
@@ -1844,6 +1874,8 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     /* rate equals scanning work per number of polls available */
     trace->rate = (trace->foundation + sSurvivors) / (long)nPolls + 1;
   }
+
+  /* @@ DIAG for rate of scanning here. */
 
   STATISTIC_STAT(EVENT_PWWWWDD(TraceStatCondemn, trace,
                                trace->condemned, trace->notCondemned,
