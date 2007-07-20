@@ -48,7 +48,7 @@
 ;; * workfile-version (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (file)                     OK
-;; - workfile-unchanged-p (file)               ??
+;; - workfile-unchanged-p (file)               OK
 ;; - mode-line-string (file)                   NOT NEEDED
 ;; - dired-state-info (file)                   OK
 ;; STATE-CHANGING FUNCTIONS
@@ -406,6 +406,10 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-checkout-model (file)
   'implicit)
+
+;; Modelled after the similar function in vc-bzr.el
+(defun vc-hg-workfile-unchanged-p (file)
+  (eq 'up-to-date (vc-hg-state file)))
 
 (defun vc-hg-dired-state-info (file)
   "Hg-specific version of `vc-dired-state-info'."

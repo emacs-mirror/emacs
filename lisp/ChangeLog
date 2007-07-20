@@ -11,6 +11,7 @@
 	(vc-hg-checkout): Re-enable.
 	(vc-hg-create-repo): Fix typos.
 	(vc-hg-print-log): Fix for multiple files.
+	(vc-hg-workfile-unchanged-p): New function.
 
 	* vc.el: Fix typo.
 	(vc-print-log): Fix call to print-log.
