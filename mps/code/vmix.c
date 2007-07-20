@@ -18,9 +18,11 @@
  * (MAP_PRIVATE) mapping with the flag MAP_ANON.
  *
  * .non-standard: Note that the MAP_ANON flag is non-standard; it is
- * available on Darwin and FreeBSD.  Linux seems to use MAP_ANONYMOUS
- * instead (some Linux systems make MAP_ANON available and deprecate
- * it).  Perhaps in the future Linux could use this implementation too.
+ * available on Darwin and FreeBSD.  .non-standard.linux: Linux
+ * seems to use MAP_ANONYMOUS instead.  Some Linux systems make MAP_ANON
+ * available and deprecate it.  .non-standard.sesame: On Linux getting
+ * a definition of MAP_ANON requires a macro to be defined prior to
+ * <sys/mman.h>.
  *
  * .assume.not-last: The implementation of VMCreate assumes that
  * mmap() will not choose a region which contains the last page
@@ -36,6 +38,9 @@
  * seem to be a problem.
  */
 
+/* .non-standard.sesame */
+#define _BSD_SOURCE 1
+
 /* for mmap(2), munmap(2) */
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -49,8 +54,8 @@
 #include "mpm.h"
 
 
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
-#error "vmix.c is Unix-like specific, currently MPS_OS_FR XC"
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_XC) && !defined(MPS_OS_LI)
+#error "vmix.c is Unix-like specific, currently MPS_OS_FR XC LI"
 #endif
 
 SRCID(vmix, "$Id$");

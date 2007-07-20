@@ -10,7 +10,7 @@ THREADLIB = -lpthread
 
 PFMDEFS = -D_REENTRANT
 
-MPMPF = ${THREADSRC} vmli.c \
+MPMPF = ${THREADSRC} vmix.c \
         protix.c protlii3.c proti3.c prmci3li.c ssixi3.c span.c
 SWPF = than.c vmli.c protsw.c prmcan.c ssan.c
 
