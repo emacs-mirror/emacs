@@ -29,6 +29,10 @@
 
 ;; See vc.el
 
+;; TODO:
+;; - remove call to vc-expand-dirs by implementing our own (which can just
+;;   list the RCS subdir instead).
+
 ;;; Code:
 
 ;;;
