@@ -846,7 +846,7 @@ static void traceFlip(Trace trace)
 static void traceCopySizes(Trace trace)
 {
   Ring node, nextNode;
-  int i;
+  Index i;
   Arena arena = trace->arena;
 
   RING_FOR(node, &arena->chainRing, nextNode) {
