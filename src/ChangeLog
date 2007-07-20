@@ -1,3 +1,8 @@
+2007-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (IMAGE_NT_OPTIONAL_HDR32_MAGIC, IMAGE_OPTIONAL_HEADER32):
+	Define if not defined.
+
 2007-07-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32proc.c (w32_executable_type): Handle 64 bit executables.
