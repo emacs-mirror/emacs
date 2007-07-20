@@ -1,5 +1,8 @@
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-buildfile-dirs): Remove.
+	(flymake-find-buildfile): Use locate-dominating-file.
+
 	* vc.el (vc-delistify): Use mapconcat.
 	(vc-do-command): Minor simplification.
 	(vc-expand-dirs): Use push.
