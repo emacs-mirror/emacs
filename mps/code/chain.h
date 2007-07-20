@@ -1,7 +1,7 @@
 /* chain.h: GENERATION CHAINS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2007 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef chain_h
@@ -44,19 +44,22 @@ typedef struct PoolGenStruct *PoolGen;
 
 typedef struct PoolGenStruct {
   Sig sig;
-  Serial nr;          /* generation number */
-  Pool pool;          /* pool this belongs to */
-  Chain chain;        /* chain this belongs to */
+  Serial nr;            /* generation number */
+  Pool pool;            /* pool this belongs to */
+  Chain chain;          /* chain this belongs to */
   /* link in ring of all PoolGen's in this GenDesc (locus) */
   RingStruct genRing;
-  Size totalSize;     /* total size of segs in gen in this pool */
-  Size newSize;       /* size allocated since last GC */
+  Size totalSize;       /* total size of segs in gen in this pool */
+  /* Size of new objects in this gen.  That is objects that have */
+  /* never been condemned (whilst they were in this generation). */
+  Size newSize;
   /* newSize when TraceCreate is called.  This is for diagnostic */
   /* purposes only.  It's used in a DIAG message emitted in TraceStart; */
   /* at that time, newSize has already been diminished by Whiten so we */
   /* can't use that value.  This will not work well with multiple */
   /* traces. */
   Size newSizeAtCreate;
+  Size condemned;       /* total size of condemned objects */
 } PoolGenStruct;
 
 
@@ -90,6 +93,8 @@ extern size_t ChainGens(Chain chain);
 extern Bool PoolGenCheck(PoolGen gen);
 extern Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool);
 extern void PoolGenFinish(PoolGen gen);
+extern void PoolGenNoteCondemned(PoolGen, Size, Size, Size, Size);
+extern void PoolGenNoteReclaimed(PoolGen, Size, Size, Size, Size);
 extern void PoolGenFlip(PoolGen gen);
 #define PoolGenNr(gen) ((gen)->nr)
 extern void PoolGenUpdateZones(PoolGen gen, Seg seg);
@@ -100,7 +105,7 @@ extern void PoolGenUpdateZones(PoolGen gen, Seg seg);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

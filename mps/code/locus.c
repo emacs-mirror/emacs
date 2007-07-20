@@ -377,6 +377,7 @@ Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool)
   RingInit(&gen->genRing);
   gen->totalSize = (Size)0;
   gen->newSize = (Size)0;
+  gen->condemned = (Size)0;
   gen->sig = PoolGenSig;
 
   if(nr != chain->genCount) {
@@ -411,7 +412,69 @@ Bool PoolGenCheck(PoolGen gen)
   CHECKU(Chain, gen->chain);
   CHECKL(RingCheck(&gen->genRing));
   CHECKL(gen->newSize <= gen->totalSize);
+  CHECKL(gen->condemned <= gen->totalSize);
+  CHECKL(gen->newSize + gen->condemned <= gen->totalSize);
   return TRUE;
+}
+
+/* PoolGenNoteCondemned -- maintain accounting of condemned stuff.
+ *
+ * Arguments:
+ *   newlyCondemned - number of bytes of objects that are condemned and
+ *     have never been condemned before (in this location).
+ *   againCondemned - number of bytes of objects that are condemned that
+ *     have been condemned before.
+ *  notCondemned - number of bytes of objects that are not condemned.
+ *  free - number of bytes that are free (that is, not objects, and
+ *     available for future allocation).
+ *
+ *  It is expected that some pools may not be able to maintain accurate
+ *  accounting information and that they therefore will record stuff in
+ *  the "againCondemned" category that should have gone in
+ *  newlyCondemned or free (and will report those categories as free).
+ */
+
+void PoolGenNoteCondemned(PoolGen gen,
+  Size newlyCondemned,
+  Size againCondemned, 
+  Size notCondemned,
+  Size free)
+{
+  AVERT(PoolGen, gen);
+  /* In fact, no current pool uses free.  So it's always 0. */
+  AVER(free == 0);
+
+  gen->newSize -= newlyCondemned;
+  gen->condemned += newlyCondemned + againCondemned;
+  return;
+}
+
+/* PoolGenNoteReclaimed -- maintain accounting of reclaimed stuff.
+ *
+ * Arguments:
+ *   free - number of bytes that were free already, prior to the call to
+ *     reclaim. (should be be "and not reported as free in Whiten with a
+ *     call to PoolGenNoteCondemned).
+ *   reclaimed - number of bytes that become free as part of reclaim
+ *     (previously not free, but now are).  Note: do not count unmapped
+ *     bytes here.
+ *   retained - number of bytes of objects that are still considered
+ *     reachable after the reclaim.
+ *   unmapped - number of bytes that have been unmapped.
+ */
+
+void PoolGenNoteReclaimed(PoolGen gen,
+  Size free, Size reclaimed, Size retained, Size unmapped)
+{
+  Size sum;
+
+  AVER(gen->totalSize >= unmapped);
+  gen->totalSize -= unmapped;
+
+  sum = free + reclaimed + retained + unmapped;
+  AVER(gen->condemned >= sum);
+  gen->condemned -= sum;
+  return;
 }
 
 
