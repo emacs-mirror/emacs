@@ -20,7 +20,6 @@ Bool traceBandAdvance(Trace);
 Bool traceBandFirstStretch(Trace);
 void traceBandFirstStretchDone(Trace);
 DIAG_DECL( static void traceFindGrey_diag(Bool found, Rank rank); )
-static void TraceStartGenDesc_diag(GenDesc desc);
 
 /* Types */
 
@@ -1801,6 +1800,35 @@ static Res rootGrey(Root root, void *p)
   return ResOK;
 }
 
+
+static void TraceStartGenDesc_diag(GenDesc desc, int i)
+{
+  Ring n, nn;
+
+  if(i < 0) {
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:     GenDesc [top]",
+      NULL ));
+  } else {
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:     GenDesc [$U]", i,
+      NULL ));
+  }
+  DIAG_WRITEF(( DIAG_STREAM,
+    " $P capacity: $U KiB, mortality $D\n",
+    (void *)desc, desc->capacity, desc->mortality,
+    "MPS:     ZoneSet:$B\n", desc->zones,
+    NULL ));
+  RING_FOR(n, &desc->locusRing, nn) {
+    PoolGen gen = RING_ELT(PoolGen, genRing, n);
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:       PoolGen $U ($S)", gen->nr, gen->pool->class->name,
+      " totalSize $U", gen->totalSize,
+      " newSize $U\n", gen->newSizeAtCreate,
+      NULL ));
+  }
+}
+
 void TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
@@ -1902,7 +1930,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
       for(i = 0; i < chain->genCount; ++i) {
         GenDesc desc = &chain->gens[i];
-        TraceStartGenDesc_diag(desc);
+        TraceStartGenDesc_diag(desc, i);
       }
     }
 
@@ -1910,7 +1938,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     DIAG_WRITEF(( DIAG_STREAM,
       "MPS:   topGen\n",
       NULL ));
-    TraceStartGenDesc_diag(&arena->topGen);
+    TraceStartGenDesc_diag(&arena->topGen, -1);
   }
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
@@ -1946,25 +1974,6 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   traceFlip(trace);
 
   return;
-}
-
-
-static void TraceStartGenDesc_diag(GenDesc desc)
-{
-  Ring n, nn;
-  DIAG_WRITEF(( DIAG_STREAM,
-    "MPS:     GenDesc [top] $P capacity: $U KiB, mortality $D\n",
-    (void *)desc, desc->capacity, desc->mortality,
-    "MPS:     ZoneSet:$B\n", desc->zones,
-    NULL ));
-  RING_FOR(n, &desc->locusRing, nn) {
-    PoolGen gen = RING_ELT(PoolGen, genRing, n);
-    DIAG_WRITEF(( DIAG_STREAM,
-      "MPS:       PoolGen $U ($S)", gen->nr, gen->pool->class->name,
-      " totalSize $U", gen->totalSize,
-      " newSize $U\n", gen->newSizeAtCreate,
-      NULL ));
-  }
 }
 
 
