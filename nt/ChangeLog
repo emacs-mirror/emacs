@@ -1,3 +1,9 @@
+2007-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap, bootstrap-nmake, bootstrap-gmake):
+	Depend on cmdproxy.
+	(cleanall): Don't delete *~.
+
 2007-07-11  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs (OLE32): New library to link.
