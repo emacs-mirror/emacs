@@ -866,11 +866,28 @@ displayed."
 ;;;###autoload
 (defalias 'tumme 'image-dired-show-all-from-dir)
 
+(defun image-dired-sane-db-file ()
+  "Check if `image-dired-db-file' exists.
+If not, try to create it (including any parent directories).
+Signal error if there are problems creating it."
+  (or (file-exists-p image-dired-db-file)
+      (let (dir buf)
+        (unless (file-directory-p (setq dir (file-name-directory
+                                             image-dired-db-file)))
+          (make-directory dir t))
+        (with-current-buffer (setq buf (create-file-buffer
+                                        image-dired-db-file))
+          (write-file image-dired-db-file))
+        (kill-buffer buf)
+        (file-exists-p image-dired-db-file))
+      (error "Could not create %s" image-dired-db-file)))
+
 (defun image-dired-write-tags (file-tags)
   "Write file tags to database.
 Write each file and tag in FILE-TAGS to the database.  FILE-TAGS
 is an alist in the following form:
  ((FILE . TAG) ... )"
+  (image-dired-sane-db-file)
   (let (end file tag)
     (with-temp-file image-dired-db-file
       (insert-file-contents image-dired-db-file)
@@ -890,6 +907,7 @@ is an alist in the following form:
 
 (defun image-dired-remove-tag (files tag)
   "For all FILES, remove TAG from the image database."
+  (image-dired-sane-db-file)
   (save-excursion
     (let (end buf start)
       (setq buf (find-file image-dired-db-file))
@@ -924,6 +942,7 @@ is an alist in the following form:
 
 (defun image-dired-list-tags (file)
   "Read all tags for image FILE from the image database."
+  (image-dired-sane-db-file)
   (save-excursion
     (let (end buf (tags ""))
       (setq buf (find-file image-dired-db-file))
@@ -2035,6 +2054,7 @@ function.  The result is a couple of new files in
 Write file comments to one or more files.  FILE-COMMENTS is an alist on
 the following form:
  ((FILE . COMMENT) ... )"
+  (image-dired-sane-db-file)
   (let (end comment-beg-pos comment-end-pos file comment)
     (with-temp-file image-dired-db-file
       (insert-file-contents image-dired-db-file)
@@ -2105,6 +2125,7 @@ as initial value."
 
 (defun image-dired-get-comment (file)
   "Get comment for file FILE."
+  (image-dired-sane-db-file)
   (save-excursion
     (let (end buf comment-beg-pos comment-end-pos comment)
       (setq buf (find-file image-dired-db-file))
@@ -2133,6 +2154,7 @@ lets you input a regexp and this will be matched against all tags
 on all image files in the database file.  The files that have a
 matching tags will be marked in the dired buffer."
   (interactive)
+  (image-dired-sane-db-file)
   (let ((tag (read-string "Mark tagged files (regexp): "))
         (hits 0)
         files buf)
@@ -2297,6 +2319,7 @@ image-dired-file-comment-list:
 
 (defun image-dired-create-gallery-lists ()
   "Create temporary lists used by `image-dired-gallery-generate'."
+  (image-dired-sane-db-file)
   (let ((buf (find-file image-dired-db-file))
         end beg file row-tags)
     (setq image-dired-tag-file-list nil)
