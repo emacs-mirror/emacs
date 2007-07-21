@@ -1,3 +1,11 @@
+2007-07-21  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Why Version Control?): Improve previous change.
+
+2007-07-18  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* files.texi (Why Version Control?): New node.
+
 2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi: Move @setfilename ../info/tramp up, outside the header
