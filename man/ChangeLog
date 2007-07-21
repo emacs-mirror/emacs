@@ -1,3 +1,8 @@
+2007-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc2-xtra.texi (Customizing VC) <vc-handled-backends>: Update the
+	default value.
+
 2007-07-21  Richard Stallman  <rms@gnu.org>
 
 	* files.texi (Why Version Control?): Improve previous change.
