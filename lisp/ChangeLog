@@ -1,3 +1,14 @@
+2007-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-diff): Use vc-hg-command.
+	(vc-hg-dir-state): Fix loop.
+	(vc-hg-print-log): Fix expected return value for vc-hg-command.
+	(vc-hg-next-version, vc-hg-delete-file, vc-hg-rename-file)
+	(vc-hg-register, vc-hg-create-repo, vc-hg-checkin)
+	(vc-hg-revert): Likewise.
+	(vc-hg-revision-table, vc-hg-revision-completion-table): New
+	functions.
+
 2007-07-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): In the
