@@ -76,9 +76,8 @@
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (files &optional rev1 rev2 buffer)   OK
-;; - revision-completion-table (file)          ??
+;; - revision-completion-table (file)          OK
 ;; - diff-tree (dir &optional rev1 rev2)       TEST IT
-;; - revision-completion-table (file)          ??
 ;; - annotate-command (file buf &optional rev) OK
 ;; - annotate-time ()                          OK
 ;; - annotate-current-time ()                  ?? NOT NEEDED
@@ -115,6 +114,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl)
   (require 'vc))
 
 ;;; Customization options
@@ -184,11 +184,12 @@
     (goto-char (point-min))
     (let ((status-char nil)
 	  (file nil))
-      (while (eq 0 (forward-line))
+      (while (not (eobp))
 	(setq status-char (char-after))
 	(setq file 
 	      (expand-file-name
-	       (buffer-substring-no-properties (+ (point) 2) (line-end-position))))
+	       (buffer-substring-no-properties (+ (point) 2) 
+					       (line-end-position))))
 	(cond
 	 ;; The rest of the possible states in "hg status" output:
 	 ;; 	 R = removed
@@ -203,7 +204,8 @@
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ??)
 	  (vc-file-setprop file 'vc-backend 'none)
-	  (vc-file-setprop file 'vc-state 'nil)))))))
+	  (vc-file-setprop file 'vc-state 'nil)))
+	(forward-line)))))
 
 (defun vc-hg-workfile-version (file)
   "Hg-specific version of `vc-workfile-version'."
@@ -248,7 +250,7 @@
       (with-current-buffer
 	  buffer
 	(insert "File:        " (file-name-nondirectory file) "\n"))
-      (vc-hg-command buffer nil file "log"))))
+      (vc-hg-command buffer 0 file "log"))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -293,6 +295,21 @@
 		  (list "-r" oldvers))
 	      (list ""))))))
 
+(defun vc-hg-revision-table (file)
+  (let ((default-directory (file-name-directory file)))
+    (with-temp-buffer
+      (vc-hg-command t nil file "log" "--template" "{rev} ")
+      (split-string 
+       (buffer-substring-no-properties (point-min) (point-max))))))
+
+;; Modelled after the similar function in vc-cvs.el
+(defun vc-hg-revision-completion-table (file)
+  (lexical-let ((file file)
+                table)
+    (setq table (lazy-completion-table
+                 table (lambda () (vc-hg-revision-table file))))
+    table))
+
 (defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
   (vc-hg-diff (list file) oldvers newvers buffer))
 
@@ -331,7 +348,7 @@ Optional arg VERSION is a version to annotate from."
   (let ((newrev (1+ (string-to-number rev)))
 	(tip-version 
 	 (with-temp-buffer
-	   (vc-hg-command t nil nil "tip")
+	   (vc-hg-command t 0 nil "tip")
 	   (goto-char (point-min))
 	   (re-search-forward "^changeset:[ \t]*\\([0-9]+\\):")
 	   (string-to-number (match-string-no-properties 1)))))
@@ -346,22 +363,22 @@ Optional arg VERSION is a version to annotate from."
   (condition-case ()
       (delete-file file)
     (file-error nil))
-  (vc-hg-command nil nil file "remove" "--after" "--force"))
+  (vc-hg-command nil 0 file "remove" "--after" "--force"))
 
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
-  (vc-hg-command nil nil new old "mv"))
+  (vc-hg-command nil 0 new old "mv"))
 
 (defun vc-hg-register (files &optional rev comment)
   "Register FILES under hg.
 REV is ignored.
 COMMENT is ignored."
-  (vc-hg-command nil nil files "add"))
+  (vc-hg-command nil 0 files "add"))
 
 (defun vc-hg-create-repo ()
   "Create a new Mercurial repository."
-  (vc-hg-command nil nil nil "init"))
+  (vc-hg-command nil 0 nil "init"))
 
 (defalias 'vc-hg-responsible-p 'vc-hg-root)
 
@@ -384,14 +401,14 @@ COMMENT is ignored."
 (defun vc-hg-checkin (files rev comment)
   "HG-specific version of `vc-backend-checkin'.
 REV is ignored."
-  (vc-hg-command nil nil files  "commit" "-m" comment))
+  (vc-hg-command nil 0 files  "commit" "-m" comment))
 
 (defun vc-hg-find-version (file rev buffer)
   (let ((coding-system-for-read 'binary)
         (coding-system-for-write 'binary))
     (if rev
-	(vc-hg-command buffer nil file "cat" "-r" rev)
-      (vc-hg-command buffer nil file "cat"))))
+	(vc-hg-command buffer 0 file "cat" "-r" rev)
+      (vc-hg-command buffer 0 file "cat"))))
 
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-checkout (file &optional editable rev)
@@ -402,8 +419,8 @@ REV is the revision to check out into WORKFILE."
         (coding-system-for-write 'binary))
   (with-current-buffer (or (get-file-buffer file) (current-buffer))
     (if rev
-        (vc-hg-command t nil file "cat" "-r" rev)
-      (vc-hg-command t nil file "cat")))))
+        (vc-hg-command t 0 file "cat" "-r" rev)
+      (vc-hg-command t 0 file "cat")))))
 
 (defun vc-hg-checkout-model (file)
   'implicit)
@@ -424,7 +441,7 @@ REV is the revision to check out into WORKFILE."
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
-    (with-temp-buffer (vc-hg-command t nil file "revert"))))
+    (with-temp-buffer (vc-hg-command t 0 file "revert"))))
 
 ;;; Internal functions
 
