@@ -1,3 +1,12 @@
+2007-07-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* image-dired.el (image-dired-sane-db-file): New func.
+	(image-dired-write-tags, image-dired-remove-tag)
+	(image-dired-list-tags, image-dired-write-comments)
+	(image-dired-get-comment, image-dired-mark-tagged-files)
+	(image-dired-create-gallery-lists): Call new func.
+	Reported by Dieter Wilhelm <dieter@duenenhof-wilhelm.de>.
+
 2007-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-dir-state): Fix loop.
