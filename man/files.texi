@@ -1268,7 +1268,7 @@ you want to use.
 @subsubsection Understanding the problems it addresses
 
   Version control systems provide you with three important capabilities: 
-@dfn{reversibility}. @dfn{concurrency}, and @dfn{history}.
+reversibility, concurrency, and history.
 
   The most basic capability you get from a version-control system is
 reversibility, the ability to back up to a saved, known-good state when
@@ -1421,14 +1421,13 @@ the number and severity of conflicts that actually occur.
 fundamentally locking-based rather than merging-based version-control
 system in the future, merging-based version-systems sometimes have locks
 retrofitted onto them for reasons having nothing to do with technology.
-@footnote{Usually the control-freak instincts of managers}  For this
+@footnote{Usually the control-freak instincts of managers.}  For this
 reason, and to support older systems still in use, VC mode supports
 both locking and merging version control and tries to hide the differences
 between them as much as possible.
 
 @cindex files versus changesets.
-
-  On SCCS. RCS, CVS, and other early version-control systems, checkins
+  On SCCS, RCS, CVS, and other early version-control systems, checkins
 and other operations are @dfn{file-based}; each file has its own
 @dfn{master file} with its own comment- and revision history separate
 from that of all other files in the system.  Later systems, beginning
@@ -1440,18 +1439,14 @@ one file, but is attached to the changeset itself.
   Changeset-based version control is in general both more flexible and
 more powerful than file-based version control; usually, when a change to
 multiple files has to be backed out, it's good to be able to easily
-identify and remove all of it.  But it took some years for designers to
-figure that out, and while file-based systems are passing out of use
-there are lots of legacy repositories still to be dealt with at time of
-writing in 2007.
+identify and remove all of it.
 
 @cindex centralized vs. decentralized
-
   Early version-control systems were designed around a @dfn{centralized}
 model in which each project has only one repository used by all
 developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
 It has two important problems. One is that a single repository is a
-single point of failure--if the repository server is down all work
+single point of failure---if the repository server is down all work
 stops.  The other is that you need to be connected live to the server to
 do checkins and checkouts; if you're offline, you can't work.
 
