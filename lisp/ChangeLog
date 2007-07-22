@@ -1,3 +1,7 @@
+2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/grep.el (grep-compute-defaults): Keep default values.
+
 2007-07-22  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/reftex.el (reftex-access-parse-file): Create parse
