@@ -1,3 +1,14 @@
+2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-mode-line-string): Add support for tooltips
+	for branches and new files.
+
+	* vc-hooks.el (vc-default-mode-line-string): Move mouse-face and
+	local-map handling ...
+	(vc-mode-line): ... here. Improve handling of help-echo.
+
+	* vc.el (mode-line-string): Document help-echo usage.
+
 2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.10.

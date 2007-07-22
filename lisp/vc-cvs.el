@@ -258,14 +258,25 @@ See also variable `vc-cvs-sticky-date-format-string'."
 Compared to the default implementation, this function does two things:
 Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."
-  (let ((sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
-	(string (if (string= (vc-workfile-version file) "0")
-		    ;; A file that is added but not yet committed.
-		    "CVS @@"
-		  (vc-default-mode-line-string 'CVS file))))
-    (if (zerop (length sticky-tag))
-	string
-      (concat string "[" sticky-tag "]"))))
+  (let* ((sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
+	 help-echo
+	 (string 
+	  (if (string= (vc-workfile-version file) "0")
+	      ;; A file that is added but not yet committed.
+	      (progn
+		(setq help-echo "Added file (needs commit) under CVS")
+		"CVS @@")
+	    (let ((def-ml (vc-default-mode-line-string 'CVS file)))
+	      (setq help-echo 
+		    (get-text-property 0 'help-echo def-ml))
+	      def-ml))))
+    (propertize 
+     (if (zerop (length sticky-tag))
+	 string
+       (setq help-echo (format "%s on the '%s' branch" 
+			       help-echo sticky-tag))
+       (concat string "[" sticky-tag "]"))
+     'help-echo help-echo)))
 
 (defun vc-cvs-dired-state-info (file)
   "CVS-specific version of `vc-dired-state-info'."

@@ -166,9 +166,12 @@
 ;;
 ;; - mode-line-string (file)
 ;;
-;;   If provided, this function should return the VC-specific mode line
-;;   string for FILE.  The default implementation deals well with all
-;;   states that `vc-state' can return.
+;;   If provided, this function should return the VC-specific mode
+;;   line string for FILE. The returned string should have a
+;;   `help-echo' property which is the text to be displayed as a
+;;   tooltip when the mouse hovers over the VC entry on the mode-line.
+;;   The default implementation deals well with all states that
+;;   `vc-state' can return.
 ;;
 ;; - dired-state-info (file)
 ;;

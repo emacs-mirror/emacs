@@ -719,12 +719,29 @@ Before doing that, check if there are any old backups and get rid of them."
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name))
-  (let ((backend (vc-backend file)))
+  (let ((backend (vc-backend file))
+	ml-string ml-echo)
     (if (not backend)
 	(setq vc-mode nil)
-      (setq vc-mode (concat " " (if vc-display-status
-				    (vc-call mode-line-string file)
-				  (symbol-name backend))))
+      (setq ml-string (vc-call mode-line-string file))
+      (setq ml-echo (get-text-property 0 'help-echo ml-string))
+      (setq vc-mode
+	    (concat
+	     " "
+	     (if vc-display-status
+		 (propertize
+		  ml-string
+		  'mouse-face 'mode-line-highlight
+		  'help-echo 
+		  (concat (if ml-echo
+			      ml-echo
+			    (format "File under the %s version control system"
+				    backend))
+			  "\nmouse-1: Version Control menu")
+		  'local-map (let ((map (make-sparse-keymap)))
+			       (define-key map [mode-line down-mouse-1]
+				 'vc-menu-map) map))
+	       (symbol-name backend))))
       ;; If the file is locked by some other user, make
       ;; the buffer read-only.  Like this, even root
       ;; cannot modify a file that someone else has locked.
@@ -768,13 +785,10 @@ This function assumes that the file is registered."
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
 	    ;; for 'needs-patch and 'needs-merge.
-	    (setq state-echo "Edited file")
+	    (setq state-echo "Locally modified file")
 	    (concat backend ":" rev)))
-     'mouse-face 'mode-line-highlight
-     'local-map (let ((map (make-sparse-keymap)))
-		  (define-key map [mode-line down-mouse-1] 'vc-menu-map) map)
      'help-echo (concat state-echo " under the " backend 
-			" version control system\nmouse-1: VC Menu"))))
+			" version control system"))))
 
 (defun vc-follow-link ()
   "If current buffer visits a symbolic link, visit the real file.
