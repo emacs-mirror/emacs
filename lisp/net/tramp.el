@@ -6551,8 +6551,7 @@ necessary only.  This function will be used in file name completion."
 		   (and
 		    dl
 		    (not
-		     (string-equal
-		      result (expand-file-name-as-directory cmd (car dl)))))
+		     (string-equal result (expand-file-name cmd (car dl)))))
 		 (setq dl (cdr dl)))
 	       (setq dl (cdr dl))))))
        (tramp-error vec 'file-error "Couldn't find a proper `ls' command")))))
