@@ -32,6 +32,71 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+
+;;; Find out how many 9s in 9.9999... will give distinct Emacs floats,
+;;; then back off by one.
+
+(defvar math-emacs-precision
+  (let* ((n 1)
+         (x 9)
+         (xx (+ x (* 9 (expt 10 (- n))))))
+    (while (/= x xx)
+      (progn
+        (setq n (1+ n))
+        (setq x xx)
+        (setq xx (+ x (* 9 (expt 10 (- n)))))))
+    (1- n))
+  "The number of digits in an Emacs float.")
+
+;;; Find the largest power of 10 which is an Emacs float, 
+;;; then back off by one so that any float d.dddd...eN 
+;;; is an Emacs float, for acceptable d.dddd....
+
+(defvar math-largest-emacs-expt
+  (let ((x 1))
+    (while (condition-case nil
+               (expt 10.0 x)
+             (error nil))
+      (setq x (* 2 x)))
+    (setq x (/ x 2))
+    (while (condition-case nil
+               (expt 10.0 x)
+             (error nil))
+      (setq x (1+ x)))
+    (- x 2))
+  "The largest exponent which Calc will convert to an Emacs float.")
+
+(defvar math-smallest-emacs-expt
+  (let ((x -1))
+    (while (condition-case nil
+               (expt 10.0 x)
+             (error nil))
+      (setq x (* 2 x)))
+    (setq x (/ x 2))
+    (while (condition-case nil
+               (expt 10.0 x)
+             (error nil))
+      (setq x (1- x)))
+    (+ x 2))
+    "The smallest exponent which Calc will convert to an Emacs float.")
+
+(defun math-use-emacs-fn (fn x)
+  "Use the native Emacs function FN to evaluate the Calc number X.
+If this can't be done, return NIL."
+  (and
+   (<= calc-internal-prec math-emacs-precision)
+   (math-realp x)
+   (let* ((fx (math-float x))
+          (xpon (+ (nth 2 x) (1- (math-numdigs (nth 1 x))))))
+     (and (<= math-smallest-emacs-expt xpon)
+          (<= xpon math-largest-emacs-expt)
+          (condition-case nil
+              (math-read-number
+               (number-to-string
+                (funcall fn 
+                         (string-to-number (math-format-number (math-float x))))))
+            (error nil))))))
+
 (defun calc-sqrt (arg)
   (interactive "P")
   (calc-slow-wrapper
@@ -1403,6 +1468,7 @@
 	   (list 'polar
 		 (math-exp-raw (nth 1 xc))
 		 (math-from-radians (nth 2 xc)))))
+        ((math-use-emacs-fn 'exp x))
 	((or (math-lessp-float '(float 5 -1) x)
 	     (math-lessp-float x '(float -5 -1)))
 	 (if (math-lessp-float '(float 921035 1) x)
