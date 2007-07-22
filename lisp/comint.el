@@ -333,12 +333,13 @@ This variable is buffer-local."
 ;; kinit prints a prompt like `Password for devnull@GNU.ORG: '.
 ;; ksu prints a prompt like `Kerberos password for devnull/root@GNU.ORG: '.
 ;; ssh-add prints a prompt like `Enter passphrase: '.
+;; plink prints a prompt like `Passphrase for key "root@GNU.ORG": '.
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 (defcustom comint-password-prompt-regexp
   "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
 Kerberos \\|CVS \\|UNIX \\| SMB \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
-pass phrase\\|\\(Enter\\|Repeat\\|Bad\\) passphrase\\)\
+pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
 \\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
@@ -1953,11 +1954,16 @@ If this takes us past the end of the current line, don't skip at all."
   "Default function for sending to PROC input STRING.
 This just sends STRING plus a newline.  To override this,
 set the hook `comint-input-sender'."
-  (comint-send-string proc string)
-  (if comint-input-sender-no-newline
-      (if (not (string-equal string ""))
-	  (process-send-eof))
-    (comint-send-string proc "\n")))
+  (let ((send-string
+         (if comint-input-sender-no-newline
+             string
+           ;; Sending as two separate strings does not work
+           ;; on Windows, so concat the \n before sending.
+           (concat string "\n"))))
+    (comint-send-string proc send-string))
+  (if (and comint-input-sender-no-newline
+	   (not (string-equal string "")))
+      (process-send-eof)))
 
 (defun comint-line-beginning-position ()
   "Return the buffer position of the beginning of the line, after any prompt.
