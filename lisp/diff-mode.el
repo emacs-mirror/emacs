@@ -390,13 +390,20 @@ when editing big diffs)."
     ;; The return value is used by easy-mmode-define-navigation.
     (goto-char (or end (point-max)))))
 
-(defun diff-beginning-of-hunk ()
+(defun diff-beginning-of-hunk (&optional try-harder)
+  "Move back to beginning of hunk.
+If TRY-HARDER is non-nil, try to cater to the case where we're not in a hunk
+but in the file header instead, in which case move forward to the first hunk."
   (beginning-of-line)
   (unless (looking-at diff-hunk-header-re)
     (forward-line 1)
     (condition-case ()
 	(re-search-backward diff-hunk-header-re)
-      (error (error "Can't find the beginning of the hunk")))))
+      (error
+       (if (not try-harder)
+           (error "Can't find the beginning of the hunk")
+         (diff-beginning-of-file-and-junk)
+         (diff-hunk-next))))))
 
 (defun diff-beginning-of-file ()
   (beginning-of-line)
@@ -425,7 +432,7 @@ when editing big diffs)."
 If the prefix ARG is given, restrict the view to the current file instead."
   (interactive "P")
   (save-excursion
-    (if arg (diff-beginning-of-file) (diff-beginning-of-hunk))
+    (if arg (diff-beginning-of-file) (diff-beginning-of-hunk 'try-harder))
     (narrow-to-region (point)
 		      (progn (if arg (diff-end-of-file) (diff-end-of-hunk))
 			     (point)))
@@ -453,18 +460,37 @@ If the prefix ARG is given, restrict the view to the current file instead."
       (diff-end-of-hunk)
       (kill-region start (point)))))
 
+(defun diff-beginning-of-file-and-junk ()
+  "Go to the beginning of file-related diff-info.
+This is like `diff-beginning-of-file' except it tries to skip back over leading
+data such as \"Index: ...\" and such."
+  (let ((start (point))
+        (file (condition-case err (progn (diff-beginning-of-file) (point))
+                (error err)))
+        ;; prevhunk is one of the limits.
+        (prevhunk (save-excursion (ignore-errors (diff-hunk-prev) (point))))
+        err)
+    (when (consp file)
+      ;; Presumably, we started before the file header, in the leading junk.
+      (setq err file)
+      (diff-file-next)
+      (setq file (point)))
+    (let ((index (save-excursion
+                   (re-search-backward "^Index: " prevhunk t))))
+      (when index (setq file index))
+      (if (<= file start)
+          (goto-char file)
+        ;; File starts *after* the starting point: we really weren't in
+        ;; a file diff but elsewhere.
+        (goto-char start)
+        (signal (car err) (cdr err))))))
+          
 (defun diff-file-kill ()
   "Kill current file's hunks."
   (interactive)
-  (diff-beginning-of-file)
+  (diff-beginning-of-file-and-junk)
   (let* ((start (point))
-	 (prevhunk (save-excursion
-		     (ignore-errors
-		       (diff-hunk-prev) (point))))
-	 (index (save-excursion
-		  (re-search-backward "^Index: " prevhunk t)))
 	 (inhibit-read-only t))
-    (when index (setq start index))
     (diff-end-of-file)
     (if (looking-at "^\n") (forward-char 1)) ;`tla' generates such diffs.
     (kill-region start (point))))
@@ -1289,7 +1315,8 @@ SRC and DST are the two variants of text as returned by `diff-hunk-text'.
 SWITCHED is non-nil if the patch is already applied."
   (save-excursion
     (let* ((other (diff-xor other-file diff-jump-to-old-file))
-	   (char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
+	   (char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
+                                          (point))))
            ;; Check that the hunk is well-formed.  Otherwise diff-mode and
            ;; the user may disagree on what constitutes the hunk
            ;; (e.g. because an empty line truncates the hunk mid-course),
@@ -1464,7 +1491,8 @@ For use in `add-log-current-defun-function'."
 (defun diff-refine-hunk ()
   "Refine the current hunk by ignoring space differences."
   (interactive)
-  (let* ((char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
+  (let* ((char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
+                                        (point))))
 	 (opts (case (char-after) (?@ "-bu") (?* "-bc") (t "-b")))
 	 (line-nb (and (or (looking-at "[^0-9]+\\([0-9]+\\)")
 			   (error "Can't find line number"))
