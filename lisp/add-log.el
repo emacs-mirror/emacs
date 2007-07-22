@@ -659,9 +659,45 @@ the change log file in another window."
   (add-change-log-entry whoami file-name t))
 ;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
+
 (defvar change-log-indent-text 0)
 
+(defun change-log-fill-parenthesized-list ()
+  ;; Fill parenthesized lists of names according to GNU standards.
+  ;; * file-name.ext (very-long-foo, very-long-bar, very-long-foobar):
+  ;; should be filled as
+  ;; * file-name.ext (very-long-foo, very-long-bar)
+  ;; (very-long-foobar):
+  (save-excursion
+    (end-of-line 0)
+    (skip-chars-backward " \t")
+    (when (and (equal (char-before) ?\,)
+	       (> (point) (1+ (point-min))))
+      (condition-case nil
+	  (when (save-excursion
+		  (and (prog2
+			   (up-list -1)
+			   (equal (char-after) ?\()
+			 (skip-chars-backward " \t"))
+		       (or (bolp)
+			   ;; Skip everything but a whitespace or asterisk.
+			   (and (not (zerop (skip-chars-backward "^ \t\n*")))
+				(skip-chars-backward " \t")
+				;; We want one asterisk here.
+				(= (skip-chars-backward "*") -1)
+				(skip-chars-backward " \t")
+				(bolp)))))
+	    ;; Delete the comma.
+	    (delete-char -1)
+	    ;; Close list on previous line.
+	    (insert ")")
+	    (skip-chars-forward " \t\n")
+	    ;; Start list on new line.
+	    (insert-before-markers "("))
+	(error nil)))))
+
 (defun change-log-indent ()
+  (change-log-fill-parenthesized-list)
   (let* ((indent
 	  (save-excursion
 	    (beginning-of-line)
@@ -729,7 +765,11 @@ Prefix arg means justify as well."
   (interactive "P")
   (let ((end (progn (forward-paragraph) (point)))
 	(beg (progn (backward-paragraph) (point)))
-	(paragraph-start (concat paragraph-start "\\|\\s *\\s(")))
+	;; Add lines starting with whitespace followed by a left paren or an
+	;; asterisk.
+	(paragraph-start (concat paragraph-start "\\|\\s *\\(?:\\s(\\|\\*\\)"))
+	;; Make sure we call `change-log-indent'.
+	(fill-indent-according-to-mode t))
     (fill-region beg end justify)
     t))
 
