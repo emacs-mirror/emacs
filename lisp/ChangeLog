@@ -1,6 +1,6 @@
 2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
 
-        Sync with Tramp 2.1.10.
+	Sync with Tramp 2.1.10.
 
 	* tramp.el (tramp-get-ls-command): Fyx typo.
 
