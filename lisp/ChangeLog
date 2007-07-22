@@ -1,3 +1,7 @@
+2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-mode-menu): New entries.
+
 2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-unified->context): Use the new `apply' undo entry

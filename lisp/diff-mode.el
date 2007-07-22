@@ -164,12 +164,23 @@ when editing big diffs)."
   '("Diff"
     ["Jump to Source"		diff-goto-source	t]
     ["Apply hunk"		diff-apply-hunk		t]
+    ["Test applying hunk"	diff-test-hunk		t]
     ["Apply diff with Ediff"	diff-ediff-patch	t]
-    ["-----" nil nil]
+    "-----"
     ["Reverse direction"	diff-reverse-direction	t]
     ["Context -> Unified"	diff-context->unified	t]
     ["Unified -> Context"	diff-unified->context	t]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
+    "-----"
+    ["Split hunk"		diff-split-hunk		t]
+    ["Refine hunk"	        diff-refine-hunk	t]
+    ["Kill current hunk"	diff-hunk-kill   	t]
+    ["Kill current file's hunks" diff-file-kill   	t]
+    "-----"
+    ["Previous Hunk"		diff-hunk-prev  	t]
+    ["Next Hunk"		diff-hunk-next  	t]
+    ["Previous File"		diff-file-prev  	t]
+    ["Next File"		diff-file-next  	t]
     ))
 
 (defcustom diff-minor-mode-prefix "\C-c="
