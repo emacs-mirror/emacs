@@ -1,3 +1,10 @@
+2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-refine-ignore-spaces-hunk): Rename from
+	diff-refine-hunk.  Adjust users.
+	(diff-unified-hunk-p, diff-splittable-p): New functions.
+	(diff-mode-menu): Use it to disable Split when it doesn't work.
+
 2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-mode-menu): New entries.

@@ -155,7 +155,7 @@ when editing big diffs)."
     ("\C-c\C-u" . diff-context->unified)
     ;; `d' because it duplicates the context :-(  --Stef
     ("\C-c\C-d" . diff-unified->context)
-    ("\C-c\C-w" . diff-refine-hunk)
+    ("\C-c\C-w" . diff-refine-ignore-spaces-hunk)
     ("\C-c\C-f" . next-error-follow-minor-mode))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
@@ -172,8 +172,8 @@ when editing big diffs)."
     ["Unified -> Context"	diff-unified->context	t]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
     "-----"
-    ["Split hunk"		diff-split-hunk		t]
-    ["Refine hunk"	        diff-refine-hunk	t]
+    ["Split hunk"		diff-split-hunk		(diff-splittable-p)]
+    ["Refine hunk"	        diff-refine-ignore-spaces-hunk t]
     ["Kill current hunk"	diff-hunk-kill   	t]
     ["Kill current file's hunks" diff-file-kill   	t]
     "-----"
@@ -416,6 +416,12 @@ but in the file header instead, in which case move forward to the first hunk."
          (diff-beginning-of-file-and-junk)
          (diff-hunk-next))))))
 
+(defun diff-unified-hunk-p ()
+  (save-excursion
+    (ignore-errors
+      (diff-beginning-of-hunk)
+      (looking-at "^@@"))))
+
 (defun diff-beginning-of-file ()
   (beginning-of-line)
   (unless (looking-at diff-file-header-re)
@@ -527,6 +533,13 @@ data such as \"Index: ...\" and such."
       (goto-char start)
       (while (re-search-forward re end t) (incf n))
       n)))
+
+(defun diff-splittable-p ()
+  (save-excursion
+    (beginning-of-line)
+    (and (looking-at "^[-+ ]")
+         (progn (forward-line -1) (looking-at "^[-+ ]"))
+         (diff-unified-hunk-p))))
 
 (defun diff-split-hunk ()
   "Split the current (unified diff) hunk at point into two hunks."
@@ -1525,7 +1538,7 @@ For use in `add-log-current-defun-function'."
 	    (goto-char (+ (car pos) (cdr src)))
 	    (add-log-current-defun))))))
 
-(defun diff-refine-hunk ()
+(defun diff-refine-ignore-spaces-hunk ()
   "Refine the current hunk by ignoring space differences."
   (interactive)
   (let* ((char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
