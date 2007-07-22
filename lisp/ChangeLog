@@ -1,3 +1,10 @@
+2007-07-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-remote): New variable.
+	(help-echo): Add to default values of mode-line-format.
+
+	* files.el: Mark mode-line-remote as risky.
+
 2007-07-22  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-edit-string): Save old point and
