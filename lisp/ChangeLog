@@ -1,3 +1,7 @@
+2007-07-22  Alexandre Julliard <julliard@winehq.org>
+
+	* vc-git.el: New file.
+
 2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-font-script-display): Change default to 0.2.
