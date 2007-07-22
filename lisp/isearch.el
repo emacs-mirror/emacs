@@ -992,7 +992,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	       isearch-original-minibuffer-message-timeout)
 	      (isearch-original-minibuffer-message-timeout
 	       isearch-original-minibuffer-message-timeout)
-	      )
+	      old-point old-other-end)
 
 	  ;; Actually terminate isearching until editing is done.
 	  ;; This is so that the user can do anything without failure,
@@ -1000,6 +1000,10 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	  (condition-case err
 	      (isearch-done t t)
 	    (exit nil))			; was recursive editing
+
+	  ;; Save old point and isearch-other-end before reading from minibuffer
+	  ;; that can change their values.
+	  (setq old-point (point) old-other-end isearch-other-end)
 
 	  (isearch-message) ;; for read-char
 	  (unwind-protect
@@ -1036,6 +1040,14 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 		      isearch-new-message
 		      (mapconcat 'isearch-text-char-description
 				 isearch-new-string "")))
+
+	    ;; Set point at the start (end) of old match if forward (backward),
+	    ;; so after exiting minibuffer isearch resumes at the start (end)
+	    ;; of this match and can find it again.
+	    (if (and old-other-end (eq old-point (point))
+		     (eq isearch-forward isearch-new-forward))
+		(goto-char old-other-end))
+
 	    ;; Always resume isearching by restarting it.
 	    (isearch-mode isearch-forward
 			  isearch-regexp
@@ -1260,10 +1272,13 @@ If search string is empty, just beep."
       (ding)
     (setq isearch-string (substring isearch-string 0 (- (or arg 1)))
           isearch-message (mapconcat 'isearch-text-char-description
-                                     isearch-string "")
-          ;; Don't move cursor in reverse search.
-          isearch-yank-flag t))
-  (isearch-search-and-update))
+                                     isearch-string "")))
+  ;; Use the isearch-other-end as new starting point to be able
+  ;; to find the remaining part of the search string again.
+  (if isearch-other-end (goto-char isearch-other-end))
+  (isearch-search)
+  (isearch-push-state)
+  (isearch-update))
 
 (defun isearch-yank-string (string)
   "Pull STRING into search string."
