@@ -1,3 +1,7 @@
+2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-script-display): Change default to 0.2.
+
 2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-cvs.el (vc-cvs-mode-line-string): Add support for tooltips
@@ -15,7 +19,7 @@
 
 	* tramp.el (tramp-get-ls-command): Fyx typo.
 
-        * trampver.el: Update release number.
+	* trampver.el: Update release number.
 
 2007-07-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

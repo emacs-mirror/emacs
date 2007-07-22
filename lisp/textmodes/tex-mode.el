@@ -249,7 +249,7 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
   :group 'tex)
 (put 'tex-fontify-script 'safe-local-variable 'booleanp)
 
-(defcustom tex-font-script-display '(-0.3 . 0.3)
+(defcustom tex-font-script-display '(-0.2 . 0.2)
   "Display specification for subscript and superscript content.
 The car is used for subscript, the cdr is used for superscripts."
   :group 'tex
@@ -675,11 +675,11 @@ An alternative value is \" . \", if you use a font with a narrow period."
       (setq beg next))))
 
 (defface superscript
-  '((t :height 0.8)) ;; :raise 0.3
+  '((t :height 0.8)) ;; :raise 0.2
   "Face used for superscripts."
   :group 'tex)
 (defface subscript
-  '((t :height 0.8)) ;; :raise -0.3
+  '((t :height 0.8)) ;; :raise -0.2
   "Face used for subscripts."
   :group 'tex)
 
