@@ -1,3 +1,14 @@
+2007-07-22  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Save old point and
+	isearch-other-end to old-point and old-other-end before reading
+	the search string from minibuffer.  After exiting minibuffer set
+	point to old-other-end if point and the search direction is the
+	same as before reading the search string.
+	(isearch-del-char): Don't set isearch-yank-flag to t.  Put point
+	to isearch-other-end.  Instead of isearch-search-and-update call
+	three functions isearch-search, isearch-push-state and isearch-update.
+
 2007-07-22  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/reftex.el (reftex-access-parse-file): Do not risk
