@@ -1331,10 +1331,8 @@ Valid actions are: readable, restore, read, kill, write."
       (put docstruct-symbol 'modified nil)
       (save-excursion
         (if (file-writable-p file)
-            (progn
+            (with-temp-file file
               (message "Writing parse file %s" (abbreviate-file-name file))
-	      (set-buffer (get-buffer-create file))
-              (erase-buffer)
               (insert (format ";; RefTeX parse info file\n"))
               (insert (format ";; File: %s\n" master))
               (insert (format ";; User: %s (%s)\n\n"
@@ -1357,9 +1355,7 @@ Valid actions are: readable, restore, read, kill, write."
                           )
                          (t (print x))))
                  list))
-              (insert "))\n\n")
-	      (write-region (point-min) (point-max) file nil 'silent)
-              (kill-buffer (current-buffer)))
+              (insert "))\n\n"))
           (error "Cannot write to file %s" file)))
       t))))
 
