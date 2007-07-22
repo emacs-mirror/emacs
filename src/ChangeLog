@@ -1,3 +1,10 @@
+2007-07-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (decode_mode_spec): Add case 'R' for to test for
+	remote default-directory.
+
+	* buffer.c (mode-line-format): Describe above case in doc string.
+
 2007-07-18  Richard Stallman  <rms@gnu.org>
 
 	* data.c (Fsetq_default): Doc fix.
