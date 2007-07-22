@@ -1,3 +1,16 @@
+2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-revision-granularity,vc-git-root),
+	(vc-git-command,vc-git-dir-state,vc-git-dired-state-info),
+	(vc-git-create-repo): New functions.
+	(vc-git-registered): New autoloaded function definition.
+	(vc-git-registered): Use vc-git-root.
+	(vc-git-responsible-p): New defalias.
+	(vc-git-annotate-extract-revision-at-line): Uncomment.
+	(vc-git-print-log): Add the file name to the log.
+	(vc-git-log-view-mode): New derived mode.
+	(vc-git-diff,vc-git-annotate-command): Use vc-git-command.
+
 2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* progmodes/grep.el (grep-compute-defaults): Keep default values.
