@@ -17,23 +17,24 @@
 
 @include trampver.texi
 
-@c Macros for formatting a filename.
-@c trampfn is for a full filename, trampfnmhl means method, host, localname
-@c were given, and so on.
-@macro trampfn {method, user, host, localname}
-@value{prefix}\method\@value{postfixhop}\user\@@\host\@value{postfix}\localname\
+@c Macro for formatting a filename according to the repective syntax.
+@c xxx and yyy are auxiliary macros in order to omit leading and
+@c trailing whitespace.  Not very elegant, but I don't know it better.
+
+@macro xxx {one}@c
+@set \one\@c
 @end macro
 
-@macro trampfnmhl {method, host, localname}
-@value{prefix}\method\@value{postfixhop}\host\@value{postfix}\localname\
+@macro yyy {one, two}@c
+@xxx{x\one\}@c
+@ifclear x@c
+\one\@w{}\two\@c
+@end ifclear
+@clear x\one\@c
 @end macro
 
-@macro trampfnuhl {user, host, localname}
-@value{prefix}\user\@@\host\@value{postfix}\localname\
-@end macro
-
-@macro trampfnhl {host, localname}
-@value{prefix}\host\@value{postfix}\localname\
+@macro trampfn {method, user, host, localname}@c
+@value{prefix}@yyy{\method\,@value{postfixhop}}@yyy{\user\,@@}\host\@value{postfix}\localname\@c
 @end macro
 
 @copying
@@ -497,7 +498,7 @@ repository.  Being part of the GNU Emacs repository happened in June
 installed.  It is initially configured to use the @command{scp}
 program to connect to the remote host.  So in the easiest case, you
 just type @kbd{C-x C-f} and then enter the filename
-@file{@trampfnuhl{user, machine, /path/to.file}}.
+@file{@trampfn{, user, machine, /path/to.file}}.
 
 On some hosts, there are problems with opening a connection.  These are
 related to the behavior of the remote shell.  See @xref{Remote shell
@@ -1180,7 +1181,7 @@ implementation of @command{ssh}.  Or you use Kerberos and thus like
 For the special case of editing files on the local host as another
 user, see the @option{su} or @option{sudo} methods.  They offer
 shortened syntax for the @samp{root} account, like
-@file{@trampfnmhl{su, , /etc/motd}}.
+@file{@trampfn{su, , , /etc/motd}}.
 
 People who edit large files may want to consider @option{scpc} instead
 of @option{ssh}, or @option{pscp} instead of @option{plink}.  These
@@ -1273,11 +1274,11 @@ If you, for example, use @value{tramp} mainly to contact the host
       tramp-default-host "target")
 @end lisp
 
-Then the simple file name @samp{@trampfnmhl{ssh,,}} will connect you
+Then the simple file name @samp{@trampfn{ssh, , ,}} will connect you
 to John's home directory on target.
 @ifset emacs
-Note, however, that the most simplification @samp{@trampfnmhl{,,}}
-won't work, because @samp{/:} is the prefix for quoted file names.
+Note, however, that the most simplification @samp{/::} won't work,
+because @samp{/:} is the prefix for quoted file names.
 @end ifset
 
 
@@ -1339,7 +1340,7 @@ rule:
 (add-to-list 'tramp-default-proxies-alist
              '("\\`bastion\\.your\\.domain\\'"
                "\\`bird\\'"
-               "@trampfnmhl{ssh, jump.your.domain,}"))
+               "@trampfn{ssh, , jump.your.domain,}"))
 @end lisp
 
 @var{proxy} can contain the patterns @code{%h} or @code{%u}.  These
@@ -1352,15 +1353,15 @@ non-local access, you might add the following rule:
 
 @lisp
 (add-to-list 'tramp-default-proxies-alist
-             '("\\.your\\.domain\\'" "\\`root\\'" "@trampfnmhl{ssh, %h,}"))
+             '("\\.your\\.domain\\'" "\\`root\\'" "@trampfn{ssh, , %h,}"))
 @end lisp
 
-Opening @file{@trampfnmhl{sudo, randomhost.your.domain,}} would
-connect first @samp{randomhost.your.domain} via @code{ssh} under your
-account name, and perform @code{sudo -u root} on that host afterwards.
-It is important to know that the given method is applied on the host
-which has been reached so far.  @code{sudo -u root}, applied on your
-local host, wouldn't be useful here.
+Opening @file{@trampfn{sudo, , randomhost.your.domain,}} would connect
+first @samp{randomhost.your.domain} via @code{ssh} under your account
+name, and perform @code{sudo -u root} on that host afterwards.  It is
+important to know that the given method is applied on the host which
+has been reached so far.  @code{sudo -u root}, applied on your local
+host, wouldn't be useful here.
 
 This is the recommended configuration to work as @samp{root} on remote
 Ubuntu hosts.
@@ -1382,7 +1383,7 @@ following rule:
 @lisp
 (add-to-list 'tramp-default-proxies-alist
              '("\\`host\\.other\\.domain\\'" nil
-               "@trampfnmhl{tunnel, proxy.your.domain#3128,}"))
+               "@trampfn{tunnel, , proxy.your.domain#3128,}"))
 @end lisp
 
 Gateway methods can be declared as first hop only in a multiple hop
@@ -2029,32 +2030,32 @@ minute you have already forgotten that you hit that key!
 @cindex filename examples
 
 To access the file @var{localname} on the remote machine @var{machine}
-you would specify the filename @file{@trampfnhl{@var{machine},
+you would specify the filename @file{@trampfn{, , @var{machine},
 @var{localname}}}.  This will connect to @var{machine} and transfer
 the file using the default method.  @xref{Default Method}.
 
 Some examples of @value{tramp} filenames are shown below.
 
 @table @file
-@item @trampfnhl{melancholia, .emacs}
+@item @trampfn{, , melancholia, .emacs}
 Edit the file @file{.emacs} in your home directory on the machine
 @code{melancholia}.
 
-@item @trampfnhl{melancholia.danann.net, .emacs}
+@item @trampfn{, , melancholia.danann.net, .emacs}
 This edits the same file, using the fully qualified domain name of
 the machine.
 
-@item @trampfnhl{melancholia, ~/.emacs}
+@item @trampfn{, , melancholia, ~/.emacs}
 This also edits the same file --- the @file{~} is expanded to your
 home directory on the remote machine, just like it is locally.
 
-@item @trampfnhl{melancholia, ~daniel/.emacs}
+@item @trampfn{, , melancholia, ~daniel/.emacs}
 This edits the file @file{.emacs} in the home directory of the user
 @code{daniel} on the machine @code{melancholia}.  The @file{~<user>}
 construct is expanded to the home directory of that user on the remote
 machine.
 
-@item @trampfnhl{melancholia, /etc/squid.conf}
+@item @trampfn{, , melancholia, /etc/squid.conf}
 This edits the file @file{/etc/squid.conf} on the machine
 @code{melancholia}.
 
@@ -2066,10 +2067,10 @@ need to log in as a different user, you can specify the user name as
 part of the filename.
 
 To log in to the remote machine as a specific user, you use the syntax
-@file{@trampfnuhl{@var{user}, @var{machine}, @var{path/to.file}}}.
+@file{@trampfn{, @var{user}, @var{machine}, @var{path/to.file}}}.
 That means that connecting to @code{melancholia} as @code{daniel} and
 editing @file{.emacs} in your home directory you would specify
-@file{@trampfnuhl{daniel, melancholia, .emacs}}.
+@file{@trampfn{, daniel, melancholia, .emacs}}.
 
 It is also possible to specify other file transfer methods
 (@pxref{Default Method}) as part of the filename.
@@ -2160,11 +2161,11 @@ If you, for example, type @kbd{C-x C-f @value{prefix}t
 
 @example
 @ifset emacs
-@value{prefixhop}telnet@value{postfixhop}				   tmp/
+@value{prefixhop}telnet@value{postfixhop}                        tmp/
 @value{prefixhop}toto@value{postfix}
 @end ifset
 @ifset xemacs
-@value{prefixhop}telnet@value{postfixhop}				   @value{prefixhop}toto@value{postfix}
+@value{prefixhop}telnet@value{postfixhop}                        @value{prefixhop}toto@value{postfix}
 @end ifset
 @end example
 
@@ -2184,9 +2185,9 @@ Next @kbd{@key{TAB}} brings you all machine names @value{tramp} detects in
 your @file{/etc/hosts} file, let's say
 
 @example
-@trampfnmhl{telnet,127.0.0.1,}		   @trampfnmhl{telnet,192.168.0.1,}
-@trampfnmhl{telnet,localhost,}		   @trampfnmhl{telnet,melancholia.danann.net,}
-@trampfnmhl{telnet,melancholia,}
+@trampfn{telnet, , 127.0.0.1,}             @trampfn{telnet, , 192.168.0.1,}
+@trampfn{telnet, , localhost,}             @trampfn{telnet, , melancholia.danann.net,}
+@trampfn{telnet, , melancholia,}
 @end example
 
 Now you can choose the desired machine, and you can continue to
@@ -2209,20 +2210,20 @@ that filename part starts with @file{//}.
 @end ifinfo
 
 @ifset emacs
-As example, @kbd{@trampfnmhl{telnet,melancholia,/usr/local/bin//etc}
+As example, @kbd{@trampfn{telnet, , melancholia, /usr/local/bin//etc}
 @key{TAB}} would result in
-@file{@trampfnmhl{telnet,melancholia,/etc}}, whereas
-@kbd{@trampfnmhl{telnet,melancholia,//etc} @key{TAB}} reduces the
+@file{@trampfn{telnet, , melancholia, /etc}}, whereas
+@kbd{@trampfn{telnet, , melancholia, //etc} @key{TAB}} reduces the
 minibuffer contents to @file{/etc}.  A triple-slash stands for the
 default behaviour,
-i.e. @kbd{@trampfnmhl{telnet,melancholia,/usr/local/bin///etc}
+i.e. @kbd{@trampfn{telnet, , melancholia, /usr/local/bin///etc}
 @key{TAB}} expands directly to @file{/etc}.
 @end ifset
 
 @ifset xemacs
-As example, @kbd{@trampfnmhl{telnet,melancholia,/usr/local/bin//}}
-would result in @file{@trampfnmhl{telnet,melancholia,/}}, whereas
-@kbd{@trampfnmhl{telnet,melancholia,//}} expands the minibuffer
+As example, @kbd{@trampfn{telnet, , melancholia, /usr/local/bin//}}
+would result in @file{@trampfn{telnet, , melancholia, /}}, whereas
+@kbd{@trampfn{telnet, , melancholia, //}} expands the minibuffer
 contents to @file{/}.
 @end ifset
 
@@ -2295,7 +2296,7 @@ After you have started @code{eshell}, you could perform commands like
 this:
 
 @example
-@b{~ $} cd @trampfnmhl{sudo, , /etc} @key{RET}
+@b{~ $} cd @trampfn{sudo, , , /etc} @key{RET}
 @b{@trampfn{sudo, root, host, /etc} $} hostname @key{RET}
 host
 @b{@trampfn{sudo, root, host, /etc} $} id @key{RET}
@@ -2324,12 +2325,12 @@ remote hosts.  You can call @code{gdb} with a remote file name:
 
 @example
 @kbd{M-x gdb @key{RET}}
-@b{Run gdb (like this):} gdb --annotate=3 @trampfnmhl{ssh, host, ~/myprog} @key{RET}
+@b{Run gdb (like this):} gdb --annotate=3 @trampfn{ssh, , host, ~/myprog} @key{RET}
 @end example
 
 The file name can also be relative to a remote default directory.
 Given you are in a buffer that belongs to the remote directory
-@trampfnmhl{ssh, host, /home/user}, you could call
+@trampfn{ssh, , host, /home/user}, you could call
 
 @example
 @kbd{M-x perldb @key{RET}}
@@ -2602,7 +2603,7 @@ remote host.
 @item
 I'ld like to see a host indication in the mode line when I'm remote
 
-The following code has been tested with @value{emacsname} 22.  You
+The following code has been tested with @value{emacsname} 22.1.  You
 should put it into your @file{~/.emacs}:
 
 @lisp
@@ -2610,13 +2611,13 @@ should put it into your @file{~/.emacs}:
   (list
    '(:eval
      (let ((host-name
-	    (if (file-remote-p default-directory)
-		(tramp-file-name-host
-		 (tramp-dissect-file-name default-directory))
-	      (system-name))))
+            (if (file-remote-p default-directory)
+                (tramp-file-name-host
+                 (tramp-dissect-file-name default-directory))
+              (system-name))))
        (if (string-match "^[^0-9][^.]*\\(\\..*\\)" host-name)
-	   (substring host-name 0 (match-beginning 1))
-	 host-name)))
+           (substring host-name 0 (match-beginning 1))
+         host-name)))
    ": %12b"))
 
 (setq-default
@@ -2629,6 +2630,18 @@ should put it into your @file{~/.emacs}:
     (setq
      mode-line-buffer-identification
      my-mode-line-buffer-identification)))
+@end lisp
+
+Since @value{emacsname} 23, the @code{:eval} clause can be simplified:
+
+@lisp
+   '(:eval
+     (let ((host-name
+            (or (file-remote-p default-directory 'host)
+                (system-name))))
+       (if (string-match "^[^0-9][^.]*\\(\\..*\\)" host-name)
+           (substring host-name 0 (match-beginning 1))
+         host-name)))
 @end lisp
 @end ifset
 
@@ -2693,11 +2706,11 @@ You can define default methods and user names for hosts,
 @end lisp
 
 The file name left to type would be
-@kbd{C-x C-f @trampfnhl{news.my.domain, /opt/news/etc}}.
+@kbd{C-x C-f @trampfn{, , news.my.domain, /opt/news/etc}}.
 
 Note, that there are some useful settings already.  Accessing your
 local host as @samp{root} user, is possible just by @kbd{C-x C-f
-@trampfnmhl{su,,}}.
+@trampfn{su, , ,}}.
 
 @item Use configuration possibilities of your method:
 
@@ -2711,7 +2724,7 @@ Host xy
      User news
 @end example
 
-The file name left to type would be @kbd{C-x C-f @trampfnmhl{ssh, xy,
+The file name left to type would be @kbd{C-x C-f @trampfn{ssh, , xy,
 /opt/news/etc}}.  Depending on files in your directories, it is even
 possible to complete the hostname with @kbd{C-x C-f
 @value{prefix}ssh@value{postfixhop}x @key{TAB}}.
@@ -2881,7 +2894,43 @@ C-@key{TAB}} in the minibuffer.  The completion is done for the given
 directory.
 @end ifset
 
+@ifset emacs
+@item Use bbdb:
+
+@file{bbdb} has a built-in feature for @value{ftppackagename} files,
+which works also for @value{tramp}.
+@ifinfo
+@pxref{bbdb-ftp, Storing FTP sites in the BBDB, , bbdb}
+@end ifinfo
+
+You need to load @file{bbdb}:
+
+@lisp
+(require 'bbdb)
+(bbdb-initialize)
+@end lisp
+
+Then you can create a BBDB entry via @kbd{M-x bbdb-create-ftp-site}.
+Because BBDB is not prepared for @value{tramp} syntax, you must
+specify a method together with the user name, when needed. Example:
+
+@example
+@kbd{M-x bbdb-create-ftp-site @key{RET}}
+@b{Ftp Site:} news.my.domain @key{RET}
+@b{Ftp Directory:} /opt/news/etc/ @key{RET}
+@b{Ftp Username:} ssh@value{postfixhop}news @key{RET}
+@b{Company:} @key{RET}
+@b{Additional Comments:} @key{RET}
+@end example
+
+When you have opened your BBDB buffer, you can access such an entry by
+pressing the key @key{F}.
+@end ifset
+
 @end enumerate
+
+I would like to thank all @value{tramp} users, who have contributed to
+the different recipes!
 
 
 @item
