@@ -1,5 +1,8 @@
 2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-unified->context): Use the new `apply' undo entry
+	if applicable, so as to save undo-log space.
+
 	* diff-mode.el (diff-find-file-name): Add arg `batch'.
 
 	* diff-mode.el (diff-beginning-of-file-and-junk): New function.

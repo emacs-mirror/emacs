@@ -701,7 +701,12 @@ else cover the whole bufer."
 	    (let ((line1 (match-string 4))
 		  (lines1 (match-string 5))
 		  (line2 (match-string 6))
-		  (lines2 (match-string 7)))
+		  (lines2 (match-string 7))
+		  ;; Variables to use the special undo function.
+		  (old-undo buffer-undo-list)
+		  (old-end (marker-position end))
+		  (start (match-beginning 0))
+		  (reversible t))
 	      (replace-match
 	       (concat "***************\n*** " line1 ","
 		       (number-to-string (+ (string-to-number line1)
@@ -743,6 +748,14 @@ else cover the whole bufer."
 		  (if (not (save-excursion (re-search-forward "^+" nil t)))
 		      (delete-region (point) (point-max))
 		    (let ((modif nil) (delete nil))
+		      (if (save-excursion (re-search-forward "^\\+.*\n-" nil t))
+                          ;; Normally, lines in a substitution come with
+                          ;; first the removals and then the additions, and
+                          ;; the context->unified function follows this
+                          ;; convention, of course.  Yet, other alternatives
+                          ;; are valid as well, but they preclude the use of
+                          ;; context->unified as an undo command.
+			  (setq reversible nil))
 		      (while (not (eobp))
 			(case (char-after)
 			  (?\s (insert " ") (setq modif nil) (backward-char 1))
@@ -761,7 +774,15 @@ else cover the whole bufer."
 			  (forward-line 1)
 			  (when delete
 			    (delete-region last-pt (point))
-			    (setq delete nil)))))))))))))))
+			    (setq delete nil)))))))
+		(unless (or (not reversible) (eq buffer-undo-list t))
+                  ;; Drop the many undo entries and replace them with
+                  ;; a single entry that uses diff-context->unified to do
+                  ;; the work.
+		  (setq buffer-undo-list
+			(cons (list 'apply (- old-end end) start (point-max)
+				    'diff-context->unified start (point-max))
+			      old-undo)))))))))))
 
 (defun diff-context->unified (start end &optional to-context)
   "Convert context diffs to unified diffs.
