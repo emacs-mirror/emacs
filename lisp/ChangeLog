@@ -1,3 +1,10 @@
+2007-07-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-fill-parenthesized-list): New function.
+	(change-log-indent): Call change-log-fill-parenthesized-list.
+	(change-log-fill-paragraph): Bind fill-indent-according-to-mode to
+	t.  Have lines with leading asterisk start a paragraph.
+
 2007-07-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-math.el (math-emacs-precision)
