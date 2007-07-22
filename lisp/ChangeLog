@@ -1,3 +1,10 @@
+2007-07-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex.el (reftex-access-parse-file): Create parse
+	file in a way that does not interfere with recentf mode.
+	(reftex-access-parse-file): Do not risk destroying an existing
+	buffer.
+
 2007-07-22  Alexandre Julliard <julliard@winehq.org>
 
 	* vc-git.el: New file.
