@@ -10,6 +10,8 @@
 	identification in the modeline. Add bbdb to approaches shortening Tramp
 	file names to be typed.
 
+	* trampver.texi: Update release number.
+
 2007-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* vc2-xtra.texi (Customizing VC) <vc-handled-backends>: Update the
