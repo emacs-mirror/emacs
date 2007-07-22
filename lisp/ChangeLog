@@ -1,3 +1,12 @@
+2007-07-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (set-default-process-coding-system): Use dos line ends
+	for input to cmdproxy on all versions of Windows.
+	Use dos line ends for input to plink.
+
+	* comint.el (comint-simple-send): Concat newline before sending.
+	(comint-password-prompt-regexp): Recognize plink's passphrase prompt.
+
 2007-07-22  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-edit-string): Save old point and
