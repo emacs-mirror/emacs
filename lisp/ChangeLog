@@ -1,3 +1,9 @@
+2007-07-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-x-option-alist): Use x-handle-no-bitmap-icon.
+
+	* term/x-win.el (x-handle-no-bitmap-icon): New function.
+
 2007-07-22  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/reftex.el (reftex-access-parse-file): Create parse
