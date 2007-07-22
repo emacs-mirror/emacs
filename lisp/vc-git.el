@@ -37,7 +37,6 @@
 ;;     (add-to-list 'vc-handled-backends 'GIT)
 
 ;;; Todo:
-;;  - !!!port to the new VC interface with multiple file arguments!!!
 ;;  - check if more functions could use vc-git-command instead
 ;;     of start-process.
 ;;  - changelog generation
@@ -115,6 +114,7 @@
 ;; XXX when this backend is considered sufficiently reliable this
 ;; should be moved to vc-hooks.el
 (add-to-list 'vc-handled-backends 'GIT)
+(add-to-list 'vc-directory-exclusion-list ".git" t)
 
 ;;; BACKEND PROPERTIES
 
@@ -212,15 +212,15 @@
   "Create a new GIT repository."
   (vc-git-command "init" nil 0 nil))
 
-(defun vc-git-register (file &optional rev comment)
+(defun vc-git-register (files &optional rev comment)
   "Register FILE into the git version-control system."
-  (vc-git--run-command file "update-index" "--add" "--"))
+  (vc-git-command nil 0 files "update-index" "--add" "--"))
 
 (defalias 'vc-git-responsible-p 'vc-git-root)
 
-(defun vc-git-checkin (file rev comment)
+(defun vc-git-checkin (files rev comment)
   (let ((coding-system-for-write git-commits-coding-system))
-    (vc-git--run-command file "commit" "-m" comment "--only" "--")))
+    (vc-git-command nil 0 files "commit" "-m" comment "--only" "--")))
 
 (defun vc-git-checkout (file &optional editable rev destfile)
   (if destfile
@@ -242,7 +242,8 @@
 
 ;;; HISTORY FUNCTIONS
 
-(defun vc-git-print-log (file &optional buffer)
+(defun vc-git-print-log (files &optional buffer)
+  "Get change log associated with FILES."
   (let ((name (file-relative-name file))
         (coding-system-for-read git-commits-coding-system))
     ;; `log-view-mode' needs to have the file name in order to function
@@ -255,10 +256,15 @@
     ;; If the buffer exists from a previous invocation it might be
     ;; read-only.
     (let ((inhibit-read-only t))
+      ;; XXX Here loop and call "git rev-list" on each file separately
+      ;; to make sure that each file gets a "File:" header before the
+      ;; corresponding log. Maybe there is a way to do this with one
+      ;; command...
+    (dolist (file files)
       (with-current-buffer
         buffer
         (insert "File: " (file-name-nondirectory file) "\n")))
-    (vc-git-command buffer 'async name "rev-list" "--pretty" "HEAD" "--")))
+    (vc-git-command buffer 'async name "rev-list" "--pretty" "HEAD" "--"))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -369,10 +375,10 @@
 (defun vc-git-root (file)
   (vc-find-root file ".git"))
 
-(defun vc-git-command (buffer okstatus file &rest flags)
+(defun vc-git-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-git.el.
 The difference to vc-do-command is that this function always invokes `git'."
-  (apply 'vc-do-command buffer okstatus "git" file flags))
+  (apply 'vc-do-command buffer okstatus "git" file-or-list flags))
 
 (defun vc-git--run-command-string (file &rest args)
   "Run a git command on FILE and return its output as string."
