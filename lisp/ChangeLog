@@ -1,5 +1,7 @@
 2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-find-file-name): Add arg `batch'.
+
 	* diff-mode.el (diff-beginning-of-file-and-junk): New function.
 	(diff-file-kill): Use it.
 	(diff-beginning-of-hunk): Add arg `try-harder' using it.

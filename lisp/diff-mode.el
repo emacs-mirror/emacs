@@ -611,9 +611,11 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	       (list (if old (match-string 2) (match-string 4))
 		     (if old (match-string 4) (match-string 2)))))))))
 
-(defun diff-find-file-name (&optional old prefix)
+(defun diff-find-file-name (&optional old batch prefix)
   "Return the file corresponding to the current patch.
 Non-nil OLD means that we want the old file.
+Non-nil BATCH means to prefer returning an incorrect answer than to prompt
+the user.
 PREFIX is only used internally: don't use it."
   (save-excursion
     (unless (looking-at diff-file-header-re)
@@ -648,7 +650,10 @@ PREFIX is only used internally: don't use it."
 	    (boundp 'cvs-pcl-cvs-dirchange-re)
 	    (save-excursion
 	      (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
-	    (diff-find-file-name old (match-string 1)))
+	    (diff-find-file-name old batch (match-string 1)))
+       ;; Invent something, if necessary.
+       (when batch
+         (or (car fs) default-directory))
        ;; if all else fails, ask the user
        (let ((file (read-file-name (format "Use file %s: " (or (first fs) ""))
 				   nil (first fs) t (first fs))))
