@@ -2486,6 +2486,7 @@ asking you for confirmation."
 	mode-line-mule-info
 	mode-line-position
 	mode-line-process
+	mode-line-remote
 	mode-name
 	outline-level
 	overriding-local-map
