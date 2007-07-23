@@ -1,3 +1,7 @@
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/copyright.el (copyright-update-year): Fix 2007-05-25 change.
+
 2007-07-23  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/octave-inf.el (inferior-octave-prompt): Accept .exe.
