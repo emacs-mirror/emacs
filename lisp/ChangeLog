@@ -3,7 +3,7 @@
 	* net/tramp.el (tramp-perl-file-attributes)
 	(tramp-perl-directory-files-and-attributes)
 	(tramp-handle-file-attributes-with-stat)
-	(tramp-handle-directory-files-and-attributes-with-stat(
+	(tramp-handle-directory-files-and-attributes-with-stat)
 	(tramp-convert-file-attributes): Handle huge file sizes.
 
 2007-07-23  Juri Linkov  <juri@jurta.org>
