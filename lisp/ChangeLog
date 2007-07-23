@@ -1,3 +1,7 @@
+2007-07-23   Christopher J. Madsen  <cjm@cjmweb.net>
+
+	* replace.el (perform-replace): Use isearch-no-upper-case-p.
+
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-mode-line-map): New const.
