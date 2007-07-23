@@ -1,3 +1,7 @@
+2007-07-23  Jason Rumney  <jasonr@gnu.org>
+
+	* filelock.c (current_lock_owner): Allow for @ sign in username.
+
 2007-07-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (clean): Don't delete *~.
