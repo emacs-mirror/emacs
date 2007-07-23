@@ -198,7 +198,7 @@ abbrev_check_chars (abbrev, global)
         {
           /* Copied from SYNTAX in syntax.h, except using FOLLOW_PARENT. */
           Lisp_Object syntax_temp
-            = SYNTAX_ENTRY_FOLLOW_PARENT (Vstandard_syntax_table, c);
+            = CHAR_TABLE_REF (Vstandard_syntax_table, c);
           if ( (CONSP (syntax_temp)
                 ? (enum syntaxcode) (XINT (XCAR (syntax_temp)) & 0xff)
                 : Swhitespace) != Sword ) badchars[nbad++] = c;
