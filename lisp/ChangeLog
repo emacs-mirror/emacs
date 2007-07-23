@@ -1,3 +1,21 @@
+2007-07-23  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-message-function): New variable.
+	(isearch-update, isearch-search): Use it.
+
+	* simple.el (goto-history-element): New function created from
+	next-history-element.
+	(next-history-element): Most code moved to goto-history-element.
+	Call goto-history-element with (- minibuffer-history-position n).
+	(previous-history-element): Call goto-history-element with (+
+	minibuffer-history-position n).
+	(minibuffer-setup-hook): Add minibuffer-history-isearch-setup.
+	(minibuffer-history-isearch-message-overlay): New buffer-local variable.
+	(minibuffer-history-isearch-setup, minibuffer-history-isearch-end)
+	(minibuffer-history-isearch-search, minibuffer-history-isearch-message)
+	(minibuffer-history-isearch-wrap, minibuffer-history-isearch-push-state)
+	(minibuffer-history-isearch-pop-state): New functions.
+
 2007-07-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc-hooks.el (vc-stay-local-p): Fix bug: Avoid remove-if-not.
