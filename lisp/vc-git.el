@@ -413,4 +413,5 @@ Returns nil if not possible."
 
 (provide 'vc-git)
 
+;; arch-tag: bd10664a-0e5b-48f5-a877-6c17b135be12
 ;;; vc-git.el ends here
