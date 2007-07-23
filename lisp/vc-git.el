@@ -384,14 +384,14 @@
 	      (progn (forward-line 1) (1- (point))))))))))
 
 ;; XXX verify this is correct
-;; (defun vc-hg-delete-file (file)
+;; (defun vc-git-delete-file (file)
 ;;   (condition-case ()
 ;;       (delete-file file)
 ;;     (file-error nil))
-;;   (vc-hg-command nil 0 file "update-index" "--remove"))
+;;   (vc-git-command nil 0 file "update-index" "--remove"))
 
 ;; XXX verify this is correct
-;; (defun vc-hg-rename-file (old new)
+;; (defun vc-git-rename-file (old new)
 ;;   (vc-git-command nil 0 new old "mv"))
 
 
