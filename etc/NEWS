@@ -57,6 +57,16 @@ recenter the visited source file.  Its value can be a number (for example,
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
 
+** Minibuffer changes:
+
+*** isearch started in the minibuffer searches in the minibuffer history.
+Reverse isearch commands (C-r, C-M-r) search in previous minibuffer
+history elements, and forward isearch commands (C-s, C-M-s) search in
+next history elements.  When the reverse search reaches the first history
+element, it wraps to the last history element, and the forward search
+wraps to the first history element.  When the search is terminated, the
+history element containing the search string becomes the current.
+
 
 * New Modes and Packages in Emacs 23.1
 
