@@ -1,3 +1,9 @@
+2007-07-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc-hooks.el (vc-stay-local-p): Fix bug: Avoid remove-if-not.
+	Also, if FILE is a list, return non-nil if any of its elements
+	should stay local.  Update docstring.
+
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/copyright.el (copyright-update-year): Fix 2007-05-25 change.
