@@ -191,8 +191,20 @@
 (defun vc-git-checkout-model (file)
   'implicit)
 
-;; XXX Can't this just use the result of vc-git-state?
 (defun vc-git-workfile-unchanged-p (file)
+  ;; The reason this does not use the result of vc-git-state is that
+  ;; git-diff-index (used by vc-git-state) doesn't refresh the cached
+  ;; stat info, so if the file has been modified it will always show
+  ;; up as modified in vc-git-state, even if the change has been
+  ;; undone, until git-update-index --refresh is run.
+  
+  ;; OTOH the vc-git-workfile-unchanged-p implementation checks the
+  ;; actual content, so it will detect the case of a file reverted
+  ;; back to its original state.
+
+  ;; The ideal implementation would be to refresh the stat cache and
+  ;; then call vc-git-state, but at the moment there's no git command
+  ;; to refresh a single file, so this will have to be added first.
   (let ((sha1 (vc-git--run-command-string file "hash-object" "--"))
         (head (vc-git--run-command-string file "ls-tree" "-z" "HEAD" "--")))
     (and head
