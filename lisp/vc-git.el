@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 
-;; Author: Alexandre Julliard
+;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
@@ -101,8 +101,8 @@
 ;; - next-version (file rev)			   ??
 ;; - check-headers ()				   ??
 ;; - clear-headers ()				   ??
-;; - delete-file (file)				   COMMENTED OUT, VERIFY IF CORRECT
-;; - rename-file (old new)			   COMMENTED OUT, VERIFY IF CORRECT
+;; - delete-file (file)				   OK
+;; - rename-file (old new)			   OK
 ;; - find-file-hook ()				   PROBABLY NOT NEEDED
 ;; - find-file-not-found-hook ()                   PROBABLY NOT NEEDED
 
@@ -237,10 +237,14 @@
 
 (defun vc-git-find-version (file rev buffer)
   (let ((coding-system-for-read 'binary)
-        (coding-system-for-write 'binary))
+        (coding-system-for-write 'binary)
+	(fullname (substring
+		   (vc-git--run-command-string 
+		    file "ls-files" "-z" "--full-name" "--")
+		   0 -1)))
     (vc-git-command 
      buffer 0 
-     (concat (if rev rev "HEAD") ":" file) "cat-file" "blob")))
+     (concat (if rev rev "HEAD") ":" fullname) "cat-file" "blob")))
 
 (defun vc-git-checkout (file &optional editable rev)
   (vc-git-command nil0 file "checkout" (or rev "HEAD")))
@@ -383,16 +387,11 @@
 	      (point)
 	      (progn (forward-line 1) (1- (point))))))))))
 
-;; XXX verify this is correct
-;; (defun vc-git-delete-file (file)
-;;   (condition-case ()
-;;       (delete-file file)
-;;     (file-error nil))
-;;   (vc-git-command nil 0 file "update-index" "--remove"))
+(defun vc-git-delete-file (file)
+  (vc-git-command nil 0 file "rm" "-f" "--"))
 
-;; XXX verify this is correct
-;; (defun vc-git-rename-file (old new)
-;;   (vc-git-command nil 0 new old "mv"))
+(defun vc-git-rename-file (old new)
+  (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
 
 
 ;; Internal commands

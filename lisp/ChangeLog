@@ -1,3 +1,9 @@
+2007-07-23  Alexandre Julliard <julliard@winehq.org>
+
+	* vc-git.el (vc-git-delete-file, vc-git-rename-file): New functions.
+	(vc-git-find-version): Use the result of ls-files as a parameter
+	for cat-file
+
 2007-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-perl-file-attributes)
