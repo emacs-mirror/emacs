@@ -164,6 +164,10 @@ is non-nil if the user quit the search.")
 (defvar isearch-mode-end-hook-quit nil
   "Non-nil while running `isearch-mode-end-hook' if user quit the search.")
 
+(defvar isearch-message-function nil
+  "Function to call to display the search prompt.
+If nil, use `isearch-message'.")
+
 (defvar isearch-wrap-function nil
   "Function to call to wrap the search when search is failed.
 If nil, move point to the beginning of the buffer for a forward search,
@@ -715,7 +719,9 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	   (null executing-kbd-macro))
       (progn
         (if (not (input-pending-p))
-            (isearch-message))
+	    (if isearch-message-function
+		(funcall isearch-message-function)
+	      (isearch-message)))
         (if (and isearch-slow-terminal-mode
                  (not (or isearch-small-window
                           (pos-visible-in-window-p))))
@@ -2035,7 +2041,9 @@ Can be changed via `isearch-search-fun-function' for special needs."
 
 (defun isearch-search ()
   ;; Do the search with the current search string.
-  (isearch-message nil t)
+  (if isearch-message-function
+      (funcall isearch-message-function nil t)
+    (isearch-message nil t))
   (if (and (eq isearch-case-fold-search t) search-upper-case)
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
