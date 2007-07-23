@@ -1,3 +1,9 @@
+2007-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-8-post-read-conversion): Temporarily
+	bind utf-8-compose-scripts to nil while running *-compose-region
+	functions.
+
 2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el: Update status.
