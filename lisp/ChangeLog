@@ -1,6 +1,7 @@
 2007-07-23  Alexandre Julliard <julliard@winehq.org>
 
-	* vc-git.el (vc-git-delete-file, vc-git-rename-file): New functions.
+	* vc-git.el (vc-git-delete-file, vc-git-rename-file)
+	(vc-git-unregister): New functions.
 	(vc-git-find-version): Use the result of ls-files as a parameter
 	for cat-file
 

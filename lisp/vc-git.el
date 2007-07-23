@@ -66,7 +66,7 @@
 ;; - responsible-p (file)			   OK
 ;; - could-register (file)			   NEEDED
 ;; - receive-file (file rev)			   ??
-;; - unregister (file)				   NEEDED
+;; - unregister (file)				   OK
 ;; * checkin (files rev comment)		   OK
 ;; * find-version (file rev buffer)		   OK
 ;; * checkout (file &optional editable rev)	   OK
@@ -230,6 +230,10 @@
   (vc-git-command nil 0 files "update-index" "--add" "--"))
 
 (defalias 'vc-git-responsible-p 'vc-git-root)
+
+(defun vc-git-unregister (file)
+  (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
+  
 
 (defun vc-git-checkin (files rev comment)
   (let ((coding-system-for-write git-commits-coding-system))
