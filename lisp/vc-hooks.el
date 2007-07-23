@@ -159,9 +159,11 @@ by these regular expressions."
 
 (defun vc-stay-local-p (file)
   "Return non-nil if VC should stay local when handling FILE.
-This uses the `repository-hostname' backend operation."
+This uses the `repository-hostname' backend operation.
+If FILE is a list of files, return non-nil if any of them
+individually should stay local."
   (if (listp file)
-      (if (remove-if-not (lambda (x) (not (vc-stay-local-p x))) file) 'no 'yes)
+      (delq nil (mapcar 'vc-stay-local-p file))
     (let* ((backend (vc-backend file))
 	   (sym (vc-make-backend-sym backend 'stay-local))
 	   (stay-local (if (boundp sym) (symbol-value sym) t)))
@@ -732,7 +734,7 @@ visiting FILE."
 		 (propertize
 		  ml-string
 		  'mouse-face 'mode-line-highlight
-		  'help-echo 
+		  'help-echo
 		  (concat (if ml-echo
 			      ml-echo
 			    (format "File under the %s version control system"
@@ -787,7 +789,7 @@ This function assumes that the file is registered."
 	    ;; for 'needs-patch and 'needs-merge.
 	    (setq state-echo "Locally modified file")
 	    (concat backend ":" rev)))
-     'help-echo (concat state-echo " under the " backend 
+     'help-echo (concat state-echo " under the " backend
 			" version control system"))))
 
 (defun vc-follow-link ()
