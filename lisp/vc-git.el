@@ -61,13 +61,13 @@
 ;; - dired-state-info (file)			   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()				   OK
-;; * register (files &optional rev comment)	   PORT TO NEW VC INTERFACE
+;; * register (files &optional rev comment)	   OK
 ;; - init-version (file)			   ??
 ;; - responsible-p (file)			   OK
 ;; - could-register (file)			   NEEDED
 ;; - receive-file (file rev)			   ??
 ;; - unregister (file)				   NEEDED
-;; * checkin (files rev comment)		   PORT TO NEW VC INTERFACE
+;; * checkin (files rev comment)		   OK
 ;; * find-version (file rev buffer)		   NEEDED!
 ;; * checkout (file &optional editable rev)	   OK
 ;; * revert (file &optional contents-done)	   OK
@@ -76,7 +76,7 @@
 ;; - merge-news (file)				   NEEDED
 ;; - steal-lock (file &optional version)	   NOT NEEDED
 ;; HISTORY FUNCTIONS
-;; * print-log (files &optional buffer)		   PORT TO NEW VC INTERFACE
+;; * print-log (files &optional buffer)		   OK
 ;; - log-view-mode ()				   OK
 ;; - show-log-entry (version)			   NOT NEEDED, DEFAULT IS GOOD
 ;; - wash-log (file)				   ??

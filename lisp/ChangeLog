@@ -1,3 +1,7 @@
+2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el: Update status.
+
 2007-07-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* bindings.el (mode-line-remote): New variable.
