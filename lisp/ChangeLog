@@ -1,5 +1,11 @@
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el: (sh-font-lock-backslash-quote)
+	(sh-font-lock-flush-syntax-ppss-cache): New funs.
+	(sh-font-lock-syntactic-keywords): Use them to distinguish the
+	different possible cases for \'.
+	(sh-font-lock-paren): Mark the relevant text with font-lock-multiline.
+
 	* vc-hooks.el (vc-find-root): Walk up the tree to find an existing
 	`file' from which to start the search and fix case where `file' is the
 	current directory and the root as well.

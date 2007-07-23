@@ -171,10 +171,6 @@
 ;; disadvantages:
 ;; 1. We need to scan the buffer to find which ")" symbols belong to a
 ;;    case alternative, to find any here documents, and handle "$#".
-;; 2. Setting the text property makes the buffer modified.  If the
-;;    buffer is read-only buffer we have to cheat and bypass the read-only
-;;    status.  This is for cases where the buffer started read-only buffer
-;;    but the user issued `toggle-read-only'.
 ;;
 ;; 	Bugs
 ;; 	----
@@ -182,6 +178,16 @@
 ;;   independently, rather than saving state information.
 ;;
 ;; - `sh-learn-buffer-indent' is extremely slow.
+;;
+;; - "case $x in y) echo ;; esac)" the last ) is mis-identified as being
+;;   part of a case-pattern.  You need to add a semi-colon after "esac" to
+;;   coerce sh-script into doing the right thing.
+;;
+;; - "echo $z in ps | head)" the last ) is mis-identified as being part of
+;;   a case-pattern.  You need to put the "in" between quotes to coerce
+;;   sh-script into doing the right thing.
+;;
+;; - A line starting with "}>foo" is not indented like "} >foo".
 ;;
 ;; Richard Sharman <rsharman@pobox.com>  June 1999.
 
@@ -884,7 +890,7 @@ See `sh-feature'.")
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
 (defconst sh-escaped-line-re
-  ;; Should match until the real end-of-continued line, but if that is not
+  ;; Should match until the real end-of-continued-line, but if that is not
   ;; possible (because we bump into EOB or the search bound), then we should
   ;; match until the search bound.
   "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
@@ -1059,8 +1065,32 @@ subshells can nest."
             (backward-char 1))
 	  (when (eq (char-before) ?|)
 	    (backward-char 1) t)))
-    (when (save-excursion (backward-char 2) (looking-at ";;\\|in"))
+    ;; FIXME: ";; esac )" is a case that looks like a case-pattern but it's
+    ;; really just a close paren after a case statement.  I.e. if we skipped
+    ;; over `esac' just now, we're not looking at a case-pattern.
+    (when (progn (backward-char 2)
+                 (if (> start (line-end-position))
+                     (put-text-property (point) (1+ start)
+                                        'font-lock-multiline t))
+                 ;; FIXME: The `in' may just be a random argument to
+                 ;; a normal command rather than the real `in' keyword.
+                 ;; I.e. we should look back to try and find the
+                 ;; corresponding `case'.
+                 (looking-at ";;\\|in"))
       sh-st-punc)))
+
+(defun sh-font-lock-backslash-quote ()
+  (if (eq (save-excursion (nth 3 (syntax-ppss (match-beginning 0)))) ?\')
+      ;; In a '...' the backslash is not escaping.
+      sh-st-punc
+    nil))
+
+(defun sh-font-lock-flush-syntax-ppss-cache (limit)
+  ;; This should probably be a standard function provided by font-lock.el
+  ;; (or syntax.el).
+  (syntax-ppss-flush-cache (point))
+  (goto-char limit)
+  nil)
 
 (defun sh-apply-quoted-subshell ()
   "Apply the `sh-st-punc' syntax to all the matches in `match-data'.
@@ -1080,7 +1110,11 @@ This is used to flag quote characters in subshell constructs inside strings
   ;; of the shell command language (under `quoting') but with `$' removed.
   `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
     ;; In a '...' the backslash is not escaping.
-    ("\\(\\\\\\)'" 1 ,sh-st-punc)
+    ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
+    ;; The previous rule uses syntax-ppss, but the subsequent rules may
+    ;; change the syntax, so we have to tell syntax-ppss that the states it
+    ;; has just computed will need to be recomputed.
+    (sh-font-lock-flush-syntax-ppss-cache)
     ;; Make sure $@ and @? are correctly recognized as sexps.
     ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
