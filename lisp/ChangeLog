@@ -1,3 +1,11 @@
+2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-checkin): Delete unused parameter and the code
+	handling it. Use vc-git-command.
+	(vc-git-find-version, vc-git-diff-tree): New functions.
+	(vc-git-revert): Use vc-git-command.
+	(vc-git--run-command): Delete.
+
 2007-07-23  Alexandre Julliard <julliard@winehq.org>
 
 	* vc-git.el (vc-git-workfile-unchanged-p): Update comment.

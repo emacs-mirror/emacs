@@ -68,10 +68,10 @@
 ;; - receive-file (file rev)			   ??
 ;; - unregister (file)				   NEEDED
 ;; * checkin (files rev comment)		   OK
-;; * find-version (file rev buffer)		   NEEDED!
+;; * find-version (file rev buffer)		   OK
 ;; * checkout (file &optional editable rev)	   OK
 ;; * revert (file &optional contents-done)	   OK
-;; - rollback (files)				   NEEDED
+;; - rollback (files)				   ?? PROBABLY NOT NEEDED
 ;; - merge (file rev1 rev2)			   NEEDED
 ;; - merge-news (file)				   NEEDED
 ;; - steal-lock (file &optional version)	   NOT NEEDED
@@ -85,7 +85,7 @@
 ;; - update-changelog (files)			   ??
 ;; * diff (file &optional rev1 rev2 buffer)	   PORT TO NEW VC INTERFACE
 ;; - revision-completion-table (file)		   NEEDED?
-;; - diff-tree (dir &optional rev1 rev2)	   NEEDED
+;; - diff-tree (dir &optional rev1 rev2)	   OK
 ;; - annotate-command (file buf &optional rev)	   OK
 ;; - annotate-time ()				   OK
 ;; - annotate-current-time ()			   ?? NOT NEEDED
@@ -101,12 +101,12 @@
 ;; - next-version (file rev)			   ??
 ;; - check-headers ()				   ??
 ;; - clear-headers ()				   ??
-;; - delete-file (file)				   NEEDED
-;; - rename-file (old new)			   NEEDED
+;; - delete-file (file)				   COMMENTED OUT, VERIFY IF CORRECT
+;; - rename-file (old new)			   COMMENTED OUT, VERIFY IF CORRECT
 ;; - find-file-hook ()				   PROBABLY NOT NEEDED
 ;; - find-file-not-found-hook ()                   PROBABLY NOT NEEDED
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl) (require 'vc))
 
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
@@ -235,23 +235,21 @@
   (let ((coding-system-for-write git-commits-coding-system))
     (vc-git-command nil 0 files "commit" "-m" comment "--only" "--")))
 
-(defun vc-git-checkout (file &optional editable rev destfile)
-  (if destfile
-      (let ((fullname (substring
-                       (vc-git--run-command-string file "ls-files" "-z" "--full-name" "--")
-                       0 -1))
-            (coding-system-for-read 'no-conversion)
-            (coding-system-for-write 'no-conversion))
-        (with-temp-file destfile
-          (eq 0 (call-process "git" nil t nil "cat-file" "blob"
-                              (concat (or rev "HEAD") ":" fullname)))))
-    (vc-git--run-command file "checkout" (or rev "HEAD"))))
+(defun vc-git-find-version (file rev buffer)
+  (let ((coding-system-for-read 'binary)
+        (coding-system-for-write 'binary))
+    (vc-git-command 
+     buffer 0 
+     (concat (if rev rev "HEAD") ":" file) "cat-file" "blob")))
+
+(defun vc-git-checkout (file &optional editable rev)
+  (vc-git-command nil0 file "checkout" (or rev "HEAD")))
 
 (defun vc-git-revert (file &optional contents-done)
   "Revert FILE to the version stored in the git repository."
   (if contents-done
-      (vc-git--run-command file "update-index" "--")
-    (vc-git--run-command file "checkout" "HEAD")))
+      (vc-git-command nil 0 file "update-index" "--")
+    (vc-git-command nil 0 file "checkout" "HEAD")))
 
 ;;; HISTORY FUNCTIONS
 
@@ -313,6 +311,9 @@
       (vc-git-command buf 0 name "diff-index" "-p" (or rev1 "HEAD") "--"))
     ;; git-diff-index doesn't set exit status like diff does
     (if (vc-git-workfile-unchanged-p file) 0 1)))
+
+(defun vc-git-diff-tree (dir &optional rev1 rev2)
+  (vc-git-diff dir rev1 rev2))
 
 (defun vc-git-annotate-command (file buf &optional rev)
   ;; FIXME: rev is ignored
@@ -382,6 +383,17 @@
 	      (point)
 	      (progn (forward-line 1) (1- (point))))))))))
 
+;; XXX verify this is correct
+;; (defun vc-hg-delete-file (file)
+;;   (condition-case ()
+;;       (delete-file file)
+;;     (file-error nil))
+;;   (vc-hg-command nil 0 file "update-index" "--remove"))
+
+;; XXX verify this is correct
+;; (defun vc-hg-rename-file (old new)
+;;   (vc-git-command nil 0 new old "mv"))
+
 
 ;; Internal commands
 
@@ -402,11 +414,6 @@ The difference to vc-do-command is that this function always invokes `git'."
                                        (append args (list (file-relative-name file)))))
                     (setq ok nil))))))
     (and ok str)))
-
-(defun vc-git--run-command (file &rest args)
-  "Run a git command on FILE, discarding any output."
-  (let ((name (file-relative-name file)))
-    (eq 0 (apply #'call-process "git" nil (get-buffer "*Messages") nil (append args (list name))))))
 
 (defun vc-git-symbolic-commit (commit)
   "Translate COMMIT string into symbolic form.
