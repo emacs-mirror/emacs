@@ -1,3 +1,8 @@
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-mode-line-map): New const.
+	(vc-mode-line): Use it.
+
 2007-07-23  Alexandre Julliard <julliard@winehq.org>
 
 	* vc-git.el (vc-git-delete-file, vc-git-rename-file)
@@ -39,7 +44,8 @@
 
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/copyright.el (copyright-update-year): Fix 2007-05-25 change.
+	* emacs-lisp/copyright.el (copyright-update-year): Fix 2007-05-25
+	change by reverting a small part.
 
 2007-07-23  Richard Stallman  <rms@gnu.org>
 
@@ -59,9 +65,9 @@
 
 2007-07-20  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (utf-8-post-read-conversion): Temporarily
-	bind utf-8-compose-scripts to nil while running *-compose-region
-	functions.
+	* international/utf-8.el (utf-8-post-read-conversion):
+	Temporarily bind utf-8-compose-scripts to nil while running
+	*-compose-region functions.
 
 2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 

@@ -716,34 +716,35 @@ Before doing that, check if there are any old backups and get rid of them."
 	     ;; any VC Dired buffer to synchronize.
 	     (vc-dired-resynch-file file)))))
 
+(defconst vc-mode-line-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] 'vc-menu-map)
+    map))
+
 (defun vc-mode-line (file)
   "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name))
-  (let ((backend (vc-backend file))
-	ml-string ml-echo)
+  (let ((backend (vc-backend file)))
     (if (not backend)
 	(setq vc-mode nil)
-      (setq ml-string (vc-call mode-line-string file))
-      (setq ml-echo (get-text-property 0 'help-echo ml-string))
-      (setq vc-mode
-	    (concat
-	     " "
-	     (if vc-display-status
-		 (propertize
-		  ml-string
-		  'mouse-face 'mode-line-highlight
-		  'help-echo
-		  (concat (if ml-echo
-			      ml-echo
-			    (format "File under the %s version control system"
-				    backend))
-			  "\nmouse-1: Version Control menu")
-		  'local-map (let ((map (make-sparse-keymap)))
-			       (define-key map [mode-line down-mouse-1]
-				 'vc-menu-map) map))
-	       (symbol-name backend))))
+      (let* ((ml-string (vc-call mode-line-string file))
+             (ml-echo (get-text-property 0 'help-echo ml-string)))
+        (setq vc-mode
+              (concat
+               " "
+               (if (null vc-display-status)
+                   (symbol-name backend)
+                 (propertize
+                  ml-string
+                  'mouse-face 'mode-line-highlight
+                  'help-echo 
+                  (concat (or ml-echo
+                              (format "File under the %s version control system"
+                                      backend))
+                          "\nmouse-1: Version Control menu")
+                  'local-map vc-mode-line-map)))))
       ;; If the file is locked by some other user, make
       ;; the buffer read-only.  Like this, even root
       ;; cannot modify a file that someone else has locked.
