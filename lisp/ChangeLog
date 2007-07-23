@@ -1,3 +1,8 @@
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
+	underlying file is uptodate.
+
 2007-07-23  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/octave-inf.el (inferior-octave-prompt): Accept .exe.
