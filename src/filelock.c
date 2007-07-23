@@ -468,8 +468,8 @@ current_lock_owner (owner, lfname)
     }
 
   /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return -1.  */
-  /* The USER is everything before the first @.  */
-  at = index (lfinfo, '@');
+  /* The USER is everything before the last @.  */
+  at = rindex (lfinfo, '@');
   dot = rindex (lfinfo, '.');
   if (!at || !dot)
     {
