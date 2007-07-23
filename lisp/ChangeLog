@@ -59,8 +59,8 @@
 
 2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-git.el (vc-git-revision-granularity,vc-git-root),
-	(vc-git-command,vc-git-dir-state,vc-git-dired-state-info),
+	* vc-git.el (vc-git-revision-granularity, vc-git-root)
+	(vc-git-command, vc-git-dir-state, vc-git-dired-state-info)
 	(vc-git-create-repo): New functions.
 	(vc-git-registered): New autoloaded function definition.
 	(vc-git-registered): Use vc-git-root.
@@ -68,7 +68,7 @@
 	(vc-git-annotate-extract-revision-at-line): Uncomment.
 	(vc-git-print-log): Add the file name to the log.
 	(vc-git-log-view-mode): New derived mode.
-	(vc-git-diff,vc-git-annotate-command): Use vc-git-command.
+	(vc-git-diff, vc-git-annotate-command): Use vc-git-command.
 
 2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -110,7 +110,7 @@
 
 2007-07-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* startup.el (command-line-x-option-alist): Use x-handle-no-bitmap-icon,
+	* startup.el (command-line-x-option-alist): Use x-handle-no-bitmap-icon.
 
 	* term/x-win.el (x-handle-no-bitmap-icon): New function.
 
@@ -162,8 +162,9 @@
 2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* add-log.el (add-log-file-name): Use file-relative-name.
-	(add-change-log-entry): Delay reading add-log-(full-name|mailing-address)
-	to after we've switched to the ChangeLog buffer so we get the right value.
+	(add-change-log-entry): Delay reading
+	add-log-(full-name|mailing-address) to after we've switched to the
+	ChangeLog buffer so we get the right value.
 	(add-change-log-entry, add-log-current-defun, change-log-merge):
 	Use derived-mode-p rather than checking major-mode directly.
 
