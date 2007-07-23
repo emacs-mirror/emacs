@@ -114,7 +114,8 @@
 ;; XXX when this backend is considered sufficiently reliable this
 ;; should be moved to vc-hooks.el
 (add-to-list 'vc-handled-backends 'GIT)
-(add-to-list 'vc-directory-exclusion-list ".git" t)
+(eval-after-load "vc"
+  '(add-to-list 'vc-directory-exclusion-list ".bzr" t))
 
 ;;; BACKEND PROPERTIES
 
