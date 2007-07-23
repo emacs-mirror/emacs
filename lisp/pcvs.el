@@ -2207,6 +2207,10 @@ With prefix argument, prompt for cvs flags."
   (dolist (fi (cvs-mode-marked nil nil))
     (let* ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
 	   (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
+      (if (file-directory-p buffer-file-name)
+          ;; Be careful to use a directory name, otherwise add-log starts
+          ;; looking for a ChangeLog file in the parent dir.
+          (setq buffer-file-name (file-name-as-directory buffer-file-name)))
       (kill-local-variable 'change-log-default-name)
       (save-excursion (add-change-log-entry-other-window)))))
 

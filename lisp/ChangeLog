@@ -1,3 +1,8 @@
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use a directory
+	name for buffer-file-name if it refers to a directory.
+
 2007-07-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (set-default-process-coding-system): Use dos line ends
@@ -51,8 +56,7 @@
 	(vc-hg-next-version, vc-hg-delete-file, vc-hg-rename-file)
 	(vc-hg-register, vc-hg-create-repo, vc-hg-checkin)
 	(vc-hg-revert): Likewise.
-	(vc-hg-revision-table, vc-hg-revision-completion-table): New
-	functions.
+	(vc-hg-revision-table, vc-hg-revision-completion-table): New functions.
 
 2007-07-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
@@ -186,8 +190,8 @@
 
 	* longlines.el (longlines-wrap-region): Avoid marking buffer as
 	modified.
-	(longlines-auto-wrap, longlines-window-change-function): Remove
-	unnecessary calls to set-buffer-modified-p.
+	(longlines-auto-wrap, longlines-window-change-function):
+	Remove unnecessary calls to set-buffer-modified-p.
 
 2007-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -496,8 +500,8 @@
 	* calendar/timeclock.el: Update version number.
 	(timeclock-modeline-display): Mention timeclock-use-display-time
 	in explanatory message.
-	(timeclock-log): Suppress warnings when finding the log.  Don't
-	check for a nil project twice.  Run hooks after killing the
+	(timeclock-log): Suppress warnings when finding the log.
+	Don't check for a nil project twice.  Run hooks after killing the
 	buffer (if applicable).
 	(timeclock-geometric-mean): Rename to `timeclock-mean' (it never
 	was geometric).  All uses changed.
@@ -515,8 +519,8 @@
 
 2007-06-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* mail/mail-extr.el (mail-extract-address-components): Recognize
-	non-ASCII characters except for NBSP as words.
+	* mail/mail-extr.el (mail-extract-address-components):
+	Recognize non-ASCII characters except for NBSP as words.
 
 2007-06-04  Ryan Yeske  <rcyeske@gmail.com>
 
@@ -544,8 +548,7 @@
 	* files.el (magic-mode-alist): Remove image-type-auto-detected-p.
 	(magic-fallback-mode-alist): Add image-type-auto-detected-p.
 
-	* image.el (image-type-auto-detected-p): Don't scan
-	auto-mode-alist.
+	* image.el (image-type-auto-detected-p): Don't scan auto-mode-alist.
 
 	* longlines.el (longlines-mode): Make longlines-auto-wrap
 	buffer-local.  Add hooks unconditionally.
@@ -569,8 +572,8 @@
 2007-05-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/table.el (table--point-entered-cell-function)
-	(table--point-left-cell-function): Bind
-	`inhibit-point-motion-hooks' to t.
+	(table--point-left-cell-function):
+	Bind `inhibit-point-motion-hooks' to t.
 
 2007-05-29  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
 
