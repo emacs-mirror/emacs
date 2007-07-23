@@ -1,5 +1,9 @@
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-hooks.el (vc-find-root): Walk up the tree to find an existing
+	`file' from which to start the search and fix case where `file' is the
+	current directory and the root as well.
+
 	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use a directory
 	name for buffer-file-name if it refers to a directory.
 
