@@ -1,3 +1,11 @@
+2007-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* processes.texi (Synchronous Processes): Add
+	`process-file-shell-command',
+	(Asynchronous Processes): Mention restricted use of
+	`process-filter' and `process-sentinel' in
+	`start-file-process'.  Add `start-file-process-shell-command'.
+
 2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Introduce optional parameter

@@ -432,6 +432,12 @@ arguments to add at the end of @var{command}.  The other arguments
 are handled as in @code{call-process}.
 @end defun
 
+@defun process-file-shell-command command &optional infile destination display &rest args
+This function is like @code{call-process-shell-command}, but uses
+@code{process-file} internally.  Depending on @code{default-directory},
+@var{command} can be executed also on remote hosts.
+@end defun
+
 @defun shell-command-to-string command
 This function executes @var{command} (a string) as a shell command,
 then returns the command's output as a string.
@@ -508,6 +514,10 @@ identified by @code{default-directory}.  The local part of
 @var{program} and @var{program-args} might be file names.  They are not
 objects of file handler invocation.
 
+Depending on the implementation of the file handler, it might not be
+possible to apply @code{process-filter} or @code{process-sentinel} to
+the resulting process object (@pxref{Filter Functions}, @pxref{Sentinels}).
+
 Some file handlers may not support @code{start-file-process} (for
 example @code{ange-ftp-hook-function}).  It returns then @code{nil}.
 @end defun
@@ -526,6 +536,12 @@ arbitrary user-specified arguments in the command, you should quote it
 with @code{shell-quote-argument} first, so that any special shell
 characters do @emph{not} have their special shell meanings.  @xref{Shell
 Arguments}.
+@end defun
+
+@defun start-file-process-shell-command name buffer-or-name command &rest command-args
+This function is like @code{start-process-shell-command}, but uses
+@code{start-file-process} internally.  By this, @var{command} can be
+executed also on remote hosts, depending on @code{default-directory}.
 @end defun
 
 @defvar process-connection-type
