@@ -1,3 +1,7 @@
+2007-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer): Disable undo in temp buffers.
+
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
