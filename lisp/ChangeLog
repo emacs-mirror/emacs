@@ -1,6 +1,6 @@
 2007-07-24  Alan Mackenzie  <acm@muc.de>
 
-	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): initialise
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Initialise
 	byte-compile-unresolved-functions before rather than after a
 	compilation.
 	(byte-compile-unresolved-functions): Amplify doc string.
@@ -40,8 +40,8 @@
 	modernization, including using dotimes rather than
 	calendar-for-loop.
 	(cal-tex-LaTeX-subst-list): Remove `@'.
-	(cal-tex-em, cal-tex-bf, cal-tex-Huge-bf, cal-tex-large-bf): Use
-	\textit and \textbf rather than \em and \it.
+	(cal-tex-em, cal-tex-bf, cal-tex-Huge-bf, cal-tex-large-bf):
+	Use \textit and \textbf rather than \em and \it.
 
 	* calendar/cal-bahai.el (list-bahai-diary-entries)
 	* calendar/cal-hebrew.el (list-hebrew-diary-entries)
@@ -68,12 +68,12 @@
 	* vc-hooks.el (vc-mode-line-map): New const.
 	(vc-mode-line): Use it.
 
-2007-07-23  Alexandre Julliard <julliard@winehq.org>
+2007-07-23  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-delete-file, vc-git-rename-file)
 	(vc-git-unregister): New functions.
 	(vc-git-find-version): Use the result of ls-files as a parameter
-	for cat-file
+	for cat-file.
 
 2007-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -119,12 +119,12 @@
 2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-checkin): Delete unused parameter and the code
-	handling it. Use vc-git-command.
+	handling it.  Use vc-git-command.
 	(vc-git-find-version, vc-git-diff-tree): New functions.
 	(vc-git-revert): Use vc-git-command.
 	(vc-git--run-command): Delete.
 
-2007-07-23  Alexandre Julliard <julliard@winehq.org>
+2007-07-23  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-workfile-unchanged-p): Update comment.
 
@@ -211,7 +211,7 @@
 	(reftex-access-parse-file): Do not risk destroying an existing
 	buffer.
 
-2007-07-22  Alexandre Julliard <julliard@winehq.org>
+2007-07-22  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el: New file.
 
@@ -226,7 +226,7 @@
 
 	* vc-hooks.el (vc-default-mode-line-string): Move mouse-face and
 	local-map handling ...
-	(vc-mode-line): ... here. Improve handling of help-echo.
+	(vc-mode-line): ... here.  Improve handling of help-echo.
 
 	* vc.el (mode-line-string): Document help-echo usage.
 
@@ -248,8 +248,8 @@
 
 	* add-log.el (change-log-fill-parenthesized-list): New function.
 	(change-log-indent): Call change-log-fill-parenthesized-list.
-	(change-log-fill-paragraph): Bind fill-indent-according-to-mode to
-	t.  Have lines with leading asterisk start a paragraph.
+	(change-log-fill-paragraph): Bind fill-indent-according-to-mode to t.
+	Have lines with leading asterisk start a paragraph.
 
 2007-07-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -593,8 +593,7 @@
 
 	* replace.el (match): Use yellow1 instead of yellow.
 
-	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
-	red.
+	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of red.
 
 	* pcvs-info.el (cvs-unknown): Likewise.
 
@@ -603,7 +602,7 @@
 	* makefile.w32-in (install-lisp-SH, install-lisp-CMD): New targets.
 	(install): Use them to copy all *.el files before *.elc.
 
-2007-07-13  Drew Adams <drew.adams@oracle.com>
+2007-07-13  Drew Adams  <drew.adams@oracle.com>
 
 	* bookmark.el (bookmark-jump-other-window): New function.
 	(bookmark-map): Bind it to "o".
@@ -1755,7 +1754,7 @@
 2007-06-13  Ryan Yeske  <rcyeske@gmail.com>
 
 	* rcirc.el (rcirc-format-response-string): Use rcirc-nick-syntax
-	around bright and dim regexps. Make sure bright and dim matches
+	around bright and dim regexps.  Make sure bright and dim matches
 	use word anchors.  Send text through rcirc-markup functions.
 	(rcirc-url-regexp): Add single quote character.
 	(rcirc-connect): Write logs to disk on auto-save-hook.
@@ -1776,7 +1775,7 @@
 	(rcirc-handler-CTCP): Don't print KEEPALIVE responses.
 	(rcirc-omit-mode): Add minor-mode.
 	(rcirc-mode-map): Change C-c C-o binding.
-	(rcirc-mode): Clear mode-line-process. Use a custom
+	(rcirc-mode): Clear mode-line-process.  Use a custom
 	fill-paragraph-function.  Set up buffer-invisibility-spec.
 	(rcirc-response-formats): Remove timestamp code.
 	(rcirc-omit-responses): Add variable.
@@ -1913,7 +1912,7 @@
 	(ediff-verbose-help-enabled): New variable.
 	(ediff-toggle-verbose-help-meta-buffer): New function.
 	(ediff-redraw-directory-group-buffer): Made aware of short/verbose
-	message options
+	message options.
 
 	* ediff-ptch.el (ediff-context-diff-label-regexp): Better regexp.
 	(ediff-fixup-patch-map): Improve heuristic.
