@@ -461,95 +461,94 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                     (set (make-local-variable 'diary-selective-display) t)
                     (overlay-put ol 'invisible 'diary)
                     (overlay-put ol 'evaporate t)))
-                (calendar-for-loop
-                 i from 1 to number do
-                 (let ((month (extract-calendar-month date))
-                       (day (extract-calendar-day date))
-                       (year (extract-calendar-year date))
-                       (entry-found (list-sexp-diary-entries date)))
-                   (dolist (date-form diary-date-forms)
-                     (let*
-                         ((backup (when (eq (car date-form) 'backup)
-                                    (setq date-form (cdr date-form))
-                                    t))
-                          (dayname
-                           (format "%s\\|%s\\.?"
-                                   (calendar-day-name date)
-                                   (calendar-day-name date 'abbrev)))
-                          (monthname
-                           (format "\\*\\|%s\\|%s\\.?"
-                                   (calendar-month-name month)
-                                   (calendar-month-name month 'abbrev)))
-                          (month (concat "\\*\\|0*" (int-to-string month)))
-                          (day (concat "\\*\\|0*" (int-to-string day)))
-                          (year
-                           (concat
-                            "\\*\\|0*" (int-to-string year)
-                            (if abbreviated-calendar-year
-                                (concat "\\|" (format "%02d" (% year 100)))
-                              "")))
-                          (regexp
-                           (concat
-                            "\\(\\`\\|\^M\\|\n\\)" mark "?\\("
-                            (mapconcat 'eval date-form "\\)\\(?:")
-                            "\\)"))
-                          (case-fold-search t))
-                       (goto-char (point-min))
-                       (while (re-search-forward regexp nil t)
-                         (if backup (re-search-backward "\\<" nil t))
-                         (if (and (or (char-equal (preceding-char) ?\^M)
-                                      (char-equal (preceding-char) ?\n))
-                                  (not (looking-at " \\|\^I")))
-                             ;;  Diary entry that consists only of date.
-                             (backward-char 1)
-                           ;; Found a nonempty diary entry--make it
-                           ;; visible and add it to the list.
-                           (setq entry-found t)
-                           (let ((entry-start (point))
-                                 date-start temp)
-                             (re-search-backward "\^M\\|\n\\|\\`")
-                             (setq date-start (point))
-                             ;; When selective display (rather than
-                             ;; overlays) was used, diary file used to
-                             ;; start in a blank line and end in a
-                             ;; newline. Now that neither of these
-                             ;; need be true, 'move handles the latter
-                             ;; and 1/2 kludge the former.
-                             (re-search-forward
-                              "\^M\\|\n" nil 'move
-                              (if (and (bobp) (not (looking-at "\^M\\|\n")))
-                                  1
-                                2))
-                             (while (looking-at " \\|\^I")
-                               (re-search-forward "\^M\\|\n" nil 'move))
-                             (unless (and (eobp) (not (bolp)))
-                               (backward-char 1))
-                             (unless list-only
-                               (remove-overlays date-start (point)
-                                                'invisible 'diary))
-                             (setq entry (buffer-substring entry-start (point))
-                                   temp (diary-pull-attrs entry file-glob-attrs)
-                                   entry (nth 0 temp))
-                             (add-to-diary-list
-                              date
-                              entry
-                              (buffer-substring
-                               (1+ date-start) (1- entry-start))
-                              (copy-marker entry-start) (nth 1 temp)))))))
-                   (or entry-found
-                       (not diary-list-include-blanks)
-                       (add-to-diary-list date "" "" "" ""))
-                   (setq date
-                         (calendar-gregorian-from-absolute
-                          (1+ (calendar-absolute-from-gregorian date))))
-                   (setq entry-found nil)))))
+                (dotimes (idummy number)
+                  (let ((month (extract-calendar-month date))
+                        (day (extract-calendar-day date))
+                        (year (extract-calendar-year date))
+                        (entry-found (list-sexp-diary-entries date)))
+                    (dolist (date-form diary-date-forms)
+                      (let*
+                          ((backup (when (eq (car date-form) 'backup)
+                                     (setq date-form (cdr date-form))
+                                     t))
+                           (dayname
+                            (format "%s\\|%s\\.?"
+                                    (calendar-day-name date)
+                                    (calendar-day-name date 'abbrev)))
+                           (monthname
+                            (format "\\*\\|%s\\|%s\\.?"
+                                    (calendar-month-name month)
+                                    (calendar-month-name month 'abbrev)))
+                           (month (concat "\\*\\|0*" (int-to-string month)))
+                           (day (concat "\\*\\|0*" (int-to-string day)))
+                           (year
+                            (concat
+                             "\\*\\|0*" (int-to-string year)
+                             (if abbreviated-calendar-year
+                                 (concat "\\|" (format "%02d" (% year 100)))
+                               "")))
+                           (regexp
+                            (concat
+                             "\\(\\`\\|\^M\\|\n\\)" mark "?\\("
+                             (mapconcat 'eval date-form "\\)\\(?:")
+                             "\\)"))
+                           (case-fold-search t))
+                        (goto-char (point-min))
+                        (while (re-search-forward regexp nil t)
+                          (if backup (re-search-backward "\\<" nil t))
+                          (if (and (or (char-equal (preceding-char) ?\^M)
+                                       (char-equal (preceding-char) ?\n))
+                                   (not (looking-at " \\|\^I")))
+                              ;;  Diary entry that consists only of date.
+                              (backward-char 1)
+                            ;; Found a nonempty diary entry--make it
+                            ;; visible and add it to the list.
+                            (setq entry-found t)
+                            (let ((entry-start (point))
+                                  date-start temp)
+                              (re-search-backward "\^M\\|\n\\|\\`")
+                              (setq date-start (point))
+                              ;; When selective display (rather than
+                              ;; overlays) was used, diary file used to
+                              ;; start in a blank line and end in a
+                              ;; newline. Now that neither of these
+                              ;; need be true, 'move handles the latter
+                              ;; and 1/2 kludge the former.
+                              (re-search-forward
+                               "\^M\\|\n" nil 'move
+                               (if (and (bobp) (not (looking-at "\^M\\|\n")))
+                                   1
+                                 2))
+                              (while (looking-at " \\|\^I")
+                                (re-search-forward "\^M\\|\n" nil 'move))
+                              (unless (and (eobp) (not (bolp)))
+                                (backward-char 1))
+                              (unless list-only
+                                (remove-overlays date-start (point)
+                                                 'invisible 'diary))
+                              (setq entry (buffer-substring entry-start (point))
+                                    temp (diary-pull-attrs entry file-glob-attrs)
+                                    entry (nth 0 temp))
+                              (add-to-diary-list
+                               date
+                               entry
+                               (buffer-substring
+                                (1+ date-start) (1- entry-start))
+                               (copy-marker entry-start) (nth 1 temp)))))))
+                    (or entry-found
+                        (not diary-list-include-blanks)
+                        (add-to-diary-list date "" "" "" ""))
+                    (setq date
+                          (calendar-gregorian-from-absolute
+                           (1+ (calendar-absolute-from-gregorian date))))
+                    (setq entry-found nil)))))
             (goto-char (point-min))
             (run-hooks 'nongregorian-diary-listing-hook
                        'list-diary-entries-hook)
             (unless list-only
               (if diary-display-hook
-                  (run-hooks 'diary-display-hook)
-                (simple-diary-display)))
+              (run-hooks 'diary-display-hook)
+              (simple-diary-display)))
             (run-hooks 'diary-hook)
             diary-entries-list))))))
 
@@ -1190,9 +1189,9 @@ A value of 0 in any position is a wildcard."
     (let ((m displayed-month)
           (y displayed-year))
       (increment-calendar-month m y -1)
-      (calendar-for-loop i from 0 to 2 do
-          (mark-calendar-month m y month day year color)
-          (increment-calendar-month m y 1)))))
+      (dotimes (idummy 3)
+        (mark-calendar-month m y month day year color)
+        (increment-calendar-month m y 1)))))
 
 (defun mark-calendar-month (month year p-month p-day p-year &optional color)
   "Mark dates in the MONTH/YEAR that conform to pattern P-MONTH/P_DAY/P-YEAR.
