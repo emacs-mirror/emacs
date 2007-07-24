@@ -436,20 +436,21 @@ x_real_positions (f, xptr, yptr)
   POINT pt;
   RECT rect;
 
-  GetClientRect(FRAME_W32_WINDOW(f), &rect);
-  AdjustWindowRect(&rect, f->output_data.w32->dwStyle, FRAME_EXTERNAL_MENU_BAR(f));
+  /* Get the bounds of the WM window.  */
+  GetWindowRect (FRAME_W32_WINDOW (f), &rect);
 
-  pt.x = rect.left;
-  pt.y = rect.top;
+  pt.x = 0;
+  pt.y = 0;
 
-  ClientToScreen (FRAME_W32_WINDOW(f), &pt);
+  /* Convert (0, 0) in the client area to screen co-ordinates.  */
+  ClientToScreen (FRAME_W32_WINDOW (f), &pt);
 
   /* Remember x_pixels_diff and y_pixels_diff.  */
   f->x_pixels_diff = pt.x - rect.left;
   f->y_pixels_diff = pt.y - rect.top;
 
-  *xptr = pt.x;
-  *yptr = pt.y;
+  *xptr = rect.left;
+  *yptr = rect.top;
 }
 
 
