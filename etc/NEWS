@@ -46,6 +46,8 @@ highlighting, and help echoing in the minibuffer.
 recenter the visited source file.  Its value can be a number (for example,
 0 for top line, -1 for bottom line), or nil for no recentering.
 
+** The mode-line display a `@' if the default-directory for the current buffer
+is on a remote machine, or a hyphen otherwise.
 
 * Startup Changes in Emacs 23.1
 
@@ -56,6 +58,16 @@ recenter the visited source file.  Its value can be a number (for example,
 * Editing Changes in Emacs 23.1
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
+
+** Minibuffer changes:
+
+*** isearch started in the minibuffer searches in the minibuffer history.
+Reverse isearch commands (C-r, C-M-r) search in previous minibuffer
+history elements, and forward isearch commands (C-s, C-M-s) search in
+next history elements.  When the reverse search reaches the first history
+element, it wraps to the last history element, and the forward search
+wraps to the first history element.  When the search is terminated, the
+history element containing the search string becomes the current.
 
 
 * New Modes and Packages in Emacs 23.1

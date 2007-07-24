@@ -672,7 +672,7 @@ appear on disk when you save the tar-file's buffer."
 		     ((eq link-p 38) "a volume header")
 		     ((eq link-p 55) "an extended pax header")
 		     (t "a link"))))
-    (if (zerop size) (error "This is a zero-length file"))
+    (if (zerop size) (message "This is a zero-length file"))
     descriptor))
 
 (defun tar-mouse-extract (event)

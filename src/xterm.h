@@ -999,6 +999,7 @@ extern void x_fully_uncatch_errors P_ ((void));
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
 extern void x_set_mouse_position P_ ((struct frame *, int, int));
 extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
+extern void x_ewmh_activate_frame P_ ((struct frame *));
 extern void x_raise_frame P_ ((struct frame *));
 extern void x_lower_frame P_ ((struct frame *));
 extern void x_make_frame_visible P_ ((struct frame *));

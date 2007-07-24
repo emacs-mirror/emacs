@@ -3717,6 +3717,7 @@ FRAME nil means use the selected frame.  */)
   x_catch_errors (dpy);
   XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  RevertToParent, CurrentTime);
+  x_ewmh_activate_frame (f);
   x_uncatch_errors ();
   UNBLOCK_INPUT;
 

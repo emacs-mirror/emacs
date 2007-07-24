@@ -1,3 +1,12 @@
+2007-07-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-uu.el (mm-uu-type-alist): Refer to mm-uu-configure-list in doc
+	string.
+
+2007-07-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-srvr.el (gnus-server-font-lock-keywords): Quote faces.
+
 2007-07-14  David Kastrup  <dak@gnu.org>
 
 	* gnus-art.el (gnus-mime-delete-part): Don't go through article-edit

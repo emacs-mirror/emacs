@@ -90,7 +90,7 @@
 
 ;; since v0.9, bzr supports removing the progress indicators
 ;; by setting environment variable BZR_PROGRESS_BAR to "none".
-(defun vc-bzr-command (bzr-command buffer okstatus file &rest args)
+(defun vc-bzr-command (bzr-command buffer okstatus file-or-list &rest args)
   "Wrapper round `vc-do-command' using `vc-bzr-program' as COMMAND.
 Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
   (let ((process-environment
@@ -103,7 +103,7 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
         ;; This is redundant because vc-do-command does it already.  --Stef
         (process-connection-type nil))
     (apply 'vc-do-command buffer okstatus vc-bzr-program
-           file bzr-command (append vc-bzr-program-args args))))
+           file-or-list bzr-command (append vc-bzr-program-args args))))
 
 
 ;;;###autoload
@@ -196,12 +196,16 @@ Return nil if there isn't one."
 (defun vc-bzr-checkout-model (file)
   'implicit)
 
-(defun vc-bzr-register (file &optional rev comment)
+(defun vc-bzr-create-repo ()
+  "Create a new BZR repository."
+  (vc-bzr-command "init" nil 0 nil))
+
+(defun vc-bzr-register (files &optional rev comment)
   "Register FILE under bzr.
 Signal an error unless REV is nil.
 COMMENT is ignored."
   (if rev (error "Can't register explicit version with bzr"))
-  (vc-bzr-command "add" nil 0 file))
+  (vc-bzr-command "add" nil 0 files))
 
 ;; Could run `bzr status' in the directory and see if it succeeds, but
 ;; that's relatively expensive.
@@ -226,11 +230,11 @@ or a superior directory.")
   "Unregister FILE from bzr."
   (vc-bzr-command "remove" nil 0 file))
 
-(defun vc-bzr-checkin (file rev comment)
+(defun vc-bzr-checkin (files rev comment)
   "Check FILE in to bzr with log message COMMENT.
 REV non-nil gets an error."
   (if rev (error "Can't check in a specific version with bzr"))
-  (vc-bzr-command "commit" nil 0 file "-m" comment))
+  (vc-bzr-command "commit" nil 0 files "-m" comment))
 
 (defun vc-bzr-checkout (file &optional editable rev destfile)
   "Checkout revision REV of FILE from bzr to DESTFILE.
@@ -271,12 +275,12 @@ EDITABLE is ignored."
                   (2 'change-log-email))
                  ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face))))))
 
-(defun vc-bzr-print-log (file &optional buffer) ; get buffer arg in Emacs 22
-  "Get bzr change log for FILE into specified BUFFER."
+(defun vc-bzr-print-log (files &optional buffer) ; get buffer arg in Emacs 22
+  "Get bzr change log for FILES into specified BUFFER."
   ;; Fixme: This might need the locale fixing up if things like `revno'
   ;; got localized, but certainly it shouldn't use LC_ALL=C.
   ;; NB.  Can't be async -- see `vc-bzr-post-command-function'.
-  (vc-bzr-command "log" buffer 0 file)
+  (vc-bzr-command "log" buffer 0 files)
   ;; FIXME: Until Emacs-23, VC was missing a hook to sort out the mode for
   ;; the buffer, or at least set the regexps right.
   (unless (fboundp 'vc-default-log-view-mode)
@@ -294,16 +298,16 @@ EDITABLE is ignored."
 
 (autoload 'vc-diff-switches-list "vc" nil nil t)
 
-(defun vc-bzr-diff (file &optional rev1 rev2 buffer)
+(defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  (let ((working (vc-workfile-version file)))
+  (let ((working (vc-workfile-version (car files))))
     (if (and (equal rev1 working) (not rev2))
         (setq rev1 nil))
     (if (and (not rev1) rev2)
         (setq rev1 working))
     ;; NB.  Can't be async -- see `vc-bzr-post-command-function'.
     ;; bzr diff produces condition code 1 for some reason.
-    (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 1 file
+    (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 1 files
            "--diff-options" (mapconcat 'identity (vc-diff-switches-list bzr)
                                        " ")
            (when rev1

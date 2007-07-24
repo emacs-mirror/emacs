@@ -432,12 +432,13 @@ install:
 # since cp does not preserve time stamps
 install-lisp-SH:
 	cp -f *.el "$(INSTALL_DIR)/lisp"
-	for dir in $(WINS); do mkdir "$(INSTALL_DIR)/lisp/$$dir" && cp -f $$dir/*.el "$(INSTALL_DIR)/lisp/$$dir"; done
+	for dir in $(WINS); do [ -d "$(INSTALL_DIR)/lisp/$$dir" ] || mkdir "$(INSTALL_DIR)/lisp/$$dir"; done
+	for dir in $(WINS); do cp -f $$dir/*.el "$(INSTALL_DIR)/lisp/$$dir"; done
 	for dir in . $(WINS); do cp $$dir/*.elc "$(INSTALL_DIR)/lisp/$$dir"; done
 
 install-lisp-CMD:
 	cp -f *.el "$(INSTALL_DIR)/lisp"
-	for %%f in ($(WINS)) do mkdir "$(INSTALL_DIR)/lisp/%%f"
+	for %%f in ($(WINS)) do if not exist "$(INSTALL_DIR)/lisp/%%f" mkdir "$(INSTALL_DIR)/lisp/%%f"
 	for %%f in ($(WINS)) do cp -f %%f/*.el "$(INSTALL_DIR)/lisp/%%f"
 	for %%f in (. $(WINS)) do cp -f %%f/*.elc "$(INSTALL_DIR)/lisp/%%f"
 

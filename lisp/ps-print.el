@@ -5408,9 +5408,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		       ps-zebra-stripe-height)
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
-	       "def\n/BackgroundColor  "
+	       "def\n")
+    (ps-output "/BackgroundColor  "
 	       (ps-format-color ps-default-background 1.0)
-	       "def\n/UseSetpagedevice "
+	       "def\n")
+    (ps-output "/UseSetpagedevice "
 	       (if (eq ps-spool-config 'setpagedevice)
 		   "/setpagedevice where{pop languagelevel 2 eq}{false}ifelse"
 		 "false")

@@ -164,6 +164,10 @@ is non-nil if the user quit the search.")
 (defvar isearch-mode-end-hook-quit nil
   "Non-nil while running `isearch-mode-end-hook' if user quit the search.")
 
+(defvar isearch-message-function nil
+  "Function to call to display the search prompt.
+If nil, use `isearch-message'.")
+
 (defvar isearch-wrap-function nil
   "Function to call to wrap the search when search is failed.
 If nil, move point to the beginning of the buffer for a forward search,
@@ -711,7 +715,9 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	   (null executing-kbd-macro))
       (progn
         (if (not (input-pending-p))
-            (isearch-message))
+	    (if isearch-message-function
+		(funcall isearch-message-function)
+	      (isearch-message)))
         (if (and isearch-slow-terminal-mode
                  (not (or isearch-small-window
                           (pos-visible-in-window-p))))
@@ -988,7 +994,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	       isearch-original-minibuffer-message-timeout)
 	      (isearch-original-minibuffer-message-timeout
 	       isearch-original-minibuffer-message-timeout)
-	      )
+	      old-point old-other-end)
 
 	  ;; Actually terminate isearching until editing is done.
 	  ;; This is so that the user can do anything without failure,
@@ -996,6 +1002,10 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	  (condition-case err
 	      (isearch-done t t)
 	    (exit nil))			; was recursive editing
+
+	  ;; Save old point and isearch-other-end before reading from minibuffer
+	  ;; that can change their values.
+	  (setq old-point (point) old-other-end isearch-other-end)
 
 	  (isearch-message) ;; for read-char
 	  (unwind-protect
@@ -1032,6 +1042,14 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 		      isearch-new-message
 		      (mapconcat 'isearch-text-char-description
 				 isearch-new-string "")))
+
+	    ;; Set point at the start (end) of old match if forward (backward),
+	    ;; so after exiting minibuffer isearch resumes at the start (end)
+	    ;; of this match and can find it again.
+	    (if (and old-other-end (eq old-point (point))
+		     (eq isearch-forward isearch-new-forward))
+		(goto-char old-other-end))
+
 	    ;; Always resume isearching by restarting it.
 	    (isearch-mode isearch-forward
 			  isearch-regexp
@@ -1256,10 +1274,13 @@ If search string is empty, just beep."
       (ding)
     (setq isearch-string (substring isearch-string 0 (- (or arg 1)))
           isearch-message (mapconcat 'isearch-text-char-description
-                                     isearch-string "")
-          ;; Don't move cursor in reverse search.
-          isearch-yank-flag t))
-  (isearch-search-and-update))
+                                     isearch-string "")))
+  ;; Use the isearch-other-end as new starting point to be able
+  ;; to find the remaining part of the search string again.
+  (if isearch-other-end (goto-char isearch-other-end))
+  (isearch-search)
+  (isearch-push-state)
+  (isearch-update))
 
 (defun isearch-yank-string (string)
   "Pull STRING into search string."
@@ -2016,7 +2037,9 @@ Can be changed via `isearch-search-fun-function' for special needs."
 
 (defun isearch-search ()
   ;; Do the search with the current search string.
-  (isearch-message nil t)
+  (if isearch-message-function
+      (funcall isearch-message-function nil t)
+    (isearch-message nil t))
   (if (and (eq isearch-case-fold-search t) search-upper-case)
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))

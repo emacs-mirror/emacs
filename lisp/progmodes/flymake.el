@@ -325,11 +325,6 @@ Return nil if we cannot, non-nil if we can."
   (or (nth 2 (flymake-get-file-name-mode-and-masks file-name))
       'flymake-get-real-file-name))
 
-(defcustom flymake-buildfile-dirs '("." ".." "../.." "../../.." "../../../.." "../../../../.." "../../../../../.." "../../../../../../.." "../../../../../../../.." "../../../../../../../../.." "../../../../../../../../../.." "../../../../../../../../../../..")
-  "Dirs to look for buildfile."
-  :group 'flymake
-  :type '(repeat (string)))
-
 (defvar flymake-find-buildfile-cache (flymake-makehash 'equal))
 
 (defun flymake-get-buildfile-from-cache (dir-name)
@@ -346,19 +341,15 @@ Return nil if we cannot, non-nil if we can."
 Buildfile includes Makefile, build.xml etc.
 Return its file name if found, or nil if not found."
   (or (flymake-get-buildfile-from-cache source-dir-name)
-      (let* ((dirs flymake-buildfile-dirs)
-             (buildfile-dir          nil)
-             (found                  nil))
-        (while (and (not found) dirs)
-          (setq buildfile-dir (concat source-dir-name (car dirs)))
-          (when (file-exists-p (expand-file-name buildfile-name buildfile-dir))
-            (setq found t))
-          (setq dirs (cdr dirs)))
-        (if found
+      (let* ((file (locate-dominating-file
+                    source-dir-name
+                    (concat "\\`" (regexp-quote buildfile-name) "\\'"))))
+        (if file
             (progn
-              (flymake-log 3 "found buildfile at %s/%s" buildfile-dir buildfile-name)
-              (flymake-add-buildfile-to-cache source-dir-name buildfile-dir)
-              buildfile-dir)
+              (flymake-log 3 "found buildfile at %s" file)
+              (setq file (file-name-directory file))
+              (flymake-add-buildfile-to-cache source-dir-name file)
+              file)
           (progn
             (flymake-log 3 "buildfile for %s not found" source-dir-name)
             nil)))))

@@ -1440,7 +1440,7 @@ More generally, you can use multiple variables and values, as in
 This sets each VAR's default value to the corresponding VALUE.
 The VALUE for the Nth VAR can refer to the new default values
 of previous VARs.
-usage: (setq-default [VAR VALUE...])  */)
+usage: (setq-default [VAR VALUE]...)  */)
      (args)
      Lisp_Object args;
 {
@@ -2195,7 +2195,9 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
   return Qnil;
 }
 
-/* Convert between long values and pairs of Lisp integers.  */
+/* Convert between long values and pairs of Lisp integers.
+   Note that long_to_cons returns a single Lisp integer
+   when the value fits in one.  */
 
 Lisp_Object
 long_to_cons (i)
