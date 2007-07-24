@@ -1,3 +1,10 @@
+2007-07-24  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): initialise
+	byte-compile-unresolved-functions before rather than after a
+	compilation.
+	(byte-compile-unresolved-functions): Amplify doc string.
+
 2007-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-tex.el (cal-tex-holidays, cal-tex-diary)
@@ -24,7 +31,7 @@
 
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/sh-script.el: (sh-font-lock-backslash-quote)
+	* progmodes/sh-script.el (sh-font-lock-backslash-quote)
 	(sh-font-lock-flush-syntax-ppss-cache): New funs.
 	(sh-font-lock-syntactic-keywords): Use them to distinguish the
 	different possible cases for \'.
