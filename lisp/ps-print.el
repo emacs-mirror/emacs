@@ -7040,32 +7040,32 @@ If FACE is not a valid face name, use default face."
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
 ;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
 ;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
-;;;;;;  "ps-mule" "ps-mule.el" "464a9fb9d59f7561a46bcd5ca87d85db")
+;;;;;;  "ps-mule" "ps-mule.el" "cbb193f9b6bebd27378819035d3788f7")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
-*Specifies the multi-byte buffer handling.
+Specifies the multi-byte buffer handling.
 
 Valid values are:
 
-  nil                     This is the value to use the default settings which
-			  is by default for printing buffer with only ASCII
-			  and Latin characters.   The default setting can be
-			  changed by setting the variable
+  nil			  This is the value to use the default settings;
+			  by default, this only works to print buffers with
+			  only ASCII and Latin characters.   But this default
+			  setting can be changed by setting the variable
 			  `ps-mule-font-info-database-default' differently.
 			  The initial value of this variable is
 			  `ps-mule-font-info-database-latin' (see
 			  documentation).
 
-  `non-latin-printer'     This is the value to use when you have a Japanese
+  `non-latin-printer'	  This is the value to use when you have a Japanese
 			  or Korean PostScript printer and want to print
 			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
 			  JISX0201-Kana) and Korean characters.  At present,
-			  it was not tested the Korean characters printing.
+			  it was not tested with the Korean characters printing.
 			  If you have a korean PostScript printer, please,
 			  test it.
 
-  `bdf-font'              This is the value to use when you want to print
+  `bdf-font'		  This is the value to use when you want to print
 			  buffer with BDF fonts.  BDF fonts include both latin
 			  and non-latin fonts.  BDF (Bitmap Distribution
 			  Format) is a format used for distributing X's font
@@ -7077,7 +7077,7 @@ Valid values are:
 			  `bdf-directory-list' appropriately (see ps-bdf.el for
 			  documentation of this variable).
 
-  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+  `bdf-font-except-latin' This is like `bdf-font' except that it uses
 			  PostScript default fonts to print ASCII and Latin-1
 			  characters.  This is convenient when you want or
 			  need to use both latin and non-latin characters on
