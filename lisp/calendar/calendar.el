@@ -1343,7 +1343,9 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   (cons mon yr))
 
 (defmacro calendar-for-loop (var from init to final do &rest body)
-  "Execute a for loop."
+  "Execute a for loop.
+Evaluate BODY with VAR bound to successive integers from INIT to FINAL,
+inclusive."
   (declare (debug (symbolp "from" form "to" form "do" body)))
   `(let ((,var (1- ,init)))
     (while (>= ,final (setq ,var (1+ ,var)))
@@ -2110,9 +2112,9 @@ Or, for optional MON, YR."
         displayed-year year)
   (erase-buffer)
   (increment-calendar-month month year -1)
-  (calendar-for-loop i from 0 to 2 do
-       (generate-calendar-month month year (+ 5 (* 25 i)))
-       (increment-calendar-month month year 1)))
+  (dotimes (i 3)
+    (generate-calendar-month month year (+ 5 (* 25 i)))
+    (increment-calendar-month month year 1)))
 
 (defun generate-calendar-month (month year indent)
   "Produce a calendar for MONTH, YEAR on the Gregorian calendar.
@@ -2133,18 +2135,18 @@ line."
     indent t)
    (calendar-insert-indented "" indent);; Go to proper spot
    ;; Use the first two characters of each day to head the columns.
-   (calendar-for-loop i from 0 to 6 do
-      (insert
-       (let ((string
-              (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t)))
-         (if enable-multibyte-characters
-             (truncate-string-to-width string 2)
-           (substring string 0 2)))
-       " "))
+   (dotimes (i 7)
+     (insert
+      (let ((string
+             (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t)))
+        (if enable-multibyte-characters
+            (truncate-string-to-width string 2)
+          (substring string 0 2)))
+      " "))
    (calendar-insert-indented "" 0 t);; Force onto following line
    (calendar-insert-indented "" indent);; Go to proper spot
    ;; Add blank days before the first of the month
-   (calendar-for-loop i from 1 to blank-days do (insert "   "))
+   (dotimes (idummy blank-days) (insert "   "))
    ;; Put in the days of the month
    (calendar-for-loop i from 1 to last do
       (insert (format "%2d " i))
