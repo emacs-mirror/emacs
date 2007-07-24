@@ -476,7 +476,8 @@ and we don't know the definition.")
 
 (defvar byte-compile-unresolved-functions nil
   "Alist of undefined functions to which calls have been compiled.
-Used for warnings when the function is not known to be defined or is later
+This variable is only significant whilst compiling an entire buffer.
+Used for warnings when a function is not known to be defined or is later
 defined with incorrect args.")
 
 (defvar byte-compile-noruntime-functions nil
@@ -1848,6 +1849,11 @@ With argument, insert value in current buffer after the form."
       (save-excursion
 	(set-buffer inbuffer)
 	(goto-char 1)
+	;; Should we always do this?  When calling multiple files, it
+	;; would be useful to delay this warning until all have been
+	;; compiled.  A: Yes!  b-c-u-f might contain dross from a
+	;; previous byte-compile.
+	(setq byte-compile-unresolved-functions nil)
 
 	;; Compile the forms from the input buffer.
 	(while (progn
@@ -1864,11 +1870,7 @@ With argument, insert value in current buffer after the form."
 	;; Make warnings about unresolved functions
 	;; give the end of the file as their position.
 	(setq byte-compile-last-position (point-max))
-	(byte-compile-warn-about-unresolved-functions)
-	;; Should we always do this?  When calling multiple files, it
-	;; would be useful to delay this warning until all have
-	;; been compiled.
-	(setq byte-compile-unresolved-functions nil))
+	(byte-compile-warn-about-unresolved-functions))
       ;; Fix up the header at the front of the output
       ;; if the buffer contains multibyte characters.
       (and filename (byte-compile-fix-header filename inbuffer outbuffer))))
