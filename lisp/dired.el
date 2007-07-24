@@ -1247,6 +1247,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
     ;; misc
+    (define-key map "\C-x\C-q" 'wdired-change-to-wdired-mode)
     (define-key map "?" 'dired-summary)
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)

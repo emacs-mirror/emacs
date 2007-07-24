@@ -1,5 +1,8 @@
 2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* dired.el (dired-mode-map): Bind wdired-change-to-wdired-mode to
+	C-x C-q.
+
 	* vc-git.el (vc-git-print-log): Fix previous change.
 
 2007-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
