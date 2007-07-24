@@ -189,7 +189,9 @@ with a given image specification.
 +++
 ** The new function `start-file-process is similar to `start-process',
 but obeys file handlers.  The file handler is chosen based on
-`default-directory'.
+`default-directory'.  The functions `start-file-process-shell-command'
+and `process-file-shell-command' are also new; they call internally
+`start-file-process and `process-file', respectively.
 
 +++
 ** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
