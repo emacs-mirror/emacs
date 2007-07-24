@@ -1,3 +1,8 @@
+2007-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Writing Calendar Files): cal-tex-diary etc only work
+	for some calendars.
+
 2007-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (../info/emacs-mime): Use --enable-encoding.
