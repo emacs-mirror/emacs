@@ -1,3 +1,8 @@
+2007-07-24  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-checkout, vc-directory-exclusion-list): Fix
+	typos.
+
 2007-07-24  Alan Mackenzie  <acm@muc.de>
 
 	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Initialise

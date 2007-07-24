@@ -44,6 +44,7 @@
 
 ;; Implement the rest of the vc interface. See the comment at the
 ;; beginning of vc.el. The current status is:
+;; ("??" means: "figure out what to do about it")
 ;;
 ;; FUNCTION NAME                                   STATUS
 ;; BACKEND PROPERTIES
@@ -56,7 +57,7 @@
 ;; * workfile-version (file)			   OK
 ;; - latest-on-branch-p (file)			   ??
 ;; * checkout-model (file)			   OK
-;; - workfile-unchanged-p (file)		   MAYBE CAN BE SIMPLIFIED
+;; - workfile-unchanged-p (file)		   OK
 ;; - mode-line-string (file)			   NOT NEEDED
 ;; - dired-state-info (file)			   OK
 ;; STATE-CHANGING FUNCTIONS
@@ -97,8 +98,8 @@
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)		   ??
 ;; - repository-hostname (dirname)		   ??
-;; - previous-version (file rev)		   ??
-;; - next-version (file rev)			   ??
+;; - previous-version (file rev)		   OK
+;; - next-version (file rev)			   OK
 ;; - check-headers ()				   ??
 ;; - clear-headers ()				   ??
 ;; - delete-file (file)				   OK
@@ -115,7 +116,7 @@
 ;; should be moved to vc-hooks.el
 (add-to-list 'vc-handled-backends 'GIT)
 (eval-after-load "vc"
-  '(add-to-list 'vc-directory-exclusion-list ".bzr" t))
+  '(add-to-list 'vc-directory-exclusion-list ".git" t))
 
 ;;; BACKEND PROPERTIES
 
@@ -251,7 +252,7 @@
      (concat (if rev rev "HEAD") ":" fullname) "cat-file" "blob")))
 
 (defun vc-git-checkout (file &optional editable rev)
-  (vc-git-command nil0 file "checkout" (or rev "HEAD")))
+  (vc-git-command nil 0 file "checkout" (or rev "HEAD")))
 
 (defun vc-git-revert (file &optional contents-done)
   "Revert FILE to the version stored in the git repository."
