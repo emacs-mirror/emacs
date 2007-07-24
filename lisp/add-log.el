@@ -519,15 +519,13 @@ non-nil, otherwise in local time."
           (mailing-address (or add-log-mailing-address user-mail-address)))
 
       (when whoami
-        (setq full-name (read-string "Full name: "
-                                     (or add-log-full-name (user-full-name))))
+        (setq full-name (read-string "Full name: " full-name))
         ;; Note that some sites have room and phone number fields in
         ;; full name which look silly when inserted.  Rather than do
         ;; anything about that here, let user give prefix argument so that
         ;; s/he can edit the full name field in prompter if s/he wants.
         (setq mailing-address
-              (read-string "Mailing address: "
-                           (or add-log-mailing-address user-mail-address))))
+	      (read-string "Mailing address: " mailing-address)))
 
       ;; If file starts with a copyright and permission notice, skip them.
       ;; Assume they end at first blank line.

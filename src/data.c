@@ -2349,7 +2349,9 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
   return Qnil;
 }
 
-/* Convert between long values and pairs of Lisp integers.  */
+/* Convert between long values and pairs of Lisp integers.
+   Note that long_to_cons returns a single Lisp integer
+   when the value fits in one.  */
 
 Lisp_Object
 long_to_cons (i)

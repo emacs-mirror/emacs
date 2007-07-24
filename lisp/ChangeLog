@@ -1,3 +1,8 @@
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
+	underlying file is uptodate.
+
 2007-07-23   Christopher J. Madsen  <cjm@cjmweb.net>
 
 	* replace.el (perform-replace): Use isearch-no-upper-case-p.
@@ -364,6 +369,10 @@
 	avoid incorrect kmacro-ring-empty-p messages.
 	Reported by Michael Schierl <schierlm@gmx.de>.
 
+2007-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Add more info about the vc-registered function.
+
 2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (file-remote-p): Introduce optional parameter
@@ -468,6 +477,17 @@
 
 	* bookmark.el (bookmark-show-all-annotations):
 	Make sure each inserted annotation ends with newline.
+
+2007-07-15  Richard Stallman  <rms@gnu.org>
+
+	* kmacro.el (kmacro-bind-to-key): Avoid comparisons on function keys.
+
+	* tutorial.el (tutorial--find-changed-keys):
+	Handle C-x specially like ESC.
+
+2007-07-15  Aaron Hawley  <aaronh@garden.org>
+
+	* tar-mode.el (tar-get-descriptor): No error for zero-length file.
 
 2007-07-15  Juri Linkov  <juri@jurta.org>
 
