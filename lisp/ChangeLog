@@ -36,6 +36,17 @@
 	(cal-tex-em, cal-tex-bf, cal-tex-Huge-bf, cal-tex-large-bf): Use
 	\textit and \textbf rather than \em and \it.
 
+	* calendar/cal-bahai.el (list-bahai-diary-entries)
+	* calendar/cal-hebrew.el (list-hebrew-diary-entries)
+	* calendar/cal-islam.el (list-islamic-diary-entries)
+	* calendar/calendar.el (generate-calendar)
+	(generate-calendar-month)
+	* calendar/diary-lib.el (diary-list-entries)
+	(mark-calendar-date-pattern): Use `dotimes' rather than
+	`calendar-for-loop'.
+
+	* calendar/calendar.el (calendar-for-loop): Doc fix.
+
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
