@@ -11,6 +11,31 @@
 	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
 	(cal-tex-cursor-filofax-daily, cal-tex-daily-page): Doc fix.
 
+	* calendar/cal-tex.el: Remove leading `*' from defcustom docs.
+	(cal-tex-daily-string, cal-tex-daily-start, cal-tex-daily-end)
+	(cal-tex-day-name-format, cal-tex-cal-one-month)
+	(cal-tex-cal-multi-month, cal-tex-myday, cal-tex-preamble)
+	(cal-tex-comment, cal-tex-nl, cal-tex-cmd, cal-tex-e-parbox)
+	(cal-tex-mini-calendar, cal-tex-em): Doc fix.
+	(cal-tex-list-holidays, cal-tex-cursor-year)
+	(cal-tex-cursor-year-landscape, cal-tex-year)
+	(cal-tex-cursor-filofax-year, cal-tex-cursor-month-landscape)
+	(cal-tex-cursor-month, cal-tex-insert-days)
+	(cal-tex-insert-day-names, cal-tex-insert-blank-days)
+	(cal-tex-first-blank-p, cal-tex-cursor-week)
+	(cal-tex-cursor-week2, cal-tex-cursor-week-iso)
+	(cal-tex-week-hours, cal-tex-cursor-week-monday)
+	(cal-tex-weekly4-box, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week, cal-tex-cursor-filofax-daily)
+	(cal-tex-cursor-day, cal-tex-daily-page, cal-tex-mini-calendar)
+	(cal-tex-latexify-list, cal-tex-previous-month)
+	(cal-tex-next-month, cal-tex-insert-preamble): General tidy-up and
+	modernization, including using dotimes rather than
+	calendar-for-loop.
+	(cal-tex-LaTeX-subst-list): Remove `@'.
+	(cal-tex-em, cal-tex-bf, cal-tex-Huge-bf, cal-tex-large-bf): Use
+	\textit and \textbf rather than \em and \it.
+
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
