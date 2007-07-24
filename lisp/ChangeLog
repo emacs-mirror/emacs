@@ -1,3 +1,11 @@
+2007-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* subr.el (start-file-process-shell-command)
+	(process-file-shell-command): New defuns.
+
+	* progmodes/compile.el (compilation-start): Apply
+	`start-file-process-shell-command'.
+
 2007-07-24  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-checkout, vc-directory-exclusion-list): Fix

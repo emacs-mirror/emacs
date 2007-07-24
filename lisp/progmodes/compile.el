@@ -1101,8 +1101,7 @@ Returns the compilation buffer created."
 	      (unless (getenv "EMACS")
 		(list "EMACS=t"))
 	      (list "INSIDE_EMACS=t")
-	      (copy-sequence process-environment)))
-	    (start-process (symbol-function 'start-process)))
+	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))
 	(set (make-local-variable 'revert-buffer-function)
@@ -1123,22 +1122,14 @@ Returns the compilation buffer created."
 		   ;; comint uses `start-file-process'.
 		   (get-buffer-process
 		    (with-no-warnings
-		      (comint-exec outbuf (downcase mode-name)
-				   shell-file-name nil `("-c" ,command))))
-		 ;; Redefine temporarily `start-process' in order to
-		 ;; handle remote compilation.
-		 (fset 'start-process
-		       (lambda (name buffer program &rest program-args)
-			 (apply
-			  (if (file-remote-p default-directory)
-			      'start-file-process
-			    start-process)
-			  name buffer program program-args)))
-		 (unwind-protect
-		     (start-process-shell-command (downcase mode-name)
-						  outbuf command)
-		   ;; Unwindform: Reset original definition of `start-process'.
-		   (fset 'start-process start-process)))))
+		      (comint-exec
+		       outbuf (downcase mode-name)
+		       (if (file-remote-p default-directory)
+			   "/bin/sh"
+			 shell-file-name)
+		       `("-c" ,command))))
+		 (start-file-process-shell-command (downcase mode-name)
+						   outbuf command))))
 	  ;; Make the buffer's mode line show process state.
 	  (setq mode-line-process '(":%s"))
 	  (set-process-sentinel proc 'compilation-sentinel)
