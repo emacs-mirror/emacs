@@ -1,5 +1,7 @@
 2007-07-24  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (normal-splash-screen): Use `emacs-copyright'.
+
 	* calendar/cal-tex.el (cal-tex-holidays, cal-tex-diary)
 	(cal-tex-rules, cal-tex-buffer, cal-tex-24)
 	(cal-tex-cursor-month-landscape, cal-tex-cursor-month)
