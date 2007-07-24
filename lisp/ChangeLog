@@ -1,3 +1,14 @@
+2007-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-holidays, cal-tex-diary)
+	(cal-tex-rules, cal-tex-buffer, cal-tex-24)
+	(cal-tex-cursor-month-landscape, cal-tex-cursor-month)
+	(cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-week-hours)
+	(cal-tex-cursor-week-monday, cal-tex-weekly4-box)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily, cal-tex-daily-page): Doc fix.
+
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
