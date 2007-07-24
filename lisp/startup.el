@@ -1563,8 +1563,7 @@ Getting New Versions	How to obtain the latest version of Emacs
 More Manuals / Ordering Manuals    How to order printed manuals from the FSF
 ")
                 (insert "\n\n" (emacs-version)
-                        "
-Copyright (C) 2007 Free Software Foundation, Inc."))
+                        "\n" emacs-copyright))
 
             ;; No mouse menus, so give help using kbd commands.
 
@@ -1611,8 +1610,7 @@ Activate menubar     \\[tmm-menubar]")))
 If you have no Meta key, you may instead type ESC followed by the character.)")
 
             (insert "\n\n" (emacs-version)
-                    "
-Copyright (C) 2007 Free Software Foundation, Inc.")
+                    "\n" emacs-copyright)
 
             (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
                      (eq (key-binding "\C-h\C-d") 'describe-distribution)
