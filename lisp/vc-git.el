@@ -264,27 +264,25 @@
 
 (defun vc-git-print-log (files &optional buffer)
   "Get change log associated with FILES."
-  (let ((name (file-relative-name file))
-        (coding-system-for-read git-commits-coding-system))
-    ;; `log-view-mode' needs to have the file name in order to function
-    ;; correctly. "git log" does not print it, so we insert it here by
-    ;; hand.
-
+  (let ((coding-system-for-read git-commits-coding-system))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
     (vc-setup-buffer buffer)
     ;; If the buffer exists from a previous invocation it might be
     ;; read-only.
     (let ((inhibit-read-only t))
-      ;; XXX Here loop and call "git rev-list" on each file separately
-      ;; to make sure that each file gets a "File:" header before the
-      ;; corresponding log. Maybe there is a way to do this with one
-      ;; command...
-    (dolist (file files)
-      (with-current-buffer
-        buffer
-        (insert "File: " (file-name-nondirectory file) "\n")))
-    (vc-git-command buffer 'async name "rev-list" "--pretty" "HEAD" "--"))))
+      ;; XXX `log-view-mode' needs to have something to identify where
+      ;; the log for each individual file starts. It seems that by
+      ;; default git does not output this info. So loop here and call
+      ;; "git rev-list" on each file separately to make sure that each
+      ;; file gets a "File:" header before the corresponding
+      ;; log. Maybe there is a way to do this with one command...
+      (dolist (file files)
+	(with-current-buffer
+	    buffer
+	  (insert "File: " (file-name-nondirectory file) "\n"))
+	(vc-git-command buffer 'async (file-relative-name file) 
+			"rev-list" "--pretty" "HEAD" "--")))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
