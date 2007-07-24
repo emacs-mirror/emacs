@@ -72,7 +72,7 @@
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (file &optional rev1 rev2 buffer)    OK
-;; - revision-completion-table (file)          OK
+;; - revision-completion-table (file)          COMMENTED OUT AS A WORKAROUND FOR A BUG
 ;; - diff-tree (dir &optional rev1 rev2)       TEST IT
 ;; - annotate-command (file buf &optional rev) OK
 ;; - annotate-time ()                          OK
@@ -292,12 +292,12 @@
        (buffer-substring-no-properties (point-min) (point-max))))))
 
 ;; Modelled after the similar function in vc-cvs.el
-(defun vc-hg-revision-completion-table (file)
-  (lexical-let ((file file)
-                table)
-    (setq table (lazy-completion-table
-                 table (lambda () (vc-hg-revision-table file))))
-    table))
+;; (defun vc-hg-revision-completion-table (file)
+;;   (lexical-let ((file file)
+;;                 table)
+;;     (setq table (lazy-completion-table
+;;                  table (lambda () (vc-hg-revision-table file))))
+;;     table))
 
 (defalias 'vc-hg-diff-tree 'vc-hg-diff)
 
@@ -385,7 +385,7 @@ COMMENT is ignored."
 (defun vc-hg-checkin (file rev comment)
   "HG-specific version of `vc-backend-checkin'.
 REV is ignored."
-  (vc-hg-command nil 0 files  "commit" "-m" comment))
+  (vc-hg-command nil 0 file  "commit" "-m" comment))
 
 (defun vc-hg-find-version (file rev buffer)
   (let ((coding-system-for-read 'binary)
