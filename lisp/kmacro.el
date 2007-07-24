@@ -606,8 +606,11 @@ An argument of zero means repeat until error."
   (unless executing-kbd-macro
     (end-kbd-macro arg #'kmacro-loop-setup-function)
     (when (and last-kbd-macro (= (length last-kbd-macro) 0))
+      (setq last-kbd-macro nil)
       (message "Ignore empty macro")
-      (kmacro-pop-ring))))
+      ;; Don't call `kmacro-ring-empty-p' to avoid its messages.
+      (while (and (null last-kbd-macro) kmacro-ring)
+	(kmacro-pop-ring1)))))
 
 
 ;;;###autoload
@@ -795,8 +798,9 @@ may be shaded by a local key binding."
 	  ok cmd)
       (when (= (length key-seq) 1)
 	(let ((ch (aref key-seq 0)))
-	  (if (or (and (>= ch ?0) (<= ch ?9))
-		  (and (>= ch ?A) (<= ch ?Z)))
+	  (if (and (integerp ch)
+		   (or (and (>= ch ?0) (<= ch ?9))
+		       (and (>= ch ?A) (<= ch ?Z))))
 	      (setq key-seq (concat "\C-x\C-k" key-seq)
 		    ok t))))
       (when (and (not (equal key-seq ""))

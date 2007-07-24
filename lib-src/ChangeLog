@@ -1,3 +1,14 @@
+2007-07-17  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (C_entries): Reset the fvdef machine when out of function.
+	(PRINT_UNDOCUMENTED_OPTIONS_HELP): #define as FALSE if undefined.
+	(print_help): Use it in if() rather than #if.
+	(print_help): Conditionally print help about --no-line-directive.
+
+2007-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (clean): Don't delete *~.
+
 2007-06-07  Glenn Morris  <rgm@gnu.org>
 
 	* etags.c (print_version): Add `emacs_copyright' string, for

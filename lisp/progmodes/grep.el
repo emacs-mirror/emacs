@@ -343,6 +343,12 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defvar grep-regexp-history nil)
 (defvar grep-files-history '("ch" "el"))
 
+(defvar grep-host-defaults-alist nil
+  "Default values depending on target host.
+`grep-compute-defaults' returns default values for every local or
+remote host `grep' runs.  These values can differ from host to
+host.  Once computed, the default values are kept here in order
+to avoid computing them again.")
 
 ;;;###autoload
 (defun grep-process-setup ()
@@ -371,92 +377,153 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 
 (defun grep-probe (command args &optional func result)
   (equal (condition-case nil
-	     (apply (or func 'call-process) command args)
+	     (apply (or func 'process-file) command args)
 	   (error nil))
 	 (or result 0)))
 
 ;;;###autoload
 (defun grep-compute-defaults ()
-  (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
-    (setq grep-use-null-device
-	  (with-temp-buffer
-	    (let ((hello-file (expand-file-name "HELLO" data-directory)))
-	      (not
-	       (and (if grep-command
-			;; `grep-command' is already set, so
-			;; use that for testing.
-			(grep-probe grep-command
-				    `(nil t nil "^English" ,hello-file)
-				    #'call-process-shell-command)
-		      ;; otherwise use `grep-program'
-		      (grep-probe grep-program
-				  `(nil t nil "-nH" "^English" ,hello-file)))
-		    (progn
-		      (goto-char (point-min))
-		      (looking-at
-		       (concat (regexp-quote hello-file)
-			       ":[0-9]+:English")))))))))
-  (unless (and grep-command grep-find-command
-	       grep-template grep-find-template)
-    (let ((grep-options
-	   (concat (if grep-use-null-device "-n" "-nH")
-		   (if (grep-probe grep-program
-				   `(nil nil nil "-e" "foo" ,null-device)
-				   nil 1)
-		       " -e"))))
-      (unless grep-command
-	(setq grep-command
-	      (format "%s %s " grep-program grep-options)))
-      (unless grep-template
-	(setq grep-template
-	      (format "%s <C> %s <R> <F>" grep-program grep-options)))
-      (unless grep-find-use-xargs
-	(setq grep-find-use-xargs
-	      (cond
-	       ((and
-		 (grep-probe find-program `(nil nil nil ,null-device "-print0"))
-		 (grep-probe "xargs" `(nil nil nil "-0" "-e" "echo")))
-		'gnu)
-	       (t
-		'exec))))
-      (unless grep-find-command
-	(setq grep-find-command
-	      (cond ((eq grep-find-use-xargs 'gnu)
-		     (format "%s . -type f -print0 | xargs -0 -e %s"
-			     find-program grep-command))
-		    ((eq grep-find-use-xargs 'exec)
-		     (let ((cmd0 (format "%s . -type f -exec %s"
-					 find-program grep-command)))
-		       (cons
-			(format "%s {} %s %s"
-				cmd0 null-device
-				(shell-quote-argument ";"))
-			(1+ (length cmd0)))))
-		    (t
-		     (format "%s . -type f -print | xargs %s"
-			     find-program grep-command)))))
-      (unless grep-find-template
-	(setq grep-find-template
-	      (let ((gcmd (format "%s <C> %s <R>"
-				  grep-program grep-options)))
+  ;; Keep default values.
+  (unless grep-host-defaults-alist
+    (add-to-list
+     'grep-host-defaults-alist
+     (cons nil
+	   `((grep-command ,grep-command)
+	     (grep-template ,grep-template)
+	     (grep-use-null-device ,grep-use-null-device)
+	     (grep-find-command ,grep-find-command)
+	     (grep-find-template ,grep-find-template)
+	     (grep-find-use-xargs ,grep-find-use-xargs)
+	     (grep-highlight-matches ,grep-highlight-matches)))))
+  (let* ((host-id
+	  (intern (or (file-remote-p default-directory 'host) "localhost")))
+	 (host-defaults (assq host-id grep-host-defaults-alist))
+	 (defaults (assq nil grep-host-defaults-alist)))
+    ;; There are different defaults on different hosts.  They must be
+    ;; computed for every host once.
+    (setq grep-command
+	  (or (cadr (assq 'grep-command host-defaults))
+	      (cadr (assq 'grep-command defaults)))
+
+	  grep-template
+          (or (cadr (assq 'grep-template host-defaults))
+	      (cadr (assq 'grep-template defaults)))
+
+	  grep-use-null-device
+	  (or (cadr (assq 'grep-use-null-device host-defaults))
+	      (cadr (assq 'grep-use-null-device defaults)))
+
+	  grep-find-command
+	  (or (cadr (assq 'grep-find-command host-defaults))
+	      (cadr (assq 'grep-find-command defaults)))
+
+	  grep-find-template
+	  (or (cadr (assq 'grep-find-template host-defaults))
+	      (cadr (assq 'grep-find-template defaults)))
+
+	  grep-find-use-xargs
+	  (or (cadr (assq 'grep-find-use-xargs host-defaults))
+	      (cadr (assq 'grep-find-use-xargs defaults)))
+
+	  grep-highlight-matches
+	  (or (cadr (assq 'grep-highlight-matches host-defaults))
+	      (cadr (assq 'grep-highlight-matches defaults))))
+
+    (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
+      (setq grep-use-null-device
+	    (with-temp-buffer
+	      (let ((hello-file (expand-file-name "HELLO" data-directory)))
+		(not
+		 (and (if grep-command
+			  ;; `grep-command' is already set, so
+			  ;; use that for testing.
+			  (grep-probe grep-command
+				      `(nil t nil "^English" ,hello-file)
+				      #'call-process-shell-command)
+			;; otherwise use `grep-program'
+			(grep-probe grep-program
+				    `(nil t nil "-nH" "^English" ,hello-file)))
+		      (progn
+			(goto-char (point-min))
+			(looking-at
+			 (concat (regexp-quote hello-file)
+				 ":[0-9]+:English")))))))))
+    (unless (and grep-command grep-find-command
+		 grep-template grep-find-template)
+      (let ((grep-options
+	     (concat (if grep-use-null-device "-n" "-nH")
+		     (if (grep-probe grep-program
+				     `(nil nil nil "-e" "foo" ,null-device)
+				     nil 1)
+			 " -e"))))
+	(unless grep-command
+	  (setq grep-command
+		(format "%s %s " grep-program grep-options)))
+	(unless grep-template
+	  (setq grep-template
+		(format "%s <C> %s <R> <F>" grep-program grep-options)))
+	(unless grep-find-use-xargs
+	  (setq grep-find-use-xargs
+		(cond
+		 ((and
+		   (grep-probe find-program `(nil nil nil ,null-device "-print0"))
+		   (grep-probe "xargs" `(nil nil nil "-0" "-e" "echo")))
+		  'gnu)
+		 (t
+		  'exec))))
+	(unless grep-find-command
+	  (setq grep-find-command
 		(cond ((eq grep-find-use-xargs 'gnu)
-		       (format "%s . <X> -type f <F> -print0 | xargs -0 -e %s"
-			       find-program gcmd))
+		       (format "%s . -type f -print0 | xargs -0 -e %s"
+			       find-program grep-command))
 		      ((eq grep-find-use-xargs 'exec)
-		       (format "%s . <X> -type f <F> -exec %s {} %s %s"
-			       find-program gcmd null-device
-			       (shell-quote-argument ";")))
+		       (let ((cmd0 (format "%s . -type f -exec %s"
+					   find-program grep-command)))
+			 (cons
+			  (format "%s {} %s %s"
+				  cmd0 null-device
+				  (shell-quote-argument ";"))
+			  (1+ (length cmd0)))))
 		      (t
-		       (format "%s . <X> -type f <F> -print | xargs %s"
-			       find-program gcmd))))))))
-  (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
-    (setq grep-highlight-matches
-	  (with-temp-buffer
-	    (and (grep-probe grep-program '(nil t nil "--help"))
-		 (progn
-		   (goto-char (point-min))
-		   (search-forward "--color" nil t))
-		 t)))))
+		       (format "%s . -type f -print | xargs %s"
+			       find-program grep-command)))))
+	(unless grep-find-template
+	  (setq grep-find-template
+		(let ((gcmd (format "%s <C> %s <R>"
+				    grep-program grep-options)))
+		  (cond ((eq grep-find-use-xargs 'gnu)
+			 (format "%s . <X> -type f <F> -print0 | xargs -0 -e %s"
+				 find-program gcmd))
+			((eq grep-find-use-xargs 'exec)
+			 (format "%s . <X> -type f <F> -exec %s {} %s %s"
+				 find-program gcmd null-device
+				 (shell-quote-argument ";")))
+			(t
+			 (format "%s . <X> -type f <F> -print | xargs %s"
+				 find-program gcmd))))))))
+    (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
+      (setq grep-highlight-matches
+	    (with-temp-buffer
+	      (and (grep-probe grep-program '(nil t nil "--help"))
+		   (progn
+		     (goto-char (point-min))
+		     (search-forward "--color" nil t))
+		   t))))
+
+    ;; Save defaults for this host.
+    (setq grep-host-defaults-alist
+	  (delete (assq host-id grep-host-defaults-alist)
+		  grep-host-defaults-alist))
+    (add-to-list
+     'grep-host-defaults-alist
+     (cons host-id
+	   `((grep-command ,grep-command)
+	     (grep-template ,grep-template)
+	     (grep-use-null-device ,grep-use-null-device)
+	     (grep-find-command ,grep-find-command)
+	     (grep-find-template ,grep-find-template)
+	     (grep-find-use-xargs ,grep-find-use-xargs)
+	     (grep-highlight-matches ,grep-highlight-matches))))))
 
 (defun grep-tag-default ()
   (or (and transient-mark-mode mark-active

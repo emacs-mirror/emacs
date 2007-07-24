@@ -215,5 +215,7 @@ distclean: clean
 maintainer-clean: distclean
 	- $(FOREACH) $(WORLD) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
 
+# We used to delete *~ here, but that might inadvertently remove
+# precious files if it happens to match their short 8+3 aliases.
 extraclean: maintainer-clean
-	- $(FOREACH) *~ "#*" $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
+	- $(FOREACH) *.el~ "#*" $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)

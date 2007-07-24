@@ -62,8 +62,9 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS BZR SVN SCCS HG Arch MCVS)
-  ;; Arch and MCVS come last because they are per-tree rather than per-dir.
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS BZR HG Arch MCVS)
+  ;; BZR, HG, Arch and MCVS come last because they are per-tree rather
+  ;; than per-dir.
   "List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control.
@@ -71,7 +72,7 @@ Removing an entry from the list prevents VC from being activated
 when visiting a file managed by that backend.
 An empty list disables VC altogether."
   :type '(repeat symbol)
-  :version "21.1"
+  :version "23.1"
   :group 'vc)
 
 (defcustom vc-path
@@ -158,32 +159,36 @@ by these regular expressions."
 
 (defun vc-stay-local-p (file)
   "Return non-nil if VC should stay local when handling FILE.
-This uses the `repository-hostname' backend operation."
-  (let* ((backend (vc-backend file))
-	 (sym (vc-make-backend-sym backend 'stay-local))
-	 (stay-local (if (boundp sym) (symbol-value sym) t)))
-    (if (eq stay-local t) (setq stay-local vc-stay-local))
-    (if (symbolp stay-local) stay-local
-      (let ((dirname (if (file-directory-p file)
-			 (directory-file-name file)
-		       (file-name-directory file))))
-	(eq 'yes
-	    (or (vc-file-getprop dirname 'vc-stay-local-p)
-		(vc-file-setprop
-		 dirname 'vc-stay-local-p
-		 (let ((hostname (vc-call-backend
-				  backend 'repository-hostname dirname)))
-		   (if (not hostname)
-		       'no
-		     (let ((default t))
-		       (if (eq (car-safe stay-local) 'except)
-			   (setq default nil stay-local (cdr stay-local)))
-		       (when (consp stay-local)
-			 (setq stay-local
-			       (mapconcat 'identity stay-local "\\|")))
-		       (if (if (string-match stay-local hostname)
-			       default (not default))
-			   'yes 'no)))))))))))
+This uses the `repository-hostname' backend operation.
+If FILE is a list of files, return non-nil if any of them
+individually should stay local."
+  (if (listp file)
+      (delq nil (mapcar 'vc-stay-local-p file))
+    (let* ((backend (vc-backend file))
+	   (sym (vc-make-backend-sym backend 'stay-local))
+	   (stay-local (if (boundp sym) (symbol-value sym) t)))
+      (if (eq stay-local t) (setq stay-local vc-stay-local))
+      (if (symbolp stay-local) stay-local
+	(let ((dirname (if (file-directory-p file)
+			   (directory-file-name file)
+			 (file-name-directory file))))
+	  (eq 'yes
+	      (or (vc-file-getprop dirname 'vc-stay-local-p)
+		  (vc-file-setprop
+		   dirname 'vc-stay-local-p
+		   (let ((hostname (vc-call-backend
+				    backend 'repository-hostname dirname)))
+		     (if (not hostname)
+			 'no
+		       (let ((default t))
+			 (if (eq (car-safe stay-local) 'except)
+			     (setq default nil stay-local (cdr stay-local)))
+			 (when (consp stay-local)
+			   (setq stay-local
+				 (mapconcat 'identity stay-local "\\|")))
+			 (if (if (string-match stay-local hostname)
+				 default (not default))
+			     'yes 'no))))))))))))
 
 ;;; This is handled specially now.
 ;; Tell Emacs about this new kind of minor mode
@@ -314,22 +319,25 @@ The function walks up the directory tree from FILE looking for WITNESS.
 If WITNESS if not found, return nil, otherwise return the root."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; witnesses in /home or in /.
+  (while (not (file-directory-p file))
+    (setq file (file-name-directory (directory-file-name file))))
   (setq file (abbreviate-file-name file))
   (let ((root nil)
         (user (nth 2 (file-attributes file))))
     (while (not (or root
-                   (equal file (setq file (file-name-directory file)))
-                   (null file)
-                   ;; As a heuristic, we stop looking up the hierarchy of
-                   ;; directories as soon as we find a directory belonging
-                   ;; to another user.  This should save us from looking in
-                   ;; things like /net and /afs.  This assumes that all the
-                   ;; files inside a project belong to the same user.
-                   (not (equal user (nth 2 (file-attributes file))))
-                   (string-match vc-ignore-dir-regexp file)))
+                    (null file)
+                    ;; As a heuristic, we stop looking up the hierarchy of
+                    ;; directories as soon as we find a directory belonging
+                    ;; to another user.  This should save us from looking in
+                    ;; things like /net and /afs.  This assumes that all the
+                    ;; files inside a project belong to the same user.
+                    (not (equal user (nth 2 (file-attributes file))))
+                    (string-match vc-ignore-dir-regexp file)))
       (if (file-exists-p (expand-file-name witness file))
-         (setq root file)
-       (setq file (directory-file-name file))))
+          (setq root file)
+        (if (equal file
+                   (setq file (file-name-directory (directory-file-name file))))
+            (setq file nil))))
     root))
 
 ;; Access functions to file properties
@@ -372,20 +380,26 @@ backend is tried first."
         (vc-file-setprop file 'vc-backend 'none)
         nil)))))
 
-(defun vc-backend (file)
-  "Return the version control type of FILE, nil if it is not registered."
+(defun vc-backend (file-or-list)
+  "Return the version control type of FILE-OR-LIST, nil if it's not registered.
+If the argument is a list, the files must all have the same back end."
   ;; `file' can be nil in several places (typically due to the use of
   ;; code like (vc-backend buffer-file-name)).
-  (when (stringp file)
-    (let ((property (vc-file-getprop file 'vc-backend)))
-      ;; Note that internally, Emacs remembers unregistered
-      ;; files by setting the property to `none'.
-      (cond ((eq property 'none) nil)
-	    (property)
-	    ;; vc-registered sets the vc-backend property
-	    (t (if (vc-registered file)
-		   (vc-file-getprop file 'vc-backend)
-		 nil))))))
+  (cond ((stringp file-or-list)
+	 (let ((property (vc-file-getprop file-or-list 'vc-backend)))
+	   ;; Note that internally, Emacs remembers unregistered
+	   ;; files by setting the property to `none'.
+	   (cond ((eq property 'none) nil)
+		 (property)
+		 ;; vc-registered sets the vc-backend property
+		 (t (if (vc-registered file-or-list)
+			(vc-file-getprop file-or-list 'vc-backend)
+		      nil)))))
+	((and file-or-list (listp file-or-list))
+	 (vc-backend (car file-or-list)))
+	(t
+	 nil)))
+
 
 (defun vc-backend-subdirectory-name (file)
   "Return where the master and lock FILEs for the current directory are kept."
@@ -479,7 +493,7 @@ For registered files, the value returned is one of:
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
   (or (vc-file-getprop file 'vc-state)
-      (if (vc-backend file)
+      (if (and (> (length file) 0) (vc-backend file))
           (vc-file-setprop file 'vc-state
                            (vc-call state-heuristic file)))))
 
@@ -517,7 +531,7 @@ Return non-nil if FILE is unchanged."
   (zerop (condition-case err
              ;; If the implementation supports it, let the output
              ;; go to *vc*, not *vc-diff*, since this is an internal call.
-             (vc-call diff file nil nil "*vc*")
+             (vc-call diff (list file) nil nil "*vc*")
            (wrong-number-of-arguments
             ;; If this error came from the above call to vc-BACKEND-diff,
             ;; try again without the optional buffer argument (for
@@ -528,10 +542,10 @@ Return non-nil if FILE is unchanged."
                                                         'diff))))
                     (not (eq (caddr err) 4)))
                 (signal (car err) (cdr err))
-              (vc-call diff file))))))
+              (vc-call diff (list file)))))))
 
 (defun vc-workfile-version (file)
-  "Return the version level of the current workfile FILE.
+  "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
   (or (vc-file-getprop file 'vc-workfile-version)
       (if (vc-backend file)
@@ -702,6 +716,11 @@ Before doing that, check if there are any old backups and get rid of them."
 	     ;; any VC Dired buffer to synchronize.
 	     (vc-dired-resynch-file file)))))
 
+(defconst vc-mode-line-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] 'vc-menu-map)
+    map))
+
 (defun vc-mode-line (file)
   "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
@@ -710,9 +729,22 @@ visiting FILE."
   (let ((backend (vc-backend file)))
     (if (not backend)
 	(setq vc-mode nil)
-      (setq vc-mode (concat " " (if vc-display-status
-				    (vc-call mode-line-string file)
-				  (symbol-name backend))))
+      (let* ((ml-string (vc-call mode-line-string file))
+             (ml-echo (get-text-property 0 'help-echo ml-string)))
+        (setq vc-mode
+              (concat
+               " "
+               (if (null vc-display-status)
+                   (symbol-name backend)
+                 (propertize
+                  ml-string
+                  'mouse-face 'mode-line-highlight
+                  'help-echo 
+                  (concat (or ml-echo
+                              (format "File under the %s version control system"
+                                      backend))
+                          "\nmouse-1: Version Control menu")
+                  'local-map vc-mode-line-map)))))
       ;; If the file is locked by some other user, make
       ;; the buffer read-only.  Like this, even root
       ;; cannot modify a file that someone else has locked.
@@ -756,13 +788,10 @@ This function assumes that the file is registered."
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols
 	    ;; for 'needs-patch and 'needs-merge.
-	    (setq state-echo "Edited file")
+	    (setq state-echo "Locally modified file")
 	    (concat backend ":" rev)))
-     'mouse-face 'mode-line-highlight
-     'local-map (let ((map (make-sparse-keymap)))
-		  (define-key map [mode-line down-mouse-1] 'vc-menu-map) map)
-     'help-echo (concat state-echo " under the " backend 
-			" version control system\nmouse-1: VC Menu"))))
+     'help-echo (concat state-echo " under the " backend
+			" version control system"))))
 
 (defun vc-follow-link ()
   "If current buffer visits a symbolic link, visit the real file.
@@ -872,7 +901,7 @@ Used in `find-file-not-found-functions'."
   (let ((map (make-sparse-keymap)))
     (define-key map "a" 'vc-update-change-log)
     (define-key map "b" 'vc-switch-backend)
-    (define-key map "c" 'vc-cancel-version)
+    (define-key map "c" 'vc-rollback)
     (define-key map "d" 'vc-directory)
     (define-key map "g" 'vc-annotate)
     (define-key map "h" 'vc-insert-headers)
@@ -881,8 +910,9 @@ Used in `find-file-not-found-functions'."
     (define-key map "m" 'vc-merge)
     (define-key map "r" 'vc-retrieve-snapshot)
     (define-key map "s" 'vc-create-snapshot)
-    (define-key map "u" 'vc-revert-buffer)
+    (define-key map "u" 'vc-revert)
     (define-key map "v" 'vc-next-action)
+    (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-version-other-window)
     map))
@@ -912,9 +942,9 @@ Used in `find-file-not-found-functions'."
   (define-key vc-menu-map [separator2] '("----"))
   (define-key vc-menu-map [vc-insert-header]
     '("Insert Header" . vc-insert-headers))
-  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
-  (define-key vc-menu-map [vc-revert-buffer]
-    '("Revert to Base Version" . vc-revert-buffer))
+  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-rollback))
+  (define-key vc-menu-map [vc-revert]
+    '("Revert to Base Version" . vc-revert))
   (define-key vc-menu-map [vc-update]
     '("Update to Latest Version" . vc-update))
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
@@ -931,8 +961,8 @@ Used in `find-file-not-found-functions'."
 ;;(put 'vc-update-change-log 'menu-enable
 ;;     '(member (vc-buffer-backend) '(RCS CVS)))
 ;;(put 'vc-print-log 'menu-enable 'vc-mode)
-;;(put 'vc-cancel-version 'menu-enable 'vc-mode)
-;;(put 'vc-revert-buffer 'menu-enable 'vc-mode)
+;;(put 'vc-rollback 'menu-enable 'vc-mode)
+;;(put 'vc-revert 'menu-enable 'vc-mode)
 ;;(put 'vc-insert-headers 'menu-enable 'vc-mode)
 ;;(put 'vc-next-action 'menu-enable 'vc-mode)
 ;;(put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))

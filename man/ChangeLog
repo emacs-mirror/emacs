@@ -1,3 +1,50 @@
+2007-07-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* screen.texi (Mode Line): Describe new mode-line flag that shows if
+	default-directory for the current buffer is on a remote machine.
+
+2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.10.
+
+	* tramp.texi (trampfn): Expand macro implementation in order to handle
+	empty arguments.
+	(trampfnmhl, trampfnuhl, trampfnhl): Remove macros.  Replace all
+	occurencies by trampfn.
+	(Frequently Asked Questions): Extend example code for host
+	identification in the modeline. Add bbdb to approaches shortening Tramp
+	file names to be typed.
+
+	* trampver.texi: Update release number.
+
+2007-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc2-xtra.texi (Customizing VC) <vc-handled-backends>: Update the
+	default value.
+
+2007-07-21  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Why Version Control?): Improve previous change.
+
+2007-07-18  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* files.texi (Why Version Control?): New node.
+
+2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Move @setfilename ../info/tramp up, outside the header
+	section.  Reported by <poti@potis.org>.
+	(Remote processes): Arguments of the program to be debugged are taken
+	literally.
+	(Frequently Asked Questions): Simplify recentf example.
+
+2007-07-14  Karl Berry  <karl@gnu.org>
+
+	* info.texi (@copying): New Back-Cover Text.
+
+	* info.texi (Quitting Info): Move to proper place in source.
+	(Reported by Benno Schulenberg.)
+
 2007-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (../info/emacs-mime): Use --enable-encoding.

@@ -8893,38 +8893,36 @@ x_lower_frame (f)
     }
 }
 
+/* Activate frame with Extended Window Manager Hints */
+
+void
+x_ewmh_activate_frame (f)
+     FRAME_PTR f;
+{
+  /* See Window Manager Specification/Extended Window Manager Hints at
+     http://freedesktop.org/wiki/Standards_2fwm_2dspec  */
+
+  const char *atom = "_NET_ACTIVE_WINDOW";
+  if (f->async_visible && wm_supports (f, atom))
+    {
+      Lisp_Object frame;
+      XSETFRAME (frame, f);
+      Fx_send_client_event (frame, make_number (0), frame,
+                            make_unibyte_string (atom, strlen (atom)),
+                            make_number (32),
+                            Fcons (make_number (1),
+                                   Fcons (make_number (last_user_time),
+                                          Qnil)));
+    }
+}
+
 static void
 XTframe_raise_lower (f, raise_flag)
      FRAME_PTR f;
      int raise_flag;
 {
   if (raise_flag)
-    {
-      /* The following code is needed for `raise-frame' to work on
-	 some versions of metacity; see Window Manager
-	 Specification/Extended Window Manager Hints at
-	 http://freedesktop.org/wiki/Standards_2fwm_2dspec  */
-
-#if 0
-      /* However, on other versions (metacity 2.17.2-1.fc7), it
-	 reportedly causes hangs when resizing frames.  */
-
-      const char *atom = "_NET_ACTIVE_WINDOW";
-      if (f->async_visible && wm_supports (f, atom))
-        {
-          Lisp_Object frame;
-          XSETFRAME (frame, f);
-          Fx_send_client_event (frame, make_number (0), frame,
-                                make_unibyte_string (atom, strlen (atom)),
-                                make_number (32),
-                                Fcons (make_number (1),
-                                       Fcons (make_number (last_user_time),
-                                              Qnil)));
-        }
-      else
-#endif
-        x_raise_frame (f);
-    }
+    x_raise_frame (f);
   else
     x_lower_frame (f);
 }

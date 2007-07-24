@@ -1408,38 +1408,36 @@ make, or the user didn't cancel the call."
   (or map (setq map query-replace-map))
   (and query-flag minibuffer-auto-raise
        (raise-frame (window-frame (minibuffer-window))))
-  (let ((nocasify (not (and case-fold-search case-replace
-			    (string-equal from-string
-					  (downcase from-string)))))
-	(case-fold-search (and case-fold-search
-			       (string-equal from-string
-					     (downcase from-string))))
-	(literal (or (not regexp-flag) (eq regexp-flag 'literal)))
-	(search-function (if regexp-flag 're-search-forward 'search-forward))
-	(search-string from-string)
-	(real-match-data nil)		; the match data for the current match
-	(next-replacement nil)
-	;; This is non-nil if we know there is nothing for the user
-	;; to edit in the replacement.
-	(noedit nil)
-	(keep-going t)
-	(stack nil)
-	(replace-count 0)
-	(nonempty-match nil)
+  (let* ((case-fold-search
+          (and case-fold-search
+               (isearch-no-upper-case-p from-string regexp-flag)))
+         (nocasify (not (and case-replace case-fold-search)))
+         (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
+         (search-function (if regexp-flag 're-search-forward 'search-forward))
+         (search-string from-string)
+         (real-match-data nil)       ; The match data for the current match.
+         (next-replacement nil)
+         ;; This is non-nil if we know there is nothing for the user
+         ;; to edit in the replacement.
+         (noedit nil)
+         (keep-going t)
+         (stack nil)
+         (replace-count 0)
+         (nonempty-match nil)
 
-	;; If non-nil, it is marker saying where in the buffer to stop.
-	(limit nil)
+         ;; If non-nil, it is marker saying where in the buffer to stop.
+         (limit nil)
 
-	;; Data for the next match.  If a cons, it has the same format as
-	;; (match-data); otherwise it is t if a match is possible at point.
-	(match-again t)
+         ;; Data for the next match.  If a cons, it has the same format as
+         ;; (match-data); otherwise it is t if a match is possible at point.
+         (match-again t)
 
-	(message
-	 (if query-flag
-	     (apply 'propertize
-		    (substitute-command-keys
-		     "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) ")
-		    minibuffer-prompt-properties))))
+         (message
+          (if query-flag
+              (apply 'propertize
+                     (substitute-command-keys
+                      "Query replacing %s with %s: (\\<query-replace-map>\\[help] for help) ")
+                     minibuffer-prompt-properties))))
 
     ;; If region is active, in Transient Mark mode, operate on region.
     (when start

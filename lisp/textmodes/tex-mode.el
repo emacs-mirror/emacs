@@ -249,7 +249,7 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
   :group 'tex)
 (put 'tex-fontify-script 'safe-local-variable 'booleanp)
 
-(defcustom tex-font-script-display '(-0.3 . 0.3)
+(defcustom tex-font-script-display '(-0.2 . 0.2)
   "Display specification for subscript and superscript content.
 The car is used for subscript, the cdr is used for superscripts."
   :group 'tex
@@ -637,26 +637,31 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
 (defvar tex-verbatim-environments
   '("verbatim" "verbatim*"))
+(put 'tex-verbatim-environments 'safe-local-variable
+     (lambda (x) (require 'cl) (every 'stringp x)))
 
 (defvar tex-font-lock-syntactic-keywords
-  (let ((verbs (regexp-opt tex-verbatim-environments t)))
-    `((,(concat "^\\\\begin *{" verbs "}.*\\(\n\\)") 2 "|")
-      ;; Technically, we'd like to put the "|" property on the \n preceding
-      ;; the \end, but this would have 2 disadvantages:
-      ;; 1 - it's wrong if the verbatim env is empty (the same \n is used to
-      ;;     start and end the fenced-string).
-      ;; 2 - font-lock considers the preceding \n as being part of the
-      ;;     preceding line, so things gets screwed every time the previous
-      ;;     line is re-font-locked on its own.
-      ;; There's a hack in tex-font-lock-keywords-1 to remove the verbatim
-      ;; face from the \ but C-M-f still jumps to the wrong spot :-(  --Stef
-      (,(concat "^\\(\\\\\\)end *{" verbs "}\\(.?\\)") (1 "|") (3 "<"))
-      ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
-      ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
-      ("\\\\verb\\**\\([^a-z@*]\\)"
-       ;; Do it last, because it uses syntax-ppss which needs the
-       ;; syntax-table properties of previous entries.
-       1 (tex-font-lock-verb (match-end 1))))))
+  '((eval . `(,(concat "^\\\\begin *{"
+                       (regexp-opt tex-verbatim-environments t)
+                       "}.*\\(\n\\)") 2 "|"))
+    ;; Technically, we'd like to put the "|" property on the \n preceding
+    ;; the \end, but this would have 2 disadvantages:
+    ;; 1 - it's wrong if the verbatim env is empty (the same \n is used to
+    ;;     start and end the fenced-string).
+    ;; 2 - font-lock considers the preceding \n as being part of the
+    ;;     preceding line, so things gets screwed every time the previous
+    ;;     line is re-font-locked on its own.
+    ;; There's a hack in tex-font-lock-keywords-1 to remove the verbatim
+    ;; face from the \ but C-M-f still jumps to the wrong spot :-(  --Stef
+    (eval . `(,(concat "^\\(\\\\\\)end *{"
+                       (regexp-opt tex-verbatim-environments t)
+                       "}\\(.?\\)") (1 "|") (3 "<")))
+    ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
+    ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
+    ("\\\\verb\\**\\([^a-z@*]\\)"
+     ;; Do it last, because it uses syntax-ppss which needs the
+     ;; syntax-table properties of previous entries.
+     1 (tex-font-lock-verb (match-end 1)))))
 
 (defun tex-font-lock-unfontify-region (beg end)
   (font-lock-default-unfontify-region beg end)
@@ -670,11 +675,11 @@ An alternative value is \" . \", if you use a font with a narrow period."
       (setq beg next))))
 
 (defface superscript
-  '((t :height 0.8)) ;; :raise 0.3
+  '((t :height 0.8)) ;; :raise 0.2
   "Face used for superscripts."
   :group 'tex)
 (defface subscript
-  '((t :height 0.8)) ;; :raise -0.3
+  '((t :height 0.8)) ;; :raise -0.2
   "Face used for subscripts."
   :group 'tex)
 

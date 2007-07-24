@@ -48,7 +48,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Documentation
 
-;; See comment string of function `vera-mode' or type `C-c C-h' in Emacs.
+;; See comment string of function `vera-mode' or type `C-h m' in Emacs.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Installation
@@ -122,36 +122,36 @@ If nil, TAB always indents current line."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key bindings
 
-(defvar vera-mode-map ()
+(defvar vera-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Backspace/delete key bindings.
+    (define-key map [backspace] 'backward-delete-char-untabify)
+    (unless (boundp 'delete-key-deletes-forward) ; XEmacs variable
+      (define-key map [delete]       'delete-char)
+      (define-key map [(meta delete)] 'kill-word))
+    ;; Standard key bindings.
+    (define-key map "\M-e"     'vera-forward-statement)
+    (define-key map "\M-a"     'vera-backward-statement)
+    (define-key map "\M-\C-e"  'vera-forward-same-indent)
+    (define-key map "\M-\C-a"  'vera-backward-same-indent)
+    ;; Mode specific key bindings.
+    (define-key map "\C-c\t"   'indent-according-to-mode)
+    (define-key map "\M-\C-\\" 'vera-indent-region)
+    (define-key map "\C-c\C-c" 'vera-comment-uncomment-region)
+    (define-key map "\C-c\C-f" 'vera-fontify-buffer)
+    (define-key map "\C-c\C-v" 'vera-version)
+    (define-key map "\M-\t"    'tab-to-tab-stop)
+    ;; Electric key bindings.
+    (define-key map "\t"       'vera-electric-tab)
+    (define-key map "\r"       'vera-electric-return)
+    (define-key map " "        'vera-electric-space)
+    (define-key map "{"        'vera-electric-opening-brace)
+    (define-key map "}"        'vera-electric-closing-brace)
+    (define-key map "#"        'vera-electric-pound)
+    (define-key map "*"        'vera-electric-star)
+    (define-key map "/"        'vera-electric-slash)
+    map)
   "Keymap for Vera Mode.")
-
-(setq vera-mode-map (make-sparse-keymap))
-;; backspace/delete key bindings
-(define-key vera-mode-map [backspace] 'backward-delete-char-untabify)
-(unless (boundp 'delete-key-deletes-forward) ; XEmacs variable
-  (define-key vera-mode-map [delete]       'delete-char)
-  (define-key vera-mode-map [(meta delete)] 'kill-word))
-;; standard key bindings
-(define-key vera-mode-map "\M-e"     'vera-forward-statement)
-(define-key vera-mode-map "\M-a"     'vera-backward-statement)
-(define-key vera-mode-map "\M-\C-e"  'vera-forward-same-indent)
-(define-key vera-mode-map "\M-\C-a"  'vera-backward-same-indent)
-;; mode specific key bindings
-(define-key vera-mode-map "\C-c\t"   'indent-according-to-mode)
-(define-key vera-mode-map "\M-\C-\\" 'vera-indent-region)
-(define-key vera-mode-map "\C-c\C-c" 'vera-comment-uncomment-region)
-(define-key vera-mode-map "\C-c\C-f" 'vera-fontify-buffer)
-(define-key vera-mode-map "\C-c\C-v" 'vera-version)
-(define-key vera-mode-map "\M-\t"    'tab-to-tab-stop)
-;; electric key bindings
-(define-key vera-mode-map "\t"       'vera-electric-tab)
-(define-key vera-mode-map "\r"       'vera-electric-return)
-(define-key vera-mode-map " "        'vera-electric-space)
-(define-key vera-mode-map "{"        'vera-electric-opening-brace)
-(define-key vera-mode-map "}"        'vera-electric-closing-brace)
-(define-key vera-mode-map "#"        'vera-electric-pound)
-(define-key vera-mode-map "*"        'vera-electric-star)
-(define-key vera-mode-map "/"        'vera-electric-slash)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Menu
@@ -844,21 +844,19 @@ This function does not modify point or mark."
 
 (defsubst vera-re-search-forward (regexp &optional bound noerror)
   "Like `re-search-forward', but skips over matches in literals."
-  (store-match-data '(nil nil))
-  (while (and (re-search-forward regexp bound noerror)
-	      (vera-skip-forward-literal)
-	      (progn (store-match-data '(nil nil))
-		     (if bound (< (point) bound) t))))
-  (match-end 0))
+  (let (ret)
+    (while (and (setq ret (re-search-forward regexp bound noerror))
+                (vera-skip-forward-literal)
+                (if bound (< (point) bound) t)))
+    ret))
 
 (defsubst vera-re-search-backward (regexp &optional bound noerror)
   "Like `re-search-backward', but skips over matches in literals."
-  (store-match-data '(nil nil))
-  (while (and (re-search-backward regexp bound noerror)
-	      (vera-skip-backward-literal)
-	      (progn (store-match-data '(nil nil))
-		     (if bound (> (point) bound) t))))
-  (match-end 0))
+  (let (ret)
+    (while (and (setq ret (re-search-backward regexp bound noerror))
+                (vera-skip-backward-literal)
+                (if bound (> (point) bound) t)))
+    ret))
 
 (defun vera-forward-syntactic-ws (&optional lim skip-directive)
   "Forward skip of syntactic whitespace."

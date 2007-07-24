@@ -711,6 +711,28 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
        ((null action) (try-completion string names))
        (t (test-completion string names))))))
 
+(defun locate-dominating-file (file regexp)
+  "Look up the directory hierarchy from FILE for a file matching REGEXP."
+  (while (and file (not (file-directory-p file)))
+    (setq file (file-name-directory (directory-file-name file))))
+  (catch 'found
+    (let ((user (nth 2 (file-attributes file)))
+          ;; Abbreviate, so as to stop when we cross ~/.
+          (dir (abbreviate-file-name (file-name-as-directory file)))
+          files)
+      ;; As a heuristic, we stop looking up the hierarchy of directories as
+      ;; soon as we find a directory belonging to another user.  This should
+      ;; save us from looking in things like /net and /afs.  This assumes
+      ;; that all the files inside a project belong to the same user.
+      (while (and dir (equal user (nth 2 (file-attributes dir))))
+        (if (setq files (directory-files dir 'full regexp))
+            (throw 'found (car files))
+          (if (equal dir
+                     (setq dir (file-name-directory
+                                (directory-file-name dir))))
+              (setq dir nil))))
+      nil)))
+
 (defun executable-find (command)
   "Search for COMMAND in `exec-path' and return the absolute file name.
 Return nil if COMMAND is not found anywhere in `exec-path'."
@@ -727,7 +749,7 @@ This is an interface to the function `load'."
 			  (cons load-path (get-load-suffixes)))))
   (load library))
 
-(defun file-remote-p (file &optional connected)
+(defun file-remote-p (file &optional identification connected)
   "Test whether FILE specifies a location on a remote system.
 Return an identification of the system if the location is indeed
 remote.  The identification of the system may comprise a method
@@ -736,6 +758,11 @@ to access the system and its hostname, amongst other things.
 For example, the filename \"/user@host:/foo\" specifies a location
 on the system \"/user@host:\".
 
+IDENTIFICATION specifies which part of the identification shall
+be returned as string.  IDENTIFICATION can be the symbol
+`method', `user' or `host'; any other value is handled like nil
+and means to return the complete identification string.
+
 If CONNECTED is non-nil, the function returns an identification only
 if FILE is located on a remote system, and a connection is established
 to that remote system.
@@ -743,7 +770,7 @@ to that remote system.
 `file-remote-p' will never open a connection on its own."
   (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
-	(funcall handler 'file-remote-p file connected)
+	(funcall handler 'file-remote-p file identification connected)
       nil)))
 
 (defun file-local-copy (file)
@@ -2460,6 +2487,7 @@ asking you for confirmation."
 	mode-line-mule-info
 	mode-line-position
 	mode-line-process
+	mode-line-remote
 	mode-name
 	outline-level
 	overriding-local-map

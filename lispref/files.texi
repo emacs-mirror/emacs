@@ -2768,7 +2768,7 @@ nothing and returns @code{nil}.  Otherwise it returns the file name
 of the local copy file.
 @end defun
 
-@defun file-remote-p filename &optional connected
+@defun file-remote-p filename &optional identification connected
 This function tests whether @var{filename} is a remote file.  If
 @var{filename} is local (not remote), the return value is @code{nil}.
 If @var{filename} is indeed remote, the return value is a string that
@@ -2785,6 +2785,13 @@ be accessed locally with respect to each other.  This means, for
 example, that it is possible to start a remote process accessing both
 files at the same time.  Implementors of file handlers need to ensure
 this principle is valid.
+
+@var{identification} specifies which part of the identifier shall be
+returned as string.  @var{identification} can be the symbol
+@code{method}, @code{user} or @code{host}; any other value is handled
+like @code{nil} and means to return the complete identifier string.
+In the example above, the remote @code{user} identifier string would
+be @code{root}.
 
 If @var{connected} is non-@code{nil}, this function returns @code{nil}
 even if @var{filename} is remote, if Emacs has no network connection

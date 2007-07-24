@@ -263,6 +263,7 @@ Used instead of analyzing error codes of commands.")
     (make-symbolic-link . tramp-fish-handle-make-symbolic-link)
     (rename-file . tramp-fish-handle-rename-file)
     (set-file-modes . tramp-fish-handle-set-file-modes)
+    (set-file-times . tramp-fish-handle-set-file-times)
     (set-visited-file-modtime . ignore)
     (shell-command . tramp-handle-shell-command)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
@@ -271,9 +272,8 @@ Used instead of analyzing error codes of commands.")
     (verify-visited-file-modtime . ignore)
     (write-region . tramp-fish-handle-write-region)
     (executable-find . tramp-fish-handle-executable-find)
-    (start-process . ignore)
-    (call-process . tramp-fish-handle-call-process)
-    (process-file . tramp-handle-process-file)
+    (start-file-process . ignore)
+    (process-file . tramp-fish-handle-process-file)
 )
   "Alist of handler functions for Tramp FISH method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
@@ -698,6 +698,15 @@ target of the symlink differ."
       (tramp-error
        v 'file-error "Error while changing file's mode %s" filename))))
 
+(defun tramp-fish-handle-set-file-times (filename &optional time)
+  "Like `set-file-times' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (let ((time (if (or (null time) (equal time '(0 0))) (current-time) time)))
+      (zerop (process-file
+	      "touch" nil nil nil "-t"
+	      (format-time-string "%Y%m%d%H%M.%S" time)
+	      (tramp-shell-quote-argument localname))))))
+
 (defun tramp-fish-handle-write-region
   (start end filename &optional append visit lockname confirm)
   "Like `write-region' for Tramp files."
@@ -731,14 +740,14 @@ target of the symlink differ."
 (defun tramp-fish-handle-executable-find (command)
   "Like `executable-find' for Tramp files."
   (with-temp-buffer
-    (if (zerop (call-process "which" nil t nil command))
+    (if (zerop (process-file "which" nil t nil command))
 	(progn
 	  (goto-char (point-min))
 	  (buffer-substring (point-min) (tramp-line-end-position))))))
 
-(defun tramp-fish-handle-call-process
+(defun tramp-fish-handle-process-file
   (program &optional infile destination display &rest args)
-  "Like `call-process' for Tramp files."
+  "Like `process-file' for Tramp files."
   ;; The implementation is not complete yet.
   (when (and (numberp destination) (zerop destination))
     (error "Implementation does not handle immediate return"))
@@ -926,11 +935,8 @@ KEEP-DATE is non-nil, preserve the time stamp when copying."
 	       (tramp-shell-quote-argument v1-localname)
 	       (tramp-shell-quote-argument v2-localname)))))
   ;; KEEP-DATE handling.
-  (when keep-date
-    (let ((modtime (nth 5 (file-attributes filename))))
-      (when (and (not (null modtime))
-		 (not (equal modtime '(0 0))))
-	(tramp-touch newname modtime))))
+  (when (and keep-date (functionp 'set-file-times))
+    (apply 'set-file-times (list newname (nth 5 (file-attributes filename)))))
   ;; Set the mode.
   (set-file-modes newname (file-modes filename)))
 
@@ -942,7 +948,8 @@ Result is a list of (LOCALNAME LINK COUNT UID GID ATIME MTIME CTIME
 SIZE MODE WEIRD INODE DEVICE)."
   (block nil
     (with-current-buffer (tramp-get-buffer vec)
-      ;; #LIST does not work properly with trailing "/", at least in .fishsrv.pl
+      ;; #LIST does not work properly with trailing "/", at least in
+      ;; .fishsrv.pl.
       (when (string-match "/$" localname)
 	(setq localname (concat localname ".")))
 
@@ -974,7 +981,7 @@ SIZE MODE WEIRD INODE DEVICE)."
 	    ;; Add inode and device.
 	    (add-to-list
 	     'res (append item
-			  (list (tramp-get-inode (car item))
+			  (list (tramp-get-inode vec)
 				(tramp-get-device vec))))))
 
 	;; Read return code

@@ -64,6 +64,7 @@ static void window_scroll P_ ((Lisp_Object, int, int, int));
 static void window_scroll_pixel_based P_ ((Lisp_Object, int, int, int));
 static void window_scroll_line_based P_ ((Lisp_Object, int, int, int));
 static int window_min_size_1 P_ ((struct window *, int));
+static int window_min_size_2 P_ ((struct window *, int));
 static int window_min_size P_ ((struct window *, int, int, int *));
 static void size_window P_ ((Lisp_Object, int, int, int, int, int));
 static int freeze_window_start P_ ((struct window *, void *));
@@ -2555,7 +2556,6 @@ check_frame_size (frame, rows, cols)
     *cols = MIN_SAFE_WINDOW_WIDTH;
 }
 
-
 /* Value is non-zero if window W is fixed-size.  WIDTH_P non-zero means
    check if W's width can be changed, otherwise check W's height.
    CHECK_SIBLINGS_P non-zero means check resizablity of WINDOW's
@@ -2657,6 +2657,33 @@ window_fixed_size_p (w, width_p, check_siblings_p)
   return fixed_p;
 }
 
+/* Return the minimum size for leaf window W.  WIDTH_P non-zero means
+   take into account fringes and the scrollbar of W.  WIDTH_P zero
+   means take into account mode-line and header-line of W.  Return 1
+   for the minibuffer.  */
+
+static int
+window_min_size_2 (w, width_p)
+     struct window *w;
+     int width_p;
+{
+  int size;
+  
+  if (width_p)
+    size = max (window_min_width,
+		(MIN_SAFE_WINDOW_WIDTH
+		 + WINDOW_FRINGE_COLS (w)
+		 + WINDOW_SCROLL_BAR_COLS (w)));
+  else if (MINI_WINDOW_P (w))
+    size = 1;
+  else
+    size = max (window_min_height,
+		(MIN_SAFE_WINDOW_HEIGHT
+		 + (WINDOW_WANTS_MODELINE_P (w) ? 1 : 0)
+		 + (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0 )));
+
+  return size;
+}
 
 /* Return the minimum size of window W, not taking fixed-width windows
    into account.  WIDTH_P non-zero means return the minimum width,
@@ -2726,22 +2753,7 @@ window_min_size_1 (w, width_p)
 	}
     }
   else
-    {
-      if (width_p)
-	size = max (window_min_width,
-		    (MIN_SAFE_WINDOW_WIDTH
-		     + WINDOW_FRINGE_COLS (w)
-		     + WINDOW_SCROLL_BAR_COLS (w)));
-      else
-	{
-	  if (MINI_WINDOW_P (w)
-	      || (!WINDOW_WANTS_MODELINE_P (w)
-		  && !WINDOW_WANTS_HEADER_LINE_P (w)))
-	    size = 1;
-	  else
-	    size = window_min_height;
-	}
-    }
+    size = window_min_size_2 (w, width_p);
 
   return size;
 }
@@ -2983,11 +2995,6 @@ size_window (window, size, width_p, nodelete_p, first_only, last_only)
   Lisp_Object child, *forward, *sideward;
   int old_size, min_size, safe_min_size;
 
-  /* We test nodelete_p != 2 and nodelete_p != 1 below, so it
-     seems like it's too soon to do this here.  ++KFS.  */
-  if (nodelete_p == 2)
-    nodelete_p = 0;
-
   check_min_window_sizes ();
   size = max (0, size);
 
@@ -2998,21 +3005,22 @@ size_window (window, size, width_p, nodelete_p, first_only, last_only)
     {
       old_size = WINDOW_TOTAL_COLS (w);
       min_size = window_min_width;
-      /* Ensure that there is room for the scroll bar and fringes!
-         We may reduce display margins though.  */
-      safe_min_size = (MIN_SAFE_WINDOW_WIDTH
-		       + WINDOW_FRINGE_COLS (w)
-		       + WINDOW_SCROLL_BAR_COLS (w));
+      safe_min_size = window_min_size_2 (w, 1);
     }
   else
     {
       old_size = XINT (w->total_lines);
       min_size = window_min_height;
-      safe_min_size = MIN_SAFE_WINDOW_HEIGHT;
+      safe_min_size = window_min_size_2 (w, 0);
     }
 
   if (old_size < min_size && nodelete_p != 2)
     w->too_small_ok = Qt;
+
+  /* Move the following test here since otherwise the
+     preceding test doesn't make sense.  martin. */
+  if (nodelete_p == 2)
+    nodelete_p = 0;
 
   /* Maybe delete WINDOW if it's too small.  */
   if (nodelete_p != 1 && !NILP (w->parent))
@@ -3710,9 +3718,6 @@ displayed.  */)
       frames = Qnil;
       if (FRAME_MINIBUF_ONLY_P (f))
 	XSETFRAME (frames, last_nonminibuf_frame);
-      /* Don't try to create a window if we would get an error.  */
-      if (split_height_threshold < window_min_height << 1)
-	split_height_threshold = window_min_height << 1;
 
       /* Note that both Fget_largest_window and Fget_lru_window
 	 ignore minibuffers and dedicated windows.
@@ -3735,25 +3740,30 @@ displayed.  */)
       else
 	window = Fget_largest_window (frames, Qt);
 
-      /* If we got a tall enough full-width window that can be split,
-	 split it.  */
+      /* If the largest window is tall enough, full-width, and either eligible
+	 for splitting or the only window, split it.  */
       if (!NILP (window)
 	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	  && window_height (window) >= split_height_threshold
-	  && WINDOW_FULL_WIDTH_P (XWINDOW (window)))
+	  && WINDOW_FULL_WIDTH_P (XWINDOW (window))
+	  && (window_height (window) >= split_height_threshold
+	      || (NILP (XWINDOW (window)->parent)))
+	  && (window_height (window)
+	      >= (2 * window_min_size_2 (XWINDOW (window), 0))))
 	window = Fsplit_window (window, Qnil, Qnil);
       else
 	{
 	  Lisp_Object upper, lower, other;
 
 	  window = Fget_lru_window (frames, Qt);
-	  /* If the LRU window is selected, and big enough,
-	     and can be split, split it.  */
+	  /* If the LRU window is tall enough, and either eligible for splitting
+	  and selected or the only window, split it.  */
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	      && (EQ (window, selected_window)
-		  || EQ (XWINDOW (window)->parent, Qnil))
-	      && window_height (window) >= window_min_height << 1)
+	      && ((EQ (window, selected_window)
+		   && window_height (window) >= split_height_threshold)
+		  || (NILP (XWINDOW (window)->parent)))
+	      && (window_height (window)
+		  >= (2 * window_min_size_2 (XWINDOW (window), 0))))
 	    window = Fsplit_window (window, Qnil, Qnil);
 	  else
 	    window = Fget_lru_window (frames, Qnil);
@@ -4002,9 +4012,11 @@ See Info node `(elisp)Splitting Windows' for more details and examples.*/)
 
   if (NILP (horflag))
     {
-      if (size_int < window_min_height)
+      int window_safe_height = window_min_size_2 (o, 0);
+      
+      if (size_int < window_safe_height)
 	error ("Window height %d too small (after splitting)", size_int);
-      if (size_int + window_min_height > XFASTINT (o->total_lines))
+      if (size_int + window_safe_height > XFASTINT (o->total_lines))
 	error ("Window height %d too small (after splitting)",
 	       XFASTINT (o->total_lines) - size_int);
       if (NILP (o->parent)
@@ -4017,10 +4029,11 @@ See Info node `(elisp)Splitting Windows' for more details and examples.*/)
     }
   else
     {
-      if (size_int < window_min_width)
+      int window_safe_width = window_min_size_2 (o, 1);
+      
+      if (size_int < window_safe_width)
 	error ("Window width %d too small (after splitting)", size_int);
-
-      if (size_int + window_min_width > XFASTINT (o->total_cols))
+      if (size_int + window_safe_width > XFASTINT (o->total_cols))
 	error ("Window width %d too small (after splitting)",
 	       XFASTINT (o->total_cols) - size_int);
       if (NILP (o->parent)
@@ -4501,7 +4514,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 
       /* Don't make this window too small.  */
       if (XINT (CURSIZE (window)) + delta
-	  < (horiz_flag ? window_min_width : window_min_height))
+	  < window_min_size_2 (XWINDOW (window), horiz_flag))
 	{
 	  Fset_window_configuration (old_config);
 	  error ("Cannot adjust window size as specified");
@@ -6899,7 +6912,7 @@ Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
 	vertical_type = Qnil;
     }
 
-  if (!(EQ (vertical_type, Qnil)
+  if (!(NILP (vertical_type)
 	|| EQ (vertical_type, Qleft)
 	|| EQ (vertical_type, Qright)
 	|| EQ (vertical_type, Qt)))

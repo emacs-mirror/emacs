@@ -111,7 +111,7 @@ When this is `function', only ask when called non-interactively."
 		  (save-match-data
 		    (forward-line 1)
 		    (and (looking-at comment-start-skip)
-			 (goto-char (match-end 1))))
+			 (goto-char (match-end 0))))
 		  (save-match-data
 		    (looking-at copyright-years-regexp))))
       (forward-line 1)
