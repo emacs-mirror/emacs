@@ -1,21 +1,28 @@
+2007-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ps-mule.el (ps-multibyte-buffer): Docstring fixes.
+	(ps-mule-encode-ethiopic): Make it clear that it's always defined.
+	(ps-mule-prepare-font-for-components, ps-mule-encode-header-string)
+	(ps-mule-encode-bit, ps-mule-encode-ucs2): Use dotimes.
+	(ps-mule-begin-job): Use dolist.
+
 2007-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* subr.el (start-file-process-shell-command)
 	(process-file-shell-command): New defuns.
 
-	* progmodes/compile.el (compilation-start): Apply
-	`start-file-process-shell-command'.
+	* progmodes/compile.el (compilation-start):
+	Apply `start-file-process-shell-command'.
 
 2007-07-24  Alexandre Julliard  <julliard@winehq.org>
 
-	* vc-git.el (vc-git-checkout, vc-directory-exclusion-list): Fix
-	typos.
+	* vc-git.el (vc-git-checkout, vc-directory-exclusion-list): Fix typos.
 
 2007-07-24  Alan Mackenzie  <acm@muc.de>
 
-	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Initialise
-	byte-compile-unresolved-functions before rather than after a
-	compilation.
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
+	Initialise byte-compile-unresolved-functions before rather than
+	after a compilation.
 	(byte-compile-unresolved-functions): Amplify doc string.
 
 2007-07-24  Glenn Morris  <rgm@gnu.org>
@@ -59,8 +66,7 @@
 	* calendar/cal-bahai.el (list-bahai-diary-entries)
 	* calendar/cal-hebrew.el (list-hebrew-diary-entries)
 	* calendar/cal-islam.el (list-islamic-diary-entries)
-	* calendar/calendar.el (generate-calendar)
-	(generate-calendar-month)
+	* calendar/calendar.el (generate-calendar, generate-calendar-month)
 	* calendar/diary-lib.el (diary-list-entries)
 	(mark-calendar-date-pattern): Use `dotimes' rather than
 	`calendar-for-loop'.

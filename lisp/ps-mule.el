@@ -167,28 +167,28 @@
 
 ;;;###autoload
 (defcustom ps-multibyte-buffer nil
-  "*Specifies the multi-byte buffer handling.
+  "Specifies the multi-byte buffer handling.
 
 Valid values are:
 
-  nil                     This is the value to use the default settings which
-			  is by default for printing buffer with only ASCII
-			  and Latin characters.   The default setting can be
-			  changed by setting the variable
+  nil			  This is the value to use the default settings;
+			  by default, this only works to print buffers with
+			  only ASCII and Latin characters.   But this default
+			  setting can be changed by setting the variable
 			  `ps-mule-font-info-database-default' differently.
 			  The initial value of this variable is
 			  `ps-mule-font-info-database-latin' (see
 			  documentation).
 
-  `non-latin-printer'     This is the value to use when you have a Japanese
+  `non-latin-printer'	  This is the value to use when you have a Japanese
 			  or Korean PostScript printer and want to print
 			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
 			  JISX0201-Kana) and Korean characters.  At present,
-			  it was not tested the Korean characters printing.
+			  it was not tested with the Korean characters printing.
 			  If you have a korean PostScript printer, please,
 			  test it.
 
-  `bdf-font'              This is the value to use when you want to print
+  `bdf-font'		  This is the value to use when you want to print
 			  buffer with BDF fonts.  BDF fonts include both latin
 			  and non-latin fonts.  BDF (Bitmap Distribution
 			  Format) is a format used for distributing X's font
@@ -200,7 +200,7 @@ Valid values are:
 			  `bdf-directory-list' appropriately (see ps-bdf.el for
 			  documentation of this variable).
 
-  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+  `bdf-font-except-latin' This is like `bdf-font' except that it uses
 			  PostScript default fonts to print ASCII and Latin-1
 			  characters.  This is convenient when you want or
 			  need to use both latin and non-latin characters on
@@ -261,7 +261,7 @@ See also the variable `ps-font-info-database'.")
 
 (defcustom ps-mule-font-info-database-default
   ps-mule-font-info-database-latin
-  "*The default setting to use when `ps-multibyte-buffer' is nil."
+  "The default setting to use when `ps-multibyte-buffer' is nil."
   :type '(symbol :tag "Multi-Byte Buffer Database Font Default")
   :group 'ps-print-font)
 
@@ -417,22 +417,26 @@ See also `ps-mule-font-info-database-bdf'.")
 
 (defun ps-mule-encode-bit (string delta)
   (let* ((dim (charset-dimension (char-charset (string-to-char string))))
-	 (len (* (length string) dim))
-	 (str (make-string len 0))
-	 (i 0)
+	 (len (length string))
+	 (str (make-string (* len dim) 0))
 	 (j 0))
     (if (= dim 1)
-	(while (< j len)
-	  (aset str j
-		(+ (nth 1 (split-char (aref string i))) delta))
-	  (setq i (1+ i)
-		j (1+ j)))
-      (while (< j len)
+        ;; (apply 'string
+        ;;        (mapcar (lambda (c) (+ (nth 1 (split-char c)) delta))
+        ;;                string))
+	(dotimes (i len)
+	  (aset str i
+		(+ (nth 1 (split-char (aref string i))) delta)))
+      ;; (mapconcat (lambda (c)
+      ;;              (let ((split (split-char c)))
+      ;;                (string (+ (nth 1 split) delta)
+      ;;                        (+ (nth 2 split) delta))))
+      ;;            string "")
+      (dotimes (i len)
 	(let ((split (split-char (aref string i))))
 	  (aset str j (+ (nth 1 split) delta))
 	  (aset str (1+ j) (+ (nth 2 split) delta))
-	  (setq i (1+ i)
-		j (+ j 2)))))
+	  (setq j (+ j 2)))))
     str))
 
 ;; Special encoding function for Ethiopic.
@@ -455,31 +459,29 @@ See also `ps-mule-font-info-database-bdf'.")
   ;; to avoid compilation gripes
   (defvar ccl-encode-ethio-unicode nil))
 
-(if (boundp 'mule-version)
-    ;; bound mule-version
-    (defun ps-mule-encode-ethiopic (string)
-      (ccl-execute-on-string (symbol-value 'ccl-encode-ethio-unicode)
-			     (make-vector 9 nil)
-			     string))
-  ;; unbound mule-version
-  (defun ps-mule-encode-ethiopic (string)
-    string))
+(defalias 'ps-mule-encode-ethiopic
+  (if (boundp 'mule-version)
+      ;; Bound mule-version.
+      (lambda (string)
+        (ccl-execute-on-string (symbol-value 'ccl-encode-ethio-unicode)
+                               (make-vector 9 nil)
+                               string))
+    ;; Unbound mule-version.
+    #'identity))
 
 ;; Special encoding for mule-unicode-* characters.
 (defun ps-mule-encode-ucs2 (string)
   (let* ((len (length string))
 	 (str (make-string (* 2 len) 0))
-	 (i 0)
 	 (j 0)
 	 ch hi lo)
-    (while (< i len)
+    (dotimes (i len)
       (setq ch (encode-char (aref string i) 'ucs)
 	    hi (lsh ch -8)
 	    lo (logand ch 255))
       (aset str j hi)
       (aset str (1+ j) lo)
-      (setq i (1+ i)
-	    j (+ j 2)))
+      (setq j (+ j 2)))
     str))
 
 ;; A charset which we are now processing.
@@ -906,11 +908,8 @@ the sequence."
 ;; The latter form is used if we much change font for the character.
 
 (defun ps-mule-prepare-font-for-components (components font-type)
-  (let ((len (length components))
-	(i 0)
-	elt)
-    (while (< i len)
-      (setq elt (aref components i))
+  (dotimes (i (length components))
+    (let ((elt (aref components i)))
       (if (consp elt)
 	  ;; ELT is a composition rule.
 	  (setq elt (encode-composition-rule elt))
@@ -930,8 +929,7 @@ the sequence."
 	  (if (stringp font)
 	      (setq elt (cons font str) ps-last-font font)
 	    (setq elt str))))
-      (aset components i elt)
-      (setq i (1+ i))))
+      (aset components i elt)))
   components)
 
 (defun ps-mule-plot-components (components tail)
@@ -1363,12 +1361,10 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
     (if (eq (car ps-mule-header-charsets) 'latin-iso8859-1)
 	;; Latin1 characters can be printed by the standard PostScript
 	;; font.  Converts the other non-ASCII characters to `?'.
-	(let ((len (length string))
-	      (i 0))
-	  (while (< i len)
+	(let ((len (length string)))
+	  (dotimes (i len)
 	    (or (memq (char-charset (aref string i)) '(ascii latin-iso8859-1))
-		(aset string i ??))
-	    (setq i (1+ i)))
+		(aset string i ??)))
 	  (setq string (encode-coding-string string 'iso-latin-1)))
       ;; We must prepare a font for the first non-ASCII and non-Latin1
       ;; character in STRING.
@@ -1383,21 +1379,17 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 	    ;; We don't have a proper font, or we can't print them on
 	    ;; header because this kind of charset is not ASCII
 	    ;; compatible.
-	    (let ((len (length string))
-		  (i 0))
-	      (while (< i len)
+	    (let ((len (length string)))
+	      (dotimes (i len)
 		(or (memq (char-charset (aref string i))
 			  '(ascii latin-iso8859-1))
-		    (aset string i ??))
-		(setq i (1+ i)))
+		    (aset string i ??)))
 	      (setq string (encode-coding-string string 'iso-latin-1)))
 	  (let ((charsets (list 'ascii (car ps-mule-header-charsets)))
-		(len (length string))
-		(i 0))
-	    (while (< i len)
+		(len (length string)))
+	    (dotimes (i len)
 	      (or (memq (char-charset (aref string i)) charsets)
-		  (aset string i ??))
-	      (setq i (1+ i))))
+		  (aset string i ??))))
 	  (setq string (ps-mule-string-encoding font-spec string nil t))))))
   string)
 
@@ -1446,7 +1438,7 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 or \\[universal-argument] \\[what-cursor-position] will give information about them.\n"))))
 
 	(with-category-table table
-	  (let (string-list idx)
+	  (let (string-list)
 	    (dolist (elt header-footer-list)
 	      (when (stringp elt)
 		(when (string-match "\\cu+" elt)
@@ -1541,14 +1533,12 @@ This checks if all multi-byte characters in the region are printable or not."
 	(progn
 	  (ps-mule-prologue-generated)
 	  (ps-mule-init-external-library font-spec)
-	  (let ((font (ps-font-alist 'ps-font-for-text))
-		(ps-current-font 0))
-	    (while font
+	  (let ((ps-current-font 0))
+	    (dolist (font (ps-font-alist 'ps-font-for-text))
 	      ;; Be sure to download a glyph for SPACE in advance.
-	      (ps-mule-prepare-font (ps-mule-get-font-spec 'ascii (car font))
+	      (ps-mule-prepare-font (ps-mule-get-font-spec 'ascii font)
 				    " " 'ascii 'no-setfont)
-	      (setq font (cdr font)
-		    ps-current-font (1+ ps-current-font)))))))
+	      (setq ps-current-font (1+ ps-current-font)))))))
 
   ;; If the header contains non-ASCII and non-Latin1 characters, prepare a font
   ;; and glyphs for the first occurrence of such characters.
