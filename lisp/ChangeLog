@@ -1,3 +1,10 @@
+2007-07-24  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): initialise
+	byte-compile-unresolved-functions before rather than after a
+	compilation.
+	(byte-compile-unresolved-functions): Amplify doc string.
+
 2007-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (normal-splash-screen): Use `emacs-copyright'.
