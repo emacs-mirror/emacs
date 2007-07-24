@@ -57,15 +57,15 @@ BODY remains selected."
 	 ;; select-window changes frame-selected-window for whatever
 	 ;; frame that window is in.
 	 (save-selected-window-alist
-	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
+	  (mapcar (lambda (frame) (cons frame (frame-selected-window frame)))
 		  (frame-list))))
      (save-current-buffer
        (unwind-protect
 	   (progn ,@body)
 	 (dolist (elt save-selected-window-alist)
 	   (and (frame-live-p (car elt))
-		(window-live-p (cadr elt))
-		(set-frame-selected-window (car elt) (cadr elt))))
+		(window-live-p (cdr elt))
+		(set-frame-selected-window (car elt) (cdr elt))))
 	 (if (window-live-p save-selected-window-window)
 	     (select-window save-selected-window-window))))))
 
@@ -396,11 +396,15 @@ subtree is balanced."
 (defun bw-adjust-window (window delta horizontal)
   "Wrapper around `adjust-window-trailing-edge' with error checking.
 Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
-  (condition-case err
-      (adjust-window-trailing-edge window delta horizontal)
-    (error
-     ;;(message "adjust: %s" (error-message-string err))
-     )))
+  ;; `adjust-window-trailing-edge' may fail if delta is too large.
+  (while (>= (abs delta) 1)
+    (condition-case err
+        (progn
+          (adjust-window-trailing-edge window delta horizontal)
+          (setq delta 0))
+      (error
+       ;;(message "adjust: %s" (error-message-string err))
+       (setq delta (/ delta 2))))))
 
 (defun bw-balance-sub (wt w h)
   (setq wt (bw-refresh-edges wt))
@@ -422,6 +426,99 @@ Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
            (ch (when h (/ h (if (bw-eqdir 'ver wt) (length childs) 1)))))
       (dolist (c childs)
           (bw-balance-sub c cw ch)))))
+
+;;; A different solution to balance-windows
+
+(defun window-fixed-size-p (&optional window direction)
+  "Non-nil if WINDOW cannot be resized in DIRECTION.
+DIRECTION can be nil (i.e. any), `height' or `width'."
+  (with-current-buffer (window-buffer window)
+    (let ((fixed (and (boundp 'window-size-fixed) window-size-fixed)))
+      (when fixed
+	(not (and direction
+		  (member (cons direction window-size-fixed)
+			  '((height . width) (width . height)))))))))
+
+(defvar window-area-factor 1
+  "Factor by which the window area should be over-estimated.
+This is used by `balance-windows-area'.
+Changing this globally has no effect.")
+
+(defun balance-windows-area ()
+  "Make all visible windows the same area (approximately).
+See also `window-area-factor' to change the relative size of specific buffers."
+  (interactive)
+  (let* ((unchanged 0) (carry 0) (round 0)
+         ;; Remove fixed-size windows.
+         (wins (delq nil (mapcar (lambda (win)
+                                   (if (not (window-fixed-size-p win)) win))
+                                 (window-list nil 'nomini))))
+         (changelog nil)
+         next)
+    ;; Resizing a window changes the size of surrounding windows in complex
+    ;; ways, so it's difficult to balance them all.  The introduction of
+    ;; `adjust-window-trailing-edge' made it a bit easier, but it is still
+    ;; very difficult to do.  `balance-window' above takes an off-line
+    ;; approach: get the whole window tree, then balance it, then try to
+    ;; adjust the windows so they fit the result.
+    ;; Here, instead, we take a "local optimization" approach, where we just
+    ;; go through all the windows several times until nothing needs to be
+    ;; changed.  The main problem with this approach is that it's difficult
+    ;; to make sure it terminates, so we use some heuristic to try and break
+    ;; off infinite loops.
+    ;; After a round without any change, we allow a second, to give a chance
+    ;; to the carry to propagate a minor imbalance from the end back to
+    ;; the beginning.
+    (while (< unchanged 2)
+      ;; (message "New round")
+      (setq unchanged (1+ unchanged) round (1+ round))
+      (dolist (win wins)
+        (setq next win)
+        (while (progn (setq next (next-window next))
+                      (window-fixed-size-p next)))
+        ;; (assert (eq next (or (cadr (member win wins)) (car wins))))
+        (let* ((horiz
+                (< (car (window-edges win)) (car (window-edges next))))
+               (areadiff (/ (- (* (window-height next) (window-width next)
+                                  (buffer-local-value 'window-area-factor
+                                                      (window-buffer next)))
+                               (* (window-height win) (window-width win)
+                                  (buffer-local-value 'window-area-factor
+                                                      (window-buffer win))))
+                            (max (buffer-local-value 'window-area-factor
+                                                     (window-buffer win))
+                                 (buffer-local-value 'window-area-factor
+                                                     (window-buffer next)))))
+               (edgesize (if horiz
+                             (+ (window-height win) (window-height next))
+                           (+ (window-width win) (window-width next))))
+               (diff (/ areadiff edgesize)))
+          (when (zerop diff)
+            ;; Maybe diff is actually closer to 1 than to 0.
+            (setq diff (/ (* 3 areadiff) (* 2 edgesize))))
+          (when (and (zerop diff) (not (zerop areadiff)))
+            (setq diff (/ (+ areadiff carry) edgesize))
+            ;; Change things smoothly.
+            (if (or (> diff 1) (< diff -1)) (setq diff (/ diff 2))))
+          (if (zerop diff)
+              ;; Make sure negligible differences don't accumulate to
+              ;; become significant.
+              (setq carry (+ carry areadiff))
+            (bw-adjust-window win diff horiz)
+            ;; (sit-for 0.5)
+            (let ((change (cons win (window-edges win))))
+              ;; If the same change has been seen already for this window,
+              ;; we're most likely in an endless loop, so don't count it as
+              ;; a change.
+              (unless (member change changelog)
+                (push change changelog)
+                (setq unchanged 0 carry 0)))))))
+    ;; We've now basically balanced all the windows.
+    ;; But there may be some minor off-by-one imbalance left over,
+    ;; so let's do some fine tuning.
+    ;; (bw-finetune wins)
+    ;; (message "Done in %d rounds" round)
+    ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

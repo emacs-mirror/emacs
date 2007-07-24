@@ -1,5 +1,11 @@
 2007-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (save-selected-window): Minor optimization.
+	(bw-adjust-window): If operation failed, try with a smaller delta.
+	(window-fixed-size-p): New function.
+	(window-area-factor): New var.
+	(balance-windows-area): New command.
+
 	* ps-mule.el (ps-multibyte-buffer): Docstring fixes.
 	(ps-mule-encode-ethiopic): Make it clear that it's always defined.
 	(ps-mule-prepare-font-for-components, ps-mule-encode-header-string)
