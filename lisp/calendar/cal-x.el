@@ -164,5 +164,5 @@ This function requires a display capable of multiple frames, else
 
 (provide 'cal-x)
 
-;;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
+;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
 ;;; cal-x.el ends here
