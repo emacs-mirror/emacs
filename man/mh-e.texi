@@ -39,7 +39,7 @@ no Front-Cover Texts, and no Back-Cover Texts.
 
 @item
 the GNU General Public License as published by the Free Software
-Foundation; either version 2, or (at your option) any later version.
+Foundation; either version 3, or (at your option) any later version.
 @end enumerate
 
 The MH-E manual is distributed in the hope that it will be useful, but
