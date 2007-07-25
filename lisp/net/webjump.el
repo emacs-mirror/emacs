@@ -451,14 +451,12 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
 (defun webjump-url-encode (str)
   (mapconcat '(lambda (c)
-		(cond ((= c 32) "+")
-		      ((or (and (>= c ?a) (<= c ?z))
-			   (and (>= c ?A) (<= c ?Z))
-			   (and (>= c ?0) (<= c ?9)))
-		       (char-to-string c))
-		      (t (upcase (format "%%%02x" c)))))
-	     str
-	     ""))
+                (let ((s (char-to-string c)))
+                  (cond ((string= s " ") "+")
+                        ((string-match "[a-zA-Z_.-/]" s) s)
+                        (t (upcase (format "%%%02x" c))))))
+             (encode-coding-string str 'utf-8)
+             ""))
 
 (defun webjump-url-fix (url)
   (if (webjump-null-or-blank-string-p url)
