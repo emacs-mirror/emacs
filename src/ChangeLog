@@ -1,6 +1,11 @@
 2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* data.c (Finteractive_form): Use a `interactive-form' property if
+	* eval.c (Fcommandp): Pay attention to the `interactive-form' property.
+
+	* data.c (Finteractive_form): Check for the presence of an
+	`interactive-form' symbol property more thoroughly.
+
+	* data.c (Finteractive_form): Use an `interactive-form' property if
 	present, analogous to the function-documentation property.
 
 2007-07-22  Nick Roberts  <nickrob@snap.net.nz>

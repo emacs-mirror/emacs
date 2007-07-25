@@ -750,15 +750,24 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
      (cmd)
      Lisp_Object cmd;
 {
-  Lisp_Object fun = indirect_function (cmd);
-  Lisp_Object tmp;
+  Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
+  
+  if (NILP (fun) || EQ (fun, Qunbound))
+    return Qnil;
 
-  if (SYMBOLP (cmd)
-      /* Use an `interactive-form' property if present, analogous to the
-	 function-documentation property. */
-      && (tmp = Fget (cmd, intern ("interactive-form")), !NILP (tmp)))
-    return tmp;
-  else if (SUBRP (fun))
+  /* Use an `interactive-form' property if present, analogous to the
+     function-documentation property. */
+  fun = cmd;
+  while (SYMBOLP (fun))
+    {
+      Lisp_Object tmp = Fget (fun, intern ("interactive-form"));
+      if (!NILP (tmp))
+	return tmp;
+      else
+	fun = Fsymbol_function (fun);
+    }
+
+  if (SUBRP (fun))
     {
       if (XSUBR (fun)->prompt)
 	return list2 (Qinteractive, build_string (XSUBR (fun)->prompt));
