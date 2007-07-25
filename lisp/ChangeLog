@@ -1,7 +1,11 @@
+2007-07-25  Joakim Verona  <joakim@verona.se>  (tiny change)
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add support for the Maden build tool.
+
 2007-07-25  William Xu  <william.xwl@gmail.com>  (tiny change)
 
-	* net/webjump.el (webjump-url-encode): Fix for non-ASCII
-	characters.
+	* net/webjump.el (webjump-url-encode): Fix for non-ASCII characters.
 
 2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
