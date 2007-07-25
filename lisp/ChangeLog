@@ -1,3 +1,8 @@
+2007-07-25  William Xu  <william.xwl@gmail.com>  (tiny change)
+
+	* net/webjump.el (webjump-url-encode): Fix for non-ASCII
+	characters.
+
 2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* dired.el (dired-mode-map): Bind wdired-change-to-wdired-mode to
