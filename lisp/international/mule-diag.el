@@ -878,7 +878,7 @@ The font must be already used by Emacs."
 	(if (stringp requested)
 	    (insert "\n    " requested)
 	  (let (family registry weight slant width adstyle)
-	    (if (fontp requested)
+	    (if (and (fboundp 'fontp) (fontp requested))
 		(setq family (font-get requested :family)
 		      registry (font-get requested :registry)
 		      weight (font-get requested :weight)
