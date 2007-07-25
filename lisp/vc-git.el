@@ -96,7 +96,7 @@
 ;; SNAPSHOT SYSTEM
 ;; - create-snapshot (dir name branchp)		   OK
 ;; - assign-name (file name)			   NOT NEEDED
-;; - retrieve-snapshot (dir name update)	   OK, needs to handle the `name' arg
+;; - retrieve-snapshot (dir name update)	   OK, needs to update buffers
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)		   ??
 ;; - repository-hostname (dirname)		   ??
