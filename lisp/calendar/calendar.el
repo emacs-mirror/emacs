@@ -1677,9 +1677,11 @@ to be replaced by asterisks to highlight it whenever it is in the window."
     ;; (calendar-read-date t) returns a date with day = nil, which is
     ;; not a legal date for the visible test in the diary section.
     (if arg (setcar (cdr date) 1))
-    (pop-to-buffer calendar-buffer)
     (increment-calendar-month month year (- calendar-offset))
     (generate-calendar-window month year)
+    ;; Display the buffer *after* generating it, so that menu entries that
+    ;; use display-month do not fail when creating the new frame.
+    (pop-to-buffer calendar-buffer)
     (if (and view-diary-entries-initially (calendar-date-is-visible-p date))
         (diary-view-entries)))
   (let* ((diary-buffer (get-file-buffer diary-file))
@@ -2102,10 +2104,10 @@ Or, for optional MON, YR."
 
 (defun generate-calendar (month year)
   "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
-;;; A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
-;;; Note that while calendars for years BC could be displayed as it
-;;; stands, almost all other calendar functions (eg holidays) would
-;;; at best have unpredictable results for such dates.
+  ;; A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
+  ;; Note that while calendars for years BC could be displayed as it
+  ;; stands, almost all other calendar functions (eg holidays) would
+  ;; at best have unpredictable results for such dates.
   (if (< (+ month (* 12 (1- year))) 2)
       (error "Months before January, 1 AD cannot be displayed"))
   (setq displayed-month month
@@ -2212,9 +2214,9 @@ movement commands will not work correctly."
   :type 'boolean
   :group 'calendar)
 
-(defvar calendar-mode-map nil)
-(if calendar-mode-map
-    nil
+(require 'cal-menu)
+
+(defvar calendar-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
     (dolist (c '(narrow-to-region mark-word mark-sexp mark-paragraph
@@ -2250,7 +2252,7 @@ movement commands will not work correctly."
     (define-key map "\e>"   'calendar-end-of-year)
     (define-key map "\C-@"  'calendar-set-mark)
     ;; Many people are used to typing C-SPC and getting C-@.
-    (define-key map [?\C- ] 'calendar-set-mark)
+    (define-key map [?\C-\s] 'calendar-set-mark)
     (define-key map "\C-x\C-x" 'calendar-exchange-point-and-mark)
     (define-key map "\e=" 'calendar-count-days-region)
     (define-key map "gd"  'calendar-goto-date)
@@ -2338,9 +2340,26 @@ movement commands will not work correctly."
     (define-key map "tfy" 'cal-tex-cursor-filofax-year)
     (define-key map "ty" 'cal-tex-cursor-year)
     (define-key map "tY" 'cal-tex-cursor-year-landscape)
-    (setq calendar-mode-map map)
-    ;; Require cal-menu after initializing calendar-mode-map because it uses it.
-    (require 'cal-menu)))
+
+    (define-key map [menu-bar edit] 'undefined)
+    (define-key map [menu-bar search] 'undefined)
+    ;; This ignores the mouse-up event after the mouse-down that pops up the
+    ;; context menu.  It should not be necessary because the mouse-up event
+    ;; should be eaten up by the menu-handling toolkit.
+    ;; (define-key map [mouse-2] 'ignore)
+
+    (easy-menu-define nil map nil cal-menu-moon-menu)
+    (easy-menu-define nil map nil cal-menu-diary-menu)
+    (easy-menu-define nil map nil cal-menu-holidays-menu)
+    (easy-menu-define nil map nil cal-menu-goto-menu)
+    (easy-menu-define nil map nil cal-menu-scroll-menu)
+  
+    (define-key map [down-mouse-3]
+      (easy-menu-binding cal-menu-context-mouse-menu))
+    (define-key map [down-mouse-2]
+      (easy-menu-binding cal-menu-global-mouse-menu))
+
+    map))
 
 (defun describe-calendar-mode ()
   "Create a help buffer with a brief description of the `calendar-mode'."
@@ -2401,8 +2420,8 @@ evaluated and concatenated together, evenly separated by blanks.  The variable
 `date' is available for use as the date under (or near) the cursor; `date'
 defaults to the current date if it is otherwise undefined.  Here is an example
 value that has the Hebrew date, the day number/days remaining in the year,
-and the ISO week/year numbers in the mode.  When calendar-move-hook is set to
-'update-calendar-mode-line, these mode line shows these values for the date
+and the ISO week/year numbers in the mode.  When `calendar-move-hook' is set
+to `update-calendar-mode-line', these mode line shows these values for the date
 under the cursor:
 
       (list
@@ -2418,8 +2437,7 @@ under the cursor:
           (format \"ISO week %d of %d\"
             (extract-calendar-month iso-date)
             (extract-calendar-year iso-date)))
-       \"\"))
-")
+       \"\"))")
 
 (defun mouse-scroll-calendar-left (event)
   "Scroll the displayed calendar left by one month.
@@ -2474,7 +2492,6 @@ For a complete description, type \
   (setq buffer-read-only t)
   (setq indent-tabs-mode nil)
   (update-calendar-mode-line)
-  (add-hook 'activate-menubar-hook 'cal-menu-update nil t)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month);;  Month in middle of window.
   (make-local-variable 'displayed-year)	;;  Year in middle of window.
@@ -2598,7 +2615,7 @@ ERROR is t, otherwise just returns nil."
              (< 2 (count-lines (point-min) (point))))
         (save-excursion
           (if (not (looking-at " "))
-                   (re-search-backward "[^0-9]"))
+              (re-search-backward "[^0-9]"))
           (list month
                 (string-to-number (buffer-substring (1+ (point)) (+ 4 (point))))
                 year))

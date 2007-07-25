@@ -1,3 +1,27 @@
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-mode-map): Move initialization
+	into declaration.  Add menu bindings (used to be done in cal-menu).
+	(calendar-mode): Don't add an activate-menubar-hook.
+
+	* calendar/cal-menu.el: Break dependency on calendar.el (i.e. do not
+	modify calendar-mode-map), use easy-menu, and make sure that C-h k
+	can be used on the menu entries.
+	(cal-menu-holiday-window-suffix, cal-menu-set-date-title): New funs.
+	(cal-menu-moon-menu, cal-menu-diary-menu, cal-menu-holidays-menu)
+	(cal-menu-goto-menu, cal-menu-scroll-menu): New consts.
+	(cal-menu-context-mouse-menu, cal-menu-global-mouse-menu): New menus.
+	(calendar-flatten, cal-menu-update): Remove.
+	(calendar-mouse-insert-hebrew-diary-entry)
+	(calendar-mouse-insert-islamic-diary-entry)
+	(calendar-mouse-insert-bahai-diary-entry):
+	Remove (fold into cal-menu-diary-menu).
+	(calendar-mouse-2-date-menu, calendar-mouse-cal-tex-menu)
+	(cal-tex-mouse-filofax): Remove (fold into cal-menu-context-mouse-menu).
+	(calendar-mouse-3-map): Remove (turn into cal-menu-global-mouse-menu).
+	(calendar-mouse-view-diary-entries): Minor simplifications.
+	(calendar-event-to-date): Use with-current-buffer.
+
 2007-07-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* add-log.el (change-log-redate): Remove (not needed anymore and
