@@ -36,146 +36,116 @@
 (defvar displayed-month)
 (defvar displayed-year)
 
-;; Don't require calendar because calendar requires us.
-;; (eval-when-compile (require 'calendar))
-(defvar calendar-mode-map)
+(defconst cal-menu-moon-menu
+  '("Moon"
+    ["Lunar Phases" calendar-phases-of-moon]))
 
-(define-key calendar-mode-map [menu-bar edit] 'undefined)
-(define-key calendar-mode-map [menu-bar search] 'undefined)
+(defconst cal-menu-diary-menu
+  '("Diary"
+    ["Other File" view-other-diary-entries]
+    ["Cursor Date" diary-view-entries]
+    ["Mark All" mark-diary-entries]
+    ["Show All" diary-show-all-entries]
+    ["Insert Diary Entry" insert-diary-entry]
+    ["Insert Weekly" insert-weekly-diary-entry]
+    ["Insert Monthly" insert-monthly-diary-entry]
+    ["Insert Yearly" insert-yearly-diary-entry]
+    ["Insert Anniversary" insert-anniversary-diary-entry]
+    ["Insert Block" insert-block-diary-entry]
+    ["Insert Cyclic" insert-cyclic-diary-entry]
+    ("Insert Baha'i"
+     [" " nil :suffix (calendar-bahai-date-string (calendar-cursor-to-date))]
+     ["One time" insert-bahai-diary-entry]
+     ["Monthly" insert-monthly-bahai-diary-entry]
+     ["Yearly" insert-yearly-bahai-diary-entry])
+    ("Insert Islamic"
+     [" " nil :suffix (calendar-islamic-date-string (calendar-cursor-to-date))]
+     ["One time" insert-islamic-diary-entry]
+     ["Monthly" insert-monthly-islamic-diary-entry]
+     ["Yearly" insert-yearly-islamic-diary-entry])
+    ("Insert Hebrew"
+     [" " nil :suffix (calendar-hebrew-date-string (calendar-cursor-to-date))]
+     ["One time" insert-hebrew-diary-entry]
+     ["Monthly" insert-monthly-hebrew-diary-entry]
+     ["Yearly" insert-yearly-hebrew-diary-entry])))
 
-(define-key calendar-mode-map [down-mouse-2] 'calendar-mouse-2-date-menu)
-(define-key calendar-mode-map [mouse-2] 'ignore)
+(defun cal-menu-holiday-window-suffix ()
+  (let ((my1 (calendar-increment-month -1))
+        (my2 (calendar-increment-month 1)))
+    (if (= (cdr my1) (cdr my2))
+        (format "%s-%s, %d"
+                (calendar-month-name (car my1) 'abbrev)
+                (calendar-month-name (car my2) 'abbrev)
+                (cdr my2))
+      (format "%s, %d-%s, %d"
+              (calendar-month-name (car my1) 'abbrev)
+              (cdr my1)
+              (calendar-month-name (car my2) 'abbrev)
+              (cdr my2)))))
 
-(defvar calendar-mouse-3-map (make-sparse-keymap "Calendar"))
-(define-key calendar-mode-map [down-mouse-3] calendar-mouse-3-map)
+(defconst cal-menu-holidays-menu
+  `("Holidays"
+    ["For Cursor Date -" calendar-cursor-holidays
+     :suffix (calendar-date-string (calendar-cursor-to-date) t t)
+     :visible (calendar-cursor-to-date)]
+    ["For Window -" list-calendar-holidays
+     :suffix (cal-menu-holiday-window-suffix)]
+    ["For Today -" cal-menu-today-holidays
+     :suffix (calendar-date-string (calendar-current-date) t t)]
+    "--"
+    ,@(let ((l ()))
+        ;; Show 11 years--5 before, 5 after year of middle month.
+        (dotimes (i 11)
+          (push (vector "For Year"
+                        `(lambda ()
+                           (interactive)
+                           (list-holidays (+ displayed-year ,(- i 5))))
+                        :suffix `(number-to-string (+ displayed-year ,(- i 5))))
+                l))
+        (nreverse l))
+    "--"
+    ["Unmark Calendar" calendar-unmark]
+    ["Mark Holidays" mark-calendar-holidays]))
 
-(define-key calendar-mode-map [menu-bar moon]
-  (cons "Moon" (make-sparse-keymap "Moon")))
+(defconst cal-menu-goto-menu
+  '("Goto"
+    ["Today" calendar-goto-today]
+    ["Beginning of Week" calendar-beginning-of-week]
+    ["End of Week" calendar-end-of-week]
+    ["Beginning of Month" calendar-beginning-of-month]
+    ["End of Month" calendar-end-of-month]
+    ["Beginning of Year" calendar-beginning-of-year]
+    ["End of Year" calendar-end-of-year]
+    ["Other Date" calendar-goto-date]
+    ["Day of Year" calendar-goto-day-of-year]
+    ["ISO Week" calendar-goto-iso-week]
+    ["ISO Date" calendar-goto-iso-date]
+    ["Astronomical Date" calendar-goto-astro-day-number]
+    ["Hebrew Date" calendar-goto-hebrew-date]
+    ["Persian Date" calendar-goto-persian-date]
+    ["Baha'i Date" calendar-goto-bahai-date]
+    ["Islamic Date" calendar-goto-islamic-date]
+    ["Julian Date" calendar-goto-julian-date]
+    ["Chinese Date" calendar-goto-chinese-date]
+    ["Coptic Date" calendar-goto-coptic-date]
+    ["Ethiopic Date" calendar-goto-ethiopic-date]
+    ("Mayan Date"
+     ["Next Tzolkin" calendar-next-tzolkin-date]
+     ["Previous Tzolkin" calendar-previous-tzolkin-date]
+     ["Next Haab" calendar-next-haab-date]
+     ["Previous Haab" calendar-previous-haab-date]
+     ["Next Round" calendar-next-calendar-round-date]
+     ["Previous Round" calendar-previous-calendar-round-date])
+    ["French Date" calendar-goto-french-date]))
 
-(define-key calendar-mode-map [menu-bar moon moon]
-  '("Lunar Phases" . calendar-phases-of-moon))
-
-(define-key calendar-mode-map [menu-bar diary]
-  (cons "Diary" (make-sparse-keymap "Diary")))
-
-(define-key calendar-mode-map [menu-bar diary heb]
-  '("Insert Hebrew" . calendar-mouse-insert-hebrew-diary-entry))
-(define-key calendar-mode-map [menu-bar diary isl]
-  '("Insert Islamic" . calendar-mouse-insert-islamic-diary-entry))
-(define-key calendar-mode-map [menu-bar diary baha]
-  '("Insert Baha'i" . calendar-mouse-insert-bahai-diary-entry))
-(define-key calendar-mode-map [menu-bar diary cyc]
-  '("Insert Cyclic" . insert-cyclic-diary-entry))
-(define-key calendar-mode-map [menu-bar diary blk]
-  '("Insert Block" . insert-block-diary-entry))
-(define-key calendar-mode-map [menu-bar diary ann]
-  '("Insert Anniversary" . insert-anniversary-diary-entry))
-(define-key calendar-mode-map [menu-bar diary yr]
-  '("Insert Yearly" . insert-yearly-diary-entry))
-(define-key calendar-mode-map [menu-bar diary mon]
-  '("Insert Monthly" . insert-monthly-diary-entry))
-(define-key calendar-mode-map [menu-bar diary wk]
-  '("Insert Weekly" . insert-weekly-diary-entry))
-(define-key calendar-mode-map [menu-bar diary ent]
-  '("Insert Diary Entry" . insert-diary-entry))
-(define-key calendar-mode-map [menu-bar diary all]
-  '("Show All" . diary-show-all-entries))
-(define-key calendar-mode-map [menu-bar diary mark]
- '("Mark All" . mark-diary-entries))
-(define-key calendar-mode-map [menu-bar diary view]
-  '("Cursor Date" . diary-view-entries))
-(define-key calendar-mode-map [menu-bar diary view]
-  '("Other File" . view-other-diary-entries))
-
-(define-key calendar-mode-map [menu-bar Holidays]
-  (cons "Holidays" (make-sparse-keymap "Holidays")))
-
-(define-key calendar-mode-map [menu-bar goto]
-  (cons "Goto" (make-sparse-keymap "Goto")))
-
-(define-key calendar-mode-map [menu-bar goto french]
-  '("French Date" . calendar-goto-french-date))
-(define-key calendar-mode-map [menu-bar goto mayan]
-  (cons "Mayan Date" (make-sparse-keymap "Mayan")))
-(define-key calendar-mode-map [menu-bar goto ethiopic]
-  '("Ethiopic Date" . calendar-goto-ethiopic-date))
-(define-key calendar-mode-map [menu-bar goto coptic]
-  '("Coptic Date" . calendar-goto-coptic-date))
-(define-key calendar-mode-map [menu-bar goto chinese]
-  '("Chinese Date" . calendar-goto-chinese-date))
-(define-key calendar-mode-map [menu-bar goto julian]
-  '("Julian Date" . calendar-goto-julian-date))
-(define-key calendar-mode-map [menu-bar goto islamic]
-  '("Islamic Date" . calendar-goto-islamic-date))
-(define-key calendar-mode-map [menu-bar goto persian]
-  '("Baha'i Date" . calendar-goto-bahai-date))
-(define-key calendar-mode-map [menu-bar goto persian]
-  '("Persian Date" . calendar-goto-persian-date))
-(define-key calendar-mode-map [menu-bar goto hebrew]
-  '("Hebrew Date" . calendar-goto-hebrew-date))
-(define-key calendar-mode-map [menu-bar goto astro]
-  '("Astronomical Date" . calendar-goto-astro-day-number))
-(define-key calendar-mode-map [menu-bar goto iso]
-  '("ISO Date" . calendar-goto-iso-date))
-(define-key calendar-mode-map [menu-bar goto iso-week]
-  '("ISO Week" . calendar-goto-iso-week))
-(define-key calendar-mode-map [menu-bar goto day-of-year]
-  '("Day of Year" . calendar-goto-day-of-year))
-(define-key calendar-mode-map [menu-bar goto gregorian]
-  '("Other Date" . calendar-goto-date))
-(define-key calendar-mode-map [menu-bar goto end-of-year]
-  '("End of Year" . calendar-end-of-year))
-(define-key calendar-mode-map [menu-bar goto beginning-of-year]
-  '("Beginning of Year" . calendar-beginning-of-year))
-(define-key calendar-mode-map [menu-bar goto end-of-month]
-  '("End of Month" . calendar-end-of-month))
-(define-key calendar-mode-map [menu-bar goto beginning-of-month]
-  '("Beginning of Month" . calendar-beginning-of-month))
-(define-key calendar-mode-map [menu-bar goto end-of-week]
-  '("End of Week" . calendar-end-of-week))
-(define-key calendar-mode-map [menu-bar goto beginning-of-week]
-  '("Beginning of Week" . calendar-beginning-of-week))
-(define-key calendar-mode-map [menu-bar goto today]
-  '("Today" . calendar-goto-today))
-
-
-(define-key calendar-mode-map [menu-bar goto mayan prev-rnd]
-  '("Previous Round" . calendar-previous-calendar-round-date))
-(define-key calendar-mode-map [menu-bar goto mayan nxt-rnd]
-  '("Next Round" . calendar-next-calendar-round-date))
-(define-key calendar-mode-map [menu-bar goto mayan prev-haab]
-  '("Previous Haab" . calendar-previous-haab-date))
-(define-key calendar-mode-map [menu-bar goto mayan next-haab]
-  '("Next Haab" . calendar-next-haab-date))
-(define-key calendar-mode-map [menu-bar goto mayan prev-tzol]
-  '("Previous Tzolkin" . calendar-previous-tzolkin-date))
-(define-key calendar-mode-map [menu-bar goto mayan next-tzol]
-  '("Next Tzolkin" . calendar-next-tzolkin-date))
-
-(define-key calendar-mode-map [menu-bar scroll]
-  (cons "Scroll" (make-sparse-keymap "Scroll")))
-
-(define-key calendar-mode-map [menu-bar scroll bk-12]
-  '("Backward 1 Year" . "4\ev"))
-(define-key calendar-mode-map [menu-bar scroll bk-3]
-  '("Backward 3 Months" . scroll-calendar-right-three-months))
-(define-key calendar-mode-map [menu-bar scroll bk-1]
-  '("Backward 1 Month" . scroll-calendar-right))
-(define-key calendar-mode-map [menu-bar scroll fwd-12]
-  '("Forward 1 Year" . "4\C-v"))
-(define-key calendar-mode-map [menu-bar scroll fwd-3]
-  '("Forward 3 Months" . scroll-calendar-left-three-months))
-(define-key calendar-mode-map [menu-bar scroll fwd-1]
-  '("Forward 1 Month" . scroll-calendar-left))
-
-(defun calendar-flatten (list)
-  "Flatten LIST eliminating sublists structure; result is a list of atoms.
-This is the same as the preorder list of leaves in a rooted forest."
-  (if (atom list)
-      (list list)
-    (if (cdr list)
-        (append (calendar-flatten (car list)) (calendar-flatten (cdr list)))
-      (calendar-flatten (car list)))))
+(defconst cal-menu-scroll-menu
+  '("Scroll"
+    ["Forward 1 Month" scroll-calendar-left]
+    ["Forward 3 Months" scroll-calendar-left-three-months]
+    ["Forward 1 Year" "4\C-v"]
+    ["Backward 1 Month" scroll-calendar-right]
+    ["Backward 3 Months" scroll-calendar-right-three-months]
+    ["Backward 1 Year" "4\ev"]))
 
 (defun cal-menu-x-popup-menu (position menu)
   "Like `x-popup-menu', but prints an error message if popup menus are
@@ -202,102 +172,14 @@ not available."
   (let ((year (1- (extract-calendar-year (calendar-cursor-to-date)))))
     (list-holidays year year)))
 
-(defun cal-menu-update ()
-  ;; Update the holiday part of calendar menu bar for the current display.
-  (condition-case nil
-      (if (eq major-mode 'calendar-mode)
-          (let ((l))
-            ;; Show 11 years--5 before, 5 after year of middle month
-            (dotimes (i 11)
-              (let ((y (+ displayed-year -5 i)))
-                (push (vector (format "For Year %s" y)
-                              (list (list 'lambda 'nil '(interactive)
-                                          (list 'list-holidays y y)))
-                              t)
-                      l)))
-            (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
-                          (cons ["Unmark Calendar" calendar-unmark t]
-                                (cons "--" l))))
-            (define-key calendar-mode-map [menu-bar Holidays]
-	      (cons "Holidays" (easy-menu-create-menu "Holidays" (nreverse l))))
-            (define-key calendar-mode-map [menu-bar Holidays separator]
-              '("--"))
-            (define-key calendar-mode-map [menu-bar Holidays today]
-                `(,(format "For Today (%s)"
-                           (calendar-date-string (calendar-current-date) t t))
-                  . cal-menu-today-holidays))
-            (let ((title
-                   (let ((my1 (calendar-increment-month -1))
-                         (my2 (calendar-increment-month 1)))
-                     (if (= (cdr my1) (cdr my2))
-                         (format "%s-%s, %d"
-                                 (calendar-month-name (car my1) 'abbrev)
-                                 (calendar-month-name (car my2) 'abbrev)
-                                 (cdr my2))
-                       (format "%s, %d-%s, %d"
-                               (calendar-month-name (car my1) 'abbrev)
-                               (cdr my1)
-                               (calendar-month-name (car my2) 'abbrev)
-                               (cdr my2))))))
-              (define-key  calendar-mode-map [menu-bar Holidays 3-month]
-                `(,(format "For Window (%s)" title)
-                  . list-calendar-holidays)))
-            (let ((date (calendar-cursor-to-date)))
-              (if date
-                  (define-key calendar-mode-map [menu-bar Holidays 1-day]
-                    `(,(format "For Cursor Date (%s)"
-                               (calendar-date-string date t t))
-                      . calendar-cursor-holidays))))))
-    ;; Try to avoid entering infinite beep mode in case of errors.
-    (error (ding))))
-
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
 If event is not on a specific date, signals an error if optional parameter
 ERROR is t, otherwise just returns nil."
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-start last-input-event))))
+  (with-current-buffer
+      (window-buffer (posn-window (event-start last-input-event)))
     (goto-char (posn-point (event-start last-input-event)))
     (calendar-cursor-to-date error)))
-
-(defun calendar-mouse-insert-hebrew-diary-entry (event)
-  "Pop up menu to insert a Hebrew-date diary entry."
-  (interactive "e")
-  (let ((hebrew-selection
-         (cal-menu-x-popup-menu
-          event
-          (list "Hebrew insert menu"
-                (list (calendar-hebrew-date-string (calendar-cursor-to-date))
-                      '("One time" . insert-hebrew-diary-entry)
-                      '("Monthly" . insert-monthly-hebrew-diary-entry)
-                      '("Yearly" . insert-yearly-hebrew-diary-entry))))))
-    (and hebrew-selection (call-interactively hebrew-selection))))
-
-(defun calendar-mouse-insert-islamic-diary-entry (event)
-  "Pop up menu to insert an Islamic-date diary entry."
-  (interactive "e")
-  (let ((islamic-selection
-         (cal-menu-x-popup-menu
-          event
-          (list "Islamic insert menu"
-                (list (calendar-islamic-date-string (calendar-cursor-to-date))
-                      '("One time" . insert-islamic-diary-entry)
-                      '("Monthly" . insert-monthly-islamic-diary-entry)
-                      '("Yearly" . insert-yearly-islamic-diary-entry))))))
-    (and islamic-selection (call-interactively islamic-selection))))
-
-(defun calendar-mouse-insert-bahai-diary-entry (event)
-  "Pop up menu to insert an Baha'i-date diary entry."
-  (interactive "e")
-  (let ((bahai-selection
-         (x-popup-menu
-          event
-          (list "Baha'i insert menu"
-                (list (calendar-bahai-date-string (calendar-cursor-to-date))
-                      '("One time" . insert-bahai-diary-entry)
-                      '("Monthly" . insert-monthly-bahai-diary-entry)
-                      '("Yearly" . insert-yearly-bahai-diary-entry))))))
-    (and bahai-selection (call-interactively bahai-selection))))
 
 (defun calendar-mouse-sunrise/sunset ()
   "Show sunrise/sunset times for mouse-selected date."
@@ -337,12 +219,12 @@ Use optional DATE and alternative file DIARY.
 
 Any holidays are shown if `holidays-in-diary-buffer' is t."
   (interactive "i\ni\ne")
-  (let* ((date (if date date (calendar-event-to-date)))
+  (let* ((date (or date (calendar-event-to-date)))
          (diary-file (if diary diary diary-file))
          (diary-list-include-blanks nil)
          (diary-display-hook 'ignore)
          (diary-entries
-          (mapcar (lambda (x) (split-string (car (cdr x)) "\^M\\|\n"))
+          (mapcar (lambda (x) (split-string (cadr x) "\n"))
                   (diary-list-entries date 1 'list-only)))
          (holidays (if holidays-in-diary-buffer
                        (check-calendar-holidays date)))
@@ -360,7 +242,7 @@ Any holidays are shown if `holidays-in-diary-buffer' is t."
                   (if holidays
                       (list "--shadow-etched-in" "--shadow-etched-in"))
                   (if diary-entries
-                      (mapcar 'list (calendar-flatten diary-entries))
+                      (mapcar 'list (apply 'append diary-entries))
                     '("None")))))))
     (and selection (call-interactively selection))))
 
@@ -543,88 +425,49 @@ The output is in landscape format, one month to a page."
   (set-buffer (window-buffer (posn-window (event-start last-input-event))))
   (calendar-goto-date date))
 
-(defun calendar-mouse-2-date-menu (event)
+(easy-menu-define cal-menu-context-mouse-menu nil
   "Pop up menu for Mouse-2 for selected date in the calendar window."
-  (interactive "e")
-  (let* ((date (calendar-event-to-date t))
-         (selection
-          (cal-menu-x-popup-menu
-           event
-           (list (calendar-date-string date t nil)
-                 (list
-                  ""
-                  '("Holidays" . calendar-mouse-holidays)
-                  '("Mark date" . calendar-mouse-set-mark)
-                  '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
-                  '("Other calendars" . calendar-mouse-print-dates)
-                  '("Prepare LaTeX buffer" . calendar-mouse-cal-tex-menu)
-                  '("Diary entries" . calendar-mouse-view-diary-entries)
-                  '("Insert diary entry" . calendar-mouse-insert-diary-entry)
-                  '("Other diary file entries"
-                    . calendar-mouse-view-other-diary-entries)
-                  )))))
-    (and selection (call-interactively selection))))
+  '("foo" :filter cal-menu-set-date-title
+    "--"
+    ["Holidays" calendar-mouse-holidays]
+    ["Mark date" calendar-mouse-set-mark]
+    ["Sunrise/sunset" calendar-mouse-sunrise/sunset]
+    ["Other calendars" calendar-mouse-print-dates]
+    ("Prepare LaTeX buffer"
+     ["Daily (1 page)" cal-tex-mouse-day]
+     ["Weekly (1 page)" cal-tex-mouse-week]
+     ["Weekly (2 pages)" cal-tex-mouse-week2]
+     ["Weekly (other style; 1 page)" cal-tex-mouse-week-iso]
+     ["Weekly (yet another style; 1 page)" cal-tex-mouse-week-monday]
+     ["Monthly" cal-tex-mouse-month]
+     ["Monthly (landscape)" cal-tex-mouse-month-landscape]
+     ["Yearly" cal-tex-mouse-year]
+     ["Yearly (landscape)" cal-tex-mouse-year-landscape]
+     ("Filofax styles"
+      ["Filofax Daily (one-day-per-page)" cal-tex-mouse-filofax-daily]
+      ["Filofax Weekly (2-weeks-at-a-glance)" cal-tex-mouse-filofax-2week]
+      ["Filofax Weekly (week-at-a-glance)" cal-tex-mouse-filofax-week]
+      ["Filofax Yearly" cal-tex-mouse-filofax-year]))
+    ["Diary entries" calendar-mouse-view-diary-entries]
+    ["Insert diary entry" calendar-mouse-insert-diary-entry]
+    ["Other diary file entries" calendar-mouse-view-other-diary-entries]))
 
-(defun calendar-mouse-cal-tex-menu (event)
-  "Pop up submenu for Mouse-2 for cal-tex commands for selected date in the calendar window."
-  (interactive "e")
-  (let* ((selection
-          (cal-menu-x-popup-menu
-           event
-           (list (calendar-date-string (calendar-event-to-date t) t nil)
-                 (list
-                  ""
-                  '("Daily (1 page)" . cal-tex-mouse-day)
-                  '("Weekly (1 page)" . cal-tex-mouse-week)
-                  '("Weekly (2 pages)" . cal-tex-mouse-week2)
-                  '("Weekly (other style; 1 page)" . cal-tex-mouse-week-iso)
-                  '("Weekly (yet another style; 1 page)" .
-                    cal-tex-mouse-week-monday)
-                  '("Monthly" . cal-tex-mouse-month)
-                  '("Monthly (landscape)" . cal-tex-mouse-month-landscape)
-                  '("Yearly" . cal-tex-mouse-year)
-                  '("Yearly (landscape)" . cal-tex-mouse-year-landscape)
-                  '("Filofax styles" . cal-tex-mouse-filofax)
-                  )))))
-    (and selection (call-interactively selection))))
+(defun cal-menu-set-date-title (menu)
+  (easy-menu-filter-return
+   menu (calendar-date-string (calendar-event-to-date t) t nil)))
 
-(defun cal-tex-mouse-filofax (event)
-  "Pop up sub-submenu for Mouse-2 for Filofax cal-tex commands for selected date."
-  (interactive "e")
-  (let* ((selection
-          (cal-menu-x-popup-menu
-           event
-           (list (calendar-date-string (calendar-event-to-date t) t nil)
-                 (list
-                  ""
-                  '("Filofax Daily (one-day-per-page)" .
-                    cal-tex-mouse-filofax-daily)
-                  '("Filofax Weekly (2-weeks-at-a-glance)" .
-                    cal-tex-mouse-filofax-2week)
-                  '("Filofax Weekly (week-at-a-glance)" .
-                    cal-tex-mouse-filofax-week)
-                  '("Filofax Yearly" . cal-tex-mouse-filofax-year)
-                  )))))
-    (and selection (call-interactively selection))))
-
-(define-key calendar-mouse-3-map [exit-calendar]
-  '("Exit calendar" . exit-calendar))
-(define-key calendar-mouse-3-map [show-diary]
-  '("Show diary" . diary-show-all-entries))
-(define-key calendar-mouse-3-map [lunar-phases]
-  '("Lunar phases" . calendar-phases-of-moon))
-(define-key calendar-mouse-3-map [unmark]
-  '("Unmark" . calendar-unmark))
-(define-key calendar-mouse-3-map [mark-holidays]
-  '("Mark holidays" . mark-calendar-holidays))
-(define-key calendar-mouse-3-map [list-holidays]
-  '("List holidays" . list-calendar-holidays))
-(define-key calendar-mouse-3-map [mark-diary-entries]
-  '("Mark diary entries" . mark-diary-entries))
-(define-key calendar-mouse-3-map [scroll-backward]
-  '("Scroll backward" . scroll-calendar-right-three-months))
-(define-key calendar-mouse-3-map [scroll-forward]
-  '("Scroll forward" . scroll-calendar-left-three-months))
+(easy-menu-define cal-menu-global-mouse-menu nil
+  "Menu bound to a mouse event, not specific to the mouse-click location."
+  '("Calendar"
+    ["Scroll forward" scroll-calendar-left-three-months]
+    ["Scroll backward" scroll-calendar-right-three-months]
+    ["Mark diary entries" mark-diary-entries]
+    ["List holidays" list-calendar-holidays]
+    ["Mark holidays" mark-calendar-holidays]
+    ["Unmark" calendar-unmark]
+    ["Lunar phases" calendar-phases-of-moon]
+    ["Show diary" diary-show-all-entries]
+    ["Exit calendar" exit-calendar]))
 
 (run-hooks 'cal-menu-load-hook)
 
