@@ -46,24 +46,24 @@
 ;;
 ;; Valid values for `ps-multibyte-buffer' are:
 ;;
-;;  nil                     This is the value to use the default settings which
-;;			    is by default for printing buffer with only ASCII
-;;			    and Latin characters.   The default setting can be
-;;			    changed by setting the variable
+;;  nil			    This is the value to use the default settings;
+;;			    by default, this only works to print buffers with
+;;			    only ASCII and Latin characters.   But this default
+;;			    setting can be changed by setting the variable
 ;;			    `ps-mule-font-info-database-default' differently.
 ;;			    The initial value of this variable is
 ;;			    `ps-mule-font-info-database-latin' (see
 ;;			    documentation).
 ;;
-;;  `non-latin-printer'     This is the value to use when you have a japanese
+;;  `non-latin-printer'	    This is the value to use when you have a japanese
 ;;			    or korean PostScript printer and want to print
 ;;			    buffer with ASCII, Latin-1, Japanese (JISX0208 and
 ;;			    JISX0201-Kana) and Korean characters.  At present,
-;;			    it was not tested the Korean characters printing.
-;;			    If you have a korean PostScript printer, please,
-;;			    test it.
+;;			    it was not tested with the Korean characters
+;;			    printing.  If you have a korean PostScript printer,
+;;			    please, test it.
 ;;
-;;  `bdf-font'              This is the value to use when you want to print
+;;  `bdf-font'		    This is the value to use when you want to print
 ;;			    buffer with BDF fonts.  BDF fonts include both latin
 ;;			    and non-latin fonts.  BDF (Bitmap Distribution
 ;;			    Format) is a format used for distributing X's font
@@ -75,7 +75,7 @@
 ;;			    `bdf-directory-list' appropriately (see ps-bdf.el
 ;;			    for documentation of this variable).
 ;;
-;;  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+;;  `bdf-font-except-latin' This is like `bdf-font' except that it uses
 ;;			    PostScript default fonts to print ASCII and Latin-1
 ;;			    characters.  This is convenient when you want or
 ;;			    need to use both latin and non-latin characters on
@@ -100,24 +100,24 @@
 
 Valid values are:
 
-  nil                     This is the value to use the default settings which
-			  is by default for printing buffer with only ASCII
-			  and Latin characters.   The default setting can be
-			  changed by setting the variable
+  nil			  This is the value to use the default settings;
+			  by default, this only works to print buffers with
+			  only ASCII and Latin characters.   But this default
+			  setting can be changed by setting the variable
 			  `ps-mule-font-info-database-default' differently.
 			  The initial value of this variable is
 			  `ps-mule-font-info-database-latin' (see
 			  documentation).
 
-  `non-latin-printer'     This is the value to use when you have a Japanese
+  `non-latin-printer'	  This is the value to use when you have a Japanese
 			  or Korean PostScript printer and want to print
 			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
 			  JISX0201-Kana) and Korean characters.  At present,
-			  it was not tested the Korean characters printing.
-			  If you have a korean PostScript printer, please,
-			  test it.
+			  it was not tested with the Korean characters
+			  printing.  If you have a korean PostScript printer,
+			  please, test it.
 
-  `bdf-font'              This is the value to use when you want to print
+  `bdf-font'		  This is the value to use when you want to print
 			  buffer with BDF fonts.  BDF fonts include both latin
 			  and non-latin fonts.  BDF (Bitmap Distribution
 			  Format) is a format used for distributing X's font
@@ -129,7 +129,7 @@ Valid values are:
 			  `bdf-directory-list' appropriately (see ps-bdf.el for
 			  documentation of this variable).
 
-  `bdf-font-except-latin' This is like `bdf-font' except that it is used
+  `bdf-font-except-latin' This is like `bdf-font' except that it uses
 			  PostScript default fonts to print ASCII and Latin-1
 			  characters.  This is convenient when you want or
 			  need to use both latin and non-latin characters on
@@ -146,7 +146,7 @@ Any other value is treated as nil."
   "Alist of charsets with the corresponding font information.
 Each element has the form:
 
-	(CHARSET (FONT-TYPE FONT-SRC FONT-NAME ENCODING BYTES)) ...)
+	(CHARSET (FONT-TYPE FONT-SRC FONT-NAME ENCODING BYTES) ...)
 
 Where
 
@@ -166,20 +166,15 @@ FONT-SRC is a font source: builtin, bdf, vflib, or nil.
   To use this font, the external library `vflib' is required.
 
   If FONT-SRC is nil, a proper ASCII font in the variable
-  `ps-font-info-database' is used, and FONT-NAME is ignored.
-  This is useful for Latin-1 characters.
+  `ps-font-info-database' is used.  This is useful for Latin-1 characters.
 
-ENCODING is a charset to encode a character of CHARSET to a glyph
-code of the specifies font.  ENCODING may be a function that does
-this encoding.  In this case, the function is called with one
-argument, the character to encode, and it should return an
-encoded code.  ENCODING may be nil, in which case CHARSET is used
-to encode a character.
+ENCODING is a coding system to encode a string of characters of CHARSET into a
+proper string matching an encoding of the specified font.  ENCODING may be a
+function that does this encoding.  In this case, the function is called with
+one argument, the string to encode, and it should return an encoded string.
 
-BYTES specifies how many bytes each character has in the encoded
-byte sequence; it should be 1 or 2.  If ENCODING is a charset,
-BYTES may be nil, in chich case the dimension of ENCODING is
-used.
+BYTES specifies how many bytes each character has in the encoded byte
+sequence; it should be 1 or 2.
 
 All multi-byte characters are printed by fonts specified in this database
 regardless of a font family of ASCII characters.  The exception is Latin-1
@@ -419,18 +414,19 @@ format of font spec."
 		t))))
 
 (defconst ps-mule-external-libraries
-  '((builtin nil nil nil nil nil nil)
-    (bdf ps-bdf nil bdf-generate-prologue
-	 bdf-check-font bdf-generate-font bdf-generate-glyph)
-    (pcf nil nil pcf-generate-prologue
-	 pcf-check-font pcf-generate-font pcf-generate-glyph)
-    (vflib nil nil vflib-generate-prologue
-	   vflib-check-font vflib-generate-font vflib-generate-glyphs))
-  "Alist of information of external libraries to support PostScript printing.
+  '((builtin nil nil nil
+	     nil nil nil)
+    (bdf     ps-bdf nil bdf-generate-prologue
+	     bdf-check-font bdf-generate-font bdf-generate-glyph)
+    (pcf     nil nil pcf-generate-prologue
+	     pcf-check-font pcf-generate-font pcf-generate-glyph)
+    (vflib   nil nil vflib-generate-prologue
+	     vflib-check-font vflib-generate-font vflib-generate-glyphs))
+  "Alist of external libraries information to support PostScript printing.
 Each element has the form:
 
-    (FONT-SRC FEATURE INITIALIZED-P
-     PROLOGUE-FUNC CHECK-FUNC FONT-FUNC GLYPH-FUNC)
+    (FONT-SRC FEATURE INITIALIZED-P PROLOGUE-FUNC
+     CHECK-FUNC FONT-FUNC GLYPH-FUNC)
 
 FONT-SRC is the font source: builtin, bdf, pcf, or vflib.
 
@@ -440,22 +436,20 @@ FONT-SRC.  Currently, we only have the feature `ps-bdf'.
 
 INITIALIZED-P indicates if this library is initialized or not.
 
-PROLOGUE-FUNC is a function to generate PostScript code which
-define several PostScript procedures that will be called by
-FONT-FUNC and GLYPHS-FUNC.  It is called with no argument, and
-should return a list of strings.
+PROLOGUE-FUNC is a function to generate PostScript code which define several
+PostScript procedures that will be called by FONT-FUNC and GLYPHS-FUNC.  It is
+called with no argument, and should return a list of strings.
 
 CHECK-FUNC is a function to check if a font is available or not.
-It is called with one argument FONT-SPEC, and should return
-non-nil iff the font specified in FONT-SPEC is available.
+It is called with one argument FONT-SPEC, and should return non-nil iff the
+font specified in FONT-SPEC is available.
 
-FONT-FUNC is a function to generate PostScript code which define
-a new font.  It is called with one argument FONT-SPEC, and should
-return a list of strings.
+FONT-FUNC is a function to generate PostScript code which define a new font.
+It is called with one argument FONT-SPEC, and should return a list of strings.
 
-GLYPH-FUNC is a function to generate PostScript code which define a glyph of
-characters.  It is called with two arguments FONT-SPEC and CODE,
-and should return a list of strings.")
+GLYPH-FUNC is a function to generate PostScript code which define glyphs of
+characters.  It is called with two arguments FONT-SPEC and CODE, and should
+return a list of strings.")
 
 (defsubst ps-mule-exlib-feature (exlib) (nth 1 exlib))
 (defsubst ps-mule-exlib-initialized-p (exlib) (nth 2 exlib))
@@ -490,7 +484,7 @@ See the documentation of `ps-mule-external-libraries' for EXLIB's meaning."
 	      (funcall (ps-mule-exlib-check exlib) font-spec))))))
 
 (defun ps-mule-prepare-font (font-spec)
-  "Generate PostScript codes defining a new font of FONT-TYPE for CHARSET."
+  "Generate PostScript codes defining a new font of FONT-SPEC for charset."
   (let* ((font-src (ps-mule-font-spec-src font-spec))
 	 (exlib (assq font-src ps-mule-external-libraries))
 	 (id (ps-mule-font-spec-id font-spec))
@@ -573,14 +567,16 @@ The generated code is inserted on prologue part."
 (defun ps-mule-prologue-generated ()
   (unless ps-mule-prologue-generated
     (ps-output-prologue ps-mule-prologue)
-    (ps-output-prologue (format "/EscChar %d def\n" ps-mule-esc-char))
+    (ps-output-prologue
+     (format "\n/EscChar %d def\n\n%%%% End of Mule Section\n\n"
+	     ps-mule-esc-char))
     (setq ps-mule-prologue-generated t)))
 
 (defun ps-mule-encode-region (from to font-spec-table)
   "Generate PostScript code for plotting characters in the region FROM and TO.
 
-FONT-NUM is 0, 1, 2, 3, 4, 5, or 6, each represents font tags
-f0, f1, f2, f3, h0, h1, and H0 respectively."
+FONT-SPEC-TABLE is 0, 1, 2, 3, 4, 5, or 6, each represents font tags f0, f1,
+f2, f3, h0, h1, and H0 respectively."
   (let* ((font-spec nil)
 	 (font-id 0)
 	 (string-list nil)
@@ -624,7 +620,7 @@ f0, f1, f2, f3, h0, h1, and H0 respectively."
     (nreverse (cons (substring str 0 i) string-list))))
 
 (defun ps-mule-plot-composition (composition font-spec-table)
-  "Generate PostScript code for plotting COMPOSITION with FONT-NUM."
+  "Generate PostScript code for plotting COMPOSITION with FONT-SPEC-TABLE."
   (ps-output "[")
   (let ((components (copy-sequence (nth 2 composition)))
 	(font-spec nil))
@@ -879,6 +875,7 @@ the sequence."
     SpecialEffect		% Reflect special effects.
     ShowComponents		% Draw components.
 } def
+
 %%%% End of procedures for character composition
 "
   "PostScript code for printing character composition.")
@@ -1041,7 +1038,8 @@ the sequence."
 
 (defun ps-mule-encode-header-string (string fonttag)
   "Generate PostScript code for ploting STRING by font FONTTAG.
-FONTTAG should be a string \"/h0\", \"/h1\", \"/L0\", or \"/H0\"."
+FONTTAG should be a string \"/h0\", \"/h1\", \"/L0\", or \"/H0\".
+Any other value is treated as \"/H0\"."
   (with-temp-buffer
     (insert string)
     (ps-mule-encode-region (point-min) (point-max)
@@ -1055,7 +1053,7 @@ FONTTAG should be a string \"/h0\", \"/h1\", \"/L0\", or \"/H0\"."
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
   "Start printing job for multi-byte chars between FROM and TO.
-This checks if all multi-byte characters in the region are printable or not."
+It checks if all multi-byte characters in the region are printable or not."
   (auto-compose-region from to)
   (if (and (not (find-composition from to))
 	   (save-excursion
