@@ -261,7 +261,7 @@ See also the variable `ps-font-info-database'.")
 
 (defcustom ps-mule-font-info-database-default
   ps-mule-font-info-database-latin
-  "The default setting to use when `ps-multibyte-buffer' is nil."
+  "*The default setting to use when `ps-multibyte-buffer' is nil."
   :type '(symbol :tag "Multi-Byte Buffer Database Font Default")
   :group 'ps-print-font)
 
@@ -520,16 +520,17 @@ element of the list."
 (defconst ps-mule-external-libraries
   '((builtin nil nil
 	     nil nil nil)
-    (bdf ps-bdf nil
-	 bdf-generate-prologue bdf-generate-font bdf-generate-glyphs)
-    (pcf nil nil
-	 pcf-generate-prologue pcf-generate-font pcf-generate-glyphs)
-    (vflib nil nil
-	   vflib-generate-prologue vflib-generate-font vflib-generate-glyphs))
-  "Alist of information of external libraries to support PostScript printing.
+    (bdf     ps-bdf nil
+	     bdf-generate-prologue bdf-generate-font bdf-generate-glyphs)
+    (pcf     nil nil
+	     pcf-generate-prologue pcf-generate-font pcf-generate-glyphs)
+    (vflib   nil nil
+	     vflib-generate-prologue vflib-generate-font vflib-generate-glyphs))
+  "Alist of external libraries information to support PostScript printing.
 Each element has the form:
 
-    (FONT-SRC FEATURE INITIALIZED-P PROLOGUE-FUNC FONT-FUNC GLYPHS-FUNC)
+    (FONT-SRC FEATURE INITIALIZED-P
+     PROLOGUE-FUNC FONT-FUNC GLYPHS-FUNC)
 
 FONT-SRC is the font source: builtin, bdf, pcf, or vflib.
 
@@ -543,8 +544,8 @@ PROLOGUE-FUNC is a function to generate PostScript code which define several
 PostScript procedures that will be called by FONT-FUNC and GLYPHS-FUNC.  It is
 called with no argument, and should return a list of strings.
 
-FONT-FUNC is a function to generate PostScript code which define a new font.  It
-is called with one argument FONT-SPEC, and should return a list of strings.
+FONT-FUNC is a function to generate PostScript code which define a new font.
+It is called with one argument FONT-SPEC, and should return a list of strings.
 
 GLYPHS-FUNC is a function to generate PostScript code which define glyphs of
 characters.  It is called with three arguments FONT-SPEC, CODE-LIST, and BYTES,
@@ -1458,7 +1459,7 @@ or \\[universal-argument] \\[what-cursor-position] will give information about t
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
   "Start printing job for multi-byte chars between FROM and TO.
-This checks if all multi-byte characters in the region are printable or not."
+It checks if all multi-byte characters in the region are printable or not."
   (setq ps-mule-charset-list nil
 	ps-mule-header-charsets nil
 	ps-mule-font-info-database

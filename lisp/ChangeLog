@@ -3,7 +3,8 @@
 	* ps-print.el (ps-multibyte-buffer): Docstring fix.
 
 	* ps-mule.el: Doc fix.
-	(ps-multibyte-buffer): Docstring fix.
+	(ps-multibyte-buffer, ps-mule-font-info-database-default)
+	(ps-mule-external-libraries, ps-mule-begin-job): Docstring fix.
 
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
