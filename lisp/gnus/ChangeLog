@@ -1,3 +1,7 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
 2007-07-21  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-uu.el (mm-uu-type-alist): Refer to mm-uu-configure-list in doc
