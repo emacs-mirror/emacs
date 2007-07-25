@@ -1,5 +1,7 @@
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
+	* emacs.texi (Copying): Replace license with GPLv3.
+
 	* Relicense all FSF files to GPLv3 or later.
 
 2007-07-24  Glenn Morris  <rgm@gnu.org>
