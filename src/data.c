@@ -751,8 +751,14 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
      Lisp_Object cmd;
 {
   Lisp_Object fun = indirect_function (cmd);
+  Lisp_Object tmp;
 
-  if (SUBRP (fun))
+  if (SYMBOLP (cmd)
+      /* Use an `interactive-form' property if present, analogous to the
+	 function-documentation property. */
+      && (tmp = Fget (cmd, intern ("interactive-form")), !NILP (tmp)))
+    return tmp;
+  else if (SUBRP (fun))
     {
       if (XSUBR (fun)->prompt)
 	return list2 (Qinteractive, build_string (XSUBR (fun)->prompt));

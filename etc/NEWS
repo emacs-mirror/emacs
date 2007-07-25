@@ -204,6 +204,10 @@ remote connection has been established already.
 ** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
+
+** The interactive-form of a function can be added post-facto via the
+`interactive-form' symbol property.  Mostly useful to add complex interactive
+forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
 

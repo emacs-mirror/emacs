@@ -1,3 +1,8 @@
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Finteractive_form): Use a `interactive-form' property if
+	present, analogous to the function-documentation property.
+
 2007-07-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xdisp.c (decode_mode_spec): Add case 'R' for to test for
