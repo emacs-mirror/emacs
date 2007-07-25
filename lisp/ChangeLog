@@ -1,3 +1,8 @@
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el: Use mapc and dolist instead of mapcar where possible.
+	(close-display-connection): New command.
+
 2007-07-25  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-log-view-mode): Port to the multi-file vc interface.
