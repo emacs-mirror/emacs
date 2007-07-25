@@ -1,3 +1,7 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
 2007-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc.el (erc-startup-file-list): Fix typo in docstring.
