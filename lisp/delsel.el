@@ -87,12 +87,16 @@ any selection."
 	  (cond ((eq type 'kill)
 		 (delete-active-region t))
 		((eq type 'yank)
-		 ;; Before a yank command,
-		 ;; make sure we don't yank the same region
-		 ;; that we are going to delete.
-		 ;; That would make yank a no-op.
-		 (when (string= (buffer-substring-no-properties (point) (mark))
-				(car kill-ring))
+		 ;; Before a yank command, make sure we don't yank the
+		 ;; head of the kill-ring that really comes from the
+		 ;; currently active region we are going to delete
+		 ;; (when last-command is one that uses copy-region-as-kill
+		 ;; or kill-new).  That would make yank a no-op.
+		 (when (and (string= (buffer-substring-no-properties (point) (mark))
+				     (car kill-ring))
+			    (memq last-command
+				  '(mouse-set-region mouse-drag-region
+				    mouse-save-then-kill mouse-secondary-save-then-kill)))
 		   (current-kill 1))
 		 (delete-active-region))
 		((eq type 'supersede)

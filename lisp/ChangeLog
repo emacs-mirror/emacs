@@ -1,3 +1,506 @@
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
+	underlying file is uptodate.
+
+2007-07-23   Christopher J. Madsen  <cjm@cjmweb.net>
+
+	* replace.el (perform-replace): Use isearch-no-upper-case-p.
+
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-mode-line-map): New const.
+	(vc-mode-line): Use it.
+
+2007-07-23  Alexandre Julliard <julliard@winehq.org>
+
+	* vc-git.el (vc-git-delete-file, vc-git-rename-file)
+	(vc-git-unregister): New functions.
+	(vc-git-find-version): Use the result of ls-files as a parameter
+	for cat-file
+
+2007-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes)
+	(tramp-handle-file-attributes-with-stat)
+	(tramp-handle-directory-files-and-attributes-with-stat)
+	(tramp-convert-file-attributes): Handle huge file sizes.
+
+2007-07-23  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-message-function): New variable.
+	(isearch-update, isearch-search): Use it.
+
+	* simple.el (goto-history-element): New function created from
+	next-history-element.
+	(next-history-element): Most code moved to goto-history-element.
+	Call goto-history-element with (- minibuffer-history-position n).
+	(previous-history-element): Call goto-history-element with (+
+	minibuffer-history-position n).
+	(minibuffer-setup-hook): Add minibuffer-history-isearch-setup.
+	(minibuffer-history-isearch-message-overlay): New buffer-local variable.
+	(minibuffer-history-isearch-setup, minibuffer-history-isearch-end)
+	(minibuffer-history-isearch-search, minibuffer-history-isearch-message)
+	(minibuffer-history-isearch-wrap, minibuffer-history-isearch-push-state)
+	(minibuffer-history-isearch-pop-state): New functions.
+
+2007-07-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc-hooks.el (vc-stay-local-p): Fix bug: Avoid remove-if-not.
+	Also, if FILE is a list, return non-nil if any of its elements
+	should stay local.  Update docstring.
+
+2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/copyright.el (copyright-update-year): Fix 2007-05-25
+	change by reverting a small part.
+
+2007-07-23  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/octave-inf.el (inferior-octave-prompt): Accept .exe.
+
+2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-checkin): Delete unused parameter and the code
+	handling it. Use vc-git-command.
+	(vc-git-find-version, vc-git-diff-tree): New functions.
+	(vc-git-revert): Use vc-git-command.
+	(vc-git--run-command): Delete.
+
+2007-07-23  Alexandre Julliard <julliard@winehq.org>
+
+	* vc-git.el (vc-git-workfile-unchanged-p): Update comment.
+
+2007-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-8-post-read-conversion):
+	Temporarily bind utf-8-compose-scripts to nil while running
+	*-compose-region functions.
+
+2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el: Update status.
+	(vc-directory-exclusion-list): Use eval-after-load.
+
+2007-07-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-remote): New variable.
+	(help-echo): Add to default values of mode-line-format.
+
+	* files.el: Mark mode-line-remote as risky.
+
+2007-07-22  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Save old point and
+	isearch-other-end to old-point and old-other-end before reading
+	the search string from minibuffer.  After exiting minibuffer set
+	point to old-other-end if point and the search direction is the
+	same as before reading the search string.
+	(isearch-del-char): Don't set isearch-yank-flag to t.  Put point
+	to isearch-other-end.  Instead of isearch-search-and-update call
+	three functions isearch-search, isearch-push-state and isearch-update.
+
+2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-register, vc-git-checkin): Use vc-git-command,
+	deal with multiple file arguments.
+	(vc-git-print-log): Deal with multiple file arguments.
+
+2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-refine-ignore-spaces-hunk): Rename from
+	diff-refine-hunk.  Adjust users.
+	(diff-unified-hunk-p, diff-splittable-p): New functions.
+	(diff-mode-menu): Use it to disable Split when it doesn't work.
+
+2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-mode-menu): New entries.
+
+2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-unified->context): Use the new `apply' undo entry
+	if applicable, so as to save undo-log space.
+
+	* diff-mode.el (diff-find-file-name): Add arg `batch'.
+
+	* diff-mode.el (diff-beginning-of-file-and-junk): New function.
+	(diff-file-kill): Use it.
+	(diff-beginning-of-hunk): Add arg `try-harder' using it.
+	(diff-restrict-view, diff-find-source-location, diff-refine-hunk):
+	Use it so they find the hunk even when we're in the file header.
+
+2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-revision-granularity, vc-git-root)
+	(vc-git-command, vc-git-dir-state, vc-git-dired-state-info)
+	(vc-git-create-repo): New functions.
+	(vc-git-registered): New autoloaded function definition.
+	(vc-git-registered): Use vc-git-root.
+	(vc-git-responsible-p): New defalias.
+	(vc-git-annotate-extract-revision-at-line): Uncomment.
+	(vc-git-print-log): Add the file name to the log.
+	(vc-git-log-view-mode): New derived mode.
+	(vc-git-diff, vc-git-annotate-command): Use vc-git-command.
+
+2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/grep.el (grep-compute-defaults): Keep default values.
+
+2007-07-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex.el (reftex-access-parse-file): Create parse
+	file in a way that does not interfere with recentf mode.
+	(reftex-access-parse-file): Do not risk destroying an existing
+	buffer.
+
+2007-07-22  Alexandre Julliard <julliard@winehq.org>
+
+	* vc-git.el: New file.
+
+2007-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-script-display): Change default.
+
+2007-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-mode-line-string): Add support for tooltips
+	for branches and new files.
+
+	* vc-hooks.el (vc-default-mode-line-string): Move mouse-face and
+	local-map handling ...
+	(vc-mode-line): ... here. Improve handling of help-echo.
+
+	* vc.el (mode-line-string): Document help-echo usage.
+
+2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.10.
+
+	* tramp.el (tramp-get-ls-command): Fyx typo.
+
+	* trampver.el: Update release number.
+
+2007-07-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-x-option-alist): Use x-handle-no-bitmap-icon.
+
+	* term/x-win.el (x-handle-no-bitmap-icon): New function.
+
+2007-07-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-fill-parenthesized-list): New function.
+	(change-log-indent): Call change-log-fill-parenthesized-list.
+	(change-log-fill-paragraph): Bind fill-indent-according-to-mode to
+	t.  Have lines with leading asterisk start a paragraph.
+
+2007-07-21  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (math-emacs-precision)
+	(math-largest-emacs-expt, math-smallest-emacs-expt):
+	New variables.
+	(math-use-emacs-fn): New function.
+	(math-exp-raw): Evaluate with `math-use-emacs-fn', when
+	appropriate.
+
+2007-07-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* image-dired.el (image-dired-sane-db-file): New func.
+	(image-dired-write-tags, image-dired-remove-tag)
+	(image-dired-list-tags, image-dired-write-comments)
+	(image-dired-get-comment, image-dired-mark-tagged-files)
+	(image-dired-create-gallery-lists): Call new func.
+	Reported by Dieter Wilhelm <dieter@duenenhof-wilhelm.de>.
+
+2007-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-dir-state): Fix loop.
+	(vc-hg-print-log): Fix expected return value for vc-hg-command.
+	(vc-hg-next-version, vc-hg-delete-file, vc-hg-rename-file)
+	(vc-hg-register, vc-hg-create-repo, vc-hg-checkin)
+	(vc-hg-revert): Likewise.
+	(vc-hg-revision-table, vc-hg-revision-completion-table): New
+	functions.
+
+2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* add-log.el (change-log-resolve-conflict): Don't lose data if the
+	merge fails.
+
+2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-auto-jump-to-first-error):
+	Add group and version.
+
+2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* add-log.el (add-log-file-name): Use file-relative-name.
+	(add-change-log-entry): Delay reading
+	add-log-(full-name|mailing-address) to after we've switched to the
+	ChangeLog buffer so we get the right value.
+	(add-change-log-entry, add-log-current-defun, change-log-merge):
+	Use derived-mode-p rather than checking major-mode directly.
+
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use a directory
+	name for buffer-file-name if it refers to a directory.
+
+	* vc-arch.el (vc-arch-diff): Fix last change.
+
+	* progmodes/compile.el (compilation-start): Remember the original
+	directory in a buffer-local compilation-directory.
+	(compile): Set the global value of compilation-directory.
+	(recompile): Use compilation-directory even in the compilation buffer.
+
+2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-diff): Use vc-hg-command.
+
+2007-07-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Problem with foreground and background color when
+	printing a buffer with and without faces.  Reported by Christian
+	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
+	(ps-print-version): New version 6.7.5.
+	(ps-default-fg): Change default value to nil, so black color is used
+	when a face does not specify a foreground color.
+	(ps-default-bg): Change default value to nil, so white color is used
+	for background color.
+	(ps-begin-job): Fix code.
+
+2007-07-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (install-lisp-SH): Don't create subdirectories
+	in $(INSTALL_DIR)/lisp/ if they already exist.
+
+2007-07-20  Dhruva Krishnamurthy  <dhruvakm@gmail.com>  (tiny change)
+
+	* makefile.w32-in (install-lisp-CMD): Don't create subdirectories
+	in $(INSTALL_DIR)/lisp/ if they already exist.
+
+2007-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vera-mode.el (vera-re-search-forward)
+	(vera-re-search-backward): Remove use of store-match-data.
+	(vera-mode-map): Move initialization into declaration.
+
+	* progmodes/flymake.el (flymake-buildfile-dirs): Remove.
+	(flymake-find-buildfile): Use locate-dominating-file.
+
+	* vc.el (vc-delistify): Use mapconcat.
+	(vc-do-command): Minor simplification.
+	(vc-expand-dirs): Use push.
+
+	* vc-mcvs.el (vc-mcvs-create-repo):
+	* vc-cvs.el (vc-cvs-create-repo): Remove.
+
+	* vc-hooks.el (vc-find-root): Fix case where `file' is the current
+	directory and the root as well.
+
+2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Pass a list
+	instead of a file.
+
+	* vc-hg.el (vc-hg-print-log): Deal with multiple file arguments.
+	(vc-hg-registered): Replace if with when.
+	(vc-hg-state): Deal with nonexistent files and handle removed files.
+	(vc-hg-dir-state, vc-hg-dired-state-info): New functions.
+	(vc-hg-checkout): Re-enable.
+	(vc-hg-create-repo): Fix typos.
+	(vc-hg-print-log): Fix for multiple files.
+	(vc-hg-workfile-unchanged-p): New function.
+
+	* vc.el: Fix typo.
+	(vc-print-log): Fix call to print-log.
+	(vc-default-comment-history): Likewise.
+	(vc-directory-exclusion-list): Add .hg and .bzr.
+	(vc-diff-internal): Pass a list instead of a file.
+
+	* vc-mcvs.el (vc-mcvs-create-repo): Fix typos.
+
+	* vc-bzr.el (vc-bzr-create-repo): New function.
+
+2007-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Walk up the tree to find an existing
+	`file' from which to start the search.
+
+2007-07-19  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-cvs.el: vc-cvs-checkin had some reference problems, now fixed.
+
+2007-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-file): New function.
+
+2007-07-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/grep.el (grep-host-defaults-alist): New defvar.
+	(grep-compute-defaults): Use it.
+
+2007-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el: Docstring fixes.
+
+2007-07-18  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-hooks.el: Generalize stay-local-p to operate on lists of
+	files.  Change two keybindings to point to new function names.
+	* vc-arch.el, vc-bzr.el, vc-cvs.el, vc-hg.el, vc-mcvs.el, vc-rcs.el,
+	vc-sccs.el, vc-svn.el: These now implement the NewVC-fileset.
+	* vc.el: Adapted for NewVC-fileset, but no functional changes yet.
+
+2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-mode-hook, follow-mode-off-hook, follow-mode)
+	(follow-delete-other-windows-and-split, follow-recenter)
+	(follow-windows-aligned-p, follow-point-visible-all-windows-p)
+	(follow-redisplay, follow-estimate-first-window-start)
+	(follow-xemacs-scrollbar-support, follow-intercept-process-output):
+	Fix typos in docstrings.
+
+2007-07-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* add-log.el (change-log-mode): Use fill-nobreak-predicate to
+	avoid that filling introduces lines with a single asterisk.
+
+	* kmacro.el (kmacro-end-macro): When ignoring empty macro
+	avoid incorrect kmacro-ring-empty-p messages.
+	Reported by Michael Schierl <schierlm@gmx.de>.
+
+2007-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Add more info about the vc-registered function.
+
+2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-remote-p): Introduce optional parameter
+	IDENTIFICATION.
+
+	* recentf.el (recentf-keep-default-predicate): Adapt call of
+	`file-remote-p'.
+
+	* progmodes/grep.el (grep-probe): Use `process-file'.
+	(grep-compute-defaults): Handle variables host specific.
+
+	* net/ange-ftp.el (ange-ftp-file-remote-p): Handle optional
+	parameter IDENTIFICATION.
+
+	* net/tramp.el (tramp-handle-file-remote-p): Handle optional
+	parameter IDENTIFICATION.
+	(tramp-handle-set-file-times): New defun.  Replaces `tramp-touch'.
+	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
+	Add entry for `set-file-times'.
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-out-of-band): Use `set-file-times'.
+	(tramp-handle-unhandled-file-name-directory): Rewrite.
+	(tramp-convert-file-attributes): Add error handling when inode is
+	extraordinary big.
+	(tramp-get-inode): Change parameter from FILE to VEC.
+	(tramp-handle-start-file-process): Use (current-buffer) if BUFFER
+	is nil.  This is according to the specification.  Goto (point-max)
+	when ready.
+	(tramp-handle-shell-command): Rewrite completely, using
+	`process-file' and `start-file-process'.
+	(tramp-methods, tramp-find-shell)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-maybe-open-connection): Guard against $PROMPT_COMMAND shell
+	var.  Reported by Steve Youngs <steve@sxemacs.org>.
+
+	* net/tramp-fish.el (tramp-fish-file-name-handler-alist): Add
+	entry for `set-file-times'.  Rename `start-process' into
+	`start-file-process'.  Remove `call-process' entry.
+	(tramp-fish-handle-set-file-times): New defun.
+	(tramp-fish-handle-executable-find): Use `process-file'.
+	(tramp-fish-handle-process-file): New defun.  Replaces
+	`tramp-fish-handle-call-process'.
+	(tramp-fish-do-copy-or-rename-file-directly): Use
+	`set-file-times'.
+	(tramp-fish-get-file-entries): Change `tramp-get-inode' parameter.
+
+	* net/tramp-smb.el (tramp-smb-handle-file-attributes): Change
+	`tramp-get-inode' parameter.
+
+2007-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-version, vc-bzr-at-least-version)
+	(vc-bzr-post-command-function): Remove.  Version 0.8 is already old
+	nowadays, and by the time Emacs-23 comes out, nobody will even remember
+	it has ever existed.
+
+2007-07-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Undo previous change.
+
+2007-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (clean): Don't delete *~.
+
+2007-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-verbatim-environments):
+	Add safe-local-variable property.
+	(tex-font-lock-syntactic-keywords): Lookup tex-verbatim-environments
+	when starting font-lock rather than when loading tex-mode.el.
+
+	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Skip over the
+	whole $( rather than just the $.  Rename from sh-quoted-subshell.
+	(sh-font-lock-syntactic-keywords): Adjust call accordingly.
+
+2007-07-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* bookmark.el (bookmark-maybe-sort-alist): Don't modify
+	bookmark-alist.  Instead, if not sorting, simply return it.
+	(bookmark-bmenu-list): Call bookmark-maybe-sort-alist
+	for its return value, not for its side effect.
+
+	* emacs-lisp/lisp-mode.el (calculate-lisp-indent): In the
+	case of alignment under a constant symbol, find and consider
+	the sexp actually at indentation to be the "last sexp".
+
+2007-07-16  Drew Adams  <drew.adams@oracle.com>
+
+	* mouse.el (mouse-yank-secondary): Better error message if no
+	secondary selection.
+
+2007-07-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-handled-backends): Move BZR later in the list.
+
+	* term/xterm.el (xterm-turn-on-modify-other-keys)
+	(xterm-turn-off-modify-other-keys): New functions.
+	(terminal-init-xterm): Enable the modifyOtherKeys feature if the
+	terminal supports it.
+
+2007-07-16  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* bookmark.el (bookmark-show-all-annotations):
+	Make sure each inserted annotation ends with newline.
+
+2007-07-15  Richard Stallman  <rms@gnu.org>
+
+	* kmacro.el (kmacro-bind-to-key): Avoid comparisons on function keys.
+
+	* tutorial.el (tutorial--find-changed-keys):
+	Handle C-x specially like ESC.
+
+2007-07-15  Aaron Hawley  <aaronh@garden.org>
+
+	* tar-mode.el (tar-get-descriptor): No error for zero-length file.
+
+2007-07-15  Juri Linkov  <juri@jurta.org>
+
+	* delsel.el (delete-selection-pre-hook):
+	* emulation/cua-base.el (cua-paste): Before a yank command,
+	check also whether last-command is one of mouse-save-then-kill,
+	mouse-secondary-save-then-kill, mouse-set-region, mouse-drag-region.
+
+2007-07-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* recentf.el (recentf-keep-default-predicate): New defun.
+	(recentf-keep): Use it as initial value.
+
 2007-07-15  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Revert 2007-07-13T18:16:17Z!kfogel@red-bean.com,
@@ -6,8 +509,7 @@
 
 2007-07-15  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
 
-	* calendar/cal-bahai.el (calendar-goto-bahai-date): Add autoload
-	cookie.
+	* calendar/calendar.el (calendar-goto-bahai-date): Autoload it.
 
 2007-07-15  Jason Rumney  <jasonr@gnu.org>
 
@@ -36,7 +538,7 @@
 	* replace.el (match): Use yellow1 instead of yellow.
 
 	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
-	red. 
+	red.
 
 	* pcvs-info.el (cvs-unknown): Likewise.
 
@@ -229,7 +731,7 @@
 	(org-columns-compile-format)
 	(org-fill-paragraph-experimental)
 	(org-string-to-number, org-property-action)
-	(org-columns-move-left, org-columns-new )
+	(org-columns-move-left, org-columns-new)
 	(org-column-number-to-string)
 	(org-property-previous-allowed-value)
 	(org-at-property-p, org-columns-delete)

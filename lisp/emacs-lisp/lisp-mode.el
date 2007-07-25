@@ -932,6 +932,16 @@ is the buffer position of the start of the containing expression."
                        (goto-char indent-point)
                        (skip-chars-forward " \t")
                        (looking-at ":"))
+                     ;; The last sexp may not be at the indentation
+                     ;; where it begins, so find that one, instead.
+                     (save-excursion
+                       (goto-char calculate-lisp-indent-last-sexp)
+                       (while (and (not (looking-back "^[ \t]*"))
+                                   (or (not containing-sexp)
+                                       (< (1+ containing-sexp) (point))))
+                         (forward-sexp -1)
+                         (backward-prefix-chars))
+                       (setq calculate-lisp-indent-last-sexp (point)))
                      (> calculate-lisp-indent-last-sexp
                         (save-excursion
                           (goto-char (1+ containing-sexp))

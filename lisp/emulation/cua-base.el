@@ -898,9 +898,6 @@ If global mark is active, copy from register or one character."
      (t
       ;; Must save register here, since delete may override reg 0.
       (if mark-active
-	  ;; Before a yank command, make sure we don't yank
-	  ;; the same region that we are going to delete.
-	  ;; That would make yank a no-op.
 	  (if cua--rectangle
 	      (progn
 		(goto-char (min (mark) (point)))
@@ -908,8 +905,16 @@ If global mark is active, copy from register or one character."
 		(setq paste-lines (cua--delete-rectangle))
 		(if (= paste-lines 1)
 		    (setq paste-lines nil))) ;; paste all
-	    (if (string= (filter-buffer-substring (point) (mark))
-			 (car kill-ring))
+	    ;; Before a yank command, make sure we don't yank the
+	    ;; head of the kill-ring that really comes from the
+	    ;; currently active region we are going to delete
+	    ;; (when last-command is one that uses copy-region-as-kill
+	    ;; or kill-new).  That would make yank a no-op.
+	    (if (and (string= (filter-buffer-substring (point) (mark))
+			      (car kill-ring))
+		     (memq last-command
+			   '(mouse-set-region mouse-drag-region
+			     mouse-save-then-kill mouse-secondary-save-then-kill)))
 		(current-kill 1))
 	    (cua-delete-region)))
       (cond

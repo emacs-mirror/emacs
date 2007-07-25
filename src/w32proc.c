@@ -591,6 +591,13 @@ get_result:
   return pid;
 }
 
+/* Old versions of w32api headers don't have separate 32-bit and
+   64-bit defines, but the one they have matches the 32-bit variety.  */
+#ifndef IMAGE_NT_OPTIONAL_HDR32_MAGIC
+# define IMAGE_NT_OPTIONAL_HDR32_MAGIC IMAGE_NT_OPTIONAL_HDR_MAGIC
+# define IMAGE_OPTIONAL_HEADER32 IMAGE_OPTIONAL_HEADER
+#endif
+
 void
 w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int * is_gui_app)
 {
@@ -651,33 +658,54 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
   	}
       else if (nt_header->Signature == IMAGE_NT_SIGNATURE)
   	{
-	  /* Look for cygwin.dll in DLL import list. */
-	  IMAGE_DATA_DIRECTORY import_dir =
-	    nt_header->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-	  IMAGE_IMPORT_DESCRIPTOR * imports;
-	  IMAGE_SECTION_HEADER * section;
+          IMAGE_DATA_DIRECTORY *data_dir = NULL;
+          if (nt_header->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC)
+            {
+              /* Ensure we are using the 32 bit structure.  */
+              IMAGE_OPTIONAL_HEADER32 *opt
+                = (IMAGE_OPTIONAL_HEADER32*) &(nt_header->OptionalHeader);
+              data_dir = opt->DataDirectory;
+              *is_gui_app = (opt->Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI);
+            }
+          /* MingW 3.12 has the required 64 bit structs, but in case older
+             versions don't, only check 64 bit exes if we know how.  */
+#ifdef IMAGE_NT_OPTIONAL_HDR64_MAGIC
+          else if (nt_header->OptionalHeader.Magic
+                   == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+            {
+              IMAGE_OPTIONAL_HEADER64 *opt
+                = (IMAGE_OPTIONAL_HEADER64*) &(nt_header->OptionalHeader);
+              data_dir = opt->DataDirectory;
+              *is_gui_app = (opt->Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI);
+            }
+#endif
+          if (data_dir)
+            {
+              /* Look for cygwin.dll in DLL import list. */
+              IMAGE_DATA_DIRECTORY import_dir =
+                data_dir[IMAGE_DIRECTORY_ENTRY_IMPORT];
+              IMAGE_IMPORT_DESCRIPTOR * imports;
+              IMAGE_SECTION_HEADER * section;
 
-	  section = rva_to_section (import_dir.VirtualAddress, nt_header);
-	  imports = RVA_TO_PTR (import_dir.VirtualAddress, section, executable);
+              section = rva_to_section (import_dir.VirtualAddress, nt_header);
+              imports = RVA_TO_PTR (import_dir.VirtualAddress, section,
+                                    executable);
 
-	  for ( ; imports->Name; imports++)
-  	    {
-	      char * dllname = RVA_TO_PTR (imports->Name, section, executable);
-
-	      /* The exact name of the cygwin dll has changed with
-	         various releases, but hopefully this will be reasonably
-	         future proof.  */
-	      if (strncmp (dllname, "cygwin", 6) == 0)
-		{
-		  *is_cygnus_app = TRUE;
-		  break;
-		}
-  	    }
-
-	  /* Check whether app is marked as a console or windowed (aka
-             GUI) app.  Accept Posix and OS2 subsytem apps as console
-             apps.  */
-	  *is_gui_app = (nt_header->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI);
+              for ( ; imports->Name; imports++)
+                {
+                  char * dllname = RVA_TO_PTR (imports->Name, section,
+                                               executable);
+                  
+                  /* The exact name of the cygwin dll has changed with
+                     various releases, but hopefully this will be reasonably
+                     future proof.  */
+                  if (strncmp (dllname, "cygwin", 6) == 0)
+                    {
+                      *is_cygnus_app = TRUE;
+                      break;
+                    }
+                }
+            }
   	}
     }
 

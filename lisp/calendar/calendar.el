@@ -1821,6 +1821,11 @@ Driven by the variable `calendar-date-display-form'.")
 (autoload 'calendar-islamic-date-string "cal-islam"
   "String of Islamic date of Gregorian date.")
 
+(autoload 'calendar-goto-bahai-date "cal-bahai"
+  "Move cursor to Baha'i date DATE.
+Echo Baha'i date unless NOECHO is t."
+  t)
+
 (autoload 'calendar-print-bahai-date "cal-bahai"
   "Show the Baha'i date equivalents of date."
   t)

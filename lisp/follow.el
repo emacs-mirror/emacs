@@ -278,12 +278,12 @@
   :group 'convenience)
 
 (defcustom follow-mode-hook nil
-  "Hooks to run when follow-mode is turned on."
+  "Hooks to run when Follow mode is turned on."
   :type 'hook
   :group 'follow)
 
 (defcustom follow-mode-off-hook nil
-  "Hooks to run when follow-mode is turned off."
+  "Hooks to run when Follow mode is turned off."
   :type 'hook
   :group 'follow)
 
@@ -501,9 +501,9 @@ of two major techniques:
   movement commands.
 
 Follow mode comes to its prime when used on a large screen and two
-side-by-side window are used. The user can, with the help of Follow
+side-by-side windows are used.  The user can, with the help of Follow
 mode, use two full-height windows as though they would have been
-one. Imagine yourself editing a large function, or section of text,
+one.  Imagine yourself editing a large function, or section of text,
 and being able to use 144 lines instead of the normal 72... (your
 mileage may vary).
 
@@ -511,7 +511,7 @@ To split one large window into two side-by-side windows, the commands
 `\\[split-window-horizontally]' or \
 `M-x follow-delete-other-windows-and-split' can be used.
 
-Only windows displayed in the same frame follow each-other.
+Only windows displayed in the same frame follow each other.
 
 If the variable `follow-intercept-processes' is non-nil, Follow mode
 will listen to the output of processes and redisplay accordingly.
@@ -645,11 +645,11 @@ Works like `scroll-up' when not in Follow Mode."
 Execute this command to display as much as possible of the text
 in the selected window.  All other windows, in the current
 frame, are deleted and the selected window is split in two
-side-by-side windows. Follow Mode is activated, hence the
+side-by-side windows.  Follow Mode is activated, hence the
 two windows always will display two successive pages.
 \(If one window is moved, the other one will follow.)
 
-If ARG is positive, the leftmost window is selected.  If it negative,
+If ARG is positive, the leftmost window is selected.  If negative,
 the rightmost is selected.  If ARG is nil, the leftmost window is
 selected if the original window is the first one in the frame.
 
@@ -754,8 +754,8 @@ in your `~/.emacs' file:
 Rearrange all other windows around the middle window.
 
 With a positive argument, place the current line ARG lines
-from the top.  With a negative, place it -ARG lines from the
-bottom."
+from the top.  With a negative argument, place it -ARG lines
+from the bottom."
   (interactive "P")
   (if arg
       (let ((p (point))
@@ -985,7 +985,7 @@ Note that this handles the case when the cache has been set to nil."
 ;; should start at a full screen line.
 
 (defsubst follow-windows-aligned-p (win-start-end)
-  "Non-nil if the follower WINDOWS are aligned."
+  "Non-nil if the follower windows are aligned."
   (let ((res t))
     (save-excursion
        (goto-char (window-start (car (car win-start-end))))
@@ -1005,7 +1005,7 @@ Note that this handles the case when the cache has been set to nil."
 ;; no one will be recentered.)
 
 (defun follow-point-visible-all-windows-p (win-start-end)
-  "Non-nil when the window-point is visible in all windows."
+  "Non-nil when the `window-point' is visible in all windows."
   (let ((res t))
     (while (and res win-start-end)
       (setq res (follow-pos-visible (window-point (car (car win-start-end)))
@@ -1133,7 +1133,7 @@ Return the selected window."
 (defun follow-redisplay (&optional windows win)
   "Reposition the WINDOWS around WIN.
 Should the point be too close to the roof we redisplay everything
-from the top. WINDOWS should contain a list of windows to
+from the top.  WINDOWS should contain a list of windows to
 redisplay, it is assumed that WIN is a member of the list.
 Should WINDOWS be nil, the windows displaying the
 same buffer as WIN, in the current frame, are used.
@@ -1214,8 +1214,8 @@ START."
 (defun follow-estimate-first-window-start (windows win start)
   "Estimate the position of the first window.
 
-Returns (EXACT . POS). If EXACT is non-nil, POS is the starting
-position of the first window. Otherwise it is a good guess."
+Returns (EXACT . POS).  If EXACT is non-nil, POS is the starting
+position of the first window.  Otherwise it is a good guess."
   (let ((pred (car (follow-split-followers windows win)))
 	(exact nil))
     (save-excursion
@@ -1667,7 +1667,7 @@ non-first windows in Follow Mode."
       (defun follow-xemacs-scrollbar-support (window)
 	"Redraw windows showing the same buffer as shown in WINDOW.
 WINDOW is either the dragged window, or a cons containing the
-window as its first element. This is called while the user drags
+window as its first element.  This is called while the user drags
 the scrollbar.
 
 WINDOW can be an object or a window."
@@ -1797,7 +1797,7 @@ magic stuff before the real process filter is called."
   "Intercept all active processes.
 
 This is needed so that Follow Mode can track all display events in the
-system.  (See `follow-mode')"
+system.  (See `follow-mode'.)"
   (interactive)
   (let ((list (process-list)))
     (while list
@@ -2075,7 +2075,7 @@ report this using the `report-emacs-bug' function."
 ;;{{{ Tail window handling
 
 ;; In Emacs (not XEmacs) windows showing nothing are sometimes
-;; recentered.  When in Follow Mode, this is not desireable for
+;; recentered.  When in Follow Mode, this is not desirable for
 ;; non-first windows in the window chain.  This section tries to
 ;; make the windows stay where they should be.
 ;;

@@ -88,33 +88,9 @@
                  (repeat :tag "Argument List" :value ("") string))
   :group 'vc-bzr)
 
-(defvar vc-bzr-version nil
-  "Internal use.")
-
-;; Could be used for compatibility checks if bzr changes.
-(defun vc-bzr-version ()
-  "Return a three-numeric element list with components of the bzr version.
-This is of the form (X Y Z) for revision X.Y.Z.  The elements are zero
-if running `vc-bzr-program' doesn't produce the expected output."
-  (or vc-bzr-version
-      (setq vc-bzr-version
-            (let ((s (shell-command-to-string
-                      (concat (shell-quote-argument vc-bzr-program)
-                              " --version"))))
-              (if (string-match "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)$" s)
-                  (list (string-to-number (match-string 1 s))
-                        (string-to-number (match-string 2 s))
-                        (string-to-number (match-string 3 s)))
-                '(0 0 0))))))
-
-(defun vc-bzr-at-least-version (vers)
-  "Return t if the bzr command reports being a least version VERS.
-First argument VERS is a list of the form (X Y Z), as returned by `vc-bzr-version'."
-  (version-list-<= vers (vc-bzr-version)))
-
 ;; since v0.9, bzr supports removing the progress indicators
 ;; by setting environment variable BZR_PROGRESS_BAR to "none".
-(defun vc-bzr-command (bzr-command buffer okstatus file &rest args)
+(defun vc-bzr-command (bzr-command buffer okstatus file-or-list &rest args)
   "Wrapper round `vc-do-command' using `vc-bzr-program' as COMMAND.
 Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
   (let ((process-environment
@@ -127,30 +103,8 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
         ;; This is redundant because vc-do-command does it already.  --Stef
         (process-connection-type nil))
     (apply 'vc-do-command buffer okstatus vc-bzr-program
-           file bzr-command (append vc-bzr-program-args args))))
-  
-(unless (vc-bzr-at-least-version '(0 9))
-  ;; For older versions, we fall back to washing the log buffer
-  ;; when all output has been gathered.
-  (defun vc-bzr-post-command-function (command file flags)
-    "`vc-post-command-functions' function to remove progress messages."
-    ;; Note that using this requires that the vc command is run
-    ;; synchronously.  Otherwise, the ^Ms in the leading progress
-    ;; message on stdout cause the stream to be interpreted as having
-    ;; DOS line endings, losing the ^Ms, so the search fails.  I don't
-    ;; know how this works under Windows.
-    (when (equal command vc-bzr-program)
-      (save-excursion
-        (goto-char (point-min))
-        (if (looking-at "^\\(\r.*\r\\)[^\r]+$")
-            (replace-match "" nil nil nil 1)))
-      (save-excursion
-        (goto-char (point-min))
-        ;; This is inserted by bzr 0.11 `log', at least
-        (while (looking-at "read knit.*\n")
-          (replace-match "")))))
+           file-or-list bzr-command (append vc-bzr-program-args args))))
 
-  (add-hook 'vc-post-command-functions 'vc-bzr-post-command-function))
 
 ;;;###autoload
 (defconst vc-bzr-admin-dirname ".bzr")    ; FIXME: "_bzr" on w32?
@@ -242,12 +196,16 @@ Return nil if there isn't one."
 (defun vc-bzr-checkout-model (file)
   'implicit)
 
-(defun vc-bzr-register (file &optional rev comment)
+(defun vc-bzr-create-repo ()
+  "Create a new BZR repository."
+  (vc-bzr-command "init" nil 0 nil))
+
+(defun vc-bzr-register (files &optional rev comment)
   "Register FILE under bzr.
 Signal an error unless REV is nil.
 COMMENT is ignored."
   (if rev (error "Can't register explicit version with bzr"))
-  (vc-bzr-command "add" nil 0 file))
+  (vc-bzr-command "add" nil 0 files))
 
 ;; Could run `bzr status' in the directory and see if it succeeds, but
 ;; that's relatively expensive.
@@ -272,11 +230,11 @@ or a superior directory.")
   "Unregister FILE from bzr."
   (vc-bzr-command "remove" nil 0 file))
 
-(defun vc-bzr-checkin (file rev comment)
+(defun vc-bzr-checkin (files rev comment)
   "Check FILE in to bzr with log message COMMENT.
 REV non-nil gets an error."
   (if rev (error "Can't check in a specific version with bzr"))
-  (vc-bzr-command "commit" nil 0 file "-m" comment))
+  (vc-bzr-command "commit" nil 0 files "-m" comment))
 
 (defun vc-bzr-checkout (file &optional editable rev destfile)
   "Checkout revision REV of FILE from bzr to DESTFILE.
@@ -317,12 +275,12 @@ EDITABLE is ignored."
                   (2 'change-log-email))
                  ("^ *timestamp: \\(.*\\)" (1 'change-log-date-face))))))
 
-(defun vc-bzr-print-log (file &optional buffer) ; get buffer arg in Emacs 22
-  "Get bzr change log for FILE into specified BUFFER."
+(defun vc-bzr-print-log (files &optional buffer) ; get buffer arg in Emacs 22
+  "Get bzr change log for FILES into specified BUFFER."
   ;; Fixme: This might need the locale fixing up if things like `revno'
   ;; got localized, but certainly it shouldn't use LC_ALL=C.
   ;; NB.  Can't be async -- see `vc-bzr-post-command-function'.
-  (vc-bzr-command "log" buffer 0 file)
+  (vc-bzr-command "log" buffer 0 files)
   ;; FIXME: Until Emacs-23, VC was missing a hook to sort out the mode for
   ;; the buffer, or at least set the regexps right.
   (unless (fboundp 'vc-default-log-view-mode)
@@ -340,16 +298,16 @@ EDITABLE is ignored."
 
 (autoload 'vc-diff-switches-list "vc" nil nil t)
 
-(defun vc-bzr-diff (file &optional rev1 rev2 buffer)
+(defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  (let ((working (vc-workfile-version file)))
+  (let ((working (vc-workfile-version (car files))))
     (if (and (equal rev1 working) (not rev2))
         (setq rev1 nil))
     (if (and (not rev1) rev2)
         (setq rev1 working))
     ;; NB.  Can't be async -- see `vc-bzr-post-command-function'.
     ;; bzr diff produces condition code 1 for some reason.
-    (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 1 file
+    (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 1 files
            "--diff-options" (mapconcat 'identity (vc-diff-switches-list bzr)
                                        " ")
            (when rev1

@@ -1300,55 +1300,61 @@ makes the search case-sensitive."
 
 (defvar minibuffer-temporary-goal-position nil)
 
+(defun goto-history-element (nabs)
+  "Puts element of the minibuffer history in the minibuffer.
+The argument NABS specifies the absolute history position."
+  (interactive "p")
+  (let ((minimum (if minibuffer-default -1 0))
+	elt minibuffer-returned-to-present)
+    (if (and (zerop minibuffer-history-position)
+	     (null minibuffer-text-before-history))
+	(setq minibuffer-text-before-history
+	      (minibuffer-contents-no-properties)))
+    (if (< nabs minimum)
+	(if minibuffer-default
+	    (error "End of history; no next item")
+	  (error "End of history; no default available")))
+    (if (> nabs (length (symbol-value minibuffer-history-variable)))
+	(error "Beginning of history; no preceding item"))
+    (unless (memq last-command '(next-history-element
+				 previous-history-element))
+      (let ((prompt-end (minibuffer-prompt-end)))
+	(set (make-local-variable 'minibuffer-temporary-goal-position)
+	     (cond ((<= (point) prompt-end) prompt-end)
+		   ((eobp) nil)
+		   (t (point))))))
+    (goto-char (point-max))
+    (delete-minibuffer-contents)
+    (setq minibuffer-history-position nabs)
+    (cond ((= nabs -1)
+	   (setq elt minibuffer-default))
+	  ((= nabs 0)
+	   (setq elt (or minibuffer-text-before-history ""))
+	   (setq minibuffer-returned-to-present t)
+	   (setq minibuffer-text-before-history nil))
+	  (t (setq elt (nth (1- minibuffer-history-position)
+			    (symbol-value minibuffer-history-variable)))))
+    (insert
+     (if (and (eq minibuffer-history-sexp-flag (minibuffer-depth))
+	      (not minibuffer-returned-to-present))
+	 (let ((print-level nil))
+	   (prin1-to-string elt))
+       elt))
+    (goto-char (or minibuffer-temporary-goal-position (point-max)))))
+
 (defun next-history-element (n)
   "Puts next element of the minibuffer history in the minibuffer.
 With argument N, it uses the Nth following element."
   (interactive "p")
   (or (zerop n)
-      (let ((narg (- minibuffer-history-position n))
-	    (minimum (if minibuffer-default -1 0))
-	    elt minibuffer-returned-to-present)
-	(if (and (zerop minibuffer-history-position)
-		 (null minibuffer-text-before-history))
-	    (setq minibuffer-text-before-history
-		  (minibuffer-contents-no-properties)))
-	(if (< narg minimum)
-	    (if minibuffer-default
-		(error "End of history; no next item")
-	      (error "End of history; no default available")))
-	(if (> narg (length (symbol-value minibuffer-history-variable)))
-	    (error "Beginning of history; no preceding item"))
-	(unless (memq last-command '(next-history-element
-				     previous-history-element))
-	  (let ((prompt-end (minibuffer-prompt-end)))
-	    (set (make-local-variable 'minibuffer-temporary-goal-position)
-		 (cond ((<= (point) prompt-end) prompt-end)
-		       ((eobp) nil)
-		       (t (point))))))
-	(goto-char (point-max))
-	(delete-minibuffer-contents)
-	(setq minibuffer-history-position narg)
-	(cond ((= narg -1)
-	       (setq elt minibuffer-default))
-	      ((= narg 0)
-	       (setq elt (or minibuffer-text-before-history ""))
-	       (setq minibuffer-returned-to-present t)
-	       (setq minibuffer-text-before-history nil))
-	      (t (setq elt (nth (1- minibuffer-history-position)
-				(symbol-value minibuffer-history-variable)))))
-	(insert
-	 (if (and (eq minibuffer-history-sexp-flag (minibuffer-depth))
-		  (not minibuffer-returned-to-present))
-	     (let ((print-level nil))
-	       (prin1-to-string elt))
-	   elt))
-	(goto-char (or minibuffer-temporary-goal-position (point-max))))))
+      (goto-history-element (- minibuffer-history-position n))))
 
 (defun previous-history-element (n)
   "Puts previous element of the minibuffer history in the minibuffer.
 With argument N, it uses the Nth previous element."
   (interactive "p")
-  (next-history-element (- n)))
+  (or (zerop n)
+      (goto-history-element (+ minibuffer-history-position n))))
 
 (defun next-complete-history-element (n)
   "Get next history element which completes the minibuffer before the point.
@@ -1380,6 +1386,137 @@ Return 0 if current buffer is not a minibuffer."
   ;; Return the width of everything before the field at the end of
   ;; the buffer; this should be 0 for normal buffers.
   (1- (minibuffer-prompt-end)))
+
+;; isearch minibuffer history
+(add-hook 'minibuffer-setup-hook 'minibuffer-history-isearch-setup)
+
+(defvar minibuffer-history-isearch-message-overlay)
+(make-variable-buffer-local 'minibuffer-history-isearch-message-overlay)
+
+(defun minibuffer-history-isearch-setup ()
+  "Set up a minibuffer for using isearch to search the minibuffer history.
+Intended to be added to `minibuffer-setup-hook'."
+  (set (make-local-variable 'isearch-search-fun-function)
+       'minibuffer-history-isearch-search)
+  (set (make-local-variable 'isearch-message-function)
+       'minibuffer-history-isearch-message)
+  (set (make-local-variable 'isearch-wrap-function)
+       'minibuffer-history-isearch-wrap)
+  (set (make-local-variable 'isearch-push-state-function)
+       'minibuffer-history-isearch-push-state)
+  (add-hook 'isearch-mode-end-hook 'minibuffer-history-isearch-end nil t))
+
+(defun minibuffer-history-isearch-end ()
+  "Clean up the minibuffer after terminating isearch in the minibuffer."
+  (if minibuffer-history-isearch-message-overlay
+      (delete-overlay minibuffer-history-isearch-message-overlay)))
+
+(defun minibuffer-history-isearch-search ()
+  "Return the proper search function, for isearch in minibuffer history."
+  (cond
+   (isearch-word
+    (if isearch-forward 'word-search-forward 'word-search-backward))
+   (t
+    (lambda (string bound noerror)
+      (let ((search-fun
+	     ;; Use standard functions to search within minibuffer text
+             (cond
+              (isearch-regexp
+               (if isearch-forward 're-search-forward 're-search-backward))
+              (t
+               (if isearch-forward 'search-forward 'search-backward))))
+	    found)
+	;; Avoid lazy-highlighting matches in the minibuffer prompt when
+	;; searching forward.  Lazy-highlight calls this lambda with the
+	;; bound arg, so skip the minibuffer prompt.
+	(if (and bound isearch-forward (< (point) (minibuffer-prompt-end)))
+	    (goto-char (minibuffer-prompt-end)))
+        (or
+	 ;; 1. First try searching in the initial minibuffer text
+	 (funcall search-fun string
+		  (if isearch-forward bound (minibuffer-prompt-end))
+		  noerror)
+	 ;; 2. If the above search fails, start putting next/prev history
+	 ;; elements in the minibuffer successively, and search the string
+	 ;; in them.  Do this only when bound is nil (i.e. not while
+	 ;; lazy-highlighting search strings in the current minibuffer text).
+	 (unless bound
+	   (condition-case nil
+	       (progn
+		 (while (not found)
+		   (cond (isearch-forward
+			  (next-history-element 1)
+			  (goto-char (minibuffer-prompt-end)))
+			 (t
+			  (previous-history-element 1)
+			  (goto-char (point-max))))
+		   (setq isearch-barrier (point) isearch-opoint (point))
+		   ;; After putting the next/prev history element, search
+		   ;; the string in them again, until next-history-element
+		   ;; or previous-history-element raises an error at the
+		   ;; beginning/end of history.
+		   (setq found (funcall search-fun string
+					(unless isearch-forward
+					  ;; For backward search, don't search
+					  ;; in the minibuffer prompt
+					  (minibuffer-prompt-end))
+					noerror)))
+		 ;; Return point of the new search result
+		 (point))
+	     ;; Return nil when next(prev)-history-element fails
+	     (error nil)))))))))
+
+(defun minibuffer-history-isearch-message (&optional c-q-hack ellipsis)
+  "Display the minibuffer history search prompt.
+If there are no search errors, this function displays an overlay with
+the isearch prompt which replaces the original minibuffer prompt.
+Otherwise, it displays the standard isearch message returned from
+`isearch-message'."
+  (if (not (and (minibufferp) isearch-success (not isearch-error)))
+      ;; Use standard function `isearch-message' when not in the minibuffer,
+      ;; or search fails, or has an error (like incomplete regexp).
+      ;; This function overwrites minibuffer text with isearch message,
+      ;; so it's possible to see what is wrong in the search string.
+      (isearch-message c-q-hack ellipsis)
+    ;; Otherwise, put the overlay with the standard isearch prompt over
+    ;; the initial minibuffer prompt.
+    (if (overlayp minibuffer-history-isearch-message-overlay)
+	(move-overlay minibuffer-history-isearch-message-overlay
+		      (point-min) (minibuffer-prompt-end))
+      (setq minibuffer-history-isearch-message-overlay
+	    (make-overlay (point-min) (minibuffer-prompt-end)))
+      (overlay-put minibuffer-history-isearch-message-overlay 'evaporate t))
+    (overlay-put minibuffer-history-isearch-message-overlay
+		 'display (isearch-message-prefix c-q-hack ellipsis))
+    ;; And clear any previous isearch message.
+    (message "")))
+
+(defun minibuffer-history-isearch-wrap ()
+  "Wrap the minibuffer history search when search is failed.
+Move point to the first history element for a forward search,
+or to the last history element for a backward search."
+  (unless isearch-word
+    ;; When `minibuffer-history-isearch-search' fails on reaching the
+    ;; beginning/end of the history, wrap the search to the first/last
+    ;; minibuffer history element.
+    (if isearch-forward
+	(goto-history-element (length (symbol-value minibuffer-history-variable)))
+      (goto-history-element 0))
+    (setq isearch-success t))
+  (goto-char (if isearch-forward (minibuffer-prompt-end) (point-max))))
+
+(defun minibuffer-history-isearch-push-state ()
+  "Save a function restoring the state of minibuffer history search.
+Save `minibuffer-history-position' to the additional state parameter
+in the search status stack."
+  `(lambda (cmd)
+     (minibuffer-history-isearch-pop-state cmd ,minibuffer-history-position)))
+
+(defun minibuffer-history-isearch-pop-state (cmd hist-pos)
+  "Restore the minibuffer history search state.
+Go to the history element by the absolute history position `hist-pos'."
+  (goto-history-element hist-pos))
+
 
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)

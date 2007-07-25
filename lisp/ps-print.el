@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.2.3
+;; Version: 7.2.4
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.2.3"
-  "ps-print.el, v 7.2.3 <2007/05/13 vinicius>
+(defconst ps-print-version "7.2.4"
+  "ps-print.el, v 7.2.4 <2007/07/20 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -2923,7 +2923,7 @@ Any other value is treated as t."
   :version "20"
   :group 'ps-print-color)
 
-(defcustom ps-default-fg 'frame-parameter
+(defcustom ps-default-fg nil
   "*RGB values of the default foreground color.
 
 The `ps-default-fg' variable contains the default foreground color used by
@@ -2966,7 +2966,7 @@ It's used only when `ps-print-color-p' is non-nil."
   :version "20"
   :group 'ps-print-color)
 
-(defcustom ps-default-bg 'frame-parameter
+(defcustom ps-default-bg nil
   "*RGB values of the default background color.
 
 The `ps-default-bg' variable contains the default background color used by
@@ -5408,9 +5408,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		       ps-zebra-stripe-height)
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
-	       "def\n/BackgroundColor  "
+	       "def\n")
+    (ps-output "/BackgroundColor  "
 	       (ps-format-color ps-default-background 1.0)
-	       "def\n/UseSetpagedevice "
+	       "def\n")
+    (ps-output "/UseSetpagedevice "
 	       (if (eq ps-spool-config 'setpagedevice)
 		   "/setpagedevice where{pop languagelevel 2 eq}{false}ifelse"
 		 "false")
@@ -5696,9 +5698,17 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      ((eq ps-print-control-characters 'control)
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
+	;; Set the color scale.  We do it here instead of in the defvar so
+	;; that ps-print can be dumped into emacs.  This expression can't be
+	;; evaluated at dump-time because X isn't initialized.
+	ps-color-p            (and ps-print-color-p (ps-color-device))
+	ps-print-color-scale  (if ps-color-p
+				  (float (car (ps-color-values "white")))
+				1.0)
 	ps-default-background (ps-rgb-color
 			       (cond
-				((eq genfunc 'ps-generate-postscript)
+				((or (not (eq ps-print-color-p t))
+				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-bg 'frame-parameter)
 				 (ps-frame-parameter nil 'background-color))
@@ -5710,7 +5720,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       1.0)
 	ps-default-foreground (ps-rgb-color
 			       (cond
-				((eq genfunc 'ps-generate-postscript)
+				((or (not (eq ps-print-color-p t))
+				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-fg 'frame-parameter)
 				 (ps-frame-parameter nil 'foreground-color))
@@ -5720,15 +5731,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 ps-default-fg))
 			       "unspecified-fg"
 			       0.0)
-	ps-default-color (and (eq ps-print-color-p t) ps-default-foreground)
-	ps-current-color ps-default-color
-	;; Set the color scale.  We do it here instead of in the defvar so
-	;; that ps-print can be dumped into emacs.  This expression can't be
-	;; evaluated at dump-time because X isn't initialized.
-	ps-color-p           (and ps-print-color-p (ps-color-device))
-	ps-print-color-scale (if ps-color-p
-				 (float (car (ps-color-values "white")))
-			       1.0)
+	ps-default-color      (and (eq ps-print-color-p t)
+				   ps-default-foreground)
+	ps-current-color      ps-default-color
 	;; Set up default functions.  They may be overridden by
 	;; ps-mule-begin-job.
 	ps-basic-plot-string-function 'ps-basic-plot-string
@@ -6467,10 +6472,8 @@ If FACE is not a valid face name, use default face."
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
 
-;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
-;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
-;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
-;;;;;;  "ps-mule" "ps-mule.el" "464a9fb9d59f7561a46bcd5ca87d85db")
+;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "bb18668f99d691db470ec2a32753ba28")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -6518,60 +6521,10 @@ Any other value is treated as nil.")
 
 (custom-autoload (quote ps-multibyte-buffer) "ps-mule" t)
 
-(autoload (quote ps-mule-prepare-ascii-font) "ps-mule" "\
-Setup special ASCII font for STRING.
-STRING should contain only ASCII characters.
-
-\(fn STRING)" nil nil)
-
-(autoload (quote ps-mule-set-ascii-font) "ps-mule" "\
-Not documented
-
-\(fn)" nil nil)
-
-(autoload (quote ps-mule-plot-string) "ps-mule" "\
-Generate PostScript code for plotting characters in the region FROM and TO.
-
-It is assumed that all characters in this region belong to the same charset.
-
-Optional argument BG-COLOR specifies background color.
-
-Returns the value:
-
-	(ENDPOS . RUN-WIDTH)
-
-Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.
-
-\(fn FROM TO &optional BG-COLOR)" nil nil)
-
-(autoload (quote ps-mule-plot-composition) "ps-mule" "\
-Generate PostScript code for plotting composition in the region FROM and TO.
-
-It is assumed that all characters in this region belong to the same
-composition.
-
-Optional argument BG-COLOR specifies background color.
-
-Returns the value:
-
-	(ENDPOS . RUN-WIDTH)
-
-Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.
-
-\(fn FROM TO &optional BG-COLOR)" nil nil)
-
 (autoload (quote ps-mule-initialize) "ps-mule" "\
 Initialize global data for printing multi-byte characters.
 
 \(fn)" nil nil)
-
-(autoload (quote ps-mule-encode-header-string) "ps-mule" "\
-Generate PostScript code for ploting STRING by font FONTTAG.
-FONTTAG should be a string \"/h0\" or \"/h1\".
-
-\(fn STRING FONTTAG)" nil nil)
 
 (autoload (quote ps-mule-begin-job) "ps-mule" "\
 Start printing job for multi-byte chars between FROM and TO.
@@ -6579,8 +6532,8 @@ This checks if all multi-byte characters in the region are printable or not.
 
 \(fn FROM TO)" nil nil)
 
-(autoload (quote ps-mule-begin-page) "ps-mule" "\
-Not documented
+(autoload (quote ps-mule-end-job) "ps-mule" "\
+Finish printing job for multi-byte chars.
 
 \(fn)" nil nil)
 

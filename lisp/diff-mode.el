@@ -155,7 +155,7 @@ when editing big diffs)."
     ("\C-c\C-u" . diff-context->unified)
     ;; `d' because it duplicates the context :-(  --Stef
     ("\C-c\C-d" . diff-unified->context)
-    ("\C-c\C-w" . diff-refine-hunk)
+    ("\C-c\C-w" . diff-refine-ignore-spaces-hunk)
     ("\C-c\C-f" . next-error-follow-minor-mode))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
@@ -164,12 +164,23 @@ when editing big diffs)."
   '("Diff"
     ["Jump to Source"		diff-goto-source	t]
     ["Apply hunk"		diff-apply-hunk		t]
+    ["Test applying hunk"	diff-test-hunk		t]
     ["Apply diff with Ediff"	diff-ediff-patch	t]
-    ["-----" nil nil]
+    "-----"
     ["Reverse direction"	diff-reverse-direction	t]
     ["Context -> Unified"	diff-context->unified	t]
     ["Unified -> Context"	diff-unified->context	t]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
+    "-----"
+    ["Split hunk"		diff-split-hunk		(diff-splittable-p)]
+    ["Refine hunk"	        diff-refine-ignore-spaces-hunk t]
+    ["Kill current hunk"	diff-hunk-kill   	t]
+    ["Kill current file's hunks" diff-file-kill   	t]
+    "-----"
+    ["Previous Hunk"		diff-hunk-prev  	t]
+    ["Next Hunk"		diff-hunk-next  	t]
+    ["Previous File"		diff-file-prev  	t]
+    ["Next File"		diff-file-next  	t]
     ))
 
 (defcustom diff-minor-mode-prefix "\C-c="
@@ -390,13 +401,26 @@ when editing big diffs)."
     ;; The return value is used by easy-mmode-define-navigation.
     (goto-char (or end (point-max)))))
 
-(defun diff-beginning-of-hunk ()
+(defun diff-beginning-of-hunk (&optional try-harder)
+  "Move back to beginning of hunk.
+If TRY-HARDER is non-nil, try to cater to the case where we're not in a hunk
+but in the file header instead, in which case move forward to the first hunk."
   (beginning-of-line)
   (unless (looking-at diff-hunk-header-re)
     (forward-line 1)
     (condition-case ()
 	(re-search-backward diff-hunk-header-re)
-      (error (error "Can't find the beginning of the hunk")))))
+      (error
+       (if (not try-harder)
+           (error "Can't find the beginning of the hunk")
+         (diff-beginning-of-file-and-junk)
+         (diff-hunk-next))))))
+
+(defun diff-unified-hunk-p ()
+  (save-excursion
+    (ignore-errors
+      (diff-beginning-of-hunk)
+      (looking-at "^@@"))))
 
 (defun diff-beginning-of-file ()
   (beginning-of-line)
@@ -425,7 +449,7 @@ when editing big diffs)."
 If the prefix ARG is given, restrict the view to the current file instead."
   (interactive "P")
   (save-excursion
-    (if arg (diff-beginning-of-file) (diff-beginning-of-hunk))
+    (if arg (diff-beginning-of-file) (diff-beginning-of-hunk 'try-harder))
     (narrow-to-region (point)
 		      (progn (if arg (diff-end-of-file) (diff-end-of-hunk))
 			     (point)))
@@ -453,18 +477,37 @@ If the prefix ARG is given, restrict the view to the current file instead."
       (diff-end-of-hunk)
       (kill-region start (point)))))
 
+(defun diff-beginning-of-file-and-junk ()
+  "Go to the beginning of file-related diff-info.
+This is like `diff-beginning-of-file' except it tries to skip back over leading
+data such as \"Index: ...\" and such."
+  (let ((start (point))
+        (file (condition-case err (progn (diff-beginning-of-file) (point))
+                (error err)))
+        ;; prevhunk is one of the limits.
+        (prevhunk (save-excursion (ignore-errors (diff-hunk-prev) (point))))
+        err)
+    (when (consp file)
+      ;; Presumably, we started before the file header, in the leading junk.
+      (setq err file)
+      (diff-file-next)
+      (setq file (point)))
+    (let ((index (save-excursion
+                   (re-search-backward "^Index: " prevhunk t))))
+      (when index (setq file index))
+      (if (<= file start)
+          (goto-char file)
+        ;; File starts *after* the starting point: we really weren't in
+        ;; a file diff but elsewhere.
+        (goto-char start)
+        (signal (car err) (cdr err))))))
+          
 (defun diff-file-kill ()
   "Kill current file's hunks."
   (interactive)
-  (diff-beginning-of-file)
+  (diff-beginning-of-file-and-junk)
   (let* ((start (point))
-	 (prevhunk (save-excursion
-		     (ignore-errors
-		       (diff-hunk-prev) (point))))
-	 (index (save-excursion
-		  (re-search-backward "^Index: " prevhunk t)))
 	 (inhibit-read-only t))
-    (when index (setq start index))
     (diff-end-of-file)
     (if (looking-at "^\n") (forward-char 1)) ;`tla' generates such diffs.
     (kill-region start (point))))
@@ -490,6 +533,13 @@ If the prefix ARG is given, restrict the view to the current file instead."
       (goto-char start)
       (while (re-search-forward re end t) (incf n))
       n)))
+
+(defun diff-splittable-p ()
+  (save-excursion
+    (beginning-of-line)
+    (and (looking-at "^[-+ ]")
+         (progn (forward-line -1) (looking-at "^[-+ ]"))
+         (diff-unified-hunk-p))))
 
 (defun diff-split-hunk ()
   "Split the current (unified diff) hunk at point into two hunks."
@@ -585,9 +635,11 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	       (list (if old (match-string 2) (match-string 4))
 		     (if old (match-string 4) (match-string 2)))))))))
 
-(defun diff-find-file-name (&optional old prefix)
+(defun diff-find-file-name (&optional old batch prefix)
   "Return the file corresponding to the current patch.
 Non-nil OLD means that we want the old file.
+Non-nil BATCH means to prefer returning an incorrect answer than to prompt
+the user.
 PREFIX is only used internally: don't use it."
   (save-excursion
     (unless (looking-at diff-file-header-re)
@@ -622,7 +674,10 @@ PREFIX is only used internally: don't use it."
 	    (boundp 'cvs-pcl-cvs-dirchange-re)
 	    (save-excursion
 	      (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
-	    (diff-find-file-name old (match-string 1)))
+	    (diff-find-file-name old batch (match-string 1)))
+       ;; Invent something, if necessary.
+       (when batch
+         (or (car fs) default-directory))
        ;; if all else fails, ask the user
        (let ((file (read-file-name (format "Use file %s: " (or (first fs) ""))
 				   nil (first fs) t (first fs))))
@@ -670,7 +725,12 @@ else cover the whole bufer."
 	    (let ((line1 (match-string 4))
 		  (lines1 (match-string 5))
 		  (line2 (match-string 6))
-		  (lines2 (match-string 7)))
+		  (lines2 (match-string 7))
+		  ;; Variables to use the special undo function.
+		  (old-undo buffer-undo-list)
+		  (old-end (marker-position end))
+		  (start (match-beginning 0))
+		  (reversible t))
 	      (replace-match
 	       (concat "***************\n*** " line1 ","
 		       (number-to-string (+ (string-to-number line1)
@@ -712,6 +772,14 @@ else cover the whole bufer."
 		  (if (not (save-excursion (re-search-forward "^+" nil t)))
 		      (delete-region (point) (point-max))
 		    (let ((modif nil) (delete nil))
+		      (if (save-excursion (re-search-forward "^\\+.*\n-" nil t))
+                          ;; Normally, lines in a substitution come with
+                          ;; first the removals and then the additions, and
+                          ;; the context->unified function follows this
+                          ;; convention, of course.  Yet, other alternatives
+                          ;; are valid as well, but they preclude the use of
+                          ;; context->unified as an undo command.
+			  (setq reversible nil))
 		      (while (not (eobp))
 			(case (char-after)
 			  (?\s (insert " ") (setq modif nil) (backward-char 1))
@@ -730,7 +798,15 @@ else cover the whole bufer."
 			  (forward-line 1)
 			  (when delete
 			    (delete-region last-pt (point))
-			    (setq delete nil)))))))))))))))
+			    (setq delete nil)))))))
+		(unless (or (not reversible) (eq buffer-undo-list t))
+                  ;; Drop the many undo entries and replace them with
+                  ;; a single entry that uses diff-context->unified to do
+                  ;; the work.
+		  (setq buffer-undo-list
+			(cons (list 'apply (- old-end end) start (point-max)
+				    'diff-context->unified start (point-max))
+			      old-undo)))))))))))
 
 (defun diff-context->unified (start end &optional to-context)
   "Convert context diffs to unified diffs.
@@ -1289,7 +1365,8 @@ SRC and DST are the two variants of text as returned by `diff-hunk-text'.
 SWITCHED is non-nil if the patch is already applied."
   (save-excursion
     (let* ((other (diff-xor other-file diff-jump-to-old-file))
-	   (char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
+	   (char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
+                                          (point))))
            ;; Check that the hunk is well-formed.  Otherwise diff-mode and
            ;; the user may disagree on what constitutes the hunk
            ;; (e.g. because an empty line truncates the hunk mid-course),
@@ -1461,10 +1538,11 @@ For use in `add-log-current-defun-function'."
 	    (goto-char (+ (car pos) (cdr src)))
 	    (add-log-current-defun))))))
 
-(defun diff-refine-hunk ()
+(defun diff-refine-ignore-spaces-hunk ()
   "Refine the current hunk by ignoring space differences."
   (interactive)
-  (let* ((char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
+  (let* ((char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
+                                        (point))))
 	 (opts (case (char-after) (?@ "-bu") (?* "-bc") (t "-b")))
 	 (line-nb (and (or (looking-at "[^0-9]+\\([0-9]+\\)")
 			   (error "Can't find line number"))

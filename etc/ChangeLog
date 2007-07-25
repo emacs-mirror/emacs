@@ -1,3 +1,7 @@
+2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `file-remote-p' has a new optional parameter IDENTIFICATION.
+
 2007-07-15  Karl Fogel  <kfogel@red-bean.com>
 
 	* NEWS: Revert 2007-07-13T23:20:21Z!kfogel@red-bean.com, which

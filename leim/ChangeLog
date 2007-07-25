@@ -1,3 +1,7 @@
+2007-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (extraclean): Don't delete *~.
+
 2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.1 released.
@@ -9,7 +13,7 @@
 
 	* MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin: Add copyright and
 	license notices.
-	
+
 2007-01-24  Kenichi Handa  <handa@m17n.org>
 
 	* MISC-DIC/README: New file.

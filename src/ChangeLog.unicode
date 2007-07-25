@@ -1,3 +1,8 @@
+2007-07-23  Kenichi Handa  <handa@m17n.org>
+
+	* abbrev.c (abbrev_check_chars): Use CHAR_TABLE_REF, not
+	SYNTAX_ENTRY_FOLLOW_PARENT.
+
 2007-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (weak_hash_tables): Rename from Vweak_hash_tables and change
