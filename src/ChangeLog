@@ -1,3 +1,9 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
+	* COPYING: Switch to GPLv3.
+
 2007-07-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_real_positions): Get real position from OS instead of
