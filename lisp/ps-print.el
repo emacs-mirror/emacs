@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.4
+;; Version: 6.7.5
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.7.4"
-  "ps-print.el, v 6.7.4 <2007/05/13 vinicius>
+(defconst ps-print-version "6.7.5"
+  "ps-print.el, v 6.7.5 <2007/07/20 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -2987,7 +2987,7 @@ Any other value is treated as t."
   :version "20"
   :group 'ps-print-color)
 
-(defcustom ps-default-fg 'frame-parameter
+(defcustom ps-default-fg nil
   "*RGB values of the default foreground color.
 
 The `ps-default-fg' variable contains the default foreground color used by
@@ -3030,7 +3030,7 @@ It's used only when `ps-print-color-p' is non-nil."
   :version "20"
   :group 'ps-print-color)
 
-(defcustom ps-default-bg "white"
+(defcustom ps-default-bg nil
   "*RGB values of the default background color.
 
 The `ps-default-bg' variable contains the default background color used by
@@ -3702,7 +3702,7 @@ The table depends on the current ps-print setup."
 ;;    ps-page-dimensions-database
 ;;    ps-font-info-database
 
-;;; ps-print - end of settings\n")
+\;;; ps-print - end of settings\n")
      "\n")))
 
 
@@ -5622,9 +5622,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		       ps-zebra-stripe-height)
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
-	       "def\n/BackgroundColor  "
+	       "def\n")
+    (ps-output "/BackgroundColor  "
 	       (ps-format-color ps-default-background 1.0)
-	       "def\n/UseSetpagedevice "
+	       "def\n")
+    (ps-output "/UseSetpagedevice "
 	       (if (eq ps-spool-config 'setpagedevice)
 		   "/setpagedevice where{pop languagelevel 2 eq}{false}ifelse"
 		 "false")
@@ -5909,9 +5911,17 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      ((eq ps-print-control-characters 'control)
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
+	;; Set the color scale.  We do it here instead of in the defvar so
+	;; that ps-print can be dumped into emacs.  This expression can't be
+	;; evaluated at dump-time because X isn't initialized.
+	ps-color-p            (and ps-print-color-p (ps-color-device))
+	ps-print-color-scale  (if ps-color-p
+				  (float (car (ps-color-values "white")))
+				1.0)
 	ps-default-background (ps-rgb-color
 			       (cond
-				((eq genfunc 'ps-generate-postscript)
+				((or (not (eq ps-print-color-p t))
+				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-bg 'frame-parameter)
 				 (ps-frame-parameter nil 'background-color))
@@ -5923,7 +5933,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       1.0)
 	ps-default-foreground (ps-rgb-color
 			       (cond
-				((eq genfunc 'ps-generate-postscript)
+				((or (not (eq ps-print-color-p t))
+				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-fg 'frame-parameter)
 				 (ps-frame-parameter nil 'foreground-color))
@@ -5933,15 +5944,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 ps-default-fg))
 			       "unspecified-fg"
 			       0.0)
-	ps-default-color (and (eq ps-print-color-p t) ps-default-foreground)
-	ps-current-color ps-default-color
-	;; Set the color scale.  We do it here instead of in the defvar so
-	;; that ps-print can be dumped into emacs.  This expression can't be
-	;; evaluated at dump-time because X isn't initialized.
-	ps-color-p           (and ps-print-color-p (ps-color-device))
-	ps-print-color-scale (if ps-color-p
-				 (float (car (ps-color-values "white")))
-			       1.0))
+	ps-default-color      (and (eq ps-print-color-p t)
+				   ps-default-foreground)
+	ps-current-color      ps-default-color)
   ;; initialize page dimensions
   (ps-get-page-dimensions)
   ;; final check
@@ -7073,5 +7078,5 @@ It is assumed that the length of STRING is not zero.")
 
 (provide 'ps-print)
 
-;;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
+;; arch-tag: fb06a585-1112-4206-885d-a57d95d50579
 ;;; ps-print.el ends here
