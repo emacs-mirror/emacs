@@ -31,6 +31,21 @@
 ;; This collection of functions implements the creation of LaTeX calendars
 ;; based on the user's holiday choices and diary file.
 
+;; The user commands are:
+;; cal-tex-cursor-year
+;; cal-tex-cursor-year-landscape
+;; cal-tex-cursor-filofax-year
+;; cal-tex-cursor-month-landscape
+;; cal-tex-cursor-month
+;; cal-tex-cursor-week
+;; cal-tex-cursor-week2
+;; cal-tex-cursor-week-iso
+;; cal-tex-cursor-week-monday
+;; cal-tex-cursor-filofax-2week
+;; cal-tex-cursor-filofax-week
+;; cal-tex-cursor-filofax-daily
+;; cal-tex-cursor-day
+
 ;; TO DO
 ;;
 ;;     (*)  Add holidays and diary entries to daily calendar.
@@ -56,24 +71,21 @@
 (defcustom cal-tex-which-days '(0 1 2 3 4 5 6)
   "The days of the week that are displayed on the portrait monthly calendar.
 Sunday is 0, Monday is 1, and so on.  The default is to print from Sunday to
-Saturday.  For example, use
-
-                    (setq cal-tex-which-days '(1 3 5))
-
-to only print Monday, Wednesday, Friday."
+Saturday.  For example, use '(1 3 5) to only print Monday, Wednesday, Friday."
   :type '(repeat integer)
   :group 'calendar-tex)
 
 (defcustom cal-tex-holidays t
   "Non-nil means holidays are printed in the LaTeX calendars that support it.
-If finding the holidays is too slow, set this to nil."
+Setting this to nil may speed up calendar generation."
   :type 'boolean
   :group 'calendar-tex)
 
 (defcustom cal-tex-diary nil
   "Non-nil means diary entries are printed in LaTeX calendars that support it.
 At present, this only affects the monthly, filofax, and iso-week
-calendars (i.e. not the yearly, plain weekly, or daily calendars)."
+calendars (i.e. not the yearly, plain weekly, or daily calendars).
+Setting this to nil may speed up calendar generation."
   :type 'boolean
   :group 'calendar-tex)
 
@@ -88,17 +100,18 @@ At present, this only affects the daily filofax calendar."
           (day (calendar-day-number date))
           (days-remaining (- (calendar-day-number (list 12 31 year)) day)))
      (format "%d/%d" day days-remaining))
-  "An expression in the variable `date' whose value is placed on date.
-The string resulting from evaluating this expression is placed at the bottom
-center of `date' on the monthly calendar, next to the date in the weekly
-calendars, and in the top center of daily calendars.
+  "Lisp expression giving the date format to use in the LaTeX calendars.
+This should be an expression involving the variable `date'.  When
+this expression is called, `date' is a list of the form '(MONTH DAY YEAR)'.
 
-Default is ordinal day number of the year and the number of days remaining.
-As an example, setting this to
+The string resulting from evaluating this expression is placed at
+the bottom center of each date in monthly calendars, next to the
+date in the weekly calendars, and in the top center of daily calendars.
 
-    '(progn
-       (require 'cal-hebrew)
-       (calendar-hebrew-date-string date))
+The default is ordinal day number of the year and the number of
+days remaining.  As an example, setting this to
+
+    '(calendar-hebrew-date-string date)
 
 will put the Hebrew date at the bottom of each day."
   :type 'sexp
@@ -115,12 +128,14 @@ will put the Hebrew date at the bottom of each day."
   :group 'calendar-tex)
 
 (defcustom cal-tex-daily-start 8
-  "The first hour of the daily LaTeX calendar page."
+  "The first hour of the daily LaTeX calendar page.
+At present, this only affects `cal-tex-cursor-day'."
   :type 'integer
   :group 'calendar-tex)
 
 (defcustom cal-tex-daily-end 20
-  "The last hour of the daily LaTeX calendar page."
+  "The last hour of the daily LaTeX calendar page.
+At present, this only affects `cal-tex-cursor-day'"
   :type 'integer
   :group 'calendar-tex)
 
@@ -136,8 +151,8 @@ For example, to include extra packages:
   "List of functions called after any LaTeX calendar buffer is generated.
 You can use this to do postprocessing on the buffer.  For example, to change
 characters with diacritical marks to their LaTeX equivalents, use
-     (add-hook 'cal-tex-hook
-               '(lambda () (iso-iso2tex (point-min) (point-max))))"
+    (add-hook 'cal-tex-hook
+              (lambda () (iso-iso2tex (point-min) (point-max))))"
   :type 'hook
   :group 'calendar-tex)
 
@@ -165,15 +180,15 @@ characters with diacritical marks to their LaTeX equivalents, use
 ;;; Definitions for LaTeX code
 ;;;
 
-(defvar cal-tex-day-prefix "\\caldate{%s}{%s}"
+(defconst cal-tex-day-prefix "\\caldate{%s}{%s}"
   "The initial LaTeX code for a day.
 The holidays, diary entries, bottom string, and the text follow.")
 
-(defvar cal-tex-day-name-format "\\myday{%s}%%"
+(defconst cal-tex-day-name-format "\\myday{%s}%%"
   "The format for LaTeX code for a day name.
 The names are taken from `calendar-day-name-array'.")
 
-(defvar cal-tex-cal-one-month
+(defconst cal-tex-cal-one-month
   "\\def\\calmonth#1#2%
 {\\begin{center}%
 \\Huge\\bf\\uppercase{#1} #2 \\\\[1cm]%
@@ -181,9 +196,9 @@ The names are taken from `calendar-day-name-array'.")
 \\vspace*{-1.5cm}%
 %
 "
-  "LaTeX code for the month header.")
+  "LaTeX code for the month header, for a single month calendar.")
 
-(defvar cal-tex-cal-multi-month
+(defconst cal-tex-cal-multi-month
   "\\def\\calmonth#1#2#3#4%
 {\\begin{center}%
 \\Huge\\bf #1 #2---#3 #4\\\\[1cm]%
@@ -191,16 +206,16 @@ The names are taken from `calendar-day-name-array'.")
 \\vspace*{-1.5cm}%
 %
 "
-  "LaTeX code for the month header.")
+  "LaTeX code for the month header, for a multi-month calendar.")
 
-(defvar cal-tex-myday
+(defconst cal-tex-myday
   "\\renewcommand{\\myday}[1]%
 {\\makebox[\\cellwidth]{\\hfill\\large\\bf#1\\hfill}}
 %
 "
   "LaTeX code for a day heading.")
 
-(defvar cal-tex-caldate
+(defconst cal-tex-caldate
 "\\fboxsep=0pt
 \\long\\def\\caldate#1#2#3#4#5#6{%
     \\fbox{\\hbox to\\cellwidth{%
@@ -254,15 +269,15 @@ This definition is the heart of the calendar!")
      (1+ (- d2 d1)))))
 
 (defun cal-tex-preamble (&optional args)
-  "Insert the LaTeX calendar preamble.
+  "Insert the LaTeX calendar preamble into `cal-tex-buffer'.
 Preamble includes initial definitions for various LaTeX commands.
-Optional ARGS are included as article document class options."
+Optional string ARGS are included as options for the article document class."
+  ;; FIXME use generate-new-buffer, and adjust cal-tex-end-document.
   (set-buffer (get-buffer-create cal-tex-buffer))
-  (erase-buffer)
-  (insert "\\documentclass")
-  (if args
-      (insert "[" args "]"))
-  (insert "{article}\n")
+  (insert (format "\\documentclass%s{article}\n"
+                  (if (stringp args)
+                      (format "[%s]" args)
+                    "")))
   (if (stringp cal-tex-preamble-extra)
       (insert cal-tex-preamble-extra "\n"))
   (insert "\\hbadness 20000
@@ -308,9 +323,9 @@ Optional prefix argument ARG specifies number of years."
 
 (defun cal-tex-year (year n &optional landscape)
   "Make a one page yearly calendar of YEAR; do this for N years.
-There are four rows of three months each, unless optional LANDSCAPE is t,
-in which case the calendar is printed in landscape mode with three rows of
-four months each."
+There are four rows of three months each, unless optional
+LANDSCAPE is non-nil, in which case the calendar is printed in
+landscape mode with three rows of four months each."
   (cal-tex-insert-preamble 1 landscape "12pt")
   (if landscape
       (cal-tex-vspace "-.6cm")
@@ -360,7 +375,7 @@ Optional prefix argument ARG specifies number of years."
     (cal-tex-b-document)
     (cal-tex-cmd "\\vspace*{0.25in}")
     (dotimes (j n)
-      (insert (format "\\hfil {\\Large \\bf %s} \\hfil\\\\\n" year))
+      (insert (format "\\hfil \\textbf{\\Large %s} \\hfil\\\\\n" year))
       (cal-tex-b-center)
       (cal-tex-b-parbox "l" "\\textwidth")
       (insert "\n")
@@ -640,18 +655,19 @@ this is only an upper bound."
 ;;; Weekly calendars
 ;;;
 
-(defvar cal-tex-LaTeX-hourbox
+(defconst cal-tex-LaTeX-hourbox
   "\\newcommand{\\hourbox}[2]%
 {\\makebox[2em]{\\rule{0cm}{#2ex}#1}\\rule{3in}{.15mm}}\n"
   "One hour and a line on the right.")
 
 ;; TODO cal-tex-diary-support.
+;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
 (defun cal-tex-cursor-week (&optional arg)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in.  The optional prefix
 argument ARG specifies the number of weeks (default 1).  The calendar
-shows holidays if `cal-tex-holidays' is t (note that diary
-entries are not shown)."
+shows holidays if `cal-tex-holidays' is non-nil (note that diary
+entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
   (interactive "p")
   (let* ((n (or arg 1))
          (date (calendar-gregorian-from-absolute
@@ -697,12 +713,13 @@ entries are not shown)."
     (run-hooks 'cal-tex-hook)))
 
 ;; TODO cal-tex-diary support.
+;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
 (defun cal-tex-cursor-week2 (&optional arg)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in.  Optional prefix
 argument ARG specifies number of weeks (default 1).  The calendar
 shows holidays if `cal-tex-holidays' is non-nil (note that diary
-entries are not shown)."
+entries are not shown).  The calendar shows the hours 8-12am, 1-5pm"
   (interactive "p")
   (let* ((n (or arg 1))
          (date (calendar-gregorian-from-absolute
@@ -780,7 +797,8 @@ entries are not shown)."
   "Make a LaTeX calendar buffer for a one page ISO-style weekly calendar.
 Optional prefix argument ARG specifies number of weeks (default 1).
 The calendar shows holiday and diary entries if
-`cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
+`cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil.
+It does not show hours of the day."
   (interactive "p")
   (let* ((n (or arg 1))
          (date (calendar-gregorian-from-absolute
@@ -863,9 +881,12 @@ The calendar shows holiday and diary entries if
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
+;; TODO respect cal-tex-daily-start,end?
+;; Using different numbers of hours will probably break some layouts.
 (defun cal-tex-week-hours (date holidays height)
   "Insert hourly entries for DATE with HOLIDAYS, with line height HEIGHT.
-Uses the 24-hour clock if `cal-tex-24' is non-nil."
+Uses the 24-hour clock if `cal-tex-24' is non-nil.  Note that the hours
+shown are hard-coded to 8-12, 13-17."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
         (year (extract-calendar-year date))
@@ -902,12 +923,14 @@ Uses the 24-hour clock if `cal-tex-24' is non-nil."
     (cal-tex-nl))))
 
 ;; TODO cal-tex-diary support.
+;; TODO respect cal-tex-daily-start,end (see cal-tex-weekly4-box).
 (defun cal-tex-cursor-week-monday (&optional arg)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in, and starts on Monday.
 Optional prefix argument ARG specifies number of weeks (default 1).
 The calendar shows holidays if `cal-tex-holidays' is
-non-nil (note that diary entries are not shown)."
+non-nil (note that diary entries are not shown).   The calendar shows
+the hours 8-12am, 1-5pm."
   (interactive "p")
   (let ((n (or arg 1))
         (date (calendar-gregorian-from-absolute
@@ -939,9 +962,12 @@ non-nil (note that diary entries are not shown)."
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
+;; TODO respect cal-tex-daily-start,end?
+;; Using different numbers of hours will probably break some layouts.
 (defun cal-tex-weekly4-box (date weekend)
   "Make one box for DATE, different if WEEKEND.
-Uses the 24-hour clock if `cal-tex-24' is non-nil."
+Uses the 24-hour clock if `cal-tex-24' is non-nil.  Note that the hours
+shown are hard-coded to 8-12, 13-17."
   (let* ((day (extract-calendar-day date))
          (month (extract-calendar-month date))
          (year (extract-calendar-year date))
@@ -953,14 +979,15 @@ Uses the 24-hour clock if `cal-tex-24' is non-nil."
          (dayname1 (cal-tex-LaTeXify-string (calendar-day-name date1))))
     (cal-tex-b-framebox "8cm" "l")
     (cal-tex-b-parbox "b" "7.5cm")
-    (insert (format "{\\Large\\bf %s,} %s/%s/%s\\\\\n" dayname month day year))
+    (insert (format "\\textbf{\\Large %s,} %s/%s/%s\\\\\n"
+                    dayname month day year))
     (cal-tex-rule "0pt" "7.5cm" ".5mm")
     (cal-tex-nl)
     (unless weekend
       (dotimes (i 5)
-        (insert (format "{\\large\\sf %d}\\\\\n" (+ i 8))))
+        (insert (format "\\textsf{\\large %d}\\\\\n" (+ i 8))))
       (dotimes (i 5)
-        (insert (format "{\\large\\sf %d}\\\\\n"
+        (insert (format "\\textsf{\\large %d}\\\\\n"
                         (if cal-tex-24
                             (+ i 13)    ; 13-17 incl
                           (1+ i))))))   ; 1-5 incl
@@ -968,7 +995,7 @@ Uses the 24-hour clock if `cal-tex-24' is non-nil."
     (when weekend
       (cal-tex-vspace "1cm")
       (insert "\\ \\vfill")
-      (insert (format "{\\Large\\bf %s,} %s/%s/%s\\\\\n"
+      (insert (format "\\textbf{\\Large %s,} %s/%s/%s\\\\\n"
                       dayname1 month1 day1 year1))
       (cal-tex-rule "0pt" "7.5cm" ".5mm")
       (cal-tex-nl "1.5cm")
@@ -1325,12 +1352,14 @@ are non-nil.  Pages are ruled if `cal-tex-rules' is non-nil."
 
 (defun cal-tex-cursor-day (&optional arg)
   "Make a buffer with LaTeX commands for the day cursor is on.
-Optional prefix argument ARG specifies number of days."
+Optional prefix argument ARG specifies number of days.  The calendar shows
+the hours between `cal-tex-daily-start' and `cal-tex-daily-end', using
+the 24-hour clock if `cal-tex-24' is non-nil."
   (interactive "p")
   (let ((n (or arg 1))
         (date (calendar-absolute-from-gregorian (calendar-cursor-to-date t))))
     (cal-tex-preamble "12pt")
-    (cal-tex-cmd "\\textwidth       6.5in")
+    (cal-tex-cmd "\\textwidth 6.5in")
     (cal-tex-cmd "\\textheight 10.5in")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}")
@@ -1441,7 +1470,7 @@ Optional string COLSEP gives the column separation (default \"1mm\")."
                      " "
                      (int-to-string year)
                      "}\\\\[1mm]\n")))
-    (dotimes (i 6)
+    (dotimes (i 7)
       (setq str
             (concat str
                     (cal-tex-LaTeXify-string
@@ -1457,8 +1486,9 @@ Optional string COLSEP gives the column separation (default \"1mm\")."
     (dotimes (i last)
       (setq str (concat str (int-to-string (1+ i)))
             str (concat str (if (zerop (mod (+ i 1 blank-days) 7))
-                                (unless (= i (1- last))
-                                  "\\\\[0.5mm]\n" "")
+                                (if (= i (1- last))
+                                    ""
+                                  "\\\\[0.5mm]\n")
                               " & "))))
     (setq str (concat str "\n\\end{tabular}\\hfil}\\vfil}}}%\n"))
     str))
@@ -1477,16 +1507,16 @@ If optional N is given, the date of N days after DATE."
   "Return string with concatenated, LaTeX-ified entries in DATE-LIST for DATE.
 Use double backslash as a separator unless optional SEPARATOR is given.
 If resulting string is not empty, put separator at end if optional
-FINAL-SEPARATOR is t."
+FINAL-SEPARATOR is non-nil."
   (or separator (setq separator "\\\\"))
-  (let ((result
-         (mapconcat (lambda (x) (cal-tex-LaTeXify-string x))
-                    (let (result)
-                      (dolist (d date-list (reverse result))
-                        (and (car d)
-                             (calendar-date-equal date (car d))
-                             (setq result (cons (cadr d) result)))))
-                    separator)))
+  (let (result)
+    (setq result
+          (mapconcat (lambda (x) (cal-tex-LaTeXify-string x))
+                     (dolist (d date-list (reverse result))
+                       (and (car d)
+                            (calendar-date-equal date (car d))
+                            (setq result (cons (cadr d) result))))
+                     separator))
     (if (and final-separator
              (not (string-equal result "")))
         (concat result separator)
@@ -1518,18 +1548,19 @@ informative header, and run HOOK."
   (latex-mode)
   (pop-to-buffer cal-tex-buffer)
   (goto-char (point-min))
-  (cal-tex-comment "       This buffer was produced by cal-tex.el.")
-  (cal-tex-comment "       To print a calendar, type")
-  (cal-tex-comment "          M-x tex-buffer RET")
-  (cal-tex-comment "          M-x tex-print  RET")
-  (goto-char (point-min)))
+  ;; FIXME auctex equivalents?
+  (cal-tex-comment
+   (format "\tThis buffer was produced by cal-tex.el.
+\tTo print a calendar, type
+\t\tM-x tex-buffer RET
+\t\tM-x tex-print  RET")))
 
 (defun cal-tex-insert-preamble (weeks landscape size &optional append)
-  "Initialize the output buffer.
-Select the output buffer, and insert the preamble for a calendar of
-WEEKS weeks.  Insert code for landscape mode if LANDSCAPE is true.
-Use pointsize SIZE.  Optional argument APPEND, if t, means add to end of
-without erasing current contents."
+  "Initialize the output LaTeX calendar buffer, `cal-tex-buffer'.
+Select the output buffer, and insert the preamble for a calendar
+of WEEKS weeks.  Insert code for landscape mode if LANDSCAPE is
+non-nil.  Use pointsize SIZE.  Optional argument APPEND, if
+non-nil, means add to end of buffer without erasing current contents."
   (let ((width "18cm")
         (height "24cm"))
     (when landscape
@@ -1542,12 +1573,12 @@ without erasing current contents."
             (cal-tex-cmd "\\oddsidemargin -1.75cm")
             (cal-tex-cmd "\\def\\holidaymult{.06}"))
         (cal-tex-cmd "\\special{landscape}")
-        (cal-tex-cmd "\\textwidth  9.5in")
+        (cal-tex-cmd "\\textwidth 9.5in")
         (cal-tex-cmd "\\textheight 7in")
         (cal-tex-comment)
         (cal-tex-cmd "\\def\\holidaymult{.08}"))
-      (cal-tex-cmd  cal-tex-caldate)
-      (cal-tex-cmd  cal-tex-myday)
+      (cal-tex-cmd cal-tex-caldate)
+      (cal-tex-cmd cal-tex-myday)
       (cal-tex-b-document)
       (cal-tex-cmd "\\pagestyle{empty}"))
     (cal-tex-cmd "\\setlength{\\cellwidth}" width)
@@ -1559,7 +1590,7 @@ without erasing current contents."
     (cal-tex-cmd "\\ \\par")
     (cal-tex-vspace "-3cm")))
 
-(defvar cal-tex-LaTeX-subst-list
+(defconst cal-tex-LaTeX-subst-list
   '(("\"". "``")
     ("\"". "''")        ; quote changes meaning when list is reversed
     ;; Don't think this is necessary, and in any case, does not work:
@@ -1575,7 +1606,7 @@ without erasing current contents."
     ("<" . "$<$")
     (">" . "$>$")
     ("\n" . "\\ \\\\")) ; \\ needed for e.g \begin{center}\n AA\end{center}
-  "List of symbols and their LaTeX replacements.")
+  "Alist of symbols and their LaTeX replacements.")
 
 (defun cal-tex-LaTeXify-string (string)
   "Protect special characters in STRING from LaTeX."
@@ -1585,11 +1616,11 @@ without erasing current contents."
           (tail string)
           (list cal-tex-LaTeX-subst-list))
       (while (not (string-equal tail ""))
-        (let* ((ch (substring tail 0 1))
+        (let* ((ch (substring-no-properties tail 0 1))
                (pair (assoc ch list)))
           (if (and pair (string-equal ch "\""))
               (setq list (reverse list))) ; quote changes meaning each time
-          (setq tail (substring tail 1)
+          (setq tail (substring-no-properties tail 1)
                 head (concat head (if pair (cdr pair) ch)))))
       head)))
 
@@ -1620,33 +1651,29 @@ without erasing current contents."
   (cal-tex-comment))
 
 (defun cal-tex-comment (&optional comment)
-  "Insert % at end of line, include COMMENT if present, and move to next line."
-  (insert "% ")
-  (if comment
-      (insert comment))
-  (insert "\n"))
+  "Insert `% ', followed by optional string COMMENT, followed by newline.
+COMMENT may contain newlines, which are prefixed by `% ' in the output."
+  (insert (format "%% %s\n"
+                  (if comment
+                      (replace-regexp-in-string "\n" "\n% " comment)
+                    ""))))
 
 (defun cal-tex-banner (comment)
-  "Insert the COMMENT separated by blank lines."
-  (cal-tex-comment)
-  (cal-tex-comment)
-  (cal-tex-comment (concat "\t\t\t" comment))
-  (cal-tex-comment))
-
+  "Insert string COMMENT, separated by blank lines."
+  (cal-tex-comment (format "\n\n\n\t\t\t%s\n" comment)))
 
 (defun cal-tex-nl (&optional skip comment)
   "End a line with \\.  If SKIP, then add that much spacing.
-Add COMMENT if present."
-  (insert "\\\\")
-  (if skip
-      (insert "[" skip "]"))
+Add trailing COMMENT if present."
+  (insert (format "\\\\%s"
+                  (if skip
+                      (format "[%s]" skip)
+                    "")))
   (cal-tex-comment comment))
 
 (defun cal-tex-arg (&optional text)
-  "Insert optional TEXT surrounded by braces."
-  (insert "{")
-  (if text (insert text))
-  (insert "}"))
+  "Insert a brace {} pair containing the optional string TEXT."
+  (insert (format "{%s}" (or text ""))))
 
 (defun cal-tex-cmd (cmd &optional arg)
   "Insert LaTeX CMD, with optional argument ARG, and end with %."
@@ -1739,24 +1766,25 @@ Add COMMENT if present."
   (insert "{\\scriptsize " string "}"))
 
 (defun cal-tex-huge (string)
-  "Insert STRING in huge size."
+  "Insert STRING in huge font."
   (insert "{\\huge " string "}"))
 
 (defun cal-tex-Huge (string)
-  "Insert STRING in Huge size."
+  "Insert STRING in Huge font."
   (insert "{\\Huge " string "}"))
 
 (defun cal-tex-Huge-bf (string)
-  "Insert STRING in Huge bf size."
+  "Insert STRING in Huge bf font."
   (insert "\\textbf{\\Huge " string "}"))
 
 (defun cal-tex-large (string)
-  "Insert STRING in large size."
+  "Insert STRING in large font."
   (insert "{\\large " string "}"))
 
 (defun cal-tex-large-bf (string)
-  "Insert STRING in large bf size."
+  "Insert STRING in large bf font."
   (insert "\\textbf{\\large " string "}"))
+
 
 (provide 'cal-tex)
 
