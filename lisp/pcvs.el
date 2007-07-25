@@ -392,17 +392,20 @@ from the current buffer."
     (with-current-buffer buf
       (setq buffer-read-only nil)
       (setq default-directory dir)
-      (unless nosetup (erase-buffer))
+      (unless nosetup
+        ;; Disable undo before calling erase-buffer since it may generate
+        ;; a very large and unwanted undo record.
+        (buffer-disable-undo)
+        (erase-buffer))
       (set (make-local-variable 'cvs-buffer) cvs-buf)
       ;;(cvs-minor-mode 1)
       (let ((lbd list-buffers-directory))
-	(if (fboundp mode) (funcall mode)
-          (fundamental-mode)
-          (buffer-disable-undo))
+	(if (fboundp mode) (funcall mode) (fundamental-mode))
 	(when lbd (set (make-local-variable 'list-buffers-directory) lbd)))
       (cvs-minor-mode 1)
       ;;(set (make-local-variable 'cvs-buffer) cvs-buf)
-      (unless normal
+      (if normal
+          (buffer-enable-undo)
 	(setq buffer-read-only t)
 	(buffer-disable-undo))
       buf)))

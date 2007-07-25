@@ -1,3 +1,9 @@
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer): Undo last ill-conceived change.
+	Replace it with another one which disables undo before calling
+	erase-buffer and then turns it back on if needed.
+
 2007-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Problem with foreground and background color when
@@ -12,14 +18,13 @@
 
 2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-hg.el (vc-hg-revision-completion-table): Temporarily comment
-	out.
+	* vc-hg.el (vc-hg-revision-completion-table): Temporarily comment out.
 
 2007-07-24  Alan Mackenzie  <acm@muc.de>
 
-	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): initialise
-	byte-compile-unresolved-functions before rather than after a
-	compilation.
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
+	Initialise byte-compile-unresolved-functions before rather than
+	after a compilation.
 	(byte-compile-unresolved-functions): Amplify doc string.
 
 2007-07-24  Glenn Morris  <rgm@gnu.org>
