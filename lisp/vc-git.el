@@ -40,7 +40,6 @@
 ;;  - check if more functions could use vc-git-command instead
 ;;     of start-process.
 ;;  - changelog generation
-;;  - working with revisions other than HEAD
 
 ;; Implement the rest of the vc interface. See the comment at the
 ;; beginning of vc.el. The current status is:
@@ -73,8 +72,11 @@
 ;; * checkout (file &optional editable rev)	   OK
 ;; * revert (file &optional contents-done)	   OK
 ;; - rollback (files)				   ?? PROBABLY NOT NEEDED
-;; - merge (file rev1 rev2)			   NEEDED
-;; - merge-news (file)				   NEEDED
+;; - merge (file rev1 rev2)			   It would be possible to merge changes into 
+;;                                                 a single file, but when committing they 
+;;                                                 wouldn't be identified as a merge by git, 
+;;                                                 so it's probably not a good idea.
+;; - merge-news (file)				   see `merge'
 ;; - steal-lock (file &optional version)	   NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files &optional buffer)		   OK
@@ -84,7 +86,7 @@
 ;; - logentry-check ()				   ??
 ;; - comment-history (file)			   ??
 ;; - update-changelog (files)			   ??
-;; * diff (file &optional rev1 rev2 buffer)	   PORT TO NEW VC INTERFACE
+;; * diff (file &optional rev1 rev2 buffer)	   OK
 ;; - revision-completion-table (file)		   NEEDED?
 ;; - diff-tree (dir &optional rev1 rev2)	   OK
 ;; - annotate-command (file buf &optional rev)	   OK
@@ -92,9 +94,9 @@
 ;; - annotate-current-time ()			   ?? NOT NEEDED
 ;; - annotate-extract-revision-at-line ()	   OK
 ;; SNAPSHOT SYSTEM
-;; - create-snapshot (dir name branchp)		   NEEDED
+;; - create-snapshot (dir name branchp)		   OK
 ;; - assign-name (file name)			   NOT NEEDED
-;; - retrieve-snapshot (dir name update)	   NEEDED
+;; - retrieve-snapshot (dir name update)	   OK, needs to handle the `name' arg
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)		   ??
 ;; - repository-hostname (dirname)		   ??
@@ -310,14 +312,11 @@
 	   ("^Date:   \\(.+\\)" (1 'change-log-date))
 	   ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
-(defun vc-git-diff (file &optional rev1 rev2 buffer)
-  (let ((name (file-relative-name file))
-        (buf (or buffer "*vc-diff*")))
+(defun vc-git-diff (files &optional rev1 rev2 buffer)
+  (let ((buf (or buffer "*vc-diff*")))
     (if (and rev1 rev2)
-        (vc-git-command buf 0 name "diff-tree" "-p" rev1 rev2 "--")
-      (vc-git-command buf 0 name "diff-index" "-p" (or rev1 "HEAD") "--"))
-    ;; git-diff-index doesn't set exit status like diff does
-    (if (vc-git-workfile-unchanged-p file) 0 1)))
+        (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p" rev1 rev2 "--")
+      (vc-git-command buf 1 files "diff-index" "--exit-code" "-p" (or rev1 "HEAD") "--"))))
 
 (defun vc-git-diff-tree (dir &optional rev1 rev2)
   (vc-git-diff dir rev1 rev2))
@@ -337,6 +336,22 @@
    (move-beginning-of-line 1)
    (and (looking-at "[0-9a-f]+")
         (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
+
+;;; SNAPSHOT SYSTEM
+
+(defun vc-git-create-snapshot (dir name branchp)
+  (let ((default-directory dir))
+    (and (vc-git-command nil 0 nil "update-index" "--refresh")
+         (if branchp
+             (vc-git-command nil 0 nil "checkout" "-b" name)
+           (vc-git-command nil 0 nil "tag" name)))))
+
+(defun vc-git-retrieve-snapshot (dir name update)
+  (let ((default-directory dir))
+    (vc-git-command nil 0 nil "checkout" name)
+    ;; FIXME: update buffers if `update' is true
+    ))
+
 
 ;;; MISCELLANEOUS
 
@@ -397,7 +412,7 @@
   (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
 
 
-;; Internal commands
+;;; Internal commands
 
 (defun vc-git-root (file)
   (vc-find-root file ".git"))
