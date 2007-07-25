@@ -1,3 +1,27 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-which-days, cal-tex-holidays)
+	(cal-tex-diary, cal-tex-daily-string, cal-tex-daily-start)
+	(cal-tex-daily-end, cal-tex-hook)
+	(cal-tex-cal-one-month, cal-tex-cal-multi-month)
+	(cal-tex-year, cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-week-hours)
+	(cal-tex-cursor-week-monday, cal-tex-weekly4-box)
+	(cal-tex-cursor-day, cal-tex-insert-preamble): Doc fix.
+	(cal-tex-day-prefix, cal-tex-day-name-format)
+	(cal-tex-cal-one-month, cal-tex-cal-multi-month, cal-tex-myday)
+	(cal-tex-caldate, cal-tex-LaTeX-hourbox)
+	(cal-tex-LaTeX-subst-list): Change from variables to constants.
+	(cal-tex-preamble, cal-tex-arg, cal-tex-nl): Simplify with `format'.
+	(cal-tex-cursor-filofax-year, cal-tex-weekly4-box): Use \textbf,
+	etc, rather than \bf.
+	(cal-tex-mini-calendar): Fix typos in previous change.
+	(cal-tex-latexify-list): Remove inner let binding.
+	(cal-tex-end-document, cal-tex-banner): Use multi-line
+	cal-tex-comment.
+	(cal-tex-comment): Handle embedded newlines.
+	(cal-tex-LaTeXify-string): Use substring-no-properties.
+
 2007-07-25  Joakim Verona  <joakim@verona.se>  (tiny change)
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
