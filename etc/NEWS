@@ -36,6 +36,8 @@ Some specific packages that are known to cause problems are:
 
 * Installation Changes in Emacs 22.2
 
+** Emacs is now licensed under the GNU GPL version 3 (or later).
+
 * Changes in Emacs 22.2
 
 ** The values of `dired-recursive-deletes' and `dired-recursive-copies'
