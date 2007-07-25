@@ -18,7 +18,7 @@
 ;; ^gin sub  la  kondi^coj  de  la  GNU	 under the terms of the GNU General
 ;; ^Generala  Publika Licenco kiel pub-	 Public License as published by the
 ;; likigita far la Liberprogramara Fon-	 Free Software Foundation; either
-;; da^jo; a^u eldono 2a,  a^u (la^u via	 version 2, or (at your option) any
+;; da^jo; a^u eldono 2a,  a^u (la^u via	 version 3, or (at your option) any
 ;; elekto) ajna posta eldono.		 later version.
 
 ;; GNU  Emacs  estas  disdonata  en  la	 GNU Emacs is distributed in the hope
