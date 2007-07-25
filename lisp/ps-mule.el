@@ -184,9 +184,9 @@ Valid values are:
 			  or Korean PostScript printer and want to print
 			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
 			  JISX0201-Kana) and Korean characters.  At present,
-			  it was not tested with the Korean characters printing.
-			  If you have a korean PostScript printer, please,
-			  test it.
+			  it was not tested with the Korean characters
+			  printing.  If you have a korean PostScript printer,
+			  please, test it.
 
   `bdf-font'		  This is the value to use when you want to print
 			  buffer with BDF fonts.  BDF fonts include both latin
