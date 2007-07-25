@@ -1,3 +1,7 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
 2007-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Writing Calendar Files): cal-tex-diary etc only work
