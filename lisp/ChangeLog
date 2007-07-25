@@ -1,3 +1,8 @@
+2007-07-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* add-log.el (change-log-redate): Remove (not needed anymore and
+	doesn't appear to work).
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
