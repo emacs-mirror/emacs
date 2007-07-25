@@ -31,7 +31,8 @@ NOTE ON THE LEGAL STATUS OF THE FILES IS_EXEC.C, SIGACTION.C
 
 As distributed with GNU Emacs, the files is_exec.c and sigaction.c are
 Copyright (C) 1995 DJ Delorie, and are licensed under the terms of the
-GNU General Public License version 2 or later (see COPYING).
+GNU General Public License version 3 (see COPYING), or (at your
+option) any later version.
 
 Here we record the details of the legal history of these files.
 
