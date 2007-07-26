@@ -4548,7 +4548,7 @@ actually used.  */)
 	  unwind_data = Fcons (current_buffer->enable_multibyte_characters,
 			       Fcons (current_buffer->undo_list,
 				      Fcurrent_buffer ()));
-	      current_buffer->enable_multibyte_characters = Qnil;
+	  current_buffer->enable_multibyte_characters = Qnil;
 	  current_buffer->undo_list = Qt;
 	  record_unwind_protect (decide_coding_unwind, unwind_data);
 
