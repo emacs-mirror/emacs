@@ -1,3 +1,10 @@
+2007-07-26  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffontp): Fix docstring.
+
+	* coding.c (detect_coding_iso_2022): Don't treat SI/SO codes as a
+	strong evidence of ISO-2022.
+
 2007-07-23  Kenichi Handa  <handa@m17n.org>
 
 	* abbrev.c (abbrev_check_chars): Use CHAR_TABLE_REF, not
