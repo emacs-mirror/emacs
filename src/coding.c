@@ -2661,7 +2661,6 @@ detect_coding_iso_2022 (coding, detect_info)
 	    break;
 	  single_shifting = 0;
 	  rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_8BIT;
-	  found |= CATEGORY_MASK_ISO_ELSE;
 	  break;
 
 	case ISO_CODE_CSI:
