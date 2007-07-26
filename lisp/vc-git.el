@@ -51,10 +51,10 @@
 ;; STATE-QUERYING FUNCTIONS
 ;; * registered (file)				   OK
 ;; * state (file)				   OK
-;; - state-heuristic (file)			   ?? PROBABLY NOT NEEDED
+;; - state-heuristic (file)			   NOT NEEDED
 ;; - dir-state (dir)				   OK
 ;; * workfile-version (file)			   OK
-;; - latest-on-branch-p (file)			   ??
+;; - latest-on-branch-p (file)			   NOT NEEDED
 ;; * checkout-model (file)			   OK
 ;; - workfile-unchanged-p (file)		   OK
 ;; - mode-line-string (file)			   NOT NEEDED
@@ -62,19 +62,19 @@
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()				   OK
 ;; * register (files &optional rev comment)	   OK
-;; - init-version (file)			   ??
+;; - init-version (file)			   NOT NEEDED
 ;; - responsible-p (file)			   OK
-;; - could-register (file)			   NEEDED
-;; - receive-file (file rev)			   ??
+;; - could-register (file)			   NOT NEEDED, DEFAULT IS GOOD
+;; - receive-file (file rev)			   NOT NEEDED
 ;; - unregister (file)				   OK
 ;; * checkin (files rev comment)		   OK
 ;; * find-version (file rev buffer)		   OK
 ;; * checkout (file &optional editable rev)	   OK
 ;; * revert (file &optional contents-done)	   OK
-;; - rollback (files)				   ?? PROBABLY NOT NEEDED
-;; - merge (file rev1 rev2)			   It would be possible to merge changes into 
-;;                                                 a single file, but when committing they 
-;;                                                 wouldn't be identified as a merge by git, 
+;; - rollback (files)				   COULD BE SUPPORTED
+;; - merge (file rev1 rev2)			   It would be possible to merge changes into
+;;                                                 a single file, but when committing they
+;;                                                 wouldn't be identified as a merge by git,
 ;;                                                 so it's probably not a good idea.
 ;; - merge-news (file)				   see `merge'
 ;; - steal-lock (file &optional version)	   NOT NEEDED
@@ -82,32 +82,32 @@
 ;; * print-log (files &optional buffer)		   OK
 ;; - log-view-mode ()				   OK
 ;; - show-log-entry (version)			   NOT NEEDED, DEFAULT IS GOOD
-;; - wash-log (file)				   ??
-;; - logentry-check ()				   ??
+;; - wash-log (file)				   COULD BE SUPPORTED
+;; - logentry-check ()				   NOT NEEDED
 ;; - comment-history (file)			   ??
-;; - update-changelog (files)			   ??
+;; - update-changelog (files)			   COULD BE SUPPORTED
 ;; * diff (file &optional rev1 rev2 buffer)	   OK
 ;; - revision-completion-table (file)		   NEEDED?
 ;; - diff-tree (dir &optional rev1 rev2)	   OK
 ;; - annotate-command (file buf &optional rev)	   OK
 ;; - annotate-time ()				   OK
-;; - annotate-current-time ()			   ?? NOT NEEDED
+;; - annotate-current-time ()			   NOT NEEDED
 ;; - annotate-extract-revision-at-line ()	   OK
 ;; SNAPSHOT SYSTEM
 ;; - create-snapshot (dir name branchp)		   OK
 ;; - assign-name (file name)			   NOT NEEDED
 ;; - retrieve-snapshot (dir name update)	   OK, needs to update buffers
 ;; MISCELLANEOUS
-;; - make-version-backups-p (file)		   ??
-;; - repository-hostname (dirname)		   ??
+;; - make-version-backups-p (file)		   NOT NEEDED
+;; - repository-hostname (dirname)		   NOT NEEDED
 ;; - previous-version (file rev)		   OK
 ;; - next-version (file rev)			   OK
-;; - check-headers ()				   ??
-;; - clear-headers ()				   ??
+;; - check-headers ()				   COULD BE SUPPORTED
+;; - clear-headers ()				   NOT NEEDED
 ;; - delete-file (file)				   OK
 ;; - rename-file (old new)			   OK
-;; - find-file-hook ()				   PROBABLY NOT NEEDED
-;; - find-file-not-found-hook ()                   PROBABLY NOT NEEDED
+;; - find-file-hook ()				   NOT NEEDED
+;; - find-file-not-found-hook ()                   NOT NEEDED
 
 (eval-when-compile (require 'cl) (require 'vc))
 
@@ -146,7 +146,7 @@
 	     (let ((str (buffer-string)))
 	       (and (> (length str) (length name))
 		    (string= (substring str 0 (1+ (length name))) (concat name "\0")))))))))
-  
+
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
@@ -200,7 +200,7 @@
   ;; stat info, so if the file has been modified it will always show
   ;; up as modified in vc-git-state, even if the change has been
   ;; undone, until git-update-index --refresh is run.
-  
+
   ;; OTOH the vc-git-workfile-unchanged-p implementation checks the
   ;; actual content, so it will detect the case of a file reverted
   ;; back to its original state.
@@ -236,7 +236,7 @@
 
 (defun vc-git-unregister (file)
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
-  
+
 
 (defun vc-git-checkin (files rev comment)
   (let ((coding-system-for-write git-commits-coding-system))
@@ -246,11 +246,11 @@
   (let ((coding-system-for-read 'binary)
         (coding-system-for-write 'binary)
 	(fullname (substring
-		   (vc-git--run-command-string 
+		   (vc-git--run-command-string
 		    file "ls-files" "-z" "--full-name" "--")
 		   0 -1)))
-    (vc-git-command 
-     buffer 0 
+    (vc-git-command
+     buffer 0
      (concat (if rev rev "HEAD") ":" fullname) "cat-file" "blob")))
 
 (defun vc-git-checkout (file &optional editable rev)
@@ -283,7 +283,7 @@
 	(with-current-buffer
 	    buffer
 	  (insert "File: " (file-name-nondirectory file) "\n"))
-	(vc-git-command buffer 'async (file-relative-name file) 
+	(vc-git-command buffer 'async (file-relative-name file)
 			"rev-list" "--pretty" "HEAD" "--")))))
 
 (defvar log-view-message-re)
@@ -317,6 +317,22 @@
     (if (and rev1 rev2)
         (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p" rev1 rev2 "--")
       (vc-git-command buf 1 files "diff-index" "--exit-code" "-p" (or rev1 "HEAD") "--"))))
+
+(defun vc-git-revision-table (file)
+  (let ((table (list "HEAD")))
+    (with-temp-buffer
+      (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
+      (goto-char (point-min))
+      (while (re-search-forward "^refs/\\(heads\\|tags\\)/\\(.*\\)$" nil t)
+        (push (match-string 2) table)))
+    table))
+
+(defun vc-git-revision-completion-table (file)
+  (lexical-let ((file file)
+                table)
+    (setq table (lazy-completion-table
+                 table (lambda () (vc-git-revision-table file))))
+    table))
 
 (defun vc-git-diff-tree (dir &optional rev1 rev2)
   (vc-git-diff dir rev1 rev2))

@@ -1,3 +1,8 @@
+2007-07-26  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-revision-table)
+	(vc-git-revision-completion-table): New functions.
+
 2007-07-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
