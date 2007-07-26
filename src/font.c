@@ -2943,7 +2943,7 @@ font_at (c, pos, face, w, object)
 /* Lisp API */
 
 DEFUN ("fontp", Ffontp, Sfontp, 1, 1, 0,
-       doc: /* Return t if object is a font-spec or font-entity.  */)
+       doc: /* Return t if OBJECT is a font-spec or font-entity.  */)
      (object)
      Lisp_Object object;
 {
