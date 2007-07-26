@@ -2,6 +2,13 @@
 
 	* dired.texi (Wdired): Mention C-x C-q key binding.
 
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Copying)
+	* emacs.texi (Copying): Replace license with GPLv3.
+
+	* Relicense all FSF files to GPLv3 or later.
+
 2007-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Writing Calendar Files): cal-tex-diary etc only work
@@ -8100,7 +8107,7 @@
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,

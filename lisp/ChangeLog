@@ -1,3 +1,42 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
+	* COPYING: Switch to GPLv3.
+
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer): Undo last ill-conceived change.
+	Replace it with another one which disables undo before calling
+	erase-buffer and then turns it back on if needed.
+
+2007-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Problem with foreground and background color when
+	printing a buffer with and without faces.  Reported by Christian
+	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
+	(ps-print-version): New version 6.7.5.
+	(ps-default-fg): Change default value to nil, so black color is used
+	when a face does not specify a foreground color.
+	(ps-default-bg): Change default value to nil, so white color is used
+	for background color.
+	(ps-begin-job): Fix code.
+
+2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-revision-completion-table): Temporarily comment out.
+
+2007-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-holidays, cal-tex-diary)
+	(cal-tex-rules, cal-tex-buffer, cal-tex-24)
+	(cal-tex-cursor-month-landscape, cal-tex-cursor-month)
+	(cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-week-hours)
+	(cal-tex-cursor-week-monday, cal-tex-weekly4-box)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily, cal-tex-daily-page): Doc fix.
+
 2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/calendar.el (calendar-mode-map): Move initialization
@@ -77,6 +116,10 @@
 2007-07-25  William Xu  <william.xwl@gmail.com>  (tiny change)
 
 	* net/webjump.el (webjump-url-encode): Fix for non-ASCII characters.
+
+2007-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer): Disable undo in temp buffers.
 
 2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -2952,7 +2995,7 @@ See ChangeLog.12 for earlier changes.
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,

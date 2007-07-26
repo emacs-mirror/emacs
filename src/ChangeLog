@@ -1,3 +1,9 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
+	* COPYING: Switch to GPLv3.
+
 2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fcommandp): Pay attention to the `interactive-form' property.
@@ -7,6 +13,15 @@
 
 	* data.c (Finteractive_form): Use an `interactive-form' property if
 	present, analogous to the function-documentation property.
+
+2007-07-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_real_positions): Get real position from OS instead of
+	calculating it.
+
+2007-07-23  Jason Rumney  <jasonr@gnu.org>
+
+	* filelock.c (current_lock_owner): Allow for @ sign in username.
 
 2007-07-22  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -28726,7 +28741,7 @@ See ChangeLog.9 for earlier changes.
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,

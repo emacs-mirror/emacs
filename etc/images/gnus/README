@@ -4,7 +4,7 @@ Files: important.xpm, unimportant.xpm
 Author: Simon Josefsson <simon@josefsson.org>
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
   Free Software Foundation, Inc.
-License: GNU General Public License version 2 or later (see COPYING)
+License: GNU General Public License version 3 or later (see COPYING)
 
 Files: catchup.pbm catchup.xpm cu-exit.pbm cu-exit.xpm
   describe-group.pbm describe-group.xpm exit-gnus.pbm exit-gnus.xpm
@@ -20,7 +20,7 @@ Files: catchup.pbm catchup.xpm cu-exit.pbm cu-exit.xpm
 Author: Luis Fernandes <elf@ee.ryerson.ca>
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
   Free Software Foundation, Inc.
-License: GNU General Public License version 2 or later (see COPYING)
+License: GNU General Public License version 3 or later (see COPYING)
 
 The following icons are from GNOME 2.x. They are not part of Emacs,
 but distributed and used by Emacs.
@@ -30,7 +30,7 @@ but distributed and used by Emacs.
   Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
   Ferretti, Mark Finlay, Lapo Calamandrei, Andreas Nilsson and Marco
   Pesenti Gritti
-  License: GNU General Public License version 2 (see COPYING)
+  License: GNU General Public License version 2
 
 toggle-subscription.xpm       (GNOME stock/document/stock_task-recurring)
 kill-group.pbm and kill-group.xpm are converted from close.xpm

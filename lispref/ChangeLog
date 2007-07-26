@@ -1,3 +1,9 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* gpl.texi (GPL): Replace license with GPLv3.
+
+	* Relicense all FSF files to GPLv3 or later.
+
 2007-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* processes.texi (Synchronous Processes): Add
@@ -6213,7 +6219,7 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,
