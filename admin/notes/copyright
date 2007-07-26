@@ -598,6 +598,70 @@ Done: TUTORIAL.eo
 None known.
 
 
+** NOTES ON RELICENSING TO GPL3
+
+The EMACS_22_BASE branch was changed to GPLv3 (or later) 2007/07/25.
+
+Some notes:
+(see http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg01431.html)
+
+1. There are some files in Emacs CVS which are not part of Emacs (eg
+those included from Gnulib). These are all copyright FSF and (at time
+of writing) GPL >= 2. rms says may as well leave the licenses of these
+alone (may import them from Gnulib again). These are:
+
+    Gnulib:
+    src/getloadavg.c
+    src/gmalloc.c
+    src/md5.c
+    src/md5.h
+    src/mktime.c
+    src/strftime.c
+    src/termcap.c
+    src/tparam.c
+
+    Others:
+    config.guess
+    config.sub
+    lispintro/missing
+    man/texinfo.tex
+
+Note _not_ included in the above are src/regex.{c,h} (rms: "That
+forked version is only in Emacs, so definitely relicense that."), and
+oldXMenu/insque.c (rms: "We wrote that specifically for Emacs, so
+definitely relicense that.").
+
+2. The files that are copyright FSF and AIST, or AIST alone, should be
+and were updated, ditto the oldXMenu files with FSF copyright, and
+msdos/is_exec.c and sigaction.c.
+
+3. lwlib/
+
+Files originally in Lucid Widget Library were left alone (excludes
+ChangeLog, etc), ie remain under GPL v1 or later, or v2 or later.
+(rms: "We may as well leave this alone, since we are never going to
+change it much.")
+
+4. There are some files where the FSF holds no copyright. These were
+left alone:
+
+   leim/MISC-DIC/CTLau-b5.html  >= v2
+   leim/MISC-DIC/CTLau.html     >= v2
+     (above included in lisp/international/titdic-cnv.el)
+   leim/MISC-DIC/pinyin.map     >= v1
+   leim/MISC-DIC/ziranma.cin    >= v1
+   leim/SKK-DIC/SKK-JISYO.L     >= v2
+   leim/SKK-DIC/README          >= v2
+   leim/ja-dic/ja-dic.el        >= v2
+
+5. At time of writing, some non-Emacs icons included from Gnome remain
+under GPLv2 (no "or later"). See:
+
+   etc/images/gnus/README
+   etc/images/mail/README
+   etc/images/README
+   nt/icons/README
+
 
 This file is part of GNU Emacs.
 
