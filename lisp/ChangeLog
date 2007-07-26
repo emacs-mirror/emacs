@@ -1,3 +1,12 @@
+2007-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el: Relicense to GPLv3 or later.
+	(vc-directory-exclusion-list, vc-handled-backends): Remove.
+	
+	* vc-hooks.el (vc-handled-backends): Add GIT.
+
+	* vc.el (vc-directory-exclusion-list): Add .git.
+
 2007-07-26  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-revision-table)

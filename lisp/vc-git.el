@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -113,12 +113,6 @@
 
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
-
-;; XXX when this backend is considered sufficiently reliable this
-;; should be moved to vc-hooks.el
-(add-to-list 'vc-handled-backends 'GIT)
-(eval-after-load "vc"
-  '(add-to-list 'vc-directory-exclusion-list ".git" t))
 
 ;;; BACKEND PROPERTIES
 

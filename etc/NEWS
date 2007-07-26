@@ -100,6 +100,8 @@ considered for update.
 
 *** VC has some support for Mercurial (hg).
 
+*** VC has some support for Git.
+
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 ** BibTeX mode:

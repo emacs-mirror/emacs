@@ -587,7 +587,7 @@ These are passed to the checkin program by \\[vc-register]."
   :version "20.3")
 
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn" 
-					 ".hg" ".bzr" "{arch}")
+					 ".git" ".hg" ".bzr" "{arch}")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
