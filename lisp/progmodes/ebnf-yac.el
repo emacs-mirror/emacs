@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.3
+;; Version: 1.4
 
 ;; This file is part of GNU Emacs.
 
@@ -459,6 +459,12 @@ See documentation for variable `ebnf-yac-lex'."
    ;; close EPS file
    ((and ebnf-eps-executing (= (following-char) ?\]))
     (ebnf-eps-remove-context (ebnf-yac-eps-filename)))
+   ;; EPS header
+   ((and ebnf-eps-executing (= (following-char) ?H))
+    (ebnf-eps-header-comment (ebnf-yac-eps-filename)))
+   ;; EPS footer
+   ((and ebnf-eps-executing (= (following-char) ?F))
+    (ebnf-eps-footer-comment (ebnf-yac-eps-filename)))
    ;; any other action in comment
    (t
     (setq ebnf-action (aref ebnf-comment-table (following-char))))

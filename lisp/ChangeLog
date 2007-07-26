@@ -1,3 +1,56 @@
+2007-07-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-skip-comment):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-skip-comment):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-skip-comment):
+	* progmodes/ebnf-iso.el (ebnf-iso-skip-comment):
+	* progmodes/ebnf-yac.el (ebnf-yac-skip-comment): New version.
+	New command actions for EPS header and EPS footer.
+
+	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
+	footer.  Fix some problems with one-or-more, zero-or-more and
+	alternative constructions generation.  Some log messages
+	implementation.  Doc fix.
+	(ebnf-version): New version 4.4.
+	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
+	(ebnf-eps-footer, ebnf-log): New options.
+	(ebnf-find-style, ebnf-eps-header-footer, ebnf-eps-header)
+	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
+	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
+	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
+	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
+	(ebnf-style-custom-list, ebnf-style-database): Put new values.
+	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
+	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
+	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-directory)
+	(ebnf-eps-file, ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-buffer)
+	(ebnf-syntax-region, ebnf-parse-and-sort, ebnf-begin-job)
+	(ebnf-dimensions, ebnf-production-dimension, ebnf-terminal-dimension)
+	(ebnf-non-terminal-dimension, ebnf-special-dimension)
+	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
+	(ebnf-except-dimension, ebnf-alternative-dimension)
+	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
+	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
+	message fun.
+	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
+	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
+	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
+	(ebnf-terminal-dimension1, ebnf-alternative-dimension)
+	(ebnf-one-or-more-dimension, ebnf-zero-or-more-dimension)
+	(ebnf-eps-add-context, ebnf-eps-add-production): Fix code.
+	(ebnf-eps-filename, ebnf-trim-right): Replace `?\s' by `?\ ' to keep
+	compatibility with Emacs 20 & 21.
+	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
+	(ebnf-eps-file-alist, ebnf-basic-width-extra)
+	(ebnf-basic-empty-height): New vars.
+	(ebnf-prologue): Fix PostScript code.
+	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
+	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
+	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
+	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
