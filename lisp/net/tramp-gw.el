@@ -1,4 +1,4 @@
-;;; -*- coding: iso-8859-1; -*-
+;;; -*- coding: iso-8859-1; -*- 
 ;;; tramp-gw.el --- Tramp utility functions for HTTP tunnels and SOCKS gateways
 
 ;; Copyright (C) 2007 Free Software Foundation, Inc.
