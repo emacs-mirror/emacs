@@ -1,3 +1,7 @@
+2007-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dired.texi (Wdired): Mention C-x C-q key binding.
+
 2007-07-24  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Writing Calendar Files): cal-tex-diary etc only work

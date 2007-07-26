@@ -145,6 +145,7 @@ file copy is checked via the file's checksum.
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
 
+** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode.
 
 * Changes in Emacs 23.1 on non-free operating systems
 
