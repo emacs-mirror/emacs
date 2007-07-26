@@ -1,8 +1,15 @@
+2007-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-interactive-p, ad-interactive-form): Remove.
+	(ad-body-forms, ad-advised-interactive-form, ad-make-cache-id)
+	(ad-make-advised-definition, ad-cache-id-verification-code):
+	Use commandp and interactive-form instead.
+
 2007-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el: Relicense to GPLv3 or later.
 	(vc-directory-exclusion-list, vc-handled-backends): Remove.
-	
+
 	* vc-hooks.el (vc-handled-backends): Add GIT.
 
 	* vc.el (vc-directory-exclusion-list): Add .git.
