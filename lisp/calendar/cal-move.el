@@ -85,33 +85,37 @@ Movement is forward is ARG is negative."
   (interactive "p")
   (calendar-forward-month (* -12 arg)))
 
-(defun calendar-scroll-left (&optional arg)
+(defun calendar-scroll-left (&optional arg event)
   "Scroll the displayed calendar left by ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
   (unless arg (setq arg 1))
-  (calendar-cursor-to-nearest-date)
-  (let ((old-date (calendar-cursor-to-date))
-        (today (calendar-current-date)))
-    (if (/= arg 0)
-        (let ((month displayed-month)
-	      (year displayed-year))
-          (increment-calendar-month month year arg)
-	  (generate-calendar-window month year)
-          (calendar-cursor-to-visible-date
-           (cond
-            ((calendar-date-is-visible-p old-date) old-date)
-            ((calendar-date-is-visible-p today) today)
-            (t (list month 1 year)))))))
-  (run-hooks 'calendar-move-hook))
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (calendar-cursor-to-nearest-date)
+    (let ((old-date (calendar-cursor-to-date))
+          (today (calendar-current-date)))
+      (if (/= arg 0)
+          (let ((month displayed-month)
+                (year displayed-year))
+            (increment-calendar-month month year arg)
+            (generate-calendar-window month year)
+            (calendar-cursor-to-visible-date
+             (cond
+              ((calendar-date-is-visible-p old-date) old-date)
+              ((calendar-date-is-visible-p today) today)
+              (t (list month 1 year)))))))
+    (run-hooks 'calendar-move-hook)))
 
-(defun calendar-scroll-right (&optional arg)
+(defun calendar-scroll-right (&optional arg event)
   "Scroll the displayed calendar window right by ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (calendar-scroll-left (- (or arg 1))))
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (calendar-scroll-left (- (or arg 1)) event))
 
 (defun calendar-scroll-left-three-months (arg)
   "Scroll the displayed calendar window left by 3*ARG months.

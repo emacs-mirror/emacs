@@ -1,5 +1,8 @@
 2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
+	Behave like mouse-scroll-calendar-* when used from the mouse.
+
 	* calendar/cal-menu.el (cal-menu-scroll-menu)
 	(cal-menu-global-mouse-menu): Use new names.
 
