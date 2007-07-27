@@ -26,7 +26,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  2.9
-@set EMACSVER 22.0.99
+@set EMACSVER 22
 
 @dircategory Emacs
 @direntry
@@ -48,7 +48,6 @@
 @tex
 @ifset smallbook
 @fonttextsize 10
-@set EMACSVER 22
 \global\let\urlcolor=\Black % don't print links in grayscale
 \global\let\linkcolor=\Black
 @end ifset

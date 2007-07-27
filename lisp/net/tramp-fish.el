@@ -1,4 +1,4 @@
-;;; -*- coding: iso-8859-1; -*-
+;;; -*- coding: iso-8859-1; -*- 
 ;;; tramp-fish.el --- Tramp access functions for FISH protocol
 
 ;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.

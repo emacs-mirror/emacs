@@ -48,6 +48,8 @@ recenter the visited source file.  Its value can be a number (for example,
 
 ** The mode-line display a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
+** The new command balance-window-area balances windows both vertically
+and horizontally.
 
 * Startup Changes in Emacs 23.1
 
@@ -98,6 +100,8 @@ considered for update.
 
 *** VC has some support for Mercurial (hg).
 
+*** VC has some support for Git.
+
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 ** BibTeX mode:
@@ -143,6 +147,7 @@ file copy is checked via the file's checksum.
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
 
+** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode.
 
 * Changes in Emacs 23.1 on non-free operating systems
 
@@ -189,7 +194,9 @@ with a given image specification.
 +++
 ** The new function `start-file-process is similar to `start-process',
 but obeys file handlers.  The file handler is chosen based on
-`default-directory'.
+`default-directory'.  The functions `start-file-process-shell-command'
+and `process-file-shell-command' are also new; they call internally
+`start-file-process and `process-file', respectively.
 
 +++
 ** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
@@ -200,6 +207,10 @@ remote connection has been established already.
 ** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
+
+** The interactive-form of a function can be added post-facto via the
+`interactive-form' symbol property.  Mostly useful to add complex interactive
+forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
 
