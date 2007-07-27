@@ -1,5 +1,17 @@
 2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/cal-bahai.el (calendar-bahai-month-name-array)
+	(calendar-bahai-epoch, calendar-bahai-leap-year-p)
+	(calendar-bahai-leap-base, calendar-bahai-prompt-for-date)
+	(diary-list-bahai-entries, diary-bahai-mark-entries)
+	(calendar-bahai-mark-date-pattern, diary-insert-bahai-entry)
+	(diary-bahai-insert-monthly-entry, diary-bahai-insert-yearly-entry):
+	New names to clean up namespace.
+	(list-bahai-diary-entries, mark-bahai-diary-entries)
+	(insert-bahai-diary-entry, insert-monthly-bahai-diary-entry)
+	(insert-yearly-bahai-diary-entry, mark-bahai-calendar-date-pattern):
+	Add compatibility aliases.
+
 	* calendar/appt.el: Don't wrap defvar within eval-when-compile.
 
 	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right)
