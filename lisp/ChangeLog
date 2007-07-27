@@ -1,17 +1,21 @@
 2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
-	Behave like mouse-scroll-calendar-* when used from the mouse.
-
-	* calendar/cal-menu.el (cal-menu-scroll-menu)
-	(cal-menu-global-mouse-menu): Use new names.
-
 	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right)
 	(calendar-scroll-left-three-months)
 	(calendar-scroll-right-three-months): Clean up namespace.
 	(scroll-calendar-left, scroll-calendar-right)
 	(scroll-calendar-left-three-months)
 	(scroll-calendar-right-three-months): Add compatibility aliases.
+
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
+	Behave like mouse-scroll-calendar-* when used from the mouse.
+
+	* calendar/cal-menu.el (cal-menu-scroll-menu)
+	(cal-menu-global-mouse-menu):
+	* calendar/calendar.el (calendar-mode-map):
+	Use new calendar-scroll-* names.
+	(mouse-scroll-calendar-left, mouse-scroll-calendar-right):
+	Remove.  Use calendar-scroll-* directly instead.
 
 2007-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 

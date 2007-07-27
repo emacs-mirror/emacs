@@ -1493,19 +1493,19 @@ return negative results."
   "Move the cursor backward ARG years."
   t)
 
-(autoload 'scroll-calendar-left "cal-move"
+(autoload 'calendar-scroll-left "cal-move"
   "Scroll the displayed calendar left by ARG months."
   t)
 
-(autoload 'scroll-calendar-right "cal-move"
+(autoload 'calendar-scroll-right "cal-move"
   "Scroll the displayed calendar window right by ARG months."
   t)
 
-(autoload 'scroll-calendar-left-three-months "cal-move"
+(autoload 'calendar-scroll-left-three-months "cal-move"
   "Scroll the displayed calendar window left by 3*ARG months."
   t)
 
-(autoload 'scroll-calendar-right-three-months "cal-move"
+(autoload 'calendar-scroll-right-three-months "cal-move"
   "Scroll the displayed calendar window right by 3*ARG months."
   t)
 
@@ -2224,14 +2224,14 @@ movement commands will not work correctly."
                  downcase-region upcase-region kill-region
                  copy-region-as-kill capitalize-region write-region))
       (define-key map (vector 'remap c) 'calendar-not-implemented))
-    (define-key map "<"     'scroll-calendar-right)
-    (define-key map "\C-x<" 'scroll-calendar-right)
-    (define-key map [prior] 'scroll-calendar-right-three-months)
-    (define-key map "\ev"   'scroll-calendar-right-three-months)
-    (define-key map ">"     'scroll-calendar-left)
-    (define-key map "\C-x>" 'scroll-calendar-left)
-    (define-key map [next]  'scroll-calendar-left-three-months)
-    (define-key map "\C-v"  'scroll-calendar-left-three-months)
+    (define-key map "<"     'calendar-scroll-right)
+    (define-key map "\C-x<" 'calendar-scroll-right)
+    (define-key map [prior] 'calendar-scroll-right-three-months)
+    (define-key map "\ev"   'calendar-scroll-right-three-months)
+    (define-key map ">"     'calendar-scroll-left)
+    (define-key map "\C-x>" 'calendar-scroll-left)
+    (define-key map [next]  'calendar-scroll-left-three-months)
+    (define-key map "\C-v"  'calendar-scroll-left-three-months)
     (define-key map "\C-b"  'calendar-backward-day)
     (define-key map "\C-p"  'calendar-backward-week)
     (define-key map "\e{"   'calendar-backward-month)
@@ -2383,7 +2383,7 @@ movement commands will not work correctly."
 	       'help-echo "mouse-1: previous month"
 	       'mouse-face 'mode-line-highlight
 	       'keymap (make-mode-line-mouse-map 'mouse-1
-						 'mouse-scroll-calendar-right))
+						 'calendar-scroll-right))
    "Calendar"
    (concat
     (propertize
@@ -2412,7 +2412,7 @@ movement commands will not work correctly."
 	       'help-echo "mouse-1: next month"
 	       'mouse-face 'mode-line-highlight
 	       'keymap (make-mode-line-mouse-map
-			'mouse-1 'mouse-scroll-calendar-left)))
+			'mouse-1 'calendar-scroll-left)))
   "The mode line of the calendar buffer.
 
 This must be a list of items that evaluate to strings--those strings are
@@ -2438,24 +2438,6 @@ under the cursor:
             (extract-calendar-month iso-date)
             (extract-calendar-year iso-date)))
        \"\"))")
-
-(defun mouse-scroll-calendar-left (event)
-  "Scroll the displayed calendar left by one month.
-Maintains the relative position of the cursor
-with respect to the calendar as well as possible."
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (scroll-calendar-left 1)))
-
-(defun mouse-scroll-calendar-right (event)
-  "Scroll the displayed calendar right by one month.
-Maintains the relative position of the cursor
-with respect to the calendar as well as possible."
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (scroll-calendar-right 1)))
 
 (defun mouse-calendar-other-month (event)
   "Display a three-month calendar centered around a specified month and year."
