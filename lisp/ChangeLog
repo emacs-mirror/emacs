@@ -1,5 +1,8 @@
 2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/cal-menu.el (cal-menu-scroll-menu)
+	(cal-menu-global-mouse-menu): Use new names.
+
 	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right)
 	(calendar-scroll-left-three-months)
 	(calendar-scroll-right-three-months): Clean up namespace.
