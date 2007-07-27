@@ -1,3 +1,26 @@
+2007-07-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.c (w32_draw_fringe_bitmap): Extend fringe background to
+	scroll bar gap.
+	(x_scroll_bar_create): Set bar->fringe_extended_p.
+	(w32_set_vertical_scroll_bar): Put leftmost/rightmost scroll bars
+	on frame edge.  Check fringe background extension.  Don't clear
+	extended fringe background area.
+
+	* w32term.h (struct scroll_bar): New member fringe_extended_p.
+	(w32_fill_area): Enclose multiple statements with do ... while (0).
+
+	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]:
+	Extend fringe background to scroll bar gap.
+	(x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS]:
+	Set bar->fringe_extended_p.
+	(XTset_vertical_scroll_bar) [USE_TOOLKIT_SCROLL_BARS]:
+	Put leftmost/rightmost scroll bars on frame edge.  Check fringe
+	background extension.  Don't clear extended fringe background area.
+
+	* xterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]:
+	New member fringe_extended_p.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
