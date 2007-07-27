@@ -26,8 +26,6 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 23.1
 
-** Emacs is now licensed under the GPL version 3 (or later).
-
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
 ** configure now checks for libgif before libungif when searching for
