@@ -2,7 +2,7 @@
 
 	* Relicense all FSF files to GPLv3 or later.
 
-	* COPYING: Switch to GPLv3.
+	* COPYING, info/COPYING: Switch to GPLv3.
 
 2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
