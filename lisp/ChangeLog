@@ -1,3 +1,12 @@
+2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right)
+	(calendar-scroll-left-three-months)
+	(calendar-scroll-right-three-months): Clean up namespace.
+	(scroll-calendar-left, scroll-calendar-right)
+	(scroll-calendar-left-three-months)
+	(scroll-calendar-right-three-months): Add compatibility aliases.
+
 2007-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-interactive-p, ad-interactive-form): Remove.
