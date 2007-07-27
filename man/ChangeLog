@@ -5,6 +5,7 @@
 	in-line.
 
 	* gpl.texi: New file with text of GPL.
+	* Makefile.in (EMACSSOURCES): Add gpl.texi.
 
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
