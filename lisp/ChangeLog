@@ -1,5 +1,7 @@
 2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/appt.el: Don't wrap defvar within eval-when-compile.
+
 	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right)
 	(calendar-scroll-left-three-months)
 	(calendar-scroll-right-three-months): Clean up namespace.
