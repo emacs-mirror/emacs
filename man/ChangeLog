@@ -1,3 +1,11 @@
+2007-07-27  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Copying)
+	* emacs.texi (Copying): Include license text from gpl.texi, rather than
+	in-line.
+
+	* gpl.texi: New file with text of GPL.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* calc.texi (Copying)
