@@ -65,6 +65,8 @@ in to make it use the scrollbars from the system theme.
 
 *** VC has some support for Mercurial (hg).
 
+*** VC has some support for Git.
+
 
 * Installation Changes in Emacs 22.1
 
