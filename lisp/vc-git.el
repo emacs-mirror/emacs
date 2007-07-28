@@ -111,6 +111,13 @@
 
 (eval-when-compile (require 'cl) (require 'vc))
 
+;; XXX when this backend is considered sufficiently reliable this
+;; should be moved to vc-hooks.el
+(add-to-list 'vc-handled-backends 'GIT)
+(eval-after-load "vc"
+  '(add-to-list 'vc-directory-exclusion-list ".git" t))
+
+
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
