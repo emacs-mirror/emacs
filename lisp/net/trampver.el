@@ -1,4 +1,4 @@
-;;; -*- mode: Emacs-Lisp; coding: iso-8859-1; -*-
+;;; -*- mode: Emacs-Lisp; coding: iso-2022-7bit; -*-
 ;;; trampver.el --- Transparent Remote Access, Multiple Protocol
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
