@@ -1,18 +1,23 @@
+2007-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-interactive-form): Re-introduce.
+	(ad-body-forms, ad-advised-interactive-form): Revert this part of
+	last change.
+
 2007-07-28  Masatake YAMATO  <jet@gyve.org>
 
-	* vc.el (vc-dired-mode): Added a menu for VC related
-	operation. Use backend name as the menu label Suggested by
-	David Kastrup.
+	* vc.el (vc-dired-mode): Add a menu for VC related operation.
+	Use backend name as the menu label Suggested by David Kastrup.
 
 2007-07-28  Alan Mackenzie  <acm@muc.de>
 
 	Fix problem with modes derived from CC Mode:
-	* progmodes/cc-mode.el (c-make-emacs-variables-local): move this
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): Move this
 	macro to cc-langs.
-	(c-init-language-vars-for): remove call to above macro.
-	* progmodes/cc-langs.el (c-make-emacs-variables-local): macro has
+	(c-init-language-vars-for): Remove call to above macro.
+	* progmodes/cc-langs.el (c-make-emacs-variables-local): Macro has
 	been moved to here.
-	(c-make-init-lang-vars-fun): call c-make-emacs-variables-local.
+	(c-make-init-lang-vars-fun): Call c-make-emacs-variables-local.
 
 2007-07-28  Eli Zaretskii  <eliz@gnu.org>
 
