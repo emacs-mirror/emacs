@@ -1,3 +1,7 @@
+2007-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/trampver.el: Fix the `coding' cookie.
+
 2007-07-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* add-log.el (change-log-redate): Remove (not needed anymore and
