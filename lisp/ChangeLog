@@ -1,3 +1,9 @@
+2007-07-28  Masatake YAMATO  <jet@gyve.org>
+
+	* vc.el (vc-dired-mode): Added a menu for VC related
+	operation. Use backend name as the menu label Suggested by
+	David Kastrup.
+
 2007-07-28  Alan Mackenzie  <acm@muc.de>
 
 	Fix problem with modes derived from CC Mode:
