@@ -99,6 +99,11 @@ considered for update.
 
 ** VC
 *** VC backends can provide completion of revision names.
+
+*** Clicking on the VC mode-line entry now pops the VC menu.
+
+*** The VC mode-line entry now has a tooltip.
+
 *** VC has some support for Bazaar (bzr).
 
 *** VC has some support for Mercurial (hg).
