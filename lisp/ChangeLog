@@ -1,3 +1,13 @@
+2007-07-28  Alan Mackenzie  <acm@muc.de>
+
+	Fix problem with modes derived from CC Mode:
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): move this
+	macro to cc-langs.
+	(c-init-language-vars-for): remove call to above macro.
+	* progmodes/cc-langs.el (c-make-emacs-variables-local): macro has
+	been moved to here.
+	(c-make-init-lang-vars-fun): call c-make-emacs-variables-local.
+
 2007-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* net/trampver.el: Fix the `coding' cookie.
