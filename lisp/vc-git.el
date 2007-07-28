@@ -260,7 +260,10 @@
 
 (defun vc-git-print-log (files &optional buffer)
   "Get change log associated with FILES."
-  (let ((coding-system-for-read git-commits-coding-system))
+  (let ((coding-system-for-read git-commits-coding-system)
+	;; Support both the old print-log interface that passes a
+	;; single file, and the new one that passes a file list.
+	(flist (if (listp files) files (list files))))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
     (vc-setup-buffer buffer)
@@ -273,7 +276,7 @@
       ;; "git rev-list" on each file separately to make sure that each
       ;; file gets a "File:" header before the corresponding
       ;; log. Maybe there is a way to do this with one command...
-      (dolist (file files)
+      (dolist (file flist)
 	(with-current-buffer
 	    buffer
 	  (insert "File: " (file-name-nondirectory file) "\n"))
