@@ -1,3 +1,7 @@
+2007-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/trampver.el: Fix the `coding' cookie.
+
 2007-07-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-print-log): Support both the old single file
