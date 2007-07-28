@@ -478,7 +478,7 @@ install-arch-indep: mkdir info
 	   (cd ./etc; tar -chf - DOC*) \
 	     |(cd $(DESTDIR)${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd $(DESTDIR)$(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
-	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
+	    if test "`echo DOC-*`" != "DOC-*"; then rm -f DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
 	if [ -r ./lisp ] \
