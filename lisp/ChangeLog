@@ -1,5 +1,12 @@
 2007-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* cus-edit.el (customize-read-group): New fun.
+	(customize-group-other-window, customize-face-other-window):
+	Prompt before delegating to customize-(group|face).
+	Bind pop-up-windows rather than use the other-window argument.
+	(customize-group, customize-face): Prompt from the interactive spec.
+	Remove args `prompt-for-group' and `other-window'.
+
 	* emacs-lisp/advice.el (ad-interactive-form): Re-introduce.
 	(ad-body-forms, ad-advised-interactive-form): Revert this part of
 	last change.
