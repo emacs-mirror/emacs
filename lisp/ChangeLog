@@ -1,4 +1,10 @@
-2007-07-28  Novitsky, Konstantin  <knovitsk@Bear.com>  (tiny change)
+2007-07-29  Kimit Yada  <kimitto@gmail.com>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-update-year, copyright-update)
+	(copyright-fix-years, copyright): Correctly handle the case where
+	copyright-limit is nil.
+
+2007-07-28  Konstantin Novitsky  <knovitsk@Bear.com>  (tiny change)
 
 	* progmodes/python.el (run-python): Fix path separator under w32.
 
@@ -9,12 +15,12 @@
 2007-07-28  Alan Mackenzie  <acm@muc.de>
 
 	Fix problem with modes derived from CC Mode:
-	* progmodes/cc-mode.el (c-make-emacs-variables-local): move this
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): Move this
 	macro to cc-langs.
-	(c-init-language-vars-for): remove call to above macro.
-	* progmodes/cc-langs.el (c-make-emacs-variables-local): macro has
+	(c-init-language-vars-for): Remove call to above macro.
+	* progmodes/cc-langs.el (c-make-emacs-variables-local): Macro has
 	been moved to here.
-	(c-make-init-lang-vars-fun): call c-make-emacs-variables-local.
+	(c-make-init-lang-vars-fun): Call c-make-emacs-variables-local.
 
 2007-07-28  Eli Zaretskii  <eliz@gnu.org>
 
