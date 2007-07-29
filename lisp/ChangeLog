@@ -1,3 +1,21 @@
+2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el:
+	* tramp-uu.el:
+	* trampver.el: Use utf-8 encoding with coding cookie.
+
+	* tramp-cache.el:
+	* tramp-fish.el:
+	* tramp-ftp.el:
+	* tramp-gw.el:
+	* tramp-smb.el: Remove coding cookie.
+
+	* tramp.el (tramp-handle-verify-visited-file-modtime): Flush
+	buffer file-name's file property.
+	(tramp-handle-file-remote-p): The first parameter is FILENAME.
+
+	* trampver.el: Update release number.
+
 2007-07-29  Juri Linkov  <juri@jurta.org>
 
 	* dired.el (dired-mode-map): Bind C-x C-q to dired-toggle-read-only.
