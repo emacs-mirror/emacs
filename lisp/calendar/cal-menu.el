@@ -33,7 +33,6 @@
 
 ;;; Code:
 
-(defvar displayed-month)
 (defvar displayed-year)
 
 (defconst cal-menu-moon-menu
