@@ -1,3 +1,16 @@
+2007-07-29  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mode-map): Bind C-x C-q to dired-toggle-read-only.
+	Filter out menu item "Edit File Names" `wdired-change-to-wdired-mode'
+	when major-mode is not dired-mode.
+	(dired-toggle-read-only): New function.
+	(dired-recursive-deletes): Remove obsolete comments about old
+	default value.
+	(dired-do-flagged-delete, dired-do-delete): Refill docstring.
+
+	* wdired.el (wdired-exit): New function.
+	(wdired-mode-map): Bind C-x C-q to wdired-exit.
+
 2007-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cus-edit.el (customize-read-group): New fun.
