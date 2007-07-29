@@ -1678,10 +1678,10 @@ to be replaced by asterisks to highlight it whenever it is in the window."
     ;; not a legal date for the visible test in the diary section.
     (if arg (setcar (cdr date) 1))
     (increment-calendar-month month year (- calendar-offset))
-    (generate-calendar-window month year)
-    ;; Display the buffer *after* generating it, so that menu entries that
-    ;; use display-month do not fail when creating the new frame.
+    ;; Display the buffer before calling generate-calendar-window so that it
+    ;; can get a chance to adjust the window sizes to the frame size.
     (pop-to-buffer calendar-buffer)
+    (generate-calendar-window month year)
     (if (and view-diary-entries-initially (calendar-date-is-visible-p date))
         (diary-view-entries)))
   (let* ((diary-buffer (get-file-buffer diary-file))
@@ -2060,7 +2060,7 @@ existing output files are overwritten." t)
 (defun generate-calendar-window (&optional mon yr)
   "Generate the calendar window for the current date.
 Or, for optional MON, YR."
-  (let* ((buffer-read-only nil)
+  (let* ((inhibit-read-only t)
          (today (calendar-current-date))
          (month (extract-calendar-month today))
          (day (extract-calendar-day today))
@@ -2072,10 +2072,8 @@ Or, for optional MON, YR."
          (day-in-week (calendar-day-of-week today))
          (in-calendar-window (eq (window-buffer (selected-window))
                                  (get-buffer calendar-buffer))))
+    (generate-calendar (or mon month) (or yr year))
     (update-calendar-mode-line)
-    (if mon
-        (generate-calendar mon yr)
-      (generate-calendar month year))
     (calendar-cursor-to-visible-date
      (if today-visible today (list displayed-month 1 displayed-year)))
     (set-buffer-modified-p nil)
@@ -2475,8 +2473,13 @@ For a complete description, type \
   (setq indent-tabs-mode nil)
   (update-calendar-mode-line)
   (make-local-variable 'calendar-mark-ring)
-  (make-local-variable 'displayed-month);;  Month in middle of window.
-  (make-local-variable 'displayed-year)	;;  Year in middle of window.
+  (make-local-variable 'displayed-month) ;; Month in middle of window.
+  (make-local-variable 'displayed-year)  ;; Year in middle of window.
+  ;; Most functions only work if displayed-month and displayed-year are set,
+  ;; so let's make sure they're always set.  Most likely, this will be reset
+  ;; soon in generate-calendar, but better safe than sorry.
+  (unless (boundp 'displayed-month) (setq displayed-month 1))
+  (unless (boundp 'displayed-year)  (setq displayed-year  2001))
   (set (make-local-variable 'font-lock-defaults)
        '(calendar-font-lock-keywords t))
   (run-mode-hooks 'calendar-mode-hook))

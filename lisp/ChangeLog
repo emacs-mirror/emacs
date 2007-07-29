@@ -1,3 +1,12 @@
+2007-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-mode): Make sure
+	displayed-(month|year) are set.
+	(calendar-basic-setup): Display buffer before adjusting window sizes.
+	(generate-calendar-window): Use inhibit-read-only.  Simplify.
+	Generate buffer and set displayed-month and displayed-year before
+	calling update-calendar-mode-line.
+
 2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.el:
@@ -10,8 +19,8 @@
 	* tramp-gw.el:
 	* tramp-smb.el: Remove coding cookie.
 
-	* tramp.el (tramp-handle-verify-visited-file-modtime): Flush
-	buffer file-name's file property.
+	* tramp.el (tramp-handle-verify-visited-file-modtime):
+	Flush buffer file-name's file property.
 	(tramp-handle-file-remote-p): The first parameter is FILENAME.
 
 	* trampver.el: Update release number.
