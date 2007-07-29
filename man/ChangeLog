@@ -1,3 +1,10 @@
+2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Point to mode line
+	extension in Emacs 23.1.
+
+	* trampver.texi: Update release number.
+
 2007-07-27  Glenn Morris  <rgm@gnu.org>
 
 	* calc.texi (Copying)
