@@ -1,3 +1,7 @@
+2007-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase.
+
 2007-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.c (Qterm_environment_variable,

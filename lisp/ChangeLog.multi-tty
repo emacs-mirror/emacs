@@ -1,3 +1,7 @@
+2007-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix merge issue.
+
 2007-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
         * env.el (read-envvar-name): Don't consider the environment frame

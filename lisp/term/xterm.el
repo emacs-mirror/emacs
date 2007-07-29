@@ -431,7 +431,7 @@
 	      (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
 	      (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
 	      (add-hook 'kill-emacs-hook 'xterm-turn-off-modify-other-keys)
-	      (xterm-turn-on-modify-other-keys))))))))
+	      (xterm-turn-on-modify-other-keys)))))))
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors
