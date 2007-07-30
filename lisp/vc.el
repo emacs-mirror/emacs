@@ -2289,7 +2289,7 @@ This code, like dired, assumes UNIX -l format."
   "Reformat the listing according to version control.
 Called by dired after any portion of a vc-dired buffer has been read in."
   (message "Getting version information... ")
-  (let (subdir filename (buffer-read-only nil))
+  (let (subdir filename (inhibit-read-only t))
     (goto-char (point-min))
     (while (not (eobp))
       (cond

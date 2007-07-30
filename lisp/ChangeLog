@@ -1,5 +1,7 @@
 2007-07-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-dired-hook): Use inhibit-read-only.
+
 	* progmodes/compile.el (compilation-forget-errors):
 	Reset compilation-auto-jump-to-next.
 
