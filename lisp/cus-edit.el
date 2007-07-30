@@ -4014,7 +4014,7 @@ Optional EVENT is the location for the menu."
 
 (defun custom-group-save (widget)
   "Save all modified group members."
-  (dolist (child (children (widget-get widget :children)))
+  (dolist (child (widget-get widget :children))
     (when (memq (widget-get child :custom-state) '(modified set))
       (widget-apply child :custom-save))))
 
