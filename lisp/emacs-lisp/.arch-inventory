@@ -1,0 +1,4 @@
+# Auto-generated lisp files, which we ignore
+precious ^(cl-loaddefs)\.el$
+
+# arch-tag: d6986671-2713-4fed-ae51-7758ae0d4c10
