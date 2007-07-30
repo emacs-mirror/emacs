@@ -1,3 +1,8 @@
+2007-07-30  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Treat non-break space as whitespace in Lisp.
+
 2007-07-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-dired-hook): Use inhibit-read-only.
