@@ -2050,9 +2050,9 @@ The file-structure looks like this:
   ;; compilation-error-list) to point-min, but that was only meaningful for
   ;; the internal uses of compilation-forget-errors: all calls from external
   ;; packages seem to be followed by a move of compilation-parsing-end to
-  ;; something equivalent to point-max.  So we speculatively move
+  ;; something equivalent to point-max.  So we heuristically move
   ;; compilation-current-error to point-max (since the external package
-  ;; won't know that it should do it).  --stef
+  ;; won't know that it should do it).  --Stef
   (setq compilation-current-error nil)
   (let* ((proc (get-buffer-process (current-buffer)))
 	 (mark (if proc (process-mark proc)))
@@ -2063,7 +2063,12 @@ The file-structure looks like this:
 	  ;; we need to put ours just before the insertion point rather
 	  ;; than at the insertion point.  If that's not possible, then
 	  ;; don't use a marker.  --Stef
-	  (if (> pos (point-min)) (copy-marker (1- pos)) pos))))
+	  (if (> pos (point-min)) (copy-marker (1- pos)) pos)))
+  ;; Again, since this command is used in buffers that contain several
+  ;; compilations, to set the beginning of "this compilation", it's a good
+  ;; place to reset compilation-auto-jump-to-next.
+  (set (make-local-variable 'compilation-auto-jump-to-next)
+       compilation-auto-jump-to-first-error))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gcov\\'" . compilation-mode))

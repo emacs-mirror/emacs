@@ -1,3 +1,8 @@
+2007-07-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-forget-errors):
+	Reset compilation-auto-jump-to-next.
+
 2007-07-30  Michael Olson  <mwolson@gnu.org>
 
 	* cus-edit.el (custom-group-save): Fix void function definition
