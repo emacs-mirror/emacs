@@ -1,3 +1,9 @@
+2007-07-30  Michael Olson  <mwolson@gnu.org>
+
+	* erc-nicklist.el: Remove from the Emacs source tree.  This file
+	is not release quality, and relies heavily on a module which
+	cannot be distributed with ERC due to licensing reasons.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
