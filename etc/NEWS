@@ -165,6 +165,8 @@ supported on other platforms, but not on Windows due to using the winsock
 
 * Lisp Changes in Emacs 23.1
 
+** Non-breaking space now acts as whitespace.
+
 +++
 ** In `condition-case', a handler can specify "let the debugger run first".
 
