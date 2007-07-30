@@ -1,3 +1,7 @@
+2007-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc2-xtra.texi (Customizing VC): Add GIT and HG.
+
 2007-07-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Qualify use of "M-x gdba".

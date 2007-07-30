@@ -419,6 +419,31 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-init-version () nil)
 
+;;; Completion of versions and revisions.
+
+(defun vc-arch--version-completion-table (root string)
+  (delq nil
+	(mapcar
+	 (lambda (d)
+	   (when (string-match "/\\([^/]+\\)/\\([^/]+\\)\\'" d)
+	     (concat (match-string 2 d) "/" (match-string 1 d))))
+	 (let ((default-directory root))
+	   (file-expand-wildcards
+	    (concat "*/*/"
+		    (if (string-match "/" string)
+			(concat (substring string (match-end 0))
+				"*/" (substring string 0 (match-beginning 0)))
+		      (concat "*/" string))
+		    "*"))))))
+
+(defun vc-arch-revision-completion-table (file)
+  (lexical-let ((file file))
+    (lambda (string pred action)
+      ;; FIXME: complete revision patches as well.
+      (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
+             (table (vc-arch--version-completion-table root string)))
+	(complete-with-action action table string pred)))))
+
 ;;; Less obvious implementations.
 
 (defun vc-arch-find-version (file rev buffer)

@@ -111,13 +111,6 @@
 
 (eval-when-compile (require 'cl) (require 'vc))
 
-;; XXX when this backend is considered sufficiently reliable this
-;; should be moved to vc-hooks.el
-(add-to-list 'vc-handled-backends 'GIT)
-(eval-after-load "vc"
-  '(add-to-list 'vc-directory-exclusion-list ".git" t))
-
-
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
 
@@ -331,14 +324,12 @@
         (push (match-string 2) table)))
     table))
 
-;; Commented out on the 22.x branch, VC here does not support it yet
-;; and when bytecompiling it max-specpdl-size is exceeded.
-;; (defun vc-git-revision-completion-table (file)
-;;   (lexical-let ((file file)
-;;                 table)
-;;     (setq table (lazy-completion-table
-;;                  table (lambda () (vc-git-revision-table file))))
-;;     table))
+(defun vc-git-revision-completion-table (file)
+  (lexical-let ((file file)
+                table)
+    (setq table (lazy-completion-table
+                 table (lambda () (vc-git-revision-table file))))
+    table))
 
 (defun vc-git-diff-tree (dir &optional rev1 rev2)
   (vc-git-diff dir rev1 rev2))

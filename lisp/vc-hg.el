@@ -292,12 +292,12 @@
        (buffer-substring-no-properties (point-min) (point-max))))))
 
 ;; Modelled after the similar function in vc-cvs.el
-;; (defun vc-hg-revision-completion-table (file)
-;;   (lexical-let ((file file)
-;;                 table)
-;;     (setq table (lazy-completion-table
-;;                  table (lambda () (vc-hg-revision-table file))))
-;;     table))
+(defun vc-hg-revision-completion-table (file)
+  (lexical-let ((file file)
+                table)
+    (setq table (lazy-completion-table
+                 table (lambda () (vc-hg-revision-table file))))
+    table))
 
 (defalias 'vc-hg-diff-tree 'vc-hg-diff)
 

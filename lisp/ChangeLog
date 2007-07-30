@@ -1,3 +1,38 @@
+2007-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el: (vc-directory-exclusion-list, vc-handled-backends):
+	Remove.
+	(vc-git-revision-completion-table): Enable.
+	
+	* vc-hooks.el (vc-handled-backends): Add GIT and HG.
+
+	* vc.el (vc-directory-exclusion-list): Add .git and .hg.
+
+	* vc-hg.el (vc-hg-revision-completion-table): Re-enable.
+
+	* diff-mode.el (diff-mode-menu): New entries.
+
+2007-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-beginning-of-file-and-junk): New function.
+	(diff-file-kill): Use it.
+	(diff-beginning-of-hunk): Add arg `try-harder' using it.
+	(diff-restrict-view, diff-find-source-location, diff-refine-hunk):
+	Use it so they find the hunk even when we're in the file header.
+
+	* vc.el: Add new VC operation `revision-completion-table'.
+	(vc-default-revision-completion-table): New function.
+	(vc-version-diff, vc-version-other-window): Use it to provide
+	completion of revision names if the backend provides it.
+
+	* vc-arch.el (vc-arch--version-completion-table)
+	(vc-arch-revision-completion-table): New functions to provide
+	completion of revision names.
+
+	* vc-cvs.el: Require CL.
+	(vc-cvs-revision-table, vc-cvs-revision-completion-table):
+	New functions to provide completion of revision names.
+
 2007-07-29  Kimit Yada  <kimitto@gmail.com>  (tiny change)
 
 	* emacs-lisp/copyright.el (copyright-update-year, copyright-update)
