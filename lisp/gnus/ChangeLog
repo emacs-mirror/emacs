@@ -196,7 +196,7 @@
 	* message.el (message-make-in-reply-to): Quote name containing
 	non-ASCII characters.  It will make the RFC2047 encoder cause an error
 	if there are special characters.  Reported by NAKAJI Hiroyuki
-	<nakaji@kankyo-u.ac.jp>.
+	<nakaji@jp.freebsd.org>.
 
 2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
