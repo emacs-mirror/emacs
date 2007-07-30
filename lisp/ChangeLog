@@ -9,6 +9,7 @@
 	* vc.el (vc-directory-exclusion-list): Add .git and .hg.
 
 	* vc-hg.el (vc-hg-revision-completion-table): Re-enable.
+	(vc-hg-registered): Set the vc-state property.
 
 	* diff-mode.el (diff-mode-menu): New entries.
 

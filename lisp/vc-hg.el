@@ -138,7 +138,7 @@
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
-    (vc-hg-state file)))            ; expensive
+    (vc-file-setprop file 'vc-state (vc-hg-state file)))) ; expensive
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
