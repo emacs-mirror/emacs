@@ -7040,7 +7040,7 @@ If FACE is not a valid face name, use default face."
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
 ;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
 ;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
-;;;;;;  "ps-mule" "ps-mule.el" "cbb193f9b6bebd27378819035d3788f7")
+;;;;;;  "ps-mule" "ps-mule.el" "586d0a4deeb89be9b80cc01def34481c")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -7145,7 +7145,7 @@ FONTTAG should be a string \"/h0\" or \"/h1\".
 
 (autoload (quote ps-mule-begin-job) "ps-mule" "\
 Start printing job for multi-byte chars between FROM and TO.
-This checks if all multi-byte characters in the region are printable or not.
+It checks if all multi-byte characters in the region are printable or not.
 
 \(fn FROM TO)" nil nil)
 

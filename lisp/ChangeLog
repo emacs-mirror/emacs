@@ -1,3 +1,9 @@
+2007-07-30  Michael Olson  <mwolson@gnu.org>
+
+	* ps-print.el: Check in trivial changes to the autoloads section
+	caused by the build process.  These autoloads really ought to be
+	placed in a separate file, methinks.
+
 2007-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/calendar.el (calendar-mode): Make sure
