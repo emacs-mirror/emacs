@@ -77,13 +77,7 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
-** css-mode to edit Cascading Style Sheets.
-
 ** bibtex-style-mode helps you write BibTeX's *.bst files.
-
-** vera-mode to edit Vera files.
-
-** socks.el (which had been part of W3) is now part of Emacs.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
@@ -98,17 +92,11 @@ Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
 
 ** VC
-*** VC backends can provide completion of revision names.
-
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
 *** The VC mode-line entry now has a tooltip.
 
 *** VC has some support for Bazaar (bzr).
-
-*** VC has some support for Mercurial (hg).
-
-*** VC has some support for Git.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
