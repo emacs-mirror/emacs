@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -56,6 +56,8 @@
 	(modify-syntax-entry i "_   " table)
 	(setq i (1+ i)))
       (modify-syntax-entry ?\s "    " table)
+      ;; Non-break space acts as whitespace.
+      (modify-syntax-entry ?\x8a0 "    " table)
       (modify-syntax-entry ?\t "    " table)
       (modify-syntax-entry ?\f "    " table)
       (modify-syntax-entry ?\n ">   " table)

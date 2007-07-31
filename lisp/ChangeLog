@@ -1,3 +1,433 @@
+2007-07-29  Kimit Yada  <kimitto@gmail.com>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-update-year, copyright-update)
+	(copyright-fix-years, copyright): Correctly handle the case where
+	copyright-limit is nil.
+
+2007-07-28  Konstantin Novitsky  <knovitsk@Bear.com>  (tiny change)
+
+	* progmodes/python.el (run-python): Fix path separator under w32.
+
+2007-07-30  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Treat non-break space as whitespace in Lisp.
+
+2007-07-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-dired-hook): Use inhibit-read-only.
+
+	* progmodes/compile.el (compilation-forget-errors):
+	Reset compilation-auto-jump-to-next.
+
+2007-07-30  Michael Olson  <mwolson@gnu.org>
+
+	* cus-edit.el (custom-group-save): Fix void function definition
+	error.  Thanks to Zhang Wei for the report.
+
+	* ps-print.el: Check in trivial changes to the autoloads section
+	caused by the build process.  These autoloads really ought to be
+	placed in a separate file, methinks.
+
+2007-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-mode): Make sure
+	displayed-(month|year) are set.
+	(calendar-basic-setup): Display buffer before adjusting window sizes.
+	(generate-calendar-window): Use inhibit-read-only.  Simplify.
+	Generate buffer and set displayed-month and displayed-year before
+	calling update-calendar-mode-line.
+
+2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el:
+	* tramp-uu.el:
+	* trampver.el: Use utf-8 encoding with coding cookie.
+
+	* tramp-cache.el:
+	* tramp-fish.el:
+	* tramp-ftp.el:
+	* tramp-gw.el:
+	* tramp-smb.el: Remove coding cookie.
+
+	* tramp.el (tramp-handle-verify-visited-file-modtime):
+	Flush buffer file-name's file property.
+	(tramp-handle-file-remote-p): The first parameter is FILENAME.
+
+	* trampver.el: Update release number.
+
+2007-07-29  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mode-map): Bind C-x C-q to dired-toggle-read-only.
+	Filter out menu item "Edit File Names" `wdired-change-to-wdired-mode'
+	when major-mode is not dired-mode.
+	(dired-toggle-read-only): New function.
+	(dired-recursive-deletes): Remove obsolete comments about old
+	default value.
+	(dired-do-flagged-delete, dired-do-delete): Refill docstring.
+
+	* wdired.el (wdired-exit): New function.
+	(wdired-mode-map): Bind C-x C-q to wdired-exit.
+
+2007-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cus-edit.el (customize-read-group): New fun.
+	(customize-group-other-window, customize-face-other-window):
+	Prompt before delegating to customize-(group|face).
+	Bind pop-up-windows rather than use the other-window argument.
+	(customize-group, customize-face): Prompt from the interactive spec.
+	Remove args `prompt-for-group' and `other-window'.
+
+	* emacs-lisp/advice.el (ad-interactive-form): Re-introduce.
+	(ad-body-forms, ad-advised-interactive-form): Revert this part of
+	last change.
+
+2007-07-28  Masatake YAMATO  <jet@gyve.org>
+
+	* vc.el (vc-dired-mode): Add a menu for VC related operation.
+	Use backend name as the menu label Suggested by David Kastrup.
+
+2007-07-28  Alan Mackenzie  <acm@muc.de>
+
+	Fix problem with modes derived from CC Mode:
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): Move this
+	macro to cc-langs.
+	(c-init-language-vars-for): Remove call to above macro.
+	* progmodes/cc-langs.el (c-make-emacs-variables-local): Macro has
+	been moved to here.
+	(c-make-init-lang-vars-fun): Call c-make-emacs-variables-local.
+
+2007-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/trampver.el: Fix the `coding' cookie.
+
+2007-07-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-print-log): Support both the old single file
+	interface and the new one.
+
+2007-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-remote): Use updated %@ construct.
+
+2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/cal-bahai.el (calendar-bahai-month-name-array)
+	(calendar-bahai-epoch, calendar-bahai-leap-year-p)
+	(calendar-bahai-leap-base, calendar-bahai-prompt-for-date)
+	(diary-list-bahai-entries, diary-bahai-mark-entries)
+	(calendar-bahai-mark-date-pattern, diary-insert-bahai-entry)
+	(diary-bahai-insert-monthly-entry, diary-bahai-insert-yearly-entry):
+	New names to clean up namespace.
+	(list-bahai-diary-entries, mark-bahai-diary-entries)
+	(insert-bahai-diary-entry, insert-monthly-bahai-diary-entry)
+	(insert-yearly-bahai-diary-entry, mark-bahai-calendar-date-pattern):
+	Add compatibility aliases.
+
+	* calendar/appt.el: Don't wrap defvar within eval-when-compile.
+
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right)
+	(calendar-scroll-left-three-months)
+	(calendar-scroll-right-three-months): Clean up namespace.
+	(scroll-calendar-left, scroll-calendar-right)
+	(scroll-calendar-left-three-months)
+	(scroll-calendar-right-three-months): Add compatibility aliases.
+
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
+	Behave like mouse-scroll-calendar-* when used from the mouse.
+
+	* calendar/cal-menu.el (cal-menu-scroll-menu)
+	(cal-menu-global-mouse-menu):
+	* calendar/calendar.el (calendar-mode-map):
+	Use new calendar-scroll-* names.
+	(mouse-scroll-calendar-left, mouse-scroll-calendar-right):
+	Remove.  Use calendar-scroll-* directly instead.
+
+2007-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-interactive-p, ad-interactive-form): Remove.
+	(ad-body-forms, ad-advised-interactive-form, ad-make-cache-id)
+	(ad-make-advised-definition, ad-cache-id-verification-code):
+	Use commandp and interactive-form instead.
+
+2007-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el: Relicense to GPLv3 or later.
+	(vc-directory-exclusion-list, vc-handled-backends): Remove.
+
+	* vc-hooks.el (vc-handled-backends): Add GIT.
+
+	* vc.el (vc-directory-exclusion-list): Add .git.
+
+2007-07-26  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-revision-table)
+	(vc-git-revision-completion-table): New functions.
+
+2007-07-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-skip-comment):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-skip-comment):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-skip-comment):
+	* progmodes/ebnf-iso.el (ebnf-iso-skip-comment):
+	* progmodes/ebnf-yac.el (ebnf-yac-skip-comment): New version.
+	New command actions for EPS header and EPS footer.
+
+	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
+	footer.  Fix some problems with one-or-more, zero-or-more and
+	alternative constructions generation.  Some log messages
+	implementation.  Doc fix.
+	(ebnf-version): New version 4.4.
+	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
+	(ebnf-eps-footer, ebnf-log): New options.
+	(ebnf-find-style, ebnf-eps-header-footer, ebnf-eps-header)
+	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
+	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
+	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
+	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
+	(ebnf-style-custom-list, ebnf-style-database): Put new values.
+	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
+	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
+	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-directory)
+	(ebnf-eps-file, ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-buffer)
+	(ebnf-syntax-region, ebnf-parse-and-sort, ebnf-begin-job)
+	(ebnf-dimensions, ebnf-production-dimension, ebnf-terminal-dimension)
+	(ebnf-non-terminal-dimension, ebnf-special-dimension)
+	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
+	(ebnf-except-dimension, ebnf-alternative-dimension)
+	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
+	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
+	message fun.
+	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
+	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
+	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
+	(ebnf-terminal-dimension1, ebnf-alternative-dimension)
+	(ebnf-one-or-more-dimension, ebnf-zero-or-more-dimension)
+	(ebnf-eps-add-context, ebnf-eps-add-production): Fix code.
+	(ebnf-eps-filename, ebnf-trim-right): Replace `?\s' by `?\ ' to keep
+	compatibility with Emacs 20 & 21.
+	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
+	(ebnf-eps-file-alist, ebnf-basic-width-extra)
+	(ebnf-basic-empty-height): New vars.
+	(ebnf-prologue): Fix PostScript code.
+	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
+	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
+	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
+	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
+	* COPYING: Switch to GPLv3.
+
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer): Undo last ill-conceived change.
+	Replace it with another one which disables undo before calling
+	erase-buffer and then turns it back on if needed.
+
+2007-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Problem with foreground and background color when
+	printing a buffer with and without faces.  Reported by Christian
+	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
+	(ps-print-version): New version 6.7.5.
+	(ps-default-fg): Change default value to nil, so black color is used
+	when a face does not specify a foreground color.
+	(ps-default-bg): Change default value to nil, so white color is used
+	for background color.
+	(ps-begin-job): Fix code.
+
+2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-revision-completion-table): Temporarily comment out.
+
+2007-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-holidays, cal-tex-diary)
+	(cal-tex-rules, cal-tex-buffer, cal-tex-24)
+	(cal-tex-cursor-month-landscape, cal-tex-cursor-month)
+	(cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-week-hours)
+	(cal-tex-cursor-week-monday, cal-tex-weekly4-box)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily, cal-tex-daily-page): Doc fix.
+
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-mode-map): Move initialization
+	into declaration.  Add menu bindings (used to be done in cal-menu).
+	(calendar-mode): Don't add an activate-menubar-hook.
+
+	* calendar/cal-menu.el: Break dependency on calendar.el (i.e. do not
+	modify calendar-mode-map), use easy-menu, and make sure that C-h k
+	can be used on the menu entries.
+	(cal-menu-holiday-window-suffix, cal-menu-set-date-title): New funs.
+	(cal-menu-moon-menu, cal-menu-diary-menu, cal-menu-holidays-menu)
+	(cal-menu-goto-menu, cal-menu-scroll-menu): New consts.
+	(cal-menu-context-mouse-menu, cal-menu-global-mouse-menu): New menus.
+	(calendar-flatten, cal-menu-update): Remove.
+	(calendar-mouse-insert-hebrew-diary-entry)
+	(calendar-mouse-insert-islamic-diary-entry)
+	(calendar-mouse-insert-bahai-diary-entry):
+	Remove (fold into cal-menu-diary-menu).
+	(calendar-mouse-2-date-menu, calendar-mouse-cal-tex-menu)
+	(cal-tex-mouse-filofax): Remove (fold into cal-menu-context-mouse-menu).
+	(calendar-mouse-3-map): Remove (turn into cal-menu-global-mouse-menu).
+	(calendar-mouse-view-diary-entries): Minor simplifications.
+	(calendar-event-to-date): Use with-current-buffer.
+
+2007-07-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* add-log.el (change-log-redate): Remove (not needed anymore and
+	doesn't appear to work).
+
+2007-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el: Use mapc and dolist instead of mapcar where possible.
+	(close-display-connection): New command.
+
+2007-07-25  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-log-view-mode): Port to the multi-file vc interface.
+	(vc-git-create-snapshot, vc-git-retrieve-snapshot): New functions.
+
+2007-07-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-multibyte-buffer): Docstring fix.
+
+	* ps-mule.el: Doc fix.
+	(ps-multibyte-buffer, ps-mule-font-info-database-default)
+	(ps-mule-external-libraries, ps-mule-begin-job): Docstring fix.
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-tex.el (cal-tex-which-days, cal-tex-holidays)
+	(cal-tex-diary, cal-tex-daily-string, cal-tex-daily-start)
+	(cal-tex-daily-end, cal-tex-hook)
+	(cal-tex-cal-one-month, cal-tex-cal-multi-month)
+	(cal-tex-year, cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-week-hours)
+	(cal-tex-cursor-week-monday, cal-tex-weekly4-box)
+	(cal-tex-cursor-day, cal-tex-insert-preamble): Doc fix.
+	(cal-tex-day-prefix, cal-tex-day-name-format)
+	(cal-tex-cal-one-month, cal-tex-cal-multi-month, cal-tex-myday)
+	(cal-tex-caldate, cal-tex-LaTeX-hourbox)
+	(cal-tex-LaTeX-subst-list): Change from variables to constants.
+	(cal-tex-preamble, cal-tex-arg, cal-tex-nl): Simplify with `format'.
+	(cal-tex-cursor-filofax-year, cal-tex-weekly4-box): Use \textbf,
+	etc, rather than \bf.
+	(cal-tex-mini-calendar): Fix typos in previous change.
+	(cal-tex-latexify-list): Remove inner let binding.
+	(cal-tex-end-document, cal-tex-banner): Use multi-line
+	cal-tex-comment.
+	(cal-tex-comment): Handle embedded newlines.
+	(cal-tex-LaTeXify-string): Use substring-no-properties.
+
+2007-07-25  Joakim Verona  <joakim@verona.se>  (tiny change)
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add support for the Maden build tool.
+
+2007-07-25  William Xu  <william.xwl@gmail.com>  (tiny change)
+
+	* net/webjump.el (webjump-url-encode): Fix for non-ASCII characters.
+
+2007-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer): Disable undo in temp buffers.
+
+2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dired.el (dired-mode-map): Bind wdired-change-to-wdired-mode to
+	C-x C-q.
+
+	* vc-git.el (vc-git-print-log): Fix previous change.
+
+2007-07-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (save-selected-window): Minor optimization.
+	(bw-adjust-window): If operation failed, try with a smaller delta.
+	(window-fixed-size-p): New function.
+	(window-area-factor): New var.
+	(balance-windows-area): New command.
+
+	* ps-mule.el (ps-multibyte-buffer): Docstring fixes.
+	(ps-mule-encode-ethiopic): Make it clear that it's always defined.
+	(ps-mule-prepare-font-for-components, ps-mule-encode-header-string)
+	(ps-mule-encode-bit, ps-mule-encode-ucs2): Use dotimes.
+	(ps-mule-begin-job): Use dolist.
+
+2007-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* subr.el (start-file-process-shell-command)
+	(process-file-shell-command): New defuns.
+
+	* progmodes/compile.el (compilation-start):
+	Apply `start-file-process-shell-command'.
+
+2007-07-24  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-checkout, vc-directory-exclusion-list): Fix typos.
+
+2007-07-24  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
+	Initialise byte-compile-unresolved-functions before rather than
+	after a compilation.
+	(byte-compile-unresolved-functions): Amplify doc string.
+
+2007-07-24  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (normal-splash-screen): Use `emacs-copyright'.
+
+	* calendar/cal-tex.el (cal-tex-holidays, cal-tex-diary)
+	(cal-tex-rules, cal-tex-buffer, cal-tex-24)
+	(cal-tex-cursor-month-landscape, cal-tex-cursor-month)
+	(cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-week-hours)
+	(cal-tex-cursor-week-monday, cal-tex-weekly4-box)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-filofax-daily, cal-tex-daily-page): Doc fix.
+
+	* calendar/cal-tex.el: Remove leading `*' from defcustom docs.
+	(cal-tex-daily-string, cal-tex-daily-start, cal-tex-daily-end)
+	(cal-tex-day-name-format, cal-tex-cal-one-month)
+	(cal-tex-cal-multi-month, cal-tex-myday, cal-tex-preamble)
+	(cal-tex-comment, cal-tex-nl, cal-tex-cmd, cal-tex-e-parbox)
+	(cal-tex-mini-calendar, cal-tex-em): Doc fix.
+	(cal-tex-list-holidays, cal-tex-cursor-year)
+	(cal-tex-cursor-year-landscape, cal-tex-year)
+	(cal-tex-cursor-filofax-year, cal-tex-cursor-month-landscape)
+	(cal-tex-cursor-month, cal-tex-insert-days)
+	(cal-tex-insert-day-names, cal-tex-insert-blank-days)
+	(cal-tex-first-blank-p, cal-tex-cursor-week)
+	(cal-tex-cursor-week2, cal-tex-cursor-week-iso)
+	(cal-tex-week-hours, cal-tex-cursor-week-monday)
+	(cal-tex-weekly4-box, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week, cal-tex-cursor-filofax-daily)
+	(cal-tex-cursor-day, cal-tex-daily-page, cal-tex-mini-calendar)
+	(cal-tex-latexify-list, cal-tex-previous-month)
+	(cal-tex-next-month, cal-tex-insert-preamble): General tidy-up and
+	modernization, including using dotimes rather than
+	calendar-for-loop.
+	(cal-tex-LaTeX-subst-list): Remove `@'.
+	(cal-tex-em, cal-tex-bf, cal-tex-Huge-bf, cal-tex-large-bf):
+	Use \textit and \textbf rather than \em and \it.
+
+	* calendar/cal-bahai.el (list-bahai-diary-entries)
+	* calendar/cal-hebrew.el (list-hebrew-diary-entries)
+	* calendar/cal-islam.el (list-islamic-diary-entries)
+	* calendar/calendar.el (generate-calendar, generate-calendar-month)
+	* calendar/diary-lib.el (diary-list-entries)
+	(mark-calendar-date-pattern): Use `dotimes' rather than
+	`calendar-for-loop'.
+
+	* calendar/calendar.el (calendar-for-loop): Doc fix.
+
 2007-07-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
@@ -12,12 +442,12 @@
 	* vc-hooks.el (vc-mode-line-map): New const.
 	(vc-mode-line): Use it.
 
-2007-07-23  Alexandre Julliard <julliard@winehq.org>
+2007-07-23  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-delete-file, vc-git-rename-file)
 	(vc-git-unregister): New functions.
 	(vc-git-find-version): Use the result of ls-files as a parameter
-	for cat-file
+	for cat-file.
 
 2007-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -63,12 +493,12 @@
 2007-07-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-checkin): Delete unused parameter and the code
-	handling it. Use vc-git-command.
+	handling it.  Use vc-git-command.
 	(vc-git-find-version, vc-git-diff-tree): New functions.
 	(vc-git-revert): Use vc-git-command.
 	(vc-git--run-command): Delete.
 
-2007-07-23  Alexandre Julliard <julliard@winehq.org>
+2007-07-23  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-workfile-unchanged-p): Update comment.
 
@@ -155,7 +585,7 @@
 	(reftex-access-parse-file): Do not risk destroying an existing
 	buffer.
 
-2007-07-22  Alexandre Julliard <julliard@winehq.org>
+2007-07-22  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el: New file.
 
@@ -170,7 +600,7 @@
 
 	* vc-hooks.el (vc-default-mode-line-string): Move mouse-face and
 	local-map handling ...
-	(vc-mode-line): ... here. Improve handling of help-echo.
+	(vc-mode-line): ... here.  Improve handling of help-echo.
 
 	* vc.el (mode-line-string): Document help-echo usage.
 
@@ -192,8 +622,8 @@
 
 	* add-log.el (change-log-fill-parenthesized-list): New function.
 	(change-log-indent): Call change-log-fill-parenthesized-list.
-	(change-log-fill-paragraph): Bind fill-indent-according-to-mode to
-	t.  Have lines with leading asterisk start a paragraph.
+	(change-log-fill-paragraph): Bind fill-indent-according-to-mode to t.
+	Have lines with leading asterisk start a paragraph.
 
 2007-07-21  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -537,8 +967,7 @@
 
 	* replace.el (match): Use yellow1 instead of yellow.
 
-	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
-	red.
+	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of red.
 
 	* pcvs-info.el (cvs-unknown): Likewise.
 
@@ -547,7 +976,7 @@
 	* makefile.w32-in (install-lisp-SH, install-lisp-CMD): New targets.
 	(install): Use them to copy all *.el files before *.elc.
 
-2007-07-13  Drew Adams <drew.adams@oracle.com>
+2007-07-13  Drew Adams  <drew.adams@oracle.com>
 
 	* bookmark.el (bookmark-jump-other-window): New function.
 	(bookmark-map): Bind it to "o".
@@ -1699,7 +2128,7 @@
 2007-06-13  Ryan Yeske  <rcyeske@gmail.com>
 
 	* rcirc.el (rcirc-format-response-string): Use rcirc-nick-syntax
-	around bright and dim regexps. Make sure bright and dim matches
+	around bright and dim regexps.  Make sure bright and dim matches
 	use word anchors.  Send text through rcirc-markup functions.
 	(rcirc-url-regexp): Add single quote character.
 	(rcirc-connect): Write logs to disk on auto-save-hook.
@@ -1720,7 +2149,7 @@
 	(rcirc-handler-CTCP): Don't print KEEPALIVE responses.
 	(rcirc-omit-mode): Add minor-mode.
 	(rcirc-mode-map): Change C-c C-o binding.
-	(rcirc-mode): Clear mode-line-process. Use a custom
+	(rcirc-mode): Clear mode-line-process.  Use a custom
 	fill-paragraph-function.  Set up buffer-invisibility-spec.
 	(rcirc-response-formats): Remove timestamp code.
 	(rcirc-omit-responses): Add variable.
@@ -1857,7 +2286,7 @@
 	(ediff-verbose-help-enabled): New variable.
 	(ediff-toggle-verbose-help-meta-buffer): New function.
 	(ediff-redraw-directory-group-buffer): Made aware of short/verbose
-	message options
+	message options.
 
 	* ediff-ptch.el (ediff-context-diff-label-regexp): Better regexp.
 	(ediff-fixup-patch-map): Improve heuristic.
@@ -2785,7 +3214,7 @@ See ChangeLog.12 for earlier changes.
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,

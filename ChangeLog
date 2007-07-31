@@ -1,3 +1,14 @@
+2007-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (install-arch-indep): Use "rm -f" for removing DOC,
+	to avoid an error message if there is no DOC there.
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
+	* COPYING, info/COPYING: Switch to GPLv3.
+
 2007-06-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Complain if X seems to be installed but no
@@ -6561,7 +6572,7 @@
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,

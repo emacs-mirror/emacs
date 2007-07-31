@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -459,12 +459,12 @@ there (in decreasing order of priority)."
 	    ;; variable must be handled similarly.
 	    (let ((users-of-initial
 		   (filtered-frame-list
-		    (function (lambda (frame)
-				(and (not (eq frame frame-initial-frame))
-				     (eq (window-frame
-					  (minibuffer-window frame))
-					 frame-initial-frame)))))))
-	      (if (or users-of-initial
+                    (lambda (frame)
+                      (and (not (eq frame frame-initial-frame))
+                           (eq (window-frame
+                                (minibuffer-window frame))
+                               frame-initial-frame))))))
+              (if (or users-of-initial
 		      (eq default-minibuffer-frame frame-initial-frame))
 
 		  ;; Choose an appropriate frame.  Prefer frames which
@@ -472,11 +472,10 @@ there (in decreasing order of priority)."
 		  (let* ((new-surrogate
 			  (car
 			   (or (filtered-frame-list
-				(function
-				 (lambda (frame)
-				   (eq (cdr (assq 'minibuffer
-						  (frame-parameters frame)))
-				       'only))))
+                                (lambda (frame)
+                                  (eq (cdr (assq 'minibuffer
+                                                 (frame-parameters frame)))
+                                      'only)))
 			       (minibuffer-frame-list))))
 			 (new-minibuffer (minibuffer-window new-surrogate)))
 
@@ -485,14 +484,11 @@ there (in decreasing order of priority)."
 
 		    ;; Wean the frames using frame-initial-frame as
 		    ;; their minibuffer frame.
-		    (mapcar
-		     (function
-		      (lambda (frame)
-			(modify-frame-parameters
-			 frame (list (cons 'minibuffer new-minibuffer)))))
-		     users-of-initial))))
+		    (dolist (frame users-of-initial)
+                      (modify-frame-parameters
+                       frame (list (cons 'minibuffer new-minibuffer)))))))
 
-	   ;; Redirect events enqueued at this frame to the new frame.
+            ;; Redirect events enqueued at this frame to the new frame.
 	    ;; Is this a good idea?
 	    (redirect-frame-focus frame-initial-frame new)
 
@@ -632,6 +628,36 @@ additional frame parameters."
     (error "Invalid terminal type"))
   (make-frame `((window-system . nil) (tty . ,tty) (tty-type . ,type) . ,parameters)))
 
+(defun close-display-connection (display)
+  "Close the connection to a display, deleting all its associated frames.
+For DISPLAY, specify either a frame or a display name (a string).
+If DISPLAY is nil, that stands for the selected frame's display."
+  (interactive
+   (list
+    (let* ((default (frame-parameter nil 'display))
+           (display (completing-read
+                     (format "Close display (default %s): " default)
+                     (delete-dups
+                      (mapcar (lambda (frame)
+                                (frame-parameter frame 'display))
+                              (frame-list)))
+                     nil t nil nil
+                     default)))
+      (if (zerop (length display)) default display))))
+  (let ((frames (delq nil
+                      (mapcar (lambda (frame)
+                                (if (equal display
+                                           (frame-parameter frame 'display))
+                                    frame))
+                              (frame-list)))))
+    (if (and (consp frames)
+             (not (y-or-n-p (if (cdr frames)
+                                (format "Delete %s frames? " (length frames))
+                              (format "Delete %s ? " (car frames))))))
+        (error "Abort!")
+      (mapc 'delete-frame frames)
+      (x-close-connection display))))
+
 (defun make-frame-command ()
   "Make a new frame, and select it if the terminal displays only one frame."
   (interactive)
@@ -733,8 +759,8 @@ setup is for focus to follow the pointer."
 (defun minibuffer-frame-list ()
   "Return a list of all frames with their own minibuffers."
   (filtered-frame-list
-   (function (lambda (frame)
-	       (eq frame (window-frame (minibuffer-window frame)))))))
+   (lambda (frame)
+     (eq frame (window-frame (minibuffer-window frame))))))
 
 (defun frames-on-display-list (&optional terminal)
   "Return a list of all frames on TERMINAL.
@@ -902,11 +928,10 @@ where
   ALIST is an association list specifying some of FRAME's parameters, and
   WINDOW-CONFIG is a window configuration object for FRAME."
   (cons 'frame-configuration
-	(mapcar (function
-		 (lambda (frame)
-		   (list frame
-			 (frame-parameters frame)
-			 (current-window-configuration frame))))
+	(mapcar (lambda (frame)
+                  (list frame
+                        (frame-parameters frame)
+                        (current-window-configuration frame)))
 		(frame-list))))
 
 (defun set-frame-configuration (configuration &optional nodelete)
@@ -923,29 +948,28 @@ is given and non-nil, the unwanted frames are iconified instead."
 	      (list 'frame-configuration-p configuration)))
   (let ((config-alist (cdr configuration))
 	frames-to-delete)
-    (mapcar (function
-	     (lambda (frame)
-	       (let ((parameters (assq frame config-alist)))
-		 (if parameters
-		     (progn
-		       (modify-frame-parameters
-			frame
-			;; Since we can't set a frame's minibuffer status,
-			;; we might as well omit the parameter altogether.
-			(let* ((parms (nth 1 parameters))
-			       (mini (assq 'minibuffer parms)))
-			  (if mini (setq parms (delq mini parms)))
-			  parms))
-		       (set-window-configuration (nth 2 parameters)))
-		   (setq frames-to-delete (cons frame frames-to-delete))))))
-	    (frame-list))
-    (if nodelete
-	;; Note: making frames invisible here was tried
-	;; but led to some strange behavior--each time the frame
-	;; was made visible again, the window manager asked afresh
-	;; for where to put it.
-	(mapcar 'iconify-frame frames-to-delete)
-      (mapcar 'delete-frame frames-to-delete))))
+    (dolist (frame (frame-list))
+      (let ((parameters (assq frame config-alist)))
+        (if parameters
+            (progn
+              (modify-frame-parameters
+               frame
+               ;; Since we can't set a frame's minibuffer status,
+               ;; we might as well omit the parameter altogether.
+               (let* ((parms (nth 1 parameters))
+                      (mini (assq 'minibuffer parms)))
+                 (if mini (setq parms (delq mini parms)))
+                 parms))
+              (set-window-configuration (nth 2 parameters)))
+          (setq frames-to-delete (cons frame frames-to-delete)))))
+    (mapc (if nodelete
+              ;; Note: making frames invisible here was tried
+              ;; but led to some strange behavior--each time the frame
+              ;; was made visible again, the window manager asked afresh
+              ;; for where to put it.
+              'iconify-frame
+            'delete-frame)
+          frames-to-delete)))
 
 ;;;; Convenience functions for accessing and interactively changing
 ;;;; frame parameters.
@@ -973,12 +997,11 @@ pixels) is kept by adjusting the numbers of the lines and columns."
   (interactive
    (let* ((completion-ignore-case t)
 	  (font (completing-read "Font name: "
-			 (mapcar #'list
 				 ;; x-list-fonts will fail with an error
 				 ;; if this frame doesn't support fonts.
-				 (x-list-fonts "*" nil (selected-frame)))
-			 nil nil nil nil
-			 (frame-parameter nil 'font))))
+				 (x-list-fonts "*" nil (selected-frame))
+                                 nil nil nil nil
+                                 (frame-parameter nil 'font))))
      (list font current-prefix-arg)))
   (let (fht fwd)
     (if keep-size

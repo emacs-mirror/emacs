@@ -1,16 +1,16 @@
-;;; -*- coding: iso-2022-7bit; -*-
+;;; -*- coding: utf-8; -*-
 ;;; tramp-uu.el --- uuencode in Lisp
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
 ;;   2007 Free Software Foundation, Inc.
 
-;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
+;; Author: Kai Groﬂjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, terminals
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3 of the License, or
-;; (at your option) any later version.
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of

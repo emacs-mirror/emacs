@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -141,9 +141,9 @@
 
 (require 'cus-face)
 (require 'wid-edit)
-(eval-when-compile
-  (defvar custom-versions-load-alist)	; from cus-load
-  (defvar recentf-exclude))		; from recentf.el
+
+(defvar custom-versions-load-alist)	; from cus-load
+(defvar recentf-exclude)		; from recentf.el
 
 (condition-case nil
     (require 'cus-load)
@@ -1032,22 +1032,20 @@ then prompt for the MODE to customize."
 			  t nil nil (if group (symbol-name major-mode))))))))
   (customize-group (custom-group-of-mode mode)))
 
+(defun customize-read-group ()
+  (let ((completion-ignore-case t))
+    (completing-read "Customize group (default emacs): "
+                     obarray
+                     (lambda (symbol)
+                       (or (and (get symbol 'custom-loads)
+                                (not (get symbol 'custom-autoload)))
+                           (get symbol 'custom-group)))
+                     t)))
 
 ;;;###autoload
-(defun customize-group (&optional group prompt-for-group other-window)
+(defun customize-group (&optional group)
   "Customize GROUP, which must be a customization group."
-  (interactive)
-  (and (null group)
-       (or prompt-for-group (called-interactively-p))
-       (let ((completion-ignore-case t))
-	 (setq group
-	       (completing-read "Customize group (default emacs): "
-				obarray
-				(lambda (symbol)
-				  (or (and (get symbol 'custom-loads)
-					   (not (get symbol 'custom-autoload)))
-				      (get symbol 'custom-group)))
-				t))))
+  (interactive (list (customize-read-group)))
   (when (stringp group)
     (if (string-equal "" group)
 	(setq group 'emacs)
@@ -1055,25 +1053,21 @@ then prompt for the MODE to customize."
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
-	(if other-window
-	    (let ((pop-up-windows t)
-		  (same-window-buffer-names nil)
-		  (same-window-regexps nil))
-	      (pop-to-buffer name))
-	  (pop-to-buffer name))
-      (funcall (if other-window
-		   'custom-buffer-create-other-window
-		 'custom-buffer-create)
-	       (list (list group 'custom-group))
-	       name
-	       (concat " for group "
-		       (custom-unlispify-tag-name group))))))
+        (pop-to-buffer name)
+      (custom-buffer-create
+       (list (list group 'custom-group))
+       name
+       (concat " for group "
+               (custom-unlispify-tag-name group))))))
 
 ;;;###autoload
 (defun customize-group-other-window (&optional group)
   "Customize GROUP, which must be a customization group, in another window."
-  (interactive)
-  (customize-group group t t))
+  (interactive (list (customize-read-group)))
+  (let ((pop-up-windows t)
+        (same-window-buffer-names nil)
+        (same-window-regexps nil))
+    (customize-group group)))
 
 ;;;###autoload
 (defalias 'customize-variable 'customize-option)
@@ -1254,41 +1248,33 @@ Emacs that is associated with version VERSION of PACKAGE."
 	     (< minor1 minor2)))))
 
 ;;;###autoload
-(defun customize-face (&optional face prompt-for-face other-window)
+(defun customize-face (&optional face)
   "Customize FACE, which should be a face name or nil.
 If FACE is nil, customize all faces.  If FACE is actually a
 face-alias, customize the face it is aliased to.
 
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
-  (interactive)
-  (and (null face)
-       (or prompt-for-face (called-interactively-p))
-       (setq face (read-face-name "Customize face" "all faces" t)))
+  (interactive (list (read-face-name "Customize face" "all faces" t)))
   (if (member face '(nil ""))
       (setq face (face-list)))
   (if (and (listp face) (null (cdr face)))
       (setq face (car face)))
-  (let ((create-buffer-fn (if other-window
-			      'custom-buffer-create-other-window
-			    'custom-buffer-create)))
-    (if (listp face)
-	(funcall create-buffer-fn
-		 (custom-sort-items
-		  (mapcar (lambda (s)
-			    (list s 'custom-face))
-			  face)
-		  t nil)
-		 "*Customize Faces*")
-      ;; If FACE is actually an alias, customize the face it is aliased to.
-      (if (get face 'face-alias)
-	  (setq face (get face 'face-alias)))
-      (unless (facep face)
-	(error "Invalid face %S" face))
-      (funcall create-buffer-fn
-	       (list (list face 'custom-face))
-	       (format "*Customize Face: %s*"
-		       (custom-unlispify-tag-name face))))))
+  (if (listp face)
+      (custom-buffer-create
+       (custom-sort-items
+        (mapcar (lambda (s) (list s 'custom-face)) face)
+        t nil)
+       "*Customize Faces*")
+    ;; If FACE is actually an alias, customize the face it is aliased to.
+    (if (get face 'face-alias)
+        (setq face (get face 'face-alias)))
+    (unless (facep face)
+      (error "Invalid face %S" face))
+    (custom-buffer-create
+     (list (list face 'custom-face))
+     (format "*Customize Face: %s*"
+             (custom-unlispify-tag-name face)))))
 
 ;;;###autoload
 (defun customize-face-other-window (&optional face)
@@ -1297,8 +1283,11 @@ If FACE is actually a face-alias, customize the face it is aliased to.
 
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
-  (interactive)
-  (customize-face face t t))
+  (interactive (list (read-face-name "Customize face" "all faces" t)))
+  (let ((pop-up-windows t)
+        (same-window-buffer-names nil)
+        (same-window-regexps nil))
+    (customize-face face)))
 
 (defalias 'customize-customized 'customize-unsaved)
 
@@ -4025,7 +4014,7 @@ Optional EVENT is the location for the menu."
 
 (defun custom-group-save (widget)
   "Save all modified group members."
-  (dolist (child (children (widget-get widget :children)))
+  (dolist (child (widget-get widget :children))
     (when (memq (widget-get child :custom-state) '(modified set))
       (widget-apply child :custom-save))))
 

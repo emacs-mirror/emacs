@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -815,7 +815,10 @@ header line with the old Message-ID."
 	       (set-buffer ,gnus-summary-buffer)
 	       (gnus-cache-possibly-remove-article ,article nil nil nil t)
 	       (gnus-summary-mark-as-read ,article gnus-canceled-mark)))))
-       message-send-actions))))
+       message-send-actions)
+      ;; Add Gcc header.
+      (gnus-inews-insert-archive-gcc)
+      (gnus-inews-insert-gcc))))
 
 
 
@@ -1280,10 +1283,13 @@ composing a new message."
 	(message-narrow-to-head-1)
 	;; Gnus will generate a new one when sending.
 	(message-remove-header "Message-ID")
-	(message-remove-header message-ignored-resent-headers t)
 	;; Remove unwanted headers.
+	(message-remove-header message-ignored-resent-headers t)
 	(goto-char (point-max))
 	(insert mail-header-separator)
+	;; Add Gcc header.
+	(gnus-inews-insert-archive-gcc)
+	(gnus-inews-insert-gcc)
 	(goto-char (point-min))
 	(when (re-search-forward "^To:\\|^Newsgroups:" nil 'move)
 	  (forward-char 1))
@@ -1557,15 +1563,29 @@ If FETCH, try to fetch the article that this is a reply to, if indeed
 this is a reply."
   (interactive "P")
   (gnus-summary-select-article t)
-  (set-buffer gnus-original-article-buffer)
-  (gnus-setup-message 'compose-bounce
-    (let* ((references (mail-fetch-field "references"))
-	   (parent (and references (gnus-parent-id references))))
+  (let (summary-buffer parent)
+    (if fetch
+	(progn
+	  (setq summary-buffer (current-buffer))
+	  (set-buffer gnus-original-article-buffer)
+	  (article-goto-body)
+	  (when (re-search-forward "^References:\n?" nil t)
+	    (while (memq (char-after) '(?\t ? ))
+	      (forward-line 1))
+	    (skip-chars-backward "\t\n ")
+	    (setq parent
+		  (gnus-parent-id (buffer-substring (match-end 0) (point))))))
+      (set-buffer gnus-original-article-buffer))
+    (gnus-setup-message 'compose-bounce
       (message-bounce)
+      ;; Add Gcc header.
+      (gnus-inews-insert-archive-gcc)
+      (gnus-inews-insert-gcc)
       ;; If there are references, we fetch the article we answered to.
-      (and fetch parent
-	   (gnus-summary-refer-article parent)
-	   (gnus-summary-show-all-headers)))))
+      (when parent
+	(with-current-buffer summary-buffer
+	  (gnus-summary-refer-article parent)
+	  (gnus-summary-show-all-headers))))))
 
 ;;; Gcc handling.
 

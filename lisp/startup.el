@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -1566,8 +1566,7 @@ Getting New Versions	How to obtain the latest version of Emacs
 More Manuals / Ordering Manuals    How to order printed manuals from the FSF
 ")
                 (insert "\n\n" (emacs-version)
-                        "
-Copyright (C) 2007 Free Software Foundation, Inc."))
+                        "\n" emacs-copyright))
 
 	    ;; No mouse menus, so give help using kbd commands.
 
@@ -1613,9 +1612,8 @@ Activate menubar     \\[tmm-menubar]")))
 \(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
 If you have no Meta key, you may instead type ESC followed by the character.)")
 
-	    (insert "\n\n" (emacs-version)
-		    "
-Copyright (C) 2007 Free Software Foundation, Inc.")
+            (insert "\n\n" (emacs-version)
+                    "\n" emacs-copyright)
 
 	    (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 		     (eq (key-binding "\C-h\C-d") 'describe-distribution)

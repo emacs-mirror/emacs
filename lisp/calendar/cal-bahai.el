@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -63,19 +63,19 @@
 
 (require 'cal-julian)
 
-(defvar bahai-calendar-month-name-array
+(defconst calendar-bahai-month-name-array
   ["Baha" "Jalal" "Jamal" "`Azamat" "Nur" "Rahmat" "Kalimat" "Kamal"
    "Asma" "`Izzat" "Mashiyyat" "`Ilm" "Qudrat" "Qawl" "Masa'il"
    "Sharaf" "Sultan" "Mulk" "`Ala"])
 
-(defvar calendar-bahai-epoch (calendar-absolute-from-gregorian '(3 21 1844))
+(defconst calendar-bahai-epoch (calendar-absolute-from-gregorian '(3 21 1844))
   "Absolute date of start of Baha'i calendar = March 19, 622 A.D. (Julian).")
 
-(defun bahai-calendar-leap-year-p (year)
+(defun calendar-bahai-leap-year-p (year)
   "True if YEAR is a leap year on the Baha'i calendar."
   (calendar-leap-year-p (+ year 1844)))
 
-(defvar bahai-calendar-leap-base
+(defconst calendar-bahai-leap-base
   (+ (/ 1844 4) (- (/ 1844 100)) (/ 1844 400)))
 
 (defun calendar-absolute-from-bahai (date)
@@ -89,7 +89,7 @@ Gregorian date Sunday, December 31, 1 BC."
 	 (leap-days (- (+ (/ prior-years 4) ; Leap days in prior years.
 			  (- (/ prior-years 100))
 			  (/ prior-years 400))
-		       bahai-calendar-leap-base)))
+		       calendar-bahai-leap-base)))
     (+ (1- calendar-bahai-epoch)	; Days before epoch
        (* 365 (1- year))		; Days in prior years.
        leap-days
@@ -131,10 +131,10 @@ Defaults to today's date if DATE is not given."
 	   (if (and (= m 19)
 		    (<= d 0))
 	       "Ayyam-i-Ha"
-	     (aref bahai-calendar-month-name-array (1- m))))
+	     (aref calendar-bahai-month-name-array (1- m))))
 	  (day (int-to-string
 		(if (<= d 0)
-		    (if (bahai-calendar-leap-year-p y)
+		    (if (calendar-bahai-leap-year-p y)
 			(+ d 5)
 		      (+ d 4))
 		  d)))
@@ -152,12 +152,12 @@ Defaults to today's date if DATE is not given."
 (defun calendar-goto-bahai-date (date &optional noecho)
   "Move cursor to Baha'i date DATE.
 Echo Baha'i date unless NOECHO is t."
-  (interactive (bahai-prompt-for-date))
+  (interactive (calendar-bahai-prompt-for-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-bahai date)))
   (or noecho (calendar-print-bahai-date)))
 
-(defun bahai-prompt-for-date ()
+(defun calendar-bahai-prompt-for-date ()
   "Ask for a Baha'i date."
   (let* ((today (calendar-current-date))
          (year (calendar-read
@@ -172,9 +172,9 @@ Echo Baha'i date unless NOECHO is t."
                        (completing-read
                         "Baha'i calendar month name: "
                         (mapcar 'list
-                                (append bahai-calendar-month-name-array nil))
+                                (append calendar-bahai-month-name-array nil))
                         nil t)
-                      (calendar-make-alist bahai-calendar-month-name-array
+                      (calendar-make-alist calendar-bahai-month-name-array
                                            1))))
          (day (calendar-read "Baha'i calendar day (1-19): "
 			     '(lambda (x) (and (< 0 x) (<= x 19))))))
@@ -204,7 +204,7 @@ nil if it is not visible in the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
-(defun list-bahai-diary-entries ()
+(defun diary-list-bahai-entries ()
   "Add any Baha'i date entries from the diary file to `diary-entries-list'.
 Baha'i date diary entries must be prefaced by an
 `bahai-diary-entry-symbol' (normally a `B').  The same diary date
@@ -220,77 +220,77 @@ calendar.  This function is provided for use with the
             (diary-modified (buffer-modified-p))
             (gdate original-date)
             (mark (regexp-quote diary-nonmarking-symbol)))
-        (calendar-for-loop i from 1 to number do
-           (let* ((d diary-date-forms)
-                  (bdate (calendar-bahai-from-absolute
-                          (calendar-absolute-from-gregorian gdate)))
-                  (month (extract-calendar-month bdate))
-                  (day (extract-calendar-day bdate))
-                  (year (extract-calendar-year bdate)))
-             (while d
-               (let*
-                   ((date-form (if (equal (car (car d)) 'backup)
-                                   (cdr (car d))
-                                 (car d)))
-                    (backup (equal (car (car d)) 'backup))
-                    (dayname
-                     (concat
-                      (calendar-day-name gdate) "\\|"
-                      (substring (calendar-day-name gdate) 0 3) ".?"))
-                    (calendar-month-name-array
-                     bahai-calendar-month-name-array)
-                    (monthname
-                     (concat
-                      "\\*\\|"
-                      (calendar-month-name month)))
-                    (month (concat "\\*\\|0*" (int-to-string month)))
-                    (day (concat "\\*\\|0*" (int-to-string day)))
-                    (year
-                     (concat
-                      "\\*\\|0*" (int-to-string year)
-                      (if abbreviated-calendar-year
-                          (concat "\\|" (int-to-string (% year 100)))
-                        "")))
-                    (regexp
-                     (concat
-                      "\\(\\`\\|\^M\\|\n\\)" mark "?"
-                      (regexp-quote bahai-diary-entry-symbol)
-                      "\\("
-                      (mapconcat 'eval date-form "\\)\\(")
-                      "\\)"))
-                    (case-fold-search t))
-                 (goto-char (point-min))
-                 (while (re-search-forward regexp nil t)
-                   (if backup (re-search-backward "\\<" nil t))
-                   (if (and (or (char-equal (preceding-char) ?\^M)
-                                (char-equal (preceding-char) ?\n))
-                            (not (looking-at " \\|\^I")))
-                       ;;  Diary entry that consists only of date.
-                       (backward-char 1)
-                     ;;  Found a nonempty diary entry--make it visible and
-                     ;;  add it to the list.
-                     (let ((entry-start (point))
-                           (date-start))
-                       (re-search-backward "\^M\\|\n\\|\\`")
-                       (setq date-start (point))
-                       (re-search-forward "\^M\\|\n" nil t 2)
-                       (while (looking-at " \\|\^I")
-                         (re-search-forward "\^M\\|\n" nil t))
-                       (backward-char 1)
-                       (subst-char-in-region date-start (point) ?\^M ?\n t)
-                       (add-to-diary-list
-                        gdate
-                        (buffer-substring-no-properties entry-start (point))
-                        (buffer-substring-no-properties
-                         (1+ date-start) (1- entry-start)))))))
-               (setq d (cdr d))))
-           (setq gdate
-                 (calendar-gregorian-from-absolute
-                  (1+ (calendar-absolute-from-gregorian gdate)))))
-           (set-buffer-modified-p diary-modified))
-        (goto-char (point-min))))
+        (dotimes (idummy number)
+          (let* ((d diary-date-forms)
+                 (bdate (calendar-bahai-from-absolute
+                         (calendar-absolute-from-gregorian gdate)))
+                 (month (extract-calendar-month bdate))
+                 (day (extract-calendar-day bdate))
+                 (year (extract-calendar-year bdate)))
+            (while d
+              (let*
+                  ((date-form (if (equal (car (car d)) 'backup)
+                                  (cdr (car d))
+                                (car d)))
+                   (backup (equal (car (car d)) 'backup))
+                   (dayname
+                    (concat
+                     (calendar-day-name gdate) "\\|"
+                     (substring (calendar-day-name gdate) 0 3) ".?"))
+                   (calendar-month-name-array
+                    calendar-bahai-month-name-array)
+                   (monthname
+                    (concat
+                     "\\*\\|"
+                     (calendar-month-name month)))
+                   (month (concat "\\*\\|0*" (int-to-string month)))
+                   (day (concat "\\*\\|0*" (int-to-string day)))
+                   (year
+                    (concat
+                     "\\*\\|0*" (int-to-string year)
+                     (if abbreviated-calendar-year
+                         (concat "\\|" (int-to-string (% year 100)))
+                       "")))
+                   (regexp
+                    (concat
+                     "\\(\\`\\|\^M\\|\n\\)" mark "?"
+                     (regexp-quote bahai-diary-entry-symbol)
+                     "\\("
+                     (mapconcat 'eval date-form "\\)\\(")
+                     "\\)"))
+                   (case-fold-search t))
+                (goto-char (point-min))
+                (while (re-search-forward regexp nil t)
+                  (if backup (re-search-backward "\\<" nil t))
+                  (if (and (or (char-equal (preceding-char) ?\^M)
+                               (char-equal (preceding-char) ?\n))
+                           (not (looking-at " \\|\^I")))
+                      ;;  Diary entry that consists only of date.
+                      (backward-char 1)
+                    ;;  Found a nonempty diary entry--make it visible and
+                    ;;  add it to the list.
+                    (let ((entry-start (point))
+                          (date-start))
+                      (re-search-backward "\^M\\|\n\\|\\`")
+                      (setq date-start (point))
+                      (re-search-forward "\^M\\|\n" nil t 2)
+                      (while (looking-at " \\|\^I")
+                        (re-search-forward "\^M\\|\n" nil t))
+                      (backward-char 1)
+                      (subst-char-in-region date-start (point) ?\^M ?\n t)
+                      (add-to-diary-list
+                       gdate
+                       (buffer-substring-no-properties entry-start (point))
+                       (buffer-substring-no-properties
+                        (1+ date-start) (1- entry-start)))))))
+              (setq d (cdr d))))
+          (setq gdate
+                (calendar-gregorian-from-absolute
+                 (1+ (calendar-absolute-from-gregorian gdate)))))
+        (set-buffer-modified-p diary-modified))
+    (goto-char (point-min))))
 
-(defun mark-bahai-diary-entries ()
+(defun diary-bahai-mark-entries ()
   "Mark days in the calendar window that have Baha'i date diary entries.
 Each entry in diary-file (or included files) visible in the calendar
 window is marked.  Baha'i date entries are prefaced by a
@@ -311,7 +311,7 @@ nongregorian-diary-marking-hook."
            (dayname (diary-name-pattern calendar-day-name-array))
            (monthname
             (concat
-             (diary-name-pattern bahai-calendar-month-name-array t)
+             (diary-name-pattern calendar-bahai-month-name-array t)
              "\\|\\*"))
            (month "[0-9]+\\|\\*")
            (day "[0-9]+\\|\\*")
@@ -395,12 +395,12 @@ nongregorian-diary-marking-hook."
                           (cdr (assoc-string
                                 mm-name
                                 (calendar-make-alist
-                                  bahai-calendar-month-name-array)
+                                  calendar-bahai-month-name-array)
                                 t)))))
-              (mark-bahai-calendar-date-pattern mm dd yy)))))
+              (calendar-bahai-mark-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 
-(defun mark-bahai-calendar-date-pattern (month day year)
+(defun calendar-bahai-mark-date-pattern (month day year)
   "Mark dates in calendar window that conform to Baha'i date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard."
   (save-excursion
@@ -458,12 +458,12 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
-(defun insert-bahai-diary-entry (arg)
+(defun diary-insert-bahai-entry (arg)
   "Insert a diary entry.
 For the Baha'i date corresponding to the date indicated by point.
 Prefix arg will make the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-month-name-array bahai-calendar-month-name-array))
+  (let* ((calendar-month-name-array calendar-bahai-month-name-array))
     (make-diary-entry
      (concat
       bahai-diary-entry-symbol
@@ -474,14 +474,14 @@ Prefix arg will make the entry nonmarking."
        nil t))
      arg)))
 
-(defun insert-monthly-bahai-diary-entry (arg)
+(defun diary-bahai-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Baha'i month corresponding to the date indicated by point.
 Prefix arg will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style '(day " * ") '("* " day )))
-         (calendar-month-name-array bahai-calendar-month-name-array))
+         (calendar-month-name-array calendar-bahai-month-name-array))
     (make-diary-entry
      (concat
       bahai-diary-entry-symbol
@@ -491,7 +491,7 @@ Prefix arg will make the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
-(defun insert-yearly-bahai-diary-entry (arg)
+(defun diary-bahai-insert-yearly-entry (arg)
   "Insert an annual diary entry.
 For the day of the Baha'i year corresponding to the date indicated by point.
 Prefix arg will make the entry nonmarking."
@@ -500,7 +500,7 @@ Prefix arg will make the entry nonmarking."
           (if european-calendar-style
               '(day " " monthname)
             '(monthname " " day)))
-         (calendar-month-name-array bahai-calendar-month-name-array))
+         (calendar-month-name-array calendar-bahai-month-name-array))
     (make-diary-entry
      (concat
       bahai-diary-entry-symbol
@@ -510,7 +510,21 @@ Prefix arg will make the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
+;; Backward compatibility.
+(define-obsolete-function-alias
+  'list-bahai-diary-entries 'diary-list-bahai-entries "23.1")
+(define-obsolete-function-alias
+  'mark-bahai-diary-entries 'diary-mark-bahai-entries "23.1")
+(define-obsolete-function-alias
+  'insert-bahai-diary-entry 'diary-insert-bahai-entry "23.1")
+(define-obsolete-function-alias
+  'insert-monthly-bahai-diary-entry 'diary-insert-bahai-monthly-entry "23.1")
+(define-obsolete-function-alias
+  'insert-yearly-bahai-diary-entry 'diary-insert-bahai-yearly-entry "23.1")
+(define-obsolete-function-alias
+  'mark-bahai-calendar-date-pattern 'calendar-bahai-mark-date-pattern "23.1")
+
 (provide 'cal-bahai)
 
-;;; arch-tag: c1cb1d67-862a-4264-a01c-41cb4df01f14
+;; arch-tag: c1cb1d67-862a-4264-a01c-41cb4df01f14
 ;;; cal-bahai.el ends here

@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -451,14 +451,12 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 
 (defun webjump-url-encode (str)
   (mapconcat '(lambda (c)
-		(cond ((= c 32) "+")
-		      ((or (and (>= c ?a) (<= c ?z))
-			   (and (>= c ?A) (<= c ?Z))
-			   (and (>= c ?0) (<= c ?9)))
-		       (char-to-string c))
-		      (t (upcase (format "%%%02x" c)))))
-	     str
-	     ""))
+                (let ((s (char-to-string c)))
+                  (cond ((string= s " ") "+")
+                        ((string-match "[a-zA-Z_.-/]" s) s)
+                        (t (upcase (format "%%%02x" c))))))
+             (encode-coding-string str 'utf-8)
+             ""))
 
 (defun webjump-url-fix (url)
   (if (webjump-null-or-blank-string-p url)

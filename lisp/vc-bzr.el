@@ -4,7 +4,7 @@
 
 ;; NOTE: THIS IS A MODIFIED VERSION OF Dave Love's vc-bzr.el,
 ;; which you can find at: http://www.loveshack.ukfsn.org/emacs/vc-bzr.el
-;; I could not get in touch with Dave Love by email, so 
+;; I could not get in touch with Dave Love by email, so
 ;; I am releasing my changes separately. -- Riccardo
 
 ;; Author: Dave Love <fx@gnu.org>, Riccardo Murri <riccardo.murri@gmail.com>
@@ -15,7 +15,7 @@
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
