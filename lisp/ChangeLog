@@ -1,3 +1,7 @@
+2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-window): Add switch-to-buffer-other-frame option.
+
 2007-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el: (vc-directory-exclusion-list, vc-handled-backends):
