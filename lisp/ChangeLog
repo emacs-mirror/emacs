@@ -1,3 +1,9 @@
+2007-07-31  Daiki Ueno  <ueno@unixuser.org>
+
+        * faces.el (face-normalize-spec): New function.
+        (frame-set-background-mode): Normalize face-spec before calling
+        face-spec-match-p.
+
 2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el: New file (copied from the trunk).
