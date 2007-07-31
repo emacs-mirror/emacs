@@ -3,6 +3,7 @@
 	* vc-bzr.el: New file (copied from the trunk).
 
 	* vc-hooks.el (vc-handled-backends): Add BZR.
+	(vc-find-file-hook): Failsafe if the backend's `registered' function burps.
 
 	* server.el (server-window): Add switch-to-buffer-other-frame option.
 
