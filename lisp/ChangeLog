@@ -3,7 +3,7 @@
 	* vc-git.el: (vc-directory-exclusion-list, vc-handled-backends):
 	Remove.
 	(vc-git-revision-completion-table): Enable.
-	
+
 	* vc-hooks.el (vc-handled-backends): Add GIT and HG.
 
 	* vc.el (vc-directory-exclusion-list): Add .git and .hg.
