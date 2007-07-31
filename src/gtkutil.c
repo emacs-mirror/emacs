@@ -3374,11 +3374,6 @@ xg_tool_bar_callback (w, client_data)
   XSETFRAME (frame, f);
   event.kind = TOOL_BAR_EVENT;
   event.frame_or_window = frame;
-  event.arg = frame;
-  kbd_buffer_store_event (&event);
-
-  event.kind = TOOL_BAR_EVENT;
-  event.frame_or_window = frame;
   event.arg = key;
   /* Convert between the modifier bits GDK uses and the modifier bits
      Emacs uses.  This assumes GDK an X masks are the same, which they are when
