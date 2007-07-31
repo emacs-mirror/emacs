@@ -42,6 +42,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** dksw@eircom.net, 3 Jul: Telnet mode (rsh/ssh)
 
+** n_schumacher@web.de, 16 Jul: modification hooks called only once in c-mode
+
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but
