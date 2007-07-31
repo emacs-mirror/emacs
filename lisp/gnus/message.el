@@ -6697,7 +6697,7 @@ you."
 	(goto-char boundary)
 	(when (re-search-backward "^.?From .*\n" nil t)
 	  (delete-region (match-beginning 0) (match-end 0)))))
-    (mm-enable-multibyte)
+    (mime-to-mml)
     (save-restriction
       (message-narrow-to-head-1)
       (message-remove-header message-ignored-bounced-headers t)
