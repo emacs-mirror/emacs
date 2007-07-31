@@ -2354,7 +2354,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 
 (add-hook 'vc-post-command-functions 'cvs-vc-command-advice)
 
-(defun cvs-vc-command-advice (command file flags)
+(defun cvs-vc-command-advice (command files flags)
   (when (and (equal command "cvs")
 	     (progn
 	       (while (and (stringp (car flags))
@@ -2383,9 +2383,10 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 	      (when (and (equal (car flags) "add")
 			 (goto-char (point-min))
 			 (looking-at ".*to add this file permanently\n\\'"))
-		(insert "cvs add: scheduling file `"
-			(file-name-nondirectory file)
-			"' for addition\n"))
+                (dolist (file (if (listp files) files (list file)))
+                  (insert "cvs add: scheduling file `"
+                          (file-name-nondirectory file)
+                          "' for addition\n")))
 	      ;; VC never (?) does `cvs -n update' so dcd=nil
 	      ;; should probably always be the right choice.
 	      (cvs-parse-process nil subdir))))))))
