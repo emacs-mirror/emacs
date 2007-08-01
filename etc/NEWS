@@ -139,13 +139,20 @@ Running processes on a remote host can be controlled by settings in
 When the variable `file-precious-flag' is set, the success of a remote
 file copy is checked via the file's checksum.
 
-** comint-mode uses `start-file-process' now (see Lisp Changes).
+** Miscellaneous programming mode changes
+
+*** The variable `fortran-line-length' can change the fixed-form line-length.
+
+** Miscellaneous
+
+*** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
 
-** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode,
+*** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode,
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
