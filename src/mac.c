@@ -5318,8 +5318,8 @@ init_mac_osx_environment ()
   /* P should have sufficient room for the pathname of the bundle plus
      the subpath in it leading to the respective directories.  Q
      should have three times that much room because EMACSLOADPATH can
-     have the value "<path to lisp dir>:<path to leim dir>:<path to
-     site-lisp dir>".  */
+     have the value "<path to site-lisp dir>:<path to lisp dir>:<path
+     to leim dir>".  */
   p = (char *) alloca (app_bundle_pathname_len + 50);
   q = (char *) alloca (3 * app_bundle_pathname_len + 150);
   if (!getenv ("EMACSLOADPATH"))
