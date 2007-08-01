@@ -1,3 +1,24 @@
+2007-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el: Remove leading `*' from all defcustom doc
+	strings.
+	(fortran-tab-mode-default): Remove needless autoload.
+	(fortran-tab-mode-string): Add help-echo and mouse properties, and
+	mark as risky.
+	(fortran-line-length): New buffer-local variable, safe if integer.
+	(fortran-if-start-re, fortran-end-prog-re1, fortran-end-prog-re):
+	Change from variables to constants.
+	(fortran-font-lock-syntactic-keywords): Delete as a variable,
+	replace with a new function definition.
+	(fortran-mode): Use fortran-line-length, and
+	fortran-font-lock-syntactic-keywords as a function.  Add a
+	hack-local-variables-hook function.
+	(fortran-line-length, fortran-hack-local-variables): New
+	functions.
+	(fortran-window-create, fortran-strip-sequence-nos): Doc fix.  Use
+	fortran-line-length rather than 72.
+	(fortran-window-create-momentarily): Doc fix.
+
 2007-07-31  Drew Adams  <drew.adams@oracle.com>
 
 	* cus-edit.el (custom-group-value-create, custom-goto-parent): Fix
