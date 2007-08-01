@@ -1,3 +1,13 @@
+2007-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Document new VC operation `extra-menu'.
+
+	* vc-hooks.el (vc-default-extra-menu): New function.
+
+	* menu-bar.el (menu-bar-vc-filter): New function.
+	(menu-bar-tools-menu): Use it as a filter.
+
 2007-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/fortran.el: Remove leading `*' from all defcustom doc

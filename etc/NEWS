@@ -96,6 +96,9 @@ considered for update.
 
 *** The VC mode-line entry now has a tooltip.
 
+*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
+This can be used to add menu entries for backend specific functions.
+
 *** VC has some support for Bazaar (bzr).
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.

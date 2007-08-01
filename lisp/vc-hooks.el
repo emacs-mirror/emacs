@@ -950,6 +950,9 @@ Used in `find-file-not-found-functions'."
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
 
+(defun vc-default-extra-menu (backend)
+  nil)
+
 ;; These are not correct and it's not currently clear how doing it
 ;; better (with more complicated expressions) might slow things down
 ;; on older systems.
