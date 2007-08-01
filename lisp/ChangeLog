@@ -1,3 +1,8 @@
+2007-07-31  Drew Adams  <drew.adams@oracle.com>
+
+	* cus-edit.el (custom-group-value-create, custom-goto-parent): Fix
+	parent groups link.
+
 2007-07-31  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* progmodes/python.el (python-current-defun): Adjust to never fall
