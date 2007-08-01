@@ -1,3 +1,8 @@
+2007-07-31  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/python.el (python-current-defun): Adjust to never fall
+	into infinite loop.
+
 2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-vc-command-advice): Handle the new fileset case.
