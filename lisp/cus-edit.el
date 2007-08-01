@@ -3935,7 +3935,7 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		    ;;; was made to display a group.
 	       (when (eq level 1)
 		 (if (custom-add-parent-links widget
-					      "Go to parent group:")
+					      "Parent groups:")
 		     (insert "\n"))))
 	   ;; Create level indicator.
 	   (insert-char ?\  (* custom-buffer-indent (1- level)))
@@ -4531,7 +4531,7 @@ If several parents are listed, go to the first of them."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (if (search-forward "\nGo to parent group: " nil t)
+    (if (search-forward "\nParent groups: " nil t)
 	(let* ((button (get-char-property (point) 'button))
 	       (parent (downcase (widget-get  button :tag))))
 	  (customize-group parent)))))
