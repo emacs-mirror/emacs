@@ -1,3 +1,8 @@
+2007-08-01  Seiji Zenitani  <zenitani@mac.com>
+
+	* mac.c (init_mac_osx_environment): Adjust load-path on self-contained
+	build.
+
 2007-07-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (init_eval_once): Bump max_lisp_eval_depth to 400.

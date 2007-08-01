@@ -5331,12 +5331,12 @@ init_mac_osx_environment ()
       q[0] = '\0';
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/Resources/lisp");
+      strcat (p, "/Contents/Resources/site-lisp");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	strcat (q, p);
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/Resources/leim");
+      strcat (p, "/Contents/Resources/lisp");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	{
 	  if (q[0] != '\0')
@@ -5345,7 +5345,7 @@ init_mac_osx_environment ()
 	}
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/Resources/site-lisp");
+      strcat (p, "/Contents/Resources/leim");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	{
 	  if (q[0] != '\0')
