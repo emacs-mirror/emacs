@@ -8,6 +8,10 @@
 	* menu-bar.el (menu-bar-vc-filter): New function.
 	(menu-bar-tools-menu): Use it as a filter.
 
+2007-08-01  Eric Hanchrow  <offby1@blarg.net>
+
+	* ibuf-ext.el (ibuffer-mark-old-buffers): Docstring fix.
+
 2007-08-01  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/fortran.el: Remove leading `*' from all defcustom doc
