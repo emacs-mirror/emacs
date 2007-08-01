@@ -1,3 +1,8 @@
+2007-08-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Mailing Lists and Bug Reports): Correct "-no-site-file"
+	to "--no-site-file".
+
 2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Point to mode line
