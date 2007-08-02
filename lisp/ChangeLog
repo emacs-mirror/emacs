@@ -8,7 +8,7 @@
 	* menu-bar.el (menu-bar-vc-filter): New function.
 	(menu-bar-tools-menu): Use it as a filter.
 
-2007-08-01  Eric Hanchrow  <offby1@blarg.net>
+2007-08-01  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* ibuf-ext.el (ibuffer-mark-old-buffers): Docstring fix.
 
@@ -33,7 +33,7 @@
 	fortran-line-length rather than 72.
 	(fortran-window-create-momentarily): Doc fix.
 
-2007-07-31  Drew Adams  <drew.adams@oracle.com>
+2007-07-31  Drew Adams  <drew.adams@oracle.com>  (tiny change)
 
 	* cus-edit.el (custom-group-value-create, custom-goto-parent): Fix
 	parent groups link.
