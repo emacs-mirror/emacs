@@ -1,4 +1,4 @@
-2007-08-01  Seiji Zenitani  <zenitani@mac.com>
+2007-08-01  Ryo Yoshitake  <ryo@shiftmode.net>  (tiny change)
 
 	* mac.c (init_mac_osx_environment): Adjust load-path on self-contained
 	build.
