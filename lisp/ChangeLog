@@ -1,3 +1,9 @@
+2007-08-02  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-find-buffer): Return current
+	buffer immediately if suitable.
+	(compile, compilation-buffer-name, compilation-start): Doc fixes.
+
 2007-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-admin-dirstate): Rename from `...-dirname'.
