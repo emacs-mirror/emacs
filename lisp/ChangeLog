@@ -1,3 +1,9 @@
+2007-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (math-sqrt-raw,math-sin-raw-2)
+	(math-cos-raw-2,math-arctan-raw,math-ln-raw):
+	Use native Emacs functions, when appropriate.
+
 2007-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
 	    Stefan Monnier  <monnier@iro.umontreal.ca>
 
