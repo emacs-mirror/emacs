@@ -1,24 +1,33 @@
+2007-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-admin-dirstate): Rename from `...-dirname'.
+	Make it more discriminating and more useful.
+	(vc-bzr-root-dir): Use new name.
+	(vc-bzr-registered): Use new name and look at the dirstate file to
+	determine if it's registered or not without running `bzr'.
+
 2007-08-01  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* ibuf-ext.el (ibuffer-mark-old-buffers): Docstring fix.
 
 2007-07-31  Drew Adams  <drew.adams@oracle.com>  (tiny change)
 
-	* cus-edit.el (custom-group-value-create, custom-goto-parent): Fix
-	parent groups link.
+	* cus-edit.el (custom-group-value-create, custom-goto-parent):
+	Fix parent groups link.
 
 2007-07-31  Daiki Ueno  <ueno@unixuser.org>
 
-        * faces.el (face-normalize-spec): New function.
-        (frame-set-background-mode): Normalize face-spec before calling
-        face-spec-match-p.
+	* faces.el (face-normalize-spec): New function.
+	(frame-set-background-mode): Normalize face-spec before calling
+	face-spec-match-p.
 
 2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el: New file (copied from the trunk).
 
 	* vc-hooks.el (vc-handled-backends): Add BZR.
-	(vc-find-file-hook): Failsafe if the backend's `registered' function burps.
+	(vc-find-file-hook): Failsafe if the backend's `registered'
+	function burps.
 
 	* server.el (server-window): Add switch-to-buffer-other-frame option.
 
