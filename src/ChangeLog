@@ -1,3 +1,7 @@
+2007-08-03  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (Fvisited_file_modtime): Use make_time.
+
 2007-08-01  Ryo Yoshitake  <ryo@shiftmode.net>  (tiny change)
 
 	* mac.c (init_mac_osx_environment): Adjust load-path on self-contained
