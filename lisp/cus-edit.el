@@ -1357,7 +1357,7 @@ If ALL is `groups', include only groups.
 If ALL is t (interactively, with prefix arg), include variables
 that are not customizable options, as well as faces and groups
 \(but we recommend using `apropos-variable' instead)."
-  (interactive "sCustomize regexp: \nP")
+  (interactive "sCustomize (regexp): \nP")
   (let ((found nil))
     (mapatoms (lambda (symbol)
 		(when (string-match regexp (symbol-name symbol))
@@ -1393,19 +1393,19 @@ that are not customizable options, as well as faces and groups
   "Customize all loaded customizable options matching REGEXP.
 With prefix arg, include variables that are not customizable options
 \(but we recommend using `apropos-variable' instead)."
-  (interactive "sCustomize regexp: \nP")
+  (interactive "sCustomize options (regexp): \nP")
   (customize-apropos regexp (or arg 'options)))
 
 ;;;###autoload
 (defun customize-apropos-faces (regexp)
   "Customize all loaded faces matching REGEXP."
-  (interactive "sCustomize regexp: \n")
+  (interactive "sCustomize faces (regexp): \n")
   (customize-apropos regexp 'faces))
 
 ;;;###autoload
 (defun customize-apropos-groups (regexp)
   "Customize all loaded groups matching REGEXP."
-  (interactive "sCustomize regexp: \n")
+  (interactive "sCustomize groups (regexp): \n")
   (customize-apropos regexp 'groups))
 
 ;;; Buffer.

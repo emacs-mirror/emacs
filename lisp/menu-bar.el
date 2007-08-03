@@ -1364,6 +1364,9 @@ key, a click, or a menu-item"))
 (define-key menu-bar-help-menu [describe-copying]
   '(menu-item "Copying Conditions" describe-copying
 	      :help "Show the Emacs license (GPL)"))
+(define-key menu-bar-help-menu [describe-project]
+  '(menu-item "About GNU" describe-project
+	      :help "About the GNU System, GNU Project, and GNU/Linux"))
 (define-key menu-bar-help-menu [describe-distribution]
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))

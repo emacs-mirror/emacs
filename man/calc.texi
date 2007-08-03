@@ -28417,7 +28417,10 @@ variables.
 
 The ``x'' and ``y'' values for the data points (as pulled from the vectors,
 calculated from the formulas, or interpolated from the intervals) should
-be real numbers (integers, fractions, or floats).  If either the ``x''
+be real numbers (integers, fractions, or floats).  One exception to this
+is that the ``y'' entry can consist of a vector of numbers combined with
+error forms, in which case the points will be plotted with the
+appropriate error bars.  Other than this, if either the ``x''
 value or the ``y'' value of a given data point is not a real number, that
 data point will be omitted from the graph.  The points on either side
 of the invalid point will @emph{not} be connected by a line.
@@ -28815,7 +28818,9 @@ available for any device.
 The @kbd{g S} (@code{calc-graph-point-style}) command similarly turns
 the symbols at the data points on or off, or sets the point style.
 If you turn both lines and points off, the data points will show as
-tiny dots.
+tiny dots.  If the ``y'' values being plotted contain error forms and 
+the connecting lines are turned off, then this command will also turn 
+the error bars on or off.
 
 @cindex @code{LineStyles} variable
 @cindex @code{PointStyles} variable
