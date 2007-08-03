@@ -2213,6 +2213,25 @@ calc-kill calc-kill-region calc-yank))))
       a
     (math-reject-arg a 'constp)))
 
+;;; Some functions for working with error forms.
+(defun math-get-value (x)
+  "Get the mean value of the error form X.
+If X is not an error form, return X."
+  (if (eq (car-safe x) 'sdev)
+      (nth 1 x)
+    x))
+       
+(defun math-get-sdev (x &optional one)
+  "Get the standard deviation of the error form X.
+If X is not an error form, return 1."
+  (if (eq (car-safe x) 'sdev)
+      (nth 2 x)
+    (if one 1 0)))
+
+(defun math-contains-sdev-p (ls)
+  "Non-nil if the list LS contains an error form."
+  (let ((ls (if (eq (car-safe ls) 'vec) (cdr ls) ls)))
+    (memq t (mapcar (lambda (x) (eq (car-safe x) 'sdev)) ls))))
 
 ;;; Coerce integer A to be a small integer.  [S I]
 (defun math-fixnum (a)
