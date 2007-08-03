@@ -1,3 +1,7 @@
+2007-08-03  Glenn Morris  <rgm@gnu.org>
+
+	* net/telnet.el (telnet-mode): Set comint-use-prompt-regexp to t.
+
 2007-08-02  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmailsum.el (rmail-make-summary-line): Find end of msg number
@@ -8,7 +12,7 @@
 
 	* menu-bar.el (menu-bar-help-menu): Add "About GNU" menu item.
 
-	* startup.el (fancy-splash-head, startup-echo-area-message): 
+	* startup.el (fancy-splash-head, startup-echo-area-message):
 	Change message text.
 
 	* emulation/tpu-edt.el (next-line-internal): Setting deleted.
