@@ -3715,12 +3715,12 @@ all pending output has been dealt with."))
 (defun term-erase-in-display (kind)
   "Erases (that is blanks out) part of the window.
 If KIND is 0, erase from (point) to (point-max);
-if KIND is 1, erase from home to point; else erase from home to point-max.
-Should only be called when point is at the start of a screen line."
+if KIND is 1, erase from home to point; else erase from home to point-max."
   (term-handle-deferred-scroll)
   (cond ((eq term-terminal-parameter 0)
-	 (delete-region (point) (point-max))
-	 (term-unwrap-line))
+	 (let ((need-unwrap (bolp)))
+	   (delete-region (point) (point-max))
+	   (when need-unwrap (term-unwrap-line))))
 	((let ((row (term-current-row))
 	      (col (term-horizontal-column))
 	      (start-region term-home-marker)
