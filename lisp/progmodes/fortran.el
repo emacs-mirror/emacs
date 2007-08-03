@@ -441,7 +441,7 @@ Consists of level 3 plus all other intrinsics not already highlighted.")
 This varies according to the value of `fortran-line-length'.
 This is used to fontify fixed-format Fortran comments."
   `(("^[cd\\*]" 0 (11))
-    (,(format "^[^cd\\*\t\n].\\{%d\\}\\([^\n]+\\)" fortran-line-length)
+    (,(format "^[^cd\\*\t\n].\\{%d\\}\\([^\n]+\\)" (1- fortran-line-length))
      1 (11))))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
