@@ -1,3 +1,12 @@
+2007-08-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (math-get-value,math-get-sdev)
+	(math-contains-sdev): New functions.
+
+	* calc/calc-graph.el (calc-graph-format-data)
+	(calc-graph-add-curve): Check for error forms.
+	(calc-graph-set-styles): Add option for error forms.
+
 2007-08-03  Miles Bader  <miles@gnu.org>
 
 	* vc-hooks.el (vc-handled-backends): Change capitalization of VC
