@@ -248,7 +248,7 @@ There is a variable ``telnet-interrupt-string'' which is the character
 sent to try to stop execution of a job on the remote host.
 Data is sent to the remote host when RET is typed."
   (set (make-local-variable 'comint-prompt-regexp) telnet-prompt-pattern)
-  (setq comint-use-prompt-regexp t))
+  (set (make-local-variable 'comint-use-prompt-regexp) t))
 
 ;;;###autoload (add-hook 'same-window-regexps "\\*rsh-[^-]*\\*\\(\\|<[0-9]*>\\)")
 
