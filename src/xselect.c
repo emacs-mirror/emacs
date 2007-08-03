@@ -1854,9 +1854,9 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	}
     }
 
-  /* Convert a single 16 or small 32 bit number to a Lisp_Int.
-     If the number is > 16 bits, convert it to a cons of integers,
-     16 bits in each half.
+  /* Convert a single 16-bit number or a small 32-bit number to a Lisp_Int.
+     If the number is 32 bits and won't fit in a Lisp_Int,
+     convert it to a cons of integers, 16 bits in each half.
    */
   else if (format == 32 && size == sizeof (int))
     return long_to_cons (((unsigned int *) data) [0]);
