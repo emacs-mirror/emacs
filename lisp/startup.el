@@ -1678,9 +1678,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
 
 (defun startup-echo-area-message ()
   (if (eq (key-binding "\C-h\C-p") 'describe-project)
-      "For information about the GNU Project and its goals, type C-h C-p."
+      "For information about the GNU system and GNU/Linux, type C-h C-p."
     (substitute-command-keys
-     "For information about the GNU Project and its goals, type \
+     "For information about the GNU system and GNU/Linux, type \
 \\[describe-project].")))
 
 

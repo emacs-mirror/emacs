@@ -1035,13 +1035,6 @@ This is useful for inserting control characters."
 (defalias 'tpu-error 'error)
 
 
-;; Around emacs version 18.57, function line-move was renamed to
-;; next-line-internal.  If we're running under an older emacs,
-;; make next-line-internal equivalent to line-move.
-
-(if (not (fboundp 'next-line-internal)) (fset 'next-line-internal 'line-move))
-
-
 ;;;
 ;;;  Help
 ;;;
@@ -1992,14 +1985,14 @@ With argument, do this that many times."
   "Move to next line.
 Prefix argument serves as a repeat count."
   (interactive "p")
-  (next-line-internal num)
+  (line-move num)
   (setq this-command 'next-line))
 
 (defun tpu-previous-line (num)
   "Move to previous line.
 Prefix argument serves as a repeat count."
   (interactive "p")
-  (next-line-internal (- num))
+  (line-move (- num))
   (setq this-command 'previous-line))
 
 (defun tpu-next-beginning-of-line (num)
@@ -2122,7 +2115,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal (- lines))
+    (line-move (- lines))
     (if (> lines beg) (recenter 0))))
 
 (defun tpu-scroll-window-up (num)
@@ -2132,7 +2125,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal lines)
+    (line-move lines)
     (if (>= (+ lines beg) height) (recenter -1))))
 
 (defun tpu-pan-right (num)

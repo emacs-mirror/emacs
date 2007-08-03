@@ -53,6 +53,10 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
 ** dksw@eircom.net, 3 Jul: Telnet mode (rsh/ssh)
 
+** bojohan+news@dd.chalmers.se, 1 Aug: n_schumacher@web.de: modification hooks called only once in
+
+** sdl.web@gmail.com: problem with transparent PNG image display
+
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but

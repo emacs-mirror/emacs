@@ -11278,7 +11278,7 @@
 	(name, size, mode) <define-ibuffer-column>: Add a header-mouse-map
 	property.
 
-2006-04-02  Drew Adams  <drew.adams@oracle.com>  (tiny change)
+2006-04-02  Drew Adams  <drew.adams@oracle.com>
 
 	* speedbar.el (speedbar-after-create-hook): Doc fix.
 
