@@ -1,3 +1,10 @@
+2007-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-font-lock-keywords): Fix up false positives.
+	(diff-beginning-of-file): Adjust to the fact that diff-file-header-re
+	may match up to 4 lines.
+	(diff-beginning-of-file-and-junk): Rewrite.
+
 2007-08-03  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Evaluate require only during compilation.
