@@ -1,3 +1,84 @@
+2007-08-03  Miles Bader  <miles@gnu.org>
+
+	* vc-hooks.el (vc-handled-backends): Change capitalization of VC
+	backend names for new backends to `Git', `Hg', and `Bzr'.
+	* vc-hg.el (vc-hg-dired-state-info): Use `Hg' as VC backend name,
+	not `HG'.
+	* vc-git.el (vc-git-dired-state-info): Use `Git' as VC backend
+	name, not `GIT'.
+	* vc-bzr.el (vc-bzr-dir-state, vc-bzr-dired-state-info)
+	(vc-bzr-unload-hook): Use `Bzr' as VC backend name, not `BZR'.
+
+2007-08-03  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (customize-apropos): Make the error message indicate
+	what kind of thing the user was trying to customize.
+
+	* net/telnet.el (telnet-mode): Set comint-use-prompt-regexp to t.
+
+	* progmodes/fortran.el (fortran-font-lock-syntactic-keywords): Fix
+	off-by-one error in previous change.
+
+2007-08-03  Drew Adams  <drew.adams@oracle.com>
+
+	* emacs-lisp/pp.el (pp-eval-expression): Add progress message.
+	Make buffer writable.
+
+2007-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (math-sqrt-raw,math-sin-raw-2)
+	(math-cos-raw-2,math-arctan-raw,math-ln-raw):
+	Use native Emacs functions, when appropriate.
+
+2007-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Document new VC operation `extra-menu'.
+
+	* vc-hooks.el (vc-default-extra-menu): New function.
+
+	* menu-bar.el (menu-bar-vc-filter): New function.
+	(menu-bar-tools-menu): Use it as a filter.
+
+2007-08-01  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* ibuf-ext.el (ibuffer-mark-old-buffers): Docstring fix.
+
+2007-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el: Remove leading `*' from all defcustom doc
+	strings.
+	(fortran-tab-mode-default): Remove needless autoload.
+	(fortran-tab-mode-string): Add help-echo and mouse properties, and
+	mark as risky.
+	(fortran-line-length): New buffer-local variable, safe if integer.
+	(fortran-if-start-re, fortran-end-prog-re1, fortran-end-prog-re):
+	Change from variables to constants.
+	(fortran-font-lock-syntactic-keywords): Delete as a variable,
+	replace with a new function definition.
+	(fortran-mode): Use fortran-line-length, and
+	fortran-font-lock-syntactic-keywords as a function.  Add a
+	hack-local-variables-hook function.
+	(fortran-line-length, fortran-hack-local-variables): New
+	functions.
+	(fortran-window-create, fortran-strip-sequence-nos): Doc fix.  Use
+	fortran-line-length rather than 72.
+	(fortran-window-create-momentarily): Doc fix.
+
+2007-07-31  Drew Adams  <drew.adams@oracle.com>  (tiny change)
+
+	* cus-edit.el (custom-group-value-create, custom-goto-parent): Fix
+	parent groups link.
+
+2007-07-31  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/python.el (python-current-defun): Adjust to never fall
+	into infinite loop.
+
+2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-vc-command-advice): Handle the new fileset case.
+
 2007-07-29  Kimit Yada  <kimitto@gmail.com>  (tiny change)
 
 	* emacs-lisp/copyright.el (copyright-update-year, copyright-update)

@@ -1165,7 +1165,19 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [pcl-cvs]
   '(menu-item "PCL-CVS" cvs-global-menu))
 (define-key menu-bar-tools-menu [vc]
-  (list 'menu-item "Version Control" vc-menu-map))
+  (list 'menu-item "Version Control" vc-menu-map
+  :filter 'menu-bar-vc-filter))
+
+(defun menu-bar-vc-filter (orig-binding)
+  (let ((ext-binding
+   (if vc-mode (vc-call 'extra-menu buffer-file-name))))
+    ;; Give the VC backend a chance to add menu entries
+    ;; specific for that backend.
+    (if (null ext-binding)
+    orig-binding
+      (append orig-binding
+	      '((ext-menu-separator "---"))
+	            ext-binding))))
 
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))

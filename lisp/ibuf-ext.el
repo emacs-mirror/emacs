@@ -1482,7 +1482,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
 
 ;;;###autoload
 (defun ibuffer-mark-old-buffers ()
-  "Mark buffers which have not been viewed in `ibuffer-old-time' days."
+  "Mark buffers which have not been viewed in `ibuffer-old-time' hours."
   (interactive)
   (ibuffer-mark-on-buffer
    #'(lambda (buf)

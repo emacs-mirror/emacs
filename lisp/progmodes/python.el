@@ -1005,7 +1005,7 @@ don't move and return nil.  Otherwise return t."
     (set-text-properties 0 (length function-name) nil function-name)
     function-name))
 
- 
+
 ;;;; Imenu.
 
 (defvar python-recursing)
@@ -1828,21 +1828,25 @@ of current line."
   (save-excursion
     ;; Move up the tree of nested `class' and `def' blocks until we
     ;; get to zero indentation, accumulating the defined names.
-    (let ((start t)
-	  (accum)
+    (let ((accum)
 	  (length -1))
-      (while (and (or start (> (current-indentation) 0))
-		  (or (null length-limit)
-		      (null (cdr accum))
-		      (< length length-limit)))
-	(setq start nil)
-	(python-beginning-of-block)
-	(end-of-line)
-	(beginning-of-defun)
-	(when (looking-at (rx (0+ space) (or "def" "class") (1+ space)
-			      (group (1+ (or word (syntax symbol))))))
-	  (push (match-string 1) accum)
-	  (setq length (+ length 1 (length (car accum))))))
+      (catch 'done
+	(while (or (null length-limit)
+		   (null (cdr accum))
+		   (< length length-limit))
+	  (setq start nil)
+	  (let ((started-from (point)))
+	    (python-beginning-of-block)
+	    (end-of-line)
+	    (beginning-of-defun)
+	    (when (= (point) started-from)
+	      (throw 'done nil)))
+	  (when (looking-at (rx (0+ space) (or "def" "class") (1+ space)
+				(group (1+ (or word (syntax symbol))))))
+	    (push (match-string 1) accum)
+	    (setq length (+ length 1 (length (car accum)))))
+	  (when (= (current-indentation) 0)
+	    (throw 'done nil))))
       (when accum
 	(when (and length-limit (> length length-limit))
 	  (setcar accum ".."))

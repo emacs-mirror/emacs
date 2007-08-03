@@ -387,7 +387,7 @@
 ;;
 ;;   Only required if `annotate-command' is defined for the backend,
 ;;   AND you'd like the current time considered to be anything besides
-;;   (vs-annotate-convert-time (current-time)) -- i.e. the current
+;;   (vc-annotate-convert-time (current-time)) -- i.e. the current
 ;;   time with hours, minutes, and seconds included.  Probably safe to
 ;;   ignore.  Return the current-time, in units of fractional days.
 ;;
@@ -480,11 +480,20 @@
 ;;
 ;;   Operation called in current buffer when opening a file.  This can
 ;;   be used by the backend to setup some local variables it might need.
-;
+;;
 ;; - find-file-not-found-hook ()
 ;;
 ;;   Operation called in current buffer when opening a non-existing file.
 ;;   By default, this asks the user if she wants to check out the file.
+;;
+;; - extra-menu ()
+;;
+;;   Return a menu keymap, the items in the keymap will appear at the
+;;   end of the Version Control menu.  The goal is to allow backends
+;;   to specify extra menu items that appear in the VC menu.  This way
+;;   you can provide menu entries for functionality that is specific
+;;   to your backend and which does not map to any of the VC generic
+;;   concepts.
 
 ;;; Code:
 
