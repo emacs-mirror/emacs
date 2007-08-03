@@ -62,8 +62,8 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS BZR GIT HG Arch MCVS)
-  ;; BZR, GIT, HG, Arch and MCVS come last because they are per-tree
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Arch MCVS)
+  ;; Bzr, Git, Hg, Arch and MCVS come last because they are per-tree
   ;; rather than per-dir.
   "List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
@@ -949,6 +949,9 @@ Used in `find-file-not-found-functions'."
     '("Update to Latest Version" . vc-update))
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
+
+(defun vc-default-extra-menu (backend)
+  nil)
 
 ;; These are not correct and it's not currently clear how doing it
 ;; better (with more complicated expressions) might slow things down

@@ -1,3 +1,12 @@
+2007-08-01  Ryo Yoshitake  <ryo@shiftmode.net>  (tiny change)
+
+	* mac.c (init_mac_osx_environment): Adjust load-path on self-contained
+	build.
+
+2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gtkutil.c (xg_tool_bar_callback): Generate a single TOOL_BAR_EVENT.
+
 2007-07-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1130000.
