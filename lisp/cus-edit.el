@@ -1376,7 +1376,14 @@ that are not customizable options, as well as faces and groups
 				      (get symbol 'variable-documentation))))
 		    (push (list symbol 'custom-variable) found)))))
     (if (not found)
-	(error "No customizable items matching %s" regexp)
+	(error "No %s matching %s"
+               (if (eq all t)
+                   "items"
+                 (format "customizable %s"
+                         (if (memq all '(options faces groups))
+                             (symbol-name all)
+                           "items")))
+               regexp)
       (custom-buffer-create
        (custom-sort-items found t custom-buffer-order-groups)
        "*Customize Apropos*"))))
