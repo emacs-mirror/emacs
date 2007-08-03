@@ -103,6 +103,7 @@ Also add the value to the front of the list in the variable `values'."
   (interactive
    (list (read-from-minibuffer "Eval: " nil read-expression-map t
 			       'read-expression-history)))
+  (message "Evaluating...")
   (setq values (cons (eval expression) values))
   (let* ((old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
@@ -126,13 +127,16 @@ Also add the value to the front of the list in the variable `values'."
 			 (progn
 			   (select-window window)
 			   (run-hooks 'temp-buffer-show-hook))
-		       (select-window old-selected)))
+		       (select-window old-selected)
+		       (message "Evaluating...done.  \
+See buffer *Pp Eval Output*.")))
 		 (message "%s" (buffer-substring (point-min) (point)))
 		 ))))))
     (with-output-to-temp-buffer "*Pp Eval Output*"
       (pp (car values))
       (with-current-buffer standard-output
 	(emacs-lisp-mode)
+	(setq buffer-read-only nil)
 	(set (make-local-variable 'font-lock-verbose) nil)))))
 
 ;;;###autoload
