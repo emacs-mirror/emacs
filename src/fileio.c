@@ -5692,11 +5692,9 @@ file modification time, this function returns 0.
 See Info node `(elisp)Modification Time' for more details.  */)
      ()
 {
-  Lisp_Object tcons;
-  tcons = long_to_cons ((unsigned long) current_buffer->modtime);
-  if (CONSP (tcons))
-    return list2 (XCAR (tcons), XCDR (tcons));
-  return tcons;
+  if (! current_buffer->modtime)
+    return make_number (0);
+  return make_time ((time_t) current_buffer->modtime);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
