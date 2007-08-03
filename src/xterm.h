@@ -818,6 +818,12 @@ struct scroll_bar
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  /* t if the background of the fringe that is adjacent to a scroll
+     bar is extended to the gap between the fringe and the bar.  */
+  Lisp_Object fringe_extended_p;
+#endif
 };
 
 /* The number of elements a vector holding a struct scroll_bar needs.  */

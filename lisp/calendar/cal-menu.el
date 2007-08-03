@@ -33,7 +33,6 @@
 
 ;;; Code:
 
-(defvar displayed-month)
 (defvar displayed-year)
 
 (defconst cal-menu-moon-menu
@@ -140,11 +139,11 @@
 
 (defconst cal-menu-scroll-menu
   '("Scroll"
-    ["Forward 1 Month" scroll-calendar-left]
-    ["Forward 3 Months" scroll-calendar-left-three-months]
+    ["Forward 1 Month" calendar-scroll-left]
+    ["Forward 3 Months" calendar-scroll-left-three-months]
     ["Forward 1 Year" "4\C-v"]
-    ["Backward 1 Month" scroll-calendar-right]
-    ["Backward 3 Months" scroll-calendar-right-three-months]
+    ["Backward 1 Month" calendar-scroll-right]
+    ["Backward 3 Months" calendar-scroll-right-three-months]
     ["Backward 1 Year" "4\ev"]))
 
 (defun cal-menu-x-popup-menu (position menu)
@@ -459,8 +458,8 @@ The output is in landscape format, one month to a page."
 (easy-menu-define cal-menu-global-mouse-menu nil
   "Menu bound to a mouse event, not specific to the mouse-click location."
   '("Calendar"
-    ["Scroll forward" scroll-calendar-left-three-months]
-    ["Scroll backward" scroll-calendar-right-three-months]
+    ["Scroll forward" calendar-scroll-left-three-months]
+    ["Scroll backward" calendar-scroll-right-three-months]
     ["Mark diary entries" mark-diary-entries]
     ["List holidays" list-calendar-holidays]
     ["Mark holidays" mark-calendar-holidays]

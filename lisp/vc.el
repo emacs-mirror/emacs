@@ -2233,8 +2233,13 @@ There is a special command, `*l', to mark all files currently locked."
        (set (make-local-variable 'dired-actual-switches)
             vc-dired-switches))
   (set (make-local-variable 'vc-dired-terse-mode) vc-dired-terse-display)
-  (setq mode-name (concat mode-name (symbol-name (vc-responsible-backend 
-						  default-directory))))
+  (let ((backend-name (symbol-name (vc-responsible-backend
+				    default-directory))))
+    (setq mode-name (concat mode-name backend-name))
+    ;; Add menu after `vc-dired-mode-map' has `dired-mode-map' as the parent.
+    (let ((vc-dire-menu-map (copy-keymap vc-menu-map)))
+      (define-key-after (lookup-key vc-dired-mode-map [menu-bar]) [vc] 
+	(cons backend-name vc-dire-menu-map) 'subdir)))
   (setq vc-dired-mode t))
 
 (defun vc-dired-toggle-terse-mode ()
@@ -2284,7 +2289,7 @@ This code, like dired, assumes UNIX -l format."
   "Reformat the listing according to version control.
 Called by dired after any portion of a vc-dired buffer has been read in."
   (message "Getting version information... ")
-  (let (subdir filename (buffer-read-only nil))
+  (let (subdir filename (inhibit-read-only t))
     (goto-char (point-min))
     (while (not (eobp))
       (cond

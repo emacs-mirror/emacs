@@ -2586,13 +2586,21 @@ that property, or otherwise use `(&rest ad-subr-args)'."
 	    (natnump docstring))
 	docstring)))
 
+(defun ad-interactive-form (definition)
+  "Return the interactive form of DEFINITION.
+Like `interactive-form', but also works on pieces of advice."
+  (interactive-form
+   (if (ad-advice-p definition)
+       (ad-lambda-expression definition)
+     definition)))
+
 (defun ad-body-forms (definition)
   "Return the list of body forms of DEFINITION."
   (cond ((ad-compiled-p definition)
 	 nil)
 	((consp definition)
 	 (nthcdr (+ (if (ad-docstring definition) 1 0)
-		    (if (interactive-form definition) 1 0))
+		    (if (ad-interactive-form definition) 1 0))
 		 (cdr (cdr (ad-lambda-expression definition)))))))
 
 ;; Matches the docstring of an advised definition.
@@ -3024,7 +3032,7 @@ in any of these classes."
 			     (ad-get-enabled-advices function 'around)
 			     (ad-get-enabled-advices function 'after)))
     (let ((interactive-form
-	   (interactive-form (ad-advice-definition advice))))
+	   (ad-interactive-form (ad-advice-definition advice))))
       (if interactive-form
 	  ;; We found the first one, use it:
 	  (ad-do-return interactive-form)))))

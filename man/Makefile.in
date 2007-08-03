@@ -76,6 +76,7 @@ EMACS_XTRA=\
 EMACSSOURCES= \
 	${srcdir}/emacs.texi \
 	${srcdir}/doclicense.texi \
+	${srcdir}/gpl.texi \
 	${srcdir}/screen.texi \
 	${srcdir}/commands.texi \
 	${srcdir}/entering.texi \

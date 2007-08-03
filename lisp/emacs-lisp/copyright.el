@@ -44,9 +44,9 @@ A value of nil means to search whole buffer."
 		 (const :tag "No limit")))
 
 (defcustom copyright-regexp
- "\\(©\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
+ "\\(©\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
 \\|[Cc]opyright\\s *:?\\s *©\\)\
-\\s *\\([1-9]\\([-0-9, ';\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
+\\s *\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "What your copyright notice looks like.
 The second \\( \\) construct must match the years."
   :group 'copyright
@@ -93,7 +93,8 @@ When this is `function', only ask when called non-interactively."
 	  (re-search-forward (concat "\\(" copyright-regexp
 				     "\\)\\([ \t]*\n\\)?.*\\(?:"
 				     copyright-names-regexp "\\)")
-			     (+ (point) copyright-limit) t)
+			     (if copyright-limit (+ (point) copyright-limit))
+			     t)
 	;; In case the regexp is rejected.  This is useful because
 	;; copyright-update is typically called from before-save-hook where
 	;; such an error is very inconvenient for the user.
@@ -174,10 +175,11 @@ interactively."
 	  (and copyright-current-gpl-version
 	       ;; match the GPL version comment in .el files, including the
 	       ;; bilingual Esperanto one in two-column, and in texinfo.tex
-	       (re-search-forward "\\(the Free Software Foundation;\
+	       (re-search-forward
+                "\\(the Free Software Foundation;\
  either \\|; a\\^u eldono \\([0-9]+\\)a, ? a\\^u (la\\^u via	 \\)\
 version \\([0-9]+\\), or (at"
-				  (+ (point) copyright-limit) t)
+                (if copyright-limit (+ (point) copyright-limit)) t)
 	       (not (string= (match-string 3) copyright-current-gpl-version))
 	       (or noquery
 		   (y-or-n-p (concat "Replace GPL version by "
@@ -199,7 +201,8 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   (interactive)
   (widen)
   (goto-char (point-min))
-  (if (re-search-forward copyright-regexp (+ (point) copyright-limit) t)
+  (if (re-search-forward copyright-regexp
+                         (if copyright-limit (+ (point) copyright-limit)) t)
       (let ((s (match-beginning 2))
 	    (e (copy-marker (1+ (match-end 2))))
 	    (p (make-marker))
@@ -239,7 +242,7 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   "Copyright (C) " `(substring (current-time-string) -4) " by "
   (or (getenv "ORGANIZATION")
       str)
-  '(if (> (point) (+ (point-min) copyright-limit))
+  '(if (and copyright-limit (> (point) (+ (point-min) copyright-limit)))
        (message "Copyright extends beyond `copyright-limit' and won't be updated automatically."))
   comment-end \n)
 

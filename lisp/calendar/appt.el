@@ -531,9 +531,9 @@ The time should be in either 24 hour format or am/pm format."
     (message "")))
 
 
-(eval-when-compile (defvar number)
-		   (defvar original-date)
-		   (defvar diary-entries-list))
+(defvar number)
+(defvar original-date)
+(defvar diary-entries-list)
 ;;;###autoload
 (defun appt-make-list ()
   "Update the appointments list from today's diary buffer.
@@ -634,7 +634,7 @@ appointment package (if it is not already active)."
 (defun appt-sort-list (appt-list)
   "Sort an appointment list, putting earlier items at the front.
 APPT-LIST is a list of the same format as `appt-time-msg-list'."
-(sort appt-list (lambda (e1 e2) (< (caar e1) (caar e2)))))
+  (sort appt-list (lambda (e1 e2) (< (caar e1) (caar e2)))))
 
 
 (defun appt-convert-time (time2conv)

@@ -1,3 +1,148 @@
+2007-07-29  Kimit Yada  <kimitto@gmail.com>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-update-year, copyright-update)
+	(copyright-fix-years, copyright): Correctly handle the case where
+	copyright-limit is nil.
+
+2007-07-28  Konstantin Novitsky  <knovitsk@Bear.com>  (tiny change)
+
+	* progmodes/python.el (run-python): Fix path separator under w32.
+
+2007-07-30  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Treat non-break space as whitespace in Lisp.
+
+2007-07-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-dired-hook): Use inhibit-read-only.
+
+	* progmodes/compile.el (compilation-forget-errors):
+	Reset compilation-auto-jump-to-next.
+
+2007-07-30  Michael Olson  <mwolson@gnu.org>
+
+	* cus-edit.el (custom-group-save): Fix void function definition
+	error.  Thanks to Zhang Wei for the report.
+
+	* ps-print.el: Check in trivial changes to the autoloads section
+	caused by the build process.  These autoloads really ought to be
+	placed in a separate file, methinks.
+
+2007-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-mode): Make sure
+	displayed-(month|year) are set.
+	(calendar-basic-setup): Display buffer before adjusting window sizes.
+	(generate-calendar-window): Use inhibit-read-only.  Simplify.
+	Generate buffer and set displayed-month and displayed-year before
+	calling update-calendar-mode-line.
+
+2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el:
+	* tramp-uu.el:
+	* trampver.el: Use utf-8 encoding with coding cookie.
+
+	* tramp-cache.el:
+	* tramp-fish.el:
+	* tramp-ftp.el:
+	* tramp-gw.el:
+	* tramp-smb.el: Remove coding cookie.
+
+	* tramp.el (tramp-handle-verify-visited-file-modtime):
+	Flush buffer file-name's file property.
+	(tramp-handle-file-remote-p): The first parameter is FILENAME.
+
+	* trampver.el: Update release number.
+
+2007-07-29  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-mode-map): Bind C-x C-q to dired-toggle-read-only.
+	Filter out menu item "Edit File Names" `wdired-change-to-wdired-mode'
+	when major-mode is not dired-mode.
+	(dired-toggle-read-only): New function.
+	(dired-recursive-deletes): Remove obsolete comments about old
+	default value.
+	(dired-do-flagged-delete, dired-do-delete): Refill docstring.
+
+	* wdired.el (wdired-exit): New function.
+	(wdired-mode-map): Bind C-x C-q to wdired-exit.
+
+2007-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cus-edit.el (customize-read-group): New fun.
+	(customize-group-other-window, customize-face-other-window):
+	Prompt before delegating to customize-(group|face).
+	Bind pop-up-windows rather than use the other-window argument.
+	(customize-group, customize-face): Prompt from the interactive spec.
+	Remove args `prompt-for-group' and `other-window'.
+
+	* emacs-lisp/advice.el (ad-interactive-form): Re-introduce.
+	(ad-body-forms, ad-advised-interactive-form): Revert this part of
+	last change.
+
+2007-07-28  Masatake YAMATO  <jet@gyve.org>
+
+	* vc.el (vc-dired-mode): Add a menu for VC related operation.
+	Use backend name as the menu label Suggested by David Kastrup.
+
+2007-07-28  Alan Mackenzie  <acm@muc.de>
+
+	Fix problem with modes derived from CC Mode:
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): Move this
+	macro to cc-langs.
+	(c-init-language-vars-for): Remove call to above macro.
+	* progmodes/cc-langs.el (c-make-emacs-variables-local): Macro has
+	been moved to here.
+	(c-make-init-lang-vars-fun): Call c-make-emacs-variables-local.
+
+2007-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/trampver.el: Fix the `coding' cookie.
+
+2007-07-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-print-log): Support both the old single file
+	interface and the new one.
+
+2007-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-remote): Use updated %@ construct.
+
+2007-07-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/cal-bahai.el (calendar-bahai-month-name-array)
+	(calendar-bahai-epoch, calendar-bahai-leap-year-p)
+	(calendar-bahai-leap-base, calendar-bahai-prompt-for-date)
+	(diary-list-bahai-entries, diary-bahai-mark-entries)
+	(calendar-bahai-mark-date-pattern, diary-insert-bahai-entry)
+	(diary-bahai-insert-monthly-entry, diary-bahai-insert-yearly-entry):
+	New names to clean up namespace.
+	(list-bahai-diary-entries, mark-bahai-diary-entries)
+	(insert-bahai-diary-entry, insert-monthly-bahai-diary-entry)
+	(insert-yearly-bahai-diary-entry, mark-bahai-calendar-date-pattern):
+	Add compatibility aliases.
+
+	* calendar/appt.el: Don't wrap defvar within eval-when-compile.
+
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right)
+	(calendar-scroll-left-three-months)
+	(calendar-scroll-right-three-months): Clean up namespace.
+	(scroll-calendar-left, scroll-calendar-right)
+	(scroll-calendar-left-three-months)
+	(scroll-calendar-right-three-months): Add compatibility aliases.
+
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
+	Behave like mouse-scroll-calendar-* when used from the mouse.
+
+	* calendar/cal-menu.el (cal-menu-scroll-menu)
+	(cal-menu-global-mouse-menu):
+	* calendar/calendar.el (calendar-mode-map):
+	Use new calendar-scroll-* names.
+	(mouse-scroll-calendar-left, mouse-scroll-calendar-right):
+	Remove.  Use calendar-scroll-* directly instead.
+
 2007-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-interactive-p, ad-interactive-form): Remove.

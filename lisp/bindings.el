@@ -250,7 +250,7 @@ Normally nil in most modes, since there is no process to display.")
 
 (defvar mode-line-remote
   (list (propertize
-	 "%1R"
+	 "%1@"
 	 'help-echo (purecopy (lambda (window object point)
  				(format "%s"
 					(save-selected-window

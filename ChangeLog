@@ -1,8 +1,13 @@
+2007-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (install-arch-indep): Use "rm -f" for removing DOC,
+	to avoid an error message if there is no DOC there.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
 
-	* COPYING: Switch to GPLv3.
+	* COPYING, info/COPYING: Switch to GPLv3.
 
 2007-06-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

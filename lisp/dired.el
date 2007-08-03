@@ -1247,7 +1247,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
     ;; misc
-    (define-key map "\C-x\C-q" 'wdired-change-to-wdired-mode)
+    (define-key map "\C-x\C-q" 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
@@ -1353,7 +1353,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate create-directory]
       '(menu-item "Create Directory..." dired-create-directory))
     (define-key map [menu-bar immediate wdired-mode]
-      '(menu-item "Edit File Names" wdired-change-to-wdired-mode))
+      '(menu-item "Edit File Names" wdired-change-to-wdired-mode
+		  :filter (lambda (x) (if (eq major-mode 'dired-mode) x))))
 
     (define-key map [menu-bar regexp]
       (cons "Regexp" (make-sparse-keymap "Regexp")))
@@ -1655,6 +1656,16 @@ You can use it to recover marks, killed lines or subdirs."
   (dired-build-subdir-alist)
   (message "Change in dired buffer undone.
 Actual changes in files cannot be undone by Emacs."))
+
+(defun dired-toggle-read-only ()
+  "Edit dired buffer with Wdired, or set it read-only.
+Call `wdired-change-to-wdired-mode' in dired buffers whose editing is
+supported by Wdired (the major mode of the dired buffer is `dired-mode').
+Otherwise, for buffers inheriting from dired-mode, call `toggle-read-only'."
+  (interactive)
+  (if (eq major-mode 'dired-mode)
+      (wdired-change-to-wdired-mode)
+    (toggle-read-only)))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.
@@ -2360,7 +2371,7 @@ Optional argument means return a file name relative to `default-directory'."
 
 ;; Deleting files
 
-(defcustom dired-recursive-deletes 'top ; Default only delete empty directories.
+(defcustom dired-recursive-deletes 'top
   "*Decide whether recursive deletes are allowed.
 A value of nil means no recursive deletes.
 `always' means delete recursively without asking.  This is DANGEROUS!
@@ -2409,8 +2420,8 @@ Anything else, ask for each sub-directory."
   "In Dired, delete the files flagged for deletion.
 If NOMESSAGE is non-nil, we don't display any message
 if there are no flagged files.
-`dired-recursive-deletes' controls whether 
-deletion of non-empty directories is allowed."
+`dired-recursive-deletes' controls whether deletion of
+non-empty directories is allowed."
   (interactive)
   (let* ((dired-marker-char dired-del-marker)
 	 (regexp (dired-marker-regexp))
@@ -2427,8 +2438,8 @@ deletion of non-empty directories is allowed."
 
 (defun dired-do-delete (&optional arg)
   "Delete all marked (or next ARG) files.
-`dired-recursive-deletes' controls whether 
-deletion of non-empty directories is allowed."
+`dired-recursive-deletes' controls whether deletion of
+non-empty directories is allowed."
   ;; This is more consistent with the file marking feature than
   ;; dired-do-flagged-delete.
   (interactive "P")

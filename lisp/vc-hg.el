@@ -148,7 +148,7 @@
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
-    (vc-hg-state file)))            ; expensive
+    (vc-file-setprop file 'vc-state (vc-hg-state file)))) ; expensive
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
@@ -303,12 +303,12 @@
        (buffer-substring-no-properties (point-min) (point-max))))))
 
 ;; Modelled after the similar function in vc-cvs.el
-;; (defun vc-hg-revision-completion-table (file)
-;;   (lexical-let ((file file)
-;;                 table)
-;;     (setq table (lazy-completion-table
-;;                  table (lambda () (vc-hg-revision-table file))))
-;;     table))
+(defun vc-hg-revision-completion-table (file)
+  (lexical-let ((file file)
+                table)
+    (setq table (lazy-completion-table
+                 table (lambda () (vc-hg-revision-table file))))
+    table))
 
 (defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
   (vc-hg-diff (list file) oldvers newvers buffer))

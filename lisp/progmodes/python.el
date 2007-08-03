@@ -1359,7 +1359,7 @@ buffer for a list of commands.)"
                (path (getenv "PYTHONPATH"))
                (process-environment	; to import emacs.py
                 (cons (concat "PYTHONPATH=" data-directory
-                              (if path (concat ":" path)))
+                              (if path (concat path-separator path)))
                       process-environment)))
           (apply 'make-comint-in-buffer "Python"
                  (if new (generate-new-buffer "*Python*") "*Python*")

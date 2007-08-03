@@ -6528,7 +6528,7 @@ Initialize global data for printing multi-byte characters.
 
 (autoload (quote ps-mule-begin-job) "ps-mule" "\
 Start printing job for multi-byte chars between FROM and TO.
-This checks if all multi-byte characters in the region are printable or not.
+It checks if all multi-byte characters in the region are printable or not.
 
 \(fn FROM TO)" nil nil)
 

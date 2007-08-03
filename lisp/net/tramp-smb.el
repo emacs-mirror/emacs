@@ -1,4 +1,4 @@
-;;; tramp-smb.el --- Tramp access functions for SMB servers -*- coding: iso-8859-1; -*-
+;;; tramp-smb.el --- Tramp access functions for SMB servers
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
 ;;   2007 Free Software Foundation, Inc.

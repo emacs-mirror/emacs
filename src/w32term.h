@@ -497,6 +497,10 @@ struct scroll_bar {
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
+
+  /* t if the background of the fringe that is adjacent to a scroll
+     bar is extended to the gap between the fringe and the bar.  */
+  Lisp_Object fringe_extended_p;
 };
 
 /* The number of elements a vector holding a struct scroll_bar needs.  */
@@ -586,14 +590,14 @@ extern void w32_fill_rect ();
 extern void w32_clear_window ();
 
 #define w32_fill_area(f,hdc,pix,x,y,nx,ny) \
-{ \
+do { \
     RECT rect; \
     rect.left = x; \
     rect.top = y; \
     rect.right = x + nx; \
     rect.bottom = y + ny; \
     w32_fill_rect (f,hdc,pix,&rect); \
-}
+} while (0)
 
 #define w32_clear_rect(f,hdc,lprect) \
 w32_fill_rect (f,hdc,f->output_data.x->background_pixel,lprect)
