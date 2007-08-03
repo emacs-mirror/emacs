@@ -63,7 +63,7 @@
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
-(put 'BZR 'vc-functions nil)
+(put 'Bzr 'vc-functions nil)
 
 (defgroup vc-bzr nil
   "VC bzr backend."
@@ -197,7 +197,7 @@ Return nil if there isn't one."
   'implicit)
 
 (defun vc-bzr-create-repo ()
-  "Create a new BZR repository."
+  "Create a new Bzr repository."
   (vc-bzr-command "init" nil 0 nil))
 
 (defun vc-bzr-register (files &optional rev comment)
@@ -440,7 +440,7 @@ Optional argument LOCALP is always ignored."
           (vc-file-setprop file 'vc-state 'up-to-date)
           ;; XXX: is this correct? what happens if one 
           ;; mixes different SCMs in the same dir?
-          (vc-file-setprop file 'vc-backend 'BZR))))
+          (vc-file-setprop file 'vc-backend 'Bzr))))
     ;; `bzr status' reports on added/modified/renamed and unknown/ignored files
     (setq at-start t)
     (with-temp-buffer 
@@ -492,18 +492,18 @@ Optional argument LOCALP is always ignored."
         (if bzr-state
             (concat "(" (symbol-name bzr-state) ")")
           ;; else fall back to default vc representation
-          (vc-default-dired-state-info 'BZR file)))))
+          (vc-default-dired-state-info 'Bzr file)))))
 
 ;; In case of just `(load "vc-bzr")', but that's probably the wrong
 ;; way to do it.
-(add-to-list 'vc-handled-backends 'BZR)
+(add-to-list 'vc-handled-backends 'Bzr)
 
 (eval-after-load "vc"
   '(add-to-list 'vc-directory-exclusion-list ".bzr" t))
 
 (defconst vc-bzr-unload-hook
   (lambda ()
-    (setq vc-handled-backends (delq 'BZR vc-handled-backends))
+    (setq vc-handled-backends (delq 'Bzr vc-handled-backends))
     (remove-hook 'vc-post-command-functions 'vc-bzr-post-command-function)))
 
 (provide 'vc-bzr)

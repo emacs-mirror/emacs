@@ -30,11 +30,11 @@
 
 ;;; Installation:
 
-;; To install: put this file on the load-path and add GIT to the list
+;; To install: put this file on the load-path and add Git to the list
 ;; of supported backends in `vc-handled-backends'; the following line,
 ;; placed in your ~/.emacs, will accomplish this:
 ;;
-;;     (add-to-list 'vc-handled-backends 'GIT)
+;;     (add-to-list 'vc-handled-backends 'Git)
 
 ;;; Todo:
 ;;  - check if more functions could use vc-git-command instead
@@ -214,12 +214,12 @@
     (if (eq git-state 'edited)
 	"(modified)"
       ;; fall back to the default VC representation
-      (vc-default-dired-state-info 'GIT file))))
+      (vc-default-dired-state-info 'Git file))))
 
 ;;; STATE-CHANGING FUNCTIONS
 
 (defun vc-git-create-repo ()
-  "Create a new GIT repository."
+  "Create a new Git repository."
   (vc-git-command "init" nil 0 nil))
 
 (defun vc-git-register (files &optional rev comment)
@@ -287,7 +287,7 @@
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 
-(define-derived-mode vc-git-log-view-mode log-view-mode "GIT-Log-View"
+(define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; we need the faces add-log
   ;; Don't have file markers, so use impossible regexp.
   (set (make-local-variable 'log-view-file-re) "^File:[ \t]+\\(.+\\)")

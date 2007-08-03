@@ -1,3 +1,14 @@
+2007-08-03  Miles Bader  <miles@gnu.org>
+
+	* vc-hooks.el (vc-handled-backends): Change capitalization of VC
+	backend names for new backends to `Git', `Hg', and `Bzr'.
+	* vc-hg.el (vc-hg-dired-state-info): Use `Hg' as VC backend name,
+	not `HG'.
+	* vc-git.el (vc-git-dired-state-info): Use `Git' as VC backend
+	name, not `GIT'.
+	* vc-bzr.el (vc-bzr-dir-state, vc-bzr-dired-state-info)
+	(vc-bzr-unload-hook): Use `Bzr' as VC backend name, not `BZR'.
+
 2007-08-03  Glenn Morris  <rgm@gnu.org>
 
 	* cus-edit.el (customize-apropos): Make the error message indicate
