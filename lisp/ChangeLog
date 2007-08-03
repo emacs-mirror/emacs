@@ -1,3 +1,10 @@
+2007-08-03  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Evaluate require only during compilation.
+	(pr-version): New version 6.9.1.
+	(deactivate-mark): Replace (defvar VAR nil) by (defvar VAR).
+	(pr-global-menubar): Fix code.
+
 2007-08-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-erase-in-display): Fix case when point is not at
