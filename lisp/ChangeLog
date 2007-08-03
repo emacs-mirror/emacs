@@ -1,3 +1,18 @@
+2007-08-03  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (customize-apropos): Make the error message indicate
+	what kind of thing the user was trying to customize.
+
+	* net/telnet.el (telnet-mode): Set comint-use-prompt-regexp to t.
+
+	* progmodes/fortran.el (fortran-font-lock-syntactic-keywords): Fix
+	off-by-one error in previous change.
+
+2007-08-03  Drew Adams  <drew.adams@oracle.com>
+
+	* emacs-lisp/pp.el (pp-eval-expression): Add progress message.
+	Make buffer writable.
+
 2007-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-math.el (math-sqrt-raw,math-sin-raw-2)
