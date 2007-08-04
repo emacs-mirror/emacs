@@ -135,11 +135,10 @@
 		  "' = alg entry, $ = stack, u = Model1, U = Model2")))
      (while (not calc-curve-model)
        (message 
-        (if plot
-            "Fit to model (plot): %s:%s"
-            "Fit to model: %s:%s")
+        "Fit to model: %s:%s%s"
         (nth which msgs)
-        (if homog " h" ""))
+        (if plot "p" " ")
+        (if homog "h" ""))
        (setq key (read-char))
        (cond ((= key ?\C-g)
 	      (keyboard-quit))
