@@ -3372,7 +3372,15 @@ xg_tool_bar_callback (w, client_data)
 
   key = AREF (f->tool_bar_items, idx + TOOL_BAR_ITEM_KEY);
   XSETFRAME (frame, f);
+
+  /* We generate two events here.  The first one is to set the prefix
+     to `(tool_bar)', see keyboard.c.  */
   event.kind = TOOL_BAR_EVENT;
+  event.frame_or_window = frame;
+  event.arg = frame; 	 
+  kbd_buffer_store_event (&event); 	 
+  
+  event.kind = TOOL_BAR_EVENT; 	 
   event.frame_or_window = frame;
   event.arg = key;
   /* Convert between the modifier bits GDK uses and the modifier bits
