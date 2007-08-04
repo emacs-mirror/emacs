@@ -3,6 +3,9 @@
 	* calc.texi (Basic Graphics): Mention the graphing of error
 	forms.
 	(Graphics Options): Mention how `g s' handles error forms.
+	(Curve Fitting): Mention plotting the curves.
+	(Standard Nonlinear Models): Add additional models.
+	(Curve fitting details): Mention the Levenberg-Marquardt method.
 
 2007-08-01  Alan Mackenzie  <acm@muc.de>
 
