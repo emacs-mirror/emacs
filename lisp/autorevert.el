@@ -276,9 +276,9 @@ the list of old buffers.")
   "Position of last known end of file.")
 
 (add-hook 'find-file-hook
-	  (lambda ()
-	    (set (make-local-variable 'auto-revert-tail-pos)
-		 (nth 7 (file-attributes buffer-file-name)))))
+ 	  (lambda ()
+ 	    (set (make-local-variable 'auto-revert-tail-pos)
+ 		 (nth 7 (file-attributes buffer-file-name)))))
 
 ;; Functions:
 
@@ -334,9 +334,25 @@ Use `auto-revert-mode' for changes other than appends!"
       (auto-revert-tail-mode 0)
       (error "This buffer is not visiting a file"))
     (if (and (buffer-modified-p)
-	     (not auto-revert-tail-pos) ; library was loaded only after finding file
+	     (zerop auto-revert-tail-pos) ; library was loaded only after finding file
 	     (not (y-or-n-p "Buffer is modified, so tail offset may be wrong.  Proceed? ")))
 	(auto-revert-tail-mode 0)
+      ;; a-r-tail-pos stores the size of the file at the time of the
+      ;; last revert. After this package loads, it adds a
+      ;; find-file-hook to set this variable every time a file is
+      ;; loaded.  If the package is loaded only _after_ visiting the
+      ;; file to be reverted, then we have no idea what the value of
+      ;; a-r-tail-pos should have been when the file was visited.  If
+      ;; the file has changed on disk in the meantime, all we can do
+      ;; is offer to revert the whole thing. If you choose not to
+      ;; revert, then you might miss some output then happened
+      ;; between visiting the file and activating a-r-t-mode.
+      (and (zerop auto-revert-tail-pos)
+           (not (verify-visited-file-modtime (current-buffer)))
+           (y-or-n-p "File changed on disk, content may be missing.  \
+Perform a full revert? ")
+           ;; Use this (not just revert-buffer) for point-preservation.
+           (auto-revert-handler))
       ;; else we might reappend our own end when we save
       (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
