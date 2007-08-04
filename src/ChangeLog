@@ -1,3 +1,8 @@
+2007-08-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_callback): Generate two TOOL_BAR_EVENT:s,
+	add comment explaining why.
+
 2007-08-03  Richard Stallman  <rms@gnu.org>
 
 	* fileio.c (Fvisited_file_modtime): Use make_time.
