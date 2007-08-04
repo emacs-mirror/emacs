@@ -1,3 +1,13 @@
+2007-08-04  Glenn Morris  <rgm@gnu.org>
+
+	* autorevert.el (auto-revert-tail-mode): auto-revert-tail-pos is
+	zero, not nil, when the library is first loaded.  Check for a file
+	that has been modified on disk.
+
+	* progmodes/cperl-mode.el (cperl-compilation-error-regexp-alist):
+	Remove duplicate defvar preventing initialization.
+	(cperl-mode): Fix compilation-error-regexp-alist-alist setting.
+
 2007-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-font-lock-keywords): Fix up false positives.
