@@ -54,7 +54,7 @@
 	* vc-bzr.el (vc-bzr-dir-state, vc-bzr-dired-state-info)
 	(vc-bzr-unload-hook): Use `Bzr' as VC backend name, not `BZR'.
 
-2007-08-02  Richard Stallman  <rms@gnu.org>
+2007-08-03  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmailsum.el (rmail-make-summary-line): Find end of msg number
 	to update deleted flag.
@@ -74,13 +74,13 @@
 	buffer immediately if suitable.
 	(compile, compilation-buffer-name, compilation-start): Doc fixes.
 
-2007-07-31  Daiki Ueno  <ueno@unixuser.org>
+2007-08-03  Daiki Ueno  <ueno@unixuser.org>
 
 	* faces.el (face-normalize-spec): New function.
 	(frame-set-background-mode): Normalize face-spec before calling
 	face-spec-match-p.
 
-2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+2007-07-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-window): Add switch-to-buffer-other-frame option.
 
