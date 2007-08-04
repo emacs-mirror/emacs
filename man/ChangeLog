@@ -5,7 +5,8 @@
 	(Graphics Options): Mention how `g s' handles error forms.
 	(Curve Fitting): Mention plotting the curves.
 	(Standard Nonlinear Models): Add additional models.
-	(Curve fitting details): Mention the Levenberg-Marquardt method.
+	(Curve Fitting Details): Mention the Levenberg-Marquardt method.
+	(Linear Fits): Correct result.
 
 2007-08-01  Alan Mackenzie  <acm@muc.de>
 
