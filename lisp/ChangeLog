@@ -1,3 +1,10 @@
+2007-08-04  Jay Belanger  <belanger@localhost.localdomain>
+
+	* calc/calcalg3.el (calc-curve-fit): Add support for nonlinear
+	curves and plotting.
+
+	* calc/calc-nlfit.el: New file.
+
 2007-08-04  Glenn Morris  <rgm@gnu.org>
 
 	* autorevert.el (auto-revert-tail-mode): auto-revert-tail-pos is
