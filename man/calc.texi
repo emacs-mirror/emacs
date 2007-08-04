@@ -24059,7 +24059,7 @@ $$
 @noindent
 is on the stack and we wish to do a simple linear fit.  Type
 @kbd{a F}, then @kbd{1} for the model, then @key{RET} to use
-the default names.  The result will be the formula @expr{3 + 2 x}
+the default names.  The result will be the formula @expr{3. + 2. x}
 on the stack.  Calc has created the model expression @kbd{a + b x},
 then found the optimal values of @expr{a} and @expr{b} to fit the
 data.  (In this case, it was able to find an exact fit.)  Calc then
