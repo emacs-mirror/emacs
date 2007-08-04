@@ -137,7 +137,7 @@
        (message 
         "Fit to model: %s:%s%s"
         (nth which msgs)
-        (if plot "p" " ")
+        (if plot "P" " ")
         (if homog "h" ""))
        (setq key (read-char))
        (cond ((= key ?\C-g)
