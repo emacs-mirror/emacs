@@ -134,9 +134,12 @@
                   "P prefix = plot result"
 		  "' = alg entry, $ = stack, u = Model1, U = Model2")))
      (while (not calc-curve-model)
-       (message "Fit to model: %s:%s"
-		(nth which msgs)
-		(if homog " h" ""))
+       (message 
+        (if plot
+            "Fit to model (plot): %s:%s"
+            "Fit to model: %s:%s")
+        (nth which msgs)
+        (if homog " h" ""))
        (setq key (read-char))
        (cond ((= key ?\C-g)
 	      (keyboard-quit))
@@ -145,13 +148,15 @@
 	     ((memq key '(?h ?H))
 	      (setq homog (not homog)))
              ((= key ?P)
-              (let ((data (calc-top 1)))
-                (if (or
-                     (calc-is-hyperbolic)
-                     (calc-is-inverse)
-                     (not (= (length data) 3)))
-                   (setq plot "Can't plot")
-                  (setq plot data))))
+              (if plot
+                  (setq plot nil)
+                (let ((data (calc-top 1)))
+                  (if (or
+                       (calc-is-hyperbolic)
+                       (calc-is-inverse)
+                       (not (= (length data) 3)))
+                      (setq plot "Can't plot")
+                    (setq plot data)))))
 	     ((progn
 		(if (eq key ?\$)
 		    (setq n 1)
