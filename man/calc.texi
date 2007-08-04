@@ -23968,7 +23968,7 @@ the key sequence @kbd{a F} is pressed.
 If the letter @kbd{P} is pressed after @kbd{a F} but before the model
 description is entered, the data as well as the model formula will be
 plotted after the formula is determined.  This will be indicated by a
-``p'' in the minibuffer after the help message.
+``P'' in the minibuffer after the help message.
 
 @menu
 * Linear Fits::
