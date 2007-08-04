@@ -1497,8 +1497,15 @@ the last)."
 (defvar cperl-use-major-mode 'cperl-mode)
 (defvar cperl-font-lock-multiline-start nil)
 (defvar cperl-font-lock-multiline nil)
-(defvar cperl-compilation-error-regexp-alist nil)
 (defvar cperl-font-locking nil)
+
+;; NB as it stands the code in cperl-mode assumes this only has one
+;; element. If Xemacs 19 support were dropped, this could all be simplified.
+(defvar cperl-compilation-error-regexp-alist
+  ;; This look like a paranoiac regexp: could anybody find a better one? (which WORKS).
+  '(("^[^\n]* \\(file\\|at\\) \\([^ \t\n]+\\) [^\n]*line \\([0-9]+\\)[\\., \n]"
+     2 3))
+  "Alist that specifies how to match errors in perl output.")
 
 ;;;###autoload
 (defun cperl-mode ()
@@ -1786,7 +1793,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
 	 (make-local-variable 'compilation-error-regexp-alist-alist)
 	 (set 'compilation-error-regexp-alist-alist
-	      (cons (cons 'cperl cperl-compilation-error-regexp-alist)
+	      (cons (cons 'cperl (car cperl-compilation-error-regexp-alist))
 		    (symbol-value 'compilation-error-regexp-alist-alist)))
          (if (fboundp 'compilation-build-compilation-error-regexp-alist)
              (let ((f 'compilation-build-compilation-error-regexp-alist))
@@ -5702,13 +5709,6 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	(t 5)))				; should not happen
 
 
-(defvar cperl-compilation-error-regexp-alist
-  ;; This look like a paranoiac regexp: could anybody find a better one? (which WORKS).
-  '(("^[^\n]* \\(file\\|at\\) \\([^ \t\n]+\\) [^\n]*line \\([0-9]+\\)[\\., \n]"
-     2 3))
-  "Alist that specifies how to match errors in perl output.")
-
-
 (defun cperl-windowed-init ()
   "Initialization under windowed version."
   (cond ((featurep 'ps-print)
