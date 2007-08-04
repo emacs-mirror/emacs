@@ -23963,10 +23963,12 @@ to be determined.  For a typical set of measured data there will be
 no single @expr{m} and @expr{b} that exactly fit the data; in this
 case, Calc chooses values of the parameters that provide the closest
 possible fit.  The model formula can be entered in various ways after
-the key sequence @kbd{a F} is pressed.  If the letter @kbd{P}
-is pressed after @kbd{a F} but before the model description is entered,
-the data as well as the model formula will be plotted after the formula
-is determined.
+the key sequence @kbd{a F} is pressed.  
+
+If the letter @kbd{P} is pressed after @kbd{a F} but before the model
+description is entered, the data as well as the model formula will be
+plotted after the formula is determined.  This will be indicated by a
+``p'' in the minibuffer after the help message.
 
 @menu
 * Linear Fits::
@@ -24249,6 +24251,8 @@ case, the model might be @expr{a x + b y + c z}; and in the polynomial
 case, the model could be @expr{a x + b x^2 + c x^3}.  You can get
 a homogeneous linear or multilinear model by pressing the letter
 @kbd{h} followed by a regular model key, like @kbd{1} or @kbd{2}.
+This will be indicated by an ``h'' in the minibuffer after the help
+message.
 
 It is certainly possible to have other constrained linear models,
 like @expr{2.3 + a x} or @expr{a - 4 x}.  While there is no single
