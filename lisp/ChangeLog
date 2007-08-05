@@ -1,3 +1,8 @@
+2007-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (set-auto-mode): Handle also remote files wrt
+	`auto-mode-alist'.
+
 2007-08-04  Glenn Morris  <rgm@gnu.org>
 
 	* autorevert.el (auto-revert-tail-mode): auto-revert-tail-pos is
