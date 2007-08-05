@@ -3,6 +3,9 @@
 	* files.el (set-auto-mode): Handle also remote files wrt
 	`auto-mode-alist'.
 
+	* net/tramp.el (tramp-handle-file-remote-p): Return a string as
+	remote identification.
+
 2007-08-04  Glenn Morris  <rgm@gnu.org>
 
 	* autorevert.el (auto-revert-tail-mode): auto-revert-tail-pos is

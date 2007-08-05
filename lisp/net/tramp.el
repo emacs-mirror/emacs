@@ -3872,7 +3872,7 @@ This will break if COMMAND prints a newline, followed by the value of
   "Like `file-remote-p' for tramp files."
   (when (tramp-tramp-file-p filename)
     (with-parsed-tramp-file-name filename nil
-      (vector multi-method method user host ""))))
+      (tramp-make-tramp-file-name multi-method method user host ""))))
 
 (defun tramp-handle-insert-file-contents
   (filename &optional visit beg end replace)
