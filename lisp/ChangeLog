@@ -1,3 +1,17 @@
+2007-08-05  Peter Povinec  <ppovinec <at> yahoo.com> (tiny change)
+
+	* term.el: Honor term-default-fg-color and term-default-bg-color
+	settings when modifying term-current-face.
+	(term-default-fg-color, term-default-bg-color): Initialized from
+	default term-current-face.
+	(term-mode, term-reset-terminal): Set term-current-face with
+	term-default-fg-color and term-default-bg-color.
+	(term-handle-colors-array): term-current-face has term-default-fg-color
+	and term-default-bg-color after reset escape sequence.
+	(term-handle-colors-array): Set term-current-color with
+	term-default-fg/bg-color instead of ansi-term-color-vector when the
+	index (term-ansi-current-color or term-ansi-current-bg-color) is zero.
+
 2007-08-05  Jay Belanger  <belanger@localhost.localdomain>
 
 	* calc/calc-nlfit.el (math-nlfit-curve):
