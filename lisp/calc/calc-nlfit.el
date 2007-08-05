@@ -373,7 +373,8 @@
                 (math-nlfit-set-elt d j dj))))
           (setq i (1+ i))))
       (setq j (1+ j)))
-    (let ((i n))
+    (let ((i n)
+          s)
       (while (>= i 1)
         (math-nlfit-set-elt r i 0)
         (setq s (math-nlfit-get-elt d i))
@@ -408,7 +409,8 @@
                                        (calcFunc-sqrt
                                         (math-sub 1 (math-mul gamma gamma)))))))
             (let ((ri (math-nlfit-get-elt r i))
-                  (rj (math-nlfit-get-elt r j)))
+                  (rj (math-nlfit-get-elt r j))
+                  h)
               (setq h (math-add (math-mul gamma rj)
                          (math-mul sigma ri)))
               (setq ri (math-sub
@@ -672,8 +674,6 @@
                      (mapcar (lambda (x) (math-get-sdev x t)) ydata)
                    nil))
           (ydata (mapcar (lambda (x) (math-get-value x)) ydata))
-          (zzz (progn (setq j1 xdata j2 ydata j3 sdata) 1))
-
           (calc-curve-varnames nil)
           (calc-curve-coefnames nil)
           (calc-curve-nvars 1)
