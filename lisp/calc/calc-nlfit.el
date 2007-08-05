@@ -813,3 +813,5 @@
        (calc-record traillist "parm")))))
 
 (provide 'calc-nlfit)
+
+;; arch-tag: 6eba3cd6-f48b-4a84-8174-10c15a024928
