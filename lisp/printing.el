@@ -1025,9 +1025,8 @@ Please send all bug fixes and enhancements to
 ;;; Code:
 
 
-(eval-when-compile
-  (require 'lpr)
-  (require 'ps-print))
+(require 'lpr)
+(require 'ps-print)
 
 
 (and (string< ps-print-version "6.6.4")
