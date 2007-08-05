@@ -2260,10 +2260,10 @@ we don't actually set it to the same mode the buffer already has."
     (unless done
       (if buffer-file-name
 	  (let ((name buffer-file-name)
-		(remote-id (regexp-quote (file-remote-p buffer-file-name))))
+		(remote-id (file-remote-p buffer-file-name)))
 	    ;; Remove remote file name identification.
 	    (when (and (stringp remote-id)
-		       (string-match remote-id name))
+		       (string-match (regexp-quote remote-id) name))
 	      (setq name (substring name (match-end 0))))
 	    ;; Remove backup-suffixes from file name.
 	    (setq name (file-name-sans-versions name))
