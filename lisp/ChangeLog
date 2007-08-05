@@ -1,3 +1,9 @@
+2007-08-05  Jay Belanger  <belanger@localhost.localdomain>
+
+	* calc/calc-nlfit.el (math-nlfit-curve):
+	Remove unnecessary variables.
+	(math-nlfit-givens): Let bind free variables.
+
 2007-08-05  Vinicius Jose Latorre  <viniciusig@ig.com.br>
 
 	* printing.el: Require lpr and ps-print when loading printing package.
