@@ -2636,6 +2636,9 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
     (message "Reverting %s...done" file)))
 
 ;;;###autoload
+(define-obsolete-function-alias 'vc-revert-buffer 'vc-revert "23.1")
+
+;;;###autoload
 (defun vc-update ()
   "Update the current buffer's file to the latest version on its branch.
 If the file contains no changes, and is not locked, then this simply replaces
@@ -2718,8 +2721,9 @@ return its name; otherwise return nil."
   (vc-resynch-buffer file t t))
 
 ;;;###autoload
-(defun vc-rollback ()
-  "Get rid of most recently checked in version of this file."
+(defun vc-rollback (&optional norevert)
+  "Get rid of most recently checked in version of this file.
+A prefix argument NOREVERT means do not revert the buffer afterwards."
   (interactive "P")
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
