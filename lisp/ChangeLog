@@ -1,3 +1,9 @@
+2007-08-06  Jason Rumney  <jasonr@gnu.org>
+
+	* menu-bar.el (menu-bar-vc-filter): Use vc-call-backend.
+
+	* vc-hooks.el (vc-call): Add doc string.
+
 2007-08-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-hook-function): Catch also errors in
