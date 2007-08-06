@@ -1,3 +1,9 @@
+2007-08-06  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-buffer-menu): Pass mode-name through
+	format-mode-line because it may be a list,
+	e.g., (sgml-xml-mode "XML" "SGML"), and not a string.
+
 2007-08-06  Vinicius Jose Latorre  <viniciusig@ig.com.br>
 
 	* printing.el (pr-update-menus): Docstring fix.
