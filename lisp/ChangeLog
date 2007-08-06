@@ -1,3 +1,29 @@
+2007-08-06  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-registered): Gracefully handle missing "bzr"
+	program, and return nil
+	(vc-bzr-state): Gracefully handle missing "bzr" program, and return nil.
+	(vc-bzr-state): Look for path names relative to the repository
+	root after status keyword.
+	(vc-bzr-file-name-relative): New function.
+	(vc-bzr-admin-dirname): Reinstate, as other vc-bzr-admin-... paths
+	depend on it.
+	(vc-bzr-admin-dirname, ...-checkout-format-file)
+	(...-branch-format-file, ...-revhistory): Paths to some Bzr internal
+	files that we now parse directly for speed.
+	(vc-bzr-root-dir): Use `vc-bzr-admin-checkout-format-file' as witness.
+	(vc-bzr-registered): Only parse vc-bzr-admin-dirstate file if it exists.
+	(vc-bzr-state): "bzr status" successful only if exitcode is 0
+	(vc-bzr-root): Use `vc-bzr-shell-command'.  Stderr may contain
+	Bzr warnings, so we must discard it.
+	(vc-bzr-workfile-version): Speedup counting lines from
+	`vc-bzr-admin-revhistory' file, but fallback to spawning "bzr revno"
+	if that file doesn't exist.
+	(vc-bzr-responsible-p): Use `vc-bzr-root' instead of
+	`vc-bzr-root-dir' for speed.
+	add `vc-bzr-admin-dirname' (not ".bzr"!) to `vc-directory-exclusion-list'
+	(vc-bzr-shell-command): New function.
+
 2007-08-06  Tom Tromey  <tromey@redhat.com>
 
 	* diff-mode.el (diff-unified->context, diff-reverse-direction)
