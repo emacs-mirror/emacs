@@ -1,3 +1,27 @@
+2007-08-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (window_min_size_2): New function.
+	(window_min_size_1, size_window, Fdisplay_buffer)
+	(Fsplit_window, adjust_window_trailing_edge): Use it to avoid
+	windows without mode- or header-lines when window-min-height is
+	too small.
+	(size_window): Reset nodelete_p after testing it, following an
+	earlier note by Kim F. Storm.
+	(display_buffer): Do not set split_height_threshold to twice the
+	value of window_min_height to avoid changing the value of a
+	customizable variable.  Rather explicitly check whether the
+	height of the window that shall be splitted is at least as large
+	as split_height_threshold.
+	(Fwindow_full_width_p): New defun.
+	(syms_of_window): Defsubr it.
+
+	* window.h: Add EXFUN for Fwindow_full_width_p.
+
+2007-08-06  Andreas Schwab  <schwab@suse.de>
+
+	* window.c (Fdisplay_buffer): Use NILP.
+	(Fset_window_scroll_bars): Likewise.
+
 2007-08-03  Richard Stallman  <rms@gnu.org>
 
 	* fileio.c (Fvisited_file_modtime): Use make_time.
