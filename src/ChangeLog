@@ -1,3 +1,8 @@
+2007-08-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): When restoring original buffer
+	position, make sure it is still valid.
+
 2007-08-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (window_min_size_2): New function.
