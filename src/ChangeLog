@@ -1,3 +1,38 @@
+2007-08-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [TARGET_API_MAC_CARBON] (cfdate_to_lisp): Obtain microsec value.
+	Use kCFAbsoluteTimeIntervalSince1970.
+
+	* macmenu.c (quit_dialog_event_loop) [TARGET_API_MAC_CARBON]:
+	New variable.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Set it if dialog
+	event loop should be quit.
+	[TARGET_API_MAC_CARBON] (create_and_show_dialog) [!MAC_OSX]:
+	Quit dialog event loop if quit_dialog_event_loop is set.
+
+	* macselect.c [!TARGET_API_MAC_CARBON]: Include Scrap.h.
+	(Selection): New typedef.  Use instead of ScrapRef.
+	(mac_get_selection_from_symbol): Rename from get_scrap_from_symbol.
+	(mac_valid_selection_target_p): Rename from valid_scrap_target_type_p.
+	(mac_clear_selection): Rename from clear_scrap.
+	(get_flavor_type_from_symbol): New argument SEL and subsume function of
+	scrap_has_target_type.   All uses changed.
+	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
+	(mac_selection_has_target_p): New functions.
+	(mac_put_selection_value): Rename from put_scrap_string.
+	(mac_get_selection_value): Rename from get_scrap_string.
+	(mac_get_selection_target_list): Rename from get_scrap_target_type_list.
+	(put_scrap_private_timestamp, scrap_has_target_type)
+	(get_scrap_private_timestamp): Remove functions.
+	(SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP): Remove define.
+	(x_own_selection, x_get_local_selection):
+	Use mac_valid_selection_value_p.
+	(x_own_selection): Don't use put_scrap_private_timestamp.
+	Record OWNERSHIP-INFO into Vselection_alist instead.
+	(x_get_local_selection): Don't check type if request is local.
+	(Fx_selection_owner_p): Don't use get_scrap_private_timestamp.
+	Detect ownership change with OWNERSHIP-INFO in Vselection_alist instead.
+
 2007-08-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_callback): Generate two TOOL_BAR_EVENT:s,
