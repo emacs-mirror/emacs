@@ -1,3 +1,11 @@
+2007-08-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el: Wrap (require 'help-mode) by
+	eval-when-compile.
+	(quail-help-init): New function.
+	(quail-help): Call quail-help-init.
+	(quail-store-decode-map-key): Change it to a function.
+
 2007-08-05  Jason Rumney  <jasonr@gnu.org>
 
 	* vc.el (vc-rollback): Add norevert argument back.
