@@ -279,7 +279,10 @@ It is usually called via the `vc-call' macro."
      (t		(apply f args)))))
 
 (defmacro vc-call (fun file &rest args)
-  ;; BEWARE!! `file' is evaluated twice!!
+  "A convenience macro for calling VC backend functions.
+Functions called by this macro must accept FILE as the first argument.
+ARGS specifies any additional arguments. FUN should be unquoted.
+BEWARE!! `file' is evaluated twice!!"
   `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
 
 (defsubst vc-parse-buffer (pattern i)
