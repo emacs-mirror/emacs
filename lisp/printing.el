@@ -5195,9 +5195,9 @@ See `pr-visible-entry-alist'.")
 
 If FORCE is non-nil, update menus doesn't matter if `pr-ps-printer-alist',
 `pr-txt-printer-alist' or `pr-ps-utility-alist' were modified or not;
-otherwise, update PostScript printer menu iff `pr-ps-printer-menu-modified' is
-non-nil, update text printer menu iff `pr-txt-printer-menu-modified' is
-non-nil, and update PostScript File menus iff `pr-ps-utility-menu-modified' is
+otherwise, update PostScript printer menu if `pr-ps-printer-menu-modified' is
+non-nil, update text printer menu if `pr-txt-printer-menu-modified' is
+non-nil, and update PostScript File menus if `pr-ps-utility-menu-modified' is
 non-nil.
 
 If menu binding was not done, calls `pr-menu-bind'."

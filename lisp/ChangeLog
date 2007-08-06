@@ -1,3 +1,7 @@
+2007-08-06  Vinicius Jose Latorre  <viniciusig@ig.com.br>
+
+	* printing.el (pr-update-menus): Docstring fix.
+
 2007-08-06  Jason Rumney  <jasonr@gnu.org>
 
 	* menu-bar.el (menu-bar-vc-filter): Use vc-call-backend.
