@@ -13520,7 +13520,10 @@ redisplay_window (window, just_this_one_p)
   /* Restore current_buffer and value of point in it.  */
   TEMP_SET_PT_BOTH (CHARPOS (opoint), BYTEPOS (opoint));
   set_buffer_internal_1 (old);
-  TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
+  /* Avoid an abort in TEMP_SET_PT_BOTH if the buffer has become
+     shorter.  This can be caused by log truncation in *Messages*. */
+  if (CHARPOS (lpoint) <= ZV)
+    TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
 
   unbind_to (count, Qnil);
 }
