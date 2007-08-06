@@ -379,11 +379,12 @@ Res PoolGenInit(PoolGen gen, Chain chain, Serial nr, Pool pool)
   gen->newSize = (Size)0;
   gen->sig = PoolGenSig;
 
-  if (nr != chain->genCount)
+  if(nr != chain->genCount) {
     RingAppend(&chain->gens[nr].locusRing, &gen->genRing);
-  else
+  } else {
     /* Dynamic generation is linked to the arena, not the chain. */
     RingAppend(&chain->arena->topGen.locusRing, &gen->genRing);
+  }
   AVERT(PoolGen, gen);
   return ResOK;
 }

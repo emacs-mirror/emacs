@@ -224,22 +224,16 @@ static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
   return;
 }
 
-/* traceStartWhyToString
+
+/* traceStartWhyToString -- why-code to text
  *
- * Converts a TraceStartWhy* code into a string description.
- * s specifies the beginning of the buffer to write the string
- * into, len specifies the length of the buffer.
- * The string written into will be NUL terminated (truncated if
- * necessary). */
-static void traceStartWhyToString(char *s, size_t len, int why)
+ * Converts a TraceStartWhy* code into a constant string describing 
+ * why a trace started.
+ */
+ 
+static const char *traceStartWhyToString(int why)
 {
   const char *r;
-  size_t i;
-
-  AVER(s);
-  /* len can be anything, including 0. */
-  AVER(TraceStartWhyBASE <= why);
-  AVER(why < TraceStartWhyLIMIT);
 
   switch(why) {
   case TraceStartWhyCHAIN_GEN0CAP:
@@ -268,6 +262,32 @@ static void traceStartWhyToString(char *s, size_t len, int why)
     r = "Unknown reason (internal error).";
     break;
   }
+
+  return r;
+}
+
+
+/* traceStartWhyToTextBuffer
+ *
+ * Converts a TraceStartWhy* code into a string describing why a trace
+ * started, and copies that into the text buffer the caller provides.
+ * s specifies the beginning of the buffer to write the string
+ * into, len specifies the length of the buffer.
+ * The string written into will be NUL terminated (truncated if
+ * necessary).
+ */
+
+static void traceStartWhyToTextBuffer(char *s, size_t len, int why)
+{
+  const char *r;
+  size_t i;
+
+  AVER(s);
+  /* len can be anything, including 0. */
+  AVER(TraceStartWhyBASE <= why);
+  AVER(why < TraceStartWhyLIMIT);
+
+  r = traceStartWhyToString(why);
 
   for(i=0; i<len; ++i) {
     s[i] = r[i];
@@ -836,6 +856,33 @@ static void traceFlip(Trace trace)
   return;
 }
 
+/* traceCopySizes -- preserve size information for later use
+ *
+ * A PoolGen's newSize is important information that we want to emit in
+ * a diagnostic message at TraceStart.  In order to do that we must copy
+ * the information before Whiten changes it.  This function does that.
+ */
+
+static void traceCopySizes(Trace trace)
+{
+  Ring node, nextNode;
+  Index i;
+  Arena arena = trace->arena;
+
+  RING_FOR(node, &arena->chainRing, nextNode) {
+    Chain chain = RING_ELT(Chain, chainRing, node);
+
+    for(i = 0; i < chain->genCount; ++i) {
+      Ring n, nn;
+      GenDesc desc = &chain->gens[i];
+      RING_FOR(n, &desc->locusRing, nn) {
+        PoolGen gen = RING_ELT(PoolGen, genRing, n);
+        gen->newSizeAtCreate = gen->newSize;
+      }
+    }
+  }
+  return;
+}
 
 /* TraceCreate -- create a Trace object
  *
@@ -871,6 +918,10 @@ found:
   AVER(trace->sig == SigInvalid);       /* <design/arena/#trace.invalid> */
 
   trace->arena = arena;
+  trace->why = why;
+  TraceStartMessageInit(arena, &trace->startMessage);
+  traceStartWhyToTextBuffer(trace->startMessage.why,
+                            sizeof trace->startMessage.why, why);
   trace->white = ZoneSetEMPTY;
   trace->mayMove = ZoneSetEMPTY;
   trace->ti = ti;
@@ -906,9 +957,6 @@ found:
   trace->preservedInPlaceSize = (Size)0;  /* see .message.data */
   STATISTIC(trace->reclaimCount = (Count)0);
   STATISTIC(trace->reclaimSize = (Size)0);
-  TraceStartMessageInit(arena, &trace->startMessage);
-  traceStartWhyToString(trace->startMessage.why,
-    sizeof trace->startMessage.why, why);
   trace->sig = TraceSig;
   arena->busyTraces = TraceSetAdd(arena->busyTraces, trace);
   AVERT(Trace, trace);
@@ -918,6 +966,8 @@ found:
   /* buffers under our feet. */
   /* @@@@ This is a short-term fix for request.dylan.160098. */
   ShieldSuspend(arena);
+
+  traceCopySizes(trace);
 
   *traceReturn = trace;
   return ResOK;
@@ -1750,6 +1800,35 @@ static Res rootGrey(Root root, void *p)
   return ResOK;
 }
 
+
+static void TraceStartGenDesc_diag(GenDesc desc, int i)
+{
+  Ring n, nn;
+
+  if(i < 0) {
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:     GenDesc [top]",
+      NULL ));
+  } else {
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:     GenDesc [$U]", i,
+      NULL ));
+  }
+  DIAG_WRITEF(( DIAG_STREAM,
+    " $P capacity: $U KiB, mortality $D\n",
+    (void *)desc, desc->capacity, desc->mortality,
+    "MPS:     ZoneSet:$B\n", desc->zones,
+    NULL ));
+  RING_FOR(n, &desc->locusRing, nn) {
+    PoolGen gen = RING_ELT(PoolGen, genRing, n);
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:       PoolGen $U ($S)", gen->nr, gen->pool->class->name,
+      " totalSize $U", gen->totalSize,
+      " newSize $U\n", gen->newSizeAtCreate,
+      NULL ));
+  }
+}
+
 void TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
@@ -1824,6 +1903,44 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     } while (SegNext(&seg, arena, base));
   }
 
+  DIAG_WRITEF(( DIAG_STREAM,
+    "MPS: TraceStart, because code $U: $S\n",
+    trace->why, traceStartWhyToString(trace->why),
+    NULL ));
+
+  DIAG( ArenaDescribe(arena, DIAG_STREAM); );
+
+  DIAG_WRITEF(( DIAG_STREAM,
+    "MPS:   white set:$B\n",
+    trace->white,
+    NULL ));
+
+  {
+    /* @@ */
+    /* Iterate over all chains, all GenDescs within a chain, */
+    /* (and all PoolGens within a GenDesc).  */
+    Ring node, nextNode;
+    Index i;
+
+    RING_FOR(node, &arena->chainRing, nextNode) {
+      Chain chain = RING_ELT(Chain, chainRing, node);
+      DIAG_WRITEF(( DIAG_STREAM,
+        "MPS:   Chain $P\n", (void *)chain,
+        NULL ));
+
+      for(i = 0; i < chain->genCount; ++i) {
+        GenDesc desc = &chain->gens[i];
+        TraceStartGenDesc_diag(desc, i);
+      }
+    }
+
+    /* Now do topgen GenDesc (and all PoolGens within it). */
+    DIAG_WRITEF(( DIAG_STREAM,
+      "MPS:   topGen\n",
+      NULL ));
+    TraceStartGenDesc_diag(&arena->topGen, -1);
+  }
+
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
 
@@ -1844,6 +1961,8 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     /* rate equals scanning work per number of polls available */
     trace->rate = (trace->foundation + sSurvivors) / (long)nPolls + 1;
   }
+
+  /* @@ DIAG for rate of scanning here. */
 
   STATISTIC_STAT(EVENT_PWWWWDD(TraceStatCondemn, trace,
                                trace->condemned, trace->notCondemned,
