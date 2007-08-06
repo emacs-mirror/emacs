@@ -1,5 +1,9 @@
 2007-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/tpu-edt.el (tpu-current-line): Use posn-at-point and
+	count-screen-lines.
+	(tpu-edt-off): Disable relevant pieces of advice.
+
 	* emulation/tpu-extras.el (tpu-before-save-hook): Rename from
 	tpu-write-file-hook.  Activate it with add-hook on buffer-save-hook.
 	(newline, newline-and-indent, do-auto-fill): Use advice instead of
