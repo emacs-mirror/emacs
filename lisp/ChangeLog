@@ -1,3 +1,9 @@
+2007-08-06  Vinicius Jose Latorre  <viniciusig@ig.com.br>
+
+	* printing.el: Require lpr and ps-print when loading printing package.
+	Reported by Glenn Morris <rgm@gnu.org>.
+	(pr-update-menus): Docstring fix.
+
 2007-08-03  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Evaluate require only during compilation.
