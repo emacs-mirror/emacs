@@ -6359,11 +6359,15 @@ png_load (f, img)
 				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	    }
 	}
+      /* The commented-out code checked if the png specifies a default
+	 background color, and uses that.  Since we rely on the
+	 current frame background, it is actually OK for us to ignore
+	 this part.
+
       else if (fn_png_get_bKGD (png_ptr, info_ptr, &image_bg))
-	/* Image contains a background color with which to
-	   combine the image.  */
 	fn_png_set_background (png_ptr, image_bg,
 			       PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
+	*/
       else
 	{
 	  /* Image does not contain a background color with which
