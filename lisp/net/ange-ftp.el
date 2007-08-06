@@ -4290,7 +4290,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(condition-case err
 	    (let ((debug-on-error t))
 	      (save-match-data (apply fn args)))
-	  (error (error (error-message-string err))))
+	  (error (signal (car err) (cdr err))))
       (ange-ftp-run-real-handler operation args))))
 
 ;; The following code is commented out because Tramp now deals with
