@@ -685,7 +685,7 @@ PREFIX is only used internally: don't use it."
 (defun diff-unified->context (start end)
   "Convert unified diffs to context diffs.
 START and END are either taken from the region (if a prefix arg is given) or
-else cover the whole bufer."
+else cover the whole buffer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
@@ -847,7 +847,7 @@ With a prefix argument, convert unified format to context format."
 (defun diff-reverse-direction (start end)
   "Reverse the direction of the diffs.
 START and END are either taken from the region (if a prefix arg is given) or
-else cover the whole bufer."
+else cover the whole buffer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
@@ -909,7 +909,7 @@ else cover the whole bufer."
 (defun diff-fixup-modifs (start end)
   "Fixup the hunk headers (in case the buffer was modified).
 START and END are either taken from the region (if a prefix arg is given) or
-else cover the whole bufer."
+else cover the whole buffer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
