@@ -777,6 +777,7 @@ extern Lisp_Object window_from_coordinates P_ ((struct frame *, int, int,
 EXFUN (Fwindow_dedicated_p, 1);
 extern int window_height P_ ((Lisp_Object));
 extern int window_width P_ ((Lisp_Object));
+EXFUN (Fwindow_full_width_p, 1);
 extern void set_window_height P_ ((Lisp_Object, int, int));
 extern void set_window_width P_ ((Lisp_Object, int, int));
 extern void change_window_heights P_ ((Lisp_Object, int));
