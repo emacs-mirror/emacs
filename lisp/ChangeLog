@@ -65,11 +65,6 @@
 	term-default-fg/bg-color instead of ansi-term-color-vector when the
 	index (term-ansi-current-color or term-ansi-current-bg-color) is zero.
 
-2007-08-05  Vinicius Jose Latorre  <viniciusig@ig.com.br>
-
-	* printing.el: Require lpr and ps-print when loading printing package.
-	Reported by Glenn Morris <rgm@gnu.org>.
-
 2007-08-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (set-auto-mode): Handle also remote files wrt
