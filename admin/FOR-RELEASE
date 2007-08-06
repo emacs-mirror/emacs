@@ -48,6 +48,10 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** id.brep@gmail.com, 12 Jul: customize-group "erc-server" save buffer error
 
+** ams@gnu.org, 9 July: eshell and external commands
+
+** timh@insightful.com, 25 June: undigestify-rmail-message in emacs 22.1 doesn't split a digest
+
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but
