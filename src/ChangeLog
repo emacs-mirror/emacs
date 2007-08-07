@@ -1,3 +1,16 @@
+2007-08-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main)
+	[HAVE_GTK_AND_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Call malloc_enable_thread on interactive startup.
+
+	* gmalloc.c (_malloc_thread_enabled_p) [USE_PTHREAD]: New variable.
+	[USE_PTHREAD] (LOCK, UNLOCK, LOCK_ALIGNED_BLOCKS)
+	(UNLOCK_ALIGNED_BLOCKS): Conditionalize with it.
+	(malloc_atfork_handler_prepare, malloc_atfork_handler_parent)
+	(malloc_atfork_handler_child, malloc_enable_thread) [USE_PTHREAD]:
+	New functions.
+
 2007-08-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): When restoring original buffer
