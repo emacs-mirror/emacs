@@ -1164,6 +1164,13 @@ main (argc, argv
       setpgrp ();
 #endif
 #endif
+#if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
+      {
+	extern void malloc_enable_thread P_ ((void));
+
+	malloc_enable_thread ();
+      }
+#endif
     }
 
   init_signals ();
