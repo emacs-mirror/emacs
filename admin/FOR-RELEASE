@@ -42,8 +42,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** bojohan+news@dd.chalmers.se, 1 Aug: n_schumacher@web.de: modification hooks called only once in
 
-** sdl.web@gmail.com: problem with transparent PNG image display
-
 ** id.brep@gmail.com, 12 Jul: customize-group "erc-server" save buffer error
 
 ** ams@gnu.org, 9 July: eshell and external commands
