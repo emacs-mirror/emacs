@@ -1609,6 +1609,7 @@ x_alloc_image_color (f, img, color_name, dflt)
 			     Image Cache
  ***********************************************************************/
 
+static struct image *search_image_cache P_ ((struct frame *, Lisp_Object, unsigned));
 static void cache_image P_ ((struct frame *f, struct image *img));
 static void postprocess_image P_ ((struct frame *, struct image *));
 
@@ -1628,6 +1629,55 @@ make_image_cache ()
   c->buckets = (struct image **) xmalloc (size);
   bzero (c->buckets, size);
   return c;
+}
+
+
+/* Find an image matching SPEC in the cache, and return it.  If no
+   image is found, return NULL.  */
+static struct image *
+search_image_cache (f, spec, hash)
+     struct frame *f;
+     Lisp_Object spec;
+     unsigned hash;
+{
+  struct image *img;
+  struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
+  int i = hash % IMAGE_CACHE_BUCKETS_SIZE;
+
+  if (!c) return NULL;
+
+  /* If the image spec does not specify a background color, the cached
+     image must have the same background color as the current frame.
+     The foreground color must also match, for the sake of monochrome
+     images.
+
+     In fact, we could ignore the foreground color matching condition
+     for color images, or if the image spec specifies :foreground;
+     similarly we could ignore the background color matching condition
+     for formats that don't use transparency (such as jpeg), or if the
+     image spec specifies :background.  However, the extra memory
+     usage is probably negligible in practice, so we don't bother.  */
+
+  for (img = c->buckets[i]; img; img = img->next)
+    if (img->hash == hash
+	&& !NILP (Fequal (img->spec, spec))
+	&& img->frame_foreground == FRAME_FOREGROUND_PIXEL (f)
+	&& img->frame_background == FRAME_BACKGROUND_PIXEL (f))
+      break;
+  return img;
+}
+
+
+/* Search frame F for an image with spec SPEC, and free it.  */
+
+static void
+uncache_image (f, spec)
+     struct frame *f;
+     Lisp_Object spec;
+{
+  struct image *img = search_image_cache (f, spec, sxhash (spec, 0));
+  if (img)
+    free_image (f, img);
 }
 
 
@@ -1741,6 +1791,36 @@ FRAME t means clear the image caches of all frames.  */)
 }
 
 
+DEFUN ("image-refresh", Fimage_refresh, Simage_refresh,
+       1, 2, 0,
+       doc: /* Refresh the image with specification SPEC on frame FRAME.
+If SPEC specifies an image file, the displayed image is updated with
+the current contents of that file.
+FRAME nil or omitted means use the selected frame.
+FRAME t means refresh the image on all frames.  */)
+     (spec, frame)
+     Lisp_Object spec, frame;
+{
+  if (!valid_image_p (spec))
+    error ("Invalid image specification");
+
+  if (EQ (frame, Qt))
+    {
+      Lisp_Object tail;
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  struct frame *f = XFRAME (frame);
+	  if (FRAME_WINDOW_P (f))
+	    uncache_image (f, spec);
+	}
+    }
+  else
+    uncache_image (check_x_frame (frame), spec);
+
+  return Qnil;
+}
+
+
 /* Compute masks and transform image IMG on frame F, as specified
    by the image's specification,  */
 
@@ -1824,9 +1904,7 @@ lookup_image (f, spec)
      struct frame *f;
      Lisp_Object spec;
 {
-  struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
   struct image *img;
-  int i;
   unsigned hash;
   struct gcpro gcpro1;
   EMACS_TIME now;
@@ -1840,12 +1918,7 @@ lookup_image (f, spec)
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec, 0);
-  i = hash % IMAGE_CACHE_BUCKETS_SIZE;
-
-  for (img = c->buckets[i]; img; img = img->next)
-    if (img->hash == hash && !NILP (Fequal (img->spec, spec)))
-      break;
-
+  img = search_image_cache (f, spec, hash);
   if (img && img->load_failed_p)
     {
       free_image (f, img);
@@ -1861,6 +1934,8 @@ lookup_image (f, spec)
       img = make_image (spec, hash);
       cache_image (f, img);
       img->load_failed_p = img->type->load (f, img) == 0;
+      img->frame_foreground = FRAME_FOREGROUND_PIXEL (f);
+      img->frame_background = FRAME_BACKGROUND_PIXEL (f);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
@@ -5727,7 +5802,17 @@ pbm_load (f, img)
 	    if (raw_p)
 	      {
 		if ((x & 7) == 0)
-		  c = *p++;
+		  {
+		    if (p >= end)
+		      {
+			x_destroy_x_image (ximg);
+			x_clear_image (f, img);
+			image_error ("Invalid image size in image `%s'",
+				     img->spec, Qnil);
+			goto error;
+		      }
+		    c = *p++;
+		  }
 		g = c & 0x80;
 		c <<= 1;
 	      }
@@ -6273,11 +6358,14 @@ png_load (f, img)
 				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	    }
 	}
+      /* The commented-out code checked if the png specifies a default
+	 background color, and uses that.  Since we use the current
+	 frame background, it is OK for us to ignore this.
+
       else if (fn_png_get_bKGD (png_ptr, info_ptr, &image_bg))
-	/* Image contains a background color with which to
-	   combine the image.  */
 	fn_png_set_background (png_ptr, image_bg,
 			       PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
+	*/
       else
 	{
 	  /* Image does not contain a background color with which
@@ -8647,6 +8735,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
+  defsubr (&Simage_refresh);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
   defsubr (&Simage_extension_data);
