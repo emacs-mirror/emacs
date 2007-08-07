@@ -1,3 +1,8 @@
+2007-08-07  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-start): Pass nil as startfile
+	to comint-exec.
+
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-decoded): New variable.

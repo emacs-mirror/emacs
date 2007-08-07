@@ -170,7 +170,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (maven
      ;; Maven is a popular build tool for Java.  Maven is Free Software.
      "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
-    
+
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
 
@@ -1136,7 +1136,7 @@ Returns the compilation buffer created."
 		       (if (file-remote-p default-directory)
 			   "/bin/sh"
 			 shell-file-name)
-		       `("-c" ,command))))
+		       nil `("-c" ,command))))
 		 (start-file-process-shell-command (downcase mode-name)
 						   outbuf command))))
 	  ;; Make the buffer's mode line show process state.
