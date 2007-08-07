@@ -290,9 +290,8 @@ history."
      tramp-cache-data)
     res))
 
-;; Read persistent connection history.  Applied with
-;; `load-in-progress', because it shall be evaluated only once.
-(when load-in-progress
+;; Read persistent connection history.
+(when (zerop (hash-table-count tramp-cache-data))
   (condition-case err
       (with-temp-buffer
 	(insert-file-contents tramp-persistency-file-name)

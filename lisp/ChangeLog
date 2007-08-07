@@ -1,3 +1,24 @@
+2007-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-wrong-passwd-regexp): Make the regexp more
+	global matching.
+	(tramp-handle-shell-command): Handle OUTPUT-BUFFER and
+	ERROR-BUFFER more robust.  Display output.
+	(tramp-file-name-handler): Add a connection property when we found
+	a foreign file name handler.  This allows backends like ftp to
+	profit also from usr/host name completion based on connection
+	cache.
+	(tramp-send-command-and-read): Search for trash after the regexp
+	until eol only.  In XEmacs, there is a problem with \n.
+
+	* net/tramp-cache.el (top): Read persistent connection history
+	when cache is empty.
+
+2007-08-07  Nic Ferrier  <nferrier@tapsellferrier.co.uk>  (tiny change)
+
+	* net/tramp.el (tramp-handle-process-file): Fix bug inserting
+	resulting output.
+
 2007-08-07  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/compile.el (compilation-start): Pass nil as startfile
@@ -295,21 +316,21 @@
 
 2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.el:
-	* tramp-uu.el:
-	* trampver.el: Use utf-8 encoding with coding cookie.
+	* net/tramp.el:
+	* net/tramp-uu.el:
+	* net/trampver.el: Use utf-8 encoding with coding cookie.
 
-	* tramp-cache.el:
-	* tramp-fish.el:
-	* tramp-ftp.el:
-	* tramp-gw.el:
-	* tramp-smb.el: Remove coding cookie.
+	* net/tramp-cache.el:
+	* net/tramp-fish.el:
+	* net/tramp-ftp.el:
+	* net/tramp-gw.el:
+	* net/tramp-smb.el: Remove coding cookie.
 
-	* tramp.el (tramp-handle-verify-visited-file-modtime):
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
 	Flush buffer file-name's file property.
 	(tramp-handle-file-remote-p): The first parameter is FILENAME.
 
-	* trampver.el: Update release number.
+	* net/trampver.el: Update release number.
 
 2007-07-29  Juri Linkov  <juri@jurta.org>
 
@@ -863,9 +884,9 @@
 
 	Sync with Tramp 2.1.10.
 
-	* tramp.el (tramp-get-ls-command): Fyx typo.
+	* net/tramp.el (tramp-get-ls-command): Fyx typo.
 
-	* trampver.el: Update release number.
+	* net/trampver.el: Update release number.
 
 2007-07-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
