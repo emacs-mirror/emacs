@@ -409,7 +409,16 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
 
 /* WriteF -- write formatted output
  *
- * Calls WriteF_v.
+ * .writef.des: See <design/writef/>, also <design/lib/>
+ *
+ * .writef.p: There is an assumption that void * fits in Word in
+ * the case of $P, and unsigned long for $U and $B.  This is checked in
+ * MPMCheck.
+ *
+ * .writef.div: Although MPS_WORD_WIDTH/4 appears three times, there
+ * are effectively three separate decisions to format at this width.
+ *
+ * .writef.check: See .check.writef.
  */
 
 Res WriteF(mps_lib_FILE *stream, ...)
@@ -423,21 +432,20 @@ Res WriteF(mps_lib_FILE *stream, ...)
   return res;
 }
 
-
-/* WriteF_v -- write formatted output
- *
- * .writef.des: See <design/writef/>, also <design/lib/>
- *
- * .writef.p: There is an assumption that void * fits in Word in
- * the case of $P, and unsigned long for $U and $B.  This is checked in
- * MPMCheck.
- *
- * .writef.div: Although MPS_WORD_WIDTH/4 appears three times, there
- * are effectively three separate decisions to format at this width.
- *
- * .writef.check: See .check.writef. */
-
 Res WriteF_v(mps_lib_FILE *stream, va_list args)
+{
+  const char *firstformat;
+  int r;
+  size_t i;
+  Res res;
+
+  firstformat = va_arg(args, const char *);
+  res = WriteF_firstformat_v(stream, firstformat, args);
+  return res;
+}
+
+Res WriteF_firstformat_v(mps_lib_FILE *stream, 
+                         const char *firstformat, va_list args)
 {
   const char *format;
   int r;
@@ -445,9 +453,10 @@ Res WriteF_v(mps_lib_FILE *stream, va_list args)
   Res res;
 
   AVER(stream != NULL);
+
+  format = firstformat;
  
   for(;;) {
-    format = va_arg(args, const char *);
     if (format == NULL)
       break;
 
@@ -534,6 +543,8 @@ Res WriteF_v(mps_lib_FILE *stream, va_list args)
 
       ++format;
     }
+
+    format = va_arg(args, const char *);
   }
  
   return ResOK;

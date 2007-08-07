@@ -28,6 +28,92 @@ mps_lib_FILE *DiagStream(void)
   return mps_lib_stdout;
 }
 
+const char *DiagTagGlobal = NULL;
+
+static void DiagTagBegin(const char *tag)
+{
+  Res res;
+
+  AVER(DiagTagGlobal == NULL);
+  DiagTagGlobal = tag;
+  res = WriteF(DiagStream(), "MPS.$S { ", tag, NULL);
+  AVER(res == ResOK);
+}
+
+static void DiagTagEnd(const char *tag)
+{
+  Res res;
+
+  AVER(DiagTagGlobal != NULL);
+  /* AVER(strequal(DiagTagGlobal, tag)); */
+  res = WriteF(DiagStream(), "} MPS.$S\n", tag, NULL);
+  DiagTagGlobal = NULL;
+  AVER(DiagTagGlobal == NULL);
+}
+
+void DiagSingleF(const char *tag, ...)
+{
+  va_list args;
+  Res res;
+
+  DiagTagBegin(tag);
+
+  va_start(args, tag);
+  res = WriteF_v(DiagStream(), args);
+  AVER(res == ResOK);
+  va_end(args);
+
+  DiagTagEnd(tag);
+}
+
+void DiagFirstF(const char *tag, ...)
+{
+  va_list args;
+  Res res;
+
+  DiagTagBegin(tag);
+
+  va_start(args, tag);
+  res = WriteF_v(DiagStream(), args);
+  AVER(res == ResOK);
+  va_end(args);
+}
+
+void DiagMoreF(const char *firstformat, ...)
+{
+  va_list args;
+  Res res;
+
+  /* ISO C says there must be at least one named parameter: hence */
+  /* the named firstformat.  It only looks different: there is no */
+  /* change from the expected WriteF protocol.  (In particular, */
+  /* firstformat may legally be NULL, with the variable part empty). */
+
+  va_start(args, firstformat);
+  res = WriteF_firstformat_v(DiagStream(), firstformat, args);
+  AVER(res == ResOK);
+  va_end(args);
+}
+
+void DiagEnd(const char *tag)
+{
+  DiagTagEnd(tag);
+}
+
+extern void diag_test(void);
+
+void diag_test(void)
+{
+  DIAG_SINGLEF(( "TestTag1", "text $U.\n", 42, NULL ));
+
+  DIAG_FIRSTF(( "TestTag2", "text $U.\n", 42, NULL ));
+  DIAG_MOREF(( NULL ));
+  DIAG_MOREF(( "string $S.\n", "fooey!", NULL ));
+  DIAG_MOREF(( NULL ));
+  DIAG_MOREF(( "Another string $S.\n", "baloney!", NULL ));
+  DIAG_END( "TestTag2" );
+}
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
