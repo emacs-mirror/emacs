@@ -3272,12 +3272,19 @@ colors. `vc-annotate-background' specifies the background color."
         (set (make-local-variable 'vc-annotate-parent-display-mode)
              display-mode)))
 
-    (vc-exec-after
-     `(progn
-        (when ,current-line
-          (goto-line ,current-line ,temp-buffer-name))
-        (unless (active-minibuffer-window)
-          (message "Annotating... done"))))))
+    (with-current-buffer temp-buffer-name
+      (vc-exec-after
+       `(progn
+          ;; Ideally, we'd rather not move point if the user has already
+          ;; moved it elsewhere, but really point here is not the position
+          ;; of the user's cursor :-(
+          (when ,current-line           ;(and (bobp))
+            (let ((win (get-buffer-window (current-buffer) 0)))
+              (when win
+                (with-selected-window win
+                  (goto-line ,current-line)))))
+          (unless (active-minibuffer-window)
+            (message "Annotating... done")))))))
 
 (defun vc-annotate-prev-version (prefix)
   "Visit the annotation of the version previous to this one.
