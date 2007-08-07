@@ -407,8 +407,7 @@
 
 (defgroup term nil
   "General command interpreter in a window."
-  :group 'processes
-  :group 'unix)
+  :group 'processes)
 
 
 ;;; Buffer Local Variables:
