@@ -1903,14 +1903,14 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     } while (SegNext(&seg, arena, base));
   }
 
-  DIAG_WRITEF(( DIAG_STREAM,
-    "MPS: TraceStart, because code $U: $S\n",
+  DIAG_FIRSTF(( "TraceStart",
+    "because code $U: $S\n",
     trace->why, traceStartWhyToString(trace->why),
     NULL ));
 
   DIAG( ArenaDescribe(arena, DIAG_STREAM); );
 
-  DIAG_WRITEF(( DIAG_STREAM,
+  DIAG_MOREF((
     "MPS:   white set:$B\n",
     trace->white,
     NULL ));
@@ -1940,6 +1940,8 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
       NULL ));
     TraceStartGenDesc_diag(&arena->topGen, -1);
   }
+  
+  DIAG_END( "TraceStart" );
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
   AVER(res == ResOK);
