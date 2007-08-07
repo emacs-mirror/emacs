@@ -1,3 +1,23 @@
+2007-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-file-remote-p): Handle optional
+	parameters IDENTIFICATION and CONNECTED.
+	(tramp-handle-insert-file-contents): VISIT must be handled after
+	insertion of the local copy.  Reported by Peter Gordon
+	<peter@pg-consultants.com>.
+	(tramp-file-name-handler): No special handling for
+	`expand-file-name'.  But for `file-name-as-directory'.
+	(tramp-find-shell, tramp-open-connection-telnet)
+	(tramp-open-connection-rsh, tramp-open-connection-su)
+	(tramp-open-connection-multi)
+	(tramp-open-connection-setup-interactive-shell): Guard against
+	$PROMPT_COMMAND shell var.  Reported by Steve Youngs
+	<steve@sxemacs.org>.
+	(tramp-append-tramp-buffers): Replace "sensible" by "sensitive" in
+	the hint.
+
+	* net/trampver.el: Update release number.
+
 2007-08-07  Tom Tromey  <tromey@redhat.com>
 
 	* progmodes/tcl.el (tcl-indent-level, tcl-continued-indent-level):

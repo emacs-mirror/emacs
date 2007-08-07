@@ -3868,11 +3868,20 @@ This will break if COMMAND prints a newline, followed by the value of
 	    (t (error "Wrong method specification for `%s'" method)))
       tmpfil)))
 
-(defun tramp-handle-file-remote-p (filename)
-  "Like `file-remote-p' for tramp files."
+(defun tramp-handle-file-remote-p (filename &optional identification connected)
+  "Like `file-remote-p' for Tramp files."
   (when (tramp-tramp-file-p filename)
     (with-parsed-tramp-file-name filename nil
-      (tramp-make-tramp-file-name multi-method method user host ""))))
+      (and (or (not connected)
+	       (let ((p (get-buffer-process
+			 (tramp-get-buffer multi-method method user host))))
+		 (and p (processp p) (memq (process-status p) '(run open)))))
+	   (cond
+	    ((eq identification 'method) method)
+	    ((eq identification 'user) user)
+	    ((eq identification 'host) host)
+	    (t (tramp-make-tramp-file-name
+		multi-method method user host "")))))))
 
 (defun tramp-handle-insert-file-contents
   (filename &optional visit beg end replace)
@@ -3899,14 +3908,14 @@ This will break if COMMAND prints a newline, followed by the value of
 		      'file-local-copy)))
 	       (file-local-copy filename)))
 	    coding-system-used result)
-	(when visit
-	  (setq buffer-file-name filename)
-	  (set-visited-file-modtime)
-	  (set-buffer-modified-p nil))
 	(tramp-message-for-buffer
 	 multi-method method user host
 	 9 "Inserting local temp file `%s'..." local-copy)
 	(setq result (insert-file-contents local-copy nil beg end replace))
+	(when visit
+	  (setq buffer-file-name filename)
+	  (set-visited-file-modtime)
+	  (set-buffer-modified-p nil))
 	;; Now `last-coding-system-used' has right value.  Remember it.
 	(when (boundp 'last-coding-system-used)
 	  (setq coding-system-used (symbol-value 'last-coding-system-used)))
@@ -4354,11 +4363,12 @@ Falls back to normal file name handler if no tramp file name handler exists."
 	(cond
 	 ;; When we are in completion mode, some operations shouldn' be
 	 ;; handled by backend.
-	 ((and completion (memq operation '(expand-file-name)))
-	  (tramp-run-real-handler operation args))
 	 ((and completion (zerop (length localname))
 	       (memq operation '(file-exists-p file-directory-p)))
 	  t)
+	 ((and completion (zerop (length localname))
+	       (memq operation '(file-name-as-directory)))
+	  filename)
 	 ;; Call the backend function.
 	 (foreign (apply foreign operation args))
 	 ;; Nothing to do for us.
@@ -5351,7 +5361,7 @@ file exists and nonzero exit status otherwise."
        5 "Starting remote shell `%s' for tilde expansion..." shell)
       (tramp-send-command
        multi-method method user host
-       (concat "PS1='$ ' exec " shell)) ;
+       (concat "PROMPT_COMMAND='' PS1='$ ' exec " shell)) ;
       (tramp-barf-if-no-shell-prompt
        (get-buffer-process (current-buffer))
        60 "Couldn't find remote `%s' prompt" shell)
@@ -5361,11 +5371,12 @@ file exists and nonzero exit status otherwise."
       ;; must use "\n" here, not tramp-rsh-end-of-line.  Kai left the
       ;; last tramp-rsh-end-of-line, Douglas wanted to replace that,
       ;; as well.
-      (process-send-string nil (format "PS1='%s%s%s'; PS2=''; PS3=''%s"
-				       tramp-rsh-end-of-line
-                                       tramp-end-of-output
-				       tramp-rsh-end-of-line
-                                       tramp-rsh-end-of-line))
+      (process-send-string
+       nil (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''%s"
+		   tramp-rsh-end-of-line
+		   tramp-end-of-output
+		   tramp-rsh-end-of-line
+		   tramp-rsh-end-of-line))
       (tramp-wait-for-output)
       (tramp-message
        9 "Setting remote shell prompt...done")
@@ -5690,6 +5701,7 @@ Maybe the different regular expressions need to be tuned.
 		   (or user (user-login-name)) host method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PROMPT_COMMAND")
       (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional here, then we would use
@@ -5771,6 +5783,7 @@ arguments, and xx will be used as the host name to connect to.
 	(setq login-args (cons "-p" (cons (match-string 2 host) login-args)))
 	(setq real-host (match-string 1 host)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PROMPT_COMMAND")
       (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional, we would use
@@ -5823,6 +5836,7 @@ prompt than you do, so it is not at all unlikely that the variable
 		   (or user "<root>") method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PROMPT_COMMAND")
       (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional, we use `undecided-dos' in
@@ -5888,6 +5902,7 @@ log in as u2 to h2."
     (tramp-message 7 "Opening `%s' connection..." multi-method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "PROMPT_COMMAND")
       (setenv "PS1" "$ ")
       (let* ((default-directory (tramp-temporary-file-directory))
 	     ;; If we omit the conditional, we use `undecided-dos' in
@@ -6127,10 +6142,11 @@ to set up.  METHOD, USER and HOST specify the connection."
   ;; makes it work under `rc', too.  We also unset the variable $ENV
   ;; because that is read by some sh implementations (eg, bash when
   ;; called as sh) on startup; this way, we avoid the startup file
-  ;; clobbering $PS1.
+  ;; clobbering $PS1.  $PROMP_COMMAND is another way to set the prompt
+  ;; in /bin/bash, it must be discarded as well.
   (tramp-send-command-internal
    multi-method method user host
-   (format "exec env 'ENV=' 'PS1=$ ' %s"
+   (format "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' %s"
 	   (tramp-get-method-parameter
 	    multi-method method user host 'tramp-remote-sh))
    (format "remote `%s' to come up"
@@ -6227,7 +6243,7 @@ to set up.  METHOD, USER and HOST specify the connection."
   (setq tramp-last-cmd-time (current-time))
   (tramp-send-command
    multi-method method user host
-   (format "PS1='%s%s%s'; PS2=''; PS3=''"
+   (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
 	   tramp-rsh-end-of-line
            tramp-end-of-output
 	   tramp-rsh-end-of-line))
@@ -7713,7 +7729,7 @@ Used for non-7bit chars in strings."
 	      (kill-region start (point)))))
 	(insert "
 The buffer(s) above will be appended to this message.  If you don't want
-to append a buffer because it contains sensible data, or because the buffer
+to append a buffer because it contains sensitive data, or because the buffer
 is too large, you should delete the respective buffer.  The buffer(s) will
 contain user and host names.  Passwords will never be included there.")
 
