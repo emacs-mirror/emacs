@@ -143,6 +143,7 @@ extern Shift SizeFloorLog2(Size size);
 /* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 
 extern Res WriteF(mps_lib_FILE *stream, ...);
+extern Res WriteF_v(mps_lib_FILE *stream, va_list args);
 
 
 /* Miscellaneous support -- see <code/mpm.c> */
