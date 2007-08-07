@@ -4329,13 +4329,6 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 regexp)
   :group 'fill)
 
-(defvar comment-line-break-function 'comment-indent-new-line
-  "*Mode-specific function which line breaks and continues a comment.
-
-This function is only called during auto-filling of a comment section.
-The function should take a single optional argument, which is a flag
-indicating whether it should use soft newlines.")
-
 ;; This function is used as the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
 ;; It returns t if it really did any work.
@@ -4409,10 +4402,10 @@ indicating whether it should use soft newlines.")
 	      (if (save-excursion
 		    (skip-chars-backward " \t")
 		    (= (point) fill-point))
-		  (funcall comment-line-break-function t)
+		  (default-indent-new-line t)
 		(save-excursion
 		  (goto-char fill-point)
-		  (funcall comment-line-break-function t)))
+		  (default-indent-new-line t)))
 	      ;; Now do justification, if required
 	      (if (not (eq justify 'left))
 		  (save-excursion
@@ -4426,6 +4419,43 @@ indicating whether it should use soft newlines.")
       ;; Justify last line.
       (justify-current-line justify t t)
       t)))
+
+(defvar comment-line-break-function 'comment-indent-new-line
+  "*Mode-specific function which line breaks and continues a comment.
+This function is called during auto-filling when a comment syntax
+is defined.
+The function should take a single optional argument, which is a flag
+indicating whether it should use soft newlines.")
+
+(defun default-indent-new-line (&optional soft)
+  "Break line at point and indent.
+If a comment syntax is defined, call `comment-indent-new-line'.
+
+The inserted newline is marked hard if variable `use-hard-newlines' is true,
+unless optional argument SOFT is non-nil."
+  (interactive)
+  (if comment-start
+      (funcall comment-line-break-function soft)
+    ;; Insert the newline before removing empty space so that markers
+    ;; get preserved better.
+    (if soft (insert-and-inherit ?\n) (newline 1))
+    (save-excursion (forward-char -1) (delete-horizontal-space))
+    (delete-horizontal-space)
+
+    (if (and fill-prefix (not adaptive-fill-mode))
+	;; Blindly trust a non-adaptive fill-prefix.
+	(progn
+	  (indent-to-left-margin)
+	  (insert-before-markers-and-inherit fill-prefix))
+
+      (cond
+       ;; If there's an adaptive prefix, use it unless we're inside
+       ;; a comment and the prefix is not a comment starter.
+       (fill-prefix
+	(indent-to-left-margin)
+	(insert-and-inherit fill-prefix))
+       ;; If we're not inside a comment, just try to indent.
+       (t (indent-according-to-mode))))))
 
 (defvar normal-auto-fill-function 'do-auto-fill
   "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
