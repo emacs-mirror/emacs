@@ -1,3 +1,9 @@
+2007-08-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* format.el (format-insert-file): Make sure that at most one undo
+	entry is recorded for the insertion.  Inhibit point-motion and
+	modification hooks around call to insert-file-contents.
+
 2007-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-annotate): Select temp-buffer before running vc-exec-after.
