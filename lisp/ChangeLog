@@ -1,3 +1,8 @@
+2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-decoded): New variable.
+	(longlines-mode): Avoid encoding or decoding the buffer twice.
+
 2007-08-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* format.el (format-insert-file): Make sure that at most one undo
