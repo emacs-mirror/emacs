@@ -74,6 +74,9 @@ in to make it use the scrollbars from the system theme.
 ** New function `window-full-width-p' returns t if a window is as wide
 as its frame.
 
+** The new function `image-refresh' refreshes all images associated
+with a given image specification.
+
 
 * Installation Changes in Emacs 22.1
 
