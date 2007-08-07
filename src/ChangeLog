@@ -1,3 +1,7 @@
+2007-08-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gmalloc.c (__malloc_initialize): Remove pthread_once.  Not needed.
+
 2007-08-07  Sam Steingold  <sds@gnu.org>
 
 	* gmalloc.c (__morecore): Fix the declaration to comply with the
