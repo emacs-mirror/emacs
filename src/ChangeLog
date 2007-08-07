@@ -1,3 +1,14 @@
+2007-08-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* fileio.c (Finsert_file_contents): Run format-decode and
+	after_insert_file_functions on entire buffer when REPLACE is
+	non-nil and inhibit modification_hooks and point_motion_hooks.
+	For consistency, run after_insert_file_functions iff something
+	got inserted.  Move signal_after_change and update_compositions
+	after code running after_insert_file_functions.  Make sure that
+	undo_list doesn't record intermediate steps of the decoding
+	process.
+
 2007-08-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (main)
