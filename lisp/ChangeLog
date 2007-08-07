@@ -1,3 +1,20 @@
+2007-08-07  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: Remove comments about vc-bzr.el being a modified
+	unofficial version.
+	(vc-bzr-command): Remove redundant setting of process-connection-type.
+	(vc-bzr-admin-checkout-format-file): Add autoload.
+	(vc-bzr-root-dir): Remove in favor of vc-bzr-root.
+	(vc-bzr-root): Switch to implementation of vc-bzr-root-dir.
+	(vc-bzr-registered): Compare dirstate format tag with known good
+	value, abort parsing if match fails.  Warn user in docstring.
+	(vc-bzr-workfile-version): Case for different Bzr branch formats.
+	See bzrlib/branch.py in Bzr sources.
+	(vc-bzr-diff): First argument FILES may be a string rather than a list.
+	(vc-bzr-shell-command): Remove in favor of
+	vc-bzr-command-discarding-stderr.
+	(vc-bzr-command-discarding-stderr): New function.
+
 2007-08-06  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el (vc-bzr-registered): Gracefully handle missing "bzr"
@@ -20,8 +37,8 @@
 	`vc-bzr-admin-revhistory' file, but fallback to spawning "bzr revno"
 	if that file doesn't exist.
 	(vc-bzr-responsible-p): Use `vc-bzr-root' instead of
-	`vc-bzr-root-dir' for speed.
-	add `vc-bzr-admin-dirname' (not ".bzr"!) to `vc-directory-exclusion-list'
+	`vc-bzr-root-dir' for speed.  Add `vc-bzr-admin-dirname'
+	(not ".bzr"!) to `vc-directory-exclusion-list'
 	(vc-bzr-shell-command): New function.
 
 2007-08-06  Tom Tromey  <tromey@redhat.com>
