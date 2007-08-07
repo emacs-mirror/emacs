@@ -409,6 +409,23 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
 
 /* WriteF -- write formatted output
  *
+ * Calls WriteF_v.
+ */
+
+Res WriteF(mps_lib_FILE *stream, ...)
+{
+  Res res;
+  va_list args;
+ 
+  va_start(args, stream);
+  res = WriteF_v(stream, args);
+  va_end(args);
+  return res;
+}
+
+
+/* WriteF_v -- write formatted output
+ *
  * .writef.des: See <design/writef/>, also <design/lib/>
  *
  * .writef.p: There is an assumption that void * fits in Word in
@@ -420,18 +437,15 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
  *
  * .writef.check: See .check.writef. */
 
-Res WriteF(mps_lib_FILE *stream, ...)
+Res WriteF_v(mps_lib_FILE *stream, va_list args)
 {
   const char *format;
   int r;
   size_t i;
   Res res;
-  va_list args;
 
   AVER(stream != NULL);
  
-  va_start(args, stream);
-
   for(;;) {
     format = va_arg(args, const char *);
     if (format == NULL)
@@ -521,8 +535,6 @@ Res WriteF(mps_lib_FILE *stream, ...)
       ++format;
     }
   }
- 
-  va_end(args);
  
   return ResOK;
 }
