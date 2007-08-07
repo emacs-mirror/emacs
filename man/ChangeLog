@@ -1,3 +1,8 @@
+2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (File Conveniences): Document point motion keys in Image
+	mode.
+
 2007-08-01  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi (Mailing Lists and Bug Reports): Correct "-no-site-file"
