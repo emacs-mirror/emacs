@@ -1,3 +1,8 @@
+2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-decoded): New variable.
+	(longlines-mode): Avoid encoding or decoding the buffer twice.
+
 2007-08-07  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el: Remove comments about vc-bzr.el being a modified
