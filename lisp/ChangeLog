@@ -1,3 +1,8 @@
+2007-08-07  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/tcl.el (tcl-indent-level, tcl-continued-indent-level):
+	Add safe-local-variable property.
+
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-toggle-display): Use image-refresh.
