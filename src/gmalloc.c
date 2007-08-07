@@ -136,6 +136,10 @@ extern __ptr_t memalign PP ((__malloc_size_t __alignment,
 extern __ptr_t valloc PP ((__malloc_size_t __size));
 #endif
 
+#ifdef USE_PTHREAD
+/* Set up mutexes and make malloc etc. thread-safe.  */
+extern void malloc_enable_thread PP ((void));
+#endif
 
 #ifdef _MALLOC_INTERNAL
 
@@ -242,10 +246,27 @@ extern void _free_internal_nolock PP ((__ptr_t __ptr));
 
 #ifdef USE_PTHREAD
 extern pthread_mutex_t _malloc_mutex, _aligned_blocks_mutex;
-#define LOCK()     pthread_mutex_lock (&_malloc_mutex)
-#define UNLOCK()   pthread_mutex_unlock (&_malloc_mutex)
-#define LOCK_ALIGNED_BLOCKS()     pthread_mutex_lock (&_aligned_blocks_mutex)
-#define UNLOCK_ALIGNED_BLOCKS()   pthread_mutex_unlock (&_aligned_blocks_mutex)
+extern int _malloc_thread_enabled_p;
+#define LOCK()					\
+  do {						\
+    if (_malloc_thread_enabled_p)		\
+      pthread_mutex_lock (&_malloc_mutex);	\
+  } while (0)
+#define UNLOCK()				\
+  do {						\
+    if (_malloc_thread_enabled_p)		\
+      pthread_mutex_unlock (&_malloc_mutex);	\
+  } while (0)
+#define LOCK_ALIGNED_BLOCKS()				\
+  do {							\
+    if (_malloc_thread_enabled_p)			\
+      pthread_mutex_lock (&_aligned_blocks_mutex);	\
+  } while (0)
+#define UNLOCK_ALIGNED_BLOCKS()				\
+  do {							\
+    if (_malloc_thread_enabled_p)			\
+      pthread_mutex_unlock (&_aligned_blocks_mutex);	\
+  } while (0)
 #else
 #define LOCK()
 #define UNLOCK()
@@ -564,6 +585,47 @@ register_heapinfo ()
 static pthread_once_t malloc_init_once_control = PTHREAD_ONCE_INIT;
 pthread_mutex_t _malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t _aligned_blocks_mutex = PTHREAD_MUTEX_INITIALIZER;
+int _malloc_thread_enabled_p;
+
+static void
+malloc_atfork_handler_prepare ()
+{
+  LOCK ();
+  LOCK_ALIGNED_BLOCKS ();
+}
+
+static void
+malloc_atfork_handler_parent ()
+{
+  UNLOCK_ALIGNED_BLOCKS ();
+  UNLOCK ();
+}
+
+static void
+malloc_atfork_handler_child ()
+{
+  UNLOCK_ALIGNED_BLOCKS ();
+  UNLOCK ();
+}
+
+/* Set up mutexes and make malloc etc. thread-safe.  */
+void
+malloc_enable_thread ()
+{
+  if (_malloc_thread_enabled_p)
+    return;
+
+  /* Some pthread implementations call malloc for statically
+     initialized mutexes when they are used first.  To avoid such a
+     situation, we initialize mutexes here while their use is
+     disabled in malloc etc.  */
+  pthread_mutex_init (&_malloc_mutex, NULL);
+  pthread_mutex_init (&_aligned_blocks_mutex, NULL);
+  pthread_atfork (malloc_atfork_handler_prepare,
+		  malloc_atfork_handler_parent,
+		  malloc_atfork_handler_child);
+  _malloc_thread_enabled_p = 1;
+}
 #endif
 
 static void
@@ -575,19 +637,6 @@ malloc_initialize_1 ()
 
   if (__malloc_initialize_hook)
     (*__malloc_initialize_hook) ();
-
-  /* We don't use recursive mutex because pthread_mutexattr_init may
-     call malloc internally.  */
-#if 0 /* defined (USE_PTHREAD) */
-  {
-    pthread_mutexattr_t attr;
-
-    pthread_mutexattr_init (&attr);
-    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init (&_malloc_mutex, &attr);
-    pthread_mutexattr_destroy (&attr);
-  }
-#endif
 
   heapsize = HEAP / BLOCKSIZE;
   _heapinfo = (malloc_info *) align (heapsize * sizeof (malloc_info));
