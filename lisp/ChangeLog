@@ -1,5 +1,7 @@
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* image-mode.el (image-toggle-display): Use image-refresh.
+
 	* longlines.el (longlines-decoded): New variable.
 	(longlines-mode): Avoid encoding or decoding the buffer twice.
 
