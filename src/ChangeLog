@@ -1,5 +1,14 @@
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dispextern.h (struct image): New members.
+
+	* image.c: Sync to trunk version.
+	(search_image_cache, uncache_image, image-refresh): New functions.
+	Check for fg and bg colors.
+	(lookup_image): Use search_image_cache.  Cache fg and bg colors.
+	(pbm_load): Another check for invalid image data.
+	(png_load): Ignore default background field.
+
 	* xdisp.c (move_it_by_lines): Remove incorrect optimization.
 
 2007-08-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
