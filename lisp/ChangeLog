@@ -4,6 +4,9 @@
 
 	* Replace `iff' in doc-strings and comments.
 
+	* help-mode.el (help-make-xrefs): Search for symbol constituents,
+	rather than just `-'.
+
 2007-08-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-pop-to-buffer):
