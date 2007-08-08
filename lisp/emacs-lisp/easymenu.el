@@ -539,7 +539,7 @@ earlier by `easy-menu-define' or `easy-menu-create-menu'."
     (easy-menu-do-add-item map item before)))
 
 (defun easy-menu-item-present-p (map path name)
-  "In submenu of MAP with path PATH, return non-nil iff item NAME is present.
+  "In submenu of MAP with path PATH, return non-nil if item NAME is present.
 MAP and PATH are defined as in `easy-menu-add-item'.
 NAME should be a string, the name of the element to be looked for."
   (easy-menu-return-item (easy-menu-get-map map path) name))
