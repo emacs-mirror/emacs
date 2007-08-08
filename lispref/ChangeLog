@@ -1,3 +1,7 @@
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* intro.texi (nil and t): Do not use `iff' in documentation.
+
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Image Cache): Document image-refresh.
