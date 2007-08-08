@@ -1,3 +1,7 @@
+2007-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (auto-mode-alist): Use the purecopied text (duh!).
+
 2007-08-08  Andreas Schwab  <schwab@suse.de>
 
 	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook): Check for

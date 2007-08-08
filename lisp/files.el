@@ -1886,7 +1886,7 @@ since only a single case-insensitive search through the alist is made."
   ;; c++-mode, java-mode and more) are added through autoload
   ;; directives in that file.  That way is discouraged since it
   ;; spreads out the definition of the initial value.
-  (mapc
+  (mapcar
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
    `(;; do this first, so that .html.pl is Polish html, not Perl
