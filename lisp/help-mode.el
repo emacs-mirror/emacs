@@ -461,9 +461,9 @@ that."
               ;; An obvious case of a key substitution:
               (save-excursion
                 (while (re-search-forward
-			;; Assume command name is only word characters
-			;; and dashes to get things like `use M-x foo.'.
-                        "\\<M-x\\s-+\\(\\sw\\(\\sw\\|-\\)+\\)" nil t)
+			;; Assume command name is only word and symbol
+                        ;; characters to get things like `use M-x foo->bar'.
+                        "\\<M-x\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)" nil t)
                   (let ((sym (intern-soft (match-string 1))))
                     (if (fboundp sym)
                         (help-xref-button 1 'help-function sym)))))
@@ -489,7 +489,7 @@ that."
 		      (end-of-line)
 		      (skip-chars-backward "^ \t\n")
 		      (if (and (>= (current-column) col)
-			       (looking-at "\\(\\sw\\|-\\)+$"))
+			       (looking-at "\\(\\sw\\|\\s_\\)+$"))
 			  (let ((sym (intern-soft (match-string 0))))
 			    (if (fboundp sym)
 				(help-xref-button 0 'help-function sym))))
