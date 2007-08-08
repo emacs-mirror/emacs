@@ -5,7 +5,6 @@
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
-;; Time-stamp: <2006-02-06 15:13:57 ttn>
 ;; Keywords: convenience frames
 
 ;; This file is part of GNU Emacs.
@@ -286,7 +285,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 (defun winner-get-point (buf win)
   ;; Consult (and possibly extend) `winner-point-alist'.
-  ;; Returns nil iff buf no longer exists.
+  ;; Returns nil if buf no longer exists.
   (when (buffer-name buf)
     (let ((entry (assq buf winner-point-alist)))
       (cond
@@ -306,7 +305,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 ;; Make sure point does not end up in the minibuffer and delete
 ;; windows displaying dead or boring buffers
-;; (c.f. `winner-boring-buffers').  Return nil iff all the windows
+;; (c.f. `winner-boring-buffers').  Return nil if all the windows
 ;; should be deleted.  Preserve correct points and marks.
 (defun winner-set (conf)
   ;; For the format of `conf', see `winner-conf'.
