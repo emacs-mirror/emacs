@@ -38,20 +38,16 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** dak@gnu.org, 30 May: Redraw problem with overlapping frames
 
-** dksw@eircom.net, 3 Jul: Telnet mode (rsh/ssh)
-
 ** bojohan+news@dd.chalmers.se, 1 Aug: n_schumacher@web.de: modification hooks called only once in
-
-** id.brep@gmail.com, 12 Jul: customize-group "erc-server" save buffer error
 
 ** ams@gnu.org, 9 July: eshell and external commands
 
 ** timh@insightful.com, 25 June: undigestify-rmail-message in emacs 22.1 doesn't split a digest
 
-* FIXES FOR EMACS 22.2
+* FIXES FOR EMACS 22.3
 
-Here we list small fixes that arrived too late for Emacs 22.1, but
-that should be installed on the release branch after 22.1 is released.
+Here we list small fixes that arrived too late for Emacs 22.2, but
+that should be installed on the release branch after 22.2 is released.
 
 * DOCUMENTATION
 
