@@ -1,3 +1,12 @@
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string): Make second
+	argument optional, for backwards compatibility, and only highlight
+	args when present.  Fix symbol name typo (doc/args).
+
+	* help-mode.el (help-make-xrefs): Search for symbol constituents,
+	rather than just `-'.
+
 2007-08-07  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (calc-convert-temperature):
@@ -93,7 +102,7 @@
 	* vc.el (vc-rollback): Add norevert argument back.
 	(vc-revert-buffer): Add back as obsolete alias.
 
-2007-08-05  Peter Povinec  <ppovinec <at> yahoo.com> (tiny change)
+2007-08-05  Peter Povinec  <ppovinec@yahoo.com>  (tiny change)
 
 	* term.el: Honor term-default-fg-color and term-default-bg-color
 	settings when modifying term-current-face.
