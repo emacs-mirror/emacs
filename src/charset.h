@@ -413,8 +413,8 @@ extern int width_by_char_head[256];
 	    | ((c1) <= 0 ? 0 : (((c1) & 0x7F) << 7))))))
 
 
-/* If GENERICP is nonzero, return nonzero iff C is a valid normal or
-   generic character.  If GENERICP is zero, return nonzero iff C is a
+/* If GENERICP is nonzero, return nonzero if C is a valid normal or
+   generic character.  If GENERICP is zero, return nonzero if C is a
    valid normal character.  */
 #define CHAR_VALID_P(c, genericp)	\
   ((c) >= 0				\
@@ -450,7 +450,7 @@ extern int width_by_char_head[256];
 #define VALID_LEADING_CODE_P(code)	\
   (! NILP (CHARSET_TABLE_ENTRY (code)))
 
-/* Return 1 iff the byte sequence at unibyte string STR (LENGTH bytes)
+/* Return 1 if the byte sequence at unibyte string STR (LENGTH bytes)
    is valid as a multibyte form.  If valid, by a side effect, BYTES is
    set to the byte length of the multibyte form.  */
 
@@ -471,7 +471,7 @@ extern int width_by_char_head[256];
 		     && VALID_LEADING_CODE_P (str[1]))))))))
 
 
-/* Return 1 iff the byte sequence at multibyte string STR is valid as
+/* Return 1 if the byte sequence at multibyte string STR is valid as
    a unibyte form.  By a side effect, BYTES is set to the byte length
    of one character at STR.  */
 
@@ -499,7 +499,7 @@ extern int width_by_char_head[256];
 	 c1 = CHAR_FIELD3 (c),						    \
 	 c2 = -1)))
 
-/* Return 1 iff character C has valid printable glyph.  */
+/* Return 1 if character C has valid printable glyph.  */
 #define CHAR_PRINTABLE_P(c) (ASCII_BYTE_P (c) || char_printable_p (c))
 
 /* The charset of the character at STR is stored in CHARSET, and the

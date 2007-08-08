@@ -40,7 +40,7 @@ static void set_identity ();
 static void shuffle ();
 
 DEFUN ("case-table-p", Fcase_table_p, Scase_table_p, 1, 1, 0,
-       doc: /* Return t iff OBJECT is a case table.
+       doc: /* Return t if OBJECT is a case table.
 See `set-case-table' for more information on these data structures.  */)
      (object)
      Lisp_Object object;

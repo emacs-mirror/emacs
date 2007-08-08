@@ -6622,7 +6622,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
                 /* Window will be selected only when it is not selected now and
                    last mouse movement event was not in it.  Minibuffer window
-                   will be selected iff it is active.  */
+                   will be selected only when it is active.  */
                 if (WINDOWP (window)
                     && !EQ (window, last_window)
                     && !EQ (window, selected_window))

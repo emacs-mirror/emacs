@@ -5191,7 +5191,7 @@ This does code conversion according to the value of
  * if we do writes that don't end with a carriage return. Furthermore
  * it cannot handle writes of more then 16K. The modified
  * version of "sys_write" in SYSDEP.C (see comment there) copes with
- * this EXCEPT for the last record (iff it doesn't end with a carriage
+ * this EXCEPT for the last record (if it doesn't end with a carriage
  * return). This implies that if your buffer doesn't end with a carriage
  * return, you get one free... tough. However it also means that if
  * we make two calls to sys_write (a la the following code) you can

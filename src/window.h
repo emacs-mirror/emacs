@@ -819,7 +819,7 @@ extern int command_loop_level;
 
 extern int minibuf_level;
 
-/* true iff we should redraw the mode lines on the next redisplay.  */
+/* true if we should redraw the mode lines on the next redisplay.  */
 
 extern int update_mode_lines;
 
