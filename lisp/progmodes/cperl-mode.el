@@ -3558,7 +3558,7 @@ modify syntax-type text property if the situation is too hard."
 	  (modify-syntax-entry starter (if (eq starter ?\\) "\\" ".") st)
 	  (if ender (modify-syntax-entry ender "." st))))
     ;; i: have 2 args, after end of the first arg
-    ;; i2: start of the second arg, if any (before delim iff `ender').
+    ;; i2: start of the second arg, if any (before delim if `ender').
     ;; ender: the last arg bounded by parens-like chars, the second one of them
     ;; starter: the starting delimiter of the first arg
     ;; go-forward: has 2 args, and the second part is empty
@@ -8090,7 +8090,7 @@ prototype \\&SUB	Returns prototype of the function given a reference.
 (defun cperl-beautify-regexp-piece (b e embed level)
   ;; b is before the starting delimiter, e before the ending
   ;; e should be a marker, may be changed, but remains "correct".
-  ;; EMBED is nil iff we process the whole REx.
+  ;; EMBED is nil if we process the whole REx.
   ;; The REx is guaranteed to have //x
   ;; LEVEL shows how many levels deep to go
   ;; position at enter and at leave is not defined

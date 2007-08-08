@@ -1763,7 +1763,7 @@ If ALL is nil, only match comments that start in column > 0."
 ;; From: ralf@up3aud1.gwdg.de (Ralf Fassel)
 ;; Test if TAB format continuation lines work.
 (defun fortran-is-in-string-p (where)
-  "Return non-nil iff WHERE (a buffer position) is inside a Fortran string."
+  "Return non-nil if WHERE (a buffer position) is inside a Fortran string."
   (save-excursion
     (goto-char where)
     (cond
