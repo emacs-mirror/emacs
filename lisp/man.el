@@ -64,7 +64,7 @@
 ;; ========== Features ==========
 ;; + Runs "man" in the background and pipes the results through a
 ;;   series of sed and awk scripts so that all retrieving and cleaning
-;;   is done in the background. The cleaning commands are configurable.
+;;   is done in the background.  The cleaning commands are configurable.
 ;; + Syntax is the same as Un*x man
 ;; + Functionality is the same as Un*x man, including "man -k" and
 ;;   "man <section>", etc.
@@ -1291,14 +1291,18 @@ The following key bindings are currently in effect in the buffer:
 (defun Man-next-section (n)
   "Move point to Nth next section (default 1)."
   (interactive "p")
-  (let ((case-fold-search nil))
+  (let ((case-fold-search nil)
+        (start (point)))
     (if (looking-at Man-heading-regexp)
 	(forward-line 1))
     (if (re-search-forward Man-heading-regexp (point-max) t n)
 	(beginning-of-line)
       (goto-char (point-max))
       ;; The last line doesn't belong to any section.
-      (forward-line -1))))
+      (forward-line -1))
+    ;; But don't move back from the starting point (can happen if `start'
+    ;; is somewhere on the last line).
+    (if (< (point) start) (goto-char start))))
 
 (defun Man-previous-section (n)
   "Move point to Nth previous section (default 1)."
