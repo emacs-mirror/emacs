@@ -1,3 +1,8 @@
+2007-08-08  Andreas Schwab  <schwab@suse.de>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook): Check for
+	self-insert-command, not self-insert.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string): Make second
