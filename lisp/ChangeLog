@@ -1,3 +1,9 @@
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/checkdoc.el (checkdoc-ispell-lisp-words): Remove `iff'.
+
+	* Replace `iff' in doc-strings and comments.
+
 2007-08-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* dired.el (dired-pop-to-buffer):
