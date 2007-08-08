@@ -1,3 +1,15 @@
+2007-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el: Remove spurious * in docstrings.
+	Merge defvars and toplevel setq-defaults.
+	(Man-highlight-references0): Limit=nil rather than point-max.
+	(Man-mode-map): Move initialization into the declaration.
+	(Man-strip-page-headers, Man-unindent): Use dolist & inhibit-read-only.
+	(Man-view-header-file): Use expand-file-name rather than concat.
+	(Man-notify-when-ready, Man-bgproc-sentinel): Use with-current-buffer.
+
+	* man.el (Man-next-section): Make sure we do not move backward.
+
 2007-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-default-fg, ps-default-bg): Docstring fix.
