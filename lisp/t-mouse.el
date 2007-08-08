@@ -271,7 +271,8 @@ The (secret) scrollbar interface is not implemented yet."
 ;;;###autoload
 (define-minor-mode t-mouse-mode
   "Toggle t-mouse mode to use the mouse in Linux consoles.
-With prefix arg, turn t-mouse mode on iff arg is positive.
+With prefix arg, turn t-mouse mode on if arg is positive, otherwise turn it
+off.
 
 This allows the use of the mouse when operating on a Linux console, in the
 same way as you can use the mouse under X11.

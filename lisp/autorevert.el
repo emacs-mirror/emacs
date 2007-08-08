@@ -315,7 +315,7 @@ This function is designed to be added to hooks, for example:
 ;;;###autoload
 (define-minor-mode auto-revert-tail-mode
   "Toggle reverting tail of buffer when file on disk grows.
-With arg, turn Tail mode on iff arg is positive.
+With arg, turn Tail mode on if arg is positive, otherwise turn it off.
 
 When Tail mode is enabled, the tail of the file is constantly
 followed, as with the shell command `tail -f'.  This means that

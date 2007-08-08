@@ -3941,8 +3941,9 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 
 (defun toggle-read-only (&optional arg)
   "Change whether this buffer is visiting its file read-only.
-With arg, set read-only iff arg is positive.
-If visiting file read-only and `view-read-only' is non-nil, enter view mode."
+With prefix argument ARG, make the buffer read-only if ARG is
+positive, otherwise make it writable.  If visiting file read-only
+and `view-read-only' is non-nil, enter view mode."
   (interactive "P")
   (if (and arg
            (if (> (prefix-numeric-value arg) 0) buffer-read-only
@@ -4568,7 +4569,7 @@ FILENAME should lack slashes.  You can redefine this for customization."
 
 (defun wildcard-to-regexp (wildcard)
   "Given a shell file name pattern WILDCARD, return an equivalent regexp.
-The generated regexp will match a filename iff the filename
+The generated regexp will match a filename only if the filename
 matches that wildcard according to shell rules.  Only wildcards known
 by `sh' are supported."
   (let* ((i (string-match "[[.*+\\^$?]" wildcard))

@@ -1835,7 +1835,7 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-map-lines (function &optional nomodify group)
   "Call FUNCTION for each buffer.
-Don't set the ibuffer modification flag iff NOMODIFY is non-nil.
+Set the ibuffer modification flag unless NOMODIFY is non-nil.
 
 If optional argument GROUP is non-nil, then only call FUNCTION on
 buffers in filtering group GROUP.
@@ -2267,7 +2267,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
 
 (defun ibuffer-quit ()
   "Quit this `ibuffer' session.
-Try to restore the previous window configuration iff
+Try to restore the previous window configuration if
 `ibuffer-restore-window-config-on-quit' is non-nil."
   (interactive)
   (if ibuffer-restore-window-config-on-quit
