@@ -18595,23 +18595,23 @@ predicate to individual groups.
 
 @table @code
 @item short
-True iff the article is shorter than @code{gnus-agent-short-article}
+True if the article is shorter than @code{gnus-agent-short-article}
 lines; default 100.
 
 @item long
-True iff the article is longer than @code{gnus-agent-long-article}
+True if the article is longer than @code{gnus-agent-long-article}
 lines; default 200.
 
 @item low
-True iff the article has a download score less than
+True if the article has a download score less than
 @code{gnus-agent-low-score}; default 0.
 
 @item high
-True iff the article has a download score greater than
+True if the article has a download score greater than
 @code{gnus-agent-high-score}; default 0.
 
 @item spam
-True iff the Gnus Agent guesses that the article is spam.  The
+True if the Gnus Agent guesses that the article is spam.  The
 heuristics may change over time, but at present it just computes a
 checksum and sees whether articles match.
 
@@ -26651,7 +26651,7 @@ New @file{make.bat} for compiling and installing Gnus under MS Windows
 
 Use @file{make.bat} if you want to install Gnus under MS Windows, the
 first argument to the batch-program should be the directory where
-@file{xemacs.exe} respectively @file{emacs.exe} is located, iff you want
+@file{xemacs.exe} respectively @file{emacs.exe} is located, if you want
 to install Gnus after compiling it, give @file{make.bat} @code{/copy} as
 the second parameter.
 
@@ -27008,7 +27008,7 @@ The envelope sender address can be customized when using Sendmail.
 @item
 Gnus no longer generate the Sender: header automatically.
 
-Earlier it was generated iff the user configurable email address was
+Earlier it was generated when the user configurable email address was
 different from the Gnus guessed default user address.  As the guessing
 algorithm is rarely correct these days, and (more controversially) the
 only use of the Sender: header was to check if you are entitled to
