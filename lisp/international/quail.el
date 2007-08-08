@@ -1942,7 +1942,7 @@ Remaining args are for FUNC."
       (overlay-put quail-overlay 'face 'highlight))))
 
 (defun quail-require-guidance-buf ()
-  "Return t iff the current Quail package requires showing guidance buffer."
+  "Return t if the current Quail package requires showing guidance buffer."
   (and input-method-verbose-flag
        (if (eq input-method-verbose-flag 'default)
 	   (not (and (eq (selected-window) (minibuffer-window))
