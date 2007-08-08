@@ -757,7 +757,7 @@ With prefix argument ARG, repeat this ARG times."
 (defun sgml-skip-tag-forward (arg)
   "Skip to end of tag or matching closing tag if present.
 With prefix argument ARG, repeat this ARG times.
-Return t iff after a closing tag."
+Return t if after a closing tag."
   (interactive "p")
   ;; FIXME: Use sgml-get-context or something similar.
   ;; It currently might jump to an unrelated </P> if the <P>

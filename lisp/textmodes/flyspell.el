@@ -457,7 +457,8 @@ See also `flyspell-duplicate-distance'."
 This spawns a single Ispell process and checks each word.
 The default flyspell behavior is to highlight incorrect words.
 With no argument, this command toggles Flyspell mode.
-With a prefix argument ARG, turn Flyspell minor mode on iff ARG is positive.
+With a prefix argument ARG, turn Flyspell minor mode on if ARG is positive,
+otherwise turn it off.
 
 Bindings:
 \\[ispell-word]: correct words (using Ispell).
@@ -1621,7 +1622,7 @@ FLYSPELL-BUFFER."
 ;;*    flyspell-overlay-p ...                                           */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-overlay-p (o)
-  "A predicate that return true iff O is an overlay used by flyspell."
+  "Return true if O is an overlay used by flyspell."
   (and (overlayp o) (overlay-get o 'flyspell-overlay)))
 
 ;;*---------------------------------------------------------------------*/

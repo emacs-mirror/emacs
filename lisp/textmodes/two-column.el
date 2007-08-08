@@ -561,8 +561,10 @@ off trailing spaces with \\[delete-trailing-whitespace]."
   (newline arg))
 
 (defun 2C-toggle-autoscroll (arg)
-  "Toggle autoscrolling, or set it iff prefix ARG is non-nil and positive.
-When autoscrolling is turned on, this also realigns the two buffers."
+  "Toggle autoscrolling.
+With prefix argument ARG, turn on autoscrolling if ARG is
+positive, otherwise turn it off.  When autoscrolling is turned
+on, this also realigns the two buffers."
   (interactive "P")
   ;(sit-for 0)
   (setq 2C-autoscroll-start (window-start))
