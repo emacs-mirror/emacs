@@ -31,7 +31,7 @@ NOTE-END */
 /* NOTE: this file works for DYNIX release 2.0
 	  (not tested on 1.3) on NS32000's */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #undef WORDS_BIG_ENDIAN

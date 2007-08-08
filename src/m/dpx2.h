@@ -32,7 +32,7 @@ Boston, MA 02110-1301, USA.  */
 /* #define ncl_el	/* DPX/2 210,220 etc */
 /* #define ncl_mr 1	/* DPX/2 320,340 (and 360,380 ?) */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN

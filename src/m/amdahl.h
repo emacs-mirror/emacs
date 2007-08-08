@@ -31,7 +31,7 @@ This file works with the Amdahl uts native C compiler. The 5.2u370
 compiler is so brain damaged that it is not even worth trying to use it.
 */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN

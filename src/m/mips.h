@@ -29,7 +29,7 @@ Use mips4.h for RISCOS version 4; use s-bsd4-3.h with the BSD world.
 Note that the proper m file for the Decstation is pmax.h.
 NOTE-END  */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #if ! (defined (__MIPSEL__) || defined (MIPSEL) || defined (_MIPSEL))

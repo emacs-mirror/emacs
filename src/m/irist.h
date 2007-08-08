@@ -58,7 +58,7 @@ NOTE-END */
   (copy-file), it would say that it is non-critical...
 #endif /* 0 */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN
