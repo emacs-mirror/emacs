@@ -1,3 +1,16 @@
+2007-08-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer):
+	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* calendar/calendar.el (generate-calendar-window):
+	* progmodes/compile.el (compilation-set-window-height):
+	* textmodes/two-column.el (2C-two-columns, 2C-merge):
+	Use window-full-width-p instead of comparing frame-width and
+	window-width.
+
+	* progmodes/compile.el (compilation-find-buffer): Remove extra
+	argument in call to compilation-buffer-internal-p.
+
 2007-08-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-file-remote-p): Handle optional
