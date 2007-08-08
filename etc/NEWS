@@ -3558,8 +3558,8 @@ that is, floats are compared by value and other elements with `eq'.
 
 *** New functions `string-or-null-p' and `booleanp'.
 
-`string-or-null-p' returns non-nil iff OBJECT is a string or nil.
-`booleanp' returns non-nil iff OBJECT is t or nil.
+`string-or-null-p' returns non-nil if OBJECT is a string or nil.
+`booleanp' returns non-nil if OBJECT is t or nil.
 
 *** `makehash' is now obsolete.  Use `make-hash-table' instead.
 
