@@ -129,6 +129,8 @@ extern FREE_RETURN_TYPE free PP ((__ptr_t __ptr));
 #if ! (defined (_MALLOC_INTERNAL) && __DJGPP__ - 0 == 1) /* Avoid conflict.  */
 extern __ptr_t memalign PP ((__malloc_size_t __alignment,
 			     __malloc_size_t __size));
+extern int posix_memalign PP ((__ptr_t *, __malloc_size_t,
+			       __malloc_size_t size));
 #endif
 
 /* Allocate SIZE bytes on a page boundary.  */
@@ -1855,6 +1857,36 @@ memalign (alignment, size)
     }
 
   return result;
+}
+
+#ifndef ENOMEM
+#define ENOMEM 12
+#endif
+
+#ifndef EINVAL
+#define EINVAL 22
+#endif
+
+int
+posix_memalign (memptr, alignment, size)
+     __ptr_t *memptr;
+     __malloc_size_t alignment;
+     __malloc_size_t size;
+{
+  __ptr_t mem;
+
+  if (alignment == 0
+      || alignment % sizeof (__ptr_t) != 0
+      || (alignment & (alignment - 1)) != 0)
+    return EINVAL;
+
+  mem = memalign (alignment, size);
+  if (mem == NULL)
+    return ENOMEM;
+
+  *memptr = mem;
+
+  return 0;
 }
 
 #endif /* Not DJGPP v1 */
