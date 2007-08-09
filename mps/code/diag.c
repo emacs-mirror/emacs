@@ -84,10 +84,21 @@ typedef struct RuleStruct {
 
 struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
-  { "-", "TraceStart", "*", "*" },
+  { "+", "TraceStart", "*", "*" },
   { "+", "TraceStart", "*", "freeSet" },
   { "-", "StringEqual", "*", "*" },
   { "+", "StringEqual", "*", "Tom" },
+  { NULL, "", "", "" }
+};
+
+struct RuleStruct RulesGlobalX[] = {
+  { "-", "*", "*", "*" },
+  { "+", "TraceStart", "*", "*" },
+  { "-", "TraceStart", "because code 1:", "*" },
+  { "-", "TraceStart", "*", "controlPool" },
+  { "-", "TraceStart", "*", "ommit" },
+  { "-", "TraceStart", "*", "zoneShift" },
+  { "-", "TraceStart", "*", "alignment" },
   { NULL, "", "", "" }
 };
 
@@ -107,10 +118,34 @@ static Bool StringEqual(const char *s1, const char *s2)
   return TRUE;
 }
 
+static Bool StringMatch(const char *patt, Count pattLen, 
+                        const char *buf, Index i, Index j)
+{
+  Index im; /* start of tentative match */
+  Index ip; /* index into patt */
+
+  AVER(patt);
+  AVER(buf);
+  AVER(i <= j);
+
+  /* Search (naively) for patt anywhere inside buf[i..j) */
+  for(im = i; im + pattLen <= j; im++) {
+    /* Consider upto pattLen chars starting at patt[0] and buf[im] */
+    for(ip = 0; ip < pattLen; ip++) {
+      if(patt[ip] != buf[im + ip])
+        break;
+    }
+    if(ip == pattLen) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
 static Bool MatchLine(Rule rule, Diag diag, Index i, Index j)
 {
-  Index im, ir;
-  Count nr;
+  Count pattLen;
 
   AVER(rule);
   AVER(diag);
@@ -120,22 +155,24 @@ static Bool MatchLine(Rule rule, Diag diag, Index i, Index j)
   if(rule->line[0] == '*')
     return TRUE;
   
-  nr = StringLength(rule->line);
+  pattLen = StringLength(rule->line);
 
-  /* Search (naively) for rule->line anywhere inside diag->buf[i..j) */
-  for(im = i; im + nr <= j; im++) {
-    /* Consider upto nr chars starting at rule->line[0] and buf[im] */
-    for(ir = 0; ir < nr; ir++) {
-      if(rule->line[ir] != diag->buf[im + ir])
-        break;
-    }
-    if(ir == nr) {
-      AVER(rule->line[ir] == '\0');
-      return TRUE;
-    }
-  }
+  return StringMatch(rule->line, pattLen, diag->buf, i, j);
+}
 
-  return FALSE;
+static Bool MatchPara(Rule rule, Diag diag)
+{
+  Count pattLen;
+
+  AVER(rule);
+  AVER(diag);
+
+  if(rule->para[0] == '*')
+    return TRUE;
+  
+  pattLen = StringLength(rule->para);
+
+  return StringMatch(rule->para, pattLen, diag->buf, 0, diag->n);
 }
 
 static Bool MatchTag(Rule rule, const char *tag)
@@ -202,15 +239,13 @@ static void FilterOutput(Diag diag, Rule rules)
   Count nr;
   Index ir;
   Index i, j;
+  Bool nolinesyet = TRUE;
   
   AVER(diag);
   AVER(rules);
   
   if(diag->tag == NULL)
-    diag->tag = "(...no tag...)";
-
-  res = WriteF(FilterUnderlyingStream(), "\nMPS.$S {\n", diag->tag, NULL);
-  AVER(res == ResOK);
+    diag->tag = "(no tag)";
 
   /* Count the rules */
   for(nr = 0; rules[nr].action != NULL; nr++)
@@ -226,11 +261,12 @@ static void FilterOutput(Diag diag, Rule rules)
         break;
       }
     }
-    
+
     /* Find the lowest rule that matches it. */
     ir = nr - 1;
     for(;;) {
       if(MatchTag(&rules[ir], diag->tag)
+         && MatchPara(&rules[ir], diag)
          && MatchLine(&rules[ir], diag, i, j))
         break;
       AVER(ir != 0); /* there must ALWAYS be a matching rule */
@@ -244,12 +280,19 @@ static void FilterOutput(Diag diag, Rule rules)
                     " ACTION: $C]\n", rules[ir].action[0],
                     NULL);
     if(rules[ir].action[0] == '+') {
+      if(nolinesyet) {
+        res = WriteF(FilterUnderlyingStream(), "MPS.$S {", diag->tag, NULL);
+        AVER(res == ResOK);
+        nolinesyet = FALSE;
+      }
       LineOutput(diag, i, j);
     }
   }
 
-  res = WriteF(FilterUnderlyingStream(), "} MPS.$S\n", diag->tag, NULL);
-  AVER(res == ResOK);
+  if(!nolinesyet) {
+    res = WriteF(FilterUnderlyingStream(), "}\n", NULL);
+    AVER(res == ResOK);
+  }
 }
 
 static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
