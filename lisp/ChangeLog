@@ -1,3 +1,14 @@
+2007-08-09  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-registered): Use \0 instead of literal NULs.
+	(vc-bzr-state-words): Add "kind changed" state word.
+	(vc-bzr-status): New function.  Return Bzr idea of file status,
+	which is different from VC's.
+	(vc-bzr-state): Use vc-bzr-status.
+	(vc-workfile-unchanged-p): Use vc-bzr-status.
+	(vc-bzr-revert): Use synchronous process; expect exitcode 0.
+	(vc-dired-state): Process "kind changed" state word.
+
 2007-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-default-find-file-not-found-hook): Do nothing.
