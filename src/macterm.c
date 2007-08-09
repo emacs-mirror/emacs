@@ -4334,14 +4334,6 @@ static void
 frame_highlight (f)
      struct frame *f;
 {
-  OSErr err;
-  ControlRef root_control;
-
-  BLOCK_INPUT;
-  err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
-  if (err == noErr)
-    ActivateControl (root_control);
-  UNBLOCK_INPUT;
   x_update_cursor (f, 1);
 }
 
@@ -4349,14 +4341,6 @@ static void
 frame_unhighlight (f)
      struct frame *f;
 {
-  OSErr err;
-  ControlRef root_control;
-
-  BLOCK_INPUT;
-  err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
-  if (err == noErr)
-    DeactivateControl (root_control);
-  UNBLOCK_INPUT;
   x_update_cursor (f, 1);
 }
 
@@ -6114,7 +6098,9 @@ free_frame_tool_bar (f)
 
       BLOCK_INPUT;
       ShowHideWindowToolbar (FRAME_MAC_WINDOW (f), false,
-			     f == mac_focus_frame (dpyinfo));
+			     (NILP (Fsymbol_value
+				    (intern ("frame-notice-user-settings")))
+			      && f == mac_focus_frame (dpyinfo)));
       /* Mac OS X 10.3 does not issue kEventWindowBoundsChanged events
 	 on toolbar visibility change.  */
       mac_handle_origin_change (f);
@@ -9391,11 +9377,13 @@ mac_handle_font_event (next_handler, event, data)
   static const EventParamName names_sel[] = {kEventParamATSUFontID,
 					     kEventParamATSUFontSize,
 					     kEventParamFMFontFamily,
+					     kEventParamFMFontStyle,
 					     kEventParamFMFontSize,
 					     kEventParamFontColor};
   static const EventParamType types_sel[] = {typeATSUFontID,
 					     typeATSUSize,
 					     typeFMFontFamily,
+					     typeFMFontStyle,
 					     typeFMFontSize,
 					     typeFontColor};
 
@@ -10957,7 +10945,7 @@ mac_handle_keyboard_event (next_handler, event, data)
      void *data;
 {
   OSStatus err, result = eventNotHandledErr;
-  UInt32 event_kind, key_code, modifiers, mapped_modifiers;
+  UInt32 event_kind, key_code, modifiers;
   unsigned char char_code;
 
   event_kind = GetEventKind (event);
@@ -10966,32 +10954,16 @@ mac_handle_keyboard_event (next_handler, event, data)
     case kEventRawKeyDown:
     case kEventRawKeyRepeat:
     case kEventRawKeyUp:
-      if (read_socket_inev == NULL)
-	{
-	  result = CallNextEventHandler (next_handler, event);
-	  break;
-	}
-
-      err = GetEventParameter (event, kEventParamKeyModifiers,
-			       typeUInt32, NULL,
-			       sizeof (UInt32), NULL, &modifiers);
-      if (err != noErr)
-	break;
-
-      mapped_modifiers = mac_mapped_modifiers (modifiers);
-
       /* When using Carbon Events, we need to pass raw keyboard events
 	 to the TSM ourselves.  If TSM handles it, it will pass back
 	 noErr, otherwise it will pass back "eventNotHandledErr" and
 	 we can process it normally.  */
-      if (!(mapped_modifiers
-	    & ~(mac_pass_command_to_system ? cmdKey : 0)
-	    & ~(mac_pass_control_to_system ? controlKey : 0)))
-	{
-	  result = CallNextEventHandler (next_handler, event);
-	  if (result != eventNotHandledErr)
-	    break;
-	}
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	break;
+
+      if (read_socket_inev == NULL)
+	break;
 
 #if USE_MAC_TSM
       if (read_socket_inev->kind != NO_EVENT)
@@ -11013,6 +10985,12 @@ mac_handle_keyboard_event (next_handler, event, data)
       err = GetEventParameter (event, kEventParamKeyCode,
 			       typeUInt32, NULL,
 			       sizeof (UInt32), NULL, &key_code);
+      if (err != noErr)
+	break;
+
+      err = GetEventParameter (event, kEventParamKeyModifiers,
+			       typeUInt32, NULL,
+			       sizeof (UInt32), NULL, &modifiers);
       if (err != noErr)
 	break;
 
@@ -12197,6 +12175,8 @@ XTread_socket (sd, expected, hold_quit)
 	case activateEvt:
 	  {
 	    WindowRef window_ptr = (WindowRef) er.message;
+	    OSErr err;
+	    ControlRef root_control;
 
 	    if (window_ptr == tip_window)
 	      {
@@ -12214,6 +12194,10 @@ XTread_socket (sd, expected, hold_quit)
 		/* A window has been activated */
 		Point mouse_loc;
 
+		err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
+		if (err == noErr)
+		  ActivateControl (root_control);
+
 		x_detect_focus_change (dpyinfo, &er, &inev);
 
 		mouse_loc.h = (er.where.h
@@ -12229,6 +12213,10 @@ XTread_socket (sd, expected, hold_quit)
 	    else
 	      {
 		/* A window has been deactivated */
+		err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
+		if (err == noErr)
+		  DeactivateControl (root_control);
+
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		if (dpyinfo->grabbed && tracked_scroll_bar)
 		  {
@@ -12284,13 +12272,29 @@ XTread_socket (sd, expected, hold_quit)
 	      clear_mouse_face (dpyinfo);
 	      dpyinfo->mouse_face_hidden = 1;
 	    }
-#if TARGET_API_MAC_CARBON
-	  goto OTHER;
-#else
-	  do_keystroke (er.what, er.message & charCodeMask,
-			(er.message & keyCodeMask) >> 8,
-			er.modifiers, timestamp, &inev);
+
+	  {
+	    UInt32 modifiers = er.modifiers, mapped_modifiers;
+
+#ifdef MAC_OSX
+	    GetEventParameter (eventRef, kEventParamKeyModifiers,
+			       typeUInt32, NULL,
+			       sizeof (UInt32), NULL, &modifiers);
 #endif
+	    mapped_modifiers = mac_mapped_modifiers (modifiers);
+
+#if TARGET_API_MAC_CARBON
+	    if (!(mapped_modifiers
+		  & ~(mac_pass_command_to_system ? cmdKey : 0)
+		  & ~(mac_pass_control_to_system ? controlKey : 0)))
+	      goto OTHER;
+	    else
+#endif
+	      if (er.what != keyUp)
+		do_keystroke (er.what, er.message & charCodeMask,
+			      (er.message & keyCodeMask) >> 8,
+			      modifiers, timestamp, &inev);
+	  }
 	  break;
 
 	case kHighLevelEvent:
@@ -12344,7 +12348,6 @@ XTread_socket (sd, expected, hold_quit)
 	    }
 	  count++;
 	}
-
     }
 
   /* If the focus was just given to an autoraising frame,
