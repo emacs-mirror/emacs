@@ -1829,8 +1829,6 @@ static void TraceStartGenDesc_diag(GenDesc desc, int i)
   }
 }
 
-extern void diag_test(void);
-
 void TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Arena arena;
@@ -1904,8 +1902,6 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
       }
     } while (SegNext(&seg, arena, base));
   }
-
-  diag_test();
 
   DIAG_FIRSTF(( "TraceStart",
     "because code $U: $S\n",
