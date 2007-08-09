@@ -83,8 +83,11 @@ typedef struct RuleStruct {
 } *Rule;
 
 struct RuleStruct RulesGlobal[] = {
-  { "-", "*", "*", "*" },
-  { "+", "TraceStart", "*", "*" },
+  { "+", "*", "*", "*" },
+  { "-", "TraceStart", "*", "*" },
+  { "+", "TraceStart", "*", "freeSet" },
+  { "-", "StringEqual", "*", "*" },
+  { "+", "StringEqual", "*", "Tom" },
   { NULL, "", "", "" }
 };
 
@@ -102,6 +105,37 @@ static Bool StringEqual(const char *s1, const char *s2)
       break;
   }
   return TRUE;
+}
+
+static Bool MatchLine(Rule rule, Diag diag, Index i, Index j)
+{
+  Index im, ir;
+  Count nr;
+
+  AVER(rule);
+  AVER(diag);
+  AVER(i <= j);
+  AVER(j <= diag->n);
+
+  if(rule->line[0] == '*')
+    return TRUE;
+  
+  nr = StringLength(rule->line);
+
+  /* Search (naively) for rule->line anywhere inside diag->buf[i..j) */
+  for(im = i; im + nr <= j; im++) {
+    /* Consider upto nr chars starting at rule->line[0] and buf[im] */
+    for(ir = 0; ir < nr; ir++) {
+      if(rule->line[ir] != diag->buf[im + ir])
+        break;
+    }
+    if(ir == nr) {
+      AVER(rule->line[ir] == '\0');
+      return TRUE;
+    }
+  }
+
+  return FALSE;
 }
 
 static Bool MatchTag(Rule rule, const char *tag)
@@ -143,11 +177,31 @@ static void DiagOutput(Diag diag)
   }
 }
 
+static void LineOutput(Diag diag, Index i, Index j)
+{
+  int r;
+
+  AVER(diag);
+  AVER(i <= j);
+  AVER(j <= diag->n);
+  
+  r = stream_fputc(' ', FilterUnderlyingStream());
+  AVER(r != mps_lib_EOF);
+  
+  for(; i < j; i++) {
+    char c;
+    c = diag->buf[i];
+    r = stream_fputc(c, FilterUnderlyingStream());
+    AVER(r != mps_lib_EOF);
+  }
+}
+
 static void FilterOutput(Diag diag, Rule rules)
 {
   Res res;
   Count nr;
   Index ir;
+  Index i, j;
   
   AVER(diag);
   AVER(rules);
@@ -162,34 +216,35 @@ static void FilterOutput(Diag diag, Rule rules)
   for(nr = 0; rules[nr].action != NULL; nr++)
     NOOP;
   
-  /* Filter
-   *
-   * Get some stuff.
-   *   Find the lowest rule that matches it.
-   *   Do the rule's action.
-   */
-  
-  {
-    /* get the whole buffer */
+  /* Filter */
+  for(i = 0; i < diag->n; i = j) {
+    
+    /* Get the next line [i..j) */
+    for(j = i; j < diag->n; j++) {
+      if(diag->buf[j] == '\n') {
+        j++;
+        break;
+      }
+    }
     
     /* Find the lowest rule that matches it. */
     ir = nr - 1;
     for(;;) {
-      if(MatchTag(&rules[ir], diag->tag))
+      if(MatchTag(&rules[ir], diag->tag)
+         && MatchLine(&rules[ir], diag, i, j))
         break;
       AVER(ir != 0); /* there must ALWAYS be a matching rule */
       ir--;
     }
     
     /* Do the rule's action. */
-    if (1) {
+    if(0)
       (void) WriteF(FilterUnderlyingStream(),
                     "[RULE: $U (of $U);", ir, nr, 
                     " ACTION: $C]\n", rules[ir].action[0],
                     NULL);
-    }
     if(rules[ir].action[0] == '+') {
-      DiagOutput(diag);
+      LineOutput(diag, i, j);
     }
   }
 
