@@ -2,6 +2,9 @@ Tasks needed before the next release.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
+** When Emacs 22.2 is released, change the license on the Savannah page
+to GPL v3 or later. <http://savannah.gnu.org/projects/emacs/>
+
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
