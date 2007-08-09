@@ -10719,7 +10719,10 @@ mac_handle_window_event (next_handler, event, data)
 	      /* This is a workaround.  RepositionWindow fails to put
 		 a window at the cascading position when its parent
 		 window has a Carbon HIToolbar.  */
-	      if (f->top_pos == sf->top_pos && f->left_pos == sf->left_pos)
+	      if ((f->left_pos == sf->left_pos
+		   && f->top_pos == sf->top_pos)
+		  || (f->left_pos == sf->left_pos + 10 * 2
+		      && f->top_pos == sf->top_pos + 32 * 2))
 		MoveWindowStructure (wp,  f->left_pos + 10, f->top_pos + 32);
 #endif
 	    }
