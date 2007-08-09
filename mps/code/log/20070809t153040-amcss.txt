@@ -1,0 +1,1292 @@
+(xcppgc/di/amcss )(Logging to log/20070809t153040-amcss.txt)
+Randomizing 17440 times.
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110000000000000000000000000000
+   freeSet:       00001111111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110000000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110000000000000000000000000000
+            PoolGen 0 (AMC) totalSize 196608 newSize 196608
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 1 (AMC) totalSize 0 newSize 0
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 1 started, 10651 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 1 finished:
+live 18548
+condemned 192508
+not_condemned 4096
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001000000000000000000000000000
+   freeSet:       00000011111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 212992 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001000000000000000000000000000
+            PoolGen 1 (AMC) totalSize 20480 newSize 20480
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 2 started, 21493 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 2 finished:
+live 26904
+condemned 208884
+not_condemned 24576
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001000000000000000000000000000
+   freeSet:       00000011111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 212992 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001000000000000000000000000000
+            PoolGen 1 (AMC) totalSize 45056 newSize 45056
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 3 started, 32421 objects.
+0x11dcb4a is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 3 finished:
+live 20304
+condemned 208892
+not_condemned 49152
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001000000000000000000000000000
+   freeSet:       00000011111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001000000000000000000000000000
+            PoolGen 1 (AMC) totalSize 65536 newSize 65536
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 4 started, 43257 objects.
+0x10d9a9c is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 4 finished:
+live 24340
+condemned 204796
+not_condemned 69632
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001010000000000000000000000000
+   freeSet:       00000001111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 204800 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001010000000000000000000000000
+            PoolGen 1 (AMC) totalSize 90112 newSize 90112
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 5 started, 54163 objects.
+0x11de63d is in the arena
+0x10ca538 is in the arena
+0x10cd9a3 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 5 finished:
+live 24884
+condemned 200688
+not_condemned 94208
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001010000000000000000000000000
+   freeSet:       00000001111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001010000000000000000000000000
+            PoolGen 1 (AMC) totalSize 114688 newSize 114688
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 6 started, 65024 objects.
+0x10ddcec is in the arena
+0x11cbe0f is in the arena
+0x11ed567 is in the arena
+0x11c9084 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 6 finished:
+live 22956
+condemned 204788
+not_condemned 118784
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001011000000000000000000000000
+   freeSet:       00000000111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011000000000000000000000000
+            PoolGen 1 (AMC) totalSize 135168 newSize 135168
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 7 started, 75899 objects.
+0x11cf653 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 7 finished:
+live 21188
+condemned 204780
+not_condemned 139264
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001011000000000000000000000000
+   freeSet:       00000000111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 212992 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011000000000000000000000000
+            PoolGen 1 (AMC) totalSize 155648 newSize 155648
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 8 started, 86862 objects.
+0x10ddeb6 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 8 finished:
+live 21304
+condemned 208888
+not_condemned 159744
+...........MPS.ChainCondemnAuto { condemn gens [0..1] of this chain}
+MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100000000000000000000000000
+   genZoneSet[1]: 00001011000000000000000000000000
+   freeSet:       00000000111111111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01111111000000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100000000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011000000000000000000000000
+            PoolGen 1 (AMC) totalSize 176128 newSize 176128
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+
+Collection 9 started, 97781 objects.
+0x10b2a4d is in the arena
+0x10d54e5 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+....MPS.traceFindGrey { rank sequence: Ed.
+}
+
+Collection 9 finished:
+live 157016
+condemned 380920
+not_condemned 4096
+.......MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   freeSet:       00000000000011111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 159744 newSize 159744
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 10 started, 108734 objects.
+0x11b64d1 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 10 finished:
+live 20084
+condemned 204784
+not_condemned 163840
+..........MPS.ChainCondemnAuto { condemn gens [0..1] of this chain}
+MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   freeSet:       00000000000011111111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110101111100000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 180224 newSize 180224
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+
+Collection 11 started, 119587 objects.
+0x109c2a6 is in the arena
+0x119ed5d is in the arena
+0x10a4a2a is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+....MPS.traceFindGrey { rank sequence: Ee.
+}
+
+Collection 11 finished:
+live 193796
+condemned 385008
+not_condemned 4096
+.......MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 28672 newSize 28672
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 167936 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 12 started, 130521 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 12 finished:
+live 22396
+condemned 204792
+not_condemned 200704
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 49152 newSize 49152
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 167936 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 13 started, 141370 objects.
+0x1094876 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 13 finished:
+live 18476
+condemned 204796
+not_condemned 221184
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 65536 newSize 65536
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 167936 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 14 started, 152304 objects.
+0x119e990 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 14 finished:
+live 22424
+condemned 204796
+not_condemned 237568
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 90112 newSize 90112
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 167936 newSize 0
+}
+
+Collection 15 started, 163195 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 15 finished:
+live 23964
+condemned 204800
+not_condemned 262144
+........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 114688 newSize 114688
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 167936 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 16 started, 174150 objects.
+0x119f842 is in the arena
+0x119b74e is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 16 finished:
+live 25220
+condemned 204800
+not_condemned 286720
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 139264 newSize 139264
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 167936 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 17 started, 185047 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 17 finished:
+live 24864
+condemned 204780
+not_condemned 311296
+...........MPS.TraceStart { because code 2: Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110111111111100000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 159744 newSize 159744
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 167936 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 18 started, 195896 objects.
+
+Collection started.  Because:
+Need to start full collection now, or there won't be enough memory (ArenaAvail) to complete it.
+
+Collection 18 finished:
+live 18460
+condemned 532480
+not_condemned 4096
+stepped on 1467 objects.
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 24576 newSize 24576
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 19 started, 206801 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 19 finished:
+live 23448
+condemned 204792
+not_condemned 28672
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 45056 newSize 45056
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 20 started, 217654 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 20 finished:
+live 20880
+condemned 204788
+not_condemned 49152
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 204800 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 65536 newSize 65536
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+
+Collection 21 started, 228655 objects.
+0x10cddb7 is in the arena
+0x11a9955 is in the arena
+0x10ae3e5 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+...MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 21 finished:
+live 26032
+condemned 200704
+not_condemned 69632
+.......MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 94208 newSize 94208
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 22 started, 239606 objects.
+0x10a597d is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 22 finished:
+live 23320
+condemned 204796
+not_condemned 98304
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 114688 newSize 114688
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+
+Collection 23 started, 250509 objects.
+0x10bb3d6 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+....MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 23 finished:
+live 30592
+condemned 204796
+not_condemned 118784
+.......MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 147456 newSize 147456
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 24 started, 261404 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 24 finished:
+live 16788
+condemned 204800
+not_condemned 151552
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 159744 newSize 159744
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 25 started, 272364 objects.
+0x10c8077 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 25 finished:
+live 22276
+condemned 204788
+not_condemned 163840
+...........MPS.ChainCondemnAuto { condemn gens [0..1] of this chain}
+MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01111111111100000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 184320 newSize 184320
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 0 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ec.
+}
+
+Collection 26 started, 283308 objects.
+0x109cead is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 26 finished:
+live 99200
+condemned 389120
+not_condemned 4096
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 217088 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 20480 newSize 20480
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 27 started, 294158 objects.
+0x10a7840 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 27 finished:
+live 24900
+condemned 212984
+not_condemned 106496
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 45056 newSize 45056
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 28 started, 305028 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 28 finished:
+live 19804
+condemned 204788
+not_condemned 131072
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 212992 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 65536 newSize 65536
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 29 started, 316023 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 29 finished:
+live 22156
+condemned 208888
+not_condemned 151552
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 86016 newSize 86016
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 30 started, 326957 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 30 finished:
+live 21456
+condemned 204800
+not_condemned 172032
+..........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 106496 newSize 106496
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 31 started, 337882 objects.
+0x10f742f is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 31 finished:
+live 24792
+condemned 204792
+not_condemned 192512
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 131072 newSize 131072
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 32 started, 348793 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 32 finished:
+live 24700
+condemned 204788
+not_condemned 217088
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 155648 newSize 155648
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 33 started, 359703 objects.
+0x10cea8a is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 33 finished:
+live 21884
+condemned 204792
+not_condemned 241664
+..........MPS.ChainCondemnAuto { condemn gens [0..1] of this chain}
+MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01111111111100000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 176128 newSize 176128
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+
+Collection 34 started, 370552 objects.
+0x11baaa3 is in the arena
+0x10aebba is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+....MPS.traceFindGrey { rank sequence: Ee.
+}
+
+Collection 34 finished:
+live 162500
+condemned 380920
+not_condemned 86016
+.......MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 163840 newSize 24576
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 35 started, 381483 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 35 finished:
+live 24812
+condemned 204792
+not_condemned 249856
+...........MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01110100001000000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 188416 newSize 49152
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 36 started, 392411 objects.
+0x10db9ab is in the arena
+0x11b5982 is in the arena
+0x11cf9f5 is in the arena
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 36 finished:
+live 19308
+condemned 204792
+not_condemned 274432
+..........MPS.ChainCondemnAuto { condemn gens [0..1] of this chain}
+MPS.TraceStart { because code 1: Generation 0 of a chain has reached capacity: start a minor collection.
+ Arena 0010F000 {
+   class 0005EC7C ("VM")
+   genZoneSet[0]: 01110100001000000000000000000000
+   genZoneSet[1]: 00001011110100000000000000000000
+   genZoneSet[2]: 00000000000011100000000000000000
+   freeSet:       00000000000000011111111111111111
+   blacklist:     10000000000000000000000000000001
+ } Arena 0010F000 (0)
+        white set:01111111111100000000000000000000
+        Chain 010FE0E0
+          GenDesc [0] 010FE098 capacity: 150 KiB, mortality 0.85
+          ZoneSet:01110100001000000000000000000000
+            PoolGen 0 (AMC) totalSize 208896 newSize 200704
+          GenDesc [1] 010FE0BC capacity: 170 KiB, mortality 0.45
+          ZoneSet:00001011110100000000000000000000
+            PoolGen 1 (AMC) totalSize 208896 newSize 208896
+        topGen
+          GenDesc [top] 0010F290 capacity: 0 KiB, mortality 0.51
+          ZoneSet:00000000000000000000000000000000
+            PoolGen 2 (AMC) totalSize 81920 newSize 0
+}
+MPS.traceFindGrey { rank sequence: Ea.
+}
+
+Collection 37 started, 403293 objects.
+
+Collection started.  Because:
+Generation 0 of a chain has reached capacity: start a minor collection.
+
+Collection 37 finished:
+live 37080
+condemned 413680
+not_condemned 86016
+
+Conclusion:  Failed to find any defects.
