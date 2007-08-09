@@ -1,3 +1,8 @@
+2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
+
+        * url/url-auth.el (url-basic-auth): When prompting for username
+          and password, default to the username and password in the URL.
+
 2007-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* man.el: Remove spurious * in docstrings.
