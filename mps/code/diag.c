@@ -74,15 +74,21 @@ static mps_lib_FILE *FilterUnderlyingStream(void)
   return mps_lib_stdout;
 }
 
+enum {
+  TPMatch_Unknown = 0,  /* initial value = 0 */
+  TPMatch_Yes,
+  TPMatch_No
+};
+
 typedef struct RuleStruct {
   const char *action;
   const char *tag;
   const char *para;
   const char *line;
-  int state;
+  int tpMatch;  /* does this rule match diag on tag and para? */
 } *Rule;
 
-struct RuleStruct RulesGlobal[] = {
+struct RuleStruct RulesGlobalX[] = {
   { "+", "*", "*", "*" },
   { "+", "TraceStart", "*", "*" },
   { "+", "TraceStart", "*", "freeSet" },
@@ -91,10 +97,11 @@ struct RuleStruct RulesGlobal[] = {
   { NULL, "", "", "" }
 };
 
-struct RuleStruct RulesGlobalX[] = {
-  { "-", "*", "*", "*" },
+struct RuleStruct RulesGlobal[] = {
+  { "+", "*", "*", "*" },
+  { "-", "ChainCondemnAuto", "gens [0..0]", "*" },
   { "+", "TraceStart", "*", "*" },
-  { "-", "TraceStart", "because code 1:", "*" },
+  { "+", "TraceStart", "because code 1:", "*" },
   { "-", "TraceStart", "*", "controlPool" },
   { "-", "TraceStart", "*", "ommit" },
   { "-", "TraceStart", "*", "zoneShift" },
@@ -249,7 +256,7 @@ static void FilterOutput(Diag diag, Rule rules)
 
   /* Count the rules */
   for(nr = 0; rules[nr].action != NULL; nr++)
-    NOOP;
+    rules[nr].tpMatch = TPMatch_Unknown;
   
   /* Filter */
   for(i = 0; i < diag->n; i = j) {
@@ -265,9 +272,16 @@ static void FilterOutput(Diag diag, Rule rules)
     /* Find the lowest rule that matches it. */
     ir = nr - 1;
     for(;;) {
-      if(MatchTag(&rules[ir], diag->tag)
-         && MatchPara(&rules[ir], diag)
-         && MatchLine(&rules[ir], diag, i, j))
+      Rule rule = &rules[ir];
+      if(rule->tpMatch == TPMatch_Unknown) {
+        /* memoize tpMatch */
+        if(MatchTag(rule, diag->tag) && MatchPara(rule, diag)) {
+          rule->tpMatch = TPMatch_Yes;
+        } else {
+          rule->tpMatch = TPMatch_No;
+        }
+      }
+      if(rule->tpMatch == TPMatch_Yes && MatchLine(rule, diag, i, j))
         break;
       AVER(ir != 0); /* there must ALWAYS be a matching rule */
       ir--;
