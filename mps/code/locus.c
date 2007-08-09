@@ -286,12 +286,18 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
                     /* predict survivors will survive again */
                     + (genTotalSize - genNewSize);
 
-    if (++currGenSerial >= chain->genCount)
+    /* is there another one to consider? */
+    currGenSerial += 1;
+    if (currGenSerial >= chain->genCount)
       break; /* reached the top */
     gen = &chain->gens[currGenSerial];
     AVERT(GenDesc, gen);
     genNewSize = GenDescNewSize(gen);
   } while (genNewSize >= gen->capacity * (Size)1024);
+  
+  DIAG_SINGLEF(( "ChainCondemnAuto",
+    "condemn gens [0..$U] of this chain", topCondemnedGenSerial,
+    NULL ));
 
   /* Condemn everything in these zones. */
   if (condemnedSet != ZoneSetEMPTY) {
