@@ -58,8 +58,8 @@ typedef struct DiagStruct {
  * This is not really an mps_lib_FILE*; it is a single global instance 
  * of a DiagStruct.
  *
- * Output is stored in a buffer in a DiagStruct, to be filtered and 
- * output when complete.
+ * Output is stored in a DiagStruct, to be filtered and output
+ * (or not) when complete.
  */
 
 struct DiagStruct FilterDiagGlobal;
@@ -83,20 +83,45 @@ typedef struct RuleStruct {
 } *Rule;
 
 struct RuleStruct RulesGlobal[] = {
-  { "+", "TraceStart", "*", "*" }
+  { "-", "*", "*", "*" },
+  { "+", "TraceStart", "*", "*" },
+  { NULL, "", "", "" }
 };
 
-static void FilterOutput(Diag diag, Rule rules)
+static Bool StringEqual(const char *s1, const char *s2)
 {
-  Res res;
+  Index i;
+
+  AVER(s1);
+  AVER(s2);
+
+  for(i = 0; ; i++) {
+    if(s1[i] != s2[i])
+      return FALSE;
+    if(s1[i] == '\0')    
+      break;
+  }
+  return TRUE;
+}
+
+static Bool MatchTag(Rule rule, const char *tag)
+{
+  Index i;
+
+  AVER(rule);
+  AVER(rule->tag);
+  AVER(tag);
+
+  if(rule->tag[0] == '*')
+    return TRUE;
+
+  return StringEqual(rule->tag, tag);
+}
+
+static void DiagOutput(Diag diag)
+{
   Index i;
   Bool newline = TRUE;
-  
-  if(diag->tag == NULL)
-    diag->tag = "(...no tag...)";
-
-  res = WriteF(FilterUnderlyingStream(), "\nMPS.$S {\n", diag->tag, NULL);
-  AVER(res == ResOK);
 
   for(i = 0; i < diag->n; i++) {
     char c;
@@ -107,13 +132,64 @@ static void FilterOutput(Diag diag, Rule rules)
       AVER(r != mps_lib_EOF);
       newline = FALSE;
     }
-    
+
     c = diag->buf[i];
     r = stream_fputc(c, FilterUnderlyingStream());
     AVER(r != mps_lib_EOF);
-    
+
     if(c == '\n') {
       newline = TRUE;
+    }
+  }
+}
+
+static void FilterOutput(Diag diag, Rule rules)
+{
+  Res res;
+  Count nr;
+  Index ir;
+  
+  AVER(diag);
+  AVER(rules);
+  
+  if(diag->tag == NULL)
+    diag->tag = "(...no tag...)";
+
+  res = WriteF(FilterUnderlyingStream(), "\nMPS.$S {\n", diag->tag, NULL);
+  AVER(res == ResOK);
+
+  /* Count the rules */
+  for(nr = 0; rules[nr].action != NULL; nr++)
+    NOOP;
+  
+  /* Filter
+   *
+   * Get some stuff.
+   *   Find the lowest rule that matches it.
+   *   Do the rule's action.
+   */
+  
+  {
+    /* get the whole buffer */
+    
+    /* Find the lowest rule that matches it. */
+    ir = nr - 1;
+    for(;;) {
+      if(MatchTag(&rules[ir], diag->tag))
+        break;
+      AVER(ir != 0); /* there must ALWAYS be a matching rule */
+      ir--;
+    }
+    
+    /* Do the rule's action. */
+    if (1) {
+      (void) WriteF(FilterUnderlyingStream(),
+                    "[RULE: $U (of $U);", ir, nr, 
+                    " ACTION: $C]\n", rules[ir].action[0],
+                    NULL);
+    }
+    if(rules[ir].action[0] == '+') {
+      DiagOutput(diag);
     }
   }
 
@@ -127,12 +203,19 @@ static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
   diag = (Diag)stream;
   /* AVERT(Diag, diag) */
   
+  if(diag->tag != NULL) {
+    /* Be helpful to the poor programmer! */
+    (void) WriteF(FilterUnderlyingStream(),
+                  "\nWARNING: diag tag \"$S\" is still current"
+                  " (missing DIAG_END()).", 
+                  diag->tag, NULL);  
+  }
   AVER(diag->tag == NULL);
 
   /* @@ when all diags are tagged, the buffer must be empty */
   /* @@ but for now, as a courtesy... */
   if(diag->n > 0) {
-    FilterOutput(diag, NULL);
+    FilterOutput(diag, &RulesGlobal[0]);
     diag->n = 0;
   }
 
@@ -147,7 +230,7 @@ static void FilterStream_TagEnd(mps_lib_FILE *stream, const char *tag)
   /* AVERT(Diag, diag) */
 
   AVER(diag->tag != NULL);
-  /* AVER(strequal(diag->tag, tag)); */
+  AVER(StringEqual(diag->tag, tag));
 
   /* Output the diag */
   FilterOutput(diag, &RulesGlobal[0]);
@@ -217,7 +300,7 @@ Bool DiagIsOn(void)
 
 mps_lib_FILE *DiagStream(void)
 {
-  if(0) {
+  if(1) {
     return FilterStream();
   } else {
     return mps_lib_stdout;
@@ -317,12 +400,28 @@ void diag_test(void)
 {
   DIAG_SINGLEF(( "TestTag1", "text $U.\n", 42, NULL ));
 
+  DIAG_FIRSTF((
+    "StringEqual",
+    "Fred = Fred: $U.\n",
+    StringEqual("Fred", "Fred"),
+    NULL
+  ));
+  DIAG_MOREF(("Fred = Tom: $U.\n", StringEqual("Fred", "Tom"), NULL));
+  DIAG_MOREF(("Tom = Fred: $U.\n", StringEqual("Tom", "Fred"), NULL));
+  DIAG_MOREF(("0 = Fred: $U.\n", StringEqual("", "Fred"), NULL));
+  DIAG_MOREF(("Fred = 0: $U.\n", StringEqual("Fred", ""), NULL));
+  DIAG_MOREF(("0 = 0: $U.\n", StringEqual("", ""), NULL));
+  DIAG_MOREF(("0 = 000: $U.\n", StringEqual("", "\0\0"), NULL));
+  DIAG_END("StringEqual");
+
+#if 0
   DIAG_FIRSTF(( "TestTag2", "text $U.\n", 42, NULL ));
   DIAG_MOREF(( NULL ));
   DIAG_MOREF(( "string $S.\n", "fooey!", NULL ));
   DIAG_MOREF(( NULL ));
   DIAG_MOREF(( "Another string $S.\n", "baloney!", NULL ));
   DIAG_END( "TestTag2" );
+#endif
 }
 
 /* C. COPYRIGHT AND LICENSE
