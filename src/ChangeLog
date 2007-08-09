@@ -13,6 +13,8 @@
 	(XTread_socket): Call ActivateControl/DeactivateControl here.
 	(XTread_socket) [TARGET_API_MAC_CARBON]:
 	Check mac_pass_command_to_system and mac_pass_control_to_system here.
+	(mac_handle_window_event) [USE_MAC_TOOLBAR]: Add further workaround
+	for window repositioning.
 
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
