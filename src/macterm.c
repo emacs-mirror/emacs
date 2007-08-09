@@ -10723,7 +10723,7 @@ mac_handle_window_event (next_handler, event, data)
 		   && f->top_pos == sf->top_pos)
 		  || (f->left_pos == sf->left_pos + 10 * 2
 		      && f->top_pos == sf->top_pos + 32 * 2))
-		MoveWindowStructure (wp,  f->left_pos + 10, f->top_pos + 32);
+		MoveWindowStructure (wp,  sf->left_pos + 10, sf->top_pos + 32);
 #endif
 	    }
 	  result = noErr;
