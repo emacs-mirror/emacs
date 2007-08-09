@@ -1,7 +1,14 @@
+2007-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-default-find-file-not-found-hook): Do nothing.
+
+	* vc-rcs.el (vc-rcs-find-file-not-found-hook):
+	Move from vc-default-find-file-not-found-hook.
+
 2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
 
-        * url/url-auth.el (url-basic-auth): When prompting for username
-          and password, default to the username and password in the URL.
+	* url/url-auth.el (url-basic-auth): When prompting for username
+	and password, default to the username and password in the URL.
 
 2007-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
