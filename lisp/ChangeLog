@@ -1,3 +1,8 @@
+2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
+
+        * url/url-auth.el (url-basic-auth): When prompting for username
+          and password, default to the username and password in the URL.
+
 2007-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-default-fg, ps-default-bg): Docstring fix.
