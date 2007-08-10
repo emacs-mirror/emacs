@@ -1,3 +1,8 @@
+2007-08-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-reopen-application): New function.
+	(mac-apple-event-map): Bind "reopen application" Apple event to it.
+
 2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-font-lock-unfontify-region): Fix to
