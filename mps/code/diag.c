@@ -99,13 +99,14 @@ struct RuleStruct RulesGlobalX[] = {
 
 struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
-  { "-", "ChainCondemnAuto", "gens [0..0]", "*" },
+  { "+", "ChainCondemnAuto", "gens [0..0]", "*" },
   { "+", "TraceStart", "*", "*" },
   { "+", "TraceStart", "because code 1:", "*" },
   { "-", "TraceStart", "*", "controlPool" },
   { "-", "TraceStart", "*", "ommit" },
   { "-", "TraceStart", "*", "zoneShift" },
   { "-", "TraceStart", "*", "alignment" },
+  { "-", "amcScanNailed-loop", "*", "*" },
   { NULL, "", "", "" }
 };
 
