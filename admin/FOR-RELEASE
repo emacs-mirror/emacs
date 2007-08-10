@@ -57,6 +57,9 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
 ** sdl.web@gmail.com: problem with transparent PNG image display
 
+** Gtk+ tool bar looses focus when pressing next tool bar button in GUD.
+http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-08/msg00008.html
+
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but
