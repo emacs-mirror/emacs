@@ -1,3 +1,8 @@
+2007-08-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [TARGET_API_MAC_CARBON] (mac_handle_window_event):
+	Don't use invisible frame as parent window for repositioning.
+
 2007-08-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* gmalloc.c (posix_memalign): New function.
