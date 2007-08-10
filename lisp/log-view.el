@@ -160,14 +160,18 @@
           (concat "\\|[^ \n].*[^0-9\n][0-9][0-9]:[0-9][0-9][^0-9\n].*[^ \n]"
                   ;;Email of user and finally Msg, used as revision name.
                   "  .*@.*\n\\(?:  \\* \\(.*\\)\\)?")
-          "\\)$"))
+          "\\)$")
+  "Regexp matching the text identifying a revision.")
 
-(defconst log-view-font-lock-keywords
-  `((,log-view-file-re
-     (1 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
-     (2 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
-     (0 log-view-file-face append))
-    (,log-view-message-re . log-view-message-face)))
+(defvar log-view-font-lock-keywords
+  ;; We use `eval' so as to use the buffer-local value of log-view-file-re
+  ;; and log-view-message-re, if applicable.
+  '((eval . `(,log-view-file-re
+              (1 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
+              (2 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
+              (0 log-view-file-face append)))
+    (eval . `(,log-view-message-re . log-view-message-face))))
+
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 

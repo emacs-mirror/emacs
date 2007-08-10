@@ -1,5 +1,8 @@
 2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* log-view.el (log-view-font-lock-keywords): Use `eval' so as to adapt
+	to buffer-local settings.
+
 	* emacs-lisp/backquote.el (backquote-delay-process): New function.
 	(backquote-process): Add internal arg `level'.  Use the two to
 	correctly handle nested backquotes.
