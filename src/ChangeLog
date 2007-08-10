@@ -1,3 +1,9 @@
+2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (new_backquote_output): Rename from old_backquote_output.
+	(print): Inverse its logic (according to its name) so as to match the
+	behavior of new_backquote_flag in lread.c.
+
 2007-08-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* gmalloc.c (posix_memalign): New function.
