@@ -435,8 +435,6 @@ Res WriteF(mps_lib_FILE *stream, ...)
 Res WriteF_v(mps_lib_FILE *stream, va_list args)
 {
   const char *firstformat;
-  int r;
-  size_t i;
   Res res;
 
   firstformat = va_arg(args, const char *);

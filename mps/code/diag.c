@@ -185,8 +185,6 @@ static Bool MatchPara(Rule rule, Diag diag)
 
 static Bool MatchTag(Rule rule, const char *tag)
 {
-  Index i;
-
   AVER(rule);
   AVER(rule->tag);
   AVER(tag);
@@ -195,31 +193,6 @@ static Bool MatchTag(Rule rule, const char *tag)
     return TRUE;
 
   return StringEqual(rule->tag, tag);
-}
-
-static void DiagOutput(Diag diag)
-{
-  Index i;
-  Bool newline = TRUE;
-
-  for(i = 0; i < diag->n; i++) {
-    char c;
-    int r;
-
-    if(newline) {
-      r = stream_fputc(' ', FilterUnderlyingStream());
-      AVER(r != mps_lib_EOF);
-      newline = FALSE;
-    }
-
-    c = diag->buf[i];
-    r = stream_fputc(c, FilterUnderlyingStream());
-    AVER(r != mps_lib_EOF);
-
-    if(c == '\n') {
-      newline = TRUE;
-    }
-  }
 }
 
 static void LineOutput(Diag diag, Index i, Index j)
@@ -368,7 +341,7 @@ static int FilterStream_fputc(int c, mps_lib_FILE *stream)
     return mps_lib_EOF;
   
   /* add c to buffer */
-  diag->buf[diag->n++] = c;
+  diag->buf[diag->n++] = (char)c;
   return c;
 }
 
