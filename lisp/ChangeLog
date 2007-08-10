@@ -1,7 +1,14 @@
+2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-unfontify-region): Fix to
+	take tex-font-script-display into account.
+	(tex-font-script-display, tex-font-lock-suscript): Change from a cons
+	cell to a list of 2 elements to simplify the unfontify code.
+
 2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
 
-        * url/url-auth.el (url-basic-auth): When prompting for username
-          and password, default to the username and password in the URL.
+	* url/url-auth.el (url-basic-auth): When prompting for username
+	and password, default to the username and password in the URL.
 
 2007-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -285,16 +292,15 @@
 	(fortran-mode): Use fortran-line-length, and
 	fortran-font-lock-syntactic-keywords as a function.  Add a
 	hack-local-variables-hook function.
-	(fortran-line-length, fortran-hack-local-variables): New
-	functions.
-	(fortran-window-create, fortran-strip-sequence-nos): Doc fix.  Use
-	fortran-line-length rather than 72.
+	(fortran-line-length, fortran-hack-local-variables): New functions.
+	(fortran-window-create, fortran-strip-sequence-nos): Doc fix.
+	Use fortran-line-length rather than 72.
 	(fortran-window-create-momentarily): Doc fix.
 
 2007-07-31  Drew Adams  <drew.adams@oracle.com>  (tiny change)
 
-	* cus-edit.el (custom-group-value-create, custom-goto-parent): Fix
-	parent groups link.
+	* cus-edit.el (custom-group-value-create, custom-goto-parent):
+	Fix parent groups link.
 
 2007-07-31  Paul Pogonyshev  <pogonyshev@gmx.net>
 
