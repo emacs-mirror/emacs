@@ -77,8 +77,6 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
-** bibtex-style-mode helps you write BibTeX's *.bst files.
-
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 
@@ -98,8 +96,6 @@ considered for update.
 
 *** VC backends can provide extra menu entries to be added to the "Version Control" menu.
 This can be used to add menu entries for backend specific functions.
-
-*** VC has some support for Bazaar (bzr).
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
