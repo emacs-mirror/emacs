@@ -1,3 +1,9 @@
+2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/backquote.el (backquote-delay-process): New function.
+	(backquote-process): Add internal arg `level'.  Use the two to
+	correctly handle nested backquotes.
+
 2007-08-09  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el (vc-bzr-registered): Use \0 instead of literal NULs.
