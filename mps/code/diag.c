@@ -110,6 +110,23 @@ struct RuleStruct RulesGlobal[] = {
   { NULL, "", "", "" }
 };
 
+static void Rules_diag(Rule rules)
+{
+  Index ir;
+  
+  AVER(rules);
+  DIAG_FIRSTF(( "Rules_diag", 
+    "Only showing those diags permitted by these tag/paragraph/line"
+    " rules:\n", NULL ));
+  for(ir = 0; rules[ir].action != NULL; ir++) {
+    Rule rule = &rules[ir];
+    DIAG_MOREF(( "$S$S/$S/$S\n", rule->action, rule->tag, 
+                 rule->para, rule->line,
+                 NULL ));
+  }
+  DIAG_END("Rules_diag");
+}
+
 static Bool StringEqual(const char *s1, const char *s2)
 {
   Index i;
@@ -216,12 +233,22 @@ static void LineOutput(Diag diag, Index i, Index j)
 
 static void FilterOutput(Diag diag, Rule rules)
 {
+  static Bool inside = FALSE;
   Res res;
   Count nr;
   Index ir;
   Index i, j;
   Bool nolinesyet = TRUE;
+  /* @@ if diag has no output, entire diag will be skipped.
+   * So an intentionally empty diag such as:
+   *   DIAG_SINGLEF(( "Tag", NULL ))
+   * will never appear, but gives no warning.  This is probably 
+   * a bug: we should distinguish between no-output because 
+   * it was all filtered out, and just no output.  RHSK.
+   */
   
+  AVER(!inside);
+  inside = TRUE;
   AVER(diag);
   AVER(rules);
   
@@ -229,8 +256,10 @@ static void FilterOutput(Diag diag, Rule rules)
     diag->tag = "(no tag)";
 
   /* Count the rules */
-  for(nr = 0; rules[nr].action != NULL; nr++)
-    rules[nr].tpMatch = TPMatch_Unknown;
+  for(ir = 0; rules[ir].action != NULL; ir++) {
+    rules[ir].tpMatch = TPMatch_Unknown;
+  }
+  nr = ir;
   
   /* Filter */
   for(i = 0; i < diag->n; i = j) {
@@ -281,14 +310,25 @@ static void FilterOutput(Diag diag, Rule rules)
     res = WriteF(FilterUnderlyingStream(), "}\n", NULL);
     AVER(res == ResOK);
   }
+  inside = FALSE;
 }
 
 static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
 {
+  static Bool first = TRUE;
   Diag diag;
+
+  AVER(stream);
+  AVER(tag);
+
   diag = (Diag)stream;
   /* AVERT(Diag, diag) */
-  
+
+  if(first) {
+    first = FALSE;
+    Rules_diag(&RulesGlobal[0]);
+  }
+
   if(diag->tag != NULL) {
     /* Be helpful to the poor programmer! */
     (void) WriteF(FilterUnderlyingStream(),
