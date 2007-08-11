@@ -979,8 +979,7 @@ Otherwise, construct a buffer name from MODE-NAME."
 	 (funcall name-function mode-name))
 	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
-	((and (eq mode-command major-mode)
-	      (eq major-mode (nth 1 compilation-arguments)))
+	((eq mode-command major-mode)
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase mode-name) "*"))))
@@ -1032,7 +1031,7 @@ Returns the compilation buffer created."
     (with-current-buffer
 	(setq outbuf
 	      (get-buffer-create
-	       (compilation-buffer-name name-of-mode mode name-function)))
+               (compilation-buffer-name name-of-mode mode name-function)))
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
