@@ -1,3 +1,9 @@
+2007-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-buffer-name): Don't check
+	compilation-arguments.  It is superfluous, and the variable isn't
+	even set when this function is called.
+
 2007-08-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ae-reopen-application): New function.
