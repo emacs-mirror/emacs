@@ -3,6 +3,11 @@
  * $Id$
  * Copyright (c) 2007 Ravenbrook Limited.  See end of file for license.
  *
+ * To Do: [RHSK 2007-08-11]
+ *  @@ unit test for StringMatch
+ *  @@ handle diag->buf overflow (currently asserts)
+ *  @@ sigs and AVERTs for Diag and Rule
+ *  @@ .improve.empty-diag
  */
 
 #include <stdarg.h>
@@ -14,6 +19,7 @@
 static mps_lib_FILE *FilterStream(void);
 static int FilterStream_fputc(int c, mps_lib_FILE *stream);
 static int FilterStream_fputs(const char *s, mps_lib_FILE *stream);
+static void diag_test(void);
 
 
 /* Stream -- output to FilterStream or to a real mps_lib_FILE stream
@@ -92,8 +98,6 @@ struct RuleStruct RulesGlobalX[] = {
   { "+", "*", "*", "*" },
   { "+", "TraceStart", "*", "*" },
   { "+", "TraceStart", "*", "freeSet" },
-  { "-", "StringEqual", "*", "*" },
-  { "+", "StringEqual", "*", "Tom" },
   { NULL, "", "", "" }
 };
 
@@ -116,7 +120,7 @@ static void Rules_diag(Rule rules)
   
   AVER(rules);
   DIAG_FIRSTF(( "Rules_diag", 
-    "Only showing those diags permitted by these tag/paragraph/line"
+    "Only showing diags permitted by these tag/paragraph/line"
     " rules:\n", NULL ));
   for(ir = 0; rules[ir].action != NULL; ir++) {
     Rule rule = &rules[ir];
@@ -239,8 +243,9 @@ static void FilterOutput(Diag diag, Rule rules)
   Index ir;
   Index i, j;
   Bool nolinesyet = TRUE;
-  /* @@ if diag has no output, entire diag will be skipped.
-   * So an intentionally empty diag such as:
+  /* .improve.empty-diag: @@ We only output if nolinesyet becomes 
+   * FALSE.  So if diag has no output, entire diag will be skipped.
+   * That means an intentionally empty diag such as:
    *   DIAG_SINGLEF(( "Tag", NULL ))
    * will never appear, but gives no warning.  This is probably 
    * a bug: we should distinguish between no-output because 
@@ -262,6 +267,9 @@ static void FilterOutput(Diag diag, Rule rules)
   nr = ir;
   
   /* Filter */
+  /* emptyonce = (diag->n == 0); */
+  /* for(i = 0; emptyonce || i < diag->n; i = j) { */
+  /*   emptyonce = FALSE; */
   for(i = 0; i < diag->n; i = j) {
     
     /* Get the next line [i..j) */
@@ -327,6 +335,7 @@ static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
   if(first) {
     first = FALSE;
     Rules_diag(&RulesGlobal[0]);
+    diag_test();
   }
 
   if(diag->tag != NULL) {
@@ -520,14 +529,14 @@ void DiagEnd(const char *tag)
   DiagTagEnd(DiagStream(), tag);
 }
 
-extern void diag_test(void);
-
-void diag_test(void)
+static void diag_test(void)
 {
-  DIAG_SINGLEF(( "TestTag1", "text $U.\n", 42, NULL ));
+  DIAG_SINGLEF(( "DIAGTEST-Tag1", "text $U.\n", 42, NULL ));
+
+  DIAG_SINGLEF(( "DIAGTEST-NoLines", NULL ));
 
   DIAG_FIRSTF((
-    "StringEqual",
+    "DIAGTEST-StringEqual",
     "Fred = Fred: $U.\n",
     StringEqual("Fred", "Fred"),
     NULL
@@ -538,7 +547,7 @@ void diag_test(void)
   DIAG_MOREF(("Fred = 0: $U.\n", StringEqual("Fred", ""), NULL));
   DIAG_MOREF(("0 = 0: $U.\n", StringEqual("", ""), NULL));
   DIAG_MOREF(("0 = 000: $U.\n", StringEqual("", "\0\0"), NULL));
-  DIAG_END("StringEqual");
+  DIAG_END("DIAGTEST-StringEqual");
 
 #if 0
   DIAG_FIRSTF(( "TestTag2", "text $U.\n", 42, NULL ));
