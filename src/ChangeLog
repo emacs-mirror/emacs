@@ -1,3 +1,8 @@
+2007-08-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_image_glyph_string): Adjust stipple origin when
+	filling pixmap with stippled background.
+
 2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* print.c (new_backquote_output): Rename from old_backquote_output.
