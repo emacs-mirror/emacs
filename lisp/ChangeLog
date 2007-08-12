@@ -1,3 +1,23 @@
+2007-08-12  Richard Stallman  <rms@gnu.org>
+
+	* pcvs.el (cvs-reread-cvsrc, cvs-checkout, cvs-mode-checkout)
+	(cvs-execute-single-file): Use new name split-string-and-unquote.
+	(cvs-header-msg): Use new name combine-and-quote-strings.
+
+	* emulation/vi.el (vi-next-line): Ignore return value of line-move.
+
+	* progmodes/gud.el (gud-common-init): Use new name
+	split-string-and-unquote.
+
+	* progmodes/flymake.el (flymake-err-line-patterns): Fix infloop
+	in javac regexp.
+
+	* pcvs-util.el (cvs-qtypedesc-strings): Use new names
+	combine-and-quote-strings and split-string-and-unquote.
+
+	* subr.el (combine-and-quote-strings): Renamed from strings->string.
+	(split-string-and-unquote): Renamed from string->strings.
+
 2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-font-lock-keywords): Use `eval' so as to adapt
