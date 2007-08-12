@@ -182,7 +182,7 @@
 	  (when (re-search-forward
 		 (concat "^" cmd "\\(\\s-+\\(.*\\)\\)?$") nil t)
 	    (let* ((sym (intern (concat "cvs-" cmd "-flags")))
-		   (val (string->strings (or (match-string 2) ""))))
+		   (val (split-string-and-unquote (or (match-string 2) ""))))
 	      (cvs-flags-set sym 0 val))))
 	;; ensure that cvs doesn't have -q or -Q
 	(cvs-flags-set 'cvs-cvs-flags 0
@@ -612,7 +612,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 			  (t arg)))
 		       args)))
     (concat cvs-program " "
-	    (strings->string
+	    (combine-and-quote-strings
 	     (append (cvs-flags-query 'cvs-cvs-flags nil 'noquery)
 		     (if cvs-cvsroot (list "-d" cvs-cvsroot))
 		     args
@@ -941,7 +941,8 @@ With a prefix argument, prompt for cvs FLAGS to use."
    (let ((root (cvs-get-cvsroot)))
      (if (or (null root) current-prefix-arg)
 	 (setq root (read-string "CVS Root: ")))
-     (list (string->strings (read-string "Module(s): " (cvs-get-module)))
+     (list (split-string-and-unquote
+	    (read-string "Module(s): " (cvs-get-module)))
 	   (read-directory-name "CVS Checkout Directory: "
 				nil default-directory nil)
 	   (cvs-add-branch-prefix
@@ -964,7 +965,7 @@ The files are stored to DIR."
 			 (if branch (format " (branch: %s)" branch)
 			   ""))))
      (list (read-directory-name prompt nil default-directory nil))))
-  (let ((modules (string->strings (cvs-get-module)))
+  (let ((modules (split-string-and-unquote (cvs-get-module)))
 	(flags (cvs-add-branch-prefix
 		(cvs-flags-query 'cvs-checkout-flags "cvs checkout flags")))
 	(cvs-cvsroot (cvs-get-cvsroot)))
@@ -2253,7 +2254,7 @@ With prefix argument, prompt for cvs flags."
       (let* ((args (append constant-args arg-list)))
 
 	(insert (format "=== %s %s\n\n"
-			program (strings->string args)))
+			program (split-string-and-unquote args)))
 
 	;; FIXME: return the exit status?
 	(apply 'call-process program nil t t args)
