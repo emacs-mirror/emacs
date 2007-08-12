@@ -1,3 +1,9 @@
+2007-08-12  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh): Delete group `unix'.
+
+	* progmodes/gud.el (gud): Change to group `processes'.
+
 2007-08-11  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-buffer-name): Don't check
@@ -97,6 +103,15 @@
 	It calls comment-line-break-function if there are comments.
 	(do-auto-fill): Use that.
 
+2007-08-07  Ivan Kanis  <apple@kanis.eu>
+
+	* time.el (display-time-world-mode, display-time-world-display)
+	(display-time-world, display-time-world-list)
+	(display-time-world-time-format, display-time-world-buffer-name)
+	(display-time-world-timer-enable)
+	(display-time-world-timer-second, display-time-world-mode-map): 
+	New.
+	
 2007-08-07  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
 	* complete.el (PC-lisp-complete-symbol): Complete symbol around point.
