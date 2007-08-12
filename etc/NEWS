@@ -81,6 +81,9 @@ as its frame.
 ** The new function `image-refresh' refreshes all images associated
 with a given image specification.
 
+** The new function `split-string-and-unquote' does (what?)
+
+** The new function `combine-and-quote-strings' does (what?)
 
 * Installation Changes in Emacs 22.1
 
