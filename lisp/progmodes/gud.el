@@ -59,7 +59,7 @@
 (defgroup gud nil
   "Grand Unified Debugger mode for gdb and other debuggers under Emacs.
 Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb."
-  :group 'unix
+  :group 'processes
   :group 'tools)
 
 
