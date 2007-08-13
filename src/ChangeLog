@@ -1,3 +1,8 @@
+2007-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Use -1 as index
+	to gtk_toolbar_insert.
+
 2007-08-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.c (x_draw_image_glyph_string): Adjust stipple origin when
