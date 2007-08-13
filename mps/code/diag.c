@@ -4,10 +4,10 @@
  * Copyright (c) 2007 Ravenbrook Limited.  See end of file for license.
  *
  * To Do: [RHSK 2007-08-11]
- *  @@ unit test for StringMatch
+ *  @@ unit test for StringMatch, and call it PatternOccurs
+ *  @@ MatchTag should use StringMatch, not StringEqual
  *  @@ handle diag->buf overflow (currently asserts)
  *  @@ sigs and AVERTs for Diag and Rule
- *  @@ .improve.empty-diag
  */
 
 #include <stdarg.h>
@@ -235,7 +235,12 @@ static void LineOutput(Diag diag, Index i, Index j)
   }
 }
 
-static void FilterOutput(Diag diag, Rule rules)
+
+/* FilterStream_Output -- output this diag, if the rules select it
+ *
+ */
+
+static void FilterStream_Output(Diag diag, Rule rules)
 {
   static Bool inside = FALSE;
   Res res;
@@ -243,14 +248,7 @@ static void FilterOutput(Diag diag, Rule rules)
   Index ir;
   Index i, j;
   Bool nolinesyet = TRUE;
-  /* .improve.empty-diag: @@ We only output if nolinesyet becomes 
-   * FALSE.  So if diag has no output, entire diag will be skipped.
-   * That means an intentionally empty diag such as:
-   *   DIAG_SINGLEF(( "Tag", NULL ))
-   * will never appear, but gives no warning.  This is probably 
-   * a bug: we should distinguish between no-output because 
-   * it was all filtered out, and just no output.  RHSK.
-   */
+  Bool emptyonce;
   
   AVER(!inside);
   inside = TRUE;
@@ -267,10 +265,11 @@ static void FilterOutput(Diag diag, Rule rules)
   nr = ir;
   
   /* Filter */
-  /* emptyonce = (diag->n == 0); */
-  /* for(i = 0; emptyonce || i < diag->n; i = j) { */
-  /*   emptyonce = FALSE; */
-  for(i = 0; i < diag->n; i = j) {
+  /* .empty-diag: Treat a diag that deliberately has no output, */
+  /* eg: DIAG_SINGLEF(( "Tag", NULL )), as having a single empty */
+  /* 'line'.  This is the only time a line may be empty. */
+  emptyonce = (diag->n == 0);
+  for(i = 0; emptyonce || i < diag->n; i = j) {
     
     /* Get the next line [i..j) */
     for(j = i; j < diag->n; j++) {
@@ -279,6 +278,8 @@ static void FilterOutput(Diag diag, Rule rules)
         break;
       }
     }
+    AVER(emptyonce || i < j);  /* .empty-diag */
+    emptyonce = FALSE;
 
     /* Find the lowest rule that matches it. */
     ir = nr - 1;
@@ -350,7 +351,7 @@ static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
   /* @@ when all diags are tagged, the buffer must be empty */
   /* @@ but for now, as a courtesy... */
   if(diag->n > 0) {
-    FilterOutput(diag, &RulesGlobal[0]);
+    FilterStream_Output(diag, &RulesGlobal[0]);
     diag->n = 0;
   }
 
@@ -368,7 +369,7 @@ static void FilterStream_TagEnd(mps_lib_FILE *stream, const char *tag)
   AVER(StringEqual(diag->tag, tag));
 
   /* Output the diag */
-  FilterOutput(diag, &RulesGlobal[0]);
+  FilterStream_Output(diag, &RulesGlobal[0]);
 
   diag->tag = NULL;
   diag->n = 0;
@@ -533,7 +534,7 @@ static void diag_test(void)
 {
   DIAG_SINGLEF(( "DIAGTEST-Tag1", "text $U.\n", 42, NULL ));
 
-  DIAG_SINGLEF(( "DIAGTEST-NoLines", NULL ));
+  DIAG_SINGLEF(( "DIAGTEST-EmptyDiag", NULL ));
 
   DIAG_FIRSTF((
     "DIAGTEST-StringEqual",
