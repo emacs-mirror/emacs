@@ -1,3 +1,7 @@
+2007-08-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-send): Handle CTRL-D more carefully.
+
 2007-08-12  Richard Stallman  <rms@gnu.org>
 
 	* pcvs.el (cvs-reread-cvsrc, cvs-checkout, cvs-mode-checkout)
