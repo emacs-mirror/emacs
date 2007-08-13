@@ -1,3 +1,21 @@
+2007-08-13  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* pcvs-parse.el (cvs-parse-table): Handle additional instance of
+	optional quotes around files in NEED-UPDATE . REMOVED case.
+
+	* progmodes/ada-xref.el (ada-gnatls-args): Fix docstring.
+	(ada-treat-cmd-string): Improve error message.
+	(ada-do-file-completion): Call `ada-require-project-file', so
+	project variables are set properly.
+	(ada-prj-find-prj-file): Delete Emacs 20.2 support.
+	(ada-gnatfind-buffer-name): New constant.
+	(ada-find-any-references): Use new constant.  Set buffer name
+	properly in compilation-start.  Toggle read-only properly.
+	(ada-find-in-src-path): Fix spelling error in docstring.
+
+	* progmodes/vhdl-mode.el (vhdl-update-progress-info): Avoid divide
+	by zero error.
+
 2007-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-print-form): Use print-quoted.
@@ -26,7 +44,7 @@
 	(tex-font-script-display, tex-font-lock-suscript): Change from a cons
 	cell to a list of 2 elements to simplify the unfontify code.
 
-2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
+2007-08-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
 
 	* url/url-auth.el (url-basic-auth): When prompting for username
 	and password, default to the username and password in the URL.
@@ -112,10 +130,9 @@
 	* time.el (display-time-world-mode, display-time-world-display)
 	(display-time-world, display-time-world-list)
 	(display-time-world-time-format, display-time-world-buffer-name)
-	(display-time-world-timer-enable)
-	(display-time-world-timer-second, display-time-world-mode-map): 
-	New.
-	
+	(display-time-world-timer-enable, display-time-world-timer-second)
+	(display-time-world-mode-map): New.
+
 2007-08-07  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
 	* complete.el (PC-lisp-complete-symbol): Complete symbol around point.
@@ -170,10 +187,9 @@
 	term-default-fg/bg-color instead of ansi-term-color-vector when the
 	index (term-ansi-current-color or term-ansi-current-bg-color) is zero.
 
-2007-08-05  Jay Belanger  <belanger@localhost.localdomain>
+2007-08-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-nlfit.el (math-nlfit-curve):
-	Remove unnecessary variables.
+	* calc/calc-nlfit.el (math-nlfit-curve): Remove unnecessary variables.
 	(math-nlfit-givens): Let bind free variables.
 
 2007-08-05  Vinicius Jose Latorre  <viniciusig@ig.com.br>
@@ -186,7 +202,7 @@
 	* files.el (set-auto-mode): Handle also remote files wrt
 	`auto-mode-alist'.
 
-2007-08-04  Jay Belanger  <belanger@localhost.localdomain>
+2007-08-04  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calcalg3.el (calc-curve-fit): Add support for nonlinear
 	curves and plotting.
@@ -224,7 +240,7 @@
 
 2007-08-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-ext.el (math-get-value,math-get-sdev)
+	* calc/calc-ext.el (math-get-value, math-get-sdev)
 	(math-contains-sdev): New functions.
 
 	* calc/calc-graph.el (calc-graph-format-data)
@@ -279,8 +295,8 @@
 
 	* net/telnet.el (telnet-mode): Set comint-use-prompt-regexp to t.
 
-	* progmodes/fortran.el (fortran-font-lock-syntactic-keywords): Fix
-	off-by-one error in previous change.
+	* progmodes/fortran.el (fortran-font-lock-syntactic-keywords):
+	Fix off-by-one error in previous change.
 
 2007-08-03  Drew Adams  <drew.adams@oracle.com>
 
@@ -289,8 +305,8 @@
 
 2007-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-math.el (math-sqrt-raw,math-sin-raw-2)
-	(math-cos-raw-2,math-arctan-raw,math-ln-raw):
+	* calc/calc-math.el (math-sqrt-raw, math-sin-raw-2)
+	(math-cos-raw-2, math-arctan-raw, math-ln-raw):
 	Use native Emacs functions, when appropriate.
 
 2007-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
