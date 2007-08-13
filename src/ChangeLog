@@ -1,3 +1,8 @@
+2007-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Use -1 as index
+	to gtk_toolbar_insert.
+
 2007-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Yet Another Int/Lisp_Object Mixup.
