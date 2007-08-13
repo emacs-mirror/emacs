@@ -1,3 +1,7 @@
+2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Mention nntp-xref-number-is-evil.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* glossary.texi (Glossary): Deprecate `iff'.
