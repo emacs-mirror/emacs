@@ -304,6 +304,17 @@
 #define ASSERT_BUFFER_SIZE      ((Size)512)
 
 
+/* Diagnostics Buffer */
+
+#ifdef DIAG_WITH_STREAM_AND_WRITEF
+/* DIAG_BUFFER_SIZE: 10 screenfuls: 10x80x25 = 20000 */
+#define DIAG_BUFFER_SIZE      ((Size)20000)
+#else
+#define DIAG_BUFFER_SIZE      ((Size)1)
+#endif
+
+
+
 /* memory operator configuration
  *
  * We need efficient operators similar to memcpy, memset, and memcmp.

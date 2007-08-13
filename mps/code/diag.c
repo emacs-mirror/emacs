@@ -3,9 +3,8 @@
  * $Id$
  * Copyright (c) 2007 Ravenbrook Limited.  See end of file for license.
  *
- * To Do: [RHSK 2007-08-11]
- *  @@ handle diag->buf overflow (currently asserts)
- *  @@ sigs and AVERTs for Diag and Rule
+ * To Do: [RHSK 2007-08-13]
+ *  @@ sigs and AVERTs for Rule, and macro for Rules initializer
  */
 
 #include <stdarg.h>
@@ -20,11 +19,11 @@ typedef struct RuleStruct {
   const char *para;
   const char *line;
   int tpMatch;  /* .tpmatch */
-  /* @@ needs sig; Note: at end, to make initializer expression easy */
+  /* @@ needs sig; (at end, to make initializer expression easy?) */
 } *Rule;
 
 
-/* RulesGlobal -- throw away some diags (see instructions below) */
+/* RulesGlobal -- throw away some diags (see INSTRUCTIONS below) */
 
 struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
@@ -46,7 +45,7 @@ struct RuleStruct RulesGlobalExample[] = {
   { NULL, "", "", "" }
 };
 
-/* RulesGlobal:
+/* RulesGlobal -- INSTRUCTIONS
  *
  * In your local copy of diag.c, you can modify RulesGlobal as you 
  * wish, to control what diags you see.
@@ -54,7 +53,8 @@ struct RuleStruct RulesGlobalExample[] = {
  * Each rule consists of: action, tag, para, and line.  A rule that 
  * matches on TAG, PARA and LINE determines what ACTION is taken 
  * for that line of that diag.  Later rules override earlier rules, 
- * ie. the lowest matching rule wins.
+ * ie. the lowest matching rule wins.  (And at least one rule must 
+ * match, so the first rule should be a catch-all).
  *
  * ACTION = "+" (output this line of diag), or "-" (skip this line).
  *
@@ -69,8 +69,12 @@ struct RuleStruct RulesGlobalExample[] = {
  * Note: a diag that deliberately has no output, eg.
  *     DIAG_SINGLEF(( "MyTag", NULL )),
  * is treated as having a single empty 'line'.  See .empty-diag.
+ *
+ * Note: for help debugging your ruleset, see .rules.debug below.
  */
 
+
+/* Forward declarations */
 
 static mps_lib_FILE *filterStream(void);
 static int filterStream_fputc(int c, mps_lib_FILE *stream);
@@ -101,18 +105,26 @@ int Stream_fputs(const char *s, mps_lib_FILE *stream)
 }
 
 
-/* Diag -- buffer to store a diagnostic
+/* Diag -- a buffer to store a diagnostic
  *
  */
 
-enum {DIAG_BUF_SIZE = 10000};
+#define DiagSig       ((Sig)0x519D1A99)  /* SIGnature DIAG */
 
 typedef struct DiagStruct {
-  /* @@ needs sig */
+  Sig sig;
   const char  *tag;
   Count n;
-  char buf[DIAG_BUF_SIZE];
+  char buf[DIAG_BUFFER_SIZE];
 } *Diag;
+
+static Bool DiagCheck(Diag diag)
+{
+  CHECKS(Diag, diag);
+  CHECKL(diag->n <= sizeof(diag->buf));
+  return TRUE;
+}
+
 
 
 /* filterStream -- capable of filtering diagnostics
@@ -124,7 +136,7 @@ typedef struct DiagStruct {
  * (or not) when complete.
  */
 
-struct DiagStruct filterDiagGlobal;
+static struct DiagStruct filterDiagGlobal = { DiagSig, NULL, 0 };
 
 static mps_lib_FILE *filterStream(void)
 {
@@ -316,11 +328,13 @@ static void filterStream_Output(Diag diag, Rule rules)
     }
     
     /* Do the rule's action. */
-    if(0)
-      (void) WriteF(filterStream_under(),
-                    "[RULE: $U (of $U);", ir, nr, 
-                    " ACTION: $C]\n", rules[ir].action[0],
-                    NULL);
+    if(0) {
+      /* .rules.debug: Turn this on to show which rule applied. */
+      Rule rule = &rules[ir];
+      (void) WriteF(filterStream_under(), "[$U/$U:", ir, nr, 
+                    " $S$S/$S/$S] ", rule->action, rule->tag, 
+                    rule->para, rule->line, NULL);
+    }
     if(rules[ir].action[0] == '+') {
       if(nolinesyet) {
         res = WriteF(filterStream_under(), "MPS.$S {", diag->tag, NULL);
@@ -347,7 +361,7 @@ static void filterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
   AVER(tag);
 
   diag = (Diag)stream;
-  /* AVERT(Diag, diag) */
+  AVERT(Diag, diag);
 
   if(first) {
     first = FALSE;
@@ -379,7 +393,7 @@ static void filterStream_TagEnd(mps_lib_FILE *stream, const char *tag)
 {
   Diag diag;
   diag = (Diag)stream;
-  /* AVERT(Diag, diag) */
+  AVERT(Diag, diag);
 
   AVER(diag->tag != NULL);
 
@@ -407,11 +421,11 @@ static int filterStream_fputc(int c, mps_lib_FILE *stream)
   AVER(stream == filterStream());
 
   diag = (Diag)stream;
-  /* AVERT(Diag, diag) */
+  AVERT(Diag, diag);
   /* @@ when all diags are tagged: AVER(diag->tag != NULL); */
 
   AVER(diag->n + 1 <= sizeof(diag->buf));
-  if (diag->n + 1 > sizeof(diag->buf))
+  if(!(diag->n + 1 <= sizeof(diag->buf)))
     return mps_lib_EOF;
   
   /* add c to buffer */
@@ -429,13 +443,13 @@ static int filterStream_fputs(const char *s, mps_lib_FILE *stream)
   AVER(stream == filterStream());
 
   diag = (Diag)stream;
-  /* AVERT(Diag, diag) */
+  AVERT(Diag, diag);
   /* @@ when all diags are tagged: AVER(diag->tag != NULL); */
 
   l = StringLength(s);
   
   AVER(diag->n + l <= sizeof(diag->buf));
-  if (diag->n + l > sizeof(diag->buf))
+  if(!(diag->n + l <= sizeof(diag->buf)))
     return mps_lib_EOF;
 
   /* add s to buffer */
