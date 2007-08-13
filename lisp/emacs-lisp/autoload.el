@@ -209,6 +209,7 @@ put the output in."
 	    (setcdr p nil)
 	    (princ "\n(" outbuf)
 	    (let ((print-escape-newlines t)
+                  (print-quoted t)
 		  (print-escape-nonascii t))
 	      (dolist (elt form)
 		(prin1 elt outbuf)
@@ -232,6 +233,7 @@ put the output in."
 		       outbuf))
 	      (terpri outbuf)))
 	(let ((print-escape-newlines t)
+              (print-quoted t)
 	      (print-escape-nonascii t))
 	  (print form outbuf)))))))
 

@@ -79,7 +79,7 @@ ARGS are passed to `message'."
 
 ;;;###autoload
 (defun gmm-widget-p (symbol)
-  "Non-nil iff SYMBOL is a widget."
+  "Non-nil if SYMBOL is a widget."
   (get symbol 'widget-type))
 
 ;; Copy of the `nnmail-lazy' code from `nnmail.el':

@@ -493,7 +493,7 @@ Menu of mode operations in the mode line.")
 (defvar minor-mode-alist nil "\
 Alist saying how to show minor modes in the mode line.
 Each element looks like (VARIABLE STRING);
-STRING is included in the mode line iff VARIABLE's value is non-nil.
+STRING is included in the mode line if VARIABLE's value is non-nil.
 
 Actually, STRING need not be a string; any possible mode-line element
 is okay.  See `mode-line-format'.")

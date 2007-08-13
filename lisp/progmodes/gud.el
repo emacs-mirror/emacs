@@ -59,7 +59,7 @@
 (defgroup gud nil
   "Grand Unified Debugger mode for gdb and other debuggers under Emacs.
 Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb."
-  :group 'unix
+  :group 'processes
   :group 'tools)
 
 
@@ -2467,7 +2467,7 @@ comint mode, which see."
 ;; for local variables in the debugger buffer.
 (defun gud-common-init (command-line massage-args marker-filter
 				     &optional find-file)
-  (let* ((words (string->strings command-line))
+  (let* ((words (split-string-and-unquote command-line))
 	 (program (car words))
 	 (dir default-directory)
 	 ;; Extract the file name from WORDS
@@ -3361,7 +3361,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 
 (defun gud-tooltip-dereference (&optional arg)
   "Toggle whether tooltips should show `* expr' or `expr'.
-With arg, dereference expr iff arg is positive."
+With arg, dereference expr if ARG is positive, otherwise do not derereference."
  (interactive "P")
   (setq gud-tooltip-dereference
 	(if (null arg)

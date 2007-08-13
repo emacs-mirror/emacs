@@ -398,7 +398,7 @@ nil."
     ))
 
 (defun mspools-size-folder (spool)
-  "Return (SPOOL . SIZE ) iff SIZE of spool file is non-zero."
+  "Return (SPOOL . SIZE ), if SIZE of spool file is non-zero."
   ;; 7th file attribute is the size of the file in bytes.
   (let ((file (concat mspools-folder-directory spool))
 	size)

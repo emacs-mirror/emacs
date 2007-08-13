@@ -68,7 +68,9 @@ instead of the pathname inheritance method."
 	 (server (url-host href))
 	 (port (url-port href))
 	 (path (url-filename href))
-	 user pass byserv retval data)
+	 (user (url-user href))
+	 (pass (url-password href))
+	 byserv retval data)
     (setq server (format "%s:%d" server port)
 	  path (cond
 		(realm realm)
@@ -79,8 +81,8 @@ instead of the pathname inheritance method."
     (cond
      ((and prompt (not byserv))
       (setq user (read-string (url-auth-user-prompt url realm)
-			      (user-real-login-name))
-	    pass (read-passwd "Password: "))
+			      (or user (user-real-login-name)))
+	    pass (read-passwd "Password: " nil (or pass "")))
       (set url-basic-auth-storage
 	   (cons (list server
 		       (cons path
@@ -310,7 +312,7 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 		  url-registered-auth-schemes)))))
 
 (defun url-auth-registered (scheme)
-  ;; Return non-nil iff SCHEME is registered as an auth type
+  "Return non-nil if SCHEME is registered as an auth type."
   (assoc scheme url-registered-auth-schemes))
 
 (provide 'url-auth)

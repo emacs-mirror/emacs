@@ -1370,7 +1370,7 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
     (goto-char (point-min))))
 
 (defun strokes-alphabetic-lessp (stroke1 stroke2)
-  "T iff command name for STROKE1 is less than STROKE2's in lexicographic order."
+  "T if command name for STROKE1 is less than STROKE2's in lexicographic order."
   (let ((command-name-1 (symbol-name (cdr stroke1)))
 	(command-name-2 (symbol-name (cdr stroke2))))
     (string-lessp command-name-1 command-name-2)))
@@ -1520,7 +1520,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
       (eq char ?*)))
 
 ;;(defsubst strokes-xor (a b)  ### Should I make this an inline function? ###
-;;  "T iff one and only one of A and B is non-nil; otherwise, returns nil.
+;;  "T if one and only one of A and B is non-nil; otherwise, returns nil.
 ;;NOTE: Don't use this as a numeric xor since it treats all non-nil
 ;;      values as t including `0' (zero)."
 ;;  (eq (null a) (not (null b))))

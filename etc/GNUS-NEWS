@@ -30,7 +30,7 @@ or remove them using `make remove-installed-shadows'.
 
 Use `make.bat' if you want to install Gnus under MS Windows, the first
 argument to the batch-program should be the directory where `xemacs.exe'
-respectively `emacs.exe' is located, iff you want to install Gnus after
+respectively `emacs.exe' is located, if you want to install Gnus after
 compiling it, give `make.bat' `/copy' as the second parameter.
 
 `make.bat' has been rewritten from scratch, it now features automatic
@@ -308,7 +308,7 @@ as external parts.
 
 ** Gnus no longer generate the Sender: header automatically.
 
-Earlier it was generated iff the user configurable email address was
+Earlier it was generated when the user configurable email address was
 different from the Gnus guessed default user address.  As the guessing
 algorithm is rarely correct these days, and (more controversially) the
 only use of the Sender: header was to check if you are entitled to

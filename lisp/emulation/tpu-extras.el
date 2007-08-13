@@ -141,13 +141,11 @@ the previous line when starting from a line beginning."
 
 (add-hook 'picture-mode-hook 'tpu-set-cursor-free)
 
-(defun tpu-write-file-hook nil
+(defun tpu-before-save-hook ()
   "Eliminate whitespace at ends of lines, if the cursor is free."
   (if (and (buffer-modified-p) tpu-cursor-free) (tpu-trim-line-ends)))
 
-(or (memq 'tpu-write-file-hook write-file-functions)
-    (setq write-file-functions
-	  (cons 'tpu-write-file-hook write-file-functions)))
+(add-hook 'before-save-hook 'tpu-before-save-hook)
 
 
 ;;;  Utility routines for implementing scroll margins
@@ -246,7 +244,7 @@ Accepts a prefix argument for the number of lines to move."
 	   (end-of-line (- 1 num))))
     (tpu-top-check beg num)))
 
-(defun tpu-current-end-of-line nil
+(defun tpu-current-end-of-line ()
   "Move point to end of current line."
   (interactive)
   (let ((beg (point)))
@@ -392,41 +390,24 @@ A repeat count means scroll that many sections."
 
 
 
-;;;  Replace the newline, newline-and-indent, and do-auto-fill functions
-
-(or (fboundp 'tpu-old-newline)
-    (fset 'tpu-old-newline (symbol-function 'newline)))
-(or (fboundp 'tpu-old-do-auto-fill)
-    (fset 'tpu-old-do-auto-fill (symbol-function 'do-auto-fill)))
-(or (fboundp 'tpu-old-newline-and-indent)
-    (fset 'tpu-old-newline-and-indent (symbol-function 'newline-and-indent)))
-
-(defun newline (&optional num)
-  "Insert a newline.  With arg, insert that many newlines.
-In Auto Fill mode, can break the preceding line if no numeric arg.
-This is the TPU-edt version that respects the bottom scroll margin."
-  (interactive "p")
-  (let ((beg (tpu-current-line)))
-    (or num (setq num 1))
-    (tpu-old-newline num)
+;; Advise the newline, newline-and-indent, and do-auto-fill functions.
+(defadvice newline (around tpu-respect-bottom-scroll-margin activate disable)
+  "Respect `tpu-bottom-scroll-margin'."
+  (let ((beg (tpu-current-line))
+        (num (prefix-numeric-value (ad-get-arg 0))))
+    ad-do-it
     (tpu-bottom-check beg num)))
 
-(defun newline-and-indent nil
-  "Insert a newline, then indent according to major mode.
-Indentation is done using the current indent-line-function.
-In programming language modes, this is the same as TAB.
-In some text modes, where TAB inserts a tab, this indents
-to the specified left-margin column.  This is the TPU-edt
-version that respects the bottom scroll margin."
-  (interactive)
+(defadvice newline-and-indent (around tpu-respect-bottom-scroll-margin)
+  "Respect `tpu-bottom-scroll-margin'."
   (let ((beg (tpu-current-line)))
-    (tpu-old-newline-and-indent)
+    ad-do-it
     (tpu-bottom-check beg 1)))
 
-(defun do-auto-fill nil
-  "TPU-edt version that respects the bottom scroll margin."
+(defadvice do-auto-fill (around tpu-respect-bottom-scroll-margin)
+  "Respect `tpu-bottom-scroll-margin'."
   (let ((beg (tpu-current-line)))
-    (tpu-old-do-auto-fill)
+    ad-do-it
     (tpu-bottom-check beg 1)))
 
 
@@ -440,18 +421,21 @@ version that respects the bottom scroll margin."
 \nsEnter bottom scroll margin (N lines or N%% or RETURN for current value): ")
   ;; set top scroll margin
   (or (string= top "")
-      (if (string= "%" (substring top -1))
-	  (setq tpu-top-scroll-margin (string-to-number top))
-	(setq tpu-top-scroll-margin
+      (setq tpu-top-scroll-margin
+            (if (string= "%" (substring top -1))
+                (string-to-number top)
 	      (/ (1- (+ (* (string-to-number top) 100) (window-height)))
 		 (window-height)))))
   ;; set bottom scroll margin
   (or (string= bottom "")
-      (if (string= "%" (substring bottom -1))
-	  (setq tpu-bottom-scroll-margin (string-to-number bottom))
-	(setq tpu-bottom-scroll-margin
+      (setq tpu-bottom-scroll-margin
+            (if (string= "%" (substring bottom -1))
+                (string-to-number bottom)
 	      (/ (1- (+ (* (string-to-number bottom) 100) (window-height)))
 		 (window-height)))))
+  (dolist (f '(newline newline-and-indent do-auto-fill))
+    (ad-enable-advice f 'around 'tpu-respect-bottom-scroll-margin)
+    (ad-activate f))
   ;; report scroll margin settings if running interactively
   (and (interactive-p)
        (message "Scroll margins set.  Top = %s%%, Bottom = %s%%"
@@ -461,7 +445,7 @@ version that respects the bottom scroll margin."
 ;;;  Functions to set cursor bound or free
 
 ;;;###autoload
-(defun tpu-set-cursor-free nil
+(defun tpu-set-cursor-free ()
   "Allow the cursor to move freely about the screen."
   (interactive)
   (setq tpu-cursor-free t)
@@ -471,7 +455,7 @@ version that respects the bottom scroll margin."
   (message "The cursor will now move freely about the screen."))
 
 ;;;###autoload
-(defun tpu-set-cursor-bound nil
+(defun tpu-set-cursor-bound ()
   "Constrain the cursor to the flow of the text."
   (interactive)
   (tpu-trim-line-ends)
@@ -481,5 +465,5 @@ version that respects the bottom scroll margin."
 			     GOLD-map)
   (message "The cursor is now bound to the flow of your text."))
 
-;;; arch-tag: 89676fa4-33ec-48cb-9135-6f3bf230ab1a
+;; arch-tag: 89676fa4-33ec-48cb-9135-6f3bf230ab1a
 ;;; tpu-extras.el ends here

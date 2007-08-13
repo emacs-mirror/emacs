@@ -327,7 +327,7 @@ Image types are symbols like `xbm' or `jpeg'."
 
 ;;;###autoload
 (defun image-type-auto-detected-p ()
-  "Return t iff the current buffer contains an auto-detectable image.
+  "Return t if the current buffer contains an auto-detectable image.
 This function is intended to be used from `magic-fallback-mode-alist'.
 
 The buffer is considered to contain an auto-detectable image if

@@ -10,7 +10,7 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "47c92504dda976a632c2c10bedd4b6a4")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "53c2b3ede19dac62cff13a37f58cdf9c")
 ;;; Generated autoloads from cl-extra.el
 
 (autoload (quote coerce) "cl-extra" "\
@@ -745,7 +745,7 @@ Not documented
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "8805f76626399794931f5db36ddf855f")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "c972a97c053d4e001ac1d1012c315b28")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload (quote reduce) "cl-seq" "\

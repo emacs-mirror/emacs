@@ -267,13 +267,13 @@ Emacs Lisp mode) that support Eldoc.")
 ;; Return a string containing the function parameter list, or 1-line
 ;; docstring if function is a subr and no arglist is obtainable from the
 ;; docstring or elsewhere.
-(defun eldoc-get-fnsym-args-string (sym argument-index)
+(defun eldoc-get-fnsym-args-string (sym &optional argument-index)
   (let ((args nil)
         (doc nil))
     (cond ((not (and sym (symbolp sym) (fboundp sym))))
           ((and (eq sym (aref eldoc-last-data 0))
                 (eq 'function (aref eldoc-last-data 2)))
-           (setq args (aref eldoc-last-data 1)))
+           (setq doc (aref eldoc-last-data 1)))
 	  ((setq doc (help-split-fundoc (documentation sym t) sym))
 	   (setq args (car doc))
 	   (string-match "\\`[^ )]* ?" args)
@@ -281,8 +281,9 @@ Emacs Lisp mode) that support Eldoc.")
 	   (eldoc-last-data-store sym args 'function))
           (t
            (setq args (eldoc-function-argstring sym))))
-    (when args
-      (setq doc (eldoc-highlight-function-argument sym args argument-index)))
+    (and args
+         argument-index
+         (setq doc (eldoc-highlight-function-argument sym args argument-index)))
     doc))
 
 ;; Highlight argument INDEX in ARGS list for SYM.

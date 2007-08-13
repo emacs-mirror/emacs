@@ -55,6 +55,8 @@ in to make it use the scrollbars from the system theme.
 
 * New Modes and Packages in Emacs 22.2
 
+** bibtex-style-mode helps you write BibTeX's *.bst files.
+
 ** The new package css-mode.el provides a major mode for editing CSS files.
 
 ** The new package vera-mode.el provides a major mode for editing Vera files.
@@ -67,8 +69,21 @@ in to make it use the scrollbars from the system theme.
 
 *** VC has some support for Mercurial (hg).
 
+*** VC has some support for Bazaar (Bzr).
+
 *** VC has some support for Git.
 
+* Lisp Changes in Emacs 22.2.
+
+** New function `window-full-width-p' returns t if a window is as wide
+as its frame.
+
+** The new function `image-refresh' refreshes all images associated
+with a given image specification.
+
+** The new function `split-string-and-unquote' does (what?)
+
+** The new function `combine-and-quote-strings' does (what?)
 
 * Installation Changes in Emacs 22.1
 
@@ -3550,8 +3565,8 @@ that is, floats are compared by value and other elements with `eq'.
 
 *** New functions `string-or-null-p' and `booleanp'.
 
-`string-or-null-p' returns non-nil iff OBJECT is a string or nil.
-`booleanp' returns non-nil iff OBJECT is t or nil.
+`string-or-null-p' returns non-nil if OBJECT is a string or nil.
+`booleanp' returns non-nil if OBJECT is t or nil.
 
 *** `makehash' is now obsolete.  Use `make-hash-table' instead.
 

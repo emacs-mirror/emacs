@@ -183,6 +183,14 @@ by one.")
 If the gap between two consecutive articles is bigger than this
 variable, split the XOVER request into two requests.")
 
+(defvoo nntp-xref-number-is-evil nil
+  "*If non-nil, Gnus never trusts article numbers in the Xref header.
+Some news servers, e.g., ones running Diablo, run multiple engines
+having the same articles but article numbers are not kept synchronized
+between them.  If you connect to such a server, set this to a non-nil
+value, and Gnus never uses article numbers (that appear in the Xref
+header and vary by which engine is chosen) to refer to articles.")
+
 (defvoo nntp-prepare-server-hook nil
   "*Hook run before a server is opened.
 If can be used to set up a server remotely, for instance.  Say you
@@ -1632,7 +1640,8 @@ password contained in '~/.nntp-authinfo'."
 		    (match-string 1 xref))
 		   (t "")))
 	  (cond
-	   ((and (setq xref (mail-fetch-field "xref"))
+	   ((and (not nntp-xref-number-is-evil)
+		 (setq xref (mail-fetch-field "xref"))
 		 (string-match
 		  (if group
 		      (concat "\\(" (regexp-quote group) "\\):\\([0-9]+\\)")

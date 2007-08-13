@@ -407,8 +407,7 @@
 
 (defgroup term nil
   "General command interpreter in a window."
-  :group 'processes
-  :group 'unix)
+  :group 'processes)
 
 
 ;;; Buffer Local Variables:
@@ -470,7 +469,7 @@
 (defvar term-scroll-with-delete nil) ;; term-scroll-with-delete is t if
 ;;		forward scrolling should be implemented by delete to
 ;;		top-most line(s); and nil if scrolling should be implemented
-;;		by moving term-home-marker.  It is set to t iff there is a
+;;		by moving term-home-marker.  It is set to t if there is a
 ;;		(non-default) scroll-region OR the alternate buffer is used.
 (defvar term-pending-delete-marker) ;; New user input in line mode needs to
 ;;		be deleted, because it gets echoed by the inferior.
@@ -695,12 +694,12 @@ Buffer local variable.")
 
 ;;; faces -mm
 
-(defcustom term-default-fg-color 'unspecified
+(defcustom term-default-fg-color (face-foreground term-current-face)
   "Default color for foreground in `term'."
   :group 'term
   :type 'string)
 
-(defcustom term-default-bg-color 'unspecified
+(defcustom term-default-bg-color (face-background term-current-face)
   "Default color for background in `term'."
   :group 'term
   :type 'string)
@@ -1096,6 +1095,8 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-pending-delete-marker)
   (setq term-pending-delete-marker (make-marker))
   (make-local-variable 'term-current-face)
+  (setq term-current-face (list :background term-default-bg-color
+				:foreground term-default-fg-color))
   (make-local-variable 'term-pending-frame)
   (setq term-pending-frame nil)
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
@@ -3053,7 +3054,8 @@ See `term-prompt-regexp'."
   (setq term-scroll-start 0)
   (setq term-scroll-end term-height)
   (setq term-insert-mode nil)
-  (setq term-current-face nil)
+  (setq term-current-face (list :background term-default-bg-color
+				:foreground term-default-fg-color))
   (setq term-ansi-current-underline nil)
   (setq term-ansi-current-bold nil)
   (setq term-ansi-current-reverse nil)
@@ -3115,7 +3117,8 @@ See `term-prompt-regexp'."
 
 ;;; 0 (Reset) or unknown (reset anyway)
    (t
-    (setq term-current-face nil)
+    (setq term-current-face (list :background term-default-bg-color
+				  :foreground term-default-fg-color))
     (setq term-ansi-current-underline nil)
     (setq term-ansi-current-bold nil)
     (setq term-ansi-current-reverse nil)
@@ -3152,11 +3155,11 @@ See `term-prompt-regexp'."
 	    (setq term-current-face
 		  (list :background
 			(if (= term-ansi-current-color 0)
-			    (face-foreground 'default)
+			    term-default-fg-color
 			  (elt ansi-term-color-vector term-ansi-current-color))
 			:foreground
 			(if (= term-ansi-current-bg-color 0)
-			    (face-background 'default)
+			    term-default-bg-color
 			  (elt ansi-term-color-vector term-ansi-current-bg-color))))
 	    (when term-ansi-current-bold
 	      (setq term-current-face
@@ -3179,9 +3182,13 @@ See `term-prompt-regexp'."
 		  )
 	  (setq term-current-face
 		(list :foreground
-		      (elt ansi-term-color-vector term-ansi-current-color)
+		      (if (= term-ansi-current-color 0)
+			  term-default-fg-color
+			(elt ansi-term-color-vector term-ansi-current-color))
 		      :background
-		      (elt ansi-term-color-vector term-ansi-current-bg-color)))
+		      (if (= term-ansi-current-bg-color 0)
+			  term-default-bg-color
+			(elt ansi-term-color-vector term-ansi-current-bg-color))))
 	  (when term-ansi-current-bold
 	    (setq term-current-face
 		  (append '(:weight bold) term-current-face)))
@@ -3713,12 +3720,12 @@ all pending output has been dealt with."))
 (defun term-erase-in-display (kind)
   "Erases (that is blanks out) part of the window.
 If KIND is 0, erase from (point) to (point-max);
-if KIND is 1, erase from home to point; else erase from home to point-max.
-Should only be called when point is at the start of a screen line."
+if KIND is 1, erase from home to point; else erase from home to point-max."
   (term-handle-deferred-scroll)
   (cond ((eq term-terminal-parameter 0)
-	 (delete-region (point) (point-max))
-	 (term-unwrap-line))
+	 (let ((need-unwrap (bolp)))
+	   (delete-region (point) (point-max))
+	   (when need-unwrap (term-unwrap-line))))
 	((let ((row (term-current-row))
 	      (col (term-horizontal-column))
 	      (start-region term-home-marker)

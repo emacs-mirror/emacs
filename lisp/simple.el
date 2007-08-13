@@ -4329,13 +4329,6 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 regexp)
   :group 'fill)
 
-(defvar comment-line-break-function 'comment-indent-new-line
-  "*Mode-specific function which line breaks and continues a comment.
-
-This function is only called during auto-filling of a comment section.
-The function should take a single optional argument, which is a flag
-indicating whether it should use soft newlines.")
-
 ;; This function is used as the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
 ;; It returns t if it really did any work.
@@ -4409,10 +4402,10 @@ indicating whether it should use soft newlines.")
 	      (if (save-excursion
 		    (skip-chars-backward " \t")
 		    (= (point) fill-point))
-		  (funcall comment-line-break-function t)
+		  (default-indent-new-line t)
 		(save-excursion
 		  (goto-char fill-point)
-		  (funcall comment-line-break-function t)))
+		  (default-indent-new-line t)))
 	      ;; Now do justification, if required
 	      (if (not (eq justify 'left))
 		  (save-excursion
@@ -4426,6 +4419,43 @@ indicating whether it should use soft newlines.")
       ;; Justify last line.
       (justify-current-line justify t t)
       t)))
+
+(defvar comment-line-break-function 'comment-indent-new-line
+  "*Mode-specific function which line breaks and continues a comment.
+This function is called during auto-filling when a comment syntax
+is defined.
+The function should take a single optional argument, which is a flag
+indicating whether it should use soft newlines.")
+
+(defun default-indent-new-line (&optional soft)
+  "Break line at point and indent.
+If a comment syntax is defined, call `comment-indent-new-line'.
+
+The inserted newline is marked hard if variable `use-hard-newlines' is true,
+unless optional argument SOFT is non-nil."
+  (interactive)
+  (if comment-start
+      (funcall comment-line-break-function soft)
+    ;; Insert the newline before removing empty space so that markers
+    ;; get preserved better.
+    (if soft (insert-and-inherit ?\n) (newline 1))
+    (save-excursion (forward-char -1) (delete-horizontal-space))
+    (delete-horizontal-space)
+
+    (if (and fill-prefix (not adaptive-fill-mode))
+	;; Blindly trust a non-adaptive fill-prefix.
+	(progn
+	  (indent-to-left-margin)
+	  (insert-before-markers-and-inherit fill-prefix))
+
+      (cond
+       ;; If there's an adaptive prefix, use it unless we're inside
+       ;; a comment and the prefix is not a comment starter.
+       (fill-prefix
+	(indent-to-left-margin)
+	(insert-and-inherit fill-prefix))
+       ;; If we're not inside a comment, just try to indent.
+       (t (indent-according-to-mode))))))
 
 (defvar normal-auto-fill-function 'do-auto-fill
   "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
@@ -4505,8 +4535,9 @@ The variable `selective-display' has a separate value for each buffer."
 
 (defun toggle-truncate-lines (&optional arg)
   "Toggle whether to fold or truncate long lines for the current buffer.
-With arg, truncate long lines iff arg is positive.
-Note that in side-by-side windows, truncation is always enabled."
+With prefix argument ARG, truncate long lines if ARG is positive,
+otherwise don't truncate them.  Note that in side-by-side
+windows, truncation is always enabled."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
@@ -4529,11 +4560,11 @@ Note that in side-by-side windows, truncation is always enabled."
 
 (defun overwrite-mode (arg)
   "Toggle overwrite mode.
-With arg, turn overwrite mode on iff arg is positive.
-In overwrite mode, printing characters typed in replace existing text
-on a one-for-one basis, rather than pushing it to the right.  At the
-end of a line, such characters extend the line.  Before a tab,
-such characters insert until the tab is filled in.
+With prefix argument ARG, turn overwrite mode on if ARG is positive,
+otherwise turn it off.  In overwrite mode, printing characters typed
+in replace existing text on a one-for-one basis, rather than pushing
+it to the right.  At the end of a line, such characters extend the line.
+Before a tab, such characters insert until the tab is filled in.
 \\[quoted-insert] still inserts characters in overwrite mode; this
 is supposed to make it easier to insert characters when necessary."
   (interactive "P")
@@ -4545,14 +4576,13 @@ is supposed to make it easier to insert characters when necessary."
 
 (defun binary-overwrite-mode (arg)
   "Toggle binary overwrite mode.
-With arg, turn binary overwrite mode on iff arg is positive.
-In binary overwrite mode, printing characters typed in replace
-existing text.  Newlines are not treated specially, so typing at the
-end of a line joins the line to the next, with the typed character
-between them.  Typing before a tab character simply replaces the tab
-with the character typed.
-\\[quoted-insert] replaces the text at the cursor, just as ordinary
-typing characters do.
+With prefix argument ARG, turn binary overwrite mode on if ARG is
+positive, otherwise turn it off.  In binary overwrite mode, printing
+characters typed in replace existing text.  Newlines are not treated
+specially, so typing at the end of a line joins the line to the next,
+with the typed character between them.  Typing before a tab character
+simply replaces the tab with the character typed.  \\[quoted-insert]
+replaces the text at the cursor, just as ordinary typing characters do.
 
 Note that binary overwrite mode is not its own minor mode; it is a
 specialization of overwrite mode, entered by setting the
@@ -4567,9 +4597,9 @@ specialization of overwrite mode, entered by setting the
 
 (define-minor-mode line-number-mode
   "Toggle Line Number mode.
-With arg, turn Line Number mode on iff arg is positive.
-When Line Number mode is enabled, the line number appears
-in the mode line.
+With arg, turn Line Number mode on if arg is positive, otherwise
+turn it off.  When Line Number mode is enabled, the line number
+appears in the mode line.
 
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
@@ -4578,16 +4608,16 @@ and `line-number-display-limit-width'."
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
-With arg, turn Column Number mode on iff arg is positive.
-When Column Number mode is enabled, the column number appears
-in the mode line."
+With arg, turn Column Number mode on if arg is positive,
+otherwise turn it off.  When Column Number mode is enabled, the
+column number appears in the mode line."
   :global t :group 'mode-line)
 
 (define-minor-mode size-indication-mode
   "Toggle Size Indication mode.
-With arg, turn Size Indication mode on iff arg is positive.  When
-Size Indication mode is enabled, the size of the accessible part
-of the buffer appears in the mode line."
+With arg, turn Size Indication mode on if arg is positive,
+otherwise turn it off.  When Size Indication mode is enabled, the
+size of the accessible part of the buffer appears in the mode line."
   :global t :group 'mode-line)
 
 (defgroup paren-blinking nil
@@ -5122,7 +5152,7 @@ With prefix argument N, move N items (negative N means move backward)."
 These functions are called in order with four arguments:
 CHOICE - the string to insert in the buffer,
 BUFFER - the buffer in which the choice should be inserted,
-MINI-P - non-nil iff BUFFER is a minibuffer, and
+MINI-P - non-nil if BUFFER is a minibuffer, and
 BASE-SIZE - the number of characters in BUFFER before
 the string being completed.
 
@@ -5730,7 +5760,8 @@ See also `normal-erase-is-backspace'."
 
 (define-minor-mode visible-mode
   "Toggle Visible mode.
-With argument ARG turn Visible mode on iff ARG is positive.
+With argument ARG turn Visible mode on if ARG is positive, otherwise
+turn it off.
 
 Enabling Visible mode makes all invisible text temporarily visible.
 Disabling Visible mode turns off that effect.  Visible mode

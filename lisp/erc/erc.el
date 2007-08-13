@@ -3958,7 +3958,7 @@ and always returns t."
 (defun erc-echo-notice-in-target-buffer (s parsed buffer sender)
   "Echos a private notice in BUFFER, if BUFFER is non-nil.  This
 function is designed to be added to either `erc-echo-notice-hook'
-or `erc-echo-notice-always-hook', and returns non-nil iff BUFFER
+or `erc-echo-notice-always-hook', and returns non-nil if BUFFER
 is non-nil."
   (if buffer
       (progn (erc-display-message parsed nil buffer s) t)
@@ -3982,7 +3982,7 @@ designed to be added to either `erc-echo-notice-hook' or
   "Echos a private notice in the active buffer if the active
 buffer is not the server buffer.  This function is designed to be
 added to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and returns non-nil iff the active
+`erc-echo-notice-always-hook', and returns non-nil if the active
 buffer is not the server buffer."
   (if (not (eq (erc-server-buffer) (erc-active-buffer)))
       (progn (erc-display-message parsed nil 'active s) t)
@@ -3999,7 +3999,7 @@ designed to be added to either `erc-echo-notice-hook' or
   "Echos a private notice in all of the buffers for which SENDER
 is a member.  This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
-returns non-nil iff there is at least one buffer for which the
+returns non-nil if there is at least one buffer for which the
 sender is a member.
 
 See also: `erc-echo-notice-in-first-user-buffer',
@@ -4013,7 +4013,7 @@ See also: `erc-echo-notice-in-first-user-buffer',
   "Echos a private notice in BUFFER and in all of the buffers for
 which SENDER is a member.  This function is designed to be added
 to either `erc-echo-notice-hook' or
-`erc-echo-notice-always-hook', and returns non-nil iff there is
+`erc-echo-notice-always-hook', and returns non-nil if there is
 at least one buffer for which the sender is a member or the
 default target.
 
@@ -4029,7 +4029,7 @@ See also: `erc-echo-notice-in-user-buffers',
   "Echos a private notice in one of the buffers for which SENDER
 is a member.  This function is designed to be added to either
 `erc-echo-notice-hook' or `erc-echo-notice-always-hook', and
-returns non-nil iff there is at least one buffer for which the
+returns non-nil if there is at least one buffer for which the
 sender is a member.
 
 See also: `erc-echo-notice-in-user-buffers',
@@ -4938,7 +4938,7 @@ Specifically, return the position of `erc-insert-marker'."
 (defun erc-send-input (input)
   "Treat INPUT as typed in by the user. It is assumed that the input
 and the prompt is already deleted.
-This returns non-nil only iff we actually send anything."
+This returns non-nil only if we actually send anything."
   ;; Handle different kinds of inputs
   (cond
    ;; Ignore empty input

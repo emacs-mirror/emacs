@@ -49,7 +49,7 @@
 (defvar math-standard-units
   '( ;; Length
     ( m       nil                    "*Meter" )
-    ( in      "2.54 cm"           "Inch" )
+    ( in      "2.54 cm"              "Inch" )
     ( ft      "12 in"                "Foot" )
     ( yd      "3 ft"                 "Yard" )
     ( mi      "5280 ft"              "Mile" )
@@ -971,17 +971,17 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 						     (symbol-name v)))))))
     (or (eq (nth 3 uold) (nth 3 unew))
 	(cond ((eq (nth 3 uold) 'K)
-	       (setq expr (list '- expr '(float 27315 -2)))
+	       (setq expr (list '- expr '(/ 27315 100)))
 	       (if (eq (nth 3 unew) 'F)
-		   (setq expr (list '+ (list '* expr '(frac 9 5)) 32))))
+		   (setq expr (list '+ (list '* expr '(/ 9 5)) 32))))
 	      ((eq (nth 3 uold) 'C)
 	       (if (eq (nth 3 unew) 'F)
-		   (setq expr (list '+ (list '* expr '(frac 9 5)) 32))
-		 (setq expr (list '+ expr '(float 27315 -2)))))
+		   (setq expr (list '+ (list '* expr '(/ 9 5)) 32))
+		 (setq expr (list '+ expr '(/ 27315 100)))))
 	      (t
-	       (setq expr (list '* (list '- expr 32) '(frac 5 9)))
+	       (setq expr (list '* (list '- expr 32) '(/ 5 9)))
 	       (if (eq (nth 3 unew) 'K)
-		   (setq expr (list '+ expr '(float 27315 -2)))))))
+		   (setq expr (list '+ expr '(/ 27315 100)))))))
     (if pure
 	expr
       (list '* expr new))))

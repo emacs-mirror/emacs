@@ -1243,7 +1243,8 @@ generating a buffered list of errors."
 ;;;###autoload
 (define-minor-mode checkdoc-minor-mode
   "Toggle Checkdoc minor mode, a mode for checking Lisp doc strings.
-With prefix ARG, turn Checkdoc minor mode on iff ARG is positive.
+With prefix ARG, turn Checkdoc minor mode on if ARG is positive, otherwise
+turn it off.
 
 In Checkdoc minor mode, the usual bindings for `eval-defun' which is
 bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include

@@ -1,3 +1,23 @@
+2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-xref-number-is-evil): New server variable.
+	(nntp-find-group-and-number): If it is non-nil, don't trust article
+	numbers in the Xref header.
+
+2007-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el (gnus-x-splash): Bind inhibit-read-only to t.
+
+2007-08-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (article-hide-headers): Bind inhibit-read-only to t.
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* gmm-utils.el, gnus-async.el, gnus-msg.el, gnus-score.el
+	* gnus-util.el, imap.el, mailcap.el, nnimap.el: Replace `iff' in
+	doc-strings and comments.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

@@ -192,13 +192,13 @@ struct charset
      version.  Otherwise, -1.  */
   int emacs_mule_id;
 
-  /* Nonzero iff the charset is compatible with ASCII.  */
+  /* Nonzero if the charset is compatible with ASCII.  */
   int ascii_compatible_p;
 
-  /* Nonzero iff the charset is supplementary.  */
+  /* Nonzero if the charset is supplementary.  */
   int supplementary_p;
 
-  /* Nonzero iff all the code points are representable by Lisp_Int.  */
+  /* Nonzero if all the code points are representable by Lisp_Int.  */
   int compact_codes_p;
 
   /* The method for encoding/decoding characters of the charset.  */
@@ -332,7 +332,7 @@ extern struct charset *emacs_mule_charset[256];
   (CHARSET_ATTR_DEUNIFIER (CHARSET_ATTRIBUTES (charset)))
 
 
-/* Nonzero iff OBJ is a valid charset symbol.  */
+/* Nonzero if OBJ is a valid charset symbol.  */
 #define CHARSETP(obj) (CHARSET_SYMBOL_HASH_INDEX (obj) >= 0)
 
 /* Check if X is a valid charset symbol.  If not, signal an error.  */
@@ -479,7 +479,7 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 #define ISO_CHARSET_TABLE(dimension, chars_96, final)	\
   iso_charset_table[(dimension) - 1][(chars_96)][(final)]
 
-/* Nonzero iff the charset who has FAST_MAP may contain C.  */
+/* Nonzero if the charset who has FAST_MAP may contain C.  */
 #define CHARSET_FAST_MAP_REF(c, fast_map)		\
   ((c) < 0x10000					\
    ? fast_map[(c) >> 10] & (1 << (((c) >> 7) & 7))	\
@@ -495,7 +495,7 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 
 
-/* 1 iff CHARSET may contain the character C.  */
+/* 1 if CHARSET may contain the character C.  */
 #define CHAR_CHARSET_P(c, charset)					 \
   ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
    || ((CHARSET_UNIFIED_P (charset)					 \

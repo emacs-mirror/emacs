@@ -348,7 +348,7 @@ comments and strings, or that point is within brackets/parens."
 		    (error nil))))))))
 
 (defun python-comment-line-p ()
-  "Return non-nil iff current line has only a comment."
+  "Return non-nil if current line has only a comment."
   (save-excursion
     (end-of-line)
     (when (eq 'comment (syntax-ppss-context (syntax-ppss)))
@@ -356,7 +356,7 @@ comments and strings, or that point is within brackets/parens."
       (looking-at (rx (or (syntax comment-start) line-end))))))
 
 (defun python-blank-line-p ()
-  "Return non-nil iff current line is blank."
+  "Return non-nil if current line is blank."
   (save-excursion
     (beginning-of-line)
     (looking-at "\\s-*$")))
@@ -850,7 +850,7 @@ multi-line bracketed expressions."
   "Skip out of any nested brackets.
 Skip forward if FORWARD is non-nil, else backward.
 If SYNTAX is non-nil it is the state returned by `syntax-ppss' at point.
-Return non-nil iff skipping was done."
+Return non-nil if skipping was done."
   (let ((depth (syntax-ppss-depth (or syntax (syntax-ppss))))
 	(forward (if forward -1 1)))
     (unless (zerop depth)
@@ -1199,7 +1199,7 @@ local value.")
     (define-key map "\C-c\C-l" 'python-load-file)
     (define-key map "\C-c\C-v" 'python-check)
     ;; Note that we _can_ still use these commands which send to the
-    ;; Python process even at the prompt iff we have a normal prompt,
+    ;; Python process even at the prompt provided we have a normal prompt,
     ;; i.e. '>>> ' and not '... '.  See the comment before
     ;; python-send-region.  Fixme: uncomment these if we address that.
 

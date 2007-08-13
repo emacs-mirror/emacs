@@ -1127,18 +1127,15 @@ Lisp_Object
 cfdate_to_lisp (date)
      CFDateRef date;
 {
-  static const CFGregorianDate epoch_gdate = {1970, 1, 1, 0, 0, 0.0};
-  static CFAbsoluteTime epoch = 0.0, sec;
-  int high, low;
+  CFTimeInterval sec;
+  int high, low, microsec;
 
-  if (epoch == 0.0)
-    epoch = CFGregorianDateGetAbsoluteTime (epoch_gdate, NULL);
-
-  sec = CFDateGetAbsoluteTime (date) - epoch;
+  sec = CFDateGetAbsoluteTime (date) + kCFAbsoluteTimeIntervalSince1970;
   high = sec / 65536.0;
   low = sec - high * 65536.0;
+  microsec = (sec - floor (sec)) * 1000000.0;
 
-  return list3 (make_number (high), make_number (low), make_number (0));
+  return list3 (make_number (high), make_number (low), make_number (microsec));
 }
 
 

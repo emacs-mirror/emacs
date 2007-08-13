@@ -1027,7 +1027,7 @@ The `sudo' program appears to insert a `^@' character into the prompt."
 			"Login incorrect"
 			"Login Incorrect"
 			"Connection refused"
-			"Connection closed by foreign host."
+			"Connection closed"
 			"Sorry, try again."
 			"Name or service not known"
 			"Host key verification failed."
@@ -3581,8 +3581,11 @@ beginning of local filename are not substituted."
 	      (tramp-send-command v command)
 	    ;; We should show the output anyway.
 	    (when outbuf
-	      (with-current-buffer outbuf
-		(insert-buffer-substring (tramp-get-connection-buffer v)))
+	      (let ((output-string
+		     (with-current-buffer (tramp-get-connection-buffer v)
+		       (buffer-substring (point-min) (point-max)))))
+		(with-current-buffer outbuf
+		  (insert output-string)))
 	      (when display (display-buffer outbuf))))
 	;; When the user did interrupt, we should do it also.
 	(error
@@ -3614,12 +3617,20 @@ beginning of local filename are not substituted."
   (let* ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
 	 (args (split-string (substring command 0 asynchronous) " "))
 	 (output-buffer
-	  (or output-buffer
-	      (if asynchronous
-		  "*Async Shell Command*"
-		"*Shell Command Output*")))
+	  (cond
+	   ((bufferp output-buffer) output-buffer)
+	   ((stringp output-buffer) (get-buffer-create output-buffer))
+	   (output-buffer (current-buffer))
+	   (t (generate-new-buffer
+	       (if asynchronous
+		   "*Async Shell Command*"
+		 "*Shell Command Output*")))))
+	 (error-buffer
+	  (cond
+	   ((bufferp error-buffer) error-buffer)
+	   ((stringp error-buffer) (get-buffer-create error-buffer))))
 	 (buffer
-	  (if (and (not asynchronous) (bufferp error-buffer))
+	  (if (and (not asynchronous) error-buffer)
 	      (with-parsed-tramp-file-name default-directory nil
 		(list output-buffer (tramp-make-tramp-temp-file v)))
 	    output-buffer)))
@@ -3637,7 +3648,10 @@ beginning of local filename are not substituted."
       (when (listp buffer)
 	(with-current-buffer error-buffer
 	  (insert-file-contents (cadr buffer)))
-	(delete-file (cadr buffer))))))
+	(delete-file (buffer-file-name (cadr buffer))))
+      ;; There's some output, display it.
+      (when (with-current-buffer output-buffer (> (point-max) (point-min)))
+	(display-message-or-buffer output-buffer)))))
 
 ;; File Editing.
 
@@ -4177,8 +4191,12 @@ Falls back to normal file name handler if no tramp file name handler exists."
 	 ((and completion (zerop (length localname))
 	       (memq operation '(file-name-as-directory)))
 	  filename)
-	 ;; Call the backend function.
-	 (foreign (apply foreign operation args))
+	 ;; Call the backend function.  Set a connection property
+	 ;; first, it will be reused for user/host name completion.
+	 (foreign
+	  (unless (zerop (length localname))
+	    (tramp-set-connection-property v "started" nil))
+	  (apply foreign operation args))
 	 ;; Nothing to do for us.
 	 (t (tramp-run-real-handler operation args)))))))
 
@@ -6116,7 +6134,8 @@ In case there is no valid Lisp expression, it raises an error"
     (condition-case nil
 	(prog1 (read (current-buffer))
 	  ;; Error handling.
-	  (when (re-search-forward "\\S-" nil t) (error)))
+	  (when (re-search-forward "\\S-" (tramp-line-end-position) t)
+	    (error)))
       (error (tramp-error
 	      vec 'file-error
 	      "`%s' does not return a valid Lisp expression: `%s'"
@@ -6125,7 +6144,7 @@ In case there is no valid Lisp expression, it raises an error"
 ;; It seems that Tru64 Unix does not like it if long strings are sent
 ;; to it in one go.  (This happens when sending the Perl
 ;; `file-attributes' implementation, for instance.)  Therefore, we
-;; have this function which waits a bit at each line.
+;; have this function which sends the string in chunks.
 (defun tramp-send-string (vec string)
   "Send the STRING via connection VEC.
 
@@ -6143,7 +6162,7 @@ the remote host use line-endings as defined in the variable
       ;; Clean up the buffer.  We cannot call `erase-buffer' because
       ;; narrowing might be in effect.
       (let (buffer-read-only) (delete-region (point-min) (point-max)))
-      ;; replace "\n" by `tramp-rsh-end-of-line'
+      ;; Replace "\n" by `tramp-rsh-end-of-line'.
       (setq string
 	    (mapconcat 'identity
 		       (split-string string "\n")
@@ -6151,7 +6170,7 @@ the remote host use line-endings as defined in the variable
       (unless (or (string= string "")
 		  (string-equal (substring string -1) tramp-rsh-end-of-line))
 	(setq string (concat string tramp-rsh-end-of-line)))
-      ;; send the string
+      ;; Send the string.
       (if (and chunksize (not (zerop chunksize)))
 	  (let ((pos 0)
 		(end (length string)))

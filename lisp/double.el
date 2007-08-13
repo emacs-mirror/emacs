@@ -186,7 +186,8 @@ use either \\[customize] or the function `double-mode'."
 ;;;###autoload
 (defun double-mode (arg)
   "Toggle Double mode.
-With prefix arg, turn Double mode on iff arg is positive.
+With prefix argument ARG, turn Double mode on if ARG is positive, otherwise
+turn it off.
 
 When Double mode is on, some keys will insert different strings
 when pressed twice.  See variable `double-map' for details."

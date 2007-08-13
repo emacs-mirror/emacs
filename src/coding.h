@@ -212,7 +212,7 @@ enum coding_attr_index
   hash_lookup (XHASH_TABLE (Vcoding_system_hash_table),		\
 	       coding_system_symbol, NULL)
 
-/* Return 1 iff CODING_SYSTEM_SYMBOL is a coding system.  */
+/* Return 1 if CODING_SYSTEM_SYMBOL is a coding system.  */
 
 #define CODING_SYSTEM_P(coding_system_symbol)		\
   (CODING_SYSTEM_ID (coding_system_symbol) >= 0		\
@@ -421,7 +421,7 @@ struct coding_system
   Lisp_Object dst_object;
   unsigned char *destination;
 
-  /* Set to 1 iff the source of conversion is not in the member
+  /* Set to 1 if the source of conversion is not in the member
      `charbuf', but at `src_object'.  */
   int chars_at_source;
 

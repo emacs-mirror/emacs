@@ -450,6 +450,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 	 env-on
 	 regex
 	 p offset
+         abbreviated
 	 (poss nil)
 	 helpposs
 	 (case-fold-search completion-ignore-case))
@@ -586,17 +587,42 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                  pred nil))
 
       ;; Find an initial list of possible completions
-      (if (not (setq p (string-match (concat PC-delim-regex
+        (unless (setq p (string-match (concat PC-delim-regex
 					     (if filename "\\|\\*" ""))
 				     str
-				     (+ (length dirname) offset))))
+                                      (+ (length dirname) offset)))
 
 	  ;; Minibuffer contains no hyphens -- simple case!
-	  (setq poss (all-completions (if env-on
-					  basestr str)
+          (setq poss (all-completions (if env-on basestr str)
 				      table
 				      pred))
-
+          (unless poss
+            ;; Try completion as an abbreviation, e.g. "mvb" ->
+            ;; "m-v-b" -> "multiple-value-bind"
+            (setq origstr str
+                  abbreviated t)
+            (if filename
+                (cond
+                  ;; "alpha" or "/alpha" -> expand whole path.
+                  ((string-match "^/?\\([A-Za-z0-9]+\\)$" str)
+                   (setq
+                    basestr ""
+                    p nil
+                    poss (PC-expand-many-files
+                          (concat "/"
+                                  (mapconcat #'list (match-string 1 str) "*/")
+                                  "*"))
+                    beg (1- beg)))
+                  ;; Alphanumeric trailer -> expand trailing file
+                  ((string-match "^\\(.+/\\)\\([A-Za-z0-9]+\\)$" str)
+                   (setq regex (concat "\\`"
+                                        (mapconcat #'list
+                                                   (match-string 2 str)
+                                                   "[A-Za-z0-9]*[^A-Za-z0-9]"))
+                          p (1+ (length (match-string 1 str))))))
+                (setq regex (concat "\\`" (mapconcat #'list str "[^-]*-"))
+                      p 1))))
+        (when p
 	;; Use all-completions to do an initial cull.  This is a big win,
 	;; since all-completions is written in C!
 	(let ((compl (all-completions (if env-on
@@ -605,12 +631,24 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                                       table
                                       pred)))
 	  (setq p compl)
+            (when (and compl abbreviated)
+              (if filename
+                  (progn
+                    (setq p nil)
+                    (dolist (x compl)
+                      (when (string-match regex x)
+                        (push x p)))
+                    (setq basestr (try-completion "" p)))
+                  (setq basestr (mapconcat 'list str "-"))
+                  (delete-region beg end)
+                  (setq end (+ beg (length basestr)))
+                  (insert basestr))))
 	  (while p
 	    (and (string-match regex (car p))
 		 (progn
 		   (set-text-properties 0 (length (car p)) '() (car p))
 		   (setq poss (cons (car p) poss))))
-	    (setq p (cdr p)))))
+            (setq p (cdr p))))
 
       ;; If table had duplicates, they can be here.
       (delete-dups poss)
@@ -644,6 +682,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
              (and p (setq poss p))))
 
       ;; Now we have a list of possible completions
+
       (cond
 
        ;; No valid completions found
@@ -653,6 +692,9 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 	    (let ((PC-word-failed-flag t))
 	      (delete-backward-char 1)
 	      (PC-do-completion 'word))
+               (when abbreviated
+                 (delete-region beg end)
+                 (insert origstr))
 	  (beep)
 	  (PC-temp-minibuffer-message (if ambig
 					  " [Ambiguous dir name]"
@@ -789,13 +831,18 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                           (setq completion-base-size (if dirname
                                                          dirlength
                                                        (- beg prompt-end))))))
-		  (PC-temp-minibuffer-message " [Next char not unique]"))
-		nil)))))
+                             (PC-temp-minibuffer-message " [Next char not unique]"))))))
+           ;; Expansion of filenames is not reversible, so just keep
+           ;; the prefix.
+           (when (and abbreviated filename)
+             (delete-region (point) end))
+           nil)
 
        ;; Only one possible completion
        (t
 	(if (and (equal basestr (car poss))
-		 (not (and env-on filename)))
+                 (not (and env-on filename))
+                 (not abbreviated))
 	    (if (null mode)
 		(PC-temp-minibuffer-message " [Sole completion]"))
 	  (delete-region beg end)
@@ -853,13 +900,11 @@ only symbols with function definitions are considered.
 Otherwise, all symbols with function definitions, values
 or properties are considered."
   (interactive)
-  (let* ((end (point))
-         ;; To complete the word under point, rather than just the portion
-         ;; before point, use this:
-;;;           (save-excursion
-;;;             (with-syntax-table lisp-mode-syntax-table
-;;;               (forward-sexp 1)
-;;;               (point))))
+  (let* ((end
+          (save-excursion
+            (with-syntax-table lisp-mode-syntax-table
+              (skip-syntax-forward "_w")
+              (point))))
 	 (beg (save-excursion
                 (with-syntax-table lisp-mode-syntax-table
                   (backward-sexp 1)

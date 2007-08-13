@@ -1644,6 +1644,8 @@ search_image_cache (f, spec, hash)
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
   int i = hash % IMAGE_CACHE_BUCKETS_SIZE;
 
+  if (!c) return NULL;
+
   /* If the image spec does not specify a background color, the cached
      image must have the same background color as the current frame.
      The foreground color must also match, for the sake of monochrome
@@ -1655,13 +1657,10 @@ search_image_cache (f, spec, hash)
      for formats that don't use transparency (such as jpeg), or if the
      image spec specifies :background.  However, the extra memory
      usage is probably negligible in practice, so we don't bother.  */
-  if (!c) return NULL;
 
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash
 	&& !NILP (Fequal (img->spec, spec))
-	/* If the image spec specifies a background, it doesn't matter
-	   what the frame background is.  */
 	&& img->frame_foreground == FRAME_FOREGROUND_PIXEL (f)
 	&& img->frame_background == FRAME_BACKGROUND_PIXEL (f))
       break;
@@ -6359,11 +6358,14 @@ png_load (f, img)
 				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	    }
 	}
+      /* The commented-out code checked if the png specifies a default
+	 background color, and uses that.  Since we use the current
+	 frame background, it is OK for us to ignore this.
+
       else if (fn_png_get_bKGD (png_ptr, info_ptr, &image_bg))
-	/* Image contains a background color with which to
-	   combine the image.  */
 	fn_png_set_background (png_ptr, image_bg,
 			       PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
+	*/
       else
 	{
 	  /* Image does not contain a background color with which
