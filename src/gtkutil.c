@@ -3802,7 +3802,7 @@ update_frame_tool_bar (f)
               gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
               ti = gtk_tool_item_new ();
               gtk_container_add (GTK_CONTAINER (ti), weventbox);
-              gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, i);
+              gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, -1);
             }
           continue;
         }
@@ -3819,7 +3819,7 @@ update_frame_tool_bar (f)
           gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
           ti = gtk_tool_item_new ();
           gtk_container_add (GTK_CONTAINER (ti), weventbox);
-          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, i);
+          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, -1);
 
 
           /* The EMACS_INT cast avoids a warning. */
