@@ -2137,6 +2137,20 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
 #define FETCH_END				\
   (! NILP (end_marker) ? Fmarker_position (end_marker) : end)
 
+/* Set a variable to nil if an error occurred.
+   VAL is a cons-cell whose car is the variable name, and whose cdr is
+   either nil (to mean that there was indeed an error), or non-nil to mean
+   that the was no error (which thus causes this function to do
+   nothing).  */
+Lisp_Object
+reset_var_on_error (val)
+     Lisp_Object val;
+{
+  if (NILP (XCDR (val)))
+    Fset (XCAR (val), Qnil);
+  return Qnil;
+}
+
 /* Signal a change to the buffer immediately before it happens.
    START_INT and END_INT are the bounds of the text to be changed.
 
@@ -2152,6 +2166,7 @@ signal_before_change (start_int, end_int, preserve_ptr)
   Lisp_Object start_marker, end_marker;
   Lisp_Object preserve_marker;
   struct gcpro gcpro1, gcpro2, gcpro3;
+  int count = SPECPDL_INDEX ();
 
   if (inhibit_modification_hooks)
     return;
@@ -2162,6 +2177,8 @@ signal_before_change (start_int, end_int, preserve_ptr)
   start_marker = Qnil;
   end_marker = Qnil;
   GCPRO3 (preserve_marker, start_marker, end_marker);
+
+  specbind (Qinhibit_modification_hooks, Qt);
 
   /* If buffer is unmodified, run a special hook for that case.  */
   if (SAVE_MODIFF >= MODIFF
@@ -2177,46 +2194,22 @@ signal_before_change (start_int, end_int, preserve_ptr)
   if (!NILP (Vbefore_change_functions))
     {
       Lisp_Object args[3];
-      Lisp_Object before_change_functions;
-      Lisp_Object after_change_functions;
-      struct gcpro gcpro1, gcpro2;
-      struct buffer *old = current_buffer;
-      struct buffer *new;
+      Lisp_Object rvoe_arg = Fcons (Qbefore_change_functions, Qnil);
 
       PRESERVE_VALUE;
       PRESERVE_START_END;
 
-      /* "Bind" before-change-functions and after-change-functions
-	 to nil--but in a way that errors don't know about.
-	 That way, if there's an error in them, they will stay nil.  */
-      before_change_functions = Vbefore_change_functions;
-      after_change_functions = Vafter_change_functions;
-      Vbefore_change_functions = Qnil;
-      Vafter_change_functions = Qnil;
-      GCPRO2 (before_change_functions, after_change_functions);
+      /* Mark before-change-functions to be reset to nil in case of error.  */
+      record_unwind_protect (reset_var_on_error, rvoe_arg);
 
       /* Actually run the hook functions.  */
       args[0] = Qbefore_change_functions;
       args[1] = FETCH_START;
       args[2] = FETCH_END;
-      run_hook_list_with_args (before_change_functions, 3, args);
+      Frun_hook_with_args (3, args);
 
-      /* "Unbind" the variables we "bound" to nil.  Beware a
-	 buffer-local hook which changes the buffer when run (e.g. W3).  */
-      if (old != current_buffer)
-	{
-	  new = current_buffer;
-	  set_buffer_internal (old);
-	  Vbefore_change_functions = before_change_functions;
-	  Vafter_change_functions = after_change_functions;
-	  set_buffer_internal (new);
-	}
-      else
-	{
-	  Vbefore_change_functions = before_change_functions;
-	  Vafter_change_functions = after_change_functions;
-	}
-      UNGCPRO;
+      /* There was no error: unarm the reset_on_error.  */
+      XSETCDR (rvoe_arg, Qt);
     }
 
   if (current_buffer->overlays_before || current_buffer->overlays_after)
@@ -2232,6 +2225,8 @@ signal_before_change (start_int, end_int, preserve_ptr)
     free_marker (end_marker);
   RESTORE_VALUE;
   UNGCPRO;
+
+  unbind_to (count, Qnil);
 }
 
 /* Signal a change immediately after it happens.
@@ -2245,6 +2240,7 @@ void
 signal_after_change (charpos, lendel, lenins)
      int charpos, lendel, lenins;
 {
+  int count = SPECPDL_INDEX ();
   if (inhibit_modification_hooks)
     return;
 
@@ -2275,48 +2271,25 @@ signal_after_change (charpos, lendel, lenins)
   if (!NILP (combine_after_change_list))
     Fcombine_after_change_execute ();
 
+  specbind (Qinhibit_modification_hooks, Qt);
+
   if (!NILP (Vafter_change_functions))
     {
       Lisp_Object args[4];
-      Lisp_Object before_change_functions;
-      Lisp_Object after_change_functions;
-      struct buffer *old = current_buffer;
-      struct buffer *new;
-      struct gcpro gcpro1, gcpro2;
+      Lisp_Object rvoe_arg = Fcons (Qafter_change_functions, Qnil);
 
-      /* "Bind" before-change-functions and after-change-functions
-	 to nil--but in a way that errors don't know about.
-	 That way, if there's an error in them, they will stay nil.  */
-      before_change_functions = Vbefore_change_functions;
-      after_change_functions = Vafter_change_functions;
-      Vbefore_change_functions = Qnil;
-      Vafter_change_functions = Qnil;
-      GCPRO2 (before_change_functions, after_change_functions);
+      /* Mark after-change-functions to be reset to nil in case of error.  */
+      record_unwind_protect (reset_var_on_error, rvoe_arg);
 
       /* Actually run the hook functions.  */
       args[0] = Qafter_change_functions;
       XSETFASTINT (args[1], charpos);
       XSETFASTINT (args[2], charpos + lenins);
       XSETFASTINT (args[3], lendel);
-      run_hook_list_with_args (after_change_functions,
-			       4, args);
+      Frun_hook_with_args (4, args);
 
-      /* "Unbind" the variables we "bound" to nil.  Beware a
-	 buffer-local hook which changes the buffer when run (e.g. W3).  */
-      if (old != current_buffer)
-	{
-	  new = current_buffer;
-	  set_buffer_internal (old);
-	  Vbefore_change_functions = before_change_functions;
-	  Vafter_change_functions = after_change_functions;
-	  set_buffer_internal (new);
-	}
-      else
-	{
-	  Vbefore_change_functions = before_change_functions;
-	  Vafter_change_functions = after_change_functions;
-	}
-      UNGCPRO;
+      /* There was no error: unarm the reset_on_error.  */
+      XSETCDR (rvoe_arg, Qt);
     }
 
   if (current_buffer->overlays_before || current_buffer->overlays_after)
@@ -2332,6 +2305,8 @@ signal_after_change (charpos, lendel, lenins)
   if (lendel == 0)
     report_interval_modification (make_number (charpos),
 				  make_number (charpos + lenins));
+
+  unbind_to (count, Qnil);
 }
 
 Lisp_Object
