@@ -39,9 +39,9 @@ define global abbrevs instead."
 
 (defun abbrev-mode (&optional arg)
   "Toggle Abbrev mode in the current buffer.
-With argument ARG, turn abbrev mode on iff ARG is positive.
-In Abbrev mode, inserting an abbreviation causes it to expand
-and be replaced by its expansion."
+With optional argument ARG, turn abbrev mode on if ARG is
+positive, otherwise turn it off.  In Abbrev mode, inserting an
+abbreviation causes it to expand and be replaced by its expansion."
   (interactive "P")
   (setq abbrev-mode
 	(if (null arg) (not abbrev-mode)

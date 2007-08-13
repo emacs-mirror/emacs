@@ -28,7 +28,7 @@ Use -opsystem=sunos4 for operating system version 4, and
 -opsystem=bsd4-2 for earlier versions.
 NOTE-END  */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN

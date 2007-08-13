@@ -37,7 +37,7 @@
 
 ;; ========== Credits and History ==========
 ;; In mid 1991, several people posted some interesting improvements to
-;; man.el from the standard emacs 18.57 distribution.  I liked many of
+;; man.el from the standard Emacs 18.57 distribution.  I liked many of
 ;; these, but wanted everything in one single package, so I decided
 ;; to incorporate them into a single manual browsing mode.  While
 ;; much of the code here has been rewritten, and some features added,
@@ -64,7 +64,7 @@
 ;; ========== Features ==========
 ;; + Runs "man" in the background and pipes the results through a
 ;;   series of sed and awk scripts so that all retrieving and cleaning
-;;   is done in the background. The cleaning commands are configurable.
+;;   is done in the background.  The cleaning commands are configurable.
 ;; + Syntax is the same as Un*x man
 ;; + Functionality is the same as Un*x man, including "man -k" and
 ;;   "man <section>", etc.
@@ -109,8 +109,6 @@
 
 
 (defvar Man-notify)
-(defvar Man-current-page)
-(defvar Man-page-list)
 (defcustom Man-filter-list nil
   "*Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
@@ -127,13 +125,8 @@ the manpage buffer."
 			       (string :tag "Phrase String"))))
   :group 'man)
 
-(defvar Man-original-frame)
-(defvar Man-arguments)
-(defvar Man-sections-alist)
-(defvar Man-refpages-alist)
 (defvar Man-uses-untabify-flag t
   "Non-nil means use `untabify' instead of `Man-untabify-command'.")
-(defvar Man-page-mode-string)
 (defvar Man-sed-script nil
   "Script for sed to nuke backspaces and ANSI codes from manpages.")
 
@@ -141,28 +134,28 @@ the manpage buffer."
 ;; user variables
 
 (defcustom Man-fontify-manpage-flag t
-  "*Non-nil means make up the manpage with fonts."
+  "Non-nil means make up the manpage with fonts."
   :type 'boolean
   :group 'man)
 
 (defcustom Man-overstrike-face 'bold
-  "*Face to use when fontifying overstrike."
+  "Face to use when fontifying overstrike."
   :type 'face
   :group 'man)
 
 (defcustom Man-underline-face 'underline
-  "*Face to use when fontifying underlining."
+  "Face to use when fontifying underlining."
   :type 'face
   :group 'man)
 
 (defcustom Man-reverse-face 'highlight
-  "*Face to use when fontifying reverse video."
+  "Face to use when fontifying reverse video."
   :type 'face
   :group 'man)
 
 ;; Use the value of the obsolete user option Man-notify, if set.
 (defcustom Man-notify-method (if (boundp 'Man-notify) Man-notify 'friendly)
-  "*Selects the behavior when manpage is ready.
+  "Selects the behavior when manpage is ready.
 This variable may have one of the following values, where (sf) means
 that the frames are switched, so the manpage is displayed in the frame
 where the man command was called from:
@@ -183,7 +176,7 @@ Any other value of `Man-notify-method' is equivalent to `meek'."
   :group 'man)
 
 (defcustom Man-width nil
-  "*Number of columns for which manual pages should be formatted.
+  "Number of columns for which manual pages should be formatted.
 If nil, the width of the window selected at the moment of man
 invocation is used.  If non-nil, the width of the frame selected
 at the moment of man invocation is used.  The value also can be a
@@ -194,12 +187,12 @@ positive integer."
   :group 'man)
 
 (defcustom Man-frame-parameters nil
-  "*Frame parameter list for creating a new frame for a manual page."
+  "Frame parameter list for creating a new frame for a manual page."
   :type 'sexp
   :group 'man)
 
 (defcustom Man-downcase-section-letters-flag t
-  "*Non-nil means letters in sections are converted to lower case.
+  "Non-nil means letters in sections are converted to lower case.
 Some Un*x man commands can't handle uppercase letters in sections, for
 example \"man 2V chmod\", but they are often displayed in the manpage
 with the upper case letter.  When this variable is t, the section
@@ -209,7 +202,7 @@ being sent to the man background process."
   :group 'man)
 
 (defcustom Man-circular-pages-flag t
-  "*Non-nil means the manpage list is treated as circular for traversal."
+  "Non-nil means the manpage list is treated as circular for traversal."
   :type 'boolean
   :group 'man)
 
@@ -220,7 +213,7 @@ being sent to the man background process."
    ;; '("3X" . "3")                        ; Xlib man pages
    '("3X11" . "3")
    '("1-UCB" . ""))
-  "*Association list of bogus sections to real section numbers.
+  "Association list of bogus sections to real section numbers.
 Some manpages (e.g. the Sun C++ 2.1 manpages) have section numbers in
 their references which Un*x `man' does not recognize.  This
 association list is used to translate those sections, when found, to
@@ -249,9 +242,6 @@ the associated section number."
 
 (defvar Man-awk-command "awk"
   "Command used for processing awk scripts.")
-
-(defvar Man-mode-map nil
-  "Keymap for Man mode.")
 
 (defvar Man-mode-hook nil
   "Hook run when Man mode is enabled.")
@@ -349,20 +339,22 @@ Otherwise, the value is whatever the function
 ;; end user variables
 
 ;; other variables and keymap initializations
-(make-variable-buffer-local 'Man-sections-alist)
-(make-variable-buffer-local 'Man-refpages-alist)
-(make-variable-buffer-local 'Man-page-list)
-(make-variable-buffer-local 'Man-current-page)
-(make-variable-buffer-local 'Man-page-mode-string)
+(defvar Man-original-frame)
 (make-variable-buffer-local 'Man-original-frame)
+(defvar Man-arguments)
 (make-variable-buffer-local 'Man-arguments)
 (put 'Man-arguments 'permanent-local t)
 
-(setq-default Man-sections-alist nil)
-(setq-default Man-refpages-alist nil)
-(setq-default Man-page-list nil)
-(setq-default Man-current-page 0)
-(setq-default Man-page-mode-string "1 of 1")
+(defvar Man-sections-alist nil)
+(make-variable-buffer-local 'Man-sections-alist)
+(defvar Man-refpages-alist nil)
+(make-variable-buffer-local 'Man-refpages-alist)
+(defvar Man-page-list nil)
+(make-variable-buffer-local 'Man-page-list)
+(defvar Man-current-page 0)
+(make-variable-buffer-local 'Man-current-page)
+(defvar Man-page-mode-string "1 of 1")
+(make-variable-buffer-local 'Man-page-mode-string)
 
 (defconst Man-sysv-sed-script "\
 /\b/ {	s/_\b//g
@@ -398,30 +390,32 @@ Otherwise, the value is whatever the function
     table)
   "Syntax table used in Man mode buffers.")
 
-(unless Man-mode-map
-  (setq Man-mode-map (make-sparse-keymap))
-  (suppress-keymap Man-mode-map)
-  (set-keymap-parent Man-mode-map button-buffer-map)
+(defvar Man-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (set-keymap-parent map button-buffer-map)
 
-  (define-key Man-mode-map " "    'scroll-up)
-  (define-key Man-mode-map "\177" 'scroll-down)
-  (define-key Man-mode-map "n"    'Man-next-section)
-  (define-key Man-mode-map "p"    'Man-previous-section)
-  (define-key Man-mode-map "\en"  'Man-next-manpage)
-  (define-key Man-mode-map "\ep"  'Man-previous-manpage)
-  (define-key Man-mode-map ">"    'end-of-buffer)
-  (define-key Man-mode-map "<"    'beginning-of-buffer)
-  (define-key Man-mode-map "."    'beginning-of-buffer)
-  (define-key Man-mode-map "r"    'Man-follow-manual-reference)
-  (define-key Man-mode-map "g"    'Man-goto-section)
-  (define-key Man-mode-map "s"    'Man-goto-see-also-section)
-  (define-key Man-mode-map "k"    'Man-kill)
-  (define-key Man-mode-map "q"    'Man-quit)
-  (define-key Man-mode-map "m"    'man)
-  ;; Not all the man references get buttons currently. The text in the
-  ;; manual page can contain references to other man pages
-  (define-key Man-mode-map "\r"   'man-follow)
-  (define-key Man-mode-map "?"    'describe-mode))
+    (define-key map " "    'scroll-up)
+    (define-key map "\177" 'scroll-down)
+    (define-key map "n"    'Man-next-section)
+    (define-key map "p"    'Man-previous-section)
+    (define-key map "\en"  'Man-next-manpage)
+    (define-key map "\ep"  'Man-previous-manpage)
+    (define-key map ">"    'end-of-buffer)
+    (define-key map "<"    'beginning-of-buffer)
+    (define-key map "."    'beginning-of-buffer)
+    (define-key map "r"    'Man-follow-manual-reference)
+    (define-key map "g"    'Man-goto-section)
+    (define-key map "s"    'Man-goto-see-also-section)
+    (define-key map "k"    'Man-kill)
+    (define-key map "q"    'Man-quit)
+    (define-key map "m"    'man)
+    ;; Not all the man references get buttons currently.  The text in the
+    ;; manual page can contain references to other man pages
+    (define-key map "\r"   'man-follow)
+    (define-key map "?"    'describe-mode)
+    map)
+  "Keymap for Man mode.")
 
 ;; buttons
 (define-button-type 'Man-abstract-xref-man-page
@@ -730,8 +724,7 @@ all sections related to a subject, put something appropriate into the
       (require 'env)
       (message "Invoking %s %s in the background" manual-program man-args)
       (setq buffer (generate-new-buffer bufname))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(setq buffer-undo-list t)
 	(setq Man-original-frame (selected-frame))
 	(setq Man-arguments man-args))
@@ -802,8 +795,7 @@ all sections related to a subject, put something appropriate into the
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
 See the variable `Man-notify-method' for the different notification behaviors."
-  (let ((saved-frame (save-excursion
-		       (set-buffer man-buffer)
+  (let ((saved-frame (with-current-buffer man-buffer
 		       Man-original-frame)))
     (cond
      ((eq Man-notify-method 'newframe)
@@ -975,7 +967,7 @@ default type, `Man-xref-man-page' is used for the buttons."
 		       (Man-next-section 1)
 		       (point)))
 		 (goto-char (point-min))
-		 (point-max))))
+		 nil)))
       (while (re-search-forward regexp end t)
 	(make-text-button
 	 (match-beginning button-pos)
@@ -1031,8 +1023,7 @@ manpage command."
 	(or (stringp process)
 	    (set-process-buffer process nil))
 
-      (save-excursion
-	(set-buffer Man-buffer)
+      (with-current-buffer Man-buffer
 	(let ((case-fold-search nil))
 	  (goto-char (point-min))
 	  (cond ((or (looking-at "No \\(manual \\)*entry for")
@@ -1223,13 +1214,10 @@ The following key bindings are currently in effect in the buffer:
 
 (defun Man-strip-page-headers ()
   "Strip all the page headers but the first from the manpage."
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	(case-fold-search nil)
-	(page-list Man-page-list)
-	(page ())
 	(header ""))
-    (while page-list
-      (setq page (car page-list))
+    (dolist (page Man-page-list)
       (and (nth 2 page)
 	   (goto-char (car page))
 	   (re-search-forward Man-first-heading-regexp nil t)
@@ -1243,17 +1231,14 @@ The following key bindings are currently in effect in the buffer:
 	   ;; line.
 	   ;; (setq header (concat "\n" header)))
 	   (while (search-forward header (nth 1 page) t)
-	     (replace-match "")))
-      (setq page-list (cdr page-list)))))
+	     (replace-match ""))))))
 
 (defun Man-unindent ()
   "Delete the leading spaces that indent the manpage."
-  (let ((buffer-read-only nil)
-	(case-fold-search nil)
-	(page-list Man-page-list))
-    (while page-list
-      (let ((page (car page-list))
-	    (indent "")
+  (let ((inhibit-read-only t)
+	(case-fold-search nil))
+    (dolist (page Man-page-list)
+      (let ((indent "")
 	    (nindent 0))
 	(narrow-to-region (car page) (car (cdr page)))
 	(if Man-uses-untabify-flag
@@ -1281,7 +1266,6 @@ The following key bindings are currently in effect in the buffer:
 	      (or (eolp)
 		  (delete-char nindent))
 	      (forward-line 1)))
-	(setq page-list (cdr page-list))
 	))))
 
 
@@ -1291,14 +1275,18 @@ The following key bindings are currently in effect in the buffer:
 (defun Man-next-section (n)
   "Move point to Nth next section (default 1)."
   (interactive "p")
-  (let ((case-fold-search nil))
+  (let ((case-fold-search nil)
+        (start (point)))
     (if (looking-at Man-heading-regexp)
 	(forward-line 1))
     (if (re-search-forward Man-heading-regexp (point-max) t n)
 	(beginning-of-line)
       (goto-char (point-max))
       ;; The last line doesn't belong to any section.
-      (forward-line -1))))
+      (forward-line -1))
+    ;; But don't move back from the starting point (can happen if `start'
+    ;; is somewhere on the last line).
+    (if (< (point) start) (goto-char start))))
 
 (defun Man-previous-section (n)
   "Move point to Nth previous section (default 1)."
@@ -1462,7 +1450,7 @@ Specify which REFERENCE to use; default is based on word at point."
   (let ((path Man-header-file-path)
         complete-path)
     (while path
-      (setq complete-path (concat (car path) "/" file)
+      (setq complete-path (expand-file-name file (car path))
             path (cdr path))
       (if (file-readable-p complete-path)
           (progn (view-file complete-path)

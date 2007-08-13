@@ -263,7 +263,7 @@ enum coding_type
 				     eol-type is not consistent
 				     through the file.  */
 
-/* 1 iff composing.  */
+/* 1 if composing.  */
 #define COMPOSING_P(coding) ((int) coding->composing > (int) COMPOSITION_NO)
 
 #define COMPOSITION_DATA_SIZE 4080
@@ -372,7 +372,7 @@ struct coding_system
   /* The current status of composition handling.  */
   int composing;
 
-  /* 1 iff the next character is a composition rule.  */
+  /* 1 if the next character is a composition rule.  */
   int composition_rule_follows;
 
   /* Information of compositions are stored here on decoding and set

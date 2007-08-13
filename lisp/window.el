@@ -120,7 +120,7 @@ bars (top, bottom, or nil)."
 PROC is called with a window as argument.
 
 Optional second arg MINIBUF t means count the minibuffer window even
-if not active.  MINIBUF nil or omitted means count the minibuffer iff
+if not active.  MINIBUF nil or omitted means count the minibuffer only if
 it is active.  MINIBUF neither t nor nil means not to count the
 minibuffer even if it is active.
 
@@ -165,7 +165,7 @@ value is returned.  If no window satisfies PREDICATE, DEFAULT is
 returned.
 
 Optional second arg MINIBUF t means count the minibuffer window even
-if not active.  MINIBUF nil or omitted means count the minibuffer iff
+if not active.  MINIBUF nil or omitted means count the minibuffer only if
 it is active.  MINIBUF neither t nor nil means not to count the
 minibuffer even if it is active.
 
@@ -927,7 +927,7 @@ means suspend autoselection."
 (defun mouse-autoselect-window-select ()
   "Select window with delayed window autoselection.
 If the mouse position has stabilized in a non-selected window, select
-that window.  The minibuffer window is selected iff the minibuffer is
+that window.  The minibuffer window is selected only if the minibuffer is
 active.  This function is run by `mouse-autoselect-window-timer'."
   (condition-case nil
       (let* ((mouse-position (mouse-position))
@@ -952,14 +952,14 @@ active.  This function is run by `mouse-autoselect-window-timer'."
 			;; If `mouse-autoselect-window' is positive, select
 			;; window if the window is the same as before.
 			(eq window mouse-autoselect-window-window))
-		   ;; Otherwise select window iff the mouse is at the same
+		   ;; Otherwise select window if the mouse is at the same
 		   ;; position as before.  Observe that the first test after
 		   ;; starting autoselection usually fails since the value of
 		   ;; `mouse-autoselect-window-position' recorded there is the
 		   ;; position where the mouse has entered the new window and
 		   ;; not necessarily where the mouse has stopped moving.
 		   (equal mouse-position mouse-autoselect-window-position))
-	       ;; The minibuffer is a candidate window iff it's active.
+	       ;; The minibuffer is a candidate window if it's active.
 	       (or (not (window-minibuffer-p window))
 		   (eq window (active-minibuffer-window))))
 	  ;; Mouse position has stabilized in non-selected window: Cancel

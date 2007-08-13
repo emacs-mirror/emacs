@@ -898,7 +898,7 @@ See documentation of `walk-windows' for useful values.")
 (defcustom ido-minibuffer-setup-hook nil
   "*Ido-specific customization of minibuffer setup.
 
-This hook is run during minibuffer setup iff `ido' will be active.
+This hook is run during minibuffer setup if `ido' is active.
 It is intended for use in customizing ido for interoperation
 with other packages.  For instance:
 

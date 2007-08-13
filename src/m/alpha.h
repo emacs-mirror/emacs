@@ -35,7 +35,7 @@ NOTE-END
 				   on OSF 4/5  -- fx.  */
 #endif
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #undef WORDS_BIG_ENDIAN

@@ -263,7 +263,7 @@ automatically inserts the matching closing request after point."
 `nroff-electric-newline' forces Emacs to check for an nroff request at the
 beginning of the line, and insert the matching closing request if necessary.
 This command toggles that mode (off->on, on->off), with an argument,
-turns it on iff arg is positive, otherwise off."
+turns it on if arg is positive, otherwise off."
   :lighter " Electric"
   (or (derived-mode-p 'nroff-mode) (error "Must be in nroff mode")))
 

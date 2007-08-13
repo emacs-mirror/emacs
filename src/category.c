@@ -559,7 +559,7 @@ syms_of_category ()
 	       doc: /* List of pair (cons) of categories to determine word boundary.
 
 Emacs treats a sequence of word constituent characters as a single
-word (i.e. finds no word boundary between them) iff they belongs to
+word (i.e. finds no word boundary between them) only if they belong to
 the same charset.  But, exceptions are allowed in the following cases.
 
 \(1) The case that characters are in different charsets is controlled

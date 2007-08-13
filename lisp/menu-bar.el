@@ -1170,7 +1170,7 @@ mail status in mode line"))
 
 (defun menu-bar-vc-filter (orig-binding)
   (let ((ext-binding
-   (if vc-mode (vc-call 'extra-menu buffer-file-name))))
+   (if vc-mode (vc-call-backend (vc-backend buffer-file-name) 'extra-menu))))
     ;; Give the VC backend a chance to add menu entries
     ;; specific for that backend.
     (if (null ext-binding)

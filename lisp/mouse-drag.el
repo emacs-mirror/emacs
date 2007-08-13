@@ -158,7 +158,7 @@ Keep the cursor on the screen as needed."
 Basically, we check for existing horizontal scrolling."
   (or truncate-lines
       (> (window-hscroll (selected-window)) 0)
-      (< (window-width) (frame-width))
+      (not (window-full-width-p))
       (and
        mouse-drag-electric-col-scrolling
        (save-excursion  ;; on a long line?

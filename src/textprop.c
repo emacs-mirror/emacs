@@ -1633,8 +1633,8 @@ Return t if any property was actually removed, nil otherwise.  */)
      The flag `modified' records if changes have been made.
      When object is a buffer, we must call modify_region before changes are
      made and signal_after_change when we are done.
-     We call modify_region before calling remove_properties iff modified == 0,
-     and we call signal_after_change before returning iff modified != 0. */
+     We call modify_region before calling remove_properties if modified == 0,
+     and we call signal_after_change before returning if modified != 0. */
   for (;;)
     {
       if (i == 0)

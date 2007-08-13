@@ -825,7 +825,7 @@ NOPUSH is t and EDIT is t."
     (run-hooks 'isearch-mode-end-hook))
 
   ;; If there was movement, mark the starting position.
-  ;; Maybe should test difference between and set mark iff > threshold.
+  ;; Maybe should test difference between and set mark only if > threshold.
   (if (/= (point) isearch-opoint)
       (or (and transient-mark-mode mark-active)
 	  (progn
@@ -2329,7 +2329,7 @@ since they have special meaning in a regexp."
 ;;  - the direction of the current search is expected to be given by
 ;;    `isearch-forward';
 ;;  - the variable `isearch-error' is expected to be true
-;;    iff `isearch-string' is an invalid regexp.
+;;    only if `isearch-string' is an invalid regexp.
 
 (defvar isearch-lazy-highlight-overlays nil)
 (defvar isearch-lazy-highlight-wrapped nil)

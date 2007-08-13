@@ -1331,7 +1331,7 @@ If a buffer has no filename, it is ignored.
 With no prefix arg, use the filename sans its directory of each marked file.
 With a zero prefix arg, use the complete filename of each marked file.
 With \\[universal-argument], use the filename of each marked file relative
-to `ibuffer-default-directory' iff non-nil, otherwise `default-directory'.
+to `ibuffer-default-directory' if non-nil, otherwise `default-directory'.
 
 You can then feed the file name(s) to other commands with \\[yank]."
   (interactive "p")

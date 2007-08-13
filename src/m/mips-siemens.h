@@ -36,7 +36,7 @@ This is the m- file for SNI RM*00 machines. Use s- sinix5-4.h file!
 With this the file mips-siemens.h is obsolete.
 NOTE-END  */
 
-/* Define BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define BIG_ENDIAN

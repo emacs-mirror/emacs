@@ -538,7 +538,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
       results)))
 
 (defun mailcap-mailcap-entry-passes-test (info)
-  "Return non-nil iff mailcap entry INFO passes its test clause.
+  "Return non-nil if mailcap entry INFO passes its test clause.
 Also return non-nil if no test clause is present."
   (let ((test (assq 'test info))	; The test clause
 	status)
@@ -631,7 +631,7 @@ Also return non-nil if no test clause is present."
 (defvar mailcap-viewer-test-cache nil)
 
 (defun mailcap-viewer-passes-test (viewer-info type-info)
-  "Return non-nil iff viewer specified by VIEWER-INFO passes its test clause.
+  "Return non-nil if viewer specified by VIEWER-INFO passes its test clause.
 Also return non-nil if it has no test clause.  TYPE-INFO is an argument
 to supply to the test."
   (let* ((test-info (assq 'test viewer-info))
@@ -704,7 +704,7 @@ If TEST is not given, it defaults to t."
 ;;;
 
 (defun mailcap-viewer-lessp (x y)
-  "Return t iff viewer X is more desirable than viewer Y."
+  "Return t if viewer X is more desirable than viewer Y."
   (let ((x-wild (string-match "[*?]" (or (cdr-safe (assq 'type x)) "")))
 	(y-wild (string-match "[*?]" (or (cdr-safe (assq 'type y)) "")))
 	(x-lisp (not (stringp (or (cdr-safe (assq 'viewer x)) ""))))

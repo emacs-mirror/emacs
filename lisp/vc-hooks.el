@@ -279,7 +279,10 @@ It is usually called via the `vc-call' macro."
      (t		(apply f args)))))
 
 (defmacro vc-call (fun file &rest args)
-  ;; BEWARE!! `file' is evaluated twice!!
+  "A convenience macro for calling VC backend functions.
+Functions called by this macro must accept FILE as the first argument.
+ARGS specifies any additional arguments. FUN should be unquoted.
+BEWARE!! `file' is evaluated twice!!"
   `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
 
 (defsubst vc-parse-buffer (pattern i)
@@ -873,13 +876,9 @@ Used in `find-file-not-found-functions'."
     (if backend (vc-call-backend backend 'find-file-not-found-hook))))
 
 (defun vc-default-find-file-not-found-hook (backend)
-  (if (yes-or-no-p
-       (format "File %s was lost; check out from version control? "
-	       (file-name-nondirectory buffer-file-name)))
-      (save-excursion
-	(require 'vc)
-	(setq default-directory (file-name-directory buffer-file-name))
-	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
+  ;; This used to do what vc-rcs-find-file-not-found-hook does, but it only
+  ;; really makes sense for RCS.  For other backends, better not do anything.
+  nil)
 
 (add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
 

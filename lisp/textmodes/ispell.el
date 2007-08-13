@@ -3324,7 +3324,8 @@ available on the net."
 ;;;###autoload
 (defun ispell-minor-mode (&optional arg)
   "Toggle Ispell minor mode.
-With prefix arg, turn Ispell minor mode on iff arg is positive.
+With prefix argument ARG, turn Ispell minor mode on if ARG is positive,
+otherwise turn it off.
 
 In Ispell minor mode, pressing SPC or RET
 warns you if the previous word is incorrectly spelled.

@@ -727,7 +727,7 @@ definitions, etc.  It contains a substring which is the name to
 appear in the menu.  See the info section on Regexps for more
 information.  REGEXP may also be a function, called without
 arguments.  It is expected to search backwards.  It shall return
-true and set `match-data' iff it finds another element.
+true and set `match-data' if it finds another element.
 
 INDEX points to the substring in REGEXP that contains the
 name (of the function, variable or type) that is to appear in the

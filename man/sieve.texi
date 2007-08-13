@@ -307,7 +307,7 @@ Authenticate to the server.
 
 @item sieve-manage-capability
 @findex sieve-manage-capability
-Return a list of capabilities the server support.
+Return a list of capabilities the server supports.
 
 @item sieve-manage-listscripts
 @findex sieve-manage-listscripts
@@ -315,7 +315,7 @@ List scripts on the server.
 
 @item sieve-manage-havespace
 @findex sieve-manage-havespace
-Returns non-@code{nil} iff server have roam for a script of given
+Return non-@code{nil} if the server has room for a script of given
 size.
 
 @item sieve-manage-getscript

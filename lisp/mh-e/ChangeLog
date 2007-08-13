@@ -1,3 +1,8 @@
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* mh-folder.el, mh-letter.el, mh-show.el: Replace `iff' in
+	doc-strings and comments.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

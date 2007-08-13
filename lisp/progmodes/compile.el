@@ -170,7 +170,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (maven
      ;; Maven is a popular build tool for Java.  Maven is Free Software.
      "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
-    
+
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
 
@@ -979,8 +979,7 @@ Otherwise, construct a buffer name from MODE-NAME."
 	 (funcall name-function mode-name))
 	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
-	((and (eq mode-command major-mode)
-	      (eq major-mode (nth 1 compilation-arguments)))
+	((eq mode-command major-mode)
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase mode-name) "*"))))
@@ -1032,7 +1031,7 @@ Returns the compilation buffer created."
     (with-current-buffer
 	(setq outbuf
 	      (get-buffer-create
-	       (compilation-buffer-name name-of-mode mode name-function)))
+               (compilation-buffer-name name-of-mode mode name-function)))
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
@@ -1136,7 +1135,7 @@ Returns the compilation buffer created."
 		       (if (file-remote-p default-directory)
 			   "/bin/sh"
 			 shell-file-name)
-		       `("-c" ,command))))
+		       nil `("-c" ,command))))
 		 (start-file-process-shell-command (downcase mode-name)
 						   outbuf command))))
 	  ;; Make the buffer's mode line show process state.
@@ -1164,7 +1163,7 @@ Returns the compilation buffer created."
   "Set the height of WINDOW according to `compilation-window-height'."
   (let ((height (buffer-local-value 'compilation-window-height (window-buffer window))))
     (and height
-	 (= (window-width window) (frame-width (window-frame window)))
+	 (window-full-width-p window)
 	 ;; If window is alone in its frame, aside from a minibuffer,
 	 ;; don't change its height.
 	 (not (eq window (frame-root-window (window-frame window))))
@@ -1624,12 +1623,10 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 
 (defun compilation-find-buffer (&optional avoid-current)
   "Return a compilation buffer.
-If AVOID-CURRENT is nil, and
-the current buffer is a compilation buffer, return it.
-If AVOID-CURRENT is non-nil, return the current buffer
-only as a last resort."
-  (if (and (compilation-buffer-internal-p (current-buffer))
-	   (not avoid-current))
+If AVOID-CURRENT is nil, and the current buffer is a compilation buffer,
+return it.  If AVOID-CURRENT is non-nil, return the current buffer only
+as a last resort."
+  (if (and (compilation-buffer-internal-p) (not avoid-current))
       (current-buffer)
     (next-error-find-buffer avoid-current 'compilation-buffer-internal-p)))
 

@@ -234,6 +234,14 @@ When VERSION is given, perform check for that version."
     ;; The workfile is unchanged if rcsdiff found no differences.
     (zerop status)))
 
+(defun vc-rcs-find-file-not-found-hook ()
+  (if (yes-or-no-p
+       (format "File %s was lost; check out from version control? "
+	       (file-name-nondirectory buffer-file-name)))
+      (save-excursion
+	(require 'vc)
+	(let ((default-directory (file-name-directory buffer-file-name)))
+          (not (vc-error-occurred (vc-checkout buffer-file-name)))))))
 
 ;;;
 ;;; State-changing functions

@@ -1887,6 +1887,12 @@ If @var{window} is @code{nil}, the function uses the selected window.
 @end example
 @end defun
 
+@defun window-full-width-p &optional window
+This function returns non-@code{nil} if @var{window} is as wide as
+the frame that contains it; otherwise @code{nil}.
+If @var{window} is @code{nil}, the function uses the selected window.
+@end defun
+
 @defun window-edges &optional window
 This function returns a list of the edge coordinates of @var{window}.
 If @var{window} is @code{nil}, the selected window is used.

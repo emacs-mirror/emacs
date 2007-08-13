@@ -3992,13 +3992,13 @@ specifying headers which should not be copied into the new message."
 	    (mail-position-on-field (if resending "Resent-To" "To") t))))))
 
 (defun rmail-summary-exists ()
-  "Non-nil iff in an RMAIL buffer and an associated summary buffer exists.
+  "Non-nil if in an RMAIL buffer and an associated summary buffer exists.
 In fact, the non-nil value returned is the summary buffer itself."
   (and rmail-summary-buffer (buffer-name rmail-summary-buffer)
        rmail-summary-buffer))
 
 (defun rmail-summary-displayed ()
-  "t iff in RMAIL buffer and an associated summary buffer is displayed."
+  "t if in RMAIL buffer and an associated summary buffer is displayed."
   (and rmail-summary-buffer (get-buffer-window rmail-summary-buffer)))
 
 (defcustom rmail-redisplay-summary nil

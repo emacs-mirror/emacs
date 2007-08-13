@@ -1993,8 +1993,8 @@ of marked files.  If KILL-ROOT is non-nil, kill DIRNAME as well."
 
 (defun dired-tree-lessp (dir1 dir2)
   ;; Lexicographic order on file name components, like `ls -lR':
-  ;; DIR1 < DIR2 iff DIR1 comes *before* DIR2 in an `ls -lR' listing,
-  ;;   i.e., iff DIR1 is a (grand)parent dir of DIR2,
+  ;; DIR1 < DIR2 if DIR1 comes *before* DIR2 in an `ls -lR' listing,
+  ;;   i.e., if DIR1 is a (grand)parent dir of DIR2,
   ;;   or DIR1 and DIR2 are in the same parentdir and their last
   ;;   components are string-lessp.
   ;; Thus ("/usr/" "/usr/bin") and ("/usr/a/" "/usr/b/") are tree-lessp.

@@ -52,7 +52,7 @@ to them."
     found))
 
 (defun url-file-host-is-local-p (host)
-  "Return t iff HOST references our local machine."
+  "Return t if HOST references our local machine."
   (let ((case-fold-search t))
     (or
      (null host)

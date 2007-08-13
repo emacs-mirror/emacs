@@ -256,10 +256,10 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defvar tags-included-tables-function nil
   "Function to do the work of `tags-included-tables' (which see).")
 (defvar verify-tags-table-function nil
-  "Function to return t iff current buffer contains valid tags file.")
+  "Function to return t if current buffer contains valid tags file.")
 
 ;; Initialize the tags table in the current buffer.
-;; Returns non-nil iff it is a valid tags table.  On
+;; Returns non-nil if it is a valid tags table.  On
 ;; non-nil return, the tags table state variable are
 ;; made buffer-local and initialized to nil.
 (defun initialize-new-tags-table ()
@@ -417,7 +417,7 @@ file the tag was in."
 (defun tags-verify-table (file)
   "Read FILE into a buffer and verify that it is a valid tags table.
 Sets the current buffer to one visiting FILE (if it exists).
-Returns non-nil iff it is a valid table."
+Returns non-nil if it is a valid table."
   (if (get-file-buffer file)
       ;; The file is already in a buffer.  Check for the visited file
       ;; having changed since we last used it.
@@ -1219,8 +1219,8 @@ where they were found."
 	       (verify-tags-table-function . etags-verify-tags-table)
 	       ))))
 
-;; Return non-nil iff the current buffer is a valid etags TAGS file.
 (defun etags-verify-tags-table ()
+  "Return non-nil if the current buffer is a valid etags TAGS file."
   ;; Use eq instead of = in case char-after returns nil.
   (eq (char-after (point-min)) ?\f))
 

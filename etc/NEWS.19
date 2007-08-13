@@ -5133,8 +5133,8 @@ using X).
 ** It is now simpler to tell Emacs to display accented characters under
 X windows.  M-x standard-display-european toggles the display of
 buffer text according to the ISO Latin-1 standard.  With a prefix
-argument, this command enables European character display iff the
-argument is positive.
+argument, this command enables European character display if and only
+if the argument is positive.
 
 ** The `-i' command-line argument tells Emacs to use a picture of the
 GNU gnu as its icon, instead of letting the window manager choose an

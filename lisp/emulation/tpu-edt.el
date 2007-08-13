@@ -792,10 +792,13 @@ Create the key map if necessary."
 	 (use-local-map tpu-buffer-local-map)))
   (local-set-key key func))
 
-(defun tpu-current-line nil
+(defun tpu-current-line ()
   "Return the vertical position of point in the selected window.
 Top line is 0.  Counts each text line only once, even if it wraps."
-  (+ (count-lines (window-start) (point)) (if (= (current-column) 0) 1 0) -1))
+  (or
+   (cdr (nth 6 (posn-at-point)))
+   (if (eq (window-start) (point)) 0
+     (1- (count-screen-lines (window-start) (point) 'count-final-newline)))))
 
 
 ;;;
@@ -2422,6 +2425,7 @@ If FILE is nil, try to load a default file.  The default file names are
         (if (eq tpu-global-map parent)
             (set-keymap-parent map (keymap-parent parent))
           (setq map parent)))))
+  (ad-disable-regexp "\\`tpu-")
   (setq tpu-edt-mode nil))
 
 (provide 'tpu-edt)

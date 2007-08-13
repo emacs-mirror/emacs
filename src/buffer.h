@@ -561,7 +561,7 @@ struct buffer
   Lisp_Object filename;
   /* Dir for expanding relative file names.  */
   Lisp_Object directory;
-  /* True iff this buffer has been backed up (if you write to the
+  /* True if this buffer has been backed up (if you write to the
      visited file and it hasn't been backed up, then a backup will
      be made).  */
   /* This isn't really used by the C code, so could be deleted.  */

@@ -24,7 +24,7 @@ Boston, MA 02110-1301, USA.  */
    operating system this machine is likely to run.
    USUAL-OPSYS="aix3-1"  */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #ifdef USG5_4
