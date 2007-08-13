@@ -4535,8 +4535,9 @@ The variable `selective-display' has a separate value for each buffer."
 
 (defun toggle-truncate-lines (&optional arg)
   "Toggle whether to fold or truncate long lines for the current buffer.
-With arg, truncate long lines iff arg is positive.
-Note that in side-by-side windows, truncation is always enabled."
+With prefix argument ARG, truncate long lines if ARG is positive,
+otherwise don't truncate them.  Note that in side-by-side
+windows, truncation is always enabled."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
@@ -4559,11 +4560,11 @@ Note that in side-by-side windows, truncation is always enabled."
 
 (defun overwrite-mode (arg)
   "Toggle overwrite mode.
-With arg, turn overwrite mode on iff arg is positive.
-In overwrite mode, printing characters typed in replace existing text
-on a one-for-one basis, rather than pushing it to the right.  At the
-end of a line, such characters extend the line.  Before a tab,
-such characters insert until the tab is filled in.
+With prefix argument ARG, turn overwrite mode on if ARG is positive,
+otherwise turn it off.  In overwrite mode, printing characters typed
+in replace existing text on a one-for-one basis, rather than pushing
+it to the right.  At the end of a line, such characters extend the line.
+Before a tab, such characters insert until the tab is filled in.
 \\[quoted-insert] still inserts characters in overwrite mode; this
 is supposed to make it easier to insert characters when necessary."
   (interactive "P")
@@ -4575,14 +4576,13 @@ is supposed to make it easier to insert characters when necessary."
 
 (defun binary-overwrite-mode (arg)
   "Toggle binary overwrite mode.
-With arg, turn binary overwrite mode on iff arg is positive.
-In binary overwrite mode, printing characters typed in replace
-existing text.  Newlines are not treated specially, so typing at the
-end of a line joins the line to the next, with the typed character
-between them.  Typing before a tab character simply replaces the tab
-with the character typed.
-\\[quoted-insert] replaces the text at the cursor, just as ordinary
-typing characters do.
+With prefix argument ARG, turn binary overwrite mode on if ARG is
+positive, otherwise turn it off.  In binary overwrite mode, printing
+characters typed in replace existing text.  Newlines are not treated
+specially, so typing at the end of a line joins the line to the next,
+with the typed character between them.  Typing before a tab character
+simply replaces the tab with the character typed.  \\[quoted-insert]
+replaces the text at the cursor, just as ordinary typing characters do.
 
 Note that binary overwrite mode is not its own minor mode; it is a
 specialization of overwrite mode, entered by setting the
@@ -4597,9 +4597,9 @@ specialization of overwrite mode, entered by setting the
 
 (define-minor-mode line-number-mode
   "Toggle Line Number mode.
-With arg, turn Line Number mode on iff arg is positive.
-When Line Number mode is enabled, the line number appears
-in the mode line.
+With arg, turn Line Number mode on if arg is positive, otherwise
+turn it off.  When Line Number mode is enabled, the line number
+appears in the mode line.
 
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
@@ -4608,16 +4608,16 @@ and `line-number-display-limit-width'."
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
-With arg, turn Column Number mode on iff arg is positive.
-When Column Number mode is enabled, the column number appears
-in the mode line."
+With arg, turn Column Number mode on if arg is positive,
+otherwise turn it off.  When Column Number mode is enabled, the
+column number appears in the mode line."
   :global t :group 'mode-line)
 
 (define-minor-mode size-indication-mode
   "Toggle Size Indication mode.
-With arg, turn Size Indication mode on iff arg is positive.  When
-Size Indication mode is enabled, the size of the accessible part
-of the buffer appears in the mode line."
+With arg, turn Size Indication mode on if arg is positive,
+otherwise turn it off.  When Size Indication mode is enabled, the
+size of the accessible part of the buffer appears in the mode line."
   :global t :group 'mode-line)
 
 (defgroup paren-blinking nil
@@ -5152,7 +5152,7 @@ With prefix argument N, move N items (negative N means move backward)."
 These functions are called in order with four arguments:
 CHOICE - the string to insert in the buffer,
 BUFFER - the buffer in which the choice should be inserted,
-MINI-P - non-nil iff BUFFER is a minibuffer, and
+MINI-P - non-nil if BUFFER is a minibuffer, and
 BASE-SIZE - the number of characters in BUFFER before
 the string being completed.
 
@@ -5760,7 +5760,8 @@ See also `normal-erase-is-backspace'."
 
 (define-minor-mode visible-mode
   "Toggle Visible mode.
-With argument ARG turn Visible mode on iff ARG is positive.
+With argument ARG turn Visible mode on if ARG is positive, otherwise
+turn it off.
 
 Enabling Visible mode makes all invisible text temporarily visible.
 Disabling Visible mode turns off that effect.  Visible mode

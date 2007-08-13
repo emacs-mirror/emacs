@@ -215,8 +215,8 @@
 ;; Return t if substring of STR (between FROM and TO) can be broken up
 ;; to chunks all of which can be derived from another entry in SKK
 ;; dictionary.  SKKBUF is the buffer where the original SKK dictionary
-;; is visited, KANA is the current entry for STR.  FIRST is t iff this
-;; is called at top level.
+;; is visited, KANA is the current entry for STR.  FIRST is t only if
+;; this is called at top level.
 
 (defun skkdic-breakup-string (skkbuf kana str from to &optional first)
   (let ((len (- to from)))

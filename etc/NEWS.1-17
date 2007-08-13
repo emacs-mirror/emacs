@@ -1208,7 +1208,7 @@ whether and where a line has a comment.
 
 * New function `auto-save-file-name-p'
 
-Should return non-`nil' iff given a string which is the name of an
+Should return non-`nil' if given a string which is the name of an
 auto-save file (sans directory name).  If you redefine
 `make-auto-save-file-name', you should redefine this accordingly.  By
 default, this function returns `t' for filenames beginning with

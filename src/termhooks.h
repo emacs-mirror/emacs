@@ -201,7 +201,7 @@ extern void (*judge_scroll_bars_hook) P_ ((struct frame *FRAME));
 /* Input queue declarations and hooks.  */
 
 /* Expedient hack: only provide the below definitions to files that
-   are prepared to handle lispy things.  CONSP is defined iff lisp.h
+   are prepared to handle lispy things.  CONSP is defined if lisp.h
    has been included before this file.  */
 #ifdef CONSP
 

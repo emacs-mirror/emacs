@@ -642,7 +642,7 @@ this sets the local binding in that buffer instead."
     (funcall variable (if value 1 0))))
 
 (defun custom-quote (sexp)
-  "Quote SEXP iff it is not self quoting."
+  "Quote SEXP if it is not self quoting."
   (if (or (memq sexp '(t nil))
 	  (keywordp sexp)
 	  (and (listp sexp)
@@ -665,14 +665,14 @@ default value.  Otherwise, set it to nil.
 
 To actually save the value, call `custom-save-all'.
 
-Return non-nil iff the `saved-value' property actually changed."
+Return non-nil if the `saved-value' property actually changed."
   (custom-load-symbol symbol)
   (let* ((get (or (get symbol 'custom-get) 'default-value))
 	 (value (funcall get symbol))
 	 (saved (get symbol 'saved-value))
 	 (standard (get symbol 'standard-value))
 	 (comment (get symbol 'customized-variable-comment)))
-    ;; Save default value iff different from standard value.
+    ;; Save default value if different from standard value.
     (if (or (null standard)
 	    (not (equal value (condition-case nil
 				  (eval (car standard))
@@ -694,13 +694,13 @@ or else if it is different from the standard value, set the
 `customized-value' property to a list whose car evaluates to the
 default value.  Otherwise, set it to nil.
 
-Return non-nil iff the `customized-value' property actually changed."
+Return non-nil if the `customized-value' property actually changed."
   (custom-load-symbol symbol)
   (let* ((get (or (get symbol 'custom-get) 'default-value))
 	 (value (funcall get symbol))
 	 (customized (get symbol 'customized-value))
 	 (old (or (get symbol 'saved-value) (get symbol 'standard-value))))
-    ;; Mark default value as set iff different from old value.
+    ;; Mark default value as set if different from old value.
     (if (not (and old
                   (equal value (condition-case nil
                                    (eval (car old))

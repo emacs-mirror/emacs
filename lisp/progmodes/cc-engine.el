@@ -5116,7 +5116,7 @@ comment at the start of cc-engine.el for more info."
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
   ;;
-  ;;   The cdr of the return value is non-nil iff a
+  ;;   The cdr of the return value is non-nil if a
   ;;   `c-typedef-decl-kwds' specifier is found in the declaration,
   ;;   i.e. the declared identifier(s) are types.
   ;;

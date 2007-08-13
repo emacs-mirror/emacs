@@ -61,7 +61,7 @@ extern int last_known_column_point;
 
 /* Functions for dealing with the column cache.  */
 
-/* Return true iff the display table DISPTAB specifies the same widths
+/* Return true if the display table DISPTAB specifies the same widths
    for characters as WIDTHTAB.  We use this to decide when to
    invalidate the buffer's column_cache.  */
 int disptab_matches_widthtab P_ ((struct Lisp_Char_Table *disptab,

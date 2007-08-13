@@ -3514,7 +3514,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	   precision	::= '.' [0-9]*
 
 	   If a field-width is specified, it specifies to which width
-	   the output should be padded with blanks, iff the output
+	   the output should be padded with blanks, if the output
 	   string is shorter than field-width.
 
 	   If precision is specified, it specifies the number of

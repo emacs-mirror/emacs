@@ -469,7 +469,7 @@
 (defvar term-scroll-with-delete nil) ;; term-scroll-with-delete is t if
 ;;		forward scrolling should be implemented by delete to
 ;;		top-most line(s); and nil if scrolling should be implemented
-;;		by moving term-home-marker.  It is set to t iff there is a
+;;		by moving term-home-marker.  It is set to t if there is a
 ;;		(non-default) scroll-region OR the alternate buffer is used.
 (defvar term-pending-delete-marker) ;; New user input in line mode needs to
 ;;		be deleted, because it gets echoed by the inferior.

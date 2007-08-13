@@ -23,6 +23,12 @@
 	* macterm.c [TARGET_API_MAC_CARBON] (mac_handle_window_event):
 	Don't use invisible frame as parent window for repositioning.
 
+2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (new_backquote_output): Rename from old_backquote_output.
+	(print): Inverse its logic (according to its name) so as to match the
+	behavior of new_backquote_flag in lread.c.
+
 2007-08-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* gmalloc.c (posix_memalign): New function.
@@ -40,6 +46,10 @@
 	Check mac_pass_command_to_system and mac_pass_control_to_system here.
 	(mac_handle_window_event) [USE_MAC_TOOLBAR]: Add further workaround
 	for window repositioning.
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* Replace `iff' in doc-strings and comments.
 
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 

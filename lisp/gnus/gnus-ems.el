@@ -179,7 +179,7 @@
 						    (interactive-p))
 						"*gnus-x-splash*"
 					      gnus-group-buffer)))
-  (let ((inhibit-read-only nil)
+  (let ((inhibit-read-only t)
 	(file (nnheader-find-etc-directory "images/gnus/x-splash" t))
 	pixmap fcw fch width height fringes sbars left yoffset top ls)
     (erase-buffer)

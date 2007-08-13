@@ -876,13 +876,9 @@ Used in `find-file-not-found-functions'."
     (if backend (vc-call-backend backend 'find-file-not-found-hook))))
 
 (defun vc-default-find-file-not-found-hook (backend)
-  (if (yes-or-no-p
-       (format "File %s was lost; check out from version control? "
-	       (file-name-nondirectory buffer-file-name)))
-      (save-excursion
-	(require 'vc)
-	(setq default-directory (file-name-directory buffer-file-name))
-	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
+  ;; This used to do what vc-rcs-find-file-not-found-hook does, but it only
+  ;; really makes sense for RCS.  For other backends, better not do anything.
+  nil)
 
 (add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
 

@@ -1581,7 +1581,7 @@ is non-nil return these properties."
 	(imap-mailbox-get-1 'search imap-current-mailbox)))))
 
 (defun imap-message-flag-permanent-p (flag &optional mailbox buffer)
-  "Return t iff FLAG can be permanently (between IMAP sessions) saved on articles, in MAILBOX on server in BUFFER."
+  "Return t if FLAG can be permanently (between IMAP sessions) saved on articles, in MAILBOX on server in BUFFER."
   (with-current-buffer (or buffer (current-buffer))
     (or (member "\\*" (imap-mailbox-get 'permanentflags mailbox))
 	(member flag (imap-mailbox-get 'permanentflags mailbox)))))

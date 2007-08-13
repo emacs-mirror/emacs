@@ -2883,7 +2883,7 @@ static void make_C_tag __P((bool));
  *	function or variable, or corresponds to a typedef, or
  * 	is a struct/union/enum tag, or #define, or an enum constant.
  *
- *	*IS_FUNC gets TRUE iff the token is a function or #define macro
+ *	*IS_FUNC gets TRUE if the token is a function or #define macro
  *	with args.  C_EXTP points to which language we are looking at.
  *
  * Globals
@@ -4803,7 +4803,7 @@ Pascal_functions (inf)
   int save_lineno, namelen, taglen;
   char c, *name;
 
-  bool				/* each of these flags is TRUE iff: */
+  bool				/* each of these flags is TRUE if: */
     incomment,			/* point is inside a comment */
     inquote,			/* point is inside '..' string */
     get_tagname,		/* point is after PROCEDURE/FUNCTION

@@ -1163,7 +1163,7 @@ Returns the compilation buffer created."
   "Set the height of WINDOW according to `compilation-window-height'."
   (let ((height (buffer-local-value 'compilation-window-height (window-buffer window))))
     (and height
-	 (= (window-width window) (frame-width (window-frame window)))
+	 (window-full-width-p window)
 	 ;; If window is alone in its frame, aside from a minibuffer,
 	 ;; don't change its height.
 	 (not (eq window (frame-root-window (window-frame window))))
@@ -1623,12 +1623,10 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 
 (defun compilation-find-buffer (&optional avoid-current)
   "Return a compilation buffer.
-If AVOID-CURRENT is nil, and
-the current buffer is a compilation buffer, return it.
-If AVOID-CURRENT is non-nil, return the current buffer
-only as a last resort."
-  (if (and (compilation-buffer-internal-p (current-buffer))
-	   (not avoid-current))
+If AVOID-CURRENT is nil, and the current buffer is a compilation buffer,
+return it.  If AVOID-CURRENT is non-nil, return the current buffer only
+as a last resort."
+  (if (and (compilation-buffer-internal-p) (not avoid-current))
       (current-buffer)
     (next-error-find-buffer avoid-current 'compilation-buffer-internal-p)))
 

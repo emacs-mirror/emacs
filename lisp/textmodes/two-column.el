@@ -347,8 +347,8 @@ When called again, restores the screen layout with the current buffer
 first and the associated buffer to its right."
   (interactive "P")
   ;; first go to full width, so that we can certainly split into two windows
-  (if (< (window-width) (frame-width))
-      (enlarge-window 99999 t))
+  (unless (window-full-width-p)
+    (enlarge-window 99999 t))
   (split-window-horizontally
    (max window-min-width (min 2C-window-width
 			      (- (frame-width) window-min-width))))
@@ -533,8 +533,8 @@ off trailing spaces with \\[delete-trailing-whitespace]."
 	  (insert 2C-separator string))
 	(next-line 1)			; add one if necessary
 	(set-buffer b2))))
-  (if (< (window-width) (frame-width))
-      (enlarge-window 99999 t)))
+  (unless (window-full-width-p)
+    (enlarge-window 99999 t)))
 
 ;;;;; utility functions ;;;;;
 
@@ -561,8 +561,10 @@ off trailing spaces with \\[delete-trailing-whitespace]."
   (newline arg))
 
 (defun 2C-toggle-autoscroll (arg)
-  "Toggle autoscrolling, or set it iff prefix ARG is non-nil and positive.
-When autoscrolling is turned on, this also realigns the two buffers."
+  "Toggle autoscrolling.
+With prefix argument ARG, turn on autoscrolling if ARG is
+positive, otherwise turn it off.  When autoscrolling is turned
+on, this also realigns the two buffers."
   (interactive "P")
   ;(sit-for 0)
   (setq 2C-autoscroll-start (window-start))

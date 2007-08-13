@@ -483,7 +483,7 @@ new value.")
 
 ;;;###autoload
 (defun widgetp (widget)
-  "Return non-nil iff WIDGET is a widget."
+  "Return non-nil if WIDGET is a widget."
   (if (symbolp widget)
       (get widget 'widget-type)
     (and (consp widget)
@@ -500,7 +500,7 @@ Otherwise, just return the value."
       value)))
 
 (defun widget-member (widget property)
-  "Non-nil iff there is a definition in WIDGET for PROPERTY."
+  "Non-nil if there is a definition in WIDGET for PROPERTY."
   (cond ((plist-member (cdr widget) property)
 	 t)
 	((car widget)
@@ -1606,7 +1606,7 @@ If that does not exists, call the value of `widget-complete-field'."
       (widget-princ-to-string (widget-get widget :value))))
 
 (defun widget-default-active (widget)
-  "Return t iff this widget active (user modifiable)."
+  "Return t if this widget is active (user modifiable)."
   (or (widget-get widget :always-active)
       (and (not (widget-get widget :inactive))
 	   (let ((parent (widget-get widget :parent)))

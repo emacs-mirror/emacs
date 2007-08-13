@@ -2080,7 +2080,7 @@ Or, for optional MON, YR."
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar
     (when in-calendar-window
-      (if (or (one-window-p t) (/= (frame-width) (window-width)))
+      (if (or (one-window-p t) (not (window-full-width-p)))
           ;; Don't mess with the window size, but ensure that the first
           ;; line is fully visible
           (set-window-vscroll nil 0)

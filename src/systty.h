@@ -297,7 +297,7 @@ static struct sensemode {
    written before making the change.
    Return 0 if all went well, and -1 if anything failed.
 
-   EMACS_TTY_TABS_OK (struct emacs_tty *P) is false iff the kernel
+   EMACS_TTY_TABS_OK (struct emacs_tty *P) is false if the kernel
    expands tabs to spaces upon output; in that case, there is no
    advantage to using tabs over spaces.  */
 

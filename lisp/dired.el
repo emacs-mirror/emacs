@@ -2560,12 +2560,12 @@ non-empty directories is allowed."
       (cond ;; if split-height-threshold is enabled, use the largest window
             ((and (> (window-height (setq w2 (get-largest-window)))
 		     split-height-threshold)
-		  (= (frame-width) (window-width w2)))
+		  (window-full-width-p w2))
 	     (setq window w2))
 	    ;; if the least-recently-used window is big enough, use it
 	    ((and (> (window-height (setq w2 (get-lru-window)))
 		     (* 2 window-min-height))
-		  (= (frame-width) (window-width w2)))
+		  (window-full-width-p w2))
 	     (setq window w2)))
       (save-excursion
 	(set-buffer buf)

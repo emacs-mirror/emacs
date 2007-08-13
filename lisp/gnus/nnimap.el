@@ -1645,7 +1645,7 @@ be used in a STORE FLAGS command."
       result)))
 
 (defun nnimap-mark-permanent-p (mark &optional group)
-  "Return t iff MARK can be permanently (between IMAP sessions) saved on articles, in GROUP."
+  "Return t if MARK can be permanently (between IMAP sessions) saved on articles, in GROUP."
   (imap-message-flag-permanent-p (nnimap-mark-to-flag mark)))
 
 (when nnimap-debug

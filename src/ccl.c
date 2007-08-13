@@ -659,13 +659,13 @@ while (0)
 
 #define CCL_LookupIntConstTbl 0x13 /* Lookup multibyte character by
 				      integer key.  Afterwards R7 set
-				      to 1 iff lookup succeeded.
+				      to 1 if lookup succeeded.
 				      1:ExtendedCOMMNDRrrRRRXXXXXXXX
 				      2:ARGUMENT(Hash table ID) */
 
 #define CCL_LookupCharConstTbl 0x14 /* Lookup integer by multibyte
 				       character key.  Afterwards R7 set
-				       to 1 iff lookup succeeded.
+				       to 1 if lookup succeeded.
 				       1:ExtendedCOMMNDRrrRRRrrrXXXXX
 				       2:ARGUMENT(Hash table ID) */
 

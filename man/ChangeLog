@@ -1,3 +1,12 @@
+2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Mention nntp-xref-number-is-evil.
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* glossary.texi (Glossary): Deprecate `iff'.
+	* gnus.texi, sieve.texi: Replace `iff'.
+
 2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (File Conveniences): Document point motion keys in Image

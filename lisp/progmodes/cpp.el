@@ -623,7 +623,8 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
 
 (defun cpp-edit-toggle-known (arg)
   "Toggle writable status for known conditionals.
-With optional argument ARG, make them writable iff ARG is positive."
+With optional argument ARG, make them writable if ARG is positive,
+otherwise make them unwritable."
   (interactive "@P")
   (if (or (and (null arg) cpp-known-writable)
 	  (<= (prefix-numeric-value arg) 0))
@@ -633,7 +634,8 @@ With optional argument ARG, make them writable iff ARG is positive."
 
 (defun cpp-edit-toggle-unknown (arg)
   "Toggle writable status for unknown conditionals.
-With optional argument ARG, make them writable iff ARG is positive."
+With optional argument ARG, make them writable if ARG is positive,
+otherwise make them unwritable."
   (interactive "@P")
   (if (or (and (null arg) cpp-unknown-writable)
 	  (<= (prefix-numeric-value arg) 0))

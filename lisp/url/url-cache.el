@@ -186,7 +186,7 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
 
 ;;;###autoload
 (defun url-cache-expired (url mod)
-  "Return t iff a cached file has expired."
+  "Return t if a cached file has expired."
   (let* ((urlobj (if (vectorp url) url (url-generic-parse-url url)))
 	 (type (url-type urlobj)))
     (cond

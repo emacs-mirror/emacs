@@ -603,7 +603,8 @@ Hyper}.
 
 @item Iff
 ``Iff'' means ``if and only if.''  This terminology comes from
-mathematics.
+mathematics.  Try to avoid using this term in documentation, since
+many are unfamiliar with it and mistake it for a typo.
 
 @item Inbox
 An inbox is a file in which mail is delivered by the operating system.

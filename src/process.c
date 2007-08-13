@@ -2780,7 +2780,7 @@ The stopped state is cleared by `continue-process' and set by
 
 :filter-multibyte BOOL -- If BOOL is non-nil, strings given to the
 process filter are multibyte, otherwise they are unibyte.
-If this keyword is not specified, the strings are multibyte iff
+If this keyword is not specified, the strings are multibyte if
 `default-enable-multibyte-characters' is non-nil.
 
 :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
@@ -3917,7 +3917,7 @@ it specifies a fractional number of seconds to wait.
 If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
 from PROCESS, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
-Return non-nil iff we received any output before the timeout expired.  */)
+Return non-nil if we received any output before the timeout expired.  */)
      (process, seconds, millisec, just_this_one)
      register Lisp_Object process, seconds, millisec, just_this_one;
 {
@@ -4249,16 +4249,16 @@ select_wrapper (n, rfd, wfd, xfd, tmo)
      (and gobble terminal input into the buffer if any arrives).
 
    If WAIT_PROC is specified, wait until something arrives from that
-     process.  The return value is true iff we read some input from
+     process.  The return value is true if we read some input from
      that process.
 
    If JUST_WAIT_PROC is non-nil, handle only output from WAIT_PROC
      (suspending output from other processes).  A negative value
      means don't run any timers either.
 
-   If WAIT_PROC is specified, then the function returns true iff we
+   If WAIT_PROC is specified, then the function returns true if we
      received input from that process before the timeout elapsed.
-   Otherwise, return true iff we received input from any process.  */
+   Otherwise, return true if we received input from any process.  */
 
 int
 wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
@@ -7356,7 +7356,7 @@ Lisp_Object QCtype;
    do_display != 0 means redisplay should be done to show subprocess
    output that arrives.
 
-   Return true iff we received input from any process.  */
+   Return true if we received input from any process.  */
 
 int
 wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,

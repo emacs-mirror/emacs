@@ -1145,7 +1145,7 @@ Used by `vc-restore-buffer-context' to later restore the context."
 	;; ;; We may want to reparse the compilation buffer after revert
 	;; (reparse (and (boundp 'compilation-error-list) ;compile loaded
 	;; 	      ;; Construct a list; each elt is nil or a buffer
-	;; 	      ;; iff that buffer is a compilation output buffer
+	;; 	      ;; if that buffer is a compilation output buffer
 	;; 	      ;; that contains markers into the current buffer.
 	;; 	      (save-current-buffer
 	;; 		(mapcar (lambda (buffer)

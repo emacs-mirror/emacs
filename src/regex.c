@@ -2048,7 +2048,7 @@ re_wctype (str)
   else return 0;
 }
 
-/* True iff CH is in the char class CC.  */
+/* True if CH is in the char class CC.  */
 boolean
 re_iswctype (ch, cc)
      int ch;

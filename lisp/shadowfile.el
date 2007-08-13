@@ -285,7 +285,7 @@ information defining the cluster.  For interactive use, call
       ans)))
 
 (defun shadow-site-match (site1 site2)
-  "Non-nil iff SITE1 is or includes SITE2.
+  "Non-nil if SITE1 is or includes SITE2.
 Each may be a host or cluster name; if they are clusters, regexp of SITE1 will
 be matched against the primary of SITE2."
   (or (string-equal site1 site2) ; quick check

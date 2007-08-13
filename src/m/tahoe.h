@@ -29,7 +29,7 @@ Use -opsystem=bsd4-2 or -opsystem=bsd4-3, depending on the version of
 Berkeley you are running.
 NOTE-END  */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN

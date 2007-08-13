@@ -174,6 +174,7 @@ The match group number 1 should match the revision number itself.")
               (1 (if (boundp 'cvs-filename-face) cvs-filename-face))
               (0 log-view-file-face append)))
     (eval . `(,log-view-message-re . log-view-message-face))))
+
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 

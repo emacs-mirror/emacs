@@ -144,7 +144,7 @@ to `symbol', and the help mode defaults to the current major mode."
   (apply 'info-lookup-add-help* nil arg))
 
 (defun info-lookup-maybe-add-help (&rest arg)
-  "Add a help specification iff none is defined.
+  "Add a help specification if none is defined.
 See the documentation of the function `info-lookup-add-help'
 for more details."
   (apply 'info-lookup-add-help* t arg))

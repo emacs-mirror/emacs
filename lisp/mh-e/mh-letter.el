@@ -844,7 +844,7 @@ body."
 (defun mh-position-on-field (field &optional ignored)
   "Move to the end of the FIELD in the header.
 Move to end of entire header if FIELD not found.
-Returns non-nil iff FIELD was found.
+Returns non-nil if FIELD was found.
 The optional second arg is for pre-version 4 compatibility and is
 IGNORED."
   (cond ((mh-goto-header-field field)

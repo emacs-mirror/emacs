@@ -134,7 +134,7 @@ The buffer in question is current when this function is called."
 		 (setq answer nil))
 		((eq answer 'revert)
 		 (revert-buffer nil (not (buffer-modified-p)))
-					; ask confirmation iff buffer modified
+					; ask confirmation if buffer modified
 		 (signal 'file-supersession
 			 (list "File reverted" fn)))
 		((eq answer 'yield)

@@ -262,7 +262,7 @@ One of the following symbols:
   t       -- open both code and comment blocks
   nil     -- open neither code nor comment blocks
 
-This has effect iff `search-invisible' is set to `open'."
+This has effect only if `search-invisible' is set to `open'."
   :type '(choice (const :tag "open only code blocks" code)
                  (const :tag "open only comment blocks" comment)
                  (const :tag "open both code and comment blocks" t)
@@ -515,7 +515,7 @@ Optional arg REPOS-END means reposition at end."
   (goto-char (if repos-end end beg)))
 
 (defun hs-hide-block-at-point (&optional end comment-reg)
-  "Hide block iff on block beginning.
+  "Hide block if on block beginning.
 Optional arg END means reposition at end.
 Optional arg COMMENT-REG is a list of the form (BEGIN END) and
 specifies the limits of the comment, or nil if the block is not
@@ -678,7 +678,7 @@ Return point, or nil if original point was not in a block."
   (goto-char maxp))
 
 (defmacro hs-life-goes-on (&rest body)
-  "Evaluate BODY forms iff variable `hs-minor-mode' is non-nil.
+  "Evaluate BODY forms if variable `hs-minor-mode' is non-nil.
 In the dynamic context of this macro, `inhibit-point-motion-hooks'
 and `case-fold-search' are both t."
   `(when hs-minor-mode

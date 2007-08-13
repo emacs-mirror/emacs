@@ -312,7 +312,7 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 		  url-registered-auth-schemes)))))
 
 (defun url-auth-registered (scheme)
-  ;; Return non-nil iff SCHEME is registered as an auth type
+  "Return non-nil if SCHEME is registered as an auth type."
   (assoc scheme url-registered-auth-schemes))
 
 (provide 'url-auth)

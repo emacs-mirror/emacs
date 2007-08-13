@@ -557,6 +557,15 @@ use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
   return make_number (window_box_text_cols (decode_any_window (window)));
 }
 
+DEFUN ("window-full-width-p", Fwindow_full_width_p, Swindow_full_width_p, 0, 1, 0,
+       doc: /* Return t if WINDOW is as wide as its frame.
+WINDOW defaults to the selected window.  */)
+     (window)
+     Lisp_Object window;
+{
+  return WINDOW_FULL_WIDTH_P (decode_any_window (window)) ? Qt : Qnil;
+}
+
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
        doc: /* Return the number of columns by which WINDOW is scrolled from left margin.
 WINDOW defaults to the selected window.  */)
@@ -7515,6 +7524,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_height);
   defsubr (&Swindow_width);
+  defsubr (&Swindow_full_width_p);
   defsubr (&Swindow_hscroll);
   defsubr (&Sset_window_hscroll);
   defsubr (&Swindow_redisplay_end_trigger);

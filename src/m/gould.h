@@ -49,7 +49,7 @@ Gould Power Node (-machine=gould -opsystem=bsd4-2 or bsd4-3)
   A site running a pre-release of 2.1 should #define RELEASE2_1 in config.h.
 NOTE-END */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN
