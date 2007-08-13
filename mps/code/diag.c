@@ -4,8 +4,6 @@
  * Copyright (c) 2007 Ravenbrook Limited.  See end of file for license.
  *
  * To Do: [RHSK 2007-08-11]
- *  @@ unit test for StringMatch, and call it PatternOccurs
- *  @@ MatchTag should use StringMatch, not StringEqual
  *  @@ handle diag->buf overflow (currently asserts)
  *  @@ sigs and AVERTs for Diag and Rule
  */
@@ -103,6 +101,7 @@ struct RuleStruct RulesGlobalX[] = {
 
 struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
+  { "-", "DIAGTEST-", "*", "*" },
   { "+", "ChainCondemnAuto", "gens [0..0]", "*" },
   { "+", "TraceStart", "*", "*" },
   { "+", "TraceStart", "because code 1:", "*" },
@@ -147,8 +146,13 @@ static Bool StringEqual(const char *s1, const char *s2)
   return TRUE;
 }
 
-static Bool StringMatch(const char *patt, Count pattLen, 
-                        const char *buf, Index i, Index j)
+/* PatternOccurs -- does patt occur in buf[i..j)?
+ *
+ * Returns true iff patt[0..pattLen) literally occurs in buf[i..j).
+ */
+
+static Bool PatternOccurs(const char *patt, Count pattLen, 
+                          const char *buf, Index i, Index j)
 {
   Index im; /* start of tentative match */
   Index ip; /* index into patt */
@@ -174,8 +178,6 @@ static Bool StringMatch(const char *patt, Count pattLen,
 
 static Bool MatchLine(Rule rule, Diag diag, Index i, Index j)
 {
-  Count pattLen;
-
   AVER(rule);
   AVER(diag);
   AVER(i <= j);
@@ -183,25 +185,21 @@ static Bool MatchLine(Rule rule, Diag diag, Index i, Index j)
 
   if(rule->line[0] == '*')
     return TRUE;
-  
-  pattLen = StringLength(rule->line);
 
-  return StringMatch(rule->line, pattLen, diag->buf, i, j);
+  return PatternOccurs(rule->line, StringLength(rule->line),
+                       diag->buf, i, j);
 }
 
 static Bool MatchPara(Rule rule, Diag diag)
 {
-  Count pattLen;
-
   AVER(rule);
   AVER(diag);
 
   if(rule->para[0] == '*')
     return TRUE;
   
-  pattLen = StringLength(rule->para);
-
-  return StringMatch(rule->para, pattLen, diag->buf, 0, diag->n);
+  return PatternOccurs(rule->para, StringLength(rule->para),
+                       diag->buf, 0, diag->n);
 }
 
 static Bool MatchTag(Rule rule, const char *tag)
@@ -213,7 +211,8 @@ static Bool MatchTag(Rule rule, const char *tag)
   if(rule->tag[0] == '*')
     return TRUE;
 
-  return StringEqual(rule->tag, tag);
+  return PatternOccurs(rule->tag, StringLength(rule->tag),
+                       tag, 0, StringLength(tag));
 }
 
 static void LineOutput(Diag diag, Index i, Index j)
@@ -530,6 +529,47 @@ void DiagEnd(const char *tag)
   DiagTagEnd(DiagStream(), tag);
 }
 
+
+/* Test Code -- unit tests for this source file
+ *
+ * These are for developers to run if they modify this source file.
+ * There's no point running them otherwise.  RHSK.
+ */
+
+static void PatternOccurs_test(Bool expect, const char *patt,
+                               const char *text)
+{
+  Count pattLen = StringLength(patt);
+  Count textLen = StringLength(text);
+  enum {bufLen = 100};
+  char buf[bufLen];
+  Index start, i;
+  Count padLen;
+  Bool occurs;
+
+  /* Call PatternOccurs with this patt and text 3 times: each time */
+  /* putting the text in the buffer at a different offset, to */
+  /* verify that PatternOccurs is not accepting matches outside the */
+  /* [i..j) portion of the buffer. */
+  
+  for(start = 0; start < 21; start += 7) {
+    AVER(bufLen > (start + textLen));
+    /* put text into buf at start */
+    for(i = 0; i < start; i++) {
+      buf[i] = 'X';
+    }
+    for(i = 0; i < textLen; i++) {
+      (buf+start)[i] = text[i];
+    }
+    padLen = bufLen - (start + textLen);
+    for(i = 0; i < padLen; i++) {
+      (buf+start+textLen)[i] = 'X';
+    }
+    occurs = PatternOccurs(patt, pattLen, buf, start, start+textLen);
+    AVER(occurs == expect);
+  }
+}
+
 static void diag_test(void)
 {
   DIAG_SINGLEF(( "DIAGTEST-Tag1", "text $U.\n", 42, NULL ));
@@ -549,6 +589,33 @@ static void diag_test(void)
   DIAG_MOREF(("0 = 0: $U.\n", StringEqual("", ""), NULL));
   DIAG_MOREF(("0 = 000: $U.\n", StringEqual("", "\0\0"), NULL));
   DIAG_END("DIAGTEST-StringEqual");
+
+  DIAG_FIRSTF(( "DIAGTEST-PatternOccurs", NULL ));
+  PatternOccurs_test(TRUE, "Fred", "Fred");
+  PatternOccurs_test(TRUE, "Fred", "XFredX");
+  PatternOccurs_test(TRUE, "Fred", "FFred");
+  PatternOccurs_test(TRUE, "Fred", "FrFred");
+  PatternOccurs_test(TRUE, "Fred", "FreFred");
+  PatternOccurs_test(TRUE, "Fred", "FreFreFFred");
+  PatternOccurs_test(TRUE, "Fred", "FredFred");
+  PatternOccurs_test(TRUE, "Fred", "FFredFre");
+  PatternOccurs_test(TRUE, "Fred", "FrFredFr");
+  PatternOccurs_test(TRUE, "Fred", "FreFredF");
+  PatternOccurs_test(TRUE, "Fred", "FreFreFFredFre");
+  PatternOccurs_test(TRUE, "Fred", "FredFredF");
+  PatternOccurs_test(TRUE, "X", "X");
+  PatternOccurs_test(TRUE, "", "X");
+  PatternOccurs_test(TRUE, "", "Whatever");
+  PatternOccurs_test(FALSE, "Fred", "Tom");
+  PatternOccurs_test(FALSE, "X", "Tom");
+  PatternOccurs_test(FALSE, "X", "x");
+  PatternOccurs_test(FALSE, "X", "");
+  PatternOccurs_test(FALSE, "Whatever", "");
+  PatternOccurs_test(FALSE, "Fred", "Fre");
+  PatternOccurs_test(FALSE, "Fred", "red");
+  PatternOccurs_test(FALSE, "Fred", "Fxred");
+  PatternOccurs_test(FALSE, "Fred", "Frexd");
+  DIAG_END("DIAGTEST-PatternOccurs");
 
 #if 0
   DIAG_FIRSTF(( "TestTag2", "text $U.\n", 42, NULL ));
