@@ -147,14 +147,15 @@ extern Res WriteF_v(mps_lib_FILE *stream, va_list args);
 extern Res WriteF_firstformat_v(mps_lib_FILE *stream,
                                 const char *firstformat, va_list args);
 
-extern int stream_fputc(int c, mps_lib_FILE *stream);
-extern int stream_fputs(const char *s, mps_lib_FILE *stream);
+extern int Stream_fputc(int c, mps_lib_FILE *stream);
+extern int Stream_fputs(const char *s, mps_lib_FILE *stream);
 
 
 
 /* Miscellaneous support -- see <code/mpm.c> */
 
 extern size_t StringLength(const char *s);
+extern Bool StringEqual(const char *s1, const char *s2);
 
 
 /* Version Determination
