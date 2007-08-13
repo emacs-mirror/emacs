@@ -1,3 +1,21 @@
+2007-08-13  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* pcvs-parse.el (cvs-parse-table): Handle additional instance of
+	optional quotes around files in NEED-UPDATE . REMOVED case.
+
+	* progmodes/ada-xref.el (ada-gnatls-args): Fix docstring.
+	(ada-treat-cmd-string): Improve error message.
+	(ada-do-file-completion): Call `ada-require-project-file', so
+	project variables are set properly.
+	(ada-prj-find-prj-file): Delete Emacs 20.2 support.
+	(ada-gnatfind-buffer-name): New constant.
+	(ada-find-any-references): Use new constant.  Set buffer name
+	properly in compilation-start.  Toggle read-only properly.
+	(ada-find-in-src-path): Fix spelling error in docstring.
+
+	* progmodes/vhdl-mode.el (vhdl-update-progress-info): Avoid divide
+	by zero error.
+
 2007-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-send): Handle CTRL-D more carefully.
@@ -49,7 +67,7 @@
 	* vc-rcs.el (vc-rcs-find-file-not-found-hook):
 	Move from vc-default-find-file-not-found-hook.
 
-2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
+2007-08-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
 
 	* url/url-auth.el (url-basic-auth): When prompting for username
 	and password, default to the username and password in the URL.
@@ -308,8 +326,7 @@
 
 2007-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-git.el: (vc-directory-exclusion-list, vc-handled-backends):
-	Remove.
+	* vc-git.el (vc-directory-exclusion-list, vc-handled-backends): Remove.
 	(vc-git-revision-completion-table): Enable.
 
 	* vc-hooks.el (vc-handled-backends): Add GIT and HG.
