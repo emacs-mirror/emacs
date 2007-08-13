@@ -4738,7 +4738,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  insval = call3 (Qformat_decode,
 			  Qnil, make_number (oinserted), visit);
 	  CHECK_NUMBER (insval);
-	  if (insval = oinserted)
+	  if (XINT (insval) == oinserted)
 	    SET_PT_BOTH (opoint, opoint_byte);
 	  inserted = XFASTINT (insval);
 	}
@@ -4769,7 +4769,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      if (!NILP (insval))
 		{
 		  CHECK_NUMBER (insval);
-		  if (insval = oinserted)
+		  if (XINT (insval) == oinserted)
 		    SET_PT_BOTH (opoint, opoint_byte);
 		  inserted = XFASTINT (insval);
 		}
@@ -4788,18 +4788,16 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	    {
 	      Lisp_Object tem = XCAR (old_undo);
 	      if (CONSP (tem) && INTEGERP (XCAR (tem)) &&
-		  INTEGERP (XCDR (tem)) && (XCAR (tem)) == lbeg)
+		  INTEGERP (XCDR (tem)) && EQ (XCAR (tem), lbeg))
 		/* In the non-visiting case record only the final insertion. */
 		current_buffer->undo_list =
 		  Fcons (Fcons (lbeg, lend), Fcdr (old_undo));
 	    }
 	}
-      else if (old_undo == Qt)
-	/* If undo_list was Qt before, keep it that way. */
-	current_buffer->undo_list = Qt;
       else
-	/* Otherwise start with an empty undo_list. */
-	current_buffer->undo_list = Qnil;
+	/* If undo_list was Qt before, keep it that way.
+	   Otherwise start with an empty undo_list. */
+	current_buffer->undo_list = EQ (old_undo, Qt) ? Qt : Qnil;
 
       unbind_to (count, Qnil);
     }
