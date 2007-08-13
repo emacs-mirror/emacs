@@ -258,7 +258,7 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
     buf[i] = pad;
   }
 
-  r = stream_fputs(&buf[i], stream);
+  r = Stream_fputs(&buf[i], stream);
   if (r == mps_lib_EOF)
     return ResIO;
 
@@ -299,7 +299,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   int j = 0;
  
   if (F == 0.0) {
-    if (stream_fputs("0", stream) == mps_lib_EOF)
+    if (Stream_fputs("0", stream) == mps_lib_EOF)
       return ResIO;
     return ResOK;
   }
@@ -314,7 +314,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   for ( ; F >= 1.0 ; F /= 10.0) {
     E++;
     if (E > DBL_MAX_10_EXP) {
-      if (stream_fputs("Infinity", stream) == mps_lib_EOF)
+      if (Stream_fputs("Infinity", stream) == mps_lib_EOF)
         return ResIO;
       return ResOK;
     }
@@ -401,7 +401,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   }
   buf[j] = '\0';                /* arnold */
  
-  if (stream_fputs(buf, stream) == mps_lib_EOF)
+  if (Stream_fputs(buf, stream) == mps_lib_EOF)
     return ResIO;
   return ResOK;
 }
@@ -460,7 +460,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
 
     while(*format != '\0') {
       if (*format != '$') {
-        r = stream_fputc(*format, stream); /* Could be more efficient */
+        r = Stream_fputc(*format, stream); /* Could be more efficient */
         if (r == mps_lib_EOF) return ResIO;
       } else {
         ++format;
@@ -494,13 +494,13 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
            
           case 'S': {                   /* string */
             WriteFS s = va_arg(args, WriteFS);
-            r = stream_fputs((const char *)s, stream);
+            r = Stream_fputs((const char *)s, stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
        
           case 'C': {                   /* character */
             WriteFC c = va_arg(args, WriteFC); /* promoted */
-            r = stream_fputc((int)c, stream);
+            r = Stream_fputc((int)c, stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
        
@@ -524,7 +524,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
           } break;
        
           case '$': {                   /* dollar char */
-            r = stream_fputc('$', stream);
+            r = Stream_fputc('$', stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
 
@@ -549,7 +549,7 @@ Res WriteF_firstformat_v(mps_lib_FILE *stream,
 }
 
 
-/* StringLength -- Slow substitute for strlen */
+/* StringLength -- slow substitute for strlen */
 
 size_t StringLength(const char *s)
 {
@@ -561,6 +561,28 @@ size_t StringLength(const char *s)
     NOOP;
   return(i);
 }
+
+
+/* StringEqual -- slow substitute for (strcmp == 0) */
+
+Bool StringEqual(const char *s1, const char *s2)
+{
+  Index i;
+
+  AVER(s1);
+  AVER(s2);
+
+  for(i = 0; ; i++) {
+    if(s1[i] != s2[i])
+      return FALSE;
+    if(s1[i] == '\0') {
+      AVER(s2[i] == '\0');
+      break;
+    }
+  }
+  return TRUE;
+}
+
 
 
 /* C. COPYRIGHT AND LICENSE

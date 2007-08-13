@@ -14,30 +14,88 @@
 #include "mpslib.h" /* for mps_lib_stdout */
 
 
-static mps_lib_FILE *FilterStream(void);
-static int FilterStream_fputc(int c, mps_lib_FILE *stream);
-static int FilterStream_fputs(const char *s, mps_lib_FILE *stream);
+typedef struct RuleStruct {
+  const char *action;
+  const char *tag;
+  const char *para;
+  const char *line;
+  int tpMatch;  /* .tpmatch */
+  /* @@ needs sig; Note: at end, to make initializer expression easy */
+} *Rule;
+
+
+/* RulesGlobal -- throw away some diags (see instructions below) */
+
+struct RuleStruct RulesGlobal[] = {
+  { "+", "*", "*", "*" },
+  { "-", "DIAGTEST_", "*", "*" },
+  { NULL, "", "", "" }
+};
+
+struct RuleStruct RulesGlobalExample[] = {
+  { "+", "*", "*", "*" },
+  { "-", "DIAGTEST_", "*", "*" },
+  { "+", "ChainCondemnAuto", "gens [0..0]", "*" },
+  { "+", "TraceStart", "*", "*" },
+  { "+", "TraceStart", "because code 1:", "*" },
+  { "-", "TraceStart", "*", "controlPool" },
+  { "-", "TraceStart", "*", "ommit" },
+  { "-", "TraceStart", "*", "zoneShift" },
+  { "-", "TraceStart", "*", "alignment" },
+  { "-", "amcScanNailed-loop", "*", "*" },
+  { NULL, "", "", "" }
+};
+
+/* RulesGlobal:
+ *
+ * In your local copy of diag.c, you can modify RulesGlobal as you 
+ * wish, to control what diags you see.
+ *
+ * Each rule consists of: action, tag, para, and line.  A rule that 
+ * matches on TAG, PARA and LINE determines what ACTION is taken 
+ * for that line of that diag.  Later rules override earlier rules, 
+ * ie. the lowest matching rule wins.
+ *
+ * ACTION = "+" (output this line of diag), or "-" (skip this line).
+ *
+ * TAG: does pattern (text or *) appear in diag's tag?
+ *
+ * PARA: does pattern (text or *) appear anywhere in diag's text output
+ * (does not match the tag)?
+ *
+ * LINE: does pattern (text or *) appear on this line of the diag
+ * text?
+ *
+ * Note: a diag that deliberately has no output, eg.
+ *     DIAG_SINGLEF(( "MyTag", NULL )),
+ * is treated as having a single empty 'line'.  See .empty-diag.
+ */
+
+
+static mps_lib_FILE *filterStream(void);
+static int filterStream_fputc(int c, mps_lib_FILE *stream);
+static int filterStream_fputs(const char *s, mps_lib_FILE *stream);
 static void diag_test(void);
 
 
-/* Stream -- output to FilterStream or to a real mps_lib_FILE stream
+/* Stream -- output to filterStream or to a real mps_lib_FILE stream
  *
  * There are only two functions and two destinations; a full class 
  * hierarchy would be overkill!  RHSK 2007-08-08.
  */
 
-int stream_fputc(int c, mps_lib_FILE *stream)
+int Stream_fputc(int c, mps_lib_FILE *stream)
 {
-  if(stream == FilterStream())
-    return FilterStream_fputc(c, stream);
+  if(stream == filterStream())
+    return filterStream_fputc(c, stream);
   else
     return mps_lib_fputc(c, stream);
 }
 
-int stream_fputs(const char *s, mps_lib_FILE *stream)
+int Stream_fputs(const char *s, mps_lib_FILE *stream)
 {
-  if(stream == FilterStream())
-    return FilterStream_fputs(s, stream);
+  if(stream == filterStream())
+    return filterStream_fputs(s, stream);
   else
     return mps_lib_fputs(s, stream);
 }
@@ -57,7 +115,7 @@ typedef struct DiagStruct {
 } *Diag;
 
 
-/* FilterStream -- capable of filtering diagnostics
+/* filterStream -- capable of filtering diagnostics
  *
  * This is not really an mps_lib_FILE*; it is a single global instance 
  * of a DiagStruct.
@@ -66,59 +124,33 @@ typedef struct DiagStruct {
  * (or not) when complete.
  */
 
-struct DiagStruct FilterDiagGlobal;
+struct DiagStruct filterDiagGlobal;
 
-static mps_lib_FILE *FilterStream(void)
+static mps_lib_FILE *filterStream(void)
 {
-  return (mps_lib_FILE*)&FilterDiagGlobal;
+  return (mps_lib_FILE*)&filterDiagGlobal;
 }
 
-static mps_lib_FILE *FilterUnderlyingStream(void)
+/* filterStream_under: the underlying stream used to output diags */
+/* that pass the filter. */
+static mps_lib_FILE *filterStream_under(void)
 {
   return mps_lib_stdout;
 }
 
+/* .tpmatch: does this rule match current diag's tag and para? */
 enum {
   TPMatch_Unknown = 0,  /* initial value = 0 */
   TPMatch_Yes,
   TPMatch_No
 };
 
-typedef struct RuleStruct {
-  const char *action;
-  const char *tag;
-  const char *para;
-  const char *line;
-  int tpMatch;  /* does this rule match diag on tag and para? */
-} *Rule;
-
-struct RuleStruct RulesGlobalX[] = {
-  { "+", "*", "*", "*" },
-  { "+", "TraceStart", "*", "*" },
-  { "+", "TraceStart", "*", "freeSet" },
-  { NULL, "", "", "" }
-};
-
-struct RuleStruct RulesGlobal[] = {
-  { "+", "*", "*", "*" },
-  { "-", "DIAGTEST-", "*", "*" },
-  { "+", "ChainCondemnAuto", "gens [0..0]", "*" },
-  { "+", "TraceStart", "*", "*" },
-  { "+", "TraceStart", "because code 1:", "*" },
-  { "-", "TraceStart", "*", "controlPool" },
-  { "-", "TraceStart", "*", "ommit" },
-  { "-", "TraceStart", "*", "zoneShift" },
-  { "-", "TraceStart", "*", "alignment" },
-  { "-", "amcScanNailed-loop", "*", "*" },
-  { NULL, "", "", "" }
-};
-
-static void Rules_diag(Rule rules)
+static void rules_diag(Rule rules)
 {
   Index ir;
   
   AVER(rules);
-  DIAG_FIRSTF(( "Rules_diag", 
+  DIAG_FIRSTF(( "DiagFilter_Rules", 
     "Only showing diags permitted by these tag/paragraph/line"
     " rules:\n", NULL ));
   for(ir = 0; rules[ir].action != NULL; ir++) {
@@ -127,31 +159,16 @@ static void Rules_diag(Rule rules)
                  rule->para, rule->line,
                  NULL ));
   }
-  DIAG_END("Rules_diag");
+  DIAG_END("DiagFilter_Rules");
 }
 
-static Bool StringEqual(const char *s1, const char *s2)
-{
-  Index i;
 
-  AVER(s1);
-  AVER(s2);
-
-  for(i = 0; ; i++) {
-    if(s1[i] != s2[i])
-      return FALSE;
-    if(s1[i] == '\0')    
-      break;
-  }
-  return TRUE;
-}
-
-/* PatternOccurs -- does patt occur in buf[i..j)?
+/* patternOccurs -- does patt occur in buf[i..j)?
  *
  * Returns true iff patt[0..pattLen) literally occurs in buf[i..j).
  */
 
-static Bool PatternOccurs(const char *patt, Count pattLen, 
+static Bool patternOccurs(const char *patt, Count pattLen, 
                           const char *buf, Index i, Index j)
 {
   Index im; /* start of tentative match */
@@ -176,7 +193,7 @@ static Bool PatternOccurs(const char *patt, Count pattLen,
   return FALSE;
 }
 
-static Bool MatchLine(Rule rule, Diag diag, Index i, Index j)
+static Bool matchLine(Rule rule, Diag diag, Index i, Index j)
 {
   AVER(rule);
   AVER(diag);
@@ -186,11 +203,11 @@ static Bool MatchLine(Rule rule, Diag diag, Index i, Index j)
   if(rule->line[0] == '*')
     return TRUE;
 
-  return PatternOccurs(rule->line, StringLength(rule->line),
+  return patternOccurs(rule->line, StringLength(rule->line),
                        diag->buf, i, j);
 }
 
-static Bool MatchPara(Rule rule, Diag diag)
+static Bool matchPara(Rule rule, Diag diag)
 {
   AVER(rule);
   AVER(diag);
@@ -198,11 +215,11 @@ static Bool MatchPara(Rule rule, Diag diag)
   if(rule->para[0] == '*')
     return TRUE;
   
-  return PatternOccurs(rule->para, StringLength(rule->para),
+  return patternOccurs(rule->para, StringLength(rule->para),
                        diag->buf, 0, diag->n);
 }
 
-static Bool MatchTag(Rule rule, const char *tag)
+static Bool matchTag(Rule rule, const char *tag)
 {
   AVER(rule);
   AVER(rule->tag);
@@ -211,11 +228,11 @@ static Bool MatchTag(Rule rule, const char *tag)
   if(rule->tag[0] == '*')
     return TRUE;
 
-  return PatternOccurs(rule->tag, StringLength(rule->tag),
+  return patternOccurs(rule->tag, StringLength(rule->tag),
                        tag, 0, StringLength(tag));
 }
 
-static void LineOutput(Diag diag, Index i, Index j)
+static void filterStream_LineOut(Diag diag, Index i, Index j)
 {
   int r;
 
@@ -223,23 +240,23 @@ static void LineOutput(Diag diag, Index i, Index j)
   AVER(i <= j);
   AVER(j <= diag->n);
   
-  r = stream_fputc(' ', FilterUnderlyingStream());
+  r = Stream_fputc(' ', filterStream_under());
   AVER(r != mps_lib_EOF);
   
   for(; i < j; i++) {
     char c;
     c = diag->buf[i];
-    r = stream_fputc(c, FilterUnderlyingStream());
+    r = Stream_fputc(c, filterStream_under());
     AVER(r != mps_lib_EOF);
   }
 }
 
 
-/* FilterStream_Output -- output this diag, if the rules select it
+/* filterStream_Output -- output this diag, if the rules select it
  *
  */
 
-static void FilterStream_Output(Diag diag, Rule rules)
+static void filterStream_Output(Diag diag, Rule rules)
 {
   static Bool inside = FALSE;
   Res res;
@@ -285,14 +302,14 @@ static void FilterStream_Output(Diag diag, Rule rules)
     for(;;) {
       Rule rule = &rules[ir];
       if(rule->tpMatch == TPMatch_Unknown) {
-        /* memoize tpMatch */
-        if(MatchTag(rule, diag->tag) && MatchPara(rule, diag)) {
+        /* memoize .tpMatch */
+        if(matchTag(rule, diag->tag) && matchPara(rule, diag)) {
           rule->tpMatch = TPMatch_Yes;
         } else {
           rule->tpMatch = TPMatch_No;
         }
       }
-      if(rule->tpMatch == TPMatch_Yes && MatchLine(rule, diag, i, j))
+      if(rule->tpMatch == TPMatch_Yes && matchLine(rule, diag, i, j))
         break;
       AVER(ir != 0); /* there must ALWAYS be a matching rule */
       ir--;
@@ -300,28 +317,28 @@ static void FilterStream_Output(Diag diag, Rule rules)
     
     /* Do the rule's action. */
     if(0)
-      (void) WriteF(FilterUnderlyingStream(),
+      (void) WriteF(filterStream_under(),
                     "[RULE: $U (of $U);", ir, nr, 
                     " ACTION: $C]\n", rules[ir].action[0],
                     NULL);
     if(rules[ir].action[0] == '+') {
       if(nolinesyet) {
-        res = WriteF(FilterUnderlyingStream(), "MPS.$S {", diag->tag, NULL);
+        res = WriteF(filterStream_under(), "MPS.$S {", diag->tag, NULL);
         AVER(res == ResOK);
         nolinesyet = FALSE;
       }
-      LineOutput(diag, i, j);
+      filterStream_LineOut(diag, i, j);
     }
   }
 
   if(!nolinesyet) {
-    res = WriteF(FilterUnderlyingStream(), "}\n", NULL);
+    res = WriteF(filterStream_under(), "}\n", NULL);
     AVER(res == ResOK);
   }
   inside = FALSE;
 }
 
-static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
+static void filterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
 {
   static Bool first = TRUE;
   Diag diag;
@@ -334,13 +351,13 @@ static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
 
   if(first) {
     first = FALSE;
-    Rules_diag(&RulesGlobal[0]);
+    rules_diag(&RulesGlobal[0]);
     diag_test();
   }
 
   if(diag->tag != NULL) {
     /* Be helpful to the poor programmer! */
-    (void) WriteF(FilterUnderlyingStream(),
+    (void) WriteF(filterStream_under(),
                   "\nWARNING: diag tag \"$S\" is still current"
                   " (missing DIAG_END()).", 
                   diag->tag, NULL);  
@@ -350,7 +367,7 @@ static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
   /* @@ when all diags are tagged, the buffer must be empty */
   /* @@ but for now, as a courtesy... */
   if(diag->n > 0) {
-    FilterStream_Output(diag, &RulesGlobal[0]);
+    filterStream_Output(diag, &RulesGlobal[0]);
     diag->n = 0;
   }
 
@@ -358,28 +375,36 @@ static void FilterStream_TagBegin(mps_lib_FILE *stream, const char *tag)
   diag->tag = tag;
 }
 
-static void FilterStream_TagEnd(mps_lib_FILE *stream, const char *tag)
+static void filterStream_TagEnd(mps_lib_FILE *stream, const char *tag)
 {
   Diag diag;
   diag = (Diag)stream;
   /* AVERT(Diag, diag) */
 
   AVER(diag->tag != NULL);
+
+  if(!StringEqual(diag->tag, tag)) {
+    /* Be helpful to the poor programmer! */
+    (void) WriteF(filterStream_under(),
+                  "\nWARNING: diag tag \"$S\" is current, "
+                  "but got DIAG_END(\"$S\").  (They must match).", 
+                  diag->tag, tag, NULL);
+  }
   AVER(StringEqual(diag->tag, tag));
 
   /* Output the diag */
-  FilterStream_Output(diag, &RulesGlobal[0]);
+  filterStream_Output(diag, &RulesGlobal[0]);
 
   diag->tag = NULL;
   diag->n = 0;
 }
 
-static int FilterStream_fputc(int c, mps_lib_FILE *stream)
+static int filterStream_fputc(int c, mps_lib_FILE *stream)
 {
   Diag diag;
   
   AVER(c != mps_lib_EOF);
-  AVER(stream == FilterStream());
+  AVER(stream == filterStream());
 
   diag = (Diag)stream;
   /* AVERT(Diag, diag) */
@@ -394,14 +419,14 @@ static int FilterStream_fputc(int c, mps_lib_FILE *stream)
   return c;
 }
 
-static int FilterStream_fputs(const char *s, mps_lib_FILE *stream)
+static int filterStream_fputs(const char *s, mps_lib_FILE *stream)
 {
   Diag diag;
   Count l;
   Index i;
   
   AVER(s);
-  AVER(stream == FilterStream());
+  AVER(stream == filterStream());
 
   diag = (Diag)stream;
   /* AVERT(Diag, diag) */
@@ -436,19 +461,19 @@ Bool DiagIsOn(void)
 mps_lib_FILE *DiagStream(void)
 {
   if(1) {
-    return FilterStream();
+    return filterStream();
   } else {
     return mps_lib_stdout;
   }
 }
 
-static void DiagTagBegin(mps_lib_FILE *stream, const char *tag)
+static void diagTagBegin(mps_lib_FILE *stream, const char *tag)
 {
   AVER(stream);
   AVER(tag);
 
-  if(stream == FilterStream()) {
-    FilterStream_TagBegin(stream, tag);
+  if(stream == filterStream()) {
+    filterStream_TagBegin(stream, tag);
   } else {
     Res res;
     res = WriteF(stream, "MPS.$S {\n", tag, NULL);
@@ -456,13 +481,13 @@ static void DiagTagBegin(mps_lib_FILE *stream, const char *tag)
   }
 }
 
-static void DiagTagEnd(mps_lib_FILE *stream, const char *tag)
+static void diagTagEnd(mps_lib_FILE *stream, const char *tag)
 {
   AVER(stream);
   AVER(tag);
 
-  if(stream == FilterStream()) {
-    FilterStream_TagEnd(stream, tag);
+  if(stream == filterStream()) {
+    filterStream_TagEnd(stream, tag);
   } else {
     Res res;
     res = WriteF(stream, "} MPS.$S\n", tag, NULL);
@@ -485,14 +510,14 @@ void DiagSingleF(const char *tag, ...)
   va_list args;
   Res res;
 
-  DiagTagBegin(DiagStream(), tag);
+  diagTagBegin(DiagStream(), tag);
 
   va_start(args, tag);
   res = WriteF_v(DiagStream(), args);
   AVER(res == ResOK);
   va_end(args);
 
-  DiagTagEnd(DiagStream(), tag);
+  diagTagEnd(DiagStream(), tag);
 }
 
 void DiagFirstF(const char *tag, ...)
@@ -500,7 +525,7 @@ void DiagFirstF(const char *tag, ...)
   va_list args;
   Res res;
 
-  DiagTagBegin(DiagStream(), tag);
+  diagTagBegin(DiagStream(), tag);
 
   va_start(args, tag);
   res = WriteF_v(DiagStream(), args);
@@ -526,7 +551,7 @@ void DiagMoreF(const char *firstformat, ...)
 
 void DiagEnd(const char *tag)
 {
-  DiagTagEnd(DiagStream(), tag);
+  diagTagEnd(DiagStream(), tag);
 }
 
 
@@ -536,7 +561,7 @@ void DiagEnd(const char *tag)
  * There's no point running them otherwise.  RHSK.
  */
 
-static void PatternOccurs_test(Bool expect, const char *patt,
+static void patternOccurs_test(Bool expect, const char *patt,
                                const char *text)
 {
   Count pattLen = StringLength(patt);
@@ -547,9 +572,9 @@ static void PatternOccurs_test(Bool expect, const char *patt,
   Count padLen;
   Bool occurs;
 
-  /* Call PatternOccurs with this patt and text 3 times: each time */
+  /* Call patternOccurs with this patt and text 3 times: each time */
   /* putting the text in the buffer at a different offset, to */
-  /* verify that PatternOccurs is not accepting matches outside the */
+  /* verify that patternOccurs is not accepting matches outside the */
   /* [i..j) portion of the buffer. */
   
   for(start = 0; start < 21; start += 7) {
@@ -565,19 +590,19 @@ static void PatternOccurs_test(Bool expect, const char *patt,
     for(i = 0; i < padLen; i++) {
       (buf+start+textLen)[i] = 'X';
     }
-    occurs = PatternOccurs(patt, pattLen, buf, start, start+textLen);
+    occurs = patternOccurs(patt, pattLen, buf, start, start+textLen);
     AVER(occurs == expect);
   }
 }
 
 static void diag_test(void)
 {
-  DIAG_SINGLEF(( "DIAGTEST-Tag1", "text $U.\n", 42, NULL ));
+  DIAG_SINGLEF(( "DIAGTEST_Tag1", "text $U.\n", 42, NULL ));
 
-  DIAG_SINGLEF(( "DIAGTEST-EmptyDiag", NULL ));
+  DIAG_SINGLEF(( "DIAGTEST_EmptyDiag", NULL ));
 
   DIAG_FIRSTF((
-    "DIAGTEST-StringEqual",
+    "DIAGTEST_StringEqual",
     "Fred = Fred: $U.\n",
     StringEqual("Fred", "Fred"),
     NULL
@@ -588,34 +613,34 @@ static void diag_test(void)
   DIAG_MOREF(("Fred = 0: $U.\n", StringEqual("Fred", ""), NULL));
   DIAG_MOREF(("0 = 0: $U.\n", StringEqual("", ""), NULL));
   DIAG_MOREF(("0 = 000: $U.\n", StringEqual("", "\0\0"), NULL));
-  DIAG_END("DIAGTEST-StringEqual");
+  DIAG_END("DIAGTEST_StringEqual");
 
-  DIAG_FIRSTF(( "DIAGTEST-PatternOccurs", NULL ));
-  PatternOccurs_test(TRUE, "Fred", "Fred");
-  PatternOccurs_test(TRUE, "Fred", "XFredX");
-  PatternOccurs_test(TRUE, "Fred", "FFred");
-  PatternOccurs_test(TRUE, "Fred", "FrFred");
-  PatternOccurs_test(TRUE, "Fred", "FreFred");
-  PatternOccurs_test(TRUE, "Fred", "FreFreFFred");
-  PatternOccurs_test(TRUE, "Fred", "FredFred");
-  PatternOccurs_test(TRUE, "Fred", "FFredFre");
-  PatternOccurs_test(TRUE, "Fred", "FrFredFr");
-  PatternOccurs_test(TRUE, "Fred", "FreFredF");
-  PatternOccurs_test(TRUE, "Fred", "FreFreFFredFre");
-  PatternOccurs_test(TRUE, "Fred", "FredFredF");
-  PatternOccurs_test(TRUE, "X", "X");
-  PatternOccurs_test(TRUE, "", "X");
-  PatternOccurs_test(TRUE, "", "Whatever");
-  PatternOccurs_test(FALSE, "Fred", "Tom");
-  PatternOccurs_test(FALSE, "X", "Tom");
-  PatternOccurs_test(FALSE, "X", "x");
-  PatternOccurs_test(FALSE, "X", "");
-  PatternOccurs_test(FALSE, "Whatever", "");
-  PatternOccurs_test(FALSE, "Fred", "Fre");
-  PatternOccurs_test(FALSE, "Fred", "red");
-  PatternOccurs_test(FALSE, "Fred", "Fxred");
-  PatternOccurs_test(FALSE, "Fred", "Frexd");
-  DIAG_END("DIAGTEST-PatternOccurs");
+  DIAG_FIRSTF(( "DIAGTEST_patternOccurs", NULL ));
+  patternOccurs_test(TRUE, "Fred", "Fred");
+  patternOccurs_test(TRUE, "Fred", "XFredX");
+  patternOccurs_test(TRUE, "Fred", "FFred");
+  patternOccurs_test(TRUE, "Fred", "FrFred");
+  patternOccurs_test(TRUE, "Fred", "FreFred");
+  patternOccurs_test(TRUE, "Fred", "FreFreFFred");
+  patternOccurs_test(TRUE, "Fred", "FredFred");
+  patternOccurs_test(TRUE, "Fred", "FFredFre");
+  patternOccurs_test(TRUE, "Fred", "FrFredFr");
+  patternOccurs_test(TRUE, "Fred", "FreFredF");
+  patternOccurs_test(TRUE, "Fred", "FreFreFFredFre");
+  patternOccurs_test(TRUE, "Fred", "FredFredF");
+  patternOccurs_test(TRUE, "X", "X");
+  patternOccurs_test(TRUE, "", "X");
+  patternOccurs_test(TRUE, "", "Whatever");
+  patternOccurs_test(FALSE, "Fred", "Tom");
+  patternOccurs_test(FALSE, "X", "Tom");
+  patternOccurs_test(FALSE, "X", "x");
+  patternOccurs_test(FALSE, "X", "");
+  patternOccurs_test(FALSE, "Whatever", "");
+  patternOccurs_test(FALSE, "Fred", "Fre");
+  patternOccurs_test(FALSE, "Fred", "red");
+  patternOccurs_test(FALSE, "Fred", "Fxred");
+  patternOccurs_test(FALSE, "Fred", "Frexd");
+  DIAG_END("DIAGTEST_patternOccurs");
 
 #if 0
   DIAG_FIRSTF(( "TestTag2", "text $U.\n", 42, NULL ));
