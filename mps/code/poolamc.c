@@ -1416,7 +1416,7 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 
 #if 1
       /* A rare event, which might prompt a rare defect to appear. */
-      DIAG_SINGLEF(( "amcScanNailed-loop",
+      DIAG_SINGLEF(( "amcScanNailed_loop",
         "scan completed, but had to loop $U times:\n", (WriteFU)loops,
         " SegSummary:        $B\n", (WriteFB)SegSummary(seg),
         " ss.white:          $B\n", (WriteFB)ss->white,

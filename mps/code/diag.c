@@ -5,6 +5,8 @@
  *
  * To Do: [RHSK 2007-08-13]
  *  @@ sigs and AVERTs for Rule, and macro for Rules initializer
+ *  @@ deprecate un-tagged diags, remove old macros
+ *  @@ every diag should end with \n: warn if this is missing.
  */
 
 #include <stdarg.h>
