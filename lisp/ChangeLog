@@ -1,3 +1,8 @@
+2007-08-14  Chris Hecker  <checker@d6.com> (tiny change)
+
+	* calc/calc-aent.el (calc-do-quick-calc): Add binary
+	representation of integers to the list of outputs.
+
 2007-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (bad-packages-alist): New constant.
