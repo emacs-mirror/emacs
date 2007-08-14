@@ -1596,23 +1596,6 @@ shifted movement key, set `cua-highlight-region-shift-only'."
   (interactive)
   (setq cua--debug (not cua--debug)))
 
-;; Install run-time check for older versions of CUA-mode which does not
-;; work with GNU Emacs version 22.1 and newer.
-;;
-;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
-;; provided the `CUA-mode' feature.  Since this is no longer true,
-;; we can warn the user if the `CUA-mode' feature is ever provided.
-
-;;;###autoload (eval-after-load 'CUA-mode
-;;;###autoload  '(error (concat "\n\n"
-;;;###autoload  "CUA-mode is now part of the standard GNU Emacs distribution, so you may\n"
-;;;###autoload  "now enable CUA via the Options menu or by customizing option `cua-mode'.\n\n"
-;;;###autoload  "You have loaded an older version of CUA-mode which does\n"
-;;;###autoload  "not work correctly with this version of GNU Emacs.\n\n"
-;;;###autoload  (if user-init-file (concat
-;;;###autoload  "To correct this, remove the loading and customization of the\n"
-;;;###autoload  "old version from the " user-init-file " file.\n\n")))))
-
 (provide 'cua)
 
 ;;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
