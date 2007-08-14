@@ -1,3 +1,18 @@
+2007-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/tpu-extras.el: Remove spurious * in docstrings.
+	Put its autoloads into tpu-edt.el rather than loaddefs.el.
+	(tpu-cursor-free-mode): Rename from tpu-cursor-free.
+	Make into a proper minor-mode.
+	(tpu-backward-char, tpu-next-line, tpu-previous-line)
+	(tpu-next-end-of-line, tpu-current-end-of-line): Use new name.
+	(tpu-trim-line-ends-if-needed): Rename from tpu-before-save-hook.
+	(tpu-set-cursor-free, tpu-set-cursor-bound):
+	Delegate to tpu-cursor-free-mode.
+	(tpu-next-line, tpu-previous-line, tpu-forward-line)
+	(tpu-backward-line, tpu-scroll-window-down, tpu-scroll-window-up):
+	Use line-move or forward-line instead of next-line-internal.
+
 2007-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-send): Handle CTRL-D more carefully.
@@ -19,8 +34,8 @@
 	* pcvs-util.el (cvs-qtypedesc-strings): Use new names
 	combine-and-quote-strings and split-string-and-unquote.
 
-	* subr.el (combine-and-quote-strings): Renamed from strings->string.
-	(split-string-and-unquote): Renamed from string->strings.
+	* subr.el (combine-and-quote-strings): Rename from strings->string.
+	(split-string-and-unquote): Rename from string->strings.
 
 2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
