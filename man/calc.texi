@@ -10166,8 +10166,8 @@ then the result of the evaluation is stored in that Calc variable.
 @xref{Store and Recall}.
 
 If the result is an integer and the current display radix is decimal,
-the number will also be displayed in hex and octal formats.  If the
-integer is in the range from 1 to 126, it will also be displayed as
+the number will also be displayed in hex, octal and binary formats.  If
+the integer is in the range from 1 to 126, it will also be displayed as
 an ASCII character.
 
 For example, the quoted character @samp{"x"} produces the vector
