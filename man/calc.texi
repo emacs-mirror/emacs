@@ -27436,14 +27436,21 @@ of angle are evaluated, regardless of the current angular mode.
 The @kbd{u c} (@code{calc-convert-units}) command converts a units
 expression to new, compatible units.  For example, given the units
 expression @samp{55 mph}, typing @kbd{u c m/s @key{RET}} produces
-@samp{24.5872 m/s}.  If the units you request are inconsistent with
-the original units, the number will be converted into your units
-times whatever ``remainder'' units are left over.  For example,
-converting @samp{55 mph} into acres produces @samp{6.08e-3 acre / m s}.
-(Recall that multiplication binds more strongly than division in Calc
-formulas, so the units here are acres per meter-second.)  Remainder
-units are expressed in terms of ``fundamental'' units like @samp{m} and
-@samp{s}, regardless of the input units.
+@samp{24.5872 m/s}.  If you have previously converted a units expression
+with the same type of units (in this case, distance over time), you will
+be offered the previous choice of new units as a default.  Continuing
+the above example, entering the units expression @samp{100 km/hr} and
+typing @kbd{u c @key{RET}} (without specifying new units) produces
+@samp{27.7777777778 m/s}.
+
+If the units you request are inconsistent with the original units, the
+number will be converted into your units times whatever ``remainder''
+units are left over.  For example, converting @samp{55 mph} into acres
+produces @samp{6.08e-3 acre / m s}.  (Recall that multiplication binds
+more strongly than division in Calc formulas, so the units here are
+acres per meter-second.)  Remainder units are expressed in terms of
+``fundamental'' units like @samp{m} and @samp{s}, regardless of the
+input units.
 
 One special exception is that if you specify a single unit name, and
 a compatible unit appears somewhere in the units expression, then
