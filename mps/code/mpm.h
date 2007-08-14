@@ -143,11 +143,19 @@ extern Shift SizeFloorLog2(Size size);
 /* Formatted Output -- see <design/writef/>, <code/mpm.c> */
 
 extern Res WriteF(mps_lib_FILE *stream, ...);
+extern Res WriteF_v(mps_lib_FILE *stream, va_list args);
+extern Res WriteF_firstformat_v(mps_lib_FILE *stream,
+                                const char *firstformat, va_list args);
+
+extern int Stream_fputc(int c, mps_lib_FILE *stream);
+extern int Stream_fputs(const char *s, mps_lib_FILE *stream);
+
 
 
 /* Miscellaneous support -- see <code/mpm.c> */
 
 extern size_t StringLength(const char *s);
+extern Bool StringEqual(const char *s1, const char *s2);
 
 
 /* Version Determination
@@ -952,6 +960,18 @@ extern void StackProbe(Size depth);
 Bool DiagIsOn(void);
 mps_lib_FILE *DiagStream(void);
 
+
+/* Diag*F functions -- formatted diagnostic output
+ *
+ * Note: do not call these directly; use the DIAG_*F macros below.
+ */
+
+extern void DiagSingleF(const char *tag, ...);
+extern void DiagFirstF(const char *tag, ...);
+extern void DiagMoreF(const char *format, ...);
+extern void DiagEnd(const char *tag);
+
+
 #if defined(DIAG_WITH_STREAM_AND_WRITEF)
 
 /* Diagnostic Calculation and Output */
@@ -960,17 +980,36 @@ mps_lib_FILE *DiagStream(void);
 #define DIAG(s) BEGIN \
     s \
   END
-/*
- * Note the macro argument args should have parens around it (in the
- * invocation); it is a variable number of arguments that we pass
- * to another function.
- * That makes this macro unclean in all sorts of ways.
+
+
+/* DIAG_*F macros -- formatted diagnostic output
+ *
+ * Note: when invoking these macros, the value passed as macro 
+ * argument "args" might contain commas; it must therefore be 
+ * enclosed in parentheses.  That makes these macros unclean in 
+ * all sorts of ways.
  */
+
 #define DIAG_WRITEF(args) DIAG( \
   if(DiagIsOn()) { \
     WriteF args; \
   } \
 )
+#define DIAG_SINGLEF(args) DIAG( \
+  DiagSingleF args; \
+)
+#define DIAG_FIRSTF(args) DIAG( \
+  DiagFirstF args; \
+)
+#define DIAG_MOREF(args) DIAG( \
+  DiagMoreF args; \
+)
+
+/* Note: extra parens *not* required when invoking DIAG_END */
+#define DIAG_END(tag) DIAG( \
+  DiagEnd(tag); \
+)
+
 
 #else
 
@@ -978,6 +1017,12 @@ mps_lib_FILE *DiagStream(void);
 #define DIAG_DECL(decl)
 #define DIAG(s) BEGIN END
 #define DIAG_WRITEF(args) BEGIN END
+
+/* DIAG_*F macros */
+#define DIAG_SINGLEF(args) BEGIN END
+#define DIAG_FIRSTF(args) BEGIN END
+#define DIAG_MOREF(args) BEGIN END
+#define DIAG_END(tag) BEGIN END
 
 #endif
 

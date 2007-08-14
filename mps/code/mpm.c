@@ -258,7 +258,7 @@ static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
     buf[i] = pad;
   }
 
-  r = mps_lib_fputs(&buf[i], stream);
+  r = Stream_fputs(&buf[i], stream);
   if (r == mps_lib_EOF)
     return ResIO;
 
@@ -299,7 +299,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   int j = 0;
  
   if (F == 0.0) {
-    if (mps_lib_fputs("0", stream) == mps_lib_EOF)
+    if (Stream_fputs("0", stream) == mps_lib_EOF)
       return ResIO;
     return ResOK;
   }
@@ -314,7 +314,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   for ( ; F >= 1.0 ; F /= 10.0) {
     E++;
     if (E > DBL_MAX_10_EXP) {
-      if (mps_lib_fputs("Infinity", stream) == mps_lib_EOF)
+      if (Stream_fputs("Infinity", stream) == mps_lib_EOF)
         return ResIO;
       return ResOK;
     }
@@ -401,7 +401,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
   }
   buf[j] = '\0';                /* arnold */
  
-  if (mps_lib_fputs(buf, stream) == mps_lib_EOF)
+  if (Stream_fputs(buf, stream) == mps_lib_EOF)
     return ResIO;
   return ResOK;
 }
@@ -418,28 +418,49 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
  * .writef.div: Although MPS_WORD_WIDTH/4 appears three times, there
  * are effectively three separate decisions to format at this width.
  *
- * .writef.check: See .check.writef. */
+ * .writef.check: See .check.writef.
+ */
 
 Res WriteF(mps_lib_FILE *stream, ...)
+{
+  Res res;
+  va_list args;
+ 
+  va_start(args, stream);
+  res = WriteF_v(stream, args);
+  va_end(args);
+  return res;
+}
+
+Res WriteF_v(mps_lib_FILE *stream, va_list args)
+{
+  const char *firstformat;
+  Res res;
+
+  firstformat = va_arg(args, const char *);
+  res = WriteF_firstformat_v(stream, firstformat, args);
+  return res;
+}
+
+Res WriteF_firstformat_v(mps_lib_FILE *stream, 
+                         const char *firstformat, va_list args)
 {
   const char *format;
   int r;
   size_t i;
   Res res;
-  va_list args;
 
   AVER(stream != NULL);
- 
-  va_start(args, stream);
 
+  format = firstformat;
+ 
   for(;;) {
-    format = va_arg(args, const char *);
     if (format == NULL)
       break;
 
     while(*format != '\0') {
       if (*format != '$') {
-        r = mps_lib_fputc(*format, stream); /* Could be more efficient */
+        r = Stream_fputc(*format, stream); /* Could be more efficient */
         if (r == mps_lib_EOF) return ResIO;
       } else {
         ++format;
@@ -473,13 +494,13 @@ Res WriteF(mps_lib_FILE *stream, ...)
            
           case 'S': {                   /* string */
             WriteFS s = va_arg(args, WriteFS);
-            r = mps_lib_fputs((const char *)s, stream);
+            r = Stream_fputs((const char *)s, stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
        
           case 'C': {                   /* character */
             WriteFC c = va_arg(args, WriteFC); /* promoted */
-            r = mps_lib_fputc((int)c, stream);
+            r = Stream_fputc((int)c, stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
        
@@ -503,7 +524,7 @@ Res WriteF(mps_lib_FILE *stream, ...)
           } break;
        
           case '$': {                   /* dollar char */
-            r = mps_lib_fputc('$', stream);
+            r = Stream_fputc('$', stream);
             if (r == mps_lib_EOF) return ResIO;
           } break;
 
@@ -520,15 +541,15 @@ Res WriteF(mps_lib_FILE *stream, ...)
 
       ++format;
     }
+
+    format = va_arg(args, const char *);
   }
- 
-  va_end(args);
  
   return ResOK;
 }
 
 
-/* StringLength -- Slow substitute for strlen */
+/* StringLength -- slow substitute for strlen */
 
 size_t StringLength(const char *s)
 {
@@ -540,6 +561,28 @@ size_t StringLength(const char *s)
     NOOP;
   return(i);
 }
+
+
+/* StringEqual -- slow substitute for (strcmp == 0) */
+
+Bool StringEqual(const char *s1, const char *s2)
+{
+  Index i;
+
+  AVER(s1);
+  AVER(s2);
+
+  for(i = 0; ; i++) {
+    if(s1[i] != s2[i])
+      return FALSE;
+    if(s1[i] == '\0') {
+      AVER(s2[i] == '\0');
+      break;
+    }
+  }
+  return TRUE;
+}
+
 
 
 /* C. COPYRIGHT AND LICENSE
