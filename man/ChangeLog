@@ -2,6 +2,8 @@
 
 	* calc.texi (Basic Operations on Units): Mention default
 	values for new units.
+	(Quick Calculator Mode): Mention that binary format will
+	be displayed.
 
 2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
