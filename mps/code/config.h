@@ -313,6 +313,9 @@
 #define DIAG_BUFFER_SIZE      ((Size)1)
 #endif
 
+#define DIAG_PREFIX_TAGSTART "MPS."
+#define DIAG_PREFIX_LINE     " "
+#define DIAG_PREFIX_TAGEND   ""
 
 
 /* memory operator configuration

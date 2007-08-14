@@ -71,6 +71,9 @@ struct RuleStruct RulesGlobalExample[] = {
  * is treated as having a single empty 'line'.  See .empty-diag.
  *
  * Note: for help debugging your ruleset, see .rules.debug below.
+ *
+ * Note: the entire filtering mechanism can be turned off, so that 
+ * diagnostics go immediately to mps_lib_stdout: see .filter-disable.
  */
 
 
@@ -252,7 +255,7 @@ static void filterStream_LineOut(Diag diag, Index i, Index j)
   AVER(i <= j);
   AVER(j <= diag->n);
   
-  r = Stream_fputc(' ', filterStream_under());
+  r = Stream_fputs(DIAG_PREFIX_LINE, filterStream_under());
   AVER(r != mps_lib_EOF);
   
   for(; i < j; i++) {
@@ -337,7 +340,8 @@ static void filterStream_Output(Diag diag, Rule rules)
     }
     if(rules[ir].action[0] == '+') {
       if(nolinesyet) {
-        res = WriteF(filterStream_under(), "MPS.$S {", diag->tag, NULL);
+        res = WriteF(filterStream_under(),
+                     DIAG_PREFIX_TAGSTART "$S {", diag->tag, NULL);
         AVER(res == ResOK);
         nolinesyet = FALSE;
       }
@@ -346,7 +350,7 @@ static void filterStream_Output(Diag diag, Rule rules)
   }
 
   if(!nolinesyet) {
-    res = WriteF(filterStream_under(), "}\n", NULL);
+    res = WriteF(filterStream_under(), DIAG_PREFIX_TAGEND "}\n", NULL);
     AVER(res == ResOK);
   }
   inside = FALSE;
@@ -474,7 +478,12 @@ Bool DiagIsOn(void)
 
 mps_lib_FILE *DiagStream(void)
 {
-  if(1) {
+  /* .filter-disable: the entire filtering mechanism can be turned */
+  /* off, so that diagnostics go immediately to mps_lib_stdout, */
+  /* with no buffering or filtering. */
+  Bool filter = TRUE;
+
+  if(filter) {
     return filterStream();
   } else {
     return mps_lib_stdout;
@@ -490,7 +499,7 @@ static void diagTagBegin(mps_lib_FILE *stream, const char *tag)
     filterStream_TagBegin(stream, tag);
   } else {
     Res res;
-    res = WriteF(stream, "MPS.$S {\n", tag, NULL);
+    res = WriteF(stream, DIAG_PREFIX_TAGSTART "$S {\n", tag, NULL);
     AVER(res == ResOK);
   }
 }
@@ -504,7 +513,7 @@ static void diagTagEnd(mps_lib_FILE *stream, const char *tag)
     filterStream_TagEnd(stream, tag);
   } else {
     Res res;
-    res = WriteF(stream, "} MPS.$S\n", tag, NULL);
+    res = WriteF(stream, DIAG_PREFIX_TAGEND "}\n", tag, NULL);
     AVER(res == ResOK);
   }
 }
