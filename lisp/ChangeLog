@@ -4,6 +4,7 @@
 	(bad-package-check): New function.  Together, these two add
 	elements to `after-load-alist' to check for problematic external
 	packages.
+	* emulation/cua-base.el: Move CUA-mode check to `bad-packages-alist'.
 
 2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
