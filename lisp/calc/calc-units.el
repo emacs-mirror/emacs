@@ -321,13 +321,65 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 			  (math-simplify-units
 			   (math-mul expr (nth pos units))))))))
 
+(defun math-get-standard-units (expr)
+  "Return the standard units in EXPR."
+  (math-simplify-units
+   (math-extract-units
+    (math-to-standard-units expr nil))))
+
+(defun math-get-units (expr)
+  "Return the units in EXPR."
+  (math-simplify-units
+   (math-extract-units expr)))
+
+(defun math-make-unit-string (expr)
+  "Return EXPR in string form.
+If EXPR is nil, return nil."
+  (if expr
+      (let ((cexpr (math-compose-expr expr 0)))
+        (if (stringp cexpr)
+            cexpr
+          (math-composition-to-string cexpr)))))
+
+(defvar math-default-units-table 
+  (make-hash-table :test 'equal)
+  "A table storing previously converted units.")
+
+(defun math-get-default-units (expr)
+  "Get default units to use when converting the units in EXPR."
+  (let* ((units (math-get-units expr))
+         (standard-units (math-get-standard-units expr))
+         (default-units (gethash 
+                         standard-units
+                         math-default-units-table)))
+    (if (equal units (car default-units))
+        (math-make-unit-string (cadr default-units))
+      (math-make-unit-string (car default-units)))))
+
+(defun math-put-default-units (expr)
+  "Put the units in EXPR in the default units table."
+  (let* ((units (math-get-units expr))
+         (standard-units (math-get-standard-units expr))
+         (default-units (gethash
+                         standard-units
+                         math-default-units-table)))
+    (cond
+     ((not default-units)
+      (puthash standard-units (list units) math-default-units-table))
+     ((not (equal units (car default-units)))
+      (puthash standard-units
+               (list units (car default-units))
+               math-default-units-table)))))
+
+
 (defun calc-convert-units (&optional old-units new-units)
   (interactive)
   (calc-slow-wrapper
    (let ((expr (calc-top-n 1))
 	 (uoldname nil)
 	 unew
-         units)
+         units
+         defunits)
      (unless (math-units-in-expr-p expr t)
        (let ((uold (or old-units
 		       (progn
@@ -343,16 +395,31 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	   (error "Bad format in units expression: %s" (nth 1 uold)))
 	 (setq expr (math-mul expr uold))))
      (unless new-units
-       (setq new-units (read-string (if uoldname
-					(concat "Old units: "
-						uoldname
-						", new units: ")
-				      "New units: "))))
+       (setq defunits (math-get-default-units expr))
+       (setq new-units 
+             (read-string (concat
+                           (if uoldname
+                               (concat "Old units: "
+                                       uoldname
+                                       ", new units")
+                            "New units")
+                           (if defunits
+                               (concat
+                                " (default: "
+                                defunits
+                                "): ")
+                             ": "))))
+                             
+       (if (and
+            (string= new-units "")
+            defunits)
+           (setq new-units defunits)))
      (when (string-match "\\` */" new-units)
        (setq new-units (concat "1" new-units)))
      (setq units (math-read-expr new-units))
      (when (eq (car-safe units) 'error)
        (error "Bad format in units expression: %s" (nth 2 units)))
+     (math-put-default-units units)
      (let ((unew (math-units-in-expr-p units t))
 	   (std (and (eq (car-safe units) 'var)
 		     (assq (nth 1 units) math-standard-units-systems))))
@@ -381,7 +448,8 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
    (let ((expr (calc-top-n 1))
 	 (uold nil)
 	 (uoldname nil)
-	 unew)
+	 unew
+         defunits)
      (setq uold (or old-units
 		    (let ((units (math-single-units-in-expr-p expr)))
 		      (if units
@@ -398,15 +466,24 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
        (error "Bad format in units expression: %s" (nth 2 uold)))
      (or (math-units-in-expr-p expr nil)
 	 (setq expr (math-mul expr uold)))
+     (setq defunits (math-get-default-units expr))
      (setq unew (or new-units
 		    (math-read-expr
-		     (read-string (if uoldname
-				      (concat "Old temperature units: "
-					      uoldname
-					      ", new units: ")
-				    "New temperature units: ")))))
+		     (read-string 
+                      (concat
+                       (if uoldname
+                           (concat "Old temperature units: "
+                                   uoldname
+                                   ", new units")
+                         "New temperature units")
+                       (if defunits
+                           (concat " (default: "
+                                   defunits
+                                   "): ")
+                         ": "))))))
      (when (eq (car-safe unew) 'error)
        (error "Bad format in units expression: %s" (nth 2 unew)))
+     (math-put-default-units unew)
      (calc-enter-result 1 "cvtm" (math-simplify-units
 				  (math-convert-temperature expr uold unew
 							    uoldname))))))
