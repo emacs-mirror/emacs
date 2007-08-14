@@ -5615,7 +5615,7 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 (defconst bad-packages-alist
   ;; Not sure exactly which semantic versions have problems.
   ;; Definitely 2.0pre3, probably all 2.0pre's before this.
-  '((semantic semantic-version "2\.0pre[1-3]"
+  '((semantic semantic-version "2\\.0pre[1-3]"
               "The version of `semantic' loaded does not work in Emacs 22.
 It can cause constant high CPU load.  Upgrade to at least 2.0pre4.")
     ;; CUA-mode does not work with GNU Emacs version 22.1 and newer.
