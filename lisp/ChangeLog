@@ -1,5 +1,10 @@
 2007-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/tpu-edt.el: Add tpu-extras's autoloads.
+	(tpu-gold-map, tpu-global-map): Comment-out the bindings to nil.
+	(tpu-gold-map): Bind F to tpu-cursor-free-mode.
+	(minibuffer-local-map): Use funkey symbols rather than esc-sequence.
+
 	* emulation/tpu-extras.el: Remove spurious * in docstrings.
 	Put its autoloads into tpu-edt.el rather than loaddefs.el.
 	(tpu-cursor-free-mode): Rename from tpu-cursor-free.
