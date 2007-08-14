@@ -1,3 +1,10 @@
+2007-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (bad-packages-alist): New constant.
+	(bad-package-check): New function.  Together, these two add
+	elements to `after-load-alist' to check for problematic external
+	packages.
+
 2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-get-standard-units)
