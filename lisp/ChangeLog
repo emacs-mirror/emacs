@@ -1,3 +1,10 @@
+2007-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (bad-packages-alist): New constant.
+	(bad-package-check): New function.  Together, these two add
+	elements to `after-load-alist' to check for problematic external
+	packages.
+
 2007-08-13  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* pcvs-parse.el (cvs-parse-table): Handle additional instance of
