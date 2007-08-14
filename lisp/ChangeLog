@@ -1,3 +1,12 @@
+2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-get-standard-units)
+	(math-get-units,math-make-unit-string)
+	(math-get-default-units,math-put-default-units): New functions.
+	(math-default-units-table): New variable.
+	(calc-convert-units, calc-convert-temperature): Add machinery
+	to supply default values.
+
 2007-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/tpu-edt.el: Add tpu-extras's autoloads.
