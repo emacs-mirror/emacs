@@ -1,3 +1,11 @@
+2007-08-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-standard-units): Update values.
+	Put in exact, rational values when possible.
+	(math-unit-prefixes): Replace floats with powers of ten.
+	(math-standard-units-systems): Replace floats with integers.
+	(math-make-unit-string): Remove extra spaces in output.
+
 2007-08-15  Glenn Morris  <rgm@gnu.org>
 
 	* mail/undigest.el (rmail-digest-parse-rfc1153sloppy): Be even
