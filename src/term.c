@@ -2238,6 +2238,9 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
 
 #ifndef WINDOWSNT
 
+/* Explicitly initialized here rather than in the function to work
+   around an HPUX compiler bug (?). See
+   http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00410.html  */
 static int default_max_colors = 0;
 static int default_max_pairs = 0;
 static int default_no_color_video = 0;
