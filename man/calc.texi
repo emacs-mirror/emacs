@@ -27443,6 +27443,14 @@ the above example, entering the units expression @samp{100 km/hr} and
 typing @kbd{u c @key{RET}} (without specifying new units) produces
 @samp{27.7777777778 m/s}.
 
+While many of Calc's conversion factors are exact, some are necessarily
+approximate.  If Calc is in fraction mode (@pxref{Fraction Mode}), then
+unit conversions will try to give exact, rational conversions, but it
+isn't always possible.  Given @samp{55 mph}, typing 
+@kbd{u c m/s @key{RET}} produces  @samp{15367:625 m/s}, for example, 
+while typing @kbd{u c au/yr @key{RET}} produces 
+@samp{5.18665819999e-3 au/yr}.
+
 If the units you request are inconsistent with the original units, the
 number will be converted into your units times whatever ``remainder''
 units are left over.  For example, converting @samp{55 mph} into acres
