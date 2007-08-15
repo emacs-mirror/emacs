@@ -2238,15 +2238,19 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
 
 #ifndef WINDOWSNT
 
+static int default_max_colors = 0;
+static int default_max_pairs = 0;
+static int default_no_color_video = 0;
+static char *default_orig_pair = NULL;
+static char *default_set_foreground = NULL;
+static char *default_set_background = NULL;
+
 /* Save or restore the default color-related capabilities of this
    terminal.  */
 static void
 tty_default_color_capabilities (save)
      int save;
 {
-  static char
-    *default_orig_pair, *default_set_foreground, *default_set_background;
-  static int default_max_colors, default_max_pairs, default_no_color_video;
 
   if (save)
     {
