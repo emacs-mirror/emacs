@@ -1,3 +1,9 @@
+2007-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/undigest.el (rmail-digest-parse-rfc1153sloppy): Be even
+	sloppier, for the sake of GNU Mailman.
+	(rmail-digest-rfc1153): Initialize `result' correctly.
+
 2007-08-15  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* mail/emacsbug.el (report-emacs-bug): Put `Bug: emacs-version; '
