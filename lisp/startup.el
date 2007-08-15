@@ -38,7 +38,20 @@
 
 (defgroup initialization nil
   "Emacs start-up procedure."
-  :group 'internal)
+  :group 'environment)
+
+(defcustom initial-buffer-choice nil
+  "Buffer to show after starting Emacs.
+If the value is nil and `inhibit-splash-screen' is nil, show the
+startup screen.  If the value is string, visit the specified file or
+directory using `find-file'.  If t, open the `*scratch*' buffer."
+  :type '(choice
+	  (const     :tag "Splash screen" nil)
+	  (directory :tag "Directory" :value "~/")
+	  (file      :tag "File" :value "~/file.txt")
+	  (const     :tag "Lisp scratch buffer" t))
+  :version "23.1"
+  :group 'initialization)
 
 (defcustom inhibit-splash-screen nil
   "Non-nil inhibits the startup screen.
@@ -1055,10 +1068,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (if (get-buffer "*scratch*")
       (with-current-buffer "*scratch*"
 	(if (eq major-mode 'fundamental-mode)
-	    (funcall initial-major-mode))
-	;; Don't lose text that users type in *scratch*.
-	(setq buffer-offer-save t)
-	(auto-save-mode 1)))
+	    (funcall initial-major-mode))))
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
@@ -1131,6 +1141,8 @@ regardless of the value of this variable."
   '((:face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
 	   :face variable-pitch
+	   :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+	   "\t\tLearn how to use Emacs efficiently"
            (lambda ()
              (let* ((en "TUTORIAL")
                     (tut (or (get-language-info current-language-environment
@@ -1144,37 +1156,31 @@ regardless of the value of this variable."
                              (buffer-substring (point-min) (1- (point))))))
                ;; If there is a specific tutorial for the current language
                ;; environment and it is not English, append its title.
-               (concat
-                "Emacs Tutorial\t\tLearn how to use Emacs efficiently"
-                (if (string= en tut)
-                    ""
-                  (concat " (" title ")"))
-                "\n")))
-           :face variable-pitch "\
-Emacs FAQ\t\tFrequently asked questions and answers
-View Emacs Manual\t\tView the Emacs manual using Info
-Absence of Warranty\tGNU Emacs comes with "
+               (if (string= en tut)
+                   ""
+                 (concat " (" title ")"))))
+	   "\n"
+	   :face variable-pitch
+	   :link ("Emacs FAQ" (lambda (button) (view-emacs-FAQ)))
+	   "\t\tFrequently asked questions and answers\n"
+	   :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
+	   "\t\tView the Emacs manual using Info\n"
+	   :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+	   "\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
-	   "\
-Copying Conditions\t\tConditions for redistributing and changing Emacs
-Getting New Versions\tHow to obtain the latest version of Emacs
-More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
-  (:face variable-pitch
-	 "\nTo quit a partially entered command, type "
-	 :face default
-	 "Control-g"
-	 :face variable-pitch
-	 ".
-
-Emacs Guided Tour\t\tSee http://www.gnu.org/software/emacs/tour/
-
-"
-	 :face (variable-pitch :weight bold)
+	   :link ("Copying Conditions" (lambda (button) (describe-copying)))
+	   "\t\tConditions for redistributing and changing Emacs\n"
+	   :link ("Getting New Versions" (lambda (button) (describe-distribution)))
+	   "\tHow to obtain the latest version of Emacs\n"
+	   :link ("More Manuals / Ordering Manuals" (lambda (button) (view-order-manuals)))
+	   "       Buying printed manuals from the FSF\n")
+  (:face (variable-pitch :weight bold)
 	 "Useful File menu items:\n"
 	 :face variable-pitch
-	 "Exit Emacs\t\t(Or type "
+	 :link ("Exit Emacs" (lambda (button) (save-buffers-kill-emacs)))
+	 "\t\t(Or type "
 	 :face default
 	 "Control-x"
 	 :face variable-pitch
@@ -1182,9 +1188,31 @@ Emacs Guided Tour\t\tSee http://www.gnu.org/software/emacs/tour/
 	 :face default
 	 "Control-c"
 	 :face variable-pitch
-	 ")
-Recover Crashed Session\tRecover files you were editing before a crash\n"
-	   ))
+	 ")\n"
+	 :link ("Recover Crashed Session" (lambda (button) (recover-session)))
+	 "\tRecover files you were editing before a crash\n\n"
+
+	 :face (variable-pitch :weight bold)
+	 "Useful tasks:\n"
+	 :face variable-pitch
+	 :link ("Visit New File"
+		(lambda (button) (call-interactively 'find-file)))
+	 "		Specify a new file's name, to edit the file\n"
+	 :link ("Open Home Directory"
+		(lambda (button) (dired "~")))
+	 "	Open your home directory, to operate on its files\n"
+	 :link ("Open *scratch* buffer"
+		(lambda (button) (switch-to-buffer (get-buffer-create "*scratch*"))))
+	 "	Open buffer for notes you don't want to save\n"
+	 :link ("Customize Startup"
+		(lambda (button) (customize-group 'initialization)))
+	 "		Change initialization settings including this screen\n"
+
+	 "\nEmacs Guided Tour\t\tSee "
+	 :link ("http://www.gnu.org/software/emacs/tour/"
+		(lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
+
+	 ))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
@@ -1216,13 +1244,22 @@ Values less than twice `fancy-splash-delay' are ignored."
 		 (file :tag "File")))
 
 
+(defvar fancy-splash-keymap
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (set-keymap-parent map button-buffer-map)
+
+    (define-key map " " 'fancy-splash-quit)
+    (define-key map "q" 'fancy-splash-quit)
+    map)
+  "Keymap for splash screen buffer.")
+
 ;; These are temporary storage areas for the splash screen display.
 
 (defvar fancy-current-text nil)
 (defvar fancy-splash-help-echo nil)
 (defvar fancy-splash-stop-time nil)
 (defvar fancy-splash-outer-buffer nil)
-(defvar fancy-splash-last-input-event nil)
 
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
@@ -1232,14 +1269,21 @@ where FACE is a valid face specification, as it can be used with
 `put-text-property'."
   (let ((current-face nil))
     (while args
-      (if (eq (car args) :face)
-	  (setq args (cdr args) current-face (car args))
-	(insert (propertize (let ((it (car args)))
-                              (if (functionp it)
-                                  (funcall it)
-                                it))
-			    'face current-face
-			    'help-echo fancy-splash-help-echo)))
+      (cond ((eq (car args) :face)
+	     (setq args (cdr args) current-face (car args)))
+	    ((eq (car args) :link)
+	     (setq args (cdr args))
+	     (let ((spec (car args)))
+	       (insert-button (car spec)
+			      'face (list 'link current-face)
+			      'action (cadr spec)
+			      'follow-link t)))
+	    (t (insert (propertize (let ((it (car args)))
+				     (if (functionp it)
+					 (funcall it)
+				       it))
+				   'face current-face
+				   'help-echo fancy-splash-help-echo))))
       (setq args (cdr args)))))
 
 
@@ -1279,7 +1323,7 @@ where FACE is a valid face specification, as it can be used with
 	      (throw 'exit nil)))
 	  (define-key map [down-mouse-2] 'ignore)
 	  (define-key map [up-mouse-2] 'ignore)
-	  (insert-image img (propertize "xxx" 'help-echo help-echo
+	  (insert-image img (propertize "[image]" 'help-echo help-echo
 					'keymap map)))
 	(insert "\n"))))
   (fancy-splash-insert
@@ -1291,19 +1335,22 @@ where FACE is a valid face specification, as it can be used with
   (fancy-splash-insert
    :face 'variable-pitch
    "You can do basic editing with the menu bar and scroll bar \
-using the mouse.\n\n")
+using the mouse.\n"
+   :face 'variable-pitch
+   "To quit a partially entered command, type "
+   :face 'default
+   "Control-g"
+   :face 'variable-pitch
+   "."
+   "\n\n")
   (when fancy-splash-outer-buffer
     (fancy-splash-insert
      :face 'variable-pitch
      "Type "
      :face 'default
-     "Control-l"
+     "`q'"
      :face 'variable-pitch
-     " to begin editing"
-     (if (equal (buffer-name fancy-splash-outer-buffer)
-		"*scratch*")
-	 ".\n"
-       " your file.\n"))))
+     " to exit from this screen.\n")))
 
 (defun fancy-splash-tail ()
   "Insert the tail part of the splash screen into the current buffer."
@@ -1343,7 +1390,8 @@ using the mouse.\n\n")
     (throw 'stop-splashing nil))
   (unless fancy-current-text
     (setq fancy-current-text fancy-splash-text))
-  (let ((text (car fancy-current-text)))
+  (let ((text (car fancy-current-text))
+	(inhibit-read-only t))
     (set-buffer buffer)
     (erase-buffer)
     (if pure-space-overflow
@@ -1360,73 +1408,30 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
     (force-mode-line-update)
     (setq fancy-current-text (cdr fancy-current-text))))
 
-
-(defun fancy-splash-default-action ()
-  "Stop displaying the splash screen buffer.
-This is an internal function used to turn off the splash screen after
-the user caused an input event by hitting a key or clicking with the
-mouse."
+(defun fancy-splash-quit ()
+  "Stop displaying the splash screen buffer."
   (interactive)
-  (if (and (memq 'down (event-modifiers last-command-event))
-	   (eq (posn-window (event-start last-command-event))
-	       (selected-window)))
-      ;; This is a mouse-down event in the spash screen window.
-      ;; Ignore it and consume the corresponding mouse-up event.
-      (read-event)
-    (push last-command-event unread-command-events))
-  (throw 'exit nil))
+  (if fancy-splash-outer-buffer
+      (throw 'exit nil)
+    (kill-buffer (current-buffer))))
 
-(defun fancy-splash-special-event-action ()
-  "Save the last event and stop displaying the splash screen buffer.
-This is an internal function used to turn off the splash screen after
-the user caused an input event that is bound in `special-event-map'"
-  (interactive)
-  (setq fancy-splash-last-input-event last-input-event)
-  (throw 'exit nil))
-
-
-(defun fancy-splash-screens (&optional hide-on-input)
+(defun fancy-splash-screens (&optional static)
   "Display fancy splash screens when Emacs starts."
-  (if hide-on-input
+  (if (not static)
       (let ((old-hourglass display-hourglass)
 	    (fancy-splash-outer-buffer (current-buffer))
 	    splash-buffer
-	    (old-minor-mode-map-alist minor-mode-map-alist)
-	    (old-emulation-mode-map-alists emulation-mode-map-alists)
-	    (old-special-event-map special-event-map)
 	    (frame (fancy-splash-frame))
 	    timer)
 	(save-selected-window
 	  (select-frame frame)
-	  (switch-to-buffer " GNU Emacs")
+	  (switch-to-buffer " About GNU Emacs")
 	  (make-local-variable 'cursor-type)
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect
-		(let ((map (make-sparse-keymap))
-		      (cursor-type nil))
-		  (use-local-map map)
-		  (define-key map [switch-frame] 'ignore)
-		  (define-key map [t] 'fancy-splash-default-action)
-		  (define-key map [mouse-movement] 'ignore)
-		  (define-key map [mode-line t] 'ignore)
-		  ;; Temporarily bind special events to
-		  ;; fancy-splash-special-event-action so as to stop
-		  ;; displaying splash screens with such events.
-		  ;; Otherwise, drag-n-drop into splash screens may
-		  ;; leave us in recursive editing with invisible
-		  ;; cursors for a while.
-		  (setq special-event-map (make-sparse-keymap))
-		  (map-keymap
-		   (lambda (key def)
-		     (define-key special-event-map (vector key)
-		       (if (eq def 'ignore)
-			   'ignore
-			 'fancy-splash-special-event-action)))
-		   old-special-event-map)
+		(let ((cursor-type nil))
 		  (setq display-hourglass nil
-			minor-mode-map-alist nil
-			emulation-mode-map-alists nil
 			buffer-undo-list t
 			mode-line-format (propertize "---- %b %-"
 						     'face 'mode-line-buffer-id)
@@ -1435,25 +1440,18 @@ the user caused an input event that is bound in `special-event-map'"
 			timer (run-with-timer 0 fancy-splash-delay
 					      #'fancy-splash-screens-1
 					      splash-buffer))
+		  (use-local-map fancy-splash-keymap)
 		  (message "%s" (startup-echo-area-message))
+		  (setq buffer-read-only t)
 		  (recursive-edit))
 	      (cancel-timer timer)
-	      (setq display-hourglass old-hourglass
-		    minor-mode-map-alist old-minor-mode-map-alist
-		    emulation-mode-map-alists old-emulation-mode-map-alists
-		    special-event-map old-special-event-map)
-	      (kill-buffer splash-buffer)
-	      (when fancy-splash-last-input-event
-		(setq last-input-event fancy-splash-last-input-event
-		      fancy-splash-last-input-event nil)
-		(command-execute (lookup-key special-event-map
-					     (vector last-input-event))
-				 nil (vector last-input-event) t))))))
-    ;; If hide-on-input is nil, don't hide the buffer on input.
+	      (setq display-hourglass old-hourglass)
+	      (kill-buffer splash-buffer)))))
+    ;; If static is non-nil, don't show fancy splash screen.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
-      (switch-to-buffer "*About GNU Emacs*"))
+      (switch-to-buffer " GNU Emacs"))
     (setq buffer-read-only nil)
     (erase-buffer)
     (if pure-space-overflow
@@ -1469,6 +1467,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
       (delete-region (point) (point-max))
       (insert "\n")
       (fancy-splash-tail)
+      (use-local-map fancy-splash-keymap)
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
       (if (and view-read-only (not view-mode))
@@ -1507,15 +1506,15 @@ we put it on this frame."
 	  (> frame-height (+ image-height 19)))))))
 
 
-(defun normal-splash-screen (&optional hide-on-input)
+(defun normal-splash-screen (&optional static)
   "Display splash screen when Emacs starts."
   (let ((prev-buffer (current-buffer)))
     (unwind-protect
-	(with-current-buffer (get-buffer-create "GNU Emacs")
+	(with-current-buffer (get-buffer-create " About GNU Emacs")
 	  (setq buffer-read-only nil)
 	  (erase-buffer)
 	  (set (make-local-variable 'tab-width) 8)
-	  (if hide-on-input
+	  (if (not static)
 	      (set (make-local-variable 'mode-line-format)
 		   (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
 
@@ -1533,13 +1532,10 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
                ", one component of the GNU/Linux operating system.\n"
              ", a part of the GNU operating system.\n"))
 
-	  (if hide-on-input
+	  (if (not static)
 	      (insert (substitute-command-keys
 		       (concat
-			"\nType \\[recenter] to begin editing"
-			(if (equal (buffer-name prev-buffer) "*scratch*")
-			    ".\n"
-			  " your file.\n")))))
+			"\nType \\[recenter] to quit from this screen.\n"))))
 
           (if (display-mouse-p)
               ;; The user can use the mouse to activate menus
@@ -1547,22 +1543,68 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
               (progn
                 (insert "\
 You can do basic editing with the menu bar and scroll bar using the mouse.
-To quit a partially entered command, type Control-g.
+To quit a partially entered command, type Control-g.\n")
 
-Useful File menu items:
-Exit Emacs		(or type Control-x followed by Control-c)
-Recover Crashed Session	Recover files you were editing before a crash
+		(insert "\nImportant Help menu items:\n")
+		(insert-button "Emacs Tutorial"
+			       'action (lambda (button) (help-with-tutorial))
+			       'follow-link t)
+		(insert "		Learn how to use Emacs efficiently\n")
+		(insert-button "Emacs FAQ"
+			       'action (lambda (button) (view-emacs-FAQ))
+			       'follow-link t)
+		(insert "		Frequently asked questions and answers\n")
+		(insert-button "Read the Emacs Manual"
+			       'action (lambda (button) (info-emacs-manual))
+			       'follow-link t)
+		(insert "	View the Emacs manual using Info\n")
+		(insert-button "\(Non)Warranty"
+			       'action (lambda (button) (describe-no-warranty))
+			       'follow-link t)
+		(insert "		GNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
+		(insert-button "Copying Conditions"
+			       'action (lambda (button) (describe-copying))
+			       'follow-link t)
+		(insert "	Conditions for redistributing and changing Emacs\n")
+		(insert-button "Getting New Versions"
+			       'action (lambda (button) (describe-distribution))
+			       'follow-link t)
+		(insert "	How to obtain the latest version of Emacs\n")
+		(insert-button "More Manuals / Ordering Manuals"
+			       'action (lambda (button) (view-order-manuals))
+			       'follow-link t)
+		(insert "    How to order printed manuals from the FSF\n")
 
-Important Help menu items:
-Emacs Tutorial		Learn how to use Emacs efficiently
-Emacs FAQ		Frequently asked questions and answers
-Read the Emacs Manual	View the Emacs manual using Info
-\(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
-Copying Conditions	Conditions for redistributing and changing Emacs
-Getting New Versions	How to obtain the latest version of Emacs
-More Manuals / Ordering Manuals    How to order printed manuals from the FSF
-")
-                (insert "\n\n" (emacs-version)
+		(insert "\nUseful File menu items:\n")
+		(insert-button "Exit Emacs"
+			       'action (lambda (button) (save-buffers-kill-emacs))
+			       'follow-link t)
+		(insert "		(or type Control-x followed by Control-c)\n")
+		(insert-button "Recover Crashed Session"
+			       'action (lambda (button) (recover-session))
+			       'follow-link t)
+		(insert "	Recover files you were editing before a crash\n")
+
+		(insert "\nUseful tasks:\n")
+		(insert-button "Visit New File"
+			       'action (lambda (button) (call-interactively 'find-file))
+			       'follow-link t)
+		(insert "		Specify a new file's name, to edit the file\n")
+		(insert-button "Open Home Directory"
+			       'action (lambda (button) (dired "~"))
+			       'follow-link t)
+		(insert "	Open your home directory, to operate on its files\n")
+		(insert-button "Open *scratch* buffer"
+			       'action (lambda (button) (switch-to-buffer
+							 (get-buffer-create "*scratch*")))
+			       'follow-link t)
+		(insert "	Open buffer for notes you don't want to save\n")
+		(insert-button "Customize Startup"
+			       'action (lambda (button) (customize-group 'initialization))
+			       'follow-link t)
+		(insert "	Change initialization settings including this screen\n")
+
+                (insert "\n" (emacs-version)
                         "\n" emacs-copyright))
 
             ;; No mouse menus, so give help using kbd commands.
@@ -1609,7 +1651,27 @@ Activate menubar     \\[tmm-menubar]")))
 \(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
 If you have no Meta key, you may instead type ESC followed by the character.)")
 
-            (insert "\n\n" (emacs-version)
+	    ;; Insert links to useful tasks
+	    (insert "\n\nUseful tasks (move point to the link and press RET):\n")
+	    (insert-button "Visit New File"
+			   'action (lambda (button) (call-interactively 'find-file))
+			   'follow-link t)
+	    (insert "		Specify a new file's name, to edit the file\n")
+	    (insert-button "Open Home Directory"
+			   'action (lambda (button) (dired "~"))
+			   'follow-link t)
+	    (insert "	Open your home directory, to operate on its files\n")
+	    (insert-button "Open *scratch* buffer"
+			   'action (lambda (button) (switch-to-buffer
+						     (get-buffer-create "*scratch*")))
+			   'follow-link t)
+	    (insert "	Open buffer for notes you don't want to save\n")
+	    (insert-button "Customize Startup"
+			   'action (lambda (button) (customize-group 'initialization))
+			   'follow-link t)
+	    (insert "	Change initialization settings including this screen\n")
+
+            (insert "\n" (emacs-version)
                     "\n" emacs-copyright)
 
             (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
@@ -1647,7 +1709,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
                 t)
                (insert "\n\nIf an Emacs session crashed recently, "
                        "type Meta-x recover-session RET\nto recover"
-                       " the files you were editing."))
+                       " the files you were editing.\n"))
+
+	  (use-local-map button-buffer-map)
 
           ;; Display the input that we set up in the buffer.
           (set-buffer-modified-p nil)
@@ -1655,10 +1719,10 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  (if (and view-read-only (not view-mode))
 	      (view-mode-enter nil 'kill-buffer))
           (goto-char (point-min))
-          (if hide-on-input
+          (if (not static)
               (if (or (window-minibuffer-p)
                       (window-dedicated-p (selected-window)))
-                  ;; If hide-on-input is nil, creating a new frame will
+                  ;; If static is nil, creating a new frame will
                   ;; generate enough events that the subsequent `sit-for'
                   ;; will immediately return anyway.
                   nil ;; (pop-to-buffer (current-buffer))
@@ -1670,10 +1734,10 @@ Type \\[describe-distribution] for information on getting the latest version."))
             ;; In case the window is dedicated or something.
             (error (pop-to-buffer (current-buffer))))))
       ;; Unwind ... ensure splash buffer is killed
-      (if hide-on-input
-	  (kill-buffer "GNU Emacs")
-	(switch-to-buffer "GNU Emacs")
-	(rename-buffer "*About GNU Emacs*" t)))))
+      (if (not static)
+	  (kill-buffer " About GNU Emacs")
+	(switch-to-buffer " About GNU Emacs")
+	(rename-buffer " GNU Emacs" t)))))
 
 
 (defun startup-echo-area-message ()
@@ -1689,16 +1753,17 @@ Type \\[describe-distribution] for information on getting the latest version."))
     (message "%s" (startup-echo-area-message))))
 
 
-(defun display-splash-screen (&optional hide-on-input)
+(defun display-splash-screen (&optional static)
   "Display splash screen according to display.
 Fancy splash screens are used on graphic displays,
 normal otherwise.
 With a prefix argument, any user input hides the splash screen."
   (interactive "P")
   (if (use-fancy-splash-screens-p)
-      (fancy-splash-screens hide-on-input)
-    (normal-splash-screen hide-on-input)))
+      (fancy-splash-screens static)
+    (normal-splash-screen static)))
 
+(defalias 'about-emacs 'display-splash-screen)
 
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
@@ -1958,8 +2023,15 @@ With a prefix argument, any user input hides the splash screen."
            (or (get-buffer-window first-file-buffer)
                (list-buffers)))))
 
+  (when initial-buffer-choice
+    (cond ((eq initial-buffer-choice t)
+	   (switch-to-buffer (get-buffer-create "*scratch*")))
+	  ((stringp initial-buffer-choice)
+	   (find-file initial-buffer-choice))))
+
   ;; Maybe display a startup screen.
   (unless (or inhibit-startup-message
+	      initial-buffer-choice
 	      noninteractive
 	      emacs-quick-startup)
     ;; Display a startup screen, after some preparations.
