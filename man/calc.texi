@@ -27446,7 +27446,7 @@ typing @kbd{u c @key{RET}} (without specifying new units) produces
 While many of Calc's conversion factors are exact, some are necessarily
 approximate.  If Calc is in fraction mode (@pxref{Fraction Mode}), then
 unit conversions will try to give exact, rational conversions, but it
-isn't always possible.  Given @samp{55 mph}, typing 
+isn't always possible.  Given @samp{55 mph} in fraction mode, typing 
 @kbd{u c m/s @key{RET}} produces  @samp{15367:625 m/s}, for example, 
 while typing @kbd{u c au/yr @key{RET}} produces 
 @samp{5.18665819999e-3 au/yr}.
