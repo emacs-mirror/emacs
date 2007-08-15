@@ -1,3 +1,41 @@
+2007-08-15  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (initialization): Change parent group from `internal'
+	to `environment'.
+	(initial-buffer-choice): New variable.
+	(command-line): Revert 2007-07-02 change that sets
+	buffer-offer-save in *scratch* and enables auto-save in it.
+	(fancy-splash-text): Add links to existing items.  Add new items
+	with links for useful tasks.  Move information about Control-g to
+	fancy-splash-head.  Move "Emacs Guided Tour" to the end.
+	(fancy-splash-keymap): New variable.
+	(fancy-splash-last-input-event): Remove variable.
+	(fancy-splash-insert): Add processing of `:link' element.
+	(fancy-splash-head): Replace "Type Control-l to begin editing"
+	with "Type `q' to exit".
+	(fancy-splash-screens-1): Let-bind inhibit-read-only to t.
+	(fancy-splash-default-action, fancy-splash-special-event-action):
+	Remove functions.
+	(fancy-splash-quit): New function.
+	(fancy-splash-screens): Rename input arg from `hide-on-input' to
+	`static' and reverse the condition of its usage.  Don't preserve
+	original values of `minor-mode-map-alist',
+	`emulation-mode-map-alists', `special-event-map'.
+	Rename startup-buffer from "*About GNU Emacs*" to " GNU Emacs".
+	Rename about-buffer from " GNU Emacs" to " About GNU Emacs".
+	Remove processing of special events.  Use local key map
+	`fancy-splash-keymap'.  Set buffer to read-only.
+	(normal-splash-screen): Rename input arg from `hide-on-input' to
+	`static' and reverse the condition of its usage.
+	Rename startup-buffer from "*About GNU Emacs*" to " GNU Emacs".
+	Rename about-buffer from " GNU Emacs" to " About GNU Emacs".
+	Add links to existing items.  Add new items with links for useful
+	tasks.  Use local key map `fancy-splash-keymap'.
+	(display-splash-screen): Rename input arg from `hide-on-input' to
+	`static'.
+	(about-emacs): Add alias to display-splash-screen.
+	(command-line-1): Use `initial-buffer-choice'.
+
 2007-08-15  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-standard-units): Update values.
