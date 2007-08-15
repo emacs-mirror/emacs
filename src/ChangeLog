@@ -1,3 +1,8 @@
+2007-08-15  Philippe Waroquiers  <philippe.waroquiers@eurocontrol.int>
+
+	* term.c (tty_default_color_capabilities): Explicitly initialize
+	static variables in file scope, to avoid HPUX compiler problem.
+
 2007-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Use -1 as index
