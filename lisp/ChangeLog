@@ -9,7 +9,7 @@
 	* mail/emacsbug.el (report-emacs-bug): Put `Bug: emacs-version; '
 	in the mail title.  Suggested by Reiner Steib.
 
-2007-08-14  Chris Hecker  <checker@d6.com> (tiny change)
+2007-08-14  Chris Hecker  <checker@d6.com>  (tiny change)
 
 	* calc/calc-aent.el (calc-do-quick-calc): Add binary
 	representation of integers to the list of outputs.
