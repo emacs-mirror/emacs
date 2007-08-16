@@ -36,6 +36,10 @@
 	(about-emacs): Add alias to display-splash-screen.
 	(command-line-1): Use `initial-buffer-choice'.
 
+	* menu-bar.el (menu-bar-help-menu):
+	* term/mac-win.el (mac-apple-event-map): Bind About Emacs menu
+	item to about-emacs instead of display-splash-screen.
+
 2007-08-15  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-standard-units): Update values.
