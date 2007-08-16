@@ -1,3 +1,7 @@
+2007-08-16  Glenn Morris  <rgm@gnu.org>
+
+	* ps-print.el (ps-font-size): Doc fix.
+
 2007-08-16  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-names-regexp): Add custom group.
