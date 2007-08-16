@@ -2869,7 +2869,8 @@ uses the fonts resident in your printer."
   :group 'ps-print-font)
 
 (defcustom ps-font-size   '(7 . 8.5)
-  "*Font size, in points, for ordinary text, when generating PostScript."
+  "*Font size, in points, for ordinary text, when generating PostScript.
+Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Ordinary Text Font Size"
 		 :tag "Ordinary Text Font Size"
 		 (number :tag "Text Size")
