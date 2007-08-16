@@ -2073,7 +2073,7 @@ then strings and vectors are not accepted.  */)
 
   /* Strings and vectors are keyboard macros.  */
   if (STRINGP (fun) || VECTORP (fun))
-    return NILP (for_call_interactively) ? Qt : Qnil;
+    return (NILP (for_call_interactively) ? Qt : Qnil);
 
   /* Lists may represent commands.  */
   if (!CONSP (fun))
