@@ -1,3 +1,7 @@
+2007-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl-transform-lambda): Preserve the match-data.
+
 2007-08-16  Glenn Morris  <rgm@gnu.org>
 
 	* ps-print.el (ps-font-size): Doc fix.
