@@ -1381,7 +1381,7 @@ key, a click, or a menu-item"))
 				 data-directory))
     (goto-address)))
 (define-key menu-bar-help-menu [about]
-  '(menu-item "About Emacs" display-splash-screen
+  '(menu-item "About Emacs" about-emacs
 	      :help "Display version number, copyright info, and basic help"))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
