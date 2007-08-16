@@ -1,3 +1,9 @@
+2007-08-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-font-size, ps-header-font-size)
+	(ps-header-title-font-size, ps-footer-font-size)
+	(ps-line-number-font-size): Docstring fix.
+
 2007-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-send): Handle CTRL-D more carefully.
