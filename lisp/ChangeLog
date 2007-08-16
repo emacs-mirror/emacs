@@ -1,3 +1,7 @@
+2007-08-16  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-names-regexp): Add custom group.
+
 2007-08-15  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (initialization): Change parent group from `internal'
@@ -385,14 +389,6 @@
 	* simple.el (default-indent-new-line): New function.
 	It calls comment-line-break-function if there are comments.
 	(do-auto-fill): Use that.
-
-2007-08-07  Ivan Kanis  <apple@kanis.eu>
-
-	* time.el (display-time-world-mode, display-time-world-display)
-	(display-time-world, display-time-world-list)
-	(display-time-world-time-format, display-time-world-buffer-name)
-	(display-time-world-timer-enable, display-time-world-timer-second)
-	(display-time-world-mode-map): New.
 
 2007-08-07  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
