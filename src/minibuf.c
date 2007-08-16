@@ -1288,11 +1288,14 @@ is used to further constrain the set of candidates.  */)
   int bestmatchsize = 0;
   /* These are in bytes, too.  */
   int compare, matchsize;
-  int type = (HASH_TABLE_P (collection) ? 3
-	      : VECTORP (collection) ? 2
-	      : NILP (collection) || (CONSP (collection)
-				      && (!SYMBOLP (XCAR (collection))
-					  || NILP (XCAR (collection)))));
+  enum { function_table, list_table, obarray_table, hash_table}
+    type = (HASH_TABLE_P (collection) ? hash_table
+	    : VECTORP (collection) ? obarray_table
+	    : ((NILP (collection)
+		|| (CONSP (collection)
+		    && (!SYMBOLP (XCAR (collection))
+			|| NILP (XCAR (collection)))))
+	       ? list_table : function_table));
   int index = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
@@ -1300,7 +1303,7 @@ is used to further constrain the set of candidates.  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   CHECK_STRING (string);
-  if (type == 0)
+  if (type == function_table)
     return call3 (collection, string, predicate, Qnil);
 
   bestmatch = bucket = Qnil;
@@ -1308,7 +1311,7 @@ is used to further constrain the set of candidates.  */)
 
   /* If COLLECTION is not a list, set TAIL just for gc pro.  */
   tail = collection;
-  if (type == 2)
+  if (type == obarray_table)
     {
       collection = check_obarray (collection);
       obsize = XVECTOR (collection)->size;
@@ -1322,7 +1325,7 @@ is used to further constrain the set of candidates.  */)
       /* elt gets the alist element or symbol.
 	 eltstring gets the name to check as a completion. */
 
-      if (type == 1)
+      if (type == list_table)
 	{
 	  if (!CONSP (tail))
 	    break;
@@ -1330,7 +1333,7 @@ is used to further constrain the set of candidates.  */)
 	  eltstring = CONSP (elt) ? XCAR (elt) : elt;
 	  tail = XCDR (tail);
 	}
-      else if (type == 2)
+      else if (type == obarray_table)
 	{
 	  if (!EQ (bucket, zero))
 	    {
@@ -1351,7 +1354,7 @@ is used to further constrain the set of candidates.  */)
 	      continue;
 	    }
 	}
-      else /* if (type == 3) */
+      else /* if (type == hash_table) */
 	{
 	  while (index < HASH_TABLE_SIZE (XHASH_TABLE (collection))
 		 && NILP (HASH_HASH (XHASH_TABLE (collection), index)))
@@ -1405,15 +1408,17 @@ is used to further constrain the set of candidates.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
-		  if (bindcount >= 0) {
-		    unbind_to (bindcount, Qnil);
-		    bindcount = -1;
-		  }
+		  if (bindcount >= 0)
+		    {
+		      unbind_to (bindcount, Qnil);
+		      bindcount = -1;
+		    }
 		  GCPRO4 (tail, string, eltstring, bestmatch);
-		  tem = type == 3
-		    ? call2 (predicate, elt,
-			     HASH_VALUE (XHASH_TABLE (collection), index - 1))
-		    : call1 (predicate, elt);
+		  tem = (type == hash_table
+			 ? call2 (predicate, elt,
+				  HASH_VALUE (XHASH_TABLE (collection),
+					      index - 1))
+			 : call1 (predicate, elt));
 		  UNGCPRO;
 		}
 	      if (NILP (tem)) continue;
