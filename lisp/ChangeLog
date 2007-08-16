@@ -1,3 +1,7 @@
+2007-08-16  Glenn Morris  <rgm@gnu.org>
+
+	* ps-print.el (ps-font-size): Doc fix.
+
 2007-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el: Don't fiddle with vc-handled-backend.
