@@ -2887,7 +2887,8 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-font)
 
 (defcustom ps-header-font-size       '(10 . 12)
-  "*Font size, in points, for text in the header, when generating PostScript."
+  "*Font size, in points, for text in the header, when generating PostScript.
+Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Header Font Size"
 		 :tag "Header Font Size"
 		 (number :tag "Header Size")
@@ -2898,7 +2899,8 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-font)
 
 (defcustom ps-header-title-font-size '(12 . 14)
-  "*Font size, in points, for the top line of text in header, in PostScript."
+  "*Font size, in points, for the top line of text in header, in PostScript.
+Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Header Title Font Size"
 		 :tag "Header Title Font Size"
 		 (number :tag "Header Title Size")
@@ -2915,7 +2917,8 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-font)
 
 (defcustom ps-footer-font-size       '(10 . 12)
-  "*Font size, in points, for text in the footer, when generating PostScript."
+  "*Font size, in points, for text in the footer, when generating PostScript.
+Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Footer Font Size"
 		 :tag "Footer Font Size"
 		 (number :tag "Footer Size")
@@ -2947,7 +2950,8 @@ Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :group 'ps-print-miscellany)
 
 (defcustom ps-line-number-font-size 6
-  "*Font size, in points, for line number, when generating PostScript."
+  "*Font size, in points, for line number, when generating PostScript.
+Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE)."
   :type '(choice :menu-tag "Line Number Font Size"
 		 :tag "Line Number Font Size"
 		 (number :tag "Font Size")
