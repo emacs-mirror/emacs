@@ -56,6 +56,10 @@ to a remote display, e.g. because the display is about to become unreachable.
 
 * Startup Changes in Emacs 23.1
 
+** New user option `initial-buffer-choice' specifies what to display
+after starting Emacs: startup screen, *scratch* buffer, visiting a
+file or directory.
+
 
 * Incompatible Editing Changes in Emacs 23.1
 
