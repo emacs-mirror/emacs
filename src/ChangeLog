@@ -1,3 +1,11 @@
+2007-08-16  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (Fcommandp): Add parens to clarify.
+
+	* minibuf.c (Fall_completions): Use enum for type of table.
+
+	* emacs.c (USAGE2): Improve text.
+
 2007-08-15  Philippe Waroquiers  <philippe.waroquiers@eurocontrol.int>
 
 	* term.c (tty_default_color_capabilities): Explicitly initialize
