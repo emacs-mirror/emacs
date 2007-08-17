@@ -7,7 +7,8 @@
 2007-08-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* mail/emacsbug.el (report-emacs-bug): Remove the last number of
-	`emacs-version', use the topic prefix ``version; ''.
+	`emacs-version', use the topic prefix ``version; ''.  Make MS-DOS
+	a special case (there's no build number).
 
 2007-08-17  T. V. Raman  <raman@users.sf.net>  (tiny change)
 
