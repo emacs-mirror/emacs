@@ -1,4 +1,4 @@
-2007-08-09  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-18  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-indent-calculate-last): Remove.
 	(meta-indent-current-nesting): Use a computation of the nesting
@@ -8,7 +8,7 @@
 	(meta-indent-unfinished-line): Tell if the current line ends with
 	a finished expression.
 	(meta-indent-looking-at-code): Like `looking-at', but checks if
-	the point is a string before.
+	the point is in a string before.
 	(meta-indent-level-count): Use it.  Don't count parenthesis as it's
 	done in the nesting function.
 	(meta-indent-in-string-p): Tell if the current point is in a
