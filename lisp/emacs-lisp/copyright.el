@@ -96,7 +96,9 @@ When this is `function', only ask when called non-interactively."
 	  (re-search-forward (concat "\\(" copyright-regexp
 				     "\\)\\([ \t]*\n\\)?.*\\(?:"
 				     copyright-names-regexp "\\)")
-			     (if copyright-limit (+ (point) copyright-limit))
+			     (if copyright-limit
+                                 (+ (point) copyright-limit)
+                               t)
 			     t)
 	;; In case the regexp is rejected.  This is useful because
 	;; copyright-update is typically called from before-save-hook where
