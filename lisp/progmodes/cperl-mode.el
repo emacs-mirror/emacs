@@ -3736,8 +3736,12 @@ Should be called with the point before leading colon of an attribute."
 	(set-syntax-table reset-st))))
 
 (defsubst cperl-look-at-leading-count (is-x-REx e)
-  (if (re-search-forward (concat "\\=" (if is-x-REx "[ \t\n]*" "") "[{?+*]")
-			 (1- e) t)	; return nil on failure, no moving
+  (if (and (> (point) e)
+	   ;; return nil on failure, no moving
+	   (re-search-forward (concat "\\="
+				      (if is-x-REx "[ \t\n]*" "")
+				      "[{?+*]")
+			      (1- e) t))
       (if (eq ?\{ (preceding-char)) nil
 	(cperl-postpone-fontification
 	 (1- (point)) (point)
@@ -3750,7 +3754,7 @@ If `cperl-pod-here-fontify' is not-nil after evaluation, will fontify
 the sections using `cperl-pod-head-face', `cperl-pod-face',
 `cperl-here-face'."
   (interactive)
- (or min (setq min (point-min)
+  (or min (setq min (point-min)
 		cperl-syntax-state nil
 		cperl-syntax-done-to min))
   (or max (setq max (point-max)))
@@ -4785,7 +4789,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		      (progn
 			(cperl-postpone-fontification
 			 (1- e1) e1 'face my-cperl-delimiters-face)
-			(if (assoc (char-after b) cperl-starters)
+			(if (and (not (eobp))
+				 (assoc (char-after b) cperl-starters))
 			    (progn
 			      (cperl-postpone-fontification
 			       b1 (1+ b1) 'face my-cperl-delimiters-face)
