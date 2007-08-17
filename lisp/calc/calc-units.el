@@ -89,7 +89,9 @@
     ( ozfl    "2 tbsp"               "Fluid Ounce" )
     ( floz    "2 tbsp"               "Fluid Ounce" )
     ( tbsp    "3 tsp"                "Tablespoon" )
-    ( tsp     "4.92892159373 ml"     "Teaspoon" ) ;; (approx) ESUWM
+    ;; ESUWM defines a US gallon as 231 in^3.
+    ;; That gives the following exact value for tsp.
+    ( tsp     "492892159375*10^(-11) ml" "Teaspoon" ) 
     ( vol     "tsp+tbsp+ozfl+cup+pt+qt+gal" "Gallons + ... + teaspoons" )
     ( galC    "galUK"                "Canadian Gallon" )
     ( galUK   "454609*10^(-5) L"     "UK Gallon" ) ;; NIST
