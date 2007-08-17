@@ -1,3 +1,8 @@
+2007-08-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* mail/emacsbug.el (report-emacs-bug): Remove the last number of
+	`emacs-version', use the topic prefix ``version; ''.
+
 2007-08-17  T. V. Raman  <raman@users.sf.net>  (tiny change)
 
 	* completion.el (symbol-under-point, symbol-before-point)
