@@ -1,3 +1,8 @@
+2007-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Position Info): Add index entry for face at point.
+	Mention that character faces are also displayed by "C-u C-x =".
+
 2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (NNTP): Mention nntp-xref-number-is-evil.
