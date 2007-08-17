@@ -6751,11 +6751,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           f = last_mouse_frame;
         else
           f = x_window_to_frame (dpyinfo, event.xbutton.window);
-        if (event.type == ButtonPress)
-          {
-            static int xxx = 0;
-            fprintf (stderr, "%d, F: %p\n", xxx++, f);
-          }
+
         if (f)
           {
             /* Is this in the tool-bar?  */
