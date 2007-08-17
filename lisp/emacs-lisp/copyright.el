@@ -91,8 +91,7 @@ When this is `function', only ask when called non-interactively."
   "String representing the current year.")
 
 (defsubst copyright-limit ()            ; re-search-forward BOUND
-  (or (not copyright-limit)
-      (+ (point) copyright-limit)))
+  (and copyright-limit (+ (point) copyright-limit)))
 
 (defun copyright-update-year (replace noquery)
   (when
