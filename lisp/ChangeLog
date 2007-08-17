@@ -1,3 +1,9 @@
+2007-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-get-file-structure): Make use
+	of the directory part when checking for an existing entry, to
+	handle files with same basename in different directories.
+
 2007-08-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-header-font-size, ps-header-title-font-size)
