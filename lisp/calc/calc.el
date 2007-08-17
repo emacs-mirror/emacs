@@ -229,7 +229,8 @@
     (c-mode . c)
     (c++-mode . c)
     (fortran-mode . fortran)
-    (f90-mode . fortran))
+    (f90-mode . fortran)
+    (texinfo-mode . calc-normal-language))
   "*Alist of major modes with appropriate Calc languages."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode") 
