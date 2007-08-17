@@ -568,7 +568,8 @@ But only if it is longer than `completion-min-length'."
                      (- cmpl-symbol-end cmpl-symbol-start))
                  (<= (- cmpl-symbol-end cmpl-symbol-start)
                      completion-max-length))
-            (buffer-substring cmpl-symbol-start cmpl-symbol-end))))))
+            (buffer-substring-no-properties
+             cmpl-symbol-start cmpl-symbol-end))))))
 
 ;; tests for symbol-under-point
 ;;  `^' indicates cursor pos. where value is returned
@@ -601,7 +602,8 @@ Returns nil if there isn't one longer than `completion-min-length'."
            ;; Return value if long enough.
            (if (>= cmpl-symbol-end
                    (+ cmpl-symbol-start completion-min-length))
-               (buffer-substring cmpl-symbol-start cmpl-symbol-end)))
+               (buffer-substring-no-properties
+                cmpl-symbol-start cmpl-symbol-end)))
           ((= cmpl-preceding-syntax ?w)
            ;; chars to ignore at end
            (let ((saved-point (point)))
@@ -621,7 +623,8 @@ Returns nil if there isn't one longer than `completion-min-length'."
                           (- cmpl-symbol-end cmpl-symbol-start))
                       (<= (- cmpl-symbol-end cmpl-symbol-start)
                           completion-max-length))
-                 (buffer-substring cmpl-symbol-start cmpl-symbol-end)))))))
+                 (buffer-substring-no-properties
+                  cmpl-symbol-start cmpl-symbol-end)))))))
 
 ;; tests for symbol-before-point
 ;;  `^' indicates cursor pos. where value is returned
@@ -670,7 +673,8 @@ Returns nil if there isn't one longer than `completion-min-length'."
                         (- cmpl-symbol-end cmpl-symbol-start))
                     (<= (- cmpl-symbol-end cmpl-symbol-start)
                         completion-max-length))
-               (buffer-substring cmpl-symbol-start cmpl-symbol-end))))))
+               (buffer-substring-no-properties
+                cmpl-symbol-start cmpl-symbol-end))))))
 
 ;; tests for symbol-before-point-for-complete
 ;;  `^' indicates cursor pos. where value is returned
