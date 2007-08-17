@@ -84,7 +84,10 @@ When this is `function', only ask when called non-interactively."
 
 (defun copyright-update-year (replace noquery)
   (when (re-search-forward copyright-regexp
-                           (if copyright-limit (+ (point) copyright-limit)) t)
+                           (if copyright-limit
+                               (+ (point) copyright-limit)
+                             t)
+                           t)
     ;; If the years are continued onto multiple lined
     ;; that are marked as comments, skip to the end of the years anyway.
     (while (save-excursion
@@ -164,7 +167,10 @@ interactively."
                 "\\(the Free Software Foundation;\
  either \\|; a\\^u eldono \\([0-9]+\\)a, ? a\\^u (la\\^u via	 \\)\
 version \\([0-9]+\\), or (at"
-                (if copyright-limit (+ (point) copyright-limit)) t)
+                (if copyright-limit
+                    (+ (point) copyright-limit)
+                  t)
+                t)
 	       (not (string= (match-string 3) copyright-current-gpl-version))
 	       (or noquery
 		   (y-or-n-p (concat "Replace GPL version by "
@@ -187,7 +193,10 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   (widen)
   (goto-char (point-min))
   (if (re-search-forward copyright-regexp
-                         (if copyright-limit (+ (point) copyright-limit)) t)
+                         (if copyright-limit
+                             (+ (point) copyright-limit)
+                           t)
+                         t)
       (let ((s (match-beginning 2))
 	    (e (copy-marker (1+ (match-end 2))))
 	    (p (make-marker))
