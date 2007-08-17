@@ -1,3 +1,9 @@
+2007-08-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* emacs-lisp/copyright.el (copyright-limit): New defsubst.
+	(copyright-update-year, copyright-update)
+	(copyright-fix-years): Use it.
+
 2007-08-17  Kimit Yada  <kimitto@gmail.com>  (tiny change)
 
 	* emacs-lisp/copyright.el (copyright-update-year):
