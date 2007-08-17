@@ -1,3 +1,9 @@
+2007-08-17  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* progmode/cperl-mode.el (cperl-look-at-leading-count)
+	(cperl-find-pods-heres): Fix an error when typing expressions like
+	`s{a}{b}'.
+
 2007-08-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* mail/emacsbug.el (report-emacs-bug): Remove the last number of
