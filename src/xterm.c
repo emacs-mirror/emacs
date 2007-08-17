@@ -6853,27 +6853,23 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
               }
 
             if (!tool_bar_p)
-              if (!dpyinfo->x_focus_frame
-                  || f == dpyinfo->x_focus_frame)
-                {
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-                  if (! popup_activated ())
+              if (! popup_activated ())
 #endif
-		    {
-		      if (ignore_next_mouse_click_timeout)
-			{
-			  if (event.type == ButtonPress
-			      && (int)(event.xbutton.time - ignore_next_mouse_click_timeout) > 0)
-			    {
-			      ignore_next_mouse_click_timeout = 0;
-			      construct_mouse_click (&inev.ie, &event.xbutton, f);
-			    }
-			  if (event.type == ButtonRelease)
-			    ignore_next_mouse_click_timeout = 0;
-			}
-		      else
-			construct_mouse_click (&inev.ie, &event.xbutton, f);
-		    }
+                {
+                  if (ignore_next_mouse_click_timeout)
+                    {
+                      if (event.type == ButtonPress
+                          && (int)(event.xbutton.time - ignore_next_mouse_click_timeout) > 0)
+                        {
+                          ignore_next_mouse_click_timeout = 0;
+                          construct_mouse_click (&inev.ie, &event.xbutton, f);
+                        }
+                      if (event.type == ButtonRelease)
+                        ignore_next_mouse_click_timeout = 0;
+                    }
+                  else
+                    construct_mouse_click (&inev.ie, &event.xbutton, f);
                 }
           }
         else
