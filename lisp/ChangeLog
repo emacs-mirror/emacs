@@ -1,3 +1,8 @@
+2007-08-17  Kimit Yada  <kimitto@gmail.com>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-update-year, copyright-update)
+	(copyright-fix-years): Fix bug: Handle nil copyright-limit.
+
 2007-08-17  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
 	* progmode/cperl-mode.el (cperl-look-at-leading-count)
