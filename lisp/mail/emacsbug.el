@@ -75,7 +75,8 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
   ;; The syntax `version;' is preferred to `[version]' because the
   ;; latter could be mistakenly stripped by mailing software.
-  (setq topic (concat "Bug: " emacs-version "; " topic))
+  (when (string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
+    (setq topic (concat (match-string 1 emacs-version) "; " topic)))
   ;; If there are four numbers in emacs-version, this is a pretest
   ;; version.
   (let* ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
