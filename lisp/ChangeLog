@@ -2,7 +2,8 @@
 
 	* ps-print.el (ps-font-size, ps-header-font-size)
 	(ps-header-title-font-size, ps-footer-font-size)
-	(ps-line-number-font-size): Docstring fix.
+	(ps-line-number-font-size, ps-line-spacing, ps-paragraph-spacing):
+	Docstring fix.
 
 2007-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
