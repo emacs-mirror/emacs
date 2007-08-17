@@ -1,3 +1,8 @@
+2007-08-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Remove check that mouse click is in
+	active frame.
+
 2007-08-15  Philippe Waroquiers  <philippe.waroquiers@eurocontrol.int>
 
 	* term.c (tty_default_color_capabilities): Declare static
