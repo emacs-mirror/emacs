@@ -1,3 +1,8 @@
+2007-08-17  Jay Belanger  <belanger@localhost.localdomain>
+
+	* calc/calc-units.el (math-standard-units): Give exact
+	conversion for tsp.
+
 2007-08-17  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
 	* progmode/cperl-mode.el (cperl-look-at-leading-count)
