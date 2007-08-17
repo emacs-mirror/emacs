@@ -1,7 +1,8 @@
 2007-08-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-header-font-size, ps-header-title-font-size)
-	(ps-footer-font-size, ps-line-number-font-size): Docstring fix.
+	(ps-footer-font-size, ps-line-number-font-size, ps-line-spacing)
+	(ps-paragraph-spacing): Docstring fix.
 
 2007-08-16  Glenn Morris  <rgm@gnu.org>
 
