@@ -1,3 +1,7 @@
+2007-08-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-language-alist): Add texinfo-mode.
+
 2007-08-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-header-font-size, ps-header-title-font-size)
