@@ -3362,6 +3362,8 @@ By default, this directory is the same as in the variable `data-directory'."
 (defcustom ps-line-spacing 0
   "*Specify line spacing, in points, for ordinary text.
 
+Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE).
+
 See also `ps-paragraph-spacing' and `ps-paragraph-regexp'.
 
 To get all lines with some spacing set both `ps-line-spacing' and
@@ -3377,6 +3379,8 @@ To get all lines with some spacing set both `ps-line-spacing' and
 
 (defcustom ps-paragraph-spacing 0
   "*Specify paragraph spacing, in points, for ordinary text.
+
+Either a float or a cons of floats (LANDSCAPE-SIZE . PORTRAIT-SIZE).
 
 See also `ps-line-spacing' and `ps-paragraph-regexp'.
 
