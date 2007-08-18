@@ -1,3 +1,22 @@
+2007-08-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/ada-mode.el (ada-create-syntax-table): Move
+	set-syntax-table from here to ...
+	(ada-mode): ... here.  Do not change global value of
+	comment-multi-line.  Call new function
+	ada-initialize-syntax-table-properties and add new function
+	ada-handle-syntax-table-properties to font-lock-mode-hook.
+	(ada-deactivate-properties, ada-initialize-properties): Replace
+	by new functions ...
+	(ada-handle-syntax-table-properties)
+	(ada-initialize-syntax-table-properties)
+	(ada-set-syntax-table-properties): ... to set up syntax-table
+	properties uniformly, independently from whether font-lock-mode
+	is enabled or not.  Handle read-only buffers and do not change
+	undo-list when setting syntax-table properties.
+	(ada-after-change-function): Use
+	ada-set-syntax-table-properties.
+
 2007-08-18  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-indent-calculate-last): Remove.
