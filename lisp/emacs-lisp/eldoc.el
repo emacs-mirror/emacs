@@ -264,30 +264,40 @@ Emacs Lisp mode) that support Eldoc.")
     ;; so we need to be careful that errors aren't ignored.
     (error (message "eldoc error: %s" err))))
 
-;; Return a string containing the function parameter list, or 1-line
-;; docstring if function is a subr and no arglist is obtainable from the
-;; docstring or elsewhere.
+;; FIXME improve doc-string.
 (defun eldoc-get-fnsym-args-string (sym &optional argument-index)
-  (let ((args nil)
-        (doc nil))
+  "Return a string containing the parameter list of the function SYM.
+If SYM is a subr and no arglist is obtainable from the docstring
+or elsewhere, return a 1-line docstring."
+  (let (args doc)
     (cond ((not (and sym (symbolp sym) (fboundp sym))))
-          ((and (eq sym (aref eldoc-last-data 0))
-                (eq 'function (aref eldoc-last-data 2)))
-           (setq doc (aref eldoc-last-data 1)))
+	  ((and (eq sym (aref eldoc-last-data 0))
+		(eq 'function (aref eldoc-last-data 2)))
+	   (setq doc (aref eldoc-last-data 1)))
 	  ((setq doc (help-split-fundoc (documentation sym t) sym))
 	   (setq args (car doc))
+	   ;; Remove any enclosing (), since e-function-argstring adds them.
 	   (string-match "\\`[^ )]* ?" args)
-	   (setq args (concat "(" (substring args (match-end 0))))
-	   (eldoc-last-data-store sym args 'function))
-          (t
-           (setq args (eldoc-function-argstring sym))))
-    (and args
-         argument-index
-         (setq doc (eldoc-highlight-function-argument sym args argument-index)))
-    doc))
+	   (setq args (substring args (match-end 0)))
+	   (if (string-match ")\\'" args)
+	       (setq args (substring args 0 -1))))
+	  (t
+	   (setq args (help-function-arglist sym))))
+    (if args
+	;; Stringify, and store before highlighting, downcasing, etc.
+	;; FIXME should truncate before storing.
+	(eldoc-last-data-store sym (setq args (eldoc-function-argstring args))
+			       'function)
+      (setq args doc))		  ; use stored value
+    ;; Change case, highlight, truncate.
+    (if args
+	(eldoc-highlight-function-argument
+	 ;; FIXME apply word by word, ignore &optional, &rest.
+	 sym (eldoc-function-argstring-format args) argument-index))))
 
 ;; Highlight argument INDEX in ARGS list for SYM.
-(defun eldoc-highlight-function-argument (sym args index)
+;; In the absence of INDEX, just call eldoc-docstring-format-sym-doc.
+(defun eldoc-highlight-function-argument (sym args &optional index)
   (let ((start          nil)
 	(end            0)
 	(argument-face  'bold))
@@ -298,7 +308,7 @@ Emacs Lisp mode) that support Eldoc.")
     ;;        (defun NAME ARGLIST [DOCSTRING] BODY...) case?
     ;;        The problem is there is no robust way to determine if
     ;;        the current argument is indeed a docstring.
-    (while (>= index 1)
+    (while (and index (>= index 1))
       (if (string-match "[^ ()]+" args end)
 	  (progn
 	    (setq start (match-beginning 0)
@@ -438,29 +448,31 @@ Emacs Lisp mode) that support Eldoc.")
            (error (setq defn nil))))
     defn))
 
-(defun eldoc-function-argstring (fn)
-  (eldoc-function-argstring-format (help-function-arglist fn)))
+(defun eldoc-function-argstring (arglist)
+  "Return ARGLIST as a string enclosed by ().
+ARGLIST is either a string, or a list of strings or symbols."
+  (cond ((stringp arglist))
+	((not (listp arglist))
+	 (setq arglist nil))
+	((symbolp (car arglist))
+	 (setq arglist
+	       (mapconcat (lambda (s) (symbol-name s))
+			  arglist " ")))
+	((stringp (car arglist))
+	 (setq arglist
+	       (mapconcat (lambda (s) s)
+			  arglist " "))))
+  (if arglist
+      (format "(%s)" arglist)))
 
-(defun eldoc-function-argstring-format (arglist)
-  (cond ((not (listp arglist))
-         (setq arglist nil))
-        ((symbolp (car arglist))
-         (setq arglist
-               (mapcar (function (lambda (s)
-                                   (if (memq s '(&optional &rest))
-                                       (symbol-name s)
-                                     (funcall eldoc-argument-case
-                                              (symbol-name s)))))
-                       arglist)))
-        ((stringp (car arglist))
-         (setq arglist
-               (mapcar (function (lambda (s)
-                                   (if (member s '("&optional" "&rest"))
-                                       s
-                                     (funcall eldoc-argument-case s))))
-                       arglist))))
-  (concat "(" (mapconcat 'identity arglist " ") ")"))
-
+(defun eldoc-function-argstring-format (argstring)
+  "Apply `eldoc-argument-case' to each word in argstring.
+The words \"&rest\", \"&optional\" are returned unchanged."
+  (mapconcat (lambda (s)
+	       (if (member s '("&optional" "&rest"))
+		   s
+		 (funcall eldoc-argument-case s)))
+	     (split-string argstring) " "))
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
 ;; area after every possible interactive command because some of them print
