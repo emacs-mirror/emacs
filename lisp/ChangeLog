@@ -1,3 +1,17 @@
+2007-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string): Convert
+	comment to basic doc string.  Also apply eldoc-argument-case in
+	the help-split-fundoc case.  Adapt for changed behavior of
+	eldoc-function-argstring, eldoc-function-argstring-format, and
+	eldoc-highlight-function-argument.
+	(eldoc-highlight-function-argument): Make INDEX argument
+	optional, just call eldoc-docstring-format-sym-doc if absent.
+	(eldoc-function-argstring): Change the behavior.  Now it converts
+	an argument list to a string.
+	(eldoc-function-argstring-format): Change the behavior.  Now it
+	applies `eldoc-argument-case' to a string.
+
 2007-08-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/ada-mode.el (ada-create-syntax-table): Move
