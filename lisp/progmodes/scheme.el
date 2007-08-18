@@ -156,6 +156,7 @@
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
   (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
+  (set (make-local-variable 'font-lock-comment-start-skip) ";+ *")
   (make-local-variable 'comment-column)
   (setq comment-column 40)
   (make-local-variable 'parse-sexp-ignore-comments)
