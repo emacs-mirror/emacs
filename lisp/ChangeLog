@@ -1,3 +1,8 @@
+2007-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/scheme.el (scheme-mode-variables): Set
+	font-lock-comment-start-skip.
+
 2007-08-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/ada-mode.el (ada-create-syntax-table): Move
