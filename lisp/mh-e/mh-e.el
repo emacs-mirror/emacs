@@ -2396,8 +2396,8 @@ of citations entirely, choose \"None\"."
     "Bestservhost:"
     "Cancel-Key:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Cancel-Lock:"                      ; NNTP posts
-;;    "Comment:"                        ; Lets keep this one
-    "Comments:"                         ; RFC 2822
+    "Comment:"                          ; Shows up with DomainKeys
+;;    "Comments:"                       ; RFC 2822 - show this one
     "Content-"                          ; RFC 2045, 1123, 1766, 1864, 2045, 2110, 2156, 2183, 2912
     "Control:"                          ; RFC 1036
     "Conversion-With-Loss:"             ; RFC 2156
