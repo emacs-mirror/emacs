@@ -1612,31 +1612,67 @@ To quit a partially entered command, type Control-g.\n")
                      (eq (key-binding "\C-hi") 'info)
                      (eq (key-binding "\C-hr") 'info-emacs-manual)
                      (eq (key-binding "\C-h\C-n") 'view-emacs-news))
-                (insert "
+                (progn
+		  (insert "
 Get help	   C-h  (Hold down CTRL and press h)
-Emacs manual	   C-h r           Browse manuals   C-h i
-Emacs tutorial	   C-h t           Undo changes     C-x u
-Buy manuals        C-h C-m         Exit Emacs	    C-x C-c")
+")
+		  (insert-button "Emacs manual"
+				 'action (lambda (button) (info-emacs-manual))
+				 'follow-link t)
+		  (insert "	   C-h r           ")
+		  (insert-button "Browse manuals"
+				 'action (lambda (button) (Info-directory))
+				 'follow-link t)
+		  (insert "   C-h i
+")
+		  (insert-button "Emacs tutorial"
+				 'action (lambda (button) (help-with-tutorial))
+				 'follow-link t)
+		  (insert "	   C-h t           Undo changes     C-x u
+")
+		  (insert-button "Buy manuals"
+				 'action (lambda (button) (view-order-manuals))
+				 'follow-link t)
+		  (insert "        C-h C-m         Exit Emacs	    C-x C-c"))
 
-              (insert (substitute-command-keys
-                       (format "
+	      (insert (format "
 Get help	   %s
-Emacs manual	   \\[info-emacs-manual]\tBrowse manuals\t\\[info]
-Emacs tutorial	   \\[help-with-tutorial]\tUndo changes\t\\[advertised-undo]
-Buy manuals        \\[view-order-manuals]\tExit Emacs\t\\[save-buffers-kill-emacs]"
-                               (let ((where (where-is-internal
-                                             'help-command nil t)))
-                                 (if where
-                                     (key-description where)
-                                   "M-x help"))))))
+"
+			      (let ((where (where-is-internal
+					    'help-command nil t)))
+				(if where
+				    (key-description where)
+				  "M-x help"))))
+	      (insert-button "Emacs manual"
+			     'action (lambda (button) (info-emacs-manual))
+			     'follow-link t)
+	      (insert (substitute-command-keys"	   \\[info-emacs-manual]\t"))
+	      (insert-button "Browse manuals"
+			     'action (lambda (button) (Info-directory))
+			     'follow-link t)
+	      (insert (substitute-command-keys "\t\\[info]
+"))
+	      (insert-button "Emacs tutorial"
+			     'action (lambda (button) (help-with-tutorial))
+			     'follow-link t)
+	      (insert (substitute-command-keys
+		       "	   \\[help-with-tutorial]\tUndo changes\t\\[advertised-undo]
+"))
+	      (insert-button "Buy manuals"
+			     'action (lambda (button) (view-order-manuals))
+			     'follow-link t)
+	      (insert (substitute-command-keys
+		       "        \\[view-order-manuals]\tExit Emacs\t\\[save-buffers-kill-emacs]")))
 
             ;; Say how to use the menu bar with the keyboard.
+	    (insert "\n")
+	    (insert-button "Activate menubar"
+			   'action (lambda (button) (tmm-menubar))
+			   'follow-link t)
             (if (and (eq (key-binding "\M-`") 'tmm-menubar)
                      (eq (key-binding [f10]) 'tmm-menubar))
-                (insert "
-Activate menubar   F10  or  ESC `  or   M-`")
-              (insert (substitute-command-keys "
-Activate menubar     \\[tmm-menubar]")))
+                (insert "   F10  or  ESC `  or   M-`")
+              (insert (substitute-command-keys "     \\[tmm-menubar]")))
 
             ;; Many users seem to have problems with these.
             (insert "
@@ -1671,18 +1707,43 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
             (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
                      (eq (key-binding "\C-h\C-d") 'describe-distribution)
                      (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-                (insert
-                 "\n
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
+                (progn
+		  (insert
+		   "\n
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
+		  (insert-button "full details"
+				 'action (lambda (button) (describe-no-warranty))
+				 'follow-link t)
+		  (insert ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type C-h C-c to see the conditions.
-Type C-h C-d for information on getting the latest version.")
+of Emacs and modify it; type C-h C-c to see ")
+		  (insert-button "the conditions"
+				 'action (lambda (button) (describe-copying))
+				 'follow-link t)
+		  (insert ".
+Type C-h C-d for information on ")
+		  (insert-button "getting the latest version"
+				 'action (lambda (button) (describe-distribution))
+				 'follow-link t)
+		  (insert "."))
               (insert (substitute-command-keys
                        "\n
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
+	      (insert-button "full details"
+			     'action (lambda (button) (describe-no-warranty))
+			     'follow-link t)
+	      (insert (substitute-command-keys ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type \\[describe-copying] to see the conditions.
-Type \\[describe-distribution] for information on getting the latest version."))))
+of Emacs and modify it; type \\[describe-copying] to see "))
+	      (insert-button "the conditions"
+			     'action (lambda (button) (describe-copying))
+			     'follow-link t)
+	      (insert (substitute-command-keys".
+Type \\[describe-distribution] for information on "))
+	      (insert-button "getting the latest version"
+			     'action (lambda (button) (describe-distribution))
+			     'follow-link t)
+	      (insert ".")))
 
           ;; The rest of the startup screen is the same on all
           ;; kinds of terminals.
