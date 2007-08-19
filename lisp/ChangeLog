@@ -1,5 +1,9 @@
 2007-08-19  Juri Linkov  <juri@jurta.org>
 
+	* startup.el (normal-splash-screen): Add more links.
+
+2007-08-19  Juri Linkov  <juri@jurta.org>
+
 	* startup.el (splash-screen-keymap): Rename from `fancy-splash-keymap'
 	because it's common to both types of splash screen: fancy and normal.
 	Bind SPC to scroll-up, DEL to scroll-down and `q' to exit-splash-screen.
