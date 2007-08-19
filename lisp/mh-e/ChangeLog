@@ -1,5 +1,8 @@
 2007-08-19  Jeffrey C Honig  <jch@honig.net>
 
+	* mh-e.el (mh-invisible-header-fields-internal): We want to show
+	Comments: and hide Comment:, not the other way around.
+
 	* mh-mime.el (mh-mml-to-mime): GPG requires e-mail addresses, not
 	aliases.  So resolve aliases before passing addresses to GPG/PGP.
 	Closes SF #649226.
