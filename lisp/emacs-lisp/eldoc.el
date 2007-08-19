@@ -264,11 +264,15 @@ Emacs Lisp mode) that support Eldoc.")
     ;; so we need to be careful that errors aren't ignored.
     (error (message "eldoc error: %s" err))))
 
-;; FIXME improve doc-string.
-(defun eldoc-get-fnsym-args-string (sym &optional argument-index)
+(defun eldoc-get-fnsym-args-string (sym &optional index)
   "Return a string containing the parameter list of the function SYM.
 If SYM is a subr and no arglist is obtainable from the docstring
-or elsewhere, return a 1-line docstring."
+or elsewhere, return a 1-line docstring.  Calls the functions
+`eldoc-function-argstring-format' and
+`eldoc-highlight-function-argument' to format the result.  The
+former calls `eldoc-argument-case'; the latter gives the
+function name `font-lock-function-name-face', and optionally
+highlights argument number INDEX. "
   (let (args doc)
     (cond ((not (and sym (symbolp sym) (fboundp sym))))
 	  ((and (eq sym (aref eldoc-last-data 0))
@@ -292,12 +296,11 @@ or elsewhere, return a 1-line docstring."
     ;; Change case, highlight, truncate.
     (if args
 	(eldoc-highlight-function-argument
-	 ;; FIXME apply word by word, ignore &optional, &rest.
-	 sym (eldoc-function-argstring-format args) argument-index))))
+	 sym (eldoc-function-argstring-format args) index))))
 
-;; Highlight argument INDEX in ARGS list for SYM.
-;; In the absence of INDEX, just call eldoc-docstring-format-sym-doc.
-(defun eldoc-highlight-function-argument (sym args &optional index)
+(defun eldoc-highlight-function-argument (sym args index)
+  "Highlight argument INDEX in ARGS list for function SYM.
+In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
   (let ((start          nil)
 	(end            0)
 	(argument-face  'bold))
