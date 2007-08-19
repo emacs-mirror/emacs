@@ -1,3 +1,7 @@
+2007-08-19  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (Ffunction, Fquote): Signal error if not 1 argument.
+
 2007-08-19  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (pure): Round PURESIZE up.
