@@ -202,6 +202,8 @@ Lisp_Object Vmacro_declaration_function;
 
 extern Lisp_Object Qrisky_local_variable;
 
+extern Lisp_Object Qfunction;
+
 static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
 static void unwind_to_catch P_ ((struct catchtag *, Lisp_Object)) NO_RETURN;
 
@@ -539,7 +541,7 @@ usage: (setq [SYM VAL]...)  */)
   register Lisp_Object val, sym;
   struct gcpro gcpro1;
 
-  if (NILP(args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;
@@ -564,6 +566,8 @@ usage: (quote ARG)  */)
      (args)
      Lisp_Object args;
 {
+  if (!NILP (Fcdr (args)))
+    xsignal2 (Qwrong_number_of_arguments, Qquote, Flength (args));
   return Fcar (args);
 }
 
@@ -575,6 +579,8 @@ usage: (function ARG)  */)
      (args)
      Lisp_Object args;
 {
+  if (!NILP (Fcdr (args)))
+    xsignal2 (Qwrong_number_of_arguments, Qfunction, Flength (args));
   return Fcar (args);
 }
 
