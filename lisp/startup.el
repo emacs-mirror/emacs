@@ -1244,13 +1244,13 @@ Values less than twice `fancy-splash-delay' are ignored."
 		 (file :tag "File")))
 
 
-(defvar fancy-splash-keymap
+(defvar splash-screen-keymap
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (set-keymap-parent map button-buffer-map)
-
-    (define-key map " " 'fancy-splash-quit)
-    (define-key map "q" 'fancy-splash-quit)
+    (define-key map "\C-?" 'scroll-down)
+    (define-key map " " 'scroll-up)
+    (define-key map "q" 'exit-splash-screen)
     map)
   "Keymap for splash screen buffer.")
 
@@ -1313,18 +1313,12 @@ where FACE is a valid face specification, as it can be used with
 		   (eq (frame-parameter nil 'background-mode) 'dark))
 	  (setq img (append img '(:color-symbols (("#000000" . "gray30"))))))
 
-	;; Insert the image with a help-echo and a keymap.
-	(let ((map (make-sparse-keymap))
-	      (help-echo "mouse-2: browse http://www.gnu.org/"))
-	  (define-key map [mouse-2]
-	    (lambda ()
-	      (interactive)
-	      (browse-url "http://www.gnu.org/")
-	      (throw 'exit nil)))
-	  (define-key map [down-mouse-2] 'ignore)
-	  (define-key map [up-mouse-2] 'ignore)
-	  (insert-image img (propertize "[image]" 'help-echo help-echo
-					'keymap map)))
+	;; Insert the image with a help-echo and a link.
+	(make-button (prog1 (point) (insert-image img)) (point)
+		     'face 'default
+		     'help-echo "mouse-2: browse http://www.gnu.org/"
+		     'action (lambda (button) (browse-url "http://www.gnu.org/"))
+		     'follow-link t)
 	(insert "\n"))))
   (fancy-splash-insert
    :face '(variable-pitch :foreground "red")
@@ -1408,12 +1402,12 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
     (force-mode-line-update)
     (setq fancy-current-text (cdr fancy-current-text))))
 
-(defun fancy-splash-quit ()
+(defun exit-splash-screen ()
   "Stop displaying the splash screen buffer."
   (interactive)
   (if fancy-splash-outer-buffer
       (throw 'exit nil)
-    (kill-buffer (current-buffer))))
+    (quit-window t)))
 
 (defun fancy-splash-screens (&optional static)
   "Display fancy splash screens when Emacs starts."
@@ -1425,7 +1419,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 	    timer)
 	(save-selected-window
 	  (select-frame frame)
-	  (switch-to-buffer " About GNU Emacs")
+	  (switch-to-buffer "*About GNU Emacs*")
 	  (make-local-variable 'cursor-type)
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
@@ -1440,7 +1434,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 			timer (run-with-timer 0 fancy-splash-delay
 					      #'fancy-splash-screens-1
 					      splash-buffer))
-		  (use-local-map fancy-splash-keymap)
+		  (use-local-map splash-screen-keymap)
 		  (message "%s" (startup-echo-area-message))
 		  (setq buffer-read-only t)
 		  (recursive-edit))
@@ -1451,7 +1445,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
-      (switch-to-buffer " GNU Emacs"))
+      (switch-to-buffer "*GNU Emacs*"))
     (setq buffer-read-only nil)
     (erase-buffer)
     (if pure-space-overflow
@@ -1467,7 +1461,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
       (delete-region (point) (point-max))
       (insert "\n")
       (fancy-splash-tail)
-      (use-local-map fancy-splash-keymap)
+      (use-local-map splash-screen-keymap)
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
       (if (and view-read-only (not view-mode))
@@ -1510,7 +1504,7 @@ we put it on this frame."
   "Display splash screen when Emacs starts."
   (let ((prev-buffer (current-buffer)))
     (unwind-protect
-	(with-current-buffer (get-buffer-create " About GNU Emacs")
+	(with-current-buffer (get-buffer-create "*About GNU Emacs*")
 	  (setq buffer-read-only nil)
 	  (erase-buffer)
 	  (set (make-local-variable 'tab-width) 8)
@@ -1620,18 +1614,16 @@ To quit a partially entered command, type Control-g.\n")
                      (eq (key-binding "\C-h\C-n") 'view-emacs-news))
                 (insert "
 Get help	   C-h  (Hold down CTRL and press h)
-Emacs manual	   C-h r
+Emacs manual	   C-h r           Browse manuals   C-h i
 Emacs tutorial	   C-h t           Undo changes     C-x u
-Buy manuals        C-h C-m         Exit Emacs	    C-x C-c
-Browse manuals     C-h i")
+Buy manuals        C-h C-m         Exit Emacs	    C-x C-c")
 
               (insert (substitute-command-keys
-                       (format "\n
+                       (format "
 Get help	   %s
-Emacs manual	   \\[info-emacs-manual]
+Emacs manual	   \\[info-emacs-manual]\tBrowse manuals\t\\[info]
 Emacs tutorial	   \\[help-with-tutorial]\tUndo changes\t\\[advertised-undo]
-Buy manuals        \\[view-order-manuals]\tExit Emacs\t\\[save-buffers-kill-emacs]
-Browse manuals     \\[info]"
+Buy manuals        \\[view-order-manuals]\tExit Emacs\t\\[save-buffers-kill-emacs]"
                                (let ((where (where-is-internal
                                              'help-command nil t)))
                                  (if where
@@ -1652,24 +1644,26 @@ Activate menubar     \\[tmm-menubar]")))
 If you have no Meta key, you may instead type ESC followed by the character.)")
 
 	    ;; Insert links to useful tasks
-	    (insert "\n\nUseful tasks (move point to the link and press RET):\n")
+	    (insert "\nUseful tasks:\n")
+
 	    (insert-button "Visit New File"
 			   'action (lambda (button) (call-interactively 'find-file))
 			   'follow-link t)
-	    (insert "		Specify a new file's name, to edit the file\n")
+	    (insert "\t\t\t")
 	    (insert-button "Open Home Directory"
 			   'action (lambda (button) (dired "~"))
 			   'follow-link t)
-	    (insert "	Open your home directory, to operate on its files\n")
+	    (insert "\n")
+
+	    (insert-button "Customize Startup"
+			   'action (lambda (button) (customize-group 'initialization))
+			   'follow-link t)
+	    (insert "\t\t")
 	    (insert-button "Open *scratch* buffer"
 			   'action (lambda (button) (switch-to-buffer
 						     (get-buffer-create "*scratch*")))
 			   'follow-link t)
-	    (insert "	Open buffer for notes you don't want to save\n")
-	    (insert-button "Customize Startup"
-			   'action (lambda (button) (customize-group 'initialization))
-			   'follow-link t)
-	    (insert "	Change initialization settings including this screen\n")
+	    (insert "\n")
 
             (insert "\n" (emacs-version)
                     "\n" emacs-copyright)
@@ -1711,7 +1705,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
                        "type Meta-x recover-session RET\nto recover"
                        " the files you were editing.\n"))
 
-	  (use-local-map button-buffer-map)
+	  (use-local-map splash-screen-keymap)
 
           ;; Display the input that we set up in the buffer.
           (set-buffer-modified-p nil)
@@ -1735,9 +1729,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
             (error (pop-to-buffer (current-buffer))))))
       ;; Unwind ... ensure splash buffer is killed
       (if (not static)
-	  (kill-buffer " About GNU Emacs")
-	(switch-to-buffer " About GNU Emacs")
-	(rename-buffer " GNU Emacs" t)))))
+	  (kill-buffer "*About GNU Emacs*")
+	(switch-to-buffer "*About GNU Emacs*")
+	(rename-buffer "*GNU Emacs*" t)))))
 
 
 (defun startup-echo-area-message ()
