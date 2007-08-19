@@ -1,3 +1,17 @@
+2007-08-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper.el (viper-remove-hooks): remove some additional viper hooks
+	when the user calls viper-go-away.
+	(viper-go-away): restore the default of default-major-mode.
+	Save the value of default-major-mode before vaperization.
+	
+	* viper-cmd.el: Replace error "" with "Viper bell".
+	
+	* viper-ex.el: Replace error "" with "Viper bell".
+	
+	* ediff-util.el (ediff-make-temp-file): use the coding system of the
+	buffer for which file is created.
+	
 2007-08-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (custom-deps, finder-data, autoloads, recompile)
