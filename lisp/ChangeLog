@@ -1,3 +1,17 @@
+2007-08-19  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (splash-screen-keymap): Rename from `fancy-splash-keymap'
+	because it's common to both types of splash screen: fancy and normal.
+	Bind SPC to scroll-up, DEL to scroll-down and `q' to exit-splash-screen.
+	(exit-splash-screen): Rename from `fancy-splash-quit'.
+	Use `quit-window' instead of `kill-buffer'.
+	(fancy-splash-head): Use make-button to insert GNU image link.
+	(fancy-splash-screens, normal-splash-screen): Rename " About GNU
+	Emacs" to "*About GNU Emacs*", and " GNU Emacs" to "*GNU Emacs*".
+	(normal-splash-screen): Put "Browse manuals" on the same line with
+	"Emacs manual".  Remove descriptions from "Useful tasks" and put
+	all links in two columns on two lines.
+
 2007-08-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* viper.el (viper-remove-hooks): remove some additional viper hooks
