@@ -7,13 +7,13 @@
 
 2007-08-18  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string): Convert
-	comment to basic doc string.  Also apply eldoc-argument-case in
-	the help-split-fundoc case.  Adapt for changed behavior of
-	eldoc-function-argstring, eldoc-function-argstring-format, and
+	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string): Add doc
+	string.  Also apply eldoc-argument-case in the help-split-fundoc
+	case.  Adapt for changed behavior of eldoc-function-argstring,
+	eldoc-function-argstring-format, and
 	eldoc-highlight-function-argument.
-	(eldoc-highlight-function-argument): Make INDEX argument
-	optional, just call eldoc-docstring-format-sym-doc if absent.
+	(eldoc-highlight-function-argument): Handle nil INDEX argument,
+	just call eldoc-docstring-format-sym-doc in that case.
 	(eldoc-function-argstring): Change the behavior.  Now it converts
 	an argument list to a string.
 	(eldoc-function-argstring-format): Change the behavior.  Now it
