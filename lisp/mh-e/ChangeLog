@@ -1,3 +1,11 @@
+2007-08-19  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Update with all
+	the entries from
+	http://people.dsv.su.se/~jpalme/ietf/mail-headers, plus some of my
+	own.  I added attributions to entries we already had that did not
+	list an RFC.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* mh-folder.el, mh-letter.el, mh-show.el: Replace `iff' in
