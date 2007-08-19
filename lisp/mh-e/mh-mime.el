@@ -1621,8 +1621,22 @@ encoding if you wish by running this command.
 This action can be undone by running \\[undo]."
   (interactive)
   (require 'message)
-  (when mh-pgp-support-flag ;; This is only needed for PGP
-    (message-options-set-recipient))
+  (when mh-pgp-support-flag
+    ;; PGP requires actual e-mail addresses, not aliases.
+    ;; Parse the recipients and sender from the message
+    (message-options-set-recipient)
+    ;; Do an alias lookup on sender
+    (message-options-set 'message-sender
+                     (mail-strip-quoted-names
+                      (mh-alias-expand
+                       (message-options-get 'message-sender))))
+    ;; Do an alias lookup on recipients
+    (message-options-set 'message-recipients
+                         (mapconcat
+                          '(lambda (ali)
+                             (mail-strip-quoted-names (mh-alias-expand ali)))
+                          (split-string (message-options-get 'message-recipients) "[, ]+")
+                          ", ")))
   (let ((saved-text (buffer-string))
         (buffer (current-buffer))
         (modified-flag (buffer-modified-p)))
