@@ -1,3 +1,9 @@
+2007-08-20  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (preceding-sexp): New fun, the code was
+	extracted from `eval-last-sexp-1'.
+	(eval-last-sexp-1): Call `preceding-sexp'.
+
 2007-08-19  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (custom-deps, finder-data, autoloads, recompile)
