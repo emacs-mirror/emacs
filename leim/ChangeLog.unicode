@@ -1,3 +1,7 @@
+2007-08-20  James Cloos  <cloos@jhcloos.com>
+
+	* quail/arabic.el: Updated (sync with xkeyboard-config keyboard).
+
 2007-04-26  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (OTHERS): Add arabic.elc.
@@ -16,7 +20,7 @@
 	(quail-define-inscript-package): Pay attention to `nil' values of
 	char/key-table.
 	(inscript-tml-keytable): New variable.  Use it for Tamil inscript.
-	
+
 2003-02-13  Dave Love  <fx@gnu.org>
 
 	* quail/latin-post.el ("turkish-latin-3-postfix"): Make it
