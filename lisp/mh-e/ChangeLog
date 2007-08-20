@@ -1,5 +1,8 @@
 2007-08-20  Jeffrey C Honig  <jch@honig.net>
 
+	* mh-comp.el (mh-forward): Address SF 1730393.  When forwarding
+	with mml, messages were included in reverse order.
+
 	* mh-mime.el (mh-mml-forward-message): Address SF 1378993 and
 	forward messages as inline attatchments.
 
