@@ -1142,7 +1142,7 @@ regardless of the value of this variable."
 	   "Important Help menu items:\n"
 	   :face variable-pitch
 	   :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
-	   "\t\tLearn how to use Emacs efficiently"
+	   "\tLearn how to use Emacs efficiently"
            (lambda ()
              (let* ((en "TUTORIAL")
                     (tut (or (get-language-info current-language-environment
@@ -1162,53 +1162,37 @@ regardless of the value of this variable."
 	   "\n"
 	   :face variable-pitch
 	   :link ("Emacs FAQ" (lambda (button) (view-emacs-FAQ)))
-	   "\t\tFrequently asked questions and answers\n"
+	   "\tFrequently asked questions and answers\n"
 	   :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
-	   "\t\tView the Emacs manual using Info\n"
+	   "\tView the Emacs manual using Info\n"
 	   :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
 	   "\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
 	   :link ("Copying Conditions" (lambda (button) (describe-copying)))
-	   "\t\tConditions for redistributing and changing Emacs\n"
+	   "\tConditions for redistributing and changing Emacs\n"
 	   :link ("Getting New Versions" (lambda (button) (describe-distribution)))
 	   "\tHow to obtain the latest version of Emacs\n"
 	   :link ("More Manuals / Ordering Manuals" (lambda (button) (view-order-manuals)))
-	   "       Buying printed manuals from the FSF\n")
+	   "  Buying printed manuals from the FSF\n")
   (:face (variable-pitch :weight bold)
-	 "Useful File menu items:\n"
-	 :face variable-pitch
-	 :link ("Exit Emacs" (lambda (button) (save-buffers-kill-emacs)))
-	 "\t\t(Or type "
-	 :face default
-	 "Control-x"
-	 :face variable-pitch
-	 " followed by "
-	 :face default
-	 "Control-c"
-	 :face variable-pitch
-	 ")\n"
-	 :link ("Recover Crashed Session" (lambda (button) (recover-session)))
-	 "\tRecover files you were editing before a crash\n\n"
-
-	 :face (variable-pitch :weight bold)
 	 "Useful tasks:\n"
 	 :face variable-pitch
 	 :link ("Visit New File"
 		(lambda (button) (call-interactively 'find-file)))
-	 "		Specify a new file's name, to edit the file\n"
+	 "\tSpecify a new file's name, to edit the file\n"
 	 :link ("Open Home Directory"
 		(lambda (button) (dired "~")))
-	 "	Open your home directory, to operate on its files\n"
+	 "\tOpen your home directory, to operate on its files\n"
 	 :link ("Open *scratch* buffer"
 		(lambda (button) (switch-to-buffer (get-buffer-create "*scratch*"))))
-	 "	Open buffer for notes you don't want to save\n"
+	 "\tOpen buffer for notes you don't want to save\n"
 	 :link ("Customize Startup"
 		(lambda (button) (customize-group 'initialization)))
-	 "		Change initialization settings including this screen\n"
+	 "\tChange initialization settings including this screen\n"
 
-	 "\nEmacs Guided Tour\t\tSee "
+	 "\nEmacs Guided Tour\tSee "
 	 :link ("http://www.gnu.org/software/emacs/tour/"
 		(lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
 
@@ -1376,7 +1360,7 @@ using the mouse.\n"
 			      "Meta-x recover-session RET"
 			      :face '(variable-pitch :foreground "red")
 			      "\nto recover"
-			      " the files you were editing."))))
+			      " the files you were editing.\n"))))
 
 (defun fancy-splash-screens-1 (buffer)
   "Timer function displaying a splash screen."
@@ -1435,6 +1419,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 					      #'fancy-splash-screens-1
 					      splash-buffer))
 		  (use-local-map splash-screen-keymap)
+		  (setq tab-width 22)
 		  (message "%s" (startup-echo-area-message))
 		  (setq buffer-read-only t)
 		  (recursive-edit))
@@ -1462,6 +1447,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
       (insert "\n")
       (fancy-splash-tail)
       (use-local-map splash-screen-keymap)
+      (setq tab-width 22)
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
       (if (and view-read-only (not view-mode))
@@ -1543,60 +1529,50 @@ To quit a partially entered command, type Control-g.\n")
 		(insert-button "Emacs Tutorial"
 			       'action (lambda (button) (help-with-tutorial))
 			       'follow-link t)
-		(insert "		Learn how to use Emacs efficiently\n")
+		(insert "\t\tLearn how to use Emacs efficiently\n")
 		(insert-button "Emacs FAQ"
 			       'action (lambda (button) (view-emacs-FAQ))
 			       'follow-link t)
-		(insert "		Frequently asked questions and answers\n")
+		(insert "\t\tFrequently asked questions and answers\n")
 		(insert-button "Read the Emacs Manual"
 			       'action (lambda (button) (info-emacs-manual))
 			       'follow-link t)
-		(insert "	View the Emacs manual using Info\n")
+		(insert "\tView the Emacs manual using Info\n")
 		(insert-button "\(Non)Warranty"
 			       'action (lambda (button) (describe-no-warranty))
 			       'follow-link t)
-		(insert "		GNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
+		(insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
 		(insert-button "Copying Conditions"
 			       'action (lambda (button) (describe-copying))
 			       'follow-link t)
-		(insert "	Conditions for redistributing and changing Emacs\n")
+		(insert "\tConditions for redistributing and changing Emacs\n")
 		(insert-button "Getting New Versions"
 			       'action (lambda (button) (describe-distribution))
 			       'follow-link t)
-		(insert "	How to obtain the latest version of Emacs\n")
+		(insert "\tHow to obtain the latest version of Emacs\n")
 		(insert-button "More Manuals / Ordering Manuals"
 			       'action (lambda (button) (view-order-manuals))
 			       'follow-link t)
-		(insert "    How to order printed manuals from the FSF\n")
-
-		(insert "\nUseful File menu items:\n")
-		(insert-button "Exit Emacs"
-			       'action (lambda (button) (save-buffers-kill-emacs))
-			       'follow-link t)
-		(insert "		(or type Control-x followed by Control-c)\n")
-		(insert-button "Recover Crashed Session"
-			       'action (lambda (button) (recover-session))
-			       'follow-link t)
-		(insert "	Recover files you were editing before a crash\n")
+		(insert "  How to order printed manuals from the FSF\n")
 
 		(insert "\nUseful tasks:\n")
 		(insert-button "Visit New File"
 			       'action (lambda (button) (call-interactively 'find-file))
 			       'follow-link t)
-		(insert "		Specify a new file's name, to edit the file\n")
+		(insert "\t\tSpecify a new file's name, to edit the file\n")
 		(insert-button "Open Home Directory"
 			       'action (lambda (button) (dired "~"))
 			       'follow-link t)
-		(insert "	Open your home directory, to operate on its files\n")
+		(insert "\tOpen your home directory, to operate on its files\n")
 		(insert-button "Open *scratch* buffer"
 			       'action (lambda (button) (switch-to-buffer
 							 (get-buffer-create "*scratch*")))
 			       'follow-link t)
-		(insert "	Open buffer for notes you don't want to save\n")
+		(insert "\tOpen buffer for notes you don't want to save\n")
 		(insert-button "Customize Startup"
 			       'action (lambda (button) (customize-group 'initialization))
 			       'follow-link t)
-		(insert "	Change initialization settings including this screen\n")
+		(insert "\tChange initialization settings including this screen\n")
 
                 (insert "\n" (emacs-version)
                         "\n" emacs-copyright))
@@ -1619,21 +1595,21 @@ Get help	   C-h  (Hold down CTRL and press h)
 		  (insert-button "Emacs manual"
 				 'action (lambda (button) (info-emacs-manual))
 				 'follow-link t)
-		  (insert "	   C-h r           ")
+		  (insert "	   C-h r\t")
 		  (insert-button "Browse manuals"
 				 'action (lambda (button) (Info-directory))
 				 'follow-link t)
-		  (insert "   C-h i
+		  (insert "\t   C-h i
 ")
 		  (insert-button "Emacs tutorial"
 				 'action (lambda (button) (help-with-tutorial))
 				 'follow-link t)
-		  (insert "	   C-h t           Undo changes     C-x u
+		  (insert "	   C-h t\tUndo changes\t   C-x u
 ")
 		  (insert-button "Buy manuals"
 				 'action (lambda (button) (view-order-manuals))
 				 'follow-link t)
-		  (insert "        C-h C-m         Exit Emacs	    C-x C-c"))
+		  (insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
 
 	      (insert (format "
 Get help	   %s
@@ -1650,19 +1626,19 @@ Get help	   %s
 	      (insert-button "Browse manuals"
 			     'action (lambda (button) (Info-directory))
 			     'follow-link t)
-	      (insert (substitute-command-keys "\t\\[info]
+	      (insert (substitute-command-keys "\t   \\[info]
 "))
 	      (insert-button "Emacs tutorial"
 			     'action (lambda (button) (help-with-tutorial))
 			     'follow-link t)
 	      (insert (substitute-command-keys
-		       "	   \\[help-with-tutorial]\tUndo changes\t\\[advertised-undo]
+		       "	   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
 "))
 	      (insert-button "Buy manuals"
 			     'action (lambda (button) (view-order-manuals))
 			     'follow-link t)
 	      (insert (substitute-command-keys
-		       "        \\[view-order-manuals]\tExit Emacs\t\\[save-buffers-kill-emacs]")))
+		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-emacs]")))
 
             ;; Say how to use the menu bar with the keyboard.
 	    (insert "\n")
