@@ -33,10 +33,10 @@
 Based on Arabic table in X Keyboard Configuration DB.
 " nil t t t t nil nil nil nil nil t)
 
-;;  ذّ 1! 2@ 3# 4$ 5% 6^ 7& 8* 9( 0) -_ =+
-;;      ضَ صً ثُ قٌ فﻹ غإ ع` ه÷ خ× ح؛ ج{ د} <>
-;;       ش\ سS ي[ ب] لﻷ اأ تـ ن، م/ ك: ط"
-;;        ئ~ ءْ ؤِ رٍ ﻻﻵ ىآ ة' و, ز. ظ؟
+;;  ذّ 1! 2@ 3# 4$ 5% 6^ 7& 8* 9) 0( -_ =+
+;;      ضَ صً ثُ قٌ فﻹ غإ ع` ه÷ خ× ح؛ ج< د> <>
+;;       شِ سٍ ي] ب[ لﻷ اأ تـ ن، م/ ك: ط"
+;;        ئ~ ءْ ؤ} ر{ ﻻﻵ ىآ ة' و, ز. ظ؟
 ;;
 
 (quail-define-rules
@@ -53,10 +53,10 @@ Based on Arabic table in X Keyboard Configuration DB.
  ("O" ?×)
  ("P" ?؛)
 
- ("A" ?\\)
- ("S" ?S)
- ("D" ?[)
- ("F" ?])
+ ("A" ?ِ)
+ ("S" ?ٍ)
+ ("D" ?])
+ ("F" ?[)
  ("G" ?ﻷ)
  ("H" ?أ)
  ("J" ?ـ)
@@ -66,8 +66,8 @@ Based on Arabic table in X Keyboard Configuration DB.
 
  ("Z" ?~)
  ("X" ?ْ)
- ("C" ?ِ)
- ("V" ?ٍ)
+ ("C" ?})
+ ("V" ?{)
  ("B" ?ﻵ)
  ("N" ?آ)
  ("M" ?')
