@@ -717,6 +717,7 @@ Optional arg REVISION is a revision to annotate from."
                              "  "
                              (aref rda 0)
                              ls)
+                      :vc-annotate-prefix t
                       :vc-rcs-r/d/a rda)))
         (maphash
          (if all-me
