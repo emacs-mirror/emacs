@@ -1220,16 +1220,11 @@ MESSAGE number."
                  mh-sent-from-msg
                (string-to-number message))))
     (cond ((integerp msg)
-           (if (string= "" description)
-               ;; Rationale: mml-attach-file constructs a malformed composition
-               ;; if the description string is empty.  This fixes SF #625168.
-               (mml-attach-file (format "%s%s/%d"
-                                        mh-user-path (substring folder 1) msg)
-                                "message/rfc822")
-             (mml-attach-file (format "%s%s/%d"
-                                      mh-user-path (substring folder 1) msg)
-                              "message/rfc822"
-                              description)))
+           (mml-attach-file (format "%s%s/%d"
+                                    mh-user-path (substring folder 1) msg)
+                            "message/rfc822"
+                            (if (string= "" description) nil description)
+                            "inline"))
           (t (error "The message number, %s, is not a integer" msg)))))
 
 (defun mh-mh-forward-message (&optional description folder messages)
