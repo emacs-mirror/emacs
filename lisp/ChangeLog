@@ -1,3 +1,7 @@
+2007-08-20  Andreas Schwab  <schwab@suse.de>
+
+	* mail/rmail.el (rmail-autodetect): Doc fix.
+
 2007-08-19  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (normal-splash-screen): Add more links.
