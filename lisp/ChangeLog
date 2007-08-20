@@ -1,3 +1,13 @@
+2007-08-20  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (fancy-splash-text): Change multiple tabs into one
+	tab.  Remove "Useful File menu items" section (with "Exit Emacs"
+	and "Recover Crashed Session").
+	(fancy-splash-screens): Set tab-width to 22.
+	(normal-splash-screen): Replace literal tabs with \t and
+	fix whitespace.  Remove "Useful File menu items" section (with
+	"Exit Emacs" and "Recover Crashed Session").
+
 2007-08-20  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (preceding-sexp): New fun, the code was
