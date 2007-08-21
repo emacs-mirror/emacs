@@ -74,6 +74,9 @@
 				", "
 				(let ((calc-number-radix 8))
 				  (math-format-value (car alg-exp) 1000))
+                                ", "
+                                (let ((calc-number-radix 2))
+                                  (math-format-value (car alg-exp) 1000))
 				(if (and (integerp (car alg-exp))
 					 (> (car alg-exp) 0)
 					 (< (car alg-exp) 127))

@@ -59,6 +59,7 @@ The second \\( \\) construct must match the years."
 Only copyright lines where the name matches this regexp will be updated.
 This allows you to avoid adding yars to a copyright notice belonging to
 someone else or to a group for which you do not work."
+  :group 'copyright
   :type 'regexp)
 
 (defcustom copyright-years-regexp
@@ -89,13 +90,16 @@ When this is `function', only ask when called non-interactively."
 (defvar copyright-current-year (substring (current-time-string) -4)
   "String representing the current year.")
 
+(defsubst copyright-limit ()            ; re-search-forward BOUND
+  (and copyright-limit (+ (point) copyright-limit)))
+
 (defun copyright-update-year (replace noquery)
   (when
       (condition-case err
 	  (re-search-forward (concat "\\(" copyright-regexp
 				     "\\)\\([ \t]*\n\\)?.*\\(?:"
 				     copyright-names-regexp "\\)")
-			     (if copyright-limit (+ (point) copyright-limit))
+			     (copyright-limit)
 			     t)
 	;; In case the regexp is rejected.  This is useful because
 	;; copyright-update is typically called from before-save-hook where
@@ -181,7 +185,7 @@ interactively."
                 "\\(the Free Software Foundation;\
  either \\|; a\\^u eldono \\([0-9]+\\)a, ? a\\^u (la\\^u via	 \\)\
 version \\([0-9]+\\), or (at"
-                (if copyright-limit (+ (point) copyright-limit)) t)
+                (copyright-limit) t)
 	       (not (string= (match-string 3) copyright-current-gpl-version))
 	       (or noquery
 		   (y-or-n-p (concat "Replace GPL version by "
@@ -203,8 +207,7 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
   (interactive)
   (widen)
   (goto-char (point-min))
-  (if (re-search-forward copyright-regexp
-                         (if copyright-limit (+ (point) copyright-limit)) t)
+  (if (re-search-forward copyright-regexp (copyright-limit) t)
       (let ((s (match-beginning 2))
 	    (e (copy-marker (1+ (match-end 2))))
 	    (p (make-marker))

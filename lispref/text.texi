@@ -4278,35 +4278,6 @@ because it may lead to inefficient behavior for some change hook
 functions.
 @end defmac
 
-The two variables above are temporarily bound to @code{nil} during the
-time that any of these functions is running.  This means that if one of
-these functions changes the buffer, that change won't run these
-functions.  If you do want a hook function to make changes that run
-these functions, make it bind these variables back to their usual
-values.
-
-One inconvenient result of this protective feature is that you cannot
-have a function in @code{after-change-functions} or
-@code{before-change-functions} which changes the value of that variable.
-But that's not a real limitation.  If you want those functions to change
-the list of functions to run, simply add one fixed function to the hook,
-and code that function to look in another variable for other functions
-to call.  Here is an example:
-
-@example
-(setq my-own-after-change-functions nil)
-(defun indirect-after-change-function (beg end len)
-  (let ((list my-own-after-change-functions))
-    (while list
-      (funcall (car list) beg end len)
-      (setq list (cdr list)))))
-
-@group
-(add-hooks 'after-change-functions
-           'indirect-after-change-function)
-@end group
-@end example
-
 @defvar first-change-hook
 This variable is a normal hook that is run whenever a buffer is changed
 that was previously in the unmodified state.
@@ -4318,6 +4289,13 @@ disabled; none of them run.  This affects all the hook variables
 described above in this section, as well as the hooks attached to
 certain special text properties (@pxref{Special Properties}) and overlay
 properties (@pxref{Overlay Properties}).
+
+Also, this variable is bound to non-@code{nil} while running those
+same hook variables, so that by default modifying the buffer from
+a modification hook does not cause other modification hooks to be run.
+If you do want modification hooks to be run in a particular piece of
+code that is itself run from a modification hook, then rebind locally
+@code{inhibit-modification-hooks} to @code{nil}.
 @end defvar
 
 @ignore

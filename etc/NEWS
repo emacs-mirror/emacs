@@ -56,6 +56,10 @@ to a remote display, e.g. because the display is about to become unreachable.
 
 * Startup Changes in Emacs 23.1
 
+** New user option `initial-buffer-choice' specifies what to display
+after starting Emacs: startup screen, *scratch* buffer, visiting a
+file or directory.
+
 
 * Incompatible Editing Changes in Emacs 23.1
 
@@ -170,6 +174,11 @@ supported on other platforms, but not on Windows due to using the winsock
 
 
 * Lisp Changes in Emacs 23.1
+
++++
+** inhibit-modification-hooks is bound to t while running modification hooks.
+As a happy consequence, after-change-functions and before-change-functions
+are not bound to nil any more while running an (after|before)-change-function.
 
 ** Non-breaking space now acts as whitespace.
 

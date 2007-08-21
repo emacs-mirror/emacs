@@ -28,7 +28,8 @@ any older versions of these packages to ensure that the Emacs 22
 version is used.  You can use M-x list-load-path-shadows to find such
 older packages.
 
-Some specific packages that are known to cause problems are:
+Some specific packages that are known to cause problems are given
+below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 
@@ -39,6 +40,9 @@ Some specific packages that are known to cause problems are:
 ** Emacs is now licensed under the GNU GPL version 3 (or later).
 
 * Changes in Emacs 22.2
+
+** `bad-packages-alist' will warn about external packages that are known
+to cause problems in this version of Emacs.
 
 ** The values of `dired-recursive-deletes' and `dired-recursive-copies'
 have been changed to `top'.  This means that the user is asked once,

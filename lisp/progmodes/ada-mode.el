@@ -829,13 +829,12 @@ the 4 file locations can be clicked on and jumped to."
 ;; Thus their syntax property is changed automatically, and we can still use
 ;; the standard Emacs functions for sexp (see `ada-in-string-p')
 ;;
-;; On Emacs, this is done through the `syntax-table' text property. The
-;; modification is done automatically each time the user as typed a new
-;; character. This is already done in `font-lock-mode' (in
-;; `font-lock-syntactic-keywords', so we take advantage of the existing
-;; mechanism. If font-lock-mode is not activated, we do it by hand in
-;; `ada-after-change-function', thanks to `ada-deactivate-properties' and
-;; `ada-initialize-properties'.
+;; On Emacs, this is done through the `syntax-table' text property.  The
+;; corresponding action is applied automatically each time the buffer
+;; changes.  If `font-lock-mode' is enabled (the default) the action is
+;; set up by `font-lock-syntactic-keywords'.  Otherwise, we do it
+;; manually in `ada-after-change-function'.  The proper method is
+;; installed by `ada-handle-syntax-table-properties'.
 ;;
 ;; on XEmacs, the `syntax-table' property does not exist and we have to use a
 ;; slow advice to `parse-partial-sexp' to do the same thing.
@@ -852,7 +851,6 @@ The standard table declares `_' as a symbol constituent, the second one
 declares it as a word constituent."
   (interactive)
   (setq ada-mode-syntax-table (make-syntax-table))
-  (set-syntax-table  ada-mode-syntax-table)
 
   ;; define string brackets (`%' is alternative string bracket, but
   ;; almost never used as such and throws font-lock and indentation
@@ -936,50 +934,59 @@ declares it as a word constituent."
 	    (insert (caddar change))
 	    (setq change (cdr change)))))))
 
-(defun ada-deactivate-properties ()
-  "Deactivate Ada mode's properties handling.
-This would be a duplicate of font-lock if both are used at the same time."
-  (remove-hook 'after-change-functions 'ada-after-change-function t))
-
-(defun ada-initialize-properties ()
-  "Initialize some special text properties in the whole buffer.
-In particular, character constants are said to be strings, #...# are treated
-as numbers instead of gnatprep comments."
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (point-min))
-      (while (re-search-forward "'.'" nil t)
-	(add-text-properties (match-beginning 0) (match-end 0)
-			     '(syntax-table ("'" . ?\"))))
-      (goto-char (point-min))
-      (while (re-search-forward "^[ \t]*#" nil t)
-	(add-text-properties (match-beginning 0) (match-end 0)
-			     '(syntax-table (11 . 10))))
-      (set-buffer-modified-p nil)
-
-      ;;  Setting this only if font-lock is not set won't work
-      ;;  if the user activates or deactivates font-lock-mode,
-      ;;  but will make things faster most of the time
-      (add-hook 'after-change-functions 'ada-after-change-function nil t)
-      )))
+(defun ada-set-syntax-table-properties ()
+  "Assign `syntax-table' properties in accessible part of buffer.
+In particular, character constants are said to be strings, #...#
+are treated as numbers instead of gnatprep comments."
+  (let ((modified (buffer-modified-p))
+	(buffer-undo-list t)
+	(inhibit-read-only t)
+	(inhibit-point-motion-hooks t)
+	(inhibit-modification-hooks t))
+    (remove-text-properties (point-min) (point-max) '(syntax-table nil))
+    (goto-char (point-min))
+    (while (re-search-forward
+	    ;; The following regexp was adapted from
+	    ;; `ada-font-lock-syntactic-keywords'.
+	    "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)\\|[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"
+	    nil t)
+      (if (match-beginning 1)
+	  (put-text-property
+	       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n))
+	(put-text-property
+	     (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?'))
+	(put-text-property
+	     (match-beginning 3) (match-end 3) 'syntax-table '(7 . ?'))))
+    (unless modified
+      (restore-buffer-modified-p nil))))
 
 (defun ada-after-change-function (beg end old-len)
   "Called when the region between BEG and END was changed in the buffer.
 OLD-LEN indicates what the length of the replaced text was."
-  (let ((inhibit-point-motion-hooks t)
-	(eol (point)))
+  (save-excursion
+    (save-restriction
+      (let ((from (progn (goto-char beg) (line-beginning-position)))
+	    (to (progn (goto-char end) (line-end-position))))
+	(narrow-to-region from to)
+	(save-match-data
+	  (ada-set-syntax-table-properties))))))
+
+(defun ada-initialize-syntax-table-properties ()
+  "Assign `syntax-table' properties in current buffer."
     (save-excursion
-      (save-match-data
-	(beginning-of-line)
-	(remove-text-properties (point) eol '(syntax-table nil))
-	(while (re-search-forward "'.'" eol t)
-	  (add-text-properties (match-beginning 0) (match-end 0)
-			       '(syntax-table ("'" . ?\"))))
-	(beginning-of-line)
-	(if (looking-at "^[ \t]*#")
-	    (add-text-properties (match-beginning 0) (match-end 0)
-				 '(syntax-table (11 . 10))))))))
+      (save-restriction
+	(widen)
+	(save-match-data
+	  (ada-set-syntax-table-properties))))
+    (add-hook 'after-change-functions 'ada-after-change-function nil t))
+
+(defun ada-handle-syntax-table-properties ()
+  "Handle `syntax-table' properties."
+  (if font-lock-mode
+      ;; `font-lock-mode' will take care of `syntax-table' properties.
+      (remove-hook 'after-change-functions 'ada-after-change-function t)
+    ;; Take care of `syntax-table' properties manually.
+    (ada-initialize-syntax-table-properties)))
 
 ;;------------------------------------------------------------------
 ;;  Testing the grammatical context
@@ -1150,6 +1157,8 @@ If you use ada-xref.el:
 
   (interactive)
   (kill-all-local-variables)
+  
+  (set-syntax-table ada-mode-syntax-table)
 
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
 
@@ -1340,7 +1349,7 @@ If you use ada-xref.el:
   (setq which-func-functions '(ada-which-function))
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
-  (setq comment-multi-line nil)
+  (set (make-local-variable 'comment-multi-line) nil)
 
   (setq major-mode 'ada-mode
 	mode-name "Ada")
@@ -1377,9 +1386,8 @@ If you use ada-xref.el:
   ;;  font-lock-mode
 
   (unless (featurep 'xemacs)
-    (progn
-      (ada-initialize-properties)
-      (add-hook 'font-lock-mode-hook 'ada-deactivate-properties nil t)))
+    (ada-initialize-syntax-table-properties)
+    (add-hook 'font-lock-mode-hook 'ada-handle-syntax-table-properties nil t))
 
   ;; the following has to be done after running the ada-mode-hook
   ;; because users might want to set the values of these variable
@@ -5200,8 +5208,7 @@ Return nil if no body was found."
   ;; This sets the properties of the characters, so that ada-in-string-p
   ;; correctly handles '"' too...
   '(("[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)" (1 (7 . ?')) (2 (7 . ?')))
-    ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))
-    ))
+    ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))))
 
 (defvar ada-font-lock-keywords
   (eval-when-compile

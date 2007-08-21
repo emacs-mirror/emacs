@@ -204,7 +204,7 @@ We do this by executing it with `--version' and analyzing its output."
 	  'emacs))))))
 
 (defun rmail-autodetect ()
-  "Determine and return the file name of the `movemail' program.
+  "Determine the file name of the `movemail' program and return its flavor.
 If `rmail-movemail-program' is non-nil, use it.
 Otherwise, look for `movemail' in the directories in
 `rmail-movemail-search-path', those in `exec-path', and `exec-directory'."

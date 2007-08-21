@@ -497,7 +497,9 @@ See also `mh-compose-forward-as-mime-flag',
                   (dolist (msg msgs)
                     (setq i (1+ i))
                     (mh-mml-forward-message (format description i)
-                                            folder msg))))))
+                                            folder msg)
+                    ;; Was inserted before us, move to end of file to preserve order
+                    (goto-char (point-max)))))))
         ;; Postition just before forwarded message
         (if (re-search-forward "^------- Forwarded Message" nil t)
             (forward-line -1)

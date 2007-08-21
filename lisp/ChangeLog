@@ -1,3 +1,318 @@
+2007-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-resolve): New arg `safe'.
+	(smerge-resolve-all, smerge-batch-resolve): New function.
+	(smerge-refine): Make sure `diff' returns the expected result.
+	(smerge-parsep-re): New const.
+	(smerge-mode): Use it to adjust paragraph-separate.
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Correctly match / regexp matchers as first char on a line when
+	fontifying only that line.
+
+	* emacs-lisp/cl-macs.el (cl-transform-lambda): Preserve the match-data.
+
+2007-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el: Don't fiddle with vc-handled-backend.
+	(vc-bzr-registered): Don't redundantly protect against
+	file-error.  Actually use the format-specific code.
+	(vc-bzr-buffer-nonblank-p): Remove.
+	(vc-bzr-status): Change `kindchange' -> `kindchanged'.
+
+2007-08-20  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (fancy-splash-text): Change multiple tabs into one
+	tab.  Remove "Useful File menu items" section (with "Exit Emacs"
+	and "Recover Crashed Session").
+	(fancy-splash-screens): Set tab-width to 22.
+	(normal-splash-screen): Replace literal tabs with \t and
+	fix whitespace.  Remove "Useful File menu items" section (with
+	"Exit Emacs" and "Recover Crashed Session").
+
+2007-08-20  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (preceding-sexp): New fun, the code was
+	extracted from `eval-last-sexp-1'.
+	(eval-last-sexp-1): Call `preceding-sexp'.
+
+2007-08-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc-rcs.el (vc-rcs-annotate-command):
+	Fix bug introduced 2007-07-18 (revision 1.51):
+	Add back :vc-annotate-prefix propertization.
+
+2007-08-20  Andreas Schwab  <schwab@suse.de>
+
+	* mail/rmail.el (rmail-autodetect): Doc fix.
+
+2007-08-19  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (normal-splash-screen): Add more links.
+
+2007-08-19  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (splash-screen-keymap): Rename from `fancy-splash-keymap'
+	because it's common to both types of splash screen: fancy and normal.
+	Bind SPC to scroll-up, DEL to scroll-down and `q' to exit-splash-screen.
+	(exit-splash-screen): Rename from `fancy-splash-quit'.
+	Use `quit-window' instead of `kill-buffer'.
+	(fancy-splash-head): Use make-button to insert GNU image link.
+	(fancy-splash-screens, normal-splash-screen): Rename " About GNU
+	Emacs" to "*About GNU Emacs*", and " GNU Emacs" to "*GNU Emacs*".
+	(normal-splash-screen): Put "Browse manuals" on the same line with
+	"Emacs manual".  Remove descriptions from "Useful tasks" and put
+	all links in two columns on two lines.
+
+2007-08-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper.el (viper-remove-hooks): remove some additional viper hooks
+	when the user calls viper-go-away.
+	(viper-go-away): restore the default of default-major-mode.
+	Save the value of default-major-mode before vaperization.
+
+	* viper-cmd.el: Replace error "" with "Viper bell".
+
+	* viper-ex.el: Replace error "" with "Viper bell".
+
+	* ediff-util.el (ediff-make-temp-file): use the coding system of the
+	buffer for which file is created.
+
+2007-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (custom-deps, finder-data, autoloads, recompile)
+	(progmodes/cc-mode.elc, mh-e/mh-loaddefs.el): Use $(emacs) rather
+	than $(EMACS), so that EMACSLOADPATH is set.  Prevents any system
+	shadow files messing up the compilation.
+
+2007-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string): Add doc
+	string.  Also apply eldoc-argument-case in the help-split-fundoc
+	case.  Adapt for changed behavior of eldoc-function-argstring,
+	eldoc-function-argstring-format, and
+	eldoc-highlight-function-argument.
+	(eldoc-highlight-function-argument): Handle nil INDEX argument,
+	just call eldoc-docstring-format-sym-doc in that case.
+	(eldoc-function-argstring): Change the behavior.  Now it converts
+	an argument list to a string.
+	(eldoc-function-argstring-format): Change the behavior.  Now it
+	applies `eldoc-argument-case' to a string.
+
+	* progmodes/scheme.el (scheme-mode-variables): Set
+	font-lock-comment-start-skip.
+
+2007-08-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/ada-mode.el (ada-create-syntax-table): Move
+	set-syntax-table from here to ...
+	(ada-mode): ... here.  Do not change global value of
+	comment-multi-line.  Call new function
+	ada-initialize-syntax-table-properties and add new function
+	ada-handle-syntax-table-properties to font-lock-mode-hook.
+	(ada-deactivate-properties, ada-initialize-properties): Replace
+	by new functions ...
+	(ada-handle-syntax-table-properties)
+	(ada-initialize-syntax-table-properties)
+	(ada-set-syntax-table-properties): ... to set up syntax-table
+	properties uniformly, independently from whether font-lock-mode
+	is enabled or not.  Handle read-only buffers and do not change
+	undo-list when setting syntax-table properties.
+	(ada-after-change-function): Use
+	ada-set-syntax-table-properties.
+
+2007-08-18  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* progmodes/meta-mode.el (meta-indent-calculate-last): Remove.
+	(meta-indent-current-nesting): Use a computation of the nesting
+	instead.
+	(meta-indent-current-indentation): Indentation is given according
+	to nesting and if the previous line was finished or not.
+	(meta-indent-unfinished-line): Tell if the current line ends with
+	a finished expression.
+	(meta-indent-looking-at-code): Like `looking-at', but checks if
+	the point is in a string before.
+	(meta-indent-level-count): Use it.  Don't count parenthesis as it's
+	done in the nesting function.
+	(meta-indent-in-string-p): Tell if the current point is in a
+	string.
+	(meta-indent-calculate): Treat b-o-b as a special case.  Use the
+	previous functions.
+
+2007-08-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* emacs-lisp/copyright.el (copyright-limit): New defsubst.
+	(copyright-update-year, copyright-update)
+	(copyright-fix-years): Use it.
+
+2007-08-17  Kimit Yada  <kimitto@gmail.com>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-update-year):
+	Fix bug: Handle nil copyright-limit.
+
+2007-08-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-standard-units): Give exact
+	conversion for tsp.
+
+	* calc/calc.el (math-bignum-digit-length): Compute the
+	appropriate value.
+
+	* calc/calc-bin.el (math-bignum-logb-digit-size)
+	(math-bignum-digit-power-of-two):
+	* calc/calc-comb.el (math-small-factorial-table):
+	* calc/calc-ext.el (math-approx-pi,math-approx-sqrt-e)
+	(math-approx-gamma-const):
+	* calc/calc-funcs.el (math-besJ0, math-besJ1, math-besY0)
+	(math-besY1, math-bernoulli-b-cache):
+	* calc/calc-math.el (math-approx-ln-10, math-approx-ln-2):
+	Remove `eval-when-compile's.
+
+2007-08-17  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* progmode/cperl-mode.el (cperl-look-at-leading-count)
+	(cperl-find-pods-heres): Fix an error when typing expressions like
+	`s{a}{b}'.
+
+2007-08-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* mail/emacsbug.el (report-emacs-bug): Remove the last number of
+	`emacs-version', use the topic prefix ``version; ''.  Make MS-DOS
+	a special case (there's no build number).
+
+2007-08-17  T. V. Raman  <raman@users.sf.net>  (tiny change)
+
+	* completion.el (symbol-under-point, symbol-before-point)
+	(symbol-before-point-for-complete): Use
+	buffer-substring-no-properties.
+
+2007-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-get-file-structure): Make use
+	of the directory part when checking for an existing entry, to
+	handle files with same basename in different directories.
+
+2007-08-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-language-alist): Add texinfo-mode.
+
+2007-08-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-header-font-size, ps-header-title-font-size)
+	(ps-footer-font-size, ps-line-number-font-size, ps-line-spacing)
+	(ps-paragraph-spacing): Docstring fix.
+
+2007-08-16  Glenn Morris  <rgm@gnu.org>
+
+	* ps-print.el (ps-font-size): Doc fix.
+
+2007-08-16  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-names-regexp): Add custom group.
+
+2007-08-15  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (initialization): Change parent group from `internal'
+	to `environment'.
+	(initial-buffer-choice): New variable.
+	(command-line): Revert 2007-07-02 change that sets
+	buffer-offer-save in *scratch* and enables auto-save in it.
+	(fancy-splash-text): Add links to existing items.  Add new items
+	with links for useful tasks.  Move information about Control-g to
+	fancy-splash-head.  Move "Emacs Guided Tour" to the end.
+	(fancy-splash-keymap): New variable.
+	(fancy-splash-last-input-event): Remove variable.
+	(fancy-splash-insert): Add processing of `:link' element.
+	(fancy-splash-head): Replace "Type Control-l to begin editing"
+	with "Type `q' to exit".
+	(fancy-splash-screens-1): Let-bind inhibit-read-only to t.
+	(fancy-splash-default-action, fancy-splash-special-event-action):
+	Remove functions.
+	(fancy-splash-quit): New function.
+	(fancy-splash-screens): Rename input arg from `hide-on-input' to
+	`static' and reverse the condition of its usage.  Don't preserve
+	original values of `minor-mode-map-alist',
+	`emulation-mode-map-alists', `special-event-map'.
+	Rename startup-buffer from "*About GNU Emacs*" to " GNU Emacs".
+	Rename about-buffer from " GNU Emacs" to " About GNU Emacs".
+	Remove processing of special events.  Use local key map
+	`fancy-splash-keymap'.  Set buffer to read-only.
+	(normal-splash-screen): Rename input arg from `hide-on-input' to
+	`static' and reverse the condition of its usage.
+	Rename startup-buffer from "*About GNU Emacs*" to " GNU Emacs".
+	Rename about-buffer from " GNU Emacs" to " About GNU Emacs".
+	Add links to existing items.  Add new items with links for useful
+	tasks.  Use local key map `fancy-splash-keymap'.
+	(display-splash-screen): Rename input arg from `hide-on-input' to
+	`static'.
+	(about-emacs): Add alias to display-splash-screen.
+	(command-line-1): Use `initial-buffer-choice'.
+
+	* menu-bar.el (menu-bar-help-menu):
+	* term/mac-win.el (mac-apple-event-map): Bind About Emacs menu
+	item to about-emacs instead of display-splash-screen.
+
+2007-08-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-standard-units): Update values.
+	Put in exact, rational values when possible.
+	(math-unit-prefixes): Replace floats with powers of ten.
+	(math-standard-units-systems): Replace floats with integers.
+	(math-make-unit-string): Remove extra spaces in output.
+
+2007-08-15  Glenn Morris  <rgm@gnu.org>
+
+	* mail/undigest.el (rmail-digest-parse-rfc1153sloppy): Be even
+	sloppier, for the sake of GNU Mailman.
+	(rmail-digest-rfc1153): Initialize `result' correctly.
+
+2007-08-15  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* mail/emacsbug.el (report-emacs-bug): Put `Bug: emacs-version; '
+	in the mail title.  Suggested by Reiner Steib.
+
+2007-08-14  Chris Hecker  <checker@d6.com>  (tiny change)
+
+	* calc/calc-aent.el (calc-do-quick-calc): Add binary
+	representation of integers to the list of outputs.
+
+2007-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (bad-packages-alist): New constant.
+	(bad-package-check): New function.  Together, these two add
+	elements to `after-load-alist' to check for problematic external
+	packages.
+	* emulation/cua-base.el: Move CUA-mode check to `bad-packages-alist'.
+
+2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (math-get-standard-units)
+	(math-get-units,math-make-unit-string)
+	(math-get-default-units,math-put-default-units): New functions.
+	(math-default-units-table): New variable.
+	(calc-convert-units, calc-convert-temperature): Add machinery
+	to supply default values.
+
+2007-08-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/tpu-edt.el: Add tpu-extras's autoloads.
+	(tpu-gold-map, tpu-global-map): Comment-out the bindings to nil.
+	(tpu-gold-map): Bind F to tpu-cursor-free-mode.
+	(minibuffer-local-map): Use funkey symbols rather than esc-sequence.
+
+	* emulation/tpu-extras.el: Remove spurious * in docstrings.
+	Put its autoloads into tpu-edt.el rather than loaddefs.el.
+	(tpu-cursor-free-mode): Rename from tpu-cursor-free.
+	Make into a proper minor-mode.
+	(tpu-backward-char, tpu-next-line, tpu-previous-line)
+	(tpu-next-end-of-line, tpu-current-end-of-line): Use new name.
+	(tpu-trim-line-ends-if-needed): Rename from tpu-before-save-hook.
+	(tpu-set-cursor-free, tpu-set-cursor-bound):
+	Delegate to tpu-cursor-free-mode.
+	(tpu-next-line, tpu-previous-line, tpu-forward-line)
+	(tpu-backward-line, tpu-scroll-window-down, tpu-scroll-window-up):
+	Use line-move or forward-line instead of next-line-internal.
+
 2007-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-send): Handle CTRL-D more carefully.
@@ -19,8 +334,8 @@
 	* pcvs-util.el (cvs-qtypedesc-strings): Use new names
 	combine-and-quote-strings and split-string-and-unquote.
 
-	* subr.el (combine-and-quote-strings): Renamed from strings->string.
-	(split-string-and-unquote): Renamed from string->strings.
+	* subr.el (combine-and-quote-strings): Rename from strings->string.
+	(split-string-and-unquote): Rename from string->strings.
 
 2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -156,6 +471,24 @@
 	* help.el (resize-temp-buffer-window): Use window-full-width-p
 	instead of comparing frame-width and window-width.
 
+2007-08-13  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* pcvs-parse.el (cvs-parse-table): Handle additional instance of
+	optional quotes around files in NEED-UPDATE . REMOVED case.
+
+	* progmodes/ada-xref.el (ada-gnatls-args): Fix docstring.
+	(ada-treat-cmd-string): Improve error message.
+	(ada-do-file-completion): Call `ada-require-project-file', so
+	project variables are set properly.
+	(ada-prj-find-prj-file): Delete Emacs 20.2 support.
+	(ada-gnatfind-buffer-name): New constant.
+	(ada-find-any-references): Use new constant.  Set buffer name
+	properly in compilation-start.  Toggle read-only properly.
+	(ada-find-in-src-path): Fix spelling error in docstring.
+
+	* progmodes/vhdl-mode.el (vhdl-update-progress-info): Avoid divide
+	by zero error.
+
 2007-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (autoload-print-form): Use print-quoted.
@@ -184,7 +517,7 @@
 	(tex-font-script-display, tex-font-lock-suscript): Change from a cons
 	cell to a list of 2 elements to simplify the unfontify code.
 
-2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
+2007-08-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
 
 	* url/url-auth.el (url-basic-auth): When prompting for username
 	and password, default to the username and password in the URL.
@@ -265,15 +598,6 @@
 	It calls comment-line-break-function if there are comments.
 	(do-auto-fill): Use that.
 
-2007-08-07  Ivan Kanis  <apple@kanis.eu>
-
-	* time.el (display-time-world-mode, display-time-world-display)
-	(display-time-world, display-time-world-list)
-	(display-time-world-time-format, display-time-world-buffer-name)
-	(display-time-world-timer-enable)
-	(display-time-world-timer-second, display-time-world-mode-map): 
-	New.
-	
 2007-08-07  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
 	* complete.el (PC-lisp-complete-symbol): Complete symbol around point.
@@ -328,10 +652,9 @@
 	term-default-fg/bg-color instead of ansi-term-color-vector when the
 	index (term-ansi-current-color or term-ansi-current-bg-color) is zero.
 
-2007-08-05  Jay Belanger  <belanger@localhost.localdomain>
+2007-08-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-nlfit.el (math-nlfit-curve):
-	Remove unnecessary variables.
+	* calc/calc-nlfit.el (math-nlfit-curve): Remove unnecessary variables.
 	(math-nlfit-givens): Let bind free variables.
 
 2007-08-05  Vinicius Jose Latorre  <viniciusig@ig.com.br>
@@ -344,7 +667,7 @@
 	* files.el (set-auto-mode): Handle also remote files wrt
 	`auto-mode-alist'.
 
-2007-08-04  Jay Belanger  <belanger@localhost.localdomain>
+2007-08-04  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calcalg3.el (calc-curve-fit): Add support for nonlinear
 	curves and plotting.
@@ -382,7 +705,7 @@
 
 2007-08-03  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-ext.el (math-get-value,math-get-sdev)
+	* calc/calc-ext.el (math-get-value, math-get-sdev)
 	(math-contains-sdev): New functions.
 
 	* calc/calc-graph.el (calc-graph-format-data)
@@ -437,8 +760,8 @@
 
 	* net/telnet.el (telnet-mode): Set comint-use-prompt-regexp to t.
 
-	* progmodes/fortran.el (fortran-font-lock-syntactic-keywords): Fix
-	off-by-one error in previous change.
+	* progmodes/fortran.el (fortran-font-lock-syntactic-keywords):
+	Fix off-by-one error in previous change.
 
 2007-08-03  Drew Adams  <drew.adams@oracle.com>
 
@@ -447,8 +770,8 @@
 
 2007-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-math.el (math-sqrt-raw,math-sin-raw-2)
-	(math-cos-raw-2,math-arctan-raw,math-ln-raw):
+	* calc/calc-math.el (math-sqrt-raw, math-sin-raw-2)
+	(math-cos-raw-2, math-arctan-raw, math-ln-raw):
 	Use native Emacs functions, when appropriate.
 
 2007-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -586,7 +909,7 @@
 2007-07-28  Masatake YAMATO  <jet@gyve.org>
 
 	* vc.el (vc-dired-mode): Add a menu for VC related operation.
-	Use backend name as the menu label Suggested by David Kastrup.
+	Use backend name as the menu label.  Suggested by David Kastrup.
 
 2007-07-28  Alan Mackenzie  <acm@muc.de>
 
