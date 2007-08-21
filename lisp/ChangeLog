@@ -1,5 +1,8 @@
 2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add previous-line and next-line.
+
 	* vc-arch.el (vc-arch-extra-menu-map): New var and fun.
 	(vc-arch-find-file-not-found-hook): Remove, it's now the default.
 
