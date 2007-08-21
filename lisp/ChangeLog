@@ -1,3 +1,11 @@
+2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-menu-entry): New var.
+	(vc-mode-line-map): Use it so that this menu also uses the extra-menu.
+	(menu-bar-tools-menu): Add the VC menu here rather than in menu-bar.el.
+	(vc-menu-map): Declare and initialize in one step.
+	(vc-menu-map-filter): Move&rename from menu-bar.el:menu-bar-vc-filter
+
 2007-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-resolve): New arg `safe'.
