@@ -1,3 +1,11 @@
+2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* insdel.c (reset_var_on_error): New fun.
+	(signal_before_change, signal_after_change):
+	Use it to reset (after|before)-change-functions to nil in case of error.
+	Bind inhibit-modification-hooks to t.
+	Don't bind (after|before)-change-functions to nil while they run.
+
 2007-08-19  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (pure): Round PURESIZE up.

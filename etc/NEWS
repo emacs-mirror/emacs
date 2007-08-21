@@ -79,6 +79,11 @@ in to make it use the scrollbars from the system theme.
 
 * Lisp Changes in Emacs 22.2.
 
++++
+** inhibit-modification-hooks is bound to t while running modification hooks.
+As a happy consequence, after-change-functions and before-change-functions
+are not bound to nil any more while running an (after|before)-change-function.
+
 ** New function `window-full-width-p' returns t if a window is as wide
 as its frame.
 
