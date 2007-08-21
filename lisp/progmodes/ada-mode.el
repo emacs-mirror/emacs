@@ -4571,7 +4571,7 @@ Moves to 'begin' if in a declarative part."
   ;; account
   (define-key ada-mode-map
     (if (boundp 'delete-key-deletes-forward) [backspace] "\177")
-    'backward-delete-char-untabify))
+    'backward-delete-char-untabify)
 
   ;; Make body
   (define-key ada-mode-map "\C-c\C-n" 'ada-make-subprogram-body)
