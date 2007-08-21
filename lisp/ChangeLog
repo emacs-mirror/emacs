@@ -1,5 +1,7 @@
 2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/backquote.el (backquote-delay-process): Fix last change.
+
 	* progmodes/ada-mode.el: Fix up comment style in header.
 	(ada-check-emacs-version): Remove.
 	(ada-mode): Set parse-sexp-* even if they don't exist: can't hurt.

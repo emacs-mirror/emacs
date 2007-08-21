@@ -121,9 +121,8 @@ Vectors work just like lists.  Nested backquotes are permitted."
 (defun backquote-delay-process (s level)
   "Process a (un|back|splice)quote inside a backquote.
 This simply recurses through the body."
-  (let ((exp (backquote-listify (list (backquote-process (nth 1 s) level)
-                                      (cons 0 (list 'quote (car s))))
-                                '(0))))
+  (let ((exp (backquote-listify (list (cons 0 (list 'quote (car s))))
+                                (backquote-process (cdr s) level))))
     (if (eq (car-safe exp) 'quote)
         (cons 0 (list 'quote s))
       (cons 1 exp))))
