@@ -1,3 +1,11 @@
+2007-08-21  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-mime.el (mm-decode-body): remove explicit autoload of
+	mh-alias-expand.
+
+	* mh-alias.el (mh-alias-expand): Set up automatic autoload of
+	mh-alias-expand.
+
 2007-08-20  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-mime.el (message-options-set): Add missing autoloads from my
