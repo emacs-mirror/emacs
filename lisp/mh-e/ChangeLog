@@ -1,5 +1,16 @@
 2007-08-21  Jeffrey C Honig  <jch@honig.net>
 
+	* mh-folder.el (mh-folder-message-menu, mh-folder-mode-map): Add
+	folder mode support for mh-show-preferred-alternative.  (Clooses
+	SF 1777321).
+
+	* mh-show.el (mh-show-preferred-alternative)
+	(mh-show-write-message-to-file, mh-show-message-menu)
+	(mh-show-mode-map): Add mh-show-preferred-alternative (bound to
+	":") which will show the message's preferred alternative
+	overriding the users configured preference.  Useful for showing
+	HTML when text content is lacking.  (Closses SF 1777321).
+
 	* mh-e.el: 
 	(mh-invisible-header-fields-internal): Exclude Fax and Phone.  Put
 	known exclusions as comments before the list and move parens to
