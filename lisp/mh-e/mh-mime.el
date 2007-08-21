@@ -63,7 +63,6 @@
 (autoload 'message-options-get "message")
 (autoload 'message-options-set "message")
 (autoload 'message-options-set-recipient "message")
-(autoload 'mh-alias-expand "mh-alias")
 (autoload 'mm-decode-body "mm-bodies")
 (autoload 'mm-uu-dissect "mm-uu")
 (autoload 'mml-unsecure-message "mml-sec")
