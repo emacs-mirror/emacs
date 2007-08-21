@@ -1,5 +1,10 @@
 2007-08-21  Jeffrey C Honig  <jch@honig.net>
 
+	* mh-e.el: 
+	(mh-invisible-header-fields-internal): Exclude Fax and Phone.  Put
+	known exclusions as comments before the list and move parens to
+	separate lines to aid in sorting.  (Closes SF 1701231).
+
 	* mh-mime.el (mm-decode-body): remove explicit autoload of
 	mh-alias-expand.
 

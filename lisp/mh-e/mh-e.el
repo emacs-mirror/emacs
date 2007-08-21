@@ -2381,9 +2381,21 @@ of citations entirely, choose \"None\"."
   :group 'mh-show
   :package-version '(MH-E . "8.0"))
 
+;; Theese entries have been intentionally excluded by the developers.
+;;  "X-Operator:"                       ; Similar to X-Mailer, so display it
+;;  "Comments:"                         ; RFC 2822 - show this one
+;;  "Fax:"                              ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+;;  "Mail-System-Version:"              ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+;;  "Mailer:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+;;  "Phone:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+;;  "Reply-By:"                         ; RFC 2156
+;;  "Reply-To:"                         ; RFC 2822
+;;  "User-Agent:"                       ; Similar to X-Mailer, so display it.
+;;
 ;; Keep fields alphabetized. Mention source, if known.
 (defvar mh-invisible-header-fields-internal
-  '("Abuse-Reports-To:"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+  '(
+    "Abuse-Reports-To:"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Also-Control:"                     ; H. Spencer: News Article Format and Transmission, June 1994
     "Alternate-recipient:"              ; RFC 2156
     "Approved-By:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2397,7 +2409,6 @@ of citations entirely, choose \"None\"."
     "Cancel-Key:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Cancel-Lock:"                      ; NNTP posts
     "Comment:"                          ; Shows up with DomainKeys
-;;    "Comments:"                       ; RFC 2822 - show this one
     "Content-"                          ; RFC 2045, 1123, 1766, 1864, 2045, 2110, 2156, 2183, 2912
     "Control:"                          ; RFC 1036
     "Conversion-With-Loss:"             ; RFC 2156
@@ -2419,7 +2430,6 @@ of citations entirely, choose \"None\"."
     "Expires:"                          ; RFC 1036
     "Expiry-Date:"                      ; RFC 2156
     "Face:"                             ; Gnus Face header
-    "Fax:"                              ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Followup-To:"                      ; RFC 1036
     "For-Approval:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "For-Comment:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2463,7 +2473,6 @@ of citations entirely, choose \"None\"."
     "P1-Message-Id:"                    ; X400
     "P1-Recipient:"                     ; X400
     "Path:"                             ; RFC 1036
-    "Phone:"                            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Pics-Label:"                       ; W3C
     "Posted-To:"                        ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Precedence:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2503,9 +2512,12 @@ of citations entirely, choose \"None\"."
     "X-Admin:"                          ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Administrivia-To:"
     "X-AntiAbuse:"                      ; cPanel
+    "X-Antivirus-Scanner:"
     "X-Apparently-From:"                ; MS Outlook
     "X-Apparently-To:"           ; Egroups/yahoogroups mailing list manager
+    "X-Attribution:"
     "X-AuditID:"
+    "X-Authenticated-Info:"             ; Verizon.net?
     "X-Authenticated-Sender:"           ; AT&T Message Center (webmail)
     "X-Authentication-Warning:"         ; sendmail
     "X-Barracuda-"                      ; Barracuda spam scores
@@ -2515,9 +2527,12 @@ of citations entirely, choose \"None\"."
     "X-Brightmail-Tracker:"             ; Brightmail
     "X-BrightmailFiltered:"             ; Brightmail
     "X-Bugzilla-"                       ; Bugzilla
+    "X-Comment:"                        ; AT&T Mailennium
     "X-Complaints-To:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Confirm-Reading-To:"             ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-ContentStamp:"                   ; NetZero
+    "X-Cr-Hashedpuzzle:"
+    "X-Cr-Puzzleid:"
     "X-Cron-Env:"
     "X-DMCA"
     "X-Delivered"
@@ -2528,6 +2543,7 @@ of citations entirely, choose \"None\"."
     "X-Envelope-From:"                  ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Envelope-Sender:"
     "X-Envelope-To:"                    ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-EviteMessageId:"                 ; evite.com
     "X-Evolution:"                      ; Evolution mail client
     "X-ExtLoop"
     "X-Face:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2551,6 +2567,7 @@ of citations entirely, choose \"None\"."
     "X-Listprocessor-"                  ; ListProc(tm) by CREN
     "X-Listserver:"                     ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Loop:"                           ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "X-Lrde-Mailscanner:"
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-MAIL-INFO:"                      ; NetZero
     "X-MB-Message-"                     ; AOL WebMail
@@ -2601,6 +2618,7 @@ of citations entirely, choose \"None\"."
     "X-Request-"
     "X-Resolved-to:"                    ; fastmail.fm
     "X-Return-Path-Hint:"               ; Roving ConstantContact
+    "X-RocketYMMF:"                     ; Yahoo
     "X-Roving-"                         ; Roving ConstantContact
     "X-SA-Exim-"                        ; Exim SpamAssassin
     "X-SBClass:"                        ; Spam
@@ -2630,23 +2648,17 @@ of citations entirely, choose \"None\"."
     "X-Unity"
     "X-UserInfo1:"
     "X-VSMLoop:"                        ; NTMail
-    "X-Virus-Scanned"                   ; amavisd-new
+    "X-Virus-"                          ; 
     "X-Vms-To:"
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
     "X-X-Sender:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-YMail-"
     "X-Yahoo"
-    "X-eGroups-"                 ; Egroups/yahoogroups mailing list manager
+    "X-eGroups-"                        ; Egroups/yahoogroups mailing list manager
     "X-pgp:"
     "X-submission-address:"
     "X400-"                             ; X400
-    ;;"X-Operator:"                     ; Similar to X-Mailer, so display it
-;;    "Mail-System-Version:"            ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-;;    "Mailer:"                         ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
-;;    "Reply-By:"                               ; RFC 2156
-;;    "Reply-To:"                               ; RFC 2822
-;;  "User-Agent:"                       ; Similar to X-Mailer, so display it.
     "Xref:"                             ; RFC 1036
     )
   "List of default header fields that are not to be shown.
