@@ -1,3 +1,7 @@
+2007-08-21  Juri Linkov  <juri@jurta.org>
+
+	* loadup.el: Preload "button".
+
 2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
