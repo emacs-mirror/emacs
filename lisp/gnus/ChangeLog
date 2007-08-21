@@ -1,3 +1,19 @@
+2007-08-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-summary-command-nosave)
+	(gnus-article-read-summary-keys): Don't use 3rd arg of pop-to-buffer.
+
+2007-08-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-maximum-newsgroup): New variable.
+
+	* gnus-agent.el (gnus-agent-fetch-headers): Limit the range of articles
+	according to gnus-maximum-newsgroup.
+
+	* gnus-sum.el (gnus-articles-to-read, gnus-list-of-unread-articles)
+	(gnus-list-of-read-articles, gnus-sequence-of-unread-articles): Limit
+	the range of articles according to gnus-maximum-newsgroup.
+
 2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nntp.el (nntp-xref-number-is-evil): New server variable.

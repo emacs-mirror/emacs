@@ -5472,7 +5472,13 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	      ;; articles in the group, or (if that's nil), the
 	      ;; articles in the cache.
 	      (or
-	       (gnus-uncompress-range (gnus-active group))
+	       (if gnus-maximum-newsgroup
+		   (let ((active (gnus-active group)))
+		     (gnus-uncompress-range
+		      (cons (max (car active)
+				 (- (cdr active) gnus-maximum-newsgroup -1))
+			    (cdr active))))
+		 (gnus-uncompress-range (gnus-active group)))
 	       (gnus-cache-articles-in-group group))
 	    ;; Select only the "normal" subset of articles.
 	    (gnus-sorted-nunion
@@ -6534,23 +6540,26 @@ displayed, no centering will be performed."
   (let* ((read (gnus-info-read (gnus-get-info group)))
 	 (active (or (gnus-active group) (gnus-activate-group group)))
 	 (last (cdr active))
+	 (bottom (if gnus-maximum-newsgroup
+		     (max (car active) (- last gnus-maximum-newsgroup -1))
+		   (car active)))
 	 first nlast unread)
     ;; If none are read, then all are unread.
     (if (not read)
-	(setq first (car active))
+	(setq first bottom)
       ;; If the range of read articles is a single range, then the
       ;; first unread article is the article after the last read
       ;; article.  Sounds logical, doesn't it?
       (if (and (not (listp (cdr read)))
-	       (or (< (car read) (car active))
+	       (or (< (car read) bottom)
 		   (progn (setq read (list read))
 			  nil)))
-	  (setq first (max (car active) (1+ (cdr read))))
+	  (setq first (max bottom (1+ (cdr read))))
 	;; `read' is a list of ranges.
 	(when (/= (setq nlast (or (and (numberp (car read)) (car read))
 				  (caar read)))
 		  1)
-	  (setq first (car active)))
+	  (setq first bottom))
 	(while read
 	  (when first
 	    (while (< first nlast)
@@ -6575,7 +6584,12 @@ displayed, no centering will be performed."
 	 (gnus-list-range-difference
 	  (gnus-list-range-difference
 	   (gnus-sorted-complement
-	    (gnus-uncompress-range active)
+	    (gnus-uncompress-range
+	     (if gnus-maximum-newsgroup
+		 (cons (max (car active)
+			    (- (cdr active) gnus-maximum-newsgroup -1))
+		       (cdr active))
+	       active))
 	    (gnus-list-of-unread-articles group))
 	   (cdr (assq 'dormant marked)))
 	  (cdr (assq 'tick marked))))))
@@ -6587,23 +6601,26 @@ displayed, no centering will be performed."
   (let* ((read (gnus-info-read (gnus-get-info group)))
 	 (active (or (gnus-active group) (gnus-activate-group group)))
 	 (last (cdr active))
+	 (bottom (if gnus-maximum-newsgroup
+		     (max (car active) (- last gnus-maximum-newsgroup -1))
+		   (car active)))
 	 first nlast unread)
     ;; If none are read, then all are unread.
     (if (not read)
-	(setq first (car active))
+	(setq first bottom)
       ;; If the range of read articles is a single range, then the
       ;; first unread article is the article after the last read
       ;; article.  Sounds logical, doesn't it?
       (if (and (not (listp (cdr read)))
-	       (or (< (car read) (car active))
+	       (or (< (car read) bottom)
 		   (progn (setq read (list read))
 			  nil)))
-	  (setq first (max (car active) (1+ (cdr read))))
+	  (setq first (max bottom (1+ (cdr read))))
 	;; `read' is a list of ranges.
 	(when (/= (setq nlast (or (and (numberp (car read)) (car read))
 				  (caar read)))
 		  1)
-	  (setq first (car active)))
+	  (setq first bottom))
 	(while read
 	  (when first
             (push (cons first nlast) unread))

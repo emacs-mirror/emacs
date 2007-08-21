@@ -1,3 +1,25 @@
+2007-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-resolve): New arg `safe'.
+	(smerge-resolve-all, smerge-batch-resolve): New function.
+	(smerge-refine): Make sure `diff' returns the expected result.
+	(smerge-parsep-re): New const.
+	(smerge-mode): Use it to adjust paragraph-separate.
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Correctly match / regexp matchers as first char on a line when
+	fontifying only that line.
+
+	* emacs-lisp/cl-macs.el (cl-transform-lambda): Preserve the match-data.
+
+2007-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el: Don't fiddle with vc-handled-backend.
+	(vc-bzr-registered): Don't redundantly protect against
+	file-error.  Actually use the format-specific code.
+	(vc-bzr-buffer-nonblank-p): Remove.
+	(vc-bzr-status): Change `kindchange' -> `kindchanged'.
+
 2007-08-20  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (fancy-splash-text): Change multiple tabs into one
