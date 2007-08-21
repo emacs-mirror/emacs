@@ -1,5 +1,8 @@
 2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-arch.el (vc-arch-extra-menu-map): New var and fun.
+	(vc-arch-find-file-not-found-hook): Remove, it's now the default.
+
 	* vc-hooks.el (vc-menu-entry): New var.
 	(vc-mode-line-map): Use it so that this menu also uses the extra-menu.
 	(menu-bar-tools-menu): Add the VC menu here rather than in menu-bar.el.
