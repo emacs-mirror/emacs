@@ -1926,8 +1926,7 @@ calc-kill calc-kill-region calc-yank))))
 
 ;;; Betcha didn't know that pi = 16 atan(1/5) - 4 atan(1/239).   [F] [Public]
 (defconst math-approx-pi
-  (eval-when-compile
-    (math-read-number-simple "3.141592653589793238463"))
+  (math-read-number-simple "3.141592653589793238463")
   "An approximation for pi.")
 
 (math-defcache math-pi math-approx-pi
@@ -1962,7 +1961,7 @@ calc-kill calc-kill-region calc-yank))))
   (math-sqrt-float (math-two-pi)))
 
 (defconst math-approx-sqrt-e
-  (eval-when-compile (math-read-number-simple "1.648721270700128146849"))
+  (math-read-number-simple "1.648721270700128146849")
   "An approximation for sqrt(3).")
     
 (math-defcache math-sqrt-e math-approx-sqrt-e
@@ -1976,9 +1975,8 @@ calc-kill calc-kill-region calc-yank))))
 		  '(float 5 -1)))
 
 (defconst math-approx-gamma-const
-  (eval-when-compile
-    (math-read-number-simple 
-     "0.5772156649015328606065120900824024310421593359399235988057672348848677267776646709369470632917467495"))
+  (math-read-number-simple 
+   "0.5772156649015328606065120900824024310421593359399235988057672348848677267776646709369470632917467495")
   "An approximation for gamma.")
 
 (math-defcache math-gamma-const nil 

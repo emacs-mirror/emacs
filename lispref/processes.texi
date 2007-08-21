@@ -503,23 +503,25 @@ Process my-process finished
 
 @defun start-file-process name buffer-or-name program &rest args
 Like @code{start-process}, this function starts a new asynchronous
-subprocess running @var{program} in it.  The corresponding process
-object is returned.
+subprocess running @var{program} in it, and returns its process
+object---when @code{default-directory} is not a magic file name.
 
-If @code{default-directory} corresponds to a file handler, that
-handler is invoked.  @var{program} runs then on a remote host which is
-identified by @code{default-directory}.  The local part of
-@code{default-directory} is the working directory of the subprocess.
+If @code{default-directory} is magic, the function invokes its file
+handler instead.  This handler ought to run @var{program}, perhaps on
+the local host, perhaps on a remote host that corresponds to
+@code{default-directory}.  In the latter case, the local part of
+@code{default-directory} becomes the working directory of the process.
 
-@var{program} and @var{program-args} might be file names.  They are not
-objects of file handler invocation.
+This function does not try to invoke file name handlers for
+@var{program} or for the @var{program-args}.
 
 Depending on the implementation of the file handler, it might not be
 possible to apply @code{process-filter} or @code{process-sentinel} to
 the resulting process object (@pxref{Filter Functions}, @pxref{Sentinels}).
 
 Some file handlers may not support @code{start-file-process} (for
-example @code{ange-ftp-hook-function}).  It returns then @code{nil}.
+example @code{ange-ftp-hook-function}).  In such cases, the function
+does nothing and returns @code{nil}.
 @end defun
 
 @defun start-process-shell-command name buffer-or-name command &rest command-args

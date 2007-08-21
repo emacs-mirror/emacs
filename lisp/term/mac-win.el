@@ -1841,7 +1841,7 @@ Currently the `mailto' scheme is supported."
 
 (define-key mac-apple-event-map [internet-event get-url] 'mac-ae-get-url)
 
-(define-key mac-apple-event-map [hi-command about] 'display-splash-screen)
+(define-key mac-apple-event-map [hi-command about] 'about-emacs)
 
 ;;; Converted Carbon Events
 (defun mac-handle-toolbar-switch-mode (event)

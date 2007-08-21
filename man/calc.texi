@@ -123,6 +123,13 @@ Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
 @insertcopying
 @end titlepage
 
+
+@summarycontents
+
+@c [end]
+
+@contents
+
 @c [begin]
 @ifnottex
 @node Top, Getting Started, (dir), (dir)
@@ -10013,11 +10020,18 @@ During numeric entry, the only editing key available is @key{DEL}.
 @cindex Algebraic notation
 @cindex Formulas, entering
 Calculations can also be entered in algebraic form.  This is accomplished
-by typing the apostrophe key, @kbd{'}, followed by the expression in
-standard format:  @kbd{@key{'} 2+3*4 @key{RET}} computes
+by typing the apostrophe key, ', followed by the expression in
+standard format:  
+
+@example
+' 2+3*4 @key{RET}.
+@end example
+
+@noindent
+This will compute
 @texline @math{2+(3\times4) = 14}
 @infoline @expr{2+(3*4) = 14} 
-and pushes that on the stack.  If you wish you can
+and push it on the stack.  If you wish you can
 ignore the RPN aspect of Calc altogether and simply enter algebraic
 expressions in this way.  You may want to use @key{DEL} every so often to
 clear previous results off the stack.
@@ -10166,8 +10180,8 @@ then the result of the evaluation is stored in that Calc variable.
 @xref{Store and Recall}.
 
 If the result is an integer and the current display radix is decimal,
-the number will also be displayed in hex and octal formats.  If the
-integer is in the range from 1 to 126, it will also be displayed as
+the number will also be displayed in hex, octal and binary formats.  If
+the integer is in the range from 1 to 126, it will also be displayed as
 an ASCII character.
 
 For example, the quoted character @samp{"x"} produces the vector
@@ -27436,14 +27450,29 @@ of angle are evaluated, regardless of the current angular mode.
 The @kbd{u c} (@code{calc-convert-units}) command converts a units
 expression to new, compatible units.  For example, given the units
 expression @samp{55 mph}, typing @kbd{u c m/s @key{RET}} produces
-@samp{24.5872 m/s}.  If the units you request are inconsistent with
-the original units, the number will be converted into your units
-times whatever ``remainder'' units are left over.  For example,
-converting @samp{55 mph} into acres produces @samp{6.08e-3 acre / m s}.
-(Recall that multiplication binds more strongly than division in Calc
-formulas, so the units here are acres per meter-second.)  Remainder
-units are expressed in terms of ``fundamental'' units like @samp{m} and
-@samp{s}, regardless of the input units.
+@samp{24.5872 m/s}.  If you have previously converted a units expression
+with the same type of units (in this case, distance over time), you will
+be offered the previous choice of new units as a default.  Continuing
+the above example, entering the units expression @samp{100 km/hr} and
+typing @kbd{u c @key{RET}} (without specifying new units) produces
+@samp{27.7777777778 m/s}.
+
+While many of Calc's conversion factors are exact, some are necessarily
+approximate.  If Calc is in fraction mode (@pxref{Fraction Mode}), then
+unit conversions will try to give exact, rational conversions, but it
+isn't always possible.  Given @samp{55 mph} in fraction mode, typing 
+@kbd{u c m/s @key{RET}} produces  @samp{15367:625 m/s}, for example, 
+while typing @kbd{u c au/yr @key{RET}} produces 
+@samp{5.18665819999e-3 au/yr}.
+
+If the units you request are inconsistent with the original units, the
+number will be converted into your units times whatever ``remainder''
+units are left over.  For example, converting @samp{55 mph} into acres
+produces @samp{6.08e-3 acre / m s}.  (Recall that multiplication binds
+more strongly than division in Calc formulas, so the units here are
+acres per meter-second.)  Remainder units are expressed in terms of
+``fundamental'' units like @samp{m} and @samp{s}, regardless of the
+input units.
 
 One special exception is that if you specify a single unit name, and
 a compatible unit appears somewhere in the units expression, then
@@ -36149,11 +36178,6 @@ the corresponding full Lisp name is derived by adding a prefix of
 
 @printindex fn
 
-@summarycontents
-
-@c [end]
-
-@contents
 @bye
 
 

@@ -596,6 +596,7 @@ point=36169 of 36168 (EOB) column=0
 @cindex character set of character at point
 @cindex font of character at point
 @cindex text properties at point
+@cindex face at point
   @w{@kbd{C-u C-x =}} displays the following additional information about a
 character.
 
@@ -623,7 +624,8 @@ terminal, the code(s) sent to the terminal.
 
 @item
 The character's text properties (@pxref{Text Properties,,,
-elisp, the Emacs Lisp Reference Manual}), and any overlays containing it
+elisp, the Emacs Lisp Reference Manual}), including any non-default
+faces used to display the character, and any overlays containing it
 (@pxref{Overlays,,, elisp, the same manual}).
 @end itemize
 

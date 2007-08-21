@@ -1972,7 +1972,13 @@ The file-structure looks like this:
 	;; Store it for the possibly unnormalized name
 	(puthash file
 		 ;; Retrieve or create file-structure for normalized name
-		 (or (gethash (list filename) compilation-locs)
+		 ;; The gethash used to not use spec-directory, but
+		 ;; this leads to errors when files in different
+		 ;; directories have the same name:
+		 ;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00463.html
+		 (or (gethash (cons filename spec-directory) compilation-locs)
+		     ;; TODO should this, without spec-directory, be
+		     ;; done at all?
 		     (puthash (list filename)
 			      (list (list filename spec-directory) fmt)
 			      compilation-locs))

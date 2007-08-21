@@ -5797,6 +5797,57 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 ;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
 ;
 
+
+;;;; Problematic external packages.
+
+;; rms says this should be done by specifying symbols that define
+;; versions together with bad values.  This is therefore not as
+;; flexible as it could be.  See the thread:
+;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00300.html
+(defconst bad-packages-alist
+  ;; Not sure exactly which semantic versions have problems.
+  ;; Definitely 2.0pre3, probably all 2.0pre's before this.
+  '((semantic semantic-version "2\\.0pre[1-3]"
+              "The version of `semantic' loaded does not work in Emacs 22.
+It can cause constant high CPU load.  Upgrade to at least 2.0pre4.")
+    ;; CUA-mode does not work with GNU Emacs version 22.1 and newer.
+    ;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
+    ;; provided the `CUA-mode' feature.  Since this is no longer true,
+    ;; we can warn the user if the `CUA-mode' feature is ever provided.
+    (CUA-mode t nil
+"CUA-mode is now part of the standard GNU Emacs distribution,
+so you can now enable CUA via the Options menu or by customizing `cua-mode'.
+
+You have loaded an older version of CUA-mode which does not work
+correctly with this version of Emacs.  You should remove the old
+version and use the one distributed with Emacs."))
+  "Alist of packages known to cause problems in this version of Emacs.
+Each element has the form (PACKAGE SYMBOL REGEXP STRING).
+PACKAGE is either a regular expression to match file names, or a
+symbol (a feature name); see the documentation of
+`after-load-alist', to which this variable adds functions.
+SYMBOL is either the name of a string variable, or `t'.  Upon
+loading PACKAGE, if SYMBOL is t or matches REGEXP, display a
+warning using STRING as the message.")
+
+(defun bad-package-check (package)
+  "Run a check using the element from `bad-packages-alist' matching PACKAGE."
+  (condition-case nil
+      (let* ((list (assoc package bad-packages-alist))
+             (symbol (nth 1 list)))
+        (and list
+             (boundp symbol)
+             (or (eq symbol t)
+                 (and (stringp (setq symbol (eval symbol)))
+                      (string-match (nth 2 list) symbol)))
+             (display-warning :warning (nth 3 list))))
+    (error nil)))
+
+(mapc (lambda (elem)
+        (eval-after-load (car elem) `(bad-package-check ',(car elem))))
+      bad-packages-alist)
+
+
 (provide 'simple)
 
 ;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd

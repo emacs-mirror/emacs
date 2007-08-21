@@ -6982,10 +6982,13 @@ only-lines."
   (when (and vhdl-progress-info (not noninteractive)
 	     (< vhdl-progress-interval
 		(- (nth 1 (current-time)) (aref vhdl-progress-info 2))))
-    (message (concat string "... (%2d%s)")
-	     (/ (* 100 (- pos (aref vhdl-progress-info 0)))
-		(- (aref vhdl-progress-info 1)
-		   (aref vhdl-progress-info 0))) "%")
+    (let ((delta (- (aref vhdl-progress-info 1)
+                    (aref vhdl-progress-info 0))))
+      (if (= 0 delta)
+          (message (concat string "... (100%s)") "%")
+        (message (concat string "... (%2d%s)")
+                 (/ (* 100 (- pos (aref vhdl-progress-info 0)))
+                    delta) "%")))
     (aset vhdl-progress-info 2 (nth 1 (current-time)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

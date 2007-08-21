@@ -93,7 +93,15 @@ See rmail-digest-methods."
  (rmail-digest-rfc1153
   "^-\\{55,\\}\n\n"
   "^\n-\\{27,\\}\n\n"
-  "^\n-\\{27,\\}\n\nEnd of"))
+  ;; GNU Mailman knowingly (see comment at line 353 of ToDigest.py in
+  ;; Mailman source) produces non-conformant rfc 1153 digests, in that
+  ;; the trailer contains a "digest footer" like this:
+  ;; _______________________________________________
+  ;; <one or more lines of list blurb>
+  ;;
+  ;; End of Foo Digest...
+  ;; **************************************
+  "^\nEnd of"))
 
 (defun rmail-digest-rfc1153 (prolog-sep message-sep trailer-sep)
   (goto-char (point-min))
@@ -104,7 +112,7 @@ See rmail-digest-methods."
 	  separator result)
       (move-marker start (match-beginning 0))
       (move-marker end (match-end 0))
-      (setq result (cons (copy-marker start) (copy-marker end t)))
+      (setq result (list (cons (copy-marker start) (copy-marker end t))))
       (when (re-search-forward message-sep nil t)
 	;; Ok, at least one message separator found
 	(setq separator (match-string 0))

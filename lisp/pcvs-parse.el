@@ -284,6 +284,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        ;; File removed, since it is removed (by third party) in repository.
        (and
 	(cvs-or
+         ;; some cvs versions output quotes around these files
+	 (cvs-match "warning: `\\(.*\\)' is not (any longer) pertinent$" (file 1))
 	 (cvs-match "warning: \\(.*\\) is not (any longer) pertinent$" (file 1))
 	 (cvs-match "`\\(.*\\)' is no longer in the repository$" (file 1))
          (cvs-match "\\(.*\\) is no longer in the repository$" (file 1)))

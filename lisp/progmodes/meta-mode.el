@@ -51,7 +51,7 @@
 ;; these lines to your startup file:
 ;;
 ;;  (add-hook 'meta-mode-load-hook
-;;            '(lambda () (require 'meta-buf)))
+;;            (lambda () (require 'meta-buf)))
 ;;
 ;; The add-on package loaded this way may in turn make use of the
 ;; mode-hooks provided in this package to activate additional features
@@ -605,14 +605,16 @@ If the list was changed, sort the list and remove duplicates first."
 
 (defun meta-indent-calculate ()
   "Return the indentation of current line of Metafont or MetaPost source."
+  ;; Indentation within strings is not considered as Meta* don't allow multi
+  ;; line strings.
   (save-excursion
     (back-to-indentation)
     (cond
-      ;; Comments to the left margin.
+     ;; Comments to the left margin.
      ((and meta-left-comment-regexp
            (looking-at meta-left-comment-regexp))
       0)
-      ;; Comments to the right margin.
+     ;; Comments to the right margin.
      ((and meta-right-comment-regexp
            (looking-at meta-right-comment-regexp))
       comment-column)
@@ -620,42 +622,113 @@ If the list was changed, sort the list and remove duplicates first."
      ((and meta-ignore-comment-regexp
            (looking-at meta-ignore-comment-regexp))
       (current-indentation))
+     ;; Beginning of buffer.
+     ((eq (point-at-bol) (point-min))
+      0)
      ;; Backindent at end of environments.
-     ((looking-at
+     ((meta-indent-looking-at-code
        (concat "\\<" meta-end-environment-regexp "\\>"))
-      (- (meta-indent-calculate-last) meta-indent-level))
+      (- (meta-indent-current-indentation) meta-indent-level))
      ;; Backindent at keywords within environments.
-     ((looking-at
+     ((meta-indent-looking-at-code
        (concat "\\<" meta-within-environment-regexp "\\>"))
-      (- (meta-indent-calculate-last) meta-indent-level))
-     (t (meta-indent-calculate-last)))))
+      (- (meta-indent-current-indentation) meta-indent-level))
+     (t (meta-indent-current-indentation)))))
 
-(defun meta-indent-calculate-last ()
-  "Return the indentation of previous line of Metafont or MetaPost source."
-  (save-restriction
-    (widen)
+(defun meta-indent-in-string-p ()
+  "Tell if the point is in a string."
+  (or (nth 3 (syntax-ppss))
+      (eq (get-text-property (point) 'face) font-lock-string-face)))
+
+(defun meta-indent-looking-at-code (regexp)
+  "Same as `looking-at' but checks that the point is not in a string."
+  (unless (meta-indent-in-string-p)
+    (looking-at regexp)))
+
+(defun meta-indent-previous-line ()
+  "Go to the previous line of code, skipping comments."
+  (skip-chars-backward "\n\t ")
+  (move-to-column (current-indentation))
+  ;; Ignore comments.
+  (while (and (looking-at comment-start) (not (bobp)))
     (skip-chars-backward "\n\t ")
-    (move-to-column (current-indentation))
-    ;; Ignore comments.
-    (while (and (looking-at comment-start) (not (bobp)))
-      (skip-chars-backward "\n\t ")
-      (if (not (bobp))
-          (move-to-column (current-indentation))))
-    (cond
-     ((bobp) 0)
-     (t (+ (current-indentation)
-           (meta-indent-level-count)
-           (cond
-            ;; Compensate for backindent at end of environments.
-            ((looking-at
-              (concat "\\<"meta-end-environment-regexp "\\>"))
-             meta-indent-level)
-            ;; Compensate for backindent within environments.
-            ((looking-at
-              (concat "\\<" meta-within-environment-regexp "\\>"))
-             meta-indent-level)
-            (t 0)))))
-    ))
+    (if (not (bobp))
+	(move-to-column (current-indentation)))))
+
+(defun meta-indent-unfinished-line ()
+  "Tell if the current line of code ends with an unfinished expression."
+  (save-excursion
+    (end-of-line)
+    ;; Skip backward the comments.
+    (while (search-backward comment-start (point-at-bol) t))
+    ;; Search for the end of the previous expression.
+    (if (search-backward ";" (point-at-bol) t)
+	(progn (while (and (meta-indent-in-string-p)
+			   (search-backward ";" (point-at-bol) t)))
+	       (if (= (char-after) ?\;)
+		   (forward-char)
+		 (beginning-of-line)))
+      (beginning-of-line))
+    ;; See if the last statement of the line is environment-related,
+    ;; or exists at all.
+    (if (meta-indent-looking-at-code
+	 (concat "[ \t]*\\($\\|" (regexp-quote comment-start)
+		 "\\|\\<" meta-end-environment-regexp "\\>"
+		 "\\|\\<" meta-begin-environment-regexp "\\>"
+		 "\\|\\<" meta-within-environment-regexp "\\>\\)"))
+	nil
+      t)))
+
+(defun meta-indent-current-indentation ()
+  "Return the indentation wanted for the current line of code."
+  (+ (meta-indent-current-nesting)
+     (if (save-excursion
+	   (back-to-indentation)
+	   (and (not (looking-at (concat "\\<" meta-end-environment-regexp "\\>"
+					 "\\|\\<" meta-within-environment-regexp "\\>")))
+		(progn (meta-indent-previous-line)
+		       (meta-indent-unfinished-line))))
+	 meta-indent-level
+       0)))
+
+(defun meta-indent-current-nesting ()
+  "Return the indentation according to the nearest environment keyword."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (back-to-indentation)
+      (let ((to-add 0))
+	;; If we found some environment marker backward...
+	(if (catch 'found
+	      (while (re-search-backward
+		      (concat "(\\|)\\|\\<" meta-end-environment-regexp "\\>"
+			      "\\|\\<" meta-begin-environment-regexp "\\>"
+			      "\\|\\<" meta-within-environment-regexp "\\>")
+		      nil t)
+		;; If we aren't in a string or in a comment, we've found something.
+		(unless (or (meta-indent-in-string-p)
+			    (nth 4 (syntax-ppss)))
+		  (cond ((= (char-after) ?\()
+			 (setq to-add (+ to-add meta-indent-level)))
+			((= (char-after) ?\))
+			 (setq to-add (- to-add meta-indent-level)))
+			(t (throw 'found t))))))
+	    (progn
+	      ;; ... then use it to compute the current indentation.
+	      (back-to-indentation)
+	      (+ to-add (current-indentation) (meta-indent-level-count)
+		 ;; Compensate for backindent of end and within keywords.
+		 (if (meta-indent-looking-at-code
+		      (concat "\\<" meta-end-environment-regexp "\\>\\|"
+			      "\\<" meta-within-environment-regexp "\\>"))
+		     meta-indent-level
+		   ;; Compensate for unfinished line.
+		   (if (save-excursion
+			 (meta-indent-previous-line)
+			 (meta-indent-unfinished-line))
+		       (- meta-indent-level)
+		     0))))
+	  0)))))
 
 (defun meta-indent-level-count ()
   "Count indentation change for begin-end commands in the current line."
@@ -671,18 +744,12 @@ If the list was changed, sort the list and remove duplicates first."
             (goto-char (match-beginning 0))
             (cond
              ;; Count number of begin-end keywords within line.
-             ((looking-at
+             ((meta-indent-looking-at-code
                (concat "\\<" meta-begin-environment-regexp "\\>"))
               (setq count (+ count meta-indent-level)))
-             ((looking-at
+             ((meta-indent-looking-at-code
                (concat "\\<" meta-end-environment-regexp "\\>"))
-              (setq count (- count meta-indent-level)))
-             ;; Count number of open-close parentheses within line.
-             ((looking-at "(")
-              (setq count (+ count meta-indent-level)))
-             ((looking-at ")")
-              (setq count (- count meta-indent-level)))
-             )))
+              (setq count (- count meta-indent-level))))))
         count))))
 
 

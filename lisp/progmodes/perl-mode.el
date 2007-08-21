@@ -267,8 +267,16 @@ The expansion is entirely correct because it uses the C preprocessor."
     ("^[ \t]*format.*=[ \t]*\\(\n\\)" (1 '(7)))
     ;; Funny things in sub arg specifications like `sub myfunc ($$)'
     ("\\<sub\\s-+\\S-+\\s-*(\\([^)]+\\))" 1 '(1))
-    ;; regexp and funny quotes
-    ("[?:.,;=!~({[][ \t\n]*\\(/\\)" (1 '(7)))
+    ;; Regexp and funny quotes.
+    ("\\(?:[?:.,;=!~({[]\\|\\(^\\)\\)[ \t\n]*\\(/\\)"
+     (2 (if (and (match-end 1)
+                 (save-excursion
+                   (goto-char (match-end 1))
+                   (skip-chars-backward " \t\n")
+                   (not (memq (char-before)
+                              '(?? ?: ?. ?, ?\; ?= ?! ?~ ?\( ?\[)))))
+            nil ;; A division sign instead of a regexp-match.
+          '(7))))
     ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m

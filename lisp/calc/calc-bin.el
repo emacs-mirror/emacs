@@ -34,13 +34,13 @@
 
 ;;; Some useful numbers
 (defconst math-bignum-logb-digit-size
-  (eval-when-compile (logb math-bignum-digit-size))
+  (logb math-bignum-digit-size)
   "The logb of the size of a bignum digit.
 This is the largest value of B such that 2^B is less than 
 the size of a Calc bignum digit.")
 
 (defconst math-bignum-digit-power-of-two
-  (eval-when-compile (expt 2 (logb math-bignum-digit-size)))
+  (expt 2 (logb math-bignum-digit-size))
   "The largest power of 2 less than the size of a Calc bignum digit.")
 
 ;;; b-prefix binary commands.

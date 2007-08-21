@@ -153,6 +153,7 @@ bootstrap-nmake: addsection cmdproxy
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
+	cd ..\nt
 	$(CP) $(BLD)/cmdproxy.exe ../bin
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) SHELL=$(SHELLTYPE) bootstrap
