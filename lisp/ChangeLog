@@ -6,6 +6,9 @@
 	(vc-menu-map): Declare and initialize in one step.
 	(vc-menu-map-filter): Move&rename from menu-bar.el:menu-bar-vc-filter
 
+	* menu-bar.el (vc-menu-map): Don't setup any more.
+	Instead, just create the proper spot in the menu.
+
 2007-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-resolve): New arg `safe'.
