@@ -1,3 +1,14 @@
+2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-mode.el: Fix up comment style in header.
+	(ada-check-emacs-version): Remove.
+	(ada-mode): Set parse-sexp-* even if they don't exist: can't hurt.
+	(ada-region-selected): Use (featurep 'xemacs) rather than contortions
+	to try and quieten the byte-compiler.
+	(ada-create-keymap): Use [(..)] keys, which work on both (X)Emacs.
+
+	* vc.el (vc-annotate-warp-version): Don't use previous-line.
+
 2007-08-20  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (preceding-sexp): New fun, the code was
@@ -13,27 +24,24 @@
 
 2007-08-18  Glenn Morris  <rgm@gnu.org>
 
-	* progmodes/scheme.el (scheme-mode-variables): Set
-	font-lock-comment-start-skip.
+	* progmodes/scheme.el (scheme-mode-variables):
+	Set font-lock-comment-start-skip.
 
 2007-08-18  Martin Rudalics  <rudalics@gmx.at>
 
-	* progmodes/ada-mode.el (ada-create-syntax-table): Move
-	set-syntax-table from here to ...
-	(ada-mode): ... here.  Do not change global value of
-	comment-multi-line.  Call new function
-	ada-initialize-syntax-table-properties and add new function
-	ada-handle-syntax-table-properties to font-lock-mode-hook.
-	(ada-deactivate-properties, ada-initialize-properties): Replace
-	by new functions ...
-	(ada-handle-syntax-table-properties)
-	(ada-initialize-syntax-table-properties)
-	(ada-set-syntax-table-properties): ... to set up syntax-table
+	* progmodes/ada-mode.el (ada-create-syntax-table):
+	Move set-syntax-table from here to ...
+	(ada-mode): ... here.  Don't change global value of comment-multi-line.
+	Call new function ada-initialize-syntax-table-properties.
+	Add ada-handle-syntax-table-properties to font-lock-mode-hook.
+	(ada-deactivate-properties, ada-initialize-properties):
+	Replace by new functions ...
+	(ada-handle-syntax-table-properties, ada-set-syntax-table-properties)
+	(ada-initialize-syntax-table-properties): ... to set up syntax-table
 	properties uniformly, independently from whether font-lock-mode
 	is enabled or not.  Handle read-only buffers and do not change
 	undo-list when setting syntax-table properties.
-	(ada-after-change-function): Use
-	ada-set-syntax-table-properties.
+	(ada-after-change-function): Use ada-set-syntax-table-properties.
 
 2007-08-17  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
@@ -132,8 +140,8 @@
 	* pcvs-util.el (cvs-qtypedesc-strings): Use new names
 	combine-and-quote-strings and split-string-and-unquote.
 
-	* subr.el (combine-and-quote-strings): Renamed from strings->string.
-	(split-string-and-unquote): Renamed from string->strings.
+	* subr.el (combine-and-quote-strings): Rename from strings->string.
+	(split-string-and-unquote): Rename from string->strings.
 
 2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
