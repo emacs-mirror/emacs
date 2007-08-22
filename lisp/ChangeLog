@@ -1,3 +1,7 @@
+2007-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-minor-mode): Use image-mode-text-map.
+
 2007-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* sort.el (sort-fold-case, sort-numeric-base): Mark as
