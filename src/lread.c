@@ -4195,6 +4195,10 @@ to load.  See also `load-dangerous-libraries'.  */);
 	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);
   Veval_buffer_list = Qnil;
 
+  DEFVAR_LISP ("old-style-backquotes", &Vold_style_backquotes,
+	       doc: /* Set to non-nil when `read' encounters an old-style backquote.  */);
+  Vold_style_backquotes = Qnil;
+
   /* Vsource_directory was initialized in init_lread.  */
 
   load_descriptor_list = Qnil;
@@ -4254,9 +4258,6 @@ to load.  See also `load-dangerous-libraries'.  */);
 
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
-
-  Vold_style_backquotes = Qnil;
-  staticpro (&Vold_style_backquotes);
 }
 
 /* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d

@@ -1,7 +1,7 @@
 2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (Vold_style_backquotes): New var.
-	(syms_of_lread): Init and staticpro it.
+	(syms_of_lread): Init and export it to Elisp.
 	(read1): Set it when we find an old-style (back)quote.
 
 2007-08-22  Jason Rumney  <jasonr@gnu.org>
