@@ -193,7 +193,7 @@ static file_offset prev_saved_doc_string_position;
    Fread initializes this to zero, so we need not specbind it
    or worry about what happens to it when there is an error.  */
 static int new_backquote_flag;
-static Lisp_Object Vold_style_backquotes;
+static Lisp_Object Vold_style_backquotes, Qold_style_backquotes;
 
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
@@ -699,6 +699,20 @@ load_error_handler (data)
   return Qnil;
 }
 
+static Lisp_Object
+load_warn_old_style_backquotes (file)
+     Lisp_Object file;
+{
+  if (!NILP (Vold_style_backquotes))
+    {
+      Lisp_Object args[1];
+      args[0] = build_string ("!! File %s uses old-style backquotes !!");
+      args[1] = file;
+      Fmessage (2, args);
+    }
+  return Qnil;
+}
+
 DEFUN ("get-load-suffixes", Fget_load_suffixes, Sget_load_suffixes, 0, 0, 0,
        doc: /* Return the suffixes that `load' should try if a suffix is \
 required.
@@ -763,7 +777,6 @@ Return t if the file exists and loads successfully.  */)
   register FILE *stream;
   register int fd = -1;
   int count = SPECPDL_INDEX ();
-  Lisp_Object temp;
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object found, efound, hist_file_name;
   /* 1 means we printed the ".el is newer" message.  */
@@ -896,6 +909,10 @@ Return t if the file exists and loads successfully.  */)
                                    tmp[1] = Ffile_name_nondirectory (found),
                                    tmp))
                     : found) ;
+
+  /* Check fore the presence of old-style quotes and warn about them.  */
+  specbind (Qold_style_backquotes, Qnil);
+  record_unwind_protect (load_warn_old_style_backquotes, file);
 
   if (!bcmp (SDATA (found) + SBYTES (found) - 4,
 	     ".elc", 4))
@@ -1382,8 +1399,6 @@ readevalloop_1 (old)
 static void
 end_of_file_error ()
 {
-  Lisp_Object data;
-
   if (STRINGP (Vload_file_name))
     xsignal1 (Qend_of_file, Vload_file_name);
 
@@ -4198,6 +4213,8 @@ to load.  See also `load-dangerous-libraries'.  */);
   DEFVAR_LISP ("old-style-backquotes", &Vold_style_backquotes,
 	       doc: /* Set to non-nil when `read' encounters an old-style backquote.  */);
   Vold_style_backquotes = Qnil;
+  Qold_style_backquotes = intern ("old-style-backquotes");
+  staticpro (&Qold_style_backquotes);
 
   /* Vsource_directory was initialized in init_lread.  */
 

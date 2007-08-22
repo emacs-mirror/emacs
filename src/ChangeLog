@@ -1,5 +1,11 @@
 2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lread.c (Qold_style_backquotes): New var.
+	(syms_of_lread): Init and staticpro it.
+	(load_warn_old_style_backquotes): New fun.
+	(Fload): Use them to warn about old style backquotes.
+	(end_of_file_error, Fload): Remove unused vars.
+
 	* lisp.h (Fclear_face_cache, Fx_send_client_event): Declare.
 
 	* lread.c (Vold_style_backquotes): New var.
