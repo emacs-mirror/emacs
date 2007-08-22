@@ -1,3 +1,7 @@
+2007-08-22  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* net/browse-url.el (browse-url-emacs): New function.
+
 2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Display a big fat
@@ -938,7 +942,7 @@
 	* lpr.el (lpr-page-header-switches): Move %s to separate element
 	for correct quoting.  Doc fix.
 
-2007-06-13  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+2007-06-13  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* term/xterm.el (terminal-init-xterm): Escape parens in character
 	constants.

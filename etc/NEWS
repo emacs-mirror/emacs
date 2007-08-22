@@ -41,6 +41,8 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 * Changes in Emacs 22.2
 
+** `browse-url-emacs' loads a URL into an Emacs buffer.  Handy for *.el URLs.
+
 ** `bad-packages-alist' will warn about external packages that are known
 to cause problems in this version of Emacs.
 

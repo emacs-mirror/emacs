@@ -669,8 +669,7 @@ interactively.  Turn the filename into a URL with function
       (error "Current buffer has no file"))
   (let ((buf (get-file-buffer file)))
     (if buf
-	(save-excursion
-	  (set-buffer buf)
+	(with-current-buffer buf
 	  (cond ((not (buffer-modified-p)))
 		(browse-url-save-file (save-buffer))
 		(t (message "%s modified since last save" file))))))
@@ -1171,6 +1170,20 @@ used instead of `browse-url-new-window-flag'."
 	       (append browse-url-epiphany-startup-arguments (list url))))))
 
 ;;;###autoload
+(defun browse-url-emacs (url &optional new-window)
+  "Ask Emacs to load URL into a buffer and show it in another window."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (require 'url-handlers)
+  (let ((file-name-handler-alist
+         (cons (cons url-handler-regexp 'url-file-handler)
+               file-name-handler-alist)))
+    ;; Ignore `new-window': with all other browsers the URL is always shown
+    ;; in another window than the current Emacs one since it's shown in
+    ;; another application's window.
+    ;; (if new-window (find-file-other-window url) (find-file url))
+    (find-file-other-window url)))
+
+;;;###autoload
 (defun browse-url-gnome-moz (url &optional new-window)
   "Ask Mozilla/Netscape to load URL via the GNOME program `gnome-moz-remote'.
 Default to the URL around or before point.  The strings in variable
@@ -1257,8 +1270,7 @@ Default to the URL around or before point.  Runs the program in the
 variable `browse-url-grail'."
   (interactive (browse-url-interactive-arg "Grail URL: "))
   (message "Sending URL to Grail...")
-  (save-excursion
-    (set-buffer (get-buffer-create " *Shell Command Output*"))
+  (with-current-buffer (get-buffer-create " *Shell Command Output*")
     (erase-buffer)
     ;; don't worry about this failing.
     (if (browse-url-maybe-new-window new-window)
@@ -1428,8 +1440,7 @@ used instead of `browse-url-new-window-flag'."
 Default to the URL around or before point."
   (interactive (browse-url-interactive-arg "MMM URL: "))
   (message "Sending URL to MMM...")
-  (save-excursion
-    (set-buffer (get-buffer-create " *Shell Command Output*"))
+  (with-current-buffer (get-buffer-create " *Shell Command Output*")
     (erase-buffer)
     ;; mmm_remote just SEGVs if the file isn't there...
     (if (or (file-exists-p (expand-file-name "~/.mmm_remote"))
@@ -1507,5 +1518,5 @@ Default to the URL around or before point."
 
 (provide 'browse-url)
 
-;;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
+;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
 ;;; browse-url.el ends here
