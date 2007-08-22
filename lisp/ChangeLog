@@ -1,5 +1,7 @@
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
+	* image.el (create-image): Doc fix.
+
 	* startup.el (tutorial-directory): New constant.
 	(fancy-splash-text): Tutorials now in tutorial-directory.
 	* tutorial.el (help-with-tutorial): Tutorials now in
