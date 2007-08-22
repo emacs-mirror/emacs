@@ -1,3 +1,8 @@
+2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* image-file.el (image-file-name-extensions): Add "svg".
+	* image.el (image-type-header-regexps): Add svg entry.
+
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (backup-buffer-copy): Check backup directory is
