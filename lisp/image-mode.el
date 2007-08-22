@@ -228,7 +228,7 @@ to toggle between display as an image and display as text."
   "Toggle Image minor mode.
 With arg, turn Image minor mode on if arg is positive, off otherwise.
 See the command `image-mode' for more information on this mode."
-  nil " Image" image-mode-map
+  nil " Image" image-mode-text-map
   :group 'image
   :version "22.1"
   (if (not image-minor-mode)
