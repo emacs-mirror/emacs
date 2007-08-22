@@ -1,3 +1,8 @@
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* image.c (x_find_image_file): Search in etc/images/ rather than
+	etc/.
+
 2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* Makefile.in (ALL_CFLAGS, LIBX): Add RSVG_LIBS.
