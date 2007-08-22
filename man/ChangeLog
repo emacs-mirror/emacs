@@ -1,3 +1,11 @@
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Adding hyperlink types): New section.
+	(Embedded LaTeX): Chapter updated because of LaTeX export.
+	(LaTeX export): New section.
+	(Using links out): New section.
+	
+
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* faq.texi (Learning how to do something): Refcards now in
