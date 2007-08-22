@@ -241,6 +241,8 @@ Currently known variants are 'emacs and 'mailutils."
 
 ;; Call for effect, to set rmail-movemail-program (if not set by the
 ;; user), and rmail-movemail-variant-in-use. Used by various functions.
+;; I'm not sure if M-x rmail is the only entry point to this package.
+;; If so, this can be moved there.
 (rmail-movemail-variant-p)
 
 ;;;###autoload
