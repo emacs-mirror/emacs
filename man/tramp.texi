@@ -1628,10 +1628,10 @@ It is possible, however, that your local (or remote ;) system
 administrator has put the tools you want in some obscure local
 directory.
 
-In this case, you can still use them with @value{tramp}.  You simply need to
-add code to your @file{.emacs} to add the directory to the remote path.
-This will then be searched by @value{tramp} when you connect and the software
-found.
+In this case, you can still use them with @value{tramp}.  You simply
+need to add code to your @file{.emacs} to add the directory to the
+remote path.  This will then be searched by @value{tramp} when you
+connect and the software found.
 
 To add a directory to the remote search path, you could use code such
 as:
@@ -1642,6 +1642,12 @@ as:
 @i{;; We have @command{perl} in "/usr/local/perl/bin"}
 (add-to-list 'tramp-remote-path "/usr/local/perl/bin")
 @end lisp
+
+@value{tramp} caches several information, like the Perl binary
+location.  The changed remote search path wouldn't affect these
+settings.  In order to force @value{tramp} to recompute these values,
+you must exit @value{emacsname}, remove your persistency file
+(@pxref{Connection caching}), and restart @value{emacsname}.
 
 
 @node Remote shell setup
@@ -2030,9 +2036,9 @@ minute you have already forgotten that you hit that key!
 @cindex filename examples
 
 To access the file @var{localname} on the remote machine @var{machine}
-you would specify the filename @file{@trampfn{, , @var{machine},
-@var{localname}}}.  This will connect to @var{machine} and transfer
-the file using the default method.  @xref{Default Method}.
+you would specify the filename @file{@trampfn{, , machine,
+localname}}.  This will connect to @var{machine} and transfer the file
+using the default method.  @xref{Default Method}.
 
 Some examples of @value{tramp} filenames are shown below.
 
@@ -2067,9 +2073,9 @@ need to log in as a different user, you can specify the user name as
 part of the filename.
 
 To log in to the remote machine as a specific user, you use the syntax
-@file{@trampfn{, @var{user}, @var{machine}, @var{path/to.file}}}.
-That means that connecting to @code{melancholia} as @code{daniel} and
-editing @file{.emacs} in your home directory you would specify
+@file{@trampfn{, user, machine, path/to.file}}.  That means that
+connecting to @code{melancholia} as @code{daniel} and editing
+@file{.emacs} in your home directory you would specify
 @file{@trampfn{, daniel, melancholia, .emacs}}.
 
 It is also possible to specify other file transfer methods

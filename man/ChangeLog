@@ -1,3 +1,10 @@
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote Programs): Persistency file must be cleared when
+	changing `tramp-remote-path'.
+	(Filename Syntax): Don't use @var{} constructs inside the @trampfn
+	macro.
+
 2007-08-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* basic.texi (Position Info): Add index entry for face at point.
