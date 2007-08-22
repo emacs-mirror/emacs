@@ -1,5 +1,8 @@
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (backup-buffer-copy): Check backup directory is
+	writable, to avoid infloop deleting old backup.
+
 	* mail/rmail.el (rmail-movemail-variant-p): Call on load to set
 	movemail related variables.
 	(rmail-insert-inbox-text): Use only rmail-movemail-program, which
