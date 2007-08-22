@@ -193,6 +193,7 @@ static file_offset prev_saved_doc_string_position;
    Fread initializes this to zero, so we need not specbind it
    or worry about what happens to it when there is an error.  */
 static int new_backquote_flag;
+static Lisp_Object Vold_style_backquotes;
 
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
@@ -2442,7 +2443,10 @@ read1 (readcharfun, pch, first_in_list)
 
     case '`':
       if (first_in_list)
-	goto default_label;
+	{
+	  Vold_style_backquotes = Qt;
+	  goto default_label;
+	}
       else
 	{
 	  Lisp_Object value;
@@ -2477,7 +2481,10 @@ read1 (readcharfun, pch, first_in_list)
 	  return Fcons (comma_type, Fcons (value, Qnil));
 	}
       else
-	goto default_label;
+	{
+	  Vold_style_backquotes = Qt;
+	  goto default_label;
+	}
 
     case '?':
       {
@@ -4247,6 +4254,9 @@ to load.  See also `load-dangerous-libraries'.  */);
 
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
+
+  Vold_style_backquotes = Qnil;
+  staticpro (&Vold_style_backquotes);
 }
 
 /* arch-tag: a0d02733-0f96-4844-a659-9fd53c4f414d
