@@ -3173,6 +3173,11 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 
 (defun backup-buffer-copy (from-name to-name modes)
   (let ((umask (default-file-modes)))
+	(dir (or (file-name-directory to-name)
+		 default-directory)))
+    ;; Can't delete or create files in a read-only directory.
+    (unless (file-writable-p dir)
+      (signal 'file-error (list "Directory is not writable" dir)))
     (unwind-protect
 	(progn
 	  ;; Create temp files with strict access rights.  It's easy to
@@ -3181,6 +3186,11 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  (set-default-file-modes ?\700)
 	  (while (condition-case ()
 		     (progn
+		       ;; If we allow for the possibility of something
+		       ;; creating the file between delete and copy
+		       ;; (below), we must also allow for the
+		       ;; possibility of something deleting it between
+		       ;; a file-exists-p check and a delete.
 		       (condition-case nil
 			   (delete-file to-name)
 			 (file-error nil))
@@ -3189,6 +3199,10 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		   (file-already-exists t))
 	    ;; The file was somehow created by someone else between
 	    ;; `delete-file' and `copy-file', so let's try again.
+	    ;; Does that every actually happen in practice?
+	    ;; This is a potential infloop, which seems bad...
+	    ;; rms says "I think there is also a possible race
+	    ;; condition for making backup files" (emacs-devel 20070821).
 	    nil))
       ;; Reset the umask.
       (set-default-file-modes umask)))
