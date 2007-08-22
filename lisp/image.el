@@ -353,7 +353,12 @@ Optional PROPS are additional image attributes to assign to the image,
 like, e.g. `:mask MASK'.
 Value is the image created, or nil if images of type TYPE are not supported.
 
-Images should not be larger than specified by `max-image-size'."
+Images should not be larger than specified by `max-image-size'.
+
+Image file names that are not absolute are searched for in the
+\"images\" sub-directory of `data-directory' and
+`x-bitmap-file-path' (in that order)."
+  ;; It is x_find_image_file in image.c that sets the search path.
   (setq type (image-type file-or-data type data-p))
   (when (image-type-available-p type)
     (append (list 'image :type type (if data-p :data :file) file-or-data)
