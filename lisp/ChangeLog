@@ -1,3 +1,7 @@
+2007-08-22  Sam Steingold  <sds@gnu.org>
+
+	* pcvs.el (cvs-vc-command-advice): Fix a typo in code (file->files).
+
 2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org-export-latex.el: New file.
@@ -69,7 +73,7 @@
 	(org-clock-out-if-current): Respect `org-clock-out-when-done'.
 	(org-clock-out-when-done): New option.
 	(org-html-entities): Added HTML entities for smileys.
-	
+
 
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 

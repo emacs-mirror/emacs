@@ -2384,7 +2384,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 	      (when (and (equal (car flags) "add")
 			 (goto-char (point-min))
 			 (looking-at ".*to add this file permanently\n\\'"))
-                (dolist (file (if (listp files) files (list file)))
+                (dolist (file (if (listp files) files (list files)))
                   (insert "cvs add: scheduling file `"
                           (file-name-nondirectory file)
                           "' for addition\n")))
