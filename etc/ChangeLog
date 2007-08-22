@@ -1,3 +1,8 @@
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `shell' prompts for the default directory if called with a
+	prefix and `default-directory' is a remote file name.
+
 2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex: Version number upgrade.
