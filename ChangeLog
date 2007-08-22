@@ -1,3 +1,7 @@
+2007-08-22  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Follow reorganization of files in etc/.
+
 2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* configure.in: Add support for SVG images through librsvg2.

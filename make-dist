@@ -320,8 +320,9 @@ for subdir in lisp site-lisp lispref lispintro \
 	      etc etc/e \
 	      etc/images etc/images/ezimage etc/images/gnus etc/images/gud \
 	      etc/images/icons etc/images/low-color etc/images/mail \
-	      etc/images/smilies etc/tree-widget etc/tree-widget/default \
-	      etc/tree-widget/folder info man m4 msdos vms mac mac/inc \
+	      etc/images/smilies etc/images/tree-widget \
+    	      etc/images/tree-widget/default etc/images/tree-widget/folder \
+	      etc/refcards etc/tutorials info man m4 msdos vms mac mac/inc \
 	      mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
@@ -572,7 +573,7 @@ echo "Making links to \`etc'"
 ### Don't distribute gfdl.1, since no man page references it.
 (cd etc
  files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
-        | grep -v '^images$' | grep -v '^tree-widget$'`
+        | grep -v '^images$' | grep -v '^refcards$' | grep -v '^tutorials$'`
  ln $files ../${tempdir}/etc
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -595,11 +596,13 @@ echo "Making links to \`etc'"
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
-echo "Making links to \`etc/e'"
-(cd etc/e
- ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/etc/e
- cd ../../${tempdir}/etc/e
- rm -f *~ \#*\# *,v =* core)
+for dir in etc/e etc/tutorials etc/refcards ; do
+    echo "Making links to \`${dir}'"
+    (cd ${dir}
+	ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/${dir}
+	cd ../../${tempdir}/${dir}
+	rm -f *~ \#*\# *,v =* core)
+done
 
 echo "Making links to \`etc/images'"
 (cd etc/images
@@ -610,12 +613,19 @@ echo "Making links to \`etc/images'"
  done)
 
 for dir in etc/images/ezimage etc/images/gnus etc/images/gud etc/images/icons \
-           etc/images/low-color etc/images/mail etc/images/smilies \
-           etc/tree-widget/default etc/tree-widget/folder ; do
+           etc/images/low-color etc/images/mail etc/images/smilies ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
      ln `ls -d * | grep -v CVS | grep -v RCS` ../../../${tempdir}/${dir}
      cd ../../../${tempdir}/${dir}
+     rm -f *~ \#*\# *,v =* core)
+done
+
+for dir in etc/images/tree-widget/default etc/images/tree-widget/folder ; do
+    echo "Making links to \`${dir}'"
+    (cd ${dir}
+     ln `ls -d * | grep -v CVS | grep -v RCS` ../../../../${tempdir}/${dir}
+     cd ../../../../${tempdir}/${dir}
      rm -f *~ \#*\# *,v =* core)
 done
 
