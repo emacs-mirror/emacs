@@ -88,6 +88,11 @@
 (require 'shell)
 (require 'advice)
 
+;; `copy-tree' is part of subr.el since Emacs 22.
+(eval-when-compile
+  (unless (functionp 'copy-tree)
+    (require 'cl)))
+
 ;; Requiring 'tramp-cache results in an endless loop.
 (autoload 'tramp-get-file-property "tramp-cache")
 (autoload 'tramp-set-file-property "tramp-cache")
@@ -3467,7 +3472,7 @@ beginning of local filename are not substituted."
 (defun tramp-handle-executable-find (command)
   "Like `executable-find' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    (tramp-find-executable v command tramp-remote-path t)))
+    (tramp-find-executable v command (tramp-get-remote-path v) t)))
 
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once
@@ -5099,53 +5104,9 @@ I.e., for each directory in `tramp-remote-path', it is tested
 whether it exists and if so, it is added to the environment
 variable PATH."
   (tramp-message vec 5 (format "Setting $PATH environment variable"))
-
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (set (make-local-variable 'tramp-remote-path)
-	 (copy-tree tramp-remote-path))
-    (let* ((elt (memq 'tramp-default-remote-path tramp-remote-path))
-	   (tramp-default-remote-path
-	    (with-connection-property vec "default-remote-path"
-	      (when elt
-		(condition-case nil
-		    (symbol-name
-		     (tramp-send-command-and-read vec "getconf PATH"))
-		  ;; Default if "getconf" is not available.
-		  (error
-		   (tramp-message
-		    vec 3
-		    "`getconf PATH' not successful, using default value \"%s\"."
-		    "/bin:/usr/bin")
-		   "/bin:/usr/bin"))))))
-      (when elt
-	;; Replace place holder `tramp-default-remote-path'.
-	(setcdr elt
-		(append
- 		 (tramp-split-string tramp-default-remote-path ":")
-		 (cdr elt)))
-	(setq tramp-remote-path
-	      (delq 'tramp-default-remote-path tramp-remote-path))))
-
-    ;; Check for existence of directories.
-    (setq tramp-remote-path
-	  (delq
-	   nil
-	   (mapcar
-	    (lambda (x)
-	      (and
-	       (with-connection-property vec x
-		 (file-directory-p
-		  (tramp-make-tramp-file-name
-		   (tramp-file-name-method vec)
-		   (tramp-file-name-user vec)
-		   (tramp-file-name-host vec)
-		   x)))
-	       x))
-	    tramp-remote-path)))
-    (tramp-send-command
-     vec
-     (format "PATH=%s; export PATH"
-	     (mapconcat 'identity tramp-remote-path ":")))))
+  (tramp-send-command
+   vec (format "PATH=%s; export PATH"
+	       (mapconcat 'identity (tramp-get-remote-path vec) ":"))))
 
 ;; -- communication with external shell --
 
@@ -5210,8 +5171,10 @@ file exists and nonzero exit status otherwise."
 	(cond
 	 ((string-match "^~root$" (buffer-string))
 	  (setq shell
-		(or (tramp-find-executable vec "bash" tramp-remote-path t)
-		    (tramp-find-executable vec "ksh" tramp-remote-path t)))
+		(or (tramp-find-executable
+		     vec "bash" (tramp-get-remote-path vec) t)
+		    (tramp-find-executable
+		     vec "ksh" (tramp-get-remote-path vec) t)))
 	  (unless shell
 	    (tramp-error
 	     vec 'file-error
@@ -6553,6 +6516,46 @@ necessary only.  This function will be used in file name completion."
 
 ;; Variables local to connection.
 
+(defun tramp-get-remote-path (vec)
+  (with-connection-property vec "remote-path"
+    (let* ((remote-path (copy-tree tramp-remote-path))
+	   (elt (memq 'tramp-default-remote-path remote-path))
+	   (default-remote-path
+	     (when elt
+	       (condition-case nil
+		   (symbol-name
+		    (tramp-send-command-and-read vec "getconf PATH"))
+		 ;; Default if "getconf" is not available.
+		 (error
+		  (tramp-message
+		   vec 3
+		   "`getconf PATH' not successful, using default value \"%s\"."
+		   "/bin:/usr/bin")
+		  "/bin:/usr/bin")))))
+      (when elt
+	;; Replace place holder `tramp-default-remote-path'.
+	(setcdr elt
+		(append
+ 		 (tramp-split-string default-remote-path ":")
+		 (cdr elt)))
+	(setq remote-path (delq 'tramp-default-remote-path remote-path)))
+
+      ;; Remove non-existing directories.
+      (delq
+       nil
+       (mapcar
+	(lambda (x)
+	  (and
+	   (with-connection-property vec x
+	     (file-directory-p
+	      (tramp-make-tramp-file-name
+	       (tramp-file-name-method vec)
+	       (tramp-file-name-user vec)
+	       (tramp-file-name-host vec)
+	       x)))
+	   x))
+	remote-path)))))
+
 (defun tramp-get-ls-command (vec)
   (with-connection-property vec "ls"
     (with-current-buffer (tramp-get-buffer vec)
@@ -6560,7 +6563,7 @@ necessary only.  This function will be used in file name completion."
       (or
        (catch 'ls-found
 	 (dolist (cmd '("ls" "gnuls" "gls"))
-	   (let ((dl tramp-remote-path)
+	   (let ((dl (tramp-get-remote-path vec))
 		 result)
 	     (while
 		 (and
@@ -6571,13 +6574,6 @@ necessary only.  This function will be used in file name completion."
 	       (when (zerop (tramp-send-command-and-check
 			     vec (format "%s -lnd /" result)))
 		 (throw 'ls-found result))
-	       ;; Remove unneeded directories from path.
-	       (while
-		   (and
-		    dl
-		    (not
-		     (string-equal result (expand-file-name cmd (car dl)))))
-		 (setq dl (cdr dl)))
 	       (setq dl (cdr dl))))))
        (tramp-error vec 'file-error "Couldn't find a proper `ls' command")))))
 
@@ -6587,7 +6583,7 @@ necessary only.  This function will be used in file name completion."
       (tramp-message vec 5 "Finding a suitable `test' command")
       (if (zerop (tramp-send-command-and-check vec "test 0"))
 	  "test"
-	(tramp-find-executable vec "test" tramp-remote-path)))))
+	(tramp-find-executable vec "test" (tramp-get-remote-path vec))))))
 
 (defun tramp-get-test-nt-command (vec)
   ;; Does `test A -nt B' work?  Use abominable `find' construct if it
@@ -6621,20 +6617,21 @@ necessary only.  This function will be used in file name completion."
   (with-connection-property vec "ln"
     (with-current-buffer (tramp-get-buffer vec)
       (tramp-message vec 5 "Finding a suitable `ln' command")
-      (tramp-find-executable vec "ln" tramp-remote-path))))
+      (tramp-find-executable vec "ln" (tramp-get-remote-path vec)))))
 
 (defun tramp-get-remote-perl (vec)
   (with-connection-property vec "perl"
     (with-current-buffer (tramp-get-buffer vec)
       (tramp-message vec 5 "Finding a suitable `perl' command")
-      (or (tramp-find-executable vec "perl5" tramp-remote-path)
-	  (tramp-find-executable vec "perl" tramp-remote-path)))))
+      (or (tramp-find-executable vec "perl5" (tramp-get-remote-path vec))
+	  (tramp-find-executable vec "perl" (tramp-get-remote-path vec))))))
 
 (defun tramp-get-remote-stat (vec)
   (with-connection-property vec "stat"
     (with-current-buffer (tramp-get-buffer vec)
       (tramp-message vec 5 "Finding a suitable `stat' command")
-      (let ((result (tramp-find-executable vec "stat" tramp-remote-path))
+      (let ((result (tramp-find-executable
+		     vec "stat" (tramp-get-remote-path vec)))
 	    tmp)
 	;; Check whether stat(1) returns usable syntax.
 	(when result
@@ -6656,7 +6653,7 @@ necessary only.  This function will be used in file name completion."
       (tramp-message vec 5 "Finding POSIX `id' command")
       (or
        (catch 'id-found
-	 (let ((dl tramp-remote-path)
+	 (let ((dl (tramp-get-remote-path vec))
 	       result)
 	   (while
 	       (and
@@ -6667,15 +6664,6 @@ necessary only.  This function will be used in file name completion."
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -u" result)))
 	       (throw 'id-found result))
-	     ;; Remove unneeded directories from path.
-	     (while
-		 (and
-		  dl
-		  (not
-		   (string-equal
-		    result
-		    (concat (file-name-as-directory (car dl)) "id"))))
-	       (setq dl (cdr dl)))
 	     (setq dl (cdr dl)))))
        (tramp-error vec 'file-error "Couldn't find a POSIX `id' command")))))
 
@@ -7055,7 +7043,6 @@ Only works for Bourne-like shells."
 	       tramp-default-user-alist
 	       tramp-rsh-end-of-line
 	       tramp-default-password-end-of-line
-	       tramp-remote-path
 	       tramp-login-prompt-regexp
 	       ;; Mask non-7bit characters
 	       (tramp-password-prompt-regexp . tramp-reporter-dump-variable)
@@ -7370,7 +7357,6 @@ please ensure that the buffers are attached to your email.\n\n")
 ;; * Grok `append' parameter for `write-region'.
 ;; * Test remote ksh or bash for tilde expansion in `tramp-find-shell'?
 ;; * abbreviate-file-name
-;; * grok ~ in tramp-remote-path  (Henrik Holm <henrikh@tele.ntnu.no>)
 ;; * better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start
 ;;   again.  (Greg Stark)

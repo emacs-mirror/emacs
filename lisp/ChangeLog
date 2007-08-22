@@ -1,3 +1,15 @@
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Require cl.el, when `copy-tree' is not available
+	otherwise.
+	(tramp-get-remote-path): New defun.  Replace occurences of
+	`tramp-default-remote-path' by this function.
+	(tramp-set-remote-path): Move most of the code to
+	`tramp-get-remote-path'.
+	(tramp-get-ls-command, tramp-get-remote-id): Don't check for not
+	existing directories, this is done already in
+	`tramp-get-remote-path'.
+
 2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* image-file.el (image-file-name-extensions): Add "svg".
