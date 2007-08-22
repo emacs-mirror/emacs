@@ -1,5 +1,8 @@
 2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/org-publish.el (org-publish-org-to-latex): New
+	function.
+
 	* textmodes/org.el (org-agenda-skip): Allow a form for
 	`org-agenda-skip-function'.
 	(org-agenda-redo): Re-use local settings.
