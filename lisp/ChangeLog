@@ -1,5 +1,8 @@
 2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Display a big fat
+	warning if the file uses old style backquotes.
+
 	* emacs-lisp/bytecomp.el (byte-compile-log-file)
 	(byte-recompile-directory, byte-compile-file)
 	(byte-compile-from-buffer): Use with-current-buffer.
