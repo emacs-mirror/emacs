@@ -64,7 +64,7 @@
 % If there were room, it would be nice to see a section on Dired.
 
 \def\versionnumber{2.3}         % version of this manual
-\def\versionyear{2006}          % year manual was updated
+\def\versionyear{2007}          % year manual was updated
 \def\versionemacs{22}           % version of emacs this manual is for
 \def\year{2007}                 % copyright year
 
@@ -78,9 +78,9 @@
 \centerline{v\versionnumber{} for GNU Emacs version \versionemacs, \versionyear}
 \centerline{designed by Stephen Gildea}
 
-Permission is granted to make and distribute copies of
-this card provided the copyright notice and this permission notice
-are preserved on all copies.
+Permission is granted to make and distribute modified or unmodified
+copies of this card provided the copyright notice and this permission
+notice are preserved on all copies.
 
 For copies of the GNU Emacs manual, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -449,7 +449,7 @@ frame instead of a window.
 \key{put exactly one space at point}{M-SPC}
 
 \key{fill paragraph}{M-q}
-\key{set fill column}{C-x f}
+\key{set fill column to {\it arg}}{C-x f}
 \key{set prefix each line starts with}{C-x .}
 
 \key{set face}{M-o}
@@ -638,11 +638,11 @@ Other:
 % The intended audience here is the person who wants to make simple
 % customizations and knows Lisp syntax.
 
-Making global key bindings in Emacs Lisp (examples):
+Making global key bindings in Emacs Lisp (example):
 
 \beginexample%
-(global-set-key "\\C-cg" 'goto-line)
-(global-set-key "\\M-\#" 'query-replace-regexp)
+(global-set-key (kbd "C-c g") 'search-forward)
+(global-set-key (kbd "M-\#") 'query-replace-regexp)
 \endexample
 
 \section{Writing Commands}
