@@ -1,5 +1,7 @@
 2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/org-export-latex.el: New file.
+
 	* textmodes/org-publish.el (org-publish-org-to-latex): New
 	function.
 
