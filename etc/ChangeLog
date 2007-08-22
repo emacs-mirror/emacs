@@ -2,6 +2,8 @@
 
 	* tree-widget: Move this directory into images/ subdirectory.
 
+	* refcards/: New directory.  Move refcards here.
+
 2007-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* NEWS: Mention `bad-packages-alist'.
