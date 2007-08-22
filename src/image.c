@@ -8199,6 +8199,329 @@ gif_load (f, img)
 #endif /* HAVE_GIF */
 
 
+ 
+/***********************************************************************
+				 SVG
+ ***********************************************************************/
+
+#if defined (HAVE_RSVG)
+
+/* Function prototypes.  */
+
+static int svg_image_p P_ ((Lisp_Object object));
+static int svg_load P_ ((struct frame *f, struct image *img));
+
+static int svg_load_image P_ ((struct frame *, struct image *,
+			       unsigned char *, unsigned int));
+
+/* The symbol `svg' identifying images of this type. */
+
+Lisp_Object Qsvg;
+
+/* Indices of image specification fields in svg_format, below.  */
+
+enum svg_keyword_index
+{
+  SVG_TYPE,
+  SVG_DATA,
+  SVG_FILE,
+  SVG_ASCENT,
+  SVG_MARGIN,
+  SVG_RELIEF,
+  SVG_ALGORITHM,
+  SVG_HEURISTIC_MASK,
+  SVG_MASK,
+  SVG_BACKGROUND,
+  SVG_LAST
+};
+
+/* Vector of image_keyword structures describing the format
+   of valid user-defined image specifications.  */
+
+static struct image_keyword svg_format[SVG_LAST] =
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
+
+/* Structure describing the image type `svg'.  Its the same type of
+   structure defined for all image formats, handled by emacs image
+   functions.  See struct image_type in dispextern.h.  */
+
+static struct image_type svg_type =
+{
+  /* An identifier showing that this is an image structure for the SVG format.  */
+  &Qsvg,
+  /* Handle to a function that can be used to identify a SVG file.  */
+  svg_image_p,
+  /* Handle to function used to load a SVG file.  */
+  svg_load,
+  /* Handle to function to free sresources for SVG.  */
+  x_clear_image,
+  /* An internal field to link to the next image type in a list of
+     image types, will be filled in when registering the format.  */
+  NULL  
+};
+
+
+/* Return non-zero if OBJECT is a valid SVG image specification.  Do
+   this by calling parse_image_spec and supplying the keywords that
+   identify the SVG format.   */
+
+static int
+svg_image_p (object)
+     Lisp_Object object;
+{
+  struct image_keyword fmt[SVG_LAST];
+  bcopy (svg_format, fmt, sizeof fmt);
+
+  if (!parse_image_spec (object, fmt, SVG_LAST, Qsvg))
+    return 0;
+
+  /* Must specify either the :data or :file keyword.  */
+  return fmt[SVG_FILE].count + fmt[SVG_DATA].count == 1;
+}
+
+#include <librsvg/rsvg.h>
+
+/* TO DO: define DEF_IMGLIB_FN here.  This macro is used to handle
+loading of dynamic link library functions for various OS:es.
+Currently only librsvg2 is supported, which is only available for X,
+so its not strictly necessary yet.  The current code is thought to be
+compatible with this scheme because of the defines below, should
+librsvg2 become available on more plattforms.  */
+
+#define fn_rsvg_handle_new		rsvg_handle_new
+#define fn_rsvg_handle_set_size_callback rsvg_handle_set_size_callback
+#define fn_rsvg_handle_write		rsvg_handle_write
+#define fn_rsvg_handle_close		rsvg_handle_close
+#define fn_rsvg_handle_get_pixbuf	rsvg_handle_get_pixbuf
+#define fn_rsvg_handle_free		rsvg_handle_free
+
+#define fn_gdk_pixbuf_get_width		gdk_pixbuf_get_width
+#define fn_gdk_pixbuf_get_height	gdk_pixbuf_get_height
+#define fn_gdk_pixbuf_get_pixels	gdk_pixbuf_get_pixels
+#define fn_gdk_pixbuf_get_rowstride	gdk_pixbuf_get_rowstride
+#define fn_gdk_pixbuf_get_colorspace	gdk_pixbuf_get_colorspace
+#define fn_gdk_pixbuf_get_n_channels	gdk_pixbuf_get_n_channels
+#define fn_gdk_pixbuf_get_has_alpha	gdk_pixbuf_get_has_alpha
+#define fn_gdk_pixbuf_get_bits_per_sample gdk_pixbuf_get_bits_per_sample
+
+
+/* Load SVG image IMG for use on frame F.  Value is non-zero if
+   successful. this function will go into the svg_type structure, and
+   the prototype thus needs to be compatible with that structure.  */
+
+static int
+svg_load (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  int success_p = 0;
+  Lisp_Object file_name;
+
+  /* If IMG->spec specifies a file name, create a non-file spec from it.  */
+  file_name = image_spec_value (img->spec, QCfile, NULL);
+  if (STRINGP (file_name))
+    {
+      Lisp_Object file;
+      unsigned char *contents;
+      int size;
+      struct gcpro gcpro1;
+
+      file = x_find_image_file (file_name);
+      GCPRO1 (file);
+      if (!STRINGP (file))
+      {
+        image_error ("Cannot find image file `%s'", file_name, Qnil);
+        UNGCPRO;
+        return 0;
+      }
+      
+      /* Read the entire file into memory.  */
+      contents = slurp_file (SDATA (file), &size);
+      if (contents == NULL)
+      {
+        image_error ("Error loading SVG image `%s'", img->spec, Qnil);
+        UNGCPRO;
+        return 0;
+      }
+      /* If the file was slurped into memory properly, parse it.  */
+      success_p = svg_load_image (f, img, contents, size); 
+      xfree (contents);
+      UNGCPRO;
+    }
+  /* Else its not a file, its a lisp object.  Load the image from a
+     lisp object rather than a file.  */
+  else
+    {
+      Lisp_Object data;
+
+      data = image_spec_value (img->spec, QCdata, NULL);
+      success_p = svg_load_image (f, img, SDATA (data), SBYTES (data));
+    }
+
+  return success_p;
+}
+
+/* svg_load_image is a helper function for svg_load, which does the actual
+ loading given contents and size, apart from frame and image
+ structures, passed from svg_load.
+
+ Uses librsvg to do most of the image processing.
+ 
+ Returns non-zero when sucessful.  */
+static int
+svg_load_image (f, img, contents, size)
+    /* Pointer to emacs frame sturcture.  */
+     struct frame *f;
+     /* Pointer to emacs image structure.  */
+     struct image *img;
+     /* String containing the SVG XML data to be parsed.  */
+     unsigned char *contents;
+     /* Size of data in bytes.  */
+     unsigned int size;
+{
+  RsvgHandle *rsvg_handle;
+  GError *error = NULL;
+  GdkPixbuf *pixbuf;
+  int width;
+  int height;
+  const guint8 *pixels;
+  int rowstride;
+  XImagePtr ximg;
+  XColor background;
+  int x;
+  int y;
+
+  /* g_type_init is a glib function that must be called prior to using
+     gnome type library functions.  */
+  g_type_init ();
+  /* Make a handle to a new rsvg object.  */
+  rsvg_handle = fn_rsvg_handle_new ();
+
+  /* Parse the contents argument and fill in the rsvg_handle.  */
+  fn_rsvg_handle_write (rsvg_handle, contents, size, &error);
+  if (error)
+    goto rsvg_error;
+
+  /* The parsing is complete, rsvg_handle is ready to used, close it
+     for further writes.  */
+  fn_rsvg_handle_close (rsvg_handle, &error);
+  if (error)
+    goto rsvg_error;
+  /* We can now get a valid pixel buffer from the svg file, if all
+     went ok.  */
+  pixbuf = fn_rsvg_handle_get_pixbuf (rsvg_handle);
+  eassert (pixbuf);
+
+  /* Extract some meta data from the svg handle.  */
+  width     = fn_gdk_pixbuf_get_width (pixbuf);
+  height    = fn_gdk_pixbuf_get_height (pixbuf);
+  pixels    = fn_gdk_pixbuf_get_pixels (pixbuf);
+  rowstride = fn_gdk_pixbuf_get_rowstride (pixbuf);
+
+  /* Validate the svg meta data.  */
+  eassert (fn_gdk_pixbuf_get_colorspace (pixbuf) == GDK_COLORSPACE_RGB);
+  eassert (fn_gdk_pixbuf_get_n_channels (pixbuf) == 4);
+  eassert (fn_gdk_pixbuf_get_has_alpha (pixbuf));
+  eassert (fn_gdk_pixbuf_get_bits_per_sample (pixbuf) == 8);
+
+  /* Try to create a x pixmap to hold the svg pixmap.  */
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap)) {
+    g_object_unref (pixbuf);
+    return 0;
+  }
+
+  init_color_table ();
+
+  /* TODO: The code is somewhat prepared for other environments than
+     X, but is far from done.  */
+#ifdef HAVE_X_WINDOWS
+
+  background.pixel = FRAME_BACKGROUND_PIXEL (f);
+  x_query_color (f, &background);
+
+  /* SVG pixmaps specify transparency in the last byte, so right shift
+     8 bits to get rid of it, since emacs doesnt support
+     transparency.  */
+  background.red   >>= 8;
+  background.green >>= 8;
+  background.blue  >>= 8;
+
+#else /* not HAVE_X_WINDOWS */
+#error FIXME
+#endif
+
+  /* This loop handles opacity values, since Emacs assumes
+     non-transparent images.  Each pixel must be "flattened" by
+     calculating he resulting color, given the transparency of the
+     pixel, and the image background color.   */
+  for (y = 0; y < height; ++y)
+    {
+      for (x = 0; x < width; ++x)
+	{
+	  unsigned red;
+	  unsigned green;
+	  unsigned blue;
+	  unsigned opacity;
+
+	  red     = *pixels++;
+	  green   = *pixels++;
+	  blue    = *pixels++;
+	  opacity = *pixels++;
+
+	  red   = ((red * opacity)
+		   + (background.red * ((1 << 8) - opacity)));
+	  green = ((green * opacity)
+		   + (background.green * ((1 << 8) - opacity)));
+	  blue  = ((blue * opacity)
+		   + (background.blue * ((1 << 8) - opacity)));
+
+	  XPutPixel (ximg, x, y, lookup_rgb_color (f, red, green, blue));
+	}
+
+      pixels += rowstride - 4 * width;
+    }
+
+#ifdef COLOR_TABLE_SUPPORT
+  /* Remember colors allocated for this image.  */
+  img->colors = colors_in_color_table (&img->ncolors);
+  free_color_table ();
+#endif /* COLOR_TABLE_SUPPORT */
+
+  g_object_unref (pixbuf);
+
+  /* Put the image into the pixmap, then free the X image and its
+     buffer.  */
+  x_put_x_image (f, ximg, img->pixmap, width, height);
+  x_destroy_x_image (ximg);
+
+  img->width  = width;
+  img->height = height;
+
+  return 1;
+
+ rsvg_error:
+  /* FIXME: Use error->message so the user knows what is the actual
+     problem with the image.  */
+  image_error ("Error parsing SVG image `%s'", img->spec, Qnil);
+  g_error_free (error);
+  return 0;
+}
+
+#endif	/* defined (HAVE_RSVG) */
+
+
+
 
 /***********************************************************************
 				Ghostscript
@@ -8591,6 +8914,11 @@ of `image-library-alist', which see).  */)
     return CHECK_LIB_AVAILABLE (&png_type, init_png_functions, libraries);
 #endif
 
+#if defined (HAVE_RSVG)
+  if (EQ (type, Qsvg))
+    return CHECK_LIB_AVAILABLE (&svg_type, init_svg_functions, libraries);
+#endif
+  
 #ifdef HAVE_GHOSTSCRIPT
   if (EQ (type, Qpostscript))
     return CHECK_LIB_AVAILABLE (&gs_type, init_gs_functions, libraries);
@@ -8733,6 +9061,13 @@ non-numeric, there is no explicit limit on the size of images.  */);
   ADD_IMAGE_TYPE(Qpng);
 #endif
 
+#if defined (HAVE_RSVG)
+  Qsvg = intern ("svg");
+  staticpro (&Qsvg);
+  ADD_IMAGE_TYPE(Qsvg);
+#endif
+
+  
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
   defsubr (&Simage_refresh);
