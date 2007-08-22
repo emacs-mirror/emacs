@@ -110,10 +110,12 @@ AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(gpm,
 [  --with-gpm              use -lgpm for mouse support on a GNU/Linux console])
+AC_ARG_WITH(rsvg,
+[  --with-rsvg             use -lrsvg-2 for displaying SVG images])
 AC_ARG_WITH(gtk,
 [  --with-gtk              use GTK (same as --with-x-toolkit=gtk)])
 AC_ARG_WITH(pkg-config-prog,
-[  --with-pkg-config-prog  Path to pkg-config to use for finding GTK])
+[  --with-pkg-config-prog  Path to pkg-config to use for finding GTK and librsvg])
 AC_ARG_WITH(toolkit-scroll-bars,
 [  --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars])
@@ -2122,6 +2124,32 @@ fail;
   fi
 fi
 
+### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
+HAVE_RSVG=no
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_rsvg}" != "no"; then
+    dnl Check if `--with-pkg-config-prog' has been given.
+    if test "X${with_pkg_config_prog}" != X; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+    fi
+
+    RSVG_REQUIRED=2.0.0
+    RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
+
+    PKG_CHECK_MODULES(RSVG, $RSVG_MODULE, :, :)
+    AC_SUBST(RSVG_CFLAGS)
+    AC_SUBST(RSVG_LIBS)
+
+    if test ".${RSVG_CFLAGS}" != "."; then
+      HAVE_RSVG=yes
+      AC_DEFINE(HAVE_RSVG, 1, [Define to 1 if using librsvg.])
+      CFLAGS="$CFLAGS $RSVG_CFLAGS"
+      LIBS="$RSVG_LIBS $LIBS"
+    fi
+  fi
+fi
+
+
 HAVE_GTK=no
 if test "${with_gtk}" = "yes" && test "$USE_X_TOOLKIT" = "gtk"; then
   USE_X_TOOLKIT=none
@@ -3362,6 +3390,7 @@ echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_gif_lib_name"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
