@@ -3,8 +3,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 5.03
-@set DATE July 2007
+@set VERSION 5.05
+@set DATE August 2007
 
 @dircategory Emacs
 @direntry
@@ -146,6 +146,7 @@ Hyperlinks
 * Internal links::              Links to other places in the current file
 * External links::              URL-like links to the world
 * Handling links::              Creating, inserting and following
+* Using links outside Org-mode::  Linking from my C source code?
 * Link abbreviations::          Shortcuts for writing complex links
 * Search options::              Linking to a specific location
 * Custom searches::             When the default search is not enough
@@ -197,8 +198,8 @@ Column View
 
 Defining Columns
 
-* Scope of column definitions:: 
-* Column attributes::           
+* Scope of column definitions::  Where defined, where valid?
+* Column attributes::           Appearance and content of a column
 
 Timestamps
 
@@ -214,8 +215,8 @@ Creating timestamps
 
 Deadlines and Scheduling
 
-* Inserting deadline/schedule::  
-* Repeated tasks::              
+* Inserting deadline/schedule::  Planning items
+* Repeated tasks::              Items that show up again and again
 
 Progress Logging
 
@@ -266,17 +267,23 @@ Exporting
 
 * ASCII export::                Exporting to plain ASCII
 * HTML export::                 Exporting to HTML
+* LaTeX export::                Exporting to LaTeX
 * XOXO export::                 Exporting to XOXO
 * iCalendar export::            Exporting in iCalendar format
 * Text interpretation::         How the exporter looks at the file
 
 HTML export
 
-* Export commands::             How to invoke HTML export
+* HTML Export commands::        How to invoke LaTeX export
 * Quoting HTML tags::           Using direct HTML in Org-mode
-* Links::                       How hyperlinks get transferred to HTML
-* Images::                      To inline or not to inline?
-* CSS support::                 Style specifications
+* Links::                       Transformation of links for HTML
+* Images::                      How to include images
+* CSS support::                 Changing the appearence of the output
+
+LaTeX export
+
+* LaTeX export commands::       How to invoke LaTeX export
+* Quoting LaTeX code::          Incorporating literal LaTeX code
 
 Text interpretation by the exporter
 
@@ -326,6 +333,7 @@ Interaction with other packages
 Extensions, Hooks and Hacking
 
 * Extensions::                  Existing 3rd-part extensions
+* Adding hyperlink types::      New custom link types
 * Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
 * Special agenda views::        Customized views
@@ -403,7 +411,7 @@ example as:
 Org-mode's automatic, context sensitive table editor with spreadsheet
 capabilities can be integrated into any major mode by activating the
 minor Orgtbl-mode.  Using a translation step, it can be used to maintain
-tables in arbitrary file types, for example in LaTeX.  The structure
+tables in arbitrary file types, for example in La@TeX{}.  The structure
 editing and list creation capabilities can be used outside Org-mode with
 the minor Orgstruct-mode.
 
@@ -489,7 +497,7 @@ define @emph{global} keys for the commands @command{org-store-link} and
 
 @lisp
 ;; The following lines are always needed.  Choose your own keys.
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
 @end lisp
@@ -599,15 +607,14 @@ edit the structure of the document.
 @cindex outlines
 @cindex outline-mode
 
-Org-mode is implemented on top of outline-mode.  Outlines allow to
-organize a document in a hierarchical structure, which (at least for
-me) is the best representation of notes and thoughts.  Overview over
-this structure is achieved by folding (hiding) large parts of the
+Org-mode is implemented on top of outline-mode.  Outlines allow a
+document to be organized in a hierarchical structure, which (at least
+for me) is the best representation of notes and thoughts.  An overview
+of this structure is achieved by folding (hiding) large parts of the
 document to show only the general document structure and the parts
 currently being worked on.  Org-mode greatly simplifies the use of
-outlines by compressing the entire show/hide functionality into a
-single command @command{org-cycle}, which is bound to the @key{TAB}
-key.
+outlines by compressing the entire show/hide functionality into a single
+command @command{org-cycle}, which is bound to the @key{TAB} key.
 
 @node Headlines, Visibility cycling, Outlines, Document structure
 @section Headlines
@@ -638,7 +645,7 @@ An empty line after the end of a subtree is considered part of it and
 will be hidden when the subtree is folded.  However, if you leave at
 least two empty lines, one empty line will remain visible after folding
 the subtree, in order to structure the collapsed view.  See the
-variable @code{org-cycle-separator-lines} for modifying this behavior.
+variable @code{org-cycle-separator-lines} to modify this behavior.
 
 @node Visibility cycling, Motion, Headlines, Document structure
 @section Visibility cycling
@@ -987,7 +994,7 @@ match is in the body of an entry, headline and body are made visible.
 In order to provide minimal context, also the full hierarchy of
 headlines above the match is shown, as well as the headline following
 the match.  Each match is also highlighted; the highlights disappear
-when the buffer is changes an editing command, or by pressing @kbd{C-c
+when the buffer is changed an editing command, or by pressing @kbd{C-c
 C-c}.  When called with a @kbd{C-u} prefix argument, previous highlights
 are kept, so several calls to this command can be stacked.
 @end table
@@ -1202,9 +1209,9 @@ Emacs @file{calc} package.
 @cindex table editor, built-in
 
 Org-mode makes it easy to format tables in plain ASCII.  Any line with
-@samp{|} as the first non-white character is considered part of a
-table.  @samp{|} is also the column separator.  A table might look
-like this:
+@samp{|} as the first non-whitespace character is considered part of a
+table.  @samp{|} is also the column separator.  A table might look like
+this:
 
 @example
 | Name  | Phone | Age |
@@ -1510,7 +1517,7 @@ example in mail mode, use
 
 Furthermore, with some special setup, it is possible to maintain tables
 in arbitrary syntax with Orgtbl-mode.  For example, it is possible to
-construct LaTeX tables with the underlying ease and power of
+construct La@TeX{} tables with the underlying ease and power of
 Orgtbl-mode, including spreadsheet capabilities.  For details, see
 @ref{Tables in arbitrary syntax}.
 
@@ -2084,6 +2091,7 @@ links to other files, Usenet articles, emails, and much more.
 * Internal links::              Links to other places in the current file
 * External links::              URL-like links to the world
 * Handling links::              Creating, inserting and following
+* Using links outside Org-mode::  Linking from my C source code?
 * Link abbreviations::          Shortcuts for writing complex links
 * Search options::              Linking to a specific location
 * Custom searches::             When the default search is not enough
@@ -2256,7 +2264,7 @@ as links.  If spaces must be part of the link (for example in
 @samp{bbdb:Richard Stallman}), or if you need to remove ambiguities
 about the end of the link, enclose them in angular brackets.
 
-@node Handling links, Link abbreviations, External links, Hyperlinks
+@node Handling links, Using links outside Org-mode, External links, Hyperlinks
 @section Handling links
 @cindex links, handling
 
@@ -2389,7 +2397,20 @@ to @kbd{C-n} and @kbd{C-p}
 @end lisp
 @end table
 
-@node Link abbreviations, Search options, Handling links, Hyperlinks
+@node Using links outside Org-mode, Link abbreviations, Handling links, Hyperlinks
+@section Using links outside Org-mode
+
+You can insert and follow links that have Org-mode syntax not only in
+Org-mode, but in any Emacs buffer.  For this, you should create two
+global commands, like this (please select suitable global keys
+yourself):
+
+@lisp
+(define-key global-map 'org-insert-link-global "\\C-c L")
+(define-key global-map 'org-open-at-point-global "\\C-c o")
+@end lisp
+
+@node Link abbreviations, Search options, Using links outside Org-mode, Hyperlinks
 @section Link abbreviations
 @cindex link abbreviations
 @cindex abbreviation, links
@@ -3384,6 +3405,17 @@ publishers and the number of disks in a box like this:
   :END:
 @end example
 
+If you want to set properties that can be inherited by any entry in a
+file, use a line like
+
+@example
+#+PROPERTY: NDisks_ALL 1 2 3 4
+@end example
+
+Property values set with the global variable
+@code{org-global-properties} can be inherited by all entries in all
+Org-mode files.
+
 @noindent
 The following commands help to work with properties:
 
@@ -3932,6 +3964,10 @@ and continuing until the entry is marked DONE.  An example:
     DEADLINE: <2004-02-29 Sun>
 @end example
 
+You can specify a different lead time for warnings for a specific
+deadlines using the following syntax.  Here is an example with a warning
+period of 5 days @code{DEADLINE: <2004-02-29 Sun -5d>}.
+
 @item SCHEDULED
 @cindex SCHEDULED keyword
 You are planning to start working on that task on the given date. The
@@ -3949,8 +3985,8 @@ I.e., the task will automatically be forwarded until completed.
 @end table
 
 @menu
-* Inserting deadline/schedule::  
-* Repeated tasks::              
+* Inserting deadline/schedule::  Planning items
+* Repeated tasks::              Items that show up again and again
 @end menu
 
 @node Inserting deadline/schedule, Repeated tasks, Deadlines and scheduling, Deadlines and scheduling
@@ -5133,7 +5169,7 @@ If you are away from your computer, it can be very useful to have a
 printed version of some agenda views to carry around.  Org-mode can
 export custom agenda views as plain text, HTML@footnote{You need to
 install Hrvoje Niksic' @file{htmlize.el}.} and postscript.  If you want
-to do this only occasionally, use the commend
+to do this only occasionally, use the command
 
 @table @kbd
 @kindex C-x C-w
@@ -5429,21 +5465,23 @@ are surrounded with @code{<sub>} and @code{<sup>} tags, respectively.
 With symbols, sub- and superscripts, HTML is pretty much at its end when
 it comes to representing mathematical formulas@footnote{Yes, there is
 MathML, but that is not yet fully supported by many browsers, and there
-is no decent converter for turning LaTeX of ASCII representations of
-formulas into MathML.  So for the time being, converting formulas into
-images seems the way to go.}.  More complex
-expressions need a dedicated formula processor.  To this end, Org-mode
-can contain arbitrary La@TeX{} fragments.  It provides commands to
-preview the typeset result of these fragments, and upon export to HTML,
-all fragments will be converted to images and inlined into the HTML
-document.  For this to work you need to be on a system with a working
-La@TeX{} installation.  You also need the @file{dvipng} program,
-available at @url{http://sourceforge.net/projects/dvipng/}.  The LaTeX
-header that will be used when processing a fragment can be configured
-with the variable @code{org-format-latex-header}.
+is no decent converter for turning La@TeX{} or ASCII representations of
+formulas into MathML. So for the time being, converting formulas into
+images seems the way to go.}. More complex expressions need a dedicated
+formula processor. To this end, Org-mode can contain arbitrary La@TeX{}
+fragments. It provides commands to preview the typeset result of these
+fragments, and upon export to HTML, all fragments will be converted to
+images and inlined into the HTML document@footnote{The La@TeX{} export
+will not use images for displaying La@TeX{} fragments but include these
+fragments directly into the La@TeX{} code.}. For this to work you
+need to be on a system with a working La@TeX{} installation. You also
+need the @file{dvipng} program, available at
+@url{http://sourceforge.net/projects/dvipng/}. The La@TeX{} header that
+will be used when processing a fragment can be configured with the
+variable @code{org-format-latex-header}.
 
 La@TeX{} fragments don't need any special marking at all.  The following
-snippets will be identified as LaTeX source code:
+snippets will be identified as La@TeX{} source code:
 @itemize @bullet
 @item
 Environments of any kind.  The only requirement is that the
@@ -5509,7 +5547,7 @@ setting is active:
 @cindex CDLaTeX
 
 CDLaTeX-mode is a minor mode that is normally used in combination with a
-major LaTeX mode like AUCTeX in order to speed-up insertion of
+major La@TeX{} mode like AUCTeX in order to speed-up insertion of
 environments and math templates.  Inside Org-mode, you can make use of
 some of the features of cdlatex-mode.  You need to install
 @file{cdlatex.el} and @file{texmathp.el} (the latter comes also with
@@ -5532,7 +5570,7 @@ Environment templates can be inserted with @kbd{C-c @{}.
 @item
 @kindex @key{TAB}
 The @key{TAB} key will do template expansion if the cursor is inside a
-LaTeX fragment@footnote{Org-mode has a method to test if the cursor is
+La@TeX{} fragment@footnote{Org-mode has a method to test if the cursor is
 inside such a fragment, see the documentation of the function
 @code{org-inside-LaTeX-fragment-p}.}.  For example, @key{TAB} will
 expand @code{fr} to @code{\frac@{@}@{@}} and position the cursor
@@ -5545,7 +5583,7 @@ To get a list of all abbreviations, type @kbd{M-x cdlatex-command-help}.
 @item
 @kindex _
 @kindex ^
-Pressing @kbd{_} and @kbd{^} inside a LaTeX fragment will insert these
+Pressing @kbd{_} and @kbd{^} inside a La@TeX{} fragment will insert these
 characters together with a pair of braces.  If you use @key{TAB} to move
 out of the braces, and if the braces surround only a single character or
 macro, they are removed again (depending on the variable
@@ -5553,7 +5591,7 @@ macro, they are removed again (depending on the variable
 @item
 @kindex `
 Pressing the backquote @kbd{`} followed by a character inserts math
-macros, also outside LaTeX fragments.  If you wait more than 1.5 seconds
+macros, also outside La@TeX{} fragments.  If you wait more than 1.5 seconds
 after the backquote, a help window will pop up.
 @item
 @kindex '
@@ -5572,11 +5610,12 @@ Org-mode documents can be exported into a variety of other formats.  For
 printing and sharing of notes, ASCII export produces a readable and
 simple version of an Org-mode file.  HTML export allows you to publish a
 notes file on the web, while the XOXO format provides a solid base for
-exchange with a broad range of other applications.  To incorporate
-entries with associated times like deadlines or appointments into a
-desktop calendar program like iCal, Org-mode can also produce extracts
-in the iCalendar format.  Currently Org-mode only supports export, not
-import of these different formats.
+exchange with a broad range of other applications. La@TeX{} export lets
+you use Org-mode and its structured editing functions to easily create
+La@TeX{} files.  To incorporate entries with associated times like
+deadlines or appointments into a desktop calendar program like iCal,
+Org-mode can also produce extracts in the iCalendar format.  Currently
+Org-mode only supports export, not import of these different formats.
 
 When exporting, Org-mode uses special conventions to enrich the output
 produced.  @xref{Text interpretation}, for more details.
@@ -5592,6 +5631,7 @@ command.
 @menu
 * ASCII export::                Exporting to plain ASCII
 * HTML export::                 Exporting to HTML
+* LaTeX export::                Exporting to LaTeX
 * XOXO export::                 Exporting to XOXO
 * iCalendar export::            Exporting in iCalendar format
 * Text interpretation::         How the exporter looks at the file
@@ -5638,7 +5678,7 @@ the body text.  Any indentation larger than this is adjusted to preserve
 the layout relative to the first line.  Should there be lines with less
 indentation than the first, these are left alone.
 
-@node HTML export, XOXO export, ASCII export, Exporting
+@node HTML export, LaTeX export, ASCII export, Exporting
 @section HTML export
 @cindex HTML export
 
@@ -5647,14 +5687,14 @@ HTML formatting, in ways similar to John Grubers @emph{markdown}
 language, but with additional support for tables.
 
 @menu
-* Export commands::             How to invoke HTML export
+* HTML Export commands::        How to invoke LaTeX export
 * Quoting HTML tags::           Using direct HTML in Org-mode
-* Links::                       How hyperlinks get transferred to HTML
-* Images::                      To inline or not to inline?
-* CSS support::                 Style specifications
+* Links::                       Transformation of links for HTML
+* Images::                      How to include images
+* CSS support::                 Changing the appearence of the output
 @end menu
 
-@node Export commands, Quoting HTML tags, HTML export, HTML export
+@node HTML Export commands, Quoting HTML tags, HTML export, HTML export
 @subsection HTML export commands
 
 @cindex region, active
@@ -5688,6 +5728,9 @@ Export only the visible part of the document.
 Convert the region to HTML under the assumption that it was org-mode
 syntax before.  This is a global command that can be invoked in any
 buffer.
+@item M-x org-replace-region-by-HTML
+Replace the active region (assumed to be in Org-mode syntax) by HTML
+code.
 @end table
 
 @cindex headline levels, for exporting
@@ -5703,7 +5746,7 @@ at a different level, specify it with a prefix argument.  For example,
 @noindent
 creates two levels of headings and does the rest as items.
 
-@node Quoting HTML tags, Links, Export commands, HTML export
+@node Quoting HTML tags, Links, HTML Export commands, HTML export
 @subsection Quoting HTML tags
 
 Plain @samp{<} and @samp{>} are always transformed to @samp{&lt;} and
@@ -5807,7 +5850,78 @@ section in the buffer.
 @c FIXME: More about header and footer styles
 @c FIXME: Talk about links and targets.
 
-@node XOXO export, iCalendar export, HTML export, Exporting
+@node LaTeX export, XOXO export, HTML export, Exporting
+@section LaTeX export
+@cindex LaTeX export
+
+Org-mode contains a La@TeX{} exporter written by Bastien Guerry.
+
+@menu
+* LaTeX export commands::       How to invoke LaTeX export
+* Quoting LaTeX code::          Incorporating literal LaTeX code
+@end menu
+
+@node LaTeX export commands, Quoting LaTeX code, LaTeX export, LaTeX export
+@subsection LaTeX export commands
+
+@table @kbd
+@kindex C-c C-e l
+@item C-c C-e l
+Export as La@TeX{} file @file{myfile.tex}.
+@kindex C-c C-e L
+@item C-c C-e L
+Export to a temporary buffer, do not create a file.
+@kindex C-c C-e v l
+@kindex C-c C-e v L
+@item C-c C-e v l
+@item C-c C-e v L
+Export only the visible part of the document.
+@item M-x org-export-region-as-latex
+Convert the region to La@TeX{} under the assumption that it was org-mode
+syntax before.  This is a global command that can be invoked in any
+buffer.
+@item M-x org-replace-region-by-latex
+Replace the active region (assumed to be in Org-mode syntax) by La@TeX{}
+code.
+@end table
+
+@cindex headline levels, for exporting
+In the exported version, the first 3 outline levels will become
+headlines, defining a general document structure.  Additional levels
+will be exported as description lists.  The exporter can ignore them or
+convert them to a custom string depending on
+@code{org-latex-low-levels}.
+
+If you want that transition to occur at a different level, specify it
+with a prefix argument. For example,
+
+@example
+@kbd{C-2 C-c C-e l}
+@end example
+
+@noindent
+creates two levels of headings and does the rest as items.
+
+@node Quoting LaTeX code,  , LaTeX export commands, LaTeX export
+@subsection Quoting LaTeX code
+
+Embedded La@TeX{} as described in @ref{Embedded LaTeX} will be correctly
+inserted into the La@TeX{} file.  Forthermore, you can add special code
+that should only be present in La@TeX{} export with the following
+constructs:
+
+@example
+#+LaTeX: Literal LaTeX code for export
+@end example
+
+@noindent or
+
+@example
+#+BEGIN_LaTeX
+All lines between these markers are exported literally
+#+END_LaTeX
+@end example
+@node XOXO export, iCalendar export, LaTeX export, Exporting
 @section XOXO export
 @cindex XOXO export
 
@@ -5955,9 +6069,9 @@ the settings in Org-mode.
 @cindex richer text
 
 Some of the export backends of Org-mode allow for sophisticated text
-formatting, this is true in particular for the HTML backend.  Org-mode
-has a number of typing conventions that allow to produce a richly
-formatted output.
+formatting, this is true in particular for the HTML and La@TeX{}
+backends. Org-mode has a number of typing conventions that allow to
+produce a richly formatted output.
 
 @itemize @bullet
 
@@ -6044,7 +6158,7 @@ Insert template with export options, see example below.
 #+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
 #+TEXT:      Some descriptive text to be inserted at the beginning.
 #+TEXT:      Several lines may be given.
-#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t *:nil TeX:t LaTeX:t skip:t
+#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t f:t TeX:t ...
 @end example
 
 @noindent
@@ -6062,23 +6176,31 @@ you can:
 @cindex emphasized text
 @cindex @TeX{} macros
 @cindex La@TeX{} fragments
+@cindex author info, in export
+@cindex time info, in export
 @example
-H:      @r{set the number of headline levels for export}
-num:    @r{turn on/off section-numbers}
-toc:    @r{turn on/off table of contents, or set level limit (integer)}
-\n:     @r{turn on/off linebreak-preservation}
-@@:      @r{turn on/off quoted HTML tags}
-::      @r{turn on/off fixed-width sections}
-|:      @r{turn on/off tables}
-^:      @r{turn on/off @TeX{}-like syntax for sub- and superscripts.  If}
-        @r{you write "^:@{@}", @code{a_@{b@}} will be interpreted, but}
-        @r{the simple @code{a_b} will be left as it is.}
-f:      @r{turn on/off foototes like this[1].}
-*:      @r{turn on/off emphasized text (bold, italic, underlined)}
-TeX:    @r{turn on/off simple @TeX{} macros in plain text}
-LaTeX:  @r{turn on/off La@TeX{} fragments}
-skip:   @r{turn on/off skipping the text before the first heading}
+H:         @r{set the number of headline levels for export}
+num:       @r{turn on/off section-numbers}
+toc:       @r{turn on/off table of contents, or set level limit (integer)}
+\n:        @r{turn on/off linebreak-preservation}
+@@:         @r{turn on/off quoted HTML tags}
+::         @r{turn on/off fixed-width sections}
+|:         @r{turn on/off tables}
+^:         @r{turn on/off @TeX{}-like syntax for sub- and superscripts.  If}
+           @r{you write "^:@{@}", @code{a_@{b@}} will be interpreted, but}
+           @r{the simple @code{a_b} will be left as it is.}
+f:         @r{turn on/off foototes like this[1].}
+*:         @r{turn on/off emphasized text (bold, italic, underlined)}
+TeX:       @r{turn on/off simple @TeX{} macros in plain text}
+LaTeX:     @r{turn on/off La@TeX{} fragments}
+skip:      @r{turn on/off skipping the text before the first heading}
+author:    @r{turn on/off inclusion of author name/email into exported file}
+timestamp: @r{turn on/off inclusion creation time into exported file}
 @end example
+
+These options take effect in both the HTML and La@TeX{} export, except
+for @code{TeX} and @code{LaTeX}, which are respectively @code{t} and
+@code{nil} for the La@TeX{} export.
 
 @node Publishing, Miscellaneous, Exporting, Top
 @chapter Publishing
@@ -6088,11 +6210,16 @@ Org-mode includes@footnote{@file{org-publish.el} is not distributed with
 Emacs 21, if you are still using Emacs 21, you need you need to download
 this file separately.} a publishing management system that allows you to
 configure automatic HTML conversion of @emph{projects} composed of
-interlinked org files.  This system is called @emph{org-publish}.  You
-can also configure org-publish to automatically upload your exported
-HTML pages and related attachments, such as images and source code
-files, to a web server.  Org-publish turns org-mode into a web-site
-authoring tool.
+interlinked org files.  This system is called @emph{org-publish}.  You can
+also configure org-publish to automatically upload your exported HTML
+pages and related attachments, such as images and source code files, to
+a web server. Org-publish turns org-mode into a web-site authoring tool.
+
+You can also use Org-publish to convert files into La@TeX{}, or even
+combine HTML and La@TeX{} conversion so that files are available in both
+formats on the server@footnote{Since La@TeX{} files on a server are not
+that helpful, you surely want to perform further conversion on them --
+e.g. convert them to @code{PDF} format.}.
 
 Org-publish has been contributed to Org-mode by David O'Toole.
 
@@ -6195,9 +6322,11 @@ Publishing means that a file is copied to the destination directory and
 possibly transformed in the process.  The default transformation is to
 export Org-mode files as HTML files, and this is done by the function
 @code{org-publish-org-to-html} which calls the HTML exporter
-(@pxref{HTML export}).  Other files like images only need to be copied
-to the publishing destination.  For non-Org-mode files, you need to
-specify the publishing function.
+(@pxref{HTML export}). But you also can publish your files in La@TeX{} by
+using the function @code{org-publish-org-to-latex} instead. Other files
+like images only need to be copied to the publishing destination. For
+non-Org-mode files, you need to specify the publishing function.
+
 
 @multitable @columnfractions 0.3 0.7
 @item @code{:publishing-function}
@@ -6214,13 +6343,13 @@ provides one for attachments (files that only need to be copied):
 @code{org-publish-attachment}.
 
 @node Publishing options, Publishing links, Publishing action, Configuration
-@subsection Options for the HTML exporter
+@subsection Options for the HTML/LaTeX exporters
 @cindex options, for publishing
 
 The property list can be used to set many export options for the HTML
-exporter.  In most cases, these properties correspond to user variables
-in Org-mode.  The table below lists these properties along with the
-variable they belong to.  See the documentation string for the
+and La@TeX{} exporters.  In most cases, these properties correspond to user
+variables in Org-mode.  The table below lists these properties along
+with the variable they belong to.  See the documentation string for the
 respective variable for details.
 
 @multitable @columnfractions 0.3 0.7
@@ -6251,6 +6380,11 @@ respective variable for details.
 @item @code{:author}                @tab @code{user-full-name}
 @item @code{:email}                 @tab @code{user-mail-address}
 @end multitable
+
+Most of the @code{org-export-with-*} variables have the same effect in
+both HTML and La@TeX{} exporters, except for @code{:TeX-macros} and
+@code{:LaTeX-fragments}, respectively @code{nil} and @code{t} in the
+La@TeX{} export.
 
 When a property is given a value in org-publish-project-alist, its
 setting overrides the value of the corresponding user variable (if any)
@@ -6520,7 +6654,7 @@ when the file is visited again in a new Emacs session.
 @table @kbd
 @item #+ARCHIVE: %s_done::
 This line sets the archive location for the agenda file.  It applies for
-all subsequent lines until the next @samp{#+CATEGORY} line, or the end
+all subsequent lines until the next @samp{#+ARCHIVE} line, or the end
 of the file.  The first such line also applies to any entries before it.
 The corresponding variable is @code{org-archive-location}.
 @item #+CATEGORY:
@@ -6544,8 +6678,11 @@ These lines (several are allowed) specify link abbreviations.
 This line sets the limits and the default for the priorities.  All three
 must be either letters A-Z or numbers 0-9.  The highest priority must
 have a lower ASCII number that the lowest priority.
+@item #+PROPERTY: Property_Name Value
+This line sets a default inheritance value for entries in the current
+buffer, most useful for specifying the allowed values of a property.
 @item #+STARTUP:
-This line sets options to be used at startup of org-mode, when an
+This line sets options to be used at startup of Org-mode, when an
 Org-mode file is being visited.  The first set of options deals with the
 initial visibility of the outline tree.  The corresponding variable for
 global default settings is @code{org-startup-folded}, with a default
@@ -6920,7 +7057,7 @@ used by CUA-mode (as well as pc-select-mode and s-region-mode) to
 select and extend the region.  If you want to use one of these
 packages along with Org-mode, configure the variable
 @code{org-CUA-compatible}.  When set, Org-mode will move the following
-keybindings in org-mode files, and in the agenda buffer (but not
+keybindings in Org-mode files, and in the agenda buffer (but not
 during date selection).
 
 @example
@@ -6940,7 +7077,7 @@ in the paragraph above about CUA mode also applies here.
 @item @file{footnote.el} by Steven L. Baur
 Org-mode supports the syntax of the footnote package, but only the
 numerical footnote markers.  Also, the default key for footnote
-commands, @kbd{C-c !} is already used by org-mode.  You could use the
+commands, @kbd{C-c !} is already used by Org-mode.  You could use the
 variable @code{footnote-prefix} to switch footnotes commands to another
 key.  Or, you could use @code{org-replace-disputed-keys} and
 @code{org-disputed-keys} to change the settings in Org-mode.
@@ -6995,13 +7132,14 @@ Org-mode.
 
 @menu
 * Extensions::                  Existing 3rd-part extensions
+* Adding hyperlink types::      New custom link types
 * Tables in arbitrary syntax::  Orgtbl for LaTeX and other programs
 * Dynamic blocks::              Automatically filled blocks
 * Special agenda views::        Customized views
 * Using the property API::      Writing programs that use entry properties
 @end menu
 
-@node Extensions, Tables in arbitrary syntax, Extensions and Hacking, Extensions and Hacking
+@node Extensions, Adding hyperlink types, Extensions and Hacking, Extensions and Hacking
 @section Third-party extensions for Org-mode
 @cindex extension, third-party
 
@@ -7045,14 +7183,111 @@ Remind. @url{http://www.cognition.ens.fr/~guerry/u/org2rem.el}.
 
 @page
 
-@node Tables in arbitrary syntax, Dynamic blocks, Extensions, Extensions and Hacking
+@node Adding hyperlink types, Tables in arbitrary syntax, Extensions, Extensions and Hacking
+@section Adding hyperlink types
+@cindex hyperlinks, adding new types
+
+Org-mode has a large number of hyperlink types built-in
+(@pxref{Hyperlinks}).  If you would like to add new link types, it
+provides an interface for doing so.  Lets look at an example file
+@file{org-man.el} that will add support for creating links like
+@samp{[[man:printf][The printf manpage]]} to show unix manual pages inside
+emacs:
+
+@lisp
+;;; org-man.el - Support for links to manpages in Org-mode
+
+(require 'org)
+
+(org-add-link-type "man" 'org-man-open)
+(add-hook 'org-store-link-functions 'org-man-store-link)
+
+(defcustom org-man-command 'man
+  "The Emacs command to be used to display a man page."
+  :group 'org-link
+  :type '(choice (const man) (const woman)))
+
+(defun org-man-open (path)
+  "Visit the manpage on PATH.
+PATH should be a topic that can be thrown at the man command."
+  (funcall org-man-command path))
+
+(defun org-man-store-link ()
+  "Store a link to a manpage."
+  (when (memq major-mode '(Man-mode woman-mode))
+    ;; This is a man page, we do make this link
+    (let* ((page (org-man-get-page-name))
+           (link (concat "man:" page))
+           (description (format "Manpage for %s" page)))
+      (org-store-link-props
+       :type "man"
+       :link link
+       :description description))))
+
+(defun org-man-get-page-name ()
+  "Extract the page name from the buffer name."
+  ;; This works for both `Man-mode' and `woman-mode'.
+  (if (string-match " \\(\\S-+\\)\\*" (buffer-name))
+      (match-string 1 (buffer-name))
+    (error "Cannot create link to this man page")))
+
+(provide 'org-man)
+
+;;; org-man.el ends here
+@end lisp
+
+@noindent
+You would activate this new link type in @file{.emacs} with
+
+@lisp
+(require 'org-man)
+@end lisp
+
+@noindent
+Lets go through the file and see what it does.
+@enumerate
+@item 
+It does @code{(require 'org)} to make sure that @file{org.el} has been
+loaded.
+@item
+The next line calls @code{org-add-link-type} to define a new link type
+with prefix @samp{man}.  The call also contains the name of a function
+that will be called to follow such a link.
+@item
+The next line adds a function to @code{org-store-link-functions}, in
+order to allow the command @kbd{C-c l} to record a useful link in a
+buffer displaying a man page.
+@end enumerate
+
+The rest of the file defines the necessary variables and functions.
+First there is a customization variable that determines which emacs
+command should be used to display manpages.  There are two options,
+@code{man} and @code{woman}.  Then the function to follow a link is
+defined.  It gets the link path as an argument - in this case the link
+path is just a topic for the manual command.  The function calls the
+value of @code{org-man-command} to display the man page.
+
+Finally the function @code{org-man-store-link} is defined.  When you try
+to store a link with @kbd{C-c l}, also this function will be called to
+try to make a link.  The function must first decide if it is supposed to
+create the link for this buffer type, we do this by checking the value
+of the variable @code{major-mode}.  If not, the function must exit and
+retunr the value @code{nil}.  If yes, the link is created by getting the
+manual tpoic from the buffer name and prefixing it with the string
+@samp{man:}.  Then it must call the command @code{org-store-link-props}
+and set the @code{:type} and @code{:link} properties.  Optionally you
+can also set the @code{:description} property to provide a default for
+the link description when the link is later inserted into tan Org-mode
+buffer with @kbd{C-c C-l}.
+
+@node Tables in arbitrary syntax, Dynamic blocks, Adding hyperlink types, Extensions and Hacking
 @section Tables in arbitrary syntax
 @cindex tables, in other modes
 @cindex orgtbl-mode
 
 Since Orgtbl-mode can be used as a minor mode in arbitrary buffers, a
 frequent feature request has been to make it work with native tables in
-specific languages, for example LaTeX.  However, this is extremely hard
+specific languages, for example La@TeX{}.  However, this is extremely hard
 to do in a general way, would lead to a customization nightmare, and
 would take away much of the simplicity of the Orgtbl-mode table editor.
 
@@ -7114,7 +7349,7 @@ additional columns.
 @noindent
 The one problem remaining is how to keep the source table in the buffer
 without disturbing the normal workings of the file, for example during
-compilation of a C file or processing of a LaTeX file.  There are a
+compilation of a C file or processing of a La@TeX{} file.  There are a
 number of different solutions:
 
 @itemize @bullet
@@ -7125,7 +7360,7 @@ language.  For example, in C-mode you could wrap the table between
 @item 
 Sometimes it is possible to put the table after some kind of @i{END}
 statement, for example @samp{\bye} in TeX and @samp{\end@{document@}}
-in LaTeX.
+in La@TeX{}.
 @item
 You can just comment the table line by line whenever you want to process
 the file, and uncomment it whenever you need to edit the table.  This
@@ -7138,11 +7373,11 @@ key.
 @subsection A LaTeX example
 @cindex LaTeX, and orgtbl-mode
 
-The best way to wrap the source table in LaTeX is to use the
+The best way to wrap the source table in La@TeX{} is to use the
 @code{comment} environment provided by @file{comment.sty}.  It has to be
 activated by placing @code{\usepackage@{comment@}} into the document
 header.  Orgtbl-mode can insert a radio table skeleton@footnote{By
-default this works only for LaTeX, HTML, and TeXInfo.  Configure the
+default this works only for La@TeX{}, HTML, and TeXInfo.  Configure the
 variable @code{orgtbl-radio-tables} to install templates for other
 modes.}  with the command @kbd{M-x orgtbl-insert-radio-table}.  You will
 be prompted for a table name, lets say we use @samp{salesfigures}.  You
@@ -7159,7 +7394,7 @@ will then get the following template:
 
 @noindent
 The @code{#+ORGTBL: SEND} line tells orgtbl-mode to use the function
-@code{orgtbl-to-latex} to convert the table into LaTeX and to put it
+@code{orgtbl-to-latex} to convert the table into La@TeX{} and to put it
 into the receiver location with name @code{salesfigures}.  You may now
 fill in the table, feel free to use the spreadsheet features@footnote{If
 the @samp{#+TBLFM} line contains an odd number of dollar characters,
@@ -7213,7 +7448,7 @@ Month & \multicolumn@{1@}@{c@}@{Days@} & Nr.\ sold & per day\\
 \end@{comment@}
 @end example
 
-The LaTeX translator function @code{orgtbl-to-latex} is already part of
+The La@TeX{} translator function @code{orgtbl-to-latex} is already part of
 Orgtbl-mode.  It uses a @code{tabular} environment to typeset the table
 and marks horizontal lines with @code{\hline}.  Furthermore, it
 interprets the following parameters:
@@ -7274,7 +7509,7 @@ As you can see, the properties passed into the function (variable
 @var{PARAMS}) are combined with the ones newly defined in the function
 (variable @var{PARAMS2}).  The ones passed into the function (i.e. the
 ones set by the @samp{ORGTBL SEND} line) take precedence.  So if you
-would like to use the LaTeX translator, but wanted the line endings to
+would like to use the La@TeX{} translator, but wanted the line endings to
 be @samp{\\[2mm]} instead of the default @samp{\\}, you could just
 overrule the default with
 
@@ -7283,7 +7518,7 @@ overrule the default with
 @end example
 
 For a new language, you can either write your own converter function in
-analogy with the LaTeX translator, or you can use the generic function
+analogy with the La@TeX{} translator, or you can use the generic function
 directly.  For example, if you have a language where a table is started
 with @samp{!BTBL!}, ended with @samp{!ETBL!}, and where table lines are
 started with @samp{!BL!}, ended with @samp{!EL!} and where the field
@@ -7403,27 +7638,50 @@ search should continue from there.
       subtree-end))) ; tag not found, continue after end of subtree
 @end lisp
 
-Furthermore you must write a command that uses @code{let} to temporarily
-put this function into the variable @code{org-agenda-skip-function},
-sets the header string for the agenda buffer, and calls the todo-list
-generator while asking for the specific TODO keyword PROJECT.  The
-function must also accept one argument MATCH, but it can choose to
-ignore it@footnote{MATCH must be present in case you want to define a
-custom command for producing this special list.  Custom commands always
-supply the MATCH argument, but it can be empty if you do not specify it
-while defining the command(@pxref{Custom agenda
-views}).} (as we do in the example below).  Here is the example:
+Now you may use this function in an agenda custom command, for example
+like this:
 
 @lisp
-(defun my-org-waiting-projects (&optional match)
-  "Produce a list of projects that contain a WAITING tag.
-MATCH is being ignored."
-  (interactive)
-  (let ((org-agenda-skip-function 'my-skip-unless-waiting)
-        (org-agenda-overriding-header "Projects waiting for something: "))
-    ;; make the list
-    (org-todo-list "PROJECT")))
+(org-add-agenda-custom-command
+ '("b" todo "PROJECT"
+   ((org-agenda-skip-function 'my-org-waiting-projects)
+    (org-agenda-overriding-header "Projects waiting for something: "))))
 @end lisp
+
+Note that this also binds @code{org-agenda-overriding-header} to get a
+meaningful header in the agenda view.
+
+You may also put a Lisp form into @code{org-agenda-skip-function}.  In
+particular, you may use the functions @code{org-agenda-skip-entry-if}
+and @code{org-agenda-skip-subtree-if} in this form, for example:
+
+@table @code
+@item '(org-agenda-skip-entry-if 'scheduled)
+Skip current entry if it has been scheduled.
+@item '(org-agenda-skip-entry-if 'notscheduled)
+Skip current entry if it has not been scheduled.
+@item '(org-agenda-skip-entry-if 'deadline)
+Skip current entry if it has a deadline.
+@item '(org-agenda-skip-entry-if 'scheduled 'deadline)
+Skip current entry if it has a deadline, or if it is scheduled.
+@item '(org-agenda-skip-entry 'regexp "regular expression")
+Skip current entry if the regular expression contained in the variable
+@code{org-agenda-skip-regexp} matches in the entry.
+@item '(org-agenda-skip-subtree-if 'regexp "regular expression")
+Same as above, but check and skip the entire subtree.
+@end table
+
+Therefore we could also have written the search for WAITING projects
+like this, even without defining a special function:
+
+@lisp
+(org-add-agenda-custom-command
+ '("b" todo "PROJECT"
+   ((org-agenda-skip-function '(org-agenda-skip-subtree-if
+                                'regexp ":WAITING:"))
+    (org-agenda-overriding-header "Projects waiting for something: "))))
+@end lisp
+
 
 @node Using the property API,  , Special agenda views, Extensions and Hacking
 @section Using the property API
@@ -7540,15 +7798,16 @@ around a match in a hidden outline tree.
 @item
 @i{Niels Giessen} had the idea to automatically archive DONE trees.
 @item
-@i{Bastien Guerry} provided extensive feedback and some patches, and
-translated David O'Toole's tutorial into French.
+@i{Bastien Guerry} wrote the La@TeX{} exporter and has been prolific
+with patches, ideas, and bug reports.
+to Org-mode.
 @item
 @i{Kai Grossjohann} pointed out key-binding conflicts with other packages.
 @item
 @i{Scott Jaderholm} proposed footnotes, control over whitespace between
 folded entries, and column view for properties.
 @item
-@i{Shidai Liu} ("Leo") asked for embedded LaTeX and tested it.  He also
+@i{Shidai Liu} ("Leo") asked for embedded La@TeX{} and tested it.  He also
 provided frequent feedback and some patches.
 @item
 @i{Jason F. McBrayer} suggested agenda export to CSV format.
@@ -7603,6 +7862,9 @@ subtrees.
 @item
 @i{Dale Smith} proposed link abbreviations.
 @item
+@i{Adam Spiers} asked for global linking commands and inspired the link
+extension system.  support mairix.
+@item
 @i{David O'Toole} wrote @file{org-publish.el} and drafted the manual
 chapter about publishing.
 @item
@@ -7621,6 +7883,7 @@ really different beasts in their basic ideas and implementation details.
 I later looked at John's code, however, and learned from his
 implementation of (i) links where the link itself is hidden and only a
 description is shown, and (ii) popping up a calendar to select a date.
+John has also contributed a number of great ideas directly to Org-mode.
 @item
 @i{Carsten Wimmer} suggested some changes and helped fix a bug in
 linking to GNUS.
