@@ -3,12 +3,13 @@
 	* tree-widget: Move this directory into images/ subdirectory.
 
 	* refcards/: New directory.  Move refcards here.
+	* Makefile: Move refcard rules from here...
+	* refcards/Makefile: ...to here.
 
 	* tutorials/: New directory. Move TUTORIAL* here.
 
 	* gnus.pbm, letter.pbm, letter.xpm:
 	* splash.pbm, splash.xpm, splash8.xpm: Move from etc/ to etc/images/.
-
 	* README: Move license information for the above files from here...
 	* images/README: ...to here.
 
