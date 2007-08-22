@@ -1,3 +1,10 @@
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (tutorial-directory): New constant.
+	(fancy-splash-text): Tutorials now in tutorial-directory.
+	* tutorial.el (help-with-tutorial): Tutorials now in
+	tutorial-directory.
+
 2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Require cl.el, when `copy-tree' is not available
