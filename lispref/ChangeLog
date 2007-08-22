@@ -36,13 +36,13 @@
 
 2007-06-14  Karl Berry  <karl@tug.org>
 
-	* anti.texi (Antinews): typo.
+	* anti.texi (Antinews): Typo.
 
 2007-06-12  Karl Berry  <karl@gnu.org>
 
-	* vol1.texi, vol2.texi, two-volume-cross-refs.txt: update.
-	* two-volume.make: new file.
-	* .cvsignore: ignore two-volume files.
+	* vol1.texi, vol2.texi, two-volume-cross-refs.txt: Update.
+	* two-volume.make: New file.
+	* .cvsignore: Ignore two-volume files.
 
 2007-06-02  Richard Stallman  <rms@gnu.org>
 
@@ -54,8 +54,7 @@
 
 2007-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* text.texi (Special Properties): Correct meaning of fontified
-	face.
+	* text.texi (Special Properties): Correct meaning of fontified face.
 
 2007-05-30  Richard Stallman  <rms@gnu.org>
 
@@ -169,7 +168,7 @@
 	* text.texi (Special Properties),
 	* minibuf.texi (Basic Completion): Wording to improve breaks in
 	8.5x11 format.
-	* elisp.texi (smallbook): new @set to more easily switch between
+	* elisp.texi (smallbook): New @set to more easily switch between
 	smallbook and 8.5x11.
 
 2007-04-11  Richard Stallman  <rms@gnu.org>
