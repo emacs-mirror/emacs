@@ -239,6 +239,10 @@ Currently known variants are 'emacs and 'mailutils."
     (setq rmail-movemail-variant-in-use (rmail-autodetect)))
   (not (null (member rmail-movemail-variant-in-use variants))))
 
+;; Call for effect, to set rmail-movemail-program (if not set by the
+;; user), and rmail-movemail-variant-in-use. Used by various functions.
+(rmail-movemail-variant-p)
+
 ;;;###autoload
 (defcustom rmail-dont-reply-to-names nil "\
 *A regexp specifying addresses to prune from a reply message.
@@ -1818,10 +1822,7 @@ is non-nil if the user has supplied the password interactively.
 		 (buffer-disable-undo errors)
 		 (let ((args
 			(append
-			 (list (or rmail-movemail-program
-				   (expand-file-name "movemail"
-						     exec-directory))
-			       nil errors nil)
+			 (list rmail-movemail-program nil errors nil)
 			 (if rmail-preserve-inbox
 			     (list "-p")
 			   nil)
