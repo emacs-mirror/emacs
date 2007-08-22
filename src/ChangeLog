@@ -1,5 +1,7 @@
 2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (Fclear_face_cache, Fx_send_client_event): Declare.
+
 	* lread.c (Vold_style_backquotes): New var.
 	(syms_of_lread): Init and export it to Elisp.
 	(read1): Set it when we find an old-style (back)quote.

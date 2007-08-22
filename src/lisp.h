@@ -3238,6 +3238,7 @@ EXFUN (Fx_file_dialog, 5);
 #endif
 
 /* Defined in xfaces.c */
+EXFUN (Fclear_face_cache, 1);
 extern void syms_of_xfaces P_ ((void));
 
 #ifndef HAVE_GETLOADAVG
@@ -3253,6 +3254,7 @@ extern void syms_of_xfns P_ ((void));
 extern void syms_of_xsmfns P_ ((void));
 
 /* Defined in xselect.c */
+EXFUN (Fx_send_client_event, 6);
 extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */
