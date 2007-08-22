@@ -1,3 +1,7 @@
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number upgrade.
+
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* tree-widget: Move this directory into images/ subdirectory.
