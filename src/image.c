@@ -1,6 +1,7 @@
 /* Functions for image support on window system.
    Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007
+                 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2353,7 +2354,7 @@ x_put_x_image (f, ximg, pixmap, width, height)
 static unsigned char *slurp_file P_ ((char *, int *));
 
 
-/* Find image file FILE.  Look in data-directory, then
+/* Find image file FILE.  Look in data-directory/images, then
    x-bitmap-file-path.  Value is the encoded full name of the file
    found, or nil if not found.  */
 
@@ -2366,7 +2367,11 @@ x_find_image_file (file)
   int fd;
 
   file_found = Qnil;
-  search_path = Fcons (Vdata_directory, Vx_bitmap_file_path);
+  /* TODO I think this should use something like image-load-path
+     instead.  Unfortunately, that can contain non-string elements.  */
+  search_path = Fcons (Fexpand_file_name (build_string ("images"),
+					  Vdata_directory),
+		       Vx_bitmap_file_path);
   GCPRO2 (file_found, search_path);
 
   /* Try to find FILE in data-directory, then x-bitmap-file-path.  */
