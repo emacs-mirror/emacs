@@ -1,3 +1,11 @@
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* comint.el (comint-exec-1): Raise an error if
+	`start-file-process' does not return a process object.
+
+	* shell.el (shell): Prompt for `default-directory' if it is a
+	remote file name, and if called with a prefix arg.
+
 2007-08-22  Sam Steingold  <sds@gnu.org>
 
 	* pcvs.el (cvs-vc-command-advice): Fix a typo in code (file->files).
