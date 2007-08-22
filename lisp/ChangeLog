@@ -1,3 +1,10 @@
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-movemail-variant-p): Call on load to set
+	movemail related variables.
+	(rmail-insert-inbox-text): Use only rmail-movemail-program, which
+	will now be set before this is called.
+
 2007-08-21  Juri Linkov  <juri@jurta.org>
 
 	* delsel.el (delete-selection-pre-hook):
