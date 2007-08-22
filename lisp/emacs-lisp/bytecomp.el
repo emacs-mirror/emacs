@@ -1008,8 +1008,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defun byte-compile-log-file ()
   (and (not (equal byte-compile-current-file byte-compile-last-logged-file))
        (not noninteractive)
-       (save-excursion
-	 (set-buffer (get-buffer-create "*Compile-Log*"))
+       (with-current-buffer (get-buffer-create "*Compile-Log*")
 	 (goto-char (point-max))
 	 (let* ((inhibit-read-only t)
 		(dir (and byte-compile-current-file
@@ -1545,8 +1544,7 @@ recompile every `.el' file that already has a `.elc' file."
       nil
     (save-some-buffers)
     (force-mode-line-update))
-  (save-current-buffer
-    (set-buffer (get-buffer-create "*Compile-Log*"))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
     (setq default-directory (expand-file-name directory))
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
@@ -1648,7 +1646,7 @@ The value is non-nil if there were no errors, nil if errors."
       (let ((b (get-file-buffer (expand-file-name filename))))
 	(if (and b (buffer-modified-p b)
 		 (y-or-n-p (format "Save buffer %s first? " (buffer-name b))))
-	    (save-excursion (set-buffer b) (save-buffer)))))
+	    (with-current-buffer b (save-buffer)))))
 
   ;; Force logging of the file name for each file compiled.
   (setq byte-compile-last-logged-file nil)
@@ -1658,9 +1656,8 @@ The value is non-nil if there were no errors, nil if errors."
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
-    (save-excursion
-      (setq input-buffer (get-buffer-create " *Compiler Input*"))
-      (set-buffer input-buffer)
+    (with-current-buffer 
+        (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (erase-buffer)
       (setq buffer-file-coding-system nil)
       ;; Always compile an Emacs Lisp file as multibyte
@@ -1830,9 +1827,8 @@ With argument, insert value in current buffer after the form."
 	;;				   byte-compile-warnings))
 	)
     (byte-compile-close-variables
-     (save-excursion
-       (setq outbuffer
-	     (set-buffer (get-buffer-create " *Compiler Output*")))
+     (with-current-buffer
+         (setq outbuffer (get-buffer-create " *Compiler Output*"))
        (set-buffer-multibyte t)
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
@@ -1846,8 +1842,7 @@ With argument, insert value in current buffer after the form."
        (setq overwrite-mode 'overwrite-mode-binary))
      (displaying-byte-compile-warnings
       (and filename (byte-compile-insert-header filename inbuffer outbuffer))
-      (save-excursion
-	(set-buffer inbuffer)
+      (with-current-buffer inbuffer
 	(goto-char 1)
 	;; Should we always do this?  When calling multiple files, it
 	;; would be useful to delay this warning until all have been
@@ -2036,6 +2031,7 @@ list that represents a doc string reference.
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
+    ;; FIXME: What's up with those set-buffers&prog1 thingy?  --Stef
     (set-buffer
      (prog1 (current-buffer)
        (set-buffer outbuffer)

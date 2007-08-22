@@ -1,5 +1,9 @@
 2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-log-file)
+	(byte-recompile-directory, byte-compile-file)
+	(byte-compile-from-buffer): Use with-current-buffer.
+
 	* simple.el (text-invisible-p): Rename from line-move-invisible-p.
 	(line-move-invisible-p): Keep as an obsolete alias, just to be safe.
 	(line-move-1, line-move-finish, line-move-to-column)
