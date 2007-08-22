@@ -1,3 +1,9 @@
+2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* Makefile.in (ALL_CFLAGS, LIBX): Add RSVG_LIBS.
+	* image.c: Add support for SVG images.
+        Some additional comments by Joakim Verona <joakim@verona.se>.
+
 2007-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1140000.
