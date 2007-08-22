@@ -34,6 +34,8 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** Emacs now supports the SVG image format through librsvg2.
+
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
 
