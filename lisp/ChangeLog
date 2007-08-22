@@ -1,3 +1,8 @@
+2007-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* sort.el (sort-fold-case, sort-numeric-base): Mark as
+	safe-local-variable.
+
 2007-08-22  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* net/browse-url.el (browse-url-emacs): New function.
