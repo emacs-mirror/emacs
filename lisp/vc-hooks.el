@@ -964,7 +964,8 @@ Used in `find-file-not-found-functions'."
   (if (and (symbolp orig-binding) (fboundp orig-binding))
       (setq orig-binding (indirect-function orig-binding)))
   (let ((ext-binding
-         (if vc-mode (vc-call extra-menu buffer-file-name))))
+         (if vc-mode (vc-call-backend (vc-backend buffer-file-name)
+                                      'extra-menu))))
     ;; Give the VC backend a chance to add menu entries
     ;; specific for that backend.
     (if (null ext-binding)
