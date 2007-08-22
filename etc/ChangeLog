@@ -5,6 +5,8 @@
 	* refcards/: New directory.  Move refcards here.
 	* Makefile: Move refcard rules from here...
 	* refcards/Makefile: ...to here.
+	* README: Move information about tex files from here...
+	* refcards/README: ...to here.
 
 	* tutorials/: New directory. Move TUTORIAL* here.
 
