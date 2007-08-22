@@ -43,7 +43,8 @@
 static char \\1_bits" . xbm)
     ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
-    ("\\`\xff\xd8" . (image-jpeg-p . jpeg)))
+    ("\\`\xff\xd8" . (image-jpeg-p . jpeg))
+    ("\\`<\\?xml " . svg))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
