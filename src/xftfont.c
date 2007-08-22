@@ -490,28 +490,39 @@ xftfont_draw (s, from, to, x, y, with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
-  struct xftfont_info *xftfont_info = (struct xftfont_info *) face->font_info;
-  struct xftface_info *xftface_info = (struct xftface_info *) face->extra;
+  struct xftfont_info *xftfont_info = (struct xftfont_info *) s->font_info;
+  struct xftface_info *xftface_info = NULL;
+  XftDraw *xft_draw = NULL;
   FT_UInt *code;
   XftColor fg, bg;
   XRectangle r;
   int len = to - from;
   int i;
 
+  if (s->font_info == face->font_info)
+    {
+      xftface_info = (struct xftface_info *) face->extra;
+      xft_draw = xftface_info->xft_draw;
+    }
   xftfont_get_colors (f, face, s->gc, xftface_info,
 		      &fg, with_background ? &bg : NULL);
   BLOCK_INPUT;
+  if (! xft_draw)
+    xft_draw = XftDrawCreate (FRAME_X_DISPLAY (f),
+			      FRAME_X_WINDOW (f),
+			      FRAME_X_VISUAL (f),
+			      FRAME_X_COLORMAP (f));
   if (s->clip_width)
     {
       r.x = s->clip_x, r.width = s->clip_width;
       r.y = s->clip_y, r.height = s->clip_height;
-      XftDrawSetClipRectangles (xftface_info->xft_draw, 0, 0, &r, 1);
+      XftDrawSetClipRectangles (xft_draw, 0, 0, &r, 1);
     }
   if (with_background)
     {
       struct font *font = (struct font *) face->font_info;
 
-      XftDrawRect (xftface_info->xft_draw, &bg,
+      XftDrawRect (xft_draw, &bg,
 		   x, y - face->font->ascent, s->width, font->font.height);
     }
   code = alloca (sizeof (FT_UInt) * len);
@@ -519,10 +530,12 @@ xftfont_draw (s, from, to, x, y, with_background)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)
 	       | XCHAR2B_BYTE2 (s->char2b + from + i));
 
-  XftDrawGlyphs (xftface_info->xft_draw, &fg, xftfont_info->xftfont,
+  XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
 		 x, y, code, len);
   if (s->clip_width)
-    XftDrawSetClip (xftface_info->xft_draw, NULL);
+    XftDrawSetClip (xft_draw, NULL);
+  if (s->font_info != face->font_info)
+    XftDrawDestroy (xft_draw);
   UNBLOCK_INPUT;
 
   return len;
