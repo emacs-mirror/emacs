@@ -1,7 +1,7 @@
 2007-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (main): Avoid having a declaration after a
-	statement. 
+	statement.
 
 2007-05-21  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -44,6 +44,55 @@
 	Don't recognize -suspend option.
 	(main) [NO_SOCKETS_IN_FILE_SYSTEM]: Don't call init_signals.
 	(strprefix): Define unconditionally.
+
+2007-01-01  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (in, out): Remove.
+	(s): New variable (moved out from main).
+	(handle_sigcont, handle_sigtstp): Use SEND_STRING.
+	(main): Fix typos.
+
+2006-04-01  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c: Copy IS_*_SEP definitions from lisp.h.
+
+2006-03-28  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c: Include sys/stat.h.
+
+2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (get_current_dir_name): New function, copied here
+	from sysdep.c.
+	(main): Use it to send over the current directory.
+
+2005-11-19  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (main): Send environment only when a new display
+	is created.
+
+2005-09-10  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (decode_options): Make --no-wait imply
+	--current-frame, except when it is the only option given.  Make
+	sure no frame is opened when --current-frame is set.
+	(main): Pass --current-frame to server.el.
+
+2005-07-13  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (handle_sigcont): Reestablish signal handler. (Dan
+	Nicolaescu)
+
+2005-02-04  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (main): Handle -window-system-unsupported
+	command.  Doc update.
+
+2004-07-03  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (main): Don't exit prematurely on --no-wait,
+	let Emacs close the connection for us.
+
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit

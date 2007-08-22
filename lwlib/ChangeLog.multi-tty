@@ -1,0 +1,12 @@
+2006-05-24  Karoly Lorentey  <lorentey@elte.hu>
+
+	* xlwmenu.c (XlwMenuRealize): Fix x_catch_errors and
+	x_uncatch_errors invocation.
+
+2006-01-02  Karoly Lorentey  <lorentey@elte.hu>
+
+	* xlwmenu.c (XlwMenuRealize): Ignore X errors while setting up
+	cursor shape.
+
+
+;; arch-tag: bee9b967-809c-4221-906c-50446a308c77

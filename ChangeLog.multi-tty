@@ -1,0 +1,14 @@
+2007-02-24  Karoly Lorentey  <karoly@lorentey.hu>
+
+	* configure.in (HAVE_GTK_MULTIDISPLAY): Remove override.
+
+	* configure: Regenerate.
+
+2005-12-12  Karoly Lorentey  <lorentey@elte.hu>
+
+	* configure.in (HAVE_GTK_MULTIDISPLAY): Disable test,
+	unconditionally undefine.
+	* configure: Regenerate.
+
+
+;; arch-tag: 472a1b2a-6a1d-494e-b1c1-ad536efc3b8e

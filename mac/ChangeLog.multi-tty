@@ -1,0 +1,11 @@
+2005-12-26  Karoly Lorentey  <lorentey@elte.hu>
+
+	* makefile.MPW (callproc.c.x): Update dependencies.
+
+2005-12-25  Karoly Lorentey  <lorentey@elte.hu>
+
+	* makefile.MPW (EmacsObjects): Add terminal.c.x.
+	({Src}terminal.c.x): Add dependencies.
+
+
+;; arch-tag: f3b2ce5d-5476-47dd-a18b-4b481c737a25
