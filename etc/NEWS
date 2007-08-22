@@ -79,7 +79,7 @@ in to make it use the scrollbars from the system theme.
 
 * Lisp Changes in Emacs 22.2.
 
-** The function text-invisible-p returns non-nil iff pos is invisible.
+** The function text-invisible-p returns non-nil if pos is invisible.
 
 +++
 ** inhibit-modification-hooks is bound to t while running modification hooks.
