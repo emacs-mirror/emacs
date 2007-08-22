@@ -1,3 +1,10 @@
+2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (text-invisible-p): Rename from line-move-invisible-p.
+	(line-move-invisible-p): Keep as an obsolete alias, just to be safe.
+	(line-move-1, line-move-finish, line-move-to-column)
+	(move-end-of-line, move-beginning-of-line): Use new name.
+
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (backup-buffer-copy): Check backup directory is
