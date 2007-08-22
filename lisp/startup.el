@@ -1370,33 +1370,11 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
     (force-mode-line-update)
     (setq fancy-current-text (cdr fancy-current-text))))
 
-(defun fancy-splash-default-action ()
-  "Stop displaying the splash screen buffer.
-This is an internal function used to turn off the splash screen after
-the user caused an input event by hitting a key or clicking with the
-mouse."
-  (interactive)
-  (if (and (memq 'down (event-modifiers last-command-event))
-	   (eq (posn-window (event-start last-command-event))
-	       (selected-window)))
-      ;; This is a mouse-down event in the splash screen window.
-      ;; Ignore it and consume the corresponding mouse-up event.
-      (read-event)
-    (push last-command-event unread-command-events))
-  (throw 'exit nil))
-
 (defun exit-splash-screen ()
-  "Exit the splash screen."
+  "Stop displaying the splash screen buffer."
   (if (get-buffer "*About GNU Emacs*")
       (throw 'stop-splashing nil)
     (quit-window t)))
-
-(defun fancy-splash-delete-frame (frame)
-  "Exit the splash screen after the frame is deleted."
-  ;; We can not throw from `delete-frame-events', so we set up a timer
-  ;; to exit the recursive edit as soon as Emacs is idle again.
-  (if (frame-live-p frame)
-      (run-at-time 0 nil 'exit-splash-screen)))
 
 (defun fancy-splash-screens (&optional static)
   "Display fancy splash screens when Emacs starts."
@@ -1413,32 +1391,7 @@ mouse."
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect
-		(let* ((map (make-sparse-keymap))
-		       (cursor-type nil)
-		       (overriding-local-map map)
-		       ;; Catch if our frame is deleted; the delete-frame
-		       ;; event is unreliable and is handled by
-		       ;; `special-event-map' anyway.
-		       (delete-frame-functions (cons 'fancy-splash-delete-frame
-						     delete-frame-functions)))
-		  (define-key map [t] 'fancy-splash-default-action)
-		  (define-key map [mouse-movement] 'ignore)
-		  (define-key map [mode-line t] 'ignore)
-		  (define-key map [select-window] 'ignore)
- 		  ;; Temporarily bind special events to
- 		  ;; fancy-splash-special-event-action so as to stop
- 		  ;; displaying splash screens with such events.
- 		  ;; Otherwise, drag-n-drop into splash screens may
- 		  ;; leave us in recursive editing with invisible
- 		  ;; cursors for a while.
- 		  (setq special-event-map (make-sparse-keymap))
- 		  (map-keymap
- 		   (lambda (key def)
- 		     (define-key special-event-map (vector key)
- 		       (if (eq def 'ignore)
- 			   'ignore
- 			 'fancy-splash-special-event-action)))
- 		   old-special-event-map)
+		(let ((cursor-type nil))
 		  (setq display-hourglass nil
 			buffer-undo-list t
 			mode-line-format (propertize "---- %b %-"
@@ -1454,21 +1407,12 @@ mouse."
 		  (setq buffer-read-only t)
 		  (recursive-edit))
 	      (cancel-timer timer)
-	      (setq display-hourglass old-hourglass
-		    minor-mode-map-alist old-minor-mode-map-alist
-		    emulation-mode-map-alists old-emulation-mode-map-alists
-		    special-event-map old-special-event-map)
+	      (setq display-hourglass old-hourglass)
 	      (kill-buffer splash-buffer)
 	      (when (frame-live-p frame)
 		(select-frame frame)
-		(switch-to-buffer fancy-splash-outer-buffer))
-	      (when fancy-splash-last-input-event
-		(setq last-input-event fancy-splash-last-input-event
-		      fancy-splash-last-input-event nil)
- 		(command-execute (lookup-key special-event-map
- 					     (vector last-input-event))
- 				 nil (vector last-input-event) t))))))
-    ;; If hide-on-input is nil, don't hide the buffer on input.
+		(switch-to-buffer fancy-splash-outer-buffer))))))
+    ;; If static is non-nil, don't show fancy splash screen.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
@@ -1495,15 +1439,6 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
       (if (and view-read-only (not view-mode))
 	  (view-mode-enter nil 'kill-buffer))
       (goto-char (point-min)))))
-
-(defun fancy-splash-special-event-action ()
-  "Save the last event and stop displaying the splash screen buffer.
-This is an internal function used to turn off the splash screen after
-the user caused an input event that is bound in `special-event-map'"
-  (interactive)
-  (setq fancy-splash-last-input-event last-input-event)
-  (throw 'exit nil))
-
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1662,8 +1597,7 @@ Get help	   C-h  (Hold down CTRL and press h)
 				 'follow-link t)
 		  (insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
 
-	      (insert (substitute-command-keys
-		       (format "\n
+	      (insert (format "
 Get help	   %s
 "
 			      (let ((where (where-is-internal
@@ -1690,7 +1624,7 @@ Get help	   %s
 			     'action (lambda (button) (view-order-manuals))
 			     'follow-link t)
 	      (insert (substitute-command-keys
-		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-emacs]")))
+		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
 
             ;; Say how to use the menu bar with the keyboard.
 	    (insert "\n")
@@ -1802,10 +1736,10 @@ Type \\[describe-distribution] for information on "))
 	  (if (and view-read-only (not view-mode))
 	      (view-mode-enter nil 'kill-buffer))
           (goto-char (point-min))
-	  (if hide-on-input
+	  (if (not static)
 	      (if (or (window-minibuffer-p)
 		      (window-dedicated-p (selected-window)))
-		  ;; If hide-on-input is nil, creating a new frame will
+		  ;; If static is nil, creating a new frame will
 		  ;; generate enough events that the subsequent `sit-for'
 		  ;; will immediately return anyway.
 		  nil ;; (pop-to-buffer (current-buffer))
@@ -1881,8 +1815,10 @@ With a prefix argument, any user input hides the splash screen."
   ;; Prevent recursive calls from server-process-filter.
   (if (not (get-buffer "*About GNU Emacs*"))
       (if (use-fancy-splash-screens-p)
-	  (fancy-splash-screens hide-on-input)
-	(normal-splash-screen hide-on-input))))
+	  (fancy-splash-screens static)
+	(normal-splash-screen static))))
+
+(defalias 'about-emacs 'display-splash-screen)
 
 (defun command-line-1 (command-line-args-left)
   (display-startup-echo-area-message)
