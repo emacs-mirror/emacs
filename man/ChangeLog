@@ -1,3 +1,8 @@
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Learning how to do something): Refcards now in
+	etc/refcards/ directory.
+
 2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Remote Programs): Persistency file must be cleared when
