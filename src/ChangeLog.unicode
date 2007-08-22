@@ -1,3 +1,8 @@
+2007-08-22  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_draw): If s->font_info != s->face->font_info,
+	create a temporal XftDraw object.
+
 2007-07-26  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (Ffontp): Fix docstring.
