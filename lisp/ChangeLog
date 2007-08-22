@@ -1,3 +1,10 @@
+2007-08-22  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* dabbrev.el (dabbrev--progress-reporter): New variable.
+	(dabbrev--scanning-message): Delete func.
+	(dabbrev--find-expansion): Use a progress reporter
+	instead of dabbrev--scanning-message.
+
 2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* comint.el (comint-exec-1): Raise an error if
