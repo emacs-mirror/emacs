@@ -1,3 +1,71 @@
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-skip): Allow a form for
+	`org-agenda-skip-function'.
+	(org-agenda-redo): Re-use local settings.
+	(org-agenda): Store local settings.
+	(org-agenda-deadline-faces): New option.
+	(org-agenda-deadline-face): New function.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled): Also handle
+	entries on their due date.
+	(org-agenda-get-timestamps): No longer handle the due dates of
+	schedules and deadline items.
+	(org-insert-link-global, org-open-at-point-global): New commands.
+	(org-export-as-ascii): Call `org-cleaned-string-for-export' with a
+	:for-ascii parameter.
+	(org-skip-comments): Function removed.
+	(org-cleaned-string-for-export): Handle special table lines.
+	(org-global-properties): New option.
+	(org-entry-get-with-inheritance): Check global properties.
+	(org-local-properties): New variable.
+	(org-set-regexps-and-options): Find the #+PROPERTY line.
+	(org-link-types): Change type into variable (was constant).
+	(org-make-link-regexps): New function.
+	(org-link-re-with-space, org-link-re-with-space2)
+	(org-angle-link-re, org-plain-link-re, org-bracket-link-regexp)
+	(org-bracket-link-analytic-regexp, org-any-link-re): Creation of
+	these regular expressions happens now in the function
+	`org-make-link-regexps'.
+	(org-store-link): Call the functions in
+	`org-store-link-functions'.
+	(org-add-link-type): New function.
+	(org-store-link-functions): New variable.
+	(org-activate-tags): Force matches to be in headlines.
+	(org-batch-store-agenda-views): Fix bug with killing agenda
+	buffer.
+	(org-columns-display-here): Make sure this works in a narrowed
+	buffer by checking for point-min.
+	(org-columns-display-here): Make the rest of the line intangible,
+	so that point never can be there.
+	(org-cleaned-string-for-export): Use `with-current-buffer'.
+	(org-replace-region-by-html): Use `with-current-buffer'.
+	(org-unfontify-region, org-do-occur, org-columns-display-here)
+	(org-columns-remove-overlays, org-columns-quit)
+	(org-columns-edit-value, org-columns-next-allowed-value)
+	(org-eval-in-calendar, org-agenda-undo, org-no-read-only)
+	(org-finalize-agenda, org-remove-subtree-entries-from-agenda)
+	(org-agenda-todo, org-agenda-change-all-lines)
+	(org-agenda-align-tags, org-agenda-priority)
+	(org-agenda-set-tags, org-agenda-toggle-archive-tag)
+	(org-agenda-show-new-time, org-cleaned-string-for-export)
+	(org-export-grab-title-from-buffer):
+	(org-export-as-ascii, org-export-as-html): Use `inhibit-read-only'
+	instead of `buffer-read-only'.
+	(org-export-as-html): Set `coding-system-for-write'.
+	(org-remember-store-without-prompt): New option.
+	(org-archive-subtree): Fixed bug with modifying TODO keyword.
+	(org-beginning-of-line): Also treat C-a special in items.
+	(org-table-convert-refs-to-rc): Fixed problem with column
+	reference after "..".
+	(org-columns-compute): Don't mark buffer modified because of text
+	properties.
+	(org-batch-store-agenda-views): Use the variable
+	`default-directory', not the function.
+	(org-clock-out-if-current): Respect `org-clock-out-when-done'.
+	(org-clock-out-when-done): New option.
+	(org-html-entities): Added HTML entities for smileys.
+	
+
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (create-image): Doc fix.
