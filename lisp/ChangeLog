@@ -1,3 +1,7 @@
+2007-08-22  Jason Rumney  <jasonr@gnu.org>
+
+	* vc-hooks.el (vc-menu-map-filter): Reapply 2007-08-06 bugfix.
+
 2007-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-minor-mode): Use image-mode-text-map.
