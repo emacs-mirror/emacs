@@ -1,3 +1,23 @@
+2007-08-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (RSVG_LIBS, RSVG_CFLAGS): New variables.
+	(ALL_CFLAGS): Use ${RSVG_CFLAGS} instead of @RSVG_CFLAGS@.
+	(LIBX): Remove @RSVG_LIBS@.
+	(LIBES): Add $(RSVG_LIBS).
+
+	* image.c (svg_load_image): Blend with specified background if exists.
+	Use IMAGE_BACKGROUND.  Add Mac OS Support.
+
+	* mac.c (wakeup_from_rne_enabled_p) [MAC_OSX]: Remove variable.
+	(ENABLE_WAKEUP_FROM_RNE, DISABLE_WAKEUP_FROM_RNE) [MAC_OSX]:
+	Remove macros.
+	[MAC_OSX] (socket_callback): Do nothing.
+	[MAC_OSX] (select_and_poll_event): Use CFRunLoopRunInMode instead of
+	ReceiveNextEvent.
+	[MAC_OSX] (sys_select): Likewise.  Don't set context as argument to
+	socket_callback.
+	(mac_wakeup_from_rne) [MAC_OSX]: Do nothing.
+
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* image.c (x_find_image_file): Search in etc/images/ rather than
