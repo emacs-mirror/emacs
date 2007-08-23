@@ -1,6 +1,21 @@
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Also handle `sxemacs'.
+	* dframe.el: Remove spurious * in custom docstrings.
+	(dframe-xemacsp): Remove, use (featurep 'xemacs) instead.
+	(dframe-xemacs20p): Remove, inline at the sole use point.
+	(defface): Don't defvar the face, don't use old-style backquote.
+	(defcustom): Don't use old-style backquote.
+	(dframe-frame-parameter, dframe-mouse-event-p):
+	Make it obvious that it's always defined.
+	(dframe-popup-kludge): New function to replace
+	dframe-xemacs-popup-kludge and dframe-xemacs-popup-kludge.
+	(dframe-frame-mode, dframe-set-timer-internal)
+	(dframe-mouse-set-point): Remove use of with-no-warnings from
+	XEmacs-specific code.
+	(dframe-set-timer-internal): Fix very old bug with
+	post-command-idle-hook.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Handle `sxemacs'.
 
 2007-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
