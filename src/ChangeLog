@@ -6,8 +6,16 @@
 2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* Makefile.in (ALL_CFLAGS, LIBX): Add RSVG_LIBS.
-	* image.c: Add support for SVG images.
-        Some additional comments by Joakim Verona <joakim@verona.se>.
+	* image.c: Add support for SVG images.  Some additional comments
+	by Joakim Verona <joakim@verona.se>.  When HAVE_RSVG is defined:
+	(svg_image_p): New function to test for SVG image.
+	(svg_load): New function to load SVG image.
+	(svg_load_image): New function, helper for svg_load.
+	(Qsvg): New Lisp_object.
+	(svg_keyword_index): New enum.
+	(svg_format): New static `image_keyword' struct.
+	(svg_type): New static `image_type' struct.
+	(librsvg/rsvg.h): Include it.
 
 2007-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
