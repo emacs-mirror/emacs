@@ -29,8 +29,7 @@
 
 	* textmodes/org-export-latex.el: New file.
 
-	* textmodes/org-publish.el (org-publish-org-to-latex): New
-	function.
+	* textmodes/org-publish.el (org-publish-org-to-latex): New function.
 
 	* textmodes/org.el (org-agenda-skip): Allow a form for
 	`org-agenda-skip-function'.
@@ -63,8 +62,7 @@
 	(org-add-link-type): New function.
 	(org-store-link-functions): New variable.
 	(org-activate-tags): Force matches to be in headlines.
-	(org-batch-store-agenda-views): Fix bug with killing agenda
-	buffer.
+	(org-batch-store-agenda-views): Fix bug with killing agenda buffer.
 	(org-columns-display-here): Make sure this works in a narrowed
 	buffer by checking for point-min.
 	(org-columns-display-here): Make the rest of the line intangible,
@@ -97,7 +95,6 @@
 	(org-clock-out-when-done): New option.
 	(org-html-entities): Added HTML entities for smileys.
 
-
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (create-image): Doc fix.
@@ -111,7 +108,7 @@
 
 	* net/tramp.el (top): Require cl.el, when `copy-tree' is not available
 	otherwise.
-	(tramp-get-remote-path): New defun.  Replace occurences of
+	(tramp-get-remote-path): New defun.  Replace occurrences of
 	`tramp-default-remote-path' by this function.
 	(tramp-set-remote-path): Move most of the code to
 	`tramp-get-remote-path'.
@@ -156,7 +153,7 @@
 	(vc-mode-line-map): Use it so that this menu also uses the extra-menu.
 	(menu-bar-tools-menu): Add the VC menu here rather than in menu-bar.el.
 	(vc-menu-map): Declare and initialize in one step.
-	(vc-menu-map-filter): Move&rename from menu-bar.el:menu-bar-vc-filter
+	(vc-menu-map-filter): Move&rename from menu-bar.el:menu-bar-vc-filter.
 
 	* menu-bar.el (vc-menu-map): Don't setup any more.
 	Instead, just create the proper spot in the menu.
@@ -229,16 +226,16 @@
 
 2007-08-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper.el (viper-remove-hooks): remove some additional viper hooks
+	* viper.el (viper-remove-hooks): Remove some additional viper hooks
 	when the user calls viper-go-away.
-	(viper-go-away): restore the default of default-major-mode.
+	(viper-go-away): Restore the default of default-major-mode.
 	Save the value of default-major-mode before vaperization.
 
 	* viper-cmd.el: Replace error "" with "Viper bell".
 
 	* viper-ex.el: Replace error "" with "Viper bell".
 
-	* ediff-util.el (ediff-make-temp-file): use the coding system of the
+	* ediff-util.el (ediff-make-temp-file): Use the coding system of the
 	buffer for which file is created.
 
 2007-08-19  Glenn Morris  <rgm@gnu.org>
@@ -281,12 +278,12 @@
 	properties uniformly, independently from whether font-lock-mode
 	is enabled or not.  Handle read-only buffers and do not change
 	undo-list when setting syntax-table properties.
-	(ada-after-change-function): Use
-	ada-set-syntax-table-properties.
+	(ada-after-change-function): Use ada-set-syntax-table-properties.
 
 2007-08-18  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-indent-calculate-last): Remove.
+
 	(meta-indent-current-nesting): Use a computation of the nesting
 	instead.
 	(meta-indent-current-indentation): Indentation is given according
@@ -324,7 +321,7 @@
 	* calc/calc-bin.el (math-bignum-logb-digit-size)
 	(math-bignum-digit-power-of-two):
 	* calc/calc-comb.el (math-small-factorial-table):
-	* calc/calc-ext.el (math-approx-pi,math-approx-sqrt-e)
+	* calc/calc-ext.el (math-approx-pi, math-approx-sqrt-e)
 	(math-approx-gamma-const):
 	* calc/calc-funcs.el (math-besJ0, math-besJ1, math-besY0)
 	(math-besY1, math-bernoulli-b-cache):
@@ -346,8 +343,7 @@
 2007-08-17  T. V. Raman  <raman@users.sf.net>  (tiny change)
 
 	* completion.el (symbol-under-point, symbol-before-point)
-	(symbol-before-point-for-complete): Use
-	buffer-substring-no-properties.
+	(symbol-before-point-for-complete): Use buffer-substring-no-properties.
 
 2007-08-17  Glenn Morris  <rgm@gnu.org>
 
@@ -442,16 +438,15 @@
 2007-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (bad-packages-alist): New constant.
-	(bad-package-check): New function.  Together, these two add
-	elements to `after-load-alist' to check for problematic external
-	packages.
+	(bad-package-check): New function.  Together, these two add elements
+	to `after-load-alist' to check for problematic external packages.
 	* emulation/cua-base.el: Move CUA-mode check to `bad-packages-alist'.
 
 2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-get-standard-units)
-	(math-get-units,math-make-unit-string)
-	(math-get-default-units,math-put-default-units): New functions.
+	(math-get-units, math-make-unit-string)
+	(math-get-default-units, math-put-default-units): New functions.
 	(math-default-units-table): New variable.
 	(calc-convert-units, calc-convert-temperature): Add machinery
 	to supply default values.
@@ -589,7 +584,7 @@
 2007-08-06  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el (vc-bzr-registered): Gracefully handle missing "bzr"
-	program, and return nil
+	program, and return nil.
 	(vc-bzr-state): Gracefully handle missing "bzr" program, and return nil.
 	(vc-bzr-state): Look for path names relative to the repository
 	root after status keyword.
@@ -601,15 +596,15 @@
 	files that we now parse directly for speed.
 	(vc-bzr-root-dir): Use `vc-bzr-admin-checkout-format-file' as witness.
 	(vc-bzr-registered): Only parse vc-bzr-admin-dirstate file if it exists.
-	(vc-bzr-state): "bzr status" successful only if exitcode is 0
+	(vc-bzr-state): "bzr status" successful only if exitcode is 0.
 	(vc-bzr-root): Use `vc-bzr-shell-command'.  Stderr may contain
 	Bzr warnings, so we must discard it.
 	(vc-bzr-workfile-version): Speedup counting lines from
 	`vc-bzr-admin-revhistory' file, but fallback to spawning "bzr revno"
 	if that file doesn't exist.
 	(vc-bzr-responsible-p): Use `vc-bzr-root' instead of
-	`vc-bzr-root-dir' for speed.  Add `vc-bzr-admin-dirname'
-	(not ".bzr"!) to `vc-directory-exclusion-list'
+	`vc-bzr-root-dir' for speed.  Add `vc-bzr-admin-dirname' (not ".bzr"!)
+	to `vc-directory-exclusion-list'.
 	(vc-bzr-shell-command): New function.
 
 2007-08-06  Tom Tromey  <tromey@redhat.com>
@@ -1420,7 +1415,7 @@
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
 	underlying file is uptodate.
 
-2007-07-23   Christopher J. Madsen  <cjm@cjmweb.net>
+2007-07-23  Christopher J. Madsen  <cjm@cjmweb.net>
 
 	* replace.el (perform-replace): Use isearch-no-upper-case-p.
 
@@ -3582,7 +3577,7 @@
 	(all): Replace `case' by `cond', `string-to-int' by
 	`string-to-number', and `process-kill-without-query' by
 	`set-process-query-on-exit-flag'.
-	(socks-char-int): Remove defalias and all occurencies.
+	(socks-char-int): Remove defalias and all occurrences.
 
 2007-06-04  Juanma Barranquero  <lekktu@gmail.com>
 
