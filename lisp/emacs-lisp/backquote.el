@@ -85,10 +85,10 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 (defconst backquote-backquote-symbol '\`
   "Symbol used to represent a backquote or nested backquote.")
 
-(defconst backquote-unquote-symbol ',
+(defconst backquote-unquote-symbol '\,
   "Symbol used to represent an unquote inside a backquote.")
 
-(defconst backquote-splice-symbol ',@
+(defconst backquote-splice-symbol '\,@
   "Symbol used to represent a splice inside a backquote.")
 
 ;;;###autoload
