@@ -2609,7 +2609,7 @@ if test "${HAVE_X11}" = "yes"; then
     MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
 
   if test "X${MISSING}" != X; then
-    AC_MSG_ERROR([The following required libraries was not found:
+    AC_MSG_ERROR([The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
 If you don't want to link with them give

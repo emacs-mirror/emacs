@@ -1,3 +1,7 @@
+2007-08-23  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
+
+	* configure.in (Check for required libraries): Typo.
+
 2007-08-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in: Check librsvg2 also for Mac Carbon.
