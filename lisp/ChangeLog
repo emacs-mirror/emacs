@@ -1,5 +1,26 @@
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (complete-with-action): Backport from trunk (for vc-arch.el).
+	(dynamic-completion-table): Use it it.
+
+	* net/browse-url.el: Remove spurious * in custom docstrings.
+	(browse-url-filename-alist): Use new-style backquote.
+
+	* emacs-lisp/backquote.el (backquote-unquote-symbol)
+	(backquote-splice-symbol): Clarify they're not new-style unquotes.
+
+	* emacs-lisp/edebug.el (edebug-list-form, edebug-match-symbol, \,)
+	(\,@): Backslash the , and ,@ which are not new-style unquotes.
+
+	* textmodes/texinfmt.el (\,): Clarify it's not a new-style unquote.
+
+	* net/socks.el (socks-username/password-auth-filter):
+	Remove unused vars `state' and `desired-len'.
+	(socks-parse-services, socks-nslookup-host): Use with-current-buffer.
+	(socks-wait-for-state-change): Use new-style backquotes.
+
+	* pcvs.el (cvs-mode-status): Fix long-standing typo.
+
 	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Check old-style
 	backquotes after each `read' rather than once per buffer.
 

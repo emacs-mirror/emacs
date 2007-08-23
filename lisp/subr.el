@@ -2509,6 +2509,20 @@ The value returned is the value of the last form in BODY."
 
 ;;;; Constructing completion tables.
 
+(defun complete-with-action (action table string pred)
+  "Perform completion ACTION.
+STRING is the string to complete.
+TABLE is the completion table, which should not be a function.
+PRED is a completion predicate.
+ACTION can be one of nil, t or `lambda'."
+  ;; (assert (not (functionp table)))
+  (funcall
+   (cond
+    ((null action) 'try-completion)
+    ((eq action t) 'all-completions)
+    (t 'test-completion))
+   string table pred))
+
 (defmacro dynamic-completion-table (fun)
   "Use function FUN as a dynamic completion table.
 FUN is called with one argument, the string for which completion is required,
@@ -2530,10 +2544,7 @@ that can be used as the ALIST argument to `try-completion' and
        (with-current-buffer (let ((,win (minibuffer-selected-window)))
                               (if (window-live-p ,win) (window-buffer ,win)
                                 (current-buffer)))
-         (cond
-          ((eq ,mode t) (all-completions ,string (,fun ,string) ,predicate))
-          ((not ,mode) (try-completion ,string (,fun ,string) ,predicate))
-          (t (test-completion ,string (,fun ,string) ,predicate)))))))
+         (complete-with-action ,mode (,fun ,string) ,string ,predicate)))))
 
 (defmacro lazy-completion-table (var fun)
   ;; We used to have `&rest args' where `args' were evaluated late (at the
