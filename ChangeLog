@@ -1,3 +1,7 @@
+2007-08-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in: Check librsvg2 also for Mac Carbon.
+
 2007-08-22  Romain Francoise  <romain@orebokech.com>
 
 	* make-dist: Follow reorganization of files in etc/.
