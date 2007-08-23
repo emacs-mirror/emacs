@@ -107,6 +107,7 @@
 ;; * revision-granularity
 ;;
 ;;   Takes no arguments.  Returns either 'file or 'repository.
+;;   FIXME: What does this mean?  Why "repository"?
 ;;
 ;; STATE-QUERYING FUNCTIONS
 ;;
