@@ -1,3 +1,12 @@
+2007-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile (mostlyclean, clean, distclean, maintainer-clean):
+	Delete these targets since nothing uses them.
+	(SOURCES): Update.
+	Move comments to e/README.  Remove license from now-trivial file.
+
+	* e/README: New file, with most information formerly in Makefile.
+
 2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: `shell' prompts for the default directory if called with a
