@@ -1656,9 +1656,11 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(ref < SegLimit(seg));
   arena = pool->arena;
 
+  /* .exposed.seg: statements tagged ".exposed.seg" below require */
+  /* that "seg" (that is: the 'from' seg) has been ShieldExposed. */
   ShieldExpose(arena, seg);
-  newRef = (*format->isMoved)(ref);
-  ShieldCover(arena, seg);
+  newRef = (*format->isMoved)(ref);  /* .exposed.seg */
+  ShieldCover(arena, seg);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
     /* If object is nailed already then we mustn't copy it: */
@@ -1690,7 +1692,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     buffer = gen->forward;
     AVER_CRITICAL(buffer != NULL);
 
-    length = AddrOffset(ref, (*format->skip)(ref));
+    length = AddrOffset(ref, (*format->skip)(ref));  /* .exposed.seg */
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
@@ -1716,14 +1718,14 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
       }
 
       /* <design/trace/#fix.copy> */
-      (void)AddrCopy(newRef, ref, length);
+      (void)AddrCopy(newRef, ref, length);  /* .exposed.seg */
 
       ShieldCover(arena, toSeg);
     } while(!BUFFER_COMMIT(buffer, newRef, length));
     ss->copiedSize += length;
 
     ShieldExpose(arena, seg);
-    (*format->move)(ref, newRef);
+    (*format->move)(ref, newRef);  /* .exposed.seg */
     ShieldCover(arena, seg);
   } else {
     /* reference to broken heart (which should be snapped out -- */
@@ -1807,9 +1809,11 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
+  /* .exposed.seg: statements tagged ".exposed.seg" below require */
+  /* that "seg" (that is: the 'from' seg) has been ShieldExposed. */
   ShieldExpose(arena, seg);
-  newRef = (*format->isMoved)(ref);
-  ShieldCover(arena, seg);
+  newRef = (*format->isMoved)(ref);  /* .exposed.seg */
+  ShieldCover(arena, seg);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
     /* If object is nailed already then we mustn't copy it: */
@@ -1840,7 +1844,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     buffer = gen->forward;
     AVER_CRITICAL(buffer != NULL);
 
-    length = AddrOffset(ref, (*format->skip)(ref));
+    length = AddrOffset(ref, (*format->skip)(ref));  /* .exposed.seg */
     STATISTIC_STAT(++ss->forwardedCount);
     ss->forwardedSize += length;
     do {
@@ -1867,14 +1871,14 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         SegSetSummary(toSeg, RefSetUnion(toSummary, summary));
 
       /* <design/trace/#fix.copy> */
-      (void)AddrCopy(newBase, AddrSub(ref, headerSize), length);
+      (void)AddrCopy(newBase, AddrSub(ref, headerSize), length);  /* .exposed.seg */
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
     ss->copiedSize += length;
 
     ShieldExpose(arena, seg);
-    (*format->move)(ref, newRef);
+    (*format->move)(ref, newRef);  /* .exposed.seg */
     ShieldCover(arena, seg);
   } else {
     /* reference to broken heart (which should be snapped out -- */
