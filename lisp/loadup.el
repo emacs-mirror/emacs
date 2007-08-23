@@ -69,10 +69,11 @@
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
 
-(load "startup")
-
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
+
+(load "button")
+(load "startup")
 
 (message "Lists of integers (garbage collection statistics) are normal output")
 (message "while building Emacs; they do not indicate a problem.")
