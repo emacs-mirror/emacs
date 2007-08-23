@@ -1,5 +1,10 @@
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/cperl-mode.el (defcustom, x-color-defined-p, cperl-is-face)
+	(cperl-is-face, cperl-force-face, cperl-etags-snarf-tag, cperl-mode)
+	(cperl-etags-snarf-tag, cperl-etags-goto-tag-location, cperl-init-faces)
+	(cperl-etags-goto-tag-location): Use new style backquotes.
+
 	* subr.el (complete-with-action): Backport from trunk (for vc-arch.el).
 	(dynamic-completion-table): Use it it.
 
