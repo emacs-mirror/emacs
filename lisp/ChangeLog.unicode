@@ -1,3 +1,8 @@
+2007-08-23  Kenichi Handa  <handa@m17n.org>
+
+	* play/gamegrid.el (gamegrid-setup-default-font): Calculate a font
+	height that doesn't exceed the requested height by rounding off.
+
 2007-07-26  Andreas Schwab  <schwab@suse.de>
 
 	* international/mule-diag.el (print-fontset-element): Use fontp
