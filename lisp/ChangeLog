@@ -1,5 +1,9 @@
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-output-docform)
+	(byte-compile-output-as-comment): Use with-current-buffer rather than
+	a weird set-buffer&prog1 combination.
+
 	* emacs-lisp/byte-opt.el (byte-optimize-if): Move `progn' out of the test
 	so as to optimise cases where the `progn's result is constant.
 
