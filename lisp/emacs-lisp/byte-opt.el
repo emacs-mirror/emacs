@@ -31,7 +31,7 @@
 ;; "No matter how hard you try, you can't make a racehorse out of a pig.
 ;; You can, however, make a faster pig."
 ;;
-;; Or, to put it another way, the emacs byte compiler is a VW Bug.  This code
+;; Or, to put it another way, the Emacs byte compiler is a VW Bug.  This code
 ;; makes it be a VW Bug with fuel injection and a turbocharger...  You're
 ;; still not going to make it go faster than 70 mph, but it might be easier
 ;; to get it there.
@@ -1014,12 +1014,21 @@
     form))
 
 (defun byte-optimize-if (form)
+  ;; (if (progn <insts> <test>) <rest>) ==> (progn <insts> (if <test> <rest>))
   ;; (if <true-constant> <then> <else...>) ==> <then>
   ;; (if <false-constant> <then> <else...>) ==> (progn <else...>)
   ;; (if <test> nil <else...>) ==> (if (not <test>) (progn <else...>))
   ;; (if <test> <then> nil) ==> (if <test> <then>)
   (let ((clause (nth 1 form)))
-    (cond ((byte-compile-trueconstp clause)
+    (cond ((eq (car clause) 'progn)
+           (if (null (cddr clause))
+               ;; A trivial `progn'.
+               (byte-optimize-if `(if ,(cadr clause) ,@(nthcdr 2 form)))
+             (nconc (butlast clause)
+                    (list
+                     (byte-optimize-if
+                      `(if ,(car (last clause)) ,@(nthcdr 2 form)))))))
+          ((byte-compile-trueconstp clause)
 	   (nth 2 form))
 	  ((null clause)
 	   (if (nthcdr 4 form)
@@ -1326,7 +1335,7 @@
 ;; This list contains numbers, which are pc values,
 ;; before each instruction.
 (defun byte-decompile-bytecode (bytes constvec)
-  "Turns BYTECODE into lapcode, referring to CONSTVEC."
+  "Turn BYTECODE into lapcode, referring to CONSTVEC."
   (let ((byte-compile-constants nil)
 	(byte-compile-variables nil)
 	(byte-compile-tag-number 0))

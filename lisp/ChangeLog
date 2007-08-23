@@ -1,7 +1,12 @@
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-if): Move `progn' out of the test
+	so as to optimise cases where the `progn's result is constant.
+
 2007-08-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
-	* locate.el (locate-get-file-positions): Use
-	line-beginning-position and line-end-position.
+	* locate.el (locate-get-file-positions):
+	Use line-beginning-position and line-end-position.
 
 2007-08-23  John Wiegley  <johnw@newartisans.com>
 
