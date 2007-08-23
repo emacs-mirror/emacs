@@ -1,3 +1,7 @@
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (load_warn_old_style_backquotes): Fix up array size typo.
+
 2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (Qold_style_backquotes): New var.
