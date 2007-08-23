@@ -8204,7 +8204,7 @@ gif_load (f, img)
 #endif /* HAVE_GIF */
 
 
- 
+
 /***********************************************************************
 				 SVG
  ***********************************************************************/
@@ -8273,7 +8273,7 @@ static struct image_type svg_type =
   x_clear_image,
   /* An internal field to link to the next image type in a list of
      image types, will be filled in when registering the format.  */
-  NULL  
+  NULL
 };
 
 
@@ -8345,22 +8345,22 @@ svg_load (f, img)
       file = x_find_image_file (file_name);
       GCPRO1 (file);
       if (!STRINGP (file))
-      {
-        image_error ("Cannot find image file `%s'", file_name, Qnil);
-        UNGCPRO;
-        return 0;
-      }
-      
+	{
+	  image_error ("Cannot find image file `%s'", file_name, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
       /* Read the entire file into memory.  */
       contents = slurp_file (SDATA (file), &size);
       if (contents == NULL)
-      {
-        image_error ("Error loading SVG image `%s'", img->spec, Qnil);
-        UNGCPRO;
-        return 0;
-      }
+	{
+	  image_error ("Error loading SVG image `%s'", img->spec, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
       /* If the file was slurped into memory properly, parse it.  */
-      success_p = svg_load_image (f, img, contents, size); 
+      success_p = svg_load_image (f, img, contents, size);
       xfree (contents);
       UNGCPRO;
     }
@@ -8382,7 +8382,7 @@ svg_load (f, img)
  structures, passed from svg_load.
 
  Uses librsvg to do most of the image processing.
- 
+
  Returns non-zero when sucessful.  */
 static int
 svg_load_image (f, img, contents, size)
@@ -8403,6 +8403,7 @@ svg_load_image (f, img, contents, size)
   const guint8 *pixels;
   int rowstride;
   XImagePtr ximg;
+  Lisp_Object specified_bg;
   XColor background;
   int x;
   int y;
@@ -8441,30 +8442,45 @@ svg_load_image (f, img, contents, size)
   eassert (fn_gdk_pixbuf_get_bits_per_sample (pixbuf) == 8);
 
   /* Try to create a x pixmap to hold the svg pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap)) {
-    g_object_unref (pixbuf);
-    return 0;
-  }
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
+    {
+      g_object_unref (pixbuf);
+      return 0;
+    }
 
   init_color_table ();
 
-  /* TODO: The code is somewhat prepared for other environments than
-     X, but is far from done.  */
+  /* Handle alpha channel by combining the image with a background
+     color.  */
+  specified_bg = image_spec_value (img->spec, QCbackground, NULL);
+  if (STRINGP (specified_bg)
+      && x_defined_color (f, SDATA (specified_bg), &background, 0))
+    {
+      background.red   >>= 8;
+      background.green >>= 8;
+      background.blue  >>= 8;
+    }
+  else
+    {
 #ifdef HAVE_X_WINDOWS
+      background.pixel = FRAME_BACKGROUND_PIXEL (f);
+      x_query_color (f, &background);
 
-  background.pixel = FRAME_BACKGROUND_PIXEL (f);
-  x_query_color (f, &background);
-
-  /* SVG pixmaps specify transparency in the last byte, so right shift
-     8 bits to get rid of it, since emacs doesnt support
-     transparency.  */
-  background.red   >>= 8;
-  background.green >>= 8;
-  background.blue  >>= 8;
-
-#else /* not HAVE_X_WINDOWS */
+      /* SVG pixmaps specify transparency in the last byte, so right
+	 shift 8 bits to get rid of it, since emacs doesnt support
+	 transparency.  */
+      background.red   >>= 8;
+      background.green >>= 8;
+      background.blue  >>= 8;
+#elif defined (MAC_OS)
+      background.pixel = FRAME_BACKGROUND_PIXEL (f);
+      background.red   = RED_FROM_ULONG (background.pixel);
+      background.green = GREEN_FROM_ULONG (background.pixel);
+      background.blue  = BLUE_FROM_ULONG (background.pixel);
+#else /* not HAVE_X_WINDOWS && not MAC_OS*/
 #error FIXME
 #endif
+    }
 
   /* This loop handles opacity values, since Emacs assumes
      non-transparent images.  Each pixel must be "flattened" by
@@ -8505,13 +8521,17 @@ svg_load_image (f, img, contents, size)
 
   g_object_unref (pixbuf);
 
+  img->width  = width;
+  img->height = height;
+
+  /* Maybe fill in the background field while we have ximg handy.
+     Casting avoids a GCC warning.  */
+  IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
+
   /* Put the image into the pixmap, then free the X image and its
      buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
-
-  img->width  = width;
-  img->height = height;
 
   return 1;
 
@@ -8923,7 +8943,7 @@ of `image-library-alist', which see).  */)
   if (EQ (type, Qsvg))
     return CHECK_LIB_AVAILABLE (&svg_type, init_svg_functions, libraries);
 #endif
-  
+
 #ifdef HAVE_GHOSTSCRIPT
   if (EQ (type, Qpostscript))
     return CHECK_LIB_AVAILABLE (&gs_type, init_gs_functions, libraries);
@@ -9072,7 +9092,6 @@ non-numeric, there is no explicit limit on the size of images.  */);
   ADD_IMAGE_TYPE(Qsvg);
 #endif
 
-  
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
   defsubr (&Simage_refresh);
