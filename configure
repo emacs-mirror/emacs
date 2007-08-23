@@ -11079,7 +11079,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
         if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
