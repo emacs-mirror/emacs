@@ -406,14 +406,10 @@ there is no file name on the current line, the return value is
 meaningless.  You can check whether the current line contains a file
 listed by the locate program, using the function
 `locate-main-listing-line-p'."
-  (save-excursion
-    (end-of-line)
-    (let ((eol (point)))
-      (beginning-of-line)
-
-      ;; Assumes names end at the end of the line
-      (forward-char locate-filename-indentation)
-      (list (point) eol))))
+  (list (+ locate-filename-indentation
+           (line-beginning-position))
+        ;; Assume names end at the end of the line.
+        (line-end-position)))
 
 ;; From SQL-mode
 (defun locate-current-line-number ()
