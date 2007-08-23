@@ -79,6 +79,7 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
+#ifndef MAC_OS_X
 #if TARGET_API_MAC_CARBON
 static int wakeup_from_rne_enabled_p = 0;
 #define ENABLE_WAKEUP_FROM_RNE (wakeup_from_rne_enabled_p = 1)
@@ -86,6 +87,7 @@ static int wakeup_from_rne_enabled_p = 0;
 #else
 #define ENABLE_WAKEUP_FROM_RNE 0
 #define DISABLE_WAKEUP_FROM_RNE 0
+#endif
 #endif
 
 #ifndef MAC_OSX
@@ -5010,12 +5012,6 @@ socket_callback (s, type, address, data, info)
      const void *data;
      void *info;
 {
-  int fd = CFSocketGetNative (s);
-  SELECT_TYPE *ofds = (SELECT_TYPE *)info;
-
-  if ((type == kCFSocketReadCallBack && FD_ISSET (fd, &ofds[0]))
-      || (type == kCFSocketConnectCallBack && FD_ISSET (fd, &ofds[1])))
-    QuitEventLoop (GetCurrentEventLoop ());
 }
 #endif	/* SELECT_USE_CFSOCKET */
 
@@ -5025,42 +5021,45 @@ select_and_poll_event (nfds, rfds, wfds, efds, timeout)
      SELECT_TYPE *rfds, *wfds, *efds;
      EMACS_TIME *timeout;
 {
-  OSStatus err = noErr;
+  int timedout_p = 0;
   int r = 0;
+  EMACS_TIME select_timeout;
+  EventTimeout timeoutval =
+    (timeout
+     ? (EMACS_SECS (*timeout) * kEventDurationSecond
+	+ EMACS_USECS (*timeout) * kEventDurationMicrosecond)
+     : kEventDurationForever);
 
-  /* Try detect_input_pending before ReceiveNextEvent in the same
+  /* Try detect_input_pending before CFRunLoopRunInMode in the same
      BLOCK_INPUT block, in case that some input has already been read
      asynchronously.  */
   BLOCK_INPUT;
-  ENABLE_WAKEUP_FROM_RNE;
-  if (!detect_input_pending ())
+  do
     {
-      EMACS_TIME select_timeout;
-      EventTimeout timeoutval =
-	(timeout
-	 ? (EMACS_SECS (*timeout) * kEventDurationSecond
-	    + EMACS_USECS (*timeout) * kEventDurationMicrosecond)
-	 : kEventDurationForever);
+      if (detect_input_pending ())
+	break;
 
       EMACS_SET_SECS_USECS (select_timeout, 0, 0);
       r = select (nfds, rfds, wfds, efds, &select_timeout);
       if (timeoutval == 0.0)
-	err = eventLoopTimedOutErr;
+	timedout_p = 1;
       else if (r == 0)
 	{
 #if USE_CG_DRAWING
 	  mac_prepare_for_quickdraw (NULL);
 #endif
-	  err = ReceiveNextEvent (0, NULL, timeoutval,
-				  kEventLeaveInQueue, NULL);
+	  if (CFRunLoopRunInMode (kCFRunLoopDefaultMode,
+				  timeoutval >= 0 ? timeoutval : 10000.0, true)
+	      == kCFRunLoopRunTimedOut)
+	    timedout_p = 1;
 	}
     }
-  DISABLE_WAKEUP_FROM_RNE;
+  while (timeoutval < 0 && timedout_p);
   UNBLOCK_INPUT;
 
   if (r != 0)
     return r;
-  else if (err == noErr)
+  else if (!timedout_p)
     {
       /* Pretend that `select' is interrupted by a signal.  */
       detect_input_pending ();
@@ -5077,25 +5076,25 @@ sys_select (nfds, rfds, wfds, efds, timeout)
      SELECT_TYPE *rfds, *wfds, *efds;
      EMACS_TIME *timeout;
 {
-  OSStatus err = noErr;
+  int timedout_p = 0;
   int r;
   EMACS_TIME select_timeout;
-  static SELECT_TYPE ofds[3];
+  SELECT_TYPE orfds, owfds, oefds;
 
   if (inhibit_window_system || noninteractive
       || nfds < 1 || rfds == NULL || !FD_ISSET (0, rfds))
     return select (nfds, rfds, wfds, efds, timeout);
 
   FD_CLR (0, rfds);
-  ofds[0] = *rfds;
+  orfds = *rfds;
 
   if (wfds)
-    ofds[1] = *wfds;
+    owfds = *wfds;
   else
-    FD_ZERO (&ofds[1]);
+    FD_ZERO (&owfds);
 
   if (efds)
-    ofds[2] = *efds;
+    oefds = *efds;
   else
     {
       EventTimeout timeoutval =
@@ -5123,25 +5122,23 @@ sys_select (nfds, rfds, wfds, efds, timeout)
       if (r != 0 || timeoutval == 0.0)
 	return r;
 
-      *rfds = ofds[0];
+      *rfds = orfds;
       if (wfds)
-	*wfds = ofds[1];
+	*wfds = owfds;
 
 #if SELECT_USE_CFSOCKET
       if (timeoutval > 0 && timeoutval <= SELECT_TIMEOUT_THRESHOLD_RUNLOOP)
 	goto poll_periodically;
 
-      /* Try detect_input_pending before ReceiveNextEvent in the same
-	 BLOCK_INPUT block, in case that some input has already been
-	 read asynchronously.  */
+      /* Try detect_input_pending before CFRunLoopRunInMode in the
+	 same BLOCK_INPUT block, in case that some input has already
+	 been read asynchronously.  */
       BLOCK_INPUT;
-      ENABLE_WAKEUP_FROM_RNE;
       if (!detect_input_pending ())
 	{
 	  int minfd, fd;
 	  CFRunLoopRef runloop =
 	    (CFRunLoopRef) GetCFRunLoopFromEventLoop (GetCurrentEventLoop ());
-	  static const CFSocketContext context = {0, ofds, NULL, NULL, NULL};
 	  static CFMutableDictionaryRef sources;
 
 	  if (sources == NULL)
@@ -5166,7 +5163,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 		      CFSocketCreateWithNative (NULL, fd,
 						(kCFSocketReadCallBack
 						 | kCFSocketConnectCallBack),
-						socket_callback, &context);
+						socket_callback, NULL);
 
 		    if (socket == NULL)
 		      continue;
@@ -5183,8 +5180,10 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 #if USE_CG_DRAWING
 	  mac_prepare_for_quickdraw (NULL);
 #endif
-	  err = ReceiveNextEvent (0, NULL, timeoutval,
-				  kEventLeaveInQueue, NULL);
+	  if (CFRunLoopRunInMode (kCFRunLoopDefaultMode,
+				  timeoutval >= 0 ? timeoutval : 10000.0, true)
+	      == kCFRunLoopRunTimedOut)
+	    timedout_p = 1;
 
 	  for (fd = minfd; fd < nfds; fd++)
 	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))
@@ -5196,10 +5195,9 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 		CFRunLoopRemoveSource (runloop, source, kCFRunLoopDefaultMode);
 	      }
 	}
-      DISABLE_WAKEUP_FROM_RNE;
       UNBLOCK_INPUT;
 
-      if (err == noErr || err == eventLoopQuitErr)
+      if (!timedout_p)
 	{
 	  EMACS_SET_SECS_USECS (select_timeout, 0, 0);
 	  return select_and_poll_event (nfds, rfds, wfds, efds,
@@ -5235,11 +5233,11 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	if (r != 0)
 	  return r;
 
-	*rfds = ofds[0];
+	*rfds = orfds;
 	if (wfds)
-	  *wfds = ofds[1];
+	  *wfds = owfds;
 	if (efds)
-	  *efds = ofds[2];
+	  *efds = oefds;
 
 	if (timeout)
 	  {
@@ -5402,10 +5400,12 @@ init_mac_osx_environment ()
 void
 mac_wakeup_from_rne ()
 {
+#ifndef MAC_OSX
   if (wakeup_from_rne_enabled_p)
     /* Post a harmless event so as to wake up from
        ReceiveNextEvent.  */
     mac_post_mouse_moved_event ();
+#endif
 }
 #endif
 
