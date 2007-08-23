@@ -1,3 +1,8 @@
+2007-08-23  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/cc-fonts.el (gtkdoc-font-lock-doc-comments): Highlight
+	name of parameters in document body.
+	
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-output-docform)
