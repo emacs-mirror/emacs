@@ -1,3 +1,8 @@
+2007-08-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* locate.el (locate-get-file-positions): Use
+	line-beginning-position and line-end-position.
+
 2007-08-23  John Wiegley  <johnw@newartisans.com>
 
 	* calendar/cal-bahai.el: Added in the diacriticals that were
