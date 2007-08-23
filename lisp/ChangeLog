@@ -78,7 +78,7 @@
 	(org-agenda-align-tags, org-agenda-priority)
 	(org-agenda-set-tags, org-agenda-toggle-archive-tag)
 	(org-agenda-show-new-time, org-cleaned-string-for-export)
-	(org-export-grab-title-from-buffer):
+	(org-export-grab-title-from-buffer)
 	(org-export-as-ascii, org-export-as-html): Use `inhibit-read-only'
 	instead of `buffer-read-only'.
 	(org-export-as-html): Set `coding-system-for-write'.
@@ -283,7 +283,6 @@
 2007-08-18  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-indent-calculate-last): Remove.
-
 	(meta-indent-current-nesting): Use a computation of the nesting
 	instead.
 	(meta-indent-current-indentation): Indentation is given according
