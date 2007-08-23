@@ -1656,11 +1656,10 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(ref < SegLimit(seg));
   arena = pool->arena;
 
-  /* .exposed.seg: statements tagged ".exposed.seg" below require */
+  /* .exposed.seg: Statements tagged ".exposed.seg" below require */
   /* that "seg" (that is: the 'from' seg) has been ShieldExposed. */
   ShieldExpose(arena, seg);
   newRef = (*format->isMoved)(ref);  /* .exposed.seg */
-  ShieldCover(arena, seg);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
     /* If object is nailed already then we mustn't copy it: */
@@ -1724,9 +1723,7 @@ Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     } while(!BUFFER_COMMIT(buffer, newRef, length));
     ss->copiedSize += length;
 
-    ShieldExpose(arena, seg);
     (*format->move)(ref, newRef);  /* .exposed.seg */
-    ShieldCover(arena, seg);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existant) snap-out cache here) */
@@ -1740,6 +1737,7 @@ updateReference:
   res = ResOK;
 
 returnRes:
+  ShieldCover(arena, seg);  /* .exposed.seg */
   return res;
 }
 
@@ -1809,11 +1807,10 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
-  /* .exposed.seg: statements tagged ".exposed.seg" below require */
+  /* .exposed.seg: Statements tagged ".exposed.seg" below require */
   /* that "seg" (that is: the 'from' seg) has been ShieldExposed. */
   ShieldExpose(arena, seg);
   newRef = (*format->isMoved)(ref);  /* .exposed.seg */
-  ShieldCover(arena, seg);  /* .exposed.seg */
 
   if(newRef == (Addr)0) {
     /* If object is nailed already then we mustn't copy it: */
@@ -1877,9 +1874,7 @@ static Res AMCHeaderFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     } while (!BUFFER_COMMIT(buffer, newBase, length));
     ss->copiedSize += length;
 
-    ShieldExpose(arena, seg);
     (*format->move)(ref, newRef);  /* .exposed.seg */
-    ShieldCover(arena, seg);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existent) snap-out cache here) */
@@ -1893,6 +1888,7 @@ updateReference:
   res = ResOK;
 
 returnRes:
+  ShieldCover(arena, seg);  /* .exposed.seg */
   return res;
 }
 
