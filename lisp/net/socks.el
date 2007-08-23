@@ -263,10 +263,9 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 (defconst socks-state-connected 4)
 
 (defmacro socks-wait-for-state-change (proc htable cur-state)
-  (`
-   (while (and (= (gethash 'state (, htable)) (, cur-state))
-	       (memq (process-status (, proc)) '(run open)))
-     (accept-process-output (, proc) socks-timeout))))
+  `(while (and (= (gethash 'state ,htable) ,cur-state)
+	       (memq (process-status ,proc) '(run open)))
+     (accept-process-output ,proc socks-timeout)))
 
 (defun socks-filter (proc string)
   (let ((info (gethash proc socks-connections))
@@ -493,10 +492,9 @@ version.")
   (if (not (and (file-exists-p socks-services-file)
 		(file-readable-p socks-services-file)))
       (error "Could not find services file: %s" socks-services-file))
-  (save-excursion
-    (clrhash socks-tcp-services)
-    (clrhash socks-udp-services)
-    (set-buffer (get-buffer-create " *socks-tmp*"))
+  (clrhash socks-tcp-services)
+  (clrhash socks-udp-services)
+  (with-current-buffer (get-buffer-create " *socks-tmp*")
     (erase-buffer)
     (insert-file-contents socks-services-file)
     ;; Nuke comments
@@ -566,10 +564,8 @@ version.")
 (defconst socks-username/password-auth-version 1)
 
 (defun socks-username/password-auth-filter (proc str)
-  (let ((info (gethash proc socks-connections))
-	state desired-len)
+  (let ((info (gethash proc socks-connections)))
     (or info (error "socks-filter called on non-SOCKS connection %S" proc))
-    (setq state (gethash 'state info))
     (puthash 'scratch (concat (gethash 'scratch info) str) info)
     (if (< (length (gethash 'scratch info)) 2)
 	nil
@@ -629,8 +625,7 @@ version.")
 				 socks-nslookup-program host))
 	    (res host))
 	(set-process-query-on-exit-flag proc nil)
-	(save-excursion
-	  (set-buffer (process-buffer proc))
+	(with-current-buffer (process-buffer proc)
 	  (while (progn
 		   (accept-process-output proc)
 		   (memq (process-status proc) '(run open))))
