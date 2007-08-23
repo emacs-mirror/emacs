@@ -1,5 +1,8 @@
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Check old-style
+	backquotes after each `read' rather than once per buffer.
+
 	* dframe.el: Remove spurious * in custom docstrings.
 	(dframe-xemacsp): Remove, use (featurep 'xemacs) instead.
 	(dframe-xemacs20p): Remove, inline at the sole use point.

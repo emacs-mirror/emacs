@@ -1821,7 +1821,6 @@ With argument, insert value in current buffer after the form."
 	;; new in Emacs 22.1.
 	(read-with-symbol-positions inbuffer)
 	(read-symbol-positions-list nil)
-        (old-style-backquotes nil)
 	;;	  #### This is bound in b-c-close-variables.
 	;;	  (byte-compile-warnings (if (eq byte-compile-warnings t)
 	;;				     byte-compile-warning-types
@@ -1859,19 +1858,20 @@ With argument, insert value in current buffer after the form."
 		 (not (eobp)))
 	  (setq byte-compile-read-position (point)
 		byte-compile-last-position byte-compile-read-position)
-	  (let ((form (read inbuffer)))
+	  (let* ((old-style-backquotes nil)
+                 (form (read inbuffer)))
+            ;; Warn about the use of old-style backquotes.
+            (when old-style-backquotes
+              (byte-compile-warn "!! The file uses old-style backquotes !!
+This functionality has been obsolete for more than 10 years already
+and will be removed soon.  See (elisp)Backquote in the manual."))
 	    (byte-compile-file-form form)))
 	;; Compile pending forms at end of file.
 	(byte-compile-flush-pending)
 	;; Make warnings about unresolved functions
 	;; give the end of the file as their position.
 	(setq byte-compile-last-position (point-max))
-	(byte-compile-warn-about-unresolved-functions)
-        ;; Warn about the use of old-style backquotes.
-        (when old-style-backquotes
-          (byte-compile-warn "!! The file uses old-style backquotes !!
-This functionality has been obsolete for more than 10 years already
-and will be removed soon.  See (elisp)Backquote in the manual.")))
+	(byte-compile-warn-about-unresolved-functions))
       ;; Fix up the header at the front of the output
       ;; if the buffer contains multibyte characters.
       (and filename (byte-compile-fix-header filename inbuffer outbuffer))))
