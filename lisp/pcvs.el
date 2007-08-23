@@ -1904,7 +1904,7 @@ With prefix argument, prompt for cvs flags."
   (interactive (list (cvs-flags-query 'cvs-status-flags "cvs status flags")))
   (cvs-mode-do "status" flags nil :dont-change-disc t :show t
 	       :postproc (when (eq cvs-auto-remove-handled 'status)
-			   '((with-current-buffer ,(current-buffer)
+			   `((with-current-buffer ,(current-buffer)
 			       (cvs-mode-remove-handled))))))
 
 (defun-cvs-mode (cvs-mode-tree . SIMPLE) (flags)
