@@ -3120,9 +3120,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	    (file-error nil))))))
 
 (defun backup-buffer-copy (from-name to-name modes)
-  (let ((umask (default-file-modes))
-	(dir (or (file-name-directory to-name)
-		 default-directory)))
+  (let ((umask (default-file-modes)))
     (unwind-protect
 	(progn
 	  ;; Create temp files with strict access rights.  It's easy to
