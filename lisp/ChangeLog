@@ -18,7 +18,7 @@
 	(tramp-make-copy-program-file-name): Use `tramp-file-name-real-host'.
 
 	* net/tramp-ftp.el (top): Autoload `tramp-set-connection-property'.
-	(tramp-ftp-file-name-handler):  Set "started" property.
+	(tramp-ftp-file-name-handler): Set "started" property.
 
 2007-08-24  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
@@ -48,8 +48,8 @@
 	(byte-compile-output-as-comment): Use with-current-buffer rather than
 	a weird set-buffer&prog1 combination.
 
-	* emacs-lisp/byte-opt.el (byte-optimize-if): Move `progn' out of the test
-	so as to optimise cases where the `progn's result is constant.
+	* emacs-lisp/byte-opt.el (byte-optimize-if): Move `progn' out of the
+	test so as to optimise cases where the `progn's result is constant.
 
 2007-08-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
