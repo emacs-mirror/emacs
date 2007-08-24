@@ -1,3 +1,8 @@
+2007-08-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (syms_of_image) <image-library-alist, cross-disabled-images>:
+	Doc fixes.
+
 2007-08-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c	[MAC_OSX] (select_and_poll_event, sys_select): Fix last changes.
