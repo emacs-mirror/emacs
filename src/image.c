@@ -2096,7 +2096,7 @@ forall_images_in_image_cache (f, fn)
 
 /* Load a DLL implementing an image type.
    The `image-library-alist' variable associates a symbol,
-   identifying  an image type, to a list of possible filenames.
+   identifying an image type, to a list of possible filenames.
    The function returns NULL if no library could be loaded for
    the given image type, or if the library was previously loaded;
    else the handle of the DLL.  */
@@ -3108,7 +3108,8 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
   return bmp;
 }
 
-static void convert_mono_to_color_image (f, img, foreground, background)
+static void
+convert_mono_to_color_image (f, img, foreground, background)
      struct frame *f;
      struct image *img;
      COLORREF foreground, background;
@@ -3151,7 +3152,7 @@ static void convert_mono_to_color_image (f, img, foreground, background)
 
 
 static void
-Create_Pixmap_From_Bitmap_Data(f, img, data, fg, bg, non_default_colors)
+Create_Pixmap_From_Bitmap_Data (f, img, data, fg, bg, non_default_colors)
      struct frame *f;
      struct image *img;
      char *data;
@@ -5057,7 +5058,8 @@ x_to_xcolors (f, img, rgb_p)
    created with CreateDIBSection, with the pointer to the bit values
    stored in ximg->data.  */
 
-static void XPutPixel (ximg, x, y, color)
+static void
+XPutPixel (ximg, x, y, color)
      XImagePtr  ximg;
      int x, y;
      COLORREF color;
@@ -8524,7 +8526,7 @@ svg_load_image (f, img, contents, size)
       x_query_color (f, &background);
 
       /* SVG pixmaps specify transparency in the last byte, so right
-	 shift 8 bits to get rid of it, since emacs doesnt support
+	 shift 8 bits to get rid of it, since emacs doesn't support
 	 transparency.  */
       background.red   >>= 8;
       background.green >>= 8;
@@ -8541,11 +8543,11 @@ svg_load_image (f, img, contents, size)
 #endif
 
       /* SVG pixmaps specify transparency in the last byte, so right
-	 shift 8 bits to get rid of it, since emacs doesnt support
+	 shift 8 bits to get rid of it, since emacs doesn't support
 	 transparency.  */
       background.red   >>= 8;
       background.green >>= 8;
-      background.blue  >>= 8;      
+      background.blue  >>= 8;
 #else /* not HAVE_X_WINDOWS && not MAC_OS*/
 #error FIXME
 #endif
@@ -9051,7 +9053,7 @@ alternate filenames for the corresponding external libraries.
 Emacs tries to load the libraries in the order they appear on the
 list; if none is loaded, the running session of Emacs won't
 support the image type.  Types 'pbm and 'xbm don't need to be
-listed; they're always supported.  */);
+listed; they are always supported.  */);
   Vimage_library_alist = Qnil;
   Fput (intern ("image-library-alist"), Qrisky_local_variable, Qt);
 
@@ -9181,7 +9183,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
     doc: /* Non-nil means always draw a cross over disabled images.
-Disabled images are those having an `:conversion disabled' property.
+Disabled images are those having a `:conversion disabled' property.
 A cross is always drawn on black & white displays.  */);
   cross_disabled_images = 0;
 
