@@ -44,13 +44,8 @@ won't lose on USG or HPUX systems.
 
 * FIXES FOR EMACS 22.3
 
-Here we list small fixes that arrived too late for Emacs 22.2, but
+Here we list any small fixes that arrived too late for Emacs 22.2, but
 that should be installed on the release branch after 22.2 is released.
-
-** bojohan+news@dd.chalmers.se, 1 Aug: n_schumacher@web.de: modification hooks called only once in
-Fix is on the trunk: 2007-08-13 change to insdel.c by Stefan Monnier.
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00457.html
-
 
 * DOCUMENTATION
 
