@@ -4733,14 +4733,21 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  int opoint = PT;
 	  int opoint_byte = PT_BYTE;
 	  int oinserted = ZV - BEGV;
+	  int ochars_modiff = CHARS_MODIFF;
 	  
 	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE); 
 	  insval = call3 (Qformat_decode,
 			  Qnil, make_number (oinserted), visit);
 	  CHECK_NUMBER (insval);
-	  if (XINT (insval) == oinserted)
+	  if (ochars_modiff == CHARS_MODIFF)
+	    /* format_decode didn't modify buffer's characters => move
+	       point back to position before inserted text and leave
+	       value of inserted alone. */
 	    SET_PT_BOTH (opoint, opoint_byte);
-	  inserted = XFASTINT (insval);
+	  else
+	    /* format_decode modified buffer's characters => consider
+	       entire buffer changed and leave point at point-min. */
+	    inserted = XFASTINT (insval);
 	}
 
       /* For consistency with format-decode call these now iff inserted > 0
@@ -4763,15 +4770,24 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      int opoint = PT;
 	      int opoint_byte = PT_BYTE;
 	      int oinserted = ZV - BEGV;
-
+	      int ochars_modiff = CHARS_MODIFF;
+	      
 	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
 	      insval = call1 (XCAR (p), make_number (oinserted));
 	      if (!NILP (insval))
 		{
 		  CHECK_NUMBER (insval);
-		  if (XINT (insval) == oinserted)
+		  if (ochars_modiff == CHARS_MODIFF)
+		    /* after_insert_file_functions didn't modify
+		       buffer's characters => move point back to
+		       position before inserted text and leave value of
+		       inserted alone. */
 		    SET_PT_BOTH (opoint, opoint_byte);
-		  inserted = XFASTINT (insval);
+		  else
+		    /* after_insert_file_functions did modify buffer's
+	               characters => consider entire buffer changed and
+	               leave point at point-min. */
+		    inserted = XFASTINT (insval);
 		}
 	    }
 
