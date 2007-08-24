@@ -1,3 +1,13 @@
+2007-08-24  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c [HAVE_NTGUI]: Define dynamic loaded functions for SVG.
+	(Qgdk_pixbuf, Qglib) [HAVE_NTGUI]: New symbols.
+	(syms_of_image) [HAVE_NTGUI]: Intern and staticpro them.
+	(init_svg_functions) [HAVE_NTGUI]: New function.
+	(fn_g_type_init, fn_g_object_unref, fn_g_error_free): New #defines.
+	(svg_load_image): Use them.
+	(svg_load_image) [HAVE_NTGUI]: Implement background.
+
 2007-08-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (RSVG_LIBS, RSVG_CFLAGS): New variables.
