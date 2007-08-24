@@ -4989,8 +4989,8 @@ extern int noninteractive;
       SELECT_TIMEOUT_THRESHOLD_RUNLOOP seconds).
       -> Create CFSocket for each socket and add it into the current
          event RunLoop so that the current event loop gets quit when
-         the socket becomes ready.  Then ReceiveNextEvent can wait for
-         both kinds of inputs.
+         the socket becomes ready.  Then CFRunLoopRunInMode can wait
+         for both kinds of inputs.
    4. Otherwise.
       -> Periodically poll the window input channel while repeatedly
          executing `select' with a short timeout
@@ -5029,32 +5029,51 @@ select_and_poll_event (nfds, rfds, wfds, efds, timeout)
      ? (EMACS_SECS (*timeout) * kEventDurationSecond
 	+ EMACS_USECS (*timeout) * kEventDurationMicrosecond)
      : kEventDurationForever);
+  SELECT_TYPE orfds, owfds, oefds;
+
+  if (timeout == NULL)
+    {
+      if (rfds) orfds = *rfds;
+      if (wfds) owfds = *wfds;
+      if (efds) oefds = *efds;
+    }
 
   /* Try detect_input_pending before CFRunLoopRunInMode in the same
      BLOCK_INPUT block, in case that some input has already been read
      asynchronously.  */
   BLOCK_INPUT;
-  do
+  while (1)
     {
       if (detect_input_pending ())
 	break;
 
       EMACS_SET_SECS_USECS (select_timeout, 0, 0);
       r = select (nfds, rfds, wfds, efds, &select_timeout);
+      if (r != 0)
+	break;
+
       if (timeoutval == 0.0)
 	timedout_p = 1;
-      else if (r == 0)
+      else
 	{
 #if USE_CG_DRAWING
 	  mac_prepare_for_quickdraw (NULL);
 #endif
 	  if (CFRunLoopRunInMode (kCFRunLoopDefaultMode,
-				  timeoutval >= 0 ? timeoutval : 10000.0, true)
+				  timeoutval >= 0 ? timeoutval : 100000, true)
 	      == kCFRunLoopRunTimedOut)
 	    timedout_p = 1;
 	}
+
+      if (timeout == NULL && timedout_p)
+	{
+	  if (rfds) *rfds = orfds;
+	  if (wfds) *wfds = owfds;
+	  if (efds) *efds = oefds;
+	}
+      else
+	break;
     }
-  while (timeoutval < 0 && timedout_p);
   UNBLOCK_INPUT;
 
   if (r != 0)
@@ -5181,7 +5200,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  mac_prepare_for_quickdraw (NULL);
 #endif
 	  if (CFRunLoopRunInMode (kCFRunLoopDefaultMode,
-				  timeoutval >= 0 ? timeoutval : 10000.0, true)
+				  timeoutval >= 0 ? timeoutval : 100000, true)
 	      == kCFRunLoopRunTimedOut)
 	    timedout_p = 1;
 
