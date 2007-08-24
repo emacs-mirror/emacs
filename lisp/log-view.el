@@ -89,7 +89,7 @@
 (easy-mmode-defmap log-view-mode-map
   '(("q" . quit-window)
     ("z" . kill-this-buffer)
-    ("m" . set-mark-command)
+    ("m" . log-view-toggle-mark-entry)
     ;; ("e" . cvs-mode-edit-log)
     ("d" . log-view-diff)
     ("f" . log-view-find-version)
@@ -178,6 +178,8 @@ The match group number 1 should match the revision number itself.")
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 
+(defvar log-view-marked-list nil)
+
 ;;;;
 ;;;; Actual code
 ;;;;
@@ -186,6 +188,7 @@ The match group number 1 should match the revision number itself.")
 (define-derived-mode log-view-mode fundamental-mode "Log-View"
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
+  (make-local-variable 'log-view-marked-list)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
   (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
 
@@ -236,6 +239,43 @@ The match group number 1 should match the revision number itself.")
 	(let ((rev (match-string 1)))
 	  (unless (re-search-forward log-view-file-re pt t)
 	    rev))))))
+
+(defun log-view-toggle-mark-entry ()
+  "Toggle marking for on log entry."
+  (interactive)
+  (save-excursion
+    (forward-line 1)
+    (let ((pt (point)))
+      (when (re-search-backward log-view-message-re nil t)
+	(let ((beg (match-beginning 0))
+	      end ov ovlist found tag)
+	  (unless (re-search-forward log-view-file-re pt t)
+	    ;; Look to see if the current entry is marked by looking
+	    ;; at the overlays at point.
+	    (setq ovlist (overlays-at (point)))
+	    (dolist (ovl ovlist)
+	      (when (overlay-get ovl 'log-view-marked)
+		(setq found ovl)))
+	    (if found
+		(progn
+		  ;; Remove this entry from the marked list and remove
+		  ;; the overlay.
+		  (setq log-view-marked-list 
+			(delq (overlay-get found 'log-view-marked)
+			      log-view-marked-list))
+		  (delete-overlay found))
+	      ;; Add this entry to the marked list and create an
+	      ;; overlay that covers it.
+	      (setq tag (log-view-current-tag (point)))
+	      (push tag log-view-marked-list)
+	      (forward-line 1)
+	      (setq end 
+		    (if (re-search-forward log-view-message-re nil t)
+			(match-beginning 0)
+		      (point-max)))
+	      (setq ov (make-overlay beg end))
+	      (overlay-put ov 'face 'log-view-file)
+	      (overlay-put ov 'log-view-marked tag))))))))
 
 (defvar cvs-minor-current-files)
 (defvar cvs-branch-prefix)

@@ -1,3 +1,10 @@
+2007-08-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-toggle-mark-entry): New function.
+	(log-view-mode-map): Bind it.
+	(log-view-marked-list): New variable.
+	(log-view-mode): Make it local.
+
 2007-08-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* play/zone.el (zone-pgm-rat-race): New func.
