@@ -1,3 +1,7 @@
+2007-08-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Check for a suitably recent makeinfo.
+
 2007-08-23  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
 
 	* configure.in (Check for required libraries): Typo.
