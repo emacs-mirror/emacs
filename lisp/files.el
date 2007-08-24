@@ -3131,9 +3131,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  (set-default-file-modes ?\700)
 	  (while (condition-case ()
 		     (progn
-		       (condition-case nil
-			   (delete-file to-name)
-			 (file-error nil))
+		       (and (file-exists-p to-name)
+			    (delete-file to-name))
 		       (copy-file from-name to-name nil t)
 		       nil)
 		   (file-already-exists t))
