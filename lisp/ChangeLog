@@ -1,3 +1,9 @@
+2007-08-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/hideshow.el (hs-match-data): Delete alias.
+	(hs-hide-block-at-point, hs-find-block-beginning)
+	(hs-show-block): Use `match-data' directly.
+
 2007-08-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* format.el (format-alist): Fix typo in doc-string.
