@@ -1,3 +1,7 @@
+2007-08-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c	[MAC_OSX] (select_and_poll_event, sys_select): Fix last changes.
+
 2007-08-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* fileio.c (Finsert_file_contents): Consult CHARS_MODIFF to tell
