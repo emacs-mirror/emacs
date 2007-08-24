@@ -1,3 +1,7 @@
+2007-08-24  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (backup-buffer-copy): Revert 2007-08-22 change.
+
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (defcustom, x-color-defined-p, cperl-is-face)
