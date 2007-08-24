@@ -1,3 +1,7 @@
+2007-08-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* format.el (format-alist): Fix typo in doc-string.
+
 2007-08-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-local-host-p): New defun.
