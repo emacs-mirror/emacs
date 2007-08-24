@@ -39,12 +39,12 @@
 
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
-	* image.c (x_find_image_file): Search in etc/images/ rather than
-	etc/.
+	* image.c (x_find_image_file): Search in etc/images/ rather than etc/.
 
 2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* Makefile.in (ALL_CFLAGS, LIBX): Add RSVG_LIBS.
+
 	* image.c: Add support for SVG images.  Some additional comments
 	by Joakim Verona <joakim@verona.se>.  When HAVE_RSVG is defined:
 	(svg_image_p): New function to test for SVG image.
@@ -192,7 +192,7 @@
 	(mac_valid_selection_target_p): Rename from valid_scrap_target_type_p.
 	(mac_clear_selection): Rename from clear_scrap.
 	(get_flavor_type_from_symbol): New argument SEL and subsume function of
-	scrap_has_target_type.   All uses changed.
+	scrap_has_target_type.  All uses changed.
 	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
 	(mac_selection_has_target_p): New functions.
 	(mac_put_selection_value): Rename from put_scrap_string.
