@@ -1,3 +1,8 @@
+2007-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-if): Don't presume `clause' is
+	a list.
+
 2007-08-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/hideshow.el (hs-match-data): Delete alias.
@@ -39,8 +44,8 @@
 
 2007-08-23  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/cc-fonts.el (gtkdoc-font-lock-doc-comments): Highlight
-	name of parameters in document body.
+	* progmodes/cc-fonts.el (gtkdoc-font-lock-doc-comments):
+	Highlight name of parameters in document body.
 
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
