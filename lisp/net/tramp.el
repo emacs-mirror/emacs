@@ -3665,14 +3665,9 @@ beginning of local filename are not substituted."
 
 (defun tramp-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
+
   (with-parsed-tramp-file-name filename nil
-    (let (;; We used to bind the following as late as possible.
-	  ;; loc-dec was bound directly before the if statement that
-	  ;; checks them.  But the functions tramp-get-* might invoke
-	  ;; the "are you awake" check in `tramp-maybe-open-connection',
-	  ;; which is an unfortunate time since we rely on the buffer
-	  ;; contents at that spot.
-	  (rem-enc (tramp-get-remote-coding v "remote-encoding"))
+    (let ((rem-enc (tramp-get-remote-coding v "remote-encoding"))
 	  (loc-dec (tramp-get-local-coding v "local-decoding"))
 	  tmpfil)
       (unless (file-exists-p filename)
@@ -3681,55 +3676,59 @@ beginning of local filename are not substituted."
 	 "Cannot make local copy of non-existing file `%s'" filename))
       (setq tmpfil (tramp-make-temp-file filename))
 
-      (cond ((and (tramp-method-out-of-band-p v)
-		  (> (nth 7 (file-attributes filename))
-		     tramp-copy-size-limit))
-	     ;; `copy-file' handles out-of-band methods
-	     (copy-file filename tmpfil t t))
+      (cond
+       ;; Fast track on local machine.
+       ((tramp-local-host-p v)
+	(tramp-do-copy-or-rename-file-directly 'copy v localname tmpfil t)
+	(tramp-send-command v (format "chown %s %s" (user-login-name) tmpfil)))
 
-	    (rem-enc
-	     ;; Use inline encoding for file transfer.
-	     (save-excursion
-	       (tramp-message v 5 "Encoding remote file %s..." filename)
-	       (tramp-barf-unless-okay
-		v
-		(concat rem-enc " < " (tramp-shell-quote-argument localname))
-		"Encoding remote file failed")
+       ;; `copy-file' handles out-of-band methods.
+       ((and (tramp-method-out-of-band-p v)
+	     (> (nth 7 (file-attributes filename)) tramp-copy-size-limit))
+	(copy-file filename tmpfil t t))
 
-	       (tramp-message v 5 "Decoding remote file %s..." filename)
-	       ;; Here is where loc-dec used to be let-bound.
-	       (if (and (symbolp loc-dec) (fboundp loc-dec))
-		   ;; If local decoding is a function, we call it.  We
-		   ;; must disable multibyte, because
-		   ;; `uudecode-decode-region' doesn't handle it
-		   ;; correctly.
-		   (unwind-protect
-		       (with-temp-buffer
-			 (set-buffer-multibyte nil)
-			 (insert-buffer-substring (tramp-get-buffer v))
-			 (tramp-message
-			  v 5 "Decoding remote file %s with function %s..."
-			  filename loc-dec)
-			 (funcall loc-dec (point-min) (point-max))
-			 (let ((coding-system-for-write 'binary))
-			   (write-region (point-min) (point-max) tmpfil))))
-		 ;; If tramp-decoding-function is not defined for this
-		 ;; method, we invoke tramp-decoding-command instead.
-		 (let ((tmpfil2 (tramp-make-temp-file filename)))
-		   (let ((coding-system-for-write 'binary))
-		     (write-region (point-min) (point-max) tmpfil2))
-		   (tramp-message
-		    v 5 "Decoding remote file %s with command %s..."
-		    filename loc-dec)
-		   (tramp-call-local-coding-command
-		    loc-dec tmpfil2 tmpfil)
-		   (delete-file tmpfil2)))
-	       (tramp-message v 5 "Decoding remote file %s...done" filename)
-	       ;; Set proper permissions.
-	       (set-file-modes tmpfil (file-modes filename))))
+       ;; Use inline encoding for file transfer.
+       (rem-enc
+	(save-excursion
+	  (tramp-message v 5 "Encoding remote file %s..." filename)
+	  (tramp-barf-unless-okay
+	   v (format "%s < %s" rem-enc (tramp-shell-quote-argument localname))
+	   "Encoding remote file failed")
+	  (tramp-message v 5 "Encoding remote file %s...done" filename)
 
-	    (t (tramp-error
-		v 'file-error "Wrong method specification for `%s'" method)))
+	  (tramp-message v 5 "Decoding remote file %s..." filename)
+	  (if (and (symbolp loc-dec) (fboundp loc-dec))
+	      ;; If local decoding is a function, we call it.  We must
+	      ;; disable multibyte, because `uudecode-decode-region'
+	      ;; doesn't handle it correctly.
+	      (unwind-protect
+		  (with-temp-buffer
+		    (set-buffer-multibyte nil)
+		    (insert-buffer-substring (tramp-get-buffer v))
+		    (tramp-message
+		     v 5 "Decoding remote file %s with function %s..."
+		     filename loc-dec)
+		    (funcall loc-dec (point-min) (point-max))
+		    (let ((coding-system-for-write 'binary))
+		      (write-region (point-min) (point-max) tmpfil))))
+	    ;; If tramp-decoding-function is not defined for this
+	    ;; method, we invoke tramp-decoding-command instead.
+	    (let ((tmpfil2 (tramp-make-temp-file filename)))
+	      (let ((coding-system-for-write 'binary))
+		(write-region (point-min) (point-max) tmpfil2))
+	      (tramp-message
+	       v 5 "Decoding remote file %s with command %s..."
+	       filename loc-dec)
+	      (tramp-call-local-coding-command loc-dec tmpfil2 tmpfil)
+	      (delete-file tmpfil2)))
+	  (tramp-message v 5 "Decoding remote file %s...done" filename)
+	  ;; Set proper permissions.
+	  (set-file-modes tmpfil (file-modes filename))))
+
+       ;; Oops, I don't know what to do.
+       (t (tramp-error
+	   v 'file-error "Wrong method specification for `%s'" method)))
+
       (run-hooks 'tramp-handle-file-local-copy-hook)
       tmpfil)))
 
@@ -3927,20 +3926,26 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
       ;; the backup file.  This case `save-buffer' handles
       ;; permissions.
       (when modes (set-file-modes tmpfil modes))
+
       ;; This is a bit lengthy due to the different methods possible for
       ;; file transfer.  First, we check whether the method uses an rcp
       ;; program.  If so, we call it.  Otherwise, both encoding and
       ;; decoding command must be specified.  However, if the method
       ;; _also_ specifies an encoding function, then that is used for
       ;; encoding the contents of the tmp file.
-      (cond ((and (tramp-method-out-of-band-p v)
+      (cond ;; Fast track on local machine.
+            ((tramp-local-host-p v)
+	     (tramp-do-copy-or-rename-file-directly
+	      'rename v tmpfil localname t))
+
+	    ;; `copy-file' handles out-of-band methods
+	    ((and (tramp-method-out-of-band-p v)
 		  (integerp start)
 		  (> (- end start) tramp-copy-size-limit))
-	     ;; `copy-file' handles out-of-band methods
-	     (copy-file tmpfil filename t t))
+	     (rename-file tmpfil filename t))
 
+	    ;; Use inline file transfer
 	    (rem-dec
-	     ;; Use inline file transfer
 	     ;; Encode tmpfil
 	     (tramp-message v 5 "Encoding region...")
 	     (unwind-protect
@@ -4025,14 +4030,19 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		       filename rem-dec)))
 		   (tramp-message
 		    v 5 "Decoding region into remote file %s...done" filename)
-		   (tramp-flush-file-property v localname))))
+		   (tramp-flush-file-property v localname))
+
+	       ;; Save exit.
+	       (delete-file tmpfil)))
+
+	    ;; That's not expected.
 	    (t
 	     (tramp-error
 	      v 'file-error
 	      (concat "Method `%s' should specify both encoding and "
 		      "decoding command or an rcp program")
 	      method)))
-      (delete-file tmpfil)
+
       (when (or (eq visit t) (stringp visit))
 	(set-visited-file-modtime
 	 ;; We must pass modtime explicitely, because filename can be different
@@ -4198,10 +4208,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 	  filename)
 	 ;; Call the backend function.  Set a connection property
 	 ;; first, it will be reused for user/host name completion.
-	 (foreign
-	  (unless (zerop (length localname))
-	    (tramp-set-connection-property v "started" nil))
-	  (apply foreign operation args))
+	 (foreign (apply foreign operation args))
 	 ;; Nothing to do for us.
 	 (t (tramp-run-real-handler operation args)))))))
 
@@ -6502,8 +6509,7 @@ necessary only.  This function will be used in file name completion."
 (defun tramp-make-copy-program-file-name (vec)
   "Create a file name suitable to be passed to `rcp' and workalikes."
   (let ((user (tramp-file-name-user vec))
-	(host (car (split-string
-		    (tramp-file-name-host vec) tramp-prefix-port-regexp)))
+	(host (tramp-file-name-real-host vec))
 	(localname (tramp-shell-quote-argument
 		    (tramp-file-name-localname vec))))
     (if (not (zerop (length user)))
@@ -6513,6 +6519,14 @@ necessary only.  This function will be used in file name completion."
 (defun tramp-method-out-of-band-p (vec)
   "Return t if this is an out-of-band method, nil otherwise."
   (tramp-get-method-parameter (tramp-file-name-method vec) 'tramp-copy-program))
+
+(defun tramp-local-host-p (vec)
+  "Return t if this points to the local host, nil otherwise."
+  (let ((host (tramp-file-name-real-host vec)))
+    (and
+     (stringp host)
+     (string-match
+      (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$") host))))
 
 ;; Variables local to connection.
 

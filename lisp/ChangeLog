@@ -1,3 +1,15 @@
+2007-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-local-host-p): New defun.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	Implement fast track when being on the local host.
+	(tramp-file-name-handler): Don't set "started" property.  It shall
+	be reserved for the "ftp" method.
+	(tramp-make-copy-program-file-name): Use `tramp-file-name-real-host'.
+
+	* net/tramp-ftp.el (top): Autoload `tramp-set-connection-property'.
+	(tramp-ftp-file-name-handler):  Set "started" property.
+
 2007-08-24  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
 	* files.el (backup-buffer-copy): Don't wrap delete in
@@ -1630,7 +1642,7 @@
 
 	Sync with Tramp 2.1.10.
 
-	* net/tramp.el (tramp-get-ls-command): Fyx typo.
+	* net/tramp.el (tramp-get-ls-command): Fix typo.
 
 	* net/trampver.el: Update release number.
 
