@@ -1372,7 +1372,8 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 
 (defun exit-splash-screen ()
   "Stop displaying the splash screen buffer."
-  (if (get-buffer "*About GNU Emacs*")
+  (interactive)
+  (if fancy-splash-outer-buffer
       (throw 'stop-splashing nil)
     (quit-window t)))
 
