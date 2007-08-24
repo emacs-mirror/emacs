@@ -308,8 +308,13 @@ from being initialized."
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
 
-(defconst tutorial-directory (expand-file-name "tutorials" data-directory)
+(defvar tutorial-directory nil
   "Directory containing the Emacs TUTORIAL files.")
+
+;; Get correct value in a dumped, installed Emacs.
+(eval-at-startup
+ (setq tutorial-directory (file-name-as-directory
+                           (expand-file-name "tutorials" data-directory))))
 
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
