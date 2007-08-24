@@ -1,5 +1,7 @@
 2007-08-24  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (backup-buffer-copy): Revert 2007-08-22 change.
+
 	* startup.el (tutorial-directory): Set with eval-at-startup so it
 	gets the right value in an installed Emacs.
 
