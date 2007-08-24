@@ -1,8 +1,18 @@
+2007-08-24  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (tutorial-directory): Set with eval-at-startup so it
+	gets the right value in an installed Emacs.
+
+2007-08-24  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument): New face.
+	(eldoc-highlight-function-argument): Use it.
+
 2007-08-23  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/cc-fonts.el (gtkdoc-font-lock-doc-comments): Highlight
 	name of parameters in document body.
-	
+
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-output-docform)
