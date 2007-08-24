@@ -1344,17 +1344,17 @@ dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
 
 
-## Need makeinfo >= 4.8 (?) to build the manuals.
+## Need makeinfo >= 4.6 (?) to build the manuals.
 AC_PATH_PROG(MAKEINFO, makeinfo, no)
 dnl By this stage, configure has already checked for egrep and set EGREP, 
 dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[5-9]]|4\.[[8-9]])'`" = x; then
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[5-9]]|4\.[[6-9]])'`" = x; then
    MAKEINFO=no    
 fi
 
 if test "$MAKEINFO" = "no"; then
-  AC_MSG_ERROR( [makeinfo >= 4.8 is required] )
+  AC_MSG_ERROR( [makeinfo >= 4.6 is required] )
 fi
 
 
