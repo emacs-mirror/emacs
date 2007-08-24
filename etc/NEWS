@@ -101,6 +101,9 @@ the first error encountered during compilations.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
 
+** eldoc highlights the function argument under point
+with the face `eldoc-highlight-function-argument'.
+
 ** VC
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
