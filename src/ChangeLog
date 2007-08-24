@@ -1,3 +1,8 @@
+2007-08-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* fileio.c (Finsert_file_contents): Consult CHARS_MODIFF to tell
+	whether decoding has modified buffer contents.
+
 2007-08-24  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c [HAVE_NTGUI]: Define dynamic loaded functions for SVG.
