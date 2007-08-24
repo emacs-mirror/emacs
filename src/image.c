@@ -1318,8 +1318,8 @@ image_ascent (img, face, slice)
 	{
 #ifdef HAVE_NTGUI
 	  /* W32 specific version.  Why?. ++kfs  */
-	  ascent = height / 2 - (FONT_DESCENT(face->font)
-				 - FONT_BASE(face->font)) / 2;
+	  ascent = height / 2 - (FONT_DESCENT (face->font)
+				 - FONT_BASE (face->font)) / 2;
 #else
 	  /* This expression is arranged so that if the image can't be
 	     exactly centered, it will be moved slightly up.  This is
@@ -2252,7 +2252,7 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
 
   if (*pixmap == NULL)
     {
-      DWORD err = GetLastError();
+      DWORD err = GetLastError ();
       Lisp_Object errcode;
       /* All system errors are < 10000, so the following is safe.  */
       XSETINT (errcode, (int) err);
@@ -6711,7 +6711,7 @@ init_jpeg_functions (Lisp_Object libraries)
 /* Wrapper since we can't directly assign the function pointer
    to another function pointer that was declared more completely easily.  */
 static boolean
-jpeg_resync_to_restart_wrapper(cinfo, desired)
+jpeg_resync_to_restart_wrapper (cinfo, desired)
      j_decompress_ptr cinfo;
      int desired;
 {
@@ -7805,7 +7805,7 @@ gif_load (f, img)
       memsrc.index = 0;
 
       /* Casting return value avoids a GCC warning on W32.  */
-      gif = (GifFileType *)fn_DGifOpen(&memsrc, gif_read_from_memory);
+      gif = (GifFileType *) fn_DGifOpen (&memsrc, gif_read_from_memory);
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
@@ -8297,13 +8297,66 @@ svg_image_p (object)
 
 #include <librsvg/rsvg.h>
 
-/* TO DO: define DEF_IMGLIB_FN here.  This macro is used to handle
-loading of dynamic link library functions for various OS:es.
-Currently only librsvg2 is supported, which is only available for X,
-so its not strictly necessary yet.  The current code is thought to be
-compatible with this scheme because of the defines below, should
-librsvg2 become available on more plattforms.  */
+#ifdef HAVE_NTGUI
 
+/* SVG library functions.  */
+DEF_IMGLIB_FN (rsvg_handle_new);
+DEF_IMGLIB_FN (rsvg_handle_set_size_callback);
+DEF_IMGLIB_FN (rsvg_handle_write);
+DEF_IMGLIB_FN (rsvg_handle_close);
+DEF_IMGLIB_FN (rsvg_handle_get_pixbuf);
+DEF_IMGLIB_FN (rsvg_handle_free);
+
+DEF_IMGLIB_FN (gdk_pixbuf_get_width);
+DEF_IMGLIB_FN (gdk_pixbuf_get_height);
+DEF_IMGLIB_FN (gdk_pixbuf_get_pixels);
+DEF_IMGLIB_FN (gdk_pixbuf_get_rowstride);
+DEF_IMGLIB_FN (gdk_pixbuf_get_colorspace);
+DEF_IMGLIB_FN (gdk_pixbuf_get_n_channels);
+DEF_IMGLIB_FN (gdk_pixbuf_get_has_alpha);
+DEF_IMGLIB_FN (gdk_pixbuf_get_bits_per_sample);
+
+DEF_IMGLIB_FN (g_type_init);
+DEF_IMGLIB_FN (g_object_unref);
+DEF_IMGLIB_FN (g_error_free);
+
+Lisp_Object Qgdk_pixbuf, Qglib;
+
+static int
+init_svg_functions (Lisp_Object libraries)
+{
+  HMODULE library, gdklib, glib;
+
+  if (!(glib = w32_delayed_load (libraries, Qglib))
+      || !(gdklib = w32_delayed_load (libraries, Qgdk_pixbuf))
+      || !(library = w32_delayed_load (libraries, Qsvg)))
+    return 0;
+
+  LOAD_IMGLIB_FN (library, rsvg_handle_new);
+  LOAD_IMGLIB_FN (library, rsvg_handle_set_size_callback);
+  LOAD_IMGLIB_FN (library, rsvg_handle_write);
+  LOAD_IMGLIB_FN (library, rsvg_handle_close);
+  LOAD_IMGLIB_FN (library, rsvg_handle_get_pixbuf);
+  LOAD_IMGLIB_FN (library, rsvg_handle_free);
+
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_width);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_height);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_pixels);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_rowstride);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_colorspace);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_n_channels);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_has_alpha);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_bits_per_sample);
+
+  LOAD_IMGLIB_FN (glib, g_type_init);
+  LOAD_IMGLIB_FN (glib, g_object_unref);
+  LOAD_IMGLIB_FN (glib, g_error_free);
+  return 1;
+}
+
+#else
+/* The following aliases for library functions allow dynamic loading
+   to be used on some platforms.  */
 #define fn_rsvg_handle_new		rsvg_handle_new
 #define fn_rsvg_handle_set_size_callback rsvg_handle_set_size_callback
 #define fn_rsvg_handle_write		rsvg_handle_write
@@ -8311,15 +8364,19 @@ librsvg2 become available on more plattforms.  */
 #define fn_rsvg_handle_get_pixbuf	rsvg_handle_get_pixbuf
 #define fn_rsvg_handle_free		rsvg_handle_free
 
-#define fn_gdk_pixbuf_get_width		gdk_pixbuf_get_width
-#define fn_gdk_pixbuf_get_height	gdk_pixbuf_get_height
-#define fn_gdk_pixbuf_get_pixels	gdk_pixbuf_get_pixels
-#define fn_gdk_pixbuf_get_rowstride	gdk_pixbuf_get_rowstride
-#define fn_gdk_pixbuf_get_colorspace	gdk_pixbuf_get_colorspace
-#define fn_gdk_pixbuf_get_n_channels	gdk_pixbuf_get_n_channels
-#define fn_gdk_pixbuf_get_has_alpha	gdk_pixbuf_get_has_alpha
+#define fn_gdk_pixbuf_get_width		  gdk_pixbuf_get_width
+#define fn_gdk_pixbuf_get_height	  gdk_pixbuf_get_height
+#define fn_gdk_pixbuf_get_pixels	  gdk_pixbuf_get_pixels
+#define fn_gdk_pixbuf_get_rowstride	  gdk_pixbuf_get_rowstride
+#define fn_gdk_pixbuf_get_colorspace	  gdk_pixbuf_get_colorspace
+#define fn_gdk_pixbuf_get_n_channels	  gdk_pixbuf_get_n_channels
+#define fn_gdk_pixbuf_get_has_alpha	  gdk_pixbuf_get_has_alpha
 #define fn_gdk_pixbuf_get_bits_per_sample gdk_pixbuf_get_bits_per_sample
 
+#define fn_g_type_init                    g_type_init
+#define fn_g_object_unref                 g_object_unref
+#define fn_g_error_free                   g_error_free
+#endif /* !HAVE_NTGUI  */
 
 /* Load SVG image IMG for use on frame F.  Value is non-zero if
    successful. this function will go into the svg_type structure, and
@@ -8410,7 +8467,7 @@ svg_load_image (f, img, contents, size)
 
   /* g_type_init is a glib function that must be called prior to using
      gnome type library functions.  */
-  g_type_init ();
+  fn_g_type_init ();
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = fn_rsvg_handle_new ();
 
@@ -8444,7 +8501,7 @@ svg_load_image (f, img, contents, size)
   /* Try to create a x pixmap to hold the svg pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
-      g_object_unref (pixbuf);
+      fn_g_object_unref (pixbuf);
       return 0;
     }
 
@@ -8477,6 +8534,18 @@ svg_load_image (f, img, contents, size)
       background.red   = RED_FROM_ULONG (background.pixel);
       background.green = GREEN_FROM_ULONG (background.pixel);
       background.blue  = BLUE_FROM_ULONG (background.pixel);
+#elif defined (HAVE_NTGUI)
+      background.pixel = FRAME_BACKGROUND_PIXEL (f);
+#if 0 /* W32 TODO : Colormap support.  */
+      x_query_color (f, &background);
+#endif
+
+      /* SVG pixmaps specify transparency in the last byte, so right
+	 shift 8 bits to get rid of it, since emacs doesnt support
+	 transparency.  */
+      background.red   >>= 8;
+      background.green >>= 8;
+      background.blue  >>= 8;      
 #else /* not HAVE_X_WINDOWS && not MAC_OS*/
 #error FIXME
 #endif
@@ -8519,7 +8588,7 @@ svg_load_image (f, img, contents, size)
   free_color_table ();
 #endif /* COLOR_TABLE_SUPPORT */
 
-  g_object_unref (pixbuf);
+  fn_g_object_unref (pixbuf);
 
   img->width  = width;
   img->height = height;
@@ -8539,7 +8608,7 @@ svg_load_image (f, img, contents, size)
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
   image_error ("Error parsing SVG image `%s'", img->spec, Qnil);
-  g_error_free (error);
+  fn_g_error_free (error);
   return 0;
 }
 
@@ -9003,11 +9072,11 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
-  ADD_IMAGE_TYPE(Qpbm);
+  ADD_IMAGE_TYPE (Qpbm);
 
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
-  ADD_IMAGE_TYPE(Qxbm);
+  ADD_IMAGE_TYPE (Qxbm);
 
   define_image_type (&xbm_type, 1);
   define_image_type (&pbm_type, 1);
@@ -9045,7 +9114,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   Qpostscript = intern ("postscript");
   staticpro (&Qpostscript);
 #ifdef HAVE_GHOSTSCRIPT
-  ADD_IMAGE_TYPE(Qpostscript);
+  ADD_IMAGE_TYPE (Qpostscript);
   QCloader = intern (":loader");
   staticpro (&QCloader);
   QCbounding_box = intern (":bounding-box");
@@ -9059,38 +9128,44 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #if defined (HAVE_XPM) || defined (MAC_OS)
   Qxpm = intern ("xpm");
   staticpro (&Qxpm);
-  ADD_IMAGE_TYPE(Qxpm);
+  ADD_IMAGE_TYPE (Qxpm);
 #endif
 
 #if defined (HAVE_JPEG) || defined (MAC_OS)
   Qjpeg = intern ("jpeg");
   staticpro (&Qjpeg);
-  ADD_IMAGE_TYPE(Qjpeg);
+  ADD_IMAGE_TYPE (Qjpeg);
 #endif
 
 #if defined (HAVE_TIFF) || defined (MAC_OS)
   Qtiff = intern ("tiff");
   staticpro (&Qtiff);
-  ADD_IMAGE_TYPE(Qtiff);
+  ADD_IMAGE_TYPE (Qtiff);
 #endif
 
 #if defined (HAVE_GIF) || defined (MAC_OS)
   Qgif = intern ("gif");
   staticpro (&Qgif);
-  ADD_IMAGE_TYPE(Qgif);
+  ADD_IMAGE_TYPE (Qgif);
 #endif
 
 #if defined (HAVE_PNG) || defined (MAC_OS)
   Qpng = intern ("png");
   staticpro (&Qpng);
-  ADD_IMAGE_TYPE(Qpng);
+  ADD_IMAGE_TYPE (Qpng);
 #endif
 
 #if defined (HAVE_RSVG)
   Qsvg = intern ("svg");
   staticpro (&Qsvg);
-  ADD_IMAGE_TYPE(Qsvg);
-#endif
+  ADD_IMAGE_TYPE (Qsvg);
+#ifdef HAVE_NTGUI
+  Qgdk_pixbuf = intern ("gdk-pixbuf");
+  staticpro (&Qgdk_pixbuf);
+  Qglib = intern ("glib");
+  staticpro (&Qglib);
+#endif /* HAVE_NTGUI  */
+#endif /* HAVE_RSVG  */
 
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
