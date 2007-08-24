@@ -1,3 +1,8 @@
+2007-08-24  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+
+	* files.el (backup-buffer-copy): Don't wrap delete in
+	condition-case, only try to delete if file exists.
+
 2007-08-24  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (backup-buffer-copy): Revert 2007-08-22 change.
