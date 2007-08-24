@@ -1,6 +1,6 @@
 2007-08-22  Karl Berry  <karl@gnu.org>
 
-	* refcard.tex: updates for printing per johns.
+	* refcard.tex: updates for printing.
         (\versionyear): update to 2007.
 	(\copyrightnotice): modified or unmodified ok.
 	(Simple Customization): don't use goto-line, since now it's bound.
