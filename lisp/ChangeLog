@@ -1,3 +1,7 @@
+2007-08-25  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-mode-line-string): New function.
+
 2007-08-25  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-other-decl-block-key-in-symbols-alist):
