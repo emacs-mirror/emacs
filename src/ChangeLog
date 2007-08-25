@@ -1,5 +1,7 @@
 2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* m/amdx86-64.h: Redirect to intel386.h if compiling for i386.
+
 	* xdisp.c (Finvisible_p): New function.
 	(syms_of_xdisp): defsubr it.
 
