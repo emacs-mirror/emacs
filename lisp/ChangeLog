@@ -1,3 +1,8 @@
+2007-08-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pcvs.el (cvs-query-directory): Only prompt when prefix is given.
+	Don't behave differently when executed via M-x.  Add doc string.
+
 2007-08-24  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
 	* files.el (backup-buffer-copy): Don't wrap delete in

@@ -981,13 +981,13 @@ The files are stored to DIR."
   (interactive)
   (cvs-examine default-directory t))
 
-(defun cvs-query-directory (msg)
-  ;; last-command-char = ?\r hints that the command was run via M-x
+(defun cvs-query-directory (prompt)
+  "Read directory name, prompting with PROMPT.
+If in a *cvs* buffer, don't prompt unless a prefix argument is given."
   (if (and (cvs-buffer-p)
-	   (not current-prefix-arg)
-	   (not (eq last-command-char ?\r)))
+	   (not current-prefix-arg))
       default-directory
-    (read-directory-name msg nil default-directory nil)))
+    (read-directory-name prompt nil default-directory nil)))
 
 ;;;###autoload
 (defun cvs-quickdir (dir &optional flags noshow)
