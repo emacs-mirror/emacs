@@ -41,7 +41,12 @@
 ;;;###autoload (push '("\\.gif\\'"      . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.tiff?\\'"    . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.p[bpgn]m\\'" . image-mode) auto-mode-alist)
+
+;;;###autoload (push '("\\.x[bp]m\\'"   . c-mode)     auto-mode-alist)
 ;;;###autoload (push '("\\.x[bp]m\\'"   . image-mode-maybe) auto-mode-alist)
+
+;;;###autoload (push '("\\.svgz?\\'"    . xml-mode)   auto-mode-alist)
+;;;###autoload (push '("\\.svgz?\\'"    . image-mode-maybe) auto-mode-alist)
 
 ;;; Image scrolling functions
 
