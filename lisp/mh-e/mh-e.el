@@ -3032,6 +3032,15 @@ folder, which is also available in `mh-current-folder'."
   :group 'mh-alias
   :package-version '(MH-E . "8.0"))
 
+(defcustom-mh mh-annotate-msg-hook nil
+  "Hook run by `mh-annotate-msg' after annotation.
+Variables that are useful in this hook include `mh-current-folder',
+the current folder, and `mh-annotate-list', the messages annotated."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-sending-mail
+  :package-version '(MH-E . "8.1"))
+
 (defcustom-mh mh-before-commands-processed-hook nil
   "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] before performing outstanding refile and delete requests.
 

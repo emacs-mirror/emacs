@@ -1,3 +1,10 @@
+2007-08-25  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* mh-e.el (mh-annotate-msg-hook): New variable.
+
+	* mh-comp.el (mh-annotate-msg): Call new mh-annotate-msg-hook.
+	(mh-annotate-list): New variable, for mh-annotate-msg-hook.
+
 2007-08-21  Jeffrey C Honig  <jch@honig.net>
 
 	* mh-folder.el (mh-folder-message-menu, mh-folder-mode-map): Add
