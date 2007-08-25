@@ -1,5 +1,8 @@
 2007-08-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* pcvs.el (cvs-query-directory): Only prompt when prefix is given.
+	Don't behave differently when executed via M-x.  Add doc string.
+
 	* sort.el (sort-fold-case, sort-numeric-base): Mark as
 	safe-local-variable.
 
