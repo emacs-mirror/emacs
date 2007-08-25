@@ -1,3 +1,7 @@
+2007-08-25  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Images): Delete redundant @findex.
+
 2007-08-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* modes.texi (Example Major Modes): Fix typo.
