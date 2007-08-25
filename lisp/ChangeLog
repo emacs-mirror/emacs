@@ -1,3 +1,20 @@
+2007-08-25  Juri Linkov  <juri@jurta.org>
+
+	* files.el (auto-mode-alist): Move "\\.x[bp]m\\'" to image-mode.el.
+
+	* image-mode.el: Add autoloads to put associations in auto-mode-alist:
+	associate "\\.x[bp]m\\'" with c-mode and image-mode-maybe, and
+	"\\.svgz?\\'" with xml-mode and image-mode-maybe.
+
+	* image.el (image-type-header-regexps): Use more complex regexp for svg.
+	(image-type-file-name-regexps): Add ("\\.svgz?\\'" . svg).
+	(image-type-auto-detectable): Add (svg . maybe).
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Add .svgz
+	to treat it like .tgz.
+
+	* calendar/cal-bahai.el: Add file coding cookie.
+
 2007-08-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* pcvs.el (cvs-query-directory): Only prompt when prefix is given.
