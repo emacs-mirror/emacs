@@ -1,5 +1,8 @@
 2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* uniquify.el (uniquify-rationalize-file-buffer-names): Check liveness
+	of buffers in uniquify-managed.
+
 	* simple.el (invisible-p): Rename from text-invisible-p.
 	Update callers.
 
