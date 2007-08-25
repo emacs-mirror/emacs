@@ -1,3 +1,11 @@
+2007-08-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-marked-list): Delete variable.
+	(log-view-mode): Don't use it.
+	(log-view-toggle-mark-entry): Likewise, simplify.
+	(log-view-current-tag): Don't return properties.
+	(log-view-get-marked): New function.
+
 2007-08-25  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-mode-line-string): New function.

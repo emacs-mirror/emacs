@@ -178,8 +178,6 @@ The match group number 1 should match the revision number itself.")
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 
-(defvar log-view-marked-list nil)
-
 ;;;;
 ;;;; Actual code
 ;;;;
@@ -188,7 +186,6 @@ The match group number 1 should match the revision number itself.")
 (define-derived-mode log-view-mode fundamental-mode "Log-View"
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
-  (make-local-variable 'log-view-marked-list)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
   (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
 
@@ -236,12 +233,11 @@ The match group number 1 should match the revision number itself.")
     (forward-line 1)
     (let ((pt (point)))
       (when (re-search-backward log-view-message-re nil t)
-	(let ((rev (match-string 1)))
+	(let ((rev (match-string-no-properties 1)))
 	  (unless (re-search-forward log-view-file-re pt t)
 	    rev))))))
 
 (defun log-view-toggle-mark-entry ()
-  "Toggle marking for on log entry."
   (interactive)
   (save-excursion
     (forward-line 1)
@@ -250,32 +246,33 @@ The match group number 1 should match the revision number itself.")
 	(let ((beg (match-beginning 0))
 	      end ov ovlist found tag)
 	  (unless (re-search-forward log-view-file-re pt t)
-	    ;; Look to see if the current entry is marked by looking
-	    ;; at the overlays at point.
-	    (setq ovlist (overlays-at (point)))
-	    (dolist (ovl ovlist)
-	      (when (overlay-get ovl 'log-view-marked)
-		(setq found ovl)))
+	    ;; Look to see if the current entry is marked.
+	    (setq found (get-char-property (point) 'log-view-self))
 	    (if found
-		(progn
-		  ;; Remove this entry from the marked list and remove
-		  ;; the overlay.
-		  (setq log-view-marked-list 
-			(delq (overlay-get found 'log-view-marked)
-			      log-view-marked-list))
-		  (delete-overlay found))
-	      ;; Add this entry to the marked list and create an
-	      ;; overlay that covers it.
+		(delete-overlay found)
+	      ;; Create an overlay that covers this entry and change
+	      ;; it's color.
 	      (setq tag (log-view-current-tag (point)))
-	      (push tag log-view-marked-list)
 	      (forward-line 1)
-	      (setq end 
+	      (setq end
 		    (if (re-search-forward log-view-message-re nil t)
 			(match-beginning 0)
 		      (point-max)))
 	      (setq ov (make-overlay beg end))
 	      (overlay-put ov 'face 'log-view-file)
+	      ;; This is used to check if the overlay is present.
+	      (overlay-put ov 'log-view-self ov)
 	      (overlay-put ov 'log-view-marked tag))))))))
+
+(defun log-view-get-marked ()
+  (save-excursion
+    (let ((pos (point-min))
+	  marked-list ov)
+      (while (setq pos (next-single-property-change pos 'face))
+	(when (setq ov (get-char-property pos 'log-view-self))
+	  (push (overlay-get ov 'log-view-marked) marked-list)
+	  (setq pos (overlay-end ov))))
+      marked-list)))
 
 (defvar cvs-minor-current-files)
 (defvar cvs-branch-prefix)
