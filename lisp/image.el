@@ -34,7 +34,7 @@
 
 
 (defconst image-type-header-regexps
-  '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
+  `(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6][[:space:]]+\\(?:#.*[[:space:]]+\\)*[0-9]+[[:space:]]+[0-9]+" . pbm)
     ("\\`GIF8[79]a" . gif)
     ("\\`\x89PNG\r\n\x1a\n" . png)
@@ -44,7 +44,14 @@ static char \\1_bits" . xbm)
     ("\\`\\(?:MM\0\\*\\|II\\*\0\\)" . tiff)
     ("\\`[\t\n\r ]*%!PS" . postscript)
     ("\\`\xff\xd8" . (image-jpeg-p . jpeg))
-    ("\\`<\\?xml " . svg))
+    (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\r\n]*<\\)")))
+	(concat "\\(?:<\\?xml[ \t\r\n]+[^>]*>\\)?[ \t\r\n]*<"
+		comment-re "*"
+		"\\(?:!DOCTYPE[ \t\r\n]+[^>]*>[ \t\r\n]*<[ \t\r\n]*" comment-re "*\\)?"
+		"[Ss][Vv][Gg]"))
+     . svg)
+    )
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
@@ -61,7 +68,9 @@ a non-nil value, TYPE is the image's type.")
     ("\\.pbm\\'" . pbm)
     ("\\.xbm\\'" . xbm)
     ("\\.ps\\'" . postscript)
-    ("\\.tiff?\\'" . tiff))
+    ("\\.tiff?\\'" . tiff)
+    ("\\.svgz?\\'" . svg)
+    )
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to identify image files.
 When the name of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
@@ -78,6 +87,7 @@ be of image type IMAGE-TYPE.")
     (xpm . nil)
     (jpeg . maybe)
     (tiff . maybe)
+    (svg . maybe)
     (postscript . nil))
   "Alist of (IMAGE-TYPE . AUTODETECT) pairs used to auto-detect image files.
 \(See `image-type-auto-detected-p').
