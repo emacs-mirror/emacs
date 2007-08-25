@@ -1,3 +1,12 @@
+2007-08-25  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (var-TimeZone): Make nil explicitly
+	the default value.
+	(math-calendar-tzinfo): New variable.
+	(math-get-calendar-tzinfo): New function.
+	(calcFunc-tzone, calcFunc-dst): Use Emacs's calendar
+	to get information when zone is nil.
+
 2007-08-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* log-view.el (log-view-toggle-mark-entry): New function.
