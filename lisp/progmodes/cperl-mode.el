@@ -233,7 +233,13 @@ for constructs with multiline if/unless/while/until/for/foreach condition."
   "*Indentation of CPerl statements with respect to containing block."
   :type 'integer
   :group 'cperl-indentation-details)
-(put 'cperl-indent-level 'safe-local-variable 'integerp)
+
+;; Is is not unusual to put both perl-indent-level and
+;; cperl-indent-level in the local variable section of a file. If only
+;; one of perl-mode and cperl-mode is in use, a warning will be issued
+;; about the variable. Autoload this here, so that no warning is
+;; issued when using either perl-mode or cperl-mode.
+;;;###autoload(put 'cperl-indent-level 'safe-local-variable 'integerp)
 
 (defcustom cperl-lineup-step nil
   "*`cperl-lineup' will always lineup at multiple of this number.

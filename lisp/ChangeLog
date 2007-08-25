@@ -1,5 +1,9 @@
 2007-08-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/cperl-mode.el (cperl-indent-level): Autoload the
+	safe-local-variable setting.
+	* progmodes/perl-mode.el (perl-indent-level): Likewise.
+
 	* log-view.el (log-view-marked-list): Delete variable.
 	(log-view-mode): Don't use it.
 	(log-view-toggle-mark-entry): Likewise, simplify.
