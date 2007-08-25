@@ -1,4 +1,4 @@
-;;; cal-bahai.el --- calendar functions for the Bahá'í calendar.
+;;; cal-bahai.el --- calendar functions for the Bahá'í calendar. -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;;   Free Software Foundation, Inc.
