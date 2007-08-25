@@ -1,9 +1,14 @@
+2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (invisible-p): Rename from text-invisible-p.
+	Update callers.
+
 2007-08-25  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-other-decl-block-key-in-symbols-alist):
 	new language variable.
 
-	* progmodes/cc-engine.el (c-brace-anchor-point): new function.
+	* progmodes/cc-engine.el (c-brace-anchor-point): New function.
 	(c-add-stmt-syntax): Give accurate anchor points for "namespace",
 	"extern" etc., rather than BOI.  Fix addition of spurious
 	syntactic-symbol 'defun-block-intro, replacing it with

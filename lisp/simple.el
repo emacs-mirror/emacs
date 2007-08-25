@@ -3477,7 +3477,7 @@ Outline mode sets this."
   :type 'boolean
   :group 'editing-basics)
 
-(defun text-invisible-p (pos)
+(defun invisible-p (pos)
   "Return non-nil if the character after POS is currently invisible."
   (let ((prop
 	 (get-char-property pos 'invisible)))
@@ -3485,7 +3485,7 @@ Outline mode sets this."
 	prop
       (or (memq prop buffer-invisibility-spec)
 	  (assq prop buffer-invisibility-spec)))))
-(define-obsolete-function-alias 'line-move-invisible-p 'text-invisible-p)
+(define-obsolete-function-alias 'line-move-invisible-p 'invisible-p)
 
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
@@ -3606,7 +3606,7 @@ Outline mode sets this."
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
-		(while (and (not (eobp)) (text-invisible-p (point)))
+		(while (and (not (eobp)) (invisible-p (point)))
 		  (goto-char (next-char-property-change (point))))
 		;; Move a line.
 		;; We don't use `end-of-line', since we want to escape
@@ -3624,7 +3624,7 @@ Outline mode sets this."
 		    (setq done t)))
 		 ((and (> arg 1)  ;; Use vertical-motion for last move
 		       (not (integerp selective-display))
-		       (not (text-invisible-p (point))))
+		       (not (invisible-p (point))))
 		  ;; We avoid vertical-motion when possible
 		  ;; because that has to fontify.
 		  (forward-line 1))
@@ -3653,7 +3653,7 @@ Outline mode sets this."
 		    (setq done t)))
 		 ((and (< arg -1) ;; Use vertical-motion for last move
 		       (not (integerp selective-display))
-		       (not (text-invisible-p (1- (point)))))
+		       (not (invisible-p (1- (point)))))
 		  (forward-line -1))
 		 ((zerop (vertical-motion -1))
 		  (if (not noerror)
@@ -3665,7 +3665,7 @@ Outline mode sets this."
 			  ;; if our target is the middle of this line.
 			  (or (zerop (or goal-column temporary-goal-column))
 			      (< arg 0))
-			  (not (bobp)) (text-invisible-p (1- (point))))
+			  (not (bobp)) (invisible-p (1- (point))))
 		    (goto-char (previous-char-property-change (point))))))))
 	  ;; This is the value the function returns.
 	  (= arg 0))
@@ -3697,7 +3697,7 @@ Outline mode sets this."
 	     (save-excursion
 	       ;; Like end-of-line but ignores fields.
 	       (skip-chars-forward "^\n")
-	       (while (and (not (eobp)) (text-invisible-p (point)))
+	       (while (and (not (eobp)) (invisible-p (point)))
 		 (goto-char (next-char-property-change (point)))
 		 (skip-chars-forward "^\n"))
 	       (point))))
@@ -3780,13 +3780,13 @@ and `current-column' to be able to ignore invisible text."
     (move-to-column col))
 
   (when (and line-move-ignore-invisible
-	     (not (bolp)) (text-invisible-p (1- (point))))
+	     (not (bolp)) (invisible-p (1- (point))))
     (let ((normal-location (point))
 	  (normal-column (current-column)))
       ;; If the following character is currently invisible,
       ;; skip all characters with that same `invisible' property value.
       (while (and (not (eobp))
-		  (text-invisible-p (point)))
+		  (invisible-p (point)))
 	(goto-char (next-char-property-change (point))))
       ;; Have we advanced to a larger column position?
       (if (> (current-column) normal-column)
@@ -3799,7 +3799,7 @@ and `current-column' to be able to ignore invisible text."
 	;; but with a more reasonable buffer position.
 	(goto-char normal-location)
 	(let ((line-beg (save-excursion (beginning-of-line) (point))))
-	  (while (and (not (bolp)) (text-invisible-p (1- (point))))
+	  (while (and (not (bolp)) (invisible-p (1- (point))))
 	    (goto-char (previous-char-property-change (point) line-beg))))))))
 
 (defun move-end-of-line (arg)
@@ -3820,7 +3820,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 		 (and (line-move arg t)
 		      (not (bobp))
 		      (progn
-			(while (and (not (bobp)) (text-invisible-p (1- (point))))
+			(while (and (not (bobp)) (invisible-p (1- (point))))
 			  (goto-char (previous-char-property-change (point))))
 			(backward-char 1)))
 		 (point)))))
@@ -3856,13 +3856,13 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 
     ;; Move to beginning-of-line, ignoring fields and invisibles.
     (skip-chars-backward "^\n")
-    (while (and (not (bobp)) (text-invisible-p (1- (point))))
+    (while (and (not (bobp)) (invisible-p (1- (point))))
       (goto-char (previous-char-property-change (point)))
       (skip-chars-backward "^\n"))
     (setq start (point))
 
     ;; Now find first visible char in the line
-    (while (and (not (eobp)) (text-invisible-p (point)))
+    (while (and (not (eobp)) (invisible-p (point)))
       (goto-char (next-char-property-change (point))))
     (setq first-vis (point))
 
