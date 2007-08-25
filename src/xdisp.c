@@ -18446,10 +18446,10 @@ else if the text is replaced by an ellipsis.  */)
      (pos_or_prop)
      Lisp_Object pos_or_prop;
 {
-  Lisp_Object prop =
-    (NATNUMP (pos_or_prop) || MARKERP (pos_or_prop))
-    ? Fget_char_property (pos_or_prop, Qinvisible, Qnil)
-    : pos_or_prop;
+  Lisp_Object prop
+    = (NATNUMP (pos_or_prop) || MARKERP (pos_or_prop)
+       ? Fget_char_property (pos_or_prop, Qinvisible, Qnil)
+       : pos_or_prop);
   int invis = TEXT_PROP_MEANS_INVISIBLE (prop);
   return (invis == 0 ? Qnil
 	  : invis == 1 ? Qt
