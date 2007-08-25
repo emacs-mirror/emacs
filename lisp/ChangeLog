@@ -1,3 +1,14 @@
+2007-08-25  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-other-decl-block-key-in-symbols-alist):
+	new language variable.
+
+	* progmodes/cc-engine.el (c-brace-anchor-point): new function.
+	(c-add-stmt-syntax): Give accurate anchor points for "namespace",
+	"extern" etc., rather than BOI.  Fix addition of spurious
+	syntactic-symbol 'defun-block-intro, replacing it with
+	'innamespace, etc.
+
 2007-08-25  Juri Linkov  <juri@jurta.org>
 
 	* files.el (auto-mode-alist): Move "\\.x[bp]m\\'" to image-mode.el.
