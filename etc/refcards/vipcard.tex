@@ -3,10 +3,17 @@
 \newcount\columnsperpage
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.  Nothing else needs to be changed.
+% Specify how many you want here.
 
 \columnsperpage=1
 
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+
+\input pdflayout.sty
+\pdflayout=(1)
+
+% Nothing else needs to be changed.
 % Copyright (C) 1987, 2001, 2002, 2003, 2004, 2005,
 %   2006, 2007  Free Software Foundation, Inc.
 
@@ -678,7 +685,7 @@ moves 11 lines below current line to the end of buffer.
 \bye
 
 % Local variables:
-% compile-command: "tex refcard"
+% compile-command: "pdftex vipcard"
 % End:
 
 % arch-tag: 342a9548-4de4-499d-b864-74fb426b6729
