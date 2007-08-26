@@ -28,10 +28,17 @@
 \newcount\columnsperpage
 
 % This file can be printed with 1, or 2 columns per page (see below).
-% Specify how many you want here.  Nothing else needs to be changed.
+% Specify how many you want here.
 
 \columnsperpage=2
 
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+
+\input pdflayout.sty
+\pdflayout=(0)
+
+% Nothing else needs to be changed.
 % Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005,
 %   2006, 2007  Free Software Foundation, Inc.
 
@@ -995,7 +1002,7 @@ przez wywo/lanie \kbd{C-h f interactive}.
 \bye
 
 % Local variables:
-% compile-command: "tex pl-refcard"
+% compile-command: "pdftex pl-refcard"
 % End:
 
 % arch-tag: 19d15a16-70be-40c8-ad91-88899aac32a9
