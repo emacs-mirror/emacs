@@ -22,6 +22,12 @@
   \endinput
 \fi
 
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+
+\input pdflayout.sty
+\pdflayout=(0)
+
 % Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
 %   2006, 2007  Free Software Foundation, Inc.
 
@@ -413,7 +419,7 @@ contient entre parenth\`eses le nom des modes en cours.
 \bye
 
 % Local variables:
-% compile-command: "tex survival"
+% compile-command: "pdftex survival"
 % End:
 
 % arch-tag: 2fb4e93f-8bfa-4ab4-bc6d-b475131d766a
