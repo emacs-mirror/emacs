@@ -556,8 +556,6 @@ main (argc, argv)
 # include <sys/types.h>
 # include <sys/socket.h>
 # include <sys/un.h>
-# include <sys/stat.h>
-# include <errno.h>
 #endif
 
 #define AUTH_KEY_LENGTH      64
