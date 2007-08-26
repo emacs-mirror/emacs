@@ -186,6 +186,10 @@ supported on other platforms, but not on Windows due to using the winsock
 
 * Lisp Changes in Emacs 23.1
 
+** The function invisible-p returns non-nil if the character
+   after a specified position is invisible, or if its argument
+   as an `invisible' property would make a character invisible.
+
 ** Non-breaking space now acts as whitespace.
 
 +++
@@ -203,6 +207,16 @@ like this:
 
 +++
 ** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
+
+** New function `window-full-width-p' returns t if a window is as wide
+as its frame.
+
+** The new function `split-string-and-unquote' does (what?)
+
+** The new function `combine-and-quote-strings' does (what?)
+
+** The new function `image-refresh' refreshes all images associated
+with a given image specification.
 
 +++
 ** New variable `user-emacs-directory'.
