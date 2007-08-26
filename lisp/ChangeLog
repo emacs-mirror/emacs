@@ -5,6 +5,9 @@
 
 2007-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* log-view.el (log-view-toggle-mark-entry): Add docstring.
+	(log-view-get-marked): Likewise.
+
 	* vc-hooks.el (vc-registered): Use mapc instead of mapcar.
 	(vc-delete-automatic-version-backups): Likewise.
 

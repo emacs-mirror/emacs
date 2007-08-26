@@ -238,6 +238,11 @@ The match group number 1 should match the revision number itself.")
 	    rev))))))
 
 (defun log-view-toggle-mark-entry ()
+  "Toggle the marked state for the log entry at point.
+Individual log entries can be marked and unmarked. The marked
+entries are denoted by changing their background color.
+`log-view-get-marked' returns the list of tags for the marked
+log entries."
   (interactive)
   (save-excursion
     (forward-line 1)
@@ -265,6 +270,7 @@ The match group number 1 should match the revision number itself.")
 	      (overlay-put ov 'log-view-marked tag))))))))
 
 (defun log-view-get-marked ()
+  "Return the list of tags for the marked log entries."
   (save-excursion
     (let ((pos (point-min))
 	  marked-list ov)
