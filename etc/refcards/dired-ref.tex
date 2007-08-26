@@ -20,13 +20,20 @@
 % Boston, MA 02110-1301, USA.
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.  Nothing else needs to be changed.
+% Specify how many you want here.  
 %**start of header
 
 \newcount\columnsperpage
 
 \columnsperpage=2
 
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+
+\input pdflayout.sty
+\pdflayout=(0)
+
+% Nothing else needs to be changed.
 % This file is intended to be processed by plain TeX (TeX82).
 % The reference card looks OK with 2 columns per page, portrait mode.
 % I haven't tried it with 3 columns per page.
