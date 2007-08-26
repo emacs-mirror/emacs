@@ -4,17 +4,17 @@
 %
 %**start of header
 \newcount\columnsperpage
-\newcount\letterpaper
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
 % Specify how many you want here.
 
 \columnsperpage=3
 
-% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
-% only when columnsperpage is 2 or 3.
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
 
-\letterpaper=0
+\input pdflayout.sty
+\pdflayout=(0l)
 
 % If you don't have german.sty, you can either get it from CTAN or
 % change the \glqq and \grqq commands below.
@@ -689,7 +689,7 @@ wird. F\"ur n\"ahere Details geben Sie \kbd{C-h f interactive} ein.
 \bye
 
 % Local variables:
-% compile-command: "tex de-refcard"
+% compile-command: "pdftex de-refcard"
 % End:
 
 % arch-tag: af0a2666-f289-49f1-a9cc-cedab9783314
