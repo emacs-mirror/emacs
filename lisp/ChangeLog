@@ -1,3 +1,8 @@
+2007-08-26  Micha,bk(Bl Cadilhac  <michael@cadilhac.name>
+
+	* hi-lock.el (hi-lock-unface-buffer): Show a x-menu only if the mouse
+	was used.
+
 2007-08-26  Sean O'Rourke  <seano@cs.ucsd.edu>
 
 	* complete.el (PC-do-completion): Make RET accept a non-unique but
