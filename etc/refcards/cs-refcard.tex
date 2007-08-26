@@ -7,10 +7,17 @@
 \newcount\columnsperpage
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.  Nothing else needs to be changed.
+% Specify how many you want here.
 
 \columnsperpage=1
 
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+
+\input pdflayout.sty
+\pdflayout=(0)
+
+% Nothing else needs to be changed.
 % Copyright (C) 1987, 1993, 1996, 1997, 2001, 2002, 2003, 2004,
 %   2005, 2006, 2007  Free Software Foundation, Inc.
 
