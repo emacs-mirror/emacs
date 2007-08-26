@@ -1,3 +1,41 @@
+2007-08-26  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* refcards/pdflayout.sty: New.  Handle PDF layouts through
+	\pdfpagewidth and \pdfpageheight.
+
+	* calccard.pdf, cs-dired-ref.pdf, cs-refcard.pdf, de-refcard.pdf:
+	* dired-ref.pdf, fr-drdref.pdf, fr-refcard.pdf, gnus-booklet.pdf:
+	* gnus-logo.pdf, gnus-refcard.pdf, orgcard.pdf, pl-refcard.pdf:
+	* pt-br-refcard.pdf, refcard.pdf, ru-refcard.pdf, sk-dired-ref.pdf:
+	* sk-refcard.pdf: Add PDF versions of the refcards.
+
+	* calccard.ps, cs-dired-ref.ps, cs-refcard.ps, de-refcard.ps:
+	* dired-ref.ps, fr-drdref.ps, fr-refcard.ps, gnus-booklet.ps:
+	* gnus-logo.ps, gnus-refcard.ps, orgcard.ps, pl-refcard.ps:
+	* pt-br-refcard.ps, refcard.ps, ru-refcard.ps, sk-dired-ref.ps:
+	* sk-refcard.ps: Remove the PS versions of the refcards.
+
+	* calccard.tex, fr-survival.tex, orgcard.tex, pl-refcard.tex:
+	* pt-br-refcard.tex, refcard.tex, survival.tex, vipcard.tex:
+	* viperCard.tex: Specify PDF layout, use a PDF `compile-command' local
+	variable.
+
+	* cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex, dired-ref.tex:
+	* fr-drdref.tex, sk-dired-ref.tex, sk-refcard.tex, sk-survival.tex:
+	Specify PDF layout.
+
+	* fr-refcard.tex: Update copyright notice.  Update the examples.  Fix a
+	typo.  Remove the `letterpaper' counter, specify PDF layout, use a PDF
+	`compile-command' local variable.
+
+	* de-refcard.tex: Remove the `letterpaper' counter, specify PDF layout,
+	use a PDF `compile-command' local variable.
+
+	* ru-refcard.tex: Use a PDF `compile-command' local variable.
+
+	* Makefile: Add rules for creating the refcards in PDF, make them the
+	default.
+
 2007-08-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile (mostlyclean, clean, distclean, maintainer-clean):
