@@ -2,6 +2,9 @@
 
 	* NEWS: Say that PDF files are now the default for refcards.
 
+	* fr-drdref.tex, fr-drdref.pdf: Move these to...
+	* fr-dired-ref.tex, fr-dired-ref.pdf: ... those names.
+
 	* refcards/pdflayout.sty: New.  Handle PDF layouts through
 	\pdfpagewidth and \pdfpageheight.
 
@@ -36,7 +39,7 @@
 	* ru-refcard.tex: Use a PDF `compile-command' local variable.
 
 	* Makefile: Add rules for creating the refcards in PDF, make them the
-	default.
+	default.  Change `fr-drdref' to `fr-dired-ref'.
 
 2007-08-23  Glenn Morris  <rgm@gnu.org>
 
