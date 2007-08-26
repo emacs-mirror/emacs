@@ -1,13 +1,165 @@
-2007-08-22  Juri Linkov  <juri@jurta.org>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
+
+	* ldefs-boot.el: Update.
+
+0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/mac-win.el: Provide mac-win.
+	(mac-initialized): New variable.
+	(mac-initialize-window-system): New function. Move global setup
+	here.
+	(handle-args-function-alist, frame-creation-function-alist):
+	(window-system-initialization-alist): Add mac entries.
+	(x-setup-function-keys): New function containing all the
+	top level function key definitions.
+
+	* term/x-win.el (x-menu-bar-open): Use accelerate-menu.
+
+0000-00-00  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el: Reorder to match x-win.el more closely.
+	Provide w32-win. Don't throw error when global window-system not
+	w32.
+	(internal-face-interactive): Remove obsolete function.
+	(x-setup-function-keys): Use local-function-key-map.
+	(w32-initialized): New variable.
+	(w32-initialize-window-system): Set it.
+	Move more global setup here.
+	(x-setup-function-keys): New function.
+	(w32-initialize-window-system): Move non function key global setup
+	here.
+	(x-cut-buffer-max): Remove.
+	(w32-initialize-window-system): New function.
+	(handle-args-function-alist, frame-creation-function-alist):
+	(window-system-initialization-alist): Add w32 entries.
+
+0000-00-00  Juri Linkov  <juri@jurta.org>
 
 	* loadup.el: Add "button" loading after "faces" and move "startup"
 	to load after "button".
 
-2007-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term/xterm.el (terminal-init-xterm): Fix merge issue.
+	* loadup.el: Load mac-win on a Mac. Avoid loading both x-win and
+	mac-win.
 
-2007-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+0000-00-00  Jason Rumney  <jasonr@gnu.org>
+
+	* loadup.el: Only load x-dnd and x-win when X is compiled in.
+	Load w32-win and dependencies on windows-nt.
+
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
+
+	* loadup.el: Delay loading env; mule-conf gets confused by cl
+	during bootstrap.  Load termdev as well.  Reorganize order of
+	loading x-dnd, term/x-win and dnd.
+
+0000-00-00  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-process-filter): Fix typo in docstring.
+
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
+
+	* talk.el (talk): New function.
+	(talk-handle-delete-frame): New function.
+	(talk-add-display): Open a new frame only if FRAME was not a
+	frame.
+
+	* ediff-wind.el (ediff-setup-windows-automatic): New function.
+	(ediff-window-setup-function): Use it as default.
+
+	* help-fns.el (describe-variable): Describe frame-local variables
+	correctly.
+
+	* menu-bar.el (menu-bar-open): New function.
+	Bind it to f10.
+	* term/x-win.el: Don't bind f10.
+	* tmm.el: Remove autoload binding for f10.
+
+	* termdev.el: New file.
+	* Makefile.in (lisp, shortlisp): Add termdev.elc.
+	* makefile.MPW (shortlisp): Ditto.
+
+	* international/mule-cmds.el (set-locale-environment): Fix getenv
+	call. Use save-buffers-kill-terminal. Ignore window-system; always
+	set the keyboard coding system.
+
+	(set-display-table-and-terminal-coding-system): Add DISPLAY
+	parameter.  Pass it to set-terminal-coding-system.
+	(set-locale-environment): Add DISPLAY parameter.
+
+	* international/encoded-kb.el (encoded-kbd-setup-display): Use
+	`set-input-meta-mode'. Fix broken condition before set-input-mode.
+	(saved-key-translation-map): Remove.
+	(encoded-kbd-mode): Remove.
+	(encoded-kbd-setup-display): New function.
+
+	* international/encoded-kb.el (saved-input-mode): Delete variable.
+	(encoded-kbd-setup-display): Store the saved input method as a terminal
+	parameter. Add keymap parameter.  Use it instead of changing key-translation-map directly.
+
+	* international/mule.el (keyboard-coding-system): Test for
+	encoded-kbd-setup-display, not encoded-kbd-mode.
+	(set-terminal-coding-system, set-keyboard-coding-system): Add
+	DISPLAY parameter.
+
+	* international/mule.el (set-keyboard-coding-system): Use
+	encoded-kbd-setup-display.
+
+	* double.el (double-setup): Add note.
+
+	* term/README: Update.
+
+	* term/x-win.el (x-setup-function-keys): New function.  Move
+	function-key-map tweaks here. Protect against multiple calls on
+	the same terminal. Use terminal-local binding of
+	local-function-key-map instead of function-key-map.
+	(x-initialize-window-system): Make a copy of pure list. Pass a
+	frame getenv.
+
+	* term/vt200.el: Use terminal-local binding of
+	local-function-key-map instead of function-key-map.
+	* term/vt201.el: Ditto.
+	* term/vt220.el: Ditto.
+	* term/vt240.el: Ditto.
+	* term/vt300.el: Ditto.
+	* term/vt320.el: Ditto.
+	* term/vt400.el: Ditto.
+	* term/vt420.el: Ditto.
+	* term/AT386.el: Ditto.
+	* term/internal.el: Ditto.
+	* term/iris-ansi.el: Ditto.
+	* term/lk201.el: Ditto.
+	* term/mac-win.el: Ditto.
+	* term/news.el: Ditto.
+	* term/rxvt.el: Ditto.
+	* term/sun.el: Ditto.
+	* term/tvi970.el: Ditto.
+	* term/wyse50.el: Ditto.
+	* term/lk201.el: Ditto.
+
+	* term/xterm.el: Speed up load time by protecting
+	`substitute-key-definition' and `define-key' calls against
+	multiple execution. Use terminal-local binding of
+	local-function-key-map instead of function-key-map. Pass a frame
+	to getenv.
+	* term/rxvt.el: Ditto.
+
+	* subr.el (with-selected-frame): New function.
+	(read-quoted-char): Use terminal-local binding of
+	local-function-key-map instead of function-key-map.
+
+	* edmacro.el (edmacro-format-keys): Use terminal-local binding of
+	local-function-key-map instead of function-key-map.
+	* emulation/cua-base.el (cua--pre-command-handler): Ditto.
+	* isearch.el (isearch-other-meta-char): Ditto.
+	* xt-mouse.el: Ditto.
+
+	* simple.el (normal-erase-is-backspace-mode): Rewrite for multiple
+	display support.
+	(normal-erase-is-backspace-setup-frame): New function.
+
+0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
 
         * env.el (read-envvar-name): Don't consider the environment frame
         param.
@@ -22,582 +174,124 @@
         (server-process-filter): Likewise. Also set COLORFGBG and
         COLORTERM.
 
-	* term/x-win.el (x-menu-bar-open): Use accelerate-menu.
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
-2007-06-23  Dan Nicolaescu  <dann@ics.uci.edu>
+	* term/linux.el (terminal-init-linux): Use `set-input-meta-mode'.
 
-	* term/xterm.el (terminal-init-xterm): Fix previous change.
-
-2007-06-18  Dan Nicolaescu  <dann@ics.uci.edu>
-
-	* term/xterm.el (terminal-init-xterm): Revert bad merge from trunk.
-
-2007-06-12  Juanma Barranquero  <lekktu@gmail.com>
-
-	* server.el (server-process-filter): Fix typo in docstring.
-
-2007-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
-
-	* loadup.el: Use a better feature test on a mac.
-
-2007-05-20  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Don't change
-	default-directory in *scratch*.
-
-	* mail/emacsbug.el (report-emacs-bug-pretest-address): Revert to
-	official Emacs pretest bug report address.
-
-2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
-
-	* term/mac-win.el: Provide mac-win.
-	(mac-initialized): New variable.
-	(mac-initialize-window-system): New function. Move global setup
-	here.
-	(handle-args-function-alist, frame-creation-function-alist):
-	(window-system-initialization-alist): Add mac entries.
-	(x-setup-function-keys): New function containing all the
-	top level function key definitions.
-
-	* loadup.el: Load mac-win on a Mac. Avoid loading both x-win and
-	mac-win.
-
-2007-05-17  Jason Rumney  <jasonr@gnu.org>
-
-	* term/w32-win.el (internal-face-interactive): Remove obsolete function.
-
-2007-05-16  Jason Rumney  <jasonr@gnu.org>
-
-	* term/w32-win.el: Reorder to match x-win.el more closely.
-	(x-setup-function-keys): Use local-function-key-map.
-	(w32-initialized): New variable.
-	(w32-initialize-window-system): Set it.
-	Move more global setup here.
-
-2007-05-16  Jason Rumney  <jasonr@gnu.org>
-
-	* term/w32-win.el (x-setup-function-keys): New function.
-	(w32-initialize-window-system): Move non function key global setup
-	here.
-
-2007-05-16  Jason Rumney  <jasonr@gnu.org>
-
-	* term/w32-win.el: Provide w32-win.
-	Don't throw error when global window-system not w32.
-	(x-cut-buffer-max): Remove.
-	(w32-initialize-window-system): New function.
-	(handle-args-function-alist, frame-creation-function-alist):
-	(window-system-initialization-alist): Add w32 entries.
-
-	* loadup.el: Only load x-dnd and x-win when X is compiled in.
-	Load w32-win and dependencies on windows-nt.
-
-2007-05-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
-
-	* env.el (getenv): Restore David Kastrup's fix.
-	(environment): Add optional frame parameter.
-
-	* mule-cmds.el (set-locale-environment): Fix getenv call.
-	* term/rxvt.el (rxvt-set-background-mode): Ditto.
-	* x-win.el (x-initialize-window-system, terminal-init-xterm): Ditto.
-
-	* server.el (server-with-environment): Restore the original
-	environment.
-
-2007-05-14  David Kastrup  <dak@gnu.org>
-
-	* env.el (getenv): Fix reverted by demand of Dan Nicolaescu
-	because it exposes further problems.
-
-2007-05-13  David Kastrup  <dak@gnu.org>
+0000-00-00  David Kastrup  <dak@gnu.org>
 
 	* env.el (getenv): Pass frame to getenv-internal.
 
-2007-02-24  Karoly Lorentey  <karoly@lorentey.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
-	* ldefs-boot.el: Regenerate.
+	* cus-start.el: Remove bogus window-system reference from GTK test.
 
-2006-10-14  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/x-win.el (x-initialize-window-system): Make a copy of pure list.
-
-2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* bindings.el (mode-line-client): Don't set the local-map and
-	mouse-face properties.
-
-2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* menu-bar.el (menu-bar-open): New function.
-	Bind it to f10.
-
-	* term/x-win.el: Don't bind f10.
-
-	* tmm.el: Remove autoload binding for f10.
-
-	* ldefs-boot.el: Regenerate.
-
-2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (make-frame): Always inherit 'environment and 'client
-	parameters.
-
-2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el (xterm-function-map): Fix typo.
-
-2006-05-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* env.el (read-envvar-name): Remove reference to global-environment.
-	(setenv-internal): New function.
-	(setenv): Use it.  Always set process-environment.  Update docs.
-	(getenv): Update docs.
-	(environment): Rewrite for the new environment design.  Update docs.
-
-	* frame.el (frame-initialize): Copy the environment from the
-	initial frame.
-
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/iris-ansi.el (iris-function-map): Fix read syntax.
-	* term/lk201.el (lk201-function-map): Fix read syntax.
-
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* faces.el (tty-create-frame-with-faces): Set up faces and
-	background mode only after the terminal has been initialized.
-	(frame-set-background-mode): Handle the 'background-mode terminal
-	parameter.
-	(tty-run-terminal-initialization): Add type option.
-
-	* term/README: Update.
-	* term/rxvt.el: Simplify.
-	* term/xterm.el: Simplify and fix.
-	* term/*.el: Simplify and fix.
-
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* faces.el (tty-find-type): New function.
-	(tty-run-terminal-initialization): Load files just once per Emacs
-	session, and call terminit functions just once per terminal.
-
-2006-04-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* vc.el (vc-annotate-color-map): Undo previous change.
-
-2006-04-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* vc.el (vc-annotate-color-map): Call `tty-display-color-p' only on
-	ttys.
-
-2006-04-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* startup.el (normal-splash-screen): Fix typo.
-
-2006-04-01  Karoly Lorentey  <lorentey@elte.hu>
-
-	* mh-e/mh-e.el (mh-strip-package-version): Add autoload cookie.
-
-	* ldefs-boot.el: Update.
-
-2006-04-01  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/x-win.el (x-setup-function-keys): Protect against multiple
-	calls on the same terminal.
-
-2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Accept `-dir' command.  Set
-	`default-directory' of the *scratch* buffer on connect, if applicable.
-
-2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* tool-bar.el (toggle-tool-bar-mode-from-frame): New function.
-
-	* menu-bar.el (toggle-menu-bar-mode-from-frame): New function.
-	(menu-bar-showhide-menu): Use them to change "Menu-bar" and
-	"Tool-bar" toggles to reflect the state of the current frame.
-
-2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* faces.el (x-create-frame-with-faces): Remove bogus check for first
-	frame.  Call `tool-bar-setup'.
-
-	* frame.el (window-system-default-frame-alist): Enhance doc string.
-
-	* frame.el (frame-notice-user-settings): Don't put 'tool-bar-lines
-	in `default-frame-alist' when initial frame is on a tty.
-
-	* frame.el (modify-all-frames-parameters): Simplify using
-	`assq-delete-all'.  Remove specified parameters from
-	`window-system-default-frame-alist'.
+	* files.el (save-buffers-kill-terminal): New function.
+	(ctl-x-map): Change binding of C-x C-c to
+	save-buffers-kill-terminal.
 
 	* fringe.el (set-fringe-mode): Simplify and fix using
 	`modify-all-frames-parameters'.
-	* menu-bar.el (menu-bar-mode): Ditto.
 	* scroll-bar.el (set-scroll-bar-mode): Ditto.
 	* tool-bar.el (tool-bar-mode): Ditto.  Remove 'tool-bar-map length
 	check before calling `tool-bar-setup'.
+	(tool-bar-setup): New variable.
+	(tool-bar-setup): Use it to guard against multiple calls.  Add
+	optional frame parameter, and select that frame before adding
+	items.
+	(toggle-tool-bar-mode-from-frame): New function.
 
-	* tool-bar.el (tool-bar-setup): New variable.
+	* menu-bar.el (toggle-menu-bar-mode-from-frame): New function.
+	(menu-bar-showhide-menu): Use toggle-menu-bar-mode-from-frame and
+	toggle-tool-bar-mode-from-frame to change "Menu-bar" and
+	"Tool-bar" toggles to reflect the state of the current frame.
+	(menu-bar-mode): Simplify and fix using
+	`modify-all-frames-parameters'.
 
-	* tool-bar.el (tool-bar-setup): Use it to guard against multiple
-	calls.  Add optional frame parameter, and select that frame before
-	adding items.
-
-2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* mail/emacsbug.el (report-emacs-bug-pretest-address):
-	Set pretest address to multi-tty@lists.fnord.hu.
-
-2006-03-21  Karoly Lorentey  <lorentey@elte.hu>
-
-	* startup.el (display-startup-echo-area-message):
-	Handle `inhibit-startup-echo-area-message' here.
-	(command-line-1): Moved from here.
-
-2006-03-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* ediff-wind.el (ediff-window-setup-function): Fix typo.
-
-2006-03-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* subr.el (with-selected-frame): Make sure the current buffer is
-	restored as well.
-
-	* faces.el (x-create-frame-with-faces): Don't make frame visible
-	until we are done setting up all its parameters.
-
-	* ediff-wind.el (ediff-setup-windows-automatic): New function.
-	(ediff-window-setup-function): Use it as default.
-
-2006-02-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-buffer-clients): Doc update.
-	(server-delete-client): Handle quits in kill-buffer.  Don't kill
-	modified buffers.  Add extra logging.
-	(server-visit-files): Don't set `server-existing-buffer' if the
-	buffer already has other clients.
-
-2006-02-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Switch to *scratch* immediately
-	after creating the frame, before evaluating any -evals.
-
-2006-02-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* loadup.el: Delay loading env; mule-conf gets confused by cl during
-	bootstrap.
-
-2006-01-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Protect `display-splash-screen'
-	call in a condition-case.  Explain why.
-
-2006-01-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* simple.el (normal-erase-is-backspace-mode): Fix enabled/disabled
-	logic.
-
-2006-01-02  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-handle-delete-frame): Fix last frame check.
-
-2006-01-02  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-handle-delete-frame): Fix typo.
-
-	* server.el (server-process-filter): Call
-	`display-startup-echo-area-message' before `display-splash-screen'.
-
-2006-01-02  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (make-frame): Also inherit 'client parameter.  Don't
-	override explicitly specified values with inherited ones.
-
-	* server.el (server-delete-client): Delete frames after deleting
-	the tty.  Clear 'client parameter before deleting a frame.
-
-	* server.el (server-handle-delete-frame): Delete the client
-	if this was its last frame.
-
-	* startup.el (fancy-splash-default-action): Fix typo in comment.
-
-2005-12-30  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Don't display the splash screen
-	when no frame was created.
-
-2005-12-30  Karoly Lorentey  <lorentey@elte.hu>
-
-	* startup.el (fancy-splash-screens): Use `overriding-local-map'
-	instead of `overriding-terminal-local-map' for now; the latter doesn't
-	work right, it looses keypresses to another terminal.
-
-2005-12-30  Karoly Lorentey  <lorentey@elte.hu>
-
-	* startup.el (fancy-splash-screens): Use
-	`overriding-terminal-local-map' to set up keymap.  Install a
-	`delete-frame-functions' hook to catch `delete-frame' events.  Ignore
-	`select-window' events to cope better with `focus-follows-mouse'.
-	Don't switch back to the original buffer if the splash frame has been
-	killed.
-	(normal-splash-screen): Don't let-bind `mode-line-format'; it changes
-	the global binding---setq it instead.
-	(display-splash-screen): Don't do anything if the splash screen is
-	already displayed elsewhere.
-	(fancy-splash-exit, fancy-splash-delete-frame): New functions.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
+	* faces.el (tty-run-terminal-initialization): New function.
+	(tty-create-frame-with-faces): Use it. Set up faces and
+	background mode only after the terminal has been initialized.
+	Call terminal-init-*.  Don't load the initialization file more
+	than once.  Call set-locale-environment.
+	(frame-set-background-mode): Handle the 'background-mode terminal
+	parameter.
+	(tty-find-type): New function.
+	(x-create-frame-with-faces): Remove bogus check for
+	first frame.  Call `tool-bar-setup'.  Don't make frame visible
+	until we are done setting up all its parameters.  Call
+	x-setup-function-keys.
 
 	* bindings.el (mode-line-client): New variable.
 	(help-echo): Add it to the default mode-line format.
 
-	* files.el (mode-line-client): Set it as risky.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Show the Emacs splash screen
-	and startup echo area message.  Display the *scratch* buffer by
-	default.
-
-	* startup.el (fancy-splash-screens): Restore previous buffer, even
-	if it's *scratch*.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* files.el (save-buffers-kill-display): Rename to `save-buffers-kill-terminal'.
-	(save-buffers-kill-terminal, ctl-x-map): Update for renames.
-
-	* frame.el (make-frame): Rename 'device frame parameter to
-	'terminal.  Update.
-	(frames-on-display-list, framep-on-display, suspend-frame): Update
-	for renames.
-	(selected-display): Rename to `selected-terminal'.
-
-	* server.el (server-save-buffers-kill-display): Rename to
-	`server-save-buffers-kill-terminal'.
-	(server-delete-client, server-handle-delete-frame)
-	(server-handle-suspend-tty, server-process-filter)
-	(server-switch-buffer): Update for renames.
-
-	* startup.el (normal-splash-screen, normal-splash-screen): Update
-	for renames.
-
-	* talk.el (talk): Update for renames.
-
-	* termdev.el (terminal-id): Update for renames.
-
-	* xt-mouse.el (turn-on-xterm-mouse-tracking-on-terminal)
-	(turn-off-xterm-mouse-tracking-on-terminal)
-	(xterm-mouse-handle-delete-frame): Update for renames.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* env.el (setenv, getenv): Update doc strings.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* env.el (read-envvar-name, setenv, getenv, environment): Use frame
-	parameters to store the local environment, not terminal parameters.
-
-	* server.el (server-process-filter): Store the local environment in a
-	frame (not terminal) parameter.  Do not try to decode environment
-	strings.
-
-	* frame.el (make-frame): Set up the 'environment frame parameter,
-	when needed.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* env.el: Require cl for byte compilation. (For `block' and `return'.)
-	(read-envvar-name): Update for rename.  Include
-	`process-environment' as well.
-	(setenv): Update for rename also handle `process-environment'.
-	Update doc.
-	(getenv): Update doc.
+	* env.el Require cl for byte compilation (for `block' and
+	`return').
 	(environment): New function.
 	(let-environment): New macro.
-
-	* font-lock.el (lisp-font-lock-keywords-2): Add `let-environment'.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* cus-start.el: Fix compilation error.
-
-2005-12-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* env.el (setenv, getenv): Add optional terminal parameter.  Update docs.
+	(setenv, getenv): Add optional terminal parameter.  Update docs.
+	(setenv-internal): New function.
+	(setenv): Use it.  Always set process-environment.  Update docs.
+	(getenv): Update docs.
+	(read-envvar-name, setenv, getenv): Use frame parameters
+	to store the local environment, not terminal parameters.  Include
+	`process-environment' as well.
 	(setenv): Handle `local-environment-variables'.
-	(read-envvar-name): Also allow (and complete) local
-	environment variables on the current terminal.
 
-	* termdev.el (terminal-id): Make parameter optional.
-	(terminal-getenv, terminal-setenv, with-terminal-environment):
-	Disable functions.
-
-	* mule-cmds.el (set-locale-environment): Convert `terminal-getenv'
-	calls to `getenv'.
-	* rxvt.el (rxvt-set-background-mode): Ditto.
-	* x-win.el (x-initialize-window-system): Ditto.
-	* xterm.el (terminal-init-xterm): Ditto.
-
-	* server.el (server-process-filter): Fix reference to the 'display
-	frame parameter.
-
-2005-12-25  Karoly Lorentey  <lorentey@elte.hu>
-
-	* termdev.el (terminal-parameter-alist, terminal-parameters)
-	(terminal-parameter-p, terminal-parameter, set-terminal-parameter)
-	(terminal-handle-delete-frame): Remove.
-
-	* simple.el (normal-erase-is-backspace-setup-frame)
-	(normal-erase-is-backspace-mode): Rephrase things
-	without terminal-parameter-p.
-
-	* termdev.el (terminal-getenv, terminal-setenv)
-	(with-terminal-environment): Ditto.
-
-2005-12-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* international/encoded-kb.el (encoded-kbd-setup-display): Use
-	`set-input-meta-mode'.
-	* linux.el (terminal-init-linux): Ditto.
-
-2005-12-22  Karoly Lorentey  <lorentey@elte.hu>
-
-	* termdev.el: New file.  Move terminal parameter-related functions
-	here from frame.el.
-	(terminal-getenv, with-terminal-environment): Reimplement and extend.
-	(terminal-setenv, terminal-setenv-internal): New functions.
-
-	* frame.el (make-frame-on-tty, framep-on-display, suspend-frame):
+	* frame.el (make-frame): Always inherit 'environment and 'client
+	parameters. Set up the 'environment frame parameter, when needed.
+	Also inherit 'client parameter.  Don't override explicitly
+	specified values with inherited ones. Add 'terminal frame
+	parameter.  Append window-system-default-frame-alist to parameters
+	before calling frame-creation-function.
+	(frame-initialize): Copy the environment from the initial frame.
+	(window-system-default-frame-alist): Enhance doc string.
+	(frame-notice-user-settings): Don't put 'tool-bar-lines in
+	`default-frame-alist' when initial frame is on a tty.
+	(modify-all-frames-parameters): Simplify using `assq-delete-all'.
+	Remove specified parameters from
+	`window-system-default-frame-alist'.
+	(make-frame-on-tty, framep-on-display, suspend-frame):
 	Extend doc string, update parameter names.
-	(terminal-id, terminal-parameter-alist, terminal-parameters)
-	(terminal-parameter-p, terminal-parameter, set-terminal-parameter)
-	(terminal-handle-delete-frame, terminal-getenv, terminal-getenv)
-	(with-terminal-environment): Move to termdev.el.
-
-	* loadup.el: Load termdev as well.
-	* Makefile.in (lisp, shortlisp): Add termdev.elc.
-	* makefile.MPW (shortlisp): Ditto.
-
-	* ebuff-menu.el (electric-buffer-menu-mode-map): Bind C-z to
-	`suspend-frame', not `suspend-emacs'.
-	* echistory.el (electric-history-map): Ditto.
-	* ebrowse.el (ebrowse-electric-list-mode-map): Ditto.
-	* ebrowse.el (ebrowse-electric-position-mode-map): Ditto.
-
-	* startup.el (normal-splash-screen): Use `save-buffers-kill-display'
-	instead of `save-buffers-kill-emacs'.
-
-	* x-win.el (x-initialize-window-system): Add 'global-ok option to
-	`terminal-getenv'.
-
-2005-11-19  Karoly Lorentey  <lorentey@elte.hu>
-
-	* loadup.el: Don't load server.
-	* ldefs-boot.el: Update.
-
-	* server.el (server-save-buffers-kill-display): Add autoload
-	cookie.  Move stuff not specific to server into
-	`save-buffers-kill-display'.
-
-	* files.el (save-buffers-kill-display): New function.
-	(ctl-x-map): Bind it to C-x C-c.
-
-	* frame.el (terminal-getenv): New function.
-	* international/mule-cmds.el (set-locale-environment): Use it.
-
-	* frame.el (with-terminal-environment): New macro.
-
-	* server.el (server-getenv, server-with-client-environment):
-	Remove.
-	(server-getenv-from, server-with-environment): New functions.
-	(server-process-filter): Change syntax of environment variables.
-	Put environment into terminal parameters, not client parameters.
-
-	* term/rxvt.el: Don't require server.
-	(rxvt-set-background-mode): Use terminal-getenv, not server-getenv.
-	* term/x-win.el (x-initialize-window-system): Ditto.
-	* term/xterm.el (terminal-init-xterm): Ditto.
-
-2005-11-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* loadup.el: Reorganize order of loading x-dnd vs. term/x-win.
-
-2005-11-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (frames-on-display-list): Use terminal-id to get the
+	(frames-on-display-list): Use terminal-id to get the
 	display id.
-	(terminal-id): Also accept X display strings and tty device names.
+	(frame-notice-user-settings): Extend to apply
+	settings in `window-system-default-frame-alist' as well.
+	(terminal-id, terminal-parameters, terminal-parameter)
+	(set-terminal-parameter, terminal-handle-delete-frame): New functions.
+	(delete-frame-functions): Add to `delete-frame-functions' hook.
+	(blink-cursor-mode): Adapt blink-cursor-mode default
+	value from startup.el.
+	(make-frame-on-display): Protect condition on x-initialized when
+	x-win.el is not loaded.  Update doc.
+	(suspend-frame): Use display-controlling-tty-p to decide between
+	suspend-emacs and suspend-tty.
+	(frames-on-display-list): Update for display ids.
+	(framep-on-display): Ditto.
+	(suspend-frame): Use display-name, not frame-tty-name.
+	(selected-terminal): New function.
 
-	Revision:
-
-	* edmacro.el (edmacro-format-keys): Remove terminal-local-value calls.
-	* emulation/cua-base.el (cua--pre-command-handler-1): Ditto.
-	* international/encoded-kb.el (encoded-kbd-setup-display): Ditto.
-	* isearch.el (isearch-other-meta-char): Ditto.
-	* obsolete/keyswap.el (the-table): Ditto.
-	* simple.el (normal-erase-is-backspace-mode): Ditto.
-	* subr.el (keyboard-translate, read-quoted-char): Ditto.
-	* term/AT386.el (terminal-init-AT386): Ditto.
-	* term/internal.el: Ditto.
-	* term/iris-ansi.el (terminal-init-iris-ansi): Ditto.
-	* term/lk201.el (terminal-init-lk201): Ditto.
-	* term/mac-win.el: Ditto.
-	* term/news.el (terminal-init-news): Ditto.
-	* term/rxvt.el (terminal-init-rxvt): Ditto.
-	* term/sun.el (terminal-init-sun): Ditto.
-	* term/tvi970.el (terminal-init-tvi970): Ditto.
-	* term/vt200.el (terminal-init-vt200): Ditto.
-	* term/vt201.el (terminal-init-vt201): Ditto.
-	* term/vt220.el (terminal-init-vt220): Ditto.
-	* term/vt240.el (terminal-init-vt240): Ditto.
-	* term/vt300.el (terminal-init-vt300): Ditto.
-	* term/vt320.el (terminal-init-vt320): Ditto.
-	* term/vt400.el (terminal-init-vt400): Ditto.
-	* term/vt420.el (terminal-init-vt420): Ditto.
-	* term/wyse50.el (terminal-init-wyse50): Ditto.
-	* term/x-win.el (x-setup-function-keys): Ditto.
-	* term/xterm.el (terminal-init-xterm): Ditto.
-
-2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
-
-	* subr.el (keyboard-translate): Fix stupid thinko.
-
-2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
-
-	* subr.el (keyboard-translate): Use `terminal-local-value' to
-	access `keyboard-translate-table'.
-	* obsolete/keyswap.el: Ditto.
-
-2005-10-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* mh-e/.arch-inventory: Ignore mh-loaddefs.el.
-
-2005-10-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (terminal-parameter-p): New function.
-	(terminal-parameter): Use it.
-
-	* simple.el (normal-erase-is-backspace): Add 'maybe option, set it
-	as default.
-	(normal-erase-is-backspace-mode): Rewrite for multiple display
-	support.
-	(normal-erase-is-backspace-setup-frame): New function.
-
-	* frame.el (make-frame): Call it.
-	* startup.el (command-line): Call it.
-
-2005-09-11  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Use a dummy client with
-	--no-wait's X frames.
-	(server-save-buffers-kill-display): Explicitly delete frame after
-	deleting its client, in case it was a dummy.
-
-2005-09-11  Karoly Lorentey  <lorentey@elte.hu>
+	* startup.el (display-startup-echo-area-message): Handle
+	`inhibit-startup-echo-area-message' here.
+	(command-line-1): Moved from here.
+	(fancy-splash-screens): Use `overriding-local-map' instead of
+	`overriding-terminal-local-map' for now; the latter doesn't work
+	right, it looses keypresses to another terminal.  Use
+	`overriding-terminal-local-map' to set up keymap.  Install a
+	`delete-frame-functions' hook to catch `delete-frame' events.
+	Ignore `select-window' events to cope better with
+	`focus-follows-mouse'.  Don't switch back to the original buffer
+	if the splash frame has been killed. Restore previous buffer, even
+	if it's *scratch*.
+	(normal-splash-screen): Don't let-bind `mode-line-format'; it
+	changes the global binding---setq it instead. Use
+	`save-buffers-kill-terminal'.
+	(display-splash-screen): Don't do anything if the splash screen is
+	already displayed elsewhere.
+	(fancy-splash-exit, fancy-splash-delete-frame): New functions.
+	(command-line): Replace duplicated code with a call to
+	tty-run-terminal-initialization. Don't load the terminal
+	initialization file more than once. Remove call to nonexistent
+	function `set-locale-translation-file-name'.
 
 	* xt-mouse.el (xterm-mouse-x, xterm-mouse-y): Convert to terminal
 	parameters.
@@ -613,394 +307,70 @@
 	(suspend-tty-functions, resume-tty-functions): Install extra hooks
 	for multi-tty.
 
-2005-09-11  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): In `-position LINE' handler,
-	don't ruin the request string until the line number is extracted.  Log
-	opened files.
-
-2005-09-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Handle -current-frame command.
-	Don't create frames when it is given.  Don't bind X frames to the
-	client when we are in -no-wait mode.
-
-2005-09-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* cus-start.el: Remove bogus window-system reference from GTK test.
-
-2005-09-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el (terminal-init-xterm): Protect function-key-map
-	against multiple invocations on the same terminal.
-
-2005-09-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (frame-notice-user-settings): Extend to apply
-	settings in `window-system-default-frame-alist' as well.
-
-2005-09-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* faces.el (tty-run-terminal-initialization): New function.
-	(tty-create-frame-with-faces): Use it.
-
-	* startup.el (command-line): Replace duplicated code with a call to
-	tty-run-terminal-initialization.
-
-2005-09-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* faces.el (tty-create-frame-with-faces): Call terminal-init-*.
-	Don't load the initialization file more than once.
-
-	* startup.el (command-line): Don't load the terminal initialization
-	file more than once.
-
-2005-09-04  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el (xterm-function-map): Fix key definitions.
-
-2005-07-22  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (make-frame): Append window-system-default-frame-alist to
-	parameters before calling frame-creation-function.
-
-2005-07-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* international/encoded-kb.el (encoded-kbd-setup-display): Fix
-	broken condition before set-input-mode.
-
-2005-07-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* double.el (double-setup): Replace global-key-translation-map with key-translation-map.
-	* international/encoded-kb.el (encoded-kbd-setup-display): Ditto.
-	* international/iso-transl.el: Ditto.
-	* obsolete/iso-acc.el (iso-accents-customize): Ditto.
-
-	* edmacro.el (edmacro-format-keys): Use terminal-local binding of
-	local-function-key-map instead of function-key-map.
-	* emulation/cua-base.el (cua--pre-command-handler): Ditto.
-	* isearch.el (isearch-other-meta-char): Ditto.
-	* subr.el (read-quoted-char): Ditto.
-	* term/vt200.el: Ditto.
-	* term/vt201.el: Ditto.
-	* term/vt220.el: Ditto.
-	* term/vt240.el: Ditto.
-	* term/vt300.el: Ditto.
-	* term/vt320.el: Ditto.
-	* term/vt400.el: Ditto.
-	* term/vt420.el: Ditto.
-
-	* simple.el (normal-erase-is-backspace-mode): Add todo note.
-	* xt-mouse.el: Ditto.
-
-	* term/AT386.el: Adapt for renaming of function-key-map to
-	local-function-key-map.
-	* term/internal.el: Ditto.
-	* term/iris-ansi.el: Ditto.
-	* term/lk201.el: Ditto.
-	* term/mac-win.el: Ditto.
-	* term/news.el: Ditto.
-	* term/rxvt.el: Ditto.
-	* term/sun.el: Ditto.
-	* term/tvi970.el: Ditto.
-	* term/wyse50.el: Ditto.
-	* term/x-win.el (x-setup-function-keys): Ditto.
-	* term/xterm.el: Ditto.
-
-2005-07-11  Karoly Lorentey  <lorentey@elte.hu>
-
 	* server.el: Use `device' instead of `display' or `display-id' in
 	variable and client parameter names.
-
-2005-07-11  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (make-frame): Rename frame parameter `display-id' to
-	`device'.
-
-2005-07-06  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (terminal-handle-delete-frame): Check that the frame is
-	alive.
-	* server.el (server-handle-delete-frame): Ditto.  Remove bogus comment.
-
-2005-07-06  Karoly Lorentey  <lorentey@elte.hu>
-
-	* international/mule-cmds.el (set-locale-environment): Use
-	server-getenv, not getenv.
-
-	* server.el (server-handle-delete-frame): Add note on possible race
-	condition.
-
-2005-07-06  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (terminal-id, terminal-parameters, terminal-parameter)
-	(set-terminal-parameter, terminal-handle-delete-frame): New functions.
-	(delete-frame-functions): Add to `delete-frame-functions' hook.
-	(terminal-parameter-alist): New variable.
-
-	* international/encoded-kb.el (saved-input-mode): Delete variable.
-	(encoded-kbd-setup-display): Store the saved input method as a terminal
-	parameter.
-
-2005-06-30  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el: Remove pointless conditional around key
-	substitution block.
-
-2005-06-28  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el: Move key substitutions back before the
-	define-keys.
-
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el: Don't do the key substitutions unless f13-f60 are
-	really defined.
-
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/AT386.el: Wrap function-key-map accesses
-	in (set-)terminal-local-value.
-	* term/internal.el: Ditto.
-	* term/iris-ansi.el: Ditto.
-	* term/lk201.el: Ditto.
-	* term/mac-win.el: Ditto.
-	* term/news.el: Ditto.
-	* term/rxvt.el: Ditto.
-	* term/sun.el: Ditto.
-	* term/tvi970.el: Ditto.
-	* term/wyse50.el: Ditto.
-	* term/x-win.el: Ditto.
-	* term/xterm.el: Ditto.
-
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
-
-	* international/encoded-kb.el (encoded-kbd-setup-keymap): Add keymap
-	parameter.  Use it instead of changing key-translation-map directly.
-	(encoded-kbd-setup-display): Use terminal-local-value and
-	set-terminal-local-value to access key-translation-map.  Remove
-	debugging messages.
-
-	* international/mule.el (keyboard-coding-system): Test for
-	encoded-kbd-setup-display, not encoded-kbd-mode.
-
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
-
-	* ldefs-boot.el: Regenerate.
-
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
-
-	* international/encoded-kb.el (saved-key-translation-map): Remove.
-	(encoded-kbd-mode): Remove.
-	(encoded-kbd-setup-display): New function.
-
-	* international/mule.el (set-keyboard-coding-system): Use it.
-
-2005-06-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/mac-win.el (mac-handle-language-change): Use
-	global-key-translation-map instead of key-translation-map.
-	* obsolete/iso-acc.el (iso-accents-customize): Ditto.
-	* international/iso-transl.el (iso-transl-ctl-x-8-map): Ditto.
-	* double.el (double-setup): Ditto.
-
-2005-06-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/x-win.el (x-setup-function-keys): New function.  Move
-	function-key-map tweaks here.
-
-	* faces.el (x-create-frame-with-faces): Call x-setup-function-keys.
-
-	* term/iris-ansi.el: Update for terminal-local function-key-map.
-	* term/lk201.el: Ditto.
-	* term/news.el: Ditto.
-	* term/rxvt.el: Ditto.
-	* term/sun.el: Ditto.
-	* term/xterm.el: Ditto.
-
-	* startup.el: Cosmetic change.
-
-2005-05-14  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el: Speed up load time by protecting
-	`substitute-key-definition' and `define-key' calls against multiple
-	execution.
-
-	* term/rxvt.el: Ditto.
-	* term/lk201.el: Ditto.
-
-2005-05-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Set locale environment
-	variables from client while creating tty frames.
-
-	* faces.el (tty-create-frame-with-faces): Call set-locale-environment.
-
-	* international/mule-cmds.el
-	(set-display-table-and-terminal-coding-system): Add DISPLAY
-	parameter.  Pass it to set-terminal-coding-system.
-	(set-locale-environment): Add DISPLAY parameter.
-
-2005-05-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* international/mule-cmds.el (set-locale-environment): Ignore
-	window-system; always set the keyboard coding system.
-
-	* international/mule.el (set-terminal-coding-system)
-	(set-keyboard-coding-system): Add DISPLAY parameter.
-
-2005-05-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/xterm.el: Protect extended function-key-map from being added
-	to the real function-key-map each time the file is loaded.
-	(xterm-function-map): New variable.
-
-	* term/rxvt.el: Ditto.
-	(rxvt-function-map): New variable.
-
-	* term/lk201.el: Add note on buggy globalness of define-key.
-	* term/iris-ansi.el: Ditto.
-	* term/news.el: Ditto.
-	* term/sun.el: Ditto.
-
-2005-04-25  Karoly Lorentey  <lorentey@elte.hu>
-
-	* help-fns.el (describe-variable): Describe frame-local variables
-	correctly.
-
-2005-04-18  Karoly Lorentey  <lorentey@elte.hu>
-
-	* loadup.el: Load dnd.el before x-dnd.el.
-
-2005-03-28  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Disable call to
-	configure-display-for-locale.
-
-2005-03-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* startup.el (command-line): Remove call to nonexistent function
-	`set-locale-translation-file-name'.
-
-2005-03-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term/rxvt.el: Don't embed `(require 'server)' in eval-when-compile.
-	* term/xterm.el: Ditto.
-
-2005-02-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): When processing -position
-	command, don't change the request string until the parameters are
-	extracted.
-
-2005-02-18  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (blink-cursor-mode): Adapt blink-cursor-mode default
-	value from startup.el.
-
-2005-02-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-kill-emacs-query-function): Fix typo in docs.
-	(server-save-buffers-kill-display): If emacsclient was started with a
-	list of filenames to edit, then offer to save only these buffers.
-
-2005-02-04  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (make-frame-on-display): Protect condition on
-	x-initialized when x-win.el is not loaded.
-
-	* server.el (server-process-filter): Don't try to create an X frame
-	when Emacs does not support it.  Improve logging.
-
-	* server.el (server-send-string): New function.
-	(server-handle-suspend-tty, server-process-filter): Use it.
-
-	* server.el (server-process-filter, server-unquote-arg)
-	(server-quote-arg): Doc updates.
-
-2004-11-06  Karoly Lorentey  <lorentey@elte.hu>
-
-	* progmodes/gdb-ui.el: Protect define-fringe-bitmap with fboundp.
-
-2004-10-14  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-with-client-environment): New macro.
-	(server-process-filter): Temporarily set ncurses-related environment
-	variables to those of the client while creating a new tty frame.
-
-2004-10-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el: Doc updates.
 	(server-select-display): Remove (unused).
-	(server-handle-suspend-tty): Kill the client in case of errors from
-	process-send-string.
-
-2004-08-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el ("\C-x#"): Fix typo.  (Thanks Han Boetes, Ted Morse and
-	Ami Fischman.)
-
-2004-08-16  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-save-buffers-kill-display): New function.
-
-	* files.el (ctl-x-map): Change binding of C-x C-c to
-	server-save-buffers-kill-display.
-
-2004-07-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* emulation/viper-util.el: Unconditionally fset viper-get-face and
-	viper-color-defined-p under Emacs.
-
-2004-07-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* emulation/viper-init.el (viper-has-face-support-p): Acknowledge
-	that Emacs has face support on ttys.
-
-2004-07-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (suspend-frame): Use display-controlling-tty-p to decide
-	between suspend-emacs and suspend-tty.
-
-2004-07-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-process-filter): Select buffers opened by
-	nowait clients, don't leave them buried under others.  (Reported by
-	Dan Nicolaescu.)
-	(server-visit-files): Return list of buffers created. Update doc.
-
-2004-07-04  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.el (make-frame-on-display): Update doc.
-	(make-frame): Handle display-id parameter.  Update doc.
-	(frames-on-display-list): Update for display ids.
-	(framep-on-display): Ditto.
-	(suspend-frame): Use display-name, not frame-tty-name.
-	(selected-display): New function.
-
-	* server.el (server-delete-client): Use delete-display, not
-	delete-tty.
-	(server-tty-live-p, server-handle-delete-tty): Removed.
-	(server-handle-delete-frame): Delete tty clients, if needed.
-	(server-process-filter): Set the display parameter, and use it
-	when appropriate.
-	(server-handle-suspend-tty): Use the display parameter.
-	(server-start, server-unload-hook): Removed obsolete delete-tty
+	(server-tty-live-p, server-handle-delete-tty): Remove.
+	(server-unquote-arg, server-quote-arg,server-buffer-clients):
+	Update docs.
+	(server-getenv-from)
+	(server-with-environment,server-send-string,server-save-buffers-kill-terminal):
+	New functions.
+	(server-delete-client): Handle quits in kill-buffer.  Don't kill
+	modified buffers.  Add extra logging.
+	(server-visit-files): Don't set `server-existing-buffer' if the
+	buffer already has other clients.  Return list of buffers
+	created. Update doc.  Don't set client-record when nowait.
+	(server-delete-client): Delete frames after deleting the tty.
+	Clear 'client parameter before deleting a frame.  Use
+	delete-display, not delete-tty.
+	(server-handle-delete-frame): Delete the client if this was its
+	last frame. Check that the frame is alive..  Remove bogus comment.
+	Add note on possible race condition.  Delete tty clients, if
+	needed.
+	(server-handle-suspend-tty): Use server-send-string.
+	(server-unload-hook): Removed obsolete delete-tty
 	hook.
+	(server-start): Ask before restarting if the old server still has
+	clients.  Added feedback messages. Removed obsolete delete-tty
+	hook.
+	(server-handle-suspend-tty): Kill the client in case of errors
+	from process-send-string. Use the display parameter.
+	(server-process-filter): Use server-send-string. Accept `-dir'
+	command. Switch to *scratch* immediately after creating the frame,
+	before evaluating any -evals.  Protect `display-splash-screen'
+	call in a condition-case.  Explain why.  Call
+	`display-startup-echo-area-message' before
+	`display-splash-screen'.  Don't display the splash screen when no
+	frame was created.  Show the Emacs splash screen and startup echo
+	area message.  Display the *scratch* buffer by default.  Store the
+	local environment in a frame (not terminal) parameter.  Do not try
+	to decode environment strings.  Fix reference to the 'display
+	frame parameter.  Change syntax of environment variables.  Put
+	environment into terminal parameters, not client parameters.  Use
+	a dummy client with --no-wait's X frames.  In `-position LINE'
+	handler, don't ruin the request string until the line number is
+	extracted.  Log opened files.  Handle -current-frame command.
+	Don't create frames when it is given.  Don't bind X frames to the
+	client when we are in -no-wait mode.  Set locale environment
+	variables from client while creating tty frames.  Disable call to
+	configure-display-for-locale.  When processing -position command,
+	don't change the request string until the parameters are
+	extracted.  Don't try to create an X frame when Emacs does not
+	support it.  Improve logging.  Temporarily set ncurses-related
+	environment variables to those of the client while creating a new
+	tty frame.  Select buffers opened by nowait clients, don't leave
+	them buried under others.  Set the display parameter, and use it
+	when appropriate.
 
-	* talk.el (talk): Always use talk-add-display.
-	(talk-add-tty-frame, talk-handle-delete-tty): Removed.
-	(talk-handle-delete-frame): New function.
-	(talk-add-display): Open a new frame only if parameter was not a frame.
+	* ebuff-menu.el (electric-buffer-menu-mode-map): Bind C-z to
+	`suspend-frame', not `suspend-emacs'.
+	* echistory.el (electric-history-map): Ditto.
+	* ebrowse.el (ebrowse-electric-list-mode-map): Ditto.
+	* ebrowse.el (ebrowse-electric-position-mode-map): Ditto.
 
-2004-07-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-visit-files): Don't set client-record when nowait.
-
-2004-06-08  Karoly Lorentey  <lorentey@elte.hu>
-
-	* server.el (server-start): Ask before restarting if the old server
-	still has clients.  Added feedback messages.
+	* font-lock.el (lisp-font-lock-keywords-2): Add `let-environment'
+	and `with-selected-frame'.
 
 
 ;; Local Variables:
