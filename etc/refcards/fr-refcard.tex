@@ -1,17 +1,17 @@
 % Reference Card for GNU Emacs version 22 on Unix systems
 %**start of header
 \newcount\columnsperpage
-\newcount\letterpaper
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
 % Specify how many you want here.
 
 \columnsperpage=3
 
-% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
-% only when columnsperpage is 2 or 3.
+% PDF output layout.  0 for A4, 1 for Letter (US), a `l' is added for
+% a landscape layout.
 
-\letterpaper=0
+\input pdflayout.sty
+\pdflayout=(0l)
 
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2001, 2002, 2003, 2004,
@@ -82,9 +82,9 @@
 \centerline{traduction fran\c{c}aise de Micha\"el Cadilhac}
 % previously: Eric Jacoboni
 
-Vous pouvez faire et distribuer des copies de cette carte, pourvu que
-la note de copyright et cette note de permission soient conserv\'ees sur
-toutes les copies.
+Vous pouvez faire et distribuer des copies de cette carte, modifiée ou
+non, pourvu que la note de copyright et cette note de permission
+soient conserv\'ees sur toutes les copies.
 
 Pour des copies du manuel GNU Emacs, \'ecrivez \`a la Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
@@ -308,7 +308,7 @@ suivez les instructions. Si vous d\'ebutez, faites \kbd{C-h t} pour un
 \key{D\'ecrire une fonction}{C-h f}
 \key{Obtenir des informations relatives au mode}{C-h m}
 
-\section{R\'ecup\'eration sur erreurs}
+\section{R\'ecup\'eration sur erreur}
 
 \key{{\bf Abandonner} une commande}{C-g}
 \metax{{\bf R\'ecup\'erer} les fichiers apr\`es un crash}{M-x recover-session}
@@ -649,8 +649,8 @@ Autres :
 Exemples de d\'efinition globale de touches en Emacs Lisp :
 
 \beginexample%
-(global-set-key "\\C-cg" 'goto-line)
-(global-set-key "\\M-\#" 'query-replace-regexp)
+(global-set-key (kbd "C-c g") 'search-forward)
+(global-set-key (kbd "M-\#") 'query-replace-regexp)
 \endexample
 
 \section{\'Ecriture de commandes}
@@ -683,7 +683,7 @@ plus de pr\'ecisions.
 \bye
 
 % Local variables:
-% compile-command: "tex fr-refcard"
+% compile-command: "pdftex fr-refcard"
 % End:
 
 % arch-tag: 39d6dc6e-1a4a-4071-84db-4719d4e9e40d
