@@ -23,29 +23,70 @@
 
 ## Top-level targets.
 
-## PS files included with Emacs.
-all: refcards dired-refcards misc-refcards
+## PDF files that are included with Emacs.
+all: refcards_pdf dired-refcards_pdf misc-refcards_pdf
+
+REFCARDS_PDF = refcard.pdf cs-refcard.pdf de-refcard.pdf fr-refcard.pdf \
+            pl-refcard.pdf pt-br-refcard.pdf ru-refcard.pdf sk-refcard.pdf
+refcards_pdf: ${REFCARDS_PDF}
+refcards_ps: ${REFCARDS_PDF:.pdf=.ps}
+
+DIRED-REFCARDS_PDF = dired-ref.pdf cs-dired-ref.pdf fr-drdref.pdf sk-dired-ref.pdf
+dired-refcards_pdf: ${DIRED-REFCARDS_PDF}
+dired-refcards_ps: ${DIRED-REFCARDS_PDF:.pdf=.ps}
+
+MISC-REFCARDS_PDF = calccard.pdf gnus-booklet.pdf gnus-refcard.pdf orgcard.pdf
+misc-refcards_pdf: ${MISC-REFCARDS_PDF}
+misc-refcards_ps: ${MISC-REFCARDS_PDF:.pdf=.ps}
 
 
-refcards: refcard.ps cs-refcard.ps de-refcard.ps fr-refcard.ps \
-          pl-refcard.ps pt-br-refcard.ps ru-refcard.ps sk-refcard.ps
+## The following files are not included with Emacs.
+SURVIVAL-CARDS_PDF = survival.pdf cs-survival.pdf sk-survival.pdf
+survival-cards_pdf: ${SURVIVAL-CARDS_PDF}
+survival-cards_ps: ${SURVIVAL-CARDS_PDF:.pdf=.ps}
 
-dired-refcards: dired-ref.ps cs-dired-ref.ps fr-drdref.ps sk-dired-ref.ps
+VIPER-CARDS_PDF = vipcard.pdf viperCard.pdf
+viper-cards_pdf: ${VIPER-CARDS_PDF}
+viper-cards_ps: ${VIPER-CARDS_PDF:.pdf=.ps}
 
-## No PS files: vipcard.tex viperCard.tex survival.tex sk-survival.tex
-misc-refcards: calccard.ps gnus-booklet.ps gnus-refcard.ps orgcard.ps
 
-## Following PS files are not included with Emacs.
-survival-cards: survival.ps cs-survival.ps sk-survival.ps
+## PDF files.
 
-viper-cards: vipcard.ps viperCard.ps
+## The page layouts (a4/letter) are written directly in the .tex files.
+
+cs-refcard.pdf cs-dired-ref.pdf cs-survival.pdf sk-refcard.pdf \
+sk-dired-ref.pdf sk-survival.pdf: %.pdf:	%.tex
+	csplain "\pdfoutput=1\input $<"
+
+pl-refcard.pdf: %.pdf: %.tex
+	if ! kpsewhich -format=fmt mex > /dev/null; then \
+	  echo "No mex format found."; false; \
+	fi
+	pdftex $<
+
+ru-refcard.pdf: %.pdf: %.tex
+	pdflatex $<
+
+gnus-logo.pdf: %.pdf: %.eps
+	ps2pdf $<
+
+gnus-refcard.pdf: %.pdf: %.tex gnus-logo.pdf 
+	pdflatex $<
+
+gnus-booklet.pdf: gnus-refcard.tex gnus-logo.pdf
+	pdflatex '\def\booklettrue{}\def\letterpapertrue{}\input{gnus-refcard}'
+	mv gnus-refcard.pdf $@
+
+## Everything not explicitly listed above.
+%.pdf: %.tex
+	pdftex $<
+
 
 
 ## dvi files.
 
-## FIXME the sk-*.tex files say to use csplain, but were not
-## traditionally in this rule. Fix the doc or the rule.
-cs-refcard.dvi cs-dired-ref.dvi cs-survival.dvi: %.dvi:	%.tex
+cs-refcard.dvi cs-dired-ref.dvi cs-survival.dvi sk-refcard.dvi \
+sk-dired-ref.dvi sk-survival.dvi: %.dvi:	%.tex
 	csplain $<
 
 pl-refcard.dvi: %.dvi: %.tex
