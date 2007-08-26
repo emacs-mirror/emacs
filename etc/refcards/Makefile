@@ -31,7 +31,8 @@ REFCARDS_PDF = refcard.pdf cs-refcard.pdf de-refcard.pdf fr-refcard.pdf \
 refcards_pdf: ${REFCARDS_PDF}
 refcards_ps: ${REFCARDS_PDF:.pdf=.ps}
 
-DIRED-REFCARDS_PDF = dired-ref.pdf cs-dired-ref.pdf fr-drdref.pdf sk-dired-ref.pdf
+DIRED-REFCARDS_PDF = dired-ref.pdf cs-dired-ref.pdf fr-dired-ref.pdf \
+		sk-dired-ref.pdf
 dired-refcards_pdf: ${DIRED-REFCARDS_PDF}
 dired-refcards_ps: ${DIRED-REFCARDS_PDF:.pdf=.ps}
 
@@ -119,7 +120,7 @@ de-refcard.ps fr-refcard.ps pt-br-refcard.ps orgcard.ps: %.ps: %.dvi
 	dvips -t a4 -t landscape $< -o $@
 
 ## A4, portrait.
-cs-dired-ref.ps cs-refcard.ps cs-survival.ps fr-drdref.ps \
+cs-dired-ref.ps cs-refcard.ps cs-survival.ps fr-dired-ref.ps \
 pl-refcard.ps ru-refcard.ps \
 sk-dired-ref.ps sk-refcard.ps sk-survival.ps: %.ps: %.dvi
 	dvips -t a4 $< -o $@
