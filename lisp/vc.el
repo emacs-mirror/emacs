@@ -2382,7 +2382,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
   (let (result)
     ;; Check whether dired is loaded.
     (when (fboundp 'dired-buffers-for-dir)
-      (mapcar (lambda (buffer)
+      (mapc (lambda (buffer)
 		(with-current-buffer buffer
 		  (if vc-dired-mode
 		      (setq result (append result (list buffer))))))

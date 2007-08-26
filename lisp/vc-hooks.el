@@ -371,7 +371,7 @@ backend is tried first."
       ;; Try vc-BACKEND-registered for each handled BACKEND.
       (catch 'found
 	(let ((backend (vc-file-getprop file 'vc-backend)))
-	  (mapcar
+	  (mapc
 	   (lambda (b)
 	     (and (vc-call-backend b 'registered file)
 		  (vc-file-setprop file 'vc-backend b)
@@ -661,7 +661,7 @@ a regexp for matching all such backup files, regardless of the version."
 (defun vc-delete-automatic-version-backups (file)
   "Delete all existing automatic version backups for FILE."
   (condition-case nil
-      (mapcar
+      (mapc
        'delete-file
        (directory-files (or (file-name-directory file) default-directory) t
 			(vc-version-backup-file-name file nil nil t)))
