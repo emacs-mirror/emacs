@@ -8,10 +8,16 @@
 
 \columnsperpage=3
 
-% Set letterpapaer to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
 % only when columnsperpage is 2 or 3.
 
 \letterpaper=0
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+
+\input pdflayout.sty
+\pdflayout=(0l)
 
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2002, 2003, 2004,
@@ -681,7 +687,7 @@ detalhes.
 \bye
 
 % Local variables:
-% compile-command: "tex pt-br-refcard"
+% compile-command: "pdftex pt-br-refcard"
 % coding: iso-latin-1
 % End:
 
