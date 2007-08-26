@@ -3,8 +3,8 @@
 % Title:  GNU Emacs Survival Card
 % Author: Wlodek Bzyl <matwb@univ.gda.pl>
 %
-% $Revision: 1.8 $
-% $Date: 2000/05/05 22:00:48 $
+% $Revision: 1.1 $
+% $Date: 2007/08/22 07:27:41 $
 %
 %**start of header
 
@@ -24,6 +24,12 @@
   \errmessage{This file requires `plain' format to be typeset correctly}
   \endinput
 \fi
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+
+\input pdflayout.sty
+\pdflayout=(1)
 
 % Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
 %   2006, 2007  Free Software Foundation, Inc.
@@ -410,7 +416,7 @@ contains names of the current modes, in parentheses.
 \bye
 
 % Local variables:
-% compile-command: "tex survival"
+% compile-command: "pdftex survival"
 % End:
 
 % arch-tag: 4f9a0562-617b-4843-aee1-450c41d6b22c
