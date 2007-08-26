@@ -1,5 +1,7 @@
 2007-08-26  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
+	* NEWS: Say that PDF files are now the default for refcards.
+
 	* refcards/pdflayout.sty: New.  Handle PDF layouts through
 	\pdfpagewidth and \pdfpageheight.
 
