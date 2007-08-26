@@ -1837,7 +1837,6 @@ XlwMenuRealize (w, valueMask, attributes)
   XlwMenuWidget mw = (XlwMenuWidget)w;
   XSetWindowAttributes xswa;
   int mask;
-  int count;
 
   (*xlwMenuWidgetClass->core_class.superclass->core_class.realize)
     (w, valueMask, attributes);
