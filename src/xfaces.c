@@ -6064,7 +6064,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   val = attrs[LFACE_INVERSE_INDEX];
   if (!UNSPECIFIEDP (val))
     {
-      if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
+      if (face_attr_equal_p (val, def_attrs[LFACE_INVERSE_INDEX]))
 	return 0;		/* same as default */
       else
 	test_caps |= TTY_CAP_INVERSE;
@@ -6107,7 +6107,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   bg = attrs[LFACE_BACKGROUND_INDEX];
   if (STRINGP (bg))
     {
-      Lisp_Object def_bg = def_attrs[LFACE_FOREGROUND_INDEX];
+      Lisp_Object def_bg = def_attrs[LFACE_BACKGROUND_INDEX];
 
       if (face_attr_equal_p (bg, def_bg))
 	return 0;		/* same as default */
