@@ -1,3 +1,13 @@
+2007-08-27  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (condition-case): Doc fix.
+
+2007-08-27  Masatake YAMATO  <jet@gyve.org>
+
+	* xfaces.c (tty_supports_face_attributes_p): Fix code
+	for LFACE_INVERSE_INDEX and LFACE_BACKGROUND_INDEX; code
+	was copied and not edited.
+
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (load_warn_old_style_backquotes): Fix up array size typo.
