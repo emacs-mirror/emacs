@@ -1,16 +1,11 @@
-2007-08-24  Dan Nicolaescu  <dann@ics.uci.edu>
+0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase.
-
-2007-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
-
-	* puresize.h (BASE_PURESIZE): Increase.
-
-2007-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.c (Qterm_environment_variable,
 	Qdisplay_environment_variable): New variables.
 	(syms_of_frame): Intern and staticpro them.
+	(Fmake_terminal_frame): Disable output method test.
 
 	* frame.h: Declare them here.
 
@@ -19,38 +14,24 @@
 	(getenv_internal): Likewise.
 	(set_initial_environment): Initialise Vprocess_environment.
 
-2007-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
-
 	* xselect.c (x_handle_selection_clear): Only access
 	terminal->kboard when MULTI_KBOARD is defined.
 
-	* term.c (init_tty): Use terminal specific mouse_position_hook.
+	* term.c (init_tty): Only use terminal->kboard when MULTI_KBOARD
+	is defined. Better initialize ttys in windows. Use terminal
+	specific mouse_position_hook.
 
 	* macterm.c (mac_create_terminal): Indent and rearrange to be more
 	similar to the X11 version.
 
 	* config.in: Disable multi-keyboard support on a mac.
 
-2007-05-26  Dan Nicolaescu  <dann@ics.uci.edu>
-
 	* sysdep.c: Comment out text after #endif.
-
-2007-05-20  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
-
-	* emacs.c (REPORT_EMACS_BUG_PRETEST_ADDRESS): Revert to
-	official Emacs pretest bug report address.
-
-2007-05-19  Dan Nicolaescu  <dann@ics.uci.edu>
-
-	* frame.c (Fmake_terminal_frame): Disable output method test. 
 
 	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Define here.
 	(SYSTEM_PURESIZE_EXTRA): Only define on Carbon.
 
 	* termhooks.h (union display_info): Add mac_display_info.
-
-	* term.c (init_tty): Only use terminal->kboard when MULTI_KBOARD
-	is defined.
 
 	* macterm.h (struct mac_display_info): Add terminal.
 
@@ -80,32 +61,21 @@
 	(Fx_create_frame): Don't use FRAME_MAC_DISPLAY_INFO.
 
 	* w32fns.c (Fx_create_frame): Use kboard from the terminal.
-
-2007-05-17  Jason Rumney  <jasonr@gnu.org>
-
-	* w32fns.c (x_create_tip_frame): Set window_system.
-
-2007-05-17  Dan Nicolaescu  <dann@ics.uci.edu>
-
-	* term.c (init_tty): Better initialize ttys in windows.
 	* w32fns.c (Fx_create_frame): Set the default minibuffer frame,
 	window_system and the rest of the frame parameters following what
 	is done in X11.
 
-2007-05-17  Jason Rumney  <jasonr@gnu.org>
+0000-00-00  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (x_output): Remove foreground_pixel and background_pixel.
 	(w32_clear_rect, w32_clear_area): Use background from frame.
 
 	* w32term.c (w32_term_init): Call add_keyboard_wait_descriptor.
 
-	* w32fns.c (x_create_tip_frame): Set terminal and ref count.
-
-2007-05-16  Jason Rumney  <jasonr@gnu.org>
+	* w32fns.c (x_create_tip_frame): Set terminal and ref count.  Set
+	window_system.
 
 	* makefile.w32-in: Update dependancies from Makefile.in
-
-2007-05-15  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.c (Fdelete_frame): Only get kboard when MULTI_KBOARD
 	defined.
@@ -186,13 +156,7 @@
 
 2006-10-14  Karoly Lorentey  <lorentey@elte.hu>
 
-	* puresize.h (BASE_PURESIZE): Increase puresize.
-
 	* alloc.c (emacs_blocked_malloc): Disable mallopt call.
-
-2006-07-30  Karoly Lorentey  <lorentey@elte.hu>
-
-	* puresize.h (BASE_PURESIZE): Increase to 1126000.
 
 2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -286,10 +250,6 @@
 	* term.c (Fsuspend_tty): Call clear_tty_hooks.
 	(Fresume_tty, init_tty): Call set_tty_hooks.
 	(clear_tty_hooks, set_tty_hooks): New functions.
-
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* puresize.h (BASE_PURESIZE): Increase to 1240000.
 
 2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -387,10 +347,6 @@
 
 	* frame.c (store_frame_param): Check for found_for_frame before
 	calling XFRAME.
-
-2006-02-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* puresize.h (BASE_PURESIZE): Increase to 1230000.
 
 2006-02-20  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -845,14 +801,6 @@
 
 	* coding.c (Fkeyboard_coding_system): Update doc.
 
-2005-11-19  Karoly Lorentey  <lorentey@elte.hu>
-
-	* puresize.h (BASE_PURESIZE): Increase to 1220000.
-
-2005-11-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* puresize.h (BASE_PURESIZE): Increase to 1210000.
-
 2005-11-07  Karoly Lorentey  <lorentey@elte.hu>
 
 	* data.c (do_symval_forwarding, store_symval_forwarding)
@@ -1294,10 +1242,6 @@
 
 	* xfns.c (x_create_tip_frame): Copy color slot initialization
 	safeguards from x-create-frame.  Trivial doc update.
-
-2004-12-08  Karoly Lorentey  <lorentey@elte.hu>
-
-	* puresize.h (BASE_PURESIZE): Enlarge base value by 100000.
 
 2004-11-28  Karoly Lorentey  <lorentey@elte.hu>
 
