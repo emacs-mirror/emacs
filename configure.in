@@ -2180,6 +2180,7 @@ if test "${HAVE_GTK}" = "yes"; then
 
   dnl  Check if we can use multiple displays with this GTK version.
   dnl  If gdk_display_open exists, assume all others are there also.
+  HAVE_GTK_MULTIDISPLAY=no
   AC_CHECK_FUNCS(gdk_display_open, HAVE_GTK_MULTIDISPLAY=yes)
   if test "${HAVE_GTK_MULTIDISPLAY}" = "yes"; then
     AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
