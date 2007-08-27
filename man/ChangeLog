@@ -1,3 +1,10 @@
+2007-08-27  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Clarify menu item for Glossary.
+
+	* display.texi (Faces): Change secn title.
+	Clarify not all fonts come from Font Lock.
+
 2007-08-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Selecting a Group): Mention gnus-maximum-newsgroup.
