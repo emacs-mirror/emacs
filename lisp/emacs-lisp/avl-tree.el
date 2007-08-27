@@ -96,15 +96,15 @@
 ;;; ================================================================
 ;;;        Functions and macros handling an AVL tree node.
 
-(defmacro elib-avl-node-create (left right data balance)
+(defmacro avl-tree-node-create (left right data balance)
   ;; Create and return an avl-tree node.
   `(vector ,left ,right ,data ,balance))
 
-(defmacro elib-avl-node-balance (node)
+(defmacro avl-tree-node-balance (node)
   ;; Return the balance field of a node.
   `(aref ,node 3))
 
-(defmacro elib-avl-node-set-balance (node newbal)
+(defmacro avl-tree-node-set-balance (node newbal)
   ;; Set the balance field of a node.
   `(aset ,node 3 ,newbal))
 
@@ -140,18 +140,18 @@
          b2
          result)
     (cond
-     ((< (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br 0)
+     ((< (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br 0)
       t)
 
-     ((= (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br +1)
+     ((= (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br +1)
       nil)
 
      (t
       ;; Rebalance.
       (setq p1 (elib-node-right br)
-            b1 (elib-avl-node-balance p1))
+            b1 (avl-tree-node-balance p1))
       (if (>= b1 0)
           ;; Single RR rotation.
           (progn
@@ -159,30 +159,30 @@
             (elib-node-set-left p1 br)
             (if (= 0 b1)
                 (progn
-                  (elib-avl-node-set-balance br +1)
-                  (elib-avl-node-set-balance p1 -1)
+                  (avl-tree-node-set-balance br +1)
+                  (avl-tree-node-set-balance p1 -1)
                   (setq result nil))
-              (elib-avl-node-set-balance br 0)
-              (elib-avl-node-set-balance p1 0)
+              (avl-tree-node-set-balance br 0)
+              (avl-tree-node-set-balance p1 0)
               (setq result t))
             (elib-node-set-branch node branch p1)
             result)
 
         ;; Double RL rotation.
         (setq p2 (elib-node-left p1)
-              b2 (elib-avl-node-balance p2))
+              b2 (avl-tree-node-balance p2))
         (elib-node-set-left p1 (elib-node-right p2))
         (elib-node-set-right p2 p1)
         (elib-node-set-right br (elib-node-left p2))
         (elib-node-set-left p2 br)
         (if (> b2 0)
-            (elib-avl-node-set-balance br -1)
-          (elib-avl-node-set-balance br 0))
+            (avl-tree-node-set-balance br -1)
+          (avl-tree-node-set-balance br 0))
         (if (< b2 0)
-            (elib-avl-node-set-balance p1 +1)
-          (elib-avl-node-set-balance p1 0))
+            (avl-tree-node-set-balance p1 +1)
+          (avl-tree-node-set-balance p1 0))
         (elib-node-set-branch node branch p2)
-        (elib-avl-node-set-balance p2 0)
+        (avl-tree-node-set-balance p2 0)
         t)))))
 
 (defun elib-avl-del-balance2 (node branch)
@@ -193,18 +193,18 @@
          b2
          result)
     (cond
-     ((> (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br 0)
+     ((> (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br 0)
       t)
 
-     ((= (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br -1)
+     ((= (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br -1)
       nil)
 
      (t
       ;; Rebalance.
       (setq p1 (elib-node-left br)
-            b1 (elib-avl-node-balance p1))
+            b1 (avl-tree-node-balance p1))
       (if (<= b1 0)
           ;; Single LL rotation.
           (progn
@@ -212,30 +212,30 @@
             (elib-node-set-right p1 br)
             (if (= 0 b1)
                 (progn
-                  (elib-avl-node-set-balance br -1)
-                  (elib-avl-node-set-balance p1 +1)
+                  (avl-tree-node-set-balance br -1)
+                  (avl-tree-node-set-balance p1 +1)
                   (setq result nil))
-              (elib-avl-node-set-balance br 0)
-              (elib-avl-node-set-balance p1 0)
+              (avl-tree-node-set-balance br 0)
+              (avl-tree-node-set-balance p1 0)
               (setq result t))
             (elib-node-set-branch node branch p1)
             result)
 
         ;; Double LR rotation.
         (setq p2 (elib-node-right p1)
-              b2 (elib-avl-node-balance p2))
+              b2 (avl-tree-node-balance p2))
         (elib-node-set-right p1 (elib-node-left p2))
         (elib-node-set-left p2 p1)
         (elib-node-set-left br (elib-node-right p2))
         (elib-node-set-right p2 br)
         (if (< b2 0)
-            (elib-avl-node-set-balance br +1)
-          (elib-avl-node-set-balance br 0))
+            (avl-tree-node-set-balance br +1)
+          (avl-tree-node-set-balance br 0))
         (if (> b2 0)
-            (elib-avl-node-set-balance p1 -1)
-          (elib-avl-node-set-balance p1 0))
+            (avl-tree-node-set-balance p1 -1)
+          (avl-tree-node-set-balance p1 0))
         (elib-node-set-branch node branch p2)
-        (elib-avl-node-set-balance p2 0)
+        (avl-tree-node-set-balance p2 0)
         t)))))
 
 (defun elib-avl-do-del-internal (node branch q)
@@ -290,40 +290,40 @@
          b2
          result)
     (cond
-     ((< (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br 0)
+     ((< (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br 0)
       nil)
 
-     ((= (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br +1)
+     ((= (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br +1)
       t)
 
      (t
       ;; Tree has grown => Rebalance.
       (setq p1 (elib-node-right br))
-      (if (> (elib-avl-node-balance p1) 0)
+      (if (> (avl-tree-node-balance p1) 0)
           ;; Single RR rotation.
           (progn
             (elib-node-set-right br (elib-node-left p1))
             (elib-node-set-left p1 br)
-            (elib-avl-node-set-balance br 0)
+            (avl-tree-node-set-balance br 0)
             (elib-node-set-branch node branch p1))
 
         ;; Double RL rotation.
         (setq p2 (elib-node-left p1)
-              b2 (elib-avl-node-balance p2))
+              b2 (avl-tree-node-balance p2))
         (elib-node-set-left p1 (elib-node-right p2))
         (elib-node-set-right p2 p1)
         (elib-node-set-right br (elib-node-left p2))
         (elib-node-set-left p2 br)
         (if (> b2 0)
-            (elib-avl-node-set-balance br -1)
-          (elib-avl-node-set-balance br 0))
+            (avl-tree-node-set-balance br -1)
+          (avl-tree-node-set-balance br 0))
         (if (< b2 0)
-            (elib-avl-node-set-balance p1 +1)
-          (elib-avl-node-set-balance p1 0))
+            (avl-tree-node-set-balance p1 +1)
+          (avl-tree-node-set-balance p1 0))
         (elib-node-set-branch node branch p2))
-      (elib-avl-node-set-balance (elib-node-branch node branch) 0)
+      (avl-tree-node-set-balance (elib-node-branch node branch) 0)
       nil))))
 
 (defun elib-avl-enter-balance2 (node branch)
@@ -333,40 +333,40 @@
          p2
          b2)
     (cond
-     ((> (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br 0)
+     ((> (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br 0)
       nil)
 
-     ((= (elib-avl-node-balance br) 0)
-      (elib-avl-node-set-balance br -1)
+     ((= (avl-tree-node-balance br) 0)
+      (avl-tree-node-set-balance br -1)
       t)
 
      (t
       ;; Balance was -1 => Rebalance.
       (setq p1 (elib-node-left br))
-      (if (< (elib-avl-node-balance p1) 0)
+      (if (< (avl-tree-node-balance p1) 0)
           ;; Single LL rotation.
           (progn
             (elib-node-set-left br (elib-node-right p1))
             (elib-node-set-right p1 br)
-            (elib-avl-node-set-balance br 0)
+            (avl-tree-node-set-balance br 0)
             (elib-node-set-branch node branch p1))
 
         ;; Double LR rotation.
         (setq p2 (elib-node-right p1)
-              b2 (elib-avl-node-balance p2))
+              b2 (avl-tree-node-balance p2))
         (elib-node-set-right p1 (elib-node-left p2))
         (elib-node-set-left p2 p1)
         (elib-node-set-left br (elib-node-right p2))
         (elib-node-set-right p2 br)
         (if (< b2 0)
-            (elib-avl-node-set-balance br +1)
-          (elib-avl-node-set-balance br 0))
+            (avl-tree-node-set-balance br +1)
+          (avl-tree-node-set-balance br 0))
         (if (> b2 0)
-            (elib-avl-node-set-balance p1 -1)
-          (elib-avl-node-set-balance p1 0))
+            (avl-tree-node-set-balance p1 -1)
+          (avl-tree-node-set-balance p1 0))
         (elib-node-set-branch node branch p2))
-      (elib-avl-node-set-balance (elib-node-branch node branch) 0)
+      (avl-tree-node-set-balance (elib-node-branch node branch) 0)
       nil))))
 
 (defun elib-avl-do-enter (cmpfun root branch data)
@@ -376,7 +376,7 @@
      ((null br)
       ;; Data not in tree, insert it.
       (elib-node-set-branch root branch
-                            (elib-avl-node-create nil nil data 0))
+                            (avl-tree-node-create nil nil data 0))
       t)
 
      ((funcall cmpfun data (elib-node-data br))
@@ -428,10 +428,10 @@
   ;; Highly recursive. INTERNAL USE ONLY.
   (if (null root)
       nil
-    (elib-avl-node-create (elib-avl-do-copy (elib-node-left root))
+    (avl-tree-node-create (elib-avl-do-copy (elib-node-left root))
                           (elib-avl-do-copy (elib-node-right root))
                           (elib-node-data root)
-                          (elib-avl-node-balance root))))
+                          (avl-tree-node-balance root))))
 
 
 ;;; ================================================================
@@ -442,7 +442,7 @@
 COMPARE-FUNCTION is a function which takes two arguments, A and B,
 and returns non-nil if A is less than B, and nil otherwise."
   (cons 'AVL-TREE
-        (cons (elib-avl-node-create nil nil nil 0)
+        (cons (avl-tree-node-create nil nil nil 0)
               compare-function)))
 
 (defun avl-tree-p (obj)
