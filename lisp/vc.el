@@ -3411,7 +3411,7 @@ revision."
                      vc-annotate-parent-display-mode
                      buf)
 	(goto-line (min oldline (progn (goto-char (point-max))
-				       (previous-line)
+				       (forward-line -1)
 				       (line-number-at-pos))) buf)))))
 
 (defun vc-annotate-compcar (threshold a-list)

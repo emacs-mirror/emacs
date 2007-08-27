@@ -365,7 +365,7 @@ whitespace between the @samp{`}, @samp{,} or @samp{,@@} and the
 following expression.
 
 This syntax is still accepted, for compatibility with old Emacs
-versions, but we recommend not using it in new programs.
+versions, but support for it will soon disappear.
 
 @node Problems with Macros
 @section Common Problems Using Macros

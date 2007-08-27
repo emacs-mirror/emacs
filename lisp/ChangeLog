@@ -1,3 +1,56 @@
+2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names): Check liveness
+	of buffers in uniquify-managed.
+
+	* simple.el (invisible-p): Rename from text-invisible-p.
+	Update callers.
+
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (defcustom, x-color-defined-p, cperl-is-face)
+	(cperl-is-face, cperl-force-face, cperl-etags-snarf-tag, cperl-mode)
+	(cperl-etags-snarf-tag, cperl-etags-goto-tag-location, cperl-init-faces)
+	(cperl-etags-goto-tag-location): Use new style backquotes.
+
+	* net/browse-url.el: Remove spurious * in custom docstrings.
+	(browse-url-filename-alist): Use new-style backquote.
+
+	* emacs-lisp/backquote.el (backquote-unquote-symbol)
+	(backquote-splice-symbol): Clarify they're not new-style unquotes.
+
+	* emacs-lisp/edebug.el (edebug-list-form, edebug-match-symbol, \,)
+	(\,@): Backslash the , and ,@ which are not new-style unquotes.
+
+	* textmodes/texinfmt.el (\,): Clarify it's not a new-style unquote.
+
+	* net/socks.el (socks-username/password-auth-filter):
+	Remove unused vars `state' and `desired-len'.
+	(socks-parse-services, socks-nslookup-host): Use with-current-buffer.
+	(socks-wait-for-state-change): Use new-style backquotes.
+
+	* pcvs.el (cvs-mode-status): Fix long-standing typo.
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Check old-style
+	backquotes after each `read' rather than once per buffer.
+
+	* dframe.el: Remove spurious * in custom docstrings.
+	(dframe-xemacsp): Remove, use (featurep 'xemacs) instead.
+	(dframe-xemacs20p): Remove, inline at the sole use point.
+	(defface): Don't defvar the face, don't use old-style backquote.
+	(defcustom): Don't use old-style backquote.
+	(dframe-frame-parameter, dframe-mouse-event-p):
+	Make it obvious that it's always defined.
+	(dframe-popup-kludge): New function to replace
+	dframe-xemacs-popup-kludge and dframe-xemacs-popup-kludge.
+	(dframe-frame-mode, dframe-set-timer-internal)
+	(dframe-mouse-set-point): Remove use of with-no-warnings from
+	XEmacs-specific code.
+	(dframe-set-timer-internal): Fix very old bug with
+	post-command-idle-hook.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Handle `sxemacs'.
+
 2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* emacs-lisp/avl-tree.el: New file.

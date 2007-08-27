@@ -1010,8 +1010,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defun byte-compile-log-file ()
   (and (not (equal byte-compile-current-file byte-compile-last-logged-file))
        (not noninteractive)
-       (save-excursion
-	 (set-buffer (get-buffer-create "*Compile-Log*"))
+       (with-current-buffer (get-buffer-create "*Compile-Log*")
 	 (goto-char (point-max))
 	 (let* ((inhibit-read-only t)
 		(dir (and byte-compile-current-file
@@ -1548,8 +1547,7 @@ recompile every `.el' file that already has a `.elc' file."
       nil
     (save-some-buffers)
     (force-mode-line-update))
-  (save-current-buffer
-    (set-buffer (get-buffer-create "*Compile-Log*"))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
     (setq default-directory (expand-file-name directory))
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
@@ -1651,7 +1649,7 @@ The value is non-nil if there were no errors, nil if errors."
       (let ((b (get-file-buffer (expand-file-name filename))))
 	(if (and b (buffer-modified-p b)
 		 (y-or-n-p (format "Save buffer %s first? " (buffer-name b))))
-	    (save-excursion (set-buffer b) (save-buffer)))))
+	    (with-current-buffer b (save-buffer)))))
 
   ;; Force logging of the file name for each file compiled.
   (setq byte-compile-last-logged-file nil)
@@ -1661,9 +1659,8 @@ The value is non-nil if there were no errors, nil if errors."
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
-    (save-excursion
-      (setq input-buffer (get-buffer-create " *Compiler Input*"))
-      (set-buffer input-buffer)
+    (with-current-buffer 
+        (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (erase-buffer)
       (setq buffer-file-coding-system nil)
       ;; Always compile an Emacs Lisp file as multibyte
@@ -1864,7 +1861,13 @@ With argument, insert value in current buffer after the form."
 		 (not (eobp)))
 	  (setq byte-compile-read-position (point)
 		byte-compile-last-position byte-compile-read-position)
-	  (let ((form (read inbuffer)))
+	  (let* ((old-style-backquotes nil)
+                 (form (read inbuffer)))
+            ;; Warn about the use of old-style backquotes.
+            (when old-style-backquotes
+              (byte-compile-warn "!! The file uses old-style backquotes !!
+This functionality has been obsolete for more than 10 years already
+and will be removed soon.  See (elisp)Backquote in the manual."))
 	    (byte-compile-file-form form)))
 	;; Compile pending forms at end of file.
 	(byte-compile-flush-pending)

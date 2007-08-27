@@ -68,6 +68,28 @@
 	(svg_type): New static `image_type' struct.
 	(librsvg/rsvg.h): Include it.
 
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (load_warn_old_style_backquotes): Fix up array size typo.
+
+2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (Qold_style_backquotes): New var.
+	(syms_of_lread): Init and staticpro it.
+	(load_warn_old_style_backquotes): New fun.
+	(Fload): Use them to warn about old style backquotes.
+	(end_of_file_error, Fload): Remove unused vars.
+
+	* lisp.h (Fclear_face_cache, Fx_send_client_event): Declare.
+
+	* lread.c (Vold_style_backquotes): New var.
+	(syms_of_lread): Init and export it to Elisp.
+	(read1): Set it when we find an old-style (back)quote.
+
+2007-08-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32reg.c (SYSTEM_DEFAULT_RESOURCES): Add missing NULL terminator.
+
 2007-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1140000.

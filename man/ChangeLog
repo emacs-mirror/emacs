@@ -1,10 +1,13 @@
+2007-08-24  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
+
+	* message.texi (MIME): Replace mml-attach with mml-attach-file.
+
 2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Adding hyperlink types): New section.
 	(Embedded LaTeX): Chapter updated because of LaTeX export.
 	(LaTeX export): New section.
 	(Using links out): New section.
-	
 
 2007-08-22  Glenn Morris  <rgm@gnu.org>
 
