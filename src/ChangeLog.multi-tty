@@ -21,12 +21,9 @@
 	is defined. Better initialize ttys in windows. Use terminal
 	specific mouse_position_hook.
 
-	* macterm.c (mac_create_terminal): Indent and rearrange to be more
-	similar to the X11 version.
+	* sysdep.c: Comment out text after #endif.
 
 	* config.in: Disable multi-keyboard support on a mac.
-
-	* sysdep.c: Comment out text after #endif.
 
 	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Define here.
 	(SYSTEM_PURESIZE_EXTRA): Only define on Carbon.
@@ -35,15 +32,14 @@
 
 	* macterm.h (struct mac_display_info): Add terminal.
 
-	* w32term.c (w32_initialize): Make static.
-
 	* macterm.c (XTset_terminal_modes): Add a terminal parameter.
 	(XTreset_terminal_modes): Likewise.
 	(x_clear_frame): Add a frame parameter.
 	(note_mouse_movement): Get rif from the frame.
 	(mac_term_init): Initialize the terminal.
 	(mac_initialize): Make static and move terminal initialization ...
-	(mac_create_terminal): ... in this new function.
+	(mac_create_terminal): ... in this new function. Indent and
+	rearrange to be more similar to the X11 version.
 
 	* macmenu.c: Reorder includes.
 	(Fx_popup_menu): Use terminal specific mouse_position_hook.
@@ -60,20 +56,35 @@
 	(x_create_tip_frame): Get the keyboard from the terminal.
 	(Fx_create_frame): Don't use FRAME_MAC_DISPLAY_INFO.
 
-	* w32fns.c (Fx_create_frame): Use kboard from the terminal.
-	* w32fns.c (Fx_create_frame): Set the default minibuffer frame,
-	window_system and the rest of the frame parameters following what
-	is done in X11.
+	* w32fns.c (Fx_create_frame): Use kboard from the terminal.  Set
+	the default minibuffer frame, window_system and the rest of the
+	frame parameters following what is done in X11.
+
+	* w32term.c (w32_initialize): Make static.
 
 0000-00-00  Jason Rumney  <jasonr@gnu.org>
 
-	* w32term.h (x_output): Remove foreground_pixel and background_pixel.
+	* w32term.h (x_output): Remove foreground_pixel and
+	background_pixel.
 	(w32_clear_rect, w32_clear_area): Use background from frame.
-
-	* w32term.c (w32_term_init): Call add_keyboard_wait_descriptor.
+	(w32_display_info): Add terminal.
+	(w32_sys_ring_bell, x_delete_display): Declare here.
 
 	* w32fns.c (x_create_tip_frame): Set terminal and ref count.  Set
 	window_system.
+	(x_set_tool_bar_lines): Don't use updating_frame.
+	(Fx_create_frame): Set terminal and ref count.
+	(Fx_open_connection): Remove window-system check.
+
+	* w32term.c (w32_term_init): Call add_keyboard_wait_descriptor.
+	(w32_set_terminal_modes, w32_reset_terminal_modes): Add terminal
+	arg.
+	(x_clear_frame, x_delete_glyphs, w32_ring_bell, x_ins_del_lines):
+	Add frame arg.
+	(x_delete_terminal, w32_create_terminal): New functions.
+	(w32_term_init): Create a terminal.
+	(w32_initialize): Move terminal specific initialization to
+	w32_create_terminal.
 
 	* makefile.w32-in: Update dependancies from Makefile.in
 
@@ -119,22 +130,6 @@
 
 	* w32menu.c (Fx_popup_menu): Use terminal specific
 	mouse_position_hook.
-
-	* w32fns.c (x_set_tool_bar_lines): Don't use updating_frame.
-	(Fx_create_frame): Set terminal and ref count.
-	(Fx_open_connection): Remove window-system check.
-
-	* w32term.c (w32_set_terminal_modes, w32_reset_terminal_modes):
-	Add terminal arg.
-	(x_clear_frame, x_delete_glyphs, w32_ring_bell, x_ins_del_lines):
-	Add frame arg.
-	(x_delete_terminal, w32_create_terminal): New functions.
-	(w32_term_init): Create a terminal.
-	(w32_initialize): Move terminal specific initialization to
-	w32_create_terminal.
-
-	* w32term.h (w32_display_info): Add terminal.
-	(w32_sys_ring_bell, x_delete_display): Declare here.
 
 	* makefile.w32-in (OBJ1): Add terminal.$(O)
 
