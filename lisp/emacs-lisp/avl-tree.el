@@ -97,11 +97,6 @@
   ;; NEWVAL is new value of the branch."
   (` (aset (, node) (, branch) (, newval))))
 
-(eval-when-compile (require 'cl))
-(defun elib-stack-create () (list))
-(defmacro elib-stack-push (stack object) `(push ,object ,stack))
-(defmacro elib-stack-pop (stack) `(pop ,stack))
-
 ;;; ================================================================
 ;;;        Functions and macros handling an AVL tree node.
 
@@ -413,15 +408,15 @@
   ;; Note: MAP-FUNCTION is applied to the node and not to the data itself.
   ;; INTERNAL USE ONLY.
   (let ((node root)
-        (stack (elib-stack-create))
+        (stack nil)
         (go-left t))
-    (elib-stack-push stack nil)
+    (push nil stack)
     (while node
       (if (and go-left
                (elib-node-left node))
           ;; Do the left subtree first.
           (progn
-            (elib-stack-push stack node)
+            (push node stack)
             (setq node (elib-node-left node)))
         ;; Apply the function...
         (funcall map-function node)
@@ -429,7 +424,7 @@
         (if (elib-node-right node)
             (setq node (elib-node-right node)
                   go-left t)
-          (setq node (elib-stack-pop stack)
+          (setq node (pop stack)
                 go-left nil))))))
 
 (defun elib-avl-do-copy (root)
