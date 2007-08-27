@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'tramp)
+(autoload 'tramp-set-connection-property "tramp-cache")
 
 (eval-when-compile (require 'custom))
 
@@ -137,19 +138,25 @@ pass to the OPERATION."
 	  (ange-ftp-ftp-name-arg "")
 	  (ange-ftp-ftp-name-res nil))
       (cond
-       ;; If argument is a symlink, `file-directory-p' and `file-exists-p'
-       ;; call the traversed file recursively. So we cannot disable the
-       ;; file-name-handler this case.
+       ;; If argument is a symlink, `file-directory-p' and
+       ;; `file-exists-p' call the traversed file recursively. So we
+       ;; cannot disable the file-name-handler this case.  We set the
+       ;; connection property "started" in order to put the remote
+       ;; location into the cache, which is helpful for further
+       ;; completion.
        ((memq operation '(file-directory-p file-exists-p))
-	(apply 'ange-ftp-hook-function operation args))
-	;; Normally, the handlers must be discarded
-	(t (let* ((inhibit-file-name-handlers
-		   (list 'tramp-file-name-handler
-			 'tramp-completion-file-name-handler
-			 (and (eq inhibit-file-name-operation operation)
-			      inhibit-file-name-handlers)))
-		  (inhibit-file-name-operation operation))
-	     (apply 'ange-ftp-hook-function operation args)))))))
+	(if (apply 'ange-ftp-hook-function operation args)
+	    (with-parsed-tramp-file-name (car args) nil
+	      (tramp-set-connection-property v "started" t))
+	  nil))
+       ;; Normally, the handlers must be discarded.
+       (t (let* ((inhibit-file-name-handlers
+		  (list 'tramp-file-name-handler
+			'tramp-completion-file-name-handler
+			(and (eq inhibit-file-name-operation operation)
+			     inhibit-file-name-handlers)))
+		 (inhibit-file-name-operation operation))
+	    (apply 'ange-ftp-hook-function operation args)))))))
 
 (defun tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."

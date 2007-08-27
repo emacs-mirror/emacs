@@ -1,3 +1,399 @@
+2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-handle-toolbar-switch-mode): Add explicit
+	argument to tool-bar-mode call.
+
+2007-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* diff-mode.el (diff-find-file-name): Only accept regular files,
+	to rule out /dev/null, directories, etc.
+
+	* vc-svn.el (vc-svn-diff): If the repository version of all the
+	files is the same as the specified OLDVERS, do a local diff.
+
+2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names): Check liveness
+	of buffers in uniquify-managed.
+
+	* simple.el (invisible-p): Rename from text-invisible-p.
+	Update callers.
+
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (defcustom, x-color-defined-p, cperl-is-face)
+	(cperl-is-face, cperl-force-face, cperl-etags-snarf-tag, cperl-mode)
+	(cperl-etags-snarf-tag, cperl-etags-goto-tag-location, cperl-init-faces)
+	(cperl-etags-goto-tag-location): Use new style backquotes.
+
+	* net/browse-url.el: Remove spurious * in custom docstrings.
+	(browse-url-filename-alist): Use new-style backquote.
+
+	* emacs-lisp/backquote.el (backquote-unquote-symbol)
+	(backquote-splice-symbol): Clarify they're not new-style unquotes.
+
+	* emacs-lisp/edebug.el (edebug-list-form, edebug-match-symbol, \,)
+	(\,@): Backslash the , and ,@ which are not new-style unquotes.
+
+	* textmodes/texinfmt.el (\,): Clarify it's not a new-style unquote.
+
+	* net/socks.el (socks-username/password-auth-filter):
+	Remove unused vars `state' and `desired-len'.
+	(socks-parse-services, socks-nslookup-host): Use with-current-buffer.
+	(socks-wait-for-state-change): Use new-style backquotes.
+
+	* pcvs.el (cvs-mode-status): Fix long-standing typo.
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Check old-style
+	backquotes after each `read' rather than once per buffer.
+
+	* dframe.el: Remove spurious * in custom docstrings.
+	(dframe-xemacsp): Remove, use (featurep 'xemacs) instead.
+	(dframe-xemacs20p): Remove, inline at the sole use point.
+	(defface): Don't defvar the face, don't use old-style backquote.
+	(defcustom): Don't use old-style backquote.
+	(dframe-frame-parameter, dframe-mouse-event-p):
+	Make it obvious that it's always defined.
+	(dframe-popup-kludge): New function to replace
+	dframe-xemacs-popup-kludge and dframe-xemacs-popup-kludge.
+	(dframe-frame-mode, dframe-set-timer-internal)
+	(dframe-mouse-set-point): Remove use of with-no-warnings from
+	XEmacs-specific code.
+	(dframe-set-timer-internal): Fix very old bug with
+	post-command-idle-hook.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Handle `sxemacs'.
+
+2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* emacs-lisp/avl-tree.el: New file.
+
+2007-08-26  Micha,bk(Bl Cadilhac  <michael@cadilhac.name>
+
+	* hi-lock.el (hi-lock-unface-buffer): Show a x-menu only if the mouse
+	was used.
+
+2007-08-26  Sean O'Rourke  <seano@cs.ucsd.edu>
+
+	* complete.el (PC-do-completion): Make RET accept a non-unique but
+	complete expansion again.
+
+2007-08-26  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* eshell/esh-opt.el (eshell-eval-using-options):
+	Add debug declaration.
+
+2007-08-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-toggle-mark-entry): Add docstring.
+	(log-view-get-marked): Likewise.
+
+	* vc-hooks.el (vc-registered): Use mapc instead of mapcar.
+	(vc-delete-automatic-version-backups): Likewise.
+
+	* vc.el (vc-dired-buffers-for-dir): Likewise.
+
+2007-08-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/cperl-mode.el (cperl-indent-level): Autoload the
+	safe-local-variable setting.
+	* progmodes/perl-mode.el (perl-indent-level): Likewise.
+
+	* log-view.el (log-view-marked-list): Delete variable.
+	(log-view-mode): Don't use it.
+	(log-view-toggle-mark-entry): Likewise, simplify.
+	(log-view-current-tag): Don't return properties.
+	(log-view-get-marked): New function.
+
+2007-08-25  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-mode-line-string): New function.
+
+2007-08-25  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-other-decl-block-key-in-symbols-alist):
+	new language variable.
+
+	* progmodes/cc-engine.el (c-brace-anchor-point): new function.
+	(c-add-stmt-syntax): Give accurate anchor points for "namespace",
+	"extern" etc., rather than BOI.  Fix addition of spurious
+	syntactic-symbol 'defun-block-intro, replacing it with
+	'innamespace, etc.
+
+2007-08-25  Juri Linkov  <juri@jurta.org>
+
+	* files.el (auto-mode-alist): Move "\\.x[bp]m\\'" to image-mode.el.
+
+	* image-mode.el: Add autoloads to put associations in auto-mode-alist:
+	associate "\\.x[bp]m\\'" with c-mode and image-mode-maybe, and
+	"\\.svgz?\\'" with xml-mode and image-mode-maybe.
+
+	* image.el (image-type-header-regexps): Use more complex regexp for svg.
+	(image-type-file-name-regexps): Add ("\\.svgz?\\'" . svg).
+	(image-type-auto-detectable): Add (svg . maybe).
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Add .svgz
+	to treat it like .tgz.
+
+	* calendar/cal-bahai.el: Add file coding cookie.
+
+2007-08-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pcvs.el (cvs-query-directory): Only prompt when prefix is given.
+	Don't behave differently when executed via M-x.  Add doc string.
+
+	* sort.el (sort-fold-case, sort-numeric-base): Mark as
+	safe-local-variable.
+
+2007-08-25  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-forms.el (var-TimeZone): Make nil explicitly
+	the default value.
+	(math-calendar-tzinfo): New variable.
+	(math-get-calendar-tzinfo): New function.
+	(calcFunc-tzone, calcFunc-dst): Use Emacs's calendar
+	to get information when zone is nil.
+
+2007-08-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-view.el (log-view-toggle-mark-entry): New function.
+	(log-view-mode-map): Bind it.
+	(log-view-marked-list): New variable.
+	(log-view-mode): Make it local.
+
+2007-08-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* play/zone.el (zone-pgm-rat-race): New func.
+	(zone-programs): Add `zone-pgm-rat-race'.
+
+2007-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-if): Don't presume `clause' is
+	a list.
+
+2007-08-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/hideshow.el (hs-match-data): Delete alias.
+	(hs-hide-block-at-point, hs-find-block-beginning)
+	(hs-show-block): Use `match-data' directly.
+
+2007-08-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* format.el (format-alist): Fix typo in doc-string.
+
+2007-08-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-local-host-p): New defun.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	Implement fast track when being on the local host.
+	(tramp-file-name-handler): Don't set "started" property.  It shall
+	be reserved for the "ftp" method.
+	(tramp-make-copy-program-file-name): Use `tramp-file-name-real-host'.
+
+	* net/tramp-ftp.el (top): Autoload `tramp-set-connection-property'.
+	(tramp-ftp-file-name-handler): Set "started" property.
+
+2007-08-24  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+
+	* files.el (backup-buffer-copy): Don't wrap delete in
+	condition-case, only try to delete if file exists.
+
+2007-08-24  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (backup-buffer-copy): Revert 2007-08-22 change.
+
+	* startup.el (tutorial-directory): Set with eval-at-startup so it
+	gets the right value in an installed Emacs.
+
+2007-08-24  Nikolaj Schumacher  <n_schumacher@web.de>  (tiny change)
+
+	* emacs-lisp/eldoc.el (eldoc-highlight-function-argument): New face.
+	(eldoc-highlight-function-argument): Use it.
+
+2007-08-23  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/cc-fonts.el (gtkdoc-font-lock-doc-comments):
+	Highlight name of parameters in document body.
+
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-output-docform)
+	(byte-compile-output-as-comment): Use with-current-buffer rather than
+	a weird set-buffer&prog1 combination.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-if): Move `progn' out of the
+	test so as to optimise cases where the `progn's result is constant.
+
+2007-08-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* locate.el (locate-get-file-positions):
+	Use line-beginning-position and line-end-position.
+
+2007-08-23  John Wiegley  <johnw@newartisans.com>
+
+	* calendar/cal-bahai.el: Added in the diacriticals that were
+	missing for many of the month names.
+
+2007-08-22  Jason Rumney  <jasonr@gnu.org>
+
+	* vc-hooks.el (vc-menu-map-filter): Reapply 2007-08-06 bugfix.
+
+2007-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-minor-mode): Use image-mode-text-map.
+
+2007-08-22  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* dabbrev.el (dabbrev--progress-reporter): New variable.
+	(dabbrev--scanning-message): Delete func.
+	(dabbrev--find-expansion): Use a progress reporter
+	instead of dabbrev--scanning-message.
+
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* comint.el (comint-exec-1): Raise an error if
+	`start-file-process' does not return a process object.
+
+	* shell.el (shell): Prompt for `default-directory' if it is a
+	remote file name, and if called with a prefix arg.
+
+2007-08-22  Sam Steingold  <sds@gnu.org>
+
+	* pcvs.el (cvs-vc-command-advice): Fix a typo in code (file->files).
+
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org-export-latex.el: New file.
+
+	* textmodes/org-publish.el (org-publish-org-to-latex): New function.
+
+	* textmodes/org.el (org-agenda-skip): Allow a form for
+	`org-agenda-skip-function'.
+	(org-agenda-redo): Re-use local settings.
+	(org-agenda): Store local settings.
+	(org-agenda-deadline-faces): New option.
+	(org-agenda-deadline-face): New function.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled): Also handle
+	entries on their due date.
+	(org-agenda-get-timestamps): No longer handle the due dates of
+	schedules and deadline items.
+	(org-insert-link-global, org-open-at-point-global): New commands.
+	(org-export-as-ascii): Call `org-cleaned-string-for-export' with a
+	:for-ascii parameter.
+	(org-skip-comments): Function removed.
+	(org-cleaned-string-for-export): Handle special table lines.
+	(org-global-properties): New option.
+	(org-entry-get-with-inheritance): Check global properties.
+	(org-local-properties): New variable.
+	(org-set-regexps-and-options): Find the #+PROPERTY line.
+	(org-link-types): Change type into variable (was constant).
+	(org-make-link-regexps): New function.
+	(org-link-re-with-space, org-link-re-with-space2)
+	(org-angle-link-re, org-plain-link-re, org-bracket-link-regexp)
+	(org-bracket-link-analytic-regexp, org-any-link-re): Creation of
+	these regular expressions happens now in the function
+	`org-make-link-regexps'.
+	(org-store-link): Call the functions in
+	`org-store-link-functions'.
+	(org-add-link-type): New function.
+	(org-store-link-functions): New variable.
+	(org-activate-tags): Force matches to be in headlines.
+	(org-batch-store-agenda-views): Fix bug with killing agenda buffer.
+	(org-columns-display-here): Make sure this works in a narrowed
+	buffer by checking for point-min.
+	(org-columns-display-here): Make the rest of the line intangible,
+	so that point never can be there.
+	(org-cleaned-string-for-export): Use `with-current-buffer'.
+	(org-replace-region-by-html): Use `with-current-buffer'.
+	(org-unfontify-region, org-do-occur, org-columns-display-here)
+	(org-columns-remove-overlays, org-columns-quit)
+	(org-columns-edit-value, org-columns-next-allowed-value)
+	(org-eval-in-calendar, org-agenda-undo, org-no-read-only)
+	(org-finalize-agenda, org-remove-subtree-entries-from-agenda)
+	(org-agenda-todo, org-agenda-change-all-lines)
+	(org-agenda-align-tags, org-agenda-priority)
+	(org-agenda-set-tags, org-agenda-toggle-archive-tag)
+	(org-agenda-show-new-time, org-cleaned-string-for-export)
+	(org-export-grab-title-from-buffer)
+	(org-export-as-ascii, org-export-as-html): Use `inhibit-read-only'
+	instead of `buffer-read-only'.
+	(org-export-as-html): Set `coding-system-for-write'.
+	(org-remember-store-without-prompt): New option.
+	(org-archive-subtree): Fixed bug with modifying TODO keyword.
+	(org-beginning-of-line): Also treat C-a special in items.
+	(org-table-convert-refs-to-rc): Fixed problem with column
+	reference after "..".
+	(org-columns-compute): Don't mark buffer modified because of text
+	properties.
+	(org-batch-store-agenda-views): Use the variable
+	`default-directory', not the function.
+	(org-clock-out-if-current): Respect `org-clock-out-when-done'.
+	(org-clock-out-when-done): New option.
+	(org-html-entities): Added HTML entities for smileys.
+
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (create-image): Doc fix.
+
+	* startup.el (tutorial-directory): New constant.
+	(fancy-splash-text): Tutorials now in tutorial-directory.
+	* tutorial.el (help-with-tutorial): Tutorials now in
+	tutorial-directory.
+
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Require cl.el, when `copy-tree' is not available
+	otherwise.
+	(tramp-get-remote-path): New defun.  Replace occurrences of
+	`tramp-default-remote-path' by this function.
+	(tramp-set-remote-path): Move most of the code to
+	`tramp-get-remote-path'.
+	(tramp-get-ls-command, tramp-get-remote-id): Don't check for not
+	existing directories, this is done already in
+	`tramp-get-remote-path'.
+
+2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* image-file.el (image-file-name-extensions): Add "svg".
+	* image.el (image-type-header-regexps): Add svg entry.
+
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (backup-buffer-copy): Check backup directory is
+	writable, to avoid infloop deleting old backup.
+
+	* mail/rmail.el (rmail-movemail-variant-p): Call on load to set
+	movemail related variables.
+	(rmail-insert-inbox-text): Use only rmail-movemail-program, which
+	will now be set before this is called.
+
+2007-08-21  Juri Linkov  <juri@jurta.org>
+
+	* delsel.el (delete-selection-pre-hook):
+	* emulation/cua-base.el (cua-paste): Use `mouse-region-match'
+	instead of checking last-command.
+
+2007-08-21  Juri Linkov  <juri@jurta.org>
+
+	* loadup.el: Preload "button".
+
+2007-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add previous-line and next-line.
+
+	* vc-arch.el (vc-arch-extra-menu-map): New var and fun.
+	(vc-arch-find-file-not-found-hook): Remove, it's now the default.
+
+	* vc-hooks.el (vc-menu-entry): New var.
+	(vc-mode-line-map): Use it so that this menu also uses the extra-menu.
+	(menu-bar-tools-menu): Add the VC menu here rather than in menu-bar.el.
+	(vc-menu-map): Declare and initialize in one step.
+	(vc-menu-map-filter): Move&rename from menu-bar.el:menu-bar-vc-filter.
+
+	* menu-bar.el (vc-menu-map): Don't setup any more.
+	Instead, just create the proper spot in the menu.
+
 2007-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-resolve): New arg `safe'.
@@ -66,16 +462,16 @@
 
 2007-08-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper.el (viper-remove-hooks): remove some additional viper hooks
+	* viper.el (viper-remove-hooks): Remove some additional viper hooks
 	when the user calls viper-go-away.
-	(viper-go-away): restore the default of default-major-mode.
+	(viper-go-away): Restore the default of default-major-mode.
 	Save the value of default-major-mode before vaperization.
 
 	* viper-cmd.el: Replace error "" with "Viper bell".
 
 	* viper-ex.el: Replace error "" with "Viper bell".
 
-	* ediff-util.el (ediff-make-temp-file): use the coding system of the
+	* ediff-util.el (ediff-make-temp-file): Use the coding system of the
 	buffer for which file is created.
 
 2007-08-19  Glenn Morris  <rgm@gnu.org>
@@ -118,8 +514,7 @@
 	properties uniformly, independently from whether font-lock-mode
 	is enabled or not.  Handle read-only buffers and do not change
 	undo-list when setting syntax-table properties.
-	(ada-after-change-function): Use
-	ada-set-syntax-table-properties.
+	(ada-after-change-function): Use ada-set-syntax-table-properties.
 
 2007-08-18  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
@@ -161,7 +556,7 @@
 	* calc/calc-bin.el (math-bignum-logb-digit-size)
 	(math-bignum-digit-power-of-two):
 	* calc/calc-comb.el (math-small-factorial-table):
-	* calc/calc-ext.el (math-approx-pi,math-approx-sqrt-e)
+	* calc/calc-ext.el (math-approx-pi, math-approx-sqrt-e)
 	(math-approx-gamma-const):
 	* calc/calc-funcs.el (math-besJ0, math-besJ1, math-besY0)
 	(math-besY1, math-bernoulli-b-cache):
@@ -183,8 +578,7 @@
 2007-08-17  T. V. Raman  <raman@users.sf.net>  (tiny change)
 
 	* completion.el (symbol-under-point, symbol-before-point)
-	(symbol-before-point-for-complete): Use
-	buffer-substring-no-properties.
+	(symbol-before-point-for-complete): Use buffer-substring-no-properties.
 
 2007-08-17  Glenn Morris  <rgm@gnu.org>
 
@@ -279,16 +673,15 @@
 2007-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (bad-packages-alist): New constant.
-	(bad-package-check): New function.  Together, these two add
-	elements to `after-load-alist' to check for problematic external
-	packages.
+	(bad-package-check): New function.  Together, these two add elements
+	to `after-load-alist' to check for problematic external packages.
 	* emulation/cua-base.el: Move CUA-mode check to `bad-packages-alist'.
 
 2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (math-get-standard-units)
-	(math-get-units,math-make-unit-string)
-	(math-get-default-units,math-put-default-units): New functions.
+	(math-get-units, math-make-unit-string)
+	(math-get-default-units, math-put-default-units): New functions.
 	(math-default-units-table): New variable.
 	(calc-convert-units, calc-convert-temperature): Add machinery
 	to supply default values.
@@ -426,7 +819,7 @@
 2007-08-06  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el (vc-bzr-registered): Gracefully handle missing "bzr"
-	program, and return nil
+	program, and return nil.
 	(vc-bzr-state): Gracefully handle missing "bzr" program, and return nil.
 	(vc-bzr-state): Look for path names relative to the repository
 	root after status keyword.
@@ -438,15 +831,15 @@
 	files that we now parse directly for speed.
 	(vc-bzr-root-dir): Use `vc-bzr-admin-checkout-format-file' as witness.
 	(vc-bzr-registered): Only parse vc-bzr-admin-dirstate file if it exists.
-	(vc-bzr-state): "bzr status" successful only if exitcode is 0
+	(vc-bzr-state): "bzr status" successful only if exitcode is 0.
 	(vc-bzr-root): Use `vc-bzr-shell-command'.  Stderr may contain
 	Bzr warnings, so we must discard it.
 	(vc-bzr-workfile-version): Speedup counting lines from
 	`vc-bzr-admin-revhistory' file, but fallback to spawning "bzr revno"
 	if that file doesn't exist.
 	(vc-bzr-responsible-p): Use `vc-bzr-root' instead of
-	`vc-bzr-root-dir' for speed.  Add `vc-bzr-admin-dirname'
-	(not ".bzr"!) to `vc-directory-exclusion-list'
+	`vc-bzr-root-dir' for speed.  Add `vc-bzr-admin-dirname' (not ".bzr"!)
+	to `vc-directory-exclusion-list'.
 	(vc-bzr-shell-command): New function.
 
 2007-08-06  Tom Tromey  <tromey@redhat.com>
@@ -1257,7 +1650,7 @@
 	* ses.el (ses-cleanup): Prevent Emacs from spuriously checking if the
 	underlying file is uptodate.
 
-2007-07-23   Christopher J. Madsen  <cjm@cjmweb.net>
+2007-07-23  Christopher J. Madsen  <cjm@cjmweb.net>
 
 	* replace.el (perform-replace): Use isearch-no-upper-case-p.
 
@@ -1432,7 +1825,7 @@
 
 	Sync with Tramp 2.1.10.
 
-	* net/tramp.el (tramp-get-ls-command): Fyx typo.
+	* net/tramp.el (tramp-get-ls-command): Fix typo.
 
 	* net/trampver.el: Update release number.
 
@@ -3419,7 +3812,7 @@
 	(all): Replace `case' by `cond', `string-to-int' by
 	`string-to-number', and `process-kill-without-query' by
 	`set-process-query-on-exit-flag'.
-	(socks-char-int): Remove defalias and all occurencies.
+	(socks-char-int): Remove defalias and all occurrences.
 
 2007-06-04  Juanma Barranquero  <lekktu@gmail.com>
 

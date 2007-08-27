@@ -244,6 +244,7 @@ returns the string unchanged if not defined. The same is done here."
              (message "%s" (error-message-string err))
              alias))))
 
+;;;###mh-autoload
 (defun mh-alias-expand (alias)
   "Return expansion for ALIAS.
 Blind aliases or users from /etc/passwd are not expanded."

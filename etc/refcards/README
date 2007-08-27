@@ -1,0 +1,17 @@
+Some of the *.tex files need special versions of TeX to typeset them.
+The files cs-*.tex and sk-*.tex need csTeX, a special version of TeX
+tailored to typesetting Czech and Slovak documents.  We provide
+generated files for these documents, so that you could print them
+without installing the modified TeX versions.
+
+
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+The file gnus-logo.eps contains copyright and license information, but
+it is reproduced here for convenience.
+
+File: gnus-logo.eps
+  Author: Luis Fernandes <elf@ee.ryerson.ca>
+  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+    Free Software Foundation, Inc.
+  License: GNU General Public License version 3 or later (see COPYING)

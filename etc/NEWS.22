@@ -41,6 +41,8 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 * Changes in Emacs 22.2
 
+** `browse-url-emacs' loads a URL into an Emacs buffer.  Handy for *.el URLs.
+
 ** `bad-packages-alist' will warn about external packages that are known
 to cause problems in this version of Emacs.
 
@@ -78,6 +80,14 @@ in to make it use the scrollbars from the system theme.
 *** VC has some support for Git.
 
 * Lisp Changes in Emacs 22.2.
+
+** The function invisible-p returns non-nil if the character
+   after a specified position is invisible.
+
++++
+** inhibit-modification-hooks is bound to t while running modification hooks.
+As a happy consequence, after-change-functions and before-change-functions
+are not bound to nil any more while running an (after|before)-change-function.
 
 ** New function `window-full-width-p' returns t if a window is as wide
 as its frame.

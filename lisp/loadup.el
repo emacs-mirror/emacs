@@ -82,6 +82,7 @@
 (message "%s" (garbage-collect))
 (load "simple")
 
+(load "button")
 (load "help")
 
 (load "jka-cmpr-hook")

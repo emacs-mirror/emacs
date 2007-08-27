@@ -41,7 +41,12 @@
 ;;;###autoload (push '("\\.gif\\'"      . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.tiff?\\'"    . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.p[bpgn]m\\'" . image-mode) auto-mode-alist)
+
+;;;###autoload (push '("\\.x[bp]m\\'"   . c-mode)     auto-mode-alist)
 ;;;###autoload (push '("\\.x[bp]m\\'"   . image-mode-maybe) auto-mode-alist)
+
+;;;###autoload (push '("\\.svgz?\\'"    . xml-mode)   auto-mode-alist)
+;;;###autoload (push '("\\.svgz?\\'"    . image-mode-maybe) auto-mode-alist)
 
 ;;; Image scrolling functions
 
@@ -230,7 +235,7 @@ to toggle between display as an image and display as text."
   "Toggle Image minor mode.
 With arg, turn Image minor mode on if arg is positive, off otherwise.
 See the command `image-mode' for more information on this mode."
-  nil " Image" image-mode-map
+  nil " Image" image-mode-text-map
   :group 'image
   :version "22.1"
   (if (not image-minor-mode)

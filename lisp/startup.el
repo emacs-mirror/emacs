@@ -315,6 +315,14 @@ from being initialized."
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
 
+(defvar tutorial-directory nil
+  "Directory containing the Emacs TUTORIAL files.")
+
+;; Get correct value in a dumped, installed Emacs.
+(eval-at-startup
+ (setq tutorial-directory (file-name-as-directory
+                           (expand-file-name "tutorials" data-directory))))
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
 More precisely, this uses only the subdirectories whose names
@@ -1134,7 +1142,7 @@ regardless of the value of this variable."
                              en))
                     (title (with-temp-buffer
                              (insert-file-contents
-                              (expand-file-name tut data-directory)
+                              (expand-file-name tut tutorial-directory)
                               nil 0 256)
                              (search-forward ".")
                              (buffer-substring (point-min) (1- (point))))))
@@ -1261,11 +1269,11 @@ where FACE is a valid face specification, as it can be used with
 			    fancy-splash-image)
 			   ((and (display-color-p)
 				 (image-type-available-p 'xpm))
-			    (if (and (fboundp 'x-display-planes)
-				     (= (funcall 'x-display-planes) 8))
-				"splash8.xpm"
-			      "splash.xpm"))
-			   (t "splash.pbm")))
+                            (if (and (fboundp 'x-display-planes)
+                                     (= (funcall 'x-display-planes) 8))
+                                "splash8.xpm"
+                              "splash.xpm"))
+                            (t "splash.pbm")))
 	 (img (create-image image-file))
 	 (image-width (and img (car (image-size img))))
 	 (window-width (window-width (selected-window))))

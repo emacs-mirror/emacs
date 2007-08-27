@@ -88,6 +88,11 @@
 (require 'shell)
 (require 'advice)
 
+;; `copy-tree' is part of subr.el since Emacs 22.
+(eval-when-compile
+  (unless (functionp 'copy-tree)
+    (require 'cl)))
+
 ;; Requiring 'tramp-cache results in an endless loop.
 (autoload 'tramp-get-file-property "tramp-cache")
 (autoload 'tramp-set-file-property "tramp-cache")
@@ -3467,7 +3472,7 @@ beginning of local filename are not substituted."
 (defun tramp-handle-executable-find (command)
   "Like `executable-find' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    (tramp-find-executable v command tramp-remote-path t)))
+    (tramp-find-executable v command (tramp-get-remote-path v) t)))
 
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once
@@ -3660,14 +3665,9 @@ beginning of local filename are not substituted."
 
 (defun tramp-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
+
   (with-parsed-tramp-file-name filename nil
-    (let (;; We used to bind the following as late as possible.
-	  ;; loc-dec was bound directly before the if statement that
-	  ;; checks them.  But the functions tramp-get-* might invoke
-	  ;; the "are you awake" check in `tramp-maybe-open-connection',
-	  ;; which is an unfortunate time since we rely on the buffer
-	  ;; contents at that spot.
-	  (rem-enc (tramp-get-remote-coding v "remote-encoding"))
+    (let ((rem-enc (tramp-get-remote-coding v "remote-encoding"))
 	  (loc-dec (tramp-get-local-coding v "local-decoding"))
 	  tmpfil)
       (unless (file-exists-p filename)
@@ -3676,55 +3676,59 @@ beginning of local filename are not substituted."
 	 "Cannot make local copy of non-existing file `%s'" filename))
       (setq tmpfil (tramp-make-temp-file filename))
 
-      (cond ((and (tramp-method-out-of-band-p v)
-		  (> (nth 7 (file-attributes filename))
-		     tramp-copy-size-limit))
-	     ;; `copy-file' handles out-of-band methods
-	     (copy-file filename tmpfil t t))
+      (cond
+       ;; Fast track on local machine.
+       ((tramp-local-host-p v)
+	(tramp-do-copy-or-rename-file-directly 'copy v localname tmpfil t)
+	(tramp-send-command v (format "chown %s %s" (user-login-name) tmpfil)))
 
-	    (rem-enc
-	     ;; Use inline encoding for file transfer.
-	     (save-excursion
-	       (tramp-message v 5 "Encoding remote file %s..." filename)
-	       (tramp-barf-unless-okay
-		v
-		(concat rem-enc " < " (tramp-shell-quote-argument localname))
-		"Encoding remote file failed")
+       ;; `copy-file' handles out-of-band methods.
+       ((and (tramp-method-out-of-band-p v)
+	     (> (nth 7 (file-attributes filename)) tramp-copy-size-limit))
+	(copy-file filename tmpfil t t))
 
-	       (tramp-message v 5 "Decoding remote file %s..." filename)
-	       ;; Here is where loc-dec used to be let-bound.
-	       (if (and (symbolp loc-dec) (fboundp loc-dec))
-		   ;; If local decoding is a function, we call it.  We
-		   ;; must disable multibyte, because
-		   ;; `uudecode-decode-region' doesn't handle it
-		   ;; correctly.
-		   (unwind-protect
-		       (with-temp-buffer
-			 (set-buffer-multibyte nil)
-			 (insert-buffer-substring (tramp-get-buffer v))
-			 (tramp-message
-			  v 5 "Decoding remote file %s with function %s..."
-			  filename loc-dec)
-			 (funcall loc-dec (point-min) (point-max))
-			 (let ((coding-system-for-write 'binary))
-			   (write-region (point-min) (point-max) tmpfil))))
-		 ;; If tramp-decoding-function is not defined for this
-		 ;; method, we invoke tramp-decoding-command instead.
-		 (let ((tmpfil2 (tramp-make-temp-file filename)))
-		   (let ((coding-system-for-write 'binary))
-		     (write-region (point-min) (point-max) tmpfil2))
-		   (tramp-message
-		    v 5 "Decoding remote file %s with command %s..."
-		    filename loc-dec)
-		   (tramp-call-local-coding-command
-		    loc-dec tmpfil2 tmpfil)
-		   (delete-file tmpfil2)))
-	       (tramp-message v 5 "Decoding remote file %s...done" filename)
-	       ;; Set proper permissions.
-	       (set-file-modes tmpfil (file-modes filename))))
+       ;; Use inline encoding for file transfer.
+       (rem-enc
+	(save-excursion
+	  (tramp-message v 5 "Encoding remote file %s..." filename)
+	  (tramp-barf-unless-okay
+	   v (format "%s < %s" rem-enc (tramp-shell-quote-argument localname))
+	   "Encoding remote file failed")
+	  (tramp-message v 5 "Encoding remote file %s...done" filename)
 
-	    (t (tramp-error
-		v 'file-error "Wrong method specification for `%s'" method)))
+	  (tramp-message v 5 "Decoding remote file %s..." filename)
+	  (if (and (symbolp loc-dec) (fboundp loc-dec))
+	      ;; If local decoding is a function, we call it.  We must
+	      ;; disable multibyte, because `uudecode-decode-region'
+	      ;; doesn't handle it correctly.
+	      (unwind-protect
+		  (with-temp-buffer
+		    (set-buffer-multibyte nil)
+		    (insert-buffer-substring (tramp-get-buffer v))
+		    (tramp-message
+		     v 5 "Decoding remote file %s with function %s..."
+		     filename loc-dec)
+		    (funcall loc-dec (point-min) (point-max))
+		    (let ((coding-system-for-write 'binary))
+		      (write-region (point-min) (point-max) tmpfil))))
+	    ;; If tramp-decoding-function is not defined for this
+	    ;; method, we invoke tramp-decoding-command instead.
+	    (let ((tmpfil2 (tramp-make-temp-file filename)))
+	      (let ((coding-system-for-write 'binary))
+		(write-region (point-min) (point-max) tmpfil2))
+	      (tramp-message
+	       v 5 "Decoding remote file %s with command %s..."
+	       filename loc-dec)
+	      (tramp-call-local-coding-command loc-dec tmpfil2 tmpfil)
+	      (delete-file tmpfil2)))
+	  (tramp-message v 5 "Decoding remote file %s...done" filename)
+	  ;; Set proper permissions.
+	  (set-file-modes tmpfil (file-modes filename))))
+
+       ;; Oops, I don't know what to do.
+       (t (tramp-error
+	   v 'file-error "Wrong method specification for `%s'" method)))
+
       (run-hooks 'tramp-handle-file-local-copy-hook)
       tmpfil)))
 
@@ -3922,20 +3926,26 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
       ;; the backup file.  This case `save-buffer' handles
       ;; permissions.
       (when modes (set-file-modes tmpfil modes))
+
       ;; This is a bit lengthy due to the different methods possible for
       ;; file transfer.  First, we check whether the method uses an rcp
       ;; program.  If so, we call it.  Otherwise, both encoding and
       ;; decoding command must be specified.  However, if the method
       ;; _also_ specifies an encoding function, then that is used for
       ;; encoding the contents of the tmp file.
-      (cond ((and (tramp-method-out-of-band-p v)
+      (cond ;; Fast track on local machine.
+            ((tramp-local-host-p v)
+	     (tramp-do-copy-or-rename-file-directly
+	      'rename v tmpfil localname t))
+
+	    ;; `copy-file' handles out-of-band methods
+	    ((and (tramp-method-out-of-band-p v)
 		  (integerp start)
 		  (> (- end start) tramp-copy-size-limit))
-	     ;; `copy-file' handles out-of-band methods
-	     (copy-file tmpfil filename t t))
+	     (rename-file tmpfil filename t))
 
+	    ;; Use inline file transfer
 	    (rem-dec
-	     ;; Use inline file transfer
 	     ;; Encode tmpfil
 	     (tramp-message v 5 "Encoding region...")
 	     (unwind-protect
@@ -4020,14 +4030,19 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		       filename rem-dec)))
 		   (tramp-message
 		    v 5 "Decoding region into remote file %s...done" filename)
-		   (tramp-flush-file-property v localname))))
+		   (tramp-flush-file-property v localname))
+
+	       ;; Save exit.
+	       (delete-file tmpfil)))
+
+	    ;; That's not expected.
 	    (t
 	     (tramp-error
 	      v 'file-error
 	      (concat "Method `%s' should specify both encoding and "
 		      "decoding command or an rcp program")
 	      method)))
-      (delete-file tmpfil)
+
       (when (or (eq visit t) (stringp visit))
 	(set-visited-file-modtime
 	 ;; We must pass modtime explicitely, because filename can be different
@@ -4193,10 +4208,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 	  filename)
 	 ;; Call the backend function.  Set a connection property
 	 ;; first, it will be reused for user/host name completion.
-	 (foreign
-	  (unless (zerop (length localname))
-	    (tramp-set-connection-property v "started" nil))
-	  (apply foreign operation args))
+	 (foreign (apply foreign operation args))
 	 ;; Nothing to do for us.
 	 (t (tramp-run-real-handler operation args)))))))
 
@@ -5099,53 +5111,9 @@ I.e., for each directory in `tramp-remote-path', it is tested
 whether it exists and if so, it is added to the environment
 variable PATH."
   (tramp-message vec 5 (format "Setting $PATH environment variable"))
-
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (set (make-local-variable 'tramp-remote-path)
-	 (copy-tree tramp-remote-path))
-    (let* ((elt (memq 'tramp-default-remote-path tramp-remote-path))
-	   (tramp-default-remote-path
-	    (with-connection-property vec "default-remote-path"
-	      (when elt
-		(condition-case nil
-		    (symbol-name
-		     (tramp-send-command-and-read vec "getconf PATH"))
-		  ;; Default if "getconf" is not available.
-		  (error
-		   (tramp-message
-		    vec 3
-		    "`getconf PATH' not successful, using default value \"%s\"."
-		    "/bin:/usr/bin")
-		   "/bin:/usr/bin"))))))
-      (when elt
-	;; Replace place holder `tramp-default-remote-path'.
-	(setcdr elt
-		(append
- 		 (tramp-split-string tramp-default-remote-path ":")
-		 (cdr elt)))
-	(setq tramp-remote-path
-	      (delq 'tramp-default-remote-path tramp-remote-path))))
-
-    ;; Check for existence of directories.
-    (setq tramp-remote-path
-	  (delq
-	   nil
-	   (mapcar
-	    (lambda (x)
-	      (and
-	       (with-connection-property vec x
-		 (file-directory-p
-		  (tramp-make-tramp-file-name
-		   (tramp-file-name-method vec)
-		   (tramp-file-name-user vec)
-		   (tramp-file-name-host vec)
-		   x)))
-	       x))
-	    tramp-remote-path)))
-    (tramp-send-command
-     vec
-     (format "PATH=%s; export PATH"
-	     (mapconcat 'identity tramp-remote-path ":")))))
+  (tramp-send-command
+   vec (format "PATH=%s; export PATH"
+	       (mapconcat 'identity (tramp-get-remote-path vec) ":"))))
 
 ;; -- communication with external shell --
 
@@ -5210,8 +5178,10 @@ file exists and nonzero exit status otherwise."
 	(cond
 	 ((string-match "^~root$" (buffer-string))
 	  (setq shell
-		(or (tramp-find-executable vec "bash" tramp-remote-path t)
-		    (tramp-find-executable vec "ksh" tramp-remote-path t)))
+		(or (tramp-find-executable
+		     vec "bash" (tramp-get-remote-path vec) t)
+		    (tramp-find-executable
+		     vec "ksh" (tramp-get-remote-path vec) t)))
 	  (unless shell
 	    (tramp-error
 	     vec 'file-error
@@ -6539,8 +6509,7 @@ necessary only.  This function will be used in file name completion."
 (defun tramp-make-copy-program-file-name (vec)
   "Create a file name suitable to be passed to `rcp' and workalikes."
   (let ((user (tramp-file-name-user vec))
-	(host (car (split-string
-		    (tramp-file-name-host vec) tramp-prefix-port-regexp)))
+	(host (tramp-file-name-real-host vec))
 	(localname (tramp-shell-quote-argument
 		    (tramp-file-name-localname vec))))
     (if (not (zerop (length user)))
@@ -6551,7 +6520,55 @@ necessary only.  This function will be used in file name completion."
   "Return t if this is an out-of-band method, nil otherwise."
   (tramp-get-method-parameter (tramp-file-name-method vec) 'tramp-copy-program))
 
+(defun tramp-local-host-p (vec)
+  "Return t if this points to the local host, nil otherwise."
+  (let ((host (tramp-file-name-real-host vec)))
+    (and
+     (stringp host)
+     (string-match
+      (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$") host))))
+
 ;; Variables local to connection.
+
+(defun tramp-get-remote-path (vec)
+  (with-connection-property vec "remote-path"
+    (let* ((remote-path (copy-tree tramp-remote-path))
+	   (elt (memq 'tramp-default-remote-path remote-path))
+	   (default-remote-path
+	     (when elt
+	       (condition-case nil
+		   (symbol-name
+		    (tramp-send-command-and-read vec "getconf PATH"))
+		 ;; Default if "getconf" is not available.
+		 (error
+		  (tramp-message
+		   vec 3
+		   "`getconf PATH' not successful, using default value \"%s\"."
+		   "/bin:/usr/bin")
+		  "/bin:/usr/bin")))))
+      (when elt
+	;; Replace place holder `tramp-default-remote-path'.
+	(setcdr elt
+		(append
+ 		 (tramp-split-string default-remote-path ":")
+		 (cdr elt)))
+	(setq remote-path (delq 'tramp-default-remote-path remote-path)))
+
+      ;; Remove non-existing directories.
+      (delq
+       nil
+       (mapcar
+	(lambda (x)
+	  (and
+	   (with-connection-property vec x
+	     (file-directory-p
+	      (tramp-make-tramp-file-name
+	       (tramp-file-name-method vec)
+	       (tramp-file-name-user vec)
+	       (tramp-file-name-host vec)
+	       x)))
+	   x))
+	remote-path)))))
 
 (defun tramp-get-ls-command (vec)
   (with-connection-property vec "ls"
@@ -6560,7 +6577,7 @@ necessary only.  This function will be used in file name completion."
       (or
        (catch 'ls-found
 	 (dolist (cmd '("ls" "gnuls" "gls"))
-	   (let ((dl tramp-remote-path)
+	   (let ((dl (tramp-get-remote-path vec))
 		 result)
 	     (while
 		 (and
@@ -6571,13 +6588,6 @@ necessary only.  This function will be used in file name completion."
 	       (when (zerop (tramp-send-command-and-check
 			     vec (format "%s -lnd /" result)))
 		 (throw 'ls-found result))
-	       ;; Remove unneeded directories from path.
-	       (while
-		   (and
-		    dl
-		    (not
-		     (string-equal result (expand-file-name cmd (car dl)))))
-		 (setq dl (cdr dl)))
 	       (setq dl (cdr dl))))))
        (tramp-error vec 'file-error "Couldn't find a proper `ls' command")))))
 
@@ -6587,7 +6597,7 @@ necessary only.  This function will be used in file name completion."
       (tramp-message vec 5 "Finding a suitable `test' command")
       (if (zerop (tramp-send-command-and-check vec "test 0"))
 	  "test"
-	(tramp-find-executable vec "test" tramp-remote-path)))))
+	(tramp-find-executable vec "test" (tramp-get-remote-path vec))))))
 
 (defun tramp-get-test-nt-command (vec)
   ;; Does `test A -nt B' work?  Use abominable `find' construct if it
@@ -6621,20 +6631,21 @@ necessary only.  This function will be used in file name completion."
   (with-connection-property vec "ln"
     (with-current-buffer (tramp-get-buffer vec)
       (tramp-message vec 5 "Finding a suitable `ln' command")
-      (tramp-find-executable vec "ln" tramp-remote-path))))
+      (tramp-find-executable vec "ln" (tramp-get-remote-path vec)))))
 
 (defun tramp-get-remote-perl (vec)
   (with-connection-property vec "perl"
     (with-current-buffer (tramp-get-buffer vec)
       (tramp-message vec 5 "Finding a suitable `perl' command")
-      (or (tramp-find-executable vec "perl5" tramp-remote-path)
-	  (tramp-find-executable vec "perl" tramp-remote-path)))))
+      (or (tramp-find-executable vec "perl5" (tramp-get-remote-path vec))
+	  (tramp-find-executable vec "perl" (tramp-get-remote-path vec))))))
 
 (defun tramp-get-remote-stat (vec)
   (with-connection-property vec "stat"
     (with-current-buffer (tramp-get-buffer vec)
       (tramp-message vec 5 "Finding a suitable `stat' command")
-      (let ((result (tramp-find-executable vec "stat" tramp-remote-path))
+      (let ((result (tramp-find-executable
+		     vec "stat" (tramp-get-remote-path vec)))
 	    tmp)
 	;; Check whether stat(1) returns usable syntax.
 	(when result
@@ -6656,7 +6667,7 @@ necessary only.  This function will be used in file name completion."
       (tramp-message vec 5 "Finding POSIX `id' command")
       (or
        (catch 'id-found
-	 (let ((dl tramp-remote-path)
+	 (let ((dl (tramp-get-remote-path vec))
 	       result)
 	   (while
 	       (and
@@ -6667,15 +6678,6 @@ necessary only.  This function will be used in file name completion."
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -u" result)))
 	       (throw 'id-found result))
-	     ;; Remove unneeded directories from path.
-	     (while
-		 (and
-		  dl
-		  (not
-		   (string-equal
-		    result
-		    (concat (file-name-as-directory (car dl)) "id"))))
-	       (setq dl (cdr dl)))
 	     (setq dl (cdr dl)))))
        (tramp-error vec 'file-error "Couldn't find a POSIX `id' command")))))
 
@@ -7055,7 +7057,6 @@ Only works for Bourne-like shells."
 	       tramp-default-user-alist
 	       tramp-rsh-end-of-line
 	       tramp-default-password-end-of-line
-	       tramp-remote-path
 	       tramp-login-prompt-regexp
 	       ;; Mask non-7bit characters
 	       (tramp-password-prompt-regexp . tramp-reporter-dump-variable)
@@ -7370,7 +7371,6 @@ please ensure that the buffers are attached to your email.\n\n")
 ;; * Grok `append' parameter for `write-region'.
 ;; * Test remote ksh or bash for tilde expansion in `tramp-find-shell'?
 ;; * abbreviate-file-name
-;; * grok ~ in tramp-remote-path  (Henrik Holm <henrikh@tele.ntnu.no>)
 ;; * better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start
 ;;   again.  (Greg Stark)

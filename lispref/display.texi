@@ -3649,9 +3649,7 @@ This variable is ignored if the image libraries are statically linked
 into Emacs.
 @end defvar
 
-@defun  image-type-available-p type
-@findex image-type-available-p
-
+@defun image-type-available-p type
 This function returns non-@code{nil} if image type @var{type} is
 available, i.e., if images of this type can be loaded and displayed in
 Emacs.  @var{type} should be one of the types contained in

@@ -1,3 +1,23 @@
+2007-08-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Check for a suitably recent makeinfo.
+
+2007-08-23  Johannes Weiner  <hannes@saeurebad.de>  (tiny change)
+
+	* configure.in (Check for required libraries): Typo.
+
+2007-08-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in: Check librsvg2 also for Mac Carbon.
+
+2007-08-22  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Follow reorganization of files in etc/.
+
+2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* configure.in: Add support for SVG images through librsvg2.
+
 2007-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (install-arch-indep): Use "rm -f" for removing DOC,

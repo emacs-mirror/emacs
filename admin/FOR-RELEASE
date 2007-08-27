@@ -38,6 +38,13 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
+** set-frame-size for frame without minibuffer loses mode line
+Probably a Windows only bug.  Reported by Drew Adams on bug-gnu-emacs on
+2007-08-07.  It seems that the bug manifests itself only if resizing the
+frame makes the menu bar wrap before.  On 2007-08-16 Glenn Morris
+reported on emacs-devel that he was not able to reproduce the bug on a
+GNU/Linux system.
+
 * BUGS
 
 NB the definitive copy of this file for Emacs 22 is on the
@@ -52,13 +59,8 @@ won't lose on USG or HPUX systems.
 
 * FIXES FOR EMACS 22.3
 
-Here we list small fixes that arrived too late for Emacs 22.2, but
+Here we list any small fixes that arrived too late for Emacs 22.2, but
 that should be installed on the release branch after 22.2 is released.
-
-** bojohan+news@dd.chalmers.se, 1 Aug: n_schumacher@web.de: modification hooks called only once in
-Fix is on the trunk: 2007-08-13 change to insdel.c by Stefan Monnier.
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00457.html
-
 
 * DOCUMENTATION
 

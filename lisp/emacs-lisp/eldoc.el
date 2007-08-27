@@ -101,6 +101,11 @@ truncated to make more of the arglist or documentation string visible."
  enable argument list to fit on one line" truncate-sym-name-if-fit))
   :group 'eldoc)
 
+(defface eldoc-highlight-function-argument
+  '((t (:inherit bold)))
+  "Face used for the argument at point in a function's argument list."
+  :group 'eldoc)
+
 ;;; No user options below here.
 
 (defvar eldoc-message-commands-table-size 31
@@ -303,7 +308,7 @@ highlights argument number INDEX. "
 In the absence of INDEX, just call `eldoc-docstring-format-sym-doc'."
   (let ((start          nil)
 	(end            0)
-	(argument-face  'bold))
+	(argument-face  'eldoc-highlight-function-argument))
     ;; Find the current argument in the argument string.  We need to
     ;; handle `&rest' and informal `...' properly.
     ;;

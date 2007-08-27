@@ -74,6 +74,7 @@ If nil, don't interrupt for about 1^26 seconds.")
                        zone-pgm-drip-fretfully
                        zone-pgm-five-oclock-swan-dive
                        zone-pgm-martini-swan-dive
+                       zone-pgm-rat-race
                        zone-pgm-paragraph-spaz
                        zone-pgm-stress
                        zone-pgm-stress-destress
@@ -567,6 +568,17 @@ If the element is a function or a list of a function and a number,
 
 (defun zone-pgm-martini-swan-dive ()
   (zone-pgm-drip t t))
+
+(defun zone-pgm-rat-race ()
+  (while (not (input-pending-p))
+    (zone-call '((zone-pgm-rotate 10)
+                 (zone-pgm-drip-fretfully 15)
+                 (zone-pgm-drip 10)
+                 ((lambda ()
+                    (goto-char (point-min))
+                    (while (re-search-forward " +$" nil t)
+                      (delete-region (match-beginning 0) (match-end 0))))
+                  5)))))
 
 
 ;;;; paragraph spazzing (for textish modes)
