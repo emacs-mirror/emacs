@@ -90,6 +90,7 @@
 
 	* frame.c (Fdelete_frame): Only get kboard when MULTI_KBOARD
 	defined.
+	(make_terminal_frame) [WINDOWSNT]: Initialize terminal.
 
 	* keyboard.c (restore_kboard_configuration): Only define when
 	MULTI_KBOARD defined.
@@ -107,8 +108,6 @@
 	* termhooks.h (display_info) [WINDOWSNT]: Add w32.
 
 	* xdisp.c (display_menu_bar) [HAVE_NTGUI]: Check frame type.
-
-	* frame.c (make_terminal_frame) [WINDOWSNT]: Initialize terminal.
 
 	* w32.c (request_sigio, unrequest_sigio): Remove 
 
