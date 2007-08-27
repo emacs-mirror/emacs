@@ -247,6 +247,8 @@ forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
 
+** The new package avl-tree.el deals with the AVL tree data structure.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
