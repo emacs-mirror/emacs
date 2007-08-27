@@ -1,3 +1,8 @@
+2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-handle-toolbar-switch-mode): Add explicit
+	argument to tool-bar-mode call.
+
 2007-08-27  Glenn Morris  <rgm@gnu.org>
 
 	* diff-mode.el (diff-find-file-name): Only accept regular files,
