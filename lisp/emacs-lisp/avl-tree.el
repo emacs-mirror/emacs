@@ -101,7 +101,6 @@
 (defun elib-stack-create () (list))
 (defmacro elib-stack-push (stack object) `(push ,object ,stack))
 (defmacro elib-stack-pop (stack) `(pop ,stack))
-(provide 'avl-tree)
 
 ;;; ================================================================
 ;;;        Functions and macros handling an AVL tree node.
@@ -566,5 +565,7 @@ If there is no such element in the tree, the value is nil."
 (defun avltree-clear (tree)
   "Clear the avl tree TREE."
   (elib-node-set-left (elib-avl-dummyroot tree) nil))
+
+(provide 'avl-tree)
 
 ;;; avltree.el ends here
