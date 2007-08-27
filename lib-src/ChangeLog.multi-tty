@@ -1,30 +1,3 @@
-0000-00-00  A. N. Other  <none@example.com>
-
-	(main_argc, main_argv, current_frame, window_system, tty): New
-	variables.
-	(longopts): Add tty, current-frame.
-	(xmalloc, xstrdup): New functions.
-	(decode_options): Set display from environment.  Add tty and
-	current_frame options.
-	(print_help_and_exit): Document tty and current-frame options.
-	(fail): Change arguments to void.
-	(main): When sockets are not defined, set main_argc, main_argv,
-	and call fail() with no arguments.
-	(quote_file_name): Rename to quote_argument.
-	(quote_argument): New name for old quote_file_name.
-	(unquote_argument, strprefix, pass_signal_to_emacs)
-	(handle_sigcont, handle_sigtstp, init_signals): New functions.
-	(set_local_socket): Initialize saved_errno to 0.  If socket-name
-	is too long, call `fail' rather than `exit'.
-	(main): Set main_argc, main_argv.  New var `str'.  Don't need a
-	filename or argument if tty or window_system set.  Call fail with
-	no arguments.  Send version number to Emacs for verification.
-	If tty is set, check TERM, and pass name and type to Emacs.
-	Pass window_system to Emacs.  Move sending of eval to optind
-	loop.  Send -position, -file to Emacs.  Call fsync after fflush.
-	Check for a client/server version match. Handle -emacs-pid,
-	-print, -error, -suspend.
-
 0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (w32_execvp): Move definition before use.
@@ -46,16 +19,38 @@
 	(sys/stat.h, errno.h): Always include, even on WINDOWSNT.
 	(DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP, IS_ANY_SEP): Copy
 	definitions here from src/lisp.h.
+	(main_argc, main_argv, current_frame, window_system, tty): New
+	variables.
+	(longopts): Add tty, current-frame.
+	(xmalloc, xstrdup): New functions.
 	(get_current_dir_name): New function, copied from src/sysdep.c.
-	(decode_options): Make --no-wait imply --current-frame, except
-	when it is the only option given.  Make sure no frame is opened
-	when --current-frame is set.
+	(decode_options): Set display from environment.  Add tty and
+	current_frame options.  Make --no-wait imply --current-frame,
+	except when it is the only option given.  Make sure no frame is
+	opened when --current-frame is set.
+	(print_help_and_exit): Document tty and current-frame options.
+	(fail): Change arguments to void.
+	(main): When sockets are not defined, set main_argc, main_argv,
+	and call fail() with no arguments.
 	(emacs_socket): New variable (moved out from main `s').
-	(main): Use get_current_dir_name to send over the current
-	directory.  Handle -window-system-unsupported command.  Doc
-	update.  Don't exit prematurely on --no-wait, let Emacs close the
-	connection for us.  When creating a new frame, send environment
-	and pwd to Emacs.  Send current-frame to Emacs.
+	(quote_file_name): Rename to quote_argument.
+	(quote_argument): New name for old quote_file_name.
+	(unquote_argument, strprefix, pass_signal_to_emacs)
+	(handle_sigcont, handle_sigtstp, init_signals): New functions.
+	(set_local_socket): Initialize saved_errno to 0.  If socket-name
+	is too long, call `fail' rather than `exit'.
+	(main): Doc update.  Set main_argc, main_argv.  New var `str'.
+	Don't need a filename or argument if tty or window_system set.
+	Call fail with no arguments.  Use get_current_dir_name to send
+	over the current directory.  Send version number to Emacs for
+	verification.  If tty is set, check TERM, and pass name and type
+	to Emacs.  Pass window_system to Emacs.  Move sending of eval to
+	optind loop.  Send -position, -file to Emacs.  Call fsync after
+	fflush.  Check for a client/server version match. Handle
+	-emacs-pid, -window-system-unsupported, -print, -error, -suspend
+	commands.  Don't exit prematurely on --no-wait, let Emacs close
+	the connection for us.  When creating a new frame, send
+	environment and pwd to Emacs.  Send current-frame to Emacs.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
