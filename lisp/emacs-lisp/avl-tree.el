@@ -28,19 +28,6 @@
 
 ;;; Commentary:
 
-;; This file combines elib-node.el and avltree.el from Elib.
-;;
-;; * Comments from elib-node.el
-;; A node is implemented as an array with three elements, using
-;; (elt node 0) as the left pointer
-;; (elt node 1) as the right pointer
-;; (elt node 2) as the data
-;;
-;; Some types of trees, e.g. AVL trees, need bigger nodes, but
-;; as long as the first three parts are the left pointer, the
-;; right pointer and the data field, these macros can be used.
-;;
-;; * Comments from avltree.el
 ;; An AVL tree is a nearly-perfect balanced binary tree.  A tree
 ;; consists of two cons cells, the first one holding the tag
 ;; 'AVL-TREE in the car cell, and the second one having the tree
@@ -51,6 +38,10 @@
 ;; sub-tree and one right sub-tree.  Each node also has a balance
 ;; count, which is the difference in depth of the left and right
 ;; sub-trees.
+;;
+;; The "public" functions (prefixed with "avl-tree") are:
+;;  -create, -p, -compare-function, -empty, -enter, -delete,
+;;  -member, -map, -first, -last, -copy, -flatten, -size, -clear.
 
 ;;; Code:
 
@@ -86,18 +77,18 @@
   `(aset ,node 2 ,newdata))
 
 (defmacro avl-tree-node-branch (node branch)
-  ;; Get value of a branch of a node.
-  ;;
-  ;; NODE is the node, and BRANCH is the branch.
-  ;; 0 for left pointer, 1 for right pointer and 2 for the data."
+  "Get value of a branch of a node.
+
+NODE is the node, and BRANCH is the branch.
+0 for left pointer, 1 for right pointer and 2 for the data.\""
   `(aref ,node ,branch))
 
 (defmacro avl-tree-node-set-branch (node branch newval)
-  ;; Set value of a branch of a node.
-  ;;
-  ;; NODE is the node, and BRANCH is the branch.
-  ;; 0 for left pointer, 1 for the right pointer and 2 for the data.
-  ;; NEWVAL is new value of the branch."
+  "Set value of a branch of a node.
+
+NODE is the node, and BRANCH is the branch.
+0 for left pointer, 1 for the right pointer and 2 for the data.
+NEWVAL is new value of the branch.\""
   `(aset ,node ,branch ,newval))
 
 (defmacro avl-tree-node-balance (node)
@@ -402,7 +393,7 @@
                 go-left nil))))))
 
 (defun avl-tree-do-copy (root)
-  ;; Copy the tree with ROOT as root.
+  ;; Copy the avl tree with ROOT as root.
   ;; Highly recursive. INTERNAL USE ONLY.
   (if (null root)
       nil
@@ -417,7 +408,7 @@
 ;;;       The public functions which operate on AVL trees.
 
 (defun avl-tree-create (compare-function)
-  "Create an empty avl tree.
+  "Create a new empty avl tree and return it.
 COMPARE-FUNCTION is a function which takes two arguments, A and B,
 and returns non-nil if A is less than B, and nil otherwise."
   (cons 'AVL-TREE
@@ -429,11 +420,11 @@ and returns non-nil if A is less than B, and nil otherwise."
   (eq (car-safe obj) 'AVL-TREE))
 
 (defun avl-tree-compare-function (tree)
-  "Return the comparision function for the avl tree TREE."
+  "Return the comparison function for the avl tree TREE."
   (avl-tree-cmpfun tree))
 
 (defun avl-tree-empty (tree)
-  "Return t if TREE is emtpy, otherwise return nil."
+  "Return t if avl tree TREE is emtpy, otherwise return nil."
   (null (avl-tree-root tree)))
 
 (defun avl-tree-enter (tree data)
@@ -447,7 +438,8 @@ Return DATA."
 
 (defun avl-tree-delete (tree data)
   "From the avl tree TREE, delete DATA.
-Return the element in TREE which matched DATA, nil if no element matched."
+Return the element in TREE which matched DATA,
+nil if no element matched."
   (avl-tree-do-delete (avl-tree-cmpfun tree)
                       (avl-tree-dummyroot tree)
                       0
@@ -455,8 +447,8 @@ Return the element in TREE which matched DATA, nil if no element matched."
 
 (defun avl-tree-member (tree data)
   "Return the element in the avl tree TREE which matches DATA.
-Matching uses the compare function previously specified in `avl-tree-create'
-when TREE was created.
+Matching uses the compare function previously specified in
+`avl-tree-create' when TREE was created.
 
 If there is no such element in the tree, the value is nil."
   (let ((node (avl-tree-root tree))
@@ -476,7 +468,7 @@ If there is no such element in the tree, the value is nil."
       nil)))
 
 (defun avl-tree-map (__map-function__ tree)
-  "Apply MAP-FUNCTION to all elements in the avl tree TREE."
+  "Apply __MAP-FUNCTION__ to all elements in the avl tree TREE."
   (avl-tree-mapc
    (function (lambda (node)
                (avl-tree-node-set-data
