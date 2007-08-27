@@ -1,4 +1,4 @@
-2007-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frames.texi (Basic Parameters): Add display-environment-variable
 	and term-environment-variable.
@@ -7,7 +7,7 @@
 ;; coding: iso-2022-7bit
 ;; add-log-time-zone-rule: t
 ;; End:
-	
+
     Copyright (C) 2007 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
