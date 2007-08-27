@@ -129,8 +129,8 @@
 
 (defun avl-tree-del-balance1 (node branch)
   ;; Rebalance a tree and return t if the height of the tree has shrunk.
-  (let* ((br (avl-tree-node-branch node branch))
-         p1 b1 p2 b2 result)
+  (let ((br (avl-tree-node-branch node branch))
+        p1 b1 p2 b2 result)
     (cond
      ((< (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
@@ -178,8 +178,8 @@
         t)))))
 
 (defun avl-tree-del-balance2 (node branch)
-  (let* ((br (avl-tree-node-branch node branch))
-         p1 b1 p2 b2 result)
+  (let ((br (avl-tree-node-branch node branch))
+        p1 b1 p2 b2 result)
     (cond
      ((> (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
@@ -227,7 +227,7 @@
         t)))))
 
 (defun avl-tree-do-del-internal (node branch q)
-  (let* ((br (avl-tree-node-branch node branch)))
+  (let ((br (avl-tree-node-branch node branch)))
     (if (avl-tree-node-right br)
         (if (avl-tree-do-del-internal br +1 q)
             (avl-tree-del-balance2 node branch))
@@ -238,7 +238,7 @@
 
 (defun avl-tree-do-delete (cmpfun root branch data)
   ;; Return t if the height of the tree has shrunk.
-  (let* ((br (avl-tree-node-branch root branch)))
+  (let ((br (avl-tree-node-branch root branch)))
     (cond
      ((null br)
       nil)
@@ -271,8 +271,8 @@
 
 (defun avl-tree-enter-balance1 (node branch)
   ;; Rebalance a tree and return t if the height of the tree has grown.
-  (let* ((br (avl-tree-node-branch node branch))
-         p1 p2 b2 result)
+  (let ((br (avl-tree-node-branch node branch))
+        p1 p2 b2 result)
     (cond
      ((< (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
@@ -312,8 +312,8 @@
 
 (defun avl-tree-enter-balance2 (node branch)
   ;; Return t if the tree has grown.
-  (let* ((br (avl-tree-node-branch node branch))
-         p1 p2 b2)
+  (let ((br (avl-tree-node-branch node branch))
+        p1 p2 b2)
     (cond
      ((> (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
