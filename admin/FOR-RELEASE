@@ -49,7 +49,19 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00385.html
 ** Check all non-file-scope static vars to make sure they
 won't lose on USG or HPUX systems.
 
-** davidk@lysator.liu.se, 21 Jun: display-buffer change.
+** display-buffer change
+Report by <davidk@lysator.liu.se> on bug-gnu-emacs from 2007-06-21.
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01176.html
+
+** comint-scroll-show-maximum-output
+Report by William Paul Vrotney <vrotney@earthlink.net> on bug-gnu-emacs
+from 2007-08-16.
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00827.html
+
+** maximize resizes to large size, but doesn't really maximize
+Report by Marijn Schouten <hkBst@gentoo.org> on bug-gnu-emacs from
+2007-08-26.
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01362.html
 
 * FIXES FOR EMACS 22.3
 
