@@ -43,7 +43,7 @@
 ;; * Comments from avltree.el
 ;; An AVL tree is a nearly-perfect balanced binary tree.  A tree
 ;; consists of two cons cells, the first one holding the tag
-;; 'AVLTREE in the car cell, and the second one having the tree
+;; 'AVL-TREE in the car cell, and the second one having the tree
 ;; in the car and the compare function in the cdr cell.  The tree has
 ;; a dummy node as its root with the real tree in the left pointer.
 ;;
@@ -441,27 +441,27 @@
 ;;; ================================================================
 ;;;       The public functions which operate on AVL trees.
 
-(defun avltree-create (compare-function)
+(defun avl-tree-create (compare-function)
   "Create an empty avl tree.
 COMPARE-FUNCTION is a function which takes two arguments, A and B,
 and returns non-nil if A is less than B, and nil otherwise."
-  (cons 'AVLTREE
+  (cons 'AVL-TREE
         (cons (elib-avl-node-create nil nil nil 0)
               compare-function)))
 
-(defun avltree-p (obj)
+(defun avl-tree-p (obj)
   "Return t if OBJ is an avl tree, nil otherwise."
-  (eq (car-safe obj) 'AVLTREE))
+  (eq (car-safe obj) 'AVL-TREE))
 
-(defun avltree-compare-function (tree)
+(defun avl-tree-compare-function (tree)
   "Return the comparision function for the avl tree TREE."
   (elib-avl-cmpfun tree))
 
-(defun avltree-empty (tree)
+(defun avl-tree-empty (tree)
   "Return t if TREE is emtpy, otherwise return nil."
   (null (elib-avl-root tree)))
 
-(defun avltree-enter (tree data)
+(defun avl-tree-enter (tree data)
   "In the avl tree TREE insert DATA.
 Return DATA."
   (elib-avl-do-enter (elib-avl-cmpfun tree)
@@ -470,7 +470,7 @@ Return DATA."
                      data)
   data)
 
-(defun avltree-delete (tree data)
+(defun avl-tree-delete (tree data)
   "From the avl tree TREE, delete DATA.
 Return the element in TREE which matched DATA, nil if no element matched."
   (elib-avl-do-delete (elib-avl-cmpfun tree)
@@ -478,9 +478,9 @@ Return the element in TREE which matched DATA, nil if no element matched."
                       0
                       data))
 
-(defun avltree-member (tree data)
+(defun avl-tree-member (tree data)
   "Return the element in the avl tree TREE which matches DATA.
-Matching uses the compare function previously specified in `avltree-create'
+Matching uses the compare function previously specified in `avl-tree-create'
 when TREE was created.
 
 If there is no such element in the tree, the value is nil."
@@ -501,7 +501,7 @@ If there is no such element in the tree, the value is nil."
         (elib-node-data node)
       nil)))
 
-(defun avltree-map (__map-function__ tree)
+(defun avl-tree-map (__map-function__ tree)
   "Apply MAP-FUNCTION to all elements in the avl tree TREE."
   (elib-avl-mapc
    (function (lambda (node)
@@ -510,7 +510,7 @@ If there is no such element in the tree, the value is nil."
                                             (elib-node-data node)))))
    (elib-avl-root tree)))
 
-(defun avltree-first (tree)
+(defun avl-tree-first (tree)
   "Return the first element in TREE, or nil if TREE is empty."
   (let ((node (elib-avl-root tree)))
     (if node
@@ -520,7 +520,7 @@ If there is no such element in the tree, the value is nil."
           (elib-node-data node))
       nil)))
 
-(defun avltree-last (tree)
+(defun avl-tree-last (tree)
   "Return the last element in TREE, or nil if TREE is empty."
   (let ((node (elib-avl-root tree)))
     (if node
@@ -530,15 +530,15 @@ If there is no such element in the tree, the value is nil."
           (elib-node-data node))
       nil)))
 
-(defun avltree-copy (tree)
+(defun avl-tree-copy (tree)
   "Return a copy of the avl tree TREE."
-  (let ((new-tree (avltree-create
+  (let ((new-tree (avl-tree-create
                    (elib-avl-cmpfun tree))))
     (elib-node-set-left (elib-avl-dummyroot new-tree)
                         (elib-avl-do-copy (elib-avl-root tree)))
     new-tree))
 
-(defun avltree-flatten (tree)
+(defun avl-tree-flatten (tree)
   "Return a sorted list containing all elements of TREE."
   (nreverse
    (let ((treelist nil))
@@ -548,7 +548,7 @@ If there is no such element in the tree, the value is nil."
                     (elib-avl-root tree))
      treelist)))
 
-(defun avltree-size (tree)
+(defun avl-tree-size (tree)
   "Return the number of elements in TREE."
   (let ((treesize 0))
     (elib-avl-mapc (function (lambda (data)
@@ -557,11 +557,11 @@ If there is no such element in the tree, the value is nil."
                    (elib-avl-root tree))
     treesize))
 
-(defun avltree-clear (tree)
+(defun avl-tree-clear (tree)
   "Clear the avl tree TREE."
   (elib-node-set-left (elib-avl-dummyroot tree) nil))
 
 (provide 'avl-tree)
 
 ;; arch-tag: 47e26701-43c9-4222-bd79-739eac6357a9
-;;; avltree.el ends here
+;;; avl-tree.el ends here
