@@ -112,26 +112,22 @@
 ;;; ================================================================
 ;;;       Internal functions for use in the AVL tree package
 
-;;;
-;;; The functions and macros in this section all start with `elib-avl-'.
-;;;
-
-(defmacro elib-avl-root (tree)
+(defmacro avl-tree-root (tree)
   ;; Return the root node for an avl-tree.  INTERNAL USE ONLY.
   `(elib-node-left (car (cdr ,tree))))
 
-(defmacro elib-avl-dummyroot (tree)
+(defmacro avl-tree-dummyroot (tree)
   ;; Return the dummy node of an avl-tree.  INTERNAL USE ONLY.
   `(car (cdr ,tree)))
 
-(defmacro elib-avl-cmpfun (tree)
+(defmacro avl-tree-cmpfun (tree)
   ;; Return the compare function of AVL tree TREE.  INTERNAL USE ONLY.
   `(cdr (cdr ,tree)))
 
 ;; ----------------------------------------------------------------
 ;;                          Deleting data
 
-(defun elib-avl-del-balance1 (node branch)
+(defun avl-tree-del-balance1 (node branch)
   ;; Rebalance a tree and return t if the height of the tree has shrunk.
   (let* ((br (elib-node-branch node branch))
          p1
@@ -185,7 +181,7 @@
         (avl-tree-node-set-balance p2 0)
         t)))))
 
-(defun elib-avl-del-balance2 (node branch)
+(defun avl-tree-del-balance2 (node branch)
   (let* ((br (elib-node-branch node branch))
          p1
          b1
@@ -238,18 +234,18 @@
         (avl-tree-node-set-balance p2 0)
         t)))))
 
-(defun elib-avl-do-del-internal (node branch q)
+(defun avl-tree-do-del-internal (node branch q)
 
   (let* ((br (elib-node-branch node branch)))
     (if (elib-node-right br)
-        (if (elib-avl-do-del-internal br +1 q)
-            (elib-avl-del-balance2 node branch))
+        (if (avl-tree-do-del-internal br +1 q)
+            (avl-tree-del-balance2 node branch))
       (elib-node-set-data q (elib-node-data br))
       (elib-node-set-branch node branch
                             (elib-node-left br))
       t)))
 
-(defun elib-avl-do-delete (cmpfun root branch data)
+(defun avl-tree-do-delete (cmpfun root branch data)
   ;; Return t if the height of the tree has shrunk.
   (let* ((br (elib-node-branch root branch)))
     (cond
@@ -257,12 +253,12 @@
       nil)
 
      ((funcall cmpfun data (elib-node-data br))
-      (if (elib-avl-do-delete cmpfun br 0 data)
-          (elib-avl-del-balance1 root branch)))
+      (if (avl-tree-do-delete cmpfun br 0 data)
+          (avl-tree-del-balance1 root branch)))
 
      ((funcall cmpfun (elib-node-data br) data)
-      (if (elib-avl-do-delete cmpfun br 1 data)
-          (elib-avl-del-balance2 root branch)))
+      (if (avl-tree-do-delete cmpfun br 1 data)
+          (avl-tree-del-balance2 root branch)))
 
      (t
       ;; Found it.  Let's delete it.
@@ -276,13 +272,13 @@
         t)
 
        (t
-        (if (elib-avl-do-del-internal br 0 br)
-            (elib-avl-del-balance1 root branch))))))))
+        (if (avl-tree-do-del-internal br 0 br)
+            (avl-tree-del-balance1 root branch))))))))
 
 ;; ----------------------------------------------------------------
 ;;                           Entering data
 
-(defun elib-avl-enter-balance1 (node branch)
+(defun avl-tree-enter-balance1 (node branch)
   ;; Rebalance a tree and return t if the height of the tree has grown.
   (let* ((br (elib-node-branch node branch))
          p1
@@ -326,7 +322,7 @@
       (avl-tree-node-set-balance (elib-node-branch node branch) 0)
       nil))))
 
-(defun elib-avl-enter-balance2 (node branch)
+(defun avl-tree-enter-balance2 (node branch)
   ;; Return t if the tree has grown.
   (let* ((br (elib-node-branch node branch))
          p1
@@ -369,7 +365,7 @@
       (avl-tree-node-set-balance (elib-node-branch node branch) 0)
       nil))))
 
-(defun elib-avl-do-enter (cmpfun root branch data)
+(defun avl-tree-do-enter (cmpfun root branch data)
   ;; Return t if height of tree ROOT has grown.  INTERNAL USE ONLY.
   (let ((br (elib-node-branch root branch)))
     (cond
@@ -380,16 +376,16 @@
       t)
 
      ((funcall cmpfun data (elib-node-data br))
-      (and (elib-avl-do-enter cmpfun
+      (and (avl-tree-do-enter cmpfun
                               br
                               0 data)
-           (elib-avl-enter-balance2 root branch)))
+           (avl-tree-enter-balance2 root branch)))
 
      ((funcall cmpfun (elib-node-data br) data)
-      (and (elib-avl-do-enter cmpfun
+      (and (avl-tree-do-enter cmpfun
                               br
                               1 data)
-           (elib-avl-enter-balance1 root branch)))
+           (avl-tree-enter-balance1 root branch)))
 
      (t
       (elib-node-set-data br data)
@@ -397,7 +393,7 @@
 
 ;; ----------------------------------------------------------------
 
-(defun elib-avl-mapc (map-function root)
+(defun avl-tree-mapc (map-function root)
   ;; Apply MAP-FUNCTION to all nodes in the tree starting with ROOT.
   ;; The function is applied in-order.
   ;;
@@ -423,13 +419,13 @@
           (setq node (pop stack)
                 go-left nil))))))
 
-(defun elib-avl-do-copy (root)
+(defun avl-tree-do-copy (root)
   ;; Copy the tree with ROOT as root.
   ;; Highly recursive. INTERNAL USE ONLY.
   (if (null root)
       nil
-    (avl-tree-node-create (elib-avl-do-copy (elib-node-left root))
-                          (elib-avl-do-copy (elib-node-right root))
+    (avl-tree-node-create (avl-tree-do-copy (elib-node-left root))
+                          (avl-tree-do-copy (elib-node-right root))
                           (elib-node-data root)
                           (avl-tree-node-balance root))))
 
@@ -451,17 +447,17 @@ and returns non-nil if A is less than B, and nil otherwise."
 
 (defun avl-tree-compare-function (tree)
   "Return the comparision function for the avl tree TREE."
-  (elib-avl-cmpfun tree))
+  (avl-tree-cmpfun tree))
 
 (defun avl-tree-empty (tree)
   "Return t if TREE is emtpy, otherwise return nil."
-  (null (elib-avl-root tree)))
+  (null (avl-tree-root tree)))
 
 (defun avl-tree-enter (tree data)
   "In the avl tree TREE insert DATA.
 Return DATA."
-  (elib-avl-do-enter (elib-avl-cmpfun tree)
-                     (elib-avl-dummyroot tree)
+  (avl-tree-do-enter (avl-tree-cmpfun tree)
+                     (avl-tree-dummyroot tree)
                      0
                      data)
   data)
@@ -469,8 +465,8 @@ Return DATA."
 (defun avl-tree-delete (tree data)
   "From the avl tree TREE, delete DATA.
 Return the element in TREE which matched DATA, nil if no element matched."
-  (elib-avl-do-delete (elib-avl-cmpfun tree)
-                      (elib-avl-dummyroot tree)
+  (avl-tree-do-delete (avl-tree-cmpfun tree)
+                      (avl-tree-dummyroot tree)
                       0
                       data))
 
@@ -480,8 +476,8 @@ Matching uses the compare function previously specified in `avl-tree-create'
 when TREE was created.
 
 If there is no such element in the tree, the value is nil."
-  (let ((node (elib-avl-root tree))
-        (compare-function (elib-avl-cmpfun tree))
+  (let ((node (avl-tree-root tree))
+        (compare-function (avl-tree-cmpfun tree))
         found)
     (while (and node
                 (not found))
@@ -499,16 +495,16 @@ If there is no such element in the tree, the value is nil."
 
 (defun avl-tree-map (__map-function__ tree)
   "Apply MAP-FUNCTION to all elements in the avl tree TREE."
-  (elib-avl-mapc
+  (avl-tree-mapc
    (function (lambda (node)
                (elib-node-set-data node
                                    (funcall __map-function__
                                             (elib-node-data node)))))
-   (elib-avl-root tree)))
+   (avl-tree-root tree)))
 
 (defun avl-tree-first (tree)
   "Return the first element in TREE, or nil if TREE is empty."
-  (let ((node (elib-avl-root tree)))
+  (let ((node (avl-tree-root tree)))
     (if node
         (progn
           (while (elib-node-left node)
@@ -518,7 +514,7 @@ If there is no such element in the tree, the value is nil."
 
 (defun avl-tree-last (tree)
   "Return the last element in TREE, or nil if TREE is empty."
-  (let ((node (elib-avl-root tree)))
+  (let ((node (avl-tree-root tree)))
     (if node
         (progn
           (while (elib-node-right node)
@@ -529,33 +525,33 @@ If there is no such element in the tree, the value is nil."
 (defun avl-tree-copy (tree)
   "Return a copy of the avl tree TREE."
   (let ((new-tree (avl-tree-create
-                   (elib-avl-cmpfun tree))))
-    (elib-node-set-left (elib-avl-dummyroot new-tree)
-                        (elib-avl-do-copy (elib-avl-root tree)))
+                   (avl-tree-cmpfun tree))))
+    (elib-node-set-left (avl-tree-dummyroot new-tree)
+                        (avl-tree-do-copy (avl-tree-root tree)))
     new-tree))
 
 (defun avl-tree-flatten (tree)
   "Return a sorted list containing all elements of TREE."
   (nreverse
    (let ((treelist nil))
-     (elib-avl-mapc (function (lambda (node)
+     (avl-tree-mapc (function (lambda (node)
                                 (setq treelist (cons (elib-node-data node)
                                                      treelist))))
-                    (elib-avl-root tree))
+                    (avl-tree-root tree))
      treelist)))
 
 (defun avl-tree-size (tree)
   "Return the number of elements in TREE."
   (let ((treesize 0))
-    (elib-avl-mapc (function (lambda (data)
+    (avl-tree-mapc (function (lambda (data)
                                (setq treesize (1+ treesize))
                                data))
-                   (elib-avl-root tree))
+                   (avl-tree-root tree))
     treesize))
 
 (defun avl-tree-clear (tree)
   "Clear the avl tree TREE."
-  (elib-node-set-left (elib-avl-dummyroot tree) nil))
+  (elib-node-set-left (avl-tree-dummyroot tree) nil))
 
 (provide 'avl-tree)
 
