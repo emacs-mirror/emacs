@@ -1,3 +1,11 @@
+2007-08-27  Alexandre Julliard  <julliard@winehq.org>
+
+        * vc-git.el (vc-git-state): Call git-add --refresh to update the
+	state of the file.
+        (vc-git-workfile-unchanged-p): Delegate implementation to
+	vc-git-state.
+	(vc-git-create-repo): Fixed invalid command.
+	
 2007-08-27  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode):
