@@ -54,10 +54,6 @@
 
 ;;; Code:
 
-(defmacro elib-node-create (left right data)
-  ;; Create a tree node from LEFT, RIGHT and DATA.
-  `(vector ,left ,right ,data))
-
 (defmacro elib-node-left (node)
   ;; Return the left pointer of NODE.
   `(aref ,node 0))
