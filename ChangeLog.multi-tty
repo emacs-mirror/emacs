@@ -1,3 +1,9 @@
+2007-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_GTK_MULTIDISPLAY): Restore explicit
+	initialization, the absence of which was a needless difference
+	from the trunk.
+
 0000-00-00  Karoly Lorentey  <karoly@lorentey.hu>
 
 	* configure.in (HAVE_GTK_MULTIDISPLAY): Remove override, allow
