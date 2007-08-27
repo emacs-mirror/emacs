@@ -1,3 +1,8 @@
+2007-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* diff-mode.el (diff-find-file-name): Only accept regular files,
+	to rule out /dev/null, directories, etc.
+
 2007-08-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/cperl-mode.el (cperl-indent-level): Autoload the
