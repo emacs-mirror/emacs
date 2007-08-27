@@ -56,38 +56,38 @@
 
 (defmacro elib-node-create (left right data)
   ;; Create a tree node from LEFT, RIGHT and DATA.
-  (` (vector (, left) (, right) (, data))))
+  `(vector ,left ,right ,data))
 
 (defmacro elib-node-left (node)
   ;; Return the left pointer of NODE.
-  (` (aref (, node) 0)))
+  `(aref ,node 0))
 
 (defmacro elib-node-right (node)
   ;; Return the right pointer of NODE.
-  (` (aref (, node) 1)))
+  `(aref ,node 1))
 
 (defmacro elib-node-data (node)
   ;; Return the data of NODE.
-  (` (aref (, node) 2)))
+  `(aref ,node 2))
 
 (defmacro elib-node-set-left (node newleft)
   ;; Set the left pointer of NODE to NEWLEFT.
-  (` (aset (, node) 0 (, newleft))))
+  `(aset ,node 0 ,newleft))
 
 (defmacro elib-node-set-right (node newright)
   ;; Set the right pointer of NODE to NEWRIGHT.
-  (` (aset (, node) 1 (, newright))))
+  `(aset ,node 1 ,newright))
 
 (defmacro elib-node-set-data (node newdata)
   ;; Set the data of NODE to NEWDATA.
-  (` (aset (, node) 2 (, newdata))))
+  `(aset ,node 2 ,newdata))
 
 (defmacro elib-node-branch (node branch)
   ;; Get value of a branch of a node.
   ;;
   ;; NODE is the node, and BRANCH is the branch.
   ;; 0 for left pointer, 1 for right pointer and 2 for the data."
-  (` (aref (, node) (, branch))))
+  `(aref ,node ,branch))
 
 (defmacro elib-node-set-branch (node branch newval)
   ;; Set value of a branch of a node.
@@ -95,22 +95,22 @@
   ;; NODE is the node, and BRANCH is the branch.
   ;; 0 for left pointer, 1 for the right pointer and 2 for the data.
   ;; NEWVAL is new value of the branch."
-  (` (aset (, node) (, branch) (, newval))))
+  `(aset ,node ,branch ,newval))
 
 ;;; ================================================================
 ;;;        Functions and macros handling an AVL tree node.
 
 (defmacro elib-avl-node-create (left right data balance)
   ;; Create and return an avl-tree node.
-  (` (vector (, left) (, right) (, data) (, balance))))
+  `(vector ,left ,right ,data ,balance))
 
 (defmacro elib-avl-node-balance (node)
   ;; Return the balance field of a node.
-  (` (aref (, node) 3)))
+  `(aref ,node 3))
 
 (defmacro elib-avl-node-set-balance (node newbal)
   ;; Set the balance field of a node.
-  (` (aset (, node) 3 (, newbal))))
+  `(aset ,node 3 ,newbal))
 
 
 ;;; ================================================================
@@ -122,15 +122,15 @@
 
 (defmacro elib-avl-root (tree)
   ;; Return the root node for an avl-tree.  INTERNAL USE ONLY.
-  (` (elib-node-left (car (cdr (, tree))))))
+  `(elib-node-left (car (cdr ,tree))))
 
 (defmacro elib-avl-dummyroot (tree)
   ;; Return the dummy node of an avl-tree.  INTERNAL USE ONLY.
-  (` (car (cdr (, tree)))))
+  `(car (cdr ,tree)))
 
 (defmacro elib-avl-cmpfun (tree)
   ;; Return the compare function of AVL tree TREE.  INTERNAL USE ONLY.
-  (` (cdr (cdr (, tree)))))
+  `(cdr (cdr ,tree)))
 
 ;; ----------------------------------------------------------------
 ;;                          Deleting data
