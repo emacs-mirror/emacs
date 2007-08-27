@@ -1,8 +1,11 @@
-0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Juri Linkov  <juri@jurta.org>
 
-	* ldefs-boot.el: Update.
+	* loadup.el: Add "button" loading after "faces" and move "startup"
+	to load after "button".
 
 0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* loadup.el: Load term/mac-win on a Mac using Carbon.
 
 	* term/mac-win.el: Provide mac-win.
 	(mac-initialized): New variable.
@@ -16,6 +19,9 @@
 	* term/x-win.el (x-menu-bar-open): Use accelerate-menu.
 
 0000-00-00  Jason Rumney  <jasonr@gnu.org>
+
+	* loadup.el: Only load term/x-win when X is compiled in.
+	Load term/w32-win and dependencies on windows-nt.
 
 	* term/w32-win.el: Reorder to match x-win.el more closely.
 	Provide w32-win. Don't throw error when global window-system not
@@ -33,32 +39,10 @@
 	(handle-args-function-alist, frame-creation-function-alist):
 	(window-system-initialization-alist): Add w32 entries.
 
-0000-00-00  Juri Linkov  <juri@jurta.org>
-
-	* loadup.el: Add "button" loading after "faces" and move "startup"
-	to load after "button".
-
-0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
-
-	* loadup.el: Load mac-win on a Mac. Avoid loading both x-win and
-	mac-win.
-
-0000-00-00  Jason Rumney  <jasonr@gnu.org>
-
-	* loadup.el: Only load x-dnd and x-win when X is compiled in.
-	Load w32-win and dependencies on windows-nt.
-
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* loadup.el: Delay loading env; mule-conf gets confused by cl
-	during bootstrap.  Load termdev as well.  Reorganize order of
-	loading x-dnd, term/x-win and dnd.
-
-0000-00-00  Juanma Barranquero  <lekktu@gmail.com>
-
-	* server.el (server-process-filter): Fix typo in docstring.
-
-0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
+	during bootstrap.  Also load termdev and term/x-win.
 
 	* talk.el (talk): New function.
 	(talk-handle-delete-frame): New function.
@@ -96,7 +80,8 @@
 
 	* international/encoded-kb.el (saved-input-mode): Delete variable.
 	(encoded-kbd-setup-display): Store the saved input method as a terminal
-	parameter. Add keymap parameter.  Use it instead of changing key-translation-map directly.
+	parameter. Add keymap parameter.  Use it instead of changing
+	key-translation-map directly.
 
 	* international/mule.el (keyboard-coding-system): Test for
 	encoded-kbd-setup-display, not encoded-kbd-mode.
@@ -117,33 +102,18 @@
 	(x-initialize-window-system): Make a copy of pure list. Pass a
 	frame getenv.
 
-	* term/vt200.el: Use terminal-local binding of
+	* term/vt200.el, term/vt201.el, term/vt220.el, term/vt240.el:
+	* term/vt300.el, term/vt320.el, term/vt400.el, term/vt420.el:
+	* term/AT386.el, term/internal.el, term/iris-ansi.el, term/lk201.el:
+	* term/mac-win.el, term/news.el, term/rxvt.el, term/sun.el:
+	* term/tvi970.el, term/wyse50.el: Use terminal-local binding of
 	local-function-key-map instead of function-key-map.
-	* term/vt201.el: Ditto.
-	* term/vt220.el: Ditto.
-	* term/vt240.el: Ditto.
-	* term/vt300.el: Ditto.
-	* term/vt320.el: Ditto.
-	* term/vt400.el: Ditto.
-	* term/vt420.el: Ditto.
-	* term/AT386.el: Ditto.
-	* term/internal.el: Ditto.
-	* term/iris-ansi.el: Ditto.
-	* term/lk201.el: Ditto.
-	* term/mac-win.el: Ditto.
-	* term/news.el: Ditto.
-	* term/rxvt.el: Ditto.
-	* term/sun.el: Ditto.
-	* term/tvi970.el: Ditto.
-	* term/wyse50.el: Ditto.
-	* term/lk201.el: Ditto.
 
-	* term/xterm.el: Speed up load time by protecting
+	* term/rxvt.el, term/xterm.el: Speed up load time by protecting
 	`substitute-key-definition' and `define-key' calls against
 	multiple execution. Use terminal-local binding of
 	local-function-key-map instead of function-key-map. Pass a frame
 	to getenv.
-	* term/rxvt.el: Ditto.
 
 	* subr.el (with-selected-frame): New function.
 	(read-quoted-char): Use terminal-local binding of
@@ -313,26 +283,25 @@
 	(server-tty-live-p, server-handle-delete-tty): Remove.
 	(server-unquote-arg, server-quote-arg,server-buffer-clients):
 	Update docs.
-	(server-getenv-from)
-	(server-with-environment,server-send-string,server-save-buffers-kill-terminal):
-	New functions.
+	(server-getenv-from, server-with-environment,server-send-string)
+	(server-save-buffers-kill-terminal): New functions.
 	(server-delete-client): Handle quits in kill-buffer.  Don't kill
 	modified buffers.  Add extra logging.
 	(server-visit-files): Don't set `server-existing-buffer' if the
 	buffer already has other clients.  Return list of buffers
-	created. Update doc.  Don't set client-record when nowait.
+	created.  Update doc.  Don't set client-record when nowait.
 	(server-delete-client): Delete frames after deleting the tty.
 	Clear 'client parameter before deleting a frame.  Use
 	delete-display, not delete-tty.
 	(server-handle-delete-frame): Delete the client if this was its
-	last frame. Check that the frame is alive..  Remove bogus comment.
+	last frame. Check that the frame is alive.  Remove bogus comment.
 	Add note on possible race condition.  Delete tty clients, if
 	needed.
 	(server-handle-suspend-tty): Use server-send-string.
-	(server-unload-hook): Removed obsolete delete-tty
+	(server-unload-hook): Remove obsolete delete-tty
 	hook.
 	(server-start): Ask before restarting if the old server still has
-	clients.  Added feedback messages. Removed obsolete delete-tty
+	clients.  Add feedback messages. Remove obsolete delete-tty
 	hook.
 	(server-handle-suspend-tty): Kill the client in case of errors
 	from process-send-string. Use the display parameter.
@@ -363,11 +332,11 @@
 	them buried under others.  Set the display parameter, and use it
 	when appropriate.
 
-	* ebuff-menu.el (electric-buffer-menu-mode-map): Bind C-z to
+	* ebrowse.el (ebrowse-electric-list-mode-map)
+	(ebrowse-electric-position-mode-map):
+	* ebuff-menu.el (electric-buffer-menu-mode-map):
+	* echistory.el (electric-history-map): Bind C-z to
 	`suspend-frame', not `suspend-emacs'.
-	* echistory.el (electric-history-map): Ditto.
-	* ebrowse.el (ebrowse-electric-list-mode-map): Ditto.
-	* ebrowse.el (ebrowse-electric-position-mode-map): Ditto.
 
 	* font-lock.el (lisp-font-lock-keywords-2): Add `let-environment'
 	and `with-selected-frame'.
