@@ -282,7 +282,7 @@ one large window.
   To turn off Follow mode, type @kbd{M-x follow-mode} a second time.
 
 @node Faces
-@section Using Multiple Typefaces
+@section Faces: Controlling Text Display Style
 @cindex faces
 
   You can specify various styles for displaying text using
@@ -298,11 +298,11 @@ terminals support inverse video, bold, and underline attributes; some
 support colors.  Text-only terminals generally do not support changing
 the height and width or the font family.
 
-  Emacs uses faces automatically for highlighting, through the work of
-Font Lock mode.  @xref{Font Lock}, for more information about Font
-Lock mode and syntactic highlighting.  You can print out the buffer
-with the highlighting that appears on your screen using the command
-@code{ps-print-buffer-with-faces}.  @xref{PostScript}.
+  Most major modes assign faces to the text automatically through the
+work of Font Lock mode.  @xref{Font Lock}, for more information about
+Font Lock mode and syntactic highlighting.  You can print the current
+buffer with the highlighting that appears on your screen using the
+command @code{ps-print-buffer-with-faces}.  @xref{PostScript}.
 
   You control the appearance of a part of the text in the buffer by
 specifying the face or faces to use for it.  The style of display used
