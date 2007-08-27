@@ -1,3 +1,8 @@
+2007-08-27  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Configurations): Clarify what
+	a window configuration saves.
+
 2007-08-25  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Images): Delete redundant @findex.
