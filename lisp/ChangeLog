@@ -1,3 +1,7 @@
+2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* emacs-lisp/avl-tree.el: New file.
+
 2007-08-26  Micha,bk(Bl Cadilhac  <michael@cadilhac.name>
 
 	* hi-lock.el (hi-lock-unface-buffer): Show a x-menu only if the mouse
