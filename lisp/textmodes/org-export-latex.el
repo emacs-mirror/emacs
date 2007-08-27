@@ -2,7 +2,6 @@
 ;; Copyright (C) 2007 Free Software Foundation, Inc.
 ;;
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
-;; Version: $Id: org-export-latex.el,v 1.2 2007/08/22 11:37:33 miles Exp $
 ;; Keywords: org organizer latex export convert
 ;; X-URL: <http://www.cognition.ens.fr/~guerry/u/org-export-latex.el>
 ;;
