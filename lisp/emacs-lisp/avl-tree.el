@@ -54,6 +54,13 @@
 
 ;;; Code:
 
+;;; ================================================================
+;;;        Functions and macros handling an AVL tree node.
+
+(defmacro avl-tree-node-create (left right data balance)
+  ;; Create and return an avl-tree node.
+  `(vector ,left ,right ,data ,balance))
+
 (defmacro avl-tree-node-left (node)
   ;; Return the left pointer of NODE.
   `(aref ,node 0))
@@ -93,13 +100,6 @@
   ;; NEWVAL is new value of the branch."
   `(aset ,node ,branch ,newval))
 
-;;; ================================================================
-;;;        Functions and macros handling an AVL tree node.
-
-(defmacro avl-tree-node-create (left right data balance)
-  ;; Create and return an avl-tree node.
-  `(vector ,left ,right ,data ,balance))
-
 (defmacro avl-tree-node-balance (node)
   ;; Return the balance field of a node.
   `(aref ,node 3))
@@ -130,11 +130,7 @@
 (defun avl-tree-del-balance1 (node branch)
   ;; Rebalance a tree and return t if the height of the tree has shrunk.
   (let* ((br (avl-tree-node-branch node branch))
-         p1
-         b1
-         p2
-         b2
-         result)
+         p1 b1 p2 b2 result)
     (cond
      ((< (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
@@ -183,11 +179,7 @@
 
 (defun avl-tree-del-balance2 (node branch)
   (let* ((br (avl-tree-node-branch node branch))
-         p1
-         b1
-         p2
-         b2
-         result)
+         p1 b1 p2 b2 result)
     (cond
      ((> (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
@@ -235,14 +227,13 @@
         t)))))
 
 (defun avl-tree-do-del-internal (node branch q)
-
   (let* ((br (avl-tree-node-branch node branch)))
     (if (avl-tree-node-right br)
         (if (avl-tree-do-del-internal br +1 q)
             (avl-tree-del-balance2 node branch))
       (avl-tree-node-set-data q (avl-tree-node-data br))
       (avl-tree-node-set-branch node branch
-                            (avl-tree-node-left br))
+                                (avl-tree-node-left br))
       t)))
 
 (defun avl-tree-do-delete (cmpfun root branch data)
@@ -281,10 +272,7 @@
 (defun avl-tree-enter-balance1 (node branch)
   ;; Rebalance a tree and return t if the height of the tree has grown.
   (let* ((br (avl-tree-node-branch node branch))
-         p1
-         p2
-         b2
-         result)
+         p1 p2 b2 result)
     (cond
      ((< (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
@@ -325,9 +313,7 @@
 (defun avl-tree-enter-balance2 (node branch)
   ;; Return t if the tree has grown.
   (let* ((br (avl-tree-node-branch node branch))
-         p1
-         p2
-         b2)
+         p1 p2 b2)
     (cond
      ((> (avl-tree-node-balance br) 0)
       (avl-tree-node-set-balance br 0)
@@ -371,20 +357,16 @@
     (cond
      ((null br)
       ;; Data not in tree, insert it.
-      (avl-tree-node-set-branch root branch
-                            (avl-tree-node-create nil nil data 0))
+      (avl-tree-node-set-branch
+       root branch (avl-tree-node-create nil nil data 0))
       t)
 
      ((funcall cmpfun data (avl-tree-node-data br))
-      (and (avl-tree-do-enter cmpfun
-                              br
-                              0 data)
+      (and (avl-tree-do-enter cmpfun br 0 data)
            (avl-tree-enter-balance2 root branch)))
 
      ((funcall cmpfun (avl-tree-node-data br) data)
-      (and (avl-tree-do-enter cmpfun
-                              br
-                              1 data)
+      (and (avl-tree-do-enter cmpfun br 1 data)
            (avl-tree-enter-balance1 root branch)))
 
      (t
@@ -424,10 +406,11 @@
   ;; Highly recursive. INTERNAL USE ONLY.
   (if (null root)
       nil
-    (avl-tree-node-create (avl-tree-do-copy (avl-tree-node-left root))
-                          (avl-tree-do-copy (avl-tree-node-right root))
-                          (avl-tree-node-data root)
-                          (avl-tree-node-balance root))))
+    (avl-tree-node-create
+     (avl-tree-do-copy (avl-tree-node-left root))
+     (avl-tree-do-copy (avl-tree-node-right root))
+     (avl-tree-node-data root)
+     (avl-tree-node-balance root))))
 
 
 ;;; ================================================================
@@ -488,7 +471,6 @@ If there is no such element in the tree, the value is nil."
         (setq node (avl-tree-node-right node)))
        (t
         (setq found t))))
-
     (if node
         (avl-tree-node-data node)
       nil)))
@@ -497,9 +479,9 @@ If there is no such element in the tree, the value is nil."
   "Apply MAP-FUNCTION to all elements in the avl tree TREE."
   (avl-tree-mapc
    (function (lambda (node)
-               (avl-tree-node-set-data node
-                                   (funcall __map-function__
-                                            (avl-tree-node-data node)))))
+               (avl-tree-node-set-data
+                node (funcall __map-function__
+                              (avl-tree-node-data node)))))
    (avl-tree-root tree)))
 
 (defun avl-tree-first (tree)
@@ -524,29 +506,30 @@ If there is no such element in the tree, the value is nil."
 
 (defun avl-tree-copy (tree)
   "Return a copy of the avl tree TREE."
-  (let ((new-tree (avl-tree-create
-                   (avl-tree-cmpfun tree))))
+  (let ((new-tree (avl-tree-create (avl-tree-cmpfun tree))))
     (avl-tree-node-set-left (avl-tree-dummyroot new-tree)
-                        (avl-tree-do-copy (avl-tree-root tree)))
+                            (avl-tree-do-copy (avl-tree-root tree)))
     new-tree))
 
 (defun avl-tree-flatten (tree)
   "Return a sorted list containing all elements of TREE."
   (nreverse
    (let ((treelist nil))
-     (avl-tree-mapc (function (lambda (node)
-                                (setq treelist (cons (avl-tree-node-data node)
-                                                     treelist))))
-                    (avl-tree-root tree))
+     (avl-tree-mapc
+      (function (lambda (node)
+                  (setq treelist (cons (avl-tree-node-data node)
+                                       treelist))))
+      (avl-tree-root tree))
      treelist)))
 
 (defun avl-tree-size (tree)
   "Return the number of elements in TREE."
   (let ((treesize 0))
-    (avl-tree-mapc (function (lambda (data)
-                               (setq treesize (1+ treesize))
-                               data))
-                   (avl-tree-root tree))
+    (avl-tree-mapc
+     (function (lambda (data)
+                 (setq treesize (1+ treesize))
+                 data))
+     (avl-tree-root tree))
     treesize))
 
 (defun avl-tree-clear (tree)
