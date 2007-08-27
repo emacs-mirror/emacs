@@ -134,6 +134,54 @@
 
 	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Bump to 50k.
 
+0000-00-00  Karoly Lorentey  <karoly@lorentey.hu>
+	
+	* w32term.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
+	* macterm.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
+	Remove redundant definition. 
+
+	* macfns.c (x_set_mouse_color,x_make_gc): Use
+	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
+
+	* msdos.c (ScreenVisualBell,internal_terminal_init): Use
+	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
+	* w32term.c (x_free_frame_resources): Use
+	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
+	* w32term.c (w32_initialize): Use the accessor macros for terminal
+	characteristics.
+
+	* macterm.c (mac_initialize): Use Fset_input_interrupt_mode. Use
+	the accessor macros for terminal characteristics.
+	* msdos.c (internal_terminal_init): Use the accessor macros for
+	terminal characteristics.
+
+	* cm.h (emacs_tputs): New macro to set current_tty, and then call
+	tputs().
+	(current_tty): New variable, for cmputc().
+	(cmcheckmagic, cmputc, cmgoto): Added prototypes.
+
+	* cm.c (current_tty): New variable, for cmputc().
+	(cmputc): Use it.
+	(cmcheckmagic): Added tty parameter, look up terminal streams
+	there.
+	(calccost): Added tty parameter.  Use emacs_tputs() instead of
+	tputs().
+	(cmgoto): Added tty parameter.  Pass it on to calccost().  Use
+	emacs_tputs() instead of tputs().
+
+	* eval.c (unwind_to_catch): Don't call x_fully_uncatch_errors.
+	(internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2): Don't abort when x_catching_errors.
+
+	* keymap.h (Fset_keymap_parent): Add EXFUN.
+
+	* fns.c (Fyes_or_no_p): Don't try to open an X dialog on tty
+	terminals.
+	(Fy_or_n_p): Likewise. Use temporarily_switch_to_single_kboard to
+	prevent crashes caused by bogus longjmps in read_char.
+
+	* termopts.h (no_redraw_on_reenter): Declare.
+
 2007-04-22  Karoly Lorentey  <karoly@lorentey.hu>
 
 	* xterm.c (x_scroll_bar_expose): Fix reference to foreground pixel.
@@ -169,10 +217,6 @@
 	* xterm.h: Remove declaration for x_fully_uncatch_errors.
 
 	* xterm.c (x_fully_uncatch_errors): Disable definition.
-
-	* eval.c (unwind_to_catch): Don't call x_fully_uncatch_errors.
-	(internal_condition_case, internal_condition_case_1)
-	(internal_condition_case_2): Don't abort when x_catching_errors.
 
 2006-05-26  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -268,11 +312,6 @@
 	* frame.c (make_terminal_frame): Use FRAME_BACKGROUND_PIXEL and
 	FRAME_FOREGROUND_PIXEL.
 	* gtkutil.c (xg_create_frame_widgets): Ditto.
-	* macfns.c (x_set_mouse_color): Ditto.
-	* macfns.c (x_make_gc): Ditto.
-	* msdos.c (ScreenVisualBell): Ditto.
-	* msdos.c (internal_terminal_init): Ditto.
-	* w32term.c (x_free_frame_resources): Ditto.
 	* xfns.c (x_window): Ditto.
 	* xterm.c (x_scroll_bar_create): Ditto.
 	* xterm.c (x_scroll_bar_set_handle): Ditto.
@@ -393,8 +432,6 @@
 
 	* callint.c (Fcall_interactively): Update call to
 	`temporarily_switch_to_single_kboard'.
-
-	* fns.c (Fy_or_n_p): Ditto.
 
 	* frame.c (Fdelete_frame): Remove unused variable `count'.
 
@@ -713,10 +750,6 @@
 	* keyboard.c (pop_kboard): Remove unused variable.
 	(Fset_output_flow_control): Return nil.
 
-	* keymap.h (Fset_keymap_parent): Add EXFUN.
-
-	* lisp.h (syms_of_terminal): Declare it.
-
 	* sysdep.c (reset_sys_modes): Update for renames.
 
 	* term.c (set_scroll_region): Rename to `tty_set_scroll_region'.
@@ -768,7 +801,6 @@
 	* lisp.h: EXFUN the new functions.
 
 	* xterm.c (x_initialize): Use Fset_input_interrupt_mode.
-	* macterm.c (mac_initialize): Ditto.
 
 2005-12-22  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -851,12 +883,6 @@
 
 	* keyboard.c: Add forward declaration of restore_kboard_configuration.
 
-	emacs--multi-tty--0--patch-414
-
-	* fns.c: Include termhooks.h.
-	(Fy_or_n_p): Use temporarily_switch_to_single_kboard to prevent crashes
-	caused by bogus longjmps in read_char.
-
 	* callint.c (Fcall_interactively): Use
 	temporarily_switch_to_single_kboard instead of single_kboard_state.
 	Make sure it is correctly unwinded.
@@ -891,9 +917,6 @@
 
 	* dispnew.c (Fsend_string_to_terminal): Add optional TERMINAL
 	parameter.
-
-	* fns.c (Fy_or_n_p, Fyes_or_no_p): Don't try to open an X dialog on
-	tty terminals.
 
 	* term.c (get_tty_device): Remove static qualifier.
 
@@ -1452,26 +1475,8 @@
 
 	* termhooks.h (termscript): Removed.
 
-	* w32term.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
-	Removed redundant definition.
-	* macterm.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Ditto.
-
 	* window.c (init_window_once): Call make_terminal_frame with two
 	zero parameters.
-
-	* cm.h (emacs_tputs): New macro to set current_tty, and then call
-	tputs().
-	(current_tty): New variable, for cmputc().
-	(cmcheckmagic, cmputc, cmgoto): Added prototypes.
-
-	* cm.c (current_tty): New variable, for cmputc().
-	(cmputc): Use it.
-	(cmcheckmagic): Added tty parameter, look up terminal streams
-	there.
-	(calccost): Added tty parameter.  Use emacs_tputs() instead of
-	tputs().
-	(cmgoto): Added tty parameter.  Pass it on to calccost().  Use
-	emacs_tputs() instead of tputs().
 
 	* dispextern.h (set_terminal_modes, reset_terminal_modes): Added
 	tty parameter.
@@ -1536,19 +1541,14 @@
 	* term.c (_current_terminal): New variable.  Will be removed when
 	true multi-tty support is implemented.
 
-	* termopts.h (no_redraw_on_reenter): Moved here.
-
 	* term.c (set_terminal_window, ins_del_lines, calculate_costs)
 	(term_init): Use the accessor macros for terminal characteristics.
 	* dispnew.c (line_hash_code, line_draw_cost)
 	(direct_output_for_insert, update_frame_1, scrolling)
 	(update_frame_line): Ditto.
-	* macterm.c (mac_initialize): Ditto.
-	* msdos.c (internal_terminal_init): Ditto.
 	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
 	(scrolling_1, scroll_cost): Ditto.
 	* sysdep.c (hft_init): Ditto.
-	* w32term.c (w32_initialize): Ditto.
 	* xdisp.c (try_window_id): Ditto.
 	* xterm.c (x_initialize): Ditto.
 
