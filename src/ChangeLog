@@ -1,3 +1,8 @@
+2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_draw_composite_glyph_string_foreground): Draw rectangle
+	for nonexistent or zero-width glyph in composition glyph.
+
 2007-08-27  Richard Stallman  <rms@gnu.org>
 
 	* eval.c (condition-case): Doc fix.
