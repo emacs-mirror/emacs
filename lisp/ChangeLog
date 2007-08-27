@@ -1,3 +1,8 @@
+2007-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* vc-svn.el (vc-svn-diff): If the repository version of all the
+	files is the same as the specified OLDVERS, do a local diff.
+
 2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names): Check liveness
