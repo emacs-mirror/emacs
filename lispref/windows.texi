@@ -2246,13 +2246,13 @@ similar to the value returned by @code{window-edges}.
 @cindex saving window information
 
   A @dfn{window configuration} records the entire layout of one
-frame---all windows, their sizes, which buffers they contain, what
-part of each buffer is displayed, and the values of point and the
-mark; also their fringes, margins, and scroll bar settings.  It also
+frame---all windows, their sizes, which buffers they contain, how
+those buffers are scrolled, and their values of point and the mark;
+also their fringes, margins, and scroll bar settings.  It also
 includes the values of @code{window-min-height},
-@code{window-min-width} and @code{minibuffer-scroll-window}.  An
-exception is made for point in the selected window for the current
-buffer; its value is not saved in the window configuration.
+@code{window-min-width} and @code{minibuffer-scroll-window}.  As a
+special exception, the window configuration does not record the value
+of point in the selected window for the current buffer.
 
   You can bring back an entire previous layout by restoring a window
 configuration previously saved.  If you want to record all frames
