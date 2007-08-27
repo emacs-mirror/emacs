@@ -1,3 +1,7 @@
+2007-08-24  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
+
+	* message.texi (MIME): Replace mml-attach with mml-attach-file.
+
 2007-08-27  Richard Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Clarify menu item for Glossary.

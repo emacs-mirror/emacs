@@ -404,7 +404,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	(mml-multipart-number mml-multipart-number))
     (if (not cont)
 	nil
-      (with-temp-buffer
+      (mm-with-multibyte-buffer
 	(if (and (consp (car cont))
 		 (= (length cont) 1))
 	    (mml-generate-mime-1 (car cont))
@@ -516,14 +516,13 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		      (progn
 			(mm-enable-multibyte)
 			(insert contents)
-			(setq charset (mm-encode-body)))
+			(unless raw
+			  (setq charset (mm-encode-body))))
 		    (insert contents)))))
 	      (setq encoding (mm-encode-buffer type)
 		    coded (mm-string-as-multibyte (buffer-string))))
 	    (mml-insert-mime-headers cont type charset encoding nil)
-	    (insert "\n")
-	    (mm-with-unibyte-current-buffer
-	      (insert coded)))))
+	    (insert "\n" coded))))
        ((eq (car cont) 'external)
 	(insert "Content-Type: message/external-body")
 	(let ((parameters (mml-parameter-string

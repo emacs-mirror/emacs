@@ -821,11 +821,11 @@ doesn't have to do anything to make the @acronym{MIME} happen---Message will
 automatically add the @code{Content-Type} and
 @code{Content-Transfer-Encoding} headers.
 
-@findex mml-attach
+@findex mml-attach-file
 @kindex C-c C-a
 The most typical thing users want to use the multipart things in
 @acronym{MIME} for is to add ``attachments'' to mail they send out.
-This can be done with the @kbd{C-c C-a} command (@kbd{M-x mml-attach}),
+This can be done with the @kbd{C-c C-a} command (@kbd{M-x mml-attach-file}),
 which will prompt for a file name and a @acronym{MIME} type.
 
 @vindex mml-dnd-protocol-alist

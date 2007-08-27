@@ -1,3 +1,9 @@
+2007-08-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime): Make sure it uses multibyte temp buffer.
+	(mml-generate-mime-1): Don't encode body if it is specified to be in
+	raw form; don't make buffer be unibyte when inserting multibyte string.
+
 2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sha1.el: Fix up comment style.
