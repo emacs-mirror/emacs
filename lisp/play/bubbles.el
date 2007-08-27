@@ -2,35 +2,27 @@
 
 ;; Copyright (C) 2007 Free Software Foundation, Inc.
 
-;; This file is NOT part of GNU Emacs.
-
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
-;; Filename:    bubbles.el
 ;; URL:         http://ulf.epplejasper.de/
 ;; Created:     5. Feb. 2007
-;; Keywords:    Games
-;; Time-stamp:  "27. August 2007, 19:51:08 (ulf)"
-;; CVS-Version: $Id: bubbles.el,v 1.16 2007-08-27 17:51:29 ulf Exp $
+;; Keywords:    games
 
-;; ======================================================================
+;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or (at
-;; your option) any later version.
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software Foundation,
-;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
-(defconst bubbles-version "0.4" "Version number of bubbles.el.")
-
-;; ======================================================================
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,7 +30,7 @@
 ;; possible in as few moves as possible.
 
 ;; Bubbles is an implementation of the "Same Game", similar to "Same
-;; GNOME" and many others, see http://en.wikipedia.org/wiki/SameGame.
+;; GNOME" and many others, see <http://en.wikipedia.org/wiki/SameGame>.
 
 ;; Installation
 ;; ------------
@@ -85,6 +77,8 @@
 ;; ======================================================================
 
 ;;; Code:
+
+(defconst bubbles-version "0.4" "Version number of bubbles.el.")
 
 (require 'gamegrid)
 (require 'cl)
