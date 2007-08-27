@@ -682,7 +682,9 @@ PREFIX is only used internally: don't use it."
 	   ((or (null files)
 		(setq file (do* ((files files (cdr files))
 				 (file (car files) (car files)))
-			       ((or (null file) (file-exists-p file))
+			       ;; Use file-regular-p to avoid
+			       ;; /dev/null, directories, etc.
+			       ((or (null file) (file-regular-p file))
 				file))))
 	    file))
        ;; <foo>.rej patches implicitly apply to <foo>
