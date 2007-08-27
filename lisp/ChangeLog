@@ -1,5 +1,8 @@
 2007-08-27  Glenn Morris  <rgm@gnu.org>
 
+	* diff-mode.el (diff-find-file-name): Only accept regular files,
+	to rule out /dev/null, directories, etc.
+
 	* vc-svn.el (vc-svn-diff): If the repository version of all the
 	files is the same as the specified OLDVERS, do a local diff.
 
