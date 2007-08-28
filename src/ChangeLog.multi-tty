@@ -295,6 +295,20 @@
 	(read_key_sequence, init_kboard, syms_of_keyboard, mark_kboards):
 	Update for terminal-local key-translation-map.
 
+	* Makefile.in (callproc.o): Update dependencies.
+	(lisp, shortlisp): Add termdev.elc.
+	(obj): Add terminal.o.
+	(terminal.o): Add dependencies.
+	[HAVE_CARBON]: Make terminal.o depend on macgui.h.
+	(data.o, fns.o): Add termhooks.h dependency.
+	(SOME_MACHINE_LISP): Add dnd.elc.
+	(minibuf.o): Fix typo.
+	Update dependencies.
+
+	* data.c (do_symval_forwarding, store_symval_forwarding)
+	(find_symbol_value): Use the selected frame's keyboard, not
+	current_kboard.
+
 2007-04-22  Karoly Lorentey  <karoly@lorentey.hu>
 
 	* callproc.c (Vglobal_environment, Vlocal_environment_variables):
@@ -605,16 +619,6 @@
 	* termhooks.h (get_terminal_param): Declare.
 	(get_device): New declaration.
 
-	* Makefile.in (callproc.o): Update dependencies.
-	(lisp, shortlisp): Add termdev.elc.
-	(obj): Add terminal.o.
-	(terminal.o): Add dependencies.
-	[HAVE_CARBON]: Make terminal.o depend on macgui.h.
-	(data.o, fns.o): Add termhooks.h dependency.
-	(SOME_MACHINE_LISP): Add dnd.elc.
-	(minibuf.o): Fix typo.
-	Update dependencies.
-
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* terminal.c: New file.
@@ -680,10 +684,6 @@
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* coding.c (Fkeyboard_coding_system): Update doc.
-
-	* data.c (do_symval_forwarding, store_symval_forwarding)
-	(find_symbol_value): Use the selected frame's keyboard, not
-	current_kboard.
 
 	* dispnew.c (window_change_signal): Don't believe width/height values
 	that are impossibly small.
