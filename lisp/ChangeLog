@@ -1,3 +1,13 @@
+2007-08-28  Ivan Kanis  <apple@kanis.eu>
+
+	* time.el: New feature to display several time zones in a buffer.
+	(display-time-world-mode, display-time-world-display)
+	(display-time-world, display-time-world-timer): New functions.
+	(display-time-world-list, display-time-world-time-format)
+	(display-time-world-buffer-name, display-time-world-timer-enable)
+	(display-time-world-timer-second, display-time-world-mode-map):
+	New variables.
+
 2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): New variable.
