@@ -1,60 +1,50 @@
 0000-00-00  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* puresize.h (BASE_PURESIZE): Increase.
+	* callproc.c (child_setup, getenv_internal): Use the
+	display-environment-variable and term-environment-variable frame
+	params.
+	(set_initial_environment): Initialise Vprocess_environment.
 
-	* frame.c (Qterm_environment_variable,
-	Qdisplay_environment_variable): New variables.
+	* config.in: Disable multi-keyboard support on a mac.
+
+	* frame.c (Qterm_environment_variable)
+	(Qdisplay_environment_variable): New variables.
 	(syms_of_frame): Intern and staticpro them.
 	(Fmake_terminal_frame): Disable output method test.
 
 	* frame.h: Declare them here.
 
-	* callproc.c (child_setup): Use the display-environment-variable
-	and term-environment-variable frame params.
-	(getenv_internal): Likewise.
-	(set_initial_environment): Initialise Vprocess_environment.
+	* macfns.c (x_set_mouse_color): Get rif from the frame.
+	(x_set_tool_bar_lines): Don't use updating_frame.
+	(mac_window): Add 2 new parameters for consistency with other systems.
+	(Fx_create_frame): Fix doc string.  Rename the parameter.  Set the
+	frame parameters following what is done in X11 and w32.  Don't use
+	FRAME_MAC_DISPLAY_INFO.
+	(Fx_open_connection, start_hourglass): Remove window-system check.
+	(x_create_tip_frame): Get the keyboard from the terminal.
 
-	* xselect.c (x_handle_selection_clear): Only access
-	terminal->kboard when MULTI_KBOARD is defined.
+	* macmenu.c: Reorder includes.
+	(Fx_popup_menu): Use terminal specific mouse_position_hook.
+
+	* macterm.c (XTset_terminal_modes, XTreset_terminal_modes): Add a
+	terminal parameter.
+	(x_clear_frame): Add a frame parameter.
+	(note_mouse_movement): Get rif from the frame.
+	(mac_term_init): Initialize the terminal.
+	(mac_initialize): Make static and move terminal initialization ...
+	(mac_create_terminal): ... to this new function.
+
+	* macterm.h (struct mac_display_info): Add terminal.
+
+	* puresize.h (BASE_PURESIZE): Increase base value to 1158000.
+
+	* sysdep.c: Comment out text after #endif.
 
 	* term.c (init_tty): Only use terminal->kboard when MULTI_KBOARD
 	is defined.  Better initialize ttys in windows.  Use terminal
 	specific mouse_position_hook.
 
-	* sysdep.c: Comment out text after #endif.
-
-	* config.in: Disable multi-keyboard support on a mac.
-
-	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Define here.
-	(SYSTEM_PURESIZE_EXTRA): Only define on Carbon.
-
 	* termhooks.h (union display_info): Add mac_display_info.
-
-	* macterm.h (struct mac_display_info): Add terminal.
-
-	* macterm.c (XTset_terminal_modes): Add a terminal parameter.
-	(XTreset_terminal_modes): Likewise.
-	(x_clear_frame): Add a frame parameter.
-	(note_mouse_movement): Get rif from the frame.
-	(mac_term_init): Initialize the terminal.
-	(mac_initialize): Make static and move terminal initialization ...
-	(mac_create_terminal): ... in this new function. Indent and
-	rearrange to be more similar to the X11 version.
-
-	* macmenu.c: Reorder includes.
-	(Fx_popup_menu): Use terminal specific mouse_position_hook.
-
-	* macfns.c (x_set_mouse_color): Get rif from the frame.
-	(x_set_tool_bar_lines): Don't use updating_frame.
-	(mac_window): Add 2 new parameters for consistency with other
-	systems.
-	(Fx_create_frame): Fix doc string.  Rename the parameter.
-	(Fx_create_frame): Set the frame parameters following what is done
-	in X11 and w32.
-	(Fx_open_connection): Remove window-system check.
-	(start_hourglass): Likewise.
-	(x_create_tip_frame): Get the keyboard from the terminal.
-	(Fx_create_frame): Don't use FRAME_MAC_DISPLAY_INFO.
 
 	* w32fns.c (Fx_create_frame): Use kboard from the terminal.  Set
 	the default minibuffer frame, window_system and the rest of the
@@ -62,60 +52,38 @@
 
 	* w32term.c (w32_initialize): Make static.
 
+	* xselect.c (x_handle_selection_clear): Only access
+	terminal->kboard when MULTI_KBOARD is defined.
+
+	* s/darwin.h (SYSTEM_PURESIZE_EXTRA): Define here.
+	(SYSTEM_PURESIZE_EXTRA): Only define on Carbon.
+
 0000-00-00  Jason Rumney  <jasonr@gnu.org>
 
-	* w32term.h (x_output): Remove foreground_pixel and
-	background_pixel.
-	(w32_clear_rect, w32_clear_area): Use background from frame.
-	(w32_display_info): Add terminal.
-	(w32_sys_ring_bell, x_delete_display): Declare here.
-
-	* w32fns.c (x_create_tip_frame): Set terminal and ref count.  Set
-	window_system.
-	(x_set_tool_bar_lines): Don't use updating_frame.
-	(Fx_create_frame): Set terminal and ref count.
-	(Fx_open_connection): Remove window-system check.
-
-	* w32term.c (w32_term_init): Call add_keyboard_wait_descriptor.
-	(w32_set_terminal_modes, w32_reset_terminal_modes): Add terminal
-	arg.
-	(x_clear_frame, x_delete_glyphs, w32_ring_bell, x_ins_del_lines):
-	Add frame arg.
-	(x_delete_terminal, w32_create_terminal): New functions.
-	(w32_term_init): Create a terminal.
-	(w32_initialize): Move terminal specific initialization to
-	w32_create_terminal.
-
-	* makefile.w32-in: Update dependancies from Makefile.in
-	(OBJ1): Add terminal.$(O)
-
-	* frame.c (Fdelete_frame): Only get kboard when MULTI_KBOARD
-	defined.
+	* frame.c (Fdelete_frame): Only get kboard when MULTI_KBOARD defined.
 	(make_terminal_frame) [WINDOWSNT]: Initialize terminal.
+
+	* fringe.c (w32_init_fringe w32_reset_fringes) [HAVE_NTGUI]:
+	(mac_init_fringe) [MAC_OS]: Get rif from selected_frame.
 
 	* keyboard.c (restore_kboard_configuration): Only define when
 	MULTI_KBOARD defined.
+
+	* makefile.w32-in: Update dependancies from Makefile.in
+	(OBJ1): Add terminal.$(O)
 
 	* term.c (dissociate_if_controlling_tty) [WINDOWSNT]: Don't
 	define function body.
 	(init_tty) [WINDOWSNT]: Use selected_frame for initializing.
 
-	* fringe.c (w32_init_fringe w32_reset_fringes) [HAVE_NTGUI]:
-	(mac_init_fringe) [MAC_OS]: Get rif from selected_frame.
-
 	* termhooks.h (display_info) [WINDOWSNT]: Add w32.
 
-	* xdisp.c (display_menu_bar) [HAVE_NTGUI]: Check frame type.
+	* w32.c (request_sigio, unrequest_sigio): Remove.
 
-	* w32.c (request_sigio, unrequest_sigio): Remove 
-
-	* w32inevt.h, w32inevt.c (w32_console_read_socket): Make first
-	arg a frame.
-
-	* w32console.c (w32con_move_cursor, w32con_clear_to_end):
-	(w32con_clear_frame, w32con_clear_end_of_line):
-	(w32con_ins_del_lines, w32con_insert_glyphs, w32con_write_glyphs):
-	(w32con_delete_glyphs, w32con_set_terminal_window):
+	* w32console.c (w32con_move_cursor, w32con_clear_to_end)
+	(w32con_clear_frame, w32con_clear_end_of_line)
+	(w32con_ins_del_lines, w32con_insert_glyphs, w32con_write_glyphs)
+	(w32con_delete_glyphs, w32con_set_terminal_window)
 	(scroll_line, w32_sys_ring_bell): Add frame arg.
 	(w32con_set_terminal_modes, w32con_reset_terminal_modes): Add
 	terminal arg.
@@ -125,8 +93,33 @@
 	(initialize_w32_display): Use it for storing hooks.
 	(create_w32cons_output): New function.
 
-	* w32menu.c (Fx_popup_menu): Use terminal specific
-	mouse_position_hook.
+	* w32inevt.c, w32inevt.h (w32_console_read_socket): Make first
+	arg a frame.
+
+	* w32fns.c (x_create_tip_frame): Set terminal and ref count.  Set
+	window_system.
+	(x_set_tool_bar_lines): Don't use updating_frame.
+	(Fx_create_frame): Set terminal and ref count.
+	(Fx_open_connection): Remove window-system check.
+
+	* w32menu.c (Fx_popup_menu): Use terminal specific mouse_position_hook.
+
+	* w32term.c (w32_term_init): Call add_keyboard_wait_descriptor.
+	(w32_set_terminal_modes, w32_reset_terminal_modes): Add terminal arg.
+	(x_clear_frame, x_delete_glyphs, w32_ring_bell, x_ins_del_lines):
+	Add frame arg.
+	(x_delete_terminal, w32_create_terminal): New functions.
+	(w32_term_init): Create a terminal.
+	(w32_initialize): Move terminal specific initialization to
+	w32_create_terminal.
+
+	* w32term.h (x_output): Remove foreground_pixel and
+	background_pixel.
+	(w32_clear_rect, w32_clear_area): Use background from frame.
+	(w32_display_info): Add terminal.
+	(w32_sys_ring_bell, x_delete_display): Declare here.
+
+	* xdisp.c (display_menu_bar) [HAVE_NTGUI]: Check frame type.
 
 	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Bump to 50k.
 
