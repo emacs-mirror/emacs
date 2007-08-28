@@ -757,11 +757,9 @@
 
 	* xterm.h (x_display_info): Rename member `frame_display' to `device'.
 
-	* termchar.h (struct tty_display_info): Rename `display' member to
-	`device'.
-
-	* frame.c (Fmake_terminal_frame): Ditto.
-	* xfns.c (Fx_create_frame): Ditto.
+	* frame.c (Fmake_terminal_frame)
+	* termchar.h (struct tty_display_info)
+	* xfns.c (Fx_create_frame): : Rename `display' member to `device'.
 
 	* term.c (display_list): Rename to device_list.
 	* term.c (initial_display): Rename to initial_device.
@@ -822,24 +820,24 @@
 
 	* termhooks.h (display): New field: kboard.
 
+	* frame.h (frame)
+	* termchar.h (tty_display_info)
 	* xterm.h (x_display_info): Remove kboard field.
-	* termchar.h (tty_display_info): Ditto.
-	* frame.h (frame): Ditto.
-	(FRAME_KBOARD): Update.
+	* frame.h (FRAME_KBOARD): Update.
 
-	* dispnew.c (init_display): Don't initialize kboard.
-	* frame.c (make_frame, make_initial_frame, make_terminal_frame): Ditto.
+	* dispnew.c (init_display)
+	* frame.c (make_frame, make_initial_frame, make_terminal_frame):
+	Don't initialize kboard.
 
-	* frame.c (make_frame_without_minibuffer, Fdelete_frame): Update
-	kboard access.
-	* keyboard.c (delete_kboard): Ditto.
-	* term.c (term_init): Ditto.
-	* xfns.c (Fx_create_frame, x_create_tip_frame): Ditto.
-	* xselect.c (x_handle_selection_clear): Ditto.
-	* xterm.c (x_term_init): Ditto.
+	* frame.c (make_frame_without_minibuffer, Fdelete_frame)
+	* keyboard.c (delete_kboard)
+	* term.c (term_init)
+	* xfns.c (Fx_create_frame, x_create_tip_frame)
+	* xselect.c (x_handle_selection_clear)
+	* xterm.c (x_term_init): Update kboard access.
 
-	* term.c (init_initial_display): Initialize kboard.
-	* xterm.c (x_term_init): Ditto.
+	* term.c (init_initial_display)
+	* xterm.c (x_term_init): Initialize kboard.
 
 	* term.c (delete_display): Delete kboard as well.
 
