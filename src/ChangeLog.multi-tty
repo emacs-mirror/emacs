@@ -1146,12 +1146,13 @@
 	(memory_below_frame, fast_clear_end_of_line): Move to struct terminal.
 	(min_padding_speed, dont_calculate_costs): Comment out (unused).
 
-	* term.c (set_terminal_window, ins_del_lines, calculate_costs, term_init)
 	* dispnew.c (line_hash_code, line_draw_cost)
 	(direct_output_for_insert, update_frame_1, scrolling, update_frame_line)
 	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
 	(scrolling_1, scroll_cost)
 	* sysdep.c (hft_init)
+	* term.c (set_terminal_window, ins_del_lines, calculate_costs)
+	(term_init)
 	* xdisp.c (try_window_id)
 	* xterm.c (x_initialize): Use the accessor macros for terminal
 	characteristics.
