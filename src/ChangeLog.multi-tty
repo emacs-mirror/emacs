@@ -237,16 +237,10 @@
 	* keyboard.c (tty_read_avail_input): Don't read from a terminal that
 	is being deleted.
 
-	* term.c (get_named_tty): Abort if tty name is NULL.  Simplify
-	accordingly.
-
 	* term.c (Ftty_type): Return nil if terminal is not on a tty instead
 	of throwing an error.  Doc update.
 
 	* term.c (init_tty): Set name before calling `get_named_tty'.
-
-	* term.c (delete_tty): Let delete_terminal delete the frames.  Plug
-	memory leak caused by tty->name.  Remove reference to `deleting_tty'.
 
 	* term.c (syms_of_term) <Vsuspend_tty_functions, Vresume_tty_functions>:
 	Doc update.
@@ -525,7 +519,6 @@
 	Update declarations and macro definitions.
 
 	* termchar.h (tty_display_info): Rename member `device' to `terminal'.
-	(FRAME_TTY): Update for renames.
 
 	* xterm.h (x_display_info): Rename member `device' to `terminal'.
 
@@ -540,10 +533,10 @@
 
 	* term.c (get_tty_device): Rename to `get_tty_terminal'.  Update.
 	(Fdisplay_tty_type): Rename to `Ftty_type'.
-	(delete_tty, tty_set_terminal_modes, tty_reset_terminal_modes)
-	(Ftty_display_color_p, Ftty_display_color_cells, get_named_tty)
+	(tty_set_terminal_modes, tty_reset_terminal_modes)
+	(Ftty_display_color_p, Ftty_display_color_cells)
 	(Ftty_no_underline, Fsuspend_tty, Fresume_tty, create_tty_output)
-	(init_tty, maybe_fatal, delete_tty, syms_of_term): Update for rename.
+	(init_tty, maybe_fatal, syms_of_term): Update for rename.
 
 	* frame.c (Qdevice): Rename to `Qterminal'.
 	(Qdisplay_live_p): Rename to `Qterminal_live_p'.
@@ -649,8 +642,7 @@
 
 	* callproc.c (getenv_internal): Fix get_terminal_param call.
 
-	* dispextern.h (get_device): Move declaration to termhooks.h.
-	* termhooks.h (get_device): Move here.
+	* termhooks.h (get_device): New declaration.
 
 2005-12-26  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -674,8 +666,7 @@
 	(set_terminal_window, cursor_to, raw_cursor_to)
 	(clear_to_end, clear_frame, clear_end_of_line)
 	(write_glyphs, insert_glyphs, delete_glyphs, ins_del_lines)
-	(get_device, Fdisplay_name, create_device, delete_device): Move to
-	terminal.c.
+	(Fdisplay_name, create_device, delete_device): Move to terminal.c.
 	(syms_of_term): Move their initialization to terminal.c.
 
 	* terminal.c: New file.
@@ -683,7 +674,7 @@
 	(ring_bell, update_begin, update_end, set_terminal_window)
 	(cursor_to, raw_cursor_to, clear_to_end, clear_frame)
 	(clear_end_of_line, write_glyphs, insert_glyphs, delete_glyphs)
-	(ins_del_lines, get_device, create_device, delete_device)
+	(ins_del_lines, create_device, delete_device)
 	(Fdisplay_name): Move here.
 	(mark_devices, get_terminal_param, store_terminal_param)
 	(Fterminal_parameters, Fterminal_parameter)
@@ -722,22 +713,20 @@
 	(toggle_highligh): Rename to `tty_toggle_highlight'.
 	(background_highlight): Rename to `tty_background_highlight'.
 	(highlight_if_desired): Rename to `tty_highlight_if_desired'.
-
 	(tty_ring_bell, tty_update_end, tty_set_terminal_window)
 	(tty_set_scroll_region, tty_background_highlight)
 	(tty_cursor_to, tty_raw_cursor_to, tty_clear_to_end)
 	(tty_clear_frame, tty_clear_end_of_line, tty_write_glyphs)
 	(tty_insert_glyphs, tty_delete_glyphs, tty_ins_del_lines)
-	(term_get_fkeys, tty_setup_colors, dissociate_if_controlling_tty)
-	(delete_tty): Add static modifier.
-
+	(term_get_fkeys, tty_setup_colors, dissociate_if_controlling_tty):
+	Add static modifier.
 	(tty_reset_terminal_modes, tty_set_terminal_window)
 	(tty_set_scroll_region, tty_background_highlight)
 	(tty_highlight_if_desired, tty_cursor_to)
 	(tty_raw_cursor_to, tty_clear_to_end, tty_clear_frame)
 	(tty_clear_end_of_line, tty_write_glyphs, tty_insert_glyphs)
-	(tty_delete_glyphs, tty_ins_del_lines, turn_on_face):
-	Update for renames.
+	(tty_delete_glyphs, tty_ins_del_lines, turn_on_face): Update for
+	renames.
 
 	* termhooks.h (param_alist): New member to struct device.
 
@@ -961,9 +950,7 @@
 	* term.c (display_list): Rename to device_list.
 	* term.c (initial_display): Rename to initial_device.
 	* term.c (next_display_id): Rename to next_device_id.
-	* term.c (get_display): Rename to get_device.
 	* term.c (get_tty_display): Rename to get_tty_device.
-	* term.c (get_named_tty_display): Rename to get_named_tty.
 	* term.c (init_initial_display): Rename to init_initial_device.
 	* term.c (delete_initial_display): Rename to delete_initial_device.
 	* term.c (create_display): Rename to create_device.
@@ -1062,8 +1049,7 @@
 	* term.c (init_initial_display): Initialize kboard.
 	* xterm.c (x_term_init): Ditto.
 
-	* term.c (delete_tty): Remove kboard deletion.
-	(delete_display): Delete kboard as well.
+	* term.c (delete_display): Delete kboard as well.
 
 2005-06-26  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1120,10 +1106,6 @@
 
 2005-05-03  Karoly Lorentey  <lorentey@elte.hu>
 
-	* term.c (get_display): Fix typo.
-
-2005-05-03  Karoly Lorentey  <lorentey@elte.hu>
-
 	* termhooks.h (DISPLAY_TERMINAL_CODING, DISPLAY_KEYBOARD_CODING):
 	New macros.
 
@@ -1131,13 +1113,8 @@
 	(Fterminal_coding_system, Fset_keyboard_coding_system_internal)
 	(Fkeyboard_coding_system): Add DISPLAY parameter.
 
-	* term.c (get_display): Add THROW parameter.
-	(get_tty_display, Fdisplay_name, Fdisplay_tty_type): Update callers.
-
 	* xfns.c (check_x_display_info): Ditto.
 	* frame.c (Fmake_terminal_frame): Ditto.
-
-	* dispextern.h (get_display): Update prototype.
 
 2005-04-26  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1302,16 +1279,13 @@
 	(next_display_id): New var.
 	(tty_ring_bell): Don't do anything on suspended frames.
 	(Ftty_display_color_p, Ftty_display_color_cells): Doc update.
-	(get_display): New function.
 	(get_tty_display): Use it.
-	(get_named_tty_display): Ignore suspended displays.
 	(Fframe_tty_name): Rename to Fdisplay_name.  Handle all kinds of
 	displays.
 	(Fframe_tty_type): Rename to Fdisplay_tty_type.
 	(init_initial_display): Set display name.
 	(term_init): Allow more displays on the same device.  Set display name.
 	(Fdelete_tty): Remove.
-	(delete_tty): Don't run hooks.
 	(create_display): Set display id.
 	(delete_display): Free display name.
 	(Fsuspend_tty): Call hook with display id.  Doc update.
