@@ -138,8 +138,30 @@
 
 0000-00-00  Karoly Lorentey  <karoly@lorentey.hu>
 
+	* cm.c (current_tty): New variable, for cmputc().
+	(cmputc): Use it.
+	(cmcheckmagic): Add tty parameter, look up terminal streams there.
+	(calccost): Add tty parameter.  Use emacs_tputs() instead of tputs().
+	(cmgoto): Add tty parameter.  Pass it on to calccost().  Use
+	emacs_tputs() instead of tputs().
+
+	* cm.h (emacs_tputs): New macro to set current_tty, and then call
+	tputs().
+	(current_tty): New variable, for cmputc().
+	(cmcheckmagic, cmputc, cmgoto): Add prototypes.
+
+	* eval.c (unwind_to_catch): Don't call x_fully_uncatch_errors.
+	(internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2): Don't abort when x_catching_errors.
+
+	* fns.c (Fyes_or_no_p): Don't try to open an X dialog on tty terminals.
+	(Fy_or_n_p): Likewise.  Use temporarily_switch_to_single_kboard to
+	prevent crashes caused by bogus longjmps in read_char.
+
+	* keymap.h (Fset_keymap_parent): Add EXFUN.
+
+	* macterm.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL)
 	* w32term.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
-	* macterm.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
 	Remove redundant definition.
 
 	* macfns.c (x_set_mouse_color,x_make_gc): Use
@@ -149,72 +171,18 @@
 	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
 	* w32term.c (x_free_frame_resources): Use
 	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
-	* w32term.c (w32_initialize): Use the accessor macros for terminal
-	characteristics.
+	(w32_initialize): Use the accessor macros for terminal characteristics.
 
 	* macterm.c (mac_initialize): Use Fset_input_interrupt_mode.
 	Use the accessor macros for terminal characteristics.
 	* msdos.c (internal_terminal_init): Use the accessor macros for
 	terminal characteristics.
 
-	* cm.h (emacs_tputs): New macro to set current_tty, and then call
-	tputs().
-	(current_tty): New variable, for cmputc().
-	(cmcheckmagic, cmputc, cmgoto): Add prototypes.
-
-	* cm.c (current_tty): New variable, for cmputc().
-	(cmputc): Use it.
-	(cmcheckmagic): Add tty parameter, look up terminal streams
-	there.
-	(calccost): Add tty parameter.  Use emacs_tputs() instead of
-	tputs().
-	(cmgoto): Add tty parameter.  Pass it on to calccost().  Use
-	emacs_tputs() instead of tputs().
-
-	* eval.c (unwind_to_catch): Don't call x_fully_uncatch_errors.
-	(internal_condition_case, internal_condition_case_1)
-	(internal_condition_case_2): Don't abort when x_catching_errors.
-
-	* keymap.h (Fset_keymap_parent): Add EXFUN.
-
-	* fns.c (Fyes_or_no_p): Don't try to open an X dialog on tty
-	terminals.
-	(Fy_or_n_p): Likewise.  Use temporarily_switch_to_single_kboard to
-	prevent crashes caused by bogus longjmps in read_char.
-
 	* termopts.h (no_redraw_on_reenter): Declare.
-
-2007-04-22  Karoly Lorentey  <karoly@lorentey.hu>
-
-	* xterm.c (x_scroll_bar_expose): Fix reference to foreground pixel.
-
-2007-02-24  Karoly Lorentey  <karoly@lorentey.hu>
-
-	* frame.c (x_set_screen_gamma, store_frame_param): Fix compilation
-	errors.
-
-2006-12-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* window.c (set_window_buffer): Don't call clear_mouse_face on tty
-	frames.
 
 2006-10-14  Karoly Lorentey  <lorentey@elte.hu>
 
 	* alloc.c (emacs_blocked_malloc): Disable mallopt call.
-
-2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xmenu.c (Fx_menu_bar_open) [USE_X_TOOLKIT, USE_GTK]:
-	Rename from Fmenu_bar_open.
-	(syms_of_xmenu): Update defsubr.
-
-2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xterm.h: Remove declaration for x_fully_uncatch_errors.
-
-	* xterm.c (x_fully_uncatch_errors): Disable definition.
-
-2006-05-26  Karoly Lorentey  <lorentey@elte.hu>
 
 	* callproc.c (Vglobal_environment, Vlocal_environment_variables):
 	Remove.
@@ -228,36 +196,45 @@
 	* emacs.c (main): Call set_initial_environment, not
 	set_global_environment.
 
+	* frame.c (x_set_screen_gamma, store_frame_param): Fix compilation
+	errors.
+
+	* window.c (set_window_buffer): Don't call clear_mouse_face on tty
+	frames.
+
+	* xmenu.c (Fx_menu_bar_open) [USE_X_TOOLKIT, USE_GTK]: Rename from
+	Fmenu_bar_open.
+	(syms_of_xmenu): Update defsubr.
+
+	* xterm.c (x_fully_uncatch_errors): Disable definition.
+	(x_scroll_bar_expose): Fix reference to foreground pixel.
+
+	* xterm.h: Remove declaration for x_fully_uncatch_errors.
+
 2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
 
-	* frame.c (make_terminal_frame): Don't create frames on a terminal
-	that is being deleted.
-	* xfns.c (Fx_create_frame, x_create_tip_frame): Ditto.
+	* frame.c (make_terminal_frame)
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Don't create
+	frames on a terminal that is being deleted.
 
 	* keyboard.c (tty_read_avail_input): Don't read from a terminal that
 	is being deleted.
 
 	* term.c (Ftty_type): Return nil if terminal is not on a tty instead
 	of throwing an error.  Doc update.
-
-	* term.c (init_tty): Set name before calling `get_named_tty'.
-
-	* term.c (syms_of_term) <Vsuspend_tty_functions, Vresume_tty_functions>:
+	(init_tty): Set name before calling `get_named_tty'.
+	(syms_of_term) <Vsuspend_tty_functions, Vresume_tty_functions>:
 	Doc update.
 
 	* termhooks.h (terminal) <name>: Explain why identifying terminals
 	by name is a bad idea.
 
 	* xterm.c (XTread_socket): Disable loop on all X displays.
-
-	* xterm.c (x_delete_display): Doc update to reflect changes in
-	delete_terminal.
-
-	* xterm.c (x_delete_terminal): Don't set terminal->deleted and let
+	(x_delete_terminal): Don't set terminal->deleted and let
 	delete_terminal delete the frames on the terminal.
-
-	* xterm.h (x_display_info) <terminal>: Move member earlier in the
-	struct.
+	(x_delete_display): Doc update to reflect changes in
+	delete_terminal.
+	(x_display_info) <terminal>: Move member earlier in the struct.
 
 2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -277,11 +254,6 @@
 
 2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
 
-	* xfaces.c (realize_default_face): Don't use FRAME_FONT unless frame
-	is an X frame.
-
-2006-04-20  Karoly Lorentey  <lorentey@elte.hu>
-
 	* dispnew.c (Fsend_string_to_terminal): Update call to
 	`get_tty_terminal'.
 
@@ -291,6 +263,9 @@
 	errors on X frames.
 
 	* dispextern.h (get_tty_terminal): Update prototype.
+
+	* xfaces.c (realize_default_face): Don't use FRAME_FONT unless frame
+	is an X frame.
 
 2006-04-01  Karoly Lorentey  <lorentey@elte.hu>
 
