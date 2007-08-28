@@ -330,7 +330,6 @@
 2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
 
 	* term.c: Include errno.h.
-	(Fcontrolling_tty_p): Compare name with "/dev/tty", not NULL.
 	(Fresume_tty): Handle errors on reopening ttys.  Don't dissociate
 	if terminal was explicitly opened on the controlling terminal.
 	(init_tty): Initialize local pointers.  Always set name (use
@@ -541,7 +540,6 @@
 
 	* term.c (get_tty_device): Rename to `get_tty_terminal'.  Update.
 	(Fdisplay_tty_type): Rename to `Ftty_type'.
-	(Fdisplay_controlling_tty_p): Rename to `Fcontrolling_tty_p'.
 	(delete_tty, tty_set_terminal_modes, tty_reset_terminal_modes)
 	(Ftty_display_color_p, Ftty_display_color_cells, get_named_tty)
 	(Ftty_no_underline, Fsuspend_tty, Fresume_tty, create_tty_output)
@@ -1138,8 +1136,7 @@
 
 	* term.c (get_display): Add THROW parameter.
 	(get_tty_display, Fdisplay_name, Fdisplay_tty_type)
-	(Fdisplay_controlling_tty_p, Fdelete_display, Fdisplay_live_p):
-	Update callers.
+	(Fdelete_display, Fdisplay_live_p): Update callers.
 
 	* xfns.c (check_x_display_info): Ditto.
 	* frame.c (Fmake_terminal_frame, Fframe_display): Ditto.
@@ -1273,17 +1270,13 @@
 
 2004-07-10  Karoly Lorentey  <lorentey@elte.hu>
 
-	* term.c (Fdisplay_controlling_tty_p): New function.
-
-	* term.c (syms_of_term): Initialize Sdisplay_controlling_tty_p.
+	* term.c (Fcontrolling_tty_p): New function.
+	(syms_of_term): Initialize Sdisplay_controlling_tty_p.
 
 	* keyboard.c (Fsuspend_emacs): Give a better error message when
 	there are multiple open tty devices.
-
-2004-07-05  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (interrupt_signal): Don't call fatal_error_signal with
-	an extra parameter.
+	(interrupt_signal): Don't call fatal_error_signal with an extra
+	parameter.
 
 2004-07-04  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1291,7 +1284,7 @@
 
 2004-07-04  Karoly Lorentey  <lorentey@elte.hu>
 
-	* dispextern.h (get_display, Fdisplay_tty_type):  New prototypes.
+	* dispextern.h (get_display, Fdisplay_tty_type): New prototypes.
 	(Fframe_tty_type): Remove.
 
 	* dispnew.c (init_display): Use Fdisplay_tty_type, not Fframe_tty_type.
@@ -1345,26 +1338,19 @@
 
 	* term.c (Ftty_display_color_cells): Return 0 in case of an error,
 	not nil.
-
-2004-06-08  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (dissociate_if_controlling_tty): On some systems TIOCNOTTY
+	(dissociate_if_controlling_tty): On some systems TIOCNOTTY
 	works only on /dev/tty.  Adapt the function accordingly.
 
 2004-06-08  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.c (interrupt_signal): Don't call Fkill_emacs from a
 	signal handler; use fatal_error_signal instead.
-
-2004-06-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (command_loop): Clear single_kboard each time Emacs
-	returns to top-level.
+	(command_loop): Clear single_kboard each time Emacs returns to
+	top-level.
 
 2004-06-06  Karoly Lorentey  <lorentey@elte.hu>
 
-	* term.c (encode_terminal_code): Convert to use ANSI prototype
-	syntax.
+	* term.c (encode_terminal_code): Convert to use ANSI prototype syntax.
 
 2004-06-05  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1402,13 +1388,11 @@
 	updating_frame instead of selected_frame.
 
 	* termchar.h (struct terminal): Rename to struct tty_output.
-	Add name, type, input, output, termscript, old_tty,
-	term_initted, old_tty_valid, background_pixel, foreground_pixel,
-	next fields.
-	(TTY_*): New macros.
+	Add name, type, input, output, termscript, old_tty, term_initted,
+	old_tty_valid, background_pixel, foreground_pixel, next fields.
 	(tty_list): New variable.
 	(FRAME_TTY): New function.
-	(CURRENT_TERMINAL, TTY_NAME, TTY_TYPE): New macros.
+	(TTY_*, CURRENT_TERMINAL, TTY_NAME, TTY_TYPE): New macros.
 
 	* term.c (tty_list): New variable.
 	(OUTPUT, OUTPUT1, OUTPUTL, OUTPUT_IF, OUTPUT1_IF)
@@ -1481,20 +1465,20 @@
 	* termchar.h (struct terminal): New struct.
 	(must_write_spaces, min_padding_speed, line_ins_del_ok)
 	(char_ins_del_ok, scroll_region_ok, scroll_region_cost)
-	(memory_below_frame, fast_clear_end_of_line): Move to struct
-	terminal.
+	(memory_below_frame, fast_clear_end_of_line): Move to struct terminal.
 	(min_padding_speed, dont_calculate_costs): Comment out (unused).
 
 	* term.c (set_terminal_window, ins_del_lines, calculate_costs)
-	(term_init): Use the accessor macros for terminal characteristics.
+	(term_init)
 	* dispnew.c (line_hash_code, line_draw_cost)
 	(direct_output_for_insert, update_frame_1, scrolling)
-	(update_frame_line): Ditto.
+	(update_frame_line):
 	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
-	(scrolling_1, scroll_cost): Ditto.
-	* sysdep.c (hft_init): Ditto.
-	* xdisp.c (try_window_id): Ditto.
-	* xterm.c (x_initialize): Ditto.
+	(scrolling_1, scroll_cost):
+	* sysdep.c (hft_init):
+	* xdisp.c (try_window_id):
+	* xterm.c (x_initialize): Use the accessor macros for terminal
+	characteristics.
 
 2004-07-12  Karoly Lorentey  <lorentey@elte.hu>
 
