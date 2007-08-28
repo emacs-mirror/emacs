@@ -3603,6 +3603,24 @@ Emacs is compiled without image support.  You can use the function
 @code{display-images-p} to determine if images can in principle be
 displayed (@pxref{Display Feature Testing}).
 
+@menu
+* Image Formats::       Supported image formats.
+* Image Descriptors::   How to specify an image for use in @code{:display}.
+* XBM Images::          Special features for XBM format.
+* XPM Images::          Special features for XPM format.
+* GIF Images::          Special features for GIF format.
+* PostScript Images::   Special features for PostScript format.
+* Other Image Types::   Various other formats are supported.
+* Defining Images::     Convenient ways to define an image for later use.
+* Showing Images::      Convenient ways to display an image once it is defined.
+* Image Cache::         Internal mechanisms of image display.
+@end menu
+
+@node Image Formats
+@subsection Image Formats
+@cindex image formats
+@cindex image types
+
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
 your machine.  In some environments, Emacs can load image
@@ -3659,18 +3677,6 @@ For image types whose support libraries are statically linked, this
 function always returns @code{t}; for other image types, it returns
 @code{t} if the dynamic library could be loaded, @code{nil} otherwise.
 @end defun
-
-@menu
-* Image Descriptors::   How to specify an image for use in @code{:display}.
-* XBM Images::          Special features for XBM format.
-* XPM Images::          Special features for XPM format.
-* GIF Images::          Special features for GIF format.
-* PostScript Images::   Special features for PostScript format.
-* Other Image Types::   Various other formats are supported.
-* Defining Images::     Convenient ways to define an image for later use.
-* Showing Images::      Convenient ways to display an image once it is defined.
-* Image Cache::         Internal mechanisms of image display.
-@end menu
 
 @node Image Descriptors
 @subsection Image Descriptors
