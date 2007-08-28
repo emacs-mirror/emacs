@@ -94,6 +94,8 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
+** A new game called `bubble' has been added
+
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 
