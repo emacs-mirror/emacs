@@ -3615,7 +3615,7 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
 }
 
 /* This callback is called when a tool bar shall be redrawn.
-   We need to update the tool bar from here in case the image cache
+   We need to update the images in case the image cache
    has deleted the pixmaps used in the tool bar.
    W is the GtkToolbar to be redrawn.
    EVENT is the expose event for W.
@@ -3629,7 +3629,8 @@ xg_tool_bar_expose_callback (w, event, client_data)
      GdkEventExpose *event;
      gpointer client_data;
 {
-  update_frame_tool_bar ((FRAME_PTR) client_data);
+  FRAME_PTR f = (FRAME_PTR) client_data;
+  SET_FRAME_GARBAGED (f);
   return FALSE;
 }
 
