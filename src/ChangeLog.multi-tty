@@ -613,11 +613,6 @@
 
 2005-12-23  Karoly Lorentey  <lorentey@elte.hu>
 
-	* print.c (print_preprocess): Don't lose print_depth levels while
-	iterating.
-
-2005-12-23  Karoly Lorentey  <lorentey@elte.hu>
-
 	* keyboard.c (Fset_input_interrupt_mode, Fset_output_flow_control)
 	(syms_of_keyboard): Defsubr them.
 	(Fset_input_meta_mode, Fset_quit_char): New functions.
@@ -627,77 +622,54 @@
 
 	* xterm.c (x_initialize): Use Fset_input_interrupt_mode.
 
-2005-12-22  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (suspend-tty): Update doc string.
-
-2005-12-19  Karoly Lorentey  <lorentey@elte.hu>
-
-	* dispnew.c (window_change_signal): Fix typo.
-
-2005-12-13  Karoly Lorentey  <lorentey@elte.hu>
-
-	* dispnew.c (window_change_signal): Don't believe width/height values
-	that are impossibly small.
+	* print.c (print_preprocess): Don't lose print_depth levels while
+	iterating.
 
 2005-12-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xterm.c (x_term_init) [!HAVE_GTK_MULTIDISPLAY]:
-	Refuse to create secondary X connections.
-
-2005-12-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (kbd_buffer_store_event_hold): Simplify condition.
-	(read_key_sequence): Reinitialize fkey and keytran at each replay.
 
 	* coding.c (Fkeyboard_coding_system): Update doc.
-
-2005-11-07  Karoly Lorentey  <lorentey@elte.hu>
 
 	* data.c (do_symval_forwarding, store_symval_forwarding)
 	(find_symbol_value): Use the selected frame's keyboard, not
 	current_kboard.
 
-2005-10-29  Karoly Lorentey  <lorentey@elte.hu>
+	* dispnew.c (window_change_signal): Don't believe width/height values
+	that are impossibly small.
 
 	* keyboard.c (mark_kboards): Also mark Vkeyboard_translate_table.
+	(kbd_buffer_store_event_hold): Simplify condition.
+	(read_key_sequence): Reinitialize fkey and keytran at each replay.
+
+	* term.c (suspend-tty): Update doc string.
+
+	* xterm.c (x_term_init) [!HAVE_GTK_MULTIDISPLAY]: Refuse to create
+	secondary X connections.
 
 2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
 
-	* keyboard.c (Vkeyboard_translate_table): Move to struct kboard.
+	* keyboard.c (Vkeyboard_translate_table)
 	* keyboard.h (Vkeyboard_translate_table): Move to struct kboard.
 
-	* keyboard.c (read_char): Use current_kboard to access
+	* keyboard.c (read_char)
+	* keymap.c (Fdescribe_buffer_bindings): : Use current_kboard to access
 	Vkeyboard_translate_table.
-	* keymap.c (Fdescribe_buffer_bindings): Ditto.
 
 	* keyboard.c (init_kboard): Initialize Vkeyboard_translate_table.
-
-	* keyboard.c (syms_of_keyboard): Use DEFVAR_KBOARD to define
+	(syms_of_keyboard): Use DEFVAR_KBOARD to define
 	Vkeyboard_translate_table.  Update doc strings.
 
 2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.c (syms_of_keyboard): Update docs of
 	local-function-key-map and function-key-map.
-
-2005-10-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* emacs.c (REPORT_EMACS_BUG_PRETEST_ADDRESS): Change address to the
-	multi-tty mailing list.
-
-2005-09-19  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (tty_set_terminal_modes): Output newlines on the correct
-	terminal device.
-
-2005-09-11  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (pop_kboard): Set current_kboard to the kboard of the
+	(pop_kboard): Set current_kboard to the kboard of the
 	selected frame when the stored kboard object has been deleted before
 	pop_kboard.
 	(restore_kboard_configuration): Call pop_kboard only after setting up
 	single_kboard mode.
+
+	* term.c (tty_set_terminal_modes): Output newlines on the correct
+	terminal device.
 
 2005-09-11  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -754,11 +726,7 @@
 	parameter, not `tty' when discovering the tty type of the new frame.
 	Initialize `tty' and `tty-type' frame parameters in the new frame.
 
-2005-08-04  Karoly Lorentey  <lorentey@elte.hu>
-
 	* window.c (window_internal_height): Remove bogus make_number call.
-
-2005-08-04  Karoly Lorentey  <lorentey@elte.hu>
 
 	* xsmfns.c (x_session_close): New function.
 	* xterm.h: Declare it.
@@ -767,8 +735,7 @@
 	secondary displays.
 	(x_term_init): Do not initialize X session management when the
 	initial display was a tty frame.
-	(x_delete_display): Close X session management when we close its
-	display.
+	(x_delete_display): Close X session management when we close its display.
 
 2005-07-12  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -778,16 +745,12 @@
 	(Vfunction_key_map, Vkey_translation_map): New declarations.
 
 	* keyboard.c (Vfunction_key_map): New variable.
-	(Vglobal_key_translation_map): Rename to
-	Vglobal_key_translation_map.
+	(Vglobal_key_translation_map): Rename to Vglobal_key_translation_map.
 	(read_key_sequence, init_kboard, syms_of_keyboard, mark_kboards):
 	Update.
 
 	* keymap.c (Fdescribe_buffer_bindings): Update.
 	* term.c (term_get_fkeys_1): Update.
-
-
-2005-07-11  Karoly Lorentey  <lorentey@elte.hu>
 
 	* xdisp.c (select_frame_for_redisplay): Fix xassert.
 
@@ -826,20 +789,9 @@
 	* xterm.c (x_delete_frame_display): Rename to x_delete_device.
 	* xterm.c (x_create_frame_display): Rename to x_create_device.
 
-	* coding.c: Update.
-	* dispextern.h: Update.
-	* data.c: Update.
-	* dispnew.c: Update.
-	* frame.c: Update.
-	* frame.h: Update.
-	* keyboard.c: Update.
-	* keyboard.h: Update.
-	* lisp.h: Update.
-	* sysdep.c: Update.
-	* term.c: Update.
-	* xdisp.c: Update.
-	* xselect.c: Update.
-	* xterm.c: Update.
+	* coding.c, dispextern.h, data.c, dispnew.c, frame.c, frame.h
+	* keyboard.c, keyboard.h, lisp.h, sysdep.c, term.c, xdisp.c
+	* xselect.c, xterm.c: Update.
 
 	* prefix-args.c: Include stdlib.h for exit.
 
@@ -853,38 +805,29 @@
 	* frame.c (Fmake_terminal_frame): Update.
 	* term.c (tty_setup_colors): Update comment.
 
-2005-07-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xdisp.c (select_frame_for_redisplay): Add xassert for
-	FRAME_LIVE_P.
-	(unwind_redisplay): Don't restore previous frame if it has been
-	deleted.
-
-2005-07-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (term_init): Move maybe_fatal declaration to top-level to
-	prevent complaints from GCC 4.0.
-
-2005-07-06  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.c (syms_of_frame): Add warning to `delete-frame-functions'
-	description.
-
-2005-07-03  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (tty_set_terminal_modes, tty_reset_terminal_modes): Flush
-	tty output before returning.
-
-	* sysdep.c (reset_sys_modes): Remove superflous fflush call.
-
 2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
 
 	* data.c (Fterminal_local_value, Fset_terminal_local_value): New
 	functions (note: disabled).
 	(syms_of_data): Defsubr them (note: disabled).
 
+	* frame.c (syms_of_frame): Add warning to `delete-frame-functions'
+	description.
+
 	* keyboard.c (syms_of_keyboard): Expand docs of terminal-local
 	variables to warn about their random bindings.
+
+	* sysdep.c (reset_sys_modes): Remove superflous fflush call.
+
+	* term.c (tty_set_terminal_modes, tty_reset_terminal_modes): Flush
+	tty output before returning.
+	(term_init): Move maybe_fatal declaration to top-level to
+	prevent complaints from GCC 4.0.
+
+	* xdisp.c (select_frame_for_redisplay): Add xassert for
+	FRAME_LIVE_P.
+	(unwind_redisplay): Don't restore previous frame if it has been
+	deleted.
 
 2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
 
