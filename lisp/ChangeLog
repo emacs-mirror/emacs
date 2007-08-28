@@ -1,3 +1,11 @@
+2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): New variable.
+	(x-gtk-map-stock): New function.
+
+	* info.el (info-tool-bar-map): Add :rtl keyword to right/left-arrow and
+	prev/next-node.
+
 2007-08-28  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* play/gamegrid.el (gamegrid-init): Set line-spacing to 0.
