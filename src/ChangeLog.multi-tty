@@ -584,9 +584,6 @@
 	(Fset_keyboard_coding_system_internal)
 	(Fkeyboard_coding_system): Update for renames.
 
-	* data.c (Fterminal_local_value, Fset_terminal_local_value):
-	Update for renames.
-
 	* minibuf.c (read_minibuf): Update for renames.
 
 	* sysdep.c (init_sys_modes, reset_sys_modes): Update for renames.
@@ -784,11 +781,6 @@
 	(find_symbol_value): Use the selected frame's keyboard, not
 	current_kboard.
 
-	* data.c (Fterminal_local_value, Fset_terminal_local_value): Disable
-	these functions.
-
-	* data.c (syms_of_data): Don't defsubr them.
-
 2005-10-29  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.c (mark_kboards): Also mark Vkeyboard_translate_table.
@@ -852,7 +844,6 @@
 	* xdisp.c (display_mode_line, Fformat_mode_line): Update uses.
 
 	* data.c: Include termhooks.h.
-	(Fterminal_local_value, Fset_terminal_local_value): Update.
 
 	* Makefile.in (data.o, fns.o): Add termhooks.h dependency.
 
@@ -1011,8 +1002,9 @@
 
 2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
 
-	* data.c (Fterminal_local_value, Fset_terminal_local_value): New functions.
-	(syms_of_data): Defsubr them.
+	* data.c (Fterminal_local_value, Fset_terminal_local_value): New
+	functions (note: disabled).
+	(syms_of_data): Defsubr them (note: disabled).
 
 	* keyboard.c (syms_of_keyboard): Expand docs of terminal-local
 	variables to warn about their random bindings.
