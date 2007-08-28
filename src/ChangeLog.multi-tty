@@ -180,7 +180,7 @@
 
 	* termopts.h (no_redraw_on_reenter): Declare.
 
-2006-10-14  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* alloc.c (emacs_blocked_malloc): Disable mallopt call.
 
@@ -211,7 +211,7 @@
 
 	* xterm.h: Remove declaration for x_fully_uncatch_errors.
 
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* frame.c (make_terminal_frame)
 	* xfns.c (Fx_create_frame, x_create_tip_frame): Don't create
@@ -236,7 +236,7 @@
 	delete_terminal.
 	(x_display_info) <terminal>: Move member earlier in the struct.
 
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* termhooks.h (terminal) <deleted>: New member.
 	* term.c (delete_tty): Use it.
@@ -259,7 +259,7 @@
 	* xfaces.c (realize_default_face): Don't use FRAME_FONT unless frame
 	is an X frame.
 
-2006-04-01  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* frame.c (make_terminal_frame)
 	* gtkutil.c (xg_create_frame_widgets)
@@ -274,7 +274,7 @@
 	* xterm.h (x_output): Remove background_pixel and foreground_pixel
 	fields.
 
-2006-03-08  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* .gdbinit (init_sys_modes): Use Vinitial_window_system instead of
 	Vwindow_system.
@@ -307,7 +307,7 @@
 
 	* xterm.c (x_catch_errors_unwind): Abort if x_error_message is NULL.
 
-2006-01-17  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* Makefile.in (SOME_MACHINE_LISP): Fix typo.
 	(lisp, shortlisp): Add termdev.elc.
@@ -315,8 +315,7 @@
 	* process.c (Fmake_network_process): Don't unrequest_sigio on modern
 	systems.
 
-	* keyboard.c (Fset_input_interrupt_mode): Cosmetic change.
-	(read_char): Enhance comment before extra longjmp to
+	* keyboard.c (read_char): Enhance comment before extra longjmp to
 	wrong_kboard_jmpbuf.
 	(read_key_sequence): Handle deleted interrupted_kboards correctly;
 	that is a legal case.
@@ -324,7 +323,7 @@
 	* sysdep.c (request_sigio): Make it a no-op if noninteractive.
 	(unrequest_sigio): Make it a no-op if noninteractive.
 
-2006-01-03  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* callint.c (Fcall_interactively): Update call to
 	`temporarily_switch_to_single_kboard'.
@@ -332,19 +331,16 @@
 	* frame.c (Fdelete_frame): Remove unused variable `count'.
 
 	* keyboard.c (wrong_kboard_jmpbuf): Remove global variable.
-
-	* keyboard.c (read_char): Add wrong_kboard_jmpbuf parameter to allow
-	for recursive calls.  Update longjmp invocations.  Remember the
-	original current_kboard, and longjmp to `wrong_kboard_jmpbuf' when a
-	filter, timer or sentinel changes it.  Comment out unnecessary calls to
-	`record_single_kboard_state' and `any_kboard_state'.  Update recursive
-	calls.
-
-	* keyboard.c (read_key_sequence): Add `wrong_kboard_jmpbuf' local
-	variable.  Update setjmp and read_char calls.  Abort if
-	interrupted_kboard died in read_char.
-
-	* keyboard.c (any_kboard_state, single_kboard_state)
+	(read_char): Add wrong_kboard_jmpbuf parameter to allow for
+	recursive calls.  Update longjmp invocations.  Remember the
+	original current_kboard, and longjmp to `wrong_kboard_jmpbuf' when
+	a filter, timer or sentinel changes it.  Comment out unnecessary
+	calls to `record_single_kboard_state' and `any_kboard_state'.
+	Update recursive calls.
+	(read_key_sequence): Add `wrong_kboard_jmpbuf' local variable.
+	Update setjmp and read_char calls.  Abort if interrupted_kboard
+	died in read_char.
+	(any_kboard_state, single_kboard_state)
 	(record_single_kboard_state): Comment out obsolete functions.
 	(push_frame_kboard): Remove function.
 	(pop_kboard): Switch out of single_kboard mode if the
@@ -359,11 +355,9 @@
 	(cmd_error, command_loop, command_loop_1, timer_check):
 	Comment out unnecessary call to `any_kboard_state' and
 	`record_single_kboard_state'.
-
-	* keyboard.c (delete_kboard): Exit single_kboard mode if we have just
-	deleted that kboard.
-
-	* keyboard.c (interrupt_signal): Use `Fkill_emacs' to exit Emacs, not
+	(delete_kboard): Exit single_kboard mode if we have just deleted
+	that kboard.
+	(interrupt_signal): Use `Fkill_emacs' to exit Emacs, not
 	`fatal_error_signal'.
 
 	* keyboard.h (read_char, single_kboard_state)
@@ -385,7 +379,15 @@
 	(display_mode_line, Fformat_mode_line): Replace calls to
 	`push_frame_kboard' with `push_kboard'.
 
-2006-01-02  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
+
+	* callproc.c (syms_of_callproc): Initialize
+	`Vlocal-environment-variables' to `Qt'.
+
+	* frame.c (Fframe_with_environment): Fix typo.
+
+	* image.c (lookup_image): Don't initialize `c' until the xasserts
+	have been run.
 
 	* keyboard.c (pop_kboard): Help debugging by not changing
 	current_kboard unnecessarily.
@@ -393,23 +395,15 @@
 	Don't push_kboard if we weren't in single kboard state.
 	Don't pop_kboard if we popped into any kboard state.
 
-	* xfns.c (Fx_close_connection, Fx_synchronize): Unify argument names
-	with the rest of the DEFUNs.
-
-	* frame.c (Fframe_with_environment): Fix typo.
-
 	* xdisp.c (get_glyph_string_clip_rects): Add extra parentheses and
 	braces to prevent compiler warnings.
 	(calc_pixel_width_or_height): Add xassert to check that the
 	frame is alive.  Don't call `lookup_image' on a termcap frame.
 
-	* image.c (lookup_image): Don't initialize `c' until the xasserts
-	have been run.
+	* xfns.c (Fx_close_connection, Fx_synchronize): Unify argument names
+	with the rest of the DEFUNs.
 
-	* callproc.c (syms_of_callproc): Initialize
-	`Vlocal-environment-variables' to `Qt'.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* termhooks.h (struct device): Rename to `terminal'.  Rename member
 	`next_device' to `next_terminal'.
@@ -474,8 +468,8 @@
 
 	* keyboard.c (push_frame_kboard, pop_kboard, pop_kboard)
 	(kbd_buffer_get_event, read_avail_input, tty_read_avail_input)
-	(interrupt_signal, Fset_output_flow_control)
-	(delete_kboard, syms_of_keyboard): Update for renames.
+	(interrupt_signal, delete_kboard, syms_of_keyboard): Update for
+	renames.
 
 	* alloc.c (Fgarbage_collect): Update for renames.
 
@@ -490,7 +484,7 @@
 
 	* xselect.c (x_handle_selection_clear): Update for renames.
 
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* callproc.c (child_setup, getenv_internal, Fgetenv_internal):
 	Store the local environment in a frame (not terminal) parameter.
@@ -507,7 +501,7 @@
 	* frame.h (Qenvironment): Declare.
 	* lisp.h (Fframe_with_environment): EXFUN it.
 
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* callproc.c (Vglobal_environment): New variable, taking over the
 	previous role of `Vprocess_environment', which is now something else.
@@ -528,7 +522,7 @@
 
 	* fileio.c (Fread_file_name): Update comment.
 
-2005-12-26  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* callproc.c: Include frame.h and termhooks.h, for terminal parameters.
 	(Qenvironment): New constant.
@@ -544,7 +538,7 @@
 
 	* Makefile.in (callproc.o): Update dependencies.
 
-2005-12-25  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* terminal.c: New file.
 
@@ -575,7 +569,6 @@
 	(Fmake_terminal_frame): Use it.
 
 	* keyboard.c (pop_kboard): Remove unused variable.
-	(Fset_output_flow_control): Return nil.
 
 	* sysdep.c (reset_sys_modes): Update for renames.
 
@@ -606,14 +599,10 @@
 
 	* xterm.h (x_delete_device): Declare.
 
-2005-12-23  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
-	* keyboard.c (Fset_input_interrupt_mode): Fix compilation error
-	during non-X builds.
-
-2005-12-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (Fset_input_interrupt_mode, Fset_output_flow_control)
+	* keyboard.c (Fset_input_interrupt_mode)
+	(Fset_output_flow_control): New functions.
 	(syms_of_keyboard): Defsubr them.
 	(Fset_input_meta_mode, Fset_quit_char): New functions.
 	(Fset_input_mode): Split to above functions.
@@ -625,7 +614,7 @@
 	* print.c (print_preprocess): Don't lose print_depth levels while
 	iterating.
 
-2005-12-12  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* coding.c (Fkeyboard_coding_system): Update doc.
 
@@ -645,7 +634,7 @@
 	* xterm.c (x_term_init) [!HAVE_GTK_MULTIDISPLAY]: Refuse to create
 	secondary X connections.
 
-2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.c (Vkeyboard_translate_table)
 	* keyboard.h (Vkeyboard_translate_table): Move to struct kboard.
@@ -658,7 +647,7 @@
 	(syms_of_keyboard): Use DEFVAR_KBOARD to define
 	Vkeyboard_translate_table.  Update doc strings.
 
-2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.c (syms_of_keyboard): Update docs of
 	local-function-key-map and function-key-map.
@@ -671,7 +660,7 @@
 	* term.c (tty_set_terminal_modes): Output newlines on the correct
 	terminal device.
 
-2005-09-11  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.c: Add forward declaration of restore_kboard_configuration.
 
@@ -700,7 +689,7 @@
 	(push_kboard, pop_kboard, temporarily_switch_to_single_kboard)
 	(record_single_kboard_state): New declarations.
 
-2005-09-11  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* dispextern.h (get_tty_device): Declare.
 
@@ -717,7 +706,7 @@
 	* xmenu.c (Fx_popup_menu, Fx_popup_dialog): Throw an error when run
 	on a non-X frame.
 
-2005-09-07  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* dispnew.c (init_display): Set up `window-system' and `tty-type'
 	frame parameters in the initial tty frame.
@@ -737,7 +726,7 @@
 	initial display was a tty frame.
 	(x_delete_display): Close X session management when we close its display.
 
-2005-07-12  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.h (struct kboard): Rename member 'Vfunction_key_map' to
 	'Vlocal_function_key_map', and 'Vkey_translation_map' to
@@ -754,7 +743,7 @@
 
 	* xdisp.c (select_frame_for_redisplay): Fix xassert.
 
-2005-07-11  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* termhooks.h (struct device): Rename to `struct device'.
 	Rename member `next_display' to `next_device'.
@@ -795,7 +784,7 @@
 
 	* prefix-args.c: Include stdlib.h for exit.
 
-2005-07-10  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* term.c (term_init): Rename to init_tty.
 
@@ -805,7 +794,7 @@
 	* frame.c (Fmake_terminal_frame): Update.
 	* term.c (tty_setup_colors): Update comment.
 
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* data.c (Fterminal_local_value, Fset_terminal_local_value): New
 	functions (note: disabled).
@@ -829,7 +818,7 @@
 	(unwind_redisplay): Don't restore previous frame if it has been
 	deleted.
 
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* termhooks.h (display): New field: kboard.
 
@@ -854,7 +843,7 @@
 
 	* term.c (delete_display): Delete kboard as well.
 
-2005-06-26  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keymap.c (Vkey_translation_map): Remove.
 	(syms_of_keymap): Remove DEFVAR for key-translation-map.
@@ -869,7 +858,7 @@
 	(mark_kboards): Mark key-translation-map.
 	(read_key_sequence): Update for terminal-local key-translation-map.
 
-2005-06-25  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* emacs.c (main): Call syms_of_keymap before syms_of_keyboard.
 
@@ -896,7 +885,7 @@
 	(term_get_fkeys_kboard): New variable.
 	(term_get_fkeys): Use it.
 
-2005-05-03  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* termhooks.h (DISPLAY_TERMINAL_CODING, DISPLAY_KEYBOARD_CODING):
 	New macros.
@@ -910,9 +899,16 @@
 	* xfns.c (start_hourglass): Disable display type check, it would
 	break multi-tty.
 
-2005-04-18  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
 	* Makefile.in (SOME_MACHINE_LISP): Add dnd.elc.
+
+	* keyboard.c (interrupt_signal, handle_interrupt): Move thread check
+	to interrupt_signal.  Check for frame on controlling tty instead of
+	current selected frame in handle_interrupt.
+
+	* sysdep.c (narrow_foreground_group): Don't abort if inherited_pgroup
+	is zero.
 
 	* xdisp.c (with_echo_area_buffer, set_message, set_message_1)
 	(echo_area_display): Revert change applied in patch-328.
@@ -922,39 +918,26 @@
 	(resolve_face_name): Protect against loops and errors thrown by
 	Fget.
 
-	* xfns.c (unwind_create_frame): Don't do anything if the frame is
-	already dead.
-
-	* xterm.c (x_delete_frame_display): Call xg_display_close under GTK.
-	(x_connection_closed): Don't close the display before its frames
-	are deleted.  Protect against the last frame calling the display
-	delete hook.
-
-2005-03-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (interrupt_signal, handle_interrupt): Move thread check
-	to interrupt_signal.  Check for frame on controlling tty instead of
-	current selected frame in handle_interrupt.
-
-	* sysdep.c (narrow_foreground_group): Don't abort if inherited_pgroup
-	is zero.
-
 	* xfns.c (Fx_close_connection): Move code to
 	x_delete_frame_display.  Remove declaration cruft.
 	(x_delete_frame_display): Actually close the X connection.
+	(unwind_create_frame): Don't do anything if the frame is already dead.
 
 	* xterm.c (x_flush): Return immediately when redisplay is inhibited.
 	(Vinhibit_redisplay): Declare for x_flush.
 	(x_delete_frame_display): Declare i.  Fix initialization of dpyinfo.
+	Call xg_display_close under GTK.
 	(x_delete_display, x_create_frame_display): Cosmetic change.
+	(x_connection_closed): Don't close the display before its frames
+	are deleted.  Protect against the last frame calling the display
+	delete hook.
 
-2005-02-03  Karoly Lorentey  <lorentey@elte.hu>
+0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
-	* xfaces.c (x_free_gc): Protect xassert with GLYPH_DEBUG.
-	* xfns.c (unwind_create_frame): Ditto.
-	* dispnew.c (build_frame_matrix_from_leaf_window): Ditto.
-
-2004-12-08  Karoly Lorentey  <lorentey@elte.hu>
+	* xfaces.c (x_free_gc)
+	* xfns.c (unwind_create_frame)
+	* dispnew.c (build_frame_matrix_from_leaf_window): : Protect
+	xassert with GLYPH_DEBUG.
 
 	* dispextern.h (updated_window): Remove comment reference to
 	updating_frame.
