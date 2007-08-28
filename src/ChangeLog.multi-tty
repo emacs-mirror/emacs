@@ -548,7 +548,6 @@
 	* frame.c (Qdevice): Rename to `Qterminal'.
 	(Qdisplay_live_p): Rename to `Qterminal_live_p'.
 	(terminal_frame_count): Rename to `tty_frame_count'.
-	(Fframe_display): Move to terminal.c, rename to `Fframe_terminal'.
 	(make_frame_without_minibuffer, make_initial_frame)
 	(make_terminal_frame, Fmodify_frame_parameters)
 	(do_switch_frame, Fdelete_frame, Fmouse_position)
@@ -675,9 +674,8 @@
 	(set_terminal_window, cursor_to, raw_cursor_to)
 	(clear_to_end, clear_frame, clear_end_of_line)
 	(write_glyphs, insert_glyphs, delete_glyphs, ins_del_lines)
-	(get_device, Fdisplay_name, create_device, delete_device)
-	(Fdelete_display, Fdisplay_live_p, Fdisplay_list)
-	Move to terminal.c.
+	(get_device, Fdisplay_name, create_device, delete_device): Move to
+	terminal.c.
 	(syms_of_term): Move their initialization to terminal.c.
 
 	* terminal.c: New file.
@@ -686,8 +684,7 @@
 	(cursor_to, raw_cursor_to, clear_to_end, clear_frame)
 	(clear_end_of_line, write_glyphs, insert_glyphs, delete_glyphs)
 	(ins_del_lines, get_device, create_device, delete_device)
-	(Fdelete_display, Fdisplay_live_p, Fdisplay_list, Fdisplay_name):
-	Move here.
+	(Fdisplay_name): Move here.
 	(mark_devices, get_terminal_param, store_terminal_param)
 	(Fterminal_parameters, Fterminal_parameter)
 	(Fmodify_terminal_parameters, Fset_terminal_parameter)
@@ -1135,11 +1132,10 @@
 	(Fkeyboard_coding_system): Add DISPLAY parameter.
 
 	* term.c (get_display): Add THROW parameter.
-	(get_tty_display, Fdisplay_name, Fdisplay_tty_type)
-	(Fdelete_display, Fdisplay_live_p): Update callers.
+	(get_tty_display, Fdisplay_name, Fdisplay_tty_type): Update callers.
 
 	* xfns.c (check_x_display_info): Ditto.
-	* frame.c (Fmake_terminal_frame, Fframe_display): Ditto.
+	* frame.c (Fmake_terminal_frame): Ditto.
 
 	* dispextern.h (get_display): Update prototype.
 
@@ -1293,7 +1289,6 @@
 	(make_terminal_frame): Get display as a parameter.
 	(Fmake_terminal_frame): Get/create display here; pass it to
 	make_terminal_frame.
-	(Fframe_display): New function.
 	(Fdelete_frame): Stop if the hook deleted the frame.
 	(syms_of_frame): Register new stuff.
 
@@ -1319,7 +1314,6 @@
 	(delete_tty): Don't run hooks.
 	(create_display): Set display id.
 	(delete_display): Free display name.
-	(Fdelete_display, Fdisplay_live_p, Fdisplay_list): New functions.
 	(Fsuspend_tty): Call hook with display id.  Doc update.
 	(Fresume_tty): Refuse to resume when there is already an active display
 	on the same device.  Call hook with display id.  Doc update.
