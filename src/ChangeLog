@@ -1,3 +1,8 @@
+2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_expose_callback): Just do SET_FRAME_GARBAGED
+	so no Lisp code is executed.
+
 2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_draw_composite_glyph_string_foreground): Draw rectangle
