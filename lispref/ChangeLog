@@ -1,5 +1,9 @@
 2007-08-28  Juri Linkov  <juri@jurta.org>
 
+	* display.texi (Image Formats, Other Image Types): Add SVG.
+
+2007-08-28  Juri Linkov  <juri@jurta.org>
+
 	* display.texi (Images): Move formats-related text to new node
 	"Image Formats".
 	(Image Formats): New node.
