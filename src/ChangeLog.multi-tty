@@ -573,11 +573,9 @@
 	* keyboard.c (push_frame_kboard, pop_kboard, pop_kboard)
 	(kbd_buffer_get_event, read_avail_input, tty_read_avail_input)
 	(interrupt_signal, Fset_output_flow_control)
-	(Fset_input_meta_mode, Fset_quit_char, delete_kboard)
-	(syms_of_keyboard): Update for renames.
+	(delete_kboard, syms_of_keyboard): Update for renames.
 
-	* alloc.c (mark_devices): Update declaration.
-	(Fgarbage_collect): Update for renames.
+	* alloc.c (Fgarbage_collect): Update for renames.
 
 	* coding.c (Fset_terminal_coding_system_internal)
 	(Fterminal_coding_system4)
@@ -658,6 +656,8 @@
 
 2005-12-25  Karoly Lorentey  <lorentey@elte.hu>
 
+	* terminal.c: New file.
+
 	* term.c (Vring_bell_function, device_list, initial_device)
 	(next_device_id, ring_bell, update_begin, update_end)
 	(set_terminal_window, cursor_to, raw_cursor_to)
@@ -665,19 +665,6 @@
 	(write_glyphs, insert_glyphs, delete_glyphs, ins_del_lines)
 	(Fdisplay_name, create_device, delete_device): Move to terminal.c.
 	(syms_of_term): Move their initialization to terminal.c.
-
-	* terminal.c: New file.
-	(device_list, next_device_id, initial_device, Vring_bell_function)
-	(ring_bell, update_begin, update_end, set_terminal_window)
-	(cursor_to, raw_cursor_to, clear_to_end, clear_frame)
-	(clear_end_of_line, write_glyphs, insert_glyphs, delete_glyphs)
-	(ins_del_lines, create_device, delete_device)
-	(Fdisplay_name): Move here.
-	(mark_devices, get_terminal_param, store_terminal_param)
-	(Fterminal_parameters, Fterminal_parameter)
-	(Fmodify_terminal_parameters, Fset_terminal_parameter)
-	(init_initial_device, delete_initial_device)
-	(syms_of_terminal): New functions.
 
 	* Makefile.in (obj): Add terminal.o.
 	(terminal.o): Add dependencies.
@@ -736,7 +723,7 @@
 
 2005-12-23  Karoly Lorentey  <lorentey@elte.hu>
 
-	* print.c (print_preprocess): Don't loose print_depth levels while
+	* print.c (print_preprocess): Don't lose print_depth levels while
 	iterating.
 
 2005-12-23  Karoly Lorentey  <lorentey@elte.hu>
