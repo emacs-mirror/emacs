@@ -20,15 +20,14 @@
 
         * env.el (read-envvar-name): Don't consider the environment frame
         param.
-        (setenv): Set display-environment-variable and
-        term-environment-variable.
 
-        * frame.el (frame-initialize, make-frame): Likewise.
+        * env.el (setenv):
+        * frame.el (frame-initialize, make-frame):
+        * faces.el (tty-set-up-initial-frame-faces):
+        * server.el (server-process-filter):  Set
+	display-environment-variable and term-environment-variable.
 
-        * faces.el (tty-set-up-initial-frame-faces): Likewise.
-
-        * server.el (server-process-filter): Likewise.  Also set COLORFGBG and
-        COLORTERM.
+	* server.el (server-process-filter): Set COLORFGBG and COLORTERM.
 
 0000-00-00  Jason Rumney  <jasonr@gnu.org>
 
@@ -70,8 +69,8 @@
 	* ebrowse.el (ebrowse-electric-list-mode-map)
 	(ebrowse-electric-position-mode-map):
 	* ebuff-menu.el (electric-buffer-menu-mode-map):
-	* echistory.el (electric-history-map): Bind C-z to
-	`suspend-frame', not `suspend-emacs'.
+	* echistory.el (electric-history-map): Bind C-z to `suspend-frame',
+	not `suspend-emacs'.
 
 	* ediff-wind.el (ediff-setup-windows-automatic): New function.
 	(ediff-window-setup-function): Use it as default.
@@ -95,8 +94,7 @@
 
 	* talk.el (talk): New function.
 	(talk-handle-delete-frame): New function.
-	(talk-add-display): Open a new frame only if FRAME was not a
-	frame.
+	(talk-add-display): Open a new frame only if FRAME was not a frame.
 
 	* termdev.el: New file.
 
@@ -107,8 +105,7 @@
 	* international/encoded-kb.el (encoded-kbd-setup-display): Use
 	`set-input-meta-mode'.  Fix broken condition before set-input-mode.
 	Store the saved input method as a terminal parameter.  Add keymap
-	parameter.  Use it instead of changing key-translation-map
-	directly.
+	parameter.  Use it instead of changing key-translation-map directly.
 	(saved-key-translation-map, encoded-kbd-mode, saved-input-mode):
 	Remove.
 	(encoded-kbd-setup-display): New function.
@@ -149,11 +146,11 @@
 	local-function-key-map instead of function-key-map.  Pass a frame
 	to getenv.
 
-	* edmacro.el (edmacro-format-keys): Use terminal-local binding of
+	* edmacro.el (edmacro-format-keys):
+	* emulation/cua-base.el (cua--pre-command-handler):
+	* isearch.el (isearch-other-meta-char):
+	* xt-mouse.el: Use terminal-local binding of
 	local-function-key-map instead of function-key-map.
-	* emulation/cua-base.el (cua--pre-command-handler): Ditto.
-	* isearch.el (isearch-other-meta-char): Ditto.
-	* xt-mouse.el: Ditto.
 
 	* fringe.el (set-fringe-mode): Simplify and fix using
 	`modify-all-frames-parameters'.
@@ -162,8 +159,7 @@
 	check before calling `tool-bar-setup'.
 	(tool-bar-setup): New variable.
 	(tool-bar-setup): Use it to guard against multiple calls.  Add
-	optional frame parameter, and select that frame before adding
-	items.
+	optional frame parameter, and select that frame before adding items.
 	(toggle-tool-bar-mode-from-frame): New function.
 
 	* menu-bar.el (toggle-menu-bar-mode-from-frame): New function.
@@ -206,12 +202,10 @@
 	(frame-notice-user-settings): Don't put 'tool-bar-lines in
 	`default-frame-alist' when initial frame is on a tty.
 	(modify-all-frames-parameters): Simplify using `assq-delete-all'.
-	Remove specified parameters from
-	`window-system-default-frame-alist'.
+	Remove specified parameters from `window-system-default-frame-alist'.
 	(make-frame-on-tty, framep-on-display, suspend-frame):
 	Extend doc string, update parameter names.
-	(frames-on-display-list): Use terminal-id to get the
-	display id.
+	(frames-on-display-list): Use terminal-id to get the display id.
 	(frame-notice-user-settings): Extend to apply
 	settings in `window-system-default-frame-alist' as well.
 	(terminal-id, terminal-parameters, terminal-parameter)
@@ -245,16 +239,13 @@
 	created.  Update doc.  Don't set client-record when nowait.
 	(server-handle-delete-frame): Delete the client if this was its
 	last frame.  Check that the frame is alive.  Remove bogus comment.
-	Add note on possible race condition.  Delete tty clients, if
-	needed.
+	Add note on possible race condition.  Delete tty clients, if needed.
 	(server-handle-suspend-tty): Use server-send-string.  Kill the
 	client in case of errors from process-send-string.  Use the display
 	parameter.
-	(server-unload-hook): Remove obsolete delete-tty
-	hook.
+	(server-unload-hook): Remove obsolete delete-tty hook.
 	(server-start): Ask before restarting if the old server still has
-	clients.  Add feedback messages.  Remove obsolete delete-tty
-	hook.
+	clients.  Add feedback messages.  Remove obsolete delete-tty hook.
 	(server-process-filter): Use server-send-string.  Accept `-dir'
 	command.  Switch to *scratch* immediately after creating the frame,
 	before evaluating any -evals.  Protect `display-splash-screen'
@@ -308,8 +299,7 @@
 	* xt-mouse.el (xterm-mouse-x, xterm-mouse-y): Convert to terminal
 	parameters.
 	(xterm-mouse-position-function, xterm-mouse-event): Update.
-	(xterm-mouse-mode): Don't depend on current value of
-	window-system.
+	(xterm-mouse-mode): Don't depend on current value of window-system.
 	(turn-on-xterm-mouse-tracking, turn-off-xterm-mouse-tracking):
 	Update for multi-tty.
 	(turn-on-xterm-mouse-tracking-on-terminal)
