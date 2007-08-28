@@ -1,3 +1,8 @@
+2007-08-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (syms_of_image) <image-library-alist, cross-disabled-images>:
+	Doc fixes.
+
 2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_expose_callback): Just do SET_FRAME_GARBAGED
