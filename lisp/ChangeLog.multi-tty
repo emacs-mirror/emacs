@@ -64,8 +64,6 @@
 
 	* cus-start.el: Remove bogus window-system reference from GTK test.
 
-	* double.el (double-setup): Add note.
-
 	* ebrowse.el (ebrowse-electric-list-mode-map)
 	(ebrowse-electric-position-mode-map):
 	* ebuff-menu.el (electric-buffer-menu-mode-map):
