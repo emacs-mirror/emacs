@@ -1,3 +1,8 @@
+2007-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-langs.el (c-constant-kwds): Add java: null, true,
+	false.
+
 2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/modula2.el (m2-definition, m2-module):
