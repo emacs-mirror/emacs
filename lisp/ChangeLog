@@ -1,3 +1,7 @@
+2007-08-28  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+
+	* play/gamegrid.el (gamegrid-init): Set line-spacing to 0.
+
 2007-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-langs.el (c-constant-kwds): Add java: null, true,
