@@ -2075,6 +2075,7 @@ nevertheless contains a list separated with ';' and not ','."
 	    "false" "true")		; Defined in C99.
   objc    '("nil" "Nil")
   idl     '("TRUE" "FALSE")
+  java    '("true" "false" "null") ; technically "literals", not keywords
   pike    '("UNDEFINED")) ;; Not a keyword, but practically works as one.
 
 (c-lang-defconst c-primary-expr-kwds
