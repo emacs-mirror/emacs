@@ -3103,7 +3103,8 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
   return bmp;
 }
 
-static void convert_mono_to_color_image (f, img, foreground, background)
+static void
+convert_mono_to_color_image (f, img, foreground, background)
      struct frame *f;
      struct image *img;
      COLORREF foreground, background;
@@ -5052,7 +5053,8 @@ x_to_xcolors (f, img, rgb_p)
    created with CreateDIBSection, with the pointer to the bit values
    stored in ximg->data.  */
 
-static void XPutPixel (ximg, x, y, color)
+static void
+XPutPixel (ximg, x, y, color)
      XImagePtr  ximg;
      int x, y;
      COLORREF color;
@@ -8629,7 +8631,7 @@ alternate filenames for the corresponding external libraries.
 Emacs tries to load the libraries in the order they appear on the
 list; if none is loaded, the running session of Emacs won't
 support the image type.  Types 'pbm and 'xbm don't need to be
-listed; they're always supported.  */);
+listed; they are always supported.  */);
   Vimage_library_alist = Qnil;
   Fput (intern ("image-library-alist"), Qrisky_local_variable, Qt);
 
@@ -8747,7 +8749,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
     doc: /* Non-nil means always draw a cross over disabled images.
-Disabled images are those having an `:conversion disabled' property.
+Disabled images are those having a `:conversion disabled' property.
 A cross is always drawn on black & white displays.  */);
   cross_disabled_images = 0;
 
