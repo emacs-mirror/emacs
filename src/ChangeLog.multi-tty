@@ -239,29 +239,21 @@
 2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
 
 	* termhooks.h (terminal) <deleted>: New member.
-
 	* term.c (delete_tty): Use it.
-	(deleting_tty): Remove old variable.
-
 	* xterm.c (x_delete_terminal): Use terminal->deleted.  Delete all
 	frames on the display explicitly.
 
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (Fsuspend_tty): Call clear_tty_hooks.
+	(deleting_tty): Remove old variable.
+	(Fsuspend_tty): Call clear_tty_hooks.
 	(Fresume_tty, init_tty): Call set_tty_hooks.
 	(clear_tty_hooks, set_tty_hooks): New functions.
-
-2006-05-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* dispnew.c (Fsend_string_to_terminal): Update call to
-	`get_tty_terminal'.
-
-	* term.c (Fsuspend_tty, Fresume_tty): Update call to `get_tty_terminal'.
-	(get_tty_terminal): Add throw parameter.
 	(Ftty_display_color_p, Ftty_display_color_cells): Don't throw
 	errors on X frames.
 
+	* term.c (get_tty_terminal): Add throw parameter.
+	(Fsuspend_tty, Fresume_tty): Update call to `get_tty_terminal'.
+	* dispnew.c (Fsend_string_to_terminal): Update call to
+	`get_tty_terminal'.
 	* dispextern.h (get_tty_terminal): Update prototype.
 
 	* xfaces.c (realize_default_face): Don't use FRAME_FONT unless frame
