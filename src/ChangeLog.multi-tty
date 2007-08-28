@@ -563,7 +563,7 @@
 	* alloc.c (mark_devices): Declare.
 	(Fgarbage_collect): Call `mark_devices'.
 
-	* dispextern.h  (set_scroll_region, turn_off_insert)
+	* dispextern.h (set_scroll_region, turn_off_insert)
 	(turn_off_highlight, background_highlight, clear_end_of_line_raw)
 	(tty_clear_end_of_line, tty_setup_colors, delete_tty): Remove.
 	(raw_cursor_to, clear_to_end, tty_turn_off_insert)
@@ -926,25 +926,9 @@
 	(mark_kboards): Mark key-translation-map.
 	(read_key_sequence): Update for terminal-local key-translation-map.
 
-	* emacs.c (main): Call syms_of_keymap before syms_of_keyboard.
-
-2005-06-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (Fset_input_mode): Call reset_sys_modes and
-	init_sys_modes on the selected device only; do not use the bulk
-	functions reset_all_sys_modes and init_all_sys_modes.
-
-2005-06-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (term_init): Make sure the function keys are set up in the
-	correct function-key-map.
-	(term_get_fkeys_arg): Rename to term_get_fkeys_address.
-	(term_get_fkeys_kboard): New variable.
-	(term_get_fkeys): Use it.
-
 2005-06-25  Karoly Lorentey  <lorentey@elte.hu>
 
-	* keyboard.h (kboard): Move Vfunction_key_map inside the kboard struct.
+	* emacs.c (main): Call syms_of_keymap before syms_of_keyboard.
 
 	* keyboard.c (Vfunction_key_map): Remove declaration.
 	(read_key_sequence, init_kboard): Update references to
@@ -952,17 +936,22 @@
 	(syms_of_keyboard): Declare function-key-map as a terminal-local
 	variable.
 	(mark_kboards): Mark Vfunction_key_map.
+	(Fset_input_mode): Call reset_sys_modes and init_sys_modes on the
+	selected device only; do not use the bulk functions
+	reset_all_sys_modes and init_all_sys_modes.
+
+	* keyboard.h (kboard): Move Vfunction_key_map inside the kboard struct.
 
 	* keymap.c (Vfunction_key_map): Remove.
 	(Fdescribe_buffer_bindings): Update references to Vfunction_key_map.
 	(syms_of_keymap): Remove DEFVAR for Vfunction_key_map.
 
 	* term.c (term_get_fkeys_1): Update references to Vfunction_key_map.
-
-2005-05-09  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xfns.c (start_hourglass): Disable display type check, it would
-	break multi-tty.
+	(term_init): Make sure the function keys are set up in the
+	correct function-key-map.
+	(term_get_fkeys_arg): Rename to term_get_fkeys_address.
+	(term_get_fkeys_kboard): New variable.
+	(term_get_fkeys): Use it.
 
 2005-05-03  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -971,81 +960,50 @@
 
 	* coding.c (Fset_terminal_coding_system_internal)
 	(Fterminal_coding_system, Fset_keyboard_coding_system_internal)
-	(Fkeyboard_coding_system): Add DISPLAY parameter.
+	(Fkeyboard_coding_system)
+	* frame.c (Fmake_terminal_frame)
+	* xfns.c (check_x_display_info): Add DISPLAY parameter.
 
-	* xfns.c (check_x_display_info): Ditto.
-	* frame.c (Fmake_terminal_frame): Ditto.
-
-2005-04-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xdisp.c (with_echo_area_buffer, set_message, set_message_1)
-	(echo_area_display): Revert change applied in patch-328.
+	* xfns.c (start_hourglass): Disable display type check, it would
+	break multi-tty.
 
 2005-04-18  Karoly Lorentey  <lorentey@elte.hu>
 
 	* Makefile.in (SOME_MACHINE_LISP): Add dnd.elc.
 
-2005-04-18  Karoly Lorentey  <lorentey@elte.hu>
+	* xdisp.c (with_echo_area_buffer, set_message, set_message_1)
+	(echo_area_display): Revert change applied in patch-328.
 
 	* xfaces.c (internal_resolve_face_name, resolve_face_name_error):
 	New functions.
 	(resolve_face_name): Protect against loops and errors thrown by
 	Fget.
 
-2005-03-27  Karoly Lorentey  <lorentey@elte.hu>
-
 	* xfns.c (unwind_create_frame): Don't do anything if the frame is
 	already dead.
-
-2005-03-27  Karoly Lorentey  <lorentey@elte.hu>
 
 	* xterm.c (x_delete_frame_display): Call xg_display_close under GTK.
 	(x_connection_closed): Don't close the display before its frames
 	are deleted.  Protect against the last frame calling the display
 	delete hook.
 
-2005-03-23  Karoly Lorentey  <lorentey@elte.hu>
-
-	* termchar.h: Fix deviation from CVS.
-	* xfns.c (Fx_create_frame): Ditto.
-
-	* xterm.c (x_delete_display): Cosmetic change.
-	* xterm.c (x_create_frame_display): Cosmetic change.
-
-2005-03-19  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xfns.c (Fx_close_connection): Remove declaration cruft.
-
-	* xterm.c (x_delete_frame_display): Declare i.  Fix initialization of
-	dpyinfo.
-
-2005-03-19  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xfns.c (Fx_close_connection): Move code to x_delete_frame_display.
-	(x_delete_frame_display): Actually close the X connection.
-
-2005-03-08  Karoly Lorentey  <lorentey@elte.hu>
-
-	* sysdep.c (narrow_foreground_group): Don't abort if inherited_pgroup
-	is zero.
-
 2005-03-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xterm.c (Vinhibit_redisplay): Declare for x_flush.
-
-2005-03-07  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xterm.c (x_flush): Return immediately when redisplay is inhibited.
-
-2005-02-18  Karoly Lorentey  <lorentey@elte.hu>
 
 	* keyboard.c (interrupt_signal, handle_interrupt): Move thread check
 	to interrupt_signal.  Check for frame on controlling tty instead of
 	current selected frame in handle_interrupt.
 
-2005-02-04  Karoly Lorentey  <lorentey@elte.hu>
+	* sysdep.c (narrow_foreground_group): Don't abort if inherited_pgroup
+	is zero.
 
-	* dispnew.c (build_frame_matrix_from_leaf_window): Fix typo.
+	* xfns.c (Fx_close_connection): Move code to
+	x_delete_frame_display.  Remove declaration cruft.
+	(x_delete_frame_display): Actually close the X connection.
+
+	* xterm.c (x_flush): Return immediately when redisplay is inhibited.
+	(Vinhibit_redisplay): Declare for x_flush.
+	(x_delete_frame_display): Declare i.  Fix initialization of dpyinfo.
+	(x_delete_display, x_create_frame_display): Cosmetic change.
 
 2005-02-03  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1055,24 +1013,12 @@
 
 2004-12-08  Karoly Lorentey  <lorentey@elte.hu>
 
-	* xfns.c (x_create_tip_frame): Copy color slot initialization
-	safeguards from x-create-frame.  Trivial doc update.
-
-2004-11-28  Karoly Lorentey  <lorentey@elte.hu>
-
 	* dispextern.h (updated_window): Remove comment reference to
 	updating_frame.
 
 	* dispnew.c (update_window): Remove bogus xassert.
 
-	* xterm.c: (x_clear_frame): Update comment.
-	(x_draw_window_cursor): Remove reference to updating_frame.
-
-2004-11-28  Karoly Lorentey  <lorentey@elte.hu>
-
 	* keyboard.c (cmd_error_internal): Remove slightly bogus comment.
-
-2004-10-14  Karoly Lorentey  <lorentey@elte.hu>
 
 	* xdisp.c (handle_single_display_prop): Use FRAME_WINDOW_P instead of
 	checking against specific frame types.  Ignore images on non-window
@@ -1083,39 +1029,15 @@
 	vertical borders on tty frames.
 	(display_line): Remove superflous #ifdefs.
 
-2004-10-08  Karoly Lorentey  <lorentey@elte.hu>
+	* xfns.c (x_create_tip_frame): Copy color slot initialization
+	safeguards from x-create-frame.  Trivial doc update.
 
-	* fringe.c (init_fringe_bitmap): Remove C99ism.
+	* xterm.c (x_clear_frame): Update comment.
+	(x_draw_window_cursor): Remove reference to updating_frame.
 
-2004-09-13  Karoly Lorentey  <lorentey@elte.hu>
+2004-07-04  Karoly Lorentey  <lorentey@elte.hu>
 
 	* Makefile.in (minibuf.o): Fix typo.
-
-2004-09-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xterm.c (x_connection_closed): Inhibit redisplay while frames are
-	being deleted.
-
-2004-07-11  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xfns.c (Fx_create_frame): Fix verifying return value of x_get_arg
-	for Qdisplay_id.
-
-2004-07-10  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (Fcontrolling_tty_p): New function.
-	(syms_of_term): Initialize Sdisplay_controlling_tty_p.
-
-	* keyboard.c (Fsuspend_emacs): Give a better error message when
-	there are multiple open tty devices.
-	(interrupt_signal): Don't call fatal_error_signal with an extra
-	parameter.
-
-2004-07-04  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (get_tty_display): Don't signal an error on the initial frame.
-
-2004-07-04  Karoly Lorentey  <lorentey@elte.hu>
 
 	* dispextern.h (get_display, Fdisplay_tty_type): New prototypes.
 	(Fframe_tty_type): Remove.
@@ -1132,7 +1054,12 @@
 	* frame.h (Qdisplay_id, Qdisplay_live_p, make_terminal_frame):
 	Update prototypes.
 
-	* keyboard.c (interrupt_signal): Update comment.
+	* fringe.c (init_fringe_bitmap): Remove C99ism.
+
+	* keyboard.c (interrupt_signal):  Don't call fatal_error_signal
+	with an extra parameter.
+	(Fsuspend_emacs): Give a better error message when there are
+	multiple open tty devices.
 
 	* term.c (Vdelete_tty_after_functions): Remove variable.
 	(Qframe_tty_name, Qframe_tty_type): Remove.
@@ -1140,6 +1067,7 @@
 	(tty_ring_bell): Don't do anything on suspended frames.
 	(Ftty_display_color_p, Ftty_display_color_cells): Doc update.
 	(get_tty_display): Use it.
+	(get_tty_display): Don't signal an error on the initial frame.
 	(Fframe_tty_name): Rename to Fdisplay_name.  Handle all kinds of
 	displays.
 	(Fframe_tty_type): Rename to Fdisplay_tty_type.
@@ -1152,38 +1080,29 @@
 	(Fresume_tty): Refuse to resume when there is already an active display
 	on the same device.  Call hook with display id.  Doc update.
 	(syms_of_term): Reflect above changes.
+	(Fcontrolling_tty_p): New function.
+	(syms_of_term): Initialize Sdisplay_controlling_tty_p.
 
 	* termhooks.h (struct display): Add `id' and `name' members.
 	(DISPLAY_ACTIVE_P): New macro.
 
 	* xfns.c (check_x_display_info): Handle display ids.
 	(Fx_create_frame): Try to get display from `display-id' parameter.
+	Fix verifying return value of x_get_arg for Qdisplay_id.
 
 	* xterm.c (x_term_init): Set display name.
 	(x_delete_display): Handle the case when `font_table' is NULL.
-
-2004-06-15  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (Ftty_display_color_cells): Return 0 in case of an error,
-	not nil.
-	(dissociate_if_controlling_tty): On some systems TIOCNOTTY
-	works only on /dev/tty.  Adapt the function accordingly.
-
-2004-06-08  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (interrupt_signal): Don't call Fkill_emacs from a
-	signal handler; use fatal_error_signal instead.
-	(command_loop): Clear single_kboard each time Emacs returns to
-	top-level.
-
-2004-06-06  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (encode_terminal_code): Convert to use ANSI prototype syntax.
+	(x_connection_closed): Inhibit redisplay while frames are being
+	deleted.
 
 2004-06-05  Karoly Lorentey  <lorentey@elte.hu>
 
 	* dispnew.c (init_display): Always install handler for SIGWINCH.
 	Reported by Yoshiaki Kasahara <kasahara@nc.kyushu-u.ac.jp>.
+
+	* keyboard.c (interrupt_signal): Don't call Fkill_emacs from a
+	signal handler; use fatal_error_signal instead.
+	(command_loop): Clear single_kboard each time Emacs returns to top-level.
 
 	* term.c: Massive updates throuout the file.
 	(TS_*, TN_*)
@@ -1201,6 +1120,10 @@
 	errors if this would have been a secondary terminal.  Call
 	set_terminal_modes on the end.
 	(print_all_frames): New function, marginally useful for debugging.
+	(encode_terminal_code): Convert to use ANSI prototype syntax.
+	(Ftty_display_color_cells): Return 0 in case of an error, not nil.
+	(dissociate_if_controlling_tty): On some systems TIOCNOTTY
+	works only on /dev/tty.  Adapt the function accordingly.
 
 	* termchar.h (struct tty_output): Change old_tty to be a pointer.
 	Remove old_tty_valid member.  Add tty-specific variables from term.c.
@@ -1290,28 +1213,24 @@
 
 2003-12-24  Karoly Lorentey  <lorentey@elte.hu>
 
+	* keyboard.c (echo_dash): Do nothing if there already is a dash at
+	the end of the echo string.
+
 	* termchar.h (struct terminal): New struct.
 	(must_write_spaces, min_padding_speed, line_ins_del_ok)
 	(char_ins_del_ok, scroll_region_ok, scroll_region_cost)
 	(memory_below_frame, fast_clear_end_of_line): Move to struct terminal.
 	(min_padding_speed, dont_calculate_costs): Comment out (unused).
 
-	* term.c (set_terminal_window, ins_del_lines, calculate_costs)
-	(term_init)
+	* term.c (set_terminal_window, ins_del_lines, calculate_costs, term_init)
 	* dispnew.c (line_hash_code, line_draw_cost)
-	(direct_output_for_insert, update_frame_1, scrolling)
-	(update_frame_line):
+	(direct_output_for_insert, update_frame_1, scrolling, update_frame_line)
 	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
-	(scrolling_1, scroll_cost):
-	* sysdep.c (hft_init):
-	* xdisp.c (try_window_id):
+	(scrolling_1, scroll_cost)
+	* sysdep.c (hft_init)
+	* xdisp.c (try_window_id)
 	* xterm.c (x_initialize): Use the accessor macros for terminal
 	characteristics.
-
-2004-07-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (echo_dash): Do nothing if there already is a dash at
-	the end of the echo string.
 
 
 ;; Local Variables:
