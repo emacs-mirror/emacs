@@ -63,6 +63,9 @@ to a remote display, e.g. because the display is about to become unreachable.
 called with a prefix, and the default directory is a remote file name.
 This is because some file name handler (like ange-ftp) are not able to
 run processes remotely.
+
+** The new command `display-time-world' starts an updating time display
+using several time zones, in a buffer.
 
 * Startup Changes in Emacs 23.1
 
