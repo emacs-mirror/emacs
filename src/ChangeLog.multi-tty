@@ -1449,16 +1449,13 @@
 	Added name, type, input, output, termscript, old_tty,
 	term_initted, old_tty_valid, background_pixel, foreground_pixel,
 	next fields.
-	(TERMINAL_*): Renamed to TTY_* for brevity.
-	(CURRENT_TERMINAL): Renamed to CURTTY for brevity.
+	(TTY_*): New macros.
+	(CURRENT_TERMINAL): New macro.
 	(tty_list): New variable.
-	(TERMINAL_PTR): Removed.
 	(FRAME_TTY): New function.
 	(TTY_NAME, TTY_TYPE): New macros.
 
-	* term.c (current_terminal): Removed.
-	(_current_terminal): Removed.
-	(tty_list): New variable.
+	* term.c (tty_list): New variable.
 	(OUTPUT, OUTPUT1, OUTPUTL, OUTPUT_IF, OUTPUT1_IF): Added tty
 	parameter.
 	(set_terminal_modes): Added tty parameter.
@@ -1534,12 +1531,7 @@
 	(char_ins_del_ok, scroll_region_ok, scroll_region_cost)
 	(memory_below_frame, fast_clear_end_of_line): Moved to struct
 	terminal.
-	(current_terminal): New variable.
-	(CURRENT_TERMINAL, TERMINAL_*): New accessor macros.
 	(min_padding_speed, dont_calculate_costs): Commented out (unused).
-
-	* term.c (_current_terminal): New variable.  Will be removed when
-	true multi-tty support is implemented.
 
 	* term.c (set_terminal_window, ins_del_lines, calculate_costs)
 	(term_init): Use the accessor macros for terminal characteristics.
