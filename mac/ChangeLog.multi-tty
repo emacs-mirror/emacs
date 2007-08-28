@@ -2,5 +2,7 @@
 
 	* makefile.MPW (EmacsObjects): Add terminal.c.x.
 	(callproc.c.x): Add dependencies frame.h, termhooks.h.
+	({Src}terminal.c.x): New.
+	(shortlisp): Add server.elc and termdev.elc.
 
 ;; arch-tag: f3b2ce5d-5476-47dd-a18b-4b481c737a25
