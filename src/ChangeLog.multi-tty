@@ -309,9 +309,6 @@
 
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
-	* Makefile.in (SOME_MACHINE_LISP): Fix typo.
-	(lisp, shortlisp): Add termdev.elc.
-
 	* process.c (Fmake_network_process): Don't unrequest_sigio on modern
 	systems.
 
@@ -537,6 +534,14 @@
 	(get_device): New declaration.
 
 	* Makefile.in (callproc.o): Update dependencies.
+	(lisp, shortlisp): Add termdev.elc.
+	(obj): Add terminal.o.
+	(terminal.o): Add dependencies.
+	[HAVE_CARBON]: Make terminal.o depend on macgui.h.
+	(data.o, fns.o): Add termhooks.h dependency.
+	(SOME_MACHINE_LISP): Add dnd.elc.
+	(minibuf.o): Fix typo.
+	Update dependencies.
 
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -549,10 +554,6 @@
 	(write_glyphs, insert_glyphs, delete_glyphs, ins_del_lines)
 	(Fdisplay_name, create_device, delete_device): Move to terminal.c.
 	(syms_of_term): Move their initialization to terminal.c.
-
-	* Makefile.in (obj): Add terminal.o.
-	(terminal.o): Add dependencies.
-	[HAVE_CARBON]: Make terminal.o depend on macgui.h.
 
 	* alloc.c (mark_devices): Declare.
 	(Fgarbage_collect): Call `mark_devices'.
@@ -682,8 +683,6 @@
 	* xdisp.c (display_mode_line, Fformat_mode_line): Update uses.
 
 	* data.c: Include termhooks.h.
-
-	* Makefile.in (data.o, fns.o): Add termhooks.h dependency.
 
 	* keyboard.h (pop_frame_kboard): Remove declaration.
 	(push_kboard, pop_kboard, temporarily_switch_to_single_kboard)
@@ -894,8 +893,6 @@
 
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
-	* Makefile.in (SOME_MACHINE_LISP): Add dnd.elc.
-
 	* keyboard.c (interrupt_signal, handle_interrupt): Move thread check
 	to interrupt_signal.  Check for frame on controlling tty instead of
 	current selected frame in handle_interrupt.
@@ -955,8 +952,6 @@
 	(x_draw_window_cursor): Remove reference to updating_frame.
 
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
-
-	* Makefile.in (minibuf.o): Fix typo.
 
 	* dispextern.h (get_display, Fdisplay_tty_type): New prototypes.
 	(Fframe_tty_type): Remove.
@@ -1127,8 +1122,6 @@
 
 	* window.c (init_window_once): Call make_terminal_frame with two
 	zero parameters.
-
-	* Makefile.in: Update dependencies.
 
 0000-00-00  Karoly Lorentey  <lorentey@elte.hu>
 
