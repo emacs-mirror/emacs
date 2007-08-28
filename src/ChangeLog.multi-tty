@@ -285,8 +285,7 @@
 	* dispnew.c (Fsend_string_to_terminal): Update call to
 	`get_tty_terminal'.
 
-	* term.c (Fsuspend_tty, Fresume_tty): Update call to
-	`get_tty_terminal'.
+	* term.c (Fsuspend_tty, Fresume_tty): Update call to `get_tty_terminal'.
 	(get_tty_terminal): Add throw parameter.
 	(Ftty_display_color_p, Ftty_display_color_cells): Don't throw
 	errors on X frames.
@@ -295,124 +294,68 @@
 
 2006-04-01  Karoly Lorentey  <lorentey@elte.hu>
 
-	* frame.c (make_terminal_frame): Use FRAME_BACKGROUND_PIXEL and
+	* frame.c (make_terminal_frame)
+	* gtkutil.c (xg_create_frame_widgets)
+	* widget.c (update_from_various_frame_slots)
+	* xfns.c (x_set_foreground_color x_set_background_color)
+	(x_set_mouse_color, x_set_cursor_color, x_make_gc)
+	(Fx_create_frame, x_create_tip_frame, build_string, x_window)
+	* xterm.c (XTflash, x_free_frame_resources, x_scroll_bar_create)
+	(x_scroll_bar_set_handle): Use FRAME_BACKGROUND_PIXEL and
 	FRAME_FOREGROUND_PIXEL.
-	* gtkutil.c (xg_create_frame_widgets): Ditto.
-	* xfns.c (x_window): Ditto.
-	* xterm.c (x_scroll_bar_create): Ditto.
-	* xterm.c (x_scroll_bar_set_handle): Ditto.
-
-2006-04-01  Karoly Lorentey  <lorentey@elte.hu>
 
 	* xterm.h (x_output): Remove background_pixel and foreground_pixel
 	fields.
-
-	* widget.c (update_from_various_frame_slots): Use
-	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
-
-	* xfns.c (x_set_foreground_color): Ditto.
-	* xfns.c (x_set_background_color): Ditto.
-	* xfns.c (x_set_mouse_color): Ditto.
-	* xfns.c (x_set_cursor_color): Ditto.
-	* xfns.c (x_make_gc): Ditto.
-	* xfns.c (Fx_create_frame): Ditto.
-	* xfns.c (x_create_tip_frame): Ditto.
-	* xfns.c (build_string): Ditto.
-	* xterm.c (XTflash): Ditto.
-	* xterm.c (x_free_frame_resources): Ditto.
-
-2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c: Include errno.h.
-	(Fresume_tty): Handle errors on reopening ttys.  Don't dissociate
-	if terminal was explicitly opened on the controlling terminal.
-	(init_tty): Initialize local pointers.  Always set name (use
-	"/dev/tty" for controlling tty.)  Remove special case for name ==
-	NULL.
-
-2006-03-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.c (syms_of_frame): Enhance doc string of `default-frame-alist'.
-
-2006-03-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xfns.c (x_create_tip_frame): Fix syntax error.
-
-2006-03-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xfns.c (Fx_create_frame): Use `store_frame_param' to set
-	`window-system' frame parameter, and make sure it overrides any
-	user-supplied setting.
-
-	* xfns.c (x_icon): Disable redundant call to
-	`x_wm_set_window_state'.  (Also applied in CVS.)
-
-2006-03-08  Karoly Lorentey  <lorentey@elte.hu>
-
-	* frame.c (Fmake_terminal_frame): Handle NULL tty names correctly.
 
 2006-03-08  Karoly Lorentey  <lorentey@elte.hu>
 
 	* .gdbinit (init_sys_modes): Use Vinitial_window_system instead of
 	Vwindow_system.
 
-2006-02-25  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (read_key_sequence): Remove unused variable
-	wrong_kboard_jmpbuf.
-
-2006-02-25  Karoly Lorentey  <lorentey@elte.hu>
+	* callproc.c (getenv_internal): Fix C99ism.
 
 	* frame.c (store_frame_param): Check for found_for_frame before
 	calling XFRAME.
-
-2006-02-20  Karoly Lorentey  <lorentey@elte.hu>
-
-	* regex.c (extend_range_table_work_area, regex_compile, fastmap):
-	Revert previous unnecessary changes.
-
-2006-02-14  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (Fset_quit_char): Don't leave tty state uninitialized
-	after an error.
-
-2006-02-12  Karoly Lorentey  <lorentey@elte.hu>
-
-	* xterm.c (x_catch_errors_unwind): Abort if x_error_message is NULL.
-
-2006-01-30  Karoly Lorentey  <lorentey@elte.hu>
-
-	* callproc.c (getenv_internal): Fix C99ism.
-
-2006-01-28  Karoly Lorentey  <lorentey@elte.hu>
+	(Fmake_terminal_frame): Handle NULL tty names correctly.
+	(syms_of_frame): Enhance doc string of `default-frame-alist'.
 
 	* keyboard.c (read_char): Declare.  Update call to
 	`read_char_minibuf_menu_prompt'.  Set wrong_kboard_jmpbuf correctly in
 	recursive calls.
 	(read_char_minibuf_menu_prompt): Add wrong_kboard_jmpbuf
 	parameter.  Use it in call to `read_char'.
+	(Fset_quit_char): Don't leave tty state uninitialized after an error.
+	(read_key_sequence): Remove unused variable wrong_kboard_jmpbuf.
+
+	* term.c: Include errno.h.
+	(Fresume_tty): Handle errors on reopening ttys.  Don't dissociate
+	if terminal was explicitly opened on the controlling terminal.
+	(init_tty): Initialize local pointers.  Always set name (use
+	"/dev/tty" for controlling tty.)  Remove special case for name == NULL.
+
+	* xfns.c (Fx_create_frame): Use `store_frame_param' to set
+	`window-system' frame parameter, and make sure it overrides any
+	user-supplied setting.
+	(x_create_tip_frame): Fix syntax error.
+
+	* xterm.c (x_catch_errors_unwind): Abort if x_error_message is NULL.
 
 2006-01-17  Karoly Lorentey  <lorentey@elte.hu>
 
 	* Makefile.in (SOME_MACHINE_LISP): Fix typo.
 	(lisp, shortlisp): Add termdev.elc.
 
-2006-01-11  Karoly Lorentey  <lorentey@elte.hu>
-
 	* process.c (Fmake_network_process): Don't unrequest_sigio on modern
 	systems.
 
 	* keyboard.c (Fset_input_interrupt_mode): Cosmetic change.
-
-	* sysdep.c (request_sigio): Make it a no-op if noninteractive.
-	(unrequest_sigio): Make it a no-op if noninteractive.
-
-2006-01-05  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (read_char): Enhance comment before extra longjmp to
+	(read_char): Enhance comment before extra longjmp to
 	wrong_kboard_jmpbuf.
 	(read_key_sequence): Handle deleted interrupted_kboards correctly;
 	that is a legal case.
+
+	* sysdep.c (request_sigio): Make it a no-op if noninteractive.
+	(unrequest_sigio): Make it a no-op if noninteractive.
 
 2006-01-03  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -483,16 +426,10 @@
 	Don't push_kboard if we weren't in single kboard state.
 	Don't pop_kboard if we popped into any kboard state.
 
-2006-01-01  Karoly Lorentey  <lorentey@elte.hu>
-
 	* xfns.c (Fx_close_connection, Fx_synchronize): Unify argument names
 	with the rest of the DEFUNs.
 
-2005-12-31  Karoly Lorentey  <lorentey@elte.hu>
-
 	* frame.c (Fframe_with_environment): Fix typo.
-
-2005-12-30  Karoly Lorentey  <lorentey@elte.hu>
 
 	* xdisp.c (get_glyph_string_clip_rects): Add extra parentheses and
 	braces to prevent compiler warnings.
@@ -501,8 +438,6 @@
 
 	* image.c (lookup_image): Don't initialize `c' until the xasserts
 	have been run.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
 
 	* callproc.c (syms_of_callproc): Initialize
 	`Vlocal-environment-variables' to `Qt'.
@@ -590,10 +525,6 @@
 
 2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
 
-	* callproc.c (Fgetenv_internal, syms_of_callproc): Update doc strings.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
 	* callproc.c (child_setup, getenv_internal, Fgetenv_internal):
 	Store the local environment in a frame (not terminal) parameter.
 	Update doc strings.
@@ -611,33 +542,24 @@
 
 2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
 
-	* callproc.c (syms_of_callproc): Initialize Vprocess_environment
-	to nil.
-
-2005-12-29  Karoly Lorentey  <lorentey@elte.hu>
-
 	* callproc.c (Vglobal_environment): New variable, taking over the
 	previous role of `Vprocess_environment', which is now something else.
 	(add_env): New function.
 	(child_setup): Use it.
 	(child_setup, getenv_internal): Rename Vprocess_environment to
 	Vglobal_environment.  Handle the new Vprocess_environment.
+	(getenv_internal): Fix get_terminal_param call.
 	(Fgetenv_internal, egetenv): Update doc.
 	(set_process_environment): Rename to `set_global_environment'.  Rename
 	Vprocess_environment to Vglobal_environment.
 	(syms_of_callproc): Rename process-environment to global-environment,
-	add new process-environment, update docs.
+	add new process-environment, update docs.  Initialize
+	Vprocess_environment to nil.
 
 	* emacs.c (main): Call set_global_environment instead of
 	set_process_environment.
 
 	* fileio.c (Fread_file_name): Update comment.
-
-2005-12-26  Karoly Lorentey  <lorentey@elte.hu>
-
-	* callproc.c (getenv_internal): Fix get_terminal_param call.
-
-	* termhooks.h (get_device): New declaration.
 
 2005-12-26  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -651,6 +573,7 @@
 	(Fgetenv_internal): Add terminal parameter.
 
 	* termhooks.h (get_terminal_param): Declare.
+	(get_device): New declaration.
 
 	* Makefile.in (callproc.o): Update dependencies.
 
