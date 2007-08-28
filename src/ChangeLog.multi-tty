@@ -607,9 +607,7 @@
 	(syms_of_keyboard): Defsubr them.
 	(Fset_input_meta_mode, Fset_quit_char): New functions.
 	(Fset_input_mode): Split to above functions.
-
 	* lisp.h: EXFUN the new functions.
-
 	* xterm.c (x_initialize): Use Fset_input_interrupt_mode.
 
 	* print.c (print_preprocess): Don't lose print_depth levels while
