@@ -18,7 +18,7 @@
 	terminal->kboard when MULTI_KBOARD is defined.
 
 	* term.c (init_tty): Only use terminal->kboard when MULTI_KBOARD
-	is defined. Better initialize ttys in windows. Use terminal
+	is defined.  Better initialize ttys in windows.  Use terminal
 	specific mouse_position_hook.
 
 	* sysdep.c: Comment out text after #endif.
@@ -47,8 +47,8 @@
 	* macfns.c (x_set_mouse_color): Get rif from the frame.
 	(x_set_tool_bar_lines): Don't use updating_frame.
 	(mac_window): Add 2 new parameters for consistency with other
-	systems.  
-	(Fx_create_frame): Fix doc string. Rename the parameter.
+	systems.
+	(Fx_create_frame): Fix doc string.  Rename the parameter.
 	(Fx_create_frame): Set the frame parameters following what is done
 	in X11 and w32.
 	(Fx_open_connection): Remove window-system check.
@@ -87,15 +87,13 @@
 	w32_create_terminal.
 
 	* makefile.w32-in: Update dependancies from Makefile.in
+	(OBJ1): Add terminal.$(O)
 
 	* frame.c (Fdelete_frame): Only get kboard when MULTI_KBOARD
 	defined.
 	(make_terminal_frame) [WINDOWSNT]: Initialize terminal.
 
 	* keyboard.c (restore_kboard_configuration): Only define when
-	MULTI_KBOARD defined.
-
-	* terminal.c (init_initial_terminal): Only set initial_kboard when
 	MULTI_KBOARD defined.
 
 	* term.c (dissociate_if_controlling_tty) [WINDOWSNT]: Don't
@@ -130,15 +128,26 @@
 	* w32menu.c (Fx_popup_menu): Use terminal specific
 	mouse_position_hook.
 
-	* makefile.w32-in (OBJ1): Add terminal.$(O)
-
 	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Bump to 50k.
 
+0000-00-00  Kalle Olavi Niemitalo  <kon@iki.fi>  (tiny change)
+
+	* keyboard.c (interrupt_signal, handle_interrupt, Fset_quit_char):
+	Fix get_named_tty calls for the controlling tty.
+
+0000-00-00  ARISAWA Akihiro <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* term.c (dissociate_if_controlling_tty)[USG]: Fix parse error.
+
+0000-00-00  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
+
+	* term.c (tty_insert_glyphs): Add missing first parameter.
+
 0000-00-00  Karoly Lorentey  <karoly@lorentey.hu>
-	
+
 	* w32term.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
 	* macterm.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
-	Remove redundant definition. 
+	Remove redundant definition.
 
 	* macfns.c (x_set_mouse_color,x_make_gc): Use
 	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
@@ -150,23 +159,23 @@
 	* w32term.c (w32_initialize): Use the accessor macros for terminal
 	characteristics.
 
-	* macterm.c (mac_initialize): Use Fset_input_interrupt_mode. Use
-	the accessor macros for terminal characteristics.
+	* macterm.c (mac_initialize): Use Fset_input_interrupt_mode.
+	Use the accessor macros for terminal characteristics.
 	* msdos.c (internal_terminal_init): Use the accessor macros for
 	terminal characteristics.
 
 	* cm.h (emacs_tputs): New macro to set current_tty, and then call
 	tputs().
 	(current_tty): New variable, for cmputc().
-	(cmcheckmagic, cmputc, cmgoto): Added prototypes.
+	(cmcheckmagic, cmputc, cmgoto): Add prototypes.
 
 	* cm.c (current_tty): New variable, for cmputc().
 	(cmputc): Use it.
-	(cmcheckmagic): Added tty parameter, look up terminal streams
+	(cmcheckmagic): Add tty parameter, look up terminal streams
 	there.
-	(calccost): Added tty parameter.  Use emacs_tputs() instead of
+	(calccost): Add tty parameter.  Use emacs_tputs() instead of
 	tputs().
-	(cmgoto): Added tty parameter.  Pass it on to calccost().  Use
+	(cmgoto): Add tty parameter.  Pass it on to calccost().  Use
 	emacs_tputs() instead of tputs().
 
 	* eval.c (unwind_to_catch): Don't call x_fully_uncatch_errors.
@@ -177,7 +186,7 @@
 
 	* fns.c (Fyes_or_no_p): Don't try to open an X dialog on tty
 	terminals.
-	(Fy_or_n_p): Likewise. Use temporarily_switch_to_single_kboard to
+	(Fy_or_n_p): Likewise.  Use temporarily_switch_to_single_kboard to
 	prevent crashes caused by bogus longjmps in read_char.
 
 	* termopts.h (no_redraw_on_reenter): Declare.
@@ -199,12 +208,6 @@
 2006-10-14  Karoly Lorentey  <lorentey@elte.hu>
 
 	* alloc.c (emacs_blocked_malloc): Disable mallopt call.
-
-2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (interrupt_signal, handle_interrupt, Fset_quit_char):
-	Fix get_named_tty calls for the controlling tty.
-	(Patch by Kalle Olavi Niemitalo <kon@iki.fi>)
 
 2006-07-29  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -258,8 +261,6 @@
 	* termhooks.h (terminal) <name>: Explain why identifying terminals
 	by name is a bad idea.
 
-	* terminal.c (delete_terminal): Doc update.
-
 	* xterm.c (XTread_socket): Disable loop on all X displays.
 
 	* xterm.c (x_delete_display): Doc update to reflect changes in
@@ -277,8 +278,6 @@
 
 	* term.c (delete_tty): Use it.
 	(deleting_tty): Remove old variable.
-
-	* terminal.c (delete_terminal): Use terminal->deleted.
 
 	* xterm.c (x_delete_terminal): Use terminal->deleted.  Delete all
 	frames on the display explicitly.
@@ -360,7 +359,7 @@
 	user-supplied setting.
 
 	* xfns.c (x_icon): Disable redundant call to
-	`x_wm_set_window_state'. (Also applied in CVS.)
+	`x_wm_set_window_state'.  (Also applied in CVS.)
 
 2006-03-08  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -410,6 +409,7 @@
 2006-01-17  Karoly Lorentey  <lorentey@elte.hu>
 
 	* Makefile.in (SOME_MACHINE_LISP): Fix typo.
+	(lisp, shortlisp): Add termdev.elc.
 
 2006-01-11  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -425,8 +425,8 @@
 
 	* keyboard.c (read_char): Enhance comment before extra longjmp to
 	wrong_kboard_jmpbuf.
-	(read_key_sequence): Handle deleted interrupted_kboards correctly; that
-	is a legal case.
+	(read_key_sequence): Handle deleted interrupted_kboards correctly;
+	that is a legal case.
 
 2006-01-03  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -506,10 +506,6 @@
 
 	* frame.c (Fframe_with_environment): Fix typo.
 
-2005-12-31  Karoly Lorentey  <lorentey@elte.hu>
-
-	* terminal.c: Include <stdio.h>.
-
 2005-12-30  Karoly Lorentey  <lorentey@elte.hu>
 
 	* xdisp.c (get_glyph_string_clip_rects): Add extra parentheses and
@@ -549,28 +545,6 @@
 	(device): Rename to `terminal'.
 
 	* dispextern.h: Update declarations and macro definitions.
-
-	* terminal.c (device_list): Rename to `terminal_list'.
-	(next_device_id): Rename to `next_terminal_id'.
-	(initial_device): Rename to `initial_terminal'.
-	(get_device): Rename to `get_terminal'.
-	(create_device): Rename to `create_terminal'.
-	(mark_devices): Rename to `mark_terminals'.
-	(delete_device): Rename to `delete_terminal'.
-	(Fdelete_display): Rename to `Fdelete_terminal'.
-	(Fframe_terminal): Move here from frame.c.
-	(Fdisplay_live_p): Rename to `Fterminal_live_p'.
-	(Fdisplay_list): Rename to `Fterminal_list'.
-	(Fdisplay_name): Rename to `Fterminal_name'.
-	(init_initial_device): Rename to `init_initial_terminal'.
-	(delete_initial_device): Rename to `delete_initial_terminal'.
-	(ring_bell, update_begin, update_end, set_terminal_window)
-	(cursor_to, raw_cursor_to, clear_to_end, clear_frame)
-	(clear_end_of_line, write_glyphs, insert_glyphs, delete_glyphs)
-	(ins_del_lines, get_terminal_param, store_terminal_param)
-	(Fterminal_parameters, Fterminal_parameter)
-	(Fmodify_terminal_parameters, Fset_terminal_parameter)
-	(syms_of_terminal): Update for renames.
 
 	* term.c (get_tty_device): Rename to `get_tty_terminal'.  Update.
 	(Fdisplay_tty_type): Rename to `Ftty_type'.
@@ -646,7 +620,7 @@
 	Store the local environment in a frame (not terminal) parameter.
 	Update doc strings.
 	(syms_of_callproc): Update doc strings.
-	(Qenvironment): Moved to frame.c.
+	(Qenvironment): Move to frame.c.
 
 	* frame.c (Qenvironment): Move here from callproc.c.
 	(Fdelete_frame): Don't allow other frames to refer to a deleted frame
@@ -844,8 +818,8 @@
 
 2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
 
-	* keyboard.c (Vkeyboard_translate_table): Moved to struct kboard.
-	* keyboard.h (Vkeyboard_translate_table): Moved to struct kboard.
+	* keyboard.c (Vkeyboard_translate_table): Move to struct kboard.
+	* keyboard.h (Vkeyboard_translate_table): Move to struct kboard.
 
 	* keyboard.c (read_char): Use current_kboard to access
 	Vkeyboard_translate_table.
@@ -854,7 +828,7 @@
 	* keyboard.c (init_kboard): Initialize Vkeyboard_translate_table.
 
 	* keyboard.c (syms_of_keyboard): Use DEFVAR_KBOARD to define
-	Vkeyboard_translate_table. Update doc strings.
+	Vkeyboard_translate_table.  Update doc strings.
 
 2005-10-28  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -885,7 +859,7 @@
 
 	* callint.c (Fcall_interactively): Use
 	temporarily_switch_to_single_kboard instead of single_kboard_state.
-	Make sure it is correctly unwinded.
+	Make sure it is correctly unwound.
 
 	* keyboard.c (recursive_edit_unwind): Remove single_kboard stuff.
 	(Frecursive_edit): Use temporarily_switch_to_single_kboard for
@@ -1054,7 +1028,8 @@
 
 2005-07-06  Karoly Lorentey  <lorentey@elte.hu>
 
-	* frame.c (syms_of_frame): Add warning to `delete-frame-functions' description.
+	* frame.c (syms_of_frame): Add warning to `delete-frame-functions'
+	description.
 
 2005-07-03  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1218,7 +1193,7 @@
 
 	* xfns.c (Fx_close_connection): Remove declaration cruft.
 
-	* xterm.c (x_delete_frame_display): Declare i. Fix initialization of
+	* xterm.c (x_delete_frame_display): Declare i.  Fix initialization of
 	dpyinfo.
 
 2005-03-19  Karoly Lorentey  <lorentey@elte.hu>
@@ -1287,7 +1262,7 @@
 
 2004-10-08  Karoly Lorentey  <lorentey@elte.hu>
 
-	* fringe.c (init_fringe_bitmap): Removed C99ism.
+	* fringe.c (init_fringe_bitmap): Remove C99ism.
 
 2004-09-13  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1324,7 +1299,7 @@
 2004-07-04  Karoly Lorentey  <lorentey@elte.hu>
 
 	* dispextern.h (get_display, Fdisplay_tty_type):  New prototypes.
-	(Fframe_tty_type): Removed.
+	(Fframe_tty_type): Remove.
 
 	* dispnew.c (init_display): Use Fdisplay_tty_type, not Fframe_tty_type.
 
@@ -1337,24 +1312,24 @@
 	(syms_of_frame): Register new stuff.
 
 	* frame.h (Qdisplay_id, Qdisplay_live_p, make_terminal_frame):
-	Updated prototypes.
+	Update prototypes.
 
-	* keyboard.c (interrupt_signal): Updated comment.
+	* keyboard.c (interrupt_signal): Update comment.
 
-	* term.c (Vdelete_tty_after_functions): Removed variable.
-	(Qframe_tty_name, Qframe_tty_type): Removed.
+	* term.c (Vdelete_tty_after_functions): Remove variable.
+	(Qframe_tty_name, Qframe_tty_type): Remove.
 	(next_display_id): New var.
 	(tty_ring_bell): Don't do anything on suspended frames.
 	(Ftty_display_color_p, Ftty_display_color_cells): Doc update.
 	(get_display): New function.
 	(get_tty_display): Use it.
 	(get_named_tty_display): Ignore suspended displays.
-	(Fframe_tty_name): Renamed to Fdisplay_name.  Handle all kinds of
+	(Fframe_tty_name): Rename to Fdisplay_name.  Handle all kinds of
 	displays.
-	(Fframe_tty_type): Renamed to Fdisplay_tty_type.
+	(Fframe_tty_type): Rename to Fdisplay_tty_type.
 	(init_initial_display): Set display name.
 	(term_init): Allow more displays on the same device.  Set display name.
-	(Fdelete_tty): Removed.
+	(Fdelete_tty): Remove.
 	(delete_tty): Don't run hooks.
 	(create_display): Set display id.
 	(delete_display): Free display name.
@@ -1364,7 +1339,7 @@
 	on the same device.  Call hook with display id.  Doc update.
 	(syms_of_term): Reflect above changes.
 
-	* termhooks.h (struct display): Added `id' and `name' members.
+	* termhooks.h (struct display): Add `id' and `name' members.
 	(DISPLAY_ACTIVE_P): New macro.
 
 	* xfns.c (check_x_display_info): Handle display ids.
@@ -1377,11 +1352,6 @@
 
 	* term.c (Ftty_display_color_cells): Return 0 in case of an error,
 	not nil.
-
-2004-06-11  Karoly Lorentey  <lorentey@elte.hu>
-
-	* term.c (dissociate_if_controlling_tty)[USG]: Fix parse error.
-	(Contributed by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>).
 
 2004-06-08  Karoly Lorentey  <lorentey@elte.hu>
 
@@ -1400,90 +1370,79 @@
 
 2004-06-06  Karoly Lorentey  <lorentey@elte.hu>
 
-	* term.c (tty_insert_glyphs): Added missing first
-	parameter (contributed by Yoshiaki Kasahara
-	<kasahara@nc.kyushu-u.ac.jp>).
-	(encode_terminal_code): Converted to use ANSI prototype syntax.
+	* term.c (encode_terminal_code): Convert to use ANSI prototype
+	syntax.
 
 2004-06-05  Karoly Lorentey  <lorentey@elte.hu>
 
 	* dispnew.c (init_display): Always install handler for SIGWINCH.
-	(Reported by Yoshiaki Kasahara <kasahara@nc.kyushu-u.ac.jp>.)
+	Reported by Yoshiaki Kasahara <kasahara@nc.kyushu-u.ac.jp>.
 
 	* term.c: Massive updates throuout the file.
-	(TS_*, TN_*): Moved to struct tty_output.
-	(RPov, delete_in_insert_mode se_is_so, costs_set, insert_mode):
-	Ditto.
-	(standout_mode, specified_window, tty_cursor_hidden): Ditto.
-	(tty_set_terminal_modes, tty_reset_terminal_modes): New functions.
-	(turn_on_insert, turn_off_insert): Added tty parameter.
-	(turn_on_highlight, turn_off_highlight, toggle_highlight): Added
-	tty parameter.
-	(tty_hide_cursor, tty_show_cursor): Ditto.
-	(background_highlight, highlight_if_desired): Ditto.
-	(tty_capable_p): Changed first parameter to tty_output.
+	(TS_*, TN_*)
+	(RPov, delete_in_insert_mode se_is_so, costs_set, insert_mode)
+	(standout_mode, specified_window, tty_cursor_hidden): Move to
+	struct tty_output.
+	(tty_set_terminal_modes, tty_reset_terminal_modes)
+	(delete_tty, delete_tty_1): New functions.
+	(turn_on_insert, turn_off_insert)
+	(turn_on_highlight, turn_off_highlight, toggle_highlight)
+	(tty_hide_cursor, tty_show_cursor)
+	(background_highlight, highlight_if_desired): Add tty parameter.
+	(tty_capable_p): Change first parameter to tty_output.
 	(term_init): Make sure top_frame is initialized.  Don't exit on
 	errors if this would have been a secondary terminal.  Call
 	set_terminal_modes on the end.
-	(delete_tty): New function.
-	(delete_tty_1): New function.
 	(print_all_frames): New function, marginally useful for debugging.
 
-	* termchar.h (struct tty_output): Changed old_tty to be a pointer.
-	Removed old_tty_valid member.  Added tty-specific variables from
-	term.c.
+	* termchar.h (struct tty_output): Change old_tty to be a pointer.
+	Remove old_tty_valid member.  Add tty-specific variables from term.c.
 
 	* xfaces.c (Ftty_supports_face_attributes_p): Update for new
 	tty_capable_p.
 
 2003-12-25  Karoly Lorentey  <lorentey@elte.hu>
 
-	* term.c (clear_end_of_line): Use updating_frame instead of
-	selected_frame.
-	(set_scroll_region, clear_to_end, clear_frame, tty_show_cursor):
-	Ditto.
-	(tty_hide_cursor, turn_on_highlight, turn_off_highlight): Ditto.
-	(turn_on_insert, turn_off_insert): Ditto.
+	* term.c (clear_end_of_line, set_scroll_region, clear_to_end)
+	(clear_frame, tty_show_cursor, tty_hide_cursor, turn_on_highlight)
+	(turn_off_highlight, turn_on_insert, turn_off_insert): Use
+	updating_frame instead of selected_frame.
 
-	* termchar.h (struct terminal): Renamed to struct tty_output.
-	Added name, type, input, output, termscript, old_tty,
+	* termchar.h (struct terminal): Rename to struct tty_output.
+	Add name, type, input, output, termscript, old_tty,
 	term_initted, old_tty_valid, background_pixel, foreground_pixel,
 	next fields.
 	(TTY_*): New macros.
-	(CURRENT_TERMINAL): New macro.
 	(tty_list): New variable.
 	(FRAME_TTY): New function.
-	(TTY_NAME, TTY_TYPE): New macros.
+	(CURRENT_TERMINAL, TTY_NAME, TTY_TYPE): New macros.
 
 	* term.c (tty_list): New variable.
-	(OUTPUT, OUTPUT1, OUTPUTL, OUTPUT_IF, OUTPUT1_IF): Added tty
-	parameter.
-	(set_terminal_modes): Added tty parameter.
-	(reset_terminal_modes): Added tty parameter.
-	(cursor_to, raw_cursor_to): Updated cmgoto() calls.
+	(OUTPUT, OUTPUT1, OUTPUTL, OUTPUT_IF, OUTPUT1_IF)
+	(set_terminal_modes, reset_terminal_modes): Add tty parameter.
+	(cursor_to, raw_cursor_to): Update cmgoto() calls.
 	(clear_end_of_line, write_glyphs): Add indirection to terminal
-	output, updated cmcheckmagic() calls.
-	(get_named_tty): New function.
-	(term_dummy_init): New function.
-	(term_init): Added name parameter, added tty_output return value.
-	Changed algorithm to update tty_list.  Call init_sys_modes() to
+	output, update cmcheckmagic() calls.
+	(get_named_tty, term_dummy_init): New functions.
+	(term_init): Add name parameter, add tty_output return value.
+	Change algorithm to update tty_list.  Call init_sys_modes() to
 	set up tty mode on the newly opened terminal device.
 	(get_current_tty): New function, intended for debugging.
 
-	* termhooks.h (termscript): Removed.
+	* termhooks.h (termscript): Remove.
 
 	* window.c (init_window_once): Call make_terminal_frame with two
 	zero parameters.
 
-	* dispextern.h (set_terminal_modes, reset_terminal_modes): Added
+	* dispextern.h (set_terminal_modes, reset_terminal_modes): Add
 	tty parameter.
-	(term_init): Added name parameter (the filename of the terminal
-	device). Added return value (struct tty_output).
+	(term_init): Add name parameter (the filename of the terminal
+	device).  Add return value (struct tty_output).
 
 	* dispnew.c: Replace CURTTY() with local variables throughout the
 	file (where applicable).
-	(termscript): Moved to struct tty_output.
-	(terminal_type): Removed.
+	(termscript): Move to struct tty_output.
+	(terminal_type): Remove.
 
 	* emacs.c (main): Don't call init_sys_modes(), the new term_init()
 	already does that during init_display().
@@ -1492,7 +1451,7 @@
 
 	* frame.c (Qtty, Qtty_type): New variables.
 	(syms_of_frame): Initialize them.
-	(tty_display): Removed.
+	(tty_display): Remove.
 	(make_terminal_frame): New parameters (tty filename and type).
 	Initialize output_data.tty field instead of output_data.x.  Use
 	term_init() to find the right tty_output.  (Use term_dummy_init()
@@ -1503,24 +1462,24 @@
 	* frame.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL): Do the
 	right thing if the frame is a tty.
 	(struct frame): New member in output_data: tty.
-	(make_terminal_frame): Updated of prototype.
+	(make_terminal_frame): Update of prototype.
 
 	* keyboard.c (Fset_input_mode): Call reset_all_sys_modes(), not
 	reset_sys_modes().  Ditto with init_sys_modes().
 
-	* lisp.h (tty_output): Added forward declaration.
-	(init_sys_modes, reset_sys_modes): Updated prototype.
+	* lisp.h (tty_output): Add forward declaration.
+	(init_sys_modes, reset_sys_modes): Update prototype.
 	(init_all_sys_modes, reset_all_sys_modes): New prototypes.
 
 	* scroll.c: Replace CURTTY() with local variables throughout the
 	file (where applicable).
 
-	* sysdep.c (old_tty, term_initted, old_tty_valid): Moved to struct
+	* sysdep.c (old_tty, term_initted, old_tty_valid): Move to struct
 	tty_output.
 	(init_all_sys_modes): New function.
-	(init_sys_modes): Added tty_output parameter.  Use it.
+	(init_sys_modes): Add tty_output parameter.  Use it.
 	(reset_all_sys_modes): New function.
-	(reset_sys_modes): Added tty_output parameter.  Use it.
+	(reset_sys_modes): Add tty_output parameter.  Use it.
 
 	* Makefile.in: Update dependencies.
 
@@ -1529,9 +1488,9 @@
 	* termchar.h (struct terminal): New struct.
 	(must_write_spaces, min_padding_speed, line_ins_del_ok)
 	(char_ins_del_ok, scroll_region_ok, scroll_region_cost)
-	(memory_below_frame, fast_clear_end_of_line): Moved to struct
+	(memory_below_frame, fast_clear_end_of_line): Move to struct
 	terminal.
-	(min_padding_speed, dont_calculate_costs): Commented out (unused).
+	(min_padding_speed, dont_calculate_costs): Comment out (unused).
 
 	* term.c (set_terminal_window, ins_del_lines, calculate_costs)
 	(term_init): Use the accessor macros for terminal characteristics.
