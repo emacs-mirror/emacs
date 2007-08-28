@@ -2586,7 +2586,7 @@ Emacs must be compiled with the Gtk+ toolkit for this to have any effect."
   :group 'x)
 
 (defun x-gtk-map-stock (file)
-  "Map icon with file name FILE to a Gtk stock name, using `stock-map-gtk'."
+  "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
   (let ((value (and file
 		    (assoc-string (file-name-sans-extension 
 				   (file-name-nondirectory file))
