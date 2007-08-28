@@ -1,3 +1,18 @@
+2007-08-28  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-type): New variable.
+	(image-mode): Set default major mode name to "Image[text]".
+	(image-minor-mode): Change LIGHTER to display image-type in the
+	mode line.
+	(image-minor-mode): Set default image-type to "text".
+	(image-toggle-display): After switching to text mode, set
+	image-type to "text" and major mode name to "Image[text]".
+	After switching to image mode, set image-type to actual image
+	type, and add image type to major mode name.  Let-bind the same
+	variable names as arguments of `image-type' and `create-image'.
+	Bind `type' to the result of `image-type' and use it as arg
+	of `create-image' to not determine the image type twice.
+
 2007-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-set-file-times): Flush the file
