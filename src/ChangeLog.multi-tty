@@ -845,8 +845,7 @@
 	* minibuf.c (read_minibuf): Use temporarily_switch_to_single_kboard
 	instead of simply calling single_kboard_state.
 
-	* keyboard.c (push_device_kboard): Remove function.
-	(push_kboard): New function.
+	* keyboard.c (push_kboard): New function.
 	(push_frame_kboard): Use it.
 	(pop_frame_kboard): Rename to pop_kboard.
 
@@ -857,8 +856,7 @@
 
 	* Makefile.in (data.o, fns.o): Add termhooks.h dependency.
 
-	* keyboard.h (push_device_kboard, pop_frame_kboard): Remove
-	declarations.
+	* keyboard.h (pop_frame_kboard): Remove declaration.
 	(push_kboard, pop_kboard, temporarily_switch_to_single_kboard)
 	(record_single_kboard_state): New declarations.
 
@@ -942,8 +940,6 @@
 	* termchar.h (struct tty_display_info): Rename `display' member to
 	`device'.
 
-	* keyboard.c (push_display_kboard): Rename to push_device_kboard.
-
 	* frame.c (Fmake_terminal_frame): Ditto.
 	* xfns.c (Fx_create_frame): Ditto.
 
@@ -1020,11 +1016,6 @@
 
 	* keyboard.c (syms_of_keyboard): Expand docs of terminal-local
 	variables to warn about their random bindings.
-
-2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
-
-	* keyboard.c (push_display_kboard): New function.
-	* keyboard.h (push_display_kboard): Declare it.
 
 2005-06-27  Karoly Lorentey  <lorentey@elte.hu>
 
