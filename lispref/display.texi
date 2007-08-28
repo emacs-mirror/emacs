@@ -3632,11 +3632,12 @@ libraries (though it is not possible to add new image formats).
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
 @code{libungif} 4.1.0), PostScript, PBM, JPEG (requiring the
 @code{libjpeg} library version v6a), TIFF (requiring @code{libtiff}
-v3.4), and PNG (requiring @code{libpng} 1.0.2).
+v3.4), PNG (requiring @code{libpng} 1.0.2), and SVG (requiring
+@code{librsvg} 2.0.0).
 
   You specify one of these formats with an image type symbol.  The image
 type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
-@code{pbm}, @code{jpeg}, @code{tiff}, and @code{png}.
+@code{pbm}, @code{jpeg}, @code{tiff}, @code{png}, and @code{svg}.
 
 @defvar image-types
 This variable contains a list of those image type symbols that are
@@ -4051,6 +4052,8 @@ background color.
   For TIFF images, specify image type @code{tiff}.
 
   For PNG images, specify image type @code{png}.
+
+  For SVG images, specify image type @code{svg}.
 
 @node Defining Images
 @subsection Defining Images
