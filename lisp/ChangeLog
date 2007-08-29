@@ -1,3 +1,17 @@
+2007-08-28  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+
+	* play/gamegrid.el (gamegrid-init): Set line-spacing to 0.
+
+2007-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-langs.el (c-constant-kwds): Add java: null, true,
+	false.
+
+2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/modula2.el (m2-definition, m2-module):
+	Don't use previous-line.  Reported by T. V. Raman.
+
 2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-handle-toolbar-switch-mode): Add explicit
