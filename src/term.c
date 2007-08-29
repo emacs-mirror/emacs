@@ -3854,10 +3854,7 @@ mark_ttys (void)
   struct tty_display_info *tty;
 
   for (tty = tty_list; tty; tty = tty->next)
-    {
-      if (tty->top_frame)
-        mark_object (tty->top_frame);
-    }
+    mark_object (tty->top_frame);
 }
 
 
