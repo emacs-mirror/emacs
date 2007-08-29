@@ -1,3 +1,9 @@
+2007-08-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* repeat.el (repeat): Use last-repeatable-command instead of
+	real-last-command.  Run pre- and post-command hooks for
+	self-insertion.  Update doc-string.
+
 2007-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-langs.el (c-constant-kwds): Add java: true, false,
