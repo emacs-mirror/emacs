@@ -36,7 +36,7 @@
 
 	* macterm.h (struct mac_display_info): Add terminal.
 
-	* puresize.h (BASE_PURESIZE): Increase base value to 1158000.
+	* puresize.h (BASE_PURESIZE): Increase base value to 1164000.
 
 	* sysdep.c: Comment out text after #endif.
 
