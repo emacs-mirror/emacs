@@ -70,7 +70,7 @@
         (\versionyear): update to 2007.
 	(\copyrightnotice): modified or unmodified ok.
 	(Simple Customization): don't use goto-line, since now it's bound.
-^	Also, use now-preferred (kbd ...) syntax.
+	Also, use now-preferred (kbd ...) syntax.
 
 2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
