@@ -1,3 +1,7 @@
+2007-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (EMACSVER): Increase to 23.0.50.
+
 2007-08-24  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
 
 	* message.texi (MIME): Replace mml-attach with mml-attach-file.
