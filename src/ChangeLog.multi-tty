@@ -719,3 +719,4 @@
 	(restore_kboard_configuration): Call pop_kboard only after setting up
 	single_kboard mode.
 
+;; arch-tag: 351ffc3d-9cc5-4ed6-b000-e99b7b9ba276
