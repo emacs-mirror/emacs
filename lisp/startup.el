@@ -36,6 +36,13 @@
 (defvar command-line-processed nil
   "Non-nil once command line has been processed.")
 
+(defvar window-system initial-window-system
+  "Name of window system the selected frame is displaying through.
+The value is a symbol--for instance, `x' for X windows.
+The value is nil if the selected frame is on a text-only-terminal.")
+
+(make-variable-frame-local 'window-system)
+
 (defgroup initialization nil
   "Emacs start-up procedure."
   :group 'environment)
@@ -458,36 +465,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; for instance due to a dense colormap.
 	(when (or frame-initial-frame
 		  ;; If frame-initial-frame has no meaning, do this anyway.
-		  (not (and window-system
+		  (not (and initial-window-system
 			    (not noninteractive)
-			    (not (eq window-system 'pc)))))
+			    (not (eq initial-window-system 'pc)))))
 	  ;; Modify the initial frame based on what .emacs puts into
 	  ;; ...-frame-alist.
 	  (if (fboundp 'frame-notice-user-settings)
 	      (frame-notice-user-settings))
+	  ;; Set the faces for the initial background mode even if
+	  ;; frame-notice-user-settings didn't (such as on a tty).
+	  ;; frame-set-background-mode is idempotent, so it won't
+	  ;; cause any harm if it's already been done.
 	  (if (fboundp 'frame-set-background-mode)
-	      ;; Set the faces for the initial background mode even if
-	      ;; frame-notice-user-settings didn't (such as on a tty).
-	      ;; frame-set-background-mode is idempotent, so it won't
-	      ;; cause any harm if it's already been done.
-	      (let ((frame (selected-frame))
-		    term)
-		(when (and (null window-system)
-			   ;; Don't override default set by files in lisp/term.
-			   (null default-frame-background-mode)
-			   (let ((bg (frame-parameter frame 'background-color)))
-			     (or (null bg)
-				 (member bg '(unspecified "unspecified-bg"
-							  "unspecified-fg")))))
-
-		  (setq term (getenv "TERM"))
-		  ;; Some files in lisp/term do a better job with the
-		  ;; background mode, but we leave this here anyway, in
-		  ;; case they remove those files.
-		  (if (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-				    term)
-		      (setq default-frame-background-mode 'light)))
-		(frame-set-background-mode (selected-frame)))))
+	      (frame-set-background-mode (selected-frame))))
 
 	;; Now we know the user's default font, so add it to the menu.
 	(if (fboundp 'font-menu-add-default)
@@ -527,6 +517,20 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 (defvar tool-bar-originally-present nil
   "Non-nil if tool-bars are present before user and site init files are read.")
+
+(defvar handle-args-function-alist '((nil . tty-handle-args))
+  "Functions for processing window-system dependent command-line arguments.
+Window system startup files should add their own function to this
+alist, which should parse the command line arguments.  Those
+pertaining to the window system should be processed and removed
+from the returned command line.")
+
+(defvar window-system-initialization-alist '((nil . ignore))
+  "Alist of window-system initialization functions.
+Window-system startup files should add their own initialization
+function to this list.  The function should take no arguments,
+and initialize the window system environment to prepare for
+opening the first frame (e.g. open a connection to an X server).")
 
 ;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
@@ -632,16 +636,22 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (setq eol-mnemonic-dos  "(DOS)"
           eol-mnemonic-mac  "(Mac)")))
 
-  ;; Read window system's init file if using a window system.
+  ;; Make sure window system's init file was loaded in loadup.el if using a window system.
   (condition-case error
-      (if (and window-system (not noninteractive))
-	  (load (concat term-file-prefix
-			(symbol-name window-system)
-			"-win")
-		;; Every window system should have a startup file;
-		;; barf if we can't find it.
-		nil t))
-    ;; If we can't read it, print the error message and exit.
+    (unless noninteractive
+      (if (and initial-window-system
+	       (not (featurep
+		     (intern (concat (symbol-name initial-window-system) "-win")))))
+	  (error "Unsupported window system `%s'" initial-window-system))
+      ;; Process window-system specific command line parameters.
+      (setq command-line-args
+	    (funcall (or (cdr (assq initial-window-system handle-args-function-alist))
+			 (error "Unsupported window system `%s'" initial-window-system))
+		     command-line-args))
+      ;; Initialize the window system. (Open connection, etc.)
+      (funcall (or (cdr (assq initial-window-system window-system-initialization-alist))
+		   (error "Unsupported window system `%s'" initial-window-system))))
+    ;; If there was an error, print the error message and exit.
     (error
      (princ
       (if (eq (car error) 'error)
@@ -657,12 +667,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
                              (cdr error) ", "))))
       'external-debugging-output)
      (terpri 'external-debugging-output)
-     (setq window-system nil)
+     (setq initial-window-system nil)
      (kill-emacs)))
-
-  ;; Windowed displays do this inside their *-win.el.
-  (unless (or (display-graphic-p) noninteractive)
-    (setq command-line-args (tty-handle-args command-line-args)))
 
   (set-locale-environment nil)
 
@@ -786,7 +792,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive
 	      emacs-basic-display
-              (and (memq window-system '(x w32))
+              (and (memq initial-window-system '(x w32))
                    (<= (frame-parameter nil 'menu-bar-lines) 0)))
     (menu-bar-mode 1))
 
@@ -800,7 +806,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; Can't do this init in defcustom because the relevant variables
   ;; are not set.
   (custom-reevaluate-setting 'blink-cursor-mode)
-  (custom-reevaluate-setting 'normal-erase-is-backspace)
   (custom-reevaluate-setting 'tooltip-mode)
   (custom-reevaluate-setting 'global-font-lock-mode)
   (custom-reevaluate-setting 'mouse-wheel-down-event)
@@ -809,13 +814,15 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'send-mail-function)
   (custom-reevaluate-setting 'focus-follows-mouse)
 
+  (normal-erase-is-backspace-setup-frame)
+
   ;; Register default TTY colors for the case the terminal hasn't a
-  ;; terminal init file.
-  (unless (memq window-system '(x w32 mac))
-    ;; We do this regardles of whether the terminal supports colors
-    ;; or not, since they can switch that support on or off in
-    ;; mid-session by setting the tty-color-mode frame parameter.
-    (tty-register-default-colors))
+  ;; terminal init file.  We do this regardles of whether the terminal
+  ;; supports colors or not and regardless the current display type,
+  ;; since users can connect to color-capable terminals and also
+  ;; switch color support on or off in mid-session by setting the
+  ;; tty-color-mode frame parameter.
+  (tty-register-default-colors)
 
   ;; Record whether the tool-bar is present before the user and site
   ;; init files are processed.  frame-notice-user-settings uses this
@@ -1081,31 +1088,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (unless (or noninteractive
-              window-system
-              (null term-file-prefix))
-    (let* ((TERM (getenv "TERM"))
-           (term TERM)
-          hyphend)
-      (while (and term
-                  (not (load (concat term-file-prefix term) t t)))
-        ;; Strip off last hyphen and what follows, then try again
-        (setq term
-              (if (setq hyphend (string-match "[-_][^-_]+\\'" term))
-                  (substring term 0 hyphend)
-                nil)))
-      (setq term TERM)
-      ;; The terminal file has been loaded, now call the terminal specific
-      ;; initialization function.
-      (while term
-	(let ((term-init-func (intern-soft (concat "terminal-init-" term))))
-	  (if (not (fboundp term-init-func))
-              ;; Strip off last hyphen and what follows, then try again
-              (setq term
-                    (if (setq hyphend (string-match "[-_][^-_]+\\'" term))
-                        (substring term 0 hyphend)
-                      nil))
-            (setq term nil)
-	    (funcall term-init-func))))))
+              initial-window-system)
+    (tty-run-terminal-initialization (selected-frame)))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
@@ -1398,7 +1382,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   "Stop displaying the splash screen buffer."
   (interactive)
   (if fancy-splash-outer-buffer
-      (throw 'exit nil)
+      (throw 'stop-splashing nil)
     (quit-window t)))
 
 (defun fancy-splash-screens (&optional static)
@@ -1433,7 +1417,10 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 		  (recursive-edit))
 	      (cancel-timer timer)
 	      (setq display-hourglass old-hourglass)
-	      (kill-buffer splash-buffer)))))
+	      (kill-buffer splash-buffer)
+	      (when (frame-live-p frame)
+		(select-frame frame)
+		(switch-to-buffer fancy-splash-outer-buffer))))))
     ;; If static is non-nil, don't show fancy splash screen.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
@@ -1585,17 +1572,17 @@ To quit a partially entered command, type Control-g.\n")
                 (insert "\n" (emacs-version)
                         "\n" emacs-copyright))
 
-            ;; No mouse menus, so give help using kbd commands.
+	    ;; No mouse menus, so give help using kbd commands.
 
-            ;; If keys have their default meanings,
-            ;; use precomputed string to save lots of time.
-            (if (and (eq (key-binding "\C-h") 'help-command)
-                     (eq (key-binding "\C-xu") 'advertised-undo)
-                     (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
-                     (eq (key-binding "\C-ht") 'help-with-tutorial)
-                     (eq (key-binding "\C-hi") 'info)
-                     (eq (key-binding "\C-hr") 'info-emacs-manual)
-                     (eq (key-binding "\C-h\C-n") 'view-emacs-news))
+	    ;; If keys have their default meanings,
+	    ;; use precomputed string to save lots of time.
+	    (if (and (eq (key-binding "\C-h") 'help-command)
+		     (eq (key-binding "\C-xu") 'advertised-undo)
+		     (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
+		     (eq (key-binding "\C-ht") 'help-with-tutorial)
+		     (eq (key-binding "\C-hi") 'info)
+		     (eq (key-binding "\C-hr") 'info-emacs-manual)
+		     (eq (key-binding "\C-h\C-n") 'view-emacs-news))
                 (progn
 		  (insert "
 Get help	   C-h  (Hold down CTRL and press h)
@@ -1646,7 +1633,7 @@ Get help	   %s
 			     'action (lambda (button) (view-order-manuals))
 			     'follow-link t)
 	      (insert (substitute-command-keys
-		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-emacs]")))
+		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
 
             ;; Say how to use the menu bar with the keyboard.
 	    (insert "\n")
@@ -1658,8 +1645,8 @@ Get help	   %s
                 (insert "   F10  or  ESC `  or   M-`")
               (insert (substitute-command-keys "     \\[tmm-menubar]")))
 
-            ;; Many users seem to have problems with these.
-            (insert "
+	    ;; Many users seem to have problems with these.
+	    (insert "
 \(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
 If you have no Meta key, you may instead type ESC followed by the character.)")
 
@@ -1688,9 +1675,9 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
             (insert "\n" (emacs-version)
                     "\n" emacs-copyright)
 
-            (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-                     (eq (key-binding "\C-h\C-d") 'describe-distribution)
-                     (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
+	    (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
+		     (eq (key-binding "\C-h\C-d") 'describe-distribution)
+		     (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
                 (progn
 		  (insert
 		   "\n
@@ -1729,25 +1716,25 @@ Type \\[describe-distribution] for information on "))
 			     'follow-link t)
 	      (insert ".")))
 
-          ;; The rest of the startup screen is the same on all
-          ;; kinds of terminals.
+	  ;; The rest of the startup screen is the same on all
+	  ;; kinds of terminals.
 
-          ;; Give information on recovering, if there was a crash.
-          (and auto-save-list-file-prefix
-               ;; Don't signal an error if the
-               ;; directory for auto-save-list files
-               ;; does not yet exist.
-               (file-directory-p (file-name-directory
-                                  auto-save-list-file-prefix))
-               (directory-files
-                (file-name-directory auto-save-list-file-prefix)
-                nil
-                (concat "\\`"
-                        (regexp-quote (file-name-nondirectory
-                                       auto-save-list-file-prefix)))
-                t)
-               (insert "\n\nIf an Emacs session crashed recently, "
-                       "type Meta-x recover-session RET\nto recover"
+	  ;; Give information on recovering, if there was a crash.
+	  (and auto-save-list-file-prefix
+	       ;; Don't signal an error if the
+	       ;; directory for auto-save-list files
+	       ;; does not yet exist.
+	       (file-directory-p (file-name-directory
+				  auto-save-list-file-prefix))
+	       (directory-files
+		(file-name-directory auto-save-list-file-prefix)
+		nil
+		(concat "\\`"
+			(regexp-quote (file-name-nondirectory
+				       auto-save-list-file-prefix)))
+		t)
+	       (insert "\n\nIf an Emacs session crashed recently, "
+		       "type Meta-x recover-session RET\nto recover"
                        " the files you were editing.\n"))
 
 	  (use-local-map splash-screen-keymap)
@@ -1758,20 +1745,18 @@ Type \\[describe-distribution] for information on "))
 	  (if (and view-read-only (not view-mode))
 	      (view-mode-enter nil 'kill-buffer))
           (goto-char (point-min))
-          (if (not static)
-              (if (or (window-minibuffer-p)
-                      (window-dedicated-p (selected-window)))
-                  ;; If static is nil, creating a new frame will
-                  ;; generate enough events that the subsequent `sit-for'
-                  ;; will immediately return anyway.
-                  nil ;; (pop-to-buffer (current-buffer))
+	  (if (not static)
+	      (if (or (window-minibuffer-p)
+		      (window-dedicated-p (selected-window)))
+		  ;; If static is nil, creating a new frame will
+		  ;; generate enough events that the subsequent `sit-for'
+		  ;; will immediately return anyway.
+		  nil ;; (pop-to-buffer (current-buffer))
 		(save-window-excursion
-                  (switch-to-buffer (current-buffer))
-		  (sit-for 120)))
-          (condition-case nil
-              (switch-to-buffer (current-buffer))
-            ;; In case the window is dedicated or something.
-            (error (pop-to-buffer (current-buffer))))))
+		  (switch-to-buffer (current-buffer))
+		  (sit-for 120))
+		(condition-case nil
+		    (switch-to-buffer (current-buffer))))))
       ;; Unwind ... ensure splash buffer is killed
       (if (not static)
 	  (kill-buffer "*About GNU Emacs*")
@@ -1789,7 +1774,45 @@ Type \\[describe-distribution] for information on "))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
-    (message "%s" (startup-echo-area-message))))
+    (or noninteractive ;(input-pending-p) init-file-had-error
+	;; t if the init file says to inhibit the echo area startup message.
+	(and inhibit-startup-echo-area-message
+	     user-init-file
+	     (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
+		      (equal inhibit-startup-echo-area-message
+			     (if (equal init-file-user "")
+				 (user-login-name)
+			       init-file-user)))
+		 ;; Wasn't set with custom; see if .emacs has a setq.
+		 (let ((buffer (get-buffer-create " *temp*")))
+		   (prog1
+		       (condition-case nil
+			   (save-excursion
+			     (set-buffer buffer)
+			     (insert-file-contents user-init-file)
+			     (re-search-forward
+			      (concat
+			       "([ \t\n]*setq[ \t\n]+"
+			       "inhibit-startup-echo-area-message[ \t\n]+"
+			       (regexp-quote
+				(prin1-to-string
+				 (if (equal init-file-user "")
+				     (user-login-name)
+				   init-file-user)))
+			       "[ \t\n]*)")
+			      nil t))
+			 (error nil))
+		     (kill-buffer buffer)))))
+	;; display-splash-screen at the end of command-line-1 calls
+	;; use-fancy-splash-screens-p. This can cause image.el to be
+	;; loaded, putting "Loading image... done" in the echo area.
+	;; This hides startup-echo-area-message. So
+	;; use-fancy-splash-screens-p is called here simply to get the
+	;; loading of image.el (if needed) out of the way before
+	;; display-startup-echo-area-message runs.
+	(progn
+	  (use-fancy-splash-screens-p)
+	  (message "%s" (startup-echo-area-message))))))
 
 
 (defun display-splash-screen (&optional static)
@@ -1798,52 +1821,16 @@ Fancy splash screens are used on graphic displays,
 normal otherwise.
 With a prefix argument, any user input hides the splash screen."
   (interactive "P")
-  (if (use-fancy-splash-screens-p)
-      (fancy-splash-screens static)
-    (normal-splash-screen static)))
+  ;; Prevent recursive calls from server-process-filter.
+  (if (not (get-buffer "*About GNU Emacs*"))
+      (if (use-fancy-splash-screens-p)
+	  (fancy-splash-screens static)
+	(normal-splash-screen static))))
 
 (defalias 'about-emacs 'display-splash-screen)
 
 (defun command-line-1 (command-line-args-left)
-  (or noninteractive (input-pending-p) init-file-had-error
-      ;; t if the init file says to inhibit the echo area startup message.
-      (and inhibit-startup-echo-area-message
-	   user-init-file
-	   (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
-		    (equal inhibit-startup-echo-area-message
-			   (if (equal init-file-user "")
-			       (user-login-name)
-			     init-file-user)))
-	       ;; Wasn't set with custom; see if .emacs has a setq.
-	       (let ((buffer (get-buffer-create " *temp*")))
-		 (prog1
-		     (condition-case nil
-			 (save-excursion
-			   (set-buffer buffer)
-			   (insert-file-contents user-init-file)
-			   (re-search-forward
-			    (concat
-			     "([ \t\n]*setq[ \t\n]+"
-			     "inhibit-startup-echo-area-message[ \t\n]+"
-			     (regexp-quote
-			      (prin1-to-string
-			       (if (equal init-file-user "")
-				   (user-login-name)
-				 init-file-user)))
-			     "[ \t\n]*)")
-			    nil t))
-		       (error nil))
-		   (kill-buffer buffer)))))
-      ;; display-splash-screen at the end of command-line-1 calls
-      ;; use-fancy-splash-screens-p. This can cause image.el to be
-      ;; loaded, putting "Loading image... done" in the echo area.
-      ;; This hides startup-echo-area-message. So
-      ;; use-fancy-splash-screens-p is called here simply to get the
-      ;; loading of image.el (if needed) out of the way before
-      ;; display-startup-echo-area-message runs.
-      (progn
-        (use-fancy-splash-screens-p)
-        (display-startup-echo-area-message)))
+  (display-startup-echo-area-message)
 
   ;; Delay 2 seconds after an init file error message
   ;; was displayed, so user can read it.

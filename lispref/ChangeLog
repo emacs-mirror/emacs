@@ -1,3 +1,8 @@
+2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frames.texi (Basic Parameters): Add display-environment-variable
+	and term-environment-variable.
+
 2007-08-28  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Image Formats, Other Image Types): Add SVG.

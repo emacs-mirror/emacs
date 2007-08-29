@@ -72,15 +72,15 @@
   :group 'frames)
 
 
-(defcustom ediff-window-setup-function (if (ediff-window-display-p)
-					'ediff-setup-windows-multiframe
-				      'ediff-setup-windows-plain)
+(defcustom ediff-window-setup-function 'ediff-setup-windows-automatic
   "*Function called to set up windows.
-Ediff provides a choice of two functions: `ediff-setup-windows-plain', for
-doing everything in one frame, and `ediff-setup-windows-multiframe',
-which sets the control panel in a separate frame.  Also, if the latter
-function detects that one of the buffers A/B is seen in some other frame,
-it will try to keep that buffer in that frame.
+Ediff provides a choice of three functions: `ediff-setup-windows-plain', for
+doing everything in one frame, `ediff-setup-windows-multiframe', which sets
+the control panel in a separate frame, and
+`ediff-setup-windows-automatic' (the default), which chooses an appropriate
+behaviour based on the current window system.  If the multiframe function
+detects that one of the buffers A/B is seen in some other frame, it will try
+to keep that buffer in that frame.
 
 If you don't like the two functions provided---write your own one.
 The basic guidelines:
@@ -94,7 +94,8 @@ The basic guidelines:
        Buffer C may not be used in jobs that compare only two buffers.
 If you plan to do something fancy, take a close look at how the two
 provided functions are written."
-  :type '(choice (const :tag "Multi Frame" ediff-setup-windows-multiframe)
+  :type '(choice (const :tag "Automatic" ediff-setup-windows-automatic)
+		 (const :tag "Multi Frame" ediff-setup-windows-multiframe)
 		 (const :tag "Single Frame" ediff-setup-windows-plain)
 		 (function :tag "Other function"))
   :group 'ediff-window)
@@ -334,6 +335,12 @@ into icons, regardless of the window manager."
        (ediff-with-current-buffer control-buffer ediff-window-setup-function)
        buffer-A buffer-B buffer-C control-buffer))
   (run-hooks 'ediff-after-setup-windows-hook))
+
+;; Set up windows using the correct method based on the current window system.
+(defun ediff-setup-windows-automatic (buffer-A buffer-B buffer-C control-buffer)
+  (if (ediff-window-display-p)
+      (ediff-setup-windows-multiframe buffer-A buffer-B buffer-C control-buffer)
+    (ediff-setup-windows-plain buffer-A buffer-B buffer-C control-buffer)))
 
 ;; Just set up 3 windows.
 ;; Usually used without windowing systems

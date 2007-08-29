@@ -696,19 +696,9 @@ extern Lisp_Object Vlocale_coding_system;
    the subprocess output.  */
 extern int inherit_process_coding_system;
 
-/* Coding-system to be used for encoding terminal output.  This
-   structure contains information of a coding-system specified by the
-   function `set-terminal-coding-system'.  */
-extern struct coding_system terminal_coding;
-
 /* Coding system to be used to encode text for terminal display when
    terminal coding system is nil.  */
 extern struct coding_system safe_terminal_coding;
-
-/* Coding-system of what is sent from terminal keyboard.  This
-   structure contains information of a coding-system specified by the
-   function `set-keyboard-coding-system'.  */
-extern struct coding_system keyboard_coding;
 
 /* Default coding system to be used to write a file.  */
 extern struct coding_system default_buffer_file_coding;

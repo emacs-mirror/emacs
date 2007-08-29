@@ -64,6 +64,9 @@ struct mac_display_info
   /* Chain of all mac_display_info structures.  */
   struct mac_display_info *next;
 
+  /* The generic display parameters corresponding to this X display. */
+  struct terminal *terminal;
+
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
      The same cons cell also appears in x_display_name_list.  */
   Lisp_Object name_list_element;
@@ -357,9 +360,6 @@ typedef struct mac_output mac_output;
 /* Return the Mac window used for displaying data in frame F.  */
 #define FRAME_MAC_WINDOW(f) ((f)->output_data.mac->window_desc)
 #define FRAME_X_WINDOW(f) ((f)->output_data.mac->window_desc)
-
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
 
 #define FRAME_FONT(f) ((f)->output_data.mac->font)
 #define FRAME_FONTSET(f) ((f)->output_data.mac->fontset)

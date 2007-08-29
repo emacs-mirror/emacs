@@ -60,10 +60,10 @@
 (load "widget")
 (load "custom")
 (load "emacs-lisp/map-ynp")
-(load "env")
 (load "cus-start")
 (load "international/mule")
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
+(load "env")
 (load "format")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
@@ -71,6 +71,9 @@
 
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
+
+(load "button")
+(load "startup")
 
 (message "Lists of integers (garbage collection statistics) are normal output")
 (message "while building Emacs; they do not indicate a problem.")
@@ -132,6 +135,7 @@
 (load "indent")
 (load "window")
 (load "frame")
+(load "termdev")
 (load "term/tty-colors")
 (load "font-core")
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
@@ -154,7 +158,6 @@
 (message "%s" (garbage-collect))
 (load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
-(load "startup")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
@@ -180,7 +183,10 @@
       (load "mwheel")
       (load "tool-bar")))
 (if (featurep 'x)
-    (load "x-dnd"))
+    (progn
+      (load "x-dnd")
+      (load "term/x-win")))
+      
 (message "%s" (garbage-collect))
 
 (if (eq system-type 'vax-vms)
@@ -188,6 +194,9 @@
       (load "vms-patch")))
 (if (eq system-type 'windows-nt)
     (progn
+      (load "international/ccl")
+      (load "international/code-pages")
+      (load "term/w32-win")
       (load "ls-lisp")
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
       (load "dos-w32")
@@ -205,6 +214,9 @@
 (if (eq system-type 'macos)
     (progn
       (load "ls-lisp")))
+(if (featurep 'mac-carbon)
+    (progn
+      (load "term/mac-win")))
 (if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
       (load "emacs-lisp/float-sup")))

@@ -1,3 +1,8 @@
+2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+
+	* xlwmenu.c (XlwMenuRealize): Ignore X errors while setting up
+	cursor shape.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

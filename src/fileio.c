@@ -78,6 +78,8 @@ extern int errno;
 #include "coding.h"
 #include "window.h"
 #include "blockinput.h"
+#include "frame.h"
+#include "dispextern.h"
 
 #ifdef WINDOWSNT
 #define NOMINMAX 1
@@ -5825,7 +5827,7 @@ auto_save_error (error)
   char *msgbuf;
   USE_SAFE_ALLOCA;
 
-  ring_bell ();
+  ring_bell (XFRAME (selected_frame));
 
   args[0] = build_string ("Auto-saving %s: %s");
   args[1] = current_buffer->name;
@@ -6387,7 +6389,7 @@ and `read-file-name-function'.  */)
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
 #ifdef DOS_NT
-  /* homedir can be NULL in temacs, since Vprocess_environment is not
+  /* homedir can be NULL in temacs, since Vglobal_environment is not
      yet set up.  We shouldn't crash in that case.  */
   if (homedir != 0)
     {

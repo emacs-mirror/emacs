@@ -11450,7 +11450,6 @@ if test "${HAVE_GTK}" = "yes"; then
     with_toolkit_scroll_bars=yes
   fi
 
-      HAVE_GTK_MULTIDISPLAY=no
 
 for ac_func in gdk_display_open
 do
@@ -11552,6 +11551,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   fi
+
       HAVE_GTK_FILE_SELECTION=no
 
 for ac_func in gtk_file_selection_new

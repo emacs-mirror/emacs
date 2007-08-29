@@ -659,10 +659,10 @@ update_from_various_frame_slots (ew)
   struct x_output *x = f->output_data.x;
   ew->core.height = FRAME_PIXEL_HEIGHT (f) - x->menubar_height;
   ew->core.width = FRAME_PIXEL_WIDTH (f);
-  ew->core.background_pixel = x->background_pixel;
+  ew->core.background_pixel = FRAME_BACKGROUND_PIXEL (f);
   ew->emacs_frame.internal_border_width = f->internal_border_width;
   ew->emacs_frame.font = x->font;
-  ew->emacs_frame.foreground_pixel = x->foreground_pixel;
+  ew->emacs_frame.foreground_pixel = FRAME_FOREGROUND_PIXEL (f);
   ew->emacs_frame.cursor_color = x->cursor_pixel;
   ew->core.border_pixel = x->border_pixel;
 }

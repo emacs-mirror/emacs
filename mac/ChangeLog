@@ -1,3 +1,10 @@
+2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+
+	* makefile.MPW (EmacsObjects): Add terminal.c.x.
+	(callproc.c.x): Add dependencies frame.h, termhooks.h.
+	({Src}terminal.c.x): New.
+	(shortlisp): Add server.elc and termdev.elc.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

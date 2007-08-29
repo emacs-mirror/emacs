@@ -1905,6 +1905,7 @@ lookup_image (f, spec)
      struct frame *f;
      Lisp_Object spec;
 {
+  struct image_cache *c;
   struct image *img;
   unsigned hash;
   struct gcpro gcpro1;
@@ -1914,6 +1915,8 @@ lookup_image (f, spec)
      specification.  */
   xassert (FRAME_WINDOW_P (f));
   xassert (valid_image_p (spec));
+
+  c = FRAME_X_IMAGE_CACHE (f);
 
   GCPRO1 (spec);
 

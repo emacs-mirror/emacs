@@ -215,25 +215,38 @@ frame parameter come first, followed by the rest of the buffers.  */)
      (frame)
      Lisp_Object frame;
 {
-  Lisp_Object framelist, general;
+  Lisp_Object general;
   general = Fmapcar (Qcdr, Vbuffer_alist);
 
   if (FRAMEP (frame))
     {
-      Lisp_Object tail;
+      Lisp_Object framelist, prevlist, tail;
+      Lisp_Object args[3];
 
       CHECK_FRAME (frame);
 
       framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
+      prevlist = Fnreverse (Fcopy_sequence (XFRAME (frame)->buried_buffer_list));
 
-      /* Remove from GENERAL any buffer that duplicates one in FRAMELIST.  */
+      /* Remove from GENERAL any buffer that duplicates one in
+         FRAMELIST or PREVLIST.  */
       tail = framelist;
-      while (! NILP (tail))
+      while (CONSP (tail))
 	{
 	  general = Fdelq (XCAR (tail), general);
 	  tail = XCDR (tail);
 	}
-      return nconc2 (framelist, general);
+      tail = prevlist;
+      while (CONSP (tail))
+	{
+	  general = Fdelq (XCAR (tail), general);
+	  tail = XCDR (tail);
+	}
+
+      args[0] = framelist;
+      args[1] = general;
+      args[2] = prevlist;
+      return Fnconc (3, args);
     }
 
   return general;
@@ -1583,6 +1596,23 @@ record_buffer (buf)
   XSETCDR (link, Vbuffer_alist);
   Vbuffer_alist = link;
 
+  /* Effectively do a delq on buried_buffer_list.  */
+  
+  prev = Qnil;
+  for (link = XFRAME (frame)->buried_buffer_list; CONSP (link);
+       link = XCDR (link))
+    {
+      if (EQ (XCAR (link), buf))
+        {
+          if (NILP (prev))
+            XFRAME (frame)->buried_buffer_list = XCDR (link);
+          else
+            XSETCDR (prev, XCDR (XCDR (prev)));
+          break;
+        }
+      prev = link;
+    }
+
   /* Now move this buffer to the front of frame_buffer_list also.  */
 
   prev = Qnil;
@@ -2065,10 +2095,10 @@ selected window if it is displayed there.  */)
       XSETCDR (link, Qnil);
       Vbuffer_alist = nconc2 (Vbuffer_alist, link);
 
-      /* Removing BUFFER from frame-specific lists
-	 has the effect of putting BUFFER at the end
-	 of the combined list in each frame.  */
-      frames_discard_buffer (buffer);
+      XFRAME (selected_frame)->buffer_list
+        = Fdelq (buffer, XFRAME (selected_frame)->buffer_list);
+      XFRAME (selected_frame)->buried_buffer_list
+        = Fcons (buffer, Fdelq (buffer, XFRAME (selected_frame)->buried_buffer_list));
     }
 
   return Qnil;

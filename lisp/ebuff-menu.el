@@ -175,7 +175,7 @@ Entry to this mode via command `electric-buffer-list' calls the value of
   (let ((map (make-keymap)))
     (fillarray (car (cdr map)) 'Electric-buffer-menu-undefined)
     (define-key map "\e" nil)
-    (define-key map "\C-z" 'suspend-emacs)
+    (define-key map "\C-z" 'suspend-frame)
     (define-key map "v" 'Electric-buffer-menu-mode-view-buffer)
     (define-key map (char-to-string help-char) 'Helper-help)
     (define-key map "?" 'Helper-describe-bindings)

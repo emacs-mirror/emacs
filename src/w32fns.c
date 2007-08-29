@@ -1818,10 +1818,8 @@ x_set_tool_bar_lines (f, value, oldval)
      below the menu bar.  */
   if (FRAME_W32_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
     {
-      updating_frame = f;
-      clear_frame ();
+      clear_frame (f);
       clear_current_matrices (f);
-      updating_frame = NULL;
     }
 
   /* If the tool bar gets smaller, the internal border below it
@@ -4180,7 +4178,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     display = Qnil;
   dpyinfo = check_x_display_info (display);
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->terminal->kboard;
 #else
   kb = &the_only_kboard;
 #endif
@@ -4227,6 +4225,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* By default, make scrollbars the system standard width. */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
+
+  f->terminal = dpyinfo->terminal;
+  f->terminal->reference_count++;
 
   f->output_method = output_w32;
   f->output_data.w32 =
@@ -4442,6 +4443,22 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	/* Must have been Qnil.  */
 	;
     }
+
+  /* Initialize `default-minibuffer-frame' in case this is the first
+     frame on this terminal.  */
+  if (FRAME_HAS_MINIBUF_P (f)
+      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
+          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
+    kb->Vdefault_minibuffer_frame = frame;
+
+  /* All remaining specified parameters, which have not been "used"
+     by x_get_arg and friends, now go in the misc. alist of the frame.  */
+  for (tem = parameters; !NILP (tem); tem = XCDR (tem))
+    if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
+      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+
+  store_frame_param (f, Qwindow_system, Qw32);
+  
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
@@ -6716,8 +6733,10 @@ terminate Emacs if we can't open the connection.  */)
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
 
+#if 0
   if (! EQ (Vwindow_system, intern ("w32")))
     error ("Not using Microsoft Windows");
+#endif
 
   /* Allow color mapping to be defined externally; first look in user's
      HOME directory, then in Emacs etc dir for a file called rgb.txt. */
@@ -7257,6 +7276,8 @@ x_create_tip_frame (dpyinfo, parms, text)
      the frame is live, as per FRAME_LIVE_P.  If we get a signal
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
+  f->terminal = dpyinfo->terminal;
+  f->terminal->reference_count++;
   f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
@@ -7419,6 +7440,8 @@ x_create_tip_frame (dpyinfo, parms, text)
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
 					      Qnil));
   }
+
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qw32), Qnil));
 
   f->no_split = 1;
 

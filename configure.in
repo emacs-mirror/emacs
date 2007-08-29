@@ -2229,6 +2229,7 @@ if test "${HAVE_GTK}" = "yes"; then
     AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
               [Define to 1 if GTK can handle more than one display.])
   fi
+
   dnl  Check if we have the old file selection dialog.
   dnl  If gdk_display_open exists, assume all others are there also.
   HAVE_GTK_FILE_SELECTION=no

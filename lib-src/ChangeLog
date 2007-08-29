@@ -1,3 +1,57 @@
+2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c (w32_execvp): Move definition before use.
+	(decode_options): Don't use a tty on mac carbon or windows.
+
+2007-08-29  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c (SEND_STRING, SEND_QUOTED): Remove obfuscation
+	macros.
+	(quote_argument, set_tcp_socket, handle_sigcont, handle_sigtstp):
+	(main): Expand removed macros inline.
+	(main) [WINDOWSNT]: Don't call ttyname.  Don't recognize -suspend
+	option.
+	(main) [NO_SOCKETS_IN_FILE_SYSTEM]: Don't call init_signals.
+
+2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+
+	* emacsclient.c (signal.h): New include.
+	(sys/stat.h, errno.h): Always include, even on WINDOWSNT.
+	(DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP, IS_ANY_SEP): Copy
+	definitions here from src/lisp.h.
+	(main_argc, main_argv, current_frame, window_system, tty): New
+	variables.
+	(longopts): Add tty, current-frame.
+	(xmalloc, xstrdup): New functions.
+	(get_current_dir_name): New function, copied from src/sysdep.c.
+	(decode_options): Set display from environment.  Add tty and
+	current_frame options.  Make --no-wait imply --current-frame,
+	except when it is the only option given.  Make sure no frame is
+	opened when --current-frame is set.
+	(print_help_and_exit): Document tty and current-frame options.
+	(fail): Change arguments to void.
+	(main): When sockets are not defined, set main_argc, main_argv,
+	and call fail() with no arguments.
+	(emacs_socket): New variable (moved out from main `s').
+	(quote_file_name): Rename to quote_argument.
+	(quote_argument): New name for old quote_file_name.
+	(unquote_argument, strprefix, pass_signal_to_emacs)
+	(handle_sigcont, handle_sigtstp, init_signals): New functions.
+	(set_local_socket): Initialize saved_errno to 0.  If socket-name
+	is too long, call `fail' rather than `exit'.
+	(main): Doc update.  Set main_argc, main_argv.  New var `str'.
+	Don't need a filename or argument if tty or window_system set.
+	Call fail with no arguments.  Use get_current_dir_name to send
+	over the current directory.  Send version number to Emacs for
+	verification.  If tty is set, check TERM, and pass name and type
+	to Emacs.  Pass window_system to Emacs.  Move sending of eval to
+	optind loop.  Send -position, -file to Emacs.  Call fsync after
+	fflush.  Check for a client/server version match. Handle
+	-emacs-pid, -window-system-unsupported, -print, -error, -suspend
+	commands.  Don't exit prematurely on --no-wait, let Emacs close
+	the connection for us.  When creating a new frame, send
+	environment and pwd to Emacs.  Send current-frame to Emacs.
+
 2007-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (rcs2log, rcs-checkin, grep-changelog, vcdiff):

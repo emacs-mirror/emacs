@@ -46,16 +46,43 @@ Each element has the form (DISPLAY FRAME BUFFER).")
   ;; Add the new buffers to all talk frames.
   (talk-update-buffers))
 
-(defun talk-add-display (display)
-  (let* ((elt (assoc display talk-display-alist))
-	 (name (concat "*talk-" display "*"))
-	 buffer frame)
-    (if (not (and elt (frame-live-p (setq frame (nth 1 elt)))))
-	(setq frame (make-frame-on-display display (list (cons 'name name)))))
+;;;###autoload
+(defun talk ()
+  "Connect to the Emacs talk group from the current X display or tty frame."
+  (interactive)
+  (let ((type (frame-live-p (selected-frame)))
+	(display (frame-terminal (selected-frame))))
+    (cond
+     ((eq type t)
+      (talk-add-display (selected-frame)))
+     ((eq type 'x)
+      (talk-add-display (frame-terminal (selected-frame))))
+     (t
+      (error "Unknown frame type"))))
+  (talk-update-buffers))
+
+(defun talk-add-display (frame)
+  (let* ((display (if (frame-live-p frame)
+		      (frame-terminal frame)
+		    frame))
+	 (elt (assoc display talk-display-alist))
+	 (name (concat "*talk-" (terminal-name display) "*"))
+	 buffer)
+    (unless (frame-live-p frame)
+      (setq frame (make-frame-on-display display (list (cons 'name name)))))
+    (if (and elt (frame-live-p (nth 1 elt)))
+	(setq frame (nth 1 elt)))
     (if (not (and elt (buffer-name (get-buffer (setq buffer (nth 2 elt))))))
 	(setq buffer (get-buffer-create name)))
+    (add-to-list 'delete-frame-functions 'talk-handle-delete-frame)
     (setq talk-display-alist
 	  (cons (list display frame buffer) (delq elt talk-display-alist)))))
+
+(defun talk-handle-delete-frame (frame)
+  (dolist (d talk-display-alist)
+    (when (eq (nth 1 d) frame)
+      (setq talk-display-alist (delq d talk-display-alist))
+      (talk-update-buffers))))
 
 (defun talk-disconnect ()
   "Disconnect this display from the Emacs talk group."
