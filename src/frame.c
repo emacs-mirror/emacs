@@ -625,7 +625,7 @@ make_terminal_frame (struct terminal *terminal)
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
 
     /* Set the top frame to the newly created frame. */
-    if (FRAME_TTY (f)->top_frame
+    if (FRAMEP (FRAME_TTY (f)->top_frame)
         && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
       XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
     
@@ -2613,6 +2613,7 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
 	    call1 (Qframe_set_background_mode, frame);
 	}
     }
+  return Qnil;
 }
 
 DEFUN ("frame-with-environment", Fframe_with_environment, Sframe_with_environment, 0, 1, 0,
