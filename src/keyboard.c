@@ -11319,7 +11319,8 @@ See also `current-input-mode'.  */)
   Fset_input_interrupt_mode (interrupt);
   Fset_output_flow_control (flow, Qnil);
   Fset_input_meta_mode (meta, Qnil);
-  Fset_quit_char (quit);
+  if (!NILP (quit))
+    Fset_quit_char (quit);
   return Qnil;
 }
 

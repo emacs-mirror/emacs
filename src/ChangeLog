@@ -1,3 +1,8 @@
+2007-08-29  Romain Francoise  <romain@orebokech.com>
+
+	* keyboard.c (Fset_input_mode): Don't call `Fset_quit_char' if
+	QUIT hasn't been provided.
+
 2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* callproc.c (child_setup, getenv_internal): Use the
