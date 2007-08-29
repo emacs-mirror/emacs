@@ -1,3 +1,14 @@
+2007-08-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.h (struct kboard): New elt Vlast_repeatable_command.
+
+	* keyboard.c (syms_of_keyboard): Set up new Lisp variable
+	last-repeatable-command.
+	(init_kboard): Initialize Vlast_repeatable_command.
+	(command_loop_1): Set it to real_this_command unless that was
+	bound to an input event.
+	(mark_kboards): Mark it.
+
 2007-08-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (syms_of_image) <image-library-alist, cross-disabled-images>:
