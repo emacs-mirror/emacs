@@ -1,3 +1,8 @@
+2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/mac-win.el: Don't require url, only autoloaded url
+	functions are used in this file.
+
 2007-08-29  Andreas Schwab  <schwab@suse.de>
 
 	* shell.el (shell): Return correct value from interactive spec.
