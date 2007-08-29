@@ -112,12 +112,6 @@ Miles Bader
 Thien-Thi Nguyen
 	VMS
 
-Juanma Barranquero
-       lisp/bs.el
-       lisp/server.el
-       lib-src/emacsclient.c
-       lib-src/grep-changelog
-
 ==============================================================================
 3.
 ==============================================================================
