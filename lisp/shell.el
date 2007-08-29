@@ -542,15 +542,16 @@ Otherwise, one argument `-i' is passed to the shell.
   (interactive
    (list
     (and current-prefix-arg
-	 (read-buffer "Shell buffer: "
-		      (generate-new-buffer-name "*shell*"))
-	 (file-remote-p default-directory)
-	 ;; It must be possible to declare a local default-directory.
-	 (setq default-directory
-	       (expand-file-name
-		(read-file-name
-		 "Default directory: " default-directory default-directory
-		 t nil 'file-directory-p))))))
+	 (prog1
+	     (read-buffer "Shell buffer: "
+			  (generate-new-buffer-name "*shell*"))
+	   (if (file-remote-p default-directory)
+	       ;; It must be possible to declare a local default-directory.
+	       (setq default-directory
+		     (expand-file-name
+		      (read-file-name
+		       "Default directory: " default-directory default-directory
+		       t nil 'file-directory-p))))))))
   (setq buffer (get-buffer-create (or buffer "*shell*")))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
