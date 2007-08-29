@@ -1,0 +1,107 @@
+Some lisp/emacs-lisp/ Features and Where They Are Documented
+Copyright (C) 2007 Free Software Foundation, Inc.
+
+
+* Status Key
+  -      -- as yet unknown
+  n/a    -- not applicable (internal, uninteresting, etc)
+  todo   -- not documented but should be
+  "NODE" -- documented in or under info node NODE
+
+
+* Features
+  advice                  -
+  advice-preload          n/a
+  assoc                   -
+  authors                 -
+  autoload                -
+  avl-tree                -
+  backquote               n/a
+  benchmark               -
+  bindat                  "(elisp) Byte Packing"
+  byte-compile            -
+  byte-opt                -
+  bytecomp                -
+  checkdoc                -
+  cl                      "(cl)"
+  cl-19                   n/a
+  cl-compat               n/a
+  cl-specs                n/a
+  copyright               -
+  crm                     -
+  cust-print              -
+  debug                   -
+  derived                 -
+  disass                  -
+  easy-mmode              -
+  easymenu                -
+  edebug                  -
+  eldoc                   -
+  elint                   -
+  elp                     -
+  ewoc                    "(elisp) Separated Rendering"
+  find-func               -
+  find-gc                 -
+  generic                 -
+  gulp                    n/a
+  helper                  -
+  levents                 -
+  lisp-float-type         -
+  lisp-mnt                -
+  lisp-mode               -
+  lmenu                   -
+  lselect                 -
+  lucid                   -
+  macroexp                -
+  pp                      -
+  re-builder              -
+  regexp-opt              -
+  regi                    -
+  ring                    "(elisp) Rings"
+  rx                      -
+  shadow                  -
+  sregex                  -
+  syntax                  -
+  testcover               -
+  timer                   -
+  tq                      "(elisp) Transaction Queues"
+  trace                   -
+  unsafep                 -
+  warnings                -
+
+
+* Above list created using default directory lisp/emacs-lisp/ with
+  (shell-command
+    "sed '/^(provide '\\''/!d;s//  /;s/).*//' *.el | sort | uniq")
+
+
+* How to use this file to improve Emacs
+  (loop
+   (let* ((feature (choose-one Features))
+          (status (feature-status feature)))
+     (if (or (eq '- status) (not (verify status)))
+         (update feature (current-docs feature))
+       (case status
+         (todo (let (doc patch feedback)
+                 (while (not (grok feature))
+                   (or (play-with feature)
+                       (grep feature Internet)
+                       (grep feature (wisdom-maybe "emacs-devel"))))
+                 (setq doc (write-documentation feature)
+                       patch (diff (current-docs) doc))
+                 (while (not (and (correct doc)
+                                  (well-placed doc)
+                                  (well-formed patch)))
+                   (setq doc (revise doc)
+                         patch (diff (current-docs) doc))
+                         feedback (wisdom-maybe "emacs-devel" patch))
+                 (when (install patch)
+                   (when (update feature (current-docs feature))
+                     (job-well-done user-login-name)))))
+         (n/a (job-well-done user-login-name))))))
+
+
+* Etc
+  Local variables:
+  mode: outline
+  End:

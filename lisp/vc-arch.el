@@ -365,11 +365,6 @@ Return non-nil if FILE is unchanged."
 	(message "There are unresolved conflicts in %s"
 		 (file-name-nondirectory rej))))))
 
-(defun vc-arch-find-file-not-found-hook ()
-  ;; Do nothing.  We are not sure whether the file is `source' or not,
-  ;; so we shouldn't ask the user whether she wants to check it out.
-  )
-
 (defun vc-arch-checkout-model (file) 'implicit)
 
 (defun vc-arch-checkin (files rev comment)
@@ -552,7 +547,16 @@ Return non-nil if FILE is unchanged."
                            branches))))
       (mapc 'vc-arch-trim-one-revlib versions))
     ))
-    
+
+(defvar vc-arch-extra-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [add-tagline]
+      '(menu-item "Add tagline" vc-arch-add-tagline))
+    map))
+
+(defun vc-arch-extra-menu () vc-arch-extra-menu-map)
+  
+
 ;;; Less obvious implementations.
 
 (defun vc-arch-find-version (file rev buffer)

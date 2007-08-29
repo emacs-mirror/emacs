@@ -107,6 +107,7 @@
 ;; * revision-granularity
 ;;
 ;;   Takes no arguments.  Returns either 'file or 'repository.
+;;   FIXME: What does this mean?  Why "repository"?
 ;;
 ;; STATE-QUERYING FUNCTIONS
 ;;
@@ -2381,7 +2382,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
   (let (result)
     ;; Check whether dired is loaded.
     (when (fboundp 'dired-buffers-for-dir)
-      (mapcar (lambda (buffer)
+      (mapc (lambda (buffer)
 		(with-current-buffer buffer
 		  (if vc-dired-mode
 		      (setq result (append result (list buffer))))))
@@ -3410,7 +3411,7 @@ revision."
                      vc-annotate-parent-display-mode
                      buf)
 	(goto-line (min oldline (progn (goto-char (point-max))
-				       (previous-line)
+				       (forward-line -1)
 				       (line-number-at-pos))) buf)))))
 
 (defun vc-annotate-compcar (threshold a-list)

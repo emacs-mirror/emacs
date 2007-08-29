@@ -103,6 +103,17 @@ Use the command \\[mh-show] to show the message normally again."
       (mh-recenter 0))
     (setq mh-showing-with-headers t)))
 
+;;;###mh-autoload
+(defun  mh-show-preferred-alternative ()
+  "Display message with the default preferred alternative.
+I.e. we set \\mm-discouraged-alternatives to nil.
+
+Use the command \\[mh-show] to show the message normally again."
+  (interactive)
+  (let
+      ((mm-discouraged-alternatives))
+    (mh-show nil t)))
+
 
 
 ;;; Support Routines for MH-Folder Commands
@@ -401,6 +412,7 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-refile-or-write-again
                       mh-refile-or-write-again)
 (mh-defun-show-buffer mh-show-show mh-show)
+(mh-defun-show-buffer mh-show-show-preferred-alternative mh-show-preferred-alternative)
 (mh-defun-show-buffer mh-show-write-message-to-file
                       mh-write-msg-to-file)
 (mh-defun-show-buffer mh-show-extract-rejected-mail
@@ -513,6 +525,8 @@ still visible.\n")
   '("Message"
     ["Show Message"                     mh-show-show t]
     ["Show Message with Header"         mh-show-header-display t]
+    ["Show Message with Preferred Alternative"
+                                        mh-show-show-preferred-alternative t]
     ["Next Message"                     mh-show-next-undeleted-msg t]
     ["Previous Message"                 mh-show-previous-undeleted-msg t]
     ["Go to First Message"              mh-show-first-msg t]
@@ -568,6 +582,7 @@ still visible.\n")
   "'"    mh-show-toggle-tick
   ","    mh-show-header-display
   "."    mh-show-show
+  ":"    mh-show-show-preferred-alternative
   ">"    mh-show-write-message-to-file
   "?"    mh-help
   "E"    mh-show-extract-rejected-mail

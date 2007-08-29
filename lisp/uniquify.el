@@ -235,6 +235,14 @@ this rationalization."
 	      (with-current-buffer (uniquify-item-buffer (car items))
 		(setq uniquify-managed nil))
 	      (setq items nil)))
+          ;; In case we missed some calls to kill-buffer, there may be dead
+          ;; buffers in uniquify-managed, so filter them out.
+          (setq items
+                (delq nil (mapcar
+                           (lambda (item)
+                             (if (buffer-live-p (uniquify-item-buffer item))
+                                 item))
+                           items)))
 	  (setq fix-list (append fix-list items))))
       ;; selects buffers whose names may need changing, and others that
       ;; may conflict, then bring conflicting names together

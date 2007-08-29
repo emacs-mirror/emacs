@@ -2026,7 +2026,6 @@ since only a single case-insensitive search through the alist is made."
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . java-mode)		; javascript-mode would be better
-     ("\\.x[bp]m\\'" . c-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
      ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
@@ -3181,14 +3180,15 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  (set-default-file-modes ?\700)
 	  (while (condition-case ()
 		     (progn
-		       (condition-case nil
-			   (delete-file to-name)
-			 (file-error nil))
+		       (and (file-exists-p to-name)
+			    (delete-file to-name))
 		       (copy-file from-name to-name nil t)
 		       nil)
 		   (file-already-exists t))
 	    ;; The file was somehow created by someone else between
 	    ;; `delete-file' and `copy-file', so let's try again.
+	    ;; rms says "I think there is also a possible race
+	    ;; condition for making backup files" (emacs-devel 20070821).
 	    nil))
       ;; Reset the umask.
       (set-default-file-modes umask)))

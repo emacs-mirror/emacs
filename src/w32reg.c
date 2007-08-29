@@ -41,7 +41,7 @@ Boston, MA 02110-1301, USA.  */
   "emacs.tool-bar.attributeBackground:SystemButtonFace\0" \
   "emacs.menu.attributeForeground:SystemMenuText\0"       \
   "emacs.menu.attributeBackground:SystemMenu\0"           \
-  "emacs.scroll-bar.attributeForeground:SystemScrollbar"
+  "emacs.scroll-bar.attributeForeground:SystemScrollbar\0"
 
 /* Other possibilities for default faces:
 

@@ -847,7 +847,7 @@ Run the Viper tutorial? "))
               (delete-region (point-min) (point))
               (goto-char tutorial--point-before-chkeys)
               (setq tutorial--point-before-chkeys (point-marker)))
-          (insert-file-contents (expand-file-name filename data-directory))
+          (insert-file-contents (expand-file-name filename tutorial-directory))
           (forward-line)
           (setq tutorial--point-before-chkeys (point-marker)))
 

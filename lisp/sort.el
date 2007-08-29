@@ -39,6 +39,7 @@
   "*Non-nil if the buffer sort functions should ignore case."
   :group 'sort
   :type 'boolean)
+;;;###autoload(put 'sort-fold-case 'safe-local-variable 'booleanp)
 
 ;;;###autoload
 (defun sort-subr (reverse nextrecfun endrecfun
@@ -258,6 +259,7 @@ the sort order."
   "*The default base used by `sort-numeric-fields'."
   :group 'sort
   :type 'integer)
+;;;###autoload(put 'sort-numeric-base 'safe-local-variable 'integerp)
 
 ;;;###autoload
 (defun sort-numeric-fields (field beg end)

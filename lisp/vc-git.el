@@ -57,7 +57,7 @@
 ;; - latest-on-branch-p (file)			   NOT NEEDED
 ;; * checkout-model (file)			   OK
 ;; - workfile-unchanged-p (file)		   OK
-;; - mode-line-string (file)			   NOT NEEDED
+;; - mode-line-string (file)			   OK
 ;; - dired-state-info (file)			   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()				   OK
@@ -207,6 +207,18 @@
     (and head
          (string-match "[0-7]\\{6\\} blob \\([0-9a-f]\\{40\\}\\)\t[^\0]+\0" head)
          (string= (car (split-string sha1 "\n")) (match-string 1 head)))))
+
+(defun vc-git-mode-line-string (file)
+  "Return string for placement into the modeline for FILE."
+  (let* ((branch (vc-git-workfile-version file))
+         (def-ml (vc-default-mode-line-string 'Git file))
+         (help-echo (get-text-property 0 'help-echo def-ml)))
+    (if (zerop (length branch))
+        (propertize
+         (concat def-ml "!")
+         'help-echo (concat help-echo "\nNo current branch (detached HEAD)"))
+      (propertize def-ml
+                  'help-echo (concat help-echo "\nCurrent branch: " branch)))))
 
 (defun vc-git-dired-state-info (file)
   "Git-specific version of `vc-dired-state-info'."

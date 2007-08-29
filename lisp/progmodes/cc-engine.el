@@ -4067,7 +4067,6 @@ comment at the start of cc-engine.el for more info."
        ;; Changing the amount of (already existing) whitespace - don't do anything.
        ((and (c-partial-ws-p beg end)
 	     (or (= beg end)		; removal of WS
-		 ; (string-match "\\s *\\'" (nth 5 c-maybe-stale-found-type))
 		 (string-match "^[ \t\n\r\f\v]*$" (nth 5 c-maybe-stale-found-type)))))
 
        ;; The syntactic relationship which defined a "found type" has been
@@ -5891,7 +5890,7 @@ comment at the start of cc-engine.el for more info."
   ;;   "private:"/"protected:"/"public:"/"more:" looking like "public slots:".
   ;;   Returns the symbol `qt-2kwds-colon'.
   ;; (v) QT's construct "signals:".  Returns the symbol `qt-1kwd-colon'.
-  ;; (v) One of the keywords matched by `c-opt-extra-label-key' (without any
+  ;; (vi) One of the keywords matched by `c-opt-extra-label-key' (without any
   ;;   colon).  Currently (2006-03), this applies only to Objective C's
   ;;   keywords "@private", "@protected", and "@public".  Returns t.
   ;;
@@ -6117,8 +6116,7 @@ comment at the start of cc-engine.el for more info."
 				     (match-end 0)))))
 
 	  (c-put-c-type-property (1- (point-max)) 'c-decl-end)
-	  (goto-char (point-max))
-	  )))
+	  (goto-char (point-max)))))
 
      (t
       ;; Not a label.
@@ -7197,6 +7195,23 @@ comment at the start of cc-engine.el for more info."
 ;; auto newline analysis.
 (defvar c-auto-newline-analysis nil)
 
+(defun c-brace-anchor-point (bracepos)
+  ;; BRACEPOS is the position of a brace in a construct like "namespace
+  ;; Bar {".  Return the anchor point in this construct; this is the
+  ;; earliest symbol on the brace's line which isn't earlier than
+  ;; "namespace".
+  ;;
+  ;; Currently (2007-08-17), "like namespace" means "matches
+  ;; c-other-block-decl-kwds".  It doesn't work with "class" or "struct"
+  ;; or anything like that.
+  (save-excursion
+    (let ((boi (c-point 'boi bracepos)))
+      (goto-char bracepos)
+      (while (and (> (point) boi)
+		  (not (looking-at c-other-decl-block-key)))
+	(c-backward-token-2))
+      (if (> (point) boi) (point) boi))))
+
 (defsubst c-add-syntax (symbol &rest args)
   ;; A simple function to prepend a new syntax element to
   ;; `c-syntactic-context'.  Using `setq' on it is unsafe since it
@@ -7229,8 +7244,12 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; Point is assumed to be at the prospective anchor point for the
   ;; given SYNTAX-SYMBOL.  More syntax entries are added if we need to
-  ;; skip past open parens and containing statements.  All the added
-  ;; syntax elements will get the same anchor point.
+  ;; skip past open parens and containing statements.  Most of the added
+  ;; syntax elements will get the same anchor point - the exception is
+  ;; for an anchor in a construct like "namespace"[*] - this is as early
+  ;; as possible in the construct but on the same line as the {.
+  ;;
+  ;; [*] i.e. with a keyword matching c-other-block-decl-kwds.
   ;;
   ;; SYNTAX-EXTRA-ARGS are a list of the extra arguments for the
   ;; syntax symbol.  They are appended after the anchor point.
@@ -7255,7 +7274,11 @@ comment at the start of cc-engine.el for more info."
 	  ;; now at the start.
 	  on-label)
 
-      (apply 'c-add-syntax syntax-symbol nil syntax-extra-args)
+      ;; Use point as the anchor point for "namespace", "extern", etc.
+      (apply 'c-add-syntax syntax-symbol
+	     (if (rassq syntax-symbol c-other-decl-block-key-in-symbols-alist)
+		 (point) nil)
+	     syntax-extra-args)
 
       ;; Loop while we have to back out of containing blocks.
       (while
@@ -7375,22 +7398,31 @@ comment at the start of cc-engine.el for more info."
 		(setq step-type 'same
 		      on-label nil))
 
+	    ;; Stepped out of a brace block.
 	    (setq step-type (c-beginning-of-statement-1 containing-sexp)
 		  on-label (eq step-type 'label))
 
 	    (if (and (eq step-type 'same)
 		     (/= paren-pos (point)))
-		(save-excursion
-		  (goto-char paren-pos)
-		  (let ((inexpr (c-looking-at-inexpr-block
-				 (c-safe-position containing-sexp
-						  paren-state)
-				 containing-sexp)))
-		    (if (and inexpr
-			     (not (eq (car inexpr) 'inlambda)))
-			(c-add-syntax 'statement-block-intro nil)
-		      (c-add-syntax 'defun-block-intro nil))))
-	      (c-add-syntax 'statement-block-intro nil)))
+		(let (inexpr)
+		  (cond
+		   ((save-excursion
+		      (goto-char paren-pos)
+		      (setq inexpr (c-looking-at-inexpr-block
+				    (c-safe-position containing-sexp paren-state)
+				    containing-sexp)))
+		    (c-add-syntax (if (eq (car inexpr) 'inlambda)
+				      'defun-block-intro
+				    'statement-block-intro)
+				  nil))
+		   ((looking-at c-other-decl-block-key)
+		    (c-add-syntax
+		     (cdr (assoc (match-string 1)
+				 c-other-decl-block-key-in-symbols-alist))
+		     (max (c-point 'boi paren-pos) (point))))
+		   (t (c-add-syntax 'defun-block-intro nil))))
+			     
+		 (c-add-syntax 'statement-block-intro nil)))
 
 	  (if (= paren-pos boi)
 	      ;; Always done if the open brace was at boi.  The
@@ -7402,10 +7434,13 @@ comment at the start of cc-engine.el for more info."
 
       ;; Fill in the current point as the anchor for all the symbols
       ;; added above.
-      (let ((p c-syntactic-context))
+      (let ((p c-syntactic-context) q)
 	(while (not (eq p syntax-last))
-	  (if (cdr (car p))
-	      (setcar (cdr (car p)) (point)))
+	  (setq q (cdr (car p))) ; e.g. (nil 28) [from (arglist-cont-nonempty nil 28)]
+	  (while q
+	    (unless (car q)
+	      (setcar q (point)))
+	    (setq q (cdr q)))
 	  (setq p (cdr p))))
       )))
 
@@ -8360,9 +8395,7 @@ comment at the start of cc-engine.el for more info."
 		(if (c-keyword-member containing-decl-kwd
 				      'c-other-block-decl-kwds)
 		    (progn
-		      (goto-char containing-decl-open)
-		      (unless (= (point) (c-point 'boi))
-			(goto-char containing-decl-start))
+		      (goto-char (c-brace-anchor-point containing-decl-open))
 		      (c-add-stmt-syntax
 		       (if (string-equal (symbol-name containing-decl-kwd)
 					 "extern")

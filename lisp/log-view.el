@@ -89,7 +89,7 @@
 (easy-mmode-defmap log-view-mode-map
   '(("q" . quit-window)
     ("z" . kill-this-buffer)
-    ("m" . set-mark-command)
+    ("m" . log-view-toggle-mark-entry)
     ;; ("e" . cvs-mode-edit-log)
     ("d" . log-view-diff)
     ("f" . log-view-find-version)
@@ -233,9 +233,52 @@ The match group number 1 should match the revision number itself.")
     (forward-line 1)
     (let ((pt (point)))
       (when (re-search-backward log-view-message-re nil t)
-	(let ((rev (match-string 1)))
+	(let ((rev (match-string-no-properties 1)))
 	  (unless (re-search-forward log-view-file-re pt t)
 	    rev))))))
+
+(defun log-view-toggle-mark-entry ()
+  "Toggle the marked state for the log entry at point.
+Individual log entries can be marked and unmarked. The marked
+entries are denoted by changing their background color.
+`log-view-get-marked' returns the list of tags for the marked
+log entries."
+  (interactive)
+  (save-excursion
+    (forward-line 1)
+    (let ((pt (point)))
+      (when (re-search-backward log-view-message-re nil t)
+	(let ((beg (match-beginning 0))
+	      end ov ovlist found tag)
+	  (unless (re-search-forward log-view-file-re pt t)
+	    ;; Look to see if the current entry is marked.
+	    (setq found (get-char-property (point) 'log-view-self))
+	    (if found
+		(delete-overlay found)
+	      ;; Create an overlay that covers this entry and change
+	      ;; it's color.
+	      (setq tag (log-view-current-tag (point)))
+	      (forward-line 1)
+	      (setq end
+		    (if (re-search-forward log-view-message-re nil t)
+			(match-beginning 0)
+		      (point-max)))
+	      (setq ov (make-overlay beg end))
+	      (overlay-put ov 'face 'log-view-file)
+	      ;; This is used to check if the overlay is present.
+	      (overlay-put ov 'log-view-self ov)
+	      (overlay-put ov 'log-view-marked tag))))))))
+
+(defun log-view-get-marked ()
+  "Return the list of tags for the marked log entries."
+  (save-excursion
+    (let ((pos (point-min))
+	  marked-list ov)
+      (while (setq pos (next-single-property-change pos 'face))
+	(when (setq ov (get-char-property pos 'log-view-self))
+	  (push (overlay-get ov 'log-view-marked) marked-list)
+	  (setq pos (overlay-end ov))))
+      marked-list)))
 
 (defvar cvs-minor-current-files)
 (defvar cvs-branch-prefix)

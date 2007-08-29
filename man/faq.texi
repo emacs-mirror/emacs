@@ -641,13 +641,14 @@ printed manual}.
 @item
 You can get a printed reference card listing commands and keys to
 invoke them.  You can order one from the FSF for $1 (or 10 for $5),
-or you can print your own from the @file{etc/refcard.tex} or
-@file{etc/refcard.ps} files in the Emacs distribution.  Beginning with
-version 21.1, the Emacs distribution comes with translations of the
-reference card into several languages; look for files named
-@file{etc/@var{lang}-refcard.*}, where @var{lang} is a two-letter code
-of the language.  For example, the German version of the reference card
-is in the files @file{etc/de-refcard.tex} and @file{etc/de-refcard.ps}.
+or you can print your own from the @file{etc/refcards/refcard.tex} or
+@file{etc/refcards/refcard.ps} files in the Emacs distribution.
+Beginning with version 21.1, the Emacs distribution comes with
+translations of the reference card into several languages; look for
+files named @file{etc/refcards/@var{lang}-refcard.*}, where @var{lang}
+is a two-letter code of the language.  For example, the German version
+of the reference card is in the files @file{etc/refcards/de-refcard.tex}
+and @file{etc/recards/de-refcard.ps}.
 
 @item
 There are many other commands in Emacs for getting help and
