@@ -81,6 +81,9 @@ in to make it use the scrollbars from the system theme.
 
 * Lisp Changes in Emacs 22.2.
 
+** The command `repeat' will no more attempt to repeat a command bound
+to an input event.
+
 ** The function invisible-p returns non-nil if the character
    after a specified position is invisible.
 
