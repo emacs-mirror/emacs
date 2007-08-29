@@ -167,7 +167,7 @@
 	* w32term.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL):
 	Remove redundant definition.
 
-	* macfns.c (x_set_mouse_color,x_make_gc): Use
+	* macfns.c (x_set_mouse_color, x_make_gc): Use
 	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
 
 	* w32term.c (x_free_frame_resources): Use
@@ -178,15 +178,15 @@
 	Use the accessor macros for terminal characteristics.
 	* msdos.c (internal_terminal_init): Use the accessor macros for
 	terminal characteristics.
-	(ScreenVisualBell,internal_terminal_init): Use
+	(ScreenVisualBell, internal_terminal_init): Use
 	FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
 
 	* termopts.h (no_redraw_on_reenter): Declare.
 
 	* alloc.c (emacs_blocked_malloc): Disable mallopt call.
-	(mark_terminals,mark_ttys): Declare.
+	(mark_terminals, mark_ttys): Declare.
 	(Fgarbage_collect): Call them.
-	(mark_object): Mark buried_buffer_list;
+	(mark_object): Mark buried_buffer_list.
 
 	* prefix-args.c: Include stdlib.h for exit.
 
@@ -225,12 +225,12 @@
 
 	* xsmfns.c (x_session_close): New function.
 
-	* coding.h (terminal_coding,safe_terminal_coding,keyboard_coding):
+	* coding.h (terminal_coding, safe_terminal_coding, keyboard_coding):
 	Delete declarations.
 
 	* xterm.h: Remove declaration for x_fully_uncatch_errors.
 	(x_output): Remove background_pixel and foreground_pixel fields.
-	(x_display_info): Add new field TERMINAL. Remove KBOARD field.
+	(x_display_info): Add new field TERMINAL.  Remove KBOARD field.
 	(x_delete_device):
 	(x_session_close): Declare.
 
@@ -239,27 +239,27 @@
 	`wrong_kboard_jmpbuf'.
 
 	* minibuf.c (read_minibuf): Call
-	temporarily_switch_to_single_kboard. Don't call
-	single_kboard_state. Use FRAME_RIF.
+	temporarily_switch_to_single_kboard.  Don't call
+	single_kboard_state.  Use FRAME_RIF.
 
 	* process.c (Fmake_network_process): Don't unrequest_sigio on modern
 	systems.
 
 	* lisp.h (set_process_environment): Rename to
 	`set_global_environment'.
-	(Fframe_with_environment,Fset_input_meta_mode)
+	(Fframe_with_environment, Fset_input_meta_mode)
 	(Fset_quit_char): EXFUN.
-	(x_create_device,tty_output,terminal,tty_display_info): Declare.
+	(x_create_device, tty_output, terminal, tty_display_info): Declare.
 	(init_sys_modes, reset_sys_modes): Update prototypes.
 	(init_all_sys_modes, reset_all_sys_modes): New prototypes.
 
 	* keyboard.h (struct kboard): Add new fields:
 	Vlocal_function_key_map, Vlocal_key_translation_map,
 	Vkeyboard_translate_table.
-	(Vfunction_key_map,Vkeyboard_translate_table,single_kboard_state):
+	(Vfunction_key_map, Vkeyboard_translate_table, single_kboard_state):
 	Delete declarations.
-	(Vfunction_key_map,Vkey_translation_map,push_kboard,pop_kboard)
-	(temporarily_switch_to_single_kboard,tty_read_avail_input):
+	(Vfunction_key_map, Vkey_translation_map, push_kboard, pop_kboard)
+	(temporarily_switch_to_single_kboard, tty_read_avail_input):
 	New declarations.
 
 	* emacs.c (main): Don't call init_sys_modes(), the new term_init()
@@ -270,12 +270,9 @@
 	reset_sys_modes().
 
 	* xfaces.c (x_free_gc): Protect xassert with GLYPH_DEBUG.
-	(internal_resolve_face_name, resolve_face_name_error): New
-	functions.
-	(resolve_face_name): Protect against loops and errors thrown by
-	Fget.
-	(realize_default_face): Don't use FRAME_FONT unless frame is an X
-	frame.
+	(internal_resolve_face_name, resolve_face_name_error): New functions.
+	(resolve_face_name): Protect against loops and errors thrown by Fget.
+	(realize_default_face): Don't use FRAME_FONT unless frame is an X frame.
 	(Ftty_supports_face_attributes_p): Update tty_capable_p call.
 
 	* scroll.c: Replace CURTTY() with local variables throughout the
@@ -326,22 +323,22 @@
 	(x_handle_selection_clear): Deal with MULTI_KBOARD.
 
 	* coding.c: Include frame.h and termhooks.h.
-	(terminal_coding,keyboard_coding): Delete.
+	(terminal_coding, keyboard_coding): Delete.
 	(Fset_terminal_coding_system_internal):
 	(Fset_keyboard_coding_system_internal):
 	(Fkeyboard_coding_system):
-	(Fterminal_coding_system): Add a terminal parameter. Get
-	terminal_coding from the terminal.
+	(Fterminal_coding_system): Add a terminal parameter.
+	Get terminal_coding from the terminal.
 	(init_coding_once): Don't call setup_coding_system here.
 
 	* dispextern.h (set_scroll_region, turn_off_insert)
 	(turn_off_highlight, background_highlight, clear_end_of_line_raw)
 	(tty_clear_end_of_line, tty_setup_colors)
-	(delete_tty,updating_frame)
+	(delete_tty, updating_frame)
 	(produce_special_glyphs, produce_glyphs, write_glyphs)
 	(insert_glyphs): Remove.
 	(raw_cursor_to, clear_to_end, tty_turn_off_insert)
-	(tty_turn_off_highlight,get_tty_size): Add declaration.
+	(tty_turn_off_highlight, get_tty_size): Add declaration.
 	(tabs_safe_p, init_baud_rate, get_tty_terminal): Update
 	prototypes.
 
@@ -351,7 +348,7 @@
 	foreground_pixel and background_pixel directly from the frame.
 	(tty_display): Delete.
 	(struct frame): Add buried_buffer_list, foreground_pixel,
-	background_pixel and terminal. Delete kboard
+	background_pixel and terminal.  Delete kboard
 	(union output_data): Add tty.
 	(FRAME_KBOARD): Get the kboard from the terminal.
 	(FRAME_INITIAL_P): New macro.
@@ -377,7 +374,7 @@
 	(getenv_internal): Fix get_terminal_param call.
 	(Fgetenv_internal, egetenv): Update doc.
 	(syms_of_callproc): Initialize Vprocess_environment to nil.
-	Register and initialize them. Remove obsolete defvars. Update doc
+	Register and initialize them.  Remove obsolete defvars.  Update doc
 	strings.
 	(child_setup): Handle Vlocal_environment_variables.
 	(getenv_internal): Add terminal parameter.  Handle
@@ -497,8 +494,7 @@
 	* sysdep.c (reset_sys_modes): Update for renames.
 
 	* keyboard.c (tty_read_avail_input): New function.
-	(Fset_input_interrupt_mode,Fset_output_flow_control): New
-	functions.
+	(Fset_input_interrupt_mode, Fset_output_flow_control): New functions.
 	(syms_of_keyboard): Defsubr them.
 	(Fset_input_meta_mode, Fset_quit_char): New functions.
 	(Fset_input_mode): Split to above functions.
@@ -524,8 +520,8 @@
 	(any_kboard_state, single_kboard_state)
 	(push_frame_kboard): Remove function.
 	(pop_kboard): Switch out of single_kboard mode if the kboard has
-	been deleted. Remove unused variable. Help debugging by not
-	changing current_kboard unnecessarily. Set current_kboard to the
+	been deleted.  Remove unused variable.  Help debugging by not
+	changing current_kboard unnecessarily.  Set current_kboard to the
 	kboard of the selected frame when the stored kboard object has
 	been deleted before pop_kboard.
 	(temporarily_switch_to_single_kboard): Change first parameter to a
@@ -534,7 +530,7 @@
 	single kboard state.  Don't pop_kboard if we popped into any
 	kboard state.
 	(restore_kboard_configuration): Abort if pop_kboard changed the
-	kboard in single_kboard mode. Call pop_kboard only after setting
+	kboard in single_kboard mode.  Call pop_kboard only after setting
 	up single_kboard mode.
 	(Frecursive_edit): Switch to single_kboard mode only in nested
 	command loops.
@@ -542,7 +538,7 @@
 	out unnecessary call to `any_kboard_state' and
 	`record_single_kboard_state'.
 	(delete_kboard): Exit single_kboard mode if we have just deleted
-	that kboard. Use FRAME_KBOARD.
+	that kboard.  Use FRAME_KBOARD.
 	(interrupt_signal): Use `Fkill_emacs' to exit Emacs, not
 	`fatal_error_signal'.
 	(record_single_kboard_state): Don't push_kboard if we weren't in
@@ -577,7 +573,7 @@
 	(Ftty_type): Return nil if terminal is not on a tty instead of
 	throwing an error.  Doc update.
 	(syms_of_term) <Vsuspend_tty_functions, Vresume_tty_functions>:
-	Doc update. Initialize new subrs and variables.
+	Doc update.  Initialize new subrs and variables.
 	(delete_tty): Use terminal->deleted.
 	(tty_set_terminal_modes): Rename from set_terminal_modes.
 	(tty_reset_terminal_modes): Rename from reset_terminal_modes.
