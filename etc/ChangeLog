@@ -1,3 +1,7 @@
+2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: Say that Gtk+ build uses stock icons.
+
 2007-08-28  Werner LEMBERG  <wl@gnu.org>
 
 	* refcards/de-refcard.tex, refcards/de-refcard.pdf: Use `C-M-%'
