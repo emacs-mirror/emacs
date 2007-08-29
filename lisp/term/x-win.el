@@ -2601,7 +2601,7 @@ order until succeed.")
     ("exit" . "gtk-quit"))
   "How icons for tool bars are mapped to Gtk+ stock items.
 Emacs must be compiled with the Gtk+ toolkit for this to have any effect."
-  :version "23.0"
+  :version "23.1"
   :type 'alist
   :group 'x)
 
