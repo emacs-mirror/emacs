@@ -940,8 +940,6 @@ Boston, MA 02110-1301, USA.  */
 #ifdef HAVE_CARBON
 #define HAVE_WINDOW_SYSTEM
 #define HAVE_MOUSE
-/* XXX The MULTI_KBOARD support does not work yet on this platform. */
-#undef MULTI_KBOARD
 #endif
 
 /* Define USER_FULL_NAME to return a string

@@ -1,3 +1,8 @@
+2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.in (HAVE_WINDOW_SYSTEM): Don't undef MULTI_KBOARD here...
+	* s/darwin.h: ... do it here.
+
 2007-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (set_initial_environment): Rename from set_global_environment.
