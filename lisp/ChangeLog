@@ -1,5 +1,10 @@
 2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hg.el (vc-hg-extra-menu-map): New variable.
+	(vc-hg-extra-menu, vc-hg-outgoing, vc-hg-incoming, vc-hg-push)
+	(vc-hg-pull): New functions.
+	(vc-hg-outgoing-mode, vc-hg-incoming-mode): New derived modes.
+
 	* term/mac-win.el: Don't require url, only autoloaded url
 	functions are used in this file.
 
