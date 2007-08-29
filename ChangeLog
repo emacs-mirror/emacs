@@ -1,3 +1,7 @@
+2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: New option: --without-xaw3d.
+
 2007-08-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Check for a suitably recent makeinfo.
