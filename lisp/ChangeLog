@@ -17,8 +17,7 @@
 
 	* term/mac-win.el: Provide mac-win.
 	(mac-initialized): New variable.
-	(mac-initialize-window-system): New function.  Move global setup
-	here.
+	(mac-initialize-window-system): New function.  Move global setup here.
 	(handle-args-function-alist, frame-creation-function-alist):
 	(window-system-initialization-alist): Add mac entries.
 	(x-setup-function-keys): New function containing all the
@@ -26,13 +25,12 @@
 
 	* term/x-win.el (x-menu-bar-open): Use accelerate-menu.
 
-        * env.el (read-envvar-name): Don't consider the environment frame
-        param.
+	* env.el (read-envvar-name): Don't consider the environment frame param.
 
-        * env.el (setenv):
-        * frame.el (frame-initialize, make-frame):
-        * faces.el (tty-set-up-initial-frame-faces):
-        * server.el (server-process-filter):  Set
+	* env.el (setenv):
+	* frame.el (frame-initialize, make-frame):
+	* faces.el (tty-set-up-initial-frame-faces):
+	* server.el (server-process-filter): Set
 	display-environment-variable and term-environment-variable.
 
 	* server.el (server-process-filter): Set COLORFGBG and COLORTERM.
@@ -43,16 +41,14 @@
 	Load term/w32-win and dependencies on windows-nt.
 
 	* term/w32-win.el: Reorder to match x-win.el more closely.
-	Provide w32-win.  Don't throw error when global window-system not
-	w32.
+	Provide w32-win.  Don't throw error when global window-system not w32.
 	(internal-face-interactive): Remove obsolete function.
 	(x-setup-function-keys): Use local-function-key-map.
 	(w32-initialized): New variable.
 	(w32-initialize-window-system): Set it.
 	Move more global setup here.
 	(x-setup-function-keys): New function.
-	(w32-initialize-window-system): Move non function key global setup
-	here.
+	(w32-initialize-window-system): Move non function key global setup here.
 	(x-cut-buffer-max): Remove.
 	(w32-initialize-window-system): New function.
 	(handle-args-function-alist, frame-creation-function-alist):
@@ -174,7 +170,7 @@
 	"Tool-bar" toggles to reflect the state of the current frame.
 	(menu-bar-mode): Simplify and fix using `modify-all-frames-parameters'.
 
-	* env.el Require cl for byte compilation (for `block' and `return').
+	* env.el: Require cl for byte compilation (for `block' and `return').
 	(environment, setenv-internal): New functions.
 	(let-environment): New macro.
 	(setenv, getenv): Add optional terminal parameter.  Update docs.
@@ -337,8 +333,7 @@
 
 2007-08-28  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-set-file-times): Flush the file
-	properties.
+	* net/tramp.el (tramp-handle-set-file-times): Flush the file properties.
 	(tramp-set-file-uid-gid, tramp-get-local-uid)
 	(tramp-get-local-gid): New defuns.
 	(tramp-handle-copy-file): Handle new parameter PRESERVE-UID-GID.
@@ -376,8 +371,7 @@
 
 2007-08-28  Glenn Morris  <rgm@gnu.org>
 
-	* progmodes/cc-langs.el (c-constant-kwds): Add java: null, true,
-	false.
+	* progmodes/cc-langs.el (c-constant-kwds): Add java: null, true, false.
 
 2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
