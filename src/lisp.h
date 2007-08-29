@@ -3009,6 +3009,7 @@ extern void init_keyboard P_ ((void));
 extern void syms_of_keyboard P_ ((void));
 extern void keys_of_keyboard P_ ((void));
 extern char *push_key_description P_ ((unsigned int, char *, int));
+extern void add_user_signal P_ ((int sig, const char *name));
 
 
 /* defined in indent.c */
@@ -3120,7 +3121,7 @@ EXFUN (Fcall_process, MANY);
 extern int child_setup P_ ((int, int, int, char **, int, Lisp_Object));
 extern void init_callproc_1 P_ ((void));
 extern void init_callproc P_ ((void));
-extern void set_global_environment P_ ((void));
+extern void set_initial_environment P_ ((void));
 extern void syms_of_callproc P_ ((void));
 
 /* defined in doc.c */
