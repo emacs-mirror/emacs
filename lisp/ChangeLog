@@ -1,3 +1,8 @@
+2007-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (invisible-p): Remove: implemented in C now.
+	(line-move-invisible-p): Remove obsolete alias.
+
 2007-08-28  Juri Linkov  <juri@jurta.org>
 
 	* image-mode.el (image-type): New variable.
@@ -23,12 +28,10 @@
 	(tramp-do-copy-or-rename-file): New parameter PRESERVE-UID-GID.
 	Improve fast track.
 	(tramp-do-copy-or-rename-file-directly): Sync parameter list with
-	the other tramp-do-copy-or-rename-file-* functions.  Major
-	rewrite.
+	the other tramp-do-copy-or-rename-file-* functions.  Major rewrite.
 	(tramp-handle-file-local-copy, tramp-handle-insert-file-contents)
 	(tramp-handle-write-region): Improve fast track.
-	(tramp-handle-file-remote-p): IDENTIFICATION can also be
-	'localname.
+	(tramp-handle-file-remote-p): IDENTIFICATION can also be `localname'.
 	(tramp-maybe-open-connection): Let `process-adaptive-read-buffering'
 	be nil.
 

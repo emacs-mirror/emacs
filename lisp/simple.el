@@ -3639,16 +3639,6 @@ Outline mode sets this."
   :type 'boolean
   :group 'editing-basics)
 
-(defun invisible-p (pos)
-  "Return non-nil if the character after POS is currently invisible."
-  (let ((prop
-	 (get-char-property pos 'invisible)))
-    (if (eq buffer-invisibility-spec t)
-	prop
-      (or (memq prop buffer-invisibility-spec)
-	  (assq prop buffer-invisibility-spec)))))
-(define-obsolete-function-alias 'line-move-invisible-p 'invisible-p)
-
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
   (if (< arg 0)
