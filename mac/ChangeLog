@@ -1,5 +1,7 @@
 2007-08-29  Glenn Morris  <rgm@gnu.org>
 
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
+	(CFBundleGetInfoString)
 	* src/Emacs.r: Increase version to 23.0.50.
 
 2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
