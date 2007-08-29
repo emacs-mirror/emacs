@@ -280,7 +280,7 @@ check_x_display_info (object)
     }
   else if (INTEGERP (object))
     {
-      struct terminal *t = get_terminal (XINT (object), 1);
+      struct terminal *t = get_terminal (object, 1);
 
       if (t->type != output_x_window)
         error ("Terminal %d is not an X display", XINT (object));
@@ -2874,7 +2874,9 @@ x_icon (f, parms)
      Lisp_Object parms;
 {
   Lisp_Object icon_x, icon_y;
+#if 0
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+#endif
 
   /* Set the position of the icon.  Note that twm groups all
      icons in an icon window.  */
