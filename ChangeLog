@@ -1,3 +1,7 @@
+2007-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* README: Increase version to 23.0.50.
+
 2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: New option: --without-xaw3d.
