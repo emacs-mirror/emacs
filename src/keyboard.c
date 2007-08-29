@@ -1536,6 +1536,8 @@ command_loop_1 ()
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
   current_kboard->Vreal_last_command = real_this_command;
+  if (!CONSP (last_command_char))
+    current_kboard->Vlast_repeatable_command = real_this_command;
 
   while (1)
     {
@@ -1916,6 +1918,8 @@ command_loop_1 ()
 	{
 	  current_kboard->Vlast_command = Vthis_command;
 	  current_kboard->Vreal_last_command = real_this_command;
+	  if (!CONSP (last_command_char))
+	    current_kboard->Vlast_repeatable_command = real_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_command_key_count_reset = 0;
@@ -10970,6 +10974,7 @@ init_kboard (kb)
   kb->Voverriding_terminal_local_map = Qnil;
   kb->Vlast_command = Qnil;
   kb->Vreal_last_command = Qnil;
+  kb->Vlast_repeatable_command = Qnil;
   kb->Vprefix_arg = Qnil;
   kb->Vlast_prefix_arg = Qnil;
   kb->kbd_queue = Qnil;
@@ -11457,6 +11462,11 @@ was a kill command.  */);
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
 		 doc: /* Same as `last-command', but never altered by Lisp code.  */);
 
+  DEFVAR_KBOARD ("last-repeatable-command", Vlast_repeatable_command,
+		 doc: /* Last command that may be repeated.
+The last command executed that was not bound to an input event.
+This is the command `repeat' will try to repeat.  */);
+
   DEFVAR_LISP ("this-command", &Vthis_command,
 	       doc: /* The command now being executed.
 The command can set this variable; whatever is put here
@@ -11855,6 +11865,7 @@ mark_kboards ()
       mark_object (kb->Voverriding_terminal_local_map);
       mark_object (kb->Vlast_command);
       mark_object (kb->Vreal_last_command);
+      mark_object (kb->Vlast_repeatable_command);
       mark_object (kb->Vprefix_arg);
       mark_object (kb->Vlast_prefix_arg);
       mark_object (kb->kbd_queue);
