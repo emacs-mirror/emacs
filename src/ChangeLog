@@ -35,6 +35,7 @@
 	(mac_create_terminal): ... to this new function.
 
 	* macterm.h (struct mac_display_info): Add terminal.
+	(mac_initialize): Delete declaration.
 
 	* puresize.h (BASE_PURESIZE): Increase base value to 1164000.
 
