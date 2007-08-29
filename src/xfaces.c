@@ -3224,12 +3224,13 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 
 
 
+#if 0				/* Seems to be unused.  */
 static Lisp_Object
 internal_resolve_face_name (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
-  Fget (args[0], args[1]);
+  return Fget (args[0], args[1]);
 }
 
 static Lisp_Object
@@ -3238,6 +3239,7 @@ resolve_face_name_error (ignore)
 {
   return Qnil;
 }
+#endif
 
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symbol.  If FACE_NAME is an alias for another face,
