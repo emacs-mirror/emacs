@@ -83,6 +83,9 @@ struct kboard
        other commands.  */
     Lisp_Object Vreal_last_command;
 
+    /* Last command that may be repeated by `repeat'.  */
+    Lisp_Object Vlast_repeatable_command;
+
     /* The prefix argument for the next command, in raw form.  */
     Lisp_Object Vprefix_arg;
 
