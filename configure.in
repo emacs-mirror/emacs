@@ -119,6 +119,8 @@ AC_ARG_WITH(pkg-config-prog,
 AC_ARG_WITH(toolkit-scroll-bars,
 [  --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars])
+AC_ARG_WITH(xpm,
+[  --without-xaw3d         don't use Xaw3d])
 AC_ARG_WITH(xim,
 [  --without-xim           don't use X11 XIM])
 AC_ARG_WITH(carbon,
@@ -2300,14 +2302,18 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test x"${HAVE_X11R5}" != xyes; then
     USE_X_TOOLKIT=none
   else
-    AC_MSG_CHECKING(for xaw3d)
-    AC_CACHE_VAL(emacs_cv_xaw3d,
-    [AC_TRY_LINK([
+    if test "$with_xaw3d" != no; then
+      AC_MSG_CHECKING(for xaw3d)
+      AC_CACHE_VAL(emacs_cv_xaw3d,
+      [AC_TRY_LINK([
 #include <X11/Intrinsic.h>
 #include <X11/Xaw3d/Simple.h>],
-      [],
-      emacs_cv_xaw3d=yes,
-      emacs_cv_xaw3d=no)])
+        [],
+        emacs_cv_xaw3d=yes,
+        emacs_cv_xaw3d=no)])
+    else
+      emacs_cv_xaw3d=no
+    fi
     if test $emacs_cv_xaw3d = yes; then
       AC_MSG_RESULT([yes; using Lucid toolkit])
       USE_X_TOOLKIT=LUCID
