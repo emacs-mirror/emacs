@@ -152,6 +152,11 @@ member of that sequence.  If this variable is nil, no re-execution occurs."
 ;; with auto-filling.  Most problems are eliminated by remembering what we're
 ;; self-inserting, so we only need to get it from the undo information once.
 
+;; With Emacs 22.2 the variable `last-repeatable-command' stores the
+;; most recently executed command that was not bound to an input event.
+;; `repeat' now repeats that command instead of `real-last-command' to
+;; avoid a "... must be bound to an event with parameters" error.
+
 (defvar repeat-last-self-insert nil
   "If last repeated command was `self-insert-command', it inserted this.")
 
@@ -198,13 +203,18 @@ this function is always whether the value of `this-command' would've been
 ;;;###autoload
 (defun repeat (repeat-arg)
   "Repeat most recently executed command.
-With prefix arg, apply new prefix arg to that command; otherwise, use
-the prefix arg that was used before (if any).
+With prefix arg, apply new prefix arg to that command; otherwise,
+use the prefix arg that was used before (if any).
 This command is like the `.' command in the vi editor.
 
-If this command is invoked by a multi-character key sequence, it can then
-be repeated by repeating the final character of that sequence.  This behavior
-can be modified by the global variable `repeat-on-final-keystroke'."
+If this command is invoked by a multi-character key sequence, it
+can then be repeated by repeating the final character of that
+sequence.  This behavior can be modified by the global variable
+`repeat-on-final-keystroke'.
+
+`repeat' ignores commands bound to input events.  Hence the term
+\"most recently executed command\" shall be read as \"most
+recently executed command not bound to an input event\"."
   ;; The most recently executed command could be anything, so surprises could
   ;; result if it were re-executed in a context where new dynamically
   ;; localized variables were shadowing global variables in a `let' clause in
@@ -214,17 +224,19 @@ can be modified by the global variable `repeat-on-final-keystroke'."
   ;; "repeat-" prefix, reserved by this package, for *local* variables that
   ;; might be visible to re-executed commands, including this function's arg.
   (interactive "P")
-  (when (eq real-last-command 'repeat)
-    (setq real-last-command repeat-previous-repeated-command))
-  (when (null real-last-command)
+  (when (eq last-repeatable-command 'repeat)
+    (setq last-repeatable-command repeat-previous-repeated-command))
+  (cond
+   ((null last-repeatable-command)
     (error "There is nothing to repeat"))
-  (when (eq real-last-command 'mode-exit)
-    (error "real-last-command is mode-exit & can't be repeated"))
-  (when (memq real-last-command repeat-too-dangerous)
-    (error "Command %S too dangerous to repeat automatically" real-last-command))
-  (setq this-command                      real-last-command
-        repeat-num-input-keys-at-repeat   num-input-keys)
-  (setq repeat-previous-repeated-command this-command)
+   ((eq last-repeatable-command 'mode-exit)
+    (error "last-repeatable-command is mode-exit & can't be repeated"))
+   ((memq last-repeatable-command repeat-too-dangerous)
+    (error "Command %S too dangerous to repeat automatically"
+	   last-repeatable-command)))
+  (setq this-command last-repeatable-command
+	repeat-previous-repeated-command last-repeatable-command
+        repeat-num-input-keys-at-repeat num-input-keys)
   (when (null repeat-arg)
     (setq repeat-arg last-prefix-arg))
   ;; Now determine whether to loop on repeated taps of the final character
@@ -234,25 +246,29 @@ can be modified by the global variable `repeat-on-final-keystroke'."
   ;; needs to be saved.
   (let ((repeat-repeat-char
          (if (eq repeat-on-final-keystroke t)
-             ;; allow any final input event that was a character
-             (when (eq last-command-char
-                       last-command-event)
-               last-command-char)
+	     ;; The following commented out since it's equivalent to
+	     ;; last-comment-char (martin 2007-08-29).
+;;;              ;; allow any final input event that was a character
+;;;              (when (eq last-command-char
+;;;                        last-command-event)
+;;;                last-command-char)
+	     last-command-char
            ;; allow only specified final keystrokes
            (car (memq last-command-char
                       (listify-key-sequence
                        repeat-on-final-keystroke))))))
-    (if (memq real-last-command '(exit-minibuffer
-				  minibuffer-complete-and-exit
-				  self-insert-and-exit))
+    (if (memq last-repeatable-command '(exit-minibuffer
+					minibuffer-complete-and-exit
+					self-insert-and-exit))
         (let ((repeat-command (car command-history)))
           (repeat-message "Repeating %S" repeat-command)
           (eval repeat-command))
       (if (null repeat-arg)
-          (repeat-message "Repeating command %S" real-last-command)
-        (setq current-prefix-arg                   repeat-arg)
-        (repeat-message "Repeating command %S %S" repeat-arg real-last-command))
-      (if (eq real-last-command 'self-insert-command)
+          (repeat-message "Repeating command %S" last-repeatable-command)
+        (setq current-prefix-arg repeat-arg)
+        (repeat-message
+	 "Repeating command %S %S" repeat-arg last-repeatable-command))
+      (if (eq last-repeatable-command 'self-insert-command)
           (let ((insertion
                  (if (<= (- num-input-keys
                             repeat-num-input-keys-at-self-insert)
@@ -275,18 +291,22 @@ can be modified by the global variable `repeat-on-final-keystroke'."
 	    (setq insertion (substring insertion -1))
 	    (let ((count (prefix-numeric-value repeat-arg))
 		  (i 0))
+	      ;; Run pre- and post-command hooks for self-insertion too.
+	      (run-hooks 'pre-command-hook)
 	      (while (< i count)
 		(repeat-self-insert insertion)
-		(setq i (1+ i)))))
-	(let ((indirect (indirect-function real-last-command)))
+		(setq i (1+ i)))
+	      (run-hooks 'post-command-hook)))
+	(let ((indirect (indirect-function last-repeatable-command)))
 	  (if (or (stringp indirect)
 		  (vectorp indirect))
-	      ;; Bind real-last-command so that executing the macro
-	      ;; does not alter it.
-	      (let ((real-last-command real-last-command))
-		(execute-kbd-macro real-last-command))
+	      ;; Bind real-last-command so that executing the macro does
+	      ;; not alter it.  Do the same for last-repeatable-command.
+	      (let ((real-last-command real-last-command)
+		    (last-repeatable-command last-repeatable-command))
+		(execute-kbd-macro last-repeatable-command))
             (run-hooks 'pre-command-hook)
-	    (call-interactively real-last-command)
+	    (call-interactively last-repeatable-command)
             (run-hooks 'post-command-hook)))))
     (when repeat-repeat-char
       ;; A simple recursion here gets into trouble with max-lisp-eval-depth
@@ -295,6 +315,7 @@ can be modified by the global variable `repeat-on-final-keystroke'."
       ;; max-lisp-eval-depth), but if I now locally disable the repeat char I
       ;; can iterate indefinitely here around a single level of recursion.
       (let (repeat-on-final-keystroke)
+	(setq real-last-command 'repeat)
         (while (eq (read-event) repeat-repeat-char)
 	  ;; Make each repetition undo separately.
 	  (undo-boundary)
