@@ -1,3 +1,9 @@
+2007-08-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* commands.texi (Command Loop Info): Advise against changing
+	most variables described here.  Explain new variable
+	last-repeatable-command.
+
 2007-08-27  Richard Stallman  <rms@gnu.org>
 
 	* windows.texi (Window Configurations): Clarify what
