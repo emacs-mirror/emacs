@@ -1,3 +1,7 @@
+2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* NEWS.22 (Note): Lower-case for orgtbl-mode.
+
 2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* NEWS: Say that Gtk+ build uses stock icons.
