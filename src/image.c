@@ -2377,7 +2377,7 @@ x_find_image_file (file)
 		       Vx_bitmap_file_path);
   GCPRO2 (file_found, search_path);
 
-  /* Try to find FILE in data-directory, then x-bitmap-file-path.  */
+  /* Try to find FILE in data-directory/images, then x-bitmap-file-path.  */
   fd = openp (search_path, file, Qnil, &file_found, Qnil);
 
   if (fd == -1)
