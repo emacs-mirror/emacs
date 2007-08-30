@@ -1,3 +1,8 @@
+2007-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AH_BOTTOM): Copy some manual changes made to
+	src/config.in here so they are not lost when it regenerates.
+
 2007-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* README: Increase version to 23.0.50.
