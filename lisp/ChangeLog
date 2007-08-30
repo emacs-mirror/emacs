@@ -1,3 +1,8 @@
+2007-08-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (backup-buffer-copy): Try to overwrite old backup
+	first.
+
 2007-08-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* repeat.el (repeat): Use last-repeatable-command instead of
