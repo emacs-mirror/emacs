@@ -1,3 +1,9 @@
+2007-08-30  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
+
+	* progmodes/grep.el (grep-find-ignored-directories): Add
+	monotone _MTN bookkeeping directory in workspaces.  Add
+	RCS control directory.  List items in alphabetical order.
+
 2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-extra-menu-map): New variable.
