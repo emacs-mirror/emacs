@@ -1,3 +1,7 @@
+2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 5.07
+
 2007-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (EMACSVER): Increase to 23.0.50.
