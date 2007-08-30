@@ -1,3 +1,9 @@
+2007-08-30  Richard Stallman  <rms@gnu.org>
+
+	* speedbar.el (speedbar-frame-reposition-smartly)
+	(speedbar-set-mode-line-format, speedbar-reconfigure-keymaps)
+	(speedbar-check-vc): Don't use dframe-xemacsp.
+
 2007-08-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (backup-buffer-copy): Try to overwrite old backup
