@@ -3127,18 +3127,22 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  ;; loosen them later, whereas it's impossible to close the
 	  ;; time-window of loose permissions otherwise.
 	  (set-default-file-modes ?\700)
-	  (while (condition-case ()
-		     (progn
-		       (and (file-exists-p to-name)
-			    (delete-file to-name))
-		       (copy-file from-name to-name nil t)
-		       nil)
-		   (file-already-exists t))
-	    ;; The file was somehow created by someone else between
-	    ;; `delete-file' and `copy-file', so let's try again.
-	    ;; rms says "I think there is also a possible race
-	    ;; condition for making backup files" (emacs-devel 20070821).
-	    nil))
+	  (when (condition-case nil
+		    ;; Try to overwrite old backup first.
+		    (copy-file from-name to-name t t)
+		  (error t))
+	    (while (condition-case nil
+		       (progn
+			 (when (file-exists-p to-name)
+			   (delete-file to-name))
+			 (copy-file from-name to-name nil t)
+			 nil)
+		     (file-already-exists t))
+	      ;; The file was somehow created by someone else between
+	      ;; `delete-file' and `copy-file', so let's try again.
+	      ;; rms says "I think there is also a possible race
+	      ;; condition for making backup files" (emacs-devel 20070821).
+	      nil)))
       ;; Reset the umask.
       (set-default-file-modes umask)))
   (and modes
