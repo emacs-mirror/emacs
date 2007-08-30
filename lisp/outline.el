@@ -215,8 +215,8 @@ in the file it applies to."
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
 
-(defvar outline-font-lock-levels nil)
-(make-variable-buffer-local 'outline-font-lock-levels)
+;; (defvar outline-font-lock-levels nil)
+;; (make-variable-buffer-local 'outline-font-lock-levels)
 
 (defun outline-font-lock-face ()
   ;; (save-excursion
@@ -241,9 +241,7 @@ in the file it applies to."
   (save-excursion
     (goto-char (match-beginning 0))
     (looking-at outline-regexp)
-    (condition-case nil
-	(aref outline-font-lock-faces (1- (funcall outline-level)))
-      (error font-lock-warning-face))))
+    (aref outline-font-lock-faces (% (1- (funcall outline-level)) (length outline-font-lock-faces)))))
 
 (defvar outline-view-change-hook nil
   "Normal hook to be run after outline visibility changes.")
