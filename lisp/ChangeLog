@@ -4,6 +4,9 @@
 	monotone _MTN bookkeeping directory in workspaces.  Add
 	RCS control directory.  List items in alphabetical order.
 
+	* progmodes/grep.el (grep-files-aliases): Add cc alias.
+	Sort items in alphabetical order. Fix parens.
+
 2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-extra-menu-map): New variable.
