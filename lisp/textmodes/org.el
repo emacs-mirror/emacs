@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 5.07
+;; Version: 5.08
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -3827,7 +3827,7 @@ means to push this value onto the list in the variable.")
 			     kws0)
 		kwsa (if kwsa (append '((:startgroup)) kwsa '((:endgroup))))
 		hw (car kws1)
-		dws (if sep (cdr sep) (last kws1))
+		dws (if sep (org-remove-keyword-keys (cdr sep)) (last kws1))
 		tail (list inter hw (car dws) (org-last dws)))
 	  (add-to-list 'org-todo-heads hw 'append)
 	  (push kws1 org-todo-sets)
@@ -3936,6 +3936,12 @@ means to push this value onto the list in the variable.")
 
     (org-set-font-lock-defaults)))
 
+(defun org-remove-keyword-keys (list)
+  (mapcar (lambda (x)
+	    (if (string-match "(.)$" x)
+		(substring x 0 (match-beginning 0))
+	      x))
+	  list))
 
 ;;; Some variables ujsed in various places
 
