@@ -37,7 +37,9 @@
 	(org-mode): Hide drawers on startup.
 	(org-get-todo-face): New function.
 	(org-todo-keyword-faces): New option.
-
+	(org-set-regexps-and-options): Use `org-remove-keyword-keys'.
+	(org-remove-keyword-keys): New function.
+	
 2007-08-30  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
 
 	* progmodes/grep.el (grep-find-ignored-directories): Add
