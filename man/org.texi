@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 5.05
+@set VERSION 5.07
 @set DATE August 2007
 
 @dircategory Emacs
@@ -498,8 +498,8 @@ define @emph{global} keys for the commands @command{org-store-link} and
 @lisp
 ;; The following lines are always needed.  Choose your own keys.
 (add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
-(define-key global-map "\C-cl" 'org-store-link)
-(define-key global-map "\C-ca" 'org-agenda)
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-ca" 'org-agenda)
 @end lisp
 
 Furthermore, you must activate @code{font-lock-mode} in org-mode
@@ -848,9 +848,9 @@ Sort same-level entries.  When there is an active region, all entries in
 the region will be sorted.  Otherwise the children of the current
 headline are sorted.  The command prompts for the sorting method, which
 can be alphabetically, numerically, by time (using the first time stamp
-in each entry), and each of these in reverse order.  With a @kbd{C-u}
-prefix, sorting will be case-sensitive.  With two @kbd{C-u C-u}
-prefixes, duplicate entries will also be removed.
+in each entry), by priority, and each of these in reverse order.  With a
+@kbd{C-u} prefix, sorting will be case-sensitive.  With two @kbd{C-u
+C-u} prefixes, duplicate entries will also be removed.
 @end table
 
 @cindex region, active
@@ -938,7 +938,9 @@ file, the archive file.
 @kindex C-c C-x C-s
 @item C-c C-x C-s
 Archive the subtree starting at the cursor position to the location
-given by @code{org-archive-location}.
+given by @code{org-archive-location}.  Context information that could be
+lost like the file name, the category, inherited tags, and the todo
+state will be store as properties in the entry.
 @kindex C-u C-c C-x C-s
 @item C-u C-c C-x C-s
 Check if any direct children of the current headline could be moved to
@@ -994,9 +996,9 @@ match is in the body of an entry, headline and body are made visible.
 In order to provide minimal context, also the full hierarchy of
 headlines above the match is shown, as well as the headline following
 the match.  Each match is also highlighted; the highlights disappear
-when the buffer is changed an editing command, or by pressing @kbd{C-c
-C-c}.  When called with a @kbd{C-u} prefix argument, previous highlights
-are kept, so several calls to this command can be stacked.
+when the buffer is changed by an editing command, or by pressing
+@kbd{C-c C-c}.  When called with a @kbd{C-u} prefix argument, previous
+highlights are kept, so several calls to this command can be stacked.
 @end table
 @noindent
 For frequently used sparse trees of specific search strings, you can
@@ -1969,7 +1971,9 @@ Recompute the entire table, line by line.  Any lines before the first
 hline are left alone, assuming that these are part of the table header.
 @c
 @kindex C-u C-u C-c *
+@kindex C-u C-u C-c C-c
 @item C-u C-u C-c *
+@itemx C-u C-u C-c C-c
 Iterate the table by recomputing it until no further changes occur.
 This may be necessary if some computed fields use the value of other
 fields that are computed @i{later} in the calculation sequence.
@@ -2186,15 +2190,15 @@ earlier.
 @cindex targets, radio
 @cindex links, radio targets
 
-You can configure Org-mode to link any occurrences of certain target
-names in normal text.  So without explicitly creating a link, the text
-connects to the target radioing its position.  Radio targets are
-enclosed by triple angular brackets.  For example, a target
-@samp{<<<My Target>>>} causes each occurrence of @samp{my target} in
-normal text to become activated as a link.  The Org-mode file is
-scanned automatically for radio targets only when the file is first
-loaded into Emacs.  To update the target list during editing, press
-@kbd{C-c C-c} with the cursor on or at a target.
+Org-mode can automatically turn any occurrences of certain target names
+in normal text into a link.  So without explicitly creating a link, the
+text connects to the target radioing its position.  Radio targets are
+enclosed by triple angular brackets.  For example, a target @samp{<<<My
+Target>>>} causes each occurrence of @samp{my target} in normal text to
+become activated as a link.  The Org-mode file is scanned automatically
+for radio targets only when the file is first loaded into Emacs.  To
+update the target list during editing, press @kbd{C-c C-c} with the
+cursor on or at a target.
 
 @node External links, Handling links, Internal links, Hyperlinks
 @section External links
@@ -2406,8 +2410,8 @@ global commands, like this (please select suitable global keys
 yourself):
 
 @lisp
-(define-key global-map 'org-insert-link-global "\\C-c L")
-(define-key global-map 'org-open-at-point-global "\\C-c o")
+(global-set-key "\C-c L" 'org-insert-link-global)
+(global-set-key "\C-c o" 'org-open-at-point-global)
 @end lisp
 
 @node Link abbreviations, Search options, Using links outside Org-mode, Hyperlinks
@@ -2757,7 +2761,17 @@ agenda buffers with the @kbd{t} command key (@pxref{Agenda commands}).
 @item S-@key{right}
 @itemx S-@key{left}
 Select the following/preceding TODO state, similar to cycling.  Mostly
-useful if more than two TODO states are possible (@pxref{TODO extensions}).
+useful if more than two TODO states are possible (@pxref{TODO
+extensions}).
+@kindex C-c C-c
+@item C-c C-c
+Use the fast tag interface to quickly and directly select a specific
+TODO state.  For this you need to assign keys to TODO state, like this:
+@example
+#+SEQ_TODO: TODO(t) STARTED(s) WAITING(w) | DONE(d)
+@end example
+@noindent See @ref{Per file keywords} and @ref{Setting tags} for more
+information.
 @kindex C-c C-v
 @cindex sparse tree, for TODO
 @item C-c C-v
@@ -2775,9 +2789,6 @@ agenda files (@pxref{Agenda views}) into a single buffer.  The buffer is in
 @code{agenda-mode}, so there are commands to examine and manipulate
 the TODO entries directly from that buffer (@pxref{Agenda commands}).
 @xref{Global TODO list}, for more information.
-@c @item @code{org-agenda-include-all-todo}
-@c If you would like to have all your TODO items listed as part of your
-@c agenda, customize the variable @code{org-agenda-include-all-todo}.
 @kindex S-M-@key{RET}
 @item S-M-@key{RET}
 Insert a new TODO entry below the current one.
@@ -2930,11 +2941,10 @@ or
 A setup for using several sets in parallel would be:
 
 @example
-#+SEQ_TODO: "TODO" "|" "DONE"
-#+SEQ_TODO: "REPORT" "BUG" "KNOWNCAUSE" "|" "FIXED"
-#+SEQ_TODO: "|" "CANCELED"
+#+SEQ_TODO: TODO | DONE
+#+SEQ_TODO: REPORT BUG KNOWNCAUSE | FIXED
+#+SEQ_TODO: | CANCELED
 @end example
-
 
 @cindex completion, of option keywords
 @kindex M-@key{TAB}
@@ -5650,10 +5660,12 @@ file.
 @table @kbd
 @kindex C-c C-e a
 @item C-c C-e a
-Export as ASCII file.  If there is an active region, only the region
-will be exported.  For an org file @file{myfile.org}, the ASCII file
+Export as ASCII file.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
-warning.
+warning.  If there is an active region, only the region will be
+exported. If the selected region is a single tree, the tree head will
+become the document title.  If the tree head entry has or inherits an
+EXPORT_FILE_NAME property, that name will be used for the export.
 @kindex C-c C-e v a
 @item C-c C-e v a
 Export only the visible part of the document.
@@ -5703,10 +5715,16 @@ language, but with additional support for tables.
 @table @kbd
 @kindex C-c C-e h
 @item C-c C-e h
-Export as HTML file @file{myfile.html}.
+Export as HTML file @file{myfile.html}.  For an org file
+@file{myfile.org}, the ASCII file will be @file{myfile.html}.  The file
+will be overwritten without warning.  If there is an active region, only
+the region will be exported. If the selected region is a single tree,
+the tree head will become the document title.  If the tree head entry
+has or inherits an EXPORT_FILE_NAME property, that name will be used for
+the export.
 @kindex C-c C-e b
 @item C-c C-e b
-Export as HTML file and open it with a browser.
+Export as HTML file and immediately open it with a browser.
 @kindex C-c C-e H
 @item C-c C-e H
 Export to a temporary buffer, do not create a file.
