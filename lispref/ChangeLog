@@ -1,3 +1,13 @@
+2007-08-28  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Image Formats, Other Image Types): Add SVG.
+
+2007-08-28  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Images): Move formats-related text to new node
+	"Image Formats".
+	(Image Formats): New node.
+
 2007-08-25  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Images): Delete redundant @findex.
