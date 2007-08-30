@@ -1,3 +1,18 @@
+2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c: Qrtl is new.
+	(parse_tool_bar_item): Handle :rtl keyword.
+	(syms_of_keyboard): Intern :rtl keyword.
+
+	* dispextern.h (enum tool_bar_item_idx): Add TOOL_BAR_ITEM_RTL_IMAGE.
+
+	* gtkutil.c (xg_tool_bar_expose_callback): Just do SET_FRAME_GARBAGED
+	so no Lisp code is executed.
+	(file_for_image, find_rtl_image): New functions.
+	(xg_get_image_for_pixmap): Use file_for_image
+	(update_frame_tool_bar): If direction is RTL, use RTL image if
+	defined.  Use Gtk stock images if defined.
+
 2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_draw_composite_glyph_string_foreground): Draw rectangle

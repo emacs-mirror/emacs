@@ -1,3 +1,58 @@
+2007-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (invisible-p): Remove: implemented in C now.
+	(line-move-invisible-p): Remove obsolete alias.
+
+2007-08-28  Juri Linkov  <juri@jurta.org>
+
+	* image-mode.el (image-type): New variable.
+	(image-mode): Set default major mode name to "Image[text]".
+	(image-minor-mode): Change LIGHTER to display image-type in the
+	mode line.
+	(image-minor-mode): Set default image-type to "text".
+	(image-toggle-display): After switching to text mode, set
+	image-type to "text" and major mode name to "Image[text]".
+	After switching to image mode, set image-type to actual image
+	type, and add image type to major mode name.  Let-bind the same
+	variable names as arguments of `image-type' and `create-image'.
+	Bind `type' to the result of `image-type' and use it as arg
+	of `create-image' to not determine the image type twice.
+
+2007-08-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-set-file-times): Flush the file
+	properties.
+	(tramp-set-file-uid-gid, tramp-get-local-uid)
+	(tramp-get-local-gid): New defuns.
+	(tramp-handle-copy-file): Handle new parameter PRESERVE-UID-GID.
+	(tramp-do-copy-or-rename-file): New parameter PRESERVE-UID-GID.
+	Improve fast track.
+	(tramp-do-copy-or-rename-file-directly): Sync parameter list with
+	the other tramp-do-copy-or-rename-file-* functions.  Major rewrite.
+	(tramp-handle-file-local-copy, tramp-handle-insert-file-contents)
+	(tramp-handle-write-region): Improve fast track.
+	(tramp-handle-file-remote-p): IDENTIFICATION can also be `localname'.
+	(tramp-maybe-open-connection): Let `process-adaptive-read-buffering'
+	be nil.
+
+2007-08-28  Ivan Kanis  <apple@kanis.eu>
+
+	* time.el: New feature to display several time zones in a buffer.
+	(display-time-world-mode, display-time-world-display)
+	(display-time-world, display-time-world-timer): New functions.
+	(display-time-world-list, display-time-world-time-format)
+	(display-time-world-buffer-name, display-time-world-timer-enable)
+	(display-time-world-timer-second, display-time-world-mode-map):
+	New variables.
+
+2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): New variable.
+	(x-gtk-map-stock): New function.
+
+	* info.el (info-tool-bar-map): Add :rtl keyword to right/left-arrow and
+	prev/next-node.
+
 2007-08-28  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* play/gamegrid.el (gamegrid-init): Set line-spacing to 0.
