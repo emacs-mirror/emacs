@@ -1,3 +1,9 @@
+2007-08-30  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* outline.el (outline-font-lock-levels): Comment out unused var.
+	(outline-font-lock-face): Wrap around face list to handle any
+	nesting depth gracefully.
+
 2007-08-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el: Add ange-ftp property to 'set-file-modes and
