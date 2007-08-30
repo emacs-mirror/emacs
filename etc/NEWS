@@ -225,15 +225,22 @@ frame on another tty device interactively.
 *** The function `make-frame-on-display' now works during a tty
 session, and `make-frame-on-tty' works during a graphical session.
 
-*** New functions: frame-tty-name, frame-tty-type, delete-tty,
-suspend-tty, resume-tty, terminal-id, terminal-parameters,
-terminal-parameter, set-terminal-parameter,
-modify-terminal-parameters, environment, let-environment
+*** New functions: `delete-tty', `suspend-tty', `resume-tty'.
 
-*** New variables: local-key-translation-map, local-function-key-map
+*** New functions: `terminal-id', `terminal-parameters',
+`terminal-parameter', `set-terminal-parameter',
+`modify-terminal-parameters'.
 
-*** New frame parameters display-environment-variable and
-term-environment-variable.
+*** New functions: `environment', `let-environment'.
+
+*** New variables: `local-key-translation-map', `local-function-key-map'.
+These are in addition to the global key-translation-map and
+function-key-map variables that already existed.
+
+??? How do the new variables relate to the old ones?
+
+*** New frame parameters `display-environment-variable' and
+`term-environment-variable'.
 
 *** The `keyboard-translate-table' variable and the terminal and
 keyboard coding systems have been made terminal-local.
