@@ -157,8 +157,16 @@ The following place holders should be present in the string:
   :type 'alist
   :group 'grep)
 
-(defcustom grep-find-ignored-directories '("CVS" ".svn" "{arch}" ".hg" "_darcs"
-					   ".git" ".bzr")
+(defcustom grep-find-ignored-directories
+  '(".bzr"
+    ".git"
+    ".hg"
+    ".svn"
+    "CVS"
+    "RCS"
+    "_MTN"
+    "_darcs"
+    "{arch}")
   "*List of names of sub-directories which `rgrep' shall not recurse into."
   :type '(repeat string)
   :group 'grep)
