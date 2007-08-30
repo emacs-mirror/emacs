@@ -1,3 +1,8 @@
+2007-08-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el: Add ange-ftp property to 'set-file-modes and
+	'set-file-times.
+
 2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-export-visible): Fix drawers before export.
@@ -39,7 +44,7 @@
 	(org-todo-keyword-faces): New option.
 	(org-set-regexps-and-options): Use `org-remove-keyword-keys'.
 	(org-remove-keyword-keys): New function.
-	
+
 2007-08-30  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
 
 	* progmodes/grep.el (grep-find-ignored-directories): Add
@@ -2902,7 +2907,7 @@
 	* net/tramp-util.el:
 	* net/tramp-vc.el: Removed.
 
-	* net/ange-ftp.el: Add ange-ftp property to 'start-file-process
+	* net/ange-ftp.el: Add ange-ftp property to 'start-file-process.
 	(ange-ftp-file-remote-p): Handle optional parameter CONNECTED.
 
 	* net/rcompile.el (remote-compile): Handle Tramp 2.1 arguments.
