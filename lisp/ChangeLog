@@ -1,3 +1,43 @@
+2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-export-visible): Fix drawers before export.
+	(org-do-sort): Allow sorting by priority.
+	(org-agenda-files): Ignore non-existing files.
+	(org-agenda-skip-unavailable-files): New variable.
+	(org-ellipsis): All a face as value.
+	(org-mode): Interprete the face value of `org-ellipsis'.
+	(org-archive-save-context-info): New option.
+	(org-archive-subtree): Store context info in archived entry.
+	(org-fast-tag-selection-can-set-todo-state): New variable.
+	(org-fast-tag-selection): Allow setting TODO states through this
+	interface.
+	(org-cycle): Docstring updated.
+	(org-todo-keyword-faces): New option.
+	(org-get-todo-face): New function.
+	(org-set-font-lock-defaults, org-agenda-highlight-todo): Use
+	`org-get-todo-face'.
+	(org-switch-to-buffer-other-window): New function.
+	(org-table-edit-field, org-table-show-reference)
+	(org-table-edit-formulas, org-add-log-note)
+	(org-fast-tag-selection, org-agenda, org-prepare-agenda)
+	(org-timeline): Use `org-switch-to-buffer-other-window' instead of
+	`switch-to-buffer-other-window' to make sure that the temporary
+	windows show up on the current frame.
+	(org-mhe-get-message-real-folder, org-batch-store-agenda-views)
+	(org-get-entries-from-diary, org-replace-region-by-html): Don't
+	allow pop-up frames.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled): Fixed
+	problems with time-of-day.
+	(org-export-get-title-from-subtree): New function.
+	(org-agenda-get-scheduled, org-agenda-get-deadlines): Fix problems
+	with listing items that are DONE.
+	(org-change-tag-in-region): New command.
+	(org-agenda-skip-scheduled-if-done)
+	(org-agenda-skip-deadline-if-done): Docstring clarified.
+	(org-mode): Hide drawers on startup.
+	(org-get-todo-face): New function.
+	(org-todo-keyword-faces): New option.
+
 2007-08-30  Jari Aalto  <jari.aalto@cante.net>  (tiny change)
 
 	* progmodes/grep.el (grep-find-ignored-directories): Add
