@@ -34,6 +34,15 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** Support for multiple terminal devices and simultaneous graphical
+and tty frames has been added.  You can test for the presence of this
+feature in your Lisp code by testing for the `multi-tty' feature.
+
+** Emacsclient has been extended to support opening a new terminal
+frame.  Its behavior has been changed to open a new Emacs frame by
+default.  Use the -c option to get the old behavior of opening files in
+the currently selected Emacs frame.
+
 ** The refcards are now shipped as PDF files.
 
 ** Emacs now supports the SVG image format through librsvg2.
@@ -82,6 +91,9 @@ file or directory.
 
 * Editing Changes in Emacs 23.1
 
+** C-z now invokes `suspend-frame', C-x C-c now invokes
+`save-buffers-kill-terminal'.
+
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
 
 ** Minibuffer changes:
@@ -103,6 +115,8 @@ history element containing the search string becomes the current.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
+
+** talk.el has been extended for multiple tty support.
 
 ** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
@@ -195,6 +209,41 @@ supported on other platforms, but not on Windows due to using the winsock
 
 
 * Lisp Changes in Emacs 23.1
+
+** Changes related to multiple tty support.
+
+*** The `window-system' variable has been made frame-local. The new
+`initial-window-system' variable contains the `window-system' value
+for the first frame.
+
+*** You can specify a terminal device (`tty' parameter) and a terminal
+type (`tty-type' parameter) to `make-terminal-frame'.
+
+*** The new function `make-frame-on-tty' allows you to create a new
+frame on another tty device interactively.
+
+*** The function `make-frame-on-display' now works during a tty
+session, and `make-frame-on-tty' works during a graphical session.
+
+*** New functions: frame-tty-name, frame-tty-type, delete-tty,
+suspend-tty, resume-tty, terminal-id, terminal-parameters,
+terminal-parameter, set-terminal-parameter,
+modify-terminal-parameters, environment, let-environment
+
+*** New variables: local-key-translation-map, local-function-key-map
+
+*** New frame parameters display-environment-variable and
+term-environment-variable.
+
+*** The `keyboard-translate-table' variable and the terminal and
+keyboard coding systems have been made terminal-local.
+
+*** In addition to the global key-translation-map and
+function-key-map, Emacs has terminal-local local-key-translation-map
+and local-function-key-map variables, and uses them instead of the
+global keymaps to set up translations and function key sequences
+relevant to a specific terminal device.
+
 
 ** The function invisible-p returns non-nil if the character
    after a specified position is invisible, or if its argument
