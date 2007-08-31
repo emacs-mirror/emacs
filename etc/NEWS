@@ -191,6 +191,8 @@ on the corresponding remote system.
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
 
+*** The new command `eshell/info' runs info in an eshell buffer.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
