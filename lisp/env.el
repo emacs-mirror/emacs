@@ -193,8 +193,6 @@ a side-effect."
 						 variable value t))
     (setq frame (frame-with-environment frame))
     (cond
-     ((string-equal "TERM" variable)
-      (set-frame-parameter frame 'term-environment-variable value))
      ((string-equal "DISPLAY" variable)
       (set-frame-parameter frame 'display-environment-variable value))
      (t
