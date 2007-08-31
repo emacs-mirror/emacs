@@ -1,5 +1,12 @@
 2007-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.h:
+	* frame.c (Qterm_environment_variable): Remove.
+	(syms_of_frame): Don't init and staticpro it.
+
+
+	* callproc.c (getenv_internal): Remove special case for $TERM.
+
 	* callproc.c (Vinitial_environment): New variable.
 	(set_initial_environment): Initialize it.
 	(syms_of_callproc): Declare it.
