@@ -1,3 +1,7 @@
+2007-08-31  James Wright  <james@chumsley.org>
+
+	* eshell/em-unix.el (eshell/info): New function.
+
 2007-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (frame-initialize, make-frame):
