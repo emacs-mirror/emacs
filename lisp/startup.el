@@ -486,7 +486,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (run-hooks 'window-setup-hook))
 	(or menubar-bindings-done
 	    (if (display-popup-menus-p)
-		(precompute-menubar-bindings)))))))
+		(precompute-menubar-bindings)))))
+    ;; Subprocesses of Emacs do not have direct access to the terminal, so
+    ;; unless told otherwise they should only assume a dumb terminal.
+    ;; We are careful to do it late (after term-setup-hook), although the
+    ;; new multi-tty code does not use $TERM any more there anyway.
+    (setenv "TERM" "dumb")))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 (defun precompute-menubar-bindings ()
