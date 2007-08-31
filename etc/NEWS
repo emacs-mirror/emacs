@@ -244,8 +244,7 @@ function-key-map variables that already existed.
 
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 
-*** New frame parameters `display-environment-variable' and
-`term-environment-variable'.
+*** New frame parameter `display-environment-variable'.
 
 *** The `keyboard-translate-table' variable and the terminal and
 keyboard coding systems have been made terminal-local.
