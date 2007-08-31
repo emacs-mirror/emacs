@@ -1978,9 +1978,9 @@ if test "${with_toolkit_scroll_bars+set}" = set; then
 fi
 
 
-# Check whether --with-xpm was given.
-if test "${with_xpm+set}" = set; then
-  withval=$with_xpm;
+# Check whether --with-xaw3d was given.
+if test "${with_xaw3d+set}" = set; then
+  withval=$with_xaw3d;
 fi
 
 
