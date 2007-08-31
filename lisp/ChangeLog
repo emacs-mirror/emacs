@@ -1,5 +1,12 @@
 2007-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.el (frame-initialize, make-frame):
+	* server.el (server-process-filter):
+	* faces.el (tty-set-up-initial-frame-faces): Don't set
+	term-environment-variable since it's not used any more.
+
+	* env.el (setenv): Don't treat $TERM specially.
+
 	* startup.el (normal-top-level): Set $TERM to `dumb' so that unless
 	stated otherwise, subprocesses do not send back escape sequences
 	corresponding to the terminal from which Emacs was started.

@@ -241,8 +241,6 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	;; Copy the environment of the Emacs process into the new frame.
 	(set-frame-parameter frame-initial-frame 'environment
 			     (frame-parameter terminal-frame 'environment))
-	(set-frame-parameter frame-initial-frame 'term-environment-variable
-			     (getenv "TERM"))
 	(set-frame-parameter frame-initial-frame 'display-environment-variable
 			     (getenv "DISPLAY"))
 	;; At this point, we know that we have a frame open, so we
@@ -731,14 +729,11 @@ setup is for focus to follow the pointer."
     ;; Inherit the 'environment and 'client parameters.
     (let ((env (frame-parameter oldframe 'environment))
 	  (client (frame-parameter oldframe 'client))
-	   (termenv (frame-parameter oldframe 'term-environment-variable))
 	   (displayenv (frame-parameter oldframe 'display-environment-variable)))
       (if (not (framep env))
 	  (setq env oldframe))
       (if (and env (not (assq 'environment parameters)))
 	  (set-frame-parameter frame 'environment env))
-      (if (and termenv (not (assq 'term-environment-variable parameters)))
-	  (set-frame-parameter frame 'term-environment-variable termenv))
       (if (and displayenv (not (assq 'display-environment-variable parameters)))
 	  (set-frame-parameter frame 'display-environment-variable displayenv))
       (if (and client (not (assq 'client parameters)))
