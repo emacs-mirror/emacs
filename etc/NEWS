@@ -239,6 +239,8 @@ function-key-map variables that already existed.
 
 ??? How do the new variables relate to the old ones?
 
+*** `initial-environment' holds the environment inherited from Emacs's parent.
+
 *** New frame parameters `display-environment-variable' and
 `term-environment-variable'.
 
