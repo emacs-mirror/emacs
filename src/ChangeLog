@@ -1,3 +1,7 @@
+2007-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Initialize wbutton to NULL.
+
 2007-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.h:
