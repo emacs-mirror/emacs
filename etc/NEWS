@@ -212,6 +212,9 @@ supported on other platforms, but not on Windows due to using the winsock
 
 ** Changes related to multiple tty support.
 
+*** $TERM is now set to `dumb' for subprocesses.  If you want to know the
+$TERM inherited by Emacs you will have to look inside initial-environment.
+
 *** The `window-system' variable has been made frame-local. The new
 `initial-window-system' variable contains the `window-system' value
 for the first frame.
