@@ -1,3 +1,7 @@
+2007-08-31  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* calculator.el: Require cl for compilation.
+
 2007-08-30  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* outline.el (outline-font-lock-levels): Comment out unused var.
