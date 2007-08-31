@@ -1,3 +1,9 @@
+2007-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): Add etc/images to keys.
+	(x-gtk-map-stock): Use two directory elements when matching
+	file name.
+
 2007-08-31  James Wright  <james@chumsley.org>
 
 	* eshell/em-unix.el (eshell/info): New function.
