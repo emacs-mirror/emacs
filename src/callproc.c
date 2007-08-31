@@ -1519,7 +1519,6 @@ getenv_internal (var, varlen, value, valuelen, frame)
      Lisp_Object frame;
 {
   Lisp_Object scan;
-  Lisp_Object term;
   Lisp_Object display;
 
   /* FIXME: Code duplication.  */
@@ -1557,15 +1556,7 @@ getenv_internal (var, varlen, value, valuelen, frame)
       frame = selected_frame;
     }
 
-  /* For TERM and DISPLAY first try to get the values from the frame. */
-  term = get_frame_param (XFRAME (frame), Qterm_environment_variable);
-  if (strcmp (var, "TERM") == 0)
-    if (! NILP (term))
-      {
-	  *value    = (char *) SDATA (term);
-	  *valuelen = SBYTES (term);
-	  return 1;
-      }
+  /* For DISPLAY first try to get the values from the frame. */
   display = get_frame_param (XFRAME (frame), Qdisplay_environment_variable);
   if (strcmp (var, "DISPLAY") == 0)
     if (! NILP (display))
