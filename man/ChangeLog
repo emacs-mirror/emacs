@@ -1,3 +1,7 @@
+2007-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* rmail.texi (Rmail Sorting): Improve indexing.
+
 2007-08-24  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
 
 	* message.texi (MIME): Replace mml-attach with mml-attach-file.
