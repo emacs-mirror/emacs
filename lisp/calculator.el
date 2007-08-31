@@ -5,7 +5,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2006-02-06 13:36:00 ttn>
+;; Time-stamp: <2007-08-31 03:00:11 ttn>
 
 ;; This file is part of GNU Emacs.
 
@@ -47,6 +47,7 @@
 ;;; History:
 ;; I hate history.
 
+(eval-when-compile (require 'cl))
 (eval-and-compile
   (if (fboundp 'defgroup) nil
     (defmacro defgroup (&rest forms) nil)
