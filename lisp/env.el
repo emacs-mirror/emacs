@@ -192,12 +192,12 @@ a side-effect."
       (setq process-environment (setenv-internal process-environment
 						 variable value t))
     (setq frame (frame-with-environment frame))
-    (cond 
+    (cond
      ((string-equal "TERM" variable)
       (set-frame-parameter frame 'term-environment-variable value))
      ((string-equal "DISPLAY" variable)
       (set-frame-parameter frame 'display-environment-variable value))
-     (t 
+     (t
       (setq process-environment (setenv-internal process-environment
 						 variable value nil)))))
   value)
@@ -316,5 +316,5 @@ All the VALUEFORMs are evaluated before any variables are set."
 
 (provide 'env)
 
-;;; arch-tag: b7d6a8f7-bc81-46db-8e39-8d721d4ed0b8
+;; arch-tag: b7d6a8f7-bc81-46db-8e39-8d721d4ed0b8
 ;;; env.el ends here
