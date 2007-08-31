@@ -766,8 +766,6 @@ The following commands are accepted by the client:
 			  (modify-frame-parameters frame params)
 			  (set-frame-parameter frame 'display-environment-variable 
 					       (server-getenv-from env "DISPLAY"))
-			  (set-frame-parameter frame 'term-environment-variable 
-					       (server-getenv-from env "TERM"))
 			  (select-frame frame)
 			  (server-client-set client 'frame frame)
 			  (server-client-set client 'terminal (frame-terminal frame))
@@ -828,8 +826,6 @@ The following commands are accepted by the client:
 	      
 		      (set-frame-parameter frame 'display-environment-variable 
 					   (server-getenv-from env "DISPLAY"))
-		      (set-frame-parameter frame 'term-environment-variable 
-					   (server-getenv-from env "TERM"))
 		      (select-frame frame)
 		      (server-client-set client 'frame frame)
 		      (server-client-set client 'tty (terminal-name frame))
