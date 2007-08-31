@@ -433,7 +433,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-svn-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
-  (vc-svn-diff (file-name-as-directory dir) rev1 rev2))
+  (vc-svn-diff (list (file-name-as-directory dir)) rev1 rev2))
 
 ;;;
 ;;; Snapshot system
