@@ -1,5 +1,10 @@
 2007-08-31  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
+	* textmodes/flyspell.el (flyspell-mark-duplications-exceptions):
+	New variable.  List of exceptions for the duplicated word rule.
+	(flyspell-mark-duplications-flag): Mention it.
+	(flyspell-word): Treat it.
+
 	* files.el (create-file-buffer): If the filename sans directory starts
 	with spaces, remove them.
 
