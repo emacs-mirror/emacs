@@ -401,6 +401,7 @@ exists."
 (defconst x-pointer-ur-angle 148)
 (defconst x-pointer-watch 150)
 (defconst x-pointer-xterm 152)
+(defconst x-pointer-invisible 255)
 
 ;;
 ;; Available colors
@@ -2578,27 +2579,27 @@ order until succeed.")
 
 (defcustom x-gtk-stock-map
   '(
-    ("new" . "gtk-new")
-    ("open" . "gtk-open")
-    ("diropen" . "gtk-directory")
-    ("close" . "gtk-close")
-    ("save" . "gtk-save")
-    ("saveas" . "gtk-save-as")
-    ("undo" . "gtk-undo")
-    ("cut" . "gtk-cut")
-    ("copy" . "gtk-copy")
-    ("paste" . "gtk-paste")
-    ("search" . "gtk-find")
-    ("print" . "gtk-print")
-    ("preferences" . "gtk-preferences")
-    ("help" . "gtk-help")
-    ("left-arrow" . "gtk-go-back")
-    ("right-arrow" . "gtk-go-forward")
-    ("home" . "gtk-home")
-    ("jump-to" . "gtk-jump-to")
-    ("index" . "gtk-index")
-    ("search" . "gtk-find")
-    ("exit" . "gtk-quit"))
+    ("etc/images/new" . "gtk-new")
+    ("etc/images/open" . "gtk-open")
+    ("etc/images/diropen" . "gtk-directory")
+    ("etc/images/close" . "gtk-close")
+    ("etc/images/save" . "gtk-save")
+    ("etc/images/saveas" . "gtk-save-as")
+    ("etc/images/undo" . "gtk-undo")
+    ("etc/images/cut" . "gtk-cut")
+    ("etc/images/copy" . "gtk-copy")
+    ("etc/images/paste" . "gtk-paste")
+    ("etc/images/search" . "gtk-find")
+    ("etc/images/print" . "gtk-print")
+    ("etc/images/preferences" . "gtk-preferences")
+    ("etc/images/help" . "gtk-help")
+    ("etc/images/left-arrow" . "gtk-go-back")
+    ("etc/images/right-arrow" . "gtk-go-forward")
+    ("etc/images/home" . "gtk-home")
+    ("etc/images/jump-to" . "gtk-jump-to")
+    ("etc/images/index" . "gtk-index")
+    ("etc/images/search" . "gtk-find")
+    ("etc/images/exit" . "gtk-quit"))
   "How icons for tool bars are mapped to Gtk+ stock items.
 Emacs must be compiled with the Gtk+ toolkit for this to have any effect."
   :version "23.1"
@@ -2607,10 +2608,10 @@ Emacs must be compiled with the Gtk+ toolkit for this to have any effect."
 
 (defun x-gtk-map-stock (file)
   "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
-  (let ((value (and file
-		    (assoc-string (file-name-sans-extension 
-				   (file-name-nondirectory file))
-				  x-gtk-stock-map))))
+  (let* ((file-sans (file-name-sans-extension file))
+	 (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
+		   (match-string 1 file-sans)))
+	 (value (assoc-string (or key file-sans) x-gtk-stock-map)))
     (and value (cdr value))))
 
 ;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
