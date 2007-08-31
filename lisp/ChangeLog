@@ -1,5 +1,10 @@
 2007-08-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* term/x-win.el (x-menu-bar-open): Delete duplicated function from
+	the merge.
+	(global-set-key): Delete f10 mapping, now done in menu-bar.el.
+	(provide): Move to the end of file.
+
 	* vc-svn.el (vc-svn-diff-tree): Pass a list to vc-svn-diff.
 
 2007-08-31  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
