@@ -119,7 +119,7 @@ AC_ARG_WITH(pkg-config-prog,
 AC_ARG_WITH(toolkit-scroll-bars,
 [  --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars])
-AC_ARG_WITH(xpm,
+AC_ARG_WITH(xaw3d,
 [  --without-xaw3d         don't use Xaw3d])
 AC_ARG_WITH(xim,
 [  --without-xim           don't use X11 XIM])
