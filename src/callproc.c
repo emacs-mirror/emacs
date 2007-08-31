@@ -1245,8 +1245,6 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 {
   char **env;
   char *pwd_var;
-  char *term_var;
-  char *display_var;
 #ifdef WINDOWSNT
   int cpid;
   HANDLE handles[3];
@@ -1818,7 +1816,6 @@ void
 set_initial_environment ()
 {
   register char **envp;
-  Lisp_Object env = Vprocess_environment;
 #ifndef CANNOT_DUMP
   if (initialized)
 #endif
@@ -1827,10 +1824,10 @@ set_initial_environment ()
 	Vprocess_environment = Fcons (build_string (*envp),
 				      Vprocess_environment);
       store_frame_param (SELECTED_FRAME(), Qenvironment, Vprocess_environment);
+      /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
+	 to use `delete' and friends on process-environment.  */
+      Vinitial_environment = Fcopy_sequence (Vprocess_environment);
     }
-  /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
-     to use `delete' and friends on process-environment.  */
-  Vinitial_environment = Fcopy_sequence (Vprocess_environment);
 }
 
 void
