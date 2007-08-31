@@ -3810,7 +3810,7 @@ update_frame_tool_bar (f)
       GtkStockItem stock_item;
       char *stock_name = NULL;
       Lisp_Object rtl;
-      GtkWidget *wbutton;
+      GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
       Lisp_Object func = intern ("x-gtk-map-stock");
 
