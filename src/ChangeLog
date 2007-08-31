@@ -1,3 +1,12 @@
+2007-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callproc.c (Vinitial_environment): New variable.
+	(set_initial_environment): Initialize it.
+	(syms_of_callproc): Declare it.
+	(child_setup): Don't mess with TERM via Qterm_environment_variable; the
+	TERM under which a process runs is never related to the TERM in which
+	Emacs is running.
+
 2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.in (HAVE_WINDOW_SYSTEM): Don't undef MULTI_KBOARD here...
@@ -825,8 +834,7 @@
 	For consistency, run after_insert_file_functions iff something
 	got inserted.  Move signal_after_change and update_compositions
 	after code running after_insert_file_functions.  Make sure that
-	undo_list doesn't record intermediate steps of the decoding
-	process.
+	undo_list doesn't record intermediate steps of the decoding process.
 
 2007-08-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -1015,8 +1023,8 @@
 2007-07-17  Glenn Morris  <rgm@gnu.org>
 
 	* abbrev.c (abbrev_check_chars): New function.
-	(Fdefine_global_abbrev, Fdefine_mode_abbrev): Call
-	abbrev_check_chars to check abbrev characters are word
+	(Fdefine_global_abbrev, Fdefine_mode_abbrev):
+	Call abbrev_check_chars to check abbrev characters are word
 	constituents.  Doc fix.
 
 2007-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>

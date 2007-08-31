@@ -113,7 +113,7 @@ Lisp_Object Vtemp_file_name_pattern;
 
 Lisp_Object Vshell_file_name;
 
-Lisp_Object Vprocess_environment;
+Lisp_Object Vprocess_environment, Vinitial_environment;
 
 #ifdef DOS_NT
 Lisp_Object Qbuffer_file_type;
@@ -1330,7 +1330,6 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     Lisp_Object local = selected_frame; /* get_frame_param (XFRAME (Fframe_with_environment (selected_frame)), */
 /*                                          Qenvironment); */
 
-    Lisp_Object term;
     Lisp_Object display;
     
     new_length = 0;
@@ -1347,33 +1346,19 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
       new_length++;
 #endif
 
-    /* Add TERM and DISPLAY from the frame local values. */
-    term = get_frame_param (XFRAME (local), Qterm_environment_variable);
-    if (! NILP (term))
-      new_length++;
-
+    /* Add DISPLAY from the frame local values. */
     display = get_frame_param (XFRAME (local), Qdisplay_environment_variable);
     if (! NILP (display))
       new_length++;
 
     /* new_length + 2 to include PWD and terminating 0.  */
     env = new_env = (char **) alloca ((new_length + 2) * sizeof (char *));
-
     /* If we have a PWD envvar, pass one down,
        but with corrected value.  */
     if (egetenv ("PWD"))
       *new_env++ = pwd_var;
  
-    if (! NILP (term))
-      {
-	int vlen = strlen ("TERM=") + strlen (SDATA (term)) + 1;
-	char *vdata = (char *) alloca (vlen);
-	strcpy (vdata, "TERM=");
-	strcat (vdata, SDATA (term));
-	new_env = add_env (env, new_env, vdata);
-      }
-
-    if (! NILP (display))
+    if (STRINGP (display))
       {
 	int vlen = strlen ("DISPLAY=") + strlen (SDATA (display)) + 1;
 	char *vdata = (char *) alloca (vlen);
@@ -1387,8 +1372,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
       {
-	if ((strcmp (SDATA (XCAR (tem)), "TERM") != 0)
-	    && (strcmp (SDATA (XCAR (tem)), "DISPLAY") != 0))
+	if (strcmp (SDATA (XCAR (tem)), "DISPLAY") != 0)
 	  new_env = add_env (env, new_env, SDATA (XCAR (tem)));
       }
 
@@ -1539,7 +1523,8 @@ getenv_internal (var, varlen, value, valuelen, frame)
   Lisp_Object scan;
   Lisp_Object term;
   Lisp_Object display;
-  
+
+  /* FIXME: Code duplication.  */
 
   if (NILP (frame))
     {
@@ -1843,6 +1828,9 @@ set_initial_environment ()
 				      Vprocess_environment);
       store_frame_param (SELECTED_FRAME(), Qenvironment, Vprocess_environment);
     }
+  /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
+     to use `delete' and friends on process-environment.  */
+  Vinitial_environment = Fcopy_sequence (Vprocess_environment);
 }
 
 void
@@ -1900,6 +1888,12 @@ If this variable is nil, then Emacs is unable to use a shared directory.  */);
 	       doc: /* Pattern for making names for temporary files.
 This is used by `call-process-region'.  */);
   /* This variable is initialized in init_callproc.  */
+
+  DEFVAR_LISP ("initial-environment", &Vinitial_environment,
+	       doc: /* List of environment variables inherited from the parent process.
+Each element should be a string of the form ENVVARNAME=VALUE.
+The elements must normally be decoded (using `locale-coding-system') for use.  */);
+  Vinitial_environment = Qnil;
 
   DEFVAR_LISP ("process-environment", &Vprocess_environment,
 	       doc: /* List of overridden environment variables for subprocesses to inherit.
