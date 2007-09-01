@@ -2486,7 +2486,11 @@ asking you for confirmation."
 
 (put 'c-set-style 'safe-local-eval-function t)
 
-(defun hack-local-variables-confirm (vars unsafe-vars risky-vars)
+(defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars)
+  "Get confirmation before setting up local variable values.
+ALL-VARS is the list of all variables to be set up.
+UNSAFE-VARS is the list of those that aren't marked as safe or risky.
+RISKY-VARS is the list of those that are marked as risky."
   (if noninteractive
       nil
     (let ((name (if buffer-file-name
@@ -2517,7 +2521,7 @@ n  -- to ignore the local variables list.")
 !  -- to apply the local variables list, and permanently mark these
       values (*) as safe (in the future, they will be set automatically.)\n\n")
 	    (insert "\n\n"))
-	  (dolist (elt vars)
+	  (dolist (elt all-vars)
 	    (cond ((member elt unsafe-vars)
 		   (insert "  * "))
 		  ((member elt risky-vars)
