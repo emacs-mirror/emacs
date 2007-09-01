@@ -1549,7 +1549,7 @@ recompile every `.el' file that already has a `.elc' file."
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
       (compilation-mode))
-    (let ((directories (list (expand-file-name directory)))
+    (let ((directories (list default-directory))
 	  (default-directory default-directory)
 	  (skip-count 0)
 	  (fail-count 0)
