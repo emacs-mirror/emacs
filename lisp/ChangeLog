@@ -57,8 +57,8 @@
 
 2007-08-30  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/ange-ftp.el: Add ange-ftp property to 'set-file-modes and
-	'set-file-times.
+	* net/ange-ftp.el: Add ange-ftp property to `set-file-modes' and
+	`set-file-times'.
 
 2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
