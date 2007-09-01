@@ -975,7 +975,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (pos (if (and byte-compile-current-file
 		       (integerp byte-compile-read-position))
 		  (with-current-buffer byte-compile-current-buffer
-		    (format "%d:%d:" 
+		    (format "%d:%d:"
 			    (save-excursion
 			      (goto-char byte-compile-last-position)
 			      (1+ (count-lines (point-min) (point-at-bol))))
@@ -1552,7 +1552,7 @@ recompile every `.el' file that already has a `.elc' file."
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
       (compilation-mode))
-    (let ((directories (list (expand-file-name directory)))
+    (let ((directories (list default-directory))
 	  (default-directory default-directory)
 	  (skip-count 0)
 	  (fail-count 0)
@@ -1659,7 +1659,7 @@ The value is non-nil if there were no errors, nil if errors."
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
-    (with-current-buffer 
+    (with-current-buffer
         (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (erase-buffer)
       (setq buffer-file-coding-system nil)
