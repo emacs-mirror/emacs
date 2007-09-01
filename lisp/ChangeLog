@@ -1,3 +1,8 @@
+2007-09-01  Richard Stallman  <rms@gnu.org>
+
+	* files.el (hack-local-variables-confirm): Rename arg VARS to ALL-VARS.
+	Add doc string.
+
 2007-08-30  Richard Stallman  <rms@gnu.org>
 
 	* speedbar.el (speedbar-frame-reposition-smartly)
