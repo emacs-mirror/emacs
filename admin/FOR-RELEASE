@@ -49,11 +49,6 @@ GNU/Linux system.
 
 ** emacsclient must not force a new frame by default.
 
-* FIXES FOR EMACS 22.3
-
-Here we list any small fixes that arrived too late for Emacs 22.2, but
-that should be installed on the release branch after 22.2 is released.
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
