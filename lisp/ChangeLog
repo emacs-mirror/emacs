@@ -1,3 +1,9 @@
+2007-09-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Fix bug: Don't expand top-level file name more than once.
+	Reported by Dmitry Antipov <dmantipov@yandex.ru>.
+
 2007-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-process-filter): Don't display the splash screen.
