@@ -47,15 +47,7 @@ GNU/Linux system.
 
 * BUGS
 
-NB the definitive copy of this file for Emacs 22 is on the
-EMACS_22_BASE branch.  Any entries below are automatically copied from
-that branch.  Do not make manual changes to this file on the trunk.
-
-** ams@gnu.org, 9 July: eshell and external commands
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00385.html
-
-** Check all non-file-scope static vars to make sure they
-won't lose on USG or HPUX systems.
+** emacsclient must not force a new frame by default.
 
 * FIXES FOR EMACS 22.3
 
