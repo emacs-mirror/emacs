@@ -1,3 +1,9 @@
+2007-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-process-filter): Don't display the splash screen.
+	It's annoying enough on the initial screen and becomes positively
+	obnoxious here.
+
 2007-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/avl-tree.el: Use defstruct rather than macros.

@@ -904,20 +904,6 @@ The following commands are accepted by the client:
 		(setq buffers (server-visit-files files client nowait))
 		(run-hooks 'post-command-hook))
 
-	      (when frame
-		(with-selected-frame frame
-		  (display-startup-echo-area-message)
-		  (unless inhibit-splash-screen
-		    (condition-case err
-			;; This looks scary because `fancy-splash-screens'
-			;; will call `recursive-edit' from a process filter.
-			;; However, that should be safe to do now.
-			(display-splash-screen t)
-		      ;; `recursive-edit' will throw an error if Emacs is
-		      ;; already doing a recursive edit elsewhere.  Catch it
-		      ;; here so that we can finish normally.
-		      (error nil)))))
-
 	      ;; Delete the client if necessary.
 	      (cond
 	       (nowait
