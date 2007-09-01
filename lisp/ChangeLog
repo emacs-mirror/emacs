@@ -1,3 +1,8 @@
+2007-09-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Fix bug: Don't expand top-level file name more than once.
+
 2007-09-01  Richard Stallman  <rms@gnu.org>
 
 	* files.el (hack-local-variables-confirm): Rename arg VARS to ALL-VARS.
