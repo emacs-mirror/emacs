@@ -1,3 +1,11 @@
+2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* info.el (info-tool-bar-map): Add :rtl keyword to right/left-arrow and
+        prev/next-node.
+
+	* term/x-win.el (x-gtk-stock-map, icon-map-list): New variables.
+	(x-gtk-map-stock): New function.
+
 2007-09-02  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-mode): Don't set scroll-conservatively.
