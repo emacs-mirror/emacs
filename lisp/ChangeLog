@@ -1,3 +1,7 @@
+2007-09-02  Romain Francoise  <romain@orebokech.com>
+
+	* log-view.el (log-view-current-file): Balance parens.
+
 2007-09-02  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-mode): Don't set scroll-conservatively.
