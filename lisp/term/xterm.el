@@ -322,6 +322,9 @@
 (define-key xterm-function-map "\e[13~" [f3])
 (define-key xterm-function-map "\e[14~" [f4])
 
+;; List of terminals for which modify-other-keys has been turned on.
+(defvar xterm-modify-other-keys-terminal-list nil)
+
 (defun terminal-init-xterm ()
   "Terminal initialization function for xterm."
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
@@ -430,7 +433,12 @@
 	      ;; suspending, resuming and exiting.
 	      (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
 	      (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
-	      (add-hook 'kill-emacs-hook 'xterm-turn-off-modify-other-keys)
+	      (add-hook 'kill-emacs-hook 'xterm-remove-modify-other-keys)
+	      (add-hook 'delete-frame-hook 'xterm-remove-modify-other-keys)
+	      ;; Add the selected frame to the list of frames that
+	      ;; need to deal with modify-other-keys.
+	      (push (frame-terminal (selected-frame)) 
+		    xterm-modify-other-keys-terminal-list)
 	      (xterm-turn-on-modify-other-keys)))))))
 
 ;; Set up colors, for those versions of xterm that support it.
@@ -551,11 +559,27 @@ versions of xterm."
 
 (defun xterm-turn-on-modify-other-keys ()
   "Turn on the modifyOtherKeys feature of xterm."
-  (send-string-to-terminal "\e[>4;1m"))
+  (let ((frame (selected-frame)))
+    (when (and (frame-live-p frame)
+	       (memq frame xterm-modify-other-keys-terminal-list))
+      (send-string-to-terminal "\e[>4;1m"))))
 
-(defun xterm-turn-off-modify-other-keys ()
+(defun xterm-turn-off-modify-other-keys (&optional frame)
   "Turn off the modifyOtherKeys feature of xterm."
-  (send-string-to-terminal "\e[>4m"))
+  (setq frame (and frame (selected-frame)))
+  (when (and (frame-live-p frame)
+	     (memq frame xterm-modify-other-keys-terminal-list))
+    (send-string-to-terminal "\e[>4m")))
+
+(defun xterm-remove-modify-other-keys (&optional frame)
+  "Turn off the modifyOtherKeys feature of xterm and remove frame from consideration."
+  (setq frame (and frame (selected-frame)))
+  (when (and (frame-live-p frame)
+	     (memq frame xterm-modify-other-keys-terminal-list))
+    (setq xterm-modify-other-keys-terminal-list 
+	  (delq (frame-terminal frame) 
+		xterm-modify-other-keys-terminal-list))
+    (send-string-to-terminal "\e[>4m")))
 
 ;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here

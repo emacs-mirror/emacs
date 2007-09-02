@@ -1,3 +1,17 @@
+2007-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-modify-other-keys-terminal-list): New
+	variable.
+	(xterm-turn-on-modify-other-keys): Only turn on modify-other-keys
+	if the selected frames is in
+	xterm-modify-other-keys-terminal-list.
+	(xterm-turn-off-modify-other-keys): Add an optional frame
+	parameter. Only turn off modify-other-keys if FRAME is in
+	xterm-modify-other-keys-terminal-list.
+	(xterm-remove-modify-other-keys): New function.
+	(terminal-init-xterm): Use it. Deal with delete-frame hook. Add
+	the selected frame to xterm-modify-other-keys-terminal-list.
+
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Map diropen to system-file-manager.
