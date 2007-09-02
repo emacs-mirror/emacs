@@ -56,6 +56,9 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01030.html
 ** menu-bar-mode should affect all future frames
 (as it used to).
 
+** mouse-wheel-mode should affect all terminals
+(as it used to).
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
