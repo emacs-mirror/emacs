@@ -1,3 +1,8 @@
+2007-09-02  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Use AS_HELP_STRING throughout.
+	* configure: Regenerate.
+
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Require Gtk/Glib 2.6.
