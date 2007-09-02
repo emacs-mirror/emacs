@@ -959,7 +959,10 @@ Show wall-clock time elapsed during execution of COMMAND.")
      (add-hook 'eshell-post-command-hook 'eshell-show-elapsed-time nil t)
      ;; after setting
      (throw 'eshell-replace-command
-	    (eshell-parse-command (car time-args) (cdr time-args))))))
+	    (eshell-parse-command (car time-args)
+;;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-08/msg00205.html
+				  (eshell-stringify-list
+				   (eshell-flatten-list (cdr time-args))))))))
 
 (defalias 'eshell/whoami 'user-login-name)
 
