@@ -3346,6 +3346,10 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
    the GtkImage with a new image.  */
 #define XG_TOOL_BAR_STOCK_NAME "emacs-tool-bar-stock-name"
 
+/* As above, but this is used for named theme widgets, as opposed to
+   stock items.  */
+#define XG_TOOL_BAR_ICON_NAME "emacs-tool-bar-icon-name"
+
 /* Callback function invoked when a tool bar item is pressed.
    W is the button widget in the tool bar that got pressed,
    CLIENT_DATA is an integer that is the index of the button in the
@@ -3809,6 +3813,7 @@ update_frame_tool_bar (f)
       Lisp_Object stock;
       GtkStockItem stock_item;
       char *stock_name = NULL;
+      char *icon_name = NULL;
       Lisp_Object rtl;
       GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
@@ -3834,13 +3839,33 @@ update_frame_tool_bar (f)
       if (EQ (Qt, Ffboundp (func))) 
         stock = call1 (func, file_for_image (image));
 
-      if (! NILP (stock) && STRINGP (stock)
-          && gtk_stock_lookup (SSDATA (stock), &stock_item))
+      if (! NILP (stock) && STRINGP (stock))
         {
           stock_name = SSDATA (stock);
-          icon_size = gtk_toolbar_get_icon_size (wtoolbar);
+          if (stock_name[0] == 'n' && stock_name[1] == ':')
+            {
+              GdkScreen *screen = gtk_widget_get_screen (GTK_WIDGET (wtoolbar));
+              GtkIconTheme *icon_theme = gtk_icon_theme_get_for_screen (screen);
+
+              icon_name = stock_name + 2;
+              stock_name = NULL;
+              stock = Qnil;
+
+              if (! gtk_icon_theme_has_icon (icon_theme, icon_name))
+                icon_name = NULL;
+              else
+                icon_size = gtk_toolbar_get_icon_size (wtoolbar);
+            }
+          else if (gtk_stock_lookup (SSDATA (stock), &stock_item))
+              icon_size = gtk_toolbar_get_icon_size (wtoolbar);
+          else 
+            {
+              stock = Qnil;
+              stock_name = NULL;
+            }
         }
-      else
+
+      if (stock_name == NULL && icon_name == NULL)
         {
           /* No stock image, or stock item not known.  Try regular image.  */
 
@@ -3903,6 +3928,13 @@ update_frame_tool_bar (f)
               w = gtk_image_new_from_stock (stock_name, icon_size);
               g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_STOCK_NAME,
                                       (gpointer) xstrdup (stock_name),
+                                      (GDestroyNotify) xfree);
+            }
+          else if (icon_name) 
+            {
+              w = gtk_image_new_from_icon_name (icon_name, icon_size);
+              g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_ICON_NAME,
+                                      (gpointer) xstrdup (icon_name),
                                       (GDestroyNotify) xfree);
             }
           else
@@ -3980,6 +4012,8 @@ update_frame_tool_bar (f)
                                                       XG_TOOL_BAR_IMAGE_DATA);
           gpointer old_stock_name = g_object_get_data (G_OBJECT (wimage),
                                                        XG_TOOL_BAR_STOCK_NAME);
+          gpointer old_icon_name = g_object_get_data (G_OBJECT (wimage),
+                                                      XG_TOOL_BAR_ICON_NAME);
           if (stock_name &&
               (! old_stock_name || strcmp (old_stock_name, stock_name) != 0))
             {
@@ -3990,6 +4024,20 @@ update_frame_tool_bar (f)
                                       (GDestroyNotify) xfree);
               g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
                                  NULL);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME, NULL);
+            }
+          else if (icon_name &&
+                   (! old_icon_name || strcmp (old_icon_name, icon_name) != 0))
+            {
+              gtk_image_set_from_icon_name (GTK_IMAGE (wimage),
+                                            icon_name, icon_size);
+              g_object_set_data_full (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME,
+                                      (gpointer) xstrdup (icon_name),
+                                      (GDestroyNotify) xfree);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
+                                 NULL);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
+                                 NULL);
             }
           else if (img && old_img != img->pixmap)
             {
@@ -3999,6 +4047,7 @@ update_frame_tool_bar (f)
 
               g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
                                  NULL);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME, NULL);
             }
 
           gtk_misc_set_padding (GTK_MISC (wimage), hmargin, vmargin);
