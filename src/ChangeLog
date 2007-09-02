@@ -1,3 +1,7 @@
+2007-09-02  Dhuvra Krishnamurthy  <dhuvrakm@gmail.com>  (tiny change)
+
+	* w32proc.c (delete_child): Don't terminate threads of zombies.
+
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Qrtl is new.
