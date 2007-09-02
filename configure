@@ -1336,8 +1336,8 @@ Optional Packages:
   --with-kerberos5        support Kerberos version 5 authenticated POP
   --with-hesiod           support Hesiod to get the POP server host
   --without-sound         don't compile with sound support
-  --with-x-toolkit=KIT    use an X toolkit
-                              (KIT = yes/lucid/athena/motif/gtk/no)
+  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes, lucid, athena,
+                          motif, gtk, no)
   --with-xpm              use -lXpm for displaying XPM images
   --with-jpeg             use -ljpeg for displaying JPEG images
   --with-tiff             use -ltiff for displaying TIFF images
@@ -1346,7 +1346,7 @@ Optional Packages:
   --with-gpm              use -lgpm for mouse support on a GNU/Linux console
   --with-rsvg             use -lrsvg-2 for displaying SVG images
   --with-gtk              use GTK (same as --with-x-toolkit=gtk)
-  --with-pkg-config-prog  Path to pkg-config to use for finding GTK and librsvg
+  --with-pkg-config-prog  Path to pkg-config for finding GTK and librsvg
   --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars
   --without-xaw3d         don't use Xaw3d
@@ -1819,10 +1819,12 @@ gamedir='${localstatedir}/games/emacs'
 gameuser=games
 
 
+
 # Check whether --with-gcc was given.
 if test "${with_gcc+set}" = set; then
   withval=$with_gcc;
 fi
+
 
 
 # Check whether --with-pop was given.
@@ -1843,6 +1845,7 @@ fi
 
 
 
+
 # Check whether --with-kerberos was given.
 if test "${with_kerberos+set}" = set; then
   withval=$with_kerberos; if test "$withval" = yes; then
@@ -1852,6 +1855,7 @@ _ACEOF
 
 fi
 fi
+
 
 
 
@@ -1872,6 +1876,7 @@ _ACEOF
 
 fi
 fi
+
 
 
 # Check whether --with-hesiod was given.
@@ -1916,6 +1921,7 @@ this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`
 	  with_x_toolkit=$val
 
 fi
+
 
 
 # Check whether --with-xpm was given.
@@ -1994,6 +2000,7 @@ fi
 if test "${with_carbon+set}" = set; then
   withval=$with_carbon;
 fi
+
 
 # Check whether --enable-carbon-app was given.
 if test "${enable_carbon_app+set}" = set; then
