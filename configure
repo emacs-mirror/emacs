@@ -1317,11 +1317,13 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-carbon-app[=DIR]  [DIR=/Application]
+  --enable-carbon-app[=DIR]
                           specify install directory for Emacs.app on Mac OS X
+                          [DIR=/Application]
   --enable-asserts        compile code with asserts enabled
-  --enable-maintainer-mode enable make rules and dependencies not useful
-                          (and sometimes confusing) to the casual installer
+  --enable-maintainer-mode
+                          enable make rules and dependencies not useful (and
+                          sometimes confusing) to the casual installer
   --enable-locallisppath=PATH
                           directories Emacs should search for lisp files
                           specific to this site
