@@ -1,5 +1,7 @@
 2007-09-02  Glenn Morris  <rgm@gnu.org>
 
+	* comint.el (comint-mode): Don't set scroll-conservatively.
+
 	* eshell/em-unix.el (eshell/time): Stringify and flatten the
 	non-command arguments.
 
