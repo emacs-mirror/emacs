@@ -42,25 +42,33 @@ gamedir='${localstatedir}/games/emacs'
 
 gameuser=games
 
-AC_ARG_WITH(gcc,
-[  --without-gcc           don't use GCC to compile Emacs if GCC is found])
-AC_ARG_WITH(pop,
-[  --without-pop           don't support POP mail retrieval with movemail],
+dnl Autoconf is so much less fun under VMS, maybe
+dnl because everything is less fun under VMS. --ttn
+AC_DEFUN([EMACS_ARG_Y],[dnl
+AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[$3],[$4])dnl
+])dnl
+AC_DEFUN([EMACS_ARG_N],[dnl
+AC_ARG_WITH([$1],[AS_HELP_STRING([--without-$1],[$2])],[$3],[$4])dnl
+])dnl
+
+EMACS_ARG_N([gcc],[don't use GCC to compile Emacs if GCC is found])
+
+EMACS_ARG_N([pop],[don't support POP mail retrieval with movemail],
 [if test "$withval" = yes; then
    AC_DEFINE(MAIL_USE_POP)
 else :
 fi],
 AC_DEFINE(MAIL_USE_POP))
 AH_TEMPLATE(MAIL_USE_POP, [Define to support POP mail retrieval.])dnl
-AC_ARG_WITH(kerberos,
-[  --with-kerberos         support Kerberos-authenticated POP],
+
+EMACS_ARG_Y([kerberos],[support Kerberos-authenticated POP],
 [if test "$withval" = yes; then
    AC_DEFINE(KERBEROS)
 fi])
 AH_TEMPLATE(KERBEROS,
 	    [Define to support Kerberos-authenticated POP mail retrieval.])dnl
-AC_ARG_WITH(kerberos5,
-[  --with-kerberos5        support Kerberos version 5 authenticated POP],
+
+EMACS_ARG_Y([kerberos5],[support Kerberos version 5 authenticated POP],
 [if test "${with_kerberos5+set}" = set; then
   if test "${with_kerberos+set}" != set; then
     with_kerberos=yes
@@ -68,21 +76,19 @@ AC_ARG_WITH(kerberos5,
   fi
   AC_DEFINE(KERBEROS5, 1, [Define to use Kerberos 5 instead of Kerberos 4.])
 fi])
-AC_ARG_WITH(hesiod,
-[  --with-hesiod           support Hesiod to get the POP server host],
+
+EMACS_ARG_Y([hesiod],[support Hesiod to get the POP server host],
 [if test "$withval" = yes; then
   AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])
 fi])
 
-AC_ARG_WITH(sound,
-[  --without-sound         don't compile with sound support])
+EMACS_ARG_N([sound],[don't compile with sound support])
 
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
-AC_ARG_WITH(x-toolkit,
-[  --with-x-toolkit=KIT    use an X toolkit
-                              (KIT = yes/lucid/athena/motif/gtk/no)],
+AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
+ [use an X toolkit (KIT one of: yes, lucid, athena, motif, gtk, no)])],
 [	  case "${withval}" in
 	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
@@ -98,33 +104,21 @@ this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
 	  esac
 	  with_x_toolkit=$val
 ])
-AC_ARG_WITH(xpm,
-[  --with-xpm              use -lXpm for displaying XPM images])
-AC_ARG_WITH(jpeg,
-[  --with-jpeg             use -ljpeg for displaying JPEG images])
-AC_ARG_WITH(tiff,
-[  --with-tiff             use -ltiff for displaying TIFF images])
-AC_ARG_WITH(gif,
-[  --with-gif              use -lgif (or -lungif) for displaying GIF images])
-AC_ARG_WITH(png,
-[  --with-png              use -lpng for displaying PNG images])
-AC_ARG_WITH(gpm,
-[  --with-gpm              use -lgpm for mouse support on a GNU/Linux console])
-AC_ARG_WITH(rsvg,
-[  --with-rsvg             use -lrsvg-2 for displaying SVG images])
-AC_ARG_WITH(gtk,
-[  --with-gtk              use GTK (same as --with-x-toolkit=gtk)])
-AC_ARG_WITH(pkg-config-prog,
-[  --with-pkg-config-prog  Path to pkg-config to use for finding GTK and librsvg])
-AC_ARG_WITH(toolkit-scroll-bars,
-[  --without-toolkit-scroll-bars
-                          don't use Motif or Xaw3d scroll bars])
-AC_ARG_WITH(xaw3d,
-[  --without-xaw3d         don't use Xaw3d])
-AC_ARG_WITH(xim,
-[  --without-xim           don't use X11 XIM])
-AC_ARG_WITH(carbon,
-[  --without-carbon        don't use Carbon GUI on Mac OS X])
+
+EMACS_ARG_Y([xpm],[use -lXpm for displaying XPM images])
+EMACS_ARG_Y([jpeg],[use -ljpeg for displaying JPEG images])
+EMACS_ARG_Y([tiff],[use -ltiff for displaying TIFF images])
+EMACS_ARG_Y([gif],[use -lgif (or -lungif) for displaying GIF images])
+EMACS_ARG_Y([png],[use -lpng for displaying PNG images])
+EMACS_ARG_Y([gpm],[use -lgpm for mouse support on a GNU/Linux console])
+EMACS_ARG_Y([rsvg],[use -lrsvg-2 for displaying SVG images])
+EMACS_ARG_Y([gtk],[use GTK (same as --with-x-toolkit=gtk)])
+EMACS_ARG_Y([pkg-config-prog],[Path to pkg-config for finding GTK and librsvg])
+EMACS_ARG_N([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
+EMACS_ARG_N([xaw3d],[don't use Xaw3d])
+EMACS_ARG_N([xim],[don't use X11 XIM])
+EMACS_ARG_N([carbon],[don't use Carbon GUI on Mac OS X])
+
 AC_ARG_ENABLE(carbon-app,
 [[  --enable-carbon-app[=DIR]  [DIR=/Application]
                           specify install directory for Emacs.app on Mac OS X]],
