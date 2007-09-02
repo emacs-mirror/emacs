@@ -2531,11 +2531,68 @@
 
 2007-07-18  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-hooks.el: Generalize stay-local-p to operate on lists of
-	files.  Change two keybindings to point to new function names.
-	* vc-arch.el, vc-bzr.el, vc-cvs.el, vc-hg.el, vc-mcvs.el, vc-rcs.el,
-	vc-sccs.el, vc-svn.el: These now implement the NewVC-fileset.
-	* vc.el: Adapted for NewVC-fileset, but no functional changes yet.
+	* vc.el (revision-granularity, create-repo): Document new vc
+	backend properties.
+	(vc-rollback): Renamed from vc-cancel-version. Update
+	references. Pass a list instead of a file.
+	(vc-revert): Renamed from vc-revert-buffer. Update references.
+	(vc-delistify, vc-expand-dirs): New functions.
+	(vc-do-command): Rename FILE to FILE-OR-LIST and deal with a list
+	of files instead of a single file.
+	(vc-position-context, vc-resync-window, vc-diff-internal)
+	(vc-print-log): Pass a list instead of a file.
+
+	* vc-hooks.el (vc-stay-local-p, vc-backend)
+	(vc-backend-subdirectory-name): Work on a file list, not a single
+	file.
+	(vc-workfile-version): Update docstring.
+	(vc-menu-map): Use vc-rollback instead of vc-cancel-version and
+	vc-revert instead of vc-revert-buffer.
+	(vc-prefix-map): Likewise. Bind vc-update.
+
+	* vc-svn.el (vc-svn-revision-granularity, vc-svn-create-repo)
+	(vc-svn-wash-log): New functions.
+	(vc-svn-register, vc-svn-checkin, vc-svn-print-log)
+	(vc-svn-command): Deal with a list of files, not a single file.
+
+	* vc-rcs.el (vc-rcs-revision-granularity, vc-rcs-create-repo)
+	(vc-rcs-wash-log): New functions.
+	(vc-rcs-register, vc-rcs-checkin, vc-rcs-diff, vc-rcs-print-log):
+	Deal with a list of files, not a single file.
+	(vc-rcs-rollback): Likewise. Rename from vc-rcs-cancel-version.
+
+	* vc-sccs.el (vc-sccs-revision-granularity, vc-sccs-wash-log): New
+	functions.
+	(vc-sccs-register, vc-sccs-checkin, vc-sccs-diff): Deal with a
+	list of files, not a single file.
+
+	* vc-mcvs.el (vc-mcvs-revision-granularity, vc-mcvs-create-repo):
+	New functions.
+	(vc-mcvs-register, vc-mcvs-checkin, vc-mcvs-print-log)
+	(vc-mcvs-diff): Deal with a list of files, not a single file.
+
+	* vc-hg.el (vc-hg-revision-granularity, vc-hg-create-repo): New
+	functions.
+	(vc-hg-print-log): Deal with a list of files, not a single file.
+	(vc-hg-diff-tree): New function, replace defalias with the same
+	name.
+	(vc-hg-register, vc-hg-checkin, vc-hg-command): Rename FILE to
+	FILES to denote that it is a file list, not a single file.
+
+	* vc-cvs.el (vc-cvs-create-repo, vc-cvs-wash-log): New functions.
+	(vc-cvs-register, vc-cvs-checkin): Deal with a list of files, not
+	a single file.
+	(vc-cvs-print-log, vc-cvs-command): Rename FILE to FILES to denote
+	that it is a file list, not a single file.
+	(vc-cvs-diff): Likewise. Simplify.
+
+	* vc-arch.el (vc-arch-register, vc-arch-checkin, vc-arch-diff):
+	Deal with a list of files, not a single file.
+
+	* vc-bzr.el (vc-bzr-register, vc-bzr-command, vc-bzr-checkin)
+	(vc-bzr-print-log): Update FILE parameter name to denote that it
+	is a file list, not a single file.
+	(vc-bzr-diff): Likewise. Use the car of files.
 
 2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
