@@ -5,6 +5,9 @@
 	* eshell/em-unix.el (eshell/time): Stringify and flatten the
 	non-command arguments.
 
+	* log-view.el (log-view-current-file): Give a more explicit error
+	if log-view-file-re fails to find a match.
+
 2007-09-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* emacs-lisp/bytecomp.el (byte-recompile-directory):
