@@ -49,6 +49,10 @@ GNU/Linux system.
 
 ** emacsclient must not force a new frame by default.
 
+** ESR's changes to vc have broken some log-view functions for SVN files.
+What should the log-view functions actually do when there are multiple files?
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01030.html
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
