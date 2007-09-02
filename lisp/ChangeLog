@@ -1,3 +1,9 @@
+2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): Map diropen to system-file-manager.
+	(icon-map-list): New variable.
+	(x-gtk-map-stock): Use icon-map-list.
+
 2007-09-02  Romain Francoise  <romain@orebokech.com>
 
 	* log-view.el (log-view-current-file): Balance parens.
