@@ -2579,6 +2579,9 @@ enum tool_bar_item_idx
   /* Help string.  */
   TOOL_BAR_ITEM_HELP,
 
+  /* Icon file name of right to left image when an RTL locale is used.  */
+  TOOL_BAR_ITEM_RTL_IMAGE,
+
   /* Sentinel = number of slots in tool_bar_items occupied by one
      tool-bar item.  */
   TOOL_BAR_ITEM_NSLOTS
