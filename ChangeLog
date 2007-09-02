@@ -1,3 +1,9 @@
+2007-09-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* configure.in (EMACS_ARG_Y, EMACS_ARG_N): New AC_DEFUNs.
+	Use them throughout in place of AC_ARG_WITH calls.
+	* configure: Regenerate.
+
 2007-09-01  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Put quotes around nested macro calls.
