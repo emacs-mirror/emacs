@@ -1,3 +1,7 @@
+2007-09-03  Emanuele Giaquinta <e.giaquinta@glauco.it>  (tiny change)
+
+	* loadup.el: Fix merge problem, only load "button" once.
+
 2007-09-03  Glenn Morris  <rgm@gnu.org>
 
 	* vc-svn.el (vc-svn-print-log): If there is only one file, use
