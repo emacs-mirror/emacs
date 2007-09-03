@@ -1,3 +1,10 @@
+2007-09-03  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-http.el: (url-http-parse-headers): Bind the current buffer
+	rather than calling `url-mark-buffer-as-dead' with
+	`current-buffer', so that the correct buffer is killed if
+	`url-retrieve-synchronously' gets redirected to a new URL.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* url-auth.el, url-cache.el, url-dav.el, url-file.el, vc-dav.el:
