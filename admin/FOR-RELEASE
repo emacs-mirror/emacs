@@ -49,12 +49,6 @@ GNU/Linux system.
 
 ** emacsclient must not force a new frame by default.
 
-** menu-bar-mode should affect all future frames
-(as it used to).
-
-** mouse-wheel-mode should affect all terminals
-(as it used to).
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
