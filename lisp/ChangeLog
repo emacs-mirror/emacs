@@ -1,3 +1,8 @@
+2007-09-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc-svn.el (vc-svn-print-log): Change the "Working file" prefix
+	back to singular, for the sake of log-view.
+
 2007-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (xterm-modify-other-keys-terminal-list): New
