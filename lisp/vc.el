@@ -7,8 +7,6 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id$
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -1013,6 +1011,7 @@ Else, add CODE to the process' sentinel."
 Each function is called inside the buffer in which the command was run
 and is passed 3 arguments: the COMMAND, the FILE and the FLAGS.")
 
+;; FIXME what about file names with spaces?
 (defun vc-delistify (filelist)
   "Smash a FILELIST into a file list string suitable for info messages."
   (if (not filelist) "."  (mapconcat 'identity filelist " ")))
