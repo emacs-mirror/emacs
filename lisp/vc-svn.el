@@ -382,7 +382,14 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     (let ((inhibit-read-only t))
       (goto-char (point-min))
       ;; Add a line to tell log-view-mode what file this is.
-      (insert "Working file(s): " (vc-delistify (mapcar 'file-relative-name files)) "\n"))
+      ;; FIXME as far as I can tell, this function at present can only
+      ;; be called with a single file argument.  Therefore I changed
+      ;; the prompt back to singular, "file(s)" -> "file", since
+      ;; otherwise log-view-current-file breaks.  It's trivial to
+      ;; adapt log-view-file-re for the new prefix, but less trivial
+      ;; to make log-view-current-file actually do the right thing in
+      ;; the multiple file case.
+      (insert "Working file: " (vc-delistify (mapcar 'file-relative-name files)) "\n"))
     (vc-svn-command
      buffer
      (if (and (= (length files) 1) (vc-stay-local-p (car files)) (fboundp 'start-process)) 'async 0)
