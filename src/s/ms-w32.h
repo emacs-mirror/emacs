@@ -302,6 +302,8 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_MOUSE 1
 #define HAVE_H_ERRNO 1
 
+#define MULTI_KBOARD 1
+
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
 #define HAVE_FACES 1
