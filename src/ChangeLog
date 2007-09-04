@@ -1,5 +1,12 @@
 2007-09-04  Jason Rumney  <jasonr@gnu.org>
 
+	* w32console.c (one_and_only_w32cons): Remove.
+	(initialize_w32_display): Take terminal argument.
+
+	* term.c (init_tty) [WINDOWSNT]: Pass terminal to
+	initialize_w32_display.
+	(init_tty) [MULTI_KBOARD]: Include this code on WINDOWSNT too.
+
 	* termhooks.h (enum event_kind) <HORIZ_WHEEL_EVENT>: New event.
 
 	* keyboard.c (discard_mouse_events): Discard it.
