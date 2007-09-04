@@ -124,10 +124,10 @@ static int visible_cursor;
 extern Lisp_Object Qspace, QCalign_to, QCwidth;
 
 /* Functions to call after suspending a tty. */
-Lisp_Object Vsuspend_tty_hook;
+Lisp_Object Vsuspend_tty_functions;
 
 /* Functions to call after resuming a tty. */
-Lisp_Object Vresume_tty_hook;
+Lisp_Object Vresume_tty_functions;
 
 /* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;
@@ -2229,7 +2229,7 @@ not updated.
 TTY may be a terminal id, a frame, or nil for the terminal device of
 the currently selected frame.
 
-This function runs `suspend-tty-hook' after suspending the
+This function runs `suspend-tty-functions' after suspending the
 device.  The functions are run with one arg, the id of the suspended
 terminal device.
 
@@ -2264,11 +2264,11 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       if (FRAMEP (t->display_info.tty->top_frame))
         FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
       
-      /* Run `suspend-tty-hook'.  */
+      /* Run `suspend-tty-functions'.  */
       if (!NILP (Vrun_hooks))
         {
           Lisp_Object args[2];
-          args[0] = intern ("suspend-tty-hook");
+          args[0] = intern ("suspend-tty-functions");
           args[1] = make_number (t->id);
           Frun_hook_with_args (2, args);
         }
@@ -2288,7 +2288,7 @@ suspended terminal are revived.
 It is an error to resume a terminal while another terminal is active
 on the same device.
 
-This function runs `resume-tty-hook' after resuming the terminal.
+This function runs `resume-tty-functions' after resuming the terminal.
 The functions are run with one arg, the id of the resumed terminal
 device.
 
@@ -2329,11 +2329,11 @@ the currently selected frame. */)
 
       init_sys_modes (t->display_info.tty);
 
-      /* Run `resume-tty-hook'.  */
+      /* Run `resume-tty-functions'.  */
       if (!NILP (Vrun_hooks))
         {
           Lisp_Object args[2];
-          args[0] = intern ("resume-tty-hook");
+          args[0] = intern ("resume-tty-functions");
           args[1] = make_number (t->id);
           Frun_hook_with_args (2, args);
         }
@@ -3875,18 +3875,18 @@ This variable can be used by terminal emulator packages.  */);
   system_uses_terminfo = 0;
 #endif
 
-  DEFVAR_LISP ("suspend-tty-hook", &Vsuspend_tty_hook,
-    doc: /* Hook to be run after suspending a tty.
+  DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
+    doc: /* Functions to be run after suspending a tty.
 The functions are run with one argument, the terminal id to be suspended.
 See `suspend-tty'.  */);
-  Vsuspend_tty_hook = Qnil;
+  Vsuspend_tty_functions = Qnil;
 
 
-  DEFVAR_LISP ("resume-tty-hook", &Vresume_tty_hook,
-    doc: /* Hook to be run after resuming a tty.
+  DEFVAR_LISP ("resume-tty-functions", &Vresume_tty_functions,
+    doc: /* Functions to be run after resuming a tty.
 The functions are run with one argument, the terminal id that was revived.
 See `resume-tty'.  */);
-  Vresume_tty_hook = Qnil;
+  Vresume_tty_functions = Qnil;
 
   DEFVAR_BOOL ("visible-cursor", &visible_cursor,
 	       doc: /* Non-nil means to make the cursor very visible.

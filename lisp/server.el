@@ -485,7 +485,7 @@ kill any existing server communications subprocess."
 	(when server-process
 	  (server-log (message "Restarting server")))
 	(letf (((default-file-modes) ?\700))
-	  (add-hook 'suspend-tty-hook 'server-handle-suspend-tty)
+	  (add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
 	  (add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
 	  (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
@@ -1225,7 +1225,7 @@ only these files will be asked to be saved."
 (defun server-unload-hook ()
   "Unload the server library."
   (server-mode -1)
-  (remove-hook 'suspend-tty-hook 'server-handle-suspend-tty)
+  (remove-hook 'suspend-tty-functions 'server-handle-suspend-tty)
   (remove-hook 'delete-frame-functions 'server-handle-delete-frame)
   (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
   (remove-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
