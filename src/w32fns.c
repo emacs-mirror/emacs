@@ -3383,16 +3383,20 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       return 0;
 
     case WM_MOUSEWHEEL:
-      wmsg.dwModifiers = w32_get_modifiers ();
-      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-      signal_user_input ();
-      return 0;
-
     case WM_DROPFILES:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       signal_user_input ();
       return 0;
+
+    case WM_MOUSEHWHEEL:
+      wmsg.dwModifiers = w32_get_modifiers ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      signal_user_input ();
+      /* Non-zero must be returned when WM_MOUSEHWHEEL messages are
+         handled, to prevent the system trying to handle it by faking
+         scroll bar events.  */
+      return 1;
 
     case WM_TIMER:
       /* Flush out saved messages if necessary. */
@@ -7238,7 +7242,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   Vx_resource_name = Vinvocation_name;
 
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->terminal->kboard;
 #else
   kb = &the_only_kboard;
 #endif
