@@ -1,3 +1,33 @@
+2007-09-04  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (fancy-about-text): New variable.
+	(fancy-splash-delay, fancy-splash-max-time): Remove user options.
+	(fancy-current-text, fancy-splash-stop-time)
+	(fancy-splash-outer-buffer): Remove variables.
+	(fancy-splash-head, fancy-splash-tail): Add new optional argument
+	`startup' and use it to conditionally display different texts for
+	Startup and About screens.  Don't display Help commands on the About
+	screen.
+	(fancy-splash-screens-1): Remove function and move its content to
+	`fancy-splash-screens' to the part that dislpays the About screen.
+	(exit-splash-screen): Don't treat specially exiting from
+	alternating screens.
+	(fancy-splash-screens): Rename argument `static' to `startup'.
+	Fix docstring.  Remove code for displaying alternating screens.
+	Use arg `startup' in calls to `fancy-splash-head', `fancy-splash-tail'.
+	Remove let-bind for `fancy-splash-outer-buffer' and add let-bind
+	for `inhibit-read-only'.
+	(normal-splash-screen): Rename argument `static' to `startup'.
+	Fix docstring.  Use argument `startup' to conditionally display
+	different texts for Startup and About screens.  Don't display Help
+	commands on the About screen.  Remove `unwind-protect' `sit-for'
+	delay and `kill-buffer' after it.
+	(display-startup-echo-area-message): Remove call to
+	`use-fancy-splash-screens-p' because image.el is preloaded and
+	doesn't display "Loading image... done".
+	(display-splash-screen): Rename argument `static' to `startup'.
+	Fix docstring.
+
 2007-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* server.el (server-start, server-unload-hook):
