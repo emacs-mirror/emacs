@@ -1,5 +1,7 @@
 2007-09-04  Jason Rumney  <jasonr@gnu.org>
 
+	* s/ms-w32.h (MULTI_KBOARD): Define.
+
 	* w32console.c (one_and_only_w32cons): Remove.
 	(initialize_w32_display): Take terminal argument.
 
