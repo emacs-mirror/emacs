@@ -251,8 +251,8 @@ down the SHIFT key while pressing the mouse button."
 (add-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
 
 ;; Restore normal mouse behaviour outside Emacs.
-(add-hook 'suspend-tty-functions 'turn-off-xterm-mouse-tracking-on-terminal)
-(add-hook 'resume-tty-functions 'turn-on-xterm-mouse-tracking-on-terminal)
+(add-hook 'suspend-tty-hook 'turn-off-xterm-mouse-tracking-on-terminal)
+(add-hook 'resume-tty-hook 'turn-on-xterm-mouse-tracking-on-terminal)
 (add-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
 (add-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
 (add-hook 'kill-emacs-hook 'turn-off-xterm-mouse-tracking)

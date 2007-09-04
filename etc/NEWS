@@ -236,6 +236,11 @@ session, and `make-frame-on-tty' works during a graphical session.
 `terminal-parameter', `set-terminal-parameter',
 `modify-terminal-parameters'.
 
+*** New hooks: `suspend-tty-hook' and `resume-tty-hook' 
+are called after a tty frame has been suspended or resumed,
+respectively. The hooks are called with the terminal id of the frame
+being suspended/resumed as a parameter.
+
 *** New functions: `environment', `let-environment'.
 
 *** New variables: `local-key-translation-map', `local-function-key-map'.

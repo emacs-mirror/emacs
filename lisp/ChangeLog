@@ -1,3 +1,11 @@
+2007-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* server.el (server-start, server-unload-hook):
+	suspend-tty-functions has been renamed to suspend-tty-hook.
+
+	* xt-mouse.el: Likewise. resume-tty-functions has been renamed to
+	resume-tty-hook.
+
 2007-09-03  Emanuele Giaquinta <e.giaquinta@glauco.it>  (tiny change)
 
 	* loadup.el: Fix merge problem, only load "button" once.

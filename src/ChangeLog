@@ -1,3 +1,11 @@
+2007-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (Vsuspend_tty_hook): Rename from Vsuspend_tty_functions.
+	(Vresume_tty_hook): Rename from Vresume_tty_functions.
+	(syms_of_term): Rename suspend-tty-functions to suspend-tty-hook
+	and resume-tty-function to resume-tty-hook.
+	(Fsuspend_tty, Fresume_tty): Use new names.
+
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Handle stock name as a named icon
