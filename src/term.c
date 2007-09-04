@@ -3272,7 +3272,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 #endif
 
 #ifdef WINDOWSNT
-  initialize_w32_display ();
+  initialize_w32_display (terminal);
 
   /* XXX Can this be non-null?  */
   if (name)
@@ -3315,7 +3315,6 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   tty->TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
-  return terminal;
 #else  /* not WINDOWSNT */
 
   Wcm_clear (tty);
@@ -3483,6 +3482,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->TF_underscore = tgetflag ("ul");
   tty->TF_teleray = tgetflag ("xt");
 
+#endif /* !WINDOWSNT  */
 #ifdef MULTI_KBOARD
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
@@ -3494,9 +3494,12 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
      prompt in the mini-buffer.  */
   if (current_kboard == initial_kboard)
     current_kboard = terminal->kboard;
+#ifndef WINDOWSNT
   term_get_fkeys (address, terminal->kboard);
 #endif
+#endif
 
+#ifndef WINDOWSNT
   /* Get frame size from system, or else from termcap.  */
   {
     int height, width;
@@ -3718,9 +3721,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
+#endif /* not WINDOWSNT */
 
   return terminal;
-#endif /* not WINDOWSNT */
 }
 
 /* Auxiliary error-handling function for init_tty.
