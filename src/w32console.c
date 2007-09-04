@@ -534,15 +534,10 @@ vga_stdcolor_name (int idx)
 
 typedef int (*term_hook) ();
 
-/* TEMPORARY HACK to get w32console compiling. To support multiple consoles,
-   this needs to go! */
-struct terminal one_and_only_w32cons;
-
 void
-initialize_w32_display (void)
+initialize_w32_display (struct terminal *term)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
-  struct terminal *term = &one_and_only_w32cons;
 
   term->cursor_to_hook		= w32con_move_cursor;
   term->raw_cursor_to_hook		= w32con_move_cursor;
