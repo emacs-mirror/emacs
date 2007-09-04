@@ -539,6 +539,7 @@ initialize_w32_display (struct terminal *term)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
 
+  term->rif = 0; /* No window based redisplay on the console.  */
   term->cursor_to_hook		= w32con_move_cursor;
   term->raw_cursor_to_hook		= w32con_move_cursor;
   term->clear_to_end_hook		= w32con_clear_to_end;
@@ -557,6 +558,15 @@ initialize_w32_display (struct terminal *term)
 
   term->read_socket_hook = w32_console_read_socket;
   term->mouse_position_hook = w32_console_mouse_position;
+
+  /* The following are not used on the console.  */
+  term->frame_rehighlight_hook = 0;
+  term->frame_raise_lower_hook = 0;
+  term->set_vertical_scroll_bar_hook = 0;
+  term->condemn_scroll_bars_hook = 0;
+  term->redeem_scroll_bar_hook = 0;
+  term->judge_scroll_bars_hook = 0;
+  term->frame_up_to_date_hook = 0;
 
   /* Initialize interrupt_handle.  */
   init_crit ();
