@@ -1,5 +1,9 @@
 2007-09-04  Jason Rumney  <jasonr@gnu.org>
 
+	* term.c (init_tty) [WINDOWSNT]: Add hooks that are not accessible
+	in w32console.c.  Set up input.  Remove XXX comments that have been
+	confirmed as correct.
+
 	* s/ms-w32.h (MULTI_KBOARD): Define.
 
 	* w32console.c (one_and_only_w32cons): Remove.
