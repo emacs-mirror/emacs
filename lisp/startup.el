@@ -1198,25 +1198,18 @@ regardless of the value of this variable."
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
+(defvar fancy-about-text
+  '((:face variable-pitch
+    ))
+  "A list of texts to show in the middle part of the About screen.
+Each element in the list should be a list of strings or pairs
+`:face FACE', like `fancy-splash-insert' accepts them.")
+
 
 (defgroup fancy-splash-screen ()
   "Fancy splash screen when Emacs starts."
   :version "21.1"
   :group 'initialization)
-
-
-(defcustom fancy-splash-delay 7
-  "*Delay in seconds between splash screens."
-  :group 'fancy-splash-screen
-  :type 'integer)
-
-
-(defcustom fancy-splash-max-time 30
-  "*Show splash screens for at most this number of seconds.
-Values less than twice `fancy-splash-delay' are ignored."
-  :group 'fancy-splash-screen
-  :type 'integer)
-
 
 (defcustom fancy-splash-image nil
   "*The image to show in the splash screens, or nil for defaults."
@@ -1237,10 +1230,7 @@ Values less than twice `fancy-splash-delay' are ignored."
 
 ;; These are temporary storage areas for the splash screen display.
 
-(defvar fancy-current-text nil)
 (defvar fancy-splash-help-echo nil)
-(defvar fancy-splash-stop-time nil)
-(defvar fancy-splash-outer-buffer nil)
 
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
@@ -1268,7 +1258,7 @@ where FACE is a valid face specification, as it can be used with
       (setq args (cdr args)))))
 
 
-(defun fancy-splash-head ()
+(defun fancy-splash-head (&optional startup)
   "Insert the head part of the splash screen into the current buffer."
   (let* ((image-file (cond ((stringp fancy-splash-image)
 			    fancy-splash-image)
@@ -1307,27 +1297,21 @@ where FACE is a valid face specification, as it can be used with
        "GNU Emacs is one component of the GNU/Linux operating system."
      "GNU Emacs is one component of the GNU operating system."))
   (insert "\n")
-  (fancy-splash-insert
-   :face 'variable-pitch
-   "You can do basic editing with the menu bar and scroll bar \
+  (if startup
+      (fancy-splash-insert
+       :face 'variable-pitch
+       "You can do basic editing with the menu bar and scroll bar \
 using the mouse.\n"
-   :face 'variable-pitch
-   "To quit a partially entered command, type "
-   :face 'default
-   "Control-g"
-   :face 'variable-pitch
-   "."
-   "\n\n")
-  (when fancy-splash-outer-buffer
-    (fancy-splash-insert
-     :face 'variable-pitch
-     "Type "
-     :face 'default
-     "`q'"
-     :face 'variable-pitch
-     " to exit from this screen.\n")))
+       :face 'variable-pitch
+       "To quit a partially entered command, type "
+       :face 'default
+       "Control-g"
+       :face 'variable-pitch
+       "."
+       "\n\n"))
+  )
 
-(defun fancy-splash-tail ()
+(defun fancy-splash-tail (&optional startup)
   "Insert the tail part of the splash screen into the current buffer."
   (let ((fg (if (eq (frame-parameter nil 'background-mode) 'dark)
 		"cyan" "darkblue")))
@@ -1336,8 +1320,10 @@ using the mouse.\n"
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 emacs-copyright)
-    (and auto-save-list-file-prefix
+			 emacs-copyright
+			 "\n")
+    (and startup
+	 auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files
 	 ;; does not yet exist.
@@ -1351,7 +1337,7 @@ using the mouse.\n"
 				 auto-save-list-file-prefix)))
 	  t)
 	 (fancy-splash-insert :face '(variable-pitch :foreground "red")
-			      "\n\nIf an Emacs session crashed recently, "
+			      "\nIf an Emacs session crashed recently, "
 			      "type "
 			      :face '(fixed-pitch :foreground "red")
 			      "Meta-x recover-session RET"
@@ -1359,100 +1345,72 @@ using the mouse.\n"
 			      "\nto recover"
 			      " the files you were editing.\n"))))
 
-(defun fancy-splash-screens-1 (buffer)
-  "Timer function displaying a splash screen."
-  (when (> (float-time) fancy-splash-stop-time)
-    (throw 'stop-splashing nil))
-  (unless fancy-current-text
-    (setq fancy-current-text fancy-splash-text))
-  (let ((text (car fancy-current-text))
-	(inhibit-read-only t))
-    (set-buffer buffer)
-    (erase-buffer)
-    (if pure-space-overflow
-	(insert "\
-Warning Warning!!!  Pure space overflow    !!!Warning Warning
-\(See the node Pure Storage in the Lisp manual for details.)\n"))
-    (fancy-splash-head)
-    (apply #'fancy-splash-insert text)
-    (fancy-splash-tail)
-    (unless (current-message)
-      (message fancy-splash-help-echo))
-    (set-buffer-modified-p nil)
-    (goto-char (point-min))
-    (force-mode-line-update)
-    (setq fancy-current-text (cdr fancy-current-text))))
-
 (defun exit-splash-screen ()
   "Stop displaying the splash screen buffer."
   (interactive)
-  (if fancy-splash-outer-buffer
-      (throw 'stop-splashing nil)
-    (quit-window t)))
+  (quit-window t))
 
-(defun fancy-splash-screens (&optional static)
-  "Display fancy splash screens when Emacs starts."
-  (if (not static)
-      (let ((old-hourglass display-hourglass)
-	    (fancy-splash-outer-buffer (current-buffer))
-	    splash-buffer
-	    (frame (fancy-splash-frame))
-	    timer)
+(defun fancy-splash-screens (&optional startup)
+  "Display fancy splash screens.
+If optional argument STARTUP is non-nil, display the startup screen
+after Emacs starts.  If STARTUP is nil, display the About screen."
+  (if (not startup)
+      ;; Display About screen
+      (let ((frame (fancy-splash-frame)))
 	(save-selected-window
 	  (select-frame frame)
 	  (switch-to-buffer "*About GNU Emacs*")
-	  (make-local-variable 'cursor-type)
-	  (setq splash-buffer (current-buffer))
-	  (catch 'stop-splashing
-	    (unwind-protect
-		(let ((cursor-type nil))
-		  (setq display-hourglass nil
-			buffer-undo-list t
-			mode-line-format (propertize "---- %b %-"
-						     'face 'mode-line-buffer-id)
-			fancy-splash-stop-time (+ (float-time)
-						  fancy-splash-max-time)
-			timer (run-with-timer 0 fancy-splash-delay
-					      #'fancy-splash-screens-1
-					      splash-buffer))
-		  (use-local-map splash-screen-keymap)
-		  (setq tab-width 22)
-		  (message "%s" (startup-echo-area-message))
-		  (setq buffer-read-only t)
-		  (recursive-edit))
-	      (cancel-timer timer)
-	      (setq display-hourglass old-hourglass)
-	      (kill-buffer splash-buffer)
-	      (when (frame-live-p frame)
-		(select-frame frame)
-		(switch-to-buffer fancy-splash-outer-buffer))))))
-    ;; If static is non-nil, don't show fancy splash screen.
+	  (setq buffer-undo-list t
+		mode-line-format (propertize "---- %b %-"
+					     'face 'mode-line-buffer-id))
+	  (let ((inhibit-read-only t))
+	    (erase-buffer)
+	    (if pure-space-overflow
+		(insert "\
+Warning Warning!!!  Pure space overflow    !!!Warning Warning
+\(See the node Pure Storage in the Lisp manual for details.)\n"))
+	    (fancy-splash-head startup)
+	    (dolist (text fancy-about-text)
+	      (apply #'fancy-splash-insert text)
+	      (insert "\n"))
+	    (fancy-splash-tail startup)
+	    (unless (current-message)
+	      (message fancy-splash-help-echo))
+	    (set-buffer-modified-p nil)
+	    (goto-char (point-min))
+	    (force-mode-line-update))
+	  (use-local-map splash-screen-keymap)
+	  (setq tab-width 22)
+	  (message "%s" (startup-echo-area-message))
+	  (setq buffer-read-only t)
+	  (goto-char (point-min))))
+
+    ;; If startup is non-nil, display startup fancy splash screen.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
       (switch-to-buffer "*GNU Emacs*"))
-    (setq buffer-read-only nil)
-    (erase-buffer)
-    (if pure-space-overflow
-	(insert "\
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (if pure-space-overflow
+	  (insert "\
 Warning Warning!!!  Pure space overflow    !!!Warning Warning
 \(See the node Pure Storage in the Lisp manual for details.)\n"))
-    (let (fancy-splash-outer-buffer)
-      (fancy-splash-head)
+      (fancy-splash-head startup)
       (dolist (text fancy-splash-text)
 	(apply #'fancy-splash-insert text)
 	(insert "\n"))
       (skip-chars-backward "\n")
       (delete-region (point) (point-max))
       (insert "\n")
-      (fancy-splash-tail)
-      (use-local-map splash-screen-keymap)
-      (setq tab-width 22)
-      (set-buffer-modified-p nil)
-      (setq buffer-read-only t)
-      (if (and view-read-only (not view-mode))
-	  (view-mode-enter nil 'kill-buffer))
-      (goto-char (point-min)))))
+      (fancy-splash-tail startup))
+    (use-local-map splash-screen-keymap)
+    (setq tab-width 22)
+    (set-buffer-modified-p nil)
+    (setq buffer-read-only t)
+    (if (and view-read-only (not view-mode))
+	(view-mode-enter nil 'kill-buffer))
+    (goto-char (point-min))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1486,42 +1444,41 @@ we put it on this frame."
 	  (> frame-height (+ image-height 19)))))))
 
 
-(defun normal-splash-screen (&optional static)
-  "Display splash screen when Emacs starts."
+(defun normal-splash-screen (&optional startup)
+  "Display non-graphic splash screen.
+If optional argument STARTUP is non-nil, display the startup screen
+after Emacs starts.  If STARTUP is nil, display the About screen."
   (let ((prev-buffer (current-buffer)))
-    (unwind-protect
-	(with-current-buffer (get-buffer-create "*About GNU Emacs*")
-	  (setq buffer-read-only nil)
-	  (erase-buffer)
-	  (set (make-local-variable 'tab-width) 8)
-	  (if (not static)
-	      (set (make-local-variable 'mode-line-format)
-		   (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
+    (with-current-buffer (get-buffer-create "*About GNU Emacs*")
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (set (make-local-variable 'tab-width) 8)
+      (if (not startup)
+	  (set (make-local-variable 'mode-line-format)
+	       (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
 
-          (if pure-space-overflow
-              (insert "\
+      (if pure-space-overflow
+	  (insert "\
 Warning Warning!!!  Pure space overflow    !!!Warning Warning
 \(See the node Pure Storage in the Lisp manual for details.)\n"))
 
-          ;; The convention for this piece of code is that
-          ;; each piece of output starts with one or two newlines
-          ;; and does not end with any newlines.
-          (insert "Welcome to GNU Emacs")
-          (insert
-           (if (eq system-type 'gnu/linux)
-               ", one component of the GNU/Linux operating system.\n"
-             ", a part of the GNU operating system.\n"))
+      ;; The convention for this piece of code is that
+      ;; each piece of output starts with one or two newlines
+      ;; and does not end with any newlines.
+      (if startup
+	  (insert "Welcome to GNU Emacs")
+	(insert "This is GNU Emacs"))
+      (insert
+       (if (eq system-type 'gnu/linux)
+	   ", one component of the GNU/Linux operating system.\n"
+	 ", a part of the GNU operating system.\n"))
 
-	  (if (not static)
-	      (insert (substitute-command-keys
-		       (concat
-			"\nType \\[recenter] to quit from this screen.\n"))))
-
-          (if (display-mouse-p)
-              ;; The user can use the mouse to activate menus
-              ;; so give help in terms of menu items.
-              (progn
-                (insert "\
+      (if startup
+	  (if (display-mouse-p)
+	      ;; The user can use the mouse to activate menus
+	      ;; so give help in terms of menu items.
+	      (progn
+		(insert "\
 You can do basic editing with the menu bar and scroll bar using the mouse.
 To quit a partially entered command, type Control-g.\n")
 
@@ -1574,8 +1531,8 @@ To quit a partially entered command, type Control-g.\n")
 			       'follow-link t)
 		(insert "\tChange initialization settings including this screen\n")
 
-                (insert "\n" (emacs-version)
-                        "\n" emacs-copyright))
+		(insert "\n" (emacs-version)
+			"\n" emacs-copyright))
 
 	    ;; No mouse menus, so give help using kbd commands.
 
@@ -1588,9 +1545,9 @@ To quit a partially entered command, type Control-g.\n")
 		     (eq (key-binding "\C-hi") 'info)
 		     (eq (key-binding "\C-hr") 'info-emacs-manual)
 		     (eq (key-binding "\C-h\C-n") 'view-emacs-news))
-                (progn
+		(progn
 		  (insert "
-Get help	   C-h  (Hold down CTRL and press h)
+Get help\t   C-h  (Hold down CTRL and press h)
 ")
 		  (insert-button "Emacs manual"
 				 'action (lambda (button) (info-emacs-manual))
@@ -1612,7 +1569,7 @@ Get help	   C-h  (Hold down CTRL and press h)
 		  (insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
 
 	      (insert (format "
-Get help	   %s
+Get help\t   %s
 "
 			      (let ((where (where-is-internal
 					    'help-command nil t)))
@@ -1622,7 +1579,7 @@ Get help	   %s
 	      (insert-button "Emacs manual"
 			     'action (lambda (button) (info-emacs-manual))
 			     'follow-link t)
-	      (insert (substitute-command-keys"	   \\[info-emacs-manual]\t"))
+	      (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
 	      (insert-button "Browse manuals"
 			     'action (lambda (button) (Info-directory))
 			     'follow-link t)
@@ -1632,7 +1589,7 @@ Get help	   %s
 			     'action (lambda (button) (help-with-tutorial))
 			     'follow-link t)
 	      (insert (substitute-command-keys
-		       "	   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
+		       "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
 "))
 	      (insert-button "Buy manuals"
 			     'action (lambda (button) (view-order-manuals))
@@ -1640,15 +1597,15 @@ Get help	   %s
 	      (insert (substitute-command-keys
 		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
 
-            ;; Say how to use the menu bar with the keyboard.
+	    ;; Say how to use the menu bar with the keyboard.
 	    (insert "\n")
 	    (insert-button "Activate menubar"
 			   'action (lambda (button) (tmm-menubar))
 			   'follow-link t)
-            (if (and (eq (key-binding "\M-`") 'tmm-menubar)
-                     (eq (key-binding [f10]) 'tmm-menubar))
-                (insert "   F10  or  ESC `  or   M-`")
-              (insert (substitute-command-keys "     \\[tmm-menubar]")))
+	    (if (and (eq (key-binding "\M-`") 'tmm-menubar)
+		     (eq (key-binding [f10]) 'tmm-menubar))
+		(insert "   F10  or  ESC `  or   M-`")
+	      (insert (substitute-command-keys "   \\[tmm-menubar]")))
 
 	    ;; Many users seem to have problems with these.
 	    (insert "
@@ -1677,13 +1634,13 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 			   'follow-link t)
 	    (insert "\n")
 
-            (insert "\n" (emacs-version)
-                    "\n" emacs-copyright)
+	    (insert "\n" (emacs-version)
+		    "\n" emacs-copyright)
 
 	    (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 		     (eq (key-binding "\C-h\C-d") 'describe-distribution)
 		     (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-                (progn
+		(progn
 		  (insert
 		   "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
@@ -1702,8 +1659,8 @@ Type C-h C-d for information on ")
 				 'action (lambda (button) (describe-distribution))
 				 'follow-link t)
 		  (insert "."))
-              (insert (substitute-command-keys
-                       "\n
+	      (insert (substitute-command-keys
+		       "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
 	      (insert-button "full details"
 			     'action (lambda (button) (describe-no-warranty))
@@ -1721,52 +1678,42 @@ Type \\[describe-distribution] for information on "))
 			     'follow-link t)
 	      (insert ".")))
 
-	  ;; The rest of the startup screen is the same on all
-	  ;; kinds of terminals.
+	;; About screen
+	(insert "\n" (emacs-version) "\n" emacs-copyright "\n")
+	)
 
-	  ;; Give information on recovering, if there was a crash.
-	  (and auto-save-list-file-prefix
-	       ;; Don't signal an error if the
-	       ;; directory for auto-save-list files
-	       ;; does not yet exist.
-	       (file-directory-p (file-name-directory
-				  auto-save-list-file-prefix))
-	       (directory-files
-		(file-name-directory auto-save-list-file-prefix)
-		nil
-		(concat "\\`"
-			(regexp-quote (file-name-nondirectory
-				       auto-save-list-file-prefix)))
-		t)
-	       (insert "\n\nIf an Emacs session crashed recently, "
-		       "type Meta-x recover-session RET\nto recover"
-                       " the files you were editing.\n"))
+      ;; The rest of the startup screen is the same on all
+      ;; kinds of terminals.
 
-	  (use-local-map splash-screen-keymap)
+      ;; Give information on recovering, if there was a crash.
+      (and startup
+	   auto-save-list-file-prefix
+	   ;; Don't signal an error if the
+	   ;; directory for auto-save-list files
+	   ;; does not yet exist.
+	   (file-directory-p (file-name-directory
+			      auto-save-list-file-prefix))
+	   (directory-files
+	    (file-name-directory auto-save-list-file-prefix)
+	    nil
+	    (concat "\\`"
+		    (regexp-quote (file-name-nondirectory
+				   auto-save-list-file-prefix)))
+	    t)
+	   (insert "\n\nIf an Emacs session crashed recently, "
+		   "type Meta-x recover-session RET\nto recover"
+		   " the files you were editing.\n"))
 
-          ;; Display the input that we set up in the buffer.
-          (set-buffer-modified-p nil)
-	  (setq buffer-read-only t)
-	  (if (and view-read-only (not view-mode))
-	      (view-mode-enter nil 'kill-buffer))
-          (goto-char (point-min))
-	  (if (not static)
-	      (if (or (window-minibuffer-p)
-		      (window-dedicated-p (selected-window)))
-		  ;; If static is nil, creating a new frame will
-		  ;; generate enough events that the subsequent `sit-for'
-		  ;; will immediately return anyway.
-		  nil ;; (pop-to-buffer (current-buffer))
-		(save-window-excursion
-		  (switch-to-buffer (current-buffer))
-		  (sit-for 120))
-		(condition-case nil
-		    (switch-to-buffer (current-buffer))))))
-      ;; Unwind ... ensure splash buffer is killed
-      (if (not static)
-	  (kill-buffer "*About GNU Emacs*")
-	(switch-to-buffer "*About GNU Emacs*")
-	(rename-buffer "*GNU Emacs*" t)))))
+      (use-local-map splash-screen-keymap)
+
+      ;; Display the input that we set up in the buffer.
+      (set-buffer-modified-p nil)
+      (setq buffer-read-only t)
+      (if (and view-read-only (not view-mode))
+	  (view-mode-enter nil 'kill-buffer))
+      (switch-to-buffer "*About GNU Emacs*")
+      (if startup (rename-buffer "*GNU Emacs*" t))
+      (goto-char (point-min)))))
 
 
 (defun startup-echo-area-message ()
@@ -1808,29 +1755,21 @@ Type \\[describe-distribution] for information on "))
 			      nil t))
 			 (error nil))
 		     (kill-buffer buffer)))))
-	;; display-splash-screen at the end of command-line-1 calls
-	;; use-fancy-splash-screens-p. This can cause image.el to be
-	;; loaded, putting "Loading image... done" in the echo area.
-	;; This hides startup-echo-area-message. So
-	;; use-fancy-splash-screens-p is called here simply to get the
-	;; loading of image.el (if needed) out of the way before
-	;; display-startup-echo-area-message runs.
-	(progn
-	  (use-fancy-splash-screens-p)
-	  (message "%s" (startup-echo-area-message))))))
+	(message "%s" (startup-echo-area-message)))))
 
 
-(defun display-splash-screen (&optional static)
+(defun display-splash-screen (&optional startup)
   "Display splash screen according to display.
-Fancy splash screens are used on graphic displays,
-normal otherwise.
-With a prefix argument, any user input hides the splash screen."
+Fancy splash screens are used on graphic displays, normal otherwise.
+
+If optional argument STARTUP is non-nil, display the startup screen
+after Emacs starts.  If STARTUP is nil, display the About screen."
   (interactive "P")
   ;; Prevent recursive calls from server-process-filter.
   (if (not (get-buffer "*About GNU Emacs*"))
       (if (use-fancy-splash-screens-p)
-	  (fancy-splash-screens static)
-	(normal-splash-screen static))))
+	  (fancy-splash-screens startup)
+	(normal-splash-screen startup))))
 
 (defalias 'about-emacs 'display-splash-screen)
 
