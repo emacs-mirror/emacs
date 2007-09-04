@@ -1427,12 +1427,13 @@ If INPUT-METHOD is nil, deactivate any current input method."
 		      (delete current-input-method input-method-history))))
       (setq input-method-history (list current-input-method)))
     (unwind-protect
-	(funcall inactivate-current-input-method-function)
+	(progn
+	  (setq input-method-function nil
+		current-input-method-title nil)
+	  (funcall inactivate-current-input-method-function))
       (unwind-protect
 	  (run-hooks 'input-method-inactivate-hook)
-	(setq current-input-method nil
-	      input-method-function nil
-	      current-input-method-title nil)
+	(setq current-input-method nil)
 	(force-mode-line-update)))))
 
 (defun set-input-method (input-method &optional interactive)
