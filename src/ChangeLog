@@ -1,3 +1,27 @@
+2007-09-04  Jason Rumney  <jasonr@gnu.org>
+
+	* termhooks.h (enum event_kind) <HORIZ_WHEEL_EVENT>: New event.
+
+	* keyboard.c (discard_mouse_events): Discard it.
+	(make_lispy_event): Translate it to a lisp event.
+	(lispy_wheel_names): Add wheel-left and right events.
+	(syms_of_keyboard): Enlarge wheel_syms.
+
+	* w32fns.c (w32_wnd_proc) <WM_DROPFILES>: Merge with WM_MOUSEWHEEL.
+	<WM_MOUSEHWHEEL>: Pass new system message to lisp.
+
+	* w32term.h (WM_MOUSEHWHEEL): Define if system headers don't.
+
+	* w32term.c (construct_mouse_wheel): Make HORIZ_WHEEL_EVENT
+	from WM_MOUSEHWHEEL.
+	(w32_read_socket) <WM_MOUSEHWHEEL>: Treat as WM_MOUSEWHEEL.
+
+	* w32fns.c (x_create_tip_frame) [MULTI_KBOARD]: Get keyboard from
+	terminal.
+
+	* w32term.c (w32_create_terminal) [MULTI_KBOARD]: Create a new
+	keyboard for the terminal.
+
 2007-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c (Vsuspend_tty_hook): Rename from Vsuspend_tty_functions.
