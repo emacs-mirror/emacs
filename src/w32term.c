@@ -3150,7 +3150,8 @@ construct_mouse_wheel (result, msg, f)
   POINT p;
   int delta;
 
-  result->kind = WHEEL_EVENT;
+  result->kind = msg->msg.message == WM_MOUSEHWHEEL ? HORIZ_WHEEL_EVENT
+                                                    : WHEEL_EVENT;
   result->code = 0;
   result->timestamp = msg->msg.time;
 
@@ -4486,6 +4487,7 @@ w32_read_socket (sd, expected, hold_quit)
 	  }
 
 	case WM_MOUSEWHEEL:
+        case WM_MOUSEHWHEEL:
 	  {
 	    if (dpyinfo->grabbed && last_mouse_frame
 		&& FRAME_LIVE_P (last_mouse_frame))
@@ -6301,6 +6303,22 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->fast_clear_end_of_line = 1;  /* X does this well. */
   terminal->memory_below_frame = 0;   /* We don't remember what scrolls
                                         off the bottom. */
+
+#ifdef MULTI_KBOARD
+  /* We don't yet support separate terminals on W32, so don't try to share
+     keyboards between virtual terminals that are on the same physical
+     terminal like X does.  */
+  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (terminal->kboard);
+  terminal->kboard->next_kboard = all_kboards;
+  all_kboards = terminal->kboard;
+  /* Don't let the initial kboard remain current longer than necessary.
+     That would cause problems if a file loaded on startup tries to
+     prompt in the mini-buffer.  */
+  if (current_kboard == initial_kboard)
+    current_kboard = terminal->kboard;
+  terminal->kboard->reference_count++;
+#endif
 
   return terminal;
 }
