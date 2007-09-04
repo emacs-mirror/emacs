@@ -2538,7 +2538,9 @@
 
 2007-07-19  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-cvs.el: vc-cvs-checkin had some reference problems, now fixed.
+	* vc-cvs.el (vc-cvs-checkin, vc-cvs-diff): Finish transition from
+	having a single file argument to having a list of files as the
+	first argument.
 
 2007-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
