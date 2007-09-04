@@ -4026,6 +4026,7 @@ discard_mouse_events ()
 
       if (sp->kind == MOUSE_CLICK_EVENT
 	  || sp->kind == WHEEL_EVENT
+          || sp->kind == HORIZ_WHEEL_EVENT
 #ifdef WINDOWSNT
 	  || sp->kind == W32_SCROLL_BAR_CLICK_EVENT
 #endif
@@ -5204,7 +5205,7 @@ Lisp_Object Vlispy_mouse_stem;
 
 static char *lispy_wheel_names[] =
 {
-  "wheel-up", "wheel-down"
+  "wheel-up", "wheel-down", "wheel-left", "wheel-right"
 };
 
 /* drag-n-drop events are generated when a set of selected files are
@@ -5841,6 +5842,7 @@ make_lispy_event (event)
       }
 
     case WHEEL_EVENT:
+    case HORIZ_WHEEL_EVENT:
       {
 	Lisp_Object position;
 	Lisp_Object head;
@@ -5924,6 +5926,9 @@ make_lispy_event (event)
 	    /* Every wheel event should either have the down_modifier or
 	       the up_modifier set.  */
 	    abort ();
+
+          if (event->kind == HORIZ_WHEEL_EVENT)
+            symbol_num += 2;
 
 	  /* Get the symbol we should use for the wheel event.  */
 	  head = modify_event_symbol (symbol_num,
@@ -11800,7 +11805,7 @@ syms_of_keyboard ()
   staticpro (&button_down_location);
   mouse_syms = Fmake_vector (make_number (1), Qnil);
   staticpro (&mouse_syms);
-  wheel_syms = Fmake_vector (make_number (2), Qnil);
+  wheel_syms = Fmake_vector (make_number (4), Qnil);
   staticpro (&wheel_syms);
 
   {
