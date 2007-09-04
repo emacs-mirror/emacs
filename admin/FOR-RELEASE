@@ -49,6 +49,8 @@ GNU/Linux system.
 
 ** emacsclient must not force a new frame by default.
 
+** xterm-mouse-mode should affect all xterms.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
