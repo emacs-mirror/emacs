@@ -3273,6 +3273,9 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
 #ifdef WINDOWSNT
   initialize_w32_display (terminal);
+  /* The following two are inaccessible from w32console.c.  */
+  terminal->delete_frame_hook = &delete_tty_output;
+  terminal->delete_terminal_hook = &delete_tty;
 
   /* XXX Can this be non-null?  */
   if (name)
@@ -3282,23 +3285,21 @@ init_tty (char *name, char *terminal_type, int must_succeed)
     }
   tty->type = xstrdup (terminal_type);  
 
-  /* XXX not sure if this line is correct. If it is not set then we
-     crash in update_display_1. */
   tty->output = stdout;
-  
-  Wcm_clear (tty);
+  tty->input = stdin;
+  add_keyboard_wait_descriptor (0);
 
-  area = (char *) xmalloc (2044); /* XXX this seems unused. */
+  Wcm_clear (tty);
 
   {
     struct frame *f = XFRAME (selected_frame);
 
-    FrameRows (tty) = FRAME_LINES (f); /* XXX */
-    FrameCols (tty) = FRAME_COLS (f);  /* XXX */
-    tty->specified_window = FRAME_LINES (f); /* XXX */
+    FrameRows (tty) = FRAME_LINES (f);
+    FrameCols (tty) = FRAME_COLS (f);
+    tty->specified_window = FRAME_LINES (f);
 
-    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0; /* XXX */
-    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none; /* XXX */
+    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
   }
   tty->delete_in_insert_mode = 1;
 
