@@ -1,3 +1,9 @@
+2007-09-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (inactivate-input-method): Set
+	input-method-function to nil before calling
+	inactivate-current-input-method-function.
+
 2007-08-23  Kenichi Handa  <handa@m17n.org>
 
 	* play/gamegrid.el (gamegrid-setup-default-font): Calculate a font
