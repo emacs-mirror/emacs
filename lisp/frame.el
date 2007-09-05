@@ -681,13 +681,11 @@ the user during startup."
 	(nreverse frame-initial-geometry-arguments))
   (cdr param-list))
 
-(defcustom focus-follows-mouse (not (eq window-system 'mac))
+(defcustom focus-follows-mouse (not (memq window-system '(mac w32)))
   "*Non-nil if window system changes focus when you move the mouse.
 You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
-automatically.
-
-This variable does not have any effect on MS-Windows."
+automatically."
   :type 'boolean
   :group 'frames
   :version "20.3")
