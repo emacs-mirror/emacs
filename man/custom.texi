@@ -1226,10 +1226,14 @@ safe.
 @cindex risky variable
   Some variables, such as @code{load-path}, are considered
 particularly @dfn{risky}: there is seldom any reason to specify them
-as local variables, and changing them can be dangerous.  Even if you
-enter @kbd{!} at the confirmation prompt, Emacs will not record any
-values as safe for these variables.  If you really want to record safe
-values for these variables, do it directly by customizing
+as local variables, and changing them can be dangerous.  If a file
+contains only risky local variables, Emacs neither offers nor accepts
+@kbd{!} as input at the confirmation prompt.  If some of the local
+variables in a file are risky, and some are only potentially unsafe,
+@kbd{!} is an option at the prompt.  If you enter @kbd{!} in this case,
+all the local variables are applied, but only the non-risky ones are
+marked as safe for the future.  If you really want to
+record safe values for risky variables, do it directly by customizing
 @samp{safe-local-variable-values} (@pxref{Easy Customization}).
 
 @vindex enable-local-variables
