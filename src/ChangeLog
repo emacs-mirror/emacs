@@ -1,3 +1,7 @@
+2007-09-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c (initialize_w32_display): Zero unused hooks.
+
 2007-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c (Vsuspend_tty_functions, Vresume_tty_functions)
