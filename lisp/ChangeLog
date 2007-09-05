@@ -1,3 +1,7 @@
+2007-09-05  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* emacs-lisp/rx.el (rx): Fix typo in docstring.
+
 2007-09-05  Glenn Morris  <rgm@gnu.org>
 
 	* cus-edit.el (custom-buffer-create-internal): Check tool-bar-mode
