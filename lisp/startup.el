@@ -1134,73 +1134,93 @@ regardless of the value of this variable."
 ;;; Fancy splash screen
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar fancy-splash-text
-  '((:face (variable-pitch :weight bold)
-	   "Important Help menu items:\n"
-	   :face variable-pitch
-	   :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
-	   "\tLearn how to use Emacs efficiently"
-           (lambda ()
-             (let* ((en "TUTORIAL")
-                    (tut (or (get-language-info current-language-environment
-                                                'tutorial)
-                             en))
-                    (title (with-temp-buffer
-                             (insert-file-contents
-                              (expand-file-name tut tutorial-directory)
-                              nil 0 256)
-                             (search-forward ".")
-                             (buffer-substring (point-min) (1- (point))))))
-               ;; If there is a specific tutorial for the current language
-               ;; environment and it is not English, append its title.
-               (if (string= en tut)
-                   ""
-                 (concat " (" title ")"))))
-	   "\n"
-	   :face variable-pitch
-	   :link ("Emacs FAQ" (lambda (button) (view-emacs-FAQ)))
-	   "\tFrequently asked questions and answers\n"
-	   :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
-	   "\tView the Emacs manual using Info\n"
-	   :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
-	   "\tGNU Emacs comes with "
-	   :face (variable-pitch :slant oblique)
-	   "ABSOLUTELY NO WARRANTY\n"
-	   :face variable-pitch
-	   :link ("Copying Conditions" (lambda (button) (describe-copying)))
-	   "\tConditions for redistributing and changing Emacs\n"
-	   :link ("Getting New Versions" (lambda (button) (describe-distribution)))
-	   "\tHow to obtain the latest version of Emacs\n"
-	   :link ("More Manuals / Ordering Manuals" (lambda (button) (view-order-manuals)))
-	   "  Buying printed manuals from the FSF\n")
-  (:face (variable-pitch :weight bold)
-	 "Useful tasks:\n"
-	 :face variable-pitch
-	 :link ("Visit New File"
-		(lambda (button) (call-interactively 'find-file)))
-	 "\tSpecify a new file's name, to edit the file\n"
-	 :link ("Open Home Directory"
-		(lambda (button) (dired "~")))
-	 "\tOpen your home directory, to operate on its files\n"
-	 :link ("Open *scratch* buffer"
-		(lambda (button) (switch-to-buffer (get-buffer-create "*scratch*"))))
-	 "\tOpen buffer for notes you don't want to save\n"
-	 :link ("Customize Startup"
-		(lambda (button) (customize-group 'initialization)))
-	 "\tChange initialization settings including this screen\n"
-
-	 "\nEmacs Guided Tour\tSee "
-	 :link ("http://www.gnu.org/software/emacs/tour/"
-		(lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
-
-	 ))
+(defvar fancy-startup-text
+  '((:face variable-pitch
+     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     "\tLearn basic Emacs keystroke commands"
+     (lambda ()
+       (let* ((en "TUTORIAL")
+	      (tut (or (get-language-info current-language-environment
+					  'tutorial)
+		       en))
+	      (title (with-temp-buffer
+		       (insert-file-contents
+			(expand-file-name tut tutorial-directory)
+			nil 0 256)
+		       (search-forward ".")
+		       (buffer-substring (point-min) (1- (point))))))
+	 ;; If there is a specific tutorial for the current language
+	 ;; environment and it is not English, append its title.
+	 (if (string= en tut)
+	     ""
+	   (concat " (" title ")"))))
+     "\n"
+     :face variable-pitch
+     :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
+     "\tView the Emacs manual using Info\n"
+     :link ("Emacs Guided Tour"
+	  (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
+     "\tOverview of Emacs features\n"
+     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     "\tGNU Emacs comes with "
+     :face (variable-pitch :slant oblique)
+     "ABSOLUTELY NO WARRANTY\n"
+     :face variable-pitch
+     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     "\tConditions for redistributing and changing Emacs\n"
+     :link ("More Manuals / Ordering" (lambda (button) (view-order-manuals)))
+     "\tThe FSF sells printed copies of several manuals for Emacs\n"
+     "\n"
+     "To start...       "
+     :link ("Open a File"
+	    (lambda (button) (call-interactively 'find-file)))
+     "\t"
+     :link ("Open Home Directory"
+	    (lambda (button) (dired "~")))
+     "\n"))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 (defvar fancy-about-text
   '((:face variable-pitch
-    ))
+     :link ("GNU and Freedom" (lambda (button) (describe-project)))
+     "\tWhy we developed GNU Emacs, and the GNU operating system\n"
+     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     "\tGNU Emacs comes with "
+     :face (variable-pitch :slant oblique)
+     "ABSOLUTELY NO WARRANTY\n"
+     :face variable-pitch
+     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     "\tConditions for redistributing and changing Emacs\n"
+     :link ("Getting New Versions" (lambda (button) (describe-distribution)))
+     "\tHow to obtain the latest version of Emacs\n"
+     :link ("More Manuals / Ordering Manuals" (lambda (button) (view-order-manuals)))
+     "  Buying printed manuals from the FSF\n"
+     "\n"
+     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     "\tLearn basic Emacs keystroke commands"
+     (lambda ()
+       (let* ((en "TUTORIAL")
+	      (tut (or (get-language-info current-language-environment
+					  'tutorial)
+		       en))
+	      (title (with-temp-buffer
+		       (insert-file-contents
+			(expand-file-name tut tutorial-directory)
+			nil 0 256)
+		       (search-forward ".")
+		       (buffer-substring (point-min) (1- (point))))))
+	 ;; If there is a specific tutorial for the current language
+	 ;; environment and it is not English, append its title.
+	 (if (string= en tut)
+	     ""
+	   (concat " (" title ")"))))
+     "\n"
+     :link ("Emacs Guided Tour"
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
+     "\tSee an overview of the many facilities of GNU Emacs"
+     ))
   "A list of texts to show in the middle part of the About screen.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
@@ -1291,11 +1311,15 @@ where FACE is a valid face specification, as it can be used with
 		     'action (lambda (button) (browse-url "http://www.gnu.org/"))
 		     'follow-link t)
 	(insert "\n"))))
+  (insert "\n")
   (fancy-splash-insert
    :face '(variable-pitch :foreground "red")
+   "GNU Emacs is one component of the "
+   :link
    (if (eq system-type 'gnu/linux)
-       "GNU Emacs is one component of the GNU/Linux operating system."
-     "GNU Emacs is one component of the GNU operating system."))
+       '("GNU/Linux" (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html")))
+     '("GNU" (lambda (button) (describe-project))))
+   " operating system.")
   (insert "\n")
   (if startup
       (fancy-splash-insert
@@ -1397,7 +1421,7 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 Warning Warning!!!  Pure space overflow    !!!Warning Warning
 \(See the node Pure Storage in the Lisp manual for details.)\n"))
       (fancy-splash-head startup)
-      (dolist (text fancy-splash-text)
+      (dolist (text fancy-startup-text)
 	(apply #'fancy-splash-insert text)
 	(insert "\n"))
       (skip-chars-backward "\n")
@@ -1473,214 +1497,18 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 	   ", one component of the GNU/Linux operating system.\n"
 	 ", a part of the GNU operating system.\n"))
 
+      (insert "\n")
+
       (if startup
 	  (if (display-mouse-p)
 	      ;; The user can use the mouse to activate menus
 	      ;; so give help in terms of menu items.
-	      (progn
-		(insert "\
-You can do basic editing with the menu bar and scroll bar using the mouse.
-To quit a partially entered command, type Control-g.\n")
-
-		(insert "\nImportant Help menu items:\n")
-		(insert-button "Emacs Tutorial"
-			       'action (lambda (button) (help-with-tutorial))
-			       'follow-link t)
-		(insert "\t\tLearn how to use Emacs efficiently\n")
-		(insert-button "Emacs FAQ"
-			       'action (lambda (button) (view-emacs-FAQ))
-			       'follow-link t)
-		(insert "\t\tFrequently asked questions and answers\n")
-		(insert-button "Read the Emacs Manual"
-			       'action (lambda (button) (info-emacs-manual))
-			       'follow-link t)
-		(insert "\tView the Emacs manual using Info\n")
-		(insert-button "\(Non)Warranty"
-			       'action (lambda (button) (describe-no-warranty))
-			       'follow-link t)
-		(insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
-		(insert-button "Copying Conditions"
-			       'action (lambda (button) (describe-copying))
-			       'follow-link t)
-		(insert "\tConditions for redistributing and changing Emacs\n")
-		(insert-button "Getting New Versions"
-			       'action (lambda (button) (describe-distribution))
-			       'follow-link t)
-		(insert "\tHow to obtain the latest version of Emacs\n")
-		(insert-button "More Manuals / Ordering Manuals"
-			       'action (lambda (button) (view-order-manuals))
-			       'follow-link t)
-		(insert "  How to order printed manuals from the FSF\n")
-
-		(insert "\nUseful tasks:\n")
-		(insert-button "Visit New File"
-			       'action (lambda (button) (call-interactively 'find-file))
-			       'follow-link t)
-		(insert "\t\tSpecify a new file's name, to edit the file\n")
-		(insert-button "Open Home Directory"
-			       'action (lambda (button) (dired "~"))
-			       'follow-link t)
-		(insert "\tOpen your home directory, to operate on its files\n")
-		(insert-button "Open *scratch* buffer"
-			       'action (lambda (button) (switch-to-buffer
-							 (get-buffer-create "*scratch*")))
-			       'follow-link t)
-		(insert "\tOpen buffer for notes you don't want to save\n")
-		(insert-button "Customize Startup"
-			       'action (lambda (button) (customize-group 'initialization))
-			       'follow-link t)
-		(insert "\tChange initialization settings including this screen\n")
-
-		(insert "\n" (emacs-version)
-			"\n" emacs-copyright))
+	      (normal-mouse-startup-screen)
 
 	    ;; No mouse menus, so give help using kbd commands.
+	    (normal-no-mouse-startup-screen))
 
-	    ;; If keys have their default meanings,
-	    ;; use precomputed string to save lots of time.
-	    (if (and (eq (key-binding "\C-h") 'help-command)
-		     (eq (key-binding "\C-xu") 'advertised-undo)
-		     (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
-		     (eq (key-binding "\C-ht") 'help-with-tutorial)
-		     (eq (key-binding "\C-hi") 'info)
-		     (eq (key-binding "\C-hr") 'info-emacs-manual)
-		     (eq (key-binding "\C-h\C-n") 'view-emacs-news))
-		(progn
-		  (insert "
-Get help\t   C-h  (Hold down CTRL and press h)
-")
-		  (insert-button "Emacs manual"
-				 'action (lambda (button) (info-emacs-manual))
-				 'follow-link t)
-		  (insert "	   C-h r\t")
-		  (insert-button "Browse manuals"
-				 'action (lambda (button) (Info-directory))
-				 'follow-link t)
-		  (insert "\t   C-h i
-")
-		  (insert-button "Emacs tutorial"
-				 'action (lambda (button) (help-with-tutorial))
-				 'follow-link t)
-		  (insert "	   C-h t\tUndo changes\t   C-x u
-")
-		  (insert-button "Buy manuals"
-				 'action (lambda (button) (view-order-manuals))
-				 'follow-link t)
-		  (insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
-
-	      (insert (format "
-Get help\t   %s
-"
-			      (let ((where (where-is-internal
-					    'help-command nil t)))
-				(if where
-				    (key-description where)
-				  "M-x help"))))
-	      (insert-button "Emacs manual"
-			     'action (lambda (button) (info-emacs-manual))
-			     'follow-link t)
-	      (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
-	      (insert-button "Browse manuals"
-			     'action (lambda (button) (Info-directory))
-			     'follow-link t)
-	      (insert (substitute-command-keys "\t   \\[info]
-"))
-	      (insert-button "Emacs tutorial"
-			     'action (lambda (button) (help-with-tutorial))
-			     'follow-link t)
-	      (insert (substitute-command-keys
-		       "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
-"))
-	      (insert-button "Buy manuals"
-			     'action (lambda (button) (view-order-manuals))
-			     'follow-link t)
-	      (insert (substitute-command-keys
-		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
-
-	    ;; Say how to use the menu bar with the keyboard.
-	    (insert "\n")
-	    (insert-button "Activate menubar"
-			   'action (lambda (button) (tmm-menubar))
-			   'follow-link t)
-	    (if (and (eq (key-binding "\M-`") 'tmm-menubar)
-		     (eq (key-binding [f10]) 'tmm-menubar))
-		(insert "   F10  or  ESC `  or   M-`")
-	      (insert (substitute-command-keys "   \\[tmm-menubar]")))
-
-	    ;; Many users seem to have problems with these.
-	    (insert "
-\(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
-If you have no Meta key, you may instead type ESC followed by the character.)")
-
-	    ;; Insert links to useful tasks
-	    (insert "\nUseful tasks:\n")
-
-	    (insert-button "Visit New File"
-			   'action (lambda (button) (call-interactively 'find-file))
-			   'follow-link t)
-	    (insert "\t\t\t")
-	    (insert-button "Open Home Directory"
-			   'action (lambda (button) (dired "~"))
-			   'follow-link t)
-	    (insert "\n")
-
-	    (insert-button "Customize Startup"
-			   'action (lambda (button) (customize-group 'initialization))
-			   'follow-link t)
-	    (insert "\t\t")
-	    (insert-button "Open *scratch* buffer"
-			   'action (lambda (button) (switch-to-buffer
-						     (get-buffer-create "*scratch*")))
-			   'follow-link t)
-	    (insert "\n")
-
-	    (insert "\n" (emacs-version)
-		    "\n" emacs-copyright)
-
-	    (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-		     (eq (key-binding "\C-h\C-d") 'describe-distribution)
-		     (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-		(progn
-		  (insert
-		   "\n
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
-		  (insert-button "full details"
-				 'action (lambda (button) (describe-no-warranty))
-				 'follow-link t)
-		  (insert ".
-Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type C-h C-c to see ")
-		  (insert-button "the conditions"
-				 'action (lambda (button) (describe-copying))
-				 'follow-link t)
-		  (insert ".
-Type C-h C-d for information on ")
-		  (insert-button "getting the latest version"
-				 'action (lambda (button) (describe-distribution))
-				 'follow-link t)
-		  (insert "."))
-	      (insert (substitute-command-keys
-		       "\n
-GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
-	      (insert-button "full details"
-			     'action (lambda (button) (describe-no-warranty))
-			     'follow-link t)
-	      (insert (substitute-command-keys ".
-Emacs is Free Software--Free as in Freedom--so you can redistribute copies
-of Emacs and modify it; type \\[describe-copying] to see "))
-	      (insert-button "the conditions"
-			     'action (lambda (button) (describe-copying))
-			     'follow-link t)
-	      (insert (substitute-command-keys".
-Type \\[describe-distribution] for information on "))
-	      (insert-button "getting the latest version"
-			     'action (lambda (button) (describe-distribution))
-			     'follow-link t)
-	      (insert ".")))
-
-	;; About screen
-	(insert "\n" (emacs-version) "\n" emacs-copyright "\n")
-	)
+	(normal-about-screen))
 
       ;; The rest of the startup screen is the same on all
       ;; kinds of terminals.
@@ -1715,6 +1543,224 @@ Type \\[describe-distribution] for information on "))
       (if startup (rename-buffer "*GNU Emacs*" t))
       (goto-char (point-min)))))
 
+(defun normal-mouse-startup-screen ()
+  ;; The user can use the mouse to activate menus
+  ;; so give help in terms of menu items.
+  (insert "\
+You can do basic editing with the menu bar and scroll bar using the mouse.
+To quit a partially entered command, type Control-g.\n")
+
+  (insert "\nImportant Help menu items:\n")
+  (insert-button "Emacs Tutorial"
+		 'action (lambda (button) (help-with-tutorial))
+		 'follow-link t)
+  (insert "\t\tLearn basic Emacs keystroke commands\n")
+  (insert-button "Read the Emacs Manual"
+		 'action (lambda (button) (info-emacs-manual))
+		 'follow-link t)
+  (insert "\tView the Emacs manual using Info\n")
+  (insert-button "\(Non)Warranty"
+		 'action (lambda (button) (describe-no-warranty))
+		 'follow-link t)
+  (insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
+  (insert-button "Copying Conditions"
+		 'action (lambda (button) (describe-copying))
+		 'follow-link t)
+  (insert "\tConditions for redistributing and changing Emacs\n")
+  (insert-button "More Manuals / Ordering Manuals"
+		 'action (lambda (button) (view-order-manuals))
+		 'follow-link t)
+  (insert "  How to order printed manuals from the FSF\n")
+
+  (insert "\nUseful tasks:\n")
+  (insert-button "Visit New File"
+		 'action (lambda (button) (call-interactively 'find-file))
+		 'follow-link t)
+  (insert "\t\tSpecify a new file's name, to edit the file\n")
+  (insert-button "Open Home Directory"
+		 'action (lambda (button) (dired "~"))
+		 'follow-link t)
+  (insert "\tOpen your home directory, to operate on its files\n")
+  (insert-button "Customize Startup"
+		 'action (lambda (button) (customize-group 'initialization))
+		 'follow-link t)
+  (insert "\tChange initialization settings including this screen\n")
+
+  (insert "\n" (emacs-version)
+	  "\n" emacs-copyright))
+
+;; No mouse menus, so give help using kbd commands.
+(defun normal-no-mouse-startup-screen ()
+
+  ;; If keys have their default meanings,
+  ;; use precomputed string to save lots of time.
+  (if (and (eq (key-binding "\C-h") 'help-command)
+	   (eq (key-binding "\C-xu") 'advertised-undo)
+	   (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
+	   (eq (key-binding "\C-ht") 'help-with-tutorial)
+	   (eq (key-binding "\C-hi") 'info)
+	   (eq (key-binding "\C-hr") 'info-emacs-manual)
+	   (eq (key-binding "\C-h\C-n") 'view-emacs-news))
+      (progn
+	(insert "
+Get help\t   C-h  (Hold down CTRL and press h)
+")
+	(insert-button "Emacs manual"
+		       'action (lambda (button) (info-emacs-manual))
+		       'follow-link t)
+	(insert "	   C-h r\t")
+	(insert-button "Browse manuals"
+		       'action (lambda (button) (Info-directory))
+		       'follow-link t)
+	(insert "\t   C-h i
+")
+	(insert-button "Emacs tutorial"
+		       'action (lambda (button) (help-with-tutorial))
+		       'follow-link t)
+	(insert "	   C-h t\tUndo changes\t   C-x u
+")
+	(insert-button "Buy manuals"
+		       'action (lambda (button) (view-order-manuals))
+		       'follow-link t)
+	(insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
+
+    (insert (format "
+Get help\t   %s
+"
+		    (let ((where (where-is-internal
+				  'help-command nil t)))
+		      (if where
+			  (key-description where)
+			"M-x help"))))
+    (insert-button "Emacs manual"
+		   'action (lambda (button) (info-emacs-manual))
+		   'follow-link t)
+    (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
+    (insert-button "Browse manuals"
+		   'action (lambda (button) (Info-directory))
+		   'follow-link t)
+    (insert (substitute-command-keys "\t   \\[info]
+"))
+    (insert-button "Emacs tutorial"
+		   'action (lambda (button) (help-with-tutorial))
+		   'follow-link t)
+    (insert (substitute-command-keys
+	     "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
+"))
+    (insert-button "Buy manuals"
+		   'action (lambda (button) (view-order-manuals))
+		   'follow-link t)
+    (insert (substitute-command-keys
+	     "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
+
+  ;; Say how to use the menu bar with the keyboard.
+  (insert "\n")
+  (insert-button "Activate menubar"
+		 'action (lambda (button) (tmm-menubar))
+		 'follow-link t)
+  (if (and (eq (key-binding "\M-`") 'tmm-menubar)
+	   (eq (key-binding [f10]) 'tmm-menubar))
+      (insert "   F10  or  ESC `  or   M-`")
+    (insert (substitute-command-keys "   \\[tmm-menubar]")))
+
+  ;; Many users seem to have problems with these.
+  (insert "
+\(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
+If you have no Meta key, you may instead type ESC followed by the character.)")
+
+  ;; Insert links to useful tasks
+  (insert "\nUseful tasks:\n")
+
+  (insert-button "Visit New File"
+		 'action (lambda (button) (call-interactively 'find-file))
+		 'follow-link t)
+  (insert "\t\t\t")
+  (insert-button "Open Home Directory"
+		 'action (lambda (button) (dired "~"))
+		 'follow-link t)
+  (insert "\n")
+
+  (insert-button "Customize Startup"
+		 'action (lambda (button) (customize-group 'initialization))
+		 'follow-link t)
+  (insert "\t\t")
+  (insert-button "Open *scratch* buffer"
+		 'action (lambda (button) (switch-to-buffer
+					   (get-buffer-create "*scratch*")))
+		 'follow-link t)
+  (insert "\n")
+  (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
+
+  (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
+	   (eq (key-binding "\C-h\C-d") 'describe-distribution)
+	   (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
+      (progn
+	(insert
+	 "\n
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
+	(insert-button "full details"
+		       'action (lambda (button) (describe-no-warranty))
+		       'follow-link t)
+	(insert ".
+Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+of Emacs and modify it; type C-h C-c to see ")
+	(insert-button "the conditions"
+		       'action (lambda (button) (describe-copying))
+		       'follow-link t)
+	(insert ".
+Type C-h C-d for information on ")
+	(insert-button "getting the latest version"
+		       'action (lambda (button) (describe-distribution))
+		       'follow-link t)
+	(insert "."))
+    (insert (substitute-command-keys
+	     "\n
+GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
+    (insert-button "full details"
+		   'action (lambda (button) (describe-no-warranty))
+		   'follow-link t)
+    (insert (substitute-command-keys ".
+Emacs is Free Software--Free as in Freedom--so you can redistribute copies
+of Emacs and modify it; type \\[describe-copying] to see "))
+    (insert-button "the conditions"
+		   'action (lambda (button) (describe-copying))
+		   'follow-link t)
+    (insert (substitute-command-keys".
+Type \\[describe-distribution] for information on "))
+    (insert-button "getting the latest version"
+		   'action (lambda (button) (describe-distribution))
+		   'follow-link t)
+    (insert ".")))
+
+(defun normal-about-screen ()
+  (insert "\n" (emacs-version) "\n" emacs-copyright "\n\n")
+
+  (insert "To follow a link, click Mouse-1 on it, or move to it and type RET.\n\n")
+
+  (insert-button "GNU and Freedom"
+		 'action (lambda (button) (describe-project))
+		 'follow-link t)
+  (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
+
+  (insert-button "Absence of Warranty"
+		 'action (lambda (button) (describe-no-warranty))
+		 'follow-link t)
+  (insert "\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
+
+  (insert-button "Copying Conditions"
+		 'action (lambda (button) (describe-copying))
+		 'follow-link t)
+  (insert "\tConditions for redistributing and changing Emacs\n")
+
+  (insert-button "Getting New Versions"
+		 'action (lambda (button) (describe-distribution))
+		 'follow-link t)
+  (insert "\tHow to get the latest version of GNU Emacs\n")
+
+  (insert-button "More Manuals / Ordering Manuals"
+		 'action (lambda (button) (view-order-manuals))
+		 'follow-link t)
+  (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
   (if (eq (key-binding "\C-h\C-p") 'describe-project)
