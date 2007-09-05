@@ -1,3 +1,7 @@
+2007-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Safe File Variables): Clarify `!' and risky variables.
+
 2007-08-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* rmail.texi (Rmail Sorting): Improve indexing.
