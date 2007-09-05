@@ -1229,10 +1229,9 @@ particularly @dfn{risky}: there is seldom any reason to specify them
 as local variables, and changing them can be dangerous.  If a file
 contains only risky local variables, Emacs neither offers nor accepts
 @kbd{!} as input at the confirmation prompt.  If some of the local
-variables in a file are risky, and some are only potentially unsafe,
-@kbd{!} is an option at the prompt.  If you enter @kbd{!} in this case,
-all the local variables are applied, but only the non-risky ones are
-marked as safe for the future.  If you really want to
+variables in a file are risky, and some are only potentially unsafe, you
+can enter @kbd{!} at the prompt.  It applies all the variables, but only
+marks the non-risky ones as safe for the future.  If you really want to
 record safe values for risky variables, do it directly by customizing
 @samp{safe-local-variable-values} (@pxref{Easy Customization}).
 
