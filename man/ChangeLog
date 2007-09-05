@@ -1,3 +1,7 @@
+2007-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Safe File Variables): Clarify `!' and risky variables.
+
 2007-09-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Date Conversions): Clarify definition of
