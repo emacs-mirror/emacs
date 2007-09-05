@@ -679,7 +679,7 @@ CHAR
 
 `not-newline', `nonl'
      matches any character except a newline.
-			.
+
 `anything'
      matches any character
 
