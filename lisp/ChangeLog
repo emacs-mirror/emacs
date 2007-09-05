@@ -1,3 +1,13 @@
+2007-09-05  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): Check tool-bar-mode
+	is bound.
+
+2007-09-05  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* emacs-lisp/advice.el (ad-make-advised-docstring): Highlight note
+        in doc string.
+
 2007-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* server.el (server-start, server-unload-hook): Undo previous
