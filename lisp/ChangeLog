@@ -1,3 +1,15 @@
+2007-09-05  Richard Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-startup-text): Renamed from fancy-splash-text.
+	Several items removed, simplified, or put on one line.
+	(fancy-about-text): Add substantial contents, part of startup text.
+	(fancy-splash-head): Make "GNU" or "GNU/Linux" a link.
+	(normal-splash-screen): Call normal-mouse-startup-screen,
+	normal-no-mouse-startup-screen, or normal-about-screen.
+	(normal-mouse-startup-screen): New fn, broken out, shortened.
+	(normal-no-mouse-startup-screen): New fn, broken out.
+	(normal-about-screen): New function, contents all new.
+
 2007-09-05  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* emacs-lisp/rx.el (rx): Fix typo in docstring.
