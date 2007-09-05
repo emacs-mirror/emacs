@@ -1,3 +1,7 @@
+2007-09-05  Jason Rumney  <jasonr@gnu.org>
+
+	* NEWS: Mention focus-follows-mouse change.
+
 2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* PROBLEMS (Mac OS X): Add alternative workaround for QuickTime
