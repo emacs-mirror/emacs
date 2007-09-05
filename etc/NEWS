@@ -59,6 +59,13 @@ Windows XP introduced themed scrollbars, but applications have to take
 special steps to use them. Emacs now has the appropriate resources linked
 in to make it use the scrollbars from the system theme.
 
+** focus-follows-mouse defaults to nil on MS Windows
+Previously this variable was incorrectly documented as having no effect
+on MS Windows, and the default was inappropriate for the majority of
+Windows installations. Users of software which modifies the behaviour of
+Windows to cause focus to follow the mouse will now need to explicitly set
+this variable.
+
 * New Modes and Packages in Emacs 22.2
 
 ** bibtex-style-mode helps you write BibTeX's *.bst files.
