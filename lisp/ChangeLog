@@ -1,3 +1,7 @@
+2007-09-06  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* help-fns.el (describe-variable): Keep doc's text properties.
+
 2007-09-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-default-diff-tree): Pass a list to the diff vc command
