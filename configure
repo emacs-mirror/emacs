@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo No shell found that supports shell functions.
-  echo Please tell autoconf@gnu.org about your system,
-  echo including any error possibly output before this
-  echo message
+  echo Please tell bug-autoconf@gnu.org about your system,
+  echo including any error possibly output before this message.
+  echo This can help us improve future autoconf versions.
+  echo Configuration will now proceed without shell functions.
 }
 
 
@@ -23775,7 +23775,7 @@ fi
 rm -f conftest*
 
 
-ac_config_files="$ac_config_files Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in lisp/Makefile lispref/Makefile lispintro/Makefile leim/Makefile"
+ac_config_files="$ac_config_files Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -24345,12 +24345,13 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib-src/Makefile.c") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile.c:lib-src/Makefile.in" ;;
     "oldXMenu/Makefile") CONFIG_FILES="$CONFIG_FILES oldXMenu/Makefile" ;;
-    "man/Makefile") CONFIG_FILES="$CONFIG_FILES man/Makefile" ;;
-    "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
+    "doc/emacs/Makefile") CONFIG_FILES="$CONFIG_FILES doc/emacs/Makefile" ;;
+    "doc/misc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/misc/Makefile" ;;
+    "doc/lispintro/Makefile") CONFIG_FILES="$CONFIG_FILES doc/lispintro/Makefile" ;;
+    "doc/lispref/Makefile") CONFIG_FILES="$CONFIG_FILES doc/lispref/Makefile" ;;
     "src/Makefile.c") CONFIG_FILES="$CONFIG_FILES src/Makefile.c:src/Makefile.in" ;;
+    "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
-    "lispref/Makefile") CONFIG_FILES="$CONFIG_FILES lispref/Makefile" ;;
-    "lispintro/Makefile") CONFIG_FILES="$CONFIG_FILES lispintro/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
     "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
 
