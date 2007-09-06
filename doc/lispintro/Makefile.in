@@ -25,8 +25,8 @@ SHELL = @SHELL@
 srcdir = @srcdir@
 VPATH = @srcdir@
 
-infodir = ../info
-usermanualdir = $(srcdir)/../man
+infodir = ../../info
+usermanualdir = $(srcdir)/../emacs
 
 INFO_SOURCES = ${srcdir}/emacs-lisp-intro.texi
 # The file name eintr must fit within 5 characters, to allow for
