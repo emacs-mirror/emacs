@@ -1,0 +1,699 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
+@c   2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/help
+@node Documentation, Files, Modes, Top
+@chapter Documentation
+@cindex documentation strings
+
+  GNU Emacs Lisp has convenient on-line help facilities, most of which
+derive their information from the documentation strings associated with
+functions and variables.  This chapter describes how to write good
+documentation strings for your Lisp programs, as well as how to write
+programs to access documentation.
+
+  Note that the documentation strings for Emacs are not the same thing
+as the Emacs manual.  Manuals have their own source files, written in
+the Texinfo language; documentation strings are specified in the
+definitions of the functions and variables they apply to.  A collection
+of documentation strings is not sufficient as a manual because a good
+manual is not organized in that fashion; it is organized in terms of
+topics of discussion.
+
+  For commands to display documentation strings, see @ref{Help, ,
+Help, emacs, The GNU Emacs Manual}.  For the conventions for writing
+documentation strings, see @ref{Documentation Tips}.
+
+@menu
+* Documentation Basics::      Good style for doc strings.
+                                Where to put them.  How Emacs stores them.
+* Accessing Documentation::   How Lisp programs can access doc strings.
+* Keys in Documentation::     Substituting current key bindings.
+* Describing Characters::     Making printable descriptions of
+                                non-printing characters and key sequences.
+* Help Functions::            Subroutines used by Emacs help facilities.
+@end menu
+
+@node Documentation Basics
+@comment  node-name,  next,  previous,  up
+@section Documentation Basics
+@cindex documentation conventions
+@cindex writing a documentation string
+@cindex string, writing a doc string
+
+  A documentation string is written using the Lisp syntax for strings,
+with double-quote characters surrounding the text of the string.  This
+is because it really is a Lisp string object.  The string serves as
+documentation when it is written in the proper place in the definition
+of a function or variable.  In a function definition, the documentation
+string follows the argument list.  In a variable definition, the
+documentation string follows the initial value of the variable.
+
+  When you write a documentation string, make the first line a
+complete sentence (or two complete sentences) since some commands,
+such as @code{apropos}, show only the first line of a multi-line
+documentation string.  Also, you should not indent the second line of
+a documentation string, if it has one, because that looks odd when you
+use @kbd{C-h f} (@code{describe-function}) or @kbd{C-h v}
+(@code{describe-variable}) to view the documentation string.  There
+are many other conventions for doc strings; see @ref{Documentation
+Tips}.
+
+  Documentation strings can contain several special substrings, which
+stand for key bindings to be looked up in the current keymaps when the
+documentation is displayed.  This allows documentation strings to refer
+to the keys for related commands and be accurate even when a user
+rearranges the key bindings.  (@xref{Keys in Documentation}.)
+
+@vindex emacs-lisp-docstring-fill-column
+  Emacs Lisp mode fills documentation strings to the width
+specified by @code{emacs-lisp-docstring-fill-column}.
+
+  In Emacs Lisp, a documentation string is accessible through the
+function or variable that it describes:
+
+@itemize @bullet
+@item
+@kindex function-documentation
+The documentation for a function is usually stored in the function
+definition itself (@pxref{Lambda Expressions}).  The function
+@code{documentation} knows how to extract it.  You can also put
+function documentation in the @code{function-documentation} property
+of the function name.  That is useful with definitions such as
+keyboard macros that can't hold a documentation string.
+
+@item
+@kindex variable-documentation
+The documentation for a variable is stored in the variable's property
+list under the property name @code{variable-documentation}.  The
+function @code{documentation-property} knows how to retrieve it.
+@end itemize
+
+@cindex @file{DOC-@var{version}} (documentation) file
+To save space, the documentation for preloaded functions and variables
+(including primitive functions and autoloaded functions) is stored in
+the file @file{emacs/etc/DOC-@var{version}}---not inside Emacs.  The
+documentation strings for functions and variables loaded during the
+Emacs session from byte-compiled files are stored in those files
+(@pxref{Docs and Compilation}).
+
+The data structure inside Emacs has an integer offset into the file, or
+a list containing a file name and an integer, in place of the
+documentation string.  The functions @code{documentation} and
+@code{documentation-property} use that information to fetch the
+documentation string from the appropriate file; this is transparent to
+the user.
+
+@c Wordy to prevent overfull hbox.  --rjc 15mar92
+  The @file{emacs/lib-src} directory contains two utilities that you can
+use to print nice-looking hardcopy for the file
+@file{emacs/etc/DOC-@var{version}}.  These are @file{sorted-doc} and
+@file{digest-doc}.
+
+@node Accessing Documentation
+@section Access to Documentation Strings
+
+@defun documentation-property symbol property &optional verbatim
+This function returns the documentation string that is recorded in
+@var{symbol}'s property list under property @var{property}.  It
+retrieves the text from a file if the value calls for that.  If the
+property value isn't @code{nil}, isn't a string, and doesn't refer to
+text in a file, then it is evaluated to obtain a string.
+
+The last thing this function does is pass the string through
+@code{substitute-command-keys} to substitute actual key bindings,
+unless @var{verbatim} is non-@code{nil}.
+
+@smallexample
+@group
+(documentation-property 'command-line-processed
+   'variable-documentation)
+     @result{} "Non-nil once command line has been processed"
+@end group
+@group
+(symbol-plist 'command-line-processed)
+     @result{} (variable-documentation 188902)
+@end group
+@group
+(documentation-property 'emacs 'group-documentation)
+     @result{} "Customization of the One True Editor."
+@end group
+@end smallexample
+@end defun
+
+@defun documentation function &optional verbatim
+This function returns the documentation string of @var{function}.
+@code{documentation} handles macros, named keyboard macros, and
+special forms, as well as ordinary functions.
+
+If @var{function} is a symbol, this function first looks for the
+@code{function-documentation} property of that symbol; if that has a
+non-@code{nil} value, the documentation comes from that value (if the
+value is not a string, it is evaluated).  If @var{function} is not a
+symbol, or if it has no @code{function-documentation} property, then
+@code{documentation} extracts the documentation string from the actual
+function definition, reading it from a file if called for.
+
+Finally, unless @var{verbatim} is non-@code{nil}, it calls
+@code{substitute-command-keys} so as to return a value containing the
+actual (current) key bindings.
+
+The function @code{documentation} signals a @code{void-function} error
+if @var{function} has no function definition.  However, it is OK if
+the function definition has no documentation string.  In that case,
+@code{documentation} returns @code{nil}.
+@end defun
+
+@defun face-documentation face
+This function returns the documentation string of @var{face} as a
+face.
+@end defun
+
+@c Wordy to prevent overfull hboxes.  --rjc 15mar92
+Here is an example of using the two functions, @code{documentation} and
+@code{documentation-property}, to display the documentation strings for
+several symbols in a @samp{*Help*} buffer.
+
+@anchor{describe-symbols example}
+@smallexample
+@group
+(defun describe-symbols (pattern)
+  "Describe the Emacs Lisp symbols matching PATTERN.
+All symbols that have PATTERN in their name are described
+in the `*Help*' buffer."
+  (interactive "sDescribe symbols matching: ")
+  (let ((describe-func
+         (function
+          (lambda (s)
+@end group
+@group
+            ;; @r{Print description of symbol.}
+            (if (fboundp s)             ; @r{It is a function.}
+                (princ
+                 (format "%s\t%s\n%s\n\n" s
+                   (if (commandp s)
+                       (let ((keys (where-is-internal s)))
+                         (if keys
+                             (concat
+                              "Keys: "
+                              (mapconcat 'key-description
+                                         keys " "))
+                           "Keys: none"))
+                     "Function")
+@end group
+@group
+                   (or (documentation s)
+                       "not documented"))))
+
+            (if (boundp s)              ; @r{It is a variable.}
+@end group
+@group
+                (princ
+                 (format "%s\t%s\n%s\n\n" s
+                   (if (user-variable-p s)
+                       "Option " "Variable")
+@end group
+@group
+                   (or (documentation-property
+                         s 'variable-documentation)
+                       "not documented")))))))
+        sym-list)
+@end group
+
+@group
+    ;; @r{Build a list of symbols that match pattern.}
+    (mapatoms (function
+               (lambda (sym)
+                 (if (string-match pattern (symbol-name sym))
+                     (setq sym-list (cons sym sym-list))))))
+@end group
+
+@group
+    ;; @r{Display the data.}
+    (with-output-to-temp-buffer "*Help*"
+      (mapcar describe-func (sort sym-list 'string<))
+      (print-help-return-message))))
+@end group
+@end smallexample
+
+  The @code{describe-symbols} function works like @code{apropos},
+but provides more information.
+
+@smallexample
+@group
+(describe-symbols "goal")
+
+---------- Buffer: *Help* ----------
+goal-column     Option
+*Semipermanent goal column for vertical motion, as set by @dots{}
+@end group
+@c Do not blithely break or fill these lines.
+@c That makes them incorrect.
+
+@group
+set-goal-column Keys: C-x C-n
+Set the current horizontal position as a goal for C-n and C-p.
+@end group
+@c DO NOT put a blank line here!  That is factually inaccurate!
+@group
+Those commands will move to this position in the line moved to
+rather than trying to keep the same horizontal position.
+With a non-nil argument, clears out the goal column
+so that C-n and C-p resume vertical motion.
+The goal column is stored in the variable `goal-column'.
+@end group
+
+@group
+temporary-goal-column   Variable
+Current goal column for vertical motion.
+It is the column where point was
+at the start of current run of vertical motion commands.
+When the `track-eol' feature is doing its job, the value is 9999.
+---------- Buffer: *Help* ----------
+@end group
+@end smallexample
+
+The asterisk @samp{*} as the first character of a variable's doc string,
+as shown above for the @code{goal-column} variable, means that it is a
+user option; see the description of @code{defvar} in @ref{Defining
+Variables}.
+
+@defun Snarf-documentation filename
+@anchor{Definition of Snarf-documentation}
+This function is used only during Emacs initialization, just before
+the runnable Emacs is dumped.  It finds the file offsets of the
+documentation strings stored in the file @var{filename}, and records
+them in the in-core function definitions and variable property lists in
+place of the actual strings.  @xref{Building Emacs}.
+
+Emacs reads the file @var{filename} from the @file{emacs/etc} directory.
+When the dumped Emacs is later executed, the same file will be looked
+for in the directory @code{doc-directory}.  Usually @var{filename} is
+@code{"DOC-@var{version}"}.
+@end defun
+
+@c Emacs 19 feature
+@defvar doc-directory
+This variable holds the name of the directory which should contain the
+file @code{"DOC-@var{version}"} that contains documentation strings for
+built-in and preloaded functions and variables.
+
+In most cases, this is the same as @code{data-directory}.  They may be
+different when you run Emacs from the directory where you built it,
+without actually installing it.  @xref{Definition of data-directory}.
+
+In older Emacs versions, @code{exec-directory} was used for this.
+@end defvar
+
+@node Keys in Documentation
+@section Substituting Key Bindings in Documentation
+@cindex documentation, keys in
+@cindex keys in documentation strings
+@cindex substituting keys in documentation
+
+  When documentation strings refer to key sequences, they should use the
+current, actual key bindings.  They can do so using certain special text
+sequences described below.  Accessing documentation strings in the usual
+way substitutes current key binding information for these special
+sequences.  This works by calling @code{substitute-command-keys}.  You
+can also call that function yourself.
+
+  Here is a list of the special sequences and what they mean:
+
+@table @code
+@item \[@var{command}]
+stands for a key sequence that will invoke @var{command}, or @samp{M-x
+@var{command}} if @var{command} has no key bindings.
+
+@item \@{@var{mapvar}@}
+stands for a summary of the keymap which is the value of the variable
+@var{mapvar}.  The summary is made using @code{describe-bindings}.
+
+@item \<@var{mapvar}>
+stands for no text itself.  It is used only for a side effect: it
+specifies @var{mapvar}'s value as the keymap for any following
+@samp{\[@var{command}]} sequences in this documentation string.
+
+@item \=
+quotes the following character and is discarded; thus, @samp{\=\[} puts
+@samp{\[} into the output, and @samp{\=\=} puts @samp{\=} into the
+output.
+@end table
+
+@strong{Please note:} Each @samp{\} must be doubled when written in a
+string in Emacs Lisp.
+
+@defun substitute-command-keys string
+This function scans @var{string} for the above special sequences and
+replaces them by what they stand for, returning the result as a string.
+This permits display of documentation that refers accurately to the
+user's own customized key bindings.
+@end defun
+
+  Here are examples of the special sequences:
+
+@smallexample
+@group
+(substitute-command-keys
+   "To abort recursive edit, type: \\[abort-recursive-edit]")
+@result{} "To abort recursive edit, type: C-]"
+@end group
+
+@group
+(substitute-command-keys
+   "The keys that are defined for the minibuffer here are:
+  \\@{minibuffer-local-must-match-map@}")
+@result{} "The keys that are defined for the minibuffer here are:
+@end group
+
+?               minibuffer-completion-help
+SPC             minibuffer-complete-word
+TAB             minibuffer-complete
+C-j             minibuffer-complete-and-exit
+RET             minibuffer-complete-and-exit
+C-g             abort-recursive-edit
+"
+
+@group
+(substitute-command-keys
+   "To abort a recursive edit from the minibuffer, type\
+\\<minibuffer-local-must-match-map>\\[abort-recursive-edit].")
+@result{} "To abort a recursive edit from the minibuffer, type C-g."
+@end group
+@end smallexample
+
+  There are other special conventions for the text in documentation
+strings---for instance, you can refer to functions, variables, and
+sections of this manual.  @xref{Documentation Tips}, for details.
+
+@node Describing Characters
+@section Describing Characters for Help Messages
+@cindex describe characters and events
+
+  These functions convert events, key sequences, or characters to
+textual descriptions.  These descriptions are useful for including
+arbitrary text characters or key sequences in messages, because they
+convert non-printing and whitespace characters to sequences of printing
+characters.  The description of a non-whitespace printing character is
+the character itself.
+
+@defun key-description sequence &optional prefix
+@cindex Emacs event standard notation
+This function returns a string containing the Emacs standard notation
+for the input events in @var{sequence}.  If @var{prefix} is
+non-@code{nil}, it is a sequence of input events leading up to
+@var{sequence} and is included in the return value.  Both arguments
+may be strings, vectors or lists.  @xref{Input Events}, for more
+information about valid events.
+
+@smallexample
+@group
+(key-description [?\M-3 delete])
+     @result{} "M-3 <delete>"
+@end group
+@group
+(key-description [delete] "\M-3")
+     @result{} "M-3 <delete>"
+@end group
+@end smallexample
+
+  See also the examples for @code{single-key-description}, below.
+@end defun
+
+@defun single-key-description event &optional no-angles
+@cindex event printing
+@cindex character printing
+@cindex control character printing
+@cindex meta character printing
+This function returns a string describing @var{event} in the standard
+Emacs notation for keyboard input.  A normal printing character
+appears as itself, but a control character turns into a string
+starting with @samp{C-}, a meta character turns into a string starting
+with @samp{M-}, and space, tab, etc.@: appear as @samp{SPC},
+@samp{TAB}, etc.  A function key symbol appears inside angle brackets
+@samp{<@dots{}>}.  An event that is a list appears as the name of the
+symbol in the @sc{car} of the list, inside angle brackets.
+
+If the optional argument @var{no-angles} is non-@code{nil}, the angle
+brackets around function keys and event symbols are omitted; this is
+for compatibility with old versions of Emacs which didn't use the
+brackets.
+
+@smallexample
+@group
+(single-key-description ?\C-x)
+     @result{} "C-x"
+@end group
+@group
+(key-description "\C-x \M-y \n \t \r \f123")
+     @result{} "C-x SPC M-y SPC C-j SPC TAB SPC RET SPC C-l 1 2 3"
+@end group
+@group
+(single-key-description 'delete)
+     @result{} "<delete>"
+@end group
+@group
+(single-key-description 'C-mouse-1)
+     @result{} "<C-mouse-1>"
+@end group
+@group
+(single-key-description 'C-mouse-1 t)
+     @result{} "C-mouse-1"
+@end group
+@end smallexample
+@end defun
+
+@defun text-char-description character
+This function returns a string describing @var{character} in the
+standard Emacs notation for characters that appear in text---like
+@code{single-key-description}, except that control characters are
+represented with a leading caret (which is how control characters in
+Emacs buffers are usually displayed).  Another difference is that
+@code{text-char-description} recognizes the 2**7 bit as the Meta
+character, whereas @code{single-key-description} uses the 2**27 bit
+for Meta.
+
+@smallexample
+@group
+(text-char-description ?\C-c)
+     @result{} "^C"
+@end group
+@group
+(text-char-description ?\M-m)
+     @result{} "\xed"
+@end group
+@group
+(text-char-description ?\C-\M-m)
+     @result{} "\x8d"
+@end group
+@group
+(text-char-description (+ 128 ?m))
+     @result{} "M-m"
+@end group
+@group
+(text-char-description (+ 128 ?\C-m))
+     @result{} "M-^M"
+@end group
+@end smallexample
+@end defun
+
+@defun read-kbd-macro string &optional need-vector
+This function is used mainly for operating on keyboard macros, but it
+can also be used as a rough inverse for @code{key-description}.  You
+call it with a string containing key descriptions, separated by spaces;
+it returns a string or vector containing the corresponding events.
+(This may or may not be a single valid key sequence, depending on what
+events you use; @pxref{Key Sequences}.)  If @var{need-vector} is
+non-@code{nil}, the return value is always a vector.
+@end defun
+
+@node Help Functions
+@section Help Functions
+
+  Emacs provides a variety of on-line help functions, all accessible to
+the user as subcommands of the prefix @kbd{C-h}.  For more information
+about them, see @ref{Help, , Help, emacs, The GNU Emacs Manual}.  Here
+we describe some program-level interfaces to the same information.
+
+@deffn Command apropos pattern &optional do-all
+This function finds all ``meaningful'' symbols whose names contain a
+match for the apropos pattern @var{pattern}.  An apropos pattern is
+either a word to match, a space-separated list of words of which at
+least two must match, or a regular expression (if any special regular
+expression characters occur).  A symbol is ``meaningful'' if it has a
+definition as a function, variable, or face, or has properties.
+
+The function returns a list of elements that look like this:
+
+@example
+(@var{symbol} @var{score} @var{fn-doc} @var{var-doc}
+ @var{plist-doc} @var{widget-doc} @var{face-doc} @var{group-doc})
+@end example
+
+Here, @var{score} is an integer measure of how important the symbol
+seems to be as a match, and the remaining elements are documentation
+strings for @var{symbol}'s various roles (or @code{nil}).
+
+It also displays the symbols in a buffer named @samp{*Apropos*}, each
+with a one-line description taken from the beginning of its
+documentation string.
+
+@c Emacs 19 feature
+If @var{do-all} is non-@code{nil}, or if the user option
+@code{apropos-do-all} is non-@code{nil}, then @code{apropos} also
+shows key bindings for the functions that are found; it also shows
+@emph{all} interned symbols, not just meaningful ones (and it lists
+them in the return value as well).
+@end deffn
+
+@defvar help-map
+The value of this variable is a local keymap for characters following the
+Help key, @kbd{C-h}.
+@end defvar
+
+@deffn {Prefix Command} help-command
+This symbol is not a function; its function definition cell holds the
+keymap known as @code{help-map}.  It is defined in @file{help.el} as
+follows:
+
+@smallexample
+@group
+(define-key global-map (char-to-string help-char) 'help-command)
+(fset 'help-command help-map)
+@end group
+@end smallexample
+@end deffn
+
+@defun print-help-return-message &optional function
+This function builds a string that explains how to restore the previous
+state of the windows after a help command.  After building the message,
+it applies @var{function} to it if @var{function} is non-@code{nil}.
+Otherwise it calls @code{message} to display it in the echo area.
+
+This function expects to be called inside a
+@code{with-output-to-temp-buffer} special form, and expects
+@code{standard-output} to have the value bound by that special form.
+For an example of its use, see the long example in @ref{Accessing
+Documentation}.
+@end defun
+
+@defvar help-char
+The value of this variable is the help character---the character that
+Emacs recognizes as meaning Help.  By default, its value is 8, which
+stands for @kbd{C-h}.  When Emacs reads this character, if
+@code{help-form} is a non-@code{nil} Lisp expression, it evaluates that
+expression, and displays the result in a window if it is a string.
+
+Usually the value of @code{help-form} is @code{nil}.  Then the
+help character has no special meaning at the level of command input, and
+it becomes part of a key sequence in the normal way.  The standard key
+binding of @kbd{C-h} is a prefix key for several general-purpose help
+features.
+
+The help character is special after prefix keys, too.  If it has no
+binding as a subcommand of the prefix key, it runs
+@code{describe-prefix-bindings}, which displays a list of all the
+subcommands of the prefix key.
+@end defvar
+
+@defvar help-event-list
+The value of this variable is a list of event types that serve as
+alternative ``help characters.''  These events are handled just like the
+event specified by @code{help-char}.
+@end defvar
+
+@defvar help-form
+If this variable is non-@code{nil}, its value is a form to evaluate
+whenever the character @code{help-char} is read.  If evaluating the form
+produces a string, that string is displayed.
+
+A command that calls @code{read-event} or @code{read-char} probably
+should bind @code{help-form} to a non-@code{nil} expression while it
+does input.  (The time when you should not do this is when @kbd{C-h} has
+some other meaning.)  Evaluating this expression should result in a
+string that explains what the input is for and how to enter it properly.
+
+Entry to the minibuffer binds this variable to the value of
+@code{minibuffer-help-form} (@pxref{Definition of minibuffer-help-form}).
+@end defvar
+
+@defvar prefix-help-command
+This variable holds a function to print help for a prefix key.  The
+function is called when the user types a prefix key followed by the help
+character, and the help character has no binding after that prefix.  The
+variable's default value is @code{describe-prefix-bindings}.
+@end defvar
+
+@defun describe-prefix-bindings
+This function calls @code{describe-bindings} to display a list of all
+the subcommands of the prefix key of the most recent key sequence.  The
+prefix described consists of all but the last event of that key
+sequence.  (The last event is, presumably, the help character.)
+@end defun
+
+  The following two functions are meant for modes that want to provide
+help without relinquishing control, such as the ``electric'' modes.
+Their names begin with @samp{Helper} to distinguish them from the
+ordinary help functions.
+
+@deffn Command Helper-describe-bindings
+This command pops up a window displaying a help buffer containing a
+listing of all of the key bindings from both the local and global keymaps.
+It works by calling @code{describe-bindings}.
+@end deffn
+
+@deffn Command Helper-help
+This command provides help for the current mode.  It prompts the user
+in the minibuffer with the message @samp{Help (Type ? for further
+options)}, and then provides assistance in finding out what the key
+bindings are, and what the mode is intended for.  It returns @code{nil}.
+
+This can be customized by changing the map @code{Helper-help-map}.
+@end deffn
+
+@c Emacs 19 feature
+@defvar data-directory
+@anchor{Definition of data-directory}
+This variable holds the name of the directory in which Emacs finds
+certain documentation and text files that come with Emacs.  In older
+Emacs versions, @code{exec-directory} was used for this.
+@end defvar
+
+@c Emacs 19 feature
+@defmac make-help-screen fname help-line help-text help-map
+This macro defines a help command named @var{fname} that acts like a
+prefix key that shows a list of the subcommands it offers.
+
+When invoked, @var{fname} displays @var{help-text} in a window, then
+reads and executes a key sequence according to @var{help-map}.  The
+string @var{help-text} should describe the bindings available in
+@var{help-map}.
+
+The command @var{fname} is defined to handle a few events itself, by
+scrolling the display of @var{help-text}.  When @var{fname} reads one of
+those special events, it does the scrolling and then reads another
+event.  When it reads an event that is not one of those few, and which
+has a binding in @var{help-map}, it executes that key's binding and
+then returns.
+
+The argument @var{help-line} should be a single-line summary of the
+alternatives in @var{help-map}.  In the current version of Emacs, this
+argument is used only if you set the option @code{three-step-help} to
+@code{t}.
+
+This macro is used in the command @code{help-for-help} which is the
+binding of @kbd{C-h C-h}.
+@end defmac
+
+@defopt three-step-help
+If this variable is non-@code{nil}, commands defined with
+@code{make-help-screen} display their @var{help-line} strings in the
+echo area at first, and display the longer @var{help-text} strings only
+if the user types the help character again.
+@end defopt
+
+@ignore
+   arch-tag: ba36b4c2-e60f-49e2-bc25-61158fdcd815
+@end ignore
