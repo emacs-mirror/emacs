@@ -1,0 +1,1522 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 1999, 2001, 2002, 2003,
+@c   2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/internals
+@node GNU Emacs Internals, Standard Errors, Tips, Top
+@comment  node-name,  next,  previous,  up
+@appendix GNU Emacs Internals
+
+This chapter describes how the runnable Emacs executable is dumped with
+the preloaded Lisp libraries in it, how storage is allocated, and some
+internal aspects of GNU Emacs that may be of interest to C programmers.
+
+@menu
+* Building Emacs::      How the dumped Emacs is made.
+* Pure Storage::        A kludge to make preloaded Lisp functions sharable.
+* Garbage Collection::  Reclaiming space for Lisp objects no longer used.
+* Memory Usage::        Info about total size of Lisp objects made so far.
+* Writing Emacs Primitives::   Writing C code for Emacs.
+* Object Internals::    Data formats of buffers, windows, processes.
+@end menu
+
+@node Building Emacs
+@appendixsec Building Emacs
+@cindex building Emacs
+@pindex temacs
+
+  This section explains the steps involved in building the Emacs
+executable.  You don't have to know this material to build and install
+Emacs, since the makefiles do all these things automatically.  This
+information is pertinent to Emacs maintenance.
+
+   Compilation of the C source files in the @file{src} directory
+produces an executable file called @file{temacs}, also called a
+@dfn{bare impure Emacs}.  It contains the Emacs Lisp interpreter and I/O
+routines, but not the editing commands.
+
+@cindex @file{loadup.el}
+  The command @w{@samp{temacs -l loadup}} uses @file{temacs} to create
+the real runnable Emacs executable.  These arguments direct
+@file{temacs} to evaluate the Lisp files specified in the file
+@file{loadup.el}.  These files set up the normal Emacs editing
+environment, resulting in an Emacs that is still impure but no longer
+bare.
+
+@cindex dumping Emacs
+  It takes a substantial time to load the standard Lisp files.  Luckily,
+you don't have to do this each time you run Emacs; @file{temacs} can
+dump out an executable program called @file{emacs} that has these files
+preloaded.  @file{emacs} starts more quickly because it does not need to
+load the files.  This is the Emacs executable that is normally
+installed.
+
+  To create @file{emacs}, use the command @samp{temacs -batch -l loadup
+dump}.  The purpose of @samp{-batch} here is to prevent @file{temacs}
+from trying to initialize any of its data on the terminal; this ensures
+that the tables of terminal information are empty in the dumped Emacs.
+The argument @samp{dump} tells @file{loadup.el} to dump a new executable
+named @file{emacs}.
+
+  Some operating systems don't support dumping.  On those systems, you
+must start Emacs with the @samp{temacs -l loadup} command each time you
+use it.  This takes a substantial time, but since you need to start
+Emacs once a day at most---or once a week if you never log out---the
+extra time is not too severe a problem.
+
+@cindex @file{site-load.el}
+
+  You can specify additional files to preload by writing a library named
+@file{site-load.el} that loads them.  You may need to add a definition
+
+@example
+#define SITELOAD_PURESIZE_EXTRA @var{n}
+@end example
+
+@noindent
+to make @var{n} added bytes of pure space to hold the additional files.
+(Try adding increments of 20000 until it is big enough.)  However, the
+advantage of preloading additional files decreases as machines get
+faster.  On modern machines, it is usually not advisable.
+
+  After @file{loadup.el} reads @file{site-load.el}, it finds the
+documentation strings for primitive and preloaded functions (and
+variables) in the file @file{etc/DOC} where they are stored, by
+calling @code{Snarf-documentation} (@pxref{Definition of
+Snarf-documentation,, Accessing Documentation}).
+
+@cindex @file{site-init.el}
+@cindex preloading additional functions and variables
+  You can specify other Lisp expressions to execute just before dumping
+by putting them in a library named @file{site-init.el}.  This file is
+executed after the documentation strings are found.
+
+  If you want to preload function or variable definitions, there are
+three ways you can do this and make their documentation strings
+accessible when you subsequently run Emacs:
+
+@itemize @bullet
+@item
+Arrange to scan these files when producing the @file{etc/DOC} file,
+and load them with @file{site-load.el}.
+
+@item
+Load the files with @file{site-init.el}, then copy the files into the
+installation directory for Lisp files when you install Emacs.
+
+@item
+Specify a non-@code{nil} value for
+@code{byte-compile-dynamic-docstrings} as a local variable in each of these
+files, and load them with either @file{site-load.el} or
+@file{site-init.el}.  (This method has the drawback that the
+documentation strings take up space in Emacs all the time.)
+@end itemize
+
+  It is not advisable to put anything in @file{site-load.el} or
+@file{site-init.el} that would alter any of the features that users
+expect in an ordinary unmodified Emacs.  If you feel you must override
+normal features for your site, do it with @file{default.el}, so that
+users can override your changes if they wish.  @xref{Startup Summary}.
+
+  In a package that can be preloaded, it is sometimes useful to
+specify a computation to be done when Emacs subsequently starts up.
+For this, use @code{eval-at-startup}:
+
+@defmac eval-at-startup body@dots{}
+This evaluates the @var{body} forms, either immediately if running in
+an Emacs that has already started up, or later when Emacs does start
+up.  Since the value of the @var{body} forms is not necessarily
+available when the @code{eval-at-startup} form is run, that form
+always returns @code{nil}.
+@end defmac
+
+@defun dump-emacs to-file from-file
+@cindex unexec
+This function dumps the current state of Emacs into an executable file
+@var{to-file}.  It takes symbols from @var{from-file} (this is normally
+the executable file @file{temacs}).
+
+If you want to use this function in an Emacs that was already dumped,
+you must run Emacs with @samp{-batch}.
+@end defun
+
+@node Pure Storage
+@appendixsec Pure Storage
+@cindex pure storage
+
+  Emacs Lisp uses two kinds of storage for user-created Lisp objects:
+@dfn{normal storage} and @dfn{pure storage}.  Normal storage is where
+all the new data created during an Emacs session are kept; see the
+following section for information on normal storage.  Pure storage is
+used for certain data in the preloaded standard Lisp files---data that
+should never change during actual use of Emacs.
+
+  Pure storage is allocated only while @file{temacs} is loading the
+standard preloaded Lisp libraries.  In the file @file{emacs}, it is
+marked as read-only (on operating systems that permit this), so that
+the memory space can be shared by all the Emacs jobs running on the
+machine at once.  Pure storage is not expandable; a fixed amount is
+allocated when Emacs is compiled, and if that is not sufficient for
+the preloaded libraries, @file{temacs} allocates dynamic memory for
+the part that didn't fit.  If that happens, you should increase the
+compilation parameter @code{PURESIZE} in the file
+@file{src/puresize.h} and rebuild Emacs, even though the resulting
+image will work: garbage collection is disabled in this situation,
+causing a memory leak.  Such an overflow normally won't happen unless you
+try to preload additional libraries or add features to the standard
+ones.  Emacs will display a warning about the overflow when it
+starts.
+
+@defun purecopy object
+This function makes a copy in pure storage of @var{object}, and returns
+it.  It copies a string by simply making a new string with the same
+characters, but without text properties, in pure storage.  It
+recursively copies the contents of vectors and cons cells.  It does
+not make copies of other objects such as symbols, but just returns
+them unchanged.  It signals an error if asked to copy markers.
+
+This function is a no-op except while Emacs is being built and dumped;
+it is usually called only in the file @file{emacs/lisp/loaddefs.el}, but
+a few packages call it just in case you decide to preload them.
+@end defun
+
+@defvar pure-bytes-used
+The value of this variable is the number of bytes of pure storage
+allocated so far.  Typically, in a dumped Emacs, this number is very
+close to the total amount of pure storage available---if it were not,
+we would preallocate less.
+@end defvar
+
+@defvar purify-flag
+This variable determines whether @code{defun} should make a copy of the
+function definition in pure storage.  If it is non-@code{nil}, then the
+function definition is copied into pure storage.
+
+This flag is @code{t} while loading all of the basic functions for
+building Emacs initially (allowing those functions to be sharable and
+non-collectible).  Dumping Emacs as an executable always writes
+@code{nil} in this variable, regardless of the value it actually has
+before and after dumping.
+
+You should not change this flag in a running Emacs.
+@end defvar
+
+@node Garbage Collection
+@appendixsec Garbage Collection
+@cindex garbage collection
+
+@cindex memory allocation
+  When a program creates a list or the user defines a new function (such
+as by loading a library), that data is placed in normal storage.  If
+normal storage runs low, then Emacs asks the operating system to
+allocate more memory in blocks of 1k bytes.  Each block is used for one
+type of Lisp object, so symbols, cons cells, markers, etc., are
+segregated in distinct blocks in memory.  (Vectors, long strings,
+buffers and certain other editing types, which are fairly large, are
+allocated in individual blocks, one per object, while small strings are
+packed into blocks of 8k bytes.)
+
+  It is quite common to use some storage for a while, then release it by
+(for example) killing a buffer or deleting the last pointer to an
+object.  Emacs provides a @dfn{garbage collector} to reclaim this
+abandoned storage.  (This name is traditional, but ``garbage recycler''
+might be a more intuitive metaphor for this facility.)
+
+  The garbage collector operates by finding and marking all Lisp objects
+that are still accessible to Lisp programs.  To begin with, it assumes
+all the symbols, their values and associated function definitions, and
+any data presently on the stack, are accessible.  Any objects that can
+be reached indirectly through other accessible objects are also
+accessible.
+
+  When marking is finished, all objects still unmarked are garbage.  No
+matter what the Lisp program or the user does, it is impossible to refer
+to them, since there is no longer a way to reach them.  Their space
+might as well be reused, since no one will miss them.  The second
+(``sweep'') phase of the garbage collector arranges to reuse them.
+
+@c ??? Maybe add something describing weak hash tables here?
+
+@cindex free list
+  The sweep phase puts unused cons cells onto a @dfn{free list}
+for future allocation; likewise for symbols and markers.  It compacts
+the accessible strings so they occupy fewer 8k blocks; then it frees the
+other 8k blocks.  Vectors, buffers, windows, and other large objects are
+individually allocated and freed using @code{malloc} and @code{free}.
+
+@cindex CL note---allocate more storage
+@quotation
+@b{Common Lisp note:} Unlike other Lisps, GNU Emacs Lisp does not
+call the garbage collector when the free list is empty.  Instead, it
+simply requests the operating system to allocate more storage, and
+processing continues until @code{gc-cons-threshold} bytes have been
+used.
+
+This means that you can make sure that the garbage collector will not
+run during a certain portion of a Lisp program by calling the garbage
+collector explicitly just before it (provided that portion of the
+program does not use so much space as to force a second garbage
+collection).
+@end quotation
+
+@deffn Command garbage-collect
+This command runs a garbage collection, and returns information on
+the amount of space in use.  (Garbage collection can also occur
+spontaneously if you use more than @code{gc-cons-threshold} bytes of
+Lisp data since the previous garbage collection.)
+
+@code{garbage-collect} returns a list containing the following
+information:
+
+@example
+@group
+((@var{used-conses} . @var{free-conses})
+ (@var{used-syms} . @var{free-syms})
+@end group
+ (@var{used-miscs} . @var{free-miscs})
+ @var{used-string-chars}
+ @var{used-vector-slots}
+ (@var{used-floats} . @var{free-floats})
+ (@var{used-intervals} . @var{free-intervals})
+ (@var{used-strings} . @var{free-strings}))
+@end example
+
+Here is an example:
+
+@example
+@group
+(garbage-collect)
+     @result{} ((106886 . 13184) (9769 . 0)
+                (7731 . 4651) 347543 121628
+                (31 . 94) (1273 . 168)
+                (25474 . 3569))
+@end group
+@end example
+
+Here is a table explaining each element:
+
+@table @var
+@item used-conses
+The number of cons cells in use.
+
+@item free-conses
+The number of cons cells for which space has been obtained from the
+operating system, but that are not currently being used.
+
+@item used-syms
+The number of symbols in use.
+
+@item free-syms
+The number of symbols for which space has been obtained from the
+operating system, but that are not currently being used.
+
+@item used-miscs
+The number of miscellaneous objects in use.  These include markers and
+overlays, plus certain objects not visible to users.
+
+@item free-miscs
+The number of miscellaneous objects for which space has been obtained
+from the operating system, but that are not currently being used.
+
+@item used-string-chars
+The total size of all strings, in characters.
+
+@item used-vector-slots
+The total number of elements of existing vectors.
+
+@item used-floats
+@c Emacs 19 feature
+The number of floats in use.
+
+@item free-floats
+@c Emacs 19 feature
+The number of floats for which space has been obtained from the
+operating system, but that are not currently being used.
+
+@item used-intervals
+The number of intervals in use.  Intervals are an internal
+data structure used for representing text properties.
+
+@item free-intervals
+The number of intervals for which space has been obtained
+from the operating system, but that are not currently being used.
+
+@item used-strings
+The number of strings in use.
+
+@item free-strings
+The number of string headers for which the space was obtained from the
+operating system, but which are currently not in use.  (A string
+object consists of a header and the storage for the string text
+itself; the latter is only allocated when the string is created.)
+@end table
+
+If there was overflow in pure space (see the previous section),
+@code{garbage-collect} returns @code{nil}, because a real garbage
+collection can not be done in this situation.
+@end deffn
+
+@defopt garbage-collection-messages
+If this variable is non-@code{nil}, Emacs displays a message at the
+beginning and end of garbage collection.  The default value is
+@code{nil}, meaning there are no such messages.
+@end defopt
+
+@defvar post-gc-hook
+This is a normal hook that is run at the end of garbage collection.
+Garbage collection is inhibited while the hook functions run, so be
+careful writing them.
+@end defvar
+
+@defopt gc-cons-threshold
+The value of this variable is the number of bytes of storage that must
+be allocated for Lisp objects after one garbage collection in order to
+trigger another garbage collection.  A cons cell counts as eight bytes,
+a string as one byte per character plus a few bytes of overhead, and so
+on; space allocated to the contents of buffers does not count.  Note
+that the subsequent garbage collection does not happen immediately when
+the threshold is exhausted, but only the next time the Lisp evaluator is
+called.
+
+The initial threshold value is 400,000.  If you specify a larger
+value, garbage collection will happen less often.  This reduces the
+amount of time spent garbage collecting, but increases total memory use.
+You may want to do this when running a program that creates lots of
+Lisp data.
+
+You can make collections more frequent by specifying a smaller value,
+down to 10,000.  A value less than 10,000 will remain in effect only
+until the subsequent garbage collection, at which time
+@code{garbage-collect} will set the threshold back to 10,000.
+@end defopt
+
+@defopt gc-cons-percentage
+The value of this variable specifies the amount of consing before a
+garbage collection occurs, as a fraction of the current heap size.
+This criterion and @code{gc-cons-threshold} apply in parallel, and
+garbage collection occurs only when both criteria are satisfied.
+
+As the heap size increases, the time to perform a garbage collection
+increases.  Thus, it can be desirable to do them less frequently in
+proportion.
+@end defopt
+
+  The value returned by @code{garbage-collect} describes the amount of
+memory used by Lisp data, broken down by data type.  By contrast, the
+function @code{memory-limit} provides information on the total amount of
+memory Emacs is currently using.
+
+@c Emacs 19 feature
+@defun memory-limit
+This function returns the address of the last byte Emacs has allocated,
+divided by 1024.  We divide the value by 1024 to make sure it fits in a
+Lisp integer.
+
+You can use this to get a general idea of how your actions affect the
+memory usage.
+@end defun
+
+@defvar memory-full
+This variable is @code{t} if Emacs is close to out of memory for Lisp
+objects, and @code{nil} otherwise.
+@end defvar
+
+@defun memory-use-counts
+This returns a list of numbers that count the number of objects
+created in this Emacs session.  Each of these counters increments for
+a certain kind of object.  See the documentation string for details.
+@end defun
+
+@defvar gcs-done
+This variable contains the total number of garbage collections
+done so far in this Emacs session.
+@end defvar
+
+@defvar gc-elapsed
+This variable contains the total number of seconds of elapsed time
+during garbage collection so far in this Emacs session, as a floating
+point number.
+@end defvar
+
+@node Memory Usage
+@section Memory Usage
+@cindex memory usage
+
+  These functions and variables give information about the total amount
+of memory allocation that Emacs has done, broken down by data type.
+Note the difference between these and the values returned by
+@code{(garbage-collect)}; those count objects that currently exist, but
+these count the number or size of all allocations, including those for
+objects that have since been freed.
+
+@defvar cons-cells-consed
+The total number of cons cells that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar floats-consed
+The total number of floats that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar vector-cells-consed
+The total number of vector cells that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar symbols-consed
+The total number of symbols that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar string-chars-consed
+The total number of string characters that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar misc-objects-consed
+The total number of miscellaneous objects that have been allocated so
+far in this Emacs session.  These include markers and overlays, plus
+certain objects not visible to users.
+@end defvar
+
+@defvar intervals-consed
+The total number of intervals that have been allocated so far
+in this Emacs session.
+@end defvar
+
+@defvar strings-consed
+The total number of strings that have been allocated so far in this
+Emacs session.
+@end defvar
+
+@node Writing Emacs Primitives
+@appendixsec Writing Emacs Primitives
+@cindex primitive function internals
+@cindex writing Emacs primitives
+
+  Lisp primitives are Lisp functions implemented in C.  The details of
+interfacing the C function so that Lisp can call it are handled by a few
+C macros.  The only way to really understand how to write new C code is
+to read the source, but we can explain some things here.
+
+  An example of a special form is the definition of @code{or}, from
+@file{eval.c}.  (An ordinary function would have the same general
+appearance.)
+
+@cindex garbage collection protection
+@smallexample
+@group
+DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
+  doc: /* Eval args until one of them yields non-nil, then return that
+value. The remaining args are not evalled at all.
+If all args return nil, return nil.
+@end group
+@group
+usage: (or CONDITIONS ...)  */)
+  (args)
+     Lisp_Object args;
+@{
+  register Lisp_Object val = Qnil;
+  struct gcpro gcpro1;
+@end group
+
+@group
+  GCPRO1 (args);
+@end group
+
+@group
+  while (CONSP (args))
+    @{
+      val = Feval (XCAR (args));
+      if (!NILP (val))
+        break;
+      args = XCDR (args);
+    @}
+@end group
+
+@group
+  UNGCPRO;
+  return val;
+@}
+@end group
+@end smallexample
+
+@cindex @code{DEFUN}, C macro to define Lisp primitives
+  Let's start with a precise explanation of the arguments to the
+@code{DEFUN} macro.  Here is a template for them:
+
+@example
+DEFUN (@var{lname}, @var{fname}, @var{sname}, @var{min}, @var{max}, @var{interactive}, @var{doc})
+@end example
+
+@table @var
+@item lname
+This is the name of the Lisp symbol to define as the function name; in
+the example above, it is @code{or}.
+
+@item fname
+This is the C function name for this function.  This is
+the name that is used in C code for calling the function.  The name is,
+by convention, @samp{F} prepended to the Lisp name, with all dashes
+(@samp{-}) in the Lisp name changed to underscores.  Thus, to call this
+function from C code, call @code{For}.  Remember that the arguments must
+be of type @code{Lisp_Object}; various macros and functions for creating
+values of type @code{Lisp_Object} are declared in the file
+@file{lisp.h}.
+
+@item sname
+This is a C variable name to use for a structure that holds the data for
+the subr object that represents the function in Lisp.  This structure
+conveys the Lisp symbol name to the initialization routine that will
+create the symbol and store the subr object as its definition.  By
+convention, this name is always @var{fname} with @samp{F} replaced with
+@samp{S}.
+
+@item min
+This is the minimum number of arguments that the function requires.  The
+function @code{or} allows a minimum of zero arguments.
+
+@item max
+This is the maximum number of arguments that the function accepts, if
+there is a fixed maximum.  Alternatively, it can be @code{UNEVALLED},
+indicating a special form that receives unevaluated arguments, or
+@code{MANY}, indicating an unlimited number of evaluated arguments (the
+equivalent of @code{&rest}).  Both @code{UNEVALLED} and @code{MANY} are
+macros.  If @var{max} is a number, it may not be less than @var{min} and
+it may not be greater than eight.
+
+@item interactive
+This is an interactive specification, a string such as might be used as
+the argument of @code{interactive} in a Lisp function.  In the case of
+@code{or}, it is 0 (a null pointer), indicating that @code{or} cannot be
+called interactively.  A value of @code{""} indicates a function that
+should receive no arguments when called interactively.
+
+@item doc
+This is the documentation string.  It uses C comment syntax rather
+than C string syntax because comment syntax requires nothing special
+to include multiple lines.  The @samp{doc:} identifies the comment
+that follows as the documentation string.  The @samp{/*} and @samp{*/}
+delimiters that begin and end the comment are not part of the
+documentation string.
+
+If the last line of the documentation string begins with the keyword
+@samp{usage:}, the rest of the line is treated as the argument list
+for documentation purposes.  This way, you can use different argument
+names in the documentation string from the ones used in the C code.
+@samp{usage:} is required if the function has an unlimited number of
+arguments.
+
+All the usual rules for documentation strings in Lisp code
+(@pxref{Documentation Tips}) apply to C code documentation strings
+too.
+@end table
+
+  After the call to the @code{DEFUN} macro, you must write the argument
+name list that every C function must have, followed by ordinary C
+declarations for the arguments.  For a function with a fixed maximum
+number of arguments, declare a C argument for each Lisp argument, and
+give them all type @code{Lisp_Object}.  When a Lisp function has no
+upper limit on the number of arguments, its implementation in C actually
+receives exactly two arguments: the first is the number of Lisp
+arguments, and the second is the address of a block containing their
+values.  They have types @code{int} and @w{@code{Lisp_Object *}}.
+
+@cindex @code{GCPRO} and @code{UNGCPRO}
+@cindex protect C variables from garbage collection
+  Within the function @code{For} itself, note the use of the macros
+@code{GCPRO1} and @code{UNGCPRO}.  @code{GCPRO1} is used to
+``protect'' a variable from garbage collection---to inform the garbage
+collector that it must look in that variable and regard its contents
+as an accessible object.  GC protection is necessary whenever you call
+@code{Feval} or anything that can directly or indirectly call
+@code{Feval}.  At such a time, any Lisp object that this function may
+refer to again must be protected somehow.
+
+  It suffices to ensure that at least one pointer to each object is
+GC-protected; that way, the object cannot be recycled, so all pointers
+to it remain valid.  Thus, a particular local variable can do without
+protection if it is certain that the object it points to will be
+preserved by some other pointer (such as another local variable which
+has a @code{GCPRO})@footnote{Formerly, strings were a special
+exception; in older Emacs versions, every local variable that might
+point to a string needed a @code{GCPRO}.}.  Otherwise, the local
+variable needs a @code{GCPRO}.
+
+  The macro @code{GCPRO1} protects just one local variable.  If you
+want to protect two variables, use @code{GCPRO2} instead; repeating
+@code{GCPRO1} will not work.  Macros @code{GCPRO3}, @code{GCPRO4},
+@code{GCPRO5}, and @code{GCPRO6} also exist.  All these macros
+implicitly use local variables such as @code{gcpro1}; you must declare
+these explicitly, with type @code{struct gcpro}.  Thus, if you use
+@code{GCPRO2}, you must declare @code{gcpro1} and @code{gcpro2}.
+Alas, we can't explain all the tricky details here.
+
+  @code{UNGCPRO} cancels the protection of the variables that are
+protected in the current function.  It is necessary to do this
+explicitly.
+
+  Built-in functions that take a variable number of arguments actually
+accept two arguments at the C level: the number of Lisp arguments, and
+a @code{Lisp_Object *} pointer to a C vector containing those Lisp
+arguments.  This C vector may be part of a Lisp vector, but it need
+not be.  The responsibility for using @code{GCPRO} to protect the Lisp
+arguments from GC if necessary rests with the caller in this case,
+since the caller allocated or found the storage for them.
+
+  You must not use C initializers for static or global variables unless
+the variables are never written once Emacs is dumped.  These variables
+with initializers are allocated in an area of memory that becomes
+read-only (on certain operating systems) as a result of dumping Emacs.
+@xref{Pure Storage}.
+
+  Do not use static variables within functions---place all static
+variables at top level in the file.  This is necessary because Emacs on
+some operating systems defines the keyword @code{static} as a null
+macro.  (This definition is used because those systems put all variables
+declared static in a place that becomes read-only after dumping, whether
+they have initializers or not.)
+
+@cindex @code{defsubr}, Lisp symbol for a primitive
+  Defining the C function is not enough to make a Lisp primitive
+available; you must also create the Lisp symbol for the primitive and
+store a suitable subr object in its function cell.  The code looks like
+this:
+
+@example
+defsubr (&@var{subr-structure-name});
+@end example
+
+@noindent
+Here @var{subr-structure-name} is the name you used as the third
+argument to @code{DEFUN}.
+
+  If you add a new primitive to a file that already has Lisp primitives
+defined in it, find the function (near the end of the file) named
+@code{syms_of_@var{something}}, and add the call to @code{defsubr}
+there.  If the file doesn't have this function, or if you create a new
+file, add to it a @code{syms_of_@var{filename}} (e.g.,
+@code{syms_of_myfile}).  Then find the spot in @file{emacs.c} where all
+of these functions are called, and add a call to
+@code{syms_of_@var{filename}} there.
+
+@anchor{Defining Lisp variables in C}
+@vindex byte-boolean-vars
+@cindex defining Lisp variables in C
+@cindex @code{DEFVAR_INT}, @code{DEFVAR_LISP}, @code{DEFVAR_BOOL}
+  The function @code{syms_of_@var{filename}} is also the place to define
+any C variables that are to be visible as Lisp variables.
+@code{DEFVAR_LISP} makes a C variable of type @code{Lisp_Object} visible
+in Lisp.  @code{DEFVAR_INT} makes a C variable of type @code{int}
+visible in Lisp with a value that is always an integer.
+@code{DEFVAR_BOOL} makes a C variable of type @code{int} visible in Lisp
+with a value that is either @code{t} or @code{nil}.  Note that variables
+defined with @code{DEFVAR_BOOL} are automatically added to the list
+@code{byte-boolean-vars} used by the byte compiler.
+
+@cindex @code{staticpro}, protection from GC
+  If you define a file-scope C variable of type @code{Lisp_Object},
+you must protect it from garbage-collection by calling @code{staticpro}
+in @code{syms_of_@var{filename}}, like this:
+
+@example
+staticpro (&@var{variable});
+@end example
+
+  Here is another example function, with more complicated arguments.
+This comes from the code in @file{window.c}, and it demonstrates the use
+of macros and functions to manipulate Lisp objects.
+
+@smallexample
+@group
+DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
+  Scoordinates_in_window_p, 2, 2,
+  "xSpecify coordinate pair: \nXExpression which evals to window: ",
+  "Return non-nil if COORDINATES is in WINDOW.\n\
+COORDINATES is a cons of the form (X . Y), X and Y being distances\n\
+...
+@end group
+@group
+If they are on the border between WINDOW and its right sibling,\n\
+   `vertical-line' is returned.")
+  (coordinates, window)
+     register Lisp_Object coordinates, window;
+@{
+  int x, y;
+@end group
+
+@group
+  CHECK_LIVE_WINDOW (window, 0);
+  CHECK_CONS (coordinates, 1);
+  x = XINT (Fcar (coordinates));
+  y = XINT (Fcdr (coordinates));
+@end group
+
+@group
+  switch (coordinates_in_window (XWINDOW (window), &x, &y))
+    @{
+    case 0:			/* NOT in window at all. */
+      return Qnil;
+@end group
+
+@group
+    case 1:			/* In text part of window. */
+      return Fcons (make_number (x), make_number (y));
+@end group
+
+@group
+    case 2:			/* In mode line of window. */
+      return Qmode_line;
+@end group
+
+@group
+    case 3:			/* On right border of window.  */
+      return Qvertical_line;
+@end group
+
+@group
+    default:
+      abort ();
+    @}
+@}
+@end group
+@end smallexample
+
+  Note that C code cannot call functions by name unless they are defined
+in C.  The way to call a function written in Lisp is to use
+@code{Ffuncall}, which embodies the Lisp function @code{funcall}.  Since
+the Lisp function @code{funcall} accepts an unlimited number of
+arguments, in C it takes two: the number of Lisp-level arguments, and a
+one-dimensional array containing their values.  The first Lisp-level
+argument is the Lisp function to call, and the rest are the arguments to
+pass to it.  Since @code{Ffuncall} can call the evaluator, you must
+protect pointers from garbage collection around the call to
+@code{Ffuncall}.
+
+  The C functions @code{call0}, @code{call1}, @code{call2}, and so on,
+provide handy ways to call a Lisp function conveniently with a fixed
+number of arguments.  They work by calling @code{Ffuncall}.
+
+  @file{eval.c} is a very good file to look through for examples;
+@file{lisp.h} contains the definitions for some important macros and
+functions.
+
+  If you define a function which is side-effect free, update the code
+in @file{byte-opt.el} which binds @code{side-effect-free-fns} and
+@code{side-effect-and-error-free-fns} so that the compiler optimizer
+knows about it.
+
+@node Object Internals
+@appendixsec Object Internals
+@cindex object internals
+
+  GNU Emacs Lisp manipulates many different types of data.  The actual
+data are stored in a heap and the only access that programs have to it
+is through pointers.  Pointers are thirty-two bits wide in most
+implementations.  Depending on the operating system and type of machine
+for which you compile Emacs, twenty-nine bits are used to address the
+object, and the remaining three bits are used for the tag that
+identifies the object's type.
+
+  Because Lisp objects are represented as tagged pointers, it is always
+possible to determine the Lisp data type of any object.  The C data type
+@code{Lisp_Object} can hold any Lisp object of any data type.  Ordinary
+variables have type @code{Lisp_Object}, which means they can hold any
+type of Lisp value; you can determine the actual data type only at run
+time.  The same is true for function arguments; if you want a function
+to accept only a certain type of argument, you must check the type
+explicitly using a suitable predicate (@pxref{Type Predicates}).
+@cindex type checking internals
+
+@menu
+* Buffer Internals::    Components of a buffer structure.
+* Window Internals::    Components of a window structure.
+* Process Internals::   Components of a process structure.
+@end menu
+
+@node Buffer Internals
+@appendixsubsec Buffer Internals
+@cindex internals, of buffer
+@cindex buffer internals
+
+  Buffers contain fields not directly accessible by the Lisp programmer.
+We describe them here, naming them by the names used in the C code.
+Many are accessible indirectly in Lisp programs via Lisp primitives.
+
+Two structures are used to represent buffers in C.  The
+@code{buffer_text} structure contains fields describing the text of a
+buffer; the @code{buffer} structure holds other fields.  In the case
+of indirect buffers, two or more @code{buffer} structures reference
+the same @code{buffer_text} structure.
+
+Here is a list of the @code{struct buffer_text} fields:
+
+@table @code
+@item beg
+This field contains the actual address of the buffer contents.
+
+@item gpt
+This holds the character position of the gap in the buffer.
+@xref{Buffer Gap}.
+
+@item z
+This field contains the character position of the end of the buffer
+text.
+
+@item gpt_byte
+Contains the byte position of the gap.
+
+@item z_byte
+Holds the byte position of the end of the buffer text.
+
+@item gap_size
+Contains the size of buffer's gap.  @xref{Buffer Gap}.
+
+@item modiff
+This field counts buffer-modification events for this buffer.  It is
+incremented for each such event, and never otherwise changed.
+
+@item save_modiff
+Contains the previous value of @code{modiff}, as of the last time a
+buffer was visited or saved in a file.
+
+@item overlay_modiff
+Counts modifications to overlays analogous to @code{modiff}.
+
+@item beg_unchanged
+Holds the number of characters at the start of the text that are known
+to be unchanged since the last redisplay that finished.
+
+@item end_unchanged
+Holds the number of characters at the end of the text that are known to
+be unchanged since the last redisplay that finished.
+
+@item unchanged_modified
+Contains the value of @code{modiff} at the time of the last redisplay
+that finished.  If this value matches @code{modiff},
+@code{beg_unchanged} and @code{end_unchanged} contain no useful
+information.
+
+@item overlay_unchanged_modified
+Contains the value of @code{overlay_modiff} at the time of the last
+redisplay that finished.  If this value matches @code{overlay_modiff},
+@code{beg_unchanged} and @code{end_unchanged} contain no useful
+information.
+
+@item markers
+The markers that refer to this buffer.  This is actually a single
+marker, and successive elements in its marker @code{chain} are the other
+markers referring to this buffer text.
+
+@item intervals
+Contains the interval tree which records the text properties of this
+buffer.
+@end table
+
+The fields of @code{struct buffer} are:
+
+@table @code
+@item next
+Points to the next buffer, in the chain of all buffers including killed
+buffers.  This chain is used only for garbage collection, in order to
+collect killed buffers properly.  Note that vectors, and most kinds of
+objects allocated as vectors, are all on one chain, but buffers are on a
+separate chain of their own.
+
+@item own_text
+This is a @code{struct buffer_text} structure.  In an ordinary buffer,
+it holds the buffer contents.  In indirect buffers, this field is not
+used.
+
+@item text
+This points to the @code{buffer_text} structure that is used for this
+buffer.  In an ordinary buffer, this is the @code{own_text} field above.
+In an indirect buffer, this is the @code{own_text} field of the base
+buffer.
+
+@item pt
+Contains the character position of point in a buffer.
+
+@item pt_byte
+Contains the byte position of point in a buffer.
+
+@item begv
+This field contains the character position of the beginning of the
+accessible range of text in the buffer.
+
+@item begv_byte
+This field contains the byte position of the beginning of the
+accessible range of text in the buffer.
+
+@item zv
+This field contains the character position of the end of the
+accessible range of text in the buffer.
+
+@item zv_byte
+This field contains the byte position of the end of the
+accessible range of text in the buffer.
+
+@item base_buffer
+In an indirect buffer, this points to the base buffer.  In an ordinary
+buffer, it is null.
+
+@item local_var_flags
+This field contains flags indicating that certain variables are local in
+this buffer.  Such variables are declared in the C code using
+@code{DEFVAR_PER_BUFFER}, and their buffer-local bindings are stored in
+fields in the buffer structure itself.  (Some of these fields are
+described in this table.)
+
+@item modtime
+This field contains the modification time of the visited file.  It is
+set when the file is written or read.  Before writing the buffer into a
+file, this field is compared to the modification time of the file to see
+if the file has changed on disk.  @xref{Buffer Modification}.
+
+@item auto_save_modified
+This field contains the time when the buffer was last auto-saved.
+
+@item auto_save_failure_time
+The time at which we detected a failure to auto-save, or -1 if we didn't
+have a failure.
+
+@item last_window_start
+This field contains the @code{window-start} position in the buffer as of
+the last time the buffer was displayed in a window.
+
+@item clip_changed
+This flag is set when narrowing changes in a buffer.
+
+@item prevent_redisplay_optimizations_p
+this flag indicates that redisplay optimizations should not be used
+to display this buffer.
+
+@item undo_list
+This field points to the buffer's undo list.  @xref{Undo}.
+
+@item name
+The buffer name is a string that names the buffer.  It is guaranteed to
+be unique.  @xref{Buffer Names}.
+
+@item filename
+The name of the file visited in this buffer, or @code{nil}.
+
+@item directory
+The directory for expanding relative file names.
+
+@item save_length
+Length of the file this buffer is visiting, when last read or saved.
+This and other fields concerned with saving are not kept in the
+@code{buffer_text} structure because indirect buffers are never saved.
+
+@item auto_save_file_name
+File name used for auto-saving this buffer.  This is not in the
+@code{buffer_text} because it's not used in indirect buffers at all.
+
+@item read_only
+Non-@code{nil} means this buffer is read-only.
+
+@item mark
+This field contains the mark for the buffer.  The mark is a marker,
+hence it is also included on the list @code{markers}.  @xref{The Mark}.
+
+@item local_var_alist
+This field contains the association list describing the buffer-local
+variable bindings of this buffer, not including the built-in
+buffer-local bindings that have special slots in the buffer object.
+(Those slots are omitted from this table.)  @xref{Buffer-Local
+Variables}.
+
+@item major_mode
+Symbol naming the major mode of this buffer, e.g., @code{lisp-mode}.
+
+@item mode_name
+Pretty name of major mode, e.g., @code{"Lisp"}.
+
+@item mode_line_format
+Mode line element that controls the format of the mode line.  If this
+is @code{nil}, no mode line will be displayed.
+
+@item header_line_format
+This field is analogous to @code{mode_line_format} for the mode
+line displayed at the top of windows.
+
+@item keymap
+This field holds the buffer's local keymap.  @xref{Keymaps}.
+
+@item abbrev_table
+This buffer's local abbrevs.
+
+@item syntax_table
+This field contains the syntax table for the buffer.  @xref{Syntax Tables}.
+
+@item category_table
+This field contains the category table for the buffer.
+
+@item case_fold_search
+The value of @code{case-fold-search} in this buffer.
+
+@item tab_width
+The value of @code{tab-width} in this buffer.
+
+@item fill_column
+The value of @code{fill-column} in this buffer.
+
+@item left_margin
+The value of @code{left-margin} in this buffer.
+
+@item auto_fill_function
+The value of @code{auto-fill-function} in this buffer.
+
+@item downcase_table
+This field contains the conversion table for converting text to lower case.
+@xref{Case Tables}.
+
+@item upcase_table
+This field contains the conversion table for converting text to upper case.
+@xref{Case Tables}.
+
+@item case_canon_table
+This field contains the conversion table for canonicalizing text for
+case-folding search.  @xref{Case Tables}.
+
+@item case_eqv_table
+This field contains the equivalence table for case-folding search.
+@xref{Case Tables}.
+
+@item truncate_lines
+The value of @code{truncate-lines} in this buffer.
+
+@item ctl_arrow
+The value of @code{ctl-arrow} in this buffer.
+
+@item selective_display
+The value of @code{selective-display} in this buffer.
+
+@item selective_display_ellipsis
+The value of @code{selective-display-ellipsis} in this buffer.
+
+@item minor_modes
+An alist of the minor modes of this buffer.
+
+@item overwrite_mode
+The value of @code{overwrite_mode} in this buffer.
+
+@item abbrev_mode
+The value of @code{abbrev-mode} in this buffer.
+
+@item display_table
+This field contains the buffer's display table, or @code{nil} if it doesn't
+have one.  @xref{Display Tables}.
+
+@item save_modified
+This field contains the time when the buffer was last saved, as an integer.
+@xref{Buffer Modification}.
+
+@item mark_active
+This field is non-@code{nil} if the buffer's mark is active.
+
+@item overlays_before
+This field holds a list of the overlays in this buffer that end at or
+before the current overlay center position.  They are sorted in order of
+decreasing end position.
+
+@item overlays_after
+This field holds a list of the overlays in this buffer that end after
+the current overlay center position.  They are sorted in order of
+increasing beginning position.
+
+@item overlay_center
+This field holds the current overlay center position.  @xref{Overlays}.
+
+@item enable_multibyte_characters
+This field holds the buffer's local value of
+@code{enable-multibyte-characters}---either @code{t} or @code{nil}.
+
+@item buffer_file_coding_system
+The value of @code{buffer-file-coding-system} in this buffer.
+
+@item file_format
+The value of @code{buffer-file-format} in this buffer.
+
+@item auto_save_file_format
+The value of @code{buffer-auto-save-file-format} in this buffer.
+
+@item pt_marker
+In an indirect buffer, or a buffer that is the base of an indirect
+buffer, this holds a marker that records point for this buffer when the
+buffer is not current.
+
+@item begv_marker
+In an indirect buffer, or a buffer that is the base of an indirect
+buffer, this holds a marker that records @code{begv} for this buffer
+when the buffer is not current.
+
+@item zv_marker
+In an indirect buffer, or a buffer that is the base of an indirect
+buffer, this holds a marker that records @code{zv} for this buffer when
+the buffer is not current.
+
+@item file_truename
+The truename of the visited file, or @code{nil}.
+
+@item invisibility_spec
+The value of @code{buffer-invisibility-spec} in this buffer.
+
+@item last_selected_window
+This is the last window that was selected with this buffer in it, or @code{nil}
+if that window no longer displays this buffer.
+
+@item display_count
+This field is incremented each time the buffer is displayed in a window.
+
+@item left_margin_width
+The value of @code{left-margin-width} in this buffer.
+
+@item right_margin_width
+The value of @code{right-margin-width} in this buffer.
+
+@item indicate_empty_lines
+Non-@code{nil} means indicate empty lines (lines with no text) with a
+small bitmap in the fringe, when using a window system that can do it.
+
+@item display_time
+This holds a time stamp that is updated each time this buffer is
+displayed in a window.
+
+@item scroll_up_aggressively
+The value of @code{scroll-up-aggressively} in this buffer.
+
+@item scroll_down_aggressively
+The value of @code{scroll-down-aggressively} in this buffer.
+@end table
+
+@node Window Internals
+@appendixsubsec Window Internals
+@cindex internals, of window
+@cindex window internals
+
+  Windows have the following accessible fields:
+
+@table @code
+@item frame
+The frame that this window is on.
+
+@item mini_p
+Non-@code{nil} if this window is a minibuffer window.
+
+@item parent
+Internally, Emacs arranges windows in a tree; each group of siblings has
+a parent window whose area includes all the siblings.  This field points
+to a window's parent.
+
+Parent windows do not display buffers, and play little role in display
+except to shape their child windows.  Emacs Lisp programs usually have
+no access to the parent windows; they operate on the windows at the
+leaves of the tree, which actually display buffers.
+
+The following four fields also describe the window tree structure.
+
+@item hchild
+In a window subdivided horizontally by child windows, the leftmost child.
+Otherwise, @code{nil}.
+
+@item vchild
+In a window subdivided vertically by child windows, the topmost child.
+Otherwise, @code{nil}.
+
+@item next
+The next sibling of this window.  It is @code{nil} in a window that is
+the rightmost or bottommost of a group of siblings.
+
+@item prev
+The previous sibling of this window.  It is @code{nil} in a window that
+is the leftmost or topmost of a group of siblings.
+
+@item left
+This is the left-hand edge of the window, measured in columns.  (The
+leftmost column on the screen is @w{column 0}.)
+
+@item top
+This is the top edge of the window, measured in lines.  (The top line on
+the screen is @w{line 0}.)
+
+@item height
+The height of the window, measured in lines.
+
+@item width
+The width of the window, measured in columns.  This width includes the
+scroll bar and fringes, and/or the separator line on the right of the
+window (if any).
+
+@item buffer
+The buffer that the window is displaying.  This may change often during
+the life of the window.
+
+@item start
+The position in the buffer that is the first character to be displayed
+in the window.
+
+@item pointm
+@cindex window point internals
+This is the value of point in the current buffer when this window is
+selected; when it is not selected, it retains its previous value.
+
+@item force_start
+If this flag is non-@code{nil}, it says that the window has been
+scrolled explicitly by the Lisp program.  This affects what the next
+redisplay does if point is off the screen: instead of scrolling the
+window to show the text around point, it moves point to a location that
+is on the screen.
+
+@item frozen_window_start_p
+This field is set temporarily to 1 to indicate to redisplay that
+@code{start} of this window should not be changed, even if point
+gets invisible.
+
+@item start_at_line_beg
+Non-@code{nil} means current value of @code{start} was the beginning of a line
+when it was chosen.
+
+@item too_small_ok
+Non-@code{nil} means don't delete this window for becoming ``too small.''
+
+@item height_fixed_p
+This field is temporarily set to 1 to fix the height of the selected
+window when the echo area is resized.
+
+@item use_time
+This is the last time that the window was selected.  The function
+@code{get-lru-window} uses this field.
+
+@item sequence_number
+A unique number assigned to this window when it was created.
+
+@item last_modified
+The @code{modiff} field of the window's buffer, as of the last time
+a redisplay completed in this window.
+
+@item last_overlay_modified
+The @code{overlay_modiff} field of the window's buffer, as of the last
+time a redisplay completed in this window.
+
+@item last_point
+The buffer's value of point, as of the last time a redisplay completed
+in this window.
+
+@item last_had_star
+A non-@code{nil} value means the window's buffer was ``modified'' when the
+window was last updated.
+
+@item vertical_scroll_bar
+This window's vertical scroll bar.
+
+@item left_margin_width
+The width of the left margin in this window, or @code{nil} not to
+specify it (in which case the buffer's value of @code{left-margin-width}
+is used.
+
+@item right_margin_width
+Likewise for the right margin.
+
+@ignore
+@item last_mark_x
+@item last_mark_y
+???Not used.
+@end ignore
+
+@item window_end_pos
+This is computed as @code{z} minus the buffer position of the last glyph
+in the current matrix of the window.  The value is only valid if
+@code{window_end_valid} is not @code{nil}.
+
+@item window_end_bytepos
+The byte position corresponding to @code{window_end_pos}.
+
+@item window_end_vpos
+The window-relative vertical position of the line containing
+@code{window_end_pos}.
+
+@item window_end_valid
+This field is set to a non-@code{nil} value if @code{window_end_pos} is truly
+valid.  This is @code{nil} if nontrivial redisplay is preempted since in that
+case the display that @code{window_end_pos} was computed for did not get
+onto the screen.
+
+@item redisplay_end_trigger
+If redisplay in this window goes beyond this buffer position, it runs
+the @code{redisplay-end-trigger-hook}.
+
+@ignore
+@item orig_height
+@item orig_top
+??? Are temporary storage areas.
+@end ignore
+
+@item cursor
+A structure describing where the cursor is in this window.
+
+@item last_cursor
+The value of @code{cursor} as of the last redisplay that finished.
+
+@item phys_cursor
+A structure describing where the cursor of this window physically is.
+
+@item phys_cursor_type
+The type of cursor that was last displayed on this window.
+
+@item phys_cursor_on_p
+This field is non-zero if the cursor is physically on.
+
+@item cursor_off_p
+Non-zero means the cursor in this window is logically on.
+
+@item last_cursor_off_p
+This field contains the value of @code{cursor_off_p} as of the time of
+the last redisplay.
+
+@item must_be_updated_p
+This is set to 1 during redisplay when this window must be updated.
+
+@item hscroll
+This is the number of columns that the display in the window is scrolled
+horizontally to the left.  Normally, this is 0.
+
+@item vscroll
+Vertical scroll amount, in pixels.  Normally, this is 0.
+
+@item dedicated
+Non-@code{nil} if this window is dedicated to its buffer.
+
+@item display_table
+The window's display table, or @code{nil} if none is specified for it.
+
+@item update_mode_line
+Non-@code{nil} means this window's mode line needs to be updated.
+
+@item base_line_number
+The line number of a certain position in the buffer, or @code{nil}.
+This is used for displaying the line number of point in the mode line.
+
+@item base_line_pos
+The position in the buffer for which the line number is known, or
+@code{nil} meaning none is known.
+
+@item region_showing
+If the region (or part of it) is highlighted in this window, this field
+holds the mark position that made one end of that region.  Otherwise,
+this field is @code{nil}.
+
+@item column_number_displayed
+The column number currently displayed in this window's mode line, or @code{nil}
+if column numbers are not being displayed.
+
+@item current_matrix
+A glyph matrix describing the current display of this window.
+
+@item desired_matrix
+A glyph matrix describing the desired display of this window.
+@end table
+
+@node Process Internals
+@appendixsubsec Process Internals
+@cindex internals, of process
+@cindex process internals
+
+  The fields of a process are:
+
+@table @code
+@item name
+A string, the name of the process.
+
+@item command
+A list containing the command arguments that were used to start this
+process.
+
+@item filter
+A function used to accept output from the process instead of a buffer,
+or @code{nil}.
+
+@item sentinel
+A function called whenever the process receives a signal, or @code{nil}.
+
+@item buffer
+The associated buffer of the process.
+
+@item pid
+An integer, the operating system's process @acronym{ID}.
+
+@item childp
+A flag, non-@code{nil} if this is really a child process.
+It is @code{nil} for a network connection.
+
+@item mark
+A marker indicating the position of the end of the last output from this
+process inserted into the buffer.  This is often but not always the end
+of the buffer.
+
+@item kill_without_query
+If this is non-@code{nil}, killing Emacs while this process is still
+running does not ask for confirmation about killing the process.
+
+@item raw_status_low
+@itemx raw_status_high
+These two fields record 16 bits each of the process status returned by
+the @code{wait} system call.
+
+@item status
+The process status, as @code{process-status} should return it.
+
+@item tick
+@itemx update_tick
+If these two fields are not equal, a change in the status of the process
+needs to be reported, either by running the sentinel or by inserting a
+message in the process buffer.
+
+@item pty_flag
+Non-@code{nil} if communication with the subprocess uses a @acronym{PTY};
+@code{nil} if it uses a pipe.
+
+@item infd
+The file descriptor for input from the process.
+
+@item outfd
+The file descriptor for output to the process.
+
+@item subtty
+The file descriptor for the terminal that the subprocess is using.  (On
+some systems, there is no need to record this, so the value is
+@code{nil}.)
+
+@item tty_name
+The name of the terminal that the subprocess is using,
+or @code{nil} if it is using pipes.
+
+@item decode_coding_system
+Coding-system for decoding the input from this process.
+
+@item decoding_buf
+A working buffer for decoding.
+
+@item decoding_carryover
+Size of carryover in decoding.
+
+@item encode_coding_system
+Coding-system for encoding the output to this process.
+
+@item encoding_buf
+A working buffer for encoding.
+
+@item encoding_carryover
+Size of carryover in encoding.
+
+@item inherit_coding_system_flag
+Flag to set @code{coding-system} of the process buffer from the
+coding system used to decode process output.
+@end table
+
+@ignore
+   arch-tag: 4b2c33bc-d7e4-43f5-bc20-27c0db52a53e
+@end ignore
