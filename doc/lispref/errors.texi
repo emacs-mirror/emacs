@@ -1,0 +1,209 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1999, 2001, 2002, 2003, 2004,
+@c   2005, 2006, 2007  Free Software Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/errors
+@node Standard Errors, Standard Buffer-Local Variables, GNU Emacs Internals, Top
+@appendix Standard Errors
+@cindex standard errors
+
+  Here is the complete list of the error symbols in standard Emacs,
+grouped by concept.  The list includes each symbol's message (on the
+@code{error-message} property of the symbol) and a cross reference to a
+description of how the error can occur.
+
+  Each error symbol has an @code{error-conditions} property that is a
+list of symbols.  Normally this list includes the error symbol itself
+and the symbol @code{error}.  Occasionally it includes additional
+symbols, which are intermediate classifications, narrower than
+@code{error} but broader than a single error symbol.  For example, all
+the errors in accessing files have the condition @code{file-error}.  If
+we do not say here that a certain error symbol has additional error
+conditions, that means it has none.
+
+  As a special exception, the error symbol @code{quit} does not have the
+condition @code{error}, because quitting is not considered an error.
+
+  @xref{Errors}, for an explanation of how errors are generated and
+handled.
+
+@table @code
+@item @var{symbol}
+@var{string}; @var{reference}.
+
+@item error
+@code{"error"}@*
+@xref{Errors}.
+
+@item quit
+@code{"Quit"}@*
+@xref{Quitting}.
+
+@item args-out-of-range
+@code{"Args out of range"}@*
+This happens when trying to access an element beyond the range of a
+sequence or buffer.@*
+@xref{Sequences Arrays Vectors}, @xref{Text}.
+
+@item arith-error
+@code{"Arithmetic error"}@*
+@xref{Arithmetic Operations}.
+
+@item beginning-of-buffer
+@code{"Beginning of buffer"}@*
+@xref{Character Motion}.
+
+@item buffer-read-only
+@code{"Buffer is read-only"}@*
+@xref{Read Only Buffers}.
+
+@item coding-system-error
+@code{"Invalid coding system"}@*
+@xref{Lisp and Coding Systems}.
+
+@item cyclic-function-indirection
+@code{"Symbol's chain of function indirections\@* contains a loop"}@*
+@xref{Function Indirection}.
+
+@item cyclic-variable-indirection
+@code{"Symbol's chain of variable indirections\@* contains a loop"}@*
+@xref{Variable Aliases}.
+
+@item end-of-buffer
+@code{"End of buffer"}@*
+@xref{Character Motion}.
+
+@item end-of-file
+@code{"End of file during parsing"}@*
+Note that this is not a subcategory of @code{file-error},
+because it pertains to the Lisp reader, not to file I/O.@*
+@xref{Input Functions}.
+
+@item file-already-exists
+This is a subcategory of @code{file-error}.@*
+@xref{Writing to Files}.
+
+@item file-date-error
+This is a subcategory of @code{file-error}.  It occurs when
+@code{copy-file} tries and fails to set the last-modification time of
+the output file.@*
+@xref{Changing Files}.
+
+@item file-error
+We do not list the error-strings of this error and its subcategories,
+because the error message is normally constructed from the data items
+alone when the error condition @code{file-error} is present.  Thus,
+the error-strings are not very relevant.  However, these error symbols
+do have @code{error-message} properties, and if no data is provided,
+the @code{error-message} property @emph{is} used.@*
+@xref{Files}.
+
+@item file-locked
+This is a subcategory of @code{file-error}.@*
+@xref{File Locks}.
+
+@item file-supersession
+This is a subcategory of @code{file-error}.@*
+@xref{Modification Time}.
+
+@item ftp-error
+This is a subcategory of @code{file-error}, which results from problems
+in accessing a remote file using ftp.@*
+@xref{Remote Files,,, emacs, The GNU Emacs Manual}.
+
+@item invalid-function
+@code{"Invalid function"}@*
+@xref{Function Indirection}.
+
+@item invalid-read-syntax
+@code{"Invalid read syntax"}@*
+@xref{Printed Representation}.
+
+@item invalid-regexp
+@code{"Invalid regexp"}@*
+@xref{Regular Expressions}.
+
+@item mark-inactive
+@code{"The mark is not active now"}@*
+@xref{The Mark}.
+
+@item no-catch
+@code{"No catch for tag"}@*
+@xref{Catch and Throw}.
+
+@item scan-error
+@code{"Scan error"}@*
+This happens when certain syntax-parsing functions
+find invalid syntax or mismatched parentheses.@*
+@xref{List Motion}, and @ref{Parsing Expressions}.
+
+@item search-failed
+@code{"Search failed"}@*
+@xref{Searching and Matching}.
+
+@item setting-constant
+@code{"Attempt to set a constant symbol"}@*
+The values of the symbols @code{nil} and @code{t},
+and any symbols that start with @samp{:},
+may not be changed.@*
+@xref{Constant Variables, , Variables that Never Change}.
+
+@item text-read-only
+@code{"Text is read-only"}@*
+This is a subcategory of @code{buffer-read-only}.@*
+@xref{Special Properties}.
+
+@item undefined-color
+@code{"Undefined color"}@*
+@xref{Color Names}.
+
+@item void-function
+@code{"Symbol's function definition is void"}@*
+@xref{Function Cells}.
+
+@item void-variable
+@code{"Symbol's value as variable is void"}@*
+@xref{Accessing Variables}.
+
+@item wrong-number-of-arguments
+@code{"Wrong number of arguments"}@*
+@xref{Classifying Lists}.
+
+@item wrong-type-argument
+@code{"Wrong type argument"}@*
+@xref{Type Predicates}.
+@end table
+
+  These kinds of error, which are classified as special cases of
+@code{arith-error}, can occur on certain systems for invalid use of
+mathematical functions.
+
+@table @code
+@item domain-error
+@code{"Arithmetic domain error"}@*
+@xref{Math Functions}.
+
+@item overflow-error
+@code{"Arithmetic overflow error"}@*
+This is a subcategory of @code{domain-error}.@*
+@xref{Math Functions}.
+
+@item range-error
+@code{"Arithmetic range error"}@*
+@xref{Math Functions}.
+
+@item singularity-error
+@code{"Arithmetic singularity error"}@*
+This is a subcategory of @code{domain-error}.@*
+@xref{Math Functions}.
+
+@item underflow-error
+@code{"Arithmetic underflow error"}@*
+This is a subcategory of @code{domain-error}.@*
+@xref{Math Functions}.
+@end table
+
+@ignore
+   arch-tag: 717c6048-5d9d-4c7d-9a62-df57390b6f19
+@end ignore
