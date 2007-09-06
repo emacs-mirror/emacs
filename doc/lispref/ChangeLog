@@ -1,3 +1,14 @@
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* Move from lispref/ to doc/lispref/.  Change all setfilename
+	commands to use ../../info.
+	* Makefile.in (infodir): Go up one more level.
+        (usermanualdir): Change from ../man to ../emacs.
+	(miscmanualdir): New.
+	(dist): Use new variable miscmanualdir.
+	* makefile.w32-in (infodir, texinputdir): Go up one more level.
+	(usermanualdir): Change from ../man to ../emacs.
+
 2007-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi (EMACSVER): Increase to 23.0.50.
