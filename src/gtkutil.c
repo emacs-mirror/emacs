@@ -1780,14 +1780,14 @@ menu_destroy_callback (w, client_data)
    UNGRAB_P is TRUE if this is an ungrab, FALSE if it is a grab.
    CLIENT_DATA is NULL (not used).  */
 
+/* Keep track of total number of grabs.  */
+static int cnt;
+
 static void
 menu_grab_callback (GtkWidget *widget,
                     gboolean ungrab_p,
                     gpointer client_data)
 {
-  /* Keep track of total number of grabs.  */
-  static int cnt;
-
   if (ungrab_p) cnt--;
   else cnt++;
 
