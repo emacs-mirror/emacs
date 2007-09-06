@@ -1,3 +1,28 @@
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* Move manual sources from man/ to subdirectories of doc/.
+	Split into the Emacs manual in emacs/, and other manuals in misc/.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Reduce to just the Emacs
+	manual.
+	(infodir): New variable.
+	(info): Use $infodir.
+	(emacsman): Delete target, not needed any more.
+	Move all targets that are not the Emacs manual to misc/Makefile.in.
+	(mostlyclean): Remove `gnustmp'.
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Reduce to just the Emacs
+	manual.
+	(MULTI_INSTALL_INFO, ENVADD): Go up one more level.
+	(emacsman): Delete target, not needed any more.
+	(clean): Remove all info files but Emacs manual.
+	Move all targets that are not the Emacs manual to misc/Makefile.in.
+	* emacs-xtra.texi, emacs.texi (setfilename): Go up one more level.
+
+	* Makefile.in (INFOSOURCES): Delete.
+	(.SUFFIXES): Use $(TEXI2DVI) rather than texi2dvi.
+	(mostlyclean): Add *.op, *.ops.  Move *.aux *.cps *.fns *.kys *.pgs
+	*.vrs *.toc here...
+	(maintainer-clean): ...from here.
+
 2007-09-05  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Safe File Variables): Clarify `!' and risky variables.
