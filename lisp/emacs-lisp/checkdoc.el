@@ -199,6 +199,12 @@
   :group 'lisp
   :version "20.3")
 
+(defcustom checkdoc-minor-mode-string " CDoc"
+  "*String to display in mode line when Checkdoc mode is enabled; nil for none."
+  :type '(choice string (const :tag "None" nil))
+  :group 'checkdoc
+  :version "23.1")
+
 (defcustom checkdoc-autofix-flag 'semiautomatic
   "Non-nil means attempt auto-fixing of doc strings.
 If this value is the symbol `query', then the user is queried before
@@ -1251,7 +1257,7 @@ bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-c
 checking of documentation strings.
 
 \\{checkdoc-minor-mode-map}"
-  nil " CDoc" nil
+  nil checkdoc-minor-mode-string nil
   :group 'checkdoc)
 
 ;;; Subst utils
