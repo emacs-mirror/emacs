@@ -1,0 +1,306 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+
+@node Antinews, Mac OS, X Resources, Top
+@appendix Emacs 21 Antinews
+
+  For those users who live backwards in time, here is information about
+downgrading to Emacs version 21.4.  We hope you will enjoy the greater
+simplicity that results from the absence of many Emacs @value{EMACSVER}
+features.
+
+@itemize @bullet
+
+@item
+The buffer position and line number are now displayed at the end of
+the mode line, where they can be more easily seen.
+
+@item
+The mode line of the selected window is no longer displayed with a
+special face.  All mode lines are created equal.  Meanwhile, you can
+use the variable @code{mode-line-inverse-video} to control whether
+mode lines are highlighted at all---@code{nil} means don't highlight
+them.
+
+@item
+Clicking on a link with the left mouse button (@kbd{mouse-1}) will
+always set point at the position clicked, instead of following the
+link.  If you want to follow the link, use the middle mouse button
+(@kbd{mouse-2}).
+
+@item
+Emacs is tired of X droppings.  If you drop a file or a piece of text
+onto an Emacs window, nothing will happen.
+
+@item
+On an xterm, even if you enable Xterm Mouse mode, Emacs provides a
+more convincing simulation of a text terminal by not responding to
+mouse clicks on the mode line, header line, or display margin.
+
+@item
+For simplicity, windows always have fringes.  We wouldn't want to
+in-fringe anyone's windows.  Likewise, horizontal scrolling always
+works in the same automatic way.
+
+@item
+The horizontal-bar cursor shape has been removed.
+
+@item
+If command line arguments are given, Emacs will not display a splash
+screen, so that you can immediately get on with your editing.  The
+command-line option @samp{--no-splash} is therefore obsolete, and has
+been removed.
+
+@item
+These command line options have also been removed: @samp{--color},
+@samp{--fullwidth}, @samp{--fullheight}, @samp{--fullscreen},
+@samp{--no-blinking-cursor}, @samp{--no-desktop}, and @samp{-Q}.
+
+@item
+The @samp{--geometry} option applies only to the initial frame, and
+the @samp{-f} option will not read arguments for interactive
+functions.
+
+@item
+We have standardized on one location for the user init file: the file
+named @file{.emacs} in your home directory.  Emacs will not look for
+the init file in @file{~/.emacs.d/init.el}.  Similarly, don't try
+putting @file{.emacs_SHELL} as @file{init_SHELL.sh} in
+@file{~/.emacs.d}; Emacs won't find it.
+
+@item
+Emacs will not read @file{~/.abbrev_defs} automatically.  If you want
+to load abbrev definitions from a file, you must always do so
+explicitly.
+
+@item
+When you are logged in as root, all files now give you writable
+buffers, reflecting the fact that you can write any files.
+
+@item
+The maximum size of buffers and integer variables has been halved.  On
+32-bit machines, the maximum buffer size is now 128 megabytes.
+
+@item
+An unquoted @samp{$} in a file name is now an error, if the following
+name is not recognized as an environment variable.  Thus,
+the file name @file{foo$bar} would probably be an error.  Meanwhile,
+the @code{setenv} command does not expand @samp{$} at all.
+
+@item
+If a single command accumulates too much undo information, Emacs never
+discards it.  If Emacs runs out of memory as a result, it will handle
+this by crashing.
+
+@item
+Many commands have been removed from the menus or rearranged.
+
+@item
+The @kbd{C-h} (help) subcommands have been rearranged---especially
+those that display specific files.  Type @kbd{C-h C-h} to see a list
+of these commands; that will show you what is different.
+
+@item
+The @kbd{C-h v} and @kbd{C-h f} commands no longer show a hyperlink to
+the C source code, even if it is available.  If you want to find the
+source code, grep for it.
+
+@item
+The apropos commands will not accept a list of words to match, in
+order to encourage you to be more specific.  Also, the user option
+@code{apropos-sort-by-scores} has been removed.
+
+@item
+The minibuffer prompt is now displayed using the default face.
+The colon is enough to show you what part is the prompt.
+
+@item
+Minibuffer completion commands always complete the entire minibuffer
+contents, just as if you had typed them at the end of the minibuffer,
+no matter where point is actually located.
+
+@item
+The command @code{backward-kill-sexp} is now bound to @kbd{C-M-delete}
+and @kbd{C-M-backspace}.  Be careful when using these key sequences!
+It may shut down your X server, or reboot your operating system.
+
+@item
+Commands to set the mark at a place away from point, including
+@kbd{M-@@}, @kbd{M-h}, etc., don't do anything special when you repeat
+them.  In most cases, typing these commands multiple times is
+equivalent to typing them once.  @kbd{M-h} ignores numeric arguments.
+
+@item
+The user option @code{set-mark-command-repeat-pop} has been removed.
+
+@item
+@kbd{C-@key{SPC} C-@key{SPC}} has no special meaning--it just sets the
+mark twice.  Neither does @kbd{C-u C-x C-x}, which simply exchanges
+point and mark like @kbd{C-x C-x}.
+
+@item
+The function @code{sentence-end} has been eliminated in favor of a
+more straightforward approach: directly setting the variable
+@code{sentence-end}.  For example, to end each sentence with a single
+space, use
+
+@lisp
+(setq sentence-end "[.?!][]\"')@}]*\\($\\|[ \t]\\)[ \t\n]*")
+@end lisp
+
+@item
+The variable @code{fill-nobreak-predicate} is no longer customizable,
+and it can only hold a single function.
+
+@item
+Nobreak spaces and hyphens are displayed just like normal characters,
+and the user option @code{nobreak-char-display} has been removed.
+
+@item
+@kbd{C-w} in an incremental search always grabs an entire word
+into the search string.  More precisely, it grabs text through
+the next end of a word.
+
+@item
+Yanking now preserves all text properties that were in the killed
+text.  The variable @code{yank-excluded-properties} has been removed.
+
+@item
+Occur mode, Info mode, and Comint-derived modes now control
+fontification in their own way, and @kbd{M-x font-lock-mode} has
+nothing to do with it.  To control fontification in Info mode, use the
+variable @code{Info-fontify}.
+
+@item
+@samp{M-x shell} is now completely standard in regard to scrolling
+behavior.  It no longer has the option of scrolling the input line to
+the bottom of the window the way a text terminal running a shell does.
+
+@item
+The Grep package has been merged with Compilation mode.  Many
+grep-specific commands and user options have thus been eliminated.
+Also, @kbd{M-x grep} never tries the GNU grep @samp{-H} option,
+and instead silently appends @file{/dev/null} to the command line.
+
+@item
+In Dired's @kbd{!} command, @samp{*} and @samp{?} now
+cause substitution of the file names wherever they appear---not
+only when they are surrounded by whitespace.
+
+@item
+When a file is managed with version control, the command @kbd{C-x C-q}
+(whose general meaning is to make a buffer read-only or writable) now
+does so by checking the file in or out.  Checking the file out makes
+the buffer writable; checking it in makes the buffer read-only.
+
+You can still use @kbd{C-x v v} to do these operations if you wish;
+its meaning is unchanged.  If you want to control the buffer's
+read-only flag without performing any version control operation,
+use @kbd{M-x toggle-read-only}.
+
+@item
+SGML mode does not handle XML syntax, and does not have indentation
+support.
+
+@item
+Many Info mode commands have been removed.  Incremental search in Info
+searches only the current node.
+
+@item
+Many @code{etags} features for customizing parsing using regexps
+have been removed.
+
+@item
+The Emacs server now runs a small C program called @file{emacsserver},
+rather than trying to handle everything in Emacs Lisp.  Now there can
+only be one Emacs server running at a time.  The @code{server-mode}
+command and @code{server-name} user option have been eliminated.
+
+@item
+The @file{emacsclient} program no longer accepts the @samp{--eval},
+@samp{--display} and @samp{--server-file} command line options, and
+can only establish local connections using Unix domain sockets.
+
+@item
+The command @code{quail-show-key}, for showing how to input a
+character, has been removed.
+
+@item
+The default value of @code{keyboard-coding-system} is always
+@code{nil}, regardless of your locale settings.  If you want some
+other value, set it yourself.
+
+@item
+Unicode support and unification between Latin-@var{n} character sets
+have been removed.  Cutting and pasting X selections does not support
+``extended segments'', so there are certain coding systems it cannot
+handle.
+
+@item
+The input methods for Emacs are included in a separate distribution
+called ``Leim.''  To use this, you must extract the Leim tar file on
+top of the Emacs distribution, into the same directory, before you
+build Emacs.
+
+@item
+The following input methods have been eliminated: belarusian,
+bulgarian-bds, bulgarian-phonetic, chinese-sisheng, croatian, dutch,
+georgian, latin-alt-postfix, latin-postfix, latin-prefix,
+latvian-keyboard, lithuanian-numeric, lithuanian-keyboard,
+malayalam-inscript, rfc1345, russian-computer, sgml, slovenian,
+tamil-inscript ucs, ukrainian-computer, vietnamese-telex, and welsh.
+
+@item
+The following language environments have been eliminated: Belarusian,
+Bulgarian, Chinese-EUC-TW, Croatian, French, Georgian, Italian,
+Latin-6, Latin-7, Latvian, Lithuanian, Malayalam, Russian, Russian,
+Slovenian, Swedish, Tajik, Tamil, UTF-8, Ukrainian, Ukrainian, Welsh,
+and Windows-1255.
+
+@item
+The @code{code-pages} library, which contained various 8-bit coding
+systems, has been removed.
+
+@item
+The Kmacro package has been replaced with a simple and elegant
+keyboard macro system.  Use @kbd{C-x (} to start a new keyboard macro,
+@kbd{C-x )} to end the macro, and @kbd{C-x e} to execute the last
+macro.  Use @kbd{M-x name-last-kbd-macro} to name the most recently
+defined macro.
+
+@item
+Emacs no longer displays your breakpoints in the source buffer, so you
+have to remember where you left them.  It can be difficult to inspect
+the state of your debugged program from the command line, so Emacs
+tries to demonstrate this in the GUD buffer.
+
+@item
+The Calc, CUA, Ibuffer, Ido, Password, Printing, Reveal,
+Ruler-mode, SES, Table, Tramp, and URL packages have been removed.
+The Benchmark, Cfengine, Conf, Dns, Flymake, Python, Thumbs, and
+Wdired modes have also been removed.
+
+@item
+The Emacs Lisp Reference Manual and the Introduction to Programming in
+Emacs Lisp are now distributed separately, not in the Emacs
+distribution.
+
+@item
+On MS Windows, there is no longer any support for tooltips, images,
+sound, different mouse pointer shapes, or pointing devices with more
+than 3 buttons.  If you want these features, consider switching to
+another operating system.  But even if you don't want these features,
+you should still switch---for freedom's sake.
+
+@item
+Emacs will not use Unicode for clipboard operations on MS Windows.
+
+@item
+To keep up with decreasing computer memory capacity and disk space, many
+other functions and files have been eliminated in Emacs 21.4.
+@end itemize
+
+@ignore
+   arch-tag: 32932bd9-46f5-41b2-8a0e-fb0cc4caeb29
+@end ignore
