@@ -26,8 +26,9 @@ srcdir = @srcdir@
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
-infodir = ../info
-usermanualdir = $(srcdir)/../man
+infodir = ../../info
+usermanualdir = $(srcdir)/../emacs
+miscmanualdir = $(srcdir)/../misc
 
 TEXI2DVI = texi2dvi
 SHELL = /bin/sh
@@ -133,7 +134,7 @@ dist: $(infodir)/elisp elisp.dvi
 	-mkdir temp/$(manual)
 	-ln $(srcdir)/README $(srcdir)/configure.in $(srcdir)/configure \
  $(srcdir)/Makefile.in $(srcs) \
- $(srcdir)/../man/texinfo.tex \
+ $(miscmanualdir)/texinfo.tex \
  elisp.dvi elisp.aux elisp.??s \
  $(infodir)/elisp $(infodir)/elisp-[1-9] $(infodir)/elisp-[1-9][0-9] \
  temp/$(manual)
