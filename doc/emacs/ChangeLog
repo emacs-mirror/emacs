@@ -11,7 +11,7 @@
 	(mostlyclean): Remove `gnustmp'.
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Reduce to just the Emacs
 	manual.
-	(MULTI_INSTALL_INFO, ENVADD): Go up one more level.
+	(MULTI_INSTALL_INFO, ENVADD, infodir): Go up one more level.
 	(emacsman): Delete target, not needed any more.
 	(clean): Remove all info files but Emacs manual.
 	Move all targets that are not the Emacs manual to misc/Makefile.in.
