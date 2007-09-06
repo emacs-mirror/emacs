@@ -1,3 +1,8 @@
+2007-09-06  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* complete.el (PC-do-completion): Don't try to treat
+	  empty string as an abbreviation.
+
 2007-09-06  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* help-fns.el (describe-variable): Keep doc's text properties.
