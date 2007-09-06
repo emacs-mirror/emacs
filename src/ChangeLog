@@ -1,5 +1,6 @@
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
+	* gtkutil.c (menu_grab_callback) <cnt>:
 	* xselect.c (x_reply_selection_request) <cnt>: Move static
 	variable to file scope.
 
