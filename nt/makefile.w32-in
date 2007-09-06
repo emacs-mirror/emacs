@@ -232,23 +232,26 @@ install-other-dirs-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../leim install
 
 force-info:
-# Note that man/makefile knows how to
+# Note that doc/emacs/makefile knows how to
 # put the info files in $(infodir),
 # so we can do ok running make in the build dir.
 info: force-info info-$(MAKETYPE)
 
 info-nmake:
-	cd ..\man
+	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) info
-	cd ..\lispref
+	cd ..\doc\misc
 	$(MAKE) $(MFLAGS) info
-	cd ..\lispintro
+	cd ..\doc\lispref
+	$(MAKE) $(MFLAGS) info
+	cd ..\doc\lispintro
 	$(MAKE) $(MFLAGS) info
 
 info-gmake:
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../man info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lispref info
-	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lispintro info
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/emacs info
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/misc info
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispref info
+	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/lispintro info
 #
 # Maintenance
 #
@@ -265,13 +268,15 @@ clean-other-dirs-nmake:
 	$(MAKE) $(MFLAGS) clean
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) clean
-	cd ..\lispintro
+	cd ..\doc\lispintro
 	$(MAKE) $(MFLAGS) clean
-	cd ..\lispref
+	cd ..\doc\lispref
 	$(MAKE) $(MFLAGS) clean
 	cd ..\leim
 	$(MAKE) $(MFLAGS) clean
-	cd ..\man
+	cd ..\doc\emacs
+	$(MAKE) $(MFLAGS) clean
+	cd ..\doc\misc
 	$(MAKE) $(MFLAGS) clean
 	cd ..\nt
 
