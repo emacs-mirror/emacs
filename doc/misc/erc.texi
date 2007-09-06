@@ -1,6 +1,6 @@
 \input texinfo
 @c %**start of header
-@setfilename ../info/erc
+@setfilename ../../info/erc
 @settitle ERC Manual
 @c %**end of header
 

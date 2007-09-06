@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@setfilename ../info/message
+@setfilename ../../info/message
 @settitle Message Manual
 @synindex fn cp
 @synindex vr cp

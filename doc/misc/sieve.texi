@@ -1,6 +1,6 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@setfilename ../info/sieve
+@setfilename ../../info/sieve
 @settitle Emacs Sieve Manual
 @synindex fn cp
 @synindex vr cp

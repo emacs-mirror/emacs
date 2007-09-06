@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @comment %**start of header
-@setfilename ../info/newsticker
+@setfilename ../../info/newsticker
 @set VERSION 1.9
 @set UPDATED November 2005
 @settitle Newsticker @value{VERSION}

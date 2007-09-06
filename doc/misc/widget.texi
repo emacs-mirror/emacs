@@ -1,7 +1,7 @@
 \input texinfo.tex
 
 @c %**start of header
-@setfilename ../info/widget
+@setfilename ../../info/widget
 @settitle The Emacs Widget Library
 @syncodeindex fn cp
 @syncodeindex vr cp

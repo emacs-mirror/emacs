@@ -15,7 +15,7 @@
 
 @comment %**start of header (This is for running Texinfo on a region.)
 @c FOR GNU EMACS USE ../info/dired-x BELOW
-@setfilename ../info/dired-x
+@setfilename ../../info/dired-x
 @c dired-x.el REVISION NUMBER
 @settitle Dired Extra Version 2 User's Manual
 @iftex

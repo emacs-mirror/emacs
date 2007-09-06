@@ -1,6 +1,6 @@
 \input texinfo   @c -*- mode: texinfo; -*-
 @c %**start of header
-@setfilename ../info/efaq
+@setfilename ../../info/efaq
 @settitle GNU Emacs FAQ
 @c %**end of header
 
@@ -836,7 +836,7 @@ Make sure the first line of the Texinfo file looks like this:
 
 You may need to change @samp{texinfo} to the full pathname of the
 @file{texinfo.tex} file, which comes with Emacs as
-@file{man/texinfo.tex} (or copy or link it into the current directory).
+@file{doc/misc/texinfo.tex} (or copy or link it into the current directory).
 
 @item
 Type @kbd{texi2dvi @var{texinfo-source}}, where @var{texinfo-source} is
@@ -1013,7 +1013,8 @@ while.
 @item
 In the Emacs distribution.  Since Emacs 18.56, the FAQ at the time
 of release has been part of the Emacs distribution as either
-@file{etc/FAQ} or @file{man/faq.texi} (@pxref{File-name conventions}).
+@file{etc/FAQ}, @file{man/faq.texi}, or (from version 23 onwards)
+@file{doc/misc/faq.texi} (@pxref{File-name conventions}).
 
 @item
 Via anonymous ftp and e-mail from @file{rtfm.mit.edu} (and its mirror in

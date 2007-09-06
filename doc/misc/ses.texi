@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c %**start of header
-@setfilename ../info/ses
+@setfilename ../../info/ses
 @settitle SES: Simple Emacs Spreadsheet
 @setchapternewpage off
 @syncodeindex fn cp

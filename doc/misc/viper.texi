@@ -4,7 +4,7 @@
 @comment Using viper.info instead of viper in setfilename breaks DOS.
 @comment @setfilename viper
 @comment @setfilename viper.info
-@setfilename ../info/viper
+@setfilename ../../info/viper
 
 @copying
 Copyright @copyright{} 1995, 1996, 1997, 2001, 2002, 2003, 2004,

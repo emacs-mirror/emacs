@@ -81,7 +81,7 @@ the second with them pointing to the XEmacs manuals.
 @comment No overfull hbox marks in the dvi file.
 @finalout
 
-@setfilename  ../info/ccmode
+@setfilename  ../../info/ccmode
 @settitle     CC Mode Manual
 @footnotestyle end
 
@@ -210,7 +210,7 @@ license to the document, as described in section 6 of the license.
 
 This manual was generated from $Revision$ of $RCSfile$, which can be
 downloaded from
-@url{http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/man/cc-mode.texi}.
+@url{http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/doc/misc/cc-mode.texi}.
 @end titlepage
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

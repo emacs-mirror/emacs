@@ -3,7 +3,7 @@
 @c Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004,
 @c   2005, 2006, 2007  Free Software Foundation, Inc.
 @c Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
-@setfilename ../info/autotype
+@setfilename ../../info/autotype
 @c @node Autotypist, Picture, Abbrevs, Top
 @c @chapter Features for Automatic Typing
 @settitle Features for Automatic Typing

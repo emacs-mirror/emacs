@@ -1,6 +1,6 @@
 \input texinfo
 @c %**start of header
-@setfilename ../info/rcirc
+@setfilename ../../info/rcirc
 @settitle rcirc Manual
 @c %**end of header
 

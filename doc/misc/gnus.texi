@@ -1,6 +1,6 @@
 \input texinfo
 
-@setfilename ../info/gnus
+@setfilename ../../info/gnus
 @settitle Gnus Manual
 @syncodeindex fn cp
 @syncodeindex vr cp
