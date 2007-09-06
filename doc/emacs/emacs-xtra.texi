@@ -1,6 +1,6 @@
 \input texinfo    @c -*-texinfo-*-
 @comment %**start of header
-@setfilename ../info/emacs-xtra
+@setfilename ../../info/emacs-xtra
 @settitle Specialized Emacs Features
 @syncodeindex fn cp
 @syncodeindex vr cp
