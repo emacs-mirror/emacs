@@ -1,4 +1,4 @@
-#### -*- Makefile -*- for the Emacs Manual and other documentation.
+#### -*- Makefile -*- for documentation other than the Emacs manual.
 
 # Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
@@ -25,12 +25,12 @@
 # set by the configure script's `--srcdir' option.
 srcdir=.
 
-infodir = $(srcdir)/../info
+infodir = $(srcdir)/../../info
 
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo --force
-MULTI_INSTALL_INFO = $(srcdir)\..\nt\multi-install-info.bat
-INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
+MULTI_INSTALL_INFO = $(srcdir)\..\..\nt\multi-install-info.bat
+INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/cl $(infodir)/dired-x $(infodir)/ediff \
 		$(infodir)/forms $(infodir)/gnus $(infodir)/message \
 		$(infodir)/sieve $(infodir)/pgg $(infodir)/emacs-mime \
@@ -43,14 +43,14 @@ INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/url $(infodir)/speedbar $(infodir)/tramp \
 		$(infodir)/ses $(infodir)/smtpmail $(infodir)/flymake \
 		$(infodir)/newsticker $(infodir)/rcirc $(infodir)/erc
-DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
+DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
                  gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
-                 newsticker.dvi emacs-xtra.dvi rcirc.dvi erc.dvi
+                 newsticker.dvi rcirc.dvi erc.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -59,66 +59,9 @@ INFOSOURCES = info.texi
 	texi2dvi $<
 
 TEXI2DVI = texi2dvi
-ENVADD = $(srcdir)\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
+ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
 
-EMACS_XTRA=\
-	$(srcdir)/arevert-xtra.texi \
-	$(srcdir)/cal-xtra.texi \
-	$(srcdir)/dired-xtra.texi \
-	$(srcdir)/picture-xtra.texi \
-	$(srcdir)/emerge-xtra.texi \
-	$(srcdir)/vc-xtra.texi \
-	$(srcdir)/vc1-xtra.texi \
-	$(srcdir)/vc2-xtra.texi \
-	$(srcdir)/fortran-xtra.texi \
-	$(srcdir)/msdog-xtra.texi
-
-EMACSSOURCES= \
-	$(srcdir)/emacs.texi \
-	$(srcdir)/doclicense.texi \
-	$(srcdir)/screen.texi \
-	$(srcdir)/commands.texi \
-	$(srcdir)/entering.texi \
-	$(srcdir)/basic.texi \
-	$(srcdir)/mini.texi \
-	$(srcdir)/m-x.texi \
-	$(srcdir)/help.texi \
-	$(srcdir)/mark.texi \
-	$(srcdir)/killing.texi \
-	$(srcdir)/regs.texi \
-	$(srcdir)/display.texi \
-	$(srcdir)/search.texi \
-	$(srcdir)/fixit.texi \
-	$(srcdir)/files.texi \
-	$(srcdir)/buffers.texi \
-	$(srcdir)/windows.texi \
-	$(srcdir)/frames.texi \
-	$(srcdir)/mule.texi \
-	$(srcdir)/major.texi \
-	$(srcdir)/indent.texi \
-	$(srcdir)/text.texi \
-	$(srcdir)/programs.texi \
-	$(srcdir)/building.texi \
-	$(srcdir)/maintaining.texi \
-	$(srcdir)/abbrevs.texi \
-	$(srcdir)/sending.texi \
-	$(srcdir)/rmail.texi \
-	$(srcdir)/dired.texi \
-	$(srcdir)/calendar.texi \
-	$(srcdir)/misc.texi \
-	$(srcdir)/custom.texi \
-	$(srcdir)/trouble.texi \
-	$(srcdir)/cmdargs.texi \
-	$(srcdir)/xresources.texi \
-	$(srcdir)/anti.texi \
-	$(srcdir)/macos.texi \
-	$(srcdir)/msdog.texi \
-	$(srcdir)/gnu.texi \
-	$(srcdir)/glossary.texi \
-	$(srcdir)/ack.texi \
-	$(srcdir)/kmacro.texi \
-	$(EMACS_XTRA)
 
 info: $(INFO_TARGETS)
 
@@ -144,18 +87,6 @@ $(infodir)/info: $(INFOSOURCES)
 info.dvi: $(INFOSOURCES)
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/info.texi
 
-$(infodir)/emacs: $(EMACSSOURCES)
-	$(MAKEINFO) emacs.texi
-
-emacs.dvi: $(EMACSSOURCES)
-	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs.texi
-
-# This target is here so you could easily get the list of the *.texi
-# files which belong to the Emacs manual (as opposed to the separate
-# manuals for CL, CC Mode, Ebrowse, etc.).  With this target, you can
-# say things like "grep foo `make emacsman`".
-emacsman:
-	@echo $(EMACSSOURCES)
 
 $(infodir)/ccmode: cc-mode.texi
 	$(MAKEINFO) cc-mode.texi
@@ -266,9 +197,6 @@ $(infodir)/efaq: faq.texi
 faq.dvi: faq.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/faq.texi
 
-../etc/GNU: gnu1.texi gnu.texi
-	$(MAKEINFO) --no-headers -o ../etc/GNU gnu1.texi
-
 $(infodir)/autotype: autotype.texi
 	$(MAKEINFO) autotype.texi
 autotype.dvi: autotype.texi
@@ -322,9 +250,6 @@ $(infodir)/smtpmail: smtpmail.texi
 smtpmail.dvi: smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/smtpmail.texi
 
-emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-xtra.texi
-
 $(infodir)/org: org.texi
 	$(MAKEINFO) org.texi
 org.dvi: org.texi
@@ -355,7 +280,7 @@ mostlyclean:
 
 clean: mostlyclean
 	- $(DEL) *.dvi
-	- $(DEL) $(infodir)/emacs* $(infodir)/ccmode* \
+	- $(DEL) $(infodir)/ccmode* \
 		 $(infodir)/cl* $(infodir)/dired-x* \
 		 $(infodir)/ediff* $(infodir)/forms* \
 		 $(infodir)/gnus* $(infodir)/info* \
