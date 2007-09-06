@@ -1,3 +1,17 @@
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mansrcdir): New variable.
+	(SUBDIR_MAKEFILES): Update for new doc/ directory layout.
+	(man/Makefile, lispref/Makefile, lispintro/Makefile): Rename and
+	update these targets for new doc/ directory layout.
+	(doc/misc/Makefile): New target.
+	(install-arch-indep): Use mansrcdir for new location of manpages.
+	(mostlyclean, clean, distclean, maintainer-clean, unlock)
+	(relock, info, dvi): Update targets for new doc/ directory layout.
+
+	* configure.in (AC_OUTPUT): Update names of generated Makefiles
+	for new doc/ directory layout.
+
 2007-09-02  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Use AS_HELP_STRING throughout.
