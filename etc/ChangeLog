@@ -1,3 +1,10 @@
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* ctags.1, emacs.1, emacsclient.1, etags.1: Move from etc/ to
+	doc/man/.
+
+	* refcards/README: Also mention gnus-logo.pdf license.
+
 2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* NEWS.22 (Note): Lower-case for orgtbl-mode.
