@@ -51,6 +51,9 @@ GNU/Linux system.
 
 ** xterm-mouse-mode should affect all xterms.
 
+** Does deleting frames run Lisp code?  If so,
+can we get rid of that?  It is a dangerous design.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
