@@ -1,0 +1,330 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node Registers, Display, CUA Bindings, Top
+@chapter Registers
+@cindex registers
+
+  Emacs @dfn{registers} are compartments where you can save text,
+rectangles, positions, and other things for later use.  Once you save
+text or a rectangle in a register, you can copy it into the buffer
+once, or many times; you can move point to a position saved in a
+register once, or many times.
+
+@findex view-register
+  Each register has a name, which consists of a single character.  A
+register can store a number, a piece of text, a rectangle, a position,
+a window configuration, or a file name, but only one thing at any
+given time.  Whatever you store in a register remains there until you
+store something else in that register.  To see what a register @var{r}
+contains, use @kbd{M-x view-register}.
+
+@table @kbd
+@item M-x view-register @key{RET} @var{r}
+Display a description of what register @var{r} contains.
+@end table
+
+  @dfn{Bookmarks} record files and positions in them, so you can
+return to those positions when you look at the file again.
+Bookmarks are similar enough in spirit to registers that they
+seem to belong in this chapter.
+
+@menu
+* Position: RegPos.           Saving positions in registers.
+* Text: RegText.              Saving text in registers.
+* Rectangle: RegRect.         Saving rectangles in registers.
+* Configurations: RegConfig.  Saving window configurations in registers.
+* Numbers: RegNumbers.        Numbers in registers.
+* Files: RegFiles.            File names in registers.
+* Bookmarks::                 Bookmarks are like registers, but persistent.
+@end menu
+
+@node RegPos
+@section Saving Positions in Registers
+@cindex saving position in a register
+
+  Saving a position records a place in a buffer so that you can move
+back there later.  Moving to a saved position switches to that buffer
+and moves point to that place in it.
+
+@table @kbd
+@item C-x r @key{SPC} @var{r}
+Save position of point in register @var{r} (@code{point-to-register}).
+@item C-x r j @var{r}
+Jump to the position saved in register @var{r} (@code{jump-to-register}).
+@end table
+
+@kindex C-x r SPC
+@findex point-to-register
+  To save the current position of point in a register, choose a name
+@var{r} and type @kbd{C-x r @key{SPC} @var{r}}.  The register @var{r}
+retains the position thus saved until you store something else in that
+register.
+
+@kindex C-x r j
+@findex jump-to-register
+  The command @kbd{C-x r j @var{r}} moves point to the position recorded
+in register @var{r}.  The register is not affected; it continues to
+hold the same position.  You can jump to the saved position any number
+of times.
+
+  If you use @kbd{C-x r j} to go to a saved position, but the buffer it
+was saved from has been killed, @kbd{C-x r j} tries to create the buffer
+again by visiting the same file.  Of course, this works only for buffers
+that were visiting files.
+
+@node RegText
+@section Saving Text in Registers
+@cindex saving text in a register
+
+  When you want to insert a copy of the same piece of text several
+times, it may be inconvenient to yank it from the kill ring, since each
+subsequent kill moves that entry further down the ring.  An alternative
+is to store the text in a register and later retrieve it.
+
+@table @kbd
+@item C-x r s @var{r}
+Copy region into register @var{r} (@code{copy-to-register}).
+@item C-x r i @var{r}
+Insert text from register @var{r} (@code{insert-register}).
+@item M-x append-to-register @key{RET} @var{r}
+Append region to text in register @var{r}.
+@item M-x prepend-to-register @key{RET} @var{r}
+Prepend region to text in register @var{r}.
+@end table
+
+@kindex C-x r s
+@kindex C-x r i
+@findex copy-to-register
+@findex insert-register
+  @kbd{C-x r s @var{r}} stores a copy of the text of the region into
+the register named @var{r}.  @kbd{C-u C-x r s @var{r}}, the same
+command with a numeric argument, deletes the text from the buffer as
+well; you can think of this as ``moving'' the region text into the register.
+
+@findex append-to-register
+@findex prepend-to-register
+  @kbd{M-x append-to-register @key{RET} @var{r}} appends the copy of
+the text in the region to the text already stored in the register
+named @var{r}.  If invoked with a numeric argument, it deletes the
+region after appending it to the register.  The command
+@code{prepend-to-register} is similar, except that it @emph{prepends}
+the region text to the text in the register, rather than
+@emph{appending} it.
+
+  @kbd{C-x r i @var{r}} inserts in the buffer the text from register
+@var{r}.  Normally it leaves point before the text and places the mark
+after, but with a numeric argument (@kbd{C-u}) it puts point after the
+text and the mark before.
+
+@node RegRect
+@section Saving Rectangles in Registers
+@cindex saving rectangle in a register
+
+  A register can contain a rectangle instead of linear text.  The
+rectangle is represented as a list of strings.  @xref{Rectangles}, for
+basic information on how to specify a rectangle in the buffer.
+
+@table @kbd
+@findex copy-rectangle-to-register
+@kindex C-x r r
+@item C-x r r @var{r}
+Copy the region-rectangle into register @var{r}
+(@code{copy-rectangle-to-register}).  With numeric argument, delete it as
+well.
+@item C-x r i @var{r}
+Insert the rectangle stored in register @var{r} (if it contains a
+rectangle) (@code{insert-register}).
+@end table
+
+  The @kbd{C-x r i @var{r}} command inserts a text string if the
+register contains one, and inserts a rectangle if the register contains
+one.
+
+  See also the command @code{sort-columns}, which you can think of
+as sorting a rectangle.  @xref{Sorting}.
+
+@node RegConfig
+@section Saving Window Configurations in Registers
+@cindex saving window configuration in a register
+
+@findex window-configuration-to-register
+@findex frame-configuration-to-register
+@kindex C-x r w
+@kindex C-x r f
+  You can save the window configuration of the selected frame in a
+register, or even the configuration of all windows in all frames, and
+restore the configuration later.
+
+@table @kbd
+@item C-x r w @var{r}
+Save the state of the selected frame's windows in register @var{r}
+(@code{window-configuration-to-register}).
+@item C-x r f @var{r}
+Save the state of all frames, including all their windows, in register
+@var{r} (@code{frame-configuration-to-register}).
+@end table
+
+  Use @kbd{C-x r j @var{r}} to restore a window or frame configuration.
+This is the same command used to restore a cursor position.  When you
+restore a frame configuration, any existing frames not included in the
+configuration become invisible.  If you wish to delete these frames
+instead, use @kbd{C-u C-x r j @var{r}}.
+
+@node RegNumbers
+@section Keeping Numbers in Registers
+@cindex saving number in a register
+
+  There are commands to store a number in a register, to insert
+the number in the buffer in decimal, and to increment it.  These commands
+can be useful in keyboard macros (@pxref{Keyboard Macros}).
+
+@table @kbd
+@item C-u @var{number} C-x r n @var{r}
+@kindex C-x r n
+@findex number-to-register
+Store @var{number} into register @var{r} (@code{number-to-register}).
+@item C-u @var{number} C-x r + @var{r}
+@kindex C-x r +
+@findex increment-register
+Increment the number in register @var{r} by @var{number}
+(@code{increment-register}).
+@item C-x r i @var{r}
+Insert the number from register @var{r} into the buffer.
+@end table
+
+  @kbd{C-x r i} is the same command used to insert any other sort of
+register contents into the buffer.  @kbd{C-x r +} with no numeric
+argument increments the register value by 1; @kbd{C-x r n} with no
+numeric argument stores zero in the register.
+
+@node RegFiles
+@section Keeping File Names in Registers
+@cindex saving file name in a register
+
+  If you visit certain file names frequently, you can visit them more
+conveniently if you put their names in registers.  Here's the Lisp code
+used to put a file name in a register:
+
+@smallexample
+(set-register ?@var{r} '(file . @var{name}))
+@end smallexample
+
+@need 3000
+@noindent
+For example,
+
+@smallexample
+(set-register ?z '(file . "/gd/gnu/emacs/19.0/src/ChangeLog"))
+@end smallexample
+
+@noindent
+puts the file name shown in register @samp{z}.
+
+  To visit the file whose name is in register @var{r}, type @kbd{C-x r j
+@var{r}}.  (This is the same command used to jump to a position or
+restore a frame configuration.)
+
+@node Bookmarks
+@section Bookmarks
+@cindex bookmarks
+
+  @dfn{Bookmarks} are somewhat like registers in that they record
+positions you can jump to.  Unlike registers, they have long names, and
+they persist automatically from one Emacs session to the next.  The
+prototypical use of bookmarks is to record ``where you were reading'' in
+various files.
+
+@table @kbd
+@item C-x r m @key{RET}
+Set the bookmark for the visited file, at point.
+
+@item C-x r m @var{bookmark} @key{RET}
+@findex bookmark-set
+Set the bookmark named @var{bookmark} at point (@code{bookmark-set}).
+
+@item C-x r b @var{bookmark} @key{RET}
+@findex bookmark-jump
+Jump to the bookmark named @var{bookmark} (@code{bookmark-jump}).
+
+@item C-x r l
+@findex list-bookmarks
+List all bookmarks (@code{list-bookmarks}).
+
+@item M-x bookmark-save
+@findex bookmark-save
+Save all the current bookmark values in the default bookmark file.
+@end table
+
+@kindex C-x r m
+@findex bookmark-set
+@kindex C-x r b
+@findex bookmark-jump
+  The prototypical use for bookmarks is to record one current position
+in each of several files.  So the command @kbd{C-x r m}, which sets a
+bookmark, uses the visited file name as the default for the bookmark
+name.  If you name each bookmark after the file it points to, then you
+can conveniently revisit any of those files with @kbd{C-x r b}, and move
+to the position of the bookmark at the same time.
+
+@kindex C-x r l
+  To display a list of all your bookmarks in a separate buffer, type
+@kbd{C-x r l} (@code{list-bookmarks}).  If you switch to that buffer,
+you can use it to edit your bookmark definitions or annotate the
+bookmarks.  Type @kbd{C-h m} in the bookmark buffer for more
+information about its special editing commands.
+
+  When you kill Emacs, Emacs offers to save your bookmark values in your
+default bookmark file, @file{~/.emacs.bmk}, if you have changed any
+bookmark values.  You can also save the bookmarks at any time with the
+@kbd{M-x bookmark-save} command.  The bookmark commands load your
+default bookmark file automatically.  This saving and loading is how
+bookmarks persist from one Emacs session to the next.
+
+@vindex bookmark-save-flag
+  If you set the variable @code{bookmark-save-flag} to 1, then each
+command that sets a bookmark will also save your bookmarks; this way,
+you don't lose any bookmark values even if Emacs crashes.  (The value,
+if a number, says how many bookmark modifications should go by between
+saving.)
+
+@vindex bookmark-search-size
+  Bookmark position values are saved with surrounding context, so that
+@code{bookmark-jump} can find the proper position even if the file is
+modified slightly.  The variable @code{bookmark-search-size} says how
+many characters of context to record on each side of the bookmark's
+position.
+
+  Here are some additional commands for working with bookmarks:
+
+@table @kbd
+@item M-x bookmark-load @key{RET} @var{filename} @key{RET}
+@findex bookmark-load
+Load a file named @var{filename} that contains a list of bookmark
+values.  You can use this command, as well as @code{bookmark-write}, to
+work with other files of bookmark values in addition to your default
+bookmark file.
+
+@item M-x bookmark-write @key{RET} @var{filename} @key{RET}
+@findex bookmark-write
+Save all the current bookmark values in the file @var{filename}.
+
+@item M-x bookmark-delete @key{RET} @var{bookmark} @key{RET}
+@findex bookmark-delete
+Delete the bookmark named @var{bookmark}.
+
+@item M-x bookmark-insert-location @key{RET} @var{bookmark} @key{RET}
+@findex bookmark-insert-location
+Insert in the buffer the name of the file that bookmark @var{bookmark}
+points to.
+
+@item M-x bookmark-insert @key{RET} @var{bookmark} @key{RET}
+@findex bookmark-insert
+Insert in the buffer the @emph{contents} of the file that bookmark
+@var{bookmark} points to.
+@end table
+
+@ignore
+   arch-tag: b00af991-ebc3-4b3a-8e82-a3ac81ff2e64
+@end ignore
