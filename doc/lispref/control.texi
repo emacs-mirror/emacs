@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001, 2002,
 @c   2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../info/control
+@setfilename ../../info/control
 @node Control Structures, Variables, Evaluation, Top
 @chapter Control Structures
 @cindex special forms for control structures

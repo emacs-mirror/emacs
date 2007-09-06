@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
 @c   2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../info/frames
+@setfilename ../../info/frames
 @node Frames, Positions, Windows, Top
 @chapter Frames
 @cindex frame

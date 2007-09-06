@@ -3,7 +3,7 @@
 @c Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 @c   2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../info/customize
+@setfilename ../../info/customize
 @node Customization, Loading, Macros, Top
 @chapter Writing Customization Definitions
 

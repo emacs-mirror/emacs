@@ -3,7 +3,7 @@
 @c Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005,
 @c   2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../info/hash
+@setfilename ../../info/hash
 @node Hash Tables, Symbols, Sequences Arrays Vectors, Top
 @chapter Hash Tables
 @cindex hash tables

@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1998, 2001, 2002, 2003, 2004,
 @c   2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../info/hooks
+@setfilename ../../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
 @appendix Standard Hooks
 @cindex standard hooks

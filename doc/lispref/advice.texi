@@ -3,7 +3,7 @@
 @c Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
 @c   2005, 2006, 2007  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
-@setfilename ../info/advising
+@setfilename ../../info/advising
 @node Advising Functions, Debugging, Byte Compilation, Top
 @chapter Advising Emacs Lisp Functions
 @cindex advising functions
