@@ -1,3 +1,7 @@
+2007-09-06  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (maintainer-clean): Delete info files.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* Move from lispintro/ to doc/lispintro/.
