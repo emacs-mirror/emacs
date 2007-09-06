@@ -1990,7 +1990,7 @@ The meaning of REV1 and REV2 is the same as for `vc-version-diff'."
       `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
          (message "Looking at %s" ',f)
          (vc-call-backend ',(vc-backend f)
-                          'diff ',f ',rev1 ',rev2))))))
+                          'diff (list ',f) ',rev1 ',rev2))))))
 
 (defun vc-coding-system-for-diff (file)
   "Return the coding system for reading diff output for FILE."
