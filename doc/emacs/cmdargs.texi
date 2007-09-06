@@ -1,0 +1,1263 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node Emacs Invocation, X Resources, GNU Free Documentation License, Top
+@appendix Command Line Arguments for Emacs Invocation
+@cindex command line arguments
+@cindex arguments (command line)
+@cindex options (command line)
+@cindex switches (command line)
+@cindex startup (command line arguments)
+@cindex invocation (command line arguments)
+
+  GNU Emacs supports command line arguments to request various actions
+when invoking Emacs.  These are for compatibility with other editors and
+for sophisticated activities.  We don't recommend using them for
+ordinary editing.
+
+  Arguments starting with @samp{-} are @dfn{options}, and so is
+@samp{+@var{linenum}}.  All other arguments specify files to visit.
+Emacs visits the specified files while it starts up.  The last file
+name on your command line becomes the current buffer; the other files
+are also visited in other buffers.  If there are two files, they are
+both displayed; otherwise the last file is displayed along with a
+buffer list that shows what other buffers there are.  As with most
+programs, the special argument @samp{--} says that all subsequent
+arguments are file names, not options, even if they start with
+@samp{-}.
+
+  Emacs command options can specify many things, such as the size and
+position of the X window Emacs uses, its colors, and so on.  A few
+options support advanced usage, such as running Lisp functions on files
+in batch mode.  The sections of this chapter describe the available
+options, arranged according to their purpose.
+
+  There are two ways of writing options: the short forms that start with
+a single @samp{-}, and the long forms that start with @samp{--}.  For
+example, @samp{-d} is a short form and @samp{--display} is the
+corresponding long form.
+
+  The long forms with @samp{--} are easier to remember, but longer to
+type.  However, you don't have to spell out the whole option name; any
+unambiguous abbreviation is enough.  When a long option takes an
+argument, you can use either a space or an equal sign to separate the
+option name and the argument.  Thus, you can write either
+@samp{--display sugar-bombs:0.0} or @samp{--display=sugar-bombs:0.0}.
+We recommend an equal sign because it makes the relationship clearer,
+and the tables below always show an equal sign.
+
+@cindex initial options (command line)
+@cindex action options (command line)
+@vindex command-line-args
+  Most options specify how to initialize Emacs, or set parameters for
+the Emacs session.  We call them @dfn{initial options}.  A few options
+specify things to do: for example, load libraries, call functions, or
+terminate Emacs.  These are called @dfn{action options}.  These and file
+names together are called @dfn{action arguments}.  Emacs processes all
+the action arguments in the order they are written.  The @file{.emacs} file
+can access the values of the action arguments as the elements of a list in
+the variable @code{command-line-args}.
+
+
+
+@menu
+* Action Arguments::    Arguments to visit files, load libraries,
+                          and call functions.
+* Initial Options::     Arguments that take effect while starting Emacs.
+* Command Example::     Examples of using command line arguments.
+* Resume Arguments::    Specifying arguments when you resume a running Emacs.
+* Environment::         Environment variables that Emacs uses.
+* Display X::           Changing the default display and using remote login.
+* Font X::              Choosing a font for text, under X.
+* Colors::              Choosing display colors.
+* Window Size X::       Start-up window size, under X.
+* Borders X::           Internal and external borders, under X.
+* Title X::             Specifying the initial frame's title.
+* Icons X::             Choosing what sort of icon to use, under X.
+* Misc X::              Other display options.
+@end menu
+
+@node Action Arguments
+@appendixsec Action Arguments
+
+  Here is a table of the action arguments and options:
+
+@table @samp
+@item @var{file}
+@opindex --file
+@itemx --file=@var{file}
+@opindex --find-file
+@itemx --find-file=@var{file}
+@opindex --visit
+@itemx --visit=@var{file}
+@cindex visiting files, command-line argument
+@vindex inhibit-startup-buffer-menu
+Visit @var{file} using @code{find-file}.  @xref{Visiting}.
+If you visit several files at startup in this way, Emacs
+also displays a Buffer Menu buffer to show you what files it
+has visited.  You can inhibit that by setting @code{inhibit-startup-buffer-menu} to @code{t}.
+
+@item +@var{linenum} @var{file}
+@opindex +@var{linenum}
+Visit @var{file} using @code{find-file}, then go to line number
+@var{linenum} in it.
+
+@item +@var{linenum}:@var{columnnum} @var{file}
+Visit @var{file} using @code{find-file}, then go to line number
+@var{linenum} and put point at column number @var{columnnum}.
+
+@need 3000
+@item -l @var{file}
+@opindex -l
+@itemx --load=@var{file}
+@opindex --load
+@cindex loading Lisp libraries, command-line argument
+Load a Lisp library named @var{file} with the function @code{load}.
+@xref{Lisp Libraries}.  If @var{file} is not an absolute file name,
+the library can be found either in the current directory, or in the
+Emacs library search path as specified with @env{EMACSLOADPATH}
+(@pxref{General Variables}).
+
+@strong{Warning:} If previous command-line arguments have visited
+files, the current directory is the directory of the last file
+visited.
+
+@item -L @var{dir}
+@opindex -L
+@itemx --directory=@var{dir}
+@opindex --directory
+Add directory @var{dir} to the variable @code{load-path}.
+
+@item -f @var{function}
+@opindex -f
+@itemx --funcall=@var{function}
+@opindex --funcall
+@cindex call Lisp functions, command-line argument
+Call Lisp function @var{function}.  If it is an interactive function
+(a command), it reads the arguments interactively just as if you had
+called the same function with a key sequence.  Otherwise, it calls the
+function with no arguments.
+
+@item --eval=@var{expression}
+@opindex --eval
+@itemx --execute=@var{expression}
+@opindex --execute
+@cindex evaluate expression, command-line argument
+Evaluate Lisp expression @var{expression}.
+
+@item --insert=@var{file}
+@opindex --insert
+@cindex insert file contents, command-line argument
+Insert the contents of @var{file} into the current buffer.  This is like
+what @kbd{M-x insert-file} does.  @xref{Misc File Ops}.
+
+@item --kill
+@opindex --kill
+Exit from Emacs without asking for confirmation.
+
+@item --help
+@opindex --help
+Print a usage message listing all available options, then exit
+successfully.
+
+@item --version
+@opindex --version
+Print Emacs version, then exit successfully.
+@end table
+
+@node Initial Options
+@appendixsec Initial Options
+
+  The initial options specify parameters for the Emacs session.  This
+section describes the more general initial options; some other options
+specifically related to the X Window System appear in the following
+sections.
+
+  Some initial options affect the loading of init files.  The normal
+actions of Emacs are to first load @file{site-start.el} if it exists,
+then your own init file @file{~/.emacs} if it exists, and finally
+@file{default.el} if it exists.  @xref{Init File}.  Certain options
+prevent loading of some of these files or substitute other files for
+them.
+
+@table @samp
+@item -t @var{device}
+@opindex -t
+@itemx --terminal=@var{device}
+@opindex --terminal
+@cindex device for Emacs terminal I/O
+Use @var{device} as the device for terminal input and output.
+@samp{--terminal} implies @samp{--no-window-system}.
+
+@item -d @var{display}
+@opindex -d
+@itemx --display=@var{display}
+@opindex --display
+@cindex display for Emacs frame
+Use the X Window System and use the display named @var{display} to open
+the initial Emacs frame.  @xref{Display X}, for more details.
+
+@item -nw
+@opindex -nw
+@itemx --no-window-system
+@opindex --no-window-system
+@cindex disable window system
+Don't communicate directly with the window system, disregarding the
+@env{DISPLAY} environment variable even if it is set.  This means that
+Emacs uses the terminal from which it was launched for all its display
+and input.
+
+@need 3000
+@cindex batch mode
+@item -batch
+@opindex --batch
+@itemx --batch
+Run Emacs in @dfn{batch mode}.  Batch mode is used for running
+programs written in Emacs Lisp from shell scripts, makefiles, and so
+on.  You should also use the @samp{-l}, @samp{-f} or @samp{--eval}
+option, to invoke a Lisp program to do batch processing.
+
+In batch mode, Emacs does not display the text being edited, and the
+standard terminal interrupt characters such as @kbd{C-z} and @kbd{C-c}
+continue to have their normal effect.  The functions @code{prin1},
+@code{princ} and @code{print} output to @code{stdout} instead of the
+echo area, while @code{message} and error messages output to
+@code{stderr}.  Functions that would normally read from the minibuffer
+take their input from @code{stdin} instead.
+
+@samp{--batch} implies @samp{-q} (do not load an init file), but
+@file{site-start.el} is loaded nonetheless.  It also causes Emacs to
+exit after processing all the command options.  In addition, it
+disables auto-saving except in buffers for which it has been
+explicitly requested.
+
+@item --script @var{file}
+@opindex --script
+@cindex script mode
+Run Emacs in batch mode, like @samp{--batch}, and then read and
+execute the Lisp code in @var{file}.
+
+The normal use of this option is in executable script files that run
+Emacs.  They can start with this text on the first line
+
+@example
+#!/usr/bin/emacs --script
+@end example
+
+@noindent
+which will invoke Emacs with @samp{--script} and supply the name of
+the script file as @var{file}.  Emacs Lisp then treats @samp{#!}  as a
+comment delimiter.
+
+@item -q
+@opindex -q
+@itemx --no-init-file
+@opindex --no-init-file
+@cindex bypassing init and @file{default.el} file
+@cindex init file, not loading
+@cindex @file{default.el} file, not loading
+Do not load your Emacs init file @file{~/.emacs}, or @file{default.el}
+either.  Regardless of this switch, @file{site-start.el} is still loaded.
+When invoked like this, Emacs does not allow saving options
+changed with the @kbd{M-x customize} command and its variants.
+@xref{Easy Customization}.
+
+@item --no-site-file
+@opindex --no-site-file
+@cindex @file{site-start.el} file, not loading
+Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
+and @samp{--batch} have no effect on the loading of this file---this
+option and @samp{-Q} are the only options that block it.
+
+@item -Q
+@opindex -Q
+@itemx --quick
+@opindex --quick
+Start emacs with minimum customizations.  This is like using @samp{-q}
+and @samp{--no-site-file}, but also disables the startup screen.
+
+@item --no-splash
+@opindex --no-splash
+@vindex inhibit-splash-screen
+@cindex splash screen
+@cindex startup message
+Do not display a splash screen on startup.  You can also achieve this
+effect by setting the variable @code{inhibit-splash-screen} to
+non-@code{nil} in you personal init file (but @emph{not} in
+@file{site-start.el}).  (This variable was called
+@code{inhibit-startup-message} in previous Emacs versions.)
+
+@item --no-desktop
+@opindex --no-desktop
+Do not reload any saved desktop.  @xref{Saving Emacs Sessions}.
+
+@item -u @var{user}
+@opindex -u
+@itemx --user=@var{user}
+@opindex --user
+@cindex load init file of another user
+Load @var{user}'s Emacs init file @file{~@var{user}/.emacs} instead of
+your own@footnote{
+This option has no effect on MS-Windows.}.
+
+@item --debug-init
+@opindex --debug-init
+@cindex errors in init file
+Enable the Emacs Lisp debugger for errors in the init file.
+@xref{Error Debugging,, Entering the Debugger on an Error, elisp, The
+GNU Emacs Lisp Reference Manual}.
+
+@item --unibyte
+@opindex --unibyte
+@itemx --no-multibyte
+@opindex --no-multibyte
+@cindex unibyte operation, command-line argument
+Do almost everything with single-byte buffers and strings.
+All buffers and strings are unibyte unless you (or a Lisp program)
+explicitly ask for a multibyte buffer or string.  (Note that Emacs
+always loads Lisp files in multibyte mode, even if @samp{--unibyte} is
+specified; see @ref{Enabling Multibyte}.)  Setting the environment
+variable @env{EMACS_UNIBYTE} has the same effect
+(@pxref{General Variables}).
+
+@item --multibyte
+@opindex --multibyte
+@itemx --no-unibyte
+@opindex --no-unibyte
+Inhibit the effect of @env{EMACS_UNIBYTE}, so that Emacs
+uses multibyte characters by default, as usual.
+@end table
+
+@node Command Example
+@appendixsec Command Argument Example
+
+  Here is an example of using Emacs with arguments and options.  It
+assumes you have a Lisp program file called @file{hack-c.el} which, when
+loaded, performs some useful operation on the current buffer, expected
+to be a C program.
+
+@example
+emacs --batch foo.c -l hack-c -f save-buffer >& log
+@end example
+
+@noindent
+This says to visit @file{foo.c}, load @file{hack-c.el} (which makes
+changes in the visited file), save @file{foo.c} (note that
+@code{save-buffer} is the function that @kbd{C-x C-s} is bound to), and
+then exit back to the shell (because of @samp{--batch}).  @samp{--batch}
+also guarantees there will be no problem redirecting output to
+@file{log}, because Emacs will not assume that it has a display terminal
+to work with.
+
+@node Resume Arguments
+@appendixsec Resuming Emacs with Arguments
+
+  You can specify action arguments for Emacs when you resume it after
+a suspension.  To prepare for this, put the following code in your
+@file{.emacs} file (@pxref{Hooks}):
+
+@c `resume-suspend-hook' is correct.  It is the name of a function.
+@example
+(add-hook 'suspend-hook 'resume-suspend-hook)
+(add-hook 'suspend-resume-hook 'resume-process-args)
+@end example
+
+  As further preparation, you must execute the shell script
+@file{emacs.csh} (if you use csh as your shell) or @file{emacs.bash}
+(if you use bash as your shell).  These scripts define an alias named
+@code{edit}, which will resume Emacs giving it new command line
+arguments such as files to visit.  The scripts are found in the
+@file{etc} subdirectory of the Emacs distribution.
+
+  Only action arguments work properly when you resume Emacs.  Initial
+arguments are not recognized---it's too late to execute them anyway.
+
+  Note that resuming Emacs (with or without arguments) must be done from
+within the shell that is the parent of the Emacs job.  This is why
+@code{edit} is an alias rather than a program or a shell script.  It is
+not possible to implement a resumption command that could be run from
+other subjobs of the shell; there is no way to define a command that could
+be made the value of @env{EDITOR}, for example.  Therefore, this feature
+does not take the place of the Emacs Server feature (@pxref{Emacs
+Server}).
+
+  The aliases use the Emacs Server feature if you appear to have a
+server Emacs running.  However, they cannot determine this with complete
+accuracy.  They may think that a server is still running when in
+actuality you have killed that Emacs, because the file
+@file{/tmp/esrv@dots{}} still exists.  If this happens, find that
+file and delete it.
+
+@node Environment
+@appendixsec Environment Variables
+@cindex environment variables
+
+  The @dfn{environment} is a feature of the operating system; it
+consists of a collection of variables with names and values.  Each
+variable is called an @dfn{environment variable}; environment variable
+names are case-sensitive, and it is conventional to use upper case
+letters only.  The values are all text strings.
+
+  What makes the environment useful is that subprocesses inherit the
+environment automatically from their parent process.  This means you
+can set up an environment variable in your login shell, and all the
+programs you run (including Emacs) will automatically see it.
+Subprocesses of Emacs (such as shells, compilers, and version-control
+software) inherit the environment from Emacs, too.
+
+@findex setenv
+@findex getenv
+  Inside Emacs, the command @kbd{M-x getenv} gets the value of an
+environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
+environment.  (Environment variable substitutions with @samp{$} work
+in the value just as in file names; see @ref{File Names with $}.)
+
+  The way to set environment variables outside of Emacs depends on the
+operating system, and especially the shell that you are using.  For
+example, here's how to set the environment variable @env{ORGANIZATION}
+to @samp{not very much} using Bash:
+
+@example
+export ORGANIZATION="not very much"
+@end example
+
+@noindent
+and here's how to do it in csh or tcsh:
+
+@example
+setenv ORGANIZATION "not very much"
+@end example
+
+  When Emacs is using the X Window System, various environment
+variables that control X work for Emacs as well.  See the X
+documentation for more information.
+
+@menu
+* General Variables::   Environment variables that all versions of Emacs use.
+* Misc Variables::      Certain system-specific variables.
+* MS-Windows Registry:: An alternative to the environment on MS-Windows.
+@end menu
+
+@node General Variables
+@appendixsubsec General Variables
+
+  Here is an alphabetical list of specific environment variables that
+have special meanings in Emacs, giving the name of each variable and
+its meaning.  Most of these variables are also used by some other
+programs.  Emacs does not require any of these environment variables
+to be set, but it uses their values if they are set.
+
+@table @env
+@item CDPATH
+Used by the @code{cd} command to search for the directory you specify,
+when you specify a relative directory name.
+@item EMACS_UNIBYTE
+@cindex unibyte operation, environment variable
+Defining this environment variable with a nonempty value directs Emacs
+to do almost everything with single-byte buffers and strings.  It is
+equivalent to using the @samp{--unibyte} command-line option on each
+invocation.  @xref{Initial Options}.
+@item EMACSDATA
+Directory for the architecture-independent files that come with Emacs.
+This is used to initialize the Lisp variable @code{data-directory}.
+@item EMACSDOC
+Directory for the documentation string file,
+@file{DOC-@var{emacsversion}}.  This is used to initialize the Lisp
+variable @code{doc-directory}.
+@item EMACSLOADPATH
+A colon-separated list of directories@footnote{
+Here and below, whenever we say ``colon-separated list of directories,''
+it pertains to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows,
+the directories are separated by semi-colons instead, since DOS/Windows
+file names might include a colon after a drive letter.}
+to search for Emacs Lisp files---used to initialize @code{load-path}.
+@item EMACSPATH
+A colon-separated list of directories to search for executable
+files---used to initialize @code{exec-path}.
+@item EMAIL
+@vindex user-mail-address@r{, initialization}
+Your email address; used to initialize the Lisp variable
+@code{user-mail-address}, which the Emacs mail interface puts into
+the @samp{From} header of outgoing messages (@pxref{Mail Headers}).
+@item ESHELL
+Used for shell-mode to override the @env{SHELL} environment variable.
+@item HISTFILE
+The name of the file that shell commands are saved in between logins.
+This variable defaults to @file{~/.bash_history} if you use Bash, to
+@file{~/.sh_history} if you use ksh, and to @file{~/.history}
+otherwise.
+@item HOME
+The location of your files in the directory tree; used for
+expansion of file names starting with a tilde (@file{~}).  On MS-DOS,
+it defaults to the directory from which Emacs was started, with
+@samp{/bin} removed from the end if it was present.  On Windows, the
+default value of @env{HOME} is the @file{Application Data}
+subdirectory of the user profile directory (normally, this is
+@file{C:/Documents and Settings/@var{username}/Application Data},
+where @var{username} is your user name), though for backwards
+compatibility @file{C:/} will be used instead if a @file{.emacs} file
+is found there.
+@item HOSTNAME
+The name of the machine that Emacs is running on.
+@item INCPATH
+A colon-separated list of directories.  Used by the @code{complete} package
+to search for files.
+@item INFOPATH
+A colon-separated list of directories in which to search for Info files.
+@item LC_ALL
+@itemx LC_COLLATE
+@itemx LC_CTYPE
+@itemx LC_MESSAGES
+@itemx LC_MONETARY
+@itemx LC_NUMERIC
+@itemx LC_TIME
+@itemx LANG
+The user's preferred locale.  The locale has six categories, specified
+by the environment variables @env{LC_COLLATE} for sorting,
+@env{LC_CTYPE} for character encoding, @env{LC_MESSAGES} for system
+messages, @env{LC_MONETARY} for monetary formats, @env{LC_NUMERIC} for
+numbers, and @env{LC_TIME} for dates and times.  If one of these
+variables is not set, the category defaults to the value of the
+@env{LANG} environment variable, or to the default @samp{C} locale if
+@env{LANG} is not set.  But if @env{LC_ALL} is specified, it overrides
+the settings of all the other locale environment variables.
+
+On MS-Windows, if @env{LANG} is not already set in the environment
+when Emacs starts, Emacs sets it based on the system-wide default
+language, which you can set in the @samp{Regional Settings} Control Panel
+on some versions of MS-Windows.
+
+The value of the @env{LC_CTYPE} category is
+matched against entries in @code{locale-language-names},
+@code{locale-charset-language-names}, and
+@code{locale-preferred-coding-systems}, to select a default language
+environment and coding system.  @xref{Language Environments}.
+@item LOGNAME
+The user's login name.  See also @env{USER}.
+@item MAIL
+The name of your system mail inbox.
+@item MH
+Name of setup file for the mh system.  (The default is @file{~/.mh_profile}.)
+@item NAME
+Your real-world name.
+@item NNTPSERVER
+The name of the news server.  Used by the mh and Gnus packages.
+@item ORGANIZATION
+The name of the organization to which you belong.  Used for setting the
+`Organization:' header in your posts from the Gnus package.
+@item PATH
+A colon-separated list of directories in which executables reside.  This
+is used to initialize the Emacs Lisp variable @code{exec-path}.
+@item PWD
+If set, this should be the default directory when Emacs was started.
+@item REPLYTO
+If set, this specifies an initial value for the variable
+@code{mail-default-reply-to}.  @xref{Mail Headers}.
+@item SAVEDIR
+The name of a directory in which news articles are saved by default.
+Used by the Gnus package.
+@item SHELL
+The name of an interpreter used to parse and execute programs run from
+inside Emacs.
+@item SMTPSERVER
+The name of the outgoing mail server.  Used by the SMTP library
+(@pxref{Top,,,smtpmail,Sending mail via SMTP}).
+@cindex background mode, on @command{xterm}
+@item TERM
+The type of the terminal that Emacs is using.  This variable must be
+set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
+@samp{internal}, which specifies a built-in terminal emulation that
+handles the machine's own display.  If the value of @env{TERM} indicates
+that Emacs runs in non-windowed mode from @command{xterm} or a similar
+terminal emulator, the background mode defaults to @samp{light}, and
+Emacs will choose colors that are appropriate for a light background.
+@item TERMCAP
+The name of the termcap library file describing how to program the
+terminal specified by the @env{TERM} variable.  This defaults to
+@file{/etc/termcap}.
+@item TMPDIR
+Used by the Emerge package as a prefix for temporary files.
+@item TZ
+This specifies the current time zone and possibly also daylight
+saving time information.  On MS-DOS, if @env{TZ} is not set in the
+environment when Emacs starts, Emacs defines a default value as
+appropriate for the country code returned by DOS.  On MS-Windows, Emacs
+does not use @env{TZ} at all.
+@item USER
+The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
+defaults to @samp{root}.
+@item VERSION_CONTROL
+Used to initialize the @code{version-control} variable (@pxref{Numbered Backups}).
+@end table
+
+@node Misc Variables
+@appendixsubsec Miscellaneous Variables
+
+These variables are used only on particular configurations:
+
+@table @env
+@item COMSPEC
+On MS-DOS and MS-Windows, the name of the command interpreter to use
+when invoking batch files and commands internal to the shell.  On MS-DOS
+this is also used to make a default value for the @env{SHELL} environment
+variable.
+
+@item NAME
+On MS-DOS, this variable defaults to the value of the @env{USER}
+variable.
+
+@item TEMP
+@itemx TMP
+On MS-DOS and MS-Windows, these specify the name of the directory for
+storing temporary files in.
+
+@item EMACSTEST
+On MS-DOS, this specifies a file to use to log the operation of the
+internal terminal emulator.  This feature is useful for submitting bug
+reports.
+
+@item EMACSCOLORS
+On MS-DOS, this specifies the screen colors.  It is useful to set them
+this way, since otherwise Emacs would display the default colors
+momentarily when it starts up.
+
+The value of this variable should be the two-character encoding of the
+foreground (the first character) and the background (the second
+character) colors of the default face.  Each character should be the
+hexadecimal code for the desired color on a standard PC text-mode
+display.  For example, to get blue text on a light gray background,
+specify @samp{EMACSCOLORS=17}, since 1 is the code of the blue color and
+7 is the code of the light gray color.
+
+The PC display usually supports only eight background colors.  However,
+Emacs switches the DOS display to a mode where all 16 colors can be used
+for the background, so all four bits of the background color are
+actually used.
+
+@item WINDOW_GFX
+Used when initializing the Sun windows system.
+
+@item PRELOAD_WINSOCK
+On MS-Windows, if you set this variable, Emacs will load and initialize
+the network library at startup, instead of waiting until the first
+time it is required.
+
+@item emacs_dir
+On MS-Windows, @env{emacs_dir} is a special environment variable, which
+indicates the full path of the directory in which Emacs is installed.
+If Emacs is installed in the standard directory structure, it
+calculates this value automatically.  It is not much use setting this
+variable yourself unless your installation is non-standard, since
+unlike other environment variables, it will be overridden by Emacs at
+startup.  When setting other environment variables, such as
+@env{EMACSLOADPATH}, you may find it useful to use @env{emacs_dir}
+rather than hard-coding an absolute path.  This allows multiple
+versions of Emacs to share the same environment variable settings, and
+it allows you to move the Emacs installation directory, without
+changing any environment or registry settings.
+@end table
+
+@node MS-Windows Registry
+@appendixsubsec The MS-Windows System Registry
+@pindex addpm, MS-Windows installation program
+@cindex registry, setting environment variables and resources on MS-Windows
+
+Under MS-Windows, the installation program @command{addpm.exe} adds
+values for @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
+@env{EMACSPATH}, @env{EMACSDOC}, @env{SHELL} and @env{TERM} to the
+@file{HKEY_LOCAL_MACHINE} section of the system registry, under
+@file{/Software/GNU/Emacs}.  It does this because there is no standard
+place to set environment variables across different versions of
+Windows.  Running @command{addpm.exe} is no longer strictly necessary
+in recent versions of Emacs, but if you are upgrading from an older
+version, running @command{addpm.exe} ensures that you do not have
+older registry entries from a previous installation, which may not be
+compatible with the latest version of Emacs.
+
+When Emacs starts, as well as checking the environment, it also checks
+the System Registry for those variables and for @env{HOME}, @env{LANG}
+and @env{PRELOAD_WINSOCK}.
+
+To determine the value of those variables, Emacs goes through the
+following procedure.  First, the environment is checked.  If the
+variable is not found there, Emacs looks for registry keys by that
+name under @file{/Software/GNU/Emacs}; first in the
+@file{HKEY_CURRENT_USER} section of the registry, and if not found
+there, in the @file{HKEY_LOCAL_MACHINE} section.  Finally, if Emacs
+still cannot determine the values, compiled-in defaults are used.
+
+In addition to the environment variables above, you can also add many
+of the settings which on X belong in the @file{.Xdefaults} file
+(@pxref{X Resources}) to the @file{/Software/GNU/Emacs} registry key.
+Settings you add to the @file{HKEY_LOCAL_MACHINE} section will affect
+all users of the machine.  Settings you add to the
+@file{HKEY_CURRENT_USER} section will only affect you, and will
+override machine wide settings.
+
+@node Display X
+@appendixsec Specifying the Display Name
+@cindex display name (X Window System)
+@cindex @env{DISPLAY} environment variable
+
+  The environment variable @env{DISPLAY} tells all X clients, including
+Emacs, where to display their windows.  Its value is set by default
+in ordinary circumstances, when you start an X server and run jobs
+locally.  Occasionally you may need to specify the display yourself; for
+example, if you do a remote login and want to run a client program
+remotely, displaying on your local screen.
+
+  With Emacs, the main reason people change the default display is to
+let them log into another system, run Emacs on that system, but have the
+window displayed at their local terminal.  You might need to log in
+to another system because the files you want to edit are there, or
+because the Emacs executable file you want to run is there.
+
+  The syntax of the @env{DISPLAY} environment variable is
+@samp{@var{host}:@var{display}.@var{screen}}, where @var{host} is the
+host name of the X Window System server machine, @var{display} is an
+arbitrarily-assigned number that distinguishes your server (X terminal)
+from other servers on the same machine, and @var{screen} is a
+rarely-used field that allows an X server to control multiple terminal
+screens.  The period and the @var{screen} field are optional.  If
+included, @var{screen} is usually zero.
+
+  For example, if your host is named @samp{glasperle} and your server is
+the first (or perhaps the only) server listed in the configuration, your
+@env{DISPLAY} is @samp{glasperle:0.0}.
+
+  You can specify the display name explicitly when you run Emacs, either
+by changing the @env{DISPLAY} variable, or with the option @samp{-d
+@var{display}} or @samp{--display=@var{display}}.  Here is an example:
+
+@smallexample
+emacs --display=glasperle:0 &
+@end smallexample
+
+  You can inhibit the direct use of the window system and GUI with the
+@samp{-nw} option.  It tells Emacs to display using ordinary @acronym{ASCII} on
+its controlling terminal.  This is also an initial option.
+
+  Sometimes, security arrangements prevent a program on a remote system
+from displaying on your local system.  In this case, trying to run Emacs
+produces messages like this:
+
+@smallexample
+Xlib:  connection to "glasperle:0.0" refused by server
+@end smallexample
+
+@noindent
+You might be able to overcome this problem by using the @command{xhost}
+command on the local system to give permission for access from your
+remote machine.
+
+@node Font X
+@appendixsec Font Specification Options
+@cindex font name (X Window System)
+
+  By default, Emacs displays text in a twelve point Courier font (when
+using X).  You can specify a different font on your command line
+through the option @samp{-fn @var{name}} (or @samp{--font}, which is
+an alias for @samp{-fn}).
+
+@table @samp
+@item -fn @var{name}
+@opindex -fn
+@itemx --font=@var{name}
+@opindex --font
+@cindex specify default font from the command line
+Use font @var{name} as the default font.
+@end table
+
+  Under X, each font has a long name which consists of fourteen words
+or numbers, separated by dashes.  Some fonts also have shorter
+nicknames.  For instance, @samp{9x15} is such a nickname.  This font
+makes each character nine pixels wide and fifteen pixels high.  You
+can use either kind of name.  Case is insignificant in both kinds.
+You can use wildcard patterns for the font name; then Emacs lets X
+choose one of the fonts that match the pattern.  The wildcard
+character @samp{*} matches any sequence of characters (including none)
+and @samp{?} matches any single character.  However, matching is
+implementation-dependent, and can be inaccurate when wildcards match
+dashes in a long name.  For reliable results, supply all 14 dashes and
+use wildcards only within a field.  Here is an example, which happens
+to specify the font whose nickname is @samp{6x13}:
+
+@smallexample
+emacs -fn \
+  "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" &
+@end smallexample
+
+@noindent
+You can also specify the font in your @file{.Xdefaults} file:
+
+@smallexample
+emacs.font: -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
+@end smallexample
+
+  Note that if you use a wildcard pattern on the command line, you
+need to enclose it in single or double quotes, to prevent the shell
+from accidentally expanding it into a list of file names.  On the
+other hand, you should not quote the name in the @file{.Xdefaults}
+file.
+
+The default font used by Emacs (under X) is:
+
+@smallexample
+-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
+@end smallexample
+
+  A long font name has the following form:
+
+@smallexample
+-@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
+@dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{registry}-@var{encoding}
+@end smallexample
+
+@table @var
+@item maker
+This is the name of the font manufacturer.
+@item family
+This is the name of the font family---for example, @samp{courier}.
+@item weight
+This is normally @samp{bold}, @samp{medium} or @samp{light}.  Other
+words may appear here in some font names.
+@item slant
+This is @samp{r} (roman), @samp{i} (italic), @samp{o} (oblique),
+@samp{ri} (reverse italic), or @samp{ot} (other).
+@item widthtype
+This is normally @samp{condensed}, @samp{extended}, @samp{semicondensed}
+or @samp{normal}.  Other words may appear here in some font names.
+@item style
+This is an optional additional style name.  Usually it is empty---most
+long font names have two hyphens in a row at this point.
+@item pixels
+This is the font height, in pixels.
+@item height
+This is the font height on the screen, measured in tenths of a printer's
+point---approximately 1/720 of an inch.  In other words, it is the point
+size of the font, times ten.  For a given vertical resolution,
+@var{height} and @var{pixels} are proportional; therefore, it is common
+to specify just one of them and use @samp{*} for the other.
+@item horiz
+This is the horizontal resolution, in pixels per inch, of the screen for
+which the font is intended.
+@item vert
+This is the vertical resolution, in pixels per inch, of the screen for
+which the font is intended.  Normally the resolution of the fonts on
+your system is the right value for your screen; therefore, you normally
+specify @samp{*} for this and @var{horiz}.
+@item spacing
+This is @samp{m} (monospace), @samp{p} (proportional) or @samp{c}
+(character cell).
+@item width
+This is the average character width, in pixels, multiplied by ten.
+@item registry
+@itemx encoding
+These together make up the X font character set that the font depicts.
+(X font character sets are not the same as Emacs charsets, but they
+are solutions for the same problem.)  You can use the
+@command{xfontsel} program to check which choices you have.  However,
+normally you should use @samp{iso8859} for @var{registry} and @samp{1}
+for @var{encoding}.
+@end table
+
+@cindex listing system fonts
+  You will probably want to use a fixed-width default font---that is,
+a font in which all characters have the same width.  Any font with
+@samp{m} or @samp{c} in the @var{spacing} field of the long name is a
+fixed-width font.  Here's how to use the @command{xlsfonts} program to
+list all the fixed-width fonts available on your system:
+
+@example
+xlsfonts -fn '*x*' | egrep "^[0-9]+x[0-9]+"
+xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-m*'
+xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-c*'
+@end example
+
+@noindent
+To see what a particular font looks like, use the @command{xfd} command.
+For example:
+
+@example
+xfd -fn 6x13
+@end example
+
+@noindent
+displays the entire font @samp{6x13}.
+
+  While running Emacs, you can set the font of the current frame
+(@pxref{Frame Parameters}) or for a specific kind of text
+(@pxref{Faces}).
+
+@node Colors
+@appendixsec Window Color Options
+@cindex color of window, from command line
+@cindex text colors, from command line
+
+@findex list-colors-display
+@cindex available colors
+  On a color display, you can specify which color to use for various
+parts of the Emacs display.  To find out what colors are available on
+your system, type @kbd{M-x list-colors-display}, or press
+@kbd{C-Mouse-2} and select @samp{Display Colors} from the pop-up menu.
+(A particular window system might support many more colors, but the
+list displayed by @code{list-colors-display} shows their portable
+subset that can be safely used on any display supported by Emacs.)
+If you do not specify colors, on windowed displays the default for the
+background is white and the default for all other colors is black.  On a
+monochrome display, the foreground is black, the background is white,
+and the border is gray if the display supports that.  On terminals, the
+background is usually black and the foreground is white.
+
+  Here is a list of the command-line options for specifying colors:
+
+@table @samp
+@item -fg @var{color}
+@opindex -fg
+@itemx --foreground-color=@var{color}
+@opindex --foreground-color
+@cindex foreground color, command-line argument
+Specify the foreground color.  @var{color} should be a standard color
+name, or a numeric specification of the color's red, green, and blue
+components as in @samp{#4682B4} or @samp{RGB:46/82/B4}.
+@item -bg @var{color}
+@opindex -bg
+@itemx --background-color=@var{color}
+@opindex --background-color
+@cindex background color, command-line argument
+Specify the background color.
+@item -bd @var{color}
+@opindex -bd
+@itemx --border-color=@var{color}
+@opindex --border-color
+@cindex border color, command-line argument
+Specify the color of the border of the X window.
+@item -cr @var{color}
+@opindex -cr
+@itemx --cursor-color=@var{color}
+@opindex --cursor-color
+@cindex cursor color, command-line argument
+Specify the color of the Emacs cursor which indicates where point is.
+@item -ms @var{color}
+@opindex -ms
+@itemx --mouse-color=@var{color}
+@opindex --mouse-color
+@cindex mouse pointer color, command-line argument
+Specify the color for the mouse cursor when the mouse is in the Emacs window.
+@item -r
+@opindex -r
+@itemx -rv
+@opindex -rv
+@itemx --reverse-video
+@opindex --reverse-video
+@cindex reverse video, command-line argument
+Reverse video---swap the foreground and background colors.
+@item --color=@var{mode}
+@opindex --color
+@cindex standard colors on a character terminal
+@cindex override character terminal color support
+For a character terminal only, specify the mode of color support.
+This option is intended for overriding the number of supported colors
+that the character terminal advertises in its @code{termcap} or
+@code{terminfo} database.  The parameter @var{mode} can be one of the
+following:
+@table @samp
+@item never
+@itemx no
+Don't use colors even if the terminal's capabilities specify color
+support.
+@item default
+@itemx auto
+Same as when @option{--color} is not used at all: Emacs detects at
+startup whether the terminal supports colors, and if it does, turns on
+colored display.
+@item always
+@itemx yes
+@itemx ansi8
+Turn on the color support unconditionally, and use color commands
+specified by the ANSI escape sequences for the 8 standard colors.
+@item @var{num}
+Use color mode for @var{num} colors.  If @var{num} is -1, turn off
+color support (equivalent to @samp{never}); if it is 0, use the
+default color support for this terminal (equivalent to @samp{auto});
+otherwise use an appropriate standard mode for @var{num} colors.
+Depending on your terminal's capabilities, Emacs might be able to turn
+on a color mode for 8, 16, 88, or 256 as the value of @var{num}.  If
+there is no mode that supports @var{num} colors, Emacs acts as if
+@var{num} were 0, i.e.@: it uses the terminal's default color support
+mode.
+@end table
+If @var{mode} is omitted, it defaults to @var{ansi8}.
+@end table
+
+  For example, to use a coral mouse cursor and a slate blue text cursor,
+enter:
+
+@example
+emacs -ms coral -cr 'slate blue' &
+@end example
+
+  You can reverse the foreground and background colors through the
+@samp{-rv} option or with the X resource @samp{reverseVideo}.
+
+  The @samp{-fg}, @samp{-bg}, and @samp{-rv} options function on
+text-only terminals as well as on graphical displays.
+
+@node Window Size X
+@appendixsec Options for Window Size and Position
+@cindex geometry of Emacs window
+@cindex position and size of Emacs frame
+@cindex width and height of Emacs frame
+@cindex specifying fullscreen for Emacs frame
+
+  Here is a list of the command-line options for specifying size and
+position of the initial Emacs frame:
+
+@table @samp
+@item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
+@opindex -g
+@itemx --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
+@opindex --geometry
+@cindex geometry, command-line argument
+Specify the size @var{width} and @var{height} (measured in character
+columns and lines), and positions @var{xoffset} and @var{yoffset}
+(measured in pixels).  The @var{width} and @var{height} parameters
+apply to all frames, whereas @var{xoffset} and @var{yoffset} only to
+the initial frame.
+
+@item -fs
+@opindex -fs
+@itemx --fullscreen
+@opindex --fullscreen
+@cindex fullscreen, command-line argument
+Specify that width and height shall be the size of the screen.
+
+@item -fh
+@opindex -fh
+@itemx --fullheight
+@opindex --fullheight
+@cindex fullheight, command-line argument
+Specify that the height shall be the height of the screen.
+
+@item -fw
+@opindex -fw
+@itemx --fullwidth
+@opindex --fullwidth
+@cindex fullwidth, command-line argument
+Specify that the width shall be the width of the screen.
+@end table
+
+
+@noindent
+In the @samp{--geometry} option, @code{@r{@{}+-@r{@}}} means either a plus
+ sign or a minus sign.  A plus
+sign before @var{xoffset} means it is the distance from the left side of
+the screen; a minus sign means it counts from the right side.  A plus
+sign before @var{yoffset} means it is the distance from the top of the
+screen, and a minus sign there indicates the distance from the bottom.
+The values @var{xoffset} and @var{yoffset} may themselves be positive or
+negative, but that doesn't change their meaning, only their direction.
+
+  Emacs uses the same units as @command{xterm} does to interpret the geometry.
+The @var{width} and @var{height} are measured in characters, so a large font
+creates a larger frame than a small font.  (If you specify a proportional
+font, Emacs uses its maximum bounds width as the width unit.)  The
+@var{xoffset} and @var{yoffset} are measured in pixels.
+
+  You do not have to specify all of the fields in the geometry
+specification.  If you omit both @var{xoffset} and @var{yoffset}, the
+window manager decides where to put the Emacs frame, possibly by
+letting you place it with the mouse.  For example, @samp{164x55}
+specifies a window 164 columns wide, enough for two ordinary width
+windows side by side, and 55 lines tall.
+
+  The default width for Emacs is 80 characters and the default height is
+40 lines.  You can omit either the width or the height or both.  If
+you start the geometry with an integer, Emacs interprets it as the
+width.  If you start with an @samp{x} followed by an integer, Emacs
+interprets it as the height.  Thus, @samp{81} specifies just the width;
+@samp{x45} specifies just the height.
+
+  If you start with @samp{+} or @samp{-}, that introduces an offset,
+which means both sizes are omitted.  Thus, @samp{-3} specifies the
+@var{xoffset} only.  (If you give just one offset, it is always
+@var{xoffset}.)  @samp{+3-3} specifies both the @var{xoffset} and the
+@var{yoffset}, placing the frame near the bottom left of the screen.
+
+  You can specify a default for any or all of the fields in
+@file{.Xdefaults} file, and then override selected fields with a
+@samp{--geometry} option.
+
+  Since the mode line and the echo area occupy the last 2 lines of the
+frame, the height of the initial text window is 2 less than the height
+specified in your geometry.  In non-X-toolkit versions of Emacs, the
+menu bar also takes one line of the specified number.  But in the X
+toolkit version, the menu bar is additional and does not count against
+the specified height.  The tool bar, if present, is also additional.
+
+  Enabling or disabling the menu bar or tool bar alters the amount of
+space available for ordinary text.  Therefore, if Emacs starts up with
+a tool bar (which is the default), and handles the geometry
+specification assuming there is a tool bar, and then your
+@file{~/.emacs} file disables the tool bar, you will end up with a
+frame geometry different from what you asked for.  To get the intended
+size with no tool bar, use an X resource to specify ``no tool bar''
+(@pxref{Table of Resources}); then Emacs will already know there's no
+tool bar when it processes the specified geometry.
+
+  When using one of @samp{--fullscreen}, @samp{--fullwidth} or
+@samp{--fullheight} there may be some space around the frame
+anyway.  That is because Emacs rounds the sizes so they are an
+even number of character heights and widths.
+
+ Some window managers have options that can make them ignore both
+program-specified and user-specified positions (sawfish is one).
+If these are set, Emacs fails to position the window correctly.
+
+@node Borders X
+@appendixsec Internal and External Borders
+@cindex borders (X Window System)
+
+  An Emacs frame has an internal border and an external border.  The
+internal border is an extra strip of the background color around the
+text portion of the frame.  Emacs itself draws the internal border.
+The external border is added by the window manager outside the frame;
+depending on the window manager you use, it may contain various boxes
+you can click on to move or iconify the window.
+
+@table @samp
+@item -ib @var{width}
+@opindex -ib
+@itemx --internal-border=@var{width}
+@opindex --internal-border
+@cindex internal border width, command-line argument
+Specify @var{width} as the width of the internal border (between the text
+and the main border), in pixels.
+
+@item -bw @var{width}
+@opindex -bw
+@itemx --border-width=@var{width}
+@opindex --border-width
+@cindex main border width, command-line argument
+Specify @var{width} as the width of the main border, in pixels.
+@end table
+
+  When you specify the size of the frame, that does not count the
+borders.  The frame's position is measured from the outside edge of the
+external border.
+
+  Use the @samp{-ib @var{n}} option to specify an internal border
+@var{n} pixels wide.  The default is 1.  Use @samp{-bw @var{n}} to
+specify the width of the external border (though the window manager may
+not pay attention to what you specify).  The default width of the
+external border is 2.
+
+@node Title X
+@appendixsec Frame Titles
+
+  An Emacs frame may or may not have a specified title.  The frame
+title, if specified, appears in window decorations and icons as the
+name of the frame.  If an Emacs frame has no specified title, the
+default title has the form @samp{@var{invocation-name}@@@var{machine}}
+(if there is only one frame) or the selected window's buffer name (if
+there is more than one frame).
+
+  You can specify a title for the initial Emacs frame with a command
+line option:
+
+@table @samp
+@item -T @var{title}
+@opindex -T
+@itemx --title=@var{title}
+@opindex --title
+@cindex frame title, command-line argument
+Specify @var{title} as the title for the initial Emacs frame.
+@end table
+
+  The @samp{--name} option (@pxref{Resources}) also specifies the title
+for the initial Emacs frame.
+
+@node Icons X
+@appendixsec Icons
+@cindex icons (X Window System)
+
+  Most window managers allow you to ``iconify'' a frame, removing
+it from sight, and leaving a small, distinctive ``icon'' window in its
+place.  Clicking on the icon window makes the frame itself appear again.
+If you have many clients running at once, you can avoid cluttering up
+the screen by iconifying most of the clients.
+
+@table @samp
+@item -nbi
+@opindex -nbi
+@itemx --no-bitmap-icon
+@opindex --no-bitmap-icon
+@cindex Emacs icon, a gnu
+Do not use a picture of a gnu as the Emacs icon.
+
+@item -iconic
+@opindex --iconic
+@itemx --iconic
+@cindex start iconified, command-line argument
+Start Emacs in iconified state.
+@end table
+
+  By default Emacs uses an icon window containing a picture of the GNU gnu.
+The @samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
+window manager choose what sort of icon to use---usually just a small
+rectangle containing the frame's title.
+
+  The @samp{-iconic} option tells Emacs to begin running as an icon,
+rather than showing a frame right away.  In this situation, the icon
+is the only indication that Emacs has started; the text frame doesn't
+appear until you deiconify it.
+
+@node Misc X
+@appendixsec Other Display Options
+
+@table @samp
+@item -hb
+@opindex -hb
+@itemx --horizontal-scroll-bars
+@opindex --horizontal-scroll-bars
+@c @cindex horizontal scroll bars, command-line argument
+Enable horizontal scroll bars.  Since horizontal scroll bars
+are not yet implemented, this actually does nothing.
+
+@item -vb
+@opindex -vb
+@itemx --vertical-scroll-bars
+@opindex --vertical-scroll-bars
+@cindex vertical scroll bars, command-line argument
+Enable vertical scroll bars.
+
+@item -lsp @var{pixels}
+@opindex -lsp
+@itemx --line-spacing=@var{pixels}
+@opindex --line-spacing
+@cindex line spacing, command-line argument
+Specify @var{pixels} as additional space to put between lines, in pixels.
+
+@item -nbc
+@opindex -nbc
+@itemx --no-blinking-cursor
+@opindex --no-blinking-cursor
+@cindex blinking cursor disable, command-line argument
+Disable the blinking cursor on graphical displays.
+
+@item -D
+@opindex -D
+@itemx --basic-display
+@opindex --basic-display
+Disable the menu-bar, the tool-bar, the scroll-bars, and tool tips,
+and turn off the blinking cursor.  This can be useful for making a
+test case that simplifies debugging of display problems.
+@end table
+
+  The @samp{--xrm} option (@pxref{Resources}) specifies additional
+X resource values.
+
+@ignore
+   arch-tag: fffecd9e-7329-4a51-a3cc-dd4a9889340e
+@end ignore
