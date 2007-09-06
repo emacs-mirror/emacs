@@ -1,4 +1,4 @@
-#### -*- Makefile -*- for the Emacs Manual and other documentation.
+#### -*- Makefile -*- for the Emacs Manual
 
 # Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
@@ -25,7 +25,7 @@
 # set by the configure script's `--srcdir' option.
 srcdir=.
 
-infodir = $(srcdir)/../info
+infodir = $(srcdir)/../../info
 
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo --force
