@@ -1,5 +1,6 @@
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
+	* configure.bat:
 	* makefile.w32-in (info-nmake, info-gmake)
 	(clean-other-dirs-nmake): Change from ../man to ../doc/emacs and
 	../doc/misc; and from ../lispref, ../lispintro to ../doc/lispref,
