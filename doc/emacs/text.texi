@@ -1,0 +1,2901 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node Text, Programs, Indentation, Top
+@chapter Commands for Human Languages
+@cindex text
+@cindex manipulating text
+
+  The term @dfn{text} has two widespread meanings in our area of the
+computer field.  One is data that is a sequence of characters.  Any file
+that you edit with Emacs is text, in this sense of the word.  The other
+meaning is more restrictive: a sequence of characters in a human language
+for humans to read (possibly after processing by a text formatter), as
+opposed to a program or binary data.  This chapter is concerned with
+editing text in the narrower sense.
+
+  Human languages have syntactic/stylistic conventions that can be
+supported or used to advantage by editor commands: conventions involving
+words, sentences, paragraphs, and capital letters.  This chapter
+describes Emacs commands for all of these things.  There are also
+commands for @dfn{filling}, which means rearranging the lines of a
+paragraph to be approximately equal in length.  The commands for moving
+over and killing words, sentences and paragraphs, while intended
+primarily for editing text, are also often useful for editing programs.
+
+  Emacs has several major modes for editing human-language text.  If the
+file contains text pure and simple, use Text mode, which customizes
+Emacs in small ways for the syntactic conventions of text.  Outline mode
+provides special commands for operating on text with an outline
+structure.
+@iftex
+@xref{Outline Mode}.
+@end iftex
+
+  For text which contains embedded commands for text formatters, Emacs
+has other major modes, each for a particular formatter.  Thus, for
+input to @TeX{}, you would use @TeX{}
+@iftex
+mode (@pxref{TeX Mode,,@TeX{} Mode}).
+@end iftex
+@ifnottex
+mode.
+@end ifnottex
+For input to groff or nroff, use Nroff mode.
+
+  Instead of using a text formatter, you can edit formatted text in
+WYSIWYG style (``what you see is what you get''), with Enriched mode.
+Then the formatting appears on the screen in Emacs while you edit.
+@iftex
+@xref{Formatted Text}.
+@end iftex
+
+@cindex ASCII art
+  If you need to edit pictures made out of text characters (commonly
+referred to as ``ASCII art''), use @kbd{M-x edit-picture} to enter
+Picture mode, a special major mode for editing such pictures.
+@iftex
+@xref{Picture Mode,,, emacs-xtra, Specialized Emacs Features}.
+@end iftex
+@ifnottex
+@xref{Picture Mode}.
+@end ifnottex
+
+
+@cindex skeletons
+@cindex templates
+@cindex autotyping
+@cindex automatic typing
+  The ``automatic typing'' features may be useful when writing text.
+@inforef{Top,, autotype}.
+
+@menu
+* Words::	        Moving over and killing words.
+* Sentences::	        Moving over and killing sentences.
+* Paragraphs::	        Moving over paragraphs.
+* Pages::	        Moving over pages.
+* Filling::	        Filling or justifying text.
+* Case::	        Changing the case of text.
+* Text Mode::	        The major modes for editing text files.
+* Outline Mode::        Editing outlines.
+* TeX Mode::	        Editing input to the formatter TeX.
+* HTML Mode::           Editing HTML, SGML, and XML files.
+* Nroff Mode::	        Editing input to the formatter nroff.
+* Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
+* Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
+@end menu
+
+@node Words
+@section Words
+@cindex words
+@cindex Meta commands and words
+
+  Emacs has commands for moving over or operating on words.  By convention,
+the keys for them are all Meta characters.
+
+@table @kbd
+@item M-f
+Move forward over a word (@code{forward-word}).
+@item M-b
+Move backward over a word (@code{backward-word}).
+@item M-d
+Kill up to the end of a word (@code{kill-word}).
+@item M-@key{DEL}
+Kill back to the beginning of a word (@code{backward-kill-word}).
+@item M-@@
+Mark the end of the next word (@code{mark-word}).
+@item M-t
+Transpose two words or drag a word across others
+(@code{transpose-words}).
+@end table
+
+  Notice how these keys form a series that parallels the character-based
+@kbd{C-f}, @kbd{C-b}, @kbd{C-d}, @key{DEL} and @kbd{C-t}.  @kbd{M-@@} is
+cognate to @kbd{C-@@}, which is an alias for @kbd{C-@key{SPC}}.
+
+@kindex M-f
+@kindex M-b
+@findex forward-word
+@findex backward-word
+  The commands @kbd{M-f} (@code{forward-word}) and @kbd{M-b}
+(@code{backward-word}) move forward and backward over words.  These
+Meta characters are thus analogous to the corresponding control
+characters, @kbd{C-f} and @kbd{C-b}, which move over single characters
+in the text.  The analogy extends to numeric arguments, which serve as
+repeat counts.  @kbd{M-f} with a negative argument moves backward, and
+@kbd{M-b} with a negative argument moves forward.  Forward motion
+stops right after the last letter of the word, while backward motion
+stops right before the first letter.
+
+@kindex M-d
+@findex kill-word
+  @kbd{M-d} (@code{kill-word}) kills the word after point.  To be
+precise, it kills everything from point to the place @kbd{M-f} would
+move to.  Thus, if point is in the middle of a word, @kbd{M-d} kills
+just the part after point.  If some punctuation comes between point and the
+next word, it is killed along with the word.  (If you wish to kill only the
+next word but not the punctuation before it, simply do @kbd{M-f} to get
+the end, and kill the word backwards with @kbd{M-@key{DEL}}.)
+@kbd{M-d} takes arguments just like @kbd{M-f}.
+
+@findex backward-kill-word
+@kindex M-DEL
+  @kbd{M-@key{DEL}} (@code{backward-kill-word}) kills the word before
+point.  It kills everything from point back to where @kbd{M-b} would
+move to.  For instance, if point is after the space in @w{@samp{FOO,
+BAR}}, it kills @w{@samp{FOO, }}.  If you wish to kill just
+@samp{FOO}, and not the comma and the space, use @kbd{M-b M-d} instead
+of @kbd{M-@key{DEL}}.
+
+@c Don't index M-t and transpose-words here, they are indexed in
+@c fixit.texi, in the node "Transpose".
+@c @kindex M-t
+@c @findex transpose-words
+  @kbd{M-t} (@code{transpose-words}) exchanges the word before or
+containing point with the following word.  The delimiter characters between
+the words do not move.  For example, @w{@samp{FOO, BAR}} transposes into
+@w{@samp{BAR, FOO}} rather than @samp{@w{BAR FOO,}}.  @xref{Transpose}, for
+more on transposition.
+
+@kindex M-@@
+@findex mark-word
+  To operate on the next @var{n} words with an operation which applies
+between point and mark, you can either set the mark at point and then move
+over the words, or you can use the command @kbd{M-@@} (@code{mark-word})
+which does not move point, but sets the mark where @kbd{M-f} would move
+to.  @kbd{M-@@} accepts a numeric argument that says how many words to
+scan for the place to put the mark.  In Transient Mark mode, this command
+activates the mark.
+
+  The word commands' understanding of word boundaries is controlled
+by the syntax table.  Any character can, for example, be declared to
+be a word delimiter.  @xref{Syntax}.
+
+@node Sentences
+@section Sentences
+@cindex sentences
+@cindex manipulating sentences
+
+  The Emacs commands for manipulating sentences and paragraphs are mostly
+on Meta keys, so as to be like the word-handling commands.
+
+@table @kbd
+@item M-a
+Move back to the beginning of the sentence (@code{backward-sentence}).
+@item M-e
+Move forward to the end of the sentence (@code{forward-sentence}).
+@item M-k
+Kill forward to the end of the sentence (@code{kill-sentence}).
+@item C-x @key{DEL}
+Kill back to the beginning of the sentence (@code{backward-kill-sentence}).
+@end table
+
+@kindex M-a
+@kindex M-e
+@findex backward-sentence
+@findex forward-sentence
+  The commands @kbd{M-a} and @kbd{M-e} (@code{backward-sentence} and
+@code{forward-sentence}) move to the beginning and end of the current
+sentence, respectively.  They were chosen to resemble @kbd{C-a} and
+@kbd{C-e}, which move to the beginning and end of a line.  Unlike
+them, @kbd{M-a} and @kbd{M-e} move over successive sentences if
+repeated.
+
+  Moving backward over a sentence places point just before the first
+character of the sentence; moving forward places point right after the
+punctuation that ends the sentence.  Neither one moves over the
+whitespace at the sentence boundary.
+
+@kindex M-k
+@kindex C-x DEL
+@findex kill-sentence
+@findex backward-kill-sentence
+  Just as @kbd{C-a} and @kbd{C-e} have a kill command, @kbd{C-k}, to go
+with them, so @kbd{M-a} and @kbd{M-e} have a corresponding kill command
+@kbd{M-k} (@code{kill-sentence}) which kills from point to the end of
+the sentence.  With minus one as an argument it kills back to the
+beginning of the sentence.  Larger arguments serve as a repeat count.
+There is also a command, @kbd{C-x @key{DEL}}
+(@code{backward-kill-sentence}), for killing back to the beginning of a
+sentence.  This command is useful when you change your mind in the
+middle of composing text.
+
+  The sentence commands assume that you follow the American typist's
+convention of putting two spaces at the end of a sentence; they consider
+a sentence to end wherever there is a @samp{.}, @samp{?} or @samp{!}
+followed by the end of a line or two spaces, with any number of
+@samp{)}, @samp{]}, @samp{'}, or @samp{"} characters allowed in between.
+A sentence also begins or ends wherever a paragraph begins or ends.
+It is useful to follow this convention, because it makes a distinction
+between periods that end a sentence and periods that indicate
+abbreviations; that enables the Emacs sentence commands to distinguish,
+too.  These commands do not stop for periods that indicate abbreviations.
+
+@vindex sentence-end-double-space
+  If you want to use just one space between sentences, you can set the
+variable @code{sentence-end-double-space} to @code{nil} to make the
+sentence commands stop for single spaces.  However, this mode has a
+drawback: there is no way to distinguish between periods that end
+sentences and those that indicate abbreviations.  For convenient and
+reliable editing, we therefore recommend you follow the two-space
+convention.  The variable @code{sentence-end-double-space} also
+affects filling (@pxref{Fill Commands}) in related ways.
+
+@vindex sentence-end
+  The variable @code{sentence-end} controls how to recognize the end
+of a sentence.  If non-@code{nil}, it is a regexp that matches the
+last few characters of a sentence, together with the whitespace
+following the sentence.  If the value is @code{nil}, the default, then
+Emacs computes the regexp according to various criteria such as the
+value of @code{sentence-end-double-space}.  @xref{Regexp Example}, for
+a detailed explanation of one of the regular expressions Emacs uses
+for this purpose.
+
+@vindex sentence-end-without-period
+  Some languages do not use periods to indicate the end of a sentence.
+For example, sentences in Thai end with a double space but without a
+period.  Set the variable @code{sentence-end-without-period} to
+@code{t} in such cases.
+
+@node Paragraphs
+@section Paragraphs
+@cindex paragraphs
+@cindex manipulating paragraphs
+@kindex M-@{
+@kindex M-@}
+@findex backward-paragraph
+@findex forward-paragraph
+
+  The Emacs commands for manipulating paragraphs are also on Meta keys.
+
+@table @kbd
+@item M-@{
+Move back to previous paragraph beginning (@code{backward-paragraph}).
+@item M-@}
+Move forward to next paragraph end (@code{forward-paragraph}).
+@item M-h
+Put point and mark around this or next paragraph (@code{mark-paragraph}).
+@end table
+
+  @kbd{M-@{} moves to the beginning of the current or previous
+paragraph, while @kbd{M-@}} moves to the end of the current or next
+paragraph.  Blank lines and text-formatter command lines separate
+paragraphs and are not considered part of any paragraph.  If there is
+a blank line before the paragraph, @kbd{M-@{} moves to the blank line,
+because that is convenient in practice.
+
+  In Text mode, an indented line is not a paragraph break.  If you
+want indented lines to have this effect, use Paragraph-Indent Text
+mode instead.  @xref{Text Mode}.
+
+  In major modes for programs, paragraphs begin and end only at blank
+lines.  This makes the paragraph commands useful, even though there
+are no paragraphs as such in a program.
+
+  When you have set a fill prefix, then paragraphs are delimited by
+all lines which don't start with the fill prefix.  @xref{Filling}.
+
+@kindex M-h
+@findex mark-paragraph
+  When you wish to operate on a paragraph, you can use the command
+@kbd{M-h} (@code{mark-paragraph}) to set the region around it.  Thus,
+for example, @kbd{M-h C-w} kills the paragraph around or after point.
+The @kbd{M-h} command puts point at the beginning and mark at the end of
+the paragraph point was in.  In Transient Mark mode, it activates the
+mark.  If point is between paragraphs (in a run of blank lines, or at a
+boundary), the paragraph following point is surrounded by point and
+mark.  If there are blank lines preceding the first line of the
+paragraph, one of these blank lines is included in the region.
+
+@vindex paragraph-start
+@vindex paragraph-separate
+  The precise definition of a paragraph boundary is controlled by the
+variables @code{paragraph-separate} and @code{paragraph-start}.  The
+value of @code{paragraph-start} is a regexp that should match any line
+that either starts or separates paragraphs.  The value of
+@code{paragraph-separate} is another regexp that should match only lines
+that separate paragraphs without being part of any paragraph (for
+example, blank lines).  Lines that start a new paragraph and are
+contained in it must match only @code{paragraph-start}, not
+@code{paragraph-separate}.  Each regular expression must match at the
+left margin.  For example, in Fundamental mode, @code{paragraph-start}
+is @w{@code{"\f\\|[ \t]*$"}}, and @code{paragraph-separate} is
+@w{@code{"[ \t\f]*$"}}.
+
+  Normally it is desirable for page boundaries to separate paragraphs.
+The default values of these variables recognize the usual separator for
+pages.
+
+@node Pages
+@section Pages
+
+@cindex pages
+@cindex formfeed
+  Files are often thought of as divided into @dfn{pages} by the
+@dfn{formfeed} character (@acronym{ASCII} control-L, octal code 014).
+When you print hardcopy for a file, this character forces a page break;
+thus, each page of the file goes on a separate page on paper.  Most Emacs
+commands treat the page-separator character just like any other
+character: you can insert it with @kbd{C-q C-l}, and delete it with
+@key{DEL}.  Thus, you are free to paginate your file or not.  However,
+since pages are often meaningful divisions of the file, Emacs provides
+commands to move over them and operate on them.
+
+@table @kbd
+@item C-x [
+Move point to previous page boundary (@code{backward-page}).
+@item C-x ]
+Move point to next page boundary (@code{forward-page}).
+@item C-x C-p
+Put point and mark around this page (or another page) (@code{mark-page}).
+@item C-x l
+Count the lines in this page (@code{count-lines-page}).
+@end table
+
+@kindex C-x [
+@kindex C-x ]
+@findex forward-page
+@findex backward-page
+  The @kbd{C-x [} (@code{backward-page}) command moves point to immediately
+after the previous page delimiter.  If point is already right after a page
+delimiter, it skips that one and stops at the previous one.  A numeric
+argument serves as a repeat count.  The @kbd{C-x ]} (@code{forward-page})
+command moves forward past the next page delimiter.
+
+@kindex C-x C-p
+@findex mark-page
+  The @kbd{C-x C-p} command (@code{mark-page}) puts point at the
+beginning of the current page and the mark at the end.  The page
+delimiter at the end is included (the mark follows it).  The page
+delimiter at the front is excluded (point follows it).  In Transient
+Mark mode, this command activates the mark.
+
+  @kbd{C-x C-p C-w} is a handy way to kill a page to move it
+elsewhere.  If you move to another page delimiter with @kbd{C-x [} and
+@kbd{C-x ]}, then yank the killed page, all the pages will be properly
+delimited once again.  The reason @kbd{C-x C-p} includes only the
+following page delimiter in the region is to ensure that.
+
+  A numeric argument to @kbd{C-x C-p} is used to specify which page to go
+to, relative to the current one.  Zero means the current page.  One means
+the next page, and @minus{}1 means the previous one.
+
+@kindex C-x l
+@findex count-lines-page
+  The @kbd{C-x l} command (@code{count-lines-page}) is good for deciding
+where to break a page in two.  It displays in the echo area the total number
+of lines in the current page, and then divides it up into those preceding
+the current line and those following, as in
+
+@example
+Page has 96 (72+25) lines
+@end example
+
+@noindent
+  Notice that the sum is off by one; this is correct if point is not at the
+beginning of a line.
+
+@vindex page-delimiter
+  The variable @code{page-delimiter} controls where pages begin.  Its
+value is a regexp that matches the beginning of a line that separates
+pages.  The normal value of this variable is @code{"^\f"}, which
+matches a formfeed character at the beginning of a line.
+
+@node Filling
+@section Filling Text
+@cindex filling text
+
+  @dfn{Filling} text means breaking it up into lines that fit a
+specified width.  Emacs does filling in two ways.  In Auto Fill mode,
+inserting text with self-inserting characters also automatically fills
+it.  There are also explicit fill commands that you can use when editing
+text leaves it unfilled.  When you edit formatted text, you can specify
+a style of filling for each portion of the text (@pxref{Formatted
+Text}).
+
+@menu
+* Auto Fill::	        Auto Fill mode breaks long lines automatically.
+* Fill Commands::       Commands to refill paragraphs and center lines.
+* Fill Prefix::	        Filling paragraphs that are indented
+                          or in a comment, etc.
+* Adaptive Fill::       How Emacs can determine the fill prefix automatically.
+* Refill::              Keeping paragraphs filled.
+* Longlines::           Editing text with very long lines.
+@end menu
+
+@node Auto Fill
+@subsection Auto Fill Mode
+@cindex Auto Fill mode
+@cindex mode, Auto Fill
+
+  @dfn{Auto Fill} mode is a minor mode in which lines are broken
+automatically when they become too wide.  Breaking happens only when
+you type a @key{SPC} or @key{RET}.
+
+@table @kbd
+@item M-x auto-fill-mode
+Enable or disable Auto Fill mode.
+@item @key{SPC}
+@itemx @key{RET}
+In Auto Fill mode, break lines when appropriate.
+@end table
+
+@findex auto-fill-mode
+  @kbd{M-x auto-fill-mode} turns Auto Fill mode on if it was off, or off
+if it was on.  With a positive numeric argument it always turns Auto
+Fill mode on, and with a negative argument always turns it off.  You can
+see when Auto Fill mode is in effect by the presence of the word
+@samp{Fill} in the mode line, inside the parentheses.  Auto Fill mode is
+a minor mode which is enabled or disabled for each buffer individually.
+@xref{Minor Modes}.
+
+  In Auto Fill mode, lines are broken automatically at spaces when they
+get longer than the desired width.  Line breaking and rearrangement
+takes place only when you type @key{SPC} or @key{RET}.  If you wish to
+insert a space or newline without permitting line-breaking, type
+@kbd{C-q @key{SPC}} or @kbd{C-q C-j} (recall that a newline is really a
+control-J).  Also, @kbd{C-o} inserts a newline without line breaking.
+
+  Auto Fill mode works well with programming-language modes, because it
+indents new lines with @key{TAB}.  If a line ending in a comment gets
+too long, the text of the comment is split into two comment lines.
+Optionally, new comment delimiters are inserted at the end of the first
+line and the beginning of the second so that each line is a separate
+comment; the variable @code{comment-multi-line} controls the choice
+(@pxref{Comments}).
+
+  Adaptive filling (@pxref{Adaptive Fill}) works for Auto Filling as
+well as for explicit fill commands.  It takes a fill prefix
+automatically from the second or first line of a paragraph.
+
+  Auto Fill mode does not refill entire paragraphs; it can break lines but
+cannot merge lines.  So editing in the middle of a paragraph can result in
+a paragraph that is not correctly filled.  The easiest way to make the
+paragraph properly filled again is usually with the explicit fill commands.
+@ifnottex
+@xref{Fill Commands}.
+@end ifnottex
+
+  Many users like Auto Fill mode and want to use it in all text files.
+The section on init files says how to arrange this permanently for yourself.
+@xref{Init File}.
+
+@node Fill Commands
+@subsection Explicit Fill Commands
+
+@table @kbd
+@item M-q
+Fill current paragraph (@code{fill-paragraph}).
+@item C-x f
+Set the fill column (@code{set-fill-column}).
+@item M-x fill-region
+Fill each paragraph in the region (@code{fill-region}).
+@item M-x fill-region-as-paragraph
+Fill the region, considering it as one paragraph.
+@item M-s
+Center a line.
+@end table
+
+@kindex M-q
+@findex fill-paragraph
+  To refill a paragraph, use the command @kbd{M-q}
+(@code{fill-paragraph}).  This operates on the paragraph that point is
+inside, or the one after point if point is between paragraphs.
+Refilling works by removing all the line-breaks, then inserting new ones
+where necessary.
+
+@findex fill-region
+  To refill many paragraphs, use @kbd{M-x fill-region}, which
+finds the paragraphs in the region and fills each of them.
+
+@findex fill-region-as-paragraph
+  @kbd{M-q} and @code{fill-region} use the same criteria as @kbd{M-h}
+for finding paragraph boundaries (@pxref{Paragraphs}).  For more
+control, you can use @kbd{M-x fill-region-as-paragraph}, which refills
+everything between point and mark as a single paragraph.  This command
+deletes any blank lines within the region, so separate blocks of text
+end up combined into one block.
+
+@cindex justification
+  A numeric argument to @kbd{M-q} tells it to @dfn{justify} the text
+as well as filling it.  This means that extra spaces are inserted to
+make the right margin line up exactly at the fill column.  To remove
+the extra spaces, use @kbd{M-q} with no argument.  (Likewise for
+@code{fill-region}.)  Another way to control justification, and choose
+other styles of filling, is with the @code{justification} text
+property; see @ref{Format Justification}.
+
+@kindex M-s @r{(Text mode)}
+@cindex centering
+@findex center-line
+  The command @kbd{M-s} (@code{center-line}) centers the current line
+within the current fill column.  With an argument @var{n}, it centers
+@var{n} lines individually and moves past them.  This binding is
+made by Text mode and is available only in that and related modes
+(@pxref{Text Mode}).
+
+@vindex fill-column
+@kindex C-x f
+@findex set-fill-column
+  The maximum line width for filling is in the variable
+@code{fill-column}.  Altering the value of @code{fill-column} makes it
+local to the current buffer; until that time, the default value is in
+effect.  The default is initially 70.  @xref{Locals}.  The easiest way
+to set @code{fill-column} is to use the command @kbd{C-x f}
+(@code{set-fill-column}).  With a numeric argument, it uses that as the
+new fill column.  With just @kbd{C-u} as argument, it sets
+@code{fill-column} to the current horizontal position of point.
+
+  Emacs commands normally consider a period followed by two spaces or by
+a newline as the end of a sentence; a period followed by just one space
+indicates an abbreviation and not the end of a sentence.  To preserve
+the distinction between these two ways of using a period, the fill
+commands do not break a line after a period followed by just one space.
+
+  If the variable @code{sentence-end-double-space} is @code{nil}, the
+fill commands expect and leave just one space at the end of a sentence.
+Ordinarily this variable is @code{t}, so the fill commands insist on
+two spaces for the end of a sentence, as explained above.  @xref{Sentences}.
+
+@vindex colon-double-space
+  If the variable @code{colon-double-space} is non-@code{nil}, the
+fill commands put two spaces after a colon.
+
+@vindex fill-nobreak-predicate
+  The variable @code{fill-nobreak-predicate} is a hook (an abnormal
+hook, @pxref{Hooks}) specifying additional conditions where
+line-breaking is not allowed.  Each function is called with no
+arguments, with point at a place where Emacs is considering breaking
+the line.  If a function returns a non-@code{nil} value, then that's
+a bad place to break the line.  Two standard functions you can use are
+@code{fill-single-word-nobreak-p} (don't break after the first word of
+a sentence or before the last) and @code{fill-french-nobreak-p} (don't
+break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
+
+@node Fill Prefix
+@subsection The Fill Prefix
+
+@cindex fill prefix
+  To fill a paragraph in which each line starts with a special marker
+(which might be a few spaces, giving an indented paragraph), you can use
+the @dfn{fill prefix} feature.  The fill prefix is a string that Emacs
+expects every line to start with, and which is not included in filling.
+You can specify a fill prefix explicitly; Emacs can also deduce the
+fill prefix automatically (@pxref{Adaptive Fill}).
+
+@table @kbd
+@item C-x .
+Set the fill prefix (@code{set-fill-prefix}).
+@item M-q
+Fill a paragraph using current fill prefix (@code{fill-paragraph}).
+@item M-x fill-individual-paragraphs
+Fill the region, considering each change of indentation as starting a
+new paragraph.
+@item M-x fill-nonuniform-paragraphs
+Fill the region, considering only paragraph-separator lines as starting
+a new paragraph.
+@end table
+
+@kindex C-x .
+@findex set-fill-prefix
+  To specify a fill prefix for the current buffer, move to a line that
+starts with the desired prefix, put point at the end of the prefix,
+and type @w{@kbd{C-x .}}@: (@code{set-fill-prefix}).  (That's a period
+after the @kbd{C-x}.)  To turn off the fill prefix, specify an empty
+prefix: type @w{@kbd{C-x .}}@: with point at the beginning of a line.
+
+  When a fill prefix is in effect, the fill commands remove the fill
+prefix from each line of the paragraph before filling and insert it on
+each line after filling.  (The beginning of the first line of the
+paragraph is left unchanged, since often that is intentionally
+different.)  Auto Fill mode also inserts the fill prefix automatically
+when it makes a new line.  The @kbd{C-o} command inserts the fill
+prefix on new lines it creates, when you use it at the beginning of a
+line (@pxref{Blank Lines}).  Conversely, the command @kbd{M-^} deletes
+the prefix (if it occurs) after the newline that it deletes
+(@pxref{Indentation}).
+
+  For example, if @code{fill-column} is 40 and you set the fill prefix
+to @samp{;; }, then @kbd{M-q} in the following text
+
+@example
+;; This is an
+;; example of a paragraph
+;; inside a Lisp-style comment.
+@end example
+
+@noindent
+produces this:
+
+@example
+;; This is an example of a paragraph
+;; inside a Lisp-style comment.
+@end example
+
+  Lines that do not start with the fill prefix are considered to start
+paragraphs, both in @kbd{M-q} and the paragraph commands; this gives
+good results for paragraphs with hanging indentation (every line
+indented except the first one).  Lines which are blank or indented once
+the prefix is removed also separate or start paragraphs; this is what
+you want if you are writing multi-paragraph comments with a comment
+delimiter on each line.
+
+@findex fill-individual-paragraphs
+  You can use @kbd{M-x fill-individual-paragraphs} to set the fill
+prefix for each paragraph automatically.  This command divides the
+region into paragraphs, treating every change in the amount of
+indentation as the start of a new paragraph, and fills each of these
+paragraphs.  Thus, all the lines in one ``paragraph'' have the same
+amount of indentation.  That indentation serves as the fill prefix for
+that paragraph.
+
+@findex fill-nonuniform-paragraphs
+  @kbd{M-x fill-nonuniform-paragraphs} is a similar command that divides
+the region into paragraphs in a different way.  It considers only
+paragraph-separating lines (as defined by @code{paragraph-separate}) as
+starting a new paragraph.  Since this means that the lines of one
+paragraph may have different amounts of indentation, the fill prefix
+used is the smallest amount of indentation of any of the lines of the
+paragraph.  This gives good results with styles that indent a paragraph's
+first line more or less that the rest of the paragraph.
+
+@vindex fill-prefix
+  The fill prefix is stored in the variable @code{fill-prefix}.  Its value
+is a string, or @code{nil} when there is no fill prefix.  This is a
+per-buffer variable; altering the variable affects only the current buffer,
+but there is a default value which you can change as well.  @xref{Locals}.
+
+  The @code{indentation} text property provides another way to control
+the amount of indentation paragraphs receive.  @xref{Format Indentation}.
+
+@node Adaptive Fill
+@subsection Adaptive Filling
+
+@cindex adaptive filling
+  The fill commands can deduce the proper fill prefix for a paragraph
+automatically in certain cases: either whitespace or certain punctuation
+characters at the beginning of a line are propagated to all lines of the
+paragraph.
+
+  If the paragraph has two or more lines, the fill prefix is taken from
+the paragraph's second line, but only if it appears on the first line as
+well.
+
+  If a paragraph has just one line, fill commands @emph{may} take a
+prefix from that line.  The decision is complicated because there are
+three reasonable things to do in such a case:
+
+@itemize @bullet
+@item
+Use the first line's prefix on all the lines of the paragraph.
+
+@item
+Indent subsequent lines with whitespace, so that they line up under the
+text that follows the prefix on the first line, but don't actually copy
+the prefix from the first line.
+
+@item
+Don't do anything special with the second and following lines.
+@end itemize
+
+  All three of these styles of formatting are commonly used.  So the
+fill commands try to determine what you would like, based on the prefix
+that appears and on the major mode.  Here is how.
+
+@vindex adaptive-fill-first-line-regexp
+  If the prefix found on the first line matches
+@code{adaptive-fill-first-line-regexp}, or if it appears to be a
+comment-starting sequence (this depends on the major mode), then the
+prefix found is used for filling the paragraph, provided it would not
+act as a paragraph starter on subsequent lines.
+
+  Otherwise, the prefix found is converted to an equivalent number of
+spaces, and those spaces are used as the fill prefix for the rest of the
+lines, provided they would not act as a paragraph starter on subsequent
+lines.
+
+  In Text mode, and other modes where only blank lines and page
+delimiters separate paragraphs, the prefix chosen by adaptive filling
+never acts as a paragraph starter, so it can always be used for filling.
+
+@vindex adaptive-fill-mode
+@vindex adaptive-fill-regexp
+  The variable @code{adaptive-fill-regexp} determines what kinds of line
+beginnings can serve as a fill prefix: any characters at the start of
+the line that match this regular expression are used.  If you set the
+variable @code{adaptive-fill-mode} to @code{nil}, the fill prefix is
+never chosen automatically.
+
+@vindex adaptive-fill-function
+  You can specify more complex ways of choosing a fill prefix
+automatically by setting the variable @code{adaptive-fill-function} to a
+function.  This function is called with point after the left margin of a
+line, and it should return the appropriate fill prefix based on that
+line.  If it returns @code{nil}, @code{adaptive-fill-regexp} gets
+a chance to find a prefix.
+
+@node Refill
+@subsection Refill Mode
+@cindex refilling text, word processor style
+@cindex modes, Refill
+@cindex Refill minor mode
+
+  Refill minor mode provides support for keeping paragraphs filled as
+you type or modify them in other ways.  It provides an effect similar
+to typical word processor behavior.  This works by running a
+paragraph-filling command at suitable times.
+
+  To toggle the use of Refill mode in the current buffer, type
+@kbd{M-x refill-mode}.  When you are typing text, only characters
+which normally trigger auto filling, like the space character, will
+trigger refilling.  This is to avoid making it too slow.  Apart from
+self-inserting characters, other commands which modify the text cause
+refilling.
+
+  The current implementation is preliminary and not robust.  You can
+get better ``line wrapping'' behavior using Longlines mode.
+@xref{Longlines}.  However, Longlines mode has an important
+side-effect: the newlines that it inserts for you are not saved to
+disk, so the files that you make with Longlines mode will appear to be
+completely unfilled if you edit them without Longlines mode.
+
+@node Longlines
+@subsection Long Lines Mode
+@cindex refilling text, word processor style
+@cindex modes, Long Lines
+@cindex word wrap
+@cindex Long Lines minor mode
+
+  Long Lines mode is a minor mode for @dfn{word wrapping}; it lets you
+edit ``unfilled'' text files, which Emacs would normally display as a
+bunch of extremely long lines.  Many text editors, such as those built
+into many web browsers, normally do word wrapping.
+
+@findex longlines-mode
+  To enable Long Lines mode, type @kbd{M-x longlines-mode}.  If the
+text is full of long lines, this will ``wrap'' them
+immediately---i.e., break up to fit in the window.  As you edit the
+text, Long Lines mode automatically re-wraps lines by inserting or
+deleting @dfn{soft newlines} as necessary (@pxref{Hard and Soft
+Newlines}.)  These soft newlines won't show up when you save the
+buffer into a file, or when you copy the text into the kill ring,
+clipboard, or a register.
+
+@findex longlines-auto-wrap
+  Word wrapping is @emph{not} the same as ordinary filling
+(@pxref{Fill Commands}).  It does not contract multiple spaces into a
+single space, recognize fill prefixes (@pxref{Fill Prefix}), or
+perform adaptive filling (@pxref{Adaptive Fill}).  The reason for this
+is that a wrapped line is still, conceptually, a single line.  Each
+soft newline is equivalent to exactly one space in that long line, and
+vice versa.  However, you can still call filling functions such as
+@kbd{M-q}, and these will work as expected, inserting soft newlines
+that won't show up on disk or when the text is copied.  You can even
+rely entirely on the normal fill commands by turning off automatic
+line wrapping, with @kbd{C-u M-x longlines-auto-wrap}.  To turn
+automatic line wrapping back on, type @kbd{M-x longlines-auto-wrap}.
+
+@findex longlines-show-hard-newlines
+  Type @kbd{RET} to insert a hard newline, one which automatic
+refilling will not remove.  If you want to see where all the hard
+newlines are, type @kbd{M-x longlines-show-hard-newlines}.  This will
+mark each hard newline with a special symbol.  The same command with a
+prefix argument turns this display off.
+
+  Long Lines mode does not change normal text files that are already
+filled, since the existing newlines are considered hard newlines.
+Before Long Lines can do anything, you need to transform each
+paragraph into a long line.  One way is to set @code{fill-column} to a
+large number (e.g., @kbd{C-u 9999 C-x f}), re-fill all the paragraphs,
+and then set @code{fill-column} back to its original value.
+
+@node Case
+@section Case Conversion Commands
+@cindex case conversion
+
+  Emacs has commands for converting either a single word or any arbitrary
+range of text to upper case or to lower case.
+
+@table @kbd
+@item M-l
+Convert following word to lower case (@code{downcase-word}).
+@item M-u
+Convert following word to upper case (@code{upcase-word}).
+@item M-c
+Capitalize the following word (@code{capitalize-word}).
+@item C-x C-l
+Convert region to lower case (@code{downcase-region}).
+@item C-x C-u
+Convert region to upper case (@code{upcase-region}).
+@end table
+
+@kindex M-l
+@kindex M-u
+@kindex M-c
+@cindex words, case conversion
+@cindex converting text to upper or lower case
+@cindex capitalizing words
+@findex downcase-word
+@findex upcase-word
+@findex capitalize-word
+  The word conversion commands are the most useful.  @kbd{M-l}
+(@code{downcase-word}) converts the word after point to lower case, moving
+past it.  Thus, repeating @kbd{M-l} converts successive words.
+@kbd{M-u} (@code{upcase-word}) converts to all capitals instead, while
+@kbd{M-c} (@code{capitalize-word}) puts the first letter of the word
+into upper case and the rest into lower case.  All these commands convert
+several words at once if given an argument.  They are especially convenient
+for converting a large amount of text from all upper case to mixed case,
+because you can move through the text using @kbd{M-l}, @kbd{M-u} or
+@kbd{M-c} on each word as appropriate, occasionally using @kbd{M-f} instead
+to skip a word.
+
+  When given a negative argument, the word case conversion commands apply
+to the appropriate number of words before point, but do not move point.
+This is convenient when you have just typed a word in the wrong case: you
+can give the case conversion command and continue typing.
+
+  If a word case conversion command is given in the middle of a word,
+it applies only to the part of the word which follows point.  (This is
+comparable to what @kbd{M-d} (@code{kill-word}) does.)  With a
+negative argument, case conversion applies only to the part of the
+word before point.
+
+@kindex C-x C-l
+@kindex C-x C-u
+@findex downcase-region
+@findex upcase-region
+  The other case conversion commands are @kbd{C-x C-u}
+(@code{upcase-region}) and @kbd{C-x C-l} (@code{downcase-region}), which
+convert everything between point and mark to the specified case.  Point and
+mark do not move.
+
+  The region case conversion commands @code{upcase-region} and
+@code{downcase-region} are normally disabled.  This means that they ask
+for confirmation if you try to use them.  When you confirm, you may
+enable the command, which means it will not ask for confirmation again.
+@xref{Disabling}.
+
+@node Text Mode
+@section Text Mode
+@cindex Text mode
+@cindex mode, Text
+@findex text-mode
+
+  When you edit files of text in a human language, it's more convenient
+to use Text mode rather than Fundamental mode.  To enter Text mode, type
+@kbd{M-x text-mode}.
+
+  In Text mode, only blank lines and page delimiters separate
+paragraphs.  As a result, paragraphs can be indented, and adaptive
+filling determines what indentation to use when filling a paragraph.
+@xref{Adaptive Fill}.
+
+@kindex TAB @r{(Text mode)}
+  Text mode defines @key{TAB} to run @code{indent-relative}
+(@pxref{Indentation}), so that you can conveniently indent a line like
+the previous line.
+
+  Text mode turns off the features concerned with comments except when
+you explicitly invoke them.  It changes the syntax table so that
+single-quotes are considered part of words.  However, if a word starts
+with single-quotes, these are treated as a prefix for purposes such as
+capitalization.  That is, @kbd{M-c} will convert @samp{'hello'} into
+@samp{'Hello'}, as expected.
+
+@cindex Paragraph-Indent Text mode
+@cindex mode, Paragraph-Indent Text
+@findex paragraph-indent-text-mode
+@findex paragraph-indent-minor-mode
+  If you indent the first lines of paragraphs, then you should use
+Paragraph-Indent Text mode rather than Text mode.  In this mode, you
+do not need to have blank lines between paragraphs, because the
+first-line indentation is sufficient to start a paragraph; however
+paragraphs in which every line is indented are not supported.  Use
+@kbd{M-x paragraph-indent-text-mode} to enter this mode.  Use @kbd{M-x
+paragraph-indent-minor-mode} to enable an equivalent minor mode in
+situations where you can't change the major mode---in mail
+composition, for instance.
+
+@kindex M-TAB @r{(Text mode)}
+  Text mode, and all the modes based on it, define @kbd{M-@key{TAB}}
+as the command @code{ispell-complete-word}, which performs completion
+of the partial word in the buffer before point, using the spelling
+dictionary as the space of possible words.  @xref{Spelling}.  If your
+window manager defines @kbd{M-@key{TAB}} to switch windows, you can
+type @kbd{@key{ESC} @key{TAB}} or @kbd{C-M-i}.
+
+@vindex text-mode-hook
+  Entering Text mode runs the hook @code{text-mode-hook}.  Other major
+modes related to Text mode also run this hook, followed by hooks of
+their own; this includes Paragraph-Indent Text mode, Nroff mode, @TeX{}
+mode, Outline mode, and Mail mode.  Hook functions on
+@code{text-mode-hook} can look at the value of @code{major-mode} to see
+which of these modes is actually being entered.  @xref{Hooks}.
+
+@ifnottex
+  Emacs provides two other modes for editing text that is to be passed
+through a text formatter to produce fancy formatted printed output.
+@xref{Nroff Mode}, for editing input to the formatter nroff.
+@xref{TeX Mode,,@TeX{} Mode}, for editing input to the formatter TeX.
+
+  Another mode is used for editing outlines.  It allows you to view the
+text at various levels of detail.  You can view either the outline
+headings alone or both headings and text; you can also hide some of the
+headings at lower levels from view to make the high level structure more
+visible.  @xref{Outline Mode}.
+@end ifnottex
+
+@node Outline Mode
+@section Outline Mode
+@cindex Outline mode
+@cindex mode, Outline
+@cindex invisible lines
+
+@findex outline-mode
+@findex outline-minor-mode
+@vindex outline-minor-mode-prefix
+  Outline mode is a major mode much like Text mode but intended for
+editing outlines.  It allows you to make parts of the text temporarily
+invisible so that you can see the outline structure.  Type @kbd{M-x
+outline-mode} to switch to Outline mode as the major mode of the current
+buffer.
+
+  When Outline mode makes a line invisible, the line does not appear
+on the screen.  The screen appears exactly as if the invisible line
+were deleted, except that an ellipsis (three periods in a row) appears
+at the end of the previous visible line.  (Multiple consecutive
+invisible lines produce just one ellipsis.)
+
+  Editing commands that operate on lines, such as @kbd{C-n} and
+@kbd{C-p}, treat the text of the invisible line as part of the previous
+visible line.  Killing the ellipsis at the end of a visible line
+really kills all the following invisible lines.
+
+  Outline minor mode provides the same commands as the major mode,
+Outline mode, but you can use it in conjunction with other major modes.
+Type @kbd{M-x outline-minor-mode} to enable the Outline minor mode in
+the current buffer.  You can also specify this in the text of a file,
+with a file local variable of the form @samp{mode: outline-minor}
+(@pxref{File Variables}).
+
+@kindex C-c @@ @r{(Outline minor mode)}
+  The major mode, Outline mode, provides special key bindings on the
+@kbd{C-c} prefix.  Outline minor mode provides similar bindings with
+@kbd{C-c @@} as the prefix; this is to reduce the conflicts with the
+major mode's special commands.  (The variable
+@code{outline-minor-mode-prefix} controls the prefix used.)
+
+@vindex outline-mode-hook
+  Entering Outline mode runs the hook @code{text-mode-hook} followed by
+the hook @code{outline-mode-hook} (@pxref{Hooks}).
+
+@menu
+* Format: Outline Format.	   What the text of an outline looks like.
+* Motion: Outline Motion.	   Special commands for moving through
+                                     outlines.
+* Visibility: Outline Visibility.  Commands to control what is visible.
+* Views: Outline Views.            Outlines and multiple views.
+* Foldout::                        Folding means zooming in on outlines.
+@end menu
+
+@node Outline Format
+@subsection Format of Outlines
+
+@cindex heading lines (Outline mode)
+@cindex body lines (Outline mode)
+  Outline mode assumes that the lines in the buffer are of two types:
+@dfn{heading lines} and @dfn{body lines}.  A heading line represents a
+topic in the outline.  Heading lines start with one or more stars; the
+number of stars determines the depth of the heading in the outline
+structure.  Thus, a heading line with one star is a major topic; all the
+heading lines with two stars between it and the next one-star heading
+are its subtopics; and so on.  Any line that is not a heading line is a
+body line.  Body lines belong with the preceding heading line.  Here is
+an example:
+
+@example
+* Food
+This is the body,
+which says something about the topic of food.
+
+** Delicious Food
+This is the body of the second-level header.
+
+** Distasteful Food
+This could have
+a body too, with
+several lines.
+
+*** Dormitory Food
+
+* Shelter
+Another first-level topic with its header line.
+@end example
+
+  A heading line together with all following body lines is called
+collectively an @dfn{entry}.  A heading line together with all following
+deeper heading lines and their body lines is called a @dfn{subtree}.
+
+@vindex outline-regexp
+  You can customize the criterion for distinguishing heading lines by
+setting the variable @code{outline-regexp}.  (The recommended ways to
+do this are in a major mode function or with a file local variable.)
+Any line whose beginning has a match for this regexp is considered a
+heading line.  Matches that start within a line (not at the left
+margin) do not count.
+
+  The length of the matching text determines the level of the heading;
+longer matches make a more deeply nested level.  Thus, for example, if
+a text formatter has commands @samp{@@chapter}, @samp{@@section} and
+@samp{@@subsection} to divide the document into chapters and sections,
+you could make those lines count as heading lines by setting
+@code{outline-regexp} to @samp{"@@chap\\|@@\\(sub\\)*section"}.  Note
+the trick: the two words @samp{chapter} and @samp{section} are equally
+long, but by defining the regexp to match only @samp{chap} we ensure
+that the length of the text matched on a chapter heading is shorter,
+so that Outline mode will know that sections are contained in
+chapters.  This works as long as no other command starts with
+@samp{@@chap}.
+
+@vindex outline-level
+  You can explicitly specify a rule for calculating the level of a
+heading line by setting the variable @code{outline-level}.  The value
+of @code{outline-level} should be a function that takes no arguments
+and returns the level of the current heading.  The recommended ways to
+set this variable are in a major mode command or with a file local
+variable.
+
+@node Outline Motion
+@subsection Outline Motion Commands
+
+  Outline mode provides special motion commands that move backward and
+forward to heading lines.
+
+@table @kbd
+@item C-c C-n
+Move point to the next visible heading line
+(@code{outline-next-visible-heading}).
+@item C-c C-p
+Move point to the previous visible heading line
+(@code{outline-previous-visible-heading}).
+@item C-c C-f
+Move point to the next visible heading line at the same level
+as the one point is on (@code{outline-forward-same-level}).
+@item C-c C-b
+Move point to the previous visible heading line at the same level
+(@code{outline-backward-same-level}).
+@item C-c C-u
+Move point up to a lower-level (more inclusive) visible heading line
+(@code{outline-up-heading}).
+@end table
+
+@findex outline-next-visible-heading
+@findex outline-previous-visible-heading
+@kindex C-c C-n @r{(Outline mode)}
+@kindex C-c C-p @r{(Outline mode)}
+  @kbd{C-c C-n} (@code{outline-next-visible-heading}) moves down to the next
+heading line.  @kbd{C-c C-p} (@code{outline-previous-visible-heading}) moves
+similarly backward.  Both accept numeric arguments as repeat counts.  The
+names emphasize that invisible headings are skipped, but this is not really
+a special feature.  All editing commands that look for lines ignore the
+invisible lines automatically.
+
+@findex outline-up-heading
+@findex outline-forward-same-level
+@findex outline-backward-same-level
+@kindex C-c C-f @r{(Outline mode)}
+@kindex C-c C-b @r{(Outline mode)}
+@kindex C-c C-u @r{(Outline mode)}
+  More powerful motion commands understand the level structure of headings.
+@kbd{C-c C-f} (@code{outline-forward-same-level}) and
+@kbd{C-c C-b} (@code{outline-backward-same-level}) move from one
+heading line to another visible heading at the same depth in
+the outline.  @kbd{C-c C-u} (@code{outline-up-heading}) moves
+backward to another heading that is less deeply nested.
+
+@node Outline Visibility
+@subsection Outline Visibility Commands
+
+  The other special commands of outline mode are used to make lines visible
+or invisible.  Their names all start with @code{hide} or @code{show}.
+Most of them fall into pairs of opposites.  They are not undoable; instead,
+you can undo right past them.  Making lines visible or invisible is simply
+not recorded by the undo mechanism.
+
+  Many of these commands act on the ``current'' heading line.  If
+point is on a heading line, that is the current heading line; if point
+is on a body line, the current heading line is the nearest preceding
+header line.
+
+@table @kbd
+@item C-c C-c
+Make the current heading line's body invisible (@code{hide-entry}).
+@item C-c C-e
+Make the current heading line's body visible (@code{show-entry}).
+@item C-c C-d
+Make everything under the current heading invisible, not including the
+heading itself (@code{hide-subtree}).
+@item C-c C-s
+Make everything under the current heading visible, including body,
+subheadings, and their bodies (@code{show-subtree}).
+@item C-c C-l
+Make the body of the current heading line, and of all its subheadings,
+invisible (@code{hide-leaves}).
+@item C-c C-k
+Make all subheadings of the current heading line, at all levels,
+visible (@code{show-branches}).
+@item C-c C-i
+Make immediate subheadings (one level down) of the current heading
+line visible (@code{show-children}).
+@item C-c C-t
+Make all body lines in the buffer invisible (@code{hide-body}).
+@item C-c C-a
+Make all lines in the buffer visible (@code{show-all}).
+@item C-c C-q
+Hide everything except the top @var{n} levels of heading lines
+(@code{hide-sublevels}).
+@item C-c C-o
+Hide everything except for the heading or body that point is in, plus
+the headings leading up from there to the top level of the outline
+(@code{hide-other}).
+@end table
+
+@findex hide-entry
+@findex show-entry
+@kindex C-c C-c @r{(Outline mode)}
+@kindex C-c C-e @r{(Outline mode)}
+  Two commands that are exact opposites are @kbd{C-c C-c}
+(@code{hide-entry}) and @kbd{C-c C-e} (@code{show-entry}).  They apply
+to the body lines directly following the current heading line.
+Subheadings and their bodies are not affected.
+
+@findex hide-subtree
+@findex show-subtree
+@kindex C-c C-s @r{(Outline mode)}
+@kindex C-c C-d @r{(Outline mode)}
+@cindex subtree (Outline mode)
+  Two more powerful opposites are @kbd{C-c C-d} (@code{hide-subtree})
+and @kbd{C-c C-s} (@code{show-subtree}).  Both apply to the current
+heading line's @dfn{subtree}: its body, all its subheadings, both
+direct and indirect, and all of their bodies.  In other words, the
+subtree contains everything following the current heading line, up to
+and not including the next heading of the same or higher rank.
+
+@findex hide-leaves
+@findex show-branches
+@kindex C-c C-l @r{(Outline mode)}
+@kindex C-c C-k @r{(Outline mode)}
+  Intermediate between a visible subtree and an invisible one is having
+all the subheadings visible but none of the body.  There are two
+commands for doing this, depending on whether you want to hide the
+bodies or make the subheadings visible.  They are @kbd{C-c C-l}
+(@code{hide-leaves}) and @kbd{C-c C-k} (@code{show-branches}).
+
+@kindex C-c C-i @r{(Outline mode)}
+@findex show-children
+  A little weaker than @code{show-branches} is @kbd{C-c C-i}
+(@code{show-children}).  It makes just the direct subheadings
+visible---those one level down.  Deeper subheadings remain invisible, if
+they were invisible.
+
+@findex hide-body
+@findex show-all
+@kindex C-c C-t @r{(Outline mode)}
+@kindex C-c C-a @r{(Outline mode)}
+  Two commands have a blanket effect on the whole file.  @kbd{C-c C-t}
+(@code{hide-body}) makes all body lines invisible, so that you see just
+the outline structure (as a special exception, it will not hide lines
+at the top of the file, preceding the first header line, even though
+these are technically body lines).  @kbd{C-c C-a} (@code{show-all})
+makes all lines visible.  These commands can be thought of as a pair
+of opposites even though @kbd{C-c C-a} applies to more than just body
+lines.
+
+@findex hide-sublevels
+@kindex C-c C-q @r{(Outline mode)}
+  The command @kbd{C-c C-q} (@code{hide-sublevels}) hides all but the
+top level headings.  With a numeric argument @var{n}, it hides everything
+except the top @var{n} levels of heading lines.
+
+@findex hide-other
+@kindex C-c C-o @r{(Outline mode)}
+  The command @kbd{C-c C-o} (@code{hide-other}) hides everything except
+the heading and body text that point is in, plus its parents (the headers
+leading up from there to top level in the outline) and the top level
+headings.
+
+@findex reveal-mode
+  When incremental search finds text that is hidden by Outline mode,
+it makes that part of the buffer visible.  If you exit the search
+at that position, the text remains visible.  You can also
+automatically make text visible as you navigate in it by using
+@kbd{M-x reveal-mode}.
+
+@node Outline Views
+@subsection Viewing One Outline in Multiple Views
+
+@cindex multiple views of outline
+@cindex views of an outline
+@cindex outline with multiple views
+@cindex indirect buffers and outlines
+  You can display two views of a single outline at the same time, in
+different windows.  To do this, you must create an indirect buffer using
+@kbd{M-x make-indirect-buffer}.  The first argument of this command is
+the existing outline buffer name, and its second argument is the name to
+use for the new indirect buffer.  @xref{Indirect Buffers}.
+
+  Once the indirect buffer exists, you can display it in a window in the
+normal fashion, with @kbd{C-x 4 b} or other Emacs commands.  The Outline
+mode commands to show and hide parts of the text operate on each buffer
+independently; as a result, each buffer can have its own view.  If you
+want more than two views on the same outline, create additional indirect
+buffers.
+
+@node Foldout
+@subsection Folding Editing
+
+@cindex folding editing
+  The Foldout package extends Outline mode and Outline minor mode with
+``folding'' commands.  The idea of folding is that you zoom in on a
+nested portion of the outline, while hiding its relatives at higher
+levels.
+
+  Consider an Outline mode buffer with all the text and subheadings under
+level-1 headings hidden.  To look at what is hidden under one of these
+headings, you could use @kbd{C-c C-e} (@kbd{M-x show-entry}) to expose
+the body, or @kbd{C-c C-i} to expose the child (level-2) headings.
+
+@kindex C-c C-z
+@findex foldout-zoom-subtree
+  With Foldout, you use @kbd{C-c C-z} (@kbd{M-x foldout-zoom-subtree}).
+This exposes the body and child subheadings, and narrows the buffer so
+that only the @w{level-1} heading, the body and the level-2 headings are
+visible.  Now to look under one of the level-2 headings, position the
+cursor on it and use @kbd{C-c C-z} again.  This exposes the level-2 body
+and its level-3 child subheadings and narrows the buffer again.  Zooming
+in on successive subheadings can be done as much as you like.  A string
+in the mode line shows how deep you've gone.
+
+  When zooming in on a heading, to see only the child subheadings specify
+a numeric argument: @kbd{C-u C-c C-z}.  The number of levels of children
+can be specified too (compare @kbd{M-x show-children}), e.g.@: @kbd{M-2
+C-c C-z} exposes two levels of child subheadings.  Alternatively, the
+body can be specified with a negative argument: @kbd{M-- C-c C-z}.  The
+whole subtree can be expanded, similarly to @kbd{C-c C-s} (@kbd{M-x
+show-subtree}), by specifying a zero argument: @kbd{M-0 C-c C-z}.
+
+  While you're zoomed in, you can still use Outline mode's exposure and
+hiding functions without disturbing Foldout.  Also, since the buffer is
+narrowed, ``global'' editing actions will only affect text under the
+zoomed-in heading.  This is useful for restricting changes to a
+particular chapter or section of your document.
+
+@kindex C-c C-x
+@findex foldout-exit-fold
+  To unzoom (exit) a fold, use @kbd{C-c C-x} (@kbd{M-x foldout-exit-fold}).
+This hides all the text and subheadings under the top-level heading and
+returns you to the previous view of the buffer.  Specifying a numeric
+argument exits that many levels of folds.  Specifying a zero argument
+exits all folds.
+
+  To cancel the narrowing of a fold without hiding the text and
+subheadings, specify a negative argument.  For example, @kbd{M--2 C-c
+C-x} exits two folds and leaves the text and subheadings exposed.
+
+  Foldout mode also provides mouse commands for entering and exiting
+folds, and for showing and hiding text:
+
+@table @asis
+@item @kbd{C-M-Mouse-1} zooms in on the heading clicked on
+@itemize @asis
+@item
+single click: expose body.
+@item
+double click: expose subheadings.
+@item
+triple click: expose body and subheadings.
+@item
+quad click: expose entire subtree.
+@end itemize
+@item @kbd{C-M-Mouse-2} exposes text under the heading clicked on
+@itemize @asis
+@item
+single click: expose body.
+@item
+double click: expose subheadings.
+@item
+triple click: expose body and subheadings.
+@item
+quad click: expose entire subtree.
+@end itemize
+@item @kbd{C-M-Mouse-3} hides text under the heading clicked on or exits fold
+@itemize @asis
+@item
+single click: hide subtree.
+@item
+double click: exit fold and hide text.
+@item
+triple click: exit fold without hiding text.
+@item
+quad click: exit all folds and hide text.
+@end itemize
+@end table
+
+@vindex foldout-mouse-modifiers
+  You can specify different modifier keys (instead of
+@kbd{Control-Meta-}) by setting @code{foldout-mouse-modifiers}; but if
+you have already loaded the @file{foldout.el} library, you must reload
+it in order for this to take effect.
+
+  To use the Foldout package, you can type @kbd{M-x load-library
+@key{RET} foldout @key{RET}}; or you can arrange for to do that
+automatically by putting this in your @file{.emacs} file:
+
+@example
+(eval-after-load "outline" '(require 'foldout))
+@end example
+
+@node TeX Mode
+@section @TeX{} Mode
+@cindex @TeX{} mode
+@cindex La@TeX{} mode
+@cindex Sli@TeX{} mode
+@cindex Doc@TeX{} mode
+@cindex mode, @TeX{}
+@cindex mode, La@TeX{}
+@cindex mode, Sli@TeX{}
+@cindex mode, Doc@TeX{}
+@findex tex-mode
+@findex plain-tex-mode
+@findex latex-mode
+@findex slitex-mode
+@findex doctex-mode
+
+  @TeX{} is a powerful text formatter written by Donald Knuth; it is
+also free software, like GNU Emacs.  La@TeX{} is a simplified input
+format for @TeX{}, implemented by @TeX{} macros; it comes with @TeX{}.
+Sli@TeX{} is a special form of La@TeX{}.@footnote{Sli@TeX{} is
+obsoleted by the @samp{slides} document class and other alternative
+packages in recent La@TeX{} versions.}  Doc@TeX{} (@file{.dtx}) is a
+special file format in which the La@TeX{} sources are written,
+combining sources with documentation.
+
+  Emacs has a special @TeX{} mode for editing @TeX{} input files.
+It provides facilities for checking the balance of delimiters and for
+invoking @TeX{} on all or part of the file.
+
+@vindex tex-default-mode
+  @TeX{} mode has four variants: Plain @TeX{} mode, La@TeX{} mode,
+Sli@TeX{} mode, and Doc@TeX{} mode (these distinct major modes differ
+only slightly).  They are designed for editing the four different
+formats.  The command @kbd{M-x tex-mode} looks at the contents of the
+buffer to determine whether the contents appear to be either La@TeX{}
+input, Sli@TeX{}, or Doc@TeX{} input; if so, it selects the
+appropriate mode.  If the file contents do not appear to be La@TeX{},
+Sli@TeX{} or Doc@TeX{}, it selects Plain @TeX{} mode.  If the contents
+are insufficient to determine this, the variable
+@code{tex-default-mode} controls which mode is used.
+
+  When @kbd{M-x tex-mode} does not guess right, you can use the commands
+@kbd{M-x plain-tex-mode}, @kbd{M-x latex-mode}, @kbd{M-x slitex-mode},
+and @kbd{doctex-mode} to select explicitly the particular variants of
+@TeX{} mode.
+
+@menu
+* Editing: TeX Editing.   Special commands for editing in TeX mode.
+* LaTeX: LaTeX Editing.   Additional commands for LaTeX input files.
+* Printing: TeX Print.    Commands for printing part of a file with TeX.
+* Misc: TeX Misc.         Customization of TeX mode, and related features.
+@end menu
+
+@node TeX Editing
+@subsection @TeX{} Editing Commands
+
+  Here are the special commands provided in @TeX{} mode for editing the
+text of the file.
+
+@table @kbd
+@item "
+Insert, according to context, either @samp{``} or @samp{"} or
+@samp{''} (@code{tex-insert-quote}).
+@item C-j
+Insert a paragraph break (two newlines) and check the previous
+paragraph for unbalanced braces or dollar signs
+(@code{tex-terminate-paragraph}).
+@item M-x tex-validate-region
+Check each paragraph in the region for unbalanced braces or dollar signs.
+@item C-c @{
+Insert @samp{@{@}} and position point between them (@code{tex-insert-braces}).
+@item C-c @}
+Move forward past the next unmatched close brace (@code{up-list}).
+@end table
+
+@findex tex-insert-quote
+@kindex " @r{(@TeX{} mode)}
+  In @TeX{}, the character @samp{"} is not normally used; we use
+@samp{``} to start a quotation and @samp{''} to end one.  To make
+editing easier under this formatting convention, @TeX{} mode overrides
+the normal meaning of the key @kbd{"} with a command that inserts a pair
+of single-quotes or backquotes (@code{tex-insert-quote}).  To be
+precise, this command inserts @samp{``} after whitespace or an open
+brace, @samp{"} after a backslash, and @samp{''} after any other
+character.
+
+  If you need the character @samp{"} itself in unusual contexts, use
+@kbd{C-q} to insert it.  Also, @kbd{"} with a numeric argument always
+inserts that number of @samp{"} characters.  You can turn off the
+feature of @kbd{"} expansion by eliminating that binding in the local
+map (@pxref{Key Bindings}).
+
+  In @TeX{} mode, @samp{$} has a special syntax code which attempts to
+understand the way @TeX{} math mode delimiters match.  When you insert a
+@samp{$} that is meant to exit math mode, the position of the matching
+@samp{$} that entered math mode is displayed for a second.  This is the
+same feature that displays the open brace that matches a close brace that
+is inserted.  However, there is no way to tell whether a @samp{$} enters
+math mode or leaves it; so when you insert a @samp{$} that enters math
+mode, the previous @samp{$} position is shown as if it were a match, even
+though they are actually unrelated.
+
+@findex tex-insert-braces
+@kindex C-c @{ @r{(@TeX{} mode)}
+@findex up-list
+@kindex C-c @} @r{(@TeX{} mode)}
+  @TeX{} uses braces as delimiters that must match.  Some users prefer
+to keep braces balanced at all times, rather than inserting them
+singly.  Use @kbd{C-c @{} (@code{tex-insert-braces}) to insert a pair of
+braces.  It leaves point between the two braces so you can insert the
+text that belongs inside.  Afterward, use the command @kbd{C-c @}}
+(@code{up-list}) to move forward past the close brace.
+
+@findex tex-validate-region
+@findex tex-terminate-paragraph
+@kindex C-j @r{(@TeX{} mode)}
+  There are two commands for checking the matching of braces.  @kbd{C-j}
+(@code{tex-terminate-paragraph}) checks the paragraph before point, and
+inserts two newlines to start a new paragraph.  It outputs a message in
+the echo area if any mismatch is found.  @kbd{M-x tex-validate-region}
+checks a region, paragraph by paragraph.  The errors are listed in the
+@samp{*Occur*} buffer, and you can use @kbd{C-c C-c} or @kbd{Mouse-2} in
+that buffer to go to a particular mismatch.
+
+  Note that Emacs commands count square brackets and parentheses in
+@TeX{} mode, not just braces.  This is not strictly correct for the
+purpose of checking @TeX{} syntax.  However, parentheses and square
+brackets are likely to be used in text as matching delimiters and it is
+useful for the various motion commands and automatic match display to
+work with them.
+
+@node LaTeX Editing
+@subsection La@TeX{} Editing Commands
+
+  La@TeX{} mode, and its variant, Sli@TeX{} mode, provide a few extra
+features not applicable to plain @TeX{}.
+
+@table @kbd
+@item C-c C-o
+Insert @samp{\begin} and @samp{\end} for La@TeX{} block and position
+point on a line between them (@code{tex-latex-block}).
+@item C-c C-e
+Close the innermost La@TeX{} block not yet closed
+(@code{tex-close-latex-block}).
+@end table
+
+@findex tex-latex-block
+@kindex C-c C-o @r{(La@TeX{} mode)}
+@vindex latex-block-names
+  In La@TeX{} input, @samp{\begin} and @samp{\end} commands are used to
+group blocks of text.  To insert a @samp{\begin} and a matching
+@samp{\end} (on a new line following the @samp{\begin}), use @kbd{C-c
+C-o} (@code{tex-latex-block}).  A blank line is inserted between the
+two, and point is left there.  You can use completion when you enter the
+block type; to specify additional block type names beyond the standard
+list, set the variable @code{latex-block-names}.  For example, here's
+how to add @samp{theorem}, @samp{corollary}, and @samp{proof}:
+
+@example
+(setq latex-block-names '("theorem" "corollary" "proof"))
+@end example
+
+@findex tex-close-latex-block
+@kindex C-c C-e @r{(La@TeX{} mode)}
+  In La@TeX{} input, @samp{\begin} and @samp{\end} commands must
+balance.  You can use @kbd{C-c C-e} (@code{tex-close-latex-block}) to
+insert automatically a matching @samp{\end} to match the last unmatched
+@samp{\begin}.  It indents the @samp{\end} to match the corresponding
+@samp{\begin}.  It inserts a newline after @samp{\end} if point is at
+the beginning of a line.
+
+@node TeX Print
+@subsection @TeX{} Printing Commands
+
+  You can invoke @TeX{} as an inferior of Emacs on either the entire
+contents of the buffer or just a region at a time.  Running @TeX{} in
+this way on just one chapter is a good way to see what your changes
+look like without taking the time to format the entire file.
+
+@table @kbd
+@item C-c C-r
+Invoke @TeX{} on the current region, together with the buffer's header
+(@code{tex-region}).
+@item C-c C-b
+Invoke @TeX{} on the entire current buffer (@code{tex-buffer}).
+@item C-c @key{TAB}
+Invoke Bib@TeX{} on the current file (@code{tex-bibtex-file}).
+@item C-c C-f
+Invoke @TeX{} on the current file (@code{tex-file}).
+@item C-c C-l
+Recenter the window showing output from the inferior @TeX{} so that
+the last line can be seen (@code{tex-recenter-output-buffer}).
+@item C-c C-k
+Kill the @TeX{} subprocess (@code{tex-kill-job}).
+@item C-c C-p
+Print the output from the last @kbd{C-c C-r}, @kbd{C-c C-b}, or @kbd{C-c
+C-f} command (@code{tex-print}).
+@item C-c C-v
+Preview the output from the last @kbd{C-c C-r}, @kbd{C-c C-b}, or @kbd{C-c
+C-f} command (@code{tex-view}).
+@item C-c C-q
+Show the printer queue (@code{tex-show-print-queue}).
+@item C-c C-c
+Invoke some other compilation command on the entire current buffer
+(@code{tex-compile}).
+@end table
+
+@findex tex-buffer
+@kindex C-c C-b @r{(@TeX{} mode)}
+@findex tex-print
+@kindex C-c C-p @r{(@TeX{} mode)}
+@findex tex-view
+@kindex C-c C-v @r{(@TeX{} mode)}
+@findex tex-show-print-queue
+@kindex C-c C-q @r{(@TeX{} mode)}
+  You can pass the current buffer through an inferior @TeX{} by means of
+@kbd{C-c C-b} (@code{tex-buffer}).  The formatted output appears in a
+temporary file; to print it, type @kbd{C-c C-p} (@code{tex-print}).
+Afterward, you can use @kbd{C-c C-q} (@code{tex-show-print-queue}) to
+view the progress of your output towards being printed.  If your terminal
+has the ability to display @TeX{} output files, you can preview the
+output on the terminal with @kbd{C-c C-v} (@code{tex-view}).
+
+@cindex @env{TEXINPUTS} environment variable
+@vindex tex-directory
+  You can specify the directory to use for running @TeX{} by setting the
+variable @code{tex-directory}.  @code{"."} is the default value.  If
+your environment variable @env{TEXINPUTS} contains relative directory
+names, or if your files contains @samp{\input} commands with relative
+file names, then @code{tex-directory} @emph{must} be @code{"."} or you
+will get the wrong results.  Otherwise, it is safe to specify some other
+directory, such as @code{"/tmp"}.
+
+@vindex tex-run-command
+@vindex latex-run-command
+@vindex slitex-run-command
+@vindex tex-dvi-print-command
+@vindex tex-dvi-view-command
+@vindex tex-show-queue-command
+  If you want to specify which shell commands are used in the inferior @TeX{},
+you can do so by setting the values of the variables @code{tex-run-command},
+@code{latex-run-command}, @code{slitex-run-command},
+@code{tex-dvi-print-command}, @code{tex-dvi-view-command}, and
+@code{tex-show-queue-command}.  The default values may
+(or may not) be appropriate for your system.
+
+  Normally, the file name given to these commands comes at the end of
+the command string; for example, @samp{latex @var{filename}}.  In some
+cases, however, the file name needs to be embedded in the command; an
+example is when you need to provide the file name as an argument to one
+command whose output is piped to another.  You can specify where to put
+the file name with @samp{*} in the command string.  For example,
+
+@example
+(setq tex-dvi-print-command "dvips -f * | lpr")
+@end example
+
+@findex tex-kill-job
+@kindex C-c C-k @r{(@TeX{} mode)}
+@findex tex-recenter-output-buffer
+@kindex C-c C-l @r{(@TeX{} mode)}
+  The terminal output from @TeX{}, including any error messages, appears
+in a buffer called @samp{*tex-shell*}.  If @TeX{} gets an error, you can
+switch to this buffer and feed it input (this works as in Shell mode;
+@pxref{Interactive Shell}).  Without switching to this buffer you can
+scroll it so that its last line is visible by typing @kbd{C-c
+C-l}.
+
+  Type @kbd{C-c C-k} (@code{tex-kill-job}) to kill the @TeX{} process if
+you see that its output is no longer useful.  Using @kbd{C-c C-b} or
+@kbd{C-c C-r} also kills any @TeX{} process still running.
+
+@findex tex-region
+@kindex C-c C-r @r{(@TeX{} mode)}
+  You can also pass an arbitrary region through an inferior @TeX{} by typing
+@kbd{C-c C-r} (@code{tex-region}).  This is tricky, however, because most files
+of @TeX{} input contain commands at the beginning to set parameters and
+define macros, without which no later part of the file will format
+correctly.  To solve this problem, @kbd{C-c C-r} allows you to designate a
+part of the file as containing essential commands; it is included before
+the specified region as part of the input to @TeX{}.  The designated part
+of the file is called the @dfn{header}.
+
+@cindex header (@TeX{} mode)
+  To indicate the bounds of the header in Plain @TeX{} mode, you insert two
+special strings in the file.  Insert @samp{%**start of header} before the
+header, and @samp{%**end of header} after it.  Each string must appear
+entirely on one line, but there may be other text on the line before or
+after.  The lines containing the two strings are included in the header.
+If @samp{%**start of header} does not appear within the first 100 lines of
+the buffer, @kbd{C-c C-r} assumes that there is no header.
+
+  In La@TeX{} mode, the header begins with @samp{\documentclass} or
+@samp{\documentstyle} and ends with @samp{\begin@{document@}}.  These
+are commands that La@TeX{} requires you to use in any case, so nothing
+special needs to be done to identify the header.
+
+@findex tex-file
+@kindex C-c C-f @r{(@TeX{} mode)}
+  The commands (@code{tex-buffer}) and (@code{tex-region}) do all of their
+work in a temporary directory, and do not have available any of the auxiliary
+files needed by @TeX{} for cross-references; these commands are generally
+not suitable for running the final copy in which all of the cross-references
+need to be correct.
+
+  When you want the auxiliary files for cross references, use @kbd{C-c
+C-f} (@code{tex-file}) which runs @TeX{} on the current buffer's file,
+in that file's directory.  Before running @TeX{}, it offers to save any
+modified buffers.  Generally, you need to use (@code{tex-file}) twice to
+get the cross-references right.
+
+@vindex tex-start-options
+  The value of the variable @code{tex-start-options} specifies
+options for the @TeX{} run.
+
+@vindex tex-start-commands
+  The value of the variable @code{tex-start-commands} specifies @TeX{}
+commands for starting @TeX{}.  The default value causes @TeX{} to run
+in nonstop mode.  To run @TeX{} interactively, set the variable to
+@code{""}.
+
+@vindex tex-main-file
+  Large @TeX{} documents are often split into several files---one main
+file, plus subfiles.  Running @TeX{} on a subfile typically does not
+work; you have to run it on the main file.  In order to make
+@code{tex-file} useful when you are editing a subfile, you can set the
+variable @code{tex-main-file} to the name of the main file.  Then
+@code{tex-file} runs @TeX{} on that file.
+
+  The most convenient way to use @code{tex-main-file} is to specify it
+in a local variable list in each of the subfiles.  @xref{File
+Variables}.
+
+@findex tex-bibtex-file
+@kindex C-c TAB @r{(@TeX{} mode)}
+@vindex tex-bibtex-command
+  For La@TeX{} files, you can use Bib@TeX{} to process the auxiliary
+file for the current buffer's file.  Bib@TeX{} looks up bibliographic
+citations in a data base and prepares the cited references for the
+bibliography section.  The command @kbd{C-c @key{TAB}}
+(@code{tex-bibtex-file}) runs the shell command
+(@code{tex-bibtex-command}) to produce a @samp{.bbl} file for the
+current buffer's file.  Generally, you need to do @kbd{C-c C-f}
+(@code{tex-file}) once to generate the @samp{.aux} file, then do
+@kbd{C-c @key{TAB}} (@code{tex-bibtex-file}), and then repeat @kbd{C-c C-f}
+(@code{tex-file}) twice more to get the cross-references correct.
+
+@findex tex-compile
+@kindex C-c C-c @r{(@TeX{} mode)}
+  To invoke some other compilation program on the current @TeX{}
+buffer, type @kbd{C-c C-c} (@code{tex-compile}).  This command knows
+how to pass arguments to many common programs, including
+@file{pdflatex}, @file{yap}, @file{xdvi}, and @file{dvips}.  You can
+select your desired compilation program using the standard completion
+keys (@pxref{Completion}).
+
+@node TeX Misc
+@subsection @TeX{} Mode Miscellany
+
+@vindex tex-shell-hook
+@vindex tex-mode-hook
+@vindex latex-mode-hook
+@vindex slitex-mode-hook
+@vindex plain-tex-mode-hook
+  Entering any variant of @TeX{} mode runs the hooks
+@code{text-mode-hook} and @code{tex-mode-hook}.  Then it runs either
+@code{plain-tex-mode-hook}, @code{latex-mode-hook}, or
+@code{slitex-mode-hook}, whichever is appropriate.  Starting the
+@TeX{} shell runs the hook @code{tex-shell-hook}.  @xref{Hooks}.
+
+@findex iso-iso2tex
+@findex iso-tex2iso
+@findex iso-iso2gtex
+@findex iso-gtex2iso
+@cindex Latin-1 @TeX{} encoding
+@cindex @TeX{} encoding
+  The commands @kbd{M-x iso-iso2tex}, @kbd{M-x iso-tex2iso}, @kbd{M-x
+iso-iso2gtex} and @kbd{M-x iso-gtex2iso} can be used to convert
+between Latin-1 encoded files and @TeX{}-encoded equivalents.
+@ignore
+@c Too cryptic to be useful, too cryptic for me to make it better -- rms.
+  They
+are included by default in the @code{format-alist} variable, so they
+can be used with @kbd{M-x format-find-file}, for instance.
+@end ignore
+
+@ignore  @c Not worth documenting if it is only for Czech -- rms.
+@findex tildify-buffer
+@findex tildify-region
+@cindex ties, @TeX{}, inserting
+@cindex hard spaces, @TeX{}, inserting
+  The commands @kbd{M-x tildify-buffer} and @kbd{M-x tildify-region}
+insert @samp{~} (@dfn{tie}) characters where they are conventionally
+required.  This is set up for Czech---customize the group
+@samp{tildify} for other languages or for other sorts of markup.
+@end ignore
+
+@cindex Ref@TeX{} package
+@cindex references, La@TeX{}
+@cindex La@TeX{} references
+  For managing all kinds of references for La@TeX{}, you can use
+Ref@TeX{}.  @inforef{Top,, reftex}.
+
+@node HTML Mode
+@section SGML, XML, and HTML Modes
+
+  The major modes for SGML and HTML include indentation support and
+commands to operate on tags.  This section describes the special
+commands of these modes.  (HTML mode is a slightly customized variant
+of SGML mode.)
+
+@table @kbd
+@item C-c C-n
+@kindex C-c C-n @r{(SGML mode)}
+@findex sgml-name-char
+Interactively specify a special character and insert the SGML
+@samp{&}-command for that character.
+
+@item C-c C-t
+@kindex C-c C-t @r{(SGML mode)}
+@findex sgml-tag
+Interactively specify a tag and its attributes (@code{sgml-tag}).
+This command asks you for a tag name and for the attribute values,
+then inserts both the opening tag and the closing tag, leaving point
+between them.
+
+With a prefix argument @var{n}, the command puts the tag around the
+@var{n} words already present in the buffer after point.  With
+@minus{}1 as argument, it puts the tag around the region.  (In
+Transient Mark mode, it does this whenever a region is active.)
+
+@item C-c C-a
+@kindex C-c C-a @r{(SGML mode)}
+@findex sgml-attributes
+Interactively insert attribute values for the current tag
+(@code{sgml-attributes}).
+
+@item C-c C-f
+@kindex C-c C-f @r{(SGML mode)}
+@findex sgml-skip-tag-forward
+Skip across a balanced tag group (which extends from an opening tag
+through its corresponding closing tag) (@code{sgml-skip-tag-forward}).
+A numeric argument acts as a repeat count.
+
+@item C-c C-b
+@kindex C-c C-b @r{(SGML mode)}
+@findex sgml-skip-tag-backward
+Skip backward across a balanced tag group (which extends from an
+opening tag through its corresponding closing tag)
+(@code{sgml-skip-tag-forward}).  A numeric argument acts as a repeat
+count.
+
+@item C-c C-d
+@kindex C-c C-d @r{(SGML mode)}
+@findex sgml-delete-tag
+Delete the tag at or after point, and delete the matching tag too
+(@code{sgml-delete-tag}).  If the tag at or after point is an opening
+tag, delete the closing tag too; if it is a closing tag, delete the
+opening tag too.
+
+@item C-c ? @var{tag} @key{RET}
+@kindex C-c ? @r{(SGML mode)}
+@findex sgml-tag-help
+Display a description of the meaning of tag @var{tag}
+(@code{sgml-tag-help}).  If the argument @var{tag} is empty, describe
+the tag at point.
+
+@item C-c /
+@kindex C-c / @r{(SGML mode)}
+@findex sgml-close-tag
+Insert a close tag for the innermost unterminated tag
+(@code{sgml-close-tag}).  If called from within a tag or a comment,
+close this element instead of inserting a close tag.
+
+@item C-c 8
+@kindex C-c 8 @r{(SGML mode)}
+@findex sgml-name-8bit-mode
+Toggle a minor mode in which Latin-1 characters insert the
+corresponding SGML commands that stand for them, instead of the
+characters themselves (@code{sgml-name-8bit-mode}).
+
+@item C-c C-v
+@kindex C-c C-v @r{(SGML mode)}
+@findex sgml-validate
+Run a shell command (which you must specify) to validate the current
+buffer as SGML (@code{sgml-validate}).
+
+@item C-c TAB
+@kindex C-c TAB @r{(SGML mode)}
+@findex sgml-tags-invisible
+Toggle the visibility of existing tags in the buffer.  This can be
+used as a cheap preview.
+@end table
+
+@vindex sgml-xml-mode
+  SGML mode and HTML mode support XML also.  In XML, every opening tag
+must have an explicit closing tag.  When @code{sgml-xml-mode} is
+non-@code{nil}, SGML mode and HTML mode always insert explicit
+closing tags.  When you visit a file, these modes determine from the
+file contents whether it is XML or not, and set @code{sgml-xml-mode}
+accordingly, so that they do the right thing for the file in either
+case.
+
+@node Nroff Mode
+@section Nroff Mode
+
+@cindex nroff
+@findex nroff-mode
+  Nroff mode is a mode like Text mode but modified to handle nroff commands
+present in the text.  Invoke @kbd{M-x nroff-mode} to enter this mode.  It
+differs from Text mode in only a few ways.  All nroff command lines are
+considered paragraph separators, so that filling will never garble the
+nroff commands.  Pages are separated by @samp{.bp} commands.  Comments
+start with backslash-doublequote.  Also, three special commands are
+provided that are not in Text mode:
+
+@findex forward-text-line
+@findex backward-text-line
+@findex count-text-lines
+@kindex M-n @r{(Nroff mode)}
+@kindex M-p @r{(Nroff mode)}
+@kindex M-? @r{(Nroff mode)}
+@table @kbd
+@item M-n
+Move to the beginning of the next line that isn't an nroff command
+(@code{forward-text-line}).  An argument is a repeat count.
+@item M-p
+Like @kbd{M-n} but move up (@code{backward-text-line}).
+@item M-?
+Displays in the echo area the number of text lines (lines that are not
+nroff commands) in the region (@code{count-text-lines}).
+@end table
+
+@findex electric-nroff-mode
+  The other feature of Nroff mode is that you can turn on Electric Nroff
+mode.  This is a minor mode that you can turn on or off with @kbd{M-x
+electric-nroff-mode} (@pxref{Minor Modes}).  When the mode is on, each
+time you use @key{RET} to end a line that contains an nroff command that
+opens a kind of grouping, the matching nroff command to close that
+grouping is automatically inserted on the following line.  For example,
+if you are at the beginning of a line and type @kbd{.@: ( b @key{RET}},
+this inserts the matching command @samp{.)b} on a new line following
+point.
+
+  If you use Outline minor mode with Nroff mode (@pxref{Outline Mode}),
+heading lines are lines of the form @samp{.H} followed by a number (the
+header level).
+
+@vindex nroff-mode-hook
+  Entering Nroff mode runs the hook @code{text-mode-hook}, followed by
+the hook @code{nroff-mode-hook} (@pxref{Hooks}).
+
+@node Formatted Text
+@section Editing Formatted Text
+
+@cindex Enriched mode
+@cindex mode, Enriched
+@cindex formatted text
+@cindex WYSIWYG
+@cindex word processing
+  @dfn{Enriched mode} is a minor mode for editing files that contain
+formatted text in WYSIWYG fashion, as in a word processor.  Currently,
+formatted text in Enriched mode can specify fonts, colors, underlining,
+margins, and types of filling and justification.  In the future, we plan
+to implement other formatting features as well.
+
+  Enriched mode is a minor mode (@pxref{Minor Modes}).  It is
+typically used in conjunction with Text mode (@pxref{Text Mode}), but
+you can also use it with other major modes such as Outline mode and
+Paragraph-Indent Text mode.
+
+@cindex text/enriched MIME format
+  Potentially, Emacs can store formatted text files in various file
+formats.  Currently, only one format is implemented: @dfn{text/enriched}
+format, which is defined by the MIME protocol.  @xref{Format
+Conversion,, Format Conversion, elisp, the Emacs Lisp Reference Manual},
+for details of how Emacs recognizes and converts file formats.
+
+  The Emacs distribution contains a formatted text file that can serve as
+an example.  Its name is @file{etc/enriched.doc}.  It contains samples
+illustrating all the features described in this section.  It also
+contains a list of ideas for future enhancements.
+
+@menu
+* Requesting Formatted Text::   Entering and exiting Enriched mode.
+* Hard and Soft Newlines::      There are two different kinds of newlines.
+* Editing Format Info::         How to edit text properties.
+* Faces: Format Faces.          Bold, italic, underline, etc.
+* Color: Format Colors.         Changing the color of text.
+* Indent: Format Indentation.   Changing the left and right margins.
+* Justification: Format Justification.
+                                Centering, setting text flush with the
+                                  left or right margin, etc.
+* Other: Format Properties.     The "special" text properties submenu.
+* Forcing Enriched Mode::       How to force use of Enriched mode.
+@end menu
+
+@node Requesting Formatted Text
+@subsection Requesting to Edit Formatted Text
+
+  Whenever you visit a file that Emacs saved in the text/enriched
+format, Emacs automatically converts the formatting information in the
+file into Emacs's own internal format (known as @dfn{text
+properties}), and turns on Enriched mode.
+
+@findex enriched-mode
+  To create a new file of formatted text, first visit the nonexistent
+file, then type @kbd{M-x enriched-mode} before you start inserting text.
+This command turns on Enriched mode.  Do this before you begin inserting
+text, to ensure that the text you insert is handled properly.
+
+  More generally, the command @code{enriched-mode} turns Enriched mode
+on if it was off, and off if it was on.  With a prefix argument, this
+command turns Enriched mode on if the argument is positive, and turns
+the mode off otherwise.
+
+  When you save a buffer while Enriched mode is enabled in it, Emacs
+automatically converts the text to text/enriched format while writing it
+into the file.  When you visit the file again, Emacs will automatically
+recognize the format, reconvert the text, and turn on Enriched mode
+again.
+
+@vindex enriched-translations
+  You can add annotations for saving additional text properties, which
+Emacs normally does not save, by adding to @code{enriched-translations}.
+Note that the text/enriched standard requires any non-standard
+annotations to have names starting with @samp{x-}, as in
+@samp{x-read-only}.  This ensures that they will not conflict with
+standard annotations that may be added later.
+
+  @xref{Text Properties,,, elisp, the Emacs Lisp Reference Manual},
+for more information about text properties.
+
+@node Hard and Soft Newlines
+@subsection Hard and Soft Newlines
+@cindex hard newline
+@cindex soft newline
+@cindex newlines, hard and soft
+
+@cindex use-hard-newlines
+  In formatted text, Emacs distinguishes between two different kinds of
+newlines, @dfn{hard} newlines and @dfn{soft} newlines.  (You can enable
+or disable this feature separately in any  buffer with the command
+@code{use-hard-newlines}.)
+
+  Hard newlines are used to separate paragraphs, or items in a list, or
+anywhere that there should always be a line break regardless of the
+margins.  The @key{RET} command (@code{newline}) and @kbd{C-o}
+(@code{open-line}) insert hard newlines.
+
+  Soft newlines are used to make text fit between the margins.  All the
+fill commands, including Auto Fill, insert soft newlines---and they
+delete only soft newlines.
+
+  Although hard and soft newlines look the same, it is important to bear
+the difference in mind.  Do not use @key{RET} to break lines in the
+middle of filled paragraphs, or else you will get hard newlines that are
+barriers to further filling.  Instead, let Auto Fill mode break lines,
+so that if the text or the margins change, Emacs can refill the lines
+properly.  @xref{Auto Fill}.
+
+  On the other hand, in tables and lists, where the lines should always
+remain as you type them, you can use @key{RET} to end lines.  For these
+lines, you may also want to set the justification style to
+@code{unfilled}.  @xref{Format Justification}.
+
+@node Editing Format Info
+@subsection Editing Format Information
+
+  There are two ways to alter the formatting information for a formatted
+text file: with keyboard commands, and with the mouse.
+
+  The easiest way to add properties to your document is with the Text
+Properties menu.  You can get to this menu in two ways: from the Edit
+menu in the menu bar (use @kbd{@key{F10} e t} if you have no mouse),
+or with @kbd{C-Mouse-2} (hold the @key{CTRL} key and press the middle
+mouse button).  There are also keyboard commands described in the
+following section.
+
+  Most of the items in the Text Properties menu lead to other submenus.
+These are described in the sections that follow.  Some items run
+commands directly:
+
+@table @code
+@findex facemenu-remove-face-props
+@item Remove Face Properties
+Delete from the region all face and color text properties
+(@code{facemenu-remove-face-props}).
+
+@findex facemenu-remove-all
+@item Remove Text Properties
+Delete @emph{all} text properties from the region
+(@code{facemenu-remove-all}).
+
+@findex describe-text-properties
+@cindex text properties of characters
+@cindex overlays at character position
+@cindex widgets at buffer position
+@cindex buttons at buffer position
+@item Describe Properties
+List all the text properties, widgets, buttons, and overlays of the
+character following point (@code{describe-text-properties}).
+
+@item Display Faces
+Display a list of all the defined faces (@code{list-faces-display}).
+
+@item Display Colors
+Display a list of all the defined colors (@code{list-colors-display}).
+@end table
+
+@node Format Faces
+@subsection Faces in Formatted Text
+
+  The Faces submenu lists various Emacs faces including @code{bold},
+@code{italic}, and @code{underline} (@pxref{Faces}).  These menu items
+operate on the region if it is active and nonempty.  Otherwise, they
+specify to use that face for an immediately following self-inserting
+character.  Instead of the menu, you can use these keyboard commands:
+
+@table @kbd
+@kindex M-o d @r{(Enriched mode)}
+@findex facemenu-set-default
+@item M-o d
+Remove all @code{face} properties from the region (which includes
+specified colors), or force the following inserted character to have no
+@code{face} property (@code{facemenu-set-default}).
+@kindex M-o b @r{(Enriched mode)}
+@findex facemenu-set-bold
+@item M-o b
+Add the face @code{bold} to the region or to the following inserted
+character (@code{facemenu-set-bold}).
+@kindex M-o i @r{(Enriched mode)}
+@findex facemenu-set-italic
+@item M-o i
+Add the face @code{italic} to the region or to the following inserted
+character (@code{facemenu-set-italic}).
+@kindex M-o l @r{(Enriched mode)}
+@findex facemenu-set-bold-italic
+@item M-o l
+Add the face @code{bold-italic} to the region or to the following
+inserted character (@code{facemenu-set-bold-italic}).
+@kindex M-o u @r{(Enriched mode)}
+@findex facemenu-set-underline
+@item M-o u
+Add the face @code{underline} to the region or to the following inserted
+character (@code{facemenu-set-underline}).
+@kindex M-o o @r{(Enriched mode)}
+@findex facemenu-set-face
+@item M-o o @var{face} @key{RET}
+Add the face @var{face} to the region or to the following inserted
+character (@code{facemenu-set-face}).
+@end table
+
+   With a prefix argument, all these commands apply to an immediately
+following self-inserting character, disregarding the region.
+
+  A self-inserting character normally inherits the @code{face}
+property (and most other text properties) from the preceding character
+in the buffer.  If you use the above commands to specify face for the
+next self-inserting character, or the next section's commands to
+specify a foreground or background color for it, then it does not
+inherit the @code{face} property from the preceding character; instead
+it uses whatever you specified.  It will still inherit other text
+properties, though.
+
+  Strictly speaking, these commands apply only to the first following
+self-inserting character that you type.  But if you insert additional
+characters after it, they will inherit from the first one.  So it
+appears that these commands apply to all of them.
+
+  Enriched mode defines two additional faces: @code{excerpt} and
+@code{fixed}.  These correspond to codes used in the text/enriched file
+format.
+
+  The @code{excerpt} face is intended for quotations.  This face is the
+same as @code{italic} unless you customize it (@pxref{Face Customization}).
+
+  The @code{fixed} face means, ``Use a fixed-width font for this part
+of the text.''  Applying the @code{fixed} face to a part of the text
+will cause that part of the text to appear in a fixed-width font, even
+if the default font is variable-width.  This applies to Emacs and to
+other systems that display text/enriched format.  So if you
+specifically want a certain part of the text to use a fixed-width
+font, you should specify the @code{fixed} face for that part.
+
+  By default, the @code{fixed} face looks the same as @code{bold}.
+This is an attempt to distinguish it from @code{default}.  You may
+wish to customize @code{fixed} to some other fixed-width medium font.
+@xref{Face Customization}.
+
+  If your terminal cannot display different faces, you will not be
+able to see them, but you can still edit documents containing faces,
+and even add faces and colors to documents.  The faces you specify
+will be visible when the file is viewed on a terminal that can display
+them.
+
+@node Format Colors
+@subsection Colors in Formatted Text
+
+  You can specify foreground and background colors for portions of the
+text.  There is a menu for specifying the foreground color and a menu
+for specifying the background color.  Each color menu lists all the
+colors that you have used in Enriched mode in the current Emacs session.
+
+  If you specify a color with a prefix argument---or, in Transient
+Mark mode, if the region is not active---then it applies to any
+immediately following self-inserting input.  Otherwise, the command
+applies to the region.
+
+  Each color menu contains one additional item: @samp{Other}.  You can use
+this item to specify a color that is not listed in the menu; it reads
+the color name with the minibuffer.  To display a list of available colors
+and their names, use the @samp{Display Colors} menu item in the Text
+Properties menu (@pxref{Editing Format Info}).
+
+  Any color that you specify in this way, or that is mentioned in a
+formatted text file that you read in, is added to the corresponding
+color menu for the duration of the Emacs session.
+
+@findex facemenu-set-foreground
+@findex facemenu-set-background
+  There are no predefined key bindings for specifying colors, but you can do so
+with the extended commands @kbd{M-x facemenu-set-foreground} and
+@kbd{M-x facemenu-set-background}.  Both of these commands read the name
+of the color with the minibuffer.
+
+@node Format Indentation
+@subsection Indentation in Formatted Text
+
+  When editing formatted text, you can specify different amounts of
+indentation for the right or left margin of an entire paragraph or a
+part of a paragraph.  The margins you specify automatically affect the
+Emacs fill commands (@pxref{Filling}) and line-breaking commands.
+
+  The Indentation submenu provides a convenient interface for specifying
+these properties.  The submenu contains four items:
+
+@table @code
+@kindex C-x TAB @r{(Enriched mode)}
+@findex increase-left-margin
+@item Indent More
+Indent the region by 4 columns (@code{increase-left-margin}).  In
+Enriched mode, this command is also available on @kbd{C-x @key{TAB}}; if
+you supply a numeric argument, that says how many columns to add to the
+margin (a negative argument reduces the number of columns).
+
+@item Indent Less
+Remove 4 columns of indentation from the region.
+
+@item Indent Right More
+Make the text narrower by indenting 4 columns at the right margin.
+
+@item Indent Right Less
+Remove 4 columns of indentation from the right margin.
+@end table
+
+  You can use these commands repeatedly to increase or decrease the
+indentation.
+
+  The most common way to use them is to change the indentation of an
+entire paragraph.  For other uses, the effects of refilling can be
+hard to predict, except in some special cases like the one described
+next.
+
+  The most common other use is to format paragraphs with @dfn{hanging
+indents}, which means that the first line is indented less than
+subsequent lines.  To set up a hanging indent, increase the
+indentation of the region starting after the first word of the
+paragraph and running until the end of the paragraph.
+
+  Indenting the first line of a paragraph is easier.  Set the margin for
+the whole paragraph where you want it to be for the body of the
+paragraph, then indent the first line by inserting extra spaces or tabs.
+
+@vindex standard-indent
+  The variable @code{standard-indent} specifies how many columns these
+commands should add to or subtract from the indentation.  The default
+value is 4.  The overall default right margin for Enriched mode is
+controlled by the variable @code{fill-column}, as usual.
+
+@kindex C-c [ @r{(Enriched mode)}
+@kindex C-c ] @r{(Enriched mode)}
+@findex set-left-margin
+@findex set-right-margin
+  There are also two commands for setting the left or right margin of
+the region absolutely: @code{set-left-margin} and
+@code{set-right-margin}.  Enriched mode binds these commands to
+@kbd{C-c [} and @kbd{C-c ]}, respectively.  You can specify the
+margin width either with a numeric argument or in the minibuffer.
+
+  Sometimes, as a result of editing, the filling of a paragraph becomes
+messed up---parts of the paragraph may extend past the left or right
+margins.  When this happens, use @kbd{M-q} (@code{fill-paragraph}) to
+refill the paragraph.
+
+  The fill prefix, if any, works in addition to the specified paragraph
+indentation: @kbd{C-x .} does not include the specified indentation's
+whitespace in the new value for the fill prefix, and the fill commands
+look for the fill prefix after the indentation on each line.  @xref{Fill
+Prefix}.
+
+@node Format Justification
+@subsection Justification in Formatted Text
+
+  When editing formatted text, you can specify various styles of
+justification for a paragraph.  The style you specify automatically
+affects the Emacs fill commands.
+
+  The Justification submenu provides a convenient interface for specifying
+the style.  The submenu contains five items:
+
+@table @code
+@item Left
+This is the most common style of justification (at least for English).
+Lines are aligned at the left margin but left uneven at the right.
+
+@item Right
+This aligns each line with the right margin.  Spaces and tabs are added
+on the left, if necessary, to make lines line up on the right.
+
+@item Full
+This justifies the text, aligning both edges of each line.  Justified
+text looks very nice in a printed book, where the spaces can all be
+adjusted equally, but it does not look as nice with a fixed-width font
+on the screen.  Perhaps a future version of Emacs will be able to adjust
+the width of spaces in a line to achieve elegant justification.
+
+@item Center
+This centers every line between the current margins.
+
+@item Unfilled
+This turns off filling entirely.  Each line will remain as you wrote it;
+the fill and auto-fill functions will have no effect on text which has
+this setting.  You can, however, still indent the left margin.  In
+unfilled regions, all newlines are treated as hard newlines (@pxref{Hard
+and Soft Newlines}) .
+@end table
+
+  In Enriched mode, you can also specify justification from the keyboard
+using the @kbd{M-j} prefix character:
+
+@table @kbd
+@kindex M-j l @r{(Enriched mode)}
+@findex set-justification-left
+@item M-j l
+Make the region left-filled (@code{set-justification-left}).
+@kindex M-j r @r{(Enriched mode)}
+@findex set-justification-right
+@item M-j r
+Make the region right-filled (@code{set-justification-right}).
+@kindex M-j b @r{(Enriched mode)}
+@findex set-justification-full
+@item M-j b
+Make the region fully justified (@code{set-justification-full}).
+@kindex M-j c @r{(Enriched mode)}
+@kindex M-S @r{(Enriched mode)}
+@findex set-justification-center
+@item M-j c
+@itemx M-S
+Make the region centered (@code{set-justification-center}).
+@kindex M-j u @r{(Enriched mode)}
+@findex set-justification-none
+@item M-j u
+Make the region unfilled (@code{set-justification-none}).
+@end table
+
+  Justification styles apply to entire paragraphs.  All the
+justification-changing commands operate on the paragraph containing
+point, or, if the region is active, on all paragraphs which overlap the
+region.
+
+@vindex default-justification
+  The default justification style is specified by the variable
+@code{default-justification}.  Its value should be one of the symbols
+@code{left}, @code{right}, @code{full}, @code{center}, or @code{none}.
+This is a per-buffer variable.  Setting the variable directly affects
+only the current buffer.  However, customizing it in a Custom buffer
+sets (as always) the default value for buffers that do not override it.
+@xref{Locals}, and @ref{Easy Customization}.
+
+@node Format Properties
+@subsection Setting Other Text Properties
+
+  The Special Properties menu lets you add or remove three other useful text
+properties: @code{read-only}, @code{invisible} and @code{intangible}.
+The @code{intangible} property disallows moving point within the text,
+the @code{invisible} text property hides text from display, and the
+@code{read-only} property disallows alteration of the text.
+
+  Each of these special properties has a menu item to add it to the
+region.  The last menu item, @samp{Remove Special}, removes all of these
+special properties from the text in the region.
+
+  Currently, the @code{invisible} and @code{intangible} properties are
+@emph{not} saved in the text/enriched format.  The @code{read-only}
+property is saved, but it is not a standard part of the text/enriched
+format, so other editors may not respect it.
+
+@node Forcing Enriched Mode
+@subsection Forcing Enriched Mode
+
+  Normally, Emacs knows when you are editing formatted text because it
+recognizes the special annotations used in the file that you visited.
+However, sometimes you must take special actions to convert file
+contents or turn on Enriched mode:
+
+@itemize @bullet
+@item
+When you visit a file that was created with some other editor, Emacs may
+not recognize the file as being in the text/enriched format.  In this
+case, when you visit the file you will see the formatting commands
+rather than the formatted text.  Type @kbd{M-x format-decode-buffer} to
+translate it.  This also automatically turns on Enriched mode.
+
+@item
+When you @emph{insert} a file into a buffer, rather than visiting it,
+Emacs does the necessary conversions on the text which you insert, but
+it does not enable Enriched mode.  If you wish to do that, type @kbd{M-x
+enriched-mode}.
+@end itemize
+
+  The command @code{format-decode-buffer} translates text in various
+formats into Emacs's internal format.  It asks you to specify the format
+to translate from; however, normally you can type just @key{RET}, which
+tells Emacs to guess the format.
+
+@findex format-find-file
+  If you wish to look at a text/enriched file in its raw form, as a
+sequence of characters rather than as formatted text, use the @kbd{M-x
+find-file-literally} command.  This visits a file, like
+@code{find-file}, but does not do format conversion.  It also inhibits
+character code conversion (@pxref{Coding Systems}) and automatic
+uncompression (@pxref{Compressed Files}).  To disable format conversion
+but allow character code conversion and/or automatic uncompression if
+appropriate, use @code{format-find-file} with suitable arguments.
+
+@node Text Based Tables
+@section Editing Text-based Tables
+@cindex table mode
+@cindex text-based tables
+
+  Table mode provides an easy and intuitive way to create and edit WYSIWYG
+text-based tables.  Here is an example of such a table:
+
+@smallexample
+@group
++-----------------+--------------------------------+-----------------+
+|     Command     |          Description           |   Key Binding   |
++-----------------+--------------------------------+-----------------+
+|  forward-char   |Move point right N characters   |       C-f       |
+|                 |(left if N is negative).        |                 |
+|                 |                                |                 |
+|                 |On reaching end of buffer, stop |                 |
+|                 |and signal error.               |                 |
++-----------------+--------------------------------+-----------------+
+|  backward-char  |Move point left N characters    |       C-b       |
+|                 |(right if N is negative).       |                 |
+|                 |                                |                 |
+|                 |On attempt to pass beginning or |                 |
+|                 |end of buffer, stop and signal  |                 |
+|                 |error.                          |                 |
++-----------------+--------------------------------+-----------------+
+@end group
+@end smallexample
+
+  Table mode allows the contents of the table such as this one to be
+easily manipulated by inserting or deleting characters inside a cell.
+A cell is effectively a localized rectangular edit region and edits to
+a cell do not affect the contents of the surrounding cells.  If the
+contents do not fit into a cell, then the cell is automatically
+expanded in the vertical and/or horizontal directions and the rest of
+the table is restructured and reformatted in accordance with the
+growth of the cell.
+
+@menu
+* Table Definition::          What is a text based table.
+* Table Creation::            How to create a table.
+* Table Recognition::         How to activate and deactivate tables.
+* Cell Commands::             Cell-oriented commands in a table.
+* Cell Justification::        Justifying cell contents.
+* Row Commands::              Manipulating rows of table cell.
+* Column Commands::           Manipulating columns of table cell.
+* Fixed Width Mode::          Fixing cell width.
+* Table Conversion::          Converting between plain text and tables.
+* Measuring Tables::          Analyzing table dimension.
+* Table Misc::                Table miscellany.
+@end menu
+
+@node Table Definition
+@subsection What is a Text-based Table?
+
+  Keep the following examples of valid tables in mind as a reference
+while you read this section:
+
+@example
+              +--+----+---+     +-+     +--+-----+
+              |  |    |   |     | |     |  |     |
+              +--+----+---+     +-+     |  +--+--+
+              |  |    |   |             |  |  |  |
+              +--+----+---+             +--+--+  |
+                                        |     |  |
+                                        +-----+--+
+@end example
+
+  A table consists of a rectangular frame whose inside is divided into
+cells.  Each cell must be at least one character wide and one
+character high, not counting its border lines.  A cell can be
+subdivided into multiple rectangular cells, but cells cannot overlap.
+
+  The table frame and cell border lines are made of three special
+characters.  These variables specify those characters:
+
+@table @code
+@vindex table-cell-vertical-char
+@item table-cell-vertical-char
+Holds the character used for vertical lines.  The default value is
+@samp{|}.
+
+@vindex table-cell-horizontal-char
+@item table-cell-horizontal-char
+Holds the character used for horizontal lines.  The default value is
+@samp{-}.
+
+@vindex table-cell-intersection-char
+@item table-cell-intersection-char
+Holds the character used at where horizontal line and vertical line
+meet.  The default value is @samp{+}.
+@end table
+
+@noindent
+Based on this definition, the following five tables are examples of invalid
+tables:
+
+@example
+   +-----+    +-----+       +--+    +-++--+    ++
+   |     |    |     |       |  |    | ||  |    ++
+   | +-+ |    |     |       |  |    | ||  |
+   | | | |    +--+  |    +--+--+    +-++--+
+   | +-+ |    |  |  |    |  |  |    +-++--+
+   |     |    |  |  |    |  |  |    | ||  |
+   +-----+    +--+--+    +--+--+    +-++--+
+     a           b          c          d        e
+@end example
+
+From left to right:
+
+@enumerate a
+@item
+Overlapped cells or non-rectangular cells are not allowed.
+@item
+Same as a.
+@item
+The border must be rectangular.
+@item
+Cells must have a minimum width/height of one character.
+@item
+Same as d.
+@end enumerate
+
+@node Table Creation
+@subsection How to Create a Table?
+@cindex create a text-based table
+@cindex table creation
+
+@findex table-insert
+  The command to create a table is @code{table-insert}.  When called
+interactively, it asks for the number of columns, number of rows, cell
+width and cell height.  The number of columns is the number of cells
+horizontally side by side.  The number of rows is the number of cells
+vertically within the table's height.  The cell width is a number of
+characters that each cell holds, left to right.  The cell height is a
+number of lines each cell holds.  The cell width and the cell height
+can be either an integer (when the value is constant across the table)
+or a series of integer, separated by spaces or commas, where each
+number corresponds to the next cell within a row from left to right,
+or the next cell within a column from top to bottom.
+
+@node Table Recognition
+@subsection Table Recognition
+@cindex table recognition
+
+@findex table-recognize
+@findex table-unrecognize
+  Table mode maintains special text properties in the buffer to allow
+editing in a convenient fashion.  When a buffer with tables is saved
+to its file, these text properties are lost, so when you visit this
+file again later, Emacs does not see a table, but just formatted text.
+To resurrect the table text properties, issue the @kbd{M-x
+table-recognize} command.  It scans the current buffer, recognizes
+valid table cells, and attaches appropriate text properties to allow
+for table editing.  The converse command, @code{table-unrecognize}, is
+used to remove the special text properties and convert the buffer back
+to plain text.
+
+  Special commands exist to enable or disable tables within a region,
+enable or disable individual tables, and enable/disable individual
+cells.  These commands are:
+
+@table @kbd
+@findex table-recognize-region
+@item M-x table-recognize-region
+Recognize tables within the current region and activate them.
+@findex table-unrecognize-region
+@item M-x table-unrecognize-region
+Deactivate tables within the current region.
+@findex table-recognize-table
+@item M-x table-recognize-table
+Recognize the table under point and activate it.
+@findex table-unrecognize-table
+@item M-x table-unrecognize-table
+Deactivate the table under point.
+@findex table-recognize-cell
+@item M-x table-recognize-cell
+Recognize the cell under point and activate it.
+@findex table-unrecognize-cell
+@item M-x table-unrecognize-cell
+Deactivate the cell under point.
+@end table
+
+  For another way of converting text into tables, see @ref{Table
+Conversion}.
+
+@node Cell Commands
+@subsection Commands for Table Cells
+
+@findex table-forward-cell
+@findex table-backward-cell
+  The commands @code{table-forward-cell} and
+@code{table-backward-cell} move point from the current cell to an
+adjacent cell forward and backward respectively.  The order of the
+cells is cyclic: when point is in the last cell of a table, typing
+@kbd{M-x table-forward-cell} moves to the first cell in the table.
+Likewise @kbd{M-x table-backward-cell} from the first cell in a table
+moves to the last cell.
+
+@findex table-span-cell
+  The command @code{table-span-cell} merges the current cell with the
+adjacent cell in a specified direction---right, left, above or below.
+You specify the direction with the minibuffer.  It does not allow
+merges which don't result in a legitimate cell layout.
+
+@findex table-split-cell
+@cindex text-based tables, split a cell
+@cindex split table cell
+  The command @code{table-split-cell} splits the current cell
+vertically or horizontally.  This command is a wrapper to the
+direction specific commands @code{table-split-cell-vertically} and
+@code{table-split-cell-horizontally}.  You specify the direction with
+a minibuffer argument.
+
+@findex table-split-cell-vertically
+  The command @code{table-split-cell-vertically} splits the current
+cell vertically and creates a pair of cells above and below where
+point is located.  The content in the original cell is split as well.
+
+@findex table-split-cell-horizontally
+  The command @code{table-split-cell-horizontally} splits the current
+cell horizontally and creates a pair of cells right and left of where
+point is located.  If the cell being split is not empty, this asks you
+how to handle the cell contents.  The three options are: @code{split},
+@code{left}, or @code{right}.  @code{split} splits the contents at
+point literally, while the @code{left} and @code{right} options move
+the entire contents into the left or right cell respectively.
+
+@cindex enlarge a table cell
+@cindex shrink a table cell
+  The next four commands enlarge or shrink a cell.  They use numeric
+arguments (@pxref{Arguments}) to specify how many columns or rows to
+enlarge or shrink a particular table.
+
+@table @kbd
+@findex table-heighten-cell
+@item M-x table-heighten-cell
+Enlarge the current cell vertically.
+@findex table-shorten-cell
+@item M-x table-shorten-cell
+Shrink the current cell vertically.
+@findex table-widen-cell
+@item M-x table-widen-cell
+Enlarge the current cell horizontally.
+@findex table-narrow-cell
+@item M-x table-narrow-cell
+Shrink the current cell horizontally.
+@end table
+
+@node Cell Justification
+@subsection Cell Justification
+@cindex cell text justification
+
+  You can specify text justification for each cell.  The justification
+is remembered independently for each cell and the subsequent editing
+of cell contents is subject to the specified justification.
+
+@findex table-justify
+  The command @code{table-justify} ask you to specify what to justify:
+a cell, a column, or a row.  If you select cell justification, this
+command sets the justification only for the current cell.  Selecting
+column or row justification sets the justification for all the cells
+within a column or row respectively.  The command then ask you which
+kind of justification to apply: @code{left}, @code{center},
+@code{right}, @code{top}, @code{middle}, @code{bottom}, or
+@code{none}.  Horizontal justification and vertical justification are
+specified independently.  The options @code{left}, @code{center}, and
+@code{right} specify horizontal justification while the options
+@code{top}, @code{middle}, @code{bottom}, and @code{none} specify
+vertical justification.  The vertical justification @code{none}
+effectively removes vertical justification.  Horizontal justification
+must be one of @code{left}, @code{center}, or @code{right}.
+
+@vindex table-detect-cell-alignment
+  Justification information is stored in the buffer as a part of text
+property.  Therefore, this information is ephemeral and does not
+survive through the loss of the buffer (closing the buffer and
+revisiting the buffer erase any previous text properties).  To
+countermand for this, the command @code{table-recognize} and other
+recognition commands (@pxref{Table Recognition}) are equipped with a
+convenience feature (turned on by default).  During table recognition,
+the contents of a cell are examined to determine which justification
+was originally applied to the cell and then applies this justification
+to the cell.  This is a speculative algorithm and is therefore not
+perfect, however, the justification is deduced correctly most of the
+time.  To disable this feature, customize the variable
+@code{table-detect-cell-alignment} and set it to @code{nil}.
+
+@node Row Commands
+@subsection Commands for Table Rows
+@cindex table row commands
+
+@cindex insert row in table
+@findex table-insert-row
+  The command @code{table-insert-row} inserts a row of cells before
+the current row in a table.  The current row where point is located is
+pushed down after the newly inserted row.  A numeric prefix argument
+specifies the number of rows to insert.  Note that in order to insert
+rows @emph{after} the last row at the bottom of a table, you must
+place point below the table---that is, outside the table---prior to
+invoking this command.
+
+@cindex delete row in table
+@findex table-delete-row
+  The command @code{table-delete-row} deletes a row of cells at point.
+A numeric prefix argument specifies the number of rows to delete.
+
+@node Column Commands
+@subsection Commands for Table Columns
+@cindex table column commands
+
+@cindex insert column in table
+@findex table-insert-column
+  The command @code{table-insert-column} inserts a column of cells to
+the left of the current row in a table.  This pushes the current
+column to the right.  To insert a column to the right side of the
+rightmost column, place point to the right of the rightmost column,
+which is outside of the table, prior to invoking this command.  A
+numeric prefix argument specifies the number of columns to insert.
+
+@cindex delete column in table
+  A command @code{table-delete-column} deletes a column of cells at
+point.  A numeric prefix argument specifies the number of columns to
+delete.
+
+@node Fixed Width Mode
+@subsection Fix Width of Cells
+@cindex fix width of table cells
+
+@findex table-fixed-width-mode
+  The command @code{table-fixed-width-mode} toggles fixed width mode
+on and off.  When fixed width mode is turned on, editing inside a
+cell never changes the cell width; when it is off, the cell width
+expands automatically in order to prevent a word from being folded
+into multiple lines.  By default, fixed width mode is disabled.
+
+@node Table Conversion
+@subsection Conversion Between Plain Text and Tables
+@cindex text to table
+@cindex table to text
+
+@findex table-capture
+  The command @code{table-capture} captures plain text in a region and
+turns it into a table.  Unlike @code{table-recognize} (@pxref{Table
+Recognition}), the original text does not have a table appearance but
+may hold a logical table structure.  For example, some elements
+separated by known patterns form a two dimensional structure which can
+be turned into a table.
+
+  Here's an example of data that @code{table-capture} can operate on.
+The numbers are horizontally separated by a comma and vertically
+separated by a newline character.
+
+@example
+1, 2, 3, 4
+5, 6, 7, 8
+, 9, 10
+@end example
+
+@noindent
+Invoking @kbd{M-x table-capture} on that text produces this table:
+
+@example
++-----+-----+-----+-----+
+|1    |2    |3    |4    |
++-----+-----+-----+-----+
+|5    |6    |7    |8    |
++-----+-----+-----+-----+
+|     |9    |10   |     |
++-----+-----+-----+-----+
+@end example
+
+@noindent
+The conversion uses @samp{,} for the column delimiter and newline for
+a row delimiter, cells are left justified, and minimum cell width is
+5.
+
+@findex table-release
+  The command @code{table-release} does the opposite of
+@code{table-capture}.  It releases a table by removing the table frame
+and cell borders.  This leaves the table contents as plain text.  One
+of the useful applications of @code{table-capture} and
+@code{table-release} is to edit a text in layout.  Look at the
+following three paragraphs (the latter two are indented with header
+lines):
+
+@example
+@samp{table-capture} is a powerful command, but mastering its
+power requires some practice.  Here are some things it can do:
+
+Parse Cell Items      By using column delimiter regular
+                      expression and raw delimiter regular
+                      expression, it parses the specified text
+                      area and extracts cell items from
+                      non-table text and then forms a table out
+                      of them.
+
+Capture Text Area     When no delimiters are specified it
+                      creates a single cell table.  The text in
+                      the specified region is placed in that
+                      cell.
+@end example
+
+@noindent
+Applying @code{table-capture} to a region containing the above three
+paragraphs, with empty strings for column delimiter regexp and row
+delimiter regexp, creates a table with a single cell like the
+following one.
+
+@c The first line's right-hand frame in the following two examples
+@c sticks out to accommodate for the removal of @samp in the
+@c produced output!!
+@smallexample
+@group
++-----------------------------------------------------------------+
+|@samp{table-capture} is a powerful command, but mastering its         |
+|power requires some practice.  Here are some things it can do:   |
+|                                                                 |
+|Parse Cell Items      By using column delimiter regular          |
+|                      expression and raw delimiter regular       |
+|                      expression, it parses the specified text   |
+|                      area and extracts cell items from          |
+|                      non-table text and then forms a table out  |
+|                      of them.                                   |
+|                                                                 |
+|Capture Text Area     When no delimiters are specified it        |
+|                      creates a single cell table.  The text in  |
+|                      the specified region is placed in that     |
+|                      cell.                                      |
++-----------------------------------------------------------------+
+@end group
+@end smallexample
+
+@noindent
+By splitting the cell appropriately we now have a table consisting of
+paragraphs occupying its own cell.  Each cell can now be edited
+independently without affecting the layout of other cells.
+
+@smallexample
++-----------------------------------------------------------------+
+|@samp{table-capture} is a powerful command, but mastering its         |
+|power requires some practice.  Here are some things it can do:   |
++---------------------+-------------------------------------------+
+|Parse Cell Items     |By using column delimiter regular          |
+|                     |expression and raw delimiter regular       |
+|                     |expression, it parses the specified text   |
+|                     |area and extracts cell items from          |
+|                     |non-table text and then forms a table out  |
+|                     |of them.                                   |
++---------------------+-------------------------------------------+
+|Capture Text Area    |When no delimiters are specified it        |
+|                     |creates a single cell table.  The text in  |
+|                     |the specified region is placed in that     |
+|                     |cell.                                      |
++---------------------+-------------------------------------------+
+@end smallexample
+
+@noindent
+By applying @code{table-release}, which does the opposite process, the
+contents become once again plain text.  @code{table-release} works as
+a companion command to @code{table-capture}.
+
+@node Measuring Tables
+@subsection Analyzing Table Dimensions
+@cindex table dimensions
+
+@findex table-query-dimension
+  The command @code{table-query-dimension} analyzes a table structure
+and reports information regarding its dimensions.  In case of the
+above example table, the @code{table-query-dimension} command displays
+in echo area:
+
+@smallexample
+Cell: (21w, 6h), Table: (67w, 16h), Dim: (2c, 3r), Total Cells: 5
+@end smallexample
+
+@noindent
+This indicates that the current cell is 21 character wide and 6 lines
+high, the entire table is 67 characters wide and 16 lines high.  The
+table has 2 columns and 3 rows.  It has a total of 5 cells, since the
+first row has a spanned cell.
+
+@node Table Misc
+@subsection Table Miscellany
+
+@cindex insert string into table cells
+@findex table-insert-sequence
+  The command @code{table-insert-sequence} inserts a string into each
+cell.  Each string is a part of a sequence i.e.@: a series of
+increasing integer numbers.
+
+@cindex table in language format
+@cindex table for HTML and LaTeX
+@findex table-generate-source
+  The command @code{table-generate-source} generates a table formatted
+for a specific markup language.  It asks for a language (which must be
+one of @code{html}, @code{latex}, or @code{cals}), a destination
+buffer where to put the result, and the table caption (a string), and
+then inserts the generated table in the proper syntax into the
+destination buffer.  The default destination buffer is
+@code{table.@var{lang}}, where @var{lang} is the language you
+specified.
+
+@ignore
+   arch-tag: 8db54ed8-2036-49ca-b0df-23811d03dc70
+@end ignore
