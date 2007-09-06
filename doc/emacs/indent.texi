@@ -1,0 +1,244 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node Indentation, Text, Major Modes, Top
+@chapter Indentation
+@cindex indentation
+@cindex columns (indentation)
+
+  This chapter describes the Emacs commands that add, remove, or
+adjust indentation.
+
+@table @kbd
+@item @key{TAB}
+Indent the current line ``appropriately'' in a mode-dependent fashion.
+@item @kbd{C-j}
+Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
+@item M-^
+Merge the previous and the current line (@code{delete-indentation}).
+This would cancel the effect of a preceding @kbd{C-j}.
+@item C-M-o
+Split the current line at point; text on the line after point becomes a
+new line indented to the same column where point is located
+(@code{split-line}).
+@item M-m
+Move (forward or back) to the first nonblank character on the current
+line (@code{back-to-indentation}).
+@item C-M-\
+Indent lines in the region to the same column (@code{indent-region}).
+@item C-x @key{TAB}
+Shift lines in the region rigidly right or left (@code{indent-rigidly}).
+@item M-i
+Indent from point to the next prespecified tab stop column
+(@code{tab-to-tab-stop}).
+@item M-x indent-relative
+Indent from point to under an indentation point in the previous line.
+@end table
+
+  Emacs supports four general categories of operations that could all
+be called `indentation':
+
+@enumerate
+@item
+Insert a tab character.  You can type @kbd{C-q @key{TAB}} to do this.
+
+A tab character is displayed as a stretch of whitespace which extends
+to the next display tab stop position, and the default width of a tab
+stop is eight.  @xref{Text Display}, for more details.
+
+@item
+Insert whitespace up to the next tab stop.  You can set tab stops at
+your choice of column positions, then type @kbd{M-i} to advance to the
+next tab stop.  The default tab stop settings have a tab stop every
+eight columns, which means by default @kbd{M-i} inserts a tab
+character.  To set the tab stops, use @kbd{M-x edit-tab-stops}.
+
+@item
+Align a line with the previous line.  More precisely, the command
+@kbd{M-x indent-relative} indents the current line under the beginning
+of some word in the previous line.  In Fundamental mode and in Text
+mode, @key{TAB} runs the command @code{indent-relative}.
+
+@item
+The most sophisticated method is @dfn{syntax-driven indentation}.
+Most programming languages have an indentation convention.  For Lisp
+code, lines are indented according to their nesting in parentheses.  C
+code uses the same general idea, but many details are different.
+
+@kindex TAB
+Type @key{TAB} to do syntax-driven indentation, in a mode that
+supports it.  It realigns the current line according with the syntax
+of the preceding lines.  No matter where in the line you are when you
+type @key{TAB}, it aligns the line as a whole.
+@end enumerate
+
+  Normally, most of the above methods insert an optimal mix of tabs and
+spaces to align to the desired column.  @xref{Just Spaces}, for how to
+disable use of tabs.  However, @kbd{C-q @key{TAB}} always inserts a
+tab, even when tabs are disabled for the indentation commands.
+
+@menu
+* Indentation Commands::  Various commands and techniques for indentation.
+* Tab Stops::             You can set arbitrary "tab stops" and then
+                            indent to the next tab stop when you want to.
+* Just Spaces::           You can request indentation using just spaces.
+@end menu
+
+@node Indentation Commands, Tab Stops, Indentation, Indentation
+@section Indentation Commands and Techniques
+
+@kindex M-m
+@findex back-to-indentation
+  To move over the indentation on a line, do @kbd{M-m}
+(@code{back-to-indentation}).  This command, given anywhere on a line,
+positions point at the first nonblank character on the line, if any,
+or else at the end of the line.
+
+  To insert an indented line before the current line, do @kbd{C-a C-o
+@key{TAB}}.  To make an indented line after the current line, use
+@kbd{C-e C-j}.
+
+  If you just want to insert a tab character in the buffer, you can type
+@kbd{C-q @key{TAB}}.
+
+@kindex C-M-o
+@findex split-line
+  @kbd{C-M-o} (@code{split-line}) moves the text from point to the end of
+the line vertically down, so that the current line becomes two lines.
+@kbd{C-M-o} first moves point forward over any spaces and tabs.  Then it
+inserts after point a newline and enough indentation to reach the same
+column point is on.  Point remains before the inserted newline; in this
+regard, @kbd{C-M-o} resembles @kbd{C-o}.
+
+@kindex M-^
+@findex delete-indentation
+  To join two lines cleanly, use the @kbd{M-^}
+(@code{delete-indentation}) command.  It deletes the indentation at
+the front of the current line, and the line boundary as well,
+replacing them with a single space.  As a special case (useful for
+Lisp code) the single space is omitted if the characters to be joined
+are consecutive open parentheses or closing parentheses, or if the
+junction follows another newline.  To delete just the indentation of a
+line, go to the beginning of the line and use @kbd{M-\}
+(@code{delete-horizontal-space}), which deletes all spaces and tabs
+around the cursor.
+
+  If you have a fill prefix, @kbd{M-^} deletes the fill prefix if it
+appears after the newline that is deleted.  @xref{Fill Prefix}.
+
+@kindex C-M-\
+@kindex C-x TAB
+@findex indent-region
+@findex indent-rigidly
+  There are also commands for changing the indentation of several lines
+at once.  They apply to all the lines that begin in the region.
+@kbd{C-M-\} (@code{indent-region}) indents each line in the ``usual''
+way, as if you had typed @key{TAB} at the beginning of the line.  A
+numeric argument specifies the column to indent to, and each line is
+shifted left or right so that its first nonblank character appears in
+that column.  @kbd{C-x @key{TAB}} (@code{indent-rigidly}) moves all of
+the lines in the region right by its argument (left, for negative
+arguments).  The whole group of lines moves rigidly sideways, which is
+how the command gets its name.
+
+@cindex remove indentation
+  To remove all indentation from all of the lines in the region,
+invoke @kbd{C-x @key{TAB}} with a large negative argument, such as
+-1000.
+
+@findex indent-relative
+  @kbd{M-x indent-relative} indents at point based on the previous line
+(actually, the last nonempty line).  It inserts whitespace at point, moving
+point, until it is underneath the next indentation point in the previous line.
+An indentation point is the end of a sequence of whitespace or the end of
+the line.  If point is farther right than any indentation point in the
+previous line, @code{indent-relative} runs @code{tab-to-tab-stop}
+@ifnottex
+(@pxref{Tab Stops}),
+@end ifnottex
+@iftex
+(see next section),
+@end iftex
+unless it is called with a numeric argument, in which case it does
+nothing.
+
+  @xref{Format Indentation}, for another way of specifying the
+indentation for part of your text.
+
+@node Tab Stops, Just Spaces, Indentation Commands, Indentation
+@section Tab Stops
+
+@cindex tab stops
+@cindex using tab stops in making tables
+@cindex tables, indentation for
+@kindex M-i
+@findex tab-to-tab-stop
+  For typing in tables, you can use @kbd{M-i} (@code{tab-to-tab-stop}).
+This command inserts indentation before point, enough to reach the
+next tab stop column.
+
+@findex edit-tab-stops
+@findex edit-tab-stops-note-changes
+@kindex C-c C-c @r{(Edit Tab Stops)}
+@vindex tab-stop-list
+  You can specify the tab stops used by @kbd{M-i}.  They are stored in a
+variable called @code{tab-stop-list}, as a list of column-numbers in
+increasing order.
+
+  The convenient way to set the tab stops is with @kbd{M-x
+edit-tab-stops}, which creates and selects a buffer containing a
+description of the tab stop settings.  You can edit this buffer to
+specify different tab stops, and then type @kbd{C-c C-c} to make those
+new tab stops take effect.  The buffer uses Overwrite mode
+(@pxref{Minor Modes}).  @code{edit-tab-stops} records which buffer was
+current when you invoked it, and stores the tab stops back in that
+buffer; normally all buffers share the same tab stops and changing
+them in one buffer affects all, but if you happen to make
+@code{tab-stop-list} local in one buffer then @code{edit-tab-stops} in
+that buffer will edit the local settings.
+
+  Here is what the text representing the tab stops looks like for ordinary
+tab stops every eight columns.
+
+@example
+        :       :       :       :       :       :
+0         1         2         3         4
+0123456789012345678901234567890123456789012345678
+To install changes, type C-c C-c
+@end example
+
+  The first line contains a colon at each tab stop.  The remaining lines
+are present just to help you see where the colons are and know what to do.
+
+  Note that the tab stops that control @code{tab-to-tab-stop} have nothing
+to do with displaying tab characters in the buffer.  @xref{Text Display},
+for more information on that.
+
+@node Just Spaces,, Tab Stops, Indentation
+@section Tabs vs. Spaces
+
+@vindex indent-tabs-mode
+  Emacs normally uses both tabs and spaces to indent lines.  If you
+prefer, all indentation can be made from spaces only.  To request
+this, set @code{indent-tabs-mode} to @code{nil}.  This is a per-buffer
+variable, so altering the variable affects only the current buffer,
+but there is a default value which you can change as well.
+@xref{Locals}.
+
+  A tab is not always displayed in the same way.  By default, tabs are
+eight columns wide, but some people like to customize their tools to
+use a different tab width.  So by using spaces only, you can make sure
+that your file looks the same regardless of the tab width setting.
+
+@findex tabify
+@findex untabify
+  There are also commands to convert tabs to spaces or vice versa, always
+preserving the columns of all nonblank text.  @kbd{M-x tabify} scans the
+region for sequences of spaces, and converts sequences of at least two
+spaces to tabs if that can be done without changing indentation.  @kbd{M-x
+untabify} changes all tabs in the region to appropriate numbers of spaces.
+
+@ignore
+   arch-tag: acc07de7-ae11-4ee8-a159-cb59c473f0fb
+@end ignore
