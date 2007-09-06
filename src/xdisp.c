@@ -10847,6 +10847,7 @@ redisplay_internal (preserve_echo_area)
   int count, count1;
   struct frame *sf;
   int polling_stopped_here = 0;
+  Lisp_Object old_frame = selected_frame;
 
   /* Non-zero means redisplay has to consider all windows on all
      frames.  Zero means, only selected_window is considered.  */
@@ -10908,6 +10909,14 @@ redisplay_internal (preserve_echo_area)
   }
 
  retry:
+  if (!EQ (old_frame, selected_frame)
+      && FRAME_LIVE_P (XFRAME (old_frame)))
+    /* When running redisplay, we play a bit fast-and-loose and allow e.g.
+       selected_frame and selected_window to be temporarily out-of-sync so
+       when we come back here via `goto retry', we need to resync because we
+       may need to run Elisp code (via prepare_menu_bars).  */
+    select_frame_for_redisplay (old_frame);
+
   pause = 0;
   reconsider_clip_changes (w, current_buffer);
   last_escape_glyph_frame = NULL;
