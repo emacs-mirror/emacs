@@ -1,3 +1,8 @@
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* xselect.c (x_reply_selection_request) <cnt>: Move static
+	variable to file scope.
+
 2007-09-02  Dhuvra Krishnamurthy  <dhuvrakm@gmail.com>  (tiny change)
 
 	* w32proc.c (delete_child): Don't terminate threads of zombies.
