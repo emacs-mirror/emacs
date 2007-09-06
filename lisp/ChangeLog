@@ -1,7 +1,12 @@
+2007-09-06  Romain Francoise  <romain@orebokech.com>
+
+	* vc-bzr.el (vc-bzr-admin-lastrev): New defconst.
+	(vc-bzr-workfile-version): Use it.
+
 2007-09-06  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
 	* complete.el (PC-do-completion): Don't try to treat
-	  empty string as an abbreviation.
+	empty string as an abbreviation.
 
 2007-09-06  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 

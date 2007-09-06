@@ -105,6 +105,8 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
   (concat vc-bzr-admin-dirname "/branch/format"))
 (defconst vc-bzr-admin-revhistory
   (concat vc-bzr-admin-dirname "/branch/revision-history"))
+(defconst vc-bzr-admin-lastrev
+  (concat vc-bzr-admin-dirname "/branch/last-revision"))
 
 ;;;###autoload (defun vc-bzr-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-bzr-admin-checkout-format-file)
@@ -241,7 +243,7 @@ If any error occurred in running `bzr status', then return nil."
       ((rootdir (vc-bzr-root file))
        (branch-format-file (concat rootdir "/" vc-bzr-admin-branch-format-file))
        (revhistory-file (concat rootdir "/" vc-bzr-admin-revhistory))
-       (lastrev-file (concat rootdir "/" "branch/last-revision")))
+       (lastrev-file (concat rootdir "/" vc-bzr-admin-lastrev)))
     ;; Count lines in .bzr/branch/revision-history to avoid forking a
     ;; bzr process.  This looks at internal files.  May break if they
     ;; change their format.
