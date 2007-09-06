@@ -1,3 +1,7 @@
+2007-09-06  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Update for new doc/ directory layout.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (mansrcdir): New variable.
