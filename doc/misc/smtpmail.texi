@@ -1,0 +1,427 @@
+\input texinfo  @c -*-texinfo-*-
+@setfilename ../info/smtpmail
+@settitle Emacs SMTP Library
+@syncodeindex vr fn
+@copying
+Copyright @copyright{} 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
+and with the Back-Cover Texts as in (a) below.  A copy of the license
+is included in the section entitled ``GNU Free Documentation License''
+in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* SMTP: (smtpmail). Emacs library for sending mail via SMTP.
+@end direntry
+
+@titlepage
+@title{Emacs SMTP Library}
+@subtitle{An Emacs package for sending mail via SMTP}
+@author{Simon Josefsson, Alex Schroeder}
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top Emacs SMTP Library
+
+@insertcopying
+@end ifnottex
+
+@menu
+* How Mail Works::	Brief introduction to mail concepts.
+* Emacs Speaks SMTP::   How to use the SMTP library in Emacs.
+* Authentication::	Authenticating yourself to the server.
+* Queued delivery::	Sending mail without an internet connection.
+* Server workarounds::	Mail servers with special requirements.
+* Debugging::		Tracking down problems.
+* GNU Free Documentation License:: The license for this documentation.
+
+Indices
+
+* Index::		Index over variables and functions.
+@end menu
+
+@node How Mail Works
+@chapter How Mail Works
+
+@cindex SMTP
+@cindex MTA
+   On the internet, mail is sent from mail host to mail host using the
+simple mail transfer protocol (SMTP).  To send and receive mail, you
+must get it from and send it to a mail host.  Every mail host runs a
+mail transfer agent (MTA) such as Exim that accepts mails and passes
+them on.  The communication between a mail host and other clients does
+not necessarily involve SMTP, however.  Here is short overview of what
+is involved.
+
+@cindex MUA
+   The mail program --- also called a mail user agent (MUA) ---
+usually sends outgoing mail to a mail host.  When your computer is
+permanently connected to the internet, it might even be a mail host
+itself.  In this case, the MUA will pipe mail to the
+@file{/usr/lib/sendmail} application.  It will take care of your mail
+and pass it on to the next mail host.
+
+@cindex ISP
+   When you are only connected to the internet from time to time, your
+internet service provider (ISP) has probably told you which mail host
+to use.  You must configure your MUA to use that mail host.  Since you
+are reading this manual, you probably want to configure Emacs to use
+SMTP to send mail to that mail host.  More on that in the next
+section.
+
+@cindex MDA
+   Things are different when reading mail.  The mail host responsible
+for your mail keeps it in a file somewhere.  The messages get into the
+file by way of a mail delivery agent (MDA) such as procmail.  These
+delivery agents often allow you to filter and munge your mails before
+you get to see it.  When your computer is that mail host, this file is
+called a spool, and sometimes located in the directory
+@file{/var/spool/mail/}.  All your MUA has to do is read mail from the
+spool, then.
+
+@cindex POP3
+@cindex IMAP
+   When your computer is not always connected to the internet, you
+must get the mail from the remote mail host using a protocol such as
+POP3 or IMAP.  POP3 essentially downloads all your mail from the mail
+host to your computer.  The mail is stored in some file on your
+computer, and again, all your MUA has to do is read mail from the
+spool.
+
+   When you read mail from various machines, downloading mail from the
+mail host to your current machine is not convenient.  In that case,
+you will probably want to use the IMAP protocol.  Your mail is kept on
+the mail host, and you can read it while you are connected via IMAP to
+the mail host.
+
+@cindex Webmail
+   So how does reading mail via the web work, you ask.  In that case,
+the web interface just allows you to remote-control a MUA on the web
+host.  Whether the web host is also a mail host, and how all the
+pieces interact is completely irrelevant.  You usually cannot use
+Emacs to read mail via the web, unless you use software that parses
+the ever-changing HTML of the web interface.
+
+@node Emacs Speaks SMTP
+@chapter Emacs Speaks SMTP
+
+   Emacs includes a package for sending your mail to a SMTP server and
+have it take care of delivering it to the final destination, rather
+than letting the MTA on your local system take care of it.  This can
+be useful if you don't have a MTA set up on your host, or if your
+machine is often disconnected from the internet.
+
+  Sending mail via SMTP requires configuring your mail user agent
+(@pxref{Mail Methods,,,emacs}) to use the SMTP library.  How to do
+this should be described for each mail user agent; for the default
+mail user agent the variable @code{send-mail-function} (@pxref{Mail
+Sending,,,emacs}) is used; for the Message and Gnus user agents the
+variable @code{message-send-mail-function} (@pxref{Mail
+Variables,,,message}) is used.
+
+@example
+;; If you use the default mail user agent.
+(setq send-mail-function 'smtpmail-send-it)
+;; If you use Message or Gnus.
+(setq message-send-mail-function 'smtpmail-send-it)
+@end example
+
+  Before using SMTP you must find out the hostname of the SMTP server
+to use.  Your system administrator should provide you with this
+information, but often it is the same as the server you receive mail
+from.
+
+@table @code
+@item smtpmail-smtp-server
+@vindex smtpmail-smtp-server
+@vindex SMTPSERVER
+  The variable @code{smtpmail-smtp-server} controls the hostname of
+the server to use.  It is a string with an IP address or hostname.  It
+defaults to the contents of the @env{SMTPSERVER} environment
+variable, or, if empty, the contents of
+@code{smtpmail-default-smtp-server}.
+
+@item smtpmail-default-smtp-server
+@vindex smtpmail-default-smtp-server
+  The variable @code{smtpmail-default-smtp-server} controls the
+default hostname of the server to use.  It is a string with an IP
+address or hostname.  It must be set before the SMTP library is
+loaded.  It has no effect if set after the SMTP library has been
+loaded, or if @code{smtpmail-smtp-server} is defined.  It is usually
+set by system administrators in a site wide initialization file.
+@end table
+
+The following example illustrates what you could put in
+@file{~/.emacs} to set the SMTP server name.
+
+@example
+;; Send mail using SMTP via mail.example.org.
+(setq smtpmail-smtp-server "mail.example.org")
+@end example
+
+@cindex Mail Submission
+SMTP is normally used on the registered ``smtp'' TCP service port 25.
+Some environments use SMTP in ``Mail Submission'' mode, which uses
+port 587.  Using other ports is not uncommon, either for security by
+obscurity purposes, port forwarding, or otherwise.
+
+@table @code
+@item smtpmail-smtp-service
+@vindex smtpmail-smtp-service
+  The variable @code{smtpmail-smtp-service} controls the port on the
+server to contact.  It is either a string, in which case it will be
+translated into an integer using system calls, or an integer.
+@end table
+
+The following example illustrates what you could put in
+@file{~/.emacs} to set the SMTP service port.
+
+@example
+;; Send mail using SMTP on the mail submission port 587.
+(setq smtpmail-smtp-service 587)
+@end example
+
+@node Authentication
+@chapter Authentication
+
+@cindex SASL
+@cindex CRAM-MD5
+@cindex LOGIN
+@cindex STARTTLS
+@cindex TLS
+@cindex SSL
+Many environments require SMTP clients to authenticate themselves
+before they are allowed to route mail via a server.  The two following
+variables contains the authentication information needed for this.
+
+The first variable, @code{smtpmail-auth-credentials}, instructs the
+SMTP library to use a SASL authentication step, currently only the
+CRAM-MD5 and LOGIN mechanisms are supported and will be selected in
+that order if the server support both.
+
+The second variable, @code{smtpmail-starttls-credentials}, instructs
+the SMTP library to connect to the server using STARTTLS.  This means
+the protocol exchange may be integrity protected and confidential by
+using the Transport Layer Security (TLS) protocol, and optionally also
+authentication of the client and server.
+
+TLS is a security protocol that is also known as SSL, although
+strictly speaking, SSL is an older variant of TLS.  TLS is backwards
+compatible with SSL.  In most mundane situations, the two terms are
+equivalent.
+
+The TLS feature uses the elisp package @file{starttls.el} (see it for
+more information on customization), which in turn require that at
+least one of the following external tools are installed:
+
+@enumerate
+@item
+The GNUTLS command line tool @samp{gnutls-cli}, you can get it from
+@url{http://www.gnu.org/software/gnutls/}.  This is the recommended
+tool, mainly because it can verify the server certificates.
+
+@item
+The @samp{starttls} external program, you can get it from
+@file{starttls-*.tar.gz} from @uref{ftp://ftp.opaopa.org/pub/elisp/}.
+@end enumerate
+
+It is not uncommon to use both these mechanisms, e.g., to use STARTTLS
+to achieve integrity and confidentiality and then use SASL for client
+authentication.
+
+@table @code
+@item smtpmail-auth-credentials
+@vindex smtpmail-auth-credentials
+  The variable @code{smtpmail-auth-credentials} contains a list of
+hostname, port, username and password tuples.  When the SMTP library
+connects to a host on a certain port, this variable is searched to
+find a matching entry for that hostname and port.  If an entry is
+found, the authentication process is invoked and the credentials are
+used.
+
+The hostname field follows the same format as
+@code{smtpmail-smtp-server} (i.e., a string) and the port field the
+same format as @code{smtpmail-smtp-service} (i.e., a string or an
+integer).  The username and password fields, which either can be
+@code{nil} to indicate that the user is prompted for the value
+interactively, should be strings with the username and password,
+respectively, information that is normally provided by system
+administrators.
+
+@item smtpmail-starttls-credentials
+@vindex smtpmail-starttls-credentials
+  The variable @code{smtpmail-starttls-credentials} contains a list of
+tuples with hostname, port, name of file containing client key, and
+name of file containing client certificate.  The processing is similar
+to the previous variable.  The client key and certificate may be
+@code{nil} if you do not wish to use client authentication.
+@end table
+
+The following example illustrates what you could put in
+@file{~/.emacs} to enable both SASL authentication and STARTTLS.  The
+server name (@code{smtpmail-smtp-server}) is @var{hostname}, the
+server port (@code{smtpmail-smtp-service}) is @var{port}, and the
+username and password are @var{username} and @var{password}
+respectively.
+
+@example
+;; Authenticate using this username and password against my server.
+(setq smtpmail-auth-credentials
+      '(("@var{hostname}" "@var{port}" "@var{username}" "@var{password}")))
+
+;; Note that if @var{port} is an integer, you must not quote it as a
+;; string.  Normally @var{port} should be the integer 25, and the example
+;; become:
+(setq smtpmail-auth-credentials
+      '(("@var{hostname}" 25 "@var{username}" "@var{password}")))
+
+;; Use STARTTLS without authentication against the server.
+(setq smtpmail-starttls-credentials
+      '(("@var{hostname}" "@var{port}" nil nil)))
+@end example
+
+@node Queued delivery
+@chapter Queued delivery
+
+@cindex Dialup connection
+If you connect to the internet via a dialup connection, or for some
+other reason don't have permanent internet connection, sending mail
+will fail when you are not connected.  The SMTP library implements
+queued delivery, and the following variable control its behavior.
+
+@table @code
+@item smtpmail-queue-mail
+@vindex smtpmail-queue-mail
+  The variable @code{smtpmail-queue-mail} controls whether a simple
+off line mail sender is active.  This variable is a boolean, and
+defaults to @code{nil} (disabled).  If this is non-@code{nil}, mail is
+not sent immediately but rather queued in the directory
+@code{smtpmail-queue-dir} and can be later sent manually by invoking
+@code{smtpmail-send-queued-mail} (typically when you connect to the
+internet).
+
+@item smtpmail-queue-dir
+@vindex smtpmail-queue-dir
+  The variable @code{smtpmail-queue-dir} specifies the name of the
+directory to hold queued messages.  It defaults to
+@file{~/Mail/queued-mail/}.
+@end table
+
+@findex smtpmail-send-queued-mail
+  The function @code{smtpmail-send-queued-mail} can be used to send
+any queued mail when @code{smtpmail-queue-mail} is enabled.  It is
+typically invoked interactively with @kbd{M-x
+smtpmail-send-queued-mail RET} when you are connected to the internet.
+
+@node Server workarounds
+@chapter Server workarounds
+
+Some SMTP servers have special requirements.  The following variables
+implement support for common requirements.
+
+@table @code
+
+@item smtpmail-local-domain
+@vindex smtpmail-local-domain
+  The variable @code{smtpmail-local-domain} controls the hostname sent
+in the first @code{EHLO} or @code{HELO} command sent to the server.
+It should only be set if the @code{system-name} function returns a
+name that isn't accepted by the server.  Do not set this variable
+unless your server complains.
+
+@item smtpmail-sendto-domain
+@vindex smtpmail-sendto-domain
+  The variable @code{smtpmail-sendto-domain} makes the SMTP library
+add @samp{@@} and the specified value to recipients specified in the
+message when they are sent using the @code{RCPT TO} command.  Some
+configurations of sendmail requires this behavior.  Don't bother to
+set this unless you have get an error like:
+
+@example
+	Sending failed; SMTP protocol error
+@end example
+
+when sending mail, and the debug buffer (@pxref{Debugging})) contains
+an error such as:
+
+@example
+	RCPT TO: @var{someone}
+	501 @var{someone}: recipient address must contain a domain
+@end example
+
+@end table
+
+
+@node Debugging
+@chapter Debugging
+
+Sometimes delivery fails, often with the generic error message
+@samp{Sending failed; SMTP protocol error}.  Enabling one or both of
+the following variables and inspecting a trace buffer will often give
+clues to the reason for the error.
+
+@table @code
+
+@item smtpmail-debug-info
+@vindex smtpmail-debug-info
+  The variable @code{smtpmail-debug-info} controls whether to print
+the SMTP protocol exchange in the minibuffer, and retain the entire
+exchange in a buffer @samp{*trace of SMTP session to @var{server}*},
+where @var{server} is the name of the mail server to which you send
+mail.
+
+@item smtpmail-debug-verb
+@vindex smtpmail-debug-verb
+  The variable @code{smtpmail-debug-verb} controls whether to send the
+@code{VERB} token to the server.  The @code{VERB} server instructs the
+server to be more verbose, and often also to attempt final delivery
+while your SMTP session is still running.  It is usually only useful
+together with @code{smtpmail-debug-info}.  Note that this may cause
+mail delivery to take considerable time if the final destination
+cannot accept mail.
+
+@end table
+
+@node GNU Free Documentation License
+@chapter GNU Free Documentation License
+@include doclicense.texi
+
+@node Index
+@chapter Index
+
+@section Concept Index
+
+@printindex cp
+
+@section Function and Variable Index
+
+@printindex fn
+
+@contents
+@bye
+
+@ignore
+   arch-tag: 6316abdf-b366-4562-87a2-f37e8f894b6f
+@end ignore
