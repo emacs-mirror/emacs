@@ -1,0 +1,170 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2001, 2002, 2003,
+@c   2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node Entering Emacs, Exiting, Text Characters, Top
+@chapter Entering and Exiting Emacs
+@cindex entering Emacs
+@cindex starting Emacs
+
+  The usual way to invoke Emacs is with the shell command
+@command{emacs}.  Emacs clears the screen, then displays an initial
+help message and copyright notice.  Some operating systems discard
+your type-ahead when Emacs starts up; they give Emacs no way to
+prevent this.  On those systems, wait for Emacs to clear the screen
+before you start typing.
+
+  From a shell window under the X Window System, run Emacs in the
+background with @command{emacs&}.  This way, Emacs won't tie up the
+shell window, so you can use it to run other shell commands while
+Emacs is running.  You can type Emacs commands as soon as you direct
+your keyboard input to an Emacs frame.
+
+@vindex initial-major-mode
+  When Emacs starts up, it creates a buffer named @samp{*scratch*}.
+That's the buffer you start out in.  The @samp{*scratch*} buffer uses
+Lisp Interaction mode; you can use it to type Lisp expressions and
+evaluate them.  You can also ignore that capability and just write notes
+there.  You can specify a different major mode for this buffer by
+setting the variable @code{initial-major-mode} in your init file.
+@xref{Init File}.
+
+  It is possible to specify files to be visited, Lisp files to be
+loaded, and functions to be called through Emacs command-line
+arguments.  @xref{Emacs Invocation}.  The feature exists mainly for
+compatibility with other editors, and for scripts.
+
+  Many editors are designed to edit one file.  When done with that
+file, you exit the editor.  The next time you want to edit a file, you
+must start the editor again.  Working this way, it is convenient to
+use a command-line argument to say which file to edit.
+
+  However, killing Emacs after editing one each and starting it afresh
+for the next file is both unnecessary and harmful, since it denies you
+the full power of Emacs.  Emacs can visit more than one file in a
+single editing session, and that is the right way to use it.  Exiting
+the Emacs session loses valuable accumulated context, such as the kill
+ring, registers, undo history, and mark ring.  These features are
+useful for operating on multiple files, or even continuing to edit one
+file.  If you kill Emacs after each file, you don't take advantage of
+them.
+
+  The recommended way to use GNU Emacs is to start it only once, just
+after you log in, and do all your editing in the same Emacs session.
+Each time you edit a file, you visit it with the existing Emacs, which
+eventually has many files in it ready for editing.  Usually you do not
+kill Emacs until you are about to log out.  @xref{Files}, for more
+information on visiting more than one file.
+
+  To edit a file from another program while Emacs is running, you can
+use the @command{emacsclient} helper program to open a file in the
+already running Emacs.  @xref{Emacs Server}.
+
+@ifnottex
+@raisesections
+@end ifnottex
+
+@node Exiting, Basic, Entering Emacs, Top
+@section Exiting Emacs
+@cindex exiting
+@cindex killing Emacs
+@cindex suspending
+@cindex leaving Emacs
+@cindex quitting Emacs
+
+  There are two commands for exiting Emacs, and three kinds of
+exiting: @dfn{iconifying} Emacs, @dfn{suspending} Emacs, and
+@dfn{killing} Emacs.
+
+  @dfn{Iconifying} means replacing the Emacs frame with a small box or
+``icon'' on the screen.  This is the usual way to exit Emacs when
+you're using a graphical display---if you bother to ``exit'' at all.
+(Just switching to another application is usually sufficient.)
+
+  @dfn{Suspending} means stopping Emacs temporarily and returning
+control to its parent process (usually a shell), allowing you to
+resume editing later in the same Emacs job.  This is the usual way to
+exit Emacs when running it on a text terminal.
+
+  @dfn{Killing} Emacs means destroying the Emacs job.  You can run Emacs
+again later, but you will get a fresh Emacs; there is no way to resume
+the same editing session after it has been killed.
+
+@table @kbd
+@item C-z
+Suspend Emacs (@code{suspend-emacs}) or iconify a frame
+(@code{iconify-or-deiconify-frame}).
+@item C-x C-c
+Kill Emacs (@code{save-buffers-kill-emacs}).
+@end table
+
+@kindex C-z
+@findex iconify-or-deiconify-frame
+  On graphical displays, @kbd{C-z} runs the command
+@code{iconify-or-deiconify-frame}, which temporarily iconifies (or
+``minimizes'') the selected Emacs frame (@pxref{Frames}).  You can
+then use the window manager to select some other application.  (You
+could select another application without iconifying Emacs first, but
+getting the Emacs frame out of the way can make it more convenient to
+find the other application.)
+
+@findex suspend-emacs
+  On a text terminal, @kbd{C-z} runs the command @code{suspend-emacs}.
+Suspending Emacs takes you back to the shell from which you invoked
+Emacs.  You can resume Emacs with the shell command @command{%emacs}
+in most common shells.  On systems that don't support suspending
+programs, @kbd{C-z} starts an inferior shell that communicates
+directly with the terminal, and Emacs waits until you exit the
+subshell.  (The way to do that is probably with @kbd{C-d} or
+@command{exit}, but it depends on which shell you use.)  On these
+systems, you can only get back to the shell from which Emacs was run
+(to log out, for example) when you kill Emacs.
+
+@vindex cannot-suspend
+  Suspending can fail if you run Emacs under a shell that doesn't
+support suspendion of its subjobs, even if the system itself does
+support it.  In such a case, you can set the variable
+@code{cannot-suspend} to a non-@code{nil} value to force @kbd{C-z} to
+start an inferior shell.
+
+@kindex C-x C-c
+@findex save-buffers-kill-emacs
+  To exit and kill Emacs, type @kbd{C-x C-c}
+(@code{save-buffers-kill-emacs}).  A two-character key is used to make
+it harder to type by accident.  This command first offers to save any
+modified file-visiting buffers.  If you do not save them all, it asks
+for confirmation with @kbd{yes} before killing Emacs, since any
+changes not saved now will be lost forever.  Also, if any subprocesses are
+still running, @kbd{C-x C-c} asks for confirmation about them, since
+killing Emacs will also kill the subprocesses.
+
+@vindex confirm-kill-emacs
+  If the value of the variable @code{confirm-kill-emacs} is
+non-@code{nil}, @kbd{C-x C-c} assumes that its value is a predicate
+function, and calls that function.  If the result is non-@code{nil}, the
+session is killed, otherwise Emacs continues to run.  One convenient
+function to use as the value of @code{confirm-kill-emacs} is the
+function @code{yes-or-no-p}.  The default value of
+@code{confirm-kill-emacs} is @code{nil}.
+
+  You can't resume an Emacs session after killing it.  Emacs can,
+however, record certain session information when you kill it, such as
+which files you visited, so the next time you start Emacs it will try
+to visit the same files.  @xref{Saving Emacs Sessions}.
+
+  The operating system usually listens for certain special characters
+whose meaning is to kill or suspend the program you are running.
+@b{This operating system feature is turned off while you are in Emacs.}
+The meanings of @kbd{C-z} and @kbd{C-x C-c} as keys in Emacs were
+inspired by the use of @kbd{C-z} and @kbd{C-c} on several operating
+systems as the characters for stopping or killing a program, but that is
+their only relationship with the operating system.  You can customize
+these keys to run any commands of your choice (@pxref{Keymaps}).
+
+@ifnottex
+@lowersections
+@end ifnottex
+
+@ignore
+   arch-tag: df798d8b-f253-4113-b585-f528f078a944
+@end ignore
