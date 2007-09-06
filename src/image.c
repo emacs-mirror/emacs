@@ -7886,13 +7886,14 @@ gif_load (f, img)
   init_color_table ();
   bzero (pixel_colors, sizeof pixel_colors);
 
-  for (i = 0; i < gif_color_map->ColorCount; ++i)
-    {
-      int r = gif_color_map->Colors[i].Red << 8;
-      int g = gif_color_map->Colors[i].Green << 8;
-      int b = gif_color_map->Colors[i].Blue << 8;
-      pixel_colors[i] = lookup_rgb_color (f, r, g, b);
-    }
+  if (gif_color_map)
+    for (i = 0; i < gif_color_map->ColorCount; ++i)
+      {
+        int r = gif_color_map->Colors[i].Red << 8;
+        int g = gif_color_map->Colors[i].Green << 8;
+        int b = gif_color_map->Colors[i].Blue << 8;
+        pixel_colors[i] = lookup_rgb_color (f, r, g, b);
+      }
 
 #ifdef COLOR_TABLE_SUPPORT
   img->colors = colors_in_color_table (&img->ncolors);
