@@ -1,0 +1,294 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@iftex
+@chapter Characters, Keys and Commands
+
+  This chapter explains the character sets used by Emacs for input
+commands and for the contents of files, and the fundamental concepts of
+@dfn{keys} and @dfn{commands}, whereby Emacs interprets your keyboard
+and mouse input.
+@end iftex
+
+@ifnottex
+@raisesections
+@end ifnottex
+
+@node User Input, Keys, Screen, Top
+@section Kinds of User Input
+@cindex input with the keyboard
+@cindex keyboard input
+@cindex character set (keyboard)
+@cindex @acronym{ASCII}
+@cindex C-
+@cindex Control
+@cindex control characters
+
+  GNU Emacs is designed for use with keyboard commands because that is
+the most efficient way to edit.  You can do editing with the mouse, as
+in other editors, and you can give commands with the menu bar and tool
+bar, and scroll with the scroll bar.  But if you keep on editing that
+way, you won't get the benefits of Emacs.  Therefore, this manual
+documents primarily how to edit with the keyboard.  You can force
+yourself to practice using the keyboard by using the shell command
+@samp{emacs -nw} to start Emacs, so that the mouse won't work.
+
+  Emacs uses an extension of the @acronym{ASCII} character set for
+keyboard input; it also accepts non-character input events including
+function keys and mouse button actions.
+
+  @acronym{ASCII} consists of 128 character codes.  Some of these codes are
+assigned graphic symbols such as @samp{a} and @samp{=}; the rest are
+control characters, such as @kbd{Control-a} (usually written @kbd{C-a}
+for short).  @kbd{C-a} gets its name from the fact that you type it by
+holding down the @key{CTRL} key while pressing @kbd{a}.
+
+  Some @acronym{ASCII} control characters have special names, and most
+terminals have special keys you can type them with: for example,
+@key{RET}, @key{TAB}, @key{DEL} and @key{ESC}.  The space character is
+usually known as @key{SPC}, even though strictly speaking it is a
+graphic character that is blank.
+
+  Emacs extends the @acronym{ASCII} character set with thousands more printing
+characters (@pxref{International}), additional control characters, and a
+few more modifiers that can be combined with any character.
+
+  On @acronym{ASCII} terminals, there are only 32 possible control characters.
+These are the control variants of letters and @samp{@@[]\^_}.  In
+addition, the shift key is meaningless with control characters:
+@kbd{C-a} and @kbd{C-A} are the same character, and Emacs cannot
+distinguish them.
+
+  The Emacs character set has room for control variants of all
+printing characters, and distinguishes @kbd{C-A} from @kbd{C-a}.
+Graphical terminals make it possible to enter all these characters.
+For example, @kbd{C--} (that's Control-Minus) and @kbd{C-5} are
+meaningful Emacs commands on a graphical terminal.
+
+  Another Emacs character-set extension is additional modifier bits.
+Only one modifier bit is commonly used; it is called Meta.  Every
+character has a Meta variant; examples include @kbd{Meta-a} (normally
+written @kbd{M-a}, for short), @kbd{M-A} (different from @kbd{M-a},
+but they are normally equivalent in Emacs), @kbd{M-@key{RET}}, and
+@kbd{M-C-a}.  That last means @kbd{a} with both the @key{CTRL} and
+@key{META} modifiers.  We usually write it as @kbd{C-M-a} rather than
+@kbd{M-C-a}, for reasons of tradition.
+
+@cindex Meta
+@cindex M-
+@cindex @key{ESC} replacing @key{META} key
+  Some terminals have a @key{META} key, and allow you to type Meta
+characters by holding this key down.  Thus, you can type @kbd{Meta-a}
+by holding down @key{META} and pressing @kbd{a}.  The @key{META} key
+works much like the @key{SHIFT} key.  In fact, this key is more often
+labeled @key{ALT} or @key{EDIT}, instead of @key{META}; on a Sun
+keyboard, it may have a diamond on it.
+
+  If there is no @key{META} key, you can still type Meta characters
+using two-character sequences starting with @key{ESC}.  Thus, you can
+enter @kbd{M-a} by typing @kbd{@key{ESC} a}.  You can enter
+@kbd{C-M-a} by typing @kbd{@key{ESC} C-a}.  Unlike @key{META}, which
+modifies other characters, @key{ESC} is a separate character.  You
+don't hold down @key{ESC} while typing the next character; instead,
+you press it and release it, then you enter the next character.
+@key{ESC} is allowed on terminals with @key{META} keys, too, in case
+you have formed a habit of using it.
+
+  Emacs defines several other modifier keys that can be applied to any
+input character.  These are called @key{SUPER}, @key{HYPER} and
+@key{ALT}.  We write @samp{s-}, @samp{H-} and @samp{A-} to say that a
+character uses these modifiers.  Thus, @kbd{s-H-C-x} is short for
+@kbd{Super-Hyper-Control-x}.  Not all graphical terminals actually
+provide keys for these modifier flags---in fact, many terminals have a
+key labeled @key{ALT} which is really a @key{META} key.  The standard
+key bindings of Emacs do not include any characters with these
+modifiers.  But you can assign them meanings of your own by
+customizing Emacs.
+
+  If your keyboard lacks one of these modifier keys, you can enter it
+using @kbd{C-x @@}: @kbd{C-x @@ h} adds the ``hyper'' flag to the next
+character, @kbd{C-x @@ s} adds the ``super'' flag, and @kbd{C-x @@ a}
+adds the ``alt'' flag.  For instance, @kbd{C-x @@ h C-a} is a way to
+enter @kbd{Hyper-Control-a}.  (Unfortunately there is no way to add
+two modifiers by using @kbd{C-x @@} twice for the same character,
+because the first one goes to work on the @kbd{C-x}.)
+
+  Keyboard input includes keyboard keys that are not characters at
+all, such as function keys and arrow keys.  Mouse buttons are also not
+characters.  However, you can modify these events with the modifier
+keys @key{CTRL}, @key{META}, @key{SUPER}, @key{HYPER} and @key{ALT},
+just like keyboard characters.
+
+@cindex input event
+  Input characters and non-character inputs are collectively called
+@dfn{input events}.  @xref{Input Events,,, elisp, The Emacs Lisp
+Reference Manual}, for the full Lisp-level details.  If you are not
+doing Lisp programming, but simply want to redefine the meaning of
+some characters or non-character events, see @ref{Customization}.
+
+  @acronym{ASCII} terminals cannot really send anything to the computer except
+@acronym{ASCII} characters.  These terminals use a sequence of characters to
+represent each function key.  But that is invisible to the Emacs user,
+because the keyboard input routines catch these special sequences
+and convert them to function key events before any other part of Emacs
+gets to see them.
+
+@cindex keys stolen by window manager
+@cindex window manager, keys stolen by
+  On graphical displays, the window manager is likely to block the
+character @kbd{Meta-@key{TAB}} before Emacs can see it.  It may also
+block @kbd{Meta-@key{SPC}}, @kbd{C-M-d} and @kbd{C-M-l}.  If you have
+these problems, we recommend that you customize your window manager to
+turn off those commands, or put them on key combinations that Emacs
+does not use.
+
+@node Keys, Commands, User Input, Top
+@section Keys
+
+@cindex key sequence
+@cindex key
+  A @dfn{key sequence} (@dfn{key}, for short) is a sequence of input
+events that is meaningful as a unit---a ``single command.''  Some
+Emacs command sequences are invoked by just one character or one
+event; for example, just @kbd{C-f} moves forward one character in the
+buffer.  But Emacs also has commands that take two or more events to
+invoke.
+
+@cindex complete key
+@cindex prefix key
+  If a sequence of events is enough to invoke a command, it is a
+@dfn{complete key}.  Examples of complete keys include @kbd{C-a},
+@kbd{X}, @key{RET}, @key{NEXT} (a function key), @key{DOWN} (an arrow
+key), @kbd{C-x C-f}, and @kbd{C-x 4 C-f}.  If it isn't long enough to be
+complete, we call it a @dfn{prefix key}.  The above examples show that
+@kbd{C-x} and @kbd{C-x 4} are prefix keys.  Every key sequence is either
+a complete key or a prefix key.
+
+  Most single characters constitute complete keys in the standard Emacs
+command bindings.  A few of them are prefix keys.  A prefix key combines
+with the following input event to make a longer key sequence, which may
+itself be complete or a prefix.  For example, @kbd{C-x} is a prefix key,
+so @kbd{C-x} and the next input event combine to make a two-event
+key sequence.  Most of these key sequences are complete keys, including
+@kbd{C-x C-f} and @kbd{C-x b}.  A few, such as @kbd{C-x 4} and @kbd{C-x
+r}, are themselves prefix keys that lead to three-event key
+sequences.  There's no limit to the length of a key sequence, but in
+practice people rarely use sequences longer than four events.
+
+  You can't add input events onto a complete key.  For example, the
+two-event sequence @kbd{C-f C-k} is not a key, because the @kbd{C-f}
+is a complete key in itself.  It's impossible to give @kbd{C-f C-k} an
+independent meaning as a command.  @kbd{C-f C-k} is two key sequences,
+not one.@refill
+
+  All told, the prefix keys in Emacs are @kbd{C-c}, @kbd{C-h},
+@kbd{C-x}, @kbd{C-x @key{RET}}, @kbd{C-x @@}, @kbd{C-x a}, @kbd{C-x
+n}, @w{@kbd{C-x r}}, @kbd{C-x v}, @kbd{C-x 4}, @kbd{C-x 5}, @kbd{C-x
+6}, @key{ESC}, @kbd{M-g}, and @kbd{M-o}.  (@key{F1} and @key{F2} are
+aliases for @kbd{C-h} and @kbd{C-x 6}.)  This list is not cast in stone;
+it describes the standard key bindings.  If you customize Emacs, you can make
+new prefix keys, or eliminate some of the standard ones (not
+recommended for most users).  @xref{Key Bindings}.
+
+  If you make or eliminate prefix keys, that changes the set of
+possible key sequences.  For example, if you redefine @kbd{C-f} as a
+prefix, @kbd{C-f C-k} automatically becomes a key (complete, unless
+you define that too as a prefix).  Conversely, if you remove the
+prefix definition of @kbd{C-x 4}, then @kbd{C-x 4 f} and @kbd{C-x 4
+@var{anything}} are no longer keys.
+
+  Typing the help character (@kbd{C-h} or @key{F1}) after a prefix key
+displays a list of the commands starting with that prefix.  There are
+a few prefix keys after which @kbd{C-h} does not work---for historical
+reasons, they define other meanings for @kbd{C-h} which are painful to
+change.  @key{F1} works after all prefix keys.
+
+@node Commands, Text Characters, Keys, Top
+@section Keys and Commands
+
+@cindex binding
+@cindex command
+@cindex function definition
+  This manual is full of passages that tell you what particular keys
+do.  But Emacs does not assign meanings to keys directly.  Instead,
+Emacs assigns meanings to named @dfn{commands}, and then gives keys
+their meanings by @dfn{binding} them to commands.
+
+  Every command has a name chosen by a programmer.  The name is
+usually made of a few English words separated by dashes; for example,
+@code{next-line} or @code{forward-word}.  A command also has a
+@dfn{function definition} which is a Lisp program; this is how the
+command does its work.  In Emacs Lisp, a command is a Lisp function with
+special options to read arguments and for interactive use.  For more
+information on commands and functions, see @ref{What Is a Function,,
+What Is a Function, elisp, The Emacs Lisp Reference Manual}.  (The
+definition here is simplified slightly.)
+
+  The bindings between keys and commands are recorded in tables called
+@dfn{keymaps}.  @xref{Keymaps}.
+
+  When we say that ``@kbd{C-n} moves down vertically one line'' we are
+glossing over a subtle distinction that is irrelevant in ordinary use,
+but vital for Emacs customization.  The command @code{next-line} does
+a vertical move downward.  @kbd{C-n} has this effect @emph{because} it
+is bound to @code{next-line}.  If you rebind @kbd{C-n} to the command
+@code{forward-word}, @kbd{C-n} will move forward one word instead.
+Rebinding keys is an important method of customization.
+
+  In the rest of this manual, we usually ignore this distinction to
+keep things simple.  We will often speak of keys like @kbd{C-n} as
+commands, even though strictly speaking the key is bound to a command.
+Usually we state the name of the command which really does the work in
+parentheses after mentioning the key that runs it.  For example, we
+will say that ``The command @kbd{C-n} (@code{next-line}) moves point
+vertically down,'' meaning that the command @code{next-line} moves
+vertically down, and the key @kbd{C-n} is normally bound to it.
+
+  Since we are discussing customization, we should tell you about
+@dfn{variables}.  Often the description of a command will say, ``To
+change this, set the variable @code{mumble-foo}.''  A variable is a
+name used to store a value.  Most of the variables documented in this
+manual are meant for customization: some command or other part of
+Emacs examines the variable and behaves differently according to the
+value that you set.  You can ignore the information about variables
+until you are interested in customizing them.  Then read the basic
+information on variables (@pxref{Variables}) and the information about
+specific variables will make sense.
+
+@node Text Characters, Entering Emacs, Commands, Top
+@section Character Set for Text
+@cindex characters (in text)
+
+  Text in Emacs buffers is a sequence of characters.  In the simplest
+case, these are @acronym{ASCII} characters, each stored in one 8-bit
+byte.  Both @acronym{ASCII} control characters (octal codes 000
+through 037, and 0177) and @acronym{ASCII} printing characters (codes
+040 through 0176) are allowed.  The other modifier flags used in
+keyboard input, such as Meta, are not allowed in buffers.
+
+  Non-@acronym{ASCII} printing characters can also appear in buffers,
+when multibyte characters are enabled.  They have character codes
+starting at 256, octal 0400, and each one is represented as a sequence
+of two or more bytes.  @xref{International}.  Single-byte characters
+with codes 128 through 255 can also appear in multibyte buffers.
+However, non-@acronym{ASCII} control characters cannot appear in a
+buffer.
+
+  Some @acronym{ASCII} control characters serve special purposes in text, and have
+special names.  For example, the newline character (octal code 012) is
+used in the buffer to end a line, and the tab character (octal code 011)
+is used for indenting to the next tab stop column (normally every 8
+columns).  @xref{Text Display}.
+
+  If you disable multibyte characters, then you can use only one
+alphabet of non-@acronym{ASCII} characters, which all fit in one byte.
+They use octal codes 0200 through 0377.  @xref{Unibyte Mode}.
+
+@ifnottex
+@lowersections
+@end ifnottex
+
+@ignore
+   arch-tag: 9be43eef-d1f4-4d03-a916-c741ea713a45
+@end ignore
