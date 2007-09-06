@@ -54,6 +54,8 @@ GNU/Linux system.
 ** Does deleting frames run Lisp code?  If so,
 can we get rid of that?  It is a dangerous design.
 
+** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
