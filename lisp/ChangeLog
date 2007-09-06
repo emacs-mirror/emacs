@@ -1,3 +1,9 @@
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode-string): New.
+	(checkdoc-minor-mode): Allow user to specify lighter via
+	checkdoc-minor-mode-string.
+
 2007-09-05  Richard Stallman  <rms@gnu.org>
 
 	* startup.el (fancy-startup-text): Renamed from fancy-splash-text.
