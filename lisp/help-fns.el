@@ -625,7 +625,8 @@ it is displayed along with the global value."
 			   "which is byte-compiled expression.\n"
 			 (format "`%s'.\n" safe-var))))
 	      (princ "\nDocumentation:\n")
-              (princ (or doc "Not documented as a variable.")))
+	      (with-current-buffer standard-output
+		(insert (or doc "Not documented as a variable."))))
 	    ;; Make a link to customize if this variable can be customized.
 	    (if (custom-variable-p variable)
 		(let ((customize-label "customize"))
