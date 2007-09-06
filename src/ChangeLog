@@ -1,3 +1,7 @@
+2007-09-06  Pixel  <pixel@mandriva.com>  (tiny change)
+
+	* image.c (gif_load): Fix bug: Handle nonexistent colormap.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* gtkutil.c (menu_grab_callback) <cnt>:
