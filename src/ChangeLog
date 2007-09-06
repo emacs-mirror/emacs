@@ -1,3 +1,8 @@
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* xselect.c (x_reply_selection_request) <cnt>: Move static
+	variable to file scope.
+
 2007-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (redisplay_internal): Make sure Elisp code always sees
