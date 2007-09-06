@@ -21,7 +21,7 @@
 
 srcdir = .
 
-infodir = $(srcdir)/../info
+infodir = $(srcdir)/../../info
 
 INFO_SOURCES = $(srcdir)/emacs-lisp-intro.texi
 # The file name eintr must fit within 5 characters, to allow for
@@ -33,7 +33,7 @@ MAKEINFO = makeinfo
 INSTALL_INFO = install-info
 TEXI2DVI = texi2dvi
 DVIPS = dvips
-ENVADD = $(srcdir)\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
+ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
 
 .SUFFIXES: .dvi .ps .texi
