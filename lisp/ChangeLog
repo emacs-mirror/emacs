@@ -1,3 +1,18 @@
+2007-09-07  Johannes Weiner  <hannes@saeurebad.de>
+
+	* net/browse-url.el (browse-url-browser-function): Add elinks.
+	(browse-url-elinks-wrapper): New option.
+	(browse-url-encode-url, browse-url-elinks)
+	(browse-url-elinks-sentinel): New functions.
+	(browse-url-file-url, browse-url-netscape, browse-url-mozilla)
+	(browse-url-firefox, browse-url-galeon, browse-url-epiphany): Use
+	new function browse-url-encode-url.
+
+2007-09-07  Glenn Morris  <rgm@gnu.org>
+
+	* version.el (emacs-version): Revert 2007-08-29 change: no need to
+	say if multi-tty is present.
+
 2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cus-start.el (split-window-preferred-function): Add custom info.
@@ -362,6 +377,8 @@
 	* env.el (getenv): Pass frame to getenv-internal.
 
 2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+
+	* version.el (emacs-version): Show if multi-tty is present.
 
 	* loadup.el: Delay loading env; mule-conf gets confused by cl
 	during bootstrap.  Also load termdev and term/x-win.
