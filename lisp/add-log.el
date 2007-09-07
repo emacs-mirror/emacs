@@ -27,6 +27,15 @@
 
 ;; This facility is documented in the Emacs Manual.
 
+;; Todo:
+
+;; - Find/use/create _MTN/log if there's a _MTN directory.
+;; - Find/use/create ++log.* if there's an {arch} directory.
+;; - Use an open *VC-Log* or *cvs-commit* buffer if it's related to the
+;;   source file.
+;; - Don't add TAB indents (and username?) if inserting entries in those
+;;   special places.
+
 ;;; Code:
 
 (eval-when-compile
@@ -41,7 +50,7 @@
 
 
 (defcustom change-log-default-name nil
-  "*Name of a change log file for \\[add-change-log-entry]."
+  "Name of a change log file for \\[add-change-log-entry]."
   :type '(choice (const :tag "default" nil)
 		 string)
   :group 'change-log)
