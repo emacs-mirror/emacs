@@ -342,7 +342,8 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 		(unless (facep face)
 		  (make-empty-face face))
 		(put face 'face-comment comment)
-		(face-spec-set face spec))
+		(dolist (frame (frame-list))
+		  (face-spec-set face spec frame)))
 	    (setq args (cdr args)))
 	;; Old format, a plist of FACE SPEC pairs.
 	(let ((face (nth 0 args))
