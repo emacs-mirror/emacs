@@ -1,3 +1,16 @@
+2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* woman.el: Remove spurious * in docstrings.
+	(woman-mini-help, woman-non-underline-faces, woman0-rename)
+	(woman-topic-all-completions-merge, woman-file-name-all-completions)
+	(woman-select-symbol-fonts, woman-expand-directory-path): Use dolist.
+	(woman-write-directory-cache, woman-display-extended-fonts)
+	(WoMan-log-begin, WoMan-log-1): Use with-current-buffer.
+	(woman-really-find-file): Use pop-to-buffer if switch-to-buffer fails.
+	(woman-mode): Use inhibit-read-only.
+	(woman-negative-vertical-space): Use dotimes.
+	(woman2-tagged-paragraph, woman-tab-to-tab-stop): Use insert-char.
+
 2007-09-06  Romain Francoise  <romain@orebokech.com>
 
 	* vc-bzr.el (vc-bzr-admin-lastrev): New defconst.
@@ -25,7 +38,7 @@
 
 2007-09-05  Richard Stallman  <rms@gnu.org>
 
-	* startup.el (fancy-startup-text): Renamed from fancy-splash-text.
+	* startup.el (fancy-startup-text): Rename from fancy-splash-text.
 	Several items removed, simplified, or put on one line.
 	(fancy-about-text): Add substantial contents, part of startup text.
 	(fancy-splash-head): Make "GNU" or "GNU/Linux" a link.
@@ -47,12 +60,11 @@
 2007-09-05  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/advice.el (ad-make-advised-docstring): Highlight note
-        in doc string.
+	in doc string.
 
 2007-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* server.el (server-start, server-unload-hook): Undo previous
-	change.
+	* server.el (server-start, server-unload-hook): Undo previous change.
 
 	* xt-mouse.el: Undo previous change.
 
@@ -106,17 +118,16 @@
 
 2007-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term/xterm.el (xterm-modify-other-keys-terminal-list): New
-	variable.
+	* term/xterm.el (xterm-modify-other-keys-terminal-list): New variable.
 	(xterm-turn-on-modify-other-keys): Only turn on modify-other-keys
 	if the selected frames is in
 	xterm-modify-other-keys-terminal-list.
 	(xterm-turn-off-modify-other-keys): Add an optional frame
-	parameter. Only turn off modify-other-keys if FRAME is in
+	parameter.  Only turn off modify-other-keys if FRAME is in
 	xterm-modify-other-keys-terminal-list.
 	(xterm-remove-modify-other-keys): New function.
-	(terminal-init-xterm): Use it. Deal with delete-frame hook. Add
-	the selected frame to xterm-modify-other-keys-terminal-list.
+	(terminal-init-xterm): Use it.  Deal with delete-frame hook.
+	Add the selected frame to xterm-modify-other-keys-terminal-list.
 
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
