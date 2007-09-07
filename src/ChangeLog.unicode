@@ -1,3 +1,7 @@
+2007-09-07  Kenichi Handa  <handa@m17n.org>
+
+	* data.c (Fchar_or_string_p): Fix docstring.
+
 2007-08-22  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_draw): If s->font_info != s->face->font_info,
