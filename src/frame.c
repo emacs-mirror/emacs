@@ -3082,9 +3082,9 @@ x_set_frame_parameters (f, alist)
       prop = parms[i];
       val = values[i];
 
-      if (EQ (prop, Qwidth) && NUMBERP (val))
+      if (EQ (prop, Qwidth) && NATNUMP (val))
 	width = XFASTINT (val);
-      else if (EQ (prop, Qheight) && NUMBERP (val))
+      else if (EQ (prop, Qheight) && NATNUMP (val))
 	height = XFASTINT (val);
       else if (EQ (prop, Qtop))
 	top = val;
