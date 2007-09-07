@@ -3655,7 +3655,7 @@ If `even-window-heights' is non-nil, window heights will be evened out
 if displaying the buffer causes two vertically adjacent windows to be
 displayed.  */)
      (buffer, not_this_window, frame)
-     register Lisp_Object buffer, not_this_window, frame;
+     Lisp_Object buffer, not_this_window, frame;
 {
   register Lisp_Object window, tem, swp;
   struct frame *f;

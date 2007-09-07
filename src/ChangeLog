@@ -5,6 +5,7 @@
 
 	* window.c (freeze_window_start): Don't presume selected_window holds
 	a window object.
+	(Fdisplay_buffer): Remove `register' since `buffer' needs to be gcpro'd.
 
 2007-09-07  Angelo Graziosi <Angelo.Graziosi@roma1.infn.it>  (tiny change)
 
