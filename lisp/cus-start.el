@@ -342,6 +342,15 @@ since it could result in memory overflow and make Emacs crash."
 	     (even-window-heights windows boolean)
 	     (next-screen-context-lines windows integer)
 	     (split-height-threshold windows integer)
+             (split-window-preferred-function
+              windows
+              (choice (const :tag "vertically" split-window)
+                      ;; FIXME: Add `sensibly' which chooses between
+                      ;; vertical or horizontal splits depending on the size
+                      ;; and shape of the window.
+                      (const :tag "horizontally"
+                             (lambda (window)
+                               (split-window window nil 'horiz)))))
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
  	     (scroll-preserve-screen-position
@@ -464,5 +473,5 @@ since it could result in memory overflow and make Emacs crash."
 (unless purify-flag
   (provide 'cus-start))
 
-;;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
+;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
 ;;; cus-start.el ends here

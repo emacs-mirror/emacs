@@ -1,5 +1,7 @@
 2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* cus-start.el (split-window-preferred-function): Add custom info.
+
 	* calendar/holidays.el (holiday-list, calendar-check-holidays)
 	(calendar-mark-holidays, calendar-list-holidays)
 	(holiday-filter-visible-calendar): New names to clean up namespace.
