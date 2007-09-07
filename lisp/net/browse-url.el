@@ -55,6 +55,7 @@
 ;; browse-url-default-macosx-browser  Mac OS X browser
 ;; browse-url-gnome-moz               GNOME interface to Mozilla
 ;; browse-url-kde                     KDE konqueror (kfm)
+;; browse-url-elinks                  Elinks      Don't know (tried with 0.12.GIT)
 
 ;; [A version of the Netscape browser is now free software
 ;; <URL:http://www.mozilla.org/>, albeit not GPLed, so it is
@@ -263,6 +264,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Grail" :value  browse-url-grail)
 	  (function-item :tag "MMM" :value  browse-url-mmm)
 	  (function-item :tag "KDE" :value browse-url-kde)
+	  (function-item :tag "Elinks" :value browse-url-elinks)
 	  (function-item :tag "Specified by `Browse Url Generic Program'"
 			 :value browse-url-generic)
 	  (function-item :tag "Default Windows browser"
@@ -608,6 +610,26 @@ down (this *won't* always work)."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+(defcustom browse-url-elinks-wrapper '("xterm" "-e")
+  "*Wrapper command prepended to the Elinks command-line."
+  :type '(repeat (string :tag "Wrapper"))
+  :group 'browse-url)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; URL encoding
+
+(defun browse-url-encode-url (url)
+  "Encode all `confusing' characters in URL."
+  (let ((encoded-url (copy-seq url)))
+    (while (string-match "%" encoded-url)
+      (setq encoded-url (replace-match "%25" t t encoded-url)))
+    (while (string-match "[*\"()',=;? ]" encoded-url)
+      (setq encoded-url
+	    (replace-match (format "%%%x"
+				   (string-to-char (match-string 0 encoded-url)))
+			   t t encoded-url)))
+    encoded-url))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
@@ -680,14 +702,7 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
 		     (or file-name-coding-system
 			 default-file-name-coding-system))))
     (if coding (setq file (encode-coding-string file coding))))
-  ;; URL-encode special chars, do % first
-  (let ((s 0))
-    (while (setq s (string-match "%" file s))
-      (setq file (replace-match "%25" t t file)
-	    s (1+ s))))
-  (while (string-match "[*\"()',=;? ]" file)
-    (let ((enc (format "%%%x" (aref file (match-beginning 0)))))
-      (setq file (replace-match enc t t file))))
+  (setq file (browse-url-encode-url file))
   (dolist (map browse-url-filename-alist)
     (when (and map (string-match (car map) file))
       (setq file (replace-match (cdr map) t nil file))))
@@ -893,11 +908,7 @@ is loaded in a new tab in an existing window instead.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
-  ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens and dollars.
-  (while (string-match "[,)$]" url)
-    (setq url (replace-match
-	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
 	 (process
 	  (apply 'start-process
@@ -967,11 +978,7 @@ new tab in an existing window instead.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
-  ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens and dollars.
-  (while (string-match "[,)$]" url)
-    (setq url (replace-match
-	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
          (process
 	  (apply 'start-process
@@ -1029,11 +1036,7 @@ command line parameter.  Therefore, the
 are ignored as well.  Firefox on Windows will always open the requested
 URL in a new window."
   (interactive (browse-url-interactive-arg "URL: "))
-  ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens.
-  (while (string-match "[,)]" url)
-    (setq url (replace-match
-	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
 	 (process
 	  (apply 'start-process
@@ -1085,11 +1088,7 @@ new tab in an existing window instead.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
-  ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens and dollars.
-  (while (string-match "[,)$]" url)
-    (setq url (replace-match
-	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (setq url (browse-url-encode-url))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
 			 (concat "galeon " url)
@@ -1134,11 +1133,7 @@ new tab in an existing window instead.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
-  ;; URL encode any `confusing' characters in the URL.  This needs to
-  ;; include at least commas; presumably also close parens and dollars.
-  (while (string-match "[,)$]" url)
-    (setq url (replace-match
-	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
 			 (concat "epiphany " url)
@@ -1512,6 +1507,46 @@ Default to the URL around or before point."
   (message "Sending URL to KDE...")
   (apply #'start-process (concat "KDE " url) nil browse-url-kde-program
 	                 (append browse-url-kde-args (list url))))
+
+;;;###autoload
+(defun browse-url-elinks (url)
+  "Ask the Elinks WWW browser to load URL.
+Default to the URL around the point.
+
+The document is loaded in a new tab of a running Elinks or, if
+none yet running, a newly started instance.
+
+The Elinks command will be prepended by the program+arguments
+from `elinks-browse-url-wrapper'."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let ((process-environment (browse-url-process-environment))
+	(elinks-ping-process (start-process "elinks-ping" nil
+					     "elinks" "-remote" "ping()")))
+    (set-process-sentinel elinks-ping-process
+			  `(lambda (process change)
+			     (browse-url-elinks-sentinel process ,url)))))
+
+(defun browse-url-elinks-sentinel (process url)
+  "Determines if Elinks is running or a new one has to be started."
+  (let ((exit-status (process-exit-status process))
+	(process-environment (browse-url-process-environment)))
+    ;; Try to determine if an instance is running or if we have to
+    ;; create a new one.
+    (case exit-status
+      (5
+       ;; No instance, start a new one.
+       (apply #'start-process
+	      (append (list (concat "elinks:" url) nil)
+		      browse-url-elinks-wrapper
+		      (list "elinks" url))))
+      (0
+       ;; Found an instance, open URL in new tab.
+       (start-process (concat "elinks:" url) nil
+		      "elinks" "-remote"
+		      (concat "openURL(\"" url "\",new-tab)")))
+      (otherwise
+       (error "Undefined exit-code of process `elinks'.")))))
 
 (provide 'browse-url)
 
