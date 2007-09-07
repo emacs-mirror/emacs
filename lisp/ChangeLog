@@ -1,3 +1,8 @@
+2007-09-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/autoconf.el (autoconf-definition-regexp):
+	Handle optional square brackets around definition name.
+
 2007-09-07  Johannes Weiner  <hannes@saeurebad.de>
 
 	* net/browse-url.el (browse-url-browser-function): Add elinks.
