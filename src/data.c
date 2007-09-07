@@ -435,7 +435,7 @@ DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
 }
 
 DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
-       doc: /* Return t if OBJECT is a character (an integer) or a string.  */)
+       doc: /* Return t if OBJECT is a character or a string.  */)
      (object)
      register Lisp_Object object;
 {
