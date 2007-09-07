@@ -1,3 +1,7 @@
+2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-checkin): Fix typo.
+
 2007-09-07  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* cus-face.el (custom-theme-set-faces): Set face attributes
