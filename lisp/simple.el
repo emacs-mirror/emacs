@@ -5659,22 +5659,21 @@ call `normal-erase-is-backspace-mode' (which see) instead."
   (unless frame (setq frame (selected-frame)))
   (with-selected-frame frame
     (unless (terminal-parameter nil 'normal-erase-is-backspace)
-      (if (cond ((eq normal-erase-is-backspace 'maybe)
-		 (and (not noninteractive)
-		      (or (memq system-type '(ms-dos windows-nt))
-			  (eq window-system 'mac)
-			  (and (memq window-system '(x))
-			       (fboundp 'x-backspace-delete-keys-p)
-			       (x-backspace-delete-keys-p))
-			  ;; If the terminal Emacs is running on has erase char
-			  ;; set to ^H, use the Backspace key for deleting
-			  ;; backward and, and the Delete key for deleting forward.
-			  (and (null window-system)
-			       (eq tty-erase-char ?\^H)))))
-		(t
-		 normal-erase-is-backspace))
-	  (normal-erase-is-backspace-mode 1)
-	(normal-erase-is-backspace-mode 0)))))
+      (normal-erase-is-backspace-mode
+       (if (if (eq normal-erase-is-backspace 'maybe)
+               (and (not noninteractive)
+                    (or (memq system-type '(ms-dos windows-nt))
+                        (eq window-system 'mac)
+                        (and (memq window-system '(x))
+                             (fboundp 'x-backspace-delete-keys-p)
+                             (x-backspace-delete-keys-p))
+                        ;; If the terminal Emacs is running on has erase char
+                        ;; set to ^H, use the Backspace key for deleting
+                        ;; backward, and the Delete key for deleting forward.
+                        (and (null window-system)
+                             (eq tty-erase-char ?\^H))))
+             normal-erase-is-backspace)
+           1 0)))))
 
 (defun normal-erase-is-backspace-mode (&optional arg)
   "Toggle the Erase and Delete mode of the Backspace and Delete keys.
