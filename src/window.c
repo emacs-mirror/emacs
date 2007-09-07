@@ -7111,11 +7111,12 @@ freeze_window_start (w, freeze_p)
      struct window *w;
      void *freeze_p;
 {
-  if (w == XWINDOW (selected_window)
-      || MINI_WINDOW_P (w)
-      || (MINI_WINDOW_P (XWINDOW (selected_window))
-	  && ! NILP (Vminibuf_scroll_window)
-	  && w == XWINDOW (Vminibuf_scroll_window)))
+  if (MINI_WINDOW_P (w)
+      || (WINDOWP (selected_window) /* Can be nil in corner cases.  */
+         && (w == XWINDOW (selected_window)
+             || (MINI_WINDOW_P (XWINDOW (selected_window))
+                 && ! NILP (Vminibuf_scroll_window)
+                 && w == XWINDOW (Vminibuf_scroll_window)))))
     freeze_p = NULL;
 
   w->frozen_window_start_p = freeze_p != NULL;
