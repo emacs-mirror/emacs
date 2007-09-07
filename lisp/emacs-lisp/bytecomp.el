@@ -1037,8 +1037,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   (setq byte-compile-last-logged-file byte-compile-current-file
 		 byte-compile-last-warned-form nil)
 	   ;; Do this after setting default-directory.
-	   (unless (eq major-mode 'compilation-mode)
-	     (compilation-mode))
+	   (unless (derived-mode-p 'compilation-mode) (compilation-mode))
 	   (compilation-forget-errors)
 	   pt))))
 

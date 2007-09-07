@@ -1,3 +1,8 @@
+2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-file): Check major-mode via
+	derived-mode-p.
+
 2007-09-07  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/autoconf.el (autoconf-definition-regexp):
@@ -10,8 +15,8 @@
 	(browse-url-encode-url, browse-url-elinks)
 	(browse-url-elinks-sentinel): New functions.
 	(browse-url-file-url, browse-url-netscape, browse-url-mozilla)
-	(browse-url-firefox, browse-url-galeon, browse-url-epiphany): Use
-	new function browse-url-encode-url.
+	(browse-url-firefox, browse-url-galeon, browse-url-epiphany):
+	Use new function browse-url-encode-url.
 
 2007-09-07  Glenn Morris  <rgm@gnu.org>
 
