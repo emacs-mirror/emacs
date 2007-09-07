@@ -3130,6 +3130,9 @@ dissociate_if_controlling_tty (int fd)
 #if defined (USG) && !defined (BSD_PGRPS)
       setpgrp ();
       no_controlling_tty = 1;
+#elif defined (CYGWIN)
+      setsid ();
+      no_controlling_tty = 1;
 #else
 #ifdef TIOCNOTTY                /* Try BSD ioctls. */
       sigblock (sigmask (SIGTTOU));
