@@ -635,6 +635,9 @@ If non-nil, NEW means to create a new buffer no matter what."
           (if (not (string-match "." str)) (setq str "\n"))
           (setq str (concat "-- Running " cmd " ...\n" str)))
       (if (not (string-match
+                ;; FIXME:  If `cmd' is large, this will bump into the
+                ;; compiled-regexp size limit.  We could drop the "^" anchor
+                ;; and use search-forward to circumvent the problem.
 		(concat "^-- Running " (regexp-quote cmd) " \\.\\.\\.\n") str))
 	  (error "Internal PCL-CVS error while removing message")
 	(setq str (replace-match "" t t str))
