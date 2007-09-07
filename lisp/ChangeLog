@@ -1,3 +1,13 @@
+2007-09-07  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-admin-lastrev): New constant.
+	(vc-bzr-file-name-relative): Use 'when' instead of 'and'.
+	(vc-bzr-status): Fix shadowing of variable 'status'.
+	(vc-bzr-workfile-version): Use correct path to 'last-revision' file.
+	Use `expand-file-name' instead of `concat'.
+	(vc-bzr-annotate-command): Use option name '--long' instead of '-l'.
+	Update annotation line regexp.  Fixes launchpad.net [Bug 137435].
+
 2007-09-05  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.el (focus-follows-mouse): Doc-fix. Change default on w32.
@@ -11,7 +21,7 @@
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* info.el (info-tool-bar-map): Add :rtl keyword to right/left-arrow and
-        prev/next-node.
+	prev/next-node.
 
 	* term/x-win.el (x-gtk-stock-map, icon-map-list): New variables.
 	(x-gtk-map-stock): New function.
@@ -42,8 +52,7 @@
 
 2007-08-30  Martin Rudalics  <rudalics@gmx.at>
 
-	* files.el (backup-buffer-copy): Try to overwrite old backup
-	first.
+	* files.el (backup-buffer-copy): Try to overwrite old backup first.
 
 2007-08-29  Martin Rudalics  <rudalics@gmx.at>
 
@@ -53,16 +62,14 @@
 
 2007-08-28  Glenn Morris  <rgm@gnu.org>
 
-	* progmodes/cc-langs.el (c-constant-kwds): Add java: true, false,
-	null.
+	* progmodes/cc-langs.el (c-constant-kwds): Add java: true, false, null.
 
 2007-08-27  Alexandre Julliard  <julliard@winehq.org>
 
-        * vc-git.el (vc-git-state): Call git-add --refresh to update the
+	* vc-git.el (vc-git-state): Call git-add --refresh to update the
 	state of the file.
-        (vc-git-workfile-unchanged-p): Delegate implementation to
-	vc-git-state.
-	(vc-git-create-repo): Fixed invalid command.
+	(vc-git-workfile-unchanged-p): Delegate implementation to vc-git-state.
+	(vc-git-create-repo): Fix invalid command.
 
 2007-08-27  Richard Stallman  <rms@gnu.org>
 
