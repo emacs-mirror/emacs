@@ -1204,10 +1204,11 @@ Carl Witty, whose eagle eyes discovered many typographical and factual
 errors in the Calc manual; Tim Kay, who drove the development of
 Embedded mode; Ove Ewerlid, who made many suggestions relating to the
 algebra commands and contributed some code for polynomial operations;
-Randal Schwartz, who suggested the @code{calc-eval} function; Robert
-J. Chassell, who suggested the Calc Tutorial and exercises; and Juha
+Randal Schwartz, who suggested the @code{calc-eval} function; Juha
 Sarlin, who first worked out how to split Calc into quickly-loading
-parts.  Bob Weiner helped immensely with the Lucid Emacs port.
+parts; Bob Weiner, who helped immensely with the Lucid Emacs port; and
+Robert J. Chassell, who suggested the Calc Tutorial and exercises as
+well as many other things.  
 
 @cindex Bibliography
 @cindex Knuth, Art of Computer Programming
@@ -18599,7 +18600,7 @@ Given a positive numeric prefix argument @expr{M}, it produces a random
 integer @expr{N} in the range 
 @texline @math{0 \le N < M}.
 @infoline @expr{0 <= N < M}.  
-Each of the @expr{M} values appears with equal probability.
+Each possible value @expr{N} appears with equal probability.
 
 With no numeric prefix argument, the @kbd{k r} command takes its argument
 from the stack instead.  Once again, if this is a positive integer @expr{M}
