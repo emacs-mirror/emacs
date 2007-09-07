@@ -1895,8 +1895,7 @@ FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME).
 In the former case, FILENAME may be relative or absolute.
 
 The file-structure looks like this:
-  (list (list FILENAME [DIR-FROM-PREV-MSG]) FMT LINE-STRUCT...)
-"
+  (list (list FILENAME [DIR-FROM-PREV-MSG]) FMT LINE-STRUCT...)"
   (or (gethash file compilation-locs)
       ;; File was not previously encountered, at least not in the form passed.
       ;; Let's normalize it and look again.
@@ -1940,9 +1939,7 @@ The file-structure looks like this:
 		 ;; directories have the same name:
 		 ;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00463.html
 		 (or (gethash (cons filename spec-directory) compilation-locs)
-		     ;; TODO should this, without spec-directory, be
-		     ;; done at all?
-		     (puthash (list filename)
+		     (puthash (cons filename spec-directory)
 			      (list (list filename spec-directory) fmt)
 			      compilation-locs))
 		 compilation-locs))))
