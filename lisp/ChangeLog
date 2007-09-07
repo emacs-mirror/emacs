@@ -1,5 +1,16 @@
 2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/holidays.el (holiday-list, calendar-check-holidays)
+	(calendar-mark-holidays, calendar-list-holidays)
+	(holiday-filter-visible-calendar): New names to clean up namespace.
+	(filter-visible-calendar-holidays, list-calendar-holidays)
+	(mark-calendar-holidays, check-calendar-holidays, list-holidays):
+	Add compatibility aliases.
+	(calendar-check-holidays, calendar-mark-holidays)
+	(calendar-holiday-list, holiday-filter-visible-calendar): Use dolist.
+	(holiday-sexp): Replace append with list.
+	(holiday-filter-visible-calendar): Replace append with push.
+
 	* woman.el: Remove spurious * in docstrings.
 	(woman-mini-help, woman-non-underline-faces, woman0-rename)
 	(woman-topic-all-completions-merge, woman-file-name-all-completions)
