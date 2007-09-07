@@ -49,7 +49,7 @@
   '(("\\<dnl\\>" 0 '(11))))
 
 (defconst autoconf-definition-regexp
-  "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\(\\sw+\\)")
+  "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\[*\\(\\sw+\\)\\]*")
 
 (defvar autoconf-font-lock-keywords
   `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
