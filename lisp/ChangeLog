@@ -1,3 +1,18 @@
+2007-09-07  Ilya Zakharevich  <ilyaz@cpan.org>
+
+	* progmodes/cperl-mode.el: Merge upstream 5.23.
+	(cperl-where-am-i): Remove function.
+	(cperl-backward-to-noncomment): Don't go too far when skipping POD/HEREs
+	(cperl-sniff-for-indent): De-invert [string] and [comment].
+	When looking for label, skip s:m:y:tr.
+	(cperl-indent-line): Likewise.
+	(cperl-mode): Don't assume `font-lock-multiline' is auto-local.
+	(cperl-windowed-init): Wrong `ps-print' handling.
+	Both thanks to Chong Yidong.
+	(cperl-look-at-leading-count): Could fail with unfinished RExen.
+	(cperl-find-pods-heres): If the second part of s()[] is missing,
+	don't try to highlight delimiters...
+
 2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-get-file-structure): Complete last
