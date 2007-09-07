@@ -11054,17 +11054,44 @@ Please note that there is no ``year 0''; the day before
 days 0 and @mathit{-1} respectively in Calc's internal numbering scheme.
 
 @cindex Julian day counting
-Another day counting system in common use is, confusingly, also
-called ``Julian.''  It was invented in 1583 by Joseph Justus
-Scaliger, who named it in honor of his father Julius Caesar
-Scaliger.  For obscure reasons he chose to start his day
-numbering on Jan 1, 4713 BC at noon, which in Calc's scheme
+Another day counting system in common use is, confusingly, also called
+``Julian.''  The Julian day number is the numbers of days since 
+12:00 noon (GMT) on Jan 1, 4713 BC, which in Calc's scheme (in GMT) 
 is @mathit{-1721423.5} (recall that Calc starts at midnight instead
-of noon).  Thus to convert a Calc date code obtained by
-unpacking a date form into a Julian day number, simply add
-1721423.5.  The Julian code for @samp{6:00am Jan 9, 1991}
-is 2448265.75.  The built-in @kbd{t J} command performs
-this conversion for you.
+of noon).  Thus to convert a Calc date code obtained by unpacking a
+date form into a Julian day number, simply add 1721423.5 after
+compensating for the time zone difference.  The built-in @kbd{t J}
+command performs this conversion for you.
+
+The Julian day number is based on the Julian cycle, which was invented 
+in 1583 by Joseph Justus Scaliger.  Scaliger named it the Julian cycle
+since it is involves the Julian calendar, but some have suggested that
+Scaliger named it in honor of his father, Julius Caesar Scaliger.  The
+Julian cycle is based it on three other cycles: the indiction cycle,
+the Metonic cycle, and the solar cycle.  The indiction cycle is a 15
+year cycle originally used by the Romans for tax purposes but later
+used to date medieval documents.  The Metonic cycle is a 19 year
+cycle; 19 years is close to being a common multiple of a solar year
+and a lunar month, and so every 19 years the phases of the moon will
+occur on the same days of the year.  The solar cycle is a 28 year
+cycle; the Julian calendar repeats itself every 28 years.  The
+smallest time period which contains multiples of all three cycles is
+the least common multiple of 15 years, 19 years and 28 years, which
+(since they're pairwise relatively prime) is 
+@texline @math{15\times 19\times 28 = 7980} years.
+@infoline 15*19*28 = 7980 years.
+This is the length of a Julian cycle.  Working backwards, the previous
+year in which all three cycles began was 4713 BC, and so Scalinger
+chose that year as the beginning of a Julian cycle.  Since at the time
+there were no historical records from before 4713 BC, using this year
+as a starting point had the advantage of avoiding negative year
+numbers.  In 1849, the astronomer John Herschel (son of William
+Herschel) suggested using the number of days since the beginning of
+the Julian cycle as an astronomical dating system; this idea was taken
+up by other astronomers.  (At the time, noon was the start of the
+astronomical day.  Herschel originally suggested counting the days
+since Jan 1, 4713 BC at noon Alexandria time; this was later amended to
+noon GMT.)  Julian day numbering is largely used in astronomy.
 
 @cindex Unix time format
 The Unix operating system measures time as an integer number of
@@ -16657,9 +16684,9 @@ The last two arguments default to zero if omitted.
 @cindex Julian day counts, conversions
 The @kbd{t J} (@code{calc-julian}) [@code{julian}] command converts
 a date form into a Julian day count, which is the number of days
-since noon on Jan 1, 4713 BC.  A pure date is converted to an integer
-Julian count representing noon of that day.  A date/time form is
-converted to an exact floating-point Julian count, adjusted to
+since noon (GMT) on Jan 1, 4713 BC.  A pure date is converted to an
+integer Julian count representing noon of that day.  A date/time form 
+is converted to an exact floating-point Julian count, adjusted to
 interpret the date form in the current time zone but the Julian
 day count in Greenwich Mean Time.  A numeric prefix argument allows
 you to specify the time zone; @pxref{Time Zones}.  Use a prefix of
