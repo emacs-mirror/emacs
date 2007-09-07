@@ -1,3 +1,9 @@
+2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Vsplit_window_preferred_function): New var.
+	(Fdisplay_buffer): Use it.
+	(syms_of_window): Export, and initialize it.
+
 2007-09-06  Pixel  <pixel@mandriva.com>  (tiny change)
 
 	* image.c (gif_load): Fix bug: Handle nonexistent colormap.

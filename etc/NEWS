@@ -34,6 +34,9 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** split-window-preferred-function specifies whether display-buffer should
+split windows vertically or horizontally.
+
 ** Support for multiple terminal devices and simultaneous graphical
 and tty frames has been added.  You can test for the presence of this
 feature in your Lisp code by testing for the `multi-tty' feature.
@@ -263,9 +266,10 @@ global keymaps to set up translations and function key sequences
 relevant to a specific terminal device.
 
 
-** The function invisible-p returns non-nil if the character
-   after a specified position is invisible, or if its argument
-   as an `invisible' property would make a character invisible.
+** You can now also pass the value of the `invisible' property to invisible-p
+to check whether it would cause the text to be invisible.  Convenient when
+checking invisibility of text which has no buffer position
+(e.g. in before/after-strings).
 
 ** Non-breaking space now acts as whitespace.
 

@@ -192,6 +192,10 @@ Lisp_Object Qtemp_buffer_show_hook;
 
 EMACS_INT split_height_threshold;
 
+/* How to split windows (horizontally/vertically/hybrid).  */
+
+Lisp_Object Vsplit_window_preferred_function;
+
 /* Number of lines of continuity in scrolling by screenfuls.  */
 
 EMACS_INT next_screen_context_lines;
@@ -3723,6 +3727,8 @@ displayed.  */)
       || !NILP (XWINDOW (FRAME_ROOT_WINDOW (f))->dedicated))
     {
       Lisp_Object frames;
+      struct gcpro gcpro1;
+      GCPRO1 (buffer);
 
       frames = Qnil;
       if (FRAME_MINIBUF_ONLY_P (f))
@@ -3758,14 +3764,14 @@ displayed.  */)
 	      || (NILP (XWINDOW (window)->parent)))
 	  && (window_height (window)
 	      >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	window = Fsplit_window (window, Qnil, Qnil);
+	window = call1 (Vsplit_window_preferred_function, window);
       else
 	{
 	  Lisp_Object upper, lower, other;
 
 	  window = Fget_lru_window (frames, Qt);
-	  /* If the LRU window is tall enough, and either eligible for splitting
-	  and selected or the only window, split it.  */
+	  /* If the LRU window is tall enough, and either eligible for
+	     splitting and selected or the only window, split it.  */
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	      && ((EQ (window, selected_window)
@@ -3773,7 +3779,7 @@ displayed.  */)
 		  || (NILP (XWINDOW (window)->parent)))
 	      && (window_height (window)
 		  >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	    window = Fsplit_window (window, Qnil, Qnil);
+	    window = call1 (Vsplit_window_preferred_function, window);
 	  else
 	    window = Fget_lru_window (frames, Qnil);
 	  /* If Fget_lru_window returned nil, try other approaches.  */
@@ -3819,6 +3825,7 @@ displayed.  */)
 			      0);
 	    }
 	}
+      UNGCPRO;
     }
   else
     window = Fget_lru_window (Qnil, Qnil);
@@ -7489,6 +7496,15 @@ See also `same-window-buffer-names'.  */);
 by `display-buffer'.  The value is in line units.
 If there is only one window, it is split regardless of this value.  */);
   split_height_threshold = 500;
+
+  DEFVAR_LISP ("split-window-preferred-function",
+	       &Vsplit_window_preferred_function,
+	       doc: /* Function to use to split a window.
+This is used by `display-buffer' to allow the user to choose whether
+to split windows horizontally or vertically or some mix of the two.
+It is called with a window as single argument and should split it in two
+and return the new window.  */);
+  Vsplit_window_preferred_function = intern ("split-window");
 
   DEFVAR_INT ("window-min-height", &window_min_height,
 	      doc: /* *Delete any window less than this tall (including its mode line).
