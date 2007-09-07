@@ -1,3 +1,11 @@
+2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (x_set_frame_parameters): Check number is positive before
+	using XFASTINT.
+
+	* window.c (freeze_window_start): Don't presume selected_window holds
+	a window object.
+
 2007-09-07  Angelo Graziosi <Angelo.Graziosi@roma1.infn.it>  (tiny change)
 
 	* term.c (dissociate_if_controlling_tty): Call setsid on CYGWIN.
