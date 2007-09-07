@@ -139,6 +139,8 @@ with the face `eldoc-highlight-function-argument'.
 *** VC backends can provide extra menu entries to be added to the "Version Control" menu.
 This can be used to add menu entries for backend specific functions.
 
+*** VC now supports applying VC operations to a set of files at a time.
+
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 ** BibTeX mode:
