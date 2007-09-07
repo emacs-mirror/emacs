@@ -1,5 +1,8 @@
 2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/fortran.el (fortran-mode): Set font-lock-syntactic-keywords
+	via font-lock-defaults.
+
 	* emacs-lisp/bytecomp.el (byte-compile-log-file): Check major-mode via
 	derived-mode-p.
 
