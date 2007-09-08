@@ -615,7 +615,7 @@ With prefix argument, force publish all files."
       (mapcar 'org-publish-plist plists))))
 
 (provide 'org-publish)
-;; arch-tag: 72807f3c-8af0-4a6b-8dca-c3376eb25adb
 
+;; arch-tag: 72807f3c-8af0-4a6b-8dca-c3376eb25adb
 ;;; org-publish.el ends here
 
