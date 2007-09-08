@@ -1,3 +1,8 @@
+2007-09-08  Fredrik Axelsson  <f.axelsson@gmail.com>
+
+	* cus-start.el (all): Add prefer-window-split-horizontally from
+	window.c.
+
 2007-09-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* net/browse-url.el (browse-url-galeon): Fix last change.
