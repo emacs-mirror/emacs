@@ -16,7 +16,14 @@
 
 2007-09-07  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: Updated to org-mode 5.08.
+	* textmodes/org.el: (org-edit-timestamp-down-means-later): New
+	option.
+	(org-agenda-after-show-hook): New variable.
+	(org-columns-compile-format)
+	(org-columns-get-autowidth-alist, org-buffer-property-keys)
+	(org-entry-properties, org-at-property-p): Allow [:alnum:] in
+	property names.
+	(org-get-wdays): New function.
 
 2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
