@@ -1,5 +1,10 @@
 2007-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use
+	add-log-buffer-file-name-function rather than bind buffer-file-name,
+	so we dont end up calling change-log-mode in *cvs* when `fi' is the
+	ChangeLog file itself.
+
 	* outline.el (outline-flag-region): Use front-advance.
 
 2007-09-07  Ilya Zakharevich  <ilyaz@cpan.org>

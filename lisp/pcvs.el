@@ -2210,13 +2210,21 @@ With prefix argument, prompt for cvs flags."
 (defun-cvs-mode cvs-mode-add-change-log-entry-other-window ()
   "Add a ChangeLog entry in the ChangeLog of the current directory."
   (interactive)
+  ;; Require `add-log' explicitly, because if it gets autoloaded when we call
+  ;; add-change-log-entry-other-window below, the
+  ;; add-log-buffer-file-name-function ends up unbound when we leave the `let'.
+  (require 'add-log)
   (dolist (fi (cvs-mode-marked nil nil))
     (let* ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
-	   (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
-      (if (file-directory-p buffer-file-name)
-          ;; Be careful to use a directory name, otherwise add-log starts
-          ;; looking for a ChangeLog file in the parent dir.
-          (setq buffer-file-name (file-name-as-directory buffer-file-name)))
+	   (add-log-buffer-file-name-function
+            (lambda ()
+              (let ((file (expand-file-name (cvs-fileinfo->file fi))))
+                (if (file-directory-p file)
+                    ;; Be careful to use a directory name, otherwise add-log
+                    ;; starts looking for a ChangeLog file in the
+                    ;; parent dir.
+                    (file-name-as-directory file)
+                  file)))))
       (kill-local-variable 'change-log-default-name)
       (save-excursion (add-change-log-entry-other-window)))))
 
