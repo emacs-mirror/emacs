@@ -1,3 +1,9 @@
+2007-09-08  Fredrik Axelsson  <f.axelsson@gmail.com>
+
+	* window.c (prefer_window_split_horizontally): New variable.
+	(display_buffer): Consider splitting window horizontally depending
+	on prefer_window_split_horizontally.
+
 2007-09-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* sysdep.c [WINDOWSNT]: Don't include sysselect.h
