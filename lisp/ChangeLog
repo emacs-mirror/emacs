@@ -1,3 +1,7 @@
+2007-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (outline-flag-region): Use front-advance.
+
 2007-09-07  Ilya Zakharevich  <ilyaz@cpan.org>
 
 	* progmodes/cperl-mode.el: Merge upstream 5.23.
