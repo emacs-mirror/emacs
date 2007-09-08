@@ -71,6 +71,13 @@ Jay Belanger
             etc/calccard.tex
             man/calc.texi
 
+Michael Olson
+        ERC
+            lisp/erc/*
+            etc/ERC-NEWS
+            doc/misc/erc.texi
+        lisp/emacs-lisp/tq.el
+
 ==============================================================================
 2.
 ==============================================================================

@@ -1,3 +1,7 @@
+2007-09-08  Michael Olson  <mwolson@gnu.org>
+
+	* MAINTAINERS: Add myself for ERC and tq.el.
+
 2007-09-06  Romain Francoise  <romain@orebokech.com>
 
 	* make-dist: Update for new doc/ directory layout.
