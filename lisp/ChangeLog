@@ -1,3 +1,8 @@
+2007-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/browse-url.el (browse-url-galeon): Fix last change.
+	(top-level): Require cl when compiling.
+
 2007-09-08  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org-export-latex.el: arch-tag restored.
