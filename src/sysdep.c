@@ -46,7 +46,11 @@ extern void srandom P_ ((unsigned int));
 #endif
 #endif
 
+/* The w32 build defines select stuff in w32.h, which is included by
+   sys/select.h (included below).   */
+#ifndef WINDOWSNT
 #include "sysselect.h"
+#endif
 
 #include "blockinput.h"
 
