@@ -37,6 +37,13 @@ a GIF library.
 ** split-window-preferred-function specifies whether display-buffer should
 split windows vertically or horizontally.
 
+** The new variable prefer-window-split-horizontally specifies how
+display-buffer splits windows.  If its value is nil the old behavior
+is kept, i.e. windows are split vertically (above-below).  If its
+value is t, windows are split horizontally (side-by-side).  If its
+value is a number, windows are split horizontally if the resulting
+window is at least as wide as that number, vertically otherwise.
+
 ** Support for multiple terminal devices and simultaneous graphical
 and tty frames has been added.  You can test for the presence of this
 feature in your Lisp code by testing for the `multi-tty' feature.
