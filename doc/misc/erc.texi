@@ -68,6 +68,10 @@ and modified without restriction.
 * Advanced Usage::              Cool ways of using ERC.
 * Getting Help and Reporting Bugs::  
 * History::                     The history of ERC.
+* Copying::                     The GNU General Public License gives you
+                                  permission to redistribute ERC on
+                                  certain terms; it also explains that
+                                  there is no warranty.
 * GNU Free Documentation License:: The license for this documentation.
 * Concept Index::               Search for terms.
 
@@ -900,7 +904,7 @@ stuff, to the current ERC buffer."
 @c previous chapter)
 
 This section has not yet been written.  For now, the easiest way to
-check out the available option for ERC is to do
+check out the available options for ERC is to do
 @kbd{M-x customize-group erc RET}.
 
 
@@ -916,7 +920,7 @@ or if you have bugs to report, there are several places you can go.
 @itemize @bullet
 
 @item
-@uref{http://www.emacswiki.org/cgi-bin/wiki/EmacsIRCClient} is the
+@uref{http://www.emacswiki.org/cgi-bin/wiki/ERC} is the
 emacswiki.org page for ERC.  Anyone may add tips, hints, or bug
 descriptions to it.
 
@@ -929,14 +933,11 @@ The mailing lists are also available on Gmane.
 accessing the mailing lists, adding content to them, and searching them.
 
 @enumerate
-@item gmane.emacs.erc.announce
-Announcements
+@item gmane.emacs.erc.announce: Announcements
 
-@item gmane.emacs.erc.discuss
-General discussion
+@item gmane.emacs.erc.discuss: General discussion
 
-@item gmane.emacs.erc.cvs
-Log messages for changes to the ERC source code
+@item gmane.emacs.erc.cvs: Log messages for changes to the ERC source code
 
 @end enumerate
 
@@ -948,7 +949,7 @@ questions.
 @end itemize
 
 
-@node History, GNU Free Documentation License, Getting Help and Reporting Bugs, Top
+@node History, Copying, Getting Help and Reporting Bugs, Top
 @comment  node-name,  next,  previous,  up
 @chapter History
 @cindex history, of ERC
@@ -1010,8 +1011,12 @@ our revision control system.  Our mailing list address changed as well.
 
 @end itemize
 
-@node GNU Free Documentation License, Concept Index, History, Top
-@appendix GNU Free Documentation License
+@node Copying, GNU Free Documentation License, History, Top
+@comment  node-name,  next,  previous,  up
+@include gpl.texi
+
+@node GNU Free Documentation License, Concept Index, Copying, Top
+@comment  node-name,  next,  previous,  up
 @include doclicense.texi
 
 @node Concept Index,  , GNU Free Documentation License, Top

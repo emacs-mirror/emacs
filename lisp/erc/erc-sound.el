@@ -125,7 +125,7 @@ See also `play-sound-file'."
     (if (and (not filepath) erc-default-sound)
 	(setq filepath erc-default-sound))
     (cond ((and filepath (file-exists-p filepath))
-           (play-sound-file filepath))
+	   (play-sound-file filepath))
 	  (t (beep)))
     (erc-log (format "Playing sound file %S" filepath))))
 
@@ -142,5 +142,11 @@ See also `play-sound-file'."
 
 (provide 'erc-sound)
 
-;; arch-tag: 53657d1d-007f-4a20-91c1-588e71cf0cee
 ;;; erc-sound.el ends here
+;;
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
+
+;; arch-tag: 53657d1d-007f-4a20-91c1-588e71cf0cee

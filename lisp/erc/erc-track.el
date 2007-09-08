@@ -95,6 +95,12 @@ Activity means that there was no user input in the last 10 seconds."
   :group 'erc-track
   :type '(repeat string))
 
+(defcustom erc-track-remove-disconnected-buffers nil
+  "*If true, remove buffers associated with a server that is
+disconnected from `erc-modified-channels-alist'."
+  :group 'erc-track
+  :type 'boolean)
+
 (defcustom erc-track-exclude-types '("NICK")
   "*List of message types to be ignored.
 This list could look like '(\"JOIN\" \"PART\")."
@@ -151,6 +157,16 @@ If nil instead of a function, shortening is disabled."
   :type '(choice (const :tag "Disabled")
 		 function))
 
+(defcustom erc-track-list-changed-hook nil
+  "Hook that is run whenever the contents of
+`erc-modified-channels-alist' changes.
+
+This is useful for people that don't use the default mode-line
+notification but instead use a separate mechanism to provide
+notification of channel activity."
+  :group 'erc-track
+  :type 'hook)
+
 (defcustom erc-track-use-faces t
   "*Use faces in the mode-line.
 The faces used are the same as used for text in the buffers.
@@ -192,12 +208,14 @@ Setting this variable only has effects in GNU Emacs versions above 21.3.
 Choices are:
 'before-modes - add to the beginning of `mode-line-modes'
 'after-modes  - add to the end of `mode-line-modes'
-
-Any other value means add to the end of `global-mode-string'."
+t             - add to the end of `global-mode-string'.
+nil           - don't add to mode line
+"
   :group 'erc-track
   :type '(choice (const :tag "Just before mode information" before-modes)
 		 (const :tag "Just after mode information" after-modes)
-		 (const :tag "After all other information" nil))
+		 (const :tag "After all other information" t)
+		 (const :tag "Don't display in mode line" nil))
   :set (lambda (sym val)
 	 (set sym val)
 	 (when (and (boundp 'erc-track-mode)
@@ -263,12 +281,14 @@ when there are no more active channels."
 (defcustom erc-track-switch-direction 'oldest
   "Direction `erc-track-switch-buffer' should switch.
 
+  importance  -  find buffer with the most important message
   oldest      -  find oldest active buffer
   newest      -  find newest active buffer
   leastactive -  find buffer with least unseen messages
   mostactive  -  find buffer with most unseen messages."
   :group 'erc-track
-  :type '(choice (const oldest)
+  :type '(choice (const importance)
+		 (const oldest)
 		 (const newest)
 		 (const leastactive)
 		 (const mostactive)))
@@ -296,7 +316,7 @@ See `erc-track-position-in-mode-line' for possible values."
 	      (boundp 'mode-line-modes))
 	 (add-to-list 'mode-line-modes
 		      '(t erc-modified-channels-object) t))
-	(t
+	((eq position t)
 	 (when (not global-mode-string)
 	   (setq global-mode-string '(""))) ; Padding for mode-line wart
 	 (add-to-list 'global-mode-string
@@ -644,14 +664,21 @@ only consider active buffers visible.")
   (setq erc-buffer-activity (erc-current-time))
   (erc-track-modified-channels))
 
+(defun erc-track-get-buffer-window (buffer frame-param)
+  (if (eq frame-param 'selected-visible)
+      (if (eq (frame-visible-p (selected-frame)) t)
+	  (get-buffer-window buffer nil)
+	nil)
+    (get-buffer-window buffer frame-param)))
+
 (defun erc-buffer-visible (buffer)
   "Return non-nil when the buffer is visible."
   (if erc-track-when-inactive
       (when erc-buffer-activity; could be nil
-	(and (get-buffer-window buffer erc-track-visibility)
+	(and (erc-track-get-buffer-window buffer erc-track-visibility)
 	     (<= (erc-time-diff erc-buffer-activity (erc-current-time))
 		 erc-buffer-activity-timeout)))
-    (get-buffer-window buffer erc-track-visibility)))
+    (erc-track-get-buffer-window buffer erc-track-visibility)))
 
 ;;; Tracking the channel modifications
 
@@ -668,18 +695,22 @@ called via `window-configuration-change-hook'.
 ARGS are ignored."
   (interactive)
   (unless erc-modified-channels-update-inside
-    (let ((erc-modified-channels-update-inside t))
+    (let ((erc-modified-channels-update-inside t)
+	  (removed-channel nil))
       (mapcar (lambda (elt)
 		(let ((buffer (car elt)))
 		  (when (or (not (bufferp buffer))
 			    (not (buffer-live-p buffer))
 			    (erc-buffer-visible buffer)
+			    (and erc-track-remove-disconnected-buffers
 			    (not (with-current-buffer buffer
-				   erc-server-connected)))
+					erc-server-connected))))
+		    (setq removed-channel t)
 		    (erc-modified-channels-remove-buffer buffer))))
 	      erc-modified-channels-alist)
+      (when removed-channel
       (erc-modified-channels-display)
-      (force-mode-line-update t))))
+	(force-mode-line-update t)))))
 
 (defvar erc-track-mouse-face (if (featurep 'xemacs)
 				 'modeline-mousable
@@ -729,10 +760,13 @@ If FACES are provided, color STRING with them."
   "Set `erc-modified-channels-object'
 according to `erc-modified-channels-alist'.
 Use `erc-make-mode-line-buffer-name' to create buttons."
-  (if (or
-	(eq 'mostactive erc-track-switch-direction)
-	(eq 'leastactive erc-track-switch-direction))
-      (erc-track-sort-by-activest))
+  (cond ((or (eq 'mostactive erc-track-switch-direction)
+	     (eq 'leastactive erc-track-switch-direction))
+	 (erc-track-sort-by-activest))
+	((eq 'importance erc-track-switch-direction)
+	 (erc-track-sort-by-importance)))
+  (run-hooks 'erc-track-list-changed-hook)
+  (unless (eq erc-track-position-in-mode-line nil)
   (if (null erc-modified-channels-alist)
       (setq erc-modified-channels-object (erc-modified-channels-object nil))
     ;; erc-modified-channels-alist contains all the data we need.  To
@@ -768,7 +802,7 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
       (when (featurep 'xemacs)
 	(erc-modified-channels-object nil))
       (setq erc-modified-channels-object
-	    (erc-modified-channels-object strings)))))
+	      (erc-modified-channels-object strings))))))
 
 (defun erc-modified-channels-remove-buffer (buffer)
   "Remove BUFFER from `erc-modified-channels-alist'."
@@ -802,8 +836,7 @@ is in `erc-mode'."
     (if (and (not (erc-buffer-visible (current-buffer)))
 	     (not (member this-channel erc-track-exclude))
 	     (not (and erc-track-exclude-server-buffer
-		       (string= this-channel
-				(buffer-name (erc-server-buffer)))))
+		       (erc-server-buffer-p)))
 	     (not (erc-message-type-member
 		   (or (erc-find-parsed-property)
 		       (point-min))
@@ -847,10 +880,10 @@ is in `erc-mode'."
 	    (erc-modified-channels-display)))
       ;; Else if the active buffer is the current buffer, remove it
       ;; from our list.
-      (when (or (erc-buffer-visible (current-buffer))
+      (when (and (or (erc-buffer-visible (current-buffer))
 		(and this-channel
-		     (assq (current-buffer) erc-modified-channels-alist)
 		     (member this-channel erc-track-exclude)))
+		 (assq (current-buffer) erc-modified-channels-alist))
 	;; Remove it from mode-line if buffer is visible or
 	;; channel was added to erc-track-exclude recently.
 	(erc-modified-channels-remove-buffer (current-buffer))
@@ -887,6 +920,29 @@ That means the number of unseen messages in a channel."
 	(sort erc-modified-channels-alist
 	      (lambda (a b) (> (nth 1 a) (nth 1 b))))))
 
+(defun erc-track-face-priority (face)
+  "Return a number indicating the priority of FACE in
+`erc-track-faces-priority-list'.  Lower number means higher
+priority.
+
+If face is not in `erc-track-faces-priority-list', it will have a
+higher number than any other face in that list."
+  (let ((count 0))
+    (catch 'done
+      (dolist (item erc-track-faces-priority-list)
+	(if (eq item face)
+	    (throw 'done t)
+	  (setq count (1+ count)))))
+    count))
+
+(defun erc-track-sort-by-importance ()
+  "Sort erc-modified-channels-alist by importance.
+That means the position of the face in `erc-track-faces-priority-list'."
+  (setq erc-modified-channels-alist
+	(sort erc-modified-channels-alist
+	      (lambda (a b) (< (erc-track-face-priority (cddr a))
+			       (erc-track-face-priority (cddr b)))))))
+
 (defun erc-track-get-active-buffer (arg)
   "Return the buffer name of ARG in `erc-modified-channels-alist'.
 Negative arguments index in the opposite direction.  This direction is
@@ -898,7 +954,8 @@ relative to `erc-track-switch-direction'"
 		  (oldest      'newest)
 		  (newest      'oldest)
 		  (mostactive  'leastactive)
-		  (leastactive 'mostactive)))
+		  (leastactive 'mostactive)
+		  (importance  'oldest)))
       (setq arg (- arg)))
     (setq offset (case dir
 		   ((oldest leastactive)

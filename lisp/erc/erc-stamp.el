@@ -58,16 +58,48 @@ If nil, timestamping is turned off."
   :type '(choice (const nil)
 		 (string)))
 
-(defcustom erc-insert-timestamp-function 'erc-insert-timestamp-right
+(defcustom erc-timestamp-format-left "\n[%a %b %e %Y]\n"
+  "*If set to a string, messages will be timestamped.
+This string is processed using `format-time-string'.
+Good examples are \"%T\" and \"%H:%M\".
+
+This timestamp is used for timestamps on the left side of the
+screen when `erc-insert-timestamp-function' is set to
+`erc-insert-timestamp-left-and-right'.
+
+If nil, timestamping is turned off."
+  :group 'erc-stamp
+  :type '(choice (const nil)
+		 (string)))
+
+(defcustom erc-timestamp-format-right " [%H:%M]"
+  "*If set to a string, messages will be timestamped.
+This string is processed using `format-time-string'.
+Good examples are \"%T\" and \"%H:%M\".
+
+This timestamp is used for timestamps on the right side of the
+screen when `erc-insert-timestamp-function' is set to
+`erc-insert-timestamp-left-and-right'.
+
+If nil, timestamping is turned off."
+  :group 'erc-stamp
+  :type '(choice (const nil)
+		 (string)))
+
+(defcustom erc-insert-timestamp-function 'erc-insert-timestamp-left-and-right
   "*Function to use to insert timestamps.
 
 It takes a single argument STRING which is the final string
 which all text-properties already appended.  This function only cares about
 inserting this string at the right position.  Narrowing is in effect
 while it is called, so (point-min) and (point-max) determine the region to
-operate on."
+operate on.
+
+You will probably want to set
+`erc-insert-away-timestamp-function' to the same value."
   :group 'erc-stamp
-  :type '(choice (const :tag "Right" erc-insert-timestamp-right)
+  :type '(choice (const :tag "Both sides" erc-insert-timestamp-left-and-right)
+		 (const :tag "Right" erc-insert-timestamp-right)
 		 (const :tag "Left" erc-insert-timestamp-left)
 		 function))
 
@@ -82,12 +114,14 @@ If `erc-timestamp-format' is set, this will not be used."
   :type '(choice (const nil)
 		 (string)))
 
-(defcustom erc-insert-away-timestamp-function 'erc-insert-timestamp-right
+(defcustom erc-insert-away-timestamp-function
+  'erc-insert-timestamp-left-and-right
   "*Function to use to insert the away timestamp.
 
 See `erc-insert-timestamp-function' for details."
   :group 'erc-stamp
-  :type '(choice (const :tag "Right" erc-insert-timestamp-right)
+  :type '(choice (const :tag "Both sides" erc-insert-timestamp-left-and-right)
+		 (const :tag "Right" erc-insert-timestamp-right)
 		 (const :tag "Left" erc-insert-timestamp-left)
 		 function))
 
@@ -159,6 +193,18 @@ or `erc-send-modify-hook'."
 (defvar erc-timestamp-last-inserted nil
   "Last timestamp inserted into the buffer.")
 (make-variable-buffer-local 'erc-timestamp-last-inserted)
+
+(defvar erc-timestamp-last-inserted-left nil
+  "Last timestamp inserted into the left side of the buffer.
+This is used when `erc-insert-timestamp-function' is set to
+`erc-timestamp-left-and-right'")
+(make-variable-buffer-local 'erc-timestamp-last-inserted-left)
+
+(defvar erc-timestamp-last-inserted-right nil
+  "Last timestamp inserted into the right side of the buffer.
+This is used when `erc-insert-timestamp-function' is set to
+`erc-timestamp-left-and-right'")
+(make-variable-buffer-local 'erc-timestamp-last-inserted-right)
 
 (defcustom erc-timestamp-only-if-changed-flag t
   "*Insert timestamp only if its value changed since last insertion.
@@ -271,6 +317,26 @@ be printed just before the window-width."
       (erc-put-text-property from (point) 'rear-nonsticky t)
       (when erc-timestamp-intangible
 	(erc-put-text-property from (1+ (point)) 'intangible t)))))
+
+(defun erc-insert-timestamp-left-and-right (string)
+  "This is another function that can be assigned to
+`erc-insert-timestamp-function'.  If the date is changed, it will
+print a blank line, the date, and another blank line.  If the time is
+changed, it will then print it off to the right."
+  (let* ((ct (current-time))
+	 (ts-left (erc-format-timestamp ct erc-timestamp-format-left))
+	 (ts-right (erc-format-timestamp ct erc-timestamp-format-right)))
+    ;; insert left timestamp
+    (unless (string-equal ts-left erc-timestamp-last-inserted-left)
+      (goto-char (point-min))
+      (erc-put-text-property 0 (length ts-left) 'field 'erc-timestamp ts-left)
+      (insert ts-left)
+      (setq erc-timestamp-last-inserted-left ts-left))
+    ;; insert right timestamp
+    (let ((erc-timestamp-only-if-changed-flag t)
+	  (erc-timestamp-last-inserted erc-timestamp-last-inserted-right))
+      (erc-insert-timestamp-right ts-right)
+      (setq erc-timestamp-last-inserted-right ts-right))))
 
 ;; for testing: (setq erc-timestamp-only-if-changed-flag nil)
 

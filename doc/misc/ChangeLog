@@ -1,3 +1,8 @@
+2007-09-08  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Copying): New section included from gpl.texi.  This matches
+	the look of the upstream ERC manual.
+
 2007-09-07  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (History and Acknowledgements): Adjust the

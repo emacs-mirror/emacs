@@ -31,17 +31,26 @@
 
 ;; Quick start:
 ;;
-;; (setq erc-enable-logging t)
-;; (setq erc-log-channels-directory "/path/to/logfiles") ; must be writable
-;;
-;; There are two ways to setup logging. The first will write to the log files
-;; on each incoming or outgoing line - this may not be optimal on a laptop
-;; HDD. To do this, M-x customize-variable erc-modules, and add "log".
-;;
-;; The second method will save buffers on /part, /quit, or killing the
-;; channel buffer. To do this, add the following to your .emacs:
-;;
 ;; (require 'erc-log)
+;; (setq erc-log-channels-directory "/path/to/logfiles") ; must be writable
+;; (erc-log-enable)
+;;
+;; Or:
+;;
+;; M-x customize-variable erc-modules, and add "log".
+;;
+;; There are two ways to setup logging.  The first (default) method
+;; will save buffers on /part, /quit, or killing the channel
+;; buffer.
+;;
+;; The second will write to the log files on each incoming or outgoing
+;; line - this may not be optimal on a laptop HDD.  To use this
+;; method, add the following to the above instructions.
+;;
+;; (setq erc-save-buffer-on-part nil
+;;       erc-save-queries-on-quit nil
+;;       erc-log-write-after-send t
+;;       erc-log-write-after-insert t)
 ;;
 ;; If you only want to save logs for some buffers, customise the
 ;; variable `erc-enable-logging'.
@@ -99,15 +108,19 @@ The function must take five arguments: BUFFER, TARGET, NICK, SERVER and PORT.
 BUFFER is the buffer to be saved,
 TARGET is the name of the channel, or the target of the query,
 NICK is the current nick,
-SERVER and PORT are the parameters used to connect BUFFERs
-`erc-server-process'."
+SERVER and PORT are the parameters that were used to connect to BUFFERs
+`erc-server-process'.
+
+If you want to write logs into different directories, make a
+custom function which returns the directory part and set
+`erc-log-channels-directory' to its name."
   :group 'erc-log
   :type '(choice (const :tag "Long style" erc-generate-log-file-name-long)
 		 (const :tag "Long, but with network name rather than server"
 			erc-generate-log-file-name-network)
 		 (const :tag "Short" erc-generate-log-file-name-short)
 		 (const :tag "With date" erc-generate-log-file-name-with-date)
-		 (symbol :tag "Other function")))
+		 (function :tag "Other function")))
 
 (defcustom erc-truncate-buffer-on-save nil
   "Truncate any ERC (channel, query, server) buffer when it is saved."
@@ -134,10 +147,16 @@ Log files are stored in `erc-log-channels-directory'."
   "The directory to place log files for channels.
 Leave blank to disable logging.  If not nil, all the channel
 buffers are logged in separate files in that directory.  The
-directory should not end with a trailing slash."
+directory should not end with a trailing slash.
+
+If this is the name of a function, the function will be called
+with the buffer, target, nick, server, and port arguments.  See
+`erc-generate-log-file-name-function' for a description of these
+arguments."
   :group 'erc-log
   :type '(choice directory
-		 (const nil)))
+		 (function "Function")
+		 (const :tag "Disable logging" nil)))
 
 (defcustom erc-log-insert-log-on-open nil
   "*Insert log file contents into the buffer if a log file exists."
@@ -297,7 +316,8 @@ Logging is enabled if `erc-log-channels-directory' is non-nil, the directory
 is writeable (it will be created as necessary) and
 `erc-enable-logging' returns a non-nil value."
   (and erc-log-channels-directory
-       (erc-directory-writable-p erc-log-channels-directory)
+       (or (functionp erc-log-channels-directory)
+	   (erc-directory-writable-p erc-log-channels-directory))
        (if (functionp erc-enable-logging)
 	   (funcall erc-enable-logging (or buffer (current-buffer)))
 	 erc-enable-logging)))
@@ -316,14 +336,19 @@ filename is downcased."
 If BUFFER is nil, the value of `current-buffer' is used.
 This is determined by `erc-generate-log-file-name-function'.
 The result is converted to lowercase, as IRC is case-insensitive"
-  (expand-file-name
-   (erc-log-standardize-name
-    (funcall erc-generate-log-file-name-function
-	     (or buffer (current-buffer))
-	     (or (buffer-name buffer) (erc-default-target))
-	     (erc-current-nick)
-	     erc-session-server erc-session-port))
-   erc-log-channels-directory))
+  (unless buffer (setq buffer (current-buffer)))
+  (let ((target (or (buffer-name buffer) (erc-default-target)))
+	(nick (erc-current-nick))
+	(server erc-session-server)
+	(port erc-session-port))
+    (expand-file-name
+     (erc-log-standardize-name
+      (funcall erc-generate-log-file-name-function
+	       buffer target nick server port))
+     (if (functionp erc-log-channels-directory)
+	 (funcall erc-log-channels-directory
+		  buffer target nick server port)
+       erc-log-channels-directory))))
 
 (defun erc-generate-log-file-name-with-date (buffer &rest ignore)
   "This function computes a short log file name.

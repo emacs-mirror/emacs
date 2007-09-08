@@ -1,3 +1,8 @@
+2007-09-08  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for changes to the development version of ERC
+	5.3.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* ctags.1, emacs.1, emacsclient.1, etags.1: Move from etc/ to

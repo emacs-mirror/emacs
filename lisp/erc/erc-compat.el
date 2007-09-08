@@ -56,6 +56,18 @@ See `erc-encoding-coding-alist'."
     (format-time-string "%Y-%m-%d" emacs-build-time))
   "Time at which Emacs was dumped out.")
 
+;; Emacs 21 and XEmacs do not have user-emacs-directory, but XEmacs
+;; has user-init-directory.
+(defvar erc-user-emacs-directory
+  (cond ((boundp 'user-emacs-directory)
+	 user-emacs-directory)
+	((boundp 'user-init-directory)
+	 user-init-directory)
+	(t "~/.emacs.d/"))
+  "Directory beneath which additional per-user Emacs-specific files
+are placed.
+Note that this should end with a directory separator.")
+
 ;; XEmacs' `replace-match' does not replace matching subexpressions in strings.
 (defun erc-replace-match-subexpression-in-string
   (newtext string match subexp start &optional fixedcase literal)
@@ -68,6 +80,7 @@ See `replace-match' for explanations of FIXEDCASE and LITERAL."
 	 (replace-match newtext fixedcase literal string))
 	(t (replace-match newtext fixedcase literal string subexp))))
 
+(defalias 'erc-with-selected-window 'with-selected-window)
 (defalias 'erc-cancel-timer 'cancel-timer)
 (defalias 'erc-make-obsolete 'make-obsolete)
 (defalias 'erc-make-obsolete-variable 'make-obsolete-variable)
