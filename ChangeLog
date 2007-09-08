@@ -1,6 +1,7 @@
 2007-09-08  Michael Olson  <mwolson@gnu.org>
 
 	* MAINTAINERS: Add myself for ERC and tq.el.
+	Update for new doc/ directory layout.
 
 2007-09-06  Romain Francoise  <romain@orebokech.com>
 
