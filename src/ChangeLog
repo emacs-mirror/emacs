@@ -1,3 +1,7 @@
+2007-09-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sysdep.c [WINDOWSNT]: Don't include sysselect.h
+
 2007-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* s/cygwin.h (GC_MARK_STACK): Enable conservative stack marking.
