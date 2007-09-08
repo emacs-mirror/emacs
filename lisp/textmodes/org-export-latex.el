@@ -3,7 +3,7 @@
 ;;
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org organizer latex export convert
-;; Version: $Id: org-export-latex.el,v 0.28a 2007/08/31 06:22:06 guerry Exp guerry $
+;; Version: $Id: org-export-latex.el,v 1.5 2007/09/07 20:16:45 johnw Exp $
 ;; X-URL: <http://www.cognition.ens.fr/~guerry/u/org-export-latex.el>
 ;;
 ;; This file is part of GNU Emacs.
@@ -1229,4 +1229,5 @@ Regexps are those from `org-latex-special-string-regexps'."
 
 (provide 'org-export-latex)
 
+;; arch-tag: 23c2b87d-da04-4c2d-ad2d-1eb6487bc3ad
 ;;; org-export-latex.el ends here
