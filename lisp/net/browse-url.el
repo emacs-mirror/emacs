@@ -217,7 +217,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-(eval-when-compile (require 'thingatpt)
+(eval-when-compile (require 'cl)
+		   (require 'thingatpt)
                    (require 'term)
 		   (require 'dired)
                    (require 'executable)
@@ -1088,7 +1089,7 @@ new tab in an existing window instead.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
-  (setq url (browse-url-encode-url))
+  (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
          (process (apply 'start-process
 			 (concat "galeon " url)
