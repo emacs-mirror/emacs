@@ -1,5 +1,7 @@
 2007-09-08  Masatake YAMATO  <jet@gyve.org>
 
+	* progmodes/which-func.el (which-func-modes): Added diff-mode.
+
 	* progmodes/cc-langs.el: Support new keywords added to 
 	objective-c frontend of gcc.
 	(c-simple-stmt-kwds): Added @throw.
