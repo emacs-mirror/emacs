@@ -49,18 +49,18 @@ The value is nil if the selected frame is on a text-only-terminal.")
 
 (defcustom initial-buffer-choice nil
   "Buffer to show after starting Emacs.
-If the value is nil and `inhibit-splash-screen' is nil, show the
+If the value is nil and `inhibit-startup-screen' is nil, show the
 startup screen.  If the value is string, visit the specified file or
 directory using `find-file'.  If t, open the `*scratch*' buffer."
   :type '(choice
-	  (const     :tag "Splash screen" nil)
+	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/file.txt")
 	  (const     :tag "Lisp scratch buffer" t))
   :version "23.1"
   :group 'initialization)
 
-(defcustom inhibit-splash-screen nil
+(defcustom inhibit-startup-screen nil
   "Non-nil inhibits the startup screen.
 It also inhibits display of the initial message in the `*scratch*' buffer.
 
@@ -69,7 +69,8 @@ you are familiar with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
-(defvaralias 'inhibit-startup-message 'inhibit-splash-screen)
+(defvaralias 'inhibit-splash-screen 'inhibit-startup-screen)
+(defvaralias 'inhibit-startup-message 'inhibit-startup-screen)
 
 (defcustom inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
@@ -1123,7 +1124,7 @@ opening the first frame (e.g. open a connection to an X server).")
 ")
   "Initial message displayed in *scratch* buffer at startup.
 If this is nil, no message will be displayed.
-If `inhibit-splash-screen' is non-nil, then no message is displayed,
+If `inhibit-startup-screen' is non-nil, then no message is displayed,
 regardless of the value of this variable."
   :type '(choice (text :tag "Message")
 		 (const :tag "none" nil))
@@ -1156,11 +1157,11 @@ regardless of the value of this variable."
 	   (concat " (" title ")"))))
      "\n"
      :face variable-pitch
-     :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
-     "\tView the Emacs manual using Info\n"
      :link ("Emacs Guided Tour"
 	  (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
      "\tOverview of Emacs features\n"
+     :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
+     "\tView the Emacs manual using Info\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
      :face (variable-pitch :slant oblique)
@@ -1171,12 +1172,15 @@ regardless of the value of this variable."
      :link ("More Manuals / Ordering" (lambda (button) (view-order-manuals)))
      "\tThe FSF sells printed copies of several manuals for Emacs\n"
      "\n"
-     "To start...       "
+     "To start...     "
      :link ("Open a File"
 	    (lambda (button) (call-interactively 'find-file)))
-     "\t"
+     "     "
      :link ("Open Home Directory"
 	    (lambda (button) (dired "~")))
+     "     "
+     :link ("Customize Startup"
+	    (lambda (button) (customize-group 'initialization)))
      "\n"))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
@@ -1184,6 +1188,17 @@ Each element in the list should be a list of strings or pairs
 
 (defvar fancy-about-text
   '((:face variable-pitch
+     :link ("Authors"
+	    (lambda (button)
+	      (view-file (expand-file-name "AUTHORS" data-directory))
+	      (goto-char (point-min))))
+     "\tMany people have contributed code included in GNU Emacs\n"
+     :link ("Contributing"
+	    (lambda (button)
+	      (view-file (expand-file-name "CONTRIBUTE" data-directory))
+	      (goto-char (point-min))))
+     "\tHow to contribute improvements to Emacs\n"
+     "\n"
      :link ("GNU and Freedom" (lambda (button) (describe-project)))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
@@ -1314,13 +1329,15 @@ where FACE is a valid face specification, as it can be used with
   (insert "\n")
   (fancy-splash-insert
    :face '(variable-pitch :foreground "red")
-   "GNU Emacs is one component of the "
+   (if startup "Welcome to " "This is ")
+   :link
+   '("GNU Emacs" (lambda (button) (browse-url "http://www.gnu.org/software/emacs/")))
+   ", one component of the "
    :link
    (if (eq system-type 'gnu/linux)
        '("GNU/Linux" (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html")))
      '("GNU" (lambda (button) (describe-project))))
-   " operating system.")
-  (insert "\n")
+   " operating system.\n")
   (if startup
       (fancy-splash-insert
        :face 'variable-pitch
@@ -1332,20 +1349,29 @@ using the mouse.\n"
        "Control-g"
        :face 'variable-pitch
        "."
-       "\n\n"))
-  )
+       "\n\n")
+    (let ((fg (if (eq (frame-parameter nil 'background-mode) 'dark)
+		  "cyan" "darkblue")))
+      (fancy-splash-insert :face `(variable-pitch :foreground ,fg)
+			   "\n"
+			   (emacs-version)
+			   "\n"
+			   :face '(variable-pitch :height 0.5)
+			   emacs-copyright
+			   "\n\n"))))
 
 (defun fancy-splash-tail (&optional startup)
   "Insert the tail part of the splash screen into the current buffer."
   (let ((fg (if (eq (frame-parameter nil 'background-mode) 'dark)
 		"cyan" "darkblue")))
-    (fancy-splash-insert :face `(variable-pitch :foreground ,fg)
-			 "\nThis is "
-			 (emacs-version)
-			 "\n"
-			 :face '(variable-pitch :height 0.5)
-			 emacs-copyright
-			 "\n")
+    (if startup
+	(fancy-splash-insert :face `(variable-pitch :foreground ,fg)
+			     "\nThis is "
+			     (emacs-version)
+			     "\n"
+			     :face '(variable-pitch :height 0.5)
+			     emacs-copyright
+			     "\n"))
     (and startup
 	 auto-save-list-file-prefix
 	 ;; Don't signal an error if the
@@ -1496,8 +1522,6 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
        (if (eq system-type 'gnu/linux)
 	   ", one component of the GNU/Linux operating system.\n"
 	 ", a part of the GNU operating system.\n"))
-
-      (insert "\n")
 
       (if startup
 	  (if (display-mouse-p)
@@ -1696,7 +1720,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 	   (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
       (progn
 	(insert
-	 "\n
+	 "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
 	(insert-button "full details"
 		       'action (lambda (button) (describe-no-warranty))
@@ -1714,7 +1738,7 @@ Type C-h C-d for information on ")
 		       'follow-link t)
 	(insert "."))
     (insert (substitute-command-keys
-	     "\n
+	     "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
     (insert-button "full details"
 		   'action (lambda (button) (describe-no-warranty))
@@ -1736,6 +1760,22 @@ Type \\[describe-distribution] for information on "))
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n\n")
 
   (insert "To follow a link, click Mouse-1 on it, or move to it and type RET.\n\n")
+
+  (insert-button "Authors"
+		 'action
+		 (lambda (button)
+		   (view-file (expand-file-name "AUTHORS" data-directory))
+		   (goto-char (point-min)))
+		 'follow-link t)
+  (insert "\t\tMany people have contributed code included in GNU Emacs\n")
+
+  (insert-button "Contributing"
+		 'action
+		 (lambda (button)
+		   (view-file (expand-file-name "CONTRIBUTE" data-directory))
+		   (goto-char (point-min)))
+		 'follow-link t)
+  (insert "\tHow to contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
 		 'action (lambda (button) (describe-project))
