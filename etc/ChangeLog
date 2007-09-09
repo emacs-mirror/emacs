@@ -1,3 +1,7 @@
+2007-09-09  Juri Linkov  <juri@jurta.org>
+
+	* AUTHORS, CONTRIBUTE: New files, moved here from the root dir.
+
 2007-09-08  Michael Olson  <mwolson@gnu.org>
 
 	* ERC-NEWS: Update for changes to the development version of ERC
