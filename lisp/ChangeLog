@@ -1,3 +1,7 @@
+2007-09-09  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el: New file.
+
 2007-09-09  Juri Linkov  <juri@jurta.org>
 
 	* Makefile.in (update-authors): Add etc/ to AUTHORS.
