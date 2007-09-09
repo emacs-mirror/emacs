@@ -119,7 +119,13 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
-** A new game called `bubble' has been added
+** The package doc-view.el has been added.  It supports viewing of PDF,
+PostScript and DVI documents inside an Emacs buffer by converting the
+document to a set of PNG images first.  One can also search for a
+regular expression in the document.  The commentary of the file explains
+its usage.
+
+** A new game called `bubble' has been added.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
@@ -248,7 +254,7 @@ session, and `make-frame-on-tty' works during a graphical session.
 `terminal-parameter', `set-terminal-parameter',
 `modify-terminal-parameters'.
 
-*** New hooks: `suspend-tty-functions' and `resume-tty-functions' 
+*** New hooks: `suspend-tty-functions' and `resume-tty-functions'
 are called after a tty frame has been suspended or resumed,
 respectively. The functions are called with the terminal id of the frame
 being suspended/resumed as a parameter.
