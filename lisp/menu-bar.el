@@ -1338,9 +1338,12 @@ key, a click, or a menu-item"))
   '(menu-item "Introduction to Emacs Lisp" menu-bar-read-lispintro
 	      :help "Read the Introduction to Emacs Lisp Programming"))
 
-(define-key menu-bar-help-menu [eliza]
-  '(menu-item "Emacs Psychotherapist" doctor
-	      :help "Our doctor will help you feel better"))
+(define-key menu-bar-help-menu [describe-project]
+  '(menu-item "About GNU" describe-project
+	      :help "About the GNU System, GNU Project, and GNU/Linux"))
+(define-key menu-bar-help-menu [about]
+  '(menu-item "About Emacs" about-emacs
+	      :help "Display version number, copyright info, and basic help"))
 (define-key menu-bar-help-menu [sep4]
   '("--"))
 (define-key menu-bar-help-menu [describe-no-warranty]
@@ -1349,15 +1352,9 @@ key, a click, or a menu-item"))
 (define-key menu-bar-help-menu [describe-copying]
   '(menu-item "Copying Conditions" describe-copying
 	      :help "Show the Emacs license (GPL)"))
-(define-key menu-bar-help-menu [describe-project]
-  '(menu-item "About GNU" describe-project
-	      :help "About the GNU System, GNU Project, and GNU/Linux"))
 (define-key menu-bar-help-menu [describe-distribution]
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))
-(define-key menu-bar-help-menu [more]
-  '(menu-item "External Packages" menu-bar-help-extra-packages
-	      :help "Lisp packages distributed separately for use in Emacs"))
 (defun menu-bar-help-extra-packages ()
   "Display help about some additional packages available for Emacs."
   (interactive)
@@ -1365,11 +1362,11 @@ key, a click, or a menu-item"))
     (view-file (expand-file-name "MORE.STUFF"
 				 data-directory))
     (goto-address)))
-(define-key menu-bar-help-menu [about]
-  '(menu-item "About Emacs" about-emacs
-	      :help "Display version number, copyright info, and basic help"))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
+(define-key menu-bar-help-menu [more]
+  '(menu-item "External Packages" menu-bar-help-extra-packages
+	      :help "Lisp packages distributed separately for use in Emacs"))
 (define-key menu-bar-help-menu [finder-by-keyword]
   '(menu-item "Find Emacs Packages" finder-by-keyword
 	      :help "Find packages and features by keyword"))
@@ -1384,6 +1381,9 @@ key, a click, or a menu-item"))
   (list 'menu-item "Search Documentation" menu-bar-apropos-menu))
 (define-key menu-bar-help-menu [sep1]
   '("--"))
+(define-key menu-bar-help-menu [eliza]
+  '(menu-item "Emacs Psychotherapist" doctor
+	      :help "Our doctor will help you feel better"))
 (define-key menu-bar-help-menu [report-emacs-bug]
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
