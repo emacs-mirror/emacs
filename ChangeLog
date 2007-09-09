@@ -1,3 +1,9 @@
+2007-09-09  Juri Linkov  <juri@jurta.org>
+
+	* make-dist: Remove AUTHORS and CONTRIBUTE (moved to etc).
+
+	* README: Add doc/ to documentation directories.
+
 2007-09-08  Michael Olson  <mwolson@gnu.org>
 
 	* MAINTAINERS: Add myself for ERC and tq.el.
