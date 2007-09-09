@@ -1,3 +1,36 @@
+2007-09-09  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-re): Also replace the :alpha: class.
+	(org-todo-tag-alist): Variable removed.
+	(org-todo-key-alist, org-todo-key-trigger) New variables.
+	(org-use-fast-todo-selection): New option.
+	(org-log-done): Docstring fixed.
+	(org-deadline-warning-days): New default value 14.
+	(org-edit-timestamp-down-means-later) New option.
+	(org-tag-alist): Docstring fixed.
+	(org-fast-tag-selection-include-todo): New option.
+	(org-export-language-setup): New languages added.
+	(org-set-regexps-and-options): Compute the new variables.
+	(org-paste-subtree): Cleaning up.
+	(org-remember-apply-template): New escape %A.
+	(org-todo): Call fast TODO selection.
+	(org-fast-todo-selection): New function.
+	(org-add-log-note): Allow prefix for abort exit.
+	(org-at-property-p, org-entry-properties)
+	(org-columns-get-autowidth-alist): Use :alpha: class.
+	(org-get-wdays): New function.
+	(org-agenda-remove-date): New variable.
+	(org-agenda-get-deadlines): Use `org-get-wdays'.
+	(org-agenda-get-deadlines): Reverse ee before returning.
+	(org-format-agenda-item): New argument REMOVE-RE.
+	(org-agenda-convert-date): Baha'i calendar added.
+	(org-infile-export-plist): Also find DATE line.
+	(org-get-min-level): New function.
+	(org-export-as-html, org-export-as-ascii): Use the date format.
+	(org-shiftup, org-shiftdown): Use.
+	`org-edit-timestamp-down-means-later'.
+	(org-assign-fast-keys): New function.
+
 2007-09-08  Fredrik Axelsson  <f.axelsson@gmail.com>
 
 	* cus-start.el (all): Add prefer-window-split-horizontally from
