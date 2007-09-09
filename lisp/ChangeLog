@@ -1,3 +1,29 @@
+2007-09-09  Juri Linkov  <juri@jurta.org>
+
+	* Makefile.in (update-authors): Add etc/ to AUTHORS.
+
+	* makefile.w32-in (update-authors): Add etc/ to AUTHORS.
+
+	* startup.el (initial-buffer-choice): Rename choice "Splash screen"
+	to "Startup screen".  Fix docstring.
+	(inhibit-startup-screen): Rename from `inhibit-splash-screen'.
+	(inhibit-splash-screen): Make alias to `inhibit-startup-screen'.
+	(inhibit-startup-message): Change alias to `inhibit-startup-screen'.
+	(initial-scratch-message): Fix docstring.
+	(fancy-startup-text): Move link to Emacs Manual below Emacs Guided
+	Tour (which is a kind of tutorial and will be next to Emacs Tutorial).
+	Add link to "Customize Startup" and set interval between links to
+	5 spaces.
+	(fancy-about-text): Add links "Authors" and "Contributing".
+	(fancy-splash-head): Add text "Welcome to " on the startup screen,
+	and "This is " on the about screen.  Add link to
+	"http://www.gnu.org/software/emacs/" for "GNU Emacs".
+	For the about screen move emacs version to the header from
+	`fancy-splash-tail' (as it's done already for normal about screen).
+	(fancy-splash-tail): Insert emacs version only for startup screen.
+	(normal-splash-screen): Remove duplicate empty lines.
+	(normal-about-screen): Add links "Authors" and "Contributing".
+
 2007-09-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Remove declarations of `tramp-gw-*' symbols,
