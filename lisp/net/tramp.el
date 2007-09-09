@@ -149,17 +149,12 @@
 		    (unload-feature 'tramp-fish 'force))))
 
      ;; Load gateways.  It needs `make-network-process' from Emacs 22.
-     (if (functionp 'make-network-process)
-	 (progn
-	   (require 'tramp-gw)
-	   (add-hook 'tramp-unload-hook
-		     '(lambda ()
-			(when (featurep 'tramp-gw)
-			  (unload-feature 'tramp-gw 'force)))))
-       ;; We need to declare used tramp-gw-* symbols at least.
-       (setq tramp-gw-tunnel-method ""
-	     tramp-gw-socks-method "")
-       (defalias 'tramp-gw-open-connection 'ignore))
+     (when (functionp 'make-network-process)
+       (require 'tramp-gw)
+       (add-hook 'tramp-unload-hook
+		 '(lambda ()
+		    (when (featurep 'tramp-gw)
+		      (unload-feature 'tramp-gw 'force)))))
 
      ;; tramp-util offers integration into other (X)Emacs packages like
      ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
@@ -2024,6 +2019,22 @@ The intent is to protect against `obsolete variable' warnings."
 (put 'tramp-let-maybe 'lisp-indent-function 2)
 (put 'tramp-let-maybe 'edebug-form-spec t)
 
+(defsubst tramp-make-temp-file (filename)
+  (concat
+   (funcall (if (fboundp 'make-temp-file) 'make-temp-file 'make-temp-name)
+	    (expand-file-name tramp-temp-name-prefix
+			      (tramp-temporary-file-directory)))
+   (file-name-extension filename t)))
+
+(defsubst tramp-make-tramp-temp-file (vec)
+  (format
+   "/tmp/%s%s"
+   tramp-temp-name-prefix
+   (if (get-buffer-process (tramp-get-connection-buffer vec))
+       (process-id (get-buffer-process (tramp-get-connection-buffer vec)))
+     (emacs-pid))))
+
+
 ;;; Config Manipulation Functions:
 
 (defun tramp-set-completion-function (method function-list)
@@ -3030,114 +3041,114 @@ the file (for rename).  Both files must reside on the same host.
 KEEP-DATE means to make sure that NEWNAME has the same timestamp
 as FILENAME.  PRESERVE-UID-GID, when non-nil, instructs to keep
 the uid and gid from FILENAME."
-  (with-parsed-tramp-file-name (if t1 filename newname) nil
-    (let* ((cmd (cond ((and (eq op 'copy) preserve-uid-gid) "cp -f -p")
-		      ((eq op 'copy) "cp -f")
-		      ((eq op 'rename) "mv -f")
-		      (t (tramp-error
-			  vec 'file-error
-			  "Unknown operation `%s', must be `copy' or `rename'"
-			  op))))
-	   (t1 (tramp-tramp-file-p filename))
-	   (t2 (tramp-tramp-file-p newname))
-	   (localname1
-	    (if t1 (tramp-handle-file-remote-p filename 'localname) filename))
-	   (localname2
-	    (if t2 (tramp-handle-file-remote-p newname 'localname) newname))
-	   (prefix (tramp-handle-file-remote-p (if t1 filename newname)))
-	   (tmpfile (tramp-make-temp-file localname1)))
+  (let ((t1 (tramp-tramp-file-p filename))
+	(t2 (tramp-tramp-file-p newname)))
+    (with-parsed-tramp-file-name (if t1 filename newname) nil
+      (let* ((cmd (cond ((and (eq op 'copy) preserve-uid-gid) "cp -f -p")
+			((eq op 'copy) "cp -f")
+			((eq op 'rename) "mv -f")
+			(t (tramp-error
+			    v 'file-error
+			    "Unknown operation `%s', must be `copy' or `rename'"
+			    op))))
+	     (localname1
+	      (if t1 (tramp-handle-file-remote-p filename 'localname) filename))
+	     (localname2
+	      (if t2 (tramp-handle-file-remote-p newname 'localname) newname))
+	     (prefix (tramp-handle-file-remote-p (if t1 filename newname)))
+	     (tmpfile (tramp-make-temp-file localname1)))
 
-      (cond
-       ;; Both files are on a remote host, with same user.
-       ((and t1 t2)
-	(tramp-send-command
-	 v
-	 (format "%s %s %s" cmd
-		 (tramp-shell-quote-argument localname1)
-		 (tramp-shell-quote-argument localname2)))
-	(with-current-buffer (tramp-get-buffer v)
-	  (goto-char (point-min))
-	  (unless
-	      (or
-	       (and keep-date
-		    ;; Mask cp -f error.
-		    (re-search-forward
-		     tramp-operation-not-permitted-regexp nil t))
-	       (zerop (tramp-send-command-and-check v nil)))
-	    (tramp-error-with-buffer
-	     nil v 'file-error
-	     "Copying directly failed, see buffer `%s' for details."
-	     (buffer-name)))))
-
-       ;; We are on the local host.
-       ((or t1 t2)
 	(cond
-	 ;; We can do it directly.
-	 ((and (file-readable-p localname1)
-	       (file-writable-p (file-name-directory localname2)))
-	  (if (eq op 'copy)
-	      (copy-file
-	       localname1 localname2 ok-if-already-exists
-	       keep-date preserve-uid-gid)
-	    (rename-file localname1 localname2 ok-if-already-exists)))
+	 ;; Both files are on a remote host, with same user.
+	 ((and t1 t2)
+	  (tramp-send-command
+	   v
+	   (format "%s %s %s" cmd
+		   (tramp-shell-quote-argument localname1)
+		   (tramp-shell-quote-argument localname2)))
+	  (with-current-buffer (tramp-get-buffer v)
+	    (goto-char (point-min))
+	    (unless
+		(or
+		 (and keep-date
+		      ;; Mask cp -f error.
+		      (re-search-forward
+		       tramp-operation-not-permitted-regexp nil t))
+		 (zerop (tramp-send-command-and-check v nil)))
+	      (tramp-error-with-buffer
+	       nil v 'file-error
+	       "Copying directly failed, see buffer `%s' for details."
+	       (buffer-name)))))
 
-	 ;; We can do it directly with `tramp-send-command'
-	 ((and (file-readable-p (concat prefix localname1))
-	       (file-writable-p
-		(file-name-directory (concat prefix localname2))))
-	  (tramp-do-copy-or-rename-file-directly
-	   op (concat prefix localname1) (concat prefix localname2)
-	   ok-if-already-exists keep-date t)
-	  ;; We must change the ownership to the local user.
-	  (tramp-set-file-uid-gid
-	   (concat prefix localname2)
-	   (tramp-get-local-uid 'integer)
-	   (tramp-get-local-gid 'integer)))
-
-	 ;; We need a temporary file in between.
-	 (t
-	  ;; Create the temporary file.
+	 ;; We are on the local host.
+	 ((or t1 t2)
 	  (cond
-	   (t1
-	    (tramp-send-command
-	     v (format
-		"%s %s %s" cmd
-		(tramp-shell-quote-argument localname1)
-		(tramp-shell-quote-argument tmpfile)))
-	    ;; We must change the ownership as remote user.
+	   ;; We can do it directly.
+	   ((and (file-readable-p localname1)
+		 (file-writable-p (file-name-directory localname2)))
+	    (if (eq op 'copy)
+		(copy-file
+		 localname1 localname2 ok-if-already-exists
+		 keep-date preserve-uid-gid)
+	      (rename-file localname1 localname2 ok-if-already-exists)))
+
+	   ;; We can do it directly with `tramp-send-command'
+	   ((and (file-readable-p (concat prefix localname1))
+		 (file-writable-p
+		  (file-name-directory (concat prefix localname2))))
+	    (tramp-do-copy-or-rename-file-directly
+	     op (concat prefix localname1) (concat prefix localname2)
+	     ok-if-already-exists keep-date t)
+	    ;; We must change the ownership to the local user.
 	    (tramp-set-file-uid-gid
-	     (concat prefix tmpfile)
+	     (concat prefix localname2)
 	     (tramp-get-local-uid 'integer)
 	     (tramp-get-local-gid 'integer)))
-	   (t2
-	    (if (eq op 'copy)
-		(copy-file
-		 localname1 tmpfile ok-if-already-exists
-		 keep-date preserve-uid-gid)
-	      (rename-file localname1 tmpfile ok-if-already-exists))
-	    ;; We must change the ownership as local user.
-	    (tramp-set-file-uid-gid
-	     tmpfile
-	     (tramp-get-remote-uid v 'integer)
-	     (tramp-get-remote-gid v 'integer))))
 
-	  ;; Move the temporary file to its destination.
-	  (cond
-	   (t2
-	    (tramp-send-command
-	     v (format
-		"%s %s %s" cmd
-		(tramp-shell-quote-argument tmpfile)
-		(tramp-shell-quote-argument localname2))))
-	   (t1
-	    (if (eq op 'copy)
-		(copy-file
-		 tmpfile localname2 ok-if-already-exists
-		 keep-date preserve-uid-gid)
-	      (rename-file tmpfile localname2 ok-if-already-exists))))
+	   ;; We need a temporary file in between.
+	   (t
+	    ;; Create the temporary file.
+	    (cond
+	     (t1
+	      (tramp-send-command
+	       v (format
+		  "%s %s %s" cmd
+		  (tramp-shell-quote-argument localname1)
+		  (tramp-shell-quote-argument tmpfile)))
+	      ;; We must change the ownership as remote user.
+	      (tramp-set-file-uid-gid
+	       (concat prefix tmpfile)
+	       (tramp-get-local-uid 'integer)
+	       (tramp-get-local-gid 'integer)))
+	     (t2
+	      (if (eq op 'copy)
+		  (copy-file
+		   localname1 tmpfile ok-if-already-exists
+		   keep-date preserve-uid-gid)
+		(rename-file localname1 tmpfile ok-if-already-exists))
+	      ;; We must change the ownership as local user.
+	      (tramp-set-file-uid-gid
+	       tmpfile
+	       (tramp-get-remote-uid v 'integer)
+	       (tramp-get-remote-gid v 'integer))))
 
-	  ;; Remove temporary file.
-	  (when (eq op 'copy) (delete-file tmpfile))))))
+	    ;; Move the temporary file to its destination.
+	    (cond
+	     (t2
+	      (tramp-send-command
+	       v (format
+		  "%s %s %s" cmd
+		  (tramp-shell-quote-argument tmpfile)
+		  (tramp-shell-quote-argument localname2))))
+	     (t1
+	      (if (eq op 'copy)
+		  (copy-file
+		   tmpfile localname2 ok-if-already-exists
+		   keep-date preserve-uid-gid)
+		(rename-file tmpfile localname2 ok-if-already-exists))))
+
+	    ;; Remove temporary file.
+	    (when (eq op 'copy) (delete-file tmpfile)))))))
 
       ;; Set the time and mode. Mask possible errors.
       ;; Won't be applied for 'rename.
@@ -3576,21 +3587,6 @@ beginning of local filename are not substituted."
 
 
 ;;; Remote commands.
-
-(defsubst tramp-make-temp-file (filename)
-  (concat
-   (funcall (if (fboundp 'make-temp-file) 'make-temp-file 'make-temp-name)
-	    (expand-file-name tramp-temp-name-prefix
-			      (tramp-temporary-file-directory)))
-   (file-name-extension filename t)))
-
-(defsubst tramp-make-tramp-temp-file (vec)
-  (format
-   "/tmp/%s%s"
-   tramp-temp-name-prefix
-   (if (get-buffer-process (tramp-get-connection-buffer vec))
-       (process-id (get-buffer-process (tramp-get-connection-buffer vec)))
-     (emacs-pid))))
 
 (defun tramp-handle-executable-find (command)
   "Like `executable-find' for Tramp files."
@@ -4339,8 +4335,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 	 ((and completion (zerop (length localname))
 	       (memq operation '(file-name-as-directory)))
 	  filename)
-	 ;; Call the backend function.  Set a connection property
-	 ;; first, it will be reused for user/host name completion.
+	 ;; Call the backend function.
 	 (foreign (apply foreign operation args))
 	 ;; Nothing to do for us.
 	 (t (tramp-run-real-handler operation args)))))))
@@ -5945,10 +5940,12 @@ Gateway hops are already opened."
 	    (setq choices tramp-default-proxies-alist)))))
 
     ;; Handle gateways.
-    (when (string-match (format
-			 "^\\(%s\\|%s\\)$"
-			 tramp-gw-tunnel-method tramp-gw-socks-method)
-			(tramp-file-name-method (car target-alist)))
+    (when (and (boundp 'tramp-gw-tunnel-method)
+	       (string-match (format
+			      "^\\(%s\\|%s\\)$"
+			      (symbol-value 'tramp-gw-tunnel-method)
+			      (symbol-value 'tramp-gw-socks-method))
+			     (tramp-file-name-method (car target-alist))))
       (let ((gw (pop target-alist))
 	    (hop (pop target-alist)))
 	;; Is the method prepared for gateways?
@@ -5973,7 +5970,7 @@ Gateway hops are already opened."
 	 'target-alist
 	 (vector
 	  (tramp-file-name-method hop) (tramp-file-name-user hop)
-	  (tramp-gw-open-connection vec gw hop) nil))
+	  (funcall (intern "tramp-gw-open-connection") vec gw hop) nil))
 	;; For the password prompt, we need the correct values.
 	;; Therefore, we must remember the gateway vector.  But we
 	;; cannot do it as connection property, because it shouldn't
@@ -6524,7 +6521,7 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 
 ;; The host part of a Tramp file name vector can be of kind
 ;; "host#port".  Sometimes, we must extract these parts.
-(defsubst tramp-file-name-real-host (vec)
+(defun tramp-file-name-real-host (vec)
   "Return the host name of VEC without port."
   (let ((host (tramp-file-name-host vec)))
     (if (and (stringp host)
@@ -6532,7 +6529,7 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	(match-string 1 host)
       host)))
 
-(defsubst tramp-file-name-port (vec)
+(defun tramp-file-name-port (vec)
   "Return the port number of VEC."
   (let ((host (tramp-file-name-host vec)))
     (and (stringp host)
@@ -6544,7 +6541,7 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
   (save-match-data
     (string-match tramp-file-name-regexp name)))
 
-(defsubst tramp-find-method (method user host)
+(defun tramp-find-method (method user host)
   "Return the right method string to use.
 This is METHOD, if non-nil. Otherwise, do a lookup in
 `tramp-default-method-alist'."
@@ -6560,7 +6557,7 @@ This is METHOD, if non-nil. Otherwise, do a lookup in
 	lmethod)
       tramp-default-method))
 
-(defsubst tramp-find-user (method user host)
+(defun tramp-find-user (method user host)
   "Return the right user string to use.
 This is USER, if non-nil. Otherwise, do a lookup in
 `tramp-default-user-alist'."
@@ -6576,7 +6573,7 @@ This is USER, if non-nil. Otherwise, do a lookup in
 	luser)
       tramp-default-user))
 
-(defsubst tramp-find-host (method user host)
+(defun tramp-find-host (method user host)
   "Return the right host string to use.
 This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
   (or (and (> (length host) 0) host)

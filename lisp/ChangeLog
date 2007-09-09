@@ -1,3 +1,17 @@
+2007-09-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Remove declarations of `tramp-gw-*' symbols,
+	they are useless with the byte compiler.
+	(tramp-make-temp-file, tramp-make-tramp-temp-file): Move up.
+	(tramp-do-copy-or-rename-file-directly): Rearrange let-bindings.
+	(tramp-compute-multi-hops): Mask `tramp-gw-*' symbols.
+	(tramp-file-name-real-host, tramp-file-name-port)
+	(tramp-find-method, tramp-find-user, tramp-find-host): Make them
+	defuns.
+
+	* net/tramp-cache.el (top): Improve error message when
+	`tramp-persistency-file-name' is corrupted.
+
 2007-09-09  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-re): Also replace the :alpha: class.
@@ -51,7 +65,7 @@
 
 	* progmodes/which-func.el (which-func-modes): Added diff-mode.
 
-	* progmodes/cc-langs.el: Support new keywords added to 
+	* progmodes/cc-langs.el: Support new keywords added to
 	objective-c frontend of gcc.
 	(c-simple-stmt-kwds): Added @throw.
 	(c-block-stmt-2-kwds): Added @synchronized.

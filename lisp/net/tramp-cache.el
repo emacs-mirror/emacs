@@ -291,7 +291,8 @@ history."
     res))
 
 ;; Read persistent connection history.
-(when (zerop (hash-table-count tramp-cache-data))
+(when (and (stringp tramp-persistency-file-name)
+	   (zerop (hash-table-count tramp-cache-data)))
   (condition-case err
       (with-temp-buffer
 	(insert-file-contents tramp-persistency-file-name)
@@ -306,7 +307,8 @@ history."
      (clrhash tramp-cache-data))
     (error
      ;; File is corrupted.
-     (message "%s" (error-message-string err))
+     (message "Tramp persistency file '%s' is corrupted: %s"
+	      tramp-persistency-file-name (error-message-string err))
      (clrhash tramp-cache-data))))
 
 (provide 'tramp-cache)
