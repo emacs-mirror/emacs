@@ -24,6 +24,11 @@
 	(normal-splash-screen): Remove duplicate empty lines.
 	(normal-about-screen): Add links "Authors" and "Contributing".
 
+	* menu-bar.el (menu-bar-help-menu):
+	Move "About Emacs" and "About GNU" to the end of the Help menu.
+	Move "Emacs Psychotherapist" after "Send Bug Report...".
+	Move "External Packages" after "Find Emacs Packages".
+
 2007-09-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Remove declarations of `tramp-gw-*' symbols,
