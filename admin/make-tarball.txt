@@ -10,7 +10,7 @@ For each step, check for possible errors.
     make sure that the later tagged version will bootstrap, should it be
     necessary to check it out.
 
-3.  Regenerate Emacs' AUTHORS file (M-x load-file RET
+3.  Regenerate Emacs' etc/AUTHORS file (M-x load-file RET
     lisp/emacs-lisp/authors.el RET, then M-x authors RET, then save
     the *Authors* buffer).  This may require fixing syntactically
     incorrect ChangeLog entries beforehand.
@@ -21,7 +21,7 @@ For each step, check for possible errors.
 
 5.   rm configure; make bootstrap
 
-6.  Commit configure, README, AUTHORS, lisp/finder-inf.el,
+6.  Commit configure, README, etc/AUTHORS, lisp/finder-inf.el,
     lisp/version.el, man/emacs.texi, lispref/elisp.texi,
     mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings,
     mac/src/Emacs.r, nt/emacs.rc.  Copy lisp/loaddefs.el to
