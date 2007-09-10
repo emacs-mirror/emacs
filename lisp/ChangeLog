@@ -1,3 +1,8 @@
+2007-09-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* net/browse-url.el (browse-url-encode-url): Use copy-sequence.
+	Reported by Jan Dj,Ad(Brv <jan.h.d@swipnet.se>.
+
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* outline.el (outline-4, outline-5, outline-7):
