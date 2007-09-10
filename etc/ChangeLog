@@ -1,3 +1,8 @@
+2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* NEWS: Document the interactive specification for C functions.
+	Say that `set-file-modes' is now interactive.
+
 2007-09-10  Michael Olson  <mwolson@gnu.org>
 
 	* ERC-NEWS: Improve description of erc-tls and erc-ssl change.
