@@ -1,3 +1,8 @@
+2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (Fcall_interactively): Use Finteractive_form also for subrs
+	and compiled functions.
+
 2007-09-08  Fredrik Axelsson  <f.axelsson@gmail.com>
 
 	* window.c (prefer_window_split_horizontally): New variable.

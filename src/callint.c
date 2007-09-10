@@ -332,32 +332,16 @@ invoke it.  If KEYS is omitted or nil, the return value of
   /* Decode the kind of function.  Either handle it and return,
      or go to `lose' if not interactive, or set either STRING or SPECS.  */
 
-  if (SUBRP (fun))
-    {
-      string = (unsigned char *) XSUBR (fun)->prompt;
-      if (!string)
-	{
-	lose:
-	  wrong_type_argument (Qcommandp, function);
-	}
-    }
-  else if (COMPILEDP (fun))
-    {
-      if ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_INTERACTIVE)
-	goto lose;
-      specs = XVECTOR (fun)->contents[COMPILED_INTERACTIVE];
-    }
-  else
-    {
-      Lisp_Object form;
-      GCPRO2 (function, prefix_arg);
-      form = Finteractive_form (function);
-      UNGCPRO;
-      if (CONSP (form))
-	specs = filter_specs = Fcar (XCDR (form));
-      else
-	goto lose;
-    }
+  {
+    Lisp_Object form;
+    GCPRO2 (function, prefix_arg);
+    form = Finteractive_form (function);
+    UNGCPRO;
+    if (CONSP (form))
+      specs = filter_specs = Fcar (XCDR (form));
+    else
+      wrong_type_argument (Qcommandp, function);
+  }
 
   /* If either SPECS or STRING is set to a string, use it.  */
   if (STRINGP (specs))
@@ -368,7 +352,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       bcopy (SDATA (specs), string,
 	     SBYTES (specs) + 1);
     }
-  else if (string == 0)
+  else
     {
       Lisp_Object input;
       i = num_input_events;
