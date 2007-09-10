@@ -1,5 +1,11 @@
 2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
+	* progmodes/meta-mode.el (meta-font-lock-keywords)
+	(font-lock-match-meta-declaration-item-and-skip-to-next)
+	(meta-comment-indent, meta-indent-previous-line)
+	(meta-indent-unfinished-line, meta-beginning-of-defun)
+	(meta-end-of-defun, meta-common-initialization): Handle \f.
+
 	* files.el (file-modes-char-to-who, file-modes-char-to-right)
 	(file-modes-rights-to-number): Auxiliary functions for symbolic to
 	numeric notation of file modes.
