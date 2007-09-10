@@ -770,8 +770,11 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      if (XSUBR (fun)->prompt)
-	return list2 (Qinteractive, build_string (XSUBR (fun)->prompt));
+      char *spec = XSUBR (fun)->intspec;
+      if (spec)
+	return list2 (Qinteractive,
+		      (*spec != '(') ? build_string (spec) :
+		      Fcar (Fread_from_string (build_string (spec), Qnil, Qnil)));
     }
   else if (COMPILEDP (fun))
     {
