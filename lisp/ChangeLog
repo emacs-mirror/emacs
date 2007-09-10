@@ -5,6 +5,8 @@
 	(meta-comment-indent, meta-indent-previous-line)
 	(meta-indent-unfinished-line, meta-beginning-of-defun)
 	(meta-end-of-defun, meta-common-initialization): Handle \f.
+	(meta-indent-unfinished-line): Do not handle a `%' in a string as
+	a comment-start.
 
 	* files.el (file-modes-char-to-who, file-modes-char-to-right)
 	(file-modes-rights-to-number): Auxiliary functions for symbolic to
