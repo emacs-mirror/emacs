@@ -1,3 +1,15 @@
+2007-09-10  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: Merge changes from Dave Love's v2007-Sep-10.
+	(python-font-lock-keywords): Update to the 2.5 version of the language.
+	(python-quote-syntax): Let-bind font-lock-syntactic-keywords to nil.
+	(python-backspace): Only behave funny in code.
+	(python-compilation-regexp-alist): Add PDB stack trace regexp.
+	(inferior-python-mode): Add PDB prompt regexp.
+	(python-fill-paragraph): Refine the fenced-string regexp.
+	(python-find-imports): Handle imports spanning several lines.
+	(python-mode): Add `class' to hideshow support.
+
 2007-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use
