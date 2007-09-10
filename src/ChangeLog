@@ -619,17 +619,14 @@
 	(x_delete_display): Doc update to reflect changes in
 	delete_terminal.
 	(x_display_info) <terminal>: Move member earlier in the struct.
-	(x_delete_terminal): Use terminal->deleted.  Delete all frames on
-	the display explicitly.
 	(deleting_tty): Remove old variable.
 	(Fsuspend_tty): Call clear_tty_hooks.
 	(Fresume_tty, init_tty): Call set_tty_hooks.
-	(clear_tty_hooks, set_tty_hooks): New functions.
 	(Ftty_display_color_p, Ftty_display_color_cells): Don't throw
 	errors on X frames.
 	(x_catch_errors_unwind): Abort if x_error_message is NULL.
 	(handle_one_xevent): Initialize `f' to NULL.
-	(x_delete_device, x_create_device): New functions.
+	(x_delete_terminal, x_create_terminal): New functions.
 	(XTset_terminal_modes, XTreset_terminal_modes)
 	(XTread_socket, x_connection_closed, x_term_init)
 	(x_term_init, x_delete_display): Add terminal parameter.
@@ -735,6 +732,7 @@
 	(get_tty_terminal, Fdisplay_tty_type, Ftty_display_color_p)
 	(Ftty_display_color_cells)
 	(Ftty_no_underline, Fsuspend_tty, Fresume_tty, create_tty_output)
+	(clear_tty_hooks, set_tty_hooks)
 	(init_tty, maybe_fatal): New functions.
 	(Ftty_type): Return nil if terminal is not on a tty instead of
 	throwing an error.  Doc update.
