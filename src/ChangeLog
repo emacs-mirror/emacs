@@ -5,6 +5,9 @@
 
 	* eval.c (Fcommandp): Change `->prompt' to `->intspec'.
 
+	* data.c (Finteractive_form): If the interactive specification starts
+	with a `(', use it as a Lisp form.
+
 	* callint.c (Fcall_interactively): Comment fixes.
 
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
