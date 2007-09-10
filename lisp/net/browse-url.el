@@ -621,7 +621,7 @@ down (this *won't* always work)."
 
 (defun browse-url-encode-url (url)
   "Encode all `confusing' characters in URL."
-  (let ((encoded-url (copy-seq url)))
+  (let ((encoded-url (copy-sequence url)))
     (while (string-match "%" encoded-url)
       (setq encoded-url (replace-match "%25" t t encoded-url)))
     (while (string-match "[*\"()',=;? ]" encoded-url)
