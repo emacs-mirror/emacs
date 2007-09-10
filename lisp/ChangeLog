@@ -1,3 +1,13 @@
+2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* files.el (file-modes-char-to-who, file-modes-char-to-right)
+	(file-modes-rights-to-number): Auxiliary functions for symbolic to
+	numeric notation of file modes.
+	(file-modes-symbolic-to-number): New.  Convert symbolic modes to its
+	numeric value.
+	(read-file-modes): New.  Read either an octal value of a file mode or a
+	symbolic value, and return its numeric value.
+
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/texinfo.el: Remove spurious * in docstrings.
