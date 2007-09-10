@@ -1,5 +1,8 @@
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* tmm.el: Remove spurious * in docstrings.
+	(tmm-prompt): Use with-current-buffer.
+
 	* vcursor.el: Remove spurious * in docstrings.
 	(vcursor-map): Initialize in the declaration.
 	(vcursor-use-vcursor-map): Use define-minor-mode.
