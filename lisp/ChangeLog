@@ -1,3 +1,8 @@
+2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* woman.el (woman-mode-map, woman-syntax-table):
+	Initialize in the declaration.
+
 2007-09-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el: New file.
@@ -98,18 +103,17 @@
 
 2007-09-08  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/which-func.el (which-func-modes): Added diff-mode.
+	* progmodes/which-func.el (which-func-modes): Add diff-mode.
 
 	* progmodes/cc-langs.el: Support new keywords added to
 	objective-c frontend of gcc.
-	(c-simple-stmt-kwds): Added @throw.
-	(c-block-stmt-2-kwds): Added @synchronized.
-	(c-block-stmt-1-kwds): Added @finally and @try.
+	(c-simple-stmt-kwds): Add @throw.
+	(c-block-stmt-2-kwds): Add @synchronized.
+	(c-block-stmt-1-kwds): Add @finally and @try.
 
 2007-09-07  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-edit-timestamp-down-means-later): New
-	option.
+	* textmodes/org.el: (org-edit-timestamp-down-means-later): New option.
 	(org-agenda-after-show-hook): New variable.
 	(org-columns-compile-format)
 	(org-columns-get-autowidth-alist, org-buffer-property-keys)

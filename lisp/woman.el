@@ -1761,21 +1761,21 @@ Leave point at end of new text.  Return length of inserted text."
 
 ;;; Major mode (Man) interface:
 
-(defvar woman-mode-map nil "Keymap for woman mode.")
+(defvar woman-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map Man-mode-map)
 
-(unless woman-mode-map
-  (setq woman-mode-map (make-sparse-keymap))
-  (set-keymap-parent woman-mode-map Man-mode-map)
+    (define-key map "R" 'woman-reformat-last-file)
+    (define-key map "w" 'woman)
+    (define-key map "\en" 'WoMan-next-manpage)
+    (define-key map "\ep" 'WoMan-previous-manpage)
+    (define-key map [M-mouse-2] 'woman-follow-word)
 
-  (define-key woman-mode-map "R" 'woman-reformat-last-file)
-  (define-key woman-mode-map "w" 'woman)
-  (define-key woman-mode-map "\en" 'WoMan-next-manpage)
-  (define-key woman-mode-map "\ep" 'WoMan-previous-manpage)
-  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word)
-
-  ;; We don't need to call `man' when we are in `woman-mode'.
-  (define-key woman-mode-map [remap man] 'woman)
-  (define-key woman-mode-map [remap man-follow] 'woman-follow))
+    ;; We don't need to call `man' when we are in `woman-mode'.
+    (define-key map [remap man] 'woman)
+    (define-key map [remap man-follow] 'woman-follow)
+    map)
+  "Keymap for woman mode.")
 
 (defun woman-follow (topic)
   "Get a Un*x manual page of the item under point and put it in a buffer."
@@ -2083,16 +2083,13 @@ alist in `woman-buffer-alist' and return nil."
   (char-to-string woman-unpadded-space-char)
   "Internal string representation of unpadded space characters.")
 
-(defvar woman-syntax-table nil
+(defvar woman-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; The following internal chars must NOT have whitespace syntax:
+    (modify-syntax-entry woman-unpadded-space-char "." st)
+    (modify-syntax-entry woman-escaped-escape-char "." st)
+    st)
   "Syntax table to support special characters used internally by WoMan.")
-
-(if woman-syntax-table
-    ()
-  (setq woman-syntax-table (make-syntax-table))
-  ;; The following internal chars must NOT have whitespace syntax:
-  (modify-syntax-entry woman-unpadded-space-char "." woman-syntax-table)
-  (modify-syntax-entry woman-escaped-escape-char "." woman-syntax-table)
-  )
 
 (defun woman-set-buffer-display-table ()
   "Set up a display table for a WoMan buffer.
