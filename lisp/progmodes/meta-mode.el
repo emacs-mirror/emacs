@@ -652,15 +652,19 @@ If the list was changed, sort the list and remove duplicates first."
   ;; Ignore comments.
   (while (and (looking-at comment-start) (not (bobp)))
     (skip-chars-backward "\n\t\f ")
-    (if (not (bobp))
-	(move-to-column (current-indentation)))))
+    (when (not (bobp))
+      (move-to-column (current-indentation)))))
 
 (defun meta-indent-unfinished-line ()
   "Tell if the current line of code ends with an unfinished expression."
   (save-excursion
     (end-of-line)
     ;; Skip backward the comments.
-    (while (search-backward comment-start (point-at-bol) t))
+    (let ((point-not-in-string (point)))
+      (while (search-backward comment-start (point-at-bol) t)
+	(unless (meta-indent-in-string-p)
+	  (setq point-not-in-string (point))))
+      (goto-char point-not-in-string))
     ;; Search for the end of the previous expression.
     (if (search-backward ";" (point-at-bol) t)
 	(progn (while (and (meta-indent-in-string-p)
