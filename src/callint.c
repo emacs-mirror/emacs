@@ -329,9 +329,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   /* If k or K discard an up-event, save it here so it can be retrieved with U */
   up_event = Qnil;
 
-  /* Decode the kind of function.  Either handle it and return,
-     or go to `lose' if not interactive, or set either STRING or SPECS.  */
-
+  /* Set SPECS to the interactive form, or barf if not interactive.  */
   {
     Lisp_Object form;
     GCPRO2 (function, prefix_arg);
@@ -343,7 +341,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       wrong_type_argument (Qcommandp, function);
   }
 
-  /* If either SPECS or STRING is set to a string, use it.  */
+  /* If SPECS is set to a string, use it as an interactive prompt.  */
   if (STRINGP (specs))
     {
       /* Make a copy of string so that if a GC relocates specs,
