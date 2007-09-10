@@ -10586,9 +10586,12 @@ get_bits_and_offset (mask, bits, offset)
   *bits = nr;
 }
 
+/* Return 1 if display DISPLAY is available for use, 0 otherwise.
+   But don't permanently open it, just test its availability.  */
+
 int
 x_display_ok (display)
-    const char * display;
+    const char *display;
 {
     int dpy_ok = 1;
     Display *dpy;
@@ -10600,6 +10603,10 @@ x_display_ok (display)
       dpy_ok = 0;
     return dpy_ok;
 }
+
+/* Open a connection to X display DISPLAY_NAME, and return
+   the structure that describes the open display.
+   If we cannot contact the display, return null.  */
 
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
@@ -10620,6 +10627,9 @@ x_term_init (display_name, xrm_option, resource_name)
       x_initialize ();
       ++x_initialized;
     }
+
+  if (! x_display_ok (SDATA (display_name)))
+    error ("Display %s can't be opened", SDATA (display_name));
 
 #ifdef USE_GTK
   {
