@@ -1,3 +1,7 @@
+2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* callint.c (Fcall_interactively): Comment fixes.
+
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* callint.c (Fcall_interactively): Use Finteractive_form also for subrs
