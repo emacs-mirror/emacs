@@ -194,42 +194,42 @@
         (list
          ;; embedded TeX code in btex ... etex
          (cons (concat "\\(btex\\|verbatimtex\\)"
-                       "[ \t]+\\(.*\\)[ \t]+"
+                       "[ \t\f]+\\(.*\\)[ \t\f]+"
                        "\\(etex\\)")
                '((1 font-lock-keyword-face)
                  (2 font-lock-string-face)
                  (3 font-lock-keyword-face)))
          ;; unary macro definitions: def, vardef, let
          (cons (concat "\\<" macro-keywords-1 "\\>"
-                       "[ \t]+\\(\\sw+\\|\\s_+\\|\\s.+\\)")
+                       "[ \t\f]+\\(\\sw+\\|\\s_+\\|\\s.+\\)")
                '((1 font-lock-keyword-face)
                  (2 font-lock-function-name-face)))
          ;; binary macro defintions: <leveldef> x operator y
          (cons (concat "\\<" macro-keywords-2 "\\>"
-                       "[ \t]+\\(\\sw+\\)"
-                       "[ \t]*\\(\\sw+\\|\\s.+\\)"
-                       "[ \t]*\\(\\sw+\\)")
+                       "[ \t\f]+\\(\\sw+\\)"
+                       "[ \t\f]*\\(\\sw+\\|\\s.+\\)"
+                       "[ \t\f]*\\(\\sw+\\)")
                '((1 font-lock-keyword-face)
                  (2 font-lock-variable-name-face nil t)
                  (3 font-lock-function-name-face nil t)
                  (4 font-lock-variable-name-face nil t)))
          ;; variable declarations: numeric, pair, color, ...
          (cons (concat "\\<" type-keywords "\\>"
-                       "\\([ \t]+\\(\\sw+\\)\\)*")
+                       "\\([ \t\f]+\\(\\sw+\\)\\)*")
                '((1 font-lock-type-face)
                  (font-lock-match-meta-declaration-item-and-skip-to-next
                   (goto-char (match-end 1)) nil
                   (1 font-lock-variable-name-face nil t))))
          ;; argument declarations: expr, suffix, text, ...
          (cons (concat "\\<" args-keywords "\\>"
-                       "\\([ \t]+\\(\\sw+\\|\\s_+\\)\\)*")
+                       "\\([ \t\f]+\\(\\sw+\\|\\s_+\\)\\)*")
                '((1 font-lock-type-face)
                  (font-lock-match-meta-declaration-item-and-skip-to-next
                   (goto-char (match-end 1)) nil
                   (1 font-lock-variable-name-face nil t))))
          ;; special case of arguments: expr x of y
-         (cons (concat "\\(expr\\)[ \t]+\\(\\sw+\\)"
-                       "[ \t]+\\(of\\)[ \t]+\\(\\sw+\\)")
+         (cons (concat "\\(expr\\)[ \t\f]+\\(\\sw+\\)"
+                       "[ \t\f]+\\(of\\)[ \t\f]+\\(\\sw+\\)")
                '((1 font-lock-type-face)
                  (2 font-lock-variable-name-face)
                  (3 font-lock-keyword-face nil t)
@@ -245,7 +245,7 @@
                'font-lock-keyword-face)
          ;; input, generate
          (cons (concat "\\<" input-keywords "\\>"
-                       "[ \t]+\\(\\sw+\\)")
+                       "[ \t\f]+\\(\\sw+\\)")
                '((1 font-lock-keyword-face)
                  (2 font-lock-constant-face)))
          ;; embedded Metafont/MetaPost code in comments
@@ -264,7 +264,7 @@
   ;; `forward-sexp'.  The list of items is expected to be separated
   ;; by commas and terminated by semicolons or equals signs.
   ;;
-  (if (looking-at "[ \t]*\\(\\sw+\\|\\s_+\\)")
+  (if (looking-at "[ \t\f]*\\(\\sw+\\|\\s_+\\)")
       (save-match-data
         (condition-case nil
             (save-restriction
@@ -272,7 +272,7 @@
               (narrow-to-region (point-min) limit)
               (goto-char (match-end 1))
               ;; Move over any item value, etc., to the next item.
-              (while (not (looking-at "[ \t]*\\(\\(,\\)\\|;\\|=\\|$\\)"))
+              (while (not (looking-at "[ \t\f]*\\(\\(,\\)\\|;\\|=\\|$\\)"))
                 (goto-char (or (scan-sexps (point) 1) (point-max))))
               (goto-char (match-end 2)))
           (error t)))))
@@ -586,7 +586,7 @@ If the list was changed, sort the list and remove duplicates first."
   (if (and meta-left-comment-regexp
            (looking-at meta-left-comment-regexp))
       (current-column)
-    (skip-chars-backward "\t ")
+    (skip-chars-backward "\t\f ")
     (max (if (bolp) 0 (1+ (current-column)))
          comment-column)))
 
@@ -647,11 +647,11 @@ If the list was changed, sort the list and remove duplicates first."
 
 (defun meta-indent-previous-line ()
   "Go to the previous line of code, skipping comments."
-  (skip-chars-backward "\n\t ")
+  (skip-chars-backward "\n\t\f ")
   (move-to-column (current-indentation))
   ;; Ignore comments.
   (while (and (looking-at comment-start) (not (bobp)))
-    (skip-chars-backward "\n\t ")
+    (skip-chars-backward "\n\t\f ")
     (if (not (bobp))
 	(move-to-column (current-indentation)))))
 
@@ -672,7 +672,7 @@ If the list was changed, sort the list and remove duplicates first."
     ;; See if the last statement of the line is environment-related,
     ;; or exists at all.
     (if (meta-indent-looking-at-code
-	 (concat "[ \t]*\\($\\|" (regexp-quote comment-start)
+	 (concat "[ \t\f]*\\($\\|" (regexp-quote comment-start)
 		 "\\|\\<" meta-end-environment-regexp "\\>"
 		 "\\|\\<" meta-begin-environment-regexp "\\>"
 		 "\\|\\<" meta-within-environment-regexp "\\>\\)"))
@@ -782,7 +782,7 @@ Returns t unless search stops due to beginning or end of buffer."
         (concat "\\<" meta-begin-defun-regexp "\\>") nil t arg)
        (progn (goto-char (match-beginning 0))
               (skip-chars-backward "%")
-              (skip-chars-backward " \t") t)))
+              (skip-chars-backward " \t\f") t)))
 
 (defun meta-end-of-defun (&optional arg)
   "Move forward to end of a defun in Metafont or MetaPost code.
@@ -796,7 +796,7 @@ Returns t unless search stops due to beginning or end of buffer."
         (concat "\\<" meta-end-defun-regexp "\\>") nil t arg)
        (progn (goto-char (match-end 0))
               (skip-chars-forward ";")
-              (skip-chars-forward " \t")
+              (skip-chars-forward " \t\f")
               (if (looking-at "\n") (forward-line 1)) t)))
 
 
@@ -1014,10 +1014,13 @@ The environment marked is the one that contains point or follows point."
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-multi-line)
-  (setq comment-start-skip "%+[ \t]*")
+  (setq comment-start-skip "%+[ \t\f]*")
   (setq comment-start "%")
   (setq comment-end "")
   (setq comment-multi-line nil)
+
+  ;; We use `back-to-indentation' but \f is no indentation sign.
+  (modify-syntax-entry ?\f "_   ")
 
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
