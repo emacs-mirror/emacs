@@ -1,3 +1,9 @@
+2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (outline-4, outline-5, outline-7):
+	Move font-lock-builtin-face down from 4 to 7 to better keep the
+	progression of color brightness, and to better match Org-mode's faces.
+
 2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-font-lock-keywords)

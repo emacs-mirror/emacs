@@ -187,12 +187,12 @@ in the file it applies to."
   :group 'outlines)
 
 (defface outline-4
-  '((t :inherit font-lock-builtin-face))
+  '((t :inherit font-lock-comment-face))
   "Level 4."
   :group 'outlines)
 
 (defface outline-5
-  '((t :inherit font-lock-comment-face))
+  '((t :inherit font-lock-type-face))
   "Level 5."
   :group 'outlines)
 
@@ -202,7 +202,7 @@ in the file it applies to."
   :group 'outlines)
 
 (defface outline-7
-  '((t :inherit font-lock-type-face))
+  '((t :inherit font-lock-builtin-face))
   "Level 7."
   :group 'outlines)
 
