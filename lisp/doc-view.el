@@ -759,4 +759,5 @@ You might want to bind this command to a dired key, e.g.
 ;; mode: outline-minor
 ;; End:
 
+;; arch-tag: 5d6e5c5e-095f-489e-b4e4-1ca90a7d79be
 ;;; doc-view.el ends here
