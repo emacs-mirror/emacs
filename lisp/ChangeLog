@@ -1,3 +1,17 @@
+2007-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (startup-screen-inhibit-startup-screen)
+	(pure-space-overflow-message): New vars.
+	(fancy-splash-insert): Allow functions for face and link specs.
+	(fancy-splash-head): Remove unused arg.  Move splash text...
+	(fancy-startup-text, fancy-about-text): ...here.
+	(fancy-startup-tail): Rename from fancy-splash-tail.
+	(fancy-startup-screen, fancy-about-screen): Split off from
+	fancy-splash-screens.
+	(display-startup-screen): New function.
+	(display-about-screen): Rename from display-splash-screen.
+	(command-line-1): Use concise startup screen if necessary.
+
 2007-09-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* net/browse-url.el (browse-url-encode-url): Use copy-sequence.
