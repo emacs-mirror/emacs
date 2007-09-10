@@ -34,6 +34,13 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** Built-in functions (subr) can now have an interactive specification
+that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
+starts with a `(', the string is evaluated as a Lisp form.
+
+** set-file-modes is now interactive and can take the mode value in
+symbolic notation thanks to auxiliary functions.
+
 ** split-window-preferred-function specifies whether display-buffer should
 split windows vertically or horizontally.
 
@@ -119,13 +126,7 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
-** The package doc-view.el has been added.  It supports viewing of PDF,
-PostScript and DVI documents inside an Emacs buffer by converting the
-document to a set of PNG images first.  One can also search for a
-regular expression in the document.  The commentary of the file explains
-its usage.
-
-** A new game called `bubble' has been added.
+** A new game called `bubble' has been added
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
@@ -254,7 +255,7 @@ session, and `make-frame-on-tty' works during a graphical session.
 `terminal-parameter', `set-terminal-parameter',
 `modify-terminal-parameters'.
 
-*** New hooks: `suspend-tty-functions' and `resume-tty-functions'
+*** New hooks: `suspend-tty-functions' and `resume-tty-functions' 
 are called after a tty frame has been suspended or resumed,
 respectively. The functions are called with the terminal id of the frame
 being suspended/resumed as a parameter.
