@@ -3435,7 +3435,9 @@ Return nil, if file does not exist or is not accessible.  */)
   return make_number (st.st_mode & 07777);
 }
 
-DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2, 0,
+DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
+       "(let ((file (read-file-name \"File: \")))			\
+	  (list file (read-file-modes nil file)))",
        doc: /* Set mode bits of file named FILENAME to MODE (an integer).
 Only the 12 low bits of MODE are used.  */)
   (filename, mode)
