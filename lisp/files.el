@@ -5407,6 +5407,98 @@ only these files will be asked to be saved."
 	  (t
 	   (apply operation arguments)))))
 
+;; Symbolic modes and read-file-modes.
+
+(defun file-modes-char-to-who (char)
+  "Convert CHAR to a who-mask from a symbolic mode notation.
+CHAR is in [ugoa] and represents the users on which rights are applied."
+  (cond ((= char ?u) #o4700)
+	((= char ?g) #o2070)
+	((= char ?o) #o1007)
+	((= char ?a) #o7777)
+	(t (error "%c: bad `who' character" char))))
+
+(defun file-modes-char-to-right (char &optional from)
+  "Convert CHAR to a right-mask from a symbolic mode notation.
+CHAR is in [rwxXstugo] and represents a right.
+If CHAR is in [Xugo], the value is extracted from FROM (or 0 if nil)."
+  (or from (setq from 0))
+  (cond ((= char ?r) #o0444)
+	((= char ?w) #o0222)
+	((= char ?x) #o0111)
+	((= char ?s) #o1000)
+	((= char ?t) #o6000)
+	;; Rights relative to the previous file modes.
+	((= char ?X) (if (= (logand from #o111) 0) 0 #o0111))
+	((= char ?u) (let ((uright (logand #o4700 from)))
+		       (+ uright (/ uright #o10) (/ uright #o100))))
+	((= char ?g) (let ((gright (logand #o2070 from)))
+		       (+ gright (/ gright #o10) (* gright #o10))))
+	((= char ?o) (let ((oright (logand #o1007 from)))
+		       (+ oright (* oright #o10) (* oright #o100))))
+	(t (error "%c: bad right character" char))))
+
+(defun file-modes-rights-to-number (rights who-mask &optional from)
+  "Convert a right string to a right-mask from a symbolic modes notation.
+RIGHTS is the right string, it should match \"([+=-][rwxXstugo]+)+\".
+WHO-MASK is the mask number of the users on which the rights are to be applied.
+FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+  (let* ((num-rights (or from 0))
+	 (list-rights (string-to-list rights))
+	 (op (pop list-rights)))
+    (while (memq op '(?+ ?- ?=))
+      (let ((num-right 0)
+	    char-right)
+	(while (memq (setq char-right (pop list-rights))
+		     '(?r ?w ?x ?X ?s ?t ?u ?g ?o))
+	  (setq num-right
+		(logior num-right
+			(file-modes-char-to-right char-right num-rights))))
+	(setq num-right (logand who-mask num-right)
+	      num-rights
+	      (cond ((= op ?+) (logior num-rights num-right))
+		    ((= op ?-) (logand num-rights (lognot num-right)))
+		    (t (logior (logand num-rights (lognot who-mask)) num-right)))
+	      op char-right)))
+    num-rights))
+
+(defun file-modes-symbolic-to-number (modes &optional from)
+  "Convert symbolic file modes to numeric file modes.
+MODES is the string to convert, it should match
+\"[ugoa]*([+-=][rwxXstugo]+)+,...\".
+See (info \"(coreutils)File permissions\") for more information on this
+notation.
+FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+  (save-match-data
+    (let ((case-fold-search nil)
+	  (num-modes (or from 0)))
+      (while (/= (string-to-char modes) 0)
+	(if (string-match "^\\([ugoa]*\\)\\([+=-][rwxXstugo]+\\)+\\(,\\|\\)" modes)
+	    (let ((num-who (apply 'logior 0
+				  (mapcar 'file-modes-char-to-who
+					  (match-string 1 modes)))))
+	      (when (= num-who 0)
+		(setq num-who (default-file-modes)))
+	      (setq num-modes
+		    (file-modes-rights-to-number (substring modes (match-end 1))
+						 num-who num-modes)
+		    modes (substring modes (match-end 3))))
+	  (error "Parse error in modes near `%s'" (substring modes 0))))
+      num-modes)))
+
+(defun read-file-modes (&optional prompt orig-file)
+  "Read file modes in octal or symbolic notation.
+PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
+ORIG-FILE is the original file of which modes will be change."
+  (let* ((modes (or (if orig-file (file-modes orig-file) 0)
+		    (error "File not found")))
+	 (value (read-string (or prompt "File modes (octal or symbolic): "))))
+    (save-match-data
+      (if (string-match "^[0-7]+" value)
+	  (string-to-number value 8)
+	(file-modes-symbolic-to-number value modes)))))
+
+
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)
 (define-key ctl-x-map "\C-v" 'find-alternate-file)
