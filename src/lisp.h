@@ -891,7 +891,7 @@ struct Lisp_Subr
     Lisp_Object (*function) ();
     short min_args, max_args;
     char *symbol_name;
-    char *prompt;
+    char *intspec;
     char *doc;
   };
 
@@ -1669,30 +1669,33 @@ typedef unsigned char UCHAR;
 	 followed by the address of a vector of Lisp_Objects
 	 which contains the argument values.
     UNEVALLED means pass the list of unevaluated arguments
- `prompt' says how to read arguments for an interactive call.
-    See the doc string for `interactive'.
+ `intspec' says how interactive arguments are to be fetched.
+    If the string starts with a `(', `intspec' is evaluated and the resulting
+    list is the list of arguments.
+    If it's a string that doesn't start with `(', the value should follow
+    the one of the doc string for `interactive'.
     A null string means call interactively with no arguments.
  `doc' is documentation for the user.  */
 
 #if (!defined (__STDC__) && !defined (PROTOTYPES)) \
     || defined (USE_NONANSI_DEFUN)
 
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
   Lisp_Object fnname ();						\
   DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, prompt, 0};			\
+      fnname, minargs, maxargs, lname, intspec, 0};			\
   Lisp_Object fnname
 
 #else
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, prompt, 0};			\
+      fnname, minargs, maxargs, lname, intspec, 0};			\
   Lisp_Object fnname
 
 /* Note that the weird token-substitution semantics of ANSI C makes
