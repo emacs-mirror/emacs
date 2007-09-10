@@ -51,13 +51,13 @@
 
 ;;;###autoload
 (defcustom texinfo-open-quote "``"
-  "*String inserted by typing \\[texinfo-insert-quote] to open a quotation."
+  "String inserted by typing \\[texinfo-insert-quote] to open a quotation."
   :type 'string
   :group 'texinfo)
 
 ;;;###autoload
 (defcustom texinfo-close-quote "''"
-  "*String inserted by typing \\[texinfo-insert-quote] to close a quotation."
+  "String inserted by typing \\[texinfo-insert-quote] to close a quotation."
   :type 'string
   :group 'texinfo)
 
@@ -296,21 +296,19 @@ chapter."
 
 ;;; Syntax table
 
-(defvar texinfo-mode-syntax-table nil)
-
-(if texinfo-mode-syntax-table
-    nil
-  (setq texinfo-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\" "." texinfo-mode-syntax-table)
-  (modify-syntax-entry ?\\ "." texinfo-mode-syntax-table)
-  (modify-syntax-entry ?@ "\\" texinfo-mode-syntax-table)
-  (modify-syntax-entry ?\^q "\\" texinfo-mode-syntax-table)
-  (modify-syntax-entry ?\[ "(]" texinfo-mode-syntax-table)
-  (modify-syntax-entry ?\] ")[" texinfo-mode-syntax-table)
-  (modify-syntax-entry ?{ "(}" texinfo-mode-syntax-table)
-  (modify-syntax-entry ?} "){" texinfo-mode-syntax-table)
-  (modify-syntax-entry ?\n ">" texinfo-mode-syntax-table)
-  (modify-syntax-entry ?\' "w" texinfo-mode-syntax-table))
+(defvar texinfo-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\" "." st)
+    (modify-syntax-entry ?\\ "." st)
+    (modify-syntax-entry ?@ "\\" st)
+    (modify-syntax-entry ?\^q "\\" st)
+    (modify-syntax-entry ?\[ "(]" st)
+    (modify-syntax-entry ?\] ")[" st)
+    (modify-syntax-entry ?{ "(}" st)
+    (modify-syntax-entry ?} "){" st)
+    (modify-syntax-entry ?\n ">" st)
+    (modify-syntax-entry ?\' "w" st)
+    st))
 
 ;; Written by Wolfgang Bangerth <zcg51122@rpool1.rus.uni-stuttgart.de>
 ;; To override this example, set either `imenu-generic-expression'
@@ -399,7 +397,6 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 
 ;;; Keybindings
-(defvar texinfo-mode-map nil)
 
 ;;; Keys common both to Texinfo mode and to TeX shell.
 
@@ -420,65 +417,65 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 ;; Mode documentation displays commands in reverse order
 ;; from how they are listed in the texinfo-mode-map.
 
-(if texinfo-mode-map
-    nil
-  (setq texinfo-mode-map (make-sparse-keymap))
+(defvar texinfo-mode-map
+  (let ((map (make-sparse-keymap)))
 
-  ;; bindings for `texnfo-tex.el'
-  (texinfo-define-common-keys texinfo-mode-map)
+    ;; bindings for `texnfo-tex.el'
+    (texinfo-define-common-keys map)
 
-  (define-key texinfo-mode-map "\"" 'texinfo-insert-quote)
+    (define-key map "\"" 'texinfo-insert-quote)
 
-  ;; bindings for `makeinfo.el'
-  (define-key texinfo-mode-map "\C-c\C-m\C-k" 'kill-compilation)
-  (define-key texinfo-mode-map "\C-c\C-m\C-l"
-    'makeinfo-recenter-compilation-buffer)
-  (define-key texinfo-mode-map "\C-c\C-m\C-r" 'makeinfo-region)
-  (define-key texinfo-mode-map "\C-c\C-m\C-b" 'makeinfo-buffer)
+    ;; bindings for `makeinfo.el'
+    (define-key map "\C-c\C-m\C-k" 'kill-compilation)
+    (define-key map "\C-c\C-m\C-l"
+      'makeinfo-recenter-compilation-buffer)
+    (define-key map "\C-c\C-m\C-r" 'makeinfo-region)
+    (define-key map "\C-c\C-m\C-b" 'makeinfo-buffer)
 
-  ;; bindings for `texinfmt.el'
-  (define-key texinfo-mode-map "\C-c\C-e\C-r"    'texinfo-format-region)
-  (define-key texinfo-mode-map "\C-c\C-e\C-b"    'texinfo-format-buffer)
+    ;; bindings for `texinfmt.el'
+    (define-key map "\C-c\C-e\C-r"    'texinfo-format-region)
+    (define-key map "\C-c\C-e\C-b"    'texinfo-format-buffer)
 
-  ;; AUCTeX-like bindings
-  (define-key texinfo-mode-map "\e\r"		'texinfo-insert-@item)
+    ;; AUCTeX-like bindings
+    (define-key map "\e\r"		'texinfo-insert-@item)
 
-  ;; bindings for updating nodes and menus
+    ;; bindings for updating nodes and menus
 
-  (define-key texinfo-mode-map "\C-c\C-um"   'texinfo-master-menu)
+    (define-key map "\C-c\C-um"   'texinfo-master-menu)
 
-  (define-key texinfo-mode-map "\C-c\C-u\C-m"   'texinfo-make-menu)
-  (define-key texinfo-mode-map "\C-c\C-u\C-n"   'texinfo-update-node)
-  (define-key texinfo-mode-map "\C-c\C-u\C-e"   'texinfo-every-node-update)
-  (define-key texinfo-mode-map "\C-c\C-u\C-a"   'texinfo-all-menus-update)
+    (define-key map "\C-c\C-u\C-m"   'texinfo-make-menu)
+    (define-key map "\C-c\C-u\C-n"   'texinfo-update-node)
+    (define-key map "\C-c\C-u\C-e"   'texinfo-every-node-update)
+    (define-key map "\C-c\C-u\C-a"   'texinfo-all-menus-update)
 
-  (define-key texinfo-mode-map "\C-c\C-s"     'texinfo-show-structure)
+    (define-key map "\C-c\C-s"     'texinfo-show-structure)
 
-  (define-key texinfo-mode-map "\C-c}"          'up-list)
-  (define-key texinfo-mode-map "\C-c]"          'up-list)
-  (define-key texinfo-mode-map "\C-c{"		'texinfo-insert-braces)
+    (define-key map "\C-c}"          'up-list)
+    (define-key map "\C-c]"          'up-list)
+    (define-key map "\C-c{"		'texinfo-insert-braces)
 
-  ;; bindings for inserting strings
-  (define-key texinfo-mode-map "\C-c\C-o"     'texinfo-insert-block)
-  (define-key texinfo-mode-map "\C-c\C-c\C-d" 'texinfo-start-menu-description)
-  (define-key texinfo-mode-map "\C-c\C-c\C-s" 'texinfo-insert-@strong)
-  (define-key texinfo-mode-map "\C-c\C-c\C-e" 'texinfo-insert-@emph)
+    ;; bindings for inserting strings
+    (define-key map "\C-c\C-o"     'texinfo-insert-block)
+    (define-key map "\C-c\C-c\C-d" 'texinfo-start-menu-description)
+    (define-key map "\C-c\C-c\C-s" 'texinfo-insert-@strong)
+    (define-key map "\C-c\C-c\C-e" 'texinfo-insert-@emph)
 
-  (define-key texinfo-mode-map "\C-c\C-cv"    'texinfo-insert-@var)
-  (define-key texinfo-mode-map "\C-c\C-cu"    'texinfo-insert-@uref)
-  (define-key texinfo-mode-map "\C-c\C-ct"    'texinfo-insert-@table)
-  (define-key texinfo-mode-map "\C-c\C-cs"    'texinfo-insert-@samp)
-  (define-key texinfo-mode-map "\C-c\C-cq"    'texinfo-insert-@quotation)
-  (define-key texinfo-mode-map "\C-c\C-co"    'texinfo-insert-@noindent)
-  (define-key texinfo-mode-map "\C-c\C-cn"    'texinfo-insert-@node)
-  (define-key texinfo-mode-map "\C-c\C-cm"    'texinfo-insert-@email)
-  (define-key texinfo-mode-map "\C-c\C-ck"    'texinfo-insert-@kbd)
-  (define-key texinfo-mode-map "\C-c\C-ci"    'texinfo-insert-@item)
-  (define-key texinfo-mode-map "\C-c\C-cf"    'texinfo-insert-@file)
-  (define-key texinfo-mode-map "\C-c\C-cx"    'texinfo-insert-@example)
-  (define-key texinfo-mode-map "\C-c\C-ce"    'texinfo-insert-@end)
-  (define-key texinfo-mode-map "\C-c\C-cd"    'texinfo-insert-@dfn)
-  (define-key texinfo-mode-map "\C-c\C-cc"    'texinfo-insert-@code))
+    (define-key map "\C-c\C-cv"    'texinfo-insert-@var)
+    (define-key map "\C-c\C-cu"    'texinfo-insert-@uref)
+    (define-key map "\C-c\C-ct"    'texinfo-insert-@table)
+    (define-key map "\C-c\C-cs"    'texinfo-insert-@samp)
+    (define-key map "\C-c\C-cq"    'texinfo-insert-@quotation)
+    (define-key map "\C-c\C-co"    'texinfo-insert-@noindent)
+    (define-key map "\C-c\C-cn"    'texinfo-insert-@node)
+    (define-key map "\C-c\C-cm"    'texinfo-insert-@email)
+    (define-key map "\C-c\C-ck"    'texinfo-insert-@kbd)
+    (define-key map "\C-c\C-ci"    'texinfo-insert-@item)
+    (define-key map "\C-c\C-cf"    'texinfo-insert-@file)
+    (define-key map "\C-c\C-cx"    'texinfo-insert-@example)
+    (define-key map "\C-c\C-ce"    'texinfo-insert-@end)
+    (define-key map "\C-c\C-cd"    'texinfo-insert-@dfn)
+    (define-key map "\C-c\C-cc"    'texinfo-insert-@code)
+    map))
 
 (easy-menu-define texinfo-mode-menu
   texinfo-mode-map
@@ -947,22 +944,22 @@ to jump to the corresponding spot in the Texinfo source file."
 ;;; The  tex  and  print  function definitions:
 
 (defcustom texinfo-texi2dvi-command "texi2dvi"
-  "*Command used by `texinfo-tex-buffer' to run TeX and texindex on a buffer."
+  "Command used by `texinfo-tex-buffer' to run TeX and texindex on a buffer."
   :type 'string
   :group 'texinfo)
 
 (defcustom texinfo-tex-command "tex"
-  "*Command used by `texinfo-tex-region' to run TeX on a region."
+  "Command used by `texinfo-tex-region' to run TeX on a region."
   :type 'string
   :group 'texinfo)
 
 (defcustom texinfo-texindex-command "texindex"
-  "*Command used by `texinfo-texindex' to sort unsorted index files."
+  "Command used by `texinfo-texindex' to sort unsorted index files."
   :type 'string
   :group 'texinfo)
 
 (defcustom texinfo-delete-from-print-queue-command "lprm"
-  "*Command string used to delete a job from the line printer queue.
+  "Command string used to delete a job from the line printer queue.
 Command is used by \\[texinfo-delete-from-print-queue] based on
 number provided by a previous \\[tex-show-print-queue]
 command."

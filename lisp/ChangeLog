@@ -1,5 +1,9 @@
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/texinfo.el: Remove spurious * in docstrings.
+	(texinfo-mode-syntax-table, texinfo-mode-map):
+	Initialize in the declaration.
+
 	* tmm.el: Remove spurious * in docstrings.
 	(tmm-prompt): Use with-current-buffer.
 
