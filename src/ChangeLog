@@ -1,3 +1,9 @@
+2007-09-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_create_terminal): Add comment.
+
+	* term.c (clear_tty_hooks, set_tty_hooks): Add comments.
+
 2007-09-10  Richard Stallman  <rms@gnu.org>
 
 	* xterm.c (x_term_init): Give error if can't open DISPLAY_NAME.

@@ -3039,6 +3039,7 @@ delete_tty_output (struct frame *f)
 }
 
 
+/* Reset the hooks in TERMINAL.  */
 
 static void
 clear_tty_hooks (struct terminal *terminal)
@@ -3075,6 +3076,8 @@ clear_tty_hooks (struct terminal *terminal)
   terminal->delete_frame_hook = &delete_tty_output;
   terminal->delete_terminal_hook = &delete_tty;
 }
+
+/* Initialize hooks in TERMINAL with the values needed for a tty.  */
 
 static void
 set_tty_hooks (struct terminal *terminal)

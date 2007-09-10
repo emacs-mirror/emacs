@@ -11338,6 +11338,8 @@ x_delete_terminal (struct terminal *terminal)
   UNBLOCK_INPUT;
 }
 
+/* Create a struct terminal, initialize it with the X11 specific
+   functions and make DISPLAY->TERMINAL point to it.  */
 
 static struct terminal *
 x_create_terminal (struct x_display_info *dpyinfo)
