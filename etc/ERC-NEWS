@@ -6,9 +6,10 @@ See the end of the file for license conditions.
 * Changes in ERC 5.3
 
 ** New function `erc-tls' is to be used for connecting to a server via TLS.
-The function `erc-ssl' should never be used for that purpose any
-longer, which was the case with the version of ERC that is included
-with Emacs.
+It requires the tls.el library.
+
+** The function `erc-ssl' will now always use ssl.el, even in the version
+of ERC that comes with Emacs.
 
 ** Changes and additions to modules
 
