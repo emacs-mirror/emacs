@@ -8,6 +8,9 @@
 	(read-file-modes): New.  Read either an octal value of a file mode or a
 	symbolic value, and return its numeric value.
 
+	* dired-aux.el (dired-do-chmod): Change to use the built-in
+	`set-file-modes' and the previous symbolic mode parsing functions.
+
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/texinfo.el: Remove spurious * in docstrings.
