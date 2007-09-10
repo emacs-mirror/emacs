@@ -1,3 +1,7 @@
+2007-09-10  Richard Stallman  <rms@gnu.org>
+
+	* xterm.c (x_term_init): Give error if can't open DISPLAY_NAME.
+
 2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* lisp.h (struct Lisp_Subr): Rename `prompt' field to `intspec'.
