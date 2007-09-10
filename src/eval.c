@@ -2078,7 +2078,7 @@ then strings and vectors are not accepted.  */)
   /* Emacs primitives are interactive if their DEFUN specifies an
      interactive spec.  */
   if (SUBRP (fun))
-    return XSUBR (fun)->prompt ? Qt : if_prop;
+    return XSUBR (fun)->intspec ? Qt : if_prop;
 
   /* Bytecode objects are interactive if they are long enough to
      have an element whose index is COMPILED_INTERACTIVE, which is
