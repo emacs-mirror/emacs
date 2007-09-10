@@ -268,7 +268,7 @@
 ;; and also as usual \C-h in this map will list the key definitions, which
 ;; are designed to be easy to remember.
 ;;
-;; A special feature is provided by (vcursor-toggle-vcursor-map), bound
+;; A special feature is provided by (vcursor-use-vcursor-map), bound
 ;; to t in that keymap.  With this in effect, the main keymap
 ;; is overridden by the vcursor map, so keys like \C-p and so on
 ;; move the vcursor instead.  Remember how to turn it off (type t),
@@ -336,7 +336,7 @@
   :group 'vcursor)
 
 (defcustom vcursor-auto-disable nil
-  "*If non-nil, disable the virtual cursor after use.
+  "If non-nil, disable the virtual cursor after use.
 Any non-vcursor command will force `vcursor-disable' to be called.
 If non-nil but not t, just make sure copying is toggled off, but don't
 disable the vcursor."
@@ -344,7 +344,7 @@ disable the vcursor."
   :group 'vcursor)
 
 (defcustom vcursor-modifiers (list 'control 'shift)
-  "*A list of modifiers that are used to define vcursor key bindings."
+  "A list of modifiers that are used to define vcursor key bindings."
   :type '(repeat symbol)
   :group 'vcursor)
 
@@ -464,7 +464,7 @@ on loading vcursor and from the customize package."
     )))
 
 (defcustom vcursor-key-bindings nil
-  "*How to bind keys when vcursor is loaded.
+  "How to bind keys when vcursor is loaded.
 If t, guess; if `xterm', use bindings suitable for an X terminal; if
 `oemacs', use bindings which work on a PC with Oemacs.  If nil, don't
 define any key bindings.
@@ -476,7 +476,7 @@ Default is nil."
   :version "20.3")
 
 (defcustom vcursor-interpret-input nil
-  "*If non-nil, input from the vcursor is treated as interactive input.
+  "If non-nil, input from the vcursor is treated as interactive input.
 This will cause text insertion to be much slower.  Note that no special
 interpretation of strings is done: \"\C-x\" is a string of four
 characters.  The default is simply to copy strings."
@@ -506,49 +506,48 @@ scrolling set this.  It is used by the `vcursor-auto-disable' code.")
 ;; automatically handle any new commands using the primitives.
 
 (defcustom vcursor-copy-flag nil
-  "*Non-nil means moving vcursor should copy characters moved over to point."
+  "Non-nil means moving vcursor should copy characters moved over to point."
   :type 'boolean
   :group 'vcursor)
 
 (defvar vcursor-temp-goal-column nil
   "Keeps track of temporary goal columns for the virtual cursor.")
 
-(defvar vcursor-use-vcursor-map nil
-  "Non-nil if the vcursor map is mapped directly onto the main keymap.
-See `vcursor-toggle-vcursor-map'.")
-(make-variable-buffer-local 'vcursor-use-vcursor-map)
+(defvar vcursor-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "t" 'vcursor-use-vcursor-map)
 
-(defvar vcursor-map nil "Keymap for vcursor command.")
-(define-prefix-command 'vcursor-map)
+    (define-key map "\C-p" 'vcursor-previous-line)
+    (define-key map "\C-n" 'vcursor-next-line)
+    (define-key map "\C-b" 'vcursor-backward-char)
+    (define-key map "\C-f" 'vcursor-forward-char)
 
-(define-key vcursor-map "t" 'vcursor-toggle-vcursor-map)
-
-(define-key vcursor-map "\C-p" 'vcursor-previous-line)
-(define-key vcursor-map "\C-n" 'vcursor-next-line)
-(define-key vcursor-map "\C-b" 'vcursor-backward-char)
-(define-key vcursor-map "\C-f" 'vcursor-forward-char)
-
-(define-key vcursor-map "\r" 'vcursor-disable)
-(define-key vcursor-map " " 'vcursor-copy)
-(define-key vcursor-map "\C-y" 'vcursor-copy-word)
-(define-key vcursor-map "\C-i" 'vcursor-toggle-copy)
-(define-key vcursor-map "<" 'vcursor-beginning-of-buffer)
-(define-key vcursor-map ">" 'vcursor-end-of-buffer)
-(define-key vcursor-map "\M-v" 'vcursor-scroll-down)
-(define-key vcursor-map "\C-v" 'vcursor-scroll-up)
-(define-key vcursor-map "o" 'vcursor-other-window)
-(define-key vcursor-map "g" 'vcursor-goto)
-(define-key vcursor-map "x" 'vcursor-swap-point)
-(define-key vcursor-map "\C-s" 'vcursor-isearch-forward)
-(define-key vcursor-map "\C-r" 'vcursor-isearch-backward)
-(define-key vcursor-map "\C-a" 'vcursor-beginning-of-line)
-(define-key vcursor-map "\C-e" 'vcursor-end-of-line)
-(define-key vcursor-map "\M-w" 'vcursor-forward-word)
-(define-key vcursor-map "\M-b" 'vcursor-backward-word)
-(define-key vcursor-map "\M-l" 'vcursor-copy-line)
-(define-key vcursor-map "c" 'vcursor-compare-windows)
-(define-key vcursor-map "k" 'vcursor-execute-key)
-(define-key vcursor-map "\M-x" 'vcursor-execute-command)
+    (define-key map "\r" 'vcursor-disable)
+    (define-key map " " 'vcursor-copy)
+    (define-key map "\C-y" 'vcursor-copy-word)
+    (define-key map "\C-i" 'vcursor-toggle-copy)
+    (define-key map "<" 'vcursor-beginning-of-buffer)
+    (define-key map ">" 'vcursor-end-of-buffer)
+    (define-key map "\M-v" 'vcursor-scroll-down)
+    (define-key map "\C-v" 'vcursor-scroll-up)
+    (define-key map "o" 'vcursor-other-window)
+    (define-key map "g" 'vcursor-goto)
+    (define-key map "x" 'vcursor-swap-point)
+    (define-key map "\C-s" 'vcursor-isearch-forward)
+    (define-key map "\C-r" 'vcursor-isearch-backward)
+    (define-key map "\C-a" 'vcursor-beginning-of-line)
+    (define-key map "\C-e" 'vcursor-end-of-line)
+    (define-key map "\M-w" 'vcursor-forward-word)
+    (define-key map "\M-b" 'vcursor-backward-word)
+    (define-key map "\M-l" 'vcursor-copy-line)
+    (define-key map "c" 'vcursor-compare-windows)
+    (define-key map "k" 'vcursor-execute-key)
+    (define-key map "\M-x" 'vcursor-execute-command)
+    map)
+  "Keymap for vcursor command.")
+;; This seems unused, but it was done as part of define-prefix-command,
+;; so let's keep it for now.
+(fset 'vcursor-map vcursor-map)
 
 ;; If vcursor-key-bindings is already set on loading, bind the keys now.
 ;; This hybrid way of doing it retains compatibility while allowing
@@ -716,8 +715,7 @@ not be visible otherwise, display it in another window."
   (interactive)
   (let ((buf (current-buffer)) (here (point)) (win (selected-window)))
     (vcursor-goto) ; will disable the vcursor
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (setq vcursor-window win)
       (vcursor-move here)))
 )
@@ -801,8 +799,7 @@ This is called by most of the virtual-cursor copying commands to find
 out how much to copy."
 
   (vcursor-check)
-  (save-excursion
-    (set-buffer (overlay-buffer vcursor-overlay))
+  (with-current-buffer (overlay-buffer vcursor-overlay)
     (let ((start (goto-char (overlay-start vcursor-overlay))))
       (- (progn (apply func args) (point)) start)))
   )
@@ -816,6 +813,16 @@ out how much to copy."
    (arg nil)
    (t (error "The virtual cursor is not active now")))
   )
+
+(define-minor-mode vcursor-use-vcursor-map
+  "Toggle the state of the vcursor key map.
+When on, the keys defined in it are mapped directly on top of the main
+keymap, allowing you to move the vcursor with ordinary motion keys.
+An indication \"!VC\" appears in the mode list.  The effect is
+local to the current buffer.
+Disabling the vcursor automatically turns this off."
+  :keymap vcursor-map
+  :lighter " !VC")
 
 (defun vcursor-disable (&optional arg)
   "Disable the virtual cursor.
@@ -844,7 +851,7 @@ not copy text until you turn it on again."
    ((and arg (< (prefix-numeric-value arg) 0))
     (vcursor-move (point))
     (setq vcursor-window (selected-window)))
-   (vcursor-use-vcursor-map (vcursor-toggle-vcursor-map 0)))
+   (vcursor-use-vcursor-map (vcursor-use-vcursor-map 0)))
   (setq vcursor-copy-flag nil)
   )
 
@@ -867,8 +874,7 @@ ALL-FRAMES is also used to decide whether to split the window."
       ;; We don't use fancy vcursor-find-window trickery, since we're
       ;; quite happy to have the vcursor cycle back into the current
       ;; window.
-      (let ((sw (selected-window))
-	    (win (vcursor-find-window nil nil (not all-frames))))
+      (let ((win (vcursor-find-window nil nil (not all-frames))))
 	(if win (select-window win))
 	;; else start from here
 	(other-window n all-frames)
@@ -891,7 +897,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
   ;; (vcursor-window-funcall 'compare-windows arg)
   (require 'compare-w)
   (let* (p1 p2 maxp1 maxp2 b1 b2 w2
-	    success size
+	    success
 	    (opoint1 (point))
 	    opoint2
 	    (skip-whitespace (if ignore-whitespace
@@ -905,8 +911,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
       (setq p2 (point) b2 (current-buffer)))
     (setq opoint2 p2)
     (setq maxp1 (point-max))
-    (save-excursion
-      (set-buffer b2)
+    (with-current-buffer b2
       (setq maxp2 (point-max)))
 
     (setq success t)
@@ -921,7 +926,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 
       (and skip-whitespace
 	   (save-excursion
-	     (let (p1a p2a w1 w2 result1 result2)
+	     (let (p1a p2a result1 result2)
 	       (setq result1
 		     (if (stringp skip-whitespace)
 			 (compare-windows-skip-whitespace opoint1)
@@ -1096,8 +1101,7 @@ is called interactively, so prefix argument etc. are usable."
   (interactive "p")
   (vcursor-check)
   (vcursor-insert
-   (save-excursion
-     (set-buffer (overlay-buffer vcursor-overlay))
+   (with-current-buffer (overlay-buffer vcursor-overlay)
      (let* ((ostart (overlay-start vcursor-overlay))
 	    (end (+ ostart arg)))
        (prog1
@@ -1126,32 +1130,8 @@ line is treated like ordinary characters."
     (vcursor-copy (if (or (= count 0) arg) (1+ count) count)))
   )
 
-(defun vcursor-toggle-vcursor-map (&optional force noredisp)
-  "Toggle the state of the vcursor key map.
-When on, the keys defined in it are mapped directly on top of the main
-keymap, allowing you to move the vcursor with ordinary motion keys.
-An indication \"!VC\" appears in the mode list.  The effect is
-local to the current buffer.
-With prefix FORCE, turn on, or off if it is 0.
-With NOREDISP, don't force redisplay.
-Disabling the vcursor automatically turns this off."
-  (interactive "P")
-  (let ((new (cond ((not force) (not vcursor-use-vcursor-map))
-		   ((eq force 0) nil)
-		   (t))))
-    (or (eq new vcursor-use-vcursor-map)
-	(progn
-	  (setq vcursor-use-vcursor-map new)
-	  (or (assq 'vcursor-use-vcursor-map minor-mode-map-alist)
-	      (setq minor-mode-map-alist
-		    (cons (cons 'vcursor-use-vcursor-map vcursor-map)
-			  minor-mode-map-alist)))
-	  (or (assq 'vcursor-use-vcursor-map minor-mode-alist)
-	      (setq minor-mode-alist
-		    (cons (list 'vcursor-use-vcursor-map " !VC")
-			  minor-mode-alist)))
-	  (or noredisp (redraw-display)))))
-  )
+(define-obsolete-function-alias
+  'vcursor-toggle-vcursor-map 'vcursor-use-vcursor-map "23.1")
 
 (defun vcursor-post-command ()
   (and vcursor-auto-disable (not vcursor-last-command)
@@ -1166,5 +1146,5 @@ Disabling the vcursor automatically turns this off."
 
 (provide 'vcursor)
 
-;;; arch-tag: cdfe1cdc-2c46-4046-88e4-ed57d20f7aca
+;; arch-tag: cdfe1cdc-2c46-4046-88e4-ed57d20f7aca
 ;;; vcursor.el ends here

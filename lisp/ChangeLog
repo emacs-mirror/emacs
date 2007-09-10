@@ -1,5 +1,10 @@
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vcursor.el: Remove spurious * in docstrings.
+	(vcursor-map): Initialize in the declaration.
+	(vcursor-use-vcursor-map): Use define-minor-mode.
+	(vcursor-toggle-vcursor-map): Keep as an obsolete alias.
+
 	* wid-browse.el (widget-browse-mode-map, widget-minor-mode-map):
 	Initialize in the declaration.
 	(widget-minor-mode): Use define-minor-mode.
