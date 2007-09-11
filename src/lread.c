@@ -708,7 +708,7 @@ load_warn_old_style_backquotes (file)
   if (!NILP (Vold_style_backquotes))
     {
       Lisp_Object args[2];
-      args[0] = build_string ("!! File %s uses old-style backquotes !!");
+      args[0] = build_string ("Loading `%s': old-style backquotes detected!");
       args[1] = file;
       Fmessage (2, args);
     }

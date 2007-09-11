@@ -1,3 +1,8 @@
+2007-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (load_warn_old_style_backquotes): Change message to look
+	better when it appears in the middle of byte-compiler messages.
+
 2007-09-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/darwin.h (MULTI_KBOARD): Only define for Carbon.
