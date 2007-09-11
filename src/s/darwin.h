@@ -38,9 +38,6 @@ Boston, MA 02110-1301, USA.  */
 #define BSD_SYSTEM
 /* #define VMS */
 
-/* XXX The MULTI_KBOARD support does not work yet on this platform. */
-#undef MULTI_KBOARD
-
 #if 0 /* Don't define DARWIN on Mac OS X because CoreFoundation.h uses
 	 it to distinguish Mac OS X from bare Darwin.  */
 #ifndef	DARWIN
@@ -55,6 +52,10 @@ Boston, MA 02110-1301, USA.  */
 #define MAC_OS
 /* We need a little extra space, see ../../lisp/loadup.el. */
 #define SYSTEM_PURESIZE_EXTRA 30000
+
+/* XXX The MULTI_KBOARD support does not work yet on this platform. */
+#undef MULTI_KBOARD
+
 #endif
 #endif
 

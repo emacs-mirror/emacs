@@ -1,5 +1,7 @@
 2007-09-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/darwin.h (MULTI_KBOARD): Only define for Carbon.
+
 	* xterm.c (x_create_terminal): Add comment.
 
 	* term.c (clear_tty_hooks, set_tty_hooks): Add comments.
