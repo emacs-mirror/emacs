@@ -2692,6 +2692,13 @@ fi
 
 AC_FUNC_ALLOCA
 
+dnl src/alloca.c has been removed.  Could also check if $ALLOCA is set?
+dnl FIXME is there an autoconf test that does the right thing, without
+dnl needing to call A_M_E afterwards?
+if test x"$ac_cv_func_alloca_works" != xyes; then
+   AC_MSG_ERROR( [a system implementation of alloca is required] )
+fi
+
 # fmod, logb, and frexp are found in -lm on most systems.
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
 AC_CHECK_LIB(m, sqrt)
