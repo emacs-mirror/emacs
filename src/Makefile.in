@@ -1364,17 +1364,6 @@ versionclean:
 extraclean: distclean
 	-rm -f *~ \#* m/?*~ s/?*~
 
-/* The rule for the [sm] files has to be written a little funny to
-   avoid looking like a C comment to CPP. */
-SOURCES = *.[ch] [sm]/?* COPYING Makefile.in \
-	config.in epaths.in README COPYING ChangeLog vms.pp-trans
-unlock:
-	chmod u+w $(SOURCES)
-
-relock:
-	chmod -w $(SOURCES)
-	chmod +w epaths.h
-
 /* Arrange to make a tags table TAGS-LISP for ../lisp,
    plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
 
