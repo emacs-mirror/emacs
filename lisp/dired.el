@@ -335,7 +335,9 @@ Subexpression 2 must end right before the \\n or \\r.")
   "Face name used for flagged files.")
 
 (defface dired-warning
-  '((t (:inherit font-lock-comment-face)))
+  ;; Inherit from font-lock-warning-face since with min-colors 8
+  ;; font-lock-comment-face is not colored any more.
+  '((t (:inherit font-lock-warning-face)))
   "Face used to highlight a part of a buffer that needs user attention."
   :group 'dired-faces
   :version "22.1")
