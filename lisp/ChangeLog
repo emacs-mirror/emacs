@@ -1,3 +1,10 @@
+2007-09-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-function-map): Add bindings for M-S- and
+	C-M-S- keys.
+
+	* term/rxvt.el (rxvt-function-map): Initialize in the declaration.
+
 2007-09-12  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* lisp/net/browse-url.el (browse-url-encode-url): Fix an infinite loop.
