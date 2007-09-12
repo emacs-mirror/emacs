@@ -1,5 +1,6 @@
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* alloca.c: Remove file.
 	* Makefile.in (alloca): Do not undef.
 	(allocaobj, alloca.o): Remove.
 	(otherobj): Remove allocaobj.
