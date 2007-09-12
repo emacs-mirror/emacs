@@ -1,3 +1,7 @@
+2007-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOURCES, unlock, relock): Delete.
+
 2007-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (load_warn_old_style_backquotes): Change message to look
@@ -604,7 +608,7 @@
 	* dispnew.c (Fsend_string_to_terminal): Update call to
 	`get_tty_terminal'.
 	(Fredraw_frame, Fsend_string_to_terminal)
-	(Fsend_string_to_terminal, init_display): User FRAME_RIF,
+	(Fsend_string_to_terminal, init_display): Use FRAME_RIF,
 	FRAME_TERMCAP_P and FRAME_TTY.
 	(window_change_signal): Don't believe width/height values that are
 	impossibly small.
@@ -666,6 +670,7 @@
 	(syms_of_frame): Defsubr it.  Initialize and staticpro Qenvironment.
 	(get_future_frame_param): New function.
 	(Fmake_terminal_frame): Use it.
+	(x_set_frame_parameters, x_set_screen_gamma): Use FRAME_RIF.
 
 	* sysdep.c (init_sys_modes, reset_sys_modes): Update for renames.
 	* sysdep.c (reset_sys_modes): Update for renames.
