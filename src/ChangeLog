@@ -1,3 +1,11 @@
+2007-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* gtkutil.c (cnt): Rename to menu_grab_callback_cnt for clarity.
+	(menu_grab_callback): All uses changed.
+
+	* xselect.c (cnt): Rename to x_reply_selection_request_cnt for clarity.
+	(x_reply_selection_request): All uses changed.
+
 2007-09-06  Pixel  <pixel@mandriva.com>  (tiny change)
 
 	* image.c (gif_load): Fix bug: Handle nonexistent colormap.
