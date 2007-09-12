@@ -1,3 +1,10 @@
+2007-09-12  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* lisp/net/browse-url.el (browse-url-encode-url): Fix an infinite loop.
+	New argument `filename-p' to use one set of confusing chars or another.
+	(browse-url-file-url): Use the argument.
+	Suggested by Johannes Weiner.
+
 2007-09-12  Romain Francoise  <romain@orebokech.com>
 
 	* cus-start.el (all): Revert 2007-09-08 change.
