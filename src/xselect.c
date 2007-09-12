@@ -692,7 +692,7 @@ some_frame_on_display (dpyinfo)
    FORMAT is the unit-size (in bits) of the data to be transmitted.  */
 
 #ifdef TRACE_SELECTION
-static int cnt;
+static int x_reply_selection_request_cnt;
 #endif  /* TRACE_SELECTION */
 
 static void
@@ -735,7 +735,7 @@ x_reply_selection_request (event, format, data, size, type)
   {
     char *sel = XGetAtomName (display, reply.selection);
     char *tgt = XGetAtomName (display, reply.target);
-    TRACE3 ("%s, target %s (%d)", sel, tgt, ++cnt);
+    TRACE3 ("%s, target %s (%d)", sel, tgt, ++x_reply_selection_request_cnt);
     if (sel) XFree (sel);
     if (tgt) XFree (tgt);
   }
