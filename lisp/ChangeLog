@@ -1,3 +1,8 @@
+2007-09-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-warning): Inherit from font-lock-warning-face to
+	make it show up with eight colors.
+
 2007-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-sanity-check-hunk): Fix up the case when unified
