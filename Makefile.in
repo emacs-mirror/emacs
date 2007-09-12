@@ -420,6 +420,9 @@ install-arch-dep: mkdir
 
 ## If people complain about the h flag in tar command, take that out.
 ## That flag is also used in leim/Makefile.in
+
+## Note that the Makefiles in the etc directory are potentially useful
+## in an installed Emacs, so should not be excluded.
 install-arch-indep: mkdir info
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
@@ -452,7 +455,8 @@ install-arch-indep: mkdir info
 		rm -f  $${subdir}/.\#* ; \
 		rm -f  $${subdir}/*~ ; \
 		rm -f  $${subdir}/*.orig ; \
-		rm -f  $${subdir}/[mM]akefile* ; \
+		[ "$${dir}" != "${srcdir}/etc" ] && \
+			rm -f  $${subdir}/[mM]akefile* ; \
 		rm -f  $${subdir}/ChangeLog* ; \
 		rm -f  $${subdir}/dired.todo ; \
 	      done) ; \
