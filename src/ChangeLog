@@ -3,6 +3,9 @@
 	* m/ibms390x.h, m/sh3el.h (C_ALLOCA): Remove references to this.
 
 	* Makefile.in (SOURCES, unlock, relock): Delete.
+	(alloca): Do not undef.
+	(allocaobj, alloca.o): Remove.
+	(otherobj): Remove allocaobj.
 
 2007-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
