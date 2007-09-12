@@ -1,3 +1,8 @@
+2007-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-hunk): Fix up the case when unified
+	diffs are concatenated with no intervening line.
+
 2007-09-10  Dave Love  <fx@gnu.org>
 
 	* progmodes/python.el: Merge changes from Dave Love's v2007-Sep-10.

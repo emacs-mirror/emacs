@@ -1181,7 +1181,16 @@ Only works for unified diffs."
             (while
                 (case (char-after)
                   (?\s (decf before) (decf after) t)
-                  (?- (decf before) t)
+                  (?-
+                   (if (and (looking-at diff-file-header-re)
+                            (zerop before) (zerop after))
+                       ;; No need to query: this is a case where two patches
+                       ;; are concatenated and only counting the lines will
+                       ;; give the right result.  Let's just add an empty
+                       ;; line so that our code which doesn't count lines
+                       ;; will not get confused.
+                       (progn (save-excursion (insert "\n")) nil)
+                     (decf before) t))
                   (?+ (decf after) t)
                   (t
                    (cond
