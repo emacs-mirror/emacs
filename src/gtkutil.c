@@ -1781,18 +1781,18 @@ menu_destroy_callback (w, client_data)
    CLIENT_DATA is NULL (not used).  */
 
 /* Keep track of total number of grabs.  */
-static int cnt;
+static int menu_grab_callback_cnt;
 
 static void
 menu_grab_callback (GtkWidget *widget,
                     gboolean ungrab_p,
                     gpointer client_data)
 {
-  if (ungrab_p) cnt--;
-  else cnt++;
+  if (ungrab_p) menu_grab_callback_cnt--;
+  else menu_grab_callback_cnt++;
 
-  if (cnt > 0 && ! xg_timer) xg_start_timer ();
-  else if (cnt == 0 && xg_timer) xg_stop_timer ();
+  if (menu_grab_callback_cnt > 0 && ! xg_timer) xg_start_timer ();
+  else if (menu_grab_callback_cnt == 0 && xg_timer) xg_stop_timer ();
 }
 
 /* Make a GTK widget that contains both UTF8_LABEL and UTF8_KEY (both
