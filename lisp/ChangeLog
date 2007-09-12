@@ -1,3 +1,7 @@
+2007-09-12  Romain Francoise  <romain@orebokech.com>
+
+	* cus-start.el (all): Revert 2007-09-08 change.
+
 2007-09-12  Aaron Hawley  <aaronh@garden.org>
 
 	* jka-cmpr-hook.el (jka-compr-compression-info-list): Use gzip to

@@ -359,8 +359,6 @@ since it could result in memory overflow and make Emacs crash."
  		       (const :tag "Full screen (t)" :value t)
  		       (other :tag "Always" 1)))
 	     (display-buffer-reuse-frames windows boolean "21.1")
-	     (prefer-window-split-horizontally
-	      windows (choice boolean integer) "22.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
