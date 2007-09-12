@@ -1,3 +1,7 @@
+2007-09-12  Jim Meyering  <jim@meyering.net>  (tiny change)
+
+	* emacs-lisp/copyright.el (copyright-names-regexp): Doc fix: typo.
+
 2007-09-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (xterm-function-map): Add bindings for M-S- and
