@@ -3655,13 +3655,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  if (!NILP (descrip))
 	    {
 	      int gap = maxwidth - SBYTES (item_name);
-#ifdef C_ALLOCA
-	      Lisp_Object spacer;
-	      spacer = Fmake_string (make_number (gap), make_number (' '));
-	      item_name = concat2 (item_name, spacer);
-	      item_name = concat2 (item_name, descrip);
-	      item_data = SDATA (item_name);
-#else
 	      /* if alloca is fast, use that to make the space,
 		 to reduce gc needs.  */
 	      item_data
@@ -3674,7 +3667,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	      bcopy (SDATA (descrip), item_data + j,
 		     SBYTES (descrip));
 	      item_data[j + SBYTES (descrip)] = 0;
-#endif
 	    }
 	  else
 	    item_data = SDATA (item_name);
