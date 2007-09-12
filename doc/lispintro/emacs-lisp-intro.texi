@@ -22,9 +22,8 @@
 
 @comment %**end of header
 
-@set edition-number 3.07
-@set update-date 9 November 2006
-
+@set edition-number 3.08
+@set update-date 12 September 2007
 @ignore
  ## Summary of shell commands to create various output formats:
 
@@ -1049,6 +1048,7 @@ encouragement.  My mistakes are my own.
 
 @flushright
 Robert J. Chassell
+bob@gnu.org
 @end flushright
 
 @c ================ Beginning of main text ================
