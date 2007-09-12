@@ -1665,11 +1665,6 @@ command_loop_1 ()
 	    }
 	}
 
-#ifdef C_ALLOCA
-      alloca (0);		/* Cause a garbage collection now */
-				/* Since we can free the most stuff here.  */
-#endif /* C_ALLOCA */
-
 #if 0
       /* Select the frame that the last event came from.  Usually,
 	 switch-frame events will take care of this, but if some lisp
