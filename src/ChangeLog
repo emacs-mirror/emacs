@@ -1,11 +1,22 @@
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (alloca): Do not undef.
+	(allocaobj, alloca.o): Remove.
+	(otherobj): Remove allocaobj.
+	* keyboard.c (command_loop_1): Remove #ifdef C_ALLOCA block.
+	* regex.c (C_ALLOCA): Remove all references and code that was only
+	used when this was defined.
+	* search.c (boyer_moore): Remove #ifdef C_ALLOCA block.
+	* xmenu.c (xmenu_show): Remove #ifdef C_ALLOCA block.
 	* m/ibms390x.h, m/sh3el.h (C_ALLOCA): Remove references to this.
 
 	* Makefile.in (SOURCES, unlock, relock): Delete.
-	(alloca): Do not undef.
-	(allocaobj, alloca.o): Remove.
-	(otherobj): Remove allocaobj.
+
+	* gtkutil.c (cnt): Rename to menu_grab_callback_cnt for clarity.
+	(menu_grab_callback): All uses changed.
+
+	* xselect.c (cnt): Rename to x_reply_selection_request_cnt for clarity.
+	(x_reply_selection_request): All uses changed.
 
 2007-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
