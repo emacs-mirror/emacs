@@ -1,3 +1,8 @@
+2007-09-12  Aaron Hawley  <aaronh@garden.org>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Use gzip to
+	extract .Z files, since it is more common than uncompress.
+
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/org-publish.el (org-publish-org-to-html): Remove
