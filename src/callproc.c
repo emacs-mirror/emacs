@@ -1273,9 +1273,10 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
   /* Note that use of alloca is always safe here.  It's obvious for systems
      that do not have true vfork or that have true (stack) alloca.
-     If using vfork and C_ALLOCA it is safe because that changes
-     the superior's static variables as if the superior had done alloca
-     and will be cleaned up in the usual way.  */
+     If using vfork and C_ALLOCA (when Emacs used to include
+     src/alloca.c) it is safe because that changes the superior's
+     static variables as if the superior had done alloca and will be
+     cleaned up in the usual way. */
   {
     register char *temp;
     register int i;
