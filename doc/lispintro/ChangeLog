@@ -1,3 +1,7 @@
+2007-09-12  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* emacs-lisp-intro.texi: Add email address to Thank You
+
 2007-09-06  Romain Francoise  <romain@orebokech.com>
 
 	* Makefile.in (maintainer-clean): Delete info files.
