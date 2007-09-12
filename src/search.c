@@ -1697,12 +1697,8 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   int translate_prev_byte2 = 0;
   int translate_prev_byte3 = 0;
 
-#ifdef C_ALLOCA
-  int BM_tab_space[0400];
-  BM_tab = &BM_tab_space[0];
-#else
   BM_tab = (int *) alloca (0400 * sizeof (int));
-#endif
+
   /* The general approach is that we are going to maintain that we know */
   /* the first (closest to the present position, in whatever direction */
   /* we're searching) character that could possibly be the last */
