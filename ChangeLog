@@ -1,3 +1,7 @@
+2007-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SOURCES, unlock, relock): Delete.
+
 2007-09-09  Juri Linkov  <juri@jurta.org>
 
 	* make-dist: Remove AUTHORS and CONTRIBUTE (moved to etc).
