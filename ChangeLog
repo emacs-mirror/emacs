@@ -1,6 +1,7 @@
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SOURCES, unlock, relock): Delete.
+	(install-arch-indep): Do not exclude the etc/ Makefiles.
 
 2007-09-09  Juri Linkov  <juri@jurta.org>
 
