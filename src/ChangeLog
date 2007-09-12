@@ -1,5 +1,7 @@
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* m/ibms390x.h, m/sh3el.h (C_ALLOCA): Remove references to this.
+
 	* Makefile.in (SOURCES, unlock, relock): Delete.
 
 2007-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
