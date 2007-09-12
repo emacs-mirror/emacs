@@ -1,3 +1,7 @@
+2007-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile (SOURCES, unlock, relock): Delete.
+
 2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* NEWS: Document the interactive specification for C functions.
