@@ -1,3 +1,8 @@
+2007-09-12  Romain Francoise  <romain@orebokech.com>
+
+	* window.c (prefer_window_split_horizontally, display_buffer):
+	Revert 2007-09-08 change.
+
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* alloca.c: Remove file.

@@ -163,13 +163,6 @@ Lisp_Object Vdisplay_buffer_function;
 
 Lisp_Object Veven_window_heights;
 
-/* Non-nil means that windows are split horizontally, i.e. side-by-side,
-   instead of vertically by `display-buffer'.  An integer value means that
-   windows may only be split horizontally if the newly created window is at
-   least as wide as that value.  */
-
-Lisp_Object Vprefer_window_split_horizontally;
-
 /* List of buffer *names* for buffers that should have their own frames.  */
 
 Lisp_Object Vspecial_display_buffer_names;
@@ -3660,12 +3653,7 @@ the buffer, it may be split, subject to the value of the variable
 
 If `even-window-heights' is non-nil, window heights will be evened out
 if displaying the buffer causes two vertically adjacent windows to be
-displayed.  
-
-If `prefer-window-split-horizontally' is non-nil, windows are split
-horizontally, i.e. side-by-side, instead of vertically if possible. If the
-variable has an integer value, windows may only be split horizontally if the
-newly created window is at least as wide as that value.  */)
+displayed.  */)
      (buffer, not_this_window, frame)
      Lisp_Object buffer, not_this_window, frame;
 {
@@ -3767,24 +3755,11 @@ newly created window is at least as wide as that value.  */)
       else
 	window = Fget_largest_window (frames, Qt);
 
-      /* If we prefer to split horizontally and the window is wide
-         enough, split it horizontally.  */
+      /* If the largest window is tall enough, full-width, and either eligible
+	 for splitting or the only window, split it.  */
       if (!NILP (window)
 	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	  && WINDOW_FULL_WIDTH_P (XWINDOW (window))
-	  && !NILP (Vprefer_window_split_horizontally)
-	  && (!NUMBERP (Vprefer_window_split_horizontally) ||
-              (window_width(window) >=
-	       2 * XINT (Vprefer_window_split_horizontally)))
-	  && (window_width(window)) >= (2 * window_min_width))
-	{
-	  window = Fsplit_window (window, Qnil, Qt);
-	}
-      /* Else, if the largest window is tall enough, full-width, and either
-	 eligible for splitting or the only window, split it. */
-      else if (!NILP (window)
-	       && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	       && WINDOW_FULL_WIDTH_P (XWINDOW (window))
 	       && (window_height (window) >= split_height_threshold
 		   || (NILP (XWINDOW (window)->parent)))
 	  && (window_height (window)
@@ -3795,27 +3770,16 @@ newly created window is at least as wide as that value.  */)
 	  Lisp_Object upper, lower, other;
 
 	  window = Fget_lru_window (frames, Qt);
-	  /* If we prefer to split horizontally and the LRU window is
-	     wide enough, split it horizontally. */
+	  /* If the LRU window is tall enough, and either eligible for
+	     splitting and selected or the only window, split it.  */
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	      && !NILP (Vprefer_window_split_horizontally)
-	      && window_width(window) >= (2 * window_min_width)
-	      && (!NUMBERP (Vprefer_window_split_horizontally) ||
-		  window_width(window) >=
-		  (2 * XINT (Vprefer_window_split_horizontally))))
-	    window = Fsplit_window (window, Qnil, Qt);
-	  /* Else if the LRU window is tall enough, and either
-	     eligible for splitting and selected, or the only window,
-	     split it.  */
-	  else if (!NILP (window)
-		   && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 		   && ((EQ (window, selected_window)
 			&& window_height (window) >= split_height_threshold)
 		       || (NILP (XWINDOW (window)->parent)))
 		   && (window_height (window)
 		       >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	    window = Fsplit_window (window, Qnil, Qnil);
+	    window = call1 (Vsplit_window_preferred_function, window);
 	  else
 	    window = Fget_lru_window (frames, Qnil);
 	  /* If Fget_lru_window returned nil, try other approaches.  */
@@ -7389,14 +7353,6 @@ work using this function.  */);
 	       doc: /* *If non-nil, `display-buffer' should even the window heights.
 If nil, `display-buffer' will leave the window configuration alone.  */);
   Veven_window_heights = Qt;
-
-  DEFVAR_LISP ("prefer-window-split-horizontally", &Vprefer_window_split_horizontally,
-               doc: /* *Non-nil means that windows are split horizontally, i.e. 
-side-by-side, instead
-of vertically by `display-buffer'.
-An integer value means that windows may only be split horizontally if the newly
-created window is at least as wide as that value.  */);
-  Vprefer_window_split_horizontally = Qnil;
 
   DEFVAR_LISP ("minibuffer-scroll-window", &Vminibuf_scroll_window,
 	       doc: /* Non-nil means it is the window that C-M-v in minibuffer should scroll.  */);
