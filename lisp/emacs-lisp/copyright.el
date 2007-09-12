@@ -57,7 +57,7 @@ The second \\( \\) construct must match the years."
 (defcustom copyright-names-regexp ""
   "Regexp matching the names which correspond to the user.
 Only copyright lines where the name matches this regexp will be updated.
-This allows you to avoid adding yars to a copyright notice belonging to
+This allows you to avoid adding years to a copyright notice belonging to
 someone else or to a group for which you do not work."
   :group 'copyright
   :type 'regexp)
