@@ -438,20 +438,6 @@ nil if not found."
 
 ;;;; Pluggable publishing back-end functions
 
-
-(defun org-publish-org-to-html (plist filename)
-  "Publish an org file to HTML.
-PLIST is the property list for the given project.
-FILENAME is the filename of the org file to be published."
-  (require 'org)
-  (let* ((arg (plist-get plist :headline-levels)))
-    (progn
-      (find-file filename)
-      (org-export-as-html arg nil plist)
-      ;; get rid of HTML buffer
-      (kill-buffer (current-buffer)))))
-
-
 (defun org-publish-org-to-latex (plist filename)
   "Publish an org file to LaTeX."
   (org-publish-org-to "latex" plist filename))
