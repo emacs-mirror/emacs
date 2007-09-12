@@ -15338,6 +15338,12 @@ _ACEOF
 fi
 
 
+if test x"$ac_cv_func_alloca_works" != xyes; then
+   { { echo "$as_me:$LINENO: error: a system implementation of alloca is required " >&5
+echo "$as_me: error: a system implementation of alloca is required " >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
 # fmod, logb, and frexp are found in -lm on most systems.
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
 
