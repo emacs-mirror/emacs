@@ -1,6 +1,6 @@
 2007-09-12  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* emacs-lisp-intro.texi: Add email address to Thank You
+	* emacs-lisp-intro.texi: Add email address to Thank You correctly
 
 2007-09-06  Romain Francoise  <romain@orebokech.com>
 
