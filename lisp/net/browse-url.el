@@ -619,16 +619,19 @@ down (this *won't* always work)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL encoding
 
-(defun browse-url-encode-url (url)
-  "Encode all `confusing' characters in URL."
-  (let ((encoded-url (copy-sequence url)))
-    (while (string-match "%" encoded-url)
-      (setq encoded-url (replace-match "%25" t t encoded-url)))
-    (while (string-match "[*\"()',=;? ]" encoded-url)
+(defun browse-url-encode-url (url &optional filename-p)
+  "Encode all `confusing' characters in URL.
+If FILENAME-P is nil, the confusing characters are [,)$].
+Otherwise, the confusing characters are [*\"()',=;?% ]."
+  (let ((conf-char (if filename-p "[*\"()',=;?% ]" "[,)$]"))
+	(encoded-url (copy-sequence url))
+	(s 0))
+    (while (setq s (string-match conf-char encoded-url s))
       (setq encoded-url
 	    (replace-match (format "%%%x"
 				   (string-to-char (match-string 0 encoded-url)))
-			   t t encoded-url)))
+			   t t encoded-url)
+	    s (1+ s)))
     encoded-url))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -703,7 +706,7 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
 		     (or file-name-coding-system
 			 default-file-name-coding-system))))
     (if coding (setq file (encode-coding-string file coding))))
-  (setq file (browse-url-encode-url file))
+  (setq file (browse-url-encode-url file 'url-is-filename))
   (dolist (map browse-url-filename-alist)
     (when (and map (string-match (car map) file))
       (setq file (replace-match (cdr map) t nil file))))
