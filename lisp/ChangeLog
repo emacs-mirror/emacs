@@ -1,3 +1,8 @@
+2007-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/org-publish.el (org-publish-org-to-html): Remove
+	duplicate function definition.
+
 2007-09-10  Chris Moore  <dooglus@gmail.com>
 
 	* diff-mode.el (diff-sanity-check-hunk):
