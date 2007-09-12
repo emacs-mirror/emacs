@@ -176,7 +176,9 @@ def complete (name, imports):
 		    names.add('__class__')
 		    names.union_update (class_members (object))
 	    except: names = all_names (dict)
-    except: return []
+    except:
+        print '_emacs_out ()'
+        return []
     l = len(name)
     print '_emacs_out (',
     for n in names:

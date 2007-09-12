@@ -1,3 +1,8 @@
+2007-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs.py (complete.class_members): Make sure we return the _emacs_out
+	message even in the face of exceptions.
+
 2007-09-05  Jason Rumney  <jasonr@gnu.org>
 
 	* NEWS: Mention focus-follows-mouse change.
@@ -9,10 +14,10 @@
 
 2007-08-22  Karl Berry  <karl@gnu.org>
 
-	* refcard.tex: updates for printing.
-        (\versionyear): update to 2007.
-	(\copyrightnotice): modified or unmodified ok.
-	(Simple Customization): don't use goto-line, since now it's bound.
+	* refcard.tex: Updates for printing.
+	(\versionyear): Update to 2007.
+	(\copyrightnotice): Modified or unmodified ok.
+	(Simple Customization): Don't use goto-line, since now it's bound.
 	Also, use now-preferred (kbd ...) syntax.
 
 2007-08-14  Glenn Morris  <rgm@gnu.org>
@@ -26,7 +31,7 @@
 
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
-	*  Relicense all FSF files to GPLv3 or later.
+	* Relicense all FSF files to GPLv3 or later.
 
 	* COPYING: Switch to GPLv3.
 
