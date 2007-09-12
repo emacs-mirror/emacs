@@ -1048,7 +1048,7 @@ encouragement.  My mistakes are my own.
 
 @flushright
 Robert J. Chassell
-bob@gnu.org
+@email{bob@@gnu.org}
 @end flushright
 
 @c ================ Beginning of main text ================
