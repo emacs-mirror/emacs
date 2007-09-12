@@ -1,5 +1,8 @@
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (AC_FUNC_ALLOCA): Throw an error if a system
+	implementation of alloca is not found.
+
 	* Makefile.in (SOURCES, unlock, relock): Delete.
 	(install-arch-indep): Do not exclude the etc/ Makefiles.
 
