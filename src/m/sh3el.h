@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="<name of system .h file here, without the s- or .h>"  */
 
@@ -79,14 +79,11 @@ Boston, MA 02111-1307, USA.  */
 
 #define VIRT_ADDR_VARIES
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
+/* Define HAVE_ALLOCA to say that the system provides a properly
    working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
+   Undefine it if an assembler-language alloca
    in the file alloca.s should be used.  */
 
-/* #define C_ALLOCA */
 #define HAVE_ALLOCA
 
 /* Define NO_REMAP if memory segmentation makes it not work well
