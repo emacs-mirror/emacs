@@ -31,6 +31,8 @@ so we will look at it and add it to the manual.
 ** configure now checks for libgif before libungif when searching for
 a GIF library.
 
+** Support for systems without alloca has been removed.
+
 
 * Changes in Emacs 23.1
 
