@@ -2048,13 +2048,13 @@ report this using the `report-emacs-bug' function."
   (follow-invalidate-cache)
 
   ;; Normally, if the display has been changed, it is redrawn.  All
-  ;; windows showing only the end of a buffer is unconditionally
-  ;; recentered, we can't prevent it by calling
+  ;; windows showing only the end of a buffer are unconditionally
+  ;; recentered; we can't prevent that by calling
   ;; `follow-avoid-tail-recenter'.
   ;;
-  ;; By performing a redisplay on our own, Emacs need not perform
-  ;; the above described redisplay.  (However, bu performing it when
-  ;; there are input available just seems to make things worse.)
+  ;; We force a redisplay here on our own, so Emacs does need to.
+  ;; (However, redisplaying when there's input available just seems
+  ;; to make things worse, so we exclude that case.)
   (if (and follow-avoid-tail-recenter-p
 	   (not (input-pending-p)))
       (sit-for 0)))
