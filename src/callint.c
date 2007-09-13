@@ -263,7 +263,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
      Lisp_Object function, record_flag, keys;
 {
   Lisp_Object *args, *visargs;
-  Lisp_Object fun;
   Lisp_Object specs;
   Lisp_Object filter_specs;
   Lisp_Object teml;
@@ -316,8 +315,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
     enable = Fget (function, Qenable_recursive_minibuffers);
   else
     enable = Qnil;
-
-  fun = indirect_function (function);
 
   specs = Qnil;
   string = 0;
