@@ -1,3 +1,13 @@
+2007-09-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_set_glyph_string_clipping): Use
+	get_glyph_string_clip_rects.
+	(x_set_glyph_string_clipping_exactly): Adjusted for the change of
+	struct glyph_string.
+	(x_draw_glyph_string): Likewise.
+
+	* w32font.c (w32font_draw): Do clipping here.
+
 2007-09-13  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_draw): Adjusted for the change of struct
