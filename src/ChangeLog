@@ -1,3 +1,7 @@
+2007-09-13  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* callint.c (Fcall_interactively): Remove unused var `fun'.
+
 2007-09-12  Romain Francoise  <romain@orebokech.com>
 
 	* window.c (prefer_window_split_horizontally, display_buffer):
