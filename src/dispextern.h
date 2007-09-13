@@ -1224,11 +1224,13 @@ struct glyph_string
      *clip_tail, not including their overhangs.  */
   struct glyph_string *clip_head, *clip_tail;
 
+#ifdef USE_FONT_BACKEND
   /* The current clipping areas.  */
   NativeRectangle clip[2];
 
   /* Number of clipping areas. */
   int num_clips;
+#endif	/* USE_FONT_BACKEND */
 
   struct glyph_string *next, *prev;
 };
