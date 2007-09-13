@@ -512,12 +512,11 @@ xftfont_draw (s, from, to, x, y, with_background)
 			      FRAME_X_WINDOW (f),
 			      FRAME_X_VISUAL (f),
 			      FRAME_X_COLORMAP (f));
-  if (s->clip_width)
-    {
-      r.x = s->clip_x, r.width = s->clip_width;
-      r.y = s->clip_y, r.height = s->clip_height;
-      XftDrawSetClipRectangles (xft_draw, 0, 0, &r, 1);
-    }
+  if (s->num_clips > 0)
+    XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
+  else
+    XftDrawSetClip (xft_draw, NULL);
+
   if (with_background)
     {
       struct font *font = (struct font *) face->font_info;
@@ -532,8 +531,6 @@ xftfont_draw (s, from, to, x, y, with_background)
 
   XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
 		 x, y, code, len);
-  if (s->clip_width)
-    XftDrawSetClip (xft_draw, NULL);
   if (s->font_info != face->font_info)
     XftDrawDestroy (xft_draw);
   UNBLOCK_INPUT;
