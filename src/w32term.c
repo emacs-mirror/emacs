@@ -6412,7 +6412,7 @@ w32_term_init (display_name, xrm_option, resource_name)
      horizontally reflected compared to how they appear on X, so we
      need to bitswap and convert to unsigned shorts before creating
      the bitmaps.  */
-  w32_init_fringe ();
+  w32_init_fringe (terminal->rif);
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
