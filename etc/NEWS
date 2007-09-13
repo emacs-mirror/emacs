@@ -34,6 +34,11 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** Emacs comes with a new set of icons for Mac OS X.
+OS-X-style icons (an application icon and a relevant document icon)
+were contributed by Kentaro Ohkouchi.
+Source files for these icons can be found in Emacs.app/Contents/Resources.
+
 ** Built-in functions (subr) can now have an interactive specification
 that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
 starts with a `(', the string is evaluated as a Lisp form.
