@@ -1,3 +1,7 @@
+2007-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* s/hpux.h: No longer define `static' as nothing.
+
 2007-09-13  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* callint.c (Fcall_interactively): Remove unused var `fun'.
