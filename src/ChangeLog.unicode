@@ -1,3 +1,24 @@
+2007-09-13  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_draw): Adjusted for the change of struct
+	glyph_string.
+
+	* xterm.c (x_set_glyph_string_clipping): Use
+	get_glyph_string_clip_rects.
+	(x_set_glyph_string_clipping_exactly): Adjusted for the change of
+	struct glyph_string.
+	(x_draw_glyph_string): Likewise.
+
+	* xdisp.c (get_glyph_string_clip_rects): Reflect s->row->clip to
+	the resulting clip(s}.
+	(expose_overlaps): Add arg r.  Callers changed.  Set it ot
+	row->clip temporarily.
+	(expose_window): Redraw rows overlapping the exposed area.
+
+	* dispextern.h (struct glyph_row): New member clip.
+	(struct glyph_string): Delete members clip_x, clip_y, clip_width,
+	clip_height, new member clip, and num_clips.
+
 2007-09-07  Kenichi Handa  <handa@m17n.org>
 
 	* data.c (Fchar_or_string_p): Fix docstring.
