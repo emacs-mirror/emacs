@@ -492,9 +492,32 @@ w32font_draw (s, from, to, x, y, with_background)
      int from, to, x, y, with_background;
 {
   UINT options = 0;
+  HRGN orig_clip;
+
+  /* Save clip region for later restoration.  */
+  GetClipRgn(s->hdc, orig_clip);
+
+  if (s->num_clips > 0)
+    {
+      HRGN new_clip = CreateRectRgnIndirect (s->clip);
+
+      if (s->num_clips > 1)
+        {
+          HRGN clip2 = CreateRectRgnIndirect (s->clip + 1);
+
+          CombineRgn (new_clip, new_clip, clip2, RGN_OR);
+          DeleteObject (clip2);
+        }
+
+      SelectClipRgn (s->hdc, new_clip);
+      DeleteObject (new_clip);
+    }
 
   if (with_background)
     {
+      SetBkColor (s->hdc, s->gc->background);
+      SetBkMode (s->hdc, OPAQUE);
+#if 0
       HBRUSH brush;
       RECT rect;
 
@@ -505,11 +528,18 @@ w32font_draw (s, from, to, x, y, with_background)
       rect.bottom = y + ((struct font *) (s->font_info->font))->descent;
       FillRect (s->hdc, &rect, brush);
       DeleteObject (brush);
+#endif
     }
   else
     SetBkMode (s->hdc, TRANSPARENT);
 
   ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
+
+  /* Restore clip region.  */
+  if (s->num_clips > 0)
+    {
+      SelectClipRgn (s->hdc, orig_clip);
+    }
 }
 
 /* w32 implementation of free_entity for font backend.
