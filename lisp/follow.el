@@ -1973,7 +1973,7 @@ report this using the `report-emacs-bug' function."
   ;; `follow-avoid-tail-recenter'.
   ;;
   ;; By performing a redisplay on our own, Emacs need not perform
-  ;; the above described redisplay.  (However, bu performing it when
+  ;; the above described redisplay.  (However, by performing it when
   ;; there are input available just seems to make things worse.)
   (if (and follow-avoid-tail-recenter-p
 	   (not (input-pending-p)))
