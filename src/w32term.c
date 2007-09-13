@@ -1694,12 +1694,30 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
-  RECT r;
-  get_glyph_string_clip_rect (s, &r);
-  w32_set_clip_rectangle (s->hdc, &r);
 #ifdef USE_FONT_BACKEND
-  s->clip_x = r.left, s->clip_y = r.top;
-  s->clip_width = r.right - r.left, s->clip_height = r.bottom - r.top;
+  RECT *r = s->clip;
+#else
+  RECT r[2];
+#endif
+  int n = get_glyph_string_clip_rects (s, r, 2);
+
+  if (n == 1)
+    w32_set_clip_rectangle (s->hdc, r);
+  else if (n > 1)
+    {
+      HRGN full_clip, clip1, clip2;
+      clip1 = CreateRectRgnIndirect (r);
+      clip2 = CreateRectRgnIndirect (r + 1);
+      if (CombineRgn (full_clip, clip1, clip2, RGN_OR) != ERROR)
+        {
+          SelectClipRgn (s->hdc, full_clip);
+        }
+      DeleteObject (clip1);
+      DeleteObject (clip2);
+      DeleteObject (full_clip);
+    }
+#ifdef USE_FONT_BACKEND
+    s->num_clips = n;
 #endif	/* USE_FONT_BACKEND */
 }
 
@@ -1716,10 +1734,12 @@ x_set_glyph_string_clipping_exactly (src, dst)
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend)
     {
-      r.left = dst->clip_x = src->x;
-      r.right = r.left + (dst->clip_width = src->width);
-      r.top = dst->clip_y = src->y;
-      r.bottom = r.top + (dst->clip_height = src->height);
+      r.left = src->x;
+      r.right = r.left + src->width;
+      r.top = src->y;
+      r.bottom = r.top + src->height;
+      dst->clip[0] = r;
+      dst->num_clips = 1;
     }
   else
     {
@@ -2850,7 +2870,7 @@ x_draw_glyph_string (s)
             x_set_glyph_string_clipping (next);
             x_draw_glyph_string_background (next, 1);
 #ifdef USE_FONT_BACKEND
-            next->clip_width = 0;
+            next->num_clips = 0;
 #endif /* USE_FONT_BACKEND */
           }
     }
@@ -3027,7 +3047,7 @@ x_draw_glyph_string (s)
                 w32_set_clip_rectangle (prev->hdc, NULL);
 		prev->hl = save;
 #ifdef USE_FONT_BACKEND
-		prev->clip_width = 0;
+		prev->num_clips = 0;
 #endif	/* USE_FONT_BACKEND */
 	      }
 	}
@@ -3054,7 +3074,7 @@ x_draw_glyph_string (s)
                 w32_set_clip_rectangle (next->hdc, NULL);
 		next->hl = save;
 #ifdef USE_FONT_BACKEND
-		next->clip_width = 0;
+		next->num_clips = 0;
 #endif	/* USE_FONT_BACKEND */
 	      }
 	}
@@ -3063,7 +3083,7 @@ x_draw_glyph_string (s)
   /* Reset clipping.  */
   w32_set_clip_rectangle (s->hdc, NULL);
 #ifdef USE_FONT_BACKEND
-  s->clip_width = 0;
+  s->num_clips = 0;
 #endif	/* USE_FONT_BACKEND */
 }
 
