@@ -1068,6 +1068,12 @@ Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
+You can visit files on remote machines by specifying something
+like /ssh:SOME_REMOTE_MACHINE:FILE for the file name.  You can
+also visit local files as a different user by specifying
+/sudo::FILE for the file name.  See the documentation of
+`tramp-methods' and the Tramp Info manual, for more about this.
+
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  You can
 suppress wildcard expansion by setting `find-file-wildcards' to nil.
@@ -1082,8 +1088,9 @@ automatically choosing a major mode, use \\[find-file-literally]."
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
-May create a new window, or reuse an existing one.
-See the function `display-buffer'.
+
+Like \\[find-file] (which see), but creates a new window or reuses
+an existing one.  See the function `display-buffer'.
 
 Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
@@ -1102,8 +1109,9 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-other-frame (filename &optional wildcards)
   "Edit file FILENAME, in another frame.
-May create a new frame, or reuse an existing one.
-See the function `display-buffer'.
+
+Like \\[find-file] (which see), but creates a new frame or reuses
+an existing one.  See the function `display-buffer'.
 
 Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
@@ -1122,7 +1130,7 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-existing (filename)
    "Edit the existing file FILENAME.
-Like \\[find-file] but only allow a file that exists, and do not allow
+Like \\[find-file], but only allow a file that exists, and do not allow
 file names with wildcards."
    (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
    (if (and (not (interactive-p)) (not (file-exists-p filename)))
@@ -1132,7 +1140,7 @@ file names with wildcards."
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
-Like \\[find-file] but marks buffer as read-only.
+Like \\[find-file], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive (find-file-read-args "Find file read-only: " nil))
   (unless (or (and wildcards find-file-wildcards
@@ -1147,7 +1155,7 @@ Use \\[toggle-read-only] to permit editing."
 
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
-Like \\[find-file-other-window] but marks buffer as read-only.
+Like \\[find-file-other-window], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive (find-file-read-args "Find file read-only other window: " nil))
   (unless (or (and wildcards find-file-wildcards
@@ -1162,7 +1170,7 @@ Use \\[toggle-read-only] to permit editing."
 
 (defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
-Like \\[find-file-other-frame] but marks buffer as read-only.
+Like \\[find-file-other-frame], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive (find-file-read-args "Find file read-only other frame: " nil))
   (unless (or (and wildcards find-file-wildcards
@@ -1178,6 +1186,8 @@ Use \\[toggle-read-only] to permit editing."
 (defun find-alternate-file-other-window (filename &optional wildcards)
   "Find file FILENAME as a replacement for the file in the next window.
 This command does not select that window.
+
+See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files."
@@ -1203,6 +1213,8 @@ expand wildcards (if any) and replace the file with multiple files."
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
 \(presumably by mistake), use this command to visit the file you really want.
+
+See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
