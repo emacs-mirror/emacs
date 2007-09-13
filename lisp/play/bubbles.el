@@ -1323,7 +1323,7 @@ Return t if new char is non-empty."
       (setq bubbles--empty-image
             (create-image (replace-regexp-in-string
                            "^\"\\(.*\\)\t.*c .*\",$"
-                           "\"\\1\tc #FFFFFF\"," template)
+                           "\"\\1\tc None\"," template)
                           'xpm t
                           ;;:mask 'heuristic
                           :margin '(2 . 1)))
