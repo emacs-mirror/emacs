@@ -1,3 +1,8 @@
+2007-09-13  Jari Aalto  <jari.aalto@cante.net>
+
+	* man.el (Man-default-man-entry): At end of line, continue looking
+        to the next line for possible end of hyphenated command.
+
 2007-09-13  Chris Moore  <dooglus@gmail.com>
 
 	* shell.el (shell-resync-dirs): Don't move the cursor relative to
