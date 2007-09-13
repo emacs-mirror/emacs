@@ -1699,13 +1699,13 @@ init_fringe ()
 
 void
 #ifdef HAVE_NTGUI
-w32_init_fringe ()
+w32_init_fringe (rif)
 #else  /* MAC_OS */
-mac_init_fringe ()
+mac_init_fringe (rif)
 #endif
+     struct redisplay_interface *rif;
 {
   int bt;
-  struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
 
   if (!rif)
     return;
