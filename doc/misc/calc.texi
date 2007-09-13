@@ -27522,8 +27522,8 @@ If the value on the stack does not contain any units, @kbd{u c} will
 prompt first for the old units which this value should be considered
 to have, then for the new units.  Assuming the old and new units you
 give are consistent with each other, the result also will not contain
-any units.  For example, @kbd{@w{u c} cm @key{RET} in @key{RET}} converts the number
-2 on the stack to 5.08.
+any units.  For example, @kbd{@w{u c} cm @key{RET} in @key{RET}}
+converts the number 2 on the stack to 5.08.
 
 @kindex u b
 @pindex calc-base-units
@@ -27647,6 +27647,29 @@ column of the Units Table.
 @section Predefined Units
 
 @noindent
+The definitions of many units have changed over the years.  For example,
+the meter was originally defined in 1791 as one ten-millionth of the
+distance from the equator to the north pole.  In order to be more
+precise, the definition was adjusted several times, and now a meter is
+defined as the distance that light will travel in a vacuum in
+1/299792458 of a second; consequently, the speed of light in a
+vacuum is exactly 299792458 m/s.  Many other units have been
+redefined in terms of fundamental physical processes; a second, for
+example, is currently defined as 9192631770 periods of a certain
+radiation related to the cesium-133 atom.  The only SI unit that is not
+based on a fundamental physical process (although there are efforts to
+change this) is the kilogram, which was originally defined as the mass
+of one liter of water, but is now defined as the mass of the
+International Prototype Kilogram (IPK), a cylinder of platinum-iridium
+kept at the Bureau International des Poids et Mesures in S@`evres,
+France.  (There are several copies of the IPK throughout the world.)
+The British imperial units, once defined in terms of physical objects,
+were redefined in 1963 in terms of SI units.  The US customary units,
+which were the same as British units until the British imperial system
+was created in 1824, were also defined in terms of the SI units in 1893.
+Because of these redefinitions, conversions between metric, British
+Imperial, and US customary units can often be done precisely.
+
 Since the exact definitions of many kinds of units have evolved over the
 years, and since certain countries sometimes have local differences in
 their definitions, it is a good idea to examine Calc's definition of a
