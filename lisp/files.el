@@ -1071,8 +1071,9 @@ type M-n to pull it into the minibuffer.
 You can visit files on remote machines by specifying something
 like /ssh:SOME_REMOTE_MACHINE:FILE for the file name.  You can
 also visit local files as a different user by specifying
-/sudo::FILE for the file name.  See the documentation of
-`tramp-methods' and the Tramp Info manual, for more about this.
+/sudo::FILE for the file name.
+See the Info node `(tramp)Filename Syntax' in the Tramp Info
+manual, for more about this.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  You can
