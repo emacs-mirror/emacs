@@ -1945,6 +1945,14 @@ get_glyph_string_clip_rects (s, rects, n)
 	}
     }
 
+  if (s->row->clip)
+    {
+      XRectangle r_save = r;
+
+      if (! x_intersect_rectangles (&r_save, s->row->clip, &r))
+	r.width = 0;
+    }
+
   if ((s->for_overlaps & OVERLAPS_BOTH) == 0
       || ((s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1))
     {
@@ -23698,10 +23706,11 @@ expose_line (w, row, r)
    LAST_OVERLAPPING_ROW is the last such row.  */
 
 static void
-expose_overlaps (w, first_overlapping_row, last_overlapping_row)
+expose_overlaps (w, first_overlapping_row, last_overlapping_row, r)
      struct window *w;
      struct glyph_row *first_overlapping_row;
      struct glyph_row *last_overlapping_row;
+     XRectangle *r;
 {
   struct glyph_row *row;
 
@@ -23710,6 +23719,7 @@ expose_overlaps (w, first_overlapping_row, last_overlapping_row)
       {
 	xassert (row->enabled_p && !row->mode_line_p);
 
+	row->clip = r;
 	if (row->used[LEFT_MARGIN_AREA])
 	  x_fix_overlapping_area (w, row, LEFT_MARGIN_AREA, OVERLAPS_BOTH);
 
@@ -23718,6 +23728,7 @@ expose_overlaps (w, first_overlapping_row, last_overlapping_row)
 
 	if (row->used[RIGHT_MARGIN_AREA])
 	  x_fix_overlapping_area (w, row, RIGHT_MARGIN_AREA, OVERLAPS_BOTH);
+	row->clip = NULL;
       }
 }
 
@@ -23881,8 +23892,22 @@ expose_window (w, fr)
 		  last_overlapping_row = row;
 		}
 
+	      row->clip = fr;
 	      if (expose_line (w, row, &r))
 		mouse_face_overwritten_p = 1;
+	      row->clip = NULL;
+	    }
+	  else if (row->overlapping_p)
+	    {
+	      /* We must redraw a row overlapping the exposed area.  */
+	      if (y0 < r.y
+		  ? y0 + row->phys_height > r.y
+		  : y0 + row->ascent - row->phys_ascent < r.y +r.height)
+		{
+		  if (first_overlapping_row == NULL)
+		    first_overlapping_row = row;
+		  last_overlapping_row = row;
+		}
 	    }
 
 	  if (y1 >= yb)
@@ -23903,7 +23928,8 @@ expose_window (w, fr)
 	{
 	  /* Fix the display of overlapping rows.  */
 	  if (first_overlapping_row)
-	    expose_overlaps (w, first_overlapping_row, last_overlapping_row);
+	    expose_overlaps (w, first_overlapping_row, last_overlapping_row,
+			     fr);
 
 	  /* Draw border between windows.  */
 	  x_draw_vertical_border (w);
