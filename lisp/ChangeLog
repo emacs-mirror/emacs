@@ -1,3 +1,8 @@
+2007-09-13  Chris Moore  <dooglus@gmail.com>
+
+	* shell.el (shell-resync-dirs): Don't move the cursor relative to
+        the command being edited.
+
 2007-09-12  Jim Meyering  <jim@meyering.net>  (tiny change)
 
 	* emacs-lisp/copyright.el (copyright-names-regexp): Doc fix: typo.
