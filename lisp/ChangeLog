@@ -1,3 +1,8 @@
+2007-09-13  Sascha Wilde  <wilde@sha-bang.de>  (tiny change)
+
+	* play/bubbles.el (bubbles--initialize-images): Fix bug:
+	Use transparent background for empty cells in graphics mode.
+
 2007-09-13  Jari Aalto  <jari.aalto@cante.net>
 
 	* man.el (Man-default-man-entry): At end of line, continue looking
