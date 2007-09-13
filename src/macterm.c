@@ -12590,6 +12590,10 @@ mac_term_init (display_name, xrm_option, resource_name)
                                x_display_name_list);
   dpyinfo->name_list_element = XCAR (x_display_name_list);
 
+#if USE_CG_DRAWING
+  mac_init_fringe (terminal->rif);
+#endif
+
   UNBLOCK_INPUT;
 
   return dpyinfo;
@@ -12801,6 +12805,7 @@ mac_create_terminal (struct mac_display_info *dpyinfo)
                                         off the bottom. */
 
 #endif
+
   return terminal;
 }
 
@@ -12846,8 +12851,6 @@ mac_initialize ()
 
 #if USE_CG_DRAWING
   init_cg_color ();
-
-  mac_init_fringe ();
 #endif
 
   UNBLOCK_INPUT;
