@@ -104,6 +104,8 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   "Non-nil if debugged program is running.
 Used to grey out relevant toolbar icons.")
 
+(defvar gdb-ready nil)
+
 ;; Use existing Info buffer, if possible.
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
@@ -764,6 +766,8 @@ session."
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (setq gdb-first-prompt t)
+  (setq gud-running nil)
+  (setq gdb-ready nil)
   (setq gud-filter-pending-text nil)
   (run-hooks 'gdb-mode-hook))
 
@@ -2519,7 +2523,6 @@ comint mode, which see."
 	 (and file-word (file-name-nondirectory file))))
   (set (make-local-variable 'gud-marker-filter) marker-filter)
   (if find-file (set (make-local-variable 'gud-find-file) find-file))
-  (setq gud-running nil)
   (setq gud-last-last-frame nil)
 
   (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
