@@ -717,5 +717,5 @@ the GNU Lesser General Public License instead of this License.  But
 first, please read @url{http://www.gnu.org/philosophy/why-not-lgpl.html}.
 
 @ignore
-   arch-tag: 0c4a2556-f87e-464f-9b1d-efd920fcaf67
+   arch-tag: 8b9947e1-c830-4d70-8907-a97e556731ba
 @end ignore
