@@ -168,6 +168,7 @@ Boston, MA 02110-1301, USA.  */
 /* USG systems tend to put everything declared static
    into the initialized data area, which becomes pure after dumping Emacs.
    Foil this.  Emacs carefully avoids static vars inside functions.
+   http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00368.html
    As of at least HPUX 11.11 (2000), it seems this workaround is no
    longer needed.  Try uncommenting the following if you have problems
    on older versions.  */
