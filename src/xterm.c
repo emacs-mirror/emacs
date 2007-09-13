@@ -1228,13 +1228,18 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
-  XRectangle r;
-  get_glyph_string_clip_rect (s, &r);
-  XSetClipRectangles (s->display, s->gc, 0, 0, &r, 1, Unsorted);
 #ifdef USE_FONT_BACKEND
-  s->clip_x = r.x, s->clip_y = r.y;
-  s->clip_width = r.width, s->clip_height = r.height;
-#endif	/* USE_FONT_BACKEND */
+  XRectangle *r = s->clip;
+#else
+  XRectangle r[2];
+#endif
+  int n = get_glyph_string_clip_rects (s, r, 2);
+
+  if (n > 0)
+    XSetClipRectangles (s->display, s->gc, 0, 0, r, n, Unsorted);
+#ifdef USE_FONT_BACKEND
+  s->num_clips = n;
+#endif
 }
 
 
@@ -1251,10 +1256,12 @@ x_set_glyph_string_clipping_exactly (src, dst)
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend)
     {
-      r.x = dst->clip_x = src->x;
-      r.width = dst->clip_width = src->width;
-      r.y = dst->clip_y = src->y;
-      r.height = dst->clip_height = src->height;
+      r.x = src->x;
+      r.width = src->width;
+      r.y = src->y;
+      r.height = src->height;
+      dst->clip[0] = r;
+      dst->num_clips = 1;
     }
   else
     {
@@ -2839,7 +2846,7 @@ x_draw_glyph_string (s)
 	    x_set_glyph_string_clipping (next);
 	    x_draw_glyph_string_background (next, 1);
 #ifdef USE_FONT_BACKEND
-	    next->clip_width = 0;
+	    next->num_clips = 0;
 #endif	/* USE_FONT_BACKEND */
 	  }
     }
@@ -3028,7 +3035,7 @@ x_draw_glyph_string (s)
 		XSetClipMask (prev->display, prev->gc, None);
 		prev->hl = save;
 #ifdef USE_FONT_BACKEND
-		prev->clip_width = 0;
+		prev->num_clips = 0;
 #endif	/* USE_FONT_BACKEND */
 	      }
 	}
@@ -3055,7 +3062,7 @@ x_draw_glyph_string (s)
 		XSetClipMask (next->display, next->gc, None);
 		next->hl = save;
 #ifdef USE_FONT_BACKEND
-		next->clip_width = 0;
+		next->num_clips = 0;
 #endif	/* USE_FONT_BACKEND */
 	      }
 	}
@@ -3064,7 +3071,7 @@ x_draw_glyph_string (s)
   /* Reset clipping.  */
   XSetClipMask (s->display, s->gc, None);
 #ifdef USE_FONT_BACKEND
-  s->clip_width = 0;
+  s->num_clips = 0;
 #endif	/* USE_FONT_BACKEND */
 }
 
