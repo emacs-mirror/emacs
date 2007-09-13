@@ -852,6 +852,10 @@ struct glyph_row
 
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
+
+  /* Non-NULL means the current clipping area.  This is temporarily
+     set while exposing a region.  Coordinates are frame-relative.  */
+  XRectangle *clip;
 };
 
 
@@ -1220,10 +1224,11 @@ struct glyph_string
      *clip_tail, not including their overhangs.  */
   struct glyph_string *clip_head, *clip_tail;
 
-#ifdef USE_FONT_BACKEND
-  /* The current clipping area.  */
-  int clip_x, clip_y, clip_width, clip_height;
-#endif	/* USE_FONT_BACKEND */
+  /* The current clipping areas.  */
+  NativeRectangle clip[2];
+
+  /* Number of clipping areas. */
+  int num_clips;
 
   struct glyph_string *next, *prev;
 };
