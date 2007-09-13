@@ -1,3 +1,12 @@
+2007-09-13  Jason Rumney  <jasonr@gnu.org>
+
+	* fringe.c (w32_init_fringe, mac_init_fringe): Add rif argument.
+
+	* w32term.c (w32_term_init): Pass rif to w32_init_fringe.
+
+	* macterm.c (mac_initialize): Don't call mac_init_fringe here.
+	(mac_term_init): Call here instead, passing rif.
+
 2007-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* s/hpux.h: No longer define `static' as nothing.
