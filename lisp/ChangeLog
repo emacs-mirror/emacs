@@ -1,10 +1,15 @@
+2007-09-13  Chris Moore  <dooglus@gmail.com>
+
+	* shell.el (shell-resync-dirs): Don't move the cursor relative to
+        the command being edited.
+
 2007-09-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gdb-ready): New variable.
 	(gdb): Set it to nil.  Set gud-running to nil here...
 	(gud-common-init): ...instead of here.
 
-	* progmodes/gdb-ui.el (gdba, gdb-send, gdb-source-info): 
+	* progmodes/gdb-ui.el (gdba, gdb-send, gdb-source-info):
 	Use gdb-ready.  Discard input until GDB is ready to accept it.
 
 2007-09-12  Dan Nicolaescu  <dann@ics.uci.edu>
