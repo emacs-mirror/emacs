@@ -652,7 +652,13 @@ If POS is nil, the current point is used."
       (skip-chars-backward "-a-zA-Z0-9._+:")
       (let ((start (point)))
 	(skip-chars-forward "-a-zA-Z0-9._+:")
-	(setq word (buffer-substring-no-properties start (point))))
+	;; If there is a continuation at the end of line, check the
+	;; following line too, eg:
+	;;     see this-
+	;;     command-here(1)
+	(setq word (buffer-substring-no-properties start (point)))
+	(if (looking-at "[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
+	    (setq word (concat word (match-string 1)))))
       (if (string-match "[._]+$" word)
 	  (setq word (substring word 0 (match-beginning 0))))
       ;; If looking at something like *strcat(... , remove the '*'
