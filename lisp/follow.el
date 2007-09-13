@@ -35,7 +35,7 @@
 ;; The feeling of a "virtual window" has been accomplished by the use
 ;; of two major techniques:
 ;;
-;; * The windows always displays adjacent sections of the buffer.
+;; * The windows always display adjacent sections of the buffer.
 ;;   This means that whenever one window is moved, all the
 ;;   others will follow.  (Hence the name Follow Mode.)
 ;;
@@ -46,8 +46,8 @@
 ;;
 ;; Follow mode comes to its prime when a large screen and two
 ;; side-by-side window are used.  The user can, with the help of Follow
-;; mode, use two full-height windows as though they would have been
-;; one.  Imagine yourself editing a large function, or section of text,
+;; mode, use two full-height windows as though they are one.
+;; Imagine yourself editing a large function, or section of text,
 ;; and being able to use 144 lines instead of the normal 72... (your
 ;; mileage may vary).
 
@@ -77,7 +77,7 @@
 ;;
 ;;   As you can see, the right-hand window starts at line 73, the line
 ;;   immediately below the end of the left-hand window.  As long as
-;;   `follow-mode' is active, the two windows will follow eachother!
+;;   `follow-mode' is active, the two windows will follow each other!
 ;;
 ;; * Play around and enjoy! Scroll one window and watch the other.
 ;;   Jump to the beginning or end.  Press `Cursor down' at the last
@@ -101,10 +101,9 @@
 ;; (global-set-key [f7] 'follow-delete-other-windows-and-split)
 
 
-;; There exists two system variables that controls the appearence of
-;; lines that are wider than the window containing them.  The default
-;; is to truncate long lines whenever a window isn't as wide as the
-;; frame.
+;; There exist two system variables that control the appearence of
+;; lines wider than the window containing them.  The default is to
+;; truncate long lines whenever a window isn't as wide as the frame.
 ;;
 ;; To make sure lines are never truncated, please place the following
 ;; lines in your init file:
@@ -123,8 +122,8 @@
 
 
 ;; The correct way to cofigurate Follow mode, or any other mode for
-;; that matter, is to create one (or more) function that does
-;; whatever you would like to do.  The function is then added to
+;; that matter, is to create one or more functions that do
+;; whatever you would like to do.  These functions are then added to
 ;; a hook.
 ;;
 ;; When `Follow' mode is activated, functions stored in the hook
@@ -144,8 +143,8 @@
 
 ;; Usage:
 ;;
-;; To activate issue the command "M-x follow-mode"
-;; and press return.  To deactivate, do it again.
+;; To activate, issue the command "M-x follow-mode"
+;; and press Return.  To deactivate, do it again.
 ;;
 ;; The following is a list of commands useful when follow-mode is active.
 ;;
@@ -156,10 +155,10 @@
 ;;		Like `follow-scroll-up', but in the other direction.
 ;;
 ;;	follow-delete-other-windows-and-split	 C-c . 1
-;;		Maximise the visible area of the current buffer,
+;;		Maximize the visible area of the current buffer,
 ;;		and enter Follow Mode. 	This is a very convenient
-;;		way to start Follow Mode, hence it is recomended
-;;		that this command is added to the global keymap.
+;;		way to start Follow Mode, hence we recomend that
+;;		this command be added to the global keymap.
 ;;
 ;;	follow-recenter				 C-c . C-l
 ;;		Place the point in the center of the middle window,
@@ -170,7 +169,7 @@
 ;;		in this frame.
 ;;
 ;;	follow-switch-to-buffer-all		 C-c . C-b
-;;		Switch buffer in all windows in the active frame.
+;;		Switch buffer in all windows in the selected frame.
 ;;
 ;;	follow-switch-to-current-buffer-all
 ;;		Show the current buffer in all windows on the current
@@ -207,7 +206,7 @@
 ;;
 ;; In an ideal world, follow mode would have been implemented in the
 ;; kernel of the display routines, making sure that the windows (using
-;; follow mode) ALWAYS are aligned.  On planet earth, however, we must
+;; follow mode) ALWAYS are aligned.  On planet Earth, however, we must
 ;; accept a solution where we ALMOST ALWAYS can make sure that the
 ;; windows are aligned.
 ;;
