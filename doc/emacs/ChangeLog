@@ -1,3 +1,8 @@
+2007-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi: Update all instances of mark-calendar-holidays,
+	list-calendar-holidays, list-holidays with the new names.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* Move manual sources from man/ to subdirectories of doc/.
