@@ -1890,6 +1890,24 @@ make_menu_item (utf8_label, utf8_key, item, group)
 /* Return non-zero if LABEL specifies a separator (GTK only has one
    separator type)  */
 
+static char* separator_names[] = {
+  "space",
+  "no-line",
+  "single-line",
+  "double-line",
+  "single-dashed-line",
+  "double-dashed-line",
+  "shadow-etched-in",
+  "shadow-etched-out",
+  "shadow-etched-in-dash",
+  "shadow-etched-out-dash",
+  "shadow-double-etched-in",
+  "shadow-double-etched-out",
+  "shadow-double-etched-in-dash",
+  "shadow-double-etched-out-dash",
+  0,
+};
+
 static int
 xg_separator_p (char *label)
 {
@@ -1898,24 +1916,6 @@ xg_separator_p (char *label)
 	   && strncmp (label, "--", 2) == 0
 	   && label[2] != '-')
     {
-      static char* separator_names[] = {
-        "space",
-	"no-line",
-	"single-line",
-	"double-line",
-	"single-dashed-line",
-	"double-dashed-line",
-	"shadow-etched-in",
-	"shadow-etched-out",
-	"shadow-etched-in-dash",
-	"shadow-etched-out-dash",
-	"shadow-double-etched-in",
-	"shadow-double-etched-out",
-	"shadow-double-etched-in-dash",
-	"shadow-double-etched-out-dash",
-        0,
-      };
-
       int i;
 
       label += 2;
