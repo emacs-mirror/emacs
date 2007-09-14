@@ -1,6 +1,7 @@
 2007-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term/xterm.el (xterm-function-map): Delete duplicated entries.
+	* term/xterm.el (xterm-function-map): Replace bindings that were
+	deleted by the merge.
 
 2007-09-14  Ulf Jasper  <ulf.jasper@web.de>
 
