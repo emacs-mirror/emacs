@@ -6538,42 +6538,43 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	       gives us composition information.  */
 	    coding.composing = COMPOSITION_DISABLED;
 
-	    for (i = 0; i < nbytes; i++)
+	    if (nbytes > 0)
 	      {
-		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
-	      }
+		/* Decode the input data.  */
+		int require;
+		unsigned char *p;
 
-	    {
-	      /* Decode the input data.  */
-	      int require;
-	      unsigned char *p;
+		for (i = 0; i < nbytes; i++)
+		  {
+		    STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
+		  }
 
-	      require = decoding_buffer_size (&coding, nbytes);
-	      p = (unsigned char *) alloca (require);
-	      coding.mode |= CODING_MODE_LAST_BLOCK;
-	      /* We explicitly disable composition handling because
-		 key data should not contain any composition sequence.  */
-	      coding.composing = COMPOSITION_DISABLED;
-	      decode_coding (&coding, copy_bufptr, p, nbytes, require);
-	      nbytes = coding.produced;
-	      nchars = coding.produced_char;
-	      copy_bufptr = p;
-	    }
+		require = decoding_buffer_size (&coding, nbytes);
+		p = (unsigned char *) alloca (require);
+		coding.mode |= CODING_MODE_LAST_BLOCK;
+		/* We explicitly disable composition handling because
+		   key data should not contain any composition sequence.  */
+		coding.composing = COMPOSITION_DISABLED;
+		decode_coding (&coding, copy_bufptr, p, nbytes, require);
+		nbytes = coding.produced;
+		nchars = coding.produced_char;
+		copy_bufptr = p;
 
-	    /* Convert the input data to a sequence of
-	       character events.  */
-	    for (i = 0; i < nbytes; i += len)
-	      {
-		if (nchars == nbytes)
-		  c = copy_bufptr[i], len = 1;
-		else
-		  c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
-					      nbytes - i, len);
-		inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
-			      ? ASCII_KEYSTROKE_EVENT
-			      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-		inev.ie.code = c;
-		kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+		/* Convert the input data to a sequence of
+		   character events.  */
+		for (i = 0; i < nbytes; i += len)
+		  {
+		    if (nchars == nbytes)
+		      c = copy_bufptr[i], len = 1;
+		    else
+		      c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
+						  nbytes - i, len);
+		    inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
+				    ? ASCII_KEYSTROKE_EVENT
+				    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+		    inev.ie.code = c;
+		    kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+		  }
 	      }
 
 	    /* Previous code updated count by nchars rather than nbytes,
