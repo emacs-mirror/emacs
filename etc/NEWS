@@ -132,7 +132,7 @@ document to a set of PNG images first.  One can also search for a
 regular expression in the document.  The commentary of the file explains
 its usage.
 
-** A new game called `bubble' has been added.
+** A new game called `bubbles' has been added.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
