@@ -1,5 +1,8 @@
 2007-09-14  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (fancy-startup-text, fancy-about-text): Fix face
+	quoting.
+
 	* calendar/cal-hebrew.el, calendar/cal-menu.el
 	* calendar/calendar.el, calendar/diary-lib.el
 	* calendar/holidays.el: Rename all instances of
