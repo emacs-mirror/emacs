@@ -62,7 +62,7 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Arch MCVS)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Mtn Arch MCVS)
   ;; RCS, CVS, SVN and SCCS come first because they are per-dir
   ;; rather than per-tree.  RCS comes first because of the multibackend
   ;; support intended to use RCS for local commits (with a remote CVS server).
