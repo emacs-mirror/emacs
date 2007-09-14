@@ -1,3 +1,7 @@
+2007-09-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32xfns.c (get_next_msg): Consolidate WM_PAINT messages.
+
 2007-09-13  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_set_glyph_string_clipping): Use
