@@ -1412,8 +1412,8 @@ xg_get_file_with_chooser (f, prompt, default_filename,
     {
       Lisp_Object file;
       struct gcpro gcpro1;
-      GCPRO1 (file);
       char *utf8_filename;
+      GCPRO1 (file);
 
       file = build_string (default_filename);
 
