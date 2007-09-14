@@ -1,3 +1,14 @@
+2007-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el, calendar/cal-menu.el
+	* calendar/calendar.el, calendar/diary-lib.el
+	* calendar/holidays.el: Rename all instances of
+	list-calendar-holidays callers to calendar-list-holidays,
+	list-holidays to holiday-list, check-calendar-holidays to
+	calendar-check-holidays, mark-calendar-holidays to
+	calendar-mark-holidays, and filter-visible-calendar-holidays to
+	holiday-filter-visible-calendar.
+
 2007-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (xterm-function-map): Add C-M- bindings.
