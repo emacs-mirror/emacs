@@ -1,3 +1,9 @@
+2007-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-mtn.el: New file.
+
+	* vc-hooks.el (vc-handled-backends): Add Mtn.
+
 2007-09-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (find-file, find-file-other-window)
@@ -9,12 +15,12 @@
 2007-09-13  Jari Aalto  <jari.aalto@cante.net>
 
 	* man.el (Man-default-man-entry): At end of line, continue looking
-        to the next line for possible end of hyphenated command.
+	to the next line for possible end of hyphenated command.
 
 2007-09-13  Chris Moore  <dooglus@gmail.com>
 
 	* shell.el (shell-resync-dirs): Don't move the cursor relative to
-        the command being edited.
+	the command being edited.
 
 2007-09-13  Nick Roberts  <nickrob@snap.net.nz>
 

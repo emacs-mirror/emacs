@@ -80,7 +80,9 @@ this variable.
 
 *** VC backends can provide completion of revision names.
 
-*** VC has some support for Mercurial (hg).
+*** VC has some support for Mercurial (Hg).
+
+*** VC has some support for Monotone (Mtn).
 
 *** VC has some support for Bazaar (Bzr).
 
