@@ -1212,11 +1212,11 @@ of `general-holidays', `local-holidays' `christian-holidays',
 you can eliminate unwanted categories of holidays.
 
 The aforementioned variables control the holiday choices offered
-by the function `list-holidays' when it is called interactively.
+by the function `holiday-list' when it is called interactively.
 
 They also initialize the default value of `calendar-holidays',
 which is the default list of holidays used by the function
-`list-holidays' in the non-interactive case.  Note that these
+`holiday-list' in the non-interactive case.  Note that these
 variables have no effect on `calendar-holidays' after it has been
 set (e.g. after the calendar is loaded).  In that case, customize
 `calendar-holidays' directly.
@@ -1616,7 +1616,7 @@ the date indicated by the cursor position in the displayed three-month
 calendar."
   t)
 
-(autoload 'list-calendar-holidays "holidays"
+(autoload 'calendar-list-holidays "holidays"
   "Create a buffer containing the holidays for the current calendar window.
 The holidays are those in the list `calendar-notable-days'.  Returns t if any
 holidays are found, nil if not."
@@ -1688,7 +1688,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
          (diary-window (if diary-buffer (get-buffer-window diary-buffer)))
          (split-height-threshold (if diary-window 2 1000)))
     (if view-calendar-holidays-initially
-        (list-calendar-holidays)))
+        (calendar-list-holidays)))
   (run-hooks 'initial-calendar-window-hook))
 
 (autoload 'view-other-diary-entries "diary-lib"
@@ -2284,7 +2284,7 @@ movement commands will not work correctly."
     (define-key map "."   'calendar-goto-today)
     (define-key map "o"   'calendar-other-month)
     (define-key map "q"   'exit-calendar)
-    (define-key map "a"   'list-calendar-holidays)
+    (define-key map "a"   'calendar-list-holidays)
     (define-key map "h"   'calendar-cursor-holidays)
     (define-key map "x"   'mark-calendar-holidays)
     (define-key map "u"   'calendar-unmark)
