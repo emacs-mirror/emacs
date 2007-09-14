@@ -87,7 +87,7 @@
     ["For Cursor Date -" calendar-cursor-holidays
      :suffix (calendar-date-string (calendar-cursor-to-date) t t)
      :visible (calendar-cursor-to-date)]
-    ["For Window -" list-calendar-holidays
+    ["For Window -" calendar-list-holidays
      :suffix (cal-menu-holiday-window-suffix)]
     ["For Today -" cal-menu-today-holidays
      :suffix (calendar-date-string (calendar-current-date) t t)]
@@ -98,7 +98,7 @@
           (push (vector "For Year"
                         `(lambda ()
                            (interactive)
-                           (list-holidays (+ displayed-year ,(- i 5))))
+                           (holiday-list (+ displayed-year ,(- i 5))))
                         :suffix `(number-to-string (+ displayed-year ,(- i 5))))
                 l))
         (nreverse l))
@@ -157,19 +157,19 @@ not available."
   "Display a list of the holidays of the selected date's year."
   (interactive)
   (let ((year (extract-calendar-year (calendar-cursor-to-date))))
-    (list-holidays year year)))
+    (holiday-list year year)))
 
 (defun cal-menu-list-holidays-following-year ()
   "Display a list of the holidays of the following year."
   (interactive)
   (let ((year (1+ (extract-calendar-year (calendar-cursor-to-date)))))
-    (list-holidays year year)))
+    (holiday-list year year)))
 
 (defun cal-menu-list-holidays-previous-year ()
   "Display a list of the holidays of the previous year."
   (interactive)
   (let ((year (1- (extract-calendar-year (calendar-cursor-to-date)))))
-    (list-holidays year year)))
+    (holiday-list year year)))
 
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
@@ -194,14 +194,14 @@ ERROR is t, otherwise just returns nil."
     (calendar-cursor-to-date (calendar-current-date))
     (calendar-cursor-holidays)))
 
-(autoload 'check-calendar-holidays "holidays")
+(autoload 'calendar-check-holidays "holidays")
 (autoload 'diary-list-entries "diary-lib")
 
 (defun calendar-mouse-holidays (&optional event)
   "Pop up menu of holidays for mouse selected date."
   (interactive "e")
   (let* ((date (calendar-event-to-date))
-         (l (mapcar 'list (check-calendar-holidays date)))
+         (l (mapcar 'list (calendar-check-holidays date)))
          (selection
           (cal-menu-x-popup-menu
            event
@@ -226,7 +226,7 @@ Any holidays are shown if `holidays-in-diary-buffer' is t."
           (mapcar (lambda (x) (split-string (cadr x) "\n"))
                   (diary-list-entries date 1 'list-only)))
          (holidays (if holidays-in-diary-buffer
-                       (check-calendar-holidays date)))
+                       (calendar-check-holidays date)))
          (title (concat "Diary entries "
                         (if diary (format "from %s " diary) "")
                         "for "
@@ -461,8 +461,8 @@ The output is in landscape format, one month to a page."
     ["Scroll forward" calendar-scroll-left-three-months]
     ["Scroll backward" calendar-scroll-right-three-months]
     ["Mark diary entries" mark-diary-entries]
-    ["List holidays" list-calendar-holidays]
-    ["Mark holidays" mark-calendar-holidays]
+    ["List holidays" calendar-list-holidays]
+    ["Mark holidays" calendar-mark-holidays]
     ["Unmark" calendar-unmark]
     ["Lunar phases" calendar-phases-of-moon]
     ["Show diary" diary-show-all-entries]
