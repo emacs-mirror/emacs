@@ -1,3 +1,8 @@
+2007-09-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename Syntax): Provide links to "Inline methods"
+	and "External transfer methods".
+
 2007-09-13  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Predefined Units): Add some history.

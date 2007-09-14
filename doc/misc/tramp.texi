@@ -2079,7 +2079,8 @@ connecting to @code{melancholia} as @code{daniel} and editing
 @file{@trampfn{, daniel, melancholia, .emacs}}.
 
 It is also possible to specify other file transfer methods
-(@pxref{Default Method}) as part of the filename.
+(@pxref{Inline methods}, @pxref{External transfer methods}) as part of
+the filename.
 @ifset emacs
 This is done by putting the method before the user and host name, as
 in @file{@value{prefix}@var{method}@value{postfixhop}} (Note the
