@@ -457,16 +457,16 @@ Display holidays for the selected date
 @item Mouse-2 Holidays
 Display any holidays for the date you click on.
 @item x
-Mark holidays in the calendar window (@code{mark-calendar-holidays}).
+Mark holidays in the calendar window (@code{calendar-mark-holidays}).
 @item u
 Unmark calendar window (@code{calendar-unmark}).
 @item a
 List all holidays for the displayed three months in another window
-(@code{list-calendar-holidays}).
+(@code{calendar-list-holidays}).
 @item M-x holidays
 List all holidays for three months around today's date in another
 window.
-@item M-x list-holidays
+@item M-x holiday-list
 List holidays in another window for a specified range of years.
 @end table
 
@@ -481,7 +481,7 @@ that date, in the echo area if they fit there, otherwise in a separate
 window.
 
 @kindex x @r{(Calendar mode)}
-@findex mark-calendar-holidays
+@findex calendar-mark-holidays
 @kindex u @r{(Calendar mode)}
 @findex calendar-unmark
 @vindex mark-holidays-in-calendar
@@ -503,7 +503,7 @@ erases any diary marks (@pxref{Diary}).  If the variable
 updating the calendar marks holidays automatically.
 
 @kindex a @r{(Calendar mode)}
-@findex list-calendar-holidays
+@findex calendar-list-holidays
   To get even more detailed information, use the @kbd{a} command, which
 displays a separate buffer containing a list of all holidays in the
 current three-month range.  You can use @key{SPC} and @key{DEL} in the
@@ -522,8 +522,8 @@ holidays}, which prompts for the month and year.
 major Christian, Jewish, and Islamic holidays; also the solstices and
 equinoxes.
 
-@findex list-holidays
-   The command @kbd{M-x list-holidays} displays the list of holidays for
+@findex holiday-list
+   The command @kbd{M-x holiday-list} displays the list of holidays for
 a range of years.  This function asks you for the starting and stopping
 years, and allows you to choose all the holidays or one of several
 categories of holidays.  You can use this command even if you don't have
