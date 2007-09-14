@@ -112,6 +112,7 @@ extern int input_fd;
 #define KBD_BUFFER_SIZE 4096
 #endif	/* No X-windows */
 
+#undef abs
 #define abs(x)		((x) >= 0 ? (x) : -(x))
 
 /* Following definition copied from eval.c */
