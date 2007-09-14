@@ -117,7 +117,7 @@ The optional list of holidays L defaults to `calendar-holidays'.
 If you want to control what holidays are displayed, use a
 different list.  For example,
 
-  (list-holidays 2006 2006
+  (holiday-list 2006 2006
     (append general-holidays local-holidays other-holidays))
 
 will display holidays for the year 2006 defined in the 3
