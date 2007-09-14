@@ -186,6 +186,7 @@ options through Custom does this automatically."
   ;; can-append strip-extension-flag file-magic-bytes]
   '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "compressing"    "compress"     ("-c")
+     ;; gzip is more common than uncompress. It can only read, not write.
      "uncompressing"  "gzip"   ("-c" "-q" "-d")
      nil t "\037\235"]
      ;; Formerly, these had an additional arg "-c", but that fails with
