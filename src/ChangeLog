@@ -1,3 +1,11 @@
+2007-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* fringe.c (init_fringe_bitmap) <swap nibble>: Move to file scope.
+	* gtkutil.c (xg_separator_p) <separator_names>: Move to file scope.
+	* image.c (our_memory_fill_input_buffer) <buffer>: Move to file
+	scope and rename to omfib_buffer for clarity.
+	(gif_load) <interlace_start, interlace_increment>: Move to file scope.
+
 2007-09-14  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
 	* gtkutil.c (xg_get_file_with_chooser): Move GCPRO1 after declarations.
 
