@@ -1,3 +1,14 @@
+2007-09-14  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
+	* gtkutil.c (xg_get_file_with_chooser): Move GCPRO1 after declarations.
+
+	* termhooks.h (enum event_kind): Remove trailing comma.
+
+	* frame.h (enum): Remove trailing comma.
+
+2007-09-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c, xterm.c, xfaces.c (abs): #undef before #define.
+
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* gtkutil.c (cnt): Rename to menu_grab_callback_cnt for clarity.
