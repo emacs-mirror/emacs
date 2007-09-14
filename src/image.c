@@ -6777,18 +6777,19 @@ our_common_term_source (cinfo)
    whenever more data is needed.  We read the whole image in one step,
    so this only adds a fake end of input marker at the end.  */
 
+static JOCTET omfib_buffer[2];
+
 static boolean
 our_memory_fill_input_buffer (cinfo)
      j_decompress_ptr cinfo;
 {
   /* Insert a fake EOI marker.  */
   struct jpeg_source_mgr *src = cinfo->src;
-  static JOCTET buffer[2];
 
-  buffer[0] = (JOCTET) 0xFF;
-  buffer[1] = (JOCTET) JPEG_EOI;
+  omfib_buffer[0] = (JOCTET) 0xFF;
+  omfib_buffer[1] = (JOCTET) JPEG_EOI;
 
-  src->next_input_byte = buffer;
+  src->next_input_byte = omfib_buffer;
   src->bytes_in_buffer = 2;
   return 1;
 }
@@ -7758,6 +7759,9 @@ gif_read_from_memory (file, buf, len)
 /* Load GIF image IMG for use on frame F.  Value is non-zero if
    successful.  */
 
+static int interlace_start[] = {0, 4, 2, 1};
+static int interlace_increment[] = {8, 8, 4, 2};
+
 static int
 gif_load (f, img)
      struct frame *f;
@@ -7928,8 +7932,6 @@ gif_load (f, img)
 
   if (gif->SavedImages[ino].ImageDesc.Interlace)
     {
-      static int interlace_start[] = {0, 4, 2, 1};
-      static int interlace_increment[] = {8, 8, 4, 2};
       int pass;
       int row = interlace_start[0];
 
