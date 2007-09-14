@@ -217,6 +217,13 @@
       (define-key map "\e[1;6F" [C-S-end])
       (define-key map "\e[1;6H" [C-S-home])
 
+      (define-key map "\e[1;7A" [C-M-up])
+      (define-key map "\e[1;7B" [C-M-down])
+      (define-key map "\e[1;7C" [C-M-right])
+      (define-key map "\e[1;7D" [C-M-left])
+      (define-key map "\e[1;7F" [C-M-end])
+      (define-key map "\e[1;7H" [C-M-home])
+
       (define-key map "\e[1;8A" [C-M-S-up])
       (define-key map "\e[1;8B" [C-M-S-down])
       (define-key map "\e[1;8C" [C-M-S-right])
@@ -255,6 +262,11 @@
       (define-key map "\e[3;6~" [C-S-delete])
       (define-key map "\e[5;6~" [C-S-prior])
       (define-key map "\e[6;6~" [C-S-next])
+
+      (define-key map "\e[2;7~" [C-M-insert])
+      (define-key map "\e[3;7~" [C-M-delete])
+      (define-key map "\e[5;7~" [C-M-prior])
+      (define-key map "\e[6;7~" [C-M-next])
 
       (define-key map "\e[2;8~" [C-M-S-insert])
       (define-key map "\e[3;8~" [C-M-S-delete])
