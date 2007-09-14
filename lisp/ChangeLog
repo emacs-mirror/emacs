@@ -1,3 +1,16 @@
+2007-09-14  Ulf Jasper  <ulf.jasper@web.de>
+
+	* play/bubbles.el (bubbles-version): Bump value to "0.5".
+	(bubbles-mode-map): Move define-key statements here.
+	(bubbles-game-theme-menu): Ditto.
+	(bubbles-graphics-theme-menu): Ditto.
+	(bubbles-menu): Ditto.
+	(bubbles-mode): Initialize buffer-undo-list, redisplay.
+	(bubbles--initialize): Reset buffer-undo-list, redisplay.
+	(bubbles-plop): Set buffer-undo-list, redisplay.
+	(bubbles-undo): Reset buffer-undo-list, redisplay.
+	(bubbles--show-images): Take care of missing text properties.
+
 2007-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (fancy-startup-text, fancy-about-text): Fix face
