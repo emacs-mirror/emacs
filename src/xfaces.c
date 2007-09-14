@@ -264,6 +264,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <ctype.h>
 
+#undef abs
 #define abs(X)		((X) < 0 ? -(X) : (X))
 
 /* Number of pt per inch (from the TeXbook).  */
