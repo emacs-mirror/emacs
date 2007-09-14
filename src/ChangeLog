@@ -1,3 +1,7 @@
+2007-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (handle_one_xevent): Skip decoding if nbytes is zero.
+
 2007-09-13  Jason Rumney  <jasonr@gnu.org>
 
 	* fringe.c (w32_init_fringe, mac_init_fringe): Add rif argument.
