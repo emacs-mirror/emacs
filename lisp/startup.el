@@ -1142,7 +1142,7 @@ regardless of the value of this variable."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar fancy-startup-text
-  '((:face '(variable-pitch :foreground "red")
+  '((:face (variable-pitch :foreground "red")
      "Welcome to "
      :link ("GNU Emacs" (lambda (button) (browse-url "http://www.gnu.org/software/emacs/")))
      ", one component of the "
@@ -1152,9 +1152,9 @@ regardless of the value of this variable."
 	   '("GNU/Linux" (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html")))
 	 '("GNU" (lambda (button) (describe-project)))))
      " operating system.\n"
-     :face 'variable-pitch "To quit a partially entered command, type "
-     :face 'default "Control-g"
-     :face 'variable-pitch ".\n\n"
+     :face variable-pitch "To quit a partially entered command, type "
+     :face default "Control-g"
+     :face variable-pitch ".\n\n"
      :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
      "\tLearn basic keystroke commands"
      (lambda ()
@@ -1195,7 +1195,7 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 (defvar fancy-about-text
-  '((:face '(variable-pitch :foreground "red")
+  '((:face (variable-pitch :foreground "red")
      "This is "
      :link ("GNU Emacs" (lambda (button) (browse-url "http://www.gnu.org/software/emacs/")))
      ", one component of the "
@@ -1205,14 +1205,14 @@ Each element in the list should be a list of strings or pairs
 	   '("GNU/Linux" (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html")))
 	 '("GNU" (lambda (button) (describe-project)))))
      " operating system.\n"
-     :face (lambda () 
+     :face (lambda ()
 	     (list 'variable-pitch :foreground
 		   (if (eq (frame-parameter nil 'background-mode) 'dark)
 		       "cyan" "darkblue")))
      "\n"
      (lambda () (emacs-version))
      "\n"
-     :face '(variable-pitch :height 0.5)
+     :face (variable-pitch :height 0.5)
      (lambda () emacs-copyright)
      "\n\n"
      :face variable-pitch
