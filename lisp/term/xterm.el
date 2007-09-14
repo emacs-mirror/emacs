@@ -352,20 +352,6 @@
     (define-key map "\e[D" [left])
     (define-key map "\e[1~" [home])
 
-    (define-key map "\e[1;2A" [S-up])
-    (define-key map "\e[1;2B" [S-down])
-    (define-key map "\e[1;2C" [S-right])
-    (define-key map "\e[1;2D" [S-left])
-    (define-key map "\e[1;2F" [S-end])
-    (define-key map "\e[1;2H" [S-home])
-
-    (define-key map "\e[1;5A" [C-up])
-    (define-key map "\e[1;5B" [C-down])
-    (define-key map "\e[1;5C" [C-right])
-    (define-key map "\e[1;5D" [C-left])
-    (define-key map "\e[1;5F" [C-end])
-    (define-key map "\e[1;5H" [C-home])
-
     (define-key map "\e[11~" [f1])
     (define-key map "\e[12~" [f2])
     (define-key map "\e[13~" [f3])

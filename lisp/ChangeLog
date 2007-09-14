@@ -1,3 +1,7 @@
+2007-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-function-map): Delete duplicated entries.
+
 2007-09-14  Ulf Jasper  <ulf.jasper@web.de>
 
 	* play/bubbles.el (bubbles-version): Bump value to "0.5".
