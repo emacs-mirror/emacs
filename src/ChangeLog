@@ -1,3 +1,7 @@
+2007-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* s/hpux.h: No longer define `static' as nothing.
+
 2007-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* fringe.c (init_fringe_bitmap) <swap nibble>: Move to file scope.
