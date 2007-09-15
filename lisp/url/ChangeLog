@@ -1,6 +1,6 @@
 2007-09-03  Diane Murray  <disumu@x3y2z1.net>
 
-	* url-http.el: (url-http-parse-headers): Bind the current buffer
+	* url-http.el (url-http-parse-headers): Bind the current buffer
 	rather than calling `url-mark-buffer-as-dead' with
 	`current-buffer', so that the correct buffer is killed if
 	`url-retrieve-synchronously' gets redirected to a new URL.
@@ -15,6 +15,11 @@
 	* url-file.el (url-file-build-filename):
 	* url-expand.el (url-identity-expander, url-default-expander):
 	Update all callers.
+
+2007-08-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* url-auth.el (url-basic-auth): When prompting for username
+	and password, default to the username and password in the URL.
 
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
