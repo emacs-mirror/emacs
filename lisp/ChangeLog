@@ -1,3 +1,12 @@
+2007-09-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xt-mouse.el (xterm-mouse-mode): Add hooks here not at the top
+	level.  Remove the hooks when turning off the mode.
+
+	* term/xterm.el: Require xt-mouse at compile time.
+	(terminal-init-xterm): Turn on xterm mouse tracking for this
+	terminal if xterm-mouse-mode is enabled.
+
 2007-09-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (xterm-function-map): Replace bindings that were
