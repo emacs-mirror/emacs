@@ -1,3 +1,8 @@
+2007-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (holiday-list): Rename it back to
+	`list-holidays', but leave `holiday-list' as an alias.
+
 2007-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-tags-list, cvs-retrieve-revision, cvs-find-modif)
