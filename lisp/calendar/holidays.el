@@ -109,15 +109,17 @@ This function is suitable for execution in a .emacs file."
            (displayed-year (extract-calendar-year date)))
       (calendar-list-holidays))))
 
+;; rms: "Emacs commands to display a list of something generally start
+;; with `list-'.  Please make `list-holidays' the principal name."
 ;;;###autoload
-(defun holiday-list (y1 y2 &optional l label)
+(defun list-holidays (y1 y2 &optional l label)
   "Display holidays for years Y1 to Y2 (inclusive).
 
 The optional list of holidays L defaults to `calendar-holidays'.
 If you want to control what holidays are displayed, use a
 different list.  For example,
 
-  (holiday-list 2006 2006
+  (list-holidays 2006 2006
     (append general-holidays local-holidays other-holidays))
 
 will display holidays for the year 2006 defined in the 3
@@ -206,6 +208,7 @@ The optional LABEL is used to label the buffer created."
       (display-buffer holiday-buffer)
       (message "Computing holidays...done"))))
 
+(defalias 'holiday-list 'list-holidays)
 
 (defun calendar-check-holidays (date)
   "Check the list of holidays for any that occur on DATE.
