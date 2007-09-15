@@ -3,6 +3,13 @@
 	* calendar/holidays.el (holiday-list): Rename it back to
 	`list-holidays', but leave `holiday-list' as an alias.
 
+	* textmodes/bibtex-style.el (bibtex-style-indent-basic): Specify a
+	custom group.
+
+	* textmodes/css-mode.el (css): New custom group.
+	(css-electrick-keys, css-selector, css-property)
+	(css-indent-offset): Specify custom group.
+
 2007-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-tags-list, cvs-retrieve-revision, cvs-find-modif)
