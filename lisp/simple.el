@@ -4481,15 +4481,20 @@ it skips the contents of comments that end before point."
 				 (point))))))
     (let* ((oldpos (point))
 	   blinkpos
-	   message-log-max  ; Don't log messages about paren matching.
+	   message-log-max    ; Don't log messages about paren matching.
 	   matching-paren
-	   open-paren-line-string)
+	   open-paren-line-string
+	   old-start
+	   new-start)
       (save-excursion
 	(save-restriction
-	  (if blink-matching-paren-distance
-	      (narrow-to-region (max (minibuffer-prompt-end)
-				     (- (point) blink-matching-paren-distance))
-				oldpos))
+	  ;; Don't search for matching paren within minibuffer prompt.
+	  (setq old-start (minibuffer-prompt-end))
+	  (setq new-start
+		(if blink-matching-paren-distance
+		    (max old-start (- (point) blink-matching-paren-distance))
+		  old-start))
+	  (narrow-to-region new-start oldpos)
 	  (condition-case ()
 	      (let ((parse-sexp-ignore-comments
 		     (and parse-sexp-ignore-comments
@@ -4505,15 +4510,18 @@ it skips the contents of comments that end before point."
 			  (eq (syntax-class syntax) 4)
 			  (cdr syntax)))))
 	(cond
-	 ((not (or (eq matching-paren (char-before oldpos))
-                   ;; The cdr might hold a new paren-class info rather than
-                   ;; a matching-char info, in which case the two CDRs
-                   ;; should match.
-                   (eq matching-paren (cdr (syntax-after (1- oldpos))))))
-	  (message "Mismatched parentheses"))
 	 ((not blinkpos)
-	  (if (not blink-matching-paren-distance)
-	      (message "Unmatched parenthesis")))
+	  (unless (and blink-matching-paren-distance (> new-start old-start))
+	    ;; When `blink-matching-paren-distance' is non-nil and we
+	    ;; didn't find a matching paren within that many characters
+	    ;; don't display a message.
+	    (message "Unmatched parenthesis")))
+	 ((not (or (eq matching-paren (char-before oldpos))
+		   ;; The cdr might hold a new paren-class info rather than
+		   ;; a matching-char info, in which case the two CDRs
+		   ;; should match.
+		   (eq matching-paren (cdr (syntax-after (1- oldpos))))))
+	  (message "Mismatched parentheses"))
 	 ((pos-visible-in-window-p blinkpos)
 	  ;; Matching open within window, temporarily move to blinkpos but only
 	  ;; if `blink-matching-paren-on-screen' is non-nil.
