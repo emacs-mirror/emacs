@@ -227,7 +227,7 @@
     (list* '("BASE") '("HEAD")
 	   (when marked
 	     (with-temp-buffer
-	       (call-process cvs-program
+	       (process-file cvs-program
 			     nil	;no input
 			     t		;output to current-buffer
 			     nil	;don't update display while running
@@ -564,7 +564,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	       (process
 		;; the process will be run in the selected dir
 		(let ((default-directory (cvs-expand-dir-name dir)))
-		  (apply 'start-process "cvs" procbuf cvs-program args))))
+		  (apply 'start-file-process "cvs" procbuf cvs-program args))))
 	  ;; setup the process.
 	  (process-put process 'cvs-buffer cvs-buffer)
 	  (with-current-buffer cvs-buffer (cvs-update-header msg 'add))
@@ -1736,7 +1736,7 @@ Signal an error if there is no backup file."
 	  ;; problem when stdout and stderr are the same.
 	  (let ((res
                  (let ((coding-system-for-read 'binary))
-                   (apply 'call-process cvs-program nil '(t nil) nil
+                   (apply 'process-file cvs-program nil '(t nil) nil
                           "-q" "update" "-p"
                           ;; If `rev' is HEAD, don't pass it at all:
                           ;; the default behavior is to get the head
@@ -2006,7 +2006,7 @@ to hear about anymore."
 
 (defun cvs-find-modif (fi)
   (with-temp-buffer
-    (call-process cvs-program nil (current-buffer) nil
+    (process-file cvs-program nil (current-buffer) nil
 		  "-f" "diff" (cvs-fileinfo->file fi))
     (goto-char (point-min))
     (if (re-search-forward "^\\([0-9]+\\)" nil t)
@@ -2260,7 +2260,7 @@ With prefix argument, prompt for cvs flags."
 			program (split-string-and-unquote args)))
 
 	;; FIXME: return the exit status?
-	(apply 'call-process program nil t t args)
+	(apply 'process-file program nil t t args)
 	(goto-char (point-max))))))
 
 ;; FIXME: make this run in the background ala cvs-run-process...

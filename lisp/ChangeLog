@@ -1,3 +1,9 @@
+2007-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-tags-list, cvs-retrieve-revision, cvs-find-modif)
+	(cvs-execute-single-file): Use process-file.
+	(cvs-run-process): Use start-file-process.
+
 2007-09-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xt-mouse.el (xterm-mouse-mode): Add hooks here not at the top
