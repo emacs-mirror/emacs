@@ -1,3 +1,11 @@
+2007-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/cal-bahai.el (mark-bahai-diary-entries): Fix up typo.
+	(calendar-bahai-print-date, calendar-bahai-goto-date)
+	(diary-bahai-list-entries, diary-bahai-insert-entry):
+	New names to clean up the namespace a bit more.
+	(calendar-goto-bahai-date, calendar-print-bahai-date): Compat aliases.
+
 2007-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/holidays.el (holiday-list): Rename it back to
