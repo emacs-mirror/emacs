@@ -33,6 +33,10 @@
 
 ;;; Code:
 
+(defgroup css nil
+  "Cascading Style Sheets (CSS) editing mode."
+  :group 'languages)
+
 (defun css-extract-keyword-list (res)
   (with-temp-buffer
     (url-insert-file-contents "http://www.w3.org/TR/REC-CSS2/css2.txt")
@@ -172,7 +176,8 @@
 (defcustom css-electrick-keys '(?\} ?\;) ;; '()
   "Self inserting keys which should trigger re-indentation."
   :type '(repeat character)
-  :options '((?\} ?\;)))
+  :options '((?\} ?\;))
+  :group 'css)
 
 (defvar css-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -207,9 +212,11 @@
 (defconst css-name-re (concat css-nmchar-re "+"))
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
-  "Face to use for selectors.")
+  "Face to use for selectors."
+  :group 'css)
 (defface css-property '((t :inherit font-lock-variable-name-face))
-  "Face to use for properties.")
+  "Face to use for properties."
+  :group 'css)
 
 (defvar css-font-lock-keywords
   `(("!\\s-*important" . font-lock-builtin-face)
@@ -390,7 +397,8 @@
 
 (defcustom css-indent-offset 4
   "Basic size of one indentation step."
-  :type 'integer)
+  :type 'integer
+  :group 'css)
 
 (defun css-indent-calculate ()
   (let ((ppss (syntax-ppss))
