@@ -5390,7 +5390,7 @@ fi
 
 
 if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[^0-9]*([5-9]|4\.[6-9])'`" = x; then
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[^0-9]*([1-4][0-9]+|[5-9]|4\.[6-9]|4\.[1-5][0-9]+)'`" = x; then
    MAKEINFO=no
 fi
 
