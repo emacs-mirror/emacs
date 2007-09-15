@@ -100,7 +100,7 @@
 
 2007-09-12  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
-	* lisp/net/browse-url.el (browse-url-encode-url): Fix an infinite loop.
+	* net/browse-url.el (browse-url-encode-url): Fix an infinite loop.
 	New argument `filename-p' to use one set of confusing chars or another.
 	(browse-url-file-url): Use the argument.
 	Suggested by Johannes Weiner.
@@ -301,7 +301,7 @@
 
 2007-09-07  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-edit-timestamp-down-means-later): New option.
+	* textmodes/org.el (org-edit-timestamp-down-means-later): New option.
 	(org-agenda-after-show-hook): New variable.
 	(org-columns-compile-format)
 	(org-columns-get-autowidth-alist, org-buffer-property-keys)
@@ -471,7 +471,7 @@
 	* xt-mouse.el: Likewise. resume-tty-functions has been renamed to
 	resume-tty-hook.
 
-2007-09-03  Emanuele Giaquinta <e.giaquinta@glauco.it>  (tiny change)
+2007-09-03  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
 
 	* loadup.el: Fix merge problem, only load "button" once.
 
@@ -1946,11 +1946,6 @@
 	take tex-font-script-display into account.
 	(tex-font-script-display, tex-font-lock-suscript): Change from a cons
 	cell to a list of 2 elements to simplify the unfontify code.
-
-2007-08-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
-
-	* url/url-auth.el (url-basic-auth): When prompting for username
-	and password, default to the username and password in the URL.
 
 2007-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
