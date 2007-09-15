@@ -223,6 +223,9 @@ handlers.")
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
+This function requires that GDB is run with \"--annotate=3\", so
+don't edit this option in the mini-buffer.
+
 If `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
 it starts with two windows: one displaying the GUD buffer and the
@@ -270,6 +273,10 @@ detailed description of this mode.
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
+  ;; Do this early in case user enters commands before GDB is ready.
+  (setq comint-input-sender 'gdb-send)
+  (setq gdb-ready nil)
+
   ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
   (gdb command-line)
   (gdb-init-1))
@@ -1124,20 +1131,21 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
-  (with-current-buffer gud-comint-buffer
-    (let ((inhibit-read-only t))
-      (remove-text-properties (point-min) (point-max) '(face))))
-    (if gud-running
-	(progn
-	  (let ((item (concat string "\n")))
-	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
-	    (process-send-string proc item)))
-      (if (string-match "\\\\\\'" string)
-	  (setq gdb-continuation (concat gdb-continuation string "\n"))
-	(let ((item (concat gdb-continuation string
-			 (if (not comint-input-sender-no-newline) "\n"))))
-	  (gdb-enqueue-input item)
-	  (setq gdb-continuation nil)))))
+  (when gdb-ready
+      (with-current-buffer gud-comint-buffer
+	(let ((inhibit-read-only t))
+	  (remove-text-properties (point-min) (point-max) '(face))))
+      (if gud-running
+	  (progn
+	    (let ((item (concat string "\n")))
+	      (if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
+	      (process-send-string proc item)))
+	(if (string-match "\\\\\\'" string)
+	    (setq gdb-continuation (concat gdb-continuation string "\n"))
+	  (let ((item (concat gdb-continuation string
+			      (if (not comint-input-sender-no-newline) "\n"))))
+	    (gdb-enqueue-input item)
+	    (setq gdb-continuation nil))))))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
@@ -1193,8 +1201,9 @@ This filter may simply queue input for a later time."
 ;; any newlines.
 ;;
 
-(defcustom gud-gdba-command-name "gdb -annotate=3"
-  "Default command to execute an executable under the GDB-UI debugger."
+(defcustom gud-gdba-command-name "gdb --annotate=3"
+  "Default command to execute an executable under the GDB-UI debugger.
+The option \"--annotate=3\" must be included in it's value."
   :type 'string
   :group 'gud
   :version "22.1")
@@ -2996,7 +3005,8 @@ buffers."
    (gdb-get-buffer-create 'gdb-breakpoints-buffer)
    (if gdb-show-main
        (let ((pop-up-windows t))
-	 (display-buffer (gud-find-file gdb-main-file))))))
+	 (display-buffer (gud-find-file gdb-main-file)))))
+ (setq gdb-ready t))
 
 (defun gdb-get-location (bptno line flag)
   "Find the directory containing the relevant source file.
