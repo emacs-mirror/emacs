@@ -1,5 +1,11 @@
 2007-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-process-sentinel): New function.
+	(vc-exec-after): Use it instead of using ugly hackish analysis and
+	construction of Elisp code.
+	(vc-sentinel-movepoint): New dynamically scoped var.
+	(vc-print-log, vc-annotate): Set it to move the user's point.
+
 	* vc-cvs.el (vc-cvs-annotate-time): Use inhibit-read-only and
 	inhibit-modification-hooks.
 

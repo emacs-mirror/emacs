@@ -975,6 +975,33 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
           (inhibit-read-only t))
       (erase-buffer))))
 
+(defvar vc-sentinel-movepoint)          ;Dynamically scoped.
+
+(defun vc-process-sentinel (p s)
+  (let ((previous (process-get p 'vc-previous-sentinel)))
+    (if previous (funcall previous p s))
+    (with-current-buffer (process-buffer p)
+      (let (vc-sentinel-movepoint)
+        ;; Normally, we want async code such as sentinels to not move point.
+        (save-excursion
+          (goto-char (process-mark p))
+          (let ((cmds (process-get p 'vc-sentinel-commands)))
+            (process-put p 'vc-postprocess nil)
+            (dolist (cmd cmds)
+              ;; Each sentinel may move point and the next one should be run
+              ;; at that new point.  We could get the same result by having
+              ;; each sentinel read&set process-mark, but since `cmd' needs
+              ;; to work both for async and sync processes, this would be
+              ;; difficult to achieve.
+              (vc-exec-after cmd))))
+        ;; But sometimes the sentinels really want to move point.
+        (if vc-sentinel-movepoint
+            (let ((win (get-buffer-window (current-buffer) 0)))
+              (if (not win)
+                  (goto-char vc-sentinel-movepoint)
+                (with-selected-window win
+                  (goto-char vc-sentinel-movepoint)))))))))
+
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
@@ -992,17 +1019,12 @@ Else, add CODE to the process' sentinel."
       (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
-      (let ((sentinel (process-sentinel proc)))
-	(set-process-sentinel proc
-	  `(lambda (p s)
-	     (with-current-buffer ',(current-buffer)
-               (save-excursion
-                (goto-char (process-mark p))
- 	        ,@(append (cdr (cdr (car   ;Strip off (save-exc (goto-char...)
-                           (cdr (cdr       ;Strip off (with-current-buffer buf
- 			    (car (cdr (cdr ;Strip off (lambda (p s)
-                             sentinel))))))))
- 			  (list `(vc-exec-after ',code)))))))))
+      (let ((previous (process-sentinel proc)))
+        (unless (eq previous 'vc-process-sentinel)
+          (process-put proc 'vc-previous-sentinel previous))
+        (set-process-sentinel proc 'vc-process-sentinel))
+      (process-put proc 'vc-sentinel-commands
+                   (cons code (process-get proc 'vc-sentinel-commands))))
      (t (error "Unexpected process state"))))
   nil)
 
@@ -1087,7 +1109,8 @@ that is inserted into the command line before the filename."
 	  (if vc-command-messages
 	      (message "Running %s...OK" full-command)))
 	(vc-exec-after
-	 `(run-hook-with-args 'vc-post-command-functions ',command ',file-or-list ',flags))
+	 `(run-hook-with-args 'vc-post-command-functions
+                              ',command ',file-or-list ',flags))
 	status))))
 
 (defun vc-position-context (posn)
@@ -2557,6 +2580,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
 	(vc-call-backend ',(vc-backend file)
 			 'show-log-entry
 			 ',focus-rev)
+        (setq vc-sentinel-movepoint (point))
         (set-buffer-modified-p nil)))))
 
 (defun vc-default-log-view-mode (backend) (log-view-mode))
@@ -3279,10 +3303,8 @@ colors. `vc-annotate-background' specifies the background color."
           ;; moved it elsewhere, but really point here is not the position
           ;; of the user's cursor :-(
           (when ,current-line           ;(and (bobp))
-            (let ((win (get-buffer-window (current-buffer) 0)))
-              (when win
-                (with-selected-window win
-                  (goto-line ,current-line)))))
+            (goto-line ,current-line)
+            (setq vc-sentinel-movepoint))
           (unless (active-minibuffer-window)
             (message "Annotating... done")))))))
 
