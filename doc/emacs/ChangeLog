@@ -1,3 +1,8 @@
+2007-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Holidays): Change all instances of `holiday-list' back
+	to `list-holidays'.
+
 2007-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi: Update all instances of mark-calendar-holidays,
