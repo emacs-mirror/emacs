@@ -1,5 +1,8 @@
 2007-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-cvs.el (vc-cvs-annotate-time): Use inhibit-read-only and
+	inhibit-modification-hooks.
+
 	* calendar/cal-bahai.el (mark-bahai-diary-entries): Fix up typo.
 	(calendar-bahai-print-date, calendar-bahai-goto-date)
 	(diary-bahai-list-entries, diary-bahai-insert-entry):
