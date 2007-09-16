@@ -341,9 +341,9 @@ struct font_driver
      If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
   unsigned (*encode_char) P_ ((struct font *font, int c));
 
-  /* Perform the size computation of glyphs of FONT and fillin members
-     of METRICS.  The glyphs are specified by their glyph codes in
-     CODE (length NGLYPHS).  */
+  /* Computate the total metrics of the NGLYPHS glyphs specified by
+     the font FONT and the sequence of glyph codes CODE, and store the
+     result in METRICS.  */
   int (*text_extents) P_ ((struct font *font,
 			   unsigned *code, int nglyphs,
 			   struct font_metrics *metrics));
