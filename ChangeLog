@@ -1,3 +1,7 @@
+2007-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: File gfdl.1 has been removed.
+
 2007-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Fix makeinfo version regexp.
