@@ -11683,7 +11683,10 @@ fi
 
     fi
     if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      GTK_LIBS="$GTK_LIBS -lpthread"
+      case "${canonical}" in
+        *-hpux*) ;;
+        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
+      esac
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_GTK_AND_PTHREAD 1
