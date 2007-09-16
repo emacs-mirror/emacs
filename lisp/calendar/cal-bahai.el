@@ -518,9 +518,9 @@ Prefix arg will make the entry nonmarking."
 (define-obsolete-function-alias
   'insert-bahai-diary-entry 'diary-bahai-insert-entry "23.1")
 (define-obsolete-function-alias
-  'insert-monthly-bahai-diary-entry 'diary-insert-bahai-monthly-entry "23.1")
+  'insert-monthly-bahai-diary-entry 'diary-bahai-insert-monthly-entry "23.1")
 (define-obsolete-function-alias
-  'insert-yearly-bahai-diary-entry 'diary-insert-bahai-yearly-entry "23.1")
+  'insert-yearly-bahai-diary-entry 'diary-bahai-insert-yearly-entry "23.1")
 (define-obsolete-function-alias
   'mark-bahai-calendar-date-pattern 'calendar-bahai-mark-date-pattern "23.1")
 (define-obsolete-function-alias
