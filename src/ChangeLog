@@ -1,3 +1,12 @@
+2007-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): Always create a GdkPixbuf
+	when we have no file name for the icon.
+	(xg_tool_bar_expose_callback): Remove.
+	(xg_create_tool_bar): Don't connect expose signal to
+	xg_tool_bar_expose_callback.
+	(xg_get_file_with_chooser): Move GCPRO1 after declarations.
+
 2007-09-16  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (reset_malloc_hooks): Set the hooks to the previous
