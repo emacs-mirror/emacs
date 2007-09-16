@@ -1,3 +1,7 @@
+2007-09-16  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
+
+	* configure.in: Don't use -lpthread on HP-UX.
+
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Require Gtk/Glib 2.6.
