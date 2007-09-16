@@ -1,3 +1,12 @@
+2007-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Simplify use of prefix-numeric-value.
+	(line-move-partial): Remove unused var `ppos'.
+	(line-move-1): Replace 9999 with most-positive-fixnum.
+	(move-end-of-line): Use more efficient single-property search.
+	(move-beginning-of-line): Remove unused var `start'.
+	(blink-matching-open): Restructure in a more functional style.
+
 2007-09-16  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* calendar/holidays.el (list-holidays): Remove the cyclic alias.
@@ -202,6 +211,19 @@
 	Reported by Jan Dj,Ad(Brv <jan.h.d@swipnet.se>.
 
 2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el: Merge changes from Dave Love's v2007-Sep-10.
+	(python-font-lock-keywords): Update to the 2.5 version of the language.
+	(python-quote-syntax): Let-bind font-lock-syntactic-keywords to nil.
+	(python-backspace): Only behave funny in code.
+	(python-compilation-regexp-alist): Add PDB stack trace regexp.
+	(inferior-python-mode): Add PDB prompt regexp.
+	(python-fill-paragraph): Refine the fenced-string regexp.
+	(python-find-imports): Handle imports spanning several lines.
+	(python-mode): Add `class' to hideshow support.
+
+2007-09-10  Dave Love  <fx@gnu.org>
+
 
 	* outline.el (outline-4, outline-5, outline-7):
 	Move font-lock-builtin-face down from 4 to 7 to better keep the
