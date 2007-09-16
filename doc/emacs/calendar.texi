@@ -466,7 +466,7 @@ List all holidays for the displayed three months in another window
 @item M-x holidays
 List all holidays for three months around today's date in another
 window.
-@item M-x holiday-list
+@item M-x list-holidays
 List holidays in another window for a specified range of years.
 @end table
 
@@ -522,8 +522,8 @@ holidays}, which prompts for the month and year.
 major Christian, Jewish, and Islamic holidays; also the solstices and
 equinoxes.
 
-@findex holiday-list
-   The command @kbd{M-x holiday-list} displays the list of holidays for
+@findex list-holidays
+   The command @kbd{M-x list-holidays} displays the list of holidays for
 a range of years.  This function asks you for the starting and stopping
 years, and allows you to choose all the holidays or one of several
 categories of holidays.  You can use this command even if you don't have
