@@ -2165,7 +2165,10 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
       AC_CHECK_LIB(pthread, pthread_self, HAVE_GTK_AND_PTHREAD=yes)
     fi
     if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      GTK_LIBS="$GTK_LIBS -lpthread"
+      case "${canonical}" in
+        *-hpux*) ;;
+        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
+      esac
       AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
                [Define to 1 if you have GTK and pthread (-lpthread).])
     fi
