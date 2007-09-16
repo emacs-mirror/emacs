@@ -1,3 +1,19 @@
+2007-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-with-environment): Simplify.
+	(server-select-display, server-unselect-display): Re-add functions that
+	seem to have been lost in the multi-tty merge.
+	(server-eval-and-print, server-create-tty-frame)
+	(server-create-window-system-frame, server-goto-toplevel)
+	(server-execute, server-return-error): New functions extracted from
+	server-process-filter.
+	(server-execute-continuation): New functions.
+	(server-process-filter): Restructure so that all arguments are analysed
+	first and then acted upon in a subsequent stage  This way
+	server-goto-toplevel can be executed later, when we know if
+	it's necessary.
+	Remove the "-version" and "-version-good" support.
+
 2007-09-16  Drew Adams  <drew.adams@oracle.com>
 
 	* cus-edit (custom-face-edit-activate): Doc fix.
