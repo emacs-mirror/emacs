@@ -823,7 +823,7 @@ describes the style of such diary entries."
   :type 'hook
   :options '(list-hebrew-diary-entries
 	     list-islamic-diary-entries
-	     list-bahai-diary-entries)
+	     diary-bahai-list-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -855,7 +855,7 @@ describes the style of such diary entries."
   :type 'hook
   :options '(mark-hebrew-diary-entries
 	     mark-islamic-diary-entries
-	     mark-bahai-diary-entries)
+	     diary-bahai-mark-entries)
   :group 'diary)
 
 ;;;###autoload
@@ -1825,7 +1825,7 @@ Driven by the variable `calendar-date-display-form'.")
 (autoload 'calendar-islamic-date-string "cal-islam"
   "String of Islamic date of Gregorian date.")
 
-(autoload 'calendar-goto-bahai-date "cal-bahai"
+(autoload 'calendar-bahai-goto-date "cal-bahai"
   "Move cursor to Baha'i date DATE.
 Echo Baha'i date unless NOECHO is t."
   t)
@@ -1955,17 +1955,17 @@ to the date indicated by point."
 to the date indicated by point."
   t)
 
-(autoload 'insert-bahai-diary-entry "cal-bahai"
+(autoload 'diary-bahai-insert-entry "cal-bahai"
   "Insert a diary entry for the Baha'i date corresponding to the date
 indicated by point."
   t)
 
-(autoload 'insert-monthly-bahai-diary-entry "cal-bahai"
+(autoload 'diary-bahai-insert-monthly-entry "cal-bahai"
   "Insert a monthly diary entry for the day of the Baha'i month corresponding
 to the date indicated by point."
   t)
 
-(autoload 'insert-yearly-bahai-diary-entry "cal-bahai"
+(autoload 'diary-bahai-insert-yearly-entry "cal-bahai"
   "Insert an annual diary entry for the day of the Baha'i year corresponding
 to the date indicated by point."
   t)
@@ -2259,7 +2259,7 @@ movement commands will not work correctly."
     (define-key map "ga"  'calendar-goto-astro-day-number)
     (define-key map "gh"  'calendar-goto-hebrew-date)
     (define-key map "gi"  'calendar-goto-islamic-date)
-    (define-key map "gb"  'calendar-goto-bahai-date)
+    (define-key map "gb"  'calendar-bahai-goto-date)
     (define-key map "gC"  'calendar-goto-chinese-date)
     (define-key map "gk"  'calendar-goto-coptic-date)
     (define-key map "ge"  'calendar-goto-ethiopic-date)
@@ -2302,7 +2302,7 @@ movement commands will not work correctly."
     (define-key map "pa"  'calendar-print-astro-day-number)
     (define-key map "ph"  'calendar-print-hebrew-date)
     (define-key map "pi"  'calendar-print-islamic-date)
-    (define-key map "pb"  'calendar-print-bahai-date)
+    (define-key map "pb"  'calendar-bahai-print-date)
     (define-key map "pf"  'calendar-print-french-date)
     (define-key map "pm"  'calendar-print-mayan-date)
     (define-key map "po"  'calendar-print-other-dates)
@@ -2319,9 +2319,9 @@ movement commands will not work correctly."
     (define-key map "iid" 'insert-islamic-diary-entry)
     (define-key map "iim" 'insert-monthly-islamic-diary-entry)
     (define-key map "iiy" 'insert-yearly-islamic-diary-entry)
-    (define-key map "iBd" 'insert-bahai-diary-entry)
-    (define-key map "iBm" 'insert-monthly-bahai-diary-entry)
-    (define-key map "iBy" 'insert-yearly-bahai-diary-entry)
+    (define-key map "iBd" 'diary-bahai-insert-entry)
+    (define-key map "iBm" 'diary-bahai-insert-monthly-entry)
+    (define-key map "iBy" 'diary-bahai-insert-yearly-entry)
     (define-key map "?"   'calendar-goto-info-node)
     (define-key map "Hm" 'cal-html-cursor-month)
     (define-key map "Hy" 'cal-html-cursor-year)
