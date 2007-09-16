@@ -336,6 +336,8 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
   GdkPixmap *gpix;
   GdkPixmap *gmask;
   GdkDisplay *gdpy;
+  GdkColormap *cmap;
+  GdkPixbuf *icon_buf;
 
   /* If we have a file, let GTK do all the image handling.
      This seems to be the only way to make insensitive and activated icons
@@ -366,32 +368,24 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
   gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);
   gmask = img->mask ? gdk_pixmap_foreign_new_for_display (gdpy, img->mask) : 0;
 
-  if (x_screen_planes (f) > 8 || x_screen_planes (f) == 1)
-    {
-      if (! old_widget)
-        old_widget = GTK_IMAGE (gtk_image_new_from_pixmap (gpix, gmask));
-      else
-        gtk_image_set_from_pixmap (old_widget, gpix, gmask);
-    }
+  /* This is a workaround to make icons look good on pseudo color
+     displays.  Apparently GTK expects the images to have an alpha
+     channel.  If they don't, insensitive and activated icons will
+     look bad.  This workaround does not work on monochrome displays,
+     and is strictly not needed on true color/static color displays (i.e.
+     16 bits and higher).  But we do it anyway so we get a pixbuf that is
+     not associated with the img->pixmap.  The img->pixmap may be removed
+     by clearing the image cache and then the tool bar redraw fails, since
+     Gtk+ assumes the pixmap is always there.  */
+  cmap = gtk_widget_get_colormap (widget);
+  icon_buf = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap);
+
+  if (! old_widget)
+    old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
   else
-    {
+    gtk_image_set_from_pixbuf (old_widget, icon_buf);
 
-      /* This is a workaround to make icons look good on pseudo color
-         displays.  Apparently GTK expects the images to have an alpha
-         channel.  If they don't, insensitive and activated icons will
-         look bad.  This workaround does not work on monochrome displays,
-         and is not needed on true color/static color displays (i.e.
-         16 bits and higher).  */
-      GdkColormap *cmap = gtk_widget_get_colormap (widget);
-      GdkPixbuf *icon_buf = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap);
-
-      if (! old_widget)
-        old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
-      else
-        gtk_image_set_from_pixbuf (old_widget, icon_buf);
-
-      g_object_unref (G_OBJECT (icon_buf));
-    }
+  g_object_unref (G_OBJECT (icon_buf));
 
   g_object_unref (G_OBJECT (gpix));
   if (gmask) g_object_unref (G_OBJECT (gmask));
@@ -1412,8 +1406,8 @@ xg_get_file_with_chooser (f, prompt, default_filename,
     {
       Lisp_Object file;
       struct gcpro gcpro1;
-      GCPRO1 (file);
       char *utf8_filename;
+      GCPRO1 (file);
 
       file = build_string (default_filename);
 
@@ -3639,25 +3633,6 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
 
 #define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
-/* This callback is called when a tool bar shall be redrawn.
-   We need to update the images in case the image cache
-   has deleted the pixmaps used in the tool bar.
-   W is the GtkToolbar to be redrawn.
-   EVENT is the expose event for W.
-   CLIENT_DATA is pointing to the frame for this tool bar.
-
-   Returns FALSE to tell GTK to keep processing this event.  */
-
-static gboolean
-xg_tool_bar_expose_callback (w, event, client_data)
-     GtkWidget *w;
-     GdkEventExpose *event;
-     gpointer client_data;
-{
-  FRAME_PTR f = (FRAME_PTR) client_data;
-  SET_FRAME_GARBAGED (f);
-  return FALSE;
-}
 
 /* Create a tool bar for frame F.  */
 
@@ -3699,10 +3674,6 @@ xg_create_tool_bar (f)
                     G_CALLBACK (xg_tool_bar_detach_callback), f);
   g_signal_connect (G_OBJECT (x->handlebox_widget), "child-attached",
                     G_CALLBACK (xg_tool_bar_attach_callback), f);
-  g_signal_connect (G_OBJECT (x->toolbar_widget),
-                    "expose-event",
-                    G_CALLBACK (xg_tool_bar_expose_callback),
-                    f);
 
   gtk_widget_show_all (x->handlebox_widget);
 
