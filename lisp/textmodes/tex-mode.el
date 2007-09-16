@@ -2124,18 +2124,59 @@ The value of `tex-command' specifies the command to use to run TeX."
   (let* ((zap-directory
           (file-name-as-directory (expand-file-name tex-directory)))
          (tex-out-file (expand-file-name (concat tex-zap-file ".tex")
-					 zap-directory)))
+					 zap-directory))
+	 (main-file (expand-file-name (tex-main-file)))
+	 (texbuf (current-buffer))
+	 ;; Variables local to texbuf that are needed by t-r-1.
+	 (hstart tex-start-of-header)
+	 (hend tex-end-of-header)
+	 (first tex-first-line-header-regexp)
+	 (trailer tex-trailer)
+	 size)
     ;; Don't delete temp files if we do the same buffer twice in a row.
     (or (eq (current-buffer) tex-last-buffer-texed)
 	(tex-delete-last-temp-files t))
-    ;; Write the new temp file.
+    (if (string-equal main-file (buffer-file-name))
+	(tex-region-1 zap-directory tex-out-file beg end)
+      ; If this is not the main file, we need to first make a merged
+      ; buffer with the contents of the main file and this file.
+      (with-temp-buffer
+	;; This is so we get prompted about any changes on disk.
+	(insert (with-current-buffer (find-file-noselect main-file)
+		  (save-restriction
+		    (widen)
+		    (buffer-string))))
+	;; Get the size of the text inserted before the specified region.
+	(setq size (- (point-max) (point-min))
+	      beg (+ beg size)
+	      end (+ end size))
+	(insert (with-current-buffer texbuf
+		  (save-restriction
+		    (widen)
+		    (buffer-string))))
+	(set (make-local-variable 'tex-start-of-header) hstart)
+	(set (make-local-variable 'tex-end-of-header) hend)
+	(set (make-local-variable 'tex-first-line-header-regexp) first)
+	(set (make-local-variable 'tex-trailer) trailer)
+	(tex-region-1 zap-directory tex-out-file beg end)))
+    ;; Record the file name to be deleted afterward.
+    (setq tex-last-temp-file tex-out-file)
+    ;; Use a relative file name here because (1) the proper dir
+    ;; is already current, and (2) the abs file name is sometimes
+    ;; too long and can make tex crash.
+    (tex-start-tex tex-command (concat tex-zap-file ".tex") zap-directory)
+    (setq tex-print-file tex-out-file)))
+
+(defun tex-region-1 (zap-directory tex-out-file beg end)
+  "Write the region BEG END of the current buffer to TEX-OUT-FILE.
+The region is surrounded by a header and trailer, if they are found."
     (save-excursion
       (save-restriction
 	(widen)
 	(goto-char (point-min))
 	(forward-line 100)
 	(let ((search-end (point))
-	      (default-directory zap-directory)
+	    (default-directory zap-directory) ; why?
 	      (already-output 0))
 	  (goto-char (point-min))
 
@@ -2174,14 +2215,7 @@ The value of `tex-command' specifies the command to use to run TeX."
 	;; is not hidden in a comment.
 	(if tex-trailer
 	    (write-region (concat "\n" tex-trailer) nil
-			  tex-out-file t nil))))
-    ;; Record the file name to be deleted afterward.
-    (setq tex-last-temp-file tex-out-file)
-    ;; Use a relative file name here because (1) the proper dir
-    ;; is already current, and (2) the abs file name is sometimes
-    ;; too long and can make tex crash.
-    (tex-start-tex tex-command (concat tex-zap-file ".tex") zap-directory)
-    (setq tex-print-file tex-out-file)))
+			tex-out-file t nil)))))
 
 (defun tex-buffer ()
   "Run TeX on current buffer.  See \\[tex-region] for more information.
