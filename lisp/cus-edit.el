@@ -3058,7 +3058,7 @@ Also change :reverse-video to :inverse-video."
 		    (cons value (cons from (- (point) from))))))))
 
 (defun custom-face-edit-activate (widget)
-  "Make face widget WIDGET inactive for user modifications."
+  "Make face widget WIDGET active for user modifications."
   (let ((inactive (widget-get widget :inactive))
 	(inhibit-read-only t)
 	(inhibit-modification-hooks t))
