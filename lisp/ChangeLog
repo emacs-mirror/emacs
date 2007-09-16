@@ -1,5 +1,16 @@
 2007-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* server.el (server-clients): Only keep procs, no properties any more.
+	(server-client): Remove.
+	(server-client-get, server-client-set): Remove, replace all callers by
+	process-get and process-put resp.
+	(server-clients-with, server-add-client, server-delete-client)
+	(server-create-tty-frame, server-create-window-system-frame)
+	(server-process-filter, server-execute, server-visit-files)
+	(server-buffer-done, server-kill-buffer-query-function)
+	(server-kill-emacs-query-function, server-switch-buffer)
+	(server-save-buffers-kill-terminal): Update accordingly.
+
 	* server.el (server-with-environment): Simplify.
 	(server-select-display, server-unselect-display): Re-add functions that
 	seem to have been lost in the multi-tty merge.
