@@ -1406,7 +1406,7 @@ This property can be toggled interactively."
 ;;; Misc
 
 ;; if nil, this silences some messages
-(defconst ediff-verbose-p t)
+(defvar ediff-verbose-p t)
 
 (defcustom ediff-autostore-merges  'group-jobs-only
   "*Save the results of merge jobs automatically.
