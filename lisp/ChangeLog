@@ -1,3 +1,7 @@
+2007-09-16  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* calendar/holidays.el (list-holidays): Remove the cyclic alias.
+
 2007-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-clients): Only keep procs, no properties any more.
