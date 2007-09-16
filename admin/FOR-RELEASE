@@ -56,6 +56,8 @@ can we get rid of that?  It is a dangerous design.
 
 ** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
 
+** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
