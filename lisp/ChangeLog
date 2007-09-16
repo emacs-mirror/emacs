@@ -1,3 +1,20 @@
+2007-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el, calendar/calendar.el, calendar/diary-lib.el:
+	Following cal-bahai renaming, update all instances of
+	list-bahai-diary-entries to diary-bahai-list-entries,
+	mark-bahai-diary-entries to diary-bahai-mark-entries,
+	calendar-goto-bahai-date to calendar-bahai-goto-date,
+	insert-bahai-diary-entry to diary-bahai-insert-entry,
+	insert-monthly-bahai-diary-entry to diary-bahai-insert-monthly-entry,
+	insert-yearly-bahai-diary-entry to diary-bahai-insert-yearly-entry, and
+	calendar-print-bahai-date to calendar-bahai-print-date.
+
+	* textmodes/tex-mode.el (tex-region): Handle the case where the
+	region is not in `tex-main-file'.  Move the old code that applies
+	to both cases...
+	(tex-region-1): ...to this new function.
+
 2007-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-process-sentinel): New function.
