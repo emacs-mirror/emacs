@@ -117,13 +117,13 @@ The holidays are those in the list `calendar-holidays'.")
 (autoload 'diary-bahai-date "cal-bahai"
   "Baha'i calendar equivalent of date diary entry.")
 
-(autoload 'list-bahai-diary-entries "cal-bahai"
+(autoload 'diary-bahai-list-entries "cal-bahai"
   "Add any Baha'i date entries from the diary file to `diary-entries-list'.")
 
-(autoload 'mark-bahai-diary-entries "cal-bahai"
+(autoload 'diary-bahai-mark-entries "cal-bahai"
   "Mark days in the calendar window that have Baha'i date diary entries.")
 
-(autoload 'mark-bahai-calendar-date-pattern "cal-bahai"
+(autoload 'calendar-bahai-mark-date-pattern "cal-bahai"
    "Mark dates in calendar window that conform to Baha'i date MONTH/DAY/YEAR.")
 
 (autoload 'diary-hebrew-date "cal-hebrew"
