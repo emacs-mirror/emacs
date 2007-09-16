@@ -54,9 +54,9 @@
     ["Insert Cyclic" insert-cyclic-diary-entry]
     ("Insert Baha'i"
      [" " nil :suffix (calendar-bahai-date-string (calendar-cursor-to-date))]
-     ["One time" insert-bahai-diary-entry]
-     ["Monthly" insert-monthly-bahai-diary-entry]
-     ["Yearly" insert-yearly-bahai-diary-entry])
+     ["One time" diary-bahai-insert-entry]
+     ["Monthly" diary-bahai-insert-monthly-entry]
+     ["Yearly" diary-bahai-insert-yearly-entry])
     ("Insert Islamic"
      [" " nil :suffix (calendar-islamic-date-string (calendar-cursor-to-date))]
      ["One time" insert-islamic-diary-entry]
@@ -122,7 +122,7 @@
     ["Astronomical Date" calendar-goto-astro-day-number]
     ["Hebrew Date" calendar-goto-hebrew-date]
     ["Persian Date" calendar-goto-persian-date]
-    ["Baha'i Date" calendar-goto-bahai-date]
+    ["Baha'i Date" calendar-bahai-goto-date]
     ["Islamic Date" calendar-goto-islamic-date]
     ["Julian Date" calendar-goto-julian-date]
     ["Chinese Date" calendar-goto-chinese-date]
