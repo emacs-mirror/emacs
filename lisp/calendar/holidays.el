@@ -528,8 +528,6 @@ is non-nil)."
   'mark-calendar-holidays 'calendar-mark-holidays "23.1")
 (define-obsolete-function-alias
   'check-calendar-holidays 'calendar-check-holidays "23.1")
-;;;###autoload
-(define-obsolete-function-alias 'list-holidays 'holiday-list "23.1")
 
 (provide 'holidays)
 
