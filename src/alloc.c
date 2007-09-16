@@ -1342,9 +1342,9 @@ emacs_blocked_realloc (ptr, size, ptr2)
 void
 reset_malloc_hooks ()
 {
-  __free_hook = 0;
-  __malloc_hook = 0;
-  __realloc_hook = 0;
+  __free_hook = old_free_hook;
+  __malloc_hook = old_malloc_hook;
+  __realloc_hook = old_realloc_hook;
 }
 #endif /* HAVE_GTK_AND_PTHREAD */
 
