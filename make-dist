@@ -691,9 +691,7 @@ echo "Making links to \`doc/lispintro'"
 
 echo "Making links to \`doc/man'"
 (cd doc/man
- ln *.1 ../../${tempdir}/doc/man
- ### Don't distribute gfdl.1, since no man page references it.
- rm -f ../../${tempdir}/doc/man/gfdl.1)
+ ln *.1 ../../${tempdir}/doc/man)
 
 echo "Making links to \`vms'"
 (cd vms
