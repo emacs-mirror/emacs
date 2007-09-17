@@ -2,6 +2,8 @@
 
 	* xt-mouse.el: Delete add-hook calls that were moved to
 	xterm-mouse-mode.
+	(xterm-mouse-mode): Disable resume-tty-functions, explain why it
+	does not work.
 
 2007-09-17  Richard Stallman  <rms@gnu.org>
 
