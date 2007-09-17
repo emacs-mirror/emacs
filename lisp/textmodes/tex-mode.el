@@ -636,7 +636,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (defvar tex-verbatim-environments
   '("verbatim" "verbatim*"))
 (put 'tex-verbatim-environments 'safe-local-variable
-     (lambda (x) (require 'cl) (every 'stringp x)))
+     (lambda (x) (null (delq t (mapcar 'stringp x)))))
 
 (defvar tex-font-lock-syntactic-keywords
   '((eval . `(,(concat "^\\\\begin *{"
