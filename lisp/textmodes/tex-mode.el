@@ -2016,7 +2016,8 @@ for the error messages."
     (goto-char compilation-parsing-end)
     ;; Parse messages.
     (while (and (not (or found-desired (eobp)))
-		(prog1 (re-search-forward "^! " nil 'move)
+		(prog1 (re-search-forward
+			"^\\(?:[^:\n]+:[[:digit:]]+:\\|!\\) " nil 'move)
 		  (setq begin-of-error (match-beginning 0)
 			end-of-error (match-end 0)))
 		(re-search-forward
