@@ -1,3 +1,11 @@
+2007-09-17  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/tex-mode.el (tex-region): Simplify previous change,
+	handling the case where the region is not in `tex-main-file'.
+	(tex-region-1): Delete.
+	(tex-region-header): New function, doing the header part of the
+	old tex-region-1.
+
 2007-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (newline): Simplify use of prefix-numeric-value.
