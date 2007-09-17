@@ -2032,30 +2032,37 @@ for the error messages."
 	  (file-name-directory (buffer-file-name tex-last-buffer-texed)))
 	found-desired (num-errors-found 0)
 	last-filename last-linenum last-position
-	begin-of-error end-of-error)
+	begin-of-error end-of-error errfilename)
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
     ;; Parse messages.
     (while (and (not (or found-desired (eobp)))
+		;; First alternative handles the newer --file-line-error style:
+		;; ./test2.tex:14: Too many }'s.
+		;; Second handles the old-style:
+		;; ! Too many }'s.
 		(prog1 (re-search-forward
-			"^\\(?:[^:\n]+:[[:digit:]]+:\\|!\\) " nil 'move)
+			"^\\(?:\\([^:\n]+\\):[[:digit:]]+:\\|!\\) " nil 'move)
 		  (setq begin-of-error (match-beginning 0)
-			end-of-error (match-end 0)))
+			end-of-error (match-end 0)
+			errfilename (match-string 1)))
 		(re-search-forward
 		 "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$" nil 'move))
       (let* ((this-error (copy-marker begin-of-error))
 	     (linenum (string-to-number (match-string 1)))
 	     (error-text (regexp-quote (match-string 3)))
 	     (filename
-	      (save-excursion
-		(with-syntax-table tex-error-parse-syntax-table
-		  (backward-up-list 1)
-		  (skip-syntax-forward "(_")
-		  (while (not (file-readable-p (thing-at-point 'filename)))
-		    (skip-syntax-backward "(_")
-		    (backward-up-list 1)
-		    (skip-syntax-forward "(_"))
-		  (thing-at-point 'filename))))
+	      ;; Prefer --file-liner-error filename if we have it.
+	      (or errfilename
+		  (save-excursion
+		    (with-syntax-table tex-error-parse-syntax-table
+		      (backward-up-list 1)
+		      (skip-syntax-forward "(_")
+		      (while (not (file-readable-p (thing-at-point 'filename)))
+			(skip-syntax-backward "(_")
+			(backward-up-list 1)
+			(skip-syntax-forward "(_"))
+		      (thing-at-point 'filename)))))
 	     (new-file
 	      (or (null last-filename)
 		  (not (string-equal last-filename filename))))
