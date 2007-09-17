@@ -290,6 +290,14 @@
 	   ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
 	    (1 'change-log-name)
 	    (2 'change-log-email))
+	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	    (1 'change-log-name))
+	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	    (1 'change-log-name)
+	    (2 'change-log-email))
+	   ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
+	    (1 'change-log-acknowledgement)
+	    (2 'change-log-acknowledgement))
 	   ("^Date:   \\(.+\\)" (1 'change-log-date))
 	   ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
