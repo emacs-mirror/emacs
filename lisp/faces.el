@@ -1446,29 +1446,32 @@ If SPEC is nil, return nil."
 FRAME is the frame whose frame-local face is set.  FRAME nil means
 do it on all frames.  See `defface' for information about SPEC.
 If SPEC is nil, do nothing."
-  (let ((attrs (face-spec-choose spec frame)))
-    (when spec
-      (face-spec-reset-face face frame))
-    (while attrs
-      (let ((attribute (car attrs))
-	    (value (car (cdr attrs))))
-	;; Support some old-style attribute names and values.
-	(case attribute
-	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
-	  (:italic (setq attribute :slant value (if value 'italic 'normal)))
-	  ((:foreground :background)
-	   ;; Compatibility with 20.x.  Some bogus face specs seem to
-	   ;; exist containing things like `:foreground nil'.
-	   (if (null value) (setq value 'unspecified)))
-	  (t (unless (assq attribute face-x-resources)
-	       (setq attribute nil))))
-	(when attribute
-	  (set-face-attribute face frame attribute value)))
-      (setq attrs (cdr (cdr attrs)))))
-  ;; When we reset the face based on its spec, then it is unmodified
-  ;; as far as Custom is concerned.
-  (if (null frame)
-      (put (or (get face 'face-alias) face) 'face-modified nil)))
+  (if frame
+      (let ((attrs (face-spec-choose spec frame)))
+	(when spec
+	  (face-spec-reset-face face frame))
+	(while attrs
+	  (let ((attribute (car attrs))
+		(value (car (cdr attrs))))
+	    ;; Support some old-style attribute names and values.
+	    (case attribute
+	      (:bold (setq attribute :weight value (if value 'bold 'normal)))
+	      (:italic (setq attribute :slant value (if value 'italic 'normal)))
+	      ((:foreground :background)
+	       ;; Compatibility with 20.x.  Some bogus face specs seem to
+	       ;; exist containing things like `:foreground nil'.
+	       (if (null value) (setq value 'unspecified)))
+	      (t (unless (assq attribute face-x-resources)
+		   (setq attribute nil))))
+	    (when attribute
+	      (set-face-attribute face frame attribute value)))
+	  (setq attrs (cdr (cdr attrs)))))
+    ;; When we reset the face based on its spec, then it is unmodified
+    ;; as far as Custom is concerned.
+    (put (or (get face 'face-alias) face) 'face-modified nil)
+    ;; Set each frame according to the rules implied by SPEC.
+    (dolist (frame (frame-list))
+      (face-spec-set face spec frame))))
 
 
 (defun face-attr-match-p (face attrs &optional frame)
