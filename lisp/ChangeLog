@@ -1,3 +1,8 @@
+2007-09-17  David Kastrup  <dak@gnu.org>
+
+	* textmodes/tex-mode.el (tex-verbatim-environments):
+	Eliminate CL dependency.
+
 2007-09-17  Richard Stallman  <rms@gnu.org>
 
 	* newcomment.el (comment-add): New arg EXTRA.
