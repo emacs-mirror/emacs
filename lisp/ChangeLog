@@ -1,3 +1,8 @@
+2007-09-17  Joe Wells  <jbw@macs.hw.ac.uk>  (tiny change)
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors): Also match
+	TeX `--file-line-error' format.
+
 2007-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-region): Simplify previous change,
