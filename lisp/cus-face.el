@@ -342,17 +342,16 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 		(unless (facep face)
 		  (make-empty-face face))
 		(put face 'face-comment comment)
-		(dolist (frame (frame-list))
-		  (face-spec-set face spec frame)))
-	    (setq args (cdr args)))
-	;; Old format, a plist of FACE SPEC pairs.
-	(let ((face (nth 0 args))
-	      (spec (nth 1 args)))
-	  (if (get face 'face-alias)
-		  (setq face (get face 'face-alias)))
-	  (put face 'saved-face spec)
-	  (custom-push-theme 'theme-face face theme 'set spec))
-	(setq args (cdr (cdr args))))))))
+		(face-spec-set face spec nil))
+	      (setq args (cdr args)))
+	  ;; Old format, a plist of FACE SPEC pairs.
+	  (let ((face (nth 0 args))
+		(spec (nth 1 args)))
+	    (if (get face 'face-alias)
+		(setq face (get face 'face-alias)))
+	    (put face 'saved-face spec)
+	    (custom-push-theme 'theme-face face theme 'set spec))
+	  (setq args (cdr (cdr args))))))))
 
 ;; XEmacs compability function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply
