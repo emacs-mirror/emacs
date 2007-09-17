@@ -1,3 +1,8 @@
+2007-09-17  Richard Stallman  <rms@gnu.org>
+
+	* newcomment.el (comment-add): New arg EXTRA.
+	(comment-region-default): Pass EXTRA if not indenting lines.
+
 2007-09-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-url-encode-chars): New function.
