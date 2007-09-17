@@ -1,3 +1,10 @@
+2007-09-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (gdpy_def): New variable.
+	(xg_initialize): Initialize gdpy_def.
+	(xg_display_close): If no other display exists, set gdpy_def to a
+	new connection.
+
 2007-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): Always create a GdkPixbuf
