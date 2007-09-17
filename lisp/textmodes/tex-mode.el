@@ -2105,39 +2105,29 @@ The value of `tex-command' specifies the command to use to run TeX."
          (tex-out-file (expand-file-name (concat tex-zap-file ".tex")
 					 zap-directory))
 	 (main-file (expand-file-name (tex-main-file)))
-	 (texbuf (current-buffer))
-	 ;; Variables local to texbuf that are needed by t-r-1.
-	 (hstart tex-start-of-header)
-	 (hend tex-end-of-header)
-	 (first tex-first-line-header-regexp)
-	 (trailer tex-trailer)
-	 size)
+	 (ismain (string-equal main-file (buffer-file-name)))
+	 already-output)
     ;; Don't delete temp files if we do the same buffer twice in a row.
     (or (eq (current-buffer) tex-last-buffer-texed)
 	(tex-delete-last-temp-files t))
-    (if (string-equal main-file (buffer-file-name))
-	(tex-region-1 zap-directory tex-out-file beg end)
-      ; If this is not the main file, we need to first make a merged
-      ; buffer with the contents of the main file and this file.
-      (with-temp-buffer
-	;; This is so we get prompted about any changes on disk.
-	(insert (with-current-buffer (find-file-noselect main-file)
-		  (save-restriction
-		    (widen)
-		    (buffer-string))))
-	;; Get the size of the text inserted before the specified region.
-	(setq size (- (point-max) (point-min))
-	      beg (+ beg size)
-	      end (+ end size))
-	(insert (with-current-buffer texbuf
-		  (save-restriction
-		    (widen)
-		    (buffer-string))))
-	(set (make-local-variable 'tex-start-of-header) hstart)
-	(set (make-local-variable 'tex-end-of-header) hend)
-	(set (make-local-variable 'tex-first-line-header-regexp) first)
-	(set (make-local-variable 'tex-trailer) trailer)
-	(tex-region-1 zap-directory tex-out-file beg end)))
+    (let ((default-directory zap-directory)) ; why?
+      ;; We assume the header is fully contained in tex-main-file.
+      ;; We use f-f-ns so we get prompted about any changes on disk.
+      (with-current-buffer (find-file-noselect main-file)
+	(setq already-output (tex-region-header tex-out-file
+						(and ismain beg))))
+      ;; Write out the specified region (but don't repeat anything
+      ;; already written in the header).
+      (write-region (if ismain
+			(max beg already-output)
+		      beg)
+		    end tex-out-file (not (zerop already-output)))
+      ;; Write the trailer, if any.
+      ;; Precede it with a newline to make sure it
+      ;; is not hidden in a comment.
+      (if tex-trailer
+	  (write-region (concat "\n" tex-trailer) nil
+			tex-out-file t)))
     ;; Record the file name to be deleted afterward.
     (setq tex-last-temp-file tex-out-file)
     ;; Use a relative file name here because (1) the proper dir
@@ -2146,55 +2136,51 @@ The value of `tex-command' specifies the command to use to run TeX."
     (tex-start-tex tex-command (concat tex-zap-file ".tex") zap-directory)
     (setq tex-print-file tex-out-file)))
 
-(defun tex-region-1 (zap-directory tex-out-file beg end)
-  "Write the region BEG END of the current buffer to TEX-OUT-FILE.
-The region is surrounded by a header and trailer, if they are found."
+(defun tex-region-header (file &optional beg)
+  "If there is a TeX header in the current buffer, write it to FILE.
+Return point at the end of the region so written, or zero.  If
+the optional buffer position BEG is specified, then the region
+written out starts at BEG, if this lies before the start of the header.
+
+If the first line matches `tex-first-line-header-regexp', it is
+also written out.  The variables `tex-start-of-header' and
+`tex-end-of-header' are used to locate the header.  Note that the
+start of the header is required to be within the first 100 lines."
   (save-excursion
     (save-restriction
       (widen)
       (goto-char (point-min))
+      (let ((search-end (save-excursion
       (forward-line 100)
-      (let ((search-end (point))
-	    (default-directory zap-directory) ; why?
-	    (already-output 0))
-	(goto-char (point-min))
-
+			  (point)))
+	    (already-output 0)
+	    hbeg hend)
 	;; Maybe copy first line, such as `\input texinfo', to temp file.
 	(and tex-first-line-header-regexp
 	     (looking-at tex-first-line-header-regexp)
 	     (write-region (point)
 			   (progn (forward-line 1)
 				  (setq already-output (point)))
-			   tex-out-file nil nil))
-
-	;; Write out the header, if there is one,
-	;; and any of the specified region which extends before it.
-	;; But don't repeat anything already written.
-	(if (re-search-forward tex-start-of-header search-end t)
-	    (let (hbeg)
+			   file))
+	;; Write out the header, if there is one, and any of the
+	;; specified region which extends before it.  But don't repeat
+	;; anything already written.
+	(and tex-start-of-header
+	     (re-search-forward tex-start-of-header search-end t)
+	     (progn
 	      (beginning-of-line)
 	      (setq hbeg (point))	;mark beginning of header
-	      (if (re-search-forward tex-end-of-header nil t)
-		  (let (hend)
+	       (when (re-search-forward tex-end-of-header nil t)
 		    (forward-line 1)
 		    (setq hend (point))	;mark end of header
-		    (write-region (max (min hbeg beg) already-output)
-				  hend
-				  tex-out-file
-				  (not (zerop already-output)) nil)
-		    (setq already-output hend)))))
-
-	;; Write out the specified region
-	;; (but don't repeat anything already written).
-	(write-region (max beg already-output) end
-		      tex-out-file
-		      (not (zerop already-output)) nil))
-      ;; Write the trailer, if any.
-      ;; Precede it with a newline to make sure it
-      ;; is not hidden in a comment.
-      (if tex-trailer
-	  (write-region (concat "\n" tex-trailer) nil
-			tex-out-file t nil)))))
+		 (write-region
+		  (max (if beg
+			   (min hbeg beg)
+			 hbeg)
+		       already-output)
+		  hend file (not (zerop already-output)))
+		 (setq already-output hend))))
+	already-output))))
 
 (defun tex-buffer ()
   "Run TeX on current buffer.  See \\[tex-region] for more information.
