@@ -1,3 +1,8 @@
+2007-09-17  Joe Wells  <jbw@macs.hw.ac.uk>  (tiny change)
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors): Also match
+	TeX `--file-line-error' format.
+
 2007-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xt-mouse.el: Delete add-hook calls that were moved to
