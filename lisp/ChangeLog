@@ -1,3 +1,12 @@
+2007-09-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* net/browse-url.el (browse-url-url-encode-chars): New function.
+	URL-encode some chars in a string.
+	(browse-url-encode-url): Rewrite using the previous function.
+	(browse-url-file-url): Use `browse-url-url-encode-chars'.
+	(browse-url-elinks-sentinel): Fix typo.
+	(browse-url-new-window-flag): Doc change.
+
 2007-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-compilation-parse-errors): Prefer the
