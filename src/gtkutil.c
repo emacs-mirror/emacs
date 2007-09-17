@@ -51,6 +51,13 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_GTK_MULTIDISPLAY
 
+/* Gtk does not work well without any display open.  Emacs may close
+   all its displays.  In that case, keep a display around just for
+   the purpose of having one.  */
+
+static GdkDisplay *gdpy_def;
+
+
 /* Return the GdkDisplay that corresponds to the X display DPY.  */
 
 static GdkDisplay *
@@ -147,9 +154,15 @@ xg_display_close (Display *dpy)
             break;
           }
 
-      if (! new_dpy) return; /* Emacs will exit anyway.  */
+      if (new_dpy)
+        gdpy_new = gdk_x11_lookup_xdisplay (new_dpy);
+      else
+        {
+          if (!gdpy_def)
+            gdpy_def = gdk_display_open (gdk_display_get_name (gdpy));
+          gdpy_new = gdpy_def;
+        }
 
-      gdpy_new = gdk_x11_lookup_xdisplay (new_dpy);
       gdk_display_manager_set_default_display (gdk_display_manager_get (),
                                                gdpy_new);
     }
@@ -4091,6 +4104,8 @@ xg_initialize ()
      we keep it permanently linked in.  */
   XftInit (0);
 #endif
+
+  gdpy_def = NULL;
   xg_ignore_gtk_scrollbar = 0;
   xg_detached_menus = 0;
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
