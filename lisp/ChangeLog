@@ -1,3 +1,8 @@
+2007-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xt-mouse.el: Delete add-hook calls that were moved to
+	xterm-mouse-mode.
+
 2007-09-17  Richard Stallman  <rms@gnu.org>
 
 	* cus-face.el (custom-theme-set-faces): Undo previous change.
