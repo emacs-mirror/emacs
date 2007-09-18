@@ -154,10 +154,7 @@ with the face `eldoc-highlight-function-argument'.
 ** VC
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
-*** The VC mode-line entry now has a tooltip.
-
-*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
-This can be used to add menu entries for backend specific functions.
+*** The VC mode-line entry now has a tooltip that explains the VC file status.
 
 *** VC now supports applying VC operations to a set of files at a time.
 
