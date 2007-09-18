@@ -707,6 +707,21 @@ Before doing that, check if there are any old backups and get rid of them."
 	     ;; any VC Dired buffer to synchronize.
 	     (vc-dired-resynch-file file)))))
 
+(defvar vc-menu-entry
+  '(menu-item "Version Control" vc-menu-map
+    :filter vc-menu-map-filter))
+
+(when (boundp 'menu-bar-tools-menu)
+  ;; We do not need to worry here about the placement of this entry
+  ;; because menu-bar.el has already created the proper spot for us
+  ;; and this will simply use it.
+  (define-key menu-bar-tools-menu [vc] vc-menu-entry))
+
+(defconst vc-mode-line-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] vc-menu-entry)
+    map))
+
 (defun vc-mode-line (file)
   "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
@@ -880,36 +895,54 @@ Used in `find-file-not-found-functions'."
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
 
-(if (not (boundp 'vc-menu-map))
-    ;; Don't do the menu bindings if menu-bar.el wasn't loaded to defvar
-    ;; vc-menu-map.
-    ()
-  ;;(define-key vc-menu-map [show-files]
-  ;;  '("Show Files under VC" . (vc-directory t)))
-  (define-key vc-menu-map [vc-retrieve-snapshot]
-    '("Retrieve Snapshot" . vc-retrieve-snapshot))
-  (define-key vc-menu-map [vc-create-snapshot]
-    '("Create Snapshot" . vc-create-snapshot))
-  (define-key vc-menu-map [vc-directory] '("VC Directory Listing" . vc-directory))
-  (define-key vc-menu-map [separator1] '("----"))
-  (define-key vc-menu-map [vc-annotate] '("Annotate" . vc-annotate))
-  (define-key vc-menu-map [vc-rename-file] '("Rename File" . vc-rename-file))
-  (define-key vc-menu-map [vc-version-other-window]
-    '("Show Other Version" . vc-version-other-window))
-  (define-key vc-menu-map [vc-diff] '("Compare with Base Version" . vc-diff))
-  (define-key vc-menu-map [vc-update-change-log]
-    '("Update ChangeLog" . vc-update-change-log))
-  (define-key vc-menu-map [vc-print-log] '("Show History" . vc-print-log))
-  (define-key vc-menu-map [separator2] '("----"))
-  (define-key vc-menu-map [vc-insert-header]
-    '("Insert Header" . vc-insert-headers))
-  (define-key vc-menu-map [undo] '("Undo Last Check-In" . vc-cancel-version))
-  (define-key vc-menu-map [vc-revert-buffer]
-    '("Revert to Base Version" . vc-revert-buffer))
-  (define-key vc-menu-map [vc-update]
-    '("Update to Latest Version" . vc-update))
-  (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
-  (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
+(defvar vc-menu-map
+  (let ((map (make-sparse-keymap "Version Control")))
+    ;;(define-key map [show-files]
+    ;;  '("Show Files under VC" . (vc-directory t)))
+    (define-key map [vc-retrieve-snapshot]
+      '("Retrieve Snapshot" . vc-retrieve-snapshot))
+    (define-key map [vc-create-snapshot]
+      '("Create Snapshot" . vc-create-snapshot))
+    (define-key map [vc-directory] '("VC Directory Listing" . vc-directory))
+    (define-key map [separator1] '("----"))
+    (define-key map [vc-annotate] '("Annotate" . vc-annotate))
+    (define-key map [vc-rename-file] '("Rename File" . vc-rename-file))
+    (define-key map [vc-version-other-window]
+      '("Show Other Version" . vc-version-other-window))
+    (define-key map [vc-diff] '("Compare with Base Version" . vc-diff))
+    (define-key map [vc-update-change-log]
+      '("Update ChangeLog" . vc-update-change-log))
+    (define-key map [vc-print-log] '("Show History" . vc-print-log))
+    (define-key map [separator2] '("----"))
+    (define-key map [vc-insert-header]
+      '("Insert Header" . vc-insert-headers))
+    (define-key map [undo] '("Undo Last Check-In" . vc-cancel-version))
+    (define-key map [vc-revert-buffer]
+      '("Revert to Base Version" . vc-revert-buffer))
+    (define-key map [vc-update]
+      '("Update to Latest Version" . vc-update))
+    (define-key map [vc-next-action] '("Check In/Out" . vc-next-action))
+    (define-key map [vc-register] '("Register" . vc-register))
+    map))
+
+(defalias 'vc-menu-map vc-menu-map)
+
+(defun vc-menu-map-filter (orig-binding)
+  (if (and (symbolp orig-binding) (fboundp orig-binding))
+      (setq orig-binding (indirect-function orig-binding)))
+  (let ((ext-binding
+         (if vc-mode (vc-call-backend (vc-backend buffer-file-name)
+                                      'extra-menu))))
+    ;; Give the VC backend a chance to add menu entries
+    ;; specific for that backend.
+    (if (null ext-binding)
+        orig-binding
+      (append orig-binding
+	      '((ext-menu-separator "---"))
+              ext-binding))))
+
+(defun vc-default-extra-menu (backend)
+  nil)
 
 ;; These are not correct and it's not currently clear how doing it
 ;; better (with more complicated expressions) might slow things down

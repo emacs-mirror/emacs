@@ -463,6 +463,15 @@
 ;;
 ;;   Operation called in current buffer when opening a non-existing file.
 ;;   By default, this asks the user if she wants to check out the file.
+;;
+;; - extra-menu ()
+;;
+;;   Return a menu keymap, the items in the keymap will appear at the
+;;   end of the Version Control menu.  The goal is to allow backends
+;;   to specify extra menu items that appear in the VC menu.  This way
+;;   you can provide menu entries for functionality that is specific
+;;   to your backend and which does not map to any of the VC generic
+;;   concepts.
 
 ;;; Code:
 

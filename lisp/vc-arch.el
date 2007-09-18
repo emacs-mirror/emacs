@@ -444,6 +444,15 @@ Return non-nil if FILE is unchanged."
              (table (vc-arch--version-completion-table root string)))
 	(complete-with-action action table string pred)))))
 
+(defvar vc-arch-extra-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [add-tagline]
+      '(menu-item "Add tagline" vc-arch-add-tagline))
+    map))
+
+(defun vc-arch-extra-menu () vc-arch-extra-menu-map)
+  
+
 ;;; Less obvious implementations.
 
 (defun vc-arch-find-version (file rev buffer)

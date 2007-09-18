@@ -1160,11 +1160,9 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [separator-vc]
   '("--"))
 
-(defvar vc-menu-map (make-sparse-keymap "Version Control"))
 (define-key menu-bar-tools-menu [pcl-cvs]
   '(menu-item "PCL-CVS" cvs-global-menu))
-(define-key menu-bar-tools-menu [vc]
-  (list 'menu-item "Version Control" vc-menu-map))
+(define-key menu-bar-tools-menu [vc] nil) ;Create the place for the VC menu.
 
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
