@@ -818,10 +818,8 @@ This variable does not have any effect on MS-Windows."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((memq (window-system frame) '(x max))
-	   (x-focus-frame frame))
-	  ((eq (window-system frame) 'w32)
-	   (w32-focus-frame frame)))
+    (cond ((memq (window-system frame) '(x max w32))
+	   (x-focus-frame frame)))
     (cond (focus-follows-mouse
 	   (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
 
@@ -905,10 +903,8 @@ If there is no frame by that name, signal an error."
     (raise-frame frame)
     (select-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((eq (window-system frame) 'x)
-	   (x-focus-frame frame))
-	  ((eq (window-system frame) 'w32)
-	   (w32-focus-frame frame)))
+    (cond ((memq (window-system frame) '(x w32))
+	   (x-focus-frame frame)))
     (when focus-follows-mouse
       (set-mouse-position frame (1- (frame-width frame)) 0))))
 
