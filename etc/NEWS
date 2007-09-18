@@ -80,6 +80,9 @@ this variable.
 
 *** VC backends can provide completion of revision names.
 
+*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
+This can be used to add menu entries for backend specific functions.
+
 *** VC has some support for Mercurial (Hg).
 
 *** VC has some support for Monotone (Mtn).
