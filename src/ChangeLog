@@ -1,3 +1,7 @@
+2007-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fplist_put): Preserve uneven tail data.
+
 2007-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): Always create a GdkPixbuf
