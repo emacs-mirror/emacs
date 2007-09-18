@@ -1,3 +1,7 @@
+2007-09-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_focus_frame): Rename from Fw32_focus_frame.
+
 2007-09-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (gdpy_def): New variable.
