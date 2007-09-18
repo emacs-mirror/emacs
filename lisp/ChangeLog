@@ -1,3 +1,11 @@
+2007-09-18  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-focus-frame): Make obsolete alias for
+	x-focus-frame.
+
+	* frame.el (select-frame-set-input-focus, select-frame-by-name):
+	Use x-focus-frame for w32.
+
 2007-09-17  David Kastrup  <dak@gnu.org>
 
 	* textmodes/tex-mode.el (tex-verbatim-environments):
