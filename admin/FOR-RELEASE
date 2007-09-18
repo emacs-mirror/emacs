@@ -96,8 +96,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00073.html
 ** incorrect button highlighting
 dann@ics.uci.edu, Sep 11.
 
-** mike@droettboom.com, Sep 10: python-complete-symbol hangs
-
 * FIXES FOR EMACS 22.3
 
 Here we list any small fixes that arrived too late for Emacs 22.2, but
