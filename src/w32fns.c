@@ -4488,7 +4488,7 @@ x_get_focus_frame (frame)
   return xfocus;
 }
 
-DEFUN ("w32-focus-frame", Fw32_focus_frame, Sw32_focus_frame, 1, 1, 0,
+DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Give FRAME input focus, raising to foreground if necessary.  */)
   (frame)
      Lisp_Object frame;
@@ -9023,10 +9023,10 @@ versions of Windows) characters.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
+  defsubr (&Sx_focus_frame);
 
   /* W32 specific functions */
 
-  defsubr (&Sw32_focus_frame);
   defsubr (&Sw32_select_font);
   defsubr (&Sw32_define_rgb_color);
   defsubr (&Sw32_default_color_map);
