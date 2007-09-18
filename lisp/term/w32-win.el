@@ -80,6 +80,10 @@
 (require 'dnd)
 (require 'code-pages)
 
+;; Keep an obsolete alias for w32-focus-frame in case it is used by code
+;; outside Emacs.
+(define-obsolete-function-alias 'w32-focus-frame 'x-focus-frame "23.1")
+
 (defvar xlfd-regexp-registry-subnum)
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
@@ -1122,7 +1126,10 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
         (png "libpng13d.dll" "libpng13.dll" "libpng12d.dll" "libpng12.dll" "libpng.dll")
         (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
         (tiff "libtiff3.dll" "libtiff.dll")
-        (gif "giflib4.dll" "libungif4.dll" "libungif.dll")))
+        (gif "giflib4.dll" "libungif4.dll" "libungif.dll")
+        (svg "librsvg-2-2.dll")
+        (gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
+        (glib "libglib-2.0-0.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil
