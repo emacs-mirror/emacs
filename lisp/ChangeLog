@@ -1,5 +1,10 @@
 2007-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/css-mode.el (css-electric-keys): electrick->electric.
+	(css-mode): Update correspondingly.
+
+2007-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* vc-arch.el (vc-arch-extra-menu-map): New var and fun.
 
 	* vc-hooks.el (vc-menu-entry): New var.
@@ -15,8 +20,7 @@
 
 	* vc.el: Document new VC operation `extra-menu'.
 
-	* vc-hooks.el (vc-default-extra-menu, vc-menu-map-filter): New
-	function.
+	* vc-hooks.el (vc-default-extra-menu, vc-menu-map-filter): New fun.
 
 2007-09-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
