@@ -1821,7 +1821,7 @@ static void TraceStartGenDesc_diag(GenDesc desc, int i)
     "         ZoneSet:$B\n", desc->zones,
     NULL ));
   RING_FOR(n, &desc->locusRing, nn) {
-    PoolGen gen = RING_ELT(PoolGen, genRing, n);
+    DIAG_DECL( PoolGen gen = RING_ELT(PoolGen, genRing, n); )
     DIAG_WRITEF(( DIAG_STREAM,
       "           PoolGen $U ($S)", gen->nr, gen->pool->class->name,
       " totalSize $U", gen->totalSize,
