@@ -2762,11 +2762,11 @@ int update_window_fringes P_ ((struct window *, int));
 void compute_fringe_widths P_ ((struct frame *, int));
 
 #ifdef WINDOWS_NT
-void w32_init_fringe P_ ((void));
+void w32_init_fringe P_ ((struct redisplay_interface *));
 void w32_reset_fringes P_ ((void));
 #endif
 #ifdef MAC_OS
-void mac_init_fringe P_ ((void));
+void mac_init_fringe P_ ((struct redisplay_interface *));
 #endif
 
 /* Defined in image.c */
