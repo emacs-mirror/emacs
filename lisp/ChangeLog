@@ -1,5 +1,12 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/octave-mod.el: Remove spurious * in docstrings.
+	(octave-mode-map): Move init into declaration and remove \t binding.
+	(octave-mode-startup-message): Remove unused var.
+	(octave-scan-blocks): Remove unused arg `from'.
+	(octave-forward-block, octave-down-block, octave-up-block):
+	Update callers.
+
 	* progmodes/meta-mode.el (meta-mode-syntax-table): Move init into decl.
 	(meta-mode-map): Likewise and remove \t binding.
 
