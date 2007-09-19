@@ -1,5 +1,8 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* recentf.el: Remove spurious * in docstrings.
+	(recentf-save-list): Fix up comment style.
+
 	* progmodes/octave-mod.el: Remove spurious * in docstrings.
 	(octave-mode-map): Move init into declaration and remove \t binding.
 	(octave-mode-startup-message): Remove unused var.
