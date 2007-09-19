@@ -1,7 +1,7 @@
 2007-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-terminate-paragraph): Use
-	backward-paragraph.
+	backward-paragraph.  Leave point at the site of any mismatch.
 
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
