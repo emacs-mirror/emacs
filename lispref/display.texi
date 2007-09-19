@@ -3237,7 +3237,7 @@ to use the value specified by the frame.
 insert images into text, and also control other aspects of how text
 displays.  The value of the @code{display} property should be a
 display specification, or a list or vector containing several display
-specifications.
+specifications (which apply in parallel to the text they cover).
 
   Some kinds of @code{display} properties specify something to display
 instead of the text that has the property.  In this case, ``the text''
