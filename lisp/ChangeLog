@@ -1,5 +1,8 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* finder.el (finder-compile-keywords): Fix up comment style.
+	(finder-mouse-face-on-line): previous-line -> forward-line.
+
 	* recentf.el: Remove spurious * in docstrings.
 	(recentf-save-list): Fix up comment style.
 
