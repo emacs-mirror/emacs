@@ -4335,10 +4335,10 @@ detect_coding (coding, src, src_bytes)
 
 static int
 detect_eol_type (source, src_bytes, skip)
-     unsigned char *source;
+     const unsigned char *source;
      int src_bytes, *skip;
 {
-  unsigned char *src = source, *src_end = src + src_bytes;
+  const unsigned char *src = source, *src_end = src + src_bytes;
   unsigned char c;
   int total = 0;		/* How many end-of-lines are found so far.  */
   int eol_type = CODING_EOL_UNDECIDED;
@@ -4384,10 +4384,10 @@ detect_eol_type (source, src_bytes, skip)
 
 static int
 detect_eol_type_in_2_octet_form (source, src_bytes, skip, big_endian_p)
-     unsigned char *source;
+     const unsigned char *source;
      int src_bytes, *skip, big_endian_p;
 {
-  unsigned char *src = source, *src_end = src + src_bytes;
+  const unsigned char *src = source, *src_end = src + src_bytes;
   unsigned int c1, c2;
   int total = 0;		/* How many end-of-lines are found so far.  */
   int eol_type = CODING_EOL_UNDECIDED;
