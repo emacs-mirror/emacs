@@ -1,5 +1,8 @@
 2007-09-19  Glenn Morris  <rgm@gnu.org>
 
+	* net/socks.el (socks-open-network-stream): Signal an explicit
+	error if the port associated with a service string can't be found.
+
 	* textmodes/tex-mode.el (tex-terminate-paragraph): Use
 	backward-paragraph.  Leave point at the site of any mismatch.
 
