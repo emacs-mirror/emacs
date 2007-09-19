@@ -1,8 +1,13 @@
+2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Use the default TAB
+	binding, so tab-always-indent works right.
+
 2007-09-19  Johannes Weiner  <hannes@saeurebad.de>
 
 	* net/browse-url.el (browse-url-elinks-new-window): New function.
-	(browse-url-elinks): Use browse-url-elinks-new-window.  Accept
-	optional second argument `new-window'.  Fix typo in doc-string.
+	(browse-url-elinks): Use browse-url-elinks-new-window.
+	Accept optional second argument `new-window'.  Fix typo in doc-string.
 	(browse-url-elinks-sentinel): Use browse-url-elinks-new-window.
 	Improve error message.
 
@@ -17,8 +22,8 @@
 	* net/socks.el (socks-open-network-stream): Signal an explicit
 	error if the port associated with a service string can't be found.
 
-	* textmodes/tex-mode.el (tex-terminate-paragraph): Use
-	backward-paragraph.  Leave point at the site of any mismatch.
+	* textmodes/tex-mode.el (tex-terminate-paragraph):
+	Use backward-paragraph.  Leave point at the site of any mismatch.
 
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 

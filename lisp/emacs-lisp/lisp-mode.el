@@ -261,7 +261,6 @@
 
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'lisp-indent-line)
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
     ;; This gets in the way when viewing a Lisp file in view-mode.  As
