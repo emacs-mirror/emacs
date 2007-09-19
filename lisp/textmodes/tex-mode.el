@@ -1272,19 +1272,18 @@ area if a mismatch is found."
 Check for mismatched braces or $s in paragraph being terminated.
 A prefix arg inhibits the checking."
   (interactive "*P")
+  (insert "\n\n")
   (or inhibit-validation
-      (save-excursion
-	;; For the purposes of this, a "paragraph" is a block of text
-	;; wherein all the brackets etc are expected to be balanced.  It
-	;; may start after a blank line (ie a "proper" paragraph), or
-	;; a begin{} or end{} block, etc.
-	(tex-validate-region
-	 (save-excursion
-	   (backward-paragraph)
-	   (point))
-	 (point)))
-      (message "Paragraph being closed appears to contain a mismatch"))
-  (insert "\n\n"))
+      ;; For the purposes of this, a "paragraph" is a block of text
+      ;; wherein all the brackets etc are expected to be balanced.  It
+      ;; may start after a blank line (ie a "proper" paragraph), or
+      ;; a begin{} or end{} block, etc.
+      (tex-validate-region
+       (save-excursion
+	 (backward-paragraph)
+	 (point))
+       (point))
+      (message "Paragraph being closed appears to contain a mismatch")))
 
 (define-skeleton tex-insert-braces
   "Make a pair of braces and be poised to type inside of them."
