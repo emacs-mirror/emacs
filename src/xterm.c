@@ -6641,7 +6641,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       /* We may get an EnterNotify on the buttons in the toolbar.  In that
          case we moved out of any highlighted area and need to note this.  */
       if (!f && last_mouse_glyph_frame)
-        note_mouse_movement (last_mouse_glyph_frame, &event);
+        note_mouse_movement (last_mouse_glyph_frame, &event.xmotion);
 #endif
       goto OTHER;
 
@@ -6674,7 +6674,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #ifdef USE_GTK
       /* See comment in EnterNotify above */
       else if (last_mouse_glyph_frame)
-        note_mouse_movement (last_mouse_glyph_frame, &event);
+        note_mouse_movement (last_mouse_glyph_frame, &event.xmotion);
 #endif
       goto OTHER;
 
