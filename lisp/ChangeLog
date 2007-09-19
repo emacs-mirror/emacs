@@ -1,5 +1,11 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* filesets.el: Remove spurious * in docstrings.
+	(filesets-running-xemacs): Remove.  Use (featurep 'xemacs) instead.
+	(filesets-conditional-sort): Remove unused arg `simply-do-it'.
+	(filesets-ingroup-collect): Remove unused arg `depth'.
+	(filesets-update): Remove unused arg `version'.
+
 	* finder.el (finder-compile-keywords): Fix up comment style.
 	(finder-mouse-face-on-line): previous-line -> forward-line.
 
