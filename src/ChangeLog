@@ -1,3 +1,10 @@
+2007-09-19  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* coding.c (detect_eol_type, detect_eol_type_in_2_octet_form):
+	Fix a C warning regarding variable constness.
+
+	* xterm.c (handle_one_xevent): Fix a C warning.
+
 2007-09-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_focus_frame): Rename from Fw32_focus_frame.
