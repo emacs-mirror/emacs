@@ -3937,7 +3937,7 @@ OVERLAY.  */)
 
 
 DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
-       doc: /* Return a list of the overlays that contain position POS.  */)
+       doc: /* Return a list of the overlays that contain the character at POS.  */)
      (pos)
      Lisp_Object pos;
 {
