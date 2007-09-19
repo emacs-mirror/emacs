@@ -1188,6 +1188,7 @@ on the line for the invalidity you want to see."
 	  (let ((end (point))
 		prev-end)
 	    ;; Scan the previous paragraph for invalidities.
+	    ;; FIXME this should be using something like backward-paragraph.
 	    (if (search-backward "\n\n" nil t)
 		(progn
 		  (setq prev-end (point))
@@ -1273,9 +1274,13 @@ A prefix arg inhibits the checking."
   (interactive "*P")
   (or inhibit-validation
       (save-excursion
+	;; For the purposes of this, a "paragraph" is a block of text
+	;; wherein all the brackets etc are expected to be balanced.  It
+	;; may start after a blank line (ie a "proper" paragraph), or
+	;; a begin{} or end{} block, etc.
 	(tex-validate-region
 	 (save-excursion
-	   (search-backward "\n\n" nil 'move)
+	   (backward-paragraph)
 	   (point))
 	 (point)))
       (message "Paragraph being closed appears to contain a mismatch"))
