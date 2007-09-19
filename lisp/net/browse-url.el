@@ -1517,8 +1517,17 @@ Default to the URL around or before point."
   (apply #'start-process (concat "KDE " url) nil browse-url-kde-program
 	 (append browse-url-kde-args (list url))))
 
+(defun browse-url-elinks-new-window (url)
+  "Ask the Elinks WWW browser to load URL in a new window."
+  (let ((process-environment (browse-url-process-environment)))     
+    (apply #'start-process
+	   (append (list (concat "elinks:" url)
+			 nil)
+		   browse-url-elinks-wrapper
+		   (list "elinks" url)))))
+
 ;;;###autoload
-(defun browse-url-elinks (url)
+(defun browse-url-elinks (url &optional new-window)
   "Ask the Elinks WWW browser to load URL.
 Default to the URL around the point.
 
@@ -1526,36 +1535,36 @@ The document is loaded in a new tab of a running Elinks or, if
 none yet running, a newly started instance.
 
 The Elinks command will be prepended by the program+arguments
-from `elinks-browse-url-wrapper'."
+from `browse-url-elinks-wrapper'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
-  (let ((process-environment (browse-url-process-environment))
-	(elinks-ping-process (start-process "elinks-ping" nil
-					    "elinks" "-remote" "ping()")))
-    (set-process-sentinel elinks-ping-process
-			  `(lambda (process change)
-			     (browse-url-elinks-sentinel process ,url)))))
+  (if new-window
+      (browse-url-elinks-new-window url)
+    (let ((process-environment (browse-url-process-environment))
+	  (elinks-ping-process (start-process "elinks-ping" nil
+					      "elinks" "-remote" "ping()")))
+      (set-process-sentinel elinks-ping-process
+			    `(lambda (process change)
+			       (browse-url-elinks-sentinel process ,url))))))
 
 (defun browse-url-elinks-sentinel (process url)
   "Determines if Elinks is running or a new one has to be started."
-  (let ((exit-status (process-exit-status process))
-	(process-environment (browse-url-process-environment)))
+  (let ((exit-status (process-exit-status process)))
     ;; Try to determine if an instance is running or if we have to
     ;; create a new one.
     (case exit-status
 	  (5
 	   ;; No instance, start a new one.
-	   (apply #'start-process
-		  (append (list (concat "elinks:" url) nil)
-			  browse-url-elinks-wrapper
-			  (list "elinks" url))))
+	   (browse-url-elinks-new-window url))
 	  (0
 	   ;; Found an instance, open URL in new tab.
-	   (start-process (concat "elinks:" url) nil
-			  "elinks" "-remote"
-			  (concat "openURL(\"" url "\",new-tab)")))
+	   (let ((process-environment (browse-url-process-environment)))
+	     (start-process (concat "elinks:" url) nil
+			    "elinks" "-remote"
+			    (concat "openURL(\"" url "\",new-tab)"))))
 	  (otherwise
-	   (error "Undefined exit-code of process `elinks'")))))
+	   (error "Unrecognized exit-code %d of process `elinks'"
+		  exit-status)))))
 
 (provide 'browse-url)
 
