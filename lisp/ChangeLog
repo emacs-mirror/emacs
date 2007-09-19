@@ -1,5 +1,9 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (auto-mode-alist): Use archive-mode for .rar files.
+
+	* international/mule.el (auto-coding-alist): Rar archives are binary.
+
 	* arc-mode.el: Add basic support for Rar.
 	(archive-find-type): Recognize Rar's signature.
 	(archive-desummarize): New fun.
