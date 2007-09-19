@@ -391,7 +391,8 @@ message."
     (server-log (format "server-handle-suspend-tty, terminal %s" terminal) proc)
     (condition-case err
 	(server-send-string proc "-suspend \n")
-      (file-error (ignore-errors (server-delete-client proc))))))
+      (file-error                       ;The pipe/socket was closed.
+       (ignore-errors (server-delete-client proc))))))
 
 (defun server-unquote-arg (arg)
   "Remove &-quotation from ARG.
@@ -525,6 +526,21 @@ kill any existing server communications subprocess."
 			 (process-contact server-process :local))
 			" " (int-to-string (emacs-pid))
 			"\n" auth-key)))))))))
+
+(defun server-running-p (&optional name)
+  "Test whether server NAME is running."
+  (interactive
+   (list (if current-prefix-arg
+	     (read-string "Server name: " nil nil server-name))))
+  (unless name (setq name server-name))
+  (condition-case nil
+      (progn
+	(delete-process
+	 (make-network-process
+	  :name "server-client-test" :family 'local :server nil :noquery t
+	  :service (expand-file-name name server-socket-dir)))
+	t)
+    (file-error nil)))
 
 ;;;###autoload
 (define-minor-mode server-mode

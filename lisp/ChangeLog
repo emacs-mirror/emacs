@@ -1,3 +1,7 @@
+2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-running-p): New function.
+
 2007-09-18  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (w32-focus-frame): Make obsolete alias for
