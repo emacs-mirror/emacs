@@ -548,8 +548,7 @@ version.")
 			  (if (stringp service)
 			      (or
 			       (socks-find-services-entry service)
-			       (error "Unable to find port for service `%s'"
-				      service))
+			       (error "Unknown service: %s" service))
 			    service))
       (puthash 'buffer buffer info)
       (puthash 'host host info)
