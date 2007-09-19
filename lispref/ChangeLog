@@ -1,3 +1,7 @@
+2007-09-19  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Property): Explain multiple display specs.
+
 2007-08-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* commands.texi (Command Loop Info): Advise against changing
