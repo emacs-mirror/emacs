@@ -88,6 +88,8 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl)
+  (require 'imenu)   ; Need this stuff when compiling for imenu macros, etc.
   (require 'tempo))
 
 ;;;----------------------------------------------------------------------------
@@ -102,42 +104,42 @@
   :version "20.4")
 
 (defcustom snmp-special-indent t
-  "*If non-nil, use a simple heuristic to try to guess the right indentation.
+  "If non-nil, use a simple heuristic to try to guess the right indentation.
 If nil, then no special indentation is attempted."
   :type 'boolean
   :group 'snmp)
 
 (defcustom snmp-indent-level 4
-  "*Indentation level for SNMP MIBs."
+  "Indentation level for SNMP MIBs."
   :type 'integer
   :group 'snmp)
 
 (defcustom snmp-tab-always-indent nil
-  "*Non-nil means TAB should always reindent the current line.
+  "Non-nil means TAB should always reindent the current line.
 A value of nil means reindent if point is within the initial line indentation;
 otherwise insert a TAB."
   :type 'boolean
   :group 'snmp)
 
 (defcustom snmp-completion-ignore-case t
-  "*Non-nil means that case differences are ignored during completion.
+  "Non-nil means that case differences are ignored during completion.
 A value of nil means that case is significant.
 This is used during Tempo template completion."
   :type 'boolean
   :group 'snmp)
 
 (defcustom snmp-common-mode-hook nil
-  "*Hook(s) evaluated when a buffer enters either SNMP or SNMPv2 mode."
+  "Hook(s) evaluated when a buffer enters either SNMP or SNMPv2 mode."
   :type 'hook
   :group 'snmp)
 
 (defcustom snmp-mode-hook nil
-  "*Hook(s) evaluated when a buffer enters SNMP mode."
+  "Hook(s) evaluated when a buffer enters SNMP mode."
   :type 'hook
   :group 'snmp)
 
 (defcustom snmpv2-mode-hook nil
-  "*Hook(s) evaluated when a buffer enters SNMPv2 mode."
+  "Hook(s) evaluated when a buffer enters SNMPv2 mode."
   :type 'hook
   :group 'snmp)
 
@@ -195,26 +197,26 @@ This is used during Tempo template completion."
   "Predefined types for SYNTAX clauses.")
 
 (defvar snmp-rfc1155-types
-  '(("INTEGER") ("OCTET STRING") ("OBJECT IDENTIFIER") ("NULL") ("IpAddress")
-    ("NetworkAddress") ("Counter") ("Gauge") ("TimeTicks") ("Opaque"))
+  '("INTEGER" "OCTET STRING" "OBJECT IDENTIFIER" "NULL" "IpAddress"
+    "NetworkAddress" "Counter" "Gauge" "TimeTicks" "Opaque")
   "Types from RFC 1155 v1 SMI.")
 
 (defvar snmp-rfc1213-types
-  '(("DisplayString"))
+  '("DisplayString")
   "Types from RFC 1213 MIB-II.")
 
 (defvar snmp-rfc1902-types
-  '(("INTEGER") ("OCTET STRING") ("OBJECT IDENTIFIER") ("Integer32")
-    ("IpAddress") ("Counter32") ("Gauge32") ("Unsigned32") ("TimeTicks")
-    ("Opaque") ("Counter64"))
+  '("INTEGER" "OCTET STRING" "OBJECT IDENTIFIER" "Integer32"
+    "IpAddress" "Counter32" "Gauge32" "Unsigned32" "TimeTicks"
+    "Opaque" "Counter64")
   "Types from RFC 1902 v2 SMI.")
 
 (defvar snmp-rfc1903-types
-  '(("DisplayString") ("PhysAddress") ("MacAddress") ("TruthValue")
-    ("TestAndIncr") ("AutonomousType") ("InstancePointer")
-    ("VariablePointer") ("RowPointer") ("RowStatus") ("TimeStamp")
-    ("TimeInterval") ("DateAndTime") ("StorageType") ("TDomain")
-    ("TAddress"))
+  '("DisplayString" "PhysAddress" "MacAddress" "TruthValue"
+    "TestAndIncr" "AutonomousType" "InstancePointer"
+    "VariablePointer" "RowPointer" "RowStatus" "TimeStamp"
+    "TimeInterval" "DateAndTime" "StorageType" "TDomain"
+    "TAddress")
   "Types from RFC 1903 Textual Conventions.")
 
 
@@ -222,12 +224,12 @@ This is used during Tempo template completion."
   "Predefined values for ACCESS clauses.")
 
 (defvar snmp-rfc1155-access
-  '(("read-only") ("read-write") ("write-only") ("not-accessible"))
+  '("read-only" "read-write" "write-only" "not-accessible")
   "ACCESS values from RFC 1155 v1 SMI.")
 
 (defvar snmp-rfc1902-access
-  '(("read-only") ("read-write") ("read-create") ("not-accessible")
-    ("accessible-for-notify"))
+  '("read-only" "read-write" "read-create" "not-accessible"
+    "accessible-for-notify")
   "ACCESS values from RFC 1155 v1 SMI.")
 
 
@@ -235,11 +237,11 @@ This is used during Tempo template completion."
   "Predefined values for STATUS clauses.")
 
 (defvar snmp-rfc1212-status
-  '(("mandatory") ("obsolete") ("deprecated"))
+  '("mandatory" "obsolete" "deprecated")
   "STATUS values from RFC 1212 v1 SMI.")
 
 (defvar snmp-rfc1902-status
-  '(("current") ("obsolete") ("deprecated"))
+  '("current" "obsolete" "deprecated")
   "STATUS values from RFC 1902 v2 SMI.")
 
 
@@ -250,13 +252,6 @@ This is used during Tempo template completion."
 ;;
 ;;;----------------------------------------------------------------------------
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;; Need this stuff when compiling for imenu macros, etc.
-;;
-(eval-when-compile
-  (require 'cl)
-  (require 'imenu))
 
 
 ;; Create abbrev table for SNMP MIB mode
@@ -275,32 +270,29 @@ This is used during Tempo template completion."
 
 ;; Set up our keymap
 ;;
-(defvar snmp-mode-map (make-sparse-keymap)
+(defvar snmp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\177"         'backward-delete-char-untabify)
+    (define-key map "\C-c\C-i"     'tempo-complete-tag)
+    (define-key map "\C-c\C-f"     'tempo-forward-mark)
+    (define-key map "\C-c\C-b"     'tempo-backward-mark)
+    map)
   "Keymap used in SNMP mode.")
-
-(define-key snmp-mode-map "\t"           'snmp-indent-command)
-(define-key snmp-mode-map "\177"         'backward-delete-char-untabify)
-
-(define-key snmp-mode-map "\C-c\C-i"     'tempo-complete-tag)
-(define-key snmp-mode-map "\C-c\C-f"     'tempo-forward-mark)
-(define-key snmp-mode-map "\C-c\C-b"     'tempo-backward-mark)
 
 
 ;; Set up our syntax table
 ;;
-(defvar snmp-mode-syntax-table nil
+(defvar snmp-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\\  "\\"     st)
+    (modify-syntax-entry ?-   "_ 1234" st)
+    (modify-syntax-entry ?\n  ">"      st)
+    (modify-syntax-entry ?\^m ">"      st)
+    (modify-syntax-entry ?_   "."      st)
+    (modify-syntax-entry ?:   "."      st)
+    (modify-syntax-entry ?=   "."      st)
+    st)
   "Syntax table used for buffers in SNMP mode.")
-
-(if snmp-mode-syntax-table
-    ()
-  (setq snmp-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\\  "\\"     snmp-mode-syntax-table)
-  (modify-syntax-entry ?-   "_ 1234" snmp-mode-syntax-table)
-  (modify-syntax-entry ?\n  ">"      snmp-mode-syntax-table)
-  (modify-syntax-entry ?\^m ">"      snmp-mode-syntax-table)
-  (modify-syntax-entry ?_   "."      snmp-mode-syntax-table)
-  (modify-syntax-entry ?:   "."      snmp-mode-syntax-table)
-  (modify-syntax-entry ?=   "."      snmp-mode-syntax-table))
 
 ;; Set up the stuff that's common between snmp-mode and snmpv2-mode
 ;;
@@ -335,10 +327,9 @@ This is used during Tempo template completion."
   (setq parse-sexp-ignore-comments t)
 
   ;; Set up indentation
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function (if snmp-special-indent
-                                 'snmp-indent-line
-                               'indent-to-left-margin))
+  (if snmp-special-indent
+      (set (make-local-variable 'indent-line-function) 'snmp-indent-line))
+  (set (make-local-variable 'tab-always-indent) snmp-tab-always-indent)
 
   ;; Font Lock
   (make-local-variable 'font-lock-defaults)
@@ -474,7 +465,7 @@ lines for the purposes of this function."
   "Indent current line as SNMP MIB code."
   (let ((indent (snmp-calculate-indent))
         (pos (- (point-max) (point)))
-        shift-amt beg end)
+        shift-amt beg)
     (beginning-of-line)
     (setq beg (point))
     (skip-chars-forward " \t")
@@ -487,20 +478,6 @@ lines for the purposes of this function."
     ;; position after the indentation.  Else stay at same point in text.
     (if (> (- (point-max) pos) (point))
         (goto-char (- (point-max) pos)))))
-
-(defun snmp-indent-command ()
-  "Indent current line as SNMP MIB code, or sometimes insert a TAB.
-If `snmp-tab-always-indent' is t, always reindent the current line when
-this command is run.
-If `snmp-tab-always-indent' is nil, reindent the current line if point is
-in the initial indentation.  Otherwise, insert a TAB."
-  (interactive)
-  (if (and (not snmp-tab-always-indent)
-           (save-excursion
-             (skip-chars-backward " \t")
-             (not (bolp))))
-      (insert-tab)
-    (snmp-indent-line)))
 
 
 ;;;----------------------------------------------------------------------------
@@ -520,7 +497,7 @@ in the initial indentation.  Otherwise, insert a TAB."
 	(index-table-alist '())
 	(index-trap-alist '())
         (case-fold-search nil) ; keywords must be uppercase
-	prev-pos token marker end)
+	prev-pos token end)
     (goto-char (point-min))
     (imenu-progress-message prev-pos 0)
     ;; Search for a useful MIB item (that's not in a comment)
@@ -529,7 +506,7 @@ in the initial indentation.  Otherwise, insert a TAB."
         (imenu-progress-message prev-pos)
         (setq
          end (match-end 0)
-         token (cons (buffer-substring (match-beginning 1) (match-end 1))
+         token (cons (match-string 1)
                      (set-marker (make-marker) (match-beginning 1))))
         (goto-char (match-beginning 2))
         (cond ((looking-at "OBJECT-TYPE[ \t\n]+SYNTAX")
@@ -719,5 +696,5 @@ controls whether case is significant."
 
 (provide 'snmp-mode)
 
-;;; arch-tag: eb6cc0f9-1e47-4023-8625-bc9aae6c3527
+;; arch-tag: eb6cc0f9-1e47-4023-8625-bc9aae6c3527
 ;;; snmp-mode.el ends here

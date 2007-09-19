@@ -1,5 +1,16 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/snmp-mode.el: Remove spurious * in docstrings.
+	(snmp-rfc1155-types, snmp-rfc1213-types, snmp-rfc1902-types)
+	(snmp-rfc1903-types, snmp-rfc1155-access, snmp-rfc1902-access)
+	(snmp-rfc1212-status, snmp-rfc1902-status): Remove list wrappers now
+	that completion accepts lists of strings.
+	(snmp-mode-syntax-table): Move initialization into declaration.
+	(snmp-mode-map): Likewise and remove \t binding.
+	(snmp-common-mode): Set tab-always-indent according to snmp-t-a-i.
+	(snmp-indent-line, snmp-mode-imenu-create-index): Remove unused var.
+	(snmp-indent-command): Remove.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-shared-map): Use the default TAB
 	binding, so tab-always-indent works right.
 
