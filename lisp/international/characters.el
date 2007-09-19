@@ -840,7 +840,7 @@
   (modify-category-entry (decode-char 'ucs (+ i #xf00)) ?q))
 
 (let ((deflist	'(;; chars             syntax category
-		  ("4$(7"!0"!1(B-4$(7"J0"J14"K0"K1(B"        	"w"	?0) ; consonant
+		  ("4$(7"!(B0$(7"!(B1-4$(7"J(B0$(7"J(B14$(7"K(B0$(7"K(B1"        	"w"	?0) ; consonant
 		  ("$(7#!(B-$(7#J#K#L#M!"!#(B"       "w"     ?0) ;
 		  ("$(7$!(B-$(7$e(B"              "w"     ?0) ;
 		  ("$(7%!(B-$(7%u(B"              "w"     ?0) ;
@@ -1353,9 +1353,9 @@
 (setq utf-translate-cjk-mode saved-utf-translate-cjk-mode)
 (makunbound 'saved-utf-translate-cjk-mode)
 
-;;; Local Variables:
-;;; coding: iso-2022-7bit
-;;; End:
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
 
-;;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
+;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
 ;;; characters.el ends here
