@@ -1,6 +1,8 @@
 2007-09-19  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Display Property): Explain multiple display specs.
+	Clarify when they work in parallel and when one overrides.
+	Fix error in example.
 
 2007-08-30  Martin Rudalics  <rudalics@gmx.at>
 
