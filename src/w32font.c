@@ -371,7 +371,7 @@ w32font_encode_char (font, c)
 /* w32 implementation of text_extents for font backend.
    Perform the size computation of glyphs of FONT and fillin members
    of METRICS.  The glyphs are specified by their glyph codes in
-   CODE (length NGLYPHS).  Apparently medtrics can be NULL, in this
+   CODE (length NGLYPHS).  Apparently metrics can be NULL, in this
    case just return the overall width.  */
 static int
 w32font_text_extents (font, code, nglyphs, metrics)
@@ -386,8 +386,6 @@ w32font_text_extents (font, code, nglyphs, metrics)
      device context to measure against... */
   HDC dc = GetDC (NULL);
   int total_width = 0;
-
-  /* TODO: Allow some extra room for surrogates. */
   WORD *wcode = alloca(nglyphs * sizeof (WORD));
   SIZE size;
 
@@ -397,66 +395,57 @@ w32font_text_extents (font, code, nglyphs, metrics)
     {
       GLYPHMETRICS gm;
       MAT2 transform;
-      int i, width;
-      UINT format = GGO_METRICS;
 
       /* Set transform to the identity matrix.  */
       bzero (&transform, sizeof (transform));
       transform.eM11.value = 1;
       transform.eM22.value = 1;
+      metrics->width = 0;
+      metrics->ascent = 0;
+      metrics->descent = 0;
 
       for (i = 0; i < nglyphs; i++)
         {
-	  if (code[i] < 0x10000)
-	    wcode[i] = code[i];
-	  else
-	    {
-	      /* TODO: Convert to surrogate, reallocating array if needed */
-	      wcode[i] = 0xffff;
-	    }
-
-          if (GetGlyphOutlineW (dc, *(code + i), format, &gm, 0,
+          if (GetGlyphOutlineW (dc, *(code + i), GGO_METRICS, &gm, 0,
                                 NULL, &transform) != GDI_ERROR)
             {
-              metrics[i].lbearing = gm.gmptGlyphOrigin.x;
-              metrics[i].rbearing = gm.gmptGlyphOrigin.x + gm.gmBlackBoxX;
-              metrics[i].width = gm.gmCellIncX;
-              metrics[i].ascent = -gm.gmptGlyphOrigin.y;
-              metrics[i].descent = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
-            }
-          else if (GetTextExtentPoint32W (dc, wcode + i, 1, &size)
-                   != GDI_ERROR)
-            {
-              metrics[i].lbearing = 0;
-              metrics[i].rbearing = size.cx
-                + ((struct w32font_info *) font)->metrics.tmOverhang;
-              metrics[i].width = size.cx;
-              metrics[i].ascent = font->ascent;
-              metrics[i].descent = font->descent;
+              int new_val = metrics->width + gm.gmBlackBoxX
+                + gm.gmptGlyphOrigin.x;
+
+              metrics->rbearing = max (metrics->rbearing, new_val);
+              metrics->width += gm.gmCellIncX;
+              new_val = -gm.gmptGlyphOrigin.y;
+              metrics->ascent = max (metrics->ascent, new_val);
+              new_val = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
+              metrics->descent = max (metrics->descent, new_val);
             }
           else
             {
-              metrics[i].lbearing = 0;
-              metrics[i].rbearing = font->font.size
-                + ((struct w32font_info *) font)->metrics.tmOverhang;
-              metrics[i].width = font->font.size;
-              metrics[i].ascent = font->ascent;
-              metrics[i].descent = font->descent;
+              /* Rely on an estimate based on the overall font metrics.  */
+              break;
             }
         }
+
+      /* If we got through everything, return.  */
+      if (i == nglyphs)
+        {
+          /* Restore state and release DC.  */
+          SelectObject (dc, old_font);
+          ReleaseDC (NULL, dc);
+
+          return metrics->width;
+        }
     }
-  else
+
+  for (i = 0; i < nglyphs; i++)
     {
-      for (i = 0; i < nglyphs; i++)
-	{
-	  if (code[i] < 0x10000)
-	    wcode[i] = code[i];
-	  else
-	    {
-	      /* TODO: Convert to surrogate, reallocating array if needed */
-	      wcode[i] = 0xffff;
-	    }
-	}
+      if (code[i] < 0x10000)
+        wcode[i] = code[i];
+      else
+        {
+          /* TODO: Convert to surrogate, reallocating array if needed */
+          wcode[i] = 0xffff;
+        }
     }
 
   if (GetTextExtentPoint32W (dc, wcode, nglyphs, &size))
@@ -471,6 +460,16 @@ w32font_text_extents (font, code, nglyphs, metrics)
       DrawTextW (dc, wcode, nglyphs, &rect,
                  DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
       total_width = rect.right;
+    }
+
+  if (metrics)
+    {
+      metrics->width = total_width;
+      metrics->ascent = font->ascent;
+      metrics->descent = font->descent;
+      metrics->lbearing = 0;
+      metrics->rbearing = total_width
+        + ((struct w32font_info *) font)->metrics.tmOverhang;
     }
 
   /* Restore state and release DC.  */
