@@ -30,7 +30,7 @@
 
 ;; Add the following to your .emacs if you want to play sounds.
 ;;
-;; (require 'erc-soud)
+;; (require 'erc-sound)
 ;; (erc-sound-enable)
 ;;
 ;; To send requests to other users from within query buffers, type the

@@ -393,7 +393,7 @@ buffers in Emacs.  We call these ``query buffers''.
 
 @item highlighting
 
-Some occurences of words can be highlighted, which makes it easier to
+Some occurrences of words can be highlighted, which makes it easier to
 track different kinds of conversations.
 
 @item notification

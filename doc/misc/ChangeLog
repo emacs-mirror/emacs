@@ -1,3 +1,7 @@
+2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>
+
+	* erc.texi (Special-Features): Fix small typo.
+
 2007-09-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename Syntax): Provide links to "Inline methods"

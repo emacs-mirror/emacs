@@ -285,7 +285,11 @@ when there are no more active channels."
   oldest      -  find oldest active buffer
   newest      -  find newest active buffer
   leastactive -  find buffer with least unseen messages
-  mostactive  -  find buffer with most unseen messages."
+  mostactive  -  find buffer with most unseen messages.
+
+If set to 'importance, the importance is determined by position
+in `erc-track-faces-priority-list', where first is most
+important."
   :group 'erc-track
   :type '(choice (const importance)
 		 (const oldest)

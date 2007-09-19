@@ -205,6 +205,16 @@ This should ideally, be a \"catch-all\" coding system, like
 `emacs-mule', or `iso-2022-7bit'."
   :group 'erc-log)
 
+(defcustom erc-log-filter-function nil
+  "*If non-nil, pass text through the given function before writing it to
+a log file.
+
+The function should take one argument, which is the text to filter."
+  :group 'erc-log
+  :type '(choice (function "Function")
+		 (const :tag "No filtering" nil)))
+
+
 ;;;###autoload (autoload 'erc-log-mode "erc-log" nil t)
 (define-erc-module log nil
   "Automatically logs things you receive on IRC into files.
@@ -405,17 +415,25 @@ You can save every individual message by putting this function on
   (or buffer (setq buffer (current-buffer)))
   (when (erc-logging-enabled buffer)
     (let ((file (erc-current-logfile buffer))
-	  (coding-system-for-write erc-log-file-coding-system))
+	  (coding-system erc-log-file-coding-system))
       (save-excursion
 	(with-current-buffer buffer
 	  (save-restriction
 	    (widen)
-	    ;; early on in the initalisation, don't try and write the log out
+	    ;; early on in the initialization, don't try and write the log out
 	    (when (and (markerp erc-last-saved-position)
 		       (> erc-insert-marker (1+ erc-last-saved-position)))
-	      (write-region (1+ (marker-position erc-last-saved-position))
-			    (marker-position erc-insert-marker)
-			    file t 'nomessage)
+	      (let ((start (1+ (marker-position erc-last-saved-position)))
+		    (end (marker-position erc-insert-marker)))
+		(if (functionp erc-log-filter-function)
+		    (let ((text (buffer-substring start end)))
+		      (with-temp-buffer
+			(insert (funcall erc-log-filter-function text))
+			(let ((coding-system-for-write coding-system))
+			  (write-region (point-min) (point-max)
+					file t 'nomessage))))
+		  (let ((coding-system-for-write coding-system))
+		    (write-region start end file t 'nomessage))))
 	      (if (and erc-truncate-buffer-on-save (interactive-p))
 		  (progn
 		    (let ((inhibit-read-only t)) (erase-buffer))

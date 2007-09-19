@@ -1,4 +1,32 @@
+2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>
+
+	* erc.texi (Special-Features): Fix small typo.
+
+2007-09-16  Michael Olson  <mwolson@gnu.org>
+
+	* erc-track.el (erc-track-switch-direction): Mention
+	erc-track-faces-priority-list.  Thanks to Leo for the suggestion.
+
+2007-09-11  Exal de Jesus Garcia Carrillo  <exal@gnu.org>
+
+	* erc-sound.el: Fix typo in setting up instructions.
+
+2007-09-10  Michael Olson  <mwolson@gnu.org>
+
+	* Makefile (elpa): Copy dir template rather than echoing a few
+	lines.  The reason for this is that the ELPA package for ERC was
+	getting a corrupt dir entry.
+
+	* dir-template: Template for the ELPA dir file.
+
 2007-09-08  Michael Olson  <mwolson@gnu.org>
+
+	* erc-log.el (erc-log-filter-function): New option that specifies
+	the function to call for filtering text before writing it to a log
+	file.  Thanks to David O'Toole for the suggestion.
+	(erc-save-buffer-in-logs): Use erc-log-filter-function.  Make sure
+	we carry along the value of coding-system-for-write, because this
+	could potentially be shadowed by the temporary buffer.
 
 	* erc.el (erc-version-string): Update to 5.3, development version.
 
