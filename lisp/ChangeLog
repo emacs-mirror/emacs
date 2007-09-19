@@ -1,3 +1,11 @@
+2007-09-19  Johannes Weiner  <hannes@saeurebad.de>
+
+	* net/browse-url.el (browse-url-elinks-new-window): New function.
+	(browse-url-elinks): Use browse-url-elinks-new-window.  Accept
+	optional second argument `new-window'.  Fix typo in doc-string.
+	(browse-url-elinks-sentinel): Use browse-url-elinks-new-window.
+	Improve error message.
+
 2007-09-19  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-url-encode-chars): Use the right
