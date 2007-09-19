@@ -622,15 +622,15 @@ down (this *won't* always work)."
 (defun browse-url-url-encode-chars (text chars)
   "URL-encode the chars in TEXT that match CHARS.
 CHARS is a regexp-like character alternative (e.g., \"[,)$]\")."
-  (let ((encoded-url (copy-sequence url))
+  (let ((encoded-text (copy-sequence text))
 	(s 0))
-    (while (setq s (string-match chars encoded-url s))
-      (setq encoded-url
+    (while (setq s (string-match chars encoded-text s))
+      (setq encoded-text
 	    (replace-match (format "%%%x"
-				   (string-to-char (match-string 0 encoded-url)))
-			   t t encoded-url)
+				   (string-to-char (match-string 0 encoded-text)))
+			   t t encoded-text)
 	    s (1+ s)))
-    encoded-url))
+    encoded-text))
 
 (defun browse-url-encode-url (url)
   "Escape annoying characters in URL.
