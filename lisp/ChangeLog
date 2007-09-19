@@ -1,3 +1,9 @@
+2007-09-19  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* net/browse-url.el (browse-url-url-encode-chars): Use the right
+	parameter name in the function body.
+	Reported by Johannes Weiner.
+
 2007-09-19  Glenn Morris  <rgm@gnu.org>
 
 	* net/socks.el (socks-open-network-stream): Signal an explicit
