@@ -171,7 +171,7 @@ static void rules_diag(Rule rules)
     "Only showing diags permitted by these tag/paragraph/line"
     " rules:\n", NULL ));
   for(ir = 0; rules[ir].action != NULL; ir++) {
-    Rule rule = &rules[ir];
+    DIAG_DECL( Rule rule = &rules[ir]; )
     DIAG_MOREF(( "$S$S/$S/$S\n", rule->action, rule->tag, 
                  rule->para, rule->line,
                  NULL ));
