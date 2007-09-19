@@ -1,3 +1,7 @@
+2007-09-19  Jason Rumney  <jasonr@gnu.org>
+
+	* dispextern.h (w32_init_fringe, mac_init_fringe): Declare rif argument.
+
 2007-09-19  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* coding.c (detect_eol_type, detect_eol_type_in_2_octet_form):
