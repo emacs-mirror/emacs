@@ -1,5 +1,13 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* arc-mode.el: Add basic support for Rar.
+	(archive-find-type): Recognize Rar's signature.
+	(archive-desummarize): New fun.
+	(archive-summarize): Use it to restore the buffer's data in case
+	someone wants to switch to some other major mode.
+	(archive-resummarize): Use it as well.
+	(archive-rar-summarize, archive-rar-extract): New functions.
+
 	* filesets.el: Remove spurious * in docstrings.
 	(filesets-running-xemacs): Remove.  Use (featurep 'xemacs) instead.
 	(filesets-conditional-sort): Remove unused arg `simply-do-it'.
