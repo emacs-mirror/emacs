@@ -1,3 +1,8 @@
+2007-09-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Calculate metrics for the
+	whole string.
+
 2007-09-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32xfns.c (get_next_msg): Consolidate WM_PAINT messages.
