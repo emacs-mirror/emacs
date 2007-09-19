@@ -124,7 +124,7 @@
 ;;
 ;; This package was begun on February 1, 1997, exactly 20 years after
 ;; the genesis of TeX took place according to Don Knuth's own account
-;; (cf. ``The Errors of TeX'', reprinted in ``Literate Programming'',
+;; (cf.  ``The Errors of TeX'', reprinted in ``Literate Programming'',
 ;; Chapter 10, p. 249).  What better date could there be to choose?
 ;;
 
@@ -868,78 +868,74 @@ The environment marked is the one that contains point or follows point."
   "Abbrev table used in Metafont or MetaPost mode.")
 (define-abbrev-table 'meta-mode-abbrev-table ())
 
-(defvar meta-mode-syntax-table nil
+(defvar meta-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; underscores are word constituents
+    (modify-syntax-entry ?_  "w"  st)
+    ;; miscellaneous non-word symbols
+    (modify-syntax-entry ?#  "_"  st)
+    (modify-syntax-entry ?@  "_"  st)
+    (modify-syntax-entry ?$  "_"  st)
+    (modify-syntax-entry ??  "_"  st)
+    (modify-syntax-entry ?!  "_"  st)
+    ;; binary operators
+    (modify-syntax-entry ?&  "."  st)
+    (modify-syntax-entry ?+  "."  st)
+    (modify-syntax-entry ?-  "."  st)
+    (modify-syntax-entry ?/  "."  st)
+    (modify-syntax-entry ?*  "."  st)
+    (modify-syntax-entry ?.  "."  st)
+    (modify-syntax-entry ?:  "."  st)
+    (modify-syntax-entry ?=  "."  st)
+    (modify-syntax-entry ?<  "."  st)
+    (modify-syntax-entry ?>  "."  st)
+    (modify-syntax-entry ?|  "."  st)
+    ;; opening and closing delimiters
+    (modify-syntax-entry ?\( "()" st)
+    (modify-syntax-entry ?\) ")(" st)
+    (modify-syntax-entry ?\[ "(]" st)
+    (modify-syntax-entry ?\] ")[" st)
+    (modify-syntax-entry ?\{ "(}" st)
+    (modify-syntax-entry ?\} "){" st)
+    ;; comment character
+    (modify-syntax-entry ?%  "<"  st)
+    (modify-syntax-entry ?\n ">"  st)
+    ;; escape character, needed for embedded TeX code
+    (modify-syntax-entry ?\\ "\\" st)
+    st)
   "Syntax table used in Metafont or MetaPost mode.")
-(if meta-mode-syntax-table
-    ()
-  (setq meta-mode-syntax-table (make-syntax-table))
-  ;; underscores are word constituents
-  (modify-syntax-entry ?_  "w"  meta-mode-syntax-table)
-  ;; miscellaneous non-word symbols
-  (modify-syntax-entry ?#  "_"  meta-mode-syntax-table)
-  (modify-syntax-entry ?@  "_"  meta-mode-syntax-table)
-  (modify-syntax-entry ?$  "_"  meta-mode-syntax-table)
-  (modify-syntax-entry ??  "_"  meta-mode-syntax-table)
-  (modify-syntax-entry ?!  "_"  meta-mode-syntax-table)
-  ;; binary operators
-  (modify-syntax-entry ?&  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?+  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?-  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?/  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?*  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?.  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?:  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?=  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?<  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?>  "."  meta-mode-syntax-table)
-  (modify-syntax-entry ?|  "."  meta-mode-syntax-table)
-  ;; opening and closing delimiters
-  (modify-syntax-entry ?\( "()" meta-mode-syntax-table)
-  (modify-syntax-entry ?\) ")(" meta-mode-syntax-table)
-  (modify-syntax-entry ?\[ "(]" meta-mode-syntax-table)
-  (modify-syntax-entry ?\] ")[" meta-mode-syntax-table)
-  (modify-syntax-entry ?\{ "(}" meta-mode-syntax-table)
-  (modify-syntax-entry ?\} "){" meta-mode-syntax-table)
-  ;; comment character
-  (modify-syntax-entry ?%  "<"  meta-mode-syntax-table)
-  (modify-syntax-entry ?\n ">"  meta-mode-syntax-table)
-  ;; escape character, needed for embedded TeX code
-  (modify-syntax-entry ?\\ "\\" meta-mode-syntax-table)
-  )
 
-(defvar meta-mode-map nil
+(defvar meta-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-m"      'reindent-then-newline-and-indent)
+    ;; Comment Paragraphs:
+    ;; (define-key map "\M-a"      'backward-sentence)
+    ;; (define-key map "\M-e"      'forward-sentence)
+    ;; (define-key map "\M-h"      'mark-paragraph)
+    ;; (define-key map "\M-q"      'fill-paragraph)
+    ;; Navigation:
+    (define-key map "\M-\C-a"   'meta-beginning-of-defun)
+    (define-key map "\M-\C-e"   'meta-end-of-defun)
+    (define-key map "\M-\C-h"   'meta-mark-defun)
+    ;; Indentation:
+    (define-key map "\M-\C-q"   'meta-indent-defun)
+    (define-key map "\C-c\C-qe" 'meta-indent-defun)
+    (define-key map "\C-c\C-qr" 'meta-indent-region)
+    (define-key map "\C-c\C-qb" 'meta-indent-buffer)
+    ;; Commenting Out:
+    (define-key map "\C-c%"     'meta-comment-defun)
+    ;; (define-key map "\C-uC-c%"  'meta-uncomment-defun)
+    (define-key map "\C-c;"     'meta-comment-region)
+    (define-key map "\C-c:"     'meta-uncomment-region)
+    ;; Symbol Completion:
+    (define-key map "\M-\t"     'meta-complete-symbol)
+    ;; Shell Commands:
+    ;; (define-key map "\C-c\C-c"  'meta-command-file)
+    ;; (define-key map "\C-c\C-k"  'meta-kill-job)
+    ;; (define-key map "\C-c\C-l"  'meta-recenter-output)
+    map)
   "Keymap used in Metafont or MetaPost mode.")
-(if meta-mode-map
-    ()
-  (setq meta-mode-map (make-sparse-keymap))
-  (define-key meta-mode-map "\t"        'meta-indent-line)
-  (define-key meta-mode-map "\C-m"      'reindent-then-newline-and-indent)
-  ;; Comment Paragraphs:
-; (define-key meta-mode-map "\M-a"      'backward-sentence)
-; (define-key meta-mode-map "\M-e"      'forward-sentence)
-; (define-key meta-mode-map "\M-h"      'mark-paragraph)
-; (define-key meta-mode-map "\M-q"      'fill-paragraph)
-  ;; Navigation:
-  (define-key meta-mode-map "\M-\C-a"   'meta-beginning-of-defun)
-  (define-key meta-mode-map "\M-\C-e"   'meta-end-of-defun)
-  (define-key meta-mode-map "\M-\C-h"   'meta-mark-defun)
-  ;; Indentation:
-  (define-key meta-mode-map "\M-\C-q"   'meta-indent-defun)
-  (define-key meta-mode-map "\C-c\C-qe" 'meta-indent-defun)
-  (define-key meta-mode-map "\C-c\C-qr" 'meta-indent-region)
-  (define-key meta-mode-map "\C-c\C-qb" 'meta-indent-buffer)
-  ;; Commenting Out:
-  (define-key meta-mode-map "\C-c%"     'meta-comment-defun)
-; (define-key meta-mode-map "\C-uC-c%"  'meta-uncomment-defun)
-  (define-key meta-mode-map "\C-c;"     'meta-comment-region)
-  (define-key meta-mode-map "\C-c:"     'meta-uncomment-region)
-  ;; Symbol Completion:
-  (define-key meta-mode-map "\M-\t"     'meta-complete-symbol)
-  ;; Shell Commands:
-; (define-key meta-mode-map "\C-c\C-c"  'meta-command-file)
-; (define-key meta-mode-map "\C-c\C-k"  'meta-kill-job)
-; (define-key meta-mode-map "\C-c\C-l"  'meta-recenter-output)
-  )
+
 
 (easy-menu-define
  meta-mode-menu meta-mode-map
@@ -1107,5 +1103,5 @@ Turning on MetaPost mode calls the value of the variable
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)
 
-;;; arch-tag: ec2916b2-3a83-4cf7-962d-d8019370c006
+;; arch-tag: ec2916b2-3a83-4cf7-962d-d8019370c006
 ;;; meta-mode.el ends here

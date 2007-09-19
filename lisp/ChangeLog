@@ -1,5 +1,8 @@
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/meta-mode.el (meta-mode-syntax-table): Move init into decl.
+	(meta-mode-map): Likewise and remove \t binding.
+
 	* net/snmp-mode.el: Remove spurious * in docstrings.
 	(snmp-rfc1155-types, snmp-rfc1213-types, snmp-rfc1902-types)
 	(snmp-rfc1903-types, snmp-rfc1155-access, snmp-rfc1902-access)
