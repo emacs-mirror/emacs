@@ -1,4 +1,4 @@
-2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>
+2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>  (tiny change)
 
 	* erc.texi (Special-Features): Fix small typo.
 
@@ -7,7 +7,7 @@
 	* erc-track.el (erc-track-switch-direction): Mention
 	erc-track-faces-priority-list.  Thanks to Leo for the suggestion.
 
-2007-09-11  Exal de Jesus Garcia Carrillo  <exal@gnu.org>
+2007-09-11  Exal de Jesus Garcia Carrillo  <exal@gnu.org>  (tiny change)
 
 	* erc-sound.el: Fix typo in setting up instructions.
 
