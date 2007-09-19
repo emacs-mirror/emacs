@@ -546,7 +546,10 @@ version.")
 			  atype
 			  host
 			  (if (stringp service)
-			      (socks-find-services-entry service)
+			      (or
+			       (socks-find-services-entry service)
+			       (error "Unable to find port for service `%s'"
+				      service))
 			    service))
       (puthash 'buffer buffer info)
       (puthash 'host host info)
