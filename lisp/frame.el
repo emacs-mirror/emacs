@@ -31,9 +31,8 @@
   (list (cons nil
 	      (if (fboundp 'tty-create-frame-with-faces)
 		  'tty-create-frame-with-faces
-		(function
-		 (lambda (parameters)
-		   (error "Can't create multiple frames without a window system"))))))
+                (lambda (parameters)
+                  (error "Can't create multiple frames without a window system")))))
   "Alist of window-system dependent functions to call to create a new frame.
 The window system startup file should add its frame creation
 function to this list, which should take an alist of parameters
@@ -757,16 +756,35 @@ setup is for focus to follow the pointer."
    (lambda (frame)
      (eq frame (window-frame (minibuffer-window frame))))))
 
-(defun frames-on-display-list (&optional terminal)
-  "Return a list of all frames on TERMINAL.
+;; Used to be called `terminal-id' in termdev.el.
+(defun get-device-terminal (device)
+  "Return the terminal corresponding to DEVICE.
+DEVICE can be a terminal, a frame, nil (meaning the selected frame's terminal),
+the name of an X display device (HOST.SERVER.SCREEN) or a tty device file."
+  (cond
+   ((or (null device) (framep device))
+    (frame-terminal device))
+   ((stringp device)
+    (let ((f (car (filtered-frame-list
+                   (lambda (frame)
+                     (or (equal (frame-parameter frame 'display) device)
+                         (equal (frame-parameter frame 'tty) device)))))))
+      (or f (error "Display %s does not exist" device))
+      (frame-terminal f)))
+   ((terminal-live-p device) device)
+   (t
+    (error "Invalid argument %s in `get-device-terminal'" device))))
 
-TERMINAL should be a terminal, a frame,
-or a name of an X display (a string of the form
+(defun frames-on-display-list (&optional device)
+  "Return a list of all frames on DEVICE.
+
+DEVICE should be a terminal, a frame,
+or a name of an X display or tty (a string of the form
 HOST:SERVER.SCREEN).
 
-If TERMINAL is omitted or nil, it defaults to the selected
+If DEVICE is omitted or nil, it defaults to the selected
 frame's terminal device."
-  (let* ((terminal (terminal-id terminal))
+  (let* ((terminal (get-device-terminal device))
 	 (func #'(lambda (frame)
 		   (eq (frame-terminal frame) terminal))))
     (filtered-frame-list func)))
