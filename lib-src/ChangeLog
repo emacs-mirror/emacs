@@ -1,3 +1,10 @@
+2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP)
+	(IS_ANY_SEP): Only define if !defined(HAVE_GET_CURRENT_DIR_NAME).
+	(main_argc): Remove.
+	(strprefix): Use strncmp.
+
 2007-09-20  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (main) [SIGSTOP]: Change conditional from WINDOWSNT.

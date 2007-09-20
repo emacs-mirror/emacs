@@ -81,25 +81,6 @@ Boston, MA 02110-1301, USA.  */
 #include <signal.h>
 #include <errno.h>
 
-/* From lisp.h */
-#ifndef DIRECTORY_SEP
-#define DIRECTORY_SEP '/'
-#endif
-#ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
-#endif
-#ifndef IS_DEVICE_SEP
-#ifndef DEVICE_SEP
-#define IS_DEVICE_SEP(_c_) 0
-#else
-#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)
-#endif
-#endif
-#ifndef IS_ANY_SEP
-#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))
-#endif
-
-
 
 char *getenv (), *getwd ();
 char *(getcwd) ();
@@ -131,9 +112,6 @@ char *(getcwd) ();
 
 /* Name used to invoke this program.  */
 char *progname;
-
-/* The first argument to main. */
-int main_argc;
 
 /* The second argument to main. */
 char **main_argv;
@@ -220,6 +198,25 @@ xstrdup (const char *s)
 
 /* From sysdep.c */
 #if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
+
+/* From lisp.h */
+#ifndef DIRECTORY_SEP
+#define DIRECTORY_SEP '/'
+#endif
+#ifndef IS_DIRECTORY_SEP
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+#endif
+#ifndef IS_DEVICE_SEP
+#ifndef DEVICE_SEP
+#define IS_DEVICE_SEP(_c_) 0
+#else
+#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)
+#endif
+#endif
+#ifndef IS_ANY_SEP
+#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))
+#endif
+
 
 /* Return the current working directory.  Returns NULL on errors.
    Any other returned value must be freed with free. This is used
@@ -311,7 +308,7 @@ w32_window_app ()
 }
 
 /*
-  execvp wrapper for Windows. Quotes arguments with embedded spaces.
+  execvp wrapper for Windows.  Quotes arguments with embedded spaces.
 
   This is necessary due to the broken implementation of exec* routines in
   the Microsoft libraries: they concatenate the arguments together without
@@ -516,6 +513,7 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
 /*
   Try to run a different command, or --if no alternate editor is
   defined-- exit with an errorcode.
+  Uses argv, but gets it from the global variable main_argv.
 */
 void
 fail (void)
@@ -539,7 +537,6 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  main_argc = argc;
   main_argv = argv;
   progname = argv[0];
   message (TRUE, "%s: Sorry, the Emacs server is supported only\n"
@@ -893,17 +890,7 @@ set_tcp_socket ()
 static int
 strprefix (char *prefix, char *string)
 {
-  int i;
-  if (! prefix)
-    return 1;
-
-  if (!string)
-    return 0;
-
-  for (i = 0; prefix[i]; i++)
-    if (!string[i] || string[i] != prefix[i])
-      return 0;
-  return 1;
+  return !strncmp (prefix, string, strlen (prefix));
 }
 
 
@@ -1038,7 +1025,6 @@ set_local_socket ()
     int sock_status = 0;
     int default_sock = !socket_name;
     int saved_errno = 0;
-
     char *server_name = "server";
 
     if (socket_name && !index (socket_name, '/') && !index (socket_name, '\\'))
@@ -1268,7 +1254,6 @@ main (argc, argv)
   char *cwd, *str;
   char string[BUFSIZ+1];
 
-  main_argc = argc;
   main_argv = argv;
   progname = argv[0];
 
