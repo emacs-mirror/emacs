@@ -205,8 +205,12 @@ get_terminal (Lisp_Object terminal, int throw)
   if (NILP (terminal))
     terminal = selected_frame;
 
-  if (INTEGERP (terminal))
+  if (TERMINALP (terminal))
+    result = XTERMINAL (terminal);
+
+  else if (INTEGERP (terminal))
     {
+      /* FIXME: Get rid of the use of integers to represent terminals.  */
       struct terminal *t;
 
       for (t = terminal_list; t; t = t->next_terminal)
@@ -214,6 +218,7 @@ get_terminal (Lisp_Object terminal, int throw)
           if (t->id == XINT (terminal))
             {
               result = t;
+  	      eassert (t->name != NULL);
               break;
             }
         }
@@ -222,6 +227,9 @@ get_terminal (Lisp_Object terminal, int throw)
     {
       result = FRAME_TERMINAL (XFRAME (terminal));
     }
+
+  if (result && !result->name)
+    result = NULL;
 
   if (result == NULL && throw)
     wrong_type_argument (Qterminal_live_p, terminal);
@@ -236,9 +244,9 @@ get_terminal (Lisp_Object terminal, int throw)
 struct terminal *
 create_terminal (void)
 {
-  struct terminal *terminal = (struct terminal *) xmalloc (sizeof (struct terminal));
-  
-  bzero (terminal, sizeof (struct terminal));
+  struct terminal *terminal = allocate_terminal ();
+
+  terminal->name = NULL;
   terminal->next_terminal = terminal_list;
   terminal_list = terminal;
 
@@ -256,20 +264,6 @@ create_terminal (void)
   return terminal;
 }
 
-/* Mark the Lisp pointers in the terminal objects.
-   Called by the Fgarbage_collector.  */
-
-void
-mark_terminals (void)
-{
-  struct terminal *t;
-  for (t = terminal_list; t; t = t->next_terminal)
-    {
-      mark_object (t->param_alist);
-    }
-}
-
-
 /* Low-level function to close all frames on a terminal, remove it
    from the terminal list and free its memory.  */
 
@@ -281,9 +275,10 @@ delete_terminal (struct terminal *terminal)
 
   /* Protect against recursive calls.  Fdelete_frame calls the
      delete_terminal_hook when we delete our last frame.  */
-  if (terminal->deleted)
+  if (!terminal->name)
     return;
-  terminal->deleted = 1;
+  xfree (terminal->name);
+  terminal->name = NULL;
 
   /* Check for live frames that are still on this terminal. */
   FOR_EACH_FRAME (tail, frame)
@@ -300,20 +295,18 @@ delete_terminal (struct terminal *terminal)
       abort ();
   *tp = terminal->next_terminal;
 
-  if (terminal->keyboard_coding)
-    xfree (terminal->keyboard_coding);
-  if (terminal->terminal_coding)
-    xfree (terminal->terminal_coding);
-  if (terminal->name)
-    xfree (terminal->name);
+  xfree (terminal->keyboard_coding);
+  terminal->keyboard_coding = NULL;
+  xfree (terminal->terminal_coding);
+  terminal->terminal_coding = NULL;
   
 #ifdef MULTI_KBOARD
   if (terminal->kboard && --terminal->kboard->reference_count == 0)
-    delete_kboard (terminal->kboard);
+    {
+      delete_kboard (terminal->kboard);
+      terminal->kboard = NULL;
+    }
 #endif
-  
-  bzero (terminal, sizeof (struct terminal));
-  xfree (terminal);
 }
 
 DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
@@ -364,12 +357,16 @@ The terminal device is represented by its integer identifier.  */)
 
   CHECK_LIVE_FRAME (frame);
 
-  t = get_terminal (frame, 0);
+  t = FRAME_TERMINAL (XFRAME (frame));
 
   if (!t)
     return Qnil;
   else
-    return make_number (t->id);
+    {
+      Lisp_Object terminal;
+      XSETTERMINAL (terminal, t);
+      return terminal;
+    }
 }
 
 DEFUN ("terminal-live-p", Fterminal_live_p, Sterminal_live_p, 1, 1, 0,
@@ -377,17 +374,12 @@ DEFUN ("terminal-live-p", Fterminal_live_p, Sterminal_live_p, 1, 1, 0,
 Value is nil if OBJECT is not a live display terminal.
 If object is a live display terminal, the return value indicates what
 sort of output terminal it uses.  See the documentation of `framep' for
-possible return values.
-
-Display terminals are represented by their integer identifiers. */)
+possible return values.  */)
      (object)
      Lisp_Object object;
 {
   struct terminal *t;
   
-  if (!INTEGERP (object))
-    return Qnil;
-
   t = get_terminal (object, 0);
 
   if (!t)
@@ -412,15 +404,17 @@ Display terminals are represented by their integer identifiers. */)
 }
 
 DEFUN ("terminal-list", Fterminal_list, Sterminal_list, 0, 0, 0,
-       doc: /* Return a list of all terminal devices.
-Terminal devices are represented by their integer identifiers. */)
+       doc: /* Return a list of all terminal devices.  */)
   ()
 {
-  Lisp_Object terminals = Qnil;
+  Lisp_Object terminal, terminals = Qnil;
   struct terminal *t;
 
   for (t = terminal_list; t; t = t->next_terminal)
-    terminals = Fcons (make_number (t->id), terminals);
+    {
+      XSETTERMINAL (terminal, t);
+      terminals = Fcons (terminal, terminals);
+    }
 
   return terminals;
 }
