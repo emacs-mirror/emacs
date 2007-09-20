@@ -1163,25 +1163,27 @@ on the line for the invalidity you want to see."
 	(setq occur-revert-arguments (list nil 0 (list buffer))))
       (save-excursion
 	(goto-char (point-max))
-	(while (and (not (bobp)))
-	  (let ((end (point))
-		prev-end)
-	    ;; Scan the previous paragraph for invalidities.
-	    ;; FIXME this should be using something like backward-paragraph.
-	    (if (search-backward "\n\n" nil t)
-		(progn
-		  (setq prev-end (point))
-		  (forward-char 2))
-	      (goto-char (setq prev-end (point-min))))
-	    (or (tex-validate-region (point) end)
-		(let* ((end (line-beginning-position 2))
-		       start tem)
+	;; Do a little shimmy to place point at the end of the last
+	;; "real" paragraph. Need to avoid validating across an \end,
+	;; because that blows up latex-forward-sexp.
+	(backward-paragraph)
+	(forward-paragraph)
+	(while (not (bobp))
+	  ;; Scan the previous paragraph for invalidities.
+	  (backward-paragraph)
+	  (save-excursion
+	    (or (tex-validate-region (point) (save-excursion
+					       (forward-paragraph)
+					       (point)))
+		(let ((end (line-beginning-position 2))
+		      start tem)
 		  (beginning-of-line)
 		  (setq start (point))
 		  ;; Keep track of line number as we scan,
 		  ;; in a cumulative fashion.
 		  (if linenum
-		      (setq linenum (- linenum (count-lines prevpos (point))))
+		      (setq linenum (- linenum
+				       (count-lines prevpos (point))))
 		    (setq linenum (1+ (count-lines 1 start))))
 		  (setq prevpos (point))
 		  ;; Mention this mismatch in *Occur*.
@@ -1202,10 +1204,10 @@ on the line for the invalidity you want to see."
 		      (add-text-properties
 		       text-beg (- text-end 1)
 		       '(mouse-face highlight
-			 help-echo "mouse-2: go to this invalidity"))
+				    help-echo
+				    "mouse-2: go to this invalidity"))
 		      (put-text-property text-beg (- text-end 1)
-					 'occur-target tem)))))
-	    (goto-char prev-end))))
+					 'occur-target tem))))))))
       (with-current-buffer standard-output
 	(let ((no-matches (zerop num-matches)))
 	  (if no-matches
@@ -1228,7 +1230,9 @@ area if a mismatch is found."
 	    (narrow-to-region start end)
 	    ;; First check that the open and close parens balance in numbers.
 	    (goto-char start)
-	    (while (<= 0 (setq max-possible-sexps (1- max-possible-sexps)))
+	    (while (and (not (eobp))
+			(<= 0 (setq max-possible-sexps
+				    (1- max-possible-sexps))))
 	      (forward-sexp 1))
 	    ;; Now check that like matches like.
 	    (goto-char start)
@@ -1367,7 +1371,7 @@ Return the value returned by the last execution of BODY."
     (search-failed (error "Couldn't find unended \\begin"))))
 
 (defun tex-next-unmatched-end ()
-  "Leave point at the end of the next `\\end' that is unended."
+  "Leave point at the end of the next `\\end' that is unmatched."
   (while (and (tex-search-noncomment
 	       (re-search-forward "\\\\\\(begin\\|end\\)\\s *{[^}]+}"))
 	      (save-excursion (goto-char (match-beginning 0))
