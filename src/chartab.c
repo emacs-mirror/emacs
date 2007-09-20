@@ -805,8 +805,7 @@ map_sub_char_table (c_function, function, table, arg, val, range,
 	      if (! NILP (val) && different_value)
 		{
 		  XSETCDR (range, make_number (c - 1));
-		  if (depth == 3
-		      && EQ (XCAR (range), XCDR (range)))
+		  if (EQ (XCAR (range), XCDR (range)))
 		    {
 		      if (c_function)
 			(*c_function) (arg, XCAR (range), val);
@@ -875,10 +874,20 @@ map_char_table (c_function, function, table, arg)
 
   if (! NILP (val))
     {
-      if (c_function)
-	(*c_function) (arg, range, val);
+      if (EQ (XCAR (range), XCDR (range)))
+	{
+	  if (c_function)
+	    (*c_function) (arg, XCAR (range), val);
+	  else
+	    call2 (function, XCAR (range), val);
+	}
       else
-	call2 (function, range, val);
+	{
+	  if (c_function)
+	    (*c_function) (arg, range, val);
+	  else
+	    call2 (function, range, val);
+	}
     }
 
   UNGCPRO;
