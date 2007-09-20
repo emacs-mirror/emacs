@@ -1,3 +1,41 @@
+2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* terminal.c (get_terminal): Handle terminals.
+	Make sure the terminal returned is live.
+	(create_terminal): Use allocate_terminal.
+	(mark_terminals): Move to alloc.c.
+	(delete_terminal): Use terminal->name as liveness status.
+	NULL out fields after freeing their contents.
+	Don't deallocate the object.
+	(Fframe_terminal): Use FRAME_TERMINAL.  Return the terminal object
+	rather than an int.
+	(Fterminal_live_p): Accept non-integer arguments.
+	(Fterminal_list): Return terminal objects rather than an ints.
+
+	* alloc.c (enum mem_type): New member for `terminal' objects.
+	(allocate_terminal): New function.
+	(mark_maybe_pointer, valid_lisp_object_p, mark_object): Handle terminals.
+	(mark_terminal): New fun.
+	(mark_terminals): Move from terminal.c.
+
+	* term.c (get_tty_terminal): Don't treat output_initial specially.
+	(Fsuspend_tty, Fresume_tty): Use terminal objects rather than ints.
+	(delete_tty): Use terminal->name as liveness status.
+
+	* termhooks.h (struct terminal): Make it into a pseudovector.
+	Remove `deleted' replaced by checking `name's nullness.
+
+	* print.c (print_object): Handle terminals.
+
+	* lisp.h (enum pvec_type): New `terminal' pseudovector.
+	(XTERMINAL, XSETTERMINAL, TERMINALP, GC_TERMINALP): New macros.
+
+	* frame.c (make_terminal_frame):
+	* keyboard.c (tty_read_avail_input):
+	* w32term.c (x_delete_terminal):
+	* xfns.c (Fx_create_frame, x_create_tip_frame):
+	* xterm.c (x_delete_terminal): Use terminal->name as liveness status.
+
 2007-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* process.c (Fmake_network_process): Doc fix.
