@@ -657,6 +657,10 @@ language you are using."
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
 (define-key global-map "\C-g" 'keyboard-quit)
 
+;; Used to be in termdev.el: when using several terminals, make C-z
+;; suspend only the relevant terminal.
+(substitute-key-definition 'suspend-emacs 'suspend-frame global-map)
+
 (define-key global-map "\C-j" 'newline-and-indent)
 (define-key global-map "\C-m" 'newline)
 (define-key global-map "\C-o" 'open-line)
