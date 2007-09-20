@@ -1,3 +1,11 @@
+2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (current_frame): Change the default.
+	(longopts): Replace --current-frame by --create-frame.
+	(decode_options): Reverse the meaning of -c.
+	(print_help_and_exit): Update help text accordingly.
+	(main): Remove the -version and -good-version messages.
+
 2007-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SOURCES, unlock, relock): Delete.
@@ -13,8 +21,7 @@
 
 2007-08-29  Jason Rumney  <jasonr@gnu.org>
 
-	* emacsclient.c (SEND_STRING, SEND_QUOTED): Remove obfuscation
-	macros.
+	* emacsclient.c (SEND_STRING, SEND_QUOTED): Remove obfuscation macros.
 	(quote_argument, set_tcp_socket, handle_sigcont, handle_sigtstp):
 	(main): Expand removed macros inline.
 	(main) [WINDOWSNT]: Don't call ttyname.  Don't recognize -suspend
@@ -25,10 +32,9 @@
 
 	* emacsclient.c (signal.h): New include.
 	(sys/stat.h, errno.h): Always include, even on WINDOWSNT.
-	(DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP, IS_ANY_SEP): Copy
-	definitions here from src/lisp.h.
-	(main_argc, main_argv, current_frame, window_system, tty): New
-	variables.
+	(DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP, IS_ANY_SEP):
+	Copy definitions here from src/lisp.h.
+	(main_argc, main_argv, current_frame, window_system, tty): New vars.
 	(longopts): Add tty, current-frame.
 	(xmalloc, xstrdup): New functions.
 	(get_current_dir_name): New function, copied from src/sysdep.c.
@@ -54,10 +60,10 @@
 	verification.  If tty is set, check TERM, and pass name and type
 	to Emacs.  Pass window_system to Emacs.  Move sending of eval to
 	optind loop.  Send -position, -file to Emacs.  Call fsync after
-	fflush.  Check for a client/server version match. Handle
-	-emacs-pid, -window-system-unsupported, -print, -error, -suspend
-	commands.  Don't exit prematurely on --no-wait, let Emacs close
-	the connection for us.  When creating a new frame, send
+	fflush.  Check for a client/server version match.
+	Handle -emacs-pid, -window-system-unsupported, -print, -error, and
+	-suspend commands.  Don't exit prematurely on --no-wait, let Emacs
+	close the connection for us.  When creating a new frame, send
 	environment and pwd to Emacs.  Send current-frame to Emacs.
 
 2007-08-25  Eli Zaretskii  <eliz@gnu.org>
@@ -378,8 +384,7 @@
 	suggest using options to make them explicit.
 	(AUTH_KEY_LENGTH, SEND_BUFFER_SIZE): New constants.
 	(send_buffer, sblen): New variables.
-	(send_to_emacs): New function to buffer output and send it with
-	send().
+	(send_to_emacs): New function to buffer output and send it with `send'.
 	(quote_file_name): Use SEND_STRING.
 	(close_winsock, initialize_sockets): New functions to load and
 	unload Winsock.
@@ -485,8 +490,8 @@
 
 2006-05-23  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* pop.c (pop_open, socket_connection, KPOP_SERVICE): Added
-	comments explaining why the "kpop" service is never used.
+	* pop.c (pop_open, socket_connection, KPOP_SERVICE):
+	Add comments explaining why the "kpop" service is never used.
 
 2006-05-13  Eli Zaretskii  <eliz@gnu.org>
 
@@ -594,7 +599,7 @@
 
 	* makefile.w32-in (../src/config.h): Don't overwrite.  Print a
 	message instead.
-	(../src/paths.h): Removed.
+	(../src/paths.h): Remove.
 
 2005-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -972,7 +977,7 @@
 
 2003-01-06  Kim F. Storm  <storm@cua.dk>
 
-	* pop.c (__P): Renamed from _P to avoid problems on Cygwin.
+	* pop.c (__P): Rename from _P to avoid problems on Cygwin.
 	All uses changed.
 
 2002-12-18  Andrew Innes  <andrewi@gnu.org>

@@ -144,8 +144,8 @@ int nowait = 0;
 /* Nonzero means args are expressions to be evaluated.  --eval.  */
 int eval = 0;
 
-/* Nonzero means don't open a new frame.  --current-frame.  */
-int current_frame = 0;
+/* Nonzero means don't open a new frame.  Inverse of --create-frame.  */
+int current_frame = 1;
 
 /* Nonzero means open a new graphical frame. */
 int window_system = 0;
@@ -178,7 +178,7 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "tty",	no_argument,       NULL, 't' },
-  { "current-frame", no_argument,  NULL, 'c' },
+  { "create-frame", no_argument,   NULL, 'c' },
   { "alternate-editor", required_argument, NULL, 'a' },
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
   { "socket-name",	required_argument, NULL, 's' },
@@ -442,7 +442,7 @@ decode_options (argc, argv)
           break;
 
         case 'c':
-          current_frame = 1;
+          current_frame = 0;
           break;
 
 	case 'H':
@@ -495,7 +495,7 @@ The following OPTIONS are accepted:\n\
 -V, --version		Just print version info and return\n\
 -H, --help    		Print this usage information message\n\
 -t, --tty    		Open a new Emacs frame on the current terminal\n\
--c, --current-frame  	Do not create a new frame;\n\
+-c, --create-frame  	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
@@ -1300,11 +1300,6 @@ main (argc, argv)
   w32_give_focus ();
 #endif
 
-  /* First of all, send our version number for verification. */
-  send_to_emacs (emacs_socket, "-version ");
-  send_to_emacs (emacs_socket, VERSION);
-  send_to_emacs (emacs_socket, " ");
-
   /* Send over our environment. */
   if (!current_frame)
     {
@@ -1464,11 +1459,7 @@ main (argc, argv)
       while (p > string && *p == '\n')
         *p-- = 0;
 
-      if (strprefix ("-good-version ", string))
-        {
-          /* -good-version: The versions match. */
-        }
-      else if (strprefix ("-emacs-pid ", string))
+      if (strprefix ("-emacs-pid ", string))
         {
           /* -emacs-pid PID: The process id of the Emacs process. */
           emacs_pid = strtol (string + strlen ("-emacs-pid"), NULL, 10);
