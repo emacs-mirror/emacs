@@ -1491,7 +1491,7 @@ main (argc, argv)
           fprintf (stderr, "*ERROR*: %s", str);
           needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
         }
-#ifndef WINDOWSNT
+#ifdef SIGSTOP
       else if (strprefix ("-suspend ", string))
         {
           /* -suspend: Suspend this terminal, i.e., stop the process. */
