@@ -2118,9 +2118,6 @@ get_tty_terminal (Lisp_Object terminal, int throw)
 {
   struct terminal *t = get_terminal (terminal, throw);
 
-  if (t && t->type == output_initial)
-    return NULL;
-
   if (t && t->type != output_termcap)
     {
       if (throw)
@@ -2269,7 +2266,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
         {
           Lisp_Object args[2];
           args[0] = intern ("suspend-tty-functions");
-          args[1] = make_number (t->id);
+          XSETTERMINAL (args[1], t);
           Frun_hook_with_args (2, args);
         }
     }
@@ -2334,7 +2331,7 @@ the currently selected frame. */)
         {
           Lisp_Object args[2];
           args[0] = intern ("resume-tty-functions");
-          args[1] = make_number (t->id);
+          XSETTERMINAL (args[1], t);
           Frun_hook_with_args (2, args);
         }
     }
@@ -3783,7 +3780,7 @@ delete_tty (struct terminal *terminal)
   
   /* Protect against recursive calls.  Fdelete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
-  if (terminal->deleted)
+  if (!terminal->name)
     return;
 
   if (terminal->type != output_termcap)
