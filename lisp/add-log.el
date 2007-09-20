@@ -1016,7 +1016,7 @@ Has a preference of looking backwards."
 		((derived-mode-p 'texinfo-mode)
 		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
-		((derived-mode-p '(perl-mode cperl-mode))
+		((derived-mode-p 'perl-mode 'cperl-mode)
 		 (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
 		;; Emacs's autoconf-mode installs its own

@@ -1,3 +1,7 @@
+2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* add-log.el (add-log-current-defun): Fix thinko w.r.t derived-mode-p.
+
 2007-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-validate-buffer): Use paragraph
