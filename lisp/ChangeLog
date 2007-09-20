@@ -68,7 +68,7 @@
 	error if the port associated with a service string can't be found.
 
 	* textmodes/tex-mode.el (tex-terminate-paragraph):
-	Use backward-paragraph.  Leave point at the site of any mismatch.
+	Use backward-paragraph.
 
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
