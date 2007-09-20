@@ -2722,7 +2722,9 @@ host, and only clients connecting to that address will be accepted.
 
 :service SERVICE -- SERVICE is name of the service desired, or an
 integer specifying a port number to connect to.  If SERVICE is t,
-a random port number is selected for the server.
+a random port number is selected for the server.  (If Emacs was
+compiled with getaddrinfo, a port number can also be specified as a
+string, e.g. "80", as well as an integer.  This is not portable.)
 
 :type TYPE -- TYPE is the type of connection.  The default (nil) is a
 stream type connection, `datagram' creates a datagram type connection.
