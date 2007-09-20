@@ -45,6 +45,7 @@ device (HOST.SERVER.SCREEN) or a tty device file."
 					     (equal (frame-parameter frame 'tty) terminal)))))))
       (or f (error "Display %s does not exist" terminal))
       (frame-terminal f)))
+   ((terminal-live-p terminal) terminal)
    (t
     (error "Invalid argument %s in `terminal-id'" terminal))))
 
@@ -191,5 +192,5 @@ device (HOST.SERVER.SCREEN) or a tty device file."
 
 (provide 'termdev)
 
-;;; arch-tag: 4c4df277-1ec1-4f56-bfde-7f156fe62fb2
+;; arch-tag: 4c4df277-1ec1-4f56-bfde-7f156fe62fb2
 ;;; termdev.el ends here
