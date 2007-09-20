@@ -55,6 +55,7 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "charset.h"
 #include "syssignal.h"
+#include "termhooks.h"		/* For struct terminal.  */
 #include <setjmp.h>
 
 /* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
@@ -341,7 +342,8 @@ Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
 EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
-extern void mark_terminals P_ ((void));
+static void mark_terminal P_((struct terminal *t));
+static void mark_terminals P_ ((void));
 extern void mark_kboards P_ ((void));
 extern void mark_ttys P_ ((void));
 extern void mark_backtrace P_ ((void));
@@ -382,6 +384,7 @@ enum mem_type
   MEM_TYPE_PROCESS,
   MEM_TYPE_HASH_TABLE,
   MEM_TYPE_FRAME,
+  MEM_TYPE_TERMINAL,
   MEM_TYPE_WINDOW
 };
 
@@ -3017,6 +3020,22 @@ allocate_window ()
 }
 
 
+struct terminal *
+allocate_terminal ()
+{
+  EMACS_INT len = VECSIZE (struct terminal);
+  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_TERMINAL);
+  EMACS_INT i;
+  Lisp_Object tmp, zero = make_number (0);
+
+  for (i = 0; i < len; ++i)
+    v->contents[i] = zero;
+  v->size = len;
+  XSETTERMINAL (tmp, v);	/* Add the appropriate tag.  */
+
+  return (struct terminal *) v;
+}
+
 struct frame *
 allocate_frame ()
 {
@@ -4320,6 +4339,7 @@ mark_maybe_pointer (p)
 	case MEM_TYPE_PROCESS:
 	case MEM_TYPE_HASH_TABLE:
 	case MEM_TYPE_FRAME:
+	case MEM_TYPE_TERMINAL:
 	case MEM_TYPE_WINDOW:
 	  if (live_vector_p (m, p))
 	    {
@@ -4724,6 +4744,7 @@ valid_lisp_object_p (obj)
     case MEM_TYPE_PROCESS:
     case MEM_TYPE_HASH_TABLE:
     case MEM_TYPE_FRAME:
+    case MEM_TYPE_TERMINAL:
     case MEM_TYPE_WINDOW:
       return live_vector_p (m, p);
 
@@ -5662,6 +5683,11 @@ mark_object (arg)
 	      mark_glyph_matrix (w->desired_matrix);
 	    }
 	}
+      else if (GC_TERMINALP (obj))
+	{
+	  CHECK_LIVE (live_vector_p);
+	  mark_terminal (XTERMINAL (obj));
+	}
       else if (GC_HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
@@ -5904,6 +5930,28 @@ mark_buffer (buf)
       mark_buffer (base_buffer);
     }
 }
+
+/* Mark the Lisp pointers in the terminal objects.
+   Called by the Fgarbage_collector.  */
+
+static void
+mark_terminal (struct terminal *t)
+{
+  VECTOR_MARK (t);
+  mark_object (t->param_alist);
+}
+
+static void
+mark_terminals (void)
+{
+  struct terminal *t;
+  for (t = terminal_list; t; t = t->next_terminal)
+    {
+      eassert (t->name != NULL);
+      mark_terminal (t);
+    }
+}
+
 
 
 /* Value is non-zero if OBJ will survive the current GC because it's
