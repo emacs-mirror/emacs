@@ -942,11 +942,11 @@ indentation to be kept as it was before narrowing."
 ;; Compute the number of extra semicolons to add to the comment starter
 ;; in Lisp mode, extra stars in C mode, etc.
 ;; If ARG is non-nil, just follow ARG.
-;; If the comment-starter is mult-char, just follow ARG.
-;; Otherwise obey comment-add, and add one more if EXTRA is non-nil.
+;; If the comment-starter is multi-char, just follow ARG.
+;; Otherwise obey comment-add, and double it if EXTRA is non-nil.
 (defun comment-add (arg &optional extra)
   (if (and (null arg) (= (string-match "[ \t]*\\'" comment-start) 1))
-      (+ comment-add (if extra 1 0))
+      (* comment-add (if extra 2 1))
     (1- (prefix-numeric-value arg))))
 
 (defun comment-region-internal (beg end cs ce
@@ -1088,7 +1088,7 @@ The strings used as comment starts are built from
      (t
       ;; Add an extra semicolon in Lisp and similar modes.
       ;; If STYLE doesn't specify indenting the comments,
-      ;; then add yet one more semicolon.
+      ;; then double the value of `comment-add'.
       (setq numarg (comment-add arg (null (nth 3 style))))
       (comment-region-internal
        beg end
