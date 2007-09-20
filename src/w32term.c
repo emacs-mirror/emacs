@@ -6331,7 +6331,7 @@ x_delete_terminal (struct terminal *terminal)
 
   /* Protect against recursive calls.  Fdelete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
-  if (terminal->deleted)
+  if (!terminal->name)
     return;
 
   BLOCK_INPUT;
