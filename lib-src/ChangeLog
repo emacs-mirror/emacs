@@ -1,3 +1,7 @@
+2007-09-20  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c (main) [SIGSTOP]: Change conditional from WINDOWSNT.
+
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacsclient.c (current_frame): Change the default.
