@@ -760,7 +760,7 @@ setup is for focus to follow the pointer."
 (defun frames-on-display-list (&optional terminal)
   "Return a list of all frames on TERMINAL.
 
-TERMINAL should be a terminal identifier (an integer), a frame,
+TERMINAL should be a terminal, a frame,
 or a name of an X display (a string of the form
 HOST:SERVER.SCREEN).
 
