@@ -1,3 +1,7 @@
+2007-09-20  Richard Stallman  <rms@gnu.org>
+
+	* newcomment.el (comment-add): If EXTRA, double `comment-add' value.
+
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* add-log.el (add-log-current-defun): Fix thinko w.r.t derived-mode-p.
