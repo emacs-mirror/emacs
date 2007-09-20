@@ -1512,6 +1512,45 @@ relocate_fd (fd, minfd)
 }
 
 static int
+getenv_internal_1 (var, varlen, value, valuelen, env)
+     char *var;
+     int varlen;
+     char **value;
+     int *valuelen;
+     Lisp_Object env;
+{
+  for (; CONSP (env); env = XCDR (env))
+    {
+      Lisp_Object entry = XCAR (env);
+      if (STRINGP (entry)
+	  && SBYTES (entry) >= varlen
+#ifdef WINDOWSNT
+	  /* NT environment variables are case insensitive.  */
+	  && ! strnicmp (SDATA (entry), var, varlen)
+#else  /* not WINDOWSNT */
+	  && ! bcmp (SDATA (entry), var, varlen)
+#endif /* not WINDOWSNT */
+	  )
+	{
+	  if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
+	    {
+	      *value = (char *) SDATA (entry) + (varlen + 1);
+	      *valuelen = SBYTES (entry) - (varlen + 1);
+	      return 1;
+	    }
+	  else if (SBYTES (entry) == varlen)
+	    {
+	      /* Lone variable names in Vprocess_environment mean that
+		 variable should be removed from the environment. */
+	      *value = NULL;
+	      return 1;
+	    }
+	}
+    }
+  return 0;
+}
+
+static int
 getenv_internal (var, varlen, value, valuelen, frame)
      char *var;
      int varlen;
@@ -1519,42 +1558,18 @@ getenv_internal (var, varlen, value, valuelen, frame)
      int *valuelen;
      Lisp_Object frame;
 {
-  Lisp_Object scan;
   Lisp_Object display;
 
-  /* FIXME: Code duplication.  */
+  /* FIXME: weird behavior.  */
 
   if (NILP (frame))
     {
       /* Try to find VAR in Vprocess_environment first.  */
-      for (scan = Vprocess_environment; CONSP (scan); scan = XCDR (scan))
-        {
-          Lisp_Object entry = XCAR (scan);
-          if (STRINGP (entry)
-              && SBYTES (entry) >= varlen
-#ifdef WINDOWSNT
-              /* NT environment variables are case insensitive.  */
-              && ! strnicmp (SDATA (entry), var, varlen)
-#else  /* not WINDOWSNT */
-              && ! bcmp (SDATA (entry), var, varlen)
-#endif /* not WINDOWSNT */
-              )
-            {
-              if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
-                {
-                  *value = (char *) SDATA (entry) + (varlen + 1);
-                  *valuelen = SBYTES (entry) - (varlen + 1);
-                  return 1;
-                }
-              else if (SBYTES (entry) == varlen)
-                {
-                  /* Lone variable names in Vprocess_environment mean that
-                     variable should be removed from the environment. */
-                  return 0;
-                }
-            }
-        }
-      frame = selected_frame;
+      if (getenv_internal_1 (var, varlen, value, valuelen,
+			     Vprocess_environment))
+	return value ? 1 : 0;
+      else
+	frame = selected_frame;
     }
 
   /* For DISPLAY first try to get the values from the frame. */
@@ -1567,65 +1582,19 @@ getenv_internal (var, varlen, value, valuelen, frame)
 	  return 1;
       }
 
-  {
-    /* Try to find VAR in Vprocess_environment.  */
-    for (scan = Vprocess_environment; CONSP (scan); scan = XCDR (scan))
-      {
-	Lisp_Object entry = XCAR (scan);
-	if (STRINGP (entry)
-	    && SBYTES (entry) >= varlen
-#ifdef WINDOWSNT
-	    /* NT environment variables are case insensitive.  */
-	    && ! strnicmp (SDATA (entry), var, varlen)
-#else  /* not WINDOWSNT */
-	    && ! bcmp (SDATA (entry), var, varlen)
-#endif /* not WINDOWSNT */
-	    )
-	  {
-	    if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
-	      {
-		*value = (char *) SDATA (entry) + (varlen + 1);
-		*valuelen = SBYTES (entry) - (varlen + 1);
-		return 1;
-	      }
-	    else if (SBYTES (entry) == varlen)
-	      {
-		/* Lone variable names in Vprocess_environment mean that
-		   variable should be removed from the environment. */
-		return 0;
-	      }
-	  }
-      }
-  }
+  /* Try to find VAR in Vprocess_environment.  */
+  if (getenv_internal_1 (var, varlen, value, valuelen,
+			 Vprocess_environment))
+    return value ? 1 : 0;
 
 #if 0
   /* Find the environment in which to search the variable. */
   CHECK_FRAME (frame);
   frame = Fframe_with_environment (frame);
 
-  for (scan = get_frame_param (XFRAME (frame), Qenvironment);
-       CONSP (scan);
-       scan = XCDR (scan))
-    {
-      Lisp_Object entry;
-
-      entry = XCAR (scan);
-      if (STRINGP (entry)
-          && SBYTES (entry) > varlen
-          && SREF (entry, varlen) == '='
-#ifdef WINDOWSNT
-          /* NT environment variables are case insensitive.  */
-          && ! strnicmp (SDATA (entry), var, varlen)
-#else  /* not WINDOWSNT */
-          && ! bcmp (SDATA (entry), var, varlen)
-#endif /* not WINDOWSNT */
-          )
-	{
-	  *value    = (char *) SDATA (entry) + (varlen + 1);
-	  *valuelen = SBYTES (entry) - (varlen + 1);
-	  return 1;
-	}
-    }
+  if (getenv_internal_1 (var, varlen, value, valuelen,
+			 get_frame_param (XFRAME (frame), Qenvironment)))
+    return value ? 1 : 0;
 #endif
   return 0;
 }
@@ -1639,18 +1608,28 @@ This function searches `process-environment' for VARIABLE.  If it is
 not found there, then it continues the search in the environment list
 of the selected frame.
 
-If optional parameter FRAME is non-nil, then this function will ignore
-`process-environment' and will simply look up the variable in that
-frame's environment.  */)
-     (variable, frame)
-     Lisp_Object variable, frame;
+If optional parameter ENV is a list, then search this list instead of
+`process-environment', and return t when encountering a negative entry.
+
+If it is a frame, then this function will ignore `process-environment' and
+will simply look up the variable in that frame's environment.  */)
+     (variable, env)
+     Lisp_Object variable, env;
 {
   char *value;
   int valuelen;
 
   CHECK_STRING (variable);
-  if (getenv_internal (SDATA (variable), SBYTES (variable),
-		       &value, &valuelen, frame))
+  if (CONSP (env))
+    {
+      if (getenv_internal_1 (SDATA (variable), SBYTES (variable),
+			     &value, &valuelen, env))
+	return value ? make_string (value, valuelen) : Qt;
+      else
+	return Qnil;
+    }
+  else if (getenv_internal (SDATA (variable), SBYTES (variable),
+		       &value, &valuelen, env))
     return make_string (value, valuelen);
   else
     return Qnil;

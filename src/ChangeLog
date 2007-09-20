@@ -1,5 +1,9 @@
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* callproc.c (getenv_internal_1): New function.
+	(getenv_internal): Use it.
+	(Fgetenv_internal): Use it.  Accept an env-list as optional arg.
+
 	* terminal.c (get_terminal): Don't accept integers to represent terminals.
 	(Fterminal_name, Fterminal_parameters, Fterminal_parameter)
 	(Fset_terminal_parameter): Work with dead terminals as well.
