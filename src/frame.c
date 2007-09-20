@@ -563,8 +563,8 @@ make_terminal_frame (struct terminal *terminal)
   Lisp_Object frame;
   char name[20];
 
-  if (terminal->deleted)
-    error ("Terminal is being deleted, can't create new frames on it");
+  if (!terminal->name)
+    error ("Terminal is not live, can't create new frames on it");
 
   f = make_frame (1);
 
