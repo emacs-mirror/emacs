@@ -34,6 +34,7 @@ Boston, MA 02110-1301, USA.  */
 #include "termchar.h"
 #include "intervals.h"
 #include "blockinput.h"
+#include "termhooks.h"		/* For struct terminal.  */
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -1962,6 +1963,19 @@ print_object (obj, printcharfun, escapeflag)
 	    {
 	      strout (" on ", -1, -1, printcharfun, 0);
 	      print_string (XBUFFER (XWINDOW (obj)->buffer)->name, printcharfun);
+	    }
+	  PRINTCHAR ('>');
+	}
+      else if (TERMINALP (obj))
+	{
+	  struct terminal *t = XTERMINAL (obj);
+	  strout ("#<terminal ", -1, -1, printcharfun, 0);
+	  sprintf (buf, "%d", t->id);
+	  strout (buf, -1, -1, printcharfun, 0);
+	  if (t->name)
+	    {
+	      strout (" on ", -1, -1, printcharfun, 0);
+	      strout (t->name, -1, -1, printcharfun, 0);
 	    }
 	  PRINTCHAR ('>');
 	}
