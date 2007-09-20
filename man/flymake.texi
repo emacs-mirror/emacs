@@ -313,7 +313,7 @@ Used when looking for a master file. @xref{Locating a master file}.
 
 @item flymake-err-line-patterns
 Patterns for error/warning messages in the form @code{(regexp file-idx
-line-idx err-text-idx)}. @xref{Parsing the output}.
+line-idx col-idx err-text-idx)}. @xref{Parsing the output}.
 
 @item flymake-compilation-prevents-syntax-check
 A flag indicating whether compilation and syntax check of the same
@@ -333,11 +333,11 @@ buffer.
 A boolean flag indicating whether to start syntax check after a
 newline character is added to the buffer.
 
-@item flymake-errline-face
+@item flymake-errline
 A custom face for highlighting lines for which at least one error has
 been reported.
 
-@item flymake-warnline-face
+@item flymake-warnline
 A custom face for highlighting lines for which at least one warning
 and no errors have been reported.
 
@@ -410,9 +410,9 @@ checking.
 First, we write the @code{init-function}:
 
 @lisp
-(defun flymake-perl-init (buffer)
+(defun flymake-perl-init ()
   (let* ((temp-file (flymake-init-create-temp-buffer-copy
-                     buffer 'flymake-create-temp-inplace))
+                     'flymake-create-temp-inplace))
          (local-file  (concat (flymake-build-relative-filename
                                (file-name-directory
                                 (buffer-file-name
@@ -713,8 +713,8 @@ after every process launch/exit.
 
 Highlighting is implemented with overlays and happens in the process
 sentinel, after calling the cleanup function. Two customizable faces
-are used: @code{flymake-errline-face} and
-@code{flymake-warnline-face}.  Errors belonging outside the current
+are used: @code{flymake-errline} and
+@code{flymake-warnline}.  Errors belonging outside the current
 buffer are considered to belong to line 1 of the current buffer.
 
 @node Interaction with other modes
