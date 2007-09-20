@@ -1,3 +1,10 @@
+2007-09-20  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/tex-mode.el (tex-validate-buffer): Use paragraph
+	motion functions, rather than hard-coding "\n\n".
+	(tex-validate-region): Check for eobp, to speed up.
+	(tex-next-unmatched-end): Doc fix.
+
 2007-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (auto-mode-alist): Use archive-mode for .rar files.
