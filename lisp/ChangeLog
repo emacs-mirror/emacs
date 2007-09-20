@@ -1,5 +1,12 @@
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* termdev.el: Remove.
+
+	* frame.el (get-device-terminal): New function.  Moved from termdev.el.
+	(frames-on-display-list): Use it.
+
+	* bindings.el: Bind C-z to suspend-frame instead of suspend-emacs.
+
 	* termdev.el (terminal-id): Ask terminal-live-p before giving up.
 
 2007-09-20  Richard Stallman  <rms@gnu.org>
