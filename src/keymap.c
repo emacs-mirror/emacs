@@ -2930,7 +2930,11 @@ where_is_internal_1 (key, binding, args, data)
       Faset (sequence, last, make_number (XINT (key) | meta_modifier));
     }
   else
-    sequence = append_key (this, key);
+    {
+      if (CONSP (key))
+	key = Fcons (XCAR (key), XCDR (key));
+      sequence = append_key (this, key);
+    }
 
   if (!NILP (where_is_cache))
     {
