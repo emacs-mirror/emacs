@@ -3108,8 +3108,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   kb = &the_only_kboard;
 #endif
 
-  if (dpyinfo->terminal->deleted)
-    error ("Terminal is being deleted, can't create new frames on it");
+  if (!dpyinfo->terminal->name)
+    error ("Terminal is not live, can't create new frames on it");
 
   name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
@@ -4703,8 +4703,8 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   check_x ();
 
-  if (dpyinfo->terminal->deleted)
-    error ("Terminal is being deleted, can't create new frames on it");
+  if (!dpyinfo->terminal->name)
+    error ("Terminal is not live, can't create new frames on it");
 
   parms = Fcopy_alist (parms);
 
