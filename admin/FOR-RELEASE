@@ -93,8 +93,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00073.html
 ** incorrect button highlighting
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01079.html
 dann@ics.uci.edu, Sep 11.
-I think this might just be a limitation of the widget library, that
-there must be space between widgets.
 
 * FIXES FOR EMACS 22.3
 
