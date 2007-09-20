@@ -1,5 +1,10 @@
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* terminal.c (get_terminal): Don't accept integers to represent terminals.
+	(Fterminal_name, Fterminal_parameters, Fterminal_parameter)
+	(Fset_terminal_parameter): Work with dead terminals as well.
+	(Fmodify_terminal_parameters): Remove.
+
 	* terminal.c (get_terminal): Handle terminals.
 	Make sure the terminal returned is live.
 	(create_terminal): Use allocate_terminal.

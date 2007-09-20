@@ -208,21 +208,6 @@ get_terminal (Lisp_Object terminal, int throw)
   if (TERMINALP (terminal))
     result = XTERMINAL (terminal);
 
-  else if (INTEGERP (terminal))
-    {
-      /* FIXME: Get rid of the use of integers to represent terminals.  */
-      struct terminal *t;
-
-      for (t = terminal_list; t; t = t->next_terminal)
-        {
-          if (t->id == XINT (terminal))
-            {
-              result = t;
-  	      eassert (t->name != NULL);
-              break;
-            }
-        }
-    }
   else if (FRAMEP (terminal))
     {
       result = FRAME_TERMINAL (XFRAME (terminal));
@@ -428,12 +413,10 @@ selected frame's terminal). */)
   (terminal)
      Lisp_Object terminal;
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t
+    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
 
-  if (t->name)
-    return build_string (t->name);
-  else
-    return Qnil;
+  return t->name ? build_string (t->name) : Qnil;
 }
 
 
@@ -484,7 +467,8 @@ frame's terminal).  */)
      (terminal)
      Lisp_Object terminal;
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t
+    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
   return Fcopy_alist (t->param_alist);
 }
 
@@ -497,52 +481,11 @@ frame's terminal).  */)
      Lisp_Object parameter;
 {
   Lisp_Object value;
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t
+    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
   CHECK_SYMBOL (parameter);
   value = Fcdr (Fassq (parameter, t->param_alist));
   return value;
-}
-
-DEFUN ("modify-terminal-parameters", Fmodify_terminal_parameters,
-       Smodify_terminal_parameters, 2, 2, 0,
-       doc: /* Modify the parameters of terminal TERMINAL according to ALIST.
-ALIST is an alist of parameters to change and their new values.
-Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.
-
-TERMINAL can be a terminal id, a frame or nil (meaning the selected
-frame's terminal).  */)
-     (terminal, alist)
-     Lisp_Object terminal;
-     Lisp_Object alist;
-{
-  Lisp_Object tail, prop, val;
-  struct terminal *t = get_terminal (terminal, 1);
-  int length = XINT (Fsafe_length (alist));
-  int i;
-  Lisp_Object *parms = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
-  Lisp_Object *values = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
-
-  /* Extract parm names and values into those vectors.  */
-  
-  i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
-    {
-      Lisp_Object elt;
-      
-      elt = Fcar (tail);
-      parms[i] = Fcar (elt);
-      values[i] = Fcdr (elt);
-      i++;
-    }
-  
-  /* Now process them in reverse of specified order.  */
-  for (i--; i >= 0; i--)
-    {
-      prop = parms[i];
-      val = values[i];
-      store_terminal_param (t, prop, val);
-    }
-  return Qnil;
 }
 
 DEFUN ("set-terminal-parameter", Fset_terminal_parameter,
@@ -557,7 +500,8 @@ frame's terminal).  */)
      Lisp_Object parameter;
      Lisp_Object value;
 {
-  struct terminal *t = get_terminal (terminal, 1);
+  struct terminal *t
+    = TERMINALP (terminal) ? XTERMINAL (terminal) : get_terminal (terminal, 1);
   return store_terminal_param (t, parameter, value);
 }
 
@@ -613,7 +557,6 @@ The function should accept no arguments.  */);
   defsubr (&Sterminal_name);
   defsubr (&Sterminal_parameters);
   defsubr (&Sterminal_parameter);
-  defsubr (&Smodify_terminal_parameters);
   defsubr (&Sset_terminal_parameter);
 
   Fprovide (intern ("multi-tty"), Qnil);
