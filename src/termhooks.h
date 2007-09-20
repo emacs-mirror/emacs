@@ -318,6 +318,11 @@ struct w32_display_info;
 /* Terminal-local parameters. */
 struct terminal
 {
+  /* The first two fields are really the header of a vector */
+  /* The terminal code does not refer to them.  */
+  EMACS_INT size;
+  struct Lisp_Vector *vec_next;
+
   /* Chain of all terminal devices. */
   struct terminal *next_terminal;
 
@@ -326,10 +331,6 @@ struct terminal
 
   /* The number of frames that are on this terminal. */
   int reference_count;
-
-  /* Nonzero while deleting this terminal.  Used to protect against
-     recursive calls to delete_terminal_hook.  */
-  int deleted;
 
   /* The type of the terminal device. */
   enum output_method type;
