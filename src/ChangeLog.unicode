@@ -1,3 +1,13 @@
+2007-09-20  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (where_is_internal_1): If key is a cons, store the copy
+	in sequence.
+
+	* chartab.c (map_sub_char_table): If the range contains just one
+	character, call the function with that character even if the depth
+	is not 3.
+	(map_char_table): Likewise.
+
 2007-09-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_text_extents): Calculate metrics for the
