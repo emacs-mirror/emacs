@@ -274,7 +274,8 @@ typedef EMACS_INT Lisp_Object;
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
-   indicate the actual type.  */
+   indicate the actual type.
+   FIXME: Why a bitset if only one of the bits can ever be set at a time?  */
 enum pvec_type
 {
   PVEC_NORMAL_VECTOR = 0,
@@ -288,7 +289,8 @@ enum pvec_type
   PVEC_BOOL_VECTOR = 0x10000,
   PVEC_BUFFER = 0x20000,
   PVEC_HASH_TABLE = 0x40000,
-  PVEC_TYPE_MASK = 0x7fe00
+  PVEC_TERMINAL = 0x80000,
+  PVEC_TYPE_MASK = 0xffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
@@ -538,6 +540,7 @@ extern size_t pure_size;
 
 #define XPROCESS(a) (eassert (GC_PROCESSP(a)),(struct Lisp_Process *) XPNTR(a))
 #define XWINDOW(a) (eassert (GC_WINDOWP(a)),(struct window *) XPNTR(a))
+#define XTERMINAL(a) (eassert (GC_TERMINALP(a)),(struct terminal *) XPNTR(a))
 #define XSUBR(a) (eassert (GC_SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
 #define XBUFFER(a) (eassert (GC_BUFFERP(a)),(struct buffer *) XPNTR(a))
 #define XCHAR_TABLE(a) ((struct Lisp_Char_Table *) XPNTR(a))
@@ -565,6 +568,7 @@ extern size_t pure_size;
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
+#define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
@@ -1517,6 +1521,8 @@ typedef unsigned char UCHAR;
 #define GC_PROCESSP(x) GC_PSEUDOVECTORP (x, PVEC_PROCESS)
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define GC_WINDOWP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW)
+#define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
+#define GC_TERMINALP(x) GC_PSEUDOVECTORP (x, PVEC_TERMINAL)
 #define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
 #define GC_SUBRP(x) GC_PSEUDOVECTORP (x, PVEC_SUBR)
 #define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
