@@ -1,3 +1,11 @@
+2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wid-edit.el (widget-image-insert): Don't merge mouse-face with
+	neighbouring buttons.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Recognize gcc's use of "note" for informational messages.
+
 2007-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-validate-buffer): Use paragraph
@@ -7,8 +15,8 @@
 
 2007-09-19  Glenn Morris  <rgm@gnu.org>
 
-	* textmodes/tex-mode.el (tex-terminate-paragraph): Use
-	backward-paragraph.
+	* textmodes/tex-mode.el (tex-terminate-paragraph):
+	Use backward-paragraph.
 
 2007-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
