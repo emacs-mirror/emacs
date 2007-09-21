@@ -79,6 +79,7 @@
    '(;; Connection error / timeout
      "Connection to \\S-+ failed"
      "Read from server failed, maybe it closed the connection"
+     "Call timed out: server did not respond"
      ;; Samba
      "ERRDOS"
      "ERRSRV"

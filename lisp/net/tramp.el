@@ -2087,6 +2087,49 @@ For definition of that list see `tramp-set-completion-function'."
    ;; The method related defaults.
    (cdr (assoc method tramp-completion-function-alist))))
 
+
+;;; Fontification of `read-file-name'.
+
+;; rfn-eshadow.el is part of Emacs 22.  Its is autoloaded.
+(defvar tramp-rfn-eshadow-overlay)
+(make-variable-buffer-local 'tramp-rfn-eshadow-overlay)
+
+(defun tramp-rfn-eshadow-setup-minibuffer ()
+  "Set up a minibuffer for `file-name-shadow-mode'.
+Adds another overlay hiding filename parts according to Tramp's
+special handling of `substitute-in-file-name'."
+  (when minibuffer-completing-file-name
+    (setq tramp-rfn-eshadow-overlay
+	  (make-overlay (minibuffer-prompt-end) (minibuffer-prompt-end)))
+    ;; Copy rfn-eshadow-overlay properties.
+    (let ((props (overlay-properties rfn-eshadow-overlay)))
+      (while props
+	(overlay-put tramp-rfn-eshadow-overlay (pop props) (pop props))))))
+
+(when (boundp 'rfn-eshadow-setup-minibuffer-hook)
+  (add-hook 'rfn-eshadow-setup-minibuffer-hook
+	    'tramp-rfn-eshadow-setup-minibuffer))
+
+(defun tramp-rfn-eshadow-update-overlay ()
+  "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
+This is intended to be used as a minibuffer `post-command-hook' for
+`file-name-shadow-mode'; the minibuffer should have already
+been set up by `rfn-eshadow-setup-minibuffer'."
+  ;; In remote files name, there is a shadowing just for the local part.
+  (let ((end (or (overlay-end rfn-eshadow-overlay) (minibuffer-prompt-end))))
+    (when (file-remote-p (buffer-substring-no-properties end (point-max)))
+      (narrow-to-region
+       (1+ (or (string-match "/" (buffer-string) end) end)) (point-max))
+      (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
+	    (rfn-eshadow-update-overlay-hook nil))
+	(rfn-eshadow-update-overlay))
+      (widen))))
+
+(when (boundp 'rfn-eshadow-update-overlay-hook)
+  (add-hook 'rfn-eshadow-update-overlay-hook
+	    'tramp-rfn-eshadow-update-overlay))
+
+
 ;;; File Name Handler Functions:
 
 (defun tramp-handle-make-symbolic-link
@@ -7467,7 +7510,7 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   indefinitely blocking piece of code.  In this case it would be
 ;;   within Tramp around one of its calls to accept-process-output (or
 ;;   around one of the loops that calls accept-process-output)
-;;   (Stefann Monnier).
+;;   (Stefan Monnier).
 ;; * Autodetect if remote `ls' groks the "--dired" switch.
 ;; * Add fallback for inline encodings.  This should be used
 ;;   if the remote end doesn't support mimencode or a similar program.
