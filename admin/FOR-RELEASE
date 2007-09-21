@@ -47,8 +47,6 @@ GNU/Linux system.
 
 * BUGS
 
-** emacsclient must not force a new frame by default.
-
 ** xterm-mouse-mode should affect all xterms.
 
 ** Does deleting frames run Lisp code?  If so,
