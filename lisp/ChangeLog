@@ -1,3 +1,8 @@
+2007-09-21  Kevin Ryde  <user42@zip.com.au>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Bind `case-fold-search' to t.
+
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-validate-region): Handle escaped parens.
