@@ -1,3 +1,8 @@
+2007-09-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32term.c (x_draw_glyph_string): Use strike_through_color, not
+	underline_color, to draw strike-through.
+
 2007-09-20  Glenn Morris  <rgm@gnu.org>
 
 	* process.c (Fmake_network_process): Doc fix.
@@ -30,7 +35,8 @@
 	scope and rename to omfib_buffer for clarity.
 	(gif_load) <interlace_start, interlace_increment>: Move to file scope.
 
-2007-09-14  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
+2007-09-14  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
 	* gtkutil.c (xg_get_file_with_chooser): Move GCPRO1 after declarations.
 
 	* termhooks.h (enum event_kind): Remove trailing comma.
@@ -66,15 +72,15 @@
 2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Qrtl is new.
-        (parse_tool_bar_item): Handle :rtl keyword.
-        (syms_of_keyboard): Intern :rtl keyword.
+	(parse_tool_bar_item): Handle :rtl keyword.
+	(syms_of_keyboard): Intern :rtl keyword.
 
 	* dispextern.h (enum tool_bar_item_idx): Add TOOL_BAR_ITEM_RTL_IMAGE.
 
-	* gtkutil.c: (file_for_image, find_rtl_image): New functions.
-        (xg_get_image_for_pixmap): Use file_for_image
-        (update_frame_tool_bar): If direction is RTL, use RTL image if
-        defined.  Use Gtk stock images or named theme icons if defined.
+	* gtkutil.c (file_for_image, find_rtl_image): New functions.
+	(xg_get_image_for_pixmap): Use file_for_image
+	(update_frame_tool_bar): If direction is RTL, use RTL image if
+	defined.  Use Gtk stock images or named theme icons if defined.
 
 2007-08-29  Martin Rudalics  <rudalics@gmx.at>
 
