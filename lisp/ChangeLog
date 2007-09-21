@@ -1,3 +1,10 @@
+2007-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings)
+	(byte-compile-warnings-safe-p): Add `mapcar'.
+	(byte-compile-normal-call): Add option to suppress mapcar warning.
+	(top-level): Use mapc rather than mapcar in eval-when-compile.
+
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-getenv-from): Remove.  Use getenv-internal instead.
