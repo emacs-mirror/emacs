@@ -498,7 +498,21 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; unless told otherwise they should only assume a dumb terminal.
     ;; We are careful to do it late (after term-setup-hook), although the
     ;; new multi-tty code does not use $TERM any more there anyway.
-    (setenv "TERM" "dumb")))
+    (setenv "TERM" "dumb")
+    ;; Remove DISPLAY from the process-environment as well.  This allows
+    ;; `callproc.c' to give it a useful adaptive default which is either
+    ;; the value of the `display' frame-parameter or the DISPLAY value
+    ;; from initial-environment.
+    (let ((display (frame-parameter nil 'display)))
+      ;; Be careful which DISPLAY to remove from process-environment: follow
+      ;; the logic of `callproc.c'.
+      (if (stringp display) (setq display (concat "DISPLAY=" display))
+        (dolist (varval initial-environment)
+          (if (string-match "\\`DISPLAY=" varval)
+              (setq display varval))))
+      (when display
+        (message "Removing %s from process-environment" display)
+        (delete display process-environment)))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 (defun precompute-menubar-bindings ()

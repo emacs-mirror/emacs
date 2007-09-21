@@ -1,5 +1,8 @@
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* startup.el (normal-top-level): Remove DISPLAY from
+	process-environment to let it be computed dynamically in callproc.c
+
 	* frame.el (frame-initialize, make-frame):
 	* faces.el (tty-set-up-initial-frame-faces):
 	* env.el (setenv): Don't set display-environment-variable.
