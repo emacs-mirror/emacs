@@ -1664,7 +1664,7 @@ It also contains a plain-text table editor with spreadsheet-like
 capabilities.
 
 The Org mode table editor can be integrated into any major mode by
-activating the minor Orgtbl-mode.
+activating the minor mode, Orgtbl mode.
 
 The documentation for org-mode is in a separate manual; within Emacs,
 type "C-h i m org RET" to read that manual.  A reference card is
