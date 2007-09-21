@@ -341,7 +341,8 @@ If it is 'byte, then only byte-level optimizations will be logged."
 
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
-	     obsolete noruntime cl-functions interactive-only)
+	     obsolete noruntime cl-functions interactive-only
+	     make-local mapcar)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
