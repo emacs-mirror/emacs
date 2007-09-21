@@ -1,7 +1,12 @@
+2007-09-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.el (suspend-frame): Call `iconify-or-deiconify-frame' also
+	on w32 frames.
+
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* startup.el (normal-top-level): Remove DISPLAY from
-	process-environment to let it be computed dynamically in callproc.c
+	process-environment to let it be computed dynamically in callproc.c.
 
 	* frame.el (frame-initialize, make-frame):
 	* faces.el (tty-set-up-initial-frame-faces):
@@ -258,7 +263,7 @@
 	server-process-filter.
 	(server-execute-continuation): New functions.
 	(server-process-filter): Restructure so that all arguments are analysed
-	first and then acted upon in a subsequent stage  This way
+	first and then acted upon in a subsequent stage.  This way
 	server-goto-toplevel can be executed later, when we know if
 	it's necessary.
 	Remove the "-version" and "-version-good" support.
