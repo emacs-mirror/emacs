@@ -1,5 +1,11 @@
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.c (candidate_window_p): Consider frames that are being placed
+	by the user as somewhere between visible and iconified.
+	(window_loop): Prefer windows on the current frame.
+	(Fselect_window): Move the use of select-frame to the beginning so we
+	can just delegate all the work (it'll call us back anyway).
+
 	* frame.c (Qdisplay_environment_variable):
 	* frame.h (Qdisplay_environment_variable): Delete.
 

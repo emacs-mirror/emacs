@@ -1799,7 +1799,18 @@ candidate_window_p (window, owindow, minibuf, all_frames)
   else if (INTEGERP (all_frames) && XINT (all_frames) == 0)
     {
       FRAME_SAMPLE_VISIBILITY (f);
-      candidate_p = FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f);
+      candidate_p = (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f)
+#ifdef HAVE_X_WINDOWS
+		     /* Yuck!!  If we've just created the frame and the
+			window-manager requested the user to place it
+			manually, the window may still not be considered
+			`visible'.  I'd argue it should be at least
+			something like `iconified', but don't know how to do
+			that yet.  --Stef  */
+		     || (FRAME_X_P (f) && f->output_data.x->asked_for_visible
+			 && !f->output_data.x->has_been_visible)
+#endif
+		     );
     }
   else if (WINDOWP (all_frames))
     candidate_p = (EQ (FRAME_MINIBUF_WINDOW (f), all_frames)
@@ -2168,8 +2179,10 @@ window_loop (type, obj, mini, frames)
 		if (NILP (best_window))
 		  best_window = window;
 		else if (EQ (window, selected_window))
-		  /* For compatibility with 20.x, prefer to return
-		     selected-window.  */
+		  /* Prefer to return selected-window.  */
+		  RETURN_UNGCPRO (window);
+		else if (EQ (Fwindow_frame (window), selected_frame))
+		  /* Prefer windows on the current frame.  */
 		  best_window = window;
 	      }
 	    break;
@@ -3451,6 +3464,22 @@ selects the buffer of the selected window before each command.  */)
   if (EQ (window, selected_window))
     return window;
 
+  sf = SELECTED_FRAME ();
+  if (XFRAME (WINDOW_FRAME (w)) != sf)
+    {
+      XFRAME (WINDOW_FRAME (w))->selected_window = window;
+      /* Use this rather than Fhandle_switch_frame
+	 so that FRAME_FOCUS_FRAME is moved appropriately as we
+	 move around in the state where a minibuffer in a separate
+	 frame is active.  */
+      Fselect_frame (WINDOW_FRAME (w));
+      /* Fselect_frame called us back so we've done all the work already.  */
+      eassert (EQ (window, selected_window));
+      return window;
+    }
+  else
+    sf->selected_window = window;
+
   /* Store the current buffer's actual point into the
      old selected window.  It belongs to that window,
      and when the window is not selected, must be in the window.  */
@@ -3464,18 +3493,6 @@ selects the buffer of the selected window before each command.  */)
     }
 
   selected_window = window;
-  sf = SELECTED_FRAME ();
-  if (XFRAME (WINDOW_FRAME (w)) != sf)
-    {
-      XFRAME (WINDOW_FRAME (w))->selected_window = window;
-      /* Use this rather than Fhandle_switch_frame
-	 so that FRAME_FOCUS_FRAME is moved appropriately as we
-	 move around in the state where a minibuffer in a separate
-	 frame is active.  */
-      Fselect_frame (WINDOW_FRAME (w));
-    }
-  else
-    sf->selected_window = window;
 
   if (NILP (norecord))
     record_buffer (w->buffer);
