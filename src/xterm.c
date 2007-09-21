@@ -11136,10 +11136,11 @@ x_delete_display (dpyinfo)
   for (t = terminal_list; t; t = t->next_terminal)
     if (t->type == output_x_window && t->display_info.x == dpyinfo)
       {
+#ifdef HAVE_X_SM
         /* Close X session management when we close its display.  */
         if (t->id == 1 && x_session_have_connection ())
           x_session_close();
-
+#endif
         delete_terminal (t);
         break;
       }
