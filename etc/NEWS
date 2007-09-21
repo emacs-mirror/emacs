@@ -242,6 +242,8 @@ supported on other platforms, but not on Windows due to using the winsock
 *** $TERM is now set to `dumb' for subprocesses.  If you want to know the
 $TERM inherited by Emacs you will have to look inside initial-environment.
 
+*** $DISPLAY is now dynamically inherited from the frame's `display'.
+
 *** The `window-system' variable has been made frame-local. The new
 `initial-window-system' variable contains the `window-system' value
 for the first frame.
@@ -274,8 +276,6 @@ function-key-map variables that already existed.
 ??? How do the new variables relate to the old ones?
 
 *** `initial-environment' holds the environment inherited from Emacs's parent.
-
-*** New frame parameter `display-environment-variable'.
 
 *** The `keyboard-translate-table' variable and the terminal and
 keyboard coding systems have been made terminal-local.
