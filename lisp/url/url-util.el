@@ -190,7 +190,7 @@ Will not do anything if `url-show-status' is nil."
   (let* ((raw (if specified-time (current-time-string specified-time)
 		(current-time-string)))
 	 (gmt (timezone-make-date-arpa-standard raw
-						(nth 1 (current-time-zone))
+						(current-time-zone)
 						"GMT"))
 	 (parsed (timezone-parse-date gmt))
 	 (day (cdr-safe (assoc (substring raw 0 3) url-weekday-alist)))
