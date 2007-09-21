@@ -33,6 +33,8 @@ a GIF library.
 
 ** Support for systems without alloca has been removed.
 
+** The `emacstool' utility has been removed.
+
 
 * Changes in Emacs 23.1
 
