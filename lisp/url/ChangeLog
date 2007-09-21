@@ -1,3 +1,9 @@
+2007-09-21  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-util.el (url-get-normalized-date): Pass full timezone
+	information to timezone-make-date-arpa-standard, since zone name
+	may be unknown.
+
 2007-09-03  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-http.el: (url-http-parse-headers): Bind the current buffer
