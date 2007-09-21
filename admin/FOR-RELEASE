@@ -49,12 +49,14 @@ GNU/Linux system.
 
 ** xterm-mouse-mode should affect all xterms.
 
-** Does deleting frames run Lisp code?  If so,
-can we get rid of that?  It is a dangerous design.
+** Does deleting frames run Lisp code?  If so, can we get rid of that?
+It is a dangerous design.
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
 
 ** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
 
 ** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
 
 ** grep et al should use font-lock to do highlighting, so that they respect font-lock-mode.
 "can't turn off font-lock"
