@@ -1,5 +1,8 @@
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-mode.el (eshell-output-filter-functions): Add
+	eshell-postoutput-scroll-to-bottom.
+
 	* loadup.el: Remove termdev.
 
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
