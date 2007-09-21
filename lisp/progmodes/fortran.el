@@ -649,7 +649,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
 (let (abbrevs-changed)
   ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
   ;; Only use `apply' to quieten the byte-compiler.
-  (mapcar
+  (mapc
    (function (lambda (element)
                (condition-case nil
                    (apply 'define-abbrev fortran-mode-abbrev-table
@@ -852,20 +852,20 @@ Fortran mode.  If the optional argument GLOBAL is non-nil, it
 affects all Fortran buffers, and also the default."
   (interactive "p")
   (let (new)
-    (mapcar (lambda (buff)
-              (with-current-buffer buff
-                (when (eq major-mode 'fortran-mode)
-                  (setq fortran-line-length nchars
-                        fill-column fortran-line-length
-                        new (fortran-font-lock-syntactic-keywords))
-                  ;; Refontify only if necessary.
-                  (unless (equal new font-lock-syntactic-keywords)
-                    (setq font-lock-syntactic-keywords
-                          (fortran-font-lock-syntactic-keywords))
-                    (if font-lock-mode (font-lock-mode 1))))))
-            (if global
-                (buffer-list)
-              (list (current-buffer))))
+    (mapc (lambda (buff)
+            (with-current-buffer buff
+              (when (eq major-mode 'fortran-mode)
+                (setq fortran-line-length nchars
+                      fill-column fortran-line-length
+                      new (fortran-font-lock-syntactic-keywords))
+                ;; Refontify only if necessary.
+                (unless (equal new font-lock-syntactic-keywords)
+                  (setq font-lock-syntactic-keywords
+                        (fortran-font-lock-syntactic-keywords))
+                  (if font-lock-mode (font-lock-mode 1))))))
+          (if global
+              (buffer-list)
+            (list (current-buffer))))
     (if global
         (setq-default fortran-line-length nchars))))
 
