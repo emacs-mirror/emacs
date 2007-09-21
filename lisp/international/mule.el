@@ -2310,25 +2310,26 @@ This function is intended to be added to `auto-coding-functions'."
 (defun sgml-html-meta-auto-coding-function (size)
   "If the buffer has an HTML meta tag, use it to determine encoding.
 This function is intended to be added to `auto-coding-functions'."
-  (setq size (min (+ (point) size)
-		  (save-excursion
-		    ;; Limit the search by the end of the HTML header.
-		    (or (search-forward "</head>" size t)
-			;; In case of no header, search only 10 lines.
-			(forward-line 10))
-		    (point))))
-  ;; Make sure that the buffer really contains an HTML document, by
-  ;; checking that it starts with a doctype or a <HTML> start tag
-  ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
-  ;; useful for Mozilla bookmark files.
-  (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
-	     (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t))
-    (let* ((match (match-string 1))
-	   (sym (intern (downcase match))))
-      (if (coding-system-p sym)
-	  sym
-	(message "Warning: unknown coding system \"%s\"" match)
-	nil))))
+  (let ((case-fold-search t))
+    (setq size (min (+ (point) size)
+		    (save-excursion
+		      ;; Limit the search by the end of the HTML header.
+		      (or (search-forward "</head>" size t)
+			  ;; In case of no header, search only 10 lines.
+			  (forward-line 10))
+		      (point))))
+    ;; Make sure that the buffer really contains an HTML document, by
+    ;; checking that it starts with a doctype or a <HTML> start tag
+    ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
+    ;; useful for Mozilla bookmark files.
+    (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
+	       (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t))
+      (let* ((match (match-string 1))
+	     (sym (intern (downcase match))))
+	(if (coding-system-p sym)
+	    sym
+	  (message "Warning: unknown coding system \"%s\"" match)
+	  nil)))))
 
 ;;;
 (provide 'mule)
