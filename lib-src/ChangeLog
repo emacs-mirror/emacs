@@ -1,3 +1,9 @@
+2007-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacstool.c: Remove file.
+	* Makefile.in (emacstool, nemacstool, xvetool, xveterm):
+	Delete targets built from emacstool.
+
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacsclient.c (decode_options): -t implies -c.
