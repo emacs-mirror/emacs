@@ -2831,6 +2831,10 @@ That command is designed for interactive use only" fn))
 (defun byte-compile-normal-call (form)
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
+  (when (and for-effect (eq (car form) 'mapcar))
+    (byte-compile-set-symbol-position 'mapcar)
+    (byte-compile-warn
+     "`mapcar' called for effect; use `mapc' or `dolist' instead"))
   (byte-compile-push-constant (car form))
   (mapc 'byte-compile-form (cdr form))	; wasteful, but faster.
   (byte-compile-out 'byte-call (length (cdr form))))
