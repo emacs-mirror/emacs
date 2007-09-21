@@ -90,10 +90,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00020.html
 ** Bug/Patch view.el
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00073.html
 
-** incorrect button highlighting
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01079.html
-dann@ics.uci.edu, Sep 11.
-
 * FIXES FOR EMACS 22.3
 
 Here we list any small fixes that arrived too late for Emacs 22.2, but
