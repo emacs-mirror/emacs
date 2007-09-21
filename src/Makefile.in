@@ -1319,8 +1319,6 @@ ${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
 #endif
 
-${libsrc}emacstool${EXEEXT}: ${libsrc}emacstool.c
-	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool${EXEEXT}
 bootstrapclean:
 	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 mostlyclean:
