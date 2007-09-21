@@ -7,16 +7,6 @@
 	* faces.el (tty-set-up-initial-frame-faces):
 	* env.el (setenv): Don't set display-environment-variable.
 
-2007-09-21  Glenn Morris  <rgm@gnu.org>
-
-	* emacs-lisp/bytecomp.el (byte-compile-warnings)
-	(byte-compile-warnings-safe-p): Add `mapcar'.
-	(byte-compile-normal-call): Add option to suppress mapcar warning.
-	(top-level): Use mapc rather than mapcar in eval-when-compile.
-	(byte-compile-warning-types): Add mapcar and make-local.
-
-2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
-
 	* server.el (server-getenv-from): Remove.  Use getenv-internal instead.
 	(server-create-tty-frame): Don't set unused `tty' property.
 	Set `display' instead of display-environment-variable.
@@ -48,22 +38,27 @@
 	* term/sun-mouse.el (suspend-emacstool): Remove.
 	* term/sun.el: Remove emacstool-related code.
 
-2007-09-21  Kevin Ryde  <user42@zip.com.au>
-
-	* international/mule.el (sgml-html-meta-auto-coding-function):
-	Bind `case-fold-search' to t.
-
-2007-09-21  Glenn Morris  <rgm@gnu.org>
+	* emacs-lisp/bytecomp.el (byte-compile-warnings)
+	(byte-compile-warnings-safe-p): Add `mapcar'.
+	(byte-compile-normal-call): Add option to suppress mapcar warning.
+	(top-level): Use mapc rather than mapcar in eval-when-compile.
+	(byte-compile-warning-types): Add mapcar and make-local.
 
 	* textmodes/tex-mode.el (tex-validate-region): Handle escaped parens.
-	(tex-next-unmatched-eparen): New function.
-	(latex-forward-sexp-1): Doc fix.  Handle escaped parens.
+	(tex-next-unmatched-eparen, tex-last-unended-eparen): New functions.
+	(latex-forward-sexp-1, latex-backward-sexp-1): Doc fix.
+	Handle escaped parens.
 	(latex-forward-sexp): Doc fix.
 
 	* eshell/esh-mode.el (eshell-output-filter-functions): Add
 	eshell-postoutput-scroll-to-bottom.
 
 	* loadup.el: Remove termdev.
+
+2007-09-21  Kevin Ryde  <user42@zip.com.au>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Bind `case-fold-search' to t.
 
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
