@@ -682,7 +682,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
 (let (abbrevs-changed)
   ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
   ;; A little baroque to quieten the byte-compiler.
-  (mapcar
+  (mapc
    (function (lambda (element)
                (condition-case nil
                    (apply 'define-abbrev f90-mode-abbrev-table
