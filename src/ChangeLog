@@ -1,3 +1,8 @@
+2007-09-21  Markus Triska  <markus.triska@gmx.at>
+
+	* xterm.c (x_delete_display): Compile session management
+        conditionally.
+
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* callproc.c (getenv_internal_1): New function.
