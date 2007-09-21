@@ -1,3 +1,8 @@
+2007-09-21  Markus Triska  <markus.triska@gmx.at>
+
+	* emacs-lisp/bytecomp.el (byte-compile-normal-call): Warn when
+	`mapcar' is called for effect.
+
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* obsolete/sun-fns.el (emacs-quit-menu): Remove emacstool-related code.
