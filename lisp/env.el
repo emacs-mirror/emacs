@@ -192,12 +192,8 @@ a side-effect."
       (setq process-environment (setenv-internal process-environment
 						 variable value t))
     (setq frame (frame-with-environment frame))
-    (cond
-     ((string-equal "DISPLAY" variable)
-      (set-frame-parameter frame 'display-environment-variable value))
-     (t
-      (setq process-environment (setenv-internal process-environment
-						 variable value nil)))))
+    (setq process-environment (setenv-internal process-environment
+                                               variable value nil)))
   value)
 
 (defun getenv (variable &optional frame)
