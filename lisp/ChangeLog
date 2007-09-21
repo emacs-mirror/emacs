@@ -1,5 +1,10 @@
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/tex-mode.el (tex-validate-region): Handle escaped parens.
+	(tex-next-unmatched-eparen): New function.
+	(latex-forward-sexp-1): Doc fix.  Handle escaped parens.
+	(latex-forward-sexp): Doc fix.
+
 	* eshell/esh-mode.el (eshell-output-filter-functions): Add
 	eshell-postoutput-scroll-to-bottom.
 
