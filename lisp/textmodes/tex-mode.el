@@ -1403,7 +1403,7 @@ Return the value returned by the last execution of BODY."
 
 (defun tex-next-unmatched-eparen (otype)
   "Leave point after the next unmatched escaped closing parenthesis.
-The string OPAREN is an opening parenthesis type: `(', `{', or `['."
+The string OTYPE is an opening parenthesis type: `(', `{', or `['."
   (condition-case nil
       (let ((ctype (char-to-string (cdr (aref (syntax-table)
 					      (string-to-char otype))))))
@@ -1416,6 +1416,19 @@ The string OPAREN is an opening parenthesis type: `(', `{', or `['."
     (wrong-type-argument (error "Unknown opening parenthesis type: %s" otype))
     (search-failed (error "Couldn't find closing escaped paren"))))
 
+(defun tex-last-unended-eparen (ctype)
+  "Leave point at the start of the last unended escaped opening parenthesis.
+The string CTYPE is a closing parenthesis type:  `)', `}', or `]'."
+  (condition-case nil
+      (let ((otype (char-to-string (cdr (aref (syntax-table)
+					      (string-to-char ctype))))))
+	(while (and (tex-search-noncomment
+		     (re-search-backward (format "\\\\[%s%s]" ctype otype)))
+		    (looking-at (format "\\\\%s" (regexp-quote ctype))))
+	  (tex-last-unended-eparen ctype)))
+    (wrong-type-argument (error "Unknown opening parenthesis type: %s" ctype))
+    (search-failed (error "Couldn't find unended escaped paren"))))
+
 (defun tex-goto-last-unclosed-latex-block ()
   "Move point to the last unclosed \\begin{...}.
 Mark is left at original location."
@@ -1427,26 +1440,32 @@ Mark is left at original location."
     (push-mark)
     (goto-char spot)))
 
+;; Don't think this one actually _needs_ (for the purposes of
+;; tex-mode) to handle escaped parens.
 (defun latex-backward-sexp-1 ()
-  "Like (backward-sexp 1) but aware of multi-char elements."
+  "Like (backward-sexp 1) but aware of multi-char elements and escaped parens."
   (let ((pos (point))
 	(forward-sexp-function))
     (backward-sexp 1)
-    (if (looking-at "\\\\begin\\>")
-	(signal 'scan-error
-		(list "Containing expression ends prematurely"
-		      (point) (prog1 (point) (goto-char pos))))
-      (when (eq (char-after) ?{)
-	(let ((newpos (point)))
-	  (when (ignore-errors (backward-sexp 1) t)
-	    (if (or (looking-at "\\\\end\\>")
-		    ;; In case the \\ ends a verbatim section.
-		    (and (looking-at "end\\>") (eq (char-before) ?\\)))
-		(tex-last-unended-begin)
-	      (goto-char newpos))))))))
+    (cond ((looking-at "\\\\\\(begin\\>\\|[[({]\\)")
+	   (signal 'scan-error
+		   (list "Containing expression ends prematurely"
+			 (point) (prog1 (point) (goto-char pos)))))
+	  ((looking-at "\\\\\\([])}]\\)")
+	   (tex-last-unended-eparen (match-string 1)))
+	  ((eq (char-after) ?{)
+	   (let ((newpos (point)))
+	     (when (ignore-errors (backward-sexp 1) t)
+	       (if (or (looking-at "\\\\end\\>")
+		       ;; In case the \\ ends a verbatim section.
+		       (and (looking-at "end\\>") (eq (char-before) ?\\)))
+		   (tex-last-unended-begin)
+		 (goto-char newpos))))))))
 
 ;; Note this does not handle things like mismatched brackets inside
 ;; begin/end blocks.
+;; Needs to handle escaped parens for tex-validate-*.
+;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00038.html
 (defun latex-forward-sexp-1 ()
   "Like (forward-sexp 1) but aware of multi-char elements and escaped parens."
   (let ((pos (point))
@@ -1465,6 +1484,8 @@ Mark is left at original location."
        ((looking-at "\\\\begin\\>")
 	(goto-char (match-end 0))
 	(tex-next-unmatched-end))
+       ;; A better way to handle this, \( .. \) etc, is probably to
+       ;; temporarily change the syntax of the \ in \( to punctuation.
        ((looking-back "\\\\[])}]")
 	(signal 'scan-error
 		(list "Containing expression ends prematurely"
