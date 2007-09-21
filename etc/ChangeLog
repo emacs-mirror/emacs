@@ -2,6 +2,7 @@
 
 	* emacstool.1: Remove file.
 	* emacs.bash: Adapt for removal of emacstool.
+	* emacs.csh: Remove emacstool-related code.
 
 2007-09-16  Glenn Morris  <rgm@gnu.org>
 
