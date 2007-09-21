@@ -1,3 +1,9 @@
+2007-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/sun-fns.el (emacs-quit-menu): Remove emacstool-related code.
+	* term/sun-mouse.el (suspend-emacstool): Remove.
+	* term/sun.el: Remove emacstool-related code.
+
 2007-09-21  Kevin Ryde  <user42@zip.com.au>
 
 	* international/mule.el (sgml-html-meta-auto-coding-function):
