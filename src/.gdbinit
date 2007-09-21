@@ -998,7 +998,7 @@ define xbacktrace
     xgettype (*$bt->function)
     if $type == Lisp_Symbol
       xprintsym (*$bt->function)
-      printf " (0x%x)\n", *$bt->args
+      printf " (0x%x)\n", $bt->args
     else
       printf "0x%x ", *$bt->function
       if $type == Lisp_Vectorlike

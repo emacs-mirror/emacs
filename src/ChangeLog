@@ -1,5 +1,8 @@
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* .gdbinit (xbacktrace): Print the arg's address rather than the value
+	of the first arg, since that value may be a union.
+
 	* callproc.c (child_setup, getenv_internal): Use the frame's `display'
 	parameter rather than Qdisplay_environment_variable.  If all else
 	fails, look for DISPLAY in initial-environment.
