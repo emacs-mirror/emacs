@@ -1,5 +1,7 @@
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (allocate_terminal): Declare.
+
 	* window.c (candidate_window_p): Consider frames that are being placed
 	by the user as somewhere between visible and iconified.
 	(window_loop): Prefer windows on the current frame.

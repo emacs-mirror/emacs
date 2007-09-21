@@ -2606,6 +2606,7 @@ extern struct Lisp_Hash_Table *allocate_hash_table P_ ((void));
 extern struct window *allocate_window P_ ((void));
 extern struct frame *allocate_frame P_ ((void));
 extern struct Lisp_Process *allocate_process P_ ((void));
+extern struct terminal *allocate_terminal P_ ((void));
 extern int gc_in_progress;
 extern int abort_on_gc;
 extern Lisp_Object make_float P_ ((double));
