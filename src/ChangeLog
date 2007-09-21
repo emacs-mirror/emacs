@@ -1,3 +1,8 @@
+2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (Fsuspend_tty): Run suspend-tty-functions before cleaning
+	up the tty state.
+
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* termhooks.h (term_gpm): Delete.  Use gpm_tty's NULLness instead.

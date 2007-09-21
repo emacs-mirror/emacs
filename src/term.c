@@ -2244,6 +2244,17 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
   
   if (f)
     {
+      /* First run `suspend-tty-functions' and then clean up the tty
+	 state because `suspend-tty-functions' might need to change
+	 the tty state.  */
+      if (!NILP (Vrun_hooks))
+        {
+          Lisp_Object args[2];
+          args[0] = intern ("suspend-tty-functions");
+          XSETTERMINAL (args[1], t);
+          Frun_hook_with_args (2, args);
+        }
+
       reset_sys_modes (t->display_info.tty);
 
       delete_keyboard_wait_descriptor (fileno (f));
@@ -2258,14 +2269,6 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       if (FRAMEP (t->display_info.tty->top_frame))
         FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
       
-      /* Run `suspend-tty-functions'.  */
-      if (!NILP (Vrun_hooks))
-        {
-          Lisp_Object args[2];
-          args[0] = intern ("suspend-tty-functions");
-          XSETTERMINAL (args[1], t);
-          Frun_hook_with_args (2, args);
-        }
     }
 
   /* Clear display hooks to prevent further output.  */

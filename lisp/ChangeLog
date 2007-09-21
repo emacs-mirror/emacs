@@ -1,3 +1,7 @@
+2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xt-mouse.el (xterm-mouse-mode): Re-enable suspend-tty-functions.
+
 2007-09-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.el (suspend-frame): Call `iconify-or-deiconify-frame' also

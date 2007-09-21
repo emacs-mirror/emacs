@@ -214,15 +214,8 @@ down the SHIFT key while pressing the mouse button."
 	(add-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
 	
 	;; Restore normal mouse behaviour outside Emacs.
-	
-	;; Temporarily disable this hook, it does not work, when
-	;; `suspend-tty' calls `suspend-tty-functions' the tty->output
-	;; is already set to 0 so the 'send-string-to-terminal' call
-	;; in `turn-off-xterm-mouse-tracking-on-terminal' will result
-	;; in a crash.
-        ;; (add-hook 'suspend-tty-functions
-	;;   'turn-off-xterm-mouse-tracking-on-terminal)
-
+        (add-hook 'suspend-tty-functions
+		  'turn-off-xterm-mouse-tracking-on-terminal)
 	(add-hook 'resume-tty-functions 
 		  'turn-on-xterm-mouse-tracking-on-terminal)
 	(add-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
@@ -234,8 +227,8 @@ down the SHIFT key while pressing the mouse button."
     (remove-hook 'after-make-frame-functions 
 		 'turn-on-xterm-mouse-tracking-on-terminal)
     (remove-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
-    ;; (remove-hook 'suspend-tty-functions 
-    ;; 	 'turn-off-xterm-mouse-tracking-on-terminal)
+    (remove-hook 'suspend-tty-functions 
+		 'turn-off-xterm-mouse-tracking-on-terminal)
     (remove-hook 'resume-tty-functions 
 		 'turn-on-xterm-mouse-tracking-on-terminal)
     (remove-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
