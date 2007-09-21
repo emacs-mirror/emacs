@@ -463,23 +463,5 @@ update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
 
-/* These are NOT included in INSTALLABLES or UTILITIES.
-   See ../src/Makefile.in.  */
-emacstool${EXEEXT}: ${srcdir}/emacstool.c
-	$(CC) ${srcdir}/emacstool.c -o emacstool ${ALL_CFLAGS} \
-	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
 
-/* For SUN Japanese Language Environment.  */
-nemacstool${EXEEXT}: ${srcdir}/emacstool.c
-	$(CC) -o nemacstool -DJLE ${ALL_CFLAGS} ${srcdir}/emacstool.c \
-	  -lsuntool -lmle -lsunwindow -lpixrect $(LOADLIBES)
-
-xvetool${EXEEXT}: ${srcdir}/emacstool.c
-	$(CC) -o xvetool -DXVIEW ${ALL_CFLAGS} ${srcdir}/emacstool.c \
-	  -lxview -lX -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
-	  $(LOADLIBES)
-
-xveterm${EXEEXT}: ${srcdir}/emacstool.c
-	$(CC) -o xveterm -DXVIEW -DTTERM ${ALL_CFLAGS} ${srcdir}/emacstool.c \
-	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
-	  $(LOADLIBES)
+### Makefile ends here
