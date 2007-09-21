@@ -876,7 +876,7 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
   (interactive)
   (let ((type (framep (selected-frame))))
     (cond
-     ((eq type 'x) (iconify-or-deiconify-frame))
+     ((memq type '(x w32)) (iconify-or-deiconify-frame))
      ((eq type t)
       (if (controlling-tty-p)
 	  (suspend-emacs)
