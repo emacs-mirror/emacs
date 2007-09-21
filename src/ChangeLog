@@ -1,5 +1,8 @@
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.c (Qdisplay_environment_variable):
+	* frame.h (Qdisplay_environment_variable): Delete.
+
 	* .gdbinit (xbacktrace): Print the arg's address rather than the value
 	of the first arg, since that value may be a union.
 
