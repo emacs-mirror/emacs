@@ -7121,7 +7121,7 @@ tty_read_avail_input (struct terminal *terminal,
     return 0;                   /* The terminal is suspended. */
 
 #ifdef HAVE_GPM
-  if (term_gpm && gpm_tty == tty->terminal->id)
+  if (gpm_tty == tty)
   {
       Gpm_Event event;
       struct input_event hold_quit;

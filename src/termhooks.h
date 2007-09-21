@@ -302,11 +302,8 @@ enum {
 extern int handle_one_term_event (struct tty_display_info *, Gpm_Event *, struct input_event *);
 extern void term_mouse_moveto (int, int);
 
-/* Nonzero means mouse is enabled on Linux console */
-extern int term_gpm;
-
-/* The id of the terminal device for which we have gpm support.  */
-extern int gpm_tty;
+/* The device for which we have enabled gpm support.  */
+extern struct tty_display_info *gpm_tty;
 #endif
 
 #endif /* CONSP */

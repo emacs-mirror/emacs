@@ -1752,7 +1752,7 @@ init_sys_modes (tty_out)
       fcntl (fileno (tty_out->input), F_SETOWN, getpid ());
       init_sigio (fileno (tty_out->input));
 #ifdef HAVE_GPM
-      if (term_gpm)
+      if (gpm_tty)
 	{
 	  fcntl (gpm_fd, F_SETOWN, getpid ());
 	  fcntl (gpm_fd, F_SETFL, fcntl (gpm_fd, F_GETFL, 0) | O_NONBLOCK);

@@ -1,3 +1,15 @@
+2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* termhooks.h (term_gpm): Delete.  Use gpm_tty's NULLness instead.
+	(gpm_tty): Change its type.
+	* term.c (term_gpm): Delete.  Use gpm_tty's NULLness instead.
+	(gpm_tty): Change its type and initialize it.
+	(Fterm_open_connection): Check the frame is indeed a tty.
+	Use the new gpm_tty.
+	(Fterm_close_connection): Use the new gpm_tty.
+	* keyboard.c (tty_read_avail_input): Use the new gpm_tty.
+	* sysdep.c (init_sys_modes): term_gpm -> gpm_tty.
+
 2007-09-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32term.c (x_draw_glyph_string): Use strike_through_color, not

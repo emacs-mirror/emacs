@@ -195,11 +195,8 @@ static void term_mouse_highlight (struct frame *f, int x, int y);
 #include <sys/fcntl.h>
 #include "buffer.h"
 
-/* Nonzero means mouse is enabled on Linux console.  */
-int term_gpm = 0;
-
-/* The id of the terminal device for which we have gpm support.  */
-int gpm_tty;
+/* The device for which we have enabled gpm support (or NULL).  */
+struct tty_display_info *gpm_tty = NULL;
 
 /* These variables describe the range of text currently shown in its
    mouse-face, together with the window they apply to.  As long as
@@ -2961,11 +2958,18 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct in
 
 DEFUN ("term-open-connection", Fterm_open_connection, Sterm_open_connection,
        0, 0, 0,
-       doc: /* Open a connection to Gpm.  */)
+       doc: /* Open a connection to Gpm.
+We only support Gpm on one tty at a time.  */)
      ()
 {
-  struct tty_display_info *tty = FRAME_TTY (SELECTED_FRAME ());
+  struct frame *f = SELECTED_FRAME ();
+  struct tty_display_info *tty
+    = ((f)->output_method == output_termcap
+       ? (f)->terminal->display_info.tty : NULL);
   Gpm_Connect connection;
+
+  if (gpm_tty || !tty)		/* Already running, or not applicable.  */
+    return Qnil;
 
   connection.eventMask = ~0;
   connection.defaultMask = ~GPM_HARD;
@@ -2973,14 +2977,11 @@ DEFUN ("term-open-connection", Fterm_open_connection, Sterm_open_connection,
   connection.minMod = 0;
   gpm_zerobased = 1;
 
-  /* We only support GPM on the controlling tty.  */
-  if (term_gpm || tty->terminal->id > 1
-      || Gpm_Open (&connection, 0) < 0)
+  if (Gpm_Open (&connection, 0) < 0)
     return Qnil;
   else
     {
-      term_gpm = 1;
-      gpm_tty = tty->terminal->id;
+      gpm_tty = tty;
       reset_sys_modes (tty);
       init_sys_modes (tty);
       add_gpm_wait_descriptor (gpm_fd);
@@ -2995,7 +2996,7 @@ DEFUN ("term-close-connection", Fterm_close_connection, Sterm_close_connection,
 {
    delete_gpm_wait_descriptor (gpm_fd);
    while (Gpm_Close()); /* close all the stack */
-   term_gpm = 0;
+   gpm_tty = NULL;
    return Qnil;
 }
 #endif /* HAVE_GPM */
