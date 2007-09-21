@@ -2547,10 +2547,10 @@ x_draw_glyph_string (s)
           unsigned long dy = 0, h = 1;
 
           if (s->face->overline_color_defaulted_p)
-        {
-          w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                         s->y + dy, s->background_width, h);
-        }
+	    {
+	      w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
+			     s->y + dy, s->background_width, h);
+	    }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->overline_color, s->x,
@@ -2572,7 +2572,7 @@ x_draw_glyph_string (s)
             }
           else
             {
-              w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
+              w32_fill_area (s->f, s->hdc, s->face->strike_through_color, s->x,
                              s->y + dy, s->width, h);
             }
         }
