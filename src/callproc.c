@@ -141,6 +141,8 @@ int synch_process_retcode;
 /* Nonzero if this is termination due to exit.  */
 static int call_process_exited;
 
+EXFUN (Fgetenv_internal, 2);
+
 #ifndef VMS  /* VMS version is in vmsproc.c.  */
 
 static Lisp_Object
@@ -1326,29 +1328,36 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     register char **new_env;
     char **p, **q;
     register int new_length;
-    Lisp_Object local = selected_frame; /* get_frame_param (XFRAME (Fframe_with_environment (selected_frame)), */
-/*                                          Qenvironment); */
-
-    Lisp_Object display;
+    Lisp_Object display = Qnil;
     
     new_length = 0;
 
     for (tem = Vprocess_environment;
          CONSP (tem) && STRINGP (XCAR (tem));
          tem = XCDR (tem))
-      new_length++;
+      {
+	if (strncmp (SDATA (XCAR (tem)), "DISPLAY", 7) == 0
+	    && (SDATA (XCAR (tem)) [7] == '\0'
+		|| SDATA (XCAR (tem)) [7] == '='))
+	  /* DISPLAY is specified in process-environment.  */
+	  display = Qt;
+	new_length++;
+      }
 
-#if 0    
-    for (tem = local;
-	 CONSP (tem) && STRINGP (XCAR (tem));
-	 tem = XCDR (tem))
-      new_length++;
-#endif
-
-    /* Add DISPLAY from the frame local values. */
-    display = get_frame_param (XFRAME (local), Qdisplay_environment_variable);
-    if (! NILP (display))
-      new_length++;
+    /* If not provided yet, use the frame's DISPLAY.  */
+    if (NILP (display))
+      {
+	Lisp_Object tmp = Fframe_parameter (selected_frame, Qdisplay);
+	if (!STRINGP (tmp) && CONSP (Vinitial_environment))
+	  /* If still not found, Look for DISPLAY in Vinitial_environment.  */
+	  tmp = Fgetenv_internal (build_string ("DISPLAY"),
+				  Vinitial_environment);
+	if (STRINGP (tmp))
+	  {
+	    display = tmp;
+	    new_length++;
+	  }
+      }
 
     /* new_length + 2 to include PWD and terminating 0.  */
     env = new_env = (char **) alloca ((new_length + 2) * sizeof (char *));
@@ -1370,20 +1379,8 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     for (tem = Vprocess_environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
-      {
-	if (strcmp (SDATA (XCAR (tem)), "DISPLAY") != 0)
-	  new_env = add_env (env, new_env, SDATA (XCAR (tem)));
-      }
-
-  
-#if 0    
-    /* Local part of environment.  */
-    for (tem = local;
-         CONSP (tem) && STRINGP (XCAR (tem));
-         tem = XCDR (tem))
       new_env = add_env (env, new_env, SDATA (XCAR (tem)));
-#endif
-    
+
     *new_env = 0;
 
     /* Remove variable names without values.  */
@@ -1558,44 +1555,28 @@ getenv_internal (var, varlen, value, valuelen, frame)
      int *valuelen;
      Lisp_Object frame;
 {
-  Lisp_Object display;
+  /* Try to find VAR in Vprocess_environment first.  */
+  if (getenv_internal_1 (var, varlen, value, valuelen,
+			 Vprocess_environment))
+    return *value ? 1 : 0;
 
-  /* FIXME: weird behavior.  */
-
-  if (NILP (frame))
-    {
-      /* Try to find VAR in Vprocess_environment first.  */
-      if (getenv_internal_1 (var, varlen, value, valuelen,
-			     Vprocess_environment))
-	return value ? 1 : 0;
-      else
-	frame = selected_frame;
-    }
-
-  /* For DISPLAY first try to get the values from the frame. */
-  display = get_frame_param (XFRAME (frame), Qdisplay_environment_variable);
+  /* For DISPLAY try to get the values from the frame or the initial env.  */
   if (strcmp (var, "DISPLAY") == 0)
-    if (! NILP (display))
-      {
+    {
+      Lisp_Object display
+	= Fframe_parameter (NILP (frame) ? selected_frame : frame, Qdisplay);
+      if (STRINGP (display))
+	{
 	  *value    = (char *) SDATA (display);
 	  *valuelen = SBYTES (display);
 	  return 1;
-      }
+	}
+      /* If still not found, Look for DISPLAY in Vinitial_environment.  */
+      if (getenv_internal_1 (var, varlen, value, valuelen,
+			     Vinitial_environment))
+	return *value ? 1 : 0;
+    }
 
-  /* Try to find VAR in Vprocess_environment.  */
-  if (getenv_internal_1 (var, varlen, value, valuelen,
-			 Vprocess_environment))
-    return value ? 1 : 0;
-
-#if 0
-  /* Find the environment in which to search the variable. */
-  CHECK_FRAME (frame);
-  frame = Fframe_with_environment (frame);
-
-  if (getenv_internal_1 (var, varlen, value, valuelen,
-			 get_frame_param (XFRAME (frame), Qenvironment)))
-    return value ? 1 : 0;
-#endif
   return 0;
 }
 
@@ -1629,7 +1610,7 @@ will simply look up the variable in that frame's environment.  */)
 	return Qnil;
     }
   else if (getenv_internal (SDATA (variable), SBYTES (variable),
-		       &value, &valuelen, env))
+			    &value, &valuelen, env))
     return make_string (value, valuelen);
   else
     return Qnil;

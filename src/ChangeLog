@@ -1,11 +1,16 @@
+2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callproc.c (child_setup, getenv_internal): Use the frame's `display'
+	parameter rather than Qdisplay_environment_variable.  If all else
+	fails, look for DISPLAY in initial-environment.
+
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (emacstool): Remove target.
 
 2007-09-21  Markus Triska  <markus.triska@gmx.at>
 
-	* xterm.c (x_delete_display): Compile session management
-        conditionally.
+	* xterm.c (x_delete_display): Compile session management conditionally.
 
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -13,7 +18,7 @@
 	(getenv_internal): Use it.
 	(Fgetenv_internal): Use it.  Accept an env-list as optional arg.
 
-	* terminal.c (get_terminal): Don't accept integers to represent terminals.
+	* terminal.c (get_terminal): Don't accept ints to represent terminals.
 	(Fterminal_name, Fterminal_parameters, Fterminal_parameter)
 	(Fset_terminal_parameter): Work with dead terminals as well.
 	(Fmodify_terminal_parameters): Remove.
@@ -32,7 +37,8 @@
 
 	* alloc.c (enum mem_type): New member for `terminal' objects.
 	(allocate_terminal): New function.
-	(mark_maybe_pointer, valid_lisp_object_p, mark_object): Handle terminals.
+	(mark_maybe_pointer, valid_lisp_object_p, mark_object):
+	Handle terminals.
 	(mark_terminal): New fun.
 	(mark_terminals): Move from terminal.c.
 
