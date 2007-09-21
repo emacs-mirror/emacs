@@ -213,22 +213,6 @@ Initialized by `server-start'.")
 New clients have no properties."
   (add-to-list 'server-clients proc))
 
-(defun server-getenv-from (env variable)
-  "Get the value of VARIABLE in ENV.
-VARIABLE should be a string.  Value is nil if VARIABLE is
-undefined in ENV.  Otherwise, value is a string.
-
-ENV should be in the same format as `process-environment'."
-  (let (entry result)
-    (while (and env (null result))
-      (setq entry (car env)
-	    env (cdr env))
-      (if (and (> (length entry) (length variable))
-	       (eq ?= (aref entry (length variable)))
-	       (equal variable (substring entry 0 (length variable))))
-	  (setq result (substring entry (+ (length variable) 1)))))
-    result))
-
 (defmacro server-with-environment (env vars &rest body)
   "Evaluate BODY with environment variables VARS set to those in ENV.
 The environment variables are then restored to their previous values.
@@ -240,7 +224,7 @@ ENV should be in the same format as `process-environment'."
 	(value (make-symbol "value")))
     `(let ((process-environment process-environment))
        (dolist (,var ,vars)
-	 (let ((,value (server-getenv-from ,env ,var)))
+         (let ((,value (getenv-internal ,var ,env)))
            (push (if (null ,value)
                      ,var
                    (concat ,var "=" ,value))
@@ -585,11 +569,12 @@ Server mode runs a process that accepts commands from the
                               `((client . ,proc)
                                 (environment . ,(process-get proc 'env)))))))
   
-    (set-frame-parameter frame 'display-environment-variable
-                         (server-getenv-from (process-get proc 'env) "DISPLAY"))
+    ;; ttys don't use the `display' parameter, but callproc.c does to set
+    ;; the DISPLAY environment on subprocesses.
+    (set-frame-parameter frame 'display
+                         (getenv-internal "DISPLAY" (process-get proc 'env)))
     (select-frame frame)
     (process-put proc 'frame frame)
-    (process-put proc 'tty (terminal-name frame))
     (process-put proc 'terminal (frame-terminal frame))
 
     ;; Display *scratch* by default.
@@ -601,7 +586,7 @@ Server mode runs a process that accepts commands from the
     frame))
 
 (defun server-create-window-system-frame (display nowait proc)
-  (if (not (fboundp 'x-create-frame))
+  (if (not (fboundp 'make-frame-on-display))
       (progn
         ;; This emacs does not support X.
         (server-log "Window system unsupported" proc)
@@ -626,8 +611,6 @@ Server mode runs a process that accepts commands from the
       ;; initialization parameters for X frames at
       ;; the moment.
       (modify-frame-parameters frame params)
-      (set-frame-parameter frame 'display-environment-variable 
-                           (server-getenv-from (process-get proc 'env) "DISPLAY"))
       (select-frame frame)
       (process-put proc 'frame frame)
       (process-put proc 'terminal (frame-terminal frame))

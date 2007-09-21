@@ -1,9 +1,16 @@
+2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-getenv-from): Remove.  Use getenv-internal instead.
+	(server-create-tty-frame): Don't set unused `tty' property.
+	Set `display' instead of display-environment-variable.
+	(server-create-window-system-frame): No display-environment-variable.
+
 2007-09-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* rfn-eshadow.el (rfn-eshadow-setup-minibuffer-hook)
 	(rfn-eshadow-update-overlay-hook): New defvars.
-	(rfn-eshadow-setup-minibuffer, rfn-eshadow-update-overlay): Run
-	the hooks.
+	(rfn-eshadow-setup-minibuffer, rfn-eshadow-update-overlay):
+	Run the hooks.
 
 	* net/tramp.el (tramp-rfn-eshadow-overlay): New defvar.
 	(tramp-rfn-eshadow-setup-minibuffer)
