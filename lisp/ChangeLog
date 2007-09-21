@@ -1,3 +1,7 @@
+2007-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* loadup.el: Remove termdev.
+
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* termdev.el: Remove.
