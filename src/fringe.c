@@ -1328,11 +1328,11 @@ If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  
 */
 
 #if defined (HAVE_X_WINDOWS)
-static unsigned char swap_nibble[16] = {
-  0x0, 0x8, 0x4, 0xc,           /* 0000 1000 0100 1100 */
-  0x2, 0xa, 0x6, 0xe,           /* 0010 1010 0110 1110 */
-  0x1, 0x9, 0x5, 0xd,           /* 0001 1001 0101 1101 */
-  0x3, 0xb, 0x7, 0xf};          /* 0011 1011 0111 1111 */
+static unsigned char swap_nibble[16]
+  = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
+      0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
+      0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
+      0x3, 0xb, 0x7, 0xf };  /* 0011 1011 0111 1111 */
 #endif                          /* HAVE_X_WINDOWS */
 
 void
