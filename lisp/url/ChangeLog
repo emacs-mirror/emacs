@@ -1,5 +1,8 @@
 2007-09-21  Diane Murray  <disumu@x3y2z1.net>
 
+	* url-news.el (url-news-fetch-newsgroup): Fix formatting of Gnus
+	method.
+
 	* url-util.el (url-get-normalized-date): Pass full timezone
 	information to timezone-make-date-arpa-standard, since zone name
 	may be unknown.
