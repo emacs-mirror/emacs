@@ -4,6 +4,7 @@
 	(byte-compile-warnings-safe-p): Add `mapcar'.
 	(byte-compile-normal-call): Add option to suppress mapcar warning.
 	(top-level): Use mapc rather than mapcar in eval-when-compile.
+	(byte-compile-warning-types): Add mapcar and make-local.
 
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
