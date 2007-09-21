@@ -58,14 +58,18 @@ can we get rid of that?  It is a dangerous design.
 
 ** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
 
+** grep et al should use font-lock to do highlighting, so that they respect font-lock-mode.
+"can't turn off font-lock"
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00548.html
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
 
 The first line of every tutorial must begin with text ending in a
 period (".", ASCII 0x2E) saying "Emacs Tutorial" in the respective
-language.  This should be followed by "See end for copying
-conditions", likewise in the respective language.
+language. This should be followed by "See end for copying conditions",
+likewise in the respective language.
 
 After each file name, on the same line or the following line, come the
 names of the people who have checked it.
