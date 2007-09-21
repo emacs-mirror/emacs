@@ -436,6 +436,7 @@ decode_options (argc, argv)
 
         case 't':
           tty = 1;
+	  current_frame = 0;
           break;
 
         case 'c':

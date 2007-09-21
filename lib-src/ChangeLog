@@ -1,3 +1,7 @@
+2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (decode_options): -t implies -c.
+
 2007-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacsclient.c (DIRECTORY_SEP, IS_DIRECTORY_SEP, IS_DEVICE_SEP)
