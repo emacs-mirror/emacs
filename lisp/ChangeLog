@@ -1,3 +1,9 @@
+2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (frame-initialize, make-frame):
+	* faces.el (tty-set-up-initial-frame-faces):
+	* env.el (setenv): Don't set display-environment-variable.
+
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings)

@@ -240,8 +240,6 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	;; Copy the environment of the Emacs process into the new frame.
 	(set-frame-parameter frame-initial-frame 'environment
 			     (frame-parameter terminal-frame 'environment))
-	(set-frame-parameter frame-initial-frame 'display-environment-variable
-			     (getenv "DISPLAY"))
 	;; At this point, we know that we have a frame open, so we
 	;; can delete the terminal frame.
 	(delete-frame terminal-frame)
@@ -727,14 +725,11 @@ setup is for focus to follow the pointer."
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the 'environment and 'client parameters.
     (let ((env (frame-parameter oldframe 'environment))
-	  (client (frame-parameter oldframe 'client))
-	   (displayenv (frame-parameter oldframe 'display-environment-variable)))
+	  (client (frame-parameter oldframe 'client)))
       (if (not (framep env))
 	  (setq env oldframe))
       (if (and env (not (assq 'environment parameters)))
 	  (set-frame-parameter frame 'environment env))
-      (if (and displayenv (not (assq 'display-environment-variable parameters)))
-	  (set-frame-parameter frame 'display-environment-variable displayenv))
       (if (and client (not (assq 'client parameters)))
 	  (set-frame-parameter frame 'client client)))
     (run-hook-with-args 'after-make-frame-functions frame)
