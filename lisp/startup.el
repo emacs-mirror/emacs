@@ -511,7 +511,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
           (if (string-match "\\`DISPLAY=" varval)
               (setq display varval))))
       (when display
-        (message "Removing %s from process-environment" display)
         (delete display process-environment)))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
