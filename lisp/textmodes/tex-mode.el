@@ -1262,6 +1262,7 @@ area if a mismatch is found."
 	      (save-excursion
 		(let ((pos (match-beginning 0)))
 		  (goto-char pos)
+		  (skip-chars-backward "\\\\") ; escaped parens
 		  (forward-sexp 1)
 		  (or (eq (preceding-char) (cdr (syntax-after pos)))
 		      (eq (char-after pos) (cdr (syntax-after (1- (point)))))
@@ -1400,6 +1401,21 @@ Return the value returned by the last execution of BODY."
 			      (looking-at "\\\\begin")))
     (tex-next-unmatched-end)))
 
+(defun tex-next-unmatched-eparen (otype)
+  "Leave point after the next unmatched escaped closing parenthesis.
+The string OPAREN is an opening parenthesis type: `(', `{', or `['."
+  (condition-case nil
+      (let ((ctype (char-to-string (cdr (aref (syntax-table)
+					      (string-to-char otype))))))
+	(while (and (tex-search-noncomment
+		     (re-search-forward (format "\\\\[%s%s]" ctype otype)))
+		    (save-excursion
+		      (goto-char (match-beginning 0))
+		      (looking-at (format "\\\\%s" (regexp-quote otype)))))
+	  (tex-next-unmatched-eparen otype)))
+    (wrong-type-argument (error "Unknown opening parenthesis type: %s" otype))
+    (search-failed (error "Couldn't find closing escaped paren"))))
+
 (defun tex-goto-last-unclosed-latex-block ()
   "Move point to the last unclosed \\begin{...}.
 Mark is left at original location."
@@ -1429,8 +1445,10 @@ Mark is left at original location."
 		(tex-last-unended-begin)
 	      (goto-char newpos))))))))
 
+;; Note this does not handle things like mismatched brackets inside
+;; begin/end blocks.
 (defun latex-forward-sexp-1 ()
-  "Like (forward-sexp 1) but aware of multi-char elements."
+  "Like (forward-sexp 1) but aware of multi-char elements and escaped parens."
   (let ((pos (point))
 	(forward-sexp-function))
     (forward-sexp 1)
@@ -1447,10 +1465,17 @@ Mark is left at original location."
        ((looking-at "\\\\begin\\>")
 	(goto-char (match-end 0))
 	(tex-next-unmatched-end))
+       ((looking-back "\\\\[])}]")
+	(signal 'scan-error
+		(list "Containing expression ends prematurely"
+		      (- (point) 2) (prog1 (point)
+				      (goto-char pos)))))
+       ((looking-back "\\\\\\([({[]\\)")
+	(tex-next-unmatched-eparen (match-string 1)))
        (t (goto-char newpos))))))
 
 (defun latex-forward-sexp (&optional arg)
-  "Like `forward-sexp' but aware of multi-char elements."
+  "Like `forward-sexp' but aware of multi-char elements and escaped parens."
   (interactive "P")
   (unless arg (setq arg 1))
   (let ((pos (point)))
