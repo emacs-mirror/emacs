@@ -1,3 +1,7 @@
+2007-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (emacstool): Remove target.
+
 2007-09-21  Markus Triska  <markus.triska@gmx.at>
 
 	* xterm.c (x_delete_display): Compile session management
