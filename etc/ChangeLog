@@ -1,3 +1,7 @@
+2007-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacstool.1: Remove file.
+
 2007-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* gfdl.1: Remove unused file.
