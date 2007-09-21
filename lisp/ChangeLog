@@ -40,9 +40,9 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings)
 	(byte-compile-warnings-safe-p): Add `mapcar'.
+	(byte-compile-warning-types): Add mapcar and make-local.
 	(byte-compile-normal-call): Add option to suppress mapcar warning.
 	(top-level): Use mapc rather than mapcar in eval-when-compile.
-	(byte-compile-warning-types): Add mapcar and make-local.
 
 	* textmodes/tex-mode.el (tex-validate-region): Handle escaped parens.
 	(tex-next-unmatched-eparen, tex-last-unended-eparen): New functions.
@@ -54,6 +54,9 @@
 	eshell-postoutput-scroll-to-bottom.
 
 	* loadup.el: Remove termdev.
+
+	* progmodes/fortran.el (fortran-mode-abbrev-table, fortran-line-length):
+	* progmodes/f90.el (f90-mode-abbrev-table): Use mapc rather than mapcar.
 
 2007-09-21  Kevin Ryde  <user42@zip.com.au>
 
