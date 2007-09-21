@@ -6769,7 +6769,7 @@ our_common_term_source (cinfo)
    whenever more data is needed.  We read the whole image in one step,
    so this only adds a fake end of input marker at the end.  */
 
-static JOCTET omfib_buffer[2];
+static JOCTET our_memory_buffer[2];
 
 static boolean
 our_memory_fill_input_buffer (cinfo)
@@ -6778,10 +6778,10 @@ our_memory_fill_input_buffer (cinfo)
   /* Insert a fake EOI marker.  */
   struct jpeg_source_mgr *src = cinfo->src;
 
-  omfib_buffer[0] = (JOCTET) 0xFF;
-  omfib_buffer[1] = (JOCTET) JPEG_EOI;
+  our_memory_buffer[0] = (JOCTET) 0xFF;
+  our_memory_buffer[1] = (JOCTET) JPEG_EOI;
 
-  src->next_input_byte = omfib_buffer;
+  src->next_input_byte = our_memory_buffer;
   src->bytes_in_buffer = 2;
   return 1;
 }
