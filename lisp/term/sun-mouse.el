@@ -660,21 +660,6 @@ Insert contents into the current buffer at point."
   (interactive "r")
   (sun-set-selection (buffer-substring beg end)))
 
-;;;
-;;; Support for emacstool
-;;; This closes the window instead of stopping emacs.
-;;;
-(defun suspend-emacstool (&optional stuffstring)
-  "Suspend emacstool.
-If running under as a detached process emacstool,
-you don't want to suspend  (there is no way to resume),
-just close the window, and wait for reopening."
-  (interactive)
-  (run-hooks 'suspend-hook)
-  (if stuffstring (send-string-to-terminal stuffstring))
-  (send-string-to-terminal "\033[2t")	; To close EmacsTool window.
-  (run-hooks 'suspend-resume-hook))
-
 (provide 'sun-mouse)
 (provide 'term/sun-mouse)		; have to (require 'term/sun-mouse)
 
