@@ -53,11 +53,6 @@
 	* net/tramp-smb.el (tramp-smb-errors): Add error message for call
 	timeout.
 
-2007-09-21  Markus Triska  <markus.triska@gmx.at>
-
-	* emacs-lisp/bytecomp.el (byte-compile-normal-call): Warn when
-	`mapcar' is called for effect.
-
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* obsolete/sun-fns.el (emacs-quit-menu): Remove emacstool-related code.
@@ -83,6 +78,11 @@
 
 	* progmodes/fortran.el (fortran-mode-abbrev-table, fortran-line-length):
 	* progmodes/f90.el (f90-mode-abbrev-table): Use mapc rather than mapcar.
+
+2007-09-21  Markus Triska  <markus.triska@gmx.at>
+
+	* emacs-lisp/bytecomp.el (byte-compile-normal-call): Warn when
+	`mapcar' is called for effect.
 
 2007-09-21  Kevin Ryde  <user42@zip.com.au>
 
