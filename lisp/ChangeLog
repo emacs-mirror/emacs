@@ -1,3 +1,9 @@
+2007-09-21  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* progmodes/octave-inf.el (inferior-octave-mode): Use add-hook to
+	add inferior-octave-directory-tracker to the buffer-local value
+	of comint-input-filter-functions.
+
 2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xt-mouse.el (xterm-mouse-mode): Re-enable suspend-tty-functions.
@@ -3589,7 +3595,12 @@
 
 	* replace.el (match): Use yellow1 instead of yellow.
 
+<<<<<<< ChangeLog
+	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
+	red.
+=======
 	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of red.
+>>>>>>> 1.11807
 
 	* pcvs-info.el (cvs-unknown): Likewise.
 
