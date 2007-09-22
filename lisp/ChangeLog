@@ -1,3 +1,39 @@
+2007-09-22  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (command-line): Rename `inhibit-startup-message' to
+	`inhibit-startup-screen'.
+	(fancy-about-text): Use shorter label for "Ordering Manuals".
+	(fancy-startup-tail): Add optional arg `concise'.  When `concise'
+	is nil, display a line with "To start..." and 3 links to useful
+	tasks.  Display the "Dismiss" button and "Don't show this message
+	again" only when concise is non-nil.
+	(fancy-startup-screen): Call `fancy-startup-tail' with optional
+	arg `concise'.  If CONCISE is non-nil, display a concise version
+	of the splash screen in another window.  Otherwise, switch to the
+	startup buffer in the same window.
+	(startup-echo-area-message): Change displayed binding from
+	C-h C-p (describe-project) to C-h C-a (about-emacs), and change
+	text "about the GNU system and GNU/Linux" to "about GNU Emacs and
+	the GNU system".
+	(display-startup-screen): Fix buffer name from "*About GNU Emacs*"
+	to "*GNU Emacs*".
+	(display-about-screen): Don't check the existence of the buffer
+	"*About GNU Emacs*".
+	(display-splash-screen): Make alias to `display-startup-screen'.
+	(command-line-1): Rename `inhibit-startup-message' to
+	`inhibit-startup-screen'.  Inhibit startup screen when Emacs is
+	started with command line options "-f", "-funcall", "-e", "-eval",
+	"-execute", "-insert", "-find-file", "-file", "-visit".
+	Inhibit startup screen when Emacs is started with a file name only
+	on tty (i.e. don't inhibit it when started with a file name like
+	"emacs FILE..." on a window system).
+	(command-line-1): Simplify logic of displaying the startup screen:
+	if file-count > 0, then display the concise version in another
+	window, otherwise display full version in the same window.
+
+	* help.el (help-map): Bind C-h C-a to about-emacs.
+	(help-for-help-internal): Add C-a description to C-h help text.
+
 2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/checkdoc.el (checkdoc-force-docstrings-flag)
