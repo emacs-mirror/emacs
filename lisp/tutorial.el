@@ -211,13 +211,13 @@ LEFT and RIGHT are the elements to compare."
   ;; On window system, `suspend-emacs' is replaced in the default
   ;; keymap
   (let* ((suspend-emacs (if window-system
-                            'iconify-or-deiconify-frame
+                            'suspend-frame
                           'suspend-emacs))
          (default-keys
            `((ESC-prefix [27])
              (Control-X-prefix [?\C-x])
              (mode-specific-command-prefix [?\C-c])
-             (save-buffers-kill-emacs [?\C-x ?\C-c])
+             (save-buffers-kill-terminal [?\C-x ?\C-c])
 
              ;; * SUMMARY
              (scroll-up [?\C-v])
