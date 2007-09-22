@@ -1,5 +1,13 @@
 2007-09-22  Juri Linkov  <juri@jurta.org>
 
+	* textmodes/org.el (org-confirm-shell-link-function): Doc fix.
+
+	* tutorial.el (tutorial--default-keys): Update standard bindings:
+	rename `iconify-or-deiconify-frame' to `suspend-frame',
+	and `save-buffers-kill-emacs' to `save-buffers-kill-terminal'.
+
+2007-09-22  Juri Linkov  <juri@jurta.org>
+
 	* startup.el (fancy-startup-text, fancy-about-text, fancy-startup-tail):
 	Add help-echo to external links and to links without description.
 	(fancy-splash-insert): Use help-echo from the 3rd element of the
