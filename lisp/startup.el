@@ -1157,13 +1157,18 @@ regardless of the value of this variable."
 (defvar fancy-startup-text
   '((:face (variable-pitch :foreground "red")
      "Welcome to "
-     :link ("GNU Emacs" (lambda (button) (browse-url "http://www.gnu.org/software/emacs/")))
+     :link ("GNU Emacs"
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    "Browse http://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
      (lambda ()
        (if (eq system-type 'gnu/linux)
-	   '("GNU/Linux" (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html")))
-	 '("GNU" (lambda (button) (describe-project)))))
+	   '("GNU/Linux"
+	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
+	 '("GNU" (lambda (button) (describe-project))
+	   "Display info on the GNU project")))
      " operating system.\n"
      :face variable-pitch "To quit a partially entered command, type "
      :face default "Control-g"
@@ -1189,7 +1194,8 @@ regardless of the value of this variable."
      "\n"
      :face variable-pitch
      :link ("Emacs Guided Tour"
-	  (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    "Browse http://www.gnu.org/software/emacs/tour/")
      "\tOverview of Emacs features\n"
      :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
      "\tView the Emacs manual using Info\n"
@@ -1210,13 +1216,18 @@ Each element in the list should be a list of strings or pairs
 (defvar fancy-about-text
   '((:face (variable-pitch :foreground "red")
      "This is "
-     :link ("GNU Emacs" (lambda (button) (browse-url "http://www.gnu.org/software/emacs/")))
+     :link ("GNU Emacs"
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    "Browse http://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
      (lambda ()
        (if (eq system-type 'gnu/linux)
-	   '("GNU/Linux" (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html")))
-	 '("GNU" (lambda (button) (describe-project)))))
+	   '("GNU/Linux"
+	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
+	 '("GNU" (lambda (button) (describe-project))
+	   "Display info on the GNU project.")))
      " operating system.\n"
      :face (lambda ()
 	     (list 'variable-pitch :foreground
@@ -1274,7 +1285,8 @@ Each element in the list should be a list of strings or pairs
 	   (concat " (" title ")"))))
      "\n"
      :link ("Emacs Guided Tour"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    "Browse http://www.gnu.org/software/emacs/tour/")
      "\tSee an overview of the many facilities of GNU Emacs"
      ))
   "A list of texts to show in the middle part of the About screen.
@@ -1314,10 +1326,10 @@ Arguments from ARGS should be either strings; functions called
 with no args that return a string; pairs `:face FACE', where FACE
 is a face specification usable with `put-text-property'; or pairs
 `:link LINK' where LINK is a list of arguments to pass to
-`insert-button', of the form (LABEL ACTION), which specifies the
-button's label and `action' property.  FACE and LINK can also be
-functions, which are evaluated to obtain a face or button
-specification."
+`insert-button', of the form (LABEL ACTION [HELP-ECHO]), which
+specifies the button's label, `action' property and help-echo string.
+FACE and LINK can also be functions, which are evaluated to obtain
+a face or button specification."
   (let ((current-face nil))
     (while args
       (cond ((eq (car args) :face)
@@ -1332,6 +1344,9 @@ specification."
 	       (insert-button (car spec)
 			      'face (list 'link current-face)
 			      'action (cadr spec)
+			      'help-echo (concat "mouse-2, RET: "
+						 (or (nth 2 spec)
+						     "Follow this link"))
 			      'follow-link t)))
 	    (t (insert (propertize (let ((it (car args)))
 				     (if (functionp it)
@@ -1371,7 +1386,7 @@ specification."
 	;; Insert the image with a help-echo and a link.
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
-		     'help-echo "mouse-2: browse http://www.gnu.org/"
+		     'help-echo "mouse-2, RET: Browse http://www.gnu.org/"
 		     'action (lambda (button) (browse-url "http://www.gnu.org/"))
 		     'follow-link t)
 	(insert "\n\n")))))
@@ -1385,13 +1400,16 @@ specification."
        :face 'variable-pitch
        "\nTo start...     "
        :link '("Open a File"
-	       (lambda (button) (call-interactively 'find-file)))
+	       (lambda (button) (call-interactively 'find-file))
+	       "Specify a new file's name, to edit the file")
        "     "
        :link '("Open Home Directory"
-	       (lambda (button) (dired "~")))
+	       (lambda (button) (dired "~"))
+	       "Open your home directory, to operate on its files")
        "     "
        :link '("Customize Startup"
-	       (lambda (button) (customize-group 'initialization)))
+	       (lambda (button) (customize-group 'initialization))
+	       "Change initialization settings including this screen")
        "\n"))
     (fancy-splash-insert :face `(variable-pitch :foreground ,fg)
 			 "\nThis is "
