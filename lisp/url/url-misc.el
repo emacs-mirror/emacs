@@ -75,7 +75,7 @@
   (let* ((type (intern (downcase (url-type url))))
 	 (server (url-host url))
 	 (name (url-user url))
-	 (port (url-port url)))
+	 (port (number-to-string (url-port url))))
     (url-do-terminal-emulator type server port name))
   nil)
 
