@@ -262,8 +262,8 @@ session, and `make-frame-on-tty' works during a graphical session.
 
 *** New functions: `delete-tty', `suspend-tty', `resume-tty'.
 
-*** New functions: `get-device-terminal', `terminal-parameters',
-`terminal-parameter', `set-terminal-parameter'.
+*** A new data type for terminals with functions: `get-device-terminal',
+`terminal-parameters', `terminal-parameter', `set-terminal-parameter'.
 
 *** New hooks: `suspend-tty-functions' and `resume-tty-functions'
 are called after a tty frame has been suspended or resumed,
