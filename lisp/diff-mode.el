@@ -112,6 +112,8 @@ when editing big diffs)."
     ("N" . diff-file-next)
     ("p" . diff-hunk-prev)
     ("P" . diff-file-prev)
+    ("\t" . diff-hunk-next)
+    ([backtab] . diff-hunk-prev)
     ("k" . diff-hunk-kill)
     ("K" . diff-file-kill)
     ;; From compilation-minor-mode.

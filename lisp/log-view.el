@@ -96,6 +96,8 @@
     ("f" . log-view-find-version)
     ("n" . log-view-msg-next)
     ("p" . log-view-msg-prev)
+    ("\t" . log-view-msg-next)
+    ([backtab] . log-view-msg-prev)
     ("N" . log-view-file-next)
     ("P" . log-view-file-prev)
     ("\M-n" . log-view-file-next)

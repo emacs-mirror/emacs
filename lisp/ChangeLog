@@ -1,3 +1,11 @@
+2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* pcvs-defs.el (cvs-mode-map): Bind TAB and backtab.
+
+	* log-view.el (log-view-mode-map): Likewise.
+
+	* diff-mode.el (diff-mode-shared-map): Likewise.
+
 2007-09-21  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* progmodes/octave-inf.el (inferior-octave-mode): Use add-hook to
