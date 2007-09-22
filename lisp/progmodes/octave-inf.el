@@ -153,10 +153,11 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
 
   (setq comint-input-ring-file-name
 	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
-	comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024)
-	comint-input-filter-functions '(inferior-octave-directory-tracker))
+	comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024))
   (set (make-local-variable 'comint-dynamic-complete-functions)
        inferior-octave-dynamic-complete-functions)
+  (add-hook 'comint-input-filter-functions
+	'inferior-octave-directory-tracker nil t)
   (comint-read-input-ring t)
 
   (run-mode-hooks 'inferior-octave-mode-hook))
