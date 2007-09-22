@@ -3606,12 +3606,8 @@
 
 	* replace.el (match): Use yellow1 instead of yellow.
 
-<<<<<<< ChangeLog
 	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of
 	red.
-=======
-	* progmodes/gdb-ui.el (breakpoint-enabled): Use red1 instead of red.
->>>>>>> 1.11807
 
 	* pcvs-info.el (cvs-unknown): Likewise.
 
