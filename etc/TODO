@@ -14,11 +14,11 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
-** Make "emacs --daemon" starts emacs without showing any frame. 
+** Make "emacs --daemon" start emacs without showing any frame. 
 Use emacsclient later to open frames.
 
-** Make it possible to turn on minor modes using "mode:" in the local variables
-section.
+** Make it possible to reliably turn on minor modes using "mode:" in the local 
+variables section.
 
 ** "Options -> Save Options" should save the font set via "Set Font/Fontset"
 I.e. mouse-set-font should use customize-face.
