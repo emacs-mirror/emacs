@@ -1,3 +1,8 @@
+2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* indent.el (indent-for-tab-command): Indent the region if
+	transient-mark-mode and the region is active.
+
 2007-09-21  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* progmodes/octave-inf.el (inferior-octave-mode): Use add-hook to

@@ -110,6 +110,9 @@ file or directory.
 
 * Editing Changes in Emacs 23.1
 
+** TAB now indents the region if the region is active and
+`transient-mark-mode' is turned on.
+
 ** C-z now invokes `suspend-frame', C-x C-c now invokes
 `save-buffers-kill-terminal'.
 
