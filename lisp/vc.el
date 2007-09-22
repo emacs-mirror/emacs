@@ -46,8 +46,9 @@
 
 ;; This mode is fully documented in the Emacs user's manual.
 ;;
-;; Supported version-control systems presently include CVS, RCS, GNU Arch,
-;; Subversion, Meta-CVS, and SCCS (or its free replacement, CSSC).
+;; Supported version-control systems presently include CVS, RCS, GNU
+;; Arch, Subversion, Bzr, Git, Mercurial, Meta-CVS, Monotone and SCCS
+;; (or its free replacement, CSSC).
 ;;
 ;; Some features will not work with old RCS versions.  Where
 ;; appropriate, VC finds out which version you have, and allows or

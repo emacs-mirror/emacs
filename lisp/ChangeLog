@@ -1,3 +1,7 @@
+2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Mention all supported VC backends.
+
 2007-09-22  Richard Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-specify-button): Don't merge mouse-face with
