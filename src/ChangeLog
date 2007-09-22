@@ -27,6 +27,11 @@
 	(xg_create_tool_bar): Don't connect expose signal to
 	xg_tool_bar_expose_callback.
 
+2007-09-16  Andreas Schwab  <schwab@suse.de>
+
+	* alloc.c (reset_malloc_hooks): Set the hooks to the previous
+	values instead of zapping them.
+
 2007-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* s/hpux.h: No longer define `static' as nothing.
