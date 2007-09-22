@@ -3188,7 +3188,7 @@ we do not remove backup version numbers, only true file version numbers."
 			 (length name))
 		   (if keep-backup-version
 		       (length name)
-		     (or (string-match "\\.~[-0-9a-z._]+~\\'" name)
+		     (or (string-match "\\.~[-0-9a-zA-Z._]+~\\'" name)
 			 (string-match "~\\'" name)
 			 (length name))))))))
 

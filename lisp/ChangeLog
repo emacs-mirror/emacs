@@ -1,5 +1,7 @@
 2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* files.el (file-name-sans-versions): Also allow `A-Z'.
+
 	* vc.el: Mention all supported VC backends.
 
 2007-09-22  Richard Stallman  <rms@gnu.org>
