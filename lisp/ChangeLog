@@ -1,3 +1,7 @@
+2007-09-22  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (file-name-sans-versions): Also allow `_'.
+
 2007-09-22  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-mode.el (eshell-output-filter-functions): Add
