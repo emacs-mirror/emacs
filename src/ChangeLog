@@ -1,3 +1,12 @@
+2007-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (DEV_TTY): New macro.  Provide a definition for
+	MS-Windows.
+	(FRAME_TERMCAP_P) [WINDOWSNT]: Don't define to zero.
+	(Fcontrolling_tty_p, Fresume_tty, dissociate_if_controlling_tty)
+	(init_tty): Use DEV_TTY instead of "/dev/tty".
+	[WINDOWSNT]: No need to protect from NAME arg being null.
+
 2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c (Fsuspend_tty): Run suspend-tty-functions before cleaning
