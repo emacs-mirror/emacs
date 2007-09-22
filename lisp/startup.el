@@ -872,8 +872,8 @@ opening the first frame (e.g. open a connection to an X server).")
 	(load site-run-file t t))
 
     ;; Sites should not disable this.  Only individuals should disable
-    ;; the startup message.
-    (setq inhibit-startup-message nil)
+    ;; the startup screen.
+    (setq inhibit-startup-screen nil)
 
     ;; Warn for invalid user name.
     (when init-file-user
@@ -967,7 +967,7 @@ opening the first frame (e.g. open a connection to an X server).")
 			    (setq user-init-file source))))
 
 		      (unless inhibit-default-init
-                        (let ((inhibit-startup-message nil))
+                        (let ((inhibit-startup-screen nil))
                           ;; Users are supposed to be told their rights.
                           ;; (Plus how to get help and how to undo.)
                           ;; Don't you dare turn this off for anyone
@@ -1251,8 +1251,8 @@ Each element in the list should be a list of strings or pairs
      "\tConditions for redistributing and changing Emacs\n"
      :link ("Getting New Versions" (lambda (button) (describe-distribution)))
      "\tHow to obtain the latest version of Emacs\n"
-     :link ("More Manuals / Ordering Manuals" (lambda (button) (view-order-manuals)))
-     "  Buying printed manuals from the FSF\n"
+     :link ("Ordering Manuals" (lambda (button) (view-order-manuals)))
+     "\tBuying printed manuals from the FSF\n"
      "\n"
      :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
      "\tLearn basic Emacs keystroke commands"
@@ -1376,10 +1376,23 @@ specification."
 		     'follow-link t)
 	(insert "\n\n")))))
 
-(defun fancy-startup-tail ()
+(defun fancy-startup-tail (&optional concise)
   "Insert the tail part of the splash screen into the current buffer."
   (let ((fg (if (eq (frame-parameter nil 'background-mode) 'dark)
 		"cyan" "darkblue")))
+    (unless concise
+      (fancy-splash-insert
+       :face 'variable-pitch
+       "\nTo start...     "
+       :link '("Open a File"
+	       (lambda (button) (call-interactively 'find-file)))
+       "     "
+       :link '("Open Home Directory"
+	       (lambda (button) (dired "~")))
+       "     "
+       :link '("Customize Startup"
+	       (lambda (button) (customize-group 'initialization)))
+       "\n"))
     (fancy-splash-insert :face `(variable-pitch :foreground ,fg)
 			 "\nThis is "
 			 (emacs-version)
@@ -1409,72 +1422,76 @@ specification."
 			      "\nto recover"
 			      " the files you were editing."))
 
-    (fancy-splash-insert
-     :face 'variable-pitch "\n\n"
-     :link '("Dismiss" (lambda (button)
-			 (when startup-screen-inhibit-startup-screen
-			   (customize-set-variable 'inhibit-splash-screen t)
-			   (customize-mark-to-save 'inhibit-splash-screen)
-			   (custom-save-all))
-			 (let ((w (get-buffer-window "*GNU Emacs*")))
-			   (and w (not (one-window-p)) (delete-window w)))
-			 (kill-buffer "*GNU Emacs*")))
-     "  ")
-    (when (or user-init-file custom-file)
-      (let ((checked (create-image "\300\300\141\143\067\076\034\030"
-				   'xbm t :width 8 :height 8 :background "grey75"
-				   :foreground "black" :relief -2 :ascent 'center))
-	    (unchecked (create-image (make-string 8 0)
+    (when concise
+      (fancy-splash-insert
+       :face 'variable-pitch "\n\n"
+       :link '("Dismiss" (lambda (button)
+			   (when startup-screen-inhibit-startup-screen
+			     (customize-set-variable 'inhibit-startup-screen t)
+			     (customize-mark-to-save 'inhibit-startup-screen)
+			     (custom-save-all))
+			   (let ((w (get-buffer-window "*GNU Emacs*")))
+			     (and w (not (one-window-p)) (delete-window w)))
+			   (kill-buffer "*GNU Emacs*")))
+       "  ")
+      (when (or user-init-file custom-file)
+	(let ((checked (create-image "\300\300\141\143\067\076\034\030"
 				     'xbm t :width 8 :height 8 :background "grey75"
-				     :foreground "black" :relief -2 :ascent 'center)))
-	(insert-button
-	 " " :on-glyph checked :off-glyph unchecked 'checked nil
-	 'display unchecked 'follow-link t
-	 'action (lambda (button)
-		   (if (overlay-get button 'checked)
-		       (progn (overlay-put button 'checked nil)
-			      (overlay-put button 'display (overlay-get button :off-glyph))
-			      (setq startup-screen-inhibit-startup-screen nil))
-		     (overlay-put button 'checked t)
-		     (overlay-put button 'display (overlay-get button :on-glyph))
-		     (setq startup-screen-inhibit-startup-screen t)))))
-      (fancy-splash-insert :face '(variable-pitch :height 0.9)
-			   " Don't show this message again."))))
+				     :foreground "black" :relief -2 :ascent 'center))
+	      (unchecked (create-image (make-string 8 0)
+				       'xbm t :width 8 :height 8 :background "grey75"
+				       :foreground "black" :relief -2 :ascent 'center)))
+	  (insert-button
+	   " " :on-glyph checked :off-glyph unchecked 'checked nil
+	   'display unchecked 'follow-link t
+	   'action (lambda (button)
+		     (if (overlay-get button 'checked)
+			 (progn (overlay-put button 'checked nil)
+				(overlay-put button 'display (overlay-get button :off-glyph))
+				(setq startup-screen-inhibit-startup-screen nil))
+		       (overlay-put button 'checked t)
+		       (overlay-put button 'display (overlay-get button :on-glyph))
+		       (setq startup-screen-inhibit-startup-screen t)))))
+	(fancy-splash-insert :face '(variable-pitch :height 0.9)
+			     " Don't show this message again.")))))
 
 (defun exit-splash-screen ()
   "Stop displaying the splash screen buffer."
   (interactive)
   (quit-window t))
 
-(defun fancy-startup-screen (concise)
+(defun fancy-startup-screen (&optional concise)
   "Display fancy startup screen.
-If CONCISE is non-nil, display a concise version of the splash
-screen."
+If CONCISE is non-nil, display a concise version of the
+splash screen in another window."
+  (with-current-buffer (get-buffer-create "*GNU Emacs*")
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (make-local-variable 'startup-screen-inhibit-startup-screen)
+      (if pure-space-overflow
+	  (insert pure-space-overflow-message))
+      (unless concise
+	(fancy-splash-head))
+      (dolist (text fancy-startup-text)
+	(apply #'fancy-splash-insert text)
+	(insert "\n"))
+      (skip-chars-backward "\n")
+      (delete-region (point) (point-max))
+      (insert "\n")
+      (fancy-startup-tail concise))
+    (use-local-map splash-screen-keymap)
+    (setq tab-width 22)
+    (set-buffer-modified-p nil)
+    (setq buffer-read-only t)
+    (if (and view-read-only (not view-mode))
+	(view-mode-enter nil 'kill-buffer))
+    (goto-char (point-min)))
   (if (or (window-minibuffer-p)
 	  (window-dedicated-p (selected-window)))
-      (pop-to-buffer (current-buffer))
-    (switch-to-buffer "*GNU Emacs*"))
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (make-local-variable 'startup-screen-inhibit-startup-screen)
-    (if pure-space-overflow
-	(insert pure-space-overflow-message))
-    (unless concise
-      (fancy-splash-head))
-    (dolist (text fancy-startup-text)
-      (apply #'fancy-splash-insert text)
-      (insert "\n"))
-    (skip-chars-backward "\n")
-    (delete-region (point) (point-max))
-    (insert "\n")
-    (fancy-startup-tail))
-  (use-local-map splash-screen-keymap)
-  (setq tab-width 22)
-  (set-buffer-modified-p nil)
-  (setq buffer-read-only t)
-  (if (and view-read-only (not view-mode))
-      (view-mode-enter nil 'kill-buffer))
-  (goto-char (point-min)))
+      (pop-to-buffer (current-buffer)))
+  (if concise
+      (display-buffer (get-buffer "*GNU Emacs*"))
+    (switch-to-buffer "*GNU Emacs*")))
 
 (defun fancy-about-screen ()
   "Display fancy About screen."
@@ -1842,10 +1859,10 @@ Type \\[describe-distribution] for information on "))
 
 (defun startup-echo-area-message ()
   (if (eq (key-binding "\C-h\C-p") 'describe-project)
-      "For information about the GNU system and GNU/Linux, type C-h C-p."
+      "For information about GNU Emacs and the GNU system, type C-h C-a."
     (substitute-command-keys
-     "For information about the GNU system and GNU/Linux, type \
-\\[describe-project].")))
+     "For information about GNU Emacs and the GNU system, type \
+\\[about-emacs].")))
 
 
 (defun display-startup-echo-area-message ()
@@ -1881,14 +1898,14 @@ Type \\[describe-distribution] for information on "))
 		     (kill-buffer buffer)))))
 	(message "%s" (startup-echo-area-message)))))
 
-(defun display-startup-screen (concise)
+(defun display-startup-screen (&optional concise)
   "Display startup screen according to display.
 A fancy display is used on graphic displays, normal otherwise.
 
 If CONCISE is non-nil, display a concise version of the startup
 screen."
   ;; Prevent recursive calls from server-process-filter.
-  (if (not (get-buffer "*About GNU Emacs*"))
+  (if (not (get-buffer "*GNU Emacs*"))
       (if (use-fancy-splash-screens-p)
       	  (fancy-startup-screen concise)
       	(normal-splash-screen t))))
@@ -1897,13 +1914,12 @@ screen."
   "Display the *About GNU Emacs* buffer.
 A fancy display is used on graphic displays, normal otherwise."
   (interactive)
-  (if (not (get-buffer "*About GNU Emacs*"))
-      (if (use-fancy-splash-screens-p)
-      	  (fancy-about-screen)
-      	(normal-splash-screen nil))))
+  (if (use-fancy-splash-screens-p)
+      (fancy-about-screen)
+    (normal-splash-screen nil)))
 
 (defalias 'about-emacs 'display-about-screen)
-(defalias 'display-splash 'display-about-screen)
+(defalias 'display-splash-screen 'display-startup-screen)
 
 (defun command-line-1 (command-line-args-left)
   (display-startup-echo-area-message)
@@ -1995,17 +2011,19 @@ A fancy display is used on graphic displays, normal otherwise."
 		     (funcall (cdr tem) argi)))
 
 		  ((equal argi "-no-splash")
-		   (setq inhibit-startup-message t))
+		   (setq inhibit-startup-screen t))
 
 		  ((member argi '("-f"	; what the manual claims
 				  "-funcall"
 				  "-e"))  ; what the source used to say
+		   (setq inhibit-startup-screen t)
 		   (setq tem (intern (or argval (pop command-line-args-left))))
 		   (if (commandp tem)
 		       (command-execute tem)
 		     (funcall tem)))
 
 		  ((member argi '("-eval" "-execute"))
+		   (setq inhibit-startup-screen t)
 		   (eval (read (or argval (pop command-line-args-left)))))
 
 		  ((member argi '("-L" "-directory"))
@@ -2037,6 +2055,7 @@ A fancy display is used on graphic displays, normal otherwise."
 		     (load file-ex nil t t)))
 
 		  ((equal argi "-insert")
+		   (setq inhibit-startup-screen t)
 		   (setq tem (or argval (pop command-line-args-left)))
 		   (or (stringp tem)
 		       (error "File name omitted from `-insert' option"))
@@ -2065,6 +2084,7 @@ A fancy display is used on graphic displays, normal otherwise."
 			 (nthcdr (nth 1 tem) command-line-args-left)))
 
 		  ((member argi '("-find-file" "-file" "-visit"))
+		   (setq inhibit-startup-screen t)
 		   ;; An explicit option to specify visiting a file.
 		   (setq tem (or argval (pop command-line-args-left)))
 		   (unless (stringp tem)
@@ -2097,6 +2117,8 @@ A fancy display is used on graphic displays, normal otherwise."
 			 (progn
 			   (if (string-match "\\`-" argi)
 			       (error "Unknown option `%s'" argi))
+			   (unless initial-window-system
+			     (setq inhibit-startup-screen t))
 			   (setq file-count (1+ file-count))
 			   (let ((file
 				  (expand-file-name
@@ -2123,7 +2145,7 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ((stringp initial-buffer-choice)
 	     (find-file initial-buffer-choice))))
 
-    (if (or inhibit-splash-screen
+    (if (or inhibit-startup-screen
 	    initial-buffer-choice
 	    noninteractive
 	    emacs-quick-startup)
@@ -2176,17 +2198,9 @@ A fancy display is used on graphic displays, normal otherwise."
 	       (insert initial-scratch-message)
 	       (set-buffer-modified-p nil))))
 
-      (cond ((= file-count 0)
-	     (display-startup-screen nil))
-	    ((or (= file-count 1) inhibit-startup-buffer-menu)
-	     (let ((buf (current-buffer))
-		   (first-window (get-buffer-window first-file-buffer)))
-	       (if first-window (select-window first-window))
-	       (display-startup-screen t)
-	       (display-buffer buf)))
-	    (t
-	     (display-startup-screen t)
-	     (display-buffer (list-buffers-noselect)))))))
+      (if (> file-count 0)
+	  (display-startup-screen t)
+	(display-startup-screen nil)))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."
