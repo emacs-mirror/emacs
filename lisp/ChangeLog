@@ -1,5 +1,12 @@
 2007-09-22  Juri Linkov  <juri@jurta.org>
 
+	* startup.el (fancy-startup-text, fancy-about-text, fancy-startup-tail):
+	Add help-echo to external links and to links without description.
+	(fancy-splash-insert): Use help-echo from the 3rd element of the
+	link specification list, or "Follow this link" if it's nil.  Doc fix.
+
+2007-09-22  Juri Linkov  <juri@jurta.org>
+
 	* startup.el (command-line): Rename `inhibit-startup-message' to
 	`inhibit-startup-screen'.
 	(fancy-about-text): Use shorter label for "Ordering Manuals".
