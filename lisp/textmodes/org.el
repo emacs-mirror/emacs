@@ -1231,7 +1231,7 @@ if one was given like in <mailto:arthur@galaxy.org::this subject>."
 
 (defcustom org-confirm-shell-link-function 'yes-or-no-p
   "Non-nil means, ask for confirmation before executing shell links.
-Shell links can be dangerous, just thing about a link
+Shell links can be dangerous, just think about a link
 
      [[shell:rm -rf ~/*][Google Search]]
 
