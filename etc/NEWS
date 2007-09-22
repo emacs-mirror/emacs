@@ -66,9 +66,6 @@ the currently selected Emacs frame.
 
 ** Emacs now supports the SVG image format through librsvg2.
 
-** The Gtk+ build now uses stock tool bar icons, so that a theme change
-is visible in Emacs tool bar.
-
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
 
