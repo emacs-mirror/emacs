@@ -1,3 +1,15 @@
+2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (file-name-sans-versions): Allow - and a-z in version
+	names.
+
+	* log-view.el (log-view-mode-map, log-view-mode-menu): Bind
+	log-view-annotate-version.
+	(log-view-beginning-of-defun, log-view-end-of-defun)
+	(log-view-annotate-version): New functions.
+	(log-view-mode): Use log-view-beginning-of-defun and
+	log-view-end-of-defun.
+
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix staging brain damage.
