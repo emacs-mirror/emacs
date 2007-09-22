@@ -1,5 +1,9 @@
 2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs-lisp/checkdoc.el (checkdoc-force-docstrings-flag)
+	(checkdoc-permit-comma-termination-flag): Autoload the
+	safe-local-variable setting.
+
 	* bookmark.el (bookmark-xemacsp): Remove.
 	(bookmark-make): Don't use bookmark-xemacsp, use
 	(featurep 'xemacs) instead.

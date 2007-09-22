@@ -233,7 +233,7 @@ and that it's good but not required practice to make non user visible items
 have doc strings."
   :group 'checkdoc
   :type 'boolean)
-(put 'checkdoc-force-docstrings-flag 'safe-local-variable 'booleanp)
+;;;###autoload(put 'checkdoc-force-docstrings-flag 'safe-local-variable 'booleanp)
 
 (defcustom checkdoc-force-history-flag t
   "Non-nil means that files should have a History section or ChangeLog file.
@@ -249,7 +249,7 @@ should be used when the first part could stand alone as a sentence, but
 it indicates that a modifying clause follows."
   :group 'checkdoc
   :type 'boolean)
-(put 'checkdoc-permit-comma-termination-flag 'safe-local-variable 'booleanp)
+;;;###autoload(put 'checkdoc-permit-comma-termination-flag 'safe-local-variable 'booleanp)
 
 (defcustom checkdoc-spellcheck-documentation-flag nil
   "Non-nil means run Ispell on text based on value.
