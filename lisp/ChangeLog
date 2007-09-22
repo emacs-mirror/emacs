@@ -1,3 +1,8 @@
+2007-09-22  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/esh-mode.el (eshell-output-filter-functions): Add
+        eshell-postoutput-scroll-to-bottom.
+
 2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.el (file-name-sans-versions): Allow - and a-z in version
