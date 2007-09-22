@@ -1,5 +1,11 @@
 2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* speedbar.el (speedbar-frame-mode)
+	(speedbar-frame-reposition-smartly)
+	(speedbar-set-mode-line-format, speedbar-reconfigure-keymaps)
+	(speedbar-check-vc): Remove use of non-existent variable
+	dframe-xemacsp, use (featurep 'xemacs) instead.
+
 	* indent.el (indent-for-tab-command): Indent the region if
 	transient-mark-mode and the region is active.
 
