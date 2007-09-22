@@ -84,6 +84,13 @@ extern int tgetnum P_ ((char *id));
 #define O_NOCTTY 0
 #endif
 
+/* The name of the default console device.  */
+#ifdef WINDOWSNT
+#define DEV_TTY  "CONOUT$"
+#else
+#define DEV_TTY  "/dev/tty"
+#endif
+
 static void tty_set_scroll_region P_ ((struct frame *f, int start, int stop));
 static void turn_on_face P_ ((struct frame *, int face_id));
 static void turn_off_face P_ ((struct frame *, int face_id));
@@ -179,17 +186,6 @@ extern char *tgetstr ();
 static void term_clear_mouse_face ();
 static void term_mouse_highlight (struct frame *f, int x, int y);
 
-
-#ifdef WINDOWSNT
-/* We aren't X windows, but we aren't termcap either.  This makes me
-   uncertain as to what value to use for frame.output_method.  For
-   this file, we'll define FRAME_TERMCAP_P to be zero so that our
-   output hooks get called instead of the termcap functions.  Probably
-   the best long-term solution is to define an output_windows_nt...  */
-
-#undef FRAME_TERMCAP_P
-#define FRAME_TERMCAP_P(_f_) 0
-#endif /* WINDOWSNT */
 
 #ifdef HAVE_GPM
 #include <sys/fcntl.h>
@@ -2185,7 +2181,7 @@ is not on a tty device.  */)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
-  if (t->type != output_termcap || strcmp (t->display_info.tty->name, "/dev/tty"))
+  if (t->type != output_termcap || strcmp (t->display_info.tty->name, DEV_TTY))
     return Qnil;
   else
     return Qt;
@@ -2313,12 +2309,12 @@ the currently selected frame. */)
       if (fd == -1)
         error ("Can not reopen tty device %s: %s", t->display_info.tty->name, strerror (errno));
 
-      if (strcmp (t->display_info.tty->name, "/dev/tty"))
+      if (strcmp (t->display_info.tty->name, DEV_TTY))
         dissociate_if_controlling_tty (fd);
-      
+
       t->display_info.tty->output = fdopen (fd, "w+");
       t->display_info.tty->input = t->display_info.tty->output;
-    
+
       add_keyboard_wait_descriptor (fd);
 
       if (FRAMEP (t->display_info.tty->top_frame))
@@ -3140,7 +3136,7 @@ dissociate_if_controlling_tty (int fd)
 #else
 #ifdef TIOCNOTTY                /* Try BSD ioctls. */
       sigblock (sigmask (SIGTTOU));
-      fd = emacs_open ("/dev/tty", O_RDWR, 0);
+      fd = emacs_open (DEV_TTY, O_RDWR, 0);
       if (fd != -1 && ioctl (fd, TIOCNOTTY, 0) != -1)
         {
           no_controlling_tty = 1;
@@ -3154,7 +3150,7 @@ dissociate_if_controlling_tty (int fd)
 #endif  /* ! TIOCNOTTY */
 #endif  /* ! USG */
     }
-#endif
+#endif	/* !WINDOWSNT */
 }
 
 static void maybe_fatal();
@@ -3188,10 +3184,9 @@ init_tty (char *name, char *terminal_type, int must_succeed)
                  "Unknown terminal type",
                  "Unknown terminal type");
 
-#ifndef WINDOWSNT  
   if (name == NULL)
-    name = "/dev/tty";
-  if (!strcmp (name, "/dev/tty"))
+    name = DEV_TTY;
+  if (!strcmp (name, DEV_TTY))
     ctty = 1;
 
   /* If we already have a terminal on the given device, use that.  If
@@ -3202,8 +3197,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   terminal = get_named_tty (name);
   if (terminal)
     return terminal;
-#endif
-  
+
   terminal = create_terminal ();
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
   bzero (tty, sizeof (struct tty_display_info));
@@ -3219,7 +3213,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
 #ifndef WINDOWSNT
   set_tty_hooks (terminal);
-  
+
   {
     int fd;
     FILE *file;
@@ -3264,7 +3258,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
     tty->input = file;
     tty->output = file;
   }
-  
+
   tty->type = xstrdup (terminal_type);
 
   add_keyboard_wait_descriptor (fileno (tty->input));
@@ -3284,13 +3278,9 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   terminal->delete_frame_hook = &delete_tty_output;
   terminal->delete_terminal_hook = &delete_tty;
 
-  /* XXX Can this be non-null?  */
-  if (name)
-    {
-      tty->name = xstrdup (name);
-      terminal->name = xstrdup (name);
-    }
-  tty->type = xstrdup (terminal_type);  
+  tty->name = xstrdup (name);
+  terminal->name = xstrdup (name);
+  tty->type = xstrdup (terminal_type);
 
   tty->output = stdout;
   tty->input = stdin;
@@ -3328,13 +3318,13 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   Wcm_clear (tty);
 
   buffer = (char *) xmalloc (buffer_size);
-  
+
   /* On some systems, tgetent tries to access the controlling
      terminal. */
   sigblock (sigmask (SIGTTOU));
   status = tgetent (buffer, terminal_type);
   sigunblock (sigmask (SIGTTOU));
-  
+
   if (status < 0)
     {
 #ifdef TERMINFO
