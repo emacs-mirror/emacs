@@ -1,3 +1,8 @@
+2007-09-22  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-misc.el (url-generic-emulator-loader): Send the port as a
+        string to `url-do-terminal-emulator'.
+
 2007-09-21  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-news.el (url-news-fetch-newsgroup): Fix formatting of Gnus
