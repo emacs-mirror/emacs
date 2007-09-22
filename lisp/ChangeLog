@@ -1,3 +1,8 @@
+2007-09-22  Richard Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-specify-button): Don't merge mouse-face with
+	neighbouring buttons.
+
 2007-09-22  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (file-name-sans-versions): Also allow `_'.
