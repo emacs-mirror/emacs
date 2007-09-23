@@ -6028,23 +6028,51 @@ gc_sweep ()
 
     for (cblk = cons_block; cblk; cblk = *cprev)
       {
-	register int i;
+	register int i = 0;
 	int this_free = 0;
-	for (i = 0; i < lim; i++)
-	  if (!CONS_MARKED_P (&cblk->conses[i]))
-	    {
-	      this_free++;
-	      cblk->conses[i].u.chain = cons_free_list;
-	      cons_free_list = &cblk->conses[i];
+	int ilim = (lim + BITS_PER_INT - 1) / BITS_PER_INT;
+
+	/* Scan the mark bits an int at a time.  */
+	for (i = 0; i <= ilim; i++)
+	  {
+	    if (cblk->gcmarkbits[i] == -1)
+	      {
+		/* Fast path - all cons cells for this int are marked.  */
+		cblk->gcmarkbits[i] = 0;
+		num_used += BITS_PER_INT;
+	      }
+	    else
+	      {
+		/* Some cons cells for this int are not marked.
+		   Find which ones, and free them.  */
+		int start, pos, stop;
+
+		start = i * BITS_PER_INT;
+		stop = lim - start;
+		if (stop > BITS_PER_INT)
+		  stop = BITS_PER_INT;
+		stop += start;
+
+		for (pos = start; pos < stop; pos++)
+		  {
+		    if (!CONS_MARKED_P (&cblk->conses[pos]))
+		      {
+			this_free++;
+			cblk->conses[pos].u.chain = cons_free_list;
+			cons_free_list = &cblk->conses[pos];
 #if GC_MARK_STACK
-	      cons_free_list->car = Vdead;
+			cons_free_list->car = Vdead;
 #endif
-	    }
-	  else
-	    {
-	      num_used++;
-	      CONS_UNMARK (&cblk->conses[i]);
-	    }
+		      }
+		    else
+		      {
+			num_used++;
+			CONS_UNMARK (&cblk->conses[pos]);
+		      }
+		  }
+	      }
+	  }
+
 	lim = CONS_BLOCK_SIZE;
 	/* If this block contains only free conses and we have already
 	   seen more than two blocks worth of free conses then deallocate
