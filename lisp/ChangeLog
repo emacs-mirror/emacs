@@ -1,3 +1,7 @@
+2007-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* ses.el (ses-calculate-cell): Don't evaluate unsafe formulae.
+
 2007-09-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* pcvs-defs.el (cvs-mode-map): Bind TAB and backtab.
