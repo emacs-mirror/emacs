@@ -97,7 +97,6 @@ Boston, MA 02110-1301, USA.  */
 #endif /* WINDOWSNT */
 
 /* BEGIN: Common Definitions */
-#define abs(X)    ((X) < 0 ? -(X) : (X))
 
 /* Symbols.  */
 
