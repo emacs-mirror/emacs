@@ -58,8 +58,6 @@ Boston, MA 02110-1301, USA.  */
 #include "composite.h"
 #include "coding.h"
 
-#define abs(x)	((x) < 0 ? -(x) : (x))
-
 
 /* Fringe bitmaps.  */
 
