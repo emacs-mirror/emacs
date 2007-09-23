@@ -767,7 +767,13 @@ Prefix arg means don't delete this window."
   "Bury this mail buffer."
   (let ((newbuf (other-buffer (current-buffer))))
     (bury-buffer (current-buffer))
-    (if (and (or (window-dedicated-p (frame-selected-window))
+    (if (and (or nil
+		 ;; In this case, we need to go to a different frame.
+		 (window-dedicated-p (frame-selected-window))
+		 ;; In this mode of operation, the frame was probably
+		 ;; made for this buffer, so the user probably wants
+		 ;; to delete it now.
+		 (and pop-up-frames (one-window-p))
 		 (cdr (assq 'mail-dedicated-frame (frame-parameters))))
 	     (not (null (delq (selected-frame) (visible-frame-list)))))
 	(progn
