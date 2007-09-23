@@ -38,6 +38,12 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** Emacs now supports using both X displays and ttys in one session.
+You can also use any number of different ttys.
+
+You can test for the presence of this feature in your Lisp code by
+testing for the `multi-tty' feature.
+
 ** Emacs comes with a new set of icons for Mac OS X.
 OS-X-style icons (an application icon and a relevant document icon)
 were contributed by Kentaro Ohkouchi.
@@ -52,10 +58,6 @@ symbolic notation thanks to auxiliary functions.
 
 ** split-window-preferred-function specifies whether display-buffer should
 split windows vertically or horizontally.
-
-** Support for multiple terminal devices and simultaneous graphical
-and tty frames has been added.  You can test for the presence of this
-feature in your Lisp code by testing for the `multi-tty' feature.
 
 ** Emacsclient has been extended to support opening a new terminal
 frame.  Its behavior has been changed to open a new Emacs frame by
