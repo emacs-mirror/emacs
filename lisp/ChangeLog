@@ -1,5 +1,14 @@
 2007-09-23  Richard Stallman  <rms@gnu.org>
 
+	* mail/sendmail.el (mail-bury): Delete the frame
+	if this frame looks like it was made for this message.
+
+	* completion.el (completion-separator-self-insert-command)
+	(completion-separator-self-insert-autofilling):
+	If `self-insert-command' has been remapped, use the substitute.
+
+	* simple.el (copy-region-as-kill): Doc fix.
+
 	* textmodes/org.el (org-confirm-shell-link-function)
 	(org-confirm-elisp-link-function): Doc fixes.
 
