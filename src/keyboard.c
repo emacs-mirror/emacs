@@ -108,8 +108,6 @@ int interrupt_input_pending;
 #define KBD_BUFFER_SIZE 4096
 #endif	/* No X-windows */
 
-#define abs(x)		((x) >= 0 ? (x) : -(x))
-
 /* Following definition copied from eval.c */
 
 struct backtrace
