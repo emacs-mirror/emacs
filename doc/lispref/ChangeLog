@@ -1,3 +1,7 @@
+2007-09-23  Richard Stallman  <rms@gnu.org>
+
+	* macros.texi (Backquote): Minor clarification.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* Move from lispref/ to doc/lispref/.  Change all setfilename
