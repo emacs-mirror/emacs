@@ -1,7 +1,7 @@
 2007-09-23  Johannes Weiner  <hannes@saeurebad.de>
 
 	* lisp.h (abs): Define if unknown.
-	* keyboard.c, sound.c, w32term.c, xfaces.c, w32term.c: Don't
+	* keyboard.c, sound.c, w32term.c, xfaces.c, xterm.c: Don't
 	define abs now it's in lisp.h.
 
 2007-09-22  Eli Zaretskii  <eliz@gnu.org>
