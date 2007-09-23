@@ -628,8 +628,9 @@ the old and FORCE is nil."
     (let ((oldval  (ses-cell-value   cell))
 	  (formula (ses-cell-formula cell))
 	  newval)
-      (if (eq (car-safe formula) 'ses-safe-formula)
-	  (ses-set-cell row col 'formula (ses-safe-formula (cadr formula))))
+      (when (eq (car-safe formula) 'ses-safe-formula)
+	(setq formula (ses-safe-formula (cadr formula)))
+	(ses-set-cell row col 'formula formula))
       (condition-case sig
 	  (setq newval (eval formula))
 	(error
