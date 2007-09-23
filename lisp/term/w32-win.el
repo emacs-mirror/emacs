@@ -112,7 +112,7 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-      (mapcar (lambda (file-name)
+      (mapc (lambda (file-name)
 		(let ((f (subst-char-in-string ?\\ ?/ file-name))
 		      (coding (or file-name-coding-system
 				  default-file-name-coding-system)))

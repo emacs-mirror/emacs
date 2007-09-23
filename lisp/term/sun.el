@@ -32,12 +32,12 @@
 
 (defun scroll-down-in-place (n)
   (interactive "p")
-  (previous-line n)
+  (forward-line (- n))
   (scroll-down n))
 
 (defun scroll-up-in-place (n)
   (interactive "p")
-  (next-line n)
+  (forward-line n)
   (scroll-up n))
 
 (defun kill-region-and-unmark (beg end)

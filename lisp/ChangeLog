@@ -1,3 +1,14 @@
+2007-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/w32-win.el (w32-drag-n-drop): Use mapc instead of mapcar.
+
+	* term/tvi970.el (terminal-init-tvi970): Likewise.
+
+	* term/sun-mouse.el (print-mouse-format): Likewise.
+
+	* term/sun.el (scroll-down-in-place, scroll-up-in-place): Use
+	forward-line instead of previous-line and next-line.
+
 2007-09-22  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/org.el (org-confirm-shell-link-function): Doc fix.

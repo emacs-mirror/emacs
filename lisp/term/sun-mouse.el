@@ -501,7 +501,7 @@ If there is no documentation string, then the string
 (defun print-mouse-format (binding)
   (princ (car binding))
   (princ ": ")
-  (mapcar (function
+  (mapc (function
 	   (lambda (mouse-list)
 	     (princ mouse-list)
 	     (princ " ")))
