@@ -154,8 +154,6 @@ extern void _XEditResCheckMessages ();
 #endif
 #endif
 
-#define abs(x)	((x) < 0 ? -(x) : (x))
-
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
 int use_xim = 1;
