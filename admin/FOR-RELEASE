@@ -60,6 +60,10 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
 "can't turn off font-lock"
 http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00548.html
 
+** mah@everybody.org, Sep 18: erc causes emacs to hang with multi-tty
+
+** jbw@macs.hw.ac.uk, Sep 18: before-string property has no effect if display property is empty
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
