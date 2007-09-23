@@ -1231,15 +1231,15 @@ if one was given like in <mailto:arthur@galaxy.org::this subject>."
 
 (defcustom org-confirm-shell-link-function 'yes-or-no-p
   "Non-nil means, ask for confirmation before executing shell links.
-Shell links can be dangerous, just think about a link
+Shell links can be dangerous: just think about a link
 
      [[shell:rm -rf ~/*][Google Search]]
 
-This link would show up in your Org-mode document as \"Google Search\"
+This link would show up in your Org-mode document as \"Google Search\",
 but really it would remove your entire home directory.
-Therefore I *definitely* advise against setting this variable to nil.
-Just change it to `y-or-n-p' of you want to confirm with a single key press
-rather than having to type \"yes\"."
+Therefore we advise against setting this variable to nil.
+You can change it to `y-or-n-p' if you want to confirm
+with a single keystroke instead of \"yes\"."
   :group 'org-link-follow
   :type '(choice
 	  (const :tag "with yes-or-no (safer)" yes-or-no-p)
@@ -1247,16 +1247,16 @@ rather than having to type \"yes\"."
 	  (const :tag "no confirmation (dangerous)" nil)))
 
 (defcustom org-confirm-elisp-link-function 'yes-or-no-p
-  "Non-nil means, ask for confirmation before executing elisp links.
-Elisp links can be dangerous, just think about a link
+  "Non-nil means, ask for confirmation before executing Emacs Lisp links.
+Emacs Lisp links can be dangerous: just think about a link
 
      [[elisp:(shell-command \"rm -rf ~/*\")][Google Search]]
 
-This link would show up in your Org-mode document as \"Google Search\"
+This link would show up in your Org-mode document as \"Google Search\",
 but really it would remove your entire home directory.
-Therefore I *definitely* advise against setting this variable to nil.
-Just change it to `y-or-n-p' of you want to confirm with a single key press
-rather than having to type \"yes\"."
+Therefore we advise against setting this variable to nil.
+You can change it to `y-or-n-p' if you want to confirm
+with a single keystroke instead of \"yes\"."
   :group 'org-link-follow
   :type '(choice
 	  (const :tag "with yes-or-no (safer)" yes-or-no-p)
