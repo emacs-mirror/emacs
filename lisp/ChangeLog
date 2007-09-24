@@ -1,3 +1,10 @@
+2007-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-mode-p): Rename from
+	`tramp-completion-mode'. Revert logic, check `return', `newline'
+	and such alike. Packages like Icicles tend to use other completion
+	characters but `tab' and `space' only.
+
 2007-09-24  Adam Hupp  <adam@hupp.org>
 
 	* progmodes/python.el (run-python): Import emacs module without

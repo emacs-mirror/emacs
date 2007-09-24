@@ -4345,7 +4345,7 @@ ARGS are the arguments OPERATION has been called with."
 (defun tramp-find-foreign-file-name-handler (filename)
   "Return foreign file name handler if exists."
   (when (and (stringp filename) (tramp-tramp-file-p filename)
-	     (or (not (tramp-completion-mode))
+	     (or (not (tramp-completion-mode-p))
 		 (not (string-match
 		       tramp-completion-file-name-regexp filename))))
     (let (elt
@@ -4366,7 +4366,7 @@ ARGS are the arguments OPERATION has been called with."
 Falls back to normal file name handler if no tramp file name handler exists."
   (save-match-data
     (let* ((filename (apply 'tramp-file-name-for-operation operation args))
-	   (completion (tramp-completion-mode))
+	   (completion (tramp-completion-mode-p))
 	   (foreign (tramp-find-foreign-file-name-handler filename)))
       (with-parsed-tramp-file-name filename nil
 	(cond
@@ -4579,35 +4579,26 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;; tramp file name syntax. Maybe another variable should be introduced
 ;; overwriting this check in such cases. Or we change tramp file name
 ;; syntax in order to avoid ambiguities, like in XEmacs ...
-(defun tramp-completion-mode ()
+(defun tramp-completion-mode-p ()
   "Checks whether method / user name / host name completion is active."
-  (or (equal last-input-event 'tab)
-      ;; Emacs
-      (and (natnump last-input-event)
-	   (or
-	    ;; ?\t has event-modifier 'control
-	    (char-equal last-input-event ?\t)
-	    (and (not (event-modifiers last-input-event))
-		 (or (char-equal last-input-event ?\?)
-		     (char-equal last-input-event ?\ )))))
-      ;; XEmacs
-      (and (featurep 'xemacs)
-	   ;; `last-input-event' might be nil.
-	   (not (null last-input-event))
-	   ;; `last-input-event' may have no character approximation.
-	   (funcall (symbol-function 'event-to-character) last-input-event)
-	   (or
-	    ;; ?\t has event-modifier 'control
-	    (char-equal
-	     (funcall (symbol-function 'event-to-character)
-		      last-input-event) ?\t)
-	    (and (not (event-modifiers last-input-event))
-		 (or (char-equal
-		      (funcall (symbol-function 'event-to-character)
-			       last-input-event) ?\?)
-		     (char-equal
-		      (funcall (symbol-function 'event-to-character)
-			       last-input-event) ?\ )))))))
+  (or
+   ;; Emacs
+   (not (memq last-input-event '(return newline)))
+   (and (natnump last-input-event)
+	(not (char-equal last-input-event ?\n))
+	(not (char-equal last-input-event ?\r)))
+   ;; XEmacs
+   (and (featurep 'xemacs)
+	;; `last-input-event' might be nil.
+	(not (null last-input-event))
+	;; `last-input-event' may have no character approximation.
+	(funcall (symbol-function 'event-to-character) last-input-event)
+	(not (char-equal
+	      (funcall (symbol-function 'event-to-character)
+		       last-input-event) ?\n))
+	(not (char-equal
+	      (funcall (symbol-function 'event-to-character)
+		       last-input-event) ?\r)))))
 
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
@@ -7575,7 +7566,7 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   about Tramp, it does not do the right thing if the target file
 ;;   name is a Tramp name.
 ;; * Username and hostname completion.
-;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode'.
+;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode-p'.
 ;; ** Unify `tramp-parse-{rhosts,shosts,sconfig,hosts,passwd,netrc}'.
 ;;    Code is nearly identical.
 ;; * Allow out-of-band methods as _last_ multi-hop.
