@@ -1,3 +1,8 @@
+2007-09-24  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* whitespace.el (whitespace-tickle-timer): Don't install the timer if
+	whitespace-rescan-timer-time is 0.
+
 2007-09-24  Karl Berry  <karl@gnu.org>
 
 	* international/mule.el (coding-system-base): Fix doc string grammar.
