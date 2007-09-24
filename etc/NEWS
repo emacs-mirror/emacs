@@ -206,6 +206,8 @@ file copy is checked via the file's checksum.
 
 ** Miscellaneous programming mode changes
 
+*** Support for Python 3 has been added.
+
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
 ** Miscellaneous
