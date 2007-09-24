@@ -1,3 +1,8 @@
+2007-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* CONTRIBUTE: Remove information on maintaining copyright years;
+	it does not belong here and is in admin/notes anyway.
+
 2007-09-24  Adam Hupp  <adam@hupp.org>
 
 	* emacs.py: Split for python 2 and python 3 compatibility.
