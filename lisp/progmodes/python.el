@@ -1375,7 +1375,7 @@ buffer for a list of commands.)"
       ;; seems worth putting in a separate file, and it's probably cleaner
       ;; to put it in a module.
       ;; Ensure we're at a prompt before doing anything else.
-      (python-send-receive "import emacs; print '_emacs_out ()'")))
+      (python-send-string "import emacs")))
   (if (derived-mode-p 'python-mode)
       (setq python-buffer (default-value 'python-buffer))) ; buffer-local
   ;; Without this, help output goes into the inferior python buffer if
