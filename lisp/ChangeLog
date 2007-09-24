@@ -1,3 +1,11 @@
+2007-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/cc-mode.el (c-mode-base-map): Use
+	c-indent-line-or-region instead of c-indent-line.
+
+	* indent.el (indent-for-tab-command): First check if the region is
+	active.
+
 2007-09-24  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* whitespace.el (whitespace-tickle-timer): Don't install the timer if

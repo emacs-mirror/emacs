@@ -269,7 +269,9 @@ control).  See \"cc-mode.el\" for more info."
 			     'c-indent-new-comment-line
 			     c-mode-base-map global-map)
   (substitute-key-definition 'indent-for-tab-command
-			     'c-indent-command
+			     ;; XXX Is this the right thing to do
+			     ;; here?
+			     'c-indent-line-or-region
 			     c-mode-base-map global-map)
   (when (fboundp 'comment-indent-new-line)
     ;; indent-new-comment-line has changed name to

@@ -88,6 +88,10 @@ The function actually called to indent the line is determined by the value of
 `indent-line-function'."
   (interactive "P")
   (cond
+   ;; The region is active, indent it.
+   ((and transient-mark-mode mark-active
+	 (not (eq (region-beginning) (region-end))))
+    (indent-region (region-beginning) (region-end)))
    ((or ;; indent-to-left-margin is only meant for indenting,
 	;; so we force it to always insert a tab here.
 	(eq indent-line-function 'indent-to-left-margin)
@@ -99,10 +103,6 @@ The function actually called to indent the line is determined by the value of
    ;; indenting, so we can't pass them to indent-according-to-mode.
    ((memq indent-line-function '(indent-relative indent-relative-maybe))
     (funcall indent-line-function))
-   ;; The region is active, indent it.
-   ((and transient-mark-mode mark-active
-	 (not (eq (region-beginning) (region-end))))
-    (indent-region (region-beginning) (region-end)))
    ;; Indent the line.
    (t
     (indent-according-to-mode))))
