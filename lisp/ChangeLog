@@ -1,3 +1,8 @@
+2007-09-24  Adam Hupp  <adam@hupp.org>
+
+	* progmodes/python.el (run-python): Import emacs module without
+	waiting; prevents lockup on error.
+
 2007-09-23  Richard Stallman  <rms@gnu.org>
 
 	* mail/sendmail.el (mail-bury): Delete the frame
