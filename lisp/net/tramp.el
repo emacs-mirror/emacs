@@ -94,6 +94,11 @@
 (require 'shell)
 (require 'advice)
 
+;; `copy-tree' is part of subr.el since Emacs 22.
+(eval-when-compile
+  (unless (functionp 'copy-tree)
+    (require 'cl)))
+
 (autoload 'tramp-uuencode-region "tramp-uu"
   "Implementation of `uuencode' in Lisp.")
 (add-hook 'tramp-unload-hook
@@ -4239,10 +4244,10 @@ pass to the OPERATION."
 	 (inhibit-file-name-operation operation))
     (apply operation args))))
 
-;; This function is used from `tramp-completion-file-name-handler' functions
-;; only, if `tramp-completion-mode' is true. But this cannot be checked here
-;; because the check is based on a full filename, not available for all
-;; basic I/O operations.
+;; This function is used from `tramp-completion-file-name-handler'
+;; functions only, if `tramp-completion-mode-p' is true. But this
+;; cannot be checked here because the check is based on a full
+;; filename, not available for all basic I/O operations.
 ;;;###autoload
 (progn (defun tramp-completion-run-real-handler (operation args)
   "Invoke `tramp-file-name-handler' for OPERATION.
@@ -4357,7 +4362,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;;  (edebug-trace "%s" (with-output-to-string (backtrace)))
   (save-match-data
     (let* ((filename (apply 'tramp-file-name-for-operation operation args))
-	   (completion (tramp-completion-mode filename))
+	   (completion (tramp-completion-mode-p filename))
 	   (foreign (tramp-find-foreign-file-name-handler filename)))
       (with-parsed-tramp-file-name filename nil
 	(cond
@@ -4563,7 +4568,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;; file name syntax in order to avoid ambiguities, like in XEmacs ...
 ;; In case of non unified file names it can be always true (and wouldn't be
 ;; necessary, because there are different regexp).
-(defun tramp-completion-mode (file)
+(defun tramp-completion-mode-p (file)
   "Checks whether method / user name / host name completion is active."
   (cond
    (tramp-completion-mode t)
@@ -4573,33 +4578,24 @@ Falls back to normal file name handler if no tramp file name handler exists."
       "\\(" tramp-method-regexp  "\\)" tramp-postfix-single-method-regexp "$")
      file)
     (member (match-string 1 file) (mapcar 'car tramp-methods)))
-   ((or (equal last-input-event 'tab)
-  	;; Emacs
-  	(and (natnump last-input-event)
-	     (or
-	      ;; ?\t has event-modifier 'control
-	      (char-equal last-input-event ?\t)
-	      (and (not (event-modifiers last-input-event))
-		   (or (char-equal last-input-event ?\?)
-		       (char-equal last-input-event ?\ )))))
-	;; XEmacs
-	(and (featurep 'xemacs)
-	     ;; `last-input-event' might be nil.
-	     (not (null last-input-event))
-	     ;; `last-input-event' may have no character approximation.
-	     (funcall (symbol-function 'event-to-character) last-input-event)
-	     (or
-	      ;; ?\t has event-modifier 'control
-	      (char-equal
-	       (funcall (symbol-function 'event-to-character)
-			last-input-event) ?\t)
-	      (and (not (event-modifiers last-input-event))
-		   (or (char-equal
-			(funcall (symbol-function 'event-to-character)
-				 last-input-event) ?\?)
-		       (char-equal
-			(funcall (symbol-function 'event-to-character)
-				 last-input-event) ?\ ))))))
+   ((or
+     ;; Emacs
+     (not (memq last-input-event '(return newline)))
+     (and (natnump last-input-event)
+	  (not (char-equal last-input-event ?\n))
+	  (not (char-equal last-input-event ?\r)))
+     ;; XEmacs
+     (and (featurep 'xemacs)
+	  ;; `last-input-event' might be nil.
+	  (not (null last-input-event))
+	  ;; `last-input-event' may have no character approximation.
+	  (funcall (symbol-function 'event-to-character) last-input-event)
+	  (not (char-equal
+		(funcall (symbol-function 'event-to-character)
+			 last-input-event) ?\n))
+	  (not (char-equal
+		(funcall (symbol-function 'event-to-character)
+			 last-input-event) ?\r))))
     t)))
 
 ;; Method, host name and user name completion.
@@ -7898,7 +7894,7 @@ Therefore, the contents of files might be included in the debug buffer(s).")
 ;; ** If `partial-completion-mode' isn't loaded, "/foo:bla" tries to
 ;;    connect to host "blabla" already if that host is unique. No idea
 ;;    how to suppress. Maybe not an essential problem.
-;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode'.
+;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode-p'.
 ;; ** Extend `tramp-get-completion-su' for NIS and shadow passwords.
 ;; ** Unify `tramp-parse-{rhosts,shosts,sconfig,hosts,passwd,netrc}'.
 ;;    Code is nearly identical.

@@ -437,7 +437,10 @@ filename we are thinking about..."
 ;; The following defadvice is no longer necessary after changes in VC
 ;; on 2006-01-25, Andre.
 
-(unless (fboundp 'process-file)
+;; That means either GNU Emacs >= 22 or the "new vc" package from XEmacs
+;; packages collection; as of 2007-09-06, test for availability of
+;; `vc-find-version' works for both of those cases.
+(unless (fboundp 'vc-find-version)
   (defadvice vc-user-login-name
     (around tramp-vc-user-login-name activate)
     "Support for files on remote machines accessed by TRAMP."
@@ -453,7 +456,7 @@ filename we are thinking about..."
 	       (tramp-tramp-file-p file)	; tramp file
 	       (setq ad-return-value
 		     (save-match-data
-		       (tramp-handle-vc-user-login-name uid)))) ; get the owner name
+		       (tramp-handle-vc-user-login-name (ad-get-arg 0))))) ; get the owner name
 	  ad-do-it)))                     ; else call the original
 
   (add-hook 'tramp-unload-hook

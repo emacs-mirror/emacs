@@ -1,3 +1,20 @@
+2007-09-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-mode-p): Rename from
+	`tramp-completion-mode'. Revert logic, check `return', `newline'
+	and such alike. Packages like Icicles tend to use other completion
+	characters but `tab' and `space' only.
+	(top): Require cl.el, when `copy-tree' is not available otherwise.
+
+	* net/tramp-vc.el (tramp-vc-user-login-name): Get argument by
+	`ad-get-arg'.
+
+2007-09-24  Ville Skyttä  <scop@xemacs.org>  (tiny change)
+
+	* net/tramp-vc.el (tramp-vc-user-login-name): Use
+	`vc-find-version' instead of `process-file' to check whether we
+	have a new enough vc that doesn't need the defadvice.
+
 2007-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.el (file-name-sans-versions): Use [:alnum:] and also allow
