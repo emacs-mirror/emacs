@@ -1,3 +1,7 @@
+2007-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (do_autoload): Don't output any message.
+
 2007-09-24  Juri Linkov  <juri@jurta.org>
 
 	* emacs.c (standard_args): Change priority of "--no-splash"

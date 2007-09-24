@@ -2202,7 +2202,7 @@ do_autoload (fundef, funname)
   /* Value saved here is to be restored into Vautoload_queue.  */
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
-  Fload (Fcar (Fcdr (fundef)), Qnil, noninteractive ? Qt : Qnil, Qnil, Qt);
+  Fload (Fcar (Fcdr (fundef)), Qnil, Qt, Qnil, Qt);
 
   /* Save the old autoloads, in case we ever do an unload.  */
   queue = Vautoload_queue;
