@@ -505,7 +505,7 @@ See also `coding-category-list'."
 (defun coding-system-base (coding-system)
   "Return the base coding system of CODING-SYSTEM.
 A base coding system is what made by `make-coding-system'.
-Any alias nor subsidiary coding systems are not base coding system."
+Neither aliases nor subsidiary coding systems are base coding systems."
   (car (coding-system-get coding-system 'alias-coding-systems)))
 
 ;; Coding system also has a property `eol-type'.

@@ -1,3 +1,7 @@
+2007-09-24  Karl Berry  <karl@gnu.org>
+
+	* international/mule.el (coding-system-base): Fix doc string grammar.
+
 2007-09-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-completion-mode-p): Rename from
