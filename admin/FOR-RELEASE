@@ -70,11 +70,6 @@ Report by Drew Adams <drew.adams@oracle.com> on emacs-devel from
 2007-09-05.
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00298.html
 
-** python-complete-symbol hangs
-Report by Michael Droettboom <mike@droettboom.com> on bug-gnu-emacs from
-2007-09-07. 
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00874.html
-
 ** emacs-22.1 with GTK problems (with patches)
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
