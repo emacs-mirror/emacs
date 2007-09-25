@@ -601,12 +601,6 @@ make_terminal_frame (struct terminal *terminal)
   else
     f->output_method = output_termcap;
 #else
-#ifdef WINDOWSNT
-  f->output_method = output_termcap;
-  f->terminal = terminal;
-  f->terminal->reference_count++;
-  create_w32cons_output (f);
-#else
 #ifdef MAC_OS8
   make_mac_terminal_frame (f);
 #else
@@ -635,7 +629,6 @@ make_terminal_frame (struct terminal *terminal)
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
 #endif
 #endif /* MAC_OS8 */
-#endif /* WINDOWSNT */
 #endif /* MSDOS */
 
   if (!noninteractive)
