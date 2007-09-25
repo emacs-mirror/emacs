@@ -1,3 +1,7 @@
+2007-09-25  Johannes Weiner  <hannes@saeurebad.de>
+
+	* NEWS: Fix typo.
+
 2007-09-24  Glenn Morris  <rgm@gnu.org>
 
 	* CONTRIBUTE: Remove information on maintaining copyright years;
@@ -38,8 +42,7 @@
 
 2007-09-08  Michael Olson  <mwolson@gnu.org>
 
-	* ERC-NEWS: Update for changes to the development version of ERC
-	5.3.
+	* ERC-NEWS: Update for changes to the development version of ERC 5.3.
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
@@ -120,10 +123,10 @@
 
 2007-08-22  Karl Berry  <karl@gnu.org>
 
-	* refcard.tex: updates for printing.
-        (\versionyear): update to 2007.
-	(\copyrightnotice): modified or unmodified ok.
-	(Simple Customization): don't use goto-line, since now it's bound.
+	* refcard.tex: Updates for printing.
+	(\versionyear): Update to 2007.
+	(\copyrightnotice): Modified or unmodified ok.
+	(Simple Customization): Don't use goto-line, since now it's bound.
 	Also, use now-preferred (kbd ...) syntax.
 
 2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
@@ -145,7 +148,7 @@
 	* README: Move information about tex files from here...
 	* refcards/README: ...to here.
 
-	* tutorials/: New directory. Move TUTORIAL* here.
+	* tutorials/: New directory.  Move TUTORIAL* here.
 
 	* gnus.pbm, letter.pbm, letter.xpm:
 	* splash.pbm, splash.xpm, splash8.xpm: Move from etc/ to etc/images/.
