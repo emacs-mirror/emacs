@@ -557,14 +557,14 @@ The face definitions are based upon the variables
   (let ((ansi-color-map (make-vector 50 nil))
         (index 0))
     ;; miscellaneous attributes
-    (mapcar
+    (mapc
      (function (lambda (e)
                  (aset ansi-color-map index e)
                  (setq index (1+ index)) ))
      ansi-color-faces-vector)
     ;; foreground attributes
     (setq index 30)
-    (mapcar
+    (mapc
      (function (lambda (e)
                  (aset ansi-color-map index
 		       (ansi-color-make-face 'foreground e))
@@ -572,7 +572,7 @@ The face definitions are based upon the variables
      ansi-color-names-vector)
     ;; background attributes
     (setq index 40)
-    (mapcar
+    (mapc
      (function (lambda (e)
                  (aset ansi-color-map index
 		       (ansi-color-make-face 'background e))
