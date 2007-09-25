@@ -370,7 +370,7 @@ buffers."
 (ediff-defvar-local ediff-verbose-help-enabled nil
   "If t, display redundant help in ediff-directories and other meta buffers.
 Toggled by ediff-toggle-verbose-help-meta-buffer" )
-  
+
 ;; Toggle verbose help in meta-buffers
 ;; TODO: Someone who understands all this can make it better.
 (defun ediff-toggle-verbose-help-meta-buffer ()
@@ -641,15 +641,15 @@ behavior."
     ;; If file belongs to dir 1 only, the membership code is 2.
     ;; If it is in dir1 and dir3, then the membership code is 2*5=10;
     ;; if it is in dir1 and dir2, then the membership code is 2*3=6, etc.
-    (mapcar (lambda (elt)
-	      (if (member (car elt) lis1)
-		  (setcdr elt (* (cdr elt) ediff-membership-code1)))
-	      (if (member (car elt) lis2)
-		  (setcdr elt (* (cdr elt) ediff-membership-code2)))
-	      (if (member (car elt) lis3)
-		  (setcdr elt (* (cdr elt) ediff-membership-code3)))
-	      )
-	    difflist)
+    (mapc (lambda (elt)
+	    (if (member (car elt) lis1)
+		(setcdr elt (* (cdr elt) ediff-membership-code1)))
+	    (if (member (car elt) lis2)
+		(setcdr elt (* (cdr elt) ediff-membership-code2)))
+	    (if (member (car elt) lis3)
+		(setcdr elt (* (cdr elt) ediff-membership-code3)))
+	    )
+	  difflist)
     (setq difflist (cons
 		    ;; diff metalist header
 		    (ediff-make-new-meta-list-header regexp
@@ -941,7 +941,7 @@ behavior."
       ;; was redrawn
       (ediff-cond-compile-for-xemacs-or-emacs
        (map-extents 'delete-extent)   ; xemacs
-       (mapcar 'delete-overlay (overlays-in 1 1))  ; emacs
+       (mapc 'delete-overlay (overlays-in 1 1))  ; emacs
        )
 
       (setq regexp (ediff-get-group-regexp meta-list)
@@ -1329,7 +1329,7 @@ Useful commands:
 
     ;; copy file to directories where it doesn't exist, update
     ;; ediff-dir-difference-list and redisplay
-    (mapcar
+    (mapc
      (lambda (otherfile-struct)
        (let ((otherfile (car otherfile-struct))
 	     (file-mem-code (cdr otherfile-struct)))
@@ -1390,7 +1390,7 @@ Useful commands:
       ;; was redrawn
       (ediff-cond-compile-for-xemacs-or-emacs
        (map-extents 'delete-extent) ; xemacs
-       (mapcar 'delete-overlay (overlays-in 1 1)) ; emacs
+       (mapc 'delete-overlay (overlays-in 1 1)) ; emacs
        )
 
       (insert "This is a registry of all active Ediff sessions.
@@ -1410,11 +1410,11 @@ Useful commands:
 
 ")
       ;; purge registry list from dead buffers
-      (mapcar (lambda (elt)
-		(if (not (ediff-buffer-live-p elt))
-		    (setq ediff-session-registry
-			  (delq elt ediff-session-registry))))
-	      ediff-session-registry)
+      (mapc (lambda (elt)
+	      (if (not (ediff-buffer-live-p elt))
+		  (setq ediff-session-registry
+			(delq elt ediff-session-registry))))
+	    ediff-session-registry)
 
       (if (null ediff-session-registry)
 	  (insert "       ******* No active Ediff sessions *******\n"))
