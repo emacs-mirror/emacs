@@ -206,7 +206,8 @@ file copy is checked via the file's checksum.
 
 ** Miscellaneous programming mode changes
 
-*** Support for Python 3 has been added.
+*** The file etc/emacs.py now supports both Python 2 and 3, meaning
+that either version can be used as inferior Python by python.el.
 
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
