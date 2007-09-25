@@ -1330,7 +1330,7 @@ Special value `always' suppresses confirmation."
 	skipped (success-count 0) (total (length fn-list)))
     (let (to overwrite-query
 	     overwrite-backup-query)	; for dired-handle-overwrite
-      (mapcar
+      (mapc
        (function
 	(lambda (from)
 	  (setq to (funcall name-constructor from))
