@@ -1,3 +1,8 @@
+2007-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* view.el (view-search-no-match-lines): Add a doc string.
+	Rewrite to simplify and work better.
+
 2007-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/cc-mode.el (c-mode-base-map): Use
