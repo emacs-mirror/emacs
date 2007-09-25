@@ -595,7 +595,7 @@ or
 MANPATH_MAP[ \t]+\\(\\S-+\\)[ \t]+\\(\\S-+\\)\\)" nil t)
 		      (add-to-list 'manpath
 				   (if (match-beginning 1)
-				       (match-string 1) 
+				       (match-string 1)
 				     (cons (match-string 2)
 					   (match-string 3)))))
 		    manpath))
@@ -1525,7 +1525,7 @@ Also make each path-info component into a list.
   "Define dired keys to run WoMan according to `woman-dired-keys'."
   (if woman-dired-keys
       (if (listp woman-dired-keys)
-	  (mapcar 'woman-dired-define-key woman-dired-keys)
+	  (mapc 'woman-dired-define-key woman-dired-keys)
 	(woman-dired-define-key-maybe "w")
 	(woman-dired-define-key-maybe "W")))
   (define-key-after (lookup-key dired-mode-map [menu-bar immediate])
