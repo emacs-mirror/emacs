@@ -1032,11 +1032,11 @@ opening the first frame (e.g. open a connection to an X server).")
 	;; buffers (probably *scratch*, *Messages*, *Minibuff-0*).
 	;; Arguably this should only be done if they're free of
 	;; multibyte characters.
-	(mapcar (lambda (buffer)
-		  (with-current-buffer buffer
-		    (if enable-multibyte-characters
-			(set-buffer-multibyte nil))))
-		(buffer-list))
+	(mapc (lambda (buffer)
+		(with-current-buffer buffer
+		  (if enable-multibyte-characters
+		      (set-buffer-multibyte nil))))
+	      (buffer-list))
 	;; Also re-set the language environment in case it was
 	;; originally done before unibyte was set and is sensitive to
 	;; unibyte (display table, terminal coding system &c).
