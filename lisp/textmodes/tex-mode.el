@@ -251,8 +251,11 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 (put 'tex-fontify-script 'safe-local-variable 'booleanp)
 
 (defcustom tex-font-script-display '(-0.2 0.2)
-  "Display specification for subscript and superscript content.
-The first is used for subscript, the second is used for superscripts."
+  "How much to lower and raise subscript and superscript content.
+This is a list of two floats.  The first is negative and
+specifies how much subscript is lowered, the second is positive
+and specifies how much superscript is raised.  Heights are
+measured relative to that of the normal text."
   :group 'tex
   :type '(list (float :tag "Subscript")
                (float :tag "Superscript")))
