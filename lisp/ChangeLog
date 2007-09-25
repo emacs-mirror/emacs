@@ -1,5 +1,7 @@
 2007-09-25  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/tex-mode.el (tex-font-script-display): Doc fix.
+
 	* view.el (view-search-no-match-lines): Add a doc string.
 	Rewrite to simplify and work better.
 
