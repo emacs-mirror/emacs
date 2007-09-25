@@ -5548,13 +5548,13 @@ after it has been set up properly in other respects."
       (funcall mode)
 
       ;; Set up other local variables.
-      (mapcar (lambda (v)
-		(condition-case ()	;in case var is read-only
-		    (if (symbolp v)
-			(makunbound v)
-		      (set (make-local-variable (car v)) (cdr v)))
-		  (error nil)))
-	      lvars)
+      (mapc (lambda (v)
+	      (condition-case ()	;in case var is read-only
+		  (if (symbolp v)
+		      (makunbound v)
+		    (set (make-local-variable (car v)) (cdr v)))
+		(error nil)))
+	    lvars)
 
       ;; Run any hooks (typically set up by the major mode
       ;; for cloning to work properly).
