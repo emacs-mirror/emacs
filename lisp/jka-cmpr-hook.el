@@ -97,7 +97,7 @@ The determination as to which compression scheme, if any, to use is
 based on the filename itself and `jka-compr-compression-info-list'."
   (catch 'compression-info
     (let ((case-fold-search nil))
-      (mapcar
+      (mapc
        (function (lambda (x)
 		   (and (string-match (jka-compr-info-regexp x) filename)
 			(throw 'compression-info x))))
