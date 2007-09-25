@@ -3336,7 +3336,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
           (dired dired-dir)
           ;; The following elements of `desktop-buffer-misc' are the keys
           ;; from `dired-subdir-alist'.
-          (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
+          (mapc 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
           (current-buffer))
       (message "Desktop: Directory %s no longer exists." dir)
       (when desktop-missing-file-warning (sit-for 1))
