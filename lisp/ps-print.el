@@ -5028,15 +5028,15 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 (defun ps-background (page-number)
   (let (has-local-background)
-    (mapcar #'(lambda (range)
-		(and (<= (aref range 0) page-number)
-		     (<= page-number (aref range 1))
-		     (if has-local-background
-			 (ps-output (aref range 2))
-		       (setq has-local-background t)
-		       (ps-output "/printLocalBackground{\n"
-				  (aref range 2)))))
-	    ps-background-pages)
+    (mapc #'(lambda (range)
+	      (and (<= (aref range 0) page-number)
+		   (<= page-number (aref range 1))
+		   (if has-local-background
+		       (ps-output (aref range 2))
+		     (setq has-local-background t)
+		     (ps-output "/printLocalBackground{\n"
+				(aref range 2)))))
+	  ps-background-pages)
     (and has-local-background (ps-output "}def\n"))))
 
 
@@ -5672,7 +5672,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
     (ps-output "\n" ps-print-prologue-1
 	       "\n/printGlobalBackground{\n")
-    (mapcar 'ps-output ps-background-all-pages)
+    (mapc 'ps-output ps-background-all-pages)
     (ps-output
      "}def\n/printLocalBackground{\n}def\n"
      "\n%%EndProlog\n\n%%BeginSetup\n"
@@ -6459,10 +6459,10 @@ If FACE is not a valid face name, use default face."
   ;; Now, rebuild reference face lists
   (setq ps-print-face-alist nil)
   (if ps-auto-font-detect
-      (mapcar 'ps-map-face (face-list))
-    (mapcar 'ps-set-face-bold ps-bold-faces)
-    (mapcar 'ps-set-face-italic ps-italic-faces)
-    (mapcar 'ps-set-face-underline ps-underlined-faces))
+      (mapc 'ps-map-face (face-list))
+    (mapc 'ps-set-face-bold ps-bold-faces)
+    (mapc 'ps-set-face-italic ps-italic-faces)
+    (mapc 'ps-set-face-underline ps-underlined-faces))
   (setq ps-build-face-reference nil))
 
 
