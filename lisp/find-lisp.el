@@ -270,7 +270,7 @@ It is a function which takes two arguments, the directory and its parent."
     ;; No analog for find-lisp?
     (insert find-lisp-line-indent "\n")
     ;; Run the find function
-    (mapcar
+    (mapc
      (function
       (lambda(file)
 	(find-lisp-find-dired-insert-file
