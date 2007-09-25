@@ -57,7 +57,7 @@ Contact us at emacs-devel@gnu.org to obtain the relevant forms.
 The latest version of Emacs can be downloaded using CVS or Arch from
 the Savannah web site.  It is important to write your patch based on
 this version; if you start from an older version, your patch may be
-outdated when you write it, and maintainers will have hard time
+outdated when you write it, and maintainers will have a hard time
 applying it.
 
 After you have downloaded the CVS source, you should read the file
@@ -82,8 +82,7 @@ All subsequent discussion should also be sent to the mailing list.
 For bug fixes, a description of the bug and how your patch fixes this
 bug.
 
-For new features, a description of the feature and your
-implementation.
+For new features, a description of the feature and your implementation.
 
 ** ChangeLog
 
