@@ -990,27 +990,30 @@ for highlighting the match that is found."
 	       times (if no "no " "") regexp)
       (sit-for 4))))
 
+;; This is the dumb approach, looking at each line.  The original
+;; version of this function looked like it might have been trying to
+;; do something clever, but not succeeding:
+;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00073.html
 (defun view-search-no-match-lines (times regexp)
-  ;; Search for the TIMESt occurrence of line with no match for REGEXP.
-  (let ((back (and (< times 0) (setq times (- times)) -1))
-	n)
-    (while (> times 0)
-      (save-excursion (beginning-of-line (if back (- times) (1+ times)))
-		      (setq n (point)))
-      (setq times
-	    (cond
-	     ((< (count-lines (point) n) times) -1) ; Not enough lines.
-	     ((or (null (re-search-forward regexp nil t back))
-		  (if back (and (< (match-end 0) n)
-				(> (count-lines (match-end 0) n) 1))
-		    (and (< n (match-beginning 0))
-			 (> (count-lines n (match-beginning 0)) 1))))
-	      0)			; No match within lines.
-	     (back (count-lines (max n (match-beginning 0)) (match-end 0)))
-	     (t (count-lines (match-beginning 0) (min n (match-end 0))))))
-      (goto-char n))
-    (and (zerop times) (looking-at "^.*$"))))
-
+  "Search for the TIMESth occurrence of a line with no match for REGEXP.
+If such a line is found, return non-nil and set the match-data to that line.
+If TIMES is negative, search backwards."
+  (let ((step 1)
+        (noerror 'move))
+    (when (< times 0)
+      (setq times (- times)
+            step -1
+            noerror t))
+    ;; Note that we do not check the current line.
+    (while (and (> times 0)
+                (zerop (forward-line step)))
+      ;; Move only to handle eob in the forward case: on last line,
+      ;; (forward-line 1) returns 0 before the end of line.
+      (or (re-search-forward regexp (line-end-position) noerror)
+          (setq times (1- times)))))
+  (when (zerop times)
+    (forward-line 0)
+    (looking-at ".*")))
 
 (provide 'view)
 
