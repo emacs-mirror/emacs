@@ -1585,7 +1585,7 @@ deletion, or > if it is flagged for displaying."
     (insert "% Bookmark\n- --------\n")
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
-    (mapcar
+    (mapc
      (lambda (full-record)
        ;; if a bookmark has an annotation, prepend a "*"
        ;; in the list of bookmarks.
@@ -1802,7 +1802,7 @@ if an annotation exists."
   (let ((old-buf (current-buffer)))
     (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
     (delete-region (point-min) (point-max))
-    (mapcar
+    (mapc
      (lambda (full-record)
        (let* ((name (bookmark-name-from-full-record full-record))
               (ann  (bookmark-get-annotation name)))
