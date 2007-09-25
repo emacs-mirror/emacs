@@ -3717,9 +3717,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Don't do this.  I think termcap may still need the buffer. */
   /* xfree (buffer); */
 
+#endif /* not WINDOWSNT */
+
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
-#endif /* not WINDOWSNT */
 
   return terminal;
 }
