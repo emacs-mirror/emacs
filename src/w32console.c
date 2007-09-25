@@ -671,24 +671,6 @@ initialize_w32_display (struct terminal *term)
 
 }
 
-/* Initialize the tty-dependent part of frame F.  The frame must
-   already have its device initialized. */
-void
-create_w32cons_output(struct frame *f)
-{
-  struct tty_output *tty;
-
-  if (! FRAME_TERMCAP_P (f))
-    abort ();
-
-  tty = xmalloc (sizeof (struct tty_output));
-  bzero (tty, sizeof (struct tty_output));
-
-  tty->display_info = FRAME_TERMINAL (f)->display_info.tty;
-  tty->display_info->meta_key = 1;
-
-  f->output_data.tty = tty;
-}
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
        doc: /* Set screen colors.  */)
