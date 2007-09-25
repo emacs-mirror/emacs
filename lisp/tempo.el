@@ -315,9 +315,9 @@ mode, ON-REGION is ignored and assumed true if the region is active."
 	    (goto-char tempo-region-start))
 	(save-excursion
 	  (tempo-insert-mark (point-marker))
-	  (mapcar (function (lambda (elt)
-			      (tempo-insert elt on-region)))
-		  (symbol-value template))
+	  (mapc (function (lambda (elt)
+			    (tempo-insert elt on-region)))
+		(symbol-value template))
 	  (tempo-insert-mark (point-marker)))
 	(tempo-forward-mark))
     (tempo-forget-insertions)
@@ -460,10 +460,10 @@ never prompted."
   "Tries all the user-defined element handlers in `tempo-user-elements'."
   ;; Sigh... I need (some list)
   (catch 'found
-    (mapcar (function (lambda (handler)
-			(let ((result (funcall handler element)))
-			  (if result (throw 'found result)))))
-	    tempo-user-elements)
+    (mapc (function (lambda (handler)
+		      (let ((result (funcall handler element)))
+			(if result (throw 'found result)))))
+	  tempo-user-elements)
     (throw 'found nil)))
 
 ;;;
@@ -556,7 +556,7 @@ and insert the results."
   "Jump to the next mark in `tempo-forward-mark-list'."
   (interactive)
   (let ((next-mark (catch 'found
-		     (mapcar
+		     (mapc
 		      (function
 		       (lambda (mark)
 			 (if (< (point) mark)
@@ -575,7 +575,7 @@ and insert the results."
   (interactive)
   (let ((prev-mark (catch 'found
 		     (let (last)
-		       (mapcar
+		       (mapc
 			(function
 			 (lambda (mark)
 			   (if (<= (point) mark)
