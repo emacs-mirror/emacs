@@ -998,22 +998,19 @@ for highlighting the match that is found."
   "Search for the TIMESth occurrence of a line with no match for REGEXP.
 If such a line is found, return non-nil and set the match-data to that line.
 If TIMES is negative, search backwards."
-  (let ((step 1)
-        (noerror 'move))
-    (when (< times 0)
-      (setq times (- times)
-            step -1
-            noerror t))
+  (let ((step (if (>= times 0) 1
+                (setq times (- times))
+                -1)))
     ;; Note that we do not check the current line.
     (while (and (> times 0)
                 (zerop (forward-line step)))
-      ;; Move only to handle eob in the forward case: on last line,
-      ;; (forward-line 1) returns 0 before the end of line.
-      (or (re-search-forward regexp (line-end-position) noerror)
-          (setq times (1- times)))))
-  (when (zerop times)
-    (forward-line 0)
-    (looking-at ".*")))
+      ;; (forward-line 1) returns 0 on moving within the last line.
+      (if (eobp)
+          (setq times -1)
+        (or (re-search-forward regexp (line-end-position) t)
+            (setq times (1- times))))))
+  (and (zerop times)
+       (looking-at ".*")))
 
 (provide 'view)
 
