@@ -272,7 +272,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 			  (eq this-command 'auto-insert))
 		      (y-or-n-p (format auto-insert-prompt desc)))
 		t)
-	      (mapcar
+	      (mapc
 	       (lambda (action)
 		 (if (stringp action)
 		     (if (file-readable-p
