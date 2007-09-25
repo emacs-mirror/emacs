@@ -643,7 +643,7 @@ The path separator is colon in GNU and GNU-like systems."
 	(let ((trypath (parse-colon-path (getenv "CDPATH"))))
 	  (setq cd-path (or trypath (list "./")))))
     (if (not (catch 'found
-	       (mapcar
+	       (mapc
 		(function (lambda (x)
 			    (let ((f (expand-file-name (concat x dir))))
 			      (if (file-directory-p f)
