@@ -820,7 +820,7 @@ thumbnail buffer to be selected."
         (if (not append)
             (erase-buffer)
           (goto-char (point-max)))
-        (mapcar
+        (mapc
          (lambda (curr-file)
            (setq thumb-name (image-dired-thumb-name curr-file))
            (if (and (not (file-exists-p thumb-name))
@@ -918,7 +918,7 @@ is an alist in the following form:
           (if (stringp files)
               (setq files (list files))
             (error "Files must be a string or a list of strings!")))
-      (mapcar
+      (mapc
        (lambda (file)
          (goto-char (point-min))
          (when (search-forward-regexp
@@ -2170,7 +2170,7 @@ matching tags will be marked in the dired buffer."
         (setq files (append (list (match-string 1)) files)))
       (kill-buffer buf)
       ;; Mark files
-      (mapcar
+      (mapc
        ;; I tried using `dired-mark-files-regexp' but it was
        ;; waaaay to slow.
        (lambda (curr-file)
