@@ -79,9 +79,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00070.html
 ** latex mode, nexted subscripts are unreadable
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00020.html
 
-** Bug/Patch view.el
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00073.html
-
 * FIXES FOR EMACS 22.3
 
 Here we list any small fixes that arrived too late for Emacs 22.2, but
