@@ -1,3 +1,14 @@
+2007-09-25  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.c (make_terminal_frame): Remove special case for WINDOWSNT.
+
+	* w32console.c (create_w32cons_output): Remove.
+
+	* term.c (init_tty): Call init_sys_modes on WINDOWSNT also.
+
+	* sysdep.c (init_sys_modes): Use set_terminal_modes_hook.
+	(reset_sys_modes): Use reset_terminal_modes_hook.
+
 2007-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (do_autoload): Don't output any message.
