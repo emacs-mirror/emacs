@@ -1,3 +1,43 @@
+2007-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (produce-allout-mode-map, allout-process-exposed):
+	* ansi-color.el (ansi-color-make-color-map):
+	* autoinsert.el (auto-insert):
+	* bookmark.el (bookmark-bmenu-list, bookmark-show-all-annotations):
+	* dired-aux.el (dired-create-files):
+	* dired.el (dired-restore-desktop-buffer):
+	* ediff-diff.el (ediff-setup-fine-diff-regions):
+	* ediff-mult.el (ediff-intersect-directories)
+	(ediff-redraw-directory-group-buffer, ediff-dir-diff-copy-file)
+	(ediff-redraw-registry-buffer):
+	* ediff-ptch.el (ediff-fixup-patch-map):
+	* ediff-util.el (ediff-toggle-multiframe, ediff-toggle-use-toolbar)
+	(ediff-really-quit, ediff-clear-diff-vector):
+	* emerge.el (emerge-really-quit):
+	* ffap.el (ffap-replace-file-component):
+	* filecache.el (file-cache-add-directory)
+	(file-cache-add-directory-recursively)
+	(file-cache-add-from-file-cache-buffer, file-cache-delete-file-regexp)
+	(file-cache-delete-directory, file-cache-files-matching-internal)
+	(file-cache-display):
+	* files.el (cd):
+	* find-lisp.el (find-lisp-insert-directory):
+	* finder.el (finder-compile-keywords):
+	* help.el (view-emacs-news):
+	* hi-lock.el (hi-lock-write-interactive-patterns):
+	* ido.el (ido-to-end, ido-set-matches-1):
+	* image-dired.el (image-dired-display-thumbs, image-dired-remove-tag)
+	(image-dired-mark-tagged-files):
+	* jka-cmpr-hook.el (jka-compr-get-compression-info):
+	* printing.el (pr-eval-local-alist, pr-eval-setting-alist):
+	* ps-print.el (ps-background, ps-begin-file)
+	(ps-build-reference-face-lists):
+	* simple.el (clone-buffer):
+	* startup.el (command-line):
+	* tempo.el (tempo-insert-template, tempo-is-user-element)
+	(tempo-forward-mark, tempo-backward-mark):
+	* woman.el (woman-dired-define-keys): Use `mapc' rather than `mapcar'.
+
 2007-09-25  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-font-script-display): Doc fix.
@@ -7,8 +47,8 @@
 
 2007-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/cc-mode.el (c-mode-base-map): Use
-	c-indent-line-or-region instead of c-indent-line.
+	* progmodes/cc-mode.el (c-mode-base-map):
+	Use c-indent-line-or-region instead of c-indent-line.
 
 	* indent.el (indent-for-tab-command): First check if the region is
 	active.
@@ -25,13 +65,13 @@
 2007-09-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-completion-mode-p): Rename from
-	`tramp-completion-mode'. Revert logic, check `return', `newline'
-	and such alike. Packages like Icicles tend to use other completion
+	`tramp-completion-mode'.  Revert logic, check `return', `newline'
+	and such alike.  Packages like Icicles tend to use other completion
 	characters but `tab' and `space' only.
 
 2007-09-24  Adam Hupp  <adam@hupp.org>
 
-	* progmodes/python.el (run-python): Import emacs module without
+	* progmodes/python.el (run-python): Import Emacs module without
 	waiting; prevents lockup on error.
 
 2007-09-23  Richard Stallman  <rms@gnu.org>
@@ -60,8 +100,8 @@
 
 	* term/sun-mouse.el (print-mouse-format): Likewise.
 
-	* term/sun.el (scroll-down-in-place, scroll-up-in-place): Use
-	forward-line instead of previous-line and next-line.
+	* term/sun.el (scroll-down-in-place, scroll-up-in-place):
+	Use forward-line instead of previous-line and next-line.
 
 2007-09-22  Juri Linkov  <juri@jurta.org>
 
@@ -121,8 +161,8 @@
 	safe-local-variable setting.
 
 	* bookmark.el (bookmark-xemacsp): Remove.
-	(bookmark-make): Don't use bookmark-xemacsp, use
-	(featurep 'xemacs) instead.
+	(bookmark-make): Don't use bookmark-xemacsp,
+	use (featurep 'xemacs) instead.
 
 	* speedbar.el (speedbar-frame-mode)
 	(speedbar-frame-reposition-smartly)
