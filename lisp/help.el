@@ -334,7 +334,7 @@ With argument, display info only for the selected version."
   (when (consp version)
     (let* ((all-versions
 	    (let (res)
-	      (mapcar
+	      (mapc
 	       (lambda (file)
 		 (with-temp-buffer
 		   (insert-file-contents
