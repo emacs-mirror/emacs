@@ -1,5 +1,12 @@
 2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/eldoc.el (eldoc-function-argstring-format):
+	Deal with the case that special &keywords are at the beginning or
+	end of the argument list.  Also add some (incomplete) support for
+	non-standard arglists.
+
+2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
 	* emacs-lisp/eldoc.el (eldoc-message-commands-table-size)
 	(eldoc-message-commands, eldoc-current-idle-delay)
 	(eldoc-function-argstring-format): Fix typos in docstrings.
