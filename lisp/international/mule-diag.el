@@ -839,7 +839,7 @@ Priority order for recognizing coding systems when reading files:\n")
 	    coding-system codings)
 	(while categories
 	  (setq coding-system (symbol-value (car categories)))
-	  (mapcar
+	  (mapc
 	   (lambda (x)
 	     (if (and (not (eq x coding-system))
 		      (coding-system-get x 'no-initial-designation)
