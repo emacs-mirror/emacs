@@ -6,19 +6,19 @@
 ;; Keywords: hypermedia, outlines
 ;; Version: 1.80
 
-;; GNU Emacs is free software; you can redistribute it and/or modify
+;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
+;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
 ;; This file is part of GNU Emacs.
@@ -438,6 +438,20 @@ nil if not found."
 
 ;;;; Pluggable publishing back-end functions
 
+
+(defun org-publish-org-to-html (plist filename)
+  "Publish an org file to HTML.
+PLIST is the property list for the given project.
+FILENAME is the filename of the org file to be published."
+  (require 'org)
+  (let* ((arg (plist-get plist :headline-levels)))
+    (progn
+      (find-file filename)
+      (org-export-as-html arg nil plist)
+      ;; get rid of HTML buffer
+      (kill-buffer (current-buffer)))))
+
+
 (defun org-publish-org-to-latex (plist filename)
   "Publish an org file to LaTeX."
   (org-publish-org-to "latex" plist filename))
@@ -600,8 +614,9 @@ With prefix argument, force publish all files."
 	  (plists (org-publish-get-plists)))
       (mapcar 'org-publish-plist plists))))
 
+
+
 (provide 'org-publish)
 
 ;; arch-tag: 72807f3c-8af0-4a6b-8dca-c3376eb25adb
 ;;; org-publish.el ends here
-

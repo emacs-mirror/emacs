@@ -1,3 +1,73 @@
+2007-09-26  Bastien Guerry  <bzg@altern.org>
+
+	* org-export-latex.el (org-export-latex-tables-verbatim): New
+	function.
+	(org-export-latex-remove-from-headlines): Name changed because of
+	typo. 
+	(org-export-latex-quotation-marks-convention): Option removed.
+	(org-export-latex-make-preamble): Handle the DATE option.
+	(org-export-latex-cleaned-string): Now the only cleaning function,
+	synched up with org.el.
+	(org-export-latex-lists, org-export-latex-parse-list)
+	(org-export-list-to-latex): New functions.
+
+
+2007-09-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-kill-is-subtree-p): Use `org-outline-regexp'.
+	(org-outline-regexp): New constant.
+	(org-remember-handler): Throw error when the target file is not in
+	org-mode.
+	(org-cleaned-string-for-export): No longer call
+	`org-export-latex-cleaned-string' with an argument.
+	(org-get-tags): Returns now a list, not a string.
+	(org-get-tags-string): New function.
+	(org-archive-subtree): No need to split return of `org-get-tags'.
+	(org-set-tags, org-entry-properties): Call `org-get-tags-string'
+	instead of `org-get-tags'.
+	(org-agenda-format-date): Renamed from `org-agenda-date-format'.
+	(org-time-from-absolute, org-agenda-format-date-aligned): New
+	functions.
+	(org-compatible-face): New argument INHERITS.  Inherit from this
+	face if possible.
+	(org-level-1, org-level-2, org-level-3, org-level-4)
+	(org-level-5, org-level-6, org-level-7, org-level-8)
+	(org-special-keyword, org-drawer, org-column, org-warning)
+	(org-archived, org-todo, org-done, org-headline-done, org-table)
+	(org-formula, org-code, org-agenda-structure)
+	(org-scheduled-today, org-scheduled-previously)
+	(org-upcoming-deadline, org-time-grid): Call `org-compatible-face'
+	in the new way.
+	(org-get-heading): New argument NO-TAGS.
+	(org-fast-tag-selection-include-todo): Made defvar instead of
+	defcustom, feature is not deprecated.
+	(org-remember-store-without-prompt): New default value t.
+	(org-todo-log-states): New variable.
+	(org-set-regexps-and-options): #+TODO is an alias for SEQ_TODO.
+	Compute the log states.
+	(org-goto-map): More commands copied from global map.  Also bind
+	`org-occur'.
+	(org-goto): Made into a general lookup command.
+	(org-get-location): Complete rewrite.
+	(org-goto-exit-command): New variable.
+	(org-goto-selected-point): New variable.
+	(org-goto-ret, org-goto-left, org-goto-right, org-goto-quit): Set
+	the new variables.
+	(org-paste-subtree): Whitespace insertion strategy revised.
+	(org-remember-apply-template): Protect v-A from the possibility
+	that v-a might be nil.
+	(org-remember-handler): Insertion rules revised.
+	(org-todo): Respect org-todo-log-states.
+	(org-up-heading-safe): New function.
+	(org-entry-get-with-inheritance): Use `org-up-heading-safe'.
+	
+	* org.texi: Change links to webpage and maintained email.
+	(Remember): Promoted to Chapter, significant changes.
+	(Fast access to TODO states): New section.
+	(Faces for TODO keywords): New section.
+	(Export options): Example for #+DATE.
+	(Progress logging): Section moved.
+
 2007-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/cc-cmds.el (c-indent-line-or-region): Only indent the
