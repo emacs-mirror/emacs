@@ -158,7 +158,7 @@ usually do not have translators to read other languages for them.\n\n")
 	(insert "configured using `configure "
 		system-configuration-options "'\n\n"))
     (insert "Important settings:\n")
-    (mapcar
+    (mapc
      '(lambda (var)
 	(insert (format "  value of $%s: %s\n" var (getenv var))))
      '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
