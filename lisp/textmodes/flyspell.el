@@ -621,7 +621,7 @@ in your .emacs file.
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-delay-commands ()
   "Install the standard set of Flyspell delayed commands."
-  (mapcar 'flyspell-delay-command flyspell-default-delayed-commands)
+  (mapc 'flyspell-delay-command flyspell-default-delayed-commands)
   (mapcar 'flyspell-delay-command flyspell-delayed-commands))
 
 ;;*---------------------------------------------------------------------*/
@@ -640,7 +640,7 @@ It will be checked only after `flyspell-delay' seconds."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-deplacement-commands ()
   "Install the standard set of Flyspell deplacement commands."
-  (mapcar 'flyspell-deplacement-command flyspell-default-deplacement-commands)
+  (mapc 'flyspell-deplacement-command flyspell-default-deplacement-commands)
   (mapcar 'flyspell-deplacement-command flyspell-deplacement-commands))
 
 ;;*---------------------------------------------------------------------*/
