@@ -665,9 +665,9 @@ The optional 5th arg, PROP is a property to set instead of 'hilit."
   (or quietly hilit-quietly (message "Unhighlighting"))
   (let ((lstart 0))
     (while (and start (> start lstart) (< start end))
-      (mapcar (function (lambda (ovr)
-			  (and (overlay-get ovr 'hilit) (delete-overlay ovr))))
-	      (overlays-at start))
+      (mapc (function (lambda (ovr)
+			(and (overlay-get ovr 'hilit) (delete-overlay ovr))))
+	    (overlays-at start))
       (setq lstart start start (next-overlay-change start))))
   (or quietly hilit-quietly (message "Done unhighlighting")))
 
@@ -1023,11 +1023,11 @@ See the variable hilit-mode-enable-list.
 
 Takes optional arguments PARSE-FN and CASE-FOLD."
   ;; change pattern
-  (mapcar (function (lambda (p)
-		      (and (stringp (car p))
-			   (null (nth 1 p))
-			   (setcar (cdr p) 0))))
-	  patterns)
+  (mapc (function (lambda (p)
+		    (and (stringp (car p))
+			 (null (nth 1 p))
+			 (setcar (cdr p) 0))))
+	patterns)
   (setq patterns (cons case-fold patterns))
 
   (or (consp modelist) (setq modelist (list modelist)))
