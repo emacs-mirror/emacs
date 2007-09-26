@@ -480,7 +480,8 @@ The words \"&rest\", \"&optional\" are returned unchanged."
 	       (if (member s '("&optional" "&rest"))
 		   s
 		 (funcall eldoc-argument-case s)))
-	     (split-string argstring) " "))
+	     (split-string argstring "[][ ()]+" t) " "))
+
 
 ;; When point is in a sexp, the function args are not reprinted in the echo
 ;; area after every possible interactive command because some of them print
