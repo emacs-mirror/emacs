@@ -321,11 +321,11 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-describe-function (&optional func)
   (interactive)
   (unless calc-help-function-list
-    (setq calc-help-function-list 
+    (setq calc-help-function-list
           (calc-help-index-entries "Function" "Command")))
   (or func
       (setq func (completing-read "Describe function: "
-                                  calc-help-function-list 
+                                  calc-help-function-list
                                   nil t)))
   (if (string-match "\\`calc-." func)
       (calc-describe-thing func "Command Index")
@@ -334,7 +334,7 @@ C-w  Describe how there is no warranty for Calc."
 (defun calc-describe-variable (&optional var)
   (interactive)
   (unless calc-help-variable-list
-    (setq calc-help-variable-list 
+    (setq calc-help-variable-list
           (calc-help-index-entries "Variable")))
   (or var
       (setq var (completing-read "Describe variable: "
@@ -419,49 +419,49 @@ C-w  Describe how there is no warranty for Calc."
     (princ "Or type `h i' to read the full Calc manual on-line.\n\n")
     (princ "Basic keys:\n")
     (let* ((calc-full-help-flag t))
-      (mapcar (function (lambda (x) (princ (format "  %s\n" x))))
-	      (nreverse (cdr (reverse (cdr (calc-help))))))
-      (mapcar (function (lambda (prefix)
-			  (let ((msgs (condition-case err
-					  (funcall prefix)
-					(error nil))))
-			    (if (car msgs)
-				(princ
-				 (if (eq (nth 2 msgs) ?v)
-				     "\n`v' or `V' prefix (vector/matrix) keys: \n"
-				   (if (nth 2 msgs)
-				       (format
-					"\n`%c' prefix (%s) keys:\n"
-					(nth 2 msgs)
-					(or (cdr (assq (nth 2 msgs)
-						       calc-help-long-names))
-					    (nth 1 msgs)))
-				     (format "\n%s-modified keys:\n"
-					     (capitalize (nth 1 msgs)))))))
-			    (mapcar (function (lambda (x)
-						(princ (format "  %s\n" x))))
-				    (car msgs)))))
-	      '(calc-inverse-prefix-help
-		calc-hyperbolic-prefix-help
-		calc-inv-hyp-prefix-help
-		calc-a-prefix-help
-		calc-b-prefix-help
-		calc-c-prefix-help
-		calc-d-prefix-help
-		calc-f-prefix-help
-		calc-g-prefix-help
-		calc-h-prefix-help
-		calc-j-prefix-help
-		calc-k-prefix-help
-		calc-m-prefix-help
-		calc-r-prefix-help
-		calc-s-prefix-help
-		calc-t-prefix-help
-		calc-u-prefix-help
-		calc-v-prefix-help
-		calc-shift-Y-prefix-help
-		calc-shift-Z-prefix-help
-		calc-z-prefix-help)))
+      (mapc (function (lambda (x) (princ (format "  %s\n" x))))
+	    (nreverse (cdr (reverse (cdr (calc-help))))))
+      (mapc (function (lambda (prefix)
+			(let ((msgs (condition-case err
+					(funcall prefix)
+				      (error nil))))
+			  (if (car msgs)
+			      (princ
+			       (if (eq (nth 2 msgs) ?v)
+				   "\n`v' or `V' prefix (vector/matrix) keys: \n"
+				 (if (nth 2 msgs)
+				     (format
+				      "\n`%c' prefix (%s) keys:\n"
+				      (nth 2 msgs)
+				      (or (cdr (assq (nth 2 msgs)
+						     calc-help-long-names))
+					  (nth 1 msgs)))
+				   (format "\n%s-modified keys:\n"
+					   (capitalize (nth 1 msgs)))))))
+			  (mapcar (function (lambda (x)
+				    (princ (format "  %s\n" x))))
+				  (car msgs)))))
+	    '(calc-inverse-prefix-help
+	      calc-hyperbolic-prefix-help
+	      calc-inv-hyp-prefix-help
+	      calc-a-prefix-help
+	      calc-b-prefix-help
+	      calc-c-prefix-help
+	      calc-d-prefix-help
+	      calc-f-prefix-help
+	      calc-g-prefix-help
+	      calc-h-prefix-help
+	      calc-j-prefix-help
+	      calc-k-prefix-help
+	      calc-m-prefix-help
+	      calc-r-prefix-help
+	      calc-s-prefix-help
+	      calc-t-prefix-help
+	      calc-u-prefix-help
+	      calc-v-prefix-help
+	      calc-shift-Y-prefix-help
+	      calc-shift-Z-prefix-help
+	      calc-z-prefix-help)))
     (print-help-return-message)))
 
 (defun calc-h-prefix-help ()
