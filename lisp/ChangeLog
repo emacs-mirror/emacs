@@ -1,3 +1,66 @@
+2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calc/calc-ext.el (calc-init-extensions, calc-reset):
+	* calc/calc-help.el (calc-full-help):
+	* calc/calc-misc.el (another-calc):
+	* calc/calc-store.el (calc-var-name-map):
+	* calc/calc-stuff.el (calc-flush-caches):
+	* calc/calc-units.el (math-build-units-table):
+	* calc/calc.el (calc-digit-map, calc-dispatch-map, calc-mode)
+	(calc-quit):
+	* calendar/icalendar.el (icalendar--format-ical-event)
+	(icalendar--convert-ical-to-diary):
+	* emacs-lisp/authors.el (authors):
+	* emacs-lisp/cust-print.el (custom-print-install)
+	(custom-print-uninstall):
+	* emacs-lisp/disass.el (disassemble-1):
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-syntax):
+	* emacs-lisp/edebug.el (byte-compile-resolve-functions):
+	* emacs-lisp/elint.el (elint-current-buffer, elint-check-defun-form)
+	(elint-check-let-form, elint-check-condition-case-form)
+	(elint-initialize):
+	* emacs-lisp/elp.el (elp-results):
+	* emacs-lisp/generic.el (generic-mode-internal):
+	* emacs-lisp/re-builder.el (reb-delete-overlays):
+	* emacs-lisp/regi.el (regi-interpret):
+	* emacs-lisp/sregex.el (sregex--char-aux):
+	* emulation/cua-rect.el (cua--deactivate-rectangle)
+	(cua--highlight-rectangle, cua--rectangle-post-command):
+	* emulation/viper-keym.el (viper-toggle-key, viper-ESC-key):
+	* emulation/viper-macs.el (viper-describe-kbd-macros)
+	(viper-describe-one-macro):
+	* emulation/viper-util.el (viper-setup-master-buffer):
+	* emulation/viper.el (set-viper-state-in-major-mode):
+	* international/mule-diag.el (describe-current-coding-system):
+	* language/ethio-util.el (ethio-fidel-to-sera-buffer):
+	* mail/emacsbug.el (report-emacs-bug):
+	* net/ange-ftp.el (ange-ftp-call-chmod, ange-ftp-parse-bs2000-listing):
+	* obsolete/hilit19.el (hilit-unhighlight-region)
+	(hilit-set-mode-patterns):
+	* play/solitaire.el (solitaire-check, solitaire-solve):
+	* play/zone.el (zone-pgm-rotate):
+	* progmodes/ada-mode.el (ada-save-exceptions-to-file):
+	* progmodes/ada-prj.el (ada-prj-display-page):
+	* progmodes/delphi.el (delphi-search-directory, delphi-find-unit-file)
+	(delphi-debug-mode-map, delphi-mode-map, delphi-mode):
+	* progmodes/ebrowse.el (ebrowse-tree-mode, ebrowse-view-exit-fn)
+	(ebrowse-member-mode, ebrowse-save-tree-as, ebrowse-save-class):
+	* progmodes/sh-script.el (sh-make-vars-local)
+	(sh-reset-indent-vars-to-global-values):
+	* progmodes/sql.el (top):
+	* progmodes/vhdl-mode.el (vhdl-set-style, vhdl-regress-line):
+	* progmodes/xscheme.el (top):
+	* textmodes/artist.el (artist-mt-get-symbol-from-keyword-sub)
+	(artist-go-retrieve-from-symbol-sub, artist-go-get-symbol-shift-sub)
+	(artist-fc-retrieve-from-symbol-sub, artist-vaporize-line)
+	(artist-vaporize-lines, artist-ellipse-compute-fill-info)
+	(artist-submit-bug-report):
+	* textmodes/flyspell.el (flyspell-delay-commands)
+	(flyspell-deplacement-commands):
+	* textmodes/table.el (table--generate-source-epilogue, table-insert)
+	(table--generate-source-cells-in-a-row, table--make-cell-map)
+	(*table--cell-describe-bindings): Use `mapc' rather than `mapcar'.
+
 2007-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (produce-allout-mode-map, allout-process-exposed):
@@ -71,7 +134,7 @@
 
 2007-09-24  Adam Hupp  <adam@hupp.org>
 
-	* progmodes/python.el (run-python): Import Emacs module without
+	* progmodes/python.el (run-python): Import emacs module without
 	waiting; prevents lockup on error.
 
 2007-09-23  Richard Stallman  <rms@gnu.org>
