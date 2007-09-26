@@ -1,3 +1,9 @@
+2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/eldoc.el (eldoc-message-commands-table-size)
+	(eldoc-message-commands, eldoc-current-idle-delay)
+	(eldoc-function-argstring-format): Fix typos in docstrings.
+
 2007-09-26  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (calc-convert-units)
@@ -8,14 +14,13 @@
 	* org-export-latex.el (org-export-latex-tables-verbatim): New
 	function.
 	(org-export-latex-remove-from-headlines): Name changed because of
-	typo. 
+	typo.
 	(org-export-latex-quotation-marks-convention): Option removed.
 	(org-export-latex-make-preamble): Handle the DATE option.
 	(org-export-latex-cleaned-string): Now the only cleaning function,
 	synched up with org.el.
 	(org-export-latex-lists, org-export-latex-parse-list)
 	(org-export-list-to-latex): New functions.
-
 
 2007-09-26  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -65,7 +70,7 @@
 	(org-todo): Respect org-todo-log-states.
 	(org-up-heading-safe): New function.
 	(org-entry-get-with-inheritance): Use `org-up-heading-safe'.
-	
+
 	* org.texi: Change links to webpage and maintained email.
 	(Remember): Promoted to Chapter, significant changes.
 	(Fast access to TODO states): New section.
@@ -705,12 +710,12 @@
 2007-09-13  Jari Aalto  <jari.aalto@cante.net>
 
 	* man.el (Man-default-man-entry): At end of line, continue looking
-        to the next line for possible end of hyphenated command.
+	to the next line for possible end of hyphenated command.
 
 2007-09-13  Chris Moore  <dooglus@gmail.com>
 
 	* shell.el (shell-resync-dirs): Don't move the cursor relative to
-        the command being edited.
+	the command being edited.
 
 2007-09-12  Jim Meyering  <jim@meyering.net>  (tiny change)
 
