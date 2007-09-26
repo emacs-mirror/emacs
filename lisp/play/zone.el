@@ -399,20 +399,20 @@ If the element is a function or a list of a function and a number,
   (let* ((specs (apply
                  'vector
                  (let (res)
-                   (mapcar (lambda (ent)
-                             (let* ((beg (car ent))
-                                    (end (cdr ent))
-                                    (amt (if random-style
-                                             (funcall random-style)
-                                           (- (random 7) 3))))
-                               (when (< (- end (abs amt)) beg)
-                                 (setq amt (random (- end beg))))
-                               (unless (= 0 amt)
-                                 (setq res
-                                       (cons
-                                        (vector amt beg (- end (abs amt)))
-                                        res)))))
-                           (zone-line-specs))
+                   (mapc (lambda (ent)
+			   (let* ((beg (car ent))
+				  (end (cdr ent))
+				  (amt (if random-style
+					   (funcall random-style)
+					 (- (random 7) 3))))
+			     (when (< (- end (abs amt)) beg)
+			       (setq amt (random (- end beg))))
+			     (unless (= 0 amt)
+			       (setq res
+				     (cons
+				      (vector amt beg (- end (abs amt)))
+				      res)))))
+			 (zone-line-specs))
                    res)))
          (n (length specs))
          amt aamt cut paste txt i ent)
