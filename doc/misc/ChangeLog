@@ -1,3 +1,8 @@
+2007-09-26  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (HTML): Mention binding of S-mouse-2 to
+	browse-url-at-mouse.
+
 2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>  (tiny change)
 
 	* erc.texi (Special-Features): Fix small typo.
