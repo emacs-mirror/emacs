@@ -194,7 +194,7 @@
     (while children
       (setq node (car children)
 	    node-type (intern
-		       (or 
+		       (or
 			(cdr-safe (assq url-dav-datatype-attribute
 					(xml-node-attributes node)))
 			"unknown"))
@@ -864,7 +864,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	 (exists-p (url-http-file-exists-p newname)))
 
     (if (and exists-p
-	     (or 
+	     (or
 	      (null overwrite)
 	      (and (numberp overwrite)
 		   (not (yes-or-no-p
@@ -933,19 +933,19 @@ Returns nil if DIR contains no name starting with FILE."
 (defun url-dav-register-handler (op)
   (put op 'url-file-handlers (intern-soft (format "url-dav-%s" op))))
 
-(mapcar 'url-dav-register-handler
-        ;; These handlers are disabled because they incorrectly presume that
-        ;; the URL specifies an HTTP location and thus break FTP URLs.
-	'(;; file-name-all-completions
-	  ;; file-name-completion
-	  ;; rename-file
-	  ;; make-directory
-	  ;; file-directory-p
-	  ;; directory-files
-	  ;; delete-file
-	  ;; delete-directory
-	  ;; file-attributes
-          ))
+(mapc 'url-dav-register-handler
+      ;; These handlers are disabled because they incorrectly presume that
+      ;; the URL specifies an HTTP location and thus break FTP URLs.
+      '(;; file-name-all-completions
+	;; file-name-completion
+	;; rename-file
+	;; make-directory
+	;; file-directory-p
+	;; directory-files
+	;; delete-file
+	;; delete-directory
+	;; file-attributes
+	))
 
 
 ;;; Version Control backend cruft
