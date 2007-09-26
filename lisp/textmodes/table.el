@@ -1376,7 +1376,7 @@ the last cache point coordinate."
 ;;
 
 ;; Point Motion Only Group
-(mapcar
+(mapc
  (lambda (command)
    (let ((func-symbol (intern (format "*table--cell-%s" command)))
 	 (doc-string (format "Table remapped function for `%s'." command)))
@@ -1409,7 +1409,7 @@ the last cache point coordinate."
    backward-paragraph))
 
 ;; Extraction Group
-(mapcar
+(mapc
  (lambda (command)
    (let ((func-symbol (intern (format "*table--cell-%s" command)))
 	 (doc-string (format "Table remapped function for `%s'." command)))
@@ -1443,7 +1443,7 @@ the last cache point coordinate."
    backward-kill-sexp))
 
 ;; Pasting Group
-(mapcar
+(mapc
  (lambda (command)
    (let ((func-symbol (intern (format "*table--cell-%s" command)))
 	 (doc-string (format "Table remapped function for `%s'." command)))
@@ -1469,7 +1469,7 @@ the last cache point coordinate."
    insert))
 
 ;; Formatting Group
-(mapcar
+(mapc
  (lambda (command)
    (let ((func-symbol (intern (format "*table--cell-%s" command)))
 	 (doc-string (format "Table remapped function for `%s'." command)))
@@ -1641,20 +1641,20 @@ Inside a table cell has a special keymap.
   (if (numberp cell-width) (setq cell-width (cons cell-width nil)))
   (if (numberp cell-height) (setq cell-height (cons cell-height nil)))
   ;; test validity of the arguments.
-  (mapcar (lambda (arg)
-	    (let* ((value (symbol-value arg))
-		   (error-handler
-		    (function (lambda ()
-				(error "%s must be a positive integer%s" arg
-				       (if (listp value) " or a list of positive integers" ""))))))
-	      (if (null value) (funcall error-handler))
-	      (mapcar (function (lambda (arg1)
-				  (if (or (not (integerp arg1))
-					  (< arg1 1))
-				      (funcall error-handler))))
-		      (if (listp value) value
-			(cons value nil)))))
-	  '(columns rows cell-width cell-height))
+  (mapc (lambda (arg)
+	  (let* ((value (symbol-value arg))
+		 (error-handler
+		  (function (lambda ()
+		    (error "%s must be a positive integer%s" arg
+			   (if (listp value) " or a list of positive integers" ""))))))
+	    (if (null value) (funcall error-handler))
+	    (mapcar (function (lambda (arg1)
+		      (if (or (not (integerp arg1))
+			      (< arg1 1))
+			  (funcall error-handler))))
+		    (if (listp value) value
+		      (cons value nil)))))
+	'(columns rows cell-width cell-height))
   (let ((orig-coord (table--get-coordinate))
 	(coord (table--get-coordinate))
 	r i cw ch cell-str border-str)
@@ -3141,7 +3141,7 @@ CALS (DocBook DTD):
       (set-marker-insertion-type (table-get-source-info 'colspec-marker) t) ;; insert before
       (save-excursion
 	(goto-char (table-get-source-info 'colspec-marker))
-	(mapcar
+	(mapc
 	 (lambda (col)
 	   (insert (format "    <colspec colnum=\"%d\" colname=\"c%d\"/>\n" col col)))
 	 (sort (table-get-source-info 'colnum-list) '<)))
@@ -3223,11 +3223,11 @@ CALS (DocBook DTD):
 	      (if (> colspan 1)
 		  (let ((scol (table-get-source-info 'current-column))
 			(ecol (+ (table-get-source-info 'current-column) colspan -1)))
-		    (mapcar (lambda (col)
-			      (unless (memq col (table-get-source-info 'colnum-list))
-				(table-put-source-info 'colnum-list
-						       (cons col (table-get-source-info 'colnum-list)))))
-			    (list scol ecol))
+		    (mapc (lambda (col)
+			    (unless (memq col (table-get-source-info 'colnum-list))
+			      (table-put-source-info 'colnum-list
+						     (cons col (table-get-source-info 'colnum-list)))))
+			  (list scol ecol))
 		    (insert (format " namest=\"c%d\" nameend=\"c%d\"" scol ecol))))
 	      (if (> rowspan 1) (insert (format " morerows=\"%d\"" (1- rowspan))))
 	      (if (and alignment
@@ -3910,19 +3910,19 @@ converts a table into plain text without frames.  It is a companion to
 	  (remap-alist table-command-remap-alist))
       ;; table-command-prefix mode specific bindings
       (if (vectorp table-command-prefix)
-	  (mapcar (lambda (binding)
-		    (let ((seq (copy-sequence (car binding))))
-		      (and (vectorp seq)
-			   (listp (aref seq 0))
-			   (eq (car (aref seq 0)) 'control)
-			   (progn
-			     (aset seq 0 (cadr (aref seq 0)))
-			     (define-key map (vconcat table-command-prefix seq) (cdr binding))))))
-		  table-cell-bindings))
+	  (mapc (lambda (binding)
+		  (let ((seq (copy-sequence (car binding))))
+		    (and (vectorp seq)
+			 (listp (aref seq 0))
+			 (eq (car (aref seq 0)) 'control)
+			 (progn
+			   (aset seq 0 (cadr (aref seq 0)))
+			   (define-key map (vconcat table-command-prefix seq) (cdr binding))))))
+		table-cell-bindings))
       ;; shorthand control bindings
-      (mapcar (lambda (binding)
-		(define-key map (car binding) (cdr binding)))
-	      table-cell-bindings)
+      (mapc (lambda (binding)
+	      (define-key map (car binding) (cdr binding)))
+	    table-cell-bindings)
       ;; remap normal commands to table specific version
       (while remap-alist
 	(define-key map (vector 'remap (caar remap-alist)) (cdar remap-alist))
@@ -4092,11 +4092,11 @@ key             binding
 ---             -------
 
 ")
-      (mapcar (lambda (binding)
-		(princ (format "%-16s%s\n"
-			       (key-description (car binding))
-			       (cdr binding))))
-	      table-cell-bindings)
+      (mapc (lambda (binding)
+	      (princ (format "%-16s%s\n"
+			     (key-description (car binding))
+			     (cdr binding))))
+	    table-cell-bindings)
       (print-help-return-message))))
 
 (defun *table--cell-dabbrev-expand (arg)
