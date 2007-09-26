@@ -1,3 +1,10 @@
+2007-09-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-search-documentation-menu): Renamed from
+	menu-bar-apropos-menu.  All users changed.
+	(menu-bar-help-menu): Change menu symbols to better match the text
+	displayed by the menu.
+
 2007-09-25  Glenn Morris  <rgm@gnu.org>
 
 	* view.el (view-search-no-match-lines): Add a doc string.
