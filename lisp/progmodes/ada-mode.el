@@ -1145,7 +1145,7 @@ If you use ada-xref.el:
 
   (interactive)
   (kill-all-local-variables)
-  
+
   (set-syntax-table ada-mode-syntax-table)
 
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
@@ -1423,12 +1423,12 @@ If you use ada-xref.el:
 Casing exception lists are `ada-case-exception' and `ada-case-exception-substring'."
   (find-file (expand-file-name file-name))
   (erase-buffer)
-  (mapcar (lambda (x) (insert (car x) "\n"))
-	  (sort (copy-sequence ada-case-exception)
-		(lambda(a b) (string< (car a) (car b)))))
-  (mapcar (lambda (x) (insert "*" (car x) "\n"))
-	    (sort (copy-sequence ada-case-exception-substring)
-		  (lambda(a b) (string< (car a) (car b)))))
+  (mapc (lambda (x) (insert (car x) "\n"))
+	(sort (copy-sequence ada-case-exception)
+	      (lambda(a b) (string< (car a) (car b)))))
+  (mapc (lambda (x) (insert "*" (car x) "\n"))
+	(sort (copy-sequence ada-case-exception-substring)
+	      (lambda(a b) (string< (car a) (car b)))))
   (save-buffer)
   (kill-buffer nil)
   )
@@ -4583,7 +4583,7 @@ Moves to 'begin' if in a declarative part."
   ;; The following keys are bound to functions defined in ada-xref.el or
   ;; ada-prj,el., However, RMS rightly thinks that the code should be shared,
   ;; and activated only if the right compiler is used
-  
+
   (define-key ada-mode-map (if (featurep 'xemacs) '(shift button3) [S-mouse-3])
     'ada-point-and-xref)
   (define-key ada-mode-map [(control tab)] 'ada-complete-identifier)
