@@ -1,3 +1,8 @@
+2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-dav.el (top):
+	* url-vars.el (top): Use `mapc' rather than `mapcar'.
+
 2007-09-22  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-misc.el (url-generic-emulator-loader): Send the port as a
