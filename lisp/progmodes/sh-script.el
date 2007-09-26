@@ -1029,7 +1029,7 @@ subshells can nest."
           (t (error "Internal error in sh-font-lock-quoted-subshell")))
         (forward-char 1)))
     t))
-            
+
 
 (defun sh-is-quoted-p (pos)
   (and (eq (char-before pos) ?\\)
@@ -1906,14 +1906,14 @@ variable `sh-make-vars-local' has been set to nil.
 To revert all these variables to the global values, use
 command `sh-reset-indent-vars-to-global-values'."
   (interactive)
-  (mapcar 'make-local-variable sh-var-list)
+  (mapc 'make-local-variable sh-var-list)
   (message "Indentation variables are now local."))
 
 (defun sh-reset-indent-vars-to-global-values ()
   "Reset local indentation variables to the global values.
 Then, if variable `sh-make-vars-local' is non-nil, make them local."
   (interactive)
-  (mapcar 'kill-local-variable sh-var-list)
+  (mapc 'kill-local-variable sh-var-list)
   (if sh-make-vars-local
       (mapcar 'make-local-variable sh-var-list)))
 
