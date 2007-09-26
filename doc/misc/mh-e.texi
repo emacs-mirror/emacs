@@ -8,12 +8,12 @@
 @c %**end of header
 
 @c Version of the software and manual.
-@set VERSION 8.0.3
+@set VERSION 8.0.3+CVS
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2006-11-12
-@set UPDATE-MONTH November, 2006
+@set UPDATED 2007-09-25
+@set UPDATE-MONTH September, 2007
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -2556,16 +2556,14 @@ includes the results of a quick poll of MH-E users from 2005-12-23.
 @cindex browser, @samp{w3m}
 @cindex @samp{w3m}
 @kindex Mouse-2
-@kindex S-Mouse-2
 @item @samp{w3m} 7
 The @samp{w3m} browser requires an external program. It's quick,
 produces pretty nice output, and best of all, it's the only browser
 that highlights links. These can be clicked with @kbd{Mouse-2} to view
-the content of the link in @samp{w3m} or with @kbd{S-Mouse-2} to view
-the content of the link in an external browser. The @samp{w3m} browser
-handles tables well and actually respects the table's width parameter
-(which can cause text to wrap if the author didn't anticipate that the
-page would be viewed in Emacs).
+the content of the link in @samp{w3m}. The @samp{w3m} browser handles
+tables well and actually respects the table's width parameter (which
+can cause text to wrap if the author didn't anticipate that the page
+would be viewed in Emacs).
 @c -------------------------
 @cindex browser, @samp{w3m-standalone}
 @cindex @samp{w3m-standalone}
@@ -2642,6 +2640,20 @@ documentation for the Gnus command @kbd{W h} (see section
 @uref{http://www.gnus.org/manual/gnus_99.html, Article Washing} in the
 @cite{The Gnus Manual}).
 @end ifnotinfo
+
+@cindex @file{.emacs}
+@cindex files, @file{.emacs}
+@findex browse-url-at-mouse
+@kindex S-Mouse-2
+
+A useful key binding that you can add to to @file{~/.emacs} is the
+following which displays an HTML link or textual URL in an external
+browser when clicked with @kbd{S-mouse-2}. This binding works in any
+buffer, including HTML buffers.
+
+@smalllisp
+(global-set-key [S-mouse-2] 'browse-url-at-mouse)
+@end smalllisp
 
 @node Digests, Reading PGP, HTML, Reading Mail
 @section Digests
