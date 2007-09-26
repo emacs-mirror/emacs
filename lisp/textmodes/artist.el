@@ -1562,7 +1562,7 @@ The returned value is suitable for the `x-popup-menu' function."
 (defun artist-mt-get-symbol-from-keyword-sub (table kwd)
   "Search TABLE for keyword KWD and return its symbol."
   (catch 'found
-    (mapcar
+    (mapc
      (lambda (element)
        (let ((element-tag (artist-mt-get-tag element)))
 	 (cond ((eq element-tag 'graphics-operation)
@@ -1611,7 +1611,7 @@ info-variant-part."
 Calls RETRIEVE-FN to retrieve information from that symbol's
 info-variant-part."
   (catch 'found
-    (mapcar
+    (mapc
      (lambda (element)
        (let ((element-tag (artist-mt-get-tag element)))
 	 (cond ((eq element-tag 'graphics-operation)
@@ -1700,7 +1700,7 @@ otherwise the shifted symbol."
 If IS-SHIFTED is non-nil, return the shifted symbol,
 otherwise the shifted symbol."
   (catch 'found
-    (mapcar
+    (mapc
      (lambda (element)
        (let ((element-tag (artist-mt-get-tag element)))
 	 (cond ((eq element-tag 'graphics-operation)
@@ -1737,7 +1737,7 @@ info-variant-part."
 Calls RETRIEVE-FN to retrieve information from that symbol's
 info-variant-part."
   (catch 'found
-    (mapcar
+    (mapc
      (lambda (element)
        (let ((element-tag (artist-mt-get-tag element)))
 	 (cond ((eq element-tag 'function-call)
@@ -3160,7 +3160,7 @@ Do this by replacing the characters that forms the line with
 `artist-erase-char'.  Output is a list of endpoints for lines
 through X1, Y1. An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
   (let ((endpoints (artist-vap-find-endpoints x1 y1)))
-    (mapcar
+    (mapc
      (lambda (endpoints)
        (let ((ep1 (car endpoints))
 	     (ep2 (car (cdr endpoints))))
@@ -3213,14 +3213,14 @@ through X1, Y1. An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 (defun artist-vaporize-lines (x1 y1)
   "Vaporize lines reachable from point X1, Y1."
   (let ((ep-stack nil))
-    (mapcar
+    (mapc
      (lambda (ep) (push ep ep-stack))
      (artist-vap-find-endpoints x1 y1))
     (while (not (null ep-stack))
       (let* ((vaporize-point (pop ep-stack))
 	     (new-endpoints (artist-vaporize-line (car vaporize-point)
 						  (cdr vaporize-point))))
-	(mapcar
+	(mapc
 	 (lambda (endpoint) (push endpoint ep-stack))
 	 new-endpoints)))))
 
@@ -3340,7 +3340,7 @@ The POINT-LIST is expected to cover the first quadrant."
 
     ;; Create first half (the lower one (since y grows downwards)) from
     ;; the first quadrant.
-    (mapcar
+    (mapc
      (lambda (coord)
        (let* ((x         (artist-coord-get-x coord))
 	      (y         (artist-coord-get-y coord))
@@ -3359,7 +3359,7 @@ The POINT-LIST is expected to cover the first quadrant."
     ;; Create the other half by mirroring the first half.
     (setq both-halves
 	  (append first-half
-		  (mapcar
+		  (mapc
 		   (lambda (i)
 		     (artist-new-fill-item (artist-fill-item-get-x i)
 					   (- (artist-fill-item-get-y i))
@@ -5361,7 +5361,7 @@ The event, EV, is the mouse event."
 		    artist-arrow-point-1
 		    artist-arrow-point-2)))
 	;; Remove those variables from vars that are not bound
-	(mapcar
+	(mapc
 	 (function
 	  (lambda (x)
 	    (if (not (and (boundp x) (symbol-value x)))
