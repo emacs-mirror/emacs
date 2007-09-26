@@ -3074,7 +3074,8 @@ non-nil."
 indent the current line syntactically."
   ;; Emacs has a variable called mark-active, XEmacs uses region-active-p
   (interactive)
-  (if (c-region-is-active-p)
+  (if (and transient-mark-mode mark-active
+	   (not (eq (region-beginning) (region-end))))
       (c-indent-region (region-beginning) (region-end))
     (c-indent-line)))
 

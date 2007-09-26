@@ -1,3 +1,8 @@
+2007-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/cc-cmds.el (c-indent-line-or-region): Only indent the
+	region if in transient-mark-mode.
+
 2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calc/calc-ext.el (calc-init-extensions, calc-reset):
