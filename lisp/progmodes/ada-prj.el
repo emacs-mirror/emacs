@@ -254,8 +254,8 @@ The current buffer must be the project editing buffer."
       (progn
 	(setq widget-field-new  nil
 	      widget-field-list nil)
-	(mapcar (lambda (x) (delete-overlay x)) (car (overlay-lists)))
-	(mapcar (lambda (x) (delete-overlay x)) (cdr (overlay-lists)))))
+	(mapc (lambda (x) (delete-overlay x)) (car (overlay-lists)))
+	(mapc (lambda (x) (delete-overlay x)) (cdr (overlay-lists)))))
 
   ;;  Display the tabs
 
