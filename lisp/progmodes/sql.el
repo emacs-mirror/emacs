@@ -863,7 +863,7 @@ Based on `comint-mode-map'.")
 (unless sql-mode-abbrev-table
   (define-abbrev-table 'sql-mode-abbrev-table nil))
 
-(mapcar
+(mapc
  ;; In Emacs 22+, provide SYSTEM-FLAG to define-abbrev.
  '(lambda (abbrev)
     (let ((name (car abbrev))
