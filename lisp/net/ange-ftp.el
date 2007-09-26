@@ -4580,7 +4580,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(rest (cdr args)))
     (if (equal "--" (car rest))
 	(setq rest (cdr rest)))
-    (mapcar
+    (mapc
      (lambda (file)
        (setq file (expand-file-name file))
        (let ((parsed (ange-ftp-ftp-name file)))
@@ -6055,8 +6055,8 @@ Other orders of $ and _ seem to all work just fine.")
     (puthash ".." t tbl)
     ;; add all additional pubsets, if not listing one of them
     (if (not (member pubset ange-ftp-bs2000-additional-pubsets))
-	(mapcar (lambda (pubset) (puthash pubset t tbl))
-		ange-ftp-bs2000-additional-pubsets))
+	(mapc (lambda (pubset) (puthash pubset t tbl))
+	      ange-ftp-bs2000-additional-pubsets))
     tbl))
 
 (add-to-list 'ange-ftp-parse-list-func-alist
