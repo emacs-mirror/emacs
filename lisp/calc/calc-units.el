@@ -412,7 +412,7 @@ If EXPR is nil, return nil."
                             "New units")
                            (if defunits
                                (concat
-                                " (default: "
+                                " (default "
                                 defunits
                                 "): ")
                              ": "))))
@@ -484,7 +484,7 @@ If EXPR is nil, return nil."
                                    ", new units")
                          "New temperature units")
                        (if defunits
-                           (concat " (default: "
+                           (concat " (default "
                                    defunits
                                    "): ")
                          ": "))))))
