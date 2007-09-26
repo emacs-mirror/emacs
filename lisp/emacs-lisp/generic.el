@@ -205,7 +205,7 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     (setq font-lock-defaults '(generic-font-lock-keywords))
 
     ;; Call a list of functions
-    (mapcar 'funcall function-list)
+    (mapc 'funcall function-list)
 
     (run-mode-hooks mode-hook)))
 
