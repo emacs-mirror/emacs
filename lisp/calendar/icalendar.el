@@ -1531,24 +1531,24 @@ buffer `*icalendar-errors*'."
            ("%t" STATUS      icalendar-import-format-status)
            ("%u" URL         icalendar-import-format-url))))
     ;; convert the specifiers in the format string
-    (mapcar (lambda (i)
-              (let* ((spec (car i))
-                     (prop (cadr i))
-                     (format (car (cddr i)))
-                     (contents (icalendar--get-event-property event prop))
-                     (formatted-contents ""))
-                (when (and contents (> (length contents) 0))
-                  (setq formatted-contents
-                        (icalendar--rris "%s"
-                                         (icalendar--convert-string-for-import
-                                          contents)
-                                         (symbol-value format)
-                                         t t)))
-                (setq string (icalendar--rris spec
-                                              formatted-contents
-                                              string
-                                              t t))))
-            conversion-list)
+    (mapc (lambda (i)
+	    (let* ((spec (car i))
+		   (prop (cadr i))
+		   (format (car (cddr i)))
+		   (contents (icalendar--get-event-property event prop))
+		   (formatted-contents ""))
+	      (when (and contents (> (length contents) 0))
+		(setq formatted-contents
+		      (icalendar--rris "%s"
+				       (icalendar--convert-string-for-import
+					contents)
+				       (symbol-value format)
+				       t t)))
+	      (setq string (icalendar--rris spec
+					    formatted-contents
+					    string
+					    t t))))
+	  conversion-list)
     string))
 
 (defun icalendar--convert-ical-to-diary (ical-list diary-file
@@ -1637,11 +1637,11 @@ written into the buffer `*icalendar-errors*'."
              (rdate
               (icalendar--dmsg "rdate event")
               (setq diary-string "")
-              (mapcar (lambda (datestring)
-                        (setq diary-string
-                              (concat diary-string
-                                      (format "......"))))
-                      (icalendar--split-value rdate)))
+              (mapc (lambda (datestring)
+		      (setq diary-string
+			    (concat diary-string
+				    (format "......"))))
+		    (icalendar--split-value rdate)))
              ;; non-recurring event
              ;; all-day event
              ((not (string= start-d end-d))
