@@ -565,7 +565,7 @@ has one of the following forms:
   (let ((chars (make-bool-vector 256 nil))) ; Yeah, right!
     (dolist (arg args)
       (cond ((integerp arg) (aset chars arg t))
-	    ((stringp arg) (mapcar (lambda (c) (aset chars c t)) arg))
+	    ((stringp arg) (mapc (lambda (c) (aset chars c t)) arg))
 	    ((consp arg)
 	     (let ((start (car arg))
 		   (end (cdr arg)))
