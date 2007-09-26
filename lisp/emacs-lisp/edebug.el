@@ -4421,7 +4421,7 @@ With prefix argument, make it a temporary breakpoint."
 
   (defun byte-compile-resolve-functions (funcs)
     "Say it is OK for the named functions to be unresolved."
-    (mapcar
+    (mapc
      (function
       (lambda (func)
 	(setq byte-compile-unresolved-functions
