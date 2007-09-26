@@ -618,15 +618,15 @@
 
   (calc-init-prefixes)
 
-  (mapcar (function
-	   (lambda (x)
-	     (define-key calc-mode-map (format "c%c" x) 'calc-clean-num)
-	     (define-key calc-mode-map (format "j%c" x) 'calc-select-part)
-	     (define-key calc-mode-map (format "r%c" x) 'calc-recall-quick)
-	     (define-key calc-mode-map (format "s%c" x) 'calc-store-quick)
-	     (define-key calc-mode-map (format "t%c" x) 'calc-store-into-quick)
-	     (define-key calc-mode-map (format "u%c" x) 'calc-quick-units)))
-	  "0123456789")
+  (mapc (function
+	 (lambda (x)
+	  (define-key calc-mode-map (format "c%c" x) 'calc-clean-num)
+	  (define-key calc-mode-map (format "j%c" x) 'calc-select-part)
+	  (define-key calc-mode-map (format "r%c" x) 'calc-recall-quick)
+	  (define-key calc-mode-map (format "s%c" x) 'calc-store-quick)
+	  (define-key calc-mode-map (format "t%c" x) 'calc-store-into-quick)
+	  (define-key calc-mode-map (format "u%c" x) 'calc-quick-units)))
+	"0123456789")
 
   (let ((i ?A))
     (while (<= i ?z)
@@ -635,7 +635,7 @@
 		(cons 'keymap (cons (cons ?\e (aref (nth 1 calc-mode-map) i))
 				    (cdr (aref (nth 1 calc-mode-map) i))))))
       (setq i (1+ i))))
-  
+
   (setq calc-alg-map (copy-keymap calc-mode-map)
 	calc-alg-esc-map (copy-keymap esc-map))
   (let ((i 32))
@@ -651,7 +651,7 @@
   (define-key calc-alg-map "\e\177" 'calc-pop-above)
 
 ;;;; (Autoloads here)
-  (mapcar (function (lambda (x)
+  (mapc (function (lambda (x)
     (mapcar (function (lambda (func)
       (autoload func (car x)))) (cdr x))))
     '(
@@ -1021,7 +1021,7 @@ calc-arctan calc-arctan2 calc-arctanh calc-conj calc-cos calc-cosh
 calc-cot calc-coth calc-csc calc-csch
 calc-degrees-mode calc-exp calc-expm1 calc-hypot calc-ilog
 calc-imaginary calc-isqrt calc-ln calc-lnp1 calc-log calc-log10
-calc-pi calc-radians-mode calc-sec calc-sech 
+calc-pi calc-radians-mode calc-sec calc-sech
 calc-sin calc-sincos calc-sinh calc-sqrt
 calc-tan calc-tanh calc-to-degrees calc-to-radians)
 
@@ -1277,7 +1277,7 @@ calc-kill calc-kill-region calc-yank))))
             calc-redo-list nil)
       (let (calc-stack calc-user-parse-tables calc-standard-date-formats
                        calc-invocation-macro)
-        (mapcar (function (lambda (v) (set v nil))) calc-local-var-list)
+        (mapc (function (lambda (v) (set v nil))) calc-local-var-list)
         (if (and arg (<= arg 0))
             (calc-mode-var-list-restore-default-values)
           (calc-mode-var-list-restore-saved-values)))
@@ -1357,7 +1357,7 @@ calc-kill calc-kill-region calc-yank))))
                        (with-current-buffer calc-main-buffer
                          calc-hyperbolic-flag)
                      calc-hyperbolic-flag))
-         (msg (if hyp-flag 
+         (msg (if hyp-flag
                  "Inverse Hyperbolic..."
                "Inverse...")))
     (calc-fancy-prefix 'calc-inverse-flag msg n)))
@@ -1438,7 +1438,7 @@ calc-kill calc-kill-region calc-yank))))
                        (with-current-buffer calc-main-buffer
                          calc-inverse-flag)
                      calc-inverse-flag))
-         (msg (if inv-flag 
+         (msg (if inv-flag
                   "Inverse Hyperbolic..."
                 "Hyperbolic...")))
     (calc-fancy-prefix 'calc-hyperbolic-flag msg n)))
@@ -1849,7 +1849,7 @@ calc-kill calc-kill-region calc-yank))))
 		 (setq calc-z-prefix-buf (concat (if (= flags 1) "SHIFT + " "")
 				   desc))
 	       (if (> (+ (length calc-z-prefix-buf) (length desc)) 58)
-		   (setq calc-z-prefix-msgs 
+		   (setq calc-z-prefix-msgs
                          (cons calc-z-prefix-buf calc-z-prefix-msgs)
 			 calc-z-prefix-buf (concat (if (= flags 1) "SHIFT + " "")
 				     desc))
@@ -1879,14 +1879,14 @@ calc-kill calc-kill-region calc-yank))))
 	(last-val (intern (concat (symbol-name name) "-last"))))
     (list 'progn
 ;	  (list 'defvar cache-prec (if init (math-numdigs (nth 1 init)) -100))
-	  (list 'defvar cache-prec 
+	  (list 'defvar cache-prec
                 `(cond
                   ((consp ,init) (math-numdigs (nth 1 ,init)))
-                  (,init 
+                  (,init
                    (nth 1 (math-numdigs (eval ,init))))
                   (t
                    -100)))
-	  (list 'defvar cache-val 
+	  (list 'defvar cache-val
                 `(cond
                   ((consp ,init) ,init)
                   (,init (eval ,init))
@@ -1963,7 +1963,7 @@ calc-kill calc-kill-region calc-yank))))
 (defconst math-approx-sqrt-e
   (math-read-number-simple "1.648721270700128146849")
   "An approximation for sqrt(3).")
-    
+
 (math-defcache math-sqrt-e math-approx-sqrt-e
   (math-add-float '(float 1 0) (math-exp-minus-1-raw '(float 5 -1))))
 
@@ -1975,11 +1975,11 @@ calc-kill calc-kill-region calc-yank))))
 		  '(float 5 -1)))
 
 (defconst math-approx-gamma-const
-  (math-read-number-simple 
+  (math-read-number-simple
    "0.5772156649015328606065120900824024310421593359399235988057672348848677267776646709369470632917467495")
   "An approximation for gamma.")
 
-(math-defcache math-gamma-const nil 
+(math-defcache math-gamma-const nil
   math-approx-gamma-const)
 
 (defun math-half-circle (symb)
@@ -2148,12 +2148,12 @@ calc-kill calc-kill-region calc-yank))))
   (unless a
     (setq a 1))
   (and
-   (not (memq nil (mapcar 
+   (not (memq nil (mapcar
                    (lambda (x) (eq x 0))
                    (nthcdr (1+ n) row))))
-   (not (memq nil (mapcar 
+   (not (memq nil (mapcar
                    (lambda (x) (eq x 0))
-                   (butlast 
+                   (butlast
                     (cdr row)
                     (- (length row) n)))))
    (eq (elt row n) a)))
@@ -2218,7 +2218,7 @@ If X is not an error form, return X."
   (if (eq (car-safe x) 'sdev)
       (nth 1 x)
     x))
-       
+
 (defun math-get-sdev (x &optional one)
   "Get the standard deviation of the error form X.
 If X is not an error form, return 1."
@@ -2331,15 +2331,15 @@ If X is not an error form, return 1."
     (and (symbolp (car math-normalize-a))
 	 (or (eq calc-simplify-mode 'none)
 	     (and (eq calc-simplify-mode 'num)
-		  (let ((aptr (setq math-normalize-a 
+		  (let ((aptr (setq math-normalize-a
                                     (cons
                                      (car math-normalize-a)
-                                     (mapcar 'math-normalize 
+                                     (mapcar 'math-normalize
                                              (cdr math-normalize-a))))))
 		    (while (and aptr (math-constp (car aptr)))
 		      (setq aptr (cdr aptr)))
 		    aptr)))
-	 (cons (car math-normalize-a) 
+	 (cons (car math-normalize-a)
                (mapcar 'math-normalize (cdr math-normalize-a))))))
 
 
@@ -2720,8 +2720,8 @@ If X is not an error form, return 1."
 		      (setq mmt-nextval (funcall math-mt-func mmt-expr))
 		      (not (equal mmt-expr mmt-nextval)))
 	    (setq mmt-expr mmt-nextval
-		  math-mt-many (if (> math-mt-many 0) 
-                                   (1- math-mt-many) 
+		  math-mt-many (if (> math-mt-many 0)
+                                   (1- math-mt-many)
                                  (1+ math-mt-many))))
 	  (if (or (Math-primp mmt-expr)
 		  (<= math-mt-many 0))
@@ -3046,10 +3046,10 @@ If X is not an error form, return 1."
 	  math-read-big-baseline math-read-big-h2
 	  new-pos p)
       (while (setq new-pos (string-match "\n" str pos))
-	(setq math-read-big-lines 
+	(setq math-read-big-lines
               (cons (substring str pos new-pos) math-read-big-lines)
 	      pos (1+ new-pos)))
-      (setq math-read-big-lines 
+      (setq math-read-big-lines
             (nreverse (cons (substring str pos) math-read-big-lines))
 	    p math-read-big-lines)
       (while p
