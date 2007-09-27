@@ -2981,6 +2981,9 @@ We only support Gpm on one tty at a time.  */)
   else
     {
       gpm_tty = tty;
+      /* `init_sys_modes' arranges for mouse movements sent through gpm_fd
+	 to generate SIGIOs.  Apparently we need to call reset_sys_modes
+	 before calling init_sys_modes.  */
       reset_sys_modes (tty);
       init_sys_modes (tty);
       add_gpm_wait_descriptor (gpm_fd);
