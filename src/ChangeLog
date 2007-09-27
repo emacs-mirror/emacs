@@ -1,3 +1,7 @@
+2007-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.c (Fmove_to_column): Use EMACS_INT for buffer positions.
+
 2007-09-25  Jason Rumney  <jasonr@gnu.org>
 
 	* frame.c (make_terminal_frame): Remove special case for WINDOWSNT.

@@ -932,19 +932,19 @@ The return value is the current column.  */)
      (column, force)
      Lisp_Object column, force;
 {
-  register int pos;
-  register int col = current_column ();
-  register int goal;
-  register int end;
+  register EMACS_INT pos;
+  register EMACS_INT col = current_column ();
+  register EMACS_INT goal;
+  register EMACS_INT end;
   register int tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   Lisp_Object val;
-  int prev_col = 0;
+  EMACS_INT prev_col = 0;
   int c = 0;
-  int next_boundary, pos_byte;
+  EMACS_INT next_boundary, pos_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column);
@@ -970,7 +970,7 @@ The return value is the current column.  */)
     {
       while (pos == next_boundary)
 	{
-	  int prev = pos;
+	  EMACS_INT prev = pos;
 	  pos = skip_invisible (pos, &next_boundary, end, Qnil);
 	  if (pos != prev)
 	    pos_byte = CHAR_TO_BYTE (pos);
@@ -1090,7 +1090,7 @@ The return value is the current column.  */)
      and scan through it again.  */
   if (!NILP (force) && col > goal && c == '\t' && prev_col < goal)
     {
-      int goal_pt, goal_pt_byte;
+      EMACS_INT goal_pt, goal_pt_byte;
 
       /* Insert spaces in front of the tab to reach GOAL.  Do this
 	 first so that a marker at the end of the tab gets
