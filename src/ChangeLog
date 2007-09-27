@@ -1,5 +1,8 @@
 2007-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* indent.h:
+	* indent.c: Use EMACS_INT for ints coming from Elisp data.
+
 	* indent.c (Fmove_to_column): Use EMACS_INT for buffer positions.
 
 2007-09-25  Jason Rumney  <jasonr@gnu.org>

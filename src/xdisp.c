@@ -3609,7 +3609,8 @@ handle_invisible_prop (it)
     }
   else
     {
-      int invis_p, newpos, next_stop, start_charpos;
+      int invis_p;
+      EMACS_INT newpos, next_stop, start_charpos;
       Lisp_Object pos, prop, overlay;
 
       /* First of all, is there invisible text at this position?  */
