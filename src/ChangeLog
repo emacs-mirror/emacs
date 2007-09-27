@@ -1,3 +1,9 @@
+2007-09-27  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (LIBS): Add COMCTL32.
+
+	* w32fns.c (globals_of_w32fns): Init common controls.
+
 2007-09-21  Richard Stallman  <rms@gnu.org>
 
 	* image.c (our_memory_buffer): Renamed from omfib_buffer.
