@@ -1,3 +1,11 @@
+2007-09-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/eldoc.el (eldoc-message-commands-table-size)
+	(eldoc-message-commands, eldoc-current-idle-delay):
+	Fix typos in docstrings.
+
+	* progmodes/python.el (python-eldoc-function): Doc fix.
+
 2007-09-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-search-documentation-menu): Renamed from
@@ -68,7 +76,7 @@
 2007-09-22  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-mode.el (eshell-output-filter-functions): Add
-        eshell-postoutput-scroll-to-bottom.
+	eshell-postoutput-scroll-to-bottom.
 
 2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -820,7 +828,7 @@
 	* help.el (resize-temp-buffer-window): Use window-full-width-p
 	instead of comparing frame-width and window-width.
 
-2007-08-05  Peter Povinec  <ppovinec <at> yahoo.com> (tiny change)
+2007-08-05  Peter Povinec  <ppovinec <at> yahoo.com>  (tiny change)
 
 	* term.el: Honor term-default-fg-color and term-default-bg-color
 	settings when modifying term-current-face.
