@@ -71,12 +71,17 @@ Report by Drew Adams <drew.adams@oracle.com> on emacs-devel from
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00298.html
 
 ** emacs-22.1 with GTK problems (with patches)
+Only outstanding issue seems to be whether Solaris 2.6 GTK can be
+supported in the absence of recursive mutexes, via a change to
+alloc.c, or whether configure should abort.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 ** TAGS buffer generates spurious undo warnings
+Waiting for recipe to produce these warnings.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00070.html
 
 ** latex mode, nexted subscripts are unreadable
+Only happens with some ("poorly designed") fonts.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00020.html
 
 * FIXES FOR EMACS 22.3
