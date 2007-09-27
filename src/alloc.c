@@ -3023,14 +3023,20 @@ allocate_window ()
 struct terminal *
 allocate_terminal ()
 {
-  EMACS_INT len = VECSIZE (struct terminal);
-  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_TERMINAL);
+  /* Memory-footprint of the object in nb of Lisp_Object fields.  */
+  EMACS_INT memlen = VECSIZE (struct terminal);
+  /* Size if we only count the actual Lisp_Object fields (which need to be
+     traced by the GC).  */
+  EMACS_INT lisplen = PSEUDOVECSIZE (struct terminal, next_terminal);
+  struct Lisp_Vector *v = allocate_vectorlike (memlen, MEM_TYPE_TERMINAL);
   EMACS_INT i;
   Lisp_Object tmp, zero = make_number (0);
 
-  for (i = 0; i < len; ++i)
+  for (i = 0; i < lisplen; ++i)
+    v->contents[i] = Qnil;
+  for (;i < memlen; ++i)
     v->contents[i] = zero;
-  v->size = len;
+  v->size = lisplen;		/* Only trace the Lisp fields.  */
   XSETTERMINAL (tmp, v);	/* Add the appropriate tag.  */
 
   return (struct terminal *) v;
@@ -5683,11 +5689,6 @@ mark_object (arg)
 	      mark_glyph_matrix (w->desired_matrix);
 	    }
 	}
-      else if (GC_TERMINALP (obj))
-	{
-	  CHECK_LIVE (live_vector_p);
-	  mark_terminal (XTERMINAL (obj));
-	}
       else if (GC_HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
@@ -5935,20 +5936,15 @@ mark_buffer (buf)
    Called by the Fgarbage_collector.  */
 
 static void
-mark_terminal (struct terminal *t)
-{
-  VECTOR_MARK (t);
-  mark_object (t->param_alist);
-}
-
-static void
 mark_terminals (void)
 {
   struct terminal *t;
+  Lisp_Object tmp;
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
-      mark_terminal (t);
+      XSETVECTOR (tmp, t);
+      mark_object (tmp);
     }
 }
 

@@ -1,5 +1,11 @@
 2007-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* alloc.c (allocate_terminal): Set the vector size to only count the
+	lisp fields.  Initialize those to nil.
+	(mark_object): Don't treat terminals specially.
+	(mark_terminal): Remove.
+	(mark_terminals): Use mark_object instead.
+
 	* termhooks.h (struct terminal): Move all Lisp_Object fields traced by
 	the GC to the beginning.
 
