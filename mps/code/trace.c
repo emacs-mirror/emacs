@@ -1942,6 +1942,16 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     TraceStartGenDesc_diag(&arena->topGen, -1);
   }
   
+  {
+    Ring node, nextNode;
+    RING_FOR(node, &(ArenaGlobals(arena)->poolRing), nextNode) {
+      Pool pool = RING_ELT(Pool, arenaRing, node);
+      if (StringEqual(pool->class->name, "AWL")) {
+        DIAG( (void) PoolDescribe(pool, DIAG_STREAM); );
+      }
+    }
+  }
+
   DIAG_END( "TraceStart" );
 
   res = RootsIterate(ArenaGlobals(arena), rootGrey, (void *)trace);
