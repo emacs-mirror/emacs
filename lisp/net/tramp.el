@@ -2422,7 +2422,7 @@ target of the symlink differ."
        res-size
        ;; 8. File modes, as a string of ten letters or dashes as in ls -l.
        res-filemodes
-       ;; 9. t iff file's gid would change if file were deleted and
+       ;; 9. t if file's gid would change if file were deleted and
        ;; recreated.  Will be set in `tramp-convert-file-attributes'
        t
        ;; 10. inode number.
@@ -5688,9 +5688,7 @@ process to set up.  VEC specifies the connection."
   (tramp-send-command-internal vec "set +o vi +o emacs")
   (tramp-message vec 5 "Setting shell prompt")
   ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we must
-  ;; use "\n" here, not tramp-rsh-end-of-line.  We also manually frob
-  ;; the last time we sent a command, to avoid `tramp-send-command' to
-  ;; send "echo are you awake".
+  ;; use "\n" here, not tramp-rsh-end-of-line.
   (tramp-send-command
    vec
    (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
@@ -6044,16 +6042,23 @@ connection if a previous connection has died for some reason."
     ;; tries to send some data to the remote end.  So that's why we
     ;; try to send a command from time to time, then look again
     ;; whether the process is really alive.
-    (when (and (> (tramp-time-diff
-		   (current-time)
-		   (tramp-get-connection-property p "last-cmd-time" '(0 0 0)))
-		  60)
-	       p (processp p) (memq (process-status p) '(run open)))
-      (tramp-send-command vec "echo are you awake" t t)
-      (unless (and (memq (process-status p) '(run open))
-		   (tramp-wait-for-output p 10))
-	(delete-process p)
-	(setq p nil)))
+    (condition-case nil
+	(when (and (> (tramp-time-diff
+		       (current-time)
+		       (tramp-get-connection-property
+			p "last-cmd-time" '(0 0 0)))
+		      60)
+		   p (processp p) (memq (process-status p) '(run open)))
+	  (tramp-send-command vec "echo are you awake" t t)
+	  (unless (and (memq (process-status p) '(run open))
+		       (tramp-wait-for-output p 10))
+	    ;; The error will be catched locally.
+	    (tramp-error vec 'file-error "Awake did fail")))
+      (file-error
+       (tramp-flush-connection-property vec nil)
+       (tramp-flush-connection-property p nil)
+       (delete-process p)
+       (setq p nil)))
 
     ;; New connection must be opened.
     (unless (and p (processp p) (memq (process-status p) '(run open)))
@@ -6571,7 +6576,7 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	 (string-to-number (match-string 2 host)))))
 
 (defun tramp-tramp-file-p (name)
-  "Return t iff NAME is a tramp file."
+  "Return t if NAME is a tramp file."
   (save-match-data
     (string-match tramp-file-name-regexp name)))
 
