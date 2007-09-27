@@ -18,27 +18,6 @@ include gc.gmk
 
 CC = cc -arch ppc
 
-# Suppress some warnings (last checked in DP3).
-#   .cabs: -Wstrict-prototypes cannot be used because the math.h header has a
-#   traditional declaration of cabs.
-#   .sputc: -Wno-unused is needed, because stdio.h declares __sputc as an
-#   inline function.
-#   .types: sys/types.h uses 'long long' even under -ansi.
-# ( Note added 2007-09-26, RHSK:
-#   And fix build under Mac OS X 10.2; see job000601:
-#     .precomp: -no-cpp-precomp is needed, to disable Apple's custom 
-#     preprocessor
-# )
-CFLAGSCOMPILER := $(subst -Wstrict-prototypes,,$(CFLAGSCOMPILER)) \
-                  -Wno-unused -Wno-long-long -no-cpp-precomp
-
-# ( Note added 2007-09-26, RHSK:
-#   Fix build under Mac OS X 10.2; see job000601:
-#     .ggdb: -ggdb causes failure in assembler.
-# )
-CFLAGSDEBUG := $(subst -g -ggdb3,-g3,$(CFLAGSDEBUG))
-CFLAGSOPT := $(subst -g -ggdb3,-g3,$(CFLAGSOPT))
-
 include comm.gmk
 
 
