@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Access by mutator -- a barrier hit!</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,28 +30,37 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: Access by mutator -- a barrier hit!</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2007-01-01
+2007-09-27
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
-</pre>
+<h2>Introduction</h2>
+
+<p>The MPS uses barriers for:</p>
+<ul>
+  <li> incremental garbage collection; </li>
+  <li> maintaining summaries. </li>
+</ul>
+
+<p>During incremental garbage collection the mutator (client) code runs, and may access and change ("mutate") the object graph, while the MPS is still trying to finish the GC.  The mutator must not be able to see or change* parts of the object graph on the other side of the flip, so the MPS protects these parts with a barrier.  When the mutator hits such a barrier, this is called an <strong>access</strong>.</p>
+
+<p class="note">(*: Currently, the MPS only uses black-mutator tracing: the mutator must not see past the flip, so the MPS sets a read barrier.  For grey-mutator tracing (not fully implemented): the mutator must not change objects past the flip, so the MPS would set a write barrier.)</p>
+
+<p>The MPS maintains summaries of which zones are referenced by the objects on each segment.  If the mutator changes parts of such a segment, the summary may no longer be correct, so the MPS protects summarised segments (those with a non-trivial summary) with a write-barrier.  When the mutator hits such a barrier, this is called a <strong>[not sure: is this called an access too? RHSK 2007-09-27]</strong>.</p>
+
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2007-01-01  RHSK  Created.
+  2007-09-27  RHSK  Created.
 </pre>
 
 
