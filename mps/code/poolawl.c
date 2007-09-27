@@ -1203,6 +1203,53 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 }
 
 
+/* AWLDescribe -- describe the contents of the AWL pool
+ *
+ */
+static Res AWLDescribe(Pool pool, mps_lib_FILE *stream)
+{
+  AWL awl;
+  Res res;
+
+  if(!CHECKT(Pool, pool))
+    return ResFAIL;
+  awl = Pool2AWL(pool);
+  if(!CHECKT(AWL, awl))
+    return ResFAIL;
+  if(stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+               "AWL $P {\n", (WriteFP)awl,
+               "  pool $P ($U)\n",
+               (WriteFP)pool, (WriteFU)pool->serial,
+               NULL);
+  if(res != ResOK)
+    return res;
+
+  res = WriteF(stream, "  @@@@ AWLDescribe not complete yet.\n",
+               NULL);
+  if(res != ResOK)
+    return res;
+
+  res = WriteF(stream,
+    STATISTIC_WRITE("  goodScans $U\n", (WriteFU)awl->stats.goodScans)
+    STATISTIC_WRITE("  badScans $U\n", (WriteFU)awl->stats.badScans)
+    STATISTIC_WRITE("  savedScans $U\n", (WriteFU)awl->stats.savedScans)
+    STATISTIC_WRITE("  savedAccesses $U\n", (WriteFU)awl->stats.savedAccesses)
+    STATISTIC_WRITE("  declined $U\n", (WriteFU)awl->stats.declined)
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  res = WriteF(stream, "} AWL $P\n", (WriteFP)awl, NULL);
+  if(res != ResOK)
+    return res;
+
+  return ResOK;
+}
+
+
 /* AWLPoolClass -- the class definition */
 
 DEFINE_POOL_CLASS(AWLPoolClass, this)
@@ -1226,6 +1273,7 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->fixEmergency = AWLFix;
   this->reclaim = AWLReclaim;
   this->walk = AWLWalk;
+  this->describe = AWLDescribe;
 }
 
 
