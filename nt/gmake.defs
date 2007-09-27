@@ -170,6 +170,7 @@ A		= a
 BASE_LIBS	= $(libc) $(baselibs)
 
 ADVAPI32	= -ladvapi32
+COMCTL32	= -lcomctl32
 COMDLG32	= -lcomdlg32
 GDI32		= -lgdi32
 MPR		= -lmpr
