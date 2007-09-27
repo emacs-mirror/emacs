@@ -320,6 +320,12 @@ struct terminal
   EMACS_INT size;
   struct Lisp_Vector *vec_next;
 
+  /* Parameter alist of this terminal.  */
+  Lisp_Object param_alist;
+
+  /* All fields before `next_terminal' should be Lisp_Object and are traced
+     by the GC.  All fields afterwards are ignored by the GC.  */
+  
   /* Chain of all terminal devices. */
   struct terminal *next_terminal;
 
@@ -363,9 +369,6 @@ struct terminal
      the function `set-keyboard-coding-system'.  */
   struct coding_system *keyboard_coding;
 
-  /* Parameter alist of this terminal.  */
-  Lisp_Object param_alist;
-  
   /* Terminal characteristics. */
   /* XXX Are these really used on non-termcap displays? */
   

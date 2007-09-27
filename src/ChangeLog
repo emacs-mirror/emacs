@@ -1,5 +1,8 @@
 2007-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* termhooks.h (struct terminal): Move all Lisp_Object fields traced by
+	the GC to the beginning.
+
 	* indent.h:
 	* indent.c: Use EMACS_INT for ints coming from Elisp data.
 
