@@ -805,7 +805,6 @@
 
 2007-09-10  Dave Love  <fx@gnu.org>
 
-
 	* outline.el (outline-4, outline-5, outline-7):
 	Move font-lock-builtin-face down from 4 to 7 to better keep the
 	progression of color brightness, and to better match Org-mode's faces.
