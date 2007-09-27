@@ -348,7 +348,7 @@ non-nil value.  If that value is non-nil, but not t, then the image type
 must be available."
   (let* ((type (image-type-from-buffer))
 	 (auto (and type (cdr (assq type image-type-auto-detectable)))))
-    (and type auto
+    (and auto
 	 (or (eq auto t) (image-type-available-p type)))))
 
 
