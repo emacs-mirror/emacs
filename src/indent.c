@@ -1192,7 +1192,7 @@ struct position val_compute_motion;
 struct position *
 compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width, hscroll, tab_offset, win)
      EMACS_INT from, fromvpos, fromhpos, to, tovpos, tohpos;
-     EMACS_INT did_motion;
+     int did_motion;
      EMACS_INT width;
      EMACS_INT hscroll, tab_offset;
      struct window *win;
