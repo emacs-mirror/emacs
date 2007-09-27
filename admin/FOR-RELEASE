@@ -52,6 +52,7 @@ It is a dangerous design.
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
 
 ** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01987.html
 
 ** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
@@ -61,10 +62,17 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
 http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00548.html
 
 ** mah@everybody.org, Sep 18: erc causes emacs to hang with multi-tty
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01765.html
 
 ** jbw@macs.hw.ac.uk, Sep 18: before-string property has no effect if display property is empty
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00094.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01816.html
 
 ** sdl.web@gmail.com, Sep 24: TLS infinite loop.
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01720.html
+
+** frames vs. weak hash tables and garbage collection
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-08/msg00213.html
 
 * DOCUMENTATION
 
