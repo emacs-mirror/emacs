@@ -1620,7 +1620,7 @@ The result is what follows `_emacs_out' in the output."
 ;; Fixme:  Is there anything reasonable we can do with random methods?
 ;; (Currently only works with functions.)
 (defun python-eldoc-function ()
-  "`eldoc-print-current-symbol-info' for Python.
+  "`eldoc-documentation-function' for Python.
 Only works when point is in a function name, not its arg list, for
 instance.  Assumes an inferior Python is running."
   (let ((symbol (with-syntax-table python-dotty-syntax-table
