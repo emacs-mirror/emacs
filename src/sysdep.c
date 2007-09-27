@@ -1192,7 +1192,7 @@ int inherited_pgroup;
    redirect the tty device handle FD to point to our own process
    group.  We need to be in our own process group to receive SIGIO
    properly.  */
-void
+static void
 narrow_foreground_group (int fd)
 {
   int me = getpid ();
@@ -1210,7 +1210,7 @@ narrow_foreground_group (int fd)
 }
 
 /* Set the tty to our original foreground group.  */
-void
+static void
 widen_foreground_group (int fd)
 {
   if (inherited_pgroup != getpid ())
@@ -1752,8 +1752,9 @@ init_sys_modes (tty_out)
       fcntl (fileno (tty_out->input), F_SETOWN, getpid ());
       init_sigio (fileno (tty_out->input));
 #ifdef HAVE_GPM
-      if (gpm_tty)
+      if (gpm_tty == tty_out)
 	{
+	  /* Arrange for mouse events to give us SIGIO signals.  */
 	  fcntl (gpm_fd, F_SETOWN, getpid ());
 	  fcntl (gpm_fd, F_SETFL, fcntl (gpm_fd, F_GETFL, 0) | O_NONBLOCK);
 	  init_sigio (gpm_fd);

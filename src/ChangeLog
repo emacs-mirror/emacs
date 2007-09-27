@@ -1,5 +1,8 @@
 2007-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* sysdep.c (narrow_foreground_group, widen_foreground_group): Static.
+	(init_sys_modes): Check that gpm_tty is the current tty.
+
 	* alloc.c (allocate_terminal): Set the vector size to only count the
 	lisp fields.  Initialize those to nil.
 	(mark_object): Don't treat terminals specially.
