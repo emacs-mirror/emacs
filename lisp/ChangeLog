@@ -1,4 +1,8 @@
-2007-09-26  Glenn Morris  <rgm@gnu.org>
+2007-09-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-eldoc-function): Doc fix.
+
+2007-09-27  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (image-type-auto-detected-p): Doc fix.  Don't detect an
 	image if it is not in image-type-auto-detectable, or is there with
