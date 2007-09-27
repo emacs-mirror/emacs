@@ -48,6 +48,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include "bitmaps/gray.xbm"
 
+#include <commctrl.h>
 #include <commdlg.h>
 #include <shellapi.h>
 #include <ctype.h>
@@ -9073,6 +9074,9 @@ void globals_of_w32fns ()
 	      &w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
   w32_ansi_code_page = GetACP ();
+
+  /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
+  InitCommonControls ();
 }
 
 #undef abort
