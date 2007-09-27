@@ -27,9 +27,22 @@ typedef struct RuleStruct {
 
 /* RulesGlobal -- throw away some diags (see INSTRUCTIONS below) */
 
+struct RuleStruct RulesGlobalX[] = {
+  { "+", "*", "*", "*" },
+  { "-", "DIAGTEST_", "*", "*" },
+  { NULL, "", "", "" }
+};
+
 struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
+  { "-", "TraceStart", "*", "*" },
+  { "+", "TraceStart", "*", "because code" },
+  { "+", "TraceStart", "*", "goodScans " },
+  { "+", "TraceStart", "*", "badScans " },
+  { "+", "TraceStart", "*", "savedScans " },
+  { "+", "TraceStart", "*", "savedAccesses " },
+  { "+", "TraceStart", "*", "declined " },
   { NULL, "", "", "" }
 };
 
