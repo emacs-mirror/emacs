@@ -147,6 +147,7 @@ LIBS =  $(TLIB0)	\
 	$(SHELL32)	\
 	$(WINSPOOL)	\
 	$(OLE32)	\
+	$(COMCTL32)	\
 	$(libc)
 
 #
