@@ -1,3 +1,9 @@
+2007-09-27  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (COMCTL32): New system library.
+
+	* nmake.defs (COMCTL32): New system library.
+
 2007-08-14  Dhuvra Krishnamurthy <dhuvrakm@gmail.com> (tiny change)
 
 	* makefile.w32-in (bootstrap-nmake): Change directories once more.
