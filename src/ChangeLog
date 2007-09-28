@@ -1,5 +1,9 @@
 2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term.c (Fgpm_mouse_start): Don't signal an error if already activated
+	on this tty.
+	(Fgpm_mouse_stop): Only deactivate if it was activated on this tty.
+
 	* term.c (mouse_face_window): Rename from Qmouse_face_window.
 	Update all users.
 	(handle_one_term_event): Use Gpm_DrawPointer.

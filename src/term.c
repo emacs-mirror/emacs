@@ -2952,10 +2952,12 @@ Gpm-mouse can only be activated for one tty at a time.  */)
        ? (f)->terminal->display_info.tty : NULL);
   Gpm_Connect connection;
 
-  if (gpm_tty)
-    error ("Gpm-mouse can only be activated for one tty at a time");
   if (!tty)
     error ("Gpm-mouse only works in the GNU/Linux console");
+  if (gpm_tty == tty)
+    return Qnil;		/* Already activated, nothing to do.  */
+  if (gpm_tty)
+    error ("Gpm-mouse can only be activated for one tty at a time");
 
   connection.eventMask = ~0;
   connection.defaultMask = ~GPM_HARD;
@@ -2983,6 +2985,14 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
        doc: /* Close a connection to Gpm.  */)
      ()
 {
+  struct frame *f = SELECTED_FRAME ();
+  struct tty_display_info *tty
+    = ((f)->output_method == output_termcap
+       ? (f)->terminal->display_info.tty : NULL);
+
+  if (!tty || gpm_tty != tty)
+    return Qnil;       /* Not activated on this terminal, nothing to do.  */
+  
   if (gpm_fd >= 0)
     delete_gpm_wait_descriptor (gpm_fd);
   while (Gpm_Close()); /* close all the stack */
