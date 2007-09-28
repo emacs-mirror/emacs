@@ -8,6 +8,7 @@
 	(tex-suscript-height): New function.
 	(superscript, subscript): Set height using tex-suscript-height
 	rather than fixing at 0.8.
+	(tex-fontify-script, tex-font-script-display): Add :version tag.
 
 2007-09-27  Juanma Barranquero  <lekktu@gmail.com>
 
