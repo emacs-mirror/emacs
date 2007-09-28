@@ -1,3 +1,7 @@
+2007-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Mention Tex superscript font issue.
+
 2007-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs.py (complete.class_members): Make sure we return the _emacs_out
