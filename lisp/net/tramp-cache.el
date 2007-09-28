@@ -141,20 +141,20 @@ Remove also properties of all files in subdirectories."
 (defun tramp-cache-print (table)
   "Prints hash table TABLE."
   (when (hash-table-p table)
-    (let (result tmp)
+    (let (result)
       (maphash
        '(lambda (key value)
-	  (setq tmp (format
-		     "(%s %s)"
-		     (if (processp key)
-			 (prin1-to-string (prin1-to-string key))
-		       (prin1-to-string key))
-		     (if (hash-table-p value)
-			 (tramp-cache-print value)
-		       (if (bufferp value)
-			   (prin1-to-string (prin1-to-string value))
-			 (prin1-to-string value))))
-		result (if result (concat result " " tmp) tmp)))
+	  (let ((tmp (format
+		      "(%s %s)"
+		      (if (processp key)
+			  (prin1-to-string (prin1-to-string key))
+			(prin1-to-string key))
+		      (if (hash-table-p value)
+			  (tramp-cache-print value)
+			(if (bufferp value)
+			    (prin1-to-string (prin1-to-string value))
+			  (prin1-to-string value))))))
+	    (setq result (if result (concat result " " tmp) tmp))))
        table)
       result)))
 

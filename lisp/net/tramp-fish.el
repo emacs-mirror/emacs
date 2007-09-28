@@ -365,7 +365,7 @@ pass to the OPERATION."
   (unless (file-name-absolute-p name)
     (setq name (concat (file-name-as-directory dir) name)))
   ;; If NAME is not a tramp file, run the real handler
-  (if (or (tramp-completion-mode) (not (tramp-tramp-file-p name)))
+  (if (or (tramp-completion-mode-p) (not (tramp-tramp-file-p name)))
       (tramp-drop-volume-letter
        (tramp-run-real-handler 'expand-file-name (list name nil)))
     ;; Dissect NAME.
@@ -701,10 +701,11 @@ target of the symlink differ."
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (let ((time (if (or (null time) (equal time '(0 0))) (current-time) time)))
-      (zerop (process-file
-	      "touch" nil nil nil "-t"
-	      (format-time-string "%Y%m%d%H%M.%S" time)
-	      (tramp-shell-quote-argument localname))))))
+      (zerop (apply
+	      'process-file
+	      (list "touch" nil nil nil "-t"
+		    (format-time-string "%Y%m%d%H%M.%S" time)
+		    (tramp-shell-quote-argument localname)))))))
 
 (defun tramp-fish-handle-write-region
   (start end filename &optional append visit lockname confirm)
@@ -739,7 +740,7 @@ target of the symlink differ."
 (defun tramp-fish-handle-executable-find (command)
   "Like `executable-find' for Tramp files."
   (with-temp-buffer
-    (if (zerop (process-file "which" nil t nil command))
+    (if (zerop (apply 'process-file (list "which" nil t nil command)))
 	(progn
 	  (goto-char (point-min))
 	  (buffer-substring (point-min) (tramp-line-end-position))))))
@@ -823,7 +824,7 @@ target of the symlink differ."
 		       v (format
 			  "#EXEC %s %s"
 			  (tramp-shell-quote-argument command) output))
-		(error))
+		(error nil))
 	    ;; Check return code.
 	    (setq tmpfil (file-local-copy
 			  (tramp-make-tramp-file-name method user host output)))
@@ -961,7 +962,7 @@ SIZE MODE WEIRD INODE DEVICE)."
 	;; Read number of entries
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (integerp (setq num (read (current-buffer)))) (error))
+	    (unless (integerp (setq num (read (current-buffer)))) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -969,7 +970,7 @@ SIZE MODE WEIRD INODE DEVICE)."
 	;; Read return code
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -986,7 +987,7 @@ SIZE MODE WEIRD INODE DEVICE)."
 	;; Read return code
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error nil))
 	  (error (tramp-error
 		  vec 'file-error
 		  "`%s' does not return a valid Lisp expression: `%s'"
@@ -1071,7 +1072,7 @@ Returns the size of the data."
 	;; Read filesize
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (integerp (setq size (read (current-buffer)))) (error))
+	    (unless (integerp (setq size (read (current-buffer)))) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -1079,7 +1080,7 @@ Returns the size of the data."
 	;; Read return code
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -1095,7 +1096,7 @@ Returns the size of the data."
 	;; Read return code
 	(goto-char (+ (point-min) size))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error nil))
 	  (error (return nil)))
 	(delete-region (+ (point-min) size) (point-max))
 	size))))

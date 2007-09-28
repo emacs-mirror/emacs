@@ -1,3 +1,31 @@
+2007-09-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (with-file-property, with-connection-property):
+	Highlight as keyword.
+	(tramp-rfn-eshadow-setup-minibuffer)
+	(tramp-rfn-eshadow-update-overlay, tramp-handle-set-file-times)
+	(tramp-set-file-uid-gid, tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-shell-command, tramp-get-debug-buffer)
+	(tramp-send-command-and-read, tramp-equal-remote)
+	(tramp-get-local-gid): Pacify byte-compiler.
+	(tramp-handle-file-name-directory): Result shall not be expanded.
+	(tramp-find-foreign-file-name-handler): Rewrite.
+	(tramp-dissect-file-name): Add optional parameter NODEFAULT.
+
+	* net/tramp-cache.el (tramp-cache-print): Pacify byte-compiler.
+
+	* net/tramp-fish.el (tramp-fish-handle-expand-file-name): Apply
+	`tramp-completion-mode-p'.
+	(tramp-fish-handle-set-file-times)
+	(tramp-fish-handle-executable-find)
+	(tramp-fish-handle-process-file, tramp-fish-get-file-entries)
+	(tramp-fish-retrieve-data): Pacify byte-compiler.
+
+	* net/tramp-gw.el (tramp-gw-basic-authentication): Call
+	`tramp-read-passwd' with first parameter `nil'.
+
 2007-09-28  Glenn Morris  <rgm@gnu.org>
 
 	* mail/supercite.el (sc-attribs-filter-namelist): Use mapc rather
