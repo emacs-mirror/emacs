@@ -1,3 +1,12 @@
+2007-09-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Change links to webpage and maintained email.
+	(Remember): Promote to Chapter, significant changes.
+	(Fast access to TODO states): New section.
+	(Faces for TODO keywords): New section.
+	(Export options): Example for #+DATE.
+	(Progress logging): Section moved.
+
 2007-09-26  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (HTML): Mention binding of S-mouse-2 to
