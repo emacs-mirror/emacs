@@ -1038,12 +1038,12 @@ supplied, is used instead of the line point is on in the current buffer."
   (let ((elements (length namelist))
 	(position -1)
 	keepers filtered-list)
-    (mapcar
+    (mapc
      (function
       (lambda (name)
 	(setq position (1+ position))
 	(let ((keep-p t))
-	  (mapcar
+	  (mapc
 	   (function
 	    (lambda (filter)
 	      (let ((regexp (car filter))
@@ -1061,7 +1061,7 @@ supplied, is used instead of the line point is on in the current buffer."
 	      (setq keepers (cons position keepers)))
 	  )))
      namelist)
-    (mapcar
+    (mapc
      (function
       (lambda (position)
 	(setq filtered-list (cons (nth position namelist) filtered-list))
