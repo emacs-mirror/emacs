@@ -40,29 +40,31 @@
 ;;; Code:
 
 ;;;###autoload
-(define-minor-mode t-mouse-mode
-  "Toggle t-mouse mode to use the mouse in Linux consoles.
-With prefix arg, turn t-mouse mode on if arg is positive, otherwise turn it
-off.
+(define-obsolete-function-alias 't-mouse-mode 'gpm-mouse-mode "23.1")
+;;;###autoload
+(define-minor-mode gpm-mouse-mode
+  "Toggle gpm-mouse mode to use the mouse in GNU/Linux consoles.
+With prefix arg, turn gpm-mouse mode on if arg is positive,
+otherwise turn it off.
 
-This allows the use of the mouse when operating on a Linux console, in the
-same way as you can use the mouse under X11.
-It requires the `mev' program, part of the `gpm' utilities."
+This allows the use of the mouse when operating on a GNU/Linux console,
+in the same way as you can use the mouse under X11.
+It relies on the `gpm' daemon being activated."
   :global t :group 'mouse
-  (if window-system
-      (error "t-mouse only works in the console on GNU/Linux")
-    (if t-mouse-mode
-	(progn
-	  (unless (fboundp 'term-open-connection)
-	    (progn
-	      (setq t-mouse-mode nil)
-	      (error "Emacs must be built with Gpm to use this mode")))
-	  (unless (term-open-connection)
-	    (progn
-	      (setq t-mouse-mode nil)
-	      (error "Can't open mouse connection"))))
-      ;; Turn it off
-      (term-close-connection))))
+  (let ((activated nil))
+    (unwind-protect
+        (progn
+          (unless (fboundp 'gpm-mouse-start)
+            (error "Emacs must be built with Gpm to use this mode"))
+          (when gpm-mouse-mode
+            (gpm-mouse-start)
+            (setq activated t)))
+      ;; If the user asked to turn it off do that.
+      ;; If something failed to turn it on, try to turn it off as well,
+      ;; just in case.
+      (when (and (fboundp 'gpm-mouse-stop) (not activated))
+        (setq gpm-mouse-mode nil)
+        (gpm-mouse-stop)))))
 
 (provide 't-mouse)
 

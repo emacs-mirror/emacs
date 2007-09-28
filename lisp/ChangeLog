@@ -1,3 +1,8 @@
+2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* t-mouse.el (gpm-mouse-mode): Rename from t-mouse-mode.  Rewrite.
+	(t-mouse-mode): New compatibility alias.
+
 2007-09-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* server.el (server-delete-client): Only delete the terminal if it
@@ -21,15 +26,15 @@
 
 	* net/tramp-cache.el (tramp-cache-print): Pacify byte-compiler.
 
-	* net/tramp-fish.el (tramp-fish-handle-expand-file-name): Apply
-	`tramp-completion-mode-p'.
+	* net/tramp-fish.el (tramp-fish-handle-expand-file-name):
+	Apply `tramp-completion-mode-p'.
 	(tramp-fish-handle-set-file-times)
 	(tramp-fish-handle-executable-find)
 	(tramp-fish-handle-process-file, tramp-fish-get-file-entries)
 	(tramp-fish-retrieve-data): Pacify byte-compiler.
 
-	* net/tramp-gw.el (tramp-gw-basic-authentication): Call
-	`tramp-read-passwd' with first parameter `nil'.
+	* net/tramp-gw.el (tramp-gw-basic-authentication):
+	Call `tramp-read-passwd' with first parameter `nil'.
 
 2007-09-28  Glenn Morris  <rgm@gnu.org>
 
@@ -78,10 +83,8 @@
 
 2007-09-26  Bastien Guerry  <bzg@altern.org>
 
-	* org-export-latex.el (org-export-latex-tables-verbatim): New
-	function.
-	(org-export-latex-remove-from-headlines): Name changed because of
-	typo.
+	* org-export-latex.el (org-export-latex-tables-verbatim): New function.
+	(org-export-latex-remove-from-headlines): Name changed because of typo.
 	(org-export-latex-quotation-marks-convention): Option removed.
 	(org-export-latex-make-preamble): Handle the DATE option.
 	(org-export-latex-cleaned-string): Now the only cleaning function,
@@ -102,9 +105,8 @@
 	(org-archive-subtree): No need to split return of `org-get-tags'.
 	(org-set-tags, org-entry-properties): Call `org-get-tags-string'
 	instead of `org-get-tags'.
-	(org-agenda-format-date): Renamed from `org-agenda-date-format'.
-	(org-time-from-absolute, org-agenda-format-date-aligned): New
-	functions.
+	(org-agenda-format-date): Rename from `org-agenda-date-format'.
+	(org-time-from-absolute, org-agenda-format-date-aligned): New funs.
 	(org-compatible-face): New argument INHERITS.  Inherit from this
 	face if possible.
 	(org-level-1, org-level-2, org-level-3, org-level-4)
@@ -128,8 +130,8 @@
 	(org-get-location): Complete rewrite.
 	(org-goto-exit-command): New variable.
 	(org-goto-selected-point): New variable.
-	(org-goto-ret, org-goto-left, org-goto-right, org-goto-quit): Set
-	the new variables.
+	(org-goto-ret, org-goto-left, org-goto-right, org-goto-quit):
+	Set the new variables.
 	(org-paste-subtree): Whitespace insertion strategy revised.
 	(org-remember-apply-template): Protect v-A from the possibility
 	that v-a might be nil.
@@ -137,13 +139,6 @@
 	(org-todo): Respect org-todo-log-states.
 	(org-up-heading-safe): New function.
 	(org-entry-get-with-inheritance): Use `org-up-heading-safe'.
-
-	* org.texi: Change links to webpage and maintained email.
-	(Remember): Promoted to Chapter, significant changes.
-	(Fast access to TODO states): New section.
-	(Faces for TODO keywords): New section.
-	(Export options): Example for #+DATE.
-	(Progress logging): Section moved.
 
 2007-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
