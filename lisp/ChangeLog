@@ -1,3 +1,9 @@
+2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-choose-indent): New function extracted
+	from comment-indent.  Improve the alignment algorithm.
+	(comment-indent): Use it.
+
 2007-09-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/eldoc.el (eldoc-message-commands-table-size)
@@ -8,7 +14,7 @@
 
 2007-09-26  Eli Zaretskii  <eliz@gnu.org>
 
-	* menu-bar.el (menu-bar-search-documentation-menu): Renamed from
+	* menu-bar.el (menu-bar-search-documentation-menu): Rename from
 	menu-bar-apropos-menu.  All users changed.
 	(menu-bar-help-menu): Change menu symbols to better match the text
 	displayed by the menu.
@@ -31,8 +37,8 @@
 
 2007-09-24  Ville Skytt,Ad(B  <scop@xemacs.org>  (tiny change)
 
-	* net/tramp-vc.el (tramp-vc-user-login-name): Use
-	`vc-find-version' instead of `process-file' to check whether we
+	* net/tramp-vc.el (tramp-vc-user-login-name):
+	Use `vc-find-version' instead of `process-file' to check whether we
 	have a new enough vc that doesn't need the defadvice.
 
 2007-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -75,16 +81,15 @@
 
 2007-09-22  Glenn Morris  <rgm@gnu.org>
 
-	* eshell/esh-mode.el (eshell-output-filter-functions): Add
-	eshell-postoutput-scroll-to-bottom.
+	* eshell/esh-mode.el (eshell-output-filter-functions):
+	Add eshell-postoutput-scroll-to-bottom.
 
 2007-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* files.el (file-name-sans-versions): Allow - and a-z in version
-	names.
+	* files.el (file-name-sans-versions): Allow - and a-z in version names.
 
-	* log-view.el (log-view-mode-map, log-view-mode-menu): Bind
-	log-view-annotate-version.
+	* log-view.el (log-view-mode-map, log-view-mode-menu):
+	Bind log-view-annotate-version.
 	(log-view-beginning-of-defun, log-view-end-of-defun)
 	(log-view-annotate-version): New functions.
 	(log-view-mode): Use log-view-beginning-of-defun and
@@ -92,7 +97,7 @@
 
 2007-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix staging brain damage.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix staging.
 
 2007-09-21  Kevin Ryde  <user42@zip.com.au>
 

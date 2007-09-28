@@ -97,10 +97,10 @@ Major modes should set this variable.")
 ;;;###autoload
 (defcustom comment-column 32
   "Column to indent right-margin comments to.
-Each mode establishes a different default value for this variable; you
+Each mode may establish a different default value for this variable; you
 can set the value for a particular mode using that mode's hook.
-Comments might be indented to a value smaller than this in order
-not to go beyond `comment-fill-column'."
+Comments might be indented to a different value in order not to go beyond
+`comment-fill-column' or in order to align them with surrounding comments."
   :type 'integer
   :group 'comment)
 (make-variable-buffer-local 'comment-column)
@@ -194,7 +194,7 @@ two semi-colons.")
     (extra-line	. (t nil t t))
     (box	. (nil t t t))
     (box-multi	. (t t t t)))
-  "Possible comment styles of the form (STYLE . (MULTI ALIGN EXTRA INDENT)).
+  "Comment region styles of the form (STYLE . (MULTI ALIGN EXTRA INDENT)).
 STYLE should be a mnemonic symbol.
 MULTI specifies that comments are allowed to span multiple lines.
 ALIGN specifies that the `comment-end' markers should be aligned.
@@ -208,7 +208,8 @@ INDENT specifies that the `comment-start' markers should not be put at the
   "Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
   :type (if (boundp 'comment-styles)
-	    `(choice ,@(mapcar (lambda (s) `(const ,(car s))) comment-styles))
+	    `(choice ,@(mapcar (lambda (s) `(const ,(car s)))
+			       comment-styles))
 	  'symbol)
   :group 'comment)
 
@@ -516,6 +517,58 @@ Point is assumed to be just at the end of a comment."
 	      (and (> comment-add 0) (looking-at "\\s<\\(\\S<\\|\\'\\)")))
       comment-column)))
 
+(defun comment-choose-indent (&optional indent)
+  "Choose the indentation to use for a right-hand-side comment.
+The criteria are (in this order):
+- try to keep the comment's text within `comment-fill-column'.
+- try to align with surrounding comments.
+- prefer INDENT (or `comment-column' if nil).
+Point is expected to be at the start of the comment."
+  (unless indent (setq indent comment-column))
+  ;; Avoid moving comments past the fill-column.
+  (let ((max (+ (current-column)
+                (- (or comment-fill-column fill-column)
+                   (save-excursion (end-of-line) (current-column)))))
+        (other nil)
+        (min (save-excursion (skip-chars-backward " \t")
+                             (1+ (current-column)))))
+    ;; Fix up the range.
+    (if (< max min) (setq max min))
+    ;; Don't move past the fill column.
+    (if (<= max indent) (setq indent max))
+    ;; We can choose anywhere between min..max.
+    ;; Let's try to align to a comment on the previous line.
+    (save-excursion
+      (when (and (zerop (forward-line -1))
+                 (setq other (comment-search-forward
+                              (line-end-position) t)))
+        (goto-char other) (setq other (current-column))))
+    (if (and other (<= other max) (>= other min))
+        ;; There is a comment and it's in the range: bingo!
+        other
+      ;; Can't align to a previous comment: let's try to align to comments
+      ;; on the following lines, then.  These have not been re-indented yet,
+      ;; so we can't directly align ourselves with them.  All we do is to try
+      ;; and choose an indentation point with which they will be able to
+      ;; align themselves.
+      (save-excursion
+        (while (and (zerop (forward-line 1))
+                    (setq other (comment-search-forward
+                                 (line-end-position) t)))
+          (goto-char other)
+          (let ((omax (+ (current-column)
+                         (- (or comment-fill-column fill-column)
+                            (save-excursion (end-of-line) (current-column)))))
+                (omin (save-excursion (skip-chars-backward " \t")
+                                      (1+ (current-column)))))
+            (if (and (>= omax min) (<= omin max))
+                (progn (setq min (max omin min))
+                       (setq max (min omax max)))
+              ;; Can't align with this anyway, so exit the loop.
+              (goto-char (point-max))))))
+      ;; Return the closest point to indent within min..max.
+      (max min (min max indent)))))
+
 ;;;###autoload
 (defun comment-indent (&optional continue)
   "Indent this line's comment to `comment-column', or insert an empty comment.
@@ -569,38 +622,9 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
       (if (not indent)
 	  ;; comment-indent-function refuses: delegate to line-indent.
 	  (indent-according-to-mode)
-	;; If the comment is at the left of code, adjust the indentation.
+	;; If the comment is at the right of code, adjust the indentation.
 	(unless (save-excursion (skip-chars-backward " \t") (bolp))
-	  ;; Avoid moving comments past the fill-column.
-	  (let ((max (+ (current-column)
-			(- (or comment-fill-column fill-column)
-			   (save-excursion (end-of-line) (current-column))))))
-	    (if (<= max indent)
-		(setq indent max)	;Don't move past the fill column.
-	      ;; We can choose anywhere between indent..max.
-	      ;; Let's try to align to a comment on the previous line.
-	      (let ((other nil)
-		    (min (max indent
-			      (save-excursion (skip-chars-backward " \t")
-					      (1+ (current-column))))))
-		(save-excursion
-		  (when (and (zerop (forward-line -1))
-			     (setq other (comment-search-forward
-					 (line-end-position) t)))
-		    (goto-char other) (setq other (current-column))))
-		(if (and other (<= other max) (>= other min))
-		    ;; There is a comment and it's in the range: bingo.
-		    (setq indent other)
-		  ;; Let's try to align to a comment on the next line, then.
-		  (let ((other nil))
-		    (save-excursion
-		      (when (and (zerop (forward-line 1))
-				 (setq other (comment-search-forward
-					     (line-end-position) t)))
-			(goto-char other) (setq other (current-column))))
-		    (if (and other (<= other max) (> other min))
-			;; There is a comment and it's in the range: bingo.
-			(setq indent other))))))))
+          (setq indent (comment-choose-indent indent)))
 	;; Update INDENT to leave at least one space
 	;; after other nonwhite text on the line.
 	(save-excursion
@@ -1020,7 +1044,8 @@ The strings used as comment starts are built from
 	 (lines (nth 2 style))
 	 (block (nth 1 style))
 	 (multi (nth 0 style)))
-    ;; we use `chars' instead of `syntax' because `\n' might be
+
+    ;; We use `chars' instead of `syntax' because `\n' might be
     ;; of end-comment syntax rather than of whitespace syntax.
     ;; sanitize BEG and END
     (goto-char beg) (skip-chars-forward " \t\n\r") (beginning-of-line)
