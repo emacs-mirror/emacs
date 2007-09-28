@@ -66,11 +66,6 @@ Stephen Berman <Stephen.Berman@gmx.net> has compiled a list of KDE
 builds where the behavior can be observed, compare:
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00446.html
 
-** Frame title no more updated after calling `set-frame-configuration'
-Report by Sebastien Rocca Serra <sroccaserra@gmail.com> on emacs-devel
-from 2007-08-30.  martin rudalics has a potential patch.
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01632.html
-
 ** mouse-autoselect-window with click-to-focus window managers
 Report by Drew Adams <drew.adams@oracle.com> on emacs-devel from
 2007-09-05.
