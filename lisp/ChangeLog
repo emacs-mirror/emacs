@@ -1,5 +1,10 @@
 2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-svn.el (vc-svn-resolve-when-done, vc-svn-find-file-hook): New funs.
+	Used to try and automatically enabled smerge-mode in the presence of
+	conflicts and to call `svn resolved' when the conflicts are gone.
+	(vc-svn-parse-status): Remember the svn-specific status.
+
 	* newcomment.el (comment-choose-indent): New function extracted
 	from comment-indent.  Improve the alignment algorithm.
 	(comment-indent): Use it.
