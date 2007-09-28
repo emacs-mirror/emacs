@@ -676,12 +676,42 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	  (put-text-property beg next 'display nil))
       (setq beg next))))
 
+(defcustom tex-suscript-height-ratio 0.8
+  "Ratio of subscript/superscript height to that of the preceding text.
+In nested subscript/superscript, this factor is applied repeatedly,
+subject to the limit set by `tex-suscript-height-minimum'."
+  :type 'float
+  :group 'tex
+  :version "23.1")
+
+(defcustom tex-suscript-height-minimum 0.0
+  "Integer or float limiting the minimum size of subscript/superscript text.
+An integer is an absolute height in units of 1/10 point, a float
+is a height relative to that of the default font.  Zero means no minimum."
+  :type '(choice (integer :tag "Integer height in 1/10 point units")
+		 (float :tag "Fraction of default font height"))
+  :group 'tex
+  :version "23.1")
+
+(defun tex-suscript-height (height)
+  "Return the integer height of subscript/superscript font in 1/10 points.
+Not smaller than the value set by `tex-suscript-height-minimum'."
+  (ceiling (max (if (integerp tex-suscript-height-minimum)
+		    tex-suscript-height-minimum
+		  ;; For bootstrapping.
+		  (condition-case nil
+		      (* tex-suscript-height-minimum
+			 (face-attribute 'default :height))
+		    (error 0)))
+		;; NB assumes height is integer.
+		(* height tex-suscript-height-ratio))))
+
 (defface superscript
-  '((t :height 0.8)) ;; :raise 0.2
+  '((t :height tex-suscript-height)) ;; :raise 0.2
   "Face used for superscripts."
   :group 'tex)
 (defface subscript
-  '((t :height 0.8)) ;; :raise -0.2
+  '((t :height tex-suscript-height)) ;; :raise -0.2
   "Face used for subscripts."
   :group 'tex)
 
