@@ -1,3 +1,14 @@
+2007-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* mail/supercite.el (sc-attribs-filter-namelist): Use mapc rather
+	than mapcar.
+
+	* textmodes/tex-mode.el (tex-suscript-height-ratio)
+	(tex-suscript-height-minimum): New customizable variables.
+	(tex-suscript-height): New function.
+	(superscript, subscript): Set height using tex-suscript-height
+	rather than fixing at 0.8.
+
 2007-09-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/python.el (python-eldoc-function): Doc fix.
