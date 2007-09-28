@@ -1,3 +1,8 @@
+2007-09-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (lisp, shortlisp): Delete server.elc, it is not
+	loaded by default.
+
 2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c (Fgpm_mouse_start): Don't signal an error if already activated
