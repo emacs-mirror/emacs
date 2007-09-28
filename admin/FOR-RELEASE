@@ -41,6 +41,18 @@ frame makes the menu bar wrap before.  On 2007-08-16 Glenn Morris
 reported on emacs-devel that he was not able to reproduce the bug on a
 GNU/Linux system.
 
+* BUGS WAITING FOR MORE USER INPUT
+
+** undefined reference getopt_long
+Report by Daniel C. Bastos <dbast0s@yahoo.com.br> on bug-gnu-emacs
+from 2007-08-27.  Impossible to procede without more input from OP (as
+of 20070912, emails are bouncing) or someone else who can reproduce this.
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01497.html
+
+** TAGS buffer generates spurious undo warnings
+Waiting for recipe to produce these warnings.
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00070.html
+
 * BUGS
 
 ** ams@gnu.org, 9 July: eshell and external commands
@@ -53,12 +65,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01362.html
 Stephen Berman <Stephen.Berman@gmx.net> has compiled a list of KDE
 builds where the behavior can be observed, compare:
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00446.html
-
-** undefined reference getopt_long
-Report by Daniel C. Bastos <dbast0s@yahoo.com.br> on bug-gnu-emacs
-from 2007-08-27.  Impossible to procede without more input from OP (as
-of 20070912, emails are bouncing) or someone else who can reproduce this.
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01497.html
 
 ** Frame title no more updated after calling `set-frame-configuration'
 Report by Sebastien Rocca Serra <sroccaserra@gmail.com> on emacs-devel
@@ -75,14 +81,6 @@ Only outstanding issue seems to be whether Solaris 2.6 GTK can be
 supported in the absence of recursive mutexes, via a change to
 alloc.c, or whether configure should abort.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
-
-** TAGS buffer generates spurious undo warnings
-Waiting for recipe to produce these warnings.
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00070.html
-
-** latex mode, nexted subscripts are unreadable
-Only happens with some ("poorly designed") fonts.
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00020.html
 
 * FIXES FOR EMACS 22.3
 
