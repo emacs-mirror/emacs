@@ -414,8 +414,8 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
       if(WordIsAligned((Word)ref, sizeof(Word))) {
         /* See the note in TraceSegAccess about using RankEXACT here */
         /* (<code/trace.c#scan.conservative>). */
-	TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
-	                   seg, (Ref *)addr);
+        TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
+                           seg, (Ref *)addr);
       }
     }
     res = ProtStepInstruction(context);
