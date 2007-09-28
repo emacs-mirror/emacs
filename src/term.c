@@ -202,7 +202,7 @@ struct tty_display_info *gpm_tty = NULL;
 static int mouse_face_beg_row, mouse_face_beg_col;
 static int mouse_face_end_row, mouse_face_end_col;
 static int mouse_face_past_end;
-static Lisp_Object Qmouse_face_window;
+static Lisp_Object mouse_face_window;
 static int mouse_face_face_id;
 
 static int pos_x, pos_y;
@@ -2360,7 +2360,7 @@ term_mouse_moveto (int x, int y)
 static void
 term_show_mouse_face (enum draw_glyphs_face draw)
 {
-  struct window *w = XWINDOW (Qmouse_face_window);
+  struct window *w = XWINDOW (mouse_face_window);
   int save_x, save_y;
   int i;
 
@@ -2439,12 +2439,12 @@ term_show_mouse_face (enum draw_glyphs_face draw)
 static void
 term_clear_mouse_face ()
 {
-  if (!NILP (Qmouse_face_window))
+  if (!NILP (mouse_face_window))
     term_show_mouse_face (DRAW_NORMAL_TEXT);
 
   mouse_face_beg_row = mouse_face_beg_col = -1;
   mouse_face_end_row = mouse_face_end_col = -1;
-  Qmouse_face_window = Qnil;
+  mouse_face_window = Qnil;
 }
 
 /* Find the glyph matrix position of buffer position POS in window W.
@@ -2541,7 +2541,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
   if (!WINDOWP (window))
     return;
 
-  if (!EQ (window, Qmouse_face_window))
+  if (!EQ (window, mouse_face_window))
     term_clear_mouse_face ();
 
   w = XWINDOW (window);
@@ -2624,7 +2624,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 	noverlays = sort_overlays (overlay_vec, noverlays, w);
 
 	/* Check mouse-face highlighting.  */
-	if (!(EQ (window, Qmouse_face_window)
+	if (!(EQ (window, mouse_face_window)
 	      && y >= mouse_face_beg_row
 	      && y <= mouse_face_end_row
 	      && (y > mouse_face_beg_row
@@ -2674,7 +2674,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 		  = !fast_find_position (w, XFASTINT (after),
 					 &mouse_face_end_col,
 					 &mouse_face_end_row);
-		Qmouse_face_window = window;
+		mouse_face_window = window;
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
@@ -2709,7 +2709,7 @@ term_mouse_highlight (struct frame *f, int x, int y)
 		  = !fast_find_position (w, XFASTINT (after),
 					 &mouse_face_end_col,
 					 &mouse_face_end_row);
-		Qmouse_face_window = window;
+		mouse_face_window = window;
 
 		mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
@@ -2885,7 +2885,6 @@ int
 handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct input_event* hold_quit)
 {
   struct frame *f = XFRAME (tty->top_frame);
-  int fd;
   struct input_event ie;
   int do_help = 0;
   int count = 0;
@@ -2895,24 +2894,10 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct in
   ie.arg = Qnil;
 
   if (event->type & (GPM_MOVE | GPM_DRAG)) {
-    unsigned char buf[6 * sizeof (short)];
-    unsigned short *arg = (unsigned short *) buf + 1;
-    const char *name;
-
     previous_help_echo_string = help_echo_string;
     help_echo_string = Qnil;
 
-    /* Display mouse pointer */
-    buf[sizeof(short) - 1] = 2;  /* set selection */
-
-    arg[0] = arg[2] = (unsigned short) event->x + gpm_zerobased;
-    arg[1] = arg[3] = (unsigned short) event->y + gpm_zerobased;
-    arg[4] = (unsigned short) 3;
-    
-    name = ttyname (0);
-    fd = open (name, O_WRONLY);
-    ioctl (fd, TIOCLINUX, buf + sizeof (short) - 1);
-    close (fd);
+    Gpm_DrawPointer (event->x, event->y, fileno (tty->output));
 
     if (!term_mouse_movement (f, event))
       help_echo_string = previous_help_echo_string;
@@ -2955,10 +2940,10 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct in
   return count;
 }
 
-DEFUN ("term-open-connection", Fterm_open_connection, Sterm_open_connection,
+DEFUN ("gpm-mouse-start", Fgpm_mouse_start, Sgpm_mouse_start,
        0, 0, 0,
        doc: /* Open a connection to Gpm.
-We only support Gpm on one tty at a time.  */)
+Gpm-mouse can only be activated for one tty at a time.  */)
      ()
 {
   struct frame *f = SELECTED_FRAME ();
@@ -2967,8 +2952,10 @@ We only support Gpm on one tty at a time.  */)
        ? (f)->terminal->display_info.tty : NULL);
   Gpm_Connect connection;
 
-  if (gpm_tty || !tty)		/* Already running, or not applicable.  */
-    return Qnil;
+  if (gpm_tty)
+    error ("Gpm-mouse can only be activated for one tty at a time");
+  if (!tty)
+    error ("Gpm-mouse only works in the GNU/Linux console");
 
   connection.eventMask = ~0;
   connection.defaultMask = ~GPM_HARD;
@@ -2977,7 +2964,7 @@ We only support Gpm on one tty at a time.  */)
   gpm_zerobased = 1;
 
   if (Gpm_Open (&connection, 0) < 0)
-    return Qnil;
+    error ("Gpm-mouse failed to connect to the gpm daemon");
   else
     {
       gpm_tty = tty;
@@ -2987,19 +2974,20 @@ We only support Gpm on one tty at a time.  */)
       reset_sys_modes (tty);
       init_sys_modes (tty);
       add_gpm_wait_descriptor (gpm_fd);
-      return Qt;
+      return Qnil;
     }
 }
 
-DEFUN ("term-close-connection", Fterm_close_connection, Sterm_close_connection,
+DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
        0, 0, 0,
        doc: /* Close a connection to Gpm.  */)
      ()
 {
-   delete_gpm_wait_descriptor (gpm_fd);
-   while (Gpm_Close()); /* close all the stack */
-   gpm_tty = NULL;
-   return Qnil;
+  if (gpm_fd >= 0)
+    delete_gpm_wait_descriptor (gpm_fd);
+  while (Gpm_Close()); /* close all the stack */
+  gpm_tty = NULL;
+  return Qnil;
 }
 #endif /* HAVE_GPM */
 
@@ -3272,7 +3260,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
 #ifdef HAVE_GPM
   terminal->mouse_position_hook = term_mouse_position;
-  Qmouse_face_window = Qnil;
+  mouse_face_window = Qnil;
 #endif
 
 #ifdef WINDOWSNT
@@ -3904,10 +3892,10 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   defsubr (&Ssuspend_tty);
   defsubr (&Sresume_tty);
 #ifdef HAVE_GPM
-  defsubr (&Sterm_open_connection);
-  defsubr (&Sterm_close_connection);
+  defsubr (&Sgpm_mouse_start);
+  defsubr (&Sgpm_mouse_stop);
 
-  staticpro (&Qmouse_face_window);
+  staticpro (&mouse_face_window);
 #endif /* HAVE_GPM */
 }
 

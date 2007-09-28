@@ -1,3 +1,14 @@
+2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c (mouse_face_window): Rename from Qmouse_face_window.
+	Update all users.
+	(handle_one_term_event): Use Gpm_DrawPointer.
+	(Fgpm_mouse_start): Rename from Fterm_open_connection.
+	Signal errors instead of returning nil.  Always return nil.
+	(Fgpm_mouse_stop): Rename from Fterm_close_connection.
+	Make it a noop if gpm-mouse was not activated.
+	(syms_of_term): Update names.
+
 2007-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sysdep.c (narrow_foreground_group, widen_foreground_group): Static.
