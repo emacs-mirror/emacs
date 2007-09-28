@@ -165,6 +165,11 @@ with the face `eldoc-highlight-function-argument'.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
+** The appearance of superscript and subscript in TeX is more customizable.
+See the documentation of the variables: tex-fontify-script,
+tex-font-script-display, tex-suscript-height-ratio, and
+tex-suscript-height-minimum.
+
 ** BibTeX mode:
 
 *** New `bibtex-entry-format' options `whitespace', `braces', and
