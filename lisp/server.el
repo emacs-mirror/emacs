@@ -275,7 +275,8 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 
       ;; Delete the client's tty.
       (let ((terminal (process-get proc 'terminal)))
-	(when (eq (terminal-live-p terminal) t)
+	;; Only delete the terminal if it is non-nil.
+	(when (and terminal (eq (terminal-live-p terminal) t))
 	  (delete-terminal terminal)))
 
       ;; Delete the client's process.
