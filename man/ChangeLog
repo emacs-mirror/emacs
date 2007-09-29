@@ -1,3 +1,7 @@
+2007-09-29  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Help-Int): Document `L' (`Info-history').
+
 2007-09-20  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
 
 	* flymake.texi (Customizable variables): Face names don't end in -face.
