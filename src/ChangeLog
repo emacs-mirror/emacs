@@ -1,5 +1,8 @@
 2007-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term.c (term_clear_mouse_face, term_mouse_highlight)
+	(tty_write_glyphs_with_face): Only define is HAVE_GPM.
+
 	* print.c (safe_debug_print): Use XHASH.
 
 	* lisp.h (DECL_ALIGN, USE_LSB_TAG): Move logic to before definition of

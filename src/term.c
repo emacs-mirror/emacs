@@ -182,14 +182,14 @@ static int system_uses_terminfo;
 char *tparam ();
 
 extern char *tgetstr ();
-
-static void term_clear_mouse_face ();
-static void term_mouse_highlight (struct frame *f, int x, int y);
 
 
 #ifdef HAVE_GPM
 #include <sys/fcntl.h>
 #include "buffer.h"
+
+static void term_clear_mouse_face ();
+static void term_mouse_highlight (struct frame *f, int x, int y);
 
 /* The device for which we have enabled gpm support (or NULL).  */
 struct tty_display_info *gpm_tty = NULL;
@@ -739,6 +739,8 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
   cmcheckmagic (tty);
 }
 
+#ifdef HAVE_GPM			/* Only used by GPM code.  */
+
 static void
 tty_write_glyphs_with_face (f, string, len, face_id)
      register struct frame *f;
@@ -797,7 +799,7 @@ tty_write_glyphs_with_face (f, string, len, face_id)
 
   cmcheckmagic (tty);
 }
-
+#endif
 
 /* An implementation of insert_glyphs for termcap frames. */
 
