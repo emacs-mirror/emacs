@@ -1,3 +1,7 @@
+2007-09-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
+
 2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* t-mouse.el (gpm-mouse-mode): Rename from t-mouse-mode.  Rewrite.
