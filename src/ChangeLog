@@ -1,5 +1,7 @@
 2007-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* print.c (safe_debug_print): Use XHASH.
+
 	* lisp.h (DECL_ALIGN, USE_LSB_TAG): Move logic to before definition of
 	Lisp elements such as tags.
 	(XHASH): New macro.

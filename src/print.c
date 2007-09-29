@@ -1025,11 +1025,7 @@ safe_debug_print (arg)
   else
     fprintf (stderr, "#<%s_LISP_OBJECT 0x%08lx>\r\n",
 	     !valid ? "INVALID" : "SOME",
-#ifdef NO_UNION_TYPE
-	     (unsigned long) arg
-#else
-	     (unsigned long) arg.i
-#endif
+	     (unsigned long) XHASH (arg)
 	     );
 }
 
