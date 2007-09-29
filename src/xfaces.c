@@ -744,10 +744,9 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  BLOCK_INPUT;
+  eassert (interrupt_input_blocked);
   IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
-  UNBLOCK_INPUT;
 }
 
 #endif /* HAVE_X_WINDOWS */
@@ -777,10 +776,8 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  BLOCK_INPUT;
   IF_DEBUG (xassert (--ngcs >= 0));
   xfree (gc);
-  UNBLOCK_INPUT;
 }
 
 #endif  /* WINDOWSNT */
@@ -807,10 +804,9 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  BLOCK_INPUT;
+  eassert (interrupt_input_blocked);
   IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_MAC_DISPLAY (f), gc);
-  UNBLOCK_INPUT;
 }
 
 #endif  /* MAC_OS */
@@ -1257,8 +1253,10 @@ load_face_font (f, face, c)
       face->overstrike = needs_overstrike;
       if (face->gc)
 	{
+	  BLOCK_INPUT;
 	  x_free_gc (f, face->gc);
 	  face->gc = 0;
+	  UNBLOCK_INPUT;
 	}
     }
   else
@@ -5256,8 +5254,10 @@ free_realized_face (f, face)
 	    free_face_fontset (f, face);
 	  if (face->gc)
 	    {
+	      BLOCK_INPUT;
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
+	      UNBLOCK_INPUT;
 	    }
 
 	  free_face_colors (f, face);
@@ -5421,8 +5421,10 @@ clear_face_gcs (c)
 	  struct face *face = c->faces_by_id[i];
 	  if (face && face->gc)
 	    {
+	      BLOCK_INPUT;
 	      x_free_gc (c->f, face->gc);
 	      face->gc = 0;
+	      UNBLOCK_INPUT;
 	    }
 	}
 #endif /* HAVE_WINDOW_SYSTEM */

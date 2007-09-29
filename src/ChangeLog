@@ -1,3 +1,9 @@
+2007-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (load_face_font, free_realized_face, clear_face_gcs):
+	Don't let signal handlers run when a GC is freed but not yet NULL'ed.
+	(x_free_gc): Remove BLOCK_INPUT since it's now redundant.
+
 2007-09-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (lisp, shortlisp): Delete server.elc, it is not
