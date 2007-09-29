@@ -113,6 +113,57 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #define eassert(cond) CHECK(cond,"assertion failed")
 #endif
 #endif /* ENABLE_CHECKING */
+
+/***** Select the tagging scheme.  *****/
+/* There are basically two options that control the tagging scheme:
+   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
+     of a union.
+   - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
+     always 0, and we can thus use them to hold tag bits, without
+     restricting our addressing space.
+
+   If USE_LSB_TAG is not set, then we use the top 3 bits for tagging, thus
+   restricting our possible address range.  Currently USE_LSB_TAG is not
+   allowed together with a union.  This is not due to any fundamental
+   technical (or political ;-) problem: nobody wrote the code to do it yet.
+
+   USE_LSB_TAG not only requires the least 3 bits of pointers returned by
+   malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
+   on the few static Lisp_Objects used: all the defsubr as well
+   as the two special buffers buffer_defaults and buffer_local_symbols.  */
+
+/* First, try and define DECL_ALIGN(type,var) which declares a static
+   variable VAR of type TYPE with the added requirement that it be
+   TYPEBITS-aligned. */
+#ifndef NO_DECL_ALIGN
+# ifndef DECL_ALIGN
+/* What compiler directive should we use for non-gcc compilers?  -stef  */
+#  if defined (__GNUC__)
+#   define DECL_ALIGN(type, var) \
+     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+#  endif
+# endif
+#endif
+
+/* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
+/* We also need to be able to specify mult-of-8 alignment on static vars.  */
+# if defined DECL_ALIGN
+/* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
+#  if defined NO_UNION_TYPE
+#   define USE_LSB_TAG
+#  endif
+# endif
+#endif
+
+/* If we cannot use 8-byte alignment, make DECL_ALIGN a no-op.  */
+#ifndef DECL_ALIGN
+# ifdef USE_LSB_TAG
+#  error "USE_LSB_TAG used without defining DECL_ALIGN"
+# endif
+# define DECL_ALIGN(type, var) type var
+#endif
+
 
 /* Define the fundamental Lisp data structures.  */
 
@@ -194,7 +245,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_INT i;
+    EMACS_UINT i;
 
     struct
       {
@@ -216,7 +267,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_INT i;
+    EMACS_UINT i;
 
     struct
       {
@@ -247,12 +298,10 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 #define LISP_MAKE_RVALUE(o) (o)
 #endif
 
-#endif /* NO_UNION_TYPE */
-
+#else /* NO_UNION_TYPE */
 
 /* If union type is not wanted, define Lisp_Object as just a number.  */
 
-#ifdef NO_UNION_TYPE
 typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
@@ -310,62 +359,14 @@ enum pvec_type
    of bool vectors.  This should not vary across implementations.  */
 #define BOOL_VECTOR_BITS_PER_CHAR 8
 
-/***** Select the tagging scheme.  *****/
-/* There are basically two options that control the tagging scheme:
-   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
-     of a union.
-   - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
-     always 0, and we can thus use them to hold tag bits, without
-     restricting our addressing space.
-
-   If USE_LSB_TAG is not set, then we use the top 3 bits for tagging, thus
-   restricting our possible address range.  Currently USE_LSB_TAG is not
-   allowed together with a union.  This is not due to any fundamental
-   technical (or political ;-) problem: nobody wrote the code to do it yet.
-
-   USE_LSB_TAG not only requires the least 3 bits of pointers returned by
-   malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
-   on the few static Lisp_Objects used: all the defsubr as well
-   as the two special buffers buffer_defaults and buffer_local_symbols.  */
-
-/* First, try and define DECL_ALIGN(type,var) which declares a static
-   variable VAR of type TYPE with the added requirement that it be
-   TYPEBITS-aligned. */
-#ifndef NO_DECL_ALIGN
-# ifndef DECL_ALIGN
-/* What compiler directive should we use for non-gcc compilers?  -stef  */
-#  if defined (__GNUC__)
-#   define DECL_ALIGN(type, var) \
-     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
-#  endif
-# endif
-#endif
-
-/* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
-/* We also need to be able to specify mult-of-8 alignment on static vars.  */
-# if defined DECL_ALIGN
-/* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
-#  if defined NO_UNION_TYPE
-#   define USE_LSB_TAG
-#  endif
-# endif
-#endif
-
-/* If we cannot use 8-byte alignment, make DECL_ALIGN a no-op.  */
-#ifndef DECL_ALIGN
-# ifdef USE_LSB_TAG
-#  error "USE_LSB_TAG used without defining DECL_ALIGN"
-# endif
-# define DECL_ALIGN(type, var) type var
-#endif
-
-
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
 #ifdef NO_UNION_TYPE
+
+/* Return a perfect hash of the Lisp_Object representation.  */
+#define XHASH(a) (a)
 
 #ifdef USE_LSB_TAG
 
@@ -428,9 +429,9 @@ enum pvec_type
 
 #endif /* not USE_LSB_TAG */
 
-#define EQ(x, y) ((x) == (y))
-
 #else /* not NO_UNION_TYPE */
+
+#define XHASH(a) ((a).i)
 
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
 
@@ -460,9 +461,9 @@ enum pvec_type
 extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
-#define EQ(x, y) ((x).i == (y).i)
-
 #endif /* NO_UNION_TYPE */
+
+#define EQ(x, y) (XHASH (x) == XHASH (y))
 
 /* During garbage collection, XGCTYPE must be used for extracting types
  so that the mark bit is ignored.  XMARKBIT accesses the markbit.
@@ -583,9 +584,9 @@ extern size_t pure_size;
 
 /* Convenience macros for dealing with Lisp strings.  */
 
-#define SREF(string, index)	(XSTRING (string)->data[index] + 0)
-#define SSET(string, index, new) (XSTRING (string)->data[index] = (new))
 #define SDATA(string)		(XSTRING (string)->data + 0)
+#define SREF(string, index)	(SDATA (string)[index] + 0)
+#define SSET(string, index, new) (SDATA (string)[index] = (new))
 #define SCHARS(string)		(XSTRING (string)->size + 0)
 #define SBYTES(string)		(STRING_BYTES (XSTRING (string)) + 0)
 
@@ -593,7 +594,7 @@ extern size_t pure_size;
     (XSTRING (string)->size = (newsize))
 
 #define STRING_COPYIN(string, index, new, count) \
-    bcopy (new, XSTRING (string)->data + index, count)
+    bcopy (new, SDATA (string) + index, count)
 
 /* Type checking.  */
 
@@ -1127,8 +1128,16 @@ struct Lisp_Marker
   /* 1 means normal insertion at the marker's position
      leaves the marker after the inserted text.  */
   unsigned int insertion_type : 1;
-  /* This is the buffer that the marker points into,
-     or 0 if it points nowhere.  */
+  /* This is the buffer that the marker points into, or 0 if it points nowhere.
+     Note: a chain of markers can contain markers pointing into different
+     buffers (the chain is per buffer_text rather than per buffer, so it's
+     shared between indirect buffers).  */
+  /* This is used for (other than NULL-checking):
+     - Fmarker_buffer
+     - Fset_marker: check eq(oldbuf, newbuf) to avoid unchain+rechain.
+     - unchain_marker: to find the list from which to unchain.
+     - Fkill_buffer: to unchain the markers of current indirect buffer.
+     */
   struct buffer *buffer;
 
   /* The remaining fields are meaningless in a marker that
@@ -1383,34 +1392,6 @@ typedef unsigned char UCHAR;
    (1 + CHARACTERBITS / 3 + 1) chars (including backslash at the head).
    We need one more byte for string terminator `\0'.  */
 #define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
-
-#ifdef USE_X_TOOLKIT
-#ifdef NO_UNION_TYPE
-/* Use this for turning a (void *) into a Lisp_Object, as when the
-   Lisp_Object is passed into a toolkit callback function.  */
-#define VOID_TO_LISP(larg,varg) \
-  do { ((larg) = ((Lisp_Object) (varg))); } while (0)
-#define CVOID_TO_LISP VOID_TO_LISP
-
-/* Use this for turning a Lisp_Object into a  (void *), as when the
-   Lisp_Object is passed into a toolkit callback function.  */
-#define LISP_TO_VOID(larg) ((void *) (larg))
-#define LISP_TO_CVOID(varg) ((const void *) (larg))
-
-#else /* not NO_UNION_TYPE */
-/* Use this for turning a (void *) into a Lisp_Object, as when the
-  Lisp_Object is passed into a toolkit callback function.  */
-#define VOID_TO_LISP(larg,varg) \
-  do { ((larg).v = (void *) (varg)); } while (0)
-#define CVOID_TO_LISP(larg,varg) \
-  do { ((larg).cv = (const void *) (varg)); } while (0)
-
-/* Use this for turning a Lisp_Object into a  (void *), as when the
-   Lisp_Object is passed into a toolkit callback function.  */
-#define LISP_TO_VOID(larg) ((larg).v)
-#define LISP_TO_CVOID(larg) ((larg).cv)
-#endif /* not NO_UNION_TYPE */
-#endif /* USE_X_TOOLKIT */
 
 
 /* The glyph datatype, used to represent characters on the display.  */

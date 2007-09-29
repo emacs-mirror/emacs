@@ -1,5 +1,12 @@
 2007-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (DECL_ALIGN, USE_LSB_TAG): Move logic to before definition of
+	Lisp elements such as tags.
+	(XHASH): New macro.
+	(EQ): Use it.
+	(SREF, SSET, STRING_COPYIN): Use SDATA.
+	(VOID_TO_LISP, CVOID_TO_LISP, LISP_TO_VOID, LISP_TO_CVOID): Remove.
+
 	* alloc.c (mark_terminal): Remove left-over declaration.
 	(enum mem_type): Replace all vector subtypes -> MEM_TYPE_VECTORLIKE.
 	(allocate_vectorlike): Remove type argument.  Adjust callers.
