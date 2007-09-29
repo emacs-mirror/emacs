@@ -2191,7 +2191,7 @@ See allout-overlay-interior-modification-handler for details."
   (when (and (featurep 'xemacs) (allout-mode-p))
     ;; process all of the pending overlays:
     (save-excursion
-      (got-char beg)
+      (goto-char beg)
       (let ((overlay (allout-get-invisibility-overlay)))
 	(allout-overlay-interior-modification-handler
 	 overlay nil beg end nil)))))
