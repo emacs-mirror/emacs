@@ -1,3 +1,8 @@
+2007-09-29  Juri Linkov  <juri@jurta.org>
+
+	* emacs.c (standard_args): Change priority of "--no-splash"
+	from 40 to 3.  Add "--no-desktop" with the same priority.
+
 2007-09-27  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (LIBS): Add COMCTL32.
