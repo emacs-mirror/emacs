@@ -1813,7 +1813,6 @@ struct standard_args standard_args[] =
   { "-q", "--no-init-file", 50, 0 },
   { "-no-init-file", 0, 50, 0 },
   { "-no-site-file", "--no-site-file", 40, 0 },
-  { "-no-splash", "--no-splash", 40, 0 },
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },
@@ -1848,6 +1847,8 @@ struct standard_args standard_args[] =
   { "-hb", "--horizontal-scroll-bars", 5, 0 },
   { "-vb", "--vertical-scroll-bars", 5, 0 },
   { "-color", "--color", 5, 0},
+  { "-no-splash", "--no-splash", 3, 0 },
+  { "-no-desktop", "--no-desktop", 3, 0 },
   /* These have the same priority as ordinary file name args,
      so they are not reordered with respect to those.  */
   { "-L", "--directory", 0, 1 },
