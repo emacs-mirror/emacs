@@ -342,7 +342,6 @@ Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
 EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
-static void mark_terminal P_((struct terminal *t));
 static void mark_terminals P_ ((void));
 extern void mark_kboards P_ ((void));
 extern void mark_ttys P_ ((void));
@@ -377,15 +376,11 @@ enum mem_type
   MEM_TYPE_MISC,
   MEM_TYPE_SYMBOL,
   MEM_TYPE_FLOAT,
-  /* Keep the following vector-like types together, with
-     MEM_TYPE_WINDOW being the last, and MEM_TYPE_VECTOR the
-     first.  Or change the code of live_vector_p, for instance.  */
-  MEM_TYPE_VECTOR,
-  MEM_TYPE_PROCESS,
-  MEM_TYPE_HASH_TABLE,
-  MEM_TYPE_FRAME,
-  MEM_TYPE_TERMINAL,
-  MEM_TYPE_WINDOW
+  /* We used to keep separate mem_types for subtypes of vectors such as
+     process, hash_table, frame, terminal, and window, but we never made
+     use of the distinction, so it only caused source-code complexity
+     and runtime slowdown.  Minor but pointless.  */
+  MEM_TYPE_VECTORLIKE
 };
 
 static POINTER_TYPE *lisp_align_malloc P_ ((size_t, enum mem_type));
@@ -472,7 +467,7 @@ static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
 static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
-static struct Lisp_Vector *allocate_vectorlike P_ ((EMACS_INT, enum mem_type));
+static struct Lisp_Vector *allocate_vectorlike P_ ((EMACS_INT));
 static void lisp_free P_ ((POINTER_TYPE *));
 static void mark_stack P_ ((void));
 static int live_vector_p P_ ((struct mem_node *, void *));
@@ -2915,9 +2910,8 @@ int n_vectors;
    with room for LEN Lisp_Objects.  */
 
 static struct Lisp_Vector *
-allocate_vectorlike (len, type)
+allocate_vectorlike (len)
      EMACS_INT len;
-     enum mem_type type;
 {
   struct Lisp_Vector *p;
   size_t nbytes;
@@ -2935,7 +2929,7 @@ allocate_vectorlike (len, type)
   /* eassert (!handling_signal); */
 
   nbytes = sizeof *p + (len - 1) * sizeof p->contents[0];
-  p = (struct Lisp_Vector *) lisp_malloc (nbytes, type);
+  p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
 
 #ifdef DOUG_LEA_MALLOC
   /* Back to a reasonable maximum of mmap'ed areas.  */
@@ -2961,7 +2955,7 @@ struct Lisp_Vector *
 allocate_vector (nslots)
      EMACS_INT nslots;
 {
-  struct Lisp_Vector *v = allocate_vectorlike (nslots, MEM_TYPE_VECTOR);
+  struct Lisp_Vector *v = allocate_vectorlike (nslots);
   v->size = nslots;
   return v;
 }
@@ -2973,7 +2967,7 @@ struct Lisp_Hash_Table *
 allocate_hash_table ()
 {
   EMACS_INT len = VECSIZE (struct Lisp_Hash_Table);
-  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_HASH_TABLE);
+  struct Lisp_Vector *v = allocate_vectorlike (len);
   EMACS_INT i;
 
   v->size = len;
@@ -2988,7 +2982,7 @@ struct window *
 allocate_window ()
 {
   EMACS_INT len = VECSIZE (struct window);
-  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_WINDOW);
+  struct Lisp_Vector *v = allocate_vectorlike (len);
   EMACS_INT i;
 
   for (i = 0; i < len; ++i)
@@ -3007,7 +3001,7 @@ allocate_terminal ()
   /* Size if we only count the actual Lisp_Object fields (which need to be
      traced by the GC).  */
   EMACS_INT lisplen = PSEUDOVECSIZE (struct terminal, next_terminal);
-  struct Lisp_Vector *v = allocate_vectorlike (memlen, MEM_TYPE_TERMINAL);
+  struct Lisp_Vector *v = allocate_vectorlike (memlen);
   EMACS_INT i;
   Lisp_Object tmp, zero = make_number (0);
 
@@ -3025,7 +3019,7 @@ struct frame *
 allocate_frame ()
 {
   EMACS_INT len = VECSIZE (struct frame);
-  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_FRAME);
+  struct Lisp_Vector *v = allocate_vectorlike (len);
   EMACS_INT i;
 
   for (i = 0; i < len; ++i)
@@ -3043,7 +3037,7 @@ allocate_process ()
   /* Size if we only count the actual Lisp_Object fields (which need to be
      traced by the GC).  */
   EMACS_INT lisplen = PSEUDOVECSIZE (struct Lisp_Process, pid);
-  struct Lisp_Vector *v = allocate_vectorlike (memlen, MEM_TYPE_PROCESS);
+  struct Lisp_Vector *v = allocate_vectorlike (memlen);
   EMACS_INT i;
 
   for (i = 0; i < lisplen; ++i)
@@ -3058,7 +3052,7 @@ struct Lisp_Vector *
 allocate_other_vector (len)
      EMACS_INT len;
 {
-  struct Lisp_Vector *v = allocate_vectorlike (len, MEM_TYPE_VECTOR);
+  struct Lisp_Vector *v = allocate_vectorlike (len);
   EMACS_INT i;
 
   for (i = 0; i < len; ++i)
@@ -4112,9 +4106,7 @@ live_vector_p (m, p)
      struct mem_node *m;
      void *p;
 {
-  return (p == m->start
-	  && m->type >= MEM_TYPE_VECTOR
-	  && m->type <= MEM_TYPE_WINDOW);
+  return (p == m->start && m->type == MEM_TYPE_VECTORLIKE);
 }
 
 
@@ -4312,12 +4304,7 @@ mark_maybe_pointer (p)
 	    XSETFLOAT (obj, p);
 	  break;
 
-	case MEM_TYPE_VECTOR:
-	case MEM_TYPE_PROCESS:
-	case MEM_TYPE_HASH_TABLE:
-	case MEM_TYPE_FRAME:
-	case MEM_TYPE_TERMINAL:
-	case MEM_TYPE_WINDOW:
+	case MEM_TYPE_VECTORLIKE:
 	  if (live_vector_p (m, p))
 	    {
 	      Lisp_Object tem;
@@ -4717,12 +4704,7 @@ valid_lisp_object_p (obj)
     case MEM_TYPE_FLOAT:
       return live_float_p (m, p);
 
-    case MEM_TYPE_VECTOR:
-    case MEM_TYPE_PROCESS:
-    case MEM_TYPE_HASH_TABLE:
-    case MEM_TYPE_FRAME:
-    case MEM_TYPE_TERMINAL:
-    case MEM_TYPE_WINDOW:
+    case MEM_TYPE_VECTORLIKE:
       return live_vector_p (m, p);
 
     default:

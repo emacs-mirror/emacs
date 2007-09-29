@@ -1,5 +1,11 @@
 2007-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* alloc.c (mark_terminal): Remove left-over declaration.
+	(enum mem_type): Replace all vector subtypes -> MEM_TYPE_VECTORLIKE.
+	(allocate_vectorlike): Remove type argument.  Adjust callers.
+	(live_vector_p, mark_maybe_pointer, valid_lisp_object_p):
+	Only handle the one remaining MEM_TYPE_VECTORLIKE.
+
 	* alloc.c (MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT): New macros
 	to avoid unnecessary BLOCK_INPUTs when SYNC_INPUT is used.
 	(xmalloc, xrealloc, xfree, lisp_malloc, lisp_free, lisp_align_malloc)
