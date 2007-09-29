@@ -1,3 +1,8 @@
+2007-09-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* allout.el (allout-before-change-handler): Replace got-char by
+	goto-char.
+
 2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-resolve-when-done, vc-svn-find-file-hook): New funs.
