@@ -890,6 +890,7 @@ w32_get_resource (key, lpdwtype)
 	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
+          RegCloseKey (hrootkey);
 	  return (lpvalue);
 	}
 
@@ -906,6 +907,7 @@ w32_get_resource (key, lpdwtype)
 	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
+          RegCloseKey (hrootkey);
 	  return (lpvalue);
 	}
 
