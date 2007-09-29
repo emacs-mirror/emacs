@@ -1,5 +1,12 @@
 2007-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* alloc.c (MALLOC_BLOCK_INPUT, MALLOC_UNBLOCK_INPUT): New macros
+	to avoid unnecessary BLOCK_INPUTs when SYNC_INPUT is used.
+	(xmalloc, xrealloc, xfree, lisp_malloc, lisp_free, lisp_align_malloc)
+	(lisp_align_free, make_interval, allocate_string, allocate_string_data)
+	(make_float, Fcons, allocate_vectorlike, Fmake_symbol, allocate_misc):
+	Use them.
+
 	* xfaces.c (load_face_font, free_realized_face, clear_face_gcs):
 	Don't let signal handlers run when a GC is freed but not yet NULL'ed.
 	(x_free_gc): Remove BLOCK_INPUT since it's now redundant.

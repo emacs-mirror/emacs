@@ -748,6 +748,15 @@ overrun_check_free (block)
 #define free overrun_check_free
 #endif
 
+#ifdef SYNC_INPUT
+/* When using SYNC_INPUT, we don't call malloc from a signal handler, so
+   there's no need to block input around malloc.  */
+#define MALLOC_BLOCK_INPUT   ((void)0)
+#define MALLOC_UNBLOCK_INPUT ((void)0)
+#else
+#define MALLOC_BLOCK_INPUT   BLOCK_INPUT
+#define MALLOC_UNBLOCK_INPUT UNBLOCK_INPUT
+#endif
 
 /* Like malloc but check for no memory and block interrupt input..  */
 
@@ -757,9 +766,9 @@ xmalloc (size)
 {
   register POINTER_TYPE *val;
 
-  BLOCK_INPUT;
+  MALLOC_BLOCK_INPUT;
   val = (POINTER_TYPE *) malloc (size);
-  UNBLOCK_INPUT;
+  MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
     memory_full ();
@@ -776,14 +785,14 @@ xrealloc (block, size)
 {
   register POINTER_TYPE *val;
 
-  BLOCK_INPUT;
+  MALLOC_BLOCK_INPUT;
   /* We must call malloc explicitly when BLOCK is 0, since some
      reallocs don't do this.  */
   if (! block)
     val = (POINTER_TYPE *) malloc (size);
   else
     val = (POINTER_TYPE *) realloc (block, size);
-  UNBLOCK_INPUT;
+  MALLOC_UNBLOCK_INPUT;
 
   if (!val && size) memory_full ();
   return val;
@@ -796,9 +805,9 @@ void
 xfree (block)
      POINTER_TYPE *block;
 {
-  BLOCK_INPUT;
+  MALLOC_BLOCK_INPUT;
   free (block);
-  UNBLOCK_INPUT;
+  MALLOC_UNBLOCK_INPUT;
   /* We don't call refill_memory_reserve here
      because that duplicates doing so in emacs_blocked_free
      and the criterion should go there.  */
@@ -849,7 +858,7 @@ lisp_malloc (nbytes, type)
 {
   register void *val;
 
-  BLOCK_INPUT;
+  MALLOC_BLOCK_INPUT;
 
 #ifdef GC_MALLOC_CHECK
   allocated_mem_type = type;
@@ -879,7 +888,7 @@ lisp_malloc (nbytes, type)
     mem_insert (val, (char *) val + nbytes, type);
 #endif
 
-  UNBLOCK_INPUT;
+  MALLOC_UNBLOCK_INPUT;
   if (!val && nbytes)
     memory_full ();
   return val;
@@ -892,12 +901,12 @@ static void
 lisp_free (block)
      POINTER_TYPE *block;
 {
-  BLOCK_INPUT;
+  MALLOC_BLOCK_INPUT;
   free (block);
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   mem_delete (mem_find (block));
 #endif
-  UNBLOCK_INPUT;
+  MALLOC_UNBLOCK_INPUT;
 }
 
 /* Allocation of aligned blocks of memory to store Lisp data.              */
@@ -998,7 +1007,7 @@ lisp_align_malloc (nbytes, type)
 
   eassert (nbytes <= BLOCK_BYTES);
 
-  BLOCK_INPUT;
+  MALLOC_BLOCK_INPUT;
 
 #ifdef GC_MALLOC_CHECK
   allocated_mem_type = type;
@@ -1030,7 +1039,7 @@ lisp_align_malloc (nbytes, type)
 
       if (base == 0)
 	{
-	  UNBLOCK_INPUT;
+	  MALLOC_UNBLOCK_INPUT;
 	  memory_full ();
 	}
 
@@ -1056,7 +1065,7 @@ lisp_align_malloc (nbytes, type)
 	    {
 	      lisp_malloc_loser = base;
 	      free (base);
-	      UNBLOCK_INPUT;
+	      MALLOC_UNBLOCK_INPUT;
 	      memory_full ();
 	    }
 	}
@@ -1089,7 +1098,7 @@ lisp_align_malloc (nbytes, type)
     mem_insert (val, (char *) val + nbytes, type);
 #endif
 
-  UNBLOCK_INPUT;
+  MALLOC_UNBLOCK_INPUT;
   if (!val && nbytes)
     memory_full ();
 
@@ -1104,7 +1113,7 @@ lisp_align_free (block)
   struct ablock *ablock = block;
   struct ablocks *abase = ABLOCK_ABASE (ablock);
 
-  BLOCK_INPUT;
+  MALLOC_BLOCK_INPUT;
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   mem_delete (mem_find (block));
 #endif
@@ -1137,7 +1146,7 @@ lisp_align_free (block)
 #endif
       free (ABLOCKS_BASE (abase));
     }
-  UNBLOCK_INPUT;
+  MALLOC_UNBLOCK_INPUT;
 }
 
 /* Return a new buffer structure allocated from the heap with
@@ -1166,6 +1175,8 @@ allocate_buffer ()
    can use GNU malloc.  */
 
 #ifndef SYNC_INPUT
+/* When using SYNC_INPUT, we don't call malloc from a signal handler, so
+   there's no need to block input around malloc.  */
 
 #ifndef DOUG_LEA_MALLOC
 extern void * (*__malloc_hook) P_ ((size_t, const void *));
@@ -1450,9 +1461,7 @@ make_interval ()
 
   /* eassert (!handling_signal); */
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
+  MALLOC_BLOCK_INPUT;
 
   if (interval_free_list)
     {
@@ -1476,9 +1485,7 @@ make_interval ()
       val = &interval_block->intervals[interval_block_index++];
     }
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   consing_since_gc += sizeof (struct interval);
   intervals_consed++;
@@ -1881,9 +1888,7 @@ allocate_string ()
 
   /* eassert (!handling_signal); */
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
+  MALLOC_BLOCK_INPUT;
 
   /* If the free-list is empty, allocate a new string_block, and
      add all the Lisp_Strings in it to the free-list.  */
@@ -1914,9 +1919,7 @@ allocate_string ()
   s = string_free_list;
   string_free_list = NEXT_FREE_LISP_STRING (s);
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   /* Probably not strictly necessary, but play it safe.  */
   bzero (s, sizeof *s);
@@ -1968,9 +1971,7 @@ allocate_string_data (s, nchars, nbytes)
   old_data = s->data ? SDATA_OF_STRING (s) : NULL;
   old_nbytes = GC_STRING_BYTES (s);
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
+  MALLOC_BLOCK_INPUT;
 
   if (nbytes > LARGE_STRING_BYTES)
     {
@@ -1986,18 +1987,14 @@ allocate_string_data (s, nchars, nbytes)
          mmap'ed data typically have an address towards the top of the
          address space, which won't fit into an EMACS_INT (at least on
          32-bit systems with the current tagging scheme).  --fx  */
-      BLOCK_INPUT;
       mallopt (M_MMAP_MAX, 0);
-      UNBLOCK_INPUT;
 #endif
 
       b = (struct sblock *) lisp_malloc (size + GC_STRING_EXTRA, MEM_TYPE_NON_LISP);
 
 #ifdef DOUG_LEA_MALLOC
       /* Back to a reasonable maximum of mmap'ed areas. */
-      BLOCK_INPUT;
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
-      UNBLOCK_INPUT;
 #endif
 
       b->next_free = &b->first_data;
@@ -2028,9 +2025,7 @@ allocate_string_data (s, nchars, nbytes)
   data = b->next_free;
   b->next_free = (struct sdata *) ((char *) data + needed + GC_STRING_EXTRA);
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   data->string = s;
   s->data = SDATA_DATA (data);
@@ -2619,9 +2614,7 @@ make_float (float_value)
 
   /* eassert (!handling_signal); */
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
+  MALLOC_BLOCK_INPUT;
 
   if (float_free_list)
     {
@@ -2648,9 +2641,7 @@ make_float (float_value)
       float_block_index++;
     }
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   XFLOAT_DATA (val) = float_value;
   eassert (!FLOAT_MARKED_P (XFLOAT (val)));
@@ -2748,9 +2739,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 
   /* eassert (!handling_signal); */
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
+  MALLOC_BLOCK_INPUT;
 
   if (cons_free_list)
     {
@@ -2776,9 +2765,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
       cons_block_index++;
     }
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   XSETCAR (val, car);
   XSETCDR (val, cdr);
@@ -2935,13 +2922,13 @@ allocate_vectorlike (len, type)
   struct Lisp_Vector *p;
   size_t nbytes;
 
+  MALLOC_BLOCK_INPUT;
+
 #ifdef DOUG_LEA_MALLOC
   /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
      because mapped region contents are not preserved in
      a dumped Emacs.  */
-  BLOCK_INPUT;
   mallopt (M_MMAP_MAX, 0);
-  UNBLOCK_INPUT;
 #endif
 
   /* This gets triggered by code which I haven't bothered to fix.  --Stef  */
@@ -2952,24 +2939,16 @@ allocate_vectorlike (len, type)
 
 #ifdef DOUG_LEA_MALLOC
   /* Back to a reasonable maximum of mmap'ed areas.  */
-  BLOCK_INPUT;
   mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
-  UNBLOCK_INPUT;
 #endif
 
   consing_since_gc += nbytes;
   vector_cells_consed += len;
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
-
   p->next = all_vectors;
   all_vectors = p;
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   ++n_vectors;
   return p;
@@ -3277,9 +3256,7 @@ Its value and function definition are void, and its property list is nil.  */)
 
   /* eassert (!handling_signal); */
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
+  MALLOC_BLOCK_INPUT;
 
   if (symbol_free_list)
     {
@@ -3302,9 +3279,7 @@ Its value and function definition are void, and its property list is nil.  */)
       symbol_block_index++;
     }
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   p = XSYMBOL (val);
   p->xname = name;
@@ -3367,9 +3342,7 @@ allocate_misc ()
 
   /* eassert (!handling_signal); */
 
-#ifndef SYNC_INPUT
-  BLOCK_INPUT;
-#endif
+  MALLOC_BLOCK_INPUT;
 
   if (marker_free_list)
     {
@@ -3393,9 +3366,7 @@ allocate_misc ()
       marker_block_index++;
     }
 
-#ifndef SYNC_INPUT
-  UNBLOCK_INPUT;
-#endif
+  MALLOC_UNBLOCK_INPUT;
 
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
