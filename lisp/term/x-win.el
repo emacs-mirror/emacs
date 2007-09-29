@@ -2582,7 +2582,7 @@ order until succeed.")
   "How icons for tool bars are mapped to Gtk+ stock items.
 Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
 A value that begins with n: denotes a named icon instead of a stock icon."
-  :version "23.1"
+  :version "22.2"
   :type 'alist
   :group 'x)
 
