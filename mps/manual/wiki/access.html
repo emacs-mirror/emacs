@@ -42,25 +42,61 @@
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
+
 <h2>Introduction</h2>
 
-<p>The MPS uses barriers for:</p>
+<p>There are three times that the MPS must be informed of mutator access to memory:</p>
 <ul>
-  <li> incremental garbage collection; </li>
-  <li> maintaining summaries. </li>
+  <li> grey-mutator writes to black segment (during incremental GC); </li>
+  <li> black-mutator reads from grey segment (during incremental GC); </li>
+  <li> mutator writes to seg with a summary. </li>
 </ul>
 
-<p>During incremental garbage collection the mutator (client) code runs, and may access and change ("mutate") the object graph, while the MPS is still trying to finish the GC.  The mutator must not be able to see or change* parts of the object graph on the other side of the flip, so the MPS protects these parts with a barrier.  When the mutator hits such a barrier, this is called an <strong>access</strong>.</p>
+<p>( Some additional notes on why the MPS needs to know about these accesses: </p>
 
-<p class="note">(*: Currently, the MPS only uses black-mutator tracing: the mutator must not see past the flip, so the MPS sets a read barrier.  For grey-mutator tracing (not fully implemented): the mutator must not change objects past the flip, so the MPS would set a write barrier.)</p>
+<blockquote>
+<p><strong>Incremental GC</strong>: During an incremental garbage collection trace, the mutator (client) code runs, and may access and change ("mutate") the object graph, while the MPS is still working on GC'ing it.  The mutator must not be able to see or change* parts of the object graph on the other side of the flip, so the MPS protects these parts with a barrier.  When the mutator hits such a barrier, this is called an <strong>access</strong>.</p>
 
-<p>The MPS maintains summaries of which zones are referenced by the objects on each segment.  If the mutator changes parts of such a segment, the summary may no longer be correct, so the MPS protects summarised segments (those with a non-trivial summary) with a write-barrier.  When the mutator hits such a barrier, this is called a <strong>[not sure: is this called an access too? RHSK 2007-09-27]</strong>.</p>
+<p class="note">(* "see or change": Currently, the MPS only uses black-mutator tracing: the mutator must not see past the flip, so the MPS sets a read barrier on grey objects.  For grey-mutator tracing (not fully implemented): the mutator must not change objects past the flip, so the MPS would set a write barrier on black objects.)</p>
+
+<p><strong>Summaries</strong>: The MPS maintains summaries of which zones are referenced by the objects on each segment.  If the mutator changes parts of such a segment, the summary may no longer be correct, so the MPS protects summarised segments (those with a non-trivial summary) with a write-barrier.  When the mutator hits such a barrier, this is called an <strong>access</strong>, also.</p>
+</blockquote>
+
+<p>)</p>
+
+<p>By setting operating system memory barriers, the MPS intercepts these types of mutator access.</p>
+
+<p>Once intercepted, the MPS may do some preparatory processing, but it <em>must</em> then perform the access that the mutator intended.  There are two ways to do this:</p>
+
+<ul>
+  <li> (after the preparatory processing) <strong>remove</strong> the memory barrier, and restart the mutator at the instruction that caused the access -- which will then succeed as normal without hitting any barrier; </li>
+  <li> (after the preparatory processing) <strong>emulate</strong> the mutator instruction that caused the access, do some post-processing (if required), leave the memory barrier in place, and restart the mutator at the instruction <em>after</em> the one that caused the access.</li>
+</ul>
+
+<p>The MPS must choose which approach to use for each access.  As often happens, there is a space/time tradeoff -- see "choosing approach" below.  To summarise the choice in brief:</p>
+<ul>
+  <li> Removing the barrier is always possible, but may require up to a whole segment of references to be scanned too early -- that is, band-promoted -- and may therefore cause object retention and delayed finalization.</li>
+  <li> Emulation allows the MPS to band-promote only the single accessed reference, and thus causes less retention.  However, it is not always possible (not all instructions can be emulated), and may take more time because it leaves the barrier in place, which may cause the mutator to hit the barrier repeatedly.</li>
+</ul>
+
+
+<h2>Incrementality Read-Barrier Hit</h2>
+
+<p>This happens:</p>
+
+<blockquote><pre><code>sigHandle (prot*.c)
+ ArenaAccess
+  PoolAccess (pool.c)
+   (pool->class->access)</code></pre></blockquote>
+
+<p>For AWL, AWLAccess() ... [ INCOMPLETE RHSK 2007-09-30 ]</p>
 
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
   2007-09-27  RHSK  Created.
+  2007-09-30  RHSK  Intorduction.
 </pre>
 
 
