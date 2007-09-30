@@ -1,3 +1,9 @@
+2007-09-30  David Kastrup  <dak@gnu.org>
+
+	* gnus-art.el (gnus-article-reply-with-original)
+	(gnus-article-followup-with-original): When `transient-mark-mode' is
+	off, refrain from active-region behavior for followups.
+
 2007-08-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-generate-mime): Make sure it uses multibyte temp buffer.
