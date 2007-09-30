@@ -86,30 +86,10 @@ If nil, don't interrupt for about 1^26 seconds.")
      ,@body))
 
 (defmacro zone-hiding-modeline (&rest body)
-  `(let (bg mode-line-fg mode-line-bg mode-line-box)
-     (unwind-protect
-         (progn
-           (when (and (= 0 (get 'zone 'modeline-hidden-level))
-                      (display-color-p))
-             (setq bg (face-background 'default)
-                   mode-line-box (face-attribute 'mode-line :box)
-                   mode-line-fg (face-attribute 'mode-line :foreground)
-                   mode-line-bg (face-attribute 'mode-line :background))
-             (set-face-attribute 'mode-line nil
-                                 :foreground bg
-                                 :background bg
-                                 :box nil))
-           (put 'zone 'modeline-hidden-level
-                (1+ (get 'zone 'modeline-hidden-level)))
-           ,@body)
-       (put 'zone 'modeline-hidden-level
-            (1- (get 'zone 'modeline-hidden-level)))
-       (when (and (> 1 (get 'zone 'modeline-hidden-level))
-                  mode-line-fg)
-         (set-face-attribute 'mode-line nil
-                             :foreground mode-line-fg
-                             :background mode-line-bg
-                             :box mode-line-box)))))
+  ;; This formerly worked by temporarily altering face `mode-line',
+  ;; which did not even work right, it seems.
+  `(let (mode-line-format)
+     ,@body))
 
 (defun zone-call (program &optional timeout)
   "Call PROGRAM in a zoned way.
