@@ -1,3 +1,15 @@
+2007-09-30  David Kastrup  <dak@gnu.org>
+
+	* woman.el (woman-topic-all-completions, woman-mini-help): Fix
+	fallout from 2007-09-07 introduction of `dolist' when the list
+	actually was being manipulated in the loop.
+	(woman-Cyg-to-Win, woman-pre-process-region)
+	(woman-horizontal-escapes, woman-if-body, woman-unescape)
+	(woman-strings, woman-special-characters, woman1-hc)
+	(woman-change-fonts, woman-find-next-control-line): Use
+	`match-beginning' rather than `match-string' when the result is
+	just used as a flag.
+
 2007-09-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-compat.el: New file.
@@ -1836,7 +1848,7 @@
 
 	* emacs-lisp/avl-tree.el: New file.
 
-2007-08-26  Micha,bk(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-26  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* hi-lock.el (hi-lock-unface-buffer): Show a x-menu only if the mouse
 	was used.

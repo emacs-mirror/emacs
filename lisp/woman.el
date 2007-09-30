@@ -502,7 +502,7 @@ As a special case, if PATHS is nil then replace it by calling
 	   ;; Assume no `cygpath' program available.
 	   ;; Hack /cygdrive/x/ or /x/ or (obsolete) //x/ to x:/
 	   (when (string-match "\\`\\(/cygdrive\\|/\\)?/./" file)
-	     (if (match-string 1)		; /cygdrive/x/ or //x/ -> /x/
+	     (if (match-beginning 1)		; /cygdrive/x/ or //x/ -> /x/
 		 (setq file (substring file (match-end 1))))
 	     (aset file 0 (aref file 1))	; /x/ -> xx/
 	     (aset file 1 ?:))		; xx/ -> x:/
@@ -1396,7 +1396,7 @@ The cdr of each alist element is the path-index / filename."
   ;; will be a list of the first `woman-cache-level' elements of the
   ;; following list: (topic path-index filename).  This alist `files'
   ;; is re-processed by `woman-topic-all-completions-merge'.
-  (let (files (path-index 0))	; indexing starts at zero
+  (let (dir files (path-index 0))	; indexing starts at zero
     (while path
       (setq dir (pop path))
       (if (woman-not-member dir path)	; use each directory only once!
@@ -1947,12 +1947,10 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
     (setq apropos-accumulator
 	  (apropos-internal "woman"
 			    (lambda (symbol)
-			      (or (commandp symbol)
-				  (user-variable-p symbol)))))
-    ;; Filter out any inhibited symbols:
-    (dolist (sym apropos-accumulator)
-      (if (get sym 'apropos-inhibit)
-          (setq apropos-accumulator (delq sym apropos-accumulator))))
+			      (and
+			       (or (commandp symbol)
+				   (user-variable-p symbol))
+			       (not (get symbol 'apropos-inhibit))))))
     ;; Find documentation strings:
     (let ((p apropos-accumulator)
 	  doc symbol)
@@ -2158,14 +2156,14 @@ To be called on original buffer and any .so insertions."
   (goto-char from)
   ;; .eo turns off escape character processing
   (while (re-search-forward "\\(\\\\[\\e]\\)\\|^\\.eo" to t) ; \\
-    (if (match-string 1)
+    (if (match-beginning 1)
 	(replace-match woman-escaped-escape-string t t)
       (woman-delete-whole-line)
       ;; .ec turns on escape character processing (and sets the
       ;; escape character to its argument, if any, which I'm ignoring
       ;; for now!)
       (while (and (re-search-forward "\\(\\\\\\)\\|^\\.ec" to t) ; \
-		  (match-string 1))
+		  (match-beginning 1))
 	(replace-match woman-escaped-escape-string t t))
       ;; ***** Need test for .ec arg and warning here! *****
       (woman-delete-whole-line)))
@@ -2436,7 +2434,7 @@ Preserves location of `point'."
 	    to t)
       (let ((from (match-beginning 0))
 	    (delim (regexp-quote (match-string 1)))
-	    (absolute (match-string 2)) ; absolute position?
+	    (absolute (match-beginning 2)) ; absolute position?
 	    (N (woman-parse-numeric-arg)) ; distance
 	    to
 	    msg)			; for warning
@@ -2615,7 +2613,7 @@ If DELETE is non-nil then delete from point."
 		       ;; Interpret bogus `el \}' as `el \{',
 		       ;; especially for Tcl/Tk man pages:
 		       "\\(\\\\{\\|el[ \t]*\\\\}\\)\\|\\(\n[.']\\)?[ \t]*\\\\}[ \t]*")
-		      (match-string 1))
+		      (match-beginning 1))
 	       (re-search-forward "\\\\}"))
 	     (delete-region (if delete from (match-beginning 0)) (point))
 	     (if (looking-at "^$") (delete-char 1))
@@ -2737,7 +2735,7 @@ Replaces || by |, but | by \, where | denotes the internal escape."
   (let (start)
     (while (setq start (string-match woman-unescape-regex macro start))
       (setq macro
-	    (if (match-string 1 macro)
+	    (if (match-beginning 1)
 		(replace-match "" t t macro 1)
 	      (replace-match "\\" t t macro))
 	    start (1+ start)))
@@ -2860,7 +2858,7 @@ interpolated by `\*x' and `\*(xx' escapes."
   (while
       ;; Find .ds requests and \* escapes:
       (re-search-forward "\\(^[.'][ \t]*ds\\)\\|\\\\\\*" to t)
-    (cond ((match-string 1)		; .ds
+    (cond ((match-beginning 1)		; .ds
 	   (skip-chars-forward " \t")
 	   (if (eolp)			; ignore if no argument
 	       ()
@@ -2989,7 +2987,7 @@ Set NEWTEXT in face FACE if specified."
 		 ((cadr replacement)	; Use ASCII simulation
 		  (woman-replace-match (cadr replacement)))))
 	(WoMan-warn (concat "Special character "
-			    (if (match-string 1) "\\(%s" "\\[%s]")
+			    (if (match-beginning 1) "\\(%s" "\\[%s]")
 			    " not interpolated!") name)
 	(if woman-ignore (woman-delete-match 0))))
     ))
@@ -3222,7 +3220,7 @@ If optional arg CONCAT is non-nil then join arguments."
     (setq c (concat "\\(" c "\\)\\|^[.'][ \t]*hc"))
     (save-excursion
       (while (and (re-search-forward c nil t)
-		  (match-string 1))
+		  (match-beginning 1))
 	(delete-char -1)))
     ))
 
@@ -3299,7 +3297,7 @@ If optional arg CONCAT is non-nil then join arguments."
 	 "^[.'][ \t]*\\(\\(\\ft\\)\\|\\(.P\\)\\)\\|\\(\\\\f\\)" nil 1)
       (let (font beg notfont fescape)
 	;; Match font indicator and leave point at end of sequence:
-	(cond ((match-string 2)
+	(cond ((match-beginning 2)
 	       ;; .ft request found
 	       (setq beg (match-beginning 0))
 	       (skip-chars-forward " \t")
@@ -3307,10 +3305,10 @@ If optional arg CONCAT is non-nil then join arguments."
 		   (setq font previous-font)
 		 (looking-at "[^ \t\n]+"))
 	       (forward-line))		; end of control line and \n
-	      ((match-string 3)
+	      ((match-beginning 3)
 	       ;; Macro that resets font found
 	       (setq font 'default))
-	      ((match-string 4)
+	      ((match-beginning 4)
 	       ;; \f escape found
 	       (setq beg (match-beginning 0)
                      fescape t)
@@ -3742,7 +3740,7 @@ expression in parentheses.  Leaves point after the value."
       (while
 	  (and
 	   (setq to (re-search-forward "\\(\\\\c\\)?\n[.']" nil t))
-	   (match-string 1)
+	   (match-beginning 1)
 	   (looking-at "br"))
 	(goto-char (match-beginning 0))
 	(woman-delete-line 2)))
