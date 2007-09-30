@@ -1,5 +1,11 @@
 2007-09-30  David Kastrup  <dak@gnu.org>
 
+	* autorevert.el (auto-revert-handler): In `auto-revert-tail-mode',
+	check only for changed size.
+	(auto-revert-tail-handler): Get size from caller.  If the file has
+	shrunk, tail the whole file again (the file presumably has been
+	rewritten).
+
 	* woman.el (woman-topic-all-completions, woman-mini-help): Fix
 	fallout from 2007-09-07 introduction of `dolist' when the list
 	actually was being manipulated in the loop.
