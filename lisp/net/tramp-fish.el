@@ -155,25 +155,18 @@
 
 (require 'tramp)
 (require 'tramp-cache)
-
-;; Pacify byte-compiler
-(eval-when-compile
-  (require 'cl)
-  (require 'custom))
-
-;; Avoid byte-compiler warnings if the byte-compiler supports this.
-;; Currently, XEmacs supports this.
-(eval-when-compile
-  (when (featurep 'xemacs)
-      (byte-compiler-options (warnings (- unused-vars)))))
+(require 'tramp-compat)
 
 ;; `directory-sep-char' is an obsolete variable in Emacs.  But it is
 ;; used in XEmacs, so we set it here and there.  The following is needed
 ;; to pacify Emacs byte-compiler.
 (eval-when-compile
-  (unless (boundp 'byte-compile-not-obsolete-var)
-    (defvar byte-compile-not-obsolete-var nil))
   (setq byte-compile-not-obsolete-var 'directory-sep-char))
+
+;; Pacify byte-compiler
+(eval-when-compile
+  (require 'cl)
+  (require 'custom))
 
 ;; Define FISH method ...
 (defcustom tramp-fish-method "fish"
@@ -386,7 +379,7 @@ pass to the OPERATION."
 	      (tramp-fish-send-command-and-check v "#PWD")
 	      (with-current-buffer (tramp-get-buffer v)
 		(goto-char (point-min))
-		(buffer-substring (point) (tramp-line-end-position)))))
+		(buffer-substring (point) (tramp-compat-line-end-position)))))
 	  (setq localname (concat uname fname))))
       ;; There might be a double slash, for example when "~/"
       ;; expands to "/". Remove this.
@@ -399,7 +392,7 @@ pass to the OPERATION."
       ;; bound, because on Windows there would be problems with UNC
       ;; shares or Cygwin mounts.
       (tramp-let-maybe directory-sep-char ?/
-	(let ((default-directory (tramp-temporary-file-directory)))
+	(let ((default-directory (tramp-compat-temporary-file-directory)))
 	  (tramp-make-tramp-file-name
 	   method user host
 	   (tramp-drop-volume-letter
@@ -701,11 +694,10 @@ target of the symlink differ."
   "Like `set-file-times' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (let ((time (if (or (null time) (equal time '(0 0))) (current-time) time)))
-      (zerop (apply
-	      'process-file
-	      (list "touch" nil nil nil "-t"
-		    (format-time-string "%Y%m%d%H%M.%S" time)
-		    (tramp-shell-quote-argument localname)))))))
+      (zerop (process-file
+	      "touch" nil nil nil "-t"
+	      (format-time-string "%Y%m%d%H%M.%S" time)
+	      (tramp-shell-quote-argument localname))))))
 
 (defun tramp-fish-handle-write-region
   (start end filename &optional append visit lockname confirm)
@@ -740,10 +732,10 @@ target of the symlink differ."
 (defun tramp-fish-handle-executable-find (command)
   "Like `executable-find' for Tramp files."
   (with-temp-buffer
-    (if (zerop (apply 'process-file (list "which" nil t nil command)))
+    (if (zerop (process-file "which" nil t nil command))
 	(progn
 	  (goto-char (point-min))
-	  (buffer-substring (point-min) (tramp-line-end-position))))))
+	  (buffer-substring (point-min) (tramp-compat-line-end-position))))))
 
 (defun tramp-fish-handle-process-file
   (program &optional infile destination display &rest args)
@@ -936,7 +928,7 @@ KEEP-DATE is non-nil, preserve the time stamp when copying."
 	       (tramp-shell-quote-argument v2-localname)))))
   ;; KEEP-DATE handling.
   (when (and keep-date (functionp 'set-file-times))
-    (apply 'set-file-times (list newname (nth 5 (file-attributes filename)))))
+    (set-file-times newname (nth 5 (file-attributes filename))))
   ;; Set the mode.
   (set-file-modes newname (file-modes filename)))
 
@@ -1133,7 +1125,8 @@ connection if a previous connection has died for some reason."
 	     (coding-system-for-read 'binary)
 	     (coding-system-for-write 'binary)
 	     ;; This must be done in order to avoid our file name handler.
-	     (p (let ((default-directory (tramp-temporary-file-directory)))
+	     (p (let ((default-directory
+			(tramp-compat-temporary-file-directory)))
 		  (start-process
 		   (or (tramp-get-connection-property vec "process-name" nil)
 		       (tramp-buffer-name vec))

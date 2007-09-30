@@ -1,3 +1,15 @@
+2007-09-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el: New file.
+
+	* net/tramp.el:
+	* net/tramp-fish.el:
+	* net/tramp-smb.el:
+	* net/tramp-uu.el:
+	* net/trampver.el: Move compatibility code to tramp-compat.el.
+	Apply `mapc' instead of `mapcar' when the code needs side effects
+	only.  Move utf-8 coding cookie to the second line.
+
 2007-09-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* term/x-win.el (x-gtk-stock-map): Add Gnus and MH-E icons.

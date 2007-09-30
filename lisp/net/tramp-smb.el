@@ -30,15 +30,12 @@
 
 (require 'tramp)
 (require 'tramp-cache)
+(require 'tramp-compat)
 
 ;; Pacify byte-compiler
-(eval-when-compile (require 'custom))
-
-;; Avoid byte-compiler warnings if the byte-compiler supports this.
-;; Currently, XEmacs supports this.
 (eval-when-compile
-  (when (featurep 'xemacs)
-      (byte-compiler-options (warnings (- unused-vars)))))
+  (require 'cl)
+  (require 'custom))
 
 ;; Define SMB method ...
 (defcustom tramp-smb-method "smb"
@@ -763,7 +760,7 @@ If SHARE is result, entries are of type dir. Otherwise, shares are listed.
 Result is the list (LOCALNAME MODE SIZE MTIME)."
 ;; We are called from `tramp-smb-get-file-entries', which sets the
 ;; current buffer.
-  (let ((line (buffer-substring (point) (tramp-line-end-position)))
+  (let ((line (buffer-substring (point) (tramp-compat-line-end-position)))
 	localname mode size month day hour min sec year mtime)
 
     (if (not share)
@@ -891,7 +888,7 @@ connection if a previous connection has died for some reason."
 	(when (and p (processp p)) (delete-process p))
 
 	(unless (let ((default-directory
-			(tramp-temporary-file-directory)))
+			(tramp-compat-temporary-file-directory)))
 		  (executable-find tramp-smb-program))
 	  (error "Cannot find command %s in %s" tramp-smb-program exec-path))
 
@@ -930,7 +927,8 @@ connection if a previous connection has died for some reason."
 
 	  (let* ((coding-system-for-read nil)
 		 (process-connection-type tramp-process-connection-type)
-		 (p (let ((default-directory (tramp-temporary-file-directory)))
+		 (p (let ((default-directory
+			    (tramp-compat-temporary-file-directory)))
 		      (apply #'start-process
 			     (tramp-buffer-name vec) (tramp-get-buffer vec)
 			     tramp-smb-program args))))
