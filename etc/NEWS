@@ -103,6 +103,10 @@ using several time zones, in a buffer.
 after starting Emacs: startup screen, *scratch* buffer, visiting a
 file or directory.
 
+** New alias `argv' for `command-line-args-left'
+This is a convenience alias, so that one can write `(pop argv)'
+inside of --eval command line arguments in order to access
+following arguments.
 
 * Incompatible Editing Changes in Emacs 23.1
 

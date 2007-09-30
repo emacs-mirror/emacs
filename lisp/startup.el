@@ -107,6 +107,12 @@ the remaining command-line args are in the variable `command-line-args-left'.")
 (defvar command-line-args-left nil
   "List of command-line args not yet processed.")
 
+(defvaralias 'argv 'command-line-args-left
+  "List of command-line args not yet processed.
+This is a convenience alias, so that one can write \(pop argv\)
+inside of --eval command line arguments in order to access
+following arguments.")
+
 (defvar command-line-functions nil    ;; lrs 7/31/89
   "List of functions to process unrecognized command-line arguments.
 Each function should access the dynamically bound variables

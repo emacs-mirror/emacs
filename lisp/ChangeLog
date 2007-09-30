@@ -1,5 +1,10 @@
 2007-09-30  David Kastrup  <dak@gnu.org>
 
+	* startup.el (argv): Alias for `command-line-args-left' to use as
+	`(pop argv)' inside of --eval command sequences.  Allows for
+	passing shell commands into Emacs verbatim without need for Lisp
+	quoting.
+
 	* autorevert.el (auto-revert-handler): In `auto-revert-tail-mode',
 	check only for changed size.
 	(auto-revert-tail-handler): Get size from caller.  If the file has
