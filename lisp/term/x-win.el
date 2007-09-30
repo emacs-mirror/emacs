@@ -2587,16 +2587,53 @@ order until succeed.")
     ("etc/images/jump-to" . "gtk-jump-to")
     ("etc/images/index" . "gtk-index")
     ("etc/images/search" . "gtk-find")
-    ("etc/images/exit" . "gtk-quit"))
+    ("etc/images/exit" . "gtk-quit")
+    ;; Used in Gnus and/or MH-E:
+    ("etc/images/attach.xpm" . "gtk-attach")
+    ("etc/images/connect.xpm" . "gtk-connect")
+    ("etc/images/contact.xpm" . "gtk-contact")
+    ("etc/images/delete.xpm" . "gtk-delete")
+    ("etc/images/describe.xpm" . "gtk-properties")
+    ("etc/images/disconnect.xpm" . "gtk-disconnect")
+    ;; ("etc/images/exit.xpm" . "gtk-exit")
+    ("etc/images/lock-broken.xpm" . "gtk-lock_broken")
+    ("etc/images/lock-ok.xpm" . "gtk-lock_ok")
+    ("etc/images/lock.xpm" . "gtk-lock")
+    ("etc/images/next-page.xpm" . "gtk-next-page")
+    ("etc/images/refresh.xpm" . "gtk-refresh")
+    ("etc/images/sort-ascending.xpm" . "gtk-sort-ascending")
+    ("etc/images/sort-column-ascending.xpm" . "gtk-sort-column-ascending")
+    ("etc/images/sort-criteria.xpm" . "gtk-sort-criteria")
+    ("etc/images/sort-descending.xpm" . "gtk-sort-descending")
+    ("etc/images/sort-row-ascending.xpm" . "gtk-sort-row-ascending")
+    ("images/gnus/toggle-subscription.xpm" . "gtk-task-recurring")
+    ("images/mail/compose.xpm" . "gtk-mail-compose")
+    ("images/mail/copy.xpm" . "gtk-mail-copy")
+    ("images/mail/forward.xpm" . "gtk-mail-forward")
+    ("images/mail/inbox.xpm" . "gtk-inbox")
+    ("images/mail/move.xpm" . "gtk-mail-move")
+    ("images/mail/not-spam.xpm" . "gtk-not-spam")
+    ("images/mail/outbox.xpm" . "gtk-outbox")
+    ("images/mail/reply-all.xpm" . "gtk-mail-reply-to-all")
+    ("images/mail/reply.xpm" . "gtk-mail-reply")
+    ("images/mail/save-draft.xpm" . "gtk-mail-handling")
+    ("images/mail/send.xpm" . "gtk-mail-send")
+    ("images/mail/spam.xpm" . "gtk-spam")
+    ;; No themed versions available:
+    ;; mail/preview.xpm (combining stock_mail and stock_zoom)
+    ;; mail/save.xpm    (combining stock_mail, stock_save and stock_convert)
+    )
   "How icons for tool bars are mapped to Gtk+ stock items.
 Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
 A value that begins with n: denotes a named icon instead of a stock icon."
   :version "22.2"
-  :type 'alist
+  :type '(choice (repeat (choice symbol
+				 (cons (string :tag "Emacs icon")
+				       (string :tag "Stock/named")))))
   :group 'x)
 
-(defvar icon-map-list '(x-gtk-stock-map)
-  "*A list of alists that maps icon file names to stock/named icons.
+(defcustom icon-map-list '(x-gtk-stock-map)
+  "A list of alists that maps icon file names to stock/named icons.
 The alists are searched in the order they appear.  The first match is used.
 The keys in the alists are file names without extension and with two directory
 components.  For example, to map /usr/share/emacs/22.1.1/etc/images/open.xpm
@@ -2608,7 +2645,16 @@ Themes also have named icons.  To map to one of those, use n: before the name:
 
   (\"etc/images/diropen\" . \"n:system-file-manager\")
 
-The list elements are either the symbol name for the alist or the alist itself.")
+The list elements are either the symbol name for the alist or the
+alist itself.
+
+If you don't want stock icons, set the variable to nil."
+  :version "22.2"
+  :type '(choice (const :tag "Don't use stock icons" nil)
+		 (repeat (choice symbol
+				 (cons (string :tag "Emacs icon")
+				       (string :tag "Stock/named")))))
+  :group 'x)
 
 (defun x-gtk-map-stock (file)
   "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
