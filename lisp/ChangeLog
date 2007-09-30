@@ -1,3 +1,7 @@
+2007-09-30  Richard Stallman  <rms@gnu.org>
+
+	* play/zone.el (zone-hiding-modeline): Use mode-line-format.
+
 2007-09-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
