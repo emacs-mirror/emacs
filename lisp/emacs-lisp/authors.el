@@ -610,9 +610,9 @@ buffer *Authors Errors* containing references to unknown files."
 	(buffer-name "*Authors*")
 	authors-checked-files-alist
 	authors-invalid-file-names)
-    (authors-add-fixed-entries table)
-    (unless (file-exists-p (expand-file-name "src/emacs.c" root))
-      (error "Not the root directory of Emacs: %s" root))
+;    (authors-add-fixed-entries table)
+;    (unless (file-exists-p (expand-file-name "src/emacs.c" root))
+;      (error "Not the root directory of Emacs: %s" root))
     (dolist (log logs)
       (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
 	(message "Scanning %s..." log)
