@@ -57,12 +57,10 @@
         (pow 1e2))
     ;; The following loop is for efficiency; it should stop when 
     ;; 10^(2x) is too large.  This could be indicated by a range 
-    ;; error when computing 10^(2x), an infinite value for 10^(2x), 
-    ;; or (!) a zero value for 10^(2x).
+    ;; error when computing 10^(2x) or an infinite value for 10^(2x).
     (while (and
             pow
-            (< pow 1.0e+INF)
-            (> pow 0.0))
+            (< pow 1.0e+INF))
       (setq x (* 2 x))
       (setq pow (condition-case nil
                     (expt 10.0 (* 2 x))
@@ -73,8 +71,7 @@
                   (error nil)))
     (while (and
             pow
-            (< pow 1.0e+INF)
-            (> pow 0.0))
+            (< pow 1.0e+INF))
       (setq x (1+ x))
       (setq pow (condition-case nil
                     (expt 10.0 (1+ x))
