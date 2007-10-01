@@ -77,6 +77,13 @@ supported in the absence of recursive mutexes, via a change to
 alloc.c, or whether configure should abort.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
+** GNU NT-Emacs crashes with longlines-mode and outline-mode
+Reported by Rainer Thiel <r.thiel@uni-jena.de> on emacs-pretest-bug
+from 2007-09-22.
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01996.html
+Jason Rumney has a recipe for reproducing this on GNU/Linux:
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02267.html
+
 * FIXES FOR EMACS 22.3
 
 Here we list any small fixes that arrived too late for Emacs 22.2, but
