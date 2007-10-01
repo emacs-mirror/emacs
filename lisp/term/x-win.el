@@ -2586,7 +2586,7 @@ A value that begins with n: denotes a named icon instead of a stock icon."
   :type 'alist
   :group 'x)
 
-(defvar icon-map-list '(x-gtk-stock-map)
+(defvar icon-map-list nil
   "*A list of alists that maps icon file names to stock/named icons.
 The alists are searched in the order they appear.  The first match is used.
 The keys in the alists are file names without extension and with two directory
