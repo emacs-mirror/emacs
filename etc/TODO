@@ -105,6 +105,14 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00782.html
 ** Find a proper fix for rcirc multiline nick adding.
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00684.html
 
+** Implement `network-interface-list' and `network-interface-info'
+on MS-Windows.  Hint: the information is present in the Registry,
+under the keys
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Linkage\
+and
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\<device>\
+where <device> is the network device found under the first key.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
