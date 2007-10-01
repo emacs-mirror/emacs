@@ -105,20 +105,18 @@
 
 <p>When reconstructing which barriers were hit, for each faulting instruction, the following two properties are important:</p>
 <ul>
-  <li> .mustGetLowered: which barriers -- expressed as an MPS Shield AccessSet -- must the MPS necessarily ask to be lowered in order to permit this instruction to succeed? </li>
-  <li> .willBeAccessed: will this mutator instruction <em>actually</em> read, write, or both read and write the cell on this segment? </li>
+  <li> .mustGetLowered: which barriers -- expressed as an MPS Shield AccessSet -- must the MPS necessarily ask to be lowered in order to permit this instruction to succeed?  <em>(Note: the "<code>mustGetLowered</code>" value must be the same as or smaller than the barriers MPS Shield asked for, because there is no reason for an OS barrier to be in place other than that MPS Shield asked for it)</em></li>
+  <li> .willBeAccessed: will this mutator instruction <em>actually</em> read, write, or both read and write the reference? </li>
 </ul>
-
-<p>Note that the "<code>willBeAccessed</code>" value must be the same or smaller than the "<code>mustGetLowered</code>" value (or our implementation of barriers is broken).</p>
 
 
 <h3>For the "remove barrier" approach</h3>
 
-<p>If the MPS chooses the "remove barrier" approach, it must calculate a conservatively-accurate "<code>mustGetLowered</code>" value, which, when lowered, will remove all the barriers that <strong>may</strong> have been hit by the faulting instruction.  The MPS will lower these barriers and restart the mutator on the instruction that originally caused the fault.  If "<code>mustGetLowered</code>" does not cause all necessary OS barriers to be lowered, the instruction will hit the barrier again, and we are stuck in an infinite loop.</p>
+<p>If the MPS chooses the "remove barrier" approach, it must calculate a conservatively-accurate "<code>mustGetLowered</code>" value, which, when lowered, will remove all the barriers that <strong>may</strong> have been hit by the faulting instruction.  The MPS will lower these barriers and restart the mutator on the instruction that originally caused the fault.  If "<code>mustGetLowered</code>" does not cause all necessary OS barriers to be lowered, the instruction will hit the barrier again, and we hang in an infinite loop.</p>
 
 <p>Because it is about to lower these barriers, the MPS must do the corresponding preparatory processing (greyening, scanning, and summary-zapping) for the whole segment.</p>
 
-<p>(The "<code>willBeAccessed</code>" value is not important with this approach.  It must be the same or smaller than the "<code>mustGetLowered</code>" value anyway.)</p>
+<p>(The "<code>willBeAccessed</code>" value is not important with this approach.  On an OS that does not support pure-write-barriers, a write instruction will cause willBeAccessed = WRITE and mustGetLowered = READ.  The write instruction 'should not' have caused the barrier hit, but it did because of OS limitations.  The Shield barrier that must be lowered in this case is the READ barrier -- counterintuitive but true.)</p>
 
 
 <h3>For the "emulate" approach</h3>
