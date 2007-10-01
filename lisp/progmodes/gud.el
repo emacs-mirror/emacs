@@ -2630,7 +2630,7 @@ It is saved for when this flag is not set.")
 	   ;;  process-buffer is current-buffer
 	   (unwind-protect
 	       (progn
-		 ;; Write something in *compilation* and hack its mode line,
+		 ;; Write something in the GUD buffer and hack its mode line,
 		 (set-buffer (process-buffer proc))
 		 ;; Fix the mode line.
 		 (setq mode-line-process
@@ -2686,11 +2686,14 @@ Obeying it means displaying in another window the specified file and line."
 	 (buffer
 	  (with-current-buffer gud-comint-buffer
 	    (gud-find-file true-file)))
-	 (window (and buffer (or (get-buffer-window buffer)
-				 (if (memq gud-minor-mode '(gdbmi gdba))
-				     (unless (gdb-display-source-buffer buffer)
-				       (gdb-display-buffer buffer nil)))
-				 (display-buffer buffer))))
+	 (window (and buffer
+		      (or (get-buffer-window buffer)
+			  (if (memq gud-minor-mode '(gdbmi gdba))
+			      (or (if (get-buffer-window buffer 0)
+				      (display-buffer buffer nil 0))
+				  (unless (gdb-display-source-buffer buffer)
+				    (gdb-display-buffer buffer nil))))
+			  (display-buffer buffer))))
 	 (pos))
     (if buffer
 	(progn
