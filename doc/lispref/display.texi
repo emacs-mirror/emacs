@@ -1291,6 +1291,11 @@ while moving an overlay or changing its properties does not.  Unlike
 text property changes, overlay property changes are not recorded in
 the buffer's undo list.
 
+  Since more than one overlay can specify a property value for the
+same character, Emacs lets you specify a priority value of each
+overlay.  You should not make assumptions about which overlay will
+prevail when there is a conflict and they have the same priority.
+
   These functions read and set the properties of an overlay:
 
 @defun overlay-get overlay prop
@@ -1321,13 +1326,16 @@ of them:
 @item priority
 @kindex priority @r{(overlay property)}
 This property's value (which should be a nonnegative integer number)
-determines the priority of the overlay.  The priority matters when two
-or more overlays cover the same character and both specify the same
-property; the one whose @code{priority} value is larger takes priority
-over the other.  For the @code{face} property, the higher priority
-value does not completely replace the other; instead, its face
-attributes override the face attributes of the lower priority
-@code{face} property.
+determines the priority of the overlay.  No priority, or @code{nil},
+means zero.
+
+The priority matters when two or more overlays cover the same
+character and both specify the same property; the one whose
+@code{priority} value is larger overrides the other.  For the
+@code{face} property, the higher priority overlay's value does not
+completely override the other value; instead, its face attributes
+override the face attributes of the lower priority @code{face}
+property.
 
 Currently, all overlays take priority over text properties.  Please
 avoid using negative priority values, as we have not yet decided just
