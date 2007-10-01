@@ -69,12 +69,12 @@
 (defvar math-smallest-emacs-expt
   (let ((x -1))
     (while (condition-case nil
-               (expt 10.0 x)
+               (> (expt 10.0 x) 0.0)
              (error nil))
       (setq x (* 2 x)))
     (setq x (/ x 2))
     (while (condition-case nil
-               (expt 10.0 x)
+               (> (expt 10.0 x) 0.0)
              (error nil))
       (setq x (1- x)))
     (+ x 2))
