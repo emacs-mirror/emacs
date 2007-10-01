@@ -80,6 +80,67 @@
 </ul>
 
 
+<h2>Which Barriers Were Hit?</h2>
+
+
+<p>Oh, if only it were so simple.  The MPS Shield abstractly assumes that read barrier and write barrier are independent controllable, and that the MPS can tell precisely which one was hit.  Abstractly, we'd like to know the following quantity:</p>
+
+<blockquote><pre><code>AccessSet wereHit;  /* which barriers were hit */</code></pre></blockquote>
+
+<p>This is too simplistic!  Because, alas, operating systems are not so flexible:</p>
+<ul>
+  <li> most OSs don't allow setting write barrier but no read barrier; </li>
+  <li> some OSs don't tell the signal-handler whether the faulting instruction tried to read, write, or both. </li>
+</ul>
+
+<p>So the MPS has to try to reconstruct, as fully as it can, information about which barrier was hit.</p>
+
+<p>Currently, this reconstruction is done in a rather ad hoc way.  Currently, the platform-part is not allowed to see SM* and PM*, so it calculates a (very conservative) "<code>platformThinksMayHaveBeenHit</code>" value without this information, and passes it in the "mode" parameter of its call to ArenaAccess().  Then the platform-independent ArenaAccess and friends, which can see SM/PM, do further reconstruction.</p>
+
+<p><em>(*: SM (ShieldMode) states which barriers are supposed to be seen by the mutator. PM (ProtectionMode) states how the MPS would like the OS barriers to be set right now. When the MPS is accessing memory, PM may be lower than SM.)</em></p>
+
+<p>I do not like this approach.  I think the reconstruction would best be calculated by the platform-part of the MPS barrier code (prot*.c), using whatever data the OS passes to the signal-handler, <strong>plus</strong> the SM and PM values for this segment.</p>
+
+<p class="note"><em class="note">[Also, threads may cause nasty synchronisation issues: SM and PM do not change atomically with changes to the OS barriers, so threads may cause a barrier hit when the barriers and SM &amp; PM are not consistent.  If all MPS access to mutator memory (such as during collection work) only happens when all threads are stopped, then this doesn't happen yet.  Nonetheless, the MPS logic that does this reconstruction should be better isolated, clearer, and safer, IMHO.  It could be moved into the platform-part without performance or modularity cost: the platform-part can have several static tables from SM/PM -> wereHit, select the appropriate one depending on the data the OS passes to the signal-handler for this hit, and pass a pointer to it in the call to ArenaAccess() (in a new parameter).  RHSK 2007-09-30]</em></p>
+
+<p>When reconstructing which barriers were hit, for each faulting instruction, the following two properties are important:</p>
+<ul>
+  <li> .mustGetLowered: which barriers -- expressed as an MPS Shield AccessSet -- must the MPS necessarily ask to be lowered in order to permit this instruction to succeed? </li>
+  <li> .willBeAccessed: will this mutator instruction <em>actually</em> read, write, or both read and write the cell on this segment? </li>
+</ul>
+
+<p>Note that the "<code>willBeAccessed</code>" value must be the same or smaller than the "<code>mustGetLowered</code>" value (or our implementation of barriers is broken).</p>
+
+
+<h3>For the "remove barrier" approach</h3>
+
+<p>If the MPS chooses the "remove barrier" approach, it must calculate a conservatively-accurate "<code>mustGetLowered</code>" value, which, when lowered, will remove all the barriers that <strong>may</strong> have been hit by the faulting instruction.  The MPS will lower these barriers and restart the mutator on the instruction that originally caused the fault.  If "<code>mustGetLowered</code>" does not cause all necessary OS barriers to be lowered, the instruction will hit the barrier again, and we are stuck in an infinite loop.</p>
+
+<p>Because it is about to lower these barriers, the MPS must do the corresponding preparatory processing (greyening, scanning, and summary-zapping) for the whole segment.</p>
+
+<p>(The "<code>willBeAccessed</code>" value is not important with this approach.  It must be the same or smaller than the "<code>mustGetLowered</code>" value anyway.)</p>
+
+
+<h3>For the "emulate" approach</h3>
+
+<p>If the MPS chooses the "emulate" approach, we don't care about the "<code>mustGetLowered</code>" value, because we will not be lowering any barriers, and we will not be restarting the faulting instruction.</p>
+
+<p>But we <em>do</em> need to know the "<code>willBeAccessed</code>" value (that is: whether the emulated instruction will read, write, or both), and we must do the corresponding preparatory processing (greyening, scanning, and summary-zapping) for the affected reference.</p>
+
+
+<h2>Which Barriers Shall We Lower?</h2>
+
+<p>If both barriers are up, then -- even if mustGetLowered is small -- the MPS might <strong>choose</strong> to lower <strong>both</strong> barriers anyway, to improve performance.  If the mutator is going to hit the other barrier in one or two instructions time anyway then we may as well lower it now, and avoid paying for two barrier hits.  Not a big point, but worth mentioning.</p>
+
+
+<h2>Which Approach Shall We Take?</h2>
+
+<p>The factors in choosing between the "remove" and "emulate" approaches are:</p>
+<ul>
+  <li> what is the cost of having to remove barriers from the whole seg?; </li>
+</ul>
+
+
 <h2>Incrementality Read-Barrier Hit</h2>
 
 <p>This happens:</p>
@@ -89,14 +150,17 @@
   PoolAccess (pool.c)
    (pool->class->access)</code></pre></blockquote>
 
-<p>For AWL, AWLAccess() ... [ INCOMPLETE RHSK 2007-09-30 ]</p>
+<p>For AWL, AWLAccess() ... </p>
+
+<p>[ INCOMPLETE RHSK 2007-09-30 ]</p>
 
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
   2007-09-27  RHSK  Created.
-  2007-09-30  RHSK  Intorduction.
+  2007-09-30  RHSK  Introduction.
+  2007-10-01  RHSK  Which Barriers Were Hit?
 </pre>
 
 
