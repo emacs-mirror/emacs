@@ -66,7 +66,14 @@
 
 <p>By setting operating system memory barriers, the MPS intercepts these types of mutator access.</p>
 
-<p>Once intercepted, the MPS may do some preparatory processing, but it <em>must</em> then perform the access that the mutator intended.  There are two ways to do this:</p>
+<p>So the requirement-to-be-informed is recorded at three levels:</p>
+<ul>
+  <li> ... at the level of the data that needs to be protected (segment-blackness on some pre-flipped trace, segment-greyness on some flipped trace, or segment with a non-UNIV summary); </li>
+  <li> ... at the level of the MPS Shield "SM" (ShieldMode) flags (SM &amp; AccessWRITE, SM &amp; AccessREAD; SM &amp; AccessWRITE); </li>
+  <li> ... in the OS protection map for the segment's memory pages. </li>
+</ul>
+
+<p>When an access is intercepted, the MPS may do some preparatory processing, but it <em>must</em> then perform the access that the mutator intended.  There are two ways to do this:</p>
 
 <ul>
   <li> (after the preparatory processing) <strong>remove</strong> the memory barrier, and restart the mutator at the instruction that caused the access -- which will then succeed as normal without hitting any barrier; </li>
@@ -93,21 +100,19 @@
   <li> some OSs don't tell the signal-handler whether the faulting instruction tried to read, write, or both. </li>
 </ul>
 
-<p>So the MPS has to try to reconstruct, as fully as it can, information about which barrier was hit.</p>
-
-<p>Currently, this reconstruction is done in a rather ad hoc way.  Currently, the platform-part is not allowed to see SM* and PM*, so it calculates a (very conservative) "<code>platformThinksMayHaveBeenHit</code>" value without this information, and passes it in the "mode" parameter of its call to ArenaAccess().  Then the platform-independent ArenaAccess and friends, which can see SM/PM, do further reconstruction.</p>
-
-<p><em>(*: SM (ShieldMode) states which barriers are supposed to be seen by the mutator. PM (ProtectionMode) states how the MPS would like the OS barriers to be set right now. When the MPS is accessing memory, PM may be lower than SM.)</em></p>
-
-<p>I do not like this approach.  I think the reconstruction would best be calculated by the platform-part of the MPS barrier code (prot*.c), using whatever data the OS passes to the signal-handler, <strong>plus</strong> the SM and PM values for this segment.</p>
-
-<p class="note"><em class="note">[Also, threads may cause nasty synchronisation issues: SM and PM do not change atomically with changes to the OS barriers, so threads may cause a barrier hit when the barriers and SM &amp; PM are not consistent.  If all MPS access to mutator memory (such as during collection work) only happens when all threads are stopped, then this doesn't happen yet.  Nonetheless, the MPS logic that does this reconstruction should be better isolated, clearer, and safer, IMHO.  It could be moved into the platform-part without performance or modularity cost: the platform-part can have several static tables from SM/PM -> wereHit, select the appropriate one depending on the data the OS passes to the signal-handler for this hit, and pass a pointer to it in the call to ArenaAccess() (in a new parameter).  RHSK 2007-09-30]</em></p>
-
-<p>When reconstructing which barriers were hit, for each faulting instruction, the following two properties are important:</p>
+<p>Which barrier was actually hit turns out not to be very important!  What <em>really</em> matters, for each faulting instruction, are the following two properties:</p>
 <ul>
   <li> .mustGetLowered: which barriers -- expressed as an MPS Shield AccessSet -- must the MPS necessarily ask to be lowered in order to permit this instruction to succeed?  <em>(Note: the "<code>mustGetLowered</code>" value must be the same as or smaller than the barriers MPS Shield asked for, because there is no reason for an OS barrier to be in place other than that MPS Shield asked for it)</em></li>
   <li> .willBeAccessed: will this mutator instruction <em>actually</em> read, write, or both read and write the reference? </li>
 </ul>
+
+<p>Currently, these two values (plus the choice of which barriers to lower, see below) are all lumped together into a single "<code>mode</code>" argument which gets modified and interpreted at various stages in a rather ad hoc way.  This makes it very hard to know what "mode" really means.  Currently, the platform-part is not allowed to see SM* and PM*, so it calculates a (very conservative) value without this information, and passes it in the "<code>mode</code>" parameter of its call to ArenaAccess().  Then the platform-independent ArenaAccess and friends, which can see SM/PM, make further adjustments.</p>
+
+<p><em>(*: SM (ShieldMode) states which barriers are supposed to be seen by the mutator. PM (ProtectionMode) states how the MPS would like the OS barriers to be set right now. When the MPS is accessing memory, PM may be lower than SM.)</em></p>
+
+<p class="note"><em class="note">[I do not like this approach.  I'd prefer it if mustGetLowered and willBeAccessed were explicitly calculated by the platform-part of the MPS barrier code (prot*.c), using whatever data the OS passes to the signal-handler, <strong>plus</strong> the SM and PM values for this segment.  The platform-part could have several static tables from SM/PM -> mustGetLowered x willBeAccessed, select the appropriate one depending on the data the OS passes to the signal-handler for this hit, and pass a pointer to it in the call to ArenaAccess() (in a new parameter).  RHSK 2007-10-01]</em></p>
+
+<p class="note"><em class="note">[Also, what is that test of SegPM() doing in global.c?  Threads may cause nasty synchronisation issues: SM and PM do not change atomically with changes to the OS barriers, so threads may cause a barrier hit when the barriers and SM &amp; PM are not consistent.  If all MPS access to mutator memory (such as during collection work) only happens when all threads are stopped, then this doesn't happen yet.  RHSK 2007-09-30]</em></p>
 
 
 <h3>For the "remove barrier" approach</h3>
@@ -116,19 +121,27 @@
 
 <p>Because it is about to lower these barriers, the MPS must do the corresponding preparatory processing (greyening, scanning, and summary-zapping) for the whole segment.</p>
 
-<p>(The "<code>willBeAccessed</code>" value is not important with this approach.  On an OS that does not support pure-write-barriers, a write instruction will cause willBeAccessed = WRITE and mustGetLowered = READ.  The write instruction 'should not' have caused the barrier hit, but it did because of OS limitations.  The Shield barrier that must be lowered in this case is the READ barrier -- counterintuitive but true.)</p>
+<p>(The "<code>willBeAccessed</code>" value is not important with this approach.  For a read-barriered segment on an OS that does not support pure-read-barriers, the values for a write instruction are willBeAccessed = WRITE and mustGetLowered = READ.  The write instruction 'should not' have caused the read-barrier hit, but it did because of OS limitations.  The Shield barrier that must be lowered in this case is the READ barrier -- counterintuitive but true.)</p>
 
 
 <h3>For the "emulate" approach</h3>
 
 <p>If the MPS chooses the "emulate" approach, we don't care about the "<code>mustGetLowered</code>" value, because we will not be lowering any barriers, and we will not be restarting the faulting instruction.</p>
 
-<p>But we <em>do</em> need to know the "<code>willBeAccessed</code>" value (that is: whether the emulated instruction will read, write, or both), and we must do the corresponding preparatory processing (greyening, scanning, and summary-zapping) for the affected reference.</p>
+<p>But we <em>do</em> need to know the "<code>willBeAccessed</code>" value (that is: whether the emulated instruction will read, write, or both).  Where "<code>willBeAccessed</code>" intersects SM, we must do the corresponding preparatory processing (greyening, scanning, and summary-updating) for the affected reference.  Actually, summary updating can be done at the end.</p>
 
 
-<h2>Which Barriers Shall We Lower?</h2>
+<h2>Lowering Barriers That Were Not Hit</h2>
 
-<p>If both barriers are up, then -- even if mustGetLowered is small -- the MPS might <strong>choose</strong> to lower <strong>both</strong> barriers anyway, to improve performance.  If the mutator is going to hit the other barrier in one or two instructions time anyway then we may as well lower it now, and avoid paying for two barrier hits.  Not a big point, but worth mentioning.</p>
+<p>Sometimes MPS must lower a barrier that was not hit, because of operating system limitations.  The "<code>mustGetLowered</code>" value expresses this.  The common case is where a read-barrier is hit by a write-instruction.  It shouldn't have caused a barrier-hit, but that's a limitation in many OSs.  MPS must remove the read-barrier.</p>
+
+<p>Sometimes it might make sense to lower a barrier even though it is not part of "<code>mustGetLowered</code>", to improve performance: if the mutator is going to hit the barrier in one or two instructions time anyway then we may as well lower it now, and avoid paying for two barrier hits.</p>
+
+<p>There <em>should</em> be a place in MPS access handling where this decision is made explicit, but there isn't.  De facto, the platform code sometimes has this effect:</p>
+<ul>
+  <li>On Unix platforms the signal handler does not seem to be able to determine whether the faulting instruction was a read or a write, so it sets "<code>mode</code>" to both.  If there are both read- and write-barriers on a segment, and the mutator tries to read, then on Unix <strong>both</strong> barriers will be lowered immediately.</li>
+  <li>On Windows a mutator read will not only lower the read-barrier, leaving the summary (and write-barrier) intact.</li>
+</ul>
 
 
 <h2>Which Approach Shall We Take?</h2>
