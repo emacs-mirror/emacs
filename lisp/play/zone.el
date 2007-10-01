@@ -138,6 +138,7 @@ If the element is a function or a list of a function and a number,
       (sit-for 0 500)
       (let ((pgm (elt zone-programs (random (length zone-programs))))
             (ct (and f (frame-parameter f 'cursor-type)))
+            (show-trailing-whitespace nil)
             (restore (list '(kill-buffer outbuf))))
         (when ct
           (modify-frame-parameters f '((cursor-type . (bar . 0))))
@@ -683,6 +684,7 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
                                              (make-string 10 32)))))))
       (life (or zone-pgm-random-life-wait (random 4)))
       (kill-buffer nil))))
+
 
 (random t)
 
