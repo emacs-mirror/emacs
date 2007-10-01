@@ -1,3 +1,9 @@
+2007-10-01  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Overlay Properties): Explain nil as priority.
+	Explain that conflicts are unpredictable if not resolved by
+	priorities.
+
 2007-09-23  Richard Stallman  <rms@gnu.org>
 
 	* macros.texi (Backquote): Minor clarification.
