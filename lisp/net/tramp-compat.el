@@ -161,4 +161,5 @@ this is the function `temp-directory'."
 
 ;;; TODO:
 
+;; arch-tag: 0e724b18-6699-4f87-ad96-640b272e5c85
 ;;; tramp-compat.el ends here
