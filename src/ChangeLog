@@ -1,3 +1,8 @@
+2007-10-01  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* floatfns.c (Fexpt): Manually check for overflows, so that a power
+	of a non-zero value can't yield zero.
+
 2007-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c (term_clear_mouse_face, term_mouse_highlight)
