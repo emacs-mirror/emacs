@@ -1,11 +1,11 @@
 2007-10-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-display-line): Find source buffer even when
-	GUD buffer has it's own frame.
+	GUD buffer has its own frame.
 
 2007-10-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* term/x-win.el (icon-map-list): Set to nil for 22.1 compability.
+	* term/x-win.el (icon-map-list): Set to nil for 22.1 compatibility.
 
 2007-09-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
