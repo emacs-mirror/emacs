@@ -1,7 +1,3 @@
-2007-10-01  Juanma Barranquero  <lekktu@gmail.com>
-
-	* lread.c (Fload): Fix typo in docstring.
-
 2007-09-29  Juri Linkov  <juri@jurta.org>
 
 	* emacs.c (standard_args): Change priority of "--no-splash"
