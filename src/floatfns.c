@@ -454,7 +454,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
      (arg1, arg2)
      register Lisp_Object arg1, arg2;
 {
-  double f1, f2;
+  double f1, f2, f3;
 
   CHECK_NUMBER_OR_FLOAT (arg1);
   CHECK_NUMBER_OR_FLOAT (arg2);
@@ -500,8 +500,11 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   else if ((f1 == 0.0 && f2 < 0.0) || (f1 < 0 && f2 != floor(f2)))
     domain_error2 ("expt", arg1, arg2);
 #endif
-  IN_FLOAT2 (f1 = pow (f1, f2), "expt", arg1, arg2);
-  return make_float (f1);
+  IN_FLOAT2 (f3 = pow (f1, f2), "expt", arg1, arg2);
+  /* Check for overflow in the result.  */
+  if (f1 != 0.0 && f3 == 0.0)
+    range_error ("expt", arg1);
+  return make_float (f3);
 }
 
 DEFUN ("log", Flog, Slog, 1, 2, 0,
