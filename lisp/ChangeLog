@@ -1,3 +1,7 @@
+2007-10-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (icon-map-list): Set to nil for 22.1 compability.
+
 2007-09-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Version is 22.2
