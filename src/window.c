@@ -36,6 +36,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "blockinput.h"
 #include "intervals.h"
+#include "termhooks.h"		/* For FRAME_TERMINAL.  */
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -1794,7 +1795,10 @@ candidate_window_p (window, owindow, minibuf, all_frames)
   else if (EQ (all_frames, Qvisible))
     {
       FRAME_SAMPLE_VISIBILITY (f);
-      candidate_p = FRAME_VISIBLE_P (f);
+      candidate_p = FRAME_VISIBLE_P (f)
+	&& (FRAME_TERMINAL (XFRAME (w->frame))
+	    == FRAME_TERMINAL (XFRAME (selected_frame)));
+
     }
   else if (INTEGERP (all_frames) && XINT (all_frames) == 0)
     {
@@ -1810,7 +1814,9 @@ candidate_window_p (window, owindow, minibuf, all_frames)
 		     || (FRAME_X_P (f) && f->output_data.x->asked_for_visible
 			 && !f->output_data.x->has_been_visible)
 #endif
-		     );
+		     )
+	&& (FRAME_TERMINAL (XFRAME (w->frame))
+	    == FRAME_TERMINAL (XFRAME (selected_frame)));
     }
   else if (WINDOWP (all_frames))
     candidate_p = (EQ (FRAME_MINIBUF_WINDOW (f), all_frames)
