@@ -5275,6 +5275,46 @@ init_buffer ()
   free (pwd);
 }
 
+/* Similar to defvar_lisp but define a variable whose value is the Lisp
+   Object stored in the current buffer.  address is the address of the slot
+   in the buffer that is current now. */
+
+/* TYPE is nil for a general Lisp variable.
+   An integer specifies a type; then only LIsp values
+   with that type code are allowed (except that nil is allowed too).
+   LNAME is the LIsp-level variable name.
+   VNAME is the name of the buffer slot.
+   DOC is a dummy where you write the doc string as a comment.  */
+#define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
+ defvar_per_buffer (lname, vname, type, 0)
+
+static void
+defvar_per_buffer (namestring, address, type, doc)
+     char *namestring;
+     Lisp_Object *address;
+     Lisp_Object type;
+     char *doc;
+{
+  Lisp_Object sym, val;
+  int offset;
+
+  sym = intern (namestring);
+  val = allocate_misc ();
+  offset = (char *)address - (char *)current_buffer;
+
+  XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
+  XBUFFER_OBJFWD (val)->offset = offset;
+  SET_SYMBOL_VALUE (sym, val);
+  PER_BUFFER_SYMBOL (offset) = sym;
+  PER_BUFFER_TYPE (offset) = type;
+
+  if (PER_BUFFER_IDX (offset) == 0)
+    /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
+       slot of buffer_local_flags */
+    abort ();
+}
+
+
 /* initialize the buffer routines */
 void
 syms_of_buffer ()
@@ -5559,6 +5599,9 @@ its hooks should not expect certain variables such as
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
                      Qnil,
 		     doc: /* Pretty name of current buffer's major mode (a string).  */);
+
+  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil,
+		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil,
 		     doc: /* Non-nil turns on automatic expansion of abbrevs as they are inserted.  */);

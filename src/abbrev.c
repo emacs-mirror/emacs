@@ -769,9 +769,6 @@ Calling `expand-abbrev' sets this to nil.  */);
 Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.  */);
   Vabbrev_start_location_buffer = Qnil;
 
-  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil,
-		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
-
   DEFVAR_BOOL ("abbrevs-changed", &abbrevs_changed,
 	       doc: /* Set non-nil by defining or altering any word abbrevs.
 This causes `save-some-buffers' to offer to save the abbrevs.  */);

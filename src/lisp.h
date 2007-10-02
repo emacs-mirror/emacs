@@ -1145,6 +1145,8 @@ struct Lisp_Marker
 
   /* For markers that point somewhere,
      this is used to chain of all the markers in a given buffer.  */
+  /* We could remove it and use an array in buffer_text instead.
+     That would also allow to preserve it ordered.  */
   struct Lisp_Marker *next;
   /* This is the char position where the marker points.  */
   EMACS_INT charpos;
@@ -1242,6 +1244,10 @@ struct Lisp_Buffer_Local_Value
     unsigned int found_for_frame : 1;
     Lisp_Object realvalue;
     /* The buffer and frame for which the loaded binding was found.  */
+    /* Having both is only needed if we want to allow variables that are
+       both buffer local and frame local (in which case, we currently give
+       precedence to the buffer-local binding).  I don't think such
+       a combination is desirable.  --Stef  */
     Lisp_Object buffer, frame;
 
     /* A cons cell, (LOADED-BINDING . DEFAULT-VALUE).
@@ -1723,7 +1729,6 @@ extern void defvar_lisp P_ ((char *, Lisp_Object *));
 extern void defvar_lisp_nopro P_ ((char *, Lisp_Object *));
 extern void defvar_bool P_ ((char *, int *));
 extern void defvar_int P_ ((char *, EMACS_INT *));
-extern void defvar_per_buffer P_ ((char *, Lisp_Object *, Lisp_Object, char *));
 extern void defvar_kboard P_ ((char *, int));
 
 /* Macros we use to define forwarded Lisp variables.
@@ -1733,15 +1738,6 @@ extern void defvar_kboard P_ ((char *, int));
 #define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
 #define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
 #define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
-
-/* TYPE is nil for a general Lisp variable.
-   An integer specifies a type; then only LIsp values
-   with that type code are allowed (except that nil is allowed too).
-   LNAME is the LIsp-level variable name.
-   VNAME is the name of the buffer slot.
-   DOC is a dummy where you write the doc string as a comment.  */
-#define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
- defvar_per_buffer (lname, vname, type, 0)
 
 #define DEFVAR_KBOARD(lname, vname, doc) \
  defvar_kboard (lname, \

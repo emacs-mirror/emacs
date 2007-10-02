@@ -1,3 +1,16 @@
+2007-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (syms_of_buffer) <local-abbrev-table>: Move from abbrev.c.
+	(DEFVAR_PER_BUFFER, defvar_per_buffer): Move from lisp.h and lread.c.
+	* lisp.h (defvar_per_buffer, DEFVAR_PER_BUFFER):
+	* lread.c (defvar_per_buffer):
+	* abbrev.c (syms_of_abbrev) <local-abbrev-tabl>: Move to buffer.c.
+
+	* window.c (candidate_window_p): Only consider as visible frames that
+	are on the same terminal.
+
+	* m/ibms390x.h (MARKBIT): Remove unused macro.
+
 2007-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lread.c (Fload): Fix typo in docstring.
