@@ -1,7 +1,34 @@
 2007-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* alloc.c (allocate_pseudovector): New fun.
+	(ALLOCATE_PSEUDOVECTOR): New macro.
+	(allocate_window, allocate_terminal, allocate_frame)
+	(allocate_process): Use it.
+	(mark_vectorlike): New function.
+	(mark_object) <FRAMEP, WINDOWP, BOOL_VECTOR_P, VECTORP>: Use it.
+	(mark_terminals): Use it.
+	(Fmake_bool_vector, Fmake_char_table, make_sub_char_table)
+	(Fmake_byte_code): Use XSETPVECTYPE.
+
+	* frame.c (Fframe_parameters): Minor simplification.
+
+	* insdel.c (adjust_markers_for_insert): Generalize assertion checks.
+
+	* marker.c (Fmarker_buffer): Make test for odd case into a failure.
+
+	* buffer.c (Fget_buffer_create, init_buffer_once):
+	* lread.c (defsubr):
+	* window.c (Fcurrent_window_configuration): Use XSETPVECTYPE.
+
+	* lisp.h (ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG): Don't let them be
+	defined differently in the m/*.h files.
+	(XCHAR_TABLE, XBOOL_VECTOR): Add assertion checking.
+	(XSETPVECTYPE): New macro.
+	(XSETPSEUDOVECTOR): Use it.
+
 	* buffer.c (syms_of_buffer) <local-abbrev-table>: Move from abbrev.c.
 	(DEFVAR_PER_BUFFER, defvar_per_buffer): Move from lisp.h and lread.c.
+
 	* lisp.h (defvar_per_buffer, DEFVAR_PER_BUFFER):
 	* lread.c (defvar_per_buffer):
 	* abbrev.c (syms_of_abbrev) <local-abbrev-tabl>: Move to buffer.c.

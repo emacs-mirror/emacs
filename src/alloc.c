@@ -2338,11 +2338,12 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   /* We must allocate one more elements than LENGTH_IN_ELTS for the
      slot `size' of the struct Lisp_Bool_Vector.  */
   val = Fmake_vector (make_number (length_in_elts + 1), Qnil);
-  p = XBOOL_VECTOR (val);
 
   /* Get rid of any bits that would cause confusion.  */
-  p->vector_size = 0;
-  XSETBOOL_VECTOR (val, p);
+  XVECTOR (val)->size = 0;	/* No Lisp_Object to trace in there.  */
+  XSETPVECTYPE (XVECTOR (val), PVEC_BOOL_VECTOR);
+
+  p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
 
   real_init = (NILP (init) ? 0 : -1);
@@ -2351,7 +2352,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
   /* Clear the extraneous bits in the last byte.  */
   if (XINT (length) != length_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
-    XBOOL_VECTOR (val)->data[length_in_chars - 1]
+    p->data[length_in_chars - 1]
       &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 
   return val;
@@ -2963,6 +2964,27 @@ allocate_vector (nslots)
 
 /* Allocate other vector-like structures.  */
 
+static struct Lisp_Vector *
+allocate_pseudovector (memlen, lisplen, tag)
+     int memlen, lisplen;
+     EMACS_INT tag;
+{
+  struct Lisp_Vector *v = allocate_vectorlike (memlen);
+  EMACS_INT i;
+
+  /* Only the first lisplen slots will be traced normally by the GC.  */
+  v->size = lisplen;
+  for (i = 0; i < lisplen; ++i)
+    v->contents[i] = Qnil;
+
+  XSETPVECTYPE (v, tag);	/* Add the appropriate tag.  */
+  return v;
+}
+#define ALLOCATE_PSEUDOVECTOR(typ,field,tag)				\
+  ((typ*)								\
+   allocate_pseudovector						\
+       (VECSIZE (typ), PSEUDOVECSIZE (typ, field), tag))
+
 struct Lisp_Hash_Table *
 allocate_hash_table ()
 {
@@ -2976,78 +2998,47 @@ allocate_hash_table ()
 
   return (struct Lisp_Hash_Table *) v;
 }
-
-
+  
+  
 struct window *
 allocate_window ()
 {
-  EMACS_INT len = VECSIZE (struct window);
-  struct Lisp_Vector *v = allocate_vectorlike (len);
-  EMACS_INT i;
-
-  for (i = 0; i < len; ++i)
-    v->contents[i] = Qnil;
-  v->size = len;
-
-  return (struct window *) v;
+  return ALLOCATE_PSEUDOVECTOR(struct window, current_matrix, PVEC_WINDOW);
 }
 
 
 struct terminal *
 allocate_terminal ()
 {
-  /* Memory-footprint of the object in nb of Lisp_Object fields.  */
-  EMACS_INT memlen = VECSIZE (struct terminal);
-  /* Size if we only count the actual Lisp_Object fields (which need to be
-     traced by the GC).  */
-  EMACS_INT lisplen = PSEUDOVECSIZE (struct terminal, next_terminal);
-  struct Lisp_Vector *v = allocate_vectorlike (memlen);
-  EMACS_INT i;
-  Lisp_Object tmp, zero = make_number (0);
+  struct terminal *t = ALLOCATE_PSEUDOVECTOR (struct terminal,
+					      next_terminal, PVEC_TERMINAL);
+  /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
+  bzero (&(t->next_terminal),
+	 ((char*)(t+1)) - ((char*)&(t->next_terminal)));
 
-  for (i = 0; i < lisplen; ++i)
-    v->contents[i] = Qnil;
-  for (;i < memlen; ++i)
-    v->contents[i] = zero;
-  v->size = lisplen;		/* Only trace the Lisp fields.  */
-  XSETTERMINAL (tmp, v);	/* Add the appropriate tag.  */
-
-  return (struct terminal *) v;
+  return t;
 }
 
 struct frame *
 allocate_frame ()
 {
-  EMACS_INT len = VECSIZE (struct frame);
-  struct Lisp_Vector *v = allocate_vectorlike (len);
-  EMACS_INT i;
-
-  for (i = 0; i < len; ++i)
-    v->contents[i] = make_number (0);
-  v->size = len;
-  return (struct frame *) v;
+  struct frame *f = ALLOCATE_PSEUDOVECTOR (struct frame,
+					   face_cache, PVEC_FRAME);
+  /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
+  bzero (&(f->face_cache),
+	 ((char*)(f+1)) - ((char*)&(f->face_cache)));
+  return f;
 }
 
 
 struct Lisp_Process *
 allocate_process ()
 {
-  /* Memory-footprint of the object in nb of Lisp_Object fields.  */
-  EMACS_INT memlen = VECSIZE (struct Lisp_Process);
-  /* Size if we only count the actual Lisp_Object fields (which need to be
-     traced by the GC).  */
-  EMACS_INT lisplen = PSEUDOVECSIZE (struct Lisp_Process, pid);
-  struct Lisp_Vector *v = allocate_vectorlike (memlen);
-  EMACS_INT i;
-
-  for (i = 0; i < lisplen; ++i)
-    v->contents[i] = Qnil;
-  v->size = lisplen;
-
-  return (struct Lisp_Process *) v;
+  return ALLOCATE_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
 }
 
 
+/* Only used for PVEC_WINDOW_CONFIGURATION. */
 struct Lisp_Vector *
 allocate_other_vector (len)
      EMACS_INT len;
@@ -3104,6 +3095,7 @@ The property's value should be an integer between 0 and 10.  */)
   /* Add 2 to the size for the defalt and parent slots.  */
   vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
 			 init);
+  XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
   XCHAR_TABLE (vector)->top = Qt;
   XCHAR_TABLE (vector)->parent = Qnil;
   XCHAR_TABLE (vector)->purpose = purpose;
@@ -3122,6 +3114,7 @@ make_sub_char_table (init)
 {
   Lisp_Object vector
     = Fmake_vector (make_number (SUB_CHAR_TABLE_STANDARD_SLOTS), init);
+  XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
   XCHAR_TABLE (vector)->top = Qnil;
   XCHAR_TABLE (vector)->defalt = Qnil;
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
@@ -3186,6 +3179,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
 	args[index] = Fpurecopy (args[index]);
       p->contents[index] = args[index];
     }
+  XSETPVECTYPE (p, PVEC_COMPILED);
   XSETCOMPILED (val, p);
   return val;
 }
@@ -5442,6 +5436,29 @@ int last_marked_index;
    Normally this is zero and the check never goes off.  */
 int mark_object_loop_halt;
 
+/* Return non-zero if the object was not yet marked.  */
+static int
+mark_vectorlike (ptr)
+     struct Lisp_Vector *ptr;
+{
+  register EMACS_INT size = ptr->size;
+  register int i;
+
+  if (VECTOR_MARKED_P (ptr))
+    return 0;			/* Already marked */
+  VECTOR_MARK (ptr);		/* Else mark it */
+  if (size & PSEUDOVECTOR_FLAG)
+    size &= PSEUDOVECTOR_SIZE_MASK;
+  
+  /* Note that this size is not the memory-footprint size, but only
+     the number of Lisp_Object fields that we should trace.
+     The distinction is used e.g. by Lisp_Process which places extra
+     non-Lisp_Object fields at the end of the structure.  */
+  for (i = 0; i < size; i++) /* and then mark its elements */
+    mark_object (ptr->contents[i]);
+  return 1;
+}
+
 void
 mark_object (arg)
      Lisp_Object arg;
@@ -5571,74 +5588,28 @@ mark_object (arg)
       else if (GC_FRAMEP (obj))
 	{
 	  register struct frame *ptr = XFRAME (obj);
-
-	  if (VECTOR_MARKED_P (ptr)) break;   /* Already marked */
-	  VECTOR_MARK (ptr);		      /* Else mark it */
-
-	  CHECK_LIVE (live_vector_p);
-	  mark_object (ptr->name);
-	  mark_object (ptr->icon_name);
-	  mark_object (ptr->title);
-	  mark_object (ptr->focus_frame);
-	  mark_object (ptr->selected_window);
-	  mark_object (ptr->minibuffer_window);
-	  mark_object (ptr->param_alist);
-	  mark_object (ptr->scroll_bars);
-	  mark_object (ptr->condemned_scroll_bars);
-	  mark_object (ptr->menu_bar_items);
-	  mark_object (ptr->face_alist);
-	  mark_object (ptr->menu_bar_vector);
-	  mark_object (ptr->buffer_predicate);
-	  mark_object (ptr->buffer_list);
-	  mark_object (ptr->buried_buffer_list);
-	  mark_object (ptr->menu_bar_window);
-	  mark_object (ptr->tool_bar_window);
+	  if (mark_vectorlike (XVECTOR (obj)))
+	    {
 	  mark_face_cache (ptr->face_cache);
 #ifdef HAVE_WINDOW_SYSTEM
 	  mark_image_cache (ptr);
-	  mark_object (ptr->tool_bar_items);
-	  mark_object (ptr->desired_tool_bar_string);
-	  mark_object (ptr->current_tool_bar_string);
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
-      else if (GC_BOOL_VECTOR_P (obj))
-	{
-	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-
-	  if (VECTOR_MARKED_P (ptr))
-	    break;   /* Already marked */
-	  CHECK_LIVE (live_vector_p);
-	  VECTOR_MARK (ptr);	/* Else mark it */
 	}
       else if (GC_WINDOWP (obj))
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  struct window *w = XWINDOW (obj);
-	  register int i;
-
-	  /* Stop if already marked.  */
-	  if (VECTOR_MARKED_P (ptr))
-	    break;
-
-	  /* Mark it.  */
-	  CHECK_LIVE (live_vector_p);
-	  VECTOR_MARK (ptr);
-
-	  /* There is no Lisp data above The member CURRENT_MATRIX in
-	     struct WINDOW.  Stop marking when that slot is reached.  */
-	  for (i = 0;
-	       (char *) &ptr->contents[i] < (char *) &w->current_matrix;
-	       i++)
-	    mark_object (ptr->contents[i]);
-
+	  if (mark_vectorlike (ptr))
+	    {
 	  /* Mark glyphs for leaf windows.  Marking window matrices is
 	     sufficient because frame matrices use the same glyph
 	     memory.  */
-	  if (NILP (w->hchild)
-	      && NILP (w->vchild)
-	      && w->current_matrix)
-	    {
-	      mark_glyph_matrix (w->current_matrix);
+	      if (NILP (w->hchild)
+		  && NILP (w->vchild)
+		  && w->current_matrix)
+		{
+		  mark_glyph_matrix (w->current_matrix);
 	      mark_glyph_matrix (w->desired_matrix);
 	    }
 	}
@@ -5672,29 +5643,13 @@ mark_object (arg)
 	  /* If hash table is not weak, mark all keys and values.
 	     For weak tables, mark only the vector.  */
 	  if (GC_NILP (h->weak))
-	    mark_object (h->key_and_value);
-	  else
-	    VECTOR_MARK (XVECTOR (h->key_and_value));
+		mark_object (h->key_and_value);
+	      else
+		VECTOR_MARK (XVECTOR (h->key_and_value));
+	    }
 	}
       else
-	{
-	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-	  register EMACS_INT size = ptr->size;
-	  register int i;
-
-	  if (VECTOR_MARKED_P (ptr)) break; /* Already marked */
-	  CHECK_LIVE (live_vector_p);
-	  VECTOR_MARK (ptr);	/* Else mark it */
-	  if (size & PSEUDOVECTOR_FLAG)
-	    size &= PSEUDOVECTOR_SIZE_MASK;
-
-	  /* Note that this size is not the memory-footprint size, but only
-	     the number of Lisp_Object fields that we should trace.
-	     The distinction is used e.g. by Lisp_Process which places extra
-	     non-Lisp_Object fields at the end of the structure.  */
-	  for (i = 0; i < size; i++) /* and then mark its elements */
-	    mark_object (ptr->contents[i]);
-	}
+	mark_vectorlike (XVECTOR (obj));
       break;
 
     case Lisp_Symbol:
@@ -5892,12 +5847,10 @@ static void
 mark_terminals (void)
 {
   struct terminal *t;
-  Lisp_Object tmp;
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
-      XSETVECTOR (tmp, t);
-      mark_object (tmp);
+      mark_vectorlike ((struct Lisp_Vector *)tmp);
     }
 }
 
