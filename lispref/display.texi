@@ -3243,7 +3243,8 @@ the text they cover.
   Some kinds of @code{display} specifications specify something to
 display instead of the text that has the property.  If a list of
 display specifications includes more than one of this kind, the first
-is effective and the rest are ignored.
+is effective and the rest are ignored.  You cannot interactively move
+point into the middle of the text that is thus replaced.
 
   For these specifications, ``the text that has the property'' means
 all the consecutive characters that have the same Lisp object as their
