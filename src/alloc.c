@@ -5590,11 +5590,11 @@ mark_object (arg)
 	  register struct frame *ptr = XFRAME (obj);
 	  if (mark_vectorlike (XVECTOR (obj)))
 	    {
-	  mark_face_cache (ptr->face_cache);
+	      mark_face_cache (ptr->face_cache);
 #ifdef HAVE_WINDOW_SYSTEM
-	  mark_image_cache (ptr);
+	      mark_image_cache (ptr);
 #endif /* HAVE_WINDOW_SYSTEM */
-	}
+	    }
 	}
       else if (GC_WINDOWP (obj))
 	{
@@ -5602,15 +5602,16 @@ mark_object (arg)
 	  struct window *w = XWINDOW (obj);
 	  if (mark_vectorlike (ptr))
 	    {
-	  /* Mark glyphs for leaf windows.  Marking window matrices is
-	     sufficient because frame matrices use the same glyph
-	     memory.  */
+	      /* Mark glyphs for leaf windows.  Marking window matrices is
+		 sufficient because frame matrices use the same glyph
+		 memory.  */
 	      if (NILP (w->hchild)
 		  && NILP (w->vchild)
 		  && w->current_matrix)
 		{
 		  mark_glyph_matrix (w->current_matrix);
-	      mark_glyph_matrix (w->desired_matrix);
+		  mark_glyph_matrix (w->desired_matrix);
+		}
 	    }
 	}
       else if (GC_HASH_TABLE_P (obj))
