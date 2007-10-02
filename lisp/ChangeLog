@@ -1,3 +1,15 @@
+2007-10-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Make gdba default and switch to gdb
+	if appropriate, i.e., reverse previous arrangement.
+	(gud-gdb-marker-filter): Adapt for above change.
+
+	* progmodes/gdb-ui.el (gdb-init-1): Don't set the values
+	gud-minor-mode and gud-marker-filter.
+	(gdb-fullname-regexp): New variable.
+	(gud-gdba-marker-filter): Use it to switch to text command
+	mode if appropriate.
+
 2007-10-02  Richard Stallman  <rms@gnu.org>
 
 	* frame.el (cursor-in-non-selected-windows): Doc fix.
