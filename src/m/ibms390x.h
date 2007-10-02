@@ -140,11 +140,6 @@ NOTE-END */
 
 #define VALBITS         60
 
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
-
 #define LINKER $(CC) -nostdlib
 
 /* Define XINT and XUINT so that they can take arguments of type int */
