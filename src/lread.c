@@ -3672,6 +3672,7 @@ defsubr (sname)
 {
   Lisp_Object sym;
   sym = intern (sname->symbol_name);
+  XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (XSYMBOL (sym)->function, sname);
 }
 
