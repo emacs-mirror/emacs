@@ -6049,7 +6049,7 @@ zero means top of window, negative means relative to bottom of window.  */)
 
 struct save_window_data
   {
-    EMACS_INT size_from_Lisp_Vector_struct;
+    EMACS_UINT size;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
     Lisp_Object frame_cols, frame_lines, frame_menu_bar_lines;
     Lisp_Object frame_tool_bar_lines;
@@ -6072,7 +6072,7 @@ struct save_window_data
 struct saved_window
 {
   /* these first two must agree with struct Lisp_Vector in lisp.h */
-  EMACS_INT size_from_Lisp_Vector_struct;
+  EMACS_UINT size;
   struct Lisp_Vector *next_from_Lisp_Vector_struct;
 
   Lisp_Object window;

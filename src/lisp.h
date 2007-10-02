@@ -308,11 +308,11 @@ typedef EMACS_INT Lisp_Object;
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-#define ARRAY_MARK_FLAG ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS - 1)))
+#define ARRAY_MARK_FLAG ((EMACS_UINT) 1 << (BITS_PER_EMACS_INT - 1))
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-#define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1) & ~ARRAY_MARK_FLAG)
+#define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1))
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
@@ -733,7 +733,7 @@ struct Lisp_String
 
 struct Lisp_Vector
   {
-    EMACS_INT size;
+    EMACS_UINT size;
     struct Lisp_Vector *next;
     Lisp_Object contents[1];
   };
@@ -840,7 +840,7 @@ struct Lisp_Char_Table
        pseudovector type information.  It holds the size, too.
        The size counts the top, defalt, purpose, and parent slots.
        The last three are not counted if this is a sub char table.  */
-    EMACS_INT size;
+    EMACS_UINT size;
     struct Lisp_Vector *next;
     /* This holds a flag to tell if this is a top level char table (t)
        or a sub char table (nil).  */
@@ -871,10 +871,10 @@ struct Lisp_Bool_Vector
   {
     /* This is the vector's size field.  It doesn't have the real size,
        just the subtype information.  */
-    EMACS_INT vector_size;
+    EMACS_UINT vector_size;
     struct Lisp_Vector *next;
     /* This is the size in bits.  */
-    EMACS_INT size;
+    EMACS_UINT size;
     /* This contains the actual bits, packed into bytes.  */
     unsigned char data[1];
   };
@@ -889,7 +889,7 @@ struct Lisp_Bool_Vector
 
 struct Lisp_Subr
   {
-    EMACS_INT size;
+    EMACS_UINT size;
     Lisp_Object (*function) ();
     short min_args, max_args;
     char *symbol_name;
@@ -1000,7 +1000,7 @@ struct Lisp_Symbol
 struct Lisp_Hash_Table
 {
   /* Vector fields.  The hash table code doesn't refer to these.  */
-  EMACS_INT size;
+  EMACS_UINT size;
   struct Lisp_Vector *vec_next;
 
   /* Function used to compare keys.  */

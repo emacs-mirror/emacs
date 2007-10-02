@@ -317,7 +317,7 @@ struct terminal
 {
   /* The first two fields are really the header of a vector */
   /* The terminal code does not refer to them.  */
-  EMACS_INT size;
+  EMACS_UINT size;
   struct Lisp_Vector *vec_next;
 
   /* Parameter alist of this terminal.  */

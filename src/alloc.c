@@ -2341,6 +2341,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
   /* Get rid of any bits that would cause confusion.  */
   XVECTOR (val)->size = 0;	/* No Lisp_Object to trace in there.  */
+  /* Use  XVECTOR (val) rather than `p' because p->size is not TRT. */
   XSETPVECTYPE (XVECTOR (val), PVEC_BOOL_VECTOR);
 
   p = XBOOL_VECTOR (val);

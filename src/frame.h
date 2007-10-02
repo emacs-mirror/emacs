@@ -74,7 +74,7 @@ struct terminal;
 
 struct frame
 {
-  EMACS_INT size;
+  EMACS_UINT size;
   struct Lisp_Vector *next;
 
   /* All Lisp_Object components must come first.

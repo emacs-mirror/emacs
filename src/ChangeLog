@@ -1,7 +1,19 @@
 2007-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.h (struct window):
+	* window.c (struct save_window_data, struct saved_window):
+	* termhooks.h (struct terminal):
+	* process.h (struct Lisp_Process):
+	* frame.h (struct frame):
+	* buffer.h (struct buffer):
+	* lisp.h (struct Lisp_Vector, struct Lisp_Char_Table)
+	(struct Lisp_Bool_Vector, struct Lisp_Subr, struct Lisp_Hash_Table):
+	The size field of (pseudo)vectors is now unsigned.
+	(ARRAY_MARK_FLAG, PSEUDOVECTOR_FLAG): Simplify accordingly.
+
 	* lisp.h (struct Lisp_Hash_Table): Move non-traced elements at the end.
 	Turn `count' into an integer.
+
 	* fns.c (make_hash_table, hash_put, hash_remove, hash_clear)
 	(sweep_weak_table, sweep_weak_hash_tables, Fhash_table_count):
 	* print.c (print_object) <HASH_TABLE_P>: `count' is an int.
