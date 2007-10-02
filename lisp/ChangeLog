@@ -1,3 +1,7 @@
+2007-10-02  Adam Hupp <adam@hupp.org>  (tiny change)
+
+	* progmodes/gdb-ui.el (pdb): Specify file for gud-break.
+
 2007-10-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gdb): Make gdba default and switch to gdb
