@@ -429,6 +429,7 @@ The value is never nil.  */)
   b->name = name;
 
   /* Put this in the alist of all live buffers.  */
+  XSETPVECTYPE (b, PVEC_BUFFER);
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
@@ -5036,7 +5037,9 @@ init_buffer_once ()
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
+  XSETPVECTYPE (&buffer_defaults, PVEC_BUFFER);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
+  XSETPVECTYPE (&buffer_local_symbols, PVEC_BUFFER);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
