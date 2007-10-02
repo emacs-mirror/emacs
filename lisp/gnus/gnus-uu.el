@@ -1089,7 +1089,7 @@ When called interactively, prompt for REGEXP."
 				nil t)
 	    (replace-match "\\1[0-9]+\\2[0-9]+" t nil nil nil))))
 
-    (goto-char 1)
+    (goto-char (point-min))
     (while (re-search-forward "[ \t]+" nil t)
       (replace-match "[ \t]+" t t))
 
@@ -1190,7 +1190,7 @@ When called interactively, prompt for REGEXP."
 	     (format "%06d"
 		     (string-to-number (buffer-substring
 				     (match-beginning 0) (match-end 0)))))))
-	(setq string (buffer-substring 1 (point-max)))
+	(setq string (buffer-substring (point-min) (point-max)))
 	(setcar (car string-list) string)
 	(setq string-list (cdr string-list))))
     out-list))
