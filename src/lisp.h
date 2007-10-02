@@ -1019,13 +1019,6 @@ struct Lisp_Hash_Table
      ratio, a float.  */
   Lisp_Object rehash_threshold;
 
-  /* Number of key/value entries in the table.  */
-  Lisp_Object count;
-
-  /* Vector of keys and values.  The key of item I is found at index
-     2 * I, the value is found at index 2 * I + 1.  */
-  Lisp_Object key_and_value;
-
   /* Vector of hash codes.. If hash[I] is nil, this means that that
      entry I is unused.  */
   Lisp_Object hash;
@@ -1048,6 +1041,18 @@ struct Lisp_Hash_Table
 
   /* User-supplied key comparison function, or nil.  */
   Lisp_Object user_cmp_function;
+
+  /* Only the fields above are traced normally by the GC.  The ones below
+     `count'.  are special and are either ignored by the GC or traced in
+     a special way (e.g. because of weakness).  */
+
+  /* Number of key/value entries in the table.  */
+  unsigned int count;
+
+  /* Vector of keys and values.  The key of item I is found at index
+     2 * I, the value is found at index 2 * I + 1.
+     This is gc_marked specially if the table is weak.  */
+  Lisp_Object key_and_value;
 
   /* Next weak hash table if this is a weak hash table.  The head
      of the list is in weak_hash_tables.  */

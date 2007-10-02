@@ -2986,20 +2986,12 @@ allocate_pseudovector (memlen, lisplen, tag)
        (VECSIZE (typ), PSEUDOVECSIZE (typ, field), tag))
 
 struct Lisp_Hash_Table *
-allocate_hash_table ()
+allocate_hash_table (void)
 {
-  EMACS_INT len = VECSIZE (struct Lisp_Hash_Table);
-  struct Lisp_Vector *v = allocate_vectorlike (len);
-  EMACS_INT i;
-
-  v->size = len;
-  for (i = 0; i < len; ++i)
-    v->contents[i] = Qnil;
-
-  return (struct Lisp_Hash_Table *) v;
+  return ALLOCATE_PSEUDOVECTOR (struct Lisp_Hash_Table, count, PVEC_HASH_TABLE);
 }
-  
-  
+
+
 struct window *
 allocate_window ()
 {
@@ -5617,33 +5609,10 @@ mark_object (arg)
       else if (GC_HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
-
-	  /* Stop if already marked.  */
-	  if (VECTOR_MARKED_P (h))
-	    break;
-
-	  /* Mark it.  */
-	  CHECK_LIVE (live_vector_p);
-	  VECTOR_MARK (h);
-
-	  /* Mark contents.  */
-	  /* Do not mark next_free or next_weak.
-	     Being in the next_weak chain
-	     should not keep the hash table alive.
-	     No need to mark `count' since it is an integer.  */
-	  mark_object (h->test);
-	  mark_object (h->weak);
-	  mark_object (h->rehash_size);
-	  mark_object (h->rehash_threshold);
-	  mark_object (h->hash);
-	  mark_object (h->next);
-	  mark_object (h->index);
-	  mark_object (h->user_hash_function);
-	  mark_object (h->user_cmp_function);
-
-	  /* If hash table is not weak, mark all keys and values.
-	     For weak tables, mark only the vector.  */
-	  if (GC_NILP (h->weak))
+	  if (mark_vectorlike ((struct Lisp_Vector *)h))
+	    { /* If hash table is not weak, mark all keys and values.
+		 For weak tables, mark only the vector.  */
+	      if (GC_NILP (h->weak))
 		mark_object (h->key_and_value);
 	      else
 		VECTOR_MARK (XVECTOR (h->key_and_value));

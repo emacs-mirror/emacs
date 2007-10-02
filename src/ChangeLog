@@ -1,5 +1,13 @@
 2007-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (struct Lisp_Hash_Table): Move non-traced elements at the end.
+	Turn `count' into an integer.
+	* fns.c (make_hash_table, hash_put, hash_remove, hash_clear)
+	(sweep_weak_table, sweep_weak_hash_tables, Fhash_table_count):
+	* print.c (print_object) <HASH_TABLE_P>: `count' is an int.
+	* alloc.c (allocate_hash_table): Use ALLOCATE_PSEUDOVECTOR.
+	(mark_object) <HASH_TABLE_P>: Use mark_vectorlike.
+
 	* alloc.c (allocate_pseudovector): New fun.
 	(ALLOCATE_PSEUDOVECTOR): New macro.
 	(allocate_window, allocate_terminal, allocate_frame)

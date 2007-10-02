@@ -1987,7 +1987,7 @@ print_object (obj, printcharfun, escapeflag)
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%ld/%ld", (long) XFASTINT (h->count),
+	      sprintf (buf, "%ld/%ld", (long) h->count,
 		       (long) XVECTOR (h->next)->size);
 	      strout (buf, -1, -1, printcharfun, 0);
 	    }
