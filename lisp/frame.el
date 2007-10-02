@@ -1501,6 +1501,9 @@ cursor shapes."
 (defcustom cursor-in-non-selected-windows t
   "*Non-nil means show a hollow box cursor in non-selected windows.
 If nil, don't show a cursor except in the selected window.
+If t, display a cursor related to the usual cursor type
+ \(a solid box becomes hollow, a bar becomes a narrower bar).
+You can also specify the cursor type as in the `cursor-type' variable.
 Use Custom to set this variable to get the display updated."
   :tag "Cursor In Non-selected Windows"
   :type 'boolean
