@@ -1,3 +1,7 @@
+2007-10-02  Richard Stallman  <rms@gnu.org>
+
+	* frame.el (cursor-in-non-selected-windows): Doc fix.
+
 2007-10-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-display-line): Find source buffer even when
