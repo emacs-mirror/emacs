@@ -1,3 +1,7 @@
+2007-10-02  Richard Stallman  <rms@gnu.org>
+
+	* frame.el (cursor-in-non-selected-windows): Doc fix.
+
 2007-10-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* play/zone.el (zone): Let-bind show-trailing-whitespace to nil.
