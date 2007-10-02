@@ -2391,7 +2391,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
 	 unspecified and reversed, take the frame's background pixel
 	 for foreground and vice versa.  */
       elt = Fassq (Qforeground_color, alist);
-      if (!NILP (elt) && CONSP (elt) && STRINGP (XCDR (elt)))
+      if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
 	  if (strncmp (SDATA (XCDR (elt)),
 		       unspecified_bg,
@@ -2405,7 +2405,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
       else
 	store_in_alist (&alist, Qforeground_color, tty_color_name (f, fg));
       elt = Fassq (Qbackground_color, alist);
-      if (!NILP (elt) && CONSP (elt) && STRINGP (XCDR (elt)))
+      if (CONSP (elt) && STRINGP (XCDR (elt)))
 	{
 	  if (strncmp (SDATA (XCDR (elt)),
 		       unspecified_fg,
