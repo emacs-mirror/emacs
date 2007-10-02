@@ -306,25 +306,21 @@ typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
 
-/* Two flags that are set during GC.  On some machines, these flags
-   are defined differently by the m- file.  */
-
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-#ifndef ARRAY_MARK_FLAG
 #define ARRAY_MARK_FLAG ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS - 1)))
-#endif /* no ARRAY_MARK_FLAG */
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-#ifndef PSEUDOVECTOR_FLAG
 #define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1) & ~ARRAY_MARK_FLAG)
-#endif
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
    indicate the actual type.
-   FIXME: Why a bitset if only one of the bits can ever be set at a time?  */
+   We use a bitset, even tho only one of the bits can be set at any
+   particular time just so as to be able to use micro-optimizations such as
+   testing membership of a particular subset of pseudovectors in Fequal.
+   It is not crucial, but there are plenty of bits here, so why not do it?  */
 enum pvec_type
 {
   PVEC_NORMAL_VECTOR = 0,
@@ -544,8 +540,8 @@ extern size_t pure_size;
 #define XTERMINAL(a) (eassert (GC_TERMINALP(a)),(struct terminal *) XPNTR(a))
 #define XSUBR(a) (eassert (GC_SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
 #define XBUFFER(a) (eassert (GC_BUFFERP(a)),(struct buffer *) XPNTR(a))
-#define XCHAR_TABLE(a) ((struct Lisp_Char_Table *) XPNTR(a))
-#define XBOOL_VECTOR(a) ((struct Lisp_Bool_Vector *) XPNTR(a))
+#define XCHAR_TABLE(a) (eassert (GC_CHAR_TABLE_P (a)), (struct Lisp_Char_Table *) XPNTR(a))
+#define XBOOL_VECTOR(a) (eassert (GC_BOOL_VECTOR_P (a)), (struct Lisp_Bool_Vector *) XPNTR(a))
 
 /* Construct a Lisp_Object from a value or address.  */
 
@@ -563,8 +559,9 @@ extern size_t pure_size;
 
 /* Pseudovector types.  */
 
+#define XSETPVECTYPE(v,code) ((v)->size |= PSEUDOVECTOR_FLAG | (code))
 #define XSETPSEUDOVECTOR(a, b, code) \
-  (XSETVECTOR (a, b), XVECTOR (a)->size |= PSEUDOVECTOR_FLAG | (code))
+  (XSETVECTOR (a, b), XSETPVECTYPE (XVECTOR (a), code))
 #define XSETWINDOW_CONFIGURATION(a, b) \
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
