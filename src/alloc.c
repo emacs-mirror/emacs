@@ -5821,7 +5821,7 @@ mark_terminals (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
-      mark_vectorlike ((struct Lisp_Vector *)tmp);
+      mark_vectorlike ((struct Lisp_Vector *)t);
     }
 }
 
