@@ -472,9 +472,6 @@ otherwise do not."
       expr)))
 
 (defun gdb-init-1 ()
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
-  ;;
   (gud-def gud-break (if (not (string-match "Machine" mode-name))
 			 (gud-call "break %f:%l" arg)
 		       (save-excursion
@@ -1515,6 +1512,10 @@ happens to be appropriate."
       (set-window-buffer source-window buffer))
     source-window))
 
+;; Derived from gud-gdb-marker-regexp
+(defvar gdb-fullname-regexp
+  (concat "\\(.:?[^" ":" "\n]*\\)" ":" "\\([0-9]*\\)" ":" ".*"))
+
 (defun gud-gdba-marker-filter (string)
   "A gud marker filter for gdb.  Handle a burst of output from GDB."
   (if gdb-flush-pending-output
@@ -1531,34 +1532,50 @@ happens to be appropriate."
       ;;
       ;; Process all the complete markers in this chunk.
       (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
-	(let ((annotation (match-string 1 gud-marker-acc)))
-	  ;;
-	  ;; Stuff prior to the match is just ordinary output.
-	  ;; It is either concatenated to OUTPUT or directed
-	  ;; elsewhere.
-	  (setq output
-		(gdb-concat-output
-		 output
-		 (substring gud-marker-acc 0 (match-beginning 0))))
-	  ;;
-	  ;; Take that stuff off the gud-marker-acc.
-	  (setq gud-marker-acc (substring gud-marker-acc (match-end 0)))
+	(let ((annotation (match-string 1 gud-marker-acc))
+	      (before (substring gud-marker-acc 0 (match-beginning 0)))
+	      (after (substring gud-marker-acc (match-end 0))))
 	  ;;
 	  ;; Parse the tag from the annotation, and maybe its arguments.
 	  (string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
 	  (let* ((annotation-type (match-string 1 annotation))
 		 (annotation-arguments (match-string 2 annotation))
 		 (annotation-rule (assoc annotation-type
-					 gdb-annotation-rules)))
+					 gdb-annotation-rules))
+		 (fullname (string-match gdb-fullname-regexp annotation-type)))
+
+	    ;; Stuff prior to the match is just ordinary output.
+	    ;; It is either concatenated to OUTPUT or directed
+	    ;; elsewhere.
+	    (setq output
+		  (gdb-concat-output output
+				     (concat before (if fullname "\n"))))
+
+	    ;; Take that stuff off the gud-marker-acc.
+	    (setq gud-marker-acc after)
+
 	    ;; Call the handler for this annotation.
 	    (if annotation-rule
 		(funcall (car (cdr annotation-rule))
 			 annotation-arguments)
-	      ;; Else the annotation is not recognized.  Ignore it silently,
-	      ;; so that GDB can add new annotations without causing
-	      ;; us to blow up.
-	      ))))
-      ;;
+
+	      ;; Switch to gud-gdb-marker-filter if appropriate.
+	      (when fullname
+
+		;; Extract the frame position from the marker.
+		(setq gud-last-frame (cons (match-string 1 annotation)
+					   (string-to-number
+					    (match-string 2 annotation))))
+
+		(set (make-local-variable 'gud-minor-mode) 'gdb)
+		(set (make-local-variable 'gud-marker-filter)
+		     'gud-gdb-marker-filter)))
+
+	    ;; Else the annotation is not recognized.  Ignore it silently,
+	    ;; so that GDB can add new annotations without causing
+	    ;; us to blow up.
+	    )))
+
       ;; Does the remaining text end in a partial line?
       ;; If it does, then keep part of the gud-marker-acc until we get more.
       (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
@@ -2810,7 +2827,7 @@ corresponding to the mode line clicked."
   (let ((answer (get-buffer-window buf 0))
 	(must-split nil))
     (if answer
-	(display-buffer buf nil 0)	;Raise the frame if necessary.
+	(display-buffer buf nil 0)	;Deiconify the frame if necessary.
       ;; The buffer is not yet displayed.
       (pop-to-buffer gud-comint-buffer)	;Select the right frame.
       (let ((window (get-lru-window)))
