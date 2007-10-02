@@ -6663,6 +6663,7 @@ redirection (see `redirect-frame-focus').  */)
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
   vec = allocate_other_vector (VECSIZE (struct save_window_data));
+  XSETPVECTYPE (vec, PVEC_WINDOW_CONFIGURATION);
   data = (struct save_window_data *)vec;
 
   XSETFASTINT (data->frame_cols, FRAME_COLS (f));
