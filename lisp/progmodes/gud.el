@@ -635,14 +635,6 @@ required by the caller."
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
       (let ((match (match-string 1 gud-marker-acc)))
 
-	;; Pick up stopped annotation if attaching to process.
-	(if (string-equal match "stopped") (setq gdb-active-process t))
-
-	;; Using annotations, switch to gud-gdba-marker-filter.
-	(when (string-equal match "prompt")
-	  (require 'gdb-ui)
-	  (gdb-prompt nil))
-
 	(setq
 	 ;; Append any text before the marker to the output we're going
 	 ;; to return - we don't include the marker in this text.
@@ -651,13 +643,7 @@ required by the caller."
 
 	 ;; Set the accumulator to the remaining text.
 
-	 gud-marker-acc (substring gud-marker-acc (match-end 0)))
-
-	;; Pick up any errors that occur before first prompt annotation.
-	(if (string-equal match "error-begin")
-	    (put-text-property 0 (length gud-marker-acc)
-			       'face font-lock-warning-face
-			       gud-marker-acc))))
+	 gud-marker-acc (substring gud-marker-acc (match-end 0)))))
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
@@ -725,6 +711,8 @@ text command mode to debug multiple programs within one Emacs
 session."
   (interactive (list (gud-query-cmdline 'gdb)))
 
+  (require 'gdb-ui)
+
   (when (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
 	   (get-buffer-process gud-comint-buffer)
@@ -733,8 +721,8 @@ session."
 	(error
 	 "Multiple debugging requires restarting in text command mode"))
 
-  (gud-common-init command-line nil 'gud-gdb-marker-filter)
-  (set (make-local-variable 'gud-minor-mode) 'gdb)
+  (gud-common-init command-line nil 'gud-gdba-marker-filter)
+  (set (make-local-variable 'gud-minor-mode) 'gdba)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
