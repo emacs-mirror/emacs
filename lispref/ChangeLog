@@ -1,3 +1,14 @@
+2007-10-02  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Property): Explain some display specs
+	don't let you move point in.
+
+	* frames.texi (Cursor Parameters): Describe
+	cursor-in-non-selected-windows here.  Explain more values.
+
+	* windows.texi (Basic Windows): Don't describe
+	cursor-in-non-selected-windows here.
+
 2007-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Misc Network): Note that these functions are
