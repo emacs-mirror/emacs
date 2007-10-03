@@ -343,8 +343,7 @@ It'a a subdirectory of `doc-view-cache-directory'."
 	       (md5 (current-buffer)))))))
 
 (defun doc-view-dvi->pdf-sentinel (proc event)
-  "If DVI->PDF conversion was successful, convert the PDF to PNG
- now."
+  "If DVI->PDF conversion was successful, convert the PDF to PNG now."
   (if (not (string-match "finished" event))
       (message "DocView: dvi->pdf process changed status to %s." event)
     (set-buffer (process-get proc 'buffer))
@@ -530,7 +529,7 @@ dragging it to its bottom-right corner.  See also
     (doc-view-set-slice x y w h)))
 
 (defun doc-view-reset-slice ()
-  "Resets the current slice.
+  "Reset the current slice.
 After calling this function the whole pages will be visible
 again."
   (interactive)
@@ -542,7 +541,7 @@ again."
 
 (defun doc-view-insert-image (file &rest args)
   "Insert the given png FILE.
-ARGs is a list of image descriptors."
+ARGS is a list of image descriptors."
   (let ((image (apply 'create-image file 'png nil args)))
     (setq doc-view-current-image image)
     (insert-image image (concat "[" file "]") nil doc-view-current-slice)))
