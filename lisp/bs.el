@@ -668,7 +668,7 @@ to show always.
     (setq bs--window-config-coming-from nil)))
 
 (defun bs-kill ()
-  "Let buffer disappear and reset window-configuration."
+  "Let buffer disappear and reset window configuration."
   (interactive)
   (bury-buffer (current-buffer))
   (bs--restore-window-config))
