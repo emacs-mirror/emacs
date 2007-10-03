@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: Access by mutator -- a barrier hit!</title>
+  <title>MPS Wiki: Access by mutator -- a shield hit!</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,7 +30,7 @@
 
 <hr />
 
-<h1>MPS Wiki: Access by mutator -- a barrier hit!</h1>
+<h1>MPS Wiki: Access by mutator -- a shield hit!</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
@@ -55,104 +55,111 @@
 <p>( Some additional notes on why the MPS needs to know about these accesses: </p>
 
 <blockquote>
-<p><strong>Incremental GC</strong>: During an incremental garbage collection trace, the mutator (client) code runs, and may access and change ("mutate") the object graph, while the MPS is still working on GC'ing it.  The mutator must not be able to see or change* parts of the object graph on the other side of the flip, so the MPS protects these parts with a barrier.  When the mutator hits such a barrier, this is called an <strong>access</strong>.</p>
+<p><strong>Incremental GC</strong>: During an incremental garbage collection trace, the mutator (client) code runs, and may access and change ("mutate") the object graph, while the MPS is still working on GC'ing it.  The mutator must not be able to see or change* parts of the object graph on the other side of the flip, so the MPS protects these parts with a 'shield'.  When the mutator hits such a shield, this is called an <strong>access</strong>.</p>
 
-<p class="note">(* "see or change": Currently, the MPS only uses black-mutator tracing: the mutator must not see past the flip, so the MPS sets a read barrier on grey objects.  For grey-mutator tracing (not fully implemented): the mutator must not change objects past the flip, so the MPS would set a write barrier on black objects.)</p>
+<p class="note">(* "see or change": Currently, the MPS only uses black-mutator tracing: the mutator must not see past the flip, so the MPS sets a read shield on grey objects.  For grey-mutator tracing (not fully implemented): the mutator must not change objects past the flip, so the MPS would set a write shield on black objects.)</p>
 
-<p><strong>Summaries</strong>: The MPS maintains summaries of which zones are referenced by the objects on each segment.  If the mutator changes parts of such a segment, the summary may no longer be correct, so the MPS protects summarised segments (those with a non-trivial summary) with a write-barrier.  When the mutator hits such a barrier, this is called an <strong>access</strong>, also.</p>
+<p><strong>Summaries</strong>: The MPS maintains summaries of which zones are referenced by the objects on each segment.  If the mutator changes parts of such a segment, the summary may no longer be correct, so the MPS protects summarised segments (those with a non-trivial summary) with a write-shield.  When the mutator hits such a shield, this is called an <strong>access</strong>, also.</p>
 </blockquote>
 
 <p>)</p>
 
-<p>By setting operating system memory barriers, the MPS intercepts these types of mutator access.</p>
+<p>Every MPS memory segment has two <strong>shields</strong> -- a <strong>Read-shield</strong> and a <strong>Write-shield</strong>.  The read and write shields may be raised and lowered independently.  If the Read-shield (for example) is raised, and the mutator tries to read from the segment, it causes an access fault which is caught by the MPS.</p>
 
-<p>So the requirement-to-be-informed is recorded at three levels:</p>
+<p><em>(<code>SegSM</code> (ShieldMode) states which shields are supposed to be seen by the mutator.  <code>SegPM</code> (ProtectionMode) is the <em>current</em> state of shields, which may be lower than <code>SegSM</code> when the MPS is accessing memory and the mutator is stopped.)</em></p>
+
+<p>Shields are a platform-independent abstraction.  They are implemented by setting operating system <strong>memory barriers</strong>.  Unfortunately the mapping is not 1-to-1.</p>
+
+<p>Note that the same fact (mutator access must be intercepted) is simultaneously recorded at three levels:</p>
 <ul>
-  <li> ... at the level of the data that needs to be protected (segment-blackness on some pre-flipped trace, segment-greyness on some flipped trace, or segment with a non-UNIV summary); </li>
-  <li> ... at the level of the MPS Shield "SM" (ShieldMode) flags (SM &amp; AccessWRITE, SM &amp; AccessREAD; SM &amp; AccessWRITE); </li>
-  <li> ... in the OS protection map for the segment's memory pages. </li>
+  <li> in the state of the data being shielded (for example, a segment that is grey for some flipped trace <em>must</em> be read-shielded when the mutator is running); </li>
+  <li> in the segment's shield mode (for example, <code>SegSM = AccessREAD</code>); </li>
+  <li> (except when mutator is stopped) in the OS protection map for the segment's memory pages (for example, <code>PROT_NONE</code>)</li>
 </ul>
 
 <p>When an access is intercepted, the MPS may do some preparatory processing, but it <em>must</em> then perform the access that the mutator intended.  There are two ways to do this:</p>
 
 <ul>
-  <li> (after the preparatory processing) <strong>remove</strong> the memory barrier, and restart the mutator at the instruction that caused the access -- which will then succeed as normal without hitting any barrier; </li>
-  <li> (after the preparatory processing) <strong>emulate</strong> the mutator instruction that caused the access, do some post-processing (if required), leave the memory barrier in place, and restart the mutator at the instruction <em>after</em> the one that caused the access.</li>
+  <li> (after the preparatory processing) <strong>drop</strong> the appropriate shields, and restart the mutator at the instruction that caused the access -- which will then succeed as normal without hitting any shield; </li>
+  <li> (after the preparatory processing) <strong>step</strong> the mutator instruction that caused the access, do some post-processing (if required), leave the shields in place, and restart the mutator at the instruction <em>after</em> the one that caused the access fault.  The usual way to step the instruction is to <strong>emulate</strong> it.</li>
 </ul>
 
 <p>The MPS must choose which approach to use for each access.  As often happens, there is a space/time tradeoff -- see "choosing approach" below.  To summarise the choice in brief:</p>
 <ul>
-  <li> Removing the barrier is always possible, but may require up to a whole segment of references to be scanned too early -- that is, band-promoted -- and may therefore cause object retention and delayed finalization.</li>
-  <li> Emulation allows the MPS to band-promote only the single accessed reference, and thus causes less retention.  However, it is not always possible (not all instructions can be emulated), and may take more time because it leaves the barrier in place, which may cause the mutator to hit the barrier repeatedly.</li>
+  <li> Dropping shields is always possible, but may require up to a whole segment of references to be scanned too early -- that is, band-promoted -- and may therefore cause object retention and delayed finalization.</li>
+  <li> Stepping allows the MPS to band-promote only the single accessed reference, and thus causes less retention.  However, it is not always possible (not all instructions can be emulated), and may take more time because it leaves the shields in place, which may cause the mutator to hit the shields repeatedly.</li>
 </ul>
 
 
-<h2>Which Barriers Were Hit?</h2>
+<h2>Relationship Between Shields And Operating-System Memory Barriers</h2>
 
 
-<p>Oh, if only it were so simple.  The MPS Shield abstractly assumes that read barrier and write barrier are independent controllable, and that the MPS can tell precisely which one was hit.  Abstractly, we'd like to know the following quantity:</p>
-
-<blockquote><pre><code>AccessSet wereHit;  /* which barriers were hit */</code></pre></blockquote>
-
-<p>This is too simplistic!  Because, alas, operating systems are not so flexible:</p>
+<p>The MPS Shield abstractly assumes that the read shield and write shield are independent controllable, and that the MPS can tell precisely which shield was hit.  Alas, operating systems are not so flexible:</p>
 <ul>
-  <li> most OSs don't allow setting write barrier but no read barrier; </li>
-  <li> some OSs don't tell the signal-handler whether the faulting instruction tried to read, write, or both. </li>
+  <li> On both Unix and Windows, the OS does not allow setting a pure read-barrier (that is: prevent reads but allow writes).  Therefore the read-shield also traps writes.  So if the mutator tries to write to a segment with a read-shield, it will cause an access fault: the read-shield has (unfortunately) been hit even though the MPS does not care about the mutator write instruction. </li>
+  <li> On most Unixes, the OS does not tell the signal-handler whether the faulting instruction tried to read, write, or both.  So if the mutator tries to read from a segment, and the segment has both a read- and a write-shield, the MPS will not (unfortunately) be able to tell which shield was hit: it must treat it as having hit both shields.</li>
 </ul>
 
-<p>Which barrier was actually hit turns out not to be very important!  What <em>really</em> matters, for each faulting instruction, are the following two properties:</p>
+
+<h2>Which Shields Were Hit?  What Did The Instruction Attempt?</h2>
+
+
+<p>The MPS needs to know the following two properties:</p>
 <ul>
-  <li> .mustGetLowered: which barriers -- expressed as an MPS Shield AccessSet -- must the MPS necessarily ask to be lowered in order to permit this instruction to succeed?  <em>(Note: the "<code>mustGetLowered</code>" value must be the same as or smaller than the barriers MPS Shield asked for, because there is no reason for an OS barrier to be in place other than that MPS Shield asked for it)</em></li>
-  <li> .willBeAccessed: will this mutator instruction <em>actually</em> read, write, or both read and write the reference? </li>
+  <li> .mustDrop: which shields were hit, or equivalently: which shields must the MPS necessarily lower in order to be sure this instruction will not fault? </li>
+  <li> .willBeAccessed: will this mutator instruction <em>actually</em> read, write, or both read and write, the reference? </li>
 </ul>
 
-<p>Currently, these two values (plus the choice of which barriers to lower, see below) are all lumped together into a single "<code>mode</code>" argument which gets modified and interpreted at various stages in a rather ad hoc way.  This makes it very hard to know what "mode" really means.  Currently, the platform-part is not allowed to see SM* and PM*, so it calculates a (very conservative) value without this information, and passes it in the "<code>mode</code>" parameter of its call to ArenaAccess().  Then the platform-independent ArenaAccess and friends, which can see SM/PM, make further adjustments.</p>
+<p>For example, if the mutator writes to a segment with a read-shield on Unix or Windows (which do not support pure read-barriers) the values are willBeAccessed = WRITE and mustDrop = READ.  The write instruction 'should not' have caused the read-shield hit, but it did because of OS limitations.  The shield that must be lowered to prevent a fault is the READ shield -- counterintuitive but true.</p>
 
-<p><em>(*: SM (ShieldMode) states which barriers are supposed to be seen by the mutator. PM (ProtectionMode) states how the MPS would like the OS barriers to be set right now. When the MPS is accessing memory, PM may be lower than SM.)</em></p>
+<p>Currently, these two values (and sometimes a choice to lower additional shields, see below) are lumped together into a single "<code>mode</code>" argument which gets modified and interpreted at various stages in a rather ad hoc way.  This makes it very hard to know what "<code>mode</code>" really means.  Currently, the platform-part cannot see SegSM, so it calculates a (very conservative) value without this information, and passes it in the "<code>mode</code>" parameter of its call to ArenaAccess().  Then the platform-independent ArenaAccess and friends, which can see SegSM, make further adjustments.</p>
 
-<p class="note"><em class="note">[I do not like this approach.  I'd prefer it if mustGetLowered and willBeAccessed were explicitly calculated by the platform-part of the MPS barrier code (prot*.c), using whatever data the OS passes to the signal-handler, <strong>plus</strong> the SM and PM values for this segment.  The platform-part could have several static tables from SM/PM -> mustGetLowered x willBeAccessed, select the appropriate one depending on the data the OS passes to the signal-handler for this hit, and pass a pointer to it in the call to ArenaAccess() (in a new parameter).  RHSK 2007-10-01]</em></p>
+<p class="note"><em class="note">[I do not like this approach.  I'd prefer it if mustDrop and willBeAccessed were explicitly calculated by the platform-part of the MPS shield code (prot*.c), using whatever data the OS passes to the signal-handler, <strong>plus</strong> SegSM for this segment.  The platform-part would not have to reas SegSM: it could have several static tables from SegSM -> mustDrop x willBeAccessed, select the appropriate one depending on the data the OS passes to the signal-handler for this hit, and pass a pointer to it in the call to ArenaAccess() (in a new parameter).  RHSK 2007-10-01]</em></p>
 
 <p class="note"><em class="note">[Also, what is that test of SegPM() doing in global.c?  Threads may cause nasty synchronisation issues: SM and PM do not change atomically with changes to the OS barriers, so threads may cause a barrier hit when the barriers and SM &amp; PM are not consistent.  If all MPS access to mutator memory (such as during collection work) only happens when all threads are stopped, then this doesn't happen yet.  RHSK 2007-09-30]</em></p>
 
 
-<h3>For the "remove barrier" approach</h3>
+<h3>For the "drop" approach</h3>
 
-<p>If the MPS chooses the "remove barrier" approach, it must calculate a conservatively-accurate "<code>mustGetLowered</code>" value, which, when lowered, will remove all the barriers that <strong>may</strong> have been hit by the faulting instruction.  The MPS will lower these barriers and restart the mutator on the instruction that originally caused the fault.  If "<code>mustGetLowered</code>" does not cause all necessary OS barriers to be lowered, the instruction will hit the barrier again, and we hang in an infinite loop.</p>
+<p>If the MPS chooses the "drop" approach, it must calculate a conservatively-accurate "<code>mustDrop</code>" Shield value.  Lowering these shields must remove all the barriers that <strong>may</strong> have been hit by the faulting instruction.  The MPS will then restart the mutator on the instruction that originally caused the fault.  If "<code>mustDrop</code>" does not cause all necessary OS barriers to be lowered, the instruction will hit the barrier again, and we hang in an infinite loop.</p>
 
-<p>Because it is about to lower these barriers, the MPS must do the corresponding preparatory processing (greyening, scanning, and summary-zapping) for the whole segment.</p>
+<p>Because it is about to lower these shields, the MPS must do the corresponding preparatory processing (greyening, scanning, and summary-zapping) for the whole segment.</p>
 
-<p>(The "<code>willBeAccessed</code>" value is not important with this approach.  For a read-barriered segment on an OS that does not support pure-read-barriers, the values for a write instruction are willBeAccessed = WRITE and mustGetLowered = READ.  The write instruction 'should not' have caused the read-barrier hit, but it did because of OS limitations.  The Shield barrier that must be lowered in this case is the READ barrier -- counterintuitive but true.)</p>
-
-
-<h3>For the "emulate" approach</h3>
-
-<p>If the MPS chooses the "emulate" approach, we don't care about the "<code>mustGetLowered</code>" value, because we will not be lowering any barriers, and we will not be restarting the faulting instruction.</p>
-
-<p>But we <em>do</em> need to know the "<code>willBeAccessed</code>" value (that is: whether the emulated instruction will read, write, or both).  Where "<code>willBeAccessed</code>" intersects SM, we must do the corresponding preparatory processing (greyening, scanning, and summary-updating) for the affected reference.  Actually, summary updating can be done at the end.</p>
+<p>(The "<code>willBeAccessed</code>" value is not important with this approach.)</p>
 
 
-<h2>Lowering Barriers That Were Not Hit</h2>
+<h3>For the "step" approach</h3>
 
-<p>Sometimes MPS must lower a barrier that was not hit, because of operating system limitations.  The "<code>mustGetLowered</code>" value expresses this.  The common case is where a read-barrier is hit by a write-instruction.  It shouldn't have caused a barrier-hit, but that's a limitation in many OSs.  MPS must remove the read-barrier.</p>
+<p>If the MPS chooses the "step" approach, we don't care about the "<code>mustDrop</code>" value, because we will not be lowering any shields, and we will not be restarting the faulting instruction.</p>
 
-<p>Sometimes it might make sense to lower a barrier even though it is not part of "<code>mustGetLowered</code>", to improve performance: if the mutator is going to hit the barrier in one or two instructions time anyway then we may as well lower it now, and avoid paying for two barrier hits.</p>
+<p>But we <em>do</em> need to know the "<code>willBeAccessed</code>" value (that is: whether the stepped instruction will read, write, or both).  Where "<code>willBeAccessed</code>" intersects SegSM, we must do the corresponding preparatory processing (greyening or scanning) for the affected reference.  (With stepping, the summary can be updated at the end).</p>
 
-<p>There <em>should</em> be a place in MPS access handling where this decision is made explicit, but there isn't.  De facto, the platform code sometimes has this effect:</p>
+
+<h2>Lowering Shields That Were Not Hit</h2>
+
+
+<p>Sometimes MPS must lower a shield even though the faulting instruction only hit it because of operating system limitations.  The "<code>mustDrop</code>" value expresses this.  The common case is where a read-shield is hit by a write-instruction.  It shouldn't have caused a shield-hit, but that's a limitation in many OSs.  MPS must remove the read-shield.</p>
+
+<p>Sometimes it might improve performance to lower a shield even though it is not part of "<code>mustDrop</code>": if the mutator is going to hit the shield in one or two instructions time anyway then we may as well lower it now, and avoid the overhead of two shield hits.</p>
+
+<p>There <em>should</em> be a place in MPS access handling where this decision is made explicit, but there isn't.  De facto, the platform code sometimes has this effect.  For example, if there are both read- and write-shields on a segment, and the mutator tries to read, then:</p>
 <ul>
-  <li>On Unix platforms the signal handler does not seem to be able to determine whether the faulting instruction was a read or a write, so it sets "<code>mode</code>" to both.  If there are both read- and write-barriers on a segment, and the mutator tries to read, then on Unix <strong>both</strong> barriers will be lowered immediately.</li>
-  <li>On Windows a mutator read will not only lower the read-barrier, leaving the summary (and write-barrier) intact.</li>
+  <li>On Unix platforms (where the signal handler does not seem to be able to determine whether the faulting instruction was a read or a write) "<code>mode</code>" is set to both READ and WRITE, so <strong>both</strong> shields will be lowered immediately.</li>
+  <li>On Windows a mutator read will set "<code>mode</code>" to READ, so only the read-shield will be lowered, leaving the summary (and write-shield) intact.</li>
 </ul>
 
 
 <h2>Which Approach Shall We Take?</h2>
 
-<p>The factors in choosing between the "remove" and "emulate" approaches are:</p>
+
+<p>The factors in choosing between the "drop" and "step" approaches are:</p>
 <ul>
-  <li> what is the cost of having to remove barriers from the whole seg?; </li>
+  <li> what is the cost of having to drop shields from the whole seg?; </li>
 </ul>
 
 
-<h2>Incrementality Read-Barrier Hit</h2>
+<h2>What Happens When A Shield Is Hit</h2>
+
 
 <p>This happens:</p>
 
@@ -172,6 +179,7 @@
   2007-09-27  RHSK  Created.
   2007-09-30  RHSK  Introduction.
   2007-10-01  RHSK  Which Barriers Were Hit?
+  2007-10-03  RHSK  Shield != Barrier: use correct terminology throughout.
 </pre>
 
 
