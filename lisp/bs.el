@@ -242,7 +242,8 @@ The function gets one argument - the buffer to test.")
 
 (defvar bs-buffer-sort-function nil
   "Sort function to sort the buffers that appear in Buffer Selection Menu.
-The function gets two arguments - the buffers to compare.")
+The function gets two arguments - the buffers to compare.
+It must return non-nil if the first buffer should sort before the second.")
 
 (defcustom bs-maximal-buffer-name-column 45
   "*Maximum column width for buffer names.
@@ -335,7 +336,7 @@ Must be a string used in `bs-configurations' for naming a configuration."
   :type 'string)
 
 (defcustom bs-string-show-normally  " "
-  "*String added in column 1 indicating a unmarked buffer."
+  "*String added in column 1 indicating an unmarked buffer."
   :group 'bs-appearance
   :type 'string)
 
@@ -391,9 +392,9 @@ A value of `always' means to show buffer regardless of the configuration.")
     ("by nothing"  nil                  nil      nil))
   "*List of all possible sorting aspects for Buffer Selection Menu.
 You can add a new entry with a call to `bs-define-sort-function'.
-Each element is a list of four elements (NAME FUNCTION REGEXP-FOR-SORTING FACE)
+Each element is a list of four elements (NAME FUNCTION REGEXP-FOR-SORTING FACE).
 NAME specifies the sort order defined by function FUNCTION.
-FUNCTION nil means don't sort the buffer list.  Otherwise the functions
+FUNCTION nil means don't sort the buffer list.  Otherwise the function
 must have two parameters - the buffers to compare.
 REGEXP-FOR-SORTING is a regular expression which describes the
 column title to highlight.
@@ -777,7 +778,7 @@ Leave Buffer Selection Menu."
 (defun bs-mouse-select-other-frame (event)
   "Select selected line's buffer in new created frame.
 Leave Buffer Selection Menu.
-EVENT: a mouse click EVENT."
+EVENT: a mouse click event."
   (interactive "e")
   (mouse-set-point event)
   (bs-select-other-frame))
@@ -1019,13 +1020,13 @@ If at end of buffer list go to first line."
     (forward-line 1)))
 
 (defun bs-visits-non-file (buffer)
-  "Return t or nil whether BUFFER visits no file.
+  "Return whether BUFFER visits no file.
 A value of t means BUFFER belongs to no file.
 A value of nil means BUFFER belongs to a file."
   (not (buffer-file-name buffer)))
 
 (defun bs-sort-buffer-interns-are-last (b1 b2)
-  "Function for sorting internal buffers B1 and B2 at the end of all buffers."
+  "Function for sorting internal buffers at the end of all buffers."
   (string-match "^\\*" (buffer-name b2)))
 
 ;; ----------------------------------------------------------------------
@@ -1335,7 +1336,7 @@ This is the variable `buffer-file-name' of current buffer.
 If current mode is `dired-mode' or `shell-mode' it returns the
 default directory.
 START-BUFFER is the buffer where we started buffer selection.
-ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
+ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (propertize (if (member major-mode '(shell-mode dired-mode))
                   default-directory
                 (or buffer-file-name ""))
@@ -1469,7 +1470,7 @@ Otherwise return `bs-alternative-configuration'."
   "Make a menu of buffers so you can manipulate buffers or the buffer list.
 \\<bs-mode-map>
 There are many key commands similar to `Buffer-menu-mode' for
-manipulating buffer list and buffers itself.
+manipulating the buffer list and the buffers themselves.
 User can move with [up] or [down], select a buffer
 by \\[bs-select] or [SPC]\n
 Type \\[bs-kill] to leave Buffer Selection Menu without a selection.
