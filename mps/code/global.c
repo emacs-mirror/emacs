@@ -531,9 +531,17 @@ MutatorFaultContext mps_exception_info = NULL;
 
 /* ArenaAccess -- deal with an access fault
  *
- * This is called when a protected address is accessed.  The mode
- * corresponds to which mode flags need to be cleared in order for the
- * access to continue.  */
+ * Our signal handler calls this when a protected address is accessed.
+ *
+ * "mode" states which attempted operations (AccessREAD, WRITE) were
+ * caught by the signal handler.  Note: this may be a conservative
+ * exaggeration, because the handler cannot always precisely determine
+ * what operation was being attempted (see for example
+ * protsgix.c#1:.sigh.mode).
+ *
+ * MPS must lift prohibition of the "mode" operations, in order for the
+ * access to continue.
+ */
 
 Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 {

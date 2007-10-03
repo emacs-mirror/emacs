@@ -270,10 +270,20 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, size_t s)
 #define SigInvalid      ((Sig)0x51915BAD)
 
 #define SizeMAX         ((Size)-1)
+
+/* AccessSet -- operations that access memory
+ *
+ * Note: in most MPS source code, these operation codes are used in the
+ * non-permissive sense, ie: "intercept/trap/prohibit this operation".
+ * For example, when a segment is added to the greylist, mutator read 
+ * access is _prohibited_, by calling:
+ *   ShieldRaise(arena, seg, AccessREAD);
+ */
 #define AccessSetEMPTY  ((AccessSet)0) /* <design/type/#access-set> */
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
 #define AccessSetWIDTH  (2)
+
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define ZoneSetEMPTY    BS_EMPTY(ZoneSet)
