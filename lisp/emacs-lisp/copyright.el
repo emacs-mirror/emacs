@@ -186,10 +186,13 @@ interactively."
  either \\|; a\\^u eldono \\([0-9]+\\)a, ? a\\^u (la\\^u via	 \\)\
 version \\([0-9]+\\), or (at"
                 (copyright-limit) t)
-	       (not (string= (match-string 3) copyright-current-gpl-version))
+               ;; Don't update if the file is already using a more recent
+               ;; version than the "current" one.
+               (< (string-to-number (match-string 3))
+                  (string-to-number copyright-current-gpl-version))
 	       (or noquery
-		   (y-or-n-p (concat "Replace GPL version by "
-				     copyright-current-gpl-version "? ")))
+		   (y-or-n-p (format "Replace GPL version by %s? "
+				     copyright-current-gpl-version)))
 	       (progn
 		 (if (match-end 2)
 		     ;; Esperanto bilingual comment in two-column.el

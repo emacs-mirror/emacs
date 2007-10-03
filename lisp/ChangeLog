@@ -1,3 +1,8 @@
+2007-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/copyright.el (copyright-update): Don't update if the file
+	already uses a more recent copyright version than the "current" one.
+
 2007-10-03  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-reset-slice)
@@ -12,9 +17,9 @@
 2007-10-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Add tramp-compat to `tramp-unload-hook'.
-	(tramp-file-name-handler-alist): Add
-	`tramp-handle-insert-file-contents-literally'.  Neded for XEmacs.
-	(tramp-make-temp-file): Use `make-temp-name'. `make-temp-file',
+	(tramp-file-name-handler-alist):
+	Add `tramp-handle-insert-file-contents-literally'.  Needed for XEmacs.
+	(tramp-make-temp-file): Use `make-temp-name'.  `make-temp-file',
 	used before, creates the file already, which is not desired.
 	(tramp-do-copy-or-rename-file-directly): Simplify handling of
 	temporary file.
@@ -32,8 +37,7 @@
 	order to avoid autoloading problems.
 
 	* net/tramp-fish.el:
-	* net/tramp-smb.el: Move further compatibility code to
-	tramp-compat.el.
+	* net/tramp-smb.el: Move further compatibility code to tramp-compat.el.
 
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Handle the case
 	where the second parameter of `copy-file' or `rename-file' is a
@@ -71,14 +75,14 @@
 	shrunk, tail the whole file again (the file presumably has been
 	rewritten).
 
-	* woman.el (woman-topic-all-completions, woman-mini-help): Fix
-	fallout from 2007-09-07 introduction of `dolist' when the list
+	* woman.el (woman-topic-all-completions, woman-mini-help):
+	Fix fallout from 2007-09-07 introduction of `dolist' when the list
 	actually was being manipulated in the loop.
 	(woman-Cyg-to-Win, woman-pre-process-region)
 	(woman-horizontal-escapes, woman-if-body, woman-unescape)
 	(woman-strings, woman-special-characters, woman1-hc)
-	(woman-change-fonts, woman-find-next-control-line): Use
-	`match-beginning' rather than `match-string' when the result is
+	(woman-change-fonts, woman-find-next-control-line):
+	Use `match-beginning' rather than `match-string' when the result is
 	just used as a flag.
 
 2007-09-30  Michael Albinus  <michael.albinus@gmx.de>
