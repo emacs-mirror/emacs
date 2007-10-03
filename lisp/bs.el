@@ -131,8 +131,6 @@
 
 ;;; Code:
 
-(defvar font-lock-verbose)
-
 ;; ----------------------------------------------------------------------
 ;; Globals for customization
 ;; ----------------------------------------------------------------------
@@ -658,6 +656,7 @@ to show always.
 	mode-name "Buffer-Selection-Menu"
 	buffer-read-only t
 	truncate-lines t
+	show-trailing-whitespace nil
 	font-lock-defaults '(bs-mode-font-lock-keywords t)
 	font-lock-verbose nil)
   (run-mode-hooks 'bs-mode-hook))
@@ -1034,7 +1033,7 @@ A value of nil means BUFFER belongs to a file."
 ;; ----------------------------------------------------------------------
 
 (defun bs-config-clear ()
-  "*Reset all variables which specify a configuration.
+  "Reset all variables which specify a configuration.
 These variables are `bs-dont-show-regexp', `bs-must-show-regexp',
 `bs-dont-show-function', `bs-must-show-function' and
 `bs-buffer-sort-function'."
@@ -1383,9 +1382,8 @@ ALIGN is one of the symbols `left', `middle', or `right'."
 
 (defun bs--show-header ()
   "Insert header for Buffer Selection Menu in current buffer."
-  (mapcar '(lambda (string)
-	     (insert string "\n"))
-	  (bs--create-header)))
+  (dolist (string (bs--create-header))
+    (insert string "\n")))
 
 (defun bs--get-name-length ()
   "Return value of `bs--name-entry-length'."
