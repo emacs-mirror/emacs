@@ -1,4 +1,9 @@
-2007-10-04  Tassilo Horn  <tassilo@member.fsf.org>
+2007-10-03  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-reset-slice)
+	(doc-view-insert-image): Minor aesthetical docstring changes.
+
+2007-10-03  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view): Don't ignore pdf and dvi files when
 	completing filename.
