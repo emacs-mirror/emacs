@@ -1,9 +1,13 @@
 2007-10-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el: Don't defvar `font-lock-verbose'.
-	(bs-config-clear, bs-kill): Fix typos in docstrings.
+	(bs-config-clear, bs-kill, bs-string-show-normally, bs-sort-functions)
+	(bs--get-file-name): Fix typos in docstrings.
 	(bs--show-header): Use `dolist' instead of `mapcar'.
 	(bs-mode): Set `show-trailing-whitespace' to nil.
+	(bs-buffer-sort-function, bs-mouse-select-other-frame)
+	(bs-visits-non-file, bs-sort-buffer-interns-are-last, bs-show):
+	Doc fixes.
 
 2007-10-02  Adam Hupp  <adam@hupp.org>  (tiny change)
 
