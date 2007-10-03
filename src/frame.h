@@ -152,8 +152,6 @@ struct frame
      For the format of the data, see extensive comments in xmenu.c.
      Only the X toolkit version uses this.  */
   Lisp_Object menu_bar_vector;
-  /* Number of elements in the vector that have meaningful data.  */
-  EMACS_INT menu_bar_items_used;
 
   /* Predicate for selecting buffers for other-buffer.  */
   Lisp_Object buffer_predicate;
@@ -182,6 +180,9 @@ struct frame
 
   /* Cache of realized faces.  */
   struct face_cache *face_cache;
+
+  /* Number of elements in `menu_bar_vector' that have meaningful data.  */
+  EMACS_INT menu_bar_items_used;
 
   /* A buffer to hold the frame's name.  We can't use the Lisp
      string's pointer (`name', above) because it might get relocated.  */

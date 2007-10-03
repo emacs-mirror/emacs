@@ -1,3 +1,7 @@
+2007-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.h (struct frame): Don't try to GC-mark menu_bar_items_used.
+
 2007-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.h (struct window):
