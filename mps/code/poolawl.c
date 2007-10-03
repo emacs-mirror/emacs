@@ -451,7 +451,10 @@ static Res AWLSegCreate(AWLSeg *awlsegReturn,
 }
 
 
-/* AWLSegAlloc -- allocate an object in a given segment */
+/* AWLSegAlloc -- find a space >= size in the segment (or fail)
+ *
+ * Note: despite the name, this function does not actually 'allocate'.
+ */
 
 static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
                         AWLSeg awlseg, AWL awl, Size size)
