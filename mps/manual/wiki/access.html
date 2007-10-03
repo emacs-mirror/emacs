@@ -81,7 +81,7 @@
 
 <ul>
   <li> (after the preparatory processing) <strong>drop</strong> the appropriate shields, and restart the mutator at the instruction that caused the access -- which will then succeed as normal without hitting any shield; </li>
-  <li> (after the preparatory processing) <strong>step</strong> the mutator instruction that caused the access, do some post-processing (if required), leave the shields in place, and restart the mutator at the instruction <em>after</em> the one that caused the access fault.  The usual way to step the instruction is to <strong>emulate</strong> it.</li>
+  <li> (after the preparatory processing) <strong>step</strong> the single mutator instruction that caused the access, do some post-processing (if required), leave the shields in place, and restart the mutator at the instruction <em>after</em> the one that caused the access fault.  The usual way to step the instruction is to <strong>emulate</strong> it.</li>
 </ul>
 
 <p>The MPS must choose which approach to use for each access.  As often happens, there is a space/time tradeoff -- see "choosing approach" below.  To summarise the choice in brief:</p>
@@ -149,13 +149,38 @@
 </ul>
 
 
-<h2>Which Approach Shall We Take?</h2>
+<h2>Choosing Approach</h2>
 
 
 <p>The factors in choosing between the "drop" and "step" approaches are:</p>
 <ul>
-  <li> what is the cost of having to drop shields from the whole seg?; </li>
+  <li> what is the cost of dropping shields from the whole segment? </li>
+  <li> what is the cost of stepping the instruction, and keeping shields? </li>
+  <li> is it possible to step the instruction? </li>
 </ul>
+
+
+<h3>Cost of dropping a read shield</h3>
+
+<p>To drop a read shield, the MPS must scan (degrey) the segment.  In most cases this has little cost, as the segment would need to be scanned eventually anyway.  (Though for non-moving pools it might cause more and smaller segment scans).</p>
+
+<p>But if the segment contains grey (for a flipped trace) references into a band <strong>later</strong> than the band the trace is currently on, this will cause band promotion of <em>all</em> grey references in the segment.  A notable case is weak references: if the trace has not reached the weak band yet, then weak references cannot be splatted, and all objects weakly referenced by grey references on this segment will be preserved.  They in turn will preserve more, and this can cause massive weak retention.</p>
+
+<p>In contrast, choosing to <strong>step</strong> would only band-promote a single reference.</p>
+
+<p>Remember that condemned segments in non-moving pools may need to be scanned several times in a single collection.  Dropping the read shield once is not the end of the story: if more references on the seg are subsequently greyed, the read shield will be raised again.</p>
+
+
+<h3>Cost of dropping a write shield</h3>
+
+<p>To drop a write shield, the MPS must zap the segment's summary.  This has little cost, so the MPS is happy to drop a write shield.  (The cost of stepping would be too high to be worth it).</p>
+
+
+<h3>Cost of stepping</h3>
+
+<p>Stepping a single instruction requires a lot of code, but the higher cost is that the shield is left in place, and may be hit again and again.</p>
+
+<p>PoolAWL can keep a count of the number of times stepping was chosen.  If stepping happens too much, it can give up and just drop the shields instead.</p>
 
 
 <h2>What Happens When A Shield Is Hit</h2>
@@ -180,6 +205,7 @@
   2007-09-30  RHSK  Introduction.
   2007-10-01  RHSK  Which Barriers Were Hit?
   2007-10-03  RHSK  Shield != Barrier: use correct terminology throughout.
+  2007-10-02  RHSK  Choosing Approach
 </pre>
 
 
