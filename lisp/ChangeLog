@@ -1,4 +1,11 @@
-2007-10-02  Adam Hupp <adam@hupp.org>  (tiny change)
+2007-10-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el: Don't defvar `fontlock-verbose'.
+	(bs-config-clear): Fix typo in docstring.
+	(bs--show-header): Use `dolist' instead of `mapcar'.
+	(bs-mode): Set `show-trailing-whitespace' to nil.
+
+2007-10-02  Adam Hupp  <adam@hupp.org>  (tiny change)
 
 	* progmodes/gdb-ui.el (pdb): Specify file for gud-break.
 
@@ -29,7 +36,7 @@
 
 2007-09-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* term/x-win.el (x-gtk-stock-map): Version is 22.2
+	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
 
 2007-09-29  Martin Rudalics  <rudalics@gmx.at>
 
