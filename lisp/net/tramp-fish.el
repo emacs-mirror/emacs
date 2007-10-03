@@ -157,17 +157,6 @@
 (require 'tramp-cache)
 (require 'tramp-compat)
 
-;; `directory-sep-char' is an obsolete variable in Emacs.  But it is
-;; used in XEmacs, so we set it here and there.  The following is needed
-;; to pacify Emacs byte-compiler.
-(eval-when-compile
-  (setq byte-compile-not-obsolete-var 'directory-sep-char))
-
-;; Pacify byte-compiler
-(eval-when-compile
-  (require 'cl)
-  (require 'custom))
-
 ;; Define FISH method ...
 (defcustom tramp-fish-method "fish"
   "*Method to connect via FISH protocol."
@@ -486,14 +475,14 @@ pass to the OPERATION."
       (tramp-error
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
-    (let ((tmpfil (tramp-make-temp-file filename)))
-      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfil)
+    (let ((tmpfile (tramp-make-temp-file filename)))
+      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfile)
       (when (tramp-fish-retrieve-data v)
 	;; Save file
 	(with-current-buffer (tramp-get-buffer v)
-	  (write-region (point-min) (point-max) tmpfil))
-	(tramp-message v 4 "Fetching %s to tmp file %s...done" filename tmpfil)
-	tmpfil))))
+	  (write-region (point-min) (point-max) tmpfile))
+	(tramp-message v 4 "Fetching %s to tmp file %s...done" filename tmpfile)
+	tmpfile))))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.
@@ -746,7 +735,7 @@ target of the symlink differ."
 
   (with-parsed-tramp-file-name default-directory nil
     (let ((temp-name-prefix (tramp-make-tramp-temp-file v))
-	  command input output stderr outbuf tmpfil ret)
+	  command input output stderr outbuf tmpfile ret)
       ;; Compute command.
       (setq command (mapconcat 'tramp-shell-quote-argument
 			       (cons program args) " "))
@@ -818,19 +807,20 @@ target of the symlink differ."
 			  (tramp-shell-quote-argument command) output))
 		(error nil))
 	    ;; Check return code.
-	    (setq tmpfil (file-local-copy
-			  (tramp-make-tramp-file-name method user host output)))
+	    (setq tmpfile
+		  (file-local-copy
+		   (tramp-make-tramp-file-name method user host output)))
 	    (with-temp-buffer
-	      (insert-file-contents tmpfil)
+	      (insert-file-contents tmpfile)
 	      (goto-char (point-max))
 	      (forward-line -1)
 	      (looking-at "^###RESULT: \\([0-9]+\\)")
 	      (setq ret (string-to-number (match-string 1)))
 	      (delete-region (point) (point-max))
-	      (write-region (point-min) (point-max) tmpfil))
+	      (write-region (point-min) (point-max) tmpfile))
 	    ;; We should show the output anyway.
 	    (when outbuf
-	      (with-current-buffer outbuf (insert-file-contents tmpfil))
+	      (with-current-buffer outbuf (insert-file-contents tmpfile))
 	      (when display (display-buffer outbuf)))
 	    ;; Remove output file.
 	    (delete-file (tramp-make-tramp-file-name method user host output)))

@@ -32,11 +32,6 @@
 (require 'tramp-cache)
 (require 'tramp-compat)
 
-;; Pacify byte-compiler
-(eval-when-compile
-  (require 'cl)
-  (require 'custom))
-
 ;; Define SMB method ...
 (defcustom tramp-smb-method "smb"
   "*Method to connect SAMBA and M$ SMB servers."
@@ -376,19 +371,19 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (let ((file (tramp-smb-get-localname localname t))
-	  (tmpfil (tramp-make-temp-file filename)))
+	  (tmpfile (tramp-make-temp-file filename)))
       (unless (file-exists-p filename)
 	(tramp-error
 	 v 'file-error
 	 "Cannot make local copy of non-existing file `%s'" filename))
-      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfil)
-      (if (tramp-smb-send-command v (format "get \"%s\" %s" file tmpfil))
+      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfile)
+      (if (tramp-smb-send-command v (format "get \"%s\" %s" file tmpfile))
 	  (tramp-message
-	   v 4 "Fetching %s to tmp file %s...done" filename tmpfil)
+	   v 4 "Fetching %s to tmp file %s...done" filename tmpfile)
 	(tramp-error
 	 v 'file-error
 	 "Cannot make local copy of file `%s'" filename))
-      tmpfil)))
+      tmpfile)))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.
@@ -580,7 +575,7 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
     (unless (eq append nil)
       (tramp-error
 	 v 'file-error "Cannot append to file using tramp (`%s')" filename))
-    ;; XEmacs takes a coding system as the seventh argument, not `confirm'
+    ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
     (when (and (not (featurep 'xemacs))
 	       confirm (file-exists-p filename))
       (unless (y-or-n-p (format "File %s exists; overwrite anyway? "
@@ -592,25 +587,23 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
     (tramp-flush-file-property v localname)
     (let ((file (tramp-smb-get-localname localname t))
 	  (curbuf (current-buffer))
-	  tmpfil)
-      ;; Write region into a tmp file.
-      (setq tmpfil (tramp-make-temp-file filename))
+	  (tmpfile (tramp-make-temp-file filename)))
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.
       (tramp-run-real-handler
        'write-region
        (if confirm ; don't pass this arg unless defined for backward compat.
-	   (list start end tmpfil append 'no-message lockname confirm)
-	 (list start end tmpfil append 'no-message lockname)))
+	   (list start end tmpfile append 'no-message lockname confirm)
+	 (list start end tmpfile append 'no-message lockname)))
 
-      (tramp-message v 5 "Writing tmp file %s to file %s..." tmpfil filename)
-      (if (tramp-smb-send-command v (format "put %s \"%s\"" tmpfil file))
+      (tramp-message v 5 "Writing tmp file %s to file %s..." tmpfile filename)
+      (if (tramp-smb-send-command v (format "put %s \"%s\"" tmpfile file))
 	  (tramp-message
-	   v 5 "Writing tmp file %s to file %s...done" tmpfil filename)
+	   v 5 "Writing tmp file %s to file %s...done" tmpfile filename)
 	(tramp-error v 'file-error "Cannot write `%s'" filename))
 
-      (delete-file tmpfil)
+      (delete-file tmpfile)
       (unless (equal curbuf (current-buffer))
 	(tramp-error
 	 v 'file-error

@@ -1,4 +1,4 @@
-;;; tramp-gw.el --- Tramp compatibility functions
+;;; tramp-compat.el --- Tramp compatibility functions
 
 ;; Copyright (C) 2007 Free Software Foundation, Inc.
 
@@ -29,45 +29,66 @@
 
 ;;; Code:
 
-;; Pacify byte-compiler
-(eval-when-compile
+(eval-and-compile
+
+  ;; Pacify byte-compiler.
   (require 'cl)
-  (require 'custom))
+  (require 'custom)
 
-;; Avoid byte-compiler warnings if the byte-compiler supports this.
-;; Currently, XEmacs supports this.
-;(eval-when-compile
-;  (when (featurep 'xemacs)
-;    (byte-compiler-options (warnings (- unused-vars)))))
+  ;; Load the appropriate timer package.
+  (if (featurep 'xemacs)
+      (require 'timer-funcs)
+    (require 'timer))
 
-;; `last-coding-system-used' is unknown in XEmacs.
-(eval-when-compile
+  ;; Avoid byte-compiler warnings if the byte-compiler supports this.
+  ;; Currently, XEmacs supports this.
+  (when (featurep 'xemacs)
+    (unless (boundp 'byte-compile-default-warnings)
+      (defvar byte-compile-default-warnings nil))
+    (delq 'unused-vars byte-compile-default-warnings))
+
+  ;; `last-coding-system-used' is unknown in XEmacs.
   (unless (boundp 'last-coding-system-used)
-    (defvar last-coding-system-used nil)))
+    (defvar last-coding-system-used nil))
 
-;; `directory-sep-char' is an obsolete variable in Emacs.  But it is
-;; used in XEmacs, so we set it here and there.  The following is needed
-;; to pacify Emacs byte-compiler.
-(eval-when-compile
+  ;; `directory-sep-char' is an obsolete variable in Emacs.  But it is
+  ;; used in XEmacs, so we set it here and there.  The following is
+  ;; needed to pacify Emacs byte-compiler.
   (unless (boundp 'byte-compile-not-obsolete-var)
     (defvar byte-compile-not-obsolete-var nil))
-  (setq byte-compile-not-obsolete-var 'directory-sep-char))
+  (setq byte-compile-not-obsolete-var 'directory-sep-char)
 
-;; `with-temp-message' does not exists in XEmacs.
-(eval-and-compile
+  ;; `with-temp-message' does not exists in XEmacs.
   (condition-case nil
       (with-temp-message (current-message) nil)
-    (error (defmacro with-temp-message (message &rest body) `(progn ,@body)))))
+    (error (defmacro with-temp-message (message &rest body) `(progn ,@body))))
 
-;; `set-buffer-multibyte' comes from Emacs Leim.
-(eval-and-compile
+  ;; `set-buffer-multibyte' comes from Emacs Leim.
   (unless (fboundp 'set-buffer-multibyte)
-    (defalias 'set-buffer-multibyte 'ignore)))
+    (defalias 'set-buffer-multibyte 'ignore))
 
-;; `font-lock-add-keywords' does not exist in XEmacs.
-(eval-and-compile
+  ;; `font-lock-add-keywords' does not exist in XEmacs.
   (unless (fboundp 'font-lock-add-keywords)
-    (defalias 'font-lock-add-keywords 'ignore)))
+    (defalias 'font-lock-add-keywords 'ignore))
+
+  ;; `file-remote-p' has been introduced with Emacs 22.  The version
+  ;; of XEmacs is not a magic file name function (yet); this is
+  ;; corrected in tramp-util.el.  Here it is sufficient if the
+  ;; function exists.
+  (unless (fboundp 'file-remote-p)
+    (defalias 'file-remote-p 'tramp-handle-file-remote-p))
+
+  ;; `process-file' exists since Emacs 22.
+  (unless (fboundp 'process-file)
+    (defalias 'process-file 'tramp-handle-process-file))
+
+  ;; `start-file-process' is new in Emacs 23.
+  (unless (fboundp 'start-file-process)
+    (defalias 'start-file-process 'tramp-handle-start-file-process))
+
+  ;; `set-file-times' is also new in Emacs 23.
+  (unless (fboundp 'set-file-times)
+    (defalias 'set-file-times 'tramp-handle-set-file-times)))
 
 (defsubst tramp-compat-line-end-position ()
   "Return point at end of line (compat function).
@@ -83,10 +104,8 @@ own implementation."
 For Emacs, this is the variable `temporary-file-directory', for XEmacs
 this is the function `temp-directory'."
   (cond
-   ((boundp 'temporary-file-directory)
-    (symbol-value 'temporary-file-directory))
-   ((fboundp 'temp-directory)
-    (funcall (symbol-function 'temp-directory))) ;pacify byte-compiler
+   ((boundp 'temporary-file-directory) (symbol-value 'temporary-file-directory))
+   ((fboundp 'temp-directory) (funcall (symbol-function 'temp-directory)))
    ((let ((d (getenv "TEMP"))) (and d (file-directory-p d)))
     (file-name-as-directory (getenv "TEMP")))
    ((let ((d (getenv "TMP"))) (and d (file-directory-p d)))
@@ -98,12 +117,14 @@ this is the function `temp-directory'."
 		       "`temp-directory' is defined -- using /tmp."))
       (file-name-as-directory "/tmp"))))
 
-;; `most-positive-fixnum' arrived in Emacs 22.
+;; `most-positive-fixnum' arrived in Emacs 22.  Before, and in XEmacs,
+;; it is a fixed value.
 (defsubst tramp-compat-most-positive-fixnum ()
   "Return largest positive integer value (compat function)."
-  (cond ((boundp 'most-positive-fixnum)
-         (symbol-value 'most-positive-fixnum))
-	(t 134217727)))
+  (cond
+   ((boundp 'most-positive-fixnum) (symbol-value 'most-positive-fixnum))
+   ;; Default value in XEmacs and Emacs 21.
+   (t 134217727)))
 
 ;; ID-FORMAT exists since Emacs 22.
 (defun tramp-compat-file-attributes (filename &optional id-format)
@@ -129,11 +150,13 @@ this is the function `temp-directory'."
        filename newname ok-if-already-exists keep-date preserve-uid-gid)
     (copy-file filename newname ok-if-already-exists keep-date)))
 
-;; `copy-tree' is introduced with Emacs 22.  We've adapted the
-;; implementation from Emacs 23.
+;; `copy-tree' is a built-in function in XEmacs.  In Emacs 21, it is
+;; an auoloaded function in cl-extra.el.  Since Emacs 22, it is part
+;; of subr.el.  There are problems when autoloading, therefore we test
+;; for for `subrp' and `symbol-file'.  Implementation is taken from Emacs23.
 (defun tramp-compat-copy-tree (tree)
   "Make a copy of TREE (compat function)."
-  (if (functionp 'copy-tree)
+  (if (or (subrp 'copy-tree) (symbol-file 'copy-tree))
       (funcall (symbol-function 'copy-tree) tree)
     (let (result)
       (while (consp tree)
@@ -143,19 +166,6 @@ this is the function `temp-directory'."
 	  (push newcar result))
 	(setq tree (cdr tree)))
       (nconc (nreverse result) tree))))
-
-(eval-and-compile
-  (unless (fboundp 'file-remote-p)
-    (defalias 'file-remote-p 'tramp-handle-file-remote-p))
-
-  (unless (fboundp 'process-file)
-    (defalias 'process-file 'tramp-handle-process-file))
-
-  (unless (fboundp 'start-file-process)
-    (defalias 'start-file-process 'tramp-handle-start-file-process))
-
-  (unless (fboundp 'set-file-times)
-    (defalias 'set-file-times 'tramp-handle-set-file-times)))
 
 (provide 'tramp-compat)
 

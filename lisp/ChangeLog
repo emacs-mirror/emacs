@@ -1,3 +1,33 @@
+2007-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Add tramp-compat to `tramp-unload-hook'.
+	(tramp-file-name-handler-alist): Add
+	`tramp-handle-insert-file-contents-literally'.  Neded for XEmacs.
+	(tramp-make-temp-file): Use `make-temp-name'. `make-temp-file',
+	used before, creates the file already, which is not desired.
+	(tramp-do-copy-or-rename-file-directly): Simplify handling of
+	temporary file.
+	(tramp-handle-insert-file-contents): Assign the result in the
+	short track case.
+	(tramp-handle-insert-file-contents-literally): New defun.
+	(tramp-completion-mode-p): Revert change from 2007-09-24.
+	Checking for `return' etc as last character is not sufficient, for
+	example in dired-mode when entering <g> (revert-buffer) or
+	<s> (dired-sort).
+
+	* net/tramp-compat.el (top): Add also compatibility code for loading
+	appropriate timer package.
+	(tramp-compat-copy-tree): Check for `subrp' and `symbol-file' in
+	order to avoid autoloading problems.
+
+	* net/tramp-fish.el:
+	* net/tramp-smb.el: Move further compatibility code to
+	tramp-compat.el.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Handle the case
+	where the second parameter of `copy-file' or `rename-file' is a
+	remote file but not via ftp.
+
 2007-10-02  Richard Stallman  <rms@gnu.org>
 
 	* frame.el (cursor-in-non-selected-windows): Doc fix.
