@@ -1,7 +1,7 @@
 2007-10-03  Juanma Barranquero  <lekktu@gmail.com>
 
-	* bs.el: Don't defvar `fontlock-verbose'.
-	(bs-config-clear): Fix typo in docstring.
+	* bs.el: Don't defvar `font-lock-verbose'.
+	(bs-config-clear, bs-kill): Fix typos in docstrings.
 	(bs--show-header): Use `dolist' instead of `mapcar'.
 	(bs-mode): Set `show-trailing-whitespace' to nil.
 
