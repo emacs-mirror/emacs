@@ -78,7 +78,6 @@ struct frame
   struct Lisp_Vector *next;
 
   /* All Lisp_Object components must come first.
-     Only EMACS_INT values can be intermixed with them.
      That ensures they are all aligned normally.  */
 
   /* Name of this frame: a Lisp string.  It is used for looking up resources,
@@ -162,7 +161,7 @@ struct frame
   /* List of buffers that were viewed, then buried in this frame.  The
      most recently buried buffer is first.  For last-buffer.  */
   Lisp_Object buried_buffer_list;
-  
+
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
   Lisp_Object menu_bar_window;
@@ -176,7 +175,7 @@ struct frame
   /* Desired and current contents displayed in tool_bar_window.  */
   Lisp_Object desired_tool_bar_string, current_tool_bar_string;
 
-  /* beyond here, there should be no more Lisp_Object components.  */
+  /* Beyond here, there should be no more Lisp_Object components.  */
 
   /* Cache of realized faces.  */
   struct face_cache *face_cache;
@@ -275,7 +274,7 @@ struct frame
   /* The terminal device that this frame uses.  If this is NULL, then
      the frame has been deleted. */
   struct terminal *terminal;
-  
+
   /* Device-dependent, frame-local auxiliary data used for displaying
      the contents.  When the frame is deleted, this data is deleted as
      well. */
@@ -441,11 +440,11 @@ struct frame
   /* Set to non-zero in when we want for force a flush_display in
      update_frame, usually after resizing the frame.  */
   unsigned force_flush_display_p : 1;
-  
+
   /* All display backends seem to need these two pixel values. */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
-  
+
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
