@@ -34,8 +34,7 @@
 ;; Emacs 21 such as the fringe/display margin for breakpoints, and the toolbar
 ;; (see the GDB Graphical Interface section in the Emacs info manual).
 
-;; By default, M-x gdb will start the debugger. However, if you have customised
-;; gud-gdb-command-name, then start it with M-x gdba.
+;; By default, M-x gdb will start the debugger.
 
 ;; This file has evolved from gdba.el that was included with GDB 5.0 and
 ;; written by Tom Lord and Jim Kingdon.  It uses GDB's annotation interface.
@@ -218,13 +217,11 @@ handlers.")
   "List of changed register numbers (strings).")
 
 ;;;###autoload
-(defun gdba (command-line)
+(defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger.
+The directory containing FILE becomes the initial working
+directory and source-file directory for your debugger.
 
-This function requires that GDB is run with \"--annotate=3\", so
-don't edit this option in the mini-buffer.
 
 If `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
@@ -269,17 +266,61 @@ detailed description of this mode.
 | RET      gdb-frames-select        | SPC    gdb-toggle-breakpoint     |
 |                                   | RET    gdb-goto-breakpoint       |
 |                                   | D      gdb-delete-breakpoint     |
-+-----------------------------------+----------------------------------+"
-  ;;
-  (interactive (list (gud-query-cmdline 'gdba)))
-  ;;
-  ;; Do this early in case user enters commands before GDB is ready.
-  (setq comint-input-sender 'gdb-send)
-  (setq gdb-ready nil)
++-----------------------------------+----------------------------------+
 
-  ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
-  (gdb command-line)
-  (gdb-init-1))
+To run GDB in text command mode, replace the GDB \"--annotate=3\"
+option with \"--fullname\" either in the minibuffer for the
+current Emacs session, or the custom variable
+`gud-gdb-command-name' for all future sessions.  You need to use
+text command mode to debug multiple programs within one Emacs
+session."
+  (interactive (list (gud-query-cmdline 'gdb)))
+
+  (when (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer)
+	   (get-buffer-process gud-comint-buffer)
+	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
+	(gdb-restore-windows)
+	(error
+	 "Multiple debugging requires restarting in text command mode"))
+
+  (gud-common-init command-line nil 'gud-gdba-marker-filter)
+  (set (make-local-variable 'gud-minor-mode) 'gdba)
+
+  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
+	   "Set temporary breakpoint at current line.")
+  (gud-def gud-remove "clear %f:%l" "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"     "\C-s" "Step one source line with display.")
+  (gud-def gud-stepi  "stepi %p"    "\C-i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"     "\C-n" "Step one line (skip functions).")
+  (gud-def gud-nexti  "nexti %p" nil   "Step one instruction (skip functions).")
+  (gud-def gud-cont   "cont"     "\C-r" "Continue with display.")
+  (gud-def gud-finish "finish"   "\C-f" "Finish executing current function.")
+  (gud-def gud-jump
+	   (progn (gud-call "tbreak %f:%l") (gud-call "jump %f:%l"))
+	   "\C-j" "Set execution address to current line.")
+
+  (gud-def gud-up     "up %p"     "<" "Up N stack frames (numeric arg).")
+  (gud-def gud-down   "down %p"   ">" "Down N stack frames (numeric arg).")
+  (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-pstar  "print* %e" nil
+	   "Evaluate C dereferenced pointer expression at point.")
+
+  ;; For debugging Emacs only.
+  (gud-def gud-pv "pv1 %e"      "\C-v" "Print the value of the lisp variable.")
+
+  (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
+  (gud-def gud-run    "run"	 nil    "Run the program.")
+
+  (local-set-key "\C-i" 'gud-gdb-complete-command)
+  (setq comint-prompt-regexp "^(.*gdb[+]?) *")
+  (setq paragraph-start comint-prompt-regexp)
+  (setq gdb-first-prompt t)
+  (setq gud-running nil)
+  (setq gdb-ready nil)
+  (setq gud-filter-pending-text nil)
+  (run-hooks 'gdb-mode-hook))
 
 (defcustom gdb-debug-log-max 128
   "Maximum size of `gdb-debug-log'.  If nil, size is unlimited."
@@ -603,7 +644,7 @@ otherwise do not."
   (gdb-enqueue-input (list "server list\n" 'ignore))
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
 
-  (run-hooks 'gdba-mode-hook))
+  (run-hooks 'gdb-mode-hook))
 
 (defun gdb-get-version ()
   (goto-char (point-min))
@@ -1198,9 +1239,8 @@ This filter may simply queue input for a later time."
 ;; any newlines.
 ;;
 
-(defcustom gud-gdba-command-name "gdb --annotate=3"
-  "Default command to execute an executable under the GDB-UI debugger.
-The option \"--annotate=3\" must be included in it's value."
+(defcustom gud-gdb-command-name "gdb --annotate=3"
+  "Default command to execute an executable under the GDB debugger."
   :type 'string
   :group 'gud
   :version "22.1")
