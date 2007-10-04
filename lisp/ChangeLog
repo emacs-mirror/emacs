@@ -1,3 +1,7 @@
+2007-10-04  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* progmodes/gud.el (gud-gud-gdb-command-name): Fix typo in docstring.
+
 2007-10-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-gud-gdb-command-name): New option.
