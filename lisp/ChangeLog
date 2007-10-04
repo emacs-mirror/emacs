@@ -1,3 +1,19 @@
+2007-10-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-make-temp-file): Move to tramp-compat.el.
+	(tramp-do-copy-or-rename-file-directly): Handle tmpfile only in
+	the cond clauses where needed.
+	(tramp-handle-write-region): Rearrange code for proper handling of
+	tmpfile.
+
+	* net/tramp-compat.el (tramp-compat-make-temp-file): New defsubst.
+
+	* net/tramp.el:
+	* net/tramp-fish.el:
+	* net/tramp-ftp.el:
+	* net/tramp-smb.el: Rename `tramp-make-temp-file' to
+	`tramp-compat-make-temp-file'.
+
 2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image-dired.el (image-dired-image-at-point-p): Fix typo in docstring.

@@ -117,6 +117,42 @@ this is the function `temp-directory'."
 		       "`temp-directory' is defined -- using /tmp."))
       (file-name-as-directory "/tmp"))))
 
+;; `make-temp-file' exists in Emacs only.  The third parameter SUFFIX
+;; has been introduced with Emacs 22.  We try it, if it fails, we fall
+;; back to `make-temp-name', creating the temporary file immediately
+;; in order to avoid a security hole.
+(defsubst tramp-compat-make-temp-file (filename)
+  "Create a temporary file (compat function).
+Add the extension of FILENAME, if existing."
+  (let ((prefix (expand-file-name
+		 (symbol-value 'tramp-temp-name-prefix)
+		 (tramp-compat-temporary-file-directory)))
+	(extension (file-name-extension filename t))
+	result)
+    (condition-case nil
+	(setq result
+	      (funcall (symbol-function 'make-temp-file) prefix nil extension))
+      (error
+       ;; We use our own implementation, taken from files.el.
+       (while
+	   (condition-case ()
+	       (progn
+		 (setq result (concat (make-temp-name prefix) extension))
+		 (write-region
+		  "" nil result nil 'silent nil
+		  ;; 7th parameter is MUSTBENEW in Emacs, and
+		  ;; CODING-SYSTEM in XEmacs.  It is not a security
+		  ;; hole in XEmacs if we cannot use this parameter,
+		  ;; because XEmacs uses a user-specific subdirectory
+		  ;; with 0700 permissions.
+		  (when (not (featurep 'xemacs)) 'excl))
+		 nil)
+	     (file-already-exists t))
+	 ;; The file was somehow created by someone else between
+	 ;; `make-temp-name' and `write-region', let's try again.
+	 nil)))
+    result))
+
 ;; `most-positive-fixnum' arrived in Emacs 22.  Before, and in XEmacs,
 ;; it is a fixed value.
 (defsubst tramp-compat-most-positive-fixnum ()

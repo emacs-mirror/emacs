@@ -371,7 +371,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name filename nil
     (let ((file (tramp-smb-get-localname localname t))
-	  (tmpfile (tramp-make-temp-file filename)))
+	  (tmpfile (tramp-compat-make-temp-file filename)))
       (unless (file-exists-p filename)
 	(tramp-error
 	 v 'file-error
@@ -587,7 +587,7 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
     (tramp-flush-file-property v localname)
     (let ((file (tramp-smb-get-localname localname t))
 	  (curbuf (current-buffer))
-	  (tmpfile (tramp-make-temp-file filename)))
+	  (tmpfile (tramp-compat-make-temp-file filename)))
       ;; We say `no-message' here because we don't want the visited file
       ;; modtime data to be clobbered from the temp file.  We call
       ;; `set-visited-file-modtime' ourselves later on.

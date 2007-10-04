@@ -158,7 +158,7 @@ pass to the OPERATION."
 	     (not (tramp-ftp-file-name-p (cadr args))))
 	(let* ((filename (car args))
 	       (newname (cadr args))
-	       (tmpfile (tramp-make-temp-file filename))
+	       (tmpfile (tramp-compat-make-temp-file filename))
 	       (args (cddr args)))
 	  (apply operation filename tmpfile args)
 	  (rename-file tmpfile newname (car args))))

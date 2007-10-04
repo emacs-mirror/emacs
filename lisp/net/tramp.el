@@ -1974,13 +1974,6 @@ The intent is to protect against `obsolete variable' warnings."
 (put 'tramp-let-maybe 'lisp-indent-function 2)
 (put 'tramp-let-maybe 'edebug-form-spec t)
 
-(defsubst tramp-make-temp-file (filename)
-  (concat
-   (make-temp-name
-    (expand-file-name
-     tramp-temp-name-prefix (tramp-compat-temporary-file-directory)))
-   (file-name-extension filename t)))
-
 (defsubst tramp-make-tramp-temp-file (vec)
   (format
    "/tmp/%s%s"
@@ -3071,8 +3064,7 @@ the uid and gid from FILENAME."
 	      (if t1 (tramp-handle-file-remote-p filename 'localname) filename))
 	     (localname2
 	      (if t2 (tramp-handle-file-remote-p newname 'localname) newname))
-	     (prefix (file-remote-p (if t1 filename newname)))
-	     (tmpfile (tramp-make-temp-file localname1)))
+	     (prefix (file-remote-p (if t1 filename newname))))
 
 	(cond
 	 ;; Both files are on a remote host, with same user.
@@ -3124,40 +3116,41 @@ the uid and gid from FILENAME."
 	   ;; We need a temporary file in between.
 	   (t
 	    ;; Create the temporary file.
-	    (cond
-	     (t1
-	      (tramp-send-command
-	       v (format
-		  "%s %s %s" cmd
-		  (tramp-shell-quote-argument localname1)
-		  (tramp-shell-quote-argument tmpfile)))
-	      ;; We must change the ownership as remote user.
-	      (tramp-set-file-uid-gid
-	       (concat prefix tmpfile)
-	       (tramp-get-local-uid 'integer)
-	       (tramp-get-local-gid 'integer)))
-	     (t2
-	      (if (eq op 'copy)
-		  (tramp-compat-copy-file
-		   localname1 tmpfile ok-if-already-exists
-		   keep-date preserve-uid-gid)
-		(rename-file localname1 tmpfile ok-if-already-exists))
-	      ;; We must change the ownership as local user.
-	      (tramp-set-file-uid-gid
-	       tmpfile
-	       (tramp-get-remote-uid v 'integer)
-	       (tramp-get-remote-gid v 'integer))))
+	    (let ((tmpfile (tramp-compat-make-temp-file localname1)))
+	      (cond
+	       (t1
+		(tramp-send-command
+		 v (format
+		    "%s %s %s" cmd
+		    (tramp-shell-quote-argument localname1)
+		    (tramp-shell-quote-argument tmpfile)))
+		;; We must change the ownership as remote user.
+		(tramp-set-file-uid-gid
+		 (concat prefix tmpfile)
+		 (tramp-get-local-uid 'integer)
+		 (tramp-get-local-gid 'integer)))
+	       (t2
+		(if (eq op 'copy)
+		    (tramp-compat-copy-file
+		     localname1 tmpfile ok-if-already-exists
+		     keep-date preserve-uid-gid)
+		  (rename-file localname1 tmpfile ok-if-already-exists))
+		;; We must change the ownership as local user.
+		(tramp-set-file-uid-gid
+		 tmpfile
+		 (tramp-get-remote-uid v 'integer)
+		 (tramp-get-remote-gid v 'integer))))
 
-	    ;; Move the temporary file to its destination.
-	    (cond
-	     (t2
-	      (tramp-send-command
-	       v (format
-		  "mv -f %s %s"
-		  (tramp-shell-quote-argument tmpfile)
-		  (tramp-shell-quote-argument localname2))))
-	     (t1
-	      (rename-file tmpfile localname2 ok-if-already-exists))))))))
+	      ;; Move the temporary file to its destination.
+	      (cond
+	       (t2
+		(tramp-send-command
+		 v (format
+		    "mv -f %s %s"
+		    (tramp-shell-quote-argument tmpfile)
+		    (tramp-shell-quote-argument localname2))))
+	       (t1
+		(rename-file tmpfile localname2 ok-if-already-exists)))))))))
 
       ;; Set the time and mode. Mask possible errors.
       ;; Won't be applied for 'rename.
@@ -3736,7 +3729,7 @@ beginning of local filename are not substituted."
 (defun tramp-handle-call-process-region
   (start end program &optional delete buffer display &rest args)
   "Like `call-process-region' for Tramp files."
-  (let ((tmpfile (tramp-make-temp-file "")))
+  (let ((tmpfile (tramp-compat-make-temp-file "")))
     (write-region start end tmpfile)
     (when delete (delete-region start end))
     (unwind-protect
@@ -3798,7 +3791,7 @@ beginning of local filename are not substituted."
   (with-parsed-tramp-file-name filename nil
     (let ((rem-enc (tramp-get-remote-coding v "remote-encoding"))
 	  (loc-dec (tramp-get-local-coding v "local-decoding"))
-	  (tmpfile (tramp-make-temp-file filename)))
+	  (tmpfile (tramp-compat-make-temp-file filename)))
       (unless (file-exists-p filename)
 	(tramp-error
 	 v 'file-error
@@ -3837,7 +3830,7 @@ beginning of local filename are not substituted."
 		      (write-region (point-min) (point-max) tmpfile))))
 	    ;; If tramp-decoding-function is not defined for this
 	    ;; method, we invoke tramp-decoding-command instead.
-	    (let ((tmpfile2 (tramp-make-temp-file filename)))
+	    (let ((tmpfile2 (tramp-compat-make-temp-file filename)))
 	      (let ((coding-system-for-write 'binary))
 		(write-region (point-min) (point-max) tmpfile2))
 	      (tramp-message
@@ -4055,28 +4048,28 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
       (unless (y-or-n-p (format "File %s exists; overwrite anyway? " filename))
 	(tramp-error v 'file-error "File not overwritten")))
 
-    (let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
-	  (loc-enc (tramp-get-local-coding v "local-encoding"))
-	  (modes (save-excursion (file-modes filename)))
-	  ;; We use this to save the value of `last-coding-system-used'
-	  ;; after writing the tmp file.  At the end of the function,
-	  ;; we set `last-coding-system-used' to this saved value.
-	  ;; This way, any intermediary coding systems used while
-	  ;; talking to the remote shell or suchlike won't hose this
-	  ;; variable.  This approach was snarfed from ange-ftp.el.
-	  coding-system-used
-	  ;; Write region into a tmp file.  This isn't really needed if we
-	  ;; use an encoding function, but currently we use it always
-	  ;; because this makes the logic simpler.
-	  (tmpfile (tramp-make-temp-file filename)))
+    (if (and (tramp-local-host-p v)
+	     (file-writable-p (file-name-directory localname)))
+	;; Short track: if we are on the local host, we can run directly.
+	(if confirm
+	    (write-region
+	     start end localname append 'no-message lockname confirm)
+	  (write-region start end localname append 'no-message lockname))
 
-      (if (and (tramp-local-host-p v)
-	       (file-writable-p (file-name-directory localname)))
-	  ;; Short track: if we are on the local host, we can run directly.
-	  (if confirm
-	      (write-region
-	       start end localname append 'no-message lockname confirm)
-	    (write-region start end localname append 'no-message lockname))
+      (let ((rem-dec (tramp-get-remote-coding v "remote-decoding"))
+	    (loc-enc (tramp-get-local-coding v "local-encoding"))
+	    (modes (save-excursion (file-modes filename)))
+	    ;; We use this to save the value of `last-coding-system-used'
+	    ;; after writing the tmp file.  At the end of the function,
+	    ;; we set `last-coding-system-used' to this saved value.
+	    ;; This way, any intermediary coding systems used while
+	    ;; talking to the remote shell or suchlike won't hose this
+	    ;; variable.  This approach was snarfed from ange-ftp.el.
+	    coding-system-used
+	    ;; Write region into a tmp file.  This isn't really needed if we
+	    ;; use an encoding function, but currently we use it always
+	    ;; because this makes the logic simpler.
+	    (tmpfile (tramp-compat-make-temp-file filename)))
 
 	;; We say `no-message' here because we don't want the visited file
 	;; modtime data to be clobbered from the temp file.  We call
@@ -4201,8 +4194,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	   v 'file-error
 	   (concat "Method `%s' should specify both encoding and "
 		   "decoding command or an rcp program")
-	   method))))
+	   method)))
 
+	;; Make `last-coding-system-used' have the right value.
+	(when coding-system-used
+	  (set 'last-coding-system-used coding-system-used)))
+
+      ;; Set file modification time.
       (when (or (eq visit t) (stringp visit))
 	(set-visited-file-modtime
 	 ;; We must pass modtime explicitely, because filename can be different
@@ -4210,9 +4208,6 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	 (nth 5 (file-attributes filename))))
       ;; Set the ownership.
       (tramp-set-file-uid-gid filename)
-      ;; Make `last-coding-system-used' have the right value.
-      (when coding-system-used
-	(set 'last-coding-system-used coding-system-used))
       (when (or (eq visit t) (null visit) (stringp visit))
 	(tramp-message v 0 "Wrote %s" filename))
       (run-hooks 'tramp-handle-write-region-hook))))
@@ -7558,12 +7553,6 @@ please ensure that the buffers are attached to your email.\n\n")
 ;; * When editing a remote CVS controlled file as a different user, VC
 ;;   gets confused about the file locking status.  Try to find out why
 ;;   the workaround doesn't work.
-;; * Change `copy-file' to grok the case where the filename handler
-;;   for the source and the target file are different.  Right now,
-;;   it looks at the source file and then calls that handler, if
-;;   there is one.  But since ange-ftp, for instance, does not know
-;;   about Tramp, it does not do the right thing if the target file
-;;   name is a Tramp name.
 ;; * Username and hostname completion.
 ;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode-p'.
 ;; ** Unify `tramp-parse-{rhosts,shosts,sconfig,hosts,passwd,netrc}'.
