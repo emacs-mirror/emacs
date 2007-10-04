@@ -1,3 +1,7 @@
+2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image-dired.el (image-dired-image-at-point-p): Fix typo in docstring.
+
 2007-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/copyright.el (copyright-update): Don't update if the file
@@ -59,8 +63,8 @@
 
 2007-10-01  Markus Triska  <markus.triska@gmx.at>
 
-	* calc/calc-math.el (math-smallest-emacs-expt):  Make the
-	computation more robust.
+	* calc/calc-math.el (math-smallest-emacs-expt):
+	Make the computation more robust.
 
 2007-09-30  David Kastrup  <dak@gnu.org>
 
