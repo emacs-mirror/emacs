@@ -1,3 +1,12 @@
+2007-10-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-gud-gdb-command-name): New option.
+	(gud-gdb): New function for old M-x gdb (text command mode).
+	(gud-gdb-command-name, gdb): Move to...
+
+	* progmodes/gdb-ui.el: ...here and adapt doc string.
+	(gud-gdba-command-name, gdba): Delete.
+
 2007-10-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el: Don't defvar `font-lock-verbose'.
@@ -15,8 +24,9 @@
 
 2007-10-02  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gdb): Make gdba default and switch to gdb
-	if appropriate, i.e., reverse previous arrangement.
+	* progmodes/gud.el (gdb): Make graphical mode the default and
+	switch to text command mode if appropriate, i.e., reverse previous
+	arrangement.
 	(gud-gdb-marker-filter): Adapt for above change.
 
 	* progmodes/gdb-ui.el (gdb-init-1): Don't set the values
