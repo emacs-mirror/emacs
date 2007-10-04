@@ -83,7 +83,7 @@ recenter the visited source file.  Its value can be a number (for example,
 ** The mode-line displays a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
 
-** The new command balance-window-area balances windows both vertically
+** The new command balance-windows-area balances windows both vertically
 and horizontally.
 
 ** The new command close-display-connection can be used to close a connection
@@ -91,7 +91,7 @@ to a remote display, e.g. because the display is about to become unreachable.
 
 ** The command shell prompts for the default directory, when it is
 called with a prefix, and the default directory is a remote file name.
-This is because some file name handler (like ange-ftp) are not able to
+This is because some file name handlers (like ange-ftp) are not able to
 run processes remotely.
 
 ** The new command `display-time-world' starts an updating time display
@@ -278,7 +278,7 @@ session, and `make-frame-on-tty' works during a graphical session.
 
 *** New hooks: `suspend-tty-functions' and `resume-tty-functions'
 are called after a tty frame has been suspended or resumed,
-respectively. The functions are called with the terminal id of the frame
+respectively.  The functions are called with the terminal id of the frame
 being suspended/resumed as a parameter.
 
 *** New functions: `environment', `let-environment'.
