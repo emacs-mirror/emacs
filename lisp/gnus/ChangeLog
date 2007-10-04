@@ -1,3 +1,8 @@
+2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sieve-manage.el (sieve-manage-interactive-login): Doc fix.
+	(sieve-manage-open): Use `mapc' instead of `mapcar'.
+
 2007-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-uu.el (gnus-uu-reginize-string, gnus-uu-expand-numbers):
