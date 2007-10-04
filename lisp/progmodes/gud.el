@@ -589,8 +589,10 @@ required by the caller."
 ;; History of argument lists passed to gdb.
 (defvar gud-gdb-history nil)
 
-(defcustom gud-gdb-command-name "gdb --annotate=3"
-  "Default command to execute an executable under the GDB debugger."
+(defcustom gud-gud-gdb-command-name "gdb --fullname"
+  "Default command to run an executable under GDB in text command mode.
+The option \"--fullname\" must be included in it's value."
+
    :type 'string
    :group 'gud)
 
@@ -695,8 +697,9 @@ required by the caller."
 (defvar gud-filter-pending-text nil
   "Non-nil means this is text that has been saved for later in `gud-filter'.")
 
+;; The old gdb command.  The new one is in gdb-ui.el.
 ;;;###autoload
-(defun gdb (command-line)
+(defun gud-gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working
 directory and source-file directory for your debugger.  By
@@ -709,7 +712,7 @@ current Emacs session, or the custom variable
 `gud-gdb-command-name' for all future sessions.  You need to use
 text command mode to debug multiple programs within one Emacs
 session."
-  (interactive (list (gud-query-cmdline 'gdb)))
+  (interactive (list (gud-query-cmdline 'gud-gdb)))
 
   (require 'gdb-ui)
 
@@ -757,7 +760,7 @@ session."
   (setq gud-running nil)
   (setq gdb-ready nil)
   (setq gud-filter-pending-text nil)
-  (run-hooks 'gdb-mode-hook))
+  (run-hooks 'gud-gdb-mode-hook))
 
 ;; One of the nice features of GDB is its impressive support for
 ;; context-sensitive command completion.  We preserve that feature
