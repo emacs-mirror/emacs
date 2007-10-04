@@ -1854,7 +1854,7 @@ With prefix argument ARG, display image in its original size."
   (image-dired-display-image (dired-get-filename) arg))
 
 (defun image-dired-image-at-point-p ()
-  "Return true if there is a image-dired thumbnail at point."
+  "Return true if there is an image-dired thumbnail at point."
   (get-text-property (point) 'image-dired-thumbnail))
 
 (defun image-dired-rotate-thumbnail (degrees)
