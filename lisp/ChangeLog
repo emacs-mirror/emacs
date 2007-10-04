@@ -1,3 +1,7 @@
+2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image-dired.el (image-dired-image-at-point-p): Fix typo in docstring.
+
 2007-10-04  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/gud.el (gud-gud-gdb-command-name): Fix typo in docstring.
