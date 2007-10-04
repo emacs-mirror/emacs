@@ -1710,9 +1710,9 @@ free_image_cache (f)
 /* Clear image cache of frame F.  FORCE_P non-zero means free all
    images.  FORCE_P zero means clear only images that haven't been
    displayed for some time.  Should be called from time to time to
-   reduce the number of loaded images.  If image-eviction-seconds is
-   non-nil, this frees images in the cache which weren't displayed for
-   at least that many seconds.  */
+   reduce the number of loaded images.  If image-cache-eviction-delay
+   is non-nil, this frees images in the cache which weren't displayed
+   for at least that many seconds.  */
 
 void
 clear_image_cache (f, force_p)
@@ -2886,7 +2886,7 @@ enum xbm_token
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
-   4. A string containing an in-memory XBM file.  WIDTH and HEIGHT
+   4. a string containing an in-memory XBM file.  WIDTH and HEIGHT
    may not be specified in this case because they are defined in the
    XBM file.
 
@@ -4283,7 +4283,7 @@ xpm_scan (s, end, beg, len)
   return XPM_TK_EOF;
 }
 
-/* Functions for color table lookup in XPM data.  A Key is a string
+/* Functions for color table lookup in XPM data.  A key is a string
    specifying the color of each pixel in XPM data.  A value is either
    an integer that specifies a pixel color, Qt that specifies
    transparency, or Qnil for the unspecified color.  If the length of
@@ -8442,16 +8442,16 @@ svg_load (f, img)
   return success_p;
 }
 
-/* svg_load_image is a helper function for svg_load, which does the actual
- loading given contents and size, apart from frame and image
- structures, passed from svg_load.
+/* svg_load_image is a helper function for svg_load, which does the
+   actual loading given contents and size, apart from frame and image
+   structures, passed from svg_load.
 
- Uses librsvg to do most of the image processing.
+   Uses librsvg to do most of the image processing.
 
- Returns non-zero when sucessful.  */
+   Returns non-zero when successful.  */
 static int
 svg_load_image (f, img, contents, size)
-    /* Pointer to emacs frame sturcture.  */
+    /* Pointer to emacs frame structure.  */
      struct frame *f;
      /* Pointer to emacs image structure.  */
      struct image *img;
@@ -8561,8 +8561,8 @@ svg_load_image (f, img, contents, size)
 
   /* This loop handles opacity values, since Emacs assumes
      non-transparent images.  Each pixel must be "flattened" by
-     calculating he resulting color, given the transparency of the
-     pixel, and the image background color.   */
+     calculating the resulting color, given the transparency of the
+     pixel, and the image background color.  */
   for (y = 0; y < height; ++y)
     {
       for (x = 0; x < width; ++x)
@@ -9045,7 +9045,7 @@ syms_of_image ()
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", &Vimage_types,
     doc: /* List of potentially supported image types.
-Each element of the list is a symbol for a image type, like 'jpeg or 'png.
+Each element of the list is a symbol for an image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 
