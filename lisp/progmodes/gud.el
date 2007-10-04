@@ -239,7 +239,7 @@ Used to grey out relevant toolbar icons.")
        ([menu-bar run] menu-item
 	,(propertize "run" 'face 'font-lock-doc-face) gud-run
 	:visible (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
-       ([menu-bar go] menu-item 
+       ([menu-bar go] menu-item
 	,(propertize " go " 'face 'font-lock-doc-face) gud-go
 	:visible (and (not gud-running)
 		      (eq gud-minor-mode 'gdba)))
@@ -591,8 +591,7 @@ required by the caller."
 
 (defcustom gud-gud-gdb-command-name "gdb --fullname"
   "Default command to run an executable under GDB in text command mode.
-The option \"--fullname\" must be included in it's value."
-
+The option \"--fullname\" must be included in this value."
    :type 'string
    :group 'gud)
 
@@ -3111,7 +3110,7 @@ class of the file (using s to separate nested class ids)."
                              'syntax-table (eval-when-compile
                                              (string-to-syntax "> b")))
           ;; Make sure that rehighlighting the previous line won't erase our
-          ;; syntax-table property.  
+          ;; syntax-table property.
           (put-text-property (1- (match-beginning 0)) (match-end 0)
                              'font-lock-multiline t)
           nil)))))
