@@ -1,3 +1,8 @@
+2007-10-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Remove references to gdba
+	and mention gud-gdb.
+
 2007-09-29  Juri Linkov  <juri@jurta.org>
 
 	* info.texi (Help-Int): Document `L' (`Info-history').
