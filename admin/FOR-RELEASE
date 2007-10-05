@@ -53,6 +53,12 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01497.html
 Waiting for recipe to produce these warnings.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00070.html
 
+** emacs-22.1 with GTK problems (with patches)
+Only outstanding issue seems to be whether Solaris 2.6 GTK can be
+supported in the absence of recursive mutexes, via a change to
+alloc.c, or whether configure should abort.
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
+
 * BUGS
 
 ** ams@gnu.org, 9 July: eshell and external commands
@@ -71,18 +77,15 @@ Report by Drew Adams <drew.adams@oracle.com> on emacs-devel from
 2007-09-05.
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00298.html
 
-** emacs-22.1 with GTK problems (with patches)
-Only outstanding issue seems to be whether Solaris 2.6 GTK can be
-supported in the absence of recursive mutexes, via a change to
-alloc.c, or whether configure should abort.
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
-
 ** GNU NT-Emacs crashes with longlines-mode and outline-mode
 Reported by Rainer Thiel <r.thiel@uni-jena.de> on emacs-pretest-bug
 from 2007-09-22.
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01996.html
 Jason Rumney has a recipe for reproducing this on GNU/Linux:
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02267.html
+Minimum cause: "It occurs when the character before the display
+property is replaced with an ellipsis"
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00046.html
 
 * FIXES FOR EMACS 22.3
 
