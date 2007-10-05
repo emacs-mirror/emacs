@@ -1,3 +1,8 @@
+2007-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Fix configuring `doc' due to changes in the
+	directory structure.
+
 2007-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: File gfdl.1 has been removed.
