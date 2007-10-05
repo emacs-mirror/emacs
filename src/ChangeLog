@@ -4,6 +4,10 @@
 	[USE_CG_DRAWING] (mac_define_fringe_bitmap, mac_destroy_fringe_bitmap):
 	Add BLOCK_INPUT.
 
+2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (syms_of_image) <image-types>: Fix typo in docstring.
+
 2007-10-02  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_window_cursor_type): Implement documented behavior
