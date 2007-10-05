@@ -2275,6 +2275,9 @@ mac_define_fringe_bitmap (which, bits, h, wd)
 
   for (i = 0; i < h; i++)
     bits[i] = ~bits[i];
+
+  BLOCK_INPUT;
+
   provider = CGDataProviderCreateWithData (NULL, bits,
 					   sizeof (unsigned short) * h, NULL);
   if (provider)
@@ -2284,6 +2287,8 @@ mac_define_fringe_bitmap (which, bits, h, wd)
 					     provider, NULL, 0);
       CGDataProviderRelease (provider);
     }
+
+  UNBLOCK_INPUT;
 }
 
 static void
@@ -2294,7 +2299,11 @@ mac_destroy_fringe_bitmap (which)
     return;
 
   if (fringe_bmp[which])
-    CGImageRelease (fringe_bmp[which]);
+    {
+      BLOCK_INPUT;
+      CGImageRelease (fringe_bmp[which]);
+      UNBLOCK_INPUT;
+    }
   fringe_bmp[which] = 0;
 }
 #endif
@@ -8143,7 +8152,7 @@ mac_load_query_font (f, fontname)
 
       font_id = atsu_find_font_from_family_name (family);
       if (font_id == kATSUInvalidFontID)
-	return;
+	return NULL;
       size_fixed = Long2Fix (size);
       bold_p = (fontface & bold) != 0;
       italic_p = (fontface & italic) != 0;
