@@ -1,3 +1,7 @@
+2007-10-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Auto Faces): Fix typo.
+
 2007-10-02  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Display Property): Explain some display specs
@@ -69,7 +73,7 @@
 
 2007-06-24  Karl Berry  <karl@tug.org>
 
-	* elisp.texi, vol1.texi, vol2.texi: new Back-Cover Text.
+	* elisp.texi, vol1.texi, vol2.texi: New Back-Cover Text.
 
 2007-06-14  Karl Berry  <karl@tug.org>
 
@@ -197,8 +201,8 @@
 2007-04-11  Karl Berry  <karl@gnu.org>
 
 	* anti.texi (Antinews),
-	* display.texi (Overlay Properties) and (Defining Images),
-	* processes.texi (Synchronous Processes) and (Sentinels),
+	* display.texi (Overlay Properties, Defining Images),
+	* processes.texi (Synchronous Processes, Sentinels),
 	* syntax.texi (Syntax Table Internals),
 	* searching.texi (Regexp Special),
 	* nonascii.texi (Default Coding Systems),
