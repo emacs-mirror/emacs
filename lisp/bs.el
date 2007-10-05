@@ -619,7 +619,7 @@ actually the line which begins with character in `bs-string-current' or
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
 Move to a line representing the buffer you want to edit and select
-buffer by \\[bs-select] or SPC. Abort buffer list with \\[bs-kill].
+buffer by \\[bs-select] or SPC.  Abort buffer list with \\[bs-kill].
 There are many key commands similar to `Buffer-menu-mode' for
 manipulating the buffer list and buffers.
 For faster navigation each digit key is a digit argument.
@@ -1274,7 +1274,7 @@ or a string."
 (defun bs--get-marked-string (start-buffer all-buffers)
   "Return a string which describes whether current buffer is marked.
 START-BUFFER is the buffer where we started buffer selection.
-ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu.
+ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu.
 The result string is one of `bs-string-current', `bs-string-current-marked',
 `bs-string-marked', `bs-string-show-normally', `bs-string-show-never', or
 `bs-string-show-always'."
@@ -1299,19 +1299,19 @@ The result string is one of `bs-string-current', `bs-string-current-marked',
 (defun bs--get-modified-string (start-buffer all-buffers)
   "Return a string which describes whether current buffer is modified.
 START-BUFFER is the buffer where we started buffer selection.
-ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
+ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (if (buffer-modified-p) "*" " "))
 
 (defun bs--get-readonly-string (start-buffer all-buffers)
   "Return a string which describes whether current buffer is read only.
 START-BUFFER is the buffer where we started buffer selection.
-ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
+ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (if buffer-read-only "%" " "))
 
 (defun bs--get-size-string (start-buffer all-buffers)
   "Return a string which describes the size of current buffer.
 START-BUFFER is the buffer where we started buffer selection.
-ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
+ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (int-to-string (buffer-size)))
 
 (defun bs--get-name (start-buffer all-buffers)
@@ -1319,7 +1319,7 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
 The name of current buffer gets additional text properties
 for mouse highlighting.
 START-BUFFER is the buffer where we started buffer selection.
-ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
+ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   (propertize (buffer-name)
               'help-echo "mouse-2: select this buffer, mouse-3: select in other frame"
               'mouse-face 'highlight))
@@ -1327,7 +1327,7 @@ ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
 (defun bs--get-mode-name (start-buffer all-buffers)
   "Return the name of mode of current buffer for Buffer Selection Menu.
 START-BUFFER is the buffer where we started buffer selection.
-ALL-BUFFERS is the list of buffer appearing in Buffer Selection Menu."
+ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   mode-name)
 
 (defun bs--get-file-name (start-buffer all-buffers)
@@ -1372,7 +1372,7 @@ normally *buffer-selection*."
     string))
 
 (defun bs--format-aux (string align len)
-  "Generate a string with STRING with alignment ALIGN and length LEN.
+  "Pad STRING to length LEN with alignment ALIGN.
 ALIGN is one of the symbols `left', `middle', or `right'."
   (let* ((width (length string))
          (len (max len width)))
