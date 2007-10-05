@@ -1,3 +1,10 @@
+2007-10-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--get-marked-string, bs--get-modified-string)
+	(bs--get-readonly-string, bs--get-size-string, bs--get-name)
+	(bs--get-mode-name, bs-mode): Fix typos in docstrings.
+	(bs--format-aux): Doc fix.
+
 2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image-dired.el (image-dired-image-at-point-p): Fix typo in docstring.
