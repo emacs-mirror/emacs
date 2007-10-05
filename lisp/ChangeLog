@@ -1,3 +1,7 @@
+2007-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Reorder functions, no code changes.
+
 2007-10-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-make-temp-file): Move to tramp-compat.el.
