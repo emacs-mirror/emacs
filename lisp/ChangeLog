@@ -1,5 +1,9 @@
 2007-10-05  Juanma Barranquero  <lekktu@gmail.com>
 
+	* bs.el (bs-mode): Make sure global-font-lock-mode doesn't
+	activate font-locking in the *buffer-selection* buffer.
+	(bs-show-sorted): Doc fix.
+
 	* bs.el (bs--get-marked-string, bs--get-modified-string)
 	(bs--get-readonly-string, bs--get-size-string, bs--get-name)
 	(bs--get-mode-name, bs-mode): Fix typos in docstrings.
