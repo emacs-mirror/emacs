@@ -1,3 +1,7 @@
+2007-10-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* display.texi (Auto Faces): Fix typo.
+
 2007-10-01  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Overlay Properties): Explain nil as priority.
@@ -13,7 +17,7 @@
 	* Move from lispref/ to doc/lispref/.  Change all setfilename
 	commands to use ../../info.
 	* Makefile.in (infodir): Go up one more level.
-        (usermanualdir): Change from ../man to ../emacs.
+	(usermanualdir): Change from ../man to ../emacs.
 	(miscmanualdir): New.
 	(dist): Use new variable miscmanualdir.
 	* makefile.w32-in (infodir, texinputdir): Go up one more level.
@@ -73,8 +77,8 @@
 
 2007-07-24  Michael Albinus  <michael.albinus@gmx.de>
 
-	* processes.texi (Synchronous Processes): Add
-	`process-file-shell-command',
+	* processes.texi (Synchronous Processes):
+	Add `process-file-shell-command'.
 	(Asynchronous Processes): Mention restricted use of
 	`process-filter' and `process-sentinel' in
 	`start-file-process'.  Add `start-file-process-shell-command'.
@@ -117,13 +121,13 @@
 
 2007-06-27  Michael Albinus  <michael.albinus@gmx.de>
 
-	* files.texi (Magic File Names): Remove `dired-call-process'.  Add
-	`process-file'.
+	* files.texi (Magic File Names): Remove `dired-call-process'.
+	Add `process-file'.
 
 2007-06-27  Kenichi Handa  <handa@m17n.org>
 
 	* text.texi (Special Properties): Fix description about
-	`compostion' property.
+	`composition' property.
 
 2007-06-26  Kenichi Handa  <handa@m17n.org>
 
@@ -137,7 +141,7 @@
 
 2007-06-24  Karl Berry  <karl@gnu.org>
 
-	* elisp.texi, vol1.texi, vol2.texi: new Back-Cover Text.
+	* elisp.texi, vol1.texi, vol2.texi: New Back-Cover Text.
 
 2007-06-15  Juanma Barranquero  <lekktu@gmail.com>
 
