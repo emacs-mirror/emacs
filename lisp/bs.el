@@ -652,12 +652,14 @@ to show always.
   (use-local-map bs-mode-map)
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'font-lock-verbose)
+  (make-local-variable 'font-lock-global-modes)
   (buffer-disable-undo)
   (setq major-mode 'bs-mode
 	mode-name "Buffer-Selection-Menu"
 	buffer-read-only t
 	truncate-lines t
 	show-trailing-whitespace nil
+	font-lock-global-modes '(not bs-mode)
 	font-lock-defaults '(bs-mode-font-lock-keywords t)
 	font-lock-verbose nil)
   (run-mode-hooks 'bs-mode-hook))
@@ -929,7 +931,7 @@ WHAT is a value of nil, `never', or `always'."
       (bs-up 1))))
 
 (defun bs-show-sorted ()
-  "Show buffer list sorted by buffer name."
+  "Show buffer list sorted by next sort aspect."
   (interactive)
   (setq bs--current-sort-function
 	(bs-next-config-aux (car bs--current-sort-function)
