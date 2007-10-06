@@ -462,6 +462,3 @@ update-game-score${EXEEXT}: update-game-score.o $(GETOPTDEPS)
 update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
-
-
-### Makefile ends here
