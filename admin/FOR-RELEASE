@@ -5,22 +5,20 @@ Tasks needed before the next release.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
-** Regenerate the postscript files of the reference cards in etc.
+** Regenerate the pdf versions of the reference cards in etc/refcards/.
 
 ** Ask maintainers of refcard translations to update them.
 
-Requests to have been sent out on 2006-05-23 (Reiner Steib).
+Emacs 22 translators:
 
 LANG	Translator            Status
-cs	Pavel Janík           Can't work on it now.
-de	Sven Joachim          Done
-fr	Eric Jacoboni         Done
-pl	Włodek Bzyl           Done
-pt-br	Rodrigo Real          Done
-ru	Alex Ott              Done
-sk	Miroslav Vaško        No response
-
-Reminders sent out on 2006-06-08.
+cs	Pavel Janík           
+de	Sven Joachim          
+fr	Eric Jacoboni         
+pl	Włodek Bzyl           
+pt-br	Rodrigo Real          
+ru	Alex Ott              
+sk	Miroslav Vaško        
 
 ** Remove temporary +++/--- lines in NEWS.
 
@@ -46,6 +44,10 @@ reported on emacs-devel that he was not able to reproduce the bug on a
 GNU/Linux system.
 
 * BUGS
+
+** Document the changes introduced by multi-tty
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01639.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01602.html
 
 ** Does deleting frames run Lisp code?  If so, can we get rid of that?
 It is a dangerous design.
@@ -78,6 +80,15 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01632.html
 
 ** herring@lanl.gov: find-func: can no longer find adviced subrs
 This ought to work.
+
+** \\{...} produces duplicate entries
+http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00209.html
+
+** menu indications of key bindings for remapped commands
+http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01339.html
+
+** tromey@redhat.com: two View-mode "quit" bugs
+http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00103.html
 
 * DOCUMENTATION
 
