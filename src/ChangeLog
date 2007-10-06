@@ -1,3 +1,21 @@
+2007-10-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (kbd_buffer_get_event): Break loop waiting for input
+	when there's an unread command event.
+
+	* frame.c (focus_follows_mouse): Moved here from frame.el to allow
+	window autoselection act appropriately when leaving selected frame.
+	(syms_of_frame): Initialize focus_follows_mouse.
+	* frame.h (focus_follows_mouse): Extern it.
+	* macterm.c (XTread_socket): When focus_follows_mouse is nil
+	make SELECT_WINDOW_EVENT only if we don't leave the selected
+	frame.
+	* msdos.c (dos_rawgetc): Likewise.
+	* w32term.c (w32_read_socket): Likewise.
+	* xterm.c (handle_one_xevent): Likewise.
+	* xdisp.c (syms_of_xdisp): In doc-string of
+	mouse-autoselect-window mention focus-follows-mouse.
+
 2007-10-06  Andreas Schwab  <schwab@suse.de>
 
 	* fileio.c (Fwrite_region): Ignore EINVAL error from fsync.
