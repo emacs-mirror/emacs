@@ -5359,8 +5359,10 @@ This does code conversion according to the value of
      it, and that means the fsync here is not crucial for autosave files.  */
   if (!auto_saving && !write_region_inhibit_fsync && fsync (desc) < 0)
     {
-      /* If fsync fails with EINTR, don't treat that as serious.  */
-      if (errno != EINTR)
+      /* If fsync fails with EINTR, don't treat that as serious.  Also
+	 ignore EINVAL which happens when fsync is not supported on this
+	 file.  */
+      if (errno != EINTR && errno != EINVAL)
 	failure = 1, save_errno = errno;
     }
 #endif
