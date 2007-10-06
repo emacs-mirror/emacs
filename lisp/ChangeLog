@@ -1,3 +1,21 @@
+2007-10-06  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/fill.el (fill-paragraph-or-region): New function.
+
+	* bindings.el (esc-map): Bind M-q to fill-paragraph-or-region
+	instead of fill-paragraph.
+
+	* tutorial.el (tutorial--default-keys): Replace fill-paragraph
+	with fill-paragraph-or-region.  Suspend command is now the same
+	`suspend-frame' on window systems and on tty.
+
+	* image.el (image-type): Check if image-types is bound to not fail
+	on tty.
+
+	* delsel.el (delete-selection-pre-hook):
+	* emulation/cua-base.el (cua-paste): Check if mouse-region-match
+	is fbound to not fail on mouseless tty.
+
 2007-10-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Move loading of tramp-util.el and
