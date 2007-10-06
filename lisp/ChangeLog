@@ -1,6 +1,11 @@
 2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el: workfile version -> focus version change.
+	* vc.el: workfile version -> focus version change. Port various
+	comments from new VC to reduce the noise in the diff.
+	Patch in the new vc-create-repo function to go with the
+	header comment about it already present.
+	There are changes to existing logic in this patch.
+	*vc.el (vc-revert-buffer1): Rename to to vc-revert-buffer-internal.
 
 2007-10-06  Aaron Hawley  <aaronh@garden.org>
 
