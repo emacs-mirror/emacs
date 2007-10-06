@@ -27,8 +27,9 @@
 ;;; Credits:
 
 ;; VC was initially designed and implemented by Eric S. Raymond
-;; <esr@snark.thyrsus.com>.  Over the years, many people have
+;; <esr@thyrsus.com> in 1992.  Over the years, many other people have
 ;; contributed substantial amounts of work to VC.  These include:
+;;
 ;;   Per Cederqvist <ceder@lysator.liu.se>
 ;;   Paul Eggert <eggert@twinsun.com>
 ;;   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -39,6 +40,24 @@
 ;;   Andre Spiegel <spiegel@gnu.org>
 ;;   Richard Stallman <rms@gnu.org>
 ;;   Thien-Thi Nguyen <ttn@gnu.org>
+;;
+;; In July 2007 ESR returned and redesigned the mode to cope better
+;; with modern version-control systems that do commits by fileset
+;; rather than per individual file.
+;;
+;; Features in the new version:
+;; * Key commands (vc-next-action = C-x v v, vc-print-log = C-x v l, vc-revert
+;;   = C-x v u, vc-rollback = C-x v c, vc-diff = C-x v =, vc-update = C-x v +) 
+;;   now operate on filesets rather than individual files.
+;; * The fileset for a command is either (a) all marked files in VC-dired
+;;   mode, (b) the currently visited file if it's under version control,
+;;   or (c) the current directory if the visited buffer is not under
+;;   version control and a wildcarding-enable flag has been set. 
+;;
+;; If you maintain a client of the mode or customize it in your .emacs, 
+;; note that some backend functions which formerly took single file arguments 
+;; now take a list of files.  These include: register, checkin, print-log,
+;; rollback, and diff.
 
 ;;; Commentary:
 
@@ -104,9 +123,11 @@
 ;;
 ;; * revision-granularity
 ;;
-;;   Takes no arguments.  Returns either 'file or 'repository.
-;;   FIXME: What does this mean?  Why "repository"?
-;;
+;;   Takes no arguments.  Returns either 'file or 'repository.  Backends
+;;   that return 'file have per-file revision numbering; backends
+;;   that return 'repository have per-repository revision numbering,
+;;   so a revision level implicitly identifies a changeset
+;;   
 ;; STATE-QUERYING FUNCTIONS
 ;;
 ;; * registered (file)
@@ -143,7 +164,10 @@
 ;;
 ;; * workfile-version (file)
 ;;
-;;   Return the current focus version of FILE.
+;;   Return the current focus version of FILE.  This is the version fetched
+;;   by the last checkout or upate, not necessarily the same thing as the
+;;   head or tip version. Should return "0" for a file added but not yet 
+;;   committed.
 ;;
 ;; - latest-on-branch-p (file)
 ;;
@@ -185,7 +209,7 @@
 ;;
 ;; STATE-CHANGING FUNCTIONS
 ;;
-;; * create-repo ()
+;; * create-repo (backend)
 ;;
 ;;   Create an empty repository in the current directory and initialize 
 ;;   it so VC mode can add files to it.  For file-oriented systems, this 
@@ -261,7 +285,7 @@
 ;;
 ;; * revert (file &optional contents-done)
 ;;
-;;   Revert FILE back to the current workfile version.  If optional
+;;   Revert FILE back to the current focus version.  If optional
 ;;   arg CONTENTS-DONE is non-nil, then the contents of FILE have
 ;;   already been reverted from a version backup, and this function
 ;;   only needs to update the status of FILE within the backend.
@@ -312,8 +336,7 @@
 ;;
 ;; - wash-log (file)
 ;;
-;;   Remove all non-comment information from the output of print-log.  The
-;;   default implementation of this function works for RCS-style logs.
+;;   Remove all non-comment information from the output of print-log.
 ;;
 ;; - logentry-check ()
 ;;
@@ -324,7 +347,7 @@
 ;;
 ;; - comment-history (file)
 ;;
-;;   Return a string containing all log entries that were made for FILE.
+;;   Return a string containing all log entries that were madoe for FILE.
 ;;   This is used for transferring a file from one backend to another,
 ;;   retaining comment information.  The default implementation of this
 ;;   function does this by calling print-log and then wash-log, and
@@ -590,7 +613,7 @@ These are passed to the checkin program by \\[vc-register]."
   :version "20.3")
 
 (defcustom vc-dired-terse-display t
-  "If non-nil, show only locked files in VC Dired."
+  "If non-nil, show only locked or locally modified files in VC Dired."
   :type 'boolean
   :group 'vc
   :version "20.3")
@@ -651,7 +674,7 @@ See `run-hooks'."
 
 ;;;###autoload
 (defcustom vc-checkin-hook nil
-  "Normal hook (list of functions) run after a checkin is done.
+  "Normal hook (list of functions) run after commit or file checkin.
 See also `log-edit-done-hook'."
   :type 'hook
   :options '(log-edit-comment-to-change-log)
@@ -659,7 +682,7 @@ See also `log-edit-done-hook'."
 
 ;;;###autoload
 (defcustom vc-before-checkin-hook nil
-  "Normal hook (list of functions) run before a file is checked in.
+  "Normal hook (list of functions) run before a commit or a file checkin.
 See `run-hooks'."
   :type 'hook
   :group 'vc)
@@ -840,15 +863,15 @@ been updated to their corresponding values."
 			property (cdr setting)))))
 	     ,settings)))
 
-;; Random helper functions
-
 ;; Two macros for elisp programming
+
 ;;;###autoload
 (defmacro with-vc-file (file comment &rest body)
   "Check out a writable copy of FILE if necessary, then execute BODY.
 Check in FILE with COMMENT (a string) after BODY has been executed.
 FILE is passed through `expand-file-name'; BODY executed within
-`save-excursion'.  If FILE is not under version control, or locked by
+`save-excursion'.  If FILE is not under version control, or you are
+using a locking version-control system and the file is locked by 
 somebody else, signal error."
   (declare (debug t) (indent 2))
   (let ((filevar (make-symbol "file")))
@@ -878,6 +901,8 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
         (set-buffer (find-file-noselect ,filevar))
         ,@body
         (save-buffer)))))
+
+;; Common command execution logic to be used by backends
 
 (defun vc-process-filter (p s)
   "An alternative output filter for async process P.
@@ -1018,6 +1043,7 @@ that is inserted into the command line before the filename."
 	      ;; start-process does not support remote execution
 	      (setq okstatus nil))
 	  (if (eq okstatus 'async)
+	      ;; Run asynchronously
 	      (let ((proc
 		     (let ((process-connection-type nil))
 		       (apply 'start-process command (current-buffer) command
@@ -1219,12 +1245,15 @@ Only files already under version control are noticed."
       (if (not (vc-backend buffer-file-name))
 	  (error "File %s is not under version control" buffer-file-name)))))
 
+;;; Support for the C-x v v command.  This is where all the single-file-oriented
+;;; code from before the fileset rewrite lives.
+
 (defsubst vc-editable-p (file)
   "Return non-nil if FILE can be edited."
   (or (eq (vc-checkout-model file) 'implicit)
       (memq (vc-state file) '(edited needs-merge))))
 
-(defun vc-revert-buffer1 (&optional arg no-confirm)
+(defun vc-revert-buffer-internal (&optional arg no-confirm)
   "Revert buffer, keeping point and mark where user expects them.
 Try to be clever in the face of changes due to expanded version control
 key words.  This is important for typeahead to work as expected.
@@ -1453,7 +1482,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	      (yes-or-no-p (concat "File has unlocked changes.  "
 				   "Claim lock retaining changes? ")))
 	    (progn (vc-call steal-lock file)
-                   (clear-visited-file-modtime)
+		   (clear-visited-file-modtime)
 		   ;; Must clear any headers here because they wouldn't
 		   ;; show that the file is locked now.
 		   (vc-clear-headers file)
@@ -1462,7 +1491,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 	  (if (not (yes-or-no-p
 		    "Revert to checked-in version, instead? "))
 	      (error "Checkout aborted")
-	    (vc-revert-buffer1 t t)
+	    (vc-revert-buffer-internal t t)
 	    (vc-checkout file t))))))))
 
 (defun vc-next-action-dired (file rev comment)
@@ -1478,6 +1507,18 @@ Ignores FILE and REV, but passes on COMMENT."
        (message "Processing %s...done" file))
     nil t))
   (dired-move-to-filename))
+
+(defun vc-create-repo (backend)
+  "Create an empty repository in the current directory."
+  (interactive
+   (list
+    (intern
+     (upcase
+      (completing-read
+       "Create repository for: "
+       (mapcar (lambda (b) (list (downcase (symbol-name b)))) vc-handled-backends)
+       nil t)))))
+  (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
 (defun vc-register (&optional set-version comment)
@@ -1537,7 +1578,7 @@ rather than user editing!"
   (and (string= buffer-file-name file)
        (if keep
 	   (progn
-	     (vc-revert-buffer1 t noquery)
+	     (vc-revert-buffer-internal t noquery)
              ;; TODO: Adjusting view mode might no longer be necessary
              ;; after RMS change to files.el of 1999-08-08.  Investigate
              ;; this when we install the new VC.
@@ -2069,7 +2110,7 @@ See Info node `Merging'."
 	 (state (vc-state file))
 	 first-version second-version status)
     (cond
-     ((stringp state)
+     ((stringp state)	;; Locking VCses only
       (error "File is locked by %s" state))
      ((not (vc-editable-p file))
       (if (y-or-n-p
@@ -2595,7 +2636,7 @@ its name; otherwise return nil."
             backup-file)))))
 
 (defun vc-revert-file (file)
-  "Revert FILE back to the version it was based on."
+  "Revert FILE back to the repository version it was based on."
   (with-vc-properties
    file
    (let ((backup-file (vc-version-backup-file file)))
@@ -2831,6 +2872,11 @@ log entries should be gathered."
         (error "Sorry, vc-update-change-log does not work over Tramp")))
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
+
+;;; The default back end.  Assumes RCS-like version numbering.
+
+(defun vc-default-revision-granularity ()
+  (error "Your backend will not work with this version of VC mode."))
 
 ;; functions that operate on RCS revision numbers.  This code should
 ;; also be moved into the backends.  It stays for now, however, since
@@ -3543,7 +3589,6 @@ The annotations are relative to the current time, unless overridden by OFFSET."
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.
 Invoke FUNC f ARGS on each VC-managed file f underneath it."
-  ;; FIXME: Kill this function.
   (vc-file-tree-walk-internal (expand-file-name dirname) func args)
   (message "Traversing directory %s...done" dirname))
 
