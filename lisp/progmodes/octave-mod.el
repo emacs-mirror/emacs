@@ -89,6 +89,7 @@ All Octave abbrevs start with a grave accent (`).")
   (define-abbrev octave-abbrev-table "`r" "return" nil 0 t)
   (define-abbrev octave-abbrev-table "`s" "switch" nil 0 t)
   (define-abbrev octave-abbrev-table "`t" "try" nil 0 t)
+  (define-abbrev octave-abbrev-table "`u" "until ()" nil 0 t)
   (define-abbrev octave-abbrev-table "`up" "unwind_protect" nil 0 t)
   (define-abbrev octave-abbrev-table "`upc" "unwind_protect_cleanup" nil 0 t)
   (define-abbrev octave-abbrev-table "`w" "while ()" nil 0 t))
@@ -102,32 +103,34 @@ All Octave abbrevs start with a grave accent (`).")
   "Regexp to match the start of an Octave comment up to its body.")
 
 (defvar octave-begin-keywords
-  '("for" "function" "if" "switch" "try" "unwind_protect" "while"))
+  '("do" "for" "function" "if" "switch" "try" "unwind_protect" "while"))
 (defvar octave-else-keywords
   '("case" "catch" "else" "elseif" "otherwise" "unwind_protect_cleanup"))
+;; FIXME: only use specific "end" tokens here to avoid confusion when "end"
+;; is used in indexing (the real fix is much more complex).
 (defvar octave-end-keywords
-  '("end" "endfor" "endfunction" "endif" "endswitch" "end_try_catch"
-    "end_unwind_protect" "endwhile"))
+  '("endfor" "endfunction" "endif" "endswitch" "end_try_catch"
+    "end_unwind_protect" "endwhile" "until"))
 
 (defvar octave-reserved-words
   (append octave-begin-keywords
 	  octave-else-keywords
 	  octave-end-keywords
-	  '("all_va_args" "break" "continue" "global" "gplot" "gsplot"
-	    "replot" "return"))
+	  '("break" "continue" "end" "global" "persistent" "return"))
   "Reserved words in Octave.")
 
 (defvar octave-text-functions
   '("casesen" "cd" "chdir" "clear" "diary" "dir" "document" "echo"
-    "edit_history" "format" "gset" "gshow" "help" "history" "hold"
-    "load" "ls" "more" "run_history" "save" "set" "show" "type"
+    "edit_history" "format" "help" "history" "hold"
+    "load" "ls" "more" "run_history" "save" "type"
     "which" "who" "whos")
-  "Text functions in Octave (these names are also reserved).")
+  "Text functions in Octave.")
 
 (defvar octave-variables
-  '("EDITOR" "EXEC_PATH" "F_DUPFD" "F_GETFD" "F_GETFL" "F_SETFD"
-    "F_SETFL" "I" "IMAGEPATH" "INFO_FILE" "INFO_PROGRAM" "Inf" "J"
-    "LOADPATH" "NaN" "OCTAVE_VERSION" "O_APPEND" "O_CREAT" "O_EXCL"
+  '("DEFAULT_EXEC_PATH" "DEFAULT_LOADPATH"
+    "EDITOR" "EXEC_PATH" "F_DUPFD" "F_GETFD" "F_GETFL" "F_SETFD"
+    "F_SETFL" "I" "IMAGE_PATH" "Inf" "J"
+    "NaN" "OCTAVE_VERSION" "O_APPEND" "O_CREAT" "O_EXCL"
     "O_NONBLOCK" "O_RDONLY" "O_RDWR" "O_TRUNC" "O_WRONLY" "PAGER" "PS1"
     "PS2" "PS4" "PWD" "SEEK_CUR" "SEEK_END" "SEEK_SET" "__F_DUPFD__"
     "__F_GETFD__" "__F_GETFL__" "__F_SETFD__" "__F_SETFL__" "__I__"
@@ -135,29 +138,23 @@ All Octave abbrevs start with a grave accent (`).")
     "__O_CREAT__" "__O_EXCL__" "__O_NONBLOCK__" "__O_RDONLY__"
     "__O_RDWR__" "__O_TRUNC__" "__O_WRONLY__" "__PWD__" "__SEEK_CUR__"
     "__SEEK_END__" "__SEEK_SET__" "__argv__" "__e__" "__eps__"
-    "__error_text__" "__i__" "__inf__" "__j__" "__nan__" "__pi__"
+    "__i__" "__inf__" "__j__" "__nan__" "__pi__"
     "__program_invocation_name__" "__program_name__" "__realmax__"
     "__realmin__" "__stderr__" "__stdin__" "__stdout__" "ans" "argv"
-    "automatic_replot" "beep_on_error" "completion_append_char"
-    "default_return_value" "default_save_format"
-    "define_all_return_values" "do_fortran_indexing" "e"
-    "echo_executing_commands" "empty_list_elements_ok" "eps"
-    "error_text" "gnuplot_binary" "gnuplot_has_multiplot" "history_file"
-    "history_size" "ignore_function_time_stamp" "implicit_str_to_num_ok"
-    "inf" "nan" "nargin" "ok_to_lose_imaginary_part"
-    "output_max_field_width" "output_precision"
+    "beep_on_error" "completion_append_char"
+    "crash_dumps_octave_core" "default_save_format"
+    "e" "echo_executing_commands" "eps"
+    "error_text" "gnuplot_binary" "history_file"
+    "history_size" "ignore_function_time_stamp"
+    "inf" "nan" "nargin" "output_max_field_width" "output_precision"
     "page_output_immediately" "page_screen_output" "pi"
-    "prefer_column_vectors" "prefer_zero_one_indexing"
     "print_answer_id_name" "print_empty_dimensions"
-    "program_invocation_name" "program_name" "propagate_empty_matrices"
-    "realmax" "realmin" "resize_on_range_error"
-    "return_last_computed_value" "save_precision" "saving_history"
+    "program_invocation_name" "program_name"
+    "realmax" "realmin" "return_last_computed_value" "save_precision"
+    "saving_history" "sighup_dumps_octave_core" "sigterm_dumps_octave_core"
     "silent_functions" "split_long_rows" "stderr" "stdin" "stdout"
     "string_fill_char" "struct_levels_to_print"
-    "suppress_verbose_help_message" "treat_neg_dim_as_zero"
-    "warn_assign_as_truth_value" "warn_comma_in_global_decl"
-    "warn_divide_by_zero" "warn_function_name_clash"
-    "warn_missing_semicolon" "whitespace_in_literal_matrix")
+    "suppress_verbose_help_message")
   "Builtin variables in Octave.")
 
 (defvar octave-function-header-regexp
@@ -349,15 +346,17 @@ newline or semicolon after an else or end keyword."
   (concat octave-block-begin-regexp "\\|" octave-block-end-regexp))
 (defvar octave-block-else-or-end-regexp
   (concat octave-block-else-regexp "\\|" octave-block-end-regexp))
+;; FIXME: only use specific "end" tokens here to avoid confusion when "end"
+;; is used in indexing (the real fix is much more complex).
 (defvar octave-block-match-alist
-  '(("for" . ("end" "endfor"))
-    ("function" . ("end" "endfunction"))
-    ("if" . ("else" "elseif" "end" "endif"))
-    ("switch" . ("case" "otherwise" "end" "endswitch"))
-    ("try" . ("catch" "end" "end_try_catch"))
-    ("unwind_protect" . ("unwind_protect_cleanup" "end"
-			 "end_unwind_protect"))
-    ("while" . ("end" "endwhile")))
+  '(("do" . ("until"))
+    ("for" . ("endfor"))
+    ("function" . ("endfunction"))
+    ("if" . ("else" "elseif" "endif"))
+    ("switch" . ("case" "otherwise" "endswitch"))
+    ("try" . ("catch" "end_try_catch"))
+    ("unwind_protect" . ("unwind_protect_cleanup" "end_unwind_protect"))
+    ("while" . ("endwhile")))
   "Alist with Octave's matching block keywords.
 Has Octave's begin keywords as keys and a list of the matching else or
 end keywords as associated values.")
@@ -425,7 +424,7 @@ can also be stored in files, and it can be used in a batch mode (which
 is why you need this mode!).
 
 The latest released version of Octave is always available via anonymous
-ftp from bevo.che.wisc.edu in the directory `/pub/octave'.  Complete
+ftp from ftp.octave.org in the directory `/pub/octave'.  Complete
 source and binaries for several popular systems are available.
 
 Type \\[list-abbrevs] to display the built-in abbrevs for Octave keywords.
@@ -480,7 +479,7 @@ following lines to your `.emacs' file:
 
   (add-to-list 'auto-mode-alist '(\"\\\\.m\\\\'\" . octave-mode))
 
-To automatically turn on the abbrev and auto-fill,
+To automatically turn on the abbrev and auto-fill features,
 add the following lines to your `.emacs' file as well:
 
   (add-hook 'octave-mode-hook
