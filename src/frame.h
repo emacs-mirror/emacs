@@ -39,6 +39,11 @@ extern int frame_garbaged;
 
 extern int message_buf_print;
 
+/* Nonzero means window system changes focus when moving the
+   mouse.  */
+
+extern int focus_follows_mouse;
+
 
 /* The structure representing a frame.  */
 
