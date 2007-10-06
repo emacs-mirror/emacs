@@ -1248,9 +1248,12 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 @subsection Introduction to Version Control
 
   VC allows you to use a version control system from within Emacs,
-integrating the version control operations smoothly with editing.  VC
-provides a uniform interface to version control, so that regardless of
-which version control system is in use, you can use it the same way.
+integrating the version control operations smoothly with editing.
+Though VC cannot completely bridge the gaps between version-control
+systems with widely differing capabilities,  it does provide
+a uniform interface to many version control operations. Regardless of
+which version control system is in use, you will be able to do basic
+operations in much the same way.
 
   This section provides a general overview of version control, and
 describes the version control systems that VC supports.  You can skip
@@ -1268,7 +1271,7 @@ you want to use.
 @subsubsection Understanding the problems it addresses
 
   Version control systems provide you with three important capabilities: 
-reversibility, concurrency, and history.
+@dfn{reversibility}. @dfn{concurrency}, and @dfn{history}.
 
   The most basic capability you get from a version-control system is
 reversibility, the ability to back up to a saved, known-good state when
@@ -1292,15 +1295,16 @@ become a vitally important form of communication among developers.
 ``back ends'': CVS, GNU Arch, RCS, Meta-CVS, Subversion, and SCCS.
 
 @cindex CVS
-  CVS is a free version control system that is used for the majority
-of free software projects today.  It allows concurrent multi-user
-development either locally or over the network.  Some of its
-shortcomings, corrected by newer systems such as GNU Arch, are that it
-lacks atomic commits or support for renaming files.  VC supports all
-basic editing operations under CVS, but for some less common tasks you
-still need to call CVS from the command line.  Note also that before
-using CVS you must set up a repository, which is a subject too complex
-to treat here.
+  CVS is the free version control system that was until recently (as of
+2007) used for the majority of free software projects, though it is now
+being superseded by other systems.  It allows concurrent
+multi-user development either locally or over the network.  Some of its
+shortcomings, corrected by newer systems such as Subversion or GNU Arch,
+are that it lacks atomic commits or support for renaming files.  VC
+supports all basic editing operations under CVS, but for some less
+common tasks you still need to call CVS from the command line.  Note
+also that before using CVS you must set up a repository, which is a
+subject too complex to treat here.
 
 @cindex GNU Arch
 @cindex Arch
@@ -1315,62 +1319,50 @@ the command line, or use a specialized module.
 
 @cindex RCS
   RCS is the free version control system around which VC was initially
-built.  The VC commands are therefore conceptually closest to RCS.
-Almost everything you can do with RCS can be done through VC.  You
-cannot use RCS over the network though, and it only works at the level
+built.  Almost everything you can do with RCS can be done through VC.  You
+cannot use RCS over the network, though, and it only works at the level
 of individual files, rather than projects.  You should use it if you
 want a simple, yet reliable tool for handling individual files.
 
 @cindex SVN
 @cindex Subversion
-  Subversion is a free version control system designed to be similar
-to CVS but without CVS's problems.  Subversion supports atomic commits,
-and versions directories, symbolic links, meta-data, renames, copies,
-and deletes.  It can be used via http or via its own protocol.
-
-@cindex MCVS
-@cindex Meta-CVS
-  Meta-CVS is another attempt to solve problems arising in CVS.  It
-supports directory structure versioning, improved branching and
-merging, and use of symbolic links and meta-data in repositories.
+  Subversion is a free version control system designed to be similar to
+CVS but without CVS's problems, and is now (2007) rapidly superseding
+CVS.  Subversion supports atomic commits, and versions directories,
+symbolic links, meta-data, renames, copies, and deletes.  It can be used
+via http or via its own protocol.
 
 @cindex SCCS
-  SCCS is a proprietary but widely used version control system.  In
-terms of capabilities, it is the weakest of the six that VC supports.
-VC compensates for certain features missing in SCCS (snapshots, for
-example) by implementing them itself, but some other VC features, such
-as multiple branches, are not available with SCCS.  Since SCCS is
-non-free, not respecting its users freedom, you should not use it;
-use its free replacement CSSC instead.  But you should use CSSC only
-if for some reason you cannot use RCS, or one of the higher-level
-systems such as CVS or GNU Arch.
-
-In the following, we discuss mainly RCS, SCCS and CVS.  Nearly
-everything said about CVS applies to GNU Arch, Subversion and Meta-CVS
-as well.
+  SCCS was the first version-control system ever built, and was long ago
+superseded by later and more advanced ones; Emacs supports it only for
+backward compatibility and historical reasons. VC compensates for
+certain features missing in SCCS (snapshots, for example) by
+implementing them itself, but some other VC features, such as multiple
+branches, are not available with SCCS.  Since SCCS is non-free you
+should not use it; use its free replacement CSSC instead.  But you
+should use CSSC only if for some reason you cannot use a more 
+recent and better-designed version-control system.
 
 @node VC Concepts
 @subsubsection Concepts of Version Control
 
-@cindex master file
+@cindex repository
 @cindex registered file
    When a file is under version control, we also say that it is
-@dfn{registered} in the version control system.  Each registered file
-has a corresponding @dfn{master file} which represents the file's
-present state plus its change history---enough to reconstruct the
-current version or any earlier version.  Usually the master file also
-records a @dfn{log entry} for each version, describing in words what was
-changed in that version.
+@dfn{registered} in the version control system.  The system has a
+@dfn{repository} which stores both the file's present state plus its
+change history---enough to reconstruct the current version or any
+earlier version.  The repository will also contain a @dfn{log entry} for
+each change to the file, describing in words what was modified in that 
+revision.
 
 @cindex work file
 @cindex checking out files
-  The file that is maintained under version control is sometimes called
-the @dfn{work file} corresponding to its master file.  You edit the work
-file and make changes in it, as you would with an ordinary file.  (With
-SCCS and RCS, you must @dfn{lock} the file before you start to edit it.)
-After you are done with a set of changes, you @dfn{check the file in},
-which records the changes in the master file, along with a log entry for
-them.
+  A file checked out of a version-control repository is sometimes called
+the @dfn{work file}.  You edit the work file and make changes in it, as
+you would with an ordinary file.  After you are done with a set of
+changes, you @dfn{check the file in}, which records the changes in the
+repository, along with a log entry for them.
 
   To go beyond these basic concepts, you will need to understand three
 ways in which version-control systems can differ from each other.  They
@@ -1427,7 +1419,7 @@ both locking and merging version control and tries to hide the differences
 between them as much as possible.
 
 @cindex files versus changesets.
-  On SCCS, RCS, CVS, and other early version-control systems, checkins
+  On SCCS. RCS, CVS, and other early version-control systems, checkins
 and other operations are @dfn{file-based}; each file has its own
 @dfn{master file} with its own comment- and revision history separate
 from that of all other files in the system.  Later systems, beginning
@@ -1439,14 +1431,18 @@ one file, but is attached to the changeset itself.
   Changeset-based version control is in general both more flexible and
 more powerful than file-based version control; usually, when a change to
 multiple files has to be backed out, it's good to be able to easily
-identify and remove all of it.
+identify and remove all of it.  But it took some years for designers to
+figure that out, and while file-based systems are passing out of use
+there are lots of legacy repositories still to be dealt with at time of
+writing in 2007.
 
 @cindex centralized vs. decentralized
+
   Early version-control systems were designed around a @dfn{centralized}
 model in which each project has only one repository used by all
 developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
 It has two important problems. One is that a single repository is a
-single point of failure---if the repository server is down all work
+single point of failure--if the repository server is down all work
 stops.  The other is that you need to be connected live to the server to
 do checkins and checkouts; if you're offline, you can't work.
 
@@ -1478,7 +1474,7 @@ version-control system is invisible to VC mode.
 @cindex version control log
 
   Projects that use a revision control system can have @emph{two}
-types of log for changes.  One is the per-file log maintained by the
+types of log for changes.  One is the log maintained by the
 revision control system: each time you check in a change, you must
 fill out a @dfn{log entry} for the change (@pxref{Log Buffer}).  This
 kind of log is called the @dfn{version control log}, also the
@@ -1491,10 +1487,22 @@ A small program would use one @file{ChangeLog} file; a large program
 may well merit a @file{ChangeLog} file in each major directory.
 @xref{Change Log}.
 
-  A project maintained with version control can use just the per-file
-log, or it can use both kinds of logs.  It can handle some files one
-way and some files the other way.  Each project has its policy, which
-you should follow.
+  Actually, the fact that both kinds of log exist is partly a legacy from
+file-based version control.  Changelogs are a GNU convention, later 
+more widely adopted, that help developers to get a changeset-based
+view of a project even when its version-control system has that
+information split up in multiple file-based logs.  
+
+  Changeset-based version systems, on the other hand, often maintain
+a changeset-based modification log for the entire system that makes
+ChangeLogs mostly redundant.  The only advantage ChangeLogs retain is that
+it may be useful to be able to view the transaction history of a
+single directory separately from those of other directories.
+
+  A project maintained with version control can use just the
+version-control log, or it can use both kinds of logs.  It can
+handle some files one way and some files the other way.  Each project
+has its policy, which you should follow.
 
   When the policy is to use both, you typically want to write an entry
 for each change just once, then put it into both logs.  You can write
@@ -1508,7 +1516,6 @@ to copy it to @file{ChangeLog}
 @ifnottex
 (@pxref{Change Logs and VC}).
 @end ifnottex
-
 
 @node VC Mode Line
 @subsection Version Control and the Mode Line
