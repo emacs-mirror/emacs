@@ -3393,7 +3393,13 @@ dos_rawgetc ()
 		 it is active.  */
 	      if (WINDOWP (mouse_window)
 		  && !EQ (mouse_window, last_mouse_window)
-		  && !EQ (mouse_window, selected_window))
+		  && !EQ (window, selected_window)
+		  /* For click-to-focus window managers
+		     create event iff we don't leave the
+		     selected frame.  */
+		  && (focus_follows_mouse
+		      || (EQ (XWINDOW (window)->frame,
+			      XWINDOW (selected_window)->frame))))
 		{
 		  event.kind = SELECT_WINDOW_EVENT;
 		  event.frame_or_window = mouse_window;
