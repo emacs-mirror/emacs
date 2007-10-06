@@ -40,6 +40,32 @@
       (require 'timer-funcs)
     (require 'timer))
 
+  ;; tramp-util offers integration into other (X)Emacs packages like
+  ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
+  (eval-after-load "tramp"
+    ;; We check whether `start-file-process' is an alias.
+    '(when (or (not (fboundp 'start-file-process))
+	       (symbolp (symbol-function 'start-file-process)))
+       (require 'tramp-util)
+       (add-hook 'tramp-unload-hook
+		 '(lambda ()
+		    (when (featurep 'tramp-util)
+		      (unload-feature 'tramp-util 'force))))))
+
+  ;; Make sure that we get integration with the VC package.  When it
+  ;; is loaded, we need to pull in the integration module.  Not
+  ;; necessary in Emacs 23.
+  (eval-after-load "vc"
+    (eval-after-load "tramp"
+      ;; We check whether `start-file-process' is an alias.
+      '(when (or (not (fboundp 'start-file-process))
+		 (symbolp (symbol-function 'start-file-process)))
+	 (require 'tramp-vc)
+	 (add-hook 'tramp-unload-hook
+		   '(lambda ()
+		      (when (featurep 'tramp-vc)
+			(unload-feature 'tramp-vc 'force)))))))
+
   ;; Avoid byte-compiler warnings if the byte-compiler supports this.
   ;; Currently, XEmacs supports this.
   (when (featurep 'xemacs)

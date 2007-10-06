@@ -1,3 +1,21 @@
+2007-10-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Move loading of tramp-util.el and
+	tramp-vc.el to tramp-compat.el.
+	(tramp-make-tramp-temp-file): Complete rewrite.  Create remote
+	temporary file if possible, in order to avoid a security hole.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Call `tramp-make-tramp-temp-file'
+	with DONT-CREATE, because the connection is not setup yet.
+	(tramp-handle-process-file): Rewrite temporary file handling.
+	(tramp-completion-mode): New defvar.
+	(tramp-completion-mode-p): Use it.
+
+	* net/tramp-compat.el (top):  Load tramp-util.el and tramp-vc.el.
+
+	* net/tramp-fish.el (tramp-fish-handle-process-file): Rewrite
+	temporary file handling.
+
 2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el: workfile version -> focus version change. Port various

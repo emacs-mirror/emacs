@@ -734,8 +734,8 @@ target of the symlink differ."
     (error "Implementation does not handle immediate return"))
 
   (with-parsed-tramp-file-name default-directory nil
-    (let ((temp-name-prefix (tramp-make-tramp-temp-file v))
-	  command input output stderr outbuf tmpfile ret)
+    (let (command input tmpinput output tmpoutput stderr tmpstderr
+		  outbuf tmpfile ret)
       ;; Compute command.
       (setq command (mapconcat 'tramp-shell-quote-argument
 			       (cons program args) " "))
@@ -747,15 +747,14 @@ target of the symlink differ."
 	    ;; INFILE is on the same remote host.
 	    (setq input (with-parsed-tramp-file-name infile nil localname))
 	  ;; INFILE must be copied to remote host.
-	  (setq input (concat temp-name-prefix ".in"))
-	  (copy-file
-	   infile
-	   (tramp-make-tramp-file-name method user host input)
-	   t)))
+	  (setq input (tramp-make-tramp-temp-file v)
+		tmpinput (tramp-make-tramp-file-name method user host input))
+	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
 
       ;; Determine output.
-      (setq output (concat temp-name-prefix ".out"))
+      (setq output (tramp-make-tramp-temp-file v)
+	    tmpoutput (tramp-make-tramp-file-name method user host output))
       (cond
        ;; Just a buffer
        ((bufferp destination)
@@ -781,7 +780,9 @@ target of the symlink differ."
 			       (cadr destination) nil localname))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
-	    (setq stderr (concat temp-name-prefix ".err"))))
+	    (setq stderr (tramp-make-tramp-temp-file v)
+		  tmpstderr (tramp-make-tramp-file-name
+			     method user host stderr))))
 	 ;; stderr to be discarded
 	 ((null (cadr destination))
 	  (setq stderr "/dev/null"))))
@@ -790,9 +791,6 @@ target of the symlink differ."
 	(setq outbuf (current-buffer))))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 
-      ;; If we have a temporary file, it must be removed after operation.
-      (when (and input (string-match temp-name-prefix input))
-	(setq command (format "%s; rm %s" command input)))
       ;; Goto working directory.
       (unless
 	  (tramp-fish-send-command-and-check
@@ -821,16 +819,15 @@ target of the symlink differ."
 	    ;; We should show the output anyway.
 	    (when outbuf
 	      (with-current-buffer outbuf (insert-file-contents tmpfile))
-	      (when display (display-buffer outbuf)))
-	    ;; Remove output file.
-	    (delete-file (tramp-make-tramp-file-name method user host output)))
+	      (when display (display-buffer outbuf))))
 	;; When the user did interrupt, we should do it also.
 	(error (setq ret 1)))
-      (unless ret
-	;; Provide error file.
-	(when (and stderr (string-match temp-name-prefix stderr))
-	  (rename-file (tramp-make-tramp-file-name method user host stderr)
-		       (cadr destination) t)))
+
+      ;; Provide error file.
+      (when tmpstderr (rename-file tmpstderr (cadr destination) t))
+      ;; Cleanup.
+      (when tmpinput (delete-file tmpinput))
+      (when tmpoutput (delete-file tmpoutput))
       ;; Return exit status.
       ret)))
 

@@ -149,16 +149,7 @@
        (add-hook 'tramp-unload-hook
 		 '(lambda ()
 		    (when (featurep 'tramp-gw)
-		      (unload-feature 'tramp-gw 'force)))))
-
-     ;; tramp-util offers integration into other (X)Emacs packages like
-     ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
-     (unless (functionp 'start-file-process)
-       (require 'tramp-util)
-       (add-hook 'tramp-unload-hook
-		 '(lambda ()
-		    (when (featurep 'tramp-util)
-		      (unload-feature 'tramp-util 'force)))))))
+		      (unload-feature 'tramp-gw 'force)))))))
 
 ;;; User Customizable Internal Variables:
 
@@ -1974,13 +1965,42 @@ The intent is to protect against `obsolete variable' warnings."
 (put 'tramp-let-maybe 'lisp-indent-function 2)
 (put 'tramp-let-maybe 'edebug-form-spec t)
 
-(defsubst tramp-make-tramp-temp-file (vec)
-  (format
-   "/tmp/%s%s"
-   tramp-temp-name-prefix
-   (if (get-buffer-process (tramp-get-connection-buffer vec))
-       (process-id (get-buffer-process (tramp-get-connection-buffer vec)))
-     (emacs-pid))))
+(defsubst tramp-make-tramp-temp-file (vec &optional dont-create)
+  "Create a temporary file on the remote host identified by VEC.
+Return the local name of the temporary file.
+If DONT-CREATE is non-nil, just the file name is returned without
+creation of the temporary file.  This is not the preferred way to run,
+but it is necessary during connection setup, because we cannot create
+a remote file at this time.  This parameter shall NOT be set to
+non-nil else."
+  (if dont-create
+      ;; It sounds a little bit stupid to create a LOCAL file name.
+      ;; But we intend to use the remote directory "/tmp", and we have
+      ;; no chance to check whether a temporary file exists already
+      ;; remotely, because we have no working connection yet.
+      (make-temp-name (expand-file-name tramp-temp-name-prefix "/tmp"))
+
+    (let ((prefix
+	   (tramp-make-tramp-file-name
+	    (tramp-file-name-method vec)
+	    (tramp-file-name-user vec)
+	    (tramp-file-name-host vec)
+	    (expand-file-name tramp-temp-name-prefix "/tmp")))
+	  result)
+      (while (not result)
+	;; `make-temp-file' would be the first choice for
+	;; implementation.  But it calls `write-region' internally,
+	;; which also needs a temporary file - we would end in an
+	;; infinite loop.
+	(setq result (make-temp-name prefix))
+	(if (file-exists-p result)
+	    (setq result nil)
+	  ;; This creates the file by side effect.
+	  (set-file-times result)
+	  (set-file-modes result (tramp-octal-to-decimal "0700"))))
+
+      ;; Return the local part.
+      (with-parsed-tramp-file-name result nil localname))))
 
 
 ;;; Config Manipulation Functions:
@@ -3188,7 +3208,7 @@ be a local filename.  The method used must be an out-of-band method."
 
       ;; Compose copy command.
       (setq spec `((?h . ,host) (?u . ,user) (?p . ,port)
-		   (?t . ,(tramp-make-tramp-temp-file v))
+		   (?t . ,(tramp-make-tramp-temp-file v 'dont-create))
 		   (?k . ,(if keep-date " " "")))
 	    copy-program (tramp-get-method-parameter
 			  method 'tramp-copy-program)
@@ -3639,8 +3659,7 @@ beginning of local filename are not substituted."
     (error "Implementation does not handle immediate return"))
 
   (with-parsed-tramp-file-name default-directory nil
-    (let ((temp-name-prefix (tramp-make-tramp-temp-file v))
-	  command input stderr outbuf ret)
+    (let (command input tmpinput stderr tmpstderr outbuf ret)
       ;; Compute command.
       (setq command (mapconcat 'tramp-shell-quote-argument
 			       (cons program args) " "))
@@ -3652,11 +3671,9 @@ beginning of local filename are not substituted."
 	    ;; INFILE is on the same remote host.
 	    (setq input (with-parsed-tramp-file-name infile nil localname))
 	  ;; INFILE must be copied to remote host.
-	  (setq input (concat temp-name-prefix ".in"))
-	  (copy-file
-	   infile
-	   (tramp-make-tramp-file-name method user host input)
-	   t)))
+	  (setq input (tramp-make-tramp-temp-file v)
+		tmpinput (tramp-make-tramp-file-name method user host input))
+	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
 
       ;; Determine output.
@@ -3685,7 +3702,9 @@ beginning of local filename are not substituted."
 			       (cadr destination) nil localname))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
-	    (setq stderr (concat temp-name-prefix ".err"))))
+	    (setq stderr (tramp-make-tramp-temp-file v)
+		  tmpstderr (tramp-make-tramp-file-name
+			     method user host stderr))))
 	 ;; stderr to be discarded
 	 ((null (cadr destination))
 	  (setq stderr "/dev/null"))))
@@ -3694,9 +3713,6 @@ beginning of local filename are not substituted."
 	(setq outbuf (current-buffer))))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 
-      ;; If we have a temporary file, it must be removed after operation.
-      (when (and input (string-match temp-name-prefix input))
-	(setq command (format "%s; rm %s" command input)))
       ;; Goto working directory.
       (tramp-send-command
        v (format "cd %s" (tramp-shell-quote-argument localname)))
@@ -3716,13 +3732,13 @@ beginning of local filename are not substituted."
 	(error
 	 (kill-buffer (tramp-get-connection-buffer v))
 	 (setq ret 1)))
-      (unless ret
-	;; Check return code.
-	(setq ret (tramp-send-command-and-check v nil))
-	;; Provide error file.
-	(when (and stderr (string-match temp-name-prefix stderr))
-	  (rename-file (tramp-make-tramp-file-name method user host stderr)
-		       (cadr destination) t)))
+
+      ;; Check return code.
+      (unless ret (setq ret (tramp-send-command-and-check v nil)))
+      ;; Provide error file.
+      (when tmpstderr (rename-file tmpstderr (cadr destination) t))
+      ;; Cleanup.
+      (when tmpinput (delete-file tmpinput))
       ;; Return exit status.
       ret)))
 
@@ -4555,7 +4571,15 @@ Falls back to normal file name handler if no tramp file name handler exists."
      (add-hook 'tramp-unload-hook
 	       '(lambda () (ad-unadvise 'PC-expand-many-files)))))
 
-;;; File name handler functions for completion mode
+;;; File name handler functions for completion mode.
+
+(defvar tramp-completion-mode nil
+  "If non-nil, external packages signal that they are in file name completion.
+
+This is necessary, because Tramp uses a heuristic depending on last
+input event.  This fails when external packages use other characters
+but <TAB>, <SPACE> or ?\\? for file name completion.  This variable
+should never be set globally, the intention is to let-bind it.")
 
 ;; Necessary because `tramp-file-name-regexp-unified' and
 ;; `tramp-completion-file-name-regexp-unified' aren't different.  If
@@ -4571,23 +4595,25 @@ Falls back to normal file name handler if no tramp file name handler exists."
 (defun tramp-completion-mode-p ()
   "Checks whether method / user name / host name completion is active."
   (or
-   ;; Emacs
+   ;; Signal from outside.
+   tramp-completion-mode
+   ;; Emacs.
    (equal last-input-event 'tab)
    (and (natnump last-input-event)
 	(or
-	 ;; ?\t has event-modifier 'control
+	 ;; ?\t has event-modifier 'control.
 	 (char-equal last-input-event ?\t)
 	 (and (not (event-modifiers last-input-event))
 	      (or (char-equal last-input-event ?\?)
 		  (char-equal last-input-event ?\ )))))
-   ;; XEmacs
+   ;; XEmacs.
    (and (featurep 'xemacs)
 	;; `last-input-event' might be nil.
 	(not (null last-input-event))
 	;; `last-input-event' may have no character approximation.
 	(funcall (symbol-function 'event-to-character) last-input-event)
 	(or
-	 ;; ?\t has event-modifier 'control
+	 ;; ?\t has event-modifier 'control.
 	 (char-equal
 	  (funcall (symbol-function 'event-to-character)
 		   last-input-event) ?\t)
@@ -6151,7 +6177,7 @@ connection if a previous connection has died for some reason."
 	     l-user (or l-user "")
 	     l-port (or l-port "")
 	     spec `((?h . ,l-host) (?u . ,l-user) (?p . ,l-port)
-		    (?t . ,(tramp-make-tramp-temp-file vec)))
+		    (?t . ,(tramp-make-tramp-temp-file vec 'dont-create)))
 	     command
 	     (concat
 	      command " "
@@ -7467,18 +7493,6 @@ please ensure that the buffers are attached to your email.\n\n")
     (error nil)))
 
 (provide 'tramp)
-
-;; Make sure that we get integration with the VC package.
-;; When it is loaded, we need to pull in the integration module.
-;; This must come after (provide 'tramp) because tramp-vc.el
-;; requires tramp.  Not necessary in Emacs 23.
-(eval-after-load "vc"
-  '(unless (functionp 'start-file-process)
-     (require 'tramp-vc)
-     (add-hook 'tramp-unload-hook
-	       '(lambda ()
-		  (when (featurep 'tramp-vc)
-		    (unload-feature 'tramp-vc 'force))))))
 
 ;;; TODO:
 
