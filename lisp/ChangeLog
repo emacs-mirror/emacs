@@ -1,3 +1,13 @@
+2007-10-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (mouse-autoselect-window-cancel): Don't cancel for
+	select-window or select-frame events.
+	(handle-select-window): When autoselecting window set input
+	focus.  Restructure.
+
+	* frame.el (focus-follows-mouse): Moved to frame.c.
+	* cus-start.el (all): Add focus-follows-mouse.
+
 2007-10-05  Chris Moore  <dooglus@gmail.com>
 
 	* server.el (server-kill-new-buffers): Doc fix.
