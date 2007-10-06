@@ -167,6 +167,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
+	     (focus-follows-mouse frames boolean "20.3")
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
