@@ -231,6 +231,9 @@ Things related to Version Control that don't fit elsewhere
 How file names, directories and localnames are mangled and managed
 
 * Localname deconstruction::    Breaking a localname into its components.
+@ifset emacs
+* External packages::           Integration with external Lisp packages.
+@end ifset
 
 @end detailmenu
 @end menu
@@ -3119,6 +3122,9 @@ system basis and the results cached to improve performance.
 
 @menu
 * Localname deconstruction::    Breaking a localname into its components.
+@ifset emacs
+* External packages::           Integration with external Lisp packages.
+@end ifset
 @end menu
 
 
@@ -3136,6 +3142,33 @@ then rebuild the @value{tramp} file name with the result.
 
 This allows the platform specific hacks in the original handlers to take
 effect while preserving the @value{tramp} file name information.
+
+
+@ifset emacs
+@node External packages
+@section Integration with external Lisp packages.
+
+While reading filenames in the minibuffer, @value{tramp} must decide
+whether it completes possible incomplete filenames, or not.  Imagine
+there is the following situation: You have typed @kbd{C-x C-f
+@value{prefix}ssh@value{postfixhop} @key{TAB}}.  @value{tramp} cannot
+know, whether @option{ssh} is a method or a host name.  It checks
+therefore the last input character you have typed.  If this is
+@key{TAB}, @key{SPACE} or @kbd{?}, @value{tramp} assumes that you are
+still in filename completion, and it does not connect to the possible
+remote host @option{ssh}.
+
+@vindex tramp-completion-mode
+External packages, which use other characters for completing filenames
+in the minibuffer, must signal this to @value{tramp}.  For this case,
+the variable @code{tramp-completion-mode} can be bound temporarily to
+a non-nil value.
+
+@lisp
+(let ((tramp-completion-mode t))
+  ...)
+@end lisp
+@end ifset
 
 
 @node Traces and Profiles
