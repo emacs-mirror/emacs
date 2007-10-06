@@ -1557,8 +1557,10 @@ Perform the next logical version control operation on this file.
 @findex vc-next-action
 @kindex C-x v v
   The precise action of this command depends on the state of the file,
-and whether the version control system uses locking or not.  SCCS and
-RCS normally use locking; CVS normally does not use locking.
+and whether the version control system uses locking or merging.  SCCS and
+RCS normally use locking; CVS and Subversion normally use
+merging but can be configured to do locking.  Later systems such as 
+GNU Arch and Mercurial always use merging.
 
 @findex vc-toggle-read-only
 @kindex C-x C-q @r{(Version Control)}
@@ -1610,25 +1612,27 @@ that there is no such thing as stealing a lock.
 @node Without Locking
 @subsubsection Basic Version Control without Locking
 
-  When there is no locking---the default for CVS---work files are always
-writable; you do not need to do anything before you begin to edit a
-file.  The status indicator on the mode line is @samp{-} if the file is
-unmodified; it flips to @samp{:} as soon as you save any changes in the
-work file.
+  When your version-control system is merging-based rather than
+locking-based---the default for CVS and Subversion, and the way GNU
+Arch always works---work files are always writable; you do not need to
+do anything before you begin to edit a file.  The status indicator on
+the mode line is @samp{-} if the file is unmodified; it flips to
+@samp{:} as soon as you save any changes in the work file.
 
-  Here is what @kbd{C-x v v} does when using CVS:
+  Here is what @kbd{C-x v v} does when using a merging-based system
+(such as CVS or Subversion in their defaiult merging mode):
 
 @itemize @bullet
 @item
-If some other user has checked in changes into the master file, Emacs
+If some other user has checked in changes into the repository, Emacs
 asks you whether you want to merge those changes into your own work
 file.  You must do this before you can check in your own changes.  (To
-pick up any recent changes from the master file @emph{without} trying
+pick up any recent changes from the repository @emph{without} trying
 to commit your own changes, type @kbd{C-x v m @key{RET}}.)
 @xref{Merging}.
 
 @item
-If there are no new changes in the master file, but you have made
+If there are no new changes in the repository, but you have made
 modifications in your work file, @kbd{C-x v v} checks in your changes.
 In order to do this, it first reads the log entry for the new version.
 @xref{Log Buffer}.
@@ -1639,18 +1643,20 @@ If the file is not modified, the @kbd{C-x v v} does nothing.
 
   These rules also apply when you use RCS in the mode that does not
 require locking, except that automatic merging of changes from the
-master file is not implemented.  Unfortunately, this means that nothing
+repository is not implemented.  Unfortunately, this means that nothing
 informs you if another user has checked in changes in the same file
 since you began editing it, and when this happens, his changes will be
 effectively removed when you check in your version (though they will
-remain in the master file, so they will not be entirely lost).  You must
+remain in the repository, so they will not be entirely lost).  You must
 therefore verify that the current version is unchanged, before you
-check in your changes.  We hope to eliminate this risk and provide
-automatic merging with RCS in a future Emacs version.
+check in your changes.
 
   In addition, locking is possible with RCS even in this mode, although
 it is not required; @kbd{C-x v v} with an unmodified file locks the
 file, just as it does with RCS in its normal (locking) mode.
+
+  Later systems like CVS, Subversion and Arch will notice conflicting 
+changes in the repository automatically and notify you when they occur.
 
 @node Advanced C-x v v
 @subsubsection Advanced Control in @kbd{C-x v v}
@@ -1721,7 +1727,7 @@ the revision control log.
   In the @samp{*VC-Log*} buffer, @kbd{C-c C-f} (@kbd{M-x
 log-edit-show-files}) shows the list of files to be committed in case
 you need to check that.  (This can be a list of more than one file if
-you use VC Dired mode or PCL-CVS.
+you use VC Dired mode or PCL-CVS.)
 @iftex
 @xref{VC Dired Mode,,,emacs-xtra, Specialized Emacs Features},
 @end iftex
@@ -1747,8 +1753,15 @@ this, use the history of previous log entries.  The commands @kbd{M-n},
 minibuffer history commands (except that these versions are used outside
 the minibuffer).
 
+  However, you can also browse the history of previous log entries to
+duplicate a checkin comment. This can be useful when you want several
+files to have checkin comments that vary only slightly from each
+other. The commands @kbd{M-n}, @kbd{M-p}, @kbd{M-s} and @kbd{M-r} for
+doing this work just like the minibuffer history commands (except that
+these versions are used outside the minibuffer).
+
 @vindex vc-log-mode-hook
-  Each time you check in a file, the log entry buffer is put into VC Log
+  Each time you check in a change, the log entry buffer is put into VC Log
 mode, which involves running two hooks: @code{text-mode-hook} and
 @code{vc-log-mode-hook}.  @xref{Hooks}.
 
@@ -1764,7 +1777,7 @@ Examine version @var{version} of the visited file, in a buffer of its
 own.
 
 @item C-x v =
-Compare the current buffer contents with the master version from which
+Compare the current buffer contents with the focus version from which
 you started editing.
 
 @item C-u C-x v = @var{file} @key{RET} @var{oldvers} @key{RET} @var{newvers} @key{RET}
@@ -1877,7 +1890,7 @@ the author's description of the changes in the revision on the current
 line.
 
 @item W
-Annotate the workfile version--the one you are editing.  If you used
+Annotate the focus version--the one you are editing.  If you used
 @kbd{P} and @kbd{N} to browse to other revisions, use this key to
 return to your current version.
 @end table
@@ -2123,10 +2136,10 @@ example above have branch numbers 1.2.1 and 1.2.2.
 @subsubsection Switching between Branches
 
   To switch between branches, type @kbd{C-u C-x v v} and specify the
-version number you want to select.  This version is then visited
-@emph{unlocked} (write-protected), so you can examine it before locking
-it.  Switching branches in this way is allowed only when the file is not
-locked.
+version number you want to select.  On a locking-based system, this
+version is then visited @emph{unlocked} (write-protected), so you can
+examine it before locking it.  Switching branches in this way is allowed
+only when the file is not locked.
 
   You can omit the minor version number, thus giving only the branch
 number; this takes you to the head version on the chosen branch.  If you
@@ -2151,10 +2164,14 @@ that point.
 
   To create a new branch at an older version (one that is no longer the
 head of a branch), first select that version (@pxref{Switching
-Branches}), then lock it with @kbd{C-x v v}.  You'll be asked to
-confirm, when you lock the old version, that you really mean to create a
-new branch---if you say no, you'll be offered a chance to lock the
-latest version instead.
+Branches}).  Your procedure will then differ depending on whether you
+are using a locking or merging-based VCS.
+
+  On a locking VCS, you will need to lock the old version branch with
+@kbd{C-x v v}.  You'll be asked to confirm, when you lock the old
+version, that you really mean to create a new branch---if you say no,
+you'll be offered a chance to lock the latest version instead.  On
+a merging-based VCS you will skip this step.
 
   Then make your changes and type @kbd{C-x v v} again to check in a new
 version.  This automatically creates a new branch starting from the
