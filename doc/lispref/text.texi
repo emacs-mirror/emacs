@@ -1453,6 +1453,12 @@ The variable @code{paragraph-separate} controls how to distinguish
 paragraphs.  @xref{Standard Regexps}.
 @end deffn
 
+@deffn Command fill-paragraph-or-region justify
+In Transient Mark mode, when the mark is active, this command calls
+@code{fill-region} on the active region.  Otherwise, it calls
+@code{fill-paragraph}.
+@end deffn
+
 @deffn Command fill-individual-paragraphs start end &optional justify citation-regexp
 This command fills each paragraph in the region according to its
 individual fill prefix.  Thus, if the lines of a paragraph were indented
