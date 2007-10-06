@@ -4554,7 +4554,12 @@ Falls back to normal file name handler if no tramp file name handler exists."
 ;;; File name handler functions for completion mode
 
 (defvar tramp-completion-mode nil
-  "If non-nil, we are in file name completion mode.")
+  "If non-nil, external packages signal that they are in file name completion.
+
+This is necessary, because Tramp uses a heuristic depending on last
+input event.  This fails when external packages use other characters
+but <TAB>, <SPACE> or ?\\? for file name completion.  This variable
+should never be set globally, the intention is to let-bind it.")
 
 ;; Necessary because `tramp-file-name-regexp-unified' and
 ;; `tramp-completion-file-name-regexp-unified' aren't different.
@@ -4579,23 +4584,33 @@ Falls back to normal file name handler if no tramp file name handler exists."
      file)
     (member (match-string 1 file) (mapcar 'car tramp-methods)))
    ((or
-     ;; Emacs
-     (not (memq last-input-event '(return newline)))
+     ;; Emacs.
+     (equal last-input-event 'tab)
      (and (natnump last-input-event)
-	  (not (char-equal last-input-event ?\n))
-	  (not (char-equal last-input-event ?\r)))
-     ;; XEmacs
+	  (or
+	   ;; ?\t has event-modifier 'control
+	   (char-equal last-input-event ?\t)
+	   (and (not (event-modifiers last-input-event))
+		(or (char-equal last-input-event ?\?)
+		    (char-equal last-input-event ?\ )))))
+     ;; XEmacs.
      (and (featurep 'xemacs)
 	  ;; `last-input-event' might be nil.
 	  (not (null last-input-event))
 	  ;; `last-input-event' may have no character approximation.
 	  (funcall (symbol-function 'event-to-character) last-input-event)
-	  (not (char-equal
-		(funcall (symbol-function 'event-to-character)
-			 last-input-event) ?\n))
-	  (not (char-equal
-		(funcall (symbol-function 'event-to-character)
-			 last-input-event) ?\r))))
+	  (or
+	   ;; ?\t has event-modifier 'control
+	   (char-equal
+	    (funcall (symbol-function 'event-to-character)
+		     last-input-event) ?\t)
+	   (and (not (event-modifiers last-input-event))
+		(or (char-equal
+		     (funcall (symbol-function 'event-to-character)
+			      last-input-event) ?\?)
+		    (char-equal
+		     (funcall (symbol-function 'event-to-character)
+			      last-input-event) ?\ ))))))
     t)))
 
 ;; Method, host name and user name completion.
