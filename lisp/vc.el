@@ -89,7 +89,7 @@
 ;; VC keeps some per-file information in the form of properties (see
 ;; vc-file-set/getprop in vc-hooks.el).  The backend-specific functions
 ;; do not generally need to be aware of these properties.  For example,
-;; `vc-sys-workfile-version' should compute the workfile version and
+;; `vc-sys-workfile-version' should compute the focus version and
 ;; return it; it should not look it up in the property, and it needn't
 ;; store it there either.  However, if a backend-specific function does
 ;; store a value in a property, that value takes precedence over any
@@ -143,14 +143,14 @@
 ;;
 ;; * workfile-version (file)
 ;;
-;;   Return the current workfile version of FILE.
+;;   Return the current focus version of FILE.
 ;;
 ;; - latest-on-branch-p (file)
 ;;
-;;   Return non-nil if the current workfile version of FILE is the latest
-;;   on its branch.  The default implementation always returns t, which
-;;   means that working with non-current versions is not supported by
-;;   default.
+;;   Return non-nil if the focus version of FILE is the latest version
+;;   on its branch (many VCSes call this the 'tip' or 'head' version).
+;;   The default implementation always returns t, which means that
+;;   working with non-current versions is not supported by default.
 ;;
 ;; * checkout-model (file)
 ;;
@@ -159,13 +159,14 @@
 ;;
 ;; - workfile-unchanged-p (file)
 ;;
-;;   Return non-nil if FILE is unchanged from its current workfile
-;;   version.  This function should do a brief comparison of FILE's
-;;   contents with those of the master version.  If the backend does not
-;;   have such a brief-comparison feature, the default implementation of
+;;   Return non-nil if FILE is unchanged from the focus version.  This
+;;   function should do a brief comparison of FILE's contents with
+;;   those of the repository version.  If the backend does not have
+;;   such a brief-comparison feature, the default implementation of
 ;;   this function can be used, which delegates to a full
 ;;   vc-BACKEND-diff.  (Note that vc-BACKEND-diff must not run
-;;   asynchronously in this case, see variable `vc-disable-async-diff'.)
+;;   asynchronously in this case, see variable
+;;   `vc-disable-async-diff'.)
 ;;
 ;; - mode-line-string (file)
 ;;
@@ -252,7 +253,7 @@
 ;;   Check out revision REV of FILE into the working area.  If EDITABLE
 ;;   is non-nil, FILE should be writable by the user and if locking is
 ;;   used for FILE, a lock should also be set.  If REV is non-nil, that
-;;   is the revision to check out (default is current workfile version).
+;;   is the revision to check out (default is the focus version).
 ;;   If REV is t, that means to check out the head of the current branch;
 ;;   if it is the empty string, check out the head of the trunk.
 ;;   The implementation should pass the value of vc-checkout-switches
@@ -284,10 +285,10 @@
 ;;
 ;; - steal-lock (file &optional version)
 ;;
-;;   Steal any lock on the current workfile version of FILE, or on
-;;   VERSION if that is provided.  This function is only needed if
-;;   locking is used for files under this backend, and if files can
-;;   indeed be locked by other users.
+;;   Steal any lock on the focus version of FILE, or on VERSION if
+;;   that is provided.  This function is only needed if locking is
+;;   used for files under this backend, and if files can indeed be
+;;   locked by other users.
 ;;
 ;; HISTORY FUNCTIONS
 ;;
@@ -340,13 +341,13 @@
 ;;
 ;;   Insert the diff for FILE into BUFFER, or the *vc-diff* buffer if
 ;;   BUFFER is nil.  If REV1 and REV2 are non-nil, report differences
-;;   from REV1 to REV2.  If REV1 is nil, use the current workfile
-;;   version (as found in the repository) as the older version; if
-;;   REV2 is nil, use the current workfile contents as the newer
-;;   version.  This function should pass the value of (vc-switches
-;;   BACKEND 'diff) to the backend command.  It should return a status
-;;   of either 0 (no differences found), or 1 (either non-empty diff
-;;   or the diff is run asynchronously).
+;;   from REV1 to REV2.  If REV1 is nil, use the focus version (as
+;;   found in the repository) as the older version; if REV2 is nil,
+;;   use the current working-copy contents as the newer version.  This
+;;   function should pass the value of (vc-switches BACKEND 'diff) to
+;;   the backend command.  It should return a status of either 0 (no
+;;   differences found), or 1 (either non-empty diff or the diff is
+;;   run asynchronously).
 ;;
 ;; - revision-completion-table (file)
 ;;
@@ -754,7 +755,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
     (define-key m "L" 'vc-annotate-show-log-revision-at-line)
     (define-key m "N" 'vc-annotate-next-version)
     (define-key m "P" 'vc-annotate-prev-version)
-    (define-key m "W" 'vc-annotate-workfile-version)
+    (define-key m "W" 'vc-annotate-focus-version)
     m)
   "Local keymap used for VC-Annotate mode.")
 
@@ -1865,8 +1866,8 @@ saving the buffer."
 
 (defun vc-version-diff (file rev1 rev2)
   "List the differences between FILE's versions REV1 and REV2.
-If REV1 is empty or nil it means to use the current workfile version;
-REV2 empty or nil means the current file contents.  FILE may also be
+If REV1 is empty or nil it means to use the focus version;
+REV2 empty or nil means the working-copy contents.  FILE may also be
 a directory, in that case, generate diffs between the correponding
 versions of all registered files in or below it."
   (interactive
@@ -1917,7 +1918,7 @@ versions of all registered files in or below it."
           (insert "Diffs between "
                   (or rev1 "last version checked in")
                   " and "
-                  (or rev2 "current workfile(s)")
+                  (or rev2 "working copy")
                   ":\n\n"))
         (let ((dir (file-name-as-directory file)))
           (vc-call-backend (vc-responsible-backend dir)
@@ -1965,7 +1966,7 @@ If `F.~REV~' already exists, use it instead of checking it out again."
      (vc-ensure-vc-buffer)
      (let ((completion-table
             (vc-call revision-completion-table buffer-file-name))
-           (prompt "Version to visit (default is workfile version): "))
+           (prompt "Version to visit (default is focus version): "))
        (list
         (if completion-table
             (completing-read prompt completion-table)
@@ -2582,8 +2583,8 @@ the current branch are merged into the working file."
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
 If version backups should be used for FILE, and there exists
-such a backup for REV or the current workfile version of file,
-return its name; otherwise return nil."
+such a backup for REV or the focus version of file, return 
+its name; otherwise return nil."
   (when (vc-call make-version-backups-p file)
     (let ((backup-file (vc-version-backup-file-name file rev)))
       (if (file-exists-p backup-file)
@@ -3210,7 +3211,7 @@ cover the range from the oldest annotation to the newest."
     ["Annotate next revision" vc-annotate-next-version]
     ["Annotate revision at line" vc-annotate-revision-at-line]
     ["Annotate revision previous to line" vc-annotate-revision-previous-to-line]
-    ["Annotate latest revision" vc-annotate-workfile-version]
+    ["Annotate latest revision" vc-annotate-focus-version]
     ["Show log of revision at line" vc-annotate-show-log-revision-at-line]
     ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line]))
 
@@ -3336,8 +3337,8 @@ versions after."
   (interactive "p")
   (vc-annotate-warp-version prefix))
 
-(defun vc-annotate-workfile-version ()
-  "Visit the annotation of the workfile version of this file."
+(defun vc-annotate-focus-version ()
+  "Visit the annotation of the focus version of this file."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
