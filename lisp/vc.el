@@ -347,7 +347,7 @@
 ;;
 ;; - comment-history (file)
 ;;
-;;   Return a string containing all log entries that were madoe for FILE.
+;;   Return a string containing all log entries that were made for FILE.
 ;;   This is used for transferring a file from one backend to another,
 ;;   retaining comment information.  The default implementation of this
 ;;   function does this by calling print-log and then wash-log, and
@@ -1326,7 +1326,6 @@ message has been entered, it checks in the resulting changes along
 with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
-
   (interactive "P")
   (catch 'nogo
     (if vc-dired-mode
@@ -1751,7 +1750,8 @@ the buffer contents as a comment."
   ;; But not if it is a vc-dired buffer.
   (with-current-buffer vc-parent-buffer
     (or vc-dired-mode (vc-buffer-sync)))
-  (if (not vc-log-operation) (error "No log operation is pending"))
+  (if (not vc-log-operation)
+      (error "No log operation is pending"))
   ;; save the parameters held in buffer-local variables
   (let ((log-operation vc-log-operation)
 	(log-file vc-log-file)
