@@ -1,3 +1,36 @@
+2007-10-06  Aaron Hawley  <aaronh@garden.org>
+
+	* autoinsert.el (auto-insert-alist): Add a Texinfo entry.
+
+2007-10-05  Chris Moore  <dooglus@gmail.com>
+
+	* server.el (server-kill-new-buffers): Doc fix.
+
+2007-10-05  John W. Eaton  <jwe@octave.org>
+
+	* progmodes/octave-mod.el (octave-abbrev-table): Add "until".
+        (octave-begin-keywords): Add "do".
+        (octave-end-keywords): Remove "end".
+        (octave-reserved-words): Add "end".  Remove "all_va_args",
+	"gplot", and 'gsplot".
+        (octave-text-functions): Remove "gset", "gshow", "set", and "show".
+        (octave-variables): Remove "IMAGEPATH", "INFO_FILE",
+	"INFO_PROGRAM", "LOADPATH", "__error_text__", "automatic_replot",
+	"default_return_value", "define_all_return_values",
+	"do_fortran_indexing", "empty_list_elements_ok",
+	"gnuplot_has_multiplot", "implicit_str_to_num_ok",
+	"ok_to_lose_imaginary_part", "prefer_column_vectors",
+	"prefer_zero_one_indexing", "propagate_empty_matrices",
+	"resize_on_range_error", "treat_neg_dim_as_zero",
+	"warn_assign_as_truth_value", "warn_comma_in_global_decl",
+	"warn_divide_by_zero", "warn_function_name_clash",
+	"warn_missing_semicolon", "whitespace_in_literal_matrix".
+	Add "DEFAULT_EXEC_PATH", "DEFAULT_LOADPATH", "IMAGE_PATH",
+	"crash_dumps_octave_core", "sighup_dumps_octave_core",
+	"sigterm_dumps_octave_core".
+        (octave-block-match-alist): Remove "end" from block-end keywords.
+	(octave-mode): Update ftp site address.
+
 2007-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Reorder functions, no code changes.
