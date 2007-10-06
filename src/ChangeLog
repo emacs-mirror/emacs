@@ -1,3 +1,7 @@
+2007-10-06  Andreas Schwab  <schwab@suse.de>
+
+	* fileio.c (Fwrite_region): Ignore EINVAL error from fsync.
+
 2007-10-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_load_query_font): Fix missing return value.
