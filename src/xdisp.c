@@ -24144,7 +24144,10 @@ Any other value means to autoselect window instantaneously when the
 mouse pointer enters it.
 
 Autoselection selects the minibuffer only if it is active, and never
-unselects the minibuffer if it is active.  */);
+unselects the minibuffer if it is active.
+
+When customizing this variable make sure that the actual value of
+`focus-follows-mouse' matches the behavior of your window manager.  */);
   Vmouse_autoselect_window = Qnil;
 
   DEFVAR_LISP ("auto-resize-tool-bars", &Vauto_resize_tool_bars,
