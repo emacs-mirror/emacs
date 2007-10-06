@@ -118,6 +118,8 @@ Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
 Lisp_Object Vmouse_highlight;
 Lisp_Object Vdelete_frame_functions;
+
+int focus_follows_mouse;
 
 static void
 set_menu_bar_lines_1 (window, n)
@@ -4151,6 +4153,21 @@ displayed.
 
 This variable is local to the current terminal and cannot be buffer-local.  */);
 
+  DEFVAR_BOOL ("focus-follows-mouse", &focus_follows_mouse,
+	       doc: /* Non-nil if window system changes focus when you move the mouse.
+You should set this variable to tell Emacs how your window manager
+handles focus, since there is no way in general for Emacs to find out
+automatically.  */);
+#ifdef HAVE_WINDOW_SYSTEM
+#if defined(HAVE_NTGUI) || defined(MAC_OS)
+  focus_follows_mouse = 0;
+#else
+  focus_follows_mouse = 1;
+#endif
+#else
+  focus_follows_mouse = 0;
+#endif
+	 
   staticpro (&Vframe_list);
 
   defsubr (&Sactive_minibuffer_window);
