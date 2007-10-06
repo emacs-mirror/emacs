@@ -178,10 +178,10 @@ invoke the Emacs server."
 (defcustom server-kill-new-buffers t
   "Whether to kill buffers when done with them.
 If non-nil, kill a buffer unless it already existed before editing
-it with Emacs server.  If nil, kill only buffers as specified by
+it with the Emacs server.  If nil, kill only buffers as specified by
 `server-temp-file-regexp'.
-Please note that only buffers are killed that still have a client,
-i.e. buffers visited which \"emacsclient --no-wait\" are never killed in
+Please note that only buffers that still have a client are killed,
+i.e. buffers visited with \"emacsclient --no-wait\" are never killed in
 this way."
   :group 'server
   :type 'boolean
