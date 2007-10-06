@@ -323,7 +323,7 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
 		 (or (image-type-from-file-header source)
 		     (image-type-from-file-name source))))
     (or type (error "Cannot determine image type")))
-  (or (memq type image-types)
+  (or (memq type (and (boundp 'image-types) image-types))
       (error "Invalid image type `%s'" type))
   type)
 
