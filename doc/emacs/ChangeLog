@@ -1,3 +1,9 @@
+2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* files.texi: Update the section on version control for 2007
+	conditions. None of these changes are new-VC-specific; that
+	will come later.
+
 2007-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Holidays): Change all instances of `holiday-list' back
