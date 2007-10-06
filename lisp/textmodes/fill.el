@@ -1007,6 +1007,18 @@ space does not end a sentence, so don't break a line there."
 	  (goto-char end))))
     fill-pfx))
 
+(defun fill-paragraph-or-region (arg)
+  "Fill the active region or current paragraph.
+In Transient Mark mode, when the mark is active, it calls `fill-region'
+on the active region.  Otherwise, it calls `fill-paragraph'."
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (if current-prefix-arg 'full))))
+  (if (and transient-mark-mode mark-active
+	   (not (eq (region-beginning) (region-end))))
+      (fill-region (region-beginning) (region-end) arg)
+    (fill-paragraph arg)))
+
 
 (defcustom default-justification 'left
   "*Method of justifying text not otherwise specified.
