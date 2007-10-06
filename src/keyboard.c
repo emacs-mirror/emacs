@@ -3995,6 +3995,12 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
   /* Wait until there is input available.  */
   for (;;)
     {
+      /* Break loop if there's an unread command event.  Needed in
+	 moused window autoselection which uses a timer to insert such
+	 events.  */
+      if (CONSP (Vunread_command_events))
+	break;
+      
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
 #ifdef HAVE_MOUSE
