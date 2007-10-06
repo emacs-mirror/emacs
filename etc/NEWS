@@ -113,6 +113,11 @@ following arguments.
 
 * Editing Changes in Emacs 23.1
 
++++
+** M-q now fills the region if the region is active and
+`transient-mark-mode' is turned on.  Otherwise, it fills the current
+paragraph.  The new command bound to M-q is `fill-paragraph-or-region'.
+
 ** TAB now indents the region if the region is active and
 `transient-mark-mode' is turned on.
 
