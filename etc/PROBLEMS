@@ -539,7 +539,8 @@ This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
 *** Emacs uses 100% of CPU time
 
 This is a known problem with some versions of the Semantic package.
-The solution is to upgrade Semantic to version 1.0pre4 or later.
+The solution is to upgrade Semantic to version 2.0pre4 (distributed
+with CEDET 1.0pre4) or later.
 
 *** Self-documentation messages are garbled.
 
