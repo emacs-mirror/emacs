@@ -911,6 +911,7 @@ If global mark is active, copy from register or one character."
 	    ;; That would make yank a no-op.
 	    (if (and (string= (filter-buffer-substring (point) (mark))
 			      (car kill-ring))
+		     (fboundp 'mouse-region-match)
 		     (mouse-region-match))
 		(current-kill 1))
 	    (cua-delete-region)))
