@@ -1,3 +1,12 @@
+2007-10-06  Juri Linkov  <juri@jurta.org>
+
+	* text.texi (Fill Commands): Document fill-paragraph-or-region.
+	(Fill Prefix, Format Indentation): Replace fill-paragraph with
+	fill-paragraph-or-region.
+
+	* basic.texi (Arguments): Replace fill-paragraph with
+	fill-paragraph-or-region.
+
 2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* files.texi: Update the section on version control for 2007
