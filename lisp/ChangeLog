@@ -1,3 +1,7 @@
+2007-10-05  Chris Moore  <dooglus@gmail.com>
+
+	* server.el (server-kill-new-buffers): Doc fix.
+
 2007-10-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-mode): Make sure global-font-lock-mode doesn't
