@@ -1,3 +1,7 @@
+2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el: workfile version -> focus version change.
+
 2007-10-06  Aaron Hawley  <aaronh@garden.org>
 
 	* autoinsert.el (auto-insert-alist): Add a Texinfo entry.
