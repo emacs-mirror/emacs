@@ -69,13 +69,16 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00020.html
 
 ** jbw@macs.hw.ac.uk, Sep 19: redisplay goes horribly wrong when a
 before-string contains multiple display properties
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02442.html
 
 ** jbw@macs.hw.ac.uk, Sep 19: part of display property on before-string
  property is not displayed
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00138.html
 
 ** bojohan+news@dd.chalmers.se, Sep 21:
  tooltip frame uses (class mono) when processing defface specs
 (Actually it uses no class at all.)
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01793.html
 
 ** Frame title no more updated after calling `set-frame-configuration'
 Report by Sebastien Rocca Serra <sroccaserra@gmail.com> on emacs-devel
