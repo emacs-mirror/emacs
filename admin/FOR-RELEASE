@@ -64,13 +64,26 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 ** ams@gnu.org, 9 July: eshell and external commands
 http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00385.html
 
-** maximize resizes to large size, but doesn't really maximize
-Report by Marijn Schouten <hkBst@gentoo.org> on bug-gnu-emacs from
-2007-08-26.
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01362.html
-Stephen Berman <Stephen.Berman@gmx.net> has compiled a list of KDE
-builds where the behavior can be observed, compare:
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00446.html
+** TAGS buffer generates spurious undo warnings
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00070.html
+
+** latex mode, nexted subscripts are unreadable
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00020.html
+
+** jbw@macs.hw.ac.uk, Sep 19: redisplay goes horribly wrong when a
+before-string contains multiple display properties
+
+** jbw@macs.hw.ac.uk, Sep 19: part of display property on before-string
+ property is not displayed
+
+** bojohan+news@dd.chalmers.se, Sep 21:
+ tooltip frame uses (class mono) when processing defface specs
+(Actually it uses no class at all.)
+
+** Frame title no more updated after calling `set-frame-configuration'
+Report by Sebastien Rocca Serra <sroccaserra@gmail.com> on emacs-devel
+from 2007-08-30.  martin rudalics has a potential patch.
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01632.html
 
 ** GNU NT-Emacs crashes with longlines-mode and outline-mode
 Reported by Rainer Thiel <r.thiel@uni-jena.de> on emacs-pretest-bug
