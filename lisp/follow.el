@@ -602,20 +602,18 @@ is called.  When turned off, `follow-mode-off-hook' is called.
 Keys specific to Follow mode:
 \\{follow-mode-map}"
   :keymap follow-mode-map
-  (if (and follow-mode follow-intercept-processes)
-      (follow-intercept-process-output))
+  (when (and follow-mode follow-intercept-processes)
+    (follow-intercept-process-output))
   (cond (follow-mode ; On
          ;; XEmacs: If this is non-nil, the window will scroll before
          ;; the point will have a chance to get into the next window.
-         (if (boundp 'scroll-on-clipped-lines)
-             (setq scroll-on-clipped-lines nil))
+         (when (boundp 'scroll-on-clipped-lines)
+	   (setq scroll-on-clipped-lines nil))
          (force-mode-line-update)
-         (add-hook 'post-command-hook 'follow-post-command-hook t)
-         (run-hooks 'follow-mode-hook))
+         (add-hook 'post-command-hook 'follow-post-command-hook t))
 
         ((not follow-mode) ; Off
-         (force-mode-line-update)
-         (run-hooks 'follow-mode-off-hook))))
+         (force-mode-line-update))))
 
 ;;}}}
 ;;{{{ Find file hook
