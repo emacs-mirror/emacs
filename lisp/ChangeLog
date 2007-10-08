@@ -1,3 +1,10 @@
+2007-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-foreign-file-name-handler): Check also
+	host.
+	(tramp-maybe-send-script): Apply `member' but `memq'.
+	(tramp-advice-file-expand-wildcards): Simplify implementation.
+
 2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el (follow-mode): Don't run hooks twice.  Use `when'.

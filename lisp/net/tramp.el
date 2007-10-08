@@ -2140,9 +2140,9 @@ target of the symlink differ."
 
       ;; If FILENAME is a Tramp name, use just the localname component.
       (when (tramp-tramp-file-p filename)
-	(setq filename (tramp-file-name-localname
-			(tramp-dissect-file-name
-			 (expand-file-name filename)))))
+	(setq filename
+	      (tramp-file-name-localname
+	       (tramp-dissect-file-name (expand-file-name filename)))))
 
       ;; Right, they are on the same host, regardless of user, method, etc.
       ;; We now make the link on the remote machine. This will occur as the user
@@ -4352,6 +4352,9 @@ ARGS are the arguments OPERATION has been called with."
       ;; When we are not fully sure that filename completion is safe,
       ;; we should not return a handler.
       (when (or (tramp-file-name-method v) (tramp-file-name-user v)
+		(and (tramp-file-name-host v)
+		     (not (member (tramp-file-name-host v)
+				  (mapcar 'car tramp-methods))))
 		(not (tramp-completion-mode-p)))
 	(while handler
 	  (setq elt (car handler)
@@ -5116,7 +5119,7 @@ User is always nil."
 Only send the definition if it has not already been done."
   (let* ((p (tramp-get-connection-process vec))
 	 (scripts (tramp-get-connection-property p "scripts" nil)))
-    (unless (memq name scripts)
+    (unless (member name scripts)
       (tramp-message vec 5 "Sending script `%s'..." name)
       ;; The script could contain a call of Perl.  This is masked with `%s'.
       (tramp-send-command-and-check
@@ -7193,19 +7196,19 @@ Only works for Bourne-like shells."
 ;; CCC: This check is now also really awful; we should search all
 ;; of the filename format, not just the prefix.
 (when (string-match "\\[" tramp-prefix-format)
-  (defadvice file-expand-wildcards (around tramp-fix activate)
+  (defadvice file-expand-wildcards
+    (around tramp-advice-file-expand-wildcards activate)
     (let ((name (ad-get-arg 0)))
       (if (tramp-tramp-file-p name)
 	  ;; If it's a Tramp file, dissect it and look if wildcards
 	  ;; need to be expanded at all.
-	  (let ((v (tramp-dissect-file-name name)))
-	    (if (string-match "[[*?]" (tramp-file-name-localname v))
-		(let ((res ad-do-it))
-		  (setq ad-return-value (or res (list name))))
-	      (setq ad-return-value (list name))))
+	  (if (string-match
+	       "[[*?]"
+	       (tramp-file-name-localname (tramp-dissect-file-name name)))
+	      (setq ad-return-value (or ad-do-it (list name)))
+	    (setq ad-return-value (list name)))
 	;; If it is not a Tramp file, just run the original function.
-	(let ((res ad-do-it))
-	  (setq ad-return-value (or res (list name)))))))
+	(setq ad-return-value (or ad-do-it (list name))))))
   (add-hook 'tramp-unload-hook
 	    '(lambda () (ad-unadvise 'file-expand-wildcards))))
 
