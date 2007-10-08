@@ -1,3 +1,7 @@
+2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-mode): Don't run hooks twice.  Use `when'.
+
 2007-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (bad-packages-alist): Clarify Semantic and CEDET
