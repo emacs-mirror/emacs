@@ -3119,26 +3119,6 @@ to provide the `find-version' operation instead."
               (and (not vc-make-backup-files) (delete-file backup-name))))))
       (message "Checking out %s...done" file))))
 
-(defun vc-default-wash-log (backend file)
-  "Remove all non-comment information from log output.
-This default implementation works for RCS logs; backends should override
-it if their logs are not in RCS format."
-  (let ((separator (concat "^-+\nrevision [0-9.]+\ndate: .*\n"
-			   "\\(branches: .*;\n\\)?"
-			   "\\(\\*\\*\\* empty log message \\*\\*\\*\n\\)?")))
-    (goto-char (point-max)) (forward-line -1)
-    (while (looking-at "=*\n")
-      (delete-char (- (match-end 0) (match-beginning 0)))
-      (forward-line -1))
-    (goto-char (point-min))
-    (if (looking-at "[\b\t\n\v\f\r ]+")
-	(delete-char (- (match-end 0) (match-beginning 0))))
-    (goto-char (point-min))
-    (re-search-forward separator nil t)
-    (delete-region (point-min) (point))
-    (while (re-search-forward separator nil t)
-      (delete-region (match-beginning 0) (match-end 0)))))
-
 (defun vc-default-revision-completion-table (backend file) nil)
 
 (defun vc-check-headers ()
