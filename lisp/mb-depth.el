@@ -32,6 +32,11 @@
 
 ;;; Code:
 
+(defvar minibuf-depth-indicator-function nil
+  "If non-nil, function to set up the minibuffer depth indicator.
+It is called with one argument, the minibuffer depth,
+and must return a string.")
+
 ;; An overlay covering the prompt.  This is a buffer-local variable in
 ;; each affected minibuffer.
 ;;
@@ -45,8 +50,9 @@ The prompt should already have been inserted."
   (when (> (minibuffer-depth) 1)
     (setq minibuf-depth-overlay (make-overlay (point-min) (1+ (point-min))))
     (overlay-put minibuf-depth-overlay 'before-string
-		 (propertize (format "[%d]" (minibuffer-depth))
-			     'face 'highlight))
+		 (if minibuf-depth-indicator-function
+		     (funcall minibuf-depth-indicator-function (minibuffer-depth))
+		   (propertize (format "[%d]" (minibuffer-depth)) 'face 'highlight)))
     (overlay-put minibuf-depth-overlay 'evaporate t)))
 
 ;;;###autoload
