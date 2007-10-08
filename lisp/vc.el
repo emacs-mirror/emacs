@@ -3050,7 +3050,7 @@ to provide the `find-version' operation instead."
   (if (vc-find-backend-function backend 'print-log)
       (with-current-buffer "*vc*"
 	(vc-call print-log (list file))
-	(vc-call wash-log file)
+	(vc-call-backend backend 'wash-log)
 	(buffer-string))))
 
 (defun vc-default-unregister (backend file)
