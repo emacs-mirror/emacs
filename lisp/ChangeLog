@@ -1,5 +1,7 @@
 2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
+	* follow.el (follow-mode): Don't run hooks twice.  Use `when'.
+
 	* mb-depth.el (minibuf-depth-indicator-function): New variable.
 	(minibuf-depth-setup-minibuffer): Use it.
 
