@@ -1,3 +1,8 @@
+2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mb-depth.el (minibuf-depth-indicator-function): New variable.
+	(minibuf-depth-setup-minibuffer): Use it.
+
 2007-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (bad-packages-alist): Clarify Semantic and CEDET
@@ -34,19 +39,19 @@
 	(tramp-completion-mode): New defvar.
 	(tramp-completion-mode-p): Use it.
 
-	* net/tramp-compat.el (top):  Load tramp-util.el and tramp-vc.el.
+	* net/tramp-compat.el (top): Load tramp-util.el and tramp-vc.el.
 
 	* net/tramp-fish.el (tramp-fish-handle-process-file): Rewrite
 	temporary file handling.
 
 2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el: workfile version -> focus version change. Port various
+	* vc.el: Workfile version -> focus version change.  Port various
 	comments from new VC to reduce the noise in the diff.
 	Patch in the new vc-create-repo function to go with the
 	header comment about it already present.
 	There are changes to existing logic in this patch.
-	*vc.el (vc-revert-buffer1): Rename to to vc-revert-buffer-internal.
+	(vc-revert-buffer1): Rename to vc-revert-buffer-internal.
 
 2007-10-06  Aaron Hawley  <aaronh@garden.org>
 
@@ -59,12 +64,12 @@
 2007-10-05  John W. Eaton  <jwe@octave.org>
 
 	* progmodes/octave-mod.el (octave-abbrev-table): Add "until".
-        (octave-begin-keywords): Add "do".
-        (octave-end-keywords): Remove "end".
-        (octave-reserved-words): Add "end".  Remove "all_va_args",
+	(octave-begin-keywords): Add "do".
+	(octave-end-keywords): Remove "end".
+	(octave-reserved-words): Add "end".  Remove "all_va_args",
 	"gplot", and 'gsplot".
-        (octave-text-functions): Remove "gset", "gshow", "set", and "show".
-        (octave-variables): Remove "IMAGEPATH", "INFO_FILE",
+	(octave-text-functions): Remove "gset", "gshow", "set", and "show".
+	(octave-variables): Remove "IMAGEPATH", "INFO_FILE",
 	"INFO_PROGRAM", "LOADPATH", "__error_text__", "automatic_replot",
 	"default_return_value", "define_all_return_values",
 	"do_fortran_indexing", "empty_list_elements_ok",
@@ -78,7 +83,7 @@
 	Add "DEFAULT_EXEC_PATH", "DEFAULT_LOADPATH", "IMAGE_PATH",
 	"crash_dumps_octave_core", "sighup_dumps_octave_core",
 	"sigterm_dumps_octave_core".
-        (octave-block-match-alist): Remove "end" from block-end keywords.
+	(octave-block-match-alist): Remove "end" from block-end keywords.
 	(octave-mode): Update ftp site address.
 
 2007-10-05  Dan Nicolaescu  <dann@ics.uci.edu>
