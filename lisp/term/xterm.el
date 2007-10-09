@@ -438,15 +438,6 @@
     (define-key map [f59] [A-f11])
     (define-key map [f60] [A-f12])
 
-    ;; Map common bindings for wheel events.  Again we do this in
-    ;; local-function-key-map rather than input-decode-map because we cannot
-    ;; be sure this is right, so if you really have a mouse-4 button rather
-    ;; than a wheel, you can bind it to whatever you want, to override
-    ;; this remapping.
-    (define-key map [*-mouse-4] [wheel-up])
-    (define-key map [*-mouse-5] [wheel-down])
-    (define-key map [*-mouse-6] [wheel-left])
-    (define-key map [*-mouse-7] [wheel-right])
     map)
   "Keymap of possible alternative meanings for some keys.")
 
@@ -463,7 +454,7 @@
       (tty-run-terminal-initialization (selected-frame) "rxvt")
 
     (let ((map (copy-keymap xterm-alternatives-map)))
-      (set-keymap-parent map (keymap-parent) local-function-key-map)
+      (set-keymap-parent map (keymap-parent local-function-key-map))
       (set-keymap-parent local-function-key-map map))
 
     (let ((map (copy-keymap xterm-function-map)))
@@ -472,7 +463,7 @@
       ;; This way we don't override terminfo-derived settings or settings
       ;; made in the .emacs file.
       (set-keymap-parent map (keymap-parent input-decode-map))
-      (set-keymap-parent input-decode map)))
+      (set-keymap-parent input-decode-map map)))
 
     (xterm-register-default-colors)
     ;; This recomputes all the default faces given the colors we've just set up.
