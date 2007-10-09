@@ -1195,7 +1195,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     (define-key map [M-return] [?\M-\C-m])
     (define-key map [M-escape] [?\M-\e])
     (define-key map [iso-lefttab] [backtab])
-    (define-key map [S-iso-lefttab] [backtab]))
+    (define-key map [S-iso-lefttab] [backtab])
     map)
   "Keymap of possible alternative meanings for some keys.")
 
@@ -2367,15 +2367,15 @@ order until succeed.")
 	    (cond;; check cut buffer
 	     ((or (not cut-text) (string= cut-text ""))
 	      (setq x-last-selected-text-cut nil))
-	     ;; This short cut doesn't work because x-get-cut-buffer 	 
-	     ;; always returns a newly created string. 	 
-	     ;; ((eq      cut-text x-last-selected-text-cut) nil) 	 
+	     ;; This short cut doesn't work because x-get-cut-buffer
+	     ;; always returns a newly created string.
+	     ;; ((eq      cut-text x-last-selected-text-cut) nil)
 	     ((and (string= cut-text x-last-selected-text-cut-encoded)
 		   (eq x-last-cut-buffer-coding next-coding))
-	      ;; See the comment above.  No need of this recording. 	 
-	      ;; Record the newer string, 	 
-	      ;; so subsequent calls can use the `eq' test. 	 
-	      ;; (setq x-last-selected-text-cut cut-text) 	 
+	      ;; See the comment above.  No need of this recording.
+	      ;; Record the newer string,
+	      ;; so subsequent calls can use the `eq' test.
+	      ;; (setq x-last-selected-text-cut cut-text)
 	      nil)
 	     (t
 	      (setq x-last-selected-text-cut-encoded cut-text
@@ -2383,7 +2383,7 @@ order until succeed.")
 		  x-last-selected-text-cut
 		  ;; ICCCM says cut buffer always contain ISO-Latin-1, but
 		  ;; use next-selection-coding-system if not nil.
-		  (decode-coding-string 
+		  (decode-coding-string
 		   cut-text next-coding))))))
 
     ;; As we have done one selection, clear this now.
@@ -2509,7 +2509,7 @@ order until succeed.")
 				 (cons '(user-size . t) parsed))))
 	  ;; All geometry parms apply to the initial frame.
 	  (setq initial-frame-alist (append initial-frame-alist parsed))
-	  ;; The size parms apply to all frames.  Don't set it if there are 
+	  ;; The size parms apply to all frames.  Don't set it if there are
 	  ;; sizes there already (from command line).
 	  (if (and (assq 'height parsed)
 		   (not (assq 'height default-frame-alist)))
