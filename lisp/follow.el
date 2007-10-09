@@ -277,7 +277,7 @@
   :group 'convenience)
 
 (defcustom follow-mode-hook nil
-  "Hooks to run when Follow mode is turned on."
+  "Normal hook run by `follow-mode'."
   :type 'hook
   :group 'follow)
 
@@ -285,7 +285,7 @@
   "Hooks to run when Follow mode is turned off."
   :type 'hook
   :group 'follow)
-
+(make-obsolete-variable 'follow-mode-off-hook 'follow-mode-hook "22.2")
 
 ;;{{{ Keymap/Menu
 
@@ -596,8 +596,7 @@ If the variable `follow-intercept-processes' is non-nil, Follow mode
 will listen to the output of processes and redisplay accordingly.
 \(This is the default.)
 
-When Follow mode is switched on, the hook `follow-mode-hook'
-is called.  When turned off, `follow-mode-off-hook' is called.
+This command runs the normal hook `follow-mode-hook'.
 
 Keys specific to Follow mode:
 \\{follow-mode-map}"
