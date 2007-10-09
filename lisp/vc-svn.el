@@ -24,11 +24,8 @@
 
 ;;; Commentary:
 
-;; This is preliminary support for Subversion (http://subversion.tigris.org/).
-;; It started as `sed s/cvs/svn/ vc.cvs.el' (from version 1.56)
-;; and hasn't been completely fixed since.
-
-;; Sync'd with Subversion's vc-svn.el as of revision 5801.
+;; Sync'd with Subversion's vc-svn.el as of revision 5801. but this version
+;; has been extensively modified since to handle filesets.
 
 ;;; Bugs:
 
