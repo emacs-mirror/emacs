@@ -1,5 +1,7 @@
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* faces.el (face-font-selection-order): Doc fix.
+
 	* follow.el (follow-mode-hook, follow-mode): Doc fixes.
 	(follow-mode-off-hook): Mark as obsolete.
 
