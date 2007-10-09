@@ -1,3 +1,12 @@
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-install-custom-print-funcs)
+	(edebug-install-custom-print, edebug-reset-print-funcs)
+	(edebug-uninstall-custom-print, edebug-uninstall-custom-print-funcs):
+	Functions deleted.
+	(edebug-prin1, edebug-print, edebug-prin1-to-string)
+	(edebug-format, edebug-message): Define directly as aliases.
+
 2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el (follow-mode): Don't run hooks twice.  Use `when'.
