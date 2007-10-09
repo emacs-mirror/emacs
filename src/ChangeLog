@@ -1,3 +1,8 @@
+2007-10-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_set_window_size): Disable code that attempts to tell
+	Lisp code about a size change before it actually happens.
+
 2007-10-09  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (handle_invisible_prop): After setting up an ellipsis,
