@@ -445,7 +445,7 @@ Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
 /* Parent keymap of terminal-local function-key-map instances.  */
 Lisp_Object Vfunction_key_map;
 
-/* Parent keymap of terminal-local key-translation-map instances.  */
+/* Keymap of key translations that can override keymaps.  */
 Lisp_Object Vkey_translation_map;
 
 /* List of deferred actions to be performed at a later time.
@@ -9131,8 +9131,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      key's again in Vfunction_key_map.  */
   volatile keyremap fkey;
 
-  /* Likewise, for key_translation_map.  */
-  volatile keyremap keytran;
+  /* Likewise, for key_translation_map and input-decode-map.  */
+  volatile keyremap keytran, indec;
 
   /* If we receive a `switch-frame' or `select-window' event in the middle of
      a key sequence, we put it off for later.
@@ -9209,8 +9209,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
   /* We may switch keyboards between rescans, so we need to
      reinitialize fkey and keytran before each replay.  */
+  indec.map = indec.parent = current_kboard->Vinput_decode_map;
   fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
-  keytran.map = keytran.parent = current_kboard->Vlocal_key_translation_map;
+  keytran.map = keytran.parent = Vkey_translation_map;
+  indec.start = indec.end = 0;
   fkey.start = fkey.end = 0;
   keytran.start = keytran.end = 0;
 
@@ -9299,7 +9301,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    Thus, if ESC O a has a function-key-map translation
 	    and ESC o has a binding, don't return after ESC O,
 	    so that we can translate ESC O plus the next character.  */
-	 : (fkey.start < t || keytran.start < t))
+	 : (/* indec.start < t || fkey.start < t || */ keytran.start < t))
     {
       Lisp_Object key;
       int used_mouse_menu = 0;
@@ -9317,13 +9319,17 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 just one key.  */
       volatile int echo_local_start, keys_local_start, local_first_binding;
 
-      eassert (fkey.end == t || (fkey.end > t && fkey.end <= mock_input));
+      eassert (indec.end == t || (indec.end > t && indec.end <= mock_input));
+      eassert (indec.start <= indec.end);
       eassert (fkey.start <= fkey.end);
       eassert (keytran.start <= keytran.end);
-      /* key-translation-map is applied *after* function-key-map.  */
+      /* key-translation-map is applied *after* function-key-map
+	 which is itself applied *after* input-decode-map.  */
+      eassert (fkey.end <= indec.start);
       eassert (keytran.end <= fkey.start);
 
-      if (first_unbound < fkey.start && first_unbound < keytran.start)
+      if (/* first_unbound < indec.start && first_unbound < fkey.start && */
+	  first_unbound < keytran.start)
 	{ /* The prefix upto first_unbound has no binding and has
 	     no translation left to do either, so we know it's unbound.
 	     If we don't stop now, we risk staying here indefinitely
@@ -9333,6 +9339,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  for (i = first_unbound + 1; i < t; i++)
 	    keybuf[i - first_unbound - 1] = keybuf[i];
 	  mock_input = t - first_unbound - 1;
+	  indec.end = indec.start -= first_unbound + 1;
+	  indec.map = indec.parent;
 	  fkey.end = fkey.start -= first_unbound + 1;
 	  fkey.map = fkey.parent;
 	  keytran.end = keytran.start -= first_unbound + 1;
@@ -9758,15 +9766,15 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	/* This is needed for the following scenario:
 	   event 0: a down-event that gets dropped by calling replay_key.
 	   event 1: some normal prefix like C-h.
-	   After event 0, first_unbound is 0, after event 1 fkey.start
-	   and keytran.start are both 1, so when we see that C-h is bound,
-	   we need to update first_unbound.  */
+	   After event 0, first_unbound is 0, after event 1 indec.start,
+	   fkey.start, and keytran.start are all 1, so when we see that
+	   C-h is bound, we need to update first_unbound.  */
 	first_unbound = max (t + 1, first_unbound);
       else
 	{
 	  Lisp_Object head;
 
-	  /* Remember the position to put an upper bound on fkey.start.  */
+	  /* Remember the position to put an upper bound on indec.start.  */
 	  first_unbound = min (t, first_unbound);
 
 	  head = EVENT_HEAD (key);
@@ -9851,21 +9859,27 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			  /* If mock_input > t + 1, the above simplification
 			     will actually end up dropping keys on the floor.
 			     This is probably OK for now, but even
-			     if mock_input <= t + 1, we need to adjust fkey
-			     and keytran.
+			     if mock_input <= t + 1, we need to adjust indec,
+			     fkey, and keytran.
 			     Typical case [header-line down-mouse-N]:
 			     mock_input = 2, t = 1, fkey.end = 1,
 			     last_real_key_start = 0.  */
-			  if (fkey.end > last_real_key_start)
+			  if (indec.end > last_real_key_start)
 			    {
-			      fkey.end = fkey.start
-				= min (last_real_key_start, fkey.start);
-			      fkey.map = fkey.parent;
-			      if (keytran.end > last_real_key_start)
+			      indec.end = indec.start
+				= min (last_real_key_start, indec.start);
+			      indec.map = indec.parent;
+			      if (fkey.end > last_real_key_start)
 				{
-				  keytran.end = keytran.start
-				    = min (last_real_key_start, keytran.start);
-				  keytran.map = keytran.parent;
+				  fkey.end = fkey.start
+				    = min (last_real_key_start, fkey.start);
+				  fkey.map = fkey.parent;
+				  if (keytran.end > last_real_key_start)
+				    {
+				      keytran.end = keytran.start
+					= min (last_real_key_start, keytran.start);
+				      keytran.map = keytran.parent;
+				    }
 				}
 			    }
 			  if (t == last_real_key_start)
@@ -9919,8 +9933,28 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       /* Record what part of this_command_keys is the current key sequence.  */
       this_single_command_key_start = this_command_key_count - t;
 
-      if (first_binding < nmaps && NILP (submaps[first_binding]))
+      /* Look for this sequence in input-decode-map.
+	 Scan from indec.end until we find a bound suffix.  */
+      while (indec.end < t)
+	{
+	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+	  int done, diff;
+
+	  GCPRO4 (indec.map, fkey.map, keytran.map, delayed_switch_frame);
+	  done = keyremap_step (keybuf, bufsize, &indec, max (t, mock_input),
+				1, &diff, prompt);
+	  UNGCPRO;
+	  if (done)
+	    {
+	      mock_input = diff + max (t, mock_input);
+	      goto replay_sequence;
+	    }
+	}
+
+      if (first_binding < nmaps && NILP (submaps[first_binding])
+	  && indec.start >= t)
 	/* There is a binding and it's not a prefix.
+	   (and it doesn't have any input-decode-map translation pending).
 	   There is thus no function-key in this sequence.
 	   Moving fkey.start is important in this case to allow keytran.start
 	   to go over the sequence before we return (since we keep the
@@ -9933,12 +9967,12 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	/* If the sequence is unbound, see if we can hang a function key
 	   off the end of it.  */
 	/* Continue scan from fkey.end until we find a bound suffix.  */
-	while (fkey.end < t)
+	while (fkey.end < indec.start)
 	  {
-	    struct gcpro gcpro1, gcpro2, gcpro3;
+	    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 	    int done, diff;
 
-	    GCPRO3 (fkey.map, keytran.map, delayed_switch_frame);
+	    GCPRO4 (indec.map, fkey.map, keytran.map, delayed_switch_frame);
 	    done = keyremap_step (keybuf, bufsize, &fkey,
 				  max (t, mock_input),
 				  /* If there's a binding (i.e.
@@ -9950,6 +9984,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    if (done)
 	      {
 		mock_input = diff + max (t, mock_input);
+		/* Adjust the input-decode-map counters.  */
+		indec.end += diff;
+		indec.start += diff;
+
 		goto replay_sequence;
 	      }
 	  }
@@ -9958,17 +9996,19 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 Scan from keytran.end until we find a bound suffix.  */
       while (keytran.end < fkey.start)
 	{
-	  struct gcpro gcpro1, gcpro2, gcpro3;
+	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 	  int done, diff;
 
-	  GCPRO3 (fkey.map, keytran.map, delayed_switch_frame);
+	  GCPRO4 (indec.map, fkey.map, keytran.map, delayed_switch_frame);
 	  done = keyremap_step (keybuf, bufsize, &keytran, max (t, mock_input),
 				1, &diff, prompt);
 	  UNGCPRO;
 	  if (done)
 	    {
 	      mock_input = diff + max (t, mock_input);
-	      /* Adjust the function-key-map counters.  */
+	      /* Adjust the function-key-map and input-decode-map counters.  */
+	      indec.end += diff;
+	      indec.start += diff;
 	      fkey.end += diff;
 	      fkey.start += diff;
 
@@ -9981,7 +10021,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 and is an upper case letter
 	 use the corresponding lower-case letter instead.  */
       if (first_binding >= nmaps
-	  && fkey.start >= t && keytran.start >= t
+	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
 	  && INTEGERP (key)
 	  && ((((XINT (key) & 0x3ffff)
 		< XCHAR_TABLE (current_buffer->downcase_table)->size)
@@ -10012,7 +10052,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 and is a shifted function key,
 	 use the corresponding unshifted function key instead.  */
       if (first_binding >= nmaps
-	  && fkey.start >= t && keytran.start >= t
+	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
 	  && SYMBOLP (key))
 	{
 	  Lisp_Object breakdown;
@@ -10033,9 +10073,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
-	      fkey.start = fkey.end = 0;
-	      keytran.start = keytran.end = 0;
-
 	      goto replay_sequence;
 	    }
 	}
@@ -11460,10 +11497,9 @@ init_kboard (kb)
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
   kb->system_key_syms = Qnil;
+  kb->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
   kb->Vlocal_function_key_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (kb->Vlocal_function_key_map, Vfunction_key_map);
-  kb->Vlocal_key_translation_map = Fmake_sparse_keymap (Qnil);
-  Fset_keymap_parent (kb->Vlocal_key_translation_map, Vkey_translation_map);
   kb->Vdefault_minibuffer_frame = Qnil;
 }
 
@@ -12196,8 +12232,8 @@ See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_KBOARD ("local-function-key-map", Vlocal_function_key_map,
                  doc: /* Keymap that translates key sequences to key sequences during input.
-This is used mainly for mapping ASCII function key sequences into
-real Emacs function key events (symbols).
+This is used mainly for mapping key sequences into some preferred
+key events (symbols).
 
 The `read-key-sequence' function replaces any subsequence bound by
 `local-function-key-map' with its binding.  More precisely, when the
@@ -12223,6 +12259,25 @@ define a binding on all terminals, change `function-key-map'
 instead.  Initially, `local-function-key-map' is an empty keymap that
 has `function-key-map' as its parent on all terminal devices.  */);
 
+  DEFVAR_KBOARD ("input-decode-map", Vinput_decode_map,
+		 doc: /* Keymap that decodes input escape sequences.
+This is used mainly for mapping ASCII function key sequences into
+real Emacs function key events (symbols).
+
+The `read-key-sequence' function replaces any subsequence bound by
+`local-function-key-map' with its binding.  Contrary to `function-key-map',
+this map applies its rebinding regardless of the presence of an ordinary
+binding.  So it is more like `key-translation-map' except that it applies
+before `function-key-map' rather than after.
+
+If the binding is a function, it is called with one argument (the prompt)
+and its return value (a key sequence) is used.
+
+The events that come from bindings in `input-decode-map' are not
+themselves looked up in `input-decode-map'.
+
+This variable is keyboard-local.  */);
+
   DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
                doc: /* The parent keymap of all `local-function-key-map' instances.
 Function key definitions that apply to all terminal devices should go
@@ -12231,18 +12286,11 @@ here.  If a mapping is defined in both the current
 definition will take precendence.  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
                     
-  DEFVAR_KBOARD ("local-key-translation-map", Vlocal_key_translation_map,
-	       doc: /* Keymap of key translations that can override keymaps.
+  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
+               doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
 and its non-prefix bindings override ordinary bindings.
-
-`key-translation-map' has a separate binding for each terminal device.
-(See Info node `(elisp)Multiple displays'.)  If you need to set a key
-translation on all terminals, change `global-key-translation-map' instead.  */);
-
-  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
-               doc: /* The parent keymap of all `local-key-translation-map' instances.
-Key translations that apply to all terminal devices should go here.  */);
+Another difference is that it is global rather than keyboard-local.  */);
   Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
@@ -12420,8 +12468,8 @@ mark_kboards ()
       mark_object (kb->Vlast_kbd_macro);
       mark_object (kb->Vsystem_key_alist);
       mark_object (kb->system_key_syms);
+      mark_object (kb->Vinput_decode_map);
       mark_object (kb->Vlocal_function_key_map);
-      mark_object (kb->Vlocal_key_translation_map);
       mark_object (kb->Vdefault_minibuffer_frame);
       mark_object (kb->echo_string);
     }

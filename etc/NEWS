@@ -257,6 +257,11 @@ supported on other platforms, but not on Windows due to using the winsock
 
 * Lisp Changes in Emacs 23.1
 
+** New keymap `input-decode-map' overrides like key-translation-map, but
+applies before function-key-map.  Also it is terminal-local contrary to
+key-translation-map.  Terminal-specific key-sequences are generally added to
+this map rather than to function-key-map now.
+
 ** Changes related to multiple tty support.
 
 *** $TERM is now set to `dumb' for subprocesses.  If you want to know the
@@ -289,11 +294,8 @@ being suspended/resumed as a parameter.
 
 *** New functions: `environment', `let-environment'.
 
-*** New variables: `local-key-translation-map', `local-function-key-map'.
-These are in addition to the global key-translation-map and
-function-key-map variables that already existed.
-
-??? How do the new variables relate to the old ones?
+*** New variable: `local-function-key-map'.
+This in addition to the global function-key-map variable that already existed.
 
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 

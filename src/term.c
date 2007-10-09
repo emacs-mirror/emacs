@@ -1274,9 +1274,9 @@ static char **term_get_fkeys_address;
 static KBOARD *term_get_fkeys_kboard;
 static Lisp_Object term_get_fkeys_1 ();
 
-/* Find the escape codes sent by the function keys for Vfunction_key_map.
+/* Find the escape codes sent by the function keys for Vinput_decode_map.
    This function scans the termcap function key sequence entries, and
-   adds entries to Vfunction_key_map for each function key it finds.  */
+   adds entries to Vinput_decode_map for each function key it finds.  */
 
 static void
 term_get_fkeys (address, kboard)
@@ -1306,14 +1306,14 @@ term_get_fkeys_1 ()
   KBOARD *kboard = term_get_fkeys_kboard;
   
   /* This can happen if CANNOT_DUMP or with strange options.  */
-  if (!initialized)
-    kboard->Vlocal_function_key_map = Fmake_sparse_keymap (Qnil);
+  if (!KEYMAPP (kboard->Vinput_decode_map))
+    kboard->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
-	Fdefine_key (kboard->Vlocal_function_key_map, build_string (sequence),
+	Fdefine_key (kboard->Vinput_decode_map, build_string (sequence),
 		     Fmake_vector (make_number (1),
 				   intern (keys[i].name)));
     }
@@ -1333,13 +1333,13 @@ term_get_fkeys_1 ()
 	if (k0)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
-	  Fdefine_key (kboard->Vlocal_function_key_map, build_string (k0),
+	  Fdefine_key (kboard->Vinput_decode_map, build_string (k0),
 		       Fmake_vector (make_number (1), intern ("f0")));
-	Fdefine_key (kboard->Vlocal_function_key_map, build_string (k_semi),
+	Fdefine_key (kboard->Vinput_decode_map, build_string (k_semi),
 		     Fmake_vector (make_number (1), intern ("f10")));
       }
     else if (k0)
-      Fdefine_key (kboard->Vlocal_function_key_map, build_string (k0),
+      Fdefine_key (kboard->Vinput_decode_map, build_string (k0),
 		   Fmake_vector (make_number (1), intern (k0_name)));
   }
 
@@ -1362,7 +1362,7 @@ term_get_fkeys_1 ()
 	  if (sequence)
 	    {
 	      sprintf (fkey, "f%d", i);
-	      Fdefine_key (kboard->Vlocal_function_key_map, build_string (sequence),
+	      Fdefine_key (kboard->Vinput_decode_map, build_string (sequence),
 			   Fmake_vector (make_number (1),
 					 intern (fkey)));
 	    }
@@ -1379,7 +1379,7 @@ term_get_fkeys_1 ()
 	{								\
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)                                                 \
-	    Fdefine_key (kboard->Vlocal_function_key_map, build_string (sequence), \
+	    Fdefine_key (kboard->Vinput_decode_map, build_string (sequence), \
 			 Fmake_vector (make_number (1),                 \
 				       intern (sym)));                  \
 	}

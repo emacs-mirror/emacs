@@ -113,7 +113,7 @@ The sparse keymap that displays the Special Props submenu of the Text
 Properties menu.
 
 @item function-key-map
-The keymap for translating keypad and function keys.@*
+The keymap for translating key sequences to preferred alternatives.@*
 If there are none, then it contains an empty sparse keymap.
 @xref{Translation Keymaps}.
 
@@ -150,6 +150,11 @@ A sparse keymap used by the @kbd{e} command of Info.
 @item Info-mode-map
 @vindex Info-mode-map
 A sparse keymap containing Info commands.
+
+@item input-decode-map
+The keymap for translating keypad and function keys.@*
+If there are none, then it contains an empty sparse keymap.
+@xref{Translation Keymaps}.
 
 @item isearch-mode-map
 @vindex isearch-mode-map

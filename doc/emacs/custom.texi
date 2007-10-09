@@ -2419,7 +2419,8 @@ kept.@refill
 
   The usual purpose of the terminal-specific library is to map the
 escape sequences used by the terminal's function keys onto more
-meaningful names, using @code{function-key-map}.  See the file
+meaningful names, using @code{input-decode-map} (or
+@code{function-key-map} before it).  See the file
 @file{term/lk201.el} for an example of how this is done.  Many function
 keys are mapped automatically according to the information in the
 Termcap data base; the terminal-specific library needs to map only the

@@ -279,7 +279,7 @@ trying the @samp{.elc} and @samp{.el} suffixes.
 @cindex Termcap
   The usual function of a terminal-specific library is to enable
 special keys to send sequences that Emacs can recognize.  It may also
-need to set or add to @code{function-key-map} if the Termcap or
+need to set or add to @code{input-decode-map} if the Termcap or
 Terminfo entry does not specify all the terminal's function keys.
 @xref{Terminal Input}.
 

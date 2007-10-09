@@ -3027,8 +3027,8 @@ You type        Translation\n\
       insert ("\n", 1);
     }
 
-  if (!NILP (current_kboard->Vlocal_key_translation_map))
-    describe_map_tree (current_kboard->Vlocal_key_translation_map, 0, Qnil, prefix,
+  if (!NILP (Vkey_translation_map))
+    describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
 		       "Key translations", nomenu, 1, 0, 0);
 
 
@@ -3120,6 +3120,11 @@ You type        Translation\n\
   if (!NILP (current_kboard->Vlocal_function_key_map))
     describe_map_tree (current_kboard->Vlocal_function_key_map, 0, Qnil, prefix,
 		       "\f\nFunction key map translations", nomenu, 1, 0, 0);
+
+  /* Print the input-decode-map translations under this prefix.  */
+  if (!NILP (current_kboard->Vinput_decode_map))
+    describe_map_tree (current_kboard->Vinput_decode_map, 0, Qnil, prefix,
+		       "\f\nInput decoding map translations", nomenu, 1, 0, 0);
 
   UNGCPRO;
   return Qnil;

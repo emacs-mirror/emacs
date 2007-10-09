@@ -1,5 +1,21 @@
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Add new `input-decode-map' keymap and use it for temrinal
+	escape sequences.
+	* keyboard.h (struct kboard): Add Vinput_decode_map.
+	Remove Vlocal_key_translation_map.
+	* keyboard.c (read_key_sequence): Add support for input-decode-map.
+	(init_kboard): Init input-decode-map.
+	Replace local-key-translation-map back with key-translation-map.
+	(syms_of_keyboard): Declare input-decode-map.
+	Remove local-key-translation-map.  Update docstrings.
+	(mark_kboards): Mark Vinput_decode_map.
+	Don't mark Vlocal_key_translation_map.
+	* keymap.c (Fdescribe_buffer_bindings): Describe input-decode-map.
+	Replace local-key-translation-map back with key-translation-map.
+	* term.c (term_get_fkeys_1, CONDITIONAL_REASSIGN):
+	Bind in input-decode-map rather than function-key-map.
+
 	* lisp.h (XSETPSEUDOVECTOR): Don't set the tag anymore.
 	This was made redundant by the previous introduction of XSETPVECTYPE.
 

@@ -1745,7 +1745,8 @@ Setting this variable too high may slow down your typing.  Setting it too
 low may make it hard to type macros quickly enough.
 @item viper-translate-all-ESC-keysequences @code{t} on tty, @code{nil} on windowing display
 Normally, Viper lets Emacs translate only those ESC key sequences that are
-defined in the low-level key-translation-map or function-key-map, such as those
+defined in the low-level @code{input-decode-map}, @code{key-translation-map}
+or @code{function-key-map}, such as those
 emitted by the arrow and function keys. Other sequences, e.g., @kbd{\\e/}, are
 treated as @kbd{ESC} command followed by a @kbd{/}. This is good for people
 who type fast and tend to hit other characters right after they hit
@@ -2009,12 +2010,12 @@ not emit the right signals for Emacs to understand.  To let Emacs know about
 those keys, you will have to find out which key sequences they emit
 by typing @kbd{C-q} and then the key (you should switch to Emacs state
 first).  Then you can bind those sequences to their preferred forms using
-@code{function-key-map} as follows:
+@code{input-decode-map} as follows:
 
 @lisp
 (cond ((string= (getenv "TERM") "xterm")
-(define-key function-key-map "\e[192z" [f11])    ; L1
-(define-key function-key-map "\e[195z" [f14])    ; L4, Undo
+(define-key input-decode-map "\e[192z" [f11])    ; L1
+(define-key input-decode-map "\e[195z" [f14])    ; L4, Undo
 @end lisp
 
 The above illustrates how to do this for Xterm.  On VT100, you would have to
@@ -2206,6 +2207,7 @@ So much about Viper-specific bindings.
 Manual}, and the Emacs quick reference card for the general info on key
 bindings in Emacs.
 
+@vindex @code{input-decode-map}
 @vindex @code{function-key-map}
 @vindex @code{viper-vi-global-user-map}
 @vindex @code{viper-insert-global-user-map}

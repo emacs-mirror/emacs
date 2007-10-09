@@ -1512,17 +1512,18 @@ specifies a list of keymaps to search in.  This argument is ignored if
   This section describes keymaps that are used during reading a key
 sequence, to translate certain event sequences into others.
 @code{read-key-sequence} checks every subsequence of the key sequence
-being read, as it is read, against @code{function-key-map} and then
-against @code{key-translation-map}.
+being read, as it is read, against @code{input-decode-map}, then
+@code{function-key-map}, and then against @code{key-translation-map}.
 
-@defvar function-key-map
+@defvar input-decode-map
+
 This variable holds a keymap that describes the character sequences sent
 by function keys on an ordinary character terminal.  This keymap has the
 same structure as other keymaps, but is used differently: it specifies
 translations to make while reading key sequences, rather than bindings
 for key sequences.
 
-If @code{function-key-map} ``binds'' a key sequence @var{k} to a vector
+If @code{input-decode-map} ``binds'' a key sequence @var{k} to a vector
 @var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
 key sequence, it is replaced with the events in @var{v}.
 
@@ -1530,50 +1531,49 @@ For example, VT100 terminals send @kbd{@key{ESC} O P} when the
 keypad @key{PF1} key is pressed.  Therefore, we want Emacs to translate
 that sequence of events into the single event @code{pf1}.  We accomplish
 this by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
-@code{function-key-map}, when using a VT100.
+@code{input-decode-map}, when using a VT100.
 
 Thus, typing @kbd{C-c @key{PF1}} sends the character sequence @kbd{C-c
 @key{ESC} O P}; later the function @code{read-key-sequence} translates
 this back into @kbd{C-c @key{PF1}}, which it returns as the vector
 @code{[?\C-c pf1]}.
 
-Entries in @code{function-key-map} are ignored if they conflict with
-bindings made in the minor mode, local, or global keymaps.  The intent
-is that the character sequences that function keys send should not have
-command bindings in their own right---but if they do, the ordinary
-bindings take priority.
-
-The value of @code{function-key-map} is usually set up automatically
+The value of @code{input-decode-map} is usually set up automatically
 according to the terminal's Terminfo or Termcap entry, but sometimes
 those need help from terminal-specific Lisp files.  Emacs comes with
 terminal-specific files for many common terminals; their main purpose is
-to make entries in @code{function-key-map} beyond those that can be
+to make entries in @code{input-decode-map} beyond those that can be
 deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
 @end defvar
 
+@defvar function-key-map
+
+This variable holds a keymap similar to @code{input-decode-map} except
+that it describes key sequences which should be translated to
+alternative interpretations that are usually preferred.  It applies
+after @code{input-decode-map} and before @code{key-translation-map}.
+
+Entries in @code{function-key-map} are ignored if they conflict with
+bindings made in the minor mode, local, or global keymaps.  I.e.
+the remapping only applies if the original key sequence would
+otherwise not have any binding.
+@end defvar
+
 @defvar key-translation-map
-This variable is another keymap used just like @code{function-key-map}
+This variable is another keymap used just like @code{input-decode-map}
 to translate input events into other events.  It differs from
-@code{function-key-map} in two ways:
+@code{input-decode-map} in that it goes to work after
+@code{function-key-map} is finished rather than before; it receives
+the results of translation by @code{function-key-map}.
 
-@itemize @bullet
-@item
-@code{key-translation-map} goes to work after @code{function-key-map} is
-finished; it receives the results of translation by
-@code{function-key-map}.
-
-@item
-Non-prefix bindings in @code{key-translation-map} override actual key
-bindings.  For example, if @kbd{C-x f} has a non-prefix binding in
-@code{key-translation-map}, that translation takes effect even though
-@kbd{C-x f} also has a key binding in the global map.
-@end itemize
-
-Note however that actual key bindings can have an effect on
-@code{key-translation-map}, even though they are overridden by it.
-Indeed, actual key bindings override @code{function-key-map} and thus
-may alter the key sequence that @code{key-translation-map} receives.
-Clearly, it is better to avoid this type of situation.
+Just like @code{input-decode-map}, but unlike @code{function-key-map},
+this keymap is applied regardless of whether the input key-sequence
+has a normal binding.  Note however that actual key bindings can have
+an effect on @code{key-translation-map}, even though they are
+overridden by it.  Indeed, actual key bindings override
+@code{function-key-map} and thus may alter the key sequence that
+@code{key-translation-map} receives.  Clearly, it is better to avoid
+this type of situation.
 
 The intent of @code{key-translation-map} is for users to map one
 character set to another, including ordinary characters normally bound
@@ -1581,7 +1581,8 @@ to @code{self-insert-command}.
 @end defvar
 
 @cindex key translation function
-You can use @code{function-key-map} or @code{key-translation-map} for
+You can use @code{input-decode-map}, @code{function-key-map}, or
+@code{key-translation-map} for
 more than simple aliases, by using a function, instead of a key
 sequence, as the ``translation'' of a key.  Then this function is called
 to compute the translation of that key.
