@@ -3719,6 +3719,10 @@ handle_invisible_prop (it)
 		  it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
 		}
               setup_for_ellipsis (it, 0);
+	      /* Let the ellipsis display before
+		 considering any properties of the following char.
+		 Fixes jasonr@gnu.org 01 Oct 07 bug.  */
+	      handled = HANDLED_RETURN;
             }
 	}
     }
