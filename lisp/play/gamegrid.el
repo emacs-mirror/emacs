@@ -320,7 +320,7 @@ static unsigned char gamegrid_bits[] = {
 			  (< max-height height))
 		      (setq max-height height))))))
       (when (and max-height (< max-height 1))
-	(set-face-attribute gamegrid-face nil :height max-height)))))
+	(face-spec-set gamegrid-face `((t :height ,max-height)))))))
 
 (defun gamegrid-initialize-display ()
   (setq gamegrid-display-mode (gamegrid-display-type))
