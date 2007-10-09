@@ -766,6 +766,67 @@ eh?")))
 				       ,group))))
   widget)
 
+(define-widget 'gnus-score-extra 'group
+  "Edit score entries for extra headers."
+  :convert-widget 'gnus-score-extra-convert)
+
+(defun gnus-score-extra-convert (widget)
+  ;; Set args appropriately.
+  (let* ((tag (widget-get widget :tag))
+	 (item `(const :format "" :value ,(downcase tag)))
+	 (match '(string :tag "Match"))
+	 (score '(choice :tag "Score"
+			 (const :tag "default" nil)
+			 (integer :format "%v"
+				  :hide-front-space t)))
+	 (expire '(choice :tag "Expire"
+			  (const :tag "off" nil)
+			  (integer :format "%v"
+				   :hide-front-space t)))
+	 (type '(choice :tag "Type"
+			:value s
+			;; I should really create a forgiving :match
+			;; function for each type below, that only
+			;; looked at the first letter.
+			(const :tag "Regexp" r)
+			(const :tag "Regexp (fixed case)" R)
+			(const :tag "Substring" s)
+			(const :tag "Substring (fixed case)" S)
+			(const :tag "Exact" e)
+			(const :tag "Exact (fixed case)" E)
+			(const :tag "Word" w)
+			(const :tag "Word (fixed case)" W)
+			(const :tag "default" nil)))
+	 (header (if gnus-extra-headers
+		     (let (name)
+		       `(choice :tag "Header"
+				,@(mapcar (lambda (h)
+					    (setq name (symbol-name h))
+					    (list 'const :tag name name))
+					  gnus-extra-headers)
+				(string :tag "Other" :format "%v")))
+		   '(string :tag "Header")))
+	 (group `(group ,match ,score ,expire ,type ,header))
+	 (doc (concat (or (widget-get widget :doc)
+			  (concat "Change score based on the " tag
+				  " header.\n")))))
+    (widget-put
+     widget :args
+     `(,item
+       (repeat :inline t
+	       :indent 0
+	       :tag ,tag
+	       :doc ,doc
+	       :format "%t:\n%h%v%i\n\n"
+	       (choice :format "%v"
+		       :value ("" nil nil s
+			       ,(if gnus-extra-headers
+				    (symbol-name (car gnus-extra-headers))
+				  ""))
+		       ,group
+		       sexp)))))
+  widget)
+
 (defvar gnus-custom-scores)
 (defvar gnus-custom-score-alist)
 
@@ -822,7 +883,7 @@ if you do all your changes will be lost.  ")
 				     (gnus-score-string :tag "Subject")
 				     (gnus-score-string :tag "References")
 				     (gnus-score-string :tag "Xref")
-				     (gnus-score-string :tag "Extra")
+				     (gnus-score-extra :tag "Extra")
 				     (gnus-score-string :tag "Message-ID")
 				     (gnus-score-integer :tag "Lines")
 				     (gnus-score-integer :tag "Chars")

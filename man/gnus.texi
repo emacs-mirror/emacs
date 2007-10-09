@@ -2153,7 +2153,7 @@ most recently will be fetched.
 @code{gnus-large-newsgroup}, but is only used for ephemeral
 newsgroups.
 
-@vindex gnus-maximum-newsgroup
+@vindex gnus-newsgroup-maximum-articles
 In groups in some news servers, there might be a big gap between a few
 very old articles that will never be expired and the recent ones.  In
 such a case, the server will return the data like @code{(1 . 30000000)}
@@ -2162,14 +2162,14 @@ are actually only the articles 1-10 and 29999900-30000000, Gnus doesn't
 know it at first and prepares for getting 30000000 articles.  However,
 it will consume hundreds megabytes of memories and might make Emacs get
 stuck as the case may be.  If you use such news servers, set the
-variable @code{gnus-maximum-newsgroup} to a positive number.  The value
-means that Gnus ignores articles other than this number of the latest
-ones in every group.  For instance, the value 10000 makes Gnus get only
-the articles 29990001-30000000 (if the latest article number is 30000000
-in a group).  Note that setting this variable to a number might prevent
-you from reading very old articles.  The default value of the variable
-@code{gnus-maximum-newsgroup} is @code{nil}, which means Gnus never
-ignores old articles.
+variable @code{gnus-newsgroup-maximum-articles} to a positive number.
+The value means that Gnus ignores articles other than this number of the
+latest ones in every group.  For instance, the value 10000 makes Gnus
+get only the articles 29990001-30000000 (if the latest article number is
+30000000 in a group).  Note that setting this variable to a number might
+prevent you from reading very old articles.  The default value of the
+variable @code{gnus-newsgroup-maximum-articles} is @code{nil}, which
+means Gnus never ignores old articles.
 
 @vindex gnus-select-group-hook
 @vindex gnus-auto-select-first
@@ -10676,10 +10676,9 @@ get does not read @samp{Xref:full}, then you should shout and whine at
 your news admin until she includes the @code{Xref} header in the
 overview files.
 
-@vindex gnus-nov-is-evil
 If you want Gnus to get the @code{Xref}s right all the time, you have to
-set @code{gnus-nov-is-evil} to @code{t}, which slows things down
-considerably.
+set @code{nntp-nov-is-evil} to @code{t}, which slows things down
+considerably.  Also @pxref{Slow/Expensive Connection}.
 
 C'est la vie.
 
@@ -22768,7 +22767,7 @@ readers.
 @c @anchor{X-Face}
 
 Viewing an @code{X-Face} header either requires an Emacs that has
-@samp{compface} support (which most XEmacs versions has), or that you
+@samp{compface} support (which most XEmacs versions have), or that you
 have suitable conversion or display programs installed.  If your Emacs
 has image support the default action is to display the face before the
 @code{From} header.  If there's no native @code{X-Face} support, Gnus
@@ -27398,8 +27397,8 @@ that's already there.  This is not how this manual is written.  When
 implementing something, I write the manual entry for that something
 straight away.  I then see that it's difficult to explain the
 functionality, so I write how it's supposed to be, and then I change the
-implementation.  Writing the documentation and writing the code goes
-hand in hand.
+implementation.  Writing the documentation and writing the code go hand
+in hand.
 
 This, of course, means that this manual has no, or little, flow.  It
 documents absolutely everything in Gnus, but often not where you're
@@ -27407,7 +27406,7 @@ looking for it.  It is a reference manual, and not a guide to how to get
 started with Gnus.
 
 That would be a totally different book, that should be written using the
-reference manual as source material.  It would look quite differently.
+reference manual as source material.  It would look quite different.
 
 
 @page
@@ -27519,10 +27518,31 @@ collection of @acronym{NOV} lines.
 
 @item @acronym{NOV}
 @cindex @acronym{NOV}
+@acronym{NOV} stands for News OverView, which is a type of news server
+header which provide datas containing the condensed header information
+of articles.  They are produced by the server itself; in the @code{nntp}
+back end Gnus uses the ones that the @acronym{NNTP} server makes, but
+Gnus makes them by itself for some backends (in particular, @code{nnml}).
+
 When Gnus enters a group, it asks the back end for the headers of all
 unread articles in the group.  Most servers support the News OverView
 format, which is more compact and much faster to read and parse than the
 normal @sc{head} format.
+
+The @acronym{NOV} data consist of one or more text lines (@pxref{Text
+Lines, ,Motion by Text Lines, elisp, The Emacs Lisp Reference Manual})
+where each line has the header information of one article.  The header
+information is a tab-separated series of the header's contents including
+an article number, a subject, an author, a date, a message-id,
+references, etc.
+
+Those data enable Gnus to generate summary lines quickly.  However, if
+the server does not support @acronym{NOV} or you disable it purposely or
+for some reason, Gnus will try to generate the header information by
+parsing each article's headers one by one.  It will take time.
+Therefore, it is not usually a good idea to set nn*-nov-is-evil
+(@pxref{Slow/Expensive Connection}) to a non-@code{nil} value unless you
+know that the server makes wrong @acronym{NOV} data.
 
 @item level
 @cindex levels
@@ -27656,11 +27676,11 @@ for some quite common situations.
 
 
 @node Slow/Expensive Connection
-@subsection Slow/Expensive NNTP Connection
+@subsection Slow/Expensive Connection
 
 If you run Emacs on a machine locally, and get your news from a machine
 over some very thin strings, you want to cut down on the amount of data
-Gnus has to get from the @acronym{NNTP} server.
+Gnus has to get from the server.
 
 @table @code
 
@@ -27672,9 +27692,25 @@ also have to set @code{gnus-check-new-newsgroups} and
 doesn't suddenly decide to fetch the active file anyway.
 
 @item gnus-nov-is-evil
-This one has to be @code{nil}.  If not, grabbing article headers from
-the @acronym{NNTP} server will not be very fast.  Not all @acronym{NNTP} servers
-support @sc{xover}; Gnus will detect this by itself.
+@vindex gnus-nov-is-evil
+Usually this one must @emph{always} be @code{nil} (which is the
+default).  If, for example, you wish to not use @acronym{NOV}
+(@pxref{Terminology}) with the @code{nntp} back end (@pxref{Crosspost
+Handling}), set @code{nntp-nov-is-evil} to a non-@code{nil} value
+instead of setting this.  But you normally do not need to set
+@code{nntp-nov-is-evil} since Gnus by itself will detect whether the
+@acronym{NNTP} server supports @acronym{NOV}.  Anyway, grabbing article
+headers from the @acronym{NNTP} server will not be very fast if you tell
+Gnus not to use @acronym{NOV}.
+
+As the variables for the other back ends, there are
+@code{nndiary-nov-is-evil}, @code{nndir-nov-is-evil},
+@code{nnfolder-nov-is-evil}, @code{nnimap-nov-is-evil},
+@code{nnml-nov-is-evil}, @code{nnspool-nov-is-evil}, and
+@code{nnwarchive-nov-is-evil}.  Note that a non-@code{nil} value for
+@code{gnus-nov-is-evil} overrides all those variables.@footnote{Although
+the back ends @code{nnkiboze}, @code{nnslashdot}, @code{nnultimate}, and
+@code{nnwfm} don't have their own nn*-nov-is-evil.}
 @end table
 
 
@@ -27765,7 +27801,7 @@ Set @code{gnus-check-new-newsgroups} and
 
 Set @code{gnus-show-threads}, @code{gnus-use-cross-reference} and
 @code{gnus-nov-is-evil} to @code{nil} to make entering and exiting the
-summary buffer faster.
+summary buffer faster.  Also @pxref{Slow/Expensive Connection}.
 
 
 @page
