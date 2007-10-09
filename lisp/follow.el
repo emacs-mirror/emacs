@@ -254,6 +254,8 @@
 ;; Should someone come up with a better solution, please let me
 ;; know.
 
+(require 'easymenu)
+
 (eval-when-compile
   (if (or (featurep 'bytecomp)
 	  (featurep 'byte-compile))
