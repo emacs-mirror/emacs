@@ -75,6 +75,13 @@
 ;; The global variable "server-clients" lists all the waiting clients,
 ;; and which files are yet to be edited for each.
 
+;; Todo:
+
+;; - handle command-line-args-left.
+;; - move most of the args processing and decision making from emacsclient.c
+;;   to here.
+;; - fix up handling of the client's environment (place it in the terminal?).
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
