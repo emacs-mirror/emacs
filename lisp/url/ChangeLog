@@ -1,3 +1,11 @@
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* url-parse.el (url-type, url-user, url-password, url-host)
+	(url-port, url-filename, url-target, url-attributes)
+	(url-fullness, url-set-type, url-set-user, url-set-password)
+	(url-set-host, url-set-port, url-set-filename, url-set-target)
+	(url-set-attributes, url-set-full): Change macros to defuns.
+
 2007-09-22  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-misc.el (url-generic-emulator-loader): Send the port as a
