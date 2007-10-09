@@ -1,3 +1,13 @@
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* image.c (free_bitmap_record): Renamed from Free_Bitmap_Record.
+
+2007-09-29  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (internal_condition_case_2, internal_condition_case_1)
+	(internal_condition_case): Reenable abort if x_catching_errors ()
+	to see if that really happens and why.
+
 2007-10-06  Andreas Schwab  <schwab@suse.de>
 
 	* fileio.c (Fwrite_region): Ignore EINVAL error from fsync.
