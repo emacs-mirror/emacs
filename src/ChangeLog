@@ -1,3 +1,8 @@
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): After setting up an ellipsis,
+	return HANDLED_RETURN.
+
 2007-10-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* keyboard.c (kbd_buffer_get_event): Break loop waiting for input
