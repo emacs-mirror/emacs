@@ -5521,7 +5521,22 @@ x_set_window_size (f, change_gravity, cols, rows)
 		       SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
   }
 
-  /* Now, strictly speaking, we can't be sure that this is accurate,
+#if 0
+  /* The following mirrors what is done in xterm.c. It appears to be
+     for informing lisp of the new size immediately, while the actual
+     resize will happen asynchronously. But on Windows, the menu bar
+     automatically wraps when the frame is too narrow to contain it,
+     and that causes any calculations made here to come out wrong. The
+     end is some nasty buggy behaviour, including the potential loss
+     of the minibuffer.
+
+     Disabling this code is either not sufficient to fix the problems
+     completely, or it causes fresh problems, but at least it removes
+     the most problematic symptom of the minibuffer becoming unusable.
+
+     -----------------------------------------------------------------
+
+     Now, strictly speaking, we can't be sure that this is accurate,
      but the window manager will get around to dealing with the size
      change request eventually, and we'll hear how it went when the
      ConfigureNotify event gets here.
@@ -5552,6 +5567,7 @@ x_set_window_size (f, change_gravity, cols, rows)
      Actually checking whether it is outside is a pain in the neck,
      so don't try--just let the highlighting be done afresh with new size.  */
   cancel_mouse_face (f);
+#endif
 
   UNBLOCK_INPUT;
 }
