@@ -1107,6 +1107,13 @@ Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
+You can visit files on remote machines by specifying something
+like /ssh:SOME_REMOTE_MACHINE:FILE for the file name.  You can
+also visit local files as a different user by specifying
+/sudo::FILE for the file name.
+See the Info node `(tramp)Filename Syntax' in the Tramp Info
+manual, for more about this.
+
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  You can
 suppress wildcard expansion by setting `find-file-wildcards' to nil.
@@ -1123,8 +1130,9 @@ automatically choosing a major mode, use \\[find-file-literally]."
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
-May create a new window, or reuse an existing one.
-See the function `display-buffer'.
+
+Like \\[find-file] (which see), but creates a new window or reuses
+an existing one.  See the function `display-buffer'.
 
 Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
@@ -1145,8 +1153,9 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-other-frame (filename &optional wildcards)
   "Edit file FILENAME, in another frame.
-May create a new frame, or reuse an existing one.
-See the function `display-buffer'.
+
+Like \\[find-file] (which see), but creates a new frame or reuses
+an existing one.  See the function `display-buffer'.
 
 Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
@@ -1167,7 +1176,7 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-existing (filename)
    "Edit the existing file FILENAME.
-Like \\[find-file] but only allow a file that exists, and do not allow
+Like \\[find-file], but only allow a file that exists, and do not allow
 file names with wildcards."
    (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
    (if (and (not (interactive-p)) (not (file-exists-p filename)))
@@ -1177,7 +1186,7 @@ file names with wildcards."
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
-Like \\[find-file] but marks buffer as read-only.
+Like \\[find-file], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
@@ -1194,7 +1203,7 @@ Use \\[toggle-read-only] to permit editing."
 
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
-Like \\[find-file-other-window] but marks buffer as read-only.
+Like \\[find-file-other-window], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
@@ -1211,7 +1220,7 @@ Use \\[toggle-read-only] to permit editing."
 
 (defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
-Like \\[find-file-other-frame] but marks buffer as read-only.
+Like \\[find-file-other-frame], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
@@ -1229,6 +1238,8 @@ Use \\[toggle-read-only] to permit editing."
 (defun find-alternate-file-other-window (filename &optional wildcards)
   "Find file FILENAME as a replacement for the file in the next window.
 This command does not select that window.
+
+See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files."
@@ -1254,6 +1265,8 @@ expand wildcards (if any) and replace the file with multiple files."
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
 \(presumably by mistake), use this command to visit the file you really want.
+
+See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
@@ -2542,7 +2555,11 @@ asking you for confirmation."
 
 (put 'c-set-style 'safe-local-eval-function t)
 
-(defun hack-local-variables-confirm (vars unsafe-vars risky-vars)
+(defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars)
+  "Get confirmation before setting up local variable values.
+ALL-VARS is the list of all variables to be set up.
+UNSAFE-VARS is the list of those that aren't marked as safe or risky.
+RISKY-VARS is the list of those that are marked as risky."
   (if noninteractive
       nil
     (let ((name (if buffer-file-name
@@ -2573,7 +2590,7 @@ n  -- to ignore the local variables list.")
 !  -- to apply the local variables list, and permanently mark these
       values (*) as safe (in the future, they will be set automatically.)\n\n")
 	    (insert "\n\n"))
-	  (dolist (elt vars)
+	  (dolist (elt all-vars)
 	    (cond ((member elt unsafe-vars)
 		   (insert "  * "))
 		  ((member elt risky-vars)
@@ -3183,18 +3200,22 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  ;; loosen them later, whereas it's impossible to close the
 	  ;; time-window of loose permissions otherwise.
 	  (set-default-file-modes ?\700)
-	  (while (condition-case ()
-		     (progn
-		       (and (file-exists-p to-name)
-			    (delete-file to-name))
-		       (copy-file from-name to-name nil t)
-		       nil)
-		   (file-already-exists t))
-	    ;; The file was somehow created by someone else between
-	    ;; `delete-file' and `copy-file', so let's try again.
-	    ;; rms says "I think there is also a possible race
-	    ;; condition for making backup files" (emacs-devel 20070821).
-	    nil))
+	  (when (condition-case nil
+		    ;; Try to overwrite old backup first.
+		    (copy-file from-name to-name t t)
+		  (error t))
+	    (while (condition-case nil
+		       (progn
+			 (when (file-exists-p to-name)
+			   (delete-file to-name))
+			 (copy-file from-name to-name nil t)
+			 nil)
+		     (file-already-exists t))
+	      ;; The file was somehow created by someone else between
+	      ;; `delete-file' and `copy-file', so let's try again.
+	      ;; rms says "I think there is also a possible race
+	      ;; condition for making backup files" (emacs-devel 20070821).
+	      nil)))
       ;; Reset the umask.
       (set-default-file-modes umask)))
   (and modes
@@ -3223,7 +3244,7 @@ we do not remove backup version numbers, only true file version numbers."
 			 (length name))
 		   (if keep-backup-version
 		       (length name)
-		     (or (string-match "\\.~[0-9.]+~\\'" name)
+		     (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
 			 (string-match "~\\'" name)
 			 (length name))))))))
 

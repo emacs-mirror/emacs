@@ -55,15 +55,11 @@ multiple nonoverlapping Emacs windows.
   In each frame, at any time, one and only one window is designated as
 @dfn{selected within the frame}.  The frame's cursor appears in that
 window, but the other windows have ``non-selected'' cursors, normally
-less visible.  At any time, one frame is the selected frame; and the
-window selected within that frame is @dfn{the selected window}.  The
-selected window's buffer is usually the current buffer (except when
-@code{set-buffer} has been used).  @xref{Current Buffer}.
-
-@defvar cursor-in-non-selected-windows
-If this variable is @code{nil}, Emacs displays only one cursor,
-in the selected window.  Other windows have no cursor at all.
-@end defvar
+less visible.  (@pxref{Cursor Parameters}, for customization of this.)
+At any time, one frame is the selected frame; and the window selected
+within that frame is @dfn{the selected window}.  The selected window's
+buffer is usually the current buffer (except when @code{set-buffer}
+has been used).  @xref{Current Buffer}.
 
   For practical purposes, a window exists only while it is displayed in
 a frame.  Once removed from the frame, the window is effectively deleted
@@ -2246,13 +2242,13 @@ similar to the value returned by @code{window-edges}.
 @cindex saving window information
 
   A @dfn{window configuration} records the entire layout of one
-frame---all windows, their sizes, which buffers they contain, what
-part of each buffer is displayed, and the values of point and the
-mark; also their fringes, margins, and scroll bar settings.  It also
+frame---all windows, their sizes, which buffers they contain, how
+those buffers are scrolled, and their values of point and the mark;
+also their fringes, margins, and scroll bar settings.  It also
 includes the values of @code{window-min-height},
-@code{window-min-width} and @code{minibuffer-scroll-window}.  An
-exception is made for point in the selected window for the current
-buffer; its value is not saved in the window configuration.
+@code{window-min-width} and @code{minibuffer-scroll-window}.  As a
+special exception, the window configuration does not record the value
+of point in the selected window for the current buffer.
 
   You can bring back an entire previous layout by restoring a window
 configuration previously saved.  If you want to record all frames

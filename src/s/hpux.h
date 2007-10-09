@@ -173,7 +173,9 @@ Boston, MA 02110-1301, USA.  */
    longer needed.  Try uncommenting the following if you have problems
    on older versions.  */
 
-/*#define static */
+/* This is unnecessary in HPUX versions 10.20, 11.0, 11.11, 11.23.  */
+
+/* #define static  */
 
 /* Define extra libraries to load.
    This should have -lBSD, but that library is said to make

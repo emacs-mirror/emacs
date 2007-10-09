@@ -1,3 +1,282 @@
+2007-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (mouse-autoselect-window-cancel): Don't cancel for
+	select-window or select-frame events.
+	(handle-select-window): When autoselecting window set input
+	focus.  Restructure.
+
+	* frame.el (focus-follows-mouse): Moved to frame.c.
+	* cus-start.el (all): Add focus-follows-mouse.
+
+2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-mode): Make sure global-font-lock-mode doesn't
+	activate font-locking in the *buffer-selection* buffer.
+	(bs-show-sorted): Doc fix.
+
+	* bs.el (bs--get-marked-string, bs--get-modified-string)
+	(bs--get-readonly-string, bs--get-size-string, bs--get-name)
+	(bs--get-mode-name, bs-mode): Fix typos in docstrings.
+	(bs--format-aux): Doc fix.
+
+2007-10-08  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* progmodes/gud.el (gud-gud-gdb-command-name): Fix typo in docstring.
+
+2007-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-gud-gdb-command-name): New option.
+	(gud-gdb): New function for old M-x gdb (text command mode).
+	(gud-gdb-command-name, gdb): Move to...
+
+	* progmodes/gdb-ui.el: ...here and adapt doc string.
+	(gud-gdba-command-name, gdba): Delete.
+
+2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el: Don't defvar `font-lock-verbose'.
+	(bs-config-clear, bs-kill, bs-string-show-normally, bs-sort-functions)
+	(bs--get-file-name): Fix typos in docstrings.
+	(bs--show-header): Use `dolist' instead of `mapcar'.
+	(bs-mode): Set `show-trailing-whitespace' to nil.
+	(bs-buffer-sort-function, bs-mouse-select-other-frame)
+	(bs-visits-non-file, bs-sort-buffer-interns-are-last, bs-show):
+	Doc fixes.
+
+2007-10-08  Adam Hupp  <adam@hupp.org>  (tiny change)
+
+	* progmodes/gdb-ui.el (pdb): Specify file for gud-break.
+
+2007-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Make graphical mode the default and
+	switch to text command mode if appropriate, i.e., reverse previous
+	arrangement.
+	(gud-gdb-marker-filter): Adapt for above change.
+
+	* progmodes/gdb-ui.el (gdb-init-1): Don't set the values
+	gud-minor-mode and gud-marker-filter.
+	(gdb-fullname-regexp): New variable.
+	(gud-gdba-marker-filter): Use it to switch to text command
+	mode if appropriate.
+
+2007-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-display-line): Find source buffer even when
+	GUD buffer has its own frame.
+
+2007-10-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (icon-map-list): Set to nil for 22.1 compatibility.
+
+2007-10-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
+
+2007-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* allout.el (allout-before-change-handler): Replace got-char by
+	goto-char.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-resolve-when-done, vc-svn-find-file-hook): New funs.
+	Used to try and automatically enabled smerge-mode in the presence of
+	conflicts and to call `svn resolved' when the conflicts are gone.
+	(vc-svn-parse-status): Remember the svn-specific status.
+
+2007-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-search-documentation-menu): Rename from
+	menu-bar-apropos-menu.  All users changed.
+	(menu-bar-help-menu): Change menu symbols to better match the text
+	displayed by the menu.
+
+2007-10-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (file-name-sans-versions): Use [:alnum:] and also allow
+	#, @, : and ^.
+
+2007-10-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* pcvs-defs.el (cvs-mode-map): Bind TAB and backtab.
+
+	* log-view.el (log-view-mode-map): Likewise.
+
+	* diff-mode.el (diff-mode-shared-map): Likewise.
+
+2007-10-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (file-name-sans-versions): Also allow `A-Z'.
+
+	* vc.el: Mention all supported VC backends.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-specify-button): Don't merge mouse-face with
+	neighbouring buttons.
+
+2007-10-08  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (file-name-sans-versions): Also allow `_'.
+
+2007-10-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (file-name-sans-versions): Allow - and a-z in version names.
+
+	* log-view.el (log-view-mode-map, log-view-mode-menu):
+	Bind log-view-annotate-version.
+	(log-view-beginning-of-defun, log-view-end-of-defun)
+	(log-view-annotate-version): New functions.
+	(log-view-mode): Use log-view-beginning-of-defun and
+	log-view-end-of-defun.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix staging.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wid-edit.el (widget-image-insert): Don't merge mouse-face with
+	neighbouring buttons.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Recognize gcc's use of "note" for informational messages.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el (css-electric-keys): electrick->electric.
+	(css-mode): Update correspondingly.
+
+2007-10-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-log-view-mode): Add font-lock patterns for
+	Signed-off-by, Acked-by and Merge.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ediff-init.el (ediff-verbose-p): This var is not a constant.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-mtn.el: New file.
+
+	* vc-hooks.el (vc-handled-backends): Add Mtn.
+
+2007-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (find-file, find-file-other-window)
+	(find-file-other-frame, find-file-existing, find-file-read-only)
+	(find-file-read-only-other-window)
+	(find-file-read-only-other-frame)
+	(find-alternate-file-other-window, find-alternate-file): Doc fixes.
+
+2007-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb-ready): New variable.
+	(gdb): Set it to nil.  Set gud-running to nil here...
+	(gud-common-init): ...instead of here.
+
+	* progmodes/gdb-ui.el (gdba, gdb-send, gdb-source-info):
+	Use gdb-ready.  Discard input until GDB is ready to accept it.
+
+2007-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-warning): Inherit from font-lock-warning-face to
+	make it show up with eight colors.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-hunk): Fix up the case when unified
+	diffs are concatenated with no intervening line.
+
+2007-10-08  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: Merge changes from Dave Love's v2007-Sep-10.
+	(python-font-lock-keywords): Update to the 2.5 version of the language.
+	(python-quote-syntax): Let-bind font-lock-syntactic-keywords to nil.
+	(python-backspace): Only behave funny in code.
+	(python-compilation-regexp-alist): Add PDB stack trace regexp.
+	(inferior-python-mode): Add PDB prompt regexp.
+	(python-fill-paragraph): Refine the fenced-string regexp.
+	(python-find-imports): Handle imports spanning several lines.
+	(python-mode): Add `class' to hideshow support.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use
+	add-log-buffer-file-name-function rather than bind buffer-file-name,
+	so we dont end up calling change-log-mode in *cvs* when `fi' is the
+	ChangeLog file itself.
+
+	* outline.el (outline-flag-region): Use front-advance.
+
+2007-10-08  Ilya Zakharevich  <ilyaz@cpan.org>
+
+	* progmodes/cperl-mode.el: Merge upstream 5.23.
+	(cperl-where-am-i): Remove function.
+	(cperl-backward-to-noncomment): Don't go too far when skipping POD/HEREs
+	(cperl-sniff-for-indent): De-invert [string] and [comment].
+	When looking for label, skip s:m:y:tr.
+	(cperl-indent-line): Likewise.
+	(cperl-mode): Don't assume `font-lock-multiline' is auto-local.
+	(cperl-windowed-init): Wrong `ps-print' handling.
+	Both thanks to Chong Yidong.
+	(cperl-look-at-leading-count): Could fail with unfinished RExen.
+	(cperl-find-pods-heres): If the second part of s()[] is missing,
+	don't try to highlight delimiters...
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-get-file-structure): Complete last
+	change by also using spec-directory in the puthash.
+
+2007-10-08  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-file-name-relative): Use 'when' instead of 'and'.
+	(vc-bzr-status): Fix shadowing of variable 'status'.
+	(vc-bzr-workfile-version): Use correct path to 'last-revision' file.
+	Use `expand-file-name' instead of `concat'.
+	(vc-bzr-annotate-command): Use option name '--long' instead of '-l'.
+	Update annotation line regexp.  Fixes launchpad.net [Bug 137435].
+
+2007-10-08  Jason Rumney  <jasonr@gnu.org>
+
+	* frame.el (focus-follows-mouse): Doc-fix. Change default on w32.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-offset): Make defcustom.
+	Add `safe-local-variable' property.
+	(lisp-body-indent): Likewise.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* files.el (hack-local-variables-confirm): Rename arg VARS to ALL-VARS.
+	Add doc string.
+
+2007-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (backup-buffer-copy): Try to overwrite old backup first.
+
+2007-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* repeat.el (repeat): Use last-repeatable-command instead of
+	real-last-command.  Run pre- and post-command hooks for
+	self-insertion.  Update doc-string.
+
+2007-10-08  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-state): Call git-add --refresh to update the
+	state of the file.
+	(vc-git-workfile-unchanged-p): Delegate implementation to vc-git-state.
+	(vc-git-create-repo): Fix invalid command.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode):
+	Catch errors in flyspell-mode-on.
+
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/x-win.el (x-alternatives-map): Remove spurious parenthesis.

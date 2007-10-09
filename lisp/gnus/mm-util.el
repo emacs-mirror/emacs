@@ -256,6 +256,12 @@ the alias.  Else windows-NUMBER is used."
     ,@(when (and (not (mm-coding-system-p 'windows-31j))
 		 (mm-coding-system-p 'cp932))
 	'((windows-31j . cp932)))
+    ;; Charset name: GBK, Charset aliases: CP936, MS936, windows-936
+    ;; http://www.iana.org/assignments/charset-reg/GBK
+    ;; Emacs 22.1 has cp936, but not gbk, so we alias it:
+    ,@(when (and (not (mm-coding-system-p 'gbk))
+		 (mm-coding-system-p 'cp936))
+	'((gbk . cp936)))
     )
   "A mapping from unknown or invalid charset names to the real charset names.
 

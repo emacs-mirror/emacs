@@ -185,7 +185,7 @@ enum event_kind
 
   /* Queued from XTread_socket when session manager sends
      save yourself before shutdown. */
-  SAVE_SESSION_EVENT,
+  SAVE_SESSION_EVENT
 
 #ifdef MAC_OS
   /* Generated when an Apple event, a HICommand event, or a Services
@@ -194,11 +194,11 @@ enum event_kind
      symbols, respectively.  Member `arg' is a Lisp object converted
      from the received Apple event.  Parameters for non-Apple events
      are converted to those in Apple events.  */
-  MAC_APPLE_EVENT,
+  , MAC_APPLE_EVENT
 #endif
 
 #ifdef HAVE_GPM
-  GPM_CLICK_EVENT
+  , GPM_CLICK_EVENT
 #endif
 };
 

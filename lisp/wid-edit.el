@@ -405,7 +405,17 @@ new value.")
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
       (overlay-put overlay 'mouse-face
-		   (widget-apply widget :mouse-face-get)))
+		   ;; Make new list structure for the mouse-face value
+		   ;; so that different widgets will have
+		   ;; different `mouse-face' property values
+		   ;; and will highlight separately.
+		   (let ((mouse-face-value
+			  (widget-apply widget :mouse-face-get)))
+		     ;; If it's a list, copy it.
+		     (if (listp mouse-face-value)
+			 (copy-sequence mouse-face-value)
+		       ;; If it's a symbol, put it in a list.
+		       (list mouse-face-value)))))
     (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'follow-link follow-link)
     (overlay-put overlay 'help-echo help-echo)))
@@ -656,7 +666,9 @@ button is pressed or inactive, respectively.  These are currently ignored."
       (progn (widget-put widget :suppress-face t)
 	     (insert-image image
 			   (propertize
-			    tag 'mouse-face widget-button-pressed-face)))
+                            ;; Use a `list' so it's unique and won't get
+                            ;; accidentally merged with neighbouring images.
+			    tag 'mouse-face (list widget-button-pressed-face))))
     (insert tag)))
 
 (defun widget-move-and-invoke (event)

@@ -1,3 +1,12 @@
+2007-10-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Remove references to gdba
+	and mention gud-gdb.
+
+2007-08-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* rmail.texi (Rmail Sorting): Improve indexing.
+
 2007-10-06  Juri Linkov  <juri@jurta.org>
 
 	* text.texi (Fill Commands): Document fill-paragraph-or-region.
@@ -55,6 +64,13 @@
 2007-08-29  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (EMACSVER): Increase to 23.0.50.
+
+2007-08-27  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Clarify menu item for Glossary.
+
+	* display.texi (Faces): Change secn title.
+	Clarify not all fonts come from Font Lock.
 
 2007-08-17  Eli Zaretskii  <eliz@gnu.org>
 

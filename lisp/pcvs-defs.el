@@ -347,6 +347,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
     (" " .	cvs-mode-next-line)
     ("n" .	cvs-mode-next-line)
     ("p" .	cvs-mode-previous-line)
+    ("\t" .	cvs-mode-next-line)
+    ([backtab] . cvs-mode-previous-line)
     ;; M- keys are usually those that operate on modules
     ;;("\M-C".	cvs-mode-rcs2log) ; i.e. "Create a ChangeLog"
     ;;("\M-t".	cvs-rtag)

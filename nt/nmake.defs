@@ -117,6 +117,7 @@ A		= lib
 BASE_LIBS	= $(libc) $(baselibs) oldnames.lib
 
 ADVAPI32	= advapi32.lib
+COMCTL32	= comctl32.lib
 COMDLG32	= comdlg32.lib
 GDI32		= gdi32.lib
 MPR		= mpr.lib

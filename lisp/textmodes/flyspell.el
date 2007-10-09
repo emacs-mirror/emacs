@@ -495,7 +495,10 @@ in your .emacs file.
   :keymap flyspell-mode-map
   :group 'flyspell
   (if flyspell-mode
-      (flyspell-mode-on)
+      (condition-case ()
+	  (flyspell-mode-on)
+	(error (message "Enabling Flyspell mode gave an error")
+	       (flyspell-mode -1)))
     (flyspell-mode-off)))
 
 ;;;###autoload

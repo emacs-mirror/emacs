@@ -3,6 +3,10 @@
 	* config.bat: Fix configuring `doc' due to changes in the
 	directory structure.
 
+2007-09-16  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
+
+	* configure.in: Don't use -lpthread on HP-UX.
+
 2007-09-16  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: File gfdl.1 has been removed.

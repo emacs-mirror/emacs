@@ -21355,7 +21355,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
       non_selected = 1;
     }
 
-  /* Nonselected window or nonselected frame.  */
+  /* Detect a nonselected window or nonselected frame.  */
   else if (w != XWINDOW (f->selected_window)
 #ifdef HAVE_WINDOW_SYSTEM
 	   || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
@@ -21374,13 +21374,6 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   if (NILP (b->cursor_type))
     return NO_CURSOR;
 
-  /* Use cursor-in-non-selected-windows for non-selected window or frame.  */
-  if (non_selected)
-    {
-      alt_cursor = b->cursor_in_non_selected_windows;
-      return get_specified_cursor_type (alt_cursor, width);
-    }
-
   /* Get the normal cursor type for this window.  */
   if (EQ (b->cursor_type, Qt))
     {
@@ -21389,6 +21382,21 @@ get_window_cursor_type (w, glyph, width, active_cursor)
     }
   else
     cursor_type = get_specified_cursor_type (b->cursor_type, width);
+
+  /* Use cursor-in-non-selected-windows instead
+     for non-selected window or frame.  */
+  if (non_selected)
+    {
+      alt_cursor = b->cursor_in_non_selected_windows;
+      if (!EQ (Qt, alt_cursor))
+	return get_specified_cursor_type (alt_cursor, width);
+      /* t means modify the normal cursor type.  */
+      if (cursor_type == FILLED_BOX_CURSOR)
+	cursor_type = HOLLOW_BOX_CURSOR;
+      else if (cursor_type == BAR_CURSOR && *width > 1)
+	--*width;
+      return cursor_type;
+    }
 
   /* Use normal cursor if not blinked off.  */
   if (!w->cursor_off_p)
@@ -24194,7 +24202,10 @@ Any other value means to autoselect window instantaneously when the
 mouse pointer enters it.
 
 Autoselection selects the minibuffer only if it is active, and never
-unselects the minibuffer if it is active.  */);
+unselects the minibuffer if it is active.
+
+When customizing this variable make sure that the actual value of
+`focus-follows-mouse' matches the behavior of your window manager.  */);
   Vmouse_autoselect_window = Qnil;
 
   DEFVAR_LISP ("auto-resize-tool-bars", &Vauto_resize_tool_bars,

@@ -1612,6 +1612,8 @@ command_loop_1 ()
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
   current_kboard->Vreal_last_command = real_this_command;
+  if (!CONSP (last_command_char))
+    current_kboard->Vlast_repeatable_command = real_this_command;
 
   while (1)
     {
@@ -1987,6 +1989,8 @@ command_loop_1 ()
 	{
 	  current_kboard->Vlast_command = Vthis_command;
 	  current_kboard->Vreal_last_command = real_this_command;
+	  if (!CONSP (last_command_char))
+	    current_kboard->Vlast_repeatable_command = real_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_command_key_count_reset = 0;
@@ -4098,6 +4102,12 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
   /* Wait until there is input available.  */
   for (;;)
     {
+      /* Break loop if there's an unread command event.  Needed in
+	 moused window autoselection which uses a timer to insert such
+	 events.  */
+      if (CONSP (Vunread_command_events))
+	break;
+      
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
@@ -11483,6 +11493,7 @@ init_kboard (kb)
   kb->Vlast_command = Qnil;
   kb->Vreal_last_command = Qnil;
   kb->Vkeyboard_translate_table = Qnil;
+  kb->Vlast_repeatable_command = Qnil;
   kb->Vprefix_arg = Qnil;
   kb->Vlast_prefix_arg = Qnil;
   kb->kbd_queue = Qnil;
@@ -11990,6 +12001,11 @@ See Info node `(elisp)Multiple displays'.  */);
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
 		 doc: /* Same as `last-command', but never altered by Lisp code.  */);
 
+  DEFVAR_KBOARD ("last-repeatable-command", Vlast_repeatable_command,
+		 doc: /* Last command that may be repeated.
+The last command executed that was not bound to an input event.
+This is the command `repeat' will try to repeat.  */);
+
   DEFVAR_LISP ("this-command", &Vthis_command,
 	       doc: /* The command now being executed.
 The command can set this variable; whatever is put here
@@ -12461,6 +12477,7 @@ mark_kboards ()
       mark_object (kb->Vlast_command);
       mark_object (kb->Vreal_last_command);
       mark_object (kb->Vkeyboard_translate_table);
+      mark_object (kb->Vlast_repeatable_command);
       mark_object (kb->Vprefix_arg);
       mark_object (kb->Vlast_prefix_arg);
       mark_object (kb->kbd_queue);

@@ -6715,7 +6715,13 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                    will be selected only when it is active.  */
                 if (WINDOWP (window)
                     && !EQ (window, last_window)
-                    && !EQ (window, selected_window))
+		    && !EQ (window, selected_window)
+		    /* For click-to-focus window managers
+		       create event iff we don't leave the
+		       selected frame.  */
+		    && (focus_follows_mouse
+			|| (EQ (XWINDOW (window)->frame,
+				XWINDOW (selected_window)->frame))))
                   {
                     inev.ie.kind = SELECT_WINDOW_EVENT;
                     inev.ie.frame_or_window = window;

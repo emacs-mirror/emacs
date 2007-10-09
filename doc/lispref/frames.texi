@@ -663,8 +663,17 @@ should be suitable values for the @code{cursor-type} frame parameter.
 
 There are various defaults for how to blink each type of cursor, if
 the type is not mentioned as an @var{on-state} here.  Changes in this
-variable do not take effect immediately, because the variable is
-examined only when you specify the @code{cursor-type} parameter.
+variable do not take effect immediately, only when you specify the
+@code{cursor-type} frame parameter.
+@end defvar
+
+@defvar cursor-in-non-selected-windows
+This variable controls how the cursor looks in a window that is not
+selected.  It supports the same values as the @code{cursor-type} frame
+parameter; also, @code{nil} means don't display a cursor in
+nonselected windows, and @code{t} (the default) means use a standard
+modificatoin of the usual cursor type (solid box becomes hollow box,
+and bar becomes a narrower bar).
 @end defvar
 
 @node Color Parameters

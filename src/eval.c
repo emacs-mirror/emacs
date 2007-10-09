@@ -1355,14 +1355,15 @@ if CONDITION-NAME is one of the error's condition names.
 If an error happens, the first applicable handler is run.
 
 The car of a handler may be a list of condition names
-instead of a single condition name.
+instead of a single condition name.  Then it handles all of them.
 
-When a handler handles an error,
-control returns to the condition-case and the handler BODY... is executed
-with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA).
-VAR may be nil; then you do not get access to the signal information.
+When a handler handles an error, control returns to the `condition-case'
+and it executes the handler's BODY...
+with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA) from the error.
+(If VAR is nil, the handler can't access that information.)
+Then the value of the last BODY form is returned from the `condition-case'
+expression.
 
-The value of the last BODY form is returned from the condition-case.
 See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
      (args)

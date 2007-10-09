@@ -1,4 +1,4 @@
-;;; python.el --- silly walks for Python
+;;; python.el --- silly walks for Python  -*- coding: iso-8859-1 -*-
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 
@@ -89,17 +89,17 @@
 
 (defvar python-font-lock-keywords
   `(,(rx symbol-start
-	 ;; From v 2.4 reference.
+	 ;; From v 2.5 reference, § keywords.
 	 ;; def and class dealt with separately below
-	 (or "and" "assert" "break" "continue" "del" "elif" "else"
+	 (or "and" "as" "assert" "break" "continue" "del" "elif" "else"
 	     "except" "exec" "finally" "for" "from" "global" "if"
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
-	     "raise" "return" "try" "while" "yield"
-	     ;; Future keywords
-	     "as" "None" "with"
+	     "raise" "return" "try" "while" "with" "yield"
              ;; Not real keywords, but close enough to be fontified as such
              "self" "True" "False")
 	 symbol-end)
+    (,(rx symbol-start "None" symbol-end) ; See § Keywords in 2.5 manual.
+     . font-lock-constant-face)
     ;; Definitions
     (,(rx symbol-start (group "class") (1+ space) (group (1+ (or word ?_))))
      (1 font-lock-keyword-face) (2 font-lock-type-face))
@@ -151,7 +151,8 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
     (cond
      ;; Consider property for the last char if in a fenced string.
      ((= n 3)
-      (let ((syntax (syntax-ppss)))
+      (let* ((font-lock-syntactic-keywords nil)
+	     (syntax (syntax-ppss)))
 	(when (eq t (nth 3 syntax))	; after unclosed fence
 	  (goto-char (nth 8 syntax))	; fence position
 	  (skip-chars-forward "uUrR")	; skip any prefix
@@ -163,8 +164,9 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 	       (= (match-beginning 1) (match-end 1))) ; prefix is null
 	  (and (= n 1)			; prefix
 	       (/= (match-beginning 1) (match-end 1)))) ; non-empty
-      (unless (nth 3 (syntax-ppss))
-        (eval-when-compile (string-to-syntax "|"))))
+      (let ((font-lock-syntactic-keywords nil))
+        (unless (nth 3 (syntax-ppss))
+          (eval-when-compile (string-to-syntax "|")))))
      ;; Otherwise (we're in a non-matching string) the property is
      ;; nil, which is OK.
      )))
@@ -348,7 +350,7 @@ comments and strings, or that point is within brackets/parens."
 		    (error nil))))))))
 
 (defun python-comment-line-p ()
-  "Return non-nil if current line has only a comment."
+  "Return non-nil iff current line has only a comment."
   (save-excursion
     (end-of-line)
     (when (eq 'comment (syntax-ppss-context (syntax-ppss)))
@@ -356,7 +358,7 @@ comments and strings, or that point is within brackets/parens."
       (looking-at (rx (or (syntax comment-start) line-end))))))
 
 (defun python-blank-line-p ()
-  "Return non-nil if current line is blank."
+  "Return non-nil iff current line is blank."
   (save-excursion
     (beginning-of-line)
     (looking-at "\\s-*$")))
@@ -850,7 +852,7 @@ multi-line bracketed expressions."
   "Skip out of any nested brackets.
 Skip forward if FORWARD is non-nil, else backward.
 If SYNTAX is non-nil it is the state returned by `syntax-ppss' at point.
-Return non-nil if skipping was done."
+Return non-nil iff skipping was done."
   (let ((depth (syntax-ppss-depth (or syntax (syntax-ppss))))
 	(forward (if forward -1 1)))
     (unless (zerop depth)
@@ -1083,13 +1085,15 @@ just insert a single colon."
 
 (defun python-backspace (arg)
   "Maybe delete a level of indentation on the current line.
-Do so if point is at the end of the line's indentation.
+Do so if point is at the end of the line's indentation outside
+strings and comments.
 Otherwise just call `backward-delete-char-untabify'.
 Repeat ARG times."
   (interactive "*p")
   (if (or (/= (current-indentation) (current-column))
 	  (bolp)
-	  (python-continuation-line-p))
+	  (python-continuation-line-p)
+	  (python-in-string/comment))
       (backward-delete-char-untabify arg)
     ;; Look for the largest valid indentation which is smaller than
     ;; the current indentation.
@@ -1190,6 +1194,10 @@ local value.")
      1 2)
     (,(rx " in file " (group (1+ not-newline)) " on line "
 	  (group (1+ digit)))
+     1 2)
+    ;; pdb stack trace
+    (,(rx line-start "> " (group (1+ (not (any "(\"<"))))
+	  "(" (group (1+ digit)) ")" (1+ (not (any "("))) "()")
      1 2))
   "`compilation-error-regexp-alist' for inferior Python.")
 
@@ -1199,7 +1207,7 @@ local value.")
     (define-key map "\C-c\C-l" 'python-load-file)
     (define-key map "\C-c\C-v" 'python-check)
     ;; Note that we _can_ still use these commands which send to the
-    ;; Python process even at the prompt provided we have a normal prompt,
+    ;; Python process even at the prompt iff we have a normal prompt,
     ;; i.e. '>>> ' and not '... '.  See the comment before
     ;; python-send-region.  Fixme: uncomment these if we address that.
 
@@ -1245,7 +1253,7 @@ For running multiple processes in multiple buffers, see `run-python' and
   ;; Still required by `comint-redirect-send-command', for instance
   ;; (and we need to match things like `>>> ... >>> '):
   (set (make-local-variable 'comint-prompt-regexp)
-       (rx line-start (1+ (and (repeat 3 (any ">.")) " "))))
+       (rx line-start (1+ (and (or (repeat 3 (any ">.")) "(Pdb)") " "))))
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-compilation-regexp-alist)
   (compilation-shell-minor-mode 1))
@@ -1737,47 +1745,57 @@ The criterion is either a match for `jython-mode' via
 	      (jython-mode)))))))
 
 (defun python-fill-paragraph (&optional justify)
-  "`fill-paragraph-function' handling comments and multi-line strings.
-If any of the current line is a comment, fill the comment or the
-paragraph of it that point is in, preserving the comment's
-indentation and initial comment characters.  Similarly if the end
-of the current line is in or at the end of a multi-line string.
-Otherwise, do nothing."
+  "`fill-paragraph-function' handling multi-line strings and possibly comments.
+If any of the current line is in or at the end of a multi-line string,
+fill the string or the paragraph of it that point is in, preserving
+the strings's indentation."
   (interactive "P")
   (or (fill-comment-paragraph justify)
-      ;; The `paragraph-start' and `paragraph-separate' variables
-      ;; don't allow us to delimit the last paragraph in a multi-line
-      ;; string properly, so narrow to the string and then fill around
-      ;; (the end of) the current line.
       (save-excursion
 	(end-of-line)
 	(let* ((syntax (syntax-ppss))
 	       (orig (point))
-	       (start (nth 8 syntax))
-	       end)
-	  (cond ((eq t (nth 3 syntax))	      ; in fenced string
-		 (goto-char (nth 8 syntax))   ; string start
+	       start end)
+	  (cond ((nth 4 syntax)	; comment.   fixme: loses with trailing one
+		 (let (fill-paragraph-function)
+		   (fill-paragraph justify)))
+		;; The `paragraph-start' and `paragraph-separate'
+		;; variables don't allow us to delimit the last
+		;; paragraph in a multi-line string properly, so narrow
+		;; to the string and then fill around (the end of) the
+		;; current line.
+		((eq t (nth 3 syntax))      ; in fenced string
+		 (goto-char (nth 8 syntax)) ; string start
+		 (setq start (line-beginning-position))
 		 (setq end (condition-case () ; for unbalanced quotes
-                               (progn (forward-sexp) (point))
+                               (progn (forward-sexp)
+                                      (- (point) 3))
                              (error (point-max)))))
-		((re-search-backward "\\s|\\s-*\\=" nil t) ; end of fenced
-							   ; string
+		((re-search-backward "\\s|\\s-*\\=" nil t) ; end of fenced string
 		 (forward-char)
 		 (setq end (point))
 		 (condition-case ()
 		     (progn (backward-sexp)
-			    (setq start (point)))
-		   (error (setq end nil)))))
+			    (setq start (line-beginning-position)))
+		   (error nil))))
 	  (when end
 	    (save-restriction
 	      (narrow-to-region start end)
 	      (goto-char orig)
-              (let ((paragraph-separate
-                     ;; Make sure that fenced-string delimiters that stand
-                     ;; on their own line stay there.
-                     (concat "[ \t]*['\"]+[ \t]*$\\|" paragraph-separate)))
-                (fill-paragraph justify))))))
-      t))
+	      ;; Avoid losing leading and trailing newlines in doc
+	      ;; strings written like:
+	      ;;   """
+	      ;;   ...
+	      ;;   """
+	      (let* ((paragraph-separate
+		      (concat ".*\\s|\"\"$" ; newline after opening quotes
+			      "\\|\\(?:" paragraph-separate "\\)"))
+		     (paragraph-start
+		      (concat ".*\\s|\"\"[ \t]*[^ \t].*" ; not newline after
+					; opening quotes
+			      "\\|\\(?:" paragraph-separate "\\)"))
+		     (fill-paragraph-function))
+		(fill-paragraph justify))))))) t)
 
 (defun python-shift-left (start end &optional count)
   "Shift lines in region COUNT (the prefix arg) columns to the left.
@@ -1886,9 +1904,12 @@ Uses `python-beginning-of-block', `python-end-of-block'."
 	(goto-char (point-min))
 	(while (re-search-forward "^import\\>\\|^from\\>" nil t)
 	  (unless (syntax-ppss-context (syntax-ppss))
-	    (push (buffer-substring (line-beginning-position)
-				    (line-beginning-position 2))
-		  lines)))
+	    (let ((start (line-beginning-position)))
+	      ;; Skip over continued lines.
+	      (while (and (eq ?\\ (char-before (line-end-position)))
+			  (= 0 (forward-line 1))))
+	      (push (buffer-substring start (line-beginning-position 2))
+		    lines))))
 	(setq python-imports
 	      (if lines
 		  (apply #'concat
@@ -2280,7 +2301,7 @@ with skeleton expansions for compound statement templates.
   ;; since it isn't (can't be) indentation-based.  Also hide-level
   ;; doesn't seem to work properly.
   (add-to-list 'hs-special-modes-alist
-	       `(python-mode "^\\s-*def\\>" nil "#"
+	       `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
 		 ,(lambda (arg)
 		   (python-end-of-defun)
 		   (skip-chars-backward " \t\n"))

@@ -784,8 +784,13 @@ which see."
 	  (let ((comment-start nil) (comment-start-skip nil))
 	    (do-auto-fill))))))
 
-(defvar lisp-indent-offset nil
-  "If non-nil, indent second line of expressions that many more columns.")
+(defcustom lisp-indent-offset nil
+  "If non-nil, indent second line of expressions that many more columns."
+  :group 'lisp
+  :type '(choice nil integer))
+(put 'lisp-body-indent 'safe-local-variable
+     (lambda (x) (or (null x) (integerp x))))
+
 (defvar lisp-indent-function 'lisp-indent-function)
 
 (defun lisp-indent-line (&optional whole-exp)
@@ -1025,8 +1030,11 @@ This function also returns nil meaning don't specify the indentation."
 	      (method
 		(funcall method indent-point state)))))))
 
-(defvar lisp-body-indent 2
-  "Number of columns to indent the second line of a `(def...)' form.")
+(defcustom lisp-body-indent 2
+  "Number of columns to indent the second line of a `(def...)' form."
+  :group 'lisp
+  :type 'integer)
+(put 'lisp-body-indent 'safe-local-variable 'integerp)
 
 (defun lisp-indent-specform (count state indent-point normal-indent)
   (let ((containing-form-start (elt state 1))

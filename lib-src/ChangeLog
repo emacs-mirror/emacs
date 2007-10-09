@@ -1,3 +1,9 @@
+2007-09-27  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (emacsclient, emacsclientw): Link to COMCTL32.
+
+	* emacsclient.c (w32_window_app): Init common controls when windowed.
+
 2007-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* emacstool.c: Remove file.

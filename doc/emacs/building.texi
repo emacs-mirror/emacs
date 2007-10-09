@@ -824,17 +824,14 @@ unlimited, so it sets the height and width accordingly.  For correct
 operation you must not change these values during the GDB session.
 
 @vindex gud-gdb-command-name
-@findex gdba
-  You can also run GDB in text command mode, like other debuggers.  To
-do this, replace the GDB @code{"--annotate=3"} option with
-@code{"--fullname"} either in the minibuffer for the current Emacs
-session, or the custom variable @code{gud-gdb-command-name} for all
-future sessions.  You need to use text command mode to debug multiple
-programs within one Emacs session.  If you have customized
-@code{gud-gdb-command-name} in this way, you can use @kbd{M-x gdba} to
-invoke GDB in graphical mode.  Moreover, this command succeeds where
-@kbd{M-x gdb} fails, such as when your @file{.gdbinit} file contains
-executable GDB commands.
+  You can also run GDB in text command mode, like the other debuggers
+in Emacs.  To do this, replace the GDB @code{"--annotate=3"} option
+with @code{"--fullname"} either in the minibuffer for the current
+Emacs session, or the custom variable @code{gud-gdb-command-name} for
+all future sessions.  You need to use text command mode to debug
+multiple programs within one Emacs session.  You can also use
+@kbd{M-x gud-gdb} to invoke GDB in text command mode if you have
+problems before execution has started.
 
 @menu
 * GDB-UI Layout::               Control the number of displayed buffers.

@@ -125,6 +125,10 @@
 
 	* e/README: New file, with most information formerly in Makefile.
 
+2007-09-05  Jason Rumney  <jasonr@gnu.org>
+
+	* NEWS.22: Mention focus-follows-mouse change.
+
 2007-08-22  Karl Berry  <karl@gnu.org>
 
 	* refcard.tex: Updates for printing.
@@ -174,7 +178,7 @@
 
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
-	*  Relicense all FSF files to GPLv3 or later.
+	* Relicense all FSF files to GPLv3 or later.
 
 	* COPYING: Switch to GPLv3.
 

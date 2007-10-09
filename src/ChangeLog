@@ -1,3 +1,85 @@
+2007-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.c (kbd_buffer_get_event): Break loop waiting for input
+	when there's an unread command event.
+
+	* frame.c (focus_follows_mouse): Moved here from frame.el to allow
+	window autoselection act appropriately when leaving selected frame.
+	(syms_of_frame): Initialize focus_follows_mouse.
+	* frame.h (focus_follows_mouse): Extern it.
+	* macterm.c (XTread_socket): When focus_follows_mouse is nil
+	make SELECT_WINDOW_EVENT only if we don't leave the selected
+	frame.
+	* msdos.c (dos_rawgetc): Likewise.
+	* w32term.c (w32_read_socket): Likewise.
+	* xterm.c (handle_one_xevent): Likewise.
+	* xdisp.c (syms_of_xdisp): In doc-string of
+	mouse-autoselect-window mention focus-follows-mouse.
+
+2007-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_load_query_font): Fix missing return value.
+	[USE_CG_DRAWING] (mac_define_fringe_bitmap, mac_destroy_fringe_bitmap):
+	Add BLOCK_INPUT.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_window_cursor_type): Implement documented behavior
+	for cursor-in-non-selected-windows = t.
+
+2007-10-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (w32_get_resource): Always close registry keys.
+
+2007-10-08  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (LIBS): Add COMCTL32.
+
+	* w32fns.c (globals_of_w32fns): Init common controls.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* image.c (our_memory_buffer): Renamed from omfib_buffer.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* buffer.c (Foverlays_at): Doc fix.
+
+2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fplist_put): Preserve uneven tail data.
+
+2007-10-08  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
+
+	* termhooks.h (enum event_kind): Remove trailing comma.
+
+	* frame.h (enum): Remove trailing comma.
+
+2007-10-08  Dhuvra Krishnamurthy  <dhuvrakm@gmail.com>  (tiny change)
+
+	* w32proc.c (delete_child): Don't terminate threads of zombies.
+
+2007-10-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* keyboard.h (struct kboard): New elt Vlast_repeatable_command.
+
+	* keyboard.c (syms_of_keyboard): Set up new Lisp variable
+	last-repeatable-command.
+	(init_kboard): Initialize Vlast_repeatable_command.
+	(command_loop_1): Set it to real_this_command unless that was
+	bound to an input event.
+	(mark_kboards): Mark it.
+
+2007-10-08  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (condition-case): Doc fix.
+
+2007-10-08  Masatake YAMATO  <jet@gyve.org>
+
+	* xfaces.c (tty_supports_face_attributes_p): Fix code
+	for LFACE_INVERSE_INDEX and LFACE_BACKGROUND_INDEX; code
+	was copied and not edited.
+
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add new `input-decode-map' keymap and use it for temrinal
@@ -1622,6 +1704,10 @@
 	customizable variable.  Rather explicitly check whether the
 	height of the window that shall be splitted is at least as large
 	as split_height_threshold.
+	(Fwindow_full_width_p): New defun.
+	(syms_of_window): Defsubr it.
+
+	* window.h: Add EXFUN for Fwindow_full_width_p.
 
 2007-07-14  Jason Rumney  <jasonr@gnu.org>
 

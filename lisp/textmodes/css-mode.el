@@ -173,7 +173,7 @@
     "word-spacing" "z-index")
   "Identifiers for properties.")
 
-(defcustom css-electrick-keys '(?\} ?\;) ;; '()
+(defcustom css-electric-keys '(?\} ?\;) ;; '()
   "Self inserting keys which should trigger re-indentation."
   :type '(repeat character)
   :options '((?\} ?\;))
@@ -270,10 +270,10 @@
   (set (make-local-variable 'indent-line-function) 'css-indent-line)
   (set (make-local-variable 'fill-paragraph-function)
        'css-fill-paragraph)
-  (when css-electrick-keys
+  (when css-electric-keys
     (let ((fc (make-char-table 'auto-fill-chars)))
       (set-char-table-parent fc auto-fill-chars)
-      (dolist (c css-electrick-keys)
+      (dolist (c css-electric-keys)
         (aset fc c 'indent-according-to-mode))
       (set (make-local-variable 'auto-fill-chars) fc))))
 

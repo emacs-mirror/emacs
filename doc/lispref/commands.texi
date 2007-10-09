@@ -716,7 +716,9 @@ caller to ``pretend'' that the function was called interactively.
 @section Information from the Command Loop
 
 The editor command loop sets several Lisp variables to keep status
-records for itself and for commands that are run.
+records for itself and for commands that are run.  With the exception of
+@code{this-command} and @code{last-command} it's generally a bad idea to
+change any of these variables in a Lisp program.
 
 @defvar last-command
 This variable records the name of the previous command executed by the
@@ -734,6 +736,12 @@ buffer-local.  @xref{Multiple Displays}.
 @defvar real-last-command
 This variable is set up by Emacs just like @code{last-command},
 but never altered by Lisp programs.
+@end defvar
+
+@defvar last-repeatable-command
+This variable stores the most recently executed command that was not
+part of an input event.  This is the command @code{repeat} will try to
+repeat, @xref{Repeating,,, emacs, The GNU Emacs Manual}.
 @end defvar
 
 @defvar this-command

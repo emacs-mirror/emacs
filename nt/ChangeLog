@@ -1,3 +1,9 @@
+2007-09-27  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (COMCTL32): New system library.
+
+	* nmake.defs (COMCTL32): New system library.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.bat:

@@ -3245,15 +3245,21 @@ to use the value specified by the frame.
 insert images into text, and also control other aspects of how text
 displays.  The value of the @code{display} property should be a
 display specification, or a list or vector containing several display
-specifications.
+specifications.  Display specifications generally apply in parallel to
+the text they cover.
 
-  Some kinds of @code{display} properties specify something to display
-instead of the text that has the property.  In this case, ``the text''
-means all the consecutive characters that have the same Lisp object as
-their @code{display} property; these characters are replaced as a
-single unit.  By contrast, characters that have similar but distinct
-Lisp objects as their @code{display} properties are handled
-separately.  Here's a function that illustrates this point:
+  Some kinds of @code{display} specifications specify something to
+display instead of the text that has the property.  If a list of
+display specifications includes more than one of this kind, the first
+is effective and the rest are ignored.  You cannot interactively move
+point into the middle of the text that is thus replaced.
+
+  For these specifications, ``the text that has the property'' means
+all the consecutive characters that have the same Lisp object as their
+@code{display} property; these characters are replaced as a single
+unit.  By contrast, characters that have similar but distinct Lisp
+objects as their @code{display} properties are handled separately.
+Here's a function that illustrates this point:
 
 @smallexample
 (defun foo ()
@@ -3281,7 +3287,7 @@ results:
   (goto-char (point-min))
   (dotimes (i 5)
     (let ((string (concat "A")))
-      (put-text-property (point) (2+ (point)) 'display string)
+      (put-text-property (point) (+ 2 (point)) 'display string)
       (put-text-property (point) (1+ (point)) 'display string)
       (forward-char 2))))
 @end smallexample

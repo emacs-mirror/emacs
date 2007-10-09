@@ -139,7 +139,7 @@ and Sending Mail and Registers and Minibuffer.
 			  it also explains that there is no warranty.
 * GNU Free Documentation License:: The license for this documentation.
 * Intro::	        An introduction to Emacs concepts.
-* Glossary::	        The glossary.
+* Glossary::	        Terms used in this manual.
 * Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.

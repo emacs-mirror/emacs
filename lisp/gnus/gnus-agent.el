@@ -1765,12 +1765,13 @@ article numbers will be returned."
                                (gnus-agent-find-parameter group
                                                           'agent-predicate)))))
          (articles (if fetch-all
-		       (if gnus-maximum-newsgroup
+		       (if gnus-newsgroup-maximum-articles
 			   (let ((active (gnus-active group)))
 			     (gnus-uncompress-range
 			      (cons (max (car active)
 					 (- (cdr active)
-					    gnus-maximum-newsgroup -1))
+					    gnus-newsgroup-maximum-articles
+					    -1))
 				    (cdr active))))
 			 (gnus-uncompress-range (gnus-active group)))
                      (gnus-list-of-unread-articles group)))

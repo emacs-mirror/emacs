@@ -87,6 +87,9 @@ struct kboard
     /* User-supplied table to translate input characters through.  */
     Lisp_Object Vkeyboard_translate_table;
     
+    /* Last command that may be repeated by `repeat'.  */
+    Lisp_Object Vlast_repeatable_command;
+
     /* The prefix argument for the next command, in raw form.  */
     Lisp_Object Vprefix_arg;
 

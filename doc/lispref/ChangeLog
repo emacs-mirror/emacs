@@ -6,6 +6,22 @@
 
 	* display.texi (Auto Faces): Fix typo.
 
+2007-10-02  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Property): Explain some display specs
+	don't let you move point in.
+
+	* frames.texi (Cursor Parameters): Describe
+	cursor-in-non-selected-windows here.  Explain more values.
+
+	* windows.texi (Basic Windows): Don't describe
+	cursor-in-non-selected-windows here.
+
+2007-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Misc Network): Note that these functions are
+	supported only on some systems.
+
 2007-10-01  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Overlay Properties): Explain nil as priority.
@@ -15,6 +31,12 @@
 2007-09-23  Richard Stallman  <rms@gnu.org>
 
 	* macros.texi (Backquote): Minor clarification.
+
+2007-09-19  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Property): Explain multiple display specs.
+	Clarify when they work in parallel and when one overrides.
+	Fix error in example.
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
@@ -26,6 +48,12 @@
 	(dist): Use new variable miscmanualdir.
 	* makefile.w32-in (infodir, texinputdir): Go up one more level.
 	(usermanualdir): Change from ../man to ../emacs.
+
+2007-08-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* commands.texi (Command Loop Info): Advise against changing
+	most variables described here.  Explain new variable
+	last-repeatable-command.
 
 2007-08-29  Glenn Morris  <rgm@gnu.org>
 
@@ -45,6 +73,11 @@
 	* display.texi (Images): Move formats-related text to new node
 	"Image Formats".
 	(Image Formats): New node.
+
+2007-08-27  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Configurations): Clarify what
+	a window configuration saves.
 
 2007-08-25  Richard Stallman  <rms@gnu.org>
 

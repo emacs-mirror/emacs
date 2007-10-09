@@ -2062,7 +2062,8 @@ That particular network option is supported by
 @section Misc Network Facilities
 
   These additional functions are useful for creating and operating
-on network connections.
+on network connections.  Note that they are supported only on some
+systems.
 
 @defun network-interface-list
 This function returns a list describing the network interfaces

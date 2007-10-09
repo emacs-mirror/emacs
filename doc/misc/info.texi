@@ -869,6 +869,13 @@ which the header says is the @samp{Previous} node (from this node, the
 to revisit nodes in the history list in the forward direction, so that
 @kbd{r} will return you to the node you came from by typing @kbd{l}.
 
+@kindex L @r{(Info mode)}
+@findex Info-history
+@cindex history list of visited nodes
+  The @kbd{L} command (@code{Info-history} in Emacs) creates a virtual
+node that contains a list of all nodes you visited.  You can select
+a previously visited node from this menu to revisit it.
+
 @kindex d @r{(Info mode)}
 @findex Info-directory
 @cindex go to Directory node
