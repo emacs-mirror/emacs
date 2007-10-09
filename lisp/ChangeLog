@@ -1,3 +1,7 @@
+2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/x-win.el (x-alternatives-map): Remove spurious parenthesis.
+
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/encoded-kb.el (encoded-kbd-setup-display):
