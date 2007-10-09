@@ -1,5 +1,8 @@
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/x-win.el (x-alternatives-map): New var.
+	(x-setup-function-keys): Use it.
+
 	* help-fns.el (describe-variable): Slightly change the layout of
 	meta-info to separate it better from the docstring.
 	Standardize insertion of extra empty lines in various circumstances.
