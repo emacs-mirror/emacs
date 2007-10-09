@@ -1,3 +1,8 @@
+2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (print_help_and_exit): Fix space to improve
+	alignment in output messages.
+
 2007-09-27  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (emacsclient, emacsclientw): Link to COMCTL32.
