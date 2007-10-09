@@ -48,8 +48,6 @@
 ;;   Or maybe just make it into a ".rej to diff3-markers converter".
 ;;   Maybe just use `wiggle' (by Neil Brown) to do it for us.
 ;;
-;; - Refine hunk on a word-by-word basis.
-;; 
 ;; - in diff-apply-hunk, strip context in replace-match to better
 ;;   preserve markers and spacing.
 ;; - Handle `diff -b' output in context->unified.
@@ -156,6 +154,7 @@ when editing big diffs)."
     ;; `d' because it duplicates the context :-(  --Stef
     ("\C-c\C-d" . diff-unified->context)
     ("\C-c\C-w" . diff-refine-ignore-spaces-hunk)
+    ("\C-c\C-b" . diff-fine-highlight)  ;No reason for `b' :-(
     ("\C-c\C-f" . next-error-follow-minor-mode))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
@@ -173,7 +172,8 @@ when editing big diffs)."
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
     "-----"
     ["Split hunk"		diff-split-hunk		(diff-splittable-p)]
-    ["Refine hunk"	        diff-refine-ignore-spaces-hunk t]
+    ["Ignore whitespace changes" diff-refine-ignore-spaces-hunk t]
+    ["Highlight fine changes"	diff-fine-highlight	t]
     ["Kill current hunk"	diff-hunk-kill   	t]
     ["Kill current file's hunks" diff-file-kill   	t]
     "-----"
