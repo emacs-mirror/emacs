@@ -498,7 +498,7 @@ The following OPTIONS are accepted:\n\
 -V, --version		Just print version info and return\n\
 -H, --help    		Print this usage information message\n\
 -t, --tty    		Open a new Emacs frame on the current terminal\n\
--c, --create-frame  	Create a new frame instead of trying to\n\
+-c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
