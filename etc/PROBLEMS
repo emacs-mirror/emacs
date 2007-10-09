@@ -2817,6 +2817,11 @@ build (from -O2 to -O1).  It is possible this is an OpenBSD
 GCC problem specific to the macppc architecture, possibly only
 occurring with older versions of GCC (e.g. 3.3.5).
 
+*** openSUSE 10.3: Segfault in bcopy during dumping.
+
+This is due to a bug in the bcopy implementation in openSUSE 10.3.
+It is/will be fixed in an openSUSE update.
+
 ** Installation
 
 *** Installing Emacs gets an error running `install-info'.
