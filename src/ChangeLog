@@ -1,6 +1,11 @@
+2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (XSETPSEUDOVECTOR): Don't set the tag anymore.
+	This was made redundant by the previous introduction of XSETPVECTYPE.
+
 2007-10-09  Richard Stallman  <rms@gnu.org>
 
-	* image.c (free_bitmap_record): Renamed from Free_Bitmap_Record.
+	* image.c (free_bitmap_record): Rename from Free_Bitmap_Record.
 
 2007-09-29  Richard Stallman  <rms@gnu.org>
 

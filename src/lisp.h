@@ -561,7 +561,9 @@ extern size_t pure_size;
 
 #define XSETPVECTYPE(v,code) ((v)->size |= PSEUDOVECTOR_FLAG | (code))
 #define XSETPSEUDOVECTOR(a, b, code) \
-  (XSETVECTOR (a, b), XSETPVECTYPE (XVECTOR (a), code))
+  (XSETVECTOR (a, b),							\
+   eassert ((XVECTOR (a)->size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))	\
+	    == (PSEUDOVECTOR_FLAG | (code))))
 #define XSETWINDOW_CONFIGURATION(a, b) \
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
