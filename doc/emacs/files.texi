@@ -1292,7 +1292,27 @@ become a vitally important form of communication among developers.
 
 @cindex back end (version control)
   VC currently works with six different version control systems or
-``back ends'': CVS, GNU Arch, RCS, Meta-CVS, Subversion, and SCCS.
+``back ends'': SCCS, RCS, CVS, Meta-CVS, Subversion, GNU Arch,
+git, and Mercurial.
+@comment Omitting bzr because support is very scratchy and incomplete.
+
+@cindex SCCS
+  SCCS was the first version-control system ever built, and was long ago
+superseded by later and more advanced ones; Emacs supports it only for
+backward compatibility and historical reasons. VC compensates for
+certain features missing in SCCS (snapshots, for example) by
+implementing them itself, but some other VC features, such as multiple
+branches, are not available with SCCS.  Since SCCS is non-free you
+should not use it; use its free replacement CSSC instead.  But you
+should use CSSC only if for some reason you cannot use a more 
+recent and better-designed version-control system.
+
+@cindex RCS
+  RCS is the free version control system around which VC was initially
+built.  Almost everything you can do with RCS can be done through VC.  You
+cannot use RCS over the network, though, and it only works at the level
+of individual files, rather than projects.  You should use it if you
+want a simple, yet reliable tool for handling individual files.
 
 @cindex CVS
   CVS is the free version control system that was until recently (as of
@@ -1306,42 +1326,51 @@ common tasks you still need to call CVS from the command line.  Note
 also that before using CVS you must set up a repository, which is a
 subject too complex to treat here.
 
+@cindex Meta-CVS
+  Meta-CVS uses CVS repositories, but has an enhanced client that
+uses client-side information to solve various of the known problems
+with CVS.  It is not widely used, having been overtaken by Subversion.
+The Emacs support for it is rudimentary, and may be removed in a
+future version.
+
+@cindex SVN
+@cindex Subversion
+  Subversion is a free version control system designed to be similar
+to CVS but without CVS's problems, and is now (2007) rapidly
+superseding CVS.  Subversion supports atomic commits of filesets, and
+versions directories, symbolic links, meta-data, renames, copies, and
+deletes.  It can be used via http or via its own protocol.
+
 @cindex GNU Arch
 @cindex Arch
   GNU Arch is a new version control system that is designed for
 distributed work.  It differs in many ways from old well-known
 systems, such as CVS and RCS.  It supports different transports for
 interoperating between users, offline operations, and it has good
-branching and merging features.  It also supports atomic commits, and
-history of file renaming and moving.  VC does not support all
-operations provided by GNU Arch, so you must sometimes invoke it from
-the command line, or use a specialized module.
+branching and merging features.  It also supports atomic commits of
+fileset changes, and keeps a history of file renaming and moving.  VC
+does not support all operations provided by GNU Arch, so you must
+sometimes invoke it from the command line, or use a specialized
+module.
 
-@cindex RCS
-  RCS is the free version control system around which VC was initially
-built.  Almost everything you can do with RCS can be done through VC.  You
-cannot use RCS over the network, though, and it only works at the level
-of individual files, rather than projects.  You should use it if you
-want a simple, yet reliable tool for handling individual files.
+@cindex git
+  git is a version-control system invented by Linus Torvalds to
+support Linux kernel development.  Like GNU Arch, it supports atomic
+commits of fileset changes, and keeps a history of file renaming and
+moving.  One significant feature of git is that it largely abolishes
+the notion of a single centralized repository; instead, each working
+copy of a git project is its own repository and coordination is done
+through repository-sync operations.  VC fully supports git, except
+that it doesn't do news merges and repository sync operations must
+be done from the command line.
 
-@cindex SVN
-@cindex Subversion
-  Subversion is a free version control system designed to be similar to
-CVS but without CVS's problems, and is now (2007) rapidly superseding
-CVS.  Subversion supports atomic commits, and versions directories,
-symbolic links, meta-data, renames, copies, and deletes.  It can be used
-via http or via its own protocol.
-
-@cindex SCCS
-  SCCS was the first version-control system ever built, and was long ago
-superseded by later and more advanced ones; Emacs supports it only for
-backward compatibility and historical reasons. VC compensates for
-certain features missing in SCCS (snapshots, for example) by
-implementing them itself, but some other VC features, such as multiple
-branches, are not available with SCCS.  Since SCCS is non-free you
-should not use it; use its free replacement CSSC instead.  But you
-should use CSSC only if for some reason you cannot use a more 
-recent and better-designed version-control system.
+@cindex hg
+@cindex Mercurial
+  Mercurial is a distributed version-control systems broadly
+resembling GNU Arch and git, with atomic fileset commits and
+rename/move histories.  Like git it is fully decventralized.
+VC fully supports Mercurial, except for repository sync operations
+which still need to be done from the command line.
 
 @node VC Concepts
 @subsubsection Concepts of Version Control
