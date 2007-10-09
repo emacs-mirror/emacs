@@ -1,14 +1,20 @@
+2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-refine-chopup-region): Add `preproc' argument.
+	(smerge-refine-highlight-change): Add `props' argument.
+	(smerge-refine-subst): New function holding most of smerge-refine.
+	(smerge-refine): Use it.
+
 2007-10-08  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	*  vc.el (vc-default-wash-log): Remove unused code, the
+	* vc.el (vc-default-wash-log): Remove unused code, the
 	log washers all live in the backends now.
 	(vc-default-comment-history): Correct for the fact
 	that wash-log is argumentless in the new API.
 
 2007-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-find-foreign-file-name-handler): Check also
-	host.
+	* net/tramp.el (tramp-find-foreign-file-name-handler): Check also host.
 	(tramp-maybe-send-script): Apply `member' but `memq'.
 	(tramp-advice-file-expand-wildcards): Simplify implementation.
 
@@ -57,8 +63,8 @@
 
 	* net/tramp-compat.el (top): Load tramp-util.el and tramp-vc.el.
 
-	* net/tramp-fish.el (tramp-fish-handle-process-file): Rewrite
-	temporary file handling.
+	* net/tramp-fish.el (tramp-fish-handle-process-file):
+	Rewrite temporary file handling.
 
 2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
 
