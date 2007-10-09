@@ -302,9 +302,8 @@ This in addition to the global function-key-map variable that already existed.
 *** The `keyboard-translate-table' variable and the terminal and
 keyboard coding systems have been made terminal-local.
 
-*** In addition to the global key-translation-map and
-function-key-map, Emacs has terminal-local local-key-translation-map
-and local-function-key-map variables, and uses them instead of the
+*** In addition to the global function-key-map, Emacs has terminal-local
+local-function-key-map variables, and uses them instead of the
 global keymaps to set up translations and function key sequences
 relevant to a specific terminal device.
 
