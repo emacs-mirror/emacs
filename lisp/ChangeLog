@@ -1,3 +1,8 @@
+2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-mode-hook, follow-mode): Doc fixes.
+	(follow-mode-off-hook): Mark as obsolete.
+
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-install-custom-print-funcs)
