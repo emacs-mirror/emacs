@@ -1,5 +1,8 @@
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/encoded-kb.el (encoded-kbd-setup-display):
+	Use input-decode-map rather than local-key-translation-map.
+
 	* term/rxvt.el (rxvt-alternatives-map): New map.
 	(terminal-init-rxvt): Use it.
 	Bind rxvt-function-map in input-decode-map.

@@ -31,7 +31,7 @@
 ;; Usually this map is empty (even if Encoded-kbd mode is on), but if
 ;; the keyboard coding system is iso-2022-based, it defines dummy key
 ;; bindings for ESC $ ..., etc. so that those bindings in
-;; key-translation-map take effect.
+;; input-decode-map take effect.
 (defconst encoded-kbd-mode-map (make-sparse-keymap)
   "Keymap for Encoded-kbd minor mode.")
 
@@ -255,16 +255,16 @@ The following key sequence may cause multilingual text insertion."
 
 ;;;###autoload
 (defun encoded-kbd-setup-display (display)
-  "Set up a `key-translation-map' for `keyboard-coding-system' on DISPLAY.
+  "Set up a `input-decode-map' for `keyboard-coding-system' on DISPLAY.
 
 DISPLAY may be a display id, a frame, or nil for the selected frame's display."
   (let ((frame (if (framep display) display (car (frames-on-display-list display)))))
     (when frame
       (with-selected-frame frame
-	;; Remove any previous encoded-kb keymap from key-translation-map.
-	(let ((m local-key-translation-map))
+	;; Remove any previous encoded-kb keymap from input-decode-map.
+	(let ((m input-decode-map))
 	  (if (equal (keymap-prompt m) "encoded-kb")
-	      (setq local-key-translation-map (keymap-parent m))
+	      (setq input-decode-map (keymap-parent m))
 	    (while (keymap-parent m)
 	      (if (equal (keymap-prompt (keymap-parent m)) "encoded-kb")
 		  (set-keymap-parent m (keymap-parent (keymap-parent m))))
@@ -276,8 +276,8 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 		  (keymap (make-sparse-keymap "encoded-kb"))
 		  (cim (current-input-mode))
 		  result)
-	      (set-keymap-parent keymap local-key-translation-map)
-	      (setq local-key-translation-map keymap)
+	      (set-keymap-parent keymap input-decode-map)
+	      (setq input-decode-map keymap)
 	      (unless (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
 		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode (nth 2 cim)))
 	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
@@ -297,5 +297,5 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 
 (provide 'encoded-kb)
 
-;;; arch-tag: 76f0f9b3-65e7-45c3-b692-59509a87ad44
+;; arch-tag: 76f0f9b3-65e7-45c3-b692-59509a87ad44
 ;;; encoded-kb.el ends here
