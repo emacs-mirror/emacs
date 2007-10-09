@@ -532,7 +532,7 @@ x_create_bitmap_from_file (f, file)
 /* Free bitmap B.  */
 
 static void
-Free_Bitmap_Record (dpyinfo, bm)
+free_bitmap_record (dpyinfo, bm)
      Display_Info *dpyinfo;
      Bitmap_Record *bm;
 {
@@ -574,7 +574,7 @@ x_destroy_bitmap (f, id)
       if (--bm->refcount == 0)
 	{
 	  BLOCK_INPUT;
-	  Free_Bitmap_Record (dpyinfo, bm);
+	  free_bitmap_record (dpyinfo, bm);
 	  UNBLOCK_INPUT;
 	}
     }
@@ -591,7 +591,7 @@ x_destroy_all_bitmaps (dpyinfo)
 
   for (i = 0; i < dpyinfo->bitmaps_last; i++, bm++)
     if (bm->refcount > 0)
-      Free_Bitmap_Record (dpyinfo, bm);
+      free_bitmap_record (dpyinfo, bm);
 
   dpyinfo->bitmaps_last = 0;
 }
