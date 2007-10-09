@@ -1,6 +1,7 @@
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
-	* follow.el (follow-mode-hook, follow-mode): Doc fixes.
+	* follow.el: Require easymenu.
+	(follow-mode-hook, follow-mode): Doc fixes.
 	(follow-mode-off-hook): Mark as obsolete.
 
 2007-10-08  Martin Rudalics  <rudalics@gmx.at>
