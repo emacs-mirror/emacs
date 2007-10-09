@@ -30,61 +30,61 @@
 
 (autoload 'url-scheme-get-property "url-methods")
 
-(defmacro url-type (urlobj)
-  `(aref ,urlobj 0))
+(defun url-type (urlobj)
+  (aref urlobj 0))
 
-(defmacro url-user (urlobj)
-  `(aref ,urlobj 1))
+(defun url-user (urlobj)
+  (aref urlobj 1))
 
-(defmacro url-password (urlobj)
-  `(aref ,urlobj 2))
+(defun url-password (urlobj)
+  (aref urlobj 2))
 
-(defmacro url-host (urlobj)
-  `(aref ,urlobj 3))
+(defun url-host (urlobj)
+  (aref urlobj 3))
 
-(defmacro url-port (urlobj)
-  `(or (aref ,urlobj 4)
-      (if (url-fullness ,urlobj)
-	  (url-scheme-get-property (url-type ,urlobj) 'default-port))))
+(defun url-port (urlobj)
+  (or (aref urlobj 4)
+      (if (url-fullness urlobj)
+	  (url-scheme-get-property (url-type urlobj) 'default-port))))
 
-(defmacro url-filename (urlobj)
-  `(aref ,urlobj 5))
+(defun url-filename (urlobj)
+  (aref urlobj 5))
 
-(defmacro url-target (urlobj)
-  `(aref ,urlobj 6))
+(defun url-target (urlobj)
+  (aref urlobj 6))
 
-(defmacro url-attributes (urlobj)
-  `(aref ,urlobj 7))
+(defun url-attributes (urlobj)
+  (aref urlobj 7))
 
-(defmacro url-fullness (urlobj)
-  `(aref ,urlobj 8))
+(defun url-fullness (urlobj)
+  (aref urlobj 8))
 
-(defmacro url-set-type (urlobj type)
-  `(aset ,urlobj 0 ,type))
+(defun url-set-type (urlobj type)
+  (aset urlobj 0 type))
 
-(defmacro url-set-user (urlobj user)
-  `(aset ,urlobj 1 ,user))
+(defun url-set-user (urlobj user)
+  (aset urlobj 1 user))
 
-(defmacro url-set-password (urlobj pass)
-  `(aset ,urlobj 2 ,pass))
+(defun url-set-password (urlobj pass)
+  (aset urlobj 2 pass))
 
-(defmacro url-set-host (urlobj host)
-  `(aset ,urlobj 3 ,host))
+(defun url-set-host (urlobj host)
+  (aset urlobj 3 host))
 
-(defmacro url-set-port (urlobj port)
-  `(aset ,urlobj 4 ,port))
+(defun url-set-port (urlobj port)
+  (aset urlobj 4 port))
 
-(defmacro url-set-filename (urlobj file)
-  `(aset ,urlobj 5 ,file))
+(defun url-set-filename (urlobj file)
+  (aset urlobj 5 file))
 
-(defmacro url-set-target (urlobj targ)
-  `(aset ,urlobj 6 ,targ))
+(defun url-set-target (urlobj targ)
+  (aset urlobj 6 targ))
 
-(defmacro url-set-attributes (urlobj targ)
-  `(aset ,urlobj 7 ,targ))
+(defun url-set-attributes (urlobj targ)
+  (aset urlobj 7 targ))
 
-(defmacro url-set-full (urlobj val)
-  `(aset ,urlobj 8 ,val))
+(defun url-set-full (urlobj val)
+  (aset urlobj 8 val))
 
 ;;;###autoload
 (defun url-recreate-url (urlobj)
