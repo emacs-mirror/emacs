@@ -1,5 +1,13 @@
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-hunk-style): New fun.
+	(diff-end-of-hunk): Use it.
+	(diff-context->unified): Use the new `apply' undo element,
+	if applicable, so as to save undo-log space.
+	(diff-fine-change): New face.
+	(diff-fine-highlight-preproc): New function.
+	(diff-fine-highlight): New command.
+
 	* smerge-mode.el (smerge-refine-chopup-region): Add `preproc' argument.
 	(smerge-refine-highlight-change): Add `props' argument.
 	(smerge-refine-subst): New function holding most of smerge-refine.
