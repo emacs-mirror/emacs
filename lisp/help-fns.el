@@ -566,13 +566,6 @@ it is displayed along with the global value."
 		      ;; (help-xref-on-pp from (point))
 		      (if (< (point) (+ from 20))
 			  (delete-region (1- from) from)))))))
-	    ;; Add a note for variables that have been make-var-buffer-local.
-	    (when (and (local-variable-if-set-p variable)
-		       (or (not (local-variable-p variable))
-			   (with-temp-buffer
-			     (local-variable-if-set-p variable))))
-	      (princ "\nAutomatically becomes buffer-local when set in any fashion.\n"))
-	    (terpri)
 
 	    ;; If the value is large, move it to the end.
 	    (with-current-buffer standard-output
@@ -597,34 +590,47 @@ it is displayed along with the global value."
 			       'follow-link t
 			       'help-echo "mouse-2, RET: show value")
 		(insert ".\n")))
+            (terpri)
 
- 	    ;; Mention if it's an alias
             (let* ((alias (condition-case nil
                              (indirect-variable variable)
                            (error variable)))
                    (obsolete (get variable 'byte-obsolete-variable))
 		   (safe-var (get variable 'safe-local-variable))
                    (doc (or (documentation-property variable 'variable-documentation)
-                            (documentation-property alias 'variable-documentation))))
+                            (documentation-property alias 'variable-documentation)))
+                   (extra-line nil))
+              ;; Add a note for variables that have been make-var-buffer-local.
+              (when (and (local-variable-if-set-p variable)
+                         (or (not (local-variable-p variable))
+                             (with-temp-buffer
+                               (local-variable-if-set-p variable))))
+                (setq extra-line t)
+                (princ "  Automatically becomes buffer-local when set in any fashion.\n"))
+
+              ;; Mention if it's an alias
               (unless (eq alias variable)
-                (princ (format "\nThis variable is an alias for `%s'.\n" alias)))
-	      (if (or obsolete safe-var)
-		  (terpri))
+                (setq extra-line t)
+                (princ (format "  This variable is an alias for `%s'.\n" alias)))
 
               (when obsolete
-                (princ "This variable is obsolete")
+                (setq extra-line t)
+                (princ "  This variable is obsolete")
                 (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
                 (princ ";") (terpri)
                 (princ (if (stringp (car obsolete)) (car obsolete)
                          (format "use `%s' instead." (car obsolete))))
                 (terpri))
 	      (when safe-var
-		(princ "This variable is safe as a file local variable ")
-		(princ "if its value\nsatisfies the predicate ")
+                (setq extra-line t)
+		(princ "  This variable is safe as a file local variable ")
+		(princ "if its value\n  satisfies the predicate ")
 		(princ (if (byte-code-function-p safe-var)
 			   "which is byte-compiled expression.\n"
 			 (format "`%s'.\n" safe-var))))
-	      (princ "\nDocumentation:\n")
+
+              (if extra-line (terpri))
+	      (princ "Documentation:\n")
 	      (with-current-buffer standard-output
 		(insert (or doc "Not documented as a variable."))))
 	    ;; Make a link to customize if this variable can be customized.

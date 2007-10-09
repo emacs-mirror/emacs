@@ -1,5 +1,9 @@
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help-fns.el (describe-variable): Slightly change the layout of
+	meta-info to separate it better from the docstring.
+	Standardize insertion of extra empty lines in various circumstances.
+
 	* diff-mode.el (diff-hunk-style): New fun.
 	(diff-end-of-hunk): Use it.
 	(diff-context->unified): Use the new `apply' undo element,
@@ -7,6 +11,7 @@
 	(diff-fine-change): New face.
 	(diff-fine-highlight-preproc): New function.
 	(diff-fine-highlight): New command.
+	(diff-mode-map, diff-mode-menu): Add diff-fine-highlight.
 
 	* smerge-mode.el (smerge-refine-chopup-region): Add `preproc' argument.
 	(smerge-refine-highlight-change): Add `props' argument.
