@@ -375,6 +375,81 @@
     map)
   "Function key map overrides for xterm.")
 
+(defvar xterm-alternatives-map
+  (let ((map (make-sparse-keymap)))
+    ;; The terminal initialization C code file might have initialized
+    ;; function keys F13->F60 from the termcap/terminfo information.
+    ;; On a PC-style keyboard these keys correspond to
+    ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C, A-, C-S-.  The code
+    ;; here substitutes the corresponding definitions in function-key-map.
+    ;; The mapping from escape sequences to Fn is done in input-decode-map
+    ;; whereas this here mapping is done in local-function-key-map so that
+    ;; bindings to f45 still work, in case your keyboard really has an f45
+    ;; key rather than C-S-f9.
+    (define-key map [f13] [S-f1])
+    (define-key map [f14] [S-f2])
+    (define-key map [f15] [S-f3])
+    (define-key map [f16] [S-f4])
+    (define-key map [f17] [S-f5])
+    (define-key map [f18] [S-f6])
+    (define-key map [f19] [S-f7])
+    (define-key map [f20] [S-f8])
+    (define-key map [f21] [S-f9])
+    (define-key map [f22] [S-f10])
+    (define-key map [f23] [S-f11])
+    (define-key map [f24] [S-f12])
+
+    (define-key map [f25] [C-f1])
+    (define-key map [f26] [C-f2])
+    (define-key map [f27] [C-f3])
+    (define-key map [f28] [C-f4])
+    (define-key map [f29] [C-f5])
+    (define-key map [f30] [C-f6])
+    (define-key map [f31] [C-f7])
+    (define-key map [f32] [C-f8])
+    (define-key map [f33] [C-f9])
+    (define-key map [f34] [C-f10])
+    (define-key map [f35] [C-f11])
+    (define-key map [f36] [C-f12])
+
+    (define-key map [f37] [C-S-f1])
+    (define-key map [f38] [C-S-f2])
+    (define-key map [f39] [C-S-f3])
+    (define-key map [f40] [C-S-f4])
+    (define-key map [f41] [C-S-f5])
+    (define-key map [f42] [C-S-f6])
+    (define-key map [f43] [C-S-f7])
+    (define-key map [f44] [C-S-f8])
+    (define-key map [f45] [C-S-f9])
+    (define-key map [f46] [C-S-f10])
+    (define-key map [f47] [C-S-f11])
+    (define-key map [f48] [C-S-f12])
+
+    (define-key map [f49] [A-f1])
+    (define-key map [f50] [A-f2])
+    (define-key map [f51] [A-f3])
+    (define-key map [f52] [A-f4])
+    (define-key map [f53] [A-f5])
+    (define-key map [f54] [A-f6])
+    (define-key map [f55] [A-f7])
+    (define-key map [f56] [A-f8])
+    (define-key map [f57] [A-f9])
+    (define-key map [f58] [A-f10])
+    (define-key map [f59] [A-f11])
+    (define-key map [f60] [A-f12])
+
+    ;; Map common bindings for wheel events.  Again we do this in
+    ;; local-function-key-map rather than input-decode-map because we cannot
+    ;; be sure this is right, so if you really have a mouse-4 button rather
+    ;; than a wheel, you can bind it to whatever you want, to override
+    ;; this remapping.
+    (define-key map [*-mouse-4] [wheel-up])
+    (define-key map [*-mouse-5] [wheel-down])
+    (define-key map [*-mouse-6] [wheel-left])
+    (define-key map [*-mouse-7] [wheel-right])
+    map)
+  "Keymap of possible alternative meanings for some keys.")
+
 ;; List of terminals for which modify-other-keys has been turned on.
 (defvar xterm-modify-other-keys-terminal-list nil)
 
@@ -387,72 +462,17 @@
 	   (string-match "\\`rxvt" (getenv "COLORTERM" (selected-frame))))
       (tty-run-terminal-initialization (selected-frame) "rxvt")
 
-    ;; The terminal initialization C code file might have initialized
-    ;; function keys F13->F60 from the termcap/terminfo information.
-    ;; On a PC-style keyboard these keys correspond to
-    ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C, A-, C-S-.  The code
-    ;; here substitutes the corresponding definitions in function-key-map.
-    ;; This substitution is needed because if a key definition is found in
-    ;; function-key-map, there are no further lookups in other keymaps.
-    (substitute-key-definition [f13] [S-f1] local-function-key-map)
-    (substitute-key-definition [f14] [S-f2] local-function-key-map)
-    (substitute-key-definition [f15] [S-f3] local-function-key-map)
-    (substitute-key-definition [f16] [S-f4] local-function-key-map)
-    (substitute-key-definition [f17] [S-f5] local-function-key-map)
-    (substitute-key-definition [f18] [S-f6] local-function-key-map)
-    (substitute-key-definition [f19] [S-f7] local-function-key-map)
-    (substitute-key-definition [f20] [S-f8] local-function-key-map)
-    (substitute-key-definition [f21] [S-f9] local-function-key-map)
-    (substitute-key-definition [f22] [S-f10] local-function-key-map)
-    (substitute-key-definition [f23] [S-f11] local-function-key-map)
-    (substitute-key-definition [f24] [S-f12] local-function-key-map)
-
-    (substitute-key-definition [f25] [C-f1] local-function-key-map)
-    (substitute-key-definition [f26] [C-f2] local-function-key-map)
-    (substitute-key-definition [f27] [C-f3] local-function-key-map)
-    (substitute-key-definition [f28] [C-f4] local-function-key-map)
-    (substitute-key-definition [f29] [C-f5] local-function-key-map)
-    (substitute-key-definition [f30] [C-f6] local-function-key-map)
-    (substitute-key-definition [f31] [C-f7] local-function-key-map)
-    (substitute-key-definition [f32] [C-f8] local-function-key-map)
-    (substitute-key-definition [f33] [C-f9] local-function-key-map)
-    (substitute-key-definition [f34] [C-f10] local-function-key-map)
-    (substitute-key-definition [f35] [C-f11] local-function-key-map)
-    (substitute-key-definition [f36] [C-f12] local-function-key-map)
-
-    (substitute-key-definition [f37] [C-S-f1] local-function-key-map)
-    (substitute-key-definition [f38] [C-S-f2] local-function-key-map)
-    (substitute-key-definition [f39] [C-S-f3] local-function-key-map)
-    (substitute-key-definition [f40] [C-S-f4] local-function-key-map)
-    (substitute-key-definition [f41] [C-S-f5] local-function-key-map)
-    (substitute-key-definition [f42] [C-S-f6] local-function-key-map)
-    (substitute-key-definition [f43] [C-S-f7] local-function-key-map)
-    (substitute-key-definition [f44] [C-S-f8] local-function-key-map)
-    (substitute-key-definition [f45] [C-S-f9] local-function-key-map)
-    (substitute-key-definition [f46] [C-S-f10] local-function-key-map)
-    (substitute-key-definition [f47] [C-S-f11] local-function-key-map)
-    (substitute-key-definition [f48] [C-S-f12] local-function-key-map)
-
-    (substitute-key-definition [f49] [A-f1] local-function-key-map)
-    (substitute-key-definition [f50] [A-f2] local-function-key-map)
-    (substitute-key-definition [f51] [A-f3] local-function-key-map)
-    (substitute-key-definition [f52] [A-f4] local-function-key-map)
-    (substitute-key-definition [f53] [A-f5] local-function-key-map)
-    (substitute-key-definition [f54] [A-f6] local-function-key-map)
-    (substitute-key-definition [f55] [A-f7] local-function-key-map)
-    (substitute-key-definition [f56] [A-f8] local-function-key-map)
-    (substitute-key-definition [f57] [A-f9] local-function-key-map)
-    (substitute-key-definition [f58] [A-f10] local-function-key-map)
-    (substitute-key-definition [f59] [A-f11] local-function-key-map)
-    (substitute-key-definition [f60] [A-f12] local-function-key-map)
+    (let ((map (copy-keymap xterm-alternatives-map)))
+      (set-keymap-parent map (keymap-parent) local-function-key-map)
+      (set-keymap-parent local-function-key-map map))
 
     (let ((map (copy-keymap xterm-function-map)))
 
       ;; Use inheritance to let the main keymap override those defaults.
       ;; This way we don't override terminfo-derived settings or settings
       ;; made in the .emacs file.
-      (set-keymap-parent map (keymap-parent local-function-key-map))
-      (set-keymap-parent local-function-key-map map)))
+      (set-keymap-parent map (keymap-parent input-decode-map))
+      (set-keymap-parent input-decode map)))
 
     (xterm-register-default-colors)
     ;; This recomputes all the default faces given the colors we've just set up.

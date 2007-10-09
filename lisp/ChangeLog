@@ -1,5 +1,9 @@
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/xterm.el (xterm-alternatives-map): New map.
+	(terminal-init-xterm): Use it.
+	Bind xterm-function-map in input-decode-map.
+
 	* term/x-win.el (x-alternatives-map): New var.
 	(x-setup-function-keys): Use it.
 
