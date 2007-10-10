@@ -1,3 +1,12 @@
+2007-10-10  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): Disable undo
+	in *Backtrace*.
+
+	* faces.el (face-font-selection-order): Doc fix.
+
+	* loadhist.el (unload-feature): Doc fix.
+
 2007-10-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el: Change all instances of "Follow Mode" to "Follow
