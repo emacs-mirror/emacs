@@ -267,7 +267,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 
 (defun vc-mcvs-checkin (files rev comment)
   "Meta-CVS-specific version of `vc-backend-checkin'."
-  (unless (or (not rev) (vc-mcvs-valid-version-number-p rev))
+  (unless (or (not rev) (vc-mcvs-valid-revision-number-p rev))
     (if (not (vc-mcvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
       ;; If the input revision is a valid symbolic tag name, we create it
@@ -302,7 +302,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
         (goto-char (point-min))
         (shrink-window-if-larger-than-buffer)
         (error "Check-in failed"))))
-    ;; Single-file commit?  Then update the version by parsing the buffer.
+    ;; Single-file commit?  Then update the revision by parsing the buffer.
     ;; Otherwise we can't necessarily tell what goes with what; clear
     ;; its properties so they have to be refetched.
     (if (= (length files) 1)
@@ -348,7 +348,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 	       (vc-mcvs-command nil 0 file "edit")
 	     (set-file-modes file (logior (file-modes file) 128))
 	     (if (equal file buffer-file-name) (toggle-read-only -1))))
-    ;; Check out a particular version (or recreate the file).
+    ;; Check out a particular revision (or recreate the file).
     (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-mcvs-command nil 0 file
 	   (if editable "-w")
@@ -364,7 +364,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
   (vc-mcvs-command nil 0 new "move" (file-relative-name old)))
 
 (defun vc-mcvs-revert (file &optional contents-done)
-  "Revert FILE to the version it was based on."
+  "Revert FILE to the working revision it was based on."
   (vc-default-revert 'MCVS file contents-done)
   (unless (eq (vc-checkout-model file) 'implicit)
     (if vc-mcvs-use-edit
@@ -372,13 +372,13 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
       ;; Make the file read-only by switching off all w-bits
       (set-file-modes file (logand (file-modes file) 3950)))))
 
-(defun vc-mcvs-merge (file first-version &optional second-version)
+(defun vc-mcvs-merge (file first-revision &optional second-revision)
   "Merge changes into current working copy of FILE.
-The changes are between FIRST-VERSION and SECOND-VERSION."
+The changes are between FIRST-REVISION and SECOND-REVISION."
   (vc-mcvs-command nil 0 file
 		   "update" "-kk"
-		   (concat "-j" first-version)
-		   (concat "-j" second-version))
+		   (concat "-j" first-revision)
+		   (concat "-j" second-revision))
   (vc-file-setprop file 'vc-state 'edited)
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
@@ -396,7 +396,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   ;; file properties accordingly.
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
-    ;; get new workfile version
+    ;; get new working revision
     (if (re-search-forward
 	 "^Merging differences between [0-9.]* and \\([0-9.]*\\) into" nil t)
 	(vc-file-setprop file 'vc-working-revision (match-string 1))
@@ -447,7 +447,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
      files "log")))
 
 (defun vc-mcvs-diff (files &optional oldvers newvers buffer)
-  "Get a difference report using Meta-CVS between two versions of FILES."
+  "Get a difference report using Meta-CVS between two revisions of FILES."
     (let* ((async (and (not vc-disable-async-diff)
                        (vc-stay-local-p files)
                        (fboundp 'start-process)))
@@ -476,13 +476,13 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	     (and rev2 (concat "-r" rev2))
 	     (vc-switches 'MCVS 'diff)))))
 
-(defun vc-mcvs-annotate-command (file buffer &optional version)
+(defun vc-mcvs-annotate-command (file buffer &optional revision)
   "Execute \"mcvs annotate\" on FILE, inserting the contents in BUFFER.
-Optional arg VERSION is a version to annotate from."
+Optional arg REVISION is a revision to annotate from."
   (vc-mcvs-command
    buffer
    (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-   file "annotate" (if version (concat "-r" version)))
+   file "annotate" (if revision (concat "-r" revision)))
   (with-current-buffer buffer
     (goto-char (point-min))
     (re-search-forward "^[0-9]")
@@ -496,7 +496,7 @@ Optional arg VERSION is a version to annotate from."
 ;;;
 
 (defun vc-mcvs-create-snapshot (dir name branchp)
-  "Assign to DIR's current version a given NAME.
+  "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
   (if (not branchp)
@@ -596,7 +596,7 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
       (forward-line 1))))
 
 (defalias 'vc-mcvs-valid-symbolic-tag-name-p 'vc-cvs-valid-symbolic-tag-name-p)
-(defalias 'vc-mcvs-valid-version-number-p 'vc-cvs-valid-version-number-p)
+(defalias 'vc-mcvs-valid-revision-number-p 'vc-cvs-valid-revision-number-p)
 
 (provide 'vc-mcvs)
 

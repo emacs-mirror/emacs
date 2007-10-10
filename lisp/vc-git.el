@@ -77,11 +77,11 @@
 ;;                                                 wouldn't be identified as a merge by git,
 ;;                                                 so it's probably not a good idea.
 ;; - merge-news (file)				   see `merge'
-;; - steal-lock (file &optional version)	   NOT NEEDED
+;; - steal-lock (file &optional revision)	   NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files &optional buffer)		   OK
 ;; - log-view-mode ()				   OK
-;; - show-log-entry (version)			   NOT NEEDED, DEFAULT IS GOOD
+;; - show-log-entry (revision)			   NOT NEEDED, DEFAULT IS GOOD
 ;; - wash-log (file)				   COULD BE SUPPORTED
 ;; - logentry-check ()				   NOT NEEDED
 ;; - comment-history (file)			   ??
@@ -100,8 +100,8 @@
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)		   NOT NEEDED
 ;; - repository-hostname (dirname)		   NOT NEEDED
-;; - previous-version (file rev)		   OK
-;; - next-version (file rev)			   OK
+;; - previous-revision (file rev)		   OK
+;; - next-revision (file rev)			   OK
 ;; - check-headers ()				   COULD BE SUPPORTED
 ;; - clear-headers ()				   NOT NEEDED
 ;; - delete-file (file)				   OK
@@ -372,8 +372,8 @@
 
 ;;; MISCELLANEOUS
 
-(defun vc-git-previous-version (file rev)
-  "Git-specific version of `vc-previous-version'."
+(defun vc-git-previous-revision (file rev)
+  "Git-specific version of `vc-previous-revision'."
   (let ((default-directory (file-name-directory (expand-file-name file)))
 	(file (file-name-nondirectory file)))
     (vc-git-symbolic-commit
@@ -390,8 +390,8 @@
 	   (point)
 	   (1- (point-max))))))))
 
-(defun vc-git-next-version (file rev)
-  "Git-specific version of `vc-next-version'."
+(defun vc-git-next-revision (file rev)
+  "Git-specific version of `vc-next-revision'."
   (let* ((default-directory (file-name-directory
 			     (expand-file-name file)))
 	(file (file-name-nondirectory file))

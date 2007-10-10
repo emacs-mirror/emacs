@@ -185,14 +185,14 @@ If you want to force an empty list of arguments, use t."
 	  ((eq svn-state 'needs-patch) "(patch)")
 	  ((eq svn-state 'needs-merge) "(merge)"))))
 
-(defun vc-svn-previous-version (file rev)
+(defun vc-svn-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (< 0 newrev)
       (number-to-string newrev))))
 
-(defun vc-svn-next-version (file rev)
+(defun vc-svn-next-revision (file rev)
   (let ((newrev (1+ (string-to-number rev))))
-    ;; The "workfile version" is an uneasy conceptual fit under Subversion;
+    ;; The "working revision" is an uneasy conceptual fit under Subversion;
     ;; we use it as the upper bound until a better idea comes along.  If the
     ;; workfile version W coincides with the tree's latest revision R, then
     ;; this check prevents a "no such revision: R+1" error.  Otherwise, it
@@ -328,7 +328,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   ;; file properties accordingly.
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
-    ;; get new workfile version
+    ;; get new working revision
     (if (re-search-forward
 	 "^\\(Updated to\\|At\\) revision \\([0-9]+\\)" nil t)
 	(vc-file-setprop file 'vc-working-revision (match-string 2))
@@ -393,7 +393,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
      buffer
      (if (and (= (length files) 1) (vc-stay-local-p (car files)) (fboundp 'start-process)) 'async 0)
      files "log"
-     ;; By default Subversion only shows the log upto the working version,
+     ;; By default Subversion only shows the log upto the working revision,
      ;; whereas we also want the log of the subsequent commits.  At least
      ;; that's what the vc-cvs.el code does.
      "-rHEAD:0")))
@@ -404,7 +404,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   nil)
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
-  "Get a difference report using SVN between two versions of fileset FILES."
+  "Get a difference report using SVN between two revisions of fileset FILES."
   (and oldvers
        (catch 'no
 	 (dolist (f files)
@@ -446,7 +446,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;;
 
 (defun vc-svn-create-snapshot (dir name branchp)
-  "Assign to DIR's current version a given NAME.
+  "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch).
 NAME is assumed to be a URL."
@@ -602,8 +602,8 @@ information about FILENAME and return its status."
   (and (string-match "^[a-zA-Z]" tag)
        (not (string-match "[^a-z0-9A-Z-_]" tag))))
 
-(defun vc-svn-valid-version-number-p (tag)
-  "Return non-nil if TAG is a valid version number."
+(defun vc-svn-valid-revision-number-p (tag)
+  "Return non-nil if TAG is a valid revision number."
   (and (string-match "^[0-9]" tag)
        (not (string-match "[^0-9]" tag))))
 

@@ -66,11 +66,11 @@
 ;; - rollback (files)                          ?? PROBABLY NOT NEEDED   
 ;; - merge (file rev1 rev2)                    NEEDED
 ;; - merge-news (file)                         NEEDED
-;; - steal-lock (file &optional version)       NOT NEEDED
+;; - steal-lock (file &optional revision)       NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files &optional buffer)        OK
 ;; - log-view-mode ()                          OK
-;; - show-log-entry (version)                  NOT NEEDED, DEFAULT IS GOOD
+;; - show-log-entry (revision)                  NOT NEEDED, DEFAULT IS GOOD
 ;; - wash-log (file)                           ??
 ;; - logentry-check ()                         NOT NEEDED
 ;; - comment-history (file)                    NOT NEEDED
@@ -89,8 +89,8 @@
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
 ;; - repository-hostname (dirname)             ?? 
-;; - previous-version (file rev)               OK
-;; - next-version (file rev)                   OK
+;; - previous-revision (file rev)               OK
+;; - next-revision (file rev)                   OK
 ;; - check-headers ()                          ??
 ;; - clear-headers ()                          ??
 ;; - delete-file (file)                        TEST IT
@@ -277,7 +277,7 @@
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
-  "Get a difference report using hg between two versions of FILES."
+  "Get a difference report using hg between two revisions of FILES."
   (let ((working (vc-working-revision (car files))))
     (if (and (equal oldvers working) (not newvers))
 	(setq oldvers nil))
@@ -312,10 +312,10 @@
 (defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
   (vc-hg-diff (list file) oldvers newvers buffer))
 
-(defun vc-hg-annotate-command (file buffer &optional version)
+(defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
-Optional arg VERSION is a version to annotate from."
-  (vc-hg-command buffer 0 file "annotate" "-d" "-n" (if version (concat "-r" version)))
+Optional arg REVISION is a revision to annotate from."
+  (vc-hg-command buffer 0 file "annotate" "-d" "-n" (if revision (concat "-r" revision)))
   (with-current-buffer buffer
     (goto-char (point-min))
     (re-search-forward "^[0-9]")
@@ -338,22 +338,22 @@ Optional arg VERSION is a version to annotate from."
     (beginning-of-line)
     (if (looking-at vc-hg-annotate-re) (match-string-no-properties 1))))
 
-(defun vc-hg-previous-version (file rev)
+(defun vc-hg-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (>= newrev 0)
       (number-to-string newrev))))
 
-(defun vc-hg-next-version (file rev)
+(defun vc-hg-next-revision (file rev)
   (let ((newrev (1+ (string-to-number rev)))
-	(tip-version 
+	(tip-revision 
 	 (with-temp-buffer
 	   (vc-hg-command t 0 nil "tip")
 	   (goto-char (point-min))
 	   (re-search-forward "^changeset:[ \t]*\\([0-9]+\\):")
 	   (string-to-number (match-string-no-properties 1)))))
-    ;; We don't want to exceed the maximum possible version number, ie
-    ;; the tip version.
-    (when (<= newrev tip-version)
+    ;; We don't want to exceed the maximum possible revision number, ie
+    ;; the tip revision.
+    (when (<= newrev tip-revision)
       (number-to-string newrev))))
 
 ;; Modelled after the similar function in vc-bzr.el

@@ -163,7 +163,7 @@
                '(("^[ |]+Author: \\(.*\\)" (1 'change-log-email))
                  ("^[ |]+Date: \\(.*\\)" (1 'change-log-date-face))))))
 
-;; (defun vc-mtn-show-log-entry (version)
+;; (defun vc-mtn-show-log-entry (revision)
 ;;   )
 
 (defun vc-mtn-wash-log (file))
