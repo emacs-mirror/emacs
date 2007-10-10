@@ -154,14 +154,16 @@ documentation of `unload-feature' for details.")
 If the feature is required by any other loaded code, and prefix arg FORCE
 is nil, raise an error.
 
-This function tries to undo modifications made by the package to
-hooks.  Packages may define a hook FEATURE-unload-hook that is called
-instead of the normal heuristics for doing this.  Such a hook should
-undo all the relevant global state changes that may have been made by
-loading the package or executing functions in it.  It has access to
-the package's feature list (before anything is unbound) in the
-variable `unload-hook-features-list' and could remove features from it
-in the event that the package has done something normally-ill-advised,
+This function tries to undo any modifications that the package has
+made to hook values in Emacs.  Normally it does this using heuristics.
+The packages may define a hook `FEATURE-unload-hook'; if that exists,
+it is called instead of the normal heuristics.
+
+Such a hook should undo all the relevant global state changes that may
+have been made by loading the package or executing functions in it.
+It has access to the package's feature list (before anything is unbound)
+in the variable `unload-hook-features-list' and could remove features
+from it in the event that the package has done something strange,
 such as redefining an Emacs function."
   (interactive
    (list
