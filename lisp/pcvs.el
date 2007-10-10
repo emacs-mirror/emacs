@@ -2411,7 +2411,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
   (let* ((file (expand-file-name buffer-file-name))
 	 (version (and (fboundp 'vc-backend)
 		       (eq (vc-backend file) 'CVS)
-		       (vc-workfile-version file))))
+		       (vc-working-revision file))))
     (when version
       (save-excursion
 	(dolist (cvs-buf (buffer-list))

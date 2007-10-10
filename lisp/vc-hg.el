@@ -45,7 +45,7 @@
 ;; * state (file)                              OK
 ;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
 ;; - dir-state (dir)                           OK
-;; * workfile-version (file)                   OK
+;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (file)                     OK
 ;; - workfile-unchanged-p (file)               OK
@@ -54,13 +54,13 @@
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
 ;; * create-repo ()                            OK
-;; - init-version ()                           NOT NEEDED
+;; - init-revision ()                           NOT NEEDED
 ;; - responsible-p (file)                      OK
 ;; - could-register (file)                     OK
 ;; - receive-file (file rev)                   ?? PROBABLY NOT NEEDED
 ;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
 ;; * checkin (files rev comment)               OK
-;; * find-version (file rev buffer)            OK
+;; * find-revision (file rev buffer)            OK
 ;; * checkout (file &optional editable rev)    OK
 ;; * revert (file &optional contents-done)     OK
 ;; - rollback (files)                          ?? PROBABLY NOT NEEDED   
@@ -198,7 +198,7 @@
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
 	 ((eq status-char ?A)
-	  (vc-file-setprop file 'vc-workfile-version "0")
+	  (vc-file-setprop file 'vc-working-revision "0")
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?M)
 	  (vc-file-setprop file 'vc-state 'edited))
@@ -207,8 +207,8 @@
 	  (vc-file-setprop file 'vc-state 'nil)))
 	(forward-line)))))
 
-(defun vc-hg-workfile-version (file)
-  "Hg-specific version of `vc-workfile-version'."
+(defun vc-hg-working-revision (file)
+  "Hg-specific version of `vc-working-revision'."
   (let* 
       ((status nil)
        (out
@@ -278,7 +278,7 @@
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two versions of FILES."
-  (let ((working (vc-workfile-version (car files))))
+  (let ((working (vc-working-revision (car files))))
     (if (and (equal oldvers working) (not newvers))
 	(setq oldvers nil))
     (if (and (not oldvers) newvers)
@@ -402,7 +402,7 @@ COMMENT is ignored."
 REV is ignored."
   (vc-hg-command nil 0 files  "commit" "-m" comment))
 
-(defun vc-hg-find-version (file rev buffer)
+(defun vc-hg-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)
         (coding-system-for-write 'binary))
     (if rev
@@ -432,7 +432,7 @@ REV is the revision to check out into WORKFILE."
   "Hg-specific version of `vc-dired-state-info'."
   (let ((hg-state (vc-state file)))
     (if (eq hg-state 'edited)
-	(if (equal (vc-workfile-version file) "0")
+	(if (equal (vc-working-revision file) "0")
 	    "(added)" "(modified)")
       ;; fall back to the default VC representation
       (vc-default-dired-state-info 'Hg file))))

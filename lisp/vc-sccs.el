@@ -111,8 +111,8 @@ For a description of possible values, see `vc-check-master-templates'."
   (with-temp-buffer
     (if (vc-insert-file (vc-sccs-lock-file file))
         (let* ((locks (vc-sccs-parse-locks))
-               (workfile-version (vc-workfile-version file))
-               (locking-user (cdr (assoc workfile-version locks))))
+               (working-revision (vc-working-revision file))
+               (locking-user (cdr (assoc working-revision locks))))
           (if (not locking-user)
               (if (vc-workfile-unchanged-p file)
                   'up-to-date
@@ -145,8 +145,8 @@ For a description of possible values, see `vc-check-master-templates'."
             (vc-sccs-state file))))
     (vc-sccs-state file)))
 
-(defun vc-sccs-workfile-version (file)
-  "SCCS-specific version of `vc-workfile-version'."
+(defun vc-sccs-working-revision (file)
+  "SCCS-specific version of `vc-working-revision'."
   (with-temp-buffer
     ;; The workfile version is always the latest version number.
     ;; To find this number, search the entire delta table,
@@ -163,7 +163,7 @@ For a description of possible values, see `vc-check-master-templates'."
   "SCCS-specific implementation of `vc-workfile-unchanged-p'."
   (zerop (apply 'vc-do-command nil 1 "vcdiff" (vc-name file)
                 (list "--brief" "-q"
-                      (concat "-r" (vc-workfile-version file))))))
+                      (concat "-r" (vc-working-revision file))))))
 
 
 ;;;
@@ -219,7 +219,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
     (if vc-keep-workfiles
 	(vc-do-command nil 0 "get" (vc-name file)))))
 
-(defun vc-sccs-find-version (file rev buffer)
+(defun vc-sccs-find-revision (file rev buffer)
   (apply 'vc-do-command
 	 buffer 0 "get" (vc-name file)
 	 "-s" ;; suppress diagnostic output
@@ -263,7 +263,7 @@ locked.  REV is the revision to check out."
   (if (not files)
       (error "SCCS backend doesn't support directory-level rollback."))
   (dolist (file files)
-	  (let ((discard (vc-workfile-version file)))
+	  (let ((discard (vc-working-revision file)))
 	    (if (null (yes-or-no-p (format "Remove version %s from %s history? " 
 					   discard file)))
 		(error "Aborted"))
@@ -277,8 +277,8 @@ locked.  REV is the revision to check out."
   (vc-do-command nil 0 "get" (vc-name file))
   ;; Checking out explicit versions is not supported under SCCS, yet.
   ;; We always "revert" to the latest version; therefore
-  ;; vc-workfile-version is cleared here so that it gets recomputed.
-  (vc-file-setprop file 'vc-workfile-version nil))
+  ;; vc-working-revision is cleared here so that it gets recomputed.
+  (vc-file-setprop file 'vc-working-revision nil))
 
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
@@ -323,7 +323,7 @@ locked.  REV is the revision to check out."
 
 (defun vc-sccs-assign-name (file name)
   "Assign to FILE's latest version a given NAME."
-  (vc-sccs-add-triple name file (vc-workfile-version file)))
+  (vc-sccs-add-triple name file (vc-working-revision file)))
 
 
 ;;;

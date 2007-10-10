@@ -81,7 +81,7 @@
           'edited
         'up-to-date))))
 
-(defun vc-mtn-workfile-version (file)
+(defun vc-mtn-working-revision (file)
   ;; If `mtn' fails or returns status>0, or if the search fails, just
   ;; return nil.
   (ignore-errors
@@ -134,7 +134,7 @@
 (defun vc-mtn-checkin (files rev comment)
   (vc-mtn-command nil 0 files "commit" "-m" comment))
 
-(defun vc-mtn-find-version (file rev buffer)
+(defun vc-mtn-find-revision (file rev buffer)
   (vc-mtn-command buffer 0 file "cat" "-r" rev))
 
 ;; (defun vc-mtn-checkout (file &optional editable rev)

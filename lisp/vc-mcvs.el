@@ -196,8 +196,8 @@ This is only meaningful if you don't use the implicit checkout model
 	    (goto-char (point-max))
 	    (widen)))))))
 
-(defun vc-mcvs-workfile-version (file)
-  (vc-cvs-workfile-version
+(defun vc-mcvs-working-revision (file)
+  (vc-cvs-working-revision
    (expand-file-name (vc-file-getprop file 'mcvs-inode)
 		     (vc-file-getprop file 'mcvs-root))))
 
@@ -253,7 +253,7 @@ the Meta-CVS command (in that order)."
 		(vc-switches 'MCVS 'register))
     ;; I'm not sure exactly why, but if we don't setup the inode and root
     ;; prop of the file, things break later on in vc-mode-line that
-    ;; ends up calling vc-mcvs-workfile-version.
+    ;; ends up calling vc-mcvs-working-revision.
     ;; We also need to set vc-checkout-time so that vc-workfile-unchanged-p
     ;; doesn't try to call `mcvs diff' on the file.
     (vc-mcvs-registered file)))
@@ -307,7 +307,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
     ;; its properties so they have to be refetched.
     (if (= (length files) 1)
 	(vc-file-setprop
-	 (car files) 'vc-workfile-version
+	 (car files) 'vc-working-revision
 	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
       (mapc (lambda (file) (vc-file-clearprops file)) files))
     ;; Anyway, forget the checkout model of the file, because we might have
@@ -322,7 +322,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
     (if (and rev (not (vc-mcvs-valid-symbolic-tag-name-p rev)))
 	(vc-mcvs-command nil 0 files "update" "-A"))))
 
-(defun vc-mcvs-find-version (file rev buffer)
+(defun vc-mcvs-find-revision (file rev buffer)
   (apply 'vc-mcvs-command
 	 buffer 0 file
 	 "-Q"				; suppress diagnostic output
@@ -349,7 +349,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 	     (set-file-modes file (logior (file-modes file) 128))
 	     (if (equal file buffer-file-name) (toggle-read-only -1))))
     ;; Check out a particular version (or recreate the file).
-    (vc-file-setprop file 'vc-workfile-version nil)
+    (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-mcvs-command nil 0 file
 	   (if editable "-w")
 	   "update"
@@ -389,7 +389,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-mcvs-merge-news (file)
   "Merge in any new changes made to FILE."
   (message "Merging changes into %s..." file)
-  ;; (vc-file-setprop file 'vc-workfile-version nil)
+  ;; (vc-file-setprop file 'vc-working-revision nil)
   (vc-file-setprop file 'vc-checkout-time 0)
   (vc-mcvs-command nil 0 file "update")
   ;; Analyze the merge result reported by Meta-CVS, and set
@@ -399,8 +399,8 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     ;; get new workfile version
     (if (re-search-forward
 	 "^Merging differences between [0-9.]* and \\([0-9.]*\\) into" nil t)
-	(vc-file-setprop file 'vc-workfile-version (match-string 1))
-      (vc-file-setprop file 'vc-workfile-version nil))
+	(vc-file-setprop file 'vc-working-revision (match-string 1))
+      (vc-file-setprop file 'vc-working-revision nil))
     ;; get file status
     (prog1
         (if (eq (buffer-size) 0)
@@ -528,13 +528,13 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 		   ((or (string= state "U")
 			(string= state "P"))
 		    (vc-file-setprop file 'vc-state 'up-to-date)
-		    (vc-file-setprop file 'vc-workfile-version nil)
+		    (vc-file-setprop file 'vc-working-revision nil)
 		    (vc-file-setprop file 'vc-checkout-time
 				     (nth 5 (file-attributes file))))
 		   ((or (string= state "M")
 			(string= state "C"))
 		    (vc-file-setprop file 'vc-state 'edited)
-		    (vc-file-setprop file 'vc-workfile-version nil)
+		    (vc-file-setprop file 'vc-working-revision nil)
 		    (vc-file-setprop file 'vc-checkout-time 0)))
 		  (vc-file-setprop file 'vc-mcvs-sticky-tag sticky-tag)
 		  (vc-resynch-buffer file t t))))

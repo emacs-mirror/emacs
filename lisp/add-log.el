@@ -379,7 +379,7 @@ With a numeric prefix ARG, go back ARG comments."
 
 (defun change-log-version-number-search ()
   "Return version number of current buffer's file.
-This is the value returned by `vc-workfile-version' or, if that is
+This is the value returned by `vc-working-revision' or, if that is
 nil, by matching `change-log-version-number-regexp-list'."
   (let* ((size (buffer-size))
 	 (limit
@@ -390,7 +390,7 @@ nil, by matching `change-log-version-number-regexp-list'."
 	  ;; Apply percentage only if buffer size is bigger than
 	  ;; approx 100 lines.
 	  (if (> size (* 100 80)) (+ (point) (/ size 10)))))
-    (or (and buffer-file-name (vc-workfile-version buffer-file-name))
+    (or (and buffer-file-name (vc-working-revision buffer-file-name))
 	(save-restriction
 	  (widen)
 	  (let ((regexps change-log-version-number-regexp-list)

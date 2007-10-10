@@ -160,13 +160,13 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 
-(defun vc-svn-workfile-version (file)
-  "SVN-specific version of `vc-workfile-version'."
+(defun vc-svn-working-revision (file)
+  "SVN-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under SVN, because we
   ;; get the workfile version for free when we recognize that a file
   ;; is registered in SVN.
   (vc-svn-registered file)
-  (vc-file-getprop file 'vc-workfile-version))
+  (vc-file-getprop file 'vc-working-revision))
 
 (defun vc-svn-checkout-model (file)
   "SVN-specific version of `vc-checkout-model'."
@@ -180,7 +180,7 @@ If you want to force an empty list of arguments, use t."
   "SVN-specific version of `vc-dired-state-info'."
   (let ((svn-state (vc-state file)))
     (cond ((eq svn-state 'edited)
-	   (if (equal (vc-workfile-version file) "0")
+	   (if (equal (vc-working-revision file) "0")
 	       "(added)" "(modified)"))
 	  ((eq svn-state 'needs-patch) "(patch)")
 	  ((eq svn-state 'needs-merge) "(merge)"))))
@@ -198,7 +198,7 @@ If you want to force an empty list of arguments, use t."
     ;; this check prevents a "no such revision: R+1" error.  Otherwise, it
     ;; inhibits showing of W+1 through R, which could be considered anywhere
     ;; from gracious to impolite.
-    (unless (< (string-to-number (vc-file-getprop file 'vc-workfile-version))
+    (unless (< (string-to-number (vc-file-getprop file 'vc-working-revision))
                newrev)
       (number-to-string newrev))))
 
@@ -256,11 +256,11 @@ This is only possible if SVN is responsible for FILE's directory.")
         (error "Check-in failed"))))
     ;; Update file properties
     ;; (vc-file-setprop
-    ;;  file 'vc-workfile-version
+    ;;  file 'vc-working-revision
     ;;  (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
     ))
 
-(defun vc-svn-find-version (file rev buffer)
+(defun vc-svn-find-revision (file rev buffer)
   "SVN-specific retrieval of a specified version into a buffer."
   (apply 'vc-svn-command
 	 buffer 0 file
@@ -281,7 +281,7 @@ This is only possible if SVN is responsible for FILE's directory.")
       ;; If no revision was specified, there's nothing to do.
       nil
     ;; Check out a particular version (or recreate the file).
-    (vc-file-setprop file 'vc-workfile-version nil)
+    (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-svn-command nil 0 file
 	   "update"
 	   ;; default for verbose checkout: clear the sticky tag so
@@ -321,7 +321,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-svn-merge-news (file)
   "Merge in any new changes made to FILE."
   (message "Merging changes into %s..." file)
-  ;; (vc-file-setprop file 'vc-workfile-version nil)
+  ;; (vc-file-setprop file 'vc-working-revision nil)
   (vc-file-setprop file 'vc-checkout-time 0)
   (vc-svn-command nil 0 file "update")
   ;; Analyze the merge result reported by SVN, and set
@@ -331,8 +331,8 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     ;; get new workfile version
     (if (re-search-forward
 	 "^\\(Updated to\\|At\\) revision \\([0-9]+\\)" nil t)
-	(vc-file-setprop file 'vc-workfile-version (match-string 2))
-      (vc-file-setprop file 'vc-workfile-version nil))
+	(vc-file-setprop file 'vc-working-revision (match-string 2))
+      (vc-file-setprop file 'vc-working-revision nil))
     ;; get file status
     (goto-char (point-min))
     (prog1
@@ -408,7 +408,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   (and oldvers
        (catch 'no
 	 (dolist (f files)
-	   (or (equal oldvers (vc-workfile-version f))
+	   (or (equal oldvers (vc-working-revision f))
 	       (throw 'no nil)))
 	 t)
        ;; Use nil rather than the current revision because svn handles
@@ -566,7 +566,7 @@ information about FILENAME and return its status."
 	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
 	;; Use the last-modified revision, so that searching in vc-print-log
 	;; output works.
-	(vc-file-setprop file 'vc-workfile-version (match-string 3))
+	(vc-file-setprop file 'vc-working-revision (match-string 3))
         ;; Remember Svn's own status.
         (vc-file-setprop file 'vc-svn-status status)
 	(vc-file-setprop
@@ -580,7 +580,7 @@ information about FILENAME and return its status."
 	     'up-to-date))
 	  ((eq status ?A)
 	   ;; If the file was actually copied, (match-string 2) is "-".
-	   (vc-file-setprop file 'vc-workfile-version "0")
+	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
 	   'edited)
 	  ((memq status '(?M ?C))

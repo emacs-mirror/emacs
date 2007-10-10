@@ -492,7 +492,7 @@ For registered files, the value returned is one of:
                      prompt the user to do it)."
   ;; FIXME: New (sub)states needed (?):
   ;; - `added' (i.e. `edited' but with no base version yet,
-  ;;            typically represented by vc-workfile-version = "0")
+  ;;            typically represented by vc-working-revision = "0")
   ;; - `conflict' (i.e. `edited' with conflict markers)
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
@@ -548,13 +548,13 @@ Return non-nil if FILE is unchanged."
                 (signal (car err) (cdr err))
               (vc-call diff (list file)))))))
 
-(defun vc-workfile-version (file)
+(defun vc-working-revision (file)
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
-  (or (vc-file-getprop file 'vc-workfile-version)
+  (or (vc-file-getprop file 'vc-working-revision)
       (if (vc-backend file)
-          (vc-file-setprop file 'vc-workfile-version
-                           (vc-call workfile-version file)))))
+          (vc-file-setprop file 'vc-working-revision
+                           (vc-call working-revision file)))))
 
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
@@ -655,7 +655,7 @@ a regexp for matching all such backup files, regardless of the version."
               "\\.~.+" (unless manual "\\.") "~")
     (expand-file-name (concat (file-name-nondirectory file)
                               ".~" (subst-char-in-string
-                                    ?/ ?_ (or rev (vc-workfile-version file)))
+                                    ?/ ?_ (or rev (vc-working-revision file)))
                               (unless manual ".") "~")
                       (file-name-directory file))))
 
@@ -789,7 +789,7 @@ This function assumes that the file is registered."
   (setq backend (symbol-name backend))
   (let ((state   (vc-state file))
 	(state-echo nil)
-	(rev     (vc-workfile-version file)))
+	(rev     (vc-working-revision file)))
     (propertize
      (cond ((or (eq state 'up-to-date)
 		(eq state 'needs-patch))

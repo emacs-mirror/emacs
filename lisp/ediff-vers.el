@@ -200,7 +200,7 @@ comparison or merge operations are being performed."
       (if ancestor-rev
 	  (save-excursion
 	    (if (string= ancestor-rev "")
-		(setq ancestor-rev (vc-workfile-version buffer-file-name)))
+		(setq ancestor-rev (vc-working-revision buffer-file-name)))
 	    (vc-version-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer))))
       (setq startup-hooks

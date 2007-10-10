@@ -61,10 +61,10 @@ setting @code{vc-cvs-stay-local} to @code{nil} (@pxref{CVS Options}).
 of file @var{file} is @code{@var{file}.~@var{version}.~}.  This is
 almost the same as the name used by @kbd{C-x v ~}
 @iftex
-(@pxref{Old Versions,,,emacs, the Emacs Manual}),
+(@pxref{Old Revisions,,,emacs, the Emacs Manual}),
 @end iftex
 @ifnottex
-(@pxref{Old Versions}),
+(@pxref{Old Revisions}),
 @end ifnottex
 the only difference being the additional dot (@samp{.})  after the
 version number.  This similarity is intentional, because both kinds of
@@ -247,10 +247,10 @@ you need not hesitate to create snapshots whenever they are useful.
   You can give a snapshot name as an argument to @kbd{C-x v =} or
 @kbd{C-x v ~}
 @iftex
-(@pxref{Old Versions,,,emacs, the Emacs Manual}).
+(@pxref{Old Revisions,,,emacs, the Emacs Manual}).
 @end iftex
 @ifnottex
-(@pxref{Old Versions}).
+(@pxref{Old Revisions}).
 @end ifnottex
 Thus, you can use it to compare a snapshot against the current files,
 or two snapshots against each other, or a snapshot against a named

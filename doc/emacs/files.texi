@@ -1233,7 +1233,7 @@ customizable variable @code{vc-handled-backends} to @code{nil}
 * Introduction to VC::  How version control works in general.
 * VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
-* Old Versions::        Examining and comparing old versions.
+* Old Revisions::       Examining and comparing old versions.
 * Secondary VC Commands::    The commands used a little less frequently.
 * Branches::            Multiple lines of development.
 @ifnottex
@@ -1669,7 +1669,7 @@ makes it writable so that you can change it.
 @item
 If the file is locked by you, and contains changes, @kbd{C-x v v} checks
 in the changes.  In order to do this, it first reads the log entry
-for the new version.  @xref{Log Buffer}.
+for the new revision.  @xref{Log Buffer}.
 
 @item
 If the file is locked by you, but you have not changed it since you
@@ -1711,7 +1711,7 @@ to commit your own changes, type @kbd{C-x v m @key{RET}}.)
 @item
 If there are no new changes in the repository, but you have made
 modifications in your work file, @kbd{C-x v v} checks in your changes.
-In order to do this, it first reads the log entry for the new version.
+In order to do this, it first reads the log entry for the new revision.
 @xref{Log Buffer}.
 
 @item
@@ -1723,9 +1723,9 @@ require locking, except that automatic merging of changes from the
 repository is not implemented.  Unfortunately, this means that nothing
 informs you if another user has checked in changes in the same file
 since you began editing it, and when this happens, his changes will be
-effectively removed when you check in your version (though they will
+effectively removed when you check in your revision (though they will
 remain in the repository, so they will not be entirely lost).  You must
-therefore verify that the current version is unchanged, before you
+therefore verify that the current revision is unchanged, before you
 check in your changes.
 
   In addition, locking is possible with RCS even in this mode, although
@@ -1738,7 +1738,7 @@ changes in the repository automatically and notify you when they occur.
 @node Advanced C-x v v
 @subsubsection Advanced Control in @kbd{C-x v v}
 
-@cindex version number to check in/out
+@cindex revision number to check in/out
   When you give a prefix argument to @code{vc-next-action} (@kbd{C-u
 C-x v v}), it still performs the next logical version control
 operation, but accepts additional arguments to specify precisely how
@@ -1746,17 +1746,17 @@ to do the operation.
 
 @itemize @bullet
 @item
-If the file is modified (or locked), you can specify the version
-number to use for the new version that you check in.  This is one way
+If the file is modified (or locked), you can specify the revision ID
+to use for the new version that you check in.  This is one way
 to create a new branch (@pxref{Branches}).
 
 @item
 If the file is not modified (and unlocked), you can specify the
-version to select; this lets you start working from an older version,
-or on another branch.  If you do not enter any version, that takes you
-to the highest version on the current branch; therefore @kbd{C-u C-x
-v v @key{RET}} is a convenient way to get the latest version of a file from
-the repository.
+revision to select; this lets you start working from an older
+revision, or on another branch.  If you do not enter any revision,
+that takes you to the highest (``head'') revision on the current
+branch; therefore @kbd{C-u C-x v v @key{RET}} is a convenient way to
+get the latest version of a file from the repository.
 
 @item
 @cindex specific version control system
@@ -1844,66 +1844,66 @@ these versions are used outside the minibuffer).
 mode, which involves running two hooks: @code{text-mode-hook} and
 @code{vc-log-mode-hook}.  @xref{Hooks}.
 
-@node Old Versions
-@subsection Examining And Comparing Old Versions
+@node Old Revisions
+@subsection Examining And Comparing Old Revisions
 
   One of the convenient features of version control is the ability
-to examine any version of a file, or compare two versions.
+to examine any revision of a file, or compare two revisions.
 
 @table @kbd
-@item C-x v ~ @var{version} @key{RET}
-Examine version @var{version} of the visited file, in a buffer of its
+@item C-x v ~ @var{revision} @key{RET}
+Examine revision @var{revision} of the visited file, in a buffer of its
 own.
 
 @item C-x v =
 Compare the buffer contents of the current
-fileset with the focus version from which you started editing.
+fileset with the repository revision from which you started editing.
 
 @item C-u C-x v = @key{RET} @var{oldvers} @key{RET} @var{newvers} @key{RET}
-Compare the specified two repository versions of the current fileset.
+Compare the specified two repository revisions of the current fileset.
 
 @item C-x v g
-Display the file with per-line version information and using colors.
+Display the file with per-line revision information and using colors.
 @end table
 
-@findex vc-version-other-window
+@findex vc-revision-other-window
 @kindex C-x v ~
-  To examine an old version in its entirety, visit the file and then type
-@kbd{C-x v ~ @var{version} @key{RET}} (@code{vc-version-other-window}).
-This puts the text of version @var{version} in a file named
-@file{@var{filename}.~@var{version}~}, and visits it in its own buffer
-in a separate window.  (In RCS, you can also select an old version
+  To examine an old revision in its entirety, visit the file and then type
+@kbd{C-x v ~ @var{revision} @key{RET}} (@code{vc-revision-other-window}).
+This puts the text of revision @var{revision} in a file named
+@file{@var{filename}.~@var{revision}~}, and visits it in its own buffer
+in a separate window.  (In RCS, you can also select an old revision
 and create a branch from it.  @xref{Branches}.)
 
 @findex vc-diff
 @kindex C-x v =
 @kbd{C-x v =} compares the current buffer contents of each file in the
 current fileset (saving them in the file if necessary) with the
-repository version from which you started editing each file (this is not
-necessarily the latest version of the file).  The diff will be displayed
+repository revision from which you started editing each file (this is not
+necessarily the latest revision of the file).  The diff will be displayed
 in a special buffer in another window.
 
 @findex vc-diff
 @kindex C-u C-x v =
-  You can compare two repository versions of the current fileset with
+  You can compare two repository revisions of the current fileset with
 the command @kbd{C-u C-x v =} (@code{vc-diff}).  @kbd{C-u C-x v =} reads
-two version numbers or tags. The diff will be displayed in a special
+two revision numbers or tags. The diff will be displayed in a special
 buffer in another window.
 
-  You can specify a checked-in version by its number; an empty input
+  You can specify a checked-in revision by its number or ID; an empty input
 specifies the current contents of the work file (which may be different
-from all the checked-in versions).  You can also specify a snapshot name
+from all the checked-in revisions).  You can also specify a snapshot name
 @iftex
 (@pxref{Snapshots,,,emacs-xtra, Specialized Emacs Features})
 @end iftex
 @ifnottex
 (@pxref{Snapshots})
 @end ifnottex
-instead of one or both version numbers.
+instead of one or both revision ID.
 
   Note that if your version-control system is file-oriented (SCCS, RCS,
 CVS) rather than fileset-oriented (CVS, Subversion, GNU Arch) specifying
-a version of a multiple-file fileset by number (as opposed to a snapshot
+a revision of a multiple-file fileset by number (as opposed to a snapshot
 name or RSCCS/RCS tag) is unlikely to return diffs that are connected in
 any meaningful way.
 
@@ -1928,12 +1928,12 @@ the options in @code{vc-rcs-diff-switches}.  The
 Compilation mode (@pxref{Compilation Mode}), such as @kbd{C-x `} and
 @kbd{C-c C-c}, in both the ``old'' and ``new'' text, and they always
 find the corresponding locations in the current work file.  (Older
-versions are not, in general, present as files on your disk.)
+revisions are not, in general, present as files on your disk.)
 
 @findex vc-annotate
 @kindex C-x v g
   For some back ends, you can display the file @dfn{annotated} with
-per-line version information and using colors to enhance the visual
+per-line revision information and using colors to enhance the visual
 appearance, with the command @kbd{M-x vc-annotate}.  It creates a new
 buffer (the ``annotate buffer'') displaying the file's text, with each
 part colored to show how old it is.  Text colored red is new, blue means
@@ -1942,7 +1942,7 @@ the color is scaled over the full range of ages, such that the oldest
 changes are blue, and the newest changes are red.
 
   When you give a prefix argument to this command, it uses the
-minibuffer to read two arguments: which version number to display and
+minibuffer to read two arguments: which revision number to display and
 annotate (instead of the current file contents), and the time span in
 days the color range should cover.  
 
@@ -1980,9 +1980,9 @@ the author's description of the changes in the revision on the current
 line.
 
 @item W
-Annotate the focus version--the one you are editing.  If you used
+Annotate the working revision--the one you are editing.  If you used
 @kbd{P} and @kbd{N} to browse to other revisions, use this key to
-return to your current version.
+return to your working revision.
 @end table
 
 @node Secondary VC Commands
@@ -2035,15 +2035,15 @@ situation.
   If locking is in use, @kbd{C-x v i} leaves the file unlocked and
 read-only.  Type @kbd{C-x v v} if you wish to start editing it.  After
 registering a file with CVS, you must subsequently commit the initial
-version by typing @kbd{C-x v v}.  Until you do that, the version
+revision by typing @kbd{C-x v v}.  Until you do that, the revision ID
 appears as @samp{@@@@} in the mode line.
 
-@vindex vc-default-init-version
-@cindex initial version number to register
-  The initial version number for a newly registered file is 1.1, by
+@vindex vc-default-init-revision
+@cindex initial revision number to register
+  The initial revision number for a newly registered file is 1.1, by
 default.  You can specify a different default by setting the variable
-@code{vc-default-init-version}, or you can give @kbd{C-x v i} a numeric
-argument; then it reads the initial version number for this particular
+@code{vc-default-init-revision}, or you can give @kbd{C-x v i} a numeric
+argument; then it reads the initial revision number for this particular
 file using the minibuffer.
 
 @vindex vc-initial-comment
@@ -2056,12 +2056,12 @@ the initial comment works like reading a log entry (@pxref{Log Buffer}).
 
 @table @kbd
 @item C-x v l
-Display version control state and change history.
+Display revision control state and change history.
 @end table
 
 @kindex C-x v l
 @findex vc-print-log
-  To view the detailed version control status and history of a file,
+  To view the detailed revision control status and history of a file,
 type @kbd{C-x v l} (@code{vc-print-log}).  It displays the history of
 changes to the current file, including the text of the log entries.  The
 output appears in a separate window.  The point is centered at the
@@ -2109,7 +2109,7 @@ It also takes a numeric prefix argument as a repeat count.
 
 @item f
 Visit the revision indicated at the current line, like typing @kbd{C-x
-v ~} and specifying this revision's number (@pxref{Old Versions}).
+v ~} and specifying this revision's number (@pxref{Old Revisions}).
 
 @item d
 Display the diff (@pxref{Comparing Files}) between the revision
@@ -2123,7 +2123,7 @@ current line was committed.
 
 @table @kbd
 @item C-x v u
-Revert the buffer and the file to the version from which you started
+Revert the buffer and the file to the working revision from which you started
 editing the file.
 
 @item C-x v c
@@ -2134,11 +2134,12 @@ This undoes your last check-in.
 @kindex C-x v u
 @findex vc-revert-buffer
   If you want to discard your current set of changes and revert to the
-version from which you started editing the file, use @kbd{C-x v u}
+working revision from which you started editing the file, use @kbd{C-x v u}
 (@code{vc-revert-buffer}).  This leaves the file unlocked; if locking
 is in use, you must first lock the file again before you change it
 again.  @kbd{C-x v u} requires confirmation, unless it sees that you
-haven't made any changes with respect to the master version.
+haven't made any changes with respect to the master copy of the
+working revision.
 
   @kbd{C-x v u} is also the command to unlock a file if you lock it and
 then decide not to change it.
@@ -2147,8 +2148,8 @@ then decide not to change it.
 @findex vc-rollback
   To cancel a change that you already checked in, use @kbd{C-x v c}
 (@code{vc-rollback}).  This command discards all record of the most
-recent checked-in version, but only if your work file corresponds to
-that version---you cannot use @kbd{C-x v c} to cancel a version that is
+recent checked-in revision, but only if your work file corresponds to
+that revision---you cannot use @kbd{C-x v c} to cancel a revision that is
 not the latest on its branch.  Note that many version-control systems do
 not support rollback at all; this command is something of a historical 
 relic.
@@ -2166,7 +2167,7 @@ relic.
 @cindex trunk (version control)
 
   One use of version control is to maintain multiple ``current''
-versions of a file.  For example, you might have different versions of a
+revisions of a file.  For example, you might have different revisions of a
 program in which you are gradually adding various unfinished new
 features.  Each such independent line of development is called a
 @dfn{branch}.  VC allows you to create branches, switch between
@@ -2174,17 +2175,17 @@ different branches, and merge changes from one branch to another.
 Please note, however, that branches are not supported for SCCS.
 
   A file's main line of development is usually called the @dfn{trunk}.
-The versions on the trunk are normally numbered 1.1, 1.2, 1.3, etc.  At
-any such version, you can start an independent branch.  A branch
-starting at version 1.2 would have version number 1.2.1.1, and consecutive
-versions on this branch would have numbers 1.2.1.2, 1.2.1.3, 1.2.1.4,
-and so on.  If there is a second branch also starting at version 1.2, it
-would consist of versions 1.2.2.1, 1.2.2.2, 1.2.2.3, etc.
+The revisions on the trunk are normally numbered 1.1, 1.2, 1.3, etc.  At
+any such revision, you can start an independent branch.  A branch
+starting at revision 1.2 would have revision number 1.2.1.1, and consecutive
+revisions on this branch would have numbers 1.2.1.2, 1.2.1.3, 1.2.1.4,
+and so on.  If there is a second branch also starting at revision 1.2, it
+would consist of revisions 1.2.2.1, 1.2.2.2, 1.2.2.3, etc.
 
-@cindex head version
-  If you omit the final component of a version number, that is called a
-@dfn{branch number}.  It refers to the highest existing version on that
-branch---the @dfn{head version} of that branch.  The branches in the
+@cindex head revision
+  If you omit the final component of a revision number, that is called a
+@dfn{branch number}.  It refers to the highest existing revision on that
+branch---the @dfn{head revision} of that branch.  The branches in the
 example above have branch numbers 1.2.1 and 1.2.2.
 
 @menu
@@ -2199,14 +2200,15 @@ example above have branch numbers 1.2.1 and 1.2.2.
 @subsubsection Switching between Branches
 
   To switch between branches, type @kbd{C-u C-x v v} and specify the
-version number you want to select.  On a locking-based system, this
+revision ID you want to select.  On a locking-based system, this
 version is then visited @emph{unlocked} (write-protected), so you can
 examine it before locking it.  Switching branches in this way is allowed
 only when the file is not locked.
 
-  You can omit the minor version number, thus giving only the branch
-number; this takes you to the head version on the chosen branch.  If you
-only type @key{RET}, Emacs goes to the highest version on the trunk.
+  On a VS with RCS-like revision numbering, you can omit the minor
+revision number, thus giving only the branch number; this takes you to
+the head version on the chosen branch.  If you only type @key{RET},
+Emacs goes to the highest version on the trunk.
 
   After you have switched to any branch (including the main branch), you
 stay on it for subsequent VC commands, until you explicitly select some
@@ -2215,36 +2217,36 @@ other branch.
 @node Creating Branches
 @subsubsection Creating New Branches
 
-  To create a new branch from a head version (one that is the latest in
-the branch that contains it), first select that version if necessary,
+  To create a new branch from a head revision (one that is the latest in
+the branch that contains it), first select that revision if necessary,
 lock it with @kbd{C-x v v}, and make whatever changes you want.  Then,
 when you check in the changes, use @kbd{C-u C-x v v}.  This lets you
-specify the version number for the new version.  You should specify a
-suitable branch number for a branch starting at the current version.
-For example, if the current version is 2.5, the branch number should be
+specify the revision number for the new revision.  You should specify a
+suitable branch number for a branch starting at the current revision.
+For example, if the current revision is 2.5, the branch number should be
 2.5.1, 2.5.2, and so on, depending on the number of existing branches at
 that point.
 
-  To create a new branch at an older version (one that is no longer the
-head of a branch), first select that version (@pxref{Switching
+  To create a new branch at an older revision (one that is no longer the
+head of a branch), first select that revision (@pxref{Switching
 Branches}).  Your procedure will then differ depending on whether you
 are using a locking or merging-based VCS.
 
-  On a locking VCS, you will need to lock the old version branch with
+  On a locking VCS, you will need to lock the old revision branch with
 @kbd{C-x v v}.  You'll be asked to confirm, when you lock the old
-version, that you really mean to create a new branch---if you say no,
-you'll be offered a chance to lock the latest version instead.  On
+revision, that you really mean to create a new branch---if you say no,
+you'll be offered a chance to lock the latest revision instead.  On
 a merging-based VCS you will skip this step.
 
   Then make your changes and type @kbd{C-x v v} again to check in a new
-version.  This automatically creates a new branch starting from the
-selected version.  You need not specially request a new branch, because
-that's the only way to add a new version at a point that is not the head
+revision.  This automatically creates a new branch starting from the
+selected revision.  You need not specially request a new branch, because
+that's the only way to add a new revision at a point that is not the head
 of a branch.
 
   After the branch is created, you ``stay'' on it.  That means that
-subsequent check-ins create new versions on that branch.  To leave the
-branch, you must explicitly select a different version with @kbd{C-u C-x
+subsequent check-ins create new revisions on that branch.  To leave the
+branch, you must explicitly select a different revision with @kbd{C-u C-x
 v v}.  To transfer changes from one branch to another, use the merge
 command, described in the next section.
 
@@ -2274,26 +2276,26 @@ since you checked the file out (we call this @dfn{merging the news}).
 This is the common way to pick up recent changes from the repository,
 regardless of whether you have already changed the file yourself.
 
-  You can also enter a branch number or a pair of version numbers in
+  You can also enter a branch number or a pair of revision numbers in
 the minibuffer.  Then @kbd{C-x v m} finds the changes from that
-branch, or the differences between the two versions you specified, and
-merges them into the current version of the current file.
+branch, or the differences between the two revisions you specified, and
+merges them into the current revision of the current file.
 
   As an example, suppose that you have finished a certain feature on
 branch 1.3.1.  In the meantime, development on the trunk has proceeded
-to version 1.5.  To merge the changes from the branch to the trunk,
-first go to the head version of the trunk, by typing @kbd{C-u C-x v v
-@key{RET}}.  Version 1.5 is now current.  If locking is used for the file,
-type @kbd{C-x v v} to lock version 1.5 so that you can change it.  Next,
+to revision 1.5.  To merge the changes from the branch to the trunk,
+first go to the head revision of the trunk, by typing @kbd{C-u C-x v v
+@key{RET}}.  Revision 1.5 is now current.  If locking is used for the file,
+type @kbd{C-x v v} to lock revision 1.5 so that you can change it.  Next,
 type @kbd{C-x v m 1.3.1 @key{RET}}.  This takes the entire set of changes on
-branch 1.3.1 (relative to version 1.3, where the branch started, up to
-the last version on the branch) and merges it into the current version
+branch 1.3.1 (relative to revision 1.3, where the branch started, up to
+the last revision on the branch) and merges it into the current revision
 of the work file.  You can now check in the changed file, thus creating
-version 1.6 containing the changes from the branch.
+revision 1.6 containing the changes from the branch.
 
   It is possible to do further editing after merging the branch, before
 the next check-in.  But it is usually wiser to check in the merged
-version, then lock it and make the further changes.  This will keep
+revision, then lock it and make the further changes.  This will keep
 a better record of the history of changes.
 
 @cindex conflicts
@@ -2311,7 +2313,7 @@ Ediff, Ediff, ediff, The Ediff Manual}).
   If you say no, the conflicting changes are both inserted into the
 file, surrounded by @dfn{conflict markers}.  The example below shows how
 a conflict region looks; the file is called @samp{name} and the current
-master file version with user B's changes in it is 1.11.
+master file revision with user B's changes in it is 1.11.
 
 @c @w here is so CVS won't think this is a conflict.
 @smallexample
@@ -2338,7 +2340,7 @@ different branches of a file.  CVS allows this by default; for RCS, it
 is possible if you create multiple source directories.  Each source
 directory should have a link named @file{RCS} which points to a common
 directory of RCS master files.  Then each source directory can have its
-own choice of selected versions, but all share the same common RCS
+own choice of selected revisions, but all share the same common RCS
 records.
 
   This technique works reliably and automatically, provided that the

@@ -238,7 +238,7 @@ If any error occurred in running `bzr status', then return nil."
 (defun vc-bzr-workfile-unchanged-p (file)
   (eq 'unchanged (car (vc-bzr-status file))))
 
-(defun vc-bzr-workfile-version (file)
+(defun vc-bzr-working-revision (file)
   (lexical-let*
       ((rootdir (vc-bzr-root file))
        (branch-format-file (expand-file-name vc-bzr-admin-branch-format-file
@@ -377,7 +377,7 @@ EDITABLE is ignored."
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  (let ((working (vc-workfile-version (if (consp files) (car files) files))))
+  (let ((working (vc-working-revision (if (consp files) (car files) files))))
     (if (and (equal rev1 working) (not rev2))
         (setq rev1 nil))
     (if (and (not rev1) rev2)
@@ -546,7 +546,7 @@ Optional argument LOCALP is always ignored."
               (vc-file-setprop file 'vc-state current-vc-state)
               (vc-file-setprop file 'vc-bzr-state current-bzr-state)
               (when (eq 'added current-bzr-state)
-                (vc-file-setprop file 'vc-workfile-version "0"))))
+                (vc-file-setprop file 'vc-working-revision "0"))))
           (when (eq 'not-versioned current-bzr-state)
             (let ((file (expand-file-name
                          (buffer-substring-no-properties

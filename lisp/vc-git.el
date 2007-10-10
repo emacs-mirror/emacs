@@ -53,7 +53,7 @@
 ;; * state (file)				   OK
 ;; - state-heuristic (file)			   NOT NEEDED
 ;; - dir-state (dir)				   OK
-;; * workfile-version (file)			   OK
+;; * working-revision (file)			   OK
 ;; - latest-on-branch-p (file)			   NOT NEEDED
 ;; * checkout-model (file)			   OK
 ;; - workfile-unchanged-p (file)		   OK
@@ -62,13 +62,13 @@
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()				   OK
 ;; * register (files &optional rev comment)	   OK
-;; - init-version (file)			   NOT NEEDED
+;; - init-revision (file)			   NOT NEEDED
 ;; - responsible-p (file)			   OK
 ;; - could-register (file)			   NOT NEEDED, DEFAULT IS GOOD
 ;; - receive-file (file rev)			   NOT NEEDED
 ;; - unregister (file)				   OK
 ;; * checkin (files rev comment)		   OK
-;; * find-version (file rev buffer)		   OK
+;; * find-revision (file rev buffer)		   OK
 ;; * checkout (file &optional editable rev)	   OK
 ;; * revert (file &optional contents-done)	   OK
 ;; - rollback (files)				   COULD BE SUPPORTED
@@ -177,8 +177,8 @@
 	  (vc-file-setprop file 'vc-state 'nil)))
 	(forward-line)))))
 
-(defun vc-git-workfile-version (file)
-  "Git-specific version of `vc-workfile-version'."
+(defun vc-git-working-revision (file)
+  "Git-specific version of `vc-working-revision'."
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
                  (call-process "git" nil '(t nil) nil "symbolic-ref" "HEAD")))))
@@ -194,7 +194,7 @@
 
 (defun vc-git-mode-line-string (file)
   "Return string for placement into the modeline for FILE."
-  (let* ((branch (vc-git-workfile-version file))
+  (let* ((branch (vc-git-working-revision file))
          (def-ml (vc-default-mode-line-string 'Git file))
          (help-echo (get-text-property 0 'help-echo def-ml)))
     (if (zerop (length branch))
@@ -232,7 +232,7 @@
   (let ((coding-system-for-write git-commits-coding-system))
     (vc-git-command nil 0 files "commit" "-m" comment "--only" "--")))
 
-(defun vc-git-find-version (file rev buffer)
+(defun vc-git-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)
         (coding-system-for-write 'binary)
 	(fullname (substring

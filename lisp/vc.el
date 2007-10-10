@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.139 2007/10/10 13:14:41 esr Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -110,7 +110,7 @@
 ;; VC keeps some per-file information in the form of properties (see
 ;; vc-file-set/getprop in vc-hooks.el).  The backend-specific functions
 ;; do not generally need to be aware of these properties.  For example,
-;; `vc-sys-workfile-version' should compute the focus version and
+;; `vc-sys-working-revision' should compute the working revision and
 ;; return it; it should not look it up in the property, and it needn't
 ;; store it there either.  However, if a backend-specific function does
 ;; store a value in a property, that value takes precedence over any
@@ -164,19 +164,19 @@
 ;;   anything, but rather store the files' states into the corresponding
 ;;   `vc-state' properties.
 ;;
-;; * workfile-version (file)
+;; * working-revision (file)
 ;;
-;;   Return the current focus version of FILE.  This is the version fetched
+;;   Return the working revision of FILE.  This is the revision fetched
 ;;   by the last checkout or upate, not necessarily the same thing as the
-;;   head or tip version. Should return "0" for a file added but not yet 
+;;   head or tip revision. Should return "0" for a file added but not yet 
 ;;   committed.
 ;;
 ;; - latest-on-branch-p (file)
 ;;
-;;   Return non-nil if the focus version of FILE is the latest version
-;;   on its branch (many VCSes call this the 'tip' or 'head' version).
+;;   Return non-nil if the working revision of FILE is the latest revision
+;;   on its branch (many VCSes call this the 'tip' or 'head' revision).
 ;;   The default implementation always returns t, which means that
-;;   working with non-current versions is not supported by default.
+;;   working with non-current revisions is not supported by default.
 ;;
 ;; * checkout-model (file)
 ;;
@@ -185,13 +185,13 @@
 ;;
 ;; - workfile-unchanged-p (file)
 ;;
-;;   Return non-nil if FILE is unchanged from the focus version.  This
-;;   function should do a brief comparison of FILE's contents with
-;;   those of the repository version.  If the backend does not have
-;;   such a brief-comparison feature, the default implementation of
-;;   this function can be used, which delegates to a full
-;;   vc-BACKEND-diff.  (Note that vc-BACKEND-diff must not run
-;;   asynchronously in this case, see variable
+;;   Return non-nil if FILE is unchanged from the working revision.
+;;   This function should do a brief comparison of FILE's contents
+;;   with those of the repository master of the working revision.  If
+;;   the backend does not have such a brief-comparison feature, the
+;;   default implementation of this function can be used, which
+;;   delegates to a full vc-BACKEND-diff.  (Note that vc-BACKEND-diff
+;;   must not run asynchronously in this case, see variable
 ;;   `vc-disable-async-diff'.)
 ;;
 ;; - mode-line-string (file)
@@ -226,11 +226,11 @@
 ;;   to the backend command.  (Note: in older versions of VC, this 
 ;;   command took a single file argument and not a list.)
 ;;
-;; - init-version (file)
+;; - init-revision (file)
 ;;
-;;   The initial version to use when registering FILE if one is not
+;;   The initial revision to use when registering FILE if one is not
 ;;   specified by the user.  If not provided, the variable
-;;   vc-default-init-version is used instead.
+;;   vc-default-init-revision is used instead.
 ;;
 ;; - responsible-p (file)
 ;;
@@ -267,7 +267,7 @@
 ;;   the backend command. (Note: in older versions of VC, this 
 ;;   command took a single file argument and not a list.)
 ;;
-;; * find-version (file rev buffer)
+;; * find-revision (file rev buffer)
 ;;
 ;;   Fetch revision REV of file FILE and put it into BUFFER.
 ;;   If REV is the empty string, fetch the head of the trunk.
@@ -279,7 +279,7 @@
 ;;   Check out revision REV of FILE into the working area.  If EDITABLE
 ;;   is non-nil, FILE should be writable by the user and if locking is
 ;;   used for FILE, a lock should also be set.  If REV is non-nil, that
-;;   is the revision to check out (default is the focus version).
+;;   is the revision to check out (default is the working revision).
 ;;   If REV is t, that means to check out the head of the current branch;
 ;;   if it is the empty string, check out the head of the trunk.
 ;;   The implementation should pass the value of vc-checkout-switches
@@ -287,15 +287,15 @@
 ;;
 ;; * revert (file &optional contents-done)
 ;;
-;;   Revert FILE back to the current focus version.  If optional
+;;   Revert FILE back to the working revision.  If optional
 ;;   arg CONTENTS-DONE is non-nil, then the contents of FILE have
 ;;   already been reverted from a version backup, and this function
 ;;   only needs to update the status of FILE within the backend.
 ;;
 ;; - rollback (files)
 ;;
-;;   Remove the tip version of each of FILES from the repository.  If
-;;   this function is not provided, trying to cancel a version is
+;;   Remove the tip revision of each of FILES from the repository.  If
+;;   this function is not provided, trying to cancel a revision is
 ;;   caught as an error.  (Most backends don't provide it.)  (Also
 ;;   note that older versions of this backend command were called
 ;;   'cancel-version' and took a single file arg, not a list of
@@ -309,9 +309,9 @@
 ;;
 ;;   Merge recent changes from the current branch into FILE.
 ;;
-;; - steal-lock (file &optional version)
+;; - steal-lock (file &optional revision)
 ;;
-;;   Steal any lock on the focus version of FILE, or on VERSION if
+;;   Steal any lock on the working revision of FILE, or on REVISION if
 ;;   that is provided.  This function is only needed if locking is
 ;;   used for files under this backend, and if files can indeed be
 ;;   locked by other users.
@@ -330,9 +330,9 @@
 ;;   `log-view-mode' and is expected to be changed (if at all) to a derived
 ;;   mode of `log-view-mode'.
 ;;
-;; - show-log-entry (version)
+;; - show-log-entry (revision)
 ;;
-;;   If provided, search the log entry for VERSION in the current buffer,
+;;   If provided, search the log entry for REVISION in the current buffer,
 ;;   and make sure it is displayed in the buffer's window.  The default
 ;;   implementation of this function works for RCS-style logs.
 ;;
@@ -366,13 +366,13 @@
 ;;
 ;;   Insert the diff for FILE into BUFFER, or the *vc-diff* buffer if
 ;;   BUFFER is nil.  If REV1 and REV2 are non-nil, report differences
-;;   from REV1 to REV2.  If REV1 is nil, use the current focus
-;;   version (as found in the repository) as the older version; if
-;;   REV2 is nil, use the current working-copy contents as the newer
-;;   version.  This function should pass the value of (vc-switches
-;;   BACKEND 'diff) to the backend command.  It should return a status
-;;   of either 0 (no differences found), or 1 (either non-empty diff
-;;   or the diff is run asynchronously).
+;;   from REV1 to REV2.  If REV1 is nil, use the working revision (as
+;;   found in the repository) as the older revision; if REV2 is nil,
+;;   use the current working-copy contents as the newer revision.  This
+;;   function should pass the value of (vc-switches BACKEND 'diff) to
+;;   the backend command.  It should return a status of either 0 (no
+;;   differences found), or 1 (either non-empty diff or the diff is
+;;   run asynchronously).
 ;;
 ;; - revision-completion-table (file)
 ;;
@@ -389,7 +389,7 @@
 ;; - annotate-command (file buf &optional rev)
 ;;
 ;;   If this function is provided, it should produce an annotated display
-;;   of FILE in BUF, relative to version REV.  Annotation means each line
+;;   of FILE in BUF, relative to revision REV.  Annotation means each line
 ;;   of FILE displayed is prefixed with version information associated with
 ;;   its addition (deleted lines leave no history) and that the text of the
 ;;   file is fontified according to age.
@@ -437,7 +437,7 @@
 ;;
 ;; - assign-name (file name)
 ;;
-;;   Give name NAME to the current version of FILE, assuming it is
+;;   Give name NAME to the working revision of FILE, assuming it is
 ;;   up-to-date.  Only used by the default version of `create-snapshot'.
 ;;
 ;; - retrieve-snapshot (dir name update)
@@ -447,13 +447,13 @@
 ;;   snapshot that are currently visited.  The default implementation
 ;;   does a sanity check whether there aren't any uncommitted changes at
 ;;   or below DIR, and then performs a tree walk, using the `checkout'
-;;   function to retrieve the corresponding versions.
+;;   function to retrieve the corresponding revisions.
 ;;
 ;; MISCELLANEOUS
 ;;
 ;; - make-version-backups-p (file)
 ;;
-;;   Return non-nil if unmodified repository versions of FILE should be
+;;   Return non-nil if unmodified repository revisions of FILE should be
 ;;   backed up locally.  If this is done, VC can perform `diff' and
 ;;   `revert' operations itself, without calling the backend system.  The
 ;;   default implementation always returns nil.
@@ -466,15 +466,15 @@
 ;;   This function is used in `vc-stay-local-p' which backends can use
 ;;   for their convenience.
 ;;
-;; - previous-version (file rev)
+;; - previous-revision (file rev)
 ;;
-;;   Return the version number that precedes REV for FILE, or nil if no such
-;;   version exists.
+;;   Return the revision number that precedes REV for FILE, or nil if no such
+;;   revision exists.
 ;;
-;; - next-version (file rev)
+;; - next-revision (file rev)
 ;;
-;;   Return the version number that follows REV for FILE, or nil if no such
-;;   version exists.
+;;   Return the revision number that follows REV for FILE, or nil if no such
+;;   revision exists.
 ;;
 ;; - check-headers ()
 ;;
@@ -559,8 +559,8 @@ preserve the setting."
   :type 'boolean
   :group 'vc)
 
-(defcustom vc-default-init-version "1.1"
-  "A string used as the default version number when a new file is registered.
+(defcustom vc-default-init-revision "1.1"
+  "A string used as the default revision number when a new file is registered.
 This can be overridden by giving a prefix argument to \\[vc-register].  This
 can also be overridden by a particular VC backend."
   :type 'string
@@ -778,9 +778,9 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
     (define-key m "D" 'vc-annotate-show-diff-revision-at-line)
     (define-key m "J" 'vc-annotate-revision-at-line)
     (define-key m "L" 'vc-annotate-show-log-revision-at-line)
-    (define-key m "N" 'vc-annotate-next-version)
-    (define-key m "P" 'vc-annotate-prev-version)
-    (define-key m "W" 'vc-annotate-focus-version)
+    (define-key m "N" 'vc-annotate-next-revision)
+    (define-key m "P" 'vc-annotate-prev-revision)
+    (define-key m "W" 'vc-annotate-working-revision)
     m)
   "Local keymap used for VC-Annotate mode.")
 
@@ -838,7 +838,7 @@ Backends that offer asynchronous diffs should respect this variable
 in their implementation of vc-BACKEND-diff.")
 
 (defvar vc-log-fileset)
-(defvar vc-log-version)
+(defvar vc-log-revision)
 
 (defvar vc-dired-mode nil)
 (make-variable-buffer-local 'vc-dired-mode)
@@ -1315,7 +1315,7 @@ Otherwise, throw an error.
 
 (defun vc-revert-buffer-internal (&optional arg no-confirm)
   "Revert buffer, keeping point and mark where user expects them.
-Try to be clever in the face of changes due to expanded version control
+Try to be clever in the face of changes due to expanded version-control
 key words.  This is important for typeahead to work as expected.
 ARG and NO-CONFIRM are passed on to `revert-buffer'."
   (interactive "P")
@@ -1381,7 +1381,7 @@ merge in the changes into your working copy."
 	 (backend (vc-backend (car files)))
 	 (state (vc-state (car files)))
 	 (model (vc-checkout-model (car files)))
-	 version)
+	 revision)
     ;; Verify that the fileset is homogenous
     (dolist (file (cdr files))
       (if (not (eq (vc-state file) state))
@@ -1416,17 +1416,17 @@ merge in the changes into your working copy."
      ;; Files aren't registered
      ((not state)
       (mapc 'vc-register files))
-     ;; Files are up-to-date, or need a merge and user specified a version
+     ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-patch)))
       (cond
        (verbose
-	;; go to a different version
-	(setq version (read-string "Branch, version, or backend to move to: "))
-	(let ((vsym (intern-soft (upcase version))))
+	;; go to a different revision
+	(setq revision (read-string "Branch, revision, or backend to move to: "))
+	(let ((vsym (intern-soft (upcase revision))))
 	  (if (member vsym vc-handled-backends)
 	      (mapc (lambda (file) vc-transfer-file file vsym) files)
 	    (mapc (lambda (file) 
-		    (vc-checkout file (eq model 'implicit) version))))))
+		    (vc-checkout file (eq model 'implicit) revision))))))
        ((not (eq model 'implicit))
 	;; check the files out
 	(mapc (lambda (file) (vc-checkout file t)) files))
@@ -1472,27 +1472,27 @@ merge in the changes into your working copy."
 	  (if (not verbose)
 	      (vc-checkin ready-for-commit)
 	    (progn
-	      (setq version (read-string "New version or backend: "))
-	      (let ((vsym (intern (upcase version))))
+	      (setq revision (read-string "New revision or backend: "))
+	      (let ((vsym (intern (upcase revision))))
 		(if (member vsym vc-handled-backends)
 		    (vc-transfer-file file vsym)
-		  (vc-checkin ready-for-commit version))))))))
+		  (vc-checkin ready-for-commit revision))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
-      (let ((version 
+      (let ((revision 
 	     (if verbose 
-		 (read-string "Version to steal: ")
-	       (vc-workfile-version file))))
-	(mapc (lambda (file) (vc-steal-lock file version) state) files)))
+		 (read-string "Revision to steal: ")
+	       (vc-working-revision file))))
+	(mapc (lambda (file) (vc-steal-lock file revision) state) files)))
 	;; needs-patch
      ((eq state 'needs-patch)
       (dolist (file files)
 	(if (yes-or-no-p (format
-			  "%s is not up-to-date.  Get latest version? "
+			  "%s is not up-to-date.  Get latest revision? "
 			  (file-name-nondirectory file)))
 	    (vc-checkout file (eq model 'implicit) t)
 	  (if (and (not (eq model 'implicit))
-		   (yes-or-no-p "Lock this version? "))
+		   (yes-or-no-p "Lock this revision? "))
 	      (vc-checkout file t)))))
      ;; needs-merge
      ((eq state 'needs-merge)
@@ -1510,7 +1510,7 @@ merge in the changes into your working copy."
 	(if (save-window-excursion
 	      (vc-diff-internal 
 	       (vc-backend file) nil (list file)
-	       (vc-workfile-version file) nil)
+	       (vc-working-revision file) nil)
 	      (goto-char (point-min))
 	      (let ((inhibit-read-only t))
 		(insert
@@ -1526,7 +1526,7 @@ merge in the changes into your working copy."
 		   (write-file buffer-file-name)
 		   (vc-mode-line file))
 	  (if (not (yes-or-no-p
-		    "Revert to checked-in version, instead? "))
+		    "Revert to checked-in revision, instead? "))
 	      (error "Checkout aborted")
 	    (vc-revert-buffer-internal t t)
 	    (vc-checkout file t))))))))
@@ -1544,9 +1544,9 @@ merge in the changes into your working copy."
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
-(defun vc-register (&optional set-version comment)
+(defun vc-register (&optional set-revision comment)
   "Register the current file into a version control system.
-With prefix argument SET-VERSION, allow user to specify initial version
+With prefix argument SET-REVISION, allow user to specify initial revision
 level.  If COMMENT is present, use that as an initial comment.
 
 The version control system to use is found by cycling through the list
@@ -1571,11 +1571,11 @@ first backend that could register the file is used."
   (vc-buffer-sync)
 
   (vc-start-entry (list buffer-file-name)
-                  (if set-version
-                      (read-string (format "Initial version level for %s: "
+                  (if set-revision
+                      (read-string (format "Initial revision level for %s: "
 					   (buffer-name)))
 		    (vc-call-backend (vc-responsible-backend buffer-file-name)
-				     'init-version))
+				     'init-revision))
                   (or comment (not vc-initial-comment))
 		  nil
                   "Enter initial comment."
@@ -1666,7 +1666,7 @@ for vc-log-operation-hook."
     (if after-hook
 	(setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
-    (setq vc-log-version rev)
+    (setq vc-log-revision rev)
     (when comment
       (erase-buffer)
       (when (stringp comment) (insert comment)))
@@ -1734,7 +1734,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
 
 (defun vc-checkin (files &optional rev comment initial-contents)
   "Check in FILES.
-The optional argument REV may be a string specifying the new version
+The optional argument REV may be a string specifying the new revision
 level (if nil increment the current level).  COMMENT is a comment
 string; if omitted, a buffer is popped up to accept a comment.  If
 INITIAL-CONTENTS is non-nil, then COMMENT is used as the initial contents
@@ -1762,7 +1762,7 @@ Runs the normal hook `vc-checkin-hook'."
 	(mapc 'vc-delete-automatic-version-backups files))
       `((vc-state . up-to-date)
 	(vc-checkout-time . ,(nth 5 (file-attributes file)))
-	(vc-workfile-version . nil)))
+	(vc-working-revision . nil)))
      (message "Checking in %s...done" (vc-delistify files)))
    'vc-checkin-hook))
 
@@ -1788,7 +1788,7 @@ the buffer contents as a comment."
   ;; save the parameters held in buffer-local variables
   (let ((log-operation vc-log-operation)
 	(log-fileset vc-log-fileset)
-	(log-version vc-log-version)
+	(log-revision vc-log-revision)
 	(log-entry (buffer-string))
 	(after-hook vc-log-after-operation-hook)
 	(tmp-vc-parent-buffer vc-parent-buffer))
@@ -1797,7 +1797,7 @@ the buffer contents as a comment."
     (save-excursion
       (funcall log-operation
 	       log-fileset
-	       log-version
+	       log-revision
 	       log-entry))
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the *VC-log* buffer and the typing therein).
@@ -1822,7 +1822,7 @@ the buffer contents as a comment."
 
 (defun vc-default-diff-tree (backend dir rev1 rev2)
   "List differences for all registered files at and below DIR.
-The meaning of REV1 and REV2 is the same as for `vc-version-diff'."
+The meaning of REV1 and REV2 is the same as for `vc-revision-diff'."
   ;; This implementation does an explicit tree walk, and calls
   ;; vc-BACKEND-diff directly for each file.  An optimization
   ;; would be to use `vc-diff-internal', so that diffs can be local,
@@ -1898,7 +1898,7 @@ The meaning of REV1 and REV2 is the same as for `vc-version-diff'."
 Diff output goes to the *vc-diff* buffer.  The function
 returns t if the buffer had changes, nil otherwise."
   (let* ((filenames (vc-delistify files))
-	 (rev1-name (or rev1 "focus version"))
+	 (rev1-name (or rev1 "working revision"))
 	 (rev2-name (or rev2 "workfile"))
 	 ;; Set coding system based on the first file.  It's a kluge,
 	 ;; but the only way to set it for each file included would
@@ -1912,7 +1912,7 @@ returns t if the buffer had changes, nil otherwise."
     ;; Do that work here so the backends don't have to futz with it.
     (let ((filtered '()))
       (dolist (file files)
-	(cond ((and (not (file-directory-p file)) (string= (vc-workfile-version file) "0"))
+	(cond ((and (not (file-directory-p file)) (string= (vc-working-revision file) "0"))
 	       (progn
 		 ;; This file is added but not yet committed; 
 		 ;; there is no master file to diff against.
@@ -1947,28 +1947,28 @@ returns t if the buffer had changes, nil otherwise."
 	  (rev1-default nil)
 	  (rev2-default nil))
      (cond
-      ;; someday we may be able to do version completion on non-singleton
+      ;; someday we may be able to do revision completion on non-singleton
       ;; filesets, but not yet.
       ((/= (length files) 1)
        nil)
-      ;; if it's a directory, don't supply any version default
+      ;; if it's a directory, don't supply any revision default
       ((file-directory-p first)
        nil)
-      ;; if the file is not up-to-date, use current version as older version
+      ;; if the file is not up-to-date, use working revision as older revision
       ((not (vc-up-to-date-p first))
-       (setq rev1-default (vc-workfile-version first)))
-      ;; if the file is not locked, use last and previous version as default
+       (setq rev1-default (vc-working-revision first)))
+      ;; if the file is not locked, use last and previous revisions as defaults
       (t
-       (setq rev1-default (vc-call previous-version first
-				   (vc-workfile-version first)))
+       (setq rev1-default (vc-call previous-revision first
+				   (vc-working-revision first)))
        (if (string= rev1-default "") (setq rev1-default nil))
-       (setq rev2-default (vc-workfile-version first))))
+       (setq rev2-default (vc-working-revision first))))
      ;; construct argument list
      (let* ((rev1-prompt (if rev1-default
-			     (concat "Older version (default "
+			     (concat "Older revision (default "
 				     rev1-default "): ")
-			   "Older version: "))
-	    (rev2-prompt (concat "Newer version (default "
+			   "Older revision: "))
+	    (rev2-prompt (concat "Newer revision (default "
 				 (or rev2-default "current source") "): "))
 	    (rev1 (if completion-table
 		      (completing-read rev1-prompt completion-table
@@ -1987,11 +1987,11 @@ returns t if the buffer had changes, nil otherwise."
 
 ;;;###autoload
 (defun vc-diff (historic)
-  "Display diffs between file versions.
+  "Display diffs between file revisions.
 Normally this compares the current file and buffer with the most
-recent checked in version of that file.  This uses no arguments.  With
+recent checked in revision of that file.  This uses no arguments.  With
 a prefix argument HISTORIC, it reads the file name to use and two
-version designators specifying which versions to compare."
+revision designators specifying which revisions to compare."
   (interactive "P")
   (if historic
       (call-interactively 'vc-history-diff)
@@ -2005,32 +2005,32 @@ version designators specifying which versions to compare."
       (vc-diff-internal backend t files nil nil (interactive-p)))))
 
 ;;;###autoload
-(defun vc-version-other-window (rev)
-  "Visit version REV of the current file in another window.
-If the current file is named `F', the version is named `F.~REV~'.
+(defun vc-revision-other-window (rev)
+  "Visit revision REV of the current file in another window.
+If the current file is named `F', the revision is named `F.~REV~'.
 If `F.~REV~' already exists, use it instead of checking it out again."
   (interactive
    (save-current-buffer
      (vc-ensure-vc-buffer)
      (let ((completion-table
             (vc-call revision-completion-table buffer-file-name))
-           (prompt "Version to visit (default is focus version): "))
+           (prompt "Revision to visit (default is working revision): "))
        (list
         (if completion-table
             (completing-read prompt completion-table)
           (read-string prompt))))))
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
-	 (version (if (string-equal rev "")
-		      (vc-workfile-version file)
+	 (revision (if (string-equal rev "")
+		      (vc-working-revision file)
 		    rev)))
-    (switch-to-buffer-other-window (vc-find-version file version))))
+    (switch-to-buffer-other-window (vc-find-revision file revision))))
 
-(defun vc-find-version (file version)
-  "Read VERSION of FILE into a buffer and return the buffer."
-  (let ((automatic-backup (vc-version-backup-file-name file version))
+(defun vc-find-revision (file revision)
+  "Read REVISION of FILE into a buffer and return the buffer."
+  (let ((automatic-backup (vc-version-backup-file-name file revision))
 	(filebuf (or (get-file-buffer file) (current-buffer)))
-        (filename (vc-version-backup-file-name file version 'manual)))
+        (filename (vc-version-backup-file-name file revision 'manual)))
     (unless (file-exists-p filename)
       (if (file-exists-p automatic-backup)
           (rename-file automatic-backup filename nil)
@@ -2045,7 +2045,7 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		      ;; Change buffer to get local value of
 		      ;; vc-checkout-switches.
 		      (with-current-buffer filebuf
-			(vc-call find-version file version outbuf))))
+			(vc-call find-revision file revision outbuf))))
 		  (setq failed nil))
 	      (if (and failed (file-exists-p filename))
 		  (delete-file filename))))
@@ -2102,10 +2102,10 @@ The headers are reset to their non-expanded form."
 
 ;;;###autoload
 (defun vc-merge ()
-  "Merge changes between two versions into the current buffer's file.
-This asks for two versions to merge from in the minibuffer.  If the
-first version is a branch number, then merge all changes from that
-branch.  If the first version is empty, merge news, i.e. recent changes
+  "Merge changes between two revisions into the current buffer's file.
+This asks for two revisions to merge from in the minibuffer.  If the
+first revision is a branch number, then merge all changes from that
+branch.  If the first revision is empty, merge news, i.e. recent changes
 from the current branch.
 
 See Info node `Merging'."
@@ -2115,7 +2115,7 @@ See Info node `Merging'."
   (let* ((file buffer-file-name)
 	 (backend (vc-backend file))
 	 (state (vc-state file))
-	 first-version second-version status)
+	 first-revision second-revision status)
     (cond
      ((stringp state)	;; Locking VCses only
       (error "File is locked by %s" state))
@@ -2124,25 +2124,25 @@ See Info node `Merging'."
 	   "File must be checked out for merging.  Check out now? ")
 	  (vc-checkout file t)
 	(error "Merge aborted"))))
-    (setq first-version
-	  (read-string (concat "Branch or version to merge from "
+    (setq first-revision
+	  (read-string (concat "Branch or revision to merge from "
 			       "(default news on current branch): ")))
-    (if (string= first-version "")
+    (if (string= first-revision "")
 	(if (not (vc-find-backend-function backend 'merge-news))
 	    (error "Sorry, merging news is not implemented for %s" backend)
 	  (setq status (vc-call merge-news file)))
       (if (not (vc-find-backend-function backend 'merge))
 	  (error "Sorry, merging is not implemented for %s" backend)
-	(if (not (vc-branch-p first-version))
-	    (setq second-version
-		  (read-string "Second version: "
-			       (concat (vc-branch-part first-version) ".")))
-	  ;; We want to merge an entire branch.  Set versions
+	(if (not (vc-branch-p first-revision))
+	    (setq second-revision
+		  (read-string "Second revision: "
+			       (concat (vc-branch-part first-revision) ".")))
+	  ;; We want to merge an entire branch.  Set revisions
 	  ;; accordingly, so that vc-BACKEND-merge understands us.
-	  (setq second-version first-version)
-	  ;; first-version must be the starting point of the branch
-	  (setq first-version (vc-branch-part first-version)))
-	(setq status (vc-call merge file first-version second-version))))
+	  (setq second-revision first-revision)
+	  ;; first-revision must be the starting point of the branch
+	  (setq first-revision (vc-branch-part first-revision)))
+	(setq status (vc-call merge file first-revision second-revision))))
     (vc-maybe-resolve-conflicts file status "WORKFILE" "MERGE SOURCE")))
 
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
@@ -2424,10 +2424,10 @@ Otherwise, return nil."
 ;;;###autoload
 (defun vc-create-snapshot (dir name branchp)
   "Descending recursively from DIR, make a snapshot called NAME.
-For each registered file, the version level of its latest version
-becomes part of the named configuration.  If the prefix argument
-BRANCHP is given, the snapshot is made as a new branch and the files
-are checked out in that new branch."
+For each registered file, the working revision becomes part of
+the named configuration.  If the prefix argument BRANCHP is
+given, the snapshot is made as a new branch and the files are
+checked out in that new branch."
   (interactive
    (list (read-file-name "Directory: " default-directory default-directory t)
          (read-string "New snapshot name: ")
@@ -2441,13 +2441,13 @@ are checked out in that new branch."
 ;;;###autoload
 (defun vc-retrieve-snapshot (dir name)
   "Descending recursively from DIR, retrieve the snapshot called NAME.
-If NAME is empty, it refers to the latest versions.
+If NAME is empty, it refers to the latest revisions.
 If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped)."
   (interactive
    (list (read-file-name "Directory: " default-directory default-directory t)
-         (read-string "Snapshot name to retrieve (default latest versions): ")))
+         (read-string "Snapshot name to retrieve (default latest revisions): ")))
   (let ((update (yes-or-no-p "Update any affected buffers? "))
 	(msg (if (or (not name) (string= name ""))
 		 (format "Updating %s... " (abbreviate-file-name dir))
@@ -2461,13 +2461,13 @@ allowed and simply skipped)."
 ;; Miscellaneous other entry points
 
 ;;;###autoload
-(defun vc-print-log (&optional focus-rev)
+(defun vc-print-log (&optional working-revision)
   "List the change log of the current fileset in a window.
-If FOCUS-REV is non-nil, leave the point at that revision."
+If WORKING-REVISION is non-nil, leave the point at that revision."
   (interactive)
   (let* ((files (vc-deduce-fileset))
 	 (backend (vc-backend (car files)))
-	 (focus-rev (or focus-rev (vc-workfile-version (car files)))))
+	 (working-revision (or working-revision (vc-working-revision (car files)))))
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
     ;; buffer can be accessed by the command.
@@ -2484,8 +2484,8 @@ If FOCUS-REV is non-nil, leave the point at that revision."
 	(if (looking-at "[\b\t\n\v\f\r ]+")
 	    (delete-char (- (match-end 0) (match-beginning 0))))
 	(shrink-window-if-larger-than-buffer)
-	;; move point to the log entry for the focus revision
-	(vc-call-backend ',backend 'show-log-entry ',focus-rev)
+	;; move point to the log entry for the working revision
+	(vc-call-backend ',backend 'show-log-entry ',working-revision)
         (setq vc-sentinel-movepoint (point))
         (set-buffer-modified-p nil)))))
 
@@ -2493,7 +2493,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
 (defun vc-revert ()
   "Revert working copies of the selected fileset to their repository contents.
 This asks for confirmation if the buffer contents are not identical
-to the repository version (except for keyword expansion)."
+to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((files (vc-deduce-fileset))
 	 (backend (vc-backend (car files))))
@@ -2552,8 +2552,8 @@ depending on the underlying version-control system."
     (vc-setup-buffer "*vc-diff*")
     (not-modified)
     (message "Finding changes...")
-    (let* ((tip (vc-workfile-version (car files)))
-	   (previous (vc-call previous-version (car files) tip)))
+    (let* ((tip (vc-working-revision (car files)))
+	   (previous (vc-call previous-revision (car files) tip)))
       (vc-diff-internal backend nil files previous tip))
     ;; Display changes 
     (unless (yes-or-no-p "Discard these revisions? ")
@@ -2567,7 +2567,7 @@ depending on the underlying version-control system."
      (vc-call-backend backend 'rollback files)
      `((vc-state . ,'up-to-date)
        (vc-checkout-time . , (nth 5 (file-attributes file)))
-       (vc-workfile-version . nil)))
+       (vc-working-revision . nil)))
     (mapc (lambda (f) (vc-resynch-buffer f t t)) files)
     (message "Rolling back %s...done" (vc-delistify files))))
 
@@ -2576,9 +2576,9 @@ depending on the underlying version-control system."
 
 ;;;###autoload
 (defun vc-update ()
-  "Update the current fileset's files to their tip versions.
+  "Update the current fileset's files to their tip revisions.
 For each one that contains no changes, and is not locked, then this simply 
-replaces the work file with the latest version on its branch.  If the file 
+replaces the work file with the latest revision on its branch.  If the file 
 contains changes, and the backend supports merging news, then any recent 
 changes from the current branch are merged into the working file."
   (interactive)
@@ -2605,7 +2605,7 @@ changes from the current branch are merged into the working file."
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
 If version backups should be used for FILE, and there exists
-such a backup for REV or the focus version of file, return 
+such a backup for REV or the working revision of file, return 
 its name; otherwise return nil."
   (when (vc-call make-version-backups-p file)
     (let ((backup-file (vc-version-backup-file-name file rev)))
@@ -2617,7 +2617,7 @@ its name; otherwise return nil."
             backup-file)))))
 
 (defun vc-revert-file (file)
-  "Revert FILE back to the repository version it was based on."
+  "Revert FILE back to the repository working revision it was based on."
   (with-vc-properties
    (list file)
    (let ((backup-file (vc-version-backup-file file)))
@@ -2676,7 +2676,7 @@ To get a prompt, use a prefix argument."
   "Transfer FILE to another version control system NEW-BACKEND.
 If NEW-BACKEND has a higher precedence than FILE's current backend
 \(i.e.  it comes earlier in `vc-handled-backends'), then register FILE in
-NEW-BACKEND, using the version number from the current backend as the
+NEW-BACKEND, using the revision number from the current backend as the
 base level.  If NEW-BACKEND has a lower precedence than the current
 backend, then commit all changes that were made under the current
 backend to NEW-BACKEND, and unregister FILE from the current backend.
@@ -2696,7 +2696,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	(set-file-modes file (logior (file-modes file) 128))
       ;; `registered' might have switched under us.
       (vc-switch-backend file old-backend)
-      (let* ((rev (vc-workfile-version file))
+      (let* ((rev (vc-working-revision file))
 	     (modified-file (and edited (make-temp-file file)))
 	     (unmodified-file (and modified-file (vc-version-backup-file file))))
 	;; Go back to the base unmodified file.
@@ -2710,7 +2710,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 		(if unmodified-file
 		    (copy-file unmodified-file file
 			       'ok-if-already-exists 'keep-date)
-		  (if (y-or-n-p "Get base version from master? ")
+		  (if (y-or-n-p "Get base revision from master? ")
 		      (vc-revert-file file))))
 	      (vc-call-backend new-backend 'receive-file file rev))
 	  (when modified-file
@@ -2800,7 +2800,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (if (file-exists-p old) (rename-file old new))
     ;; ?? Renaming a file might change its contents due to keyword expansion.
     ;; We should really check out a new copy if the old copy was precisely equal
-    ;; to some checked in version.  However, testing for this is tricky....
+    ;; to some checked-in revision.  However, testing for this is tricky....
     (if oldbuf
 	(with-current-buffer oldbuf
 	  (let ((buffer-read-only buffer-read-only))
@@ -2847,7 +2847,7 @@ log entries should be gathered."
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
 
-;;; The default back end.  Assumes RCS-like version numbering.
+;;; The default back end.  Assumes RCS-like revision numbering.
 
 (defun vc-default-revision-granularity ()
   (error "Your backend will not work with this version of VC mode."))
@@ -2872,35 +2872,35 @@ log entries should be gathered."
         (substring rev 0 index))))
 
 (defun vc-minor-part (rev)
-  "Return the minor version number of a revision number REV."
+  "Return the minor revision number of a revision number REV."
   (string-match "[0-9]+\\'" rev)
   (substring rev (match-beginning 0) (match-end 0)))
 
-(defun vc-default-previous-version (backend file rev)
-  "Return the version number immediately preceding REV for FILE,
-or nil if there is no previous version.  This default
-implementation works for MAJOR.MINOR-style version numbers as
+(defun vc-default-previous-revision (backend file rev)
+  "Return the revision number immediately preceding REV for FILE,
+or nil if there is no previous revision.  This default
+implementation works for MAJOR.MINOR-style revision numbers as
 used by RCS and CVS."
   (let ((branch (vc-branch-part rev))
         (minor-num (string-to-number (vc-minor-part rev))))
     (when branch
       (if (> minor-num 1)
-          ;; version does probably not start a branch or release
+          ;; revision does probably not start a branch or release
           (concat branch "." (number-to-string (1- minor-num)))
         (if (vc-trunk-p rev)
             ;; we are at the beginning of the trunk --
             ;; don't know anything to return here
             nil
           ;; we are at the beginning of a branch --
-          ;; return version of starting point
+          ;; return revision of starting point
           (vc-branch-part branch))))))
 
-(defun vc-default-next-version (backend file rev)
-  "Return the version number immediately following REV for FILE,
-or nil if there is no next version.  This default implementation
-works for MAJOR.MINOR-style version numbers as used by RCS
+(defun vc-default-next-revision (backend file rev)
+  "Return the revision number immediately following REV for FILE,
+or nil if there is no next revision.  This default implementation
+works for MAJOR.MINOR-style revision numbers as used by RCS
 and CVS."
-  (when (not (string= rev (vc-workfile-version file)))
+  (when (not (string= rev (vc-working-revision file)))
     (let ((branch (vc-branch-part rev))
 	  (minor-num (string-to-number (vc-minor-part rev))))
       (concat branch "." (number-to-string (1+ minor-num))))))
@@ -2918,10 +2918,10 @@ The default implementation returns t for all files."
 (defun vc-default-latest-on-branch-p (backend file)
   "Return non-nil if FILE is the latest on its branch.
 This default implementation always returns non-nil, which means that
-editing non-current versions is not supported by default."
+editing non-current revisions is not supported by default."
   t)
 
-(defun vc-default-init-version (backend) vc-default-init-version)
+(defun vc-default-init-revision (backend) vc-default-init-revision)
 
 (defalias 'vc-cvs-update-changelog 'vc-update-changelog-rcs2log)
 (defalias 'vc-rcs-update-changelog 'vc-update-changelog-rcs2log)
@@ -2978,10 +2978,10 @@ Uses `rcs2log' which only works for RCS and CVS."
 	       (setq default-directory (file-name-directory changelog))
 	       (delete-file tempfile)))))
 
-(defun vc-default-find-version (backend file rev buffer)
-  "Provide the new `find-version' op based on the old `checkout' op.
+(defun vc-default-find-revision (backend file rev buffer)
+  "Provide the new `find-revision' op based on the old `checkout' op.
 This is only for compatibility with old backends.  They should be updated
-to provide the `find-version' operation instead."
+to provide the `find-revision' operation instead."
   (let ((tmpfile (make-temp-file (expand-file-name file))))
     (unwind-protect
 	(progn
@@ -3074,7 +3074,7 @@ to provide the `find-version' operation instead."
 
 (defun vc-default-revert (backend file contents-done)
   (unless contents-done
-    (let ((rev (vc-workfile-version file))
+    (let ((rev (vc-working-revision file))
           (file-buffer (or (get-file-buffer file) (current-buffer))))
       (message "Checking out %s..." file)
       (let ((failed t)
@@ -3091,7 +3091,7 @@ to provide the `find-version' operation instead."
                   ;; Change buffer to get local value of vc-checkout-switches.
                   (with-current-buffer file-buffer
                     (let ((default-directory (file-name-directory file)))
-                      (vc-call find-version file rev outbuf)))))
+                      (vc-call find-revision file rev outbuf)))))
               (setq failed nil))
           (when backup-name
             (if failed
@@ -3213,11 +3213,11 @@ cover the range from the oldest annotation to the newest."
      :style toggle :selected
      (eq vc-annotate-display-mode 'fullscale)]
     "--"
-    ["Annotate previous revision" vc-annotate-prev-version]
-    ["Annotate next revision" vc-annotate-next-version]
+    ["Annotate previous revision" vc-annotate-prev-revision]
+    ["Annotate next revision" vc-annotate-next-revision]
     ["Annotate revision at line" vc-annotate-revision-at-line]
     ["Annotate revision previous to line" vc-annotate-revision-previous-to-line]
-    ["Annotate latest revision" vc-annotate-focus-version]
+    ["Annotate latest revision" vc-annotate-working-revision]
     ["Show log of revision at line" vc-annotate-show-log-revision-at-line]
     ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line]))
 
@@ -3257,8 +3257,8 @@ default, the time scale stretches back one year into the past;
 everything that is older than that is shown in blue.
 
 With a prefix argument, this command asks two questions in the
-minibuffer.  First, you may enter a version number; then the buffer
-displays and annotates that version instead of the current version
+minibuffer.  First, you may enter a revision number; then the buffer
+displays and annotates that revision instead of the working revision
 \(type RET in the minibuffer to leave that default unchanged).  Then,
 you are prompted for the time span in days which the color range
 should cover.  For example, a time span of 20 days means that changes
@@ -3275,10 +3275,10 @@ colors. `vc-annotate-background' specifies the background color."
    (save-current-buffer
      (vc-ensure-vc-buffer)
      (list buffer-file-name
-	   (let ((def (vc-workfile-version buffer-file-name)))
+	   (let ((def (vc-working-revision buffer-file-name)))
 	     (if (null current-prefix-arg) def
 	       (read-string
-		(format "Annotate from version (default %s): " def)
+		(format "Annotate from revision (default %s): " def)
 		nil nil def)))
 	   (if (null current-prefix-arg)
 	       vc-annotate-display-mode
@@ -3327,31 +3327,31 @@ colors. `vc-annotate-background' specifies the background color."
           (unless (active-minibuffer-window)
             (message "Annotating... done")))))))
 
-(defun vc-annotate-prev-version (prefix)
-  "Visit the annotation of the version previous to this one.
+(defun vc-annotate-prev-revision (prefix)
+  "Visit the annotation of the revision previous to this one.
 
-With a numeric prefix argument, annotate the version that many
-versions previous."
+With a numeric prefix argument, annotate the revision that many
+revisions previous."
   (interactive "p")
-  (vc-annotate-warp-version (- 0 prefix)))
+  (vc-annotate-warp-revision (- 0 prefix)))
 
-(defun vc-annotate-next-version (prefix)
-  "Visit the annotation of the version after this one.
+(defun vc-annotate-next-revision (prefix)
+  "Visit the annotation of the revision after this one.
 
-With a numeric prefix argument, annotate the version that many
-versions after."
+With a numeric prefix argument, annotate the revision that many
+revisions after."
   (interactive "p")
-  (vc-annotate-warp-version prefix))
+  (vc-annotate-warp-revision prefix))
 
-(defun vc-annotate-focus-version ()
-  "Visit the annotation of the focus version of this file."
+(defun vc-annotate-working-revision ()
+  "Visit the annotation of the working revision of this file."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((warp-rev (vc-workfile-version vc-annotate-parent-file)))
+    (let ((warp-rev (vc-working-revision vc-annotate-parent-file)))
       (if (equal warp-rev vc-annotate-parent-rev)
-	  (message "Already at version %s" warp-rev)
-	(vc-annotate-warp-version warp-rev)))))
+	  (message "Already at revision %s" warp-rev)
+	(vc-annotate-warp-revision warp-rev)))))
 
 (defun vc-annotate-extract-revision-at-line ()
   "Extract the revision number of the current line."
@@ -3359,7 +3359,7 @@ versions after."
   (vc-call-backend vc-annotate-backend 'annotate-extract-revision-at-line))
 
 (defun vc-annotate-revision-at-line ()
-  "Visit the annotation of the version identified in the current line."
+  "Visit the annotation of the revision identified in the current line."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
@@ -3367,11 +3367,11 @@ versions after."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(if (equal rev-at-line vc-annotate-parent-rev)
-	    (message "Already at version %s" rev-at-line)
-	  (vc-annotate-warp-version rev-at-line))))))
+	    (message "Already at revision %s" rev-at-line)
+	  (vc-annotate-warp-revision rev-at-line))))))
 
 (defun vc-annotate-revision-previous-to-line ()
-  "Visit the annotation of the version before the version at line."
+  "Visit the annotation of the revision before the revision at line."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
@@ -3380,11 +3380,11 @@ versions after."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call previous-version vc-annotate-parent-file rev-at-line))
-	(vc-annotate-warp-version prev-rev)))))
+	      (vc-call previous-revision vc-annotate-parent-file rev-at-line))
+	(vc-annotate-warp-revision prev-rev)))))
 
 (defun vc-annotate-show-log-revision-at-line ()
-  "Visit the log of the version at line."
+  "Visit the log of the revision at line."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
@@ -3394,7 +3394,7 @@ versions after."
 	(vc-print-log rev-at-line)))))
 
 (defun vc-annotate-show-diff-revision-at-line ()
-  "Visit the diff of the version at line from its previous version."
+  "Visit the diff of the revision at line from its previous revision."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
@@ -3403,9 +3403,9 @@ versions after."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call previous-version vc-annotate-parent-file rev-at-line))
+	      (vc-call previous-revision vc-annotate-parent-file rev-at-line))
 	(if (not prev-rev)
-	    (message "Cannot diff from any version prior to %s" rev-at-line)
+	    (message "Cannot diff from any revision prior to %s" rev-at-line)
 	  (save-window-excursion
 	    (vc-diff-internal 
 	     (vc-backend vc-annotate-parent-file)
@@ -3414,12 +3414,12 @@ versions after."
 	     prev-rev rev-at-line))
 	  (switch-to-buffer "*vc-diff*"))))))
 
-(defun vc-annotate-warp-version (revspec)
-  "Annotate the version described by REVSPEC.
+(defun vc-annotate-warp-revision (revspec)
+  "Annotate the revision described by REVSPEC.
 
-If REVSPEC is a positive integer, warp that many versions
+If REVSPEC is a positive integer, warp that many revisions
 forward, if possible, otherwise echo a warning message.  If
-REVSPEC is a negative integer, warp that many versions backward,
+REVSPEC is a negative integer, warp that many revisions backward,
 if possible, otherwise echo a warning message.  If REVSPEC is a
 string, then it describes a revision number, so warp to that
 revision."
@@ -3433,23 +3433,23 @@ revision."
        ((and (integerp revspec) (> revspec 0))
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (> revspec 0) newrev)
-	       (setq newrev (vc-call next-version
+	       (setq newrev (vc-call next-revision
 				     vc-annotate-parent-file newrev))
 	       (setq revspec (1- revspec)))
 	(if (not newrev)
-	    (message "Cannot increment %d versions from version %s"
+	    (message "Cannot increment %d revisions from revision %s"
 		     revspeccopy vc-annotate-parent-rev)))
        ((and (integerp revspec) (< revspec 0))
 	(setq newrev vc-annotate-parent-rev)
 	(while (and (< revspec 0) newrev)
-	       (setq newrev (vc-call previous-version
+	       (setq newrev (vc-call previous-revision
 				     vc-annotate-parent-file newrev))
 	       (setq revspec (1+ revspec)))
 	(if (not newrev)
-	    (message "Cannot decrement %d versions from version %s"
+	    (message "Cannot decrement %d revisions from revision %s"
 		     (- 0 revspeccopy) vc-annotate-parent-rev)))
        ((stringp revspec) (setq newrev revspec))
-       (t (error "Invalid argument to vc-annotate-warp-version")))
+       (t (error "Invalid argument to vc-annotate-warp-revision")))
       (when newrev
 	(vc-annotate vc-annotate-parent-file newrev
                      vc-annotate-parent-display-mode
@@ -3538,7 +3538,7 @@ The annotations are relative to the current time, unless overridden by OFFSET."
 	(with-current-buffer vc-parent-buffer default-directory))
   (log-edit 'vc-finish-logentry nil `(lambda () ',fileset))
   (set (make-local-variable 'vc-log-fileset) fileset)
-  (make-local-variable 'vc-log-version)
+  (make-local-variable 'vc-log-revision)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
