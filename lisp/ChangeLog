@@ -1,3 +1,69 @@
+2007-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-additional-option-like-keywords): New constant.
+	(org-complete): Use `org-additional-option-like-keywords'.
+	(org-parse-local-options): New function.
+
+2007-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-in-clocktable-p): New function.
+	(org-clock-report): Only update the table at point, or insert a
+	new one.
+	(org-clock-goto): New function.
+	(org-open-file): Use `start-process-shell-command' instead of
+	`shell-command' with an ampersand. 
+	(org-deadline, org-schedule): New argument REMOVE to remove the
+	date from the entry.
+	(org-agenda-schedule, org-agenda-deadline): Pass the prefix
+	argument to `org-schedule' and `org-deadline'.
+	(org-trim): Use the correct expressions for beginning and end of
+	the string.
+	(org-get-cleaned-entry): Trim the string before returning it.
+	(org-clock-find-position): New function.
+	(org-clock-into-drawer): New option.
+	(org-agenda-tags-column): Renamed from
+	`org-agenda-align-tags-to-column'. 
+	(org-agenda-align-tags): Allow negative values for
+	`org-agenda-tags-column'.
+	(org-insert-labeled-timestamps-before-properties-drawer): Variable
+	removed.
+	(org-agenda-to-appt): new optional argument FILTER.
+	(org-completion-fallback-command): New variable.
+	(org-complete): Use `org-completion-fallback-command'.
+	(org-find-base-buffer-visiting): Catch the case that there is no
+	buffer visiting the file.
+	(org-property-or-variable-value): New function.
+	(org-todo): Use `org-property-or-variable-value'
+	(org-agenda-compact-blocks): New option.
+	(org-prepare-agenda, org-agenda-list): Use
+	`org-agenda-compact-blocks'.
+	(org-agenda-schedule, org-agenda-deadline): Call
+	`org-agenda-show-new-time'.
+	(org-agenda-show-new-time): New argument PREFIX.
+	(org-colgroup-info-to-vline-list): Fixed but that cause a
+	shift in the vertical lines.
+	(org-buffer-property-keys): New argument INCLUDE-DEFAULTS.
+	(org-maybe-renumber-ordered-list, org-cycle-list-bullet)
+	(org-indent-item): No arg in call to `org-fix-bullet-type'.
+	(org-fix-bullet-type): Removed argument.
+	(org-read-date): Check for am/pm twice, to catch the end time.
+	(org-goto-map): Use `suppress-keymap'.
+	(org-remember-apply-template): Respect the dynamically scoped
+	selection character.
+
+	* org.texi (Appointment reminders): New section.
+
+2007-10-10  Bastien Guerry  <Bastien.Guerry@ens.fr>
+
+	* org-export-latex.el (org-export-latex-protect-string): 
+        Renaming of `org-latex-protect'.
+	(org-export-latex-emphasis-alist): By default, don't protect 
+        any emphasis formatter from further conversion.
+	(org-export-latex-tables): honor column grouping for tables.
+	(org-export-latex-title-command): New option.
+        (org-export-latex-treat-backslash-char): Use \textbackslash{} to 
+        export backslash character.
+
 2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (frame-inherited-parameters): Remove unused `environment'
