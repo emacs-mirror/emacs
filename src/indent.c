@@ -39,7 +39,7 @@ Boston, MA 02110-1301, USA.  */
 /* Indentation can insert tabs if this is non-zero;
    otherwise always uses spaces.  */
 
-int indent_tabs_mode;
+static int indent_tabs_mode;
 
 #define CR 015
 
@@ -49,7 +49,7 @@ int indent_tabs_mode;
    Some things in set last_known_column_point to -1
    to mark the memorized value as invalid.  */
 
-double last_known_column;
+static double last_known_column;
 
 /* Value of point when current_column was called.  */
 
@@ -57,7 +57,7 @@ EMACS_INT last_known_column_point;
 
 /* Value of MODIFF when current_column was called.  */
 
-int last_known_column_modified;
+static int last_known_column_modified;
 
 static double current_column_1 P_ ((void));
 static double position_indentation P_ ((int));
@@ -2159,8 +2159,7 @@ void
 syms_of_indent ()
 {
   DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
-	       doc: /* *Indentation can insert tabs if this is non-nil.
-Setting this variable automatically makes it local to the current buffer.  */);
+	       doc: /* *Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
   defsubr (&Scurrent_indentation);
