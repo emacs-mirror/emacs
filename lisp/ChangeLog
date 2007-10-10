@@ -1,3 +1,8 @@
+2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-variable): Add missing "  " for multiline
+	obsolescence info and missing EOL after global value.
+
 2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* add-log.el:
