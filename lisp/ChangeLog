@@ -1,3 +1,9 @@
+2007-10-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el: Change all instances of "Follow Mode" to "Follow
+	mode" in docstrings and messages.
+	(follow-menu-filter): Fix arg passed to `bound-and-true-p'.
+
 2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-next-action): Completely rewritten; this principal
