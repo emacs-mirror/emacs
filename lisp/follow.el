@@ -37,7 +37,7 @@
 ;;
 ;; * The windows always display adjacent sections of the buffer.
 ;;   This means that whenever one window is moved, all the
-;;   others will follow.  (Hence the name Follow Mode.)
+;;   others will follow.  (Hence the name Follow mode.)
 ;;
 ;; * Should the point (cursor) end up outside a window, another
 ;;   window displaying that point is selected, if possible.  This
@@ -149,15 +149,15 @@
 ;; The following is a list of commands useful when follow-mode is active.
 ;;
 ;;	follow-scroll-up			 C-c . C-v
-;;		Scroll text in a Follow Mode window chain up.
+;;		Scroll text in a Follow mode window chain up.
 ;;
 ;;	follow-scroll-down			 C-c . v
 ;;		Like `follow-scroll-up', but in the other direction.
 ;;
 ;;	follow-delete-other-windows-and-split	 C-c . 1
 ;;		Maximize the visible area of the current buffer,
-;;		and enter Follow Mode. 	This is a very convenient
-;;		way to start Follow Mode, hence we recomend that
+;;		and enter Follow mode. 	This is a very convenient
+;;		way to start Follow mode, hence we recomend that
 ;;		this command be added to the global keymap.
 ;;
 ;;	follow-recenter				 C-c . C-l
@@ -330,7 +330,7 @@ After that, changing the prefix key requires manipulating keymaps."
 
     (define-key mainmap follow-mode-prefix map)
 
-    ;; Replace the standard `end-of-buffer', when in Follow Mode.  (I
+    ;; Replace the standard `end-of-buffer', when in Follow mode.  (I
     ;; don't see the point in trying to replace every function that
     ;; could be enhanced in Follow mode.  End-of-buffer is a special
     ;; case since it is very simple to define and it greatly enhances
@@ -343,9 +343,9 @@ After that, changing the prefix key requires manipulating keymaps."
 ;; When the mode is not activated, only one item is visible to activate
 ;; the mode.
 (defun follow-menu-filter (menu)
-  (if (bound-and-true-p 'follow-mode)
+  (if (bound-and-true-p follow-mode)
       menu
-    '(["Follow mode    "	follow-mode
+    '(["Follow mode"	follow-mode
        :style toggle :selected follow-mode])))
 
 ;; If there is a `tools' menu, we use it.  However, we can't add a
@@ -391,7 +391,7 @@ are \" Fw\", or simply \"\"."
   :group 'follow)
 
 (defcustom follow-intercept-processes (fboundp 'start-process)
-  "When non-nil, Follow Mode will monitor process output."
+  "When non-nil, Follow mode will monitor process output."
   :type 'boolean
   :group 'follow)
 
@@ -401,11 +401,11 @@ are \" Fw\", or simply \"\"."
 A \"tail window\" is a window that displays only the end of
 the buffer.  Normally it is practical for the user that empty
 windows are recentered automatically.  However, when using
-Follow Mode it breaks the display when the end is displayed
+Follow mode it breaks the display when the end is displayed
 in a window \"above\" the last window.  This is for
 example the case when displaying a short page in info.
 
-Must be set before Follow Mode is loaded.
+Must be set before Follow mode is loaded.
 
 Please note that it is not possible to fully prevent Emacs from
 recentering empty windows.  Please report if you find a repeatable
@@ -494,7 +494,7 @@ of two major techniques:
 
 * The windows always displays adjacent sections of the buffer.
   This means that whenever one window is moved, all the
-  others will follow.  (Hence the name Follow Mode.)
+  others will follow.  (Hence the name Follow mode.)
 
 * Should the point (cursor) end up outside a window, another
   window displaying that point is selected, if possible.  This
@@ -545,7 +545,7 @@ Keys specific to Follow mode:
 (add-hook 'find-file-hook 'follow-find-file-hook t)
 
 (defun follow-find-file-hook ()
-  "Find-file hook for Follow Mode.  See the variable `follow-auto'."
+  "Find-file hook for Follow mode.  See the variable `follow-auto'."
   (if follow-auto (follow-mode t)))
 
 ;;}}}
@@ -558,7 +558,7 @@ Keys specific to Follow mode:
 
 ;;{{{ Scroll
 
-;; `scroll-up' and `-down', but for windows in Follow Mode.
+;; `scroll-up' and `-down', but for windows in Follow mode.
 ;;
 ;; Almost like the real thing, excpet when the cursor ends up outside
 ;; the top or bottom...  In our case however, we end up outside the
@@ -574,7 +574,7 @@ Keys specific to Follow mode:
 ;; good redisplay abstraction.)
 
 (defun follow-scroll-up (&optional arg)
-  "Scroll text in a Follow Mode window chain up.
+  "Scroll text in a Follow mode window chain up.
 
 If called with no ARG, the `next-screen-context-lines' last lines of
 the bottom window in the chain will be visible in the top window.
@@ -582,7 +582,7 @@ the bottom window in the chain will be visible in the top window.
 If called with an argument, scroll ARG lines up.
 Negative ARG means scroll downward.
 
-Works like `scroll-up' when not in Follow Mode."
+Works like `scroll-up' when not in Follow mode."
   (interactive "P")
   (cond ((not (and (boundp 'follow-mode) follow-mode))
 	 (scroll-up arg))
@@ -603,7 +603,7 @@ Works like `scroll-up' when not in Follow Mode."
 
 
 (defun follow-scroll-down (&optional arg)
-  "Scroll text in a Follow Mode window chain down.
+  "Scroll text in a Follow mode window chain down.
 
 If called with no ARG, the `next-screen-context-lines' top lines of
 the top window in the chain will be visible in the bottom window.
@@ -611,7 +611,7 @@ the top window in the chain will be visible in the bottom window.
 If called with an argument, scroll ARG lines down.
 Negative ARG means scroll upward.
 
-Works like `scroll-up' when not in Follow Mode."
+Works like `scroll-up' when not in Follow mode."
   (interactive "P")
   (cond ((not (and (boundp 'follow-mode) follow-mode))
 	 (scroll-up arg))
@@ -638,12 +638,12 @@ Works like `scroll-up' when not in Follow Mode."
 
 ;;;###autoload
 (defun follow-delete-other-windows-and-split (&optional arg)
-  "Create two side by side windows and enter Follow Mode.
+  "Create two side by side windows and enter Follow mode.
 
 Execute this command to display as much as possible of the text
 in the selected window.  All other windows, in the current
 frame, are deleted and the selected window is split in two
-side-by-side windows.  Follow Mode is activated, hence the
+side-by-side windows.  Follow mode is activated, hence the
 two windows always will display two successive pages.
 \(If one window is moved, the other one will follow.)
 
@@ -671,7 +671,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
     (follow-mode 1)))
 
 (defun follow-switch-to-buffer (buffer)
-  "Show BUFFER in all windows in the current Follow Mode window chain."
+  "Show BUFFER in all windows in the current Follow mode window chain."
   (interactive "BSwitch to Buffer: ")
   (let ((orig-window (selected-window))
 	(windows (follow-all-followers)))
@@ -699,7 +699,7 @@ Defaults to current buffer."
 
 
 (defun follow-switch-to-current-buffer-all ()
-  "Show current buffer in all windows on this frame, and enter Follow Mode.
+  "Show current buffer in all windows on this frame, and enter Follow mode.
 
 To bind this command to a hotkey place the following line
 in your `~/.emacs' file:
@@ -796,10 +796,10 @@ Follow mode since the windows should always be aligned."
 ;;{{{ End of buffer
 
 (defun follow-end-of-buffer (&optional arg)
-  "Move point to the end of the buffer, Follow Mode style.
+  "Move point to the end of the buffer, Follow mode style.
 
 If the end is not visible, it will be displayed in the last possible
-window in the Follow Mode window chain.
+window in the Follow mode window chain.
 
 The mark is left at the previous position.  With arg N, put point N/10
 of the way from the true end."
@@ -1315,7 +1315,7 @@ position of the first window.  Otherwise it is a good guess."
   "Make sure windows displaying the end of a buffer aren't recentered.
 
 This is done by reading and rewriting the start position of
-non-first windows in Follow Mode."
+non-first windows in Follow mode."
   (if follow-avoid-tail-recenter-p
       (let* ((orig-buffer (current-buffer))
 	    (top (frame-first-window (selected-frame)))
@@ -1607,7 +1607,7 @@ non-first windows in Follow Mode."
 		 (after
 		  ,(intern (concat "follow-" (symbol-name (car cmds))))
 		  activate)
-		 "Adviced by Follow Mode."
+		 "Adviced by Follow mode."
 		 (follow-redraw-after-event (ad-get-arg 0))))
 	   (setq cmds (cdr cmds))))
 
@@ -1718,9 +1718,9 @@ WINDOW can be an object or a window."
 ;; filter...
 
 (defadvice set-process-filter (before follow-set-process-filter activate)
-  "Ensure process output will be displayed correctly in Follow Mode buffers.
+  "Ensure process output will be displayed correctly in Follow mode buffers.
 
-Follow Mode inserts its own process filter to do its
+Follow mode inserts its own process filter to do its
 magic stuff before the real process filter is called."
   (if follow-intercept-processes
       (progn
@@ -1794,7 +1794,7 @@ magic stuff before the real process filter is called."
 (defun follow-intercept-process-output ()
   "Intercept all active processes.
 
-This is needed so that Follow Mode can track all display events in the
+This is needed so that Follow mode can track all display events in the
 system.  (See `follow-mode'.)"
   (interactive)
   (let ((list (process-list)))
@@ -1808,7 +1808,7 @@ system.  (See `follow-mode'.)"
 
 
 (defun follow-stop-intercept-process-output ()
-  "Stop Follow Mode from spying on processes.
+  "Stop Follow mode from spying on processes.
 
 All current spypoints are removed and no new will be added.
 
@@ -2073,7 +2073,7 @@ report this using the `report-emacs-bug' function."
 ;;{{{ Tail window handling
 
 ;; In Emacs (not XEmacs) windows showing nothing are sometimes
-;; recentered.  When in Follow Mode, this is not desirable for
+;; recentered.  When in Follow mode, this is not desirable for
 ;; non-first windows in the window chain.  This section tries to
 ;; make the windows stay where they should be.
 ;;
@@ -2107,10 +2107,10 @@ report this using the `report-emacs-bug' function."
 
 (if follow-avoid-tail-recenter-p
     (defadvice sit-for (before follow-sit-for activate)
-      "Adviced by Follow Mode.
+      "Adviced by Follow mode.
 
 Avoid to recenter windows displaying only the end of a file as when
-displaying a short file in two windows, using Follow Mode."
+displaying a short file in two windows, using Follow mode."
       (follow-avoid-tail-recenter)))
 
 
@@ -2120,7 +2120,7 @@ displaying a short file in two windows, using Follow Mode."
 (if (and follow-avoid-tail-recenter-p
 	 (fboundp 'move-overlay))
     (defadvice move-overlay (before follow-move-overlay activate)
-      "Adviced by Follow Mode.
+      "Adviced by Follow mode.
 Don't recenter windows showing only the end of a buffer.
 This prevents `mouse-drag-region' from messing things up."
       (follow-avoid-tail-recenter)))
