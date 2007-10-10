@@ -3689,8 +3689,8 @@ defalias (sname, string)
 #endif /* NOTDEF */
 
 /* Define an "integer variable"; a symbol whose value is forwarded
-   to a C variable of type int.  Sample call: */
- /* DEFVAR_INT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
+   to a C variable of type int.  Sample call:
+   DEFVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
 defvar_int (namestring, address)
      char *namestring;
@@ -3705,7 +3705,7 @@ defvar_int (namestring, address)
 }
 
 /* Similar but define a variable whose value is t if address contains 1,
-   nil if address contains 0 */
+   nil if address contains 0.  */
 void
 defvar_bool (namestring, address)
      char *namestring;
