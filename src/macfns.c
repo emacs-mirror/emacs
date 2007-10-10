@@ -3855,6 +3855,8 @@ x_create_tip_frame (dpyinfo, parms, text)
      the frame is live, as per FRAME_LIVE_P.  If we get a signal
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
+  f->terminal = dpyinfo->terminal;
+  f->terminal->reference_count++;
   f->output_method = output_mac;
   f->output_data.mac =
     (struct mac_output *) xmalloc (sizeof (struct mac_output));
