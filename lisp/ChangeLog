@@ -1,5 +1,11 @@
 2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (lisp-font-lock-keywords-2): Remove let-environment.
+
+	* env.el (let-environment): Remove.  Unused.
+	(read-envvar-name): Simplify.
+	(setenv): Remove unused arg `frame'.
+
 	* help-fns.el (describe-variable): Add missing "  " for multiline
 	obsolescence info and missing EOL after global value.
 
@@ -37,54 +43,46 @@
 
 2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-next-action): Completely rewritten; this principal
+	* vc.el (vc-next-action): Rewrite completely; this principal
 	entry point now operates on a current fileset selected either
 	explicitly via VC-Dired or implicitly by visiting a file buffer,
 	rather than always operating on the file of the current buffer as
-	in older versions.  The rest of the mode has been rewritten to
-	match.
-	(with-vc-properties): Rewritten to operate on a file list.
+	in older versions.  Rewrite the rest of the mode to match.
+	(with-vc-properties): Rewrite to operate on a file list.
 	(with-vc-file): vc-checkin takes a file list argument now.
 	(vc-post-command-functions): This hook now receives a file list.
-	(vc-do-command): Now takes a either a file or a file list as
-	argument.
+	(vc-do-command): Take a either a file or a file list as argument.
 	(vc-deduce-fileset): New function for deducing a file list to
 	operate on.
-	(vc-next-action-on-file): This function is gone, it is merged into
-	vc-next-action.
-	(vc-next-action-dired): This function is gone, it is merged into
-	vc-next-action.
-	(vc-register): Adapted to the fact that vc-start-entry now takes a
+	(vc-next-action-on-file, vc-next-action-dired): Remove.
+	Merge into vc-next-action.
+	(vc-register): Adapt to the fact that vc-start-entry now takes a
 	file list.
 	(vc-register-with): New function.
-	(vc-start-entry): Now takes a file list argument rather than a
+	(vc-start-entry): Take a file list argument rather than a
 	file argument.
-	(vc-checkout): Modified to cope with vc-start-entry taking a file
-	list.
-	(vc-steal-lock): Modified to cope with with-vc-properties taking a
+	(vc-checkout): Cope with vc-start-entry taking a file list.
+	(vc-steal-lock): Cope with with-vc-properties taking a
 	file list.
-	(vc-checkin): Now takes a file list argument rather than a file
-	argument.
+	(vc-checkin): Take a file list argument rather than a file argument.
 	(vc-finish-logentry): Use the filelist passed by vc-start-entry.
-	(vc-diff-internal): Completely rewritten for filesets.
+	(vc-diff-internal): Rewrite for filesets.
 	(vc-diff-sentinel): New function, tests whether changes were
 	written into a diff buffer.
-	(vc-diff): Completely rewritten for filesets.
-	(vc-version-diff): Completely rewritten for filesets.
-	(vc-print-log): Now takes a fileset argument.
-	(vc-revert): Now reverts the entire selected fileset, not just the
+	(vc-diff): Rewrite for filesets.
+	(vc-version-diff): Rewrite for filesets.
+	(vc-print-log): Take a fileset argument.
+	(vc-revert): Revert the entire selected fileset, not just the
 	current buffer.
-	(vc-rollback): Now rolls back the entire selected fileset, if
+	(vc-rollback): Roll back the entire selected fileset, if
 	possible.  No longer accepts a prefix argument.
-	(vc-update): Now merges new changes for the entire selected
+	(vc-update): Merge new changes for the entire selected
 	fileset, not just the current buffer.
-	(vc-revert-file): Modified to cope with with-vc-properties taking
-	a file list.
+	(vc-revert-file): Cope with with-vc-properties taking a file list.
 	(vc-default-dired-state-info): Add + status suffix if the file is
 	modified.
 	(vc-annotate-warp-version): Use the new diff machinery.
-	(vc-log-edit): Now takes a file list argument rather than a file
-	argument.
+	(vc-log-edit): Take a file list argument rather than a file argument.
 
 2007-10-10  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -108,7 +106,7 @@
 	(handle-select-window): When autoselecting window set input
 	focus.  Restructure.
 
-	* frame.el (focus-follows-mouse): Moved to frame.c.
+	* frame.el (focus-follows-mouse): Move to frame.c.
 	* cus-start.el (all): Add focus-follows-mouse.
 
 2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
@@ -307,10 +305,10 @@
 
 2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use
-	add-log-buffer-file-name-function rather than bind buffer-file-name,
-	so we dont end up calling change-log-mode in *cvs* when `fi' is the
-	ChangeLog file itself.
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window):
+	Use add-log-buffer-file-name-function rather than binding
+	buffer-file-name, so we don't end up calling change-log-mode in *cvs*
+	when `fi' is the ChangeLog file itself.
 
 	* outline.el (outline-flag-region): Use front-advance.
 
