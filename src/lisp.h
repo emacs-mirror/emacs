@@ -3043,7 +3043,6 @@ EXFUN (Fvisible_frame_list, 0);
 EXFUN (Fframe_parameter, 2);
 EXFUN (Fframe_parameters, 1);
 EXFUN (Fmodify_frame_parameters, 2);
-EXFUN (Fframe_with_environment, 1);
 EXFUN (Fset_frame_height, 3);
 EXFUN (Fset_frame_width, 3);
 EXFUN (Fset_frame_size, 3);

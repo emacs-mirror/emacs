@@ -1,3 +1,9 @@
+2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fframe_with_environment): Remove.
+	(syms_of_frame) <Sframe_with_environment>: Don't declare.
+	* lisp.h (Fframe_with_environment): Don't declare.
+
 2007-10-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* indent.c (indent_tabs_mode, last_known_column)
@@ -13,13 +19,12 @@
 	* keyboard.c (kbd_buffer_get_event): Break loop waiting for input
 	when there's an unread command event.
 
-	* frame.c (focus_follows_mouse): Moved here from frame.el to allow
+	* frame.c (focus_follows_mouse): Move here from frame.el to allow
 	window autoselection act appropriately when leaving selected frame.
 	(syms_of_frame): Initialize focus_follows_mouse.
 	* frame.h (focus_follows_mouse): Extern it.
 	* macterm.c (XTread_socket): When focus_follows_mouse is nil
-	make SELECT_WINDOW_EVENT only if we don't leave the selected
-	frame.
+	make SELECT_WINDOW_EVENT only if we don't leave the selected frame.
 	* msdos.c (dos_rawgetc): Likewise.
 	* w32term.c (w32_read_socket): Likewise.
 	* xterm.c (handle_one_xevent): Likewise.
@@ -49,7 +54,7 @@
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
-	* image.c (our_memory_buffer): Renamed from omfib_buffer.
+	* image.c (our_memory_buffer): Rename from omfib_buffer.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
@@ -305,8 +310,7 @@
 
 2007-09-22  Eli Zaretskii  <eliz@gnu.org>
 
-	* term.c (DEV_TTY): New macro.  Provide a definition for
-	MS-Windows.
+	* term.c (DEV_TTY): New macro.  Provide a definition for MS-Windows.
 	(FRAME_TERMCAP_P) [WINDOWSNT]: Don't define to zero.
 	(Fcontrolling_tty_p, Fresume_tty, dissociate_if_controlling_tty)
 	(init_tty): Use DEV_TTY instead of "/dev/tty".

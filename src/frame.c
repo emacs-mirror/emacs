@@ -2608,43 +2608,6 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
     }
   return Qnil;
 }
-
-DEFUN ("frame-with-environment", Fframe_with_environment, Sframe_with_environment, 0, 1, 0,
-       doc: /* Return the frame that has the environment variable list for FRAME.
-
-The frame-local environment variable list is normally shared between
-frames that were created in the same Emacsclient session.  The
-environment list is stored in a single frame's 'environment parameter;
-the other frames' 'environment parameter is set to this frame.  This
-function follows the chain of 'environment references to reach the
-frame that stores the actual local environment list, and returns that
-frame.  */)
-     (frame)
-     Lisp_Object frame;
-{
-  Lisp_Object hare, tortoise;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_FRAME (frame);
-
-  hare = tortoise = get_frame_param (XFRAME (frame), Qenvironment);
-  while (!NILP (hare) && FRAMEP (hare))
-    {
-      frame = hare;
-      hare = get_frame_param (XFRAME (hare), Qenvironment);
-      if (NILP (hare) || !FRAMEP (hare))
-        break;
-      frame = hare;
-      hare = get_frame_param (XFRAME (hare), Qenvironment);
-      tortoise = get_frame_param (XFRAME (tortoise), Qenvironment);
-      if (EQ (hare, tortoise))
-        error ("Cyclic frame-local environment indirection");
-    }
-
-  return frame;
-}
-
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
        0, 1, 0,
@@ -4548,7 +4511,6 @@ automatically.  */);
   defsubr (&Sframe_parameters);
   defsubr (&Sframe_parameter);
   defsubr (&Smodify_frame_parameters);
-  defsubr (&Sframe_with_environment);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);
   defsubr (&Sframe_pixel_height);
