@@ -1261,10 +1261,10 @@ this section if you are already familiar with the version control system
 you want to use.
 
 @menu
-* Why Version Control?:: Understanding the problems it addresses
-* Version Systems::  Supported version control back-end systems.
-* VC Concepts::      Words and concepts related to version control.
-* Types of Log File::    The per-file VC log in contrast to the ChangeLog.
+* Why Version Control?::    Understanding the problems it addresses
+* Version Control Systems:: Supported version control back-end systems.
+* VCS Concepts::            Words and concepts related to version control.
+* Types of Log File::       The VCS log in contrast to the ChangeLog.
 @end menu
 
 @node Why Version Control?
@@ -1287,7 +1287,7 @@ change to it.  Even for a programmer working solo change histories
 are an important aid to memory; for a multi-person project they 
 become a vitally important form of communication among developers.
 
-@node Version Systems
+@node Version Control Systems
 @subsubsection Supported Version Control Systems
 
 @cindex back end (version control)
@@ -1368,11 +1368,11 @@ be done from the command line.
 @cindex Mercurial
   Mercurial is a distributed version-control systems broadly
 resembling GNU Arch and git, with atomic fileset commits and
-rename/move histories.  Like git it is fully decventralized.
+rename/move histories.  Like git it is fully decentralized.
 VC fully supports Mercurial, except for repository sync operations
 which still need to be done from the command line.
 
-@node VC Concepts
+@node VCS Concepts
 @subsubsection Concepts of Version Control
 
 @cindex repository
@@ -1448,7 +1448,7 @@ both locking and merging version control and tries to hide the differences
 between them as much as possible.
 
 @cindex files versus changesets.
-  On SCCS. RCS, CVS, and other early version-control systems, checkins
+  On SCCS, RCS, CVS, and other early version-control systems, checkins
 and other operations are @dfn{file-based}; each file has its own
 @dfn{master file} with its own comment- and revision history separate
 from that of all other files in the system.  Later systems, beginning
@@ -1475,7 +1475,6 @@ systems and a bit archaic; nowadays those operations are usually called
 ``commit'' and ``update''.
 
 @cindex centralized vs. decentralized
-
   Early version-control systems were designed around a @dfn{centralized}
 model in which each project has only one repository used by all
 developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
@@ -1584,6 +1583,15 @@ system, but is usually not excessive.
 @node Basic VC Editing
 @subsection Basic Editing under Version Control
 
+@menu
+* Selecting a fileset::          Choosing a set of files to operate on 
+* Doing the next logical thing:: Stepping forward in the development cycle
+* VC with a locking VCS::     RCS in its default mode, SCCS, and optionally CVS.
+* VC with a merging VCS::     Without locking: default mode for CVS.
+* Advanced C-x v v::    Advanced features available with a prefix argument.
+* Log Buffer::          Features available in log entry buffers.
+@end menu
+
 @node Selecting a fileset
 @subsubsection Choosing the scope of your command
 
@@ -1647,14 +1655,7 @@ accidentally edit a file without properly checking it out first.  To
 achieve this, bind the key @kbd{C-x C-q} to @kbd{vc-toggle-read-only}
 in your @file{~/.emacs} file.  (@xref{Init Rebinding}.)
 
-@menu
-* VC with Locking::     RCS in its default mode, SCCS, and optionally CVS.
-* Without Locking::     Without locking: default mode for CVS.
-* Advanced C-x v v::    Advanced features available with a prefix argument.
-* Log Buffer::          Features available in log entry buffers.
-@end menu
-
-@node VC with Locking
+@node VC with a locking VCS
 @subsubsection Basic Version Control with Locking
 
   If locking is used for the file (as with SCCS, and RCS in its default
@@ -1685,8 +1686,8 @@ formerly locked the file, to inform him of what has happened.
   These rules also apply when you use CVS in locking mode, except
 that there is no such thing as stealing a lock.
 
-@node Without Locking
-@subsubsection Basic Version Control without Locking
+@node VC with a merging VCS
+@subsubsection Basic Version Control with Merging
 
   When your version-control system is merging-based rather than
 locking-based---the default for CVS and Subversion, and the way GNU
