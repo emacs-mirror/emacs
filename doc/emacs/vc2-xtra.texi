@@ -21,6 +21,10 @@ third-generation decentralized VCses such as GNU Arch or Mercurial
 really solve this problem, VC is designed to reduce the amount of
 network interaction necessary.
 
+  If you are using a truly decentralized VCS you can skip the rest of
+this section. It describes backup and local-repository techniques
+that are only useful for Subversion and earlier VCSes.
+
 @menu
 * Version Backups::        Keeping local copies of repository versions.
 * Local Version Control::  Using another version system for local editing.

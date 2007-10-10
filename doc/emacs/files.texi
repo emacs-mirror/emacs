@@ -1387,11 +1387,22 @@ revision.
 
 @cindex work file
 @cindex checking out files
-  A file checked out of a version-control repository is sometimes called
-the @dfn{work file}.  You edit the work file and make changes in it, as
-you would with an ordinary file.  After you are done with a set of
-changes, you @dfn{check the file in}, which records the changes in the
-repository, along with a log entry for them.
+  A file checked out of a version-control repository is sometimes
+called the @dfn{work file}.  You edit the work file and make changes
+in it, as you would with an ordinary file.  After you are done with a
+set of changes, you @dfn{check in} or @dfn{commit} the file, which
+records the changes in the repository, along with a log entry for
+them.
+
+@cindex revision
+@cindex revision ID
+  A copy of a file stored in a repository is called a @dfn{revision}.
+The history of a file is a sequence of revisions.  Each revisions is
+named by a @dfn{revision ID}.  In older VCSes (such as SCCS and RCS),
+the simplest kind of revision ID consisted of a @dfn{dot-pair};
+integers (the @dfn{major} and @dfn{minor} revisions) separated by a
+dot.  Newer VCSes tend to use @dfn{monotonic} revision IDs that are
+simple integers counting from 1.
 
   To go beyond these basic concepts, you will need to understand three
 ways in which version-control systems can differ from each other.  They
@@ -1429,14 +1440,15 @@ happen when you check in a change to a file that conflicts with a change
 checked in by someone else after your checkout.  Both kinds of conflict
 have to be resolved by human judgment and communication.
 
-  SCCS always uses locking. RCS is lock-based by default but can be told
-to operate in a merging style.  CVS is merge-based by default but can
-be told to operate in a locking mode.  Most later version-control
-systems, such as Subversion and GNU Arch, have been fundamentally
-merging-based rather than locking-based.  This is because experience
-has shown that the merging-based approach is generally superior to
-the locking one, both in convenience to developers and in minimizing
-the number and severity of conflicts that actually occur.
+  SCCS always uses locking. RCS is lock-based by default but can be
+told to operate in a merging style.  CVS and Subversion are
+merge-based by default but can be told to operate in a locking mode.
+Most later version-control systems, such as GNU Arch, git, and
+Mercurial, have been fundamentally merging-based rather than
+locking-based.  This is because experience has shown that the
+merging-based approach is generally superior to the locking one, both
+in convenience to developers and in minimizing the number and severity
+of conflicts that actually occur.
 
    While it is rather unlikely that anyone will ever again build a
 fundamentally locking-based rather than merging-based version-control
@@ -1483,12 +1495,12 @@ single point of failure--if the repository server is down all work
 stops.  The other is that you need to be connected live to the server to
 do checkins and checkouts; if you're offline, you can't work.
 
-  Newer version-control systems like GNU Arch are @dfn{decentralized}.
-A project may have several different repositories, and these systems
-support a sort of super-merge between repositories that tries to
-reconcile their change histories.  At the limit, each developer has
-his/her own repository, and repository merges replace checkin/commit
-operations.
+  Newer version-control systems like GNU Arch, git, Mercurial, and Bzr
+are @dfn{decentralized}.  A project may have several different
+repositories, and these systems support a sort of super-merge between
+repositories that tries to reconcile their change histories.  At the
+limit, each developer has his/her own repository, and repository
+merges replace checkin/commit operations.
 
   VC's job is to help you manage the traffic between your personal
 workfiles and a repository.  Whether that repository is a single master
@@ -1561,7 +1573,7 @@ to copy it to @file{ChangeLog}
 this on the mode line.  For example, @samp{RCS-1.3} says that RCS is
 used for that file, and the current version is 1.3.
 
-  The character between the back-end name and the version number
+  The character between the back-end name and the revision ID
 indicates the version control status of the file.  @samp{-} means that
 the work file is not locked (if locking is in use), or not modified (if
 locking is not in use).  @samp{:} indicates that the file is locked, or
@@ -1608,7 +1620,7 @@ are visiting a VC Dired buffer, and some files in it are marked,
 your fileset is the marked files only.
 
    All files in a fileset must be under the same version-control system.
-If they are not, VC mode wil throw an error when you attempt to execute 
+If they are not, VC mode will throw an error when you attempt to execute 
 a command on the fileset.
 
    Filesets, are, essentially, a way to pass multiple file arguments as
@@ -1618,13 +1630,14 @@ joint commit, as though you had typed @command{svn
 commit} with those file arguments at the shell command line in the
 directory of the selected buffer.
 
-   If you are used to earlier versions of VC, the change in behavior you
-will notice is in VC-Dired mode. Other than @kbd{C-x v v}, most VC-mode
-commands used to operate on only one file selected by the line the
-cursor is on.  The change in the behavior of @kbd{C-x v v} is more
-subtle.  Formerly it operated in parallel on all marked files, but did
-not pass them to the version-control backends as a group.  Now it does,
-which enables VC to drive changeset-based version-control systems.
+   If you are used to earlier versions of VC, the change in behavior
+you will notice is in VC-Dired mode. Other than @kbd{C-x v v}, most
+VC-mode commands used to operate on only one file selected by the line
+the cursor is on.  The change in the behavior of @kbd{C-x v v} outside
+VC-Dired mode is more subtle.  Formerly it operated in parallel on all
+marked files, but did not pass them to the version-control backends as
+a group.  Now it does, which enables VC to drive changeset-based
+version-control systems.
 
 @node Doing the next logical thing
 @subsubsection Performing the next operation in the development cycle
@@ -1691,10 +1704,11 @@ that there is no such thing as stealing a lock.
 
   When your version-control system is merging-based rather than
 locking-based---the default for CVS and Subversion, and the way GNU
-Arch always works---work files are always writable; you do not need to
-do anything before you begin to edit a file.  The status indicator on
-the mode line is @samp{-} if the file is unmodified; it flips to
-@samp{:} as soon as you save any changes in the work file.
+Arch and more modern systems always work---work files are always
+writable; you do not need to do anything before you begin to edit a
+file.  The status indicator on the mode line is @samp{-} if the file
+is unmodified; it flips to @samp{:} as soon as you save any changes in
+the work file.
 
   Here is what @kbd{C-x v v} does when using a merging-based system
 (such as CVS or Subversion in their defaiult merging mode):
@@ -1738,7 +1752,7 @@ changes in the repository automatically and notify you when they occur.
 @node Advanced C-x v v
 @subsubsection Advanced Control in @kbd{C-x v v}
 
-@cindex revision number to check in/out
+@cindex revision ID to check in/out
   When you give a prefix argument to @code{vc-next-action} (@kbd{C-u
 C-x v v}), it still performs the next logical version control
 operation, but accepts additional arguments to specify precisely how
@@ -1760,7 +1774,7 @@ get the latest version of a file from the repository.
 
 @item
 @cindex specific version control system
-Instead of the version number, you can also specify the name of a
+Instead of the revision ID, you can also specify the name of a
 version control system.  This is useful when one file is being managed
 with two version control systems at the same time
 @iftex
@@ -1856,8 +1870,8 @@ Examine revision @var{revision} of the visited file, in a buffer of its
 own.
 
 @item C-x v =
-Compare the buffer contents of the current
-fileset with the repository revision from which you started editing.
+Compare the buffer contents associated with the current
+fileset with the working revision(s) from which you started editing.
 
 @item C-u C-x v = @key{RET} @var{oldvers} @key{RET} @var{newvers} @key{RET}
 Compare the specified two repository revisions of the current fileset.
@@ -1887,10 +1901,10 @@ in a special buffer in another window.
 @kindex C-u C-x v =
   You can compare two repository revisions of the current fileset with
 the command @kbd{C-u C-x v =} (@code{vc-diff}).  @kbd{C-u C-x v =} reads
-two revision numbers or tags. The diff will be displayed in a special
+two revision ID or tags. The diff will be displayed in a special
 buffer in another window.
 
-  You can specify a checked-in revision by its number or ID; an empty input
+  You can specify a checked-in revision by its ID; an empty input
 specifies the current contents of the work file (which may be different
 from all the checked-in revisions).  You can also specify a snapshot name
 @iftex
@@ -1903,7 +1917,7 @@ instead of one or both revision ID.
 
   Note that if your version-control system is file-oriented (SCCS, RCS,
 CVS) rather than fileset-oriented (CVS, Subversion, GNU Arch) specifying
-a revision of a multiple-file fileset by number (as opposed to a snapshot
+a revision of a multiple-file fileset by revision ID (as opposed to a snapshot
 name or RSCCS/RCS tag) is unlikely to return diffs that are connected in
 any meaningful way.
 
@@ -1942,7 +1956,7 @@ the color is scaled over the full range of ages, such that the oldest
 changes are blue, and the newest changes are red.
 
   When you give a prefix argument to this command, it uses the
-minibuffer to read two arguments: which revision number to display and
+minibuffer to read two arguments: the ID of which revision to display and
 annotate (instead of the current file contents), and the time span in
 days the color range should cover.  
 
@@ -2039,12 +2053,14 @@ revision by typing @kbd{C-x v v}.  Until you do that, the revision ID
 appears as @samp{@@@@} in the mode line.
 
 @vindex vc-default-init-revision
-@cindex initial revision number to register
-  The initial revision number for a newly registered file is 1.1, by
-default.  You can specify a different default by setting the variable
-@code{vc-default-init-revision}, or you can give @kbd{C-x v i} a numeric
-argument; then it reads the initial revision number for this particular
-file using the minibuffer.
+@cindex initial revision ID to register
+  The default initial revision ID for a newly registered file
+varies by what VCS you are using; normally it will be 1.1 on VCSes
+that use dot-pair revision IDs and 1 on VCSes that use monotonic IDs.
+You can specify a different default by setting the variable
+@code{vc-default-init-revision}, or you can give @kbd{C-x v i} a
+numeric argument; then it reads the initial revision ID for this
+particular file using the minibuffer.
 
 @vindex vc-initial-comment
   If @code{vc-initial-comment} is non-@code{nil}, @kbd{C-x v i} reads an
@@ -2109,7 +2125,7 @@ It also takes a numeric prefix argument as a repeat count.
 
 @item f
 Visit the revision indicated at the current line, like typing @kbd{C-x
-v ~} and specifying this revision's number (@pxref{Old Revisions}).
+v ~} and specifying this revision's ID (@pxref{Old Revisions}).
 
 @item d
 Display the diff (@pxref{Comparing Files}) between the revision
@@ -2175,18 +2191,30 @@ different branches, and merge changes from one branch to another.
 Please note, however, that branches are not supported for SCCS.
 
   A file's main line of development is usually called the @dfn{trunk}.
-The revisions on the trunk are normally numbered 1.1, 1.2, 1.3, etc.  At
-any such revision, you can start an independent branch.  A branch
-starting at revision 1.2 would have revision number 1.2.1.1, and consecutive
-revisions on this branch would have numbers 1.2.1.2, 1.2.1.3, 1.2.1.4,
-and so on.  If there is a second branch also starting at revision 1.2, it
-would consist of revisions 1.2.2.1, 1.2.2.2, 1.2.2.3, etc.
+You can create multiple branches from the trunk.  How the difference
+between trunk and branch is made visible is dependent on whether the
+VCS uses dot-pair or monotonic version IDs.
+
+  In VCSes with dot-pair revision IDs, the revisions on the trunk are
+normally IDed 1.1, 1.2, 1.3, etc.  At any such revision, you can
+start an independent branch.  A branch starting at revision 1.2 would
+have revision ID 1.2.1.1, and consecutive revisions on this branch
+would have IDs 1.2.1.2, 1.2.1.3, 1.2.1.4, and so on.  If there is
+a second branch also starting at revision 1.2, it would consist of
+revisions 1.2.2.1, 1.2.2.2, 1.2.2.3, etc.
+
+   In VCSes with monotonic revision IDs, trunk revisions are IDed as
+1, 2, 3, etc.  A branch from (say) revision 2 might start with 2.1 and
+continue through 2.2, 2.3, etc.  But naming conventions for branches
+and subbranches vary widely on these systems, and some (like
+Mercurial) never depart from the monotonic integer sequence at all.
+Consult the documentation of the VCS you are using.
 
 @cindex head revision
-  If you omit the final component of a revision number, that is called a
-@dfn{branch number}.  It refers to the highest existing revision on that
+  If you omit the final component of a dot-pair revision ID, that is called a
+@dfn{branch ID}.  It refers to the highest existing revision on that
 branch---the @dfn{head revision} of that branch.  The branches in the
-example above have branch numbers 1.2.1 and 1.2.2.
+dot-pair example above have branch IDs 1.2.1 and 1.2.2.
 
 @menu
 * Switching Branches::    How to get to another existing branch.
@@ -2205,10 +2233,10 @@ version is then visited @emph{unlocked} (write-protected), so you can
 examine it before locking it.  Switching branches in this way is allowed
 only when the file is not locked.
 
-  On a VS with RCS-like revision numbering, you can omit the minor
-revision number, thus giving only the branch number; this takes you to
-the head version on the chosen branch.  If you only type @key{RET},
-Emacs goes to the highest version on the trunk.
+  On a VCS with dot-pair IDs, you can omit the minor part, thus giving
+only the branch ID; this takes you to the head version on the
+chosen branch.  If you only type @key{RET}, Emacs goes to the highest
+version on the trunk.
 
   After you have switched to any branch (including the main branch), you
 stay on it for subsequent VC commands, until you explicitly select some
@@ -2221,9 +2249,9 @@ other branch.
 the branch that contains it), first select that revision if necessary,
 lock it with @kbd{C-x v v}, and make whatever changes you want.  Then,
 when you check in the changes, use @kbd{C-u C-x v v}.  This lets you
-specify the revision number for the new revision.  You should specify a
-suitable branch number for a branch starting at the current revision.
-For example, if the current revision is 2.5, the branch number should be
+specify the revision ID for the new revision.  You should specify a
+suitable branch ID for a branch starting at the current revision.
+For example, if the current revision is 2.5, the branch ID should be
 2.5.1, 2.5.2, and so on, depending on the number of existing branches at
 that point.
 
@@ -2276,7 +2304,7 @@ since you checked the file out (we call this @dfn{merging the news}).
 This is the common way to pick up recent changes from the repository,
 regardless of whether you have already changed the file yourself.
 
-  You can also enter a branch number or a pair of revision numbers in
+  You can also enter a branch ID or a pair of revision IDs in
 the minibuffer.  Then @kbd{C-x v m} finds the changes from that
 branch, or the differences between the two revisions you specified, and
 merges them into the current revision of the current file.
@@ -2336,12 +2364,12 @@ check in the merged version afterwards.
 @subsubsection Multi-User Branching
 
   It is often useful for multiple developers to work simultaneously on
-different branches of a file.  CVS allows this by default; for RCS, it
-is possible if you create multiple source directories.  Each source
-directory should have a link named @file{RCS} which points to a common
-directory of RCS master files.  Then each source directory can have its
-own choice of selected revisions, but all share the same common RCS
-records.
+different branches of a file.  CVS and later systems allow this by
+default; for RCS, it is possible if you create multiple source
+directories.  Each source directory should have a link named
+@file{RCS} which points to a common directory of RCS master files.
+Then each source directory can have its own choice of selected
+revisions, but all share the same common RCS records.
 
   This technique works reliably and automatically, provided that the
 source files contain RCS version headers
@@ -2351,13 +2379,13 @@ source files contain RCS version headers
 @ifnottex
 (@pxref{Version Headers}).
 @end ifnottex
-The headers enable Emacs to be sure, at all times, which version
-number is present in the work file.
+The headers enable Emacs to be sure, at all times, which revision
+ID is present in the work file.
 
   If the files do not have version headers, you must instead tell Emacs
 explicitly in each session which branch you are working on.  To do this,
 first find the file, then type @kbd{C-u C-x v v} and specify the correct
-branch number.  This ensures that Emacs knows which branch it is using
+branch ID.  This ensures that Emacs knows which branch it is using
 during this particular editing session.
 
 @ifnottex

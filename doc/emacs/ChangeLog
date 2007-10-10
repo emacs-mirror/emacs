@@ -5,6 +5,7 @@
 	* vc1-xtra.texi:
 	* vc2-xtra.texi: Merge in changes for new VC with fileset-oriented
 	operations.  Change of terminology from 'version' to `revision'.
+	Revise text for adequate description of VCSes with monotonic IDs.
 	* emacs.texi: Change of terminology from 'version' to `revision'.
 
 2007-10-09  Eric S. Raymond  <esr@snark.thyrsus.com>
