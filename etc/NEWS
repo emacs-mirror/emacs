@@ -173,6 +173,11 @@ with the face `eldoc-highlight-function-argument'.
 
 *** VC now supports applying VC operations to a set of files at a time.
 
+This enables VC to work much more effectively with changeset-oriented
+version-control systems such as Subversion, GNU Arch, Mercurial, and
+Bzr. VC will now pass a multiple-file commit to these systems
+as a single changeset.
+
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 ** The appearance of superscript and subscript in TeX is more customizable.
