@@ -673,6 +673,10 @@ The functions are run with one arg, the newly created frame.")
 ;; Alias, kept temporarily.
 (define-obsolete-function-alias 'new-frame 'make-frame "22.1")
 
+(defvar frame-inherited-parameters '(environment client)
+  ;; FIXME: Shouldn't we add `font' here as well?
+  "Parameters `make-frame' copies from the `selected-frame' to the new frame.")
+
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
 Optional argument PARAMETERS is an alist of parameters for the new frame.
@@ -723,15 +727,11 @@ setup is for focus to follow the pointer."
     (run-hooks 'before-make-frame-hook)
     (setq frame (funcall frame-creation-function (append parameters (cdr (assq w window-system-default-frame-alist)))))
     (normal-erase-is-backspace-setup-frame frame)
-    ;; Inherit the 'environment and 'client parameters.
-    (let ((env (frame-parameter oldframe 'environment))
-	  (client (frame-parameter oldframe 'client)))
-      (if (not (framep env))
-	  (setq env oldframe))
-      (if (and env (not (assq 'environment parameters)))
-	  (set-frame-parameter frame 'environment env))
-      (if (and client (not (assq 'client parameters)))
-	  (set-frame-parameter frame 'client client)))
+    ;; Inherit the original frame's parameters.
+    (dolist (param frame-inherited-parameters)
+      (unless (assq param parameters)   ;Overridden by explicit parameters.
+        (let ((val (frame-parameter oldframe param)))
+          (when val (set-frame-parameter frame param val)))))
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 

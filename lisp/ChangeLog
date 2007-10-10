@@ -1,5 +1,8 @@
 2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.el (frame-inherited-parameters): New var.
+	(make-frame): Use it.
+
 	* font-lock.el (lisp-font-lock-keywords-2): Remove let-environment.
 
 	* env.el (let-environment): Remove.  Unused.
