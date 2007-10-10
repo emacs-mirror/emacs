@@ -15,7 +15,7 @@ the Emacs Manual}).  This chapter describes more advanced VC usage.
 @menu
 * VC Dired Mode::       Listing files managed by version control.
 * VC Dired Commands::   Commands to use in a VC Dired buffer.
-* Remote Repositories:: Efficient access to remote CVS servers.
+* Remote Repositories:: Efficient access to remote VCS servers.
 * Snapshots::           Sets of file versions treated as a unit.
 * Miscellaneous VC::    Various other commands and features of VC.
 * Customizing VC::      Variables that change VC's behavior.

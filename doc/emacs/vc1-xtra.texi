@@ -120,21 +120,27 @@ ordinary Dired, that allows you to specify additional switches for the
   All the usual Dired commands work normally in VC Dired mode, except
 for @kbd{v}, which is redefined as the version control prefix.  You can
 invoke VC commands such as @code{vc-diff} and @code{vc-print-log} by
-typing @kbd{v =}, or @kbd{v l}, and so on.  Most of these commands apply
-to the file name on the current line.
+typing @kbd{v =}, or @kbd{v l}, and so on.  These commands will apply
+to the set of files you have marked for operation in the VC-Dired
+buffer.  
 
   The command @kbd{v v} (@code{vc-next-action}) operates on all the
 marked files, so that you can lock or check in several files at once.
-If it operates on more than one file, it handles each file according to
-its current state; thus, it might lock one file, but check in another
-file.  This could be confusing; it is up to you to avoid confusing
-behavior by marking a set of files that are in a similar state.  If no
-files are marked, @kbd{v v} operates on the file in the current line.
+If the underlying VC supports atomic commits of multiple-file
+changesets @kbd{v v} with a selected set of modified but not committed 
+files wuill commit all of them at once as a single changeset.
 
-  If any files call for check-in, @kbd{v v} reads a single log entry,
-then uses it for all the files being checked in.  This is convenient for
-registering or checking in several files at once, as part of the same
-change.
+  When @kbd{v v} (@code{vc-next-action}) operates on a set of files,
+it requires that all of those files must be in the same state;
+otherwise it will throw an error.  Note that this differs from the 
+behavior of older versions of VC, which did not have fileset
+operations and simply did @code{vc-next-action} on each file 
+individually.
+
+  If any files are in a state that calls for commit, @kbd{v v} reads a
+single log entry and uses it for the changeset as a whole.  If the
+underling VCS is file- rather than changeset-oriented, the log entry
+will be replicated into the history of each file.
 
 @findex vc-dired-toggle-terse-mode
 @findex vc-dired-mark-locked
