@@ -1,3 +1,9 @@
+2007-10-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* indent.c (indent_tabs_mode, last_known_column)
+	(last_known_column_modified): Make static.
+	(syms_of_indent) <indent-tabs-mode>: Remove redundant info in docstring.
+
 2007-10-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1170000.
@@ -86,7 +92,7 @@
 
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Add new `input-decode-map' keymap and use it for temrinal
+	Add new `input-decode-map' keymap and use it for terminal
 	escape sequences.
 	* keyboard.h (struct kboard): Add Vinput_decode_map.
 	Remove Vlocal_key_translation_map.
