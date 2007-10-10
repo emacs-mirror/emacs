@@ -1,5 +1,8 @@
 2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.el (frame-inherited-parameters): Remove unused `environment'
+	parameter, and let server.el add `client' when needed.
+
 	* server.el (server-create-tty-frame)
 	(server-create-window-system-frame): Set frame-inherited-parameters.
 

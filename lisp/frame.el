@@ -673,7 +673,7 @@ The functions are run with one arg, the newly created frame.")
 ;; Alias, kept temporarily.
 (define-obsolete-function-alias 'new-frame 'make-frame "22.1")
 
-(defvar frame-inherited-parameters '(environment client)
+(defvar frame-inherited-parameters '()
   ;; FIXME: Shouldn't we add `font' here as well?
   "Parameters `make-frame' copies from the `selected-frame' to the new frame.")
 
