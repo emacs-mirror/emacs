@@ -5695,7 +5695,7 @@ process to set up.  VEC specifies the connection."
     (if (featurep 'mule)
 	;; Use MULE to select the right EOL convention for communicating
 	;; with the process.
-	(let* ((cs (or (process-coding-system proc)
+	(let* ((cs (or (funcall (symbol-function 'process-coding-system) proc)
 		       (cons 'undecided 'undecided)))
 	       cs-decode cs-encode)
 	  (when (symbolp cs) (setq cs (cons cs cs)))
@@ -5708,7 +5708,8 @@ process to set up.  VEC specifies the connection."
 	  (when (search-forward "\r" nil t)
 	    (setq cs-decode (tramp-coding-system-change-eol-conversion
 			     cs-decode 'dos)))
-	  (set-buffer-process-coding-system cs-decode cs-encode))
+	  (funcall (symbol-function 'set-buffer-process-coding-system)
+		   cs-decode cs-encode))
       ;; Look for ^M and do something useful if found.
       (when (search-forward "\r" nil t)
 	;; We have found a ^M but cannot frob the process coding system
