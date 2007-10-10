@@ -297,10 +297,13 @@ are called after a tty frame has been suspended or resumed,
 respectively.  The functions are called with the terminal id of the frame
 being suspended/resumed as a parameter.
 
-*** New functions: `environment', `let-environment'.
+*** New function: `environment'.
 
 *** New variable: `local-function-key-map'.
-This in addition to the global function-key-map variable that already existed.
+This in addition to the global function-key-map variable that
+already existed.  The global variable is not used directly any more;
+instead, the local-function-key-map is initialized so as to inherit from
+function-key-map.
 
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 
