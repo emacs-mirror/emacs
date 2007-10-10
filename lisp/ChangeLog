@@ -1,3 +1,8 @@
+2007-10-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el: Change all instances of "Follow Mode" to "Follow
+	mode" in docstrings and messages.
+
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (face-font-selection-order): Doc fix.
