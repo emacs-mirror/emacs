@@ -48,7 +48,7 @@
   "*A list specifying how face font selection chooses fonts.
 Each of the four symbols `:width', `:height', `:weight', and `:slant'
 must appear once in the list, and the list must not contain any other
-elements.  Font selection tries to find first a best matching font
+elements.  Font selection first tries to find a best matching font
 for those face attributes that appear before in the list.  For
 example, if `:slant' appears before `:height', font selection first
 tries to find a font with a suitable slant, even if this results in
