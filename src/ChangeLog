@@ -1,4 +1,4 @@
-2007-10-10  Jason Rumney  <jasonr@gnu.org>
+2007-10-10  Patrick Mahan <mahan@mahan.org>  (tiny change)
 
 	* macfns.c (x_create_tip_frame): Set terminal for frame.
 
