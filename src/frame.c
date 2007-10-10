@@ -110,7 +110,6 @@ Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 Lisp_Object Qwindow_system;
-Lisp_Object Qenvironment;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
@@ -1469,24 +1468,6 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (EQ (f->minibuffer_window, echo_area_window))
     echo_area_window = sf->minibuffer_window;
 
-  /* Don't allow other frames to refer to a deleted frame in their
-     'environment parameter.  */
-  {
-    Lisp_Object tail, frame1;
-    Lisp_Object env = get_frame_param (XFRAME (frame), Qenvironment);
-    FOR_EACH_FRAME (tail, frame1)
-      {
-        if (EQ (frame, frame1) || !FRAME_LIVE_P (XFRAME (frame1)))
-          continue;
-        if (EQ (frame, get_frame_param (XFRAME (frame1), Qenvironment)))
-          {
-            store_frame_param (XFRAME (frame1), Qenvironment, env);
-            if (!FRAMEP (env))
-              env = frame1;
-          }
-      }
-  }
-  
   /* Clear any X selections for this frame.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
@@ -4310,8 +4291,6 @@ syms_of_frame ()
   staticpro (&Qtty_type);
   Qwindow_system = intern ("window-system");
   staticpro (&Qwindow_system);
-  Qenvironment = intern ("environment");
-  staticpro (&Qenvironment);
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);

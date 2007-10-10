@@ -1,7 +1,14 @@
 2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.c (Qenvironment): Remove.
+	(syms_of_frame) <Qenvironment>: Don't initialize.
+	(Fdelete_frame): Don't treat the `environment' param specially.
+	* frame.h (Qenvironment): Don't declare.
+	* callproc.c (set_initial_environment): Don't set unused frame param.
+
 	* frame.c (Fframe_with_environment): Remove.
 	(syms_of_frame) <Sframe_with_environment>: Don't declare.
+
 	* lisp.h (Fframe_with_environment): Don't declare.
 
 2007-10-10  Juanma Barranquero  <lekktu@gmail.com>

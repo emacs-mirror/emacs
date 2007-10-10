@@ -1775,7 +1775,6 @@ set_initial_environment ()
       for (envp = environ; *envp; envp++)
 	Vprocess_environment = Fcons (build_string (*envp),
 				      Vprocess_environment);
-      store_frame_param (SELECTED_FRAME(), Qenvironment, Vprocess_environment);
       /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
 	 to use `delete' and friends on process-environment.  */
       Vinitial_environment = Fcopy_sequence (Vprocess_environment);
