@@ -1,3 +1,7 @@
+2007-10-10  Jason Rumney  <jasonr@gnu.org>
+
+	* macfns.c (x_create_tip_frame): Set terminal for frame.
+
 2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (Qenvironment): Remove.
