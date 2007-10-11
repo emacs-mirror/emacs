@@ -9,6 +9,11 @@
 	(vc-diff-internal): Bug fixes by Juanma Barranquero.  Temporarily
 	disable the check for his edge case, it's calling some brittle
 	code.
+	(with-vc-properties): Fievaluation time of a macro argument.
+
+	* ediff-vers.el (ediff-vc-internal):
+	vc-hooks.el:
+	loaddefs.el: Follow up on VC terminology change.
 
 2007-10-11  Juanma Barranquero  <lekktu@gmail.com>
 
