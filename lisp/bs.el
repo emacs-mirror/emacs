@@ -864,35 +864,32 @@ the status of buffer on current line."
   (bs--set-window-height)
   (bs--show-config-message what))
 
+(defun bs--mark-unmark (count fun)
+  "Call FUN on COUNT consecutive buffers of *buffer-selection*."
+  (let ((dir (if (> count 0) 1 -1)))
+    (dotimes (i (abs count))
+      (let ((buffer (bs--current-buffer)))
+	(when buffer (funcall fun buffer))
+	(bs--update-current-line)
+	(bs-down dir)))))
+
 (defun bs-mark-current (count)
   "Mark buffers.
 COUNT is the number of buffers to mark.
 Move cursor vertically down COUNT lines."
   (interactive "p")
-  (let ((dir (if (> count 0) 1 -1))
-	(count (abs count)))
-    (while (> count 0)
-      (let ((buffer (bs--current-buffer)))
-	(if buffer
-	    (setq bs--marked-buffers (cons buffer bs--marked-buffers)))
-	(bs--update-current-line)
-	(bs-down dir))
-      (setq count (1- count)))))
+  (bs--mark-unmark count
+		   (lambda (buf)
+		     (add-to-list 'bs--marked-buffers buf))))
 
 (defun bs-unmark-current (count)
   "Unmark buffers.
 COUNT is the number of buffers to unmark.
 Move cursor vertically down COUNT lines."
   (interactive "p")
-  (let ((dir (if (> count 0) 1 -1))
-	(count (abs count)))
-    (while (> count 0)
-      (let ((buffer (bs--current-buffer)))
-	(if buffer
-	    (setq bs--marked-buffers (delq buffer bs--marked-buffers)))
-	(bs--update-current-line)
-	(bs-down dir))
-      (setq count (1- count)))))
+  (bs--mark-unmark count
+		   (lambda (buf)
+		     (setq bs--marked-buffers (delq buf bs--marked-buffers)))))
 
 (defun bs--show-config-message (what)
   "Show message indicating the new showing status WHAT.
