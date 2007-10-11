@@ -1424,7 +1424,7 @@ merge in the changes into your working copy."
 	(setq revision (read-string "Branch, revision, or backend to move to: "))
 	(let ((vsym (intern-soft (upcase revision))))
 	  (if (member vsym vc-handled-backends)
-	      (mapc (lambda (file) vc-transfer-file file vsym) files)
+	      (mapc (lambda (file) (vc-transfer-file file vsym)) files)
 	    (mapc (lambda (file) 
 		    (vc-checkout file (eq model 'implicit) revision))))))
        ((not (eq model 'implicit))
@@ -1881,12 +1881,14 @@ The meaning of REV1 and REV2 is the same as for `vc-revision-diff'."
 	;; Gnus-5.8.5 sets up an autoload for diff-mode, even if it's
 	;; not available.  Work around that.
 	(if (require 'diff-mode nil t) (diff-mode))
-	(goto-char (point-max))
-	(if verbose
-	    (insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name)))
-	(goto-char (point-min))
-	(if verbose
-	    (insert (format "Diffs between %s and %s:\n\n" rev1-name rev2-name)))
+	(when verbose
+	  (let (buffer-read-only t)
+	    (goto-char (point-max))
+	    (if verbose
+		(insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name)))
+	    (goto-char (point-min))
+	    (if verbose
+		(insert (format "Diffs between %s and %s:\n\n" rev1-name rev2-name)))))
 	(shrink-window-if-larger-than-buffer)
 	t)
     (progn
@@ -1906,7 +1908,7 @@ returns t if the buffer had changes, nil otherwise."
 	 (coding-system-for-read 
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
     (vc-setup-buffer "*vc-diff*")
-    (message "Finding changes in..." filenames)
+    (message "Finding changes in %s..." filenames)
     ;; Many backends don't handle well the case of a file that has been 
     ;; added but not yet committed to the repo (notably CVS and Subversion).  
     ;; Do that work here so the backends don't have to futz with it.
@@ -2007,19 +2009,20 @@ directory as the selected fileset.
 "
 
   (interactive "P")
-  (cond ((not (vc-contains-version-controlled-file default-directory))
-	 (error "No version-controlled files directly beneath default directory"))
-	(historic
-	 (call-interactively 'vc-history-diff))
-	(t
-	 (let* ((files (vc-deduce-fileset t))
-		(first (car files))
-		(backend 
-		 (cond ((file-directory-p first)
-			(vc-responsible-backend first))
-		       (t
-			(vc-backend first)))))
-	   (vc-diff-internal backend t files nil nil (interactive-p))))))
+  (cond 
+   ;;((not (vc-contains-version-controlled-file default-directory))
+   ;;(error "No version-controlled files directly beneath default directory"))
+   (historic
+    (call-interactively 'vc-history-diff))
+   (t
+    (let* ((files (vc-deduce-fileset t))
+	   (first (car files))
+	   (backend 
+	    (cond ((file-directory-p first)
+		   (vc-responsible-backend first))
+		  (t
+		   (vc-backend first)))))
+      (vc-diff-internal backend t files nil nil (interactive-p))))))
 
 ;;;###autoload
 (defun vc-revision-other-window (rev)
