@@ -862,7 +862,7 @@ been updated to their corresponding values."
        (mapc (lambda (setting)
 	       (let ((property (car setting)))
 		 (unless (memq property vc-touched-properties)
-		   (put (intern ,file vc-file-prop-obarray)
+		   (put (intern file vc-file-prop-obarray)
 			property (cdr setting)))))
 	     ,settings))))
 
