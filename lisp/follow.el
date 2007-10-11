@@ -1820,17 +1820,14 @@ would interfere with some other package.  If this happens, please
 report this using the `report-emacs-bug' function."
   (interactive)
   (follow-tidy-process-filter-alist)
-  (let ((list (process-list)))
-    (while list
-      (if (eq (process-filter (car list)) 'follow-generic-filter)
-	  (progn
-	    (follow-call-set-process-filter
-	     (car list)
-	     (cdr-safe (assq (car list) follow-process-filter-alist)))
-	    (setq follow-process-filter-alist
-		  (delq (assq (car list) follow-process-filter-alist)
-			follow-process-filter-alist))))
-      (setq list (cdr list))))
+  (dolist (process (process-list))
+    (when (eq (follow-call-process-filter process) 'follow-generic-filter)
+      (follow-call-set-process-filter
+       process
+       (cdr-safe (assq process follow-process-filter-alist)))
+      (setq follow-process-filter-alist
+	    (delq (assq process follow-process-filter-alist)
+		  follow-process-filter-alist))))
   (setq follow-intercept-processes nil))
 
 ;;}}}
