@@ -1900,7 +1900,7 @@ report this using the `report-emacs-bug' function."
   (follow-tidy-process-filter-alist)
   (let ((list (process-list)))
     (while list
-      (if (eq (process-filter (car list)) 'follow-generic-filter)
+      (if (eq (follow-call-process-filter (car list)) 'follow-generic-filter)
 	  (progn
 	    (follow-call-set-process-filter
 	     (car list)
