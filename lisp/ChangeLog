@@ -1,3 +1,8 @@
+2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-hooks.el (vc-registered): Robustify this function a bit
+	against filenames with no directory component.
+
 2007-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/characters.el: Undo unwanted and unexplained change.
