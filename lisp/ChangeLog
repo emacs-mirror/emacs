@@ -1,3 +1,10 @@
+2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-diff): 
+	(vc-diff-internal): Bug fixes by Juanma Barranquero.  Temporarily
+	disable the check for his edge case, it's calling some brittle
+	code.
+
 2007-10-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el (follow-stop-intercept-process-output):
