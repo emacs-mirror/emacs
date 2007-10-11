@@ -1288,7 +1288,6 @@ Otherwise, throw an error.
 	;; confirmation prompts.
 	(allow-directory-wildcard
 	 (progn
-	   (setq marked (list default-directory))
 	   (message "All version-controlled files below %s selected."
 		    default-directory)
 	   (list default-directory)))
@@ -1441,7 +1440,7 @@ merge in the changes into your working copy."
 	  (if (not (file-writable-p file))
 	      (progn
 		;; Make the file+buffer read-write.
-		(unless (y-or-no-p (format "%s is edited but read-only; make it writable and continue?" file))
+		(unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
 		  (error "Aborted"))
 		(set-file-modes file (logior (file-modes file) 128))
 		(let ((visited (get-file-buffer file)))
@@ -1481,9 +1480,9 @@ merge in the changes into your working copy."
      ((stringp state)
       (let ((revision 
 	     (if verbose 
-		 (read-string "Revision to steal: ")
-	       (vc-working-revision file))))
-	(mapc (lambda (file) (vc-steal-lock file revision) state) files)))
+		 (read-string "Version to steal: ")
+	       (vc-workfile-version file))))
+	(mapc (lambda (file) (vc-steal-lock file version state) files))))
 	;; needs-patch
      ((eq state 'needs-patch)
       (dolist (file files)
