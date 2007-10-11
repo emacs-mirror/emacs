@@ -1882,13 +1882,11 @@ The meaning of REV1 and REV2 is the same as for `vc-revision-diff'."
 	;; not available.  Work around that.
 	(if (require 'diff-mode nil t) (diff-mode))
 	(when verbose
-	  (let (buffer-read-only t)
+	  (let (buffer-read-only)
 	    (goto-char (point-max))
-	    (if verbose
-		(insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name)))
+	    (insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name))
 	    (goto-char (point-min))
-	    (if verbose
-		(insert (format "Diffs between %s and %s:\n\n" rev1-name rev2-name)))))
+	    (insert (format "Diffs between %s and %s:\n\n" rev1-name rev2-name))))
 	(shrink-window-if-larger-than-buffer)
 	t)
     (progn
