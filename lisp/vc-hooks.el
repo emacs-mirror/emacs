@@ -925,7 +925,7 @@ Used in `find-file-not-found-functions'."
     (define-key map "v" 'vc-next-action)
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
-    (define-key map "~" 'vc-version-other-window)
+    (define-key map "~" 'vc-revision-other-window)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
@@ -942,8 +942,8 @@ Used in `find-file-not-found-functions'."
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate] '("Annotate" . vc-annotate))
     (define-key map [vc-rename-file] '("Rename File" . vc-rename-file))
-    (define-key map [vc-version-other-window]
-      '("Show Other Version" . vc-version-other-window))
+    (define-key map [vc-revision-other-window]
+      '("Show Other Version" . vc-revision-other-window))
     (define-key map [vc-diff] '("Compare with Base Version" . vc-diff))
     (define-key map [vc-update-change-log]
       '("Update ChangeLog" . vc-update-change-log))
@@ -985,7 +985,7 @@ Used in `find-file-not-found-functions'."
 
 ;;(put 'vc-rename-file 'menu-enable 'vc-mode)
 ;;(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
-;;(put 'vc-version-other-window 'menu-enable 'vc-mode)
+;;(put 'vc-revision-other-window 'menu-enable 'vc-mode)
 ;;(put 'vc-diff 'menu-enable 'vc-mode)
 ;;(put 'vc-update-change-log 'menu-enable
 ;;     '(member (vc-buffer-backend) '(RCS CVS)))

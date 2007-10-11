@@ -29250,7 +29250,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;### (autoloads (vc-annotate vc-update-change-log vc-rename-file
 ;;;;;;  vc-transfer-file vc-switch-backend vc-rollback vc-update
 ;;;;;;  vc-revert vc-print-log vc-retrieve-snapshot vc-create-snapshot
-;;;;;;  vc-directory vc-merge vc-insert-headers vc-version-other-window
+;;;;;;  vc-directory vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-register vc-next-action vc-do-command edit-vc-file
 ;;;;;;  with-vc-file vc-branch-part vc-trunk-p vc-before-checkin-hook
 ;;;;;;  vc-checkin-hook vc-checkout-hook) "vc" "vc.el" (18104 24741))
@@ -29384,7 +29384,7 @@ saving the buffer.
 
 \(fn HISTORIC &optional NOT-URGENT)" t nil)
 
-(autoload (quote vc-version-other-window) "vc" "\
+(autoload (quote vc-revision-other-window) "vc" "\
 Visit version REV of the current file in another window.
 If the current file is named `F', the version is named `F.~REV~'.
 If `F.~REV~' already exists, use it instead of checking it out again.
