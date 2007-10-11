@@ -362,7 +362,8 @@ file was previously registered under a certain backend, then that
 backend is tried first."
   (let (handler)
     (cond
-     ((string-match vc-ignore-dir-regexp (file-name-directory file)) nil)
+     ((and (file-name-directory file) (string-match vc-ignore-dir-regexp (file-name-directory file)))
+      nil)
      ((and (boundp 'file-name-handler-alist)
           (setq handler (find-file-name-handler file 'vc-registered)))
       ;; handler should set vc-backend and return t if registered
