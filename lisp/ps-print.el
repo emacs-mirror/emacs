@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.5
+;; Version: 6.7.6
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.7.5"
-  "ps-print.el, v 6.7.5 <2007/07/20 vinicius>
+(defconst ps-print-version "6.7.6"
+  "ps-print.el, v 6.7.6 <2007/10/10 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -6341,6 +6341,18 @@ to the equivalent Latin-1 characters.")
     (ps-output " S\n")))
 
 
+(defsubst ps-face-foreground-color-p (attr)
+  (memq attr '(foreground-color :foreground)))
+
+
+(defsubst ps-face-background-color-p (attr)
+  (memq attr '(background-color :background)))
+
+
+(defsubst ps-face-color-p (attr)
+  (memq attr '(foreground-color :foreground background-color :background)))
+
+
 (defun ps-face-attributes (face)
   "Return face attribute vector.
 
@@ -6364,9 +6376,9 @@ If FACE is not a valid face name, use default face."
 		   (setq ps-print-face-alist
 			 (cons new-face ps-print-face-alist)))
 	       new-face))))
-   ((eq (car face) 'foreground-color)
+   ((ps-face-foreground-color-p (car face))
     (vector 0 (cdr face) nil))
-   ((eq (car face) 'background-color)
+   ((ps-face-background-color-p (car face))
     (vector 0 nil (cdr face)))
    (t
     (vector 0 nil nil))))
@@ -6379,12 +6391,11 @@ If FACE is not a valid face name, use default face."
 	     ((symbolp face)
 	      (memq face ps-use-face-background))
 	     ((listp face)
-	      (or (memq (car face) '(foreground-color background-color))
+	      (or (ps-face-color-p (car face))
 		  (let (ok)
 		    (while face
 		      (if (or (memq (car face) ps-use-face-background)
-			      (memq (car face)
-				    '(foreground-color background-color)))
+			      (ps-face-color-p (car face)))
 			  (setq face nil
 				ok   t)
 			(setq face (cdr face))))
@@ -6401,10 +6412,10 @@ If FACE is not a valid face name, use default face."
    ((not (listp face-or-list))
     (ps-face-attributes face-or-list))
    ;; only foreground color, not a `real' face
-   ((eq (car face-or-list) 'foreground-color)
+   ((ps-face-foreground-color-p (car face-or-list))
     (vector 0 (cdr face-or-list) nil))
    ;; only background color, not a `real' face
-   ((eq (car face-or-list) 'background-color)
+   ((ps-face-background-color-p (car face-or-list))
     (vector 0 nil (cdr face-or-list)))
    ;; list of faces
    (t
