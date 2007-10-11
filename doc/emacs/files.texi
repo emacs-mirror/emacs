@@ -1710,7 +1710,7 @@ is unmodified; it flips to @samp{:} as soon as you save any changes in
 the work file.
 
   Here is what @kbd{C-x v v} does when using a merging-based system
-(such as CVS or Subversion in their defaiult merging mode):
+(such as CVS or Subversion in their default merging mode):
 
 @itemize @bullet
 @item
@@ -1914,11 +1914,11 @@ from all the checked-in revisions).  You can also specify a snapshot name
 @end ifnottex
 instead of one or both revision ID.
 
-  Note that if your version-control system is file-oriented (SCCS, RCS,
-CVS) rather than fileset-oriented (CVS, Subversion, GNU Arch) specifying
-a revision of a multiple-file fileset by revision ID (as opposed to a snapshot
-name or RSCCS/RCS tag) is unlikely to return diffs that are connected in
-any meaningful way.
+  Note that if your version-control system is file-oriented (SCCS,
+RCS, CVS) rather than fileset-oriented (Subversion, GNU Arch, git,
+Mercurial) specifying a revision of a multiple-file fileset by
+revision ID (as opposed to a snapshot name or RSCCS/RCS tag) is
+unlikely to return diffs that are connected in any meaningful way.
 
   If you invoke @kbd{C-u C-x v =} or @kbd{C-u C-x v =} from a buffer
 that is neither visiting a version-controlled file nor a VC Dired
