@@ -1490,7 +1490,7 @@ systems and a bit archaic; nowadays those operations are usually called
 model in which each project has only one repository used by all
 developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
 It has two important problems. One is that a single repository is a
-single point of failure--if the repository server is down all work
+single point of failure---if the repository server is down all work
 stops.  The other is that you need to be connected live to the server to
 do checkins and checkouts; if you're offline, you can't work.
 
@@ -1629,9 +1629,9 @@ fileset will become a joint commit, as though you had typed
 @command{svn commit} with those file arguments at the shell command
 line in the directory of the selected buffer.
 
-   If you are used to earlier versions of VC, the change in behavior
+   If you are accistomed to earlier versions of VC, the change in behavior
 you will notice is in VC-Dired mode. Other than @kbd{C-x v v}, most
-VC-mode commands used to operate on only one file selected by the line
+VC-mode commands once operated on only one file selected by the line
 the cursor is on.  The change in the behavior of @kbd{C-x v v} outside
 VC-Dired mode is more subtle.  Formerly it operated in parallel on all
 marked files, but did not pass them to the version-control backends as
