@@ -244,14 +244,14 @@ Any pair that has the same PREDICATE is first removed."
 
 ;; Save emacs routines.
 (if (not (fboundp 'cust-print-original-prin1))
-    (mapcar 'cust-print-set-function-cell
-	    '((cust-print-original-prin1 prin1)
-	      (cust-print-original-princ princ)
-	      (cust-print-original-print print)
-	      (cust-print-original-prin1-to-string prin1-to-string)
-	      (cust-print-original-format format)
-	      (cust-print-original-message message)
-	      (cust-print-original-error error))))
+    (mapc 'cust-print-set-function-cell
+	  '((cust-print-original-prin1 prin1)
+	    (cust-print-original-princ princ)
+	    (cust-print-original-print print)
+	    (cust-print-original-prin1-to-string prin1-to-string)
+	    (cust-print-original-format format)
+	    (cust-print-original-message message)
+	    (cust-print-original-error error))))
 
 
 (defun custom-print-install ()
@@ -259,29 +259,29 @@ Any pair that has the same PREDICATE is first removed."
 The Emacs subroutines are saved away, and you can reinstall them
 by running `custom-print-uninstall'."
   (interactive)
-  (mapcar 'cust-print-set-function-cell
-	  '((prin1 custom-prin1)
-	    (princ custom-princ)
-	    (print custom-print)
-	    (prin1-to-string custom-prin1-to-string)
-	    (format custom-format)
-	    (message custom-message)
-	    (error custom-error)
-	    ))
+  (mapc 'cust-print-set-function-cell
+	'((prin1 custom-prin1)
+	  (princ custom-princ)
+	  (print custom-print)
+	  (prin1-to-string custom-prin1-to-string)
+	  (format custom-format)
+	  (message custom-message)
+	  (error custom-error)
+	  ))
   t)
 
 (defun custom-print-uninstall ()
   "Reset print functions to their Emacs subroutines."
   (interactive)
-  (mapcar 'cust-print-set-function-cell
-	  '((prin1 cust-print-original-prin1)
-	    (princ cust-print-original-princ)
-	    (print cust-print-original-print)
-	    (prin1-to-string cust-print-original-prin1-to-string)
-	    (format cust-print-original-format)
-	    (message cust-print-original-message)
-	    (error cust-print-original-error)
-	    ))
+  (mapc 'cust-print-set-function-cell
+	'((prin1 cust-print-original-prin1)
+	  (princ cust-print-original-princ)
+	  (print cust-print-original-print)
+	  (prin1-to-string cust-print-original-prin1-to-string)
+	  (format cust-print-original-format)
+	  (message cust-print-original-message)
+	  (error cust-print-original-error)
+	  ))
   t)
 
 (defalias 'custom-print-funcs-installed-p 'custom-print-installed-p)

@@ -1995,7 +1995,7 @@ The PLIST is modified by side effects.  */)
       prev = tail;
       QUIT;
     }
-  newcell = Fcons (prop, Fcons (val, Qnil));
+  newcell = Fcons (prop, Fcons (val, NILP (prev) ? plist : XCDR (XCDR (prev))));
   if (NILP (prev))
     return newcell;
   else
@@ -2603,7 +2603,8 @@ is nil and `use-dialog-box' is non-nil.  */)
     {
 
 #ifdef HAVE_MENUS
-      if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+      if (FRAME_WINDOW_P (SELECTED_FRAME ())
+          && (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
 	  && use_dialog_box
 	  && have_menus_p ())
 	{
@@ -2642,6 +2643,7 @@ is nil and `use-dialog-box' is non-nil.  */)
 	  Fraise_frame (mini_frame);
 	}
 
+      temporarily_switch_to_single_kboard (SELECTED_FRAME ());
       obj = read_filtered_event (1, 0, 0, 0, Qnil);
       cursor_in_echo_area = 0;
       /* If we need to quit, quit with cursor_in_echo_area = 0.  */
@@ -2734,7 +2736,8 @@ is nil, and `use-dialog-box' is non-nil.  */)
   CHECK_STRING (prompt);
 
 #ifdef HAVE_MENUS
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+  if (FRAME_WINDOW_P (SELECTED_FRAME ())
+      && (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && have_menus_p ())
     {
@@ -3968,7 +3971,7 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
   h->weak = weak;
   h->rehash_threshold = rehash_threshold;
   h->rehash_size = rehash_size;
-  h->count = make_number (0);
+  h->count = 0;
   h->key_and_value = Fmake_vector (make_number (2 * sz), Qnil);
   h->hash = Fmake_vector (size, Qnil);
   h->next = Fmake_vector (size, Qnil);
@@ -4148,7 +4151,7 @@ hash_put (h, key, value, hash)
 
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
-  h->count = make_number (XFASTINT (h->count) + 1);
+  h->count++;
 
   /* Store key/value in the key_and_value vector.  */
   i = XFASTINT (h->next_free);
@@ -4204,8 +4207,8 @@ hash_remove (h, key)
 	  HASH_KEY (h, i) = HASH_VALUE (h, i) = HASH_HASH (h, i) = Qnil;
 	  HASH_NEXT (h, i) = h->next_free;
 	  h->next_free = make_number (i);
-	  h->count = make_number (XFASTINT (h->count) - 1);
-	  xassert (XINT (h->count) >= 0);
+	  h->count--;
+	  xassert (h->count >= 0);
 	  break;
 	}
       else
@@ -4223,7 +4226,7 @@ void
 hash_clear (h)
      struct Lisp_Hash_Table *h;
 {
-  if (XFASTINT (h->count) > 0)
+  if (h->count > 0)
     {
       int i, size = HASH_TABLE_SIZE (h);
 
@@ -4239,7 +4242,7 @@ hash_clear (h)
 	AREF (h->index, i) = Qnil;
 
       h->next_free = make_number (0);
-      h->count = make_number (0);
+      h->count = 0;
     }
 }
 
@@ -4309,7 +4312,7 @@ sweep_weak_table (h, remove_entries_p)
 		  HASH_KEY (h, i) = HASH_VALUE (h, i) = Qnil;
 		  HASH_HASH (h, i) = Qnil;
 
-		  h->count = make_number (XFASTINT (h->count) - 1);
+		  h->count--;
 		}
 	      else
 		{
@@ -4375,7 +4378,7 @@ sweep_weak_hash_tables ()
       if (h->size & ARRAY_MARK_FLAG)
 	{
 	  /* TABLE is marked as used.  Sweep its contents.  */
-	  if (XFASTINT (h->count) > 0)
+	  if (h->count > 0)
 	    sweep_weak_table (h, 1);
 
 	  /* Add table to the list of used weak hash tables.  */
@@ -4710,7 +4713,7 @@ DEFUN ("hash-table-count", Fhash_table_count, Shash_table_count, 1, 1, 0,
      (table)
      Lisp_Object table;
 {
-  return check_hash_table (table)->count;
+  return make_number (check_hash_table (table)->count);
 }
 
 

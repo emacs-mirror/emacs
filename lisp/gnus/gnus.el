@@ -1501,17 +1501,6 @@ If it is nil, no confirmation is required."
   :type '(choice (const :tag "No limit" nil)
 		 integer))
 
-(defcustom gnus-maximum-newsgroup nil
-  "The maximum number of articles a newsgroup.
-If this is a number, old articles in a newsgroup exceeding this number
-are silently ignored.  If it is nil, no article is ignored.  Note that
-setting this variable to a number might prevent you from reading very
-old articles."
-  :group 'gnus-group-select
-  :version "22.2"
-  :type '(choice (const :tag "No limit" nil)
-		 integer))
-
 (defcustom gnus-use-long-file-name (not (memq system-type '(usg-unix-v xenix)))
   "*Non-nil means that the default name of a file to save articles in is the group name.
 If it's nil, the directory form of the group name is used instead.

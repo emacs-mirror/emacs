@@ -385,7 +385,6 @@ relative X divided by window width."
   )
 
 (defmenu emacs-quit-menu
-  ("Suspend" suspend-emacstool)
   ("Quit" save-buffers-kill-emacs))
 
 (defmenu emacs-menu

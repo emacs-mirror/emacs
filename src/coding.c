@@ -300,6 +300,8 @@ encode_coding_XXX (coding)
 #include "composite.h"
 #include "coding.h"
 #include "window.h"
+#include "frame.h"
+#include "termhooks.h"
 
 Lisp_Object Vcoding_system_hash_table;
 
@@ -381,15 +383,12 @@ int inhibit_iso_escape_detection;
 /* Flag to make buffer-file-coding-system inherit from process-coding.  */
 int inherit_process_coding_system;
 
-/* Coding system to be used to encode text for terminal display.  */
-struct coding_system terminal_coding;
-
 /* Coding system to be used to encode text for terminal display when
    terminal coding system is nil.  */
 struct coding_system safe_terminal_coding;
 
-/* Coding system of what is sent from terminal keyboard.  */
-struct coding_system keyboard_coding;
+/* Default coding system to be used to write a file.  */
+struct coding_system default_buffer_file_coding;
 
 Lisp_Object Vfile_coding_system_alist;
 Lisp_Object Vprocess_coding_system_alist;
@@ -8286,23 +8285,22 @@ Return the corresponding character code in Big5.  */)
 }
 
 
-DEFUN ("set-terminal-coding-system-internal",
-       Fset_terminal_coding_system_internal,
-       Sset_terminal_coding_system_internal, 1, 1, 0,
+DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_internal,
+       Sset_terminal_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system)
+     (coding_system, terminal)
      Lisp_Object coding_system;
+     Lisp_Object terminal;
 {
+  struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
   CHECK_SYMBOL (coding_system);
-  setup_coding_system (Fcheck_coding_system (coding_system),
-			&terminal_coding);
-
+  setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
-  terminal_coding.mode |= CODING_MODE_SAFE_ENCODING;
+  terminal_coding->mode |= CODING_MODE_SAFE_ENCODING;
   /* Characer composition should be disabled.  */
-  terminal_coding.common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
-  terminal_coding.src_multibyte = 1;
-  terminal_coding.dst_multibyte = 0;
+  terminal_coding->common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
+  terminal_coding->src_multibyte = 1;
+  terminal_coding->dst_multibyte = 0;
   return Qnil;
 }
 
@@ -8323,30 +8321,35 @@ DEFUN ("set-safe-terminal-coding-system-internal",
   return Qnil;
 }
 
-DEFUN ("terminal-coding-system",
-       Fterminal_coding_system, Sterminal_coding_system, 0, 0, 0,
-       doc: /* Return coding system specified for terminal output.  */)
-     ()
+DEFUN ("terminal-coding-system", Fterminal_coding_system,
+       Sterminal_coding_system, 0, 1, 0,
+       doc: /* Return coding system specified for terminal output on the given terminal.
+TERMINAL may be a terminal id, a frame, or nil for the selected
+frame's terminal device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
   Lisp_Object coding_system;
 
-  coding_system = CODING_ID_NAME (terminal_coding.id);
+  coding_system = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1))->symbol;
   /* For backward compatibility, return nil if it is `undecided'. */
   return (! EQ (coding_system, Qundecided) ? coding_system : Qnil);
 }
 
-DEFUN ("set-keyboard-coding-system-internal",
-       Fset_keyboard_coding_system_internal,
-       Sset_keyboard_coding_system_internal, 1, 1, 0,
+DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_internal,
+       Sset_keyboard_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system)
+     (coding_system, terminal)
      Lisp_Object coding_system;
+     Lisp_Object terminal;
 {
+  struct terminal *t = get_terminal (terminal, 1);
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system),
-		       &keyboard_coding);
+		       TERMINAL_KEYBOARD_CODING (t));
   /* Characer composition should be disabled.  */
-  keyboard_coding.common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
+  TERMINAL_KEYBOARD_CODING (t)->common_flags
+    &= ~CODING_ANNOTATE_COMPOSITION_MASK;
   return Qnil;
 }
 

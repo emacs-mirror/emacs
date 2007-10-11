@@ -86,30 +86,10 @@ If nil, don't interrupt for about 1^26 seconds.")
      ,@body))
 
 (defmacro zone-hiding-modeline (&rest body)
-  `(let (bg mode-line-fg mode-line-bg mode-line-box)
-     (unwind-protect
-         (progn
-           (when (and (= 0 (get 'zone 'modeline-hidden-level))
-                      (display-color-p))
-             (setq bg (face-background 'default)
-                   mode-line-box (face-attribute 'mode-line :box)
-                   mode-line-fg (face-attribute 'mode-line :foreground)
-                   mode-line-bg (face-attribute 'mode-line :background))
-             (set-face-attribute 'mode-line nil
-                                 :foreground bg
-                                 :background bg
-                                 :box nil))
-           (put 'zone 'modeline-hidden-level
-                (1+ (get 'zone 'modeline-hidden-level)))
-           ,@body)
-       (put 'zone 'modeline-hidden-level
-            (1- (get 'zone 'modeline-hidden-level)))
-       (when (and (> 1 (get 'zone 'modeline-hidden-level))
-                  mode-line-fg)
-         (set-face-attribute 'mode-line nil
-                             :foreground mode-line-fg
-                             :background mode-line-bg
-                             :box mode-line-box)))))
+  ;; This formerly worked by temporarily altering face `mode-line',
+  ;; which did not even work right, it seems.
+  `(let (mode-line-format)
+     ,@body))
 
 (defun zone-call (program &optional timeout)
   "Call PROGRAM in a zoned way.
@@ -158,6 +138,7 @@ If the element is a function or a list of a function and a number,
       (sit-for 0 500)
       (let ((pgm (elt zone-programs (random (length zone-programs))))
             (ct (and f (frame-parameter f 'cursor-type)))
+            (show-trailing-whitespace nil)
             (restore (list '(kill-buffer outbuf))))
         (when ct
           (modify-frame-parameters f '((cursor-type . (bar . 0))))
@@ -399,20 +380,20 @@ If the element is a function or a list of a function and a number,
   (let* ((specs (apply
                  'vector
                  (let (res)
-                   (mapcar (lambda (ent)
-                             (let* ((beg (car ent))
-                                    (end (cdr ent))
-                                    (amt (if random-style
-                                             (funcall random-style)
-                                           (- (random 7) 3))))
-                               (when (< (- end (abs amt)) beg)
-                                 (setq amt (random (- end beg))))
-                               (unless (= 0 amt)
-                                 (setq res
-                                       (cons
-                                        (vector amt beg (- end (abs amt)))
-                                        res)))))
-                           (zone-line-specs))
+                   (mapc (lambda (ent)
+			   (let* ((beg (car ent))
+				  (end (cdr ent))
+				  (amt (if random-style
+					   (funcall random-style)
+					 (- (random 7) 3))))
+			     (when (< (- end (abs amt)) beg)
+			       (setq amt (random (- end beg))))
+			     (unless (= 0 amt)
+			       (setq res
+				     (cons
+				      (vector amt beg (- end (abs amt)))
+				      res)))))
+			 (zone-line-specs))
                    res)))
          (n (length specs))
          amt aamt cut paste txt i ent)
@@ -703,6 +684,7 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
                                              (make-string 10 32)))))))
       (life (or zone-pgm-random-life-wait (random 4)))
       (kill-buffer nil))))
+
 
 (random t)
 

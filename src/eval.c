@@ -1280,7 +1280,11 @@ unwind_to_catch (catch, value)
 #if HAVE_X_WINDOWS
   /* If x_catch_errors was done, turn it off now.
      (First we give unbind_to a chance to do that.)  */
+#if 0 /* This would disable x_catch_errors after x_connection_closed.
+       * The catch must remain in effect during that delicate
+       * state. --lorentey  */
   x_fully_uncatch_errors ();
+#endif
 #endif
 
   byte_stack_list = catch->byte_stack;
@@ -1351,14 +1355,15 @@ if CONDITION-NAME is one of the error's condition names.
 If an error happens, the first applicable handler is run.
 
 The car of a handler may be a list of condition names
-instead of a single condition name.
+instead of a single condition name.  Then it handles all of them.
 
-When a handler handles an error,
-control returns to the condition-case and the handler BODY... is executed
-with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA).
-VAR may be nil; then you do not get access to the signal information.
+When a handler handles an error, control returns to the `condition-case'
+and it executes the handler's BODY...
+with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA) from the error.
+(If VAR is nil, the handler can't access that information.)
+Then the value of the last BODY form is returned from the `condition-case'
+expression.
 
-The value of the last BODY form is returned from the condition-case.
 See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
      (args)
@@ -2068,7 +2073,7 @@ then strings and vectors are not accepted.  */)
   /* Emacs primitives are interactive if their DEFUN specifies an
      interactive spec.  */
   if (SUBRP (fun))
-    return XSUBR (fun)->prompt ? Qt : if_prop;
+    return XSUBR (fun)->intspec ? Qt : if_prop;
 
   /* Bytecode objects are interactive if they are long enough to
      have an element whose index is COMPILED_INTERACTIVE, which is
@@ -2192,7 +2197,7 @@ do_autoload (fundef, funname)
   /* Value saved here is to be restored into Vautoload_queue.  */
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
-  Fload (Fcar (Fcdr (fundef)), Qnil, noninteractive ? Qt : Qnil, Qnil, Qt);
+  Fload (Fcar (Fcdr (fundef)), Qnil, Qt, Qnil, Qt);
 
   /* Save the old autoloads, in case we ever do an unload.  */
   queue = Vautoload_queue;

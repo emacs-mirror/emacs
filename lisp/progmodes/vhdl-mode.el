@@ -2811,7 +2811,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
 
 ;; set up electric character functions to work with
 ;; `delete-selection-mode' (Emacs) and `pending-delete-mode' (XEmacs)
-(mapcar
+(mapc
  (function
   (lambda (sym)
     (put sym 'delete-selection t)	; for `delete-selection-mode' (Emacs)
@@ -5296,7 +5296,7 @@ argument.  The styles are chosen from the `vhdl-style-alist' variable."
     (or vars
 	(error "ERROR:  Invalid VHDL indentation style `%s'" style))
     ;; set all the variables
-    (mapcar
+    (mapc
      (function
       (lambda (varentry)
 	(let ((var (car varentry))
@@ -7148,7 +7148,7 @@ ENDPOS is encountered."
 	(actual (vhdl-get-syntactic-context))
 	(expurgated))
     ;; remove the library unit symbols
-    (mapcar
+    (mapc
      (function
       (lambda (elt)
 	(if (memq (car elt) '(entity configuration package

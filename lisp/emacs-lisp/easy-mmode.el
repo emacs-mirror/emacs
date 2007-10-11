@@ -139,8 +139,8 @@ For example, you could write
     (setq body (list* lighter keymap body) lighter nil keymap nil))
    ((keywordp keymap) (push keymap body) (setq keymap nil)))
 
-  (let* ((last-message (current-message))
-	 (mode-name (symbol-name mode))
+  (let* ((last-message (make-symbol "last-message"))
+         (mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
 	 (set nil)
@@ -222,28 +222,30 @@ With zero or negative ARG turn mode off.
 	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
 	 ;; repeat-command still does the toggling correctly.
 	 (interactive (list (or current-prefix-arg 'toggle)))
-	 (setq ,mode
-	       (cond
-		((eq arg 'toggle) (not ,mode))
-		(arg (> (prefix-numeric-value arg) 0))
-		(t
-		 (if (null ,mode) t
-		   (message
-		    "Toggling %s off; better pass an explicit argument."
-		    ',mode)
-		   nil))))
-	 ,@body
-	 ;; The on/off hooks are here for backward compatibility only.
-	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
-	 (if (called-interactively-p)
-	     (progn
-	       ,(if globalp `(customize-mark-as-set ',mode))
-	       ;; Avoid overwriting a message shown by the body,
-               ;; but do overwrite previous messages.
-	       (unless  ,(and (current-message)
-                              (not (equal last-message (current-message))))
-		 (message ,(format "%s %%sabled" pretty-name)
-			  (if ,mode "en" "dis")))))
+	 (let ((,last-message (current-message)))
+           (setq ,mode
+                 (cond
+                  ((eq arg 'toggle) (not ,mode))
+                  (arg (> (prefix-numeric-value arg) 0))
+                  (t
+                   (if (null ,mode) t
+                     (message
+                      "Toggling %s off; better pass an explicit argument."
+                      ',mode)
+                     nil))))
+           ,@body
+           ;; The on/off hooks are here for backward compatibility only.
+           (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
+           (if (called-interactively-p)
+               (progn
+                 ,(if globalp `(customize-mark-as-set ',mode))
+                 ;; Avoid overwriting a message shown by the body,
+                 ;; but do overwrite previous messages.
+                 (unless (and (current-message)
+                              (not (equal ,last-message
+                                          (current-message))))
+                   (message ,(format "%s %%sabled" pretty-name)
+                            (if ,mode "en" "dis"))))))
 	 (force-mode-line-update)
 	 ;; Return the new setting.
 	 ,mode)
@@ -456,7 +458,7 @@ ARGS is a list of additional keyword arguments."
       (let ((char (car cs))
 	    (syntax (cdr cs)))
 	(if (sequencep char)
-	    (mapcar (lambda (c) (modify-syntax-entry c syntax st)) char)
+	    (mapc (lambda (c) (modify-syntax-entry c syntax st)) char)
 	  (modify-syntax-entry char syntax st))))
     (if parent (set-char-table-parent
 		st (if (symbolp parent) (symbol-value parent) parent)))
@@ -539,5 +541,5 @@ found, do `widen' first and then call NARROWFUN with no args after moving."
 
 (provide 'easy-mmode)
 
-;;; arch-tag: d48a5250-6961-4528-9cb0-3c9ea042a66a
+;; arch-tag: d48a5250-6961-4528-9cb0-3c9ea042a66a
 ;;; easy-mmode.el ends here

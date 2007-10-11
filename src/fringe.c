@@ -29,6 +29,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "buffer.h"
 #include "blockinput.h"
+#include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -686,7 +687,7 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
       break;
     }
 
-  rif->draw_fringe_bitmap (w, row, &p);
+  FRAME_RIF (f)->draw_fringe_bitmap (w, row, &p);
 }
 
 static int
@@ -1278,6 +1279,8 @@ destroy_fringe_bitmap (n)
   fbp = &fringe_bitmaps[n];
   if (*fbp && (*fbp)->dynamic)
     {
+      /* XXX Is SELECTED_FRAME OK here? */
+      struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
       if (rif && rif->destroy_fringe_bitmap)
 	rif->destroy_fringe_bitmap (n);
       xfree (*fbp);
@@ -1327,6 +1330,14 @@ If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  
    On W32 and MAC (little endian), there's no need to do this.
 */
 
+#if defined (HAVE_X_WINDOWS)
+static unsigned char swap_nibble[16] = {
+  0x0, 0x8, 0x4, 0xc,           /* 0000 1000 0100 1100 */
+  0x2, 0xa, 0x6, 0xe,           /* 0010 1010 0110 1110 */
+  0x1, 0x9, 0x5, 0xd,           /* 0001 1001 0101 1101 */
+  0x3, 0xb, 0x7, 0xf};          /* 0011 1011 0111 1111 */
+#endif                          /* HAVE_X_WINDOWS */
+
 void
 init_fringe_bitmap (which, fb, once_p)
      int which;
@@ -1336,11 +1347,6 @@ init_fringe_bitmap (which, fb, once_p)
   if (once_p || fb->dynamic)
     {
 #if defined (HAVE_X_WINDOWS)
-      static unsigned char swap_nibble[16]
-	= { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
-	    0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
-	    0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
-	    0x3, 0xb, 0x7, 0xf };  /* 0011 1011 0111 1111 */
       unsigned short *bits = fb->bits;
       int j;
 
@@ -1383,6 +1389,9 @@ init_fringe_bitmap (which, fb, once_p)
 
   if (!once_p)
     {
+      /* XXX Is SELECTED_FRAME OK here? */
+      struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
+
       destroy_fringe_bitmap (which);
 
       if (rif && rif->define_fringe_bitmap)
@@ -1693,10 +1702,11 @@ init_fringe ()
 
 void
 #ifdef HAVE_NTGUI
-w32_init_fringe ()
+w32_init_fringe (rif)
 #else  /* MAC_OS */
-mac_init_fringe ()
+mac_init_fringe (rif)
 #endif
+     struct redisplay_interface *rif;
 {
   int bt;
 
@@ -1717,6 +1727,7 @@ w32_reset_fringes ()
 {
   /* Destroy row bitmaps.  */
   int bt;
+  struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
 
   if (!rif)
     return;

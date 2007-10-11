@@ -55,7 +55,7 @@ function edit ()
 
     case "${windowsys}" in
       x ) (emacs "$@" &) ;;
-      sun ) (emacstool "$@" &) ;;
+      sun ) echo "unsupported window system"; return 1 ;;
     esac
  else
     if jobs %emacs 2> /dev/null ; then

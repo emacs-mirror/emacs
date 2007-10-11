@@ -911,6 +911,7 @@ If global mark is active, copy from register or one character."
 	    ;; That would make yank a no-op.
 	    (if (and (string= (filter-buffer-substring (point) (mark))
 			      (car kill-ring))
+		     (fboundp 'mouse-region-match)
 		     (mouse-region-match))
 		(current-kill 1))
 	    (cua-delete-region)))
@@ -1233,9 +1234,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
        (memq 'shift (event-modifiers
 		     (aref (this-single-command-keys) 0)))
        ;; See if raw escape sequence maps to a shifted event, e.g. S-up or C-S-home.
-       (and (boundp 'function-key-map)
-	    function-key-map
-	    (let ((ev (lookup-key function-key-map
+       (and (boundp 'local-function-key-map)
+	    local-function-key-map
+	    (let ((ev (lookup-key local-function-key-map
 				  (this-single-command-raw-keys))))
 	      (and (vector ev)
 		   (symbolp (setq ev (aref ev 0)))

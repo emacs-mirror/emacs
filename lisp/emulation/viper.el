@@ -799,7 +799,7 @@ It also can't undo some Viper settings."
 
 ;; set appropriate Viper state in buffers that changed major mode
 (defun set-viper-state-in-major-mode ()
-  (mapcar
+  (mapc
    (lambda (buf)
      (if (viper-buffer-live-p buf)
 	 (with-current-buffer buf

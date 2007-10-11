@@ -515,7 +515,7 @@ optional fourth argument FORCE is non-nil."
   "Delete all RE Builder overlays in the `reb-target-buffer' buffer."
   (if (buffer-live-p reb-target-buffer)
     (with-current-buffer reb-target-buffer
-      (mapcar 'delete-overlay reb-overlays)
+      (mapc 'delete-overlay reb-overlays)
       (setq reb-overlays nil))))
 
 (defun reb-assert-buffer-in-window ()

@@ -1,5 +1,5 @@
-;;; -*- coding: utf-8; -*-
 ;;; tramp-uu.el --- uuencode in Lisp
+;;; -*- coding: utf-8; -*-
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
 ;;   2007 Free Software Foundation, Inc.

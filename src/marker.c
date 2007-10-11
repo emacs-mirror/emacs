@@ -452,9 +452,12 @@ Returns nil if MARKER points into a dead buffer.  */)
   if (XMARKER (marker)->buffer)
     {
       XSETBUFFER (buf, XMARKER (marker)->buffer);
-      /* Return marker's buffer only if it is not dead.  */
-      if (!NILP (XBUFFER (buf)->name))
-	return buf;
+      /* If the buffer is dead, we're in trouble: the buffer pointer here
+	 does not preserve the buffer from being GC'd (it's weak), so
+	 markers have to be unlinked from their buffer as soon as the buffer
+	 is killed.  */
+      eassert (!NILP (XBUFFER (buf)->name));
+      return buf;
     }
   return Qnil;
 }

@@ -3,6 +3,23 @@ ERC NEWS                                                       -*- outline -*-
 Copyright (C) 2006, 2007  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+* Changes in ERC 5.3
+
+** New function `erc-tls' is to be used for connecting to a server via TLS.
+It requires the tls.el library.
+
+** The function `erc-ssl' will now always use ssl.el, even in the version
+of ERC that comes with Emacs.
+
+** Changes and additions to modules
+
+*** Channel tracking (erc-track.el)
+
+If erc-track-position-in-mode-line is set to nil, the tracking
+information won't be shown in the mode line, which is a change
+from the previous behavior of showing it "After all other
+information".
+
 * Changes in ERC 5.2
 
 ** M-x erc RET now starts ERC.

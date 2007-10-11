@@ -101,17 +101,17 @@ from being inserted into the process-buffer.")
 (setq-default scheme-mode-line-process
 	      '("" xscheme-runlight))
 
-(mapcar 'make-variable-buffer-local
-	'(xscheme-expressions-ring
-	  xscheme-expressions-ring-yank-pointer
-	  xscheme-process-filter-state
-	  xscheme-running-p
-	  xscheme-control-g-disabled-p
-	  xscheme-allow-output-p
-	  xscheme-prompt
-	  xscheme-string-accumulator
-	  xscheme-mode-string
-	  scheme-mode-line-process))
+(mapc 'make-variable-buffer-local
+      '(xscheme-expressions-ring
+	xscheme-expressions-ring-yank-pointer
+	xscheme-process-filter-state
+	xscheme-running-p
+	xscheme-control-g-disabled-p
+	xscheme-allow-output-p
+	xscheme-prompt
+	xscheme-string-accumulator
+	xscheme-mode-string
+	scheme-mode-line-process))
 
 (defgroup xscheme nil
   "Major mode for editing Scheme and interacting with MIT's C-Scheme."

@@ -1170,9 +1170,9 @@
 	(?C . ?K)			; Chinese - Katakana
 	))
 
-;;; Local Variables:
-;;; coding: utf-8-emacs
-;;; End:
+;; Local Variables:
+;; coding: utf-8-emacs
+;; End:
 
-;;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
+;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
 ;;; characters.el ends here

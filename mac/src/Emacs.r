@@ -144,7 +144,7 @@ resource 'DITL' (128, purgeable) {
 		{10, 60, 72, 278},
 		StaticText {
 			disabled,
-			"GNU Emacs 22 for Mac OS"
+			"GNU Emacs 23 for Mac OS"
 		}
 	}
 };
@@ -218,13 +218,13 @@ resource 'FREF' (129) {
 };
 
 resource 'vers' (1) {
-	0x22,		/* Major revision in BCD */
-	0x1,		/* Minor revision in BCD */
+	0x23,		/* Major revision in BCD */
+	0x0,		/* Minor revision in BCD */
 	development,	/* development, alpha, beta, or final (release) */
 	50,		/* Non-final release # */
 	0,		/* Region code */
-	"22.1.50",	/* Short version number */
-	"22.1.50, Copyright \0xa9 2007 "
+	"23.0.50",	/* Short version number */
+	"23.0.50, Copyright \0xa9 2007 "
 	"Free Software Foundation, Inc." /* Long version number */
 };
 

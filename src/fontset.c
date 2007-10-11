@@ -55,6 +55,7 @@ Boston, MA 02110-1301, USA.  */
 #ifdef MAC_OS
 #include "macterm.h"
 #endif
+#include "termhooks.h"
 
 #ifdef USE_FONT_BACKEND
 #include "font.h"
@@ -2144,7 +2145,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 	return (Fcons (AREF (rfont_def, 3), Qnil));
       STORE_XCHAR2B (&char2b, ((code >> 8) & 0xFF), (code & 0xFF));
       fontp = (*get_font_info_func) (f, XINT (AREF (rfont_def, 1)));
-      rif->encode_char (c, &char2b, fontp, charset, NULL);
+      FRAME_RIF (f)->encode_char (c, &char2b, fontp, charset, NULL);
       code = (XCHAR2B_BYTE1 (&char2b) << 8) | XCHAR2B_BYTE2 (&char2b);
       return (Fcons (AREF (rfont_def, 3), make_number (code)));
     }

@@ -34,7 +34,7 @@
 ;; Usually this map is empty (even if Encoded-kbd mode is on), but if
 ;; the keyboard coding system is iso-2022-based, it defines dummy key
 ;; bindings for ESC $ ..., etc. so that those bindings in
-;; key-translation-map take effect.
+;; input-decode-map take effect.
 (defconst encoded-kbd-mode-map (make-sparse-keymap)
   "Keymap for Encoded-kbd minor mode.")
 
@@ -236,7 +236,7 @@ The following key sequence may cause multilingual text insertion."
 	    len (1- len)))
     (vector char)))
 
-(defun encoded-kbd-setup-keymap (coding)
+(defun encoded-kbd-setup-keymap (keymap coding)
   ;; At first, reset the keymap.
   (define-key encoded-kbd-mode-map "\e" nil)
   ;; Then setup the keymap according to the keyboard coding system.
@@ -244,7 +244,7 @@ The following key sequence may cause multilingual text insertion."
    ((eq (coding-system-type coding) 'shift-jis)
     (let ((i 128))
       (while (< i 256)
-	(define-key key-translation-map
+	(define-key keymap
 	  (vector i) 'encoded-kbd-self-insert-sjis)
 	(setq i (1+ i))))
     8)
@@ -260,7 +260,7 @@ The following key sequence may cause multilingual text insertion."
       (let ((from (max (car elt) 128))
 	    (to (cdr elt)))
 	(while (<= from to)
-	  (define-key key-translation-map
+	  (define-key keymap
 	    (vector from) 'encoded-kbd-self-insert-charset)
 	  (setq from (1+ from)))))
     8)
@@ -285,20 +285,20 @@ The following key sequence may cause multilingual text insertion."
 	    (aset encoded-kbd-iso2022-invocations 1 1))
 	(when (memq 'designation flags)
 	  (define-key encoded-kbd-mode-map "\e" 'encoded-kbd-iso2022-esc-prefix)
-	  (define-key key-translation-map "\e" 'encoded-kbd-iso2022-esc-prefix))
+	  (define-key keymap "\e" 'encoded-kbd-iso2022-esc-prefix))
 	(when (or (aref designation 2) (aref designation 3))
-	  (define-key key-translation-map
+	  (define-key keymap
 	    [?\216] 'encoded-kbd-iso2022-single-shift)
-	  (define-key key-translation-map
+	  (define-key keymap
 	    [?\217] 'encoded-kbd-iso2022-single-shift))
 	(or (eq (aref designation 0) 'ascii)
 	    (dotimes (i 96)
-	      (define-key key-translation-map
+	      (define-key keymap
 		(vector (+ 32 i)) 'encoded-kbd-self-insert-iso2022-7bit)))
 	(if (memq '7-bit flags)
 	    t
 	  (dotimes (i 96)
-	    (define-key key-translation-map
+	    (define-key keymap
 	      (vector (+ 160 i)) 'encoded-kbd-self-insert-iso2022-8bit))
 	  8))))
 
@@ -313,7 +313,7 @@ The following key sequence may cause multilingual text insertion."
 	  (setq from (setq to elt)))
 	(while (<= from to)
 	  (if (>= from 128)
-	      (define-key key-translation-map
+	      (define-key keymap
 		(vector from) 'encoded-kbd-self-insert-ccl))
 	  (setq from (1+ from))))
       8))
@@ -321,7 +321,7 @@ The following key sequence may cause multilingual text insertion."
    ((eq (coding-system-type coding) 'utf-8)
     (let ((i #xC0))
       (while (< i 256)
-	(define-key key-translation-map
+	(define-key keymap
 	  (vector i) 'encoded-kbd-self-insert-utf-8)
 	(setq i (1+ i))))
     8)
@@ -329,12 +329,9 @@ The following key sequence may cause multilingual text insertion."
    (t
     nil)))
 
-;; key-translation-map at the time Encoded-kbd mode is turned on is
-;; saved here.
-(defvar saved-key-translation-map nil)
-
-;; Input mode at the time Encoded-kbd mode is turned on is saved here.
-(defvar saved-input-mode nil)
+;;;###autoload
+(defun encoded-kbd-setup-display (display)
+  "Set up a `input-decode-map' for `keyboard-coding-system' on DISPLAY.
 
 (put 'encoded-kbd-mode 'permanent-local t)
 ;;;###autoload
@@ -386,5 +383,5 @@ as a multilingual text encoded in a coding system set by
 
 (provide 'encoded-kb)
 
-;;; arch-tag: 76f0f9b3-65e7-45c3-b692-59509a87ad44
+;; arch-tag: 76f0f9b3-65e7-45c3-b692-59509a87ad44
 ;;; encoded-kb.el ends here

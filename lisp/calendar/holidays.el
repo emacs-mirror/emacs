@@ -107,8 +107,10 @@ This function is suitable for execution in a .emacs file."
                    (calendar-current-date)))
            (displayed-month (extract-calendar-month date))
            (displayed-year (extract-calendar-year date)))
-      (list-calendar-holidays))))
+      (calendar-list-holidays))))
 
+;; rms: "Emacs commands to display a list of something generally start
+;; with `list-'.  Please make `list-holidays' the principal name."
 ;;;###autoload
 (defun list-holidays (y1 y2 &optional l label)
   "Display holidays for years Y1 to Y2 (inclusive).
@@ -206,19 +208,18 @@ The optional LABEL is used to label the buffer created."
       (display-buffer holiday-buffer)
       (message "Computing holidays...done"))))
 
+(defalias 'holiday-list 'list-holidays)
 
-(defun check-calendar-holidays (date)
+(defun calendar-check-holidays (date)
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
-The holidays are those in the list calendar-holidays."
-  (let* ((displayed-month (extract-calendar-month date))
-         (displayed-year (extract-calendar-year date))
-         (h (calendar-holiday-list))
-         (holiday-list))
-    (while h
-      (if (calendar-date-equal date (car (car h)))
-          (setq holiday-list (append holiday-list (cdr (car h)))))
-      (setq h (cdr h)))
+The holidays are those in the list `calendar-holidays'."
+  (let ((displayed-month (extract-calendar-month date))
+        (displayed-year (extract-calendar-year date))
+        (holiday-list))
+    (dolist (h (calendar-holiday-list))
+      (if (calendar-date-equal date (car h))
+          (setq holiday-list (append holiday-list (cdr h)))))
     holiday-list))
 
 (defun calendar-cursor-holidays ()
@@ -227,7 +228,7 @@ The holidays are those in the list calendar-holidays."
   (message "Checking holidays...")
   (let* ((date (calendar-cursor-to-date t))
          (date-string (calendar-date-string date))
-         (holiday-list (check-calendar-holidays date))
+         (holiday-list (calendar-check-holidays date))
          (holiday-string (mapconcat 'identity holiday-list ";  "))
          (msg (format "%s:  %s" date-string holiday-string)))
     (if (not holiday-list)
@@ -245,21 +246,19 @@ The holidays are those in the list calendar-holidays."
         (display-buffer holiday-buffer)
         (message "Checking holidays...done")))))
 
-(defun mark-calendar-holidays ()
+(defun calendar-mark-holidays ()
   "Mark notable days in the calendar window."
   (interactive)
   (setq mark-holidays-in-calendar t)
   (message "Marking holidays...")
-  (let ((holiday-list (calendar-holiday-list)))
-    (while holiday-list
-      (mark-visible-calendar-date
-       (car (car holiday-list)) calendar-holiday-marker)
-      (setq holiday-list (cdr holiday-list))))
+  (dolist (holiday (calendar-holiday-list))
+    (mark-visible-calendar-date
+     (car holiday) calendar-holiday-marker))
   (message "Marking holidays...done"))
 
-(defun list-calendar-holidays ()
+(defun calendar-list-holidays ()
   "Create a buffer containing the holidays for the current calendar window.
-The holidays are those in the list calendar-notable-days.  Returns t if any
+The holidays are those in the list `calendar-notable-days'.  Returns t if any
 holidays are found, nil if not."
   (interactive)
   (message "Looking up holidays...")
@@ -297,22 +296,20 @@ holidays are found, nil if not."
 
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
-The holidays are those in the list calendar-holidays."
-  (let ((p calendar-holidays)
-        (holiday-list))
-    (while p
+The holidays are those in the list `calendar-holidays'."
+  (let ((holiday-list ()))
+    (dolist (p calendar-holidays)
       (let* ((holidays
               (if calendar-debug-sexp
                   (let ((stack-trace-on-error t))
-                    (eval (car p)))
+                    (eval p))
                 (condition-case nil
-                    (eval (car p))
+                    (eval p)
                   (error (beep)
-                         (message "Bad holiday list item: %s" (car p))
+                         (message "Bad holiday list item: %s" p)
                          (sleep-for 2))))))
         (if holidays
-            (setq holiday-list (append holidays holiday-list))))
-      (setq p (cdr p)))
+            (setq holiday-list (append holidays holiday-list)))))
     (setq holiday-list (sort holiday-list 'calendar-date-compare))))
 
 ;; Below are the functions that calculate the dates of holidays; these
@@ -396,16 +393,16 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
   (let ((m displayed-month)
         (y displayed-year))
     (increment-calendar-month m y -1)
-    (filter-visible-calendar-holidays
-     (append
+    (holiday-filter-visible-calendar
+     (list
       (let* ((year y)
              (date (eval sexp))
              (string (if date (eval string))))
-        (list (list date string)))
+        (list date string))
       (let* ((year (1+ y))
              (date (eval sexp))
              (string (if date (eval string))))
-        (list (list date string)))))))
+        (list date string))))))
 
 (defun holiday-advent (&optional n string)
   "Date of Nth day after advent (named STRING), if visible in calendar window.
@@ -486,7 +483,7 @@ is non-nil)."
             (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
                adjusted-epact))
            (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7))))
-      (filter-visible-calendar-holidays
+      (holiday-filter-visible-calendar
        (list (list (calendar-gregorian-from-absolute (+ abs-easter n))
                    string))))))
 
@@ -513,18 +510,26 @@ is non-nil)."
       (if (calendar-date-is-visible-p nicaean-easter)
           (list (list nicaean-easter "Pascha (Greek Orthodox Easter)"))))))
 
-(defun filter-visible-calendar-holidays (l)
+(defun holiday-filter-visible-calendar (l)
   "Return a list of all visible holidays of those on L."
-  (let ((visible)
-        (p l))
-    (while p
-      (and (car (car p))
-           (calendar-date-is-visible-p (car (car p)))
-           (setq visible (append (list (car p)) visible)))
-      (setq p (cdr p)))
+  (let ((visible ()))
+    (dolist (p l)
+      (and (car p)
+           (calendar-date-is-visible-p (car p))
+           (push p visible)))
     visible))
+
+;; Backward compatibility.
+(define-obsolete-function-alias
+  'filter-visible-calendar-holidays 'holiday-filter-visible-calendar "23.1")
+(define-obsolete-function-alias
+  'list-calendar-holidays 'calendar-list-holidays "23.1")
+(define-obsolete-function-alias
+  'mark-calendar-holidays 'calendar-mark-holidays "23.1")
+(define-obsolete-function-alias
+  'check-calendar-holidays 'calendar-check-holidays "23.1")
 
 (provide 'holidays)
 
-;;; arch-tag: 48eb3117-75a7-4dbe-8fd9-873c3cbb0d37
+;; arch-tag: 48eb3117-75a7-4dbe-8fd9-873c3cbb0d37
 ;;; holidays.el ends here

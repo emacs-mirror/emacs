@@ -142,23 +142,31 @@ The following place holders should be present in the string:
   :version "22.1"
   :group 'grep)
 
-(defcustom grep-files-aliases '(
-	("el" .	"*.el")
-	("ch" .	"*.[ch]")
-	("c" .	"*.c")
-	("h" .	"*.h")
-	("asm" . "*.[sS]")
-	("m" .	"[Mm]akefile*")
-	("l" . "[Cc]hange[Ll]og*")
-	("tex" . "*.tex")
-	("texi" . "*.texi")
-	)
+(defcustom grep-files-aliases
+  '(("asm" .    "*.[sS]")
+    ("c" .     "*.c")
+    ("cc" .    "*.cc")
+    ("ch" .    "*.[ch]")
+    ("el" .    "*.el")
+    ("h" .     "*.h")
+    ("l" .      "[Cc]hange[Ll]og*")
+    ("m" .     "[Mm]akefile*")
+    ("tex" .    "*.tex")
+    ("texi" .   "*.texi"))
   "*Alist of aliases for the FILES argument to `lgrep' and `rgrep'."
   :type 'alist
   :group 'grep)
 
-(defcustom grep-find-ignored-directories '("CVS" ".svn" "{arch}" ".hg" "_darcs"
-					   ".git" ".bzr")
+(defcustom grep-find-ignored-directories
+  '(".bzr"
+    ".git"
+    ".hg"
+    ".svn"
+    "CVS"
+    "RCS"
+    "_MTN"
+    "_darcs"
+    "{arch}")
   "*List of names of sub-directories which `rgrep' shall not recurse into."
   :type '(repeat string)
   :group 'grep)

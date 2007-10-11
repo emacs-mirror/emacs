@@ -155,25 +155,7 @@
 
 (require 'tramp)
 (require 'tramp-cache)
-
-;; Pacify byte-compiler
-(eval-when-compile
-  (require 'cl)
-  (require 'custom))
-
-;; Avoid byte-compiler warnings if the byte-compiler supports this.
-;; Currently, XEmacs supports this.
-(eval-when-compile
-  (when (featurep 'xemacs)
-      (byte-compiler-options (warnings (- unused-vars)))))
-
-;; `directory-sep-char' is an obsolete variable in Emacs.  But it is
-;; used in XEmacs, so we set it here and there.  The following is needed
-;; to pacify Emacs byte-compiler.
-(eval-when-compile
-  (unless (boundp 'byte-compile-not-obsolete-var)
-    (defvar byte-compile-not-obsolete-var nil))
-  (setq byte-compile-not-obsolete-var 'directory-sep-char))
+(require 'tramp-compat)
 
 ;; Define FISH method ...
 (defcustom tramp-fish-method "fish"
@@ -365,7 +347,7 @@ pass to the OPERATION."
   (unless (file-name-absolute-p name)
     (setq name (concat (file-name-as-directory dir) name)))
   ;; If NAME is not a tramp file, run the real handler
-  (if (or (tramp-completion-mode) (not (tramp-tramp-file-p name)))
+  (if (or (tramp-completion-mode-p) (not (tramp-tramp-file-p name)))
       (tramp-drop-volume-letter
        (tramp-run-real-handler 'expand-file-name (list name nil)))
     ;; Dissect NAME.
@@ -386,7 +368,7 @@ pass to the OPERATION."
 	      (tramp-fish-send-command-and-check v "#PWD")
 	      (with-current-buffer (tramp-get-buffer v)
 		(goto-char (point-min))
-		(buffer-substring (point) (tramp-line-end-position)))))
+		(buffer-substring (point) (tramp-compat-line-end-position)))))
 	  (setq localname (concat uname fname))))
       ;; There might be a double slash, for example when "~/"
       ;; expands to "/". Remove this.
@@ -399,7 +381,7 @@ pass to the OPERATION."
       ;; bound, because on Windows there would be problems with UNC
       ;; shares or Cygwin mounts.
       (tramp-let-maybe directory-sep-char ?/
-	(let ((default-directory (tramp-temporary-file-directory)))
+	(let ((default-directory (tramp-compat-temporary-file-directory)))
 	  (tramp-make-tramp-file-name
 	   method user host
 	   (tramp-drop-volume-letter
@@ -493,14 +475,14 @@ pass to the OPERATION."
       (tramp-error
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
-    (let ((tmpfil (tramp-make-temp-file filename)))
-      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfil)
+    (let ((tmpfile (tramp-compat-make-temp-file filename)))
+      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfile)
       (when (tramp-fish-retrieve-data v)
 	;; Save file
 	(with-current-buffer (tramp-get-buffer v)
-	  (write-region (point-min) (point-max) tmpfil))
-	(tramp-message v 4 "Fetching %s to tmp file %s...done" filename tmpfil)
-	tmpfil))))
+	  (write-region (point-min) (point-max) tmpfile))
+	(tramp-message v 4 "Fetching %s to tmp file %s...done" filename tmpfile)
+	tmpfile))))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.
@@ -742,7 +724,7 @@ target of the symlink differ."
     (if (zerop (process-file "which" nil t nil command))
 	(progn
 	  (goto-char (point-min))
-	  (buffer-substring (point-min) (tramp-line-end-position))))))
+	  (buffer-substring (point-min) (tramp-compat-line-end-position))))))
 
 (defun tramp-fish-handle-process-file
   (program &optional infile destination display &rest args)
@@ -752,8 +734,8 @@ target of the symlink differ."
     (error "Implementation does not handle immediate return"))
 
   (with-parsed-tramp-file-name default-directory nil
-    (let ((temp-name-prefix (tramp-make-tramp-temp-file v))
-	  command input output stderr outbuf tmpfil ret)
+    (let (command input tmpinput output tmpoutput stderr tmpstderr
+		  outbuf tmpfile ret)
       ;; Compute command.
       (setq command (mapconcat 'tramp-shell-quote-argument
 			       (cons program args) " "))
@@ -765,15 +747,14 @@ target of the symlink differ."
 	    ;; INFILE is on the same remote host.
 	    (setq input (with-parsed-tramp-file-name infile nil localname))
 	  ;; INFILE must be copied to remote host.
-	  (setq input (concat temp-name-prefix ".in"))
-	  (copy-file
-	   infile
-	   (tramp-make-tramp-file-name method user host input)
-	   t)))
+	  (setq input (tramp-make-tramp-temp-file v)
+		tmpinput (tramp-make-tramp-file-name method user host input))
+	  (copy-file infile tmpinput t)))
       (when input (setq command (format "%s <%s" command input)))
 
       ;; Determine output.
-      (setq output (concat temp-name-prefix ".out"))
+      (setq output (tramp-make-tramp-temp-file v)
+	    tmpoutput (tramp-make-tramp-file-name method user host output))
       (cond
        ;; Just a buffer
        ((bufferp destination)
@@ -799,7 +780,9 @@ target of the symlink differ."
 			       (cadr destination) nil localname))
 	    ;; stderr must be copied to remote host.  The temporary
 	    ;; file must be deleted after execution.
-	    (setq stderr (concat temp-name-prefix ".err"))))
+	    (setq stderr (tramp-make-tramp-temp-file v)
+		  tmpstderr (tramp-make-tramp-file-name
+			     method user host stderr))))
 	 ;; stderr to be discarded
 	 ((null (cadr destination))
 	  (setq stderr "/dev/null"))))
@@ -808,9 +791,6 @@ target of the symlink differ."
 	(setq outbuf (current-buffer))))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 
-      ;; If we have a temporary file, it must be removed after operation.
-      (when (and input (string-match temp-name-prefix input))
-	(setq command (format "%s; rm %s" command input)))
       ;; Goto working directory.
       (unless
 	  (tramp-fish-send-command-and-check
@@ -823,31 +803,31 @@ target of the symlink differ."
 		       v (format
 			  "#EXEC %s %s"
 			  (tramp-shell-quote-argument command) output))
-		(error))
+		(error nil))
 	    ;; Check return code.
-	    (setq tmpfil (file-local-copy
-			  (tramp-make-tramp-file-name method user host output)))
+	    (setq tmpfile
+		  (file-local-copy
+		   (tramp-make-tramp-file-name method user host output)))
 	    (with-temp-buffer
-	      (insert-file-contents tmpfil)
+	      (insert-file-contents tmpfile)
 	      (goto-char (point-max))
 	      (forward-line -1)
 	      (looking-at "^###RESULT: \\([0-9]+\\)")
 	      (setq ret (string-to-number (match-string 1)))
 	      (delete-region (point) (point-max))
-	      (write-region (point-min) (point-max) tmpfil))
+	      (write-region (point-min) (point-max) tmpfile))
 	    ;; We should show the output anyway.
 	    (when outbuf
-	      (with-current-buffer outbuf (insert-file-contents tmpfil))
-	      (when display (display-buffer outbuf)))
-	    ;; Remove output file.
-	    (delete-file (tramp-make-tramp-file-name method user host output)))
+	      (with-current-buffer outbuf (insert-file-contents tmpfile))
+	      (when display (display-buffer outbuf))))
 	;; When the user did interrupt, we should do it also.
 	(error (setq ret 1)))
-      (unless ret
-	;; Provide error file.
-	(when (and stderr (string-match temp-name-prefix stderr))
-	  (rename-file (tramp-make-tramp-file-name method user host stderr)
-		       (cadr destination) t)))
+
+      ;; Provide error file.
+      (when tmpstderr (rename-file tmpstderr (cadr destination) t))
+      ;; Cleanup.
+      (when tmpinput (delete-file tmpinput))
+      (when tmpoutput (delete-file tmpoutput))
       ;; Return exit status.
       ret)))
 
@@ -935,7 +915,7 @@ KEEP-DATE is non-nil, preserve the time stamp when copying."
 	       (tramp-shell-quote-argument v2-localname)))))
   ;; KEEP-DATE handling.
   (when (and keep-date (functionp 'set-file-times))
-    (apply 'set-file-times (list newname (nth 5 (file-attributes filename)))))
+    (set-file-times newname (nth 5 (file-attributes filename))))
   ;; Set the mode.
   (set-file-modes newname (file-modes filename)))
 
@@ -961,7 +941,7 @@ SIZE MODE WEIRD INODE DEVICE)."
 	;; Read number of entries
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (integerp (setq num (read (current-buffer)))) (error))
+	    (unless (integerp (setq num (read (current-buffer)))) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -969,7 +949,7 @@ SIZE MODE WEIRD INODE DEVICE)."
 	;; Read return code
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -986,7 +966,7 @@ SIZE MODE WEIRD INODE DEVICE)."
 	;; Read return code
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error nil))
 	  (error (tramp-error
 		  vec 'file-error
 		  "`%s' does not return a valid Lisp expression: `%s'"
@@ -1071,7 +1051,7 @@ Returns the size of the data."
 	;; Read filesize
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (integerp (setq size (read (current-buffer)))) (error))
+	    (unless (integerp (setq size (read (current-buffer)))) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -1079,7 +1059,7 @@ Returns the size of the data."
 	;; Read return code
 	(goto-char (point-min))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-continue-prompt-regexp) (error nil))
 	  (error (return nil)))
 	(forward-line)
 	(delete-region (point-min) (point))
@@ -1095,7 +1075,7 @@ Returns the size of the data."
 	;; Read return code
 	(goto-char (+ (point-min) size))
 	(condition-case nil
-	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error))
+	    (unless (looking-at tramp-fish-ok-prompt-regexp) (error nil))
 	  (error (return nil)))
 	(delete-region (+ (point-min) size) (point-max))
 	size))))
@@ -1132,7 +1112,8 @@ connection if a previous connection has died for some reason."
 	     (coding-system-for-read 'binary)
 	     (coding-system-for-write 'binary)
 	     ;; This must be done in order to avoid our file name handler.
-	     (p (let ((default-directory (tramp-temporary-file-directory)))
+	     (p (let ((default-directory
+			(tramp-compat-temporary-file-directory)))
 		  (start-process
 		   (or (tramp-get-connection-property vec "process-name" nil)
 		       (tramp-buffer-name vec))

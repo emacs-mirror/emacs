@@ -326,8 +326,8 @@ static unsigned char gamegrid_bits[] = {
 	  (setq point-size (/ (* (float default-font-height) max-height) 10)
 		pixel-size (floor (* resy (/ point-size 72.27)))
 		point-size (* (/ pixel-size resy) 72.27))
-	  (set-face-attribute gamegrid-face nil
-			      :height (floor (* point-size 10))))))))
+	  (face-spec-set gamegrid-face
+			 `((t :height ,(floor (* point-size 10))))))))))
 
 (defun gamegrid-initialize-display ()
   (setq gamegrid-display-mode (gamegrid-display-type))

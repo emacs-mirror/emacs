@@ -5,22 +5,20 @@ Tasks needed before the next release.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
-** Regenerate the postscript files of the reference cards in etc.
+** Regenerate the pdf versions of the reference cards in etc/refcards/.
 
 ** Ask maintainers of refcard translations to update them.
 
-Requests to have been sent out on 2006-05-23 (Reiner Steib).
+Emacs 22 translators:
 
 LANG	Translator            Status
-cs	Pavel Janík           Can't work on it now.
-de	Sven Joachim          Done
-fr	Eric Jacoboni         Done
-pl	Włodek Bzyl           Done
-pt-br	Rodrigo Real          Done
-ru	Alex Ott              Done
-sk	Miroslav Vaško        No response
-
-Reminders sent out on 2006-06-08.
+cs	Pavel Janík           
+de	Sven Joachim          
+fr	Eric Jacoboni         
+pl	Włodek Bzyl           
+pt-br	Rodrigo Real          
+ru	Alex Ott              
+sk	Miroslav Vaško        
 
 ** Remove temporary +++/--- lines in NEWS.
 
@@ -47,20 +45,45 @@ GNU/Linux system.
 
 * BUGS
 
-NB the definitive copy of this file for Emacs 22 is on the
-EMACS_22_BASE branch.  Any entries below are automatically copied from
-that branch.  Do not make manual changes to this file on the trunk.
+** Document the changes introduced by multi-tty
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01639.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01602.html
 
-** ams@gnu.org, 9 July: eshell and external commands
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00385.html
+** Does deleting frames run Lisp code?  If so, can we get rid of that?
+It is a dangerous design.
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
 
-** Check all non-file-scope static vars to make sure they
-won't lose on USG or HPUX systems.
+** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01987.html
 
-* FIXES FOR EMACS 22.3
+** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
 
-Here we list any small fixes that arrived too late for Emacs 22.2, but
-that should be installed on the release branch after 22.2 is released.
+** grep et al should use font-lock to do highlighting, so that they respect font-lock-mode.
+"can't turn off font-lock"
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00548.html
+
+** mah@everybody.org, Sep 18: erc causes emacs to hang with multi-tty
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01765.html
+
+** jbw@macs.hw.ac.uk, Sep 18: before-string property has no effect if display property is empty
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00094.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01816.html
+
+** sdl.web@gmail.com, Sep 24: TLS infinite loop.
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01720.html
+
+** herring@lanl.gov: find-func: can no longer find adviced subrs
+This ought to work.
+
+** \\{...} produces duplicate entries
+http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg00209.html
+
+** menu indications of key bindings for remapped commands
+http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01339.html
+
+** tromey@redhat.com: two View-mode "quit" bugs
+http://lists.gnu.org/archive/html/emacs-devel/2007-07/msg00103.html
 
 * DOCUMENTATION
 
@@ -68,8 +91,8 @@ that should be installed on the release branch after 22.2 is released.
 
 The first line of every tutorial must begin with text ending in a
 period (".", ASCII 0x2E) saying "Emacs Tutorial" in the respective
-language.  This should be followed by "See end for copying
-conditions", likewise in the respective language.
+language. This should be followed by "See end for copying conditions",
+likewise in the respective language.
 
 After each file name, on the same line or the following line, come the
 names of the people who have checked it.

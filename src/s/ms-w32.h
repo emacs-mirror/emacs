@@ -302,6 +302,8 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_MOUSE 1
 #define HAVE_H_ERRNO 1
 
+#define MULTI_KBOARD 1
+
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM 1
 #define HAVE_FACES 1
@@ -480,7 +482,7 @@ extern char *get_emacs_configuration_options (void);
 /* We need a little extra space, see ../../lisp/loadup.el.
    The number below comes from 23923 bytes worth (as of 2006-04)
    of w32-specific files loaded by loadup.el, plus 1K spare.  */
-#define SYSTEM_PURESIZE_EXTRA 25000
+#define SYSTEM_PURESIZE_EXTRA 50000
 
 /* For unexec to work on Alpha systems, we need to put Emacs'
    initialized data into a separate section from the CRT initialized

@@ -2996,7 +2996,9 @@ in any of these classes."
     (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
     (unless (eq style 'plain)
-      (push (concat "This " origtype " is advised.") paragraphs))
+      (push (propertize (concat "This " origtype " is advised.")
+			'face 'font-lock-warning-face)
+	    paragraphs))
     (ad-dolist (class ad-advice-classes)
       (ad-dolist (advice (ad-get-enabled-advices function class))
 	(setq advice-docstring

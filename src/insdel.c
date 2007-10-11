@@ -415,13 +415,8 @@ adjust_markers_for_insert (from, from_byte, to, to_byte, before_markers)
 
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
-      /* In a single-byte buffer, a marker's two positions must be
-	 equal.  */
-      if (Z == Z_BYTE)
-	{
-	  if (m->charpos != m->bytepos)
-	    abort ();
-	}
+      eassert (m->bytepos >= m->charpos
+	       && m->bytepos - m->charpos <= Z_BYTE - Z);
 
       if (m->bytepos == from_byte)
 	{
@@ -468,9 +463,7 @@ adjust_point (nchars, nbytes)
   BUF_PT_BYTE (current_buffer) += nbytes;
 
   /* In a single-byte buffer, the two positions must be equal.  */
-  if (ZV == ZV_BYTE
-      && PT != PT_BYTE)
-    abort ();
+  eassert (PT_BYTE >= PT && PT_BYTE - PT <= ZV_BYTE - ZV);
 }
 
 /* Adjust markers for a replacement of a text at FROM (FROM_BYTE) of

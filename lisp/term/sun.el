@@ -32,12 +32,12 @@
 
 (defun scroll-down-in-place (n)
   (interactive "p")
-  (previous-line n)
+  (forward-line (- n))
   (scroll-down n))
 
 (defun scroll-up-in-place (n)
   (interactive "p")
-  (next-line n)
+  (forward-line n)
   (scroll-up n))
 
 (defun kill-region-and-unmark (beg end)
@@ -102,55 +102,10 @@
   "List of forms to evaluate after setting sun-raw-prefix.")
 
 
-;;; This section adds definitions for the emacstool users
-;; emacstool event filter converts function keys to C-x*{c}{lrt}
-;;
-;; for example the Open key (L7) would be encoded as "\C-x*gl"
-;; the control, meta, and shift keys modify the character {lrt}
-;; note that (unshifted) C-l is ",",  C-r is "2", and C-t is "4"
-;;
-;; {c} is [a-j] for LEFT, [a-i] for TOP, [a-o] for RIGHT.
-;; A higher level insists on encoding {h,j,l,n}{r} (the arrow keys)
-;; as ANSI escape sequences.  Use the shell command
-;; % setkeys noarrows
-;; if you want these to come through for emacstool.
-;;
-;; If you are not using EmacsTool,
-;; you can also use this by creating a .ttyswrc file to do the conversion.
-;; but it won't include the CONTROL, META, or SHIFT keys!
-;;
-;; Important to define SHIFTed sequence before matching unshifted sequence.
-;; (talk about bletcherous old uppercase terminal conventions!*$#@&%*&#$%)
-;;  this is worse than C-S/C-Q flow control anyday!
-;;  Do *YOU* run in capslock mode?
-;;
-
-;; Note:  al, el and gl are trapped by EmacsTool, so they never make it here.
-
-(defvar suntool-map (make-sparse-keymap)
-  "*Keymap for Emacstool bindings.")
-
-
-;; Since .emacs gets loaded before this file, a hook is supplied
-;; for you to put your own bindings in.
-
-(defvar suntool-map-hooks nil
-  "List of forms to evaluate after setting suntool-map.")
-
-;;
-;; If running under emacstool, arrange to call suspend-emacstool
-;; instead of suspend-emacs.
-;;
-;; First mouse blip is a clue that we are in emacstool.
-;;
-;; C-x C-@ is the mouse command prefix.
-
-(autoload 'sun-mouse-handler "sun-mouse"
-	  "Sun Emacstool handler for mouse blips (not loaded)." t)
 
 (defun terminal-init-sun ()
   "Terminal initialization function for sun."
-  (define-key function-key-map "\e[" sun-raw-prefix)
+  (define-key local-function-key-map "\e[" sun-raw-prefix)
 
   (define-key sun-raw-prefix "210z" [r3])
   (define-key sun-raw-prefix "213z" [r6])
@@ -207,77 +162,7 @@
     (let ((hooks sun-raw-prefix-hooks))
       (while hooks
 	(eval (car hooks))
-	(setq hooks (cdr hooks)))))
-
-  (define-key suntool-map "gr" 'beginning-of-buffer)	; r7
-  (define-key suntool-map "iR" 'backward-page)		; R9
-  (define-key suntool-map "ir" 'scroll-down)		; r9
-  (define-key suntool-map "kr" 'recenter)		; r11
-  (define-key suntool-map "mr" 'end-of-buffer)		; r13
-  (define-key suntool-map "oR" 'forward-page)		; R15
-  (define-key suntool-map "or" 'scroll-up)		; r15
-  (define-key suntool-map "b\M-L" 'rerun-prev-command)	; M-AGAIN
-  (define-key suntool-map "b\M-l" 'prev-complex-command) ; M-Again
-  (define-key suntool-map "bl" 'redraw-display)		 ; Again
-  (define-key suntool-map "cl" 'list-buffers)		 ; Props
-  (define-key suntool-map "dl" 'undo)			 ; Undo
-  (define-key suntool-map "el" 'ignore)			 ; Expose-Open
-  (define-key suntool-map "fl" 'sun-select-region)	 ; Put
-  (define-key suntool-map "f," 'copy-region-as-kill)	 ; C-Put
-  (define-key suntool-map "gl" 'ignore)			 ; Open-Open
-  (define-key suntool-map "hl" 'sun-yank-selection)	 ; Get
-  (define-key suntool-map "h," 'yank)			 ; C-Get
-  (define-key suntool-map "il" 'research-forward)	 ; Find
-  (define-key suntool-map "i," 're-search-forward)	 ; C-Find
-  (define-key suntool-map "i\M-l" 'research-backward)	 ; M-Find
-  (define-key suntool-map "i\M-," 're-search-backward)	 ; C-M-Find
-
-  (define-key suntool-map "jL" 'yank)			; DELETE
-  (define-key suntool-map "jl" 'kill-region-and-unmark)	; Delete
-  (define-key suntool-map "j\M-l" 'exchange-point-and-mark) ; M-Delete
-  (define-key suntool-map "j,"
-    (lambda () (interactive) (pop-mark))) ; C-Delete
-
-  (define-key suntool-map "fT" 'shrink-window-horizontally)	; T6
-  (define-key suntool-map "gT" 'enlarge-window-horizontally)	; T7
-  (define-key suntool-map "ft" 'shrink-window)			; t6
-  (define-key suntool-map "gt" 'enlarge-window)			; t7
-  (define-key suntool-map "cT" (lambda (n) (interactive "p") (scroll-down n)))
-  (define-key suntool-map "dT" (lambda (n) (interactive "p") (scroll-up n)))
-  (define-key suntool-map "ct" 'scroll-down-in-place)		; t3
-  (define-key suntool-map "dt" 'scroll-up-in-place)		; t4
-  (define-key ctl-x-map "*" suntool-map)
-
-  (when suntool-map-hooks
-    (message "suntool-map-hooks is obsolete!  Use term-setup-hook instead!")
-    (let ((hooks suntool-map-hooks))
-      (while hooks
-	(eval (car hooks))
-	(setq hooks (cdr hooks)))))
-
-  (define-key ctl-x-map "\C-@" 'sun-mouse-once))
-
-(defun emacstool-init ()
-  "Set up Emacstool window, if you know you are in an emacstool."
-  ;; Make sure sun-mouse and sun-fns are loaded.
-  (require 'sun-fns)
-  (define-key ctl-x-map "\C-@" 'sun-mouse-handler)
-
-  ;; FIXME: this function does not seem to exist either.  -stef'01
-  (if (< (sun-window-init) 0)
-      (message "Not a Sun Window")
-    (progn
-      (substitute-key-definition 'suspend-emacs 'suspend-emacstool global-map)
-      (substitute-key-definition 'suspend-emacs 'suspend-emacstool esc-map)
-      (substitute-key-definition 'suspend-emacs 'suspend-emacstool ctl-x-map))
-      (send-string-to-terminal
-       (concat "\033]lEmacstool - GNU Emacs " emacs-version "\033\\"))))
-
-(defun sun-mouse-once ()
-  "Converts to emacstool and sun-mouse-handler on first mouse hit."
-  (interactive)
-  (emacstool-init)
-  (sun-mouse-handler))			; Now, execute this mouse blip.
+	(setq hooks (cdr hooks))))))
 
 ;;; arch-tag: db761d47-fd7d-42b4-aae1-04fa116b6ba6
 ;;; sun.el ends here

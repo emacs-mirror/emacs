@@ -22,7 +22,7 @@ Boston, MA 02110-1301, USA.  */
    into ibms390.h.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="<name of system .h file here, without the s- or .h>"
 
@@ -97,14 +97,10 @@ NOTE-END */
 
 #define VIRT_ADDR_VARIES
 
-/* Define C_ALLOCA if this machine does not support a true alloca
-   and the one written in C should be used instead.
-   Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.
-   Define neither one if an assembler-language alloca
-   in the file alloca.s should be used.  */
+/* Define HAVE_ALLOCA to say that the system provides a properly
+   working alloca function and it should be used.  Undefine it if an
+   assembler-language alloca in the file alloca.s should be used. */
 
-#undef C_ALLOCA
 #define HAVE_ALLOCA
 
 /* Define NO_REMAP if memory segmentation makes it not work well
@@ -143,11 +139,6 @@ NOTE-END */
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 
 #define VALBITS         60
-
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
 
 #define LINKER $(CC) -nostdlib
 

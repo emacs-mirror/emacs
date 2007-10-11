@@ -1,3 +1,24 @@
+2007-09-13  Seiji Zenitani  <zenitani@mac.com>
+            Takanori Yamamoto  <takanori.yamamoto@gmail.com>
+            Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* Emacs.app/Contents/Info.plist: Add
+	filetype/extension entries for the document icon.
+	* Emacs.app/Contents/Resources/Emacs.icns: Update.
+	* Emacs.app/Contents/Resources/document.icns: New file.
+
+2007-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
+	* src/Emacs.r: Increase version to 23.0.50.
+
+2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+
+	* makefile.MPW (EmacsObjects): Add terminal.c.x.
+	(callproc.c.x): Add dependencies frame.h, termhooks.h.
+	({Src}terminal.c.x): New.
+	(shortlisp): Add server.elc and termdev.elc.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

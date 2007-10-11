@@ -39,25 +39,31 @@ Boston, MA 02110-1301, USA.  */
 
 struct position
   {
-    int bufpos;
-    int bytepos;
-    int hpos;
-    int vpos;
-    int prevhpos;
-    int contin;
+    EMACS_INT bufpos;
+    EMACS_INT bytepos;
+    EMACS_INT hpos;
+    EMACS_INT vpos;
+    EMACS_INT prevhpos;
+    EMACS_INT contin;
     /* Number of characters we have already handled
        from the before and after strings at this position.  */
-    int ovstring_chars_done;
-    int tab_offset;
+    EMACS_INT ovstring_chars_done;
+    EMACS_INT tab_offset;
   };
 
-struct position *compute_motion P_ ((int, int, int, int, int, int, int,
-				     int, int, int, struct window *));
-struct position *vmotion P_ ((int, int, struct window *));
-int skip_invisible P_ ((int, int *, int, Lisp_Object));
+struct position *compute_motion P_ ((EMACS_INT from, EMACS_INT fromvpos,
+				     EMACS_INT fromhpos, int did_motion,
+				     EMACS_INT to, EMACS_INT tovpos,
+				     EMACS_INT tohpos,
+				     EMACS_INT width, EMACS_INT hscroll,
+				     EMACS_INT tab_offset, struct window *));
+struct position *vmotion P_ ((EMACS_INT from, EMACS_INT vtarget,
+			      struct window *));
+EMACS_INT skip_invisible P_ ((EMACS_INT pos, EMACS_INT *next_boundary_p,
+			      EMACS_INT to, Lisp_Object window));
 
 /* Value of point when current_column was called */
-extern int last_known_column_point;
+extern EMACS_INT last_known_column_point;
 
 /* Functions for dealing with the column cache.  */
 

@@ -60,9 +60,12 @@
     file, plus temacs.exe and dump.bat, which are required if you want to
     redump emacs without recompiling it.
 
-  + libxpm-src.zip
-    Source code for libXpm-X11R7.2-3.5.6 modified to compile on Windows.
-    This corresponds to the libXpm.dll in emacs-22.2-bin-i386.zip
+  + libxpm-3.5.7-w32-src.zip
+    Source code required to compile libXpm-3.5.7 on Windows. Contains
+    a basic Makefile for compiling with mingw32 and a .def file for
+    generating a DLL with the appropriate exports in addition to the
+    source code to provide the subset of functionality Emacs uses from
+    libXpm. This corresponds to the libXpm.dll in emacs-22.2-bin-i386.zip
     and emacs-22.2-barebin-i386.zip.
 
 
@@ -93,7 +96,7 @@
       the black and white versions of the toolbar icons.
 
       XPM: a Windows port of the XPM library corresponding to the x.org
-      release of X11R7.2 is included with the binary distribution, but
+      release of X11R7.3 is included with the binary distribution, but
       can be replaced by other versions with the name xpm4.dll,
       libxpm-nox4.dll or libxpm.dll.
 

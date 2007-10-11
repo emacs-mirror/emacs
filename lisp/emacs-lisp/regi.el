@@ -166,7 +166,7 @@ useful information:
 
 	;; lets find the special tags and remove them from the working
 	;; frame. note that only the last special tag is used.
-	(mapcar
+	(mapc
 	 (function
 	  (lambda (entry)
 	    (let ((pred (car entry))

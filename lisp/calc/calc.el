@@ -213,7 +213,7 @@
   :group  'applications)
 
 ;;;###autoload
-(defcustom calc-settings-file 
+(defcustom calc-settings-file
   (convert-standard-filename "~/.calc.el")
   "*File in which to record permanent settings."
   :group 'calc
@@ -233,10 +233,10 @@
     (texinfo-mode . calc-normal-language))
   "*Alist of major modes with appropriate Calc languages."
   :group 'calc
-  :type '(alist :key-type (symbol :tag "Major mode") 
+  :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (symbol :tag "Calc language")))
 
-(defcustom calc-embedded-announce-formula 
+(defcustom calc-embedded-announce-formula
   "%Embed\n\\(% .*\n\\)*"
   "*A regular expression which is sure to be followed by a calc-embedded formula."
   :group 'calc
@@ -259,13 +259,13 @@
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (regexp :tag "Regexp to announce formula")))
 
-(defcustom calc-embedded-open-formula 
+(defcustom calc-embedded-open-formula
   "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the opening delimiter of a formula used by calc-embedded."
   :group 'calc
   :type '(regexp))
 
-(defcustom calc-embedded-close-formula 
+(defcustom calc-embedded-close-formula
   "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the closing delimiter of a formula used by calc-embedded."
   :group 'calc
@@ -279,13 +279,13 @@
                 :value-type (list (regexp :tag "Opening formula delimiter")
                                   (regexp :tag "Closing formula delimiter"))))
 
-(defcustom calc-embedded-open-word 
+(defcustom calc-embedded-open-word
   "^\\|[^-+0-9.eE]"
   "*A regular expression for the opening delimiter of a formula used by calc-embedded-word."
   :group 'calc
   :type '(regexp))
 
-(defcustom calc-embedded-close-word 
+(defcustom calc-embedded-close-word
   "$\\|[^-+0-9.eE]"
   "*A regular expression for the closing delimiter of a formula used by calc-embedded-word."
   :group 'calc
@@ -299,7 +299,7 @@
                 :value-type (list (regexp :tag "Opening word delimiter")
                                   (regexp :tag "Closing word delimiter"))))
 
-(defcustom calc-embedded-open-plain 
+(defcustom calc-embedded-open-plain
   "%%% "
   "*A string which is the opening delimiter for a \"plain\" formula.
 If calc-show-plain mode is enabled, this is inserted at the front of
@@ -307,7 +307,7 @@ each formula."
   :group 'calc
   :type '(string))
 
-(defcustom calc-embedded-close-plain 
+(defcustom calc-embedded-close-plain
   " %%%\n"
   "*A string which is the closing delimiter for a \"plain\" formula.
 See calc-embedded-open-plain."
@@ -332,13 +332,13 @@ See calc-embedded-open-plain."
                 :value-type (list (string :tag "Opening \"plain\" delimiter")
                                   (string :tag "Closing \"plain\" delimiter"))))
 
-(defcustom calc-embedded-open-new-formula 
+(defcustom calc-embedded-open-new-formula
   "\n\n"
   "*A string which is inserted at front of formula by calc-embedded-new-formula."
   :group 'calc
   :type '(string))
 
-(defcustom calc-embedded-close-new-formula 
+(defcustom calc-embedded-close-new-formula
   "\n\n"
   "*A string which is inserted at end of formula by calc-embedded-new-formula."
   :group 'calc
@@ -352,14 +352,14 @@ See calc-embedded-open-plain."
                 :value-type (list (string :tag "Opening new formula delimiter")
                                   (string :tag "Closing new formula delimiter"))))
 
-(defcustom calc-embedded-open-mode 
+(defcustom calc-embedded-open-mode
   "% "
   "*A string which should precede calc-embedded mode annotations.
 This is not required to be present for user-written mode annotations."
   :group 'calc
   :type '(string))
 
-(defcustom calc-embedded-close-mode 
+(defcustom calc-embedded-close-mode
   "\n"
   "*A string which should follow calc-embedded mode annotations.
 This is not required to be present for user-written mode annotations."
@@ -384,19 +384,19 @@ This is not required to be present for user-written mode annotations."
                 :value-type (list (string :tag "Opening annotation delimiter")
                                   (string :tag "Closing annotation delimiter"))))
 
-(defcustom calc-gnuplot-name 
+(defcustom calc-gnuplot-name
   "gnuplot"
   "*Name of GNUPLOT program, for calc-graph features."
   :group 'calc
   :type '(string))
 
-(defcustom calc-gnuplot-plot-command 
+(defcustom calc-gnuplot-plot-command
   nil
   "*Name of command for displaying GNUPLOT output; %s = file name to print."
   :group 'calc
   :type '(choice (string) (sexp)))
 
-(defcustom calc-gnuplot-print-command 
+(defcustom calc-gnuplot-print-command
   "lp %s"
   "*Name of command for printing GNUPLOT output; %s = file name to print."
   :group 'calc
@@ -520,7 +520,7 @@ This is used only when calc-group-digits mode is on.")
 
 (defcalcmodevar calc-point-char "."
   "The character (in the form of a string) to be used as a decimal point.")
-  
+
 (defcalcmodevar calc-frac-format '(":" nil)
   "Format of displayed fractions; a string of one or two of \":\" or \"/\".")
 
@@ -710,9 +710,9 @@ If nil, selections displayed but ignored.")
     "YYddd< hh:mm:ss>"))
 
 (defcalcmodevar calc-autorange-units nil)
-  
+
 (defcalcmodevar calc-was-keypad-mode nil)
-  
+
 (defcalcmodevar calc-full-mode nil)
 
 (defcalcmodevar calc-user-parse-tables nil)
@@ -722,7 +722,7 @@ If nil, selections displayed but ignored.")
 (defcalcmodevar calc-gnuplot-default-output "STDOUT")
 
 (defcalcmodevar calc-gnuplot-print-device "postscript")
-  
+
 (defcalcmodevar calc-gnuplot-print-output "auto")
 
 (defcalcmodevar calc-gnuplot-geometry nil)
@@ -730,7 +730,7 @@ If nil, selections displayed but ignored.")
 (defcalcmodevar calc-graph-default-resolution 15)
 
 (defcalcmodevar calc-graph-default-resolution-3d 5)
-  
+
 (defcalcmodevar calc-invocation-macro nil)
 
 (defcalcmodevar calc-show-banner t
@@ -926,8 +926,8 @@ If nil, selections displayed but ignored.")
 (defvar var-gamma '(special-const (math-gamma-const)))
 (defvar var-Modes '(special-const (math-get-modes-vec)))
 
-(mapcar (lambda (v) (or (boundp v) (set v nil)))
-	  calc-local-var-list)
+(mapc (lambda (v) (or (boundp v) (set v nil)))
+      calc-local-var-list)
 
 (defvar calc-mode-map
   (let ((map (make-keymap)))
@@ -983,89 +983,89 @@ If nil, selections displayed but ignored.")
 		(if (eq (aref cmap i) 'undefined)
 		    'undefined 'calcDigit-nondigit))
 	  (setq i (1+ i)))))
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'calcDigit-key))
-	    "_0123456789.e+-:n#@oh'\"mspM")
-    (mapcar (lambda (x) (define-key map (char-to-string x) 'calcDigit-letter))
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-key))
+	  "_0123456789.e+-:n#@oh'\"mspM")
+    (mapc (lambda (x) (define-key map (char-to-string x) 'calcDigit-letter))
 	    "abcdfgijklqrtuvwxyzABCDEFGHIJKLNOPQRSTUVWXYZ")
     (define-key map "'" 'calcDigit-algebraic)
     (define-key map "`" 'calcDigit-edit)
     (define-key map "\C-g" 'abort-recursive-edit)
     map))
 
-(mapcar (lambda (x)
-	       (condition-case err
-		   (progn
-		     (define-key calc-digit-map x 'calcDigit-backspace)
-		     (define-key calc-mode-map x 'calc-pop)
-		     (define-key calc-mode-map
-		       (if (vectorp x)
-			   (if calc-emacs-type-lucid
-			       (if (= (length x) 1)
-				   (vector (if (consp (aref x 0))
-					       (cons 'meta (aref x 0))
-					     (list 'meta (aref x 0))))
-				 "\e\C-d")
-			     (vconcat "\e" x))
-			 (concat "\e" x))
-		       'calc-pop-above))
-	    (error nil)))
-	    (if calc-scan-for-dels
-		(append (where-is-internal 'delete-backward-char global-map)
-			(where-is-internal 'backward-delete-char global-map)
-			'("\C-d"))
-	      '("\177" "\C-d")))
+(mapc (lambda (x)
+	(condition-case err
+	    (progn
+	      (define-key calc-digit-map x 'calcDigit-backspace)
+	      (define-key calc-mode-map x 'calc-pop)
+	      (define-key calc-mode-map
+		  (if (vectorp x)
+		      (if calc-emacs-type-lucid
+			  (if (= (length x) 1)
+			      (vector (if (consp (aref x 0))
+					  (cons 'meta (aref x 0))
+					(list 'meta (aref x 0))))
+			    "\e\C-d")
+			(vconcat "\e" x))
+		    (concat "\e" x))
+		'calc-pop-above))
+	  (error nil)))
+      (if calc-scan-for-dels
+	  (append (where-is-internal 'delete-backward-char global-map)
+		  (where-is-internal 'backward-delete-char global-map)
+		  '("\C-d"))
+	'("\177" "\C-d")))
 
 (defvar calc-dispatch-map
   (let ((map (make-keymap)))
-    (mapcar (lambda (x)
-	      (define-key map (char-to-string (car x)) (cdr x))
-	       (when (string-match "abcdefhijklnopqrstuwxyz"
-				   (char-to-string (car x)))
-		(define-key map (char-to-string (- (car x) ?a -1)) (cdr x)))
-	      (define-key map (format "\e%c" (car x)) (cdr x)))
-	    '( ( ?a . calc-embedded-activate )
-	       ( ?b . calc-big-or-small )
-	       ( ?c . calc )
-	       ( ?d . calc-embedded-duplicate )
-	       ( ?e . calc-embedded )
-	       ( ?f . calc-embedded-new-formula )
-	       ( ?g . calc-grab-region )
-	       ( ?h . calc-dispatch-help )
-	       ( ?i . calc-info )
-	       ( ?j . calc-embedded-select )
-	       ( ?k . calc-keypad )
-	       ( ?l . calc-load-everything )
-	       ( ?m . read-kbd-macro )
-	       ( ?n . calc-embedded-next )
-	       ( ?o . calc-other-window )
-	       ( ?p . calc-embedded-previous )
-	       ( ?q . quick-calc )
-	       ( ?r . calc-grab-rectangle )
-	       ( ?s . calc-info-summary )
-	       ( ?t . calc-tutorial )
-	       ( ?u . calc-embedded-update-formula )
-	       ( ?w . calc-embedded-word )
-	       ( ?x . calc-quit )
-	       ( ?y . calc-copy-to-buffer )
-	       ( ?z . calc-user-invocation )
-	       ( ?\' . calc-embedded-new-formula )
-	       ( ?\` . calc-embedded-edit )
-	       ( ?: . calc-grab-sum-down )
-	       ( ?_ . calc-grab-sum-across )
-	       ( ?0 . calc-reset )
-	       ( ?? . calc-dispatch-help )
-	       ( ?# . calc-same-interface )
-	       ( ?& . calc-same-interface )
-	       ( ?\\ . calc-same-interface )
-	       ( ?= . calc-same-interface )
-	       ( ?* . calc-same-interface )
-	       ( ?/ . calc-same-interface )
-	       ( ?+ . calc-same-interface )
-	       ( ?- . calc-same-interface ) ))
+    (mapc (lambda (x)
+	    (define-key map (char-to-string (car x)) (cdr x))
+	    (when (string-match "abcdefhijklnopqrstuwxyz"
+				(char-to-string (car x)))
+	      (define-key map (char-to-string (- (car x) ?a -1)) (cdr x)))
+	    (define-key map (format "\e%c" (car x)) (cdr x)))
+	  '( ( ?a . calc-embedded-activate )
+	    ( ?b . calc-big-or-small )
+	    ( ?c . calc )
+	    ( ?d . calc-embedded-duplicate )
+	    ( ?e . calc-embedded )
+	    ( ?f . calc-embedded-new-formula )
+	    ( ?g . calc-grab-region )
+	    ( ?h . calc-dispatch-help )
+	    ( ?i . calc-info )
+	    ( ?j . calc-embedded-select )
+	    ( ?k . calc-keypad )
+	    ( ?l . calc-load-everything )
+	    ( ?m . read-kbd-macro )
+	    ( ?n . calc-embedded-next )
+	    ( ?o . calc-other-window )
+	    ( ?p . calc-embedded-previous )
+	    ( ?q . quick-calc )
+	    ( ?r . calc-grab-rectangle )
+	    ( ?s . calc-info-summary )
+	    ( ?t . calc-tutorial )
+	    ( ?u . calc-embedded-update-formula )
+	    ( ?w . calc-embedded-word )
+	    ( ?x . calc-quit )
+	    ( ?y . calc-copy-to-buffer )
+	    ( ?z . calc-user-invocation )
+	    ( ?\' . calc-embedded-new-formula )
+	    ( ?\` . calc-embedded-edit )
+	    ( ?: . calc-grab-sum-down )
+	    ( ?_ . calc-grab-sum-across )
+	    ( ?0 . calc-reset )
+	    ( ?? . calc-dispatch-help )
+	    ( ?# . calc-same-interface )
+	    ( ?& . calc-same-interface )
+	    ( ?\\ . calc-same-interface )
+	    ( ?= . calc-same-interface )
+	    ( ?* . calc-same-interface )
+	    ( ?/ . calc-same-interface )
+	    ( ?+ . calc-same-interface )
+	    ( ?- . calc-same-interface ) ))
     map))
 
 ;;;; (Autoloads here)
-(mapcar
+(mapc
  (lambda (x) (dolist (func (cdr x)) (autoload func (car x))))
     '(
 
@@ -1077,7 +1077,7 @@ If nil, selections displayed but ignored.")
 
  ("calc-embed" calc-do-embedded-activate)
 
- ("calc-misc" 
+ ("calc-misc"
     calc-do-handle-whys calc-do-refresh calc-num-prefix-name
     calc-record-list calc-record-why calc-report-bug calc-roll-down-stack
     calc-roll-up-stack calc-temp-minibuffer-message calcFunc-floor
@@ -1087,7 +1087,7 @@ If nil, selections displayed but ignored.")
     math-negp math-posp math-pow math-read-radix-digit math-reject-arg
     math-trunc math-zerop)))
 
-(mapcar
+(mapc
  (lambda (x) (dolist (cmd (cdr x)) (autoload cmd (car x) nil t)))
     '(
 
@@ -1095,7 +1095,7 @@ If nil, selections displayed but ignored.")
     calcDigit-algebraic calcDigit-edit)
 
  ("calc-misc" another-calc calc-big-or-small calc-dispatch-help
-    calc-help calc-info calc-info-goto-node calc-info-summary calc-inv 
+    calc-help calc-info calc-info-goto-node calc-info-summary calc-inv
     calc-last-args-stub
     calc-missing-key calc-mod calc-other-window calc-over calc-percent
     calc-pop-above calc-power calc-roll-down calc-roll-up
@@ -1193,12 +1193,12 @@ Notations:  3.14e6     3.14 * 10^6
 \\{calc-mode-map}
 "
   (interactive)
-  (mapcar (function
-	   (lambda (v) (set-default v (symbol-value v)))) calc-local-var-list)
+  (mapc (function
+	 (lambda (v) (set-default v (symbol-value v)))) calc-local-var-list)
   (kill-all-local-variables)
   (use-local-map (if (eq calc-algebraic-mode 'total)
 		     (progn (require 'calc-ext) calc-alg-map) calc-mode-map))
-  (mapcar (function (lambda (v) (make-local-variable v))) calc-local-var-list)
+  (mapc (function (lambda (v) (make-local-variable v))) calc-local-var-list)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
@@ -1375,8 +1375,8 @@ commands given here will actually operate on the *Calculator* stack."
         (calc-create-buffer))
       (run-hooks 'calc-end-hook)
       (setq calc-undo-list nil calc-redo-list nil)
-      (mapcar (function (lambda (v) (set-default v (symbol-value v))))
-              calc-local-var-list)
+      (mapc (function (lambda (v) (set-default v (symbol-value v))))
+	    calc-local-var-list)
       (let ((buf (current-buffer))
             (win (get-buffer-window (current-buffer)))
             (kbuf (get-buffer "*Calc Keypad*")))
@@ -2284,7 +2284,7 @@ See calc-keypad for details."
 
 
 
-(defconst math-bignum-digit-length 
+(defconst math-bignum-digit-length
   (truncate (/ (log10 (/ most-positive-fixnum 2)) 2))
   "The length of a \"digit\" in Calc bignums.
 If a big integer is of the form (bigpos N0 N1 ...), this is the
@@ -2292,11 +2292,11 @@ length of the allowable Emacs integers N0, N1,...
 The value of 2*10^(2*MATH-BIGNUM-DIGIT-LENGTH) must be less than the
 largest Emacs integer.")
 
-(defconst math-bignum-digit-size 
+(defconst math-bignum-digit-size
   (expt 10 math-bignum-digit-length)
   "An upper bound for the size of the \"digit\"s in Calc bignums.")
 
-(defconst math-small-integer-size 
+(defconst math-small-integer-size
   (expt math-bignum-digit-size 2)
   "An upper bound for the size of \"small integer\"s in Calc.")
 
@@ -2307,16 +2307,16 @@ largest Emacs integer.")
 ;;; following forms:
 ;;;
 ;;; integer                 An integer.  For normalized numbers, this format
-;;;			    is used only for  
+;;;			    is used only for
 ;;;                         negative math-small-integer-size + 1 to
 ;;;                         math-small-integer-size - 1
 ;;;
-;;; (bigpos N0 N1 N2 ...)   A big positive integer, 
-;;;                           N0 + N1*math-bignum-digit-size 
+;;; (bigpos N0 N1 N2 ...)   A big positive integer,
+;;;                           N0 + N1*math-bignum-digit-size
 ;;;                              + N2*(math-bignum-digit-size)^2 ...
-;;; (bigneg N0 N1 N2 ...)   A big negative integer, 
+;;; (bigneg N0 N1 N2 ...)   A big negative integer,
 ;;;                           - N0 - N1*math-bignum-digit-size ...
-;;;			    Each digit N is in the range 
+;;;			    Each digit N is in the range
 ;;;                             0 ... math-bignum-digit-size -1.
 ;;;			    Normalized, always at least three N present,
 ;;;			    and the most significant N is nonzero.
@@ -2407,14 +2407,14 @@ largest Emacs integer.")
   (cond
    ((not (consp math-normalize-a))
     (if (integerp math-normalize-a)
-	(if (or (>= math-normalize-a math-small-integer-size) 
+	(if (or (>= math-normalize-a math-small-integer-size)
                 (<= math-normalize-a (- math-small-integer-size)))
 	    (math-bignum math-normalize-a)
 	  math-normalize-a)
       math-normalize-a))
    ((eq (car math-normalize-a) 'bigpos)
     (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
-	(let* ((last (setq math-normalize-a 
+	(let* ((last (setq math-normalize-a
                            (copy-sequence math-normalize-a))) (digs math-normalize-a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
@@ -2422,14 +2422,14 @@ largest Emacs integer.")
     (if (cdr (cdr (cdr math-normalize-a)))
 	math-normalize-a
       (cond
-       ((cdr (cdr math-normalize-a)) (+ (nth 1 math-normalize-a) 
-                                        (* (nth 2 math-normalize-a) 
+       ((cdr (cdr math-normalize-a)) (+ (nth 1 math-normalize-a)
+                                        (* (nth 2 math-normalize-a)
                                            math-bignum-digit-size)))
        ((cdr math-normalize-a) (nth 1 math-normalize-a))
        (t 0))))
    ((eq (car math-normalize-a) 'bigneg)
     (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
-	(let* ((last (setq math-normalize-a (copy-sequence math-normalize-a))) 
+	(let* ((last (setq math-normalize-a (copy-sequence math-normalize-a)))
                (digs math-normalize-a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
@@ -2437,21 +2437,21 @@ largest Emacs integer.")
     (if (cdr (cdr (cdr math-normalize-a)))
 	math-normalize-a
       (cond
-       ((cdr (cdr math-normalize-a)) (- (+ (nth 1 math-normalize-a) 
-                                           (* (nth 2 math-normalize-a) 
+       ((cdr (cdr math-normalize-a)) (- (+ (nth 1 math-normalize-a)
+                                           (* (nth 2 math-normalize-a)
                                               math-bignum-digit-size))))
        ((cdr math-normalize-a) (- (nth 1 math-normalize-a)))
        (t 0))))
    ((eq (car math-normalize-a) 'float)
-    (math-make-float (math-normalize (nth 1 math-normalize-a)) 
+    (math-make-float (math-normalize (nth 1 math-normalize-a))
                      (nth 2 math-normalize-a)))
-   ((or (memq (car math-normalize-a) 
+   ((or (memq (car math-normalize-a)
               '(frac cplx polar hms date mod sdev intv vec var quote
                      special-const calcFunc-if calcFunc-lambda
                      calcFunc-quote calcFunc-condition
                      calcFunc-evalto))
 	(integerp (car math-normalize-a))
-	(and (consp (car math-normalize-a)) 
+	(and (consp (car math-normalize-a))
              (not (eq (car (car math-normalize-a)) 'lambda))))
     (require 'calc-ext)
     (math-normalize-fancy math-normalize-a))
@@ -2461,7 +2461,7 @@ largest Emacs integer.")
 	     (math-normalize-nonstandard))
 	(let ((args (mapcar 'math-normalize (cdr math-normalize-a))))
 	  (or (condition-case err
-		  (let ((func 
+		  (let ((func
                          (assq (car math-normalize-a) '( ( + . math-add )
                                                          ( - . math-sub )
                                                          ( * . math-mul )
@@ -2477,7 +2477,7 @@ largest Emacs integer.")
 				     (require 'calc-ext)
 				     (math-recompile-eval-rules)))
 			       (and (or math-eval-rules-cache-other
-					(assq (car math-normalize-a) 
+					(assq (car math-normalize-a)
                                               math-eval-rules-cache))
 				    (math-apply-rewrites
 				     (cons (car math-normalize-a) args)
@@ -2496,12 +2496,12 @@ largest Emacs integer.")
 				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
-		 (or calc-next-why 
+		 (or calc-next-why
                      (calc-record-why "Wrong type of argument"
                                       (cons (car math-normalize-a) args)))
 		 nil)
 		(args-out-of-range
-		 (calc-record-why "*Argument out of range" 
+		 (calc-record-why "*Argument out of range"
                                   (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
@@ -2559,7 +2559,7 @@ largest Emacs integer.")
 (defun math-bignum-big (a)   ; [L s]
   (if (= a 0)
       nil
-    (cons (% a math-bignum-digit-size) 
+    (cons (% a math-bignum-digit-size)
           (math-bignum-big (/ a math-bignum-digit-size)))))
 
 
@@ -2595,7 +2595,7 @@ largest Emacs integer.")
 
 (defun math-div10-bignum (a)   ; [l l]
   (if (cdr a)
-      (cons (+ (/ (car a) 10) (* (% (nth 1 a) 10) 
+      (cons (+ (/ (car a) 10) (* (% (nth 1 a) 10)
                                  (expt 10 (1- math-bignum-digit-length))))
 	    (math-div10-bignum (cdr a)))
     (list (/ (car a) 10))))
@@ -2649,10 +2649,10 @@ largest Emacs integer.")
     (if (consp a)
 	(cons (car a) (math-scale-left-bignum (cdr a) n))
       (if (>= n math-bignum-digit-length)
-	  (if (or (>= a math-bignum-digit-size) 
+	  (if (or (>= a math-bignum-digit-size)
                   (<= a (- math-bignum-digit-size)))
 	      (math-scale-left (math-bignum a) n)
-	    (math-scale-left (* a math-bignum-digit-size) 
+	    (math-scale-left (* a math-bignum-digit-size)
                              (- n math-bignum-digit-length)))
         (let ((sz (expt 10 (- (* 2 math-bignum-digit-length) n))))
           (if (or (>= a sz) (<= a (- sz)))
@@ -2662,7 +2662,7 @@ largest Emacs integer.")
 (defun math-scale-left-bignum (a n)
   (if (>= n math-bignum-digit-length)
       (while (>= (setq a (cons 0 a)
-		       n (- n math-bignum-digit-length)) 
+		       n (- n math-bignum-digit-length))
                  math-bignum-digit-length)))
   (if (> n 0)
       (math-mul-bignum-digit a (expt 10 n) 0)
@@ -2679,7 +2679,7 @@ largest Emacs integer.")
 	    (- (math-scale-right (- a) n)))
 	(if (>= n math-bignum-digit-length)
 	    (while (and (> (setq a (/ a math-bignum-digit-size)) 0)
-			(>= (setq n (- n math-bignum-digit-length)) 
+			(>= (setq n (- n math-bignum-digit-length))
                             math-bignum-digit-length))))
 	(if (> n 0)
             (/ a (expt 10 n))
@@ -2701,12 +2701,12 @@ largest Emacs integer.")
 	 (math-normalize
 	  (cons (car a)
 		(let ((val (if (< n (- math-bignum-digit-length))
-			       (math-scale-right-bignum 
-                                (cdr a) 
+			       (math-scale-right-bignum
+                                (cdr a)
                                 (- (- math-bignum-digit-length) n))
 			     (if (< n 0)
-				 (math-mul-bignum-digit 
-                                  (cdr a) 
+				 (math-mul-bignum-digit
+                                  (cdr a)
                                   (expt 10 (+ math-bignum-digit-length n)) 0)
                                (cdr a)))))  ; n = -math-bignum-digit-length
 		  (if (and val (>= (car val) (/ math-bignum-digit-size 2)))
@@ -2779,7 +2779,7 @@ largest Emacs integer.")
 	  (let* ((a (copy-sequence a)) (aa a) (carry nil) sum)
 	    (while (and aa b)
 	      (if carry
-		  (if (< (setq sum (+ (car aa) (car b))) 
+		  (if (< (setq sum (+ (car aa) (car b)))
                          (1- math-bignum-digit-size))
 		      (progn
 			(setcar aa (1+ sum))
@@ -2895,7 +2895,7 @@ largest Emacs integer.")
 (defun math-mul (a b)
   (or
    (and (not (consp a)) (not (consp b))
-	(< a math-bignum-digit-size) (> a (- math-bignum-digit-size)) 
+	(< a math-bignum-digit-size) (> a (- math-bignum-digit-size))
         (< b math-bignum-digit-size) (> b (- math-bignum-digit-size))
 	(* a b))
    (and (Math-zerop a) (not (eq (car-safe b) 'mod))
@@ -2982,8 +2982,8 @@ largest Emacs integer.")
 	  (and (= d 1) a)
 	(let* ((a (copy-sequence a)) (aa a) prod)
 	  (while (progn
-		   (setcar aa 
-                           (% (setq prod (+ (* (car aa) d) c)) 
+		   (setcar aa
+                           (% (setq prod (+ (* (car aa) d) c))
                               math-bignum-digit-size))
 		   (cdr aa))
 	    (setq aa (cdr aa)
@@ -3076,7 +3076,7 @@ largest Emacs integer.")
        (cdr res2)))))
 
 (defun math-div-bignum-part (a b blen)   ; a < b*math-bignum-digit-size  [D.l l L]
-  (let* ((num (+ (* (or (nth blen a) 0) math-bignum-digit-size) 
+  (let* ((num (+ (* (or (nth blen a) 0) math-bignum-digit-size)
                  (or (nth (1- blen) a) 0)))
 	 (den (nth (1- blen) b))
 	 (guess (min (/ num den) (1- math-bignum-digit-size))))
@@ -3390,14 +3390,14 @@ largest Emacs integer.")
   (if a
       (let ((s ""))
 	(while (cdr (cdr a))
-	  (setq s (concat 
-                   (format 
-                    (concat "%0" 
-                            (number-to-string (* 2 math-bignum-digit-length))  
+	  (setq s (concat
+                   (format
+                    (concat "%0"
+                            (number-to-string (* 2 math-bignum-digit-length))
                             "d")
                     (+ (* (nth 1 a) math-bignum-digit-size) (car a))) s)
 		a (cdr (cdr a))))
-	(concat (int-to-string 
+	(concat (int-to-string
                  (+ (* (or (nth 1 a) 0) math-bignum-digit-size) (car a))) s))
     "0"))
 

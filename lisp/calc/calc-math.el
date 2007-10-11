@@ -53,28 +53,41 @@
 ;;; is an Emacs float, for acceptable d.dddd....
 
 (defvar math-largest-emacs-expt
-  (let ((x 1))
-    (while (condition-case nil
-               (expt 10.0 x)
-             (error nil))
-      (setq x (* 2 x)))
-    (setq x (/ x 2))
-    (while (condition-case nil
-               (expt 10.0 x)
-             (error nil))
-      (setq x (1+ x)))
-    (- x 2))
+  (let ((x 1)
+        (pow 1e2))
+    ;; The following loop is for efficiency; it should stop when 
+    ;; 10^(2x) is too large.  This could be indicated by a range 
+    ;; error when computing 10^(2x) or an infinite value for 10^(2x).
+    (while (and
+            pow
+            (< pow 1.0e+INF))
+      (setq x (* 2 x))
+      (setq pow (condition-case nil
+                    (expt 10.0 (* 2 x))
+                  (error nil))))
+    ;; The following loop should stop when 10^(x+1) is too large.
+    (setq pow (condition-case nil
+                    (expt 10.0 (1+ x))
+                  (error nil)))
+    (while (and
+            pow
+            (< pow 1.0e+INF))
+      (setq x (1+ x))
+      (setq pow (condition-case nil
+                    (expt 10.0 (1+ x))
+                  (error nil))))
+    (1- x))
   "The largest exponent which Calc will convert to an Emacs float.")
 
 (defvar math-smallest-emacs-expt
   (let ((x -1))
     (while (condition-case nil
-               (expt 10.0 x)
+               (> (expt 10.0 x) 0.0)
              (error nil))
       (setq x (* 2 x)))
     (setq x (/ x 2))
     (while (condition-case nil
-               (expt 10.0 x)
+               (> (expt 10.0 x) 0.0)
              (error nil))
       (setq x (1- x)))
     (+ x 2))

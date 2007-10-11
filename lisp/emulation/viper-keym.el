@@ -170,7 +170,7 @@ Enter as a sexp.  Examples: \"\\C-z\", [(control ?z)]."
 	 (let ((old-value (if (boundp 'viper-toggle-key)
 			      viper-toggle-key
 			    [(control ?z)])))
-	   (mapcar
+	   (mapc
 	    (lambda (buf)
 	      (save-excursion
 		(set-buffer buf)
@@ -210,7 +210,7 @@ If running in a terminal, [(escape)] is not understood, so must use \"\\e\"."
 	 (let ((old-value (if (boundp 'viper-ESC-key)
 			      viper-ESC-key
 			    [(escape)])))
-	   (mapcar
+	   (mapc
 	    (lambda (buf)
 	      (save-excursion
 		(set-buffer buf)

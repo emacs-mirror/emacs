@@ -118,6 +118,7 @@ EmacsObjects = ¶
 	"{Src}sysdep.c.x" ¶
 	"{Src}term.c.x" ¶
 	"{Src}termcap.c.x" ¶
+	"{Src}terminal.c.x" ¶
 	"{Src}textprop.c.x" ¶
 	"{Src}tparam.c.x" ¶
 	"{Src}undo.c.x" ¶
@@ -260,8 +261,8 @@ buildobj.lst Ä
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
 	"{Includes}sys:file.h" ¶
-		"{Includes}sys:types.h" ¶
-		"{Includes}sys:stat.h" ¶
+	"{Includes}sys:types.h" ¶
+	"{Includes}sys:stat.h" ¶
 	"{Src}lisp.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}buffer.h" ¶
@@ -273,7 +274,9 @@ buildobj.lst Ä
 	"{Src}process.h" ¶
 	"{Src}syssignal.h" ¶
 	"{Src}systty.h" ¶
-		"{Includes}termio.h"
+	"{Includes}termio.h" ¶
+	"{Src}frame.h" ¶
+	"{Src}termhooks.h"
 
 {Src}casefiddle Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -798,6 +801,16 @@ buildobj.lst Ä
 	"{Src}lisp.h" ¶
 	"{Includes}sys:file.h"
 
+{Src}terminal.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}frame.h" ¶
+	"{Src}termchar.h" ¶
+	"{Src}termhooks.h" ¶
+	"{Src}charset.h" ¶
+	"{Src}coding.h" ¶
+	"{Src}keyboard.h"
+
 {Src}textproc.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -1014,6 +1027,7 @@ shortlisp = ¶
 	{Lisp}abbrev.elc ¶
 	{Lisp}buff-menu.elc ¶
 	{Lisp}button.elc ¶
+	{Lisp}server.elc ¶
 	{Lisp}emacs-lisp:byte-run.elc ¶
 	{Lisp}cus-face.elc ¶
 	{Lisp}cus-start.elc ¶
@@ -1027,6 +1041,7 @@ shortlisp = ¶
 	{Lisp}emacs-lisp:float-sup.elc ¶
 	{Lisp}format.elc ¶
 	{Lisp}frame.elc ¶
+	{Lisp}termdev.elc ¶
 	{Lisp}help.elc ¶
 	{Lisp}indent.elc ¶
 	{Lisp}isearch.elc ¶

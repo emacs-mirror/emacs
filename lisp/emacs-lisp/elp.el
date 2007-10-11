@@ -615,7 +615,7 @@ displayed."
       ;; buffer
       (if elp-sort-by-function
 	  (setq resvec (sort resvec elp-sort-by-function)))
-      (mapcar 'elp-output-result resvec))
+      (mapc 'elp-output-result resvec))
     ;; now pop up results buffer
     (set-buffer curbuf)
     (pop-to-buffer resultsbuf)

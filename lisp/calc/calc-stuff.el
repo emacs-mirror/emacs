@@ -191,7 +191,7 @@ With a prefix, push that prefix as a number onto the stack."
 	 math-eval-rules-cache-tag t
 	 math-format-date-cache nil
 	 math-holidays-cache-tag t)
-   (mapcar (function (lambda (x) (set x -100))) math-cache-list)
+   (mapc (function (lambda (x) (set x -100))) math-cache-list)
    (unless inhibit-msg
      (message "All internal calculator caches have been reset"))))
 

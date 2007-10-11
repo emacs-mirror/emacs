@@ -27,6 +27,7 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <errno.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -36,6 +37,7 @@ Boston, MA 02110-1301, USA.  */
 #include <epaths.h>
 #include "commands.h"
 #include "keyboard.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "coding.h"
 #include "blockinput.h"
@@ -627,8 +629,6 @@ static void substitute_in_interval P_ ((INTERVAL, Lisp_Object));
 
 /* Get a character from the tty.  */
 
-extern Lisp_Object read_char ();
-
 /* Read input events until we get one that's acceptable for our purposes.
 
    If NO_SWITCH_FRAME is non-zero, switch-frame events are stashed
@@ -680,10 +680,12 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
       EMACS_ADD_TIME (end_time, end_time, wait_time);
     }
 
-  /* Read until we get an acceptable event.  */
+/* Read until we get an acceptable event.  */
  retry:
-  val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
-		   NUMBERP (seconds) ? &end_time : NULL);
+  do
+    val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
+		     NUMBERP (seconds) ? &end_time : NULL);
+  while (INTEGERP (val) && XINT (val) == -2); /* wrong_kboard_jmpbuf */
 
   if (BUFFERP (val))
     goto retry;
@@ -824,7 +826,7 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
 
 
 /* Value is a version number of byte compiled code if the file
-   asswociated with file descriptor FD is a compiled Lisp file that's
+   associated with file descriptor FD is a compiled Lisp file that's
    safe to load.  Only files compiled with Emacs are safe to load.
    Files compiled with XEmacs can lead to a crash in Fbyte_code
    because of an incompatible change in the byte compiler.  */
@@ -890,7 +892,7 @@ load_warn_old_style_backquotes (file)
   if (!NILP (Vold_style_backquotes))
     {
       Lisp_Object args[2];
-      args[0] = build_string ("!! File %s uses old-style backquotes !!");
+      args[0] = build_string ("Loading `%s': old-style backquotes detected!");
       args[1] = file;
       Fmessage (2, args);
     }
@@ -923,7 +925,7 @@ DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el',
 then try FILE unmodified (the exact suffixes in the exact order are
-determined by  `load-suffixes').  Environment variable references in
+determined by `load-suffixes').  Environment variable references in
 FILE are replaced with their values by calling `substitute-in-file-name'.
 This function searches the directories in `load-path'.
 
@@ -1098,7 +1100,7 @@ Return t if the file exists and loads successfully.  */)
 
   version = -1;
 
-  /* Check fore the presence of old-style quotes and warn about them.  */
+  /* Check for the presence of old-style quotes and warn about them.  */
   specbind (Qold_style_backquotes, Qnil);
   record_unwind_protect (load_warn_old_style_backquotes, file);
 
@@ -2832,7 +2834,7 @@ read1 (readcharfun, pch, first_in_list)
       }
     default:
     default_label:
-      if (c <= 040) goto retry;	
+      if (c <= 040) goto retry;
       if (c == 0x8a0) /* NBSP */
 	goto retry;
       {
@@ -3802,6 +3804,7 @@ defsubr (sname)
 {
   Lisp_Object sym;
   sym = intern (sname->symbol_name);
+  XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (XSYMBOL (sym)->function, sname);
 }
 
@@ -3875,37 +3878,6 @@ defvar_lisp (namestring, address)
   defvar_lisp_nopro (namestring, address);
   staticpro (address);
 }
-
-/* Similar but define a variable whose value is the Lisp Object stored in
-   the current buffer.  address is the address of the slot in the buffer
-   that is current now. */
-
-void
-defvar_per_buffer (namestring, address, type, doc)
-     char *namestring;
-     Lisp_Object *address;
-     Lisp_Object type;
-     char *doc;
-{
-  Lisp_Object sym, val;
-  int offset;
-
-  sym = intern (namestring);
-  val = allocate_misc ();
-  offset = (char *)address - (char *)current_buffer;
-
-  XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
-  XBUFFER_OBJFWD (val)->offset = offset;
-  SET_SYMBOL_VALUE (sym, val);
-  PER_BUFFER_SYMBOL (offset) = sym;
-  PER_BUFFER_TYPE (offset) = type;
-
-  if (PER_BUFFER_IDX (offset) == 0)
-    /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
-       slot of buffer_local_flags */
-    abort ();
-}
-
 
 /* Similar but define a variable whose value is the Lisp Object stored
    at a particular offset in the current kboard object.  */
@@ -4003,7 +3975,7 @@ init_lread ()
 		    Vload_path = Fcons (tem, Vload_path);
 		}
 
-	      /* Add site-list under the installation dir, if it exists.  */
+	      /* Add site-lisp under the installation dir, if it exists.  */
 	      tem = Fexpand_file_name (build_string ("site-lisp"),
 				       Vinstallation_directory);
 	      tem1 = Ffile_exists_p (tem);
@@ -4063,7 +4035,7 @@ init_lread ()
       /* NORMAL refers to the lisp dir in the source directory.  */
       /* We used to add ../lisp at the front here, but
 	 that caused trouble because it was copied from dump_path
-	 into Vload_path, aboe, when Vinstallation_directory was non-nil.
+	 into Vload_path, above, when Vinstallation_directory was non-nil.
 	 It should be unnecessary.  */
       Vload_path = decode_env_path (0, normal);
       dump_path = Vload_path;
@@ -4122,7 +4094,7 @@ init_lread ()
 }
 
 /* Print a warning, using format string FORMAT, that directory DIRNAME
-   does not exist.  Print it on stderr and put it in *Message*.  */
+   does not exist.  Print it on stderr and put it in *Messages*.  */
 
 void
 dir_warning (format, dirname)

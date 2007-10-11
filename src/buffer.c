@@ -216,25 +216,38 @@ frame parameter come first, followed by the rest of the buffers.  */)
      (frame)
      Lisp_Object frame;
 {
-  Lisp_Object framelist, general;
+  Lisp_Object general;
   general = Fmapcar (Qcdr, Vbuffer_alist);
 
   if (FRAMEP (frame))
     {
-      Lisp_Object tail;
+      Lisp_Object framelist, prevlist, tail;
+      Lisp_Object args[3];
 
       CHECK_FRAME (frame);
 
       framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
+      prevlist = Fnreverse (Fcopy_sequence (XFRAME (frame)->buried_buffer_list));
 
-      /* Remove from GENERAL any buffer that duplicates one in FRAMELIST.  */
+      /* Remove from GENERAL any buffer that duplicates one in
+         FRAMELIST or PREVLIST.  */
       tail = framelist;
-      while (! NILP (tail))
+      while (CONSP (tail))
 	{
 	  general = Fdelq (XCAR (tail), general);
 	  tail = XCDR (tail);
 	}
-      return nconc2 (framelist, general);
+      tail = prevlist;
+      while (CONSP (tail))
+	{
+	  general = Fdelq (XCAR (tail), general);
+	  tail = XCDR (tail);
+	}
+
+      args[0] = framelist;
+      args[1] = general;
+      args[2] = prevlist;
+      return Fnconc (3, args);
     }
 
   return general;
@@ -417,6 +430,7 @@ The value is never nil.  */)
   b->name = name;
 
   /* Put this in the alist of all live buffers.  */
+  XSETPVECTYPE (b, PVEC_BUFFER);
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
@@ -1584,6 +1598,23 @@ record_buffer (buf)
   XSETCDR (link, Vbuffer_alist);
   Vbuffer_alist = link;
 
+  /* Effectively do a delq on buried_buffer_list.  */
+  
+  prev = Qnil;
+  for (link = XFRAME (frame)->buried_buffer_list; CONSP (link);
+       link = XCDR (link))
+    {
+      if (EQ (XCAR (link), buf))
+        {
+          if (NILP (prev))
+            XFRAME (frame)->buried_buffer_list = XCDR (link);
+          else
+            XSETCDR (prev, XCDR (XCDR (prev)));
+          break;
+        }
+      prev = link;
+    }
+
   /* Now move this buffer to the front of frame_buffer_list also.  */
 
   prev = Qnil;
@@ -2066,10 +2097,10 @@ selected window if it is displayed there.  */)
       XSETCDR (link, Qnil);
       Vbuffer_alist = nconc2 (Vbuffer_alist, link);
 
-      /* Removing BUFFER from frame-specific lists
-	 has the effect of putting BUFFER at the end
-	 of the combined list in each frame.  */
-      frames_discard_buffer (buffer);
+      XFRAME (selected_frame)->buffer_list
+        = Fdelq (buffer, XFRAME (selected_frame)->buffer_list);
+      XFRAME (selected_frame)->buried_buffer_list
+        = Fcons (buffer, Fdelq (buffer, XFRAME (selected_frame)->buried_buffer_list));
     }
 
   return Qnil;
@@ -3953,7 +3984,7 @@ OVERLAY.  */)
 
 
 DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
-       doc: /* Return a list of the overlays that contain position POS.  */)
+       doc: /* Return a list of the overlays that contain the character at POS.  */)
      (pos)
      Lisp_Object pos;
 {
@@ -5022,7 +5053,9 @@ init_buffer_once ()
   buffer_local_symbols.text = &buffer_local_symbols.own_text;
   BUF_INTERVALS (&buffer_defaults) = 0;
   BUF_INTERVALS (&buffer_local_symbols) = 0;
+  XSETPVECTYPE (&buffer_defaults, PVEC_BUFFER);
   XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
+  XSETPVECTYPE (&buffer_local_symbols, PVEC_BUFFER);
   XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
@@ -5260,6 +5293,46 @@ init_buffer ()
 
   free (pwd);
 }
+
+/* Similar to defvar_lisp but define a variable whose value is the Lisp
+   Object stored in the current buffer.  address is the address of the slot
+   in the buffer that is current now. */
+
+/* TYPE is nil for a general Lisp variable.
+   An integer specifies a type; then only LIsp values
+   with that type code are allowed (except that nil is allowed too).
+   LNAME is the LIsp-level variable name.
+   VNAME is the name of the buffer slot.
+   DOC is a dummy where you write the doc string as a comment.  */
+#define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
+ defvar_per_buffer (lname, vname, type, 0)
+
+static void
+defvar_per_buffer (namestring, address, type, doc)
+     char *namestring;
+     Lisp_Object *address;
+     Lisp_Object type;
+     char *doc;
+{
+  Lisp_Object sym, val;
+  int offset;
+
+  sym = intern (namestring);
+  val = allocate_misc ();
+  offset = (char *)address - (char *)current_buffer;
+
+  XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
+  XBUFFER_OBJFWD (val)->offset = offset;
+  SET_SYMBOL_VALUE (sym, val);
+  PER_BUFFER_SYMBOL (offset) = sym;
+  PER_BUFFER_TYPE (offset) = type;
+
+  if (PER_BUFFER_IDX (offset) == 0)
+    /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
+       slot of buffer_local_flags */
+    abort ();
+}
+
 
 /* initialize the buffer routines */
 void
@@ -5545,6 +5618,9 @@ its hooks should not expect certain variables such as
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
                      Qnil,
 		     doc: /* Pretty name of current buffer's major mode (a string).  */);
+
+  DEFVAR_PER_BUFFER ("local-abbrev-table", &current_buffer->abbrev_table, Qnil,
+		     doc: /* Local (mode-specific) abbrev table of current buffer.  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil,
 		     doc: /* Non-nil turns on automatic expansion of abbrevs as they are inserted.  */);

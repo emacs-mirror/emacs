@@ -1677,21 +1677,21 @@ before the indent, the point is moved to the indent."
           (unit-file (downcase unit)))
       (catch 'done
         ;; Search for the file.
-        (mapcar #'(lambda (file)
-                    (let ((path (concat dir "/" file)))
-                      (if (and (string= unit-file (downcase file))
-                               (delphi-is-file path))
-                          (throw 'done path))))
-                files)
+        (mapc #'(lambda (file)
+		  (let ((path (concat dir "/" file)))
+		    (if (and (string= unit-file (downcase file))
+			     (delphi-is-file path))
+			(throw 'done path))))
+	      files)
 
         ;; Not found. Search subdirectories.
         (when recurse
-          (mapcar #'(lambda (subdir)
-                      (unless (member subdir '("." ".."))
-                        (let ((path (delphi-search-directory
-                                     unit (concat dir "/" subdir) recurse)))
-                          (if path (throw 'done path)))))
-                  files))
+          (mapc #'(lambda (subdir)
+		    (unless (member subdir '("." ".."))
+		      (let ((path (delphi-search-directory
+				   unit (concat dir "/" subdir) recurse)))
+			(if path (throw 'done path)))))
+		files))
 
         ;; Not found.
         nil))))
@@ -1721,7 +1721,7 @@ before the indent, the point is moved to the indent."
           ((stringp delphi-search-path)
            (delphi-find-unit-in-directory unit delphi-search-path))
 
-          ((mapcar
+          ((mapc
               #'(lambda (dir)
                   (let ((file (delphi-find-unit-in-directory unit dir)))
                     (if file (throw 'done file))))
@@ -1888,39 +1888,39 @@ comment block. If not in a // comment, just does a normal newline."
 
 (defvar delphi-debug-mode-map
   (let ((kmap (make-sparse-keymap)))
-    (mapcar #'(lambda (binding) (define-key kmap (car binding) (cadr binding)))
-            '(("n" delphi-debug-goto-next-token)
-              ("p" delphi-debug-goto-previous-token)
-              ("t" delphi-debug-show-current-token)
-              ("T" delphi-debug-tokenize-buffer)
-              ("W" delphi-debug-tokenize-window)
-              ("g" delphi-debug-goto-point)
-              ("s" delphi-debug-show-current-string)
-              ("a" delphi-debug-parse-buffer)
-              ("w" delphi-debug-parse-window)
-              ("f" delphi-debug-fontify-window)
-              ("F" delphi-debug-fontify-buffer)
-              ("r" delphi-debug-parse-region)
-              ("c" delphi-debug-unparse-buffer)
-              ("x" delphi-debug-show-is-stable)
-              ))
+    (mapc #'(lambda (binding) (define-key kmap (car binding) (cadr binding)))
+	  '(("n" delphi-debug-goto-next-token)
+	    ("p" delphi-debug-goto-previous-token)
+	    ("t" delphi-debug-show-current-token)
+	    ("T" delphi-debug-tokenize-buffer)
+	    ("W" delphi-debug-tokenize-window)
+	    ("g" delphi-debug-goto-point)
+	    ("s" delphi-debug-show-current-string)
+	    ("a" delphi-debug-parse-buffer)
+	    ("w" delphi-debug-parse-window)
+	    ("f" delphi-debug-fontify-window)
+	    ("F" delphi-debug-fontify-buffer)
+	    ("r" delphi-debug-parse-region)
+	    ("c" delphi-debug-unparse-buffer)
+	    ("x" delphi-debug-show-is-stable)
+	    ))
     kmap)
   "Keystrokes for delphi-mode debug commands.")
 
 (defvar delphi-mode-map
   (let ((kmap (make-sparse-keymap)))
-    (mapcar #'(lambda (binding) (define-key kmap (car binding) (cadr binding)))
-            (list '("\r" delphi-newline)
-                  '("\t" delphi-tab)
-                  '("\177" backward-delete-char-untabify)
-;;                '("\C-cd" delphi-find-current-def)
-;;                '("\C-cx" delphi-find-current-xdef)
-;;                '("\C-cb" delphi-find-current-body)
-                  '("\C-cu" delphi-find-unit)
-                  '("\M-q" delphi-fill-comment)
-                  '("\M-j" delphi-new-comment-line)
-                  ;; Debug bindings:
-                  (list "\C-c\C-d" delphi-debug-mode-map)))
+    (mapc #'(lambda (binding) (define-key kmap (car binding) (cadr binding)))
+	  (list '("\r" delphi-newline)
+		'("\t" delphi-tab)
+		'("\177" backward-delete-char-untabify)
+;;              '("\C-cd" delphi-find-current-def)
+;;              '("\C-cx" delphi-find-current-xdef)
+;;              '("\C-cb" delphi-find-current-body)
+		'("\C-cu" delphi-find-unit)
+		'("\M-q" delphi-fill-comment)
+		'("\M-j" delphi-new-comment-line)
+		;; Debug bindings:
+		(list "\C-c\C-d" delphi-debug-mode-map)))
     kmap)
   "Keymap used in Delphi mode.")
 
@@ -1981,17 +1981,17 @@ no args, if that value is non-nil."
   (set-syntax-table delphi-mode-syntax-table)
 
   ;; Buffer locals:
-  (mapcar #'(lambda (var)
-              (let ((var-symb (car var))
-                    (var-val (cadr var)))
-                (make-local-variable var-symb)
-                (set var-symb var-val)))
-          (list '(indent-line-function delphi-indent-line)
-                '(comment-indent-function delphi-indent-line)
-                '(case-fold-search t)
-                '(delphi-progress-last-reported-point nil)
-                '(delphi-ignore-changes nil)
-                (list 'font-lock-defaults delphi-font-lock-defaults)))
+  (mapc #'(lambda (var)
+	    (let ((var-symb (car var))
+		  (var-val (cadr var)))
+	      (make-local-variable var-symb)
+	      (set var-symb var-val)))
+	(list '(indent-line-function delphi-indent-line)
+	      '(comment-indent-function delphi-indent-line)
+	      '(case-fold-search t)
+	      '(delphi-progress-last-reported-point nil)
+	      '(delphi-ignore-changes nil)
+	      (list 'font-lock-defaults delphi-font-lock-defaults)))
 
   ;; We need to keep track of changes to the buffer to determine if we need
   ;; to retokenize changed text.

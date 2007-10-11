@@ -143,19 +143,19 @@ Defaults to today's date if DATE is not given."
 	  (year (int-to-string y)))
       (mapconcat 'eval calendar-date-display-form ""))))
 
-(defun calendar-print-bahai-date ()
+(defun calendar-bahai-print-date ()
   "Show the Bahá'í calendar equivalent of the selected date."
   (interactive)
   (message "Bahá'í date: %s"
            (calendar-bahai-date-string (calendar-cursor-to-date t))))
 
-(defun calendar-goto-bahai-date (date &optional noecho)
+(defun calendar-bahai-goto-date (date &optional noecho)
   "Move cursor to Bahá'í date DATE.
 Echo Bahá'í date unless NOECHO is t."
   (interactive (calendar-bahai-prompt-for-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-bahai date)))
-  (or noecho (calendar-print-bahai-date)))
+  (or noecho (calendar-bahai-print-date)))
 
 (defun calendar-bahai-prompt-for-date ()
   "Ask for a Bahá'í date."
@@ -204,7 +204,7 @@ nil if it is not visible in the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
-(defun diary-list-bahai-entries ()
+(defun diary-bahai-list-entries ()
   "Add any Bahá'í date entries from the diary file to `diary-entries-list'.
 Bahá'í date diary entries must be prefaced by an
 `bahai-diary-entry-symbol' (normally a `B').  The same diary date
@@ -458,7 +458,7 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
-(defun diary-insert-bahai-entry (arg)
+(defun diary-bahai-insert-entry (arg)
   "Insert a diary entry.
 For the Bahá'í date corresponding to the date indicated by point.
 Prefix arg will make the entry nonmarking."
@@ -512,17 +512,21 @@ Prefix arg will make the entry nonmarking."
 
 ;; Backward compatibility.
 (define-obsolete-function-alias
-  'list-bahai-diary-entries 'diary-list-bahai-entries "23.1")
+  'list-bahai-diary-entries 'diary-bahai-list-entries "23.1")
 (define-obsolete-function-alias
-  'mark-bahai-diary-entries 'diary-mark-bahai-entries "23.1")
+  'mark-bahai-diary-entries 'diary-bahai-mark-entries "23.1")
 (define-obsolete-function-alias
-  'insert-bahai-diary-entry 'diary-insert-bahai-entry "23.1")
+  'insert-bahai-diary-entry 'diary-bahai-insert-entry "23.1")
 (define-obsolete-function-alias
-  'insert-monthly-bahai-diary-entry 'diary-insert-bahai-monthly-entry "23.1")
+  'insert-monthly-bahai-diary-entry 'diary-bahai-insert-monthly-entry "23.1")
 (define-obsolete-function-alias
-  'insert-yearly-bahai-diary-entry 'diary-insert-bahai-yearly-entry "23.1")
+  'insert-yearly-bahai-diary-entry 'diary-bahai-insert-yearly-entry "23.1")
 (define-obsolete-function-alias
   'mark-bahai-calendar-date-pattern 'calendar-bahai-mark-date-pattern "23.1")
+(define-obsolete-function-alias
+  'calendar-goto-bahai-date 'calendar-bahai-goto-date "23.1")
+(define-obsolete-function-alias
+  'calendar-print-bahai-date 'calendar-bahai-print-date "23.1")
 
 (provide 'cal-bahai)
 
