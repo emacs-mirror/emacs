@@ -1,0 +1,580 @@
+@c This is part of the Emacs manual.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+@c See file emacs.texi for copying conditions.
+@node Minibuffer, M-x, Basic, Top
+@chapter The Minibuffer
+@cindex minibuffer
+
+  The @dfn{minibuffer} is where Emacs commands read complicated
+arguments (anything more a single number).  We call it the
+``minibuffer'' because it's a special-purpose buffer with a small
+amount of screen space.  Minibuffer arguments can be file names,
+buffer names, Lisp function names, Emacs command names, Lisp
+expressions, and many other things---whatever the command wants to
+read.  You can use the usual Emacs editing commands in the minibuffer
+to edit the argument text.
+
+@cindex prompt
+  When the minibuffer is in use, it appears in the echo area, with a
+cursor.  The minibuffer display starts with a @dfn{prompt} in a
+distinct color; it says what kind of input is expected and how it will
+be used.  Often the prompt is derived from the name of the command
+that is reading the argument.  The prompt normally ends with a colon.
+
+@cindex default argument
+  Sometimes a @dfn{default argument} appears in the prompt, inside
+parentheses before the colon.  The default will be used as the
+argument value if you just type @key{RET}.  For example, commands that
+read buffer names show a buffer name as the default.  You can type
+@key{RET} to operate on that default buffer.
+
+  The simplest way to enter a minibuffer argument is to type the text,
+then @key{RET} to exit the minibuffer.  You can cancel the minibuffer,
+and the command that wants the argument, by typing @kbd{C-g}.
+
+  Since the minibuffer appears in the echo area, it can conflict with
+other uses of the echo area.  Here is how Emacs handles such
+conflicts:
+
+@itemize @bullet
+@item
+An error occurs while the minibuffer is active.
+  
+The error message hides the minibuffer for a few seconds, or until you
+type something.  Then the minibuffer comes back.
+
+@item
+A command such as @kbd{C-x =} needs to display a message in the echo
+area.
+
+The message hides the minibuffer for a few seconds, or until you type
+something.  Then the minibuffer comes back.
+
+@item
+Keystrokes don't echo while the minibuffer is in use.
+@end itemize
+
+@menu
+* File: Minibuffer File.  Entering file names with the minibuffer.
+* Edit: Minibuffer Edit.  How to edit in the minibuffer.
+* Completion::		  An abbreviation facility for minibuffer input.
+* Minibuffer History::    Reusing recent minibuffer arguments.
+* Repetition::		  Re-executing commands that used the minibuffer.
+@end menu
+
+@node Minibuffer File
+@section Minibuffers for File Names
+
+  When you use the minibuffer to enter a file name, it starts out with
+some initial text---the @dfn{default directory}, ending in a slash.
+The file you specify will be in this directory unless you alter or
+replace it.
+
+@c Separate paragraph to clean up ugly page break--rms
+@need 1500
+  For example, if the minibuffer starts out with these contents:
+
+@example
+Find File: /u2/emacs/src/
+@end example
+
+@noindent
+(where @samp{Find File:@: } is the prompt), and you type
+@kbd{buffer.c} as input, that specifies the file
+@file{/u2/emacs/src/buffer.c}.  You can specify the parent directory
+by adding @file{..}; thus, if you type @kbd{../lisp/simple.el}, you
+will get @file{/u2/emacs/lisp/simple.el}.  Alternatively, you can use
+@kbd{M-@key{DEL}} to kill the directory names you don't want
+(@pxref{Words}).
+
+  You can kill the entire default with @kbd{C-a C-k}, but there's no
+need to do that.  It's easier to ignore the default, and enter an
+absolute file name starting with a slash or a tilde after the default
+directory.  For example, to specify @file{/etc/termcap}, just type
+that name:
+
+@example
+Find File: /u2/emacs/src//etc/termcap
+@end example
+
+@noindent
+@cindex // in file name
+@cindex double slash in file name
+@cindex slashes repeated in file name
+@findex file-name-shadow-mode
+GNU Emacs interprets a double slash (which is not normally useful in
+file names) as, ``ignore everything before the second slash in the
+pair.''  In the example above. @samp{/u2/emacs/src/} is ignored, so
+you get @file{/etc/termcap}.  The ignored part of the file name is
+dimmed if the terminal allows it; to disable this dimming, turn off
+File Name Shadow mode (a minor mode) with the command
+@kbd{M-x file-name-shadow-mode}.
+
+  If the variable @code{insert-default-directory} is @code{nil}, the
+default directory is never inserted in the minibuffer---so the
+minibuffer starts out empty.  Nonetheless, relative file name
+arguments are still interpreted based on the same default directory.
+
+@node Minibuffer Edit
+@section Editing in the Minibuffer
+
+  The minibuffer is an Emacs buffer (albeit a peculiar one), and the
+usual Emacs commands are available for editing the argument text.
+
+  Since @key{RET} in the minibuffer is defined to exit the minibuffer,
+you can't use it to insert a newline in the minibuffer.  To do that,
+type @kbd{C-o} or @kbd{C-q C-j}.  (The newline character is really the
+@acronym{ASCII} character control-J.)
+
+  The minibuffer has its own window, which normally has space in the
+frame at all times, but it only acts like an Emacs window when the
+minibuffer is active.  When active, this window is much like any other
+Emacs window; for instance, you can switch to another window (with
+@kbd{C-x o}), edit text there, then return to the minibuffer window to
+finish the argument.  You can even kill text in another window, return
+to the minibuffer window, and then yank the text into the argument.
+@xref{Windows}.
+
+@cindex height of minibuffer
+@cindex size of minibuffer
+@cindex growing minibuffer
+@cindex resizing minibuffer
+  There are some restrictions on the minibuffer window, however: you
+cannot kill it, or split it, or switch buffers in it---the minibuffer
+and its window are permanently attached.
+
+@vindex resize-mini-windows
+  The minibuffer window expands vertically as necessary to hold the
+text that you put in the minibuffer.  If @code{resize-mini-windows} is
+@code{t} (the default), the window always resizes as needed by its
+contents.  If its value is the symbol @code{grow-only}, the window
+grows automatically as needed, but shrinks (back to the normal size)
+only when the minibuffer becomes inactive.  If its value is
+@code{nil}, you have to adjust the height yourself.
+
+@vindex max-mini-window-height
+  The variable @code{max-mini-window-height} controls the maximum
+height for resizing the minibuffer window: a floating-point number
+specifies a fraction of the frame's height; an integer specifies the
+maximum number of lines; @code{nil} means do not resize the minibuffer
+window automatically.  The default value is 0.25.
+
+  The @kbd{C-M-v} command in the minibuffer scrolls the help text from
+commands that display help text of any sort in another window.
+@kbd{M-@key{PAGEUP}} and @kbd{M-@key{PAGEDOWN}} also operate on that
+help text.  This is especially useful with long lists of possible
+completions.  @xref{Other Window}.
+
+@vindex enable-recursive-minibuffers
+  Emacs normally disallows most commands that use the minibuffer while
+the minibuffer is active.  (Entering the minibuffer from the
+minibuffer can be confusing.)  To allow such commands in the
+minibuffer, set the variable @code{enable-recursive-minibuffers} to
+@code{t}.
+
+@node Completion
+@section Completion
+@cindex completion
+  
+  Some arguments allow @dfn{completion} to enter their value.  This
+means that after you type part of the argument, Emacs can fill in the
+rest, or some of it, based on what you have typed so far.
+
+  When completion is available, certain keys---@key{TAB}, @key{RET},
+and @key{SPC}---are rebound to complete the text in the minibuffer
+before point into a longer string chosen from a set of @dfn{completion
+alternatives} provided by the command that requested the argument.
+(@key{SPC} does not do completion in reading file names, because it is
+common to use spaces in file names on some systems.)  @kbd{?} displays
+a list of the possible completions at any time.
+
+  For example, @kbd{M-x} uses the minibuffer to read the name of a
+command, so it provides a list of all Emacs command names for
+completion candidates.  The completion keys match the minibuffer text
+against these candidates, find any additional name characters implied
+by the text already present in the minibuffer, and add those
+characters.  This makes it possible to type @kbd{M-x ins @key{SPC} b
+@key{RET}} instead of @kbd{M-x insert-buffer @key{RET}}, for example.
+
+  Case is significant in completion when it is significant in the
+argument you are entering (buffer names, file names, command names,
+for instance).  Thus, @samp{fo} does not complete to @samp{Foo}.
+Completion ignores case distinctions for certain arguments in which
+case does not matter.
+
+  Completion acts only on the text before point.  If there is text in
+the minibuffer after point---i.e., if you move point backward after
+typing some text into the minibuffer---it remains unchanged.
+
+@menu
+* Example: Completion Example.    Examples of using completion.
+* Commands: Completion Commands.  A list of completion commands.
+* Strict Completion::             Different types of completion.
+* Options: Completion Options.    Options for completion.
+@end menu
+
+@node Completion Example
+@subsection Completion Example
+
+@kindex TAB @r{(completion)}
+  A concrete example may help here.  If you type @kbd{M-x au
+@key{TAB}}, the @key{TAB} looks for alternatives (in this case,
+command names) that start with @samp{au}.  There are several,
+including @code{auto-fill-mode} and @code{auto-save-mode}, but they
+all begin with @code{auto-}, so the @samp{au} in the minibuffer
+completes to @samp{auto-}.
+
+  If you type @key{TAB} again immediately, it cannot determine the
+next character; it could be any of @samp{cfilrs}.  So it does not add
+any characters; instead, @key{TAB} displays a list of all possible
+completions in another window.
+
+  Now type @kbd{f @key{TAB}}.  This @key{TAB} sees @samp{auto-f}.  The
+only command name starting with that is @code{auto-fill-mode}, so
+completion fills in the rest of that.  You have been able to enter
+@samp{auto-fill-mode} by typing just @kbd{au @key{TAB} f @key{TAB}}.
+
+@node Completion Commands
+@subsection Completion Commands
+
+  Here is a list of the completion commands defined in the minibuffer
+when completion is allowed.
+
+@table @kbd
+@item @key{TAB}
+@findex minibuffer-complete
+Complete the text before point in the minibuffer as much as possible
+(@code{minibuffer-complete}).
+@item @key{SPC}
+Complete up to one word from the minibuffer text before point
+(@code{minibuffer-complete-word}).  @key{SPC} for completion is not
+available when entering a file name, since file names often include
+spaces.
+@item @key{RET}
+Submit the text in the minibuffer as the argument, possibly completing
+first as described
+@iftex
+in the next subsection (@code{minibuffer-complete-and-exit}).
+@end iftex
+@ifnottex
+in the next node (@code{minibuffer-complete-and-exit}).  @xref{Strict
+Completion}.
+@end ifnottex
+@item ?
+Display a list of possible completions of the text before point
+(@code{minibuffer-completion-help}).
+@end table
+
+@kindex SPC
+@findex minibuffer-complete-word
+  @key{SPC} completes like @key{TAB}, but only up to the next hyphen
+or space.  If you have @samp{auto-f} in the minibuffer and type
+@key{SPC}, it finds that the completion is @samp{auto-fill-mode}, but
+it only inserts @samp{ill-}, giving @samp{auto-fill-}.  Another
+@key{SPC} at this point completes all the way to
+@samp{auto-fill-mode}.  The command that implements this behavior is
+called @code{minibuffer-complete-word}.
+
+  When you display a list of possible completions, you can choose
+one from it:
+
+@table @kbd
+@findex mouse-choose-completion
+@item Mouse-1
+@itemx Mouse-2
+Clicking mouse button 1 or 2 on a completion possibility chooses that
+completion (@code{mouse-choose-completion}).  You must click in the
+list of completions, not in the minibuffer.
+
+@findex switch-to-completions
+@item @key{PRIOR}
+@itemx M-v
+Typing @key{PRIOR} or @key{PAGE-UP}, or @kbd{M-v}, while in the
+minibuffer, selects the window showing the completion list buffer
+(@code{switch-to-completions}).  This paves the way for using the
+commands below.  (Selecting that window in other ways has the same
+effect.)
+
+@findex choose-completion
+@item @key{RET}
+Typing @key{RET} @emph{in the completion list buffer} chooses the
+completion that point is in or next to (@code{choose-completion}).  To
+use this command, you must first switch to the completion list window.
+
+@findex next-completion
+@item @key{RIGHT}
+Typing the right-arrow key @key{RIGHT} @emph{in the completion list
+buffer} moves point to the following completion possibility
+(@code{next-completion}).
+
+@findex previous-completion
+@item @key{LEFT}
+Typing the left-arrow key @key{LEFT} @emph{in the completion list
+buffer} moves point to the previous completion possibility
+(@code{previous-completion}).
+@end table
+
+@node Strict Completion
+@subsection Strict Completion
+
+  There are three different ways that @key{RET} can do completion,
+depending on how the argument will be used.
+
+@itemize @bullet
+@item
+@dfn{Strict} completion accepts only known completion candidates.  For
+example, when @kbd{C-x k} reads the name of a buffer to kill, only the
+name of an existing buffer makes sense.  In strict completion,
+@key{RET} refuses to exit if the text in the minibuffer does not
+complete to an exact match.
+
+@item
+@dfn{Cautious} completion is similar to strict completion, except that
+@key{RET} exits only if the text is an already exact match.
+Otherwise, @key{RET} does not exit, but it does complete the text.  If
+that completes to an exact match, a second @key{RET} will exit.
+
+Cautious completion is used for reading file names for files that must
+already exist, for example.
+
+@item
+@dfn{Permissive} completion allows any input; the completion
+candidates are just suggestions.  For example, when @kbd{C-x C-f}
+reads the name of a file to visit, any file name is allowed, including
+nonexistent file (in case you want to create a file).  In permissive
+completion, @key{RET} does not complete, it just submits the argument
+as you have entered it.
+@end itemize
+
+  The completion commands display a list of all possible completions
+whenever they can't determine even one more character by completion.
+Also, typing @kbd{?} explicitly requests such a list.  You can scroll
+the list with @kbd{C-M-v} (@pxref{Other Window}).
+
+@node Completion Options
+@subsection Completion Options
+
+@vindex completion-ignored-extensions
+@cindex ignored file names, in completion
+  When completing file names, certain file names are usually ignored.
+The variable @code{completion-ignored-extensions} contains a list of
+strings; a file name ending in any of those strings is ignored as a
+completion candidate.  The standard value of this variable has several
+elements including @code{".o"}, @code{".elc"}, @code{".dvi"} and
+@code{"~"}.  The effect is that, for example, @samp{foo} can complete
+to @samp{foo.c} even though @samp{foo.o} exists as well.  However, if
+@emph{all} the possible completions end in ``ignored'' strings, then
+they are not ignored.  Displaying a list of possible completions
+disregards @code{completion-ignored-extensions}; it shows them all.
+
+  If an element of @code{completion-ignored-extensions} ends in a
+slash (@file{/}), it's a subdirectory name; then that directory and
+its contents are ignored.  Elements of
+@code{completion-ignored-extensions} which do not end in a slash are
+ordinary file names, and do not apply to names of directories.
+
+@vindex completion-auto-help
+  If @code{completion-auto-help} is set to @code{nil}, the completion
+commands never display a list of possibilities; you must type @kbd{?}
+to display the list.
+
+@cindex Partial Completion mode
+@vindex partial-completion-mode
+@findex partial-completion-mode
+  Partial Completion mode implements a more powerful kind of
+completion that can complete multiple words in parallel.  For example,
+it can complete the command name abbreviation @code{p-b} into
+@code{print-buffer} if no other command starts with two words whose
+initials are @samp{p} and @samp{b}.
+
+  To enable this mode, use @kbd{M-x partial-completion-mode}, or
+customize the variable @code{partial-completion-mode}.  This mode
+binds special partial completion commands to @key{TAB}, @key{SPC},
+@key{RET}, and @kbd{?} in the minibuffer.  The usual completion
+commands are available on @kbd{M-@key{TAB}} (or @kbd{C-M-i}),
+@kbd{M-@key{SPC}}, @kbd{M-@key{RET}} and @kbd{M-?}.
+
+  Partial completion of directories in file names uses @samp{*} to
+indicate the places for completion; thus, @file{/u*/b*/f*} might
+complete to @file{/usr/bin/foo}.  For remote files, partial completion
+enables completion of methods, user names and host names.
+@xref{Remote Files}.
+
+@vindex PC-include-file-path
+@vindex PC-disable-includes
+  Partial Completion mode also extends @code{find-file} so that
+@samp{<@var{include}>} looks for the file named @var{include} in the
+directories in the path @code{PC-include-file-path}.  If you set
+@code{PC-disable-includes} to non-@code{nil}, this feature is
+disabled.
+
+@cindex Icomplete mode
+@findex icomplete-mode
+  Icomplete mode presents a constantly-updated display that tells you
+what completions are available for the text you've entered so far.  The
+command to enable or disable this minor mode is @kbd{M-x
+icomplete-mode}.
+
+@node Minibuffer History
+@section Minibuffer History
+@cindex minibuffer history
+@cindex history of minibuffer input
+
+  Every argument that you enter with the minibuffer is saved on a
+@dfn{minibuffer history list} so you can easily use it again later.
+Special commands fetch the text of an earlier argument into the
+minibuffer, replacing the old minibuffer contents.  You can think of
+them as moving through the history of previous arguments.
+
+@table @kbd
+@item @key{UP}
+@itemx M-p
+Move to the previous item in the minibuffer history, an earlier argument
+(@code{previous-history-element}).
+@item @key{DOWN}
+@itemx M-n
+Move to the next item in the minibuffer history
+(@code{next-history-element}).
+@item M-r @var{regexp} @key{RET}
+Move to an earlier item in the minibuffer history that 
+matches @var{regexp} (@code{previous-matching-history-element}).
+@item M-s @var{regexp} @key{RET}
+Move to a later item in the minibuffer history that matches
+@var{regexp} (@code{next-matching-history-element}).
+@end table
+
+@kindex M-p @r{(minibuffer history)}
+@kindex M-n @r{(minibuffer history)}
+@findex next-history-element
+@findex previous-history-element
+  To move through the minibuffer history list one item at a time, use
+@kbd{M-p} or up-arrow (@code{previous-history-element}) to fetch the
+next earlier minibuffer input, and use @kbd{M-n} or down-arrow
+(@code{next-history-element}) to fetch the next later input.  These
+commands don't move the cursor, they pull different saved strings into
+the minibuffer.  But you can think of them as ``moving'' through the
+history list.
+
+  The input that you fetch from the history entirely replaces the
+contents of the minibuffer.  To use it again unchanged, just type
+@key{RET}.  You can also edit the text before you reuse it; this does
+not change the history element that you ``moved'' to, but your new
+argument does go at the end of the history list in its own right.
+
+  For many minibuffer arguments there is a ``default'' value.  You can
+insert the default value into the minibuffer as text by using
+@kbd{M-n}.  You can think of this as moving ``into the future'' in the
+history.
+
+@findex previous-matching-history-element
+@findex next-matching-history-element
+@kindex M-r @r{(minibuffer history)}
+@kindex M-s @r{(minibuffer history)}
+  There are also commands to search forward or backward through the
+history; they search for history elements that match a regular
+expression.  @kbd{M-r} (@code{previous-matching-history-element})
+searches older elements in the history, while @kbd{M-s}
+(@code{next-matching-history-element}) searches newer elements.  These
+commands are unusual; they use the minibuffer to read the regular
+expression even though they are invoked from the minibuffer.  As with
+incremental searching, an upper-case letter in the regular expression
+makes the search case-sensitive (@pxref{Search Case}).
+
+@ignore
+  We may change the precise way these commands read their arguments.
+Perhaps they will search for a match for the string given so far in the
+minibuffer; perhaps they will search for a literal match rather than a
+regular expression match; perhaps they will only accept matches at the
+beginning of a history element; perhaps they will read the string to
+search for incrementally like @kbd{C-s}.  To find out what interface is
+actually available, type @kbd{C-h f previous-matching-history-element}.
+@end ignore
+
+  All uses of the minibuffer record your input on a history list, but
+there are separate history lists for different kinds of arguments.
+For example, there is a list for file names, used by all the commands
+that read file names.  (As a special feature, this history list
+records the absolute file name, even if the name you entered was not
+absolute.)
+
+  There are several other specific history lists, including one for
+buffer names, one for arguments of commands like @code{query-replace},
+one used by @kbd{M-x} for command names, and one used by
+@code{compile} for compilation commands.  Finally, there is one
+``miscellaneous'' history list that most minibuffer arguments use.
+
+@vindex history-length
+  The variable @code{history-length} specifies the maximum length of a
+minibuffer history list; adding a new element deletes the oldest
+element if the list gets too long.  If the value of
+@code{history-length} is @code{t}, though, there is no maximum length.
+
+@vindex history-delete-duplicates
+  The variable @code{history-delete-duplicates} specifies whether to
+delete duplicates in history.  If it is @code{t}, adding a new element
+deletes from the list all other elements that are equal to it.
+
+@node Repetition
+@section Repeating Minibuffer Commands
+@cindex command history
+@cindex history of commands
+
+  Every command that uses the minibuffer once is recorded on a special
+history list, the @dfn{command history}, together with the values of
+its arguments, so that you can repeat the entire command.  In
+particular, every use of @kbd{M-x} is recorded there, since @kbd{M-x}
+uses the minibuffer to read the command name.
+
+@findex list-command-history
+@table @kbd
+@item C-x @key{ESC} @key{ESC}
+Re-execute a recent minibuffer command from the command history
+ (@code{repeat-complex-command}).
+@item M-x list-command-history
+Display the entire command history, showing all the commands
+@kbd{C-x @key{ESC} @key{ESC}} can repeat, most recent first.
+@end table
+
+@kindex C-x ESC ESC
+@findex repeat-complex-command
+  @kbd{C-x @key{ESC} @key{ESC}} is used to re-execute a recent command
+that used the minibuffer.  With no argument, it repeats the last such
+command.  A numeric argument specifies which command to repeat; 1
+means the last one, 2 the previous, and so on.
+
+  @kbd{C-x @key{ESC} @key{ESC}} works by turning the previous command
+into a Lisp expression and then entering a minibuffer initialized with
+the text for that expression.  Even if you don't understand Lisp
+syntax, it will probably be obvious which command is displayed for
+repetition.  If you type just @key{RET}, that repeats the command
+unchanged.  You can also change the command by editing the Lisp
+expression before you execute it.  The repeated command is added to
+the front of the command history unless it is identical to the most
+recently item.
+
+  Once inside the minibuffer for @kbd{C-x @key{ESC} @key{ESC}}, you can
+use the minibuffer history commands (@kbd{M-p}, @kbd{M-n}, @kbd{M-r},
+@kbd{M-s}; @pxref{Minibuffer History}) to move through the history list
+of saved entire commands.  After finding the desired previous command,
+you can edit its expression as usual and then repeat it by typing
+@key{RET}.
+
+@vindex isearch-resume-in-command-history
+  Incremental search does not, strictly speaking, use the minibuffer.
+Therefore, although it behaves like a complex command, it normally
+does not appear in the history list for @kbd{C-x @key{ESC} @key{ESC}}.
+You can make incremental search commands appear in the history by
+setting @code{isearch-resume-in-command-history} to a non-@code{nil}
+value.  @xref{Incremental Search}.
+
+@vindex command-history
+  The list of previous minibuffer-using commands is stored as a Lisp
+list in the variable @code{command-history}.  Each element is a Lisp
+expression which describes one command and its arguments.  Lisp programs
+can re-execute a command by calling @code{eval} with the
+@code{command-history} element.
+
+@ignore
+   arch-tag: ba913cfd-b70e-400f-b663-22b2c309227f
+@end ignore

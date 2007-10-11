@@ -5311,15 +5311,15 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 (defun pr-eval-local-alist (alist)
   (let (local-list)
-    (mapcar #'(lambda (option)
-		(let ((var-sym (car option))
-		      (value   (cdr option)))
-		  (setq local-list
-			(if (eq var-sym 'inherits-from:)
-			    (nconc (pr-eval-setting-alist value) local-list)
-			  (set (make-local-variable var-sym) (eval value))
-			  (cons var-sym local-list)))))
-	    alist)
+    (mapc #'(lambda (option)
+	      (let ((var-sym (car option))
+		    (value   (cdr option)))
+		(setq local-list
+		      (if (eq var-sym 'inherits-from:)
+			  (nconc (pr-eval-setting-alist value) local-list)
+			(set (make-local-variable var-sym) (eval value))
+			(cons var-sym local-list)))))
+	  alist)
     local-list))
 
 
@@ -5341,7 +5341,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 		  (setq local-list
 			(pr-eval-setting-alist inherits global
 					       (cons inherits old)))))
-	   (mapcar
+	   (mapc
 	    (cond ((not local)		; global settings
 		   #'(lambda (option)
 		       (let ((var-sym (car option)))

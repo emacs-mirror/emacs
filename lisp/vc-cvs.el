@@ -590,7 +590,8 @@ encoded as fractional days."
 systime, or nil if there is none."
   (let* ((bol (point))
          (cache (get-text-property bol 'vc-cvs-annotate-time))
-         buffer-read-only)
+         (inhibit-read-only t)
+         (inhibit-modification-hooks t))
     (cond
      (cache)
      ((looking-at

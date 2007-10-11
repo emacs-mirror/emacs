@@ -119,6 +119,12 @@ system, `file-name-shadow-properties' is used instead."
   :group 'minibuffer
   :version "22.1")
 
+(defvar rfn-eshadow-setup-minibuffer-hook nil
+  "Minibuffer setup functions from other packages.")
+
+(defvar rfn-eshadow-update-overlay-hook nil
+  "Customer overlay functions from other packages")
+
 
 ;;; Internal variables
 
@@ -153,7 +159,9 @@ The prompt and initial input should already have been inserted."
     (overlay-put rfn-eshadow-overlay 'evaporate t)
     ;; Add our post-command hook, and make sure can remove it later.
     (add-to-list 'rfn-eshadow-frobbed-minibufs (current-buffer))
-    (add-hook 'post-command-hook #'rfn-eshadow-update-overlay nil t)))
+    (add-hook 'post-command-hook #'rfn-eshadow-update-overlay nil t)
+    ;; Run custom hook
+    (run-hooks 'rfn-eshadow-setup-minibuffer-hook)))
 
 (defsubst rfn-eshadow-sifn-equal (goal pos)
   (equal goal (condition-case nil
@@ -193,7 +201,9 @@ been set up by `rfn-eshadow-setup-minibuffer'."
             (if (rfn-eshadow-sifn-equal goal mid)
                 (setq start mid)
               (setq end mid)))
-          (move-overlay rfn-eshadow-overlay (minibuffer-prompt-end) start)))
+          (move-overlay rfn-eshadow-overlay (minibuffer-prompt-end) start))
+	;; Run custom hook
+	(run-hooks 'rfn-eshadow-update-overlay-hook))
     ;; `substitute-in-file-name' can fail on partial input.
     (error nil)))
 

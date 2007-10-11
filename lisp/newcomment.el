@@ -194,7 +194,7 @@ two semi-colons.")
     (extra-line	. (t nil t t))
     (box	. (nil t t t))
     (box-multi	. (t t t t)))
-  "Possible comment styles of the form (STYLE . (MULTI ALIGN EXTRA INDENT)).
+  "Comment region styles of the form (STYLE . (MULTI ALIGN EXTRA INDENT)).
 STYLE should be a mnemonic symbol.
 MULTI specifies that comments are allowed to span multiple lines.
 ALIGN specifies that the `comment-end' markers should be aligned.
@@ -208,7 +208,8 @@ INDENT specifies that the `comment-start' markers should not be put at the
   "Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
   :type (if (boundp 'comment-styles)
-	    `(choice ,@(mapcar (lambda (s) `(const ,(car s))) comment-styles))
+	    `(choice ,@(mapcar (lambda (s) `(const ,(car s)))
+			       comment-styles))
 	  'symbol)
   :group 'comment)
 
@@ -938,9 +939,14 @@ indentation to be kept as it was before narrowing."
 		   (delete-char n)
 		   (setq ,bindent (- ,bindent n)))))))))))
 
-(defun comment-add (arg)
+;; Compute the number of extra semicolons to add to the comment starter
+;; in Lisp mode, extra stars in C mode, etc.
+;; If ARG is non-nil, just follow ARG.
+;; If the comment-starter is multi-char, just follow ARG.
+;; Otherwise obey comment-add, and double it if EXTRA is non-nil.
+(defun comment-add (arg &optional extra)
   (if (and (null arg) (= (string-match "[ \t]*\\'" comment-start) 1))
-      comment-add
+      (* comment-add (if extra 2 1))
     (1- (prefix-numeric-value arg))))
 
 (defun comment-region-internal (beg end cs ce
@@ -1051,7 +1057,8 @@ The strings used as comment starts are built from
 	 (lines (nth 2 style))
 	 (block (nth 1 style))
 	 (multi (nth 0 style)))
-    ;; we use `chars' instead of `syntax' because `\n' might be
+
+    ;; We use `chars' instead of `syntax' because `\n' might be
     ;; of end-comment syntax rather than of whitespace syntax.
     ;; sanitize BEG and END
     (goto-char beg) (skip-chars-forward " \t\n\r") (beginning-of-line)
@@ -1079,7 +1086,10 @@ The strings used as comment starts are built from
      ((consp arg) (uncomment-region beg end))
      ((< numarg 0) (uncomment-region beg end (- numarg)))
      (t
-      (setq numarg (comment-add arg))
+      ;; Add an extra semicolon in Lisp and similar modes.
+      ;; If STYLE doesn't specify indenting the comments,
+      ;; then double the value of `comment-add'.
+      (setq numarg (comment-add arg (null (nth 3 style))))
       (comment-region-internal
        beg end
        (let ((s (comment-padright comment-start numarg)))

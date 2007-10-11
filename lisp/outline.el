@@ -187,12 +187,12 @@ in the file it applies to."
   :group 'outlines)
 
 (defface outline-4
-  '((t :inherit font-lock-builtin-face))
+  '((t :inherit font-lock-comment-face))
   "Level 4."
   :group 'outlines)
 
 (defface outline-5
-  '((t :inherit font-lock-comment-face))
+  '((t :inherit font-lock-type-face))
   "Level 5."
   :group 'outlines)
 
@@ -202,7 +202,7 @@ in the file it applies to."
   :group 'outlines)
 
 (defface outline-7
-  '((t :inherit font-lock-type-face))
+  '((t :inherit font-lock-builtin-face))
   "Level 7."
   :group 'outlines)
 
@@ -215,8 +215,8 @@ in the file it applies to."
   [outline-1 outline-2 outline-3 outline-4
    outline-5 outline-6 outline-7 outline-8])
 
-(defvar outline-font-lock-levels nil)
-(make-variable-buffer-local 'outline-font-lock-levels)
+;; (defvar outline-font-lock-levels nil)
+;; (make-variable-buffer-local 'outline-font-lock-levels)
 
 (defun outline-font-lock-face ()
   ;; (save-excursion
@@ -241,9 +241,7 @@ in the file it applies to."
   (save-excursion
     (goto-char (match-beginning 0))
     (looking-at outline-regexp)
-    (condition-case nil
-	(aref outline-font-lock-faces (1- (funcall outline-level)))
-      (error font-lock-warning-face))))
+    (aref outline-font-lock-faces (% (1- (funcall outline-level)) (length outline-font-lock-faces)))))
 
 (defvar outline-view-change-hook nil
   "Normal hook to be run after outline visibility changes.")
@@ -712,7 +710,10 @@ If nil, `show-entry' is called to reveal the invisible text.")
 If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
   (remove-overlays from to 'invisible 'outline)
   (when flag
-    (let ((o (make-overlay from to)))
+    ;; We use `front-advance' here because the invisible text begins at the
+    ;; very end of the heading, before the newline, so text inserted at FROM
+    ;; belongs to the heading rather than to the entry.
+    (let ((o (make-overlay from to nil 'front-advance)))
       (overlay-put o 'invisible 'outline)
       (overlay-put o 'isearch-open-invisible
 		   (or outline-isearch-open-invisible-function

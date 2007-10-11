@@ -168,7 +168,7 @@ Strips out default port numbers, etc."
 	  type (url-type data))
     (if (member type '("www" "about" "mailto" "info"))
 	(setq retval url)
-      (url-set-target data nil)
+      (setf (url-target data) nil)
       (setq retval (url-recreate-url data)))
     retval))
 
@@ -190,7 +190,7 @@ Will not do anything if `url-show-status' is nil."
   (let* ((raw (if specified-time (current-time-string specified-time)
 		(current-time-string)))
 	 (gmt (timezone-make-date-arpa-standard raw
-						(nth 1 (current-time-zone))
+						(current-time-zone)
 						"GMT"))
 	 (parsed (timezone-parse-date gmt))
 	 (day (cdr-safe (assoc (substring raw 0 3) url-weekday-alist)))
@@ -421,13 +421,13 @@ WIDTH defaults to the current frame width."
 		  (string-match "/" fname))
 	(setq fname (substring fname (match-end 0) nil)
 	      modified (1+ modified))
-	(url-set-filename urlobj fname)
+	(setf (url-filename urlobj) fname)
 	(setq url (url-recreate-url urlobj)
 	      str-width (length url)))
       (if (> modified 1)
 	  (setq fname (concat "/.../" fname))
 	(setq fname (concat "/" fname)))
-      (url-set-filename urlobj fname)
+      (setf (url-filename urlobj) fname)
       (setq url (url-recreate-url urlobj)))
     url))
 

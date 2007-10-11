@@ -138,7 +138,7 @@ Options `-c', `-u', and `-i' are not allowed. Case sensitivity can be
 toggled interactively using \\[ediff-toggle-ignore-case].
 
 This variable is not for customizing the look of the differences produced by
-the command \\[ediff-show-diff-output]. Use the variable 
+the command \\[ediff-show-diff-output]. Use the variable
 `ediff-custom-diff-options' for that."
   :set 'ediff-reset-diff-options
   :type 'string
@@ -348,20 +348,20 @@ one optional arguments, diff-number to refine.")
     ;; fixup diff-list
     (if diff3-job
 	(cond ((not file-A)
-	       (mapcar (lambda (elt)
-			 (aset elt 0 nil)
-			 (aset elt 1 nil))
-		       (cdr diff-list)))
+	       (mapc (lambda (elt)
+		       (aset elt 0 nil)
+		       (aset elt 1 nil))
+		     (cdr diff-list)))
 	      ((not file-B)
-	       (mapcar (lambda (elt)
-			 (aset elt 2 nil)
-			 (aset elt 3 nil))
-		       (cdr diff-list)))
+	       (mapc (lambda (elt)
+		       (aset elt 2 nil)
+		       (aset elt 3 nil))
+		     (cdr diff-list)))
 	      ((not file-C)
-	       (mapcar (lambda (elt)
-			 (aset elt 4 nil)
-			 (aset elt 5 nil))
-		       (cdr diff-list)))
+	       (mapc (lambda (elt)
+		       (aset elt 4 nil)
+		       (aset elt 5 nil))
+		     (cdr diff-list)))
 	  ))
 
     (ediff-convert-fine-diffs-to-overlays diff-list reg-num)
@@ -1533,7 +1533,7 @@ affects only files whose names match the expression."
 
 (defun ediff-set-actual-diff-options ()
   (if ediff-ignore-case
-      (setq ediff-actual-diff-options 
+      (setq ediff-actual-diff-options
 	    (concat ediff-diff-options " " ediff-ignore-case-option)
 	    ediff-actual-diff3-options
 	    (concat ediff-diff3-options " " ediff-ignore-case-option3))

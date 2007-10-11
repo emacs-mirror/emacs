@@ -370,7 +370,7 @@ Return non-nil if FILE is unchanged."
 (defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))
   ;; FIXME: This implementation probably only works for singleton filesets
-  (let ((summary (file-relative-name (car file) (vc-arch-root (car files)))))
+  (let ((summary (file-relative-name (car files) (vc-arch-root (car files)))))
     ;; Extract a summary from the comment.
     (when (or (string-match "\\`Summary:[ \t]*\\(.*[^ \t\n]\\)\\([ \t]*\n\\)*" comment)
 	      (string-match "\\`[ \t]*\\(.*[^ \t\n]\\)[ \t]*\\(\n?\\'\\|\n\\([ \t]*\n\\)+\\)" comment))

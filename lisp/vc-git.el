@@ -143,6 +143,7 @@
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
+  (call-process "git" nil nil nil "add" "--refresh" "--" (file-relative-name file))
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
     (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0" diff))
         'edited
@@ -189,24 +190,7 @@
   'implicit)
 
 (defun vc-git-workfile-unchanged-p (file)
-  ;; The reason this does not use the result of vc-git-state is that
-  ;; git-diff-index (used by vc-git-state) doesn't refresh the cached
-  ;; stat info, so if the file has been modified it will always show
-  ;; up as modified in vc-git-state, even if the change has been
-  ;; undone, until git-update-index --refresh is run.
-
-  ;; OTOH the vc-git-workfile-unchanged-p implementation checks the
-  ;; actual content, so it will detect the case of a file reverted
-  ;; back to its original state.
-
-  ;; The ideal implementation would be to refresh the stat cache and
-  ;; then call vc-git-state, but at the moment there's no git command
-  ;; to refresh a single file, so this will have to be added first.
-  (let ((sha1 (vc-git--run-command-string file "hash-object" "--"))
-        (head (vc-git--run-command-string file "ls-tree" "-z" "HEAD" "--")))
-    (and head
-         (string-match "[0-7]\\{6\\} blob \\([0-9a-f]\\{40\\}\\)\t[^\0]+\0" head)
-         (string= (car (split-string sha1 "\n")) (match-string 1 head)))))
+  (eq 'up-to-date (vc-git-state file)))
 
 (defun vc-git-mode-line-string (file)
   "Return string for placement into the modeline for FILE."
@@ -232,7 +216,7 @@
 
 (defun vc-git-create-repo ()
   "Create a new Git repository."
-  (vc-git-command "init" nil 0 nil))
+  (vc-git-command nil 0 nil "init"))
 
 (defun vc-git-register (files &optional rev comment)
   "Register FILE into the git version-control system."
@@ -318,6 +302,14 @@
 	   ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
 	    (1 'change-log-name)
 	    (2 'change-log-email))
+	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	    (1 'change-log-name))
+	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	    (1 'change-log-name)
+	    (2 'change-log-email))
+	   ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
+	    (1 'change-log-acknowledgement)
+	    (2 'change-log-acknowledgement))
 	   ("^Date:   \\(.+\\)" (1 'change-log-date))
 	   ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 

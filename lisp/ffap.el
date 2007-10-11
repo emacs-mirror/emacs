@@ -482,7 +482,7 @@ Returned values:
   "In remote FULLNAME, replace path with NAME.  May return nil."
   ;; Use ange-ftp or efs if loaded, but do not load them otherwise.
   (let (found)
-    (mapcar
+    (mapc
      (function (lambda (sym) (and (fboundp sym) (setq found sym))))
      '(
        efs-replace-path-component

@@ -207,11 +207,6 @@ following in your `.emacs' file:
 
 ;;; No user-serviceable parts beyond this point.
 
-;; Is it XEmacs?
-(defconst bookmark-xemacsp
-  (string-match "\\(Lucid\\|Xemacs\\)" emacs-version))
-
-
 ;; Added  for lucid emacs  compatibility, db
 (or (fboundp 'defalias)  (fset 'defalias 'fset))
 
@@ -495,7 +490,7 @@ Optional fourth arg INFO-NODE means this bookmark is at info node
 INFO-NODE, so record this fact in the bookmark's entry."
   (bookmark-maybe-load-default-file)
   (let ((stripped-name (copy-sequence name)))
-    (or bookmark-xemacsp
+    (or (featurep 'xemacs)
         ;; XEmacs's `set-text-properties' doesn't work on
         ;; free-standing strings, apparently.
         (set-text-properties 0 (length stripped-name) nil stripped-name))
@@ -1590,7 +1585,7 @@ deletion, or > if it is flagged for displaying."
     (insert "% Bookmark\n- --------\n")
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
-    (mapcar
+    (mapc
      (lambda (full-record)
        ;; if a bookmark has an annotation, prepend a "*"
        ;; in the list of bookmarks.
@@ -1807,7 +1802,7 @@ if an annotation exists."
   (let ((old-buf (current-buffer)))
     (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
     (delete-region (point-min) (point-max))
-    (mapcar
+    (mapc
      (lambda (full-record)
        (let* ((name (bookmark-name-from-full-record full-record))
               (ann  (bookmark-get-annotation name)))

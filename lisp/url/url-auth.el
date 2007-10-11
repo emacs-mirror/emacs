@@ -317,5 +317,5 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 
 (provide 'url-auth)
 
-;;; arch-tag: 04058625-616d-44e4-9dbf-4b46b00b2a91
+;; arch-tag: 04058625-616d-44e4-9dbf-4b46b00b2a91
 ;;; url-auth.el ends here

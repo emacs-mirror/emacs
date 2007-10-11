@@ -994,7 +994,7 @@ supported at a time.
 		     'speedbar-buffer
 		     "Speedbar"
 		     #'speedbar-frame-mode
-		     (if dframe-xemacsp
+		     (if (featurep 'xemacs)
 			 (append speedbar-frame-plist
 				 ;; This is a hack to get speedbar to iconfiy
 				 ;; with the selected frame.
@@ -1020,7 +1020,7 @@ supported at a time.
 
 (defun speedbar-frame-reposition-smartly ()
   "Reposition the speedbar frame to be next to the attached frame."
-  (cond ((and dframe-xemacsp
+  (cond ((and (featurep 'xemacs)
 	      (or (member 'left speedbar-frame-plist)
 		  (member 'top speedbar-frame-plist)))
 	 (dframe-reposition-frame
@@ -1029,7 +1029,7 @@ supported at a time.
 	  (cons (car (cdr (member 'left speedbar-frame-plist)))
 		(car (cdr (member 'top speedbar-frame-plist)))))
 	 )
-	((and (not dframe-xemacsp)
+	((and (not (featurep 'xemacs))
 	      (or (assoc 'left speedbar-frame-parameters)
 		  (assoc 'top speedbar-frame-parameters)))
 	 ;; if left/top were specified in the parameters, pass them
@@ -1164,7 +1164,7 @@ return true without a query."
 This gives visual indications of what is up.  It EXPECTS the speedbar
 frame and window to be the currently active frame and window."
   (if (and (frame-live-p (speedbar-current-frame))
-	   (or (not dframe-xemacsp)
+	   (or (not (featurep 'xemacs))
 	       (with-no-warnings
 		 (specifier-instance has-modeline-p)))
 	   speedbar-buffer)
@@ -1252,7 +1252,7 @@ and the existence of packages."
       (if speedbar-previous-menu (easy-menu-remove speedbar-previous-menu))
       (setq speedbar-previous-menu md)
       ;; Now add the new menu
-      (if (not dframe-xemacsp)
+      (if (not (featurep 'xemacs))
 	  (easy-menu-define speedbar-menu-map (current-local-map)
 			    "Speedbar menu" md)
 	(easy-menu-add md (current-local-map))
@@ -2915,7 +2915,7 @@ to add more types of version control systems."
 	     (not (or (and (featurep 'ange-ftp)
 			   (string-match
 			    (car (symbol-value
-				  (if dframe-xemacsp
+				  (if (featurep 'xemacs)
 				      'ange-ftp-directory-format
 				    'ange-ftp-name-format)))
 			    (expand-file-name default-directory)))

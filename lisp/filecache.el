@@ -280,11 +280,11 @@ be added to the cache."
 	   (dir-files (directory-files dir t regexp))
 	   )
       ;; Filter out files we don't want to see
-      (mapcar
+      (mapc
        '(lambda (file)
           (if (file-directory-p file)
               (setq dir-files (delq file dir-files))
-	    (mapcar
+	    (mapc
 	     '(lambda (regexp)
 		(if (string-match regexp file)
 		    (setq dir-files (delq file dir-files))))
@@ -386,7 +386,7 @@ in each directory, not to the directory list itself."
     (lambda(file)
       (or (file-directory-p file)
 	  (let (filtered)
-	    (mapcar
+	    (mapc
 	     (function
 	      (lambda(regexp)
 		(and (string-match regexp file)
@@ -402,7 +402,7 @@ in each directory, not to the directory list itself."
 Each entry matches the regular expression `file-cache-buffer-default-regexp'
 or the optional REGEXP argument."
   (set-buffer file-cache-buffer)
-  (mapcar
+  (mapc
    (function (lambda (elt)
 	       (goto-char (point-min))
 	       (delete-matching-lines elt)))
@@ -443,10 +443,10 @@ or the optional REGEXP argument."
   "Delete files matching REGEXP from the file cache."
   (interactive "sRegexp: ")
   (let ((delete-list))
-    (mapcar '(lambda (elt)
-	       (and (string-match regexp (car elt))
-		    (setq delete-list (cons (car elt) delete-list))))
-	    file-cache-alist)
+    (mapc '(lambda (elt)
+	     (and (string-match regexp (car elt))
+		  (setq delete-list (cons (car elt) delete-list))))
+	  file-cache-alist)
     (file-cache-delete-file-list delete-list)
     (message "Filecache: deleted %d files from file cache"
              (length delete-list))))
@@ -456,7 +456,7 @@ or the optional REGEXP argument."
   (interactive "DDelete directory from file cache: ")
   (let ((dir (expand-file-name directory))
 	(result 0))
-    (mapcar
+    (mapc
      '(lambda (entry)
 	(if (file-cache-do-delete-directory dir entry)
 	    (setq result (1+ result))))
@@ -719,7 +719,7 @@ the name is considered already unique; only the second substitution
   "Output a list of files whose names (not including directories)
 match REGEXP."
   (let ((results))
-    (mapcar
+    (mapc
      (function
       (lambda(cache-element)
 	(and (string-match regexp
@@ -768,11 +768,11 @@ match REGEXP."
     (with-current-buffer
 	(get-buffer-create buf)
       (erase-buffer)
-      (mapcar
+      (mapc
        (function
-      (lambda(item)
-	(insert (nth 1 item) (nth 0 item) "\n")))
-    file-cache-alist)
+	(lambda(item)
+	 (insert (nth 1 item) (nth 0 item) "\n")))
+       file-cache-alist)
       (pop-to-buffer buf)
     )))
 

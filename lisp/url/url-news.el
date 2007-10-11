@@ -102,8 +102,8 @@
   (goto-char (point-min))
   (gnus-group-read-ephemeral-group newsgroup
 				   (list 'nntp host
-					 'nntp-open-connection-function
-					 nntp-open-connection-function)
+					 (list 'nntp-open-connection-function
+					       nntp-open-connection-function))
 				   nil
 				   (cons (current-buffer) 'browse)))
 

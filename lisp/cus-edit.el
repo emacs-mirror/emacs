@@ -1550,7 +1550,8 @@ possibly because you started Emacs with `-q'.")
     ;; Insert custom command buttons if the toolbar is not in use.
 
     (widget-insert "\n")
-    (when (not (and tool-bar-mode (display-graphic-p)))
+    ;; tool-bar is not dumped in builds without x.
+    (when (not (and (bound-and-true-p tool-bar-mode) (display-graphic-p)))
       (if custom-buffer-verbose-help
 	  (widget-insert "\n
  Operate on all settings in this buffer that are not marked HIDDEN:\n"))
@@ -3010,7 +3011,7 @@ Also change :reverse-video to :inverse-video."
 		    (cons value (cons from (- (point) from))))))))
 
 (defun custom-face-edit-activate (widget)
-  "Make face widget WIDGET inactive for user modifications."
+  "Make face widget WIDGET active for user modifications."
   (let ((inactive (widget-get widget :inactive))
 	(inhibit-read-only t)
 	(inhibit-modification-hooks t))

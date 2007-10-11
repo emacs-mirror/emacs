@@ -257,8 +257,7 @@
 (defvar log-view-font-lock-keywords)
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
-  (require 'add-log) ;; we need the faces add-log
-  ;; Don't have file markers, so use impossible regexp.
+  (require 'add-log) ;; we need the add-log faces
   (set (make-local-variable 'log-view-file-re) "^File:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
        "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
@@ -442,6 +441,71 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
     (with-temp-buffer (vc-hg-command t 0 file "revert"))))
+
+;;; Hg specific functionality.
+
+;;; XXX This functionality is experimental/work in progress. It might
+;;; change without notice.
+(defvar vc-hg-extra-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [incoming] '(menu-item "Show incoming" vc-hg-incoming))
+    (define-key map [outgoing] '(menu-item "Show outgoing" vc-hg-outgoing))
+    map))
+
+(defun vc-hg-extra-menu () vc-hg-extra-menu-map)
+
+(define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing")
+
+(define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
+
+;; XXX this adds another top level menu, instead figure out how to
+;; replace the Log-View menu.
+(easy-menu-define log-view-mode-menu vc-hg-outgoing-mode-map
+  "Hg-outgoing Display Menu"
+  `("Hg-outgoing"
+    ["Push selected"  vc-hg-push]))
+
+(easy-menu-define log-view-mode-menu vc-hg-incoming-mode-map
+  "Hg-incoming Display Menu"
+  `("Hg-incoming"
+    ["Pull selected"  vc-hg-pull]))
+
+(defun vc-hg-outgoing ()
+  (interactive)
+  (let ((bname "*Hg outgoing*"))
+    (vc-hg-command bname 0 nil "outgoing" "-n")
+    (pop-to-buffer bname)
+    (vc-hg-outgoing-mode)))
+
+(defun vc-hg-incoming ()
+  (interactive)
+  (let ((bname "*Hg incoming*"))
+    (vc-hg-command bname 0 nil "incoming" "-n")
+    (pop-to-buffer bname)
+    (vc-hg-incoming-mode)))
+
+;; XXX maybe also add key bindings for these functions.
+(defun vc-hg-push ()
+  (interactive)
+  (let ((marked-list (log-view-get-marked)))
+    (if marked-list
+	(vc-hg-command 
+	 nil 0 nil
+	 (cons "push"
+	       (apply 'nconc
+		      (mapcar (lambda (arg) (list "-r" arg)) marked-list))))
+	 (error "No log entries selected for push"))))
+
+(defun vc-hg-pull ()
+  (interactive)
+  (let ((marked-list (log-view-get-marked)))
+    (if marked-list
+	(vc-hg-command 
+	 nil 0 nil
+	 (cons "pull"
+	       (apply 'nconc
+		      (mapcar (lambda (arg) (list "-r" arg)) marked-list))))
+      (error "No log entries selected for pull"))))
 
 ;;; Internal functions
 

@@ -323,7 +323,7 @@ Optional DATA-P non-nil means SOURCE is a string containing image data."
 		 (or (image-type-from-file-header source)
 		     (image-type-from-file-name source))))
     (or type (error "Cannot determine image type")))
-  (or (memq type image-types)
+  (or (memq type (and (boundp 'image-types) image-types))
       (error "Invalid image type `%s'" type))
   type)
 
@@ -343,10 +343,12 @@ This function is intended to be used from `magic-fallback-mode-alist'.
 
 The buffer is considered to contain an auto-detectable image if
 its beginning matches an image type in `image-type-header-regexps',
-and that image type is present in `image-type-auto-detectable'."
+and that image type is present in `image-type-auto-detectable' with a
+non-nil value.  If that value is non-nil, but not t, then the image type
+must be available."
   (let* ((type (image-type-from-buffer))
 	 (auto (and type (cdr (assq type image-type-auto-detectable)))))
-    (and type
+    (and auto
 	 (or (eq auto t) (image-type-available-p type)))))
 
 

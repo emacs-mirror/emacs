@@ -1,0 +1,391 @@
+#### Makefile for documentation other than the Emacs manual.
+
+# Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+#   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to
+# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
+
+
+# Where to find the source code.  $(srcdir) will be the man-aux
+# subdirectory of the source tree.  This is
+# set by the configure script's `--srcdir' option.
+srcdir=@srcdir@
+top_srcdir=@top_srcdir@
+
+# Tell make where to find source files; this is needed for the makefiles.
+VPATH=@srcdir@
+
+## Where the output files go.
+## Note that the setfilename command in the .texi files assumes this.
+infodir=../../info
+
+# The makeinfo program is part of the Texinfo distribution.
+# Use --force so that it generates output even if there are errors.
+MAKEINFO = makeinfo --force
+
+INFO_TARGETS = \
+	$(infodir)/ada-mode \
+	$(infodir)/autotype \
+	$(infodir)/calc \
+	$(infodir)/ccmode \
+	$(infodir)/cl \
+	$(infodir)/dired-x \
+	$(infodir)/ebrowse \
+	$(infodir)/ediff \
+	$(infodir)/emacs-mime \
+	$(infodir)/erc \
+	$(infodir)/eshell \
+	$(infodir)/eudc \
+	$(infodir)/efaq \
+	$(infodir)/flymake \
+	$(infodir)/forms \
+	$(infodir)/gnus \
+	$(infodir)/idlwave \
+	$(infodir)/info \
+	$(infodir)/message \
+	$(infodir)/mh-e \
+	$(infodir)/newsticker \
+	$(infodir)/org \
+	$(infodir)/pcl-cvs \
+	$(infodir)/pgg \
+	$(infodir)/rcirc \
+	$(infodir)/reftex \
+	$(infodir)/sc \
+	$(infodir)/ses \
+	$(infodir)/sieve \
+	$(infodir)/smtpmail \
+	$(infodir)/speedbar \
+	$(infodir)/tramp \
+	$(infodir)/url \
+	$(infodir)/vip \
+	$(infodir)/viper \
+	$(infodir)/widget \
+	$(infodir)/woman
+
+DVI_TARGETS = \
+	ada-mode.dvi \
+	autotype.dvi \
+	calc.dvi \
+	cc-mode.dvi \
+	cl.dvi \
+	dired-x.dvi \
+	ebrowse.dvi \
+	ediff.dvi \
+	emacs-mime.dvi \
+	erc.dvi \
+	eshell.dvi \
+	eudc.dvi \
+	faq.dvi \
+	flymake.dvi \
+	forms.dvi \
+	gnus.dvi \
+	idlwave.dvi \
+	info.dvi \
+	message.dvi \
+	mh-e.dvi \
+	newsticker.dvi \
+	org.dvi \
+	pcl-cvs.dvi \
+	pgg.dvi \
+	rcirc.dvi \
+	reftex.dvi \
+	sc.dvi \
+	ses.dvi \
+	sieve.dvi \
+	smtpmail.dvi \
+	speedbar.dvi \
+	tramp.dvi \
+	url.dvi \
+	vip.dvi \
+	viper.dvi \
+	widget.dvi \
+	woman.dvi
+
+
+TEXI2DVI = texi2dvi
+
+# The following rule does not work with all versions of `make'.
+.SUFFIXES: .texi .dvi
+.texi.dvi:
+	$(TEXI2DVI) $<
+
+ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
+
+
+info: $(infodir) $(INFO_TARGETS)
+
+$(infodir):
+	mkdir $@
+
+dvi: $(DVI_TARGETS)
+
+
+# Note that all the Info targets build the Info files
+# in srcdir.  There is no provision for Info files
+# to exist in the build directory.
+# In a distribution of Emacs, the Info files should be up to date.
+
+## "short" target names for convenience, to just rebuild one manual.
+ada-mode : $(infodir)/ada-mode
+$(infodir)/ada-mode: ada-mode.texi
+	cd $(srcdir); $(MAKEINFO) ada-mode.texi
+ada-mode.dvi: ada-mode.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ada-mode.texi
+
+autotype : $(infodir)/autotype
+$(infodir)/autotype: autotype.texi
+	cd $(srcdir); $(MAKEINFO) autotype.texi
+autotype.dvi: autotype.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/autotype.texi
+
+calc : $(infodir)/calc
+$(infodir)/calc: calc.texi
+	cd $(srcdir); $(MAKEINFO) calc.texi
+calc.dvi: calc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/calc.texi
+
+ccmode : $(infodir)/ccmode
+$(infodir)/ccmode: cc-mode.texi
+	cd $(srcdir); $(MAKEINFO) cc-mode.texi
+cc-mode.dvi: cc-mode.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/cc-mode.texi
+
+cl : $(infodir)/cl
+$(infodir)/cl: cl.texi
+	cd $(srcdir); $(MAKEINFO) cl.texi
+cl.dvi: cl.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/cl.texi
+
+dired-x : $(infodir)/dired-x
+$(infodir)/dired-x: dired-x.texi
+	cd $(srcdir); $(MAKEINFO) dired-x.texi
+dired-x.dvi: dired-x.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/dired-x.texi
+
+ebrowse : $(infodir)/ebrowse
+$(infodir)/ebrowse: ebrowse.texi
+	cd $(srcdir); $(MAKEINFO) ebrowse.texi
+ebrowse.dvi: ebrowse.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ebrowse.texi
+
+ediff : $(infodir)/ediff
+$(infodir)/ediff: ediff.texi
+	cd $(srcdir); $(MAKEINFO) ediff.texi
+ediff.dvi: ediff.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
+
+emacs-mime : $(infodir)/emacs-mime
+$(infodir)/emacs-mime: emacs-mime.texi
+	cd $(srcdir); $(MAKEINFO) --enable-encoding emacs-mime.texi
+emacs-mime.dvi: emacs-mime.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
+
+erc : $(infodir)/erc
+$(infodir)/erc: erc.texi
+	cd $(srcdir); $(MAKEINFO) erc.texi
+erc.dvi: erc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/erc.texi
+
+eshell : $(infodir)/eshell
+$(infodir)/eshell: eshell.texi
+	cd $(srcdir); $(MAKEINFO) eshell.texi
+eshell.dvi: eshell.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/eshell.texi
+
+eudc : $(infodir)/eudc
+$(infodir)/eudc: eudc.texi
+	cd $(srcdir); $(MAKEINFO) eudc.texi
+eudc.dvi: eudc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/eudc.texi
+
+efaq : $(infodir)/efaq
+$(infodir)/efaq: faq.texi
+	cd $(srcdir); $(MAKEINFO) faq.texi
+faq.dvi: faq.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi
+
+flymake : $(infodir)/flymake
+$(infodir)/flymake: flymake.texi
+	cd $(srcdir); $(MAKEINFO) flymake.texi
+flymake.dvi: flymake.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/flymake.texi
+
+forms : $(infodir)/forms
+$(infodir)/forms: forms.texi
+	cd $(srcdir); $(MAKEINFO) forms.texi
+forms.dvi: forms.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/forms.texi
+
+# gnus/message/emacs-mime/sieve/pgg are part of Gnus:
+gnus : $(infodir)/gnus
+$(infodir)/gnus: gnus.texi gnus-faq.texi
+	cd $(srcdir); $(MAKEINFO) gnus.texi
+gnus.dvi: gnus.texi gnus-faq.texi
+	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi
+	$(ENVADD) $(TEXI2DVI) gnustmp.texi
+	cp gnustmp.dvi $*.dvi
+	rm gnustmp.*
+
+# This is produced with --no-split to avoid making files whose
+# names clash on DOS 8+3 filesystems
+idlwave : $(infodir)/idlwave
+$(infodir)/idlwave: idlwave.texi
+	cd $(srcdir); $(MAKEINFO) --no-split idlwave.texi
+idlwave.dvi: idlwave.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/idlwave.texi
+
+# The following target uses an explicit -o switch to work around
+# the @setfilename directive in info.texi, which is required for
+# the Texinfo distribution.
+###info : $(infodir)/info   # circular!
+$(infodir)/info: info.texi
+	cd $(srcdir); $(MAKEINFO) --no-split info.texi -o $@
+info.dvi: info.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/info.texi
+
+message : $(infodir)/message
+$(infodir)/message: message.texi
+	cd $(srcdir); $(MAKEINFO) message.texi
+message.dvi: message.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/message.texi
+
+mh-e : $(infodir)/mh-e
+$(infodir)/mh-e: mh-e.texi
+	cd $(srcdir); $(MAKEINFO) mh-e.texi
+mh-e.dvi: mh-e.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/mh-e.texi
+
+newsticker : $(infodir)/newsticker
+$(infodir)/newsticker: newsticker.texi
+	cd $(srcdir); $(MAKEINFO) newsticker.texi
+newsticker.dvi: newsticker.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/newsticker.texi
+
+org : $(infodir)/org
+$(infodir)/org: org.texi
+	cd $(srcdir); $(MAKEINFO) org.texi
+org.dvi: org.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/org.texi
+
+pcl-cvs : $(infodir)/pcl-cvs
+$(infodir)/pcl-cvs: pcl-cvs.texi
+	cd $(srcdir); $(MAKEINFO) pcl-cvs.texi
+pcl-cvs.dvi: pcl-cvs.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/pcl-cvs.texi
+
+pgg : $(infodir)/pgg
+$(infodir)/pgg: pgg.texi
+	cd $(srcdir); $(MAKEINFO) pgg.texi
+pgg.dvi: pgg.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/pgg.texi
+
+rcirc : $(infodir)/rcirc
+$(infodir)/rcirc: rcirc.texi
+	cd $(srcdir); $(MAKEINFO) rcirc.texi
+rcirc.dvi: rcirc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/rcirc.texi
+
+reftex : $(infodir)/reftex
+$(infodir)/reftex: reftex.texi
+	cd $(srcdir); $(MAKEINFO) reftex.texi
+reftex.dvi: reftex.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/reftex.texi
+
+sc : $(infodir)/sc
+$(infodir)/sc: sc.texi
+	cd $(srcdir); $(MAKEINFO) sc.texi
+sc.dvi: sc.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/sc.texi
+
+ses : $(infodir)/ses
+$(infodir)/ses: ses.texi
+	cd $(srcdir); $(MAKEINFO) ses.texi
+ses.dvi: ses.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ses.texi
+
+sieve : $(infodir)/sieve
+$(infodir)/sieve: sieve.texi
+	cd $(srcdir); $(MAKEINFO) sieve.texi
+sieve.dvi: sieve.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
+
+smtpmail : $(infodir)/smtpmail
+$(infodir)/smtpmail: smtpmail.texi
+	cd $(srcdir); $(MAKEINFO) smtpmail.texi
+smtpmail.dvi: smtpmail.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/smtpmail.texi
+
+speedbar : $(infodir)/speedbar
+$(infodir)/speedbar: speedbar.texi
+	cd $(srcdir); $(MAKEINFO) speedbar.texi
+speedbar.dvi: speedbar.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/speedbar.texi
+
+tramp : $(infodir)/tramp
+$(infodir)/tramp: tramp.texi trampver.texi
+	cd $(srcdir); $(MAKEINFO) -D emacs tramp.texi
+tramp.dvi: tramp.texi trampver.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/tramp.texi
+
+url : $(infodir)/url
+$(infodir)/url: url.texi
+	cd $(srcdir); $(MAKEINFO) url.texi
+url.dvi: url.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/url.texi
+
+vip : $(infodir)/vip
+$(infodir)/vip: vip.texi
+	cd $(srcdir); $(MAKEINFO) vip.texi
+vip.dvi: vip.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/vip.texi
+
+viper : $(infodir)/viper
+$(infodir)/viper: viper.texi
+	cd $(srcdir); $(MAKEINFO) viper.texi
+viper.dvi: viper.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/viper.texi
+
+widget : $(infodir)/widget
+$(infodir)/widget: widget.texi
+	cd $(srcdir); $(MAKEINFO) widget.texi
+widget.dvi: widget.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/widget.texi
+
+woman : $(infodir)/woman
+$(infodir)/woman: woman.texi
+	cd $(srcdir); $(MAKEINFO) woman.texi
+woman.dvi: woman.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/woman.texi
+
+
+mostlyclean:
+	rm -f *.log *.cp *.fn *.ky *.op *.ops *.pg *.vr core *.tp \
+	*.tps *.core gnustmp.*
+	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
+
+clean: mostlyclean
+	rm -f *.dvi
+
+distclean: clean
+#	rm -f Makefile
+
+maintainer-clean: distclean
+	for file in $(INFO_TARGETS); do rm -f $${file}*; done
+
+
+### Makefile ends here
