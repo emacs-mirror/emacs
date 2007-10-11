@@ -1213,11 +1213,10 @@ description of what was changed in that version.
   The Emacs version control interface is called VC.  Its commands work
 with different version control systems---currently, it supports CVS,
 GNU Arch, RCS, Meta-CVS, Subversion, and SCCS.  Of these, the GNU
-project distributes CVS, GNU Arch, and RCS; we recommend that you use
-either CVS or GNU Arch for your projects, and RCS for individual
-files.  We also have free software to replace SCCS, known as CSSC; if
-you are using SCCS and don't want to make the incompatible change to
-RCS or CVS, you can switch to CSSC.
+project distributes CVS, GNU Arch, and RCS.  We also have free
+software to replace SCCS, known as CSSC; if you are using SCCS and
+don't want to make the incompatible change to RCS or CVS, you can
+switch to CSSC.
 
   VC is enabled by default in Emacs.  To disable it, set the
 customizable variable @code{vc-handled-backends} to @code{nil}
@@ -1250,7 +1249,7 @@ customizable variable @code{vc-handled-backends} to @code{nil}
   VC allows you to use a version control system from within Emacs,
 integrating the version control operations smoothly with editing.
 Though VC cannot completely bridge the gaps between version-control
-systems with widely differing capabilities,  it does provide
+systems with widely differing capabilities, it does provide
 a uniform interface to many version control operations. Regardless of
 which version control system is in use, you will be able to do basic
 operations in much the same way.
@@ -1428,7 +1427,7 @@ the file, making the work file read-only again.  This allows other users
 to lock the file to make further changes.
 
   By contrast, a merging system lets each user check out and modify a
-work file at any time.  When you check in a a file, the system will
+work file at any time.  When you check in a file, the system will
 attempt to merge your changes with any others checked into the
 repository since you checked out the file.
 
@@ -1444,11 +1443,11 @@ have to be resolved by human judgment and communication.
 told to operate in a merging style.  CVS and Subversion are
 merge-based by default but can be told to operate in a locking mode.
 Most later version-control systems, such as GNU Arch, git, and
-Mercurial, have been fundamentally merging-based rather than
-locking-based.  This is because experience has shown that the
-merging-based approach is generally superior to the locking one, both
-in convenience to developers and in minimizing the number and severity
-of conflicts that actually occur.
+Mercurial, have been based exclusively on merging rather than locking.
+This is because experience has shown that the merging-based approach
+is generally superior to the locking one, both in convenience to
+developers and in minimizing the number and severity of conflicts that
+actually occur.
 
    While it is rather unlikely that anyone will ever again build a
 fundamentally locking-based rather than merging-based version-control
@@ -1462,12 +1461,12 @@ between them as much as possible.
 @cindex files versus changesets.
   On SCCS, RCS, CVS, and other early version-control systems, checkins
 and other operations are @dfn{file-based}; each file has its own
-@dfn{master file} with its own comment- and revision history separate
+@dfn{master file} with its own comment and revision history separate
 from that of all other files in the system.  Later systems, beginning
-with Subversion, are @dfn{changeset-based}; a checkin may include
-changes to several files and that change set is treated as a unit by the
-system.  Any comment associated with the change doesn't belong to any
-one file, but is attached to the changeset itself.
+with Subversion, became @dfn{changeset-based}; a checkin under these
+may include changes to several files and that change set is treated as
+a unit by the system.  Any comment associated with the change belongs
+to no single file, but is attached to the changeset itself.
 
   Changeset-based version control is in general both more flexible and
 more powerful than file-based version control; usually, when a change to
@@ -1479,7 +1478,7 @@ writing in 2007.
 
   In fact, older versions of VC mode supported only file-based systems,
 leading to some unhappy results when it was used to drive
-changeset-based ones--the Subversion support, for example, used to break
+changeset-based ones---the Subversion support, for example, used to break
 up changesets into multiple per-file commits.  This has been fixed, but
 it has left a legacy in VC-mode's terminology.  The terms ``checkin'' 
 and ``checkout'' are associated with file-based and locking-based
@@ -1620,15 +1619,15 @@ are visiting a VC Dired buffer, and some files in it are marked,
 your fileset is the marked files only.
 
    All files in a fileset must be under the same version-control system.
-If they are not, VC mode will throw an error when you attempt to execute 
+If they are not, VC mode will fail when you attempt to execute 
 a command on the fileset.
 
-   Filesets, are, essentially, a way to pass multiple file arguments as
-a group to underlying version-control commands.  For example, on
-Subversion a checkin with more than one file in its fileset will become a
-joint commit, as though you had typed @command{svn
-commit} with those file arguments at the shell command line in the
-directory of the selected buffer.
+   In VC, filesets, are, essentially, a way to pass multiple file
+arguments as a group to underlying version-control commands.  For
+example, on Subversion a checkin with more than one file in its
+fileset will become a joint commit, as though you had typed
+@command{svn commit} with those file arguments at the shell command
+line in the directory of the selected buffer.
 
    If you are used to earlier versions of VC, the change in behavior
 you will notice is in VC-Dired mode. Other than @kbd{C-x v v}, most
