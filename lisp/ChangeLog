@@ -1,6 +1,11 @@
+2007-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--mark-unmark): New function.
+	(bs-mark-current, bs-unmark-current): Use it.
+
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-diff): 
+	* vc.el (vc-diff):
 	(vc-diff-internal): Bug fixes by Juanma Barranquero.  Temporarily
 	disable the check for his edge case, it's calling some brittle
 	code.
@@ -13,7 +18,7 @@
 
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el: Address an edge case in vc-diff pointed out by  
+	* vc.el: Address an edge case in vc-diff pointed out by
 	Juanma Barranquero.  This is an experimental fix and may change.
 
 	* vc-hooks.el (vc-registered): Robustify this function a bit
