@@ -1,3 +1,9 @@
+2007-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-stop-intercept-process-output):
+	Use `follow-call-process-filter' rather than `process-filter'.
+	Simplify.
+
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-hooks.el (vc-registered): Robustify this function a bit
@@ -12,8 +18,8 @@
 	* ps-print.el: Fix the usage of :foreground and :background face
 	attributes.  Reported by Nikolaj Schumacher <n_schumacher@web.de>.
 	(ps-print-version): New version 6.7.6.
-	(ps-face-attributes, ps-face-attribute-list, ps-face-background): Fix
-	code.
+	(ps-face-attributes, ps-face-attribute-list, ps-face-background):
+	Fix code.
 	(ps-face-foreground-color-p, ps-face-background-color-p)
 	(ps-face-color-p): New inline funs.
 
