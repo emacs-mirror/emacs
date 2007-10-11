@@ -1985,24 +1985,41 @@ returns t if the buffer had changes, nil otherwise."
       (error "Not a valid revision range."))
   (vc-diff-internal backend t files rev1 rev2 (interactive-p)))
 
+(defun vc-contains-version-controlled-file (dir)
+  "Return t if DIR contains a version-controlled file, nil otherwise."
+  (catch 'found
+    (mapc (lambda (f) (and (not (file-directory-p f)) (vc-backend f) (throw 'found 't))) (directory-files dir))
+    nil))
+
 ;;;###autoload
 (defun vc-diff (historic)
   "Display diffs between file revisions.
-Normally this compares the current file and buffer with the most
-recent checked in revision of that file.  This uses no arguments.  With
-a prefix argument HISTORIC, it reads the file name to use and two
-revision designators specifying which revisions to compare."
+Normally this compares the currently selected fileset with their
+working revisions. With a prefix argument HISTORIC, it reads two revision
+designators specifying which revisions to compare.
+
+If no current fileset is available (that is, we are not in
+VC-Dired mode and the visited file of the current buffer is not
+under version control) behave specially; if there are
+version-controlled files in the current directory, treat all
+version-controlled files recursively beneath the current
+directory as the selected fileset.
+"
+
   (interactive "P")
-  (if historic
-      (call-interactively 'vc-history-diff)
-    (let* ((files (vc-deduce-fileset t))
-	   (first (car files))
-	   (backend 
-	    (cond ((file-directory-p first)
-		   (vc-responsible-backend first))
-		  (t
-		   (vc-backend first)))))
-      (vc-diff-internal backend t files nil nil (interactive-p)))))
+  (cond ((not (vc-contains-version-controlled-file default-directory))
+	 (error "No version-controlled files directly beneath default directory"))
+	(historic
+	 (call-interactively 'vc-history-diff))
+	(t
+	 (let* ((files (vc-deduce-fileset t))
+		(first (car files))
+		(backend 
+		 (cond ((file-directory-p first)
+			(vc-responsible-backend first))
+		       (t
+			(vc-backend first)))))
+	   (vc-diff-internal backend t files nil nil (interactive-p))))))
 
 ;;;###autoload
 (defun vc-revision-other-window (rev)
