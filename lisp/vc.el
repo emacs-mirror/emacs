@@ -1480,9 +1480,9 @@ merge in the changes into your working copy."
      ((stringp state)
       (let ((revision 
 	     (if verbose 
-		 (read-string "Version to steal: ")
-	       (vc-workfile-version file))))
-	(mapc (lambda (file) (vc-steal-lock file version state) files))))
+		 (read-string "Revision to steal: ")
+	       (vc-working-revision file))))
+	(mapc (lambda (file) (vc-steal-lock file revision state) files))))
 	;; needs-patch
      ((eq state 'needs-patch)
       (dolist (file files)
