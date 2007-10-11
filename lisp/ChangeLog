@@ -6,6 +6,9 @@
 
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
+	* vc.el: Address an edge case in vc-diff pointed out by  
+	Juanma Barranquero.  This is an experimental fix and may change.
+
 	* vc-hooks.el (vc-registered): Robustify this function a bit
 	against filenames with no directory component.
 
