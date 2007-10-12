@@ -18,6 +18,7 @@ are done, and the subroutines that allow Lisp programs to do them.
 * Command Overview::    How the command loop reads commands.
 * Defining Commands::   Specifying how a function should read arguments.
 * Interactive Call::    Calling a command, so that it will read arguments.
+* Distinguish Interactive::     Making a command distinguish interactive calls.
 * Command Loop Info::   Variables set by the command loop for you to examine.
 * Adjusting Point::     Adjustment of point after a command.
 * Input Events::	What input looks like when you read it.
@@ -635,42 +636,74 @@ part of the prompt.
 @end example
 @end deffn
 
-@defun interactive-p
-This function returns @code{t} if the containing function (the one
-whose code includes the call to @code{interactive-p}) was called in
-direct response to user input.  This means that it was called with the
-function @code{call-interactively}, and that a keyboard macro is
-not running, and that Emacs is not running in batch mode.
+@node Distinguish Interactive
+@section Distinguish Interactive Calls
+
+  Sometimes a command should display additional visual feedback (such
+as an informative message in the echo area) for interactive calls
+only.  There are three ways to do this.  The recommended way to test
+whether the function was called using @code{call-interactively} is to
+give it an optional argument @code{print-message} and use the
+@code{interactive} spec to make it non-@code{nil} in interactive
+calls.  Here's an example:
+
+@example
+(defun foo (&optional print-message)
+  (interactive "p")
+  (when print-message
+    (message "foo")))
+@end example
+
+@noindent
+We use @code{"p"} because the numeric prefix argument is never
+@code{nil}.  Defined in this way, the function does display the
+message when called from a keyboard macro.
+
+  The above method with the additional argument is usually best,
+because it allows callers to say ``treat this call as interactive.''
+But you can also do the job in a simpler way by testing
+@code{called-interactively-p}.
+
+@defun called-interactively-p
+This function returns @code{t} when the calling function was called
+using @code{call-interactively}.
 
 If the containing function was called by Lisp evaluation (or with
 @code{apply} or @code{funcall}), then it was not called interactively.
 @end defun
 
-  The most common use of @code{interactive-p} is for deciding whether
-to give the user additional visual feedback (such as by printing an
-informative message).  For example:
+   Here's an example of using @code{called-interactively-p}:
 
 @example
 @group
-;; @r{Here's the usual way to use @code{interactive-p}.}
 (defun foo ()
   (interactive)
-  (when (interactive-p)
-    (message "foo")))
+  (when (called-interactively-p)
+    (message "foo"))
+  'haha)
      @result{} foo
-@end group
-
-@group
-;; @r{This function is just to illustrate the behavior.}
-(defun bar ()
-  (interactive)
-  (setq foobar (list (foo) (interactive-p))))
-     @result{} bar
 @end group
 
 @group
 ;; @r{Type @kbd{M-x foo}.}
      @print{} foo
+@end group
+
+@group
+(foo)
+     @result{} haha
+@end group
+@end example
+
+  Here is another example that contrasts direct and indirect
+calls to @code{called-interactively-p}.
+
+@example
+@group
+(defun bar ()
+  (interactive)
+  (setq foobar (list (foo) (called-interactively-p))))
+     @result{} bar
 @end group
 
 @group
@@ -684,31 +717,16 @@ foobar
 @end group
 @end example
 
-  If you want to test @emph{only} whether the function was called
-using @code{call-interactively}, add an optional argument
-@code{print-message} which should be non-@code{nil} in an interactive
-call, and use the @code{interactive} spec to make sure it is
-non-@code{nil}.  Here's an example:
+  If you want to treat commands run in keyboard macros just like calls
+from Lisp programs, test @code{interactive-p} instead of
+@code{called-interactively-p}.
 
-@example
-(defun foo (&optional print-message)
-  (interactive "p")
-  (when print-message
-    (message "foo")))
-@end example
-
-@noindent
-Defined in this way, the function does display the message when called
-from a keyboard macro.  We use @code{"p"} because the numeric prefix
-argument is never @code{nil}.
-
-@defun called-interactively-p
-This function returns @code{t} when the calling function was called
-using @code{call-interactively}.
-
-When possible, instead of using this function, you should use the
-method in the example above; that method makes it possible for a
-caller to ``pretend'' that the function was called interactively.
+@defun interactive-p
+This function returns @code{t} if the containing function (the one
+whose code includes the call to @code{interactive-p}) was called in
+direct response to user input.  This means that it was called with the
+function @code{call-interactively}, and that a keyboard macro is
+not running, and that Emacs is not running in batch mode.
 @end defun
 
 @node Command Loop Info
