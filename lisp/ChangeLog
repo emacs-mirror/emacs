@@ -1,6 +1,3 @@
-2007-10-12  Glenn Morris  <rgm@gnu.org>
-
-
 2007-10-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (handle-select-window): Revert part of 2007-10-08
