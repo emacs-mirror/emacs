@@ -100,6 +100,7 @@ Lisp_Object Qouter_window_id;
 #endif
 Lisp_Object Qparent_id;
 Lisp_Object Qtitle, Qname;
+Lisp_Object Qexplicit_name;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
 Lisp_Object Qleft_fringe, Qright_fringe;
@@ -3006,6 +3007,7 @@ x_report_frame_params (f, alistptr)
     tem = Qnil;
   else
     XSETFASTINT (tem, FRAME_X_OUTPUT (f)->parent_desc);
+  store_in_alist (alistptr, Qexplicit_name, (f->explicit_name ? Qt : Qnil));
   store_in_alist (alistptr, Qparent_id, tem);
 }
 
@@ -3967,6 +3969,8 @@ syms_of_frame ()
   staticpro (&Qframep);
   Qframe_live_p = intern ("frame-live-p");
   staticpro (&Qframe_live_p);
+  Qexplicit_name = intern ("explicit-name");
+  staticpro (&Qexplicit_name);
   Qheight = intern ("height");
   staticpro (&Qheight);
   Qicon = intern ("icon");
