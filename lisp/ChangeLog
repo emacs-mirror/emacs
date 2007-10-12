@@ -1,3 +1,12 @@
+2007-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-startup-screen): Remove an unnecessary newline
+	and some leftover logic regarding dedicated frames.  If showing
+	concise startup screen, fit window to buffer.
+	(command-line-1): If we will be using the splash screen, use
+	find-file instead of find-file-other-window to find additional
+	files.
+
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el (xterm-function-map, xterm-alternatives-map): Use the
