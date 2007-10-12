@@ -1,5 +1,12 @@
 2007-10-12  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/byte-opt.el (top level):
+	* mail/rmail.el (rmail-list-to-menu):
+	* obsolete/hilit19.el (hilit-mode):
+	* progmodes/cc-mode.el (c-postprocess-file-styles)
+	(c-submit-bug-report):
+	* vc-mcvs.el (vc-mcvs-checkin): Use mapc rather than mapcar.
+
 	* cus-edit.el (custom-variable-menu, custom-face-menu)
 	(custom-group-menu): Check init-file-user rather than
 	user-init-file, in case cus-edit is loaded by site-run-file.
