@@ -1156,7 +1156,7 @@ filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h \
    msdos.h dosfns.h dispextern.h w32term.h macterm.h termchar.h $(config_h)
-fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhook.h $(config_h)
+fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
    font.h $(config_h)
 ftfont.o: dispextern.h frame.h character.h charset.h font.h $(config_h)
@@ -1188,7 +1188,7 @@ marker.o: marker.c buffer.h character.h $(config_h)
 md5.o: md5.c md5.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
    buffer.h commands.h character.h msdos.h $(INTERVAL_SRC) keymap.h \
-   terhooks.h $(config_h)
+   termhooks.h $(config_h)
 mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \

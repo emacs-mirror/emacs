@@ -1,3 +1,7 @@
+2007-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (fringe.o, minibuf.o): Fix dependencies.
+
 2007-10-11  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (get_char_face_and_encoding): Remove extraneous definition.
