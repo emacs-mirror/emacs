@@ -1450,7 +1450,7 @@ a face or button specification."
 
     (when concise
       (fancy-splash-insert
-       :face 'variable-pitch "\n\n"
+       :face 'variable-pitch "\n"
        :link '("Dismiss" (lambda (button)
 			   (when startup-screen-inhibit-startup-screen
 			     (customize-set-variable 'inhibit-startup-screen t)
@@ -1490,34 +1490,39 @@ a face or button specification."
   "Display fancy startup screen.
 If CONCISE is non-nil, display a concise version of the
 splash screen in another window."
-  (with-current-buffer (get-buffer-create "*GNU Emacs*")
-    (let ((inhibit-read-only t))
-      (erase-buffer)
-      (make-local-variable 'startup-screen-inhibit-startup-screen)
-      (if pure-space-overflow
-	  (insert pure-space-overflow-message))
-      (unless concise
-	(fancy-splash-head))
-      (dolist (text fancy-startup-text)
-	(apply #'fancy-splash-insert text)
-	(insert "\n"))
-      (skip-chars-backward "\n")
-      (delete-region (point) (point-max))
-      (insert "\n")
-      (fancy-startup-tail concise))
-    (use-local-map splash-screen-keymap)
-    (setq tab-width 22)
-    (set-buffer-modified-p nil)
-    (setq buffer-read-only t)
-    (if (and view-read-only (not view-mode))
-	(view-mode-enter nil 'kill-buffer))
-    (goto-char (point-min)))
-  (if (or (window-minibuffer-p)
-	  (window-dedicated-p (selected-window)))
-      (pop-to-buffer (current-buffer)))
-  (if concise
-      (display-buffer (get-buffer "*GNU Emacs*"))
-    (switch-to-buffer "*GNU Emacs*")))
+  (let ((splash-buffer (get-buffer-create "*GNU Emacs*")))
+    (with-current-buffer splash-buffer 
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(make-local-variable 'startup-screen-inhibit-startup-screen)
+	(if pure-space-overflow
+	    (insert pure-space-overflow-message))
+	(unless concise
+	  (fancy-splash-head))
+	(dolist (text fancy-startup-text)
+	  (apply #'fancy-splash-insert text)
+	  (insert "\n"))
+	(skip-chars-backward "\n")
+	(delete-region (point) (point-max))
+	(insert "\n")
+	(fancy-startup-tail concise))
+      (use-local-map splash-screen-keymap)
+      (setq tab-width 22
+	    buffer-read-only t)
+      (set-buffer-modified-p nil)
+      (if (and view-read-only (not view-mode))
+	  (view-mode-enter nil 'kill-buffer))
+      (goto-char (point-max)))
+    (if concise
+	(progn
+	  (display-buffer splash-buffer)
+	  ;; If the splash screen is in a split window, fit it.
+	  (let ((window (get-buffer-window splash-buffer t)))
+	    (or (null window)
+		(eq window (selected-window))
+		(eq window (next-window window))
+		(fit-window-to-buffer window))))
+      (switch-to-buffer splash-buffer))))
 
 (defun fancy-about-screen ()
   "Display fancy About screen."
@@ -2150,9 +2155,11 @@ A fancy display is used on graphic displays, normal otherwise."
 				  (expand-file-name
 				   (command-line-normalize-file-name orig-argi)
 				   dir)))
-			     (if (= file-count 1)
-				 (setq first-file-buffer (find-file file))
-			       (find-file-other-window file)))
+			     (cond ((= file-count 1)
+				    (setq first-file-buffer (find-file file)))
+				   (inhibit-startup-screen
+				    (find-file-other-window file))
+				   (t (find-file file))))
 			   (or (zerop line)
 			       (goto-line line))
 			   (setq line 0)
