@@ -841,7 +841,7 @@ Note that the style variables are always made local to the buffer."
     (and c-file-style
 	 (c-set-style c-file-style))
     (and c-file-offsets
-	 (mapcar
+	 (mapc
 	  (lambda (langentry)
 	    (let ((langelem (car langentry))
 		  (offset (cdr langentry)))
@@ -1430,15 +1430,15 @@ Key bindings:
 		     adaptive-fill-mode
 		     adaptive-fill-regexp)
 		   nil)))
-	(mapcar (lambda (var) (unless (boundp var)
-				(setq vars (delq var vars))))
-		'(signal-error-on-buffer-boundary
-		  filladapt-mode
-		  defun-prompt-regexp
-		  font-lock-mode
-		  font-lock-maximum-decoration
-		  parse-sexp-lookup-properties
-		  lookup-syntax-properties))
+	(mapc (lambda (var) (unless (boundp var)
+			      (setq vars (delq var vars))))
+	      '(signal-error-on-buffer-boundary
+		filladapt-mode
+		defun-prompt-regexp
+		font-lock-mode
+		font-lock-maximum-decoration
+		parse-sexp-lookup-properties
+		lookup-syntax-properties))
 	vars)
       (lambda ()
 	(run-hooks 'c-prepare-bug-report-hooks)
