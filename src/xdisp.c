@@ -19562,7 +19562,7 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
       /* Unibyte case.  We don't have to encode, but we have to make
 	 sure to use a face suitable for unibyte.  */
       STORE_XCHAR2B (char2b, 0, c);
-      face_id = FACE_FOR_CHAR (f, face, c);
+      face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
       face = FACE_FROM_ID (f, face_id);
     }
   else if (c < 128)

@@ -1,3 +1,8 @@
+2007-10-11  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (get_char_face_and_encoding): Remove extraneous definition.
+	Add extra args to FACE_FOR_CHAR.
+
 2007-09-20  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (where_is_internal_1): If key is a cons, store the copy
