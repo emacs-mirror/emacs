@@ -807,8 +807,15 @@ is given and non-nil, the unwanted frames are iconified instead."
 			;; Since we can't set a frame's minibuffer status,
 			;; we might as well omit the parameter altogether.
 			(let* ((parms (nth 1 parameters))
-			       (mini (assq 'minibuffer parms)))
-			  (if mini (setq parms (delq mini parms)))
+			       (mini (assq 'minibuffer parms))
+			       (name (assq 'name parms))
+			       (explicit-name (cdr (assq 'explicit-name parms))))
+			  (when mini (setq parms (delq mini parms)))
+			  ;; Leave name in iff it was set explicitly.
+			  ;; This should fix the behavior reported in
+			  ;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01632.html
+			  (when (and name (not explicit-name))
+			    (setq parms (delq name parms)))
 			  parms))
 		       (set-window-configuration (nth 2 parameters)))
 		   (setq frames-to-delete (cons frame frames-to-delete))))))
