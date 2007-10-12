@@ -107,6 +107,8 @@ file or directory.
 This is a convenience alias, so that one can write `(pop argv)'
 inside of --eval command line arguments in order to access
 following arguments.
+
+** The abbrev file is no longer read at startup in batch mode.
 
 * Incompatible Editing Changes in Emacs 23.1
 
