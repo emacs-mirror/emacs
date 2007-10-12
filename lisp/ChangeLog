@@ -5,7 +5,8 @@
 	concise startup screen, fit window to buffer.
 	(command-line-1): If we will be using the splash screen, use
 	find-file instead of find-file-other-window to find additional
-	files.
+	files.  Comment out unused code for coping with the old sit-for
+	behavior.
 
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
