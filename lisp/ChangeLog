@@ -1,3 +1,9 @@
+2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (xterm-function-map, xterm-alternatives-map): Use the
+	`meta' modifier consistently, rather than using sometimes meta
+	sometimes alt.
+
 2007-10-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (handle-select-window): Revert part of 2007-10-08
