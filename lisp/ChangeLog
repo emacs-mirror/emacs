@@ -1,5 +1,8 @@
 2007-10-12  Martin Rudalics  <rudalics@gmx.at>
 
+	* frame.el (set-frame-configuration): Assign name parameter only
+	if it has been set explicitly before.
+
 	* window.el (handle-select-window): Revert part of 2007-10-06
 	change setting the input focus.
 
