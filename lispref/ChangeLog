@@ -1,3 +1,11 @@
+2007-10-12  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Add Distinguish Interactive to subnode menu.
+
+	* commands.texi (Distinguish Interactive): New node,
+	broken out from Interactive Call and rewritten.
+	(Command Loop): Put Distinguish Interactive in menu.
+
 2007-10-09  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Examining Properties): Mention overlay priority.
