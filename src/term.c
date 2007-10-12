@@ -41,7 +41,6 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
-#include "lisp.h"
 #include "buffer.h"
 #include "character.h"
 #include "charset.h"

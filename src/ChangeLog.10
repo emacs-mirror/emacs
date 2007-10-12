@@ -12403,6 +12403,11 @@
 	* regex.c (re_error_msgid): Add an entry for REG_ERANGEX.
 	(regex_compile): Return REG_ERANGEX if appropriate.
 
+2004-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Ftranslate_region_internal): New function.
+	(syms_of_editfns): Defsubr it.
+
 2004-10-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.

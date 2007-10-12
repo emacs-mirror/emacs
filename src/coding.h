@@ -746,9 +746,6 @@ extern int inherit_process_coding_system;
    terminal coding system is nil.  */
 extern struct coding_system safe_terminal_coding;
 
-/* Default coding system to be used to write a file.  */
-extern struct coding_system default_buffer_file_coding;
-
 /* Default coding systems used for process I/O.  */
 extern Lisp_Object Vdefault_process_coding_system;
 

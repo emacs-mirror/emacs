@@ -2346,34 +2346,6 @@ See also `mac-dnd-known-types'."
 	  (mac-dnd-drop-data event (selected-frame) window
 			     (cdr item) (car item) action)))))
 
-;;; Do the actual Windows setup here; the above code just defines
-;;; functions and variables that we use now.
-
-(setq command-line-args (x-handle-args command-line-args))
-
-;;; Make sure we have a valid resource name.
-(or (stringp x-resource-name)
-    (let (i)
-      (setq x-resource-name (invocation-name))
-
-      ;; Change any . or * characters in x-resource-name to hyphens,
-      ;; so as not to choke when we use it in X resource queries.
-      (while (setq i (string-match "[.*]" x-resource-name))
-	(aset x-resource-name i ?-))))
-
-(if (x-display-list)
-    ;; On Mac OS 8/9, Most coding systems used in code conversion for
-    ;; font names are not ready at the time when the terminal frame is
-    ;; created.  So we reconstruct font name table for the initial
-    ;; frame.
-    (mac-clear-font-name-table)
-  (x-open-connection "Mac"
-		     x-command-line-resources
-		     ;; Exit Emacs with fatal error if this fails.
-		     t))
-
-(setq frame-creation-function 'x-create-frame-with-faces)
-
 (setq font-encoding-alist
       (append
        '(("mac-roman" . mac-roman)

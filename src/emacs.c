@@ -1324,7 +1324,6 @@ main (argc, argv
       syms_of_macterm ();
       syms_of_macmenu ();
       syms_of_macselect ();
-      syms_of_data ();
       syms_of_search ();
       syms_of_frame ();
 
@@ -1332,6 +1331,16 @@ main (argc, argv
       mac_term_init (build_string ("Mac"), NULL, NULL);
       init_keyboard ();
 #endif
+      /* Called before syms_of_fileio, because it sets up Qerror_condition.  */
+      syms_of_data ();
+      syms_of_fileio ();
+      /* Before syms_of_coding to initialize Vgc_cons_threshold.  */
+      syms_of_alloc ();
+      /* Before syms_of_coding because it initializes Qcharsetp.  */
+      syms_of_charset ();
+      /* Before init_window_once, because it sets up the
+	 Vcoding_system_hash_table.  */
+      syms_of_coding ();	/* This should be after syms_of_fileio.  */
 
       init_window_once ();	/* Init the window system.  */
       init_fileio_once ();	/* Must precede any path manipulation.  */
@@ -1553,7 +1562,6 @@ main (argc, argv
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_data ();
 #endif
-      syms_of_alloc ();
       syms_of_chartab ();
       syms_of_lread ();
       syms_of_print ();
@@ -1574,7 +1582,6 @@ main (argc, argv
       syms_of_ccl ();
 #endif
       syms_of_character ();
-      syms_of_charset ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY
       syms_of_dired ();
@@ -1583,8 +1590,6 @@ main (argc, argv
       syms_of_doc ();
       syms_of_editfns ();
       syms_of_emacs ();
-      syms_of_fileio ();
-      syms_of_coding ();	/* This should be after syms_of_fileio.  */
 #ifdef CLASH_DETECTION
       syms_of_filelock ();
 #endif /* CLASH_DETECTION */

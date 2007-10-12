@@ -6498,7 +6498,7 @@ If FACE is not a valid face name, use default face."
 ;; But autoload them here to make the separation invisible.
 
 ;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "bb18668f99d691db470ec2a32753ba28")
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "ba0ba38bf1f9831ca12701290fd4b211")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -6544,20 +6544,20 @@ Valid values are:
 
 Any other value is treated as nil.")
 
-(custom-autoload (quote ps-multibyte-buffer) "ps-mule" t)
+(custom-autoload 'ps-multibyte-buffer "ps-mule" t)
 
-(autoload (quote ps-mule-initialize) "ps-mule" "\
+(autoload 'ps-mule-initialize "ps-mule" "\
 Initialize global data for printing multi-byte characters.
 
 \(fn)" nil nil)
 
-(autoload (quote ps-mule-begin-job) "ps-mule" "\
+(autoload 'ps-mule-begin-job "ps-mule" "\
 Start printing job for multi-byte chars between FROM and TO.
 It checks if all multi-byte characters in the region are printable or not.
 
 \(fn FROM TO)" nil nil)
 
-(autoload (quote ps-mule-end-job) "ps-mule" "\
+(autoload 'ps-mule-end-job "ps-mule" "\
 Finish printing job for multi-byte chars.
 
 \(fn)" nil nil)

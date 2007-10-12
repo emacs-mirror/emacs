@@ -1076,44 +1076,6 @@ European languages which are distributed with Windows as
 
 See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
-;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
-(when (fboundp 'new-fontset)
-      ;; Setup the default fontset.
-      (setup-default-fontset)
-      ;; Create the standard fontset.
-      (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
-      ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
-      (create-fontset-from-x-resource))
-
-;; Apply a geometry resource to the initial frame.  Put it at the end
-;; of the alist, so that anything specified on the command line takes
-;; precedence.
-(let* ((res-geometry (x-get-resource "geometry" "Geometry"))
-       parsed)
-  (if res-geometry
-      (progn
-	(setq parsed (x-parse-geometry res-geometry))
-	;; If the resource specifies a position,
-	;; call the position and size "user-specified".
-	(if (or (assq 'top parsed) (assq 'left parsed))
-	    (setq parsed (cons '(user-position . t)
-			       (cons '(user-size . t) parsed))))
-	;; All geometry parms apply to the initial frame.
-	(setq initial-frame-alist (append initial-frame-alist parsed))
-	;; The size parms apply to all frames.
-	(if (assq 'height parsed)
-	    (push (cons 'height (cdr (assq 'height parsed)))
-		  default-frame-alist))
-	(if (assq 'width parsed)
-	    (push (cons 'width (cdr (assq 'width parsed)))
-		  default-frame-alist)))))
-
-;; Check the reverseVideo resource.
-(let ((case-fold-search t))
-  (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-    (if (and rv (string-match "^\\(true\\|yes\\|on\\)$" rv))
-	(push '(reverse . t) default-frame-alist))))
-
 (defun x-win-suspend-error ()
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
@@ -1145,7 +1107,7 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
       ;; Append list of fontsets currently defined.
       ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
       (if (fboundp 'new-fontset)
-      (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
+          (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
   (if fonts
       (let (font)
 	(while fonts
@@ -1199,30 +1161,6 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
   (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
   ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
   (create-fontset-from-x-resource)
-  ;; Try to create a fontset from a font specification which comes
-  ;; from initial-frame-alist, default-frame-alist, or X resource.
-  ;; A font specification in command line argument (i.e. -fn XXXX)
-  ;; should be already in default-frame-alist as a `font'
-  ;; parameter.  However, any font specifications in site-start
-  ;; library, user's init file (.emacs), and default.el are not
-  ;; yet handled here.
-
-  (let ((font (or (cdr (assq 'font initial-frame-alist))
-                  (cdr (assq 'font default-frame-alist))
-                  (x-get-resource "font" "Font")))
-        xlfd-fields resolved-name)
-    (if (and font
-             (not (query-fontset font))
-             (setq resolved-name (x-resolve-font-name font))
-             (setq xlfd-fields (x-decompose-font-name font)))
-        (if (string= "fontset"
-                     (aref xlfd-fields xlfd-regexp-registry-subnum))
-            (new-fontset font
-                         (x-complement-fontset-spec xlfd-fields nil))
-          ;; Create a fontset from FONT.  The fontset name is
-          ;; generated from FONT.
-          (create-fontset-from-ascii-font font
-                                          resolved-name "startup"))))
 
   ;; Apply a geometry resource to the initial frame.  Put it at the end
   ;; of the alist, so that anything specified on the command line takes

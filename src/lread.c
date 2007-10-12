@@ -2324,7 +2324,7 @@ read1 (readcharfun, pch, first_in_list)
 	      tmp = read_vector (readcharfun, 0);
 	      if (XVECTOR (tmp)->size < CHAR_TABLE_STANDARD_SLOTS)
 		error ("Invalid size char-table");
-	      XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
+	      XSETPVECTYPE (XVECTOR (tmp), PVEC_CHAR_TABLE);
 	      return tmp;
 	    }
 	  else if (c == '^')
@@ -2344,7 +2344,7 @@ read1 (readcharfun, pch, first_in_list)
 		  size = XVECTOR (tmp)->size - 2;
 		  if (chartab_size [depth] != size)
 		    error ("Invalid size char-table");
-		  XSETSUB_CHAR_TABLE (tmp, XSUB_CHAR_TABLE (tmp));
+		  XSETPVECTYPE (XVECTOR (tmp), PVEC_SUB_CHAR_TABLE);
 		  return tmp;
 		}
 	      invalid_syntax ("#^^", 3);

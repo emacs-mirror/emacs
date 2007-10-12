@@ -1,3 +1,52 @@
+2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix up multy-tty merge.
+
+	* xterm.c (handle_one_xevent): Remove duplicate code and fix up nesting
+	and indentation.
+
+	* xfaces.c (free_realized_face, clear_face_gcs):
+	Include font_done_for_face in the input_blocked section, just in case.
+
+	* xdisp.c (decode_mode_spec): Use terminal-local coding systems.
+	(get_char_face_and_encoding): Undo last change and remove the *other*
+	duplicate definition (i.e. keep the one that's better scoped and that
+	includes code for the font-backend).
+
+	* terminal.c (create_terminal): Default keyboard_coding to
+	`no-conversion' and terminal_coding to `undecided'.
+
+	* lread.c (read1): Use XSETPVECTYPE to set a pseudovector's tag.
+
+	* fontset.c (free_realized_fontsets): Check that the table entry does
+	contain a fontset before trying to compare it to `base'.
+
+	* emacs.c (main): Move syms_of_data, syms_of_fileio, syms_of_alloc,
+	syms_of_charset, and syms_of_coding earlier because init_window_once
+	now needs Vcoding_system_hash_table to be setup.
+
+	* coding.h (default_buffer_file_coding): Remove.
+
+	* coding.c (default_buffer_file_coding): Remove.
+	(Fterminal_coding_system, Fkeyboard_coding_system): Use ->id rather
+	than ->symbol, and use the terminal-local coding system.
+	(syms_of_coding): Don't setup the coding-systems that are not
+	terminal-local.
+	(Fdefine_coding_system_internal): Use XCAR/XCDR.
+
+	* chartab.c (Fmake_char_table, make_sub_char_table, copy_char_table):
+	Use XSETPVECTYPE now that XSETCHAR_TABLE doesn't set the tag anymore.
+
+	* alloc.c (Fmake_char_table, make_sub_char_table): Remove.  They're now
+	in chartab.c and were re-added here by mistake.
+	(Fpurecopy): Use XSETPVECTYPE after copying a COMPILED pseudovector.
+
+	* doc.c (Fsnarf_documentation):
+	* Makefile.in (temacs${EXEEXT}, mostlyclean): Move buildobj.lst from
+	src to etc.
+
+	* ChangeLog.10: Add mistakenly removed entry.
+
 2007-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (fringe.o, minibuf.o): Fix dependencies.

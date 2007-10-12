@@ -333,53 +333,43 @@ The following key sequence may cause multilingual text insertion."
 (defun encoded-kbd-setup-display (display)
   "Set up a `input-decode-map' for `keyboard-coding-system' on DISPLAY.
 
-(put 'encoded-kbd-mode 'permanent-local t)
-;;;###autoload
-(define-minor-mode encoded-kbd-mode
-  "Toggle Encoded-kbd minor mode.
-With arg, turn Encoded-kbd mode on if and only if arg is positive.
+DISPLAY may be a display id, a frame, or nil for the selected frame's display."
+  (let ((frame (if (framep display) display (car (frames-on-display-list display)))))
+    (when frame
+      (with-selected-frame frame
+	;; Remove any previous encoded-kb keymap from input-decode-map.
+	(let ((m input-decode-map))
+	  (if (equal (keymap-prompt m) "encoded-kb")
+	      (setq input-decode-map (keymap-parent m))
+	    (while (keymap-parent m)
+	      (if (equal (keymap-prompt (keymap-parent m)) "encoded-kb")
+		  (set-keymap-parent m (keymap-parent (keymap-parent m))))
+	      (setq m (keymap-parent m)))))
 
-You should not turn this mode on manually, instead use the command
-\\[set-keyboard-coding-system] which turns on or off this mode
-automatically.
-
-In Encoded-kbd mode, a text sent from keyboard is accepted
-as a multilingual text encoded in a coding system set by
-\\[set-keyboard-coding-system]."
-  :global t :group 'keyboard :group 'mule
-
-  (if encoded-kbd-mode
-      ;; We are turning on Encoded-kbd mode.
-      (let ((coding (keyboard-coding-system))
-	    result)
-	(or saved-key-translation-map
-	    (if (keymapp key-translation-map)
-		(setq saved-key-translation-map
-		      (copy-keymap key-translation-map))
-	      (setq key-translation-map (make-sparse-keymap))))
-	(or saved-input-mode
-	    (setq saved-input-mode
-		  (current-input-mode)))
-	(setq result (and coding (encoded-kbd-setup-keymap coding)))
-	(if result
-	    (if (eq result 8)
-		(set-input-mode
-		 (nth 0 saved-input-mode) 
-		 (nth 1 saved-input-mode)
-		 'use-8th-bit
-		 (nth 3 saved-input-mode)))
-	  (setq encoded-kbd-mode nil
-		saved-key-translation-map nil
-		saved-input-mode nil)
-	  (error "Unsupported coding system in Encoded-kbd mode: %S"
-		 coding)))
-
-    ;; We are turning off Encoded-kbd mode.
-    (when saved-input-mode
-      (setq key-translation-map saved-key-translation-map
-	    saved-key-translation-map nil)
-      (apply 'set-input-mode saved-input-mode)
-      (setq saved-input-mode nil))))
+	(if (keyboard-coding-system)
+	    ;; We are turning on Encoded-kbd mode.
+	    (let ((coding (keyboard-coding-system))
+		  (keymap (make-sparse-keymap "encoded-kb"))
+		  (cim (current-input-mode))
+		  result)
+	      (set-keymap-parent keymap input-decode-map)
+	      (setq input-decode-map keymap)
+	      (unless (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
+		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode (nth 2 cim)))
+	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
+	      (if result
+		  (when (and (eq result 8)
+			     (memq (nth 2 cim) '(t nil)))
+		    (set-input-meta-mode 'use-8th-bit))
+		(set-terminal-parameter nil 'encoded-kbd-saved-input-meta-mode nil)
+		(error "Unsupported coding system in Encoded-kbd mode: %S"
+		       coding)))
+	  ;; We are turning off Encoded-kbd mode.
+	  (when (and (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
+		     (not (equal (nth 2 (current-input-mode))
+				 (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode))))
+	    (set-input-meta-mode (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)))
+	  (set-terminal-parameter nil 'saved-input-meta-mode nil))))))
 
 (provide 'encoded-kb)
 

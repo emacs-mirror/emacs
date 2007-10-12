@@ -7,7 +7,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -85,6 +85,7 @@ the char-table has no extra slot.  */)
 
   size = VECSIZE (struct Lisp_Char_Table) - 1 + n_extras;
   vector = Fmake_vector (make_number (size), init);
+  XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
   XCHAR_TABLE (vector)->parent = Qnil;
   XCHAR_TABLE (vector)->purpose = purpose;
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
@@ -100,6 +101,7 @@ make_sub_char_table (depth, min_char, defalt)
   int size = VECSIZE (struct Lisp_Sub_Char_Table) - 1 + chartab_size[depth];
 
   table = Fmake_vector (make_number (size), defalt);
+  XSETPVECTYPE (XVECTOR (table), PVEC_SUB_CHAR_TABLE);
   XSUB_CHAR_TABLE (table)->depth = make_number (depth);
   XSUB_CHAR_TABLE (table)->min_char = make_number (min_char);
   XSETSUB_CHAR_TABLE (table, XSUB_CHAR_TABLE (table));
@@ -156,6 +158,7 @@ copy_char_table (table)
   int i;
 
   copy = Fmake_vector (make_number (size), Qnil);
+  XSETPVECTYPE (XVECTOR (copy), PVEC_CHAR_TABLE);
   XCHAR_TABLE (copy)->defalt = XCHAR_TABLE (table)->defalt;
   XCHAR_TABLE (copy)->parent = XCHAR_TABLE (table)->parent;
   XCHAR_TABLE (copy)->purpose = XCHAR_TABLE (table)->purpose;

@@ -1442,7 +1442,7 @@ free_realized_fontsets (base)
     {
       Lisp_Object this = AREF (Vfontset_table, id);
 
-      if (EQ (FONTSET_BASE (this), base))
+      if (CHAR_TABLE_P (this) && EQ (FONTSET_BASE (this), base))
 	{
 	  Fclear_face_cache (Qt);
 	  break;

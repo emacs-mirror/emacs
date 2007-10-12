@@ -1,4 +1,4 @@
-;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8-emacs; -*-
+;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8; -*-
 
 ;; Copyright (C) 1997, 1998, 2002, 2003, 2004, 2005, 2006, 2007
 ;;   Free Software Foundation, Inc.

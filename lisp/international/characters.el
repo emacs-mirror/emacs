@@ -1171,7 +1171,7 @@
 	))
 
 ;; Local Variables:
-;; coding: utf-8-emacs
+;; coding: utf-8
 ;; End:
 
 ;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d

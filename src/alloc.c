@@ -3070,51 +3070,6 @@ See also the function `vector'.  */)
 }
 
 
-DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
-       doc: /* Return a newly created char-table, with purpose PURPOSE.
-Each element is initialized to INIT, which defaults to nil.
-PURPOSE should be a symbol which has a `char-table-extra-slots' property.
-The property's value should be an integer between 0 and 10.  */)
-     (purpose, init)
-     register Lisp_Object purpose, init;
-{
-  Lisp_Object vector;
-  Lisp_Object n;
-  CHECK_SYMBOL (purpose);
-  n = Fget (purpose, Qchar_table_extra_slots);
-  CHECK_NUMBER (n);
-  if (XINT (n) < 0 || XINT (n) > 10)
-    args_out_of_range (n, Qnil);
-  /* Add 2 to the size for the defalt and parent slots.  */
-  vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
-			 init);
-  XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
-  XCHAR_TABLE (vector)->top = Qt;
-  XCHAR_TABLE (vector)->parent = Qnil;
-  XCHAR_TABLE (vector)->purpose = purpose;
-  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
-  return vector;
-}
-
-
-/* Return a newly created sub char table with slots initialized by INIT.
-   Since a sub char table does not appear as a top level Emacs Lisp
-   object, we don't need a Lisp interface to make it.  */
-
-Lisp_Object
-make_sub_char_table (init)
-     Lisp_Object init;
-{
-  Lisp_Object vector
-    = Fmake_vector (make_number (SUB_CHAR_TABLE_STANDARD_SLOTS), init);
-  XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
-  XCHAR_TABLE (vector)->top = Qnil;
-  XCHAR_TABLE (vector)->defalt = Qnil;
-  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
-  return vector;
-}
-
-
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
@@ -4964,7 +4919,10 @@ Does not copy symbols.  Copies strings without text properties.  */)
       for (i = 0; i < size; i++)
 	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
       if (COMPILEDP (obj))
-	XSETCOMPILED (obj, vec);
+	{
+	  XSETPVECTYPE (vec, PVEC_COMPILED);
+	  XSETCOMPILED (obj, vec);
+	}
       else
 	XSETVECTOR (obj, vec);
       return obj;

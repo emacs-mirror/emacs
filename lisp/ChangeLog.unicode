@@ -1,3 +1,31 @@
+2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix up multy-tty merge.
+
+	* version.el (emacs-version): Bump to 23.0.60.
+
+	* term/x-win.el (x-initialize-window-system): Don't try to create
+	a fontset from a font-specification anymore.  This was removed on the
+	unicode branch and mistakenly re-added by the multi-tty merge.
+
+	* term/w32-win.el: Remove duplicate code that's now in
+	w32-initialize-window-system.
+	(w32-initialize-window-system): Don't try to create a fontset from
+	a font-specification anymore.  This was removed on the unicode branch
+	and mistakenly re-added by the multi-tty merge.
+
+	* term/mac-win.el: Remove duplicate top-level code.
+
+	* ldefs-boot.el: Update.
+
+	* language/ethio-util.el:
+	* international/characters.el: Use utf-8 rather than utf-8-emacs
+	since it works as well and has the advantage of working with
+	non-unicode versions of Emacs.
+
+	* international/encoded-kb.el (encoded-kbd-setup-display): Use the new
+	multi-tty code, which includes the previous local change.
+
 2007-09-07  Kenichi Handa  <handa@m17n.org>
 
 	* skeleton.el (skeleton-internal-1): Use integerp and stringp

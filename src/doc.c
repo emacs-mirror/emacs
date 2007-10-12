@@ -617,8 +617,10 @@ the same file name is found in the `doc-directory'.  */)
     int nr_read;
     char *cp = NULL;
     char *beg, *end;
+    Lisp_Object buildobj = Fexpand_file_name (build_string ("buildobj.lst"),
+					      Vdoc_directory);
 
-    fd = emacs_open ("buildobj.lst", O_RDONLY, 0);
+    fd = emacs_open (SDATA (buildobj), O_RDONLY, 0);
     if (fd < 0)
       report_file_error ("Opening file buildobj.lst", Qnil);
 

@@ -387,9 +387,6 @@ int inherit_process_coding_system;
    terminal coding system is nil.  */
 struct coding_system safe_terminal_coding;
 
-/* Default coding system to be used to write a file.  */
-struct coding_system default_buffer_file_coding;
-
 Lisp_Object Vfile_coding_system_alist;
 Lisp_Object Vprocess_coding_system_alist;
 Lisp_Object Vnetwork_coding_system_alist;
@@ -8329,9 +8326,10 @@ frame's terminal device.  */)
      (terminal)
      Lisp_Object terminal;
 {
-  Lisp_Object coding_system;
+  struct coding_system *terminal_coding
+    = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
+  Lisp_Object coding_system = CODING_ID_NAME (terminal_coding->id);
 
-  coding_system = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1))->symbol;
   /* For backward compatibility, return nil if it is `undecided'. */
   return (! EQ (coding_system, Qundecided) ? coding_system : Qnil);
 }
@@ -8354,11 +8352,13 @@ DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_intern
 }
 
 DEFUN ("keyboard-coding-system",
-       Fkeyboard_coding_system, Skeyboard_coding_system, 0, 0, 0,
+       Fkeyboard_coding_system, Skeyboard_coding_system, 0, 1, 0,
        doc: /* Return coding system specified for decoding keyboard input.  */)
-     ()
+     (terminal)
+     Lisp_Object terminal;
 {
-  return CODING_ID_NAME (keyboard_coding.id);
+  return CODING_ID_NAME (TERMINAL_KEYBOARD_CODING
+			 (get_terminal (terminal, 1))->id);
 }
 
 
@@ -8643,11 +8643,11 @@ usage: (define-coding-system-internal ...)  */)
   else
     {
       charset_list = Fcopy_sequence (charset_list);
-      for (tail = charset_list; !NILP (tail); tail = Fcdr (tail))
+      for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  struct charset *charset;
 
-	  val = Fcar (tail);
+	  val = XCAR (tail);
 	  CHECK_CHARSET_GET_CHARSET (val, charset);
 	  if (EQ (coding_type, Qiso_2022)
 	      ? CHARSET_ISO_FINAL (charset) < 0
@@ -9827,8 +9827,6 @@ character.");
     Fdefine_coding_system_internal (coding_arg_max, args);
   }
 
-  setup_coding_system (Qno_conversion, &keyboard_coding);
-  setup_coding_system (Qundecided, &terminal_coding);
   setup_coding_system (Qno_conversion, &safe_terminal_coding);
 
   {

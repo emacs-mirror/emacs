@@ -5572,11 +5572,11 @@ free_realized_face (f, face)
 	    free_face_fontset (f, face);
 	  if (face->gc)
 	    {
+	      BLOCK_INPUT;
 #ifdef USE_FONT_BACKEND
 	      if (enable_font_backend && face->font_info)
 		font_done_for_face (f, face);
 #endif	/* USE_FONT_BACKEND */
-	      BLOCK_INPUT;
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
 	      UNBLOCK_INPUT;
@@ -5747,11 +5747,11 @@ clear_face_gcs (c)
 	  struct face *face = c->faces_by_id[i];
 	  if (face && face->gc)
 	    {
+	      BLOCK_INPUT;
 #ifdef USE_FONT_BACKEND
 	      if (enable_font_backend && face->font_info)
 		font_done_for_face (c->f, face);
 #endif	/* USE_FONT_BACKEND */
-	      BLOCK_INPUT;
 	      x_free_gc (c->f, face->gc);
 	      face->gc = 0;
 	      UNBLOCK_INPUT;

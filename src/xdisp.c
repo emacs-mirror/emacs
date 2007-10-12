@@ -18210,9 +18210,11 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	  {
 	    /* No need to mention EOL here--the terminal never needs
 	       to do EOL conversion.  */
-	    p = decode_mode_spec_coding (CODING_ID_NAME (keyboard_coding.id),
+	    p = decode_mode_spec_coding (CODING_ID_NAME
+					 (FRAME_KEYBOARD_CODING (f)->id),
 					 p, 0);
-	    p = decode_mode_spec_coding (CODING_ID_NAME (terminal_coding.id),
+	    p = decode_mode_spec_coding (CODING_ID_NAME
+					 (FRAME_TERMINAL_CODING (f)->id),
 					 p, 0);
 	  }
 	p = decode_mode_spec_coding (b->buffer_file_coding_system,
@@ -19037,6 +19039,80 @@ append_glyph_string (head, tail, s)
 }
 
 
+/* Get face and two-byte form of character C in face FACE_ID on frame
+   F.  The encoding of C is returned in *CHAR2B.  MULTIBYTE_P non-zero
+   means we want to display multibyte text.  DISPLAY_P non-zero means
+   make sure that X resources for the face returned are allocated.
+   Value is a pointer to a realized face that is ready for display if
+   DISPLAY_P is non-zero.  */
+
+static INLINE struct face *
+get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
+     struct frame *f;
+     int c, face_id;
+     XChar2b *char2b;
+     int multibyte_p, display_p;
+{
+  struct face *face = FACE_FROM_ID (f, face_id);
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      struct font *font = (struct font *) face->font_info;
+
+      if (font)
+	{
+	  unsigned code = font->driver->encode_char (font, c);
+
+	  if (code != FONT_INVALID_CODE)
+	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+	  else
+	    STORE_XCHAR2B (char2b, 0, 0);
+	}
+    }
+  else
+#endif	/* USE_FONT_BACKEND */
+  if (!multibyte_p)
+    {
+      /* Unibyte case.  We don't have to encode, but we have to make
+	 sure to use a face suitable for unibyte.  */
+      STORE_XCHAR2B (char2b, 0, c);
+      face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
+      face = FACE_FROM_ID (f, face_id);
+    }
+  else if (c < 128)
+    {
+      /* Case of ASCII in a face known to fit ASCII.  */
+      STORE_XCHAR2B (char2b, 0, c);
+    }
+  else if (face->font != NULL)
+    {
+      struct font_info *font_info
+	= FONT_INFO_FROM_ID (f, face->font_info_id);
+      struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+      unsigned code = ENCODE_CHAR (charset, c);
+
+      if (CHARSET_DIMENSION (charset) == 1)
+	STORE_XCHAR2B (char2b, 0, code);
+      else
+	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+       /* Maybe encode the character in *CHAR2B.  */
+      FRAME_RIF (f)->encode_char (c, char2b, font_info, charset, NULL);
+    }
+
+  /* Make sure X resources of the face are allocated.  */
+#ifdef HAVE_X_WINDOWS
+  if (display_p)
+#endif
+    {
+      xassert (face != NULL);
+      PREPARE_FACE_FOR_DISPLAY (f, face);
+    }
+
+  return face;
+}
+
+
 /* Get face and two-byte form of character glyph GLYPH on frame F.
    The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
    a pointer to a realized face that is ready for display.  */
@@ -19538,70 +19614,6 @@ right_overwriting (s)
     }
 
   return k;
-}
-
-
-/* Get face and two-byte form of character C in face FACE_ID on frame
-   F.  The encoding of C is returned in *CHAR2B.  MULTIBYTE_P non-zero
-   means we want to display multibyte text.  DISPLAY_P non-zero means
-   make sure that X resources for the face returned are allocated.
-   Value is a pointer to a realized face that is ready for display if
-   DISPLAY_P is non-zero.  */
-
-static INLINE struct face *
-get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
-     struct frame *f;
-     int c, face_id;
-     XChar2b *char2b;
-     int multibyte_p, display_p;
-{
-  struct face *face = FACE_FROM_ID (f, face_id);
-
-  if (!multibyte_p)
-    {
-      /* Unibyte case.  We don't have to encode, but we have to make
-	 sure to use a face suitable for unibyte.  */
-      STORE_XCHAR2B (char2b, 0, c);
-      face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
-      face = FACE_FROM_ID (f, face_id);
-    }
-  else if (c < 128)
-    {
-      /* Case of ASCII in a face known to fit ASCII.  */
-      STORE_XCHAR2B (char2b, 0, c);
-    }
-  else
-    {
-      int c1, c2, charset;
-
-      /* Split characters into bytes.  If c2 is -1 afterwards, C is
-	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (c, charset, c1, c2);
-      if (c2 > 0)
-	STORE_XCHAR2B (char2b, c1, c2);
-      else
-	STORE_XCHAR2B (char2b, 0, c1);
-
-      /* Maybe encode the character in *CHAR2B.  */
-      if (face->font != NULL)
-	{
-	  struct font_info *font_info
-	    = FONT_INFO_FROM_ID (f, face->font_info_id);
-	  if (font_info)
-	    FRAME_RIF (f)->encode_char (c, char2b, font_info, 0);
-	}
-    }
-
-  /* Make sure X resources of the face are allocated.  */
-#ifdef HAVE_X_WINDOWS
-  if (display_p)
-#endif
-    {
-      xassert (face != NULL);
-      PREPARE_FACE_FOR_DISPLAY (f, face);
-    }
-
-  return face;
 }
 
 
