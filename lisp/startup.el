@@ -874,6 +874,10 @@ opening the first frame (e.g. open a connection to an X server).")
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
+    ;; Note that user-init-file is nil at this point.  Code that might
+    ;; be loaded from site-run-file and wants to test if -q was given
+    ;; should check init-file-user instead, since that is already set.
+    ;; See cus-edit.el for an example.
     (if site-run-file
 	(load site-run-file t t))
 
