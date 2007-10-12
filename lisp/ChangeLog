@@ -23,8 +23,8 @@
 	(with-vc-properties): Fievaluation time of a macro argument.
 
 	* ediff-vers.el (ediff-vc-internal):
-	vc-hooks.el:
-	loaddefs.el: Follow up on VC terminology change.
+	* vc-hooks.el:
+	* loaddefs.el: Follow up on VC terminology change.
 
 2007-10-11  Juanma Barranquero  <lekktu@gmail.com>
 
