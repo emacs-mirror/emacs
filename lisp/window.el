@@ -925,10 +925,6 @@ active.  This function is run by `mouse-autoselect-window-timer'."
       (when mouse-autoselect-window
 	;; Reset state of delayed autoselection.
 	(setq mouse-autoselect-window-state nil)
-	;; Set input focus to handle cross-frame movement.  Bind
-	;; `focus-follows-mouse' to avoid moving the mouse cursor.
-	(let (focus-follows-mouse)
-	  (select-frame-set-input-focus (window-frame window)))
 	;; Run `mouse-leave-buffer-hook' when autoselecting window.
 	(run-hooks 'mouse-leave-buffer-hook))
       (select-window window))))
