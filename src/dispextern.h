@@ -853,9 +853,11 @@ struct glyph_row
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Non-NULL means the current clipping area.  This is temporarily
      set while exposing a region.  Coordinates are frame-relative.  */
   XRectangle *clip;
+#endif
 };
 
 

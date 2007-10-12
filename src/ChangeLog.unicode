@@ -1,3 +1,8 @@
+2007-10-12  Miles Bader  <miles@gnu.org>
+
+	* src/dispextern.h (struct glyph_row): Only define "clip" field if
+	HAVE_WINDOW_SYSTEM is defined.
+
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix up multy-tty merge.
