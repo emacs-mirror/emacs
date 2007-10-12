@@ -5,6 +5,8 @@
 
 2007-10-12  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (command-line): Do not read abbrev file in batch mode.
+
 	* emacs-lisp/byte-opt.el (top level):
 	* mail/rmail.el (rmail-list-to-menu):
 	* obsolete/hilit19.el (hilit-mode):
