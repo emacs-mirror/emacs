@@ -1,3 +1,6 @@
+2007-10-12  Glenn Morris  <rgm@gnu.org>
+
+
 2007-10-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (handle-select-window): Revert part of 2007-10-08
@@ -12,6 +15,15 @@
 	* obsolete/hilit19.el (hilit-mode):
 	* progmodes/cc-mode.el (c-postprocess-file-styles)
 	(c-submit-bug-report):
+	* textmodes/org-publish.el (org-publish-get-plist-from-filename):
+	* textmodes/reftex.el (reftex-erase-all-selection-and-index-buffers)
+	(reftex-access-parse-file):
+	* textmodes/reftex-cite.el (reftex-do-citation)
+	(reftex-insert-bib-matches):
+	* textmodes/reftex-ref.el (reftex-offer-label-menu):
+	* textmodes/reftex-sel.el (reftex-select-unmark):
+	* textmodes/reftex-toc.el (reftex-toc-do-promote):
+
 	* vc-mcvs.el (vc-mcvs-checkin): Use mapc rather than mapcar.
 
 	* cus-edit.el (custom-variable-menu, custom-face-menu)
