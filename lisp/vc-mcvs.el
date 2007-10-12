@@ -277,8 +277,8 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
       ;; be applied just to this one file.
       (apply 'vc-mcvs-command nil 0 files "tag" "-b" (list rev))
       (apply 'vc-mcvs-command nil 0 files "update" "-r" (list rev))
-      (mapcar (lambda (file) (vc-file-setprop file 'vc-mcvs-sticky-tag rev))
-	      files)
+      (mapc (lambda (file) (vc-file-setprop file 'vc-mcvs-sticky-tag rev))
+	    files)
       (setq rev nil)))
   ;; This commit might cvs-commit several files (e.g. MAP and TYPES)
   ;; so using numbered revs here is dangerous and somewhat meaningless.
@@ -292,7 +292,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
       ;; Check checkin problem.
       (cond
        ((re-search-forward "Up-to-date check failed" nil t)
-	(mapcar (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
+	(mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
 	      files)
         (error (substitute-command-keys
                 (concat "Up-to-date check failed: "
