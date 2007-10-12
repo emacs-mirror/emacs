@@ -2216,12 +2216,12 @@ A fancy display is used on graphic displays, normal otherwise."
 	;; Don't let the hook be run twice.
 	(setq window-setup-hook nil))
 
-      ;; Do this now to avoid an annoying delay if the user
-      ;; clicks the menu bar during the sit-for.
-      (when (display-popup-menus-p)
-	(precompute-menubar-bindings))
-      (with-no-warnings
-	(setq menubar-bindings-done t))
+      ;; ;; Do this now to avoid an annoying delay if the user
+      ;; ;; clicks the menu bar during the sit-for.
+      ;; (when (display-popup-menus-p)
+      ;; 	(precompute-menubar-bindings))
+      ;; (with-no-warnings
+      ;; 	(setq menubar-bindings-done t))
 
       ;; If *scratch* exists and is empty, insert initial-scratch-message.
       (and initial-scratch-message
