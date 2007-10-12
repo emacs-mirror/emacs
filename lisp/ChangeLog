@@ -1,6 +1,6 @@
 2007-10-12  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (handle-select-window): Revert part of 2007-10-08
+	* window.el (handle-select-window): Revert part of 2007-10-06
 	change setting the input focus.
 
 2007-10-12  Glenn Morris  <rgm@gnu.org>
