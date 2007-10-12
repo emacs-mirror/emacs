@@ -1,3 +1,7 @@
+2007-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-start.el (all): Use the same test as the 22.2 branch.
+
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-current-defun): Force recomputation of

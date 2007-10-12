@@ -433,7 +433,7 @@ since it could result in memory overflow and make Emacs crash."
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
  		      ((string-match "\\`mac-" (symbol-name symbol))
- 		       (or (eq system-type 'mac) (eq system-type 'darwin)))
+		       (eq window-system 'mac))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (featurep 'gtk))
 		      ((string-match "\\`x-" (symbol-name symbol))
