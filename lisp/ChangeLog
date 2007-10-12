@@ -20,7 +20,6 @@
 	* textmodes/reftex-ref.el (reftex-offer-label-menu):
 	* textmodes/reftex-sel.el (reftex-select-unmark):
 	* textmodes/reftex-toc.el (reftex-toc-do-promote):
-
 	* vc-mcvs.el (vc-mcvs-checkin): Use mapc rather than mapcar.
 
 	* cus-edit.el (custom-variable-menu, custom-face-menu)
