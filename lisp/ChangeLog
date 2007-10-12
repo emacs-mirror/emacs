@@ -1,3 +1,8 @@
+2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-current-defun): Force recomputation of
+	change-log-default-name.
+
 2007-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (fancy-startup-screen): Remove an unnecessary newline
@@ -54,10 +59,9 @@
 
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-diff):
-	(vc-diff-internal): Bug fixes by Juanma Barranquero.  Temporarily
-	disable the check for his edge case, it's calling some brittle
-	code.
+	* vc.el (vc-diff, vc-diff-internal): Bug fixes by Juanma Barranquero.
+	Temporarily disable the check for his edge case, it's calling some
+	brittle code.
 	(with-vc-properties): Fievaluation time of a macro argument.
 
 	* ediff-vers.el (ediff-vc-internal):
@@ -193,8 +197,7 @@
 	* vc-mtn.el:
 	* vc-rcs.el:
 	* vc-sccs.el:
-	* vc-svn.el: Terminology cleanup: workfile-version ->
-	working-revision,
+	* vc-svn.el: Terminology cleanup: workfile-version -> working-revision,
 	{find,init,next,previous,annotate-*,log}-version ->
 	{find,init,next,previous,annotate-*,log}-revision,
 	annotate-focus-version -> annotate-working-revision, The term
