@@ -1,3 +1,37 @@
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman0-rename): Fix paren typo.
+
+	* mail/feedmail.el (feedmail-run-the-queue)
+	(feedmail-look-at-queue-directory):
+	* mail/reporter.el (reporter-dump-state):
+	* net/eudc-hotlist.el (eudc-edit-hotlist):
+	* net/eudc.el (eudc-display-records)
+	(eudc-filter-duplicate-attributes)
+	(eudc-distribute-field-on-records, eudc-query-form)
+	(eudc-process-form):
+	* net/eudcb-bbdb.el (eudc-bbdb-filter-non-matching-record)
+	(eudc-bbdb-query-internal):
+	* net/eudcb-ldap.el (eudc-ldap-simple-query-internal):
+	* net/socks.el (socks-build-auth-list):
+	* progmodes/cc-cmds.el (top level):
+	* progmodes/cc-styles.el (c-make-styles-buffer-local)
+	(c-set-style):
+	* progmodes/cperl-mode.el (top level, cperl-imenu-addback)
+	(cperl-write-tags, cperl-tags-treeify):
+	* progmodes/ebnf-yac.el (ebnf-yac-token-table):
+	* progmodes/ebnf2ps.el (ebnf-map-name, ebnf-dimensions):
+	* progmodes/idlw-shell.el (idlwave-shell-filter-bp, top level):
+	* progmodes/idlw-toolbar.el (idlwave-toolbar-add-everywhere)
+	(idlwave-toolbar-remove-everywhere):
+	* progmodes/idlwave.el (idlwave-indent-line)
+	(idlwave-sintern-keyword-list, idlwave-scan-user-lib-files)
+	(idlwave-write-paths, idlwave-all-method-classes)
+	(idlwave-all-method-keyword-classes, idlwave-entry-keywords)
+	(idlwave-fix-keywords, idlwave-display-calling-sequence):
+	* textmodes/org.el (org-export-as-html, org-export-as-ascii)
+	(org-fast-tag-selection): Use mapc rather than mapcar.
+
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-fine-change): Add :group.
