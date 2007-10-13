@@ -1139,6 +1139,7 @@ Tree mode key bindings:
 
     (kill-all-local-variables)
     (use-local-map ebrowse-tree-mode-map)
+    (buffer-disable-undo)
 
     (unless (zerop (buffer-size))
       (goto-char (point-min))
