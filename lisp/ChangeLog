@@ -1,3 +1,8 @@
+2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-start.el (all): Use test that does not match the X11 version
+	for mac.
+
 2007-10-13  Markus Gritsch  <m.gritsch@gmail.com>  (tiny change)
 
 	* progmodes/ebrowse.el (ebrowse-tree-mode): Disable undo in the
