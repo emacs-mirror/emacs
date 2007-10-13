@@ -259,16 +259,22 @@ Will not do anything if `url-show-status' is nil."
     (/ (* x 100) y)))
 
 ;;;###autoload
-(defun url-basepath (file &optional x)
-  "Return the base pathname of FILE, or the actual filename if X is true."
+(defun url-file-directory (file)
+  "Return the directory part of FILE, for a URL."
   (cond
    ((null file) "")
    ((string-match (eval-when-compile (regexp-quote "?")) file)
-    (if x
-	(file-name-nondirectory (substring file 0 (match-beginning 0)))
-      (file-name-directory (substring file 0 (match-beginning 0)))))
-   (x (file-name-nondirectory file))
+    (file-name-directory (substring file 0 (match-beginning 0))))
    (t (file-name-directory file))))
+
+;;;###autoload
+(defun url-file-nondirectory (file)
+  "Return the nondirectory part of FILE, for a URL."
+  (cond
+   ((null file) "")
+   ((string-match (eval-when-compile (regexp-quote "?")) file)
+    (file-name-nondirectory (substring file 0 (match-beginning 0))))
+   (t (file-name-nondirectory file))))
 
 ;;;###autoload
 (defun url-parse-query-string (query &optional downcase allow-newlines)
@@ -385,7 +391,7 @@ string: \"%\" followed by two lowercase hex digits."
 If optional variable X is t,
 then return the basename of the file with the extension stripped off."
   (if (and fname
-	   (setq fname (url-basepath fname t))
+	   (setq fname (url-file-nondirectory fname))
 	   (string-match "\\.[^./]+$" fname))
       (if x (substring fname 0 (match-beginning 0))
 	(substring fname (match-beginning 0) nil))
