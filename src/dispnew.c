@@ -1993,7 +1993,7 @@ required_matrix_height (w)
   if (FRAME_WINDOW_P (f))
     {
       int ch_height = FRAME_SMALLEST_FONT_HEIGHT (f);
-      int window_pixel_height = window_box_height (w) + abs (w->vscroll);
+      int window_pixel_height = window_box_height (w) + eabs (w->vscroll);
       return (((window_pixel_height + ch_height - 1)
 	       / ch_height) * w->nrows_scale_factor
 	      /* One partially visible line at the top and
