@@ -1,3 +1,15 @@
+2007-10-13  John W. Eaton  <jwe@octave.org>
+
+	* progmodes/octave-mod.el (octave-looking-at-kw)
+	(octave-re-search-forward-kw, octave-re-search-backward-kw):
+	New functions.
+	(octave-in-defun-p, calculate-octave-indent)
+	(octave-blink-matching-block-open, octave-beginning-of-defun)
+	(octave-auto-fill): Use octave-looking-at-kw instead of looking-at,
+	to search for regexps that contain case-sensitive keywords.
+	(octave-beginning-of-defun): Likewise, for octave-re-search-backward-kw.
+	(octave-scan-blocks): Likewise, for octave-re-search-forward-kw.
+
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* faces.el (face-spec-set): When FRAME is nil, set the default for
