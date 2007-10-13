@@ -821,9 +821,9 @@ the user during startup."
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
     (when (memq (window-system frame) '(x mac w32))
-	   (x-focus-frame frame))
-    (cond (focus-follows-mouse
-	   (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
+      (x-focus-frame frame))
+    (when focus-follows-mouse
+      (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
 
 (defun other-frame (arg)
   "Select the ARGth different visible frame on current display, and raise it.
