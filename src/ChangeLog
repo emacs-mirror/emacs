@@ -1,3 +1,14 @@
+2007-10-05  Dmitry Antipov <dmantipov@yandex.ru>
+
+	* buffer.c (add_overlay_mod_hooklist):
+	* ccl.c (Fregister_ccl_program, Fregister_code_conversion_map):
+	* fontset.c (make_fontset):
+	* keyboard.c (GROW_RAW_KEYBUF, menu_bar_items, menu_bar_item)
+	(append_tool_bar_item):
+	* macmenu.c (grow_menu_items):
+	* w32menu.c (grow_menu_items):	
+	* xmenu.c (grow_menu_items): Use larger_vector.
+	
 2007-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (dos_rawgetc): Undo last change (there's no ``leaving
