@@ -1488,11 +1488,11 @@ face_color_gray_p (f, color_name)
     gray_p = (/* Any color sufficiently close to black counts as grey.  */
 	      (color.red < 5000 && color.green < 5000 && color.blue < 5000)
 	      ||
-	      ((abs (color.red - color.green)
+	      ((eabs (color.red - color.green)
 		< max (color.red, color.green) / 20)
-	       && (abs (color.green - color.blue)
+	       && (eabs (color.green - color.blue)
 		   < max (color.green, color.blue) / 20)
-	       && (abs (color.blue - color.red)
+	       && (eabs (color.blue - color.red)
 		   < max (color.blue, color.red) / 20)));
   else
     gray_p = 0;
@@ -2714,7 +2714,7 @@ cmp_font_names (a, b)
 	  int resy = FRAME_X_DISPLAY_INFO (font_frame)->resy;
 	  int x_resy = x->numeric[XLFD_RESY];
 	  int y_resy = y->numeric[XLFD_RESY];
-	  cmp = abs (resy - x_resy) - abs (resy - y_resy);
+	  cmp = eabs (resy - x_resy) - eabs (resy - y_resy);
 	}
     }
 
@@ -5795,7 +5795,7 @@ smaller_face (f, face_id, steps)
 
   /* Try in increments of 1/2 pt.  */
   delta = steps < 0 ? 5 : -5;
-  steps = abs (steps);
+  steps = eabs (steps);
 
   face = FACE_FROM_ID (f, face_id);
   bcopy (face->lface, attrs, sizeof attrs);
@@ -5806,7 +5806,7 @@ smaller_face (f, face_id, steps)
   while (steps
 	 && pt + delta > 0
 	 /* Give up if we cannot find a font within 10pt.  */
-	 && abs (last_pt - pt) < 100)
+	 && eabs (last_pt - pt) < 100)
     {
       /* Look up a face for a slightly smaller/larger font.  */
       pt += delta;
@@ -6414,17 +6414,17 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 
 	  if (xlfd_idx == XLFD_POINT_SIZE)
 	    {
-	      delta1 = abs (values[i] - (font1->numeric[xlfd_idx]
+	      delta1 = eabs (values[i] - (font1->numeric[xlfd_idx]
 					 / font1->rescale_ratio));
-	      delta2 = abs (values[i] - (font2->numeric[xlfd_idx]
+	      delta2 = eabs (values[i] - (font2->numeric[xlfd_idx]
 					 / font2->rescale_ratio));
-	      if (abs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
+	      if (eabs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
 		continue;
 	    }
 	  else
 	    {
-	      delta1 = abs (values[i] - font1->numeric[xlfd_idx]);
-	      delta2 = abs (values[i] - font2->numeric[xlfd_idx]);
+	      delta1 = eabs (values[i] - font1->numeric[xlfd_idx]);
+	      delta2 = eabs (values[i] - font2->numeric[xlfd_idx]);
 	    }
 
 	  if (delta1 > delta2)
@@ -6446,8 +6446,8 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 
   if (avgwidth)
     {
-      int delta1 = abs (avgwidth - font1->numeric[XLFD_AVGWIDTH]);
-      int delta2 = abs (avgwidth - font2->numeric[XLFD_AVGWIDTH]);
+      int delta1 = eabs (avgwidth - font1->numeric[XLFD_AVGWIDTH]);
+      int delta2 = eabs (avgwidth - font2->numeric[XLFD_AVGWIDTH]);
       if (delta1 > delta2)
 	return 0;
       else if (delta1 < delta2)
