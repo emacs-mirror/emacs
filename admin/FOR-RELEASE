@@ -24,7 +24,7 @@ sk	Miroslav Vaško
 
 ** Try to reorder NEWS: most important things first, related items together.
 
-* WINDOWS SUPPORT BUGS.
+* WINDOWS SUPPORT BUGS
 
 These don't need to be fixed before a release, but we call the
 attention of Windows users to fixing them.
@@ -43,6 +43,11 @@ frame makes the menu bar wrap before.  On 2007-08-16 Glenn Morris
 reported on emacs-devel that he was not able to reproduce the bug on a
 GNU/Linux system.
 
+* BUGS WAITING FOR MORE USER INPUT
+
+** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
+http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
+
 * BUGS
 
 ** Document the changes introduced by multi-tty
@@ -55,9 +60,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
 
 ** Why were the calls to x_fully_uncatch_errors commented out in eval.c?
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01987.html
-
-** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
-http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
 
 ** grep et al should use font-lock to do highlighting, so that they respect font-lock-mode.
 "can't turn off font-lock"
@@ -99,26 +101,26 @@ names of the people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-etc/TUTORIAL             rms
-etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
+etc/TUTORIAL             
+etc/TUTORIAL.bg          
 etc/TUTORIAL.cn
-etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
-etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
+etc/TUTORIAL.cs          
+etc/TUTORIAL.de          
 etc/TUTORIAL.eo
-etc/TUTORIAL.es          Marcelo Toledo
-etc/TUTORIAL.fr          ttn
-etc/TUTORIAL.it          ttn
-etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
+etc/TUTORIAL.es          
+etc/TUTORIAL.fr          
+etc/TUTORIAL.it          
+etc/TUTORIAL.ja		 
 etc/TUTORIAL.ko
-etc/TUTORIAL.nl		 Lute Kamstra
-etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
-etc/TUTORIAL.pt_BR       Marcelo Toledo
+etc/TUTORIAL.nl		 
+etc/TUTORIAL.pl          
+etc/TUTORIAL.pt_BR       
 etc/TUTORIAL.ro
-etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
-etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
-etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
-etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
-etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
+etc/TUTORIAL.ru          
+etc/TUTORIAL.sk          
+etc/TUTORIAL.sl          
+etc/TUTORIAL.sv          
+etc/TUTORIAL.th          
 etc/TUTORIAL.zh
 
 
