@@ -1,3 +1,10 @@
+2007-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.el (dired-warn-writable): New face.
+	(dired-warn-writable-face): New variable.
+	(dired-font-lock-keywords): Use dired-warn-writable-face, instead
+	of dired-warning-face, for group- and world-writable files.
+
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/octave-mod.el (octave-looking-at-kw): Add doc string.
