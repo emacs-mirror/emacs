@@ -5004,11 +5004,11 @@ killed after process termination."
 
 (defvar ebnf-map-name
   (let ((map (make-vector 256 ?\_)))
-    (mapcar #'(lambda (char)
-		(aset map char char))
-	    (concat "#$%&+-.0123456789=?@~"
-		    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		    "abcdefghijklmnopqrstuvwxyz"))
+    (mapc #'(lambda (char)
+	      (aset map char char))
+	  (concat "#$%&+-.0123456789=?@~"
+		  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		  "abcdefghijklmnopqrstuvwxyz"))
     map))
 
 
@@ -5553,7 +5553,7 @@ killed after process termination."
   (ebnf-log "(ebnf-dimensions tree)")
   (let ((ebnf-total (length tree))
 	(ebnf-nprod 0))
-    (mapcar 'ebnf-production-dimension tree))
+    (mapc 'ebnf-production-dimension tree))
   tree)
 
 
