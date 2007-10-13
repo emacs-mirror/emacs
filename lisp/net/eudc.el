@@ -502,15 +502,15 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
 		 records))
 	  ;; Display the records
 	  (setq first-record (point))
-	  (mapcar
+	  (mapc
 	   (function
 	    (lambda (record)
 	      (setq beg (point))
 	      ;; Map over the record fields to print the attribute/value pairs
-	      (mapcar (function
-		       (lambda (field)
-			 (eudc-print-record-field field width)))
-		      record)
+	      (mapc (function
+		     (lambda (field)
+		       (eudc-print-record-field field width)))
+		    record)
 	      ;; Store the record internal format in some convenient place
 	      (overlay-put (make-overlay beg (point))
 			   'eudc-record
@@ -540,13 +540,13 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
     (if (not (and (boundp 'eudc-form-widget-list)
 		  eudc-form-widget-list))
 	(error "Not in a directory query form buffer")
-      (mapcar (function
-	       (lambda (wid-field)
-		 (setq value (widget-value (cdr wid-field)))
-		 (if (not (string= value ""))
-		     (setq query-alist (cons (cons (car wid-field) value)
-					     query-alist)))))
-	      eudc-form-widget-list)
+      (mapc (function
+	     (lambda (wid-field)
+	       (setq value (widget-value (cdr wid-field)))
+	       (if (not (string= value ""))
+		   (setq query-alist (cons (cons (car wid-field) value)
+					   query-alist)))))
+	    eudc-form-widget-list)
       (kill-buffer (current-buffer))
       (eudc-display-records (eudc-query query-alist) eudc-use-raw-directory-names))))
 
@@ -565,15 +565,15 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
 
     (if (null (eudc-cdar rec))
 	(list record)			; No duplicate attrs in this record
-      (mapcar (function
-	       (lambda (field)
-		 (if (listp (cdr field))
-		     (setq duplicates (cons field duplicates))
-		   (setq unique (cons field unique)))))
-	      record)
+      (mapc (function
+	     (lambda (field)
+	       (if (listp (cdr field))
+		   (setq duplicates (cons field duplicates))
+		 (setq unique (cons field unique)))))
+	    record)
       (setq result (list unique))
       ;; Map over the record fields that have multiple values
-      (mapcar
+      (mapc
        (function
 	(lambda (field)
 	  (let ((method (if (consp eudc-duplicate-attribute-handling-method)
@@ -641,7 +641,7 @@ Each copy is added a new field containing one of the values of FIELD."
     (while values
       (setcdr values (delete (car values) (cdr values)))
       (setq values (cdr values)))
-    (mapcar
+    (mapc
      (function
       (lambda (value)
 	(let ((result-list (copy-sequence records)))
@@ -974,11 +974,11 @@ queries the server for the existing fields and displays a corresponding form."
 				   (capitalize (symbol-name field)))))
 			    fields)))
     ;; Loop over prompt strings to find the longest one
-    (mapcar (function
-	     (lambda (prompt)
-		     (if (> (length prompt) width)
-			 (setq width (length prompt)))))
-	    prompts)
+    (mapc (function
+	   (lambda (prompt)
+	     (if (> (length prompt) width)
+		 (setq width (length prompt)))))
+	  prompts)
     ;; Insert the first widget out of the mapcar to leave the cursor
     ;; in the first field
     (widget-insert "\n\n" (format (concat "%" (int-to-string width) "s: ") (car prompts)))
@@ -988,15 +988,15 @@ queries the server for the existing fields and displays a corresponding form."
 				      eudc-form-widget-list))
     (setq fields (cdr fields))
     (setq prompts (cdr prompts))
-    (mapcar (function
-	     (lambda (field)
-	       (widget-insert "\n\n" (format (concat "%" (int-to-string width) "s: ") (car prompts)))
-	       (setq widget (widget-create 'editable-field
-					   :size 15))
-	       (setq eudc-form-widget-list (cons (cons field widget)
-						 eudc-form-widget-list))
-	       (setq prompts (cdr prompts))))
-	    fields)
+    (mapc (function
+	   (lambda (field)
+	     (widget-insert "\n\n" (format (concat "%" (int-to-string width) "s: ") (car prompts)))
+	     (setq widget (widget-create 'editable-field
+					 :size 15))
+	     (setq eudc-form-widget-list (cons (cons field widget)
+					       eudc-form-widget-list))
+	     (setq prompts (cdr prompts))))
+	  fields)
     (widget-insert "\n\n")
     (widget-create 'push-button
 		   :notify (lambda (&rest ignore)
