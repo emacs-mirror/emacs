@@ -1,3 +1,8 @@
+2007-10-12  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-auth.el (url-basic-auth): Set path to "/" when URL has an
+        empty string filename.
+
 2007-10-09  Richard Stallman  <rms@gnu.org>
 
 	* url-parse.el (url-type, url-user, url-password, url-host)
