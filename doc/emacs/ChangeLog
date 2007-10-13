@@ -1,3 +1,7 @@
+2007-10-13  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* files.texi: Capitalize node names according to convention.
+
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Interactive Shell): Correct INSIDE_EMACS reference.
