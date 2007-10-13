@@ -2716,7 +2716,7 @@ If DELETE is non-nil then delete from point."
 (defun woman0-rename ()
   "Effect renaming required by .rn requests."
   ;; For now, do this backwards AFTER all macro expansion.
-  (dolist ((new woman0-rename-alist))
+  (dolist (new woman0-rename-alist)
     (let ((old (cdr new))
           (new (car new)))
       (goto-char (point-min))
