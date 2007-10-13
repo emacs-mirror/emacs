@@ -488,12 +488,13 @@ also change the coding system for a running subshell by typing
 Coding}.
 
 @cindex @env{INSIDE_EMACS} environment variable
-  Emacs sets the envitonment variable @env{INSIDE_EMACS} to @code{t}
-in the subshell.  Programs can check this variable to determine
-whether they are running inside an Emacs subshell.
+  Emacs sets the environment variable @env{INSIDE_EMACS} (to a
+comma-separated list including the Emacs version) in the subshell.
+Programs can check this variable to determine whether they are running
+inside an Emacs subshell.
 
 @cindex @env{EMACS} environment variable
-  Emacs also sets the @env{EMACS} environment variable to @code{t} if
+  Emacs also sets the @env{EMACS} environment variable (to @code{t}) if
 it is not already defined.  @strong{Warning:} This environment
 variable is deprecated.  Programs that check this variable should be
 changed to check @env{INSIDE_EMACS} instead.
