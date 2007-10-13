@@ -1,3 +1,7 @@
+2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-start.el (all): Undo previous change.
+
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman0-rename): Fix paren typo.
