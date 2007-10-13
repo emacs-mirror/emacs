@@ -1848,7 +1848,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
 	tzstring = (char *) SDATA (zone);
       else if (INTEGERP (zone))
 	{
-	  int abszone = abs (XINT (zone));
+	  int abszone = eabs (XINT (zone));
 	  sprintf (tzbuf, "XXX%s%d:%02d:%02d", "-" + (XINT (zone) < 0),
 		   abszone / (60*60), (abszone/60) % 60, abszone % 60);
 	  tzstring = tzbuf;
