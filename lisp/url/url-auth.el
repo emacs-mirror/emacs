@@ -74,6 +74,7 @@ instead of the pathname inheritance method."
     (setq server (format "%s:%d" server port)
 	  path (cond
 		(realm realm)
+		((string= "" path) "/")
 		((string-match "/$" path) path)
 		(t (url-basepath path)))
 	  byserv (cdr-safe (assoc server
