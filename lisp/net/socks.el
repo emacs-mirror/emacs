@@ -247,7 +247,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 (defun socks-build-auth-list ()
   (let ((num 0)
 	(retval ""))
-    (mapcar
+    (mapc
      (function
       (lambda (x)
 	(if (fboundp (cdr (cdr x)))
