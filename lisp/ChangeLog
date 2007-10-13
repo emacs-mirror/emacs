@@ -1,5 +1,8 @@
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* frame.el (select-frame-set-input-focus): Fix typo
+	"max" -> "mac". Do not use a single clause cond.
+
 	* cus-start.el (all): Use test that does not match the X11 version
 	for mac.
 

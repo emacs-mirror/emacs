@@ -820,8 +820,8 @@ the user during startup."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((memq (window-system frame) '(x max w32))
-	   (x-focus-frame frame)))
+    (when (memq (window-system frame) '(x mac w32))
+	   (x-focus-frame frame))
     (cond (focus-follows-mouse
 	   (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
 
