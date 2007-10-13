@@ -1984,8 +1984,8 @@ lookup_image (f, spec)
 	  if (INTEGERP (relief))
 	    {
 	      img->relief = XINT (relief);
-	      img->hmargin += abs (img->relief);
-	      img->vmargin += abs (img->relief);
+	      img->hmargin += eabs (img->relief);
+	      img->vmargin += eabs (img->relief);
 	    }
 
 	  if (! img->background_valid)
@@ -5165,7 +5165,7 @@ x_detect_edges (f, img, matrix, color_adjust)
   int x, y, i, sum;
 
   for (i = sum = 0; i < 9; ++i)
-    sum += abs (matrix[i]);
+    sum += eabs (matrix[i]);
 
 #define COLOR(A, X, Y) ((A) + (Y) * img->width + (X))
 
