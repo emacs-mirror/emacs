@@ -105,11 +105,12 @@
 
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-diff, vc-diff-internal): Bug fixes by Juanma Barranquero.
-	Temporarily disable the check for his edge case, it's calling some
-	brittle code.
-	(with-vc-properties): Fievaluation time of a macro argument.
-
+	* vc.el (vc-diff):
+	(vc-diff-internal): Merge a patch by Juanma Barranquero.  Also,
+	emporarily disable the check for his edge case of
+	vc-diff (stopping it from grinding when callerd from $HOME), as
+	it's calling some brittle code in vc-hooks.el.
+	(with-vc-properties): Fix evaluation time of a macro argument.
 	* ediff-vers.el (ediff-vc-internal):
 	* vc-hooks.el:
 	* loaddefs.el: Follow up on VC terminology change.
