@@ -391,15 +391,7 @@ make_fontset (frame, name, base)
   while (!NILP (AREF (Vfontset_table, id))) id++;
 
   if (id + 1 == size)
-    {
-      Lisp_Object tem;
-      int i;
-
-      tem = Fmake_vector (make_number (size + 8), Qnil);
-      for (i = 0; i < size; i++)
-	AREF (tem, i) = AREF (Vfontset_table, i);
-      Vfontset_table = tem;
-    }
+    Vfontset_table = larger_vector (Vfontset_table, size + 8, Qnil);
 
   fontset = Fmake_char_table (Qfontset, Qnil);
 
