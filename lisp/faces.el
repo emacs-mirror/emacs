@@ -1444,17 +1444,16 @@ If SPEC is nil, return nil."
 (defun face-spec-set (face spec &optional frame)
   "Set FACE's attributes according to the first matching entry in SPEC.
 FRAME is the frame whose frame-local face is set.  FRAME nil means
-do it on all frames.  See `defface' for information about SPEC.
-If SPEC is nil, do nothing."
-  (if frame
-      (let ((attrs (face-spec-choose spec frame)))
-	(when spec
-	  (face-spec-reset-face face frame))
-	(while attrs
-	  (let ((attribute (car attrs))
-		(value (car (cdr attrs))))
-	    ;; Support some old-style attribute names and values.
-	    (case attribute
+do it on all frames (and change the default for new frames).
+See `defface' for information about SPEC.  If SPEC is nil, do nothing."
+  (let ((attrs (face-spec-choose spec frame)))
+    (when spec
+      (face-spec-reset-face face (or frame t)))
+    (while attrs
+      (let ((attribute (car attrs))
+	    (value (car (cdr attrs))))
+	;; Support some old-style attribute names and values.
+	(case attribute
 	      (:bold (setq attribute :weight value (if value 'bold 'normal)))
 	      (:italic (setq attribute :slant value (if value 'italic 'normal)))
 	      ((:foreground :background)
@@ -1463,9 +1462,12 @@ If SPEC is nil, do nothing."
 	       (if (null value) (setq value 'unspecified)))
 	      (t (unless (assq attribute face-x-resources)
 		   (setq attribute nil))))
-	    (when attribute
-	      (set-face-attribute face frame attribute value)))
-	  (setq attrs (cdr (cdr attrs)))))
+	(when attribute
+	  ;; If frame is nil, set the default for new frames.
+	  ;; Existing frames are handled below.
+	  (set-face-attribute face (or frame t) attribute value)))
+      (setq attrs (cdr (cdr attrs)))))
+  (unless frame
     ;; When we reset the face based on its spec, then it is unmodified
     ;; as far as Custom is concerned.
     (put (or (get face 'face-alias) face) 'face-modified nil)
