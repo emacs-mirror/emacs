@@ -1588,7 +1588,7 @@ backup file names and the like)."
 	(setq list-of-possible-fqms (directory-files feedmail-queue-directory t))
 	(if feedmail-queue-run-orderer
 	    (setq list-of-possible-fqms (funcall feedmail-queue-run-orderer list-of-possible-fqms)))
-	(mapcar
+	(mapc
 	 '(lambda (blobby)
 	    (setq maybe-file (expand-file-name blobby feedmail-queue-directory))
 	    (cond
@@ -1835,7 +1835,7 @@ the counts."
   (let ((q-cnt 0) (q-oth 0) (high-water 0) (blobbet))
     ;; iterate, counting things we find along the way in the directory
     (if (file-directory-p queue-directory)
-	(mapcar
+	(mapc
 	 '(lambda (blobby)
 	    (cond
 	     ((file-directory-p blobby) nil) ; don't care about subdirs
