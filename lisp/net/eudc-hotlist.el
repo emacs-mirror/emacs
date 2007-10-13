@@ -69,10 +69,10 @@ These are the special commands of this mode:
     (switch-to-buffer (get-buffer-create "*EUDC Servers*"))
     (setq buffer-read-only nil)
     (erase-buffer)
-    (mapcar (function
-	     (lambda (entry)
-	       (setq proto-col (max (length (car entry)) proto-col))))
-	    eudc-server-hotlist)
+    (mapc (function
+	   (lambda (entry)
+	     (setq proto-col (max (length (car entry)) proto-col))))
+	  eudc-server-hotlist)
     (setq proto-col (+ 3 proto-col))
     (setq gap (make-string (- proto-col 6) ?\ ))
     (insert "              EUDC Servers\n"
@@ -82,7 +82,7 @@ These are the special commands of this mode:
 	    "------" gap "--------\n"
 	    "\n")
     (setq eudc-hotlist-list-beginning (point))
-    (mapcar '(lambda (entry)
+    (mapc '(lambda (entry)
 	     (insert (car entry))
 	     (indent-to proto-col)
 	     (insert (symbol-name (cdr entry)) "\n"))

@@ -618,7 +618,7 @@ point."
                 nil              ; we have permission, do nothing
               (error "Abort"))   ; abort, we don't have permission
             ;; Do the changes
-            (mapcar 'reftex-toc-promote-action entries)
+            (mapc 'reftex-toc-promote-action entries)
             ;; Rescan the document and rebuilt the toc buffer
             (save-window-excursion
               (reftex-toc-Rescan))

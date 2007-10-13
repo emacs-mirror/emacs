@@ -1,7 +1,8 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -1460,7 +1461,7 @@ original copy."
 
 (defun rmail-list-to-menu (menu-name l action &optional full-name)
   (let ((menu (make-sparse-keymap menu-name)))
-    (mapcar
+    (mapc
      (function (lambda (item)
 		 (let (command)
 		   (if (consp item)

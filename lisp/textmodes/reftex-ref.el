@@ -665,10 +665,10 @@ When called with 2 C-u prefix args, disable magic word recognition."
       (save-excursion
         (while reftex-buffers-with-changed-invisibility
           (set-buffer (car (car reftex-buffers-with-changed-invisibility)))
-          (setq buffer-invisibility-spec 
+          (setq buffer-invisibility-spec
                 (cdr (pop reftex-buffers-with-changed-invisibility)))))
-      (mapcar (lambda (buf) (and (buffer-live-p buf) (bury-buffer buf)))
-              selection-buffers)
+      (mapc (lambda (buf) (and (buffer-live-p buf) (bury-buffer buf)))
+            selection-buffers)
       (reftex-kill-temporary-buffers))
     ;; Add the prefixes, put together the relevant information in the form
     ;; (LABEL TYPEKEY SEPARATOR) and return a list of those.

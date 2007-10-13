@@ -75,7 +75,7 @@
   "Return RECORD if it matches `eudc-bbdb-current-query', nil otherwise."
   (catch 'unmatch
     (progn
-      (mapcar
+      (mapc
        (function
 	(lambda (condition)
 	  (let ((attr (car condition))
@@ -197,22 +197,22 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
       (if (car query-attrs)
 	  (setq records (eval `(bbdb-search ,(quote records) ,@bbdb-attrs))))
       (setq query-attrs (cdr query-attrs)))
-    (mapcar (function
-	     (lambda (record)
-	       (setq filtered (eudc-filter-duplicate-attributes record))
-	       ;; If there were duplicate attributes reverse the order of the
-	       ;; record so the unique attributes appear first
-	       (if (> (length filtered) 1)
-		   (setq filtered (mapcar (function
-					   (lambda (rec)
-					     (reverse rec)))
-					  filtered)))
-	       (setq result (append result filtered))))
-	    (delq nil
-		  (mapcar 'eudc-bbdb-format-record-as-result
-			  (delq nil
-				(mapcar 'eudc-bbdb-filter-non-matching-record
-					records)))))
+    (mapc (function
+	   (lambda (record)
+	     (setq filtered (eudc-filter-duplicate-attributes record))
+	     ;; If there were duplicate attributes reverse the order of the
+	     ;; record so the unique attributes appear first
+	     (if (> (length filtered) 1)
+		 (setq filtered (mapcar (function
+					 (lambda (rec)
+					   (reverse rec)))
+					filtered)))
+	     (setq result (append result filtered))))
+	  (delq nil
+		(mapcar 'eudc-bbdb-format-record-as-result
+			(delq nil
+			      (mapcar 'eudc-bbdb-filter-non-matching-record
+				      records)))))
     result))
 
 ;;}}}

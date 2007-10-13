@@ -561,6 +561,7 @@ Server mode runs a process that accepts commands from the
                           (server-quote-arg text)))))))))
 
 (defun server-create-tty-frame (tty type proc)
+  (add-to-list 'frame-inherited-parameters 'client)
   (let ((frame
          (server-with-environment (process-get proc 'env)
              '("LANG" "LC_CTYPE" "LC_ALL"
@@ -575,6 +576,16 @@ Server mode runs a process that accepts commands from the
                               ;; Ignore nowait here; we always need to
                               ;; clean up opened ttys when the client dies.
                               `((client . ,proc)
+                                ;; This is a leftover from an earlier
+                                ;; attempt at making it possible for process
+                                ;; run in the server process to use the
+                                ;; environment of the client process.
+                                ;; It has no effect now and to make it work
+                                ;; we'd need to decide how to make
+                                ;; process-environment interact with client
+                                ;; envvars, and then to change the
+                                ;; C functions `child_setup' and
+                                ;; `getenv_internal' accordingly.
                                 (environment . ,(process-get proc 'env)))))))
   
     ;; ttys don't use the `display' parameter, but callproc.c does to set
@@ -594,6 +605,7 @@ Server mode runs a process that accepts commands from the
     frame))
 
 (defun server-create-window-system-frame (display nowait proc)
+  (add-to-list 'frame-inherited-parameters 'client)
   (if (not (fboundp 'make-frame-on-display))
       (progn
         ;; This emacs does not support X.
@@ -606,6 +618,7 @@ Server mode runs a process that accepts commands from the
     ;; `server-save-buffers-kill-terminal' from unexpectedly
     ;; killing emacs on that frame.
     (let* ((params `((client . ,(if nowait 'nowait proc))
+                     ;; This is a leftover, see above.
                      (environment . ,(process-get proc 'env))))
            (frame (make-frame-on-display
                    (or display
@@ -614,9 +627,8 @@ Server mode runs a process that accepts commands from the
                        (error "Please specify display"))
                    params)))
       (server-log (format "%s created" frame) proc)
-      ;; XXX We need to ensure the parameters are
-      ;; really set because Emacs forgets unhandled
-      ;; initialization parameters for X frames at
+      ;; XXX We need to ensure the parameters are really set because Emacs
+      ;; forgets unhandled initialization parameters for X frames at
       ;; the moment.
       (modify-frame-parameters frame params)
       (select-frame frame)

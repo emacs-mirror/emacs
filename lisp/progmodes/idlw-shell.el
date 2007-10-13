@@ -3461,12 +3461,12 @@ breakpoint overlays."
 		line (string-to-number (match-string (nth 2 indmap)))
 		file (idlwave-shell-file-name (match-string (nth 3 indmap))))
 	  (if (eq bp-re bp-re55)
-	      (setq count (if (match-string 10) 1 
+	      (setq count (if (match-string 10) 1
 			    (if (match-string 8)
 				(string-to-number (match-string 8))))
 		    condition (match-string 13)
 		    disabled (not (null (match-string 15)))))
-		    
+
 	  ;; Add the breakpoint info to the list
 	  (nconc idlwave-shell-bp-alist
 		 (list (cons (list file line)
@@ -3476,9 +3476,9 @@ breakpoint overlays."
 			      count nil condition disabled))))))
       (setq idlwave-shell-bp-alist (cdr idlwave-shell-bp-alist))
       ;; Update breakpoint data
-      (if (eq bp-re bp-re54) 
-	  (mapcar 'idlwave-shell-update-bp old-bp-alist)
-	(mapcar 'idlwave-shell-update-bp-command-only old-bp-alist))))
+      (if (eq bp-re bp-re54)
+	  (mapc 'idlwave-shell-update-bp old-bp-alist)
+	(mapc 'idlwave-shell-update-bp-command-only old-bp-alist))))
   ;; Update the breakpoint overlays
   (unless no-show (idlwave-shell-update-bp-overlays))
   ;; Return the new list
@@ -4530,27 +4530,27 @@ idlwave-shell-electric-debug-mode-map)
 
 (if (or (featurep 'easymenu) (load "easymenu" t))
     (progn
-      (easy-menu-define 
+      (easy-menu-define
        idlwave-mode-debug-menu idlwave-mode-map "IDL debugging menus"
        idlwave-shell-menu-def)
       (easy-menu-define
        idlwave-shell-mode-menu idlwave-shell-mode-map "IDL shell menus"
        idlwave-shell-menu-def)
       (save-excursion
-	(mapcar (lambda (buf)
-		  (set-buffer buf)
-		  (if (eq major-mode 'idlwave-mode)
-		      (progn
-			(easy-menu-remove idlwave-mode-debug-menu)
-			(easy-menu-add idlwave-mode-debug-menu))))
-		(buffer-list)))))
+	(mapc (lambda (buf)
+		(set-buffer buf)
+		(if (eq major-mode 'idlwave-mode)
+		    (progn
+		      (easy-menu-remove idlwave-mode-debug-menu)
+		      (easy-menu-add idlwave-mode-debug-menu))))
+	      (buffer-list)))))
 
 ;; The Breakpoint Glyph -------------------------------------------------------
 
 (defvar idlwave-shell-bp-glyph nil
   "The glyphs to mark breakpoint lines in the source code.")
 
-(let ((image-alist 
+(let ((image-alist
        '((bp . "/* XPM */
 static char * file[] = {
 \"14 12 3 1\",

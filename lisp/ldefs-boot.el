@@ -29117,10 +29117,10 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 
 ;;;***
 
-;;;### (autoloads (vc-annotate vc-branch-part vc-trunk-p vc-update-change-log
-;;;;;;  vc-rename-file vc-transfer-file vc-switch-backend vc-update
-;;;;;;  vc-rollback vc-revert vc-print-log vc-retrieve-snapshot vc-create-snapshot
-;;;;;;  vc-directory vc-merge vc-insert-headers vc-version-other-window
+;;;### (autoloads (vc-annotate vc-update-change-log vc-rename-file
+;;;;;;  vc-transfer-file vc-switch-backend vc-rollback vc-update
+;;;;;;  vc-revert vc-print-log vc-retrieve-snapshot vc-create-snapshot
+;;;;;;  vc-directory vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-register vc-next-action vc-do-command edit-vc-file
 ;;;;;;  with-vc-file vc-before-checkin-hook vc-checkin-hook vc-checkout-hook)
 ;;;;;;  "vc" "vc.el" (18190 35214))

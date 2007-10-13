@@ -1,3 +1,310 @@
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman0-rename): Fix paren typo.
+
+	* mail/feedmail.el (feedmail-run-the-queue)
+	(feedmail-look-at-queue-directory):
+	* mail/reporter.el (reporter-dump-state):
+	* net/eudc-hotlist.el (eudc-edit-hotlist):
+	* net/eudc.el (eudc-display-records)
+	(eudc-filter-duplicate-attributes)
+	(eudc-distribute-field-on-records, eudc-query-form)
+	(eudc-process-form):
+	* net/eudcb-bbdb.el (eudc-bbdb-filter-non-matching-record)
+	(eudc-bbdb-query-internal):
+	* net/eudcb-ldap.el (eudc-ldap-simple-query-internal):
+	* net/socks.el (socks-build-auth-list):
+	* progmodes/cc-cmds.el (top level):
+	* progmodes/cc-styles.el (c-make-styles-buffer-local)
+	(c-set-style):
+	* progmodes/cperl-mode.el (top level, cperl-imenu-addback)
+	(cperl-write-tags, cperl-tags-treeify):
+	* progmodes/ebnf-yac.el (ebnf-yac-token-table):
+	* progmodes/ebnf2ps.el (ebnf-map-name, ebnf-dimensions):
+	* progmodes/idlw-shell.el (idlwave-shell-filter-bp, top level):
+	* progmodes/idlw-toolbar.el (idlwave-toolbar-add-everywhere)
+	(idlwave-toolbar-remove-everywhere):
+	* progmodes/idlwave.el (idlwave-indent-line)
+	(idlwave-sintern-keyword-list, idlwave-scan-user-lib-files)
+	(idlwave-write-paths, idlwave-all-method-classes)
+	(idlwave-all-method-keyword-classes, idlwave-entry-keywords)
+	(idlwave-fix-keywords, idlwave-display-calling-sequence):
+	* textmodes/org.el (org-export-as-html, org-export-as-ascii)
+	(org-fast-tag-selection): Use mapc rather than mapcar.
+
+2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-fine-change): Add :group.
+
+2007-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-start.el (all): Use the same test as the 22.2 branch.
+
+2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-current-defun): Force recomputation of
+	change-log-default-name.
+
+2007-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-startup-screen): Remove an unnecessary newline
+	and some leftover logic regarding dedicated frames.  If showing
+	concise startup screen, fit window to buffer.
+	(command-line-1): If we will be using the splash screen, use
+	find-file instead of find-file-other-window to find additional
+	files.  Comment out unused code for coping with the old sit-for
+	behavior.
+
+2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (xterm-function-map, xterm-alternatives-map): Use the
+	`meta' modifier consistently, rather than using sometimes meta
+	sometimes alt.
+
+2007-10-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (handle-select-window): Revert part of 2007-10-08
+	change setting the input focus.
+
+2007-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (command-line): Do not read abbrev file in batch mode.
+
+	* emacs-lisp/byte-opt.el (top level):
+	* mail/rmail.el (rmail-list-to-menu):
+	* obsolete/hilit19.el (hilit-mode):
+	* progmodes/cc-mode.el (c-postprocess-file-styles)
+	(c-submit-bug-report):
+	* textmodes/org-publish.el (org-publish-get-plist-from-filename):
+	* textmodes/reftex.el (reftex-erase-all-selection-and-index-buffers)
+	(reftex-access-parse-file):
+	* textmodes/reftex-cite.el (reftex-do-citation)
+	(reftex-insert-bib-matches):
+	* textmodes/reftex-ref.el (reftex-offer-label-menu):
+	* textmodes/reftex-sel.el (reftex-select-unmark):
+	* textmodes/reftex-toc.el (reftex-toc-do-promote):
+	* vc-mcvs.el (vc-mcvs-checkin): Use mapc rather than mapcar.
+
+	* cus-edit.el (custom-variable-menu, custom-face-menu)
+	(custom-group-menu): Check init-file-user rather than
+	user-init-file, in case cus-edit is loaded by site-run-file.
+
+2007-10-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-deduce-fileset): Delete unused code.
+	(vc-next-action): Fix typos.
+
+2007-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--mark-unmark): New function.
+	(bs-mark-current, bs-unmark-current): Use it.
+
+2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-diff, vc-diff-internal): Bug fixes by Juanma Barranquero.
+	Temporarily disable the check for his edge case, it's calling some
+	brittle code.
+	(with-vc-properties): Fievaluation time of a macro argument.
+
+	* ediff-vers.el (ediff-vc-internal):
+	* vc-hooks.el:
+	* loaddefs.el: Follow up on VC terminology change.
+
+2007-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-stop-intercept-process-output):
+	Use `follow-call-process-filter' rather than `process-filter'.
+	Simplify.
+
+2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el: Address an edge case in vc-diff pointed out by
+	Juanma Barranquero.  This is an experimental fix and may change.
+
+	* vc-hooks.el (vc-registered): Robustify this function a bit
+	against filenames with no directory component.
+
+2007-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/characters.el: Undo unwanted and unexplained change.
+
+2007-10-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Fix the usage of :foreground and :background face
+	attributes.  Reported by Nikolaj Schumacher <n_schumacher@web.de>.
+	(ps-print-version): New version 6.7.6.
+	(ps-face-attributes, ps-face-attribute-list, ps-face-background):
+	Fix code.
+	(ps-face-foreground-color-p, ps-face-background-color-p)
+	(ps-face-color-p): New inline funs.
+
+2007-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-additional-option-like-keywords): New constant.
+	(org-complete): Use `org-additional-option-like-keywords'.
+	(org-parse-local-options): New function.
+
+2007-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-in-clocktable-p): New function.
+	(org-clock-report): Only update the table at point, or insert a
+	new one.
+	(org-clock-goto): New function.
+	(org-open-file): Use `start-process-shell-command' instead of
+	`shell-command' with an ampersand.
+	(org-deadline, org-schedule): New argument REMOVE to remove the
+	date from the entry.
+	(org-agenda-schedule, org-agenda-deadline): Pass the prefix
+	argument to `org-schedule' and `org-deadline'.
+	(org-trim): Use the correct expressions for beginning and end of
+	the string.
+	(org-get-cleaned-entry): Trim the string before returning it.
+	(org-clock-find-position): New function.
+	(org-clock-into-drawer): New option.
+	(org-agenda-tags-column): Rename from
+	`org-agenda-align-tags-to-column'.
+	(org-agenda-align-tags): Allow negative values for
+	`org-agenda-tags-column'.
+	(org-insert-labeled-timestamps-before-properties-drawer): Remove var.
+	(org-agenda-to-appt): New optional argument FILTER.
+	(org-completion-fallback-command): New variable.
+	(org-complete): Use `org-completion-fallback-command'.
+	(org-find-base-buffer-visiting): Catch the case that there is no
+	buffer visiting the file.
+	(org-property-or-variable-value): New function.
+	(org-todo): Use `org-property-or-variable-value'
+	(org-agenda-compact-blocks): New option.
+	(org-prepare-agenda, org-agenda-list): Use `org-agenda-compact-blocks'.
+	(org-agenda-schedule, org-agenda-deadline):
+	Call `org-agenda-show-new-time'.
+	(org-agenda-show-new-time): New argument PREFIX.
+	(org-colgroup-info-to-vline-list): Fix but that cause a
+	shift in the vertical lines.
+	(org-buffer-property-keys): New argument INCLUDE-DEFAULTS.
+	(org-maybe-renumber-ordered-list, org-cycle-list-bullet)
+	(org-indent-item): No arg in call to `org-fix-bullet-type'.
+	(org-fix-bullet-type): Remove argument.
+	(org-read-date): Check for am/pm twice, to catch the end time.
+	(org-goto-map): Use `suppress-keymap'.
+	(org-remember-apply-template): Respect the dynamically scoped
+	selection character.
+
+	* org.texi (Appointment reminders): New section.
+
+2007-10-10  Bastien Guerry  <Bastien.Guerry@ens.fr>
+
+	* org-export-latex.el (org-export-latex-protect-string):
+	Renaming of `org-latex-protect'.
+	(org-export-latex-emphasis-alist): By default, don't protect
+	any emphasis formatter from further conversion.
+	(org-export-latex-tables): Honor column grouping for tables.
+	(org-export-latex-title-command): New option.
+	(org-export-latex-treat-backslash-char): Use \textbackslash{} to
+	export backslash character.
+
+2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (frame-inherited-parameters): Remove unused `environment'
+	parameter, and let server.el add `client' when needed.
+
+	* server.el (server-create-tty-frame)
+	(server-create-window-system-frame): Set frame-inherited-parameters.
+
+	* frame.el (frame-inherited-parameters): New var.
+	(make-frame): Use it.
+
+	* font-lock.el (lisp-font-lock-keywords-2): Remove let-environment.
+
+	* env.el (let-environment): Remove.  Unused.
+	(read-envvar-name): Simplify.
+	(setenv): Remove unused arg `frame'.
+
+	* help-fns.el (describe-variable): Add missing "  " for multiline
+	obsolescence info and missing EOL after global value.
+
+2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* add-log.el:
+	* ediff-vers.el:
+	* log-view.el:
+	* pcvs.el:
+	* vc-arch.el:
+	* vc-bzr.el:
+	* vc-cvs.el:
+	* vc.el:
+	* vc-git.el:
+	* vc-hg.el:
+	* vc-hooks.el:
+	* vc-mcvs.el:
+	* vc-mtn.el:
+	* vc-rcs.el:
+	* vc-sccs.el:
+	* vc-svn.el: Terminology cleanup: workfile-version -> working-revision,
+	{find,init,next,previous,annotate-*,log}-version ->
+	{find,init,next,previous,annotate-*,log}-revision,
+	annotate-focus-version -> annotate-working-revision, The term
+	'focus' is gone.  The term 'revision' is now used consistently
+	everywhere that reference to a revision ID is intended, replacing
+	older use of 'version'.
+
+2007-10-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el: Change all instances of "Follow Mode" to "Follow
+	mode" in docstrings and messages.
+	(follow-menu-filter): Fix arg passed to `bound-and-true-p'.
+
+2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-next-action): Rewrite completely; this principal
+	entry point now operates on a current fileset selected either
+	explicitly via VC-Dired or implicitly by visiting a file buffer,
+	rather than always operating on the file of the current buffer as
+	in older versions.  Rewrite the rest of the mode to match.
+	(with-vc-properties): Rewrite to operate on a file list.
+	(with-vc-file): vc-checkin takes a file list argument now.
+	(vc-post-command-functions): This hook now receives a file list.
+	(vc-do-command): Take a either a file or a file list as argument.
+	(vc-deduce-fileset): New function for deducing a file list to
+	operate on.
+	(vc-next-action-on-file, vc-next-action-dired): Remove.
+	Merge into vc-next-action.
+	(vc-register): Adapt to the fact that vc-start-entry now takes a
+	file list.
+	(vc-register-with): New function.
+	(vc-start-entry): Take a file list argument rather than a
+	file argument.
+	(vc-checkout): Cope with vc-start-entry taking a file list.
+	(vc-steal-lock): Cope with with-vc-properties taking a
+	file list.
+	(vc-checkin): Take a file list argument rather than a file argument.
+	(vc-finish-logentry): Use the filelist passed by vc-start-entry.
+	(vc-diff-internal): Rewrite for filesets.
+	(vc-diff-sentinel): New function, tests whether changes were
+	written into a diff buffer.
+	(vc-diff): Rewrite for filesets.
+	(vc-version-diff): Rewrite for filesets.
+	(vc-print-log): Take a fileset argument.
+	(vc-revert): Revert the entire selected fileset, not just the
+	current buffer.
+	(vc-rollback): Roll back the entire selected fileset, if
+	possible.  No longer accepts a prefix argument.
+	(vc-update): Merge new changes for the entire selected
+	fileset, not just the current buffer.
+	(vc-revert-file): Cope with with-vc-properties taking a file list.
+	(vc-default-dired-state-info): Add + status suffix if the file is
+	modified.
+	(vc-annotate-warp-version): Use the new diff machinery.
+	(vc-log-edit): Take a file list argument rather than a file argument.
+
+2007-10-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.11.
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
+	Pacify byte compiler.
+
+	* net/trampver.el: Update release number.
+
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el: Require easymenu.
@@ -11,7 +318,7 @@
 	(handle-select-window): When autoselecting window set input
 	focus.  Restructure.
 
-	* frame.el (focus-follows-mouse): Moved to frame.c.
+	* frame.el (focus-follows-mouse): Move to frame.c.
 	* cus-start.el (all): Add focus-follows-mouse.
 
 2007-10-08  Juanma Barranquero  <lekktu@gmail.com>
@@ -210,10 +517,10 @@
 
 2007-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* pcvs.el (cvs-mode-add-change-log-entry-other-window): Use
-	add-log-buffer-file-name-function rather than bind buffer-file-name,
-	so we dont end up calling change-log-mode in *cvs* when `fi' is the
-	ChangeLog file itself.
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window):
+	Use add-log-buffer-file-name-function rather than binding
+	buffer-file-name, so we don't end up calling change-log-mode in *cvs*
+	when `fi' is the ChangeLog file itself.
 
 	* outline.el (outline-flag-region): Use front-advance.
 

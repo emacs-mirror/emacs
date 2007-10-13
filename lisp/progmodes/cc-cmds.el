@@ -2595,7 +2595,7 @@ sentence motion in or near comments and multiline strings."
 ;; set up electric character functions to work with pending-del,
 ;; (a.k.a. delsel) mode.  All symbols get the t value except
 ;; the functions which delete, which gets 'supersede.
-(mapcar
+(mapc
  (function
   (lambda (sym)
     (put sym 'delete-selection t)	; for delsel (Emacs)

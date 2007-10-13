@@ -1,15 +1,41 @@
+2007-10-10  Patrick Mahan <mahan@mahan.org>  (tiny change)
+
+	* macfns.c (x_create_tip_frame): Set terminal for frame.
+
+2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Qenvironment): Remove.
+	(syms_of_frame) <Qenvironment>: Don't initialize.
+	(Fdelete_frame): Don't treat the `environment' param specially.
+	* frame.h (Qenvironment): Don't declare.
+	* callproc.c (set_initial_environment): Don't set unused frame param.
+
+	* frame.c (Fframe_with_environment): Remove.
+	(syms_of_frame) <Sframe_with_environment>: Don't declare.
+
+	* lisp.h (Fframe_with_environment): Don't declare.
+
+2007-10-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* indent.c (indent_tabs_mode, last_known_column)
+	(last_known_column_modified): Make static.
+	(syms_of_indent) <indent-tabs-mode>: Remove redundant info in docstring.
+
+2007-10-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1170000.
+
 2007-10-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* keyboard.c (kbd_buffer_get_event): Break loop waiting for input
 	when there's an unread command event.
 
-	* frame.c (focus_follows_mouse): Moved here from frame.el to allow
+	* frame.c (focus_follows_mouse): Move here from frame.el to allow
 	window autoselection act appropriately when leaving selected frame.
 	(syms_of_frame): Initialize focus_follows_mouse.
 	* frame.h (focus_follows_mouse): Extern it.
 	* macterm.c (XTread_socket): When focus_follows_mouse is nil
-	make SELECT_WINDOW_EVENT only if we don't leave the selected
-	frame.
+	make SELECT_WINDOW_EVENT only if we don't leave the selected frame.
 	* msdos.c (dos_rawgetc): Likewise.
 	* w32term.c (w32_read_socket): Likewise.
 	* xterm.c (handle_one_xevent): Likewise.
@@ -39,7 +65,7 @@
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
-	* image.c (our_memory_buffer): Renamed from omfib_buffer.
+	* image.c (our_memory_buffer): Rename from omfib_buffer.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
@@ -82,7 +108,7 @@
 
 2007-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Add new `input-decode-map' keymap and use it for temrinal
+	Add new `input-decode-map' keymap and use it for terminal
 	escape sequences.
 	* keyboard.h (struct kboard): Add Vinput_decode_map.
 	Remove Vlocal_key_translation_map.
@@ -295,8 +321,7 @@
 
 2007-09-22  Eli Zaretskii  <eliz@gnu.org>
 
-	* term.c (DEV_TTY): New macro.  Provide a definition for
-	MS-Windows.
+	* term.c (DEV_TTY): New macro.  Provide a definition for MS-Windows.
 	(FRAME_TERMCAP_P) [WINDOWSNT]: Don't define to zero.
 	(Fcontrolling_tty_p, Fresume_tty, dissociate_if_controlling_tty)
 	(init_tty): Use DEV_TTY instead of "/dev/tty".

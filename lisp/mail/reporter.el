@@ -252,7 +252,7 @@ dumped."
 	      (erase-buffer)
 	      (insert "(setq\n")
 	      (lisp-indent-line)
-	      (mapcar
+	      (mapc
 	       (function
 		(lambda (varsym-or-cons-cell)
 		  (let ((varsym (or (car-safe varsym-or-cons-cell)

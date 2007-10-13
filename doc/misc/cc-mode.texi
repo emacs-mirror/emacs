@@ -208,8 +208,8 @@ license to the document, as described in section 6 of the license.
 @vskip 0pt plus 1filll
 @insertcopying
 
-This manual was generated from $Revision: 1.2 $ of $RCSfile: cc-mode.texi,v $, which can be
-downloaded from
+This manual was generated from cc-mode.texi, which can be downloaded
+from
 @url{http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/doc/misc/cc-mode.texi}.
 @end titlepage
 

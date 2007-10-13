@@ -123,12 +123,12 @@ For a description of possible values, see `vc-check-master-templates'."
       (and vc-consult-headers
            (vc-rcs-consult-headers file)))
   (let ((state
-         ;; vc-workfile-version might not be known; in that case the
+         ;; vc-working-revision might not be known; in that case the
          ;; property is nil.  vc-rcs-fetch-master-state knows how to
          ;; handle that.
          (vc-rcs-fetch-master-state file
                                     (vc-file-getprop file
-                                                     'vc-workfile-version))))
+                                                     'vc-working-revision))))
     (if (not (eq state 'up-to-date))
         state
       (if (vc-workfile-unchanged-p file)
@@ -181,19 +181,19 @@ For a description of possible values, see `vc-check-master-templates'."
                    (vc-rcs-state file))))
         (vc-rcs-state file)))))
 
-(defun vc-rcs-workfile-version (file)
-  "RCS-specific version of `vc-workfile-version'."
+(defun vc-rcs-working-revision (file)
+  "RCS-specific version of `vc-working-revision'."
   (or (and vc-consult-headers
            (vc-rcs-consult-headers file)
-           (vc-file-getprop file 'vc-workfile-version))
+           (vc-file-getprop file 'vc-working-revision))
       (progn
         (vc-rcs-fetch-master-state file)
-        (vc-file-getprop file 'vc-workfile-version))))
+        (vc-file-getprop file 'vc-working-revision))))
 
 (defun vc-rcs-latest-on-branch-p (file &optional version)
   "Return non-nil if workfile version of FILE is the latest on its branch.
 When VERSION is given, perform check for that version."
-  (unless version (setq version (vc-workfile-version file)))
+  (unless version (setq version (vc-working-revision file)))
   (with-temp-buffer
     (string= version
 	     (if (vc-trunk-p version)
@@ -221,7 +221,7 @@ When VERSION is given, perform check for that version."
   "RCS-specific implementation of `vc-workfile-unchanged-p'."
   ;; Try to use rcsdiff --brief.  If rcsdiff does not understand that,
   ;; do a double take and remember the fact for the future
-  (let* ((version (concat "-r" (vc-workfile-version file)))
+  (let* ((version (concat "-r" (vc-working-revision file)))
          (status (if (eq vc-rcsdiff-knows-brief 'no)
                      (vc-do-command nil 1 "rcsdiff" file version)
                    (vc-do-command nil 2 "rcsdiff" file "--brief" version))))
@@ -292,7 +292,7 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
                                (expand-file-name
                                 name
                                 (file-name-directory file))))))
-        (vc-file-setprop file 'vc-workfile-version
+        (vc-file-setprop file 'vc-working-revision
                          (if (re-search-forward
                               "^initial revision: \\([0-9.]+\\).*\n"
                               nil t)
@@ -335,7 +335,7 @@ whether to remove it."
   (let ((switches (vc-switches 'RCS 'checkin)))
     ;; Now operate on the files
     (dolist (file files)
-      (let ((old-version (vc-workfile-version file)) new-version
+      (let ((old-version (vc-working-revision file)) new-version
 	    (default-branch (vc-file-getprop file 'vc-rcs-default-branch)))
 	;; Force branch creation if an appropriate
 	;; default branch has been set.
@@ -353,7 +353,7 @@ whether to remove it."
 	       (concat (if vc-keep-workfiles "-u" "-r") rev)
 	       (concat "-m" comment)
 	       switches)
-	(vc-file-setprop file 'vc-workfile-version nil)
+	(vc-file-setprop file 'vc-working-revision nil)
 
 	;; determine the new workfile version
 	(set-buffer "*vc*")
@@ -363,7 +363,7 @@ whether to remove it."
 		  (re-search-forward
 		   "reverting to previous revision \\([0-9.]+\\)" nil t))
 	  (setq new-version (match-string 1))
-	  (vc-file-setprop file 'vc-workfile-version new-version))
+	  (vc-file-setprop file 'vc-working-revision new-version))
 
 	;; if we got to a different branch, adjust the default
 	;; branch accordingly
@@ -382,7 +382,7 @@ whether to remove it."
 	      (vc-do-command nil 1 "rcs" (vc-name file)
 			     (concat "-u" old-version)))))))))
 
-(defun vc-rcs-find-version (file rev buffer)
+(defun vc-rcs-find-revision (file rev buffer)
   (apply 'vc-do-command
 	 buffer 0 "co" (vc-name file)
 	 "-q" ;; suppress diagnostic output
@@ -421,7 +421,7 @@ whether to remove it."
                    (if (stringp rev)
                        ;; a literal revision was specified
                        (concat "-r" rev)
-                     (let ((workrev (vc-workfile-version file)))
+                     (let ((workrev (vc-working-revision file)))
                        (if workrev
                            (concat "-r"
                                    (if (not rev)
@@ -441,7 +441,7 @@ whether to remove it."
 	    (with-current-buffer "*vc*"
 	      (setq new-version
 		    (vc-parse-buffer "^revision \\([0-9.]+\\).*\n" 1)))
-	    (vc-file-setprop file 'vc-workfile-version new-version)
+	    (vc-file-setprop file 'vc-working-revision new-version)
 	    ;; if necessary, adjust the default branch
 	    (and rev (not (string= rev ""))
 		 (vc-rcs-set-default-branch
@@ -457,7 +457,7 @@ whether to remove it."
   (if (not files)
       (error "RCS backend doesn't support directory-level rollback."))
   (dolist (file files)
-	  (let* ((discard (vc-workfile-version file))
+	  (let* ((discard (vc-working-revision file))
 		 (previous (if (vc-trunk-p discard) "" (vc-branch-part discard)))
 		 (config (current-window-configuration))
 		 (done nil))
@@ -492,7 +492,7 @@ whether to remove it."
   "Revert FILE to the version it was based on."
   (vc-do-command nil 0 "co" (vc-name file) "-f"
                  (concat (if (eq (vc-state file) 'edited) "-u" "-r")
-                         (vc-workfile-version file))))
+                         (vc-working-revision file))))
 
 (defun vc-rcs-merge (file first-version &optional second-version)
   "Merge changes into current working copy of FILE.
@@ -811,11 +811,11 @@ to its master version."
     (or value
 	(vc-branch-part branch))))
 
-(defun vc-rcs-fetch-master-state (file &optional workfile-version)
+(defun vc-rcs-fetch-master-state (file &optional working-revision)
   "Compute the master file's idea of the state of FILE.
 If a WORKFILE-VERSION is given, compute the state of that version,
 otherwise determine the workfile version based on the master file.
-This function sets the properties `vc-workfile-version' and
+This function sets the properties `vc-working-revision' and
 `vc-checkout-model' to their correct values, based on the master
 file."
   (with-temp-buffer
@@ -826,7 +826,7 @@ file."
     (let ((workfile-is-latest nil)
 	  (default-branch (vc-parse-buffer "^branch[ \t\n]+\\([^;]*\\);" 1)))
       (vc-file-setprop file 'vc-rcs-default-branch default-branch)
-      (unless workfile-version
+      (unless working-revision
 	;; Workfile version not known yet.  Determine that first.  It
 	;; is either the head of the trunk, the head of the default
 	;; branch, or the "default branch" itself, if that is a full
@@ -834,19 +834,19 @@ file."
 	(cond
 	 ;; no default branch
 	 ((or (not default-branch) (string= "" default-branch))
-	  (setq workfile-version
+	  (setq working-revision
 		(vc-parse-buffer "^head[ \t\n]+\\([^;]+\\);" 1))
 	  (setq workfile-is-latest t))
 	 ;; default branch is actually a revision
 	 ((string-match "^[0-9]+\\.[0-9]+\\(\\.[0-9]+\\.[0-9]+\\)*$"
 			default-branch)
-	  (setq workfile-version default-branch))
+	  (setq working-revision default-branch))
 	 ;; else, search for the head of the default branch
 	 (t (vc-insert-file (vc-name file) "^desc")
-	    (setq workfile-version
+	    (setq working-revision
 		  (vc-rcs-find-most-recent-rev default-branch))
 	    (setq workfile-is-latest t)))
-	(vc-file-setprop file 'vc-workfile-version workfile-version))
+	(vc-file-setprop file 'vc-working-revision working-revision))
       ;; Check strict locking
       (goto-char (point-min))
       (vc-file-setprop file 'vc-checkout-model
@@ -856,14 +856,14 @@ file."
       (goto-char (point-min))
       (let ((locking-user
 	     (vc-parse-buffer (concat "^locks[ \t\n]+[^;]*[ \t\n]+\\([^:]+\\):"
-				      (regexp-quote workfile-version)
+				      (regexp-quote working-revision)
 				      "[^0-9.]")
 			      1)))
 	(cond
 	 ;; not locked
 	 ((not locking-user)
           (if (or workfile-is-latest
-                  (vc-rcs-latest-on-branch-p file workfile-version))
+                  (vc-rcs-latest-on-branch-p file working-revision))
               ;; workfile version is latest on branch
               'up-to-date
             ;; workfile version is not latest on branch
@@ -873,7 +873,7 @@ file."
 	       (string= locking-user (vc-user-login-name file)))
 	  (if (or (eq (vc-checkout-model file) 'locking)
 		  workfile-is-latest
-		  (vc-rcs-latest-on-branch-p file workfile-version))
+		  (vc-rcs-latest-on-branch-p file working-revision))
 	      'edited
 	    ;; Locking is not used for the file, but the owner does
 	    ;; have a lock, and there is a higher version on the current
@@ -954,7 +954,7 @@ Returns: nil            if no headers were found
        ;; else: nothing found
        ;; -------------------
        (t nil)))
-     (if status (vc-file-setprop file 'vc-workfile-version version))
+     (if status (vc-file-setprop file 'vc-working-revision version))
      (and (eq status 'rev-and-lock)
 	  (vc-file-setprop file 'vc-state
 			   (cond

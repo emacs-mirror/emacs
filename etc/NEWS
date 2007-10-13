@@ -107,6 +107,8 @@ file or directory.
 This is a convenience alias, so that one can write `(pop argv)'
 inside of --eval command line arguments in order to access
 following arguments.
+
+** The abbrev file is no longer read at startup in batch mode.
 
 * Incompatible Editing Changes in Emacs 23.1
 
@@ -172,6 +174,11 @@ with the face `eldoc-highlight-function-argument'.
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
 
 *** VC now supports applying VC operations to a set of files at a time.
+
+This enables VC to work much more effectively with changeset-oriented
+version-control systems such as Subversion, GNU Arch, Mercurial, and
+Bzr. VC will now pass a multiple-file commit to these systems
+as a single changeset.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
@@ -257,6 +264,8 @@ supported on other platforms, but not on Windows due to using the winsock
 
 * Lisp Changes in Emacs 23.1
 
+** `frame-inherited-parameters' lets new frames inherit parameters from
+the selected frame.
 ** New keymap `input-decode-map' overrides like key-translation-map, but
 applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
@@ -292,10 +301,13 @@ are called after a tty frame has been suspended or resumed,
 respectively.  The functions are called with the terminal id of the frame
 being suspended/resumed as a parameter.
 
-*** New functions: `environment', `let-environment'.
+*** New function: `environment'.
 
 *** New variable: `local-function-key-map'.
-This in addition to the global function-key-map variable that already existed.
+This in addition to the global function-key-map variable that
+already existed.  The global variable is not used directly any more;
+instead, the local-function-key-map is initialized so as to inherit from
+function-key-map.
 
 *** `initial-environment' holds the environment inherited from Emacs's parent.
 

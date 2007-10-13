@@ -47,15 +47,14 @@ Optional second arg MUSTMATCH, if non-nil, means require existing envvar name.
 If it is also not t, RET does not exit if it does non-null completion."
   (completing-read prompt
 		   (mapcar (lambda (enventry)
-			     (list (if enable-multibyte-characters
-				       (decode-coding-string
-					(substring enventry 0
-						   (string-match "=" enventry))
-					locale-coding-system t)
-				     (substring enventry 0
-						(string-match "=" enventry)))))
+                             (let ((str (substring enventry 0
+                                             (string-match "=" enventry))))
+                               (if (multibyte-string-p str)
+                                   (decode-coding-string
+                                    str locale-coding-system t)
+                                 str)))
 			   (append process-environment
-				   nil ;;(frame-parameter (frame-with-environment) 'environment)
+				   ;;(frame-environment)
 				   ))
 		   nil mustmatch nil 'read-envvar-name-history))
 
@@ -128,7 +127,7 @@ Changes ENV by side-effect, and returns its new value."
 
 ;; Fixme: Should the environment be recoded if LC_CTYPE &c is set?
 
-(defun setenv (variable &optional value substitute-env-vars frame)
+(defun setenv (variable &optional value substitute-env-vars)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or
 nil, the environment variable VARIABLE will be removed.
@@ -143,18 +142,10 @@ SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
 variables in VALUE with `substitute-env-vars', which see.
 This is normally used only for interactive calls.
 
-If optional parameter FRAME is non-nil, this function modifies
-only the frame-local value of VARIABLE on FRAME, ignoring
-`process-environment'.  Note that frames on the same terminal
-device usually share their environment, so calling `setenv' on
-one of them affects the others as well.
-
-If FRAME is nil, `setenv' changes the global value of VARIABLE by
-modifying `process-environment'.  Note that the global value
-overrides any frame-local values.
-
 The return value is the new value of VARIABLE, or nil if
 it was removed from the environment.
+
+This function works by modifying `process-environment'.
 
 As a special case, setting variable `TZ' calls `set-time-zone-rule' as
 a side-effect."
@@ -188,12 +179,8 @@ a side-effect."
       (error "Environment variable name `%s' contains `='" variable))
   (if (string-equal "TZ" variable)
       (set-time-zone-rule value))
-  (if (null frame)
-      (setq process-environment (setenv-internal process-environment
-						 variable value t))
-    (setq frame (frame-with-environment frame))
-    (setq process-environment (setenv-internal process-environment
-                                               variable value nil)))
+  (setq process-environment (setenv-internal process-environment
+                                             variable value t))
   value)
 
 (defun getenv (variable &optional frame)
@@ -238,8 +225,7 @@ Non-ASCII characters are encoded according to the initial value of
 `locale-coding-system', i.e. the elements must normally be decoded for use.
 See `setenv' and `getenv'."
   (let* ((env (append process-environment
-;; 		      (frame-parameter (frame-with-environment frame)
-;; 				       'environment)
+                      ;; (frame-environment frame)
 		      nil))
 	 (scan env)
 	 prev seen)
@@ -268,45 +254,6 @@ See `setenv' and `getenv'."
 	(setq prev scan
 	      scan (cdr scan))))
     env))
-
-(defmacro let-environment (varlist &rest body)
-  "Evaluate BODY with environment variables set according to VARLIST.
-The environment variables are then restored to their previous
-values.
-The value of the last form in BODY is returned.
-
-Each element of VARLIST is either a string (which variable is
-then removed from the environment), or a list (NAME
-VALUEFORM) (which sets NAME to the value of VALUEFORM, a string).
-All the VALUEFORMs are evaluated before any variables are set."
-  (declare (indent 2))
-  (let ((old-env (make-symbol "old-env"))
-	(name (make-symbol "name"))
-	(value (make-symbol "value"))
-	(entry (make-symbol "entry"))
-	(frame (make-symbol "frame")))
-    `(let ((,frame (selected-frame))
-	    ,old-env)
-       ;; Evaluate VALUEFORMs and replace them in VARLIST with their values.
-       (dolist (,entry ,varlist)
-	 (unless (stringp ,entry)
-	   (if (cdr (cdr ,entry))
-	       (error "`let-environment' bindings can have only one value-form"))
-	   (setcdr ,entry (eval (cadr ,entry)))))
-       ;; Set the variables.
-       (dolist (,entry ,varlist)
-	 (let ((,name (if (stringp ,entry) ,entry (car ,entry)))
-	       (,value (if (consp ,entry) (cdr ,entry))))
-	   (setq ,old-env (cons (cons ,name (getenv ,name)) ,old-env))
-	   (setenv ,name ,value)))
-       (unwind-protect
-	   (progn ,@body)
-	 ;; Restore old values.
-	 (with-selected-frame (if (frame-live-p ,frame)
-				  ,frame
-				(selected-frame))
-	   (dolist (,entry ,old-env)
-	     (setenv (car ,entry) (cdr ,entry))))))))
 
 (provide 'env)
 

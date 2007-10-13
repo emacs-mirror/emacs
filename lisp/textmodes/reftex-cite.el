@@ -702,26 +702,26 @@ While entering the regexp, completion on knows citation keys is possible.
         (delete-char 1))
 
       ;; Tell AUCTeX
-      (when (and reftex-mode 
+      (when (and reftex-mode
                  (fboundp 'LaTeX-add-bibitems)
                  reftex-plug-into-AUCTeX)
         (apply 'LaTeX-add-bibitems (mapcar 'car selected-entries)))
-      
+
       ;; Produce the cite-view strings
       (when (and reftex-mode reftex-cache-cite-echo cite-view)
-        (mapcar (lambda (entry) 
-                  (reftex-make-cite-echo-string entry docstruct-symbol))
-                selected-entries))
+        (mapc (lambda (entry)
+                (reftex-make-cite-echo-string entry docstruct-symbol))
+              selected-entries))
 
       (message ""))
 
     (set-marker reftex-select-return-marker nil)
     (reftex-kill-buffer "*RefTeX Select*")
-    
+
     ;; Check if the prefix arg was numeric, and call recursively
     (when (integerp arg)
       (if (> arg 1)
-          (progn      
+          (progn
             (skip-chars-backward "}")
             (decf arg)
             (reftex-do-citation arg))
@@ -954,7 +954,7 @@ While entering the regexp, completion on knows citation keys is possible.
              reftex-mouse-selected-face
            nil))
         tmp len)
-    (mapcar 
+    (mapc
      (lambda (x)
        (setq tmp (cdr (assoc "&formatted" x))
              len (length tmp))

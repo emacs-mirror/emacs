@@ -975,24 +975,24 @@ the entire buffer is forced."
 	(progn
 
 	  ;; BUFFER highlights...
-	  (mapcar (lambda (hook)
-		    (if hilit-mode
-			(add-hook hook 'hilit-rehighlight-buffer-quietly)
-		      (remove-hook hook 'hilit-rehighlight-buffer-quietly)))
-		  '(
-		    Info-selection-hook
+	  (mapc (lambda (hook)
+		  (if hilit-mode
+		      (add-hook hook 'hilit-rehighlight-buffer-quietly)
+		    (remove-hook hook 'hilit-rehighlight-buffer-quietly)))
+		'(
+		  Info-selection-hook
 
-		    ;; runs too early		     vm-summary-mode-hooks
-		    vm-summary-pointer-hook
-		    vm-preview-message-hook
-		    vm-show-message-hook
+		  ;; runs too early		     vm-summary-mode-hooks
+		  vm-summary-pointer-hook
+		  vm-preview-message-hook
+		  vm-show-message-hook
 
-		    rmail-show-message-hook
-		    mail-setup-hook
-		    mh-show-mode-hook
+		  rmail-show-message-hook
+		  mail-setup-hook
+		  mh-show-mode-hook
 
-		    dired-after-readin-hook
-		    ))
+		  dired-after-readin-hook
+		  ))
 	  )
       (error (message "Error loading highlight hooks: %s" c)
 	     (ding) (sit-for 1)))))

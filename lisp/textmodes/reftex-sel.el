@@ -643,12 +643,12 @@ Useful for large TOC's."
     (and ovl (reftex-delete-overlay ovl))
     (setq reftex-select-marked (delq cell reftex-select-marked))
     (setq cnt (1+ (length reftex-select-marked)))
-    (mapcar (lambda (c)
-              (setq sep (nth 2 c))
-              (reftex-overlay-put (nth 1 c) 'before-string
-                                  (if sep
-                                      (format "*%c%d* " sep (decf cnt))
-                                    (format "*%d*  " (decf cnt)))))
+    (mapc (lambda (c)
+            (setq sep (nth 2 c))
+            (reftex-overlay-put (nth 1 c) 'before-string
+                                (if sep
+                                    (format "*%c%d* " sep (decf cnt))
+                                  (format "*%d*  " (decf cnt)))))
             reftex-select-marked)
     (message "Entry no longer marked")))
 

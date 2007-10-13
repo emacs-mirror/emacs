@@ -1,3 +1,7 @@
+2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* NEWS: Explain the VC fileset changes a bit better.
+
 2007-09-28  Glenn Morris  <rgm@gnu.org>
 
 	* PROBLEMS: Mention Tex superscript font issue.

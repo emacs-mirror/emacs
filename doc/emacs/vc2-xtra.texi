@@ -6,17 +6,24 @@
 @c printed version) or in the main Emacs manual (for the on-line version).
 @node Remote Repositories
 @subsection Remote Repositories
-@cindex remote repositories (CVS)
+@cindex remote repositories
 
-  A common way of using CVS is to set up a central CVS repository on
-some Internet host, then have each developer check out a personal
-working copy of the files on his local machine.  Committing changes to
-the repository, and picking up changes from other users into one's own
-working area, then works by direct interactions with the CVS server.
+  A common way of using CVS and other more advanced VCSes is to set up
+a central repository on some Internet host, then have each
+developer check out a personal working copy of the files on his local
+machine.  Committing changes to the repository, and picking up changes
+from other users into one's own working area, then works by direct
+interactions with the repository server.
 
-  One difficulty is that access to the CVS server is often slow, and
-that developers might need to work off-line as well.  VC is designed
-to reduce the amount of network interaction necessary.
+  One difficulty is that access to a repository server is often slow,
+and that developers might need to work off-line as well.  While only
+third-generation decentralized VCses such as GNU Arch or Mercurial
+really solve this problem, VC is designed to reduce the amount of
+network interaction necessary.
+
+  If you are using a truly decentralized VCS you can skip the rest of
+this section. It describes backup and local-repository techniques
+that are only useful for Subversion and earlier VCSes.
 
 @menu
 * Version Backups::        Keeping local copies of repository versions.
@@ -28,7 +35,7 @@ to reduce the amount of network interaction necessary.
 @cindex version backups
 
 @cindex automatic version backups
-  When VC sees that the CVS repository for a file is on a remote
+  When VC sees that the repository for a file is on a remote
 machine, it automatically makes local backups of unmodified versions
 of the file---@dfn{automatic version backups}.  This means that you
 can compare the file to the repository version (@kbd{C-x v =}), or
@@ -47,7 +54,7 @@ as ordinary Emacs backup files
 @end ifnottex
 But they follow a similar naming convention.
 
-  For a file that comes from a remote CVS repository, VC makes a
+  For a file that comes from a remote repository, VC makes a
 version backup whenever you save the first changes to the file, and
 removes it after you have committed your modified version to the
 repository. You can disable the making of automatic version backups by
@@ -58,10 +65,10 @@ setting @code{vc-cvs-stay-local} to @code{nil} (@pxref{CVS Options}).
 of file @var{file} is @code{@var{file}.~@var{version}.~}.  This is
 almost the same as the name used by @kbd{C-x v ~}
 @iftex
-(@pxref{Old Versions,,,emacs, the Emacs Manual}),
+(@pxref{Old Revisions,,,emacs, the Emacs Manual}),
 @end iftex
 @ifnottex
-(@pxref{Old Versions}),
+(@pxref{Old Revisions}),
 @end ifnottex
 the only difference being the additional dot (@samp{.})  after the
 version number.  This similarity is intentional, because both kinds of
@@ -244,10 +251,10 @@ you need not hesitate to create snapshots whenever they are useful.
   You can give a snapshot name as an argument to @kbd{C-x v =} or
 @kbd{C-x v ~}
 @iftex
-(@pxref{Old Versions,,,emacs, the Emacs Manual}).
+(@pxref{Old Revisions,,,emacs, the Emacs Manual}).
 @end iftex
 @ifnottex
-(@pxref{Old Versions}).
+(@pxref{Old Revisions}).
 @end ifnottex
 Thus, you can use it to compare a snapshot against the current files,
 or two snapshots against each other, or a snapshot against a named

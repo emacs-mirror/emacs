@@ -238,7 +238,7 @@ If any error occurred in running `bzr status', then return nil."
 (defun vc-bzr-workfile-unchanged-p (file)
   (eq 'unchanged (car (vc-bzr-status file))))
 
-(defun vc-bzr-workfile-version (file)
+(defun vc-bzr-working-revision (file)
   (lexical-let*
       ((rootdir (vc-bzr-root file))
        (branch-format-file (expand-file-name vc-bzr-admin-branch-format-file
@@ -284,7 +284,7 @@ If any error occurred in running `bzr status', then return nil."
   "Register FILE under bzr.
 Signal an error unless REV is nil.
 COMMENT is ignored."
-  (if rev (error "Can't register explicit version with bzr"))
+  (if rev (error "Can't register explicit revision with bzr"))
   (vc-bzr-command "add" nil 0 files))
 
 ;; Could run `bzr status' in the directory and see if it succeeds, but
@@ -313,7 +313,7 @@ or a superior directory.")
 (defun vc-bzr-checkin (files rev comment)
   "Check FILE in to bzr with log message COMMENT.
 REV non-nil gets an error."
-  (if rev (error "Can't check in a specific version with bzr"))
+  (if rev (error "Can't check in a specific revision with bzr"))
   (vc-bzr-command "commit" nil 0 files "-m" comment))
 
 (defun vc-bzr-checkout (file &optional editable rev destfile)
@@ -365,11 +365,11 @@ EDITABLE is ignored."
   (unless (fboundp 'vc-default-log-view-mode)
     (add-hook 'log-view-mode-hook 'vc-bzr-log-view-mode)))
 
-(defun vc-bzr-show-log-entry (version)
-  "Find entry for patch name VERSION in bzr change log buffer."
+(defun vc-bzr-show-log-entry (revision)
+  "Find entry for patch name REVISION in bzr change log buffer."
   (goto-char (point-min))
   (let (case-fold-search)
-    (if (re-search-forward (concat "^-+\nrevno: " version "$") nil t)
+    (if (re-search-forward (concat "^-+\nrevno: " revision "$") nil t)
         (beginning-of-line 0)
       (goto-char (point-min)))))
 
@@ -377,7 +377,7 @@ EDITABLE is ignored."
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  (let ((working (vc-workfile-version (if (consp files) (car files) files))))
+  (let ((working (vc-working-revision (if (consp files) (car files) files))))
     (if (and (equal rev1 working) (not rev2))
         (setq rev1 nil))
     (if (and (not rev1) rev2)
@@ -394,8 +394,8 @@ EDITABLE is ignored."
 (defalias 'vc-bzr-diff-tree 'vc-bzr-diff)
 
 
-;; FIXME: vc-{next,previous}-version need fixing in vc.el to deal with
-;; straight integer versions.
+;; FIXME: vc-{next,previous}-revision need fixing in vc.el to deal with
+;; straight integer revisions.
 
 (defun vc-bzr-delete-file (file)
   "Delete FILE and delete it in the bzr repository."
@@ -412,12 +412,12 @@ EDITABLE is ignored."
   "Internal use.")
 (make-variable-buffer-local 'vc-bzr-annotation-table)
 
-(defun vc-bzr-annotate-command (file buffer &optional version)
+(defun vc-bzr-annotate-command (file buffer &optional revision)
   "Prepare BUFFER for `vc-annotate' on FILE.
 Each line is tagged with the revision number, which has a `help-echo'
 property containing author and date information."
   (apply #'vc-bzr-command "annotate" buffer 0 file "--long" "--all"
-         (if version (list "-r" version)))
+         (if revision (list "-r" revision)))
   (with-current-buffer buffer
     ;; Store the tags for the annotated source lines in a hash table
     ;; to allow saving space by sharing the text properties.
@@ -546,7 +546,7 @@ Optional argument LOCALP is always ignored."
               (vc-file-setprop file 'vc-state current-vc-state)
               (vc-file-setprop file 'vc-bzr-state current-bzr-state)
               (when (eq 'added current-bzr-state)
-                (vc-file-setprop file 'vc-workfile-version "0"))))
+                (vc-file-setprop file 'vc-working-revision "0"))))
           (when (eq 'not-versioned current-bzr-state)
             (let ((file (expand-file-name
                          (buffer-substring-no-properties

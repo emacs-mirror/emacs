@@ -875,6 +875,10 @@ opening the first frame (e.g. open a connection to an X server).")
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
+    ;; Note that user-init-file is nil at this point.  Code that might
+    ;; be loaded from site-run-file and wants to test if -q was given
+    ;; should check init-file-user instead, since that is already set.
+    ;; See cus-edit.el for an example.
     (if site-run-file
 	(load site-run-file t t))
 
@@ -1014,11 +1018,9 @@ opening the first frame (e.g. open a connection to an X server).")
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
-	;; If the user has a file of abbrevs, read it.
-        ;; FIXME: after the 22.0 release this should be changed so
-	;; that it does not read the abbrev file when -batch is used
-	;; on the command line.
-	(when (and (file-exists-p abbrev-file-name)
+	;; If the user has a file of abbrevs, read it (unless -batch).
+	(when (and (not noninteractive)
+		   (file-exists-p abbrev-file-name)
 		   (file-readable-p abbrev-file-name))
 	    (quietly-read-abbrev-file abbrev-file-name))
 
@@ -1449,7 +1451,7 @@ a face or button specification."
 
     (when concise
       (fancy-splash-insert
-       :face 'variable-pitch "\n\n"
+       :face 'variable-pitch "\n"
        :link '("Dismiss" (lambda (button)
 			   (when startup-screen-inhibit-startup-screen
 			     (customize-set-variable 'inhibit-startup-screen t)
@@ -1489,34 +1491,39 @@ a face or button specification."
   "Display fancy startup screen.
 If CONCISE is non-nil, display a concise version of the
 splash screen in another window."
-  (with-current-buffer (get-buffer-create "*GNU Emacs*")
-    (let ((inhibit-read-only t))
-      (erase-buffer)
-      (make-local-variable 'startup-screen-inhibit-startup-screen)
-      (if pure-space-overflow
-	  (insert pure-space-overflow-message))
-      (unless concise
-	(fancy-splash-head))
-      (dolist (text fancy-startup-text)
-	(apply #'fancy-splash-insert text)
-	(insert "\n"))
-      (skip-chars-backward "\n")
-      (delete-region (point) (point-max))
-      (insert "\n")
-      (fancy-startup-tail concise))
-    (use-local-map splash-screen-keymap)
-    (setq tab-width 22)
-    (set-buffer-modified-p nil)
-    (setq buffer-read-only t)
-    (if (and view-read-only (not view-mode))
-	(view-mode-enter nil 'kill-buffer))
-    (goto-char (point-min)))
-  (if (or (window-minibuffer-p)
-	  (window-dedicated-p (selected-window)))
-      (pop-to-buffer (current-buffer)))
-  (if concise
-      (display-buffer (get-buffer "*GNU Emacs*"))
-    (switch-to-buffer "*GNU Emacs*")))
+  (let ((splash-buffer (get-buffer-create "*GNU Emacs*")))
+    (with-current-buffer splash-buffer 
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(make-local-variable 'startup-screen-inhibit-startup-screen)
+	(if pure-space-overflow
+	    (insert pure-space-overflow-message))
+	(unless concise
+	  (fancy-splash-head))
+	(dolist (text fancy-startup-text)
+	  (apply #'fancy-splash-insert text)
+	  (insert "\n"))
+	(skip-chars-backward "\n")
+	(delete-region (point) (point-max))
+	(insert "\n")
+	(fancy-startup-tail concise))
+      (use-local-map splash-screen-keymap)
+      (setq tab-width 22
+	    buffer-read-only t)
+      (set-buffer-modified-p nil)
+      (if (and view-read-only (not view-mode))
+	  (view-mode-enter nil 'kill-buffer))
+      (goto-char (point-max)))
+    (if concise
+	(progn
+	  (display-buffer splash-buffer)
+	  ;; If the splash screen is in a split window, fit it.
+	  (let ((window (get-buffer-window splash-buffer t)))
+	    (or (null window)
+		(eq window (selected-window))
+		(eq window (next-window window))
+		(fit-window-to-buffer window))))
+      (switch-to-buffer splash-buffer))))
 
 (defun fancy-about-screen ()
   "Display fancy About screen."
@@ -2149,9 +2156,11 @@ A fancy display is used on graphic displays, normal otherwise."
 				  (expand-file-name
 				   (command-line-normalize-file-name orig-argi)
 				   dir)))
-			     (if (= file-count 1)
-				 (setq first-file-buffer (find-file file))
-			       (find-file-other-window file)))
+			     (cond ((= file-count 1)
+				    (setq first-file-buffer (find-file file)))
+				   (inhibit-startup-screen
+				    (find-file-other-window file))
+				   (t (find-file file))))
 			   (or (zerop line)
 			       (goto-line line))
 			   (setq line 0)
@@ -2208,12 +2217,12 @@ A fancy display is used on graphic displays, normal otherwise."
 	;; Don't let the hook be run twice.
 	(setq window-setup-hook nil))
 
-      ;; Do this now to avoid an annoying delay if the user
-      ;; clicks the menu bar during the sit-for.
-      (when (display-popup-menus-p)
-	(precompute-menubar-bindings))
-      (with-no-warnings
-	(setq menubar-bindings-done t))
+      ;; ;; Do this now to avoid an annoying delay if the user
+      ;; ;; clicks the menu bar during the sit-for.
+      ;; (when (display-popup-menus-p)
+      ;; 	(precompute-menubar-bindings))
+      ;; (with-no-warnings
+      ;; 	(setq menubar-bindings-done t))
 
       ;; If *scratch* exists and is empty, insert initial-scratch-message.
       (and initial-scratch-message

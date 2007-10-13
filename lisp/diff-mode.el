@@ -1578,6 +1578,10 @@ then `diff-jump-to-old-file' is also set, for the next invocations."
 (defun diff-current-defun ()
   "Find the name of function at point.
 For use in `add-log-current-defun-function'."
+  ;; Kill change-log-default-name so it gets recomputed each time, since
+  ;; each hunk may belong to another file which may belong to another
+  ;; directory and hence have a different ChangeLog file.
+  (kill-local-variable 'change-log-default-name)
   (save-excursion
     (when (looking-at diff-hunk-header-re)
       (forward-line 1)
@@ -1649,7 +1653,8 @@ For use in `add-log-current-defun-function'."
 
 (defface diff-fine-change
   '((t :background "yellow"))
-  "Face used for char-based changes shown by `diff-fine-highlight'.")
+  "Face used for char-based changes shown by `diff-fine-highlight'."
+  :group 'diff-mode)
 
 (defun diff-fine-highlight-preproc ()
   (while (re-search-forward "^." nil t)

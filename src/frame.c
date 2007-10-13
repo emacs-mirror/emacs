@@ -114,7 +114,6 @@ Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 Lisp_Object Qwindow_system;
-Lisp_Object Qenvironment;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 #ifdef USE_FONT_BACKEND
@@ -1479,24 +1478,6 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (EQ (f->minibuffer_window, echo_area_window))
     echo_area_window = sf->minibuffer_window;
 
-  /* Don't allow other frames to refer to a deleted frame in their
-     'environment parameter.  */
-  {
-    Lisp_Object tail, frame1;
-    Lisp_Object env = get_frame_param (XFRAME (frame), Qenvironment);
-    FOR_EACH_FRAME (tail, frame1)
-      {
-        if (EQ (frame, frame1) || !FRAME_LIVE_P (XFRAME (frame1)))
-          continue;
-        if (EQ (frame, get_frame_param (XFRAME (frame1), Qenvironment)))
-          {
-            store_frame_param (XFRAME (frame1), Qenvironment, env);
-            if (!FRAMEP (env))
-              env = frame1;
-          }
-      }
-  }
-  
   /* Clear any X selections for this frame.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
@@ -2618,43 +2599,6 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
     }
   return Qnil;
 }
-
-DEFUN ("frame-with-environment", Fframe_with_environment, Sframe_with_environment, 0, 1, 0,
-       doc: /* Return the frame that has the environment variable list for FRAME.
-
-The frame-local environment variable list is normally shared between
-frames that were created in the same Emacsclient session.  The
-environment list is stored in a single frame's 'environment parameter;
-the other frames' 'environment parameter is set to this frame.  This
-function follows the chain of 'environment references to reach the
-frame that stores the actual local environment list, and returns that
-frame.  */)
-     (frame)
-     Lisp_Object frame;
-{
-  Lisp_Object hare, tortoise;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_FRAME (frame);
-
-  hare = tortoise = get_frame_param (XFRAME (frame), Qenvironment);
-  while (!NILP (hare) && FRAMEP (hare))
-    {
-      frame = hare;
-      hare = get_frame_param (XFRAME (hare), Qenvironment);
-      if (NILP (hare) || !FRAMEP (hare))
-        break;
-      frame = hare;
-      hare = get_frame_param (XFRAME (hare), Qenvironment);
-      tortoise = get_frame_param (XFRAME (tortoise), Qenvironment);
-      if (EQ (hare, tortoise))
-        error ("Cyclic frame-local environment indirection");
-    }
-
-  return frame;
-}
-
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
        0, 1, 0,
@@ -4455,8 +4399,6 @@ syms_of_frame ()
   staticpro (&Qtty_type);
   Qwindow_system = intern ("window-system");
   staticpro (&Qwindow_system);
-  Qenvironment = intern ("environment");
-  staticpro (&Qenvironment);
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
@@ -4656,7 +4598,6 @@ automatically.  */);
   defsubr (&Sframe_parameters);
   defsubr (&Sframe_parameter);
   defsubr (&Smodify_frame_parameters);
-  defsubr (&Sframe_with_environment);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);
   defsubr (&Sframe_pixel_height);

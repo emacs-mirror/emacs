@@ -381,11 +381,11 @@ a null operation."
       ;; fallback entry.
       (setq c-special-indent-hook
 	    (default-value 'c-special-indent-hook)))
-    (mapcar (lambda (elem)
-	      (c-set-style-1 elem dont-override))
-	    ;; Need to go through the variables backwards when we
-	    ;; don't override any settings.
-	    (if (eq dont-override t) (nreverse vars) vars)))
+    (mapc (lambda (elem)
+	    (c-set-style-1 elem dont-override))
+	  ;; Need to go through the variables backwards when we
+	  ;; don't override any settings.
+	  (if (eq dont-override t) (nreverse vars) vars)))
   (setq c-indentation-style stylename)
   (c-keep-region-active))
 
@@ -636,7 +636,7 @@ any reason to call this function directly."
 		'make-variable-buffer-local))
 	(varsyms (cons 'c-indentation-style (copy-alist c-style-variables))))
     (delq 'c-special-indent-hook varsyms)
-    (mapcar func varsyms)
+    (mapc func varsyms)
     ;; Hooks must be handled specially
     (if this-buf-only-p
 	(make-local-hook 'c-special-indent-hook)

@@ -460,7 +460,7 @@ Version Control
 * Introduction to VC::  How version control works in general.
 * VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
-* Old Versions::        Examining and comparing old versions.
+* Old Revisions::       Examining and comparing old revisions of files.
 * Secondary VC Commands:: The commands used a little less frequently.
 * Branches::            Multiple lines of development.
 * Remote Repositories:: Efficient access to remote CVS servers.

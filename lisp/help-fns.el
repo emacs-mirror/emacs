@@ -565,7 +565,8 @@ it is displayed along with the global value."
 		      ;; See previous comment for this function.
 		      ;; (help-xref-on-pp from (point))
 		      (if (< (point) (+ from 20))
-			  (delete-region (1- from) from)))))))
+			  (delete-region (1- from) from))))))
+              (terpri))
 
 	    ;; If the value is large, move it to the end.
 	    (with-current-buffer standard-output
@@ -617,7 +618,7 @@ it is displayed along with the global value."
                 (setq extra-line t)
                 (princ "  This variable is obsolete")
                 (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
-                (princ ";") (terpri)
+                (princ ";\n  ")
                 (princ (if (stringp (car obsolete)) (car obsolete)
                          (format "use `%s' instead." (car obsolete))))
                 (terpri))

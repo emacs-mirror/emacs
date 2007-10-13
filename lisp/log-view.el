@@ -76,7 +76,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
-(autoload 'vc-find-version "vc")
+(autoload 'vc-find-revision "vc")
 (autoload 'vc-version-diff "vc")
 
 (defvar cvs-minor-wrap-function)
@@ -93,7 +93,7 @@
     ;; ("e" . cvs-mode-edit-log)
     ("d" . log-view-diff)
     ("a" . log-view-annotate-version)
-    ("f" . log-view-find-version)
+    ("f" . log-view-find-revision)
     ("n" . log-view-msg-next)
     ("p" . log-view-msg-prev)
     ("\t" . log-view-msg-next)
@@ -116,7 +116,7 @@
     ;; ["Kill This Buffer"  kill-this-buffer]
     ["Mark Log Entry for Diff"  set-mark-command]
     ["Diff Revisions"  log-view-diff]
-    ["Visit Version"  log-view-find-version]
+    ["Visit Version"  log-view-find-revision]
     ["Annotate Version"  log-view-annotate-version]
     ["Next Log Entry"  log-view-msg-next]
     ["Previous Log Entry"  log-view-msg-prev]
@@ -365,12 +365,12 @@ log entries."
 	  (cvs-force-command "/F"))
       (funcall f))))
 
-(defun log-view-find-version (pos)
+(defun log-view-find-revision (pos)
   "Visit the version at point."
   (interactive "d")
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-find-version (log-view-current-file)
+    (switch-to-buffer (vc-find-revision (log-view-current-file)
                                        (log-view-current-tag)))))
 
 (defun log-view-annotate-version (pos)
