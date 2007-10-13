@@ -1,3 +1,7 @@
+2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-fine-change): Add :group.
+
 2007-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* cus-start.el (all): Use the same test as the 22.2 branch.

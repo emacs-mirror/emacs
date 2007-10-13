@@ -1653,7 +1653,8 @@ For use in `add-log-current-defun-function'."
 
 (defface diff-fine-change
   '((t :background "yellow"))
-  "Face used for char-based changes shown by `diff-fine-highlight'.")
+  "Face used for char-based changes shown by `diff-fine-highlight'."
+  :group 'diff-mode)
 
 (defun diff-fine-highlight-preproc ()
   (while (re-search-forward "^." nil t)
