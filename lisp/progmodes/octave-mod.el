@@ -599,16 +599,19 @@ to end after the end keyword."
       (< pos (point)))))
 
 (defun octave-looking-at-kw (regexp)
+  "Like `looking-at', but sets `case-fold-search' nil."
   (let ((case-fold-search nil))
     (looking-at regexp)))
 
-(defun octave-re-search-forward-kw (regexp)
+(defun octave-re-search-forward-kw (regexp count)
+  "Like `re-search-forward', but sets `case-fold-search' nil, and moves point."
   (let ((case-fold-search nil))
-    (re-search-forward regexp nil 'move inc)))
+    (re-search-forward regexp nil 'move count)))
 
-(defun octave-re-search-backward-kw (regexp)
+(defun octave-re-search-backward-kw (regexp count)
+  "Like `re-search-backward', but sets `case-fold-search' nil, and moves point."
   (let ((case-fold-search nil))
-    (re-search-backward regexp nil 'move inc)))
+    (re-search-backward regexp nil 'move count)))
 
 (defun octave-in-defun-p ()
   "Return t if point is inside an Octave function declaration.
@@ -884,7 +887,7 @@ an error is signaled."
       (while (/= count 0)
 	(catch 'foo
 	  (while (or (octave-re-search-forward-kw
-		      octave-block-begin-or-end-regexp)
+		      octave-block-begin-or-end-regexp inc)
 		     (if (/= depth 0)
 			 (error "Unbalanced block")))
 	    (if (octave-not-in-string-or-comment-p)
@@ -1054,7 +1057,7 @@ Returns t unless search stops at the beginning or end of the buffer."
 	 (skip-syntax-forward "w"))
     (while (and (/= arg 0)
 		(setq found
-		      (octave-re-search-backward-kw "\\<function\\>")))
+		      (octave-re-search-backward-kw "\\<function\\>" inc)))
       (if (octave-not-in-string-or-comment-p)
 	  (setq arg (- arg inc))))
     (if found
