@@ -1,3 +1,7 @@
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Interactive Shell): Correct INSIDE_EMACS reference.
+
 2007-10-09  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Cursor Display): Correct how cursor appears
