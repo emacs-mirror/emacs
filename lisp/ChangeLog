@@ -68,7 +68,8 @@
 	(idlwave-sintern-keyword-list, idlwave-scan-user-lib-files)
 	(idlwave-write-paths, idlwave-all-method-classes)
 	(idlwave-all-method-keyword-classes, idlwave-entry-keywords)
-	(idlwave-fix-keywords, idlwave-display-calling-sequence):
+	(idlwave-fix-keywords, idlwave-display-calling-sequence)
+	(idlwave-complete-in-buffer):
 	* textmodes/org.el (org-export-as-html, org-export-as-ascii)
 	(org-fast-tag-selection): Use mapc rather than mapcar.
 
