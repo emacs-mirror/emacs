@@ -1,3 +1,8 @@
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* erc-track.el (erc-modified-channels-update): Use mapc rather
+	than mapcar.
+
 2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>  (tiny change)
 
 	* erc.texi (Special-Features): Fix small typo.
