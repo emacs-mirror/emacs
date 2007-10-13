@@ -14269,9 +14269,9 @@ Returns the new tags string, or nil to not change the current settings."
 		      (setq current (delete tg current))
 		    (loop for g in groups do
 			  (if (member tg g)
-			      (mapcar (lambda (x)
-					(setq current (delete x current)))
-				      g)))
+			      (mapc (lambda (x)
+				      (setq current (delete x current)))
+				    g)))
 		    (push tg current))
 		  (if exit-after-next (setq exit-after-next 'now))))
 
@@ -21849,10 +21849,10 @@ underlined headlines.  The default is 3."
     (fundamental-mode)
     ;; create local variables for all options, to make sure all called
     ;; functions get the correct information
-    (mapcar (lambda (x)
-	      (set (make-local-variable (cdr x))
-		   (plist-get opt-plist (car x))))
-	    org-export-plist-vars)
+    (mapc (lambda (x)
+	    (set (make-local-variable (cdr x))
+		 (plist-get opt-plist (car x))))
+	  org-export-plist-vars)
     (org-set-local 'org-odd-levels-only odd)
     (setq umax (if arg (prefix-numeric-value arg)
 		 org-export-headline-levels))
@@ -21884,49 +21884,49 @@ underlined headlines.  The default is 3."
 	(progn
 	  (push (concat (nth 3 lang-words) "\n") thetoc)
 	  (push (concat (make-string (length (nth 3 lang-words)) ?=) "\n") thetoc)
-	  (mapcar '(lambda (line)
-		     (if (string-match org-todo-line-regexp
-				       line)
-			 ;; This is a headline
-			 (progn
-			   (setq have-headings t)
-			   (setq level (- (match-end 1) (match-beginning 1))
-				 level (org-tr-level level)
-				 txt (match-string 3 line)
-				 todo
-				 (or (and org-export-mark-todo-in-toc
-					  (match-beginning 2)
-					  (not (member (match-string 2 line)
-						       org-done-keywords)))
+	  (mapc '(lambda (line)
+		   (if (string-match org-todo-line-regexp
+				     line)
+		       ;; This is a headline
+		       (progn
+			 (setq have-headings t)
+			 (setq level (- (match-end 1) (match-beginning 1))
+			       level (org-tr-level level)
+			       txt (match-string 3 line)
+			       todo
+			       (or (and org-export-mark-todo-in-toc
+					(match-beginning 2)
+					(not (member (match-string 2 line)
+						     org-done-keywords)))
 					; TODO, not DONE
-				     (and org-export-mark-todo-in-toc
-					  (= level umax-toc)
+				   (and org-export-mark-todo-in-toc
+					(= level umax-toc)
 					  (org-search-todo-below
 					   line lines level))))
-			   (setq txt (org-html-expand-for-ascii txt))
+			 (setq txt (org-html-expand-for-ascii txt))
 
-			   (if (and (memq org-export-with-tags '(not-in-toc nil))
-				    (string-match
-				     (org-re "[ \t]+:[[:alnum:]_@:]+:[ \t]*$")
-				     txt))
-			       (setq txt (replace-match "" t t txt)))
-			   (if (string-match quote-re0 txt)
-			       (setq txt (replace-match "" t t txt)))
+			 (if (and (memq org-export-with-tags '(not-in-toc nil))
+				  (string-match
+				   (org-re "[ \t]+:[[:alnum:]_@:]+:[ \t]*$")
+				   txt))
+			     (setq txt (replace-match "" t t txt)))
+			 (if (string-match quote-re0 txt)
+			     (setq txt (replace-match "" t t txt)))
 
-			   (if org-export-with-section-numbers
-			       (setq txt (concat (org-section-number level)
-						 " " txt)))
-			   (if (<= level umax-toc)
-			       (progn
-				 (push
-				  (concat
-				   (make-string
-				    (* (max 0 (- level org-min-level)) 4) ?\ )
-				   (format (if todo "%s (*)\n" "%s\n") txt))
-				  thetoc)
-				 (setq org-last-level level))
-			     ))))
-		  lines)
+			 (if org-export-with-section-numbers
+			     (setq txt (concat (org-section-number level)
+					       " " txt)))
+			 (if (<= level umax-toc)
+			     (progn
+			       (push
+				(concat
+				 (make-string
+				  (* (max 0 (- level org-min-level)) 4) ?\ )
+				 (format (if todo "%s (*)\n" "%s\n") txt))
+				thetoc)
+			       (setq org-last-level level))
+			   ))))
+		lines)
 	  (setq thetoc (if have-headings (nreverse thetoc) nil))))
 
     (org-init-section-numbers)
@@ -22498,10 +22498,10 @@ the body tags themselves."
 	  (org-odd-levels-only odd))
       ;; create local variables for all options, to make sure all called
       ;; functions get the correct information
-      (mapcar (lambda (x)
-		(set (make-local-variable (cdr x))
-		     (plist-get opt-plist (car x))))
-	      org-export-plist-vars)
+      (mapc (lambda (x)
+	      (set (make-local-variable (cdr x))
+		   (plist-get opt-plist (car x))))
+	    org-export-plist-vars)
       (setq umax (if arg (prefix-numeric-value arg)
                    org-export-headline-levels))
       (setq umax-toc (if (integerp org-export-with-toc)
