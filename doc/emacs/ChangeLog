@@ -1,3 +1,7 @@
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Interactive Shell): Correct INSIDE_EMACS reference.
+
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* emacs.texi:
@@ -6,7 +10,7 @@
 
 2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* files.texi (Version Systems): 
+	* files.texi (Version Systems):
 	* vc-xtra.texi:
 	* vc1-xtra.texi:
 	* vc2-xtra.texi: Merge in changes for new VC with fileset-oriented
