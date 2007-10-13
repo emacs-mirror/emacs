@@ -5707,8 +5707,8 @@ make_lispy_event (event)
 	    fuzz = double_click_fuzz / 8;
 
 	  is_double = (button == last_mouse_button
-		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
-		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
 			   || (INTEGERP (Vdouble_click_time)
@@ -5876,8 +5876,8 @@ make_lispy_event (event)
 	    fuzz = double_click_fuzz / 8;
 
 	  is_double = (last_mouse_button < 0
-		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
-		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
 			   || (INTEGERP (Vdouble_click_time)
