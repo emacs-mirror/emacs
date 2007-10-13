@@ -2408,8 +2408,8 @@ Return index number of the registered map.  */)
     }
 
   if (i == len)
-    Vcode_conversion_map_vector = larger_vector
-      (Vcode_conversion_map_vector, len * 2, Qnil);
+    Vcode_conversion_map_vector = larger_vector (Vcode_conversion_map_vector,
+						 len * 2, Qnil);
 
   index = make_number (i);
   Fput (symbol, Qcode_conversion_map, map);
