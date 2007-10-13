@@ -1107,11 +1107,11 @@ versions of Emacs."
 ;;;     (setq interpreter-mode-alist (append interpreter-mode-alist
 ;;;					  '(("miniperl" . perl-mode))))))
 (eval-when-compile
-  (mapcar (lambda (p)
-	    (condition-case nil
-		(require p)
-	      (error nil)))
-	  '(imenu easymenu etags timer man info))
+  (mapc (lambda (p)
+	  (condition-case nil
+	      (require p)
+	    (error nil)))
+	'(imenu easymenu etags timer man info))
   (if (fboundp 'ps-extend-face-list)
       (defmacro cperl-ps-extend-face-list (arg)
 	`(ps-extend-face-list ,arg))
@@ -5385,15 +5385,15 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	(t
 	 (or name
 	     (setq name "+++BACK+++"))
-	 (mapcar (lambda (elt)
-		   (if (and (listp elt) (listp (cdr elt)))
-		       (progn
-			 ;; In the other order it goes up
-			 ;; one level only ;-(
-			 (setcdr elt (cons (cons name lst)
-					   (cdr elt)))
-			 (cperl-imenu-addback (cdr elt) t name))))
-		 (if isback (cdr lst) lst))
+	 (mapc (lambda (elt)
+		 (if (and (listp elt) (listp (cdr elt)))
+		     (progn
+		       ;; In the other order it goes up
+		       ;; one level only ;-(
+		       (setcdr elt (cons (cons name lst)
+					 (cdr elt)))
+		       (cperl-imenu-addback (cdr elt) t name))))
+	       (if isback (cdr lst) lst))
 	 lst)))
 
 (defun cperl-imenu--create-perl-index (&optional regexp)
@@ -6986,17 +6986,17 @@ Use as
 			(setq cperl-unreadable-ok t
 			      tm nil)	; Return empty list
 		      (error "Aborting: unreadable directory %s" file)))))))
-	  (mapcar (function
-		   (lambda (file)
-		     (cond
-		      ((string-match cperl-noscan-files-regexp file)
-		       nil)
-		      ((not (file-directory-p file))
-		       (if (string-match cperl-scan-files-regexp file)
-			   (cperl-write-tags file erase recurse nil t noxs topdir)))
-		      ((not recurse) nil)
-		      (t (cperl-write-tags file erase recurse t t noxs topdir)))))
-		  files)))
+	  (mapc (function
+		 (lambda (file)
+		   (cond
+		    ((string-match cperl-noscan-files-regexp file)
+		     nil)
+		    ((not (file-directory-p file))
+		     (if (string-match cperl-scan-files-regexp file)
+			 (cperl-write-tags file erase recurse nil t noxs topdir)))
+		    ((not recurse) nil)
+		    (t (cperl-write-tags file erase recurse t t noxs topdir)))))
+		files)))
        (t
 	(setq xs (string-match "\\.xs$" file))
 	(if (not (and xs noxs))
@@ -7110,16 +7110,16 @@ One may build such TAGS files from CPerl mode menu."
 	      (cperl-tags-hier-fill))
 	  (or tags-table-list
 	      (call-interactively 'visit-tags-table))
-	  (mapcar
+	  (mapc
 	   (function
 	    (lambda (tagsfile)
 	      (message "Updating list of classes... %s" tagsfile)
 	    (set-buffer (get-file-buffer tagsfile))
 	    (cperl-tags-hier-fill)))
-	 tags-table-list)
+	   tags-table-list)
 	  (message "Updating list of classes... postprocessing..."))
-	(mapcar remover (car cperl-hierarchy))
-	(mapcar remover (nth 1 cperl-hierarchy))
+	(mapc remover (car cperl-hierarchy))
+	(mapc remover (nth 1 cperl-hierarchy))
 	(setq to (list nil (cons "Packages: " (nth 1 cperl-hierarchy))
 		       (cons "Methods: " (car cperl-hierarchy))))
 	(cperl-tags-treeify to 1)
@@ -7183,40 +7183,40 @@ One may build such TAGS files from CPerl mode menu."
     (setcdr to l1)			; Init to dynamic space
     (setq writeto to)
     (setq ord 1)
-    (mapcar move-deeper packages)
+    (mapc move-deeper packages)
     (setq ord 2)
-    (mapcar move-deeper methods)
+    (mapc move-deeper methods)
     (if recurse
-	(mapcar (function (lambda (elt)
+	(mapc (function (lambda (elt)
 			  (cperl-tags-treeify elt (1+ level))))
-		(cdr to)))
+	      (cdr to)))
     ;;Now clean up leaders with one child only
-    (mapcar (function (lambda (elt)
-			(if (not (and (listp (cdr elt))
-				      (eq (length elt) 2))) nil
-			    (setcar elt (car (nth 1 elt)))
-			    (setcdr elt (cdr (nth 1 elt))))))
-	    (cdr to))
+    (mapc (function (lambda (elt)
+		      (if (not (and (listp (cdr elt))
+				    (eq (length elt) 2))) nil
+			(setcar elt (car (nth 1 elt)))
+			(setcdr elt (cdr (nth 1 elt))))))
+	  (cdr to))
     ;; Sort the roots of subtrees
     (if (default-value 'imenu-sort-function)
 	(setcdr to
 		(sort (cdr to) (default-value 'imenu-sort-function))))
     ;; Now add back functions removed from display
-    (mapcar (function (lambda (elt)
-			(setcdr to (cons elt (cdr to)))))
-	    (if (default-value 'imenu-sort-function)
-		(nreverse
-		 (sort root-functions (default-value 'imenu-sort-function)))
-	      root-functions))
+    (mapc (function (lambda (elt)
+		      (setcdr to (cons elt (cdr to)))))
+	  (if (default-value 'imenu-sort-function)
+	      (nreverse
+	       (sort root-functions (default-value 'imenu-sort-function)))
+	    root-functions))
     ;; Now add back packages removed from display
-    (mapcar (function (lambda (elt)
-			(setcdr to (cons (cons (concat "package " (car elt))
-					       (cdr elt))
-					 (cdr to)))))
-	    (if (default-value 'imenu-sort-function)
-		(nreverse
-		 (sort root-packages (default-value 'imenu-sort-function)))
-	      root-packages))))
+    (mapc (function (lambda (elt)
+		      (setcdr to (cons (cons (concat "package " (car elt))
+					     (cdr elt))
+				       (cdr to)))))
+	  (if (default-value 'imenu-sort-function)
+	      (nreverse
+	       (sort root-packages (default-value 'imenu-sort-function)))
+	    root-packages))))
 
 ;;;(x-popup-menu t
 ;;;   '(keymap "Name1"
