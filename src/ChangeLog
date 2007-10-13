@@ -1,3 +1,7 @@
+2007-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (eabs): Rename from `abs'.  All callers changed.
+
 2007-10-05  Dmitry Antipov <dmantipov@yandex.ru>
 
 	* buffer.c (add_overlay_mod_hooklist):
