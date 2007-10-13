@@ -1,3 +1,8 @@
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (face-spec-set): When FRAME is nil, set the default for
+	new frames (restores pre-2007-09-17 behavior).  Doc fix.
+
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.el (select-frame-set-input-focus): Fix typo
