@@ -701,17 +701,17 @@ ARGS are ignored."
   (unless erc-modified-channels-update-inside
     (let ((erc-modified-channels-update-inside t)
 	  (removed-channel nil))
-      (mapcar (lambda (elt)
-		(let ((buffer (car elt)))
-		  (when (or (not (bufferp buffer))
-			    (not (buffer-live-p buffer))
-			    (erc-buffer-visible buffer)
-			    (and erc-track-remove-disconnected-buffers
-			    (not (with-current-buffer buffer
-					erc-server-connected))))
-		    (setq removed-channel t)
-		    (erc-modified-channels-remove-buffer buffer))))
-	      erc-modified-channels-alist)
+      (mapc (lambda (elt)
+	      (let ((buffer (car elt)))
+		(when (or (not (bufferp buffer))
+			  (not (buffer-live-p buffer))
+			  (erc-buffer-visible buffer)
+			  (and erc-track-remove-disconnected-buffers
+			       (not (with-current-buffer buffer
+				      erc-server-connected))))
+		  (setq removed-channel t)
+		  (erc-modified-channels-remove-buffer buffer))))
+	    erc-modified-channels-alist)
       (when removed-channel
       (erc-modified-channels-display)
 	(force-mode-line-update t)))))
