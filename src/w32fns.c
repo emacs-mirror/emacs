@@ -5370,9 +5370,9 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
 
   if (lplogfont->lfHeight)
     {
-      sprintf (height_pixels, "%u", abs (lplogfont->lfHeight));
+      sprintf (height_pixels, "%u", eabs (lplogfont->lfHeight));
       sprintf (height_dpi, "%u",
-	       abs (lplogfont->lfHeight) * 720 / display_resy);
+	       eabs (lplogfont->lfHeight) * 720 / display_resy);
     }
   else
     {
@@ -5594,7 +5594,7 @@ x_to_w32_font (lpxstr, lplogfont)
     }
 
   /* This makes TrueType fonts work better. */
-  lplogfont->lfHeight = - abs (lplogfont->lfHeight);
+  lplogfont->lfHeight = - eabs (lplogfont->lfHeight);
 
   return (TRUE);
 }
