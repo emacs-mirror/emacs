@@ -1,3 +1,8 @@
+2007-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (dos_rawgetc): Undo last change (there's no ``leaving
+	selected frame'' on MSDOS).
+
 2007-10-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (Qexplicit_name): New variable.
