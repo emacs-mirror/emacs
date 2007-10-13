@@ -846,7 +846,7 @@ Heading emboldening is NOT standard `man' behavior."
   :group 'woman-formatting)
 
 (defcustom woman-ignore t
-  "If non-nil then unrecognized requests etc.. are ignored.  Default is t.
+  "If non-nil then unrecognized requests etc. are ignored.  Default is t.
 This gives the standard ?roff behavior.  If nil then they are left in
 the buffer, which may aid debugging."
   :type 'boolean
