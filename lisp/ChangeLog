@@ -6,6 +6,9 @@
 	(octave-scan-blocks, octave-beginning-of-defun): Explicitly pass
 	`inc' to search functions.
 
+	* faces.el (face-spec-set): When FRAME is nil, set the default for
+	new frames (restores pre-2007-09-17 behavior).  Doc fix.
+
 2007-10-13  John W. Eaton  <jwe@octave.org>
 
 	* progmodes/octave-mod.el (octave-looking-at-kw)
@@ -17,11 +20,6 @@
 	to search for regexps that contain case-sensitive keywords.
 	(octave-beginning-of-defun): Likewise, for octave-re-search-backward-kw.
 	(octave-scan-blocks): Likewise, for octave-re-search-forward-kw.
-
-2007-10-13  Glenn Morris  <rgm@gnu.org>
-
-	* faces.el (face-spec-set): When FRAME is nil, set the default for
-	new frames (restores pre-2007-09-17 behavior).  Doc fix.
 
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
