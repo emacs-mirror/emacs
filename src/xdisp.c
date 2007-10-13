@@ -12468,7 +12468,7 @@ compute_window_start_on_continuation_line (w)
 	     minimum distance from the old window start.  */
 	  pos = it.current.pos;
 	  min_distance = INFINITY;
-	  while ((distance = abs (CHARPOS (start_pos) - IT_CHARPOS (it))),
+	  while ((distance = eabs (CHARPOS (start_pos) - IT_CHARPOS (it))),
 		 distance < min_distance)
 	    {
 	      min_distance = distance;
@@ -20029,9 +20029,9 @@ produce_image_glyph (it)
 	}
 
       if (it->start_of_box_run_p && slice.x == 0)
-	it->pixel_width += abs (face->box_line_width);
+	it->pixel_width += eabs (face->box_line_width);
       if (it->end_of_box_run_p && slice.x + slice.width == img->width)
-	it->pixel_width += abs (face->box_line_width);
+	it->pixel_width += eabs (face->box_line_width);
     }
 
   take_vertical_position_into_account (it);
@@ -22293,8 +22293,8 @@ fast_find_string_pos (w, pos, object, hpos, vpos, x, y, right_p)
 		goto found;
 	      }
 	    else if (best_glyph == NULL
-		     || ((abs (g->charpos - pos)
-			 < abs (best_glyph->charpos - pos))
+		     || ((eabs (g->charpos - pos)
+			 < eabs (best_glyph->charpos - pos))
 			 && (right_p
 			     ? g->charpos < pos
 			     : g->charpos > pos)))
