@@ -1,3 +1,11 @@
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/octave-mod.el (octave-looking-at-kw): Add doc string.
+	(octave-re-search-forward-kw, octave-re-search-backward-kw):
+	Add doc string, and an explicit COUNT argument.
+	(octave-scan-blocks, octave-beginning-of-defun): Explicitly pass
+	`inc' to search functions.
+
 2007-10-13  John W. Eaton  <jwe@octave.org>
 
 	* progmodes/octave-mod.el (octave-looking-at-kw)
