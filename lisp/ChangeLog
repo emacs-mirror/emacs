@@ -71,7 +71,9 @@
 	(idlwave-fix-keywords, idlwave-display-calling-sequence)
 	(idlwave-complete-in-buffer):
 	* textmodes/org.el (org-export-as-html, org-export-as-ascii)
-	(org-fast-tag-selection): Use mapc rather than mapcar.
+	(org-fast-tag-selection):
+	* textmodes/reftex-sel.el (reftex-select-item):  Use mapc rather
+	than mapcar.
 
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
