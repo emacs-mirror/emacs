@@ -1,5 +1,8 @@
 2007-10-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* ccl.c (Fregister_code_conversion_map): 
+	* keyboard.c (append_tool_bar_item): Reformat last change.
+
 	* lisp.h (eabs): Rename from `abs'.  All callers changed.
 
 2007-10-05  Dmitry Antipov <dmantipov@yandex.ru>
