@@ -418,11 +418,11 @@ During a selection process, these are the local bindings.
           (set-buffer selection-buffer)
           (use-local-map nil)
           (remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
-          (remove-hook 'post-command-hook 
+          (remove-hook 'post-command-hook
                        'reftex-select-post-command-hook t))
         ;; Kill the mark overlays
-        (mapcar (lambda (c) (reftex-delete-overlay (nth 1 c)))
-                reftex-select-marked)))))
+        (mapc (lambda (c) (reftex-delete-overlay (nth 1 c)))
+              reftex-select-marked)))))
 
     (set (make-local-variable 'reftex-last-line)
          (+ (count-lines (point-min) (point)) (if (bolp) 1 0)))
