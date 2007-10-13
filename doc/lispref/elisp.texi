@@ -9,11 +9,6 @@
 @set VERSION  2.9
 @set EMACSVER 23.0.50
 
-@dircategory Emacs
-@direntry
-* Elisp: (elisp).       The Emacs Lisp Reference Manual.
-@end direntry
-
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
@@ -66,6 +61,11 @@ this GNU Manual. Buying copies from GNU Press supports the FSF in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
+
+@dircategory Emacs
+@direntry
+* Elisp: (elisp).       The Emacs Lisp Reference Manual.
+@end direntry
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
