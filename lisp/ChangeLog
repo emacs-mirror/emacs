@@ -1,14 +1,3 @@
-2007-10-08  Drew Adams  <drew.adams@oracle.com>
-
-	* emacs-lisp/ring.el (ring-convert-sequence-to-ring)
-	(ring-insert+extend, ring-remove+insert+extend, ring-member)
-	(ring-next, ring-previous): New functions.
-
-2007-10-14  Glenn Morris  <rgm@gnu.org>
-
-	* progmodes/etags.el (select-tags-table): Disable undo in the
-	`*Tags Table List*' buffer.
-
 2007-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.el (dired-warn-writable): New face.
