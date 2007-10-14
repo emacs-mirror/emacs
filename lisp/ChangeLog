@@ -1,3 +1,8 @@
+2007-10-14  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/etags.el (select-tags-table): Disable undo in the
+	`*Tags Table List*' buffer.
+
 2007-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.el (dired-warn-writable): New face.
