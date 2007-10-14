@@ -4947,6 +4947,23 @@ x_create_tip_frame (dpyinfo, parms, text)
     Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
 					    Qnil));
 
+  /* Set the `display-type' frame parameter before setting up faces. */
+  {
+    Lisp_Object disptype;
+
+    if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
+      disptype = intern ("mono");
+    else if (FRAME_X_DISPLAY_INFO (f)->visual->class == GrayScale ||
+             FRAME_X_DISPLAY_INFO (f)->visual->class == StaticGray)
+      disptype = intern ("grayscale");
+    else
+      disptype = intern ("color");
+
+    if (NILP (Fframe_parameter (frame, Qdisplay_type)))
+      Fmodify_frame_parameters (frame, Fcons (Fcons (Qdisplay_type, disptype),
+                                              Qnil));
+  }
+
   /* Set up faces after all frame parameters are known.  This call
      also merges in face attributes specified for new frames.
 
