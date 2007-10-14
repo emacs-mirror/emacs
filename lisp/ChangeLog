@@ -1,3 +1,9 @@
+2007-10-14  Drew Adams  <drew.adams@oracle.com>
+
+	* emacs-lisp/ring.el (ring-convert-sequence-to-ring)
+	(ring-insert+extend, ring-remove+insert+extend, ring-member)
+	(ring-next, ring-previous): New functions.
+
 2007-10-14  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/advice.el (documentation): Advice deleted.
