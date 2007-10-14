@@ -662,12 +662,20 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
      (symbol, definition)
      register Lisp_Object symbol, definition;
 {
+  register Lisp_Object function;
+
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
     xsignal1 (Qsetting_constant, symbol);
-  if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (symbol)->function, Qunbound))
-    Vautoload_queue = Fcons (Fcons (symbol, XSYMBOL (symbol)->function),
-			     Vautoload_queue);
+
+  function = XSYMBOL (symbol)->function;
+
+  if (!NILP (Vautoload_queue) && !EQ (function, Qunbound))
+    Vautoload_queue = Fcons (Fcons (symbol, function), Vautoload_queue);
+
+  if (CONSP (function) && EQ (XCAR (function), Qautoload))
+    Fput (symbol, Qautoload, XCDR (function));
+
   XSYMBOL (symbol)->function = definition;
   /* Handle automatic advice activation */
   if (CONSP (XSYMBOL (symbol)->plist) && !NILP (Fget (symbol, Qad_advice_info)))
