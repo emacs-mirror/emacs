@@ -4936,8 +4936,8 @@ x_create_tip_frame (dpyinfo, parms, text)
 
     if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
       disptype = intern ("mono");
-    else if (FRAME_X_DISPLAY_INFO (f)->visual->class == GrayScale ||
-             FRAME_X_DISPLAY_INFO (f)->visual->class == StaticGray)
+    else if (FRAME_X_DISPLAY_INFO (f)->visual->class == GrayScale
+             || FRAME_X_DISPLAY_INFO (f)->visual->class == StaticGray)
       disptype = intern ("grayscale");
     else
       disptype = intern ("color");
