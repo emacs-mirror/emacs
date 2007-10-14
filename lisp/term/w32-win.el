@@ -78,7 +78,6 @@
 (require 'select)
 (require 'menu-bar)
 (require 'dnd)
-(require 'code-pages)
 
 ;; Keep an obsolete alias for w32-focus-frame in case it is used by code
 ;; outside Emacs.
