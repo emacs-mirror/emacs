@@ -466,7 +466,7 @@ usage: (prog1 FIRST BODY...)  */)
   struct gcpro gcpro1, gcpro2;
   register int argnum = 0;
 
-  if (NILP(args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;
@@ -2146,7 +2146,7 @@ do_autoload (fundef, funname)
      Lisp_Object fundef, funname;
 {
   int count = SPECPDL_INDEX ();
-  Lisp_Object fun, queue, first, second;
+  Lisp_Object fun;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   /* This is to make sure that loadup.el gives a clear picture
@@ -2166,20 +2166,6 @@ do_autoload (fundef, funname)
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
   Fload (Fcar (Fcdr (fundef)), Qnil, noninteractive ? Qt : Qnil, Qnil, Qt);
-
-  /* Save the old autoloads, in case we ever do an unload.  */
-  queue = Vautoload_queue;
-  while (CONSP (queue))
-    {
-      first = XCAR (queue);
-      second = Fcdr (first);
-      first = Fcar (first);
-
-      if (SYMBOLP (first) && CONSP (second) && EQ (XCAR (second), Qautoload))
-	Fput (first, Qautoload, (XCDR (second)));
-
-      queue = XCDR (queue);
-    }
 
   /* Once loading finishes, don't undo it.  */
   Vautoload_queue = Qt;
