@@ -1,3 +1,17 @@
+2007-10-14  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/advice.el (documentation): Advice deleted.
+	Doc for advised functions is now handled at C level.
+	This is now handled at C level.
+	(ad-stop-advice, ad-start-advice): Don't enable or disable
+	advice for `documentation'.
+	(ad-advised-definition-docstring-regexp): Var deleted.
+	(ad-make-advised-definition-docstring): Store orig name
+	as text property of string.
+	(ad-advised-definition-p): Check for text property of docstring.
+
+	* help-fns.el (describe-function-1): Find source of advised functions.
+
 2007-10-14  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (describe-face): Allow handling a string as the face name.
@@ -370,6 +384,10 @@
 	Pacify byte compiler.
 
 	* net/trampver.el: Update release number.
+
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* play/gamegrid.el (gamegrid-setup-default-font): Use face-spec-set.
 
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
