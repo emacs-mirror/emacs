@@ -4947,6 +4947,9 @@ x_create_tip_frame (dpyinfo, parms, text)
     Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
 					    Qnil));
 
+  /* FIXME - can this be done in a similar way to normal frames?
+     http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */
+
   /* Set the `display-type' frame parameter before setting up faces. */
   {
     Lisp_Object disptype;
