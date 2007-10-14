@@ -185,8 +185,6 @@
       (load "vms-patch")))
 (if (eq system-type 'windows-nt)
     (progn
-      (load "international/ccl")
-      (load "international/code-pages")
       (load "term/w32-win")
       (load "ls-lisp")
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
