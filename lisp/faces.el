@@ -1285,6 +1285,7 @@ If FRAME is omitted or nil, use the selected frame."
       (save-excursion
 	(set-buffer standard-output)
 	(dolist (f face)
+	  (if (stringp f) (setq f (intern f)))
 	  (insert "Face: " (symbol-name f))
 	  (if (not (facep f))
 	      (insert "   undefined face.\n")
