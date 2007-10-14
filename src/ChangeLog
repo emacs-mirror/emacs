@@ -1,3 +1,9 @@
+2007-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (do_autoload): Don't save autoloads.
+
+	* data.c (Ffset): Save autoload of the function being set.
+
 2007-10-07  John Paul Wallington  <jpw@pobox.com>
 
 	* xfns.c (x_create_tip_frame): Set the `display-type' frame
@@ -63,7 +69,7 @@
 
 2007-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
-       * lread.c (Fload): Fix typo in docstring.
+	* lread.c (Fload): Fix typo in docstring.
 
 2007-09-29  Juri Linkov  <juri@jurta.org>
 
