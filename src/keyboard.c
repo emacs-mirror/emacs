@@ -8432,9 +8432,9 @@ append_tool_bar_item ()
   /* Enlarge tool_bar_items_vector if necessary.  */
   if (ntool_bar_items + TOOL_BAR_ITEM_NSLOTS
       >= XVECTOR (tool_bar_items_vector)->size)
-    tool_bar_items_vector =
-      larger_vector (tool_bar_items_vector,
-		     2 * XVECTOR (tool_bar_items_vector)->size, Qnil);
+    tool_bar_items_vector
+      = larger_vector (tool_bar_items_vector,
+		       2 * XVECTOR (tool_bar_items_vector)->size, Qnil);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
