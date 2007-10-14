@@ -1,3 +1,20 @@
+2007-10-14  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (describe-face): Allow handling a string as the face name.
+
+	* textmodes/ispell.el (ispell-word): Call `ispell-region' on the
+	active region in transient-mark-mode.
+	(ispell-region): Change messages displayed at the start and end of
+	the spell-checking to be the same.
+
+	* startup.el (fancy-startup-tail): Say exactly what does the button
+	dismiss ("Dismiss this startup screen").  Use text "Never show
+	it again" for the checkbox after this button.
+	(fancy-startup-screen, fancy-about-screen): Put point before the
+	first link, so the user can quickly select links with the keyboard.
+	(normal-mouse-startup-screen): Add more useful text describing how
+	to follow a link.
+
 2007-10-14  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/etags.el (select-tags-table): Disable undo in the
