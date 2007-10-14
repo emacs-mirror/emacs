@@ -1,3 +1,8 @@
+2007-10-07  John Paul Wallington  <jpw@pobox.com>
+
+	* xfns.c (x_create_tip_frame): Set the `display-type' frame
+	parameter before setting up faces.
+
 2007-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (dos_rawgetc): Undo last change (there's no ``leaving
