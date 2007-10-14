@@ -568,6 +568,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   b = (struct buffer *) allocate_buffer ();
   b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
+  XSETPVECTYPE (b, PVEC_BUFFER);
 
   if (XBUFFER (base_buffer)->base_buffer)
     b->base_buffer = XBUFFER (base_buffer)->base_buffer;

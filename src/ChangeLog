@@ -1,3 +1,7 @@
+2007-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fmake_indirect_buffer): Set the buffer's tag.
+
 2007-10-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (do_autoload): Don't save autoloads.
