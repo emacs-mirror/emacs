@@ -1451,14 +1451,15 @@ a face or button specification."
     (when concise
       (fancy-splash-insert
        :face 'variable-pitch "\n"
-       :link '("Dismiss" (lambda (button)
-			   (when startup-screen-inhibit-startup-screen
-			     (customize-set-variable 'inhibit-startup-screen t)
-			     (customize-mark-to-save 'inhibit-startup-screen)
-			     (custom-save-all))
-			   (let ((w (get-buffer-window "*GNU Emacs*")))
-			     (and w (not (one-window-p)) (delete-window w)))
-			   (kill-buffer "*GNU Emacs*")))
+       :link '("Dismiss this startup screen"
+	       (lambda (button)
+		 (when startup-screen-inhibit-startup-screen
+		   (customize-set-variable 'inhibit-startup-screen t)
+		   (customize-mark-to-save 'inhibit-startup-screen)
+		   (custom-save-all))
+		 (let ((w (get-buffer-window "*GNU Emacs*")))
+		   (and w (not (one-window-p)) (delete-window w)))
+		 (kill-buffer "*GNU Emacs*")))
        "  ")
       (when (or user-init-file custom-file)
 	(let ((checked (create-image "\300\300\141\143\067\076\034\030"
@@ -1479,7 +1480,7 @@ a face or button specification."
 		       (overlay-put button 'display (overlay-get button :on-glyph))
 		       (setq startup-screen-inhibit-startup-screen t)))))
 	(fancy-splash-insert :face '(variable-pitch :height 0.9)
-			     " Don't show this message again.")))))
+			     " Never show it again.")))))
 
 (defun exit-splash-screen ()
   "Stop displaying the splash screen buffer."
@@ -1491,7 +1492,7 @@ a face or button specification."
 If CONCISE is non-nil, display a concise version of the
 splash screen in another window."
   (let ((splash-buffer (get-buffer-create "*GNU Emacs*")))
-    (with-current-buffer splash-buffer 
+    (with-current-buffer splash-buffer
       (let ((inhibit-read-only t))
 	(erase-buffer)
 	(make-local-variable 'startup-screen-inhibit-startup-screen)
@@ -1512,7 +1513,8 @@ splash screen in another window."
       (set-buffer-modified-p nil)
       (if (and view-read-only (not view-mode))
 	  (view-mode-enter nil 'kill-buffer))
-      (goto-char (point-max)))
+      (goto-char (point-min))
+      (forward-line (if concise 2 4)))
     (if concise
 	(progn
 	  (display-buffer splash-buffer)
@@ -1550,7 +1552,8 @@ splash screen in another window."
       (setq tab-width 22)
       (message "%s" (startup-echo-area-message))
       (setq buffer-read-only t)
-      (goto-char (point-min)))))
+      (goto-char (point-min))
+      (forward-line 3))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1657,7 +1660,7 @@ after Emacs starts.  If STARTUP is nil, display the About screen."
   ;; The user can use the mouse to activate menus
   ;; so give help in terms of menu items.
   (insert "\
-You can do basic editing with the menu bar and scroll bar using the mouse.
+To follow a link, click Mouse-1 on it, or move to it and type RET.
 To quit a partially entered command, type Control-g.\n")
 
   (insert "\nImportant Help menu items:\n")
