@@ -1,3 +1,9 @@
+2007-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (do_autoload): Don't save autoloads.
+
+	* data.c (Ffset): Save autoload of the function being set.
+
 2007-10-07  John Paul Wallington  <jpw@pobox.com>
 
 	* xfns.c (x_create_tip_frame): Set the `display-type' frame
@@ -10,7 +16,7 @@
 
 	* lisp.h (eabs): Rename from `abs'.  All callers changed.
 
-2007-10-05  Dmitry Antipov <dmantipov@yandex.ru>
+2007-10-05  Dmitry Antipov  <dmantipov@yandex.ru>
 
 	* buffer.c (add_overlay_mod_hooklist):
 	* ccl.c (Fregister_ccl_program, Fregister_code_conversion_map):
@@ -26,7 +32,7 @@
 	* msdos.c (dos_rawgetc): Undo last change (there's no ``leaving
 	selected frame'' on MSDOS).
 
-2007-10-10  Patrick Mahan <mahan@mahan.org>  (tiny change)
+2007-10-10  Patrick Mahan  <mahan@mahan.org>  (tiny change)
 
 	* macfns.c (x_create_tip_frame): Set terminal for frame.
 
@@ -813,7 +819,7 @@
 	* keyboard.c (restore_kboard_configuration): Only define when
 	MULTI_KBOARD defined.
 
-	* makefile.w32-in: Update dependancies from Makefile.in
+	* makefile.w32-in: Update dependancies from Makefile.in.
 	(OBJ1): Add terminal.$(O)
 
 	* term.c (dissociate_if_controlling_tty) [WINDOWSNT]:
@@ -1363,7 +1369,7 @@
 
 2007-08-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mac.c	[MAC_OSX] (select_and_poll_event, sys_select): Fix last changes.
+	* mac.c [MAC_OSX] (select_and_poll_event, sys_select): Fix last changes.
 
 2007-08-24  Martin Rudalics  <rudalics@gmx.at>
 
