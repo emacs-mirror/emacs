@@ -1,8 +1,3 @@
-2007-10-14  Jason Rumney  <jasonr@gnu.org>
-
-	* loadup.el [windows-nt]: Don't load code-pages and ccl.
-	* term/w32-win.el: Don't require code-pages.
-
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman0-rename): Fix paren typo.
