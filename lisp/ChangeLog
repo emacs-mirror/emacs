@@ -1,3 +1,8 @@
+2007-10-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Don't require url when compiling, as url-type is
+	no longer a macro.
+
 2007-10-14  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/etags.el (select-tags-table): Disable undo in the
