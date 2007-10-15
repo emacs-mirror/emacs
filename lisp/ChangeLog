@@ -1,3 +1,8 @@
+2007-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-workfile-version): Compatibility alias.
+	(vc-default-working-revision): Compatibility for backends.
+
 2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* filesets.el (filesets-alist-get): Use `let' rather than `let*'.
@@ -198,9 +203,8 @@
 	and some leftover logic regarding dedicated frames.  If showing
 	concise startup screen, fit window to buffer.
 	(command-line-1): If we will be using the splash screen, use
-	find-file instead of find-file-other-window to find additional
-	files.  Comment out unused code for coping with the old sit-for
-	behavior.
+	find-file instead of find-file-other-window to find additional files.
+	Comment out unused code for coping with the old sit-for behavior.
 
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
