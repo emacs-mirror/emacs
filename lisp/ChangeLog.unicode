@@ -5,7 +5,7 @@
 
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Fix up multy-tty merge.
+	Fix up multi-tty merge.
 
 	* version.el (emacs-version): Bump to 23.0.60.
 
