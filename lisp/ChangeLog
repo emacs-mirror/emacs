@@ -1,3 +1,14 @@
+2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filesets.el (filesets-alist-get): Use `let' rather than `let*'.
+	(filesets-ormap, filesets-sort-case-sensitive-flag)
+	(filesets-remake-shortcut, filesets-ingroup-collect-files):
+	Fix typos in docstrings.
+	(filesets-conditional-sort, filesets-find-or-display-file)
+	(filesets-data-get-name, filesets-data-get-data)
+	(filesets-data-set, filesets-cmd-query-replace-getargs)
+	(filesets-ingroup-collect): Doc fixes.
+
 2007-10-15  Sam Steingold  <sds@gnu.org>
 
 	* mail/sendmail.el (sendmail-error-reporting-interactive)
