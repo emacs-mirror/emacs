@@ -1,3 +1,8 @@
+2007-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32term.c (w32_font_is_double_byte, my_create_scrollbar): Make static.
+	(syms_of_w32term) <w32-enable-unicode-output>: Fix typo in docstring.
+
 2007-10-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Fmake_indirect_buffer): Set the buffer's tag.
