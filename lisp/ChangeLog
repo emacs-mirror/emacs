@@ -1,3 +1,7 @@
+2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el: Require advice when compiling.
+
 2007-10-14  Drew Adams  <drew.adams@oracle.com>
 
 	* emacs-lisp/ring.el (ring-convert-sequence-to-ring)
@@ -99,8 +103,8 @@
 
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* frame.el (select-frame-set-input-focus): Fix typo
-	"max" -> "mac". Do not use a single clause cond.
+	* frame.el (select-frame-set-input-focus): Fix typo "max" -> "mac".
+	Do not use a single clause cond.
 
 	* cus-start.el (all): Use test that does not match the X11 version
 	for mac.
@@ -148,7 +152,7 @@
 	(idlwave-complete-in-buffer):
 	* textmodes/org.el (org-export-as-html, org-export-as-ascii)
 	(org-fast-tag-selection):
-	* textmodes/reftex-sel.el (reftex-select-item):  Use mapc rather
+	* textmodes/reftex-sel.el (reftex-select-item): Use mapc rather
 	than mapcar.
 
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
