@@ -1940,15 +1940,7 @@ x_implicitly_set_name (f, arg, oldval)
 }
 
 /* Change the title of frame F to NAME.
-   If NAME is nil, use the frame name as the title.
-
-   If EXPLICIT is non-zero, that indicates that lisp code is setting the
-       name; if NAME is a string, set F's name to NAME and set
-       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
-
-   If EXPLICIT is zero, that indicates that Emacs redisplay code is
-       suggesting a new name, which lisp code should override; if
-       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+   If NAME is nil, use the frame name as the title.  */
 
 void
 x_set_title (f, name, old_name)
@@ -5488,9 +5480,9 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
 
   if (lplogfont->lfHeight)
     {
-      sprintf (height_pixels, "%u", abs (lplogfont->lfHeight));
+      sprintf (height_pixels, "%u", eabs (lplogfont->lfHeight));
       sprintf (height_dpi, "%u",
-	       abs (lplogfont->lfHeight) * 720 / display_resy);
+	       eabs (lplogfont->lfHeight) * 720 / display_resy);
     }
   else
     {
@@ -5713,7 +5705,7 @@ x_to_w32_font (lpxstr, lplogfont)
     }
 
   /* This makes TrueType fonts work better. */
-  lplogfont->lfHeight = - abs (lplogfont->lfHeight);
+  lplogfont->lfHeight = - eabs (lplogfont->lfHeight);
 
   return (TRUE);
 }

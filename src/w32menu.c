@@ -319,14 +319,8 @@ discard_menu_items ()
 static void
 grow_menu_items ()
 {
-  Lisp_Object old;
-  int old_size = menu_items_allocated;
-  old = menu_items;
-
   menu_items_allocated *= 2;
-  menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
-  bcopy (XVECTOR (old)->contents, XVECTOR (menu_items)->contents,
-	 old_size * sizeof (Lisp_Object));
+  menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }
 
 /* Begin a submenu.  */

@@ -135,7 +135,8 @@ path components followed by `..' are removed, along with the `..' itself."
 		  sepchar (substring (url-filename urlobj) (match-beginning 0) (match-end 0)))
 	  (setq file (url-filename urlobj)))
 	(setq file (url-expander-remove-relative-links
-		    (concat (url-basepath (url-filename defobj)) file)))
+		    (expand-file-name file
+				      (url-file-directory (url-filename defobj)))))
 	(setf (url-filename urlobj)
               (if query (concat file sepchar query) file))))))
 

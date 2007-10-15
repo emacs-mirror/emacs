@@ -9,11 +9,6 @@
 @set VERSION  2.9
 @set EMACSVER 23.0.50
 
-@dircategory Emacs
-@direntry
-* Elisp: (elisp).       The Emacs Lisp Reference Manual.
-@end direntry
-
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
@@ -66,6 +61,11 @@ this GNU Manual. Buying copies from GNU Press supports the FSF in
 developing GNU and promoting software freedom.''
 @end quotation
 @end copying
+
+@dircategory Emacs
+@direntry
+* Elisp: (elisp).       The Emacs Lisp Reference Manual.
+@end direntry
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
@@ -639,6 +639,7 @@ Command Loop
 * Command Overview::    How the command loop reads commands.
 * Defining Commands::   Specifying how a function should read arguments.
 * Interactive Call::    Calling a command, so that it will read arguments.
+* Distinguish Interactive::     Making a command distinguish interactive calls.
 * Command Loop Info::   Variables set by the command loop for you to examine.
 * Adjusting Point::     Adjustment of point after a command.
 * Input Events::	What input looks like when you read it.

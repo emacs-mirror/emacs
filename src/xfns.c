@@ -1760,15 +1760,7 @@ x_implicitly_set_name (f, arg, oldval)
 }
 
 /* Change the title of frame F to NAME.
-   If NAME is nil, use the frame name as the title.
-
-   If EXPLICIT is non-zero, that indicates that lisp code is setting the
-       name; if NAME is a string, set F's name to NAME and set
-       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
-
-   If EXPLICIT is zero, that indicates that Emacs redisplay code is
-       suggesting a new name, which lisp code should override; if
-       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+   If NAME is nil, use the frame name as the title.  */
 
 void
 x_set_title (f, name, old_name)
@@ -5179,6 +5171,26 @@ else
   if (NILP (Fframe_parameter (frame, intern ("tooltip"))))
     Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
 					    Qnil));
+
+  /* FIXME - can this be done in a similar way to normal frames?
+     http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */
+
+  /* Set the `display-type' frame parameter before setting up faces. */
+  {
+    Lisp_Object disptype;
+
+    if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
+      disptype = intern ("mono");
+    else if (FRAME_X_DISPLAY_INFO (f)->visual->class == GrayScale
+             || FRAME_X_DISPLAY_INFO (f)->visual->class == StaticGray)
+      disptype = intern ("grayscale");
+    else
+      disptype = intern ("color");
+
+    if (NILP (Fframe_parameter (frame, Qdisplay_type)))
+      Fmodify_frame_parameters (frame, Fcons (Fcons (Qdisplay_type, disptype),
+                                              Qnil));
+  }
 
   /* Set up faces after all frame parameters are known.  This call
      also merges in face attributes specified for new frames.

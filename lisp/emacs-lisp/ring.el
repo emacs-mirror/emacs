@@ -164,6 +164,78 @@ will be performed."
     (dotimes (var (cadr ring) lst)
       (push (aref vect (mod (+ start var) size)) lst))))
 
+(defun ring-member (ring item)
+  "Return index of ITEM if on RING, else nil.  Comparison via `equal'.
+The index is 0-based."
+  (let ((ind 0)
+        (len (1- (ring-length ring)))
+        (memberp nil))
+    (while (and (<= ind len)
+                (not (setq memberp (equal item (ring-ref ring ind)))))
+      (setq ind (1+ ind)))
+    (and memberp ind)))
+
+(defun ring-next (ring item)
+  "Return the next item in the RING, after ITEM.
+Raise error if ITEM is not in the RING."
+  (let ((curr-index (ring-member ring item)))
+    (unless curr-index (error "Item is not in the ring: `%s'" item))
+    (ring-ref ring (ring-plus1 curr-index (ring-length ring)))))
+
+(defun ring-previous (ring item)
+  "Return the previous item in the RING, before ITEM.
+Raise error if ITEM is not in the RING."
+  (let ((curr-index (ring-member ring item)))
+    (unless curr-index (error "Item is not in the ring: `%s'" item))
+    (ring-ref ring (ring-minus1 curr-index (ring-length ring)))))
+
+(defun ring-insert+extend (ring item &optional grow-p)
+  "Like ring-insert, but if GROW-P is non-nil, then enlarge ring.
+Insert onto ring RING the item ITEM, as the newest (last) item.
+If the ring is full, behavior depends on GROW-P:
+  If GROW-P is non-nil, enlarge the ring to accommodate the new item.
+  If GROW-P is nil, dump the oldest item to make room for the new."
+  (let* ((vec (cdr (cdr ring)))
+	 (veclen (length vec))
+	 (hd (car ring))
+	 (ringlen (ring-length ring)))
+    (prog1
+        (cond ((and grow-p (= ringlen veclen)) ; Full ring.  Enlarge it.
+               (setq veclen (1+ veclen))
+               (setcdr ring (cons (setq ringlen (1+ ringlen))
+                                  (setq vec (vconcat vec (vector item)))))
+               (setcar ring hd))
+              (t (aset vec (mod (+ hd ringlen) veclen) item)))
+      (if (= ringlen veclen)
+          (setcar ring (ring-plus1 hd veclen))
+        (setcar (cdr ring) (1+ ringlen))))))
+
+(defun ring-remove+insert+extend (ring item &optional grow-p)
+  "`ring-remove' ITEM from RING, then `ring-insert+extend' it.
+This ensures that there is only one ITEM on RING.
+
+If the RING is full, behavior depends on GROW-P:
+  If GROW-P is non-nil, enlarge the ring to accommodate the new ITEM.
+  If GROW-P is nil, dump the oldest item to make room for the new."
+  (let (ind)
+    (while (setq ind (ring-member ring item)) (ring-remove ring ind)))
+  (ring-insert+extend ring item grow-p))
+
+(defun ring-convert-sequence-to-ring (seq)
+  "Convert sequence SEQ to a ring.  Return the ring.
+If SEQ is already a ring, return it."
+  (if (ring-p seq)
+      seq
+    (let* ((size (length seq))
+           (ring (make-ring size))
+           (count 0))
+      (while (< count size)
+        (if (or (ring-empty-p ring)
+                (not (equal (ring-ref ring 0) (elt seq count))))
+            (ring-insert-at-beginning ring (elt seq count)))
+        (setq count (1+ count)))
+      ring)))
+
 ;;; provide ourself:
 
 (provide 'ring)

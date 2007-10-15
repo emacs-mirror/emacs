@@ -680,9 +680,9 @@ struct glyph_row
   short used[LAST_AREA];
 
   /* Window-relative x and y-position of the top-left corner of this
-     row.  If y < 0, this means that abs (y) pixels of the row are
+     row.  If y < 0, this means that eabs (y) pixels of the row are
      invisible because it is partially visible at the top of a window.
-     If x < 0, this means that abs (x) pixels of the first glyph of
+     If x < 0, this means that eabs (x) pixels of the first glyph of
      the text area of the row are invisible because the glyph is
      partially visible.  */
   int x, y;

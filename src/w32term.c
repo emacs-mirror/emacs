@@ -1143,7 +1143,8 @@ w32_cache_char_metrics (font)
 
 
 /* Determine if a font is double byte. */
-int w32_font_is_double_byte (XFontStruct *font)
+static int
+w32_font_is_double_byte (XFontStruct *font)
 {
   return font->double_byte_p;
 }
@@ -1869,7 +1870,7 @@ x_draw_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
+    x = s->x + eabs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -1961,7 +1962,7 @@ x_draw_composite_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
+    x = s->x + eabs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -2349,7 +2350,7 @@ x_draw_glyph_string_box (s)
 		? s->first_glyph
 		: s->first_glyph + s->nchars - 1);
 
-  width = abs (s->face->box_line_width);
+  width = eabs (s->face->box_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
   right_x = ((s->row->full_width_p && s->extends_to_end_of_line_p
@@ -2395,7 +2396,7 @@ x_draw_image_foreground (s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2488,7 +2489,7 @@ x_draw_image_relief (s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2505,7 +2506,7 @@ x_draw_image_relief (s)
     }
   else
     {
-      thick = abs (s->img->relief);
+      thick = eabs (s->img->relief);
       raised_p = s->img->relief > 0;
     }
 
@@ -2542,7 +2543,7 @@ w32_draw_image_foreground_1 (s, pixmap)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2654,7 +2655,7 @@ x_draw_image_glyph_string (s)
      struct glyph_string *s;
 {
   int x, y;
-  int box_line_hwidth = abs (s->face->box_line_width);
+  int box_line_hwidth = eabs (s->face->box_line_width);
   int box_line_vwidth = max (s->face->box_line_width, 0);
   int height;
   HBITMAP pixmap = 0;
@@ -4023,7 +4024,7 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
 			 Scroll bars, general
  ************************************************************************/
 
-HWND
+static HWND
 my_create_scrollbar (f, bar)
      struct frame * f;
      struct scroll_bar * bar;
@@ -4637,7 +4638,7 @@ static short temp_buffer[100];
 
    Some of these messages are reposted back to the message queue since the
    system calls the windows proc directly in a context where we cannot return
-   the data nor can we guarantee the state we are in.  So if we dispatch  them
+   the data nor can we guarantee the state we are in.  So if we dispatch them
    we will get into an infinite loop.  To prevent this from ever happening we
    will set a variable to indicate we are in the read_socket call and indicate
    which message we are processing since the windows proc gets called
@@ -6097,7 +6098,22 @@ x_set_window_size (f, change_gravity, cols, rows)
 		       SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
   }
 
-  /* Now, strictly speaking, we can't be sure that this is accurate,
+#if 0
+  /* The following mirrors what is done in xterm.c. It appears to be
+     for informing lisp of the new size immediately, while the actual
+     resize will happen asynchronously. But on Windows, the menu bar
+     automatically wraps when the frame is too narrow to contain it,
+     and that causes any calculations made here to come out wrong. The
+     end is some nasty buggy behaviour, including the potential loss
+     of the minibuffer.
+
+     Disabling this code is either not sufficient to fix the problems
+     completely, or it causes fresh problems, but at least it removes
+     the most problematic symptom of the minibuffer becoming unusable.
+
+     -----------------------------------------------------------------
+
+     Now, strictly speaking, we can't be sure that this is accurate,
      but the window manager will get around to dealing with the size
      change request eventually, and we'll hear how it went when the
      ConfigureNotify event gets here.
@@ -6128,6 +6144,7 @@ x_set_window_size (f, change_gravity, cols, rows)
      Actually checking whether it is outside is a pain in the neck,
      so don't try--just let the highlighting be done afresh with new size.  */
   cancel_mouse_face (f);
+#endif
 
   UNBLOCK_INPUT;
 }
@@ -6714,7 +6731,7 @@ w32_initialize_display_info (display_name)
 
 /* Create an xrdb-style database of resources to supercede registry settings.
    The database is just a concatenation of C strings, finished by an additional
-   \0.  The string are submitted to some basic normalization, so
+   \0.  The strings are submitted to some basic normalization, so
 
      [ *]option[ *]:[ *]value...
 
@@ -7186,7 +7203,7 @@ interpreted normally.  */);
 Unicode output may prevent some third party applications for displaying
 Far-East Languages on Windows 95/98 from working properly.
 NT uses Unicode internally anyway, so this flag will probably have no
-affect on NT machines.  */);
+effect on NT machines.  */);
   w32_enable_unicode_output = 1;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",

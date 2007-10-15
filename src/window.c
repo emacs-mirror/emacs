@@ -799,7 +799,7 @@ coordinates_in_window (w, x, y)
       if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
 	  || WINDOW_RIGHTMOST_P (w))
 	{
-	  if (!WINDOW_LEFTMOST_P (w) && abs (*x - x0) < grabbable_width)
+	  if (!WINDOW_LEFTMOST_P (w) && eabs (*x - x0) < grabbable_width)
 	    {
 	      /* Convert X and Y to window relative coordinates.
 		 Vertical border is at the left edge of window.  */
@@ -810,7 +810,7 @@ coordinates_in_window (w, x, y)
 	}
       else
 	{
-	  if (abs (*x - x1) < grabbable_width)
+	  if (eabs (*x - x1) < grabbable_width)
 	    {
 	      /* Convert X and Y to window relative coordinates.
 		 Vertical border is at the right edge of window.  */
@@ -858,7 +858,7 @@ coordinates_in_window (w, x, y)
       if (!w->pseudo_window_p
 	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
 	  && !WINDOW_RIGHTMOST_P (w)
-	  && (abs (*x - right_x) < grabbable_width))
+	  && (eabs (*x - right_x) < grabbable_width))
 	{
 	  /* Convert X and Y to window relative coordinates.
 	     Vertical border is at the right edge of window.  */
@@ -5497,7 +5497,7 @@ scroll_command (n, direction)
 {
   int count = SPECPDL_INDEX ();
 
-  xassert (abs (direction) == 1);
+  xassert (eabs (direction) == 1);
 
   /* If selected window's buffer isn't current, make it current for
      the moment.  But don't screw up if window_scroll gets an error.  */

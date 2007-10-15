@@ -581,13 +581,28 @@ to end after the end keyword."
 	(error nil))
       (< pos (point)))))
 
+(defun octave-looking-at-kw (regexp)
+  "Like `looking-at', but sets `case-fold-search' nil."
+  (let ((case-fold-search nil))
+    (looking-at regexp)))
+
+(defun octave-re-search-forward-kw (regexp count)
+  "Like `re-search-forward', but sets `case-fold-search' nil, and moves point."
+  (let ((case-fold-search nil))
+    (re-search-forward regexp nil 'move count)))
+
+(defun octave-re-search-backward-kw (regexp count)
+  "Like `re-search-backward', but sets `case-fold-search' nil, and moves point."
+  (let ((case-fold-search nil))
+    (re-search-backward regexp nil 'move count)))
+
 (defun octave-in-defun-p ()
   "Return t if point is inside an Octave function declaration.
 The function is taken to start at the `f' of `function' and to end after
 the end keyword."
   (let ((pos (point)))
     (save-excursion
-      (or (and (looking-at "\\<function\\>")
+      (or (and (octave-looking-at-kw "\\<function\\>")
 	       (octave-not-in-string-or-comment-p))
 	  (and (octave-beginning-of-defun)
 	       (condition-case nil
@@ -658,14 +673,14 @@ level."
 		(while (< (point) eol)
 		  (if (octave-not-in-string-or-comment-p)
 		      (cond
-		       ((looking-at "\\<switch\\>")
+		       ((octave-looking-at-kw "\\<switch\\>")
 			(setq icol (+ icol (* 2 octave-block-offset))))
-		       ((looking-at octave-block-begin-regexp)
+		       ((octave-looking-at-kw octave-block-begin-regexp)
 			(setq icol (+ icol octave-block-offset)))
-		       ((looking-at octave-block-else-regexp)
+		       ((octave-looking-at-kw octave-block-else-regexp)
 			(if (= bot (point))
 			    (setq icol (+ icol octave-block-offset))))
-		       ((looking-at octave-block-end-regexp)
+		       ((octave-looking-at-kw octave-block-end-regexp)
 			(if (not (= bot (point)))
 			    (setq icol (- icol
 					  (octave-block-end-offset)))))))
@@ -675,10 +690,10 @@ level."
     (save-excursion
       (back-to-indentation)
       (cond
-       ((and (looking-at octave-block-else-regexp)
+       ((and (octave-looking-at-kw octave-block-else-regexp)
 	     (octave-not-in-string-or-comment-p))
 	(setq icol (- icol octave-block-offset)))
-       ((and (looking-at octave-block-end-regexp)
+       ((and (octave-looking-at-kw octave-block-end-regexp)
 	     (octave-not-in-string-or-comment-p))
 	(setq icol (- icol (octave-block-end-offset))))
        ((or (looking-at "\\s<\\s<\\s<\\S<")
@@ -854,8 +869,8 @@ an error is signaled."
     (save-excursion
       (while (/= count 0)
 	(catch 'foo
-	  (while (or (re-search-forward
-		      octave-block-begin-or-end-regexp nil 'move inc)
+	  (while (or (octave-re-search-forward-kw
+		      octave-block-begin-or-end-regexp inc)
 		     (if (/= depth 0)
 			 (error "Unbalanced block")))
 	    (if (octave-not-in-string-or-comment-p)
@@ -974,7 +989,7 @@ Signal an error if the keywords are incompatible."
 	     (looking-at "\\>")
 	     (save-excursion
 	       (skip-syntax-backward "w")
-	       (looking-at octave-block-else-or-end-regexp)))
+	       (octave-looking-at-kw octave-block-else-or-end-regexp)))
 	(save-excursion
 	  (cond
 	   ((match-end 1)
@@ -1021,11 +1036,11 @@ Returns t unless search stops at the beginning or end of the buffer."
 	 (inc (if (> arg 0) 1 -1))
 	 (found))
     (and (not (eobp))
-	 (not (and (> arg 0) (looking-at "\\<function\\>")))
+	 (not (and (> arg 0) (octave-looking-at-kw "\\<function\\>")))
 	 (skip-syntax-forward "w"))
     (while (and (/= arg 0)
 		(setq found
-		      (re-search-backward "\\<function\\>" nil 'move inc)))
+		      (octave-re-search-backward-kw "\\<function\\>" inc)))
       (if (octave-not-in-string-or-comment-p)
 	  (setq arg (- arg inc))))
     (if found
@@ -1078,7 +1093,7 @@ otherwise."
 	    (save-excursion
 	      (beginning-of-line)
 	      (and auto-fill-inhibit-regexp
-		   (looking-at auto-fill-inhibit-regexp))))
+		   (octave-looking-at-kw auto-fill-inhibit-regexp))))
 	nil				; Can't do anything
       (if (and (not (octave-in-comment-p))
 	       (> (current-column) fc))

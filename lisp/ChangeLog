@@ -1,3 +1,119 @@
+2007-10-14  Drew Adams  <drew.adams@oracle.com>
+
+	* emacs-lisp/ring.el (ring-convert-sequence-to-ring)
+	(ring-insert+extend, ring-remove+insert+extend, ring-member)
+	(ring-next, ring-previous): New functions.
+
+2007-10-14  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/advice.el (documentation): Advice deleted.
+	Doc for advised functions is now handled at C level.
+	This is now handled at C level.
+	(ad-stop-advice, ad-start-advice): Don't enable or disable
+	advice for `documentation'.
+	(ad-advised-definition-docstring-regexp): Var deleted.
+	(ad-make-advised-definition-docstring): Store orig name
+	as text property of string.
+	(ad-advised-definition-p): Check for text property of docstring.
+
+	* help-fns.el (describe-function-1): Find source of advised functions.
+
+2007-10-14  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (describe-face): Allow handling a string as the face name.
+
+	* textmodes/ispell.el (ispell-word): Call `ispell-region' on the
+	active region in transient-mark-mode.
+	(ispell-region): Change messages displayed at the start and end of
+	the spell-checking to be the same.
+
+	* startup.el (fancy-startup-tail): Say exactly what does the button
+	dismiss ("Dismiss this startup screen").  Use text "Never show
+	it again" for the checkbox after this button.
+	(fancy-startup-screen, fancy-about-screen): Put point before the
+	first link, so the user can quickly select links with the keyboard.
+	(normal-mouse-startup-screen): Add more useful text describing how
+	to follow a link.
+
+2007-10-14  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/etags.el (select-tags-table): Disable undo in the
+	`*Tags Table List*' buffer.
+
+2007-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.el (dired-warn-writable): New face.
+	(dired-warn-writable-face): New variable.
+	(dired-font-lock-keywords): Use dired-warn-writable-face, instead
+	of dired-warning-face, for group- and world-writable files.
+
+2007-10-13  Richard Stallman  <rms@gnu.org>
+
+	* files.el (directory-abbrev-alist): Doc fix.
+
+2007-10-13  Jari Aalto  <jari.aalto@cante.net>
+
+	* comint.el (comint-password-prompt-regexp): Add 'LDAP'.
+
+2007-10-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (set-frame-configuration): Assign name parameter only
+	if it has been set explicitly before.
+
+2007-10-11  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Ensure current
+	frame is visible.
+
+2007-10-10  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): Disable undo
+	in *Backtrace*.
+
+	* faces.el (face-font-selection-order): Doc fix.
+
+	* loadhist.el (unload-feature): Doc fix.
+
+2007-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/octave-mod.el (octave-looking-at-kw): Add doc string.
+	(octave-re-search-forward-kw, octave-re-search-backward-kw):
+	Add doc string, and an explicit COUNT argument.
+	(octave-scan-blocks, octave-beginning-of-defun): Explicitly pass
+	`inc' to search functions.
+
+	* faces.el (face-spec-set): When FRAME is nil, set the default for
+	new frames (restores pre-2007-09-17 behavior).  Doc fix.
+
+2007-10-13  John W. Eaton  <jwe@octave.org>
+
+	* progmodes/octave-mod.el (octave-looking-at-kw)
+	(octave-re-search-forward-kw, octave-re-search-backward-kw):
+	New functions.
+	(octave-in-defun-p, calculate-octave-indent)
+	(octave-blink-matching-block-open, octave-beginning-of-defun)
+	(octave-auto-fill): Use octave-looking-at-kw instead of looking-at,
+	to search for regexps that contain case-sensitive keywords.
+	(octave-beginning-of-defun): Likewise, for octave-re-search-backward-kw.
+	(octave-scan-blocks): Likewise, for octave-re-search-forward-kw.
+
+2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.el (select-frame-set-input-focus): Fix typo
+	"max" -> "mac". Do not use a single clause cond.
+
+	* cus-start.el (all): Use test that does not match the X11 version
+	for mac.
+
+2007-10-13  Markus Gritsch  <m.gritsch@gmail.com>  (tiny change)
+
+	* progmodes/ebrowse.el (ebrowse-tree-mode): Disable undo in the
+	BROWSE buffer.
+
+2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-start.el (all): Undo previous change.
+
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman0-rename): Fix paren typo.
@@ -28,9 +144,12 @@
 	(idlwave-sintern-keyword-list, idlwave-scan-user-lib-files)
 	(idlwave-write-paths, idlwave-all-method-classes)
 	(idlwave-all-method-keyword-classes, idlwave-entry-keywords)
-	(idlwave-fix-keywords, idlwave-display-calling-sequence):
+	(idlwave-fix-keywords, idlwave-display-calling-sequence)
+	(idlwave-complete-in-buffer):
 	* textmodes/org.el (org-export-as-html, org-export-as-ascii)
-	(org-fast-tag-selection): Use mapc rather than mapcar.
+	(org-fast-tag-selection):
+	* textmodes/reftex-sel.el (reftex-select-item):  Use mapc rather
+	than mapcar.
 
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -101,11 +220,12 @@
 
 2007-10-11  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el (vc-diff, vc-diff-internal): Bug fixes by Juanma Barranquero.
-	Temporarily disable the check for his edge case, it's calling some
-	brittle code.
-	(with-vc-properties): Fievaluation time of a macro argument.
-
+	* vc.el (vc-diff):
+	(vc-diff-internal): Merge a patch by Juanma Barranquero.  Also,
+	emporarily disable the check for his edge case of
+	vc-diff (stopping it from grinding when callerd from $HOME), as
+	it's calling some brittle code in vc-hooks.el.
+	(with-vc-properties): Fix evaluation time of a macro argument.
 	* ediff-vers.el (ediff-vc-internal):
 	* vc-hooks.el:
 	* loaddefs.el: Follow up on VC terminology change.
@@ -304,6 +424,10 @@
 	Pacify byte compiler.
 
 	* net/trampver.el: Update release number.
+
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* play/gamegrid.el (gamegrid-setup-default-font): Use face-spec-set.
 
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 

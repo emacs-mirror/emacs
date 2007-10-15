@@ -1595,15 +1595,15 @@ system, but is usually not excessive.
 @subsection Basic Editing under Version Control
 
 @menu
-* Selecting a fileset::          Choosing a set of files to operate on 
-* Doing the next logical thing:: Stepping forward in the development cycle
-* VC with a locking VCS::     RCS in its default mode, SCCS, and optionally CVS.
-* VC with a merging VCS::     Without locking: default mode for CVS.
-* Advanced C-x v v::    Advanced features available with a prefix argument.
-* Log Buffer::          Features available in log entry buffers.
+* Selecting A Fileset::    Choosing a set of files to operate on 
+* Doing The Right Thing::  Stepping forward in the development cycle
+* VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
+* VC With A Merging VCS::  Without locking: default mode for CVS.
+* Advanced C-x v v::       Advanced features available with a prefix argument.
+* Log Buffer::             Features available in log entry buffers.
 @end menu
 
-@node Selecting a fileset
+@node Selecting A Fileset
 @subsubsection Choosing the scope of your command
 
 @cindex filesets
@@ -1638,7 +1638,7 @@ marked files, but did not pass them to the version-control backends as
 a group.  Now it does, which enables VC to drive changeset-based
 version-control systems.
 
-@node Doing the next logical thing
+@node Doing The Right Thing
 @subsubsection Performing the next operation in the development cycle
 
   The principal VC command is an all-purpose command that performs
@@ -1667,7 +1667,7 @@ accidentally edit a file without properly checking it out first.  To
 achieve this, bind the key @kbd{C-x C-q} to @kbd{vc-toggle-read-only}
 in your @file{~/.emacs} file.  (@xref{Init Rebinding}.)
 
-@node VC with a locking VCS
+@node VC With A Locking VCS
 @subsubsection Basic Version Control with Locking
 
   If locking is used for the file (as with SCCS, and RCS in its default
@@ -1698,7 +1698,7 @@ formerly locked the file, to inform him of what has happened.
   These rules also apply when you use CVS in locking mode, except
 that there is no such thing as stealing a lock.
 
-@node VC with a merging VCS
+@node VC With A Merging VCS
 @subsubsection Basic Version Control with Merging
 
   When your version-control system is merging-based rather than

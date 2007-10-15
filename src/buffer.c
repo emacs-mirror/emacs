@@ -569,6 +569,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 
   b = (struct buffer *) allocate_buffer ();
   b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
+  XSETPVECTYPE (b, PVEC_BUFFER);
 
   if (XBUFFER (base_buffer)->base_buffer)
     b->base_buffer = XBUFFER (base_buffer)->base_buffer;
@@ -4233,15 +4234,8 @@ add_overlay_mod_hooklist (functionlist, overlay)
   int oldsize = XVECTOR (last_overlay_modification_hooks)->size;
 
   if (last_overlay_modification_hooks_used == oldsize)
-    {
-      Lisp_Object old;
-      old = last_overlay_modification_hooks;
-      last_overlay_modification_hooks
-	= Fmake_vector (make_number (oldsize * 2), Qnil);
-      bcopy (XVECTOR (old)->contents,
-	     XVECTOR (last_overlay_modification_hooks)->contents,
-	     sizeof (Lisp_Object) * oldsize);
-    }
+    last_overlay_modification_hooks = larger_vector 
+      (last_overlay_modification_hooks, oldsize * 2, Qnil);
   AREF (last_overlay_modification_hooks, last_overlay_modification_hooks_used++) = functionlist;
   AREF (last_overlay_modification_hooks, last_overlay_modification_hooks_used++) = overlay;
 }

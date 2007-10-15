@@ -251,8 +251,15 @@ face (according to `face-differs-from-default-p')."
 
 ;;;###autoload
 (defun describe-function-1 (function)
-  (let* ((def (if (symbolp function)
-		  (symbol-function function)
+  (let* ((advised (and (featurep 'advice) (ad-get-advice-info function)))
+	 ;; If the function is advised, get the symbol that has the
+	 ;; real definition.
+	 (real-function
+	  (if advised (cdr (assq 'origname advised))
+	    function))
+	 ;; Get the real definition.
+	 (def (if (symbolp real-function)
+		  (symbol-function real-function)
 		function))
 	 file-name string
 	 (beg (if (commandp def) "an interactive " "a ")))
@@ -334,7 +341,7 @@ face (according to `face-differs-from-default-p')."
       (with-current-buffer standard-output
         (save-excursion
 	  (re-search-backward "`\\([^`']+\\)'" nil t)
-	  (help-xref-button 1 'help-function-def function file-name))))
+	  (help-xref-button 1 'help-function-def real-function file-name))))
     (princ ".")
     (terpri)
     (when (commandp function)
@@ -383,8 +390,9 @@ face (according to `face-differs-from-default-p')."
                         ((listp arglist)
                          (format "%S" (help-make-usage function arglist)))
                         ((stringp arglist) arglist)
-                        ;; Maybe the arglist is in the docstring of the alias.
-                        ((let ((fun function))
+                        ;; Maybe the arglist is in the docstring of a symbol
+			;; this one is aliased to.
+                        ((let ((fun real-function))
                            (while (and (symbolp fun)
                                        (setq fun (symbol-function fun))
                                        (not (setq usage (help-split-fundoc

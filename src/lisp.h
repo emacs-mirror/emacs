@@ -3368,9 +3368,11 @@ extern Lisp_Object Vdirectory_sep_char;
 #define min(a, b)	((a) < (b) ? (a) : (b))
 #define max(a, b)	((a) > (b) ? (a) : (b))
 
-/* Make sure we have abs defined */
-#if !defined(abs)
-#define abs(x)         ((x) < 0 ? -(x) : (x))
+/* We used to use `abs', but that clashes with system headers on some
+   platforms, and using a name reserved by Standard C is a bad idea
+   anyway.  */
+#if !defined(eabs)
+#define eabs(x)         ((x) < 0 ? -(x) : (x))
 #endif
 
 /* Return a fixnum or float, depending on whether VAL fits in a Lisp

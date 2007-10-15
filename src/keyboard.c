@@ -160,14 +160,7 @@ int raw_keybuf_count;
 
 #define GROW_RAW_KEYBUF							\
  if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
-  {									\
-    int newsize = 2 * XVECTOR (raw_keybuf)->size;			\
-    Lisp_Object new;							\
-    new = Fmake_vector (make_number (newsize), Qnil);			\
-    bcopy (XVECTOR (raw_keybuf)->contents, XVECTOR (new)->contents,	\
-	   raw_keybuf_count * sizeof (Lisp_Object));			\
-    raw_keybuf = new;							\
-  }
+   raw_keybuf = larger_vector (raw_keybuf, raw_keybuf_count * 2, Qnil)  \
 
 /* Number of elements of this_command_keys
    that precede this key sequence.  */
@@ -5714,8 +5707,8 @@ make_lispy_event (event)
 	    fuzz = double_click_fuzz / 8;
 
 	  is_double = (button == last_mouse_button
-		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
-		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
 			   || (INTEGERP (Vdouble_click_time)
@@ -5883,8 +5876,8 @@ make_lispy_event (event)
 	    fuzz = double_click_fuzz / 8;
 
 	  is_double = (last_mouse_button < 0
-		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
-		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
 			   || (INTEGERP (Vdouble_click_time)
@@ -7598,13 +7591,7 @@ menu_bar_items (old)
   /* Add nil, nil, nil, nil at the end.  */
   i = menu_bar_items_index;
   if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
-    {
-      Lisp_Object tem;
-      tem = Fmake_vector (make_number (2 * i), Qnil);
-      bcopy (XVECTOR (menu_bar_items_vector)->contents,
-	     XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
-      menu_bar_items_vector = tem;
-    }
+    menu_bar_items_vector = larger_vector (menu_bar_items_vector, 2 * i, Qnil);
   /* Add this item.  */
   XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
   XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
@@ -7676,14 +7663,7 @@ menu_bar_item (key, item, dummy1, dummy2)
     {
       /* If vector is too small, get a bigger one.  */
       if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
-	{
-	  Lisp_Object tem;
-	  tem = Fmake_vector (make_number (2 * i), Qnil);
-	  bcopy (XVECTOR (menu_bar_items_vector)->contents,
-		 XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
-	  menu_bar_items_vector = tem;
-	}
-
+	menu_bar_items_vector = larger_vector (menu_bar_items_vector, 2 * i, Qnil);
       /* Add this item.  */
       XVECTOR (menu_bar_items_vector)->contents[i++] = key;
       XVECTOR (menu_bar_items_vector)->contents[i++]
@@ -8452,16 +8432,9 @@ append_tool_bar_item ()
   /* Enlarge tool_bar_items_vector if necessary.  */
   if (ntool_bar_items + TOOL_BAR_ITEM_NSLOTS
       >= XVECTOR (tool_bar_items_vector)->size)
-    {
-      Lisp_Object new_vector;
-      int old_size = XVECTOR (tool_bar_items_vector)->size;
-
-      new_vector = Fmake_vector (make_number (2 * old_size), Qnil);
-      bcopy (XVECTOR (tool_bar_items_vector)->contents,
-	     XVECTOR (new_vector)->contents,
-	     old_size * sizeof (Lisp_Object));
-      tool_bar_items_vector = new_vector;
-    }
+    tool_bar_items_vector
+      = larger_vector (tool_bar_items_vector,
+		       2 * XVECTOR (tool_bar_items_vector)->size, Qnil);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */

@@ -6785,12 +6785,12 @@ accumulate information on matching completions."
       (message "Making completion list...")
 
       (unless idlwave-completion-help-links ; already set somewhere?
-	(mapcar (lambda (x)  ; Pass link prop through to highlight-linked
-		  (let ((link (get-text-property 0 'link (car x))))
-		    (if link
-			(push (cons (car x) link)
-			      idlwave-completion-help-links))))
-		list))
+	(mapc (lambda (x)  ; Pass link prop through to highlight-linked
+		(let ((link (get-text-property 0 'link (car x))))
+		  (if link
+		      (push (cons (car x) link)
+			    idlwave-completion-help-links))))
+	      list))
       (let* ((list all-completions)
 	     ;; "complete" means, this is already a valid completion
 	     (complete (memq spart all-completions))

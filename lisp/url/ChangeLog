@@ -1,7 +1,26 @@
+2007-10-13  Richard Stallman  <rms@gnu.org>
+
+	* url-util.el (url-basepath): Function deleted.
+	(url-file-directory, url-file-nondirectory): New functions
+	replacing url-basepath.  Callers changed.
+
+	* url-expand.el (url-default-expander): Use `url-file-directory'.
+
+	* url-auth.el (url-digest-auth, url-basic-auth):
+	Rename `path' to `file'.  Use `url-file-directory'.
+
 2007-10-12  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-auth.el (url-basic-auth): Set path to "/" when URL has an
         empty string filename.
+
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* url-parse.el (url-type, url-user, url-password, url-host)
+	(url-port, url-filename, url-target, url-attributes)
+	(url-fullness, url-set-type, url-set-user, url-set-password)
+	(url-set-host, url-set-port, url-set-filename, url-set-target)
+	(url-set-attributes, url-set-full): Change macros to defuns.
 
 2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
