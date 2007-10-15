@@ -1,5 +1,10 @@
 2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
 
+	* help-fns.el: Revert previous change; it creates a
+	dependency loop between advice.el and help-fns.el.
+
+2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
 	* help-fns.el: Require advice when compiling.
 
 2007-10-14  Drew Adams  <drew.adams@oracle.com>
