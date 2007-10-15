@@ -1111,7 +1111,8 @@ w32_cache_char_metrics (font)
 
 
 /* Determine if a font is double byte. */
-int w32_font_is_double_byte (XFontStruct *font)
+static int
+w32_font_is_double_byte (XFontStruct *font)
 {
   return font->double_byte_p;
 }
@@ -3568,7 +3569,7 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
 			 Scroll bars, general
  ************************************************************************/
 
-HWND
+static HWND
 my_create_scrollbar (f, bar)
      struct frame * f;
      struct scroll_bar * bar;
@@ -4182,7 +4183,7 @@ static short temp_buffer[100];
 
    Some of these messages are reposted back to the message queue since the
    system calls the windows proc directly in a context where we cannot return
-   the data nor can we guarantee the state we are in.  So if we dispatch  them
+   the data nor can we guarantee the state we are in.  So if we dispatch them
    we will get into an infinite loop.  To prevent this from ever happening we
    will set a variable to indicate we are in the read_socket call and indicate
    which message we are processing since the windows proc gets called
@@ -6171,7 +6172,7 @@ w32_initialize_display_info (display_name)
 
 /* Create an xrdb-style database of resources to supercede registry settings.
    The database is just a concatenation of C strings, finished by an additional
-   \0.  The string are submitted to some basic normalization, so
+   \0.  The strings are submitted to some basic normalization, so
 
      [ *]option[ *]:[ *]value...
 
@@ -6635,7 +6636,7 @@ interpreted normally.  */);
 Unicode output may prevent some third party applications for displaying
 Far-East Languages on Windows 95/98 from working properly.
 NT uses Unicode internally anyway, so this flag will probably have no
-affect on NT machines.  */);
+effect on NT machines.  */);
   w32_enable_unicode_output = 1;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",
