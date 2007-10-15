@@ -5,7 +5,7 @@
 
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Fix up multy-tty merge.
+	Fix up multi-tty merge.
 
 	* xterm.c (handle_one_xevent): Remove duplicate code and fix up nesting
 	and indentation.
