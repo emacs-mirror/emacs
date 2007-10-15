@@ -40,6 +40,40 @@
 	* progmodes/etags.el (select-tags-table): Disable undo in the
 	`*Tags Table List*' buffer.
 
+2007-10-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.el (dired-warn-writable): New face.
+	(dired-warn-writable-face): New variable.
+	(dired-font-lock-keywords): Use dired-warn-writable-face, instead
+	of dired-warning-face, for group- and world-writable files.
+
+2007-10-13  Richard Stallman  <rms@gnu.org>
+
+	* files.el (directory-abbrev-alist): Doc fix.
+
+2007-10-13  Jari Aalto  <jari.aalto@cante.net>
+
+	* comint.el (comint-password-prompt-regexp): Add 'LDAP'.
+
+2007-10-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (set-frame-configuration): Assign name parameter only
+	if it has been set explicitly before.
+
+2007-10-11  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Ensure current
+	frame is visible.
+
+2007-10-10  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): Disable undo
+	in *Backtrace*.
+
+	* faces.el (face-font-selection-order): Doc fix.
+
+	* loadhist.el (unload-feature): Doc fix.
+
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/octave-mod.el (octave-looking-at-kw): Add doc string.

@@ -59,8 +59,9 @@ FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
 *Every* FROM string should start with `^'.
 
-Do not use `~' in the TO strings.
-They should be ordinary absolute directory names.
+FROM and TO should be equivalent names, which refer to the
+same directory.  Do not use `~' in the TO strings;
+they should be ordinary absolute directory names.
 
 Use this feature when you have directories which you normally refer to
 via absolute symbolic links.  Make TO the name of the link, and FROM
@@ -554,7 +555,7 @@ See Info node `(elisp)Standard File Names' for more details."
 	    (start 0))
 	;; Replace invalid filename characters with !
 	(while (string-match "[?*:<>|\"\000-\037]" name start)
-	  (aset name (match-beginning 0) ?!)
+	       (aset name (match-beginning 0) ?!)
 	  (setq start (match-end 0)))
 	name)
     filename))

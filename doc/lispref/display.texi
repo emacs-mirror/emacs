@@ -3245,21 +3245,47 @@ to use the value specified by the frame.
 insert images into text, and also control other aspects of how text
 displays.  The value of the @code{display} property should be a
 display specification, or a list or vector containing several display
-specifications.  Display specifications generally apply in parallel to
-the text they cover.
+specifications.  Display specifications in the same @code{display}
+property value generally apply in parallel to the text they cover.
+
+  If several sources (overlays and/or a text property) specify values
+for the @code{display} property, only one of the values takes effect,
+following the rules of @code{get-char-property}.  @xref{Examining
+Properties}.
+
+  The rest of this section describes several kinds of
+display specifications and what they mean.
+
+@menu
+* Replacing Specs::      Display specs that replace the text.
+* Specified Space::      Displaying one space with a specified width.
+* Pixel Specification::  Specifying space width or height in pixels.
+* Other Display Specs::  Displaying an image; magnifying text; moving it
+                          up or down on the page; adjusting the width
+                          of spaces within text.
+* Display Margins::     Displaying text or images to the side of the main text.
+@end menu
+
+@node Replacing Specs
+@subsection Display Specs That Replace The Text
 
   Some kinds of @code{display} specifications specify something to
-display instead of the text that has the property.  If a list of
-display specifications includes more than one of this kind, the first
-is effective and the rest are ignored.  You cannot interactively move
-point into the middle of the text that is thus replaced.
+display instead of the text that has the property.  These are called
+@dfn{replacing} display specifications.  Emacs does not allow the user
+to interactively move point into the middle of buffer text that is
+replaced in this way.
 
-  For these specifications, ``the text that has the property'' means
-all the consecutive characters that have the same Lisp object as their
-@code{display} property; these characters are replaced as a single
-unit.  By contrast, characters that have similar but distinct Lisp
-objects as their @code{display} properties are handled separately.
-Here's a function that illustrates this point:
+  If a list of display specifications includes more than one replacing
+display specification, the first overrides the rest.  Replacing
+display specifications make most other display specifications
+irrelevant, since those don't apply to the replacement.
+
+  For replacing display specifications, ``the text that has the
+property'' means all the consecutive characters that have the same
+Lisp object as their @code{display} property; these characters are
+replaced as a single unit.  By contrast, characters that have similar
+but distinct Lisp objects as their @code{display} properties are
+handled separately.  Here's a function that illustrates this point:
 
 @smallexample
 (defun foo ()
@@ -3298,18 +3324,6 @@ each character.  If two consecutive characters have the same
 object as the @code{display} property value, it's irrelevant
 whether they got this property from a single call to
 @code{put-text-property} or from two different calls.
-
-  The rest of this section describes several kinds of
-display specifications and what they mean.
-
-@menu
-* Specified Space::      Displaying one space with a specified width.
-* Pixel Specification::  Specifying space width or height in pixels.
-* Other Display Specs::  Displaying an image; magnifying text; moving it
-                          up or down on the page; adjusting the width
-                          of spaces within text.
-* Display Margins::     Displaying text or images to the side of the main text.
-@end menu
 
 @node Specified Space
 @subsection Specified Spaces
@@ -3549,25 +3563,28 @@ string.
 @cindex display margins
 @cindex margins, display
 
-  A buffer can have blank areas called @dfn{display margins} on the left
-and on the right.  Ordinary text never appears in these areas, but you
-can put things into the display margins using the @code{display}
-property.
+  A buffer can have blank areas called @dfn{display margins} on the
+left and on the right.  Ordinary text never appears in these areas,
+but you can put things into the display margins using the
+@code{display} property.  There is currently no way to make text or
+images in the margin mouse-sensitive.
 
-  To put text in the left or right display margin of the window, use a
-display specification of the form @code{(margin right-margin)} or
-@code{(margin left-margin)} on it.  To put an image in a display margin,
-use that display specification along with the display specification for
-the image.  Unfortunately, there is currently no way to make
-text or images in the margin mouse-sensitive.
+  The way to display something in the margins is to specify it in a
+margin display specification in the @code{display} property of some
+text.  This is a replacing display specification, meaning that the
+text you put it on does not get displayed; the margin display appears,
+but that text does not.
 
-  If you put such a display specification directly on text in the
-buffer, the specified margin display appears @emph{instead of} that
-buffer text itself.  To put something in the margin @emph{in
-association with} certain buffer text without preventing or altering
-the display of that text, put a @code{before-string} property on the
-text and put the display specification on the contents of the
-before-string.
+  A margin display specification looks like @code{((margin
+right-margin) @var{spec}} or @code{((margin left-margin) @var{spec})}.
+Here, @var{spec} is another display specification that says what to
+display in the margin.  Typically it is a string of text to display,
+or an image descriptor.
+
+  To display something in the margin @emph{in association with}
+certain buffer text, without altering or preventing the display of
+that text, put a @code{before-string} property on the text and put the
+margin display specification on the contents of the before-string.
 
   Before the display margins can display anything, you must give
 them a nonzero width.  The usual way to do that is to set these

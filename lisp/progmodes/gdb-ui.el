@@ -2120,62 +2120,72 @@ static char *magick[] = {
 
 (defun gdb-info-stack-custom ()
   (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
-    (save-excursion
-      (unless (eq gdb-look-up-stack 'delete)
-	(let ((buffer-read-only nil)
-	      bl el)
-	  (goto-char (point-min))
-	  (while (< (point) (point-max))
-	    (setq bl (line-beginning-position)
-		  el (line-end-position))
-	    (when (looking-at "#")
-	      (add-text-properties bl el
-				   '(mouse-face highlight
-				     help-echo "mouse-2, RET: Select frame")))
-	    (goto-char bl)
-	    (when (looking-at "^#\\([0-9]+\\)")
-	      (when (string-equal (match-string 1) gdb-frame-number)
-		(if (> (car (window-fringes)) 0)
-		    (progn
-		      (or gdb-stack-position
-			  (setq gdb-stack-position (make-marker)))
-		      (set-marker gdb-stack-position (point)))
-		  (put-text-property bl (+ bl 4)
-				     'face '(:inverse-video t))))
-	      (when (re-search-forward
-		     (concat
-		      (if (string-equal (match-string 1) "0") "" " in ")
-		      "\\([^ ]+\\) (") el t)
-		(put-text-property (match-beginning 1) (match-end 1)
-				   'face font-lock-function-name-face)
-		(setq bl (match-end 0))
-		(while (re-search-forward "<\\([^>]+\\)>" el t)
-		  (put-text-property (match-beginning 1) (match-end 1)
-				     'face font-lock-function-name-face))
-		(goto-char bl)
-		(while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
-		  (put-text-property (match-beginning 1) (match-end 1)
-				     'face font-lock-variable-name-face))))
-	    (forward-line 1))
-	  (forward-line -1)
-	  (when (looking-at "(More stack frames follow...)")
-	    (add-text-properties (match-beginning 0) (match-end 0)
-	     '(mouse-face highlight
-	       gdb-max-frames t
-	       help-echo
-               "mouse-2, RET: customize gdb-max-frames to see more frames")))))
-      (when gdb-look-up-stack
+    (let (move-to)
+      (save-excursion
+	(unless (eq gdb-look-up-stack 'delete)
+	  (let ((buffer-read-only nil)
+		bl el)
 	    (goto-char (point-min))
-	    (when (re-search-forward "\\(\\S-+?\\):\\([0-9]+\\)" nil t)
-	      (let ((start (line-beginning-position))
-		    (file (match-string 1))
-		    (line (match-string 2)))
-		(re-search-backward "^#*\\([0-9]+\\)" start t)
-		(gdb-enqueue-input
-		 (list (concat gdb-server-prefix "frame "
-			       (match-string 1) "\n") 'gdb-set-hollow))
-		(gdb-enqueue-input
-		 (list (concat gdb-server-prefix "frame 0\n") 'ignore)))))))
+	    (while (< (point) (point-max))
+	      (setq bl (line-beginning-position)
+		    el (line-end-position))
+	      (when (looking-at "#")
+		(add-text-properties bl el
+				     '(mouse-face highlight
+						  help-echo "mouse-2, RET: Select frame")))
+	      (goto-char bl)
+	      (when (looking-at "^#\\([0-9]+\\)")
+		(when (string-equal (match-string 1) gdb-frame-number)
+		  (if (> (car (window-fringes)) 0)
+		      (progn
+			(or gdb-stack-position
+			    (setq gdb-stack-position (make-marker)))
+			(set-marker gdb-stack-position (point))
+			(setq move-to gdb-stack-position))
+		    (put-text-property bl (+ bl 4)
+				       'face '(:inverse-video t))
+		    (setq move-to bl)))
+		(when (re-search-forward
+		       (concat
+			(if (string-equal (match-string 1) "0") "" " in ")
+			"\\([^ ]+\\) (") el t)
+		  (put-text-property (match-beginning 1) (match-end 1)
+				     'face font-lock-function-name-face)
+		  (setq bl (match-end 0))
+		  (while (re-search-forward "<\\([^>]+\\)>" el t)
+		    (put-text-property (match-beginning 1) (match-end 1)
+				       'face font-lock-function-name-face))
+		  (goto-char bl)
+		  (while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
+		    (put-text-property (match-beginning 1) (match-end 1)
+				       'face font-lock-variable-name-face))))
+	      (forward-line 1))
+	    (forward-line -1)
+	    (when (looking-at "(More stack frames follow...)")
+	      (add-text-properties (match-beginning 0) (match-end 0)
+				   '(mouse-face highlight
+						gdb-max-frames t
+						help-echo
+						"mouse-2, RET: customize gdb-max-frames to see more frames")))))
+	(when gdb-look-up-stack
+	  (goto-char (point-min))
+	  (when (re-search-forward "\\(\\S-+?\\):\\([0-9]+\\)" nil t)
+	    (let ((start (line-beginning-position))
+		  (file (match-string 1))
+		  (line (match-string 2)))
+	      (re-search-backward "^#*\\([0-9]+\\)" start t)
+	      (gdb-enqueue-input
+	       (list (concat gdb-server-prefix "frame "
+			     (match-string 1) "\n") 'gdb-set-hollow))
+	      (gdb-enqueue-input
+	       (list (concat gdb-server-prefix "frame 0\n") 'ignore))))))
+      (when move-to
+	(let ((window (get-buffer-window (current-buffer) 0)))
+	  (when window
+	    (with-selected-window window
+	      (goto-char move-to)
+	      (unless (pos-visible-in-window-p)
+		(recenter '(center)))))))))
   (if (eq gdb-look-up-stack 'delete)
       (kill-buffer (gdb-get-buffer 'gdb-stack-buffer)))
   (setq gdb-look-up-stack nil))
