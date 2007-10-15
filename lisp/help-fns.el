@@ -34,7 +34,6 @@
 ;;; Code:
 
 (require 'help-mode)
-(eval-when-compile (require 'advice))
 
 ;; Functions
 
