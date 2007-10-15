@@ -76,7 +76,6 @@
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)
-(eval-when-compile (require 'url))
 
 (defvar mac-charset-info-alist)
 (defvar mac-service-selection)
