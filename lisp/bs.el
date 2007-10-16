@@ -445,7 +445,6 @@ defined by current configuration `bs-current-configuration'.")
 
 (defvar bs--window-config-coming-from nil
   "Window configuration before starting Buffer Selection Menu.")
-(make-variable-frame-local 'bs--window-config-coming-from)
 
 (defvar bs--intern-show-never "^ \\|\\*buffer-selection\\*"
   "Regular expression specifying which buffers never to show.
@@ -614,7 +613,23 @@ actually the line which begins with character in `bs-string-current' or
     (format "Show buffer by configuration %S"
 	    bs-current-configuration)))
 
-(defun bs-mode ()
+(defun bs--track-window-changes (frame)
+  "Track window changes to refresh the buffer list.
+Used from `window-size-change-functions'."
+  (let ((win (get-buffer-window "*buffer-selection*" frame)))
+    (when win
+      (with-selected-window win
+	(bs-refresh)
+	(bs--set-window-height)))))
+
+(defun bs--remove-hooks ()
+  "Remove `bs--track-window-changes' and auxiliary hooks."
+  (remove-hook 'window-size-change-functions 'bs--track-window-changes)
+  ;; Remove itself
+  (remove-hook 'kill-buffer-hook 'bs--remove-hooks t)
+  (remove-hook 'change-major-mode-hook 'bs--remove-hooks t))
+
+(define-derived-mode bs-mode ()
   "Major mode for editing a subset of Emacs' buffers.
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
@@ -647,27 +662,24 @@ available Buffer Selection Menu configuration.
 to show always.
 \\[bs-visit-tags-table] -- call `visit-tags-table' on current line's buffer.
 \\[bs-help] -- display this help text."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map bs-mode-map)
   (make-local-variable 'font-lock-defaults)
   (make-local-variable 'font-lock-verbose)
   (make-local-variable 'font-lock-global-modes)
   (buffer-disable-undo)
-  (setq major-mode 'bs-mode
-	mode-name "Buffer-Selection-Menu"
-	buffer-read-only t
+  (setq buffer-read-only t
 	truncate-lines t
 	show-trailing-whitespace nil
 	font-lock-global-modes '(not bs-mode)
 	font-lock-defaults '(bs-mode-font-lock-keywords t)
-	font-lock-verbose nil)
-  (run-mode-hooks 'bs-mode-hook))
+	font-lock-verbose nil))
 
 (defun bs--restore-window-config ()
   "Restore window configuration on the current frame."
   (when bs--window-config-coming-from
-    (set-window-configuration bs--window-config-coming-from)
+    (let ((frame (selected-frame)))
+      (unwind-protect
+	   (set-window-configuration bs--window-config-coming-from)
+	(select-frame frame)))
     (setq bs--window-config-coming-from nil)))
 
 (defun bs-kill ()
@@ -1429,12 +1441,12 @@ for buffer selection."
 	  (active-window (get-window-with-predicate
                           (lambda (w)
                             (string= (buffer-name (window-buffer w))
-                                     "*buffer-selection*")))))
+                                     "*buffer-selection*"))
+			  nil (selected-frame))))
       (if active-window
 	  (select-window active-window)
-        (modify-frame-parameters nil
-                                 (list (cons 'bs--window-config-coming-from
-                                             (current-window-configuration))))
+	(bs--restore-window-config)
+	(setq bs--window-config-coming-from (current-window-configuration))
 	(when (> (window-height (selected-window)) 7)
           (split-window-vertically)
           (other-window 1)))
