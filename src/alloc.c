@@ -4966,7 +4966,10 @@ Does not copy symbols.  Copies strings without text properties.  */)
       for (i = 0; i < size; i++)
 	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
       if (COMPILEDP (obj))
-	XSETCOMPILED (obj, vec);
+	{
+	  XSETPVECTYPE (vec, PVEC_COMPILED);
+	  XSETCOMPILED (obj, vec);
+	}
       else
 	XSETVECTOR (obj, vec);
       return obj;

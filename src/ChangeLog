@@ -1,5 +1,7 @@
 2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* alloc.c (Fpurecopy): Set the pvec tag on pseudo vectors.
+
 	* lisp.h (enum Lisp_Misc_Type): Del Lisp_Misc_Some_Buffer_Local_Value.
 	(XMISCANY): New macro.
 	(XMISCTYPE): Use it.
