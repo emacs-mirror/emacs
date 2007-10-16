@@ -1,3 +1,7 @@
+2007-10-16  Richard Stallman  <rms@gnu.org>
+
+	* calendar.texi (Diary): Clarify text about diary file example.
+
 2007-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Interactive Shell): Correct INSIDE_EMACS reference.
