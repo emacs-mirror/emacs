@@ -2013,7 +2013,10 @@ On each iteration VAR will be bound to the name of an advised function
 (if (not (get 'ad-do-advised-functions 'lisp-indent-hook))
     (put 'ad-do-advised-functions 'lisp-indent-hook 1))
 
-(defmacro ad-get-advice-info (function)
+(defun ad-get-advice-info (function)
+  (get function 'ad-advice-info))
+
+(defmacro ad-get-advice-info-macro (function)
   `(get ,function 'ad-advice-info))
 
 (defmacro ad-set-advice-info (function advice-info)
@@ -2025,7 +2028,7 @@ On each iteration VAR will be bound to the name of an advised function
 (defmacro ad-is-advised (function)
   "Return non-nil if FUNCTION has any advice info associated with it.
 This does not mean that the advice is also active."
-  (list 'ad-get-advice-info function))
+  (list 'ad-get-advice-info-macro function))
 
 (defun ad-initialize-advice-info (function)
   "Initialize the advice info for FUNCTION.
@@ -2035,16 +2038,16 @@ Assumes that FUNCTION has not yet been advised."
 
 (defmacro ad-get-advice-info-field (function field)
   "Retrieve the value of the advice info FIELD of FUNCTION."
-  `(cdr (assq ,field (ad-get-advice-info ,function))))
+  `(cdr (assq ,field (ad-get-advice-info-macro ,function))))
 
 (defun ad-set-advice-info-field (function field value)
   "Destructively modify VALUE of the advice info FIELD of FUNCTION."
   (and (ad-is-advised function)
-       (cond ((assq field (ad-get-advice-info function))
+       (cond ((assq field (ad-get-advice-info-macro function))
 	      ;; A field with that name is already present:
-              (rplacd (assq field (ad-get-advice-info function)) value))
+              (rplacd (assq field (ad-get-advice-info-macro function)) value))
 	     (t;; otherwise, create a new field with that name:
-	      (nconc (ad-get-advice-info function)
+	      (nconc (ad-get-advice-info-macro function)
 		     (list (cons field value)))))))
 
 ;; Don't make this a macro so we can use it as a predicate:
