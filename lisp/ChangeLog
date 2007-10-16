@@ -1,3 +1,14 @@
+2007-10-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--window-config-coming-from): Revert 2006-11-09 change.
+	(bs--restore-window-config): Keep the selected frame.
+	(bs--track-window-changes, bs--remove-hooks): New functions.
+	(bs-mode): Use `define-derived-mode'.  Set hook to track window changes.
+	(bs--show-with-configuration): Revert 2006-11-09 change.
+	Don't reuse window unless it is visible on the selected frame.
+	Restore window configuration (possibly in a different frame)
+	before creating any window.
+
 2007-10-16  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/advice.el (ad-get-advice-info): Change to a function.
