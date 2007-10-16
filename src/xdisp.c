@@ -3839,7 +3839,13 @@ handle_display_prop (it)
 	{
 	  if (handle_single_display_spec (it, XCAR (prop), object,
 					  position, display_replaced_p))
-	    display_replaced_p = 1;
+	    {
+	      display_replaced_p = 1;
+	      /* If some text in a string is replaced, `position' no
+		 longer points to the position of `object'.  */
+	      if (STRINGP (object))
+		break;
+	    }
 	}
     }
   else if (VECTORP (prop))
@@ -3848,7 +3854,13 @@ handle_display_prop (it)
       for (i = 0; i < ASIZE (prop); ++i)
 	if (handle_single_display_spec (it, AREF (prop, i), object,
 					position, display_replaced_p))
-	  display_replaced_p = 1;
+	  {
+	    display_replaced_p = 1;
+	    /* If some text in a string is replaced, `position' no
+	       longer points to the position of `object'.  */
+	    if (STRINGP (object))
+	      break;
+	  }
     }
   else
     {
@@ -4237,13 +4249,16 @@ handle_single_display_spec (it, spec, object, position,
 	  /* Say that we haven't consumed the characters with
 	     `display' property yet.  The call to pop_it in
 	     set_iterator_to_next will clean this up.  */
-	  *position = start_pos;
+	  if (BUFFERP (object))
+	    it->current.pos = start_pos;
 	}
       else if (CONSP (value) && EQ (XCAR (value), Qspace))
 	{
 	  it->method = GET_FROM_STRETCH;
 	  it->object = value;
-	  *position = it->position = start_pos;
+	  it->position = start_pos;
+	  if (BUFFERP (object))
+	    it->current.pos = start_pos;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
       else
@@ -4257,7 +4272,8 @@ handle_single_display_spec (it, spec, object, position,
 	  /* Say that we haven't consumed the characters with
 	     `display' property yet.  The call to pop_it in
 	     set_iterator_to_next will clean this up.  */
-	  *position = start_pos;
+	  if (BUFFERP (object))
+	    it->current.pos = start_pos;
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
 
