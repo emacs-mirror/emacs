@@ -671,7 +671,10 @@ to show always.
 	show-trailing-whitespace nil
 	font-lock-global-modes '(not bs-mode)
 	font-lock-defaults '(bs-mode-font-lock-keywords t)
-	font-lock-verbose nil))
+	font-lock-verbose nil)
+  (add-hook 'window-size-change-functions 'bs--track-window-changes)
+  (add-hook 'kill-buffer-hook 'bs--remove-hooks nil t)
+  (add-hook 'change-major-mode-hook 'bs--remove-hooks nil t))
 
 (defun bs--restore-window-config ()
   "Restore window configuration on the current frame."
