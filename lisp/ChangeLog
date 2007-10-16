@@ -1,3 +1,31 @@
+2007-10-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--make-header-match-string, bs-show-in-buffer)
+	(bs--nth-wrapper): Simplify.
+	(bs-select, bs--insert-one-entry): Simplify.  Use `when'.
+	(bs-buffer-list): Simplify.  Use `when'.  Use `string-match-p'.
+	(bs-sort-buffer-interns-are-last): Use `string-match-p'.
+	(bs-attributes-list, bs-max-window-height, bs-must-always-show-regexp)
+	(bs-maximal-buffer-name-column, bs-minimal-buffer-name-column)
+	(bs-configurations, bs-default-configuration)
+	(bs-alternative-configuration, bs-cycle-configuration-name)
+	(bs-string-show-always, bs-string-show-never, bs-string-current)
+	(bs-string-current-marked, bs-string-marked, bs-string-show-normally)
+	(bs-sort-functions, bs-default-sort-name): Remove * in docstrings.
+	(bs--redisplay, bs--goto-current-buffer, bs--current-buffer, bs-delete)
+	(bs-apply-sort-faces, bs-next-config-aux): Use `when'.
+	(bs--window-config-coming-from): Revert 2006-11-09 change.
+	(bs--restore-window-config): Keep the selected frame.
+	(bs--track-window-changes, bs--remove-hooks): New functions.
+	(bs-mode): Use `define-derived-mode'.  Set hook to track window changes.
+	(bs--create-header): Remove.
+	(bs--create-header-line): New function, based on `bs--create-header'.
+	(bs--show-header): Use `bs--create-header-line'.
+	(bs--show-with-configuration): Revert 2006-11-09 change.
+	Don't reuse window unless it is visible on the selected frame.
+	Restore window configuration (possibly in a different frame)
+	before creating any window.
+
 2007-10-16  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (blink-matching-open): Don't report false errors with
