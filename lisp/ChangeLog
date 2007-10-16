@@ -1,3 +1,8 @@
+2007-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (blink-matching-open): Don't report false errors with
+	the `$' syntax class.
+
 2007-10-16  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/advice.el (ad-get-advice-info): Change to a function.
