@@ -1,7 +1,8 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -4485,7 +4486,8 @@ it skips the contents of comments that end before point."
 	   matching-paren
 	   open-paren-line-string
 	   old-start
-	   new-start)
+	   new-start
+	   isdollar)
       (save-excursion
 	(save-restriction
 	  ;; Don't search for matching paren within minibuffer prompt.
@@ -4503,7 +4505,7 @@ it skips the contents of comments that end before point."
 	    (error nil)))
 	(and blinkpos
 	     ;; Not syntax '$'.
-	     (not (eq (syntax-class (syntax-after blinkpos)) 8))
+	     (not (setq isdollar (eq (syntax-class (syntax-after blinkpos)) 8)))
 	     (setq matching-paren
 		   (let ((syntax (syntax-after blinkpos)))
 		     (and (consp syntax)
@@ -4511,12 +4513,19 @@ it skips the contents of comments that end before point."
 			  (cdr syntax)))))
 	(cond
 	 ((not blinkpos)
-	  (unless (and blink-matching-paren-distance (> new-start old-start))
+	  ;; Don't complain when `$' with no blinkpos, because it
+	  ;; could just be the first one in the buffer.
+	  (unless (or (eq (syntax-class (syntax-after (1- oldpos))) 8)
+		      (and blink-matching-paren-distance
+			   (> new-start old-start))
 	    ;; When `blink-matching-paren-distance' is non-nil and we
 	    ;; didn't find a matching paren within that many characters
 	    ;; don't display a message.
-	    (message "Unmatched parenthesis")))
-	 ((not (or (eq matching-paren (char-before oldpos))
+		      (message "Unmatched parenthesis"))))
+	 ;; isdollar is for:
+	 ;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00871.html
+	  ((not (or isdollar
+		    (eq matching-paren (char-before oldpos))
 		   ;; The cdr might hold a new paren-class info rather than
 		   ;; a matching-char info, in which case the two CDRs
 		   ;; should match.
