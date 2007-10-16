@@ -1,3 +1,10 @@
+2007-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (handle_display_prop): Ignore display specs after
+	replacing one when string text is being replaced.
+	(handle_single_display_spec): Pretend as if characters with display
+	property haven't been consumed only when buffer text is being replaced.
+
 2007-10-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (do_autoload): Don't save autoloads.
