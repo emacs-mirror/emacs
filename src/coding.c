@@ -5371,7 +5371,7 @@ code_convert_region_unwind (arg)
 
   inhibit_pre_post_conversion = 0;
   Vlast_coding_system_used = XCAR (arg);
-  for (arg = XCDR (arg); ! NILP (arg); arg = XCDR (arg))
+  for (arg = XCDR (arg); CONSP (arg); arg = XCDR (arg))
     Fkill_buffer (XCAR (arg));
 
   UNGCPRO;

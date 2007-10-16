@@ -1100,7 +1100,7 @@ close_load_descs ()
 {
 #ifndef WINDOWSNT
   Lisp_Object tail;
-  for (tail = load_descriptor_list; !NILP (tail); tail = XCDR (tail))
+  for (tail = load_descriptor_list; CONSP (tail); tail = XCDR (tail))
     emacs_close (XFASTINT (XCAR (tail)));
 #endif
 }

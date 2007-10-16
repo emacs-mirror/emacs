@@ -1,5 +1,16 @@
 2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xfns.c (Fx_create_frame, Fx_display_list):
+	* window.c (window_fixed_size_p, enlarge_window)
+	(shrink_window_lowest_first):
+	* macterm.c (init_font_name_table):
+	* macfns.c (Fx_create_frame, Fx_display_list):
+	* lread.c (close_load_descs):
+	* keyboard.c (read_char_x_menu_prompt):
+	* fns.c (Fmember, Fmemql, Fdelete, Fset_char_table_parent):
+	* coding.c (code_convert_region_unwind): Test the type of an object
+	rather than just !NILP before extracting data from it.
+
 	* alloc.c (Fpurecopy): Set the pvec tag on pseudo vectors.
 
 	* lisp.h (enum Lisp_Misc_Type): Del Lisp_Misc_Some_Buffer_Local_Value.

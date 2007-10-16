@@ -8538,7 +8538,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	     to indicate that they came from a mouse menu,
 	     so that when present in last_nonmenu_event
 	     they won't confuse things.  */
-	  for (tem = XCDR (value); !NILP (tem); tem = XCDR (tem))
+	  for (tem = XCDR (value); CONSP (tem); tem = XCDR (tem))
 	    {
 	      record_menu_key (XCAR (tem));
 	      if (SYMBOLP (XCAR (tem))
