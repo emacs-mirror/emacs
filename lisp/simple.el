@@ -1,7 +1,8 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -4657,6 +4658,8 @@ it skips the contents of comments that end before point."
 				 (point))))))
     (let* ((oldpos (point))
 	   (message-log-max nil)  ; Don't log messages about paren matching.
+	   (atdollar (eq (syntax-class (syntax-after (1- oldpos))) 8))
+	   (isdollar)
 	   (blinkpos
             (save-excursion
               (save-restriction
@@ -4674,20 +4677,28 @@ it skips the contents of comments that end before point."
 	   (matching-paren
             (and blinkpos
                  ;; Not syntax '$'.
-                 (not (eq (syntax-class (syntax-after blinkpos)) 8))
+                 (not (setq isdollar
+                            (eq (syntax-class (syntax-after blinkpos)) 8)))
                  (let ((syntax (syntax-after blinkpos)))
                    (and (consp syntax)
                         (eq (syntax-class syntax) 4)
                         (cdr syntax))))))
       (cond
-       ((not (or (eq matching-paren (char-before oldpos))
+       ;; isdollar is for:
+       ;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00871.html
+       ((not (or (and isdollar blinkpos)
+                 (and atdollar (not blinkpos)) ; see below
+                 (eq matching-paren (char-before oldpos))
                  ;; The cdr might hold a new paren-class info rather than
                  ;; a matching-char info, in which case the two CDRs
                  ;; should match.
                  (eq matching-paren (cdr (syntax-after (1- oldpos))))))
         (message "Mismatched parentheses"))
        ((not blinkpos)
-        (if (not blink-matching-paren-distance)
+        (or blink-matching-paren-distance
+            ;; Don't complain when `$' with no blinkpos, because it
+            ;; could just be the first one typed in the buffer.
+            atdollar
             (message "Unmatched parenthesis")))
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
