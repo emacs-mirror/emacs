@@ -3,6 +3,16 @@
 	* simple.el (blink-matching-open): Don't report false errors with
 	the `$' syntax class.
 
+2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filesets.el (filesets-alist-get): Use `let' rather than `let*'.
+	(filesets-ormap, filesets-sort-case-sensitive-flag)
+	(filesets-remake-shortcut, filesets-ingroup-collect-files):
+	Fix typos in docstrings.
+	(filesets-data-get-name, filesets-data-get-data)
+	(filesets-data-set, filesets-cmd-query-replace-getargs)
+	(filesets-ingroup-collect, filesets-find-or-display-file): Doc fixes.
+
 2007-10-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Don't require url when compiling, as url-type is
