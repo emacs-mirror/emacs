@@ -1,3 +1,7 @@
+2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc.c (Fsnarf_documentation): Simplify.
+
 2007-10-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32term.c (w32_font_is_double_byte, my_create_scrollbar): Make static.
