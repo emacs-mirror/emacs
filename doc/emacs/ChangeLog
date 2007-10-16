@@ -1,3 +1,7 @@
+2007-10-16  Richard Stallman  <rms@gnu.org>
+
+	* calendar.texi (Diary): Clarify text about diary file example.
+
 2007-10-13  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* files.texi: Capitalize node names according to convention.

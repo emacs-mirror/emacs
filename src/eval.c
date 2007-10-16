@@ -468,7 +468,7 @@ usage: (prog1 FIRST BODY...)  */)
   struct gcpro gcpro1, gcpro2;
   register int argnum = 0;
 
-  if (NILP(args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;

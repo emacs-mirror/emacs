@@ -1,3 +1,10 @@
+2007-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (handle_display_prop): Ignore display specs after
+	replacing one when string text is being replaced.
+	(handle_single_display_spec): Pretend as if characters with display
+	property haven't been consumed only when buffer text is being replaced.
+
 2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xfns.c (Fx_create_frame, Fx_display_list):
@@ -108,6 +115,11 @@
 2007-10-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1170000.
+
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): After setting up an ellipsis,
+	return HANDLED_RETURN.
 
 2007-10-08  Martin Rudalics  <rudalics@gmx.at>
 
