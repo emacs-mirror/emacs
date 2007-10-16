@@ -2289,8 +2289,7 @@ store_frame_param (f, prop, val)
     {
       Lisp_Object valcontents;
       valcontents = SYMBOL_VALUE (prop);
-      if ((BUFFER_LOCAL_VALUEP (valcontents)
-  	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+      if ((BUFFER_LOCAL_VALUEP (valcontents))
 	  && XBUFFER_LOCAL_VALUE (valcontents)->check_frame
 	  && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame
  	  && XFRAME (XBUFFER_LOCAL_VALUE (valcontents)->frame) == f)

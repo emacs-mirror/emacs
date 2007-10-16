@@ -1,5 +1,29 @@
 2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (enum Lisp_Misc_Type): Del Lisp_Misc_Some_Buffer_Local_Value.
+	(XMISCANY): New macro.
+	(XMISCTYPE): Use it.
+	(struct Lisp_Misc_Any): New type.
+	(union Lisp_Misc): Use it.
+	(struct Lisp_Buffer_Local_Value): Add `local_if_set' bit.
+	* data.c (Fboundp, store_symval_forwarding, swap_in_global_binding)
+	(find_symbol_value, set_internal, default_value, Fset_default)
+	(Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fkill_local_variable, Fmake_variable_frame_local, Flocal_variable_p)
+	(Flocal_variable_if_set_p, Fvariable_binding_locus):
+	The SOME_BUFFER_LOCAL_VALUEP distinction is replaced by local_if_set.
+	* alloc.c (allocate_buffer): Set the size and tag.
+	(allocate_misc, mark_maybe_object, mark_object, survives_gc_p):
+	Use XMISCANY.
+	(die): Follow the GNU convention for error messages.
+	* print.c (print_object): SOME_BUFFER_LOCAL_VALUEP -> local_if_set.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Don't set the
+	tag any more.
+	(set_buffer_internal_1):
+	* frame.c (store_frame_param):
+	* eval.c (specbind):
+	* xdisp.c (select_frame_for_redisplay): Drop SOME_BUFFER_LOCAL_VALUEP.
+
 	* doc.c (Fsnarf_documentation): Simplify.
 
 2007-10-14  Juanma Barranquero  <lekktu@gmail.com>

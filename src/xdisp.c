@@ -10804,8 +10804,7 @@ select_frame_for_redisplay (frame)
 	    SYMBOLP (sym))
 	&& (sym = indirect_variable (sym),
 	    val = SYMBOL_VALUE (sym),
-	    (BUFFER_LOCAL_VALUEP (val)
-	     || SOME_BUFFER_LOCAL_VALUEP (val)))
+	    (BUFFER_LOCAL_VALUEP (val)))
 	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
       /* Use find_symbol_value rather than Fsymbol_value
 	 to avoid an error if it is void.  */
@@ -10817,8 +10816,7 @@ select_frame_for_redisplay (frame)
 	    SYMBOLP (sym))
 	&& (sym = indirect_variable (sym),
 	    val = SYMBOL_VALUE (sym),
-	    (BUFFER_LOCAL_VALUEP (val)
-	     || SOME_BUFFER_LOCAL_VALUEP (val)))
+	    (BUFFER_LOCAL_VALUEP (val)))
 	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
       find_symbol_value (sym);
 }

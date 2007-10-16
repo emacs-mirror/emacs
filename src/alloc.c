@@ -1153,6 +1153,8 @@ allocate_buffer ()
   struct buffer *b
     = (struct buffer *) lisp_malloc (sizeof (struct buffer),
 				     MEM_TYPE_BUFFER);
+  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
+  XSETPVECTYPE (b, PVEC_BUFFER);
   return b;
 }
 
@@ -3352,7 +3354,7 @@ allocate_misc ()
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
-  XMARKER (val)->gcmarkbit = 0;
+  XMISCANY (val)->gcmarkbit = 0;
   return val;
 }
 
@@ -4209,7 +4211,7 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Misc:
-	  mark_p = (live_misc_p (m, po) && !XMARKER (obj)->gcmarkbit);
+	  mark_p = (live_misc_p (m, po) && !XMISCANY (obj)->gcmarkbit);
 	  break;
 
 	case Lisp_Int:
@@ -5654,14 +5656,13 @@ mark_object (arg)
 
     case Lisp_Misc:
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
-      if (XMARKER (obj)->gcmarkbit)
+      if (XMISCANY (obj)->gcmarkbit)
 	break;
-      XMARKER (obj)->gcmarkbit = 1;
+      XMISCANY (obj)->gcmarkbit = 1;
 
       switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Buffer_Local_Value:
-	case Lisp_Misc_Some_Buffer_Local_Value:
 	  {
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
@@ -5847,7 +5848,7 @@ survives_gc_p (obj)
       break;
 
     case Lisp_Misc:
-      survives_p = XMARKER (obj)->gcmarkbit;
+      survives_p = XMISCANY (obj)->gcmarkbit;
       break;
 
     case Lisp_String:
@@ -6297,7 +6298,7 @@ die (msg, file, line)
      const char *file;
      int line;
 {
-  fprintf (stderr, "\r\nEmacs fatal error: %s:%d: %s\r\n",
+  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
 	   file, line, msg);
   abort ();
 }
