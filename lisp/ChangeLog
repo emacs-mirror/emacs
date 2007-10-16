@@ -1,3 +1,10 @@
+2007-10-16  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/advice.el (ad-get-advice-info): Change to a function.
+	(ad-get-advice-info-macro): New macro, like old ad-get-advice-info.
+	(ad-is-advised, ad-get-advice-info-field)
+	(ad-set-advice-info-field): Use ad-get-advice-info-macro.
+
 2007-10-16  Glenn Morris  <rgm@gnu.org>
 
 	* simple.el (blink-matching-open): Don't report false errors with
