@@ -1,3 +1,7 @@
+2006-10-22  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-cmd.el (eshell-complex-commands): Add "ls".
+
 2007-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression): Tweak
