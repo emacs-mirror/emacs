@@ -1247,9 +1247,9 @@ remapping in all currently active keymaps.  */)
     {
       Lisp_Object maps, binding;
 
-      for (maps = keymaps; !NILP (maps); maps = Fcdr (maps))
+      for (maps = keymaps; CONSP (maps); maps = XCDR (maps))
 	{
-	  binding = Flookup_key (Fcar (maps), command_remapping_vector, Qnil);
+	  binding = Flookup_key (XCAR (maps), command_remapping_vector, Qnil);
 	  if (!NILP (binding) && !INTEGERP (binding))
 	    return binding;
 	}
@@ -2681,7 +2681,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
       && !NILP (Fcommand_remapping (definition, Qnil, keymaps)))
     RETURN_UNGCPRO (Qnil);
 
-  for (; !NILP (maps); maps = Fcdr (maps))
+  for (; CONSP (maps); maps = XCDR (maps))
     {
       /* Key sequence to reach map, and the map that it reaches */
       register Lisp_Object this, map, tem;
@@ -2693,8 +2693,8 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
       Lisp_Object last;
       int last_is_meta;
 
-      this = Fcar (Fcar (maps));
-      map  = Fcdr (Fcar (maps));
+      this = Fcar (XCAR (maps));
+      map  = Fcdr (XCAR (maps));
       last = make_number (XINT (Flength (this)) - 1);
       last_is_meta = (XINT (last) >= 0
 		      && EQ (Faref (this, last), meta_prefix_char));
@@ -3179,11 +3179,11 @@ key             binding\n\
       Lisp_Object list;
 
       /* Delete from MAPS each element that is for the menu bar.  */
-      for (list = maps; !NILP (list); list = XCDR (list))
+      for (list = maps; CONSP (list); list = XCDR (list))
 	{
 	  Lisp_Object elt, prefix, tem;
 
-	  elt = Fcar (list);
+	  elt = XCAR (list);
 	  prefix = Fcar (elt);
 	  if (XVECTOR (prefix)->size >= 1)
 	    {
@@ -3210,11 +3210,11 @@ key             binding\n\
       something = 1;
     }
 
-  for (; !NILP (maps); maps = Fcdr (maps))
+  for (; CONSP (maps); maps = XCDR (maps))
     {
       register Lisp_Object elt, prefix, tail;
 
-      elt = Fcar (maps);
+      elt = XCAR (maps);
       prefix = Fcar (elt);
 
       sub_shadows = Qnil;

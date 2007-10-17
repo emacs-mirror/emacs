@@ -2110,10 +2110,10 @@ string rather than a cons cell whose car is a string.  */)
   if (SYMBOLP (key))
     key = Fsymbol_name (key);
 
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem, thiscar;
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       thiscar = CONSP (elt) ? XCAR (elt) : elt;
       if (SYMBOLP (thiscar))
 	thiscar = Fsymbol_name (thiscar);

@@ -739,9 +739,9 @@ BUFFER may be a buffer or the name of one.  */)
   buf = Fget_buffer (buffer);
   if (NILP (buf)) return Qnil;
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       if (PROCESSP (proc) && EQ (XPROCESS (proc)->buffer, buf))
 	return proc;
     }
@@ -1345,11 +1345,11 @@ list_processes_1 (query_only)
   w_buffer = 6;  /* Buffer */
   w_tty = 0;     /* Omit if no ttys */
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       int i;
 
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
       if (NILP (p->childp))
 	continue;
@@ -1408,11 +1408,11 @@ list_processes_1 (query_only)
   Findent_to (i_command, minspace); write_string ("-------", -1);
   write_string ("\n", -1);
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object symbol;
 
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
       if (NILP (p->childp))
 	continue;
@@ -6799,12 +6799,12 @@ status_notify (deleting_process)
      that we run, we get called again to handle their status changes.  */
   update_tick = process_tick;
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object symbol;
       register struct Lisp_Process *p;
 
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
 
       if (p->tick != p->update_tick)

@@ -1,3 +1,19 @@
+2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xselect.c (x_own_selection, x_handle_selection_clear)
+	(x_clear_frame_selections):
+	* w32menu.c (list_of_panes, list_of_items):
+	* w32fns.c (w32_color_map_lookup, Fx_create_frame, Fx_display_list):
+	* textprop.c (validate_plist, interval_has_all_properties)
+	(interval_has_some_properties, interval_has_some_properties_list)
+	(add_properties, text_property_list):
+	* process.c (Fget_buffer_process, list_processes_1, status_notify):
+	* minibuf.c (Fassoc_string):
+	* macselect.c (x_own_selection, x_clear_frame_selections)
+	(Fx_disown_selection_internal):
+	* keymap.c (Fcommand_remapping, where_is_internal, describe_map_tree):
+	Use CONSP rather than !NILP and XC[AD]R rather than Fc[ad]r.
+
 2007-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c: Link to libs for calling res_init() if available.
