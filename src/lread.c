@@ -2207,7 +2207,7 @@ read1 (readcharfun, pch, first_in_list)
 	      if (XVECTOR (tmp)->size < CHAR_TABLE_STANDARD_SLOTS
 		  || XVECTOR (tmp)->size > CHAR_TABLE_STANDARD_SLOTS + 10)
 		error ("Invalid size char-table");
-	      XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
+	      XSETPVECTYPE (XVECTOR (tmp), PVEC_CHAR_TABLE);
 	      XCHAR_TABLE (tmp)->top = Qt;
 	      return tmp;
 	    }
@@ -2220,7 +2220,7 @@ read1 (readcharfun, pch, first_in_list)
 		  tmp = read_vector (readcharfun, 0);
 		  if (XVECTOR (tmp)->size != SUB_CHAR_TABLE_STANDARD_SLOTS)
 		    error ("Invalid size char-table");
-		  XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
+		  XSETPVECTYPE (XVECTOR (tmp), PVEC_CHAR_TABLE);
 		  XCHAR_TABLE (tmp)->top = Qnil;
 		  return tmp;
 		}

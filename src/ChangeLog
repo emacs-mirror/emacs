@@ -1,5 +1,7 @@
 2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lread.c (read1): Set pvectype for char_tables.
+
 	* lisp.h (XMISCANY, XMARKER, XINTFWD, XBOOLFWD, XOBJFWD, XOVERLAY)
 	(XBUFFER_OBJFWD, XBUFFER_LOCAL_VALUE, XKBOARD_OBJFWD, XSAVE_VALUE):
 	Add type checks.
