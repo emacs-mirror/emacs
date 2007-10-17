@@ -117,6 +117,7 @@ Lisp_Object Vread_buffer_function;
 /* Nonzero means completion ignores case.  */
 
 int completion_ignore_case;
+Lisp_Object Qcompletion_ignore_case;
 
 /* List of regexps that should restrict possible completions.  */
 
@@ -2801,6 +2802,9 @@ syms_of_minibuf ()
 
   minibuf_save_list = Qnil;
   staticpro (&minibuf_save_list);
+
+  Qcompletion_ignore_case = intern ("completion-ignore-case");
+  staticpro (&Qcompletion_ignore_case);
 
   Qread_file_name_internal = intern ("read-file-name-internal");
   staticpro (&Qread_file_name_internal);
