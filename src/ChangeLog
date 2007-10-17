@@ -1,3 +1,9 @@
+2007-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c: Link to libs for calling res_init() if available.
+	(Fmake_network_process): Call res_init() before getaddrinfo or
+	gethostbyname, if possible.
+
 2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (read1): Set pvectype for char_tables.
