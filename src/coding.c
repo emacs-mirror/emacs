@@ -372,6 +372,8 @@ Lisp_Object Qcall_process, Qcall_process_region;
 Lisp_Object Qstart_process, Qopen_network_stream;
 Lisp_Object Qtarget_idx;
 
+extern Lisp_Object Qcompletion_ignore_case;
+
 /* If a symbol has this property, evaluate the value to define the
    symbol as a coding system.  */
 Lisp_Object Qcoding_system_define_form;
@@ -6558,16 +6560,22 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
 
 DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
        doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.
-If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.  */)
+If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.
+Ignores case when completing coding systems (all Emacs coding systems
+are lower-case).  */)
      (prompt, default_coding_system)
      Lisp_Object prompt, default_coding_system;
 {
   Lisp_Object val;
+  int count = SPECPDL_INDEX ();
+
   if (SYMBOLP (default_coding_system))
     default_coding_system = SYMBOL_NAME (default_coding_system);
+  specbind (Qcompletion_ignore_case, Qt);
   val = Fcompleting_read (prompt, Vcoding_system_alist, Qnil,
 			  Qt, Qnil, Qcoding_system_history,
 			  default_coding_system, Qnil);
+  unbind_to (count, Qnil);
   return (SCHARS (val) == 0 ? Qnil : Fintern (val, Qnil));
 }
 
