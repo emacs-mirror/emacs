@@ -1,5 +1,10 @@
 2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (XMISCANY, XMARKER, XINTFWD, XBOOLFWD, XOBJFWD, XOVERLAY)
+	(XBUFFER_OBJFWD, XBUFFER_LOCAL_VALUE, XKBOARD_OBJFWD, XSAVE_VALUE):
+	Add type checks.
+	(SOME_BUFFER_LOCAL_VALUEP, GC_SOME_BUFFER_LOCAL_VALUEP): Remove.
+
 	* alloc.c (free_misc): Use XMISCTYPE.
 	(live_misc_p, gc_sweep): Use Lisp_Misc_Any.
 
