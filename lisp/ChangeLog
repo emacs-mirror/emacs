@@ -1,3 +1,10 @@
+2007-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-wrap-follows-window-size): Integer value
+	specifies wrapping margin.
+	(longlines-mode, longlines-window-change-function): Set
+	window-specific wrapping margin based on the above.
+
 2007-10-17  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-cmd.el (eshell-complex-commands): Add "ls".
