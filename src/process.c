@@ -121,6 +121,12 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
+#ifdef HAVE_RES_INIT
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+#endif
+
 #include "lisp.h"
 #include "systime.h"
 #include "systty.h"
@@ -3083,6 +3089,11 @@ usage: (make-network-process &rest ARGS)  */)
       hints.ai_family = family;
       hints.ai_socktype = socktype;
       hints.ai_protocol = 0;
+
+#ifdef HAVE_RES_INIT
+      res_init ();
+#endif
+
       ret = getaddrinfo (SDATA (host), portstring, &hints, &res);
       if (ret)
 #ifdef HAVE_GAI_STRERROR
@@ -3128,6 +3139,11 @@ usage: (make-network-process &rest ARGS)  */)
 	 as it may `hang' Emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;
+
+#ifdef HAVE_RES_INIT
+      res_init ();
+#endif
+
       host_info_ptr = gethostbyname (SDATA (host));
       immediate_quit = 0;
 
