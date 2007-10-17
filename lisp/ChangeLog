@@ -1,3 +1,8 @@
+2007-10-17  Aaron Hawley  <aaronh@garden.org>
+
+	* tutorial.el (tutorial--save-tutorial): Display message when tutorial
+	position is not saved.
+
 2007-10-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* doc-view.el: Mention xpdf.  Fix spelling of Ghostscript.
