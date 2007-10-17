@@ -1,5 +1,8 @@
 2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/compile.el (compilation-next-error-function): Fix timestamp
+	handling, so compilation-fake-loc works again.
+
 	* server.el (server-select-display): Nop if we do not support m-f-o-d.
 	(server-process-filter): Revert last change.
 
