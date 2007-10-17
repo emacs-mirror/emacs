@@ -1,3 +1,18 @@
+2007-10-17  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* bindings.el (completion-ignored-extensions): Remove pdf and dvi
+	extensions since they can be viewed with doc-view.
+
+	* files.el (auto-mode-alist): Make doc-view-mode the default mode
+	for pdf, ps and dvi files.
+
+	* doc-view.el: Make doc-view-mode the standard mode for viewing
+	pdf, [e]ps and dvi files and add binding C-c C-c to toggle between
+	text and image display.  Add binding C-c C-e to switch to an
+	editing mode.
+	(doc-view-ghostscript-options, doc-view-ps->pdf): Add "-dSAFER" to
+	avoid security problems when rendering files untrusted sources.
+
 2007-10-17  Aaron Hawley  <aaronh@garden.org>
 
 	* tutorial.el (tutorial--save-tutorial): Display message when tutorial

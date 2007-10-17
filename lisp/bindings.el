@@ -536,7 +536,7 @@ is okay.  See `mode-line-format'.")
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
 	 ;; TeX-related
-	 ".dvi" ".fmt" ".tfm" ".pdf"
+	 ".fmt" ".tfm"
 	 ;; Java compiled
 	 ".class"
 	 ;; CLISP
