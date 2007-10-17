@@ -106,7 +106,9 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
     (nil
      ,(concat
        "^\\<"                                 ; line MUST start with word char
-       "[^()]*"                               ; no parentheses before
+       ;; \n added to prevent overflow in regexp matcher.
+       ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-02/msg00021.html
+       "[^()\n]*"                             ; no parentheses before
        "[^" c-alnum "_:<>~]"                  ; match any non-identifier char
        "\\([" c-alpha "_][" c-alnum "_:<>~]*\\)" ; match function name
        "\\([ \t\n]\\|\\\\\n\\)*("	      ; see above, BUT the arg list
