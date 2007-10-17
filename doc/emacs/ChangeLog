@@ -1,3 +1,7 @@
+2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar.texi (Diary): Fix directive.
+
 2007-10-16  Richard Stallman  <rms@gnu.org>
 
 	* calendar.texi (Diary): Clarify text about diary file example.
@@ -22,9 +26,9 @@
 	* vc-xtra.texi:
 	* vc1-xtra.texi:
 	* vc2-xtra.texi: Merge in changes for new VC with fileset-oriented
-	operations.  Change of terminology from 'version' to `revision'.
+	operations.  Change of terminology from `version' to `revision'.
 	Revise text for adequate description of VCSes with monotonic IDs.
-	* emacs.texi: Change of terminology from 'version' to `revision'.
+	* emacs.texi: Change of terminology from `version' to `revision'.
 
 2007-10-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -57,7 +61,7 @@
 2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* files.texi: Update the section on version control for 2007
-	conditions. None of these changes are new-VC-specific; that
+	conditions.  None of these changes are new-VC-specific; that
 	will come later.
 
 2007-09-15  Glenn Morris  <rgm@gnu.org>
@@ -177,7 +181,7 @@
 
 2007-06-24  Karl Berry  <karl@gnu.org>
 
-	* emacs.texi: new Back-Cover Text.
+	* emacs.texi: New Back-Cover Text.
 
 2007-06-07  Alan Mackenzie  <acm@muc.de>
 
