@@ -1,3 +1,9 @@
+2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (feature-symbols, file-provides, file-requires)
+	(file-set-intersect, file-dependents): Simplify.
+	(unload-feature-special-hooks): Update list of special hooks.
+
 2007-10-17  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* bindings.el (completion-ignored-extensions): Remove pdf and dvi
@@ -11,7 +17,7 @@
 	text and image display.  Add binding C-c C-e to switch to an
 	editing mode.
 	(doc-view-ghostscript-options, doc-view-ps->pdf): Add "-dSAFER" to
-	avoid security problems when rendering files untrusted sources.
+	avoid security problems when rendering files from untrusted sources.
 
 2007-10-17  Aaron Hawley  <aaronh@garden.org>
 
