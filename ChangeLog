@@ -1,3 +1,7 @@
+2007-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* FTP: Remove file, since it's just a duplicate of one in etc/.
+
 2007-10-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Fix configuring `doc' due to changes in the
