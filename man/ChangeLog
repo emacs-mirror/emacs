@@ -1,3 +1,9 @@
+2007-10-17  Aaron S. Hawley  <aaronh@garden.org>
+
+       * building.texi (Source Buffers):
+       * custom.texi (Init Non-ASCII):
+       * glossary.texi (Glossary): Use "key binding" consistently.
+
 2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calendar.texi (Diary): Fix directive.
