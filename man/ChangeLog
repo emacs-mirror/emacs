@@ -1,3 +1,7 @@
+2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar.texi (Diary): Fix directive.
+
 2007-10-16  Richard Stallman  <rms@gnu.org>
 
 	* calendar.texi (Diary): Clarify text about diary file example.
