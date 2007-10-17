@@ -658,7 +658,7 @@ Justification means adding extra spaces within lines of text to make
 them extend exactly to a specified width.
 @xref{Format Justification}.
 
-@item Keybinding
+@item Key Binding
 See `binding.'
 
 @item Keyboard Macro
