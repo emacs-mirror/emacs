@@ -1008,7 +1008,7 @@ April 15, 1989 Income tax due.
 
 @noindent
 This format is essentially the same as the one used by the system's
-@program{calendar} utility.  This example uses extra spaces to align
+@command{calendar} utility.  This example uses extra spaces to align
 the event descriptions of most of the entries.  Such formatting is
 purely a matter of taste.
 
