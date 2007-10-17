@@ -26,8 +26,9 @@
 
 ;;; Requirements:
 
-;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need GhostScript,
-;; `dvipdfm' which comes with TeTeX and `pdftotext', which comes with poppler
+;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need Ghostscript,
+;; `dvipdfm' which comes with teTeX and `pdftotext', which comes with xpdf
+;; (http://www.foolabs.com/xpdf/) or poppler
 ;; (http://poppler.freedesktop.org/).
 
 ;;; Commentary:
@@ -123,7 +124,7 @@
   '("-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
     "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET"
     "-r100")
-  "A list of options to give to ghostview."
+  "A list of options to give to ghostscript."
   :type '(sexp)
   :group 'doc-view)
 
@@ -463,7 +464,7 @@ Those files are saved in the directory given by
     (if (not (string= (file-name-extension doc) "dvi"))
 	;; Convert to PNG images.
 	(doc-view-pdf/ps->png doc png-file)
-      ;; DVI files have to be converted to PDF before GhostScript can process
+      ;; DVI files have to be converted to PDF before Ghostscript can process
       ;; it.
       (doc-view-dvi->pdf doc
 			 (concat (file-name-as-directory dir)
