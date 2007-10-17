@@ -831,8 +831,12 @@ The following commands are accepted by the client:
 		 ;; Open X frames on the given display instead of the default.
 		 ((and (equal "-display" arg)
                        (string-match "\\([^ ]*\\) " request))
-		  (setq display (match-string 1 request)
-			request (substring request (match-end 0))))
+		  ;; Only set `display' if X is supported. 
+		  ;; Emacsclient cannot know if emacs supports X and
+		  ;; it will send -display anyway.
+		  (when (memq 'x frame-creation-function-alist)
+		    (setq display (match-string 1 request)))
+		  (setq request (substring request (match-end 0))))
 
 		 ;; -window-system:  Open a new X frame.
 		 ((equal "-window-system" arg)

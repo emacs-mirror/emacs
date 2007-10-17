@@ -1,3 +1,8 @@
+2007-10-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* server.el (server-process-filter): Only set display if X11 is
+	supported.
+
 2007-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression): Tweak
