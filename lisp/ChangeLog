@@ -1,5 +1,7 @@
 2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/find-func.el: Don't require loadhist.
+
 	* loadhist.el (feature-symbols, file-provides, file-requires)
 	(file-set-intersect, file-dependents): Simplify.
 	(unload-feature-special-hooks): Update list of special hooks.
