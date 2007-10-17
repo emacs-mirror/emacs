@@ -1,3 +1,8 @@
+2007-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression): Tweak
+	regexp to avoid stack overflow.
+
 2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (reindent-then-newline-and-indent): Don't assume that
