@@ -1,3 +1,15 @@
+2007-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.c (Qcompletion_ignore_case): New Lisp_Object.
+	(syms_of_minibuf): Add Qcompletion_ignore_case.
+	* dired.c (Qcompletion_ignore_case): Change to external.
+	(syms_of_dired) [VMS]: Remove Qcompletion_ignore_case.
+	* fileio.c (Qcompletion_ignore_case): New external Lisp_Object.
+	(Fread_file_name): Use it rather than intern'ing.
+
+	* coding.c (Qcompletion_ignore_case): New external Lisp_Object.
+	(Fread_coding_system): Ignore case of user input.
+
 2007-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (handle_display_prop): Ignore display specs after
