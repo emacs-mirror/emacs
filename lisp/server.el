@@ -505,11 +505,11 @@ kill any existing server communications subprocess."
 	  (when server-use-tcp
 	    (let ((auth-key
 		   (loop
-		    ;; The auth key is a 64-byte string of random chars in the
-		    ;; range `!'..`~'.
-		    for i below 64
-		    collect (+ 33 (random 94)) into auth
-		    finally return (concat auth))))
+		      ;; The auth key is a 64-byte string of random chars in the
+		      ;; range `!'..`~'.
+		      for i below 64
+		      collect (+ 33 (random 94)) into auth
+		      finally return (concat auth))))
 	      (process-put server-process :auth-key auth-key)
 	      (with-temp-file server-file
 		(set-buffer-multibyte nil)
