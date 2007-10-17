@@ -1,5 +1,8 @@
 2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* server.el (server-select-display): Nop if we do not support m-f-o-d.
+	(server-process-filter): Revert last change.
+
 	* vc.el (vc-diff-sentinel, vc-diff-internal): Revert some change in the
 	behavior unrelated to filesets.
 
