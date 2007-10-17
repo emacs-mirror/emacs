@@ -1,3 +1,8 @@
+2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (free_misc): Use XMISCTYPE.
+	(live_misc_p, gc_sweep): Use Lisp_Misc_Any.
+
 2007-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.c (Qcompletion_ignore_case): New Lisp_Object.

@@ -3364,7 +3364,7 @@ void
 free_misc (misc)
      Lisp_Object misc;
 {
-  XMISC (misc)->u_marker.type = Lisp_Misc_Free;
+  XMISCTYPE (misc) = Lisp_Misc_Free;
   XMISC (misc)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (misc);
 
@@ -4080,7 +4080,7 @@ live_misc_p (m, p)
 	      && offset < (MARKER_BLOCK_SIZE * sizeof b->markers[0])
 	      && (b != marker_block
 		  || offset / sizeof b->markers[0] < marker_block_index)
-	      && ((union Lisp_Misc *) p)->u_marker.type != Lisp_Misc_Free);
+	      && ((union Lisp_Misc *) p)->u_any.type != Lisp_Misc_Free);
     }
   else
     return 0;
@@ -6148,9 +6148,9 @@ gc_sweep ()
 
 	for (i = 0; i < lim; i++)
 	  {
-	    if (!mblk->markers[i].u_marker.gcmarkbit)
+	    if (!mblk->markers[i].u_any.gcmarkbit)
 	      {
-		if (mblk->markers[i].u_marker.type == Lisp_Misc_Marker)
+		if (mblk->markers[i].u_any.type == Lisp_Misc_Marker)
 		  unchain_marker (&mblk->markers[i].u_marker);
 		/* Set the type of the freed object to Lisp_Misc_Free.
 		   We could leave the type alone, since nobody checks it,
@@ -6163,7 +6163,7 @@ gc_sweep ()
 	    else
 	      {
 		num_used++;
-		mblk->markers[i].u_marker.gcmarkbit = 0;
+		mblk->markers[i].u_any.gcmarkbit = 0;
 	      }
 	  }
 	lim = MARKER_BLOCK_SIZE;
