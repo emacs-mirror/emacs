@@ -1,4 +1,4 @@
-2006-10-22  John Wiegley  <johnw@newartisans.com>
+2007-10-17  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-cmd.el (eshell-complex-commands): Add "ls".
 
