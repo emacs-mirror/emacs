@@ -633,7 +633,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	   (if output-file
 	       (concat "Output to file: " output-file)
 	     (concat "Output to buffer: " (buffer-name merge-buffer))))
-     (insert-buffer emerge-A-buffer)
+     (save-excursion (insert-buffer-substring emerge-A-buffer))
      (emerge-set-keys)
      (setq emerge-difference-list (emerge-make-diff-list file-A file-B))
      (setq emerge-number-of-differences (length emerge-difference-list))
@@ -712,7 +712,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (emerge-eval-in-buffer
    emerge-diff-error-buffer
    (erase-buffer)
-   (insert-buffer emerge-diff-buffer)
+   (save-excursion (insert-buffer-substring emerge-diff-buffer))
    (delete-matching-lines ok-regexp)))
 
 ;;; Top-level and setup functions for three-file mode.
@@ -802,7 +802,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	   (if output-file
 	       (concat "Output to file: " output-file)
 	     (concat "Output to buffer: " (buffer-name merge-buffer))))
-     (insert-buffer emerge-A-buffer)
+     (save-excursion (insert-buffer-substring emerge-A-buffer))
      (emerge-set-keys)
      (setq emerge-difference-list
 	   (emerge-make-diff3-list file-A file-B file-ancestor))
