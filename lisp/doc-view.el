@@ -390,7 +390,6 @@ It's a subdirectory of `doc-view-cache-directory'."
     (set-buffer (process-get proc 'buffer))
     (setq doc-view-current-converter-process nil
 	  mode-line-process nil)
-    (message "DocView: finished conversion from DVI to PDF!")
     ;; Now go on converting this PDF to a set of PNG files.
     (let* ((pdf (process-get proc 'pdf-file))
 	   (png (concat (doc-view-current-cache-dir)
@@ -399,7 +398,6 @@ It's a subdirectory of `doc-view-cache-directory'."
 
 (defun doc-view-dvi->pdf (dvi pdf)
   "Convert DVI to PDF asynchrounously."
-  (message "DocView: converting DVI to PDF now!")
   (setq doc-view-current-converter-process
 	(start-process "dvi->pdf" doc-view-conversion-buffer
 		       doc-view-dvipdfm-program
@@ -420,13 +418,11 @@ It's a subdirectory of `doc-view-cache-directory'."
     (when doc-view-current-timer
       (cancel-timer doc-view-current-timer)
       (setq doc-view-current-timer nil))
-    (message "DocView: finished conversion from PDF/PS to PNG!")
     ;; Yippie, finished.  Update the display!
     (doc-view-display doc-view-current-doc)))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchrounously."
-  (message "DocView: converting PDF or PS to PNG now!")
   (setq doc-view-current-converter-process
 	(apply 'start-process
 	       (append (list "pdf/ps->png" doc-view-conversion-buffer
@@ -453,7 +449,6 @@ It's a subdirectory of `doc-view-cache-directory'."
       (set-buffer proc-buffer)
       (setq doc-view-current-converter-process nil
 	    mode-line-process nil)
-      (message "DocView: finished conversion from PDF to TXT!")
       ;; If the user looks at the DocView buffer where the conversion was
       ;; performed, search anew.  This time it will be queried for a regexp.
       (when (eq current-buffer proc-buffer)
@@ -461,7 +456,6 @@ It's a subdirectory of `doc-view-cache-directory'."
 
 (defun doc-view-pdf->txt (pdf txt)
   "Convert PDF to TXT asynchrounously."
-  (message "DocView: converting PDF to TXT now!")
   (setq doc-view-current-converter-process
 	(start-process "pdf->txt" doc-view-conversion-buffer
 		       doc-view-pdftotext-program "-raw"
@@ -477,7 +471,6 @@ It's a subdirectory of `doc-view-cache-directory'."
     (set-buffer (process-get proc 'buffer))
     (setq doc-view-current-converter-process nil
 	  mode-line-process nil)
-    (message "DocView: finished conversion from PS to PDF!")
     ;; Now we can transform to plain text.
     (doc-view-pdf->txt (process-get proc 'pdf-file)
 		       (concat (doc-view-current-cache-dir)
@@ -485,7 +478,6 @@ It's a subdirectory of `doc-view-cache-directory'."
 
 (defun doc-view-ps->pdf (ps pdf)
   "Convert PS to PDF asynchronously."
-  (message "DocView: converting PS to PDF now!")
   (setq doc-view-current-converter-process
 	(start-process "ps->pdf" doc-view-conversion-buffer
 		       doc-view-ps2pdf-program

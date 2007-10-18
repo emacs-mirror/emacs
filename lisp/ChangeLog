@@ -1,3 +1,11 @@
+2007-10-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-dvi->pdf)
+	(doc-view-pdf/ps->png-sentinel, doc-view-pdf/ps->png)
+	(doc-view-pdf->txt-sentinel, doc-view-pdf->txt)
+	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf): Remove superfluous
+	messages.
+
 2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* doc-view.el (doc-view-ghostscript-options, doc-view-ps->pdf):
