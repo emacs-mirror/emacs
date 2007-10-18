@@ -136,6 +136,10 @@ word at point.
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
 
+** `interprogram-paste-function' can now return one string or a list
+of strings.  In the latter case, Emacs puts the second and following
+strings on the kill ring.
+
 ** Minibuffer changes:
 
 *** isearch started in the minibuffer searches in the minibuffer history.
