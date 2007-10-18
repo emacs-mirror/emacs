@@ -1642,7 +1642,7 @@ before the indent, the point is moved to the indent."
   (when delphi-newline-always-indents
     ;; Indent both the (now) previous and current line first.
     (save-excursion
-      (previous-line 1)
+      (forward-line -1)
       (delphi-indent-line))
     (delphi-indent-line)))
 
