@@ -211,6 +211,8 @@ install: all $(INSTALL_DIR)/bin install-other-dirs-$(MAKETYPE)
 	$(IFNOTSAMEDIR) $(CP_DIR) ../etc $(INSTALL_DIR) $(ENDIF)
 	- $(CP_DIR) icons $(INSTALL_DIR)/etc
 	$(IFNOTSAMEDIR) $(CP_DIR) ../info $(INSTALL_DIR) $(ENDIF)
+	$(IFNOTSAMEDIR) $(CP) ../COPYING $(INSTALL_DIR) $(ENDIF)
+	- $(CP) ../COPYING $(INSTALL_DIR)/bin
 	- $(DEL) ../same-dir.tst
 	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 

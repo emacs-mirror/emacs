@@ -84,7 +84,7 @@ waiting for the operating system to do something, quitting is
 impossible unless special pains are taken for the particular system
 call within Emacs where the waiting occurs.  We have done this for the
 system calls that users are likely to want to quit from, but it's
-possible you will a case not handled.  In one very common
+possible you will encounter a case not handled.  In one very common
 case---waiting for file input or output using NFS---Emacs itself knows
 how to quit, but many NFS implementations simply do not allow user
 programs to stop waiting for NFS when the NFS server is hung.
