@@ -1,3 +1,7 @@
+2007-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Mode Line Mouse): Mention minor mode names.
+
 2007-10-17  Juri Linkov  <juri@jurta.org>
 
 	* text.texi (Fill Commands): Undocument fill-paragraph-or-region.
