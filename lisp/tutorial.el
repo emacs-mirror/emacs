@@ -291,7 +291,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * MODE LINE
              (describe-mode [?\C-h ?m])
              (set-fill-column [?\C-x ?f])
-             (fill-paragraph-or-region [?\M-q])
+             (fill-paragraph [?\M-q])
 
              ;; * SEARCHING
              (isearch-forward [?\C-s])
