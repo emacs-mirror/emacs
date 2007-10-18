@@ -6,6 +6,9 @@
 	* textmodes/org.el (org-columns-eval):
 	Use forward-line.
 
+	* emerge.el (emerge-setup): Use insert-buffer-substring.
+	(emerge-prepare-error-list, emerge-setup-with-ancestor): Likewise.
+
 2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/fill.el (fill-individual-paragraphs): Doc fix.
