@@ -15050,8 +15050,7 @@ Where possible, use the standard interface for changing this line."
 (defun org-columns-eval (form)
   (let (hidep)
     (save-excursion
-      (beginning-of-line 1)
-      (next-line 1)
+      (forward-line 1)
       (setq hidep (org-on-heading-p 1)))
     (eval form)
     (and hidep (hide-entry))))
