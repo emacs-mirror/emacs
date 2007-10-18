@@ -2,6 +2,8 @@
 
 	* textmodes/artist.el (artist-previous-line, artist-next-line):
 	* dired.el (dired-next-line, dired-previous-line):
+	* progmodes/delphi.el (delphi-newline):
+	* textmodes/org.el (org-columns-eval):
 	Use forward-line.
 
 2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
