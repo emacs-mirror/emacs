@@ -1,3 +1,8 @@
+2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/fill.el (fill-individual-paragraphs): Doc fix.
+	(adaptive-fill-function): Doc fix.  Remove * from docstring.
+
 2007-10-18  Glenn Morris  <rgm@gnu.org>
 
 	* ibuf-ext.el (ibuffer-saved-filter-groups): Doc fix.
@@ -11,8 +16,8 @@
 
 	* longlines.el (longlines-wrap-follows-window-size): Integer value
 	specifies wrapping margin.
-	(longlines-mode, longlines-window-change-function): Set
-	window-specific wrapping margin based on the above.
+	(longlines-mode, longlines-window-change-function):
+	Set window-specific wrapping margin based on the above.
 
 2007-10-17  John Wiegley  <johnw@newartisans.com>
 
@@ -20,8 +25,8 @@
 
 2007-10-17  Glenn Morris  <rgm@gnu.org>
 
-	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression): Tweak
-	regexp to avoid stack overflow.
+	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression):
+	Tweak regexp to avoid stack overflow.
 
 2007-10-16  Juanma Barranquero  <lekktu@gmail.com>
 
