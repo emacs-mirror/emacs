@@ -127,7 +127,7 @@ LABEL is a string to display to label that zone's time."
   :type '(repeat (list string string))
   :version "23.1")
 
-(defcustom display-time-world-time-format "%A %m %B %R %Z"
+(defcustom display-time-world-time-format "%A %d %B %R %Z"
   "Format of the time displayed, see `format-time-string'."
   :group 'display-time
   :type 'string
