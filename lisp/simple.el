@@ -2564,6 +2564,11 @@ of the Emacs kill ring should be used.  If the function returns a
 string, then the caller of the function \(usually `current-kill')
 should put this string in the kill ring as the latest kill.
 
+This function may also return a list of strings if the window
+system supports multiple selections. The first string will be
+used as the pasted text, but the other will be placed in the
+kill ring for easy access via `yank-pop'.
+
 Note that the function should return a string only if a program other
 than Emacs has provided a string for pasting; if Emacs provided the
 most recent string, the function should return nil.  If it is
@@ -2647,11 +2652,11 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
-If N is zero, `interprogram-paste-function' is set, and calling it
-returns a string, then that string is added to the front of the
-kill ring and returned as the latest kill.
-If optional arg DO-NOT-MOVE is non-nil, then don't actually move the
-yanking point; just return the Nth kill forward."
+If N is zero, `interprogram-paste-function' is set, and calling it returns a
+string or list of strings, then that string (or list) is added to the front
+of the kill ring and the string (or first string in the list) is returned as
+the latest kill.  If optional arg DO-NOT-MOVE is non-nil, then don't
+actually move the yanking point; just return the Nth kill forward."
   (let ((interprogram-paste (and (= n 0)
 				 interprogram-paste-function
 				 (funcall interprogram-paste-function))))
@@ -2661,8 +2666,10 @@ yanking point; just return the Nth kill forward."
 	  ;; text to the kill ring, so Emacs doesn't try to own the
 	  ;; selection, with identical text.
 	  (let ((interprogram-cut-function nil))
-	    (kill-new interprogram-paste))
-	  interprogram-paste)
+	    (if (listp interprogram-paste)
+	      (mapc 'kill-new (nreverse interprogram-paste))
+	      (kill-new interprogram-paste)))
+	  (car kill-ring))
       (or kill-ring (error "Kill ring is empty"))
       (let ((ARGth-kill-element
 	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
