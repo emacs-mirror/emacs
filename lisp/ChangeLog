@@ -1,3 +1,7 @@
+2007-10-18  Richard Stallman  <rms@gnu.org>
+
+	* time.el (display-time-world-time-format): Display day # not month #.
+
 2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el (auto-mode-alist): Don't use doc-view for PS and EPS.
