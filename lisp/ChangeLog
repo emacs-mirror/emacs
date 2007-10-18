@@ -1,5 +1,7 @@
 2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* files.el (auto-mode-alist): Don't use doc-view for PS and EPS.
+
 	* doc-view.el: Remove version keyword.
 	(doc-view-ghostscript-program, doc-view-dvipdfm-program)
 	(doc-view-ps2pdf-program): Use executable-find.  Simplify custom type.
