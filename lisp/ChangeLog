@@ -5,6 +5,9 @@
 	(doc-view-pdf->txt-sentinel, doc-view-pdf->txt)
 	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf): Remove superfluous
 	messages.
+	(doc-view-mode-map): Use the image-mode scrolling commands.  Don't
+	rebind C-x k.
+
 
 2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 

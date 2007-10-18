@@ -102,6 +102,7 @@
 ;;; Code:
 
 (require 'dired)
+(require 'image-mode)
 (eval-when-compile (require 'cl))
 
 ;;;; Customization Options
@@ -222,7 +223,6 @@ has finished."
     ;; Killing/burying the buffer (and the process)
     (define-key map (kbd "q")         'bury-buffer)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
-    (define-key map (kbd "C-x k")     'doc-view-kill-proc-and-buffer)
     ;; Slicing the image
     (define-key map (kbd "s s")       'doc-view-set-slice)
     (define-key map (kbd "s m")       'doc-view-set-slice-using-mouse)
@@ -233,6 +233,14 @@ has finished."
     (define-key map (kbd "C-S-n")     'doc-view-search-next-match)
     (define-key map (kbd "C-S-p")     'doc-view-search-previous-match)
     ;; Scrolling
+    (define-key map (kbd "<right>")   'image-forward-hscroll)
+    (define-key map (kbd "<left>")    'image-backward-hscroll)
+    (define-key map (kbd "<down>")    'image-next-line)
+    (define-key map (kbd "<up>")      'image-previous-line)
+    (define-key map (kbd "C-f")       'image-forward-hscroll)
+    (define-key map (kbd "C-b")       'image-backward-hscroll)
+    (define-key map (kbd "C-n")       'image-next-line)
+    (define-key map (kbd "C-p")       'image-previous-line)
     (define-key map (kbd "C-v")       'scroll-up)
     (define-key map (kbd "<mouse-4>") 'mwheel-scroll)
     (define-key map (kbd "<mouse-5>") 'mwheel-scroll)
