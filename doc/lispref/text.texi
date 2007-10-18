@@ -1432,11 +1432,14 @@ as @code{full}.
   When you call the filling functions interactively, using a prefix
 argument implies the value @code{full} for @var{justify}.
 
-@deffn Command fill-paragraph justify
+@deffn Command fill-paragraph &optional justify region
 This command fills the paragraph at or after point.  If
 @var{justify} is non-@code{nil}, each line is justified as well.
 It uses the ordinary paragraph motion commands to find paragraph
 boundaries.  @xref{Paragraphs,,, emacs, The GNU Emacs Manual}.
+Interactively, when @var{region} is non-@code{nil} in Transient Mark
+mode and the mark is active, this command calls @code{fill-region}
+on the active region.
 @end deffn
 
 @deffn Command fill-region start end &optional justify nosqueeze to-eop
@@ -1451,12 +1454,6 @@ newline, if @code{use-hard-newlines} is enabled (see below).
 
 The variable @code{paragraph-separate} controls how to distinguish
 paragraphs.  @xref{Standard Regexps}.
-@end deffn
-
-@deffn Command fill-paragraph-or-region justify
-In Transient Mark mode, when the mark is active, this command calls
-@code{fill-region} on the active region.  Otherwise, it calls
-@code{fill-paragraph}.
 @end deffn
 
 @deffn Command fill-individual-paragraphs start end &optional justify citation-regexp
