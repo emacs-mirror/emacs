@@ -1,3 +1,16 @@
+2007-10-17  Juri Linkov  <juri@jurta.org>
+
+	* text.texi (Fill Commands): Undocument fill-paragraph-or-region.
+	fill-paragraph operates on the active region in Transient Mark mode.
+	(Fill Prefix, Format Indentation): Replace fill-paragraph-or-region
+	with fill-paragraph.
+
+	* basic.texi (Arguments): Replace fill-paragraph-or-region with
+	fill-paragraph.
+
+	* fixit.texi (Spelling): ispell-word operates on the active region
+	in Transient Mark mode.
+
 2007-10-17  Aaron S. Hawley  <aaronh@garden.org>
 
 	* building.texi (Source Buffers):
