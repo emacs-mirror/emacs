@@ -1566,7 +1566,7 @@ This allows it to improve the suggestion list based on actual mispellings."
 	(translate-region pos (point) translation-table-for-input))))
 
 ;;;###autoload
-(defun ispell-word (&optional following quietly continue)
+(defun ispell-word (&optional following quietly continue region)
   "Check spelling of word under or before the cursor.
 If the word is not found in dictionary, display possible corrections
 in a window allowing you to choose one.
@@ -1580,6 +1580,9 @@ when called interactively, non-corrective messages are suppressed.
 With a prefix argument (or if CONTINUE is non-nil),
 resume interrupted spell-checking of a buffer or region.
 
+Interactively, in Transient Mark mode when the mark is active, call
+`ispell-region' to check the active region for spelling errors.
+
 Word syntax is controlled by the definition of the chosen dictionary,
 which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
 
@@ -1592,10 +1595,9 @@ nil           word is correct or spelling is accepted.
 \"word\"        word corrected from word list.
 \(\"word\" arg\)  word is hand entered.
 quit          spell session exited."
-
-  (interactive (list ispell-following-word ispell-quietly current-prefix-arg))
+  (interactive (list ispell-following-word ispell-quietly current-prefix-arg t))
   (cond
-   ((and transient-mark-mode mark-active
+   ((and region transient-mark-mode mark-active
 	 (not (eq (region-beginning) (region-end))))
     (ispell-region (region-beginning) (region-end)))
    (continue (ispell-continue))
