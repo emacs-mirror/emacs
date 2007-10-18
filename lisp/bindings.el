@@ -1041,7 +1041,7 @@ language you are using."
 (define-key ctl-x-map "rw" 'window-configuration-to-register)
 (define-key ctl-x-map "rf" 'frame-configuration-to-register)
 
-(define-key esc-map "q" 'fill-paragraph-or-region)
+(define-key esc-map "q" 'fill-paragraph)
 (define-key ctl-x-map "." 'set-fill-prefix)
 
 (define-key esc-map "{" 'backward-paragraph)
