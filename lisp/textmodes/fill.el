@@ -1360,7 +1360,7 @@ When calling from a program, pass the range to fill
 as the first two arguments.
 
 Optional third and fourth arguments JUSTIFY and CITATION-REGEXP:
-JUSTIFY to justify paragraphs (prefix arg),
+JUSTIFY to justify paragraphs (prefix arg).
 When filling a mail message, pass a regexp for CITATION-REGEXP
 which will match the prefix of a line which is a citation marker
 plus whitespace, but no other kind of prefix.
