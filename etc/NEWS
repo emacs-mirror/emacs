@@ -83,6 +83,9 @@ recenter the visited source file.  Its value can be a number (for example,
 ** The mode-line displays a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
 
+** The mode-line displays a mode menu when mouse-1 is clicked on a minor mode,
+in the same way as it already did for major modes.
+
 ** The new command balance-windows-area balances windows both vertically
 and horizontally.
 
