@@ -1,3 +1,8 @@
+2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/fill.el (fill-individual-paragraphs): Doc fix.
+	(adaptive-fill-function): Doc fix.  Remove * from docstring.
+
 2007-10-15  Tom Horsley  <tom.horsley@att.net>
 
 	* simple.el (interprogram-paste-function): Doc fix.
