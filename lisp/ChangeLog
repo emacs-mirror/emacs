@@ -1,3 +1,10 @@
+2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/encoded-kb.el (encoded-kbd-setup-display): Be careful
+	not to remove keymaps that just happen to inherit from one of ours.
+	When setting up our keymap, make sure it won't be accidentally
+	modified by someone else.
+
 2007-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* textmodes/artist.el (artist-previous-line, artist-next-line):
