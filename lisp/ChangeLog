@@ -1,6 +1,7 @@
 2007-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* textmodes/artist.el (artist-previous-line, artist-next-line):
+	* dired.el (dired-next-line, dired-previous-line):
 	Use forward-line.
 
 2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
