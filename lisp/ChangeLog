@@ -1,3 +1,8 @@
+2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* doc-view.el (doc-view-ghostscript-options, doc-view-ps->pdf):
+	Add comment about "-dSAFER".
+
 2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el: Don't require xt-mouse.

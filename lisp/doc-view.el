@@ -120,9 +120,10 @@
   :group 'doc-view)
 
 (defcustom doc-view-ghostscript-options
-  '("-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
-    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET"
-    "-dSAFER" "-r100")
+  '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
+	      ;; sources.
+    "-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
+    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET" "-r100")
   "A list of options to give to ghostscript."
   :type '(sexp)
   :group 'doc-view)
@@ -488,7 +489,10 @@ It's a subdirectory of `doc-view-cache-directory'."
   (setq doc-view-current-converter-process
 	(start-process "ps->pdf" doc-view-conversion-buffer
 		       doc-view-ps2pdf-program
-		       ps pdf "-dSAFER")
+		       ps pdf
+		       ;; Avoid security problems when rendering files from
+		       ;; untrusted sources.
+		       "-dSAFER")
 	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
   (set-process-sentinel doc-view-current-converter-process
 			'doc-view-ps->pdf-sentinel)
