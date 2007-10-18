@@ -1,3 +1,9 @@
+2007-10-15  Tom Horsley  <tom.horsley@att.net>
+
+	* simple.el (interprogram-paste-function): Doc fix.
+	(current-kill): Accept list of strings as well
+	as single string from `interprogram-paste-function'.
+
 2007-10-18  Glenn Morris  <rgm@gnu.org>
 
 	* ibuf-ext.el (ibuffer-saved-filter-groups): Doc fix.
