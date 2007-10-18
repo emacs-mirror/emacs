@@ -290,6 +290,15 @@ is slower."
   (not (or (string< s1 s2)
 	   (string= s1 s2))))
 
+(defun gnus-string< (s1 s2)
+  "Return t if first arg string is less than second in lexicographic order.
+Case is significant if and only if `case-fold-search' is nil.
+Symbols are also allowed; their print names are used instead."
+  (if case-fold-search
+      (string-lessp (downcase (if (symbolp s1) (symbol-name s1) s1))
+		    (downcase (if (symbolp s2) (symbol-name s2) s2)))
+    (string-lessp s1 s2)))
+
 ;;; Time functions.
 
 (defun gnus-file-newer-than (file date)
