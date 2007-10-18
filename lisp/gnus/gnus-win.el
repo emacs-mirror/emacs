@@ -471,7 +471,8 @@ See the Gnus manual for an explanation of the syntax used.")
 	  (gnus-configure-frame split)
 	  (run-hooks 'gnus-configure-windows-hook)
 	  (when gnus-window-frame-focus
-	    (select-frame (window-frame gnus-window-frame-focus))))))))
+	    (gnus-select-frame-set-input-focus
+	     (window-frame gnus-window-frame-focus))))))))
 
 (defun gnus-delete-windows-in-gnusey-frames ()
   "Do a `delete-other-windows' in all frames that have Gnus windows."
