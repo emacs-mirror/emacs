@@ -117,8 +117,8 @@ if it would act as a paragraph-starter on the second line."
   :group 'fill)
 
 (defcustom adaptive-fill-function nil
-  "*Function to call to choose a fill prefix for a paragraph, or nil.
-nil means the function has not determined the fill prefix."
+  "Function to call to choose a fill prefix for a paragraph, or nil.
+A nil value means the function has not determined the fill prefix."
   :type '(choice (const nil) function)
   :group 'fill)
 
@@ -1359,7 +1359,7 @@ These lines are filled together.
 When calling from a program, pass the range to fill
 as the first two arguments.
 
-Optional third and fourth arguments JUSTIFY and MAIL-FLAG:
+Optional third and fourth arguments JUSTIFY and CITATION-REGEXP:
 JUSTIFY to justify paragraphs (prefix arg),
 When filling a mail message, pass a regexp for CITATION-REGEXP
 which will match the prefix of a line which is a citation marker
@@ -1448,6 +1448,7 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 	    (fill-region-as-paragraph start (point) justify)
 	    (if (and (bolp) (not had-newline))
 		(delete-char -1))))))))
+
 (defun fill-individual-paragraphs-prefix (citation-regexp)
   (let* ((adaptive-fill-first-line-regexp ".*")
 	 (just-one-line-prefix
