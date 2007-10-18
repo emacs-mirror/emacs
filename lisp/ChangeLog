@@ -1,5 +1,11 @@
 2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* faces.el (tty-create-frame-with-faces): Make sure not only
+	tty-run-terminal-initialization but also set-locale-environment
+	are run only once per terminal.
+	(tty-run-terminal-initialization): Don't check if the terminal was
+	already initted.
+
 	* international/encoded-kb.el (encoded-kbd-setup-display): Be careful
 	not to remove keymaps that just happen to inherit from one of ours.
 	When setting up our keymap, make sure it won't be accidentally

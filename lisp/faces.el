@@ -1876,8 +1876,10 @@ created."
 	  (modify-frame-parameters frame '((interprogram-cut-function . nil)))
 	  (modify-frame-parameters frame '((interprogram-paste-function . nil)))
 
-	  (set-locale-environment nil frame)
-	  (tty-run-terminal-initialization frame)
+          (unless (terminal-parameter frame 'terminal-initted)
+            (set-terminal-parameter frame 'terminal-initted t)
+            (set-locale-environment nil frame)
+            (tty-run-terminal-initialization frame))
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
 	  (setq success t))
@@ -1910,10 +1912,7 @@ terminal type to a different value."
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (with-selected-frame frame
-    (unless (or (null term-file-prefix)
-		;; Don't reinitialize the terminal each time a new
-		;; frame is opened on it.
-		(terminal-parameter frame 'terminal-initted))
+    (unless (null term-file-prefix)
       (let* (term-init-func)
 	;; First, load the terminal initialization file, if it is
 	;; available and it hasn't been loaded already.
