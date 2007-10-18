@@ -2059,7 +2059,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.\\(as\\|mi\\|sm\\)2\\'" . snmpv2-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
-     ("\\(?:DVI\\|EPS\\|P\\(?:DF\\|S\\)\\|dvi\\|eps\\|p\\(?:df\\|s\\)\\)" . doc-view-mode)
+     ("\\.\\(?:PDF\\|E?PS\\|DVI\\|pdf\\|e?ps\\|dvi\\)" . doc-view-mode)
      ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
