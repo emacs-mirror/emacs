@@ -1,5 +1,8 @@
 2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
 
+	* loadhist.el (unload-feature-special-hooks):
+	Update list of special hooks.
+
 	* textmodes/fill.el (fill-individual-paragraphs): Doc fix.
 	(adaptive-fill-function): Doc fix.  Remove * from docstring.
 
