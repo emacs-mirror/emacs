@@ -430,8 +430,8 @@ This menu is for specifying the frame's default font.
   You can use mouse clicks on window mode lines to select and manipulate
 windows.
 
-  Some areas of the mode line, such as the buffer name and the major
-mode name, have their own special mouse bindings.  These areas are
+  Some areas of the mode line, such as the buffer name, and major and minor
+mode names, have their own special mouse bindings.  These areas are
 highlighted when you hold the mouse over them, and information about
 the special bindings will be displayed (@pxref{Tooltips}).  This
 section's commands do not apply in those areas.
