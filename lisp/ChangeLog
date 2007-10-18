@@ -1,5 +1,9 @@
 2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/xterm.el: Don't require xt-mouse.
+	(terminal-init-xterm): Run terminal-init-xterm-hook rather than
+	calling turn-on-xterm-mouse-tracking-on-terminal directly.
+
 	* xt-mouse.el: Don't change the global function-key-map anny more.
 	(xterm-mouse-mode): Use terminal-init-xterm-hook.
 	Don't use after-make-frame-functions now that term/xterm.el calls

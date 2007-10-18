@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'xt-mouse))
-
 (defvar xterm-function-map
   (let ((map (make-sparse-keymap)))
 
@@ -469,12 +467,8 @@
     ;; This recomputes all the default faces given the colors we've just set up.
     (tty-set-up-initial-frame-faces)
     
-    (when xterm-mouse-mode
-      (turn-on-xterm-mouse-tracking-on-terminal 
-       (frame-terminal (selected-frame))))
-    
     ;; Try to turn on the modifyOtherKeys feature on modern xterms.
-    ;; When it is turned on much more key bindings work: things like
+    ;; When it is turned on many more key bindings work: things like
     ;; C-. C-, etc.
     ;; To do that we need to find out if the current terminal supports
     ;; modifyOtherKeys. At this time only xterm does.
@@ -506,7 +500,9 @@
 	      ;; need to deal with modify-other-keys.
 	      (push (frame-terminal (selected-frame))
 		    xterm-modify-other-keys-terminal-list)
-	      (xterm-turn-on-modify-other-keys)))))))
+	      (xterm-turn-on-modify-other-keys))))))
+
+    (run-hooks 'terminal-init-xterm-hook))
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors
