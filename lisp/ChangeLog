@@ -1,3 +1,12 @@
+2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* doc-view.el: Remove version keyword.
+	(doc-view-ghostscript-program, doc-view-dvipdfm-program)
+	(doc-view-ps2pdf-program): Use executable-find.  Simplify custom type.
+	(doc-view-ghostscript-options): Improve custom type.
+	(doc-view-cache-directory, doc-view-conversion-buffer)
+	(doc-view-conversion-refresh-interval): Simplify custom type.
+
 2007-10-18  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-dvi->pdf)
@@ -7,7 +16,6 @@
 	messages.
 	(doc-view-mode-map): Use the image-mode scrolling commands.  Don't
 	rebind C-x k.
-
 
 2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 

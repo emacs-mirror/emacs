@@ -5,7 +5,6 @@
 ;; Author: Tassilo Horn <tassilo@member.fsf.org>
 ;; Maintainer: Tassilo Horn <tassilo@member.fsf.org>
 ;; Keywords: files, pdf, ps, dvi
-;; Version: <2007-10-17 Wed 22:15>
 
 ;; This file is part of GNU Emacs.
 
@@ -115,9 +114,9 @@
   :group 'multimedia
   :prefix "doc-view-")
 
-(defcustom doc-view-ghostscript-program "gs"
+(defcustom doc-view-ghostscript-program (executable-find "gs")
   "Program to convert PS and PDF files to PNG."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
 (defcustom doc-view-ghostscript-options
@@ -126,40 +125,40 @@
     "-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
     "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET" "-r100")
   "A list of options to give to ghostscript."
-  :type '(sexp)
+  :type '(repeat string)
   :group 'doc-view)
 
-(defcustom doc-view-dvipdfm-program "dvipdfm"
+(defcustom doc-view-dvipdfm-program (executable-find "dvipdfm")
   "Program to convert DVI files to PDF.
 
 DVI file will be converted to PDF before the resulting PDF is
 converted to PNG."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
-(defcustom doc-view-ps2pdf-program "ps2pdf"
+(defcustom doc-view-ps2pdf-program (executable-find "ps2pdf")
   "Program to convert PS files to PDF.
 
 PS files will be converted to PDF before searching is possible."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
-(defcustom doc-view-pdftotext-program "pdftotext"
+(defcustom doc-view-pdftotext-program (executable-find "pdftotext")
   "Program to convert PDF files to plain text.
 
 Needed for searching."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
 (defcustom doc-view-cache-directory (concat temporary-file-directory
 					    "doc-view")
   "The base directory, where the PNG images will be saved."
-  :type '(directory)
+  :type 'directory
   :group 'doc-view)
 
 (defcustom doc-view-conversion-buffer "*doc-view conversion output*"
   "The buffer where messages from the converter programs go to."
-  :type '(string)
+  :type 'string
   :group 'doc-view)
 
 (defcustom doc-view-conversion-refresh-interval 3
@@ -168,7 +167,7 @@ After such an refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
 pages won't be displayed before conversion of the whole document
 has finished."
-  :type '(string)
+  :type 'integer
   :group 'doc-view)
 
 ;;;; Internal Variables
