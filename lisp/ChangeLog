@@ -1,5 +1,17 @@
 2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xt-mouse.el: Don't change the global function-key-map anny more.
+	(xterm-mouse-mode): Use terminal-init-xterm-hook.
+	Don't use after-make-frame-functions now that term/xterm.el calls
+	us directly.
+	(turn-on-xterm-mouse-tracking, turn-off-xterm-mouse-tracking):
+	Use turn-*-xterm-mouse-tracking-on-terminal.  Only once per terminal.
+	(turn-on-xterm-mouse-tracking-on-terminal): Make param optional.
+	Setup input-decode-map and remember that xterm-mouse-mode was
+	enabled in this terminal.
+	(turn-off-xterm-mouse-tracking-on-terminal): Only disable on those
+	terminals where it has been enabled.
+
 	* faces.el (tty-create-frame-with-faces): Make sure not only
 	tty-run-terminal-initialization but also set-locale-environment
 	are run only once per terminal.
