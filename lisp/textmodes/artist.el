@@ -4383,13 +4383,10 @@ With non-nil ARG, set the last point."
 If N is negative, move cursor down."
   (interactive "p")
   (let ((col (artist-current-column)))
-    (if (not artist-key-is-drawing)
-	(progn
-	  (previous-line n)
-	  (move-to-column col t))
-      (previous-line n)
-      (move-to-column col t)
-      (artist-key-do-continously-common))))
+    (forward-line (- n))
+    (move-to-column col t))
+  (when artist-key-is-drawing
+    (artist-key-do-continously-common)))
 
 
 (defun artist-next-line (&optional n)
@@ -4397,13 +4394,10 @@ If N is negative, move cursor down."
 If N is negative, move cursor up."
   (interactive "p")
   (let ((col (artist-current-column)))
-    (if (not artist-key-is-drawing)
-	(progn
-	  (next-line n)
-	  (move-to-column col t))
-      (next-line n)
-      (move-to-column col t)
-      (artist-key-do-continously-common))))
+    (forward-line n)
+    (move-to-column col t))
+  (when artist-key-is-drawing
+    (artist-key-do-continously-common)))
 
 (defun artist-backward-char (&optional n)
   "Move cursor backward optional N chars (default is 1), updating curr shape.
