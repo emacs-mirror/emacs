@@ -1,3 +1,27 @@
+2007-10-17  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/fill.el (fill-paragraph-or-region): Remove function
+	at the request of RMS.
+	(fill-paragraph): Change `arg' to optional `justify'.  Add interactive
+	arg `region'.  Fix docstring.  At the first `or' branch add call to
+	`fill-region' if it the region is active in transient-mark-mode.
+
+	* bindings.el (esc-map): Bind M-q to fill-paragraph
+	instead of fill-paragraph-or-region.
+
+	* tutorial.el (tutorial--default-keys): Replace fill-paragraph-or-region
+	with fill-paragraph.
+
+	* textmodes/ispell.el (ispell-word): Add interactive arg `region'.
+	Fix docstring.
+
+	* indent.el (indent-for-tab-command): Change interactive spec from
+	"P" to "p".  Add check for interactive arg before indenting the
+	active region.
+
+	* files.el (auto-mode-alist): Add \\. before PDF/PS/DVI extensions.
+	Regroup.
+
 2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/find-func.el: Don't require loadhist.
