@@ -1,3 +1,10 @@
+2007-10-19  Glenn Morris  <rgm@gnu.org>
+
+	* bindings.el (mouse-minor-mode-menu)
+	(minor-mode-menu-from-indicator): Move to mouse.el.
+	* mouse.el (mouse-minor-mode-menu, minor-mode-menu-from-indicator):
+	Move here from bindings.el
+
 2007-10-19  Richard Stallman  <rms@gnu.org>
 
 	* help-fns.el (describe-function-1): Don't use the advice origname
