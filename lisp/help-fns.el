@@ -259,7 +259,7 @@ face (according to `face-differs-from-default-p')."
 		   (cdr (assq 'origname advised))
 		   (fboundp (cdr (assq 'origname advised)))
 		   (cdr (assq 'origname advised)))
-	    function))
+	      function))
 	 ;; Get the real definition.
 	 (def (if (symbolp real-function)
 		  (symbol-function real-function)
