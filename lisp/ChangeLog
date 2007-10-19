@@ -1,5 +1,10 @@
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* bs.el (bs-mode): Add mode name (accidentally left out
+	in the 2007-10-16 change).
+
+2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
 	* bs.el (bs--track-window-changes): Don't refresh the whole list.
 	(bs-mode): Set mode-class property to special.
 
