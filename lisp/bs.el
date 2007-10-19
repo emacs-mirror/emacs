@@ -630,7 +630,7 @@ Used from `window-size-change-functions'."
 
 (put 'bs-mode 'mode-class 'special)
 
-(define-derived-mode bs-mode ()
+(define-derived-mode bs-mode () "Buffer-Selection-Menu"
   "Major mode for editing a subset of Emacs' buffers.
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
