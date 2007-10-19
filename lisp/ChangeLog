@@ -1,9 +1,17 @@
+2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-function-features-list):
+	Rename from `unload-hook-features-list'.
+	(unload-hook-features-list): Add as obsolete alias.
+	(unload-feature): Use `unload-function-features-list'
+	and new FEATURE-unload-function.
+
 2007-10-19  Glenn Morris  <rgm@gnu.org>
 
 	* bindings.el (mouse-minor-mode-menu)
 	(minor-mode-menu-from-indicator): Move to mouse.el.
 	* mouse.el (mouse-minor-mode-menu, minor-mode-menu-from-indicator):
-	Move here from bindings.el
+	Move here from bindings.el.
 
 2007-10-19  Richard Stallman  <rms@gnu.org>
 
@@ -35,10 +43,10 @@
 	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-dvi->pdf)
 	(doc-view-pdf/ps->png-sentinel, doc-view-pdf/ps->png)
 	(doc-view-pdf->txt-sentinel, doc-view-pdf->txt)
-	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf): Remove superfluous
-	messages.
-	(doc-view-mode-map): Use the image-mode scrolling commands.  Don't
-	rebind C-x k.
+	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf):
+	Remove superfluous messages.
+	(doc-view-mode-map): Use the image-mode scrolling commands.
+	Don't rebind C-x k.
 
 2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
