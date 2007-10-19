@@ -97,8 +97,8 @@ This can be used to add menu entries for backend specific functions.
 
 * Lisp Changes in Emacs 22.2.
 
-** The command `repeat' will no more attempt to repeat a command bound
-to an input event.
+** The command `repeat' no longer attempts to repeat a command bound
+   to an input event.
 
 ** The function invisible-p returns non-nil if the character
    after a specified position is invisible.
