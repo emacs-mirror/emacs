@@ -1,3 +1,20 @@
+2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Remove `diff-tree' operation, now subsumed by `diff'.
+	Also `revision-completion-table' now takes a list of files.
+	(vc-deduce-fileset): Remove unused var `regexp'.
+	Only obey allow-directory-wildcard in dired buffers.
+	(vc-default-diff-tree): Remove.
+	(vc-diff-added-files): New var.
+	(vc-diff-internal): Use it.  Remove arg `backend'.  Update callers.
+	(vc-version-diff): Revert from `vc-history-diff' to the original name.
+	Remove the `backend' arg.
+	(vc-contains-version-controlled-file): Remove.
+	(vc-diff): Bring it closer to the version in Emacs-22.
+	(vc-revert): Fix typo in let-binding.
+	(vc-default-unregister): Remove.
+	(vc-dired-buffers-for-dir): Remove N^2 behavior.
+
 2007-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/two-column.el (2C-split, 2C-merge):
@@ -20,7 +37,7 @@
 2007-10-19  Richard Stallman  <rms@gnu.org>
 
 	* font-core.el (turn-on-font-lock-if-desired):
-	Renamed from `turn-on-font-lock-if-enabled'.
+	Rename from `turn-on-font-lock-if-enabled'.
 	Fully obey `font-lock-global-modes'.
 
 2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
