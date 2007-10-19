@@ -1,3 +1,12 @@
+2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el: Add word-granularity refinement.
+	(smerge-refine-forward-function, smerge-refine-ignore-whitespace)
+	(smerge-refine-weight-hack): New vars.
+	(smerge-refine-forward): New fun.
+	(smerge-refine-chopup-region, smerge-refine-highlight-change): Use them.
+	(smerge-refine-subst): Use them as well.  Preserve point.
+
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el (follow-unload-function): New function.
