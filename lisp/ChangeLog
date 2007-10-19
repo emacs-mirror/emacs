@@ -1,5 +1,9 @@
 2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-fine-highlight-preproc): Stick to minimal changes
+	which will not affect the behavior of things like forward-word.
+	(diff-fine-highlight): Preserve point.
+
 	* doc-view.el (doc-view-mode-map): Use remapping.
 	Don't rebind C-v, M-v to their default value.
 	Don't bind mouse-4 and mouse-5: it's mwheel.el's job.
