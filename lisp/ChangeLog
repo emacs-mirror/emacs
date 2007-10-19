@@ -1,5 +1,7 @@
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* follow.el (follow-unload-function): New function.
+
 	* loadhist.el (unload-function-features-list):
 	Rename from `unload-hook-features-list'.
 	(unload-hook-features-list): Add as obsolete alias.
