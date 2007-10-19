@@ -649,7 +649,7 @@ Argument NUM is the number of lines to move."
   (interactive "p")
   (edt-check-prefix num)
   (let ((beg (edt-current-line)))
-    (next-line num)
+    (forward-line num)
     (edt-bottom-check beg num))
   (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
@@ -659,7 +659,7 @@ Argument NUM is the number of lines to move."
   (interactive "p")
   (edt-check-prefix num)
   (let ((beg (edt-current-line)))
-    (previous-line num)
+    (forward-line (- num))
     (edt-top-check beg num))
   (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
@@ -1426,7 +1426,7 @@ Argument NUM is the positive number of paragraphs to move."
       (forward-paragraph (+ num 1))
       (start-of-paragraph-text)
       (if (eolp)
-	  (next-line 1))
+	  (forward-line 1))
       (setq num (1- num)))
     (cond((> (point) far)
 	  (setq left (save-excursion (forward-line height)))

@@ -1,3 +1,22 @@
+2007-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/two-column.el (2C-split, 2C-merge):
+	* textmodes/bib-mode.el (bib-find-key, mark-bib):
+	* progmodes/idlw-shell.el (idlwave-shell-move-or-history):
+	* progmodes/etags.el (find-tag-in-order, etags-tags-apropos)
+	* progmodes/ada-xref.el (ada-get-all-references):
+	* obsolete/mlsupport.el (ml-next-line, ml-previous-line):
+	* emulation/vi.el (vi-previous-line-first-nonwhite)
+	(vi-effective-range, vi-put-before):
+	* emulation/edt.el (edt-next-line, edt-previous-line)
+	(edt-paragraph-forward): Use forward-line.
+
+	* progmodes/etags.el (tags-apropos): Require apropos at compile
+	time too.
+
+	* progmodes/prolog.el: Require comint when compiling.
+	(inferior-prolog-flavor): Move defvar before use.
+
 2007-10-19  Richard Stallman  <rms@gnu.org>
 
 	* font-core.el (turn-on-font-lock-if-desired):
