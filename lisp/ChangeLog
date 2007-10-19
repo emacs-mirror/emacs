@@ -1,5 +1,7 @@
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* bs.el (bs--track-window-changes): Don't refresh the whole list.
+
 	* follow.el (follow-unload-function): New function.
 
 	* loadhist.el (unload-function-features-list):
