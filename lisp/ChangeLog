@@ -1,3 +1,8 @@
+2007-10-19  Richard Stallman  <rms@gnu.org>
+
+	* help-fns.el (describe-function-1): Don't use the advice origname
+	if it has no function definition.
+
 2007-10-18  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Save excursion.
