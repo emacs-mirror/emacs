@@ -1,3 +1,11 @@
+2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-function-features-list):
+	Rename from `unload-hook-features-list'.
+	(unload-hook-features-list): Add as obsolete alias.
+	(unload-feature): Use `unload-function-features-list'
+	and new FEATURE-unload-function.
+
 2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* loadhist.el (unload-feature-special-hooks):
