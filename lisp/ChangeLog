@@ -1,3 +1,9 @@
+2007-10-19  Richard Stallman  <rms@gnu.org>
+
+	* font-core.el (turn-on-font-lock-if-desired):
+	Renamed from `turn-on-font-lock-if-enabled'.
+	Fully obey `font-lock-global-modes'.
+
 2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-fine-highlight-preproc): Stick to minimal changes
