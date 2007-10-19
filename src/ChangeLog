@@ -1,3 +1,7 @@
+2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (Fset_process_filter): Doc fix.
+
 2007-10-17  Glenn Morris  <rgm@gnu.org>
 
 	* minibuf.c (Qcompletion_ignore_case): New Lisp_Object.
