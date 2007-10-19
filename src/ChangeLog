@@ -1,3 +1,7 @@
+2007-10-19  Richard Stallman  <rms@gnu.org>
+
+	* doc.c (Fdocumentation): Check for and handle an advised function.
+
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* process.c (Fset_process_filter): Doc fix.
