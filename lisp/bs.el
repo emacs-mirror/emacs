@@ -619,7 +619,6 @@ Used from `window-size-change-functions'."
   (let ((win (get-buffer-window "*buffer-selection*" frame)))
     (when win
       (with-selected-window win
-	(bs-refresh)
 	(bs--set-window-height)))))
 
 (defun bs--remove-hooks ()
