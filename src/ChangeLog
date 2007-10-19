@@ -1,3 +1,7 @@
+2007-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in [HAVE_LIBRESOLV]: Add -lresolv to linker flags.
+
 2007-10-19  Richard Stallman  <rms@gnu.org>
 
 	* doc.c (Fdocumentation): Check for and handle an advised function.
