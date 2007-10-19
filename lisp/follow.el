@@ -404,8 +404,8 @@ After that, changing the prefix key requires manipulating keymaps."
 			(funcall (symbol-function 'define-key-after)
 				 tools-map [follow] (cons "Follow" menumap)
 				 'separator-follow))
-		    ;; Didn't find the last item, Adding to the top of
-		    ;; tools.  (This will probably never happend...)
+		    ;; Didn't find the last item, adding to the top of
+		    ;; tools.  (This will probably never happen...)
 		    (define-key (current-global-map) [menu-bar tools follow]
 		      (cons "Follow" menumap))))
 	      ;; No tools menu, add "Follow" to the menubar.
@@ -790,7 +790,7 @@ in your `~/.emacs' file:
 ;;}}}
 ;;{{{ Movement
 
-;; Note, these functions are not very useful, atleast not unless you
+;; Note, these functions are not very useful, at least not unless you
 ;; rebind the rather cumbersome key sequence `C-c . p'.
 
 (defun follow-next-window ()
@@ -2242,6 +2242,36 @@ This prevents `mouse-drag-region' from messing things up."
 ;;}}}
 
 ;;{{{ The end
+
+(defun follow-unload-function ()
+  (follow-stop-intercept-process-output)
+  (dolist (group '((before
+		    ;; XEmacs
+		    isearch-done
+		    ;; both
+		    set-process-filter sit-for move-overlay)
+		   (after
+		    ;; Emacs
+		    scroll-bar-drag scroll-bar-drag-1 scroll-bar-scroll-down
+		    scroll-bar-scroll-up scroll-bar-set-window-start
+		    ;; XEmacs
+		    scrollbar-line-down scrollbar-line-up scrollbar-page-down
+		    scrollbar-page-up scrollbar-to-bottom scrollbar-to-top
+		    scrollbar-vertical-drag
+		    ;; both
+		    process-filter)))
+    (let ((class (car group)))
+      (dolist (fun (cdr group))
+	(when (functionp fun)
+	  (condition-case nil
+	      (progn
+		(ad-remove-advice fun class
+				  (intern (concat "follow-" (symbol-name fun))))
+		(ad-update fun))
+	    (error nil))))))
+  nil)
+
+(defvar follow-unload-function 'follow-unload-function)
 
 ;;
 ;; We're done!
