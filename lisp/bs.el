@@ -628,6 +628,8 @@ Used from `window-size-change-functions'."
   (remove-hook 'kill-buffer-hook 'bs--remove-hooks t)
   (remove-hook 'change-major-mode-hook 'bs--remove-hooks t))
 
+(put 'bs-mode 'mode-class 'special)
+
 (define-derived-mode bs-mode ()
   "Major mode for editing a subset of Emacs' buffers.
 \\<bs-mode-map>
