@@ -55,7 +55,11 @@ when the file is saved to disk."
   "Non-nil means wrapping and filling happen at the edge of the window.
 Otherwise, `fill-column' is used, regardless of the window size.  This
 does not work well when the buffer is displayed in multiple windows
-with differing widths."
+with differing widths.
+
+If the value is an integer, that specifies the distance from the
+right edge of the window at which wrapping occurs.  For any other
+non-nil value, wrapping occurs 2 characters from the right edge."
   :group 'longlines
   :type 'boolean)
 
@@ -117,8 +121,14 @@ are indicated with a symbol."
 	     'longlines-search-function)
         (add-to-list 'buffer-substring-filters 'longlines-encode-string)
         (when longlines-wrap-follows-window-size
-          (set (make-local-variable 'fill-column)
-               (- (window-width) window-min-width))
+	  (let ((dw (if (and (integerp longlines-wrap-follows-window-size)
+			     (>= longlines-wrap-follows-window-size 0)
+			     (< longlines-wrap-follows-window-size
+				(window-width)))
+			longlines-wrap-follows-window-size
+		      2)))
+	    (set (make-local-variable 'fill-column)
+		 (- (window-width) dw)))
           (add-hook 'window-configuration-change-hook
                     'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)
@@ -415,9 +425,14 @@ This is called by `post-command-hook' after each command."
 (defun longlines-window-change-function ()
   "Re-wrap the buffer if the window width has changed.
 This is called by `window-configuration-change-hook'."
-  (when (/= fill-column (- (window-width) window-min-width))
-    (setq fill-column (- (window-width) window-min-width))
-    (longlines-wrap-region (point-min) (point-max))))
+  (let ((dw (if (and (integerp longlines-wrap-follows-window-size)
+		     (>= longlines-wrap-follows-window-size 0)
+		     (< longlines-wrap-follows-window-size (window-width)))
+		longlines-wrap-follows-window-size
+	      2)))
+    (when (/= fill-column (- (window-width) dw))
+      (setq fill-column (- (window-width) dw))
+      (longlines-wrap-region (point-min) (point-max)))))
 
 ;; Isearch
 

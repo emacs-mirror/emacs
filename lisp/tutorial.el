@@ -291,7 +291,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * MODE LINE
              (describe-mode [?\C-h ?m])
              (set-fill-column [?\C-x ?f])
-             (fill-paragraph-or-region [?\M-q])
+             (fill-paragraph [?\M-q])
 
              ;; * SEARCHING
              (isearch-forward [?\C-s])
@@ -665,7 +665,8 @@ position where the display of changed bindings was inserted."
   ;; This runs in a hook so protect it:
   (condition-case err
       (if (y-or-n-p "Save your position in the tutorial? ")
-	  (tutorial--save-tutorial-to (tutorial--saved-file)))
+	  (tutorial--save-tutorial-to (tutorial--saved-file))
+	(message "Tutorial position not saved"))
     (error (message "Error saving tutorial state: %s"
 		    (error-message-string err)))))
 

@@ -911,7 +911,7 @@ places.
 
 @c @findex gdb-mouse-set-clear-breakpoint
 @c @findex gdb-mouse-toggle-breakpoint
-Many GDB commands can be entered using keybindings or the tool bar but
+Many GDB commands can be entered using key bindings or the tool bar but
 sometimes it is quicker to use the fringe.  These commands either
 manipulate breakpoints or control program execution.  When there is no
 fringe, you can use the margin but this is only present when the

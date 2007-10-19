@@ -1658,10 +1658,15 @@ This is the value of `next-error-function' in Compilation buffers."
     ;;  in the same process and buffer).
     ;; So, recalculate all markers for that file.
     (unless (and (nth 3 loc) (marker-buffer (nth 3 loc))
-                 (equal (nth 4 loc)
-                        (setq timestamp
-                              (with-current-buffer (marker-buffer (nth 3 loc))
-                                (visited-file-modtime)))))
+                 ;; There may be no timestamp info if the loc is a `fake-loc'.
+                 ;; So we skip the time-check here, although we should maybe
+                 ;; change `compilation-fake-loc' to add timestamp info.
+                 (or (null (nth 4 loc))
+                     (equal (nth 4 loc)
+                            (setq timestamp
+                                  (with-current-buffer
+                                      (marker-buffer (nth 3 loc))
+                                    (visited-file-modtime))))))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
 						  (cadr (car (nth 2 loc))))
 	(save-restriction
@@ -1711,7 +1716,7 @@ region and the first line of the next region."
   (or (consp file) (setq file (list file)))
   (setq file (compilation-get-file-structure file))
   ;; Between the current call to compilation-fake-loc and the first occurrence
-  ;; of an error message referring to `file', the data is only kept is the
+  ;; of an error message referring to `file', the data is only kept in the
   ;; weak hash-table compilation-locs, so we need to prevent this entry
   ;; in compilation-locs from being GC'd away.  --Stef
   (push file compilation-gcpro)

@@ -325,7 +325,10 @@ message."
 
 (defun server-select-display (display)
   ;; If the current frame is on `display' we're all set.
-  (unless (equal (frame-parameter (selected-frame) 'display) display)
+  ;; Similarly if we are unable to open a frames on other displays, there's
+  ;; nothing more we can do.
+  (unless (or (not (fboundp 'make-frame-on-display))
+              (equal (frame-parameter (selected-frame) 'display) display))
     ;; Otherwise, look for an existing frame there and select it.
     (dolist (frame (frame-list))
       (when (equal (frame-parameter frame 'display) display)
@@ -505,11 +508,11 @@ kill any existing server communications subprocess."
 	  (when server-use-tcp
 	    (let ((auth-key
 		   (loop
-		    ;; The auth key is a 64-byte string of random chars in the
-		    ;; range `!'..`~'.
-		    for i below 64
-		    collect (+ 33 (random 94)) into auth
-		    finally return (concat auth))))
+		      ;; The auth key is a 64-byte string of random chars in the
+		      ;; range `!'..`~'.
+		      for i below 64
+		      collect (+ 33 (random 94)) into auth
+		      finally return (concat auth))))
 	      (process-put server-process :auth-key auth-key)
 	      (with-temp-file server-file
 		(set-buffer-multibyte nil)
@@ -831,8 +834,8 @@ The following commands are accepted by the client:
 		 ;; Open X frames on the given display instead of the default.
 		 ((and (equal "-display" arg)
                        (string-match "\\([^ ]*\\) " request))
-		  (setq display (match-string 1 request)
-			request (substring request (match-end 0))))
+                  (setq display (match-string 1 request))
+		  (setq request (substring request (match-end 0))))
 
 		 ;; -window-system:  Open a new X frame.
 		 ((equal "-window-system" arg)

@@ -121,6 +121,12 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
+#ifdef HAVE_RES_INIT
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+#endif
+
 #include "lisp.h"
 #include "systime.h"
 #include "systty.h"
@@ -732,9 +738,9 @@ BUFFER may be a buffer or the name of one.  */)
   buf = Fget_buffer (buffer);
   if (NILP (buf)) return Qnil;
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       if (PROCESSP (proc) && EQ (XPROCESS (proc)->buffer, buf))
 	return proc;
     }
@@ -1338,11 +1344,11 @@ list_processes_1 (query_only)
   w_buffer = 6;  /* Buffer */
   w_tty = 0;     /* Omit if no ttys */
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       int i;
 
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
       if (NILP (p->childp))
 	continue;
@@ -1401,11 +1407,11 @@ list_processes_1 (query_only)
   Findent_to (i_command, minspace); write_string ("-------", -1);
   write_string ("\n", -1);
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object symbol;
 
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
       if (NILP (p->childp))
 	continue;
@@ -3082,6 +3088,11 @@ usage: (make-network-process &rest ARGS)  */)
       hints.ai_family = family;
       hints.ai_socktype = socktype;
       hints.ai_protocol = 0;
+
+#ifdef HAVE_RES_INIT
+      res_init ();
+#endif
+
       ret = getaddrinfo (SDATA (host), portstring, &hints, &res);
       if (ret)
 #ifdef HAVE_GAI_STRERROR
@@ -3127,6 +3138,11 @@ usage: (make-network-process &rest ARGS)  */)
 	 as it may `hang' Emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;
+
+#ifdef HAVE_RES_INIT
+      res_init ();
+#endif
+
       host_info_ptr = gethostbyname (SDATA (host));
       immediate_quit = 0;
 
@@ -6689,12 +6705,12 @@ status_notify (deleting_process)
      that we run, we get called again to handle their status changes.  */
   update_tick = process_tick;
 
-  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object symbol;
       register struct Lisp_Process *p;
 
-      proc = Fcdr (Fcar (tail));
+      proc = Fcdr (XCAR (tail));
       p = XPROCESS (proc);
 
       if (p->tick != p->update_tick)

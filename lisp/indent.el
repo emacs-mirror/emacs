@@ -86,10 +86,10 @@ If `transient-mark-mode' is turned on the region is active,
 indent the region.
 The function actually called to indent the line is determined by the value of
 `indent-line-function'."
-  (interactive "P")
+  (interactive "p")
   (cond
    ;; The region is active, indent it.
-   ((and transient-mark-mode mark-active
+   ((and arg transient-mark-mode mark-active
 	 (not (eq (region-beginning) (region-end))))
     (indent-region (region-beginning) (region-end)))
    ((or ;; indent-to-left-margin is only meant for indenting,

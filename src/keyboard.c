@@ -8538,7 +8538,7 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	     to indicate that they came from a mouse menu,
 	     so that when present in last_nonmenu_event
 	     they won't confuse things.  */
-	  for (tem = XCDR (value); !NILP (tem); tem = XCDR (tem))
+	  for (tem = XCDR (value); CONSP (tem); tem = XCDR (tem))
 	    {
 	      record_menu_key (XCAR (tem));
 	      if (SYMBOLP (XCAR (tem))
@@ -9185,19 +9185,27 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
   from_string = Qnil;
 
-  /* We jump here when the key sequence has been thoroughly changed, and
-     we need to rescan it starting from the beginning.  When we jump here,
-     keybuf[0..mock_input] holds the sequence we should reread.  */
- replay_sequence:
-
-  /* We may switch keyboards between rescans, so we need to
-     reinitialize fkey and keytran before each replay.  */
+  /* The multi-tty merge moved the code below to right after
+   `replay_sequence' which caused alll these translation maps to be applied
+   repeatedly, even tho their doc says very clearly they are not applied to
+   their own output.
+   The reason for this move was: "We may switch keyboards between rescans,
+   so we need to reinitialize fkey and keytran before each replay".
+   This move was wrong (even if we switch keyboards, keybuf still holds the
+   keys we've read already from the original keyboard and some of those keys
+   may have already been translated).  So there may still be a bug out there
+   lurking.  */
   indec.map = indec.parent = current_kboard->Vinput_decode_map;
   fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
   keytran.map = keytran.parent = Vkey_translation_map;
   indec.start = indec.end = 0;
   fkey.start = fkey.end = 0;
   keytran.start = keytran.end = 0;
+
+  /* We jump here when the key sequence has been thoroughly changed, and
+     we need to rescan it starting from the beginning.  When we jump here,
+     keybuf[0..mock_input] holds the sequence we should reread.  */
+ replay_sequence:
 
   starting_buffer = current_buffer;
   first_unbound = bufsize + 1;

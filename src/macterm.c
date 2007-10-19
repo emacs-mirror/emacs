@@ -8300,7 +8300,7 @@ init_font_name_table ()
 	  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
 	  if (size > 0 || style == normal)
-	    for (; !NILP (rest); rest = XCDR (rest))
+	    for (; CONSP (rest); rest = XCDR (rest))
 	      add_mac_font_name (name, size, style, SDATA (XCAR (rest)));
 	}
     }
@@ -8375,7 +8375,7 @@ init_font_name_table ()
 		{
 		  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
-		  for (; !NILP (rest); rest = XCDR (rest))
+		  for (; CONSP (rest); rest = XCDR (rest))
 		    add_mac_font_name (name, assc_entry->fontSize,
 				       assc_entry->fontStyle,
 				       SDATA (XCAR (rest)));

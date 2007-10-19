@@ -180,8 +180,8 @@ QUALIFIERS is a list of the same form as
 
 See also the variables `ibuffer-filter-groups',
 `ibuffer-filtering-qualifiers', `ibuffer-filtering-alist', and the
-functions `ibuffer-switch-to-saved-filter-group',
-`ibuffer-save-filter-group'."
+functions `ibuffer-switch-to-saved-filter-groups',
+`ibuffer-save-filter-groups'."
   :type '(repeat sexp)
   :group 'ibuffer)
 

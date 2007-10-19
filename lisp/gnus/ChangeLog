@@ -1,3 +1,15 @@
+2007-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-string<): New function.
+
+	* gnus-sum.el (gnus-article-sort-by-author)
+	(gnus-article-sort-by-subject): Use it.
+
+2007-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-win.el (gnus-configure-windows): Focus on the frame for which
+	the frame-focus tag is set in gnus-buffer-configuration.
+
 2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* sieve-manage.el (sieve-manage-interactive-login): Doc fix.

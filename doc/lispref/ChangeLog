@@ -1,3 +1,9 @@
+2007-10-17  Juri Linkov  <juri@jurta.org>
+
+	* text.texi (Filling): Update arguments of fill-paragraph.
+	fill-paragraph operates on the active region in Transient Mark mode.
+	Remove fill-paragraph-or-region.
+
 2007-10-13  Karl Berry  <karl@gnu.org>
 
 	* elisp.texi (@dircategory): Move to after @copying,

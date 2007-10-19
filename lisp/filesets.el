@@ -158,7 +158,7 @@ COND-FN takes one argument: the current element."
 	(setq rv (append rv (list elt)))))))
 
 (defun filesets-ormap (fsom-pred lst)
-  "Return the tail of FSOM-LST for the head of which FSOM-PRED is non-nil."
+  "Return the tail of LST for the head of which FSOM-PRED is non-nil."
   (let ((fsom-lst lst)
 	(fsom-rv nil))
     (while (and (not (null fsom-lst))
@@ -535,7 +535,7 @@ computer environments."
   :group 'filesets)
 
 (defcustom filesets-sort-case-sensitive-flag t
-  "Non-nil means sorting of the filesete menu is case sensitive."
+  "Non-nil means sorting of the filesets menu is case sensitive."
   :set (function filesets-set-default)
   :type 'boolean
   :group 'filesets)
@@ -1091,10 +1091,7 @@ If NEGATIVE is non-nil, remove all directory names."
   "Return a sorted copy of LST, LST being a list of strings.
 If `filesets-sort-menu-flag' is nil, return LST itself.
 
-ACCESS-FN ... function to get the string value of LST's elements.
-
-If SIMPLY-DO-IT is non-nil, the list is sorted regardless of
-`filesets-sort-menu-flag'."
+ACCESS-FN ... function to get the string value of LST's elements."
   (if filesets-sort-menu-flag
       (let* ((fni (or access-fn
 		      (function identity)))
@@ -1363,7 +1360,7 @@ not be opened."
     (find-file file)))
 
 (defun filesets-find-or-display-file (&optional file viewer)
-  "Visit FILE using an external viewer or open it in an Emacs buffer."
+  "Visit FILE using an external VIEWER or open it in an Emacs buffer."
   (interactive)
   (let* ((file (or file
 		   (read-file-name "Find file: " nil nil viewer)))
@@ -1414,24 +1411,24 @@ not be opened."
     something)))
 
 (defun filesets-data-get-name (entry)
-  "Access to `filesets-data'.  Get the entry's name."
+  "Access to `filesets-data'.  Get the ENTRY's name."
   (car entry))
 
 (defun filesets-data-get-data (entry)
-  "Access to `filesets-data'.  Get the entry's data section."
+  "Access to `filesets-data'.  Get the ENTRY's data section."
   (cdr entry))
 
 (defun filesets-alist-get (alist key &optional default carp)
   "Get KEY's value in the association list ALIST.
 Return DEFAULT if not found.  Return (car VALUE) if CARP is non-nil."
-  (let* ((elt (assoc key alist)))
+  (let ((elt (assoc key alist)))
     (cond
-     (elt
-      (if carp
-	  (cadr elt)
-	(cdr elt)))
-     (default default)
-     (t nil))))
+      (elt
+       (if carp
+	   (cadr elt)
+	 (cdr elt)))
+      (default default)
+      (t nil))))
 
 (defun filesets-data-get (entry key &optional default carp)
   "Extract the value for KEY in the data part of fileset ENTRY.
@@ -1439,7 +1436,7 @@ Return DEFAULT if not found.  Return (car VALUE) if CARP is non-nil."
   (filesets-alist-get (filesets-data-get-data entry) key default carp))
 
 (defun filesets-data-set (entry key value)
-  "Set the value for KEY in the data part of fileset ENTRY."
+  "Set the VALUE for KEY in the data part of fileset ENTRY."
   (let* ((alist (filesets-data-get-data entry))
 	 (elt (assoc key alist)))
     (if elt
@@ -1666,9 +1663,9 @@ Replace <file-name> or <<file-name>> with filename."
 	       filesets-commands)))
 
 
-;;; sampe commands
+;;; sample commands
 (defun filesets-cmd-query-replace-getargs ()
-  "Get arguments for `filesets-cmd-query-replace'."
+  "Get arguments for `query-replace' and `query-replace-regexp'."
   (let* ((from-string (read-string "Filesets query replace: "
 				   ""
 				   'query-replace-history))
@@ -1875,7 +1872,7 @@ User will be queried, if no fileset name is provided."
   (browse-url filesets-homepage))
 
 (defun filesets-remake-shortcut (count submenu)
-  "Remake a submenus shortcut when wrapping long menus."
+  "Remake a submenu's shortcut when wrapping long menus."
   (let* ((name (concat (filesets-get-shortcut count)
 		       (substring (elt submenu 0) 2))))
     (if (listp submenu)
@@ -2032,7 +2029,7 @@ LOOKUP-NAME is used as lookup name for retrieving fileset specific settings."
 	  (lax-plist-put filesets-ingroup-cache emaster this))))
 
 (defun filesets-ingroup-collect-files (fs &optional remdupl-flag master depth)
-  "Helper function for `filesets-ingroup-collect'. Collect file names."
+  "Helper function for `filesets-ingroup-collect'.  Collect file names."
   (let* ((master       (or master
 			   (filesets-entry-get-master fs)))
 	 (remdupl-flag (or remdupl-flag
@@ -2146,7 +2143,7 @@ FS is a fileset's name.  FLIST is a list returned by
 			  `([,nm (filesets-file-open nil ',master ',fsn)])))))))))
 
 (defun filesets-ingroup-collect (fs remdupl-flag master)
-  "Collect names of included files & build submenu."
+  "Collect names of included files and build submenu."
   (filesets-ingroup-cache-put master nil)
   (filesets-message 2 "Filesets: parsing %S" master)
   (filesets-ingroup-collect-build-menu

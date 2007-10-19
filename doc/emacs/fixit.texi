@@ -325,7 +325,9 @@ you give an explicit command to do so.
   To check the spelling of the word around or before point, and
 optionally correct it as well, use the command @kbd{M-$}
 (@code{ispell-word}).  If the word is not correct, the command offers
-you various alternatives for what to do about it.
+you various alternatives for what to do about it.  When the mark is
+active in Transient Mark mode, this command operates on the active
+region like @code{ispell-region}.
 
 @findex ispell-buffer
 @findex ispell-region

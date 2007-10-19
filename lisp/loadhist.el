@@ -38,12 +38,11 @@
   "Return the file and list of definitions associated with FEATURE.
 The value is actually the element of `load-history'
 for the file that did (provide FEATURE)."
-   (catch 'foundit
-     (mapc (lambda (x)
-	     (if (member (cons 'provide feature) (cdr x))
-		 (throw 'foundit x)))
-	   load-history)
-     nil))
+  (catch 'foundit
+    (let ((element (cons 'provide feature)))
+      (dolist (x load-history nil)
+	(when (member element (cdr x))
+	  (throw 'foundit x))))))
 
 (defun feature-file (feature)
   "Return the file name from which a given FEATURE was loaded.
@@ -72,32 +71,25 @@ A library name is equivalent to the file name that `load-library' would load."
   "Return the list of features provided by FILE as it was loaded.
 FILE can be a file name, or a library name.
 A library name is equivalent to the file name that `load-library' would load."
-  (let ((symbols (file-loadhist-lookup file))
-	provides)
-    (mapc (lambda (x)
-	    (if (and (consp x) (eq (car x) 'provide))
-		(setq provides (cons (cdr x) provides))))
-	  symbols)
-    provides))
+  (let (provides)
+    (dolist (x (file-loadhist-lookup file) provides)
+      (when (eq (car-safe x) 'provide)
+	(push x provides)))))
 
 (defun file-requires (file)
   "Return the list of features required by FILE as it was loaded.
 FILE can be a file name, or a library name.
 A library name is equivalent to the file name that `load-library' would load."
-  (let ((symbols (file-loadhist-lookup file))
-	requires)
-    (mapc (lambda (x)
-	    (if (and (consp x) (eq (car x) 'require))
-		(setq requires (cons (cdr x) requires))))
-	  symbols)
-    requires))
+  (let (requires)
+    (dolist (x (file-loadhist-lookup file) requires)
+      (when (eq (car-safe x) 'require)
+	(push x requires)))))
 
 (defsubst file-set-intersect (p q)
   "Return the set intersection of two lists."
-  (let ((ret nil))
+  (let (ret)
     (dolist (x p ret)
-      (if (memq x q) (setq ret (cons x ret))))
-    ret))
+      (when (memq x q) (push x ret)))))
 
 (defun file-dependents (file)
   "Return the list of loaded libraries that depend on FILE.
@@ -107,9 +99,8 @@ A library name is equivalent to the file name that `load-library' would load."
   (let ((provides (file-provides file))
 	(dependents nil))
     (dolist (x load-history dependents)
-      (if (file-set-intersect provides (file-requires (car x)))
-	  (setq dependents (cons (car x) dependents))))
-    dependents))
+      (when (file-set-intersect provides (file-requires (car x)))
+	(push (car x) dependents)))))
 
 (defun read-feature (prompt &optional loaded-p)
   "Read feature name from the minibuffer, prompting with string PROMPT.
@@ -126,15 +117,19 @@ from a file."
 
 (defvaralias 'loadhist-hook-functions 'unload-feature-special-hooks)
 (defvar unload-feature-special-hooks
-  '(after-change-functions
-    after-insert-file-functions auto-fill-function
-    before-change-functions blink-paren-function
-    buffer-access-fontify-functions command-line-functions
-    comment-indent-function kill-buffer-query-functions
-    kill-emacs-query-functions lisp-indent-function
-    mouse-position-function
+  '(after-change-functions after-insert-file-functions
+    after-make-frame-functions auto-fill-function before-change-functions
+    blink-paren-function buffer-access-fontify-functions command-line-functions
+    comment-indent-function compilation-finish-functions
+    disabled-command-function find-file-not-found-functions
+    font-lock-beginning-of-syntax-function font-lock-fontify-buffer-function
+    font-lock-fontify-region-function font-lock-mark-block-function
+    font-lock-syntactic-face-function font-lock-unfontify-buffer-function
+    font-lock-unfontify-region-function kill-buffer-query-functions
+    kill-emacs-query-functions lisp-indent-function mouse-position-function
     redisplay-end-trigger-functions temp-buffer-show-function
     window-scroll-functions window-size-change-functions
+    write-contents-functions write-file-functions
     write-region-annotate-functions)
   "A list of special hooks from Info node `(elisp)Standard Hooks'.
 

@@ -5,7 +5,6 @@
 ;; Author: Tassilo Horn <tassilo@member.fsf.org>
 ;; Maintainer: Tassilo Horn <tassilo@member.fsf.org>
 ;; Keywords: files, pdf, ps, dvi
-;; Version: <2007-10-02 Tue 18:21>
 
 ;; This file is part of GNU Emacs.
 
@@ -26,9 +25,9 @@
 
 ;;; Requirements:
 
-;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need GhostScript,
-;; `dvipdfm' which comes with TeTeX and `pdftotext', which comes with poppler
-;; (http://poppler.freedesktop.org/).
+;; doc-view.el requires GNU Emacs 22.1 or newer.  You also need Ghostscript,
+;; `dvipdfm' which comes with teTeX and `pdftotext', which comes with xpdf
+;; (http://www.foolabs.com/xpdf/) or poppler (http://poppler.freedesktop.org/).
 
 ;;; Commentary:
 
@@ -37,16 +36,19 @@
 ;; inside an Emacs buffer.  This buffer uses `doc-view-mode' which provides
 ;; convenient key bindings for browsing the document.
 ;;
-;; To use it simply do
+;; To use it simply open a document file with
 ;;
-;;     M-x doc-view RET
+;;     C-x C-f ~/path/to/document RET
 ;;
-;; and you'll be queried for a document to open.
+;; and the document will be converted and displayed, if your emacs supports png
+;; images.  With `C-c C-c' you can toggle between the rendered images
+;; representation and the source text representation of the document.  With
+;; `C-c C-e' you can switch to an appropriate editing mode for the document.
 ;;
 ;; Since conversion may take some time all the PNG images are cached in a
 ;; subdirectory of `doc-view-cache-directory' and reused when you want to view
-;; that file again.  This reusing can be omitted if you provide a prefx
-;; argument to `doc-view'.  To delete all cached files use
+;; that file again.  To reconvert a document hit `g' (`doc-view-reconvert-doc')
+;; when displaying the document.  To delete all cached files use
 ;; `doc-view-clear-cache'.  To open the cache with dired, so that you can tidy
 ;; it out use `doc-view-dired-cache'.
 ;;
@@ -67,8 +69,6 @@
 ;; bottom-right corner of the desired slice.  To reset the slice use
 ;; `doc-view-reset-slice' (bound to `s r').
 ;;
-;; Dired users should have a look at `doc-view-dired'.
-;;
 ;; You can also search within the document.  The command `doc-view-search'
 ;; (bound to `C-s') queries for a search regexp and initializes a list of all
 ;; matching pages and messages how many match-pages were found.  After that you
@@ -80,17 +80,16 @@
 ;; conversion.  When that finishes and you're still viewing the document
 ;; (i.e. you didn't switch to another buffer) you're queried for the regexp
 ;; then.
+;;
+;; Dired users can simply hit `v' on a document file.  If it's a PS, PDF or DVI
+;; it will be opened using `doc-view-mode'.
+;;
 
 ;;; Configuration:
 
-;; Basically doc-view should be quite usable with its standard settings, so
-;; putting
-;;
-;;     (require 'doc-view)
-;;
-;; into your `user-init-file' should be enough.  If the images are too small or
-;; too big you should set the "-rXXX" option in `doc-view-ghostscript-options'
-;; to another value.  (The bigger your screen, the higher the value.)
+;; If the images are too small or too big you should set the "-rXXX" option in
+;; `doc-view-ghostscript-options' to another value.  (The bigger your screen,
+;; the higher the value.)
 ;;
 ;; This and all other options can be set with the customization interface.
 ;; Simply do
@@ -102,6 +101,7 @@
 ;;; Code:
 
 (require 'dired)
+(require 'image-mode)
 (eval-when-compile (require 'cl))
 
 ;;;; Customization Options
@@ -114,50 +114,51 @@
   :group 'multimedia
   :prefix "doc-view-")
 
-(defcustom doc-view-ghostscript-program "gs"
+(defcustom doc-view-ghostscript-program (executable-find "gs")
   "Program to convert PS and PDF files to PNG."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
 (defcustom doc-view-ghostscript-options
-  '("-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
-    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET"
-    "-r100")
-  "A list of options to give to ghostview."
-  :type '(sexp)
+  '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
+	      ;; sources.
+    "-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
+    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET" "-r100")
+  "A list of options to give to ghostscript."
+  :type '(repeat string)
   :group 'doc-view)
 
-(defcustom doc-view-dvipdfm-program "dvipdfm"
+(defcustom doc-view-dvipdfm-program (executable-find "dvipdfm")
   "Program to convert DVI files to PDF.
 
 DVI file will be converted to PDF before the resulting PDF is
 converted to PNG."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
-(defcustom doc-view-ps2pdf-program "ps2pdf"
+(defcustom doc-view-ps2pdf-program (executable-find "ps2pdf")
   "Program to convert PS files to PDF.
 
 PS files will be converted to PDF before searching is possible."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
-(defcustom doc-view-pdftotext-program "pdftotext"
+(defcustom doc-view-pdftotext-program (executable-find "pdftotext")
   "Program to convert PDF files to plain text.
 
 Needed for searching."
-  :type '(file)
+  :type 'file
   :group 'doc-view)
 
 (defcustom doc-view-cache-directory (concat temporary-file-directory
 					    "doc-view")
   "The base directory, where the PNG images will be saved."
-  :type '(directory)
+  :type 'directory
   :group 'doc-view)
 
 (defcustom doc-view-conversion-buffer "*doc-view conversion output*"
   "The buffer where messages from the converter programs go to."
-  :type '(string)
+  :type 'string
   :group 'doc-view)
 
 (defcustom doc-view-conversion-refresh-interval 3
@@ -166,7 +167,7 @@ After such an refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
 pages won't be displayed before conversion of the whole document
 has finished."
-  :type '(string)
+  :type 'integer
   :group 'doc-view)
 
 ;;;; Internal Variables
@@ -201,7 +202,10 @@ has finished."
 (defvar doc-view-current-info nil
   "Only used internally.")
 
-;;;; DocView Keymap
+(defvar doc-view-current-display nil
+  "Only used internally.")
+
+;;;; DocView Keymaps
 
 (defvar doc-view-mode-map
   (let ((map (make-sparse-keymap)))
@@ -218,7 +222,6 @@ has finished."
     ;; Killing/burying the buffer (and the process)
     (define-key map (kbd "q")         'bury-buffer)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
-    (define-key map (kbd "C-x k")     'doc-view-kill-proc-and-buffer)
     ;; Slicing the image
     (define-key map (kbd "s s")       'doc-view-set-slice)
     (define-key map (kbd "s m")       'doc-view-set-slice-using-mouse)
@@ -229,15 +232,40 @@ has finished."
     (define-key map (kbd "C-S-n")     'doc-view-search-next-match)
     (define-key map (kbd "C-S-p")     'doc-view-search-previous-match)
     ;; Scrolling
+    (define-key map (kbd "<right>")   'image-forward-hscroll)
+    (define-key map (kbd "<left>")    'image-backward-hscroll)
+    (define-key map (kbd "<down>")    'image-next-line)
+    (define-key map (kbd "<up>")      'image-previous-line)
+    (define-key map (kbd "C-f")       'image-forward-hscroll)
+    (define-key map (kbd "C-b")       'image-backward-hscroll)
+    (define-key map (kbd "C-n")       'image-next-line)
+    (define-key map (kbd "C-p")       'image-previous-line)
     (define-key map (kbd "C-v")       'scroll-up)
     (define-key map (kbd "<mouse-4>") 'mwheel-scroll)
     (define-key map (kbd "<mouse-5>") 'mwheel-scroll)
     (define-key map (kbd "M-v")       'scroll-down)
     ;; Show the tooltip
     (define-key map (kbd "C-t")       'doc-view-show-tooltip)
+    ;; Toggle between text and image display or editing
+    (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
+    (define-key map (kbd "C-c C-e")   'doc-view-edit-doc)
+    ;; Reconvert the current document
+    (define-key map (kbd "g")         'doc-view-reconvert-doc)
     (suppress-keymap map)
     map)
-  "Keymap used by `doc-view-mode'.")
+  "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
+
+(defvar doc-view-mode-text-map
+  (let ((map (make-sparse-keymap)))
+    ;; Toggle between text and image display or editing
+    (define-key map (kbd "C-c C-c") 'doc-view-toggle-display)
+    (define-key map (kbd "C-c C-e") 'doc-view-edit-doc)
+    ;; Killing/burying the buffer (and the process)
+    (define-key map (kbd "q")         'bury-buffer)
+    (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
+    (define-key map (kbd "C-x k")     'doc-view-kill-proc-and-buffer)
+    map)
+  "Keymap used by `doc-view-mode' when displaying a document as text.")
 
 ;;;; Navigation Commands
 
@@ -271,16 +299,16 @@ has finished."
 			 (setq contexts (concat contexts "  - \"" m "\"\n")))
 		       contexts)))))
     ;; Update the buffer
-    (setq inhibit-read-only t)
-    (erase-buffer)
-    (let ((beg (point)))
-      (doc-view-insert-image (nth (1- page) doc-view-current-files)
-			     :pointer 'arrow)
-      (put-text-property beg (point) 'help-echo doc-view-current-info))
-    (insert "\n" doc-view-current-info)
-    (goto-char (point-min))
-    (forward-char)
-    (setq inhibit-read-only nil)))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (let ((beg (point)))
+	(doc-view-insert-image (nth (1- page) doc-view-current-files)
+			       :pointer 'arrow)
+	(put-text-property beg (point) 'help-echo doc-view-current-info))
+      (insert "\n" doc-view-current-info)
+      (goto-char (point-min))
+      (forward-char))
+    (set-buffer-modified-p nil)))
 
 (defun doc-view-next-page (&optional arg)
   "Browse ARG pages forward."
@@ -317,52 +345,71 @@ has finished."
     (error (doc-view-previous-page)
 	   (goto-char (point-max)))))
 
+(defun doc-view-kill-proc ()
+  "Kill the current converter process."
+  (interactive)
+  (when doc-view-current-converter-process
+    (kill-process doc-view-current-converter-process))
+  (when doc-view-current-timer
+    (cancel-timer doc-view-current-timer)
+    (setq doc-view-current-timer nil))
+  (setq mode-line-process nil))
+
 (defun doc-view-kill-proc-and-buffer ()
   "Kill the current converter process and buffer."
   (interactive)
+  (doc-view-kill-proc)
   (when (eq major-mode 'doc-view-mode)
-    (when doc-view-current-converter-process
-      (kill-process doc-view-current-converter-process))
-    (when doc-view-current-timer
-      (cancel-timer doc-view-current-timer)
-      (setq doc-view-current-timer nil))
     (kill-buffer (current-buffer))))
 
 ;;;; Conversion Functions
 
-(defun doc-view-file-name-to-directory-name (file)
-  "Return the directory where the png files of FILE should be saved.
+(defun doc-view-reconvert-doc (&rest args)
+  "Reconvert the current document.
+Should be invoked when the cached images aren't up-to-date."
+  (interactive)
+  (let ((inhibit-read-only t)
+	(doc doc-view-current-doc))
+    (doc-view-kill-proc)
+    ;; Clear the old cached files
+    (when (file-exists-p (doc-view-current-cache-dir))
+      (dired-delete-file (doc-view-current-cache-dir) 'always))
+    (doc-view-kill-proc-and-buffer)
+    (find-file doc)))
 
-It'a a subdirectory of `doc-view-cache-directory'."
+(defun doc-view-current-cache-dir ()
+  "Return the directory where the png files of the current doc should be saved.
+It's a subdirectory of `doc-view-cache-directory'."
   (if doc-view-current-cache-dir
       doc-view-current-cache-dir
-    (file-name-as-directory
-     (concat (file-name-as-directory doc-view-cache-directory)
-	     (with-temp-buffer
-	       (insert-file-contents-literally file)
-	       (md5 (current-buffer)))))))
+    (setq doc-view-current-cache-dir
+	  (file-name-as-directory
+	   (concat (file-name-as-directory doc-view-cache-directory)
+		   (let ((doc doc-view-current-doc))
+		     (with-temp-buffer
+		       (insert-file-contents-literally doc)
+		       (md5 (current-buffer)))))))))
 
 (defun doc-view-dvi->pdf-sentinel (proc event)
   "If DVI->PDF conversion was successful, convert the PDF to PNG now."
   (if (not (string-match "finished" event))
       (message "DocView: dvi->pdf process changed status to %s." event)
     (set-buffer (process-get proc 'buffer))
-    (setq doc-view-current-converter-process nil)
-    (message "DocView: finished conversion from DVI to PDF!")
+    (setq doc-view-current-converter-process nil
+	  mode-line-process nil)
     ;; Now go on converting this PDF to a set of PNG files.
     (let* ((pdf (process-get proc 'pdf-file))
-	   (png (concat (doc-view-file-name-to-directory-name
-			 doc-view-current-doc)
+	   (png (concat (doc-view-current-cache-dir)
 			"page-%d.png")))
       (doc-view-pdf/ps->png pdf png))))
 
 (defun doc-view-dvi->pdf (dvi pdf)
   "Convert DVI to PDF asynchrounously."
-  (message "DocView: converting DVI to PDF now!")
   (setq doc-view-current-converter-process
-	(start-process "doc-view-dvi->pdf" doc-view-conversion-buffer
+	(start-process "dvi->pdf" doc-view-conversion-buffer
 		       doc-view-dvipdfm-program
-		       "-o" pdf dvi))
+		       "-o" pdf dvi)
+	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
   (set-process-sentinel doc-view-current-converter-process
 			'doc-view-dvi->pdf-sentinel)
   (process-put doc-view-current-converter-process 'buffer   (current-buffer))
@@ -373,24 +420,24 @@ It'a a subdirectory of `doc-view-cache-directory'."
   (if (not (string-match "finished" event))
       (message "DocView: converter process changed status to %s." event)
     (set-buffer (process-get proc 'buffer))
-    (setq doc-view-current-converter-process nil)
+    (setq doc-view-current-converter-process nil
+	  mode-line-process nil)
     (when doc-view-current-timer
       (cancel-timer doc-view-current-timer)
       (setq doc-view-current-timer nil))
-    (message "DocView: finished conversion from PDF/PS to PNG!")
     ;; Yippie, finished.  Update the display!
     (doc-view-display doc-view-current-doc)))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchrounously."
-  (message "DocView: converting PDF or PS to PNG now!")
   (setq doc-view-current-converter-process
 	(apply 'start-process
-	       (append (list "doc-view-pdf/ps->png" doc-view-conversion-buffer
+	       (append (list "pdf/ps->png" doc-view-conversion-buffer
 			     doc-view-ghostscript-program)
 		       doc-view-ghostscript-options
 		       (list (concat "-sOutputFile=" png))
-		       (list pdf-ps))))
+		       (list pdf-ps)))
+	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
   (process-put doc-view-current-converter-process
 	       'buffer (current-buffer))
   (set-process-sentinel doc-view-current-converter-process
@@ -398,7 +445,7 @@ It'a a subdirectory of `doc-view-cache-directory'."
   (when doc-view-conversion-refresh-interval
     (setq doc-view-current-timer
 	  (run-at-time "1 secs" doc-view-conversion-refresh-interval
-		       'doc-view-display
+		       'doc-view-display-maybe
 		       doc-view-current-doc))))
 
 (defun doc-view-pdf->txt-sentinel (proc event)
@@ -407,8 +454,8 @@ It'a a subdirectory of `doc-view-cache-directory'."
     (let ((current-buffer (current-buffer))
 	  (proc-buffer    (process-get proc 'buffer)))
       (set-buffer proc-buffer)
-      (setq doc-view-current-converter-process nil)
-      (message "DocView: finished conversion from PDF to TXT!")
+      (setq doc-view-current-converter-process nil
+	    mode-line-process nil)
       ;; If the user looks at the DocView buffer where the conversion was
       ;; performed, search anew.  This time it will be queried for a regexp.
       (when (eq current-buffer proc-buffer)
@@ -416,11 +463,11 @@ It'a a subdirectory of `doc-view-cache-directory'."
 
 (defun doc-view-pdf->txt (pdf txt)
   "Convert PDF to TXT asynchrounously."
-  (message "DocView: converting PDF to TXT now!")
   (setq doc-view-current-converter-process
-	(start-process "doc-view-pdf->txt" doc-view-conversion-buffer
+	(start-process "pdf->txt" doc-view-conversion-buffer
 		       doc-view-pdftotext-program "-raw"
-		       pdf txt))
+		       pdf txt)
+	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
   (set-process-sentinel doc-view-current-converter-process
 			'doc-view-pdf->txt-sentinel)
   (process-put doc-view-current-converter-process 'buffer (current-buffer)))
@@ -429,64 +476,44 @@ It'a a subdirectory of `doc-view-cache-directory'."
   (if (not (string-match "finished" event))
       (message "DocView: converter process changed status to %s." event)
     (set-buffer (process-get proc 'buffer))
-    (setq doc-view-current-converter-process nil)
-    (message "DocView: finished conversion from PS to PDF!")
+    (setq doc-view-current-converter-process nil
+	  mode-line-process nil)
     ;; Now we can transform to plain text.
     (doc-view-pdf->txt (process-get proc 'pdf-file)
-		       (concat (doc-view-file-name-to-directory-name
-				doc-view-current-doc)
+		       (concat (doc-view-current-cache-dir)
 			       "doc.txt"))))
 
 (defun doc-view-ps->pdf (ps pdf)
   "Convert PS to PDF asynchronously."
-  (message "DocView: converting PS to PDF now!")
   (setq doc-view-current-converter-process
-	(start-process "doc-view-ps->pdf" doc-view-conversion-buffer
+	(start-process "ps->pdf" doc-view-conversion-buffer
 		       doc-view-ps2pdf-program
-		       ps pdf))
+		       ps pdf
+		       ;; Avoid security problems when rendering files from
+		       ;; untrusted sources.
+		       "-dSAFER")
+	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
   (set-process-sentinel doc-view-current-converter-process
 			'doc-view-ps->pdf-sentinel)
   (process-put doc-view-current-converter-process 'buffer   (current-buffer))
   (process-put doc-view-current-converter-process 'pdf-file pdf))
 
-(defun doc-view-convert-doc (doc)
-  "Convert DOC to a set of png files, one file per page.
-
-Those files are saved in the directory given by
-`doc-view-file-name-to-directory-name'."
+(defun doc-view-convert-current-doc ()
+  "Convert `doc-view-current-doc' to a set of png files, one file per page.
+Those files are saved in the directory given by the function
+`doc-view-current-cache-dir'."
   (clear-image-cache)
-  (let* ((dir (doc-view-file-name-to-directory-name doc))
-	 (png-file (concat (file-name-as-directory dir) "page-%d.png")))
-    (when (file-exists-p dir)
-      (dired-delete-file dir 'always))
-    (make-directory dir t)
-    (if (not (string= (file-name-extension doc) "dvi"))
+  (let ((png-file (concat (doc-view-current-cache-dir)
+			  "page-%d.png")))
+    (make-directory doc-view-current-cache-dir t)
+    (if (not (string= (file-name-extension doc-view-current-doc) "dvi"))
 	;; Convert to PNG images.
-	(doc-view-pdf/ps->png doc png-file)
-      ;; DVI files have to be converted to PDF before GhostScript can process
+	(doc-view-pdf/ps->png doc-view-current-doc png-file)
+      ;; DVI files have to be converted to PDF before Ghostscript can process
       ;; it.
-      (doc-view-dvi->pdf doc
-			 (concat (file-name-as-directory dir)
+      (doc-view-dvi->pdf doc-view-current-doc
+			 (concat (file-name-as-directory doc-view-current-cache-dir)
 				 "doc.pdf")))))
-
-;;;; DocView Mode
-
-(define-derived-mode doc-view-mode nil "DocView"
-  "Major mode in DocView buffers.
-
-\\{doc-view-mode-map}"
-  :group 'doc-view
-  (setq buffer-read-only t)
-  (make-local-variable 'doc-view-current-files)
-  (make-local-variable 'doc-view-current-doc)
-  (make-local-variable 'doc-view-current-image)
-  (make-local-variable 'doc-view-current-page)
-  (make-local-variable 'doc-view-current-converter-process)
-  (make-local-variable 'doc-view-current-timer)
-  (make-local-variable 'doc-view-current-slice)
-  (make-local-variable 'doc-view-current-cache-dir)
-  (make-local-variable 'doc-view-current-info)
-  (make-local-variable 'doc-view-current-search-matches))
 
 ;;;; Slicing
 
@@ -555,19 +582,22 @@ Predicate for sorting `doc-view-current-files'."
 	nil
       (string< a b))))
 
+(defun doc-view-display-maybe (doc)
+  "Call `doc-view-display' iff we're in the image display."
+  (when (eq doc-view-current-display 'image)
+    (doc-view-display doc)))
+
 (defun doc-view-display (doc)
   "Start viewing the document DOC."
-  (let ((dir (doc-view-file-name-to-directory-name doc)))
-    (set-buffer (format "*DocView: %s*" doc))
-    (setq doc-view-current-files
-	  (sort (directory-files dir t "page-[0-9]+\\.png" t)
-		'doc-view-sort))
-    (when (> (length doc-view-current-files) 0)
-      (doc-view-goto-page doc-view-current-page))))
+  (set-buffer (get-file-buffer doc))
+  (setq doc-view-current-files
+	(sort (directory-files (doc-view-current-cache-dir) t
+			       "page-[0-9]+\\.png" t)
+	      'doc-view-sort))
+  (when (> (length doc-view-current-files) 0)
+    (doc-view-goto-page doc-view-current-page)))
 
 (defun doc-view-buffer-message ()
-  (setq inhibit-read-only t)
-  (erase-buffer)
   (insert (propertize "Welcome to DocView!" 'face 'bold)
 	  "\n"
 	  "
@@ -580,11 +610,57 @@ For now these keys are useful:
 
 `q' : Bury this buffer.  Conversion will go on in background.
 `k' : Kill the conversion process and this buffer.\n")
-  (setq inhibit-read-only nil))
+  (set-buffer-modified-p nil))
 
 (defun doc-view-show-tooltip ()
   (interactive)
   (tooltip-show doc-view-current-info))
+
+;;;;; Toggle between text and image display
+
+(defun doc-view-toggle-display ()
+  "Start or stop displaying a document file as a set of images.
+This command toggles between showing the text of the document
+file and showing the document as a set of images."
+  (interactive)
+  (if (get-text-property (point-min) 'display)
+      ;; Switch to text display
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(insert-file-contents doc-view-current-doc)
+	(use-local-map doc-view-mode-text-map)
+	(setq mode-name "DocView[text]"
+	      doc-view-current-display 'text)
+	(if (called-interactively-p)
+	    (message "Repeat this command to go back to displaying the file as images")))
+    ;; Switch to image display
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (doc-view-buffer-message)
+      (setq doc-view-current-page (or doc-view-current-page 1))
+      (if (file-exists-p (doc-view-current-cache-dir))
+	  (progn
+	    (message "DocView: using cached files!")
+	    (doc-view-display doc-view-current-doc))
+	(doc-view-convert-current-doc))
+      (use-local-map doc-view-mode-map)
+      (setq mode-name (format "DocView")
+	    doc-view-current-display 'image)
+      (if (called-interactively-p)
+	  (message "Repeat this command to go back to displaying the file as text"))))
+  (set-buffer-modified-p nil))
+
+;;;;; Leave doc-view-mode and open the file for edit
+
+(defun doc-view-edit-doc ()
+  "Leave `doc-view-mode' and open the current doc with an appropriate editing mode."
+  (interactive)
+  (let ((filename doc-view-current-doc)
+	(auto-mode-alist (append '(("\\.[eE]?[pP][sS]\\'" . ps-mode)
+				   ("\\.\\(pdf\\|PDF\\|dvi\\|DVI\\)$" . fundamental-mode))
+				 auto-mode-alist)))
+    (kill-buffer (current-buffer))
+    (find-file filename)))
 
 ;;;; Searching
 
@@ -636,8 +712,7 @@ conversion finished."
   (interactive)
   ;; New search, so forget the old results.
   (setq doc-view-current-search-matches nil)
-  (let ((txt (concat (doc-view-file-name-to-directory-name
-		      doc-view-current-doc)
+  (let ((txt (concat (doc-view-current-cache-dir)
 		     "doc.txt")))
     (if (file-readable-p txt)
 	(progn
@@ -660,14 +735,12 @@ conversion finished."
 	    ;; Doc is a PS, so convert it to PDF (which will be converted to
 	    ;; TXT thereafter).
 	    (doc-view-ps->pdf doc-view-current-doc
-			      (concat (doc-view-file-name-to-directory-name
-				       doc-view-current-doc)
+			      (concat (doc-view-current-cache-dir)
 				      "doc.pdf")))
 	   ((string= ext "dvi")
 	    ;; Doc is a DVI.  This means that a doc.pdf already exists in its
 	    ;; cache subdirectory.
-	    (doc-view-pdf->txt (concat (doc-view-file-name-to-directory-name
-					doc-view-current-doc)
+	    (doc-view-pdf->txt (concat (doc-view-current-cache-dir)
 				       "doc.pdf")
 			       txt))
 	   (t (error "DocView doesn't know what to do"))))))))
@@ -698,52 +771,42 @@ conversion finished."
 	     (y-or-n-p "No more matches before current page.  Wrap to last match? "))
 	(doc-view-goto-page (caar (last doc-view-current-search-matches)))))))
 
-;;;; User Interface Commands
+;;;; User interface commands and the mode
+
+(put 'doc-view-mode 'mode-class 'special)
 
 ;;;###autoload
-(defun doc-view (no-cache &optional file)
-  "Convert FILE to png and start viewing it.
-If no FILE is given, query for on.
-If this FILE is still in the cache, don't convert and use the
-existing page files.  With prefix arg NO-CACHE, don't use the
-cached files and convert anew."
-  (interactive "P")
-  (if (not (and (image-type-available-p 'png)
-		(display-images-p)))
-      (message "DocView: your emacs or display doesn't support png images.")
-    (let* ((doc (or file
-		    (expand-file-name
-		     (let ((completion-ignored-extensions
-			    ;; Don't hide files doc-view can display
-			    (remove-if (lambda (str)
-					 (string-match "\\.\\(ps\\|pdf\\|dvi\\)$"
-						       str))
-				       completion-ignored-extensions)))
-		       (read-file-name "File: " nil nil t)))))
-	   (buffer (get-buffer-create (format "*DocView: %s*" doc)))
-	   (dir (doc-view-file-name-to-directory-name doc)))
-      (switch-to-buffer buffer)
-      (doc-view-buffer-message)
-      (doc-view-mode)
-      (setq doc-view-current-doc doc)
-      (setq doc-view-current-page 1)
-      (if (not (and (file-exists-p dir)
-		    (not no-cache)))
-	  (progn
-	    (setq doc-view-current-cache-dir nil)
-	    (doc-view-convert-doc doc-view-current-doc))
-	(message "DocView: using cached files!")
-	(doc-view-display doc-view-current-doc)))))
-
-(defun doc-view-dired (no-cache)
-  "View the current dired file with doc-view.
-NO-CACHE is the same as in `doc-view'.
-
-You might want to bind this command to a dired key, e.g.
-
-    (define-key dired-mode-map (kbd \"C-c d\") 'doc-view-dired)"
-  (interactive "P")
-  (doc-view no-cache (dired-get-file-for-visit)))
+(define-derived-mode doc-view-mode nil "DocView"
+  "Major mode in DocView buffers.
+You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
+toggle between display as a set of images and display as text."
+  :group 'doc-view
+  (make-local-variable 'doc-view-current-files)
+  (make-local-variable 'doc-view-current-doc)
+  (make-local-variable 'doc-view-current-image)
+  (make-local-variable 'doc-view-current-page)
+  (make-local-variable 'doc-view-current-converter-process)
+  (make-local-variable 'doc-view-current-timer)
+  (make-local-variable 'doc-view-current-slice)
+  (make-local-variable 'doc-view-current-cache-dir)
+  (make-local-variable 'doc-view-current-info)
+  (make-local-variable 'doc-view-current-search-matches)
+  (setq doc-view-current-doc (buffer-file-name))
+  (insert-file-contents doc-view-current-doc)
+  (use-local-map doc-view-mode-text-map)
+  (setq mode-name "DocView[text]"
+	doc-view-current-display 'text
+	buffer-read-only t
+	revert-buffer-function 'doc-view-reconvert-doc)
+  ;; Switch to image display if possible
+  (if (and (display-images-p)
+	   (image-type-available-p 'png)
+	   (not (get-text-property (point-min) 'display)))
+      (doc-view-toggle-display))
+  (message
+   "%s"
+   (substitute-command-keys
+    "Type \\[doc-view-toggle-display] to toggle between image and text display.")))
 
 (defun doc-view-clear-cache ()
   "Delete the whole cache (`doc-view-cache-directory')."

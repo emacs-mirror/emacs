@@ -1370,7 +1370,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
       CHECK_LIST_CONS (tail, list);
@@ -1421,7 +1421,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
   if (!FLOATP (elt))
     return Fmemq (elt, list);
 
-  for (tail = list; !NILP (tail); tail = XCDR (tail))
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
       CHECK_LIST_CONS (tail, list);
@@ -1741,7 +1741,7 @@ to be sure of changing the value of `foo'.  */)
     {
       Lisp_Object tail, prev;
 
-      for (tail = seq, prev = Qnil; !NILP (tail); tail = XCDR (tail))
+      for (tail = seq, prev = Qnil; CONSP (tail); tail = XCDR (tail))
 	{
 	  CHECK_LIST_CONS (tail, seq);
 
