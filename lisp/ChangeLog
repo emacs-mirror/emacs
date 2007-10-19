@@ -1,5 +1,9 @@
 2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc-view.el (doc-view-mode-map): Use remapping.
+	Don't rebind C-v, M-v to their default value.
+	Don't bind mouse-4 and mouse-5: it's mwheel.el's job.
+
 	* smerge-mode.el: Add word-granularity refinement.
 	(smerge-refine-forward-function, smerge-refine-ignore-whitespace)
 	(smerge-refine-weight-hack): New vars.
