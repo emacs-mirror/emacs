@@ -1244,7 +1244,7 @@ Only files already under version control are noticed."
        node (lambda (f) (if (vc-backend f) (push f flattened)))))
     (nreverse flattened)))
 
-(defun vc-deduce-fileset (&optional allow-directory-wildcard)
+(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered)
   "Deduce a set of files and a backend to which to apply an operation.
 
 If we're in VC-dired mode, the fileset is the list of marked files.
@@ -1252,6 +1252,8 @@ Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
 If neither of these things is true, but ALLOW-DIRECTORY-WILDCARD is on
 and we're in a dired buffer, select the current directory.
+If none of these conditions is met, but ALLOW_UNREGISTERED is in and the
+visited file is not registered, return a singletin fileset containing it.
 Otherwise, throw an error."
   (cond (vc-dired-mode
 	 (let ((marked (dired-map-over-marks (dired-get-filename) nil)))
@@ -1284,6 +1286,8 @@ Otherwise, throw an error."
 	   (message "All version-controlled files below %s selected."
 		    default-directory)
 	   (list default-directory)))
+	((and allow-unregistered (not (vc-registered buffer-file-name))) 
+	 (list buffer-file-name))
 	(t (error "No fileset is available here."))))
 
 (defun vc-ensure-vc-buffer ()
@@ -1369,7 +1373,7 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((files (vc-deduce-fileset))
+  (let* ((files (vc-deduce-fileset nil t))
 	 (state (vc-state (car files)))
 	 (model (vc-checkout-model (car files)))
 	 revision)
