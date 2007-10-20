@@ -319,7 +319,8 @@
         (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p" rev1 rev2 "--")
       (vc-git-command buf 1 files "diff-index" "--exit-code" "-p" (or rev1 "HEAD") "--"))))
 
-(defun vc-git-revision-table (file)
+(defun vc-git-revision-table (files)
+  ;; What about `files'?!?  --Stef
   (let ((table (list "HEAD")))
     (with-temp-buffer
       (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
@@ -328,11 +329,11 @@
         (push (match-string 2) table)))
     table))
 
-(defun vc-git-revision-completion-table (file)
-  (lexical-let ((file file)
+(defun vc-git-revision-completion-table (files)
+  (lexical-let ((files files)
                 table)
     (setq table (lazy-completion-table
-                 table (lambda () (vc-git-revision-table file))))
+                 table (lambda () (vc-git-revision-table files))))
     table))
 
 (defun vc-git-diff-tree (dir &optional rev1 rev2)
