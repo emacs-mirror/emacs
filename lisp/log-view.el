@@ -401,7 +401,7 @@ and ends."
         (goto-char end)
         (log-view-msg-next)
         (setq to (log-view-current-tag))))
-    (vc-version-diff (log-view-current-file) to fr)))
+    (vc-version-diff (list (log-view-current-file)) to fr)))
 
 (provide 'log-view)
 
