@@ -1,6 +1,9 @@
 2007-10-21  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (obj): Sync with src/Makefile.in
+	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): New definitions.
+	(WINNT_SUPPORT): Add term/w32-win.elc.
+	(lisp1, lisp2): Sync with lisp in src/Makefile.in.
 
 2007-06-06  Jason Rumney  <jasonr@gnu.org>
 
