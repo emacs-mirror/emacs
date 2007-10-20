@@ -181,6 +181,8 @@ specified filters, specified timers, and specified hooks.
 
 * Other features we would like:
 
+** Allow frames(terminals) created by emacsclient to inherit their environment
+from the emacsclient process.
 ** Remove the default toggling behavior of minor modes when called from elisp
 rather than interactively.  This a trivial one-liner in easy-mode.el.
 
@@ -609,6 +611,7 @@ but which can also be used as a modifier).
 
 * Other known bugs:
 
+** `make-frame' forgets unhandled parameters, at least for X11 frames.
 ** The \\{...} keymap dump output does not correctly remove shadowed entries:
 From: "Drew Adams" <drew.adams@oracle.com>
 

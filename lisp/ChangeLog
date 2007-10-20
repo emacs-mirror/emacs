@@ -5,6 +5,25 @@
 
 2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-auto-refine): New var.
+	(diff-hunk): Use it.
+	(diff-ignore-whitespace-hunk): Rename diff-refine-ignore-spaces-hunk.
+	(diff-refine-change): Rename from diff-fine-change.  Change it.
+	(diff-refine-preproc): Rename from diff-fine-highlight-preproc.
+	(diff-refine-hunk): Rename from diff-fine-highlight.
+
+2007-10-20  John Paul Wallington  <jpw@pobox.com>
+
+	* help-fns.el (describe-variable-custom-version-info): New function
+	to return variable's version or package version note.
+	(describe-variable): Use it, display result.
+
+2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-auto-refine): New var.
+	(smerge-next, smerge-prev): Use it.
+	(smerge-batch-resolve): Ad-hoc trick for Arch's .rej files.
+
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
 	Add `body' arg.  Cleanup the check-narrow-maybe/re-narrow-maybe mess.
 

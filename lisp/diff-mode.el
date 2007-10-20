@@ -90,6 +90,9 @@ when editing big diffs)."
   :type 'boolean
   :group 'diff-mode)
 
+(defcustom diff-auto-refine t
+  "Automatically highlight changes in detail as the user visits hunks."
+  :type 'boolean)
 
 (defcustom diff-mode-hook nil
   "Run after setting up the `diff-mode' major mode."
@@ -149,14 +152,14 @@ when editing big diffs)."
     ("\C-c\C-a" . diff-apply-hunk)
     ("\C-c\C-e" . diff-ediff-patch)
     ("\C-c\C-n" . diff-restrict-view)
-    ("\C-c\C-r" . diff-reverse-direction)
     ("\C-c\C-s" . diff-split-hunk)
     ("\C-c\C-t" . diff-test-hunk)
+    ("\C-c\C-r" . diff-reverse-direction)
     ("\C-c\C-u" . diff-context->unified)
     ;; `d' because it duplicates the context :-(  --Stef
     ("\C-c\C-d" . diff-unified->context)
-    ("\C-c\C-w" . diff-refine-ignore-spaces-hunk)
-    ("\C-c\C-b" . diff-fine-highlight)  ;No reason for `b' :-(
+    ("\C-c\C-w" . diff-ignore-whitespace-hunk)
+    ("\C-c\C-b" . diff-refine-hunk)  ;No reason for `b' :-(
     ("\C-c\C-f" . next-error-follow-minor-mode))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
@@ -174,8 +177,8 @@ when editing big diffs)."
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
     "-----"
     ["Split hunk"		diff-split-hunk		(diff-splittable-p)]
-    ["Ignore whitespace changes" diff-refine-ignore-spaces-hunk t]
-    ["Highlight fine changes"	diff-fine-highlight	t]
+    ["Ignore whitespace changes" diff-ignore-whitespace-hunk t]
+    ["Highlight fine changes"	diff-refine-hunk	t]
     ["Kill current hunk"	diff-hunk-kill   	t]
     ["Kill current file's hunks" diff-file-kill   	t]
     "-----"
@@ -458,7 +461,10 @@ but in the file header instead, in which case move forward to the first hunk."
 
 ;; Define diff-{hunk,file}-{prev,next}
 (easy-mmode-define-navigation
- diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view)
+ diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view
+ (if diff-auto-refine
+     (condition-case-no-debug nil (diff-refine-hunk) (error nil))))
+
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-hunk)
 
@@ -1604,8 +1610,8 @@ For use in `add-log-current-defun-function'."
 	    (goto-char (+ (car pos) (cdr src)))
 	    (add-log-current-defun))))))
 
-(defun diff-refine-ignore-spaces-hunk ()
-  "Refine the current hunk by ignoring space differences."
+(defun diff-ignore-whitespace-hunk ()
+  "Re-diff the current hunk, ignoring whitespace differences."
   (interactive)
   (let* ((char-offset (- (point) (progn (diff-beginning-of-hunk 'try-harder)
                                         (point))))
@@ -1651,12 +1657,20 @@ For use in `add-log-current-defun-function'."
 
 ;;; Fine change highlighting.
 
-(defface diff-fine-change
-  '((t :background "yellow"))
-  "Face used for char-based changes shown by `diff-fine-highlight'."
+(defface diff-refine-change
+  '((((class color) (min-colors 88) (background light))
+     :background "grey90")
+    (((class color) (min-colors 88) (background dark))
+     :background "grey40")
+    (((class color) (background light))
+     :background "yellow")
+    (((class color) (background dark))
+     :background "green")
+    (t :weight bold))
+  "Face used for char-based changes shown by `diff-refine-hunk'."
   :group 'diff-mode)
 
-(defun diff-fine-highlight-preproc ()
+(defun diff-refine-preproc ()
   (while (re-search-forward "^[+>]" nil t)
     ;; Remove spurious changes due to the fact that one side of the hunk is
     ;; marked with leading + or > and the other with leading - or <.
@@ -1668,7 +1682,7 @@ For use in `add-log-current-defun-function'."
     (replace-match (cdr (assq (char-before) '((?+ . "-") (?> . "<"))))))
   )
 
-(defun diff-fine-highlight ()
+(defun diff-refine-hunk ()
   "Highlight changes of hunk at point at a finer granularity."
   (interactive)
   (require 'smerge-mode)
@@ -1676,7 +1690,7 @@ For use in `add-log-current-defun-function'."
     (diff-beginning-of-hunk 'try-harder)
     (let* ((style (diff-hunk-style))    ;Skips the hunk header as well.
            (beg (point))
-           (props '((diff-mode . fine) (face diff-fine-change)))
+           (props '((diff-mode . fine) (face diff-refine-change)))
            (end (progn (diff-end-of-hunk) (point))))
 
       (remove-overlays beg end 'diff-mode 'fine)
@@ -1688,7 +1702,7 @@ For use in `add-log-current-defun-function'."
                                    end t)
            (smerge-refine-subst (match-beginning 0) (match-end 1)
                                 (match-end 1) (match-end 0)
-                                props 'diff-fine-highlight-preproc)))
+                                props 'diff-refine-preproc)))
         (context
          (let* ((middle (save-excursion (re-search-forward "^---")))
                 (other middle))
@@ -1700,14 +1714,14 @@ For use in `add-log-current-defun-function'."
                                     (setq other (match-end 0))
                                     (match-beginning 0))
                                   other
-                                  props 'diff-fine-highlight-preproc))))
+                                  props 'diff-refine-preproc))))
         (t ;; Normal diffs.
          (let ((beg1 (1+ (point))))
            (when (re-search-forward "^---.*\n" end t)
              ;; It's a combined add&remove, so there's something to do.
              (smerge-refine-subst beg1 (match-beginning 0)
                                   (match-end 0) end
-                                  props 'diff-fine-highlight-preproc))))))))
+                                  props 'diff-refine-preproc))))))))
 
 
 ;; provide the package
