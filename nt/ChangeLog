@@ -1,3 +1,7 @@
+2007-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (usercflags, userldflags): Quote %1.
+
 2007-10-18  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (install): Install COPYING in top-level and bin dirs.
