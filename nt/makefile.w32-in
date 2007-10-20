@@ -242,12 +242,13 @@ info: force-info info-$(MAKETYPE)
 info-nmake:
 	cd ..\doc\emacs
 	$(MAKE) $(MFLAGS) info
-	cd ..\doc\misc
+	cd ..\misc
 	$(MAKE) $(MFLAGS) info
-	cd ..\doc\lispref
+	cd ..\lispref
 	$(MAKE) $(MFLAGS) info
-	cd ..\doc\lispintro
+	cd ..\lispintro
 	$(MAKE) $(MFLAGS) info
+	cd $(MAKEDIR)
 
 info-gmake:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../doc/emacs info
