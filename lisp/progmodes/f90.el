@@ -371,7 +371,7 @@ subroutine\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
    (list
     ;; Variable declarations (avoid the real function call).
     '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
-logical\\|double[ \t]*precision\\|*type[ \t]*(\\sw+)\\)\
+logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\)\
 \\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\)"
       (1 font-lock-type-face t) (4 font-lock-variable-name-face t))
     ;; do, if, select, where, and forall constructs.
@@ -963,7 +963,7 @@ NAME is non-nil only for type."
   (cond
    ((looking-at f90-type-def-re)
     (list (match-string 1) (match-string 2)))
-   ((looking-at "\\(interface\\|block[\t]*data\\)\\>")
+   ((looking-at "\\(interface\\|block[ \t]*data\\)\\>")
     (list (match-string 1) nil))))
 
 (defsubst f90-looking-at-program-block-start ()
