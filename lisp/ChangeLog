@@ -1,3 +1,9 @@
+2007-10-20  John Paul Wallington  <jpw@pobox.com>
+
+	* help-fns.el (describe-variable-custom-version-info): New function
+	to return variable's version or package version note.
+	(describe-variable): Use it, display result.
+
 2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-auto-refine): New var.
