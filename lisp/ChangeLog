@@ -2,6 +2,9 @@
 
 	* vc.el (vc-do-command): Condition out a misleading message when
 	running asynchronously.
+	(vc-deduce-fileset): New argument enables using an unregistered
+	visited file as a singleton fileset idf nothing else is available.
+	(vc-next-action): Restore file-registering behavior.
 
 2007-10-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
