@@ -35,6 +35,7 @@
 ;;; Code:
 
 (require 'cookie1)
+(eval-when-compile (require 'doctor))
 
 (defgroup yow nil
   "Quote random zippyisms."

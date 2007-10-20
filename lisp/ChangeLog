@@ -1,3 +1,42 @@
+2007-10-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/x-win.el (x-gtk-stock-map, icon-map-list)
+	(x-gtk-map-stock): Delete duplicated definitions from merge.
+
+	* progmodes/octave-mod.el: Require octave-inf at compile time
+
+	* progmodes/compile.el (compilation-skip-to-next-location)
+	(compilation-skip-threshold, compilation-skip-visited): Move
+	definitions earlier.
+
+	* play/zone.el (zone-fall-through-ws):
+	* play/landmark.el (lm-move-down, lm-move-up):
+	* play/handwrite.el (handwrite):
+	* mail/mspools.el (mspools-visit-spool):
+	* wdired.el (wdired-next-line, wdired-previous-line):
+	* tar-mode.el (tar-subfile-save-buffer):
+	* scroll-lock.el (scroll-lock-next-line)
+	(scroll-lock-previous-line):
+	* image-dired.el (image-dired-next-line)
+	(image-dired-previous-line):
+	* ediff-help.el (ediff-help-message-line-length): Use
+	forward-line.
+
+	* smerge-mode.el (smerge-auto-refine):
+	* diff-mode.el (diff-auto-refine): Add :group.
+
+	* play/yow.el: Require doctor at compile time.
+
+	* vmsproc.el: Provide vmsproc.
+	(command-send-input): Use forward-line.
+
+	* vms-patch.el: Require ps-print and vmsproc at compile time.
+
+	* vc-mtn.el (log-view-message-re, log-view-file-re)
+	(log-view-font-lock-keywords): Pacify byte-compiler.
+
+	* vc-hg.el: Require log-view at compile time.
+
 2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* log-view.el (log-view-diff): Adapt log-view-diff for new VC API.

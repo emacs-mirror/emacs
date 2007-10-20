@@ -481,6 +481,7 @@ REV is the revision to check out into WORKFILE."
     (vc-hg-incoming-mode)))
 
 ;; XXX maybe also add key bindings for these functions.
+(eval-when-compile (require 'log-view))
 (defun vc-hg-push ()
   (interactive)
   (let ((marked-list (log-view-get-marked)))

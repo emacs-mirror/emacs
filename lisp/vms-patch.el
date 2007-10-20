@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'ps-print)
+  (require 'vmsproc))
+
 (setq auto-mode-alist (cons '(("\\.com\\'" . dcl-mode)) auto-mode-alist))
 
 ;;; Functions that need redefinition

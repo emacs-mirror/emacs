@@ -150,6 +150,10 @@
 (defun vc-mtn-print-log (files &optional buffer)
   (vc-mtn-command buffer 0 files "log"))
 
+(defvar log-view-message-re)
+(defvar log-view-file-re)
+(defvar log-view-font-lock-keywords)
+
 (define-derived-mode vc-mtn-log-view-mode log-view-mode "Mtn-Log-View"
   ;; TODO: Not sure what to do about file markers for now.
   (set (make-local-variable 'log-view-file-re) "\\'\\`")

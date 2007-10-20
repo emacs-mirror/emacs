@@ -489,7 +489,7 @@ If the element is a function or a list of a function and a number,
          (wait 0.15)
          newpos fall-p)
     (while (when (save-excursion
-                   (next-line 1)
+                   (forward-line 1)
                    (and (= col (current-column))
                         (setq newpos (point))
                         (string= spaces (buffer-substring-no-properties
