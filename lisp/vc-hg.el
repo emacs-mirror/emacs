@@ -76,8 +76,7 @@
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (files &optional rev1 rev2 buffer)   OK
-;; - revision-completion-table (file)          COMMENTED OUT AS A WORKAROUND FOR A BUG
-;; - diff-tree (dir &optional rev1 rev2)       TEST IT
+;; - revision-completion-table (files)         OK?
 ;; - annotate-command (file buf &optional rev) OK
 ;; - annotate-time ()                          OK
 ;; - annotate-current-time ()                  ?? NOT NEEDED
@@ -308,9 +307,6 @@
     (setq table (lazy-completion-table
                  table (lambda () (vc-hg-revision-table files))))
     table))
-
-(defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
-  (vc-hg-diff (list file) oldvers newvers buffer))
 
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.

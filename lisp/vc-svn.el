@@ -437,10 +437,6 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; status w.r.t whether the diff was empty or not.
 	(buffer-size (get-buffer buffer)))))
 
-(defun vc-svn-diff-tree (dir &optional rev1 rev2)
-  "Diff all files at and below DIR."
-  (vc-svn-diff (list (file-name-as-directory dir)) rev1 rev2))
-
 ;;;
 ;;; Snapshot system
 ;;;

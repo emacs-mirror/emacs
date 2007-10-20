@@ -87,8 +87,7 @@
 ;; - comment-history (file)			   ??
 ;; - update-changelog (files)			   COULD BE SUPPORTED
 ;; * diff (file &optional rev1 rev2 buffer)	   OK
-;; - revision-completion-table (file)		   NEEDED?
-;; - diff-tree (dir &optional rev1 rev2)	   OK
+;; - revision-completion-table (files)		   NEEDED?
 ;; - annotate-command (file buf &optional rev)	   OK
 ;; - annotate-time ()				   OK
 ;; - annotate-current-time ()			   NOT NEEDED
@@ -335,9 +334,6 @@
     (setq table (lazy-completion-table
                  table (lambda () (vc-git-revision-table files))))
     table))
-
-(defun vc-git-diff-tree (dir &optional rev1 rev2)
-  (vc-git-diff dir rev1 rev2))
 
 (defun vc-git-annotate-command (file buf &optional rev)
   ;; FIXME: rev is ignored

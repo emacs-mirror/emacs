@@ -1,5 +1,14 @@
 2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-bzr.el (vc-bzr-diff-tree):
+	* vc-git.el (vc-git-diff-tree):
+	* vc-hg.el (vc-hg-diff-tree):
+	* vc-mcvs.el (vc-mcvs-diff-tree):
+	* vc-mtn.el (vc-mtn-diff-tree):
+	* vc-svn.el (vc-svn-diff-tree): Remove.
+
+2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* vc-mtn.el (vc-mtn-revision-completion-table):
 	* vc-cvs.el (vc-cvs-revision-completion-table):
 	* vc-arch.el (vc-arch-revision-completion-table):
