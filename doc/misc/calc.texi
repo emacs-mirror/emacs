@@ -18324,7 +18324,7 @@ The remaining trigonometric functions, @code{calc-sec} [@code{sec}],
 available.  With the Hyperbolic flag, these compute their hyperbolic
 counterparts, which are also available separately as @code{calc-sech}
 [@code{sech}], @code{calc-csch} [@code{csch}] and @code{calc-coth}
-[@code{coth}].  (These commmands do not accept the Inverse flag.)
+[@code{coth}].  (These commands do not accept the Inverse flag.)
 
 @node Advanced Math Functions, Branch Cuts, Trigonometric and Hyperbolic Functions, Scientific Functions
 @section Advanced Mathematical Functions
