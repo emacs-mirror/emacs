@@ -1,6 +1,8 @@
 2007-10-20  Eli Zaretskii  <eliz@gnu.org>
 
-	* configure.bat (usercflags, userldflags): Quote %1.
+	* configure.bat (docflags, doldflags): New variables.
+	(genmakefiles): Use them to work around problems with whitespace
+	in arguments of the `if' command.
 
 2007-10-18  Jason Rumney  <jasonr@gnu.org>
 
