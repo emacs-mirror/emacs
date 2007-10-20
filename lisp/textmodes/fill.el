@@ -775,7 +775,7 @@ in the active region."
    ;; 1. Fill the region if it is active when called interactively.
    (and region transient-mark-mode mark-active
 	(not (eq (region-beginning) (region-end)))
-	(fill-region (region-beginning) (region-end) justify))
+	(or (fill-region (region-beginning) (region-end) justify) t))
    ;; 2. Try fill-paragraph-function.
    (and (not (eq fill-paragraph-function t))
 	(or fill-paragraph-function
