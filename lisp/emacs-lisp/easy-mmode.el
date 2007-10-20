@@ -478,7 +478,8 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX)."
 ;;; easy-mmode-define-navigation
 ;;;
 
-(defmacro easy-mmode-define-navigation (base re &optional name endfun narrowfun)
+(defmacro easy-mmode-define-navigation (base re &optional name endfun narrowfun
+                                             &rest body)
   "Define BASE-next and BASE-prev to navigate in the buffer.
 RE determines the places the commands should move point to.
 NAME should describe the entities matched by RE.  It is used to build
@@ -488,17 +489,20 @@ BASE-next also tries to make sure that the whole entry is visible by
   the next entry) and recentering if necessary.
 ENDFUN should return the end position (with or without moving point).
 NARROWFUN non-nil means to check for narrowing before moving, and if
-found, do `widen' first and then call NARROWFUN with no args after moving."
+found, do `widen' first and then call NARROWFUN with no args after moving.
+BODY is executed after moving to the destination location."
+  (declare (indent 5) (debug (exp exp exp def-form def-form &rest def-body)))
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
 	 (next-sym (intern (concat base-name "-next")))
-         (check-narrow-maybe
-	  (when narrowfun
-	    '(setq was-narrowed
-		   (prog1 (or (< (- (point-max) (point-min)) (buffer-size)))
-		     (widen)))))
-         (re-narrow-maybe (when narrowfun
-                            `(when was-narrowed (,narrowfun)))))
+         (when-narrowed
+          (lambda (body)
+            (if (null narrowfun) body
+              `(let ((was-narrowed
+                      (prog1 (or (< (- (point-max) (point-min)) (buffer-size)))
+                        (widen))))
+                 ,body
+                 (when was-narrowed (,narrowfun)))))))
     (unless name (setq name base-name))
     `(progn
        (add-to-list 'debug-ignored-errors
@@ -509,33 +513,31 @@ found, do `widen' first and then call NARROWFUN with no args after moving."
 	 (unless count (setq count 1))
 	 (if (< count 0) (,prev-sym (- count))
 	   (if (looking-at ,re) (setq count (1+ count)))
-           (let (was-narrowed)
-             ,check-narrow-maybe
-             (if (not (re-search-forward ,re nil t count))
-                 (if (looking-at ,re)
-                     (goto-char (or ,(if endfun `(,endfun)) (point-max)))
-                   (error "No next %s" ,name))
-               (goto-char (match-beginning 0))
-               (when (and (eq (current-buffer) (window-buffer (selected-window)))
-                          (interactive-p))
-                 (let ((endpt (or (save-excursion
-                                    ,(if endfun `(,endfun)
-                                       `(re-search-forward ,re nil t 2)))
-                                  (point-max))))
-                   (unless (pos-visible-in-window-p endpt nil t)
-                     (recenter '(0))))))
-             ,re-narrow-maybe)))
+           ,(funcall when-narrowed
+             `(if (not (re-search-forward ,re nil t count))
+                  (if (looking-at ,re)
+                      (goto-char (or ,(if endfun `(,endfun)) (point-max)))
+                    (error "No next %s" ,name))
+                (goto-char (match-beginning 0))
+                (when (and (eq (current-buffer) (window-buffer (selected-window)))
+                           (interactive-p))
+                  (let ((endpt (or (save-excursion
+                                     ,(if endfun `(,endfun)
+                                        `(re-search-forward ,re nil t 2)))
+                                   (point-max))))
+                    (unless (pos-visible-in-window-p endpt nil t)
+                      (recenter '(0)))))))
+           ,@body))
        (put ',next-sym 'definition-name ',base)
        (defun ,prev-sym (&optional count)
 	 ,(format "Go to the previous COUNT'th %s" (or name base-name))
 	 (interactive "p")
 	 (unless count (setq count 1))
 	 (if (< count 0) (,next-sym (- count))
-           (let (was-narrowed)
-             ,check-narrow-maybe
-             (unless (re-search-backward ,re nil t count)
-               (error "No previous %s" ,name))
-             ,re-narrow-maybe)))
+           ,(funcall when-narrowed
+             `(unless (re-search-backward ,re nil t count)
+                (error "No previous %s" ,name)))
+           ,@body))
        (put ',prev-sym 'definition-name ',base))))
 
 
