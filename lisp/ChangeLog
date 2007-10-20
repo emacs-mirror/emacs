@@ -1,3 +1,8 @@
+2007-10-20  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-font-lock-keywords-2)
+	(f90-looking-at-type-like): Fix regexp typos.
+
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--track-window-changes): Don't refresh the whole list.
@@ -514,15 +519,13 @@
 	* net/eudc-hotlist.el (eudc-edit-hotlist):
 	* net/eudc.el (eudc-display-records)
 	(eudc-filter-duplicate-attributes)
-	(eudc-distribute-field-on-records, eudc-query-form)
-	(eudc-process-form):
+	(eudc-distribute-field-on-records, eudc-query-form, eudc-process-form):
 	* net/eudcb-bbdb.el (eudc-bbdb-filter-non-matching-record)
 	(eudc-bbdb-query-internal):
 	* net/eudcb-ldap.el (eudc-ldap-simple-query-internal):
 	* net/socks.el (socks-build-auth-list):
 	* progmodes/cc-cmds.el (top level):
-	* progmodes/cc-styles.el (c-make-styles-buffer-local)
-	(c-set-style):
+	* progmodes/cc-styles.el (c-make-styles-buffer-local, c-set-style):
 	* progmodes/cperl-mode.el (top level, cperl-imenu-addback)
 	(cperl-write-tags, cperl-tags-treeify):
 	* progmodes/ebnf-yac.el (ebnf-yac-token-table):
@@ -611,8 +614,8 @@
 
 	* vc.el (vc-diff):
 	(vc-diff-internal): Merge a patch by Juanma Barranquero.  Also,
-	emporarily disable the check for his edge case of
-	vc-diff (stopping it from grinding when callerd from $HOME), as
+	temporarily disable the check for his edge case of
+	vc-diff (stopping it from grinding when called from $HOME), as
 	it's calling some brittle code in vc-hooks.el.
 	(with-vc-properties): Fix evaluation time of a macro argument.
 	* ediff-vers.el (ediff-vc-internal):
