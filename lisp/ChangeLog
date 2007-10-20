@@ -9,6 +9,7 @@
 	(compilation-skip-threshold, compilation-skip-visited): Move
 	definitions earlier.
 
+	* play/decipher.el (decipher-keypress):
 	* play/zone.el (zone-fall-through-ws):
 	* play/landmark.el (lm-move-down, lm-move-up):
 	* play/handwrite.el (handwrite):
