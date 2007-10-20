@@ -1,3 +1,7 @@
+2007-10-20  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (info-nmake): Change into correct directories.
+
 2007-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (docflags, doldflags): New variables.
