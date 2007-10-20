@@ -1,3 +1,8 @@
+2007-10-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-fancy-expiry-target): Use rmail-dont-reply-to to
+	exclude address matching message-dont-reply-to-names.
+
 2007-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-string<): New function.
