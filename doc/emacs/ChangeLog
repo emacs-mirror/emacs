@@ -1,3 +1,8 @@
+2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* files.texi: Disambiguate two slightly different uses of the term 
+	'filesets'.
+
 2007-10-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* trouble.texi (Quitting): Fix typo.
