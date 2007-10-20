@@ -158,14 +158,15 @@ goto again
 rem ----------------------------------------------------------------------
 :usercflags
 shift
-set usercflags=%usercflags%%sep1%%1
+rem We quote arg here to leave quotes in the likes of "-DFOO=bar"
+set usercflags=%usercflags%%sep1%"%1"
 set sep1= %nothing%
 shift
 goto again
 rem ----------------------------------------------------------------------
 :userldflags
 shift
-set userldflags=%userldflags%%sep2%%1
+set userldflags=%userldflags%%sep2%"%1"
 set sep2= %nothing%
 shift
 goto again
