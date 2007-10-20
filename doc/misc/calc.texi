@@ -1156,16 +1156,16 @@ solid implementation of Lisp, and the humble task of calculating
 turned out to be more open-ended than one might have expected.
 
 Emacs Lisp didn't have built-in floating point math (now it does), so
-this had to be
-simulated in software.  In fact, Emacs integers will only comfortably
-fit six decimal digits or so---not enough for a decent calculator.  So
-I had to write my own high-precision integer code as well, and once I had
-this I figured that arbitrary-size integers were just as easy as large
-integers.  Arbitrary floating-point precision was the logical next step.
-Also, since the large integer arithmetic was there anyway it seemed only
-fair to give the user direct access to it, which in turn made it practical
-to support fractions as well as floats.  All these features inspired me
-to look around for other data types that might be worth having.
+this had to be simulated in software.  In fact, Emacs integers would
+only comfortably fit six decimal digits or so---not enough for a decent
+calculator.  So I had to write my own high-precision integer code as
+well, and once I had this I figured that arbitrary-size integers were
+just as easy as large integers.  Arbitrary floating-point precision was
+the logical next step.  Also, since the large integer arithmetic was
+there anyway it seemed only fair to give the user direct access to it,
+which in turn made it practical to support fractions as well as floats.
+All these features inspired me to look around for other data types that
+might be worth having.
 
 Around this time, my friend Rick Koshi showed me his nifty new HP-28
 calculator.  It allowed the user to manipulate formulas as well as
@@ -17255,11 +17255,6 @@ daylight saving time (e.g., @code{PDT} or @code{PST}) the
 the algorithms described above are used.  If @var{zone} is omitted,
 the computation is done for the current time zone.
 
-@xref{Reporting Bugs}, for the address of Calc's author, if you
-should wish to contribute your improved versions of
-@code{math-tzone-names} and @code{math-daylight-savings-hook}
-to the Calc distribution.
-
 @node Financial Functions, Binary Functions, Date Arithmetic, Arithmetic
 @section Financial Functions
 
@@ -18325,11 +18320,11 @@ vector as an argument and computes @code{arctan2} of the elements.
 @pindex calc-coth
 @tindex coth
 The remaining trigonometric functions, @code{calc-sec} [@code{sec}],
-@code{calc-csc} [@code{csc}] and @code{calc-sec} [@code{sec}], are also
+@code{calc-csc} [@code{csc}] and @code{calc-cot} [@code{cot}], are also
 available.  With the Hyperbolic flag, these compute their hyperbolic
 counterparts, which are also available separately as @code{calc-sech}
-[@code{sech}], @code{calc-csch} [@code{csch}] and @code{calc-sech}
-[@code{sech}].  (These commmands do not accept the Inverse flag.)
+[@code{sech}], @code{calc-csch} [@code{csch}] and @code{calc-coth}
+[@code{coth}].  (These commmands do not accept the Inverse flag.)
 
 @node Advanced Math Functions, Branch Cuts, Trigonometric and Hyperbolic Functions, Scientific Functions
 @section Advanced Mathematical Functions

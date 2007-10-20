@@ -1006,7 +1006,7 @@ DEFUN ("process-mark", Fprocess_mark, Sprocess_mark,
 DEFUN ("set-process-filter", Fset_process_filter, Sset_process_filter,
        2, 2, 0,
        doc: /* Give PROCESS the filter function FILTER; nil means no filter.
-t means stop accepting output from the process.
+A value of t means stop accepting output from the process.
 
 When a process has a filter, its buffer is not used for output.
 Instead, each time it does output, the entire string of output is

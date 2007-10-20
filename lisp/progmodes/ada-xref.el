@@ -1706,7 +1706,7 @@ Information is extracted from the ali file."
 	    (beginning-of-line)
 	    ;; while we have a continuation line, go up one line
 	    (while (looking-at "^\\.")
-	      (previous-line 1)
+	      (forward-line -1)
 	      (beginning-of-line))
 	    (unless (looking-at (concat "[0-9]+.[0-9]+[ *]"
 					(ada-name-of identlist) "[ <{=\(\[]"))
@@ -1735,11 +1735,11 @@ Information is extracted from the ali file."
 	(let ((current-line (buffer-substring
 			     (point) (save-excursion (end-of-line) (point)))))
 	  (save-excursion
-	    (next-line 1)
+	    (forward-line 1)
 	    (beginning-of-line)
 	    (while (looking-at "^\\.\\(.*\\)")
 	      (set 'current-line (concat current-line (match-string 1)))
-	      (next-line 1))
+	      (forward-line 1))
 	    )
 
 	  (if (re-search-backward "^X [0-9]+ \\([a-zA-Z0-9_.-]+\\)" nil t)

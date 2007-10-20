@@ -391,7 +391,6 @@ EDITABLE is ignored."
                  (list "-r" (format "%s..%s" rev1 rev2))
                (list "-r" rev1))))))
 
-(defalias 'vc-bzr-diff-tree 'vc-bzr-diff)
 
 
 ;; FIXME: vc-{next,previous}-revision need fixing in vc.el to deal with

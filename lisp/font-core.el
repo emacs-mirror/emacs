@@ -234,7 +234,7 @@ this function onto `change-major-mode-hook'."
 ;; hook is run, the major mode is in the process of being changed and we do not
 ;; know what the final major mode will be.  So, `font-lock-change-major-mode'
 ;; only (a) notes the name of the current buffer, and (b) adds our function
-;; `turn-on-font-lock-if-enabled' to the hook variables
+;; `turn-on-font-lock-if-desired' to the hook variables
 ;; `after-change-major-mode-hook' and `post-command-hook' (for modes
 ;; that do not yet run `after-change-major-mode-hook').  By the time
 ;; the functions on the first of these hooks to be run are run, the new major
@@ -281,14 +281,17 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
 		      (repeat :inline t (symbol :tag "mode"))))
   :group 'font-lock)
 
-(defun turn-on-font-lock-if-enabled ()
-  (unless (and (eq (car-safe font-lock-global-modes) 'not)
-	       (memq major-mode (cdr font-lock-global-modes)))
+(defun turn-on-font-lock-if-desired ()
+  (when (cond ((eq font-lock-global-modes t)
+	       t)
+	      ((eq (car-safe font-lock-global-modes) 'not)
+	       (not (memq major-mode (cdr font-lock-global-modes))))
+	      (t (memq major-mode (cdr font-lock-global-modes))))
     (let (inhibit-quit)
       (turn-on-font-lock))))
 
 (define-globalized-minor-mode global-font-lock-mode
-  font-lock-mode turn-on-font-lock-if-enabled
+  font-lock-mode turn-on-font-lock-if-desired
   :extra-args (dummy)
   :initialize 'custom-initialize-safe-default
   :init-value (not (or noninteractive emacs-basic-display))

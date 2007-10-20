@@ -1,3 +1,11 @@
+2007-10-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (History and Acknowledgements):  Turn comment
+	about integer size into past tense.
+	(Time Zones): Remove pointer to Calc author's address.
+	(Trigonometric and Hyperbolic Functions): Mention cotangent
+	and hyperbolic cotangent.
+
 2007-10-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.11.

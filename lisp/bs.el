@@ -612,7 +612,6 @@ Used from `window-size-change-functions'."
   (let ((win (get-buffer-window "*buffer-selection*" frame)))
     (when win
       (with-selected-window win
-	(bs-refresh)
 	(bs--set-window-height)))))
 
 (defun bs--remove-hooks ()
@@ -621,6 +620,8 @@ Used from `window-size-change-functions'."
   ;; Remove itself
   (remove-hook 'kill-buffer-hook 'bs--remove-hooks t)
   (remove-hook 'change-major-mode-hook 'bs--remove-hooks t))
+
+(put 'bs-mode 'mode-class 'special)
 
 (define-derived-mode bs-mode nil "Buffer-Selection-Menu"
   "Major mode for editing a subset of Emacs' buffers.

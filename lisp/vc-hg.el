@@ -76,8 +76,7 @@
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (files &optional rev1 rev2 buffer)   OK
-;; - revision-completion-table (file)          COMMENTED OUT AS A WORKAROUND FOR A BUG
-;; - diff-tree (dir &optional rev1 rev2)       TEST IT
+;; - revision-completion-table (files)         OK?
 ;; - annotate-command (file buf &optional rev) OK
 ;; - annotate-time ()                          OK
 ;; - annotate-current-time ()                  ?? NOT NEEDED
@@ -294,23 +293,20 @@
 		  (list "-r" oldvers))
 	      (list ""))))))
 
-(defun vc-hg-revision-table (file)
-  (let ((default-directory (file-name-directory file)))
+(defun vc-hg-revision-table (files)
+  (let ((default-directory (file-name-directory (car files))))
     (with-temp-buffer
       (vc-hg-command t nil file "log" "--template" "{rev} ")
       (split-string 
        (buffer-substring-no-properties (point-min) (point-max))))))
 
 ;; Modelled after the similar function in vc-cvs.el
-(defun vc-hg-revision-completion-table (file)
-  (lexical-let ((file file)
+(defun vc-hg-revision-completion-table (files)
+  (lexical-let ((files files)
                 table)
     (setq table (lazy-completion-table
-                 table (lambda () (vc-hg-revision-table file))))
+                 table (lambda () (vc-hg-revision-table files))))
     table))
-
-(defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
-  (vc-hg-diff (list file) oldvers newvers buffer))
 
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.

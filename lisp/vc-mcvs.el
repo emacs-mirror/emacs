@@ -463,19 +463,6 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
 		   (vc-switches 'MCVS 'diff))))
       (if async 1 status)))	       ; async diff, pessimistic assumption.
 
-(defun vc-mcvs-diff-tree (dir &optional rev1 rev2)
-  "Diff all files at and below DIR."
-  (with-current-buffer "*vc-diff*"
-    ;; Run the command from the root dir so that `mcvs filt' returns
-    ;; valid relative names.
-    (setq default-directory (vc-mcvs-root dir))
-    ;; cvs diff: use a single call for the entire tree
-    (let ((coding-system-for-read (or coding-system-for-read 'undecided)))
-      (apply 'vc-mcvs-command "*vc-diff*" 1 dir "diff"
-	     (and rev1 (concat "-r" rev1))
-	     (and rev2 (concat "-r" rev2))
-	     (vc-switches 'MCVS 'diff)))))
-
 (defun vc-mcvs-annotate-command (file buffer &optional revision)
   "Execute \"mcvs annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."

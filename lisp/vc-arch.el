@@ -442,11 +442,11 @@ Return non-nil if FILE is unchanged."
 		      (concat "*/" string))
 		    "*"))))))
 
-(defun vc-arch-revision-completion-table (file)
-  (lexical-let ((file file))
+(defun vc-arch-revision-completion-table (files)
+  (lexical-let ((files files))
     (lambda (string pred action)
       ;; FIXME: complete revision patches as well.
-      (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
+      (let* ((root (expand-file-name "{arch}" (vc-arch-root (car files))))
              (table (vc-arch--version-completion-table root string)))
 	(complete-with-action action table string pred)))))
 

@@ -1130,7 +1130,7 @@ where they were found."
 		  (if (memq (car order) '(tag-exact-file-name-match-p
 					  tag-file-name-match-p
 					  tag-partial-file-name-match-p))
-                      (save-excursion (next-line 1)
+                      (save-excursion (forward-line 1)
                                       (file-of-tag))
                     (file-of-tag)))
 	    tag-info (funcall snarf-tag-function))
@@ -1454,10 +1454,10 @@ where they were found."
 	     (tag-info (save-excursion (funcall snarf-tag-function)))
 	     (tag (if (eq t (car tag-info)) nil (car tag-info)))
 	     (file-path (save-excursion (if tag (file-of-tag)
-					  (save-excursion (next-line 1)
+					  (save-excursion (forward-line 1)
 							  (file-of-tag)))))
 	     (file-label (if tag (file-of-tag t)
-			   (save-excursion (next-line 1)
+			   (save-excursion (forward-line 1)
 					   (file-of-tag t))))
 	     (pt (with-current-buffer standard-output (point))))
 	(if tag
@@ -1884,7 +1884,7 @@ directory specification."
 	  (funcall tags-apropos-function regexp))))
     (etags-tags-apropos-additional regexp))
   (with-current-buffer "*Tags List*"
-    (require 'apropos)
+    (eval-and-compile (require 'apropos))
     (apropos-mode)
     ;; apropos-mode is derived from fundamental-mode and it kills
     ;; all local variables.

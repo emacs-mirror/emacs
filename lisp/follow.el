@@ -712,7 +712,7 @@ in your `~/.emacs' file:
 ;;}}}
 ;;{{{ Movement
 
-;; Note, these functions are not very useful, atleast not unless you
+;; Note, these functions are not very useful, at least not unless you
 ;; rebind the rather cumbersome key sequence `C-c . p'.
 
 (defun follow-next-window ()
@@ -1267,7 +1267,7 @@ position of the first window.  Otherwise it is a good guess."
     (let ((done nil)
 	  win-start
 	  res)
-      ;; Always calculate what happend when no line is displayed in the first
+      ;; Always calculate what happens when no line is displayed in the first
       ;; window. (The `previous' res is needed below!)
       (goto-char guess)
       (vertical-motion 0 (car windows))
@@ -1508,9 +1508,9 @@ non-first windows in Follow mode."
 		    (setq win-start-end (follow-windows-start-end windows))
 		    (follow-invalidate-cache)
 		    ;; When the point ends up in another window. This
-		    ;; happends when dest is in the beginning of the
+		    ;; happens when dest is in the beginning of the
 		    ;; file and the selected window is not the first.
-		    ;; It can also, in rare situations happend when
+		    ;; It can also, in rare situations happen when
 		    ;; long lines are used and there is a big
 		    ;; difference between the width of the windows.
 		    ;; (When scrolling one line in a wide window which
@@ -2161,6 +2161,37 @@ This prevents `mouse-drag-region' from messing things up."
 ;;}}}
 
 ;;{{{ The end
+
+(defun follow-unload-function ()
+  (easy-menu-remove-item nil '("Tools") "Follow")
+  (follow-stop-intercept-process-output)
+  (dolist (group '((before
+		    ;; XEmacs
+		    isearch-done
+		    ;; both
+		    set-process-filter sit-for move-overlay)
+		   (after
+		    ;; Emacs
+		    scroll-bar-drag scroll-bar-drag-1 scroll-bar-scroll-down
+		    scroll-bar-scroll-up scroll-bar-set-window-start
+		    ;; XEmacs
+		    scrollbar-line-down scrollbar-line-up scrollbar-page-down
+		    scrollbar-page-up scrollbar-to-bottom scrollbar-to-top
+		    scrollbar-vertical-drag
+		    ;; both
+		    process-filter)))
+    (let ((class (car group)))
+      (dolist (fun (cdr group))
+	(when (functionp fun)
+	  (condition-case nil
+	      (progn
+		(ad-remove-advice fun class
+				  (intern (concat "follow-" (symbol-name fun))))
+		(ad-update fun))
+	    (error nil))))))
+  nil)
+
+(defvar follow-unload-function 'follow-unload-function)
 
 ;;
 ;; We're done!

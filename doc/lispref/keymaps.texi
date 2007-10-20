@@ -1516,7 +1516,6 @@ being read, as it is read, against @code{input-decode-map}, then
 @code{function-key-map}, and then against @code{key-translation-map}.
 
 @defvar input-decode-map
-
 This variable holds a keymap that describes the character sequences sent
 by function keys on an ordinary character terminal.  This keymap has the
 same structure as other keymaps, but is used differently: it specifies
@@ -1547,7 +1546,6 @@ deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
 @end defvar
 
 @defvar function-key-map
-
 This variable holds a keymap similar to @code{input-decode-map} except
 that it describes key sequences which should be translated to
 alternative interpretations that are usually preferred.  It applies

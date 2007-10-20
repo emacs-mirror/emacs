@@ -168,7 +168,6 @@
 
 (defun vc-mtn-wash-log (file))
 
-(defalias 'vc-mtn-diff-tree 'vc-mtn-diff)
 (defun vc-mtn-diff (files &optional rev1 rev2 buffer)
   (apply 'vc-mtn-command (or buffer "*vc-diff*") 1 files "diff"
          (append (if rev1 (list "-r" rev1)) (if rev2 (list "-r" rev2)))))
@@ -239,10 +238,11 @@
         (push (match-string 0) ids))
       ids)))
 
-(defun vc-mtn-revision-completion-table (file)
+(defun vc-mtn-revision-completion-table (files)
   ;; TODO: Implement completion for for selectors
   ;; TODO: Implement completion for composite selectors.
-  (lexical-let ((file file))
+  (lexical-let ((files files))
+    ;; What about using `files'?!?  --Stef
     (lambda (string pred action)
       (cond
        ;; "Tag" selectors.

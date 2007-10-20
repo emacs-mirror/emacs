@@ -252,11 +252,14 @@ face (according to `face-differs-from-default-p')."
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((advised (and (featurep 'advice) (ad-get-advice-info function)))
-	 ;; If the function is advised, get the symbol that has the
-	 ;; real definition.
+	 ;; If the function is advised, use the symbol that has the
+	 ;; real definition, if that symbol is already set up.
 	 (real-function
-	  (if advised (cdr (assq 'origname advised))
-	    function))
+	  (or (and advised
+		   (cdr (assq 'origname advised))
+		   (fboundp (cdr (assq 'origname advised)))
+		   (cdr (assq 'origname advised)))
+	      function))
 	 ;; Get the real definition.
 	 (def (if (symbolp real-function)
 		  (symbol-function real-function)

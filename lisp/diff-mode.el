@@ -1657,54 +1657,57 @@ For use in `add-log-current-defun-function'."
   :group 'diff-mode)
 
 (defun diff-fine-highlight-preproc ()
-  (while (re-search-forward "^." nil t)
-    ;; Replace the hunk's leading prefix (+, -, !, <, or >) on each line
-    ;; with something  constant, otherwise it'll be flagged as changes
-    ;; (since it's typically "-" on one side and "+" on the other).
-    ;; Note that we keep the same number of chars: we treat the prefix
-    ;; as part of the texts-to-diff, so that finding the right char
-    ;; afterwards will be easier.  This only makes sense because we make
-    ;; diffs at char-granularity.
-    (replace-match " ")))
+  (while (re-search-forward "^[+>]" nil t)
+    ;; Remove spurious changes due to the fact that one side of the hunk is
+    ;; marked with leading + or > and the other with leading - or <.
+    ;; We used to replace all the prefix chars with " " but this only worked
+    ;; when we did char-based refinement (or when using
+    ;; smerge-refine-weight-hack) since otherwise, the `forward' motion done
+    ;; in chopup do not necessarily do the same as the ones in highlight
+    ;; since the "_" is not treated the same as " ".
+    (replace-match (cdr (assq (char-before) '((?+ . "-") (?> . "<"))))))
+  )
 
 (defun diff-fine-highlight ()
   "Highlight changes of hunk at point at a finer granularity."
   (interactive)
   (require 'smerge-mode)
-  (diff-beginning-of-hunk 'try-harder)
-  (let* ((style (diff-hunk-style))      ;Skips the hunk header as well.
-         (beg (point))
-         (props '((diff-mode . fine) (face diff-fine-change)))
-         (end (progn (diff-end-of-hunk) (point))))
+  (save-excursion
+    (diff-beginning-of-hunk 'try-harder)
+    (let* ((style (diff-hunk-style))    ;Skips the hunk header as well.
+           (beg (point))
+           (props '((diff-mode . fine) (face diff-fine-change)))
+           (end (progn (diff-end-of-hunk) (point))))
 
-    (remove-overlays beg end 'diff-mode 'fine)
+      (remove-overlays beg end 'diff-mode 'fine)
 
-    (goto-char beg)
-    (case style
-     (unified
-      (while (re-search-forward "^\\(?:-.*\n\\)+\\(\\)\\(?:\\+.*\n\\)+" end t)
-        (smerge-refine-subst (match-beginning 0) (match-end 1)
-                             (match-end 1) (match-end 0)
-                             props 'diff-fine-highlight-preproc)))
-     (context
-      (let* ((middle (save-excursion (re-search-forward "^---")))
-             (other middle))
-        (while (re-search-forward "^\\(?:!.*\n\\)+" middle t)
-          (smerge-refine-subst (match-beginning 0) (match-end 0)
-                               (save-excursion
-                                 (goto-char other)
-                                 (re-search-forward "^\\(?:!.*\n\\)+" end)
-                                 (setq other (match-end 0))
-                                 (match-beginning 0))
-                               other
-                               props 'diff-fine-highlight-preproc))))
-     (t ;; Normal diffs.
-      (let ((beg1 (1+ (point))))
-        (when (re-search-forward "^---.*\n" end t)
-          ;; It's a combined add&remove, so there's something to do.
-          (smerge-refine-subst beg1 (match-beginning 0)
-                               (match-end 0) end
-                               props 'diff-fine-highlight-preproc)))))))
+      (goto-char beg)
+      (case style
+        (unified
+         (while (re-search-forward "^\\(?:-.*\n\\)+\\(\\)\\(?:\\+.*\n\\)+"
+                                   end t)
+           (smerge-refine-subst (match-beginning 0) (match-end 1)
+                                (match-end 1) (match-end 0)
+                                props 'diff-fine-highlight-preproc)))
+        (context
+         (let* ((middle (save-excursion (re-search-forward "^---")))
+                (other middle))
+           (while (re-search-forward "^\\(?:!.*\n\\)+" middle t)
+             (smerge-refine-subst (match-beginning 0) (match-end 0)
+                                  (save-excursion
+                                    (goto-char other)
+                                    (re-search-forward "^\\(?:!.*\n\\)+" end)
+                                    (setq other (match-end 0))
+                                    (match-beginning 0))
+                                  other
+                                  props 'diff-fine-highlight-preproc))))
+        (t ;; Normal diffs.
+         (let ((beg1 (1+ (point))))
+           (when (re-search-forward "^---.*\n" end t)
+             ;; It's a combined add&remove, so there's something to do.
+             (smerge-refine-subst beg1 (match-beginning 0)
+                                  (match-end 0) end
+                                  props 'diff-fine-highlight-preproc))))))))
 
 
 ;; provide the package

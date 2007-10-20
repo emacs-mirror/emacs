@@ -1900,8 +1900,10 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
        ;; To or From header
        ((and (equal header 'to-from)
 	     (or (string-match (cadr regexp-target-pair) from)
-		 (and (string-match message-dont-reply-to-names from)
-		      (string-match (cadr regexp-target-pair) to))))
+		 (and (string-match (cadr regexp-target-pair) to)
+		      (let ((rmail-dont-reply-to-names
+			     message-dont-reply-to-names))
+			(equal (rmail-dont-reply-to from) "")))))
 	(setq target (format-time-string (caddr regexp-target-pair) date)))
        ((and (not (equal header 'to-from))
 	     (string-match (cadr regexp-target-pair)
