@@ -1070,8 +1070,9 @@ that is inserted into the command line before the filename."
 	      (shrink-window-if-larger-than-buffer)
 	      (error "Running %s...FAILED (%s)" full-command
 		     (if (integerp status) (format "status %d" status) status))))
-	  ;; We're done
-	  (if vc-command-messages
+	  ;; We're done.  But don't emit a status message if running
+	  ;; asychronously, it would just mislead.
+	  (if (and vc-command-messages (not (eq okstatus 'async)))
 	      (message "Running %s...OK = %d" full-command status)))
 	(vc-exec-after
 	 `(run-hook-with-args 'vc-post-command-functions
