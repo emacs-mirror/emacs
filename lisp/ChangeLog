@@ -1,3 +1,8 @@
+2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-do-command): Condition out a misleading message when
+	running asynchronously.
+
 2007-10-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/README: Add recent news.
