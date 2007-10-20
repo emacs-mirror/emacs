@@ -239,10 +239,11 @@
         (push (match-string 0) ids))
       ids)))
 
-(defun vc-mtn-revision-completion-table (file)
+(defun vc-mtn-revision-completion-table (files)
   ;; TODO: Implement completion for for selectors
   ;; TODO: Implement completion for composite selectors.
-  (lexical-let ((file file))
+  (lexical-let ((files files))
+    ;; What about using `files'?!?  --Stef
     (lambda (string pred action)
       (cond
        ;; "Tag" selectors.

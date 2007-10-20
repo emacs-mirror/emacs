@@ -1,10 +1,11 @@
 2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-mtn.el (vc-mtn-revision-completion-table):
+	* vc-cvs.el (vc-cvs-revision-completion-table):
+	* vc-arch.el (vc-arch-revision-completion-table):
 	* vc-hg.el (vc-hg-revision-completion-table, vc-hg-revision-table):
 	* vc-git.el (vc-git-revision-completion-table, vc-git-revision-table):
-	* vc-cvs.el (vc-cvs-revision-completion-table):
-	* vc-arch.el (vc-arch-revision-completion-table): Make it work when the
-	arg is a list of files.
+	Make it work when the arg is a list of files.
 
 2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
