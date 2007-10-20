@@ -1,3 +1,8 @@
+2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-revision-completion-table): Make it work when the
+	arg is a list of files.
+
 2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el: Remove `diff-tree' operation, now subsumed by `diff'.
