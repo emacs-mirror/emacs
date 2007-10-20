@@ -456,6 +456,28 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
 	      (and (or any-symbol (boundp sym)) sym)))))
       0))
 
+(defun describe-variable-custom-version-info (variable)
+  (let ((custom-version (get variable 'custom-version))
+	(cpv (get variable 'custom-package-version))
+	(output nil))
+    (if custom-version
+	(setq output
+	      (format "This variable was introduced, or its default value was changed, in\nversion %s of Emacs.\n"
+		      custom-version))
+      (when cpv
+	(let* ((package (car-safe cpv))
+	       (version (car (cdr-safe cpv)))
+	       (pkg-versions (assq package customize-package-emacs-version-alist))
+	       (emacsv (cdr (assoc version pkg-versions))))
+	  (if (and package version)
+	      (setq output
+		    (format (concat "This variable was introduced, or its default value was changed, in\nversion %s of the %s package"
+				    (if emacsv
+					(format " that is part of Emacs %s" emacsv))
+				    ".\n")
+			    version package))))))
+    output))
+
 ;;;###autoload
 (defun describe-variable (variable &optional buffer frame)
   "Display the full documentation of VARIABLE (a symbol).
@@ -646,16 +668,23 @@ it is displayed along with the global value."
 	      (with-current-buffer standard-output
 		(insert (or doc "Not documented as a variable."))))
 	    ;; Make a link to customize if this variable can be customized.
-	    (if (custom-variable-p variable)
-		(let ((customize-label "customize"))
+	    (when (custom-variable-p variable)
+	      (let ((customize-label "customize"))
+		(terpri)
+		(terpri)
+		(princ (concat "You can " customize-label " this variable."))
+		(with-current-buffer standard-output
+		  (save-excursion
+		    (re-search-backward
+		     (concat "\\(" customize-label "\\)") nil t)
+		    (help-xref-button 1 'help-customize-variable variable))))
+	      ;; Note variable's version or package version
+	      (let ((output (describe-variable-custom-version-info variable)))
+		(when output
 		  (terpri)
 		  (terpri)
-		  (princ (concat "You can " customize-label " this variable."))
-		  (with-current-buffer standard-output
-		    (save-excursion
-		      (re-search-backward
-		       (concat "\\(" customize-label "\\)") nil t)
-		      (help-xref-button 1 'help-customize-variable variable)))))
+		  (princ output))))
+
 	    (print-help-return-message)
 	    (save-excursion
 	      (set-buffer standard-output)
