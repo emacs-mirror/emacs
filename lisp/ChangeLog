@@ -1,5 +1,9 @@
 2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* smerge-mode.el (smerge-auto-refine): New var.
+	(smerge-next, smerge-prev): Use it.
+	(smerge-batch-resolve): Ad-hoc trick for Arch's .rej files.
+
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
 	Add `body' arg.  Cleanup the check-narrow-maybe/re-narrow-maybe mess.
 

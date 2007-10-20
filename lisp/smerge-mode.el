@@ -79,6 +79,10 @@ Used in `smerge-diff-base-mine' and related functions."
   :group 'smerge
   :type 'boolean)
 
+(defcustom smerge-auto-refine t
+  "Automatically highlight changes in detail as the user visits conflicts."
+  :type 'boolean)
+
 (defface smerge-mine
   '((((min-colors 88) (background light))
      (:foreground "blue1"))
@@ -252,7 +256,9 @@ Can be nil if the style is undecided, or else:
 ;;;;
 
 ;; Define smerge-next and smerge-prev
-(easy-mmode-define-navigation smerge smerge-begin-re "conflict")
+(easy-mmode-define-navigation smerge smerge-begin-re "conflict" nil nil
+  (if smerge-auto-refine
+      (condition-case nil (smerge-refine) (error nil))))
 
 (defconst smerge-match-names ["conflict" "mine" "base" "other"])
 
@@ -433,6 +439,12 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
       (error "`smerge-batch-resolve' is to be used only with -batch"))
   (while command-line-args-left
     (let ((file (pop command-line-args-left)))
+      (if (string-match "\\.rej\\'" file)
+          ;; .rej files should never contain diff3 markers, on the other hand,
+          ;; in Arch, .rej files are sometimes used to indicate that the
+          ;; main file has diff3 markers.  So you can pass **/*.rej and
+          ;; it will DTRT.
+          (setq file (substring file 0 (match-beginning 0))))
       (message "Resolving conflicts in %s..." file)
       (when (file-readable-p file)
         (with-current-buffer (find-file-noselect file)
