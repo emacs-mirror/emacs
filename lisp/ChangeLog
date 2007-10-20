@@ -1,3 +1,9 @@
+2007-10-20  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/fill.el (fill-paragraph): When the region is active,
+	don't try other `or' branches regardless of the value returned by
+	fill-region; just return t.
+
 2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc.el (vc-do-command): Condition out a misleading message when
