@@ -1,3 +1,8 @@
+2007-10-21  Jason Rumney  <jasonr@gnu.org>
+
+	* doc.c (Fsnarf_documentation):
+	* Makefile.in (temacs${EXEEXT}, mostlyclean): Undo last change.
+
 2007-10-12  Miles Bader  <miles@gnu.org>
 
 	* src/dispextern.h (struct glyph_row): Only define "clip" field if

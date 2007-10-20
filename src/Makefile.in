@@ -1014,7 +1014,7 @@ ${lispsource}international/charprop.el: temacs${EXEEXT} ${UNIDATA}
 #endif
 
 temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
-	echo "${obj} ${otherobj} " OBJECTS_MACHINE > ${etc}buildobj.lst
+	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
@@ -1363,7 +1363,7 @@ mostlyclean:
 	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
-	rm -f ${etc}buildobj.lst
+	rm -f buildobj.lst
 clean: mostlyclean
 	rm -f emacs-*${EXEEXT} emacs${EXEEXT}
 /**/# This is used in making a distribution.
