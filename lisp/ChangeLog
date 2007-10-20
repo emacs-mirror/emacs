@@ -1,3 +1,7 @@
+2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* log-view.el (log-view-diff): Adapt log-view-diff for new VC API.
+
 2007-10-20  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-font-lock-keywords-2)
