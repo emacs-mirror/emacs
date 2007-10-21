@@ -457,7 +457,7 @@ This function is intended to be used as eldoc callback."
   (+ (* (/ address 16) 68) 10 (point-min) (/ (* (% address 16) 5) 2)))
 
 (defun hexl-goto-address (address)
-  "Goto hexl-mode (decimal) address ADDRESS.
+  "Go to hexl-mode (decimal) address ADDRESS.
 Signal error if ADDRESS is out of range."
   (interactive "nAddress: ")
   (if (or (< address 0) (> address hexl-max-address))
@@ -1103,6 +1103,43 @@ This function is assumed to be used as callback function for `hl-line-mode'."
   (define-key hexl-mode-map "\C-x\C-p" 'undefined)
   (define-key hexl-mode-map "\C-x\C-s" 'hexl-save-buffer)
   (define-key hexl-mode-map "\C-x\C-t" 'undefined))
+
+(easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu"
+  `("Hexl"
+    :help "Hexl-specific Features"
+
+    ["Backward short" hexl-backward-short
+     :help "Move to left a short"]
+    ["Forward short" hexl-forward-short
+     :help "Move to right a short"]
+    ["Backward word" hexl-backward-short
+     :help "Move to left a word"]
+    ["Forward word" hexl-forward-short
+     :help "Move to right a word"]
+    "-"
+    ["Beginning of 512b page" hexl-beginning-of-512b-page
+     :help "Go to beginning of 512 byte boundary"]
+    ["End of 512b page" hexl-end-of-512b-page
+     :help "Go to end of 512 byte boundary"]
+    ["Beginning of 1K page" hexl-beginning-of-1k-page
+     :help "Go to beginning of 1KB boundary"]
+    ["End of 1K page" hexl-end-of-1k-page
+     :help "Go to end of 1KB boundary"]
+    "-"
+    ["Go to address" hexl-goto-address
+     :help "Go to hexl-mode (decimal) address"]
+    ["Go to address" hexl-goto-hex-address
+     :help "Go to hexl-mode (hex string) address"]
+    "-"
+    ["Insert decimal char" hexl-insert-decimal-char
+     :help "Insert a character given by its decimal code"]
+    ["Insert hex char" hexl-insert-hex-char
+     :help "Insert a character given by its hexadecimal code"]
+    ["Insert octal char" hexl-insert-octal-char
+     :help "Insert a character given by its octal code"]
+    "-"
+    ["Exit hexl mode" hexl-mode-exit
+     :help "Exit hexl mode returning to previous mode"]))
 
 (provide 'hexl)
 
