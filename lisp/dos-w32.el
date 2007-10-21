@@ -404,6 +404,8 @@ indicates a specific program should be invoked."
     (direct-print-region-helper printer start end lpr-prog
 				delete-text buf display rest)))
 
+(defvar print-region-function)
+(defvar lpr-headers-switches)
 (setq print-region-function 'direct-print-region-function)
 
 ;; Set this to nil if you have a port of the `pr' program
@@ -435,6 +437,7 @@ indicates a specific program should be invoked."
     (direct-print-region-helper printer start end lpr-prog
 				delete-text buf display rest)))
 
+(defvar ps-print-region-function)
 (setq ps-print-region-function 'direct-ps-print-region-function)
 
 ;(setq ps-lpr-command "gs")

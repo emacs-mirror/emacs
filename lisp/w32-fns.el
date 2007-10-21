@@ -82,6 +82,8 @@ That includes all Windows systems except for 9X/Me."
 		   '("cmdproxy" "cmdproxy.exe"))
 	   (w32-system-shell-p (getenv "COMSPEC")))))
 
+(defvar w32-quote-process-args)  ;; defined in w32proc.c
+
 (defun w32-check-shell-configuration ()
   "Check the configuration of shell variables on Windows NT/9X.
 This function is invoked after loading the init files and processing

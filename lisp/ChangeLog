@@ -1,5 +1,9 @@
 2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* w32-fns.el (w32-quote-process-args): 
+	* dos-w32.el (print-region-function, lpr-headers-switches)
+	(ps-print-region-function): Pacify byte-compiler.
+
 	* emulation/edt-mapper.el (function-key-map):
 	(edt-map-key): Make it a function instead of using fset. Inline
 	edt-gnu-map-key and edt-lucid-map-key. Use featurep 'xemacs.
