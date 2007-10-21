@@ -3204,13 +3204,13 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  (set-default-file-modes ?\700)
 	  (when (condition-case nil
 		    ;; Try to overwrite old backup first.
-		    (copy-file from-name to-name t t)
+		    (copy-file from-name to-name t t t)
 		  (error t))
 	    (while (condition-case nil
 		       (progn
 			 (when (file-exists-p to-name)
 			   (delete-file to-name))
-			 (copy-file from-name to-name nil t)
+			 (copy-file from-name to-name nil t t)
 			 nil)
 		     (file-already-exists t))
 	      ;; The file was somehow created by someone else between

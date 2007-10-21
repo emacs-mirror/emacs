@@ -1,3 +1,11 @@
+2007-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (backup-buffer-copy): Call `copy-file' with non-nil
+	preserve-uid-gid.
+
+	* net/ange-ftp.el (ange-ftp-copy-file): Add PRESERVE-UID-GID for
+	compatibility.  It is not used, though.
+
 2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/gud.el (gud-target-name): Move definition before use.
