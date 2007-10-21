@@ -21,8 +21,7 @@
 	* eshell/esh-mode.el (eshell-handle-ansi-color): Require
 	ansi-color at compile time too.
 
-	* eshell/em-unix.el (eshell/info): Require info at compile time
-	too.
+	* eshell/em-unix.el (eshell/info): Require info at compile time too.
 
 	* w32-fns.el: Require w32-vars.
 
@@ -63,7 +62,7 @@
 	* term/w32-win.el: Require w32-vars.
 	(w32-color-map): Pacify byte-compiler.
 
-	* loadup.el: Load w32-wars before term/w32-win.
+	* loadup.el: Load w32-vars before term/w32-win.
 
 2007-10-20  Juri Linkov  <juri@jurta.org>
 
@@ -88,11 +87,11 @@
 	* term/x-win.el (x-gtk-stock-map, icon-map-list)
 	(x-gtk-map-stock): Delete duplicated definitions from merge.
 
-	* progmodes/octave-mod.el: Require octave-inf at compile time
+	* progmodes/octave-mod.el: Require octave-inf at compile time.
 
 	* progmodes/compile.el (compilation-skip-to-next-location)
-	(compilation-skip-threshold, compilation-skip-visited): Move
-	definitions earlier.
+	(compilation-skip-threshold, compilation-skip-visited):
+	Move definitions earlier.
 
 	* play/decipher.el (decipher-keypress):
 	* play/zone.el (zone-fall-through-ws):
@@ -105,8 +104,8 @@
 	(scroll-lock-previous-line):
 	* image-dired.el (image-dired-next-line)
 	(image-dired-previous-line):
-	* ediff-help.el (ediff-help-message-line-length): Use
-	forward-line.
+	* ediff-help.el (ediff-help-message-line-length):
+	Use forward-line.
 
 	* smerge-mode.el (smerge-auto-refine):
 	* diff-mode.el (diff-auto-refine): Add :group.
