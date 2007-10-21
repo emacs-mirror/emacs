@@ -106,6 +106,9 @@ Used to grey out relevant toolbar icons.")
 
 (defvar gdb-ready nil)
 
+(defvar gud-target-name "--unknown--"
+  "The apparent name of the program being debugged in a gud buffer.")
+
 ;; Use existing Info buffer, if possible.
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
@@ -2450,9 +2453,6 @@ comint mode, which see."
   "Non-nil if GUD should `cd' to the debugged executable."
   :group 'gud
   :type 'boolean)
-
-(defvar gud-target-name "--unknown--"
-  "The apparent name of the program being debugged in a gud buffer.")
 
 ;; Perform initializations common to all debuggers.
 ;; The first arg is the specified command line,

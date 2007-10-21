@@ -175,7 +175,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   'info arg1'      => OTHERWISE goes to top info window and then menu item arg1
   'info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
   etc."
-  (require 'info)
+  (eval-and-compile (require 'info))
   (let ((file (cond
                 ((not (stringp (car args)))
                  nil)

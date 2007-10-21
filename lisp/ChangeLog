@@ -1,3 +1,26 @@
+2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/gud.el (gud-target-name): Move definition before use.
+
+	* progmodes/dcl-mode.el: Require imenu at compile time.
+
+	* progmodes/cc-engine.el (c-maybe-stale-found-type): Pacify
+	byte-compiler.
+
+	* obsolete/fast-lock.el: Use featurep test instead of
+	string-match.
+
+	* eshell/esh-mode.el (eshell-handle-ansi-color): Require
+	ansi-color at compile time too.
+
+	* eshell/em-unix.el (eshell/info): Require info at compile time
+	too.
+
+	* w32-fns.el: Require w32-vars.
+
+	* diff-mode.el (diff-refine-hunk): Require smerge-mode at compile
+	time too.
+
 2007-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* double.el ([ignore]): Use ignore.

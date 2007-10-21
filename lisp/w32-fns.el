@@ -34,6 +34,7 @@
 ;; audio bell initialized.
 
 ;;; Code:
+(require 'w32-vars)
 
 (defvar explicit-shell-file-name)
 

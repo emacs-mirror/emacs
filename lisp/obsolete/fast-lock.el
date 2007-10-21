@@ -768,7 +768,7 @@ See `fast-lock-get-face-properties'."
 
 ;; Functions for XEmacs:
 
-(when (save-match-data (string-match "XEmacs" (emacs-version)))
+(when (featurep 'xemacs)
   ;;
   ;; It would be better to use XEmacs' `map-extents' over extents with a
   ;; `font-lock' property, but `face' properties are on different extents.

@@ -72,7 +72,7 @@
 ;;; Code:
 
 (require 'tempo)
-
+(eval-when-compile (require 'imenu))
 
 ;;; *** Customization *****************************************************
 
