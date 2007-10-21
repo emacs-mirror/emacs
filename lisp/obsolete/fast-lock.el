@@ -337,7 +337,7 @@ If a number, only buffers greater than this size have processing messages."
   :group 'fast-lock)
 
 (defvar fast-lock-save-faces
-  (when (save-match-data (string-match "XEmacs" (emacs-version)))
+  (when (featurep 'xemacs)
     ;; XEmacs uses extents for everything, so we have to pick the right ones.
     font-lock-face-list)
   "Faces that will be saved in a Font Lock cache file.

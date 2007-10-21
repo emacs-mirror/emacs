@@ -66,13 +66,6 @@
 
 ;;{{{      Internal variables and compatibility tricks
 
-(defconst eudc-xemacs-p (string-match "XEmacs" emacs-version))
-(defconst eudc-emacs-p (not eudc-xemacs-p))
-(defconst eudc-xemacs-mule-p (and eudc-xemacs-p
-				  (featurep 'mule)))
-(defconst eudc-emacs-mule-p (and eudc-emacs-p
-				 (featurep 'mule)))
-
 (defvar eudc-form-widget-list nil)
 (defvar eudc-mode-map nil)
 
@@ -670,7 +663,7 @@ These are the special commands of EUDC mode:
   (setq major-mode 'eudc-mode)
   (setq mode-name "EUDC")
   (use-local-map eudc-mode-map)
-  (if eudc-emacs-p
+  (if (not (featurep 'xemacs))
       (easy-menu-define eudc-emacs-menu eudc-mode-map "" (eudc-menu))
     (setq mode-popup-menu (eudc-menu)))
   (run-mode-hooks 'eudc-mode-hook))
@@ -1186,9 +1179,9 @@ queries the server for the existing fields and displays a corresponding form."
 
 (defun eudc-install-menu ()
   (cond
-   ((and eudc-xemacs-p (featurep 'menubar))
+   ((and (featurep 'xemacs) (featurep 'menubar))
     (add-submenu '("Tools") (eudc-menu)))
-   (eudc-emacs-p
+   ((not (featurep 'xemacs))
     (cond
      ((fboundp 'easy-menu-create-menu)
       (define-key
@@ -1236,7 +1229,7 @@ This does nothing except loading eudc by autoload side-effect."
   nil)
 
 ;;;###autoload
-(cond ((not (string-match "XEmacs" emacs-version))
+(cond ((not (featurep 'xemacs))
        (defvar eudc-tools-menu (make-sparse-keymap "Directory Search"))
        (fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu))
        (define-key eudc-tools-menu [phone]
@@ -1267,7 +1260,7 @@ This does nothing except loading eudc by autoload side-effect."
 		      ["Get Email" eudc-get-email t]
 		      ["Get Phone" eudc-get-phone t])))
 	 (if (not (featurep 'eudc-autoloads))
-	     (if eudc-xemacs-p
+	     (if (featurep 'xemacs)
 		 (if (and (featurep 'menubar)
 			  (not (featurep 'infodock)))
 		     (add-submenu '("Tools") menu))

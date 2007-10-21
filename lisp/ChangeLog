@@ -1,5 +1,55 @@
 2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emulation/edt-mapper.el (function-key-map):
+	(edt-map-key): Make it a function instead of using fset. Inline
+	edt-gnu-map-key and edt-lucid-map-key. Use featurep 'xemacs.
+	(edt-gnu-map-key, edt-lucid-map-key): Remove.
+	(edt-x-emacs-p): Remove.
+	(edt-emacs-variant, edt-window-system, edt-xserver): 
+	Use featurep 'xemacs.
+
+	* net/eudc.el: Use (featurep 'xemacs) instead of the string test.
+	Replace eudc-xemacs-p with its definition.
+	(eudc-xemacs-p, eudc-emacs-p, eudc-xemacs-mule-p)
+	(eudc-emacs-mule-p): Remove.
+	(eudc-install-menu, eudc-mode): Replace eudc-emacs-p and
+	eudc-xemacs-p with feature tests.
+
+	* net/eudc-bob.el (eudc-bob-generic-menu, eudc-bob-mail-keymap)
+	(eudc-bob-url-keymap, eudc-bob-sound-keymap)
+	(eudc-bob-generic-keymap, eudc-bob-popup-menu)
+	(eudc-bob-toggle-inline-display): 
+	* net/eudc-hotlist.el (eudc-hotlist-emacs-menu): Replace
+	eudc-emacs-p and eudc-xemacs-p with feature tests.
+
+	* net/eudcb-ph.el (eudc-ph-open-session): Replace
+	eudc-xemacs-mule-p with its former definition.
+
+	* progmodes/octave-mod.el (octave-xemacs-p): Remove.
+	(octave-abbrev-start): Replace octave-xemacs-p with 
+	(featurep 'xemacs).
+
+	* progmodes/vera-mode.el (vera-xemacs): Remove. 
+	(vera-mode-syntax-table): Replace vera-xemacs with 
+	(featurep 'xemacs).
+
+	* progmodes/vhdl-mode.el (vhdl-xemacs): Remove.
+	(vhdl-doc-mode, vhdl-doc-variable, vhdl-compile-init)
+	(vhdl-speedbar-initialize, vhdl-ps-print-init)
+	(vhdl-forward-comment, vhdl-mode-map-init, vhdl-show-messages)
+	(vhdl-emacs-22, vhdl-emacs-21): Replace vhdl-xemacs
+	with (featurep 'xemacs).
+
+	* progmodes/antlr-mode.el (cond-emacs-xemacs-macfn, defunx)
+	(save-buffer-state-x): 
+	* obsolete/fast-lock.el (fast-lock-verbose): 
+	* emulation/viper-init.el (viper-xemacs-p)
+	(viper-cond-compile-for-xemacs-or-emacs): 
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode-map): 
+	* ps-print.el (case-fold-search): 
+	* ediff-hook.el (ediff-cond-compile-for-xemacs-or-emacs): 
+	* calculator.el (calculator-help): Use featurep 'xemacs.
+
 	* progmodes/prolog.el: Undo previous change.
 	(comint-prompt-regexp, comint-process-echoes): Pacify
 	byte-compiler.

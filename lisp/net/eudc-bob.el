@@ -149,7 +149,7 @@ display a button."
   "Toggle inline display of an image."
   (interactive)
   (when (eudc-bob-can-display-inline-images)
-    (cond (eudc-xemacs-p
+    (cond ((featurep 'xemacs)
 	   (let ((overlays (append (overlays-at (1- (point)))
 				   (overlays-at (point))))
 		 overlay glyph)
@@ -266,7 +266,7 @@ display a button."
   (interactive "@e")
   (run-hooks 'activate-menubar-hook)
   (eudc-jump-to-event event)
-  (if eudc-xemacs-p
+  (if (featurep 'xemacs)
       (progn
 	(run-hooks 'activate-popup-menu-hook)
 	(popup-menu (eudc-bob-menu)))
@@ -282,7 +282,7 @@ display a button."
       (let ((map (make-sparse-keymap)))
 	(define-key map "s" 'eudc-bob-save-object)
 	(define-key map "!" 'eudc-bob-pipe-object-to-external-program)
-	(define-key map (if eudc-xemacs-p
+	(define-key map (if (featurep 'xemacs)
 			    [button3]
 			  [down-mouse-3]) 'eudc-bob-popup-menu)
 	map))
@@ -295,7 +295,7 @@ display a button."
 (setq eudc-bob-sound-keymap
       (let ((map (make-sparse-keymap)))
 	(define-key map [return] 'eudc-bob-play-sound-at-point)
-	(define-key map (if eudc-xemacs-p
+	(define-key map (if (featurep 'xemacs)
 			    [button2]
 			  [down-mouse-2]) 'eudc-bob-play-sound-at-mouse)
 	map))
@@ -303,7 +303,7 @@ display a button."
 (setq eudc-bob-url-keymap
       (let ((map (make-sparse-keymap)))
 	(define-key map [return] 'browse-url-at-point)
-	(define-key map (if eudc-xemacs-p
+	(define-key map (if (featurep 'xemacs)
 			    [button2]
 			  [down-mouse-2]) 'browse-url-at-mouse)
 	map))
@@ -311,7 +311,7 @@ display a button."
 (setq eudc-bob-mail-keymap
       (let ((map (make-sparse-keymap)))
 	(define-key map [return] 'goto-address-at-point)
-	(define-key map (if eudc-xemacs-p
+	(define-key map (if (featurep 'xemacs)
 			    [button2]
 			  [down-mouse-2]) 'goto-address-at-mouse)
 	map))
@@ -319,20 +319,19 @@ display a button."
 (set-keymap-parent eudc-bob-image-keymap eudc-bob-generic-keymap)
 (set-keymap-parent eudc-bob-sound-keymap eudc-bob-generic-keymap)
 
-(if eudc-emacs-p
-    (progn
-      (easy-menu-define eudc-bob-generic-menu
-			eudc-bob-generic-keymap
-			""
-			eudc-bob-generic-menu)
-      (easy-menu-define eudc-bob-image-menu
-			eudc-bob-image-keymap
-			""
-			eudc-bob-image-menu)
-      (easy-menu-define eudc-bob-sound-menu
-			eudc-bob-sound-keymap
-			""
-			eudc-bob-sound-menu)))
+(when (not (featurep 'xemacs))
+  (easy-menu-define eudc-bob-generic-menu
+    eudc-bob-generic-keymap
+    ""
+    eudc-bob-generic-menu)
+  (easy-menu-define eudc-bob-image-menu
+    eudc-bob-image-keymap
+    ""
+    eudc-bob-image-menu)
+  (easy-menu-define eudc-bob-sound-menu
+    eudc-bob-sound-keymap
+    ""
+    eudc-bob-sound-menu))
 
 ;;;###autoload
 (defun eudc-display-generic-binary (data)
