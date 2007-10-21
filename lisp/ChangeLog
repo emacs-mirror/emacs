@@ -1,3 +1,18 @@
+2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/prolog.el: Undo previous change.
+	(comint-prompt-regexp, comint-process-echoes): Pacify
+	byte-compiler.
+
+	* progmodes/dcl-mode.el:
+	* play/yow.el:
+	* calendar/todo-mode.el:
+	* calendar/cal-hebrew.el:
+	* vc-hg.el: Undo previous change.
+	
+	* vms-patch.el: Likewise.
+	(print-region-function): Pacify byte-compiler.
+
 2007-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (backup-buffer-copy): Call `copy-file' with non-nil
@@ -112,8 +127,6 @@
 
 	* term/x-win.el (x-gtk-stock-map, icon-map-list)
 	(x-gtk-map-stock): Delete duplicated definitions from merge.
-
-	* progmodes/octave-mod.el: Require octave-inf at compile time.
 
 	* progmodes/compile.el (compilation-skip-to-next-location)
 	(compilation-skip-threshold, compilation-skip-visited):

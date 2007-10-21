@@ -27,9 +27,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'ps-print)
-  (require 'vmsproc))
+(defvar print-region-function)
 
 (setq auto-mode-alist (cons '(("\\.com\\'" . dcl-mode)) auto-mode-alist))
 

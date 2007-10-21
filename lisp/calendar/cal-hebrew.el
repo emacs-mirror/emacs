@@ -45,8 +45,6 @@
 (defvar original-date)
 
 (require 'calendar)
-(eval-when-compile 
-  (require 'holidays))
 
 (defun hebrew-calendar-leap-year-p (year)
   "t if YEAR is a Hebrew calendar leap year."

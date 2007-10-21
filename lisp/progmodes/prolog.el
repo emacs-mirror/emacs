@@ -31,8 +31,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'comint))
-
+(defvar comint-prompt-regexp)
+(defvar comint-process-echoes)
 
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."
