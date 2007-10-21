@@ -25,10 +25,7 @@
 
 	* calendar/todo-mode.el: Require calendar at compile time.
 
-	* calendar/cal-islam.el: Require diary-lib at compile time.
-
-	* calendar/cal-hebrew.el: Require diary-lib and holidays at
-	compile time.
+	* calendar/cal-hebrew.el: Require holidays at compile time.
 
 	* w32-vars.el: Provide w32-vars.
 
