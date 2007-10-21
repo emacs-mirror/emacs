@@ -6,6 +6,32 @@
 	* net/ange-ftp.el (ange-ftp-copy-file): Add PRESERVE-UID-GID for
 	compatibility.  It is not used, though.
 
+	* net/tramp.el (top): Put load of all tramp-* files into a dolist.
+	Require tramp-cmds.el.
+	(tramp-make-tramp-temp-file): We can get rid of DONT-CREATE.
+	(tramp-handle-file-name-all-completions): Expand DIRECTORY.
+	 (tramp-do-copy-or-rename-file-directly): Make more rigid checks.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use `make-temp-name'.  This is
+	possible, because we don't need to create the temporary file, but
+	we need a prefix for ssh, which has its own temporary file
+	handling.
+	(tramp-handle-delete-directory): Add "-f" to rmdir.
+	(tramp-handle-dired-recursive-delete-directory): Call "rm -rf".
+	(tramp-handle-insert-file-contents): Don't raise a tramp-error but
+	a signal, in order to give the callee a chance to suppress.
+	(tramp-handle-write-region): Set owner also in case of short
+	track.  Don't use compatibility calls for `write-region' anymore.
+	(tramp-clear-passwd): Add parameter VEC.  Adapt all callees.
+	(tramp-append-tramp-buffers): Apply `tramp-list-tramp-buffers'.
+
+	* net/tramp-cmds.el: New file.
+
+	* net/tramp-gw.el (tramp-gw-basic-authentication): Apply VEC to
+	`tramp-clear-passwd'.
+
+	* net/trampver.el: Update release number.
+
 2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/gud.el (gud-target-name): Move definition before use.
