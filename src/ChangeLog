@@ -1,3 +1,7 @@
+2007-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Fcopy_file): Call file name handler with preserve_uid_gid.
+
 2007-10-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* doc.c (Fdocumentation): Check for advice in all cases.
