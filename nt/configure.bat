@@ -213,6 +213,7 @@ goto again
 
 :withfont
 set usercflags=%usercflags%%sep1%-DUSE_FONT_BACKEND
+set sep1= %nothing%
 set usefontbackend=Y
 shift
 goto again
