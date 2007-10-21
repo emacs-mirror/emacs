@@ -1,3 +1,9 @@
+2007-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* double.el ([ignore]): Use ignore.
+	(double-setup): Inline into double-mode.
+	(double-mode): Use define-minor-mode.
+
 2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/reftex.el: Move require easymenu before first use.
@@ -7,16 +13,15 @@
 	(org-publish-org-to): Require org at compile time too.
 	(org-publish-attachment): Require at compile time too.
 
-	* term/tty-colors.el (w32-tty-standard-colors): Pacify
-	byte-compiler.
+	* term/tty-colors.el (w32-tty-standard-colors):
+	Pacify byte-compiler.
 
 	* term/pc-win.el (frame-creation-function-alist): Add to this
 	instead of setting frame-creation-function.
 
 	* play/blackbox.el (bb-up, bb-down): Use forward-line.
 
-	* net/rcirc.el (rcirc-markup-text-functions): Move definition
-	earlier.
+	* net/rcirc.el (rcirc-markup-text-functions): Move definition earlier.
 
 	* calendar/todo-mode.el: Require calendar at compile time.
 
