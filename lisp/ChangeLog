@@ -1,3 +1,37 @@
+2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/reftex.el: Move require easymenu before first use.
+	(reftex-info): Require info at compile too.
+
+	* textmodes/org-publish.el (org-publish-org-to-html)
+	(org-publish-org-to): Require org at compile time too.
+	(org-publish-attachment): Require at compile time too.
+
+	* term/tty-colors.el (w32-tty-standard-colors): Pacify
+	byte-compiler.
+
+	* term/pc-win.el (frame-creation-function-alist): Add to this
+	instead of setting frame-creation-function.
+
+	* play/blackbox.el (bb-up, bb-down): Use forward-line.
+
+	* net/rcirc.el (rcirc-markup-text-functions): Move definition
+	earlier.
+
+	* calendar/todo-mode.el: Require calendar at compile time.
+
+	* calendar/cal-islam.el: Require diary-lib at compile time.
+
+	* calendar/cal-hebrew.el: Require diary-lib and holidays at
+	compile time.
+
+	* w32-vars.el: Provide w32-vars.
+
+	* term/w32-win.el: Require w32-vars.
+	(w32-color-map): Pacify byte-compiler.
+
+	* loadup.el: Load w32-wars before term/w32-win.
+
 2007-10-20  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/fill.el (fill-paragraph): When the region is active,

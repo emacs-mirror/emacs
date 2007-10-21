@@ -43,6 +43,7 @@
 (defvar original-date)
 
 (require 'cal-julian)
+(eval-when-compile (require 'diary-lib))
 
 (defvar calendar-islamic-month-name-array
   ["Muharram" "Safar" "Rabi I" "Rabi II" "Jumada I" "Jumada II"

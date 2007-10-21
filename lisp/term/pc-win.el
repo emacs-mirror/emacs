@@ -130,7 +130,7 @@
       (unless success (delete-frame frame)))
     frame))
 
-(setq frame-creation-function 'make-msdos-frame)
+(add-to-list 'frame-creation-function-alist '(pc . make-msdos-frame))
 
 ;; ---------------------------------------------------------------------------
 ;; More or less useful imitations of certain X-functions.  A lot of the

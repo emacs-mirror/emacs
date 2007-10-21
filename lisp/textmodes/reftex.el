@@ -281,6 +281,8 @@
 ;; Stuff that needs to be there when we use defcustom
 (require 'custom)
 
+(require 'easymenu)
+
 (defvar reftex-tables-dirty t
   "Flag showing if tables need to be re-computed.")
 
@@ -2425,8 +2427,6 @@ IGNORE-WORDS List of words which should be removed from the string."
 (defvar reftex-isearch-minor-mode nil)
 (make-variable-buffer-local 'reftex-isearch-minor-mode)
 
-(require 'easymenu)
-
 (easy-menu-define reftex-mode-menu reftex-mode-map
  "Menu used in RefTeX mode"
  `("Ref"
@@ -2583,7 +2583,7 @@ IGNORE-WORDS List of words which should be removed from the string."
   "Read documentation for RefTeX in the info system.
 With optional NODE, go directly to that node."
   (interactive)
-  (require 'info)
+  (eval-and-compile (require 'info))
   (Info-goto-node (format "(reftex)%s" (or node ""))))
 
 ;;; Install the kill-buffer and kill-emacs hooks ------------------------------

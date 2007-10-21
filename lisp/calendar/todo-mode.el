@@ -914,7 +914,8 @@ Number of entries for each category is given by `todo-print-priorities'."
 
 (eval-when-compile
   (defvar date)
-  (defvar entry))
+  (defvar entry)
+  (require 'calendar))
 
 ;; Read about this function in the setup instructions above!
 ;;;###autoload
