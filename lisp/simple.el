@@ -1295,7 +1295,11 @@ makes the search case-sensitive."
   "Puts element of the minibuffer history in the minibuffer.
 The argument NABS specifies the absolute history position."
   (interactive "p")
-  (let ((minimum (if minibuffer-default -1 0))
+  (let ((minimum (if minibuffer-default
+		     (- (if (listp minibuffer-default)
+			    (length minibuffer-default)
+			  1))
+		   0))
 	elt minibuffer-returned-to-present)
     (if (and (zerop minibuffer-history-position)
 	     (null minibuffer-text-before-history))
@@ -1317,8 +1321,10 @@ The argument NABS specifies the absolute history position."
     (goto-char (point-max))
     (delete-minibuffer-contents)
     (setq minibuffer-history-position nabs)
-    (cond ((= nabs -1)
-	   (setq elt minibuffer-default))
+    (cond ((< nabs 0)
+	   (setq elt (if (listp minibuffer-default)
+			 (nth (1- (abs nabs)) minibuffer-default)
+		       minibuffer-default)))
 	  ((= nabs 0)
 	   (setq elt (or minibuffer-text-before-history ""))
 	   (setq minibuffer-returned-to-present t)
