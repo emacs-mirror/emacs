@@ -2229,10 +2229,10 @@ You must run Emacs in batch mode in order to dump it.  */)
     {
       fprintf (stderr, "**************************************************\n");
       fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
-      fprintf (stderr, "heap (%lu byte).  This usually means that exec-shield\n",
+      fprintf (stderr, "heap (%lu bytes).  This usually means that exec-shield\n",
                heap_bss_diff);
       fprintf (stderr, "or something similar is in effect.  The dump may\n");
-      fprintf (stderr, "fail because of this.  See the section about \n");
+      fprintf (stderr, "fail because of this.  See the section about\n");
       fprintf (stderr, "exec-shield in etc/PROBLEMS for more information.\n");
       fprintf (stderr, "**************************************************\n");
     }
@@ -2475,7 +2475,7 @@ Emacs is running.  */);
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 
   DEFVAR_LISP ("kill-emacs-hook", &Vkill_emacs_hook,
-	       doc: /* Hook to be run when kill-emacs is called.
+	       doc: /* Hook to be run when `kill-emacs' is called.
 Since `kill-emacs' may be invoked when the terminal is disconnected (or
 in other similar situations), functions placed on this hook should not
 expect to be able to interact with the user.  To ask for confirmation,
@@ -2511,9 +2511,8 @@ The value is nil if that directory's name is not known.  */);
 
   DEFVAR_LISP ("installation-directory", &Vinstallation_directory,
 	       doc: /* A directory within which to look for the `lib-src' and `etc' directories.
-This is non-nil when we can't find those directories in their standard
-installed locations, but we can find them
-near where the Emacs executable was found.  */);
+This is non-nil when we can't find those directories in their standard installed
+locations, but we can find them near where the Emacs executable was found.  */);
   Vinstallation_directory = Qnil;
 
   DEFVAR_LISP ("system-messages-locale", &Vsystem_messages_locale,
