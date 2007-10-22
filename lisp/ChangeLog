@@ -1,3 +1,12 @@
+2007-10-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mail/vms-pmail.el (insert-signature): Don't use end-of-buffer.
+
+	* tooltip.el: Use featurep 'xemacs.
+
+	* printing.el: Move variable definitions before use, no code
+	change.
+
 2007-10-22  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (goto-history-element): Allow minibuffer-default to be

@@ -273,7 +273,7 @@ is based on the current syntax table."
 
 (defmacro tooltip-region-active-p ()
   "Value is non-nil if the region is currently active."
-  (if (string-match "^GNU" (emacs-version))
+  (if (not (featurep 'xemacs))
       `(and transient-mark-mode mark-active)
     `(region-active-p)))
 
