@@ -174,52 +174,52 @@
 
 
 (defcustom f90-do-indent 3
-  "*Extra indentation applied to DO blocks."
+  "Extra indentation applied to DO blocks."
   :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-if-indent 3
-  "*Extra indentation applied to IF, SELECT CASE, WHERE and FORALL blocks."
+  "Extra indentation applied to IF, SELECT CASE, WHERE and FORALL blocks."
   :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-type-indent 3
-  "*Extra indentation applied to TYPE, INTERFACE and BLOCK DATA blocks."
+  "Extra indentation applied to TYPE, INTERFACE and BLOCK DATA blocks."
   :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-program-indent 2
-  "*Extra indentation applied to PROGRAM, MODULE, SUBROUTINE, FUNCTION blocks."
+  "Extra indentation applied to PROGRAM, MODULE, SUBROUTINE, FUNCTION blocks."
   :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-continuation-indent 5
-  "*Extra indentation applied to continuation lines."
+  "Extra indentation applied to continuation lines."
   :type  'integer
   :group 'f90-indent)
 
 (defcustom f90-comment-region "!!$"
-  "*String inserted by \\[f90-comment-region] at start of each line in region."
+  "String inserted by \\[f90-comment-region] at start of each line in region."
   :type  'string
   :group 'f90-indent)
 
 (defcustom f90-indented-comment-re "!"
-  "*Regexp matching comments to indent as code."
+  "Regexp matching comments to indent as code."
   :type  'regexp
   :group 'f90-indent)
 
 (defcustom f90-directive-comment-re "!hpf\\$"
-  "*Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
+  "Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
   :type  'regexp
   :group 'f90-indent)
 
 (defcustom f90-beginning-ampersand t
-  "*Non-nil gives automatic insertion of \& at start of continuation line."
+  "Non-nil gives automatic insertion of \& at start of continuation line."
   :type  'boolean
   :group 'f90)
 
 (defcustom f90-smart-end 'blink
-  "*Qualification of END statements according to the matching block start.
+  "Qualification of END statements according to the matching block start.
 For example, the END that closes an IF block is changed to END
 IF.  If the block has a label, this is added as well.  Allowed
 values are 'blink, 'no-blink, and nil.  If nil, nothing is done.
@@ -229,7 +229,7 @@ additionally blinks the cursor to the start of the block."
   :group 'f90)
 
 (defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
-  "*Regexp matching delimiter characters at which lines may be broken.
+  "Regexp matching delimiter characters at which lines may be broken.
 There are certain tokens comprised entirely of characters
 matching this regexp that should not be split, and these are
 specified by the constant `f90-no-break-re'."
@@ -237,19 +237,19 @@ specified by the constant `f90-no-break-re'."
   :group 'f90)
 
 (defcustom f90-break-before-delimiters t
-  "*Non-nil causes `f90-do-auto-fill' to break lines before delimiters."
+  "Non-nil causes `f90-do-auto-fill' to break lines before delimiters."
   :type  'boolean
   :group 'f90)
 
 (defcustom f90-auto-keyword-case nil
-  "*Automatic case conversion of keywords.
+  "Automatic case conversion of keywords.
 The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   :type  '(choice (const downcase-word) (const upcase-word)
                   (const capitalize-word) (const nil))
   :group 'f90)
 
 (defcustom f90-leave-line-no nil
-  "*If non-nil, line numbers are not left justified."
+  "If non-nil, line numbers are not left justified."
   :type  'boolean
   :group 'f90)
 
