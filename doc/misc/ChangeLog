@@ -1,3 +1,7 @@
+2007-10-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Small fixes.
+
 2007-10-22  Juri Linkov  <juri@jurta.org>
 
 	* dired-x.texi (Shell Command Guessing): Default values are now
@@ -6,8 +10,8 @@
 2007-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Cleanup remote connections): New section.
-	(Password caching): Remove `tramp-clear-passwd'.  It's not a command
-	anymore.
+	(Password caching): Remove `tramp-clear-passwd'.
+	It's not a command anymore.
 	(Bug Reports): Add `tramp-bug' to function index.
 	(Function Index, Variable Index): New nodes.
 	(Remote shell setup): Describe `tramp-password-prompt-regexp'.
@@ -16,7 +20,7 @@
 
 2007-10-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (History and Acknowledgements):  Turn comment
+	* calc.texi (History and Acknowledgements): Turn comment
 	about integer size into past tense.
 	(Time Zones): Remove pointer to Calc author's address.
 	(Trigonometric and Hyperbolic Functions): Mention cotangent
@@ -84,7 +88,7 @@
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* Move manual sources from man/ to subdirectories of doc/.
-        Split into the Emacs manual in emacs/, and other manuals in misc/.
+	Split into the Emacs manual in emacs/, and other manuals in misc/.
 	Change all setfilename commands to use ../../info.
 	* Makefile.in: Move the parts of the old man/Makefile.in that do not
 	refer to the Emacs manual here.
@@ -100,8 +104,8 @@
 	(../etc/GNU): Delete obsolete target.
 	(.SUFFIXES): Use $(TEXI2DVI) rather than texi2dvi.
 	(mostlyclean): Add *.op, *.ops.  Move *.aux *.cps *.fns *.kys *.pgs
-        *.vrs *.toc here...
-        (maintainer-clean): ...from here.
+	*.vrs *.toc here...
+	(maintainer-clean): ...from here.
 
 	* makefile.w32-in (../etc/GNU): Delete obsolete target.
 
