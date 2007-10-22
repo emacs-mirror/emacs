@@ -1,10 +1,10 @@
  ;;; org-export-latex.el --- LaTeX exporter for org-mode
 ;;
-;; Copyright (C) 2007 Free Software Foundation, Inc.
+;; copyright (c) 2007 free software foundation, inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
-;; Version: 5.11
+;; Version: 5.12
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: org, wp, tex
@@ -22,7 +22,7 @@
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 ;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 ;; more details.
-;;
+;; 
 ;; You should have received a copy of the GNU General Public License along
 ;; with GNU Emacs; see the file COPYING. If not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
@@ -58,7 +58,7 @@
 (defvar org-latex-add-level 0)
 (defvar org-latex-sectioning-depth 0)
 (defvar org-export-latex-list-beginning-re
-  "^\\([ \t]*\\)\\([-+]\\|[0-9]+\\(?:\\.\\|)\\)\\) *?")
+  "^\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) +?")
 
 (defvar org-latex-special-string-regexps
   '(org-ts-regexp
@@ -579,14 +579,16 @@ Argument OPT-PLIST is the options plist for current buffer."
      ;; insert the title
      (format 
       "\\title{%s}\n"
-      (or (plist-get opt-plist :title)
-	  (and (not
-		(plist-get opt-plist :skip-before-1st-heading))
-	       (org-export-grab-title-from-buffer))
-	  (and buffer-file-name
-	       (file-name-sans-extension
-		(file-name-nondirectory buffer-file-name)))
-	  "UNTITLED"))
+      ;; convert the title
+      (org-export-latex-content
+       (or (plist-get opt-plist :title)
+	   (and (not
+		 (plist-get opt-plist :skip-before-1st-heading))
+		(org-export-grab-title-from-buffer))
+	   (and buffer-file-name
+		(file-name-sans-extension
+		 (file-name-nondirectory buffer-file-name)))
+	   "UNTITLED")))
      
      ;; insert author info
      (if (plist-get opt-plist :author-info)
@@ -626,7 +628,9 @@ COMMENTS is either nil to replace them with the empty string or a
 formatting string like %%%%s if we want to comment them out."
   (save-excursion
     (goto-char (point-min))
-    (let* ((end (if (re-search-forward "^\\*" nil t)
+    (let* ((pt (point))
+	   (end (if (and (re-search-forward "^\\*" nil t)
+			 (not (eq pt (match-beginning 0))))
 		    (goto-char (match-beginning 0))
 		  (goto-char (point-max)))))
       (org-export-latex-content
@@ -954,7 +958,7 @@ Valid parameters are
     (let* ((beg (org-table-begin))
 	   (end (org-table-end))
 	   (raw-table (buffer-substring-no-properties beg end))
-	   fnum line lines olines gr colgropen line-fmt alignment)
+	   fnum fields line lines olines gr colgropen line-fmt align)
       (if org-export-latex-tables-verbatim
 	  (let* ((tbl (concat "\\begin{verbatim}\n" raw-table
 			      "\\end{verbatim}\n")))
@@ -1133,7 +1137,7 @@ Valid parameters are
 	  (when (and (re-search-forward (regexp-quote foot-prefix) nil t))
 	    (replace-match "")
 	    (let ((end (save-excursion
-			 (if (re-search-forward "^$\\|\\[[0-9]+\\]" nil t)
+			 (if (re-search-forward "^$\\|^#.*$\\|\\[[0-9]+\\]" nil t)
 			     (match-beginning 0) (point-max)))))
 	      (setq footnote
 		    (concat 
