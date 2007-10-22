@@ -105,7 +105,7 @@
 ;;       (f90-add-imenu-menu)        ; extra menu with functions etc.
 ;;       (if f90-auto-keyword-case   ; change case of all keywords on startup
 ;;           (f90-change-keywords f90-auto-keyword-case))
-;;	 ))
+;;       ))
 ;;
 ;; in your .emacs file. You can also customize the lists
 ;; f90-font-lock-keywords, etc.
@@ -263,20 +263,20 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 
 (defconst f90-keywords-re
   (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
-		"block" "call" "case" "character" "close" "common" "complex"
-		"contains" "continue" "cycle" "data" "deallocate"
-		"dimension" "do" "double" "else" "elseif" "elsewhere" "end"
-		"enddo" "endfile" "endif" "entry" "equivalence" "exit"
-		"external" "forall" "format" "function" "goto" "if"
-		"implicit" "include" "inquire" "integer" "intent"
-		"interface" "intrinsic" "logical" "module" "namelist" "none"
-		"nullify" "only" "open" "operator" "optional" "parameter"
-		"pause" "pointer" "precision" "print" "private" "procedure"
-		"program" "public" "read" "real" "recursive" "result" "return"
-		"rewind" "save" "select" "sequence" "stop" "subroutine"
-		"target" "then" "type" "use" "where" "while" "write"
-		;; F95 keywords.
-		"elemental" "pure") 'words)
+                "block" "call" "case" "character" "close" "common" "complex"
+                "contains" "continue" "cycle" "data" "deallocate"
+                "dimension" "do" "double" "else" "elseif" "elsewhere" "end"
+                "enddo" "endfile" "endif" "entry" "equivalence" "exit"
+                "external" "forall" "format" "function" "goto" "if"
+                "implicit" "include" "inquire" "integer" "intent"
+                "interface" "intrinsic" "logical" "module" "namelist" "none"
+                "nullify" "only" "open" "operator" "optional" "parameter"
+                "pause" "pointer" "precision" "print" "private" "procedure"
+                "program" "public" "read" "real" "recursive" "result" "return"
+                "rewind" "save" "select" "sequence" "stop" "subroutine"
+                "target" "then" "type" "use" "where" "while" "write"
+                ;; F95 keywords.
+                "elemental" "pure") 'words)
   "Regexp used by the function `f90-change-keywords'.")
 
 (defconst f90-keywords-level-3-re
@@ -405,7 +405,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
            f90-keywords-level-3-re
            f90-operators-re
            (list f90-procedures-re '(1 font-lock-keyword-face keep))
-           "\\<real\\>"			; avoid overwriting real defs
+           "\\<real\\>"                 ; avoid overwriting real defs
            ))
   "Highlights all F90 keywords and intrinsic procedures.")
 
@@ -639,7 +639,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
 ;; Imenu support.
 (defvar f90-imenu-generic-expression
   (let ((good-char "[^!\"\&\n \t]") (not-e "[^e!\n\"\& \t]")
-	(not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]"))
+        (not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]"))
     (list
      '(nil "^[ \t0-9]*program[ \t]+\\(\\sw+\\)" 1)
      '("Modules" "^[ \t0-9]*module[ \t]+\\(\\sw+\\)[ \t]*\\(!\\|$\\)" 1)
@@ -843,9 +843,9 @@ with no args, if that value is non-nil."
 Checks from `point-min', or `f90-cache-position', if that is non-nil
 and lies before point."
   (let ((beg-pnt
-	 (if (and f90-cache-position (> (point) f90-cache-position))
-	     f90-cache-position
-	   (point-min))))
+         (if (and f90-cache-position (> (point) f90-cache-position))
+             f90-cache-position
+           (point-min))))
     (nth 3 (parse-partial-sexp beg-pnt (point)))))
 
 (defsubst f90-in-comment ()
@@ -853,9 +853,9 @@ and lies before point."
 Checks from `point-min', or `f90-cache-position', if that is non-nil
 and lies before point."
   (let ((beg-pnt
-	 (if (and f90-cache-position (> (point) f90-cache-position))
-	     f90-cache-position
-	   (point-min))))
+         (if (and f90-cache-position (> (point) f90-cache-position))
+             f90-cache-position
+           (point-min))))
     (nth 4 (parse-partial-sexp beg-pnt (point)))))
 
 (defsubst f90-line-continued ()
@@ -973,10 +973,10 @@ NAME is non-nil only for type."
    ((looking-at "\\(program\\)[ \t]+\\(\\sw+\\)\\>")
     (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "module[ \t]*procedure\\>"))
-	 (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
+         (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
     (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-	 (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
+         (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
 \\(\\sw+\\)"))
     (list (match-string 1) (match-string 2)))))
 ;; Following will match an un-named main program block; however
@@ -990,7 +990,7 @@ NAME is non-nil only for type."
 (defsubst f90-looking-at-program-block-end ()
   "Return (KIND NAME) if a block with name NAME ends after point."
   (if (looking-at (concat "end[ \t]*" f90-blocks-re
-			  "?\\([ \t]+\\(\\sw+\\)\\)?\\>"))
+                          "?\\([ \t]+\\(\\sw+\\)\\)?\\>"))
       (list (match-string 1) (match-string 3))))
 
 (defsubst f90-comment-indent ()
@@ -1000,16 +1000,16 @@ Used for `comment-indent-function' by F90 mode.
 `f90-indented-comment-re' (if not trailing code) calls `f90-calculate-indent'.
 All others return `comment-column', leaving at least one space after code."
   (cond ((looking-at "!!!") 0)
-	((and f90-directive-comment-re
-	      (looking-at f90-directive-comment-re)) 0)
-	((looking-at (regexp-quote f90-comment-region)) 0)
-	((and (looking-at f90-indented-comment-re)
-	      ;; Don't attempt to indent trailing comment as code.
-	      (save-excursion
-		(skip-chars-backward " \t")
-		(bolp)))
-	 (f90-calculate-indent))
-	(t (save-excursion
+        ((and f90-directive-comment-re
+              (looking-at f90-directive-comment-re)) 0)
+        ((looking-at (regexp-quote f90-comment-region)) 0)
+        ((and (looking-at f90-indented-comment-re)
+              ;; Don't attempt to indent trailing comment as code.
+              (save-excursion
+                (skip-chars-backward " \t")
+                (bolp)))
+         (f90-calculate-indent))
+        (t (save-excursion
              (skip-chars-backward " \t")
              (max (if (bolp) 0 (1+ (current-column))) comment-column)))))
 
@@ -1026,10 +1026,10 @@ Comment lines embedded amongst continued lines return 'middle."
       (setq pcont (if (f90-previous-statement) (f90-line-continued))))
     (setq cont (f90-line-continued))
     (cond ((and (not pcont) (not cont)) 'single)
- 	  ((and (not pcont) cont)       'begin)
- 	  ((and pcont       (not cont)) 'end)
- 	  ((and pcont       cont)       'middle)
- 	  (t (error "The impossible occurred")))))
+          ((and (not pcont) cont)       'begin)
+          ((and pcont       (not cont)) 'end)
+          ((and pcont       cont)       'middle)
+          (t (error "The impossible occurred")))))
 
 (defsubst f90-indent-line-no ()
   "If `f90-leave-line-no' is nil, left-justify a line number.
@@ -1074,10 +1074,10 @@ Does not check type and subprogram indentation."
   (let ((epnt (line-end-position)) icol cont)
     (save-excursion
       (while (and (f90-previous-statement)
-		  (or (progn
-			(setq cont (f90-present-statement-cont))
-			(or (eq cont 'end) (eq cont 'middle)))
-		      (looking-at "[ \t]*[0-9]"))))
+                  (or (progn
+                        (setq cont (f90-present-statement-cont))
+                        (or (eq cont 'end) (eq cont 'middle)))
+                      (looking-at "[ \t]*[0-9]"))))
       (setq icol (current-indentation))
       (beginning-of-line)
       (when (re-search-forward "\\(if\\|do\\|select\\|where\\|forall\\)"
@@ -1092,10 +1092,10 @@ Does not check type and subprogram indentation."
                (setq icol (+ icol f90-if-indent))))
         (end-of-line))
       (while (re-search-forward
-	      "\\(if\\|do\\|select\\|where\\|forall\\)" epnt t)
-	(beginning-of-line)
+              "\\(if\\|do\\|select\\|where\\|forall\\)" epnt t)
+        (beginning-of-line)
         (skip-chars-forward " \t0-9")
-	(cond ((f90-looking-at-do)
+        (cond ((f90-looking-at-do)
                (setq icol (+ icol f90-do-indent)))
               ((or (f90-looking-at-if-then)
                    (f90-looking-at-where-or-forall)
@@ -1105,7 +1105,7 @@ Does not check type and subprogram indentation."
                (setq icol (- icol f90-if-indent)))
               ((looking-at "end[ \t]*do\\>")
                (setq icol (- icol f90-do-indent))))
-	(end-of-line))
+        (end-of-line))
       icol)))
 
 (defun f90-calculate-indent ()
@@ -1116,7 +1116,7 @@ Does not check type and subprogram indentation."
       (if (not (f90-previous-statement))
           ;; If f90-previous-statement returns nil, we must have been
           ;; called from on or before the first line of the first statement.
-	  (setq icol (if (save-excursion
+          (setq icol (if (save-excursion
                            ;; f90-previous-statement has moved us over
                            ;; comment/blank lines, so we need to get
                            ;; back to the first code statement.
@@ -1127,48 +1127,48 @@ Does not check type and subprogram indentation."
                          0
                        ;; No explicit PROGRAM start statement.
                        f90-program-indent))
-	(setq cont (f90-present-statement-cont))
-	(if (eq cont 'end)
-	    (while (not (eq 'begin (f90-present-statement-cont)))
-	      (f90-previous-statement)))
-	(cond ((eq cont 'begin)
-	       (setq icol (+ (f90-current-indentation)
-			     f90-continuation-indent)))
-	      ((eq cont 'middle) (setq icol (current-indentation)))
-	      (t (setq icol (f90-current-indentation))
-		 (skip-chars-forward " \t")
-		 (if (looking-at "[0-9]")
-		     (setq icol (f90-get-correct-indent))
-		   (cond ((or (f90-looking-at-if-then)
-			      (f90-looking-at-where-or-forall)
-			      (f90-looking-at-select-case)
-			      (looking-at f90-else-like-re))
-			  (setq icol (+ icol f90-if-indent)))
-			 ((f90-looking-at-do)
-			  (setq icol (+ icol f90-do-indent)))
-			 ((f90-looking-at-type-like)
-			  (setq icol (+ icol f90-type-indent)))
-			 ((or (f90-looking-at-program-block-start)
-			      (looking-at "contains[ \t]*\\($\\|!\\)"))
-			  (setq icol (+ icol f90-program-indent)))))
-		 (goto-char pnt)
-		 (beginning-of-line)
-		 (cond ((looking-at "[ \t]*$"))
-		       ((looking-at "[ \t]*#") ; check for cpp directive
-			(setq icol 0))
-		       (t
-			(skip-chars-forward " \t0-9")
-			(cond ((or (looking-at f90-else-like-re)
-				   (looking-at f90-end-if-re))
-			       (setq icol (- icol f90-if-indent)))
-			      ((looking-at "end[ \t]*do\\>")
-			       (setq icol (- icol f90-do-indent)))
-			      ((looking-at f90-end-type-re)
-			       (setq icol (- icol f90-type-indent)))
-			      ((or (looking-at "contains[ \t]*\\(!\\|$\\)")
-				   (f90-looking-at-program-block-end))
-			       (setq icol (- icol f90-program-indent))))))
-		 ))))
+        (setq cont (f90-present-statement-cont))
+        (if (eq cont 'end)
+            (while (not (eq 'begin (f90-present-statement-cont)))
+              (f90-previous-statement)))
+        (cond ((eq cont 'begin)
+               (setq icol (+ (f90-current-indentation)
+                             f90-continuation-indent)))
+              ((eq cont 'middle) (setq icol (current-indentation)))
+              (t (setq icol (f90-current-indentation))
+                 (skip-chars-forward " \t")
+                 (if (looking-at "[0-9]")
+                     (setq icol (f90-get-correct-indent))
+                   (cond ((or (f90-looking-at-if-then)
+                              (f90-looking-at-where-or-forall)
+                              (f90-looking-at-select-case)
+                              (looking-at f90-else-like-re))
+                          (setq icol (+ icol f90-if-indent)))
+                         ((f90-looking-at-do)
+                          (setq icol (+ icol f90-do-indent)))
+                         ((f90-looking-at-type-like)
+                          (setq icol (+ icol f90-type-indent)))
+                         ((or (f90-looking-at-program-block-start)
+                              (looking-at "contains[ \t]*\\($\\|!\\)"))
+                          (setq icol (+ icol f90-program-indent)))))
+                 (goto-char pnt)
+                 (beginning-of-line)
+                 (cond ((looking-at "[ \t]*$"))
+                       ((looking-at "[ \t]*#") ; check for cpp directive
+                        (setq icol 0))
+                       (t
+                        (skip-chars-forward " \t0-9")
+                        (cond ((or (looking-at f90-else-like-re)
+                                   (looking-at f90-end-if-re))
+                               (setq icol (- icol f90-if-indent)))
+                              ((looking-at "end[ \t]*do\\>")
+                               (setq icol (- icol f90-do-indent)))
+                              ((looking-at f90-end-type-re)
+                               (setq icol (- icol f90-type-indent)))
+                              ((or (looking-at "contains[ \t]*\\(!\\|$\\)")
+                                   (f90-looking-at-program-block-end))
+                               (setq icol (- icol f90-program-indent))))))
+                 ))))
     icol))
 
 (defun f90-previous-statement ()
@@ -1181,7 +1181,7 @@ comment."
   (let (not-first-statement)
     (beginning-of-line)
     (while (and (setq not-first-statement (zerop (forward-line -1)))
-		(looking-at "[ \t0-9]*\\(!\\|$\\|#\\)")))
+                (looking-at "[ \t0-9]*\\(!\\|$\\|#\\)")))
     not-first-statement))
 
 (defun f90-next-statement ()
@@ -1191,9 +1191,9 @@ Return nil if no later statement is found."
   (let (not-last-statement)
     (beginning-of-line)
     (while (and (setq not-last-statement
-		      (and (zerop (forward-line 1))
-			   (not (eobp))))
- 		(looking-at "[ \t0-9]*\\(!\\|$\\)")))
+                      (and (zerop (forward-line 1))
+                           (not (eobp))))
+                (looking-at "[ \t0-9]*\\(!\\|$\\)")))
     not-last-statement))
 
 (defun f90-beginning-of-subprogram ()
@@ -1203,7 +1203,7 @@ Return (TYPE NAME), or nil if not found."
   (let ((count 1) (case-fold-search t) matching-beg)
     (beginning-of-line)
     (while (and (> count 0)
-		(re-search-backward f90-program-block-re nil 'move))
+                (re-search-backward f90-program-block-re nil 'move))
       (beginning-of-line)
       (skip-chars-forward " \t0-9")
       (cond ((setq matching-beg (f90-looking-at-program-block-start))
@@ -1212,7 +1212,7 @@ Return (TYPE NAME), or nil if not found."
              (setq count (1+ count)))))
     (beginning-of-line)
     (if (zerop count)
-	matching-beg
+        matching-beg
       ;; Note this includes the case of an un-named main program,
       ;; in which case we go to (point-min).
       (message "No beginning found.")
@@ -1227,19 +1227,19 @@ Return (TYPE NAME), or nil if not found."
         matching-end)
     (end-of-line)
     (while (and (> count 0)
-		(re-search-forward f90-program-block-re nil 'move))
+                (re-search-forward f90-program-block-re nil 'move))
       (beginning-of-line)
       (skip-chars-forward " \t0-9")
       (cond ((f90-looking-at-program-block-start)
-	     (setq count (1+ count)))
-	    ((setq matching-end (f90-looking-at-program-block-end))
-	     (setq count (1- count))))
+             (setq count (1+ count)))
+            ((setq matching-end (f90-looking-at-program-block-end))
+             (setq count (1- count))))
       (end-of-line))
     ;; This means f90-end-of-subprogram followed by f90-start-of-subprogram
     ;; has a net non-zero effect, which seems odd.
 ;;;    (forward-line 1)
     (if (zerop count)
-	matching-end
+        matching-end
       (message "No end found.")
       nil)))
 
@@ -1408,13 +1408,13 @@ in the region, or, if already present, remove it."
     (goto-char beg-region)
     (beginning-of-line)
     (if (looking-at (regexp-quote f90-comment-region))
-	(delete-region (point) (match-end 0))
+        (delete-region (point) (match-end 0))
       (insert f90-comment-region))
     (while (and (zerop (forward-line 1))
-		(< (point) end))
+                (< (point) end))
       (if (looking-at (regexp-quote f90-comment-region))
-	  (delete-region (point) (match-end 0))
-	(insert f90-comment-region)))
+          (delete-region (point) (match-end 0))
+        (insert f90-comment-region)))
     (set-marker end nil)))
 
 (defun f90-indent-line (&optional no-update)
@@ -1432,7 +1432,7 @@ after indenting."
       (setq no-line-number t)
       (skip-chars-forward " \t"))
     (if (looking-at "!")
-	(setq indent (f90-comment-indent))
+        (setq indent (f90-comment-indent))
       (and f90-smart-end (looking-at "end")
            (f90-match-end))
       (setq indent (f90-calculate-indent)))
@@ -1457,7 +1457,7 @@ If run in the middle of a line, the line is not broken."
   (beginning-of-line)             ; reindent where likely to be needed
   (f90-indent-line)                ; calls indent-line-no, update-line
   (end-of-line)
-  (delete-horizontal-space)		; destroy trailing whitespace
+  (delete-horizontal-space)             ; destroy trailing whitespace
   (let ((string (f90-in-string))
         (cont (f90-line-continued)))
     (and string (not cont) (insert "&"))
@@ -1474,17 +1474,17 @@ If run in the middle of a line, the line is not broken."
   (let ((end-region-mark (copy-marker end-region))
         (save-point (point-marker))
         (case-fold-search t)
-	block-list ind-lev ind-curr ind-b cont struct beg-struct end-struct)
+        block-list ind-lev ind-curr ind-b cont struct beg-struct end-struct)
     (goto-char beg-region)
     ;; First find a line which is not a continuation line or comment.
     (beginning-of-line)
     (while (and (looking-at "[ \t]*[0-9]*\\(!\\|#\\|[ \t]*$\\)")
-		(progn (f90-indent-line 'no-update)
-		       (zerop (forward-line 1)))
-		(< (point) end-region-mark)))
+                (progn (f90-indent-line 'no-update)
+                       (zerop (forward-line 1)))
+                (< (point) end-region-mark)))
     (setq cont (f90-present-statement-cont))
     (while (and (or (eq cont 'middle) (eq cont 'end))
-		(f90-previous-statement))
+                (f90-previous-statement))
       (setq cont (f90-present-statement-cont)))
     ;; Process present line for beginning of block.
     (setq f90-cache-position (point))
@@ -1495,20 +1495,20 @@ If run in the middle of a line, the line is not broken."
     (skip-chars-forward " \t0-9")
     (setq struct nil
           ind-b (cond ((setq struct (f90-looking-at-do)) f90-do-indent)
-		      ((or (setq struct (f90-looking-at-if-then))
-			   (setq struct (f90-looking-at-select-case))
-			   (setq struct (f90-looking-at-where-or-forall))
-			   (looking-at f90-else-like-re))
-		       f90-if-indent)
-		      ((setq struct (f90-looking-at-type-like))
-		       f90-type-indent)
-		      ((or (setq struct (f90-looking-at-program-block-start))
+                      ((or (setq struct (f90-looking-at-if-then))
+                           (setq struct (f90-looking-at-select-case))
+                           (setq struct (f90-looking-at-where-or-forall))
+                           (looking-at f90-else-like-re))
+                       f90-if-indent)
+                      ((setq struct (f90-looking-at-type-like))
+                       f90-type-indent)
+                      ((or (setq struct (f90-looking-at-program-block-start))
                            (looking-at "contains[ \t]*\\($\\|!\\)"))
-		       f90-program-indent)))
+                       f90-program-indent)))
     (if ind-b (setq ind-lev (+ ind-lev ind-b)))
     (if struct (setq block-list (cons struct block-list)))
     (while (and (f90-line-continued) (zerop (forward-line 1))
-		(< (point) end-region-mark))
+                (< (point) end-region-mark))
       (if (looking-at "[ \t]*!")
           (f90-indent-to (f90-comment-indent))
         (or (= (current-indentation)
@@ -1520,47 +1520,47 @@ If run in the middle of a line, the line is not broken."
       (f90-indent-line-no)
       (setq f90-cache-position (point))
       (cond ((looking-at "[ \t]*$") (setq ind-curr 0))
-	    ((looking-at "[ \t]*#") (setq ind-curr 0))
-	    ((looking-at "!") (setq ind-curr (f90-comment-indent)))
-	    ((f90-no-block-limit) (setq ind-curr ind-lev))
-	    ((looking-at f90-else-like-re) (setq ind-curr
-						 (- ind-lev f90-if-indent)))
-	    ((looking-at "contains[ \t]*\\($\\|!\\)")
-	     (setq ind-curr (- ind-lev f90-program-indent)))
-	    ((setq ind-b
-		   (cond ((setq struct (f90-looking-at-do)) f90-do-indent)
-			 ((or (setq struct (f90-looking-at-if-then))
-			      (setq struct (f90-looking-at-select-case))
-			      (setq struct (f90-looking-at-where-or-forall)))
-			  f90-if-indent)
-			 ((setq struct (f90-looking-at-type-like))
-			  f90-type-indent)
-			 ((setq struct (f90-looking-at-program-block-start))
-			  f90-program-indent)))
-	     (setq ind-curr ind-lev)
-	     (if ind-b (setq ind-lev (+ ind-lev ind-b)))
-	     (setq block-list (cons struct block-list)))
-	    ((setq end-struct (f90-looking-at-program-block-end))
-	     (setq beg-struct (car block-list)
-		   block-list (cdr block-list))
-	     (if f90-smart-end
-		 (save-excursion
-		   (f90-block-match (car beg-struct) (car (cdr beg-struct))
-				    (car end-struct) (car (cdr end-struct)))))
-	     (setq ind-b
-		   (cond ((looking-at f90-end-if-re) f90-if-indent)
-			 ((looking-at "end[ \t]*do\\>")  f90-do-indent)
-			 ((looking-at f90-end-type-re) f90-type-indent)
-			 ((f90-looking-at-program-block-end)
-			  f90-program-indent)))
-	     (if ind-b (setq ind-lev (- ind-lev ind-b)))
-	     (setq ind-curr ind-lev))
-	    (t (setq ind-curr ind-lev)))
+            ((looking-at "[ \t]*#") (setq ind-curr 0))
+            ((looking-at "!") (setq ind-curr (f90-comment-indent)))
+            ((f90-no-block-limit) (setq ind-curr ind-lev))
+            ((looking-at f90-else-like-re) (setq ind-curr
+                                                 (- ind-lev f90-if-indent)))
+            ((looking-at "contains[ \t]*\\($\\|!\\)")
+             (setq ind-curr (- ind-lev f90-program-indent)))
+            ((setq ind-b
+                   (cond ((setq struct (f90-looking-at-do)) f90-do-indent)
+                         ((or (setq struct (f90-looking-at-if-then))
+                              (setq struct (f90-looking-at-select-case))
+                              (setq struct (f90-looking-at-where-or-forall)))
+                          f90-if-indent)
+                         ((setq struct (f90-looking-at-type-like))
+                          f90-type-indent)
+                         ((setq struct (f90-looking-at-program-block-start))
+                          f90-program-indent)))
+             (setq ind-curr ind-lev)
+             (if ind-b (setq ind-lev (+ ind-lev ind-b)))
+             (setq block-list (cons struct block-list)))
+            ((setq end-struct (f90-looking-at-program-block-end))
+             (setq beg-struct (car block-list)
+                   block-list (cdr block-list))
+             (if f90-smart-end
+                 (save-excursion
+                   (f90-block-match (car beg-struct) (car (cdr beg-struct))
+                                    (car end-struct) (car (cdr end-struct)))))
+             (setq ind-b
+                   (cond ((looking-at f90-end-if-re) f90-if-indent)
+                         ((looking-at "end[ \t]*do\\>")  f90-do-indent)
+                         ((looking-at f90-end-type-re) f90-type-indent)
+                         ((f90-looking-at-program-block-end)
+                          f90-program-indent)))
+             (if ind-b (setq ind-lev (- ind-lev ind-b)))
+             (setq ind-curr ind-lev))
+            (t (setq ind-curr ind-lev)))
       ;; Do the indentation if necessary.
       (or (= ind-curr (current-column))
-	  (f90-indent-to ind-curr))
+          (f90-indent-to ind-curr))
       (while (and (f90-line-continued) (zerop (forward-line 1))
-		  (< (point) end-region-mark))
+                  (< (point) end-region-mark))
         (if (looking-at "[ \t]*!")
             (f90-indent-to (f90-comment-indent))
           (or (= (current-indentation)
@@ -1573,7 +1573,7 @@ If run in the middle of a line, the line is not broken."
     (set-marker end-region-mark nil)
     (set-marker save-point nil)
     (if (fboundp 'zmacs-deactivate-region)
- 	(zmacs-deactivate-region)
+        (zmacs-deactivate-region)
       (deactivate-mark))))
 
 (defun f90-indent-subprogram ()
@@ -1582,15 +1582,15 @@ If run in the middle of a line, the line is not broken."
   (save-excursion
     (let ((program (f90-mark-subprogram)))
       (if program
-	  (progn
-	    (message "Indenting %s %s..."
-		     (car program) (car (cdr program)))
-	    (indent-region (point) (mark) nil)
-	    (message "Indenting %s %s...done"
-		     (car program) (car (cdr program))))
-	(message "Indenting the whole file...")
-	(indent-region (point) (mark) nil)
-	(message "Indenting the whole file...done")))))
+          (progn
+            (message "Indenting %s %s..."
+                     (car program) (car (cdr program)))
+            (indent-region (point) (mark) nil)
+            (message "Indenting %s %s...done"
+                     (car program) (car (cdr program))))
+        (message "Indenting the whole file...")
+        (indent-region (point) (mark) nil)
+        (message "Indenting the whole file...done")))))
 
 (defun f90-break-line (&optional no-update)
   "Break line at point, insert continuation marker(s) and indent.
@@ -1662,7 +1662,7 @@ Like `join-line', but handles F90 syntax."
   (interactive "*r")
   (let ((end-region-mark (copy-marker end-region))
         (go-on t)
-	f90-smart-end f90-auto-keyword-case auto-fill-function)
+        f90-smart-end f90-auto-keyword-case auto-fill-function)
     (goto-char beg-region)
     (while go-on
       ;; Join as much as possible.
@@ -1673,17 +1673,17 @@ Like `join-line', but handles F90 syntax."
         (f90-join-lines 'forward))
       ;; Chop the line if necessary.
       (while (> (save-excursion (end-of-line) (current-column))
-		fill-column)
-	(move-to-column fill-column)
-	(f90-find-breakpoint)
-	(f90-break-line 'no-update))
+                fill-column)
+        (move-to-column fill-column)
+        (f90-find-breakpoint)
+        (f90-break-line 'no-update))
       (setq go-on (and (< (point) end-region-mark)
                        (zerop (forward-line 1)))
             f90-cache-position (point)))
     (setq f90-cache-position nil)
     (set-marker end-region-mark nil)
     (if (fboundp 'zmacs-deactivate-region)
- 	(zmacs-deactivate-region)
+        (zmacs-deactivate-region)
       (deactivate-mark))))
 
 (defun f90-block-match (beg-block beg-name end-block end-name)
@@ -1728,9 +1728,9 @@ Leave point at the end of line."
   (interactive)
   (let ((count 1)
         (top-of-window (window-start))
-	(end-point (point))
+        (end-point (point))
         (case-fold-search t)
-	matching-beg beg-name end-name beg-block end-block end-struct)
+        matching-beg beg-name end-name beg-block end-block end-struct)
     (when (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
                           (setq end-struct (f90-looking-at-program-block-end)))
       (setq end-block (car end-struct)
@@ -1797,12 +1797,12 @@ Any other key combination is executed normally."
     (if (fboundp 'next-command-event) ; XEmacs
         (setq event (next-command-event)
               char (and (fboundp 'event-to-character)
-			(event-to-character event)))
+                        (event-to-character event)))
       (setq event (read-event)
             char event))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.
     (if (and abbrev-mode (or (eq char ??) (eq char help-char)))
-	(f90-abbrev-help)
+        (f90-abbrev-help)
       (setq unread-command-events (list event)))))
 
 (defun f90-abbrev-help ()
@@ -1861,16 +1861,16 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
     (setq beg (or beg (point-min))
           end (or end (point-max)))
     (let ((keyword-re
-	   (concat "\\("
-		   f90-keywords-re "\\|" f90-procedures-re "\\|"
-		   f90-hpf-keywords-re "\\|" f90-operators-re "\\)"))
-	  (ref-point (point-min))
-	  (modified (buffer-modified-p))
+           (concat "\\("
+                   f90-keywords-re "\\|" f90-procedures-re "\\|"
+                   f90-hpf-keywords-re "\\|" f90-operators-re "\\)"))
+          (ref-point (point-min))
+          (modified (buffer-modified-p))
           state saveword back-point)
       (goto-char beg)
       (unwind-protect
-	  (while (re-search-forward keyword-re end t)
-	    (unless (progn
+          (while (re-search-forward keyword-re end t)
+            (unless (progn
                       (setq state (parse-partial-sexp ref-point (point)))
                       (or (nth 3 state) (nth 4 state)
                           ;; GM f90-directive-comment-re?
@@ -1878,13 +1878,13 @@ CHANGE-WORD should be one of 'upcase-word, 'downcase-word, 'capitalize-word."
                             (beginning-of-line)
                             (skip-chars-forward " \t0-9")
                             (looking-at "#"))))
-	      (setq ref-point (point)
-		    back-point (save-excursion (backward-word 1) (point))
+              (setq ref-point (point)
+                    back-point (save-excursion (backward-word 1) (point))
                     saveword (buffer-substring back-point ref-point))
-	      (funcall change-word -1)
-	      (or (string= saveword (buffer-substring back-point ref-point))
-		  (setq modified t))))
-	(or modified (set-buffer-modified-p nil))))))
+              (funcall change-word -1)
+              (or (string= saveword (buffer-substring back-point ref-point))
+                  (setq modified t))))
+        (or modified (set-buffer-modified-p nil))))))
 
 
 (defun f90-current-defun ()
