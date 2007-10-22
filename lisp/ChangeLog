@@ -1,6 +1,39 @@
 2007-10-22  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el: Remove leading "*" from defcustom doc-strings.
+	Add some support for Fortran 2003 syntax:
+	(f90-type-indent): Now also applies to `enum'.
+	(f90-associate-indent): New user option.
+	(f90-keywords-re, f90-keywords-level-3-re, f90-procedures-re):
+	Add some F2003 keywords.
+	(f90-constants-re): New constant.
+	(f90-font-lock-keywords-1): Add `associate' blocks, and `abstract
+	Interface'.
+	(f90-font-lock-keywords-2): Add `enumerator', `generic', `procedure',
+	`class'.  Arguments for `type'/`class' may have spaces.  Add a new
+	element for functions with specified types.  Add `end enum' and
+	`select type'.  Add `implicit enumerator' and `procedure'.  Add
+	`class default' and `type is', `class is'.  Fix `go to' regexp.
+	(f90-font-lock-keywords-3): Add `asynchronous' attribute.
+	(f90-font-lock-keywords-4): Add `f90-constants-re'.
+	(f90-blocks-re): Add `enum' and `associate'.
+	(f90-else-like-re): Add `class is', `type is', and `class default'.
+	(f90-end-type-re): Add `enum'.
+	(f90-end-associate-re, f90-typeis-re): New constants.
+	(f90-end-block-re): Add `enum' and `associate'.  Change from
+	optional whitespace to end-of-word, to avoid `enumerator'.
+	(f90-start-block-re): Add `select type', `abstract interface', and
+	`enum'.  Avoid `type is', and `type (sometype)'.
+	(f90-mode-abbrev-table): Add `enumerator', `protected', and `volatile'.
+	(f90-mode): Doc fix.
+	(f90-looking-at-select-case): Doc fix.  Add `select type'.
+	(f90-looking-at-associate): New function,
+	(f90-looking-at-type-like): Avoid `type is' and `type (sometype)'.
+	Add `enum' and `abstract interface'.
+	(f90-no-block-limit): Add `select type' and `abstract interface'.
+	(f90-get-correct-indent, f90-calculate-indent)
+	(f90-end-of-block, f90-beginning-of-block, f90-next-block)
+	(f90-indent-region, f90-match-end): : Handle `associate' blocks.
 
 2007-10-22  Martin Rudalics  <rudalics@gmx.at>
 
