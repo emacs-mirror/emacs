@@ -1,3 +1,8 @@
+2007-10-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/fortran.el (fortran-mode-map, fortran-window-create):
+	Use window-full-width-p.
+
 2007-10-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mail/vms-pmail.el (insert-signature): Don't use end-of-buffer.
