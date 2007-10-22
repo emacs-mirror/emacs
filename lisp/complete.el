@@ -515,7 +515,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 				 "*"
 				 (substring pat p))
 		     p (+ p 2)))
-	     (setq files (PC-expand-many-files (concat pat "*")))
+	     (setq files (file-expand-wildcards (concat pat "*")))
 	     (if files
 		 (let ((dir (file-name-directory (car files)))
 		       (p files))
@@ -609,7 +609,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                    (setq
                     basestr ""
                     p nil
-                    poss (PC-expand-many-files
+		    poss (file-expand-wildcards
                           (concat "/"
                                   (mapconcat #'list (match-string 1 str) "*/")
                                   "*"))
@@ -968,61 +968,6 @@ or properties are considered."
           (PC-not-minibuffer t))
      (goto-char end)
      (PC-do-completion nil beg end)))
-
-;; Use the shell to do globbing.
-;; This could now use file-expand-wildcards instead.
-
-(defun PC-expand-many-files (name)
-  (with-current-buffer (generate-new-buffer " *Glob Output*")
-    (erase-buffer)
-    (when (and (file-name-absolute-p name)
-               (not (file-directory-p default-directory)))
-      ;; If the current working directory doesn't exist `shell-command'
-      ;; signals an error.  So if the file names we're looking for don't
-      ;; depend on the working directory, switch to a valid directory first.
-      (setq default-directory "/"))
-    (shell-command (concat "echo " name) t)
-    (goto-char (point-min))
-    ;; CSH-style shells were known to output "No match", whereas
-    ;; SH-style shells tend to simply output `name' when no match is found.
-    (if (looking-at (concat ".*No match\\|\\(^\\| \\)\\("
-			    (regexp-quote name)
-			    "\\|"
-			    (regexp-quote (expand-file-name name))
-			    "\\)\\( \\|$\\)"))
-	nil
-      (insert "(\"")
-      (while (search-forward " " nil t)
-	(delete-backward-char 1)
-	(insert "\" \""))
-      (goto-char (point-max))
-      (delete-backward-char 1)
-      (insert "\")")
-      (goto-char (point-min))
-      (let ((files (read (current-buffer))) (p nil))
-	(kill-buffer (current-buffer))
-	(or (equal completion-ignored-extensions PC-ignored-extensions)
-	    (setq PC-ignored-regexp
-		  (concat "\\("
-			  (mapconcat
-			   'regexp-quote
-			   (setq PC-ignored-extensions
-				 completion-ignored-extensions)
-			   "\\|")
-			  "\\)\\'")))
-	(setq p nil)
-	(while files
-          ;; This whole process of going through to shell, to echo, and
-          ;; finally parsing the output is a hack.  It breaks as soon as
-          ;; there are spaces in the file names or when the no-match
-          ;; message changes.  To make up for it, we check that what we read
-          ;; indeed exists, so we may miss some files, but we at least won't
-          ;; list non-existent ones.
-	  (or (not (file-exists-p (car files)))
-	      (string-match PC-ignored-regexp (car files))
-	      (setq p (cons (car files) p)))
-	  (setq files (cdr files)))
-	p))))
 
 ;; Facilities for loading C header files.  This is independent from the
 ;; main completion code.  See also the variable `PC-include-file-path'
