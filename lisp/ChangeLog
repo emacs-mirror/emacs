@@ -1,3 +1,8 @@
+2007-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (global-buffers-menu-map): New var.
+	(global-map, menu-bar-update-buffers): Use it.
+
 2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* hexl.el (hexl-menu): New major mode menu.
@@ -57,6 +62,11 @@
 
 	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression):
 	Tweak regexp to avoid stack overflow.
+
+2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (reindent-then-newline-and-indent): Don't assume that
+	indent-according-to-mode preserves point.
 
 2007-10-16  Juanma Barranquero  <lekktu@gmail.com>
 
