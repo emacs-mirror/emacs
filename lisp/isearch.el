@@ -2035,8 +2035,13 @@ Can be changed via `isearch-search-fun-function' for special needs."
 			   (if isearch-forward (< pos2 pos1) (> pos2 pos1))))
 	      (setq pos1 pos2)
 	      (set-match-data match-data)))))
-    (if pos1
-	(goto-char pos1))
+    (when pos1
+      ;; When using multiple buffers isearch, switch to the new buffer here,
+      ;; because `save-excursion' above doesn't allow doing it inside funcall.
+      (if (and isearch-buffers-next-buffer-function
+	       (buffer-live-p isearch-buffers-current-buffer))
+	  (switch-to-buffer isearch-buffers-current-buffer))
+      (goto-char pos1))
     pos1))
 
 (defun isearch-search ()
