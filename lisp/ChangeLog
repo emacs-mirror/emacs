@@ -1,4 +1,4 @@
-2007-10-20  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+2007-10-22  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
 	* complete.el (PC-expand-many-files): Remove.
 	(PC-do-completion): Call file-expand-wildcards instead of
@@ -36,7 +36,7 @@
 	(f90-mode-abbrev-table): Add `enumerator', `protected', and `volatile'.
 	(f90-mode): Doc fix.
 	(f90-looking-at-select-case): Doc fix.  Add `select type'.
-	(f90-looking-at-associate): New function,
+	(f90-looking-at-associate): New function.
 	(f90-looking-at-type-like): Avoid `type is' and `type (sometype)'.
 	Add `enum' and `abstract interface'.
 	(f90-no-block-limit): Add `select type' and `abstract interface'.
@@ -6659,7 +6659,7 @@
 	(vc-bzr-dir-state): Replace its use with vc-bzr-command.
 	(vc-bzr-buffer-nonblank-p): New function.
 	(vc-bzr-state-words): New const.
-	(vc-bzr-state): Look for `bzr status` keywords in output.
+	(vc-bzr-state): Look for `bzr status' keywords in output.
 	Display everything else as a warning message to the user.
 	Fix status report with bzr >= 0.15.
 
@@ -6887,7 +6887,7 @@
 	* progmodes/sh-script.el: Remove unneeded * from docstrings.
 	Use [:alpha:] and [:alnum:] where applicable.
 	(sh-quoted-subshell): Rewrite to correctly
-	handle nested mixes of `...` and $(...).
+	handle nested mixes of `...' and $(...).
 	(sh-apply-quoted-subshell): Remove.
 	(sh-font-lock-syntactic-keywords): Adjust call to sh-quoted-subshell.
 
