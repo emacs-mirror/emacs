@@ -5,7 +5,7 @@
 	(org-agenda-files): Allow directories in the variable.
 	(org-agenda-get-restriction-and-command): New function.
 	(org-agenda): Use `org-agenda-get-restriction-and-command'.
-	(org-todo-blocker-hook, org-todo-trigger-hook): New hook.
+	(org-todo-blocker-hook, org-todo-trigger-hook): New hooks.
 	(org-entry-is-todo-p, org-entry-is-done-p, org-get-todo-state):
 	New functions.
 	(org-entry-add-to-multivalued-property)
@@ -13,11 +13,9 @@
 	(org-entry-member-in-multivalued-property): New functions.
 	(org-remember-apply-template): Catch C-g and make sure window
 	configuration is restored.
-	(org-agenda-open-link): Make is work with several links in the
-	line.
+	(org-agenda-open-link): Make it work with several links in the line.
 	(org-drawers, org-set-regexps-and-options)
-	(org-get-current-options): Added support for a DRAWERS in-buffer
-	option.
+	(org-get-current-options): Add support for a DRAWERS in-buffer option.
 	(org-agenda-window-frame-fractions): New option.
 	(org-fit-agenda-window): Use `org-agenda-window-frame-fractions'.
 	(org-columns-cleanup-item, org-find-entry-with-id)
@@ -29,22 +27,16 @@
 	(org-columns-display-here): Don't mark buffer as modified when
 	adding space characters to accomodate column overlays.
 	(org-export-as-html): Better formatting of tags in the toc.
-	(org-columns-display-here): Make the ITEM column as compact as
-	possible.
+	(org-columns-display-here): Make the ITEM column as compact as possible.
 	(org-remember-templates): Customization interface improved.
 	(org-export-with-property-drawer): Variable removed.
 	(org-export-with-drawers): New option.
 	(org-complex-heading-regexp): New variable.
 	(org-sort-entries): Rewrite using `sort-subr'.
-	(org-set-property): More appropriate completion during interactive
-	use.
+	(org-set-property): More appropriate completion during interactive use.
 	(org-sort-entries): Allow sorting by property.
-	(org-additional-option-like-keywords): Added more values.
-	(org-sort-entries-or-items): Renamed from `org-sort-entries'.
-
-2007-10-22  Carsten Dominik  <dominik@science.uva.nl>
-
-	* org.texi: Small fixes.
+	(org-additional-option-like-keywords): Add more values.
+	(org-sort-entries-or-items): Rename from `org-sort-entries'.
 
 2007-10-22  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -60,8 +52,8 @@
 	act on N sequential subtrees.
 	(org-paste-subtree): Fix the level at which a tree is pasted.
 	(org-fit-agenda-window): Limitations on window size removed.
-	(org-agenda-find-same-or-today-or-agenda): Renamed from
-	`org-agenda-find-today-or-agenda'. 
+	(org-agenda-find-same-or-today-or-agenda): Rename from
+	`org-agenda-find-today-or-agenda'.
 	(org-scheduled-past-days): New option.
 	(org-agenda-scheduled-leaders)
 	(org-agenda-deadline-leaders): New options.
@@ -71,7 +63,7 @@
 	(org-infile-export-plist): New "tags" option.
 	(org-use-property-inheritance): New option.
 	(org-cached-entry-get): Use `org-use-property-inheritance'.
-	(org-remember-apply-template): Fixed typo.
+	(org-remember-apply-template): Fix typo.
 
 2007-10-22  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -79,7 +71,7 @@
 	(tramp-open-connection-setup-interactive-shell): Improve sending
 	initial commands.
 	(tramp-action-terminal): Send debug message.
-	(tramp-wait-for-shell-prompt, tramp-send-command-internal): Removed.
+	(tramp-wait-for-shell-prompt, tramp-send-command-internal): Remove.
 	(tramp-barf-if-no-shell-prompt): Insert code of
 	`tramp-wait-for-shell-prompt'.
 
