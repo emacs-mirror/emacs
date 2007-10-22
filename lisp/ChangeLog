@@ -1,5 +1,7 @@
 2007-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/AT386.el (terminal-init-AT386): Use input-decode-map.
+
 	* term/vt200.el (terminal-init-vt200):
 	* term/vt201.el (terminal-init-vt201):
 	* term/vt220.el (terminal-init-vt220):
