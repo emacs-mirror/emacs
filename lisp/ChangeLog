@@ -33,7 +33,7 @@
 	(f90-no-block-limit): Add `select type' and `abstract interface'.
 	(f90-get-correct-indent, f90-calculate-indent)
 	(f90-end-of-block, f90-beginning-of-block, f90-next-block)
-	(f90-indent-region, f90-match-end): : Handle `associate' blocks.
+	(f90-indent-region, f90-match-end): Handle `associate' blocks.
 
 2007-10-22  Martin Rudalics  <rudalics@gmx.at>
 
@@ -46,8 +46,7 @@
 
 	* tooltip.el: Use featurep 'xemacs.
 
-	* printing.el: Move variable definitions before use, no code
-	change.
+	* printing.el: Move variable definitions before use, no code change.
 
 2007-10-22  Juri Linkov  <juri@jurta.org>
 
@@ -683,7 +682,6 @@
 
 	* emacs-lisp/advice.el (documentation): Advice deleted.
 	Doc for advised functions is now handled at C level.
-	This is now handled at C level.
 	(ad-stop-advice, ad-start-advice): Don't enable or disable
 	advice for `documentation'.
 	(ad-advised-definition-docstring-regexp): Var deleted.
