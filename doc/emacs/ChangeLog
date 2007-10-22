@@ -1,3 +1,8 @@
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* mini.texi (Minibuffer History): Add text about a list of minibuffer
+	default values.
+
 2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* files.texi: Disambiguate two slightly different uses of the term 
