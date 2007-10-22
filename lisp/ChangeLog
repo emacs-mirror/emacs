@@ -1,5 +1,10 @@
 2007-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/tpu-edt.el (tpu-edt-old-global-values): New var.
+	(tpu-edt-off): Use it.
+	(tpu-edt-on): Set it.  Make sure the tpu-global-map is not already on
+	the global-map before adding it to global-map.
+
 	* menu-bar.el (global-buffers-menu-map): New var.
 	(global-map, menu-bar-update-buffers): Use it.
 	* msb.el (msb-menu-bar-update-buffers): Use it.
