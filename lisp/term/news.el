@@ -32,7 +32,7 @@
 (defun terminal-init-news ()
   "Terminal initialization function for news."
   ;; The terminal initialization should already have set up some keys
-  (let ((news-fkey-prefix (lookup-key local-function-key-map "\eO")))
+  (let ((news-fkey-prefix (lookup-key input-decode-map "\eO")))
     (if (not (keymapp news-fkey-prefix))
 	(error "What?  Your news termcap/terminfo has no keycaps in it"))
 
@@ -71,5 +71,5 @@
     (define-key news-fkey-prefix "x" [kp-8])
     ))
 
-;;; arch-tag: bfe141a0-623b-4b42-b753-5d9353776c5e
+;; arch-tag: bfe141a0-623b-4b42-b753-5d9353776c5e
 ;;; news.el ends here

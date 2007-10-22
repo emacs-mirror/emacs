@@ -76,8 +76,8 @@
   ;; This way we don't override terminfo-derived settings or settings
   ;; made in the .emacs file.
   (let ((m (copy-keymap lk201-function-map)))
-    (set-keymap-parent m (keymap-parent local-function-key-map))
-    (set-keymap-parent local-function-key-map m)))
+    (set-keymap-parent m (keymap-parent input-decode-map))
+    (set-keymap-parent input-decode-map m)))
 
-;;; arch-tag: 7ffb4444-6a23-43e1-b457-43cf4f673c0d
+;; arch-tag: 7ffb4444-6a23-43e1-b457-43cf4f673c0d
 ;;; lk201.el ends here
