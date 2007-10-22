@@ -5306,7 +5306,7 @@ file exists and nonzero exit status otherwise."
   (unless (tramp-get-connection-property vec "remote-shell" nil)
     (let (shell)
       (with-current-buffer (tramp-get-buffer vec)
-	(tramp-send-command vec "echo ~root")
+	(tramp-send-command vec "echo ~root" t)
 	(cond
 	 ((string-match "^~root$" (buffer-string))
 	  (setq shell
@@ -5328,8 +5328,11 @@ file exists and nonzero exit status otherwise."
 	    (when extra-args (setq shell (concat shell " " extra-args))))
 	  (tramp-message
 	   vec 5 "Starting remote shell `%s' for tilde expansion..." shell)
-	  (tramp-send-command-internal
-	   vec (concat "PROMPT_COMMAND='' PS1='$ ' exec " shell))
+	  (tramp-message
+	   vec 6 (format "PROMPT_COMMAND='' PS1='$ ' exec %s" shell))
+	  ;; We just send a string only without checking resulting prompt.
+	  (tramp-send-string
+	   vec (format "PROMPT_COMMAND='' PS1='$ ' exec %s" shell))
 	  (tramp-message vec 5 "Setting remote shell prompt...")
 	  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we
 	  ;; must use "\n" here, not tramp-rsh-end-of-line.  Kai left the
@@ -5340,7 +5343,8 @@ file exists and nonzero exit status otherwise."
 	   (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
 		   tramp-rsh-end-of-line
 		   tramp-end-of-output
-		   tramp-rsh-end-of-line))
+		   tramp-rsh-end-of-line)
+	   t)
 	  (tramp-message vec 5 "Setting remote shell prompt...done"))
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
@@ -5417,6 +5421,8 @@ See also `tramp-action-yesno'."
   "Tell the remote host which terminal type to use.
 The terminal type can be configured with `tramp-terminal-type'."
   (tramp-message vec 5 "Setting `%s' as terminal type." tramp-terminal-type)
+  (with-current-buffer (tramp-get-connection-buffer vec)
+    (tramp-message vec 6 "\n%s" (buffer-string)))
   (tramp-send-string vec tramp-terminal-type))
 
 (defun tramp-action-process-alive (proc vec)
@@ -5562,33 +5568,28 @@ nil."
 	  (tramp-error proc 'file-error "[[Regexp `%s' not found]]" regexp)))
       found)))
 
-(defun tramp-wait-for-shell-prompt (proc timeout)
-  "Wait for the shell prompt to appear from process PROC within TIMEOUT seconds.
-See `tramp-wait-for-regexp' for more details.
-Shell prompt pattern is determined by variables `shell-prompt-pattern'
-and `tramp-shell-prompt-pattern'."
-  (tramp-wait-for-regexp
-   proc timeout
-   (format "\\(%s\\|%s\\)\\'"
-	   shell-prompt-pattern tramp-shell-prompt-pattern)))
-
 (defun tramp-barf-if-no-shell-prompt (proc timeout &rest error-args)
   "Wait for shell prompt and barf if none appears.
 Looks at process PROC to see if a shell prompt appears in TIMEOUT
 seconds.  If not, it produces an error message with the given ERROR-ARGS."
-  (unless (tramp-wait-for-shell-prompt proc timeout)
+  (unless
+      (tramp-wait-for-regexp
+       proc timeout
+       (format
+	"\\(%s\\|%s\\)\\'" shell-prompt-pattern tramp-shell-prompt-pattern))
     (apply 'tramp-error-with-buffer nil proc 'file-error error-args)))
 
-;; We don't call `tramp-send-string' in order to hide the password from the
-;; debug buffer, and because end-of-line handling of the string.
-(defun tramp-enter-password (p)
+;; We don't call `tramp-send-string' in order to hide the password
+;; from the debug buffer, and because end-of-line handling of the
+;; string.
+(defun tramp-enter-password (proc)
   "Prompt for a password and send it to the remote end."
   (process-send-string
-   p (concat (tramp-read-passwd p)
-	     (or (tramp-get-method-parameter
-		  tramp-current-method
-		  'tramp-password-end-of-line)
-		 tramp-default-password-end-of-line))))
+   proc (concat (tramp-read-passwd proc)
+		(or (tramp-get-method-parameter
+		     tramp-current-method
+		     'tramp-password-end-of-line)
+		    tramp-default-password-end-of-line))))
 
 (defun tramp-open-connection-setup-interactive-shell (proc vec)
   "Set up an interactive shell.
@@ -5607,17 +5608,32 @@ process to set up.  VEC specifies the connection."
   ;; called as sh) on startup; this way, we avoid the startup file
   ;; clobbering $PS1.  $PROMP_COMMAND is another way to set the prompt
   ;; in /bin/bash, it must be discarded as well.
-  (tramp-send-command-internal
+  (tramp-message
+   vec 6 (format "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' %s"
+		 (tramp-get-method-parameter
+		  (tramp-file-name-method vec) 'tramp-remote-sh)))
+  ;; We just send a string only without checking resulting prompt.
+  (tramp-send-string
    vec
    (format "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' %s"
 	   (tramp-get-method-parameter
 	    (tramp-file-name-method vec) 'tramp-remote-sh)))
+  (tramp-message vec 5 "Setting shell prompt")
+  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we must
+  ;; use "\n" here, not tramp-rsh-end-of-line.
+  (tramp-send-command
+   vec
+   (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
+	   tramp-rsh-end-of-line
+           tramp-end-of-output
+	   tramp-rsh-end-of-line)
+   t)
   (tramp-message vec 5 "Setting up remote shell environment")
-  (tramp-send-command-internal vec "stty -inlcr -echo kill '^U' erase '^H'")
+  (tramp-send-command vec "stty -inlcr -echo kill '^U' erase '^H'" t)
   ;; Check whether the echo has really been disabled.  Some
   ;; implementations, like busybox of embedded GNU/Linux, don't
   ;; support disabling.
-  (tramp-send-command-internal vec "echo foo")
+  (tramp-send-command vec "echo foo" t)
   (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
     (when (looking-at "echo foo")
@@ -5625,11 +5641,11 @@ process to set up.  VEC specifies the connection."
       (tramp-message vec 5 "Remote echo still on. Ok.")
       ;; Make sure backspaces and their echo are enabled and no line
       ;; width magic interferes with them.
-      (tramp-send-command-internal vec "stty icanon erase ^H cols 32767")))
+      (tramp-send-command vec "stty icanon erase ^H cols 32767" t)))
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
   (tramp-message vec 5 "Determining coding system")
-  (tramp-send-command-internal vec "echo foo ; echo bar")
+  (tramp-send-command vec "echo foo ; echo bar" t)
   (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
     (if (featurep 'mule)
@@ -5655,17 +5671,8 @@ process to set up.  VEC specifies the connection."
 	;; We have found a ^M but cannot frob the process coding system
 	;; because we're running on a non-MULE Emacs.  Let's try
 	;; stty, instead.
-	(tramp-send-command-internal vec "stty -onlcr"))))
-  (tramp-send-command-internal vec "set +o vi +o emacs")
-  (tramp-message vec 5 "Setting shell prompt")
-  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we must
-  ;; use "\n" here, not tramp-rsh-end-of-line.
-  (tramp-send-command
-   vec
-   (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
-	   tramp-rsh-end-of-line
-           tramp-end-of-output
-	   tramp-rsh-end-of-line))
+	(tramp-send-command vec "stty -onlcr" t))))
+  (tramp-send-command vec "set +o vi +o emacs" t)
   ;; Check whether the remote host suffers from buggy `send-process-string'.
   ;; This is known for FreeBSD (see comment in `send_process', file process.c).
   ;; I've tested sending 624 bytes successfully, sending 625 bytes failed.
@@ -5695,7 +5702,7 @@ process to set up.  VEC specifies the connection."
   ;; ksh.  Whee...
   (tramp-find-shell vec)
   ;; Disable unexpected output.
-  (tramp-send-command vec "mesg n; biff n")
+  (tramp-send-command vec "mesg n; biff n" t)
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
   (let ((env (copy-sequence tramp-remote-process-environment))
@@ -5704,12 +5711,12 @@ process to set up.  VEC specifies the connection."
       (setq item (split-string (car env) "="))
       (if (and (stringp (cadr item)) (not (string-equal (cadr item) "")))
 	  (tramp-send-command
-	   vec (format "%s=%s; export %s" (car item) (cadr item) (car item)))
+	   vec (format "%s=%s; export %s" (car item) (cadr item) (car item)) t)
 	(push (car item) unset))
       (setq env (cdr env)))
     (when unset
       (tramp-send-command
-       vec (format "unset %s" (mapconcat 'identity unset " "))))))
+       vec (format "unset %s" (mapconcat 'identity unset " "))))) t)
 
 ;; CCC: We should either implement a Perl version of base64 encoding
 ;; and decoding.  Then we just use that in the last item.  The other
@@ -6180,19 +6187,6 @@ function waits for output unless NOOUTPUT is set."
     (tramp-message vec 6 "%s" command)
     (tramp-send-string vec command)
     (unless nooutput (tramp-wait-for-output p))))
-
-(defun tramp-send-command-internal (vec command)
-  "Send command to remote host and wait for success.
-Sends COMMAND, then waits 30 seconds for shell prompt."
-  (let ((p (tramp-get-connection-process vec)))
-    (when (tramp-get-connection-property vec "remote-echo" nil)
-      ;; We mark the command string that it can be erased in the output buffer.
-      (tramp-set-connection-property p "check-remote-echo" t)
-      (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
-    (tramp-message vec 6 "%s" command)
-    (tramp-send-string vec command)
-    (tramp-barf-if-no-shell-prompt
-     p 30 "Couldn't `%s', see buffer `%s'" command (buffer-name))))
 
 (defun tramp-wait-for-output (proc &optional timeout)
   "Wait for output from remote rsh command."

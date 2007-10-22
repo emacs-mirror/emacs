@@ -1,3 +1,13 @@
+2007-10-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-find-shell)
+	(tramp-open-connection-setup-interactive-shell): Improve sending
+	initial commands.
+	(tramp-action-terminal): Send debug message.
+	(tramp-wait-for-shell-prompt, tramp-send-command-internal): Removed.
+	(tramp-barf-if-no-shell-prompt): Insert code of
+	`tramp-wait-for-shell-prompt'.
+
 2007-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/AT386.el (terminal-init-AT386): Use input-decode-map.
