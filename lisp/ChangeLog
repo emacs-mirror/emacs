@@ -1,3 +1,12 @@
+2007-10-20  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* complete.el (PC-expand-many-files): Remove.
+	(PC-do-completion): Call file-expand-wildcards instead of
+	PC-expand-many-files.
+
+	* net/tramp.el (tramp-handle-expand-many-files): Remove.
+	(PC-expand-many-files): Remove advice.
+
 2007-10-22  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el: Remove leading "*" from defcustom doc-strings.
