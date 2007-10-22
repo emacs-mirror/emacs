@@ -1,3 +1,30 @@
+2007-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/vt200.el (terminal-init-vt200):
+	* term/vt201.el (terminal-init-vt201):
+	* term/vt220.el (terminal-init-vt220):
+	* term/vt240.el (terminal-init-vt240):
+	* term/vt300.el (terminal-init-vt300):
+	* term/vt320.el (terminal-init-vt320):
+	* term/vt400.el (terminal-init-vt400):
+	* term/vt420.el (terminal-init-vt420): Use input-decode-map.
+
+	* term/wyse50.el (wyse50-terminal-map): New var.
+	(terminal-init-wyse50): Use it and input-decode-map.
+	(enable-arrow-keys): Emasculate.
+
+	* term/tvi970.el (tvi970-terminal-map): New var.
+	(terminal-init-tvi970): Use it and input-decode-map.
+	(tvi970-keypad-numeric): Remove.
+	(tvi970-set-keypad-mode): Use a terminal-parameter rather than var.
+
+	* term/sun.el (sun-raw-prefix): Fill as part of declaration.
+	(terminal-init-sun): Use it and input-decode-map.
+
+	* term/news.el (terminal-init-news):
+	* term/lk201.el (terminal-init-lk201):
+	* term/iris-ansi.el (terminal-init-iris-ansi): Use input-decode-map.
+
 2007-10-22  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
 	* complete.el (PC-expand-many-files): Remove.
@@ -21,8 +48,8 @@
 	(f90-font-lock-keywords-2): Add `enumerator', `generic', `procedure',
 	`class'.  Arguments for `type'/`class' may have spaces.  Add a new
 	element for functions with specified types.  Add `end enum' and
-	`select type'.  Add `implicit enumerator' and `procedure'.  Add
-	`class default' and `type is', `class is'.  Fix `go to' regexp.
+	`select type'.  Add `implicit enumerator' and `procedure'.
+	Add `class default' and `type is', `class is'.  Fix `go to' regexp.
 	(f90-font-lock-keywords-3): Add `asynchronous' attribute.
 	(f90-font-lock-keywords-4): Add `f90-constants-re'.
 	(f90-blocks-re): Add `enum' and `associate'.
