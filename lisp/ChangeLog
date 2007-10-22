@@ -2,6 +2,10 @@
 
 	* menu-bar.el (global-buffers-menu-map): New var.
 	(global-map, menu-bar-update-buffers): Use it.
+	* msb.el (msb-menu-bar-update-buffers): Use it.
+	(msb-sort-by-directory, msb--choose-menu, msb--mode-menu-cond)
+	(msb--most-recently-used-menu, msb--create-buffer-menu-2):
+	Use with-current-buffer.
 
 2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
