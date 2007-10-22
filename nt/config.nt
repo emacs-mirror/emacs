@@ -140,6 +140,8 @@ Boston, MA 02110-1301, USA.  */
 #undef HAVE_TERMIOS_H
 #undef HAVE_LIMITS_H
 #undef HAVE_STRING_H
+#undef HAVE_STRINGS_H
+#undef HAVE_STDLIB_H
 #undef HAVE_PWD_H
 #undef STDC_HEADERS
 #undef TIME_WITH_SYS_TIME
@@ -469,6 +471,12 @@ extern char *getenv ();
 #ifdef HAVE_STRING_H
 #include "string.h"
 #endif
+#ifdef HAVE_STRINGS_H
+#include "strings.h"
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #endif
 
 #ifndef NO_RETURN
@@ -476,6 +484,14 @@ extern char *getenv ();
 #define NO_RETURN	__attribute__ ((__noreturn__))
 #else
 #define NO_RETURN	/* nothing */
+#endif
+#endif
+
+/* Redefine abort.  */
+#ifndef NOT_C_CODE
+#ifdef HAVE_NTGUI
+#define abort	w32_abort
+void w32_abort (void) NO_RETURN;
 #endif
 #endif
 
