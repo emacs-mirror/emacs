@@ -216,7 +216,7 @@ tex-suscript-height-minimum.
 `string', disabled by default.
 
 *** New variable `bibtex-cite-matcher-alist' contains rules to
-identify cited keys in BibTeX entries, used by `bibtex-find-crossref.
+identify cited keys in BibTeX entries, used by `bibtex-find-crossref'.
 
 *** Command `bibtex-url' now allows multiple URLs per entry.
 
@@ -391,11 +391,11 @@ with a given image specification.
 Use this instead of "~/.emacs.d".
 
 +++
-** The new function `start-file-process is similar to `start-process',
+** The new function `start-file-process' is similar to `start-process',
 but obeys file handlers.  The file handler is chosen based on
 `default-directory'.  The functions `start-file-process-shell-command'
 and `process-file-shell-command' are also new; they call internally
-`start-file-process and `process-file', respectively.
+`start-file-process' and `process-file', respectively.
 
 +++
 ** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
