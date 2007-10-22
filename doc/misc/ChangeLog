@@ -1,3 +1,8 @@
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* dired-x.texi (Shell Command Guessing): Default values are now
+	available by typing M-n instead of M-p.
+
 2007-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Cleanup remote connections): New section.
