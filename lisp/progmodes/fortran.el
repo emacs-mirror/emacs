@@ -622,7 +622,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
         ["72-column window"       fortran-window-create t]
         ["Full Width Window"
          (enlarge-window-horizontally (- (frame-width) (window-width)))
-         (< (window-width) (frame-width))]
+         (not (window-full-width-p))]
         ["Momentary 72-column window" fortran-window-create-momentarily t]
         "--"
         ["Break Line at Point"    fortran-split-line t]
@@ -1010,7 +1010,7 @@ The next key typed is executed unless it is SPC."
 See also `fortran-window-create-momentarily'."
   (interactive)
   (let ((window-min-width 2))
-    (if (< (window-width) (frame-width))
+    (unless (window-full-width-p)
 	(enlarge-window-horizontally (- (frame-width)
 					(window-width) 1)))
     (let* ((window-edges (window-edges))
