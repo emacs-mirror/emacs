@@ -1,5 +1,8 @@
 2007-10-22  Jason Rumney  <jasonr@gnu.org>
 
+	* s/ms-w32.h (HAVE_STDLIB_H): Define.
+	(abort): Redefinition moved to nt/config.nt.
+
 	* m/windowsnt.h: Remove.
 
 2007-10-22  Juanma Barranquero  <lekktu@gmail.com>
