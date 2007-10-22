@@ -4514,61 +4514,6 @@ Falls back to normal file name handler if no tramp file name handler exists."
 
 (add-hook 'tramp-unload-hook 'tramp-unload-file-name-handlers)
 
-;;; Interactions with other packages:
-
-;; -- complete.el --
-
-;; This function contributed by Ed Sabol
-(defun tramp-handle-expand-many-files (name)
-  "Like `PC-expand-many-files' for Tramp files."
-  (with-parsed-tramp-file-name name nil
-    (save-match-data
-      (if (or (string-match "\\*" name)
-	      (string-match "\\?" name)
-	      (string-match "\\[.*\\]" name))
-	  (progn
-	    (let (bufstr)
-	      ;; CCC: To do it right, we should quote certain characters
-	      ;; in the file name, but since the echo command is going to
-	      ;; break anyway when there are spaces in the file names, we
-	      ;; don't bother.
-	      ;;-(let ((comint-file-name-quote-list
-	      ;;-       (set-difference tramp-file-name-quote-list
-	      ;;-                       '(?\* ?\? ?[ ?]))))
-	      ;;-  (tramp-send-command
-	      ;;-   method user host
-	      ;;-   (format "echo %s" (comint-quote-filename localname))))
-	      (tramp-send-command v (format "echo %s" localname))
-	      (setq bufstr (buffer-substring
-			    (point-min) (tramp-compat-line-end-position)))
-	      (with-current-buffer (tramp-get-buffer v)
-		(goto-char (point-min))
-		(if (string-equal localname bufstr)
-		    nil
-		  (insert "(\"")
-		  (while (search-forward " " nil t)
-		    (delete-backward-char 1)
-		    (insert "\" \""))
-		  (goto-char (point-max))
-		  (delete-backward-char 1)
-		  (insert "\")")
-		  (goto-char (point-min))
-		  (mapcar
-		   (lambda (x) (tramp-make-tramp-file-name method user host x))
-		   (read (current-buffer)))))))
-	(list (expand-file-name name))))))
-
-(eval-after-load "complete"
-  '(progn
-     (defadvice PC-expand-many-files
-       (around tramp-advice-PC-expand-many-files (name) activate)
-       "Invoke `tramp-handle-expand-many-files' for Tramp files."
-       (if (tramp-tramp-file-p name)
-	   (setq ad-return-value (tramp-handle-expand-many-files name))
-	 ad-do-it))
-     (add-hook 'tramp-unload-hook
-	       '(lambda () (ad-unadvise 'PC-expand-many-files)))))
-
 ;;; File name handler functions for completion mode.
 
 (defvar tramp-completion-mode nil
