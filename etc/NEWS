@@ -166,6 +166,11 @@ its usage.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
++++
+** In Dired-x, all command guesses for ! are now added to the default
+list accessible by M-n instead of pushing all guesses temporarily into
+the history list.
+
 ** smerge-refine highlights word-level details of changes in conflict.
 It's used automatically as you move through conflicts, see smerge-auto-refine.
 
@@ -281,6 +286,13 @@ supported on other platforms, but not on Windows due to using the winsock
 
 
 * Lisp Changes in Emacs 23.1
+
++++
+** A list of default values can be specified for the DEFAULT argument of
+functions `read-from-minibuffer', `read-string', `read-command',
+`read-variable', `read-buffer', `completing-read'.  Elements of this list
+are available for inserting into the minibuffer by typing `M-n'.
+For empty input these functions return the first element of this list.
 
 ** `frame-inherited-parameters' lets new frames inherit parameters from
 the selected frame.
