@@ -1,3 +1,10 @@
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Text from Minibuffer, Minibuffer Completion)
+	(High-Level Completion): Document a list of default value strings
+	in the DEFAULT argument, for which minibuffer functions return the
+	first element.
+
 2007-10-17  Juri Linkov  <juri@jurta.org>
 
 	* text.texi (Filling): Update arguments of fill-paragraph.
