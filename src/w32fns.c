@@ -9100,8 +9100,6 @@ void globals_of_w32fns ()
 
 #undef abort
 
-void w32_abort (void) NO_RETURN;
-
 void
 w32_abort()
 {
