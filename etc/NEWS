@@ -256,7 +256,7 @@ that either version can be used as inferior Python by python.el.
 
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
-*** F90 mode has some support for Fortran 2003 syntax.
+*** (The increasingly misnamed) F90 mode has some support for Fortran 2003.
 At present, there are some problems with derived types.
 
 ** Miscellaneous
