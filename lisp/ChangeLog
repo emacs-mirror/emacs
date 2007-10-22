@@ -1,3 +1,8 @@
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (goto-history-element): Allow minibuffer-default to be
+	a list of default values accessible by typing M-n in the minibuffer.
+
 2007-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Fix paren typo.
