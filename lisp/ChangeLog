@@ -1,3 +1,7 @@
+2007-10-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el: Remove leading "*" from defcustom doc-strings.
+
 2007-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/fortran.el (fortran-mode-map, fortran-window-create):
