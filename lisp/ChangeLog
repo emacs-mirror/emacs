@@ -3,6 +3,10 @@
 	* simple.el (goto-history-element): Allow minibuffer-default to be
 	a list of default values accessible by typing M-n in the minibuffer.
 
+	* dired-x.el (dired-guess-shell-command): Put all guesses to the
+	minibuffer default value list instead of pushing them temporarily
+	to the history list.
+
 2007-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Fix paren typo.
