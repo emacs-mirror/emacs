@@ -1,3 +1,17 @@
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* isearch-multi.el: New file.
+
+	* isearch.el (isearch-search-string): After finding the next
+	occurrence switch to buffer isearch-buffers-current-buffer when
+	isearch-buffers-next-buffer-function is non-nil and
+	isearch-buffers-current-buffer is live.
+
+	* add-log.el (change-log-mode): Make and set buffer-local variable
+	isearch-buffers-next-buffer-function to change-log-next-buffer.
+	Call isearch-buffers-minor-mode.
+	(change-log-next-buffer): New function.
+
 2007-10-22  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.el (org-read-date-get-relative): New function.
