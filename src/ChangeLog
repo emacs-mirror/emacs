@@ -1,3 +1,7 @@
+2007-10-22  Jason Rumney  <jasonr@gnu.org>
+
+	*  (m/windowsnt.h): Remove.
+
 2007-10-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (Fdump_emacs): Fix typo in message.
