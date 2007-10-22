@@ -144,4 +144,5 @@ This includes password cache, file cache, connection cache, buffers."
 ;;   ordinary variable that gets its initial value from
 ;;   tramp-default-user-alist and then is added to. (Pete Forman)
 
+;; arch-tag: 190d4c33-76bb-4e99-8b6f-71741f23d98c
 ;;; tramp-cmds.el ends here
