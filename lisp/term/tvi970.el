@@ -29,87 +29,80 @@
 
 ;;; Code:
 
+(defvar tvi970-terminal-map
+  (let ((map (make-sparse-keymap)))
+
+    ;; Miscellaneous keys
+    (dolist (key-binding
+             '(;; These are set up by termcap or terminfo
+               ;; ("\eOP"	[kp-f1])
+               ;; ("\eOQ"	[kp-f2])
+               ;; ("\eOR"	[kp-f3])
+               ;; ("\eOS"	[kp-f4])
+
+               ;; These might bre set by terminfo.
+               ("\e[H"	[home])
+               ("\e[Z"	[backtab])
+               ("\e[i"	[print])
+               ("\e[@"	[insert])
+               ("\e[L"	[insertline])
+               ("\e[M"	[deleteline])
+               ("\e[U"	[next]) ;; actually the `page' key
+
+               ;; These won't be set up by either
+               ("\eOm"	[kp-subtract])
+               ("\eOl"	[kp-separator])
+               ("\eOn"	[kp-decimal])
+               ("\eOM"	[kp-enter])
+
+               ;; These won't be set up by either either
+               ("\e[K"	[key_eol])	;; Not an X keysym
+               ("\e[J"	[key_eos])	;; Not an X keysym
+               ("\e[2J"	[key_clear])	;; Not an X keysym
+               ("\e[P"	[key_dc])	;; Not an X keysym
+               ("\e[g"	[S-tab])	;; Not an X keysym
+               ("\e[2N"	[clearentry])	;; Not an X keysym
+               ("\e[2K"	[S-clearentry])	;; Not an X keysym
+               ("\e[E"	[?\C-j])	;; Not an X keysym
+               ("\e[g"	[S-backtab])	;; Not an X keysym
+               ("\e[?1i"	[key_sprint]) ;; Not an X keysym
+               ("\e[4h"	[key_sic])            ;; Not an X keysym
+               ("\e[4l"	[S-delete])           ;; Not an X keysym
+               ("\e[Q"	[S-insertline])       ;; Not an X keysym
+               ("\e[1Q"	[key_sdl])            ;; Not an X keysym
+               ("\e[19l"	[key_seol])   ;; Not an X keysym
+               ("\e[19h"	[S-erasepage]) ;; Not an X keysym
+               ("\e[V"	[S-page])              ;; Not an X keysym
+               ("\eS"	[send])                ;; Not an X keysym
+               ("\e5"	[S-send])              ;; Not an X keysym
+               ))
+      (define-key map (car key-binding) (nth 1 key-binding)))
+             
+
+    ;; The numeric keypad keys.
+    (dotimes (i 10)
+      (define-key map (format "\eO%c" (+ i ?p))
+        (vector (intern (format "kp-%d" i)))))
+    ;; The numbered function keys.
+    (dotimes (i 16)
+      (define-key map (format "\e?%c" (+ i ?a))
+        (vector (intern (format "f%d" (1+ i)))))
+      (define-key map (format "\e?%c" (+ i ?A))
+        (vector (intern (format "S-f%d" (1+ i))))))
+    map))
+
 (defun terminal-init-tvi970 ()
   "Terminal initialization function for tvi970."
-  (or (lookup-key local-function-key-map "\e[")
-      (define-key local-function-key-map "\e[" (make-keymap)))
-  ;; (or (lookup-key local-function-key-map "\eO")
-  ;;    (define-key local-function-key-map "\eO" (make-keymap)))
-
-  ;; Miscellaneous keys
-  (mapc (function (lambda (key-binding)
-		      (define-key local-function-key-map
-			(car key-binding) (nth 1 key-binding))))
-	  '(
-	    ;; These are set up by termcap or terminfo
-	    ;; ("\eOP"	[kp-f1])
-	    ;; ("\eOQ"	[kp-f2])
-	    ;; ("\eOR"	[kp-f3])
-	    ;; ("\eOS"	[kp-f4])
-
-	    ;; These might br set by terminfo
-	    ("\e[H"	[home])
-	    ("\e[Z"	[backtab])
-	    ("\e[i"	[print])
-	    ("\e[@"	[insert])
-	    ("\e[L"	[insertline])
-	    ("\e[M"	[deleteline])
-	    ("\e[U"	[next])		;; actually the `page' key
-
-	    ;; These won't be set up by either
-	    ("\eOm"	[kp-subtract])
-	    ("\eOl"	[kp-separator])
-	    ("\eOn"	[kp-decimal])
-	    ("\eOM"	[kp-enter])
-
-	    ;; These won't be set up by either either
-	    ("\e[K"	[key_eol])	;; Not an X keysym
-	    ("\e[J"	[key_eos])	;; Not an X keysym
-	    ("\e[2J"	[key_clear])	;; Not an X keysym
-	    ("\e[P"	[key_dc])	;; Not an X keysym
-	    ("\e[g"	[S-tab])	;; Not an X keysym
-	    ("\e[2N"	[clearentry])	;; Not an X keysym
-	    ("\e[2K"	[S-clearentry])	;; Not an X keysym
-	    ("\e[E"	[?\C-j])	;; Not an X keysym
-	    ("\e[g"	[S-backtab])	;; Not an X keysym
-	    ("\e[?1i"	[key_sprint])	;; Not an X keysym
-	    ("\e[4h"	[key_sic])	;; Not an X keysym
-	    ("\e[4l"	[S-delete])	;; Not an X keysym
-	    ("\e[Q"	[S-insertline])	;; Not an X keysym
-	    ("\e[1Q"	[key_sdl])	;; Not an X keysym
-	    ("\e[19l"	[key_seol])	;; Not an X keysym
-	    ("\e[19h"	[S-erasepage])	;; Not an X keysym
-	    ("\e[V"	[S-page])	;; Not an X keysym
-	    ("\eS"	[send])		;; Not an X keysym
-	    ("\e5"	[S-send])	;; Not an X keysym
-	    ))
-
-  ;; The numeric keypad keys.
-  (let ((i 0))
-    (while (< i 10)
-      (define-key local-function-key-map
-	(format "\eO%c" (+ i ?p))
-	(vector (intern (format "kp-%d" i))))
-      (setq i (1+ i))))
-  ;; The numbered function keys.
-  (let ((i 0))
-    (while (< i 16)
-      (define-key local-function-key-map
-	(format "\e?%c" (+ i ?a))
-	(vector (intern (format "f%d" (1+ i)))))
-      (define-key local-function-key-map
-	(format "\e?%c" (+ i ?A))
-	(vector (intern (format "S-f%d" (1+ i)))))
-      (setq i (1+ i))))
-
+  ;; Use inheritance to let the main keymap override these defaults.
+  ;; This way we don't override terminfo-derived settings or settings
+  ;; made in the .emacs file.
+  (let ((m (copy-keymap tvi970-terminal-map)))
+    (set-keymap-parent m (keymap-parent input-decode-map))
+    (set-keymap-parent input-decode-map m))
   (tvi970-set-keypad-mode 1))
 
 
-;;; Should keypad numbers send ordinary digits or distinct escape sequences?
-(defvar tvi970-keypad-numeric nil
-  "Non-nil means the terminal should be in numeric keypad mode.
-Do not set this variable!  Call the function `tvi970-set-keypad-mode'.")
-
+;; Should keypad numbers send ordinary digits or distinct escape sequences?
 (defun tvi970-set-keypad-mode (&optional arg)
   "Set the current mode of the TVI 970 numeric keypad.
 In ``numeric keypad mode'', the number keys on the keypad act as
@@ -120,11 +113,11 @@ With no argument, toggle between the two possible modes.
 With a positive argument, select alternate keypad mode.
 With a negative argument, select numeric keypad mode."
   (interactive "P")
-  (setq tvi970-keypad-numeric
-	(if (null arg)
-	    (not tvi970-keypad-numeric)
-	  (> (prefix-numeric-value arg) 0)))
-  (send-string-to-terminal (if tvi970-keypad-numeric "\e=" "\e>")))
+  (let ((newval (if (null arg)
+                    (not (terminal-parameter nil 'tvi970-keypad-numeric))
+                  (> (prefix-numeric-value arg) 0))))
+    (set-terminal-parameter nil 'tvi970-keypad-numeric newval)
+    (send-string-to-terminal (if newval "\e=" "\e>"))))
 
-;;; arch-tag: c1334cf0-1462-41c3-a963-c077d175f8f0
+;; arch-tag: c1334cf0-1462-41c3-a963-c077d175f8f0
 ;;; tvi970.el ends here
