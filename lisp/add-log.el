@@ -760,7 +760,29 @@ Runs `change-log-mode-hook'.
        'change-log-resolve-conflict)
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (set (make-local-variable 'font-lock-defaults)
-       '(change-log-font-lock-keywords t nil nil backward-paragraph)))
+       '(change-log-font-lock-keywords t nil nil backward-paragraph))
+  (set (make-local-variable 'isearch-buffers-next-buffer-function)
+       'change-log-next-buffer)
+  (isearch-buffers-minor-mode))
+
+(defun change-log-next-buffer (&optional buffer wrap)
+  "Return the next buffer in the series of ChangeLog file buffers.
+This function is used for multiple buffers isearch.
+A sequence of buffers is formed by ChangeLog files with decreasing
+numeric file name suffixes in the directory of the initial ChangeLog
+file were isearch was started."
+  (let* ((name (change-log-name))
+	 (files (cons name (sort (file-expand-wildcards
+				  (concat name "[-.][0-9]*"))
+				 (lambda (a b)
+				   (version< (substring b (length name))
+					     (substring a (length name)))))))
+	 (files (if isearch-forward files (reverse files))))
+    (find-file-noselect
+     (if wrap
+	 (car files)
+       (cadr (member (file-name-nondirectory (buffer-file-name buffer))
+		     files))))))
 
 ;; It might be nice to have a general feature to replace this.  The idea I
 ;; have is a variable giving a regexp matching text which should not be
