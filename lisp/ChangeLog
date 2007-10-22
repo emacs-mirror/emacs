@@ -1,3 +1,8 @@
+2007-10-22  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/fortran.el (fortran-mode-map, fortran-window-create):
+	Use window-full-width-p.
+
 2007-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/tpu-edt.el (tpu-edt-old-global-values): New var.
