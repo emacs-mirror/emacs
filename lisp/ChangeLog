@@ -1,7 +1,11 @@
+2007-10-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ibuf-ext.el (ibuffer-switch-to-saved-filters)
+	(ibuffer-switch-to-saved-filter-groups): Doc fixes.
+
 2007-10-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term/xterm.el (terminal-init-xterm): Experiment with a longer
-	timeout.
+	* term/xterm.el (terminal-init-xterm): Experiment with a longer timeout.
 
 2007-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
