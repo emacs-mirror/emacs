@@ -1774,7 +1774,7 @@ saving the buffer."
   "List the differences between FILE's versions REV1 and REV2.
 If REV1 is empty or nil it means to use the current workfile version;
 REV2 empty or nil means the current file contents.  FILE may also be
-a directory, in that case, generate diffs between the correponding
+a directory, in that case, generate diffs between the corresponding
 versions of all registered files in or below it."
   (interactive
    (let* ((file (expand-file-name
