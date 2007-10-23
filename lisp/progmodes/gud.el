@@ -49,9 +49,14 @@
 (defvar gdb-macro-info)
 (defvar gdb-server-prefix)
 (defvar gdb-show-changed-values)
+(defvar gdb-source-window)
 (defvar gdb-var-list)
 (defvar gdb-speedbar-auto-raise)
+(defvar gud-tooltip-mode)
+(defvar hl-line-mode)
+(defvar hl-line-sticky-flag)
 (defvar tool-bar-map)
+
 
 ;; ======================================================================
 ;; GUD commands must be visible in C buffers visited by GUD
