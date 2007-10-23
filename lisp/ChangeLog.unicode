@@ -1,3 +1,10 @@
+2007-10-23  Kenichi Handa  <handa@m17n.org>
+
+	* language/chinese.el (cp936): Delete duplicated alias.
+
+	* international/mule-diag.el (list-block-of-chars): Don't insert
+	non-Unicode characters.
+
 2007-10-14  Jason Rumney  <jasonr@gnu.org>
 
 	* loadup.el [windows-nt]: Don't load code-pages and ccl.
