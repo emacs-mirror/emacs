@@ -1,3 +1,20 @@
+2007-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-tab-mode-default)
+	(fortran-tab-mode-string, fortran-do-indent, fortran-if-indent)
+	(fortran-structure-indent, fortran-continuation-indent)
+	(fortran-comment-indent, fortran-comment-line-extra-indent)
+	(fortran-comment-line-start)
+	(fortran-minimum-statement-indent-fixed)
+	(fortran-minimum-statement-indent-tab)
+	(fortran-comment-indent-char, fortran-line-number-indent)
+	(fortran-check-all-num-for-matching-do)
+	(fortran-blink-matching-if, fortran-continuation-string)
+	(fortran-comment-region, fortran-electric-line-number)
+	(fortran-column-ruler-fixed, fortran-column-ruler-tab)
+	(fortran-analyze-depth, fortran-break-before-delimiters):
+	Give an appropriate safe-local-variable property.
+
 2007-10-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* printing.el: Move variable definitions before use.
