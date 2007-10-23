@@ -93,7 +93,6 @@
 (define-coding-system-alias 'euc-cn 'chinese-iso-8bit)
 (define-coding-system-alias 'cn-gb 'chinese-iso-8bit)
 (define-coding-system-alias 'gb2312 'chinese-iso-8bit)
-(define-coding-system-alias 'cp936 'chinese-iso-8bit)
 
 (define-coding-system 'chinese-hz
   "Hz/ZW 7-bit encoding for Chinese GB2312 (MIME:HZ-GB-2312)."
