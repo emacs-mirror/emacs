@@ -1388,7 +1388,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     while (*p != 0)
       {
         while (*q != 0 && strchr (*q, '=') == NULL)
-          *q++;
+          q++;
         *p = *q++;
         if (*p != 0)
           p++;

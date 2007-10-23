@@ -1,5 +1,7 @@
 2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* callproc.c (child_setup): Remove spurious *.
+
 	* lisp.h (Fget_text_property): Declare.
 	(have_menus_p): Declare it here rather than in sys-dep header files.
 	* macterm.h (have_menus_p):
