@@ -334,10 +334,11 @@ This variable is buffer-local."
 ;; ksu prints a prompt like `Kerberos password for devnull/root@GNU.ORG: '.
 ;; ssh-add prints a prompt like `Enter passphrase: '.
 ;; plink prints a prompt like `Passphrase for key "root@GNU.ORG": '.
+;; Ubuntu's sudo prompts like `[sudo] password for user:'
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 (defcustom comint-password-prompt-regexp
   "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
-Kerberos \\|CVS \\|UNIX \\| SMB \\|LDAP \\|^\\)\
+Kerberos \\|CVS \\|UNIX \\| SMB \\|LDAP \\|\\[sudo] \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
 pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
 \\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
