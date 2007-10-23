@@ -3004,8 +3004,10 @@ in any of these classes."
 	(if advice-docstring
 	    (push advice-docstring paragraphs))))
     (setq origdoc (if paragraphs
-		      ;; separate paragraphs with blank lines:
-		      (mapconcat 'identity (nreverse paragraphs) "\n\n")))
+		      (propertize
+		       ;; separate paragraphs with blank lines:
+		       (mapconcat 'identity (nreverse paragraphs) "\n\n")
+		       'ad-advice-info function)))
     (help-add-fundoc-usage origdoc usage)))
 
 (defun ad-make-plain-docstring (function)
