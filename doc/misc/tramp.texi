@@ -3288,9 +3288,8 @@ function call traces.  Such traces are enabled by the following code:
 @lisp
 (require 'tramp)
 (require 'trace)
-(mapcar 'trace-function-background
-        (mapcar 'intern
-                (all-completions "tramp-" obarray 'functionp)))
+(dolist (elt (all-completions "tramp-" obarray 'functionp))
+  (trace-function-background (intern elt)))
 (untrace-function 'tramp-read-passwd)
 (untrace-function 'tramp-gw-basic-authentication)
 @end lisp
