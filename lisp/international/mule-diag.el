@@ -255,11 +255,13 @@ detailed meanings of these arguments."
 		   32
 		 (or (decode-char charset (+ (* row 256) i))
 		     32)))		; gap in mapping
-      ;; Don't insert a control code.
+      ;; Don't insert control codes, non-Unicode characters.
       (if (or (< ch 32) (= ch 127))
 	  (setq ch (single-key-description ch))
 	(if (and (>= ch 128) (< ch 160))
-	    (setq ch (format "%02Xh" ch))))
+	    (setq ch (format "%02Xh" ch))
+	  (if (> ch #x10FFFF)
+	      (setq ch 32))))
       (insert "\t" ch)
       (setq i (1+ i))))
   (insert "\n"))
