@@ -33,6 +33,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defun css-extract-keyword-list (res)
   (with-temp-buffer
     (url-insert-file-contents "http://www.w3.org/TR/REC-CSS2/css2.txt")
@@ -270,6 +272,8 @@
         (aset fc c 'indent-according-to-mode))
       (set (make-local-variable 'auto-fill-chars) fc))))
 
+(defvar comment-continue)
+
 (defun css-fill-paragraph (&optional justify)
   (save-excursion
     (let ((ppss (syntax-ppss))
@@ -286,7 +290,7 @@
         ;; css-mode but for all modes.
         (save-restriction
           (narrow-to-region (nth 8 ppss) eol)
-          (comment-normalize-vars)
+          (comment-normalize-vars)      ;Will define comment-continue.
           (let ((fill-paragraph-function nil)
                 (paragraph-separate
                  (if (and comment-continue

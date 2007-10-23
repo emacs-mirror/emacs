@@ -1,5 +1,8 @@
 2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/css-mode.el: Require CL.
+	(comment-continue): Declare.
+
 	* subr.el (make-variable-frame-localizable): Remove.
 	(make-variable-frame-local): Mark obsolete.
 
