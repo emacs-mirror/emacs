@@ -1,3 +1,8 @@
+2007-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-lisp/advice.el (ad-make-advised-docstring):
+	Add ad-advice-info text property to doc string.
+
 2007-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-do-indent, f90-if-indent)
