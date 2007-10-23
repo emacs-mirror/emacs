@@ -1,3 +1,7 @@
+2007-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* MAINTAINERS: Move to admin/.
+
 2007-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in (HAVE_RES_INIT): Define if res_init() exists.
