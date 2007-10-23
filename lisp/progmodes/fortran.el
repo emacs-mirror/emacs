@@ -86,31 +86,37 @@ A value of nil specifies that continuation lines are marked
 with a character in column 6."
   :type  'boolean
   :group 'fortran-indent)
+(put 'fortran-tab-mode-default 'safe-local-variable 'booleanp)
 
 (defcustom fortran-tab-mode-string "/t"
   "*String to appear in mode line in TAB format buffers."
   :type  'string
   :group 'fortran-indent)
+(put 'fortran-tab-mode-string 'safe-local-variable 'stringp)
 
 (defcustom fortran-do-indent 3
   "*Extra indentation applied to DO blocks."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-do-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-if-indent 3
   "*Extra indentation applied to IF, SELECT CASE and WHERE blocks."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-if-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-structure-indent 3
   "*Extra indentation applied to STRUCTURE, UNION, MAP and INTERFACE blocks."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-structure-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-continuation-indent 5
   "*Extra indentation applied to continuation lines."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-continuation-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-comment-indent-style 'fixed
   "*How to indent comments.
@@ -122,12 +128,15 @@ nil forces comment lines not to be touched;
   `fortran-comment-line-extra-indent'."
   :type  '(radio (const :tag "Untouched" nil) (const fixed) (const relative))
   :group 'fortran-indent)
+(put 'fortran-comment-indent 'safe-local-variable
+     (lambda (value) (memq value '(nil fixed relative))))
 
 (defcustom fortran-comment-line-extra-indent 0
   "*Amount of extra indentation for text within full-line comments."
   :type  'integer
   :group 'fortran-indent
   :group 'fortran-comment)
+(put 'fortran-comment-line-extra-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-comment-line-start "C"
   "*Delimiter inserted to start new full-line comment.
@@ -135,6 +144,7 @@ You might want to change this to \"*\", for instance."
   :version "21.1"
   :type    'string
   :group   'fortran-comment)
+(put 'fortran-comment-line-start 'safe-local-variable 'stringp)
 
 ;; This used to match preprocessor lines too, but that messes up
 ;; filling and doesn't seem to be necessary.
@@ -144,6 +154,7 @@ You might want to change this to \"*\", for instance."
   :version "21.1"
   :type    'regexp
   :group   'fortran-comment)
+;; FIXME is an arbitrary regexp safe?
 
 (defcustom fortran-directive-re
   "^[ \t]*#.*"
@@ -153,16 +164,19 @@ The matching line will be given zero indentation."
   :version "22.1"
   :type    'regexp
   :group   'fortran-indent)
+;; FIXME is an arbitrary regexp safe?
 
 (defcustom fortran-minimum-statement-indent-fixed 6
   "*Minimum statement indentation for fixed format continuation style."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-minimum-statement-indent-fixed 'safe-local-variable 'integerp)
 
 (defcustom fortran-minimum-statement-indent-tab (max tab-width 6)
   "*Minimum statement indentation for TAB format continuation style."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-minimum-statement-indent-tab 'safe-local-variable 'integerp)
 
 ;; Note that this is documented in the v18 manuals as being a string
 ;; of length one rather than a single character.
@@ -172,23 +186,30 @@ The matching line will be given zero indentation."
 Normally a space."
   :type  'string
   :group 'fortran-comment)
+(put 'fortran-comment-indent-char 'safe-local-variable
+     (lambda (value) (or (char-valid-p value)
+                         (and (stringp value)
+                              (= (length value) 1)))))
 
 (defcustom fortran-line-number-indent 1
   "*Maximum indentation for Fortran line numbers.
 5 means right-justify them within their five-column field."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-line-number-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-check-all-num-for-matching-do nil
   "*Non-nil causes all numbered lines to be treated as possible DO loop ends."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-check-all-num-for-matching-do 'safe-local-variable 'booleanp)
 
 (defcustom fortran-blink-matching-if nil
   "*Non-nil causes \\[fortran-indent-line] on ENDIF to blink on matching IF.
 Also, from an ENDDO statement blink on matching DO [WHILE] statement."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-blink-matching-if 'safe-local-variable 'booleanp)
 
 (defcustom fortran-continuation-string "$"
   "*Single-character string used for Fortran continuation lines.
@@ -199,17 +220,22 @@ line, it will convert the line into a continuation line of the
 appropriate style. Normally $."
   :type  'string
   :group 'fortran)
+(put 'fortran-continuation-string 'safe-local-variable
+     (lambda (value) (and (stringp value)
+                          (= (length value) 1))))
 
 (defcustom fortran-comment-region "c$$$"
   "*String inserted by \\[fortran-comment-region] at start of each \
 line in region."
   :type  'string
   :group 'fortran-comment)
+(put 'fortran-comment-region 'safe-local-variable 'stringp)
 
 (defcustom fortran-electric-line-number t
   "*Non-nil causes line numbers to be moved to the correct column as typed."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-electric-line-number 'safe-local-variable 'booleanp)
 
 (defcustom fortran-column-ruler-fixed
   "0   4 6  10        20        30        40        5\
@@ -221,6 +247,7 @@ This variable is used in fixed format mode.
 See the variable `fortran-column-ruler-tab' for TAB format mode."
   :type  'string
   :group 'fortran)
+(put 'fortran-column-ruler-fixed 'safe-local-variable 'stringp)
 
 (defcustom fortran-column-ruler-tab
   "0       810        20        30        40        5\
@@ -232,17 +259,20 @@ This variable is used in TAB format mode.
 See the variable `fortran-column-ruler-fixed' for fixed format mode."
   :type  'string
   :group 'fortran)
+(put 'fortran-column-ruler-tab 'safe-local-variable 'stringp)
 
 (defcustom fortran-analyze-depth 100
   "Number of lines to scan to identify fixed or TAB format style."
   :type  'integer
   :group 'fortran)
+(put 'fortran-analyze-depth 'safe-local-variable 'integerp)
 
 (defcustom fortran-break-before-delimiters t
   "*Non-nil causes filling to break lines before delimiters.
 Delimiters are characters matching the regexp `fortran-break-delimiters-re'."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-break-before-delimiters 'safe-local-variable 'booleanp)
 
 (defconst fortran-break-delimiters-re "[-+*/><=, \t]"
   "Regexp matching delimiter characters at which lines may be broken.
