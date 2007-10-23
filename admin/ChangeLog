@@ -1,3 +1,7 @@
+2007-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* MAINTAINERS: Move here from ../.
+
 2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* make-emacs: Doc fix.
