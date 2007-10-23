@@ -2575,11 +2575,14 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
     ;; We handle also the local part, because there doesn't exist
     ;; `set-file-uid-gid'.
     (let ((uid (or (and (integerp uid) uid) (tramp-get-local-uid 'integer)))
-	  (gid (or (and (integerp gid) gid) (tramp-get-local-uid 'integer)))
+	  (gid (or (and (integerp gid) gid) (tramp-get-local-gid 'integer)))
 	  (default-directory (tramp-compat-temporary-file-directory)))
-      (call-process
-       "chown" nil nil nil
-       (format "%d:%d" uid gid) (tramp-shell-quote-argument filename)))))
+      ;; "chown" might not exist, for example on Win32.
+      (condition-case nil
+	  (call-process
+	   "chown" nil nil nil
+	   (format "%d:%d" uid gid) (tramp-shell-quote-argument filename))
+	(error nil)))))
 
 ;; Simple functions using the `test' command.
 
