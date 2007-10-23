@@ -1,3 +1,8 @@
+2007-10-23  Chris Moore  <christopher.ian.moore@gmail.com>
+
+	* comint.el (comint-password-prompt-regexp):
+	Handle `[sudo] password'-style prompt.
+
 2007-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-do-indent, f90-if-indent)
