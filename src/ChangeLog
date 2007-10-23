@@ -1,5 +1,11 @@
 2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (Fget_text_property): Declare.
+	(have_menus_p): Declare it here rather than in sys-dep header files.
+	* macterm.h (have_menus_p):
+	* msdos.h (have_menus_p):
+	* xterm.h (have_menus_p): Remove.
+
 	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
 	(Fmake_variable_frame_local): Just check the variable's const-ness
 	rather than checking nil or t.

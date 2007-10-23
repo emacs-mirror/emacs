@@ -680,8 +680,6 @@ extern void x_clear_frame_selections P_ ((struct frame *));
 
 /* Defined in macfns.c */
 
-extern int have_menus_p P_ ((void));
-
 extern void x_real_positions P_ ((struct frame *, int *, int *));
 extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern int x_pixel_width P_ ((struct frame *));

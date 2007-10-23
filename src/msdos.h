@@ -115,7 +115,6 @@ struct window;
 
 /* Defined in xfns.c; emulated on msdos.c */
 
-extern int have_menus_p P_ ((void));
 extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern int x_pixel_width P_ ((struct frame *));
 extern int x_pixel_height P_ ((struct frame *));
