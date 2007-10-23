@@ -18,6 +18,7 @@
 
 	* w32fns.c: Include math.h.
 	(w32_abort): Declaration moved to nt/config.nt.
+
 	* s/ms-w32.h (HAVE_STDLIB_H): Define.
 	(abort): Redefinition moved to nt/config.nt.
 
@@ -34,7 +35,7 @@
 	* minibuf.c: Allow minibuffer default to be a list of default values.
 	With empty input use the first element of this list as returned default.
 	(string_to_object)
-	(read_minibuf_noninteractive):  If defalt is cons, set val to its car.
+	(read_minibuf_noninteractive): If defalt is cons, set val to its car.
 	(read_minibuf): If defalt is cons, set histstring to its car.
 	(Fread_string): If default_value is cons, set val to its car.
 	(Fread_buffer): If def is cons, use its car.
