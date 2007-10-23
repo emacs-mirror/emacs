@@ -1,5 +1,7 @@
 2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* process.c (unwind_request_sigio): Only define if __ultrix__.
+
 	* callproc.c (child_setup): Remove spurious *.
 
 	* lisp.h (Fget_text_property): Declare.
