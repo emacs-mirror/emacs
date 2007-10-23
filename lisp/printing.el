@@ -1095,6 +1095,101 @@ If SUFFIX is non-nil, add that at the end of the file name."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; User Interface (I)
+
+
+(defgroup printing nil
+  "Printing Utilities group."
+  :tag "Printing Utilities"
+  :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
+  :prefix "pr-"
+  :version "20"
+  :group 'wp
+  :group 'postscript)
+
+
+(defcustom pr-path-style
+  (if (and (not pr-cygwin-system)
+	   ps-windows-system)
+      'windows
+    'unix)
+  "*Specify which path style to use for external commands.
+
+Valid values are:
+
+   windows	Windows 9x/NT style (\\)
+
+   unix		Unix style (/)"
+  :type '(choice :tag "Path style"
+		 (const :tag "Windows 9x/NT Style (\\)" :value windows)
+		 (const :tag "Unix Style (/)" :value unix))
+  :version "20"
+  :group 'printing)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Customization Functions
+
+
+(defun pr-alist-custom-set (symbol value)
+  "Set the value of custom variables for printer & utility selection."
+  (set symbol value)
+  (and (featurep 'printing)		; update only after printing is loaded
+       (pr-update-menus t)))
+
+
+(defun pr-ps-utility-custom-set (symbol value)
+  "Update utility menu entry."
+  (set symbol value)
+  (and (featurep 'printing)		; update only after printing is loaded
+       (pr-menu-set-utility-title value)))
+
+
+(defun pr-ps-name-custom-set (symbol value)
+  "Update `PostScript Printer:' menu entry."
+  (set symbol value)
+  (and (featurep 'printing)		; update only after printing is loaded
+       (pr-menu-set-ps-title value)))
+
+
+(defun pr-txt-name-custom-set (symbol value)
+  "Update `Text Printer:' menu entry."
+  (set symbol value)
+  (and (featurep 'printing)		; update only after printing is loaded
+       (pr-menu-set-txt-title value)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Internal Functions (I)
+
+
+(defun pr-dosify-file-name (path)
+  "Replace unix-style directory separator character with dos/windows one."
+  (interactive "sPath: ")
+  (if (eq pr-path-style 'windows)
+      (subst-char-in-string ?/ ?\\ path)
+    path))
+
+
+(defun pr-unixify-file-name (path)
+  "Replace dos/windows-style directory separator character with unix one."
+  (interactive "sPath: ")
+  (if (eq pr-path-style 'windows)
+      (subst-char-in-string ?\\ ?/ path)
+    path))
+
+
+(defun pr-standard-file-name (path)
+  "Ensure the proper directory separator depending on the OS.
+That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
+separator; otherwise, ensure unix-style directory separator."
+  (if (or pr-cygwin-system ps-windows-system)
+      (subst-char-in-string ?/ ?\\ path)
+    (subst-char-in-string ?\\ ?/ path)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Interface (II)
 
 
@@ -2317,30 +2412,6 @@ See also `pr-menu-char-height' and `pr-menu-char-width'."
   :group 'printing)
 
 
-(defcustom pr-menu-char-height (pr-menu-char-height)
-  "*Specify menu char height in pixels.
-
-This variable is used to guess which vertical position should be locked the
-menu, so don't forget to adjust it if menu position is not ok.
-
-See also `pr-menu-lock' and `pr-menu-char-width'."
-  :type 'integer
-  :version "20"
-  :group 'printing)
-
-
-(defcustom pr-menu-char-width (pr-menu-char-width)
-  "*Specify menu char width in pixels.
-
-This variable is used to guess which horizontal position should be locked the
-menu, so don't forget to adjust it if menu position is not ok.
-
-See also `pr-menu-lock' and `pr-menu-char-height'."
-  :type 'integer
-  :version "20"
-  :group 'printing)
-
-
 (defcustom pr-setting-database
   '((no-duplex				; setting symbol name
      nil nil nil			; inherits  local  kill-local
@@ -2631,6 +2702,9 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   "Non-nil means `pr-txt-printer-alist' was modified and we need to update menu.")
 (defvar pr-ps-utility-menu-modified t
   "Non-nil means `pr-ps-utility-alist' was modified and we need to update menu.")
+
+(defvar pr-menu-char-width)   ;; Pacify the byte compiler.
+(defvar pr-menu-char-height)
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3085,97 +3159,31 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Customization Functions
+;; User Interface (III)
 
+(defcustom pr-menu-char-height (pr-menu-char-height)
+  "*Specify menu char height in pixels.
 
-(defun pr-alist-custom-set (symbol value)
-  "Set the value of custom variables for printer & utility selection."
-  (set symbol value)
-  (and (featurep 'printing)		; update only after printing is loaded
-       (pr-update-menus t)))
+This variable is used to guess which vertical position should be locked the
+menu, so don't forget to adjust it if menu position is not ok.
 
-
-(defun pr-ps-utility-custom-set (symbol value)
-  "Update utility menu entry."
-  (set symbol value)
-  (and (featurep 'printing)		; update only after printing is loaded
-       (pr-menu-set-utility-title value)))
-
-
-(defun pr-ps-name-custom-set (symbol value)
-  "Update `PostScript Printer:' menu entry."
-  (set symbol value)
-  (and (featurep 'printing)		; update only after printing is loaded
-       (pr-menu-set-ps-title value)))
-
-
-(defun pr-txt-name-custom-set (symbol value)
-  "Update `Text Printer:' menu entry."
-  (set symbol value)
-  (and (featurep 'printing)		; update only after printing is loaded
-       (pr-menu-set-txt-title value)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; User Interface (I)
-
-
-(defgroup printing nil
-  "Printing Utilities group."
-  :tag "Printing Utilities"
-  :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
-  :prefix "pr-"
-  :version "20"
-  :group 'wp
-  :group 'postscript)
-
-
-(defcustom pr-path-style
-  (if (and (not pr-cygwin-system)
-	   ps-windows-system)
-      'windows
-    'unix)
-  "*Specify which path style to use for external commands.
-
-Valid values are:
-
-   windows	Windows 9x/NT style (\\)
-
-   unix		Unix style (/)"
-  :type '(choice :tag "Path style"
-		 (const :tag "Windows 9x/NT Style (\\)" :value windows)
-		 (const :tag "Unix Style (/)" :value unix))
+See also `pr-menu-lock' and `pr-menu-char-width'."
+  :type 'integer
   :version "20"
   :group 'printing)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Internal Functions (I)
+(defcustom pr-menu-char-width (pr-menu-char-width)
+  "*Specify menu char width in pixels.
 
+This variable is used to guess which horizontal position should be locked the
+menu, so don't forget to adjust it if menu position is not ok.
 
-(defun pr-dosify-file-name (path)
-  "Replace unix-style directory separator character with dos/windows one."
-  (interactive "sPath: ")
-  (if (eq pr-path-style 'windows)
-      (subst-char-in-string ?/ ?\\ path)
-    path))
+See also `pr-menu-lock' and `pr-menu-char-height'."
+  :type 'integer
+  :version "20"
+  :group 'printing)
 
-
-(defun pr-unixify-file-name (path)
-  "Replace dos/windows-style directory separator character with unix one."
-  (interactive "sPath: ")
-  (if (eq pr-path-style 'windows)
-      (subst-char-in-string ?\\ ?/ path)
-    path))
-
-
-(defun pr-standard-file-name (path)
-  "Ensure the proper directory separator depending on the OS.
-That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
-separator; otherwise, ensure unix-style directory separator."
-  (if (or pr-cygwin-system ps-windows-system)
-      (subst-char-in-string ?/ ?\\ path)
-    (subst-char-in-string ?\\ ?/ path)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Macros
