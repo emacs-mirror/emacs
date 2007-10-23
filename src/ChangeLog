@@ -1,3 +1,9 @@
+2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fmake_variable_frame_local): Just check the variable's const-ness
+	rather than checking nil or t.
+
 2007-10-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c: Include math.h.
