@@ -47,13 +47,12 @@
       nil)))
 
 (defvar quail-indian-update-preceding-char nil)
-(make-variable-frame-local 'quail-indian-update-preceding-char)
 
 ;; Input value ::
 ;;   CONTROL-FLAG is integer `n'
 ;;     quail-current-key :: keyboard input.
 ;;                          Only first `n' can be translated.
-;;     quail-current-str :: corresonding string. 
+;;     quail-current-str :: corresonding string.
 ;;     jobs :: (1) put last (len-n) char to unrread-command-event.
 ;;             (2) put translated string to  quail-current-str.
 ;;
@@ -62,8 +61,8 @@
 ;;     quail-current-str :: corresponding string.
 ;;     jobs :: (1) put modified translated string to quail-current-str.
 ;;
-;; When non-nil value is returned from quail-translation-update-function, 
-;; the quail-current-str is split to characters and put into event queue, 
+;; When non-nil value is returned from quail-translation-update-function,
+;; the quail-current-str is split to characters and put into event queue,
 ;; with `compose-last-char' event with composition info at the end.
 
 (defun quail-indian-update-translation (control-flag)
@@ -79,7 +78,7 @@
   ;; Check the preceding character of the quail region.  If the
   ;; preceding character can be composed with quail-current-str, then
   ;; grab that preceding character into the quail-current-str and
-  ;; remove that char from the region.  
+  ;; remove that char from the region.
   (let* (prec-char-position composition-regexp
          prec-char-str candidate-str match-pos match-end)
     (when (and quail-current-str
@@ -103,9 +102,9 @@
       (setq quail-indian-update-preceding-char prec-char-str)
       (delete-region prec-char-position
                      (overlay-start quail-overlay))))
-  (setq quail-current-str 
+  (setq quail-current-str
         (indian-compose-string
-         (concat quail-indian-update-preceding-char 
+         (concat quail-indian-update-preceding-char
                  quail-current-str)))
   (if (numberp control-flag)
       (setq unread-command-events
