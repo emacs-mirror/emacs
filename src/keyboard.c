@@ -9186,7 +9186,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   from_string = Qnil;
 
   /* The multi-tty merge moved the code below to right after
-   `replay_sequence' which caused alll these translation maps to be applied
+   `replay_sequence' which caused all these translation maps to be applied
    repeatedly, even tho their doc says very clearly they are not applied to
    their own output.
    The reason for this move was: "We may switch keyboards between rescans,
