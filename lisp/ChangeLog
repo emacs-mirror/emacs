@@ -1,3 +1,7 @@
+2007-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/iris-ansi.el (iris-function-map): Move init into declaration.
+
 2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buff-menu.el (Buffer-menu-sort-column): Doc fix.
@@ -6,19 +10,19 @@
 
 2007-10-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-version): Changed to 5.13e.
-	(org-agenda-file-regexp): Fixed typo in docstring.
-	(org-add-planning-info): Fixed bug in parenthesis settings.
+	* textmodes/org.el (org-version): Change to 5.13e.
+	(org-agenda-file-regexp): Fix typo in docstring.
+	(org-add-planning-info): Fix bug in parenthesis settings.
 	(org-scan-tags): Catch the case of indirect buffers with no filename.
 	(org-fast-tag-selection, org-export-as-ascii, org-export-as-html):
-	Re-installed switch to mapc, had been removed by accident.
+	Re-install switch to mapc, had been removed by accident.
 	(org-columns-map): New binding `C-c C-o'.
-	(org-columns-menu): Changed menu text and added new entry.
-	(org-columns-eval): Documented the use of `next-line'.
+	(org-columns-menu): Change menu text and added new entry.
+	(org-columns-eval): Document the use of `next-line'.
 	(org-columns-open-link): New function.
-	(org-columns-follow-link): Function removed.
+	(org-columns-follow-link): Remove function.
 	(org-open-link-from-string): New function.
-	(org-read-date-get-relative): Fixed typo in docstring.
+	(org-read-date-get-relative): Fix typo in docstring.
 	(org-read-date-get-relative): Leading +/- is not optional.
 	(org-agenda-get-restriction-and-command): Always resize window on
 	first loop cycle.
