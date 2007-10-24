@@ -4612,11 +4612,13 @@ timer_check (do_it_now)
 }
 
 DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
-       doc: /* Return the current length of Emacs idleness.
-The value is returned as a list of three integers.  The first has the
+       doc: /* Return the current length of Emacs idleness, or nil.
+The value when Emacs is idle is a list of three integers.  The first has the
 most significant 16 bits of the seconds, while the second has the
 least significant 16 bits.  The third integer gives the microsecond
 count.
+
+The value when Emacs is not idle is nil.
 
 The microsecond count is zero on systems that do not provide
 resolution finer than a second.  */)
