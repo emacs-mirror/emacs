@@ -1,3 +1,7 @@
+2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention desktop locking.
+
 2007-09-28  Glenn Morris  <rgm@gnu.org>
 
 	* PROBLEMS: Mention Tex superscript font issue.
