@@ -20,7 +20,6 @@
 	(org-agenda-open-link): Make sure the link abbreviations are
 	present in the agenda buffer.
 	(org-agenda-copy-local-variable): New function.
-	(org-export-as-html):
 
 2007-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
