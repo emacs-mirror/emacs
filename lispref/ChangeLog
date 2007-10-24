@@ -1,3 +1,22 @@
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Delete Frame-Local Variables from subnode menu.
+
+	* variables.texi (Frame-Local Variables): Node deleted.
+	(Variables): Delete Frame-Local Variables from menu.
+	(Local Variables, Buffer-Local Variables, Intro to Buffer-Local)
+	(Default Value): Don't mention frame-local vars.
+
+	* os.texi (Idle Timers): current-idle-time returns nil if not idle.
+
+	* loading.texi (Unloading): Document FEATURE-unload-function
+	instead of FEATURE-unload-hook.
+
+	* functions.texi (Related Topics): Add called-interactively-p.
+	Fix xref.
+
+	* frames.texi (Multiple Displays): Don't mention frame-local vars.
+
 2007-10-12  Richard Stallman  <rms@gnu.org>
 
 	* elisp.texi (Top): Add Distinguish Interactive to subnode menu.
