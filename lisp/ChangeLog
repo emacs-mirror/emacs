@@ -1,3 +1,27 @@
+2007-10-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-version): Changed to 5.13e.
+	(org-agenda-file-regexp): Fixed typo in docstring.
+	(org-add-planning-info): Fixed bug in parenthesis settings.
+	(org-scan-tags): Catch the case of indirect buffers with no
+	filename.
+	(org-fast-tag-selection, org-export-as-ascii, org-export-as-html):
+	Re-installed switch to mapc, had been removed by accident.
+	(org-columns-map): New binding `C-c C-o'.
+	(org-columns-menu): Changed menu text and added new entry.
+	(org-columns-eval): Documented the use of `next-line'.
+	(org-columns-open-link): New function.
+	(org-columns-follow-link): Function removed.
+	(org-open-link-from-string): New function.
+	(org-read-date-get-relative): Fixed typo in docstring.
+	(org-read-date-get-relative): Leading +/- is not optional.
+	(org-agenda-get-restriction-and-command): Always resize window on
+	first loop cycle.
+	(org-agenda-open-link): Make sure the link abbreviations are
+	present in the agenda buffer.
+	(org-agenda-copy-local-variable): New function.
+	(org-export-as-html):
+
 2007-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-update-changelog-rcs2log): Remove incorrect `backend' arg.
