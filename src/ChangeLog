@@ -1,3 +1,12 @@
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* frame.c (x_figure_window_size): For fullscreen case,
+	set USPosition | PPosition without clobbering rest of window_prompting.
+
+	* keyboard.c (Fcurrent_idle_time): Doc fix.
+
+	* print.c (Fwith_output_to_temp_buffer): Doc fix.
+
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* process.c (Fset_process_filter): Doc fix.
