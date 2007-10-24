@@ -1,3 +1,16 @@
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* savehist.el (savehist-save): Omit unreadable elements.
+
+	* loadhist.el (unload-function-defs-list): Renamed from
+	unload-function-features-list.
+	(unload-feature-special-hooks, unload-feature): Doc fixes.
+
+	* indent.el (indent-to-left-margin): If point's in the indentation,
+	move to the end of the indentation.
+
+	* cus-edit.el (customize-changed-options): Make arg optional.
+
 2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-select, bs-select-other-window): Fix typos in docstrings.
