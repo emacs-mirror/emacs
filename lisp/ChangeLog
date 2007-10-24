@@ -1,5 +1,9 @@
 2007-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-update-changelog-rcs2log): Remove incorrect `backend' arg.
+
+2007-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* simple.el (reindent-then-newline-and-indent): Use a `move after
 	insert' kind of marker in the save-excursion.
 

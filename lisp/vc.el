@@ -2935,7 +2935,7 @@ editing non-current revisions is not supported by default."
 (defalias 'vc-rcs-update-changelog 'vc-update-changelog-rcs2log)
 ;; FIXME: This should probably be moved to vc-rcs.el and replaced in
 ;; vc-cvs.el by code using cvs2cl.
-(defun vc-update-changelog-rcs2log (backend files)
+(defun vc-update-changelog-rcs2log (files)
   "Default implementation of update-changelog.
 Uses `rcs2log' which only works for RCS and CVS."
   ;; FIXME: We (c|sh)ould add support for cvs2cl
