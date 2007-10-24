@@ -179,4 +179,6 @@ Switch to the buffer restored from the search status stack."
     (switch-to-buffer (setq isearch-buffers-current-buffer buffer))))
 
 (provide 'isearch-multi)
+
+;; arch-tag: a6d38ffa-4d14-4e39-8ac6-46af9d6a6773
 ;;; isearch-multi.el ends here
