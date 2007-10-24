@@ -464,9 +464,10 @@ FILENAME is the filename of the org file to be published."
 PLIST is the property list for the given project.
 FILENAME is the filename of the file to be published."
   ;; make sure eshell/cp code is loaded
-  (require 'eshell)
-  (require 'esh-maint)
-  (require 'em-unix)
+  (eval-and-compile 
+    (require 'eshell)
+    (require 'esh-maint)
+    (require 'em-unix))
   (let ((destination (file-name-as-directory (plist-get plist :publishing-directory))))
     (eshell/cp filename destination)))
 
