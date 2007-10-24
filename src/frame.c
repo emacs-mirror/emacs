@@ -3922,7 +3922,7 @@ x_figure_window_size (f, parms, toolbar_p)
       int width, height;
 
       /* It takes both for some WM:s to place it where we want */
-      window_prompting = USPosition | PPosition;
+      window_prompting |= USPosition | PPosition;
       x_fullscreen_adjust (f, &width, &height, &top, &left);
       FRAME_COLS (f) = width;
       FRAME_LINES (f) = height;
