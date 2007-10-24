@@ -633,9 +633,16 @@ column specified by the function `current-left-margin'."
     (newline)
     (save-excursion
       (goto-char pos)
-      ;; Usually indent-according-to-mode should "preserve" point, but it is
-      ;; not guaranteed; e.g. indent-to-left-margin doesn't.
-      (save-excursion (indent-according-to-mode))
+      ;; We are at EOL before the call to indent-according-to-mode, and
+      ;; after it we usually are as well, but not always.  We tried to
+      ;; address it with `save-excursion' but that uses a normal marker
+      ;; whereas we need `move after insertion', so we do the save/restore
+      ;; by hand.
+      (setq pos (copy-marker pos t))
+      (indent-according-to-mode)
+      (goto-char pos)
+      ;; Remove the trailing white-space after indentation because
+      ;; indentation may introduce the whitespace.
       (delete-horizontal-space t))
     (indent-according-to-mode)))
 

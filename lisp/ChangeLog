@@ -1,3 +1,8 @@
+2007-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (reindent-then-newline-and-indent): Use a `move after
+	insert' kind of marker in the save-excursion.
+
 2007-10-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-set-file-uid-gid): Protect `call-process'
