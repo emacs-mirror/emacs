@@ -172,8 +172,10 @@ Each function is called with ARG=1."
 		"\""      ses-read-cell
 		"'"       ses-read-symbol
 		"="	  ses-edit-cell
+		"c"	  ses-recalculate-cell
 		"j"	  ses-jump
 		"p"	  ses-read-cell-printer
+		"t"	  ses-truncate-cell
 		"w"	  ses-set-column-width
 		"x"	  ses-export-keymap
 		"\M-p"	  ses-read-column-printer))
@@ -270,6 +272,9 @@ default printer and then modify its output.")
   (dolist (x ses-localvars)
     (make-local-variable x)
     (set x nil)))
+
+;;;This variable is documented as being permitted in file-locals:
+(put 'ses--symbolic-formulas 'safe-local-variable 'consp)
 
 (defconst ses-paramlines-plist
   '(ses--col-widths  -5 ses--col-printers -4 ses--default-printer -3
@@ -507,10 +512,12 @@ for this spreadsheet."
 		 (list (symbol-name (cadr formula))))))
 
 (defun ses-column-letter (col)
-  "Converts a column number to A..Z or AA..ZZ"
-  (if (< col 26)
-      (char-to-string (+ ?A col))
-    (string (+ ?@ (/ col 26)) (+ ?A (% col 26)))))
+  "Return the alphabetic name of column number COL.
+0-25 become A-Z; 26-701 become AA-ZZ, and so on."
+  (let ((units (char-to-string (+ ?A (% col 26)))))
+    (if (< col 26)
+        units
+      (concat (ses-column-letter (1- (/ col 26))) units))))
 
 (defun ses-create-cell-symbol (row col)
   "Produce a symbol that names the cell (ROW,COL).  (0,0) => 'A1."
@@ -738,6 +745,9 @@ region, or nil if cursor is not at a cell."
     ;;Range
     (let ((bcell (get-text-property (region-beginning) 'intangible))
 	  (ecell (get-text-property (1- (region-end))  'intangible)))
+      (when (= (region-end) ses--data-marker)
+	;;Correct for overflow
+	(setq ecell (get-text-property (- (region-end) 2)  'intangible)))
       (setq ses--curcell (if (and bcell ecell)
 			     (cons bcell ecell)
 			   nil))))
@@ -2328,6 +2338,9 @@ hard to override how mouse-1 works."
 (defun ses-copy-region (beg end)
   "Treat the region as rectangular.  Convert the intangible attributes to
 SES attributes recording the contents of the cell as of the time of copying."
+  (when (= end ses--data-marker)
+    ;;Avoid overflow situation
+    (setq end (1- ses--data-marker)))
   (let* ((inhibit-point-motion-hooks t)
 	 (x (mapconcat 'ses-copy-region-helper
 		       (extract-rectangle beg (1- end)) "\n")))
