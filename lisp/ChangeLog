@@ -1,3 +1,12 @@
+2007-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-indented-comment-re)
+	(f90-directive-comment-re, f90-break-delimiters):
+	* progmodes/fortran.el (fortran-comment-line-start-skip)
+	(fortran-directive-re):
+	* textmodes/conf-mode.el (conf-space-keywords): Mark these regexps
+	as safe if they are strings.
+
 2007-10-25  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/ps-mode.el (ps-mode-map): Delete C-c v binding.
