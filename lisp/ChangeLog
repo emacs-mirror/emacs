@@ -1,3 +1,14 @@
+2007-10-25  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el: Make `ses--symbolic-formulas' a safe local variable.
+	(ses-mode-print-map): Add `c' and `t' (suggested by
+	Gareth Rees).
+	(ses-recalculate-cell): Deal with point being just beyond end of
+	data area (why does this happen?)
+	(ses-set-curcell): Ditto.
+	(ses-column-letter): Handle columns beyond 702.  Code written by
+	Gareth Rees.
+
 2007-10-25  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-agenda-get-restriction-and-command): Use
