@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 5.13f
+;; Version: 5.13g
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defconst org-version "5.13f"
+(defconst org-version "5.13g"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -13412,7 +13412,8 @@ For calling through lisp, arg is also interpreted in the following way:
       (if (looking-at outline-regexp) (goto-char (1- (match-end 0))))
       (or (looking-at (concat " +" org-todo-regexp " *"))
 	  (looking-at " *"))
-      (let* ((startpos (line-beginning-position))
+      (let* ((match-data (match-data))
+	     (startpos (line-beginning-position))
 	     (logging (save-match-data (org-entry-get nil "LOGGING" t)))
 	     (org-log-done (org-parse-local-options logging 'org-log-done))
 	     (org-log-repeat (org-parse-local-options logging 'org-log-repeat))
@@ -13496,6 +13497,7 @@ For calling through lisp, arg is also interpreted in the following way:
 	      ;; fail silently
 	      (message "TODO state change from %s to %s blocked" this state)
 	      (throw 'exit nil))))
+	(store-match-data match-data)
 	(replace-match next t t)
 	(unless (pos-visible-in-window-p hl-pos)
 	  (message "TODO state changed to %s" (org-trim next)))
