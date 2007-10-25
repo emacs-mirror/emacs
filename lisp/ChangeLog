@@ -1,3 +1,7 @@
+2007-10-25  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/ps-mode.el (ps-mode-map): Delete C-c v binding.
+
 2007-10-24  Richard Stallman  <rms@gnu.org>
 
 	* savehist.el (savehist-save): Omit unreadable elements.
