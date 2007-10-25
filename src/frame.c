@@ -110,7 +110,6 @@ Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
-Lisp_Object Qwindow_system;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
@@ -520,6 +519,7 @@ make_initial_frame (void)
     {
       initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
       init_kboard (initial_kboard);
+      /* Leave Vwindow_system at its `t' default for now.  */
       initial_kboard->next_kboard = all_kboards;
       all_kboards = initial_kboard;
     }
@@ -764,7 +764,6 @@ affects all frames on the same terminal device.  */)
   XSETFRAME (frame, f);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
   Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type,
                                                  build_string (t->display_info.tty->type)),
                                           Qnil));
@@ -4292,8 +4291,6 @@ syms_of_frame ()
   staticpro (&Qtty);
   Qtty_type = intern ("tty-type");
   staticpro (&Qtty_type);
-  Qwindow_system = intern ("window-system");
-  staticpro (&Qwindow_system);
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);

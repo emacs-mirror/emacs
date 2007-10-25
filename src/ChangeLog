@@ -1,3 +1,30 @@
+2007-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make `window-system' into a keyboard-local variable (rather than
+	frame-local as done originally by multi-tty).
+
+	* keyboard.h (struct kboard): Add Vwindow_system.
+	* keyboard.c (init_kboard): Set a default for Vwindow_system.
+	(mark_kboards): Mark Vwindow_system.
+
+	* dispnew.c (syms_of_display) <window-system>: Declare terminal-local.
+	(init_display): Don't set the obsolete `window-system' frame-param.
+
+	* xterm.c (x_term_init):
+	* w32term.c (w32_create_terminal):
+	* term.c (init_tty): Set Vwindow_system.
+	* macterm.c (mac_create_terminal): Set a keyboard (missing piece of the
+	multi-tty merge maybe?), copied from w32term.c.  Set Vwindow_system.
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame):
+	* w32fns.c (Fx_create_frame, x_create_tip_frame):
+	* macfns.c (Fx_create_frame):
+	Don't set the obsolete `window-system' frame-param.
+
+	* frame.h (Qwindow_system): Remove.
+	* frame.c (Qwindow_system): Remove.  In `syms_of_frame' as well.
+	(Fmake_terminal_frame): Don't set obsolete `window-system' frame-param.
+
 2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (unwind_request_sigio): Only define if __ultrix__.

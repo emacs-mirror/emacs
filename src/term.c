@@ -3487,6 +3487,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #ifdef MULTI_KBOARD
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
+  terminal->kboard->Vwindow_system = Qnil;
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   terminal->kboard->reference_count++;

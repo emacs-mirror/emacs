@@ -1,3 +1,7 @@
+2007-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (window-system): Remove.  Don't make it frame-local.
+
 2007-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/org-publish.el (org-publish-attachment): Re-install

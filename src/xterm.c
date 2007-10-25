@@ -10781,6 +10781,7 @@ x_term_init (display_name, xrm_option, resource_name)
       {
 	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
 	init_kboard (terminal->kboard);
+	terminal->kboard->Vwindow_system = intern ("x");
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);

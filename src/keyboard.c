@@ -11489,6 +11489,7 @@ init_kboard (kb)
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
   kb->system_key_syms = Qnil;
+  kb->Vwindow_system = Qt;	/* Unset.  */
   kb->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
   kb->Vlocal_function_key_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (kb->Vlocal_function_key_map, Vfunction_key_map);
@@ -11571,6 +11572,7 @@ init_keyboard ()
 #endif
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
+  /* Leave Vwindow_system at its `t' default for now.  */
 
   if (!noninteractive)
     {
@@ -12466,6 +12468,7 @@ mark_kboards ()
       mark_object (kb->Vlast_kbd_macro);
       mark_object (kb->Vsystem_key_alist);
       mark_object (kb->system_key_syms);
+      mark_object (kb->Vwindow_system);
       mark_object (kb->Vinput_decode_map);
       mark_object (kb->Vlocal_function_key_map);
       mark_object (kb->Vdefault_minibuffer_frame);

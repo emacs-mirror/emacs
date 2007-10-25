@@ -80,8 +80,7 @@ struct kboard
        commands that set the prefix argument.  */
     Lisp_Object Vlast_command;
 
-    /* Normally same as last-command, but never modified by
-       other commands.  */
+    /* Normally same as last-command, but never modified by other commands.  */
     Lisp_Object Vreal_last_command;
 
     /* User-supplied table to translate input characters through.  */
@@ -129,6 +128,9 @@ struct kboard
 
     /* Cache for modify_event_symbol.  */
     Lisp_Object system_key_syms;
+
+    /* The kind of display: x, w32, ...  */
+    Lisp_Object Vwindow_system;
 
     /* Keymap mapping keys to alternative preferred forms.
        See the DEFVAR for more documentation.  */
