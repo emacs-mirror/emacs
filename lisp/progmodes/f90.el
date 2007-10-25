@@ -28,8 +28,7 @@
 
 ;; Major mode for editing F90 programs in FREE FORMAT.
 ;; The minor language revision F95 is also supported (with font-locking).
-;; Some aspects of F2003 are supported.  At present, there are some
-;; problems with derived types.
+;; Some/many (?) aspects of F2003 are supported.
 
 ;; Knows about continuation lines, named structured statements, and other
 ;; features in F90 including HPF (High Performance Fortran) structures.
@@ -156,12 +155,16 @@
 ;;; Code:
 
 ;; TODO
-;; Have "f90-mode" just recognize F90 syntax, then derived modes
+;; 1. Any missing F2003 syntax?
+;; 2. Have "f90-mode" just recognize F90 syntax, then derived modes
 ;; "f95-mode", "f2003-mode" for the language revisions.
-;; Support for align.
-;; OpenMP, preprocessor highlighting.
-;; F2003 syntax:
-;; problems with derived types.
+;; 3. Support for align.
+;; Font-locking:
+;; 1. OpenMP, OpenMPI?, preprocessor highlighting.
+;; 2. interface blah - Highlight "blah" in function-name face?
+;; Need to avoid "interface operator (+)" etc.
+;; 3. integer_name = 1
+;; 4. Labels for "else" statements (F2003)?
 
 (defvar comment-auto-fill-only-comments)
 (defvar font-lock-keywords)
@@ -312,8 +315,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 ;; F2003
                 "abstract" "associate" "asynchronous" "bind" "class"
                 "deferred" "enum" "enumerator" "extends" "extends_type_of"
-                "final" "generic" "import" "non_overridable" "nopass" "pass"
-                "protected" "same_type_as" "value" "volatile"
+                "final" "generic" "import" "non_intrinsic" "non_overridable"
+                "nopass" "pass" "protected" "same_type_as" "value" "volatile"
                 ) 'words)
   "Regexp used by the function `f90-change-keywords'.")
 
@@ -329,7 +332,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
      ;; F95 keywords.
      "elemental" "pure"
      ;; F2003. asynchronous separate.
-     "abstract" "deferred" "import" "final" "non_overridable"
+     "abstract" "deferred" "import" "final" "non_intrinsic" "non_overridable"
      "nopass" "pass" "protected" "value" "volatile"
      ) 'words)
   "Keyword-regexp for font-lock level >= 3.")
@@ -428,56 +431,145 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 "c_new_line" "c_carriage_return" "c_horizontal_tab"
                 "c_vertical_tab"
                 "c_ptr" "c_funptr" "c_null_ptr" "c_null_funptr"
+                "ieee_exceptions"
+                "ieee_arithmetic"
+                "ieee_features"
                 ) 'words)
   "Regexp for Fortran intrinsic constants.")
+
+;; cf f90-looking-at-type-like.
+(defun f90-typedef-matcher (limit)
+  "Search for the start/end of the definition of a derived type, up to LIMIT.
+Set the match data so that subexpression 1,2 are the TYPE, and
+type-name parts, respectively."
+  (let (found l)
+    (while (and (re-search-forward "\\<\\(\\(?:end[ \t]*\\)?type\\)[ \t]*"
+                                   limit t)
+                (not (setq found
+                           (progn
+                             (setq l (match-data))
+                             (unless (looking-at "\\(is\\>\\|(\\)")
+                               (when (if (looking-at "\\(\\sw+\\)")
+                                         (goto-char (match-end 0))
+                                       (re-search-forward
+                                        "[ \t]*::[ \t]*\\(\\sw+\\)"
+                                        (line-end-position) t))
+                                 ;; 0 is wrong, but we don't use it.
+                                 (set-match-data
+                                  (append l (list (match-beginning 1)
+                                                  (match-end 1))))
+                                 t)))))))
+    found))
 
 (defvar f90-font-lock-keywords-1
   (list
    ;; Special highlighting of "module procedure".
-   '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
+   '("\\<\\(module[ \t]*procedure\\)\\>\\([^()\n]*::\\)?[ \t]*\\([^&!\n]*\\)"
+     (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    ;; Highlight definition of derived type.
-   ;; FIXME F2003 use a function, same as looking-at-type-like?
-   '("\\<\\(\\(?:end[ \t]*\\)?type\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
-     (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+;;;    '("\\<\\(\\(?:end[ \t]*\\)?type\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
+;;;      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+   '(f90-typedef-matcher
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face))
    ;; Other functions and declarations.
    '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|associate\\|\
 subroutine\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-   ;; "abstract interface" is F2003.
-   "\\<\\(\\(end[ \t]*\\)?\\(\\(?:abstract[ \t]+\\)?interface\\|\
-block[ \t]*data\\)\\|contains\\)\\>")
+   ;; F2003.
+   '("\\<\\(use\\)[ \t]*,[ \t]*\\(\\(?:non_\\)?intrinsic\\)[ \t]*::[ \t]*\
+\\(\\sw+\\)"
+     (1 font-lock-keyword-face) (2 font-lock-keyword-face)
+     (3 font-lock-function-name-face))
+   "\\<\\(\\(end[ \t]*\\)?block[ \t]*data\\|contains\\|\
+end[ \t]*interface\\)\\>"
+   ;; "abstract interface" is F2003. Must come after previous entry.
+   '("\\<\\(\\(?:abstract[ \t]*\\)?interface\\)\\>"
+     ;; [ \t]*\\(\\(\\sw+\\)[ \t]*[^(]\\)?"
+     ;; (2) messes up "interface operator ()", etc.
+     (1 font-lock-keyword-face))) ;(2 font-lock-function-name-face nil t)))
   "This does fairly subdued highlighting of comments and function calls.")
+
+;; NB not explicitly handling this, yet it seems to work.
+;; type(...) function foo()
+(defun f90-typedec-matcher (limit)
+  "Search for the declaration of variables of derived type, up to LIMIT.
+Set the match data so that subexpression 1,2 are the TYPE(...),
+and variable-name parts, respectively."
+  ;; Matcher functions must return nil only when there are no more
+  ;; matches within the search range.
+  (let (found l)
+    (while (and (re-search-forward "\\<\\(type\\|class\\)[ \t]*(" limit t)
+                (not
+                 (setq found
+                       (condition-case nil
+                           (progn
+                             ;; Set l after this to just highlight
+                             ;; the "type" part.
+                             (backward-char 1)
+                             ;; Needed for: type( foo(...) ) :: bar
+                             (forward-sexp)
+                             (setq l (list (match-beginning 0) (point)))
+                             (skip-chars-forward " \t")
+                             (when
+                                 (re-search-forward
+                                  ;; type (foo) bar, qux
+                                  (if (looking-at "\\sw+")
+                                      "\\([^&!\n]+\\)"
+                                    ;; type (foo), stuff :: bar, qux
+                                    "::[ \t]*\\([^&!\n]+\\)")
+                                  (line-end-position) t)
+                               (set-match-data
+                                (append (list (car l) (match-end 1))
+                                        l (list (match-beginning 1)
+                                                (match-end 1))))
+                               t))
+                         (error nil))))))
+    found))
 
 (defvar f90-font-lock-keywords-2
   (append
    f90-font-lock-keywords-1
    (list
     ;; Variable declarations (avoid the real function call).
-    ;; FIXME type( rational_t( this_k)), intent( in) :: a, b
-    ;; maybe type should just work like integer.
-    ;; Or use forward-sexp.
-    '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
-enumerator\\|generic\\|procedure\\|\
-logical\\|double[ \t]*precision\\|\
-\\(?:type\\|class\\)[ \t]*([ \t]*\\sw+[ \t]*)\\)\
+    ;; NB by accident (?), this correctly fontifies the "integer" in:
+    ;; integer () function foo ()
+    ;; because "() function foo ()" matches \\3.
+    ;; The "pure" part does not really belong here, but was added to
+    ;; exploit that hack.
+    ;; The "function foo" bit is correctly fontified by keywords-1.
+    ;; TODO ? actually check for balanced parens in that case.
+    '("^[ \t0-9]*\\(?:pure\\|elemental\\)?[ \t]*\
+\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
+enumerator\\|generic\\|procedure\\|logical\\|double[ \t]*precision\\)\
 \\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\)"
       (1 font-lock-type-face t) (4 font-lock-variable-name-face t))
+    ;; Derived type/class variables.
+    ;; TODO ? If we just highlighted the "type" part, rather than
+    ;; "type(...)", this could be in the previous expression. And this
+    ;; would be consistent with integer( kind=8 ), etc.
+    '(f90-typedec-matcher
+      (1 font-lock-type-face) (2 font-lock-variable-name-face))
     ;; "real function foo (args)". Must override previous.  Note hack
     ;; to get "args" unhighlighted again. Might not always be right,
     ;; but probably better than leaving them as variables.
-    ;; FIXME in F2003, can specify kinds.
+    ;; NB not explicitly handling this case:
     ;; integer( kind=1 ) function foo()
+    ;; thanks to the happy accident described above.
+    ;; Not anchored, so don't need to worry about "pure" etc.
     '("\\<\\(\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
 logical\\|double[ \t]*precision\\|\
 \\(?:type\\|class\\)[ \t]*([ \t]*\\sw+[ \t]*)\\)[ \t]*\\)\
 \\(function\\)\\>[ \t]*\\(\\sw+\\)[ \t]*\\(([^&!\n]*)\\)"
       (1 font-lock-type-face t) (4 font-lock-keyword-face t)
       (5 font-lock-function-name-face t) (6 'default t))
-    ;; end do, if, enum (F2003), select, where, and forall constructs.
+    ;; enum (F2003; cf type in -1).
+    '("\\<\\(enum\\)\\>\\([^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
+      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+    ;; end do, enum (F2003), if, select, where, and forall constructs.
     '("\\<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\)\\)\\>\
 \\([ \t]+\\(\\sw+\\)\\)?"
       (1 font-lock-keyword-face) (3 font-lock-constant-face nil t))
-    '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|enum\\|\
+    '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|\
 do\\([ \t]*while\\)?\\|select[ \t]*\\(?:case\\|type\\)\\|where\\|\
 forall\\)\\)\\>"
       (2 font-lock-constant-face nil t) (3 font-lock-keyword-face))
@@ -751,10 +843,12 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    ;; Avoid F2003 "type is" in "select type",
    ;; and also variables of derived type "type (foo)".
    ;; "type, foo" must be a block (?).
-   "type[ \t,]\\([^(is]\\|[^(i].\\|[^(][^s]\\|is\\sw\\)"
-   "\\|"
+   "type[ \t,]\\("
+   "[^i(!\n\"\& \t]\\|"                 ; not-i(
+   "i[^s!\n\"\& \t]\\|"                 ; i not-s
+   "is\\sw\\)\\|"
    ;; "abstract interface" is F2003.
-   "program\\|\\(?:abstract[ \t]+\\)?interface\\|module\\|"
+   "program\\|\\(?:abstract[ \t]*\\)?interface\\|module\\|"
    ;; "enum", but not "enumerator".
    "function\\|subroutine\\|enum[^e]\\|associate"
    "\\)"
@@ -771,14 +865,37 @@ Used in the F90 entry in `hs-special-modes-alist'.")
 
 
 ;; Imenu support.
-;; FIXME F2003
+;; FIXME trivial to extend this to enum. Worth it?
+(defun f90-imenu-type-matcher ()
+  "Search backward for the start of a derived type.
+Set subexpression 1 in the match-data to the name of the type."
+  (let (found l)
+    (while (and (re-search-backward "^[ \t0-9]*type[ \t]*" nil t)
+                (not (setq found
+                           (save-excursion
+                             (goto-char (match-end 0))
+                             (unless (looking-at "\\(is\\>\\|(\\)")
+                               (or (looking-at "\\(\\sw+\\)")
+                                   (re-search-forward
+                                    "[ \t]*::[ \t]*\\(\\sw+\\)"
+                                    (line-end-position) t))))))))
+    found))
+
 (defvar f90-imenu-generic-expression
   (let ((good-char "[^!\"\&\n \t]") (not-e "[^e!\n\"\& \t]")
-        (not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]"))
+        (not-n "[^n!\n\"\& \t]") (not-d "[^d!\n\"\& \t]")
+        (not-ib "[^i(!\n\"\& \t]") (not-s "[^s!\n\"\& \t]"))
     (list
      '(nil "^[ \t0-9]*program[ \t]+\\(\\sw+\\)" 1)
      '("Modules" "^[ \t0-9]*module[ \t]+\\(\\sw+\\)[ \t]*\\(!\\|$\\)" 1)
-     '("Types" "^[ \t0-9]*type[ \t]+\\(\\sw+\\)" 1)
+     (list "Types" 'f90-imenu-type-matcher 1)
+     ;; Does not handle: "type[, stuff] :: foo".
+;;;      (format "^[ \t0-9]*type[ \t]+\\(\\(%s\\|i%s\\|is\\sw\\)\\sw*\\)"
+;;;              not-ib not-s)
+;;;      1)
+     ;; Can't get the subexpression numbers to match in the two branches.
+;;;      (format "^[ \t0-9]*type\\([ \t]*,.*\\(::\\)[ \t]*\\(\\sw+\\)\\|[ \t]+\\(\\(%s\\|i%s\\|is\\sw\\)\\sw*\\)\\)" not-ib not-s)
+;;;      3)
      (list
       "Procedures"
       (concat
@@ -827,9 +944,9 @@ Used in the F90 entry in `hs-special-modes-alist'.")
                          (append element '(nil 0)))))))
    '(("`al"  "allocate"     )
      ("`ab"  "allocatable"  )
+     ("`ai"  "abstract interface")
      ("`as"  "assignment"   )
-;     ("`at"  "abstract"     )
-;     ("`ay"  "asynchronous" )
+     ("`asy" "asynchronous" )
      ("`ba"  "backspace"    )
      ("`bd"  "block data"   )
      ("`c"   "character"    )
@@ -846,8 +963,8 @@ Used in the F90 entry in `hs-special-modes-alist'.")
      ("`el"  "else"         )
      ("`eli" "else if"      )
      ("`elw" "elsewhere"    )
-;     ("`em"  "elemental"    )
-     ("`en"  "enumerator"   )
+     ("`em"  "elemental"    )
+     ("`e"   "enumerator"   )
      ("`eq"  "equivalence"  )
      ("`ex"  "external"     )
      ("`ey"  "entry"        )
@@ -1206,7 +1323,7 @@ if all else fails."
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\)\\>")
              (looking-at "\\(program\\|module\\|\
-\\(?:abstract[ \t]+\\)?interface\\|block[ \t]*data\\)\\>")
+\\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\>")
              (looking-at "\\(contains\\|\\sw+[ \t]*:\\)")
              (looking-at f90-type-def-re)
              (re-search-forward "\\(function\\|subroutine\\)"
