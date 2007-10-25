@@ -168,6 +168,10 @@ set to nil, as the value is no longer rogue."
 		 (put symbol 'custom-get value))
 		((eq keyword :require)
 		 (push value requests))
+		((eq keyword :risky)
+		 (put symbol 'risky-local-variable value))
+		((eq keyword :safe)
+		 (put symbol 'safe-local-variable value))
 		((eq keyword :type)
 		 (put symbol 'custom-type (purecopy value)))
 		((eq keyword :options)
@@ -219,6 +223,8 @@ The following keywords are meaningful:
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
 	it does (require VALUE) first.
+:risky	Set SYMBOL's `risky-local-variable' property to VALUE.
+:safe	Set SYMBOL's `safe-local-variable' property to VALUE.
 
 The following common keywords are also meaningful.
 
