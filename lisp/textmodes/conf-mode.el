@@ -176,6 +176,7 @@ This allows constructs such as
 keyword var value
 This variable is best set in the file local variables, or through
 `conf-space-keywords-alist'.")
+(put 'conf-space-keywords 'safe-local-variable 'stringp)
 
 (defvar conf-space-font-lock-keywords
   `(;; [section] (do this first because it may look like a parameter)
