@@ -203,7 +203,7 @@ considered for update.
 with the face `eldoc-highlight-function-argument'.
 
 +++
-** defcustom accepts new keyword arguments, `:safe' and `risky:', which
+** defcustom accepts new keyword arguments, `:safe' and `:risky', which
 set a variable's `safe-local-variable' and `risky-local-variable' property.
 
 ** VC
