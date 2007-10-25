@@ -1112,6 +1112,7 @@ init_environment (char ** argv)
 		/* Also ignore empty environment variables.  */
 		|| *lpval == 0)
 	      {
+		if (lpval) xfree (lpval);
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
 		dont_free = 1;
