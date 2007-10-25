@@ -1,3 +1,37 @@
+2007-10-25  Chris Moore  <christopher.ian.moore@gmail.com>
+
+	* comint.el (comint-password-prompt-regexp):
+	Handle `[sudo] password'-style prompt.
+
+2007-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* custom.el (custom-declare-variable): Add :risky and :safe keywords.
+	(defcustom): Doc fix.
+
+	* progmodes/f90.el (f90-keywords-re, f90-keywords-level-3-re):
+	Add `non_intrinsic'.
+	(f90-constants-re): Add ieee modules.
+	(f90-typedef-matcher, f90-typedec-matcher)
+	(f90-imenu-type-matcher): New functions.
+	(f90-font-lock-keywords-1): Give module procedures function-name face.
+	Use `f90-typedef-matcher' for derived types.  Fix `abstract interface'.
+	Add `use, intrinsic'.
+	(f90-font-lock-keywords-2): Use `f90-typedec-matcher' for derived types.
+	Move start of `enum' blocks to separate entry.
+	(f90-start-block-re): Fix `type', `abstract interface'.
+	(f90-imenu-generic-expression): Use `f90-imenu-type-matcher' for
+	derived types.
+	(f90-mode-abbrev-table): Add `abstract interface', `asynchronous',
+	`elemental', change `enumerator'.
+	(f90-no-block-limit): Fix `abstract interface'.
+
+	* progmodes/f90.el (f90-indented-comment-re)
+	(f90-directive-comment-re, f90-break-delimiters):
+	* progmodes/fortran.el (fortran-comment-line-start-skip)
+	(fortran-directive-re):
+	* textmodes/conf-mode.el (conf-space-keywords): Mark these regexps
+	as safe if they are strings.
+
 2007-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* startup.el (window-system): Remove.  Don't make it frame-local.
