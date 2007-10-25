@@ -1,3 +1,7 @@
+2007-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* customize.texi (Variable Definitions): Add :risky and :safe keywords.
+
 2007-10-22  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.texi (Text from Minibuffer, Minibuffer Completion)
