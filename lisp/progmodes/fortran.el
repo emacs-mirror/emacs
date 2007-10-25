@@ -162,7 +162,7 @@ You might want to change this to \"*\", for instance."
   :version "21.1"
   :type    'regexp
   :group   'fortran-comment)
-;; FIXME is an arbitrary regexp safe?
+(put 'fortran-comment-line-start-skip 'safe-local-variable 'stringp)
 
 (defcustom fortran-directive-re
   "^[ \t]*#.*"
@@ -172,7 +172,7 @@ The matching line will be given zero indentation."
   :version "22.1"
   :type    'regexp
   :group   'fortran-indent)
-;; FIXME is an arbitrary regexp safe?
+(put 'fortran-directive-re 'safe-local-variable 'stringp)
 
 (defcustom fortran-minimum-statement-indent-fixed 6
   "Minimum statement indentation for fixed format continuation style."
