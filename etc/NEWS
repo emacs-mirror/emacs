@@ -195,12 +195,16 @@ It's used automatically as you move through hunks, see diff-auto-refine.
 ** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
 
-** In the `copyright' package, you can specify your copyright holders's names.
+** In the `copyright' package, you can specify your copyright holders' names.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
 
 ** eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
+
++++
+** defcustom accepts new keyword arguments, `:safe' and `risky:', which
+set a variable's `safe-local-variable' and `risky-local-variable' property.
 
 ** VC
 *** Clicking on the VC mode-line entry now pops the VC menu.
@@ -267,8 +271,8 @@ that either version can be used as inferior Python by python.el.
 
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
-*** (The increasingly misnamed) F90 mode has some support for Fortran 2003.
-At present, there are some problems with derived types.
++++
+*** (The increasingly misnamed) F90 mode supports Fortran 2003 syntax.
 
 ** Miscellaneous
 
