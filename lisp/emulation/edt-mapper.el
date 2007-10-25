@@ -118,12 +118,6 @@
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
 ;;;
-(defconst (featurep 'xemacs) (string-match "XEmacs" emacs-version)
-  "Non-nil if we are running XEmacs version 19, or higher.")
-
-(defconst edt-emacs-variant (if (featurep 'xemacs) "xemacs" "gnu")
-  "Indicates Emacs variant:  GNU Emacs or XEmacs \(aka Lucid Emacs\).")
-
 (defconst edt-window-system (if (featurep 'xemacs) (console-type) window-system)
   "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
 
@@ -514,7 +508,7 @@
 ;;;  Save the key mapping file
 ;;;
 (let ((file (concat
-	     "~/.edt-" edt-emacs-variant
+	     "~/.edt-" (if (featurep 'xemacs) "xemacs" "gnu")
 	     (if edt-term (concat "-" edt-term))
 	     (if edt-xserver (concat "-" edt-xserver))
 	     (if edt-window-system (concat "-" (upcase (symbol-name edt-window-system))))

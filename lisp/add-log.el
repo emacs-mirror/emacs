@@ -763,6 +763,10 @@ Runs `change-log-mode-hook'.
        '(change-log-font-lock-keywords t nil nil backward-paragraph))
   (set (make-local-variable 'isearch-buffers-next-buffer-function)
        'change-log-next-buffer)
+  (set (make-local-variable 'beginning-of-defun-function) 
+       'change-log-beginning-of-defun)
+  (set (make-local-variable 'end-of-defun-function) 
+       'change-log-end-of-defun)
   (isearch-buffers-minor-mode))
 
 (defun change-log-next-buffer (&optional buffer wrap)
@@ -1095,11 +1099,13 @@ Has a preference of looking backwards."
 	  (change-log-get-method-definition-1 ""))
 	(concat change-log-get-method-definition-md "]"))))))
 
+(defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
+
 (defun change-log-sortable-date-at ()
   "Return date of log entry in a consistent form for sorting.
 Point is assumed to be at the start of the entry."
   (require 'timezone)
-  (if (looking-at "^\\sw.........[0-9:+ ]*")
+  (if (looking-at change-log-start-entry-re)
       (let ((date (match-string-no-properties 0)))
 	(if date
 	    (if (string-match "\\(....\\)-\\(..\\)-\\(..\\)\\s-+" date)
@@ -1185,6 +1191,32 @@ old-style time formats for entries are supported."
 	    (with-current-buffer other-buf
 	      (goto-char (point-max)))
 	    (insert-buffer-substring other-buf start)))))))
+
+(defun change-log-beginning-of-defun ()
+  (re-search-backward change-log-start-entry-re nil 'move))
+
+(defun change-log-end-of-defun ()
+  ;; Look back and if there is no entry there it means we are before
+  ;; the first ChangeLog entry, so go forward until finding one.
+  (unless (save-excursion (re-search-backward change-log-start-entry-re nil t))
+    (re-search-forward change-log-start-entry-re nil t))
+
+  ;; In case we are at the end of log entry going forward a line will
+  ;; make us find the next entry when searching. If we are inside of
+  ;; an entry going forward a line will still keep the point inside
+  ;; the same entry.
+  (forward-line 1)
+
+  ;; In case we are at the beginning of an entry, move past it.
+  (when (looking-at change-log-start-entry-re)
+    (goto-char (match-end 0))
+    (forward-line 1))
+
+  ;; Search for the start of the next log entry.  Go to the end of the
+  ;; buffer if we could not find a next entry.
+  (when (re-search-forward change-log-start-entry-re nil 'move)
+    (goto-char (match-beginning 0))
+    (forward-line -1)))
 
 (provide 'add-log)
 

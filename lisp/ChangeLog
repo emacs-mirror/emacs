@@ -1,3 +1,15 @@
+2007-10-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emulation/edt-mapper.el (edt-emacs-variant): Replace the only
+	use with the definition. Remove.
+
+	* add-log.el (change-log-start-entry-re): New defconst.
+	(change-log-sortable-date-at): Use it.
+	(change-log-beginning-of-defun, change-log-end-of-defun): New
+	functions.
+	(change-log-mode): Use them for beginning-of-defun-function and
+	end-of-defun-function.
+
 2007-10-25  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.el: Make `ses--symbolic-formulas' a safe local variable.
