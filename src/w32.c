@@ -914,7 +914,6 @@ w32_get_resource (key, lpdwtype)
   LPBYTE lpvalue;
   HKEY hrootkey = NULL;
   DWORD cbData;
-  BOOL ok = FALSE;
 
   /* Check both the current user and the local machine to see if
      we have any resources.  */
