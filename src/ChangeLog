@@ -1,3 +1,7 @@
+2007-10-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): Fix tiny memory leak.
+
 2007-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Make `window-system' into a keyboard-local variable (rather than
