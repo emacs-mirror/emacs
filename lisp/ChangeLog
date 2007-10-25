@@ -1,3 +1,12 @@
+2007-10-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda-get-restriction-and-command): Use
+	`mapc' instead of `mapcar'.
+	(org-agenda-list): Numeric prefix argument can specify the number
+	of days.
+	(remember-register, remember-buffer): Prevent byte compiler from
+	complaining.
+
 2007-10-25  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* comint.el (comint-password-prompt-regexp):
