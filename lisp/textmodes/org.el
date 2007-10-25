@@ -15611,14 +15611,15 @@ Where possible, use the standard interface for changing this line."
 	    org-columns-top-level-marker))
      key1 nval)))
 
+(defmacro org-no-warnings (&rest body)
+  (cons (if (fboundp 'with-no-warnings) 'with-no-warnings 'progn) body))
+
 (defun org-columns-eval (form)
   (let (hidep)
     (save-excursion
       (beginning-of-line 1)
       ;; `next-line' is needed here, because it skips invisible line.
-      ;; FIXME: RMS says this should be wrapped into `with-no-warnings'
-      ;; but I don't know how to do this and keep the code XEmacs compatible.
-      (condition-case nil (next-line 1) (error nil))
+     (condition-case nil (org-no-warnings (next-line 1)) (error nil))
       (setq hidep (org-on-heading-p 1)))
     (eval form)
     (and hidep (hide-entry))))
@@ -26485,4 +26486,5 @@ Respect keys that are already there."
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
+
 
