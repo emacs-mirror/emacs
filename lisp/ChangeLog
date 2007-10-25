@@ -34885,7 +34885,8 @@
 	(bibtex-parse-field-name): Fix typos in docstrings.
 	(bibtex-field-list, bibtex-find-crossref): Fix typos in error messages.
 
-2005-01-24  Carsten Dominik  <dominik@science.uva.nl>
+2005-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+	    Juri Linkov  <juri@jurta.org>
 
 	* textmodes/reftex-global.el (reftex-isearch-push-state-function)
 	(reftex-isearch-pop-state-function, reftex-isearch-isearch-search)
