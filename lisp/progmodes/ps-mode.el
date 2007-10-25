@@ -408,7 +408,6 @@ If nil, the following are tried in turn, until success:
 
 (unless ps-mode-map
   (setq ps-mode-map (make-sparse-keymap))
-  (define-key ps-mode-map "\C-cv"    'ps-mode-show-version)
   (define-key ps-mode-map "\C-c\C-v" 'ps-run-boundingbox)
   (define-key ps-mode-map "\C-c\C-u" 'ps-mode-uncomment-region)
   (define-key ps-mode-map "\C-c\C-t" 'ps-mode-epsf-rich)
