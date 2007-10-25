@@ -1,6 +1,7 @@
 2007-10-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (init_environment): Fix tiny memory leak.
+	(w32_get_resource): Remove unused variable `ok'.
 
 2007-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
