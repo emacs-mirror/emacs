@@ -229,13 +229,13 @@
   "Regexp matching comments to indent as code."
   :type  'regexp
   :group 'f90-indent)
-;; FIXME are arbitrary regexps safe? Only used in looking-at.
+(put 'f90-indented-comment-re 'safe-local-variable 'stringp)
 
 (defcustom f90-directive-comment-re "!hpf\\$"
   "Regexp of comment-like directive like \"!HPF\\\\$\", not to be indented."
   :type  'regexp
   :group 'f90-indent)
-;; FIXME are arbitrary regexps safe? Only used in looking-at.
+(put 'f90-directive-comment-re 'safe-local-variable 'stringp)
 
 (defcustom f90-beginning-ampersand t
   "Non-nil gives automatic insertion of \& at start of continuation line."
@@ -262,7 +262,7 @@ matching this regexp that should not be split, and these are
 specified by the constant `f90-no-break-re'."
   :type  'regexp
   :group 'f90)
-;; FIXME are arbitrary regexps safe? Used in re-search-backward.
+(put 'f90-break-delimiters 'safe-local-variable 'stringp)
 
 (defcustom f90-break-before-delimiters t
   "Non-nil causes `f90-do-auto-fill' to break lines before delimiters."
