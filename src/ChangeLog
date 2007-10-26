@@ -1,5 +1,14 @@
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* alloc.c (spare_memory, stack_copy, stack_copy_size, ignore_warnings)
+	(Vdead, dont_register_blocks, staticvec, staticidx, interval_block)
+	(n_interval_blocks, init_strings, check_string_bytes, check_sblock)
+	(init_float, free_float, n_cons_blocks, init_cons, all_vectors)
+	(n_vectors, symbol_block, symbol_block_index, symbol_free_list)
+	(n_symbol_blocks, init_symbol, marker_block, marker_free_list)
+	(n_marker_blocks, init_marker, valid_pointer_p, make_pure_float)
+	(last_marked, mark_object_loop_halt): Make static.
+
 	* frame.c (syms_of_frame) <delete-frame-functions>:
 	Fix typo in docstring.
 
