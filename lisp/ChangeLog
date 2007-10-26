@@ -1,3 +1,18 @@
+2007-10-26  Richard Stallman  <rms@gnu.org>
+
+	* isearch-multi.el (isearch-buffers-multi): New option.
+	(isearch-buffers-search-fun): Test it.
+
+	* progmodes/ps-mode.el (ps-mode-map): Delete C-c v binding.
+	Put ps-run-clear on C-c C-l.
+
+	* newcomment.el (comment-styles): New style indent-or-triple.
+	(comment-style): Make that the default.
+	(comment-add defvar): Doc fix.
+	(comment-add): Delete arg EXTRA.
+	(comment-region-default): Open code call to comment-add.
+	Handle indent-or-triple style which uses `multi-char' for INDENT.
+
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eshell/em-unix.el (nil-blank-string): Doc fix.
