@@ -1,3 +1,8 @@
+2007-10-26  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Autoload the
+	safe-local-variable property.
+
 2007-10-26  Gwern Branwen  <gwern0@gmail.com>  (tiny change)
 
 	* net/browse-url.el (browse-url-browser-function): Delete grail.
