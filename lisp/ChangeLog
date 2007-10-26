@@ -1,3 +1,9 @@
+2007-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/fill.el (fill-nobreak-p): Replace obsolete alias
+	line-move-invisible-p with invisible-p, it was removed on
+	2007-08-29.
+
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (kill-emacs-query-functions): Doc fix;

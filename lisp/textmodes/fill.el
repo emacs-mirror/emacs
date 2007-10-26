@@ -344,7 +344,7 @@ be tested.  If it returns t, fill commands do not break the line there."
 Can be customized with the variables `fill-nobreak-predicate'
 and `fill-nobreak-invisible'."
   (or
-   (and fill-nobreak-invisible (line-move-invisible-p (point)))
+   (and fill-nobreak-invisible (invisible-p (point)))
    (unless (bolp)
     (or
      ;; Don't break after a period followed by just one space.
