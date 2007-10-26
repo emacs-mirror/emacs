@@ -1,5 +1,7 @@
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Reflow docstrings.
+
 	* alloc.c (spare_memory, stack_copy, stack_copy_size, ignore_warnings)
 	(Vdead, dont_register_blocks, staticvec, staticidx, interval_block)
 	(n_interval_blocks, init_strings, check_string_bytes, check_sblock)
