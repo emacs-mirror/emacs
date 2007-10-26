@@ -1,8 +1,20 @@
 2007-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emulation/pc-select.el (next-line-mark, next-line-nomark)
+	(previous-line-mark, previous-line-nomark): Wrap with-no-warnings
+	around uses of previous-line and next-line.
+
+	* diff.el (diff-old-file, diff-new-file, diff-extra-args): New
+	defvars.
+
+	* textmodes/css-mode.el (comment-continue):
+	* net/browse-url.el (url-handler-regexp):
+	* progmodes/idlw-help.el (idlwave-system-routines): Pacify
+	byte-compiler.
+
 	* textmodes/fill.el (fill-nobreak-p): Replace obsolete alias
-	line-move-invisible-p with invisible-p, it was removed on
-	2007-08-29.
+	line-move-invisible-p it's former definition:
+	invisible-p. line-move-invisible-p was removed on 2007-08-29.
 
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 

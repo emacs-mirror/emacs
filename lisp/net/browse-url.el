@@ -1153,6 +1153,8 @@ used instead of `browse-url-new-window-flag'."
 	       browse-url-epiphany-program
 	       (append browse-url-epiphany-startup-arguments (list url))))))
 
+(defvar url-handler-regexp)
+
 ;;;###autoload
 (defun browse-url-emacs (url &optional new-window)
   "Ask Emacs to load URL into a buffer and show it in another window."

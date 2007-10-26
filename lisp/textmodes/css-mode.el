@@ -277,6 +277,8 @@
         (aset fc c 'indent-according-to-mode))
       (set (make-local-variable 'auto-fill-chars) fc))))
 
+(defvar comment-continue)
+
 (defun css-fill-paragraph (&optional justify)
   (save-excursion
     (let ((ppss (syntax-ppss))
