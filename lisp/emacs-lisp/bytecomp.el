@@ -364,7 +364,8 @@ Elements of the list may be:
 		      (const callargs) (const redefine)
 		      (const obsolete) (const noruntime)
 		      (const cl-functions) (const interactive-only))))
-(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
+;;;###autoload(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
+
 ;;;###autoload
 (defun byte-compile-warnings-safe-p (x)
   (or (booleanp x)
