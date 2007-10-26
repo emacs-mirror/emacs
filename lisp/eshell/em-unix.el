@@ -974,12 +974,11 @@ Show wall-clock time elapsed during execution of COMMAND.")
   (if eshell-diff-window-config
       (set-window-configuration eshell-diff-window-config)))
 
-(defun nil-blank-string ( string )
-  "if a string is all blanks return nil, if there are non-blank characters
-return the string"
+(defun nil-blank-string (string)
+  "Return STRING, or nil if STRING contains only non-blank characters."
   (cond
-   ((string-match "[^[:blank:]]" string ) string)
-   (nil)))
+    ((string-match "[^[:blank:]]" string) string)
+    (nil)))
 
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
