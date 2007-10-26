@@ -579,6 +579,15 @@ This recursively follows aliases."
   (or (get variable 'standard-value)
       (get variable 'custom-autoload)))
 
+(defun custom-note-var-changed (variable)
+  "Inform Custom that VARIABLE has been set (changed).
+VARIABLE is a symbol that names a user option.
+The result is that the change is treated as having been made through Custom."
+  (interactive "vVariable: ")
+  (put variable 'customized-value (list (custom-quote (eval variable)))))
+  
+  ;;; Custom Themes
+
 ;;; Loading files needed to customize a symbol.
 ;;; This is in custom.el because menu-bar.el needs it for toggle cmds.
 
