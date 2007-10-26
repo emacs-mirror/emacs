@@ -1,3 +1,9 @@
+2007-10-26  Richard Stallman  <rms@gnu.org>
+
+	* objects.texi (Equality Predicates): Null strings are uniquified.
+
+	* minibuf.texi: Minor clarifications in previous change.
+
 2007-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* customize.texi (Variable Definitions): Add :risky and :safe keywords.
