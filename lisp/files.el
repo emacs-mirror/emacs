@@ -5286,9 +5286,8 @@ message to that effect instead of signaling an error."
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
 If any of these functions returns nil, killing Emacs is cancelled.
-`save-buffers-kill-emacs' (\\[save-buffers-kill-emacs]) calls these functions,
-but `kill-emacs', the low level primitive, does not.
-See also `kill-emacs-hook'.")
+`save-buffers-kill-emacs' calls these functions, but `kill-emacs',
+the low level primitive, does not.  See also `kill-emacs-hook'.")
 
 (defcustom confirm-kill-emacs nil
   "How to ask for confirmation when leaving Emacs.
