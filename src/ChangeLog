@@ -1,3 +1,7 @@
+2007-10-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (window_min_size_2): Don't count header-line.
+
 2007-10-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (init_environment): Fix tiny memory leak.
