@@ -312,8 +312,12 @@ functions `read-from-minibuffer', `read-string', `read-command',
 are available for inserting into the minibuffer by typing `M-n'.
 For empty input these functions return the first element of this list.
 
+** `custom-note-var-changed' tells Custom to treat the change in a certain
+variable as having been made within Custom.
+
 ** `frame-inherited-parameters' lets new frames inherit parameters from
 the selected frame.
+
 ** New keymap `input-decode-map' overrides like key-translation-map, but
 applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
