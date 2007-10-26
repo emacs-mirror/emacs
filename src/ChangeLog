@@ -1,3 +1,8 @@
+2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.c (syms_of_frame) <delete-frame-functions>:
+	Fix typo in docstring.
+
 2007-10-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (init_environment): Fix tiny memory leak.
