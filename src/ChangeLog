@@ -1099,7 +1099,7 @@
 
 	* term.c (tty_insert_glyphs): Add missing first parameter.
 
-2007-08-29  Karoly Lorentey  <karoly@lorentey.hu>
+2007-08-29  K,Aa(Broly L$,1 q(Brentey  <karoly@lorentey.hu>
 
 	* buffer.c (Fbuffer_list, Fbury_buffer):
 	Take frame->buried_buffer_list into account.
