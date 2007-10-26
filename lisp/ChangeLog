@@ -1,3 +1,18 @@
+2007-10-26  Gwern Branwen  <gwern0@gmail.com>  (tiny change)
+
+	* net/browse-url.el (browse-url-browser-function): Delete grail.
+	(browse-url-grail): Function and variable deleted.
+	(browse-url-browser-function): Delete IXI Mosaic.
+	(browse-url-default-browser): Don't try IXI Mosaic.
+	(browse-url-iximosaic): Function deleted.
+	(browse-url-browser-function): Delete MMM.
+	(browse-url-default-browser): Don't try MMM.
+	(browse-url-mmm): Function deleted.
+
+2007-10-26  Drew Adams  <drew.adams@oracle.com>
+
+	* custom.el (custom-note-var-changed): New function.
+
 2007-10-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emulation/edt-mapper.el (edt-emacs-variant): Replace the only
