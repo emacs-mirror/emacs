@@ -1,3 +1,12 @@
+2007-10-26  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-unix.el (eshell/diff): Before calling the `diff'
+	function, ensure that the third argument is turned into a NIL if
+	the string is otherwise completely empty (either no characters, or
+	all tabs/spaces).  This fixes a bug from a user who found himself
+	unable to customize `diff-switches' and still use Eshell's diff
+	command.
+
 2007-10-26  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Autoload the
