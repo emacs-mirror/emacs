@@ -182,13 +182,16 @@ by replacing its first character with a space.")
 (defvar comment-add 0
   "How many more comment chars should be inserted by `comment-region'.
 This determines the default value of the numeric argument of `comment-region'.
+The `plain' comment style doubles this value.
+
 This should generally stay 0, except for a few modes like Lisp where
-it can be convenient to set it to 1 so that regions are commented with
-two semi-colons.")
+it is 1 so that regions are commented with two or three semi-colons.")
 
 (defconst comment-styles
   '((plain	. (nil nil nil nil))
     (indent	. (nil nil nil t))
+    (indent-or-triple
+                . (nil nil nil multi-char))
     (aligned	. (nil t nil t))
     (multi-line	. (t nil nil t))
     (extra-line	. (t nil t t))
@@ -201,10 +204,12 @@ ALIGN specifies that the `comment-end' markers should be aligned.
 EXTRA specifies that an extra line should be used before and after the
   region to comment (to put the `comment-end' and `comment-start').
 INDENT specifies that the `comment-start' markers should not be put at the
-  left margin but at the current indentation of the region to comment.")
+  left margin but at the current indentation of the region to comment.
+If INDENT is `multi-char', that means indent multi-character
+  comment starters, but not one-character comment starters.")
 
 ;;;###autoload
-(defcustom comment-style 'plain
+(defcustom comment-style 'indent-or-triple
   "Style to be used for `comment-region'.
 See `comment-styles' for a list of available styles."
   :type (if (boundp 'comment-styles)
@@ -939,14 +944,14 @@ indentation to be kept as it was before narrowing."
 		   (delete-char n)
 		   (setq ,bindent (- ,bindent n)))))))))))
 
-;; Compute the number of extra semicolons to add to the comment starter
-;; in Lisp mode, extra stars in C mode, etc.
+;; Compute the number of extra comment starter characters
+;; (extra semicolons in Lisp mode, extra stars in C mode, etc.)
 ;; If ARG is non-nil, just follow ARG.
 ;; If the comment-starter is multi-char, just follow ARG.
 ;; Otherwise obey comment-add, and double it if EXTRA is non-nil.
-(defun comment-add (arg &optional extra)
+(defun comment-add (arg)
   (if (and (null arg) (= (string-match "[ \t]*\\'" comment-start) 1))
-      (* comment-add (if extra 2 1))
+      (* comment-add 1)
     (1- (prefix-numeric-value arg))))
 
 (defun comment-region-internal (beg end cs ce
@@ -1086,24 +1091,33 @@ The strings used as comment starts are built from
      ((consp arg) (uncomment-region beg end))
      ((< numarg 0) (uncomment-region beg end (- numarg)))
      (t
-      ;; Add an extra semicolon in Lisp and similar modes.
-      ;; If STYLE doesn't specify indenting the comments,
-      ;; then double the value of `comment-add'.
-      (setq numarg (comment-add arg (null (nth 3 style))))
-      (comment-region-internal
-       beg end
-       (let ((s (comment-padright comment-start numarg)))
-	 (if (string-match comment-start-skip s) s
-	   (comment-padright comment-start)))
-       (let ((s (comment-padleft comment-end numarg)))
-	 (and s (if (string-match comment-end-skip s) s
-		  (comment-padright comment-end))))
-       (if multi (comment-padright comment-continue numarg))
-       (if multi
-	   (comment-padleft (comment-string-reverse comment-continue) numarg))
-       block
-       lines
-       (nth 3 style))))))
+      (let ((multi-char (/= (string-match "[ \t]*\\'" comment-start) 1))
+	    indent)
+	(if (eq (nth 3 style) 'multi-char)
+	    (setq indent multi-char)
+	  (setq indent (nth 3 style)))
+
+	;; In Lisp and similar modes with one-character comment starters,
+	;; double it by default if `comment-add' says so.
+	;; If it isn't indented, triple it.
+	(if (and (null arg) (not multi-char))
+	    (setq numarg (* comment-add (if indent 1 2)))
+	  (setq numarg (1- (prefix-numeric-value arg))))
+
+	(comment-region-internal
+	 beg end
+	 (let ((s (comment-padright comment-start numarg)))
+	   (if (string-match comment-start-skip s) s
+	     (comment-padright comment-start)))
+	 (let ((s (comment-padleft comment-end numarg)))
+	   (and s (if (string-match comment-end-skip s) s
+		    (comment-padright comment-end))))
+	 (if multi (comment-padright comment-continue numarg))
+	 (if multi
+	     (comment-padleft (comment-string-reverse comment-continue) numarg))
+	 block
+	 lines
+	 indent))))))
 
 ;;;###autoload
 (defun comment-box (beg end &optional arg)
