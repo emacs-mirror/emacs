@@ -639,8 +639,14 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
      LPARAM list_object;
 {
   Lisp_Object* list = (Lisp_Object *) list_object;
-  Lisp_Object family = intern_downcase (logical_font->elfLogFont.lfFaceName,
-                                        strlen (logical_font->elfLogFont.lfFaceName));
+  Lisp_Object family;
+
+  /* Skip vertical fonts (intended only for printing)  */
+  if (logical_font->elfLogFont.lfFaceName[0] == '@')
+    return 1;
+
+  family = intern_downcase (logical_font->elfLogFont.lfFaceName,
+                            strlen (logical_font->elfLogFont.lfFaceName));
   if (! memq_no_quit (family, *list))
     *list = Fcons (family, *list);
 
@@ -785,10 +791,7 @@ font_matches_spec (type, font, spec)
       int slant = XINT (val);
       if ((slant > 150 && !font->ntmTm.tmItalic)
           || (slant <= 150 && font->ntmTm.tmItalic))
-        {
-          OutputDebugString ("italic mismatch");
         return 0;
-        }
     }
 
   /* Check extra parameters.  */
@@ -944,7 +947,11 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
 
   if (logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
       && font_matches_spec (font_type, physical_font,
-                            match_data->orig_font_spec))
+                            match_data->orig_font_spec)
+      /* Avoid Windows substitution so we can control substitution with
+         alternate-fontname-alist.  */
+      && !strnicmp (&logical_font->elfFullName,
+                    &match_data->pattern.lfFaceName, LF_FACESIZE))
     {
       Lisp_Object entity
         = w32_enumfont_pattern_entity (match_data->frame, logical_font,
