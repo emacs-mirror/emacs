@@ -3437,7 +3437,7 @@
 
 	* env.el (getenv): Pass frame to getenv-internal.
 
-2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+2007-08-29  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* version.el (emacs-version): Show if multi-tty is present.
 
