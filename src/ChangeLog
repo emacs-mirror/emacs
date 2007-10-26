@@ -1,3 +1,9 @@
+2007-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.h (struct frame): Move all bit fields after the first bit
+	field to take advantage of the available space. Group all the
+	chars together to reduce wasted space due to padding.
+
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Reflow docstrings.
