@@ -1,7 +1,11 @@
+2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eshell/em-unix.el (nil-blank-string): Doc fix.
+
 2007-10-26  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/em-unix.el (eshell/diff): Before calling the `diff'
-	function, ensure that the third argument is turned into a NIL if
+	function, ensure that the third argument is turned into a nil if
 	the string is otherwise completely empty (either no characters, or
 	all tabs/spaces).  This fixes a bug from a user who found himself
 	unable to customize `diff-switches' and still use Eshell's diff
@@ -30,12 +34,12 @@
 2007-10-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emulation/edt-mapper.el (edt-emacs-variant): Replace the only
-	use with the definition. Remove.
+	use with the definition.  Remove.
 
 	* add-log.el (change-log-start-entry-re): New defconst.
 	(change-log-sortable-date-at): Use it.
-	(change-log-beginning-of-defun, change-log-end-of-defun): New
-	functions.
+	(change-log-beginning-of-defun, change-log-end-of-defun):
+	New functions.
 	(change-log-mode): Use them for beginning-of-defun-function and
 	end-of-defun-function.
 
