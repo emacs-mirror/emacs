@@ -37,6 +37,12 @@
   :version "23.1"
   :group 'isearch)
 
+(defcustom isearch-buffers-multi t
+  "Non-nil enables searching multiple related buffers, in certain modes."
+  :type 'boolean
+  :version "23.1"
+  :group 'isearch-buffers)
+
 (defcustom isearch-buffers-pause t
   "A choice defining where to pause the search.
 If the value is nil, don't pause before going to the next buffer.
@@ -121,7 +127,7 @@ Intended to be added to `isearch-mode-hook'."
        ;; successively, and search the string in them.  Do this only
        ;; when bound is nil (i.e. not while lazy-highlighting search
        ;; strings in the current buffer).
-       (unless bound
+       (when (and (not bound) isearch-buffers-multi)
 	 ;; If no-pause or there was one attempt to leave the current buffer
 	 (if (or (null isearch-buffers-pause)
 		 (and isearch-buffers-pause isearch-buffers-current-buffer))
