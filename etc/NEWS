@@ -166,8 +166,14 @@ its usage.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
-** diff-fine-highlight highlights char-level details of changes in a diff hunk.
+** smerge-refine highlights word-level details of changes in conflict.
+It's used automatically as you move through conflicts, see smerge-auto-refine.
+
+** diff-refine-hunk highlights word-level details of changes in a diff hunk.
+It's used automatically as you move through hunks, see diff-auto-refine.
+
 ** archive-mode has basic support to browse Rar archives.
+
 ** talk.el has been extended for multiple tty support.
 
 ** compilation-auto-jump-to-first-error tells `compile' to jump to

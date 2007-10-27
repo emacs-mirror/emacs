@@ -801,7 +801,7 @@ The given COUNT is remembered for future scrollings."
 (defun vi-previous-line-first-nonwhite (count)
   "Go up COUNT lines.  Stop at first non-white."
   (interactive "p")
-  (previous-line count)
+  (forward-line (- count))
   (back-to-indentation))
 
 (defun vi-scroll-up-window (count)
@@ -1062,7 +1062,7 @@ MOTION-COMMAND with ARG.
 	       (setq end (1+ end)))
 	      ((eq moving-unit 'line)
 	       (goto-char begin) (beginning-of-line) (setq begin (point))
-	       (goto-char end) (next-line 1) (beginning-of-line) (setq end (point))))
+	       (goto-char end) (forward-line 1) (beginning-of-line) (setq end (point))))
 	(if (> end (point-max)) (setq end (point-max))) ; force in buffer region
 	(cons begin end)))))
 
@@ -1124,7 +1124,7 @@ text as lines.  If the optional after-p is given, put after/below the cursor."
 	     (t (error "Register %c is not containing text string" reg))))
       (if (vi-string-end-with-nl-p put-text) ; put back text as lines
 	  (if after-p
-	      (progn (next-line 1) (beginning-of-line))
+	      (progn (forward-line 1) (beginning-of-line))
 	    (beginning-of-line))
 	(if after-p (forward-char 1)))
       (push-mark (point))

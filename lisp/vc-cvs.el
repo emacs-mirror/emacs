@@ -962,11 +962,11 @@ is non-nil."
         (push (match-string 1) res))
       res)))
 
-(defun vc-cvs-revision-completion-table (file)
-  (lexical-let ((file file)
+(defun vc-cvs-revision-completion-table (files)
+  (lexical-let ((files files)
                 table)
     (setq table (lazy-completion-table
-                 table (lambda () (vc-cvs-revision-table file))))
+                 table (lambda () (vc-cvs-revision-table (car files)))))
     table))
                                            
 

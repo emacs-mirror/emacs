@@ -1,3 +1,15 @@
+2007-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in [HAVE_LIBRESOLV]: Add -lresolv to linker flags.
+
+2007-10-19  Richard Stallman  <rms@gnu.org>
+
+	* doc.c (Fdocumentation): Check for and handle an advised function.
+
+2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (Fset_process_filter): Doc fix.
+
 2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (read_key_sequence): Undo a change introduced by multi-tty

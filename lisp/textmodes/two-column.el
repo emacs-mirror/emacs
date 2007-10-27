@@ -463,7 +463,7 @@ First column's text    sSs  Second column's text
 						 (1+ (point)))))
 	  (delete-region point (point))
 	  (setq n 0))
-	(next-line 1)))))
+	(forward-line 1)))))
 
 
 
@@ -531,7 +531,7 @@ off trailing spaces with \\[delete-trailing-whitespace]."
 	  (end-of-line)
 	  (indent-to-column 2C-window-width)
 	  (insert 2C-separator string))
-	(next-line 1)			; add one if necessary
+	(forward-line 1)		; add one if necessary
 	(set-buffer b2))))
   (unless (window-full-width-p)
     (enlarge-window 99999 t)))

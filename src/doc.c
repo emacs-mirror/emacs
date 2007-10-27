@@ -439,6 +439,18 @@ string is passed through `substitute-command-keys'.  */)
 	    doc = tem;
 	  else
 	    return Qnil;
+
+	  /* Check for an advised function.  Its doc string
+	     has an `ad-advice-info' text property.  */
+	  if (STRINGP (doc))
+	    {
+	      Lisp_Object innerfunc;
+	      innerfunc = Fget_text_property (make_number (0),
+					      intern ("ad-advice-info"),
+					      doc);
+	      if (! NILP (innerfunc))
+		doc = call1 (intern ("ad-make-advised-docstring"), innerfunc);
+	    }
 	}
       else if (EQ (funcar, Qclosure))
  	return Fdocumentation (Fcdr (XCDR (fun)), raw);

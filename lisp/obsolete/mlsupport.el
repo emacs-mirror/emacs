@@ -186,10 +186,10 @@
   (newline (ml-prefix-argument)))
 
 (defun ml-next-line ()
-  (next-line (ml-prefix-argument)))
+  (forward-line (ml-prefix-argument)))
 
 (defun ml-previous-line ()
-  (previous-line (ml-prefix-argument)))
+  (forward-line (- (ml-prefix-argument))))
 
 (defun delete-to-kill-buffer ()
   (kill-region (point) (mark)))

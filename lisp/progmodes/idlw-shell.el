@@ -1474,7 +1474,7 @@ Otherwise just move the line.  Move down unless UP is non-nil."
     (if (and idlwave-shell-arrows-do-history
 	     (>= (1+ (save-excursion (end-of-line) (point))) proc-pos))
 	(comint-previous-input arg)
-      (previous-line arg))))
+      (forward-line (- arg)))))
 
 (defun idlwave-shell-up-or-history (&optional arg)
 "When in last line of process buffer, move to previous input.

@@ -64,6 +64,32 @@
   (non-windowed) mode of operation is most useful if you have a telnet
   server on your machine, allowing you to run Emacs remotely.
 
+* Image support
+
+  Emacs has built in support for XBM and PPM/PGM/PBM images, and the
+  libXpm library is bundled, providing XPM support (required for color
+  toolbar icons and splash screen).
+
+  Emacs can also support some other image formats with appropriate
+  libraries. These libraries are all available as part of GTK, or from
+  gnuwin32.sourceforge.net. Emacs will find them if the directory they
+  are installed in is on the PATH.
+
+      PNG: requires the PNG reference library 1.2 or later, which will
+      be named libpng13d.dll, libpng13.dll, libpng12d.dll, libpng12.dll
+      or libpng.dll. LibPNG requires zlib, which should come from the same
+      source as you got libpng.
+
+      JPEG: requires the Independant JPEG Group's libjpeg 6b or later,
+      which will be called jpeg62.dll, libjpeg.dll, jpeg-62.dll or jpeg.dll.
+
+      TIFF: requires libTIFF 3.0 or later, which will be called libtiff3.dll
+      or libtiff.dll.
+
+      GIF: requires libungif or giflib 4.1 or later, which will be
+      called giflib4.dll, libungif4.dll or libungif.dll.
+
+
 * Uninstalling Emacs
 
   If you should need to uninstall Emacs, simply delete all the files and

@@ -31,7 +31,7 @@
 
 ;;; Code:
 
-(defvar comint-prompt-regexp)
+(eval-when-compile (require 'comint))
 
 
 (defgroup prolog nil
@@ -269,6 +269,12 @@ Return not at end copies rest of line to end and sends it.
 
 (defvar inferior-prolog-buffer nil)
 
+(defvar inferior-prolog-flavor 'unknown
+  "Either a symbol or a buffer position offset by one.
+If a buffer position, the flavor has not been determined yet and
+it is expected that the process's output has been or will
+be inserted at that position plus one.")
+
 (defun inferior-prolog-run (&optional name)
   (with-current-buffer (make-comint "prolog" (or name prolog-program-name))
     (inferior-prolog-mode)
@@ -301,12 +307,6 @@ Return not at end copies rest of line to end and sends it.
         (inferior-prolog-run)
         ;; Try again.
         (inferior-prolog-process))))
-
-(defvar inferior-prolog-flavor 'unknown
-  "Either a symbol or a buffer position offset by one.
-If a buffer position, the flavor has not been determined yet and
-it is expected that the process's output has been or will
-be inserted at that position plus one.")
 
 (defun inferior-prolog-guess-flavor (&optional ignored)
   (save-excursion

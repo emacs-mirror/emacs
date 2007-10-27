@@ -1,3 +1,127 @@
+2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--track-window-changes): Don't refresh the whole list.
+	(bs-mode): Set mode-class property to special.
+
+2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-auto-refine): New var.
+	(diff-hunk): Use it.
+	(diff-ignore-whitespace-hunk): Rename diff-refine-ignore-spaces-hunk.
+	(diff-refine-change): Rename from diff-fine-change.  Change it.
+	(diff-refine-preproc): Rename from diff-fine-highlight-preproc.
+	(diff-refine-hunk): Rename from diff-fine-highlight.
+
+2007-10-20  John Paul Wallington  <jpw@pobox.com>
+
+	* help-fns.el (describe-variable-custom-version-info): New function
+	to return variable's version or package version note.
+	(describe-variable): Use it, display result.
+
+2007-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-auto-refine): New var.
+	(smerge-next, smerge-prev): Use it.
+	(smerge-batch-resolve): Ad-hoc trick for Arch's .rej files.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	Add `body' arg.  Cleanup the check-narrow-maybe/re-narrow-maybe mess.
+
+	* vc-bzr.el (vc-bzr-diff-tree):
+	* vc-git.el (vc-git-diff-tree):
+	* vc-hg.el (vc-hg-diff-tree):
+	* vc-mcvs.el (vc-mcvs-diff-tree):
+	* vc-mtn.el (vc-mtn-diff-tree):
+	* vc-svn.el (vc-svn-diff-tree): Remove.
+
+	* vc-mtn.el (vc-mtn-revision-completion-table):
+	* vc-cvs.el (vc-cvs-revision-completion-table):
+	* vc-arch.el (vc-arch-revision-completion-table):
+	* vc-hg.el (vc-hg-revision-completion-table, vc-hg-revision-table):
+	* vc-git.el (vc-git-revision-completion-table, vc-git-revision-table):
+	Make it work when the arg is a list of files.
+
+2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Remove `diff-tree' operation, now subsumed by `diff'.
+	Also `revision-completion-table' now takes a list of files.
+	(vc-deduce-fileset): Remove unused var `regexp'.
+	Only obey allow-directory-wildcard in dired buffers.
+	(vc-default-diff-tree): Remove.
+	(vc-diff-added-files): New var.
+	(vc-diff-internal): Use it.  Remove arg `backend'.  Update callers.
+	(vc-version-diff): Revert from `vc-history-diff' to the original name.
+	Remove the `backend' arg.
+	(vc-contains-version-controlled-file): Remove.
+	(vc-diff): Bring it closer to the version in Emacs-22.
+	(vc-revert): Fix typo in let-binding.
+	(vc-default-unregister): Remove.
+	(vc-dired-buffers-for-dir): Remove N^2 behavior.
+
+2007-10-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/two-column.el (2C-split, 2C-merge):
+	* textmodes/bib-mode.el (bib-find-key, mark-bib):
+	* progmodes/idlw-shell.el (idlwave-shell-move-or-history):
+	* progmodes/etags.el (find-tag-in-order, etags-tags-apropos)
+	* progmodes/ada-xref.el (ada-get-all-references):
+	* obsolete/mlsupport.el (ml-next-line, ml-previous-line):
+	* emulation/vi.el (vi-previous-line-first-nonwhite)
+	(vi-effective-range, vi-put-before):
+	* emulation/edt.el (edt-next-line, edt-previous-line)
+	(edt-paragraph-forward): Use forward-line.
+
+	* progmodes/etags.el (tags-apropos): Require apropos at compile
+	time too.
+
+	* progmodes/prolog.el: Require comint when compiling.
+	(inferior-prolog-flavor): Move defvar before use.
+
+2007-10-19  Richard Stallman  <rms@gnu.org>
+
+	* font-core.el (turn-on-font-lock-if-desired):
+	Rename from `turn-on-font-lock-if-enabled'.
+	Fully obey `font-lock-global-modes'.
+
+2007-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-fine-highlight-preproc): Stick to minimal changes
+	which will not affect the behavior of things like forward-word.
+	(diff-fine-highlight): Preserve point.
+
+	* doc-view.el (doc-view-mode-map): Use remapping.
+	Don't rebind C-v, M-v to their default value.
+	Don't bind mouse-4 and mouse-5: it's mwheel.el's job.
+
+	* smerge-mode.el: Add word-granularity refinement.
+	(smerge-refine-forward-function, smerge-refine-ignore-whitespace)
+	(smerge-refine-weight-hack): New vars.
+	(smerge-refine-forward): New fun.
+	(smerge-refine-chopup-region, smerge-refine-highlight-change): Use them.
+	(smerge-refine-subst): Use them as well.  Preserve point.
+
+2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-unload-function): New function.
+
+	* loadhist.el (unload-function-features-list):
+	Rename from `unload-hook-features-list'.
+	(unload-hook-features-list): Add as obsolete alias.
+	(unload-feature): Use `unload-function-features-list'
+	and new FEATURE-unload-function.
+
+2007-10-19  Glenn Morris  <rgm@gnu.org>
+
+	* bindings.el (mouse-minor-mode-menu)
+	(minor-mode-menu-from-indicator): Move to mouse.el.
+	* mouse.el (mouse-minor-mode-menu, minor-mode-menu-from-indicator):
+	Move here from bindings.el.
+
+2007-10-19  Richard Stallman  <rms@gnu.org>
+
+	* help-fns.el (describe-function-1): Don't use the advice origname
+	if it has no function definition.
+
 2007-10-18  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Save excursion.
@@ -23,10 +147,10 @@
 	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-dvi->pdf)
 	(doc-view-pdf/ps->png-sentinel, doc-view-pdf/ps->png)
 	(doc-view-pdf->txt-sentinel, doc-view-pdf->txt)
-	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf): Remove superfluous
-	messages.
-	(doc-view-mode-map): Use the image-mode scrolling commands.  Don't
-	rebind C-x k.
+	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf):
+	Remove superfluous messages.
+	(doc-view-mode-map): Use the image-mode scrolling commands.
+	Don't rebind C-x k.
 
 2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
