@@ -104,12 +104,9 @@ as it is by default."
 (defvar Buffer-menu-sort-column nil
   "Which column to sort the menu on.
 Use 2 to sort by buffer names, or 5 to sort by file names.
-nil means sort by visited order (the default).")
+A nil value means sort by visited order (the default).")
 
 (defconst Buffer-menu-buffer-column 4)
-
-(defvar Buffer-menu-mode-map nil
-  "Local keymap for `Buffer-menu-mode' buffers.")
 
 (defvar Buffer-menu-files-only nil
   "Non-nil if the current buffer-menu lists only file buffers.
@@ -117,52 +114,52 @@ This variable determines whether reverting the buffer lists only
 file buffers.  It affects both manual reverting and reverting by
 Auto Revert Mode.")
 
+(make-variable-buffer-local 'Buffer-menu-files-only)
+
 (defvar Info-current-file) ;; from info.el
 (defvar Info-current-node) ;; from info.el
 
-(make-variable-buffer-local 'Buffer-menu-files-only)
-
-(if Buffer-menu-mode-map
-    ()
-  (setq Buffer-menu-mode-map (make-keymap))
-  (suppress-keymap Buffer-menu-mode-map t)
-  (define-key Buffer-menu-mode-map "q" 'quit-window)
-  (define-key Buffer-menu-mode-map "v" 'Buffer-menu-select)
-  (define-key Buffer-menu-mode-map "2" 'Buffer-menu-2-window)
-  (define-key Buffer-menu-mode-map "1" 'Buffer-menu-1-window)
-  (define-key Buffer-menu-mode-map "f" 'Buffer-menu-this-window)
-  (define-key Buffer-menu-mode-map "e" 'Buffer-menu-this-window)
-  (define-key Buffer-menu-mode-map "\C-m" 'Buffer-menu-this-window)
-  (define-key Buffer-menu-mode-map "o" 'Buffer-menu-other-window)
-  (define-key Buffer-menu-mode-map "\C-o" 'Buffer-menu-switch-other-window)
-  (define-key Buffer-menu-mode-map "s" 'Buffer-menu-save)
-  (define-key Buffer-menu-mode-map "d" 'Buffer-menu-delete)
-  (define-key Buffer-menu-mode-map "k" 'Buffer-menu-delete)
-  (define-key Buffer-menu-mode-map "\C-d" 'Buffer-menu-delete-backwards)
-  (define-key Buffer-menu-mode-map "\C-k" 'Buffer-menu-delete)
-  (define-key Buffer-menu-mode-map "x" 'Buffer-menu-execute)
-  (define-key Buffer-menu-mode-map " " 'next-line)
-  (define-key Buffer-menu-mode-map "n" 'next-line)
-  (define-key Buffer-menu-mode-map "p" 'previous-line)
-  (define-key Buffer-menu-mode-map "\177" 'Buffer-menu-backup-unmark)
-  (define-key Buffer-menu-mode-map "~" 'Buffer-menu-not-modified)
-  (define-key Buffer-menu-mode-map "?" 'describe-mode)
-  (define-key Buffer-menu-mode-map "u" 'Buffer-menu-unmark)
-  (define-key Buffer-menu-mode-map "m" 'Buffer-menu-mark)
-  (define-key Buffer-menu-mode-map "t" 'Buffer-menu-visit-tags-table)
-  (define-key Buffer-menu-mode-map "%" 'Buffer-menu-toggle-read-only)
-  (define-key Buffer-menu-mode-map "b" 'Buffer-menu-bury)
-  (define-key Buffer-menu-mode-map "g" 'Buffer-menu-revert)
-  (define-key Buffer-menu-mode-map "V" 'Buffer-menu-view)
-  (define-key Buffer-menu-mode-map "T" 'Buffer-menu-toggle-files-only)
-  (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
-  (define-key Buffer-menu-mode-map [follow-link] 'mouse-face)
-)
+(defvar Buffer-menu-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map t)
+    (define-key map "q" 'quit-window)
+    (define-key map "v" 'Buffer-menu-select)
+    (define-key map "2" 'Buffer-menu-2-window)
+    (define-key map "1" 'Buffer-menu-1-window)
+    (define-key map "f" 'Buffer-menu-this-window)
+    (define-key map "e" 'Buffer-menu-this-window)
+    (define-key map "\C-m" 'Buffer-menu-this-window)
+    (define-key map "o" 'Buffer-menu-other-window)
+    (define-key map "\C-o" 'Buffer-menu-switch-other-window)
+    (define-key map "s" 'Buffer-menu-save)
+    (define-key map "d" 'Buffer-menu-delete)
+    (define-key map "k" 'Buffer-menu-delete)
+    (define-key map "\C-d" 'Buffer-menu-delete-backwards)
+    (define-key map "\C-k" 'Buffer-menu-delete)
+    (define-key map "x" 'Buffer-menu-execute)
+    (define-key map " " 'next-line)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    (define-key map "\177" 'Buffer-menu-backup-unmark)
+    (define-key map "~" 'Buffer-menu-not-modified)
+    (define-key map "?" 'describe-mode)
+    (define-key map "u" 'Buffer-menu-unmark)
+    (define-key map "m" 'Buffer-menu-mark)
+    (define-key map "t" 'Buffer-menu-visit-tags-table)
+    (define-key map "%" 'Buffer-menu-toggle-read-only)
+    (define-key map "b" 'Buffer-menu-bury)
+    (define-key map "g" 'Buffer-menu-revert)
+    (define-key map "V" 'Buffer-menu-view)
+    (define-key map "T" 'Buffer-menu-toggle-files-only)
+    (define-key map [mouse-2] 'Buffer-menu-mouse-select)
+    (define-key map [follow-link] 'mouse-face)
+    map)
+  "Local keymap for `Buffer-menu-mode' buffers.")
 
 ;; Buffer Menu mode is suitable only for specially formatted data.
 (put 'Buffer-menu-mode 'mode-class 'special)
 
-(defun Buffer-menu-mode ()
+(define-derived-mode Buffer-menu-mode nil "Buffer Menu"
   "Major mode for editing a list of buffers.
 Each line describes one of the buffers in Emacs.
 Letters do not insert themselves; instead, they are commands.
@@ -194,17 +191,12 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-revert] -- update the list of buffers.
 \\[Buffer-menu-toggle-files-only] -- toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury] -- bury the buffer listed on this line."
-  (kill-all-local-variables)
-  (use-local-map Buffer-menu-mode-map)
-  (setq major-mode 'Buffer-menu-mode)
-  (setq mode-name "Buffer Menu")
   (set (make-local-variable 'revert-buffer-function)
        'Buffer-menu-revert-function)
   (set (make-local-variable 'buffer-stale-function)
        #'(lambda (&optional noconfirm) 'fast))
   (setq truncate-lines t)
-  (setq buffer-read-only t)
-  (run-mode-hooks 'buffer-menu-mode-hook))
+  (setq buffer-read-only t))
 
 ;; This function exists so we can make the doc string of Buffer-menu-mode
 ;; look nice.

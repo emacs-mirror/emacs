@@ -93,7 +93,41 @@
 ;; so we ignore them on the way down
 ;;
 
-(defvar sun-raw-prefix (make-sparse-keymap))
+(defvar sun-raw-prefix
+  (let ((map (make-sparse-keymap)))
+    (define-key map "210z" [r3])
+    (define-key map "213z" [r6])
+    (define-key map "214z" [r7])
+    (define-key map "216z" [r9])
+    (define-key map "218z" [r11])
+    (define-key map "220z" [r13])
+    (define-key map "222z" [r15])
+    (define-key map "193z" [redo])
+    (define-key map "194z" [props])
+    (define-key map "195z" [undo])
+    ;; (define-key map "196z" 'ignore)		; Expose-down
+    ;; (define-key map "197z" [put])
+    ;; (define-key map "198z" 'ignore)		; Open-down
+    ;; (define-key map "199z" [get])
+    (define-key map "200z" [find])
+    ;; (define-key map "201z" 'kill-region-and-unmark)	; Delete
+    (define-key map "224z" [f1])
+    (define-key map "225z" [f2])
+    (define-key map "226z" [f3])
+    (define-key map "227z" [f4])
+    (define-key map "228z" [f5])
+    (define-key map "229z" [f6])
+    (define-key map "230z" [f7])
+    (define-key map "231z" [f8])
+    (define-key map "232z" [f9])
+    (define-key map "233z" [f10])
+    (define-key map "234z" [f11])
+    (define-key map "235z" [f12])
+    (define-key map "A" [up])  ; R8
+    (define-key map "B" [down]) ; R14
+    (define-key map "C" [right]) ; R12
+    (define-key map "D" [left])  ; R10
+    map))
 
 ;; Since .emacs gets loaded before this file, a hook is supplied
 ;; for you to put your own bindings in.
@@ -105,40 +139,7 @@
 
 (defun terminal-init-sun ()
   "Terminal initialization function for sun."
-  (define-key local-function-key-map "\e[" sun-raw-prefix)
-
-  (define-key sun-raw-prefix "210z" [r3])
-  (define-key sun-raw-prefix "213z" [r6])
-  (define-key sun-raw-prefix "214z" [r7])
-  (define-key sun-raw-prefix "216z" [r9])
-  (define-key sun-raw-prefix "218z" [r11])
-  (define-key sun-raw-prefix "220z" [r13])
-  (define-key sun-raw-prefix "222z" [r15])
-  (define-key sun-raw-prefix "193z" [redo])
-  (define-key sun-raw-prefix "194z" [props])
-  (define-key sun-raw-prefix "195z" [undo])
-  ;; (define-key sun-raw-prefix "196z" 'ignore)		; Expose-down
-  ;; (define-key sun-raw-prefix "197z" [put])
-  ;; (define-key sun-raw-prefix "198z" 'ignore)		; Open-down
-  ;; (define-key sun-raw-prefix "199z" [get])
-  (define-key sun-raw-prefix "200z" [find])
-  ;; (define-key sun-raw-prefix "201z" 'kill-region-and-unmark)	; Delete
-  (define-key sun-raw-prefix "224z" [f1])
-  (define-key sun-raw-prefix "225z" [f2])
-  (define-key sun-raw-prefix "226z" [f3])
-  (define-key sun-raw-prefix "227z" [f4])
-  (define-key sun-raw-prefix "228z" [f5])
-  (define-key sun-raw-prefix "229z" [f6])
-  (define-key sun-raw-prefix "230z" [f7])
-  (define-key sun-raw-prefix "231z" [f8])
-  (define-key sun-raw-prefix "232z" [f9])
-  (define-key sun-raw-prefix "233z" [f10])
-  (define-key sun-raw-prefix "234z" [f11])
-  (define-key sun-raw-prefix "235z" [f12])
-  (define-key sun-raw-prefix "A" [up])			; R8
-  (define-key sun-raw-prefix "B" [down])		; R14
-  (define-key sun-raw-prefix "C" [right])		; R12
-  (define-key sun-raw-prefix "D" [left])		; R10
+  (define-key input-decode-map "\e[" sun-raw-prefix)
 
   (global-set-key [r3]	'backward-page)
   (global-set-key [r6]	'forward-page)
@@ -164,5 +165,5 @@
 	(eval (car hooks))
 	(setq hooks (cdr hooks))))))
 
-;;; arch-tag: db761d47-fd7d-42b4-aae1-04fa116b6ba6
+;; arch-tag: db761d47-fd7d-42b4-aae1-04fa116b6ba6
 ;;; sun.el ends here

@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(defvar print-region-function)
+
 (setq auto-mode-alist (cons '(("\\.com\\'" . dcl-mode)) auto-mode-alist))
 
 ;;; Functions that need redefinition

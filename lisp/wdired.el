@@ -499,7 +499,7 @@ Optional arguments are ignored."
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "p")
-  (next-line arg)
+  (forward-line arg)
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
 	       (< (current-column)
@@ -512,7 +512,7 @@ says how many lines to move; default is one line."
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "p")
-  (previous-line arg)
+  (forward-line (- arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
 	       (< (current-column)

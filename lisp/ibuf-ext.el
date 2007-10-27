@@ -224,13 +224,12 @@ Currently, this only applies to `ibuffer-saved-filters' and
 
 (defun ibuffer-auto-update-changed ()
   (when (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed)
-    (mapcar #'(lambda (buf)
-		(ignore-errors
-		  (with-current-buffer buf
-		    (when (and ibuffer-auto-mode
-			       (eq major-mode 'ibuffer-mode))
-		      (ibuffer-update nil t)))))
-	    (buffer-list))))
+    (dolist (buf (buffer-list))
+      (ignore-errors
+	(with-current-buffer buf
+	  (when (and ibuffer-auto-mode
+		     (eq major-mode 'ibuffer-mode))
+	    (ibuffer-update nil t)))))))
 
 ;;;###autoload
 (defun ibuffer-auto-mode (&optional arg)
@@ -243,7 +242,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
        (if arg
 	   (plusp arg)
 	 (not ibuffer-auto-mode)))
-  (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed)
+  (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
   (add-hook 'post-command-hook 'ibuffer-auto-update-changed)
   (ibuffer-update-mode-name))
 
@@ -565,7 +564,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
                   (cons (format "%s" mode) `((mode . ,mode))))
                 (let ((modes
                        (ibuffer-remove-duplicates
-                        (mapcar (lambda (buf) 
+                        (mapcar (lambda (buf)
 				  (with-current-buffer buf major-mode))
                                 (buffer-list)))))
                   (if ibuffer-view-ibuffer
@@ -604,7 +603,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 ;;;###autoload
 (defun ibuffer-decompose-filter-group (group)
   "Decompose the filter group GROUP into active filters."
-  (interactive 
+  (interactive
    (list (ibuffer-read-filter-group-name "Decompose filter group: " t)))
   (let ((data (cdr (assoc group ibuffer-filter-groups))))
     (setq ibuffer-filter-groups (ibuffer-delete-alist
@@ -639,7 +638,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 ;;;###autoload
 (defun ibuffer-jump-to-filter-group (name)
   "Move point to the filter group whose name is NAME."
-  (interactive 
+  (interactive
    (list (ibuffer-read-filter-group-name "Jump to filter group: ")))
   (ibuffer-aif (assoc name (ibuffer-current-filter-groups-with-position))
       (goto-char (cdr it))
@@ -753,9 +752,7 @@ They are removed from `ibuffer-saved-filter-groups'."
 ;;;###autoload
 (defun ibuffer-switch-to-saved-filter-groups (name)
   "Set this buffer's filter groups to saved version with NAME.
-The value from `ibuffer-saved-filters' is used.
-If prefix argument ADD is non-nil, then add the saved filters instead
-of replacing the current filters."
+The value from `ibuffer-saved-filter-groups' is used."
   (interactive
    (list
     (if (null ibuffer-saved-filter-groups)
@@ -863,7 +860,7 @@ filter into parts."
 		  (not (eq 'or (caar ibuffer-filtering-qualifiers))))
 	  (error "Top filter is not an OR"))
 	(let ((lim (pop ibuffer-filtering-qualifiers)))
-	  (setq ibuffer-filtering-qualifiers 
+	  (setq ibuffer-filtering-qualifiers
 		(nconc (cdr lim) ibuffer-filtering-qualifiers))))
     (when (< (length ibuffer-filtering-qualifiers) 2)
       (error "Need two filters to OR"))
@@ -931,9 +928,7 @@ Interactively, prompt for NAME, and use the current filters."
 
 ;;;###autoload
 (defun ibuffer-switch-to-saved-filters (name)
-  "Set this buffer's filters to filters with NAME from `ibuffer-saved-filters'.
-If prefix argument ADD is non-nil, then add the saved filters instead
-of replacing the current filters."
+  "Set this buffer's filters to filters with NAME from `ibuffer-saved-filters'."
   (interactive
    (list
     (if (null ibuffer-saved-filters)

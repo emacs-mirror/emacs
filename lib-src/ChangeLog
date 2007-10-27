@@ -1,3 +1,18 @@
+2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c: Add a wrapper for getenv so it also checks the
+	registry on Windows.  Suggestion and algorithm by Eli Zaretskii.
+	Code partially based on w32_get_resource and init_environment (w32.c).
+	(egetenv): New wrapper for getenv.
+	(get_current_dir_name, decode_options, get_server_config)
+	(set_local_socket, set_socket, main): Use egetenv, not getenv.
+	(w32_get_resource, w32_getenv) [WINDOWSNT]: New functions.
+
+2007-10-25  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c (sock_err_message): New function.
+	(set_tcp_socket): Use it.
+
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (print_help_and_exit): Fix space to improve
@@ -60,7 +75,7 @@
 	option.
 	(main) [NO_SOCKETS_IN_FILE_SYSTEM]: Don't call init_signals.
 
-2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+2007-08-29  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* emacsclient.c (signal.h): New include.
 	(sys/stat.h, errno.h): Always include, even on WINDOWSNT.

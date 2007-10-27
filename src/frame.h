@@ -202,6 +202,30 @@ struct frame
      be used for output.  */
   unsigned glyphs_initialized_p : 1;
 
+  /* Set to non-zero in change_frame_size when size of frame changed
+     Clear the frame in clear_garbaged_frames if set.  */
+  unsigned resized_p : 1;
+
+  /* Set to non-zero in when we want for force a flush_display in
+     update_frame, usually after resizing the frame.  */
+  unsigned force_flush_display_p : 1;
+
+  /* Set to non-zero if the default face for the frame has been
+     realized.  Reset to zero whenever the default face changes.
+     Used to see the difference between a font change and face change.  */
+  unsigned default_face_done_p : 1;
+
+  /* Set to non-zero if this frame has already been hscrolled during
+     current redisplay.  */
+  unsigned already_hscrolled_p : 1;
+
+  /* Set to non-zero when current redisplay has updated frame.  */
+  unsigned updated_p : 1;
+
+  /* Set to non-zero to minimize tool-bar height even when
+     auto-resize-tool-bar is set to grow-only.  */
+  unsigned minimize_tool_bar_window_p : 1;
+
 #if defined (USE_GTK) || defined (MAC_OS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
   int external_tool_bar;
@@ -368,24 +392,6 @@ struct frame
      support scroll bars.  */
   char can_have_scroll_bars;
 
-  /* If can_have_scroll_bars is non-zero, this is non-zero if we should
-     actually display them on this frame.  */
-  enum vertical_scroll_bar_type vertical_scroll_bar_type;
-
-  /* What kind of text cursor should we draw in the future?
-     This should always be filled_box_cursor or bar_cursor.  */
-  enum text_cursor_kinds desired_cursor;
-
-  /* Width of bar cursor (if we are using that).  */
-  int cursor_width;
-
-  /* What kind of text cursor should we draw when the cursor blinks off?
-     This can be filled_box_cursor or bar_cursor or no_cursor.  */
-  enum text_cursor_kinds blink_off_cursor;
-
-  /* Width of bar cursor (if we are using that) for blink-off state.  */
-  int blink_off_cursor_width;
-
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   char auto_raise;
 
@@ -403,6 +409,28 @@ struct frame
 
   /* Nonzero if size of some window on this frame has changed.  */
   char window_sizes_changed;
+
+  /* Nonzero if the mouse has moved on this display device
+     since the last time we checked.  */
+  char mouse_moved;
+
+  /* If can_have_scroll_bars is non-zero, this is non-zero if we should
+     actually display them on this frame.  */
+  enum vertical_scroll_bar_type vertical_scroll_bar_type;
+
+  /* What kind of text cursor should we draw in the future?
+     This should always be filled_box_cursor or bar_cursor.  */
+  enum text_cursor_kinds desired_cursor;
+
+  /* Width of bar cursor (if we are using that).  */
+  int cursor_width;
+
+  /* What kind of text cursor should we draw when the cursor blinks off?
+     This can be filled_box_cursor or bar_cursor or no_cursor.  */
+  enum text_cursor_kinds blink_off_cursor;
+
+  /* Width of bar cursor (if we are using that) for blink-off state.  */
+  int blink_off_cursor_width;
 
   /* Storage for messages to this frame. */
   char *message_buf;
@@ -426,10 +454,6 @@ struct frame
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
-  /* Nonzero if the mouse has moved on this display device
-     since the last time we checked.  */
-  char mouse_moved;
-
   /* Exponent for gamma correction of colors.  1/(VIEWING_GAMMA *
      SCREEN_GAMMA) where viewing_gamma is 0.4545 and SCREEN_GAMMA is a
      frame parameter.  0 means don't do gamma correction.  */
@@ -438,33 +462,9 @@ struct frame
   /* Additional space to put between text lines on this frame.  */
   int extra_line_spacing;
 
-  /* Set to non-zero in change_frame_size when size of frame changed
-     Clear the frame in clear_garbaged_frames if set.  */
-  unsigned resized_p : 1;
-
-  /* Set to non-zero in when we want for force a flush_display in
-     update_frame, usually after resizing the frame.  */
-  unsigned force_flush_display_p : 1;
-
   /* All display backends seem to need these two pixel values. */
   unsigned long background_pixel;
   unsigned long foreground_pixel;
-
-  /* Set to non-zero if the default face for the frame has been
-     realized.  Reset to zero whenever the default face changes.
-     Used to see the difference between a font change and face change.  */
-  unsigned default_face_done_p : 1;
-
-  /* Set to non-zero if this frame has already been hscrolled during
-     current redisplay.  */
-  unsigned already_hscrolled_p : 1;
-
-  /* Set to non-zero when current redisplay has updated frame.  */
-  unsigned updated_p : 1;
-
-  /* Set to non-zero to minimize tool-bar height even when
-     auto-resize-tool-bar is set to grow-only.  */
-  unsigned minimize_tool_bar_window_p : 1;
 };
 
 #ifdef MULTI_KBOARD
@@ -1019,8 +1019,6 @@ extern Lisp_Object Qx_resource_name;
 
 extern Lisp_Object Qleft, Qright, Qtop, Qbox;
 extern Lisp_Object Qdisplay;
-
-extern Lisp_Object Qwindow_system;
 
 #ifdef HAVE_WINDOW_SYSTEM
 

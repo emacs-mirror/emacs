@@ -1281,6 +1281,20 @@ Logfiles are kept in `rcirc-log-directory'."
   :type 'boolean
   :group 'rcirc)
 
+(defvar rcirc-markup-text-functions
+  '(rcirc-markup-attributes
+    rcirc-markup-my-nick
+    rcirc-markup-urls
+    rcirc-markup-keywords
+    rcirc-markup-bright-nicks
+    rcirc-markup-fill)
+
+  "List of functions used to manipulate text before it is printed.
+
+Each function takes two arguments, SENDER, RESPONSE.  The buffer
+is narrowed with the text to be printed and the point is at the
+beginning of the `rcirc-text' propertized text.")
+
 (defun rcirc-print (process sender response target text &optional activity)
   "Print TEXT in the buffer associated with TARGET.
 Format based on SENDER and RESPONSE.  If ACTIVITY is non-nil,
@@ -2083,20 +2097,6 @@ keywords when no KEYWORD is given."
       (rcirc-browse-url-at-point (posn-point position)))))
 
 
-(defvar rcirc-markup-text-functions
-  '(rcirc-markup-attributes
-    rcirc-markup-my-nick
-    rcirc-markup-urls
-    rcirc-markup-keywords
-    rcirc-markup-bright-nicks
-    rcirc-markup-fill)
-
-  "List of functions used to manipulate text before it is printed.
-
-Each function takes two arguments, SENDER, RESPONSE.  The buffer
-is narrowed with the text to be printed and the point is at the
-beginning of the `rcirc-text' propertized text.")
-
 (defun rcirc-markup-timestamp (sender response)
   (goto-char (point-min))
   (insert (rcirc-facify (format-time-string rcirc-time-format)

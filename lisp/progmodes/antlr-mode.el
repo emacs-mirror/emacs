@@ -99,7 +99,7 @@
       (and (eq (car args) :@) (null msg) ; (:@ ...spliced...)
 	   (setq args (cdr args)
 		 msg "(:@ ....) must return exactly one element"))
-      (let ((ignore (if (string-match "XEmacs" emacs-version) :EMACS :XEMACS))
+      (let ((ignore (if (featurep 'xemacs) :EMACS :XEMACS))
 	    (mode :BOTH) code)
 	(while (consp args)
 	  (if (memq (car args) '(:EMACS :XEMACS :BOTH)) (setq mode (pop args)))
@@ -115,7 +115,7 @@
   ;; existing functions when they are `fboundp', provide shortcuts if they are
   ;; known to be defined in a specific Emacs branch (for short .elc)
   (defmacro defunx (name arglist &rest definition)
-    (let ((xemacsp (string-match "XEmacs" emacs-version)) reuses)
+    (let ((xemacsp (featurep 'xemacs)) reuses)
       (while (memq (car definition)
 		   '(:try :emacs-and-try :xemacs-and-try))
 	(if (eq (pop definition) (if xemacsp :xemacs-and-try :emacs-and-try))
@@ -152,7 +152,7 @@
   (defmacro ignore-errors-x (&rest body)
     (let ((specials '((scan-sexps . 4) (scan-lists . 5)))
 	  spec nils)
-      (if (and (string-match "XEmacs" emacs-version)
+      (if (and (featurep 'xemacs)
 	       (null (cdr body)) (consp (car body))
 	       (setq spec (assq (caar body) specials))
 	       (>= (setq nils (- (cdr spec) (length (car body)))) 0))
@@ -166,7 +166,7 @@
       `(let ((,modified (buffer-modified-p)))
 	 (unwind-protect
 	     (let ((buffer-undo-list t) (inhibit-read-only t)
-		   ,@(unless (string-match "XEmacs" emacs-version)
+		   ,@(unless (featurep 'xemacs)
 		       '((inhibit-point-motion-hooks t) deactivate-mark))
 		   before-change-functions after-change-functions
 		   buffer-file-name buffer-file-truename)

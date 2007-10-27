@@ -73,6 +73,10 @@ were found."
 		      (if (equal 0 code) " (no differences)" "")
 		      (current-time-string))))))
 
+(defvar diff-old-file nil)
+(defvar diff-new-file nil)
+(defvar diff-extra-args nil)
+
 ;;;###autoload
 (defun diff (old new &optional switches no-async)
   "Find and display the differences between OLD and NEW files.

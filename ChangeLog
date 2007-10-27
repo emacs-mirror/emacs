@@ -1,3 +1,7 @@
+2007-10-23  Glenn Morris  <rgm@gnu.org>
+
+	* MAINTAINERS: Move to admin/.
+
 2007-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in (HAVE_RES_INIT): Define if res_init() exists.
@@ -12,7 +16,7 @@
 	* config.bat: Fix configuring `doc' due to changes in the
 	directory structure.
 
-2007-09-16  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
+2007-09-16  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
 
 	* configure.in: Don't use -lpthread on HP-UX.
 
@@ -92,7 +96,7 @@
 
 	* README.multi-tty: Move to admin/notes/multi-tty, with some edits.
 
-2007-08-29  Karoly Lorentey  <karoly@lorentey.hu>
+2007-08-29  K,Aa(Broly L$,1 q(Brentey  <karoly@lorentey.hu>
 
 	* README.multi-tty: New file.
 
@@ -163,8 +167,8 @@
 
 2007-06-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* configure.in: Change wording about yes/gtk and lucid/athena being
-	synonyms.
+	* configure.in: Change wording about yes/gtk and lucid/athena
+	being synonyms.
 
 2007-06-08  Glenn Morris  <rgm@gnu.org>
 
@@ -228,8 +232,7 @@
 
 2007-04-19  Glenn Morris  <rgm@gnu.org>
 
-	* configure.in: Signal error if Xaw libs are missing in a Lucid
-	build.
+	* configure.in: Signal error if Xaw libs are missing in a Lucid build.
 
 2007-04-18  Glenn Morris  <rgm@gnu.org>
 
@@ -1976,8 +1979,7 @@
 
 2000-10-01  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in (install-arch-indep): Update list of installed info
-	files.
+	* Makefile.in (install-arch-indep): Update list of installed info files.
 
 2000-09-30  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2512,7 +2514,7 @@
 
 1999-02-26  Richard Stallman  <rms@gnu.org>
 
-	* configure.in: Use epaths.h and epaths-force instead of paths....
+	* configure.in: Use epaths.h and epaths-force instead of paths...
 
 	* Makefile.in (epaths-force): Renamed from paths-force;
 	operate on epaths.in and produce epaths.h.
@@ -2663,8 +2665,7 @@
 1998-04-16  Eli Zaretskii  <eliz@delysid.gnu.org>
 
 	* config.bat: Make sure the environment is large enough to support
-	all the "set foo=bar" commands.  Update pointers to DJGPP FTP
-	sites.
+	all the "set foo=bar" commands.  Update pointers to DJGPP FTP sites.
 
 1998-04-10  Karl Heuer  <kwzh@gnu.org>
 
@@ -2689,8 +2690,7 @@
 
 1998-03-23  Kenichi Handa  <handa@etl.go.jp>
 
-	* Makefile.in (top_distclean): Check the existence of `lock'
-	subdir.
+	* Makefile.in (top_distclean): Check the existence of `lock' subdir.
 
 1998-03-22  Richard Stallman  <rms@gnu.org>
 
@@ -2866,7 +2866,7 @@
 
 1997-08-22  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
-	* configure.in (HAVE_MOTIF_2_1): Test for Motif 2.1,
+	* configure.in (HAVE_MOTIF_2_1): Test for Motif 2.1.
 
 1997-08-22  Jonathan I. Kamens  <jik@kamens.brookline.ma.us>
 

@@ -462,10 +462,10 @@ contents of the minibuffer.  To use it again unchanged, just type
 not change the history element that you ``moved'' to, but your new
 argument does go at the end of the history list in its own right.
 
-  For many minibuffer arguments there is a ``default'' value.  You can
-insert the default value into the minibuffer as text by using
-@kbd{M-n}.  You can think of this as moving ``into the future'' in the
-history.
+  For many minibuffer arguments there is a ``default'' value, or
+a list of default values.  You can insert the default value into the
+minibuffer as text by using @kbd{M-n} one or more times.  You can
+think of this as moving ``into the future'' in the history.
 
 @findex previous-matching-history-element
 @findex next-matching-history-element

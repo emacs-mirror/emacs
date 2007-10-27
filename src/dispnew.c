@@ -6956,7 +6956,6 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
       (*initial_terminal->delete_terminal_hook) (initial_terminal);
 
     /* Update frame parameters to reflect the new type. */
-    Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
     Fmodify_frame_parameters
       (selected_frame, Fcons (Fcons (Qtty_type,
                                      Ftty_type (selected_frame)), Qnil));
@@ -7105,6 +7104,11 @@ It is up to you to set this variable if your terminal can do that.  */);
 	       doc: /* Name of the window system that Emacs uses for the first frame.
 The value is a symbol--for instance, `x' for X windows.
 The value is nil if Emacs is using a text-only terminal.  */);
+
+  DEFVAR_KBOARD ("window-system", Vwindow_system,
+		 doc: /* Name of window system through which the selected frame is displayed.
+The value is a symbol--for instance, `x' for X windows.
+The value is nil if the selected frame is on a text-only-terminal.  */);
 
   DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
 	       doc: /* The version number of the window system in use.

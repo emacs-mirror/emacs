@@ -619,6 +619,31 @@ Faces `compilation-error-face', `compilation-warning-face',
   "If non-nil, automatically jump to the next error encountered.")
 (make-variable-buffer-local 'compilation-auto-jump-to-next)
 
+
+(defvar compilation-skip-to-next-location t
+  "*If non-nil, skip multiple error messages for the same source location.")
+
+(defcustom compilation-skip-threshold 1
+  "Compilation motion commands skip less important messages.
+The value can be either 2 -- skip anything less than error, 1 --
+skip anything less than warning or 0 -- don't skip any messages.
+Note that all messages not positively identified as warning or
+info, are considered errors."
+  :type '(choice (const :tag "Warnings and info" 2)
+		 (const :tag "Info" 1)
+		 (const :tag "None" 0))
+  :group 'compilation
+  :version "22.1")
+
+(defcustom compilation-skip-visited nil
+  "Compilation motion commands skip visited messages if this is t.
+Visited messages are ones for which the file, line and column have been jumped
+to from the current content in the current compilation buffer, even if it was
+from a different message."
+  :type 'boolean
+  :group 'compilation
+  :version "22.1")
+
 (defun compilation-face (type)
   (or (and (car type) (match-end (car type)) compilation-warning-face)
       (and (cdr type) (match-end (cdr type)) compilation-info-face)
@@ -1265,30 +1290,6 @@ Returns the compilation buffer created."
 `compilation-minor-mode-map' is a parent of this.")
 
 (put 'compilation-mode 'mode-class 'special)
-
-(defvar compilation-skip-to-next-location t
-  "*If non-nil, skip multiple error messages for the same source location.")
-
-(defcustom compilation-skip-threshold 1
-  "Compilation motion commands skip less important messages.
-The value can be either 2 -- skip anything less than error, 1 --
-skip anything less than warning or 0 -- don't skip any messages.
-Note that all messages not positively identified as warning or
-info, are considered errors."
-  :type '(choice (const :tag "Warnings and info" 2)
-		 (const :tag "Info" 1)
-		 (const :tag "None" 0))
-  :group 'compilation
-  :version "22.1")
-
-(defcustom compilation-skip-visited nil
-  "Compilation motion commands skip visited messages if this is t.
-Visited messages are ones for which the file, line and column have been jumped
-to from the current content in the current compilation buffer, even if it was
-from a different message."
-  :type 'boolean
-  :group 'compilation
-  :version "22.1")
 
 ;;;###autoload
 (defun compilation-mode (&optional name-of-mode)

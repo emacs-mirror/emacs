@@ -1,3 +1,21 @@
+2007-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* fortran-xtra.texi (Fortran): F90 mode handles F2003.
+
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* misc.texi (Interactive Shell): Cleanup last change.
+
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* mini.texi (Minibuffer History): Add text about a list of minibuffer
+	default values.
+
+2007-10-20  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* files.texi: Disambiguate two slightly different uses of the term
+	'filesets'.
+
 2007-10-18  Martin Rudalics  <rudalics@gmx.at>
 
 	* trouble.texi (Quitting): Fix typo.

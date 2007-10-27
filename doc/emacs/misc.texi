@@ -488,8 +488,8 @@ also change the coding system for a running subshell by typing
 Coding}.
 
 @cindex @env{INSIDE_EMACS} environment variable
-  Emacs sets the environment variable @env{INSIDE_EMACS} (to a
-comma-separated list including the Emacs version) in the subshell.
+  Emacs sets the environment variable @env{INSIDE_EMACS} in the
+subshell to a comma-separated list including the Emacs version.
 Programs can check this variable to determine whether they are running
 inside an Emacs subshell.
 

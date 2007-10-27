@@ -786,6 +786,7 @@ system, including many technical ones.  Examples:
  ("\\prod" ?∏)
  ("\\propto" ?∝)
  ("\\psi" ?ψ)
+ ("\\qed" ?∎)
  ("\\quad" ? )
  ("\\rangle" ?〉)
  ("\\rbrace" ?})

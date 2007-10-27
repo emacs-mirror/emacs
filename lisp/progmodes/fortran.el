@@ -85,6 +85,7 @@ A value of nil specifies that continuation lines are marked
 with a character in column 6."
   :type  'boolean
   :group 'fortran-indent)
+(put 'fortran-tab-mode-default 'safe-local-variable 'booleanp)
 
 ;; TODO add more detail of what tab mode is to doc string.
 (defcustom fortran-tab-mode-string
@@ -99,28 +100,31 @@ with a character in column 6."
   "String to appear in mode line in TAB format buffers."
   :type  'string
   :group 'fortran-indent)
-
-(put 'fortran-tab-mode-string 'risky-local-variable t)
+(put 'fortran-tab-mode-string 'safe-local-variable 'stringp)
 
 (defcustom fortran-do-indent 3
   "Extra indentation applied to DO blocks."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-do-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-if-indent 3
   "Extra indentation applied to IF, SELECT CASE and WHERE blocks."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-if-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-structure-indent 3
   "Extra indentation applied to STRUCTURE, UNION, MAP and INTERFACE blocks."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-structure-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-continuation-indent 5
   "Extra indentation applied to continuation lines."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-continuation-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-comment-indent-style 'fixed
   "How to indent comments.
@@ -132,12 +136,15 @@ nil forces comment lines not to be touched;
   `fortran-comment-line-extra-indent'."
   :type  '(radio (const :tag "Untouched" nil) (const fixed) (const relative))
   :group 'fortran-indent)
+(put 'fortran-comment-indent 'safe-local-variable
+     (lambda (value) (memq value '(nil fixed relative))))
 
 (defcustom fortran-comment-line-extra-indent 0
   "Amount of extra indentation for text within full-line comments."
   :type  'integer
   :group 'fortran-indent
   :group 'fortran-comment)
+(put 'fortran-comment-line-extra-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-comment-line-start "C"
   "Delimiter inserted to start new full-line comment.
@@ -145,6 +152,7 @@ You might want to change this to \"*\", for instance."
   :version "21.1"
   :type    'string
   :group   'fortran-comment)
+(put 'fortran-comment-line-start 'safe-local-variable 'stringp)
 
 ;; This used to match preprocessor lines too, but that messes up
 ;; filling and doesn't seem to be necessary.
@@ -154,6 +162,7 @@ You might want to change this to \"*\", for instance."
   :version "21.1"
   :type    'regexp
   :group   'fortran-comment)
+(put 'fortran-comment-line-start-skip 'safe-local-variable 'stringp)
 
 (defcustom fortran-directive-re
   "^[ \t]*#.*"
@@ -163,16 +172,19 @@ The matching line will be given zero indentation."
   :version "22.1"
   :type    'regexp
   :group   'fortran-indent)
+(put 'fortran-directive-re 'safe-local-variable 'stringp)
 
 (defcustom fortran-minimum-statement-indent-fixed 6
   "Minimum statement indentation for fixed format continuation style."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-minimum-statement-indent-fixed 'safe-local-variable 'integerp)
 
 (defcustom fortran-minimum-statement-indent-tab (max tab-width 6)
   "Minimum statement indentation for TAB format continuation style."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-minimum-statement-indent-tab 'safe-local-variable 'integerp)
 
 ;; Note that this is documented in the v18 manuals as being a string
 ;; of length one rather than a single character.
@@ -182,23 +194,30 @@ The matching line will be given zero indentation."
 Normally a space."
   :type  'string
   :group 'fortran-comment)
+(put 'fortran-comment-indent-char 'safe-local-variable
+     (lambda (value) (or (char-valid-p value)
+                         (and (stringp value)
+                              (= (length value) 1)))))
 
 (defcustom fortran-line-number-indent 1
   "Maximum indentation for Fortran line numbers.
 5 means right-justify them within their five-column field."
   :type  'integer
   :group 'fortran-indent)
+(put 'fortran-line-number-indent 'safe-local-variable 'integerp)
 
 (defcustom fortran-check-all-num-for-matching-do nil
   "Non-nil causes all numbered lines to be treated as possible DO loop ends."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-check-all-num-for-matching-do 'safe-local-variable 'booleanp)
 
 (defcustom fortran-blink-matching-if nil
   "Non-nil causes \\[fortran-indent-line] on ENDIF to blink on matching IF.
 Also, from an ENDDO statement blink on matching DO [WHILE] statement."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-blink-matching-if 'safe-local-variable 'booleanp)
 
 (defcustom fortran-continuation-string "$"
   "Single-character string used for Fortran continuation lines.
@@ -209,17 +228,22 @@ line, it will convert the line into a continuation line of the
 appropriate style. Normally $."
   :type  'string
   :group 'fortran)
+(put 'fortran-continuation-string 'safe-local-variable
+     (lambda (value) (and (stringp value)
+                          (= (length value) 1))))
 
 (defcustom fortran-comment-region "c$$$"
   "String inserted by \\[fortran-comment-region] at start of each \
 line in region."
   :type  'string
   :group 'fortran-comment)
+(put 'fortran-comment-region 'safe-local-variable 'stringp)
 
 (defcustom fortran-electric-line-number t
   "Non-nil causes line numbers to be moved to the correct column as typed."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-electric-line-number 'safe-local-variable 'booleanp)
 
 ;; TODO use fortran-line-length, somehow.
 (defcustom fortran-column-ruler-fixed
@@ -232,6 +256,7 @@ This variable is used in fixed format mode.
 See the variable `fortran-column-ruler-tab' for TAB format mode."
   :type  'string
   :group 'fortran)
+(put 'fortran-column-ruler-fixed 'safe-local-variable 'stringp)
 
 ;; TODO use fortran-line-length, somehow.
 (defcustom fortran-column-ruler-tab
@@ -244,17 +269,20 @@ This variable is used in TAB format mode.
 See the variable `fortran-column-ruler-fixed' for fixed format mode."
   :type  'string
   :group 'fortran)
+(put 'fortran-column-ruler-tab 'safe-local-variable 'stringp)
 
 (defcustom fortran-analyze-depth 100
   "Number of lines to scan to identify fixed or TAB format style."
   :type  'integer
   :group 'fortran)
+(put 'fortran-analyze-depth 'safe-local-variable 'integerp)
 
 (defcustom fortran-break-before-delimiters t
   "Non-nil causes filling to break lines before delimiters.
 Delimiters are characters matching the regexp `fortran-break-delimiters-re'."
   :type  'boolean
   :group 'fortran)
+(put 'fortran-break-before-delimiters 'safe-local-variable 'booleanp)
 
 ;; TODO 0 as no-limit, as per g77.
 (defcustom fortran-line-length 72
@@ -525,7 +553,7 @@ tries to strike a compromise between complexity and flexibility.
 Used in the Fortran entry in `hs-special-modes-alist'.")
 
 (add-to-list 'hs-special-modes-alist
-	     `(fortran-mode ,fortran-start-block-re ,fortran-end-block-re
+             `(fortran-mode ,fortran-start-block-re ,fortran-end-block-re
                             "^[cC*!]" fortran-end-of-block nil))
 
 
@@ -622,7 +650,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
         ["72-column window"       fortran-window-create t]
         ["Full Width Window"
          (enlarge-window-horizontally (- (frame-width) (window-width)))
-         (< (window-width) (frame-width))]
+         (not (window-full-width-p))]
         ["Momentary 72-column window" fortran-window-create-momentarily t]
         "--"
         ["Break Line at Point"    fortran-split-line t]
@@ -755,7 +783,7 @@ Variables controlling indentation style and extra features:
                 `fortran-minimum-statement-indent-tab' (TAB format),
               depending on the continuation format in use.
   relative  indent to `fortran-comment-line-extra-indent' beyond the
- 	      indentation for a line of code.
+              indentation for a line of code.
   (default 'fixed)
 `fortran-comment-indent-char'
   Single-character string to be inserted instead of space for
@@ -898,33 +926,33 @@ or on a new line inserted before this line if this line is not blank."
   (beginning-of-line)
   ;; Recognize existing comments of either kind.
   (cond ((fortran-find-comment-start-skip 'all)
-	 (goto-char (match-beginning 0))
-	 (if (bolp)
-	     (fortran-indent-line)
-	   (unless (= (current-column) (fortran-comment-indent))
+         (goto-char (match-beginning 0))
+         (if (bolp)
+             (fortran-indent-line)
+           (unless (= (current-column) (fortran-comment-indent))
              (delete-horizontal-space)
              (indent-to (fortran-comment-indent)))))
-	;; No existing comment.
-	;; If side-by-side comments are defined, insert one,
-	;; unless line is now blank.
-	((and comment-start (not (looking-at "[ \t]*$"))
-	      (string-match comment-start-skip (concat " " comment-start)))
-	 (end-of-line)
-	 (delete-horizontal-space)
-	 (indent-to (fortran-comment-indent))
-	 (insert comment-start))
-	;; Else insert separate-line comment, making a new line if nec.
-	(t
-	 (if (looking-at "^[ \t]*$")
-	     (delete-horizontal-space)
-	   (beginning-of-line)
-	   (insert ?\n)
-	   (forward-char -1))
-	 (insert fortran-comment-line-start)
-	 (insert-char (if (stringp fortran-comment-indent-char)
-			  (aref fortran-comment-indent-char 0)
-			fortran-comment-indent-char)
-		      (- (fortran-calculate-indent) (current-column))))))
+        ;; No existing comment.
+        ;; If side-by-side comments are defined, insert one,
+        ;; unless line is now blank.
+        ((and comment-start (not (looking-at "[ \t]*$"))
+              (string-match comment-start-skip (concat " " comment-start)))
+         (end-of-line)
+         (delete-horizontal-space)
+         (indent-to (fortran-comment-indent))
+         (insert comment-start))
+        ;; Else insert separate-line comment, making a new line if nec.
+        (t
+         (if (looking-at "^[ \t]*$")
+             (delete-horizontal-space)
+           (beginning-of-line)
+           (insert ?\n)
+           (forward-char -1))
+         (insert fortran-comment-line-start)
+         (insert-char (if (stringp fortran-comment-indent-char)
+                          (aref fortran-comment-indent-char 0)
+                        fortran-comment-indent-char)
+                      (- (fortran-calculate-indent) (current-column))))))
 
 (defun fortran-comment-region (beg-region end-region arg)
   "Comment every line in the region.
@@ -934,7 +962,7 @@ BEG-REGION and END-REGION specify the region boundaries.
 With non-nil ARG, uncomments the region."
   (interactive "*r\nP")
   (let ((end-region-mark (copy-marker end-region))
-	(save-point (point-marker)))
+        (save-point (point-marker)))
     (goto-char beg-region)
     (beginning-of-line)
     (if arg
@@ -967,7 +995,7 @@ Any other key combination is executed normally."
     ;; Insert char if not equal to `?', or if abbrev-mode is off.
     (if (and abbrev-mode (or (eq char ??) (eq char help-char)
                              (memq event help-event-list)))
-	(fortran-abbrev-help)
+        (fortran-abbrev-help)
       (push event unread-command-events))))
 
 (defun fortran-abbrev-help ()
@@ -1000,8 +1028,8 @@ The next key typed is executed unless it is SPC."
    (save-excursion
      (beginning-of-line)
      (if (eq (window-start (selected-window))
-	     (window-point (selected-window)))
-	 (line-beginning-position 2)
+             (window-point (selected-window)))
+         (line-beginning-position 2)
        (point)))
    nil "Type SPC or any command to erase ruler."))
 
@@ -1010,13 +1038,13 @@ The next key typed is executed unless it is SPC."
 See also `fortran-window-create-momentarily'."
   (interactive)
   (let ((window-min-width 2))
-    (if (< (window-width) (frame-width))
-	(enlarge-window-horizontally (- (frame-width)
-					(window-width) 1)))
+    (unless (window-full-width-p)
+        (enlarge-window-horizontally (- (frame-width)
+                                        (window-width) 1)))
     (let* ((window-edges (window-edges))
-	   (scroll-bar-width (- (nth 2 window-edges)
-				(car window-edges)
-				(window-width))))
+           (scroll-bar-width (- (nth 2 window-edges)
+                                (car window-edges)
+                                (window-width))))
       (split-window-horizontally (+ fortran-line-length scroll-bar-width)))
     (other-window 1)
     (switch-to-buffer " fortran-window-extra" t)
@@ -1028,16 +1056,16 @@ Optional ARG non-nil and non-unity disables the momentary feature.
 See also `fortran-window-create'."
   (interactive "p")
   (if (or (not arg)
-	  (= arg 1))
+          (= arg 1))
       (save-window-excursion
-	(progn
-	  (condition-case nil
-	      (fortran-window-create)
-	    (error (error "No room for Fortran window")))
-	  (message "Type SPC to continue editing.")
-	  (let ((char (read-event)))
-	    (or (equal char ?\s)
-		(setq unread-command-events (list char))))))
+        (progn
+          (condition-case nil
+              (fortran-window-create)
+            (error (error "No room for Fortran window")))
+          (message "Type SPC to continue editing.")
+          (let ((char (read-event)))
+            (or (equal char ?\s)
+                (setq unread-command-events (list char))))))
     (fortran-window-create)))
 
 (defun fortran-split-line ()
@@ -1045,13 +1073,13 @@ See also `fortran-window-create'."
   (interactive "*")
   (delete-horizontal-space)
   (if (save-excursion
-	(let ((pos (point)))
-	  (beginning-of-line)
-	  (and (fortran-find-comment-start-skip 'all)
-	       (< (match-beginning 0) pos))))
+        (let ((pos (point)))
+          (beginning-of-line)
+          (and (fortran-find-comment-start-skip 'all)
+               (< (match-beginning 0) pos))))
       (insert ?\n (match-string 0))
     (if indent-tabs-mode
-	(insert ?\n ?\t (fortran-numerical-continuation-char))
+        (insert ?\n ?\t (fortran-numerical-continuation-char))
       (insert "\n " fortran-continuation-string))) ; space after \n important
   (fortran-indent-line))               ; when cont string is C, c or *
 
@@ -1087,7 +1115,7 @@ plus one, otherwise return 1.  Zero not allowed."
   (save-excursion
     (forward-line -1)
     (if (looking-at "\t[1-9]")
-	(+ ?1 (% (- (char-after (1+ (point))) ?0) 9))
+        (+ ?1 (% (- (char-after (1+ (point))) ?0) 9))
       ?1)))
 
 (put 'fortran-electric-line-number 'delete-selection t)
@@ -1097,27 +1125,27 @@ Auto-indent does not happen if a numeric ARG is used."
   (interactive "*P")
   (if (or arg (not fortran-electric-line-number))
       (if arg
-	  (self-insert-command (prefix-numeric-value arg))
-	(self-insert-command 1))
+          (self-insert-command (prefix-numeric-value arg))
+        (self-insert-command 1))
     (if (or (and (= 5 (current-column))
-		 (save-excursion
-		   (beginning-of-line)
+                 (save-excursion
+                   (beginning-of-line)
                     ;; In col 5 with only spaces to the left.
-		   (looking-at " \\{5\\}")))
-	    (and (= (if indent-tabs-mode
-			fortran-minimum-statement-indent-tab
-		      fortran-minimum-statement-indent-fixed) (current-column))
+                   (looking-at " \\{5\\}")))
+            (and (= (if indent-tabs-mode
+                        fortran-minimum-statement-indent-tab
+                      fortran-minimum-statement-indent-fixed) (current-column))
                  ;; In col 8 with a single tab to the left.
-		 (eq ?\t (char-after (line-beginning-position)))
-		 (not (or (eq last-command 'fortran-indent-line)
-			  (eq last-command
-			      'fortran-indent-new-line))))
-	    (save-excursion
-	      (re-search-backward "[^ \t0-9]"
-				  (line-beginning-position)
-				  t))	; not a line number
-	    (looking-at "[0-9]"))	; within a line number
-	(self-insert-command (prefix-numeric-value arg))
+                 (eq ?\t (char-after (line-beginning-position)))
+                 (not (or (eq last-command 'fortran-indent-line)
+                          (eq last-command
+                              'fortran-indent-new-line))))
+            (save-excursion
+              (re-search-backward "[^ \t0-9]"
+                                  (line-beginning-position)
+                                  t))   ; not a line number
+            (looking-at "[0-9]"))       ; within a line number
+        (self-insert-command (prefix-numeric-value arg))
       (skip-chars-backward " \t")
       (insert last-command-char)
       (fortran-indent-line))))
@@ -1129,9 +1157,9 @@ Auto-indent does not happen if a numeric ARG is used."
   ;; match of whitespace, avoiding possible column 73+ stuff.
   (save-match-data
     (string-match "^\\s-*\\(\\'\\|\\s<\\)"
-		  (buffer-substring (match-end 0)
-				    (min (line-end-position)
-					 (+ fortran-line-length
+                  (buffer-substring (match-end 0)
+                                    (min (line-end-position)
+                                         (+ fortran-line-length
                                             (line-beginning-position)))))))
 
 ;; Note that you can't just check backwards for `subroutine' &c in
@@ -1143,28 +1171,28 @@ Auto-indent does not happen if a numeric ARG is used."
     (let ((case-fold-search t))
       (beginning-of-line -1)
       (if (catch 'ok
-	    (while (re-search-backward fortran-end-prog-re nil 'move)
-	      (if (fortran-check-end-prog-re)
-		  (throw 'ok t))))
-	  (forward-line)))))
+            (while (re-search-backward fortran-end-prog-re nil 'move)
+              (if (fortran-check-end-prog-re)
+                  (throw 'ok t))))
+          (forward-line)))))
 
 (defun fortran-end-of-subprogram ()
   "Move point to the end of the current Fortran subprogram."
   (interactive)
   (save-match-data
     (let ((case-fold-search t))
-      (if (save-excursion		; on END
-	    (beginning-of-line)
-	    (and (looking-at fortran-end-prog-re)
-		 (fortran-check-end-prog-re)))
-	  (forward-line)
-	(beginning-of-line 2)
-	(catch 'ok
-	  (while (re-search-forward fortran-end-prog-re nil 'move)
-	    (if (fortran-check-end-prog-re)
-		(throw 'ok t))))
-	(goto-char (match-beginning 0))
-	(forward-line)))))
+      (if (save-excursion               ; on END
+            (beginning-of-line)
+            (and (looking-at fortran-end-prog-re)
+                 (fortran-check-end-prog-re)))
+          (forward-line)
+        (beginning-of-line 2)
+        (catch 'ok
+          (while (re-search-forward fortran-end-prog-re nil 'move)
+            (if (fortran-check-end-prog-re)
+                (throw 'ok t))))
+        (goto-char (match-beginning 0))
+        (forward-line)))))
 
 (defun fortran-previous-statement ()
   "Move point to beginning of the previous Fortran statement.
@@ -1175,28 +1203,28 @@ Directive lines are treated as comments."
   (let (not-first-statement continue-test)
     (beginning-of-line)
     (setq continue-test
-	  (and
-	   (not (looking-at fortran-comment-line-start-skip))
+          (and
+           (not (looking-at fortran-comment-line-start-skip))
            (not (looking-at fortran-directive-re))
-	   (or (looking-at
-	        (concat "[ \t]*"
-			(regexp-quote fortran-continuation-string)))
-	       (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))))
+           (or (looking-at
+                (concat "[ \t]*"
+                        (regexp-quote fortran-continuation-string)))
+               (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))))
     (while (and (setq not-first-statement (zerop (forward-line -1)))
-		(or (looking-at fortran-comment-line-start-skip)
+                (or (looking-at fortran-comment-line-start-skip)
                     (looking-at fortran-directive-re)
                     (looking-at
                      (concat "[ \t]*"
                              (regexp-quote fortran-continuation-string)))
-		    (looking-at "[ \t]*$\\| \\{5\\}[^ 0\n]\\|\t[1-9]")
-		    (looking-at (concat "[ \t]*" comment-start-skip)))))
+                    (looking-at "[ \t]*$\\| \\{5\\}[^ 0\n]\\|\t[1-9]")
+                    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (cond ((and continue-test
-		(not not-first-statement))
-	   (message "Incomplete continuation statement."))
-	  (continue-test
-	   (fortran-previous-statement))
-	  ((not not-first-statement)
-	   'first-statement))))
+                (not not-first-statement))
+           (message "Incomplete continuation statement."))
+          (continue-test
+           (fortran-previous-statement))
+          ((not not-first-statement)
+           'first-statement))))
 
 (defun fortran-next-statement ()
   "Move point to beginning of the next Fortran statement.
@@ -1207,14 +1235,14 @@ Directive lines are treated as comments."
   (let (not-last-statement)
     (beginning-of-line)
     (while (and (setq not-last-statement
-		      (and (zerop (forward-line 1))
-			   (not (eobp))))
- 		(or (looking-at fortran-comment-line-start-skip)
+                      (and (zerop (forward-line 1))
+                           (not (eobp))))
+                (or (looking-at fortran-comment-line-start-skip)
                     (looking-at fortran-directive-re)
- 		    (looking-at "[ \t]*$\\|     [^ 0\n]\\|\t[1-9]")
- 		    (looking-at (concat "[ \t]*" comment-start-skip)))))
+                    (looking-at "[ \t]*$\\|     [^ 0\n]\\|\t[1-9]")
+                    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (if (not not-last-statement)
- 	'last-statement)))
+        'last-statement)))
 
 (defun fortran-looking-at-if-then ()
   "Return non-nil if at the start of a line with an IF ... THEN statement."
@@ -1299,10 +1327,10 @@ pushes mark before moving point."
   "From a line matching REGEX, blink matching KEYWORD statement line.
 Use function FIND-BEGIN to match it."
   (let ((top-of-window (window-start))
-	(end-point (point))
-	(case-fold-search t)
-	matching
-	message)
+        (end-point (point))
+        (case-fold-search t)
+        matching
+        message)
     (when (save-excursion
             (beginning-of-line)
             (skip-chars-forward " \t0-9")
@@ -1326,7 +1354,7 @@ Use function FIND-BEGIN to match it."
 (defun fortran-blink-matching-if ()
   "From an ENDIF or ELSE statement, blink the matching IF statement."
   (fortran-blink-match "e\\(nd[ \t]*if\\|lse\\([ \t]*if\\)?\\)\\b"
-		       "if" #'fortran-beginning-if))
+                       "if" #'fortran-beginning-if))
 
 (defun fortran-blink-matching-do ()
   "From an ENDDO statement, blink the matching DO or DO WHILE statement."
@@ -1349,27 +1377,27 @@ The marks are pushed."
 Return point or nil."
   (let ((case-fold-search t))
     (if (save-excursion (beginning-of-line)
-			(skip-chars-forward " \t0-9")
-			(looking-at "end[ \t]*do\\b"))
-	;; Sitting on one.
-	(match-beginning 0)
+                        (skip-chars-forward " \t0-9")
+                        (looking-at "end[ \t]*do\\b"))
+        ;; Sitting on one.
+        (match-beginning 0)
       ;; Search for one.
       (save-excursion
-	(let ((count 1))
-	  (while (and (not (zerop count))
-		      (not (eq (fortran-next-statement) 'last-statement))
-		      ;; Keep local to subprogram.
-		      (not (and (looking-at fortran-end-prog-re)
-				(fortran-check-end-prog-re))))
-	    (skip-chars-forward " \t0-9")
-	    (cond ((looking-at "end[ \t]*do\\b")
-		   (setq count (1- count)))
-		  ((looking-at
-		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[^0-9]")
-		   (setq count (1+ count)))))
-	  (and (zerop count)
-	       ;; All pairs accounted for.
-	       (point)))))))
+        (let ((count 1))
+          (while (and (not (zerop count))
+                      (not (eq (fortran-next-statement) 'last-statement))
+                      ;; Keep local to subprogram.
+                      (not (and (looking-at fortran-end-prog-re)
+                                (fortran-check-end-prog-re))))
+            (skip-chars-forward " \t0-9")
+            (cond ((looking-at "end[ \t]*do\\b")
+                   (setq count (1- count)))
+                  ((looking-at
+                    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[^0-9]")
+                   (setq count (1+ count)))))
+          (and (zerop count)
+               ;; All pairs accounted for.
+               (point)))))))
 
 (defun fortran-beginning-do ()
   "Search backwards for first unmatched DO [WHILE].
@@ -1377,28 +1405,28 @@ Return point or nil.  Ignores labelled DO loops (ie DO 10 ... 10 CONTINUE)."
   (let ((case-fold-search t)
         (dostart-re "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[^0-9]"))
     (if (save-excursion
-	  (beginning-of-line)
-	  (skip-chars-forward " \t0-9")
-	  (looking-at dostart-re))
-	;; Sitting on one.
-	(match-beginning 0)
+          (beginning-of-line)
+          (skip-chars-forward " \t0-9")
+          (looking-at dostart-re))
+        ;; Sitting on one.
+        (match-beginning 0)
       ;; Search for one.
       (save-excursion
-	(let ((count 1))
-	  (while (and (not (zerop count))
-		      (not (eq (fortran-previous-statement) 'first-statement))
-		      ;; Keep local to subprogram.
-		      (not (and (looking-at fortran-end-prog-re)
-				(fortran-check-end-prog-re))))
-	    (skip-chars-forward " \t0-9")
-	    (cond ((looking-at dostart-re)
-		   (setq count (1- count)))
+        (let ((count 1))
+          (while (and (not (zerop count))
+                      (not (eq (fortran-previous-statement) 'first-statement))
+                      ;; Keep local to subprogram.
+                      (not (and (looking-at fortran-end-prog-re)
+                                (fortran-check-end-prog-re))))
+            (skip-chars-forward " \t0-9")
+            (cond ((looking-at dostart-re)
+                   (setq count (1- count)))
                   ;; Note labelled loop ends not considered.
-		  ((looking-at "end[ \t]*do\\b")
-		   (setq count (1+ count)))))
-	  (and (zerop count)
-	       ;; All pairs accounted for.
-	       (point)))))))
+                  ((looking-at "end[ \t]*do\\b")
+                   (setq count (1+ count)))))
+          (and (zerop count)
+               ;; All pairs accounted for.
+               (point)))))))
 
 (defun fortran-mark-if ()
   "Put mark at end of Fortran IF-ENDIF construct, point at beginning.
@@ -1418,103 +1446,103 @@ The marks are pushed."
 Return point or nil."
   (let ((case-fold-search t))
     (if (save-excursion (beginning-of-line)
-			(skip-chars-forward " \t0-9")
-			(looking-at "end[ \t]*if\\b"))
-	;; Sitting on one.
-	(match-beginning 0)
+                        (skip-chars-forward " \t0-9")
+                        (looking-at "end[ \t]*if\\b"))
+        ;; Sitting on one.
+        (match-beginning 0)
       ;; Search for one.  The point has been already been moved to first
       ;; letter on line but this should not cause troubles.
       (save-excursion
-	(let ((count 1))
-	  (while (and (not (zerop count))
-		      (not (eq (fortran-next-statement) 'last-statement))
-		      ;; Keep local to subprogram.
-		      (not (and (looking-at fortran-end-prog-re)
-				(fortran-check-end-prog-re))))
-	    (skip-chars-forward " \t0-9")
-	    (cond ((looking-at "end[ \t]*if\\b")
-		   (setq count (1- count)))
-		  ((looking-at fortran-if-start-re)
-		   (save-excursion
-		     (if (or
-			  (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
-			  (let (then-test) ; multi-line if-then
-			    (while
-				(and
-				 (zerop (forward-line 1))
-				 ;; Search forward for then.
-				 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
-				 (not
-				  (setq then-test
-					(looking-at
-					 ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
-			    then-test))
-			 (setq count (1+ count)))))))
-	  (and (zerop count)
-	       ;; All pairs accounted for.
-	       (point)))))))
+        (let ((count 1))
+          (while (and (not (zerop count))
+                      (not (eq (fortran-next-statement) 'last-statement))
+                      ;; Keep local to subprogram.
+                      (not (and (looking-at fortran-end-prog-re)
+                                (fortran-check-end-prog-re))))
+            (skip-chars-forward " \t0-9")
+            (cond ((looking-at "end[ \t]*if\\b")
+                   (setq count (1- count)))
+                  ((looking-at fortran-if-start-re)
+                   (save-excursion
+                     (if (or
+                          (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
+                          (let (then-test) ; multi-line if-then
+                            (while
+                                (and
+                                 (zerop (forward-line 1))
+                                 ;; Search forward for then.
+                                 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
+                                 (not
+                                  (setq then-test
+                                        (looking-at
+                                         ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
+                            then-test))
+                         (setq count (1+ count)))))))
+          (and (zerop count)
+               ;; All pairs accounted for.
+               (point)))))))
 
 (defun fortran-beginning-if ()
   "Search backwards for first unmatched IF-THEN.
 Return point or nil."
   (let ((case-fold-search t))
     (if (save-excursion
-	  ;; May be sitting on multi-line if-then statement, first
-	  ;; move to beginning of current statement.  Note:
-	  ;; `fortran-previous-statement' moves to previous statement
-	  ;; *unless* current statement is first one.  Only move
-	  ;; forward if not first-statement.
-	  (if (not (eq (fortran-previous-statement) 'first-statement))
-	      (fortran-next-statement))
-	  (skip-chars-forward " \t0-9")
-	  (and
-	   (looking-at fortran-if-start-re)
-	   (save-match-data
-	     (or (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
-		 ;; Multi-line if-then.
-		 (let (then-test)
-		   (while
+          ;; May be sitting on multi-line if-then statement, first
+          ;; move to beginning of current statement.  Note:
+          ;; `fortran-previous-statement' moves to previous statement
+          ;; *unless* current statement is first one.  Only move
+          ;; forward if not first-statement.
+          (if (not (eq (fortran-previous-statement) 'first-statement))
+              (fortran-next-statement))
+          (skip-chars-forward " \t0-9")
+          (and
+           (looking-at fortran-if-start-re)
+           (save-match-data
+             (or (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
+                 ;; Multi-line if-then.
+                 (let (then-test)
+                   (while
                        (and (zerop (forward-line 1))
-			    ;; Search forward for then.
-			    (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
-			    (not
-			     (setq then-test
-				   (looking-at
-				    ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
-		   then-test)))))
-	;; Sitting on one.
-	(match-beginning 0)
+                            ;; Search forward for then.
+                            (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
+                            (not
+                             (setq then-test
+                                   (looking-at
+                                    ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
+                   then-test)))))
+        ;; Sitting on one.
+        (match-beginning 0)
       ;; Search for one.
       (save-excursion
-	(let ((count 1))
-	  (while (and (not (zerop count))
-		      (not (eq (fortran-previous-statement) 'first-statement))
-		      ;; Keep local to subprogram.
-		      (not (and (looking-at fortran-end-prog-re)
-				(fortran-check-end-prog-re))))
-	    (skip-chars-forward " \t0-9")
-	    (cond ((looking-at fortran-if-start-re)
-		   (save-excursion
-		     (if (or
-			  (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
-			  (let (then-test) ; multi-line if-then
-			    (while
-				(and
-				 (zerop (forward-line 1))
-				 ;; Search forward for then.
-				 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
-				 (not
-				  (setq then-test
-					(looking-at
-					 (concat ".*then\\b[ \t]*"
-						 "[^ \t(=a-z0-9]"))))))
-			    then-test))
-			 (setq count (1- count)))))
-		  ((looking-at "end[ \t]*if\\b")
-		   (setq count (1+ count)))))
-	  (and (zerop count)
-	       ;; All pairs accounted for.
-	       (point)))))))
+        (let ((count 1))
+          (while (and (not (zerop count))
+                      (not (eq (fortran-previous-statement) 'first-statement))
+                      ;; Keep local to subprogram.
+                      (not (and (looking-at fortran-end-prog-re)
+                                (fortran-check-end-prog-re))))
+            (skip-chars-forward " \t0-9")
+            (cond ((looking-at fortran-if-start-re)
+                   (save-excursion
+                     (if (or
+                          (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
+                          (let (then-test) ; multi-line if-then
+                            (while
+                                (and
+                                 (zerop (forward-line 1))
+                                 ;; Search forward for then.
+                                 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
+                                 (not
+                                  (setq then-test
+                                        (looking-at
+                                         (concat ".*then\\b[ \t]*"
+                                                 "[^ \t(=a-z0-9]"))))))
+                            then-test))
+                         (setq count (1- count)))))
+                  ((looking-at "end[ \t]*if\\b")
+                   (setq count (1+ count)))))
+          (and (zerop count)
+               ;; All pairs accounted for.
+               (point)))))))
 
 
 (defun fortran-indent-line ()
@@ -1524,15 +1552,15 @@ Return point or nil."
     (save-excursion
       (beginning-of-line)
       (if (or (not (= cfi (fortran-current-line-indentation)))
-	      (and (re-search-forward "^[ \t]*[0-9]+" (+ (point) 4) t)
-		   (not (fortran-line-number-indented-correctly-p))))
-	  (fortran-indent-to-column cfi)
-	(beginning-of-line)
-	(if (fortran-find-comment-start-skip)
-	    (fortran-indent-comment))))
+              (and (re-search-forward "^[ \t]*[0-9]+" (+ (point) 4) t)
+                   (not (fortran-line-number-indented-correctly-p))))
+          (fortran-indent-to-column cfi)
+        (beginning-of-line)
+        (if (fortran-find-comment-start-skip)
+            (fortran-indent-comment))))
     ;; Never leave point in left margin.
     (if (< (current-column) cfi)
-	(move-to-column cfi))
+        (move-to-column cfi))
     (and auto-fill-function
          (> (save-excursion (end-of-line) (current-column))
             fill-column)
@@ -1547,20 +1575,20 @@ Return point or nil."
   "Function to use for `normal-auto-fill-function' in Fortran mode."
   (if (> (current-column) (current-fill-column))
       (let ((cfi (fortran-calculate-indent)))
-	(save-excursion
-	  (beginning-of-line)
-	  (if (or (not (= cfi (fortran-current-line-indentation)))
-		  (and (re-search-forward "^[ \t]*[0-9]+"
-					  (+ (point) 4) t)
-		       (not (fortran-line-number-indented-correctly-p))))
-	      (fortran-indent-to-column cfi)
-	    (beginning-of-line)
-	    (if (fortran-find-comment-start-skip)
-		(fortran-indent-comment))))
-	(fortran-fill)
-	;; Never leave point in left margin.
-	(if (< (current-column) cfi)
-	    (move-to-column cfi)))))
+        (save-excursion
+          (beginning-of-line)
+          (if (or (not (= cfi (fortran-current-line-indentation)))
+                  (and (re-search-forward "^[ \t]*[0-9]+"
+                                          (+ (point) 4) t)
+                       (not (fortran-line-number-indented-correctly-p))))
+              (fortran-indent-to-column cfi)
+            (beginning-of-line)
+            (if (fortran-find-comment-start-skip)
+                (fortran-indent-comment))))
+        (fortran-fill)
+        ;; Never leave point in left margin.
+        (if (< (current-column) cfi)
+            (move-to-column cfi)))))
 
 ;; Historically this was a separate function which advertised itself
 ;; as reindenting but only did so where `most likely to be necessary'.
@@ -1578,21 +1606,21 @@ Return point or nil."
 (defun fortran-calculate-indent ()
   "Calculates the Fortran indent column based on previous lines."
   (let (icol first-statement (case-fold-search t)
-	     (fortran-minimum-statement-indent
-	      (if indent-tabs-mode
-		  fortran-minimum-statement-indent-tab
-		fortran-minimum-statement-indent-fixed)))
+             (fortran-minimum-statement-indent
+              (if indent-tabs-mode
+                  fortran-minimum-statement-indent-tab
+                fortran-minimum-statement-indent-fixed)))
     (save-excursion
       (setq first-statement (fortran-previous-statement))
       (if first-statement
-	  (setq icol fortran-minimum-statement-indent)
+          (setq icol fortran-minimum-statement-indent)
         (if (= (point) (point-min))
             (setq icol fortran-minimum-statement-indent)
           (setq icol (fortran-current-line-indentation)))
         (skip-chars-forward " \t0-9")
         (cond ((looking-at "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?if[ \t]*(")
                (if (or (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t_$(=a-z0-9]")
-                       (let (then-test)	; multi-line if-then
+                       (let (then-test) ; multi-line if-then
                          (while (and (zerop (forward-line 1))
                                      ;; Search forward for then.
                                      (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]")
@@ -1628,52 +1656,52 @@ Return point or nil."
       (beginning-of-line)
       (cond ((looking-at "[ \t]*$"))
             ;; Check for directive before comment, so as not to indent.
-	    ((looking-at fortran-directive-re)
-	     (setq fortran-minimum-statement-indent 0 icol 0))
-	    ((looking-at fortran-comment-line-start-skip)
-	     (cond ((eq fortran-comment-indent-style 'relative)
-		    (setq icol (+ icol fortran-comment-line-extra-indent)))
-		   ((eq fortran-comment-indent-style 'fixed)
-		    (setq icol (+ fortran-minimum-statement-indent
-				  fortran-comment-line-extra-indent))))
-	     (setq fortran-minimum-statement-indent 0))
-     	    ((or (looking-at (concat "[ \t]*"
-				     (regexp-quote
-				      fortran-continuation-string)))
-		 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
+            ((looking-at fortran-directive-re)
+             (setq fortran-minimum-statement-indent 0 icol 0))
+            ((looking-at fortran-comment-line-start-skip)
+             (cond ((eq fortran-comment-indent-style 'relative)
+                    (setq icol (+ icol fortran-comment-line-extra-indent)))
+                   ((eq fortran-comment-indent-style 'fixed)
+                    (setq icol (+ fortran-minimum-statement-indent
+                                  fortran-comment-line-extra-indent))))
+             (setq fortran-minimum-statement-indent 0))
+            ((or (looking-at (concat "[ \t]*"
+                                     (regexp-quote
+                                      fortran-continuation-string)))
+                 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
              (skip-chars-forward " \t")
              ;; Do not introduce extra whitespace into a broken string.
              (setq icol
                    (if (fortran-is-in-string-p (point))
                        6
                      (+ icol fortran-continuation-indent))))
-	    (first-statement)
-	    ((and fortran-check-all-num-for-matching-do
-		  (looking-at "[ \t]*[0-9]+")
-		  (fortran-check-for-matching-do))
-	     (setq icol (- icol fortran-do-indent)))
-	    (t
-	     (skip-chars-forward " \t0-9")
-	     (cond ((looking-at "end[ \t]*\\(if\\|select\\|where\\)\\b")
-		    (setq icol (- icol fortran-if-indent)))
-		   ((looking-at "else\\(if\\)?\\b")
-		    (setq icol (- icol fortran-if-indent)))
+            (first-statement)
+            ((and fortran-check-all-num-for-matching-do
+                  (looking-at "[ \t]*[0-9]+")
+                  (fortran-check-for-matching-do))
+             (setq icol (- icol fortran-do-indent)))
+            (t
+             (skip-chars-forward " \t0-9")
+             (cond ((looking-at "end[ \t]*\\(if\\|select\\|where\\)\\b")
+                    (setq icol (- icol fortran-if-indent)))
+                   ((looking-at "else\\(if\\)?\\b")
+                    (setq icol (- icol fortran-if-indent)))
                    ((looking-at "case[ \t]*\\((.*)\\|default\\>\\)")
-		    (setq icol (- icol fortran-if-indent)))
-		   ((looking-at "\\(otherwise\\|else[ \t]*where\\)\\b")
-		    (setq icol (- icol fortran-if-indent)))
-		   ((and (looking-at "continue\\b")
-			 (fortran-check-for-matching-do))
-		    (setq icol (- icol fortran-do-indent)))
-		   ((looking-at "end[ \t]*do\\b")
-		    (setq icol (- icol fortran-do-indent)))
-		   ((looking-at "end[ \t]*\
+                    (setq icol (- icol fortran-if-indent)))
+                   ((looking-at "\\(otherwise\\|else[ \t]*where\\)\\b")
+                    (setq icol (- icol fortran-if-indent)))
+                   ((and (looking-at "continue\\b")
+                         (fortran-check-for-matching-do))
+                    (setq icol (- icol fortran-do-indent)))
+                   ((looking-at "end[ \t]*do\\b")
+                    (setq icol (- icol fortran-do-indent)))
+                   ((looking-at "end[ \t]*\
 \\(structure\\|union\\|map\\|interface\\)\\b[ \t]*[^ \t=(a-z]")
-		    (setq icol (- icol fortran-structure-indent)))
-		   ((and (looking-at fortran-end-prog-re1)
-			 (fortran-check-end-prog-re)
-			 (not (= icol fortran-minimum-statement-indent)))
- 		    (message "Warning: `end' not in column %d.  Probably\
+                    (setq icol (- icol fortran-structure-indent)))
+                   ((and (looking-at fortran-end-prog-re1)
+                         (fortran-check-end-prog-re)
+                         (not (= icol fortran-minimum-statement-indent)))
+                    (message "Warning: `end' not in column %d.  Probably\
  an unclosed block." fortran-minimum-statement-indent))))))
     (max fortran-minimum-statement-indent icol)))
 
@@ -1687,16 +1715,16 @@ non-indentation text within the comment."
   (save-excursion
     (beginning-of-line)
     (cond ((looking-at fortran-comment-line-start-skip)
-	   (goto-char (match-end 0))
-	   (skip-chars-forward
-	    (if (stringp fortran-comment-indent-char)
-		fortran-comment-indent-char
-	      (char-to-string fortran-comment-indent-char))))
-	  ((or (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
-	   (goto-char (match-end 0)))
-	  (t
-	   ;; Move past line number.
-	   (skip-chars-forward "[ \t0-9]")))
+           (goto-char (match-end 0))
+           (skip-chars-forward
+            (if (stringp fortran-comment-indent-char)
+                fortran-comment-indent-char
+              (char-to-string fortran-comment-indent-char))))
+          ((or (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
+           (goto-char (match-end 0)))
+          (t
+           ;; Move past line number.
+           (skip-chars-forward "[ \t0-9]")))
     ;; Move past whitespace.
     (skip-chars-forward " \t")
     (current-column)))
@@ -1713,48 +1741,48 @@ notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
   (save-excursion
     (beginning-of-line)
     (if (looking-at fortran-comment-line-start-skip)
-	(if fortran-comment-indent-style
-	    (let* ((char (if (stringp fortran-comment-indent-char)
-			     (aref fortran-comment-indent-char 0)
-			   fortran-comment-indent-char))
-		   (chars (string ?\s ?\t char)))
-	      (goto-char (match-end 0))
-	      (skip-chars-backward chars)
-	      (delete-region (point) (progn (skip-chars-forward chars)
-					    (point)))
-	      (insert-char char (- col (current-column)))))
+        (if fortran-comment-indent-style
+            (let* ((char (if (stringp fortran-comment-indent-char)
+                             (aref fortran-comment-indent-char 0)
+                           fortran-comment-indent-char))
+                   (chars (string ?\s ?\t char)))
+              (goto-char (match-end 0))
+              (skip-chars-backward chars)
+              (delete-region (point) (progn (skip-chars-forward chars)
+                                            (point)))
+              (insert-char char (- col (current-column)))))
       (if (looking-at "\t[1-9]")
-	  (if indent-tabs-mode
-	      (goto-char (match-end 0))
-	    (delete-char 2)
-	    (insert-char ?\s 5)
-	    (insert fortran-continuation-string))
-	(if (looking-at " \\{5\\}[^ 0\n]")
-	    (if indent-tabs-mode
-		(progn (delete-char 6)
-		       (insert ?\t (fortran-numerical-continuation-char) 1))
-	      (forward-char 6))
-	  (delete-horizontal-space)
-	  ;; Put line number in columns 0-4, or
+          (if indent-tabs-mode
+              (goto-char (match-end 0))
+            (delete-char 2)
+            (insert-char ?\s 5)
+            (insert fortran-continuation-string))
+        (if (looking-at " \\{5\\}[^ 0\n]")
+            (if indent-tabs-mode
+                (progn (delete-char 6)
+                       (insert ?\t (fortran-numerical-continuation-char) 1))
+              (forward-char 6))
+          (delete-horizontal-space)
+          ;; Put line number in columns 0-4, or
           ;; continuation character in column 5.
-	  (cond ((eobp))
-		((looking-at (regexp-quote fortran-continuation-string))
-		 (if indent-tabs-mode
-		     (progn
-		       (indent-to
-			(if indent-tabs-mode
-			    fortran-minimum-statement-indent-tab
-			  fortran-minimum-statement-indent-fixed))
-		       (delete-char 1)
-		       (insert-char (fortran-numerical-continuation-char) 1))
-		   (indent-to 5)
-		   (forward-char 1)))
-		((looking-at "[0-9]+")
-		 (let ((extra-space (- 5 (- (match-end 0) (point)))))
-		   (if (< extra-space 0)
-		       (message "Warning: line number exceeds 5-digit limit.")
-		     (indent-to (min fortran-line-number-indent extra-space))))
-		 (skip-chars-forward "0-9")))))
+          (cond ((eobp))
+                ((looking-at (regexp-quote fortran-continuation-string))
+                 (if indent-tabs-mode
+                     (progn
+                       (indent-to
+                        (if indent-tabs-mode
+                            fortran-minimum-statement-indent-tab
+                          fortran-minimum-statement-indent-fixed))
+                       (delete-char 1)
+                       (insert-char (fortran-numerical-continuation-char) 1))
+                   (indent-to 5)
+                   (forward-char 1)))
+                ((looking-at "[0-9]+")
+                 (let ((extra-space (- 5 (- (match-end 0) (point)))))
+                   (if (< extra-space 0)
+                       (message "Warning: line number exceeds 5-digit limit.")
+                     (indent-to (min fortran-line-number-indent extra-space))))
+                 (skip-chars-forward "0-9")))))
       ;; Point is now after any continuation character or line number.
       ;; Put body of statement where specified.
       (delete-horizontal-space)
@@ -1773,20 +1801,20 @@ Do not call if there is no line number."
     (beginning-of-line)
     (skip-chars-forward " \t")
     (and (<= (current-column) fortran-line-number-indent)
-	 (or (= (current-column) fortran-line-number-indent)
-	     (progn (skip-chars-forward "0-9")
-		    (= (current-column) 5))))))
+         (or (= (current-column) fortran-line-number-indent)
+             (progn (skip-chars-forward "0-9")
+                    (= (current-column) 5))))))
 
 (defun fortran-check-for-matching-do ()
   "When called from a numbered statement, return t if matching DO is found.
 Otherwise return nil."
   (let ((case-fold-search t)
-	charnum)
+        charnum)
     (save-excursion
       (beginning-of-line)
       (when (looking-at "[ \t]*[0-9]+")
         (skip-chars-forward " \t")
-        (skip-chars-forward "0")	; skip past leading zeros
+        (skip-chars-forward "0")        ; skip past leading zeros
         (setq charnum
               (buffer-substring (point) (progn
                                           (skip-chars-forward "0-9")
@@ -1813,19 +1841,19 @@ If ALL is nil, only match comments that start in column > 0."
   ;; (comment-search-forward (line-end-position) t))
   (when (or all comment-start-skip)
     (let ((pos (point))
-	  (css (if comment-start-skip
-		   (concat fortran-comment-line-start-skip
-			   "\\|" comment-start-skip)
-		 fortran-comment-line-start-skip)))
+          (css (if comment-start-skip
+                   (concat fortran-comment-line-start-skip
+                           "\\|" comment-start-skip)
+                 fortran-comment-line-start-skip)))
       (when (re-search-forward css (line-end-position) t)
-	(if (and (or all (> (match-beginning 0) (line-beginning-position)))
-		 (or (save-match-data
-		       (not (fortran-is-in-string-p (match-beginning 0))))
-		     ;; Recurse for rest of line.
-		     (fortran-find-comment-start-skip all)))
-	    (point)
-	  (goto-char pos)
-	  nil)))))
+        (if (and (or all (> (match-beginning 0) (line-beginning-position)))
+                 (or (save-match-data
+                       (not (fortran-is-in-string-p (match-beginning 0))))
+                     ;; Recurse for rest of line.
+                     (fortran-find-comment-start-skip all)))
+            (point)
+          (goto-char pos)
+          nil)))))
 
 ;; From: ralf@up3aud1.gwdg.de (Ralf Fassel)
 ;; Test if TAB format continuation lines work.
@@ -1834,57 +1862,57 @@ If ALL is nil, only match comments that start in column > 0."
   (save-excursion
     (goto-char where)
     (cond
-     ((bolp) nil)			; bol is never inside a string
-     ((save-excursion			; comment lines too
-	(beginning-of-line)
-	(looking-at fortran-comment-line-start-skip)) nil)
+     ((bolp) nil)                       ; bol is never inside a string
+     ((save-excursion                   ; comment lines too
+        (beginning-of-line)
+        (looking-at fortran-comment-line-start-skip)) nil)
      (t (let ((parse-state '(0 nil nil nil nil nil 0))
-	      (quoted-comment-start (if comment-start
-					(regexp-quote comment-start)))
-	      (not-done t)
-	      parse-limit end-of-line)
-	  ;; Move to start of current statement.
-	  (fortran-next-statement)
-	  (fortran-previous-statement)
-	  ;; Now parse up to WHERE.
-	  (while not-done
-	    (if (or ;; Skip to next line if:
-		 ;; - comment line?
-		 (looking-at fortran-comment-line-start-skip)
-		 ;; - at end of line?
-		 (eolp)
-		 ;; - not in a string and after comment-start?
-		 (and (not (nth 3 parse-state))
-		      comment-start
-		      (equal comment-start
-			     (char-to-string (preceding-char)))))
-		(if (> (forward-line) 0)
-		    (setq not-done nil))
-	      ;; else:
-	      ;; If we are at beginning of code line, skip any
-	      ;; whitespace, labels and tab continuation markers.
-	      (if (bolp) (skip-chars-forward " \t0-9"))
-	      ;; If we are in column <= 5 now, check for continuation char.
-	      (cond ((= 5 (current-column)) (forward-char 1))
-		    ((and (< (current-column) 5)
-			  (equal fortran-continuation-string
-				 (char-to-string (following-char)))
-			  (forward-char 1))))
-	      ;; Find out parse-limit from here.
-	      (setq end-of-line (line-end-position))
-	      (setq parse-limit (min where end-of-line))
-	      ;; Parse max up to comment-start, if non-nil and in current line.
-	      (if comment-start
-		  (save-excursion
-		    (if (re-search-forward quoted-comment-start end-of-line t)
-			(setq parse-limit (min (point) parse-limit)))))
-	      ;; Now parse if still in limits.
-	      (if (< (point) where)
-		  (setq parse-state (parse-partial-sexp
-				     (point) parse-limit nil nil parse-state))
-		(setq not-done nil))))
-	  ;; Result.
-	  (nth 3 parse-state))))))
+              (quoted-comment-start (if comment-start
+                                        (regexp-quote comment-start)))
+              (not-done t)
+              parse-limit end-of-line)
+          ;; Move to start of current statement.
+          (fortran-next-statement)
+          (fortran-previous-statement)
+          ;; Now parse up to WHERE.
+          (while not-done
+            (if (or ;; Skip to next line if:
+                 ;; - comment line?
+                 (looking-at fortran-comment-line-start-skip)
+                 ;; - at end of line?
+                 (eolp)
+                 ;; - not in a string and after comment-start?
+                 (and (not (nth 3 parse-state))
+                      comment-start
+                      (equal comment-start
+                             (char-to-string (preceding-char)))))
+                (if (> (forward-line) 0)
+                    (setq not-done nil))
+              ;; else:
+              ;; If we are at beginning of code line, skip any
+              ;; whitespace, labels and tab continuation markers.
+              (if (bolp) (skip-chars-forward " \t0-9"))
+              ;; If we are in column <= 5 now, check for continuation char.
+              (cond ((= 5 (current-column)) (forward-char 1))
+                    ((and (< (current-column) 5)
+                          (equal fortran-continuation-string
+                                 (char-to-string (following-char)))
+                          (forward-char 1))))
+              ;; Find out parse-limit from here.
+              (setq end-of-line (line-end-position))
+              (setq parse-limit (min where end-of-line))
+              ;; Parse max up to comment-start, if non-nil and in current line.
+              (if comment-start
+                  (save-excursion
+                    (if (re-search-forward quoted-comment-start end-of-line t)
+                        (setq parse-limit (min (point) parse-limit)))))
+              ;; Now parse if still in limits.
+              (if (< (point) where)
+                  (setq parse-state (parse-partial-sexp
+                                     (point) parse-limit nil nil parse-state))
+                (setq not-done nil))))
+          ;; Result.
+          (nth 3 parse-state))))))
 
 ;; From old version.
 (defalias 'fortran-auto-fill-mode 'auto-fill-mode)
@@ -1892,17 +1920,17 @@ If ALL is nil, only match comments that start in column > 0."
 (defun fortran-fill ()
   "Fill the current line at an appropriate point(s)."
   (let* ((auto-fill-function #'fortran-auto-fill)
-	 (opoint (point))
-	 (bol (line-beginning-position))
-	 (eol (line-end-position))
-	 (bos (min eol (+ bol (fortran-current-line-indentation))))
+         (opoint (point))
+         (bol (line-beginning-position))
+         (eol (line-end-position))
+         (bos (min eol (+ bol (fortran-current-line-indentation))))
          ;; If in a string at fill-column, break it either before the
          ;; initial quote, or at fill-col (if string is too long).
-	 (quote
-	  (save-excursion
-	    (goto-char bol)
-	    ;; OK to break quotes on comment lines.
-	    (unless (looking-at fortran-comment-line-start-skip)
+         (quote
+          (save-excursion
+            (goto-char bol)
+            ;; OK to break quotes on comment lines.
+            (unless (looking-at fortran-comment-line-start-skip)
               (let (fcpoint start)
                 (move-to-column fill-column)
                 (when (fortran-is-in-string-p (setq fcpoint (point)))
@@ -1921,12 +1949,12 @@ If ALL is nil, only match comments that start in column > 0."
                          (- fill-column 6 fortran-continuation-indent))
                       fcpoint
                     start))))))
-	 ;; Decide where to split the line. If a position for a quoted
-	 ;; string was found above then use that, else break the line
-	 ;; before/after the last delimiter.
-	 (fill-point
-	  (or quote
-	      (save-excursion
+         ;; Decide where to split the line. If a position for a quoted
+         ;; string was found above then use that, else break the line
+         ;; before/after the last delimiter.
+         (fill-point
+          (or quote
+              (save-excursion
                 ;; If f-b-b-d is t, have an extra column to play with,
                 ;; since delimiter gets shifted to new line.
                 (move-to-column (if fortran-break-before-delimiters
@@ -1950,13 +1978,13 @@ If ALL is nil, only match comments that start in column > 0."
                       (or (looking-at fortran-no-break-re)
                           (forward-char)))))
                 ;; Line indented beyond fill-column?
-		(when (<= (point) bos)
+                (when (<= (point) bos)
                   (move-to-column (1+ fill-column))
                   ;; What is this doing???
                   (or (re-search-forward "[\t\n,'+-/*)=]" eol t)
                       (goto-char bol)))
-		(if (bolp)
-		    (re-search-forward "[ \t]" opoint t))
+                (if (bolp)
+                    (re-search-forward "[ \t]" opoint t))
                 (point)))))
     ;; If we are in an in-line comment, don't break unless the
     ;; line of code is longer than it should be. Otherwise
@@ -1965,20 +1993,20 @@ If ALL is nil, only match comments that start in column > 0."
     ;; Need to use fortran-find-comment-start-skip to make sure that
     ;; quoted !'s don't prevent a break.
     (when (and (save-excursion
-		 (beginning-of-line)
-		 (if (not (fortran-find-comment-start-skip))
+                 (beginning-of-line)
+                 (if (not (fortran-find-comment-start-skip))
                      t
-		   (goto-char (match-beginning 0))
-		   (>= (point) fill-point)))
-	       (save-excursion
-		 (goto-char fill-point)
-		 (not (bolp)))
-	       (> (save-excursion
-		    (goto-char opoint)
-		    (current-column))
-		  (min (1+ fill-column)
-		       (+ (fortran-calculate-indent)
-			  fortran-continuation-indent))))
+                   (goto-char (match-beginning 0))
+                   (>= (point) fill-point)))
+               (save-excursion
+                 (goto-char fill-point)
+                 (not (bolp)))
+               (> (save-excursion
+                    (goto-char opoint)
+                    (current-column))
+                  (min (1+ fill-column)
+                       (+ (fortran-calculate-indent)
+                          fortran-continuation-indent))))
       (goto-char fill-point)
       (fortran-break-line)
       (end-of-line))))
@@ -1986,27 +2014,27 @@ If ALL is nil, only match comments that start in column > 0."
 (defun fortran-break-line ()
   "Call `fortran-split-line'.  Joins continuation lines first, then refills."
   (let ((bol (line-beginning-position))
-	(comment-string
-	 (save-excursion
-	   (if (fortran-find-comment-start-skip)
-	       (delete-and-extract-region
-		(match-beginning 0) (line-end-position))))))
+        (comment-string
+         (save-excursion
+           (if (fortran-find-comment-start-skip)
+               (delete-and-extract-region
+                (match-beginning 0) (line-end-position))))))
     ;; Forward line 1 really needs to go to next non white line.
     (if (save-excursion (forward-line)
-			(looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
-	(progn
-	  (end-of-line)
-	  (delete-region (point) (match-end 0))
-	  (delete-horizontal-space)
-	  (fortran-fill))
+                        (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
+        (progn
+          (end-of-line)
+          (delete-region (point) (match-end 0))
+          (delete-horizontal-space)
+          (fortran-fill))
       (fortran-split-line))
     (if comment-string
-	(save-excursion
-	  (goto-char bol)
-	  (end-of-line)
-	  (delete-horizontal-space)
-	  (indent-to (fortran-comment-indent))
-	  (insert comment-string)))))
+        (save-excursion
+          (goto-char bol)
+          (end-of-line)
+          (delete-horizontal-space)
+          (indent-to (fortran-comment-indent))
+          (insert comment-string)))))
 
 (defun fortran-analyze-file-format ()
   "Return nil if fixed format is used, t if TAB formatting is used.
@@ -2016,12 +2044,12 @@ before the end or in the first `fortran-analyze-depth' lines."
     (save-excursion
       (goto-char (point-min))
       (while (not (or
-		   (eobp)
-		   (eq (char-after) ?\t)
-		   (looking-at " \\{6\\}")
-		   (> i fortran-analyze-depth)))
-	(forward-line)
-	(setq i (1+ i)))
+                   (eobp)
+                   (eq (char-after) ?\t)
+                   (looking-at " \\{6\\}")
+                   (> i fortran-analyze-depth)))
+        (forward-line)
+        (setq i (1+ i)))
       (cond
        ((eq (char-after) ?\t) t)
        ((looking-at " \\{6\\}") nil)
@@ -2082,7 +2110,7 @@ arg DO-SPACE prevents stripping the whitespace."
   (save-excursion
     ;; We must be inside function body for this to work.
     (fortran-beginning-of-subprogram)
-    (let ((case-fold-search t))		; case-insensitive
+    (let ((case-fold-search t))         ; case-insensitive
       ;; Search for fortran subprogram start.
       (if (re-search-forward
            (concat "^[ \t]*\\(program\\|subroutine\\|function"

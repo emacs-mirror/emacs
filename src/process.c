@@ -2683,6 +2683,7 @@ OPTION is not a supported option, return nil instead; otherwise return t.  */)
 
 /* A version of request_sigio suitable for a record_unwind_protect.  */
 
+#ifdef __ultrix__
 static Lisp_Object
 unwind_request_sigio (dummy)
      Lisp_Object dummy;
@@ -2691,6 +2692,7 @@ unwind_request_sigio (dummy)
     request_sigio ();
   return Qnil;
 }
+#endif
 
 /* Create a network stream/datagram client/server process.  Treated
    exactly like a normal process when reading and writing.  Primary

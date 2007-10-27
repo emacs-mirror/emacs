@@ -179,7 +179,7 @@ SERVER is either a string naming the server or a list (NAME PORT)."
 	(set-buffer eudc-ph-process-buffer)
 	(erase-buffer)
 	(setq eudc-ph-read-point (point))
-	(and eudc-xemacs-mule-p
+	(and (featurep 'xemacs) (featurep 'mule)
 	     (set-buffer-file-coding-system 'binary t)))
       (setq process (open-network-stream "ph" eudc-ph-process-buffer host port))
       (if (null process)

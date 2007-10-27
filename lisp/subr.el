@@ -951,7 +951,7 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'focus-frame "it does nothing." "22.1")
 (defalias 'unfocus-frame 'ignore "")
 (make-obsolete 'unfocus-frame "it does nothing." "22.1")
-
+(make-obsolete 'make-variable-frame-local "use a frame-parameter instead" "22.2")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -995,7 +995,6 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 (defalias 'search-backward-regexp (symbol-function 're-search-backward))
 (defalias 'int-to-string 'number-to-string)
 (defalias 'store-match-data 'set-match-data)
-(defalias 'make-variable-frame-localizable 'make-variable-frame-local)
 ;; These are the XEmacs names:
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)

@@ -92,7 +92,8 @@ when editing big diffs)."
 
 (defcustom diff-auto-refine t
   "Automatically highlight changes in detail as the user visits hunks."
-  :type 'boolean)
+  :type 'boolean
+  :group 'diff-mode)
 
 (defcustom diff-mode-hook nil
   "Run after setting up the `diff-mode' major mode."
@@ -1685,7 +1686,7 @@ For use in `add-log-current-defun-function'."
 (defun diff-refine-hunk ()
   "Highlight changes of hunk at point at a finer granularity."
   (interactive)
-  (require 'smerge-mode)
+  (eval-and-compile (require 'smerge-mode))
   (save-excursion
     (diff-beginning-of-hunk 'try-harder)
     (let* ((style (diff-hunk-style))    ;Skips the hunk header as well.

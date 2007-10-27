@@ -46,10 +46,7 @@
 ;; browse-url-cci                     XMosaic     2.5
 ;; browse-url-w3                      w3          0
 ;; browse-url-w3-gnudoit              w3 remotely
-;; browse-url-iximosaic               IXI Mosaic  ?
 ;; browse-url-lynx-*	              Lynx	     0
-;; browse-url-grail                   Grail       0.3b1
-;; browse-url-mmm                     MMM         ?
 ;; browse-url-generic                 arbitrary
 ;; browse-url-default-windows-browser MS-Windows browser
 ;; browse-url-default-macosx-browser  Mac OS X browser
@@ -79,14 +76,6 @@
 ;; The `gnuserv' package that can be used to control it in another
 ;; Emacs process is available from
 ;; <URL:ftp://ftp.splode.com/pub/users/friedman/packages/>.
-
-;; Grail is the freely available WWW browser implemented in Python, a
-;; cool object-oriented freely available interpreted language.  Grail
-;; 0.3b1 was the first version to have remote control as distributed.
-;; For more information on Grail see
-;; <URL:http://grail.cnri.reston.va.us/> and for more information on
-;; Python see <url:http://www.python.org/>.  Grail support in
-;; browse-url.el written by Barry Warsaw <bwarsaw@python.org>.
 
 ;; Lynx is now distributed by the FSF.  See also
 ;; <URL:http://lynx.browser.org/>.
@@ -257,13 +246,10 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
-	  (function-item :tag "IXI Mosaic" :value  browse-url-iximosaic)
 	  (function-item :tag "Lynx in an xterm window"
 			 :value browse-url-lynx-xterm)
 	  (function-item :tag "Lynx in an Emacs window"
 			 :value browse-url-lynx-emacs)
-	  (function-item :tag "Grail" :value  browse-url-grail)
-	  (function-item :tag "MMM" :value  browse-url-mmm)
 	  (function-item :tag "KDE" :value browse-url-kde)
 	  (function-item :tag "Elinks" :value browse-url-elinks)
 	  (function-item :tag "Specified by `Browse Url Generic Program'"
@@ -880,8 +866,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'.
 
 The order attempted is gnome-moz-remote, Mozilla, Firefox,
-Galeon, Konqueror, Netscape, Mosaic, IXI Mosaic, Lynx in an
-xterm, MMM, and then W3."
+Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
   (apply
    (cond
     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
@@ -891,9 +876,7 @@ xterm, MMM, and then W3."
     ((executable-find browse-url-kde-program) 'browse-url-kde)
     ((executable-find browse-url-netscape-program) 'browse-url-netscape)
     ((executable-find browse-url-mosaic-program) 'browse-url-mosaic)
-    ((executable-find "tellw3b") 'browse-url-iximosaic)
     ((executable-find browse-url-xterm-program) 'browse-url-lynx-xterm)
-    ((executable-find "mmm") 'browse-url-mmm)
     ((locate-library "w3") 'browse-url-w3)
     (t
      (lambda (&ignore args) (error "No usable browser found"))))
@@ -1170,6 +1153,8 @@ used instead of `browse-url-new-window-flag'."
 	       browse-url-epiphany-program
 	       (append browse-url-epiphany-startup-arguments (list url))))))
 
+(defvar url-handler-regexp)
+
 ;;;###autoload
 (defun browse-url-emacs (url &optional new-window)
   "Ask Emacs to load URL into a buffer and show it in another window."
@@ -1257,28 +1242,6 @@ used instead of `browse-url-new-window-flag'."
 	     (append browse-url-mosaic-arguments (list url)))
       (message "Starting %s...done" browse-url-mosaic-program))))
 
-;; --- Grail ---
-
-(defvar browse-url-grail
-  (concat (or (getenv "GRAILDIR") "~/.grail") "/user/rcgrail.py")
-  "Location of Grail remote control client script `rcgrail.py'.
-Typically found in $GRAILDIR/rcgrail.py, or ~/.grail/user/rcgrail.py.")
-
-;;;###autoload
-(defun browse-url-grail (url &optional new-window)
-  "Ask the Grail WWW browser to load URL.
-Default to the URL around or before point.  Runs the program in the
-variable `browse-url-grail'."
-  (interactive (browse-url-interactive-arg "Grail URL: "))
-  (message "Sending URL to Grail...")
-  (with-current-buffer (get-buffer-create " *Shell Command Output*")
-    (erase-buffer)
-    ;; don't worry about this failing.
-    (if (browse-url-maybe-new-window new-window)
-	(call-process browse-url-grail nil 0 nil "-b" url)
-      (call-process browse-url-grail nil 0 nil url))
-    (message "Sending URL to Grail... done")))
-
 ;; --- Mosaic using CCI ---
 
 ;;;###autoload
@@ -1309,17 +1272,6 @@ used instead of `browse-url-new-window-flag'."
 			       "\r\n"))
   (process-send-string "browse-url" "disconnect\r\n")
   (delete-process "browse-url"))
-
-;; --- IXI Mosaic ---
-
-;;;###autoload
-(defun browse-url-iximosaic (url &optional new-window)
-  ;; new-window ignored
-  "Ask the IXIMosaic WWW browser to load URL.
-Default to the URL around or before point."
-  (interactive (browse-url-interactive-arg "IXI Mosaic URL: "))
-  (start-process "tellw3b" nil "tellw3b"
-		 "-service WWW_BROWSER ixi_showurl " url))
 
 ;; --- W3 ---
 
@@ -1432,24 +1384,6 @@ used instead of `browse-url-new-window-flag'."
 				     "\C-u" ; kill default url
 				     url
 				     "\r")))))
-
-;; --- MMM ---
-
-;;;###autoload
-(defun browse-url-mmm (url &optional new-window)
-  "Ask the MMM WWW browser to load URL.
-Default to the URL around or before point."
-  (interactive (browse-url-interactive-arg "MMM URL: "))
-  (message "Sending URL to MMM...")
-  (with-current-buffer (get-buffer-create " *Shell Command Output*")
-    (erase-buffer)
-    ;; mmm_remote just SEGVs if the file isn't there...
-    (if (or (file-exists-p (expand-file-name "~/.mmm_remote"))
-	    ;; location in v 0.4:
-	    (file-exists-p (expand-file-name "~/.mmm/remote")))
-	(call-process "mmm_remote" nil 0 nil url)
-      (call-process "mmm" nil 0 nil "-external" url))
-    (message "Sending URL to MMM... done")))
 
 ;; --- mailto ---
 

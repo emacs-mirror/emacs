@@ -669,7 +669,7 @@
 
 2007-03-31  Markus Triska  <markus.triska@gmx.at>
 
-	* flymake.el (flymake-err-line-patterns): Doc fix.
+	* progmodes/flymake.el (flymake-err-line-patterns): Doc fix.
 
 2007-03-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -2005,7 +2005,7 @@
 
 2007-02-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.ps: The ps-print commands without face printing should not
+	* ps-print.el: The ps-print commands without face printing should not
 	print background color.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 6.7.3.
 	(ps-begin-job): New arg.  Fix ps-default-background and
@@ -2109,7 +2109,7 @@
 
 2007-02-02  Ulf Jasper  <ulf.jasper@web.de>
 
-	* newsticker.el (newsticker-version): Changed to "1.10".
+	* net/newsticker.el (newsticker-version): Changed to "1.10".
 	(newsticker--set-customvar): Doc string.
 	(newsticker-new-item-face): Doc string.
 	(newsticker-mode): Initialize `invisibility-spec' with t.
@@ -2423,7 +2423,8 @@
 
 2007-01-23  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-keym.el (viper-insert-basic-map): Delete binding for S-TAB.
+	* emulation/viper-keym.el (viper-insert-basic-map):
+	Delete binding for S-TAB.
 
 	* ediff-util.el (ediff-clone-buffer-for-region-comparison): Change text
 	of message.  Activate mark.
@@ -2536,7 +2537,7 @@
 
 2007-01-20  Alin C. Soare  <alinsoar@voila.fr>  (tiny change)
 
-	* lisp/emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
+	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
 	Fixed cursor position when toggle abbreviated display.
 
 2007-01-20  Nick Roberts  <nickrob@snap.net.nz>
@@ -2783,7 +2784,7 @@
 
 2007-01-03  Alan Mackenzie  <acm@muc.de>
 
-	* progmode/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy patch.
+	* progmodes/cc-cmds.el (c-mask-paragraph): Fix yesterday's buggy patch.
 
 2007-01-03  Chris Moore  <christopher.ian.moore@gmail.com>
 
@@ -3126,8 +3127,8 @@
 	* ediff-diff.el (ediff-diff-options): Clarify docstring.
 	(ediff-setup-diff-regions): Disallow -u in ediff-diff-options.
 
-	* viper-cmd.el (viper-post-command-sentinel): Protect against errors
-	in hooks.
+	* emulation/viper-cmd.el (viper-post-command-sentinel):
+	Protect against errors in hooks.
 	(viper-add-newline-at-eob-if-necessary): Add newline only if we
 	actually modify buffer; ignore errors if occur.
 
@@ -4941,8 +4942,8 @@
 	* help-fns.el (help-with-tutorial): Move to tutorial.el.
 
 	* tutorial.el: New file.
-	(help-with-tutorial): Move here from help-fns.el. Added help for
-	rebound keys.  Fixed resume of tutorial.
+	(help-with-tutorial): Move here from help-fns.el.  Add help for
+	rebound keys.  Fix resume of tutorial.
 	(tutorial--describe-nonstandard-key, tutorial--sort-keys)
 	(tutorial--find-changed-keys, tutorial--display-changes)
 	(tutorial--saved-dir, tutorial--saved-file)
@@ -5029,9 +5030,9 @@
 
 2006-10-23  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-prefix-arg-com): Define gg as G0.
+	* emulation/viper-cmd.el (viper-prefix-arg-com): Define gg as G0.
 
-	* viper-ex.el (ex-read): Quote file argument.
+	* emulation/viper-ex.el (ex-read): Quote file argument.
 
 	* ediff-diff.el (ediff-same-file-contents): Expand file names.
 
@@ -5300,7 +5301,7 @@
 		calling or due to edit to a buffer, install our own hook
 		(controlled by `cperl-hook-after-change').
 	(cperl-electric-pod): =cut may have been recognized as start.
-	(cperl-block-p): Move, updatedfor attributes.
+	(cperl-block-p): Move, updated for attributes.
 	(cperl-calculate-indent): Try to allow '_' be non-word char
 		Support subs with attributes.
 	(cperl-where-am-i): Quiet (?) a warning.
@@ -5880,7 +5881,7 @@
 
 2006-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* progmode/ebnf2ps.el: Doc fix. Implement arrow spacing and scaling.
+	* progmodes/ebnf2ps.el: Doc fix. Implement arrow spacing and scaling.
 	(ebnf-version): New version 4.3.
 	(ebnf-arrow-extra-width, ebnf-arrow-scale): New options.
 	(ebnf-prologue): Adjust PostScript programming.
@@ -6100,11 +6101,11 @@
 
 2006-09-18  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper.el: Bump up version/date of update to reflect the substantial
-	changes done in August 2006.
+	* emulation/viper.el: Bump up version/date of update to reflect the
+	substantial changes done in August 2006.
 
-	* viper-cmd (viper-next-line-at-bol): Make sure button-at, push-button
-	are defined.
+	* emulation/viper-cmd (viper-next-line-at-bol): Make sure button-at,
+	push-button are defined.
 
 	* ediff-util.el (ediff-add-to-history): New function.
 
@@ -6822,7 +6823,7 @@
 
 2006-09-02  Ryan Yeske  <rcyeske@gmail.com>
 
-	* rcirc.el (rcirc-keywords): New variable.
+	* net/rcirc.el (rcirc-keywords): New variable.
 	(rcirc-bright-nicks, rcirc-dim-nicks): New variables.
 	(rcirc-bright-nick-regexp, rcirc-dim-nick-regexp): Remove
 	variables.
@@ -6893,8 +6894,8 @@
 
 2006-08-30  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-special-read-and-insert-char): Convert events to
-	chars if XEmacs.
+	* emulation/viper-cmd.el (viper-special-read-and-insert-char):
+	Convert events to chars if XEmacs.
 	(viper-after-change-undo-hook): Check if undo-in-progress is bound.
 
 2006-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7011,25 +7012,26 @@
 
 2006-08-25  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper.el (viper-set-hooks): Use frame bindings for
+	* emulation/viper.el (viper-set-hooks): Use frame bindings for
 	viper-vi-state-cursor-color.
 	(viper-non-hook-settings): Don't set default
 	mode-line-buffer-identification.
 
-	* viper-util.el (viper-set-cursor-color-according-to-state): New fun.
+	* emulation/viper-util.el (viper-set-cursor-color-according-to-state):
+	New fun.
 	(viper-set-cursor-color-according-to-state)
 	(viper-get-saved-cursor-color-in-replace-mode)
 	(viper-get-saved-cursor-color-in-insert-mode): Make conditional on
 	viper-emacs-state-cursor-color.
 
-	* viper-cmd.el (viper-envelop-ESC-key): Bug fix.
+	* emulation/viper-cmd.el (viper-envelop-ESC-key): Bug fix.
 	(viper-undo): Use point if undo-beg-posn is nil.
 	(viper-insert-state-post-command-sentinel, viper-change-state-to-emacs)
 	(viper-after-change-undo-hook): Don't use
 	viper-emacs-state-cursor-color by default.
 	(viper-undo): More sensible positioning after undo.
 
-	* viper-ex.el (ex-splice-args-in-1-letr-cmd): Get rid of caddr.
+	* emulation/viper-ex.el (ex-splice-args-in-1-letr-cmd): Get rid of caddr.
 	(viper-emacs-state-cursor-color): Default to nil, since this feature
 	doesn't work well yet.
 
@@ -7844,9 +7846,9 @@
 
 2006-07-20  Jay Belanger  <belanger@truman.edu>
 
-	* calc.el (calc-previous-alg-entry): Remove variable.
+	* calc/calc.el (calc-previous-alg-entry): Remove variable.
 
-	* calc-aent.el (calc-alg-entry-history, calc-quick-calc-history):
+	* calc/calc-aent.el (calc-alg-entry-history, calc-quick-calc-history):
 	New variables.
 	(calc-alg-entry): Use `calc-alg-entry-history'.
 	(calc-do-quick-calc): Use `calc-quick-calc-history'.
@@ -7859,17 +7861,17 @@
 	Change keybinding for `calcAlg-plus-minus', add keybindings for
 	`previous-history-element' and `next-history-element'.
 
-	* calc-rewr.el (calc-match): Remove reference to
+	* calc/calc-rewr.el (calc-match): Remove reference to
 	`calc-previous-alg-entry'.
 
-	* calc-sel.el (calc-selection-history): New variable.
+	* calc/calc-sel.el (calc-selection-history): New variable.
 	(calc-enter-selection, calc-sel-mult-both-sides)
 	(calc-sel-add-both-sides): Use `calc-selection-history'.
 
-	* calc-map.el (calc-get-operator-history): New variable.
+	* calc/calc-map.el (calc-get-operator-history): New variable.
 	(calc-get-operator): Use `calc-get-operator-history'.
 
-	* calcalg3.el (calc-curve-fit-history): New variable.
+	* calc/calcalg3.el (calc-curve-fit-history): New variable.
 	(calc-curve-fit): Use `calc-curve-fit-history'.
 
 2006-07-20  Kenichi Handa  <handa@m17n.org>
@@ -8643,7 +8645,7 @@
 
 2006-06-18  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-special-read-and-insert-char):
+	* emulation/viper-cmd.el (viper-special-read-and-insert-char):
 	Use read-key-sequence.
 	(viper-after-change-undo-hook): Misc enhancements.
 	(viper-after-change-undo-hook): New hook.
@@ -8652,9 +8654,10 @@
 	(viper-next-line-at-bol): If point is on a widget or a button, simulate
 	clicking on that widget/button.
 
-	* viper.el (viper-mode): Allow a separate cursor color in Emacs state.
+	* emulation/viper.el (viper-mode): Allow a separate cursor color
+	in Emacs state.
 
-	* ediff-diff (ediff-test-patch-utility): Catch errors.
+	* ediff-diff.el (ediff-test-patch-utility): Catch errors.
 	(ediff-actual-diff-options, ediff-actual-diff3-options): New variables.
 	(ediff-set-actual-diff-options): New function.
 	(ediff-reset-diff-options, ediff-toggle-ignore-case):
@@ -10378,7 +10381,7 @@
 
 2006-04-27  Jay Belanger  <belanger@truman.edu>
 
-	* calc-embed.el (calc-embedded-make-info): Use `math-read-expr' to
+	* calc/calc-embed.el (calc-embedded-make-info): Use `math-read-expr' to
 	read expression when `math-read-big-expr' doesn't work.
 
 2006-04-27  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -11004,7 +11007,7 @@
 
 2006-04-08  Ryan Yeske  <rcyeske@gmail.com>
 
-	* rcirc.el (rcirc-default-server): Rename from rcirc-server.
+	* net/rcirc.el (rcirc-default-server): Rename from rcirc-server.
 	(rcirc-default-port): Rename from rcirc-port.
 	(rcirc-default-nick): Rename from rcirc-nick.
 	(rcirc-default-user-name): Rename from rcirc-user-name.
@@ -11829,8 +11832,8 @@
 
 2006-03-11  David Ponce  <david@dponce.com>
 
-	* ispell.el (ispell-find-aspell-dictionaries): Add aliases before
-	merging elements from the standard ispell-dictionary-alist.
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries): Add aliases
+	before merging elements from the standard ispell-dictionary-alist.
 	(ispell-aspell-add-aliases): Add aliases to the passed dictionary
 	alist, and return the new alist.
 
@@ -12266,7 +12269,7 @@
 	(c-after-change): Protect the match data with save-match-data.
 	It was getting corrupted by c-after-change-check-<>-operators.
 
-	* cc-defs.el: [Supersedes patch V1.38]:
+	* progmodes/cc-defs.el: [Supersedes patch V1.38]:
 	(top level): Check for a buggy font-lock-compile-keywords ONLY in
 	XEmacs.  GNU Emacs 22 now has a check which would throw an error here.
 
@@ -12541,19 +12544,20 @@
 
 2006-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-insert-state-post-command-sentinel)
+	* emulation/viper-cmd.el (viper-insert-state-post-command-sentinel)
 	(viper-change-state-to-vi, viper-change-state-to-emacs):
 	Make aware of cursor coloring in the Emacs state.
 	(viper-special-read-and-insert-char): Use read-char-exclusive.
 	(viper-minibuffer-trim-tail): Workaround for fields in minibuffer.
 
-	* viper-init.el (viper-emacs-state-cursor-color): New variable.
+	* emulation/viper-init.el (viper-emacs-state-cursor-color):
+	New variable.
 
-	* viper-util.el (viper-save-cursor-color)
+	* emulation/viper-util.el (viper-save-cursor-color)
 	(viper-get-saved-cursor-color-in-replace-mode)
 	(viper-get-saved-cursor-color-in-insert-mode)
-	(viper-restore-cursor-color): Make aware of the cursor color in Emacs
-	state.
+	(viper-restore-cursor-color): Make aware of the cursor color
+	in Emacs state.
 	(viper-get-saved-cursor-color-in-emacs-mode): New function.
 
 	* ediff-diff.el (ediff-ignore-case, ediff-ignore-case-option)
@@ -15599,7 +15603,7 @@
 
 2005-12-10  John W. Eaton  <jwe@octave.org>
 
-	* emacs/octave-mod.el (octave-electric-space): Don't indent
+	* progmodes/octave-mod.el (octave-electric-space): Don't indent
 	comments or strings if octave-auto-indent is nil.
 
 2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -15749,7 +15753,7 @@
 	* progmodes/cc-fix.el: Add definitions of the macros push and pop
 	(for GNU Emacs 20.4).
 
-	* progmodes/cc-defs.el:
+	* progmodes/cc-defs.el
 	(i): Load cc-fix.elc for `push' and `pop' (for GNU Emacs 20.4).
 
 	* progmodes/cc-cmds.el (c-show-syntactic-information): Change the
@@ -17594,13 +17598,13 @@
 
 2005-11-25  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-keym.el (viper-ESC-key): Use different values in terminal and
-	window modes.
+	* emulation/viper-keym.el (viper-ESC-key): Use different values
+	in terminal and window modes.
 
-	* viper.el (viper-emacs-state-mode-list): Delete mail-mode, add
-	jde-javadoc-checker-report-mode.
+	* emulation/viper.el (viper-emacs-state-mode-list): Delete mail-mode,
+	add jde-javadoc-checker-report-mode.
 
-	* ediff-wind (ediff-make-wide-display): Slight simplification.
+	* ediff-wind.el (ediff-make-wide-display): Slight simplification.
 
 	* ediff.el (ediff-date): Change the date of last update.
 
@@ -18110,10 +18114,10 @@
 
 2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-utils.el (viper-non-word-characters-reformed-vi):
+	* emulation/viper-utils.el (viper-non-word-characters-reformed-vi):
 	Quote `-' in string.
 
-	* viper.el (viper-emacs-state-mode-list): Ensure that
+	* emulation/viper.el (viper-emacs-state-mode-list): Ensure that
 	rcirc-mode buffers come up in Emacs state.
 
 	* ediff-util.el (ediff-make-temp-file): Use proper file-name-handler
@@ -18183,20 +18187,20 @@
 
 2005-11-14  Jay Belanger  <belanger@truman.edu>
 
-	* calc-alg.el (calcFunc-write-out-power): Rename it to
+	* calc/calc-alg.el (calcFunc-write-out-power): Rename it to
 	calcFunc-powerexpand.
 	(math-write-out-power): Rename it to math-powerexpand; have it
 	handle negative exponents.
 	(calc-writeoutpower): Rename it to calc-powerexpand.
 
-	* calc-ext.el: Change calcFunc-writeoutpower and
+	* calc/calc-ext.el: Change calcFunc-writeoutpower and
 	calc-writeoutpower to calcFunc-powerexpand and calc-powerexpand in
 	autoloads.
 	Add calcFunc-ldiv to autoloads.
 
-	* calc-arith.el (calcFunc-ldiv): New function.
+	* calc/calc-arith.el (calcFunc-ldiv): New function.
 
-	* calc.el (calc-left-divide): New function.
+	* calc/calc.el (calc-left-divide): New function.
 
 2005-11-14  Juri Linkov  <juri@jurta.org>
 
@@ -18565,7 +18569,7 @@
 
 2005-11-04  Ulf Jasper  <ulf.jasper@web.de>
 
-	* newsticker.el: Commentary updated.  Code formatting changed.
+	* net/newsticker.el: Commentary updated.  Code formatting changed.
 	(newsticker-version): Change to "1.9".
 	(newsticker, newsticker-feed): Doc fix.
 	(newsticker-url-list): Doc fix.  Add option "Weekly".
@@ -18778,8 +18782,8 @@
 
 2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-merge.el (ediff-merge-region-is-non-clash): Return t, if not
-	merging.
+	* ediff-merg.el (ediff-merge-region-is-non-clash):
+	Return t, if not merging.
 
 	* ediff-util.el (ediff-previous-difference): Don't skip regions that
 	have merge clashes.
@@ -20785,17 +20789,19 @@
 	* ediff-wind.el (ediff-setup-control-frame)
 	(ediff-destroy-control-frame): Check the menubar feature.
 
-	* viper-cmd.el (viper-normalize-minor-mode-map-alist)
+	* emulation/viper-cmd.el (viper-normalize-minor-mode-map-alist)
 	(viper-refresh-mode-line): Use make-local-variable to localize
 	some vars instead of make-variable-buffer-local.  Suggested by
 	Stefan Monnier.
 
-	* viper-init.el (viper-make-variable-buffer-local): Delete alias.
+	* emulation/viper-init.el (viper-make-variable-buffer-local):
+	Delete alias.
 	(viper-restore-cursor-type, viper-set-insert-cursor-type):
 	Use make-local-variable instead of make-variable-buffer-local.
 	Suggested by Stefan Monnier.
 
-	* viper.el (viper-mode): Don't use viper-make-variable-buffer-local.
+	* emulation/viper.el (viper-mode): Don't use
+	viper-make-variable-buffer-local.
 	(viper-comint-mode-hook): Use make-local-variable on
 	require-final-newline.
 	(viper-non-hook-settings): Don't use make-variable-buffer-local.
@@ -21798,8 +21804,8 @@
 
 2005-09-10  Alan Mackenzie  <acm@muc.de>
 
-	* page.el (narrow-to-page): Exclude _entire_ multi-line delimiter
-	from the region narrowed to.
+	* textmodes/page.el (narrow-to-page): Exclude _entire_ multi-line
+	delimiter from the region narrowed to.
 
 2005-09-10  Magnus Henoch  <mange@freemail.hu>
 
@@ -23232,23 +23238,23 @@
 
 2005-08-06  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper.el (viper-emacs-state-mode-list): Add recentf-dialog-mode.
-	Change the date of last update.
+	* emulation/viper.el (viper-emacs-state-mode-list):
+	Add recentf-dialog-mode.  Change the date of last update.
 
 2005-08-06  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-harness-minor-mode, viper-exec-delete)
+	* emulation/viper-cmd.el (viper-harness-minor-mode, viper-exec-delete)
 	(viper-exec-yank, viper-put-back): Don't display modification msg
 	if in the minibuffer.
 
-	* viper-init.el (viper-replace-overlay-cursor-color)
+	* emulation/viper-init.el (viper-replace-overlay-cursor-color)
 	(viper-insert-state-cursor-color, viper-vi-state-cursor-color):
 	Make variables frame local.
 
-	* viper-util.el (viper-append-filter-alist): Use append instead of
-	nconc.
+	* emulation/viper-util.el (viper-append-filter-alist):
+	Use append instead of nconc.
 
-	* viper.el (viper-vi-state-mode-list)
+	* emulation/viper.el (viper-vi-state-mode-list)
 	(viper-emacs-state-mode-list): Move help-mode and
 	completion-list-mode from the first list to the second.
 	(viper-mode): Docstring.
@@ -23912,7 +23918,7 @@
 
 2005-07-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-escape-to-state): Bug fix.
+	* emulation/viper-cmd.el (viper-escape-to-state): Bug fix.
 	(viper-envelop-ESC-key): Change the definition of fast
 	keysequence so it'll work with keyboard macros.
 
@@ -23993,8 +23999,7 @@
 
 2005-07-16  Jose E. Marchesi  <jemarch@gnu.org>
 
-	* lisp/mail/smtpmail.el (smtpmail-auth-supported):
-	Add plain auth method.
+	* mail/smtpmail.el (smtpmail-auth-supported): Add plain auth method.
 	(smtpmail-try-auth-methods): Add AUTH PLAIN dialog.
 
 2005-07-17  Kim F. Storm  <storm@cua.dk>
@@ -24357,26 +24362,26 @@
 
 2005-07-10  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper--key-maps): New variable.
+	* emulation/viper-cmd.el (viper--key-maps): New variable.
 	(viper-normalize-minor-mode-map-alist): Use viper--key-maps and
 	emulation-mode-map-alists.
 	(viper-envelop-ESC-key): Use viper-subseq.
 	(viper-search-forward/backward/next): Disable debug-on-error.
 
-	* viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
+	* emulation/viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
 	(viper-ESC-key): New defcustoms.
 
-	* viper-macs.el (ex-map-read-args): Use viper-subseq.
+	* emulation/viper-macs.el (ex-map-read-args): Use viper-subseq.
 
-	* viper-util.el (viper-key-to-emacs-key): Use viper-subseq.
+	* emulation/viper-util.el (viper-key-to-emacs-key): Use viper-subseq.
 	(viper-subseq): Copy of subseq from cl.el.
 
-	* viper.el (viper-go-away, viper-set-hooks): Use
+	* emulation/viper.el (viper-go-away, viper-set-hooks): Use
 	emulation-mode-map-alists, advise self-insert-command, add-minor-mode.
 
-	* viper-mous.el (viper-current-frame-saved): Use defvar.
+	* emulation/viper-mous.el (viper-current-frame-saved): Use defvar.
 
-	* viper-init.el: Get rid of -face in face names.
+	* emulation/viper-init.el: Get rid of -face in face names.
 
 	* ediff-diff.el (ediff-extract-diffs, ediff-extract-diffs3):
 	Make it work with longlines mode.
@@ -26105,7 +26110,7 @@
 
 2005-06-11  Alan Mackenzie  <acm@muc.de>
 
-	* fill.el (fill-context-prefix): Try `adaptive-fill-function'
+	* textmodes/fill.el (fill-context-prefix): Try `adaptive-fill-function'
 	BEFORE `adaptive-fill-regexp' when determining a fill prefix.
 	(adaptive-file-function): Minor amendment to doc-string.
 
@@ -26790,13 +26795,13 @@
 
 2005-06-04  David Reitter  <david.reitter@gmail.com>  (tiny change)
 
-	* url-http.el (url-http-chunked-encoding-after-change-function):
+	* url/url-http.el (url-http-chunked-encoding-after-change-function):
 	Use `url-http-debug' instead of `message'.
 
 2005-06-04  Thierry Emery  <thierry.emery@free.fr>  (tiny change)
 
-	* url-http.el (url-http-parse-headers): Pass redirected URL as a
-	callback argument.
+	* url/url-http.el (url-http-parse-headers): Pass redirected URL
+	as a callback argument.
 
 2005-06-04  Kim F. Storm  <storm@cua.dk>
 
@@ -26850,10 +26855,11 @@
 	* ediff-mult.el (ediff-intersect-directories): Make sure that ".." and
 	"." files are deleted from all file lists before comparison.
 
-	* viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
+	* emulation/viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
 	(viper-ESC-key): Made them customizable.
 
-	* viper.el (viper-non-hook-settings): Fix the names of defadvices.
+	* emulation/viper.el (viper-non-hook-settings):
+	Fix the names of defadvices.
 
 2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -27008,7 +27014,7 @@
 
 2005-05-29  Richard M. Stallman  <rms@gnu.org>
 
-	* flyspell.el (flyspell-version): Function deleted.
+	* textmoddes/flyspell.el (flyspell-version): Function deleted.
 	(flyspell-auto-correct-previous-hook): Doc fix.
 
 	* jit-lock.el (jit-lock-function, jit-lock-after-change):
@@ -27030,13 +27036,14 @@
 
 2005-05-29  Peter Heslin  <p.j.heslin@durham.ac.uk>  (tiny change)
 
-	* flyspell.el (flyspell-auto-correct-previous-word):
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word):
 	Narrow down to what's on the screen, and recenter overlays
 	at the end of the next word.
 
 2005-05-29  Manuel Serrano  <Manuel.Serrano@sophia.inria.fr>
 
-	* flyspell.el (flyspell-emacs, flyspell-use-local-map): Vars moved up.
+	* textmodes/flyspell.el (flyspell-emacs, flyspell-use-local-map):
+	8Vars moved up.
 	(flyspell-default-delayed-commands): Add backward-delete-char-untabify.
 	(flyspell-abbrev-p): Default to nil.
 	(flyspell-use-global-abbrev-table-p): Doc fix.
@@ -27409,51 +27416,52 @@
 
 	CC Mode update to 5.30.10:
 
-	* cc-fonts.el (c-font-lock-declarators): Fix bug where the point
-	could go past the limit in decoration level 2, thereby causing
-	errors during interactive fontification.
+	* progmodes/cc-fonts.el (c-font-lock-declarators): Fix bug where
+	the point could go past the limit in decoration level 2, thereby
+	causing errors during interactive fontification.
 
-	* cc-mode.el (c-make-inherited-keymap): Fix cc-bytecomp bug when
-	the file is evaluated interactively.
+	* progmodes/cc-mode.el (c-make-inherited-keymap): Fix cc-bytecomp
+	bug when the file is evaluated interactively.
 
-	* cc-engine.el (c-guess-basic-syntax): Handle operator
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Handle operator
 	declarations somewhat better in C++.
 
-	* cc-styles.el, cc-mode.el (c-run-mode-hooks): New helper macro to
-	make use of `run-mode-hooks' which has been added in Emacs 21.1.
+	* progmodes/cc-styles.el, cc-mode.el (c-run-mode-hooks):
+	New helper macro to make use of `run-mode-hooks'
+	which has been added in Emacs 21.1.
 	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode)
 	(awk-mode): Use it.
 	(make-local-hook): Suppress warning about obsoleteness.
 
-	* cc-engine.el, cc-align.el, cc-cmds.el
+	* progmodes/cc-engine.el, cc-align.el, cc-cmds.el
 	(c-append-backslashes-forward, c-delete-backslashes-forward)
 	(c-find-decl-spots, c-semi&comma-no-newlines-before-nonblanks):
 	Compensate for return value from `forward-line' when it has moved
 	but not to a different line due to eob.
 
-	* cc-engine.el (c-guess-basic-syntax): Fix anchoring in
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Fix anchoring in
 	`objc-method-intro' and `objc-method-args-cont'.
 
 2005-05-23  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	CC Mode update to 5.30.10:
 
-	* cc-mode.el, cc-engine.el, cc-align.el: Change the FSF's address
-	in the copyright statement.  Incidentally, change "along with GNU
-	Emacs" to "along with this program" where it occurs.
+	* progmodes/cc-mode.el, cc-engine.el, cc-align.el: Change the FSF's
+	address in the copyright statement.  Incidentally, change "along with
+	GNU Emacs" to "along with this program" where it occurs.
 
-	* cc-mode.el: Add a fourth parameter `t' to the awk-mode autoload,
-	so that it is interactive, hence can be found by M-x awk-mode
+	* progmodes/cc-mode.el: Add a fourth parameter `t' to the awk-mode
+	autoload, so that it is interactive, hence can be found by M-x awk-mode
 	whilst cc-mode is yet to be loaded.  Reported by Glenn Morris
 	<gmorris+emacs@ast.cam.ac.uk>.
 
-	* cc-awk.el: Add character classes (e.g. "[:alpha:]") into AWK
+	* progmodes/cc-awk.el: Add character classes (e.g. "[:alpha:]") into AWK
 	Mode's regexps.
 
 2005-05-23  Kevin Ryde  <user42@zip.com.au>
 
-	* cc-align.el (c-lineup-argcont): Ignore conses for {} pairs from
-	c-parse-state, to avoid a lisp error (on bad code).
+	* progmodes/cc-align.el (c-lineup-argcont): Ignore conses for {} pairs
+	from c-parse-state, to avoid a lisp error (on bad code).
 
 2005-05-23  Lute Kamstra  <lute@gnu.org>
 
@@ -28793,7 +28801,7 @@
 
 	* simple.el (next-error-overlay-arrow-position): Turn off, for ttys.
 
-	* loadup.el: load jka-comp-hook.
+	* loadup.el: Load jka-comp-hook.
 
 	* jka-compr.el: Many functions and vars moved to jka-comp-hook.el.
 	(jka-compr-handler): Add autoload.  `put' calls moved
@@ -30261,8 +30269,9 @@
 
 2005-03-30  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.el (org-agenda-phases-of-moon, org-agenda-sunrise-sunset)
-	(org-agenda-convert-date, org-agenda-goto-calendar): New commands.
+	* textmodes/org.el (org-agenda-phases-of-moon)
+	(org-agenda-sunrise-sunset, org-agenda-convert-date)
+	(org-agenda-goto-calendar): New commands.
 	(org-diary-default-entry): New function.
 	(org-get-entries-from-diary): Better parsing of diary entries.
 	(org-agenda-check-no-diary): New function.
@@ -31860,7 +31869,7 @@
 
 2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-prefix-commands): Make into a defconst.
+	* emulation/viper-cmd.el (viper-prefix-commands): Make into a defconst.
 	(viper-exec-buffer-search): Use regexp-quote to quote buffer string.
 	(viper-minibuffer-setup-sentinel): Make some variables buffer-local.
 	(viper-skip-separators): Bug fix.
@@ -31869,17 +31878,18 @@
 	(viper-del-backward-char-in-replace): Don't put deleted char on the
 	kill ring.
 
-	* viper-ex.el (viper-color-display-p): New function.
+	* emulation/viper-ex.el (viper-color-display-p): New function.
 	(viper-has-face-support-p): Use viper-color-display-p.
 
-	* viper-keym.el (viper-gnus-modifier-map): New keymap.
+	* emulation/viper-keym.el (viper-gnus-modifier-map): New keymap.
 
-	* viper-macs.el (viper-unrecord-kbd-macro): Bug fix.
+	* emulation/viper-macs.el (viper-unrecord-kbd-macro): Bug fix.
 
-	* viper-util.el (viper-glob-unix-files): Fix shell status check.
+	* emulation/viper-util.el (viper-glob-unix-files):
+	Fix shell status check.
 	(viper-file-remote-p): Make equivalent to file-remote-p.
 
-	* viper.el (viper-major-mode-modifier-list):
+	* emulation/viper.el (viper-major-mode-modifier-list):
 	Use viper-gnus-modifier-map.
 
 2005-02-19  David Kastrup  <dak@gnu.org>
@@ -32513,7 +32523,8 @@
 	(bibtex-parse-field-name): Fix typos in docstrings.
 	(bibtex-field-list, bibtex-find-crossref): Fix typos in error messages.
 
-2005-01-24  Carsten Dominik  <dominik@science.uva.nl>
+2005-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+	    Juri Linkov  <juri@jurta.org>
 
 	* textmodes/reftex-global.el (reftex-isearch-push-state-function)
 	(reftex-isearch-pop-state-function, reftex-isearch-isearch-search)
@@ -32832,8 +32843,9 @@
 
 2005-01-15  Alan Mackenzie  <acm@muc.de>
 
-	* ebrowse.el (ebrowse-class-in-tree): Return the tail of the tree
-	rather than the element found, thus enabling the tree to be setcar'd.
+	* progmodes/ebrowse.el (ebrowse-class-in-tree):
+	Return the tail of the tree rather than the element found,
+	thus enabling the tree to be setcar'd.
 
 2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -32841,7 +32853,7 @@
 	(org-show-hierarchy-above): Use `org-show-following-heading'.
 	(org-cycle): Documentation fix.
 
-	* textmodes/org.el (orgtbl-optimized): New option
+	* textmodes/org.el (orgtbl-optimized): New option.
 	(orgtbl-mode): New command, a minor mode.
 	(orgtbl-mode-map): New variable.
 	(turn-on-orgtbl, orgtbl-mode, orgtbl-make-binding)

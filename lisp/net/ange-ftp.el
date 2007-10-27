@@ -3813,7 +3813,7 @@ Value is (0 0) if the modification time cannot be determined."
     (ange-ftp-call-cont cont result line)))
 
 (defun ange-ftp-copy-file (filename newname &optional ok-if-already-exists
-				    keep-date)
+				    keep-date preserve-uid-gid)
   (interactive "fCopy file: \nFCopy %s to file: \np")
   (ange-ftp-copy-file-internal filename
 			       newname

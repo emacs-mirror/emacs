@@ -393,6 +393,14 @@ value and then reevaluates the defcustom.  By that time, the necessary
 variables and functions will be defined, so there will not be an error.
 @end table
 
+@item :risky @var{value}
+@kindex risky@r{, @code{defcustom} keyword}
+Set this variable's @code{risky-local-variable} property to @var{value}.
+
+@item :safe @var{function}
+@kindex safe@r{, @code{defcustom} keyword}
+Set this variable's @code{safe-local-variable} property to @var{function}.
+
 @item :set-after @var{variables}
 @kindex set-after@r{, @code{defcustom} keyword}
 When setting variables according to saved customizations, make sure to

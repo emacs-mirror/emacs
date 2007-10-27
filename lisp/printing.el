@@ -6,11 +6,11 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.9.1
+;; Version: 6.9.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst pr-version "6.9.1"
-  "printing.el, v 6.9.1 <2007/08/02 vinicius>
+(defconst pr-version "6.9.2"
+  "printing.el, v 6.9.2 <2007/10/26 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1093,6 +1093,58 @@ If SUFFIX is non-nil, add that at the end of the file name."
 	  (set-default-file-modes umask)))))
 
 
+(eval-when-compile
+  ;; User Interface --- declared here to avoid compiler warnings
+  (defvar pr-path-style)
+  (defvar pr-auto-region)
+  (defvar pr-menu-char-height)
+  (defvar pr-menu-char-width)
+  (defvar pr-menu-lock)
+  (defvar pr-ps-printer-alist)
+  (defvar pr-txt-printer-alist)
+  (defvar pr-ps-utility-alist)
+
+
+  ;; Internal fun alias to avoid compilation gripes
+  (defalias 'pr-menu-lookup            'ignore)
+  (defalias 'pr-menu-lock              'ignore)
+  (defalias 'pr-menu-alist             'ignore)
+  (defalias 'pr-even-or-odd-pages      'ignore)
+  (defalias 'pr-menu-get-item          'ignore)
+  (defalias 'pr-menu-set-item-name     'ignore)
+  (defalias 'pr-menu-set-utility-title 'ignore)
+  (defalias 'pr-menu-set-ps-title      'ignore)
+  (defalias 'pr-menu-set-txt-title     'ignore)
+  (defalias 'pr-region-active-p        'ignore)
+  (defalias 'pr-do-update-menus        'ignore)
+  (defalias 'pr-update-mode-line       'ignore)
+  (defalias 'pr-f-read-string          'ignore)
+  (defalias 'pr-f-set-keymap-parents   'ignore)
+  (defalias 'pr-keep-region-active     'ignore))
+
+
+;; Internal Vars --- defined here to avoid compiler warnings
+(defvar pr-menu-print-item "print"
+  "Non-nil means that menu binding was not done.
+
+Used by `pr-menu-bind' and `pr-update-menus'.")
+
+(defvar pr-ps-printer-menu-modified  t
+  "Non-nil means `pr-ps-printer-alist' was modified and we need to update menu.")
+
+(defvar pr-txt-printer-menu-modified t
+  "Non-nil means `pr-txt-printer-alist' was modified and we need to update menu.")
+
+(defvar pr-ps-utility-menu-modified t
+  "Non-nil means `pr-ps-utility-alist' was modified and we need to update menu.")
+
+(defconst pr-even-or-odd-alist
+  '((nil        . "Print All Pages")
+    (even-page  . "Print Even Pages")
+    (odd-page   . "Print Odd Pages")
+    (even-sheet . "Print Even Sheets")
+    (odd-sheet  . "Print Odd Sheets")))
+
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1324,11 +1376,17 @@ If SUFFIX is non-nil, add that at the end of the file name."
   (defun pr-menu-char-width ()
     (frame-char-width))
 
+  (defvar pr-menu-bar nil
+    "Specify Printing menu-bar entry.")
+
   ;; GNU Emacs
   ;; Menu binding
   ;; Replace existing "print" item by "Printing" item.
   ;; If you're changing this file, you'll load it a second,
   ;; third... time, but "print" item exists only in the first load.
+  (eval-when-compile
+    (require 'easymenu))		; to avoid compilation gripes
+
   (eval-and-compile
     (cond
      ;; GNU Emacs 20
@@ -1547,6 +1605,35 @@ If SUFFIX is non-nil, add that at the end of the file name."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Internal Functions (I)
+
+
+(defun pr-dosify-file-name (path)
+  "Replace unix-style directory separator character with dos/windows one."
+  (interactive "sPath: ")
+  (if (eq pr-path-style 'windows)
+      (subst-char-in-string ?/ ?\\ path)
+    path))
+
+
+(defun pr-unixify-file-name (path)
+  "Replace dos/windows-style directory separator character with unix one."
+  (interactive "sPath: ")
+  (if (eq pr-path-style 'windows)
+      (subst-char-in-string ?\\ ?/ path)
+    path))
+
+
+(defun pr-standard-file-name (path)
+  "Ensure the proper directory separator depending on the OS.
+That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
+separator; otherwise, ensure unix-style directory separator."
+  (if (or pr-cygwin-system ps-windows-system)
+      (subst-char-in-string ?/ ?\\ path)
+    (subst-char-in-string ?\\ ?/ path)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customization Functions
 
 
@@ -1579,7 +1666,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; User Interface (I)
+;; User Interface
 
 
 (defgroup printing nil
@@ -1609,39 +1696,6 @@ Valid values are:
 		 (const :tag "Unix Style (/)" :value unix))
   :version "20"
   :group 'printing)
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Internal Functions (I)
-
-
-(defun pr-dosify-file-name (path)
-  "Replace unix-style directory separator character with dos/windows one."
-  (interactive "sPath: ")
-  (if (eq pr-path-style 'windows)
-      (subst-char-in-string ?/ ?\\ path)
-    path))
-
-
-(defun pr-unixify-file-name (path)
-  "Replace dos/windows-style directory separator character with unix one."
-  (interactive "sPath: ")
-  (if (eq pr-path-style 'windows)
-      (subst-char-in-string ?\\ ?/ path)
-    path))
-
-
-(defun pr-standard-file-name (path)
-  "Ensure the proper directory separator depending on the OS.
-That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
-separator; otherwise, ensure unix-style directory separator."
-  (if (or pr-cygwin-system ps-windows-system)
-      (subst-char-in-string ?/ ?\\ path)
-    (subst-char-in-string ?\\ ?/ path)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; User Interface (II)
 
 
 (defcustom pr-path-alist
@@ -3155,10 +3209,6 @@ See `pr-ps-printer-alist'.")
 See `pr-ps-printer-alist'.")
 
 
-(defvar pr-menu-bar nil
-  "Specify Printing menu-bar entry.")
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Macros
 
@@ -3436,12 +3486,6 @@ See `pr-ps-printer-alist'.")
        ["lpr"      pr-show-lpr-setup t])
       ["Help" pr-help :active t :included (pr-visible-p 'help)]
       )))
-
-
-(defvar pr-menu-print-item "print"
-  "Non-nil means that menu binding was not done.
-
-Used by `pr-menu-bind' and `pr-update-menus'.")
 
 
 (defun pr-menu-bind ()
@@ -5212,22 +5256,6 @@ If menu binding was not done, calls `pr-menu-bind'."
     (pr-update-var 'pr-txt-name pr-txt-printer-alist)
     (pr-update-var 'pr-ps-utility pr-ps-utility-alist)
     (pr-do-update-menus force)))
-
-
-(defvar pr-ps-printer-menu-modified  t
-  "Non-nil means `pr-ps-printer-alist' was modified and we need to update menu.")
-(defvar pr-txt-printer-menu-modified t
-  "Non-nil means `pr-txt-printer-alist' was modified and we need to update menu.")
-(defvar pr-ps-utility-menu-modified t
-  "Non-nil means `pr-ps-utility-alist' was modified and we need to update menu.")
-
-
-(defconst pr-even-or-odd-alist
-  '((nil        . "Print All Pages")
-    (even-page  . "Print Even Pages")
-    (odd-page   . "Print Odd Pages")
-    (even-sheet . "Print Even Sheets")
-    (odd-sheet  . "Print Odd Sheets")))
 
 
 (defun pr-menu-create (name alist var-sym fun entry index)

@@ -2268,7 +2268,14 @@ do_autoload (fundef, funname)
   /* Preserve the match data.  */
   record_unwind_save_match_data ();
 
-  /* Value saved here is to be restored into Vautoload_queue.  */
+  /* If autoloading gets an error (which includes the error of failing
+     to define the function being called), we use Vautoload_queue
+     to undo function definitions and `provide' calls made by
+     the function.  We do this in the specific case of autoloading
+     because autoloading is not an explicit request "load this file",
+     but rather a request to "call this function".
+     
+     The value saved here is to be restored into Vautoload_queue.  */
   record_unwind_protect (un_autoload, Vautoload_queue);
   Vautoload_queue = Qt;
   Fload (Fcar (Fcdr (fundef)), Qnil, Qt, Qnil, Qt);

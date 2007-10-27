@@ -128,18 +128,19 @@ However, if @var{read} is non-@code{nil}, @code{read-from-minibuffer}
 reads the text and returns the resulting Lisp object, unevaluated.
 (@xref{Input Functions}, for information about reading.)
 
-The argument @var{default} specifies a default value to make available
-through the history commands.  It should be a string, or @code{nil}.
-If non-@code{nil}, the user can access it using
-@code{next-history-element}, usually bound in the minibuffer to
-@kbd{M-n}.  If @var{read} is non-@code{nil}, then @var{default} is
-also used as the input to @code{read}, if the user enters empty input.
-(If @var{read} is non-@code{nil} and @var{default} is @code{nil}, empty
+The argument @var{default} specifies default values to make available
+through the history commands.  It should be a string, a list of
+strings, or @code{nil}.  The string or strings become the minibuffer's
+``future history,'' available to the user with @kbd{M-n}.
+
+If @var{read} is non-@code{nil}, then @var{default} is also used as
+the input to @code{read}, if the user enters empty input.  (If
+@var{read} is non-@code{nil} and @var{default} is @code{nil}, empty
 input results in an @code{end-of-file} error.)  However, in the usual
 case (where @var{read} is @code{nil}), @code{read-from-minibuffer}
 ignores @var{default} when the user enters empty input and returns an
-empty string, @code{""}.  In this respect, it is different from all
-the other minibuffer input functions in this chapter.
+empty string, @code{""}.  In this respect, it differs from all the
+other minibuffer input functions in this chapter.
 
 If @var{keymap} is non-@code{nil}, that keymap is the local keymap to
 use in the minibuffer.  If @var{keymap} is omitted or @code{nil}, the
@@ -176,10 +177,14 @@ The keymap used is @code{minibuffer-local-map}.
 The optional argument @var{default} is used as in
 @code{read-from-minibuffer}, except that, if non-@code{nil}, it also
 specifies a default value to return if the user enters null input.  As
-in @code{read-from-minibuffer} it should be a string, or @code{nil},
-which is equivalent to an empty string.
+in @code{read-from-minibuffer} it should be a string, a list of
+strings, or @code{nil} which is equivalent to an empty string.  When
+@var{default} is a string, that string is the default value.  When it
+is a list of strings, the first string is the default value.  (All
+these strings are available to the user in the ``future minibuffer
+history.'')
 
-This function is a simplified interface to the
+This function works by calling the
 @code{read-from-minibuffer} function:
 
 @smallexample
@@ -190,7 +195,7 @@ This function is a simplified interface to the
        (read-from-minibuffer @var{prompt} @var{initial} nil nil
                              @var{history} @var{default} @var{inherit})))
   (if (and (equal value "") @var{default})
-      @var{default}
+      (if (consp @var{default}) (car @var{default}) @var{default})
     value))
 @end group
 @end smallexample
@@ -839,10 +844,11 @@ an element of @var{collection}.  If @var{require-match} is neither
 input already in the buffer matches an element of @var{collection}.
 
 However, empty input is always permitted, regardless of the value of
-@var{require-match}; in that case, @code{completing-read} returns
-@var{default}, or @code{""}, if @var{default} is @code{nil}.  The
-value of @var{default} (if non-@code{nil}) is also available to the
-user through the history commands.
+@var{require-match}; in that case, @code{completing-read} returns the
+first element of @var{default}, if it is a list; @code{""}, if
+@var{default} is @code{nil}; or @var{default}.  The string or strins
+in @var{default} aer also available to the user through the history
+commands.
 
 The function @code{completing-read} uses
 @code{minibuffer-local-completion-map} as the keymap if
@@ -1073,8 +1079,10 @@ specification.  @xref{Defining Commands}.
 This function reads the name of a buffer and returns it as a string.
 The argument @var{default} is the default name to use, the value to
 return if the user exits with an empty minibuffer.  If non-@code{nil},
-it should be a string or a buffer.  It is mentioned in the prompt, but
-is not inserted in the minibuffer as initial input.
+it should be a string, a list of strings, or a buffer.  If it is
+a list, the default value is the first element of this list.  It is
+mentioned in the prompt, but is not inserted in the minibuffer as
+initial input.
 
 The argument @var{prompt} should be a string ending with a colon and a
 space.  If @var{default} is non-@code{nil}, the function inserts it in
@@ -1130,11 +1138,12 @@ which @code{commandp} returns @code{t}, and a command name is a symbol
 for which @code{commandp} returns @code{t}.  @xref{Interactive Call}.
 
 The argument @var{default} specifies what to return if the user enters
-null input.  It can be a symbol or a string; if it is a string,
-@code{read-command} interns it before returning it.  If @var{default} is
-@code{nil}, that means no default has been specified; then if the user
-enters null input, the return value is @code{(intern "")}, that is, a
-symbol whose name is an empty string.
+null input.  It can be a symbol, a string or a list of strings.  If it
+is a string, @code{read-command} interns it before returning it.
+If it is a list, @code{read-command} returns the first element of this list.
+If @var{default} is @code{nil}, that means no default has been
+specified; then if the user enters null input, the return value is
+@code{(intern "")}, that is, a symbol whose name is an empty string.
 
 @example
 (read-command "Command name? ")
@@ -1176,11 +1185,13 @@ complete in the set of extant Lisp symbols, and it uses the
 This function reads the name of a user variable and returns it as a
 symbol.
 
-The argument @var{default} specifies what to return if the user enters
-null input.  It can be a symbol or a string; if it is a string,
-@code{read-variable} interns it before returning it.  If @var{default}
-is @code{nil}, that means no default has been specified; then if the
-user enters null input, the return value is @code{(intern "")}.
+The argument @var{default} specifies the default value to return if
+the user enters null input.  It can be a symbol, a string, or a list
+of strings.  If it is a string, @code{read-variable} interns it to
+make the default value; If it is a list, @code{read-variable} interns
+the first element.  If @var{default} is @code{nil}, that means no
+default has been specified; then if the user enters null input, the
+return value is @code{(intern "")}.
 
 @example
 @group

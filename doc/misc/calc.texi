@@ -18324,7 +18324,7 @@ The remaining trigonometric functions, @code{calc-sec} [@code{sec}],
 available.  With the Hyperbolic flag, these compute their hyperbolic
 counterparts, which are also available separately as @code{calc-sech}
 [@code{sech}], @code{calc-csch} [@code{csch}] and @code{calc-coth}
-[@code{coth}].  (These commmands do not accept the Inverse flag.)
+[@code{coth}].  (These commands do not accept the Inverse flag.)
 
 @node Advanced Math Functions, Branch Cuts, Trigonometric and Hyperbolic Functions, Scientific Functions
 @section Advanced Mathematical Functions
@@ -21357,16 +21357,17 @@ entire four-term sum.
 @pindex calc-break-selections
 The @kbd{j b} (@code{calc-break-selections}) command controls a mode
 in which the ``deep structure'' of these associative formulas shows
-through.  Calc actually stores the above formulas as @samp{((a + b) - c) + d}
-and @samp{x * (y * z)}.  (Note that for certain obscure reasons, Calc
-treats multiplication as right-associative.)  Once you have enabled
-@kbd{j b} mode, selecting with the cursor on the @samp{-} sign would
-only select the @samp{a + b - c} portion, which makes sense when the
-deep structure of the sum is considered.  There is no way to select
-the @samp{b - c + d} portion; although this might initially look
-like just as legitimate a sub-formula as @samp{a + b - c}, the deep
-structure shows that it isn't.  The @kbd{d U} command can be used
-to view the deep structure of any formula (@pxref{Normal Language Modes}).
+through.  Calc actually stores the above formulas as 
+@samp{((a + b) - c) + d} and @samp{x * (y * z)}.  (Note that for certain 
+obscure reasons, by default Calc treats multiplication as
+right-associative.)  Once you have enabled @kbd{j b} mode, selecting
+with the cursor on the @samp{-} sign would only select the @samp{a + b -
+c} portion, which makes sense when the deep structure of the sum is
+considered.  There is no way to select the @samp{b - c + d} portion;
+although this might initially look like just as legitimate a sub-formula
+as @samp{a + b - c}, the deep structure shows that it isn't.  The @kbd{d
+U} command can be used to view the deep structure of any formula
+(@pxref{Normal Language Modes}).
 
 When @kbd{j b} mode has not been enabled, the deep structure is
 generally hidden by the selection commands---what you see is what
@@ -22158,13 +22159,13 @@ Arithmetic operators like @kbd{+} and @kbd{*} always take two
 arguments in Calc's internal form.  Sums and products of three or
 more terms are arranged by the associative law of algebra into
 a left-associative form for sums, @expr{((a + b) + c) + d}, and
-a right-associative form for products, @expr{a * (b * (c * d))}.
-Formulas like @expr{(a + b) + (c + d)} are rearranged to
-left-associative form, though this rarely matters since Calc's
-algebra commands are designed to hide the inner structure of
-sums and products as much as possible.  Sums and products in
-their proper associative form will be written without parentheses
-in the examples below.
+(by default) a right-associative form for products, 
+@expr{a * (b * (c * d))}.  Formulas like @expr{(a + b) + (c + d)} are
+rearranged to left-associative form, though this rarely matters since
+Calc's algebra commands are designed to hide the inner structure of sums
+and products as much as possible.  Sums and products in their proper
+associative form will be written without parentheses in the examples
+below.
 
 Sums and products are @emph{not} rearranged according to the
 commutative law (@expr{a + b} to @expr{b + a}) except in a few
@@ -34868,12 +34869,14 @@ and @code{calc-embedded-open-close-plain-alist}.
 
 @defvar calc-multiplication-has-precedence
 The variable @code{calc-multiplication-has-precedence} determines
-whether multiplication has precedence over division in algebraic formulas
-in normal language modes.  If @code{calc-multiplication-has-precedence}
-is non-@code{nil}, then multiplication has precedence, and so for
-example @samp{a/b*c} will be interpreted as @samp{a/(b*c)}. If
-@code{calc-multiplication-has-precedence} is @code{nil}, then
-multiplication has the same precedence as division, and so for example
+whether multiplication has precedence over division in algebraic
+formulas in normal language modes.  If
+@code{calc-multiplication-has-precedence} is non-@code{nil}, then
+multiplication has precedence (and, for certain obscure reasons, is
+right associative), and so for example @samp{a/b*c} will be interpreted
+as @samp{a/(b*c)}. If @code{calc-multiplication-has-precedence} is
+@code{nil}, then multiplication has the same precedence as division
+(and, like division, is left associative), and so for example
 @samp{a/b*c} will be interpreted as @samp{(a/b)*c}.  The default value
 of @code{calc-multiplication-has-precedence} is @code{t}.
 @end defvar

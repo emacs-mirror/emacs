@@ -1,3 +1,121 @@
+2007-10-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (window_min_size_2): Don't count header-line.
+
+2007-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.h (struct frame): Move all bit fields after the first bit
+	field to take advantage of the available space. Group all the
+	chars together to reduce wasted space due to padding.
+
+2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Fread_minibuffer, Feval_minibuffer): Reflow docstrings.
+
+	* alloc.c (spare_memory, stack_copy, stack_copy_size, ignore_warnings)
+	(Vdead, dont_register_blocks, staticvec, staticidx, interval_block)
+	(n_interval_blocks, init_strings, check_string_bytes, check_sblock)
+	(init_float, free_float, n_cons_blocks, init_cons, all_vectors)
+	(n_vectors, symbol_block, symbol_block_index, symbol_free_list)
+	(n_symbol_blocks, init_symbol, marker_block, marker_free_list)
+	(n_marker_blocks, init_marker, valid_pointer_p, make_pure_float)
+	(last_marked, mark_object_loop_halt): Make static.
+
+	* frame.c (syms_of_frame) <delete-frame-functions>:
+	Fix typo in docstring.
+
+2007-10-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): Fix tiny memory leak.
+	(w32_get_resource): Remove unused variable `ok'.
+
+2007-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Make `window-system' into a keyboard-local variable (rather than
+	frame-local as done originally by multi-tty).
+
+	* keyboard.h (struct kboard): Add Vwindow_system.
+	* keyboard.c (init_kboard): Set a default for Vwindow_system.
+	(mark_kboards): Mark Vwindow_system.
+
+	* dispnew.c (syms_of_display) <window-system>: Declare terminal-local.
+	(init_display): Don't set the obsolete `window-system' frame-param.
+
+	* xterm.c (x_term_init):
+	* w32term.c (w32_create_terminal):
+	* term.c (init_tty): Set Vwindow_system.
+	* macterm.c (mac_create_terminal): Set a keyboard (missing piece of the
+	multi-tty merge maybe?), copied from w32term.c.  Set Vwindow_system.
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame):
+	* w32fns.c (Fx_create_frame, x_create_tip_frame):
+	* macfns.c (Fx_create_frame):
+	Don't set the obsolete `window-system' frame-param.
+
+	* frame.h (Qwindow_system): Remove.
+	* frame.c (Qwindow_system): Remove.  In `syms_of_frame' as well.
+	(Fmake_terminal_frame): Don't set obsolete `window-system' frame-param.
+
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* frame.c (x_figure_window_size): For fullscreen case,
+	set USPosition | PPosition without clobbering rest of window_prompting.
+
+	* keyboard.c (Fcurrent_idle_time): Doc fix.
+
+	* print.c (Fwith_output_to_temp_buffer): Doc fix.
+
+2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (unwind_request_sigio): Only define if __ultrix__.
+
+	* callproc.c (child_setup): Remove spurious *.
+
+	* lisp.h (Fget_text_property): Declare.
+	(have_menus_p): Declare it here rather than in sys-dep header files.
+	* macterm.h (have_menus_p):
+	* msdos.h (have_menus_p):
+	* xterm.h (have_menus_p): Remove.
+
+	* data.c (Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fmake_variable_frame_local): Just check the variable's const-ness
+	rather than checking nil or t.
+
+2007-10-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c: Include math.h.
+	(w32_abort): Declaration moved to nt/config.nt.
+
+	* s/ms-w32.h (HAVE_STDLIB_H): Define.
+	(abort): Redefinition moved to nt/config.nt.
+
+	* m/windowsnt.h: Remove.
+
+2007-10-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fdump_emacs): Fix typo in message.
+	(syms_of_emacs) <kill-emacs-hook>: Fix typo in docstring.
+	<installation-directory>: Reflow docstring.
+
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c: Allow minibuffer default to be a list of default values.
+	With empty input use the first element of this list as returned default.
+	(string_to_object)
+	(read_minibuf_noninteractive): If defalt is cons, set val to its car.
+	(read_minibuf): If defalt is cons, set histstring to its car.
+	(Fread_string): If default_value is cons, set val to its car.
+	(Fread_buffer): If def is cons, use its car.
+	(Fcompleting_read): If defalt is cons, set val to its car.
+
+2007-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Fcopy_file): Call file name handler with preserve_uid_gid.
+
+2007-10-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* doc.c (Fdocumentation): Check for advice in all cases.
+
 2007-10-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in [HAVE_LIBRESOLV]: Add -lresolv to linker flags.
@@ -1011,7 +1129,7 @@
 
 	* term.c (tty_insert_glyphs): Add missing first parameter.
 
-2007-08-29  Karoly Lorentey  <karoly@lorentey.hu>
+2007-08-29  K,Aa(Broly L$,1 q(Brentey  <karoly@lorentey.hu>
 
 	* buffer.c (Fbuffer_list, Fbury_buffer):
 	Take frame->buried_buffer_list into account.

@@ -1070,8 +1070,9 @@ that is inserted into the command line before the filename."
 	      (shrink-window-if-larger-than-buffer)
 	      (error "Running %s...FAILED (%s)" full-command
 		     (if (integerp status) (format "status %d" status) status))))
-	  ;; We're done
-	  (if vc-command-messages
+	  ;; We're done.  But don't emit a status message if running
+	  ;; asychronously, it would just mislead.
+	  (if (and vc-command-messages (not (eq okstatus 'async)))
 	      (message "Running %s...OK = %d" full-command status)))
 	(vc-exec-after
 	 `(run-hook-with-args 'vc-post-command-functions
@@ -1243,7 +1244,7 @@ Only files already under version control are noticed."
        node (lambda (f) (if (vc-backend f) (push f flattened)))))
     (nreverse flattened)))
 
-(defun vc-deduce-fileset (&optional allow-directory-wildcard)
+(defun vc-deduce-fileset (&optional allow-directory-wildcard allow-unregistered)
   "Deduce a set of files and a backend to which to apply an operation.
 
 If we're in VC-dired mode, the fileset is the list of marked files.
@@ -1251,6 +1252,8 @@ Otherwise, if we're looking at a buffer visiting a version-controlled file,
 the fileset is a singleton containing this file.
 If neither of these things is true, but ALLOW-DIRECTORY-WILDCARD is on
 and we're in a dired buffer, select the current directory.
+If none of these conditions is met, but ALLOW_UNREGISTERED is in and the
+visited file is not registered, return a singletin fileset containing it.
 Otherwise, throw an error."
   (cond (vc-dired-mode
 	 (let ((marked (dired-map-over-marks (dired-get-filename) nil)))
@@ -1283,6 +1286,8 @@ Otherwise, throw an error."
 	   (message "All version-controlled files below %s selected."
 		    default-directory)
 	   (list default-directory)))
+	((and allow-unregistered (not (vc-registered buffer-file-name))) 
+	 (list buffer-file-name))
 	(t (error "No fileset is available here."))))
 
 (defun vc-ensure-vc-buffer ()
@@ -1368,7 +1373,7 @@ with the logmessage as change commentary.  A writable file is retained.
    If the repository file is changed, you are asked if you want to
 merge in the changes into your working copy."
   (interactive "P")
-  (let* ((files (vc-deduce-fileset))
+  (let* ((files (vc-deduce-fileset nil t))
 	 (state (vc-state (car files)))
 	 (model (vc-checkout-model (car files)))
 	 revision)
@@ -2930,7 +2935,7 @@ editing non-current revisions is not supported by default."
 (defalias 'vc-rcs-update-changelog 'vc-update-changelog-rcs2log)
 ;; FIXME: This should probably be moved to vc-rcs.el and replaced in
 ;; vc-cvs.el by code using cvs2cl.
-(defun vc-update-changelog-rcs2log (backend files)
+(defun vc-update-changelog-rcs2log (files)
   "Default implementation of update-changelog.
 Uses `rcs2log' which only works for RCS and CVS."
   ;; FIXME: We (c|sh)ould add support for cvs2cl

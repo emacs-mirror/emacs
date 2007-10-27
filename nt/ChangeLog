@@ -1,3 +1,20 @@
+2007-10-22  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (HAVE_STRINGS_H, HAVE_STDLIB_H): Undefine.
+	(strings.h, stdlib.h): Conditionally include.
+	(w32_abort): Declare here.
+	(abort): Redefine to w32_abort (moved from src/s/ms-w32.h).
+
+2007-10-20  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (info-nmake): Change into correct directories.
+
+2007-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (docflags, doldflags): New variables.
+	(genmakefiles): Use them to work around problems with whitespace
+	in arguments of the `if' command.
+
 2007-10-18  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (install): Install COPYING in top-level and bin dirs.
@@ -20,7 +37,7 @@
 
 	* emacs.rc: Increase version to 23.0.50.
 
-2007-08-14  Dhuvra Krishnamurthy <dhuvrakm@gmail.com> (tiny change)
+2007-08-14  Dhuvra Krishnamurthy  <dhuvrakm@gmail.com>  (tiny change)
 
 	* makefile.w32-in (bootstrap-nmake): Change directories once more.
 

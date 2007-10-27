@@ -110,7 +110,6 @@ Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
-Lisp_Object Qwindow_system;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
@@ -261,7 +260,7 @@ FRAME defaults to the currently selected frame.  */)
     return Qnil;
   else
     return type;
-}      
+}
 
 struct frame *
 make_frame (mini_p)
@@ -520,6 +519,7 @@ make_initial_frame (void)
     {
       initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
       init_kboard (initial_kboard);
+      /* Leave Vwindow_system at its `t' default for now.  */
       initial_kboard->next_kboard = all_kboards;
       all_kboards = initial_kboard;
     }
@@ -546,10 +546,10 @@ make_initial_frame (void)
   f->terminal = terminal;
   f->terminal->reference_count++;
   f->output_data.nothing = 0;
-  
+
   FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
-    
+
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
 
@@ -611,10 +611,10 @@ make_terminal_frame (struct terminal *terminal)
     f->terminal = terminal;
     f->terminal->reference_count++;
     create_tty_output (f);
-    
+
     FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
     FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
-    
+
     FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
 
@@ -622,10 +622,10 @@ make_terminal_frame (struct terminal *terminal)
     if (FRAMEP (FRAME_TTY (f)->top_frame)
         && FRAME_LIVE_P (XFRAME (FRAME_TTY (f)->top_frame)))
       XFRAME (FRAME_TTY (f)->top_frame)->async_visible = 2; /* obscured */
-    
+
     FRAME_TTY (f)->top_frame = frame;
   }
-  
+
 #ifdef CANNOT_DUMP
   FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
@@ -709,7 +709,7 @@ affects all frames on the same terminal device.  */)
 #endif
 #endif
 #endif /* not MSDOS */
-  
+
   {
     Lisp_Object terminal;
 
@@ -720,9 +720,9 @@ affects all frames on the same terminal device.  */)
         t = get_terminal (terminal, 1);
       }
   }
-  
+
   if (!t)
-    { 
+    {
       char *name = 0, *type = 0;
       Lisp_Object tty, tty_type;
 
@@ -736,7 +736,7 @@ affects all frames on the same terminal device.  */)
           strncpy (name, SDATA (tty), SBYTES (tty));
           name[SBYTES (tty)] = 0;
         }
-      
+
       tty_type = get_future_frame_param
         (Qtty_type, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
                             ? FRAME_TTY (XFRAME (selected_frame))->type
@@ -758,13 +758,12 @@ affects all frames on the same terminal device.  */)
     get_tty_size (fileno (FRAME_TTY (f)->input), &width, &height);
     change_frame_size (f, height, width, 0, 0, 0);
   }
-  
+
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
   Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type,
                                                  build_string (t->display_info.tty->type)),
                                           Qnil));
@@ -774,7 +773,7 @@ affects all frames on the same terminal device.  */)
                                             Qnil));
   else
     Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty, Qnil), Qnil));
-  
+
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */
   f->face_alist = Fcopy_alist (sf->face_alist);
@@ -1520,7 +1519,7 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   {
     struct terminal *terminal = FRAME_TERMINAL (f);
-    f->output_data.nothing = 0; 
+    f->output_data.nothing = 0;
     f->terminal = 0;             /* Now the frame is dead. */
 
     /* If needed, delete the terminal that this frame was on.
@@ -2027,7 +2026,7 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
   CHECK_LIVE_FRAME (frame);
 
   f = XFRAME (frame);
-  
+
   /* Do like the documentation says. */
   Fmake_frame_visible (frame);
 
@@ -2047,14 +2046,14 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
      Lisp_Object frame;
 {
   struct frame *f;
-  
+
   if (NILP (frame))
     frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame);
 
   f = XFRAME (frame);
-  
+
   if (FRAME_TERMINAL (f)->frame_raise_lower_hook)
     (*FRAME_TERMINAL (f)->frame_raise_lower_hook) (f, 0);
 
@@ -2091,7 +2090,7 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
      Lisp_Object frame, focus_frame;
 {
   struct frame *f;
-  
+
   /* Note that we don't check for a live frame here.  It's reasonable
      to redirect the focus of a frame you're about to delete, if you
      know what other frame should receive those keystrokes.  */
@@ -2101,7 +2100,7 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
     CHECK_LIVE_FRAME (focus_frame);
 
   f = XFRAME (frame);
-  
+
   f->focus_frame = focus_frame;
 
   if (FRAME_TERMINAL (f)->frame_rehighlight_hook)
@@ -3290,7 +3289,7 @@ x_set_fullscreen (f, new_value, old_value)
   else if (EQ (new_value, Qfullheight))
     f->want_fullscreen = FULLSCREEN_HEIGHT;
 
-  if (FRAME_TERMINAL (f)->fullscreen_hook != NULL) 
+  if (FRAME_TERMINAL (f)->fullscreen_hook != NULL)
     FRAME_TERMINAL (f)->fullscreen_hook (f);
 }
 
@@ -4183,7 +4182,7 @@ x_figure_window_size (f, parms, toolbar_p)
       int width, height;
 
       /* It takes both for some WM:s to place it where we want */
-      window_prompting = USPosition | PPosition;
+      window_prompting |= USPosition | PPosition;
       x_fullscreen_adjust (f, &width, &height, &top, &left);
       FRAME_COLS (f) = width;
       FRAME_LINES (f) = height;
@@ -4292,8 +4291,6 @@ syms_of_frame ()
   staticpro (&Qtty);
   Qtty_type = intern ("tty-type");
   staticpro (&Qtty_type);
-  Qwindow_system = intern ("window-system");
-  staticpro (&Qwindow_system);
 
   Qface_set_after_frame_default = intern ("face-set-after-frame-default");
   staticpro (&Qface_set_after_frame_default);
@@ -4318,7 +4315,7 @@ syms_of_frame ()
   staticpro (&Qterminal);
   Qterminal_live_p = intern ("terminal-live-p");
   staticpro (&Qterminal_live_p);
-  
+
   {
     int i;
 
@@ -4420,7 +4417,7 @@ Note that functions in this list may be called twice on the same
 frame.  In the second invocation, the frame is already deleted, and
 the function should do nothing.  (You can use `frame-live-p' to check
 for this.)  This wrinkle happens when an earlier function in
-`delete-frame-functions' (indirectly) calls delete-frame
+`delete-frame-functions' (indirectly) calls `delete-frame'
 recursively.  */);
   Vdelete_frame_functions = Qnil;
 
@@ -4453,7 +4450,7 @@ automatically.  */);
 #else
   focus_follows_mouse = 0;
 #endif
-	 
+
   staticpro (&Vframe_list);
 
   defsubr (&Sactive_minibuffer_window);

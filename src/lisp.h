@@ -3200,6 +3200,7 @@ EXFUN (Fnext_single_property_change, 4);
 EXFUN (Fnext_single_char_property_change, 4);
 EXFUN (Fprevious_single_property_change, 4);
 EXFUN (Fput_text_property, 5);
+EXFUN (Fget_text_property, 3);
 EXFUN (Fprevious_char_property_change, 2);
 EXFUN (Fnext_char_property_change, 2);
 extern void report_interval_modification P_ ((Lisp_Object, Lisp_Object));
@@ -3333,6 +3334,11 @@ extern void syms_of_mac P_ ((void));
 extern void init_mac_osx_environment P_ ((void));
 #endif /* MAC_OSX */
 #endif /* MAC_OS */
+
+#ifdef HAVE_MENUS
+/* Defined in (x|mac|w32)fns.c...  */
+extern int have_menus_p P_ ((void));
+#endif
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */

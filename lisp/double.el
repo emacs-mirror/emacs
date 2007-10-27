@@ -75,7 +75,7 @@ Each entry is a list with three elements:
 		       (string :tag "Twice"))))
 
 (defcustom double-prefix-only t
-  "*Non-nil means that Double mode mapping only works for prefix keys.
+  "Non-nil means that Double mode mapping only works for prefix keys.
 That is, for any key `X' in `double-map', `X' alone will be mapped
 but not `C-u X' or `ESC X' since the X is not the prefix key."
   :group 'double
@@ -95,7 +95,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 	(message ""))
     (read-event)))
 
-(global-set-key [ignore] '(lambda () (interactive)))
+(global-set-key [ignore] 'ignore)
 
 (or (boundp 'isearch-mode-map)
     (load-library "isearch"))
@@ -139,77 +139,37 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 		   (append (substring exp 1) '(magic-start)))
 	     (vector (aref exp 0)))))))
 
-;;; Key Translation Map
-
-(defun double-setup (enable-flag)
-  (if enable-flag
-      (progn
-	;; Set up key-translation-map as indicated by `double-map'.
-	;; XXX I don't think key-translation-map should be made local here. -- Lorentey
-	(kill-local-variable 'key-translation-map)
-	(make-local-variable 'key-translation-map)
-	(setq key-translation-map (if (keymapp key-translation-map)
-					     (copy-keymap key-translation-map)
-					   (make-sparse-keymap)))
-	(mapcar (function (lambda (entry)
-			    (define-key key-translation-map
-			      (vector (nth 0 entry))
-			      'double-translate-key)))
-		(append double-map '((magic-start) (magic-end)))))
-    (kill-local-variable 'key-translation-map)))
-
 ;;; Mode
 
-;;;###autoload
-(defcustom double-mode nil
-  "Toggle Double mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `double-mode'."
-  :set (lambda (symbol value)
-	 (double-mode (if value 1 0)))
-  :initialize 'custom-initialize-default
-  :link '(emacs-commentary-link "double")
-  :type 'boolean
-  :require 'double
-  :group 'double)
-(make-variable-buffer-local 'double-mode)
-
-(or (assq 'double-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(double-mode " Double") minor-mode-alist)))
-
 ;; This feature seemed useless and it confused describe-mode,
-;;  so I deleted it.
-;;;(defvar double-mode-name "Double")
-;;;;; Name of current double mode.
-;;; (make-variable-buffer-local 'double-mode-name)
+;; so I deleted it.
+;; (defvar double-mode-name "Double")
+;; ;; Name of current double mode.
+;; (make-variable-buffer-local 'double-mode-name)
 
 ;;;###autoload
-(defun double-mode (arg)
+(define-minor-mode double-mode
   "Toggle Double mode.
 With prefix argument ARG, turn Double mode on if ARG is positive, otherwise
 turn it off.
 
 When Double mode is on, some keys will insert different strings
 when pressed twice.  See variable `double-map' for details."
-  (interactive "P")
-  (if (or (and (null arg) double-mode)
-	  (<= (prefix-numeric-value arg) 0))
-      ;; Turn it off
-      (if double-mode
-	  (progn
-	    (let ((double-map))
-	      (double-setup nil))
-	    (setq double-mode nil)
-	    (force-mode-line-update)))
-    ;;Turn it on
-    (if double-mode
-	()
-      (double-setup t)
-      (setq double-mode t)
-      (force-mode-line-update))))
+  :lighter " Double"
+  :link '(emacs-commentary-link "double")
+  (kill-local-variable 'key-translation-map)
+  (when double-mode
+    ;; Set up key-translation-map as indicated by `double-map'.
+    ;; XXX I don't think key-translation-map should be made local here. -- Lorentey
+    (make-local-variable 'key-translation-map)
+    (let ((map (make-sparse-keymap)))
+      (set-keymap-parent map key-translation-map)
+      (setq key-translation-map map)
+      (dolist (entry (append double-map '((magic-start) (magic-end))))
+        (define-key map
+          (vector (nth 0 entry)) 'double-translate-key)))))
 
 (provide 'double)
 
-;;; arch-tag: 2e170036-44cb-4493-bc32-ada0a4395221
+;; arch-tag: 2e170036-44cb-4493-bc32-ada0a4395221
 ;;; double.el ends here

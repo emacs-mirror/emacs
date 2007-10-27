@@ -1052,13 +1052,13 @@ mouse-1: get robot moving, mouse-2: play on this square")))
   "Move point down one row on the Lm board."
   (interactive)
   (if (< (lm-point-y) lm-board-height)
-      (next-line 1)));;; lm-square-height)))
+      (forward-line 1)));;; lm-square-height)))
 
 (defun lm-move-up ()
   "Move point up one row on the Lm board."
   (interactive)
   (if (> (lm-point-y) 1)
-      (previous-line lm-square-height)))
+      (forward-line (- lm-square-height))))
 
 (defun lm-move-ne ()
   "Move point North East on the Lm board."

@@ -241,7 +241,7 @@ static int total_free_floats, total_floats;
    out of memory.  We keep one large block, four cons-blocks, and
    two string blocks.  */
 
-char *spare_memory[7];
+static char *spare_memory[7];
 
 /* Amount of spare memory to keep in large reserve block.  */
 
@@ -324,13 +324,13 @@ Lisp_Object Vmemory_signal_data;
 
 /* Buffer in which we save a copy of the C stack at each GC.  */
 
-char *stack_copy;
-int stack_copy_size;
+static char *stack_copy;
+static int stack_copy_size;
 
 /* Non-zero means ignore malloc warnings.  Set during initialization.
    Currently not used.  */
 
-int ignore_warnings;
+static int ignore_warnings;
 
 Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
@@ -397,12 +397,12 @@ void refill_memory_reserve ();
 /* A unique object in pure space used to make some Lisp objects
    on free lists recognizable in O(1).  */
 
-Lisp_Object Vdead;
+static Lisp_Object Vdead;
 
 #ifdef GC_MALLOC_CHECK
 
 enum mem_type allocated_mem_type;
-int dont_register_blocks;
+static int dont_register_blocks;
 
 #endif /* GC_MALLOC_CHECK */
 
@@ -503,11 +503,11 @@ struct gcpro *gcprolist;
    value; otherwise some compilers put it into BSS.  */
 
 #define NSTATICS 1280
-Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
+static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */
 
-int staticidx = 0;
+static int staticidx = 0;
 
 static POINTER_TYPE *pure_alloc P_ ((size_t, int));
 
@@ -1417,7 +1417,7 @@ struct interval_block
 /* Current interval block.  Its `next' pointer points to older
    blocks.  */
 
-struct interval_block *interval_block;
+static struct interval_block *interval_block;
 
 /* Index in interval_block above of the next unused interval
    structure.  */
@@ -1434,7 +1434,7 @@ INTERVAL interval_free_list;
 
 /* Total number of interval blocks now in use.  */
 
-int n_interval_blocks;
+static int n_interval_blocks;
 
 
 /* Initialize interval allocation.  */
@@ -1756,7 +1756,7 @@ static char string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
 
 /* Initialize string allocation.  Called from init_alloc_once.  */
 
-void
+static void
 init_strings ()
 {
   total_strings = total_free_strings = total_string_size = 0;
@@ -1773,8 +1773,8 @@ init_strings ()
 
 static int check_string_bytes_count;
 
-void check_string_bytes P_ ((int));
-void check_sblock P_ ((struct sblock *));
+static void check_string_bytes P_ ((int));
+static void check_sblock P_ ((struct sblock *));
 
 #define CHECK_STRING_BYTES(S)	STRING_BYTES (S)
 
@@ -1795,7 +1795,7 @@ string_bytes (s)
 
 /* Check validity of Lisp strings' string_bytes member in B.  */
 
-void
+static void
 check_sblock (b)
      struct sblock *b;
 {
@@ -1829,7 +1829,7 @@ check_sblock (b)
    non-zero means check all strings, otherwise check only most
    recently allocated strings.  Used for hunting a bug.  */
 
-void
+static void
 check_string_bytes (all_p)
      int all_p;
 {
@@ -2582,7 +2582,7 @@ struct Lisp_Float *float_free_list;
 
 /* Initialize float allocation.  */
 
-void
+static void
 init_float ()
 {
   float_block = NULL;
@@ -2594,7 +2594,7 @@ init_float ()
 
 /* Explicitly free a float cell by putting it on the free-list.  */
 
-void
+static void
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
@@ -2701,12 +2701,12 @@ struct Lisp_Cons *cons_free_list;
 
 /* Total number of cons blocks now in use.  */
 
-int n_cons_blocks;
+static int n_cons_blocks;
 
 
 /* Initialize cons allocation.  */
 
-void
+static void
 init_cons ()
 {
   cons_block = NULL;
@@ -2903,11 +2903,11 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 /* Singly-linked list of all vectors.  */
 
-struct Lisp_Vector *all_vectors;
+static struct Lisp_Vector *all_vectors;
 
 /* Total number of vector-like objects now in use.  */
 
-int n_vectors;
+static int n_vectors;
 
 
 /* Value is a pointer to a newly allocated Lisp_Vector structure
@@ -3262,21 +3262,21 @@ struct symbol_block
 /* Current symbol block and index of first unused Lisp_Symbol
    structure in it.  */
 
-struct symbol_block *symbol_block;
-int symbol_block_index;
+static struct symbol_block *symbol_block;
+static int symbol_block_index;
 
 /* List of free symbols.  */
 
-struct Lisp_Symbol *symbol_free_list;
+static struct Lisp_Symbol *symbol_free_list;
 
 /* Total number of symbol blocks now in use.  */
 
-int n_symbol_blocks;
+static int n_symbol_blocks;
 
 
 /* Initialize symbol allocation.  */
 
-void
+static void
 init_symbol ()
 {
   symbol_block = NULL;
@@ -3359,16 +3359,16 @@ struct marker_block
   struct marker_block *next;
 };
 
-struct marker_block *marker_block;
-int marker_block_index;
+static struct marker_block *marker_block;
+static int marker_block_index;
 
-union Lisp_Misc *marker_free_list;
+static union Lisp_Misc *marker_free_list;
 
 /* Total number of marker blocks now in use.  */
 
-int n_marker_blocks;
+static int n_marker_blocks;
 
-void
+static void
 init_marker ()
 {
   marker_block = NULL;
@@ -4665,7 +4665,7 @@ mark_stack ()
 
 
 /* Determine whether it is safe to access memory at address P.  */
-int
+static int
 valid_pointer_p (p)
      void *p;
 {
@@ -4961,7 +4961,7 @@ pure_cons (car, cdr)
 
 /* Value is a float object with value NUM allocated from pure space.  */
 
-Lisp_Object
+static Lisp_Object
 make_pure_float (num)
      double num;
 {
@@ -5486,14 +5486,14 @@ mark_image_cache (f)
    all the references contained in it.  */
 
 #define LAST_MARKED_SIZE 500
-Lisp_Object last_marked[LAST_MARKED_SIZE];
+static Lisp_Object last_marked[LAST_MARKED_SIZE];
 int last_marked_index;
 
 /* For debugging--call abort when we cdr down this many
    links of a list, in mark_object.  In debugging,
    the call to abort will hit a breakpoint.
    Normally this is zero and the check never goes off.  */
-int mark_object_loop_halt;
+static int mark_object_loop_halt;
 
 /* Return non-zero if the object was not yet marked.  */
 static int
@@ -5508,7 +5508,7 @@ mark_vectorlike (ptr)
   VECTOR_MARK (ptr);		/* Else mark it */
   if (size & PSEUDOVECTOR_FLAG)
     size &= PSEUDOVECTOR_SIZE_MASK;
-  
+
   /* Note that this size is not the memory-footprint size, but only
      the number of Lisp_Object fields that we should trace.
      The distinction is used e.g. by Lisp_Process which places extra
@@ -6356,6 +6356,7 @@ Frames, windows, buffers, and subprocesses count as vectors
 }
 
 int suppress_checking;
+
 void
 die (msg, file, line)
      const char *msg;

@@ -2465,8 +2465,8 @@ uid and gid of FILE to NEWNAME.  */)
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qcopy_file);
   if (!NILP (handler))
-    RETURN_UNGCPRO (call5 (handler, Qcopy_file, file, newname,
-			   ok_if_already_exists, keep_time));
+    RETURN_UNGCPRO (call6 (handler, Qcopy_file, file, newname,
+			   ok_if_already_exists, keep_time, preserve_uid_gid));
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
@@ -4738,8 +4738,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	  int opoint_byte = PT_BYTE;
 	  int oinserted = ZV - BEGV;
 	  int ochars_modiff = CHARS_MODIFF;
-	  
-	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE); 
+
+	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
 	  insval = call3 (Qformat_decode,
 			  Qnil, make_number (oinserted), visit);
 	  CHECK_NUMBER (insval);
@@ -4775,7 +4775,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	      int opoint_byte = PT_BYTE;
 	      int oinserted = ZV - BEGV;
 	      int ochars_modiff = CHARS_MODIFF;
-	      
+
 	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
 	      insval = call1 (XCAR (p), make_number (oinserted));
 	      if (!NILP (insval))

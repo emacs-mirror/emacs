@@ -4716,11 +4716,13 @@ timer_check (do_it_now)
 }
 
 DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
-       doc: /* Return the current length of Emacs idleness.
-The value is returned as a list of three integers.  The first has the
+       doc: /* Return the current length of Emacs idleness, or nil.
+The value when Emacs is idle is a list of three integers.  The first has the
 most significant 16 bits of the seconds, while the second has the
 least significant 16 bits.  The third integer gives the microsecond
 count.
+
+The value when Emacs is not idle is nil.
 
 The microsecond count is zero on systems that do not provide
 resolution finer than a second.  */)
@@ -9186,7 +9188,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   from_string = Qnil;
 
   /* The multi-tty merge moved the code below to right after
-   `replay_sequence' which caused alll these translation maps to be applied
+   `replay_sequence' which caused all these translation maps to be applied
    repeatedly, even tho their doc says very clearly they are not applied to
    their own output.
    The reason for this move was: "We may switch keyboards between rescans,
@@ -11489,6 +11491,7 @@ init_kboard (kb)
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
   kb->system_key_syms = Qnil;
+  kb->Vwindow_system = Qt;	/* Unset.  */
   kb->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
   kb->Vlocal_function_key_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (kb->Vlocal_function_key_map, Vfunction_key_map);
@@ -11571,6 +11574,7 @@ init_keyboard ()
 #endif
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
+  /* Leave Vwindow_system at its `t' default for now.  */
 
   if (!noninteractive)
     {
@@ -12466,6 +12470,7 @@ mark_kboards ()
       mark_object (kb->Vlast_kbd_macro);
       mark_object (kb->Vsystem_key_alist);
       mark_object (kb->system_key_syms);
+      mark_object (kb->Vwindow_system);
       mark_object (kb->Vinput_decode_map);
       mark_object (kb->Vlocal_function_key_map);
       mark_object (kb->Vdefault_minibuffer_frame);

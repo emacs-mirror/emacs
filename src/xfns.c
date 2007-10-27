@@ -3472,8 +3472,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       f->param_alist = Fcons (XCAR (tem), f->param_alist);
 
-  store_frame_param (f, Qwindow_system, Qx);
-
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
@@ -4978,8 +4976,6 @@ x_create_tip_frame (dpyinfo, parms, text)
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
 					      Qnil));
   }
-
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qx), Qnil));
 
   f->no_split = 1;
 

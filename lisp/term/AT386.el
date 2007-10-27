@@ -31,7 +31,7 @@
 
 (defun terminal-init-AT386 ()
   "Terminal initialization function for AT386."
-  (let ((AT386-keypad-map (lookup-key local-function-key-map "\e[")))
+  (let ((AT386-keypad-map (lookup-key input-decode-map "\e[")))
     ;; The terminal initialization should already have set up some keys
     (if (not (keymapp AT386-keypad-map))
 	(error "What?  Your AT386 termcap/terminfo has no keycaps in it"))
@@ -55,8 +55,9 @@
     (define-key AT386-keypad-map "T" [kp-add])
 
     ;; Arrange for the ALT key to be equivalent to ESC
-    (define-key local-function-key-map "\eN" [27]) ; ALT map
+    (define-key input-decode-map "\eN" [ALT])
+    (define-key local-function-key-map [ALT] [27])
     ))
 
-;;; arch-tag: abec1b03-582f-49f8-b8cb-e2fd52ea4bd7
+;; arch-tag: abec1b03-582f-49f8-b8cb-e2fd52ea4bd7
 ;;; AT386.el ends here

@@ -84,7 +84,9 @@ set noopt=N
 set nocygwin=N
 set COMPILER=
 set usercflags=
+set docflags=
 set userldflags=
+set doldflags=
 set sep1=
 set sep2=
 
@@ -473,16 +475,20 @@ if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
 if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
-if not "(%usercflags%)" == "()" echo USER_CFLAGS=%usercflags%>>config.settings
-if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags%>>config.settings
+rem We go thru docflags because usercflags could be "-DFOO=bar" -something
+rem and the if command cannot cope with this
+for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
+if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
+for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
+if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
 copy config.nt config.tmp
 echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
-if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>config.tmp
-if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>config.tmp
+if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
+if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
@@ -596,7 +602,9 @@ set nocygwin=
 set COMPILER=
 set MAKECMD=
 set usercflags=
+set docflags=
 set userldflags=
+set doldflags=
 set mingwflag=
 set mf=
 

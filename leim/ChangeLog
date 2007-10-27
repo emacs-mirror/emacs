@@ -1,3 +1,12 @@
+2007-10-20  Edward O'Connor <hober0@gmail.com>  (tiny change)
+
+	* quail/latin-ltx.el ("\\qed"): Add this rule.
+
+2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* quail/indian.el (quail-indian-update-preceding-char):
+	Don't mark the variable as frame-local; it wasn't used as such.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
@@ -15,7 +24,7 @@
 2007-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* CXTERM-DIC/CCDOSPY.tit, CXTERM-DIC/PY-b5.tit, CXTERM-DIC/SW.tit,
-	CXTERM-DIC/TONEPY.tit: Add copyright and license notices.
+	* CXTERM-DIC/TONEPY.tit: Add copyright and license notices.
 
 	* MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin: Add copyright and
 	license notices.
@@ -27,8 +36,8 @@
 	* CXTERM-DIC/README: New file.
 
 	* CXTERM-DIC/4Corner.tit, CXTERM-DIC/CCDOSPY.tit,
-	CXTERM-DIC/PY-b5.tit, CXTERM-DIC/QJ-b5.tit, CXTERM-DIC/QJ.tit,
-	CXTERM-DIC/SW.tit, CXTERM-DIC/TONEPY.tit: Updated from
+	* CXTERM-DIC/PY-b5.tit, CXTERM-DIC/QJ-b5.tit, CXTERM-DIC/QJ.tit,
+	* CXTERM-DIC/SW.tit, CXTERM-DIC/TONEPY.tit: Updated from
 	X11R6/contrib/programs/cxterm.
 
 	* ja-dic/ja-dic.el: Regenerated.

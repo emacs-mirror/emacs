@@ -1715,7 +1715,7 @@ Used by `calculator-paste' and `get-register'."
         (use-global-map calculator-saved-global-map))
       (if (or (not calculator-electric-mode)
               ;; XEmacs has a problem with electric-describe-mode
-              (string-match "XEmacs" (emacs-version)))
+              (featurep 'xemacs))
         (describe-mode)
         (electric-describe-mode))
       (if calculator-electric-mode

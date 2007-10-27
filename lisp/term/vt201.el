@@ -5,7 +5,8 @@
   "Terminal initialization function for vt201."
   (tty-run-terminal-initialization (selected-frame) "vt100")
   ;; Make F11 an escape key.
-  (define-key local-function-key-map "\e[23~" [?\e]))
+  (define-key input-decode-map "\e[23~" [f11]) ;Probably redundant.
+  (define-key local-function-key-map [f11] [?\e]))
 
-;;; arch-tag: a6abb38f-60ea-449e-a9e9-3fb8572c52ae
+;; arch-tag: a6abb38f-60ea-449e-a9e9-3fb8572c52ae
 ;;; vt201.el ends here

@@ -1852,7 +1852,6 @@ of current line."
 	(while (or (null length-limit)
 		   (null (cdr accum))
 		   (< length length-limit))
-	  (setq start nil)
 	  (let ((started-from (point)))
 	    (python-beginning-of-block)
 	    (end-of-line)

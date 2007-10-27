@@ -1078,7 +1078,7 @@ This function could be in the list `eshell-output-filter-functions'."
 
 (defun eshell-handle-ansi-color ()
   "Handle ANSI color codes."
-  (require 'ansi-color)
+  (eval-and-compile (require 'ansi-color))
   (ansi-color-apply-on-region eshell-last-output-start
                               eshell-last-output-end))
 

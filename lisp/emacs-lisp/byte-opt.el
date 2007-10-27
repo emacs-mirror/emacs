@@ -1149,7 +1149,7 @@
 (defun byte-optimize-featurep (form)
   ;; Emacs-21's byte-code doesn't run under XEmacs or SXEmacs anyway, so we
   ;; can safely optimize away this test.
-  (if (member (cdr-safe form) '((quote xemacs) (quote sxemacs)))
+  (if (member (cdr-safe form) '(((quote xemacs)) ((quote sxemacs))))
       nil
     form))
 

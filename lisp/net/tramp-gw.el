@@ -284,12 +284,11 @@ PROXY is an indication whether we need a Proxy-Authorization header
 or an Authorization header.  If PW-CACHE is non-nil, check for
 password in password cache.  This is done for the first try only."
 
-  ;; `tramp-current-*' must be set for `tramp-read-passwd' and
-  ;; `tramp-clear-passwd'.
+  ;; `tramp-current-*' must be set for `tramp-read-passwd'.
   (let ((tramp-current-method (tramp-file-name-method tramp-gw-gw-vector))
 	(tramp-current-user (tramp-file-name-user tramp-gw-gw-vector))
 	(tramp-current-host (tramp-file-name-host tramp-gw-gw-vector)))
-    (unless pw-cache (tramp-clear-passwd))
+    (unless pw-cache (tramp-clear-passwd tramp-gw-gw-vector))
     ;; We are already in the right buffer.
     (tramp-message
      tramp-gw-vector 5 "%s required"

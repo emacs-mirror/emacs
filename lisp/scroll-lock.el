@@ -88,7 +88,7 @@ during scrolling."
   (or arg (setq arg 1))
   (scroll-lock-update-goal-column)
   (if (pos-visible-in-window-p (point-max))
-      (next-line arg)
+      (forward-line arg)
     (scroll-up arg))
   (scroll-lock-move-to-column scroll-lock-temporary-goal-column))
 
@@ -99,7 +99,7 @@ during scrolling."
   (scroll-lock-update-goal-column)
   (condition-case nil
       (scroll-down arg)
-    (beginning-of-buffer (previous-line arg)))
+    (beginning-of-buffer (forward-line (- arg))))
   (scroll-lock-move-to-column scroll-lock-temporary-goal-column))
 
 (defun scroll-lock-forward-paragraph (&optional arg)

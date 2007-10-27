@@ -4035,6 +4035,9 @@ comment at the start of cc-engine.el for more info."
 	      c-found-types)
     (sort type-list 'string-lessp)))
 
+;; Shut up the byte compiler.
+(defvar c-maybe-stale-found-type)
+
 (defun c-trim-found-types (beg end old-len)
   ;; An after change function which, in conjunction with the info in
   ;; c-maybe-stale-found-type (set in c-before-change), removes a type

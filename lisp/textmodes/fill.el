@@ -344,7 +344,7 @@ be tested.  If it returns t, fill commands do not break the line there."
 Can be customized with the variables `fill-nobreak-predicate'
 and `fill-nobreak-invisible'."
   (or
-   (and fill-nobreak-invisible (line-move-invisible-p (point)))
+   (and fill-nobreak-invisible (invisible-p (point)))
    (unless (bolp)
     (or
      ;; Don't break after a period followed by just one space.
@@ -775,7 +775,7 @@ in the active region."
    ;; 1. Fill the region if it is active when called interactively.
    (and region transient-mark-mode mark-active
 	(not (eq (region-beginning) (region-end)))
-	(fill-region (region-beginning) (region-end) justify))
+	(or (fill-region (region-beginning) (region-end) justify) t))
    ;; 2. Try fill-paragraph-function.
    (and (not (eq fill-paragraph-function t))
 	(or fill-paragraph-function

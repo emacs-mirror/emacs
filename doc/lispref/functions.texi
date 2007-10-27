@@ -1394,6 +1394,9 @@ See @ref{Autoload}.
 @item call-interactively
 See @ref{Interactive Call}.
 
+@item called-interactively-p
+See @ref{Distinguish Interactive}.
+
 @item commandp
 See @ref{Interactive Call}.
 
@@ -1419,7 +1422,7 @@ See @ref{Function Indirection}.
 See @ref{Using Interactive}.
 
 @item interactive-p
-See @ref{Interactive Call}.
+See @ref{Distinguish Interactive}.
 
 @item mapatoms
 See @ref{Creating Symbols}.

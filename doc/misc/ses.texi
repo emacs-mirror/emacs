@@ -115,10 +115,14 @@ To report bugs, send email to @email{jyavner@@member.fsf.org}.
 @findex set-mark-command
 @findex keyboard-quit
 
+To create a new spreadsheet, visit a nonexistent file whose name ends
+  with ".ses".  For example, @kbd{C-x C-f test.ses RET}.
+
+
 A @dfn{cell identifier} is a symbol with a column letter and a row
 number.  Cell B7 is the 2nd column of the 7th row.  For very wide
 spreadsheets, there are two column letters: cell AB7 is the 28th
-column of the 7th row.
+column of the 7th row. Super wide spreadsheets get AAA1, etc.
 
 @table @kbd
 @item j
@@ -658,21 +662,26 @@ SES could get confused by printer results that contain newlines or
 tabs, so these are replaced with question marks.
 
 @table @kbd
-@item C-c C-t
+@item t
 Confine a cell to its own column (@code{ses-truncate-cell}).  This
 allows you to move point to a rightward cell that would otherwise be
 covered by a spill-over.  If you don't change the rightward cell, the
 confined cell will spill over again the next time it is reprinted.
 
-@item C-c C-c
-When applied to a single cell, this command displays in the echo area any
-formula error or printer error that occurred during
-recalculation/reprinting (@code{ses-recalculate-cell}).
+@item c
+When applied to a single cell, this command displays in the echo area
+any formula error or printer error that occurred during
+recalculation/reprinting (@code{ses-recalculate-cell}).  You can use
+this to undo the effect of @kbd{t}.
 @end table
 
-When a printer function signals an error, the default printer
+When a printer function signals an error, the fallback printer
 @samp{"%s"} is substituted.  This is useful when your column printer
-is numeric-only and you use a string as a cell value.
+is numeric-only and you use a string as a cell value.  Note that the
+standard default printer is ``%.7g'' which is numeric-only, so cells
+that are empty of contain strings will use the fallback printer.
+@kbd{c} on such cells will display ``Format specifier doesn't match
+argument type''.
 
 
 @node Import and export, Virus protection, More on cell printing, Advanced Features
@@ -871,12 +880,12 @@ You can add additional local variables to the list at the bottom of
 the data area, such as hidden constants you want to refer to in your
 formulas.
 
-You can override the variable @code{symbolic-formulas} to be a list of
+You can override the variable @code{ses--symbolic-formulas} to be a list of
 symbols (as parenthesized strings) to show as completions for the '
 command.  This initial completions list is used instead of the actual
 set of symbols-as-formulas in the spreadsheet.
 
-For examples of these, see file @file{etc/ses-example.ses}.
+For an example of this, see file @file{etc/ses-example.ses}.
 
 If (for some reason) you want your formulas or printers to save data
 into variables, you must declare these variables as buffer-locals in

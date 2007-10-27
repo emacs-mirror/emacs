@@ -736,7 +736,7 @@ Leave Buffer Selection Menu."
 (defun bs-select ()
   "Select current line's buffer and other marked buffers.
 If there are no marked buffers the window configuration before starting
-Buffer Selectin Menu will be restored.
+Buffer Selection Menu will be restored.
 If there are marked buffers each marked buffer and the current line's buffer
 will be selected in a window.
 Leave Buffer Selection Menu."
@@ -760,7 +760,7 @@ Leave Buffer Selection Menu."
 
 (defun bs-select-other-window ()
   "Select current line's buffer by `switch-to-buffer-other-window'.
-The window configuration before starting Buffer Selectin Menu will be restored
+The window configuration before starting Buffer Selection Menu will be restored
 unless there is no other window.  In this case a new window will be created.
 Leave Buffer Selection Menu."
   (interactive)

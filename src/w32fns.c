@@ -27,6 +27,7 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <limits.h>
 #include <errno.h>
+#include <math.h>
 
 #include "lisp.h"
 #include "charset.h"
@@ -4454,8 +4455,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       f->param_alist = Fcons (XCAR (tem), f->param_alist);
 
-  store_frame_param (f, Qwindow_system, Qw32);
-  
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
@@ -7438,8 +7437,6 @@ x_create_tip_frame (dpyinfo, parms, text)
 					      Qnil));
   }
 
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qw32), Qnil));
-
   f->no_split = 1;
 
   UNGCPRO;
@@ -9099,8 +9096,6 @@ void globals_of_w32fns ()
 }
 
 #undef abort
-
-void w32_abort (void) NO_RETURN;
 
 void
 w32_abort()

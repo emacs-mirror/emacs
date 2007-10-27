@@ -1908,7 +1908,7 @@ This function returns a symbol naming the primitive type of
 @cindex equality
 
   Here we describe two functions that test for equality between any two
-objects.  Other functions test equality between objects of specific
+objects.  Other functions test equality of contents between objects of specific
 types, e.g., strings.  For these predicates, see the appropriate chapter
 describing the data type.
 
@@ -1939,6 +1939,13 @@ by the same change in the contents of the other.
 @group
 (eq "asdf" "asdf")
      @result{} nil
+@end group
+
+@group
+(eq "" "")
+     @result{} t
+;; @r{This exception occurs because Emacs Lisp}
+;; @r{makes just one multibyte empty string, to save space.}
 @end group
 
 @group

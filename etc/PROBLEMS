@@ -2200,12 +2200,9 @@ month names with consistent widths for some locales on some versions
 of Windows. This is caused by a deficiency in the underlying system
 library function.
 
-The functions set-time-zone-rule, and display-time-world (which uses it)
-do not work on Windows. Fixing this is difficult, since Windows uses
-localtime for the system clock, and any attempt to change the timezone
-would have to be accompanied by a clock change for the results to remain
-consistent. The way in which these functions are used is not intended to
-cause such system-wide disruption.
+The function set-time-zone-rule gives incorrect results for many
+non-US timezones.  This is due to over-simplistic handling of
+daylight savings switchovers by the Windows libraries.
 
 Files larger than 4GB cause overflow in the size (represented as a
 32-bit integer) reported by `file-attributes'.  This affects Dired as

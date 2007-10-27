@@ -273,6 +273,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 ;; we use picture-mode functions
 (require 'picture)
 
@@ -2378,6 +2379,7 @@ If FILE is nil, try to load a default file.  The default file names are
 	   (tpu-error (message "Sorry, couldn't copy - %s." (cdr conditions)))))
     (kill-buffer "*TPU-Notice*")))
 
+(defvar tpu-edt-old-global-values nil)
 
 ;;;
 ;;;  Start and Stop TPU-edt
@@ -2386,6 +2388,8 @@ If FILE is nil, try to load a default file.  The default file names are
 (defun tpu-edt-on ()
   "Turn on TPU/edt emulation."
   (interactive)
+  ;; To clean things up (and avoid cycles in the global map).
+  (tpu-edt-off)
   ;; First, activate tpu-global-map, while protecting the original keymap.
   (set-keymap-parent tpu-global-map global-map)
   (setq global-map tpu-global-map)
@@ -2396,9 +2400,12 @@ If FILE is nil, try to load a default file.  The default file names are
   (tpu-set-mode-line t)
   (tpu-advance-direction)
   ;; set page delimiter, display line truncation, and scrolling like TPU
-  (setq-default page-delimiter "\f")
-  (setq-default truncate-lines t)
-  (setq scroll-step 1)
+  (dolist (varval '((page-delimiter . "\f")
+                    (truncate-lines . t)
+                    (scroll-step . 1)))
+    (push (cons (car varval) (default-value (car varval)))
+          tpu-edt-old-global-values)
+    (set-default (car varval) (cdr varval)))
   (tpu-set-control-keys)
   (and window-system (tpu-load-xkeys nil))
   (tpu-arrow-history)
@@ -2415,9 +2422,9 @@ If FILE is nil, try to load a default file.  The default file names are
   (tpu-reset-control-keys nil)
   (remove-hook 'post-command-hook 'tpu-search-highlight)
   (tpu-set-mode-line nil)
-  (setq-default page-delimiter "^\f")
-  (setq-default truncate-lines nil)
-  (setq scroll-step 0)
+  (while tpu-edt-old-global-values
+    (let ((varval (pop tpu-edt-old-global-values)))
+      (set-default (car varval) (cdr varval))))
   ;; Remove tpu-global-map from the global map.
   (let ((map global-map))
     (while map
@@ -2425,7 +2432,7 @@ If FILE is nil, try to load a default file.  The default file names are
         (if (eq tpu-global-map parent)
             (set-keymap-parent map (keymap-parent parent))
           (setq map parent)))))
-  (ad-disable-regexp "\\`tpu-")
+  (ignore-errors (ad-disable-regexp "\\`tpu-"))
   (setq tpu-edt-mode nil))
 
 

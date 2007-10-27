@@ -1317,6 +1317,8 @@ IDL assistant.")
 (defvar idlwave-help-assistant-help-with-topic-history nil
   "The history of help topics selected with the minibuffer.")
 
+(defvar idlwave-system-routines)
+
 (defun idlwave-help-assistant-help-with-topic (&optional topic)
   "Prompt for and provide help with TOPIC."
   (interactive)

@@ -633,9 +633,16 @@ column specified by the function `current-left-margin'."
     (newline)
     (save-excursion
       (goto-char pos)
-      ;; Usually indent-according-to-mode should "preserve" point, but it is
-      ;; not guaranteed; e.g. indent-to-left-margin doesn't.
-      (save-excursion (indent-according-to-mode))
+      ;; We are at EOL before the call to indent-according-to-mode, and
+      ;; after it we usually are as well, but not always.  We tried to
+      ;; address it with `save-excursion' but that uses a normal marker
+      ;; whereas we need `move after insertion', so we do the save/restore
+      ;; by hand.
+      (setq pos (copy-marker pos t))
+      (indent-according-to-mode)
+      (goto-char pos)
+      ;; Remove the trailing white-space after indentation because
+      ;; indentation may introduce the whitespace.
       (delete-horizontal-space t))
     (indent-according-to-mode)))
 
@@ -1295,7 +1302,11 @@ makes the search case-sensitive."
   "Puts element of the minibuffer history in the minibuffer.
 The argument NABS specifies the absolute history position."
   (interactive "p")
-  (let ((minimum (if minibuffer-default -1 0))
+  (let ((minimum (if minibuffer-default
+		     (- (if (listp minibuffer-default)
+			    (length minibuffer-default)
+			  1))
+		   0))
 	elt minibuffer-returned-to-present)
     (if (and (zerop minibuffer-history-position)
 	     (null minibuffer-text-before-history))
@@ -1317,8 +1328,10 @@ The argument NABS specifies the absolute history position."
     (goto-char (point-max))
     (delete-minibuffer-contents)
     (setq minibuffer-history-position nabs)
-    (cond ((= nabs -1)
-	   (setq elt minibuffer-default))
+    (cond ((< nabs 0)
+	   (setq elt (if (listp minibuffer-default)
+			 (nth (1- (abs nabs)) minibuffer-default)
+		       minibuffer-default)))
 	  ((= nabs 0)
 	   (setq elt (or minibuffer-text-before-history ""))
 	   (setq minibuffer-returned-to-present t)

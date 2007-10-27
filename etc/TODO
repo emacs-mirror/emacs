@@ -329,9 +329,6 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   Check the assignments file for other packages which might go in and
   have been missed.
 
-** Install ruby-mode (needs assignment)?
-   http://lists.gnu.org/archive/html/emacs-devel/2007-06/msg00051.html
-
 ** Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
   multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
@@ -553,13 +550,6 @@ but which can also be used as a modifier).
    The idea is to add an "X" of some kind, that when clicked deletes
    the window associated with that modeline.
    http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02416.html
-
-** When running isearch in a ChangeLog file, if the search fails,
-   then after another C-s try searching the previous ChangeLog, if
-   there is one. (e.g. go from ChangeLog to ChangeLog.12).
-   http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02237.html
-   Juri Linkov has a patch for this:
-   http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00265.html
 
 * Internal changes
 

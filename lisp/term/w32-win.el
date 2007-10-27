@@ -79,12 +79,14 @@
 (require 'menu-bar)
 (require 'dnd)
 (require 'code-pages)
+(require 'w32-vars)
 
 ;; Keep an obsolete alias for w32-focus-frame in case it is used by code
 ;; outside Emacs.
 (define-obsolete-function-alias 'w32-focus-frame 'x-focus-frame "23.1")
 
 (defvar xlfd-regexp-registry-subnum)
+(defvar w32-color-map) ;; defined in w32fns.c
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
