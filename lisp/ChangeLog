@@ -160,6 +160,23 @@
 
 	* startup.el (window-system): Remove.  Don't make it frame-local.
 
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* savehist.el (savehist-save): Omit unreadable elements.
+
+	* loadhist.el (unload-function-defs-list): Renamed from
+	unload-function-features-list.
+	(unload-feature-special-hooks, unload-feature): Doc fixes.
+
+	* indent.el (indent-to-left-margin): If point's in the indentation,
+	move to the end of the indentation.
+
+	* cus-edit.el (customize-changed-options): Make arg optional.
+
+2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-select, bs-select-other-window): Fix typos in docstrings.
+
 2007-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/org-publish.el (org-publish-attachment): Re-install
@@ -205,6 +222,19 @@
 
 	* simple.el (reindent-then-newline-and-indent): Use a `move after
 	insert' kind of marker in the save-excursion.
+
+2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/css-mode.el: Require CL.
+	(comment-continue): Declare.
+
+	* subr.el (make-variable-frame-localizable): Remove.
+	(make-variable-frame-local): Mark obsolete.
+
+2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-uptodate-p): Don't signal an error if one
+	of the subdirs is unreadable.
 
 2007-10-23  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -269,6 +299,20 @@
 
 	* printing.el: Move variable definitions before use.
 	(pr-menu-char-width, pr-menu-char-height): Pacify byte compiler.
+
+2007-10-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/tpu-edt.el (tpu-edt-old-global-values): New var.
+	(tpu-edt-off): Use it.
+	(tpu-edt-on): Set it.  Make sure the tpu-global-map is not already on
+	the global-map before adding it to global-map.
+
+	* menu-bar.el (global-buffers-menu-map): New var.
+	(global-map, menu-bar-update-buffers): Use it.
+	* msb.el (msb-menu-bar-update-buffers): Use it.
+	(msb-sort-by-directory, msb--choose-menu, msb--mode-menu-cond)
+	(msb--most-recently-used-menu, msb--create-buffer-menu-2):
+	Use with-current-buffer.
 
 2007-10-22  Juri Linkov  <juri@jurta.org>
 
@@ -457,6 +501,10 @@
 	* dired-x.el (dired-guess-shell-command): Put all guesses to the
 	minibuffer default value list instead of pushing them temporarily
 	to the history list.
+
+2007-10-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* hexl.el (hexl-menu): New major mode menu.
 
 2007-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2727,7 +2775,7 @@
 
 2007-09-16  Drew Adams  <drew.adams@oracle.com>
 
-	* cus-edit (custom-face-edit-activate): Doc fix.
+	* cus-edit.el (custom-face-edit-activate): Doc fix.
 
 2007-09-16  Glenn Morris  <rgm@gnu.org>
 

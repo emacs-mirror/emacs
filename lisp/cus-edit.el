@@ -1142,7 +1142,7 @@ the official name of the package, such as MH-E or Gnus.")
 (defalias 'customize-changed 'customize-changed-options)
 
 ;;;###autoload
-(defun customize-changed-options (since-version)
+(defun customize-changed-options (&optional since-version)
   "Customize all settings whose meanings have changed in Emacs itself.
 This includes new user option variables and faces, and new
 customization groups, as well as older options and faces whose meanings

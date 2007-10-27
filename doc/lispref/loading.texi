@@ -862,24 +862,27 @@ library with @code{defun}, @code{defalias}, @code{defsubst},
 It then restores any autoloads formerly associated with those symbols.
 (Loading saves these in the @code{autoload} property of the symbol.)
 
-@vindex unload-feature-special-hooks
 Before restoring the previous definitions, @code{unload-feature} runs
 @code{remove-hook} to remove functions in the library from certain
 hooks.  These hooks include variables whose names end in @samp{hook}
 or @samp{-hooks}, plus those listed in
-@code{unload-feature-special-hooks}.  This is to prevent Emacs from
-ceasing to function because important hooks refer to functions that
-are no longer defined.
+@code{unload-feature-special-hooks}, as well as
+@code{auto-mode-alist}.  This is to prevent Emacs from ceasing to
+function because important hooks refer to functions that are no longer
+defined.
 
-@vindex @var{feature}-unload-hook
+Standard unloading activities also undoes ELP profiling of functions
+in that library, unprovides any features provided by the library, and
+cancels timers held in variables defined by the library.
+
+@vindex @var{feature}-unload-function
 If these measures are not sufficient to prevent malfunction, a library
-can define an explicit unload hook.  If @code{@var{feature}-unload-hook}
-is defined, it is run as a normal hook before restoring the previous
-definitions, @emph{instead of} the usual hook-removing actions.  The
-unload hook ought to undo all the global state changes made by the
-library that might cease to work once the library is unloaded.
-@code{unload-feature} can cause problems with libraries that fail to do
-this, so it should be used with caution.
+can define an explicit unloader named @code{@var{feature}-unload-function}.
+If that symbol is defined as a function, @code{unload-feature} calls
+it with no arguments before doing anything else.  It can do whatever
+is appropriate to unload the library.  If it returns @code{nil},
+@code{unload-feature} proceeds to take the normal unload actions.
+Otherwise it considers the job to be done.
 
 Ordinarily, @code{unload-feature} refuses to unload a library on which
 other loaded libraries depend.  (A library @var{a} depends on library

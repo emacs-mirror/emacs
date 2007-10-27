@@ -8,6 +8,11 @@
 	(set_local_socket, set_socket, main): Use egetenv, not getenv.
 	(w32_get_resource, w32_getenv) [WINDOWSNT]: New functions.
 
+2007-10-25  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c (sock_err_message): New function.
+	(set_tcp_socket): Use it.
+
 2007-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (print_help_and_exit): Fix space to improve

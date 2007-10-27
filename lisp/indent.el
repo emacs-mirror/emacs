@@ -191,7 +191,12 @@ interactively or with optional argument FORCE, it will be fixed."
 ;; used in Fundamental Mode, Text Mode, etc.
 (defun indent-to-left-margin ()
   "Indent current line to the column given by `current-left-margin'."
-  (indent-line-to (current-left-margin)))
+  (save-excursion (indent-line-to (current-left-margin)))
+  ;; If we are within the indentation, move past it.
+  (when (save-excursion
+	  (skip-chars-backward " \t")
+	  (bolp))
+    (skip-chars-forward " \t")))
 
 (defun delete-to-left-margin (&optional from to)
   "Remove left margin indentation from a region.

@@ -675,21 +675,30 @@ DEFUN ("with-output-to-temp-buffer",
        Fwith_output_to_temp_buffer, Swith_output_to_temp_buffer,
        1, UNEVALLED, 0,
        doc: /* Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
-The buffer is cleared out initially, and marked as unmodified when done.
-All output done by BODY is inserted in that buffer by default.
-The buffer is displayed in another window, but not selected.
-The value of the last form in BODY is returned.
-If BODY does not finish normally, the buffer BUFNAME is not displayed.
 
-The hook `temp-buffer-setup-hook' is run before BODY,
-with the buffer BUFNAME temporarily current.
-The hook `temp-buffer-show-hook' is run after the buffer is displayed,
-with the buffer temporarily current, and the window that was used
-to display it temporarily selected.
+This construct makes buffer BUFNAME empty before running BODY.
+It does not make the buffer current for BODY.
+Instead it binds `standard-output' to that buffer, so that output
+generated with `prin1' and similar functions in BODY goes into
+the buffer.
 
-If variable `temp-buffer-show-function' is non-nil, call it at the end
-to get the buffer displayed instead of just displaying the non-selected
-buffer and calling the hook.  It gets one argument, the buffer to display.
+At the end of BODY, this marks buffer BUFNAME unmodifed and displays
+it in a window, but does not select it.  The normal way to do this is
+by calling `display-buffer', then running `temp-buffer-show-hook'.
+However, if `temp-buffer-show-function' is non-nil, it calls that
+function instead (and does not run `temp-buffer-show-hook').  The
+function gets one argument, the buffer to display.
+
+The return value of `with-output-to-temp-buffer' is the value of the
+last form in BODY.  If BODY does not finish normally, the buffer
+BUFNAME is not displayed.
+
+This runs the hook `temp-buffer-setup-hook' before BODY,
+with the buffer BUFNAME temporarily current.  It runs the hook
+`temp-buffer-show-hook' after displaying buffer BUFNAME, with that
+buffer temporarily current, and the window that was used to display it
+temporarily selected.  But it doesn't run `temp-buffer-show-hook'
+if it uses `temp-buffer-show-function'.
 
 usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
      (args)

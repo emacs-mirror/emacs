@@ -454,10 +454,10 @@ An item looks like (NAME . BUFFER)."
 (defun msb-sort-by-directory (item1 item2)
   "Sort the items ITEM1 and ITEM2 by directory name.  Made for dired.
 An item look like (NAME . BUFFER)."
-  (string-lessp (save-excursion (set-buffer (cdr item1))
-				(msb--dired-directory))
-		(save-excursion (set-buffer (cdr item2))
-				(msb--dired-directory))))
+  (string-lessp (with-current-buffer (cdr item1)
+                  (msb--dired-directory))
+		(with-current-buffer (cdr item2)
+                  (msb--dired-directory))))
 
 ;;;
 ;;; msb
@@ -581,8 +581,7 @@ If the argument is left out or nil, then the current buffer is considered."
     (while rest
       (let ((found-p nil)
 	    (tmp-rest rest)
-	    result
-	    new-dir item)
+            item)
 	(setq item (car tmp-rest))
 	;; Clump together the "rest"-buffers that have a dir that is
 	;; a subdir of the current one.
@@ -745,8 +744,7 @@ to the buffer-list variable in function-info."
   (unless (and (not msb-display-invisible-buffers-p)
 	       (msb-invisible-buffer-p buffer))
     (condition-case nil
-	(save-excursion
-	  (set-buffer buffer)
+	(with-current-buffer buffer
 	  ;; Menu found.  Add to this menu
 	  (dolist (info (msb--collect function-info-vector))
 	    (msb--add-to-menu buffer info max-buffer-name-length)))
@@ -791,8 +789,7 @@ Example:
 results in
 \((a a1 a2 a4 a3) (b b1 b3 b2) (c c3))"
   (when (not (null alist))
-    (let (result
-	  same
+    (let (same
 	  tmp-old-car
 	  tmp-same
 	  (first-time-p t)
@@ -817,7 +814,8 @@ results in
 			 old-car (car item))
 		   (list (cons tmp-old-car (nreverse tmp-same))))))
 	       (sort alist (lambda (item1 item2)
-			     (funcall sort-predicate (car item1) (car item2))))))
+			     (funcall sort-predicate
+                                      (car item1) (car item2))))))
        (list (cons old-car (nreverse same)))))))
 
 
@@ -831,8 +829,7 @@ results in
 	    (sort
 	     (let ((mode-list nil))
 	       (dolist (buffer (cdr (buffer-list)))
-		 (save-excursion
-		   (set-buffer buffer)
+		 (with-current-buffer buffer
 		   (when (and (not (msb-invisible-buffer-p))
 			      (not (assq major-mode mode-list)))
 		     (push (cons major-mode mode-name)
@@ -850,12 +847,10 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
 	   (most-recently-used
 	    (loop with n = 0
 		  for buffer in buffers
-		  if (save-excursion
-		       (set-buffer buffer)
+		  if (with-current-buffer buffer
 		       (and (not (msb-invisible-buffer-p))
 			    (not (eq major-mode 'dired-mode))))
-		  collect (save-excursion
-			    (set-buffer buffer)
+		  collect (with-current-buffer buffer
 			    (cons (funcall msb-item-handling-function
 					   buffer
 					   max-buffer-name-length)
@@ -908,22 +903,20 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
     (when file-buffers
       (setq file-buffers
 	    (mapcar (lambda (buffer-list)
-		      (cons msb-files-by-directory-sort-key
-			    (cons (car buffer-list)
-				  (sort
-				   (mapcar (function
-					    (lambda (buffer)
-					      (cons (save-excursion
-						      (set-buffer buffer)
-						      (funcall msb-item-handling-function
-							       buffer
-							       max-buffer-name-length))
-						    buffer)))
-					   (cdr buffer-list))
-				   (function
-				    (lambda (item1 item2)
-				      (string< (car item1) (car item2))))))))
-		     (msb--choose-file-menu file-buffers))))
+		      (list* msb-files-by-directory-sort-key
+                             (car buffer-list)
+                             (sort
+                              (mapcar (lambda (buffer)
+                                        (cons (with-current-buffer buffer
+                                                (funcall
+                                                 msb-item-handling-function
+                                                 buffer
+                                                 max-buffer-name-length))
+                                              buffer))
+                                      (cdr buffer-list))
+                              (lambda (item1 item2)
+                                (string< (car item1) (car item2))))))
+                    (msb--choose-file-menu file-buffers))))
     ;; Now make the menu - a list of (TITLE . BUFFER-LIST)
     (let* (menu
 	   (most-recently-used
@@ -1103,7 +1096,8 @@ variable `msb-menu-cond'."
 	  buffers-menu frames-menu)
       ;; Make the menu of buffers proper.
       (setq msb--last-buffer-menu (msb--create-buffer-menu))
-      (setq buffers-menu msb--last-buffer-menu)
+      ;; Skip the `keymap' symbol.
+      (setq buffers-menu (cdr msb--last-buffer-menu))
       ;; Make a Frames menu if we have more than one frame.
       (when (cdr frames)
 	(let* ((frame-length (length frames))
@@ -1124,14 +1118,13 @@ variable `msb-menu-cond'."
 			   (cons nil nil))
 		     'menu-bar-select-frame))
 		  frames)))))
-      (define-key (current-global-map) [menu-bar buffer]
-	(cons "Buffers"
+      (setcdr global-buffers-menu-map
 	      (if (and buffers-menu frames-menu)
 		  ;; Combine Frame and Buffers menus with separator between
-		  (nconc (list 'keymap "Buffers and Frames" frames-menu
+		  (nconc (list "Buffers and Frames" frames-menu
 			       (and msb-separator-diff '(separator "--")))
-			 (cddr buffers-menu))
-		(or buffers-menu 'undefined)))))))
+			 (cdr buffers-menu))
+                buffers-menu)))))
 
 ;; Snarf current bindings of `mouse-buffer-menu' (normally
 ;; C-down-mouse-1).
@@ -1163,5 +1156,5 @@ different buffer menu using the function `msb'."
 (provide 'msb)
 (eval-after-load "msb" '(run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
 
-;;; arch-tag: 403f9e82-b92e-4e7a-a797-5d6d9b76da36
+;; arch-tag: 403f9e82-b92e-4e7a-a797-5d6d9b76da36
 ;;; msb.el ends here

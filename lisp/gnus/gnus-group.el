@@ -378,6 +378,7 @@ score: The score of the group.
 ticked: The number of ticked articles."
   :group 'gnus-group-visual
   :type '(repeat (cons (sexp :tag "Form") face)))
+(put 'gnus-group-highlight 'risky-local-variable t)
 
 (defcustom gnus-new-mail-mark ?%
   "Mark used for groups with new mail."

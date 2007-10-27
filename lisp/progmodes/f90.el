@@ -540,7 +540,7 @@ and variable-name parts, respectively."
     ;; TODO ? actually check for balanced parens in that case.
     '("^[ \t0-9]*\\(?:pure\\|elemental\\)?[ \t]*\
 \\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
-enumerator\\|generic\\|procedure\\|logical\\|double[ \t]*precision\\)\
+enumerator\\|generic\\|procedure\\|logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\)\
 \\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\)"
       (1 font-lock-type-face t) (4 font-lock-variable-name-face t))
     ;; Derived type/class variables.
@@ -1508,7 +1508,7 @@ Return (TYPE NAME), or nil if not found."
 Return (TYPE NAME), or nil if not found."
   (interactive)
   (let ((case-fold-search t)
-        (count 1) 
+        (count 1)
         matching-end)
     (end-of-line)
     (while (and (> count 0)

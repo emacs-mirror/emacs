@@ -56,6 +56,15 @@
 	* frame.c (Qwindow_system): Remove.  In `syms_of_frame' as well.
 	(Fmake_terminal_frame): Don't set obsolete `window-system' frame-param.
 
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* frame.c (x_figure_window_size): For fullscreen case,
+	set USPosition | PPosition without clobbering rest of window_prompting.
+
+	* keyboard.c (Fcurrent_idle_time): Doc fix.
+
+	* print.c (Fwith_output_to_temp_buffer): Doc fix.
+
 2007-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (unwind_request_sigio): Only define if __ultrix__.

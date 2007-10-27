@@ -1,3 +1,17 @@
+2007-10-23  Richard Stallman  <rms@gnu.org>
+
+	* gnus-group.el (gnus-group-highlight): Mark as risky.
+
+2007-10-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-server-to-method): Return method found first in
+	gnus-newsrc-alist.
+
+2007-10-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* html2text.el (html2text-fix-paragraph): Use `forward-line' instead of
+	`next-line'.
+
 2007-10-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnmail.el (nnmail-fancy-expiry-target): Use rmail-dont-reply-to to

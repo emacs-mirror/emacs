@@ -2,6 +2,10 @@
 
 	* fortran-xtra.texi (Fortran): F90 mode handles F2003.
 
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* misc.texi (Interactive Shell): Cleanup last change.
+
 2007-10-22  Juri Linkov  <juri@jurta.org>
 
 	* mini.texi (Minibuffer History): Add text about a list of minibuffer
