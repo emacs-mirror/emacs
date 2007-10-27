@@ -112,17 +112,53 @@ A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
    "Time when mail file's file system was recorded to be down.
 If that file system seems to be up, the value is nil.")
 
-(defcustom display-time-world-list
+(defcustom zoneinfo-style-world-list
   '(("America/Los_Angeles" "Seattle")
     ("America/New_York" "New York")
     ("Europe/London" "London")
     ("Europe/Paris" "Paris")
     ("Asia/Calcutta" "Bangalore")
     ("Asia/Tokyo" "Tokyo"))
-  "Alist specifying time zones and places for `display-time-world'.
+  "Alist of zoneinfo-style time zones and places for `display-time-world'.
 Each element has the form (TIMEZONE LABEL).
-TIMEZONE should be a valid argument for `set-time-zone-rule'.
-LABEL is a string to display to label that zone's time."
+TIMEZONE should be a string of the form AREA/LOCATION, where AREA is
+the name of a region -- a continent or ocean, and LOCATION is the name
+of a specific location, e.g., a city, within that region.
+LABEL is a string to display as the label of that TIMEZONE's time."
+  :group 'display-time
+  :type '(repeat (list string string))
+  :version "23.1")
+
+(defcustom legacy-style-world-list
+  '(("PST8PDT" "Seattle")
+    ("EST5EDT" "New York")
+    ("BST0BDT" "London")
+    ("CET-1CDT" "Paris")
+    ("IST-5:30IDT" "Bangalore")
+    ("JST-9JDT" "Tokyo"))
+  "Alist of traditional-style time zones and places for `display-time-world'.
+Each element has the form (TIMEZONE LABEL).
+TIMEZONE should be a string of the form:
+
+     std[+|-]offset[dst[offset][,date[/time],date[/time]]]
+
+See the documentation of the TZ environment variable on your system,
+for more details about the format of TIMEZONE.
+LABEL is a string to display as the label of that TIMEZONE's time."
+  :group 'display-time
+  :type '(repeat (list string string))
+  :version "23.1")
+
+(defcustom display-time-world-list
+  (if (memq 'system-type '(gnu/linux ms-dos))
+      zoneinfo-style-world-list
+    legacy-style-world-list)
+  "Alist of time zones and places for `display-time-world' to display.
+Each element has the form (TIMEZONE LABEL).
+TIMEZONE should be in the format supported by `set-time-zone-rule' on
+your system.  See the documentation of `zoneinfo-style-world-list' and
+\`legacy-style-world-list' for two widely used formats.
+LABEL is a string to display as the label of that TIMEZONE's time."
   :group 'display-time
   :type '(repeat (list string string))
   :version "23.1")
