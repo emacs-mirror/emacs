@@ -3531,8 +3531,6 @@ and all digits are kept, regardless of Calc's current precision."
 (defconst math-standard-opers
   '( ( "_"     calcFunc-subscr 1200 1201 )
      ( "%"     calcFunc-percent 1100 -1 )
-     ( "u+"    ident	     -1 1000 )
-     ( "u-"    neg	     -1 1000 197 )
      ( "u!"    calcFunc-lnot -1 1000 )
      ( "mod"   mod	     400 400 185 )
      ( "+/-"   sdev	     300 300 185 )
@@ -3540,6 +3538,8 @@ and all digits are kept, regardless of Calc's current precision."
      ( "!"     calcFunc-fact 210  -1 )
      ( "^"     ^             201 200 )
      ( "**"    ^             201 200 )
+     ( "u+"    ident	     -1  197 )
+     ( "u-"    neg	     -1  197 )
      ( "/"     /             190 191 )
      ( "%"     %             190 191 )
      ( "\\"    calcFunc-idiv 190 191 )
