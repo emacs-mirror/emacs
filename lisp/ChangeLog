@@ -1,3 +1,10 @@
+2007-10-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (math-standard-opers): Lower the precedence
+	of negation.
+	* calc/calc-lang.el (math-oper-table): Lower precedence of
+	negation for C, TeX, and eqn.
+
 2007-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/cc-defs.el: Reorder conditions to avoid warnings.
