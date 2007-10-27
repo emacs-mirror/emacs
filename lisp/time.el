@@ -132,10 +132,10 @@ LABEL is a string to display as the label of that TIMEZONE's time."
 (defcustom legacy-style-world-list
   '(("PST8PDT" "Seattle")
     ("EST5EDT" "New York")
-    ("BST0BDT" "London")
+    ("GMT0BST" "London")
     ("CET-1CDT" "Paris")
-    ("IST-5:30IDT" "Bangalore")
-    ("JST-9JDT" "Tokyo"))
+    ("IST-5:30" "Bangalore")
+    ("JST-9" "Tokyo"))
   "Alist of traditional-style time zones and places for `display-time-world'.
 Each element has the form (TIMEZONE LABEL).
 TIMEZONE should be a string of the form:
