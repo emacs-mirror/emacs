@@ -3603,6 +3603,24 @@ Emacs is compiled without image support.  You can use the function
 @code{display-images-p} to determine if images can in principle be
 displayed (@pxref{Display Feature Testing}).
 
+@menu
+* Image Formats::       Supported image formats.
+* Image Descriptors::   How to specify an image for use in @code{:display}.
+* XBM Images::          Special features for XBM format.
+* XPM Images::          Special features for XPM format.
+* GIF Images::          Special features for GIF format.
+* PostScript Images::   Special features for PostScript format.
+* Other Image Types::   Various other formats are supported.
+* Defining Images::     Convenient ways to define an image for later use.
+* Showing Images::      Convenient ways to display an image once it is defined.
+* Image Cache::         Internal mechanisms of image display.
+@end menu
+
+@node Image Formats
+@subsection Image Formats
+@cindex image formats
+@cindex image types
+
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
 your machine.  In some environments, Emacs can load image
@@ -3614,11 +3632,12 @@ libraries (though it is not possible to add new image formats).
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (requiring
 @code{libungif} 4.1.0), PostScript, PBM, JPEG (requiring the
 @code{libjpeg} library version v6a), TIFF (requiring @code{libtiff}
-v3.4), and PNG (requiring @code{libpng} 1.0.2).
+v3.4), PNG (requiring @code{libpng} 1.0.2), and SVG (requiring
+@code{librsvg} 2.0.0).
 
   You specify one of these formats with an image type symbol.  The image
 type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
-@code{pbm}, @code{jpeg}, @code{tiff}, and @code{png}.
+@code{pbm}, @code{jpeg}, @code{tiff}, @code{png}, and @code{svg}.
 
 @defvar image-types
 This variable contains a list of those image type symbols that are
@@ -3649,9 +3668,7 @@ This variable is ignored if the image libraries are statically linked
 into Emacs.
 @end defvar
 
-@defun  image-type-available-p type
-@findex image-type-available-p
-
+@defun image-type-available-p type
 This function returns non-@code{nil} if image type @var{type} is
 available, i.e., if images of this type can be loaded and displayed in
 Emacs.  @var{type} should be one of the types contained in
@@ -3661,18 +3678,6 @@ For image types whose support libraries are statically linked, this
 function always returns @code{t}; for other image types, it returns
 @code{t} if the dynamic library could be loaded, @code{nil} otherwise.
 @end defun
-
-@menu
-* Image Descriptors::   How to specify an image for use in @code{:display}.
-* XBM Images::          Special features for XBM format.
-* XPM Images::          Special features for XPM format.
-* GIF Images::          Special features for GIF format.
-* PostScript Images::   Special features for PostScript format.
-* Other Image Types::   Various other formats are supported.
-* Defining Images::     Convenient ways to define an image for later use.
-* Showing Images::      Convenient ways to display an image once it is defined.
-* Image Cache::         Internal mechanisms of image display.
-@end menu
 
 @node Image Descriptors
 @subsection Image Descriptors
@@ -4047,6 +4052,8 @@ background color.
   For TIFF images, specify image type @code{tiff}.
 
   For PNG images, specify image type @code{png}.
+
+  For SVG images, specify image type @code{svg}.
 
 @node Defining Images
 @subsection Defining Images

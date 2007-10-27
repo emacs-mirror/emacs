@@ -110,10 +110,12 @@ AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
 AC_ARG_WITH(gpm,
 [  --with-gpm              use -lgpm for mouse support on a GNU/Linux console])
+AC_ARG_WITH(rsvg,
+[  --with-rsvg             use -lrsvg-2 for displaying SVG images])
 AC_ARG_WITH(gtk,
 [  --with-gtk              use GTK (same as --with-x-toolkit=gtk)])
 AC_ARG_WITH(pkg-config-prog,
-[  --with-pkg-config-prog  Path to pkg-config to use for finding GTK])
+[  --with-pkg-config-prog  Path to pkg-config to use for finding GTK and librsvg])
 AC_ARG_WITH(toolkit-scroll-bars,
 [  --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars])
@@ -1341,6 +1343,21 @@ AC_PATH_PROG(INSTALL_INFO, install-info,:, /sbin)
 dnl Don't use GZIP, which is used by gzip for additional parameters.
 AC_PATH_PROG(GZIP_PROG, gzip)
 
+
+## Need makeinfo >= 4.6 (?) to build the manuals.
+AC_PATH_PROG(MAKEINFO, makeinfo, no)
+dnl By this stage, configure has already checked for egrep and set EGREP, 
+dnl or exited with an error if no egrep was found.
+if test "$MAKEINFO" != "no" && \
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[5-9]]|4\.[[6-9]])'`" = x; then
+   MAKEINFO=no    
+fi
+
+if test "$MAKEINFO" = "no"; then
+  AC_MSG_ERROR( [makeinfo >= 4.6 is required] )
+fi
+
+
 dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
@@ -2122,6 +2139,32 @@ fail;
   fi
 fi
 
+### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
+HAVE_RSVG=no
+if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
+  if test "${with_rsvg}" != "no"; then
+    dnl Check if `--with-pkg-config-prog' has been given.
+    if test "X${with_pkg_config_prog}" != X; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+    fi
+
+    RSVG_REQUIRED=2.0.0
+    RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
+
+    PKG_CHECK_MODULES(RSVG, $RSVG_MODULE, :, :)
+    AC_SUBST(RSVG_CFLAGS)
+    AC_SUBST(RSVG_LIBS)
+
+    if test ".${RSVG_CFLAGS}" != "."; then
+      HAVE_RSVG=yes
+      AC_DEFINE(HAVE_RSVG, 1, [Define to 1 if using librsvg.])
+      CFLAGS="$CFLAGS $RSVG_CFLAGS"
+      LIBS="$RSVG_LIBS $LIBS"
+    fi
+  fi
+fi
+
+
 HAVE_GTK=no
 if test "${with_gtk}" = "yes" && test "$USE_X_TOOLKIT" = "gtk"; then
   USE_X_TOOLKIT=none
@@ -2581,7 +2624,7 @@ if test "${HAVE_X11}" = "yes"; then
     MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
 
   if test "X${MISSING}" != X; then
-    AC_MSG_ERROR([The following required libraries was not found:
+    AC_MSG_ERROR([The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
 If you don't want to link with them give
@@ -3362,6 +3405,7 @@ echo "  Does Emacs use -ljpeg?                                  ${HAVE_JPEG}"
 echo "  Does Emacs use -ltiff?                                  ${HAVE_TIFF}"
 echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_gif_lib_name"
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
+echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo

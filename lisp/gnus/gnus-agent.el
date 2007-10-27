@@ -1765,7 +1765,14 @@ article numbers will be returned."
                                (gnus-agent-find-parameter group
                                                           'agent-predicate)))))
          (articles (if fetch-all
-                       (gnus-uncompress-range (gnus-active group))
+		       (if gnus-maximum-newsgroup
+			   (let ((active (gnus-active group)))
+			     (gnus-uncompress-range
+			      (cons (max (car active)
+					 (- (cdr active)
+					    gnus-maximum-newsgroup -1))
+				    (cdr active))))
+			 (gnus-uncompress-range (gnus-active group)))
                      (gnus-list-of-unread-articles group)))
          (gnus-decode-encoded-word-function 'identity)
 	 (gnus-decode-encoded-address-function 'identity)

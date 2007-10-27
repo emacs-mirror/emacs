@@ -498,6 +498,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `rmdir' function. */
 #undef HAVE_RMDIR
 
+/* Define to 1 if using librsvg. */
+#undef HAVE_RSVG
+
 /* Define to 1 if you have the `select' function. */
 #undef HAVE_SELECT
 

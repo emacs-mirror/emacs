@@ -96,7 +96,7 @@
 	    nil))
       (or (fboundp 'custom-declare-variable)
 	  (defmacro defcustom (name val doc &rest arr)
-	    (` (defvar (, name) (, val) (, doc)))))
+	    `(defvar ,name ,val ,doc)))
       (or (and (fboundp 'custom-declare-variable)
 	       (string< "19.31" emacs-version))	;  Checked with 19.30: defface does not work
 	  (defmacro defface (&rest arr)
@@ -104,52 +104,52 @@
       ;; Avoid warning (tmp definitions)
       (or (fboundp 'x-color-defined-p)
 	  (defmacro x-color-defined-p (col)
-	    (cond ((fboundp 'color-defined-p) (` (color-defined-p (, col))))
+	    (cond ((fboundp 'color-defined-p) `(color-defined-p ,col))
 		  ;; XEmacs >= 19.12
-		  ((fboundp 'valid-color-name-p) (` (valid-color-name-p (, col))))
+		  ((fboundp 'valid-color-name-p) `(valid-color-name-p ,col))
 		  ;; XEmacs 19.11
-		  ((fboundp 'x-valid-color-name-p) (` (x-valid-color-name-p (, col))))
+		  ((fboundp 'x-valid-color-name-p) `(x-valid-color-name-p ,col))
 		  (t '(error "Cannot implement color-defined-p")))))
       (defmacro cperl-is-face (arg)	; Takes quoted arg
 	(cond ((fboundp 'find-face)
-	       (` (find-face (, arg))))
+	       `(find-face ,arg))
 	      (;;(and (fboundp 'face-list)
 	       ;;	(face-list))
 	       (fboundp 'face-list)
-	       (` (member (, arg) (and (fboundp 'face-list)
-				       (face-list)))))
+	       `(member ,arg (and (fboundp 'face-list)
+                                  (face-list))))
 	      (t
-	       (` (boundp (, arg))))))
+	       `(boundp ,arg))))
       (defmacro cperl-make-face (arg descr) ; Takes unquoted arg
 	(cond ((fboundp 'make-face)
-	       (` (make-face (quote (, arg)))))
+	       `(make-face (quote ,arg)))
 	      (t
-	       (` (defvar (, arg) (quote (, arg)) (, descr))))))
+	       `(defvar ,arg (quote ,arg) ,descr))))
       (defmacro cperl-force-face (arg descr) ; Takes unquoted arg
-	(` (progn
-	     (or (cperl-is-face (quote (, arg)))
-		 (cperl-make-face (, arg) (, descr)))
-	     (or (boundp (quote (, arg))) ; We use unquoted variants too
-		 (defvar (, arg) (quote (, arg)) (, descr))))))
+	`(progn
+	     (or (cperl-is-face (quote ,arg))
+		 (cperl-make-face ,arg ,descr))
+	     (or (boundp (quote ,arg)) ; We use unquoted variants too
+		 (defvar ,arg (quote ,arg) ,descr))))
       (if cperl-xemacs-p
 	  (defmacro cperl-etags-snarf-tag (file line)
-	    (` (progn
-		 (beginning-of-line 2)
-		 (list (, file) (, line)))))
+	    `(progn
+               (beginning-of-line 2)
+               (list ,file ,line)))
 	(defmacro cperl-etags-snarf-tag (file line)
-	  (` (etags-snarf-tag))))
+	  `(etags-snarf-tag)))
       (if cperl-xemacs-p
 	  (defmacro cperl-etags-goto-tag-location (elt)
-	    (`;;(progn
-	     ;; (switch-to-buffer (get-file-buffer (elt (, elt) 0)))
-	     ;; (set-buffer (get-file-buffer (elt (, elt) 0)))
-	     ;; Probably will not work due to some save-excursion???
-	     ;; Or save-file-position?
-	     ;; (message "Did I get to line %s?" (elt (, elt) 1))
-	     (goto-line (string-to-int (elt (, elt) 1)))))
+	    ;;(progn
+            ;; (switch-to-buffer (get-file-buffer (elt ,elt 0)))
+            ;; (set-buffer (get-file-buffer (elt ,elt 0)))
+            ;; Probably will not work due to some save-excursion???
+            ;; Or save-file-position?
+            ;; (message "Did I get to line %s?" (elt ,elt 1))
+            `(goto-line (string-to-int (elt ,elt 1))))
 	;;)
 	(defmacro cperl-etags-goto-tag-location (elt)
-	  (` (etags-goto-tag-location (, elt))))))
+	  `(etags-goto-tag-location ,elt))))
 
 (defconst cperl-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
 
@@ -233,7 +233,13 @@ for constructs with multiline if/unless/while/until/for/foreach condition."
   "*Indentation of CPerl statements with respect to containing block."
   :type 'integer
   :group 'cperl-indentation-details)
-(put 'cperl-indent-level 'safe-local-variable 'integerp)
+
+;; Is is not unusual to put both perl-indent-level and
+;; cperl-indent-level in the local variable section of a file. If only
+;; one of perl-mode and cperl-mode is in use, a warning will be issued
+;; about the variable. Autoload this here, so that no warning is
+;; issued when using either perl-mode or cperl-mode.
+;;;###autoload(put 'cperl-indent-level 'safe-local-variable 'integerp)
 
 (defcustom cperl-lineup-step nil
   "*`cperl-lineup' will always lineup at multiple of this number.
@@ -1788,8 +1794,8 @@ or as help on variables `cperl-tips', `cperl-problems',
   ;; This one is obsolete...
   (make-local-variable 'vc-header-alist)
   (set 'vc-header-alist (or cperl-vc-header-alist ; Avoid warning
-			    (` ((SCCS (, (car cperl-vc-sccs-header)))
-				     (RCS (, (car cperl-vc-rcs-header)))))))
+			    `((SCCS ,(car cperl-vc-sccs-header))
+                              (RCS ,(car cperl-vc-rcs-header)))))
   (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
 	 (make-local-variable 'compilation-error-regexp-alist-alist)
 	 (set 'compilation-error-regexp-alist-alist
@@ -3736,8 +3742,12 @@ Should be called with the point before leading colon of an attribute."
 	(set-syntax-table reset-st))))
 
 (defsubst cperl-look-at-leading-count (is-x-REx e)
-  (if (re-search-forward (concat "\\=" (if is-x-REx "[ \t\n]*" "") "[{?+*]")
-			 (1- e) t)	; return nil on failure, no moving
+  (if (and (> (point) e)
+	   ;; return nil on failure, no moving
+	   (re-search-forward (concat "\\="
+				      (if is-x-REx "[ \t\n]*" "")
+				      "[{?+*]")
+			      (1- e) t))
       (if (eq ?\{ (preceding-char)) nil
 	(cperl-postpone-fontification
 	 (1- (point)) (point)
@@ -3750,7 +3760,7 @@ If `cperl-pod-here-fontify' is not-nil after evaluation, will fontify
 the sections using `cperl-pod-head-face', `cperl-pod-face',
 `cperl-here-face'."
   (interactive)
- (or min (setq min (point-min)
+  (or min (setq min (point-min)
 		cperl-syntax-state nil
 		cperl-syntax-done-to min))
   (or max (setq max (point-max)))
@@ -4785,7 +4795,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		      (progn
 			(cperl-postpone-fontification
 			 (1- e1) e1 'face my-cperl-delimiters-face)
-			(if (assoc (char-after b) cperl-starters)
+			(if (and (not (eobp))
+				 (assoc (char-after b) cperl-starters))
 			    (progn
 			      (cperl-postpone-fontification
 			       b1 (1+ b1) 'face my-cperl-delimiters-face)
@@ -5946,25 +5957,25 @@ indentation and initial hashes.  Behaves usually outside of comment."
 			nil t)))	; local variables, multiple
 		  (font-lock-anchored
 		   ;; 1=my_etc, 2=white? 3=(+white? 4=white? 5=var
-		   (` ((, (concat "\\<\\(my\\|local\\|our\\)"
+		   `(,(concat "\\<\\(my\\|local\\|our\\)"
 				  cperl-maybe-white-and-comment-rex
 				  "\\(("
 				     cperl-maybe-white-and-comment-rex
-				  "\\)?\\([$@%*]\\([a-zA-Z0-9_:]+\\|[^a-zA-Z0-9_]\\)\\)"))
-		       (5 (, (if cperl-font-lock-multiline
+				  "\\)?\\([$@%*]\\([a-zA-Z0-9_:]+\\|[^a-zA-Z0-9_]\\)\\)")
+		       (5 ,(if cperl-font-lock-multiline
 				 'font-lock-variable-name-face
 			       '(progn  (setq cperl-font-lock-multiline-start
 					      (match-beginning 0))
-					'font-lock-variable-name-face))))
-		       ((, (concat "\\="
+					'font-lock-variable-name-face)))
+		       (,(concat "\\="
 				   cperl-maybe-white-and-comment-rex
 				   ","
 				   cperl-maybe-white-and-comment-rex
-				   "\\([$@%*]\\([a-zA-Z0-9_:]+\\|[^a-zA-Z0-9_]\\)\\)"))
+				   "\\([$@%*]\\([a-zA-Z0-9_:]+\\|[^a-zA-Z0-9_]\\)\\)")
 			;; Bug in font-lock: limit is used not only to limit 
 			;; searches, but to set the "extend window for
 			;; facification" property.  Thus we need to minimize.
-			(, (if cperl-font-lock-multiline
+			,(if cperl-font-lock-multiline
 			     '(if (match-beginning 3)
 				  (save-excursion
 				    (goto-char (match-beginning 3))
@@ -5978,8 +5989,8 @@ indentation and initial hashes.  Behaves usually outside of comment."
 				(forward-char -2)) ; disable continued expr
 			     '(if (match-beginning 3)
 				  (point-max) ; No limit for continuation
-				(forward-char -2)))) ; disable continued expr
-			(, (if cperl-font-lock-multiline
+				(forward-char -2))) ; disable continued expr
+			,(if cperl-font-lock-multiline
 			       nil
 			     '(progn	; Do at end
 				;; "my" may be already fontified (POD),
@@ -5992,8 +6003,8 @@ indentation and initial hashes.  Behaves usually outside of comment."
 				  (put-text-property
 				   (1+ cperl-font-lock-multiline-start) (point)
 				   'syntax-type 'multiline))
-				(setq cperl-font-lock-multiline-start nil))))
-			(3 font-lock-variable-name-face)))))
+				(setq cperl-font-lock-multiline-start nil)))
+			(3 font-lock-variable-name-face))))
 		  (t '("^[ \t{}]*\\(my\\|local\\|our\\)[ \t]*\\(([ \t]*\\)?\\([$@%*][a-zA-Z0-9_:]+\\)"
 		       3 font-lock-variable-name-face)))
 	    '("\\<for\\(each\\)?\\([ \t]+\\(my\\|local\\|our\\)\\)?[ \t]*\\(\\$[a-zA-Z_][a-zA-Z_0-9]*\\)[ \t]*("

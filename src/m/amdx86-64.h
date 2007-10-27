@@ -18,6 +18,14 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
+#ifdef i386
+/* Although we're running on an amd64 kernel, we're actually compiling for
+   the x86 architecture.  The user should probably have provided an
+   explicit --build to `configure', but if everything else than the kernel
+   is running in i386 mode, then the bug is really ours: we should have
+   guessed better.  */
+#include "m/intel386.h"
+#else
 
 /* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
@@ -156,6 +164,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #endif /* __FreeBSD__ */
+#endif /* !i386 */
 
 /* arch-tag: 8a5e001d-e12e-4692-a3a6-0b15ba271c6e
    (do not change this comment) */

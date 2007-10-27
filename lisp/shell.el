@@ -511,6 +511,9 @@ Sentinels will always get the two parameters PROCESS and EVENT."
 (defun shell (&optional buffer)
   "Run an inferior shell, with I/O through BUFFER (which defaults to `*shell*').
 Interactively, a prefix arg means to prompt for BUFFER.
+If `default-directory' is a remote file name, it is also prompted
+to change if called with a prefix arg.
+
 If BUFFER exists but shell process is not running, make new shell.
 If BUFFER exists and shell process is running, just switch to BUFFER.
 Program used comes from variable `explicit-shell-file-name',
@@ -540,7 +543,14 @@ Otherwise, one argument `-i' is passed to the shell.
    (list
     (and current-prefix-arg
 	 (read-buffer "Shell buffer: "
-		      (generate-new-buffer-name "*shell*")))))
+		      (generate-new-buffer-name "*shell*"))
+	 (file-remote-p default-directory)
+	 ;; It must be possible to declare a local default-directory.
+	 (setq default-directory
+	       (expand-file-name
+		(read-file-name
+		 "Default directory: " default-directory default-directory
+		 t nil 'file-directory-p))))))
   (setq buffer (get-buffer-create (or buffer "*shell*")))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).

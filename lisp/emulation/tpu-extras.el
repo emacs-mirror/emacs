@@ -112,18 +112,18 @@
 ;;;  Customization variables
 
 (defcustom tpu-top-scroll-margin 0
-  "*Scroll margin at the top of the screen.
+  "Scroll margin at the top of the screen.
 Interpreted as a percent of the current window size."
   :type 'integer
   :group 'tpu)
 (defcustom tpu-bottom-scroll-margin 0
-  "*Scroll margin at the bottom of the screen.
+  "Scroll margin at the bottom of the screen.
 Interpreted as a percent of the current window size."
   :type 'integer
   :group 'tpu)
 
 (defcustom tpu-backward-char-like-tpu t
-  "*If non-nil, in free cursor mode backward-char (left-arrow) works
+  "If non-nil, in free cursor mode backward-char (left-arrow) works
 just like TPU/edt.  Otherwise, backward-char will move to the end of
 the previous line when starting from a line beginning."
   :type 'boolean
@@ -132,8 +132,12 @@ the previous line when starting from a line beginning."
 
 ;;;  Global variables
 
-(defvar tpu-cursor-free nil
-  "If non-nil, let the cursor roam free.")
+;;;###autoload
+(define-minor-mode tpu-cursor-free-mode
+  "Minor mode to allow the cursor to move freely about the screen."
+  :init-value nil
+  (if (not tpu-cursor-free-mode)
+      (tpu-trim-line-ends)))
 
 
 ;;;  Hooks  --  Set cursor free in picture mode.
@@ -141,11 +145,10 @@ the previous line when starting from a line beginning."
 
 (add-hook 'picture-mode-hook 'tpu-set-cursor-free)
 
-(defun tpu-before-save-hook ()
+(defun tpu-trim-line-ends-if-needed ()
   "Eliminate whitespace at ends of lines, if the cursor is free."
-  (if (and (buffer-modified-p) tpu-cursor-free) (tpu-trim-line-ends)))
-
-(add-hook 'before-save-hook 'tpu-before-save-hook)
+  (if (and (buffer-modified-p) tpu-cursor-free-mode) (tpu-trim-line-ends)))
+(add-hook 'before-save-hook 'tpu-trim-line-ends-if-needed)
 
 
 ;;;  Utility routines for implementing scroll margins
@@ -171,12 +174,12 @@ the previous line when starting from a line beginning."
 (defun tpu-forward-char (num)
   "Move right ARG characters (left if ARG is negative)."
   (interactive "p")
-  (if tpu-cursor-free (picture-forward-column num) (forward-char num)))
+  (if tpu-cursor-free-mode (picture-forward-column num) (forward-char num)))
 
 (defun tpu-backward-char (num)
   "Move left ARG characters (right if ARG is negative)."
   (interactive "p")
-  (cond ((not tpu-cursor-free)
+  (cond ((not tpu-cursor-free-mode)
 	 (backward-char num))
 	(tpu-backward-char-like-tpu
 	 (picture-backward-column num))
@@ -195,8 +198,8 @@ the previous line when starting from a line beginning."
 Prefix argument serves as a repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
-    (if tpu-cursor-free (or (eobp) (picture-move-down num))
-      (next-line-internal num))
+    (if tpu-cursor-free-mode (or (eobp) (picture-move-down num))
+      (line-move num))
     (tpu-bottom-check beg num)
     (setq this-command 'next-line)))
 
@@ -205,7 +208,7 @@ Prefix argument serves as a repeat count."
 Prefix argument serves as a repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
-    (if tpu-cursor-free (picture-move-up num) (next-line-internal (- num)))
+    (if tpu-cursor-free-mode (picture-move-up num) (line-move (- num)))
     (tpu-top-check beg num)
     (setq this-command 'previous-line)))
 
@@ -223,7 +226,7 @@ Accepts a prefix argument for the number of lines to move."
 Accepts a prefix argument for the number of lines to move."
   (interactive "p")
   (let ((beg (tpu-current-line)))
-    (cond (tpu-cursor-free
+    (cond (tpu-cursor-free-mode
 	   (let ((beg (point)))
 	     (if (< 1 num) (forward-line num))
 	     (picture-end-of-line)
@@ -238,7 +241,7 @@ Accepts a prefix argument for the number of lines to move."
 Accepts a prefix argument for the number of lines to move."
   (interactive "p")
   (let ((beg (tpu-current-line)))
-    (cond (tpu-cursor-free
+    (cond (tpu-cursor-free-mode
 	   (picture-end-of-line (- 1 num)))
 	  (t
 	   (end-of-line (- 1 num))))
@@ -248,7 +251,7 @@ Accepts a prefix argument for the number of lines to move."
   "Move point to end of current line."
   (interactive)
   (let ((beg (point)))
-    (if tpu-cursor-free (picture-end-of-line) (end-of-line))
+    (if tpu-cursor-free-mode (picture-end-of-line) (end-of-line))
     (if (= beg (point)) (message "You are already at the end of a line."))))
 
 (defun tpu-forward-line (num)
@@ -256,9 +259,8 @@ Accepts a prefix argument for the number of lines to move."
 Prefix argument serves as a repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
-    (next-line-internal num)
-    (tpu-bottom-check beg num)
-    (beginning-of-line)))
+    (forward-line num)
+    (tpu-bottom-check beg num)))
 
 (defun tpu-backward-line (num)
   "Move to beginning of previous line.
@@ -266,9 +268,8 @@ Prefix argument serves as repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
     (or (bolp) (>= 0 num) (setq num (- num 1)))
-    (next-line-internal (- num))
-    (tpu-top-check beg num)
-    (beginning-of-line)))
+    (forward-line (- num))
+    (tpu-top-check beg num)))
 
 
 ;;;  Movement by paragraph
@@ -346,7 +347,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal (- lines))
+    (line-move (- lines))
     (tpu-top-check beg lines)))
 
 (defun tpu-scroll-window-up (num)
@@ -356,7 +357,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal lines)
+    (line-move lines)
     (tpu-bottom-check beg lines)))
 
 
@@ -448,22 +449,19 @@ A repeat count means scroll that many sections."
 (defun tpu-set-cursor-free ()
   "Allow the cursor to move freely about the screen."
   (interactive)
-  (setq tpu-cursor-free t)
-  (substitute-key-definition 'tpu-set-cursor-free
-			     'tpu-set-cursor-bound
-			     GOLD-map)
+  (tpu-cursor-free-mode 1)
   (message "The cursor will now move freely about the screen."))
 
 ;;;###autoload
 (defun tpu-set-cursor-bound ()
   "Constrain the cursor to the flow of the text."
   (interactive)
-  (tpu-trim-line-ends)
-  (setq tpu-cursor-free nil)
-  (substitute-key-definition 'tpu-set-cursor-bound
-			     'tpu-set-cursor-free
-			     GOLD-map)
+  (tpu-cursor-free-mode -1)
   (message "The cursor is now bound to the flow of your text."))
+
+;; Local Variables:
+;; generated-autoload-file: "tpu-edt.el"
+;; End:
 
 ;; arch-tag: 89676fa4-33ec-48cb-9135-6f3bf230ab1a
 ;;; tpu-extras.el ends here

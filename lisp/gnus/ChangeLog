@@ -1,3 +1,37 @@
+2007-08-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime): Make sure it uses multibyte temp buffer.
+	(mml-generate-mime-1): Don't encode body if it is specified to be in
+	raw form; don't make buffer be unibyte when inserting multibyte string.
+
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sha1.el: Fix up comment style.
+	(sha1-F0, sha1-F1, sha1-F2, sha1-F3, sha1-S1, sha1-S5, sha1-S30)
+	(sha1-OP, sha1-add-to-H): Use new-style backquotes.
+
+	* hex-util.el: Fix up comment style.
+	(hex-char-to-num, num-to-hex-char): Use new-style backquotes.
+
+	* gnus-salt.el: Use with-current-buffer.
+	(gnus-pick-setup-message): Fix long-standing typo.
+
+2007-08-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-summary-command-nosave)
+	(gnus-article-read-summary-keys): Don't use 3rd arg of pop-to-buffer.
+
+2007-08-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-maximum-newsgroup): New variable.
+
+	* gnus-agent.el (gnus-agent-fetch-headers): Limit the range of articles
+	according to gnus-maximum-newsgroup.
+
+	* gnus-sum.el (gnus-articles-to-read, gnus-list-of-unread-articles)
+	(gnus-list-of-read-articles, gnus-sequence-of-unread-articles):
+	Limit the range of articles according to gnus-maximum-newsgroup.
+
 2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nntp.el (nntp-xref-number-is-evil): New server variable.

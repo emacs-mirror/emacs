@@ -28,7 +28,8 @@ any older versions of these packages to ensure that the Emacs 22
 version is used.  You can use M-x list-load-path-shadows to find such
 older packages.
 
-Some specific packages that are known to cause problems are:
+Some specific packages that are known to cause problems are given
+below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 
@@ -39,6 +40,11 @@ Some specific packages that are known to cause problems are:
 ** Emacs is now licensed under the GNU GPL version 3 (or later).
 
 * Changes in Emacs 22.2
+
+** `browse-url-emacs' loads a URL into an Emacs buffer.  Handy for *.el URLs.
+
+** `bad-packages-alist' will warn about external packages that are known
+to cause problems in this version of Emacs.
 
 ** The values of `dired-recursive-deletes' and `dired-recursive-copies'
 have been changed to `top'.  This means that the user is asked once,
@@ -74,6 +80,14 @@ in to make it use the scrollbars from the system theme.
 *** VC has some support for Git.
 
 * Lisp Changes in Emacs 22.2.
+
+** The function invisible-p returns non-nil if the character
+   after a specified position is invisible.
+
++++
+** inhibit-modification-hooks is bound to t while running modification hooks.
+As a happy consequence, after-change-functions and before-change-functions
+are not bound to nil any more while running an (after|before)-change-function.
 
 ** New function `window-full-width-p' returns t if a window is as wide
 as its frame.

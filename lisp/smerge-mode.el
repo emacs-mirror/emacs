@@ -324,7 +324,8 @@ Can be nil if the style is undecided, or else:
 (defvar smerge-resolve-function
   (lambda () (error "Don't know how to resolve"))
   "Mode-specific merge function.
-The function is called with no argument and with the match data set
+The function is called with zero or one argument (non-nil if the resolution
+function should only apply safe heuristics) and with the match data set
 according to `smerge-match-conflict'.")
 (add-to-list 'debug-ignored-errors "Don't know how to resolve")
 
@@ -378,7 +379,7 @@ according to `smerge-match-conflict'.")
 	(smerge-remove-props (or beg (point-min)) (or end (point-max)))
 	(push event unread-command-events)))))
 
-(defun smerge-resolve ()
+(defun smerge-resolve (&optional safe)
   "Resolve the conflict at point intelligently.
 This relies on mode-specific knowledge and thus only works in
 some major modes.  Uses `smerge-resolve-function' to do the actual work."
@@ -393,8 +394,10 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
    ;; Mode-specific conflict resolution.
    ((condition-case nil
         (atomic-change-group
-         (funcall smerge-resolve-function)
-         t)
+          (if safe
+              (funcall smerge-resolve-function safe)
+            (funcall smerge-resolve-function))
+          t)
       (error nil))
     ;; Nothing to do: the resolution function has done it already.
     nil)
@@ -411,6 +414,31 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
    (t
     (error "Don't know how to resolve")))
   (smerge-auto-leave))
+
+(defun smerge-resolve-all ()
+  "Perform automatic resolution on all conflicts."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward smerge-begin-re nil t)
+      (condition-case nil
+          (progn
+            (smerge-match-conflict)
+            (smerge-resolve 'safe))
+        (error nil)))))
+
+(defun smerge-batch-resolve ()
+  ;; command-line-args-left is what is left of the command line.
+  (if (not noninteractive)
+      (error "`smerge-batch-resolve' is to be used only with -batch"))
+  (while command-line-args-left
+    (let ((file (pop command-line-args-left)))
+      (message "Resolving conflicts in %s..." file)
+      (when (file-readable-p file)
+        (with-current-buffer (find-file-noselect file)
+          (smerge-resolve-all)
+          (save-buffer)
+          (kill-buffer (current-buffer)))))))
 
 (defun smerge-keep-base ()
   "Revert to the base version."
@@ -677,7 +705,9 @@ Point is moved to the end of the conflict."
     (unwind-protect
         (with-temp-buffer
           (let ((coding-system-for-read 'emacs-mule))
-            (call-process diff-command nil t nil file1 file2))
+            ;; Don't forget -a to make sure diff treats it as a text file
+            ;; even if it contains \0 and such.
+            (call-process diff-command nil t nil "-a" file1 file2))
           ;; Process diff's output.
           (goto-char (point-min))
           (while (not (eobp))
@@ -831,6 +861,10 @@ buffer names."
     (message "Please resolve conflicts now; exit ediff when done")))
 
 
+(defconst smerge-parsep-re
+  (concat smerge-begin-re "\\|" smerge-end-re "\\|"
+          smerge-base-re "\\|" smerge-other-re "\\|"))
+
 ;;;###autoload
 (define-minor-mode smerge-mode
   "Minor mode to simplify editing output from the diff3 program.
@@ -845,6 +879,13 @@ buffer names."
       (while (smerge-find-conflict)
 	(save-excursion
 	  (font-lock-fontify-region (match-beginning 0) (match-end 0) nil)))))
+  (if (string-match (regexp-quote smerge-parsep-re) paragraph-separate)
+      (unless smerge-mode
+        (set (make-local-variable 'paragraph-separate)
+             (replace-match "" t t paragraph-separate)))
+    (when smerge-mode
+        (set (make-local-variable 'paragraph-separate)
+             (concat smerge-parsep-re paragraph-separate))))
   (unless smerge-mode
     (smerge-remove-props (point-min) (point-max))))
 

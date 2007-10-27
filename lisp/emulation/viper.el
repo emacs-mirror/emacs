@@ -9,7 +9,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.14 of June 14, 2007"
+(defconst viper-version "3.14 of August 18, 2007"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -646,6 +646,11 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 	 (remove-hook symbol 'viper-change-state-to-emacs)
 	 (remove-hook symbol 'viper-change-state-to-insert)
 	 (remove-hook symbol 'viper-change-state-to-vi)
+	 (remove-hook symbol 'viper-minibuffer-post-command-hook)
+	 (remove-hook symbol 'viper-minibuffer-setup-sentinel)
+	 (remove-hook symbol 'viper-major-mode-change-sentinel)
+	 (remove-hook symbol 'set-viper-state-in-major-mode)
+	 (remove-hook symbol 'viper-post-command-sentinel)
 	 )))
 
 ;; Remove local value in all existing buffers
@@ -681,6 +686,9 @@ It also can't undo some Viper settings."
     'mode-line-buffer-identification viper-saved-non-viper-variables)
    global-mode-string
    (delq 'viper-mode-string global-mode-string))
+
+  (setq default-major-mode
+	(viper-standard-value 'default-major-mode viper-saved-non-viper-variables))
 
   (if viper-emacs-p
       (setq-default
@@ -772,9 +780,7 @@ It also can't undo some Viper settings."
   (mapatoms 'viper-remove-hooks)
   (remove-hook 'comint-mode-hook 'viper-comint-mode-hook)
   (remove-hook 'erc-mode-hook 'viper-comint-mode-hook)
-  (remove-hook 'minibuffer-setup-hook 'viper-minibuffer-setup-sentinel)
   (remove-hook 'change-major-mode-hook 'viper-major-mode-change-sentinel)
-  (remove-hook 'post-command-hook 'viper-minibuffer-post-command-hook)
 
   ;; unbind Viper mouse bindings
   (viper-unbind-mouse-search-key)
@@ -1214,6 +1220,7 @@ These two lines must come in the order given.
 (if (null viper-saved-non-viper-variables)
     (setq viper-saved-non-viper-variables
 	  (list
+	   (cons 'default-major-mode (list default-major-mode))
 	   (cons 'next-line-add-newlines (list next-line-add-newlines))
 	   (cons 'require-final-newline (list require-final-newline))
 	   (cons 'scroll-step (list scroll-step))

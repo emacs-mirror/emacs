@@ -1,3 +1,52 @@
+2007-08-24  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
+
+	* message.texi (MIME): Replace mml-attach with mml-attach-file.
+
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Adding hyperlink types): New section.
+	(Embedded LaTeX): Chapter updated because of LaTeX export.
+	(LaTeX export): New section.
+	(Using links out): New section.
+
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Learning how to do something): Refcards now in
+	etc/refcards/ directory.
+
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote Programs): Persistency file must be cleared when
+	changing `tramp-remote-path'.
+	(Filename Syntax): Don't use @var{} constructs inside the @trampfn
+	macro.
+
+2007-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Position Info): Add index entry for face at point.
+	Mention that character faces are also displayed by "C-u C-x =".
+
+2007-08-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: Move contents to beginning of file.
+	(Algebraic Entry): Fix the formatting of an example.
+
+2007-08-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units): Mention exact versus
+	inexact conversions.
+
+2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units): Mention default
+	values for new units.
+	(Quick Calculator Mode): Mention that binary format will
+	be displayed.
+
+2007-08-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Selecting a Group): Mention gnus-maximum-newsgroup.
+
 2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (NNTP): Mention nntp-xref-number-is-evil.

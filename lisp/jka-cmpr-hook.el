@@ -183,7 +183,7 @@ options through Custom does this automatically."
   ;;[regexp
   ;; compr-message  compr-prog  compr-args
   ;; uncomp-message uncomp-prog uncomp-args
-  ;; can-append auto-mode-flag strip-extension-flag file-magic-bytes]
+  ;; can-append strip-extension-flag file-magic-bytes]
   '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "compressing"    "compress"     ("-c")
      "uncompressing"  "uncompress"   ("-c")
@@ -199,7 +199,7 @@ options through Custom does this automatically."
      "bzip2ing"        "bzip2"         nil
      "bunzip2ing"      "bzip2"         ("-d")
      nil nil "BZh"]
-    ["\\.tgz\\'"
+    ["\\.\\(?:tgz\\|svgz\\)\\'"
      "compressing"        "gzip"         ("-c" "-q")
      "uncompressing"      "gzip"         ("-c" "-q" "-d")
      t nil "\037\213"]

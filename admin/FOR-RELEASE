@@ -38,40 +38,29 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
+** set-frame-size for frame without minibuffer loses mode line
+Probably a Windows only bug.  Reported by Drew Adams on bug-gnu-emacs on
+2007-08-07.  It seems that the bug manifests itself only if resizing the
+frame makes the menu bar wrap before.  On 2007-08-16 Glenn Morris
+reported on emacs-devel that he was not able to reproduce the bug on a
+GNU/Linux system.
+
 * BUGS
 
 NB the definitive copy of this file for Emacs 22 is on the
 EMACS_22_BASE branch.  Any entries below are automatically copied from
 that branch.  Do not make manual changes to this file on the trunk.
 
-** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
-http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
-
-** davby@ida.liu.se, 6 July: Bug in pos-visible-in-window-p
-** dak@gnu.org, 30 May: Redraw problem with overlapping frames
-
-** bojohan+news@dd.chalmers.se, 1 Aug: n_schumacher@web.de: modification hooks called only once in
-
 ** ams@gnu.org, 9 July: eshell and external commands
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00385.html
 
-** timh@insightful.com, 25 June: undigestify-rmail-message in emacs 22.1 doesn't split a digest
+** Check all non-file-scope static vars to make sure they
+won't lose on USG or HPUX systems.
 
-** andreas.roehler@online.de, 24 Jul: CVS build on Suse 10.0 failed
+* FIXES FOR EMACS 22.3
 
-** Gtk+ tool bar looses focus when pressing next tool bar button in GUD.
-http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-08/msg00008.html
-
-* FIXES FOR EMACS 22.2
-
-Here we list small fixes that arrived too late for Emacs 22.2, but
+Here we list any small fixes that arrived too late for Emacs 22.2, but
 that should be installed on the release branch after 22.2 is released.
-
-** Changes to six pbm icons in etc/images.
-Sync change from trunk 2007-05-19.
-
-** viper should not load cl at run time.
-
-** yamaoka@jpl.org's patch for mail-extract-address-components problem.
 
 * DOCUMENTATION
 

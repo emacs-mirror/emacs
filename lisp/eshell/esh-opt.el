@@ -58,6 +58,7 @@ BODY-FORMS.  If instead an external command is run, the tag
 
 Lastly, any remaining arguments will be available in a locally
 interned variable `args' (created using a `let' form)."
+  (declare (debug (form form sexp body)))
   `(let ((temp-args
 	  ,(if (memq ':preserve-args (cadr options))
 	       macro-args
@@ -101,7 +102,7 @@ This code doesn't really need to be macro expanded everywhere."
 		  nil))
 	   (error "%s" usage-msg))))
       (throw 'eshell-external
-	     (eshell-external-command ext-command args))
+             (eshell-external-command ext-command args))
     last-value))
 
 (defun eshell-show-usage (name options)

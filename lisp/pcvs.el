@@ -981,13 +981,13 @@ The files are stored to DIR."
   (interactive)
   (cvs-examine default-directory t))
 
-(defun cvs-query-directory (msg)
-  ;; last-command-char = ?\r hints that the command was run via M-x
+(defun cvs-query-directory (prompt)
+  "Read directory name, prompting with PROMPT.
+If in a *cvs* buffer, don't prompt unless a prefix argument is given."
   (if (and (cvs-buffer-p)
-	   (not current-prefix-arg)
-	   (not (eq last-command-char ?\r)))
+	   (not current-prefix-arg))
       default-directory
-    (read-directory-name msg nil default-directory nil)))
+    (read-directory-name prompt nil default-directory nil)))
 
 ;;;###autoload
 (defun cvs-quickdir (dir &optional flags noshow)
@@ -1904,7 +1904,7 @@ With prefix argument, prompt for cvs flags."
   (interactive (list (cvs-flags-query 'cvs-status-flags "cvs status flags")))
   (cvs-mode-do "status" flags nil :dont-change-disc t :show t
 	       :postproc (when (eq cvs-auto-remove-handled 'status)
-			   '((with-current-buffer ,(current-buffer)
+			   `((with-current-buffer ,(current-buffer)
 			       (cvs-mode-remove-handled))))))
 
 (defun-cvs-mode (cvs-mode-tree . SIMPLE) (flags)
@@ -2384,7 +2384,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 	      (when (and (equal (car flags) "add")
 			 (goto-char (point-min))
 			 (looking-at ".*to add this file permanently\n\\'"))
-                (dolist (file (if (listp files) files (list file)))
+                (dolist (file (if (listp files) files (list files)))
                   (insert "cvs add: scheduling file `"
                           (file-name-nondirectory file)
                           "' for addition\n")))

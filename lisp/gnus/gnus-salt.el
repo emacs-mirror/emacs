@@ -134,11 +134,10 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 (defun gnus-pick-setup-message ()
   "Make Message do the right thing on exit."
   (when (and (gnus-buffer-live-p gnus-summary-buffer)
-	     (save-excursion
-	       (set-buffer gnus-summary-buffer)
+	     (with-current-buffer gnus-summary-buffer
 	       gnus-pick-mode))
     (message-add-action
-     '(gnus-configure-windows ,gnus-current-window-configuration t)
+     `(gnus-configure-windows ,gnus-current-window-configuration t)
      'send 'exit 'postpone 'kill)))
 
 (defvar gnus-pick-line-number 1)
@@ -524,8 +523,7 @@ Two predefined functions are available:
   (interactive (list (gnus-tree-article-number)))
   (let ((buf (current-buffer)))
     (when article
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-summary-goto-article article))
       (select-window (get-buffer-window buf)))))
 
@@ -576,8 +574,7 @@ Two predefined functions are available:
 
 (defun gnus-get-tree-buffer ()
   "Return the tree buffer properly initialized."
-  (save-excursion
-    (set-buffer (gnus-get-buffer-create gnus-tree-buffer))
+  (with-current-buffer (gnus-get-buffer-create gnus-tree-buffer)
     (unless (eq major-mode 'gnus-tree-mode)
       (gnus-tree-mode))
     (current-buffer)))
@@ -662,8 +659,7 @@ Two predefined functions are available:
   "Highlight current line according to `gnus-summary-highlight'."
   (let ((list gnus-summary-highlight)
 	face)
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
+    (with-current-buffer gnus-summary-buffer
       (let* ((score (or (cdr (assq article gnus-newsgroup-scored))
 			gnus-summary-default-score 0))
 	     (default gnus-summary-default-score)
@@ -690,8 +686,7 @@ Two predefined functions are available:
 
 (defun gnus-generate-tree (thread)
   "Generate a thread tree for THREAD."
-  (save-excursion
-    (set-buffer (gnus-get-tree-buffer))
+  (with-current-buffer (gnus-get-tree-buffer)
     (let ((buffer-read-only nil)
 	  (gnus-tmp-indent 0))
       (erase-buffer)
@@ -814,14 +809,12 @@ Two predefined functions are available:
 
 (defun gnus-possibly-generate-tree (article &optional force)
   "Generate the thread tree for ARTICLE if it isn't displayed already."
-  (when (save-excursion
-	  (set-buffer gnus-summary-buffer)
+  (when (with-current-buffer gnus-summary-buffer
 	  (and gnus-use-trees
 	       gnus-show-threads
 	       (vectorp (gnus-summary-article-header article))))
     (save-excursion
-      (let ((top (save-excursion
-		   (set-buffer gnus-summary-buffer)
+      (let ((top (with-current-buffer gnus-summary-buffer
 		   (gnus-cut-thread
 		    (gnus-remove-thread
 		     (mail-header-id
@@ -843,8 +836,7 @@ Two predefined functions are available:
 (defun gnus-tree-perhaps-minimize ()
   (when (and gnus-tree-minimize-window
 	     (get-buffer gnus-tree-buffer))
-    (save-excursion
-      (set-buffer gnus-tree-buffer)
+    (with-current-buffer gnus-tree-buffer
       (gnus-tree-minimize))))
 
 (defun gnus-highlight-selected-tree (article)
@@ -871,14 +863,12 @@ Two predefined functions are available:
 	  (gnus-horizontal-recenter)
 	  (select-window selected))))
 ;; If we remove this save-excursion, it updates the wrong mode lines?!?
-    (save-excursion
-      (set-buffer gnus-tree-buffer)
+    (with-current-buffer gnus-tree-buffer
       (gnus-set-mode-line 'tree))
     (set-buffer buf)))
 
 (defun gnus-tree-highlight-article (article face)
-  (save-excursion
-    (set-buffer (gnus-get-tree-buffer))
+  (with-current-buffer (gnus-get-tree-buffer)
     (let (region)
       (when (setq region (gnus-tree-article-region article))
 	(gnus-put-text-property (car region) (cdr region) 'face face)
@@ -1013,8 +1003,7 @@ The following commands are available:
   (let ((buffer (symbol-value (intern (format "gnus-carpal-%s-buffer" type)))))
     (if (get-buffer buffer)
 	()
-      (save-excursion
-	(set-buffer (gnus-get-buffer-create buffer))
+      (with-current-buffer (gnus-get-buffer-create buffer)
 	(gnus-carpal-mode)
 	(setq gnus-carpal-attached-buffer
 	      (intern (format "gnus-%s-buffer" type)))

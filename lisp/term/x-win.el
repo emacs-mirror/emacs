@@ -2556,5 +2556,42 @@ order until succeed.")
 (and (fboundp 'menu-bar-open)
      (global-set-key [f10] 'x-menu-bar-open))
 
+(defcustom x-gtk-stock-map
+  '(
+    ("new" . "gtk-new")
+    ("open" . "gtk-open")
+    ("diropen" . "gtk-directory")
+    ("close" . "gtk-close")
+    ("save" . "gtk-save")
+    ("saveas" . "gtk-save-as")
+    ("undo" . "gtk-undo")
+    ("cut" . "gtk-cut")
+    ("copy" . "gtk-copy")
+    ("paste" . "gtk-paste")
+    ("search" . "gtk-find")
+    ("print" . "gtk-print")
+    ("preferences" . "gtk-preferences")
+    ("help" . "gtk-help")
+    ("left-arrow" . "gtk-go-back")
+    ("right-arrow" . "gtk-go-forward")
+    ("home" . "gtk-home")
+    ("jump-to" . "gtk-jump-to")
+    ("index" . "gtk-index")
+    ("search" . "gtk-find")
+    ("exit" . "gtk-quit"))
+  "How icons for tool bars are mapped to Gtk+ stock items.
+Emacs must be compiled with the Gtk+ toolkit for this to have any effect."
+  :version "23.0"
+  :type 'alist
+  :group 'x)
+
+(defun x-gtk-map-stock (file)
+  "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
+  (let ((value (and file
+		    (assoc-string (file-name-sans-extension 
+				   (file-name-nondirectory file))
+				  x-gtk-stock-map))))
+    (and value (cdr value))))
+
 ;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

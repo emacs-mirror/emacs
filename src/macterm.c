@@ -3056,10 +3056,17 @@ x_draw_composite_glyph_string_foreground (s)
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-	mac_draw_image_string_16 (s->f, s->gc,
-				  x + s->cmp->offsets[s->gidx * 2],
-				  s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-				  s->char2b + i, 1, 0, s->face->overstrike);
+	if (mac_per_char_metric (GC_FONT (s->gc), s->char2b + i, 0) == NULL)
+	  /* This is a nonexistent or zero-width glyph such as a
+	     combining diacritic.  Draw a rectangle.  */
+	  mac_draw_rectangle (s->f, s->gc,
+			      x + s->cmp->offsets[s->gidx * 2], s->y,
+			      FONT_WIDTH (GC_FONT (s->gc)) - 1, s->height - 1);
+	else
+	  mac_draw_image_string_16 (s->f, s->gc,
+				    x + s->cmp->offsets[s->gidx * 2],
+				    s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+				    s->char2b + i, 1, 0, s->face->overstrike);
     }
 }
 

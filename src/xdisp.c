@@ -18435,6 +18435,27 @@ invisible_p (propval, list)
   return 0;
 }
 
+DEFUN ("invisible-p", Finvisible_p, Sinvisible_p, 1, 1, 0,
+       doc: /* Non-nil if the property makes the text invisible.
+POS-OR-PROP can be a marker or number, in which case it is taken to be
+a position in the current buffer and the value of the `invisible' property
+is checked; or it can be some other value, which is then presumed to be the
+value of the `invisible' property of the text of interest.
+The non-nil value returned can be t for truly invisible text or something
+else if the text is replaced by an ellipsis.  */)
+     (pos_or_prop)
+     Lisp_Object pos_or_prop;
+{
+  Lisp_Object prop
+    = (NATNUMP (pos_or_prop) || MARKERP (pos_or_prop)
+       ? Fget_char_property (pos_or_prop, Qinvisible, Qnil)
+       : pos_or_prop);
+  int invis = TEXT_PROP_MEANS_INVISIBLE (prop);
+  return (invis == 0 ? Qnil
+	  : invis == 1 ? Qt
+	  : make_number (invis));
+}
+
 /* Calculate a width or height in pixels from a specification using
    the following elements:
 
@@ -23806,6 +23827,7 @@ syms_of_xdisp ()
   defsubr (&Slookup_image_map);
 #endif
   defsubr (&Sformat_mode_line);
+  defsubr (&Sinvisible_p);
 
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");

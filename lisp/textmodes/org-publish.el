@@ -8,7 +8,7 @@
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
@@ -449,6 +449,27 @@ FILENAME is the filename of the org file to be published."
       (find-file filename)
       (org-export-as-html arg nil plist)
       ;; get rid of HTML buffer
+      (kill-buffer (current-buffer)))))
+
+
+(defun org-publish-org-to-latex (plist filename)
+  "Publish an org file to LaTeX."
+  (org-publish-org-to "latex" plist filename))
+
+(defun org-publish-org-to-html (plist filename)
+  "Publish an org file to HTML."
+  (org-publish-org-to "html" plist filename))
+
+(defun org-publish-org-to (format plist filename)
+  "Publish an org file to FORMAT.
+PLIST is the property list for the given project.
+FILENAME is the filename of the org file to be published."
+  (require 'org)
+  (let* ((arg (plist-get plist :headline-levels)))
+    (progn
+      (find-file filename)
+      (funcall (intern (concat "org-export-as-" format))
+	       arg nil plist)
       (kill-buffer (current-buffer)))))
 
 

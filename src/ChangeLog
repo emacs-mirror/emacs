@@ -1,3 +1,145 @@
+2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c: Qrtl is new.
+	(parse_tool_bar_item): Handle :rtl keyword.
+	(syms_of_keyboard): Intern :rtl keyword.
+
+	* dispextern.h (enum tool_bar_item_idx): Add TOOL_BAR_ITEM_RTL_IMAGE.
+
+	* gtkutil.c (xg_tool_bar_expose_callback): Just do SET_FRAME_GARBAGED
+	so no Lisp code is executed.
+	(file_for_image, find_rtl_image): New functions.
+	(xg_get_image_for_pixmap): Use file_for_image
+	(update_frame_tool_bar): If direction is RTL, use RTL image if
+	defined.  Use Gtk stock images if defined.
+
+2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_draw_composite_glyph_string_foreground): Draw rectangle
+	for nonexistent or zero-width glyph in composition glyph.
+
+2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* m/amdx86-64.h: Redirect to intel386.h if compiling for i386.
+
+	* xdisp.c (Finvisible_p): New function.
+	(syms_of_xdisp): defsubr it.
+
+2007-08-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (syms_of_image) <image-library-alist, cross-disabled-images>:
+	Doc fixes.
+
+2007-08-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c	[MAC_OSX] (select_and_poll_event, sys_select): Fix last changes.
+
+2007-08-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* fileio.c (Finsert_file_contents): Consult CHARS_MODIFF to tell
+	whether decoding has modified buffer contents.
+
+2007-08-24  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c [HAVE_NTGUI]: Define dynamic loaded functions for SVG.
+	(Qgdk_pixbuf, Qglib) [HAVE_NTGUI]: New symbols.
+	(syms_of_image) [HAVE_NTGUI]: Intern and staticpro them.
+	(init_svg_functions) [HAVE_NTGUI]: New function.
+	(fn_g_type_init, fn_g_object_unref, fn_g_error_free): New #defines.
+	(svg_load_image): Use them.
+	(svg_load_image) [HAVE_NTGUI]: Implement background.
+
+2007-08-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (RSVG_LIBS, RSVG_CFLAGS): New variables.
+	(ALL_CFLAGS): Use ${RSVG_CFLAGS} instead of @RSVG_CFLAGS@.
+	(LIBX): Remove @RSVG_LIBS@.
+	(LIBES): Add $(RSVG_LIBS).
+
+	* image.c (svg_load_image): Blend with specified background if exists.
+	Use IMAGE_BACKGROUND.  Add Mac OS Support.
+
+	* mac.c (wakeup_from_rne_enabled_p) [MAC_OSX]: Remove variable.
+	(ENABLE_WAKEUP_FROM_RNE, DISABLE_WAKEUP_FROM_RNE) [MAC_OSX]:
+	Remove macros.
+	[MAC_OSX] (socket_callback): Do nothing.
+	[MAC_OSX] (select_and_poll_event): Use CFRunLoopRunInMode instead of
+	ReceiveNextEvent.
+	[MAC_OSX] (sys_select): Likewise.  Don't set context as argument to
+	socket_callback.
+	(mac_wakeup_from_rne) [MAC_OSX]: Do nothing.
+
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* image.c (x_find_image_file): Search in etc/images/ rather than etc/.
+
+2007-08-22  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* Makefile.in (ALL_CFLAGS, LIBX): Add RSVG_LIBS.
+
+	* image.c: Add support for SVG images.  Some additional comments
+	by Joakim Verona <joakim@verona.se>.  When HAVE_RSVG is defined:
+	(svg_image_p): New function to test for SVG image.
+	(svg_load): New function to load SVG image.
+	(svg_load_image): New function, helper for svg_load.
+	(Qsvg): New Lisp_object.
+	(svg_keyword_index): New enum.
+	(svg_format): New static `image_keyword' struct.
+	(svg_type): New static `image_type' struct.
+	(librsvg/rsvg.h): Include it.
+
+2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (load_warn_old_style_backquotes): Fix up array size typo.
+
+2007-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (Qold_style_backquotes): New var.
+	(syms_of_lread): Init and staticpro it.
+	(load_warn_old_style_backquotes): New fun.
+	(Fload): Use them to warn about old style backquotes.
+	(end_of_file_error, Fload): Remove unused vars.
+
+	* lisp.h (Fclear_face_cache, Fx_send_client_event): Declare.
+
+	* lread.c (Vold_style_backquotes): New var.
+	(syms_of_lread): Init and export it to Elisp.
+	(read1): Set it when we find an old-style (back)quote.
+
+2007-08-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32reg.c (SYSTEM_DEFAULT_RESOURCES): Add missing NULL terminator.
+
+2007-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1140000.
+
+2007-08-19  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (Ffunction, Fquote): Signal error if not 1 argument.
+
+2007-08-19  Andreas Schwab  <schwab@suse.de>
+
+	* alloc.c (pure): Round PURESIZE up.
+
+2007-08-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Remove check that mouse click is in
+	active frame.
+
+2007-08-16  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (Fcommandp): Add parens to clarify.
+
+	* minibuf.c (Fall_completions): Use enum for type of table.
+
+	* emacs.c (USAGE2): Improve text.
+
+2007-08-15  Philippe Waroquiers  <philippe.waroquiers@eurocontrol.int>
+
+	* term.c (tty_default_color_capabilities): Declare static
+	variables in file scope, to avoid HPUX compiler problem.
+
 2007-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Use -1 as index
@@ -104,7 +246,7 @@
 	(mac_valid_selection_target_p): Rename from valid_scrap_target_type_p.
 	(mac_clear_selection): Rename from clear_scrap.
 	(get_flavor_type_from_symbol): New argument SEL and subsume function of
-	scrap_has_target_type.   All uses changed.
+	scrap_has_target_type.  All uses changed.
 	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
 	(mac_selection_has_target_p): New functions.
 	(mac_put_selection_value): Rename from put_scrap_string.

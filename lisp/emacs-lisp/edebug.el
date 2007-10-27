@@ -1507,7 +1507,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 		    head (edebug-move-cursor cursor))))))
 
      ((consp head)
-      (if (eq (car head) ',)
+      (if (eq (car head) '\,)
 	  ;; The head of a form should normally be a symbol or a lambda
 	  ;; expression but it can also be an unquote form to be filled
 	  ;; before evaluation.  We evaluate the arguments anyway, on the
@@ -1664,7 +1664,7 @@ expressions; a `progn' form will be returned enclosing these forms."
      ((fboundp symbol)			; is it a predicate?
       (let ((sexp (edebug-top-element-required cursor "Expected" symbol)))
 	;; Special case for edebug-`.
-	(if (and (listp sexp) (eq (car sexp) ',))
+	(if (and (listp sexp) (eq (car sexp) '\,))
 	    (edebug-match cursor '(("," def-form)))
 	  (if (not (funcall symbol sexp))
 	      (edebug-no-match cursor symbol "failed"))
@@ -2102,8 +2102,8 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec edebug-\` (def-form))
 
 ;; Assume immediate quote in unquotes mean backquote at next higher level.
-(def-edebug-spec , (&or ("quote" edebug-\`) def-form))
-(def-edebug-spec ,@ (&define  ;; so (,@ form) is never wrapped.
+(def-edebug-spec \, (&or ("quote" edebug-\`) def-form))
+(def-edebug-spec \,@ (&define  ;; so (,@ form) is never wrapped.
 		     &or ("quote" edebug-\`) def-form))
 
 ;; New byte compiler.

@@ -907,14 +907,11 @@ If global mark is active, copy from register or one character."
 		    (setq paste-lines nil))) ;; paste all
 	    ;; Before a yank command, make sure we don't yank the
 	    ;; head of the kill-ring that really comes from the
-	    ;; currently active region we are going to delete
-	    ;; (when last-command is one that uses copy-region-as-kill
-	    ;; or kill-new).  That would make yank a no-op.
+	    ;; currently active region we are going to delete.
+	    ;; That would make yank a no-op.
 	    (if (and (string= (filter-buffer-substring (point) (mark))
 			      (car kill-ring))
-		     (memq last-command
-			   '(mouse-set-region mouse-drag-region
-			     mouse-save-then-kill mouse-secondary-save-then-kill)))
+		     (mouse-region-match))
 		(current-kill 1))
 	    (cua-delete-region)))
       (cond
@@ -1601,22 +1598,6 @@ shifted movement key, set `cua-highlight-region-shift-only'."
   (interactive)
   (setq cua--debug (not cua--debug)))
 
-;; Install run-time check for older versions of CUA-mode which does not
-;; work with GNU Emacs version 22.1 and newer.
-;;
-;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
-;; provided the `CUA-mode' feature.  Since this is no longer true,
-;; we can warn the user if the `CUA-mode' feature is ever provided.
-
-;;;###autoload (eval-after-load 'CUA-mode
-;;;###autoload  '(error (concat "\n\n"
-;;;###autoload  "CUA-mode is now part of the standard GNU Emacs distribution, so you may\n"
-;;;###autoload  "now enable CUA via the Options menu or by customizing option `cua-mode'.\n\n"
-;;;###autoload  "You have loaded an older version of CUA-mode which does\n"
-;;;###autoload  "not work correctly with this version of GNU Emacs.\n\n"
-;;;###autoload  (if user-init-file (concat
-;;;###autoload  "To correct this, remove the loading and customization of the\n"
-;;;###autoload  "old version from the " user-init-file " file.\n\n")))))
 
 (provide 'cua)
 

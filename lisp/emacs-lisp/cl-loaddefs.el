@@ -283,53 +283,53 @@ Not documented
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
 ;;;;;;  defmacro* defun* gentemp gensym cl-compile-time-init) "cl-macs"
-;;;;;;  "cl-macs.el" "d9759da97810bc01423e77442b459468")
+;;;;;;  "cl-macs.el" "d1c9f68f599fbec644a06dd5cf520fb5")
 ;;; Generated autoloads from cl-macs.el
 
-(autoload (quote cl-compile-time-init) "cl-macs" "\
+(autoload 'cl-compile-time-init "cl-macs" "\
 Not documented
 
 \(fn)" nil nil)
 
-(autoload (quote gensym) "cl-macs" "\
+(autoload 'gensym "cl-macs" "\
 Generate a new uninterned symbol.
 The name is made by appending a number to PREFIX, default \"G\".
 
 \(fn &optional PREFIX)" nil nil)
 
-(autoload (quote gentemp) "cl-macs" "\
+(autoload 'gentemp "cl-macs" "\
 Generate a new interned symbol with a unique name.
 The name is made by appending a number to PREFIX, default \"G\".
 
 \(fn &optional PREFIX)" nil nil)
 
-(autoload (quote defun*) "cl-macs" "\
+(autoload 'defun* "cl-macs" "\
 Define NAME as a function.
 Like normal `defun', except ARGLIST allows full Common Lisp conventions,
 and BODY is implicitly surrounded by (block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)" nil (quote macro))
 
-(autoload (quote defmacro*) "cl-macs" "\
+(autoload 'defmacro* "cl-macs" "\
 Define NAME as a macro.
 Like normal `defmacro', except ARGLIST allows full Common Lisp conventions,
 and BODY is implicitly surrounded by (block NAME ...).
 
 \(fn NAME ARGLIST [DOCSTRING] BODY...)" nil (quote macro))
 
-(autoload (quote function*) "cl-macs" "\
+(autoload 'function* "cl-macs" "\
 Introduce a function.
 Like normal `function', except that if argument is a lambda form,
 its argument list allows full Common Lisp conventions.
 
 \(fn FUNC)" nil (quote macro))
 
-(autoload (quote destructuring-bind) "cl-macs" "\
+(autoload 'destructuring-bind "cl-macs" "\
 Not documented
 
 \(fn ARGS EXPR &rest BODY)" nil (quote macro))
 
-(autoload (quote eval-when) "cl-macs" "\
+(autoload 'eval-when "cl-macs" "\
 Control when BODY is evaluated.
 If `compile' is in WHEN, BODY is evaluated when compiled at top-level.
 If `load' is in WHEN, BODY is evaluated when loaded after top-level compile.
@@ -337,13 +337,13 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 
 \(fn (WHEN...) BODY...)" nil (quote macro))
 
-(autoload (quote load-time-value) "cl-macs" "\
+(autoload 'load-time-value "cl-macs" "\
 Like `progn', but evaluates the body at load time.
 The result of the body appears to the compiler as a quoted constant.
 
 \(fn FORM &optional READ-ONLY)" nil (quote macro))
 
-(autoload (quote case) "cl-macs" "\
+(autoload 'case "cl-macs" "\
 Eval EXPR and choose among clauses on that value.
 Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and compared
 against each key in each KEYLIST; the corresponding BODY is evaluated.
@@ -354,13 +354,13 @@ Key values are compared by `eql'.
 
 \(fn EXPR (KEYLIST BODY...)...)" nil (quote macro))
 
-(autoload (quote ecase) "cl-macs" "\
+(autoload 'ecase "cl-macs" "\
 Like `case', but error if no case fits.
 `otherwise'-clauses are not allowed.
 
 \(fn EXPR (KEYLIST BODY...)...)" nil (quote macro))
 
-(autoload (quote typecase) "cl-macs" "\
+(autoload 'typecase "cl-macs" "\
 Evals EXPR, chooses among clauses on that value.
 Each clause looks like (TYPE BODY...).  EXPR is evaluated and, if it
 satisfies TYPE, the corresponding BODY is evaluated.  If no clause succeeds,
@@ -369,13 +369,13 @@ final clause, and matches if no other keys match.
 
 \(fn EXPR (TYPE BODY...)...)" nil (quote macro))
 
-(autoload (quote etypecase) "cl-macs" "\
+(autoload 'etypecase "cl-macs" "\
 Like `typecase', but error if no case fits.
 `otherwise'-clauses are not allowed.
 
 \(fn EXPR (TYPE BODY...)...)" nil (quote macro))
 
-(autoload (quote block) "cl-macs" "\
+(autoload 'block "cl-macs" "\
 Define a lexically-scoped block named NAME.
 NAME may be any symbol.  Code inside the BODY forms can call `return-from'
 to jump prematurely out of the block.  This differs from `catch' and `throw'
@@ -387,13 +387,13 @@ called from BODY.
 
 \(fn NAME &rest BODY)" nil (quote macro))
 
-(autoload (quote return) "cl-macs" "\
+(autoload 'return "cl-macs" "\
 Return from the block named nil.
 This is equivalent to `(return-from nil RESULT)'.
 
 \(fn &optional RESULT)" nil (quote macro))
 
-(autoload (quote return-from) "cl-macs" "\
+(autoload 'return-from "cl-macs" "\
 Return from the block named NAME.
 This jump out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
@@ -402,7 +402,7 @@ This is compatible with Common Lisp, but note that `defun' and
 
 \(fn NAME &optional RESULT)" nil (quote macro))
 
-(autoload (quote loop) "cl-macs" "\
+(autoload 'loop "cl-macs" "\
 The Common Lisp `loop' macro.
 Valid clauses are:
   for VAR from/upfrom/downfrom NUM to/upto/downto/above/below NUM by NUM,
@@ -418,24 +418,24 @@ Valid clauses are:
 
 \(fn CLAUSE...)" nil (quote macro))
 
-(autoload (quote do) "cl-macs" "\
+(autoload 'do "cl-macs" "\
 The Common Lisp `do' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)" nil (quote macro))
 
-(autoload (quote do*) "cl-macs" "\
+(autoload 'do* "cl-macs" "\
 The Common Lisp `do*' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)" nil (quote macro))
 
-(autoload (quote dolist) "cl-macs" "\
+(autoload 'dolist "cl-macs" "\
 Loop over a list.
 Evaluate BODY with VAR bound to each `car' from LIST, in turn.
 Then evaluate RESULT to get return value, default nil.
 
 \(fn (VAR LIST [RESULT]) BODY...)" nil (quote macro))
 
-(autoload (quote dotimes) "cl-macs" "\
+(autoload 'dotimes "cl-macs" "\
 Loop a certain number of times.
 Evaluate BODY with VAR bound to successive integers from 0, inclusive,
 to COUNT, exclusive.  Then evaluate RESULT to get return value, default
@@ -443,26 +443,26 @@ nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)" nil (quote macro))
 
-(autoload (quote do-symbols) "cl-macs" "\
+(autoload 'do-symbols "cl-macs" "\
 Loop over all symbols.
 Evaluate BODY with VAR bound to each interned symbol, or to each symbol
 from OBARRAY.
 
 \(fn (VAR [OBARRAY [RESULT]]) BODY...)" nil (quote macro))
 
-(autoload (quote do-all-symbols) "cl-macs" "\
+(autoload 'do-all-symbols "cl-macs" "\
 Not documented
 
 \(fn SPEC &rest BODY)" nil (quote macro))
 
-(autoload (quote psetq) "cl-macs" "\
+(autoload 'psetq "cl-macs" "\
 Set SYMs to the values VALs in parallel.
 This is like `setq', except that all VAL forms are evaluated (in order)
 before assigning any symbols SYM to the corresponding values.
 
 \(fn SYM VAL SYM VAL ...)" nil (quote macro))
 
-(autoload (quote progv) "cl-macs" "\
+(autoload 'progv "cl-macs" "\
 Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
 Each symbol in the first list is bound to the corresponding value in the
@@ -472,7 +472,7 @@ a `let' form, except that the list of symbols can be computed at run-time.
 
 \(fn SYMBOLS VALUES &rest BODY)" nil (quote macro))
 
-(autoload (quote flet) "cl-macs" "\
+(autoload 'flet "cl-macs" "\
 Make temporary function definitions.
 This is an analogue of `let' that operates on the function cell of FUNC
 rather than its value cell.  The FORMs are evaluated with the specified
@@ -481,41 +481,41 @@ go back to their previous definitions, or lack thereof).
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil (quote macro))
 
-(autoload (quote labels) "cl-macs" "\
+(autoload 'labels "cl-macs" "\
 Make temporary function bindings.
 This is like `flet', except the bindings are lexical instead of dynamic.
 Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)" nil (quote macro))
 
-(autoload (quote macrolet) "cl-macs" "\
+(autoload 'macrolet "cl-macs" "\
 Make temporary macro definitions.
 This is like `flet', but for macros instead of functions.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)" nil (quote macro))
 
-(autoload (quote symbol-macrolet) "cl-macs" "\
+(autoload 'symbol-macrolet "cl-macs" "\
 Make symbol macro definitions.
 Within the body FORMs, references to the variable NAME will be replaced
 by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 
 \(fn ((NAME EXPANSION) ...) FORM...)" nil (quote macro))
 
-(autoload (quote lexical-let) "cl-macs" "\
+(autoload 'lexical-let "cl-macs" "\
 Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
 
 \(fn VARLIST BODY)" nil (quote macro))
 
-(autoload (quote lexical-let*) "cl-macs" "\
+(autoload 'lexical-let* "cl-macs" "\
 Like `let*', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
 
 \(fn VARLIST BODY)" nil (quote macro))
 
-(autoload (quote multiple-value-bind) "cl-macs" "\
+(autoload 'multiple-value-bind "cl-macs" "\
 Collect multiple return values.
 FORM must return a list; the BODY is then executed with the first N elements
 of this list bound (`let'-style) to each of the symbols SYM in turn.  This
@@ -525,7 +525,7 @@ a synonym for (list A B C).
 
 \(fn (SYM...) FORM BODY)" nil (quote macro))
 
-(autoload (quote multiple-value-setq) "cl-macs" "\
+(autoload 'multiple-value-setq "cl-macs" "\
 Collect multiple return values.
 FORM must return a list; the first N elements of this list are stored in
 each of the symbols SYM in turn.  This is analogous to the Common Lisp
@@ -534,22 +534,22 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
 \(fn (SYM...) FORM)" nil (quote macro))
 
-(autoload (quote locally) "cl-macs" "\
+(autoload 'locally "cl-macs" "\
 Not documented
 
 \(fn &rest BODY)" nil (quote macro))
 
-(autoload (quote the) "cl-macs" "\
+(autoload 'the "cl-macs" "\
 Not documented
 
 \(fn TYPE FORM)" nil (quote macro))
 
-(autoload (quote declare) "cl-macs" "\
+(autoload 'declare "cl-macs" "\
 Not documented
 
 \(fn &rest SPECS)" nil (quote macro))
 
-(autoload (quote define-setf-method) "cl-macs" "\
+(autoload 'define-setf-method "cl-macs" "\
 Define a `setf' method.
 This method shows how to handle `setf's to places of the form (NAME ARGS...).
 The argument forms ARGS are bound according to ARGLIST, as if NAME were
@@ -560,7 +560,7 @@ form.  See `defsetf' for a simpler way to define most setf-methods.
 
 \(fn NAME ARGLIST BODY...)" nil (quote macro))
 
-(autoload (quote defsetf) "cl-macs" "\
+(autoload 'defsetf "cl-macs" "\
 Define a `setf' method.
 This macro is an easy-to-use substitute for `define-setf-method' that works
 well for simple place forms.  In the simple `defsetf' form, `setf's of
@@ -581,14 +581,14 @@ Example:
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])" nil (quote macro))
 
-(autoload (quote get-setf-method) "cl-macs" "\
+(autoload 'get-setf-method "cl-macs" "\
 Return a list of five values describing the setf-method for PLACE.
 PLACE may be any Lisp form which can appear as the PLACE argument to
 a macro like `setf' or `incf'.
 
 \(fn PLACE &optional ENV)" nil nil)
 
-(autoload (quote setf) "cl-macs" "\
+(autoload 'setf "cl-macs" "\
 Set each PLACE to the value of its VAL.
 This is a generalized version of `setq'; the PLACEs may be symbolic
 references such as (car x) or (aref x i), as well as plain symbols.
@@ -597,40 +597,40 @@ The return value is the last VAL in the list.
 
 \(fn PLACE VAL PLACE VAL ...)" nil (quote macro))
 
-(autoload (quote psetf) "cl-macs" "\
+(autoload 'psetf "cl-macs" "\
 Set PLACEs to the values VALs in parallel.
 This is like `setf', except that all VAL forms are evaluated (in order)
 before assigning any PLACEs to the corresponding values.
 
 \(fn PLACE VAL PLACE VAL ...)" nil (quote macro))
 
-(autoload (quote cl-do-pop) "cl-macs" "\
+(autoload 'cl-do-pop "cl-macs" "\
 Not documented
 
 \(fn PLACE)" nil nil)
 
-(autoload (quote remf) "cl-macs" "\
+(autoload 'remf "cl-macs" "\
 Remove TAG from property list PLACE.
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The form returns true if TAG was found and removed, nil otherwise.
 
 \(fn PLACE TAG)" nil (quote macro))
 
-(autoload (quote shiftf) "cl-macs" "\
+(autoload 'shiftf "cl-macs" "\
 Shift left among PLACEs.
 Example: (shiftf A B C) sets A to B, B to C, and returns the old A.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
 \(fn PLACE... VAL)" nil (quote macro))
 
-(autoload (quote rotatef) "cl-macs" "\
+(autoload 'rotatef "cl-macs" "\
 Rotate left among PLACEs.
 Example: (rotatef A B C) sets A to B, B to C, and C to A.  It returns nil.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
 \(fn PLACE...)" nil (quote macro))
 
-(autoload (quote letf) "cl-macs" "\
+(autoload 'letf "cl-macs" "\
 Temporarily bind to PLACEs.
 This is the analogue of `let', but with generalized variables (in the
 sense of `setf') for the PLACEs.  Each PLACE is set to the corresponding
@@ -642,7 +642,7 @@ the PLACE is not modified before executing BODY.
 
 \(fn ((PLACE VALUE) ...) BODY...)" nil (quote macro))
 
-(autoload (quote letf*) "cl-macs" "\
+(autoload 'letf* "cl-macs" "\
 Temporarily bind to PLACEs.
 This is the analogue of `let*', but with generalized variables (in the
 sense of `setf') for the PLACEs.  Each PLACE is set to the corresponding
@@ -654,27 +654,27 @@ the PLACE is not modified before executing BODY.
 
 \(fn ((PLACE VALUE) ...) BODY...)" nil (quote macro))
 
-(autoload (quote callf) "cl-macs" "\
+(autoload 'callf "cl-macs" "\
 Set PLACE to (FUNC PLACE ARGS...).
 FUNC should be an unquoted function name.  PLACE may be a symbol,
 or any generalized variable allowed by `setf'.
 
 \(fn FUNC PLACE ARGS...)" nil (quote macro))
 
-(autoload (quote callf2) "cl-macs" "\
+(autoload 'callf2 "cl-macs" "\
 Set PLACE to (FUNC ARG1 PLACE ARGS...).
 Like `callf', but PLACE is the second argument of FUNC, not the first.
 
 \(fn FUNC ARG1 PLACE ARGS...)" nil (quote macro))
 
-(autoload (quote define-modify-macro) "cl-macs" "\
+(autoload 'define-modify-macro "cl-macs" "\
 Define a `setf'-like modify macro.
 If NAME is called, it combines its PLACE argument with the other arguments
 from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)
 
 \(fn NAME ARGLIST FUNC &optional DOC)" nil (quote macro))
 
-(autoload (quote defstruct) "cl-macs" "\
+(autoload 'defstruct "cl-macs" "\
 Define a struct type.
 This macro defines a new Lisp data type called NAME, which contains data
 stored in SLOTs.  This defines a `make-NAME' constructor, a `copy-NAME'
@@ -682,24 +682,24 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 
 \(fn (NAME OPTIONS...) (SLOT SLOT-OPTS...)...)" nil (quote macro))
 
-(autoload (quote cl-struct-setf-expander) "cl-macs" "\
+(autoload 'cl-struct-setf-expander "cl-macs" "\
 Not documented
 
 \(fn X NAME ACCESSOR PRED-FORM POS)" nil nil)
 
-(autoload (quote typep) "cl-macs" "\
+(autoload 'typep "cl-macs" "\
 Check that OBJECT is of type TYPE.
 TYPE is a Common Lisp-style type specifier.
 
 \(fn OBJECT TYPE)" nil nil)
 
-(autoload (quote check-type) "cl-macs" "\
+(autoload 'check-type "cl-macs" "\
 Verify that FORM is of type TYPE; signal an error if not.
 STRING is an optional description of the desired type.
 
 \(fn FORM TYPE &optional STRING)" nil (quote macro))
 
-(autoload (quote assert) "cl-macs" "\
+(autoload 'assert "cl-macs" "\
 Verify that FORM returns non-nil; signal an error if not.
 Second arg SHOW-ARGS means to include arguments of FORM in message.
 Other args STRING and ARGS... are arguments to be passed to `error'.
@@ -708,13 +708,13 @@ omitted, a default message listing FORM itself is used.
 
 \(fn FORM &optional SHOW-ARGS STRING &rest ARGS)" nil (quote macro))
 
-(autoload (quote ignore-errors) "cl-macs" "\
+(autoload 'ignore-errors "cl-macs" "\
 Execute BODY; if an error occurs, return nil.
 Otherwise, return result of last form in BODY.
 
 \(fn &rest BODY)" nil (quote macro))
 
-(autoload (quote define-compiler-macro) "cl-macs" "\
+(autoload 'define-compiler-macro "cl-macs" "\
 Define a compiler-only macro.
 This is like `defmacro', but macro expansion occurs only if the call to
 FUNC is compiled (i.e., not interpreted).  Compiler macros should be used
@@ -728,7 +728,7 @@ and then returning foo.
 
 \(fn FUNC ARGS &rest BODY)" nil (quote macro))
 
-(autoload (quote compiler-macroexpand) "cl-macs" "\
+(autoload 'compiler-macroexpand "cl-macs" "\
 Not documented
 
 \(fn FORM)" nil nil)

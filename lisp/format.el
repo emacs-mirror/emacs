@@ -145,7 +145,7 @@ MODE-FN, if specified, is called when visiting a file with that format.
          that this would turn on some minor mode.
 
 PRESERVE, if non-nil, means that `format-write-file' should not remove
-          this format from `buffer-file-formats'.")
+          this format from `buffer-file-format'.")
 
 ;;; Basic Functions (called from Lisp)
 

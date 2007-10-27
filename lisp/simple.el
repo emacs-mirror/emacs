@@ -3639,15 +3639,6 @@ Outline mode sets this."
   :type 'boolean
   :group 'editing-basics)
 
-(defun line-move-invisible-p (pos)
-  "Return non-nil if the character after POS is currently invisible."
-  (let ((prop
-	 (get-char-property pos 'invisible)))
-    (if (eq buffer-invisibility-spec t)
-	prop
-      (or (memq prop buffer-invisibility-spec)
-	  (assq prop buffer-invisibility-spec)))))
-
 ;; Returns non-nil if partial move was done.
 (defun line-move-partial (arg noerror to-end)
   (if (< arg 0)
@@ -3767,7 +3758,7 @@ Outline mode sets this."
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
-		(while (and (not (eobp)) (line-move-invisible-p (point)))
+		(while (and (not (eobp)) (invisible-p (point)))
 		  (goto-char (next-char-property-change (point))))
 		;; Move a line.
 		;; We don't use `end-of-line', since we want to escape
@@ -3785,7 +3776,7 @@ Outline mode sets this."
 		    (setq done t)))
 		 ((and (> arg 1)  ;; Use vertical-motion for last move
 		       (not (integerp selective-display))
-		       (not (line-move-invisible-p (point))))
+		       (not (invisible-p (point))))
 		  ;; We avoid vertical-motion when possible
 		  ;; because that has to fontify.
 		  (forward-line 1))
@@ -3814,7 +3805,7 @@ Outline mode sets this."
 		    (setq done t)))
 		 ((and (< arg -1) ;; Use vertical-motion for last move
 		       (not (integerp selective-display))
-		       (not (line-move-invisible-p (1- (point)))))
+		       (not (invisible-p (1- (point)))))
 		  (forward-line -1))
 		 ((zerop (vertical-motion -1))
 		  (if (not noerror)
@@ -3826,7 +3817,7 @@ Outline mode sets this."
 			  ;; if our target is the middle of this line.
 			  (or (zerop (or goal-column temporary-goal-column))
 			      (< arg 0))
-			  (not (bobp)) (line-move-invisible-p (1- (point))))
+			  (not (bobp)) (invisible-p (1- (point))))
 		    (goto-char (previous-char-property-change (point))))))))
 	  ;; This is the value the function returns.
 	  (= arg 0))
@@ -3858,7 +3849,7 @@ Outline mode sets this."
 	     (save-excursion
 	       ;; Like end-of-line but ignores fields.
 	       (skip-chars-forward "^\n")
-	       (while (and (not (eobp)) (line-move-invisible-p (point)))
+	       (while (and (not (eobp)) (invisible-p (point)))
 		 (goto-char (next-char-property-change (point)))
 		 (skip-chars-forward "^\n"))
 	       (point))))
@@ -3941,13 +3932,13 @@ and `current-column' to be able to ignore invisible text."
     (move-to-column col))
 
   (when (and line-move-ignore-invisible
-	     (not (bolp)) (line-move-invisible-p (1- (point))))
+	     (not (bolp)) (invisible-p (1- (point))))
     (let ((normal-location (point))
 	  (normal-column (current-column)))
       ;; If the following character is currently invisible,
       ;; skip all characters with that same `invisible' property value.
       (while (and (not (eobp))
-		  (line-move-invisible-p (point)))
+		  (invisible-p (point)))
 	(goto-char (next-char-property-change (point))))
       ;; Have we advanced to a larger column position?
       (if (> (current-column) normal-column)
@@ -3960,7 +3951,7 @@ and `current-column' to be able to ignore invisible text."
 	;; but with a more reasonable buffer position.
 	(goto-char normal-location)
 	(let ((line-beg (save-excursion (beginning-of-line) (point))))
-	  (while (and (not (bolp)) (line-move-invisible-p (1- (point))))
+	  (while (and (not (bolp)) (invisible-p (1- (point))))
 	    (goto-char (previous-char-property-change (point) line-beg))))))))
 
 (defun move-end-of-line (arg)
@@ -3981,7 +3972,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 		 (and (line-move arg t)
 		      (not (bobp))
 		      (progn
-			(while (and (not (bobp)) (line-move-invisible-p (1- (point))))
+			(while (and (not (bobp)) (invisible-p (1- (point))))
 			  (goto-char (previous-char-property-change (point))))
 			(backward-char 1)))
 		 (point)))))
@@ -4017,13 +4008,13 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 
     ;; Move to beginning-of-line, ignoring fields and invisibles.
     (skip-chars-backward "^\n")
-    (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
+    (while (and (not (bobp)) (invisible-p (1- (point))))
       (goto-char (previous-char-property-change (point)))
       (skip-chars-backward "^\n"))
     (setq start (point))
 
     ;; Now find first visible char in the line
-    (while (and (not (eobp)) (line-move-invisible-p (point)))
+    (while (and (not (eobp)) (invisible-p (point)))
       (goto-char (next-char-property-change (point))))
     (setq first-vis (point))
 
@@ -5796,6 +5787,57 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 ;  (list 'modification-hooks '(minibuffer-prompt-modification)
 ;	'insert-in-front-hooks '(minibuffer-prompt-insertion)))
 ;
+
+
+;;;; Problematic external packages.
+
+;; rms says this should be done by specifying symbols that define
+;; versions together with bad values.  This is therefore not as
+;; flexible as it could be.  See the thread:
+;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00300.html
+(defconst bad-packages-alist
+  ;; Not sure exactly which semantic versions have problems.
+  ;; Definitely 2.0pre3, probably all 2.0pre's before this.
+  '((semantic semantic-version "2\\.0pre[1-3]"
+              "The version of `semantic' loaded does not work in Emacs 22.
+It can cause constant high CPU load.  Upgrade to at least 2.0pre4.")
+    ;; CUA-mode does not work with GNU Emacs version 22.1 and newer.
+    ;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
+    ;; provided the `CUA-mode' feature.  Since this is no longer true,
+    ;; we can warn the user if the `CUA-mode' feature is ever provided.
+    (CUA-mode t nil
+"CUA-mode is now part of the standard GNU Emacs distribution,
+so you can now enable CUA via the Options menu or by customizing `cua-mode'.
+
+You have loaded an older version of CUA-mode which does not work
+correctly with this version of Emacs.  You should remove the old
+version and use the one distributed with Emacs."))
+  "Alist of packages known to cause problems in this version of Emacs.
+Each element has the form (PACKAGE SYMBOL REGEXP STRING).
+PACKAGE is either a regular expression to match file names, or a
+symbol (a feature name); see the documentation of
+`after-load-alist', to which this variable adds functions.
+SYMBOL is either the name of a string variable, or `t'.  Upon
+loading PACKAGE, if SYMBOL is t or matches REGEXP, display a
+warning using STRING as the message.")
+
+(defun bad-package-check (package)
+  "Run a check using the element from `bad-packages-alist' matching PACKAGE."
+  (condition-case nil
+      (let* ((list (assoc package bad-packages-alist))
+             (symbol (nth 1 list)))
+        (and list
+             (boundp symbol)
+             (or (eq symbol t)
+                 (and (stringp (setq symbol (eval symbol)))
+                      (string-match (nth 2 list) symbol)))
+             (display-warning :warning (nth 3 list))))
+    (error nil)))
+
+(mapc (lambda (elem)
+        (eval-after-load (car elem) `(bad-package-check ',(car elem))))
+      bad-packages-alist)
+
 
 (provide 'simple)
 

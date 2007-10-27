@@ -1791,19 +1791,19 @@ Currently the `mailto' scheme is supported."
 
 (define-key mac-apple-event-map [internet-event get-url] 'mac-ae-get-url)
 
-(define-key mac-apple-event-map [hi-command about] 'display-splash-screen)
+(define-key mac-apple-event-map [hi-command about] 'about-emacs)
 
 ;;; Converted Carbon Events
 (defun mac-handle-toolbar-switch-mode (event)
   "Toggle visibility of tool-bars in response to EVENT.
 With no keyboard modifiers, it toggles the visibility of the
 frame where the tool-bar toggle button was pressed.  With some
-modifiers, it changes global tool-bar visibility setting."
+modifiers, it changes the global tool-bar visibility setting."
   (interactive "e")
   (let ((ae (mac-event-ae event)))
     (if (mac-ae-keyboard-modifiers ae)
 	;; Globally toggle tool-bar-mode if some modifier key is pressed.
-	(tool-bar-mode)
+	(tool-bar-mode 'toggle)
       (let ((frame (mac-ae-frame ae)))
 	(set-frame-parameter frame 'tool-bar-lines
 			     (if (= (frame-parameter frame 'tool-bar-lines) 0)

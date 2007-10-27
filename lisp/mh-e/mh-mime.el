@@ -60,6 +60,8 @@
 (autoload 'mail-decode-encoded-word-string "mail-parse")
 (autoload 'mail-header-parse-content-type "mail-parse")
 (autoload 'mail-header-strip "mail-parse")
+(autoload 'message-options-get "message")
+(autoload 'message-options-set "message")
 (autoload 'message-options-set-recipient "message")
 (autoload 'mm-decode-body "mm-bodies")
 (autoload 'mm-uu-dissect "mm-uu")
@@ -1220,16 +1222,11 @@ MESSAGE number."
                  mh-sent-from-msg
                (string-to-number message))))
     (cond ((integerp msg)
-           (if (string= "" description)
-               ;; Rationale: mml-attach-file constructs a malformed composition
-               ;; if the description string is empty.  This fixes SF #625168.
-               (mml-attach-file (format "%s%s/%d"
-                                        mh-user-path (substring folder 1) msg)
-                                "message/rfc822")
-             (mml-attach-file (format "%s%s/%d"
-                                      mh-user-path (substring folder 1) msg)
-                              "message/rfc822"
-                              description)))
+           (mml-attach-file (format "%s%s/%d"
+                                    mh-user-path (substring folder 1) msg)
+                            "message/rfc822"
+                            (if (string= "" description) nil description)
+                            "inline"))
           (t (error "The message number, %s, is not a integer" msg)))))
 
 (defun mh-mh-forward-message (&optional description folder messages)
@@ -1621,8 +1618,22 @@ encoding if you wish by running this command.
 This action can be undone by running \\[undo]."
   (interactive)
   (require 'message)
-  (when mh-pgp-support-flag ;; This is only needed for PGP
-    (message-options-set-recipient))
+  (when mh-pgp-support-flag
+    ;; PGP requires actual e-mail addresses, not aliases.
+    ;; Parse the recipients and sender from the message
+    (message-options-set-recipient)
+    ;; Do an alias lookup on sender
+    (message-options-set 'message-sender
+                     (mail-strip-quoted-names
+                      (mh-alias-expand
+                       (message-options-get 'message-sender))))
+    ;; Do an alias lookup on recipients
+    (message-options-set 'message-recipients
+                         (mapconcat
+                          '(lambda (ali)
+                             (mail-strip-quoted-names (mh-alias-expand ali)))
+                          (split-string (message-options-get 'message-recipients) "[, ]+")
+                          ", ")))
   (let ((saved-text (buffer-string))
         (buffer (current-buffer))
         (modified-flag (buffer-modified-p)))

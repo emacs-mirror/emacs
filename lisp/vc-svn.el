@@ -399,6 +399,17 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SVN between two versions of fileset FILES."
+  (and oldvers
+       (catch 'no
+	 (dolist (f files)
+	   (or (equal oldvers (vc-workfile-version f))
+	       (throw 'no nil)))
+	 t)
+       ;; Use nil rather than the current revision because svn handles
+       ;; it better (i.e. locally).  Note that if _any_ of the files
+       ;; has a different revision, we fetch the lot, which is
+       ;; obviously sub-optimal.
+       (setq oldvers nil))
   (let* ((switches
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)

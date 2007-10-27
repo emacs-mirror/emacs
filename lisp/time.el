@@ -25,7 +25,10 @@
 ;;; Commentary:
 
 ;; Facilities to display current time/date and a new-mail indicator
-;; in the Emacs mode line.  The single entry point is `display-time'.
+;; in the Emacs mode line.  The entry point is `display-time'.
+
+;; Display time world in a buffer, the entry point is
+;; `display-time-world'.
 
 ;;; Code:
 
@@ -108,6 +111,51 @@ A value of nil means 1 <= hh <= 12, and an AM/PM suffix is used."
 (defvar display-time-server-down-time nil
    "Time when mail file's file system was recorded to be down.
 If that file system seems to be up, the value is nil.")
+
+(defcustom display-time-world-list
+  '(("America/Los_Angeles" "Seattle")
+    ("America/New_York" "New York")
+    ("Europe/London" "London")
+    ("Europe/Paris" "Paris")
+    ("Asia/Calcutta" "Bangalore")
+    ("Asia/Tokyo" "Tokyo"))
+  "Alist specifying time zones and places for `display-time-world'.
+Each element has the form (TIMEZONE LABEL).
+TIMEZONE should be a valid argument for `set-time-zone-rule'.
+LABEL is a string to display to label that zone's time."
+  :group 'display-time
+  :type '(repeat (list string string))
+  :version "23.1")
+
+(defcustom display-time-world-time-format "%A %m %B %R %Z"
+  "Format of the time displayed, see `format-time-string'."
+  :group 'display-time
+  :type 'string
+  :version "23.1")
+
+(defcustom display-time-world-buffer-name "*wclock*"
+  "Name of the wclock buffer."
+  :group 'display-time
+  :type 'string
+  :version "23.1")
+
+(defcustom display-time-world-timer-enable t
+  "If non-nil, a timer will update the world clock."
+  :group 'display-time
+  :type 'boolean
+  :version "23.1")
+
+(defcustom display-time-world-timer-second 60
+  "Interval in seconds for updating the world clock."
+  :group 'display-time
+  :type 'integer
+  :version "23.1")
+
+(defvar display-time-world-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "q" 'kill-this-buffer)
+    map)
+  "Keymap of Display Time World mode")
 
 ;;;###autoload
 (defun display-time ()
@@ -392,6 +440,69 @@ This runs the normal hook `display-time-hook' after each update."
 		  'display-time-event-handler))
     (remove-hook 'rmail-after-get-new-mail-hook
 		 'display-time-event-handler)))
+
+
+(defun display-time-world-mode ()
+  "Major mode for buffer that displays times in various time zones.
+See `display-time-world'."
+  (interactive)
+  (kill-all-local-variables)
+  (setq
+   major-mode 'display-time-world-mode
+   mode-name "World clock")
+  (use-local-map display-time-world-mode-map))
+
+(defun display-time-world-display (alist)
+  "Replace current buffer text with times in various zones, based on ALIST."
+  (let ((inhibit-read-only t)
+	(buffer-undo-list t))
+    (erase-buffer)
+    (let ((max-width 0)
+	  (result ()))
+      (unwind-protect
+	  (dolist (zone alist)
+	    (let* ((label (cadr zone))
+		   (width (string-width label)))
+	      (set-time-zone-rule (car zone))
+	      (setq result
+		    (append result
+			    (list
+			     label width
+			     (format-time-string display-time-world-time-format))))
+	      (when (> width max-width)
+		(setq max-width width))))
+	(set-time-zone-rule nil))
+      (while result
+	(insert (pop result)
+		(make-string (1+ (- max-width (pop result))) ?\s)
+		(pop result) "\n")))
+    (delete-backward-char 1)))
+
+;;;###autoload
+(defun display-time-world ()
+  "Enable updating display of times in various time zones.
+`display-time-world-list' specifies the zones.
+To turn off the world time display, go to that window and type `q'."
+  (interactive)
+  (when (and display-time-world-timer-enable
+             (not (get-buffer display-time-world-buffer-name)))
+    (run-at-time t display-time-world-timer-second 'display-time-world-timer))
+  (with-current-buffer (get-buffer-create display-time-world-buffer-name)
+    (display-time-world-display display-time-world-list))
+  (pop-to-buffer display-time-world-buffer-name)
+  (fit-window-to-buffer)
+  (display-time-world-mode))
+
+(defun display-time-world-timer ()
+  (if (get-buffer display-time-world-buffer-name)
+      (with-current-buffer (get-buffer display-time-world-buffer-name)
+        (display-time-world-display display-time-world-list))
+    ;; cancel timer
+    (let ((list timer-list))
+      (while list
+        (let ((elt (pop list)))
+          (when (equal (symbol-name (aref elt 5)) "display-time-world-timer")
+            (cancel-timer elt)))))))
 
 (provide 'time)
 

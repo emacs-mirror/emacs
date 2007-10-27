@@ -136,6 +136,10 @@ Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
 (defvar mh-annotate-field nil
   "Field name for message annotation.")
 
+(defvar mh-annotate-list nil
+  "Messages annotated, either a sequence name or a list of message numbers.
+This variable can be used by `mh-annotate-msg-hook'.")
+
 (defvar mh-insert-auto-fields-done-local nil
   "Buffer-local variable set when `mh-insert-auto-fields' called successfully.")
 (make-variable-buffer-local 'mh-insert-auto-fields-done-local)
@@ -497,7 +501,9 @@ See also `mh-compose-forward-as-mime-flag',
                   (dolist (msg msgs)
                     (setq i (1+ i))
                     (mh-mml-forward-message (format description i)
-                                            folder msg))))))
+                                            folder msg)
+                    ;; Was inserted before us, move to end of file to preserve order
+                    (goto-char (point-max)))))))
         ;; Postition just before forwarded message
         (if (re-search-forward "^------- Forwarded Message" nil t)
             (forward-line -1)
@@ -973,18 +979,23 @@ This should be the last function called when composing the draft."
     (goto-char (point-max))
     (mh-letter-next-header-field)))
 
-(defun mh-annotate-msg (msg buffer note &rest args)
-  "Mark MSG in BUFFER with character NOTE and annotate message with ARGS.
-MSG can be a message number, a list of message numbers, or a
-sequence."
-  (apply 'mh-exec-cmd "anno" buffer
+(defun mh-annotate-msg (msg folder note &rest args)
+  "Mark MSG in FOLDER with character NOTE and annotate message with ARGS.
+MSG can be a message number, a list of message numbers, or a sequence.  
+The hook `mh-annotate-msg-hook' is run after annotating; see its
+documentation for variables it can use."
+  (apply 'mh-exec-cmd "anno" folder
          (if (listp msg) (append msg args) (cons msg args)))
   (save-excursion
-    (cond ((get-buffer buffer)          ; Buffer may be deleted
-           (set-buffer buffer)
+    (cond ((get-buffer folder)          ; Buffer may be deleted
+           (set-buffer folder)
            (mh-iterate-on-range nil msg
              (mh-notate nil note
-                        (+ mh-cmd-note mh-scan-field-destination-offset)))))))
+                        (+ mh-cmd-note mh-scan-field-destination-offset))))))
+  (let ((mh-current-folder folder)
+        ;; mh-annotate-list is a sequence name or a list of message numbers
+        (mh-annotate-list (if (numberp msg) (list msg) msg)))
+    (run-hooks 'mh-annotate-msg-hook)))
 
 (defun mh-insert-header-separator ()
   "Insert `mh-mail-header-separator', if absent."

@@ -76,7 +76,7 @@ There are several subdirectories:
 `man'       holds the source code for the Emacs Manual.  If you modify the
             manual sources, you will need the `makeinfo' program to produce
             an updated manual.  `makeinfo' is part of the GNU Texinfo
-            package; you need version 4.2 or later of Texinfo.
+            package; you need version 4.6 or later of Texinfo.
 `lispref'   holds the source code for the Emacs Lisp reference manual.
 `lispintro' holds the source code for the Introduction to Programming
             in Emacs Lisp manual.

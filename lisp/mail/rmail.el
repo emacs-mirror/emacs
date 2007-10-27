@@ -204,7 +204,7 @@ We do this by executing it with `--version' and analyzing its output."
 	  'emacs))))))
 
 (defun rmail-autodetect ()
-  "Determine and return the file name of the `movemail' program.
+  "Determine the file name of the `movemail' program and return its flavor.
 If `rmail-movemail-program' is non-nil, use it.
 Otherwise, look for `movemail' in the directories in
 `rmail-movemail-search-path', those in `exec-path', and `exec-directory'."
@@ -238,6 +238,12 @@ Currently known variants are 'emacs and 'mailutils."
     ;; Autodetect
     (setq rmail-movemail-variant-in-use (rmail-autodetect)))
   (not (null (member rmail-movemail-variant-in-use variants))))
+
+;; Call for effect, to set rmail-movemail-program (if not set by the
+;; user), and rmail-movemail-variant-in-use. Used by various functions.
+;; I'm not sure if M-x rmail is the only entry point to this package.
+;; If so, this can be moved there.
+(rmail-movemail-variant-p)
 
 ;;;###autoload
 (defcustom rmail-dont-reply-to-names nil "\
@@ -1818,10 +1824,7 @@ is non-nil if the user has supplied the password interactively.
 		 (buffer-disable-undo errors)
 		 (let ((args
 			(append
-			 (list (or rmail-movemail-program
-				   (expand-file-name "movemail"
-						     exec-directory))
-			       nil errors nil)
+			 (list rmail-movemail-program nil errors nil)
 			 (if rmail-preserve-inbox
 			     (list "-p")
 			   nil)

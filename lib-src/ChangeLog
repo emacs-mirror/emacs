@@ -1,3 +1,9 @@
+2007-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (rcs2log, rcs-checkin, grep-changelog, vcdiff):
+	Prepend "-" to the command, in case srcdir=. and file is copied
+	into itself.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

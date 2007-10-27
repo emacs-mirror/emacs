@@ -1116,7 +1116,7 @@ as a Meta key and any number of multiple escapes is allowed."
   "Function that implements ESC key in Viper emulation of Vi."
   (interactive)
   (let ((cmd (or (key-binding (viper-envelop-ESC-key))
-		 '(lambda () (interactive) (error "")))))
+		 '(lambda () (interactive) (error "Viper bell")))))
 
     ;; call the actual function to execute ESC (if no other symbols followed)
     ;; or the key bound to the ESC sequence (if the sequence was issued
@@ -1238,7 +1238,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	  ;; it is an error.
 	  (progn
 	    ;; new com is (CHAR . OLDCOM)
-	    (if (viper-memq-char char '(?# ?\")) (error ""))
+	    (if (viper-memq-char char '(?# ?\")) (error "Viper bell"))
 	    (setq com (cons char com))
 	    (setq cont nil))
 	;; If com is nil we set com as char, and read more.  Again, if char is
@@ -1257,7 +1257,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	       (let ((reg (read-char)))
 		 (if (viper-valid-register reg)
 		     (setq viper-use-register reg)
-		   (error ""))
+		   (error "Viper bell"))
 		 (setq char (read-char))))
 	      (t
 	       (setq com char)
@@ -1279,7 +1279,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	      (viper-regsuffix-command-p char)
 	      (viper= char ?!) ; bang command
 	      (viper= char ?g) ; the gg command (like G0)
-	      (error ""))
+	      (error "Viper bell"))
 	  (setq cmd-to-exec-at-end
 		(viper-exec-form-in-vi
 		 `(key-binding (char-to-string ,char)))))
@@ -1313,7 +1313,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	 ((equal com '(?= . ?=)) (viper-line (cons value ?=)))
 	 ;; gg  acts as G0
 	 ((equal (car com) ?g)   (viper-goto-line 0))
-	 (t (error "")))))
+	 (t (error "Viper bell")))))
     
     (if cmd-to-exec-at-end
 	(progn
@@ -2738,9 +2738,9 @@ On reaching end of line, stop and signal error."
 	  ;; the forward motion before the 'viper-execute-com', but, of
 	  ;; course, 'dl' doesn't work on an empty line, so we have to
 	  ;; catch that condition before 'viper-execute-com'
-	  (if (and (eolp) (bolp)) (error "") (forward-char val))
+	  (if (and (eolp) (bolp)) (error "Viper bell") (forward-char val))
 	  (if com (viper-execute-com 'viper-forward-char val com))
-	  (if (eolp) (progn (backward-char 1) (error ""))))
+	  (if (eolp) (progn (backward-char 1) (error "Viper bell"))))
       (forward-char val)
       (if com (viper-execute-com 'viper-forward-char val com)))))
 
@@ -2755,7 +2755,7 @@ On reaching beginning of line, stop and signal error."
     (if com (viper-move-marker-locally 'viper-com-point (point)))
     (if viper-ex-style-motion
 	(progn
-	  (if (bolp) (error "") (backward-char val))
+	  (if (bolp) (error "Viper bell") (backward-char val))
 	  (if com (viper-execute-com 'viper-backward-char val com)))
       (backward-char val)
       (if com (viper-execute-com 'viper-backward-char val com)))))
@@ -3078,7 +3078,7 @@ On reaching beginning of line, stop and signal error."
     (if com (viper-execute-com 'viper-goto-col val com))
     (save-excursion
       (end-of-line)
-      (if (> val (current-column)) (error "")))
+      (if (> val (current-column)) (error "Viper bell")))
     ))
 
 
@@ -3198,7 +3198,7 @@ If point is on a widget or a button, simulate clicking on that widget/button."
 ;; If FORWARD then search is forward, otherwise backward.  OFFSET is used to
 ;; adjust point after search.
 (defun viper-find-char (arg char forward offset)
-  (or (char-or-string-p char) (error ""))
+  (or (char-or-string-p char) (error "Viper bell"))
   (let ((arg (if forward arg (- arg)))
 	(cmd (if (eq viper-intermediate-command 'viper-repeat)
 		 (nth 5 viper-d-com)
@@ -3544,7 +3544,7 @@ controlled by the sign of prefix numeric value."
 	     (if com (viper-move-marker-locally 'viper-com-point (point)))
 	     (backward-sexp 1)
 	     (if com (viper-execute-com 'viper-paren-match nil com)))
-	    (t (error ""))))))
+	    (t (error "Viper bell"))))))
 
 (defun viper-toggle-parse-sexp-ignore-comments ()
   (interactive)
@@ -4107,7 +4107,7 @@ Null string will repeat previous search."
 	    (let ((reg viper-use-register))
 	      (setq viper-use-register nil)
 	      (error viper-EmptyRegister reg))
-	  (error "")))
+	  (error "Viper bell")))
     (setq viper-use-register nil)
     (if (viper-end-with-a-newline-p text)
 	(progn
@@ -4157,7 +4157,7 @@ Null string will repeat previous search."
 	    (let ((reg viper-use-register))
 	      (setq viper-use-register nil)
 	      (error viper-EmptyRegister reg))
-	  (error "")))
+	  (error "Viper bell")))
     (setq viper-use-register nil)
     (if (viper-end-with-a-newline-p text) (beginning-of-line))
     (viper-set-destructive-command
@@ -4202,7 +4202,7 @@ Null string will repeat previous search."
 	     (> val (viper-chars-in-region (point) (viper-line-pos 'end))))
 	(setq val (viper-chars-in-region (point) (viper-line-pos 'end))))
     (if (and viper-ex-style-motion (eolp))
-	(if (bolp) (error "") (setq val 0))) ; not bol---simply back 1 ch
+	(if (bolp) (error "Viper bell") (setq val 0))) ; not bol---simply back 1 ch
     (save-excursion
       (viper-forward-char-carefully val)
       (setq end-del-pos (point)))
@@ -4467,7 +4467,7 @@ and regexp replace."
 	  ((viper= char ?,) (viper-cycle-through-mark-ring))
 	  ((viper= char ?^) (push-mark viper-saved-mark t t))
 	  ((viper= char ?D) (mark-defun))
-	  (t (error ""))
+	  (t (error "Viper bell"))
 	  )))
 
 ;; Algorithm: If first invocation of this command save mark on ring, goto
@@ -4566,7 +4566,7 @@ One can use `` and '' to temporarily jump 1 step back."
 		 (switch-to-buffer buff)
 		 (goto-char viper-com-point)
 		 (viper-change-state-to-vi)
-		 (error "")))))
+		 (error "Viper bell")))))
 	((and (not skip-white) (viper= char ?`))
 	 (if com (viper-move-marker-locally 'viper-com-point (point)))
 	 (if (and (viper-same-line (point) viper-last-jump)

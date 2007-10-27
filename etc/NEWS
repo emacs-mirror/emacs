@@ -34,6 +34,10 @@ a GIF library.
 
 * Changes in Emacs 23.1
 
+** The refcards are now shipped as PDF files.
+
+** Emacs now supports the SVG image format through librsvg2.
+
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
 
@@ -48,13 +52,26 @@ recenter the visited source file.  Its value can be a number (for example,
 
 ** The mode-line display a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
+
 ** The new command balance-window-area balances windows both vertically
 and horizontally.
 
 ** The new command close-display-connection can be used to close a connection
 to a remote display, e.g. because the display is about to become unreachable.
+
+** The command shell prompts for the default directory, when it is
+called with a prefix, and the default directory is a remote file name.
+This is because some file name handler (like ange-ftp) are not able to
+run processes remotely.
+
+** The new command `display-time-world' starts an updating time display
+using several time zones, in a buffer.
 
 * Startup Changes in Emacs 23.1
+
+** New user option `initial-buffer-choice' specifies what to display
+after starting Emacs: startup screen, *scratch* buffer, visiting a
+file or directory.
 
 
 * Incompatible Editing Changes in Emacs 23.1
@@ -77,6 +94,8 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
+** A new game called `bubble' has been added
+
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 
@@ -88,6 +107,9 @@ the first error encountered during compilations.
 ** In the `copyright' package, you can specify your copyright holders's names.
 Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
+
+** eldoc highlights the function argument under point
+with the face `eldoc-highlight-function-argument'.
 
 ** VC
 *** Clicking on the VC mode-line entry now pops the VC menu.
@@ -171,6 +193,10 @@ supported on other platforms, but not on Windows due to using the winsock
 
 * Lisp Changes in Emacs 23.1
 
+** The function invisible-p returns non-nil if the character
+   after a specified position is invisible, or if its argument
+   as an `invisible' property would make a character invisible.
+
 ** Non-breaking space now acts as whitespace.
 
 +++
@@ -188,6 +214,16 @@ like this:
 
 +++
 ** The regexp form \(?<num>:<regexp>\) specifies the group number explicitly.
+
+** New function `window-full-width-p' returns t if a window is as wide
+as its frame.
+
+** The new function `split-string-and-unquote' does (what?)
+
+** The new function `combine-and-quote-strings' does (what?)
+
+** The new function `image-refresh' refreshes all images associated
+with a given image specification.
 
 +++
 ** New variable `user-emacs-directory'.
@@ -215,6 +251,8 @@ the match data.
 forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
+
+** The new package avl-tree.el deals with the AVL tree data structure.
 
 
 ----------------------------------------------------------------------

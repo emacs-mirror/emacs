@@ -156,6 +156,8 @@ annotation.")
   '("Message"
     ["Show Message"                     mh-show (mh-get-msg-num nil)]
     ["Show Message with Header"         mh-header-display (mh-get-msg-num nil)]
+    ["Show Message with Preferred Alternative"
+                                        mh-show-preferred-alternative (mh-get-msg-num nil)]
     ["Next Message"                     mh-next-undeleted-msg t]
     ["Previous Message"                 mh-previous-undeleted-msg t]
     ["Go to First Message"              mh-first-msg t]
@@ -225,6 +227,7 @@ annotation.")
   "'"           mh-toggle-tick
   ","           mh-header-display
   "."           mh-alt-show
+  ":"           mh-show-preferred-alternative
   ";"           mh-toggle-mh-decode-mime-flag
   ">"           mh-write-msg-to-file
   "?"           mh-help

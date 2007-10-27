@@ -1,3 +1,22 @@
+2007-08-28  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Image Formats, Other Image Types): Add SVG.
+
+2007-08-28  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Images): Move formats-related text to new node
+	"Image Formats".
+	(Image Formats): New node.
+
+2007-08-25  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Images): Delete redundant @findex.
+
+2007-08-16  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Asynchronous Processes): Clarify
+	doc of start-file-process.
+
 2007-08-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* modes.texi (Example Major Modes): Fix typo.
@@ -133,8 +152,7 @@
 
 2007-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* text.texi (Special Properties): Correct meaning of fontified
-	face.
+	* text.texi (Special Properties): Correct meaning of fontified face.
 
 2007-05-30  Richard Stallman  <rms@gnu.org>
 

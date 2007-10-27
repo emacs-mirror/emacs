@@ -298,6 +298,23 @@ xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap)
   return icon_buf;
 }
 
+static Lisp_Object
+file_for_image(image)
+     Lisp_Object image;
+{
+  Lisp_Object specified_file = Qnil;
+  Lisp_Object tail;
+  extern Lisp_Object QCfile;
+
+  for (tail = XCDR (image);
+       NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
+    if (EQ (XCAR (tail), QCfile))
+      specified_file = XCAR (XCDR (tail));
+
+  return specified_file;
+}
+
 /* For the image defined in IMG, make and return a GtkImage.  For displays with
    8 planes or less we must make a GdkPixbuf and apply the mask manually.
    Otherwise the highlightning and dimming the tool bar code in GTK does
@@ -323,16 +340,8 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
   /* If we have a file, let GTK do all the image handling.
      This seems to be the only way to make insensitive and activated icons
      look good in all cases.  */
-  Lisp_Object specified_file = Qnil;
-  Lisp_Object tail;
+  Lisp_Object specified_file = file_for_image (img->spec);
   Lisp_Object file;
-  extern Lisp_Object QCfile;
-
-  for (tail = XCDR (img->spec);
-       NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));
-       tail = XCDR (XCDR (tail)))
-    if (EQ (XCAR (tail), QCfile))
-      specified_file = XCAR (XCDR (tail));
 
   /* We already loaded the image once before calling this
      function, so this only fails if the image file has been removed.
@@ -3332,6 +3341,16 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 /* The key for storing the button widget in its proxy menu item. */
 #define XG_TOOL_BAR_PROXY_BUTTON "emacs-tool-bar-proxy-button"
 
+/* The key for the data we put in the GtkImage widgets.  The data is
+   the stock name used by Emacs.  We use this to see if we need to update
+   the GtkImage with a new image.  */
+#define XG_TOOL_BAR_STOCK_NAME "emacs-tool-bar-stock-name"
+
+/* Callback function invoked when a tool bar item is pressed.
+   W is the button widget in the tool bar that got pressed,
+   CLIENT_DATA is an integer that is the index of the button in the
+   tool bar.  0 is the first button.  */
+
 static gboolean
 xg_tool_bar_button_cb (widget, event, user_data)
     GtkWidget      *widget;
@@ -3614,8 +3633,10 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
   return FALSE;
 }
 
+#define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
+
 /* This callback is called when a tool bar shall be redrawn.
-   We need to update the tool bar from here in case the image cache
+   We need to update the images in case the image cache
    has deleted the pixmaps used in the tool bar.
    W is the GtkToolbar to be redrawn.
    EVENT is the expose event for W.
@@ -3629,7 +3650,8 @@ xg_tool_bar_expose_callback (w, event, client_data)
      GdkEventExpose *event;
      gpointer client_data;
 {
-  update_frame_tool_bar ((FRAME_PTR) client_data);
+  FRAME_PTR f = (FRAME_PTR) client_data;
+  SET_FRAME_GARBAGED (f);
   return FALSE;
 }
 
@@ -3690,6 +3712,40 @@ xg_create_tool_bar (f)
   SET_FRAME_GARBAGED (f);
 }
 
+/* Find the right-to-left image named by RTL in the tool bar images for F.
+   Returns IMAGE if RTL is not found.  */
+
+static Lisp_Object
+find_rtl_image (f, image, rtl)
+     FRAME_PTR f;
+     Lisp_Object image;
+     Lisp_Object rtl;
+{
+  int i;
+  Lisp_Object file, rtl_name;
+  struct gcpro gcpro1, gcpro2;
+  GCPRO2 (file, rtl_name);
+
+  rtl_name = Ffile_name_nondirectory (rtl);
+
+  for (i = 0; i < f->n_tool_bar_items; ++i)
+    {
+      Lisp_Object rtl_image = PROP (TOOL_BAR_ITEM_IMAGES);
+      if (!NILP (file = file_for_image (rtl_image))) 
+        {
+          file = call1 (intern ("file-name-sans-extension"),
+                       Ffile_name_nondirectory (file));
+          if (EQ (Fequal (file, rtl_name), Qt))
+            {
+              image = rtl_image;
+              break;
+            }
+        }
+    }
+
+  return image;
+}
+
 /* Update the tool bar for frame F.  Add new buttons and remove old.  */
 
 void
@@ -3700,7 +3756,9 @@ update_frame_tool_bar (f)
   GtkRequisition old_req, new_req;
   struct x_output *x = f->output_data.x;
   int hmargin = 0, vmargin = 0;
+  GtkToolbar *wtoolbar;
   GtkToolItem *ti;
+  GtkTextDirection dir;
 
   if (! FRAME_GTK_WIDGET (f))
     return;
@@ -3734,20 +3792,27 @@ update_frame_tool_bar (f)
   if (! x->toolbar_widget)
     xg_create_tool_bar (f);
 
-  gtk_widget_size_request (x->toolbar_widget, &old_req);
+  wtoolbar = GTK_TOOLBAR (x->toolbar_widget);
+  gtk_widget_size_request (GTK_WIDGET (wtoolbar), &old_req);
+  dir = gtk_widget_get_direction (x->toolbar_widget);
 
   for (i = 0; i < f->n_tool_bar_items; ++i)
     {
-#define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
       int img_id;
-      struct image *img;
+      int icon_size = 0;
+      struct image *img = NULL;
       Lisp_Object image;
+      Lisp_Object stock;
+      GtkStockItem stock_item;
+      char *stock_name = NULL;
+      Lisp_Object rtl;
       GtkWidget *wbutton;
       GtkWidget *weventbox;
+      Lisp_Object func = intern ("x-gtk-map-stock");
 
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (x->toolbar_widget), i);
 
@@ -3757,59 +3822,98 @@ update_frame_tool_bar (f)
           wbutton = gtk_bin_get_child (GTK_BIN (weventbox));
         }
 
-      /* If image is a vector, choose the image according to the
-	 button state.  */
       image = PROP (TOOL_BAR_ITEM_IMAGES);
-      if (VECTORP (image))
-	{
-	  if (enabled_p)
-	    idx = (selected_p
-		   ? TOOL_BAR_IMAGE_ENABLED_SELECTED
-		   : TOOL_BAR_IMAGE_ENABLED_DESELECTED);
-	  else
-	    idx = (selected_p
-		   ? TOOL_BAR_IMAGE_DISABLED_SELECTED
-		   : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
-
-	  xassert (ASIZE (image) >= idx);
-	  image = AREF (image, idx);
-	}
-      else
-	idx = -1;
 
       /* Ignore invalid image specifications.  */
       if (!valid_image_p (image))
         {
-          if (ti) gtk_widget_hide_all (GTK_WIDGET (ti));
+          if (wbutton) gtk_widget_hide (wbutton);
           continue;
         }
 
-      img_id = lookup_image (f, image);
-      img = IMAGE_FROM_ID (f, img_id);
-      prepare_image_for_display (f, img);
+      if (EQ (Qt, Ffboundp (func))) 
+        stock = call1 (func, file_for_image (image));
 
-      if (img->load_failed_p || img->pixmap == None)
+      if (! NILP (stock) && STRINGP (stock)
+          && gtk_stock_lookup (SSDATA (stock), &stock_item))
         {
-          if (ti)
-	    gtk_widget_hide_all (GTK_WIDGET (ti));
-	  else
+          stock_name = SSDATA (stock);
+          icon_size = gtk_toolbar_get_icon_size (wtoolbar);
+        }
+      else
+        {
+          /* No stock image, or stock item not known.  Try regular image.  */
+
+          /* If image is a vector, choose the image according to the
+             button state.  */
+          if (dir == GTK_TEXT_DIR_RTL
+              && !NILP (rtl = PROP (TOOL_BAR_ITEM_RTL_IMAGE))
+              && STRINGP (rtl))
             {
-              /* Insert an empty (non-image) button */
-              weventbox = gtk_event_box_new ();
-              wbutton = gtk_button_new ();
-              gtk_button_set_focus_on_click (GTK_BUTTON (wbutton), FALSE);
-              gtk_button_set_relief (GTK_BUTTON (wbutton), GTK_RELIEF_NONE);
-              gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
-              ti = gtk_tool_item_new ();
-              gtk_container_add (GTK_CONTAINER (ti), weventbox);
-              gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, -1);
+              image = find_rtl_image (f, image, rtl);
             }
-          continue;
+
+          if (VECTORP (image))
+            {
+              if (enabled_p)
+                idx = (selected_p
+                       ? TOOL_BAR_IMAGE_ENABLED_SELECTED
+                       : TOOL_BAR_IMAGE_ENABLED_DESELECTED);
+              else
+                idx = (selected_p
+                       ? TOOL_BAR_IMAGE_DISABLED_SELECTED
+                       : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
+
+              xassert (ASIZE (image) >= idx);
+              image = AREF (image, idx);
+            }
+          else
+            idx = -1;
+
+          img_id = lookup_image (f, image);
+          img = IMAGE_FROM_ID (f, img_id);
+          prepare_image_for_display (f, img);
+      
+          if (img->load_failed_p || img->pixmap == None)
+            {
+                if (ti)
+                    gtk_widget_hide_all (GTK_WIDGET (ti));
+                else
+                {
+                    /* Insert an empty (non-image) button */
+                    weventbox = gtk_event_box_new ();
+                    wbutton = gtk_button_new ();
+                    gtk_button_set_focus_on_click (GTK_BUTTON (wbutton), FALSE);
+                    gtk_button_set_relief (GTK_BUTTON (wbutton),
+                                           GTK_RELIEF_NONE);
+                    gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
+                    ti = gtk_tool_item_new ();
+                    gtk_container_add (GTK_CONTAINER (ti), weventbox);
+                    gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, -1);
+                }
+                continue;
+            }
         }
 
       if (ti == NULL)
         {
-          GtkWidget *w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
+          GtkWidget *w;
+          if (stock_name)
+            {
+              w = gtk_image_new_from_stock (stock_name, icon_size);
+              g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_STOCK_NAME,
+                                      (gpointer) xstrdup (stock_name),
+                                      (GDestroyNotify) xfree);
+            }
+          else
+            {
+              w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
+              /* Save the image so we can see if an update is needed when
+                 this function is called again.  */
+              g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
+                                 (gpointer)img->pixmap);
+            }
+
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
           wbutton = gtk_button_new ();
           gtk_button_set_focus_on_click (GTK_BUTTON (wbutton), FALSE);
@@ -3833,10 +3937,6 @@ update_frame_tool_bar (f)
 
           gtk_widget_show_all (GTK_WIDGET (ti));
 
-          /* Save the image so we can see if an update is needed when
-             this function is called again.  */
-          g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
-                             (gpointer)img->pixmap);
 
           g_object_set_data (G_OBJECT (weventbox), XG_FRAME_DATA, (gpointer)f);
 
@@ -3878,13 +3978,30 @@ update_frame_tool_bar (f)
           GtkWidget *wimage = gtk_bin_get_child (GTK_BIN (wbutton));
           Pixmap old_img = (Pixmap)g_object_get_data (G_OBJECT (wimage),
                                                       XG_TOOL_BAR_IMAGE_DATA);
+          gpointer old_stock_name = g_object_get_data (G_OBJECT (wimage),
+                                                       XG_TOOL_BAR_STOCK_NAME);
+          if (stock_name &&
+              (! old_stock_name || strcmp (old_stock_name, stock_name) != 0))
+            {
+              gtk_image_set_from_stock (GTK_IMAGE (wimage),
+                                        stock_name, icon_size);
+              g_object_set_data_full (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
+                                      (gpointer) xstrdup (stock_name),
+                                      (GDestroyNotify) xfree);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
+                                 NULL);
+            }
+          else if (img && old_img != img->pixmap)
+            {
+              (void) xg_get_image_for_pixmap (f, img, x->widget, wimage);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
+                                 (gpointer)img->pixmap);
+
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
+                                 NULL);
+            }
+
           gtk_misc_set_padding (GTK_MISC (wimage), hmargin, vmargin);
-
-          if (old_img != img->pixmap)
-            (void) xg_get_image_for_pixmap (f, img, x->widget, wimage);
-
-          g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
-                             (gpointer)img->pixmap);
 
           gtk_widget_set_sensitive (wbutton, enabled_p);
           gtk_widget_show_all (GTK_WIDGET (ti));
@@ -3901,7 +4018,7 @@ update_frame_tool_bar (f)
       if (ti) gtk_widget_hide_all (GTK_WIDGET (ti));
     } while (ti != NULL);
 
-  gtk_widget_size_request (x->toolbar_widget, &new_req);
+  gtk_widget_size_request (GTK_WIDGET (wtoolbar), &new_req);
   if (old_req.height != new_req.height
       && ! FRAME_X_OUTPUT (f)->toolbar_detached)
     {

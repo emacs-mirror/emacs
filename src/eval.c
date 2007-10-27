@@ -211,6 +211,7 @@ int handling_signal;
 Lisp_Object Vmacro_declaration_function;
 
 extern Lisp_Object Qrisky_local_variable;
+extern Lisp_Object Qfunction;
 
 static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object *,
 				       Lisp_Object));
@@ -551,7 +552,7 @@ usage: (setq [SYM VAL]...)  */)
   register Lisp_Object val, sym, lex_binding;
   struct gcpro gcpro1;
 
-  if (NILP(args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;
@@ -584,6 +585,8 @@ usage: (quote ARG)  */)
      (args)
      Lisp_Object args;
 {
+  if (!NILP (Fcdr (args)))
+    xsignal2 (Qwrong_number_of_arguments, Qquote, Flength (args));
   return Fcar (args);
 }
 
@@ -596,6 +599,9 @@ usage: (function ARG)  */)
      Lisp_Object args;
 {
   Lisp_Object quoted = XCAR (args);
+
+  if (!NILP (Fcdr (args)))
+    xsignal2 (Qwrong_number_of_arguments, Qfunction, Flength (args));
 
   if (!NILP (Vinternal_interpreter_environment)
       && CONSP (quoted)
@@ -2147,7 +2153,7 @@ then strings and vectors are not accepted.  */)
 
   /* Strings and vectors are keyboard macros.  */
   if (STRINGP (fun) || VECTORP (fun))
-    return NILP (for_call_interactively) ? Qt : Qnil;
+    return (NILP (for_call_interactively) ? Qt : Qnil);
 
   /* Lists may represent commands.  */
   if (!CONSP (fun))

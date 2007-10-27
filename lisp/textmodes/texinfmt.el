@@ -3250,7 +3250,7 @@ Default is to leave paragraph indentation as is."
 ;; Take arguments
 
 ;; @,{c}           ==>    c,        cedilla accent
-(put ', 'texinfo-format 'texinfo-format-cedilla-accent)
+(put '\, 'texinfo-format 'texinfo-format-cedilla-accent)
 (defun texinfo-format-cedilla-accent ()
    (insert (texinfo-parse-arg-discard) ",")
   (goto-char texinfo-command-start))

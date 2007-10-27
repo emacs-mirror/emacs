@@ -85,10 +85,10 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 (defconst backquote-backquote-symbol '\`
   "Symbol used to represent a backquote or nested backquote.")
 
-(defconst backquote-unquote-symbol ',
+(defconst backquote-unquote-symbol '\,
   "Symbol used to represent an unquote inside a backquote.")
 
-(defconst backquote-splice-symbol ',@
+(defconst backquote-splice-symbol '\,@
   "Symbol used to represent a splice inside a backquote.")
 
 ;;;###autoload
@@ -121,9 +121,8 @@ Vectors work just like lists.  Nested backquotes are permitted."
 (defun backquote-delay-process (s level)
   "Process a (un|back|splice)quote inside a backquote.
 This simply recurses through the body."
-  (let ((exp (backquote-listify (list (backquote-process (nth 1 s) level)
-                                      (cons 0 (list 'quote (car s))))
-                                '(0))))
+  (let ((exp (backquote-listify (list (cons 0 (list 'quote (car s))))
+                                (backquote-process (cdr s) level))))
     (if (eq (car-safe exp) 'quote)
         (cons 0 (list 'quote s))
       (cons 1 exp))))

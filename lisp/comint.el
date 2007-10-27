@@ -783,6 +783,8 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 			 ;; first look relative to the current directory.
 			 (cons default-directory exec-path) exec-path)))
       (setq proc (apply 'start-file-process name buffer command switches)))
+    ;; Some file name handler cannot start a process, fe ange-ftp.
+    (unless (processp proc) (error "No process started"))
     (let ((coding-systems (process-coding-system proc)))
       (setq decoding (car coding-systems)
 	    encoding (cdr coding-systems)))

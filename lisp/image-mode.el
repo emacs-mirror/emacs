@@ -41,7 +41,12 @@
 ;;;###autoload (push '("\\.gif\\'"      . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.tiff?\\'"    . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.p[bpgn]m\\'" . image-mode) auto-mode-alist)
+
+;;;###autoload (push '("\\.x[bp]m\\'"   . c-mode)     auto-mode-alist)
 ;;;###autoload (push '("\\.x[bp]m\\'"   . image-mode-maybe) auto-mode-alist)
+
+;;;###autoload (push '("\\.svgz?\\'"    . xml-mode)   auto-mode-alist)
+;;;###autoload (push '("\\.svgz?\\'"    . image-mode-maybe) auto-mode-alist)
 
 ;;; Image scrolling functions
 
@@ -178,6 +183,11 @@ stopping if the top or bottom edge of the image is reached."
 
 ;;; Image Mode setup
 
+(defvar image-type nil
+  "Current image type.
+This variable is used to display the current image type in the mode line.")
+(make-variable-buffer-local 'image-type)
+
 (defvar image-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'image-toggle-display)
@@ -207,7 +217,7 @@ You can use \\<image-mode-map>\\[image-toggle-display]
 to toggle between display as an image and display as text."
   (interactive)
   (kill-all-local-variables)
-  (setq mode-name "Image")
+  (setq mode-name "Image[text]")
   (setq major-mode 'image-mode)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (and (display-images-p)
@@ -230,13 +240,14 @@ to toggle between display as an image and display as text."
   "Toggle Image minor mode.
 With arg, turn Image minor mode on if arg is positive, off otherwise.
 See the command `image-mode' for more information on this mode."
-  nil " Image" image-mode-map
+  nil (:eval (format " Image[%s]" image-type)) image-mode-text-map
   :group 'image
   :version "22.1"
   (if (not image-minor-mode)
       (image-toggle-display-text)
     (if (get-text-property (point-min) 'display)
-	(setq cursor-type nil truncate-lines t))
+	(setq cursor-type nil truncate-lines t)
+      (setq image-type "text"))
     (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
     (message "%s" (concat (substitute-command-keys
 		      "Type \\[image-toggle-display] to view the image as ")
@@ -293,25 +304,28 @@ and showing the image as an image."
 	(kill-local-variable 'truncate-lines)
 	(kill-local-variable 'auto-hscroll-mode)
 	(use-local-map image-mode-text-map)
+	(setq image-type "text")
+	(if (eq major-mode 'image-mode)
+	    (setq mode-name "Image[text]"))
 	(if (called-interactively-p)
 	    (message "Repeat this command to go back to displaying the image")))
     ;; Turn the image data into a real image, but only if the whole file
     ;; was inserted
     (let* ((filename (buffer-file-name))
-	   (image
-	    (if (and filename
-		     (file-readable-p filename)
-		     (not (file-remote-p filename))
-		     (not (buffer-modified-p))
-		     (not (and (boundp 'archive-superior-buffer)
-			       archive-superior-buffer))
-		     (not (and (boundp 'tar-superior-buffer)
-			       tar-superior-buffer)))
-		(create-image filename)
-	      (create-image
-	       (string-make-unibyte
-		(buffer-substring-no-properties (point-min) (point-max)))
-	       nil t)))
+	   (data-p (not (and filename
+			     (file-readable-p filename)
+			     (not (file-remote-p filename))
+			     (not (buffer-modified-p))
+			     (not (and (boundp 'archive-superior-buffer)
+				       archive-superior-buffer))
+			     (not (and (boundp 'tar-superior-buffer)
+				       tar-superior-buffer)))))
+	   (file-or-data (if data-p
+			     (string-make-unibyte
+			      (buffer-substring-no-properties (point-min) (point-max)))
+			   filename))
+	   (type (image-type file-or-data nil data-p))
+	   (image (create-image file-or-data type data-p))
 	   (props
 	    `(display ,image
 	      intangible ,image
@@ -332,6 +346,9 @@ and showing the image as an image."
       ;; Allow navigation of large images
       (set (make-local-variable 'auto-hscroll-mode) nil)
       (use-local-map image-mode-map)
+      (setq image-type type)
+      (if (eq major-mode 'image-mode)
+	  (setq mode-name (format "Image[%s]" type)))
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
 

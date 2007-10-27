@@ -2138,10 +2138,11 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
   (! NILP (end_marker) ? Fmarker_position (end_marker) : end)
 
 /* Set a variable to nil if an error occurred.
-   VAL is a cons-cell whose car is the variable name, and whose cdr is
-   either nil (to mean that there was indeed an error), or non-nil to mean
-   that the was no error (which thus causes this function to do
-   nothing).  */
+   Don't change the variable if there was no error.
+   VAL is a cons-cell (VARIABLE . NO-ERROR-FLAG).
+   VARIABLE is the variable to maybe set to nil.
+   NO-ERROR-FLAG is nil if there was an error,
+   anything else meaning no error (so this function does nothing).  */
 Lisp_Object
 reset_var_on_error (val)
      Lisp_Object val;

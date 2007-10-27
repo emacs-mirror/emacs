@@ -7907,10 +7907,11 @@ static Lisp_Object tool_bar_item_properties;
 
 static int ntool_bar_items;
 
-/* The symbols `tool-bar', and `:image'.  */
+/* The symbols `tool-bar', `:image' and `:rtl'.  */
 
 extern Lisp_Object Qtool_bar;
 Lisp_Object QCimage;
+Lisp_Object Qrtl;
 
 /* Function prototypes.  */
 
@@ -8196,6 +8197,9 @@ parse_tool_bar_item (key, item)
 	/* Value is either a single image specification or a vector
 	   of 4 such specifications for the different button states.  */
 	PROP (TOOL_BAR_ITEM_IMAGES) = value;
+      else if (EQ (key, Qrtl))
+        /* ':rtl STRING' */
+	PROP (TOOL_BAR_ITEM_RTL_IMAGE) = value;
     }
 
   /* If got a filter apply it on binding.  */
@@ -11222,6 +11226,9 @@ syms_of_keyboard ()
 
   staticpro (&Qhelp_echo);
   Qhelp_echo = intern ("help-echo");
+
+  staticpro (&Qrtl);
+  Qrtl = intern (":rtl");
 
   staticpro (&item_properties);
   item_properties = Qnil;

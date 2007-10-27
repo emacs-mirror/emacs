@@ -1,3 +1,103 @@
+2007-08-28  Werner LEMBERG  <wl@gnu.org>
+
+	* refcards/de-refcard.tex, refcards/de-refcard.pdf: Use `C-M-%'
+	instead of `M-x query-replace-regexp'.
+
+2007-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* PROBLEMS (Mac OS X): Add alternative workaround for QuickTime
+	updater breakage.
+
+2007-08-26  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* NEWS: Say that PDF files are now the default for refcards.
+
+	* fr-drdref.tex, fr-drdref.pdf: Move these to...
+	* fr-dired-ref.tex, fr-dired-ref.pdf: ... those names.
+
+	* refcards/pdflayout.sty: New.  Handle PDF layouts through
+	\pdfpagewidth and \pdfpageheight.
+
+	* calccard.pdf, cs-dired-ref.pdf, cs-refcard.pdf, de-refcard.pdf:
+	* dired-ref.pdf, fr-drdref.pdf, fr-refcard.pdf, gnus-booklet.pdf:
+	* gnus-logo.pdf, gnus-refcard.pdf, orgcard.pdf, pl-refcard.pdf:
+	* pt-br-refcard.pdf, refcard.pdf, ru-refcard.pdf, sk-dired-ref.pdf:
+	* sk-refcard.pdf: Add PDF versions of the refcards.
+
+	* calccard.ps, cs-dired-ref.ps, cs-refcard.ps, de-refcard.ps:
+	* dired-ref.ps, fr-drdref.ps, fr-refcard.ps, gnus-booklet.ps:
+	* gnus-logo.ps, gnus-refcard.ps, orgcard.ps, pl-refcard.ps:
+	* pt-br-refcard.ps, refcard.ps, ru-refcard.ps, sk-dired-ref.ps:
+	* sk-refcard.ps: Remove the PS versions of the refcards.
+
+	* calccard.tex, fr-survival.tex, orgcard.tex, pl-refcard.tex:
+	* pt-br-refcard.tex, refcard.tex, survival.tex, vipcard.tex:
+	* viperCard.tex: Specify PDF layout, use a PDF `compile-command' local
+	variable.
+
+	* cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex, dired-ref.tex:
+	* fr-drdref.tex, sk-dired-ref.tex, sk-refcard.tex, sk-survival.tex:
+	Specify PDF layout.
+
+	* fr-refcard.tex: Update copyright notice.  Update the examples.  Fix a
+	typo.  Remove the `letterpaper' counter, specify PDF layout, use a PDF
+	`compile-command' local variable.
+
+	* de-refcard.tex: Remove the `letterpaper' counter, specify PDF layout,
+	use a PDF `compile-command' local variable.
+
+	* ru-refcard.tex: Use a PDF `compile-command' local variable.
+
+	* Makefile: Add rules for creating the refcards in PDF, make them the
+	default.  Change `fr-drdref' to `fr-dired-ref'.
+
+2007-08-23  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile (mostlyclean, clean, distclean, maintainer-clean):
+	Delete these targets since nothing uses them.
+	(SOURCES): Update.
+	Move comments to e/README.  Remove license from now-trivial file.
+
+	* e/README: New file, with most information formerly in Makefile.
+
+2007-08-22  Karl Berry  <karl@gnu.org>
+
+	* refcard.tex: updates for printing.
+        (\versionyear): update to 2007.
+	(\copyrightnotice): modified or unmodified ok.
+	(Simple Customization): don't use goto-line, since now it's bound.
+^	Also, use now-preferred (kbd ...) syntax.
+
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: `shell' prompts for the default directory if called with a
+	prefix and `default-directory' is a remote file name.
+
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number upgrade.
+
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* tree-widget: Move this directory into images/ subdirectory.
+
+	* refcards/: New directory.  Move refcards here.
+	* Makefile: Move refcard rules from here...
+	* refcards/Makefile: ...to here.
+	* README: Move information about tex files from here...
+	* refcards/README: ...to here.
+
+	* tutorials/: New directory. Move TUTORIAL* here.
+
+	* gnus.pbm, letter.pbm, letter.xpm:
+	* splash.pbm, splash.xpm, splash8.xpm: Move from etc/ to etc/images/.
+	* README: Move license information for the above files from here...
+	* images/README: ...to here.
+
+2007-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Mention `bad-packages-alist'.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* TODO: `iff' item is dealt with.

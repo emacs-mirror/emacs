@@ -295,7 +295,7 @@ followed by the first character of the construct.
   (insert "DEFINITION MODULE ")
   (let ((name (read-string "Name: ")))
     (insert name ";\n\n\n\nEND " name ".\n"))
-  (previous-line 3))
+  (forward-line -3))
 
 (defun m2-else ()
   "Insert ELSE keyword and indent for next line."
@@ -364,7 +364,7 @@ followed by the first character of the construct.
   (insert "IMPLEMENTATION MODULE ")
   (let ((name (read-string "Name: ")))
     (insert name ";\n\n\n\nEND " name ".\n")
-    (previous-line 3)
+    (forward-line -3)
     (m2-header)
     (m2-type)
     (newline)

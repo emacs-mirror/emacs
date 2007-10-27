@@ -770,7 +770,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	  ;; even when async processes aren't supported.
 	  (compilation-start (if (and grep-use-null-device null-device)
 				 (concat command " " null-device)
-			       command) 'grep-mode))
+			       command)
+			     'grep-mode))
 	(if (eq next-error-last-buffer (current-buffer))
 	    (setq default-directory dir))))))
 

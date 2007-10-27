@@ -2238,15 +2238,22 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
 
 #ifndef WINDOWSNT
 
+/* Declare here rather than in the function, as in the rest of Emacs,
+   to work around an HPUX compiler bug (?). See
+   http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00410.html  */
+static int default_max_colors;
+static int default_max_pairs;
+static int default_no_color_video;
+static char *default_orig_pair;
+static char *default_set_foreground;
+static char *default_set_background;
+
 /* Save or restore the default color-related capabilities of this
    terminal.  */
 static void
 tty_default_color_capabilities (save)
      int save;
 {
-  static char
-    *default_orig_pair, *default_set_foreground, *default_set_background;
-  static int default_max_colors, default_max_pairs, default_no_color_video;
 
   if (save)
     {

@@ -332,6 +332,9 @@ this list."
 ;; The regexp for recognizing a character in an abbreviation.
 (defvar dabbrev--abbrev-char-regexp nil)
 
+;; The progress reporter for buffer-scanning progress.
+(defvar dabbrev--progress-reporter nil)
+
 ;;----------------------------------------------------------------
 ;; Macros
 ;;----------------------------------------------------------------
@@ -711,10 +714,6 @@ If IGNORE-CASE is non-nil, accept matches which differ in case."
 	(setq all-expansions (cons expansion all-expansions))))
     all-expansions))
 
-(defun dabbrev--scanning-message ()
-  (unless (window-minibuffer-p (selected-window))
-    (message "Scanning `%s'" (buffer-name (current-buffer)))))
-
 (defun dabbrev--ignore-buffer-p (buffer)
   "Return non-nil if BUFFER should be ignored by dabbrev."
   (let ((bn (buffer-name buffer)))
@@ -740,8 +739,7 @@ of the start of the occurrence."
     ;; If we were scanning something other than the current buffer,
     ;; continue scanning there.
     (when dabbrev--last-buffer
-      (set-buffer dabbrev--last-buffer)
-      (dabbrev--scanning-message))
+      (set-buffer dabbrev--last-buffer))
     (or
      ;; ------------------------------------------
      ;; Look backward in current buffer.
@@ -773,15 +771,20 @@ of the start of the occurrence."
 	 ;; If we have just now begun to search other buffers,
 	 ;; determine which other buffers we should check.
 	 ;; Put that list in dabbrev--friend-buffer-list.
-	 (or dabbrev--friend-buffer-list
-	     (setq dabbrev--friend-buffer-list
-		   (dabbrev--make-friend-buffer-list))))
+	 (unless dabbrev--friend-buffer-list
+           (setq dabbrev--friend-buffer-list
+                 (dabbrev--make-friend-buffer-list))
+           (setq dabbrev--progress-reporter
+                 (make-progress-reporter
+                  "Scanning for dabbrevs..."
+                  (- (length dabbrev--friend-buffer-list)) 0 0 1 1.5))))
        ;; Walk through the buffers till we find a match.
        (let (expansion)
 	 (while (and (not expansion) dabbrev--friend-buffer-list)
 	   (setq dabbrev--last-buffer (pop dabbrev--friend-buffer-list))
 	   (set-buffer dabbrev--last-buffer)
-	   (dabbrev--scanning-message)
+           (progress-reporter-update dabbrev--progress-reporter
+                                     (- (length dabbrev--friend-buffer-list)))
 	   (setq dabbrev--last-expansion-location (point-min))
 	   (setq expansion (dabbrev--try-find abbrev nil 1 ignore-case)))
 	 expansion)))))

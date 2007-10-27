@@ -27,103 +27,103 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;;; This mode is a major mode for editing Ada code.  This is a major
-;;; rewrite of the file packaged with Emacs-20.  The Ada mode is
-;;; composed of four Lisp files: ada-mode.el, ada-xref.el, ada-prj.el
-;;; and ada-stmt.el.  Only this file (ada-mode.el) is completely
-;;; independent from the GNU Ada compiler GNAT, distributed by Ada
-;;; Core Technologies.  All the other files rely heavily on features
-;;; provided only by GNAT.
-;;;
-;;; Note: this mode will not work with Emacs 19. If you are on a VMS
-;;; system, where the latest version of Emacs is 19.28, you will need
-;;; another file, called ada-vms.el, that provides some required
-;;; functions.
+;; This mode is a major mode for editing Ada code.  This is a major
+;; rewrite of the file packaged with Emacs-20.  The Ada mode is
+;; composed of four Lisp files: ada-mode.el, ada-xref.el, ada-prj.el
+;; and ada-stmt.el.  Only this file (ada-mode.el) is completely
+;; independent from the GNU Ada compiler GNAT, distributed by Ada
+;; Core Technologies.  All the other files rely heavily on features
+;; provided only by GNAT.
+;;
+;; Note: this mode will not work with Emacs 19. If you are on a VMS
+;; system, where the latest version of Emacs is 19.28, you will need
+;; another file, called ada-vms.el, that provides some required
+;; functions.
 
 ;;; Usage:
-;;; Emacs should enter Ada mode automatically when you load an Ada file.
-;;; By default, the valid extensions for Ada files are .ads, .adb or .ada
-;;; If the ada-mode does not start automatically, then simply type the
-;;; following command :
-;;;     M-x ada-mode
-;;;
-;;; By default, ada-mode is configured to take full advantage of the GNAT
-;;; compiler (the menus will include the cross-referencing features,...).
-;;; If you are using another compiler, you might want to set the following
-;;; variable in your .emacs (Note: do not set this in the ada-mode-hook, it
-;;; won't work) :
-;;;    (setq ada-which-compiler 'generic)
-;;;
-;;; This mode requires find-file.el to be present on your system.
+;; Emacs should enter Ada mode automatically when you load an Ada file.
+;; By default, the valid extensions for Ada files are .ads, .adb or .ada
+;; If the ada-mode does not start automatically, then simply type the
+;; following command :
+;;     M-x ada-mode
+;;
+;; By default, ada-mode is configured to take full advantage of the GNAT
+;; compiler (the menus will include the cross-referencing features,...).
+;; If you are using another compiler, you might want to set the following
+;; variable in your .emacs (Note: do not set this in the ada-mode-hook, it
+;; won't work) :
+;;    (setq ada-which-compiler 'generic)
+;;
+;; This mode requires find-file.el to be present on your system.
 
 ;;; History:
-;;; The first Ada mode for GNU Emacs was written by V. Broman in
-;;; 1985. He based his work on the already existing Modula-2 mode.
-;;; This was distributed as ada.el in versions of Emacs prior to 19.29.
-;;;
-;;; Lynn Slater wrote an extensive Ada mode in 1989. It consisted of
-;;; several files with support for dired commands and other nice
-;;; things. It is currently available from the PAL
-;;; (wuarchive.wustl.edu:/languages/ada) as ada-mode-1.06a.tar.Z.
-;;;
-;;; The probably very first Ada mode (called electric-ada.el) was
-;;; written by Steven D. Litvintchouk and Steven M. Rosen for the
-;;; Gosling Emacs. L. Slater based his development on ada.el and
-;;; electric-ada.el.
-;;;
-;;; A complete rewrite by M. Heritsch and R. Ebert has been done.
-;;; Some ideas from the Ada mode mailing list have been
-;;; added.  Some of the functionality of L. Slater's mode has not
-;;; (yet) been recoded in this new mode.  Perhaps you prefer sticking
-;;; to his version.
-;;;
-;;; A complete rewrite for Emacs-20 / GNAT-3.11 has been done by Ada Core
-;;; Technologies.
+;; The first Ada mode for GNU Emacs was written by V. Broman in
+;; 1985. He based his work on the already existing Modula-2 mode.
+;; This was distributed as ada.el in versions of Emacs prior to 19.29.
+;;
+;; Lynn Slater wrote an extensive Ada mode in 1989. It consisted of
+;; several files with support for dired commands and other nice
+;; things. It is currently available from the PAL
+;; (wuarchive.wustl.edu:/languages/ada) as ada-mode-1.06a.tar.Z.
+;;
+;; The probably very first Ada mode (called electric-ada.el) was
+;; written by Steven D. Litvintchouk and Steven M. Rosen for the
+;; Gosling Emacs. L. Slater based his development on ada.el and
+;; electric-ada.el.
+;;
+;; A complete rewrite by M. Heritsch and R. Ebert has been done.
+;; Some ideas from the Ada mode mailing list have been
+;; added.  Some of the functionality of L. Slater's mode has not
+;; (yet) been recoded in this new mode.  Perhaps you prefer sticking
+;; to his version.
+;;
+;; A complete rewrite for Emacs-20 / GNAT-3.11 has been done by Ada Core
+;; Technologies.
 
 ;;; Credits:
-;;;   Many thanks to John McCabe <john@assen.demon.co.uk> for sending so
-;;;     many patches included in this package.
-;;;   Christian Egli <Christian.Egli@hcsd.hac.com>:
-;;;     ada-imenu-generic-expression
-;;;   Many thanks also to the following persons that have contributed
-;;;   to the ada-mode
-;;;     Philippe Waroquiers (PW) <philippe@cfmu.eurocontrol.be> in particular,
-;;;     woodruff@stc.llnl.gov (John Woodruff)
-;;;     jj@ddci.dk (Jesper Joergensen)
-;;;     gse@ocsystems.com (Scott Evans)
-;;;     comar@gnat.com (Cyrille Comar)
-;;;     stephen.leake@gsfc.nasa.gov (Stephen Leake)
-;;;     robin-reply@reagans.org
-;;;    and others for their valuable hints.
+;;   Many thanks to John McCabe <john@assen.demon.co.uk> for sending so
+;;     many patches included in this package.
+;;   Christian Egli <Christian.Egli@hcsd.hac.com>:
+;;     ada-imenu-generic-expression
+;;   Many thanks also to the following persons that have contributed
+;;   to the ada-mode
+;;     Philippe Waroquiers (PW) <philippe@cfmu.eurocontrol.be> in particular,
+;;     woodruff@stc.llnl.gov (John Woodruff)
+;;     jj@ddci.dk (Jesper Joergensen)
+;;     gse@ocsystems.com (Scott Evans)
+;;     comar@gnat.com (Cyrille Comar)
+;;     stephen.leake@gsfc.nasa.gov (Stephen Leake)
+;;     robin-reply@reagans.org
+;;    and others for their valuable hints.
 
 ;;; Code:
-;;; Note: Every function in this package is compiler-independent.
-;;; The names start with  ada-
-;;; The variables that the user can edit can all be modified through
-;;;   the customize mode. They are sorted in alphabetical order in this
-;;;   file.
+;; Note: Every function in this package is compiler-independent.
+;; The names start with  ada-
+;; The variables that the user can edit can all be modified through
+;;   the customize mode. They are sorted in alphabetical order in this
+;;   file.
 
-;;; Supported packages.
-;;; This package supports a number of other Emacs modes. These other modes
-;;; should be loaded before the ada-mode, which will then setup some variables
-;;; to improve the support for Ada code.
-;;; Here is the list of these modes:
-;;;   `which-function-mode': Display the name of the subprogram the cursor is
-;;;      in in the mode line.
-;;;   `outline-mode': Provides the capability to collapse or expand the code
-;;;      for specific language constructs, for instance if you want to hide the
-;;;      code corresponding to a subprogram
-;;;   `align': This mode is now provided with Emacs 21, but can also be
-;;;      installed manually for older versions of Emacs. It provides the
-;;;      capability to automatically realign the selected region (for instance
-;;;      all ':=', ':' and '--' will be aligned on top of each other.
-;;;   `imenu': Provides a menu with the list of entities defined in the current
-;;;      buffer, and an easy way to jump to any of them
-;;;   `speedbar': Provides a separate file browser, and the capability for each
-;;;      file to see the list of entities defined in it and to jump to them
-;;;      easily
-;;;   `abbrev-mode': Provides the capability to define abbreviations, which
-;;;      are automatically expanded when you type them. See the Emacs manual.
+;; Supported packages.
+;; This package supports a number of other Emacs modes. These other modes
+;; should be loaded before the ada-mode, which will then setup some variables
+;; to improve the support for Ada code.
+;; Here is the list of these modes:
+;;   `which-function-mode': Display the name of the subprogram the cursor is
+;;      in in the mode line.
+;;   `outline-mode': Provides the capability to collapse or expand the code
+;;      for specific language constructs, for instance if you want to hide the
+;;      code corresponding to a subprogram
+;;   `align': This mode is now provided with Emacs 21, but can also be
+;;      installed manually for older versions of Emacs. It provides the
+;;      capability to automatically realign the selected region (for instance
+;;      all ':=', ':' and '--' will be aligned on top of each other.
+;;   `imenu': Provides a menu with the list of entities defined in the current
+;;      buffer, and an easy way to jump to any of them
+;;   `speedbar': Provides a separate file browser, and the capability for each
+;;      file to see the list of entities defined in it and to jump to them
+;;      easily
+;;   `abbrev-mode': Provides the capability to define abbreviations, which
+;;      are automatically expanded when you type them. See the Emacs manual.
 
 (require 'find-file nil t)
 (require 'align nil t)
@@ -133,18 +133,6 @@
 (defvar compile-auto-highlight)
 (defvar ispell-check-comments)
 (defvar skeleton-further-elements)
-
-(eval-and-compile
-  (defun ada-check-emacs-version (major minor &optional is-xemacs)
-    "Return t if Emacs's version is greater or equal to MAJOR.MINOR.
-If IS-XEMACS is non-nil, check for XEmacs instead of Emacs."
-    (let ((xemacs-running (or (string-match "Lucid"  emacs-version)
-			      (string-match "XEmacs" emacs-version))))
-      (and (or (and is-xemacs xemacs-running)
-	       (not (or is-xemacs xemacs-running)))
-	   (or (> emacs-major-version major)
-	       (and (= emacs-major-version major)
-		    (>= emacs-minor-version minor)))))))
 
 (defun ada-mode-version ()
   "Return Ada mode version."
@@ -612,7 +600,7 @@ This variable defines several rules to use to align different lines.")
    "\\(\\(\\sw\\|[_.]\\)+\\)"
    "\\)")
   "Regexp matching Ada subprogram start.
-The actual start is at (match-beginning 4). The name is in (match-string 5).")
+The actual start is at (match-beginning 4).  The name is in (match-string 5).")
 
 (defconst ada-name-regexp
   "\\([a-zA-Z][a-zA-Z0-9_.']*[a-zA-Z0-9]\\)"
@@ -829,13 +817,12 @@ the 4 file locations can be clicked on and jumped to."
 ;; Thus their syntax property is changed automatically, and we can still use
 ;; the standard Emacs functions for sexp (see `ada-in-string-p')
 ;;
-;; On Emacs, this is done through the `syntax-table' text property. The
-;; modification is done automatically each time the user as typed a new
-;; character. This is already done in `font-lock-mode' (in
-;; `font-lock-syntactic-keywords', so we take advantage of the existing
-;; mechanism. If font-lock-mode is not activated, we do it by hand in
-;; `ada-after-change-function', thanks to `ada-deactivate-properties' and
-;; `ada-initialize-properties'.
+;; On Emacs, this is done through the `syntax-table' text property.  The
+;; corresponding action is applied automatically each time the buffer
+;; changes.  If `font-lock-mode' is enabled (the default) the action is
+;; set up by `font-lock-syntactic-keywords'.  Otherwise, we do it
+;; manually in `ada-after-change-function'.  The proper method is
+;; installed by `ada-handle-syntax-table-properties'.
 ;;
 ;; on XEmacs, the `syntax-table' property does not exist and we have to use a
 ;; slow advice to `parse-partial-sexp' to do the same thing.
@@ -852,7 +839,6 @@ The standard table declares `_' as a symbol constituent, the second one
 declares it as a word constituent."
   (interactive)
   (setq ada-mode-syntax-table (make-syntax-table))
-  (set-syntax-table  ada-mode-syntax-table)
 
   ;; define string brackets (`%' is alternative string bracket, but
   ;; almost never used as such and throws font-lock and indentation
@@ -936,50 +922,59 @@ declares it as a word constituent."
 	    (insert (caddar change))
 	    (setq change (cdr change)))))))
 
-(defun ada-deactivate-properties ()
-  "Deactivate Ada mode's properties handling.
-This would be a duplicate of font-lock if both are used at the same time."
-  (remove-hook 'after-change-functions 'ada-after-change-function t))
-
-(defun ada-initialize-properties ()
-  "Initialize some special text properties in the whole buffer.
-In particular, character constants are said to be strings, #...# are treated
-as numbers instead of gnatprep comments."
-  (save-excursion
-    (save-restriction
-      (widen)
-      (goto-char (point-min))
-      (while (re-search-forward "'.'" nil t)
-	(add-text-properties (match-beginning 0) (match-end 0)
-			     '(syntax-table ("'" . ?\"))))
-      (goto-char (point-min))
-      (while (re-search-forward "^[ \t]*#" nil t)
-	(add-text-properties (match-beginning 0) (match-end 0)
-			     '(syntax-table (11 . 10))))
-      (set-buffer-modified-p nil)
-
-      ;;  Setting this only if font-lock is not set won't work
-      ;;  if the user activates or deactivates font-lock-mode,
-      ;;  but will make things faster most of the time
-      (add-hook 'after-change-functions 'ada-after-change-function nil t)
-      )))
+(defun ada-set-syntax-table-properties ()
+  "Assign `syntax-table' properties in accessible part of buffer.
+In particular, character constants are said to be strings, #...#
+are treated as numbers instead of gnatprep comments."
+  (let ((modified (buffer-modified-p))
+	(buffer-undo-list t)
+	(inhibit-read-only t)
+	(inhibit-point-motion-hooks t)
+	(inhibit-modification-hooks t))
+    (remove-text-properties (point-min) (point-max) '(syntax-table nil))
+    (goto-char (point-min))
+    (while (re-search-forward
+	    ;; The following regexp was adapted from
+	    ;; `ada-font-lock-syntactic-keywords'.
+	    "^[ \t]*\\(#\\(?:if\\|else\\|elsif\\|end\\)\\)\\|[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)"
+	    nil t)
+      (if (match-beginning 1)
+	  (put-text-property
+	       (match-beginning 1) (match-end 1) 'syntax-table '(11 . ?\n))
+	(put-text-property
+	     (match-beginning 2) (match-end 2) 'syntax-table '(7 . ?'))
+	(put-text-property
+	     (match-beginning 3) (match-end 3) 'syntax-table '(7 . ?'))))
+    (unless modified
+      (restore-buffer-modified-p nil))))
 
 (defun ada-after-change-function (beg end old-len)
   "Called when the region between BEG and END was changed in the buffer.
 OLD-LEN indicates what the length of the replaced text was."
-  (let ((inhibit-point-motion-hooks t)
-	(eol (point)))
+  (save-excursion
+    (save-restriction
+      (let ((from (progn (goto-char beg) (line-beginning-position)))
+	    (to (progn (goto-char end) (line-end-position))))
+	(narrow-to-region from to)
+	(save-match-data
+	  (ada-set-syntax-table-properties))))))
+
+(defun ada-initialize-syntax-table-properties ()
+  "Assign `syntax-table' properties in current buffer."
     (save-excursion
-      (save-match-data
-	(beginning-of-line)
-	(remove-text-properties (point) eol '(syntax-table nil))
-	(while (re-search-forward "'.'" eol t)
-	  (add-text-properties (match-beginning 0) (match-end 0)
-			       '(syntax-table ("'" . ?\"))))
-	(beginning-of-line)
-	(if (looking-at "^[ \t]*#")
-	    (add-text-properties (match-beginning 0) (match-end 0)
-				 '(syntax-table (11 . 10))))))))
+      (save-restriction
+	(widen)
+	(save-match-data
+	  (ada-set-syntax-table-properties))))
+    (add-hook 'after-change-functions 'ada-after-change-function nil t))
+
+(defun ada-handle-syntax-table-properties ()
+  "Handle `syntax-table' properties."
+  (if font-lock-mode
+      ;; `font-lock-mode' will take care of `syntax-table' properties.
+      (remove-hook 'after-change-functions 'ada-after-change-function t)
+    ;; Take care of `syntax-table' properties manually.
+    (ada-initialize-syntax-table-properties)))
 
 ;;------------------------------------------------------------------
 ;;  Testing the grammatical context
@@ -1150,6 +1145,8 @@ If you use ada-xref.el:
 
   (interactive)
   (kill-all-local-variables)
+  
+  (set-syntax-table ada-mode-syntax-table)
 
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
 
@@ -1183,13 +1180,9 @@ If you use ada-xref.el:
   ;;  the comment and the text. We do not want any, this is already
   ;;  included in comment-start
   (unless (featurep 'xemacs)
-    (progn
-      (if (ada-check-emacs-version 20 3)
-	  (progn
-	    (set (make-local-variable 'parse-sexp-ignore-comments) t)
-	    (set (make-local-variable 'comment-padding) 0)))
-      (set (make-local-variable 'parse-sexp-lookup-properties) t)
-      ))
+    (set (make-local-variable 'parse-sexp-ignore-comments) t)
+    (set (make-local-variable 'comment-padding) 0)
+    (set (make-local-variable 'parse-sexp-lookup-properties) t))
 
   (set 'case-fold-search t)
   (if (boundp 'imenu-case-fold-search)
@@ -1218,6 +1211,7 @@ If you use ada-xref.el:
   ;;  We need to set some properties for XEmacs, and define some variables
   ;;  for Emacs
 
+  ;; FIXME: The Emacs code should work just fine under XEmacs AFAIK.  --Stef
   (if (featurep 'xemacs)
       ;;  XEmacs
       (put 'ada-mode 'font-lock-defaults
@@ -1340,7 +1334,7 @@ If you use ada-xref.el:
   (setq which-func-functions '(ada-which-function))
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
-  (setq comment-multi-line nil)
+  (set (make-local-variable 'comment-multi-line) nil)
 
   (setq major-mode 'ada-mode
 	mode-name "Ada")
@@ -1377,9 +1371,8 @@ If you use ada-xref.el:
   ;;  font-lock-mode
 
   (unless (featurep 'xemacs)
-    (progn
-      (ada-initialize-properties)
-      (add-hook 'font-lock-mode-hook 'ada-deactivate-properties nil t)))
+    (ada-initialize-syntax-table-properties)
+    (add-hook 'font-lock-mode-hook 'ada-handle-syntax-table-properties nil t))
 
   ;; the following has to be done after running the ada-mode-hook
   ;; because users might want to set the values of these variable
@@ -1406,10 +1399,9 @@ If you use ada-xref.el:
 ;;  transient-mark-mode and mark-active are not defined in XEmacs
 (defun ada-region-selected ()
   "Return t if a region has been selected by the user and is still active."
-  (or (and (featurep 'xemacs) (funcall (symbol-function 'region-active-p)))
-      (and (not (featurep 'xemacs))
-	   (symbol-value 'transient-mark-mode)
-	   (symbol-value 'mark-active))))
+  (if (featurep 'xemacs)
+      (region-active-p)
+    (and transient-mark-mode mark-active)))
 
 
 ;;-----------------------------------------------------------------
@@ -4033,7 +4025,7 @@ Returns a cons cell of begin and end of match data or nil, if not found.
 If BACKWARD is non-nil, search backward; search forward otherwise.
 The search stops at pos LIMIT.
 If PARAMLISTS is nil, ignore parameter lists.
-The search is done using SEARCH-FUNC. SEARCH-FUNC can be optimized
+The search is done using SEARCH-FUNC.  SEARCH-FUNC can be optimized
 in case we are searching for a constant string.
 Point is moved at the beginning of the SEARCH-RE."
   (let (found
@@ -4554,9 +4546,7 @@ Moves to 'begin' if in a declarative part."
   (define-key ada-mode-map "\t"       'ada-tab)
   (define-key ada-mode-map "\C-c\t"   'ada-justified-indent-current)
   (define-key ada-mode-map "\C-c\C-l" 'ada-indent-region)
-  (if (featurep 'xemacs)
-      (define-key ada-mode-map '(shift tab)    'ada-untab)
-    (define-key ada-mode-map [(shift tab)]    'ada-untab))
+  (define-key ada-mode-map [(shift tab)]    'ada-untab)
   (define-key ada-mode-map "\C-c\C-f" 'ada-format-paramlist)
   ;; We don't want to make meta-characters case-specific.
 
@@ -4579,9 +4569,9 @@ Moves to 'begin' if in a declarative part."
   ;; On XEmacs, you can easily specify whether DEL should deletes
   ;; one character forward or one character backward. Take this into
   ;; account
-  (if (boundp 'delete-key-deletes-forward)
-      (define-key ada-mode-map [backspace] 'backward-delete-char-untabify)
-    (define-key ada-mode-map "\177" 'backward-delete-char-untabify))
+  (define-key ada-mode-map
+    (if (boundp 'delete-key-deletes-forward) [backspace] "\177")
+    'backward-delete-char-untabify)
 
   ;; Make body
   (define-key ada-mode-map "\C-c\C-n" 'ada-make-subprogram-body)
@@ -4593,12 +4583,10 @@ Moves to 'begin' if in a declarative part."
   ;; The following keys are bound to functions defined in ada-xref.el or
   ;; ada-prj,el., However, RMS rightly thinks that the code should be shared,
   ;; and activated only if the right compiler is used
-  (if (featurep 'xemacs)
-      (progn
-	(define-key ada-mode-map '(shift button3) 'ada-point-and-xref)
-	(define-key ada-mode-map '(control tab) 'ada-complete-identifier))
-    (define-key ada-mode-map [C-tab] 'ada-complete-identifier)
-    (define-key ada-mode-map [S-mouse-3] 'ada-point-and-xref))
+  
+  (define-key ada-mode-map (if (featurep 'xemacs) '(shift button3) [S-mouse-3])
+    'ada-point-and-xref)
+  (define-key ada-mode-map [(control tab)] 'ada-complete-identifier)
 
   (define-key ada-mode-map "\C-co"     'ff-find-other-file)
   (define-key ada-mode-map "\C-c5\C-d" 'ada-goto-declaration-other-frame)
@@ -5200,8 +5188,7 @@ Return nil if no body was found."
   ;; This sets the properties of the characters, so that ada-in-string-p
   ;; correctly handles '"' too...
   '(("[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)" (1 (7 . ?')) (2 (7 . ?')))
-    ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))
-    ))
+    ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))))
 
 (defvar ada-font-lock-keywords
   (eval-when-compile
@@ -5563,5 +5550,5 @@ This function typically is to be hooked into `ff-file-created-hook'."
 ;;; provide ourselves
 (provide 'ada-mode)
 
-;;; arch-tag: 1b7d45ec-1698-43b5-8d4a-e479ea023270
+;; arch-tag: 1b7d45ec-1698-43b5-8d4a-e479ea023270
 ;;; ada-mode.el ends here

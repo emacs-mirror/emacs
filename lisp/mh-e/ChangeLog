@@ -1,3 +1,60 @@
+2007-08-25  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* mh-e.el (mh-annotate-msg-hook): New variable.
+
+	* mh-comp.el (mh-annotate-msg): Call new mh-annotate-msg-hook.
+	(mh-annotate-list): New variable, for mh-annotate-msg-hook.
+
+2007-08-21  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-folder.el (mh-folder-message-menu, mh-folder-mode-map): Add
+	folder mode support for mh-show-preferred-alternative.  (Clooses
+	SF 1777321).
+
+	* mh-show.el (mh-show-preferred-alternative)
+	(mh-show-write-message-to-file, mh-show-message-menu)
+	(mh-show-mode-map): Add mh-show-preferred-alternative (bound to
+	":") which will show the message's preferred alternative
+	overriding the users configured preference.  Useful for showing
+	HTML when text content is lacking.  (Closses SF 1777321).
+
+	* mh-e.el: 
+	(mh-invisible-header-fields-internal): Exclude Fax and Phone.  Put
+	known exclusions as comments before the list and move parens to
+	separate lines to aid in sorting.  (Closes SF 1701231).
+
+	* mh-mime.el (mm-decode-body): remove explicit autoload of
+	mh-alias-expand.
+
+	* mh-alias.el (mh-alias-expand): Set up automatic autoload of
+	mh-alias-expand.
+
+2007-08-20  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-mime.el (message-options-set): Add missing autoloads from my
+	last change.
+
+	* mh-comp.el (mh-forward): Address SF 1730393.  When forwarding
+	with mml, messages were included in reverse order.
+
+	* mh-mime.el (mh-mml-forward-message): Address SF 1378993 and
+	forward messages as inline attatchments.
+
+2007-08-19  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-e.el (mh-invisible-header-fields-internal): We want to show
+	Comments: and hide Comment:, not the other way around.
+
+	* mh-mime.el (mh-mml-to-mime): GPG requires e-mail addresses, not
+	aliases.  So resolve aliases before passing addresses to GPG/PGP.
+	Closes SF #649226.
+
+	* mh-e.el (mh-invisible-header-fields-internal): Update with all
+	the entries from
+	http://people.dsv.su.se/~jpalme/ietf/mail-headers, plus some of my
+	own.  I added attributions to entries we already had that did not
+	list an RFC.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* mh-folder.el, mh-letter.el, mh-show.el: Replace `iff' in

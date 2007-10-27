@@ -407,11 +407,6 @@ to the variable `mode-line-format'.  For example,
 Note that `mode-line-format' is buffer-local.")
 
 ;;---------------------------------------------------------------------------
-;; system dependency
-
-(defalias 'hs-match-data 'match-data)
-
-;;---------------------------------------------------------------------------
 ;; support functions
 
 (defun hs-discard-overlays (from to)
@@ -526,7 +521,7 @@ and then further adjusted to be at the end of the line."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
     (when (looking-at hs-block-start-regexp)
-      (let* ((mdata (hs-match-data t))
+      (let* ((mdata (match-data t))
              (pure-p (match-end 0))
              (p
               ;; `p' is the point at the end of the block beginning,
@@ -651,7 +646,7 @@ Return point, or nil if original point was not in a block."
       (while (and (re-search-backward hs-block-start-regexp nil t)
                   (not (setq done
                              (< here (save-excursion
-                                       (hs-forward-sexp (hs-match-data t) 1)
+                                       (hs-forward-sexp (match-data t) 1)
                                        (point)))))))
       (if done
           (point)
@@ -825,7 +820,7 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
                   ;; ugh, fresh match-data
                   (looking-at hs-block-start-regexp))
              (setq p (point)
-                   q (progn (hs-forward-sexp (hs-match-data t) 1) (point)))))
+                   q (progn (hs-forward-sexp (match-data t) 1) (point)))))
       (when (and p q)
         (hs-discard-overlays p q)
         (goto-char (if end q (1+ p)))))

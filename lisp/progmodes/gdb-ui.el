@@ -1132,10 +1132,10 @@ This filter may simply queue input for a later time."
 	  (let ((item (concat string "\n")))
 	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
 	    (process-send-string proc item)))
-      (if (and (string-match "\\\\$" string)
-	       (not comint-input-sender-no-newline)) ;;Try to catch C-d.
+      (if (string-match "\\\\\\'" string)
 	  (setq gdb-continuation (concat gdb-continuation string "\n"))
-	(let ((item (concat gdb-continuation string "\n")))
+	(let ((item (concat gdb-continuation string
+			 (if (not comint-input-sender-no-newline) "\n"))))
 	  (gdb-enqueue-input item)
 	  (setq gdb-continuation nil)))))
 

@@ -1,6 +1,7 @@
 /* Functions for image support on window system.
    Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-                 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007
+                 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1317,8 +1318,8 @@ image_ascent (img, face, slice)
 	{
 #ifdef HAVE_NTGUI
 	  /* W32 specific version.  Why?. ++kfs  */
-	  ascent = height / 2 - (FONT_DESCENT(face->font)
-				 - FONT_BASE(face->font)) / 2;
+	  ascent = height / 2 - (FONT_DESCENT (face->font)
+				 - FONT_BASE (face->font)) / 2;
 #else
 	  /* This expression is arranged so that if the image can't be
 	     exactly centered, it will be moved slightly up.  This is
@@ -2095,7 +2096,7 @@ forall_images_in_image_cache (f, fn)
 
 /* Load a DLL implementing an image type.
    The `image-library-alist' variable associates a symbol,
-   identifying  an image type, to a list of possible filenames.
+   identifying an image type, to a list of possible filenames.
    The function returns NULL if no library could be loaded for
    the given image type, or if the library was previously loaded;
    else the handle of the DLL.  */
@@ -2251,7 +2252,7 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
 
   if (*pixmap == NULL)
     {
-      DWORD err = GetLastError();
+      DWORD err = GetLastError ();
       Lisp_Object errcode;
       /* All system errors are < 10000, so the following is safe.  */
       XSETINT (errcode, (int) err);
@@ -2353,7 +2354,7 @@ x_put_x_image (f, ximg, pixmap, width, height)
 static unsigned char *slurp_file P_ ((char *, int *));
 
 
-/* Find image file FILE.  Look in data-directory, then
+/* Find image file FILE.  Look in data-directory/images, then
    x-bitmap-file-path.  Value is the encoded full name of the file
    found, or nil if not found.  */
 
@@ -2366,7 +2367,11 @@ x_find_image_file (file)
   int fd;
 
   file_found = Qnil;
-  search_path = Fcons (Vdata_directory, Vx_bitmap_file_path);
+  /* TODO I think this should use something like image-load-path
+     instead.  Unfortunately, that can contain non-string elements.  */
+  search_path = Fcons (Fexpand_file_name (build_string ("images"),
+					  Vdata_directory),
+		       Vx_bitmap_file_path);
   GCPRO2 (file_found, search_path);
 
   /* Try to find FILE in data-directory, then x-bitmap-file-path.  */
@@ -3103,7 +3108,8 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
   return bmp;
 }
 
-static void convert_mono_to_color_image (f, img, foreground, background)
+static void
+convert_mono_to_color_image (f, img, foreground, background)
      struct frame *f;
      struct image *img;
      COLORREF foreground, background;
@@ -3146,7 +3152,7 @@ static void convert_mono_to_color_image (f, img, foreground, background)
 
 
 static void
-Create_Pixmap_From_Bitmap_Data(f, img, data, fg, bg, non_default_colors)
+Create_Pixmap_From_Bitmap_Data (f, img, data, fg, bg, non_default_colors)
      struct frame *f;
      struct image *img;
      char *data;
@@ -5052,7 +5058,8 @@ x_to_xcolors (f, img, rgb_p)
    created with CreateDIBSection, with the pointer to the bit values
    stored in ximg->data.  */
 
-static void XPutPixel (ximg, x, y, color)
+static void
+XPutPixel (ximg, x, y, color)
      XImagePtr  ximg;
      int x, y;
      COLORREF color;
@@ -6706,7 +6713,7 @@ init_jpeg_functions (Lisp_Object libraries)
 /* Wrapper since we can't directly assign the function pointer
    to another function pointer that was declared more completely easily.  */
 static boolean
-jpeg_resync_to_restart_wrapper(cinfo, desired)
+jpeg_resync_to_restart_wrapper (cinfo, desired)
      j_decompress_ptr cinfo;
      int desired;
 {
@@ -7800,7 +7807,7 @@ gif_load (f, img)
       memsrc.index = 0;
 
       /* Casting return value avoids a GCC warning on W32.  */
-      gif = (GifFileType *)fn_DGifOpen(&memsrc, gif_read_from_memory);
+      gif = (GifFileType *) fn_DGifOpen (&memsrc, gif_read_from_memory);
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
@@ -8201,6 +8208,418 @@ gif_load (f, img)
 
 
 /***********************************************************************
+				 SVG
+ ***********************************************************************/
+
+#if defined (HAVE_RSVG)
+
+/* Function prototypes.  */
+
+static int svg_image_p P_ ((Lisp_Object object));
+static int svg_load P_ ((struct frame *f, struct image *img));
+
+static int svg_load_image P_ ((struct frame *, struct image *,
+			       unsigned char *, unsigned int));
+
+/* The symbol `svg' identifying images of this type. */
+
+Lisp_Object Qsvg;
+
+/* Indices of image specification fields in svg_format, below.  */
+
+enum svg_keyword_index
+{
+  SVG_TYPE,
+  SVG_DATA,
+  SVG_FILE,
+  SVG_ASCENT,
+  SVG_MARGIN,
+  SVG_RELIEF,
+  SVG_ALGORITHM,
+  SVG_HEURISTIC_MASK,
+  SVG_MASK,
+  SVG_BACKGROUND,
+  SVG_LAST
+};
+
+/* Vector of image_keyword structures describing the format
+   of valid user-defined image specifications.  */
+
+static struct image_keyword svg_format[SVG_LAST] =
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
+
+/* Structure describing the image type `svg'.  Its the same type of
+   structure defined for all image formats, handled by emacs image
+   functions.  See struct image_type in dispextern.h.  */
+
+static struct image_type svg_type =
+{
+  /* An identifier showing that this is an image structure for the SVG format.  */
+  &Qsvg,
+  /* Handle to a function that can be used to identify a SVG file.  */
+  svg_image_p,
+  /* Handle to function used to load a SVG file.  */
+  svg_load,
+  /* Handle to function to free sresources for SVG.  */
+  x_clear_image,
+  /* An internal field to link to the next image type in a list of
+     image types, will be filled in when registering the format.  */
+  NULL
+};
+
+
+/* Return non-zero if OBJECT is a valid SVG image specification.  Do
+   this by calling parse_image_spec and supplying the keywords that
+   identify the SVG format.   */
+
+static int
+svg_image_p (object)
+     Lisp_Object object;
+{
+  struct image_keyword fmt[SVG_LAST];
+  bcopy (svg_format, fmt, sizeof fmt);
+
+  if (!parse_image_spec (object, fmt, SVG_LAST, Qsvg))
+    return 0;
+
+  /* Must specify either the :data or :file keyword.  */
+  return fmt[SVG_FILE].count + fmt[SVG_DATA].count == 1;
+}
+
+#include <librsvg/rsvg.h>
+
+#ifdef HAVE_NTGUI
+
+/* SVG library functions.  */
+DEF_IMGLIB_FN (rsvg_handle_new);
+DEF_IMGLIB_FN (rsvg_handle_set_size_callback);
+DEF_IMGLIB_FN (rsvg_handle_write);
+DEF_IMGLIB_FN (rsvg_handle_close);
+DEF_IMGLIB_FN (rsvg_handle_get_pixbuf);
+DEF_IMGLIB_FN (rsvg_handle_free);
+
+DEF_IMGLIB_FN (gdk_pixbuf_get_width);
+DEF_IMGLIB_FN (gdk_pixbuf_get_height);
+DEF_IMGLIB_FN (gdk_pixbuf_get_pixels);
+DEF_IMGLIB_FN (gdk_pixbuf_get_rowstride);
+DEF_IMGLIB_FN (gdk_pixbuf_get_colorspace);
+DEF_IMGLIB_FN (gdk_pixbuf_get_n_channels);
+DEF_IMGLIB_FN (gdk_pixbuf_get_has_alpha);
+DEF_IMGLIB_FN (gdk_pixbuf_get_bits_per_sample);
+
+DEF_IMGLIB_FN (g_type_init);
+DEF_IMGLIB_FN (g_object_unref);
+DEF_IMGLIB_FN (g_error_free);
+
+Lisp_Object Qgdk_pixbuf, Qglib;
+
+static int
+init_svg_functions (Lisp_Object libraries)
+{
+  HMODULE library, gdklib, glib;
+
+  if (!(glib = w32_delayed_load (libraries, Qglib))
+      || !(gdklib = w32_delayed_load (libraries, Qgdk_pixbuf))
+      || !(library = w32_delayed_load (libraries, Qsvg)))
+    return 0;
+
+  LOAD_IMGLIB_FN (library, rsvg_handle_new);
+  LOAD_IMGLIB_FN (library, rsvg_handle_set_size_callback);
+  LOAD_IMGLIB_FN (library, rsvg_handle_write);
+  LOAD_IMGLIB_FN (library, rsvg_handle_close);
+  LOAD_IMGLIB_FN (library, rsvg_handle_get_pixbuf);
+  LOAD_IMGLIB_FN (library, rsvg_handle_free);
+
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_width);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_height);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_pixels);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_rowstride);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_colorspace);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_n_channels);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_has_alpha);
+  LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_bits_per_sample);
+
+  LOAD_IMGLIB_FN (glib, g_type_init);
+  LOAD_IMGLIB_FN (glib, g_object_unref);
+  LOAD_IMGLIB_FN (glib, g_error_free);
+  return 1;
+}
+
+#else
+/* The following aliases for library functions allow dynamic loading
+   to be used on some platforms.  */
+#define fn_rsvg_handle_new		rsvg_handle_new
+#define fn_rsvg_handle_set_size_callback rsvg_handle_set_size_callback
+#define fn_rsvg_handle_write		rsvg_handle_write
+#define fn_rsvg_handle_close		rsvg_handle_close
+#define fn_rsvg_handle_get_pixbuf	rsvg_handle_get_pixbuf
+#define fn_rsvg_handle_free		rsvg_handle_free
+
+#define fn_gdk_pixbuf_get_width		  gdk_pixbuf_get_width
+#define fn_gdk_pixbuf_get_height	  gdk_pixbuf_get_height
+#define fn_gdk_pixbuf_get_pixels	  gdk_pixbuf_get_pixels
+#define fn_gdk_pixbuf_get_rowstride	  gdk_pixbuf_get_rowstride
+#define fn_gdk_pixbuf_get_colorspace	  gdk_pixbuf_get_colorspace
+#define fn_gdk_pixbuf_get_n_channels	  gdk_pixbuf_get_n_channels
+#define fn_gdk_pixbuf_get_has_alpha	  gdk_pixbuf_get_has_alpha
+#define fn_gdk_pixbuf_get_bits_per_sample gdk_pixbuf_get_bits_per_sample
+
+#define fn_g_type_init                    g_type_init
+#define fn_g_object_unref                 g_object_unref
+#define fn_g_error_free                   g_error_free
+#endif /* !HAVE_NTGUI  */
+
+/* Load SVG image IMG for use on frame F.  Value is non-zero if
+   successful. this function will go into the svg_type structure, and
+   the prototype thus needs to be compatible with that structure.  */
+
+static int
+svg_load (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  int success_p = 0;
+  Lisp_Object file_name;
+
+  /* If IMG->spec specifies a file name, create a non-file spec from it.  */
+  file_name = image_spec_value (img->spec, QCfile, NULL);
+  if (STRINGP (file_name))
+    {
+      Lisp_Object file;
+      unsigned char *contents;
+      int size;
+      struct gcpro gcpro1;
+
+      file = x_find_image_file (file_name);
+      GCPRO1 (file);
+      if (!STRINGP (file))
+	{
+	  image_error ("Cannot find image file `%s'", file_name, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
+      /* Read the entire file into memory.  */
+      contents = slurp_file (SDATA (file), &size);
+      if (contents == NULL)
+	{
+	  image_error ("Error loading SVG image `%s'", img->spec, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+      /* If the file was slurped into memory properly, parse it.  */
+      success_p = svg_load_image (f, img, contents, size);
+      xfree (contents);
+      UNGCPRO;
+    }
+  /* Else its not a file, its a lisp object.  Load the image from a
+     lisp object rather than a file.  */
+  else
+    {
+      Lisp_Object data;
+
+      data = image_spec_value (img->spec, QCdata, NULL);
+      success_p = svg_load_image (f, img, SDATA (data), SBYTES (data));
+    }
+
+  return success_p;
+}
+
+/* svg_load_image is a helper function for svg_load, which does the actual
+ loading given contents and size, apart from frame and image
+ structures, passed from svg_load.
+
+ Uses librsvg to do most of the image processing.
+
+ Returns non-zero when sucessful.  */
+static int
+svg_load_image (f, img, contents, size)
+    /* Pointer to emacs frame sturcture.  */
+     struct frame *f;
+     /* Pointer to emacs image structure.  */
+     struct image *img;
+     /* String containing the SVG XML data to be parsed.  */
+     unsigned char *contents;
+     /* Size of data in bytes.  */
+     unsigned int size;
+{
+  RsvgHandle *rsvg_handle;
+  GError *error = NULL;
+  GdkPixbuf *pixbuf;
+  int width;
+  int height;
+  const guint8 *pixels;
+  int rowstride;
+  XImagePtr ximg;
+  Lisp_Object specified_bg;
+  XColor background;
+  int x;
+  int y;
+
+  /* g_type_init is a glib function that must be called prior to using
+     gnome type library functions.  */
+  fn_g_type_init ();
+  /* Make a handle to a new rsvg object.  */
+  rsvg_handle = fn_rsvg_handle_new ();
+
+  /* Parse the contents argument and fill in the rsvg_handle.  */
+  fn_rsvg_handle_write (rsvg_handle, contents, size, &error);
+  if (error)
+    goto rsvg_error;
+
+  /* The parsing is complete, rsvg_handle is ready to used, close it
+     for further writes.  */
+  fn_rsvg_handle_close (rsvg_handle, &error);
+  if (error)
+    goto rsvg_error;
+  /* We can now get a valid pixel buffer from the svg file, if all
+     went ok.  */
+  pixbuf = fn_rsvg_handle_get_pixbuf (rsvg_handle);
+  eassert (pixbuf);
+
+  /* Extract some meta data from the svg handle.  */
+  width     = fn_gdk_pixbuf_get_width (pixbuf);
+  height    = fn_gdk_pixbuf_get_height (pixbuf);
+  pixels    = fn_gdk_pixbuf_get_pixels (pixbuf);
+  rowstride = fn_gdk_pixbuf_get_rowstride (pixbuf);
+
+  /* Validate the svg meta data.  */
+  eassert (fn_gdk_pixbuf_get_colorspace (pixbuf) == GDK_COLORSPACE_RGB);
+  eassert (fn_gdk_pixbuf_get_n_channels (pixbuf) == 4);
+  eassert (fn_gdk_pixbuf_get_has_alpha (pixbuf));
+  eassert (fn_gdk_pixbuf_get_bits_per_sample (pixbuf) == 8);
+
+  /* Try to create a x pixmap to hold the svg pixmap.  */
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
+    {
+      fn_g_object_unref (pixbuf);
+      return 0;
+    }
+
+  init_color_table ();
+
+  /* Handle alpha channel by combining the image with a background
+     color.  */
+  specified_bg = image_spec_value (img->spec, QCbackground, NULL);
+  if (STRINGP (specified_bg)
+      && x_defined_color (f, SDATA (specified_bg), &background, 0))
+    {
+      background.red   >>= 8;
+      background.green >>= 8;
+      background.blue  >>= 8;
+    }
+  else
+    {
+#ifdef HAVE_X_WINDOWS
+      background.pixel = FRAME_BACKGROUND_PIXEL (f);
+      x_query_color (f, &background);
+
+      /* SVG pixmaps specify transparency in the last byte, so right
+	 shift 8 bits to get rid of it, since emacs doesn't support
+	 transparency.  */
+      background.red   >>= 8;
+      background.green >>= 8;
+      background.blue  >>= 8;
+#elif defined (MAC_OS)
+      background.pixel = FRAME_BACKGROUND_PIXEL (f);
+      background.red   = RED_FROM_ULONG (background.pixel);
+      background.green = GREEN_FROM_ULONG (background.pixel);
+      background.blue  = BLUE_FROM_ULONG (background.pixel);
+#elif defined (HAVE_NTGUI)
+      background.pixel = FRAME_BACKGROUND_PIXEL (f);
+#if 0 /* W32 TODO : Colormap support.  */
+      x_query_color (f, &background);
+#endif
+
+      /* SVG pixmaps specify transparency in the last byte, so right
+	 shift 8 bits to get rid of it, since emacs doesn't support
+	 transparency.  */
+      background.red   >>= 8;
+      background.green >>= 8;
+      background.blue  >>= 8;
+#else /* not HAVE_X_WINDOWS && not MAC_OS*/
+#error FIXME
+#endif
+    }
+
+  /* This loop handles opacity values, since Emacs assumes
+     non-transparent images.  Each pixel must be "flattened" by
+     calculating he resulting color, given the transparency of the
+     pixel, and the image background color.   */
+  for (y = 0; y < height; ++y)
+    {
+      for (x = 0; x < width; ++x)
+	{
+	  unsigned red;
+	  unsigned green;
+	  unsigned blue;
+	  unsigned opacity;
+
+	  red     = *pixels++;
+	  green   = *pixels++;
+	  blue    = *pixels++;
+	  opacity = *pixels++;
+
+	  red   = ((red * opacity)
+		   + (background.red * ((1 << 8) - opacity)));
+	  green = ((green * opacity)
+		   + (background.green * ((1 << 8) - opacity)));
+	  blue  = ((blue * opacity)
+		   + (background.blue * ((1 << 8) - opacity)));
+
+	  XPutPixel (ximg, x, y, lookup_rgb_color (f, red, green, blue));
+	}
+
+      pixels += rowstride - 4 * width;
+    }
+
+#ifdef COLOR_TABLE_SUPPORT
+  /* Remember colors allocated for this image.  */
+  img->colors = colors_in_color_table (&img->ncolors);
+  free_color_table ();
+#endif /* COLOR_TABLE_SUPPORT */
+
+  fn_g_object_unref (pixbuf);
+
+  img->width  = width;
+  img->height = height;
+
+  /* Maybe fill in the background field while we have ximg handy.
+     Casting avoids a GCC warning.  */
+  IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
+
+  /* Put the image into the pixmap, then free the X image and its
+     buffer.  */
+  x_put_x_image (f, ximg, img->pixmap, width, height);
+  x_destroy_x_image (ximg);
+
+  return 1;
+
+ rsvg_error:
+  /* FIXME: Use error->message so the user knows what is the actual
+     problem with the image.  */
+  image_error ("Error parsing SVG image `%s'", img->spec, Qnil);
+  fn_g_error_free (error);
+  return 0;
+}
+
+#endif	/* defined (HAVE_RSVG) */
+
+
+
+
+/***********************************************************************
 				Ghostscript
  ***********************************************************************/
 
@@ -8591,6 +9010,11 @@ of `image-library-alist', which see).  */)
     return CHECK_LIB_AVAILABLE (&png_type, init_png_functions, libraries);
 #endif
 
+#if defined (HAVE_RSVG)
+  if (EQ (type, Qsvg))
+    return CHECK_LIB_AVAILABLE (&svg_type, init_svg_functions, libraries);
+#endif
+
 #ifdef HAVE_GHOSTSCRIPT
   if (EQ (type, Qpostscript))
     return CHECK_LIB_AVAILABLE (&gs_type, init_gs_functions, libraries);
@@ -8629,7 +9053,7 @@ alternate filenames for the corresponding external libraries.
 Emacs tries to load the libraries in the order they appear on the
 list; if none is loaded, the running session of Emacs won't
 support the image type.  Types 'pbm and 'xbm don't need to be
-listed; they're always supported.  */);
+listed; they are always supported.  */);
   Vimage_library_alist = Qnil;
   Fput (intern ("image-library-alist"), Qrisky_local_variable, Qt);
 
@@ -8650,11 +9074,11 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
-  ADD_IMAGE_TYPE(Qpbm);
+  ADD_IMAGE_TYPE (Qpbm);
 
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
-  ADD_IMAGE_TYPE(Qxbm);
+  ADD_IMAGE_TYPE (Qxbm);
 
   define_image_type (&xbm_type, 1);
   define_image_type (&pbm_type, 1);
@@ -8692,7 +9116,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   Qpostscript = intern ("postscript");
   staticpro (&Qpostscript);
 #ifdef HAVE_GHOSTSCRIPT
-  ADD_IMAGE_TYPE(Qpostscript);
+  ADD_IMAGE_TYPE (Qpostscript);
   QCloader = intern (":loader");
   staticpro (&QCloader);
   QCbounding_box = intern (":bounding-box");
@@ -8706,32 +9130,44 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #if defined (HAVE_XPM) || defined (MAC_OS)
   Qxpm = intern ("xpm");
   staticpro (&Qxpm);
-  ADD_IMAGE_TYPE(Qxpm);
+  ADD_IMAGE_TYPE (Qxpm);
 #endif
 
 #if defined (HAVE_JPEG) || defined (MAC_OS)
   Qjpeg = intern ("jpeg");
   staticpro (&Qjpeg);
-  ADD_IMAGE_TYPE(Qjpeg);
+  ADD_IMAGE_TYPE (Qjpeg);
 #endif
 
 #if defined (HAVE_TIFF) || defined (MAC_OS)
   Qtiff = intern ("tiff");
   staticpro (&Qtiff);
-  ADD_IMAGE_TYPE(Qtiff);
+  ADD_IMAGE_TYPE (Qtiff);
 #endif
 
 #if defined (HAVE_GIF) || defined (MAC_OS)
   Qgif = intern ("gif");
   staticpro (&Qgif);
-  ADD_IMAGE_TYPE(Qgif);
+  ADD_IMAGE_TYPE (Qgif);
 #endif
 
 #if defined (HAVE_PNG) || defined (MAC_OS)
   Qpng = intern ("png");
   staticpro (&Qpng);
-  ADD_IMAGE_TYPE(Qpng);
+  ADD_IMAGE_TYPE (Qpng);
 #endif
+
+#if defined (HAVE_RSVG)
+  Qsvg = intern ("svg");
+  staticpro (&Qsvg);
+  ADD_IMAGE_TYPE (Qsvg);
+#ifdef HAVE_NTGUI
+  Qgdk_pixbuf = intern ("gdk-pixbuf");
+  staticpro (&Qgdk_pixbuf);
+  Qglib = intern ("glib");
+  staticpro (&Qglib);
+#endif /* HAVE_NTGUI  */
+#endif /* HAVE_RSVG  */
 
   defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
@@ -8747,7 +9183,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
     doc: /* Non-nil means always draw a cross over disabled images.
-Disabled images are those having an `:conversion disabled' property.
+Disabled images are those having a `:conversion disabled' property.
 A cross is always drawn on black & white displays.  */);
   cross_disabled_images = 0;
 

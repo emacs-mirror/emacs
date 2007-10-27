@@ -831,12 +831,12 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                           (setq completion-base-size (if dirname
                                                          dirlength
                                                        (- beg prompt-end))))))
-                             (PC-temp-minibuffer-message " [Next char not unique]"))))))
-           ;; Expansion of filenames is not reversible, so just keep
-           ;; the prefix.
+                             (PC-temp-minibuffer-message " [Next char not unique]"))
+                         ;; Expansion of filenames is not reversible,
+                         ;; so just keep the prefix.
            (when (and abbreviated filename)
              (delete-region (point) end))
-           nil)
+                         nil)))))
 
        ;; Only one possible completion
        (t

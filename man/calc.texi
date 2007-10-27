@@ -123,6 +123,13 @@ Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
 @insertcopying
 @end titlepage
 
+
+@summarycontents
+
+@c [end]
+
+@contents
+
 @c [begin]
 @ifnottex
 @node Top, Getting Started, (dir), (dir)
@@ -10013,11 +10020,18 @@ During numeric entry, the only editing key available is @key{DEL}.
 @cindex Algebraic notation
 @cindex Formulas, entering
 Calculations can also be entered in algebraic form.  This is accomplished
-by typing the apostrophe key, @kbd{'}, followed by the expression in
-standard format:  @kbd{@key{'} 2+3*4 @key{RET}} computes
+by typing the apostrophe key, ', followed by the expression in
+standard format:  
+
+@example
+' 2+3*4 @key{RET}.
+@end example
+
+@noindent
+This will compute
 @texline @math{2+(3\times4) = 14}
 @infoline @expr{2+(3*4) = 14} 
-and pushes that on the stack.  If you wish you can
+and push it on the stack.  If you wish you can
 ignore the RPN aspect of Calc altogether and simply enter algebraic
 expressions in this way.  You may want to use @key{DEL} every so often to
 clear previous results off the stack.
@@ -10166,8 +10180,8 @@ then the result of the evaluation is stored in that Calc variable.
 @xref{Store and Recall}.
 
 If the result is an integer and the current display radix is decimal,
-the number will also be displayed in hex and octal formats.  If the
-integer is in the range from 1 to 126, it will also be displayed as
+the number will also be displayed in hex, octal and binary formats.  If
+the integer is in the range from 1 to 126, it will also be displayed as
 an ASCII character.
 
 For example, the quoted character @samp{"x"} produces the vector
@@ -17081,69 +17095,45 @@ Pacific Time look like this:
 
 @cindex @code{TimeZone} variable
 @vindex TimeZone
-With no arguments, @code{calc-time-zone} or @samp{tzone()} obtains an
-argument from the Calc variable @code{TimeZone} if a value has been
-stored for that variable.  If not, Calc runs the Unix @samp{date}
-command and looks for one of the above time zone names in the output;
-if this does not succeed, @samp{tzone()} leaves itself unevaluated.
-The time zone name in the @samp{date} output may be followed by a signed
-adjustment, e.g., @samp{GMT+5} or @samp{GMT+0500} which specifies a
-number of hours and minutes to be added to the base time zone.
-Calc stores the time zone it finds into @code{TimeZone} to speed
-later calls to @samp{tzone()}.
-
-The special time zone name @code{local} is equivalent to no argument,
-i.e., it uses the local time zone as obtained from the @code{date}
-command.
-
-If the time zone name found is one of the standard or daylight
-saving zone names from the above table, and Calc's internal
-daylight saving algorithm says that time and zone are consistent
-(e.g., @code{PDT} accompanies a date that Calc's algorithm would also
-consider to be daylight saving, or @code{PST} accompanies a date
-that Calc would consider to be standard time), then Calc substitutes
-the corresponding generalized time zone (like @code{PGT}).
-
-If your system does not have a suitable @samp{date} command, you
-may wish to put a @samp{(setq var-TimeZone ...)} in your Emacs
-initialization file to set the time zone.  (Since you are interacting
-with the variable @code{TimeZone} directly from Emacs Lisp, the
-@code{var-} prefix needs to be present.)  The easiest way to do
-this is to edit the @code{TimeZone} variable using Calc's @kbd{s T}
-command, then use the @kbd{s p} (@code{calc-permanent-variable})
-command to save the value of @code{TimeZone} permanently.
+With no arguments, @code{calc-time-zone} or @samp{tzone()} will by
+default get the time zone and daylight saving information from the
+calendar (@pxref{Daylight Saving,Calendar/Diary,The Calendar and the Diary,
+emacs,The GNU Emacs Manual}).  To use a different time zone, or if the
+calendar does not give the desired result, you can set the Calc variable 
+@code{TimeZone} (which is by default @code{nil}) to an appropriate
+time zone name.  (The easiest way to do this is to edit the
+@code{TimeZone} variable using Calc's @kbd{s T} command, then use the
+@kbd{s p} (@code{calc-permanent-variable}) command to save the value of
+@code{TimeZone} permanently.)  
+If the time zone given by @code{TimeZone} is a generalized time zone,
+e.g., @code{EGT}, Calc examines the date being converted to tell whether
+to use standard or daylight saving time.  But if the current time zone
+is explicit, e.g., @code{EST} or @code{EDT}, then that adjustment is
+used exactly and Calc's daylight saving algorithm is not consulted.
+The special time zone name @code{local}
+is equivalent to no argument; i.e., it uses the information obtained
+from the calendar.
 
 The @kbd{t J} and @code{t U} commands with no numeric prefix
-arguments do the same thing as @samp{tzone()}.  If the current
-time zone is a generalized time zone, e.g., @code{EGT}, Calc
-examines the date being converted to tell whether to use standard
-or daylight saving time.  But if the current time zone is explicit,
-e.g., @code{EST} or @code{EDT}, then that adjustment is used exactly
-and Calc's daylight saving algorithm is not consulted.
-
-Some places don't follow the usual rules for daylight saving time.
-The state of Arizona, for example, does not observe daylight saving
-time.  If you run Calc during the winter season in Arizona, the
-Unix @code{date} command will report @code{MST} time zone, which
-Calc will change to @code{MGT}.  If you then convert a time that
-lies in the summer months, Calc will apply an incorrect daylight
-saving time adjustment.  To avoid this, set your @code{TimeZone}
-variable explicitly to @code{MST} to force the use of standard,
-non-daylight-saving time.
+arguments do the same thing as @samp{tzone()}; namely, use the
+information from the calendar if @code{TimeZone} is @code{nil}, 
+otherwise use the time zone given by @code{TimeZone}.
 
 @vindex math-daylight-savings-hook
 @findex math-std-daylight-savings
-By default Calc always considers daylight saving time to begin at
-2 a.m.@: on the second Sunday of March (for years from 2007 on) or on
-the last Sunday in April (for years before 2007), and to end at 2 a.m.@:
-on the first Sunday of November. (for years from 2007 on) or the last
-Sunday in October (for years before 2007).  These are the rules that have
-been in effect in much of North America since 1966 and takes into
-account the rule change that began in 2007.  If you are in a
-country that uses different rules for computing daylight saving time,
-you have two choices:  Write your own daylight saving hook, or control
-time zones explicitly by setting the @code{TimeZone} variable and/or
-always giving a time-zone argument for the conversion functions.
+When Calc computes the daylight saving information itself (i.e., when 
+the @code{TimeZone} variable is set), it will by default consider
+daylight saving time to begin at 2 a.m.@: on the second Sunday of March
+(for years from 2007 on) or on the last Sunday in April (for years
+before 2007), and to end at 2 a.m.@: on the first Sunday of
+November. (for years from 2007 on) or the last Sunday in October (for
+years before 2007).  These are the rules that have been in effect in
+much of North America since 1966 and take into account the rule change
+that began in 2007.  If you are in a country that uses different rules
+for computing daylight saving time, you have two choices: Write your own
+daylight saving hook, or control time zones explicitly by setting the
+@code{TimeZone} variable and/or always giving a time-zone argument for
+the conversion functions.
 
 The Lisp variable @code{math-daylight-savings-hook} holds the
 name of a function that is used to compute the daylight saving
@@ -17207,7 +17197,8 @@ falls in this hour results in a time value for the following hour,
 from 3 a.m.@: to 4 a.m.  At the end of daylight saving time, the
 hour from 1 a.m.@: to 2 a.m.@: repeats itself; converting a date/time
 form that falls in this hour results in a time value for the first
-manifestation of that time (@emph{not} the one that occurs one hour later).
+manifestation of that time (@emph{not} the one that occurs one hour 
+later).
 
 If @code{math-daylight-savings-hook} is @code{nil}, then the
 daylight saving adjustment is always taken to be zero.
@@ -27436,14 +27427,29 @@ of angle are evaluated, regardless of the current angular mode.
 The @kbd{u c} (@code{calc-convert-units}) command converts a units
 expression to new, compatible units.  For example, given the units
 expression @samp{55 mph}, typing @kbd{u c m/s @key{RET}} produces
-@samp{24.5872 m/s}.  If the units you request are inconsistent with
-the original units, the number will be converted into your units
-times whatever ``remainder'' units are left over.  For example,
-converting @samp{55 mph} into acres produces @samp{6.08e-3 acre / m s}.
-(Recall that multiplication binds more strongly than division in Calc
-formulas, so the units here are acres per meter-second.)  Remainder
-units are expressed in terms of ``fundamental'' units like @samp{m} and
-@samp{s}, regardless of the input units.
+@samp{24.5872 m/s}.  If you have previously converted a units expression
+with the same type of units (in this case, distance over time), you will
+be offered the previous choice of new units as a default.  Continuing
+the above example, entering the units expression @samp{100 km/hr} and
+typing @kbd{u c @key{RET}} (without specifying new units) produces
+@samp{27.7777777778 m/s}.
+
+While many of Calc's conversion factors are exact, some are necessarily
+approximate.  If Calc is in fraction mode (@pxref{Fraction Mode}), then
+unit conversions will try to give exact, rational conversions, but it
+isn't always possible.  Given @samp{55 mph} in fraction mode, typing 
+@kbd{u c m/s @key{RET}} produces  @samp{15367:625 m/s}, for example, 
+while typing @kbd{u c au/yr @key{RET}} produces 
+@samp{5.18665819999e-3 au/yr}.
+
+If the units you request are inconsistent with the original units, the
+number will be converted into your units times whatever ``remainder''
+units are left over.  For example, converting @samp{55 mph} into acres
+produces @samp{6.08e-3 acre / m s}.  (Recall that multiplication binds
+more strongly than division in Calc formulas, so the units here are
+acres per meter-second.)  Remainder units are expressed in terms of
+``fundamental'' units like @samp{m} and @samp{s}, regardless of the
+input units.
 
 One special exception is that if you specify a single unit name, and
 a compatible unit appears somewhere in the units expression, then
@@ -36149,11 +36155,6 @@ the corresponding full Lisp name is derived by adding a prefix of
 
 @printindex fn
 
-@summarycontents
-
-@c [end]
-
-@contents
 @bye
 
 

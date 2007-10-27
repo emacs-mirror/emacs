@@ -229,7 +229,8 @@
     (c-mode . c)
     (c++-mode . c)
     (fortran-mode . fortran)
-    (f90-mode . fortran))
+    (f90-mode . fortran)
+    (texinfo-mode . calc-normal-language))
   "*Alist of major modes with appropriate Calc languages."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode") 
@@ -2283,8 +2284,8 @@ See calc-keypad for details."
 
 
 
-(defconst math-bignum-digit-length 4
-;  (truncate (/ (log10 (/ most-positive-fixnum 2)) 2))
+(defconst math-bignum-digit-length 
+  (truncate (/ (log10 (/ most-positive-fixnum 2)) 2))
   "The length of a \"digit\" in Calc bignums.
 If a big integer is of the form (bigpos N0 N1 ...), this is the
 length of the allowable Emacs integers N0, N1,...

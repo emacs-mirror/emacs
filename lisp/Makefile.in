@@ -96,12 +96,12 @@ $(lisp)/cus-load.el:
 custom-deps: $(lisp)/subdirs.el $(lisp)/loaddefs.el $(lisp)/cus-load.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
+	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
 finder-data: $(lisp)/subdirs.el $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
+	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
 $(lisp)/loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
@@ -116,7 +116,7 @@ $(lisp)/loaddefs.el:
 autoloads: $(lisp)/subdirs.el $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -220,7 +220,7 @@ compile-after-backup: backup-compiled-files compile-always
 # new ones.
 
 recompile: doit mh-autoloads $(lisp)/progmodes/cc-mode.elc
-	$(EMACS) $(EMACSOPT) --eval "(batch-byte-recompile-directory 0)" $(lisp)
+	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-mode.elc on the macros in cc-langs.el and the
@@ -229,7 +229,7 @@ $(lisp)/progmodes/cc-mode.elc: \
 	$(lisp)/progmodes/cc-mode.el \
 	$(lisp)/progmodes/cc-langs.el \
 	$(lisp)/progmodes/cc-defs.el
-	$(EMACS) $(EMACSOPT) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
+	$(emacs) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
@@ -266,7 +266,7 @@ $(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
 	echo ";; no-update-autoloads: t" >> $@
 	echo ";; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
-	$(EMACS) $(EMACSOPT) \
+	$(emacs) \
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \

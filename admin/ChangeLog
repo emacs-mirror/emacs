@@ -1,3 +1,7 @@
+2007-08-28  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el: Provide self.
+
 2007-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE (http): Add Gtk+ tool bar and GUD focus problem.

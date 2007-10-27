@@ -73,18 +73,27 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   ;; This strange form ensures that (recent-keys) is the value before
   ;; the bug subject string is read.
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
-  ;; If there are four numbers in emacs-version, this is a pretest
-  ;; version.
-  (let* ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
-	(from-buffer (current-buffer))
-	(reporting-address (if pretest-p
-			       report-emacs-bug-pretest-address
-			     report-emacs-bug-address))
-        ;; Put these properties on semantically-void text.
-        (prompt-properties '(field emacsbug-prompt
-                                   intangible but-helpful
-                                   rear-nonsticky t))
-	user-point message-end-point)
+  ;; The syntax `version;' is preferred to `[version]' because the
+  ;; latter could be mistakenly stripped by mailing software.
+  (if (eq system-type 'ms-dos)
+      (setq topic (concat emacs-version "; " topic))
+    (when (string-match "^\\(\\([.0-9]+\\)*\\)\\.[0-9]+$" emacs-version)
+      (setq topic (concat (match-string 1 emacs-version) "; " topic))))
+  ;; If there are four numbers in emacs-version (three for MS-DOS),
+  ;; this is a pretest version.
+  (let* ((pretest-p (string-match (if (eq system-type 'ms-dos)
+				      "\\..*\\."
+				    "\\..*\\..*\\.")
+				  emacs-version))
+	 (from-buffer (current-buffer))
+	 (reporting-address (if pretest-p
+				report-emacs-bug-pretest-address
+			      report-emacs-bug-address))
+	 ;; Put these properties on semantically-void text.
+	 (prompt-properties '(field emacsbug-prompt
+				    intangible but-helpful
+				    rear-nonsticky t))
+	 user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
 	    (point-max-marker)))
@@ -106,7 +115,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	(let ((pos (point)))
 	  (insert "not to your local site managers!")
 	  (put-text-property pos (point) 'face 'highlight)))
-	(insert "\nPlease write in ")
+      (insert "\nPlease write in ")
       (let ((pos (point)))
 	(insert "English")
 	(put-text-property pos (point) 'face 'highlight))
@@ -132,8 +141,8 @@ usually do not have translators to read other languages for them.\n\n")
 
     (let ((debug-file (expand-file-name "DEBUG" data-directory)))
       (if (file-readable-p debug-file)
-	(insert "If you would like to further debug the crash, please read the file\n"
-		debug-file " for instructions.\n")))
+	  (insert "If you would like to further debug the crash, please read the file\n"
+		  debug-file " for instructions.\n")))
     (add-text-properties (1+ user-point) (point) prompt-properties)
 
     (insert "\n\nIn " (emacs-version) "\n")

@@ -2153,6 +2153,24 @@ most recently will be fetched.
 @code{gnus-large-newsgroup}, but is only used for ephemeral
 newsgroups.
 
+@vindex gnus-maximum-newsgroup
+In groups in some news servers, there might be a big gap between a few
+very old articles that will never be expired and the recent ones.  In
+such a case, the server will return the data like @code{(1 . 30000000)}
+for the @code{LIST ACTIVE group} command, for example.  Even if there
+are actually only the articles 1-10 and 29999900-30000000, Gnus doesn't
+know it at first and prepares for getting 30000000 articles.  However,
+it will consume hundreds megabytes of memories and might make Emacs get
+stuck as the case may be.  If you use such news servers, set the
+variable @code{gnus-maximum-newsgroup} to a positive number.  The value
+means that Gnus ignores articles other than this number of the latest
+ones in every group.  For instance, the value 10000 makes Gnus get only
+the articles 29990001-30000000 (if the latest article number is 30000000
+in a group).  Note that setting this variable to a number might prevent
+you from reading very old articles.  The default value of the variable
+@code{gnus-maximum-newsgroup} is @code{nil}, which means Gnus never
+ignores old articles.
+
 @vindex gnus-select-group-hook
 @vindex gnus-auto-select-first
 @vindex gnus-auto-select-subject

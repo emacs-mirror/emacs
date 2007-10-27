@@ -396,7 +396,7 @@ Elements of the list may be:
 
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
-    insert-file insert-buffer insert-file-literally)
+    insert-file insert-buffer insert-file-literally previous-line next-line)
   "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-var nil
@@ -1090,8 +1090,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defun byte-compile-log-file ()
   (and (not (equal byte-compile-current-file byte-compile-last-logged-file))
        (not noninteractive)
-       (save-excursion
-	 (set-buffer (get-buffer-create "*Compile-Log*"))
+       (with-current-buffer (get-buffer-create "*Compile-Log*")
 	 (goto-char (point-max))
 	 (let* ((inhibit-read-only t)
 		(dir (and byte-compile-current-file
@@ -1628,8 +1627,7 @@ recompile every `.el' file that already has a `.elc' file."
       nil
     (save-some-buffers)
     (force-mode-line-update))
-  (save-current-buffer
-    (set-buffer (get-buffer-create "*Compile-Log*"))
+  (with-current-buffer (get-buffer-create "*Compile-Log*")
     (setq default-directory (expand-file-name directory))
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
@@ -1731,7 +1729,7 @@ The value is non-nil if there were no errors, nil if errors."
       (let ((b (get-file-buffer (expand-file-name filename))))
 	(if (and b (buffer-modified-p b)
 		 (y-or-n-p (format "Save buffer %s first? " (buffer-name b))))
-	    (save-excursion (set-buffer b) (save-buffer)))))
+	    (with-current-buffer b (save-buffer)))))
 
   ;; Force logging of the file name for each file compiled.
   (setq byte-compile-last-logged-file nil)
@@ -1741,9 +1739,8 @@ The value is non-nil if there were no errors, nil if errors."
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
-    (save-excursion
-      (setq input-buffer (get-buffer-create " *Compiler Input*"))
-      (set-buffer input-buffer)
+    (with-current-buffer 
+        (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (erase-buffer)
       (setq buffer-file-coding-system nil)
       ;; Always compile an Emacs Lisp file as multibyte
@@ -1944,7 +1941,13 @@ With argument, insert value in current buffer after the form."
 		 (not (eobp)))
 	  (setq byte-compile-read-position (point)
 		byte-compile-last-position byte-compile-read-position)
-	  (let ((form (read inbuffer)))
+	  (let* ((old-style-backquotes nil)
+                 (form (read inbuffer)))
+            ;; Warn about the use of old-style backquotes.
+            (when old-style-backquotes
+              (byte-compile-warn "!! The file uses old-style backquotes !!
+This functionality has been obsolete for more than 10 years already
+and will be removed soon.  See (elisp)Backquote in the manual."))
 	    (byte-compile-file-form form)))
 	;; Compile pending forms at end of file.
 	(byte-compile-flush-pending)
@@ -2117,85 +2120,83 @@ list that represents a doc string reference.
   ;; We need to examine byte-compile-dynamic-docstrings
   ;; in the input buffer (now current), not in the output buffer.
   (let ((dynamic-docstrings byte-compile-dynamic-docstrings))
-    (set-buffer
-     (prog1 (current-buffer)
-       (set-buffer outbuffer)
-       (let (position)
+    (with-current-buffer outbuffer
+      (let (position)
 
-	 ;; Insert the doc string, and make it a comment with #@LENGTH.
-	 (and (>= (nth 1 info) 0)
-	      dynamic-docstrings
-	      (not byte-compile-compatibility)
-	      (progn
-		;; Make the doc string start at beginning of line
-		;; for make-docfile's sake.
-		(insert "\n")
-		(setq position
-		      (byte-compile-output-as-comment
-		       (nth (nth 1 info) form) nil))
-		(setq position (- (position-bytes position) (point-min) -1))
-		;; If the doc string starts with * (a user variable),
-		;; negate POSITION.
-		(if (and (stringp (nth (nth 1 info) form))
-			 (> (length (nth (nth 1 info) form)) 0)
-			 (eq (aref (nth (nth 1 info) form) 0) ?*))
-		    (setq position (- position)))))
+        ;; Insert the doc string, and make it a comment with #@LENGTH.
+        (and (>= (nth 1 info) 0)
+             dynamic-docstrings
+             (not byte-compile-compatibility)
+             (progn
+               ;; Make the doc string start at beginning of line
+               ;; for make-docfile's sake.
+               (insert "\n")
+               (setq position
+                     (byte-compile-output-as-comment
+                      (nth (nth 1 info) form) nil))
+               (setq position (- (position-bytes position) (point-min) -1))
+               ;; If the doc string starts with * (a user variable),
+               ;; negate POSITION.
+               (if (and (stringp (nth (nth 1 info) form))
+                        (> (length (nth (nth 1 info) form)) 0)
+                        (eq (aref (nth (nth 1 info) form) 0) ?*))
+                   (setq position (- position)))))
 
-	 (if preface
-	     (progn
-	       (insert preface)
-	       (prin1 name outbuffer)))
-	 (insert (car info))
-	 (let ((print-escape-newlines t)
-	       (print-quoted t)
-	       ;; For compatibility with code before print-circle,
-	       ;; use a cons cell to say that we want
-	       ;; print-gensym-alist not to be cleared
-	       ;; between calls to print functions.
-	       (print-gensym '(t))
-	       (print-circle	       ; handle circular data structures
-		(not byte-compile-disable-print-circle))
-	       print-gensym-alist    ; was used before print-circle existed.
-	       (print-continuous-numbering t)
-	       print-number-table
-	       (index 0))
-	   (prin1 (car form) outbuffer)
-	   (while (setq form (cdr form))
-	     (setq index (1+ index))
-	     (insert " ")
-	     (cond ((and (numberp specindex) (= index specindex)
-			 ;; Don't handle the definition dynamically
-			 ;; if it refers (or might refer)
-			 ;; to objects already output
-			 ;; (for instance, gensyms in the arg list).
-			 (let (non-nil)
-			   (dotimes (i (length print-number-table))
-			     (if (aref print-number-table i)
-				 (setq non-nil t)))
-			   (not non-nil)))
-		    ;; Output the byte code and constants specially
-		    ;; for lazy dynamic loading.
-		    (let ((position
-			   (byte-compile-output-as-comment
-			    (cons (car form) (nth 1 form))
-			    t)))
-		      (setq position (- (position-bytes position) (point-min) -1))
-		      (princ (format "(#$ . %d) nil" position) outbuffer)
-		      (setq form (cdr form))
-		      (setq index (1+ index))))
-		   ((= index (nth 1 info))
-		    (if position
-			(princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
-				       position)
-			       outbuffer)
-		      (let ((print-escape-newlines nil))
-			(goto-char (prog1 (1+ (point))
-				     (prin1 (car form) outbuffer)))
-			(insert "\\\n")
-			(goto-char (point-max)))))
-		   (t
-		    (prin1 (car form) outbuffer)))))
-	 (insert (nth 2 info))))))
+        (if preface
+            (progn
+              (insert preface)
+              (prin1 name outbuffer)))
+        (insert (car info))
+        (let ((print-escape-newlines t)
+              (print-quoted t)
+              ;; For compatibility with code before print-circle,
+              ;; use a cons cell to say that we want
+              ;; print-gensym-alist not to be cleared
+              ;; between calls to print functions.
+              (print-gensym '(t))
+              (print-circle             ; handle circular data structures
+               (not byte-compile-disable-print-circle))
+              print-gensym-alist     ; was used before print-circle existed.
+              (print-continuous-numbering t)
+              print-number-table
+              (index 0))
+          (prin1 (car form) outbuffer)
+          (while (setq form (cdr form))
+            (setq index (1+ index))
+            (insert " ")
+            (cond ((and (numberp specindex) (= index specindex)
+                        ;; Don't handle the definition dynamically
+                        ;; if it refers (or might refer)
+                        ;; to objects already output
+                        ;; (for instance, gensyms in the arg list).
+                        (let (non-nil)
+                          (dotimes (i (length print-number-table))
+                            (if (aref print-number-table i)
+                                (setq non-nil t)))
+                          (not non-nil)))
+                   ;; Output the byte code and constants specially
+                   ;; for lazy dynamic loading.
+                   (let ((position
+                          (byte-compile-output-as-comment
+                           (cons (car form) (nth 1 form))
+                           t)))
+                     (setq position (- (position-bytes position) (point-min) -1))
+                     (princ (format "(#$ . %d) nil" position) outbuffer)
+                     (setq form (cdr form))
+                     (setq index (1+ index))))
+                  ((= index (nth 1 info))
+                   (if position
+                       (princ (format (if quoted "'(#$ . %d)"  "(#$ . %d)")
+                                      position)
+                              outbuffer)
+                     (let ((print-escape-newlines nil))
+                       (goto-char (prog1 (1+ (point))
+                                    (prin1 (car form) outbuffer)))
+                       (insert "\\\n")
+                       (goto-char (point-max)))))
+                  (t
+                   (prin1 (car form) outbuffer)))))
+        (insert (nth 2 info)))))
   nil)
 
 (defun byte-compile-keep-pending (form &optional handler)
@@ -2478,39 +2479,37 @@ list that represents a doc string reference.
 ;; If QUOTED is non-nil, print with quoting; otherwise, print without quoting.
 (defun byte-compile-output-as-comment (exp quoted)
   (let ((position (point)))
-    (set-buffer
-     (prog1 (current-buffer)
-       (set-buffer outbuffer)
+    (with-current-buffer outbuffer
 
-       ;; Insert EXP, and make it a comment with #@LENGTH.
-       (insert " ")
-       (if quoted
-	   (prin1 exp outbuffer)
-	 (princ exp outbuffer))
-       (goto-char position)
-       ;; Quote certain special characters as needed.
-       ;; get_doc_string in doc.c does the unquoting.
-       (while (search-forward "\^A" nil t)
-	 (replace-match "\^A\^A" t t))
-       (goto-char position)
-       (while (search-forward "\000" nil t)
-	 (replace-match "\^A0" t t))
-       (goto-char position)
-       (while (search-forward "\037" nil t)
-	 (replace-match "\^A_" t t))
-       (goto-char (point-max))
-       (insert "\037")
-       (goto-char position)
-       (insert "#@" (format "%d" (- (position-bytes (point-max))
-				    (position-bytes position))))
+      ;; Insert EXP, and make it a comment with #@LENGTH.
+      (insert " ")
+      (if quoted
+          (prin1 exp outbuffer)
+        (princ exp outbuffer))
+      (goto-char position)
+      ;; Quote certain special characters as needed.
+      ;; get_doc_string in doc.c does the unquoting.
+      (while (search-forward "\^A" nil t)
+        (replace-match "\^A\^A" t t))
+      (goto-char position)
+      (while (search-forward "\000" nil t)
+        (replace-match "\^A0" t t))
+      (goto-char position)
+      (while (search-forward "\037" nil t)
+        (replace-match "\^A_" t t))
+      (goto-char (point-max))
+      (insert "\037")
+      (goto-char position)
+      (insert "#@" (format "%d" (- (position-bytes (point-max))
+                                   (position-bytes position))))
 
-       ;; Save the file position of the object.
-       ;; Note we should add 1 to skip the space
-       ;; that we inserted before the actual doc string,
-       ;; and subtract 1 to convert from an 1-origin Emacs position
-       ;; to a file position; they cancel.
-       (setq position (point))
-       (goto-char (point-max))))
+      ;; Save the file position of the object.
+      ;; Note we should add 1 to skip the space
+      ;; that we inserted before the actual doc string,
+      ;; and subtract 1 to convert from an 1-origin Emacs position
+      ;; to a file position; they cancel.
+      (setq position (point))
+      (goto-char (point-max)))
     position))
 
 

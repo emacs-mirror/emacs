@@ -114,10 +114,6 @@
 (defvar x-pointer-top-left-arrow)
 
 ;;; Code:
-(defvar dframe-xemacsp (string-match "XEmacs" emacs-version)
-  "Non-nil if we are running in the XEmacs environment.")
-(defvar dframe-xemacs20p (and dframe-xemacsp
-			      (>= emacs-major-version 20)))
 
 ;; From custom web page for compatibility between versions of custom
 ;; with help from ptype@dera.gov.uk (Proto Type)
@@ -138,25 +134,23 @@
     (if (boundp 'defface)
 	nil
       (defmacro defface (var values doc &rest args)
-	(` (progn
-	     (defvar (, var) (quote (, var)))
-	     ;; To make colors for your faces you need to set your .Xdefaults
-	     ;; or set them up ahead of time in your .emacs file.
-	     (make-face (, var))
-	     ))))
+        ;; To make colors for your faces you need to set your .Xdefaults
+        ;; or set them up ahead of time in your .emacs file.
+        `(make-face ,var)
+        ))
     (if (boundp 'defcustom)
 	nil
       (defmacro defcustom (var value doc &rest args)
-	(` (defvar (, var) (, value) (, doc)))))))
+	`(defvar ,var ,value ,doc)))))
 
 
 ;;; Compatibility functions
 ;;
-(defun dframe-frame-parameter (frame parameter)
-  "Return FRAME's PARAMETER value."
-  (if (fboundp 'frame-parameter)
-      (frame-parameter frame parameter)
-    (cdr (assoc parameter (frame-parameters frame))))) ; XEmacs
+(defalias 'dframe-frame-parameter
+  (if (fboundp 'frame-parameter) 'frame-parameter
+    (lambda (frame parameter)
+      "Return FRAME's PARAMETER value."
+      (cdr (assoc parameter (frame-parameters frame))))))
 
 
 ;;; Variables
@@ -176,26 +170,26 @@
   "Non-nil means that timers are available for this Emacs.")
 
 (defcustom dframe-update-speed
-  (if dframe-xemacsp
-      (if dframe-xemacs20p
+  (if (featurep 'xemacs)
+      (if (>= emacs-major-version 20)
 	  2				; 1 is too obrusive in XEmacs
 	5)				; when no idleness, need long delay
     1)
-  "*Idle time in seconds needed before dframe will update itself.
+  "Idle time in seconds needed before dframe will update itself.
 Updates occur to allow dframe to display directory information
 relevant to the buffer you are currently editing."
   :group 'dframe
   :type 'integer)
 
 (defcustom dframe-activity-change-focus-flag nil
-  "*Non-nil means the selected frame will change based on activity.
+  "Non-nil means the selected frame will change based on activity.
 Thus, if a file is selected for edit, the buffer will appear in the
 selected frame and the focus will change to that frame."
   :group 'dframe
   :type 'boolean)
 
 (defcustom dframe-after-select-attached-frame-hook nil
-  "*Hook run after dframe has selected the attached frame."
+  "Hook run after dframe has selected the attached frame."
   :group 'dframe
   :type 'hook)
 
@@ -247,7 +241,7 @@ Local to those buffers, as a function called that created it.")
 			     'dframe-switch-buffer-attached-frame
 			     map global-map)
 
-  (if dframe-xemacsp
+  (if (featurep 'xemacs)
       (progn
 	;; mouse bindings so we can manipulate the items on each line
 	(define-key map 'button2 'dframe-click)
@@ -255,7 +249,7 @@ Local to those buffers, as a function called that created it.")
 	;; Info doc fix from Bob Weiner
 	(if (featurep 'infodoc)
 	    nil
-	  (define-key map 'button3 'dframe-xemacs-popup-kludge))
+	  (define-key map 'button3 'dframe-popup-kludge))
 	)
 
     ;; mouse bindings so we can manipulate the items on each line
@@ -267,13 +261,13 @@ Local to those buffers, as a function called that created it.")
     ;; This adds a small unecessary visual effect
     ;;(define-key map [down-mouse-2] 'dframe-quick-mouse)
 
-    (define-key map [down-mouse-3] 'dframe-emacs-popup-kludge)
+    (define-key map [down-mouse-3] 'dframe-popup-kludge)
 
     ;; This lets the user scroll as if we had a scrollbar... well maybe not
     (define-key map [mode-line mouse-2] 'dframe-mouse-hscroll)
     ;; another handy place users might click to get our menu.
     (define-key map [mode-line down-mouse-1]
-      'dframe-emacs-popup-kludge)
+      'dframe-popup-kludge)
 
     ;; We can't switch buffers with the buffer mouse menu.  Lets hack it.
     (define-key map [C-down-mouse-1] 'dframe-hack-buffer-menu)
@@ -325,14 +319,12 @@ CREATE-HOOK are hooks to run after creating a frame."
     (run-hooks 'popup-hook)
     ;; Updated the buffer passed in to contain all the hacks needed
     ;; to make it work well in a dedicated window.
-    (save-excursion
-      (set-buffer (symbol-value buffer-var))
+    (with-current-buffer (symbol-value buffer-var)
       ;; Declare this buffer a dedicated frame
       (setq dframe-controlled local-mode-fn)
 
-      (if dframe-xemacsp
-	  ;; Hack the XEmacs mouse-motion handler
-	  (with-no-warnings
+      (if (featurep 'xemacs)
+	  (progn
 	    ;; Hack the XEmacs mouse-motion handler
 	    (set (make-local-variable 'mouse-motion-handler)
 		 'dframe-track-mouse-xemacs)
@@ -353,7 +345,7 @@ CREATE-HOOK are hooks to run after creating a frame."
 	;; Enable mouse tracking in emacs
 	(if dframe-track-mouse-function
 	    (set (make-local-variable 'track-mouse) t))) ;this could be messy.
-;;;; DISABLED: This causes problems for users with multiple frames.
+;;;;  DISABLED: This causes problems for users with multiple frames.
 ;;;;       ;; Set this up special just for the passed in buffer
 ;;;;       ;; Terminal minibuffer stuff does not require this.
 ;;;;       (if (and (or (assoc 'minibuffer parameters)
@@ -402,7 +394,7 @@ CREATE-HOOK are hooks to run after creating a frame."
       (if (frame-live-p (symbol-value frame-var))
 	  (raise-frame (symbol-value frame-var))
 	(set frame-var
-	      (if dframe-xemacsp
+	      (if (featurep 'xemacs)
 		  ;; Only guess height if it is not specified.
 		  (if (member 'height parameters)
 		      (make-frame parameters)
@@ -458,7 +450,7 @@ CREATE-HOOK are hooks to run after creating a frame."
 (defun dframe-reposition-frame (new-frame parent-frame location)
   "Move NEW-FRAME to be relative to PARENT-FRAME.
 LOCATION can be one of 'random, 'left, 'right, 'left-right, or 'top-bottom."
-  (if dframe-xemacsp
+  (if (featurep 'xemacs)
       (dframe-reposition-frame-xemacs new-frame parent-frame location)
     (dframe-reposition-frame-emacs new-frame parent-frame location)))
 
@@ -568,13 +560,13 @@ LOCATION can be one of 'random, 'left-right, or 'top-bottom."
 (defun dframe-detach (frame-var cache-var buffer-var)
   "Detatch the frame in symbol FRAME-VAR.
 CACHE-VAR and BUFFER-VAR are symbols as in `dframe-frame-mode'"
-  (save-excursion
-    (set-buffer (symbol-value buffer-var))
+  (with-current-buffer (symbol-value buffer-var)
     (rename-buffer (buffer-name) t)
     (let ((oldframe (symbol-value frame-var)))
       (set buffer-var nil)
       (set frame-var nil)
       (set cache-var nil)
+      ;; FIXME: Looks very suspicious.  Luckily this function is unused.
       (make-variable-buffer-local frame-var)
       (set frame-var oldframe)
       )))
@@ -785,18 +777,16 @@ If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
 If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
   (cond
    ;; XEmacs
-   (dframe-xemacsp
-    (with-no-warnings
+   ((featurep 'xemacs)
     (if dframe-timer
 	(progn (delete-itimer dframe-timer)
 	       (setq dframe-timer nil)))
     (if timeout
-	(if (and dframe-xemacsp
-		 (or (>= emacs-major-version 21)
-		     (and (= emacs-major-version 20)
-			  (> emacs-minor-version 0))
-		     (and (= emacs-major-version 19)
-			  (>= emacs-minor-version 15))))
+	(if (or (>= emacs-major-version 21)
+                (and (= emacs-major-version 20)
+                     (> emacs-minor-version 0))
+                (and (= emacs-major-version 19)
+                     (>= emacs-minor-version 15)))
 	    (setq dframe-timer (start-itimer "dframe"
 					     'dframe-timer-fn
 					     timeout
@@ -805,7 +795,7 @@ If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
 	  (setq dframe-timer (start-itimer "dframe"
 					   'dframe-timer-fn
 					   timeout
-					   nil))))))
+					   nil)))))
    ;; Post 19.31 Emacs
    ((fboundp 'run-with-idle-timer)
     (if dframe-timer
@@ -815,7 +805,7 @@ If NULL-ON-ERROR is a symbol, set it to nil if we cannot create a timer."
 	(setq dframe-timer
 	      (run-with-idle-timer timeout t 'dframe-timer-fn))))
    ;; Emacs 19.30 (Thanks twice: ptype@dra.hmg.gb)
-   ((fboundp 'post-command-idle-hook)
+   ((boundp 'post-command-idle-hook)
     (if timeout
 	(add-hook 'post-command-idle-hook 'dframe-timer-fn)
       (remove-hook 'post-command-idle-hook 'dframe-timer-fn)))
@@ -849,57 +839,58 @@ Evaluates all cached timer functions in sequence."
 ;; opposed to where the point happens to be.)  We attain this by
 ;; temporarily moving the point to that place.
 ;;    Hrvoje Niksic <hniksic@srce.hr>
-(with-no-warnings
-(defun dframe-xemacs-popup-kludge (event)
-  "Pop up a menu related to the clicked on item.
+(defalias 'dframe-popup-kludge
+  (if (featurep 'xemacs)
+      (lambda (event)                        ; XEmacs.
+        "Pop up a menu related to the clicked on item.
 Must be bound to EVENT."
-  (interactive "e")
-  (save-excursion
-    (if dframe-pass-event-to-popup-mode-menu
-        (popup-mode-menu event)
-      (goto-char (event-closest-point event))
-      (beginning-of-line)
-      (forward-char (min 5 (- (save-excursion (end-of-line) (point))
-                              (save-excursion (beginning-of-line) (point)))))
-      (popup-mode-menu))
-    ;; Wait for menu to bail out.  `popup-mode-menu' (and other popup
-    ;; menu functions) return immediately.
-    (let (new)
-      (while (not (misc-user-event-p (setq new (next-event))))
-        (dispatch-event new))
-      (dispatch-event new))))
-);with-no-warnings
+        (interactive "e")
+        (save-excursion
+          (if dframe-pass-event-to-popup-mode-menu
+              (popup-mode-menu event)
+            (goto-char (event-closest-point event))
+            (beginning-of-line)
+            (forward-char (min 5 (- (save-excursion (end-of-line) (point))
+                                    (save-excursion (beginning-of-line) (point)))))
+            (popup-mode-menu))
+          ;; Wait for menu to bail out.  `popup-mode-menu' (and other popup
+          ;; menu functions) return immediately.
+          (let (new)
+            (while (not (misc-user-event-p (setq new (next-event))))
+              (dispatch-event new))
+            (dispatch-event new))))
 
-(defun dframe-emacs-popup-kludge (e)
-  "Pop up a menu related to the clicked on item.
+    (lambda (e)                              ; Emacs.
+      "Pop up a menu related to the clicked on item.
 Must be bound to event E."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point e)
-    ;; This gets the cursor where the user can see it.
-    (if (not (bolp)) (forward-char -1))
-    (sit-for 0)
-    (if (< emacs-major-version 20)
-	(mouse-major-mode-menu e)
-      (mouse-major-mode-menu e nil))))
+      (interactive "e")
+      (save-excursion
+        (mouse-set-point e)
+        ;; This gets the cursor where the user can see it.
+        (if (not (bolp)) (forward-char -1))
+        (sit-for 0)
+        (if (< emacs-major-version 20)
+            (mouse-major-mode-menu e)
+          (mouse-major-mode-menu e nil))))))
 
 ;;; Interactive user functions for the mouse
 ;;
-(defun dframe-mouse-event-p (event)
-  "Return t if the event is a mouse related event."
-  (if (fboundp 'button-press-event-p)
-      (button-press-event-p event)      ; XEmacs
-    (if (and (listp event)
-	     (member (event-basic-type event)
-		     '(mouse-1 mouse-2 mouse-3)))
-	t
-      nil)))
+(defalias 'dframe-mouse-event-p
+  (if (featurep 'xemacs)
+      'button-press-event-p
+    (lambda (event)
+      "Return t if the event is a mouse related event."
+      (if (and (listp event)
+               (member (event-basic-type event)
+                       '(mouse-1 mouse-2 mouse-3)))
+          t
+        nil))))
 
 (defun dframe-track-mouse (event)
   "For motion EVENT, display info about the current line."
   (interactive "e")
   (when (and dframe-track-mouse-function
-	     (or dframe-xemacsp ;; XEmacs always safe?
+	     (or (featurep 'xemacs) ;; XEmacs always safe?
 		 (windowp (posn-window (event-end event))) ; Sometimes
 					; there is no window to jump into.
 		 ))
@@ -929,19 +920,18 @@ BUFFER and POSITION are optional because XEmacs doesn't use them."
 (defun dframe-mouse-set-point (e)
   "Set POINT based on event E.
 Handles clicking on images in XEmacs."
-  (if (save-excursion
-	(save-window-excursion
-	  (mouse-set-point e)
-	  (and (fboundp 'event-over-glyph-p) (event-over-glyph-p e))))
+  (if (and (featurep 'xemacs)
+           (save-excursion
+             (save-window-excursion
+               (mouse-set-point e)
+               (event-over-glyph-p e))))
       ;; We are in XEmacs, and clicked on a picture
-      (with-no-warnings
       (let ((ext (event-glyph-extent e)))
 	;; This position is back inside the extent where the
 	;; junk we pushed into the property list lives.
 	(if (extent-end-position ext)
 	    (goto-char (1- (extent-end-position ext)))
 	  (mouse-set-point e)))
-      );with-no-warnings
     ;; We are not in XEmacs, OR we didn't click on a picture.
     (mouse-set-point e)))
 
@@ -1000,7 +990,7 @@ redirected into a window on the attached frame."
   (pop-to-buffer buffer nil)
   (other-window -1)
   ;; Fix for using this hook on some platforms: Bob Weiner
-  (cond ((not dframe-xemacsp)
+  (cond ((not (featurep 'xemacs))
 	 (run-hooks 'temp-buffer-show-hook))
 	((fboundp 'run-hook-with-args)
 	 (run-hook-with-args 'temp-buffer-show-hook buffer))
@@ -1015,8 +1005,8 @@ This hack overrides it so that the right thing happens in the main
 Emacs frame, not in the dedicated frame.
 Argument E is the event causing this activity."
   (interactive "e")
-  (let ((fn (lookup-key global-map (if dframe-xemacsp
-				              '(control button1)
+  (let ((fn (lookup-key global-map (if (featurep 'xemacs)
+                                       '(control button1)
 				     [C-down-mouse-1])))
 	(oldbuff (current-buffer))
 	(newbuff nil))

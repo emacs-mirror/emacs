@@ -386,6 +386,7 @@ static unsigned char gamegrid_bits[] = {
 (defun gamegrid-init (options)
   (setq buffer-read-only t
 	truncate-lines t
+	line-spacing 0
 	gamegrid-display-options options)
   (buffer-disable-undo (current-buffer))
   (gamegrid-initialize-display))

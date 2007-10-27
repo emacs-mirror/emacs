@@ -2146,7 +2146,7 @@ need for `pike-font-lock-extra-types'.")
        0 ,c-doc-markup-face-name prepend nil)
       (,(concat header "\\(" "@" symbol "\\):")
        1 ,c-doc-markup-face-name prepend nil)
-      (,(concat "[#%]" symbol)
+      (,(concat "[#%@]" symbol)
        0 ,c-doc-markup-face-name prepend nil))
     ))
 

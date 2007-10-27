@@ -1601,6 +1601,17 @@ will be handled."
   t (c-make-keywords-re t (c-lang-const c-other-block-decl-kwds)))
 (c-lang-defvar c-other-decl-block-key (c-lang-const c-other-decl-block-key))
 
+(c-lang-defvar c-other-decl-block-key-in-symbols-alist
+  (mapcar
+   (lambda (elt)
+     (cons elt
+	   (if (string= elt "extern")
+	       'inextern-lang
+	     (intern (concat "in" elt)))))
+   (c-lang-const c-other-block-decl-kwds))
+  "Alist associating keywords in c-other-decl-block-decl-kwds with
+their matching \"in\" syntactic symbols.")
+
 (c-lang-defconst c-typedef-decl-kwds
   "Keywords introducing declarations where the identifier(s) being
 declared are types.
@@ -2064,6 +2075,7 @@ nevertheless contains a list separated with ';' and not ','."
 	    "false" "true")		; Defined in C99.
   objc    '("nil" "Nil")
   idl     '("TRUE" "FALSE")
+  java    '("true" "false" "null") ; technically "literals", not keywords
   pike    '("UNDEFINED")) ;; Not a keyword, but practically works as one.
 
 (c-lang-defconst c-primary-expr-kwds

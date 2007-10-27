@@ -1160,24 +1160,9 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [separator-vc]
   '("--"))
 
-(defvar vc-menu-map (make-sparse-keymap "Version Control"))
-(defalias 'vc-menu-map vc-menu-map)
 (define-key menu-bar-tools-menu [pcl-cvs]
   '(menu-item "PCL-CVS" cvs-global-menu))
-(define-key menu-bar-tools-menu [vc]
-  (list 'menu-item "Version Control" vc-menu-map
-  :filter 'menu-bar-vc-filter))
-
-(defun menu-bar-vc-filter (orig-binding)
-  (let ((ext-binding
-   (if vc-mode (vc-call-backend (vc-backend buffer-file-name) 'extra-menu))))
-    ;; Give the VC backend a chance to add menu entries
-    ;; specific for that backend.
-    (if (null ext-binding)
-    orig-binding
-      (append orig-binding
-	      '((ext-menu-separator "---"))
-	            ext-binding))))
+(define-key menu-bar-tools-menu [vc] nil) ;Create the place for the VC menu.
 
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
@@ -1381,7 +1366,7 @@ key, a click, or a menu-item"))
 				 data-directory))
     (goto-address)))
 (define-key menu-bar-help-menu [about]
-  '(menu-item "About Emacs" display-splash-screen
+  '(menu-item "About Emacs" about-emacs
 	      :help "Display version number, copyright info, and basic help"))
 (define-key menu-bar-help-menu [sep2]
   '("--"))

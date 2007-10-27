@@ -71,7 +71,7 @@ Set to 0, if you don't use crunched filenames.  This should be a string."
   :type 'string :group 'ada)
 
 (defcustom ada-gnatls-args '("-v")
-  "*Arguments to pass to `gnatfind' to find location of the runtime.
+  "*Arguments to pass to `gnatls' to find location of the runtime.
 Typical use is to pass `--RTS=soft-floats' on some systems that support it.
 
 You can also add `-I-' if you do not want the current directory to be included.
@@ -322,7 +322,6 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 	 (reverse ada-xref-runtime-library-ali-path))
     ))
 
-
 (defun ada-treat-cmd-string (cmd-string)
   "Replace meta-sequences like ${...} in CMD-STRING with the appropriate value.
 Assumes project exists.
@@ -345,7 +344,7 @@ replaced by the name including the extension."
       ;; Check if there is an environment variable with the same name
       (if (null value)
 	  (if (not (setq value (getenv name)))
-	      (message "%s" (concat "No environment variable " name " found"))))
+	      (message "%s" (concat "No project or environment variable " name " found"))))
 
       (cond
        ((null value)
@@ -535,6 +534,11 @@ All the directories are returned as absolute directories."
 Completion is attempted in all the directories in the source path, as
 defined in the project file."
   ;; FIXME: doc arguments
+
+  ;; This function is not itself interactive, but it is called as part
+  ;; of the prompt of interactive functions, so we require a project
+  ;; file.
+  (ada-require-project-file)
   (let (list
 	(dirs (ada-xref-get-src-dir-field)))
 
@@ -663,9 +667,6 @@ is non-nil, prompt the user to select one.  If none are found, return
 			    ada-prj-file-extension))
 	     (dir          (file-name-directory current-file))
 
-	     ;; on Emacs 20.2, directory-files does not work if
-	     ;; parse-sexp-lookup-properties is set
-	     (parse-sexp-lookup-properties nil)
 	     (prj-files    (directory-files
 			    dir t
 			    (concat ".*" (regexp-quote
@@ -905,6 +906,8 @@ If ARG is t, the contents of the old *gnatfind* buffer is preserved."
   (interactive "d\nP")
   (ada-find-references pos arg t))
 
+(defconst ada-gnatfind-buffer-name "*gnatfind*")
+
 (defun ada-find-any-references
   (entity &optional file line column local-only append)
   "Search for references to any entity whose name is ENTITY.
@@ -943,23 +946,25 @@ buffer `*gnatfind*', if there is one."
 	    (setq command (concat command " -P" ada-prj-default-project-file))
 	  (setq command (concat command " -p" ada-prj-default-project-file))))
 
-    (if (and append (get-buffer "*gnatfind*"))
+    (if (and append (get-buffer ada-gnatfind-buffer-name))
 	(save-excursion
 	  (set-buffer "*gnatfind*")
 	  (setq old-contents (buffer-string))))
 
     (let ((compilation-error "reference"))
-      (compilation-start command))
+      (compilation-start command 'compilation-mode (lambda (mode) ada-gnatfind-buffer-name)))
 
     ;;  Hide the "Compilation" menu
     (save-excursion
-      (set-buffer "*gnatfind*")
+      (set-buffer ada-gnatfind-buffer-name)
       (local-unset-key [menu-bar compilation-menu])
 
       (if old-contents
 	  (progn
 	    (goto-char 1)
+	    (set 'buffer-read-only nil)
 	    (insert old-contents)
+	    (set 'buffer-read-only t)
 	    (goto-char (point-max)))))
     )
   )
@@ -1940,7 +1945,7 @@ This function attempts to find the possible declarations for the identifier
 anywhere in the object path.
 This command requires the external `egrep' program to be available.
 
-This works well when one is using an external librarie and wants to find
+This works well when one is using an external library and wants to find
 the declaration and documentation of the subprograms one is using."
 ;; FIXME: what does this function do?
   (let (list
