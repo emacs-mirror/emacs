@@ -100,7 +100,7 @@ with a character in column 6."
   "String to appear in mode line in TAB format buffers."
   :type  'string
   :group 'fortran-indent)
-(put 'fortran-tab-mode-string 'safe-local-variable 'stringp)
+(put 'fortran-tab-mode-string 'risky-local-variable t)
 
 (defcustom fortran-do-indent 3
   "Extra indentation applied to DO blocks."
