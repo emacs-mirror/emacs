@@ -484,7 +484,7 @@ static struct dg_sys_info_load_info load_info;	/* what-a-mouthful! */
 #if !defined(HAVE_LIBKSTAT) && defined(LOAD_AVE_TYPE)
 /* File descriptor open to /dev/kmem or VMS load ave driver.  */
 static int channel;
-/* Nonzero iff channel is valid.  */
+/* Nonzero if channel is valid.  */
 static int getloadavg_initialized;
 /* Offset in kmem to seek to read load average, or 0 means invalid.  */
 static long offset;

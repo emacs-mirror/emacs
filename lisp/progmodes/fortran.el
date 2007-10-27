@@ -1,7 +1,8 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-;;               2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+;;               2002, 2003, 2004, 2005, 2006, 2007
+;;               Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -78,42 +79,52 @@
   :group  'fortran)
 
 
-;;;###autoload
 (defcustom fortran-tab-mode-default nil
-  "*Default tabbing/carriage control style for empty files in Fortran mode.
+  "Default tabbing/carriage control style for empty files in Fortran mode.
 A non-nil value specifies tab-digit style of continuation control.
 A value of nil specifies that continuation lines are marked
 with a character in column 6."
   :type  'boolean
   :group 'fortran-indent)
 
-(defcustom fortran-tab-mode-string "/t"
-  "*String to appear in mode line in TAB format buffers."
+;; TODO add more detail of what tab mode is to doc string.
+(defcustom fortran-tab-mode-string
+  (propertize "/t" 'help-echo "This buffer is in Fortran TAB mode"
+              'mouse-face 'mode-line-highlight
+              'local-map
+              (make-mode-line-mouse-map 'mouse-1
+                                        (lambda ()
+                                          (interactive)
+                                          (describe-variable
+                                           'fortran-tab-mode-string))))
+  "String to appear in mode line in TAB format buffers."
   :type  'string
   :group 'fortran-indent)
 
+(put 'fortran-tab-mode-string 'risky-local-variable t)
+
 (defcustom fortran-do-indent 3
-  "*Extra indentation applied to DO blocks."
+  "Extra indentation applied to DO blocks."
   :type  'integer
   :group 'fortran-indent)
 
 (defcustom fortran-if-indent 3
-  "*Extra indentation applied to IF, SELECT CASE and WHERE blocks."
+  "Extra indentation applied to IF, SELECT CASE and WHERE blocks."
   :type  'integer
   :group 'fortran-indent)
 
 (defcustom fortran-structure-indent 3
-  "*Extra indentation applied to STRUCTURE, UNION, MAP and INTERFACE blocks."
+  "Extra indentation applied to STRUCTURE, UNION, MAP and INTERFACE blocks."
   :type  'integer
   :group 'fortran-indent)
 
 (defcustom fortran-continuation-indent 5
-  "*Extra indentation applied to continuation lines."
+  "Extra indentation applied to continuation lines."
   :type  'integer
   :group 'fortran-indent)
 
 (defcustom fortran-comment-indent-style 'fixed
-  "*How to indent comments.
+  "How to indent comments.
 nil forces comment lines not to be touched;
 `fixed' indents to `fortran-comment-line-extra-indent' columns beyond
   `fortran-minimum-statement-indent-fixed' (if `indent-tabs-mode' nil), or
@@ -124,13 +135,13 @@ nil forces comment lines not to be touched;
   :group 'fortran-indent)
 
 (defcustom fortran-comment-line-extra-indent 0
-  "*Amount of extra indentation for text within full-line comments."
+  "Amount of extra indentation for text within full-line comments."
   :type  'integer
   :group 'fortran-indent
   :group 'fortran-comment)
 
 (defcustom fortran-comment-line-start "C"
-  "*Delimiter inserted to start new full-line comment.
+  "Delimiter inserted to start new full-line comment.
 You might want to change this to \"*\", for instance."
   :version "21.1"
   :type    'string
@@ -147,7 +158,7 @@ You might want to change this to \"*\", for instance."
 
 (defcustom fortran-directive-re
   "^[ \t]*#.*"
-  "*Regexp to match a directive line.
+  "Regexp to match a directive line.
 The matching text will be fontified with `font-lock-keyword-face'.
 The matching line will be given zero indentation."
   :version "22.1"
@@ -155,12 +166,12 @@ The matching line will be given zero indentation."
   :group   'fortran-indent)
 
 (defcustom fortran-minimum-statement-indent-fixed 6
-  "*Minimum statement indentation for fixed format continuation style."
+  "Minimum statement indentation for fixed format continuation style."
   :type  'integer
   :group 'fortran-indent)
 
 (defcustom fortran-minimum-statement-indent-tab (max tab-width 6)
-  "*Minimum statement indentation for TAB format continuation style."
+  "Minimum statement indentation for TAB format continuation style."
   :type  'integer
   :group 'fortran-indent)
 
@@ -168,30 +179,30 @@ The matching line will be given zero indentation."
 ;; of length one rather than a single character.
 ;; The code in this file accepts either format for compatibility.
 (defcustom fortran-comment-indent-char " "
-  "*Single-character string inserted for Fortran comment indentation.
+  "Single-character string inserted for Fortran comment indentation.
 Normally a space."
   :type  'string
   :group 'fortran-comment)
 
 (defcustom fortran-line-number-indent 1
-  "*Maximum indentation for Fortran line numbers.
+  "Maximum indentation for Fortran line numbers.
 5 means right-justify them within their five-column field."
   :type  'integer
   :group 'fortran-indent)
 
 (defcustom fortran-check-all-num-for-matching-do nil
-  "*Non-nil causes all numbered lines to be treated as possible DO loop ends."
+  "Non-nil causes all numbered lines to be treated as possible DO loop ends."
   :type  'boolean
   :group 'fortran)
 
 (defcustom fortran-blink-matching-if nil
-  "*Non-nil causes \\[fortran-indent-line] on ENDIF to blink on matching IF.
+  "Non-nil causes \\[fortran-indent-line] on ENDIF to blink on matching IF.
 Also, from an ENDDO statement blink on matching DO [WHILE] statement."
   :type  'boolean
   :group 'fortran)
 
 (defcustom fortran-continuation-string "$"
-  "*Single-character string used for Fortran continuation lines.
+  "Single-character string used for Fortran continuation lines.
 In fixed format continuation style, this character is inserted in
 column 6 by \\[fortran-split-line] to begin a continuation line.
 Also, if \\[fortran-indent-line] finds this at the beginning of a
@@ -201,16 +212,17 @@ appropriate style. Normally $."
   :group 'fortran)
 
 (defcustom fortran-comment-region "c$$$"
-  "*String inserted by \\[fortran-comment-region] at start of each \
+  "String inserted by \\[fortran-comment-region] at start of each \
 line in region."
   :type  'string
   :group 'fortran-comment)
 
 (defcustom fortran-electric-line-number t
-  "*Non-nil causes line numbers to be moved to the correct column as typed."
+  "Non-nil causes line numbers to be moved to the correct column as typed."
   :type  'boolean
   :group 'fortran)
 
+;; TODO use fortran-line-length, somehow.
 (defcustom fortran-column-ruler-fixed
   "0   4 6  10        20        30        40        5\
 0        60        70\n\
@@ -222,6 +234,7 @@ See the variable `fortran-column-ruler-tab' for TAB format mode."
   :type  'string
   :group 'fortran)
 
+;; TODO use fortran-line-length, somehow.
 (defcustom fortran-column-ruler-tab
   "0       810        20        30        40        5\
 0        60        70\n\
@@ -239,11 +252,38 @@ See the variable `fortran-column-ruler-fixed' for fixed format mode."
   :group 'fortran)
 
 (defcustom fortran-break-before-delimiters t
-  "*Non-nil causes filling to break lines before delimiters.
+  "Non-nil causes filling to break lines before delimiters.
 Delimiters are characters matching the regexp `fortran-break-delimiters-re'."
   :type  'boolean
   :group 'fortran)
 
+;; TODO 0 as no-limit, as per g77.
+(defcustom fortran-line-length 72
+  "Maximum number of characters in a line of fixed-form Fortran code.
+Characters beyond this point are treated as comments.  Setting
+this variable directly (after fortran mode is loaded) does not
+take effect.  Use either \\[customize] (which affects all Fortran
+buffers and the default) or the function
+`fortran-line-length' (which can also operate on just the current
+buffer).  This corresponds to the g77 compiler option
+`-ffixed-line-length-N'."
+  :type 'integer
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         ;; Do all fortran buffers, and the default.
+         (fortran-line-length value t))
+  :version "23.1"
+  :group 'fortran)
+
+(put 'fortran-line-length 'safe-local-variable 'integerp)
+(make-variable-buffer-local 'fortran-line-length)
+
+(defcustom fortran-mode-hook nil
+  "Hook run when entering Fortran mode."
+  :type  'hook
+  :group 'fortran)
+
+
 (defconst fortran-break-delimiters-re "[-+*/><=, \t]"
   "Regexp matching delimiter characters at which lines may be broken.
 There are certain tokens comprised entirely of characters
@@ -259,22 +299,16 @@ characters matching the regexp `fortran-break-delimiters-re' that should
 not be split by filling.  Each element is assumed to be two
 characters long.")
 
-(defcustom fortran-mode-hook nil
-  "Hook run when entering Fortran mode."
-  :type  'hook
-  :group 'fortran)
-
-
-(defvar fortran-if-start-re "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?if[ \t]*("
+(defconst fortran-if-start-re "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?if[ \t]*("
   "Regexp matching the start of an IF statement.")
 
-(defvar fortran-end-prog-re1
+(defconst fortran-end-prog-re1
   "end\
 \\([ \t]*\\(program\\|subroutine\\|function\\|block[ \t]*data\\)\\>\
 \\([ \t]*\\(\\sw\\|\\s_\\)+\\)?\\)?"
   "Regexp possibly matching the end of a subprogram.")
 
-(defvar fortran-end-prog-re
+(defconst fortran-end-prog-re
   (concat "^[ \t0-9]*" fortran-end-prog-re1)
   "Regexp possibly matching the end of a subprogram, from the line start.
 See also `fortran-end-prog-re1'.")
@@ -402,11 +436,13 @@ Consists of level 3 plus all other intrinsics not already highlighted.")
 ;; (We can do so for F90-style).  Therefore an unmatched quote in a
 ;; standard comment will throw fontification off on the wrong track.
 ;; So we do syntactic fontification with regexps.
-(defvar fortran-font-lock-syntactic-keywords
-  '(("^[cd\\*]" 0 (11))
-    ("^[^cd\\*\t\n].\\{71\\}\\([^\n]+\\)" 1 (11)))
-  "`font-lock-syntactic-keywords' for Fortran.
-These get fixed-format comments fontified.")
+(defun fortran-font-lock-syntactic-keywords ()
+  "Return a value for `font-lock-syntactic-keywords' in Fortran mode.
+This varies according to the value of `fortran-line-length'.
+This is used to fontify fixed-format Fortran comments."
+  `(("^[cd\\*]" 0 (11))
+    (,(format "^[^cd\\*\t\n].\\{%d\\}\\([^\n]+\\)" (1- fortran-line-length))
+     1 (11))))
 
 (defvar fortran-font-lock-keywords fortran-font-lock-keywords-1
   "Default expressions to highlight in Fortran mode.")
@@ -582,6 +618,8 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
         ["Widen" widen t]
         "--"
         ["Temporary column ruler" fortran-column-ruler  t]
+        ;; May not be '72', depending on fortran-line-length, but this
+        ;; seems ok for a menu item.
         ["72-column window"       fortran-window-create t]
         ["Full Width Window"
          (enlarge-window-horizontally (- (frame-width) (window-width)))
@@ -780,7 +818,7 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'normal-auto-fill-function) 'fortran-auto-fill)
   (set (make-local-variable 'indent-tabs-mode) (fortran-analyze-file-format))
   (setq mode-line-process '(indent-tabs-mode fortran-tab-mode-string))
-  (set (make-local-variable 'fill-column) 72)
+  (set (make-local-variable 'fill-column) fortran-line-length)
   (set (make-local-variable 'fill-paragraph-function) 'fortran-fill-paragraph)
   (set (make-local-variable 'font-lock-defaults)
        '((fortran-font-lock-keywords
@@ -791,7 +829,7 @@ with no args, if that value is non-nil."
          nil t ((?/ . "$/") ("_$" . "w"))
          fortran-beginning-of-subprogram))
   (set (make-local-variable 'font-lock-syntactic-keywords)
-       fortran-font-lock-syntactic-keywords)
+       (fortran-font-lock-syntactic-keywords))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
        fortran-imenu-generic-expression)
@@ -804,9 +842,38 @@ with no args, if that value is non-nil."
        #'fortran-current-defun)
   (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
   (set (make-local-variable 'gud-find-expr-function) 'fortran-gud-find-expr)
+  (add-hook 'hack-local-variables-hook 'fortran-hack-local-variables nil t)
   (run-mode-hooks 'fortran-mode-hook))
 
 
+(defun fortran-line-length (nchars &optional global)
+  "Set the length of fixed-form Fortran lines to NCHARS.
+This normally only affects the current buffer, which must be in
+Fortran mode.  If the optional argument GLOBAL is non-nil, it
+affects all Fortran buffers, and also the default."
+  (interactive "p")
+  (let (new)
+    (mapcar (lambda (buff)
+              (with-current-buffer buff
+                (when (eq major-mode 'fortran-mode)
+                  (setq fortran-line-length nchars
+                        fill-column fortran-line-length
+                        new (fortran-font-lock-syntactic-keywords))
+                  ;; Refontify only if necessary.
+                  (unless (equal new font-lock-syntactic-keywords)
+                    (setq font-lock-syntactic-keywords
+                          (fortran-font-lock-syntactic-keywords))
+                    (if font-lock-mode (font-lock-mode 1))))))
+            (if global
+                (buffer-list)
+              (list (current-buffer))))
+    (if global
+        (setq-default fortran-line-length nchars))))
+
+(defun fortran-hack-local-variables ()
+  "Fortran mode adds this to `hack-local-variables-hook'."
+  (fortran-line-length fortran-line-length))
+
 (defun fortran-gud-find-expr ()
   ;; Consider \n as punctuation (end of expression).
   (with-syntax-table fortran-gud-syntax-table
@@ -940,7 +1007,7 @@ The next key typed is executed unless it is SPC."
    nil "Type SPC or any command to erase ruler."))
 
 (defun fortran-window-create ()
-  "Make the window 72 columns wide.
+  "Make the window `fortran-line-length' (default 72) columns wide.
 See also `fortran-window-create-momentarily'."
   (interactive)
   (let ((window-min-width 2))
@@ -951,13 +1018,13 @@ See also `fortran-window-create-momentarily'."
 	   (scroll-bar-width (- (nth 2 window-edges)
 				(car window-edges)
 				(window-width))))
-      (split-window-horizontally (+ 72 scroll-bar-width)))
+      (split-window-horizontally (+ fortran-line-length scroll-bar-width)))
     (other-window 1)
     (switch-to-buffer " fortran-window-extra" t)
     (select-window (previous-window))))
 
 (defun fortran-window-create-momentarily (&optional arg)
-  "Momentarily make the window 72 columns wide.
+  "Momentarily make the window `fortran-line-length' (default 72) columns wide.
 Optional ARG non-nil and non-unity disables the momentary feature.
 See also `fortran-window-create'."
   (interactive "p")
@@ -1065,7 +1132,8 @@ Auto-indent does not happen if a numeric ARG is used."
     (string-match "^\\s-*\\(\\'\\|\\s<\\)"
 		  (buffer-substring (match-end 0)
 				    (min (line-end-position)
-					 (+ 72 (line-beginning-position)))))))
+					 (+ fortran-line-length
+                                            (line-beginning-position)))))))
 
 ;; Note that you can't just check backwards for `subroutine' &c in
 ;; case of un-marked main programs not at the start of the file.
@@ -1763,7 +1831,7 @@ If ALL is nil, only match comments that start in column > 0."
 ;; From: ralf@up3aud1.gwdg.de (Ralf Fassel)
 ;; Test if TAB format continuation lines work.
 (defun fortran-is-in-string-p (where)
-  "Return non-nil iff WHERE (a buffer position) is inside a Fortran string."
+  "Return non-nil if WHERE (a buffer position) is inside a Fortran string."
   (save-excursion
     (goto-char where)
     (cond
@@ -1996,13 +2064,15 @@ Always returns non-nil (to prevent `fill-paragraph' being called)."
     (fortran-indent-line)))
 
 (defun fortran-strip-sequence-nos (&optional do-space)
-  "Delete all text in column 72 and up (assumed to be sequence numbers).
-Normally also deletes trailing whitespace after stripping such text.
-Supplying prefix arg DO-SPACE prevents stripping the whitespace."
+  "Delete all text in column `fortran-line-length' (default 72) and up.
+This is assumed to be sequence numbers.  Normally also deletes
+trailing whitespace after stripping such text.  Supplying prefix
+arg DO-SPACE prevents stripping the whitespace."
   (interactive "*p")
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward "^.\\{72\\}\\(.*\\)" nil t)
+    (while (re-search-forward (format "^.\\{%d\\}\\(.*\\)" fortran-line-length)
+                              nil t)
       (replace-match "" nil nil nil 1)
       (unless do-space (delete-horizontal-space)))))
 

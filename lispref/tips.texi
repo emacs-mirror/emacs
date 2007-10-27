@@ -845,6 +845,12 @@ Instead of, ``Cause Emacs to display text in boldface,'' write just
 ``Display text in boldface.''
 
 @item
+Avoid using ``iff'' (a mathematics term meaning ``if and only if''),
+since many people are unfamiliar with it and mistake it for a typo.  In
+most cases, the meaning is clear with just ``if''.  Otherwise, try to
+find an alternate phrasing that conveys the meaning.
+
+@item
 When a command is meaningful only in a certain mode or situation,
 do mention that in the documentation string.  For example,
 the documentation of @code{dired-find-file} is:

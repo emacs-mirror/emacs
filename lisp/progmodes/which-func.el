@@ -232,7 +232,7 @@ It creates the Imenu index for the buffer, if necessary."
 When Which Function mode is enabled, the current function name is
 continuously displayed in the mode line, in certain major modes.
 
-With prefix ARG, turn Which Function mode on iff arg is positive,
+With prefix ARG, turn Which Function mode on if arg is positive,
 and off otherwise."
   :global t :group 'which-func
   (if which-function-mode

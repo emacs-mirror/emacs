@@ -50,7 +50,7 @@ Prime EXL (-machine=intel386 -opsystem=usg5-3)
   Minor changes merged in 19.1.
 NOTE-END */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #undef WORDS_BIG_ENDIAN

@@ -4285,7 +4285,12 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;;###autoload
 (defun ange-ftp-hook-function (operation &rest args)
   (let ((fn (get operation 'ange-ftp)))
-    (if fn (save-match-data (apply fn args))
+    (if fn
+	;; Catch also errors in process-filter.
+	(condition-case err
+	    (let ((debug-on-error t))
+	      (save-match-data (apply fn args)))
+	  (error (signal (car err) (cdr err))))
       (ange-ftp-run-real-handler operation args))))
 
 ;; The following code is commented out because Tramp now deals with

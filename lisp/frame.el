@@ -1332,9 +1332,9 @@ itself as a pre-command hook."
 
 (define-minor-mode blink-cursor-mode
   "Toggle blinking cursor mode.
-With a numeric argument, turn blinking cursor mode on iff ARG is positive.
-When blinking cursor mode is enabled, the cursor of the selected
-window blinks.
+With a numeric argument, turn blinking cursor mode on if ARG is positive,
+otherwise turn it off.  When blinking cursor mode is enabled, the
+cursor of the selected window blinks.
 
 Note that this command is effective only when Emacs
 displays through a window system, because then Emacs does its own

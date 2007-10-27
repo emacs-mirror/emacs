@@ -1857,7 +1857,7 @@ signal_error (s, arg)
 }
 
 
-/* Return nonzero iff LIST is a non-nil atom or
+/* Return nonzero if LIST is a non-nil atom or
    a list containing one of CONDITIONS.  */
 
 static int

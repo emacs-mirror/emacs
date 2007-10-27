@@ -3016,7 +3016,8 @@ Valid values are:
 
 Any other value is ignored and black color will be used.
 
-It's used only when `ps-print-color-p' is non-nil."
+This variable is used only when `ps-print-color-p' (which see) is neither nil
+nor black-white."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
 		 :tag "Default Foreground Gray/Color"
 		 (const :tag "Session Foreground" t)
@@ -3059,7 +3060,8 @@ Valid values are:
 
 Any other value is ignored and white color will be used.
 
-It's used only when `ps-print-color-p' is non-nil.
+This variable is used only when `ps-print-color-p' (which see) is neither nil
+nor black-white.
 
 See also `ps-use-face-background'."
   :type '(choice :menu-tag "Default Background Gray/Color"
@@ -5920,7 +5922,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				1.0)
 	ps-default-background (ps-rgb-color
 			       (cond
-				((or (not (eq ps-print-color-p t))
+				((or (member ps-print-color-p
+					     '(nil back-white))
 				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-bg 'frame-parameter)
@@ -5933,7 +5936,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			       1.0)
 	ps-default-foreground (ps-rgb-color
 			       (cond
-				((or (not (eq ps-print-color-p t))
+				((or (member ps-print-color-p
+					     '(nil back-white))
 				     (eq genfunc 'ps-generate-postscript))
 				 nil)
 				((eq ps-default-fg 'frame-parameter)
@@ -5944,7 +5948,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 ps-default-fg))
 			       "unspecified-fg"
 			       0.0)
-	ps-default-color      (and (eq ps-print-color-p t)
+	ps-default-color      (and (not (member ps-print-color-p
+						'(nil back-white)))
 				   ps-default-foreground)
 	ps-current-color      ps-default-color)
   ;; initialize page dimensions

@@ -347,7 +347,8 @@ for `gdba'."
 
 (defun gdb-many-windows (arg)
   "Toggle the number of windows in the basic arrangement.
-With arg, display additional buffers iff arg is positive."
+With prefix argument ARG, display additional buffers if ARG is positive,
+otherwise use a single window."
   (interactive "P")
   (setq gdb-many-windows
 	(if (null arg)
@@ -363,7 +364,8 @@ With arg, display additional buffers iff arg is positive."
 
 (defun gdb-use-separate-io-buffer (arg)
   "Toggle separate IO for debugged program.
-With arg, use separate IO iff arg is positive."
+With prefix argument ARG, use separate IO if ARG is positive,
+otherwise do not."
   (interactive "P")
   (setq gdb-use-separate-io-buffer
 	(if (null arg)
@@ -664,7 +666,8 @@ line, and no execution takes place."
 
 (defun gdb-speedbar-auto-raise (arg)
   "Toggle automatic raising of the speedbar for watch expressions.
-With arg, automatically raise speedbar iff arg is positive."
+With prefix argument ARG, automatically raise speedbar if ARG is
+positive, otherwise don't automatically raise it."
   (interactive "P")
   (setq gdb-speedbar-auto-raise
 	(if (null arg)
@@ -1381,7 +1384,8 @@ directives."
 
 (defun gdb-find-source-frame (arg)
   "Toggle trying to find a source frame further up stack.
-With arg, look for a source frame further up stack iff arg is positive."
+With prefix argument ARG, look for a source frame further up
+stack if ARG is positive, otherwise don't look further up."
   (interactive "P")
   (setq gdb-find-source-frame
 	(if (null arg)

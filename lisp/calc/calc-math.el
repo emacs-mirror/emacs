@@ -529,13 +529,16 @@ If this can't be done, return NIL."
 (defun math-sqrt-raw (a &optional guess)   ; [F F F]
   (if (not (Math-posp a))
       (math-sqrt a)
-    (if (null guess)
-	(let ((ldiff (- (math-numdigs (nth 1 a)) 6)))
-	  (or (= (% (+ (nth 2 a) ldiff) 2) 0) (setq ldiff (1+ ldiff)))
-	  (setq guess (math-make-float (math-isqrt-small
-					(math-scale-int (nth 1 a) (- ldiff)))
-				       (/ (+ (nth 2 a) ldiff) 2)))))
-    (math-sqrt-float-iter a guess)))
+    (cond
+     ((math-use-emacs-fn 'sqrt a))
+     (t
+      (if (null guess)
+          (let ((ldiff (- (math-numdigs (nth 1 a)) 6)))
+            (or (= (% (+ (nth 2 a) ldiff) 2) 0) (setq ldiff (1+ ldiff)))
+            (setq guess (math-make-float (math-isqrt-small
+                                          (math-scale-int (nth 1 a) (- ldiff)))
+                                         (/ (+ (nth 2 a) ldiff) 2)))))
+      (math-sqrt-float-iter a guess)))))
 
 (defun math-sqrt-float-iter (a guess)   ; [F F F]
   (math-working "sqrt" guess)
@@ -1201,11 +1204,13 @@ If this can't be done, return NIL."
 	  ((math-lessp-float x (math-neg (math-pi-over-4)))
 	   (math-neg (math-cos-raw-2 (math-add (math-pi-over-2) x) orgx)))
 	  ((math-nearly-zerop-float x orgx) '(float 0 0))
+          ((math-use-emacs-fn 'sin x))
 	  (calc-symbolic-mode (signal 'inexact-result nil))
 	  (t (math-sin-series x 6 4 x (math-neg-float (math-sqr-float x)))))))
 
 (defun math-cos-raw-2 (x orgx)   ; [F F]
   (cond ((math-nearly-zerop-float x orgx) '(float 1 0))
+        ((math-use-emacs-fn 'cos x))
 	(calc-symbolic-mode (signal 'inexact-result nil))
 	(t (let ((xnegsqr (math-neg-float (math-sqr-float x))))
 	     (math-sin-series
@@ -1319,6 +1324,7 @@ If this can't be done, return NIL."
 	((Math-integer-negp (nth 1 x))
 	 (math-neg-float (math-arctan-raw (math-neg-float x))))
 	((math-zerop x) x)
+        ((math-use-emacs-fn 'atan x))
 	(calc-symbolic-mode (signal 'inexact-result nil))
 	((math-equal-int x 1) (math-pi-over-4))
 	((math-equal-int x -1) (math-neg (math-pi-over-4)))
@@ -1737,10 +1743,13 @@ If this can't be done, return NIL."
 	 '(float 0 0))
 	(calc-symbolic-mode (signal 'inexact-result nil))
 	((math-posp (nth 1 x))    ; positive and real
-	 (let ((xdigs (1- (math-numdigs (nth 1 x)))))
-	   (math-add-float (math-ln-raw-2 (list 'float (nth 1 x) (- xdigs)))
-			   (math-mul-float (math-float (+ (nth 2 x) xdigs))
-					   (math-ln-10)))))
+         (cond 
+          ((math-use-emacs-fn 'log x))
+          (t
+           (let ((xdigs (1- (math-numdigs (nth 1 x)))))
+             (math-add-float (math-ln-raw-2 (list 'float (nth 1 x) (- xdigs)))
+                             (math-mul-float (math-float (+ (nth 2 x) xdigs))
+                                             (math-ln-10)))))))
 	((math-zerop x)
 	 (math-reject-arg x "*Logarithm of zero"))
 	((eq calc-complex-mode 'polar)    ; negative and real

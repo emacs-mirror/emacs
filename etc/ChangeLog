@@ -1,3 +1,12 @@
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* TODO: `iff' item is dealt with.
+	* GNUS-NEWS, NEWS, NEWS.1-17, NEWS.19, NEWS.21: Replace `iff'.
+
+2007-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS: Add fortran-line-length, plus some more sections.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	*  Relicense all FSF files to GPLv3 or later.

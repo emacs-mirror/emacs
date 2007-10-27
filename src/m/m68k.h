@@ -24,7 +24,7 @@ Boston, MA 02110-1301, USA.  */
  the size of various data types.  */
 
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN

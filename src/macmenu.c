@@ -2331,6 +2331,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   ((value) + DIALOG_BUTTON_COMMAND_ID_OFFSET)
 
 extern EMACS_TIME timer_check P_ ((int));
+static int quit_dialog_event_loop;
 
 static pascal OSStatus
 mac_handle_dialog_event (next_handler, event, data)
@@ -2340,7 +2341,6 @@ mac_handle_dialog_event (next_handler, event, data)
 {
   OSStatus err, result = eventNotHandledErr;
   WindowRef window = (WindowRef) data;
-  int quit_event_loop_p = 0;
 
   switch (GetEventClass (event))
     {
@@ -2355,7 +2355,7 @@ mac_handle_dialog_event (next_handler, event, data)
 	  if (DIALOG_BUTTON_COMMAND_ID_P (command.commandID))
 	    {
 	      SetWRefCon (window, command.commandID);
-	      quit_event_loop_p = 1;
+	      quit_dialog_event_loop = 1;
 	      break;
 	    }
 
@@ -2379,7 +2379,7 @@ mac_handle_dialog_event (next_handler, event, data)
 	  switch (char_code)
 	    {
 	    case kEscapeCharCode:
-	      quit_event_loop_p = 1;
+	      quit_dialog_event_loop = 1;
 	      break;
 
 	    default:
@@ -2395,7 +2395,7 @@ mac_handle_dialog_event (next_handler, event, data)
 					   NULL, &key_code);
 		if (err == noErr)
 		  if (mac_quit_char_key_p (modifiers, key_code))
-		    quit_event_loop_p = 1;
+		    quit_dialog_event_loop = 1;
 	      }
 	      break;
 	    }
@@ -2406,7 +2406,7 @@ mac_handle_dialog_event (next_handler, event, data)
       abort ();
     }
 
-  if (quit_event_loop_p)
+  if (quit_dialog_event_loop)
     {
       err = QuitEventLoop (GetCurrentEventLoop ());
       if (err == noErr)
@@ -2733,6 +2733,7 @@ create_and_show_dialog (f, first_wv)
     {
       EventTargetRef toolbox_dispatcher = GetEventDispatcherTarget ();
 
+      quit_dialog_event_loop = 0;
       while (1)
 	{
 	  EMACS_TIME next_time = timer_check (1);
@@ -2758,12 +2759,22 @@ create_and_show_dialog (f, first_wv)
 	      SendEventToEventTarget (event, toolbox_dispatcher);
 	      ReleaseEvent (event);
 	    }
+#ifdef MAC_OSX
 	  else if (err != eventLoopTimedOutErr)
 	    {
 	      if (err == eventLoopQuitErr)
 		err = noErr;
 	      break;
 	    }
+#else
+	  /* The return value of ReceiveNextEvent seems to be
+	     unreliable.  Use our own global variable instead.  */
+	  if (quit_dialog_event_loop)
+	    {
+	      err = noErr;
+	      break;
+	    }
+#endif
 	}
     }
   if (err == noErr)

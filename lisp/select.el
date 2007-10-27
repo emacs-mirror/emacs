@@ -178,7 +178,7 @@ Cut buffers are considered obsolete; you should use selections instead."
 If it is valid, set the register `r0' to 1, else set it to 0.")
 
 (defun string-utf-8-p (string)
-  "Return non-nil iff STRING is a unibyte string of valid UTF-8 sequence."
+  "Return non-nil if STRING is a unibyte string of valid UTF-8 sequence."
   (if (or (not (stringp string))
 	  (multibyte-string-p string))
       (error "Not a unibyte string: %s" string))

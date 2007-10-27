@@ -218,7 +218,8 @@
          0)
      (or (and (Math-num-integerp pstyle) (math-trunc pstyle))
          (if (eq (car-safe (calc-var-value (nth 2 ydata))) 'vec)
-             0 -1)))))
+             0 -1))
+     (math-contains-sdev-p (eval (nth 2 ydata))))))
 
 (defun calc-graph-lookup (thing)
   (if (and (eq (car-safe thing) 'var)
@@ -792,6 +793,10 @@
 	  calc-graph-numsteps (1- (* calc-graph-numsteps (1+ calc-graph-numsteps3))))))
 
 (defun calc-graph-format-data ()
+  (if (math-contains-sdev-p calc-graph-yp)
+      (let ((yp calc-graph-yp))
+        (setq calc-graph-yp (cons 'vec (mapcar 'math-get-value (cdr yp))))
+        (setq calc-graph-zp (cons 'vec (mapcar 'math-get-sdev (cdr yp))))))
   (while (<= (setq calc-graph-stepcount (1+ calc-graph-stepcount)) calc-graph-numsteps)
     (if calc-graph-xvec
 	(setq calc-graph-xp (cdr calc-graph-xp)
@@ -1059,7 +1064,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
   (interactive "P")
   (calc-graph-set-styles t (and style (prefix-numeric-value style))))
 
-(defun calc-graph-set-styles (lines points)
+(defun calc-graph-set-styles (lines points &optional yerr)
   (calc-graph-init)
   (save-excursion
     (set-buffer calc-gnuplot-input)
@@ -1067,7 +1072,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	(error "No data points have been set!"))
     (let ((base (point))
 	  (mode nil) (lstyle nil) (pstyle nil)
-	  start end lenbl penbl)
+	  start end lenbl penbl errform)
       (re-search-forward "[,\n]")
       (forward-char -1)
       (setq end (point) start end)
@@ -1087,29 +1092,48 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 		(setq pstyle (string-to-number
 			      (buffer-substring (match-beginning 1)
 						(match-end 1)))))))
-      (setq lenbl (or (equal mode "lines") (equal mode "linespoints"))
-	    penbl (or (equal mode "points") (equal mode "linespoints")))
-      (if lines
-	  (or (eq lines t)
-	      (setq lstyle lines
-		    lenbl (>= lines 0)))
-	(setq lenbl (not lenbl)))
-      (if points
-	  (or (eq points t)
-	      (setq pstyle points
-		    penbl (>= points 0)))
-	(setq penbl (not penbl)))
-      (delete-region start end)
+      (unless yerr
+        (setq lenbl (or (equal mode "lines") 
+                        (equal mode "linespoints"))
+              penbl (or (equal mode "points") 
+                        (equal mode "linespoints")))
+        (if lines
+            (or (eq lines t)
+                (setq lstyle lines
+                      lenbl (>= lines 0)))
+          (setq lenbl (not lenbl)))
+        (if points
+            (or (eq points t)
+                (setq pstyle points
+                      penbl (>= points 0)))
+          (setq penbl (not penbl))))
+        (delete-region start end)
       (goto-char start)
-      (insert " with "
-	      (if lenbl
-		  (if penbl "linespoints" "lines")
-		(if penbl "points" "dots")))
-      (if (and pstyle (> pstyle 0))
-	  (insert " " (if (and lstyle (> lstyle 0)) (int-to-string lstyle) "1")
-		  " " (int-to-string pstyle))
-	(if (and lstyle (> lstyle 0))
-	    (insert " " (int-to-string lstyle))))))
+      (setq errform
+            (condition-case nil
+                (math-contains-sdev-p
+                 (eval (intern 
+                        (concat "var-"
+                                (save-excursion
+                                  (re-search-backward ":\\(.*\\)\\}")
+                                  (match-string 1))))))
+              (error nil)))
+      (if yerr
+          (insert " with yerrorbars")
+        (insert " with "
+                (if (and errform
+                         (equal mode "dots")
+                         (eq lines t))
+                    "yerrorbars"
+                  (if lenbl
+                      (if penbl "linespoints" "lines")
+                    (if penbl "points" "dots"))))
+        (if (and pstyle (> pstyle 0))
+            (insert " " 
+                    (if (and lstyle (> lstyle 0)) (int-to-string lstyle) "1")
+                    " " (int-to-string pstyle))
+          (if (and lstyle (> lstyle 0))
+              (insert " " (int-to-string lstyle)))))))
   (calc-graph-view-commands))
 
 (defun calc-graph-zero-x (flag)

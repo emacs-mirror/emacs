@@ -916,7 +916,7 @@ Elements of the attribute list are:
  7. Size in bytes.
   This is a floating point number if the size is too large for an integer.
  8. File modes, as a string of ten letters or dashes as in ls -l.
- 9. t iff file's gid would change if file were deleted and recreated.
+ 9. t if file's gid would change if file were deleted and recreated.
 10. inode number.  If inode number is larger than the Emacs integer,
   this is a cons cell containing two integers: first the high part,
   then the low 16 bits.

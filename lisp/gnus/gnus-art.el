@@ -1743,7 +1743,7 @@ Initialized from `text-mode-syntax-table.")
   (interactive)
   ;; This function might be inhibited.
   (unless gnus-inhibit-hiding
-    (let ((inhibit-read-only nil)
+    (let ((inhibit-read-only t)
 	  (case-fold-search t)
 	  (max (1+ (length gnus-sorted-header-list)))
 	  (inhibit-point-motion-hooks t)

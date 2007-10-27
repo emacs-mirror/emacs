@@ -1814,27 +1814,23 @@ and selects that window."
   (mouse-minibuffer-check event)
   (let ((buffers (buffer-list))  alist menu split-by-major-mode sum-of-squares)
     ;; Make an alist of elements that look like (MENU-ITEM . BUFFER).
-    (let ((tail buffers))
-      (while tail
-	;; Divide all buffers into buckets for various major modes.
-	;; Each bucket looks like (MODE NAMESTRING BUFFERS...).
-	(with-current-buffer (car tail)
-	  (let* ((adjusted-major-mode major-mode) elt)
-	    (let ((tail mouse-buffer-menu-mode-groups))
-	      (while tail
-		(if (string-match (car (car tail)) mode-name)
-		    (setq adjusted-major-mode (cdr (car tail))))
-		(setq tail (cdr tail))))
-	    (setq elt (assoc adjusted-major-mode split-by-major-mode))
-	    (if (null elt)
-		(setq elt (list adjusted-major-mode
-				(if (stringp adjusted-major-mode)
-				    adjusted-major-mode
-				  mode-name))
-		      split-by-major-mode (cons elt split-by-major-mode)))
-	    (or (memq (car tail) (cdr (cdr elt)))
-		(setcdr (cdr elt) (cons (car tail) (cdr (cdr elt)))))))
-	(setq tail (cdr tail))))
+    (dolist (buf buffers)
+      ;; Divide all buffers into buckets for various major modes.
+      ;; Each bucket looks like (MODE NAMESTRING BUFFERS...).
+      (with-current-buffer buf
+        (let* ((adjusted-major-mode major-mode) elt)
+          (dolist (group mouse-buffer-menu-mode-groups)
+            (when (string-match (car group) (format-mode-line mode-name))
+              (setq adjusted-major-mode (cdr group))))
+          (setq elt (assoc adjusted-major-mode split-by-major-mode))
+          (unless elt
+            (setq elt (list adjusted-major-mode
+                            (if (stringp adjusted-major-mode)
+                                adjusted-major-mode
+                                mode-name))
+                  split-by-major-mode (cons elt split-by-major-mode)))
+          (or (memq buf (cdr (cdr elt)))
+              (setcdr (cdr elt) (cons buf (cdr (cdr elt))))))))
     ;; Compute the sum of squares of sizes of the major-mode buckets.
     (let ((tail split-by-major-mode))
       (setq sum-of-squares 0)

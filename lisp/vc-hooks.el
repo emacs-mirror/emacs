@@ -62,8 +62,8 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS BZR GIT HG Arch MCVS)
-  ;; BZR, GIT, HG, Arch and MCVS come last because they are per-tree
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Arch MCVS)
+  ;; Bzr, Git, Hg, Arch and MCVS come last because they are per-tree
   ;; rather than per-dir.
   "List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
@@ -279,7 +279,10 @@ It is usually called via the `vc-call' macro."
      (t		(apply f args)))))
 
 (defmacro vc-call (fun file &rest args)
-  ;; BEWARE!! `file' is evaluated twice!!
+  "A convenience macro for calling VC backend functions.
+Functions called by this macro must accept FILE as the first argument.
+ARGS specifies any additional arguments. FUN should be unquoted.
+BEWARE!! `file' is evaluated twice!!"
   `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
 
 (defsubst vc-parse-buffer (pattern i)
@@ -873,13 +876,9 @@ Used in `find-file-not-found-functions'."
     (if backend (vc-call-backend backend 'find-file-not-found-hook))))
 
 (defun vc-default-find-file-not-found-hook (backend)
-  (if (yes-or-no-p
-       (format "File %s was lost; check out from version control? "
-	       (file-name-nondirectory buffer-file-name)))
-      (save-excursion
-	(require 'vc)
-	(setq default-directory (file-name-directory buffer-file-name))
-	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
+  ;; This used to do what vc-rcs-find-file-not-found-hook does, but it only
+  ;; really makes sense for RCS.  For other backends, better not do anything.
+  nil)
 
 (add-hook 'find-file-not-found-functions 'vc-file-not-found-hook)
 
@@ -949,6 +948,9 @@ Used in `find-file-not-found-functions'."
     '("Update to Latest Version" . vc-update))
   (define-key vc-menu-map [vc-next-action] '("Check In/Out" . vc-next-action))
   (define-key vc-menu-map [vc-register] '("Register" . vc-register)))
+
+(defun vc-default-extra-menu (backend)
+  nil)
 
 ;; These are not correct and it's not currently clear how doing it
 ;; better (with more complicated expressions) might slow things down

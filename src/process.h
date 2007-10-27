@@ -138,7 +138,7 @@ extern Lisp_Object chan_process[];
 /* Alist of elements (NAME . PROCESS).  */
 extern Lisp_Object Vprocess_alist;
 
-/* True iff we are about to fork off a synchronous process or if we
+/* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
 extern int synch_process_alive;
 

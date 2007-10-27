@@ -99,7 +99,7 @@ completions - see `icomplete-delay-completions-threshold'."
 (defcustom icomplete-minibuffer-setup-hook nil
   "*Icomplete-specific customization of minibuffer setup.
 
-This hook is run during minibuffer setup iff icomplete will be active.
+This hook is run during minibuffer setup if icomplete is active.
 It is intended for use in customizing icomplete for interoperation
 with other features and packages.  For instance:
 
@@ -168,7 +168,8 @@ except those on this list.")
 ;;;###autoload
 (define-minor-mode icomplete-mode
   "Toggle incremental minibuffer completion for this Emacs session.
-With a numeric argument, turn Icomplete mode on iff ARG is positive."
+With a numeric argument, turn Icomplete mode on if ARG is positive,
+otherwise turn it off."
   :global t :group 'icomplete
   (if icomplete-mode
       ;; The following is not really necessary after first time -

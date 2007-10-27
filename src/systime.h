@@ -67,7 +67,7 @@ extern time_t timezone;
    EMACS_SECS (TIME) is an rvalue for the seconds component of TIME.
    EMACS_SET_SECS (TIME, SECONDS) sets that to SECONDS.
 
-   EMACS_HAS_USECS is defined iff EMACS_TIME has a usecs component.
+   EMACS_HAS_USECS is defined if EMACS_TIME has a usecs component.
    EMACS_USECS (TIME) is an rvalue for the microseconds component of TIME.
    	This returns zero if EMACS_TIME doesn't have a microseconds component.
    EMACS_SET_USECS (TIME, MICROSECONDS) sets that to MICROSECONDS.
@@ -83,7 +83,7 @@ extern time_t timezone;
 
    EMACS_SUB_TIME (DEST, SRC1, SRC2) subtracts SRC2 from SRC1 and
 	stores the result in DEST.  SRC should not be negative.
-   EMACS_TIME_NEG_P (TIME) is true iff TIME is negative.
+   EMACS_TIME_NEG_P (TIME) is true if TIME is negative.
 
 */
 

@@ -118,10 +118,28 @@ Vectors work just like lists.  Nested backquotes are permitted."
 ;; constant, 1 => to be unquoted, 2 => to be spliced in.
 ;; The top-level backquote macro just discards the tag.
 
-(defun backquote-process (s)
+(defun backquote-delay-process (s level)
+  "Process a (un|back|splice)quote inside a backquote.
+This simply recurses through the body."
+  (let ((exp (backquote-listify (list (backquote-process (nth 1 s) level)
+                                      (cons 0 (list 'quote (car s))))
+                                '(0))))
+    (if (eq (car-safe exp) 'quote)
+        (cons 0 (list 'quote s))
+      (cons 1 exp))))
+
+(defun backquote-process (s &optional level)
+  "Process the body of a backquote.
+S is the body.  Returns a cons cell whose cdr is piece of code which
+is the macro-expansion of S, and whose car is a small integer whose value
+can either indicate that the code is constant (0), or not (1), or returns
+a list which should be spliced into its environment (2).
+LEVEL is only used internally and indicates the nesting level:
+0 (the default) is for the toplevel nested inside a single backquote."
+  (unless level (setq level 0))
   (cond
    ((vectorp s)
-    (let ((n (backquote-process (append s ()))))
+    (let ((n (backquote-process (append s ()) level)))
       (if (= (car n) 0)
 	  (cons 0 s)
 	(cons 1 (cond
@@ -138,11 +156,15 @@ Vectors work just like lists.  Nested backquotes are permitted."
 		s
 	      (list 'quote s))))
    ((eq (car s) backquote-unquote-symbol)
-    (cons 1 (nth 1 s)))
+    (if (<= level 0)
+        (cons 1 (nth 1 s))
+      (backquote-delay-process s (1- level))))
    ((eq (car s) backquote-splice-symbol)
-    (cons 2 (nth 1 s)))
+    (if (<= level 0)
+        (cons 2 (nth 1 s))
+      (backquote-delay-process s (1- level))))
    ((eq (car s) backquote-backquote-symbol)
-    (backquote-process (cdr (backquote-process (nth 1 s)))))
+      (backquote-delay-process s (1+ level)))
    (t
     (let ((rest s)
 	  item firstlist list lists expression)
@@ -154,11 +176,13 @@ Vectors work just like lists.  Nested backquotes are permitted."
       ;; at the beginning, put them in FIRSTLIST,
       ;; as a list of tagged values (TAG . FORM).
       ;; If there are any at the end, they go in LIST, likewise.
-      (while (consp rest)
-	;; Turn . (, foo) into (,@ foo).
-	(if (eq (car rest) backquote-unquote-symbol)
-	    (setq rest (list (list backquote-splice-symbol (nth 1 rest)))))
-	(setq item (backquote-process (car rest)))
+      (while (and (consp rest)
+                  ;; Stop if the cdr is an expression inside a backquote or
+                  ;; unquote since this needs to go recursively through
+                  ;; backquote-process.
+                  (not (or (eq (car rest) backquote-unquote-symbol)
+                           (eq (car rest) backquote-backquote-symbol))))
+	(setq item (backquote-process (car rest) level))
 	(cond
 	 ((= (car item) 2)
 	  ;; Put the nonspliced items before the first spliced item
@@ -168,8 +192,8 @@ Vectors work just like lists.  Nested backquotes are permitted."
 		    list nil))
 	  ;; Otherwise, put any preceding nonspliced items into LISTS.
 	  (if list
-	      (setq lists (cons (backquote-listify list '(0 . nil)) lists)))
-	  (setq lists (cons (cdr item) lists))
+	      (push (backquote-listify list '(0 . nil)) lists))
+	  (push (cdr item) lists)
 	  (setq list nil))
 	 (t
 	  (setq list (cons item list))))
@@ -177,8 +201,8 @@ Vectors work just like lists.  Nested backquotes are permitted."
       ;; Handle nonsplicing final elements, and the tail of the list
       ;; (which remains in REST).
       (if (or rest list)
-	  (setq lists (cons (backquote-listify list (backquote-process rest))
-			    lists)))
+	  (push (backquote-listify list (backquote-process rest level))
+                lists))
       ;; Turn LISTS into a form that produces the combined list.
       (setq expression
 	    (if (or (cdr lists)
@@ -221,5 +245,5 @@ Vectors work just like lists.  Nested backquotes are permitted."
 	tail))
      (t (cons 'list heads)))))
 
-;;; arch-tag: 1a26206a-6b5e-4c56-8e24-2eef0f7e0e7a
+;; arch-tag: 1a26206a-6b5e-4c56-8e24-2eef0f7e0e7a
 ;;; backquote.el ends here

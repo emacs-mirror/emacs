@@ -170,7 +170,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (maven
      ;; Maven is a popular build tool for Java.  Maven is Free Software.
      "\\(.*?\\):\\[\\([0-9]+\\),\\([0-9]+\\)\\]" 1 2 3)
-    
+
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
 
@@ -917,11 +917,13 @@ non-nil; otherwise uses `compile-command'.  With prefix arg, always prompts.
 Additionally, with universal prefix arg, compilation buffer will be in
 comint mode, i.e. interactive.
 
-To run more than one compilation at once, start one and rename
+To run more than one compilation at once, start one then rename
 the \`*compilation*' buffer to some other name with
-\\[rename-buffer].  Then start the next one.  On most systems,
-termination of the main compilation process kills its
-subprocesses.
+\\[rename-buffer].  Then _switch buffers_ and start the new compilation.
+It will create a new \`*compilation*' buffer.
+
+On most systems, termination of the main compilation process
+kills its subprocesses.
 
 The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
@@ -970,15 +972,14 @@ visible rather than the beginning."
 If NAME-FUNCTION is non-nil, call it with one argument MODE-NAME
 to determine the buffer name.
 Likewise if `compilation-buffer-name-function' is non-nil.
-If current buffer is the mode MODE-COMMAND,
+If current buffer has the major mode MODE-COMMAND,
 return the name of the current buffer, so that it gets reused.
 Otherwise, construct a buffer name from MODE-NAME."
   (cond (name-function
 	 (funcall name-function mode-name))
 	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
-	((and (eq mode-command major-mode)
-	      (eq major-mode (nth 1 compilation-arguments)))
+	((eq mode-command major-mode)
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase mode-name) "*"))))
@@ -1009,8 +1010,11 @@ The rest of the arguments are optional; for them, nil means use the default.
 
 MODE is the major mode to set in the compilation buffer.  Mode
 may also be t meaning use `compilation-shell-minor-mode' under `comint-mode'.
+
 If NAME-FUNCTION is non-nil, call it with one argument (the mode name)
-to determine the buffer name.
+to determine the buffer name.  Otherwise, the default is to
+reuses the current buffer if it has the proper major mode,
+else use or create a buffer with name based on the major mode.
 
 If HIGHLIGHT-REGEXP is non-nil, `next-error' will temporarily highlight
 the matching section of the visited source line; the default is to use the
@@ -1027,7 +1031,7 @@ Returns the compilation buffer created."
     (with-current-buffer
 	(setq outbuf
 	      (get-buffer-create
-	       (compilation-buffer-name name-of-mode mode name-function)))
+               (compilation-buffer-name name-of-mode mode name-function)))
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
@@ -1131,7 +1135,7 @@ Returns the compilation buffer created."
 		       (if (file-remote-p default-directory)
 			   "/bin/sh"
 			 shell-file-name)
-		       `("-c" ,command))))
+		       nil `("-c" ,command))))
 		 (start-file-process-shell-command (downcase mode-name)
 						   outbuf command))))
 	  ;; Make the buffer's mode line show process state.
@@ -1159,7 +1163,7 @@ Returns the compilation buffer created."
   "Set the height of WINDOW according to `compilation-window-height'."
   (let ((height (buffer-local-value 'compilation-window-height (window-buffer window))))
     (and height
-	 (= (window-width window) (frame-width (window-frame window)))
+	 (window-full-width-p window)
 	 ;; If window is alone in its frame, aside from a minibuffer,
 	 ;; don't change its height.
 	 (not (eq window (frame-root-window (window-frame window))))
@@ -1617,12 +1621,14 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
     (setq compilation-current-error (point))
     (next-error-internal)))
 
-;; Return a compilation buffer.
-;; If the current buffer is a compilation buffer, return it.
-;; Otherwise, look for a compilation buffer and signal an error
-;; if there are none.
 (defun compilation-find-buffer (&optional avoid-current)
-  (next-error-find-buffer avoid-current 'compilation-buffer-internal-p))
+  "Return a compilation buffer.
+If AVOID-CURRENT is nil, and the current buffer is a compilation buffer,
+return it.  If AVOID-CURRENT is non-nil, return the current buffer only
+as a last resort."
+  (if (and (compilation-buffer-internal-p) (not avoid-current))
+      (current-buffer)
+    (next-error-find-buffer avoid-current 'compilation-buffer-internal-p)))
 
 ;;;###autoload
 (defun compilation-next-error-function (n &optional reset)

@@ -23962,7 +23962,13 @@ such as @expr{y = m x + b} where @expr{m} and @expr{b} are parameters
 to be determined.  For a typical set of measured data there will be
 no single @expr{m} and @expr{b} that exactly fit the data; in this
 case, Calc chooses values of the parameters that provide the closest
-possible fit.
+possible fit.  The model formula can be entered in various ways after
+the key sequence @kbd{a F} is pressed.  
+
+If the letter @kbd{P} is pressed after @kbd{a F} but before the model
+description is entered, the data as well as the model formula will be
+plotted after the formula is determined.  This will be indicated by a
+``P'' in the minibuffer after the help message.
 
 @menu
 * Linear Fits::
@@ -24055,7 +24061,7 @@ $$
 @noindent
 is on the stack and we wish to do a simple linear fit.  Type
 @kbd{a F}, then @kbd{1} for the model, then @key{RET} to use
-the default names.  The result will be the formula @expr{3 + 2 x}
+the default names.  The result will be the formula @expr{3. + 2. x}
 on the stack.  Calc has created the model expression @kbd{a + b x},
 then found the optimal values of @expr{a} and @expr{b} to fit the
 data.  (In this case, it was able to find an exact fit.)  Calc then
@@ -24245,6 +24251,8 @@ case, the model might be @expr{a x + b y + c z}; and in the polynomial
 case, the model could be @expr{a x + b x^2 + c x^3}.  You can get
 a homogeneous linear or multilinear model by pressing the letter
 @kbd{h} followed by a regular model key, like @kbd{1} or @kbd{2}.
+This will be indicated by an ``h'' in the minibuffer after the help
+message.
 
 It is certainly possible to have other constrained linear models,
 like @expr{2.3 + a x} or @expr{a - 4 x}.  While there is no single
@@ -24454,6 +24462,18 @@ Quadratic.  @mathit{a + b (x-c)^2 + d (x-e)^2}.
 Gaussian.  
 @texline @math{{a \over b \sqrt{2 \pi}} \exp\left( -{1 \over 2} \left( x - c \over b \right)^2 \right)}.
 @infoline @mathit{(a / b sqrt(2 pi)) exp(-0.5*((x-c)/b)^2)}.
+@item s
+Logistic @emph{s} curve.
+@texline @math{a/(1+e^{b(x-c)})}.
+@infoline @mathit{a/(1 + exp(b (x - c)))}.
+@item b
+Logistic bell curve.
+@texline @math{ae^{b(x-c)}/(1+e^{b(x-c)})^2}.
+@infoline @mathit{a exp(b (x - c))/(1 + exp(b (x - c)))^2}.
+@item o
+Hubbert linearization.
+@texline @math{{y \over x} = a(1-x/b)}.
+@infoline @mathit{(y/x) = a (1 - x/b)}.
 @end table
 
 All of these models are used in the usual way; just press the appropriate
@@ -24462,8 +24482,9 @@ result will be a formula as shown in the above table, with the best-fit
 values of the parameters substituted.  (You may find it easier to read
 the parameter values from the vector that is placed in the trail.)
 
-All models except Gaussian and polynomials can generalize as shown to any
-number of independent variables.  Also, all the built-in models have an
+All models except Gaussian, logistics, Hubbert and polynomials can
+generalize as shown to any number of independent variables.  Also, all
+the built-in models except for the logistic and Hubbert curves have an 
 additive or multiplicative parameter shown as @expr{a} in the above table
 which can be replaced by zero or one, as appropriate, by typing @kbd{h}
 before the model key.
@@ -24603,7 +24624,7 @@ to convert the model into this form.  For example, if the model
 is @expr{a + b x + c x^2}, then @expr{f(x) = 1}, @expr{g(x) = x},
 and @expr{h(x) = x^2} are suitable functions.
 
-For other models, Calc uses a variety of algebraic manipulations
+For most other models, Calc uses a variety of algebraic manipulations
 to try to put the problem into the form
 
 @smallexample
@@ -24662,7 +24683,12 @@ The Gaussian model looks quite complicated, but a closer examination
 shows that it's actually similar to the quadratic model but with an
 exponential that can be brought to the top and moved into @expr{Y}.
 
-An example of a model that cannot be put into general linear
+The logistic models cannot be put into general linear form.  For these
+models, and the Hubbert linearization, Calc computes a rough
+approximation for the parameters, then uses the Levenberg-Marquardt
+iterative method to refine the approximations.
+
+Another model that cannot be put into general linear
 form is a Gaussian with a constant background added on, i.e.,
 @expr{d} + the regular Gaussian formula.  If you have a model like
 this, your best bet is to replace enough of your parameters with
@@ -28417,7 +28443,10 @@ variables.
 
 The ``x'' and ``y'' values for the data points (as pulled from the vectors,
 calculated from the formulas, or interpolated from the intervals) should
-be real numbers (integers, fractions, or floats).  If either the ``x''
+be real numbers (integers, fractions, or floats).  One exception to this
+is that the ``y'' entry can consist of a vector of numbers combined with
+error forms, in which case the points will be plotted with the
+appropriate error bars.  Other than this, if either the ``x''
 value or the ``y'' value of a given data point is not a real number, that
 data point will be omitted from the graph.  The points on either side
 of the invalid point will @emph{not} be connected by a line.
@@ -28815,7 +28844,9 @@ available for any device.
 The @kbd{g S} (@code{calc-graph-point-style}) command similarly turns
 the symbols at the data points on or off, or sets the point style.
 If you turn both lines and points off, the data points will show as
-tiny dots.
+tiny dots.  If the ``y'' values being plotted contain error forms and 
+the connecting lines are turned off, then this command will also turn 
+the error bars on or off.
 
 @cindex @code{LineStyles} variable
 @cindex @code{PointStyles} variable

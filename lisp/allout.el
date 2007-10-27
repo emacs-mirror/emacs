@@ -1658,8 +1658,9 @@ the following two lines in your Emacs init file:
   "Toggle minor mode for controlling exposure and editing of text outlines.
 \\<allout-mode-map>
 
-Optional arg forces mode to re-initialize iff arg is positive num or
-symbol.  Allout outline mode always runs as a minor mode.
+Optional prefix argument TOGGLE forces the mode to re-initialize
+if it is positive, otherwise it turns the mode off.  Allout
+outline mode always runs as a minor mode.
 
 Allout outline mode provides extensive outline oriented formatting and
 manipulation.  It enables structural editing of outlines, as well as

@@ -77,8 +77,6 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
-** bibtex-style-mode helps you write BibTeX's *.bst files.
-
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 
@@ -96,7 +94,8 @@ considered for update.
 
 *** The VC mode-line entry now has a tooltip.
 
-*** VC has some support for Bazaar (bzr).
+*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
+This can be used to add menu entries for backend specific functions.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
@@ -139,13 +138,20 @@ Running processes on a remote host can be controlled by settings in
 When the variable `file-precious-flag' is set, the success of a remote
 file copy is checked via the file's checksum.
 
-** comint-mode uses `start-file-process' now (see Lisp Changes).
+** Miscellaneous programming mode changes
+
+*** The variable `fortran-line-length' can change the fixed-form line-length.
+
+** Miscellaneous
+
+*** comint-mode uses `start-file-process' now (see Lisp Changes).
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
 
-** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode,
+*** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode,
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
@@ -186,10 +192,6 @@ like this:
 +++
 ** New variable `user-emacs-directory'.
 Use this instead of "~/.emacs.d".
-
-+++
-** The new function `image-refresh' refreshes all images associated
-with a given image specification.
 
 +++
 ** The new function `start-file-process is similar to `start-process',

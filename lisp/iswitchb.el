@@ -396,7 +396,7 @@ See documentation of `walk-windows' for useful values.")
 (defcustom iswitchb-minibuffer-setup-hook nil
   "Iswitchb-specific customization of minibuffer setup.
 
-This hook is run during minibuffer setup iff `iswitchb' will be active.
+This hook is run during minibuffer setup if `iswitchb' is active.
 For instance:
 \(add-hook 'iswitchb-minibuffer-setup-hook
 	  '\(lambda () (set (make-local-variable 'max-mini-window-height) 3)))
@@ -1440,7 +1440,7 @@ This is an example function which can be hooked on to
     (iswitchb-to-end summaries)))
 
 (defun iswitchb-case ()
-  "Return non-nil iff we should ignore case when matching.
+  "Return non-nil if we should ignore case when matching.
 See the variable `iswitchb-case' for details."
   (if iswitchb-case
       (if (featurep 'xemacs)
@@ -1450,7 +1450,7 @@ See the variable `iswitchb-case' for details."
 ;;;###autoload
 (define-minor-mode iswitchb-mode
   "Toggle Iswitchb global minor mode.
-With arg, turn Iswitchb mode on if and only iff ARG is positive.
+With arg, turn Iswitchb mode on if ARG is positive, otherwise turn it off.
 This mode enables switching between buffers using substrings.  See
 `iswitchb' for details."
   nil nil iswitchb-global-map :global t :group 'iswitchb

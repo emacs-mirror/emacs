@@ -500,7 +500,7 @@ static struct input_event * volatile kbd_store_ptr;
 /* The above pair of variables forms a "queue empty" flag.  When we
    enqueue a non-hook event, we increment kbd_store_ptr.  When we
    dequeue a non-hook event, we increment kbd_fetch_ptr.  We say that
-   there is input available iff the two pointers are not equal.
+   there is input available if the two pointers are not equal.
 
    Why not just have a flag set and cleared by the enqueuing and
    dequeuing functions?  Such a flag could be screwed up by interrupts
@@ -3590,7 +3590,7 @@ restore_getcjmp (temp)
    kbd_buffer_store_event places events in kbd_buffer, and
    kbd_buffer_get_event retrieves them.  */
 
-/* Return true iff there are any events in the queue that read-char
+/* Return true if there are any events in the queue that read-char
    would return.  If this returns false, a read-char would block.  */
 static int
 readable_events (flags)

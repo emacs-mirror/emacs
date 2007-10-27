@@ -62,7 +62,8 @@
 
 (defun diff-sentinel (code)
   "Code run when the diff process exits.
-CODE is the exit code of the process.  It should be 0 iff no diffs were found."
+CODE is the exit code of the process.  It should be 0 only if no diffs
+were found."
   (if diff-old-temp-file (delete-file diff-old-temp-file))
   (if diff-new-temp-file (delete-file diff-new-temp-file))
   (save-excursion

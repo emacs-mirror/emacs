@@ -7087,18 +7087,22 @@ move_it_by_lines (it, dvpos, need_y_p)
 {
   struct position pos;
 
-  if (!FRAME_WINDOW_P (it->f))
+  /* The commented-out optimization uses vmotion on terminals.  This
+     gives bad results, because elements like it->what, on which
+     callers such as pos_visible_p rely, aren't updated. */
+  /*  if (!FRAME_WINDOW_P (it->f))
     {
       struct text_pos textpos;
 
-      /* We can use vmotion on frames without proportional fonts.  */
       pos = *vmotion (IT_CHARPOS (*it), dvpos, it->w);
       SET_TEXT_POS (textpos, pos.bufpos, pos.bytepos);
       reseat (it, textpos, 1);
       it->vpos += pos.vpos;
       it->current_y += pos.vpos;
     }
-  else if (dvpos == 0)
+    else */
+
+  if (dvpos == 0)
     {
       /* DVPOS == 0 means move to the start of the screen line.  */
       move_it_vertically_backward (it, 0);
@@ -13520,7 +13524,10 @@ redisplay_window (window, just_this_one_p)
   /* Restore current_buffer and value of point in it.  */
   TEMP_SET_PT_BOTH (CHARPOS (opoint), BYTEPOS (opoint));
   set_buffer_internal_1 (old);
-  TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
+  /* Avoid an abort in TEMP_SET_PT_BOTH if the buffer has become
+     shorter.  This can be caused by log truncation in *Messages*. */
+  if (CHARPOS (lpoint) <= ZV)
+    TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
 
   unbind_to (count, Qnil);
 }

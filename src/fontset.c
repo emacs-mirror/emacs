@@ -500,7 +500,7 @@ free_face_fontset (f, face)
 }
 
 
-/* Return 1 iff FACE is suitable for displaying character C.
+/* Return 1 if FACE is suitable for displaying character C.
    Otherwise return 0.  Called from the macro FACE_SUITABLE_FOR_CHAR_P
    when C is not a single byte character..  */
 

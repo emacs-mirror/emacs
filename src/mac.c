@@ -1127,18 +1127,15 @@ Lisp_Object
 cfdate_to_lisp (date)
      CFDateRef date;
 {
-  static const CFGregorianDate epoch_gdate = {1970, 1, 1, 0, 0, 0.0};
-  static CFAbsoluteTime epoch = 0.0, sec;
-  int high, low;
+  CFTimeInterval sec;
+  int high, low, microsec;
 
-  if (epoch == 0.0)
-    epoch = CFGregorianDateGetAbsoluteTime (epoch_gdate, NULL);
-
-  sec = CFDateGetAbsoluteTime (date) - epoch;
+  sec = CFDateGetAbsoluteTime (date) + kCFAbsoluteTimeIntervalSince1970;
   high = sec / 65536.0;
   low = sec - high * 65536.0;
+  microsec = (sec - floor (sec)) * 1000000.0;
 
-  return list3 (make_number (high), make_number (low), make_number (0));
+  return list3 (make_number (high), make_number (low), make_number (microsec));
 }
 
 
@@ -5318,8 +5315,8 @@ init_mac_osx_environment ()
   /* P should have sufficient room for the pathname of the bundle plus
      the subpath in it leading to the respective directories.  Q
      should have three times that much room because EMACSLOADPATH can
-     have the value "<path to lisp dir>:<path to leim dir>:<path to
-     site-lisp dir>".  */
+     have the value "<path to site-lisp dir>:<path to lisp dir>:<path
+     to leim dir>".  */
   p = (char *) alloca (app_bundle_pathname_len + 50);
   q = (char *) alloca (3 * app_bundle_pathname_len + 150);
   if (!getenv ("EMACSLOADPATH"))
@@ -5327,12 +5324,12 @@ init_mac_osx_environment ()
       q[0] = '\0';
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/Resources/lisp");
+      strcat (p, "/Contents/Resources/site-lisp");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	strcat (q, p);
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/Resources/leim");
+      strcat (p, "/Contents/Resources/lisp");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	{
 	  if (q[0] != '\0')
@@ -5341,7 +5338,7 @@ init_mac_osx_environment ()
 	}
 
       strcpy (p, app_bundle_pathname);
-      strcat (p, "/Contents/Resources/site-lisp");
+      strcat (p, "/Contents/Resources/leim");
       if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	{
 	  if (q[0] != '\0')

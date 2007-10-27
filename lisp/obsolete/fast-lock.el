@@ -523,7 +523,7 @@ See `fast-lock-cache-directories'."
 		;; Just a directory.
 		directory)
 	       (t
-		;; A directory iff the file name matches the regexp.
+		;; A directory if the file name matches the regexp.
 		(let ((bufile (expand-file-name buffer-file-truename))
 		      (case-fold-search nil))
 		  (when (save-match-data (string-match (car directory) bufile))

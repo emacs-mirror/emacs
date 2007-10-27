@@ -540,7 +540,7 @@ section @ref{Minor Modes}.
 @item Making the @key{RET} key indent the new line
 The standard Emacs binding for @key{RET} just adds a new line.  If you
 want it to reindent the new line as well, rebind the key.  Note that
-the action of rebinding will fail if the pertinent keymap doesn't yet
+the action of rebinding would fail if the pertinent keymap didn't yet
 exist---we thus need to delay the action until after @ccmode{} has
 been loaded.  Put the following code into your @file{.emacs}:
 
@@ -881,8 +881,8 @@ lines.
 @ccmode{} contains some useful commands for moving around in C code.
 
 @table @asis
-@item @kbd{C-M-a}
-@itemx @kbd{C-M-e}
+@item @kbd{C-M-a} (@code{c-beginning-of-defun})
+@itemx @kbd{C-M-e} (@code{c-end-of-defun})
 @findex c-beginning-of-defun
 @findex c-end-of-defun
 
@@ -6911,11 +6911,11 @@ to include any code that appears @emph{before} your bug example, if
 you think it might affect our ability to reproduce it.
 
 Please try to produce the problem in an Emacs instance without any
-customizations loaded (i.e. start it with the @samp{-q -no-site-file}
+customizations loaded (i.e. start it with the @samp{-q --no-site-file}
 arguments).  If it works correctly there, the problem might be caused
 by faulty customizations in either your own or your site
-configuration.  In that case, we'd appreciate if you isolate the Emacs
-Lisp code that triggers the bug and include it in your report.
+configuration.  In that case, we'd appreciate it if you isolate the
+Emacs Lisp code that triggers the bug and include it in your report.
 
 @cindex bug report mailing list
 Bug reports should be sent to @email{bug-cc-mode@@gnu.org}.  You can

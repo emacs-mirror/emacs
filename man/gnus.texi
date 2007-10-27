@@ -12945,6 +12945,34 @@ network is fast, setting this variable to a really small number means
 that fetching will probably be slower.  If this variable is @code{nil},
 @code{nntp} will never split requests.  The default is 5.
 
+@item nntp-xref-number-is-evil
+@vindex nntp-xref-number-is-evil
+When Gnus refers to an article having the @code{Message-ID} that a user
+specifies or having the @code{Message-ID} of the parent article of the
+current one (@pxref{Finding the Parent}), Gnus sends a @code{HEAD}
+command to the @acronym{NNTP} server to know where it is, and the server
+returns the data containing the pairs of a group and an article number
+in the @code{Xref} header.  Gnus normally uses the article number to
+refer to the article if the data shows that that article is in the
+current group, while it uses the @code{Message-ID} otherwise.  However,
+some news servers, e.g., ones running Diablo, run multiple engines
+having the same articles but article numbers are not kept synchronized
+between them.  In that case, the article number that appears in the
+@code{Xref} header varies by which engine is chosen, so you cannot refer
+to the parent article that is in the current group, for instance.  If
+you connect to such a server, set this variable to a non-@code{nil}
+value, and Gnus never uses article numbers.  For example:
+
+@lisp
+(setq gnus-select-method
+      '(nntp "newszilla"
+             (nntp-address "newszilla.example.com")
+             (nntp-xref-number-is-evil t)
+             @dots{}))
+@end lisp
+
+The default value of this server variable is @code{nil}.
+
 @item nntp-prepare-server-hook
 @vindex nntp-prepare-server-hook
 A hook run before attempting to connect to an @acronym{NNTP} server.
@@ -18595,23 +18623,23 @@ predicate to individual groups.
 
 @table @code
 @item short
-True iff the article is shorter than @code{gnus-agent-short-article}
+True if the article is shorter than @code{gnus-agent-short-article}
 lines; default 100.
 
 @item long
-True iff the article is longer than @code{gnus-agent-long-article}
+True if the article is longer than @code{gnus-agent-long-article}
 lines; default 200.
 
 @item low
-True iff the article has a download score less than
+True if the article has a download score less than
 @code{gnus-agent-low-score}; default 0.
 
 @item high
-True iff the article has a download score greater than
+True if the article has a download score greater than
 @code{gnus-agent-high-score}; default 0.
 
 @item spam
-True iff the Gnus Agent guesses that the article is spam.  The
+True if the Gnus Agent guesses that the article is spam.  The
 heuristics may change over time, but at present it just computes a
 checksum and sees whether articles match.
 
@@ -26651,7 +26679,7 @@ New @file{make.bat} for compiling and installing Gnus under MS Windows
 
 Use @file{make.bat} if you want to install Gnus under MS Windows, the
 first argument to the batch-program should be the directory where
-@file{xemacs.exe} respectively @file{emacs.exe} is located, iff you want
+@file{xemacs.exe} respectively @file{emacs.exe} is located, if you want
 to install Gnus after compiling it, give @file{make.bat} @code{/copy} as
 the second parameter.
 
@@ -27008,7 +27036,7 @@ The envelope sender address can be customized when using Sendmail.
 @item
 Gnus no longer generate the Sender: header automatically.
 
-Earlier it was generated iff the user configurable email address was
+Earlier it was generated when the user configurable email address was
 different from the Gnus guessed default user address.  As the guessing
 algorithm is rarely correct these days, and (more controversially) the
 only use of the Sender: header was to check if you are entitled to

@@ -1768,7 +1768,7 @@ info-variant-part."
 ;; Macro that won't funcall the function if it is nil.
 ;;
 (defmacro artist-funcall (fn &rest args)
-  "Call function FN with ARGS iff FN is not nil."
+  "Call function FN with ARGS, if FN is not nil."
   (list 'if fn (cons 'funcall (cons fn args))))
 
 (defun artist-uniq (l)

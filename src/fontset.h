@@ -66,7 +66,7 @@ struct font_info
   /* Average width of glyphs in the font.  */
   int average_width;
 
-  /* 1 iff `vertical-centering-font-regexp' matches this font name.
+  /* 1 if `vertical-centering-font-regexp' matches this font name.
      In this case, we render characters at vartical center positions
      of lines.  */
   int vertical_centering;

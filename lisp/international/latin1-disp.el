@@ -777,9 +777,9 @@ use either \\[customize] or the function `latin1-display'."
   "Set up Latin-1/ASCII display for Unicode characters.
 This uses the transliterations of the Lynx browser.
 
-With argument ARG, turn such display on iff ARG is positive, otherwise
+With argument ARG, turn such display on if ARG is positive, otherwise
 turn it off and display Unicode characters literally.  The display
-is't changed if the display can render Unicode characters."
+isn't changed if the display can render Unicode characters."
   (interactive "p")
   (if (> arg 0)
       (unless (char-displayable-p

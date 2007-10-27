@@ -568,7 +568,7 @@ for more details."
 (defvar user-mail-address)
 (defun log-edit-changelog-ours-p ()
   "See if ChangeLog entry at point is for the current user, today.
-Return non-nil iff it is."
+Return non-nil if it is."
   ;; Code adapted from add-change-log-entry.
   (let ((name (or (and (boundp 'add-log-full-name) add-log-full-name)
 		  (and (fboundp 'user-full-name) (user-full-name))

@@ -106,8 +106,8 @@
 
 ;;; Should keypad numbers send ordinary digits or distinct escape sequences?
 (defvar tvi970-keypad-numeric nil
-  "The terminal should be in numeric keypad mode iff this variable is non-nil.
-Do not set this variable!  Call the function ``tvi970-set-keypad-mode''.")
+  "Non-nil means the terminal should be in numeric keypad mode.
+Do not set this variable!  Call the function `tvi970-set-keypad-mode'.")
 
 (defun tvi970-set-keypad-mode (&optional arg)
   "Set the current mode of the TVI 970 numeric keypad.

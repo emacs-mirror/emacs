@@ -1495,7 +1495,7 @@ function doesn't recenter the folder buffer."
 
 (defun mh-update-unseen ()
   "Synchronize the unseen sequence with MH.
-Return non-nil iff the MH folder was set.
+Return non-nil if the MH folder was set.
 The hook `mh-unseen-updated-hook' is called after the unseen sequence
 is updated."
   (if mh-seen-list

@@ -240,7 +240,7 @@ extern Lisp_Object item_properties;
 
 /* Macros for dealing with lispy events.  */
 
-/* True iff EVENT has data fields describing it (i.e. a mouse click).  */
+/* True if EVENT has data fields describing it (i.e. a mouse click).  */
 #define EVENT_HAS_PARAMETERS(event) (CONSP (event))
 
 /* Extract the head from an event.

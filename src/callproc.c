@@ -117,7 +117,7 @@ Lisp_Object Vprocess_environment;
 Lisp_Object Qbuffer_file_type;
 #endif /* DOS_NT */
 
-/* True iff we are about to fork off a synchronous process or if we
+/* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */
 int synch_process_alive;
 

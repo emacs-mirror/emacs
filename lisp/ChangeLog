@@ -1,3 +1,504 @@
+2007-08-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-send): Handle CTRL-D more carefully.
+
+2007-08-12  Richard Stallman  <rms@gnu.org>
+
+	* pcvs.el (cvs-reread-cvsrc, cvs-checkout, cvs-mode-checkout)
+	(cvs-execute-single-file): Use new name split-string-and-unquote.
+	(cvs-header-msg): Use new name combine-and-quote-strings.
+
+	* emulation/vi.el (vi-next-line): Ignore return value of line-move.
+
+	* progmodes/gud.el (gud-common-init): Use new name
+	split-string-and-unquote.
+
+	* progmodes/flymake.el (flymake-err-line-patterns): Fix infloop
+	in javac regexp.
+
+	* pcvs-util.el (cvs-qtypedesc-strings): Use new names
+	combine-and-quote-strings and split-string-and-unquote.
+
+	* subr.el (combine-and-quote-strings): Renamed from strings->string.
+	(split-string-and-unquote): Renamed from string->strings.
+
+2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-font-lock-keywords): Use `eval' so as to adapt
+	to buffer-local settings.
+
+	* emacs-lisp/backquote.el (backquote-delay-process): New function.
+	(backquote-process): Add internal arg `level'.  Use the two to
+	correctly handle nested backquotes.
+
+2007-08-09  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-registered): Use \0 instead of literal NULs.
+	(vc-bzr-state-words): Add "kind changed" state word.
+	(vc-bzr-status): New function.  Return Bzr idea of file status,
+	which is different from VC's.
+	(vc-bzr-state): Use vc-bzr-status.
+	(vc-workfile-unchanged-p): Use vc-bzr-status.
+	(vc-bzr-revert): Use synchronous process; expect exitcode 0.
+	(vc-dired-state): Process "kind changed" state word.
+
+2007-08-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-default-find-file-not-found-hook): Do nothing.
+
+	* vc-rcs.el (vc-rcs-find-file-not-found-hook):
+	Move from vc-default-find-file-not-found-hook.
+
+2007-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el: Remove spurious * in docstrings.
+	Merge defvars and toplevel setq-defaults.
+	(Man-highlight-references0): Limit=nil rather than point-max.
+	(Man-mode-map): Move initialization into the declaration.
+	(Man-strip-page-headers, Man-unindent): Use dolist & inhibit-read-only.
+	(Man-view-header-file): Use expand-file-name rather than concat.
+	(Man-notify-when-ready, Man-bgproc-sentinel): Use with-current-buffer.
+
+	* man.el (Man-next-section): Make sure we do not move backward.
+
+2007-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (auto-mode-alist): Use the purecopied text (duh!).
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* Replace `iff' in doc-strings and comments.
+
+2007-08-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* dired.el (dired-pop-to-buffer):
+	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	* calendar/calendar.el (generate-calendar-window):
+	* progmodes/compile.el (compilation-set-window-height):
+	* textmodes/two-column.el (2C-two-columns, 2C-merge):
+	Use window-full-width-p instead of comparing frame-width and
+	window-width.
+
+	* progmodes/compile.el (compilation-find-buffer): Remove extra
+	argument in call to compilation-buffer-internal-p.
+
+2007-08-07  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/tcl.el (tcl-indent-level, tcl-continued-indent-level):
+	Add safe-local-variable property.
+
+2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Use image-refresh.
+
+2007-08-07  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: Remove comments about vc-bzr.el being a modified
+	unofficial version.
+	(vc-bzr-command): Remove redundant setting of process-connection-type.
+	(vc-bzr-admin-checkout-format-file): Add autoload.
+	(vc-bzr-root-dir): Remove in favor of vc-bzr-root.
+	(vc-bzr-root): Switch to implementation of vc-bzr-root-dir.
+	(vc-bzr-registered): Compare dirstate format tag with known good
+	value, abort parsing if match fails.  Warn user in docstring.
+	(vc-bzr-workfile-version): Case for different Bzr branch formats.
+	See bzrlib/branch.py in Bzr sources.
+	(vc-bzr-diff): First argument FILES may be a string rather than a list.
+	(vc-bzr-shell-command): Remove in favor of
+	vc-bzr-command-discarding-stderr.
+	(vc-bzr-command-discarding-stderr): New function.
+
+2007-08-06  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el (vc-bzr-registered): Gracefully handle missing "bzr"
+	program, and return nil
+	(vc-bzr-state): Gracefully handle missing "bzr" program, and return nil.
+	(vc-bzr-state): Look for path names relative to the repository
+	root after status keyword.
+	(vc-bzr-file-name-relative): New function.
+	(vc-bzr-admin-dirname): Reinstate, as other vc-bzr-admin-... paths
+	depend on it.
+	(vc-bzr-admin-dirname, ...-checkout-format-file)
+	(...-branch-format-file, ...-revhistory): Paths to some Bzr internal
+	files that we now parse directly for speed.
+	(vc-bzr-root-dir): Use `vc-bzr-admin-checkout-format-file' as witness.
+	(vc-bzr-registered): Only parse vc-bzr-admin-dirstate file if it exists.
+	(vc-bzr-state): "bzr status" successful only if exitcode is 0
+	(vc-bzr-root): Use `vc-bzr-shell-command'.  Stderr may contain
+	Bzr warnings, so we must discard it.
+	(vc-bzr-workfile-version): Speedup counting lines from
+	`vc-bzr-admin-revhistory' file, but fallback to spawning "bzr revno"
+	if that file doesn't exist.
+	(vc-bzr-responsible-p): Use `vc-bzr-root' instead of
+	`vc-bzr-root-dir' for speed.  Add `vc-bzr-admin-dirname'
+	(not ".bzr"!) to `vc-directory-exclusion-list'
+	(vc-bzr-shell-command): New function.
+
+2007-08-06  Tom Tromey  <tromey@redhat.com>
+
+	* diff-mode.el (diff-unified->context, diff-reverse-direction)
+	(diff-fixup-modifs): Typo in docstring.
+
+2007-08-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/tpu-edt.el (tpu-current-line): Use posn-at-point and
+	count-screen-lines.
+	(tpu-edt-off): Disable relevant pieces of advice.
+
+	* emulation/tpu-extras.el (tpu-before-save-hook): Rename from
+	tpu-write-file-hook.  Activate it with add-hook on buffer-save-hook.
+	(newline, newline-and-indent, do-auto-fill): Use advice instead of
+	redefining the function.
+	(tpu-set-scroll-margins): Activate the pieces of advice.
+
+2007-08-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (resize-temp-buffer-window): Use window-full-width-p
+	instead of comparing frame-width and window-width.
+
+2007-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (autoload-print-form): Use print-quoted.
+
+2007-08-12  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh): Delete group `unix'.
+
+	* progmodes/gud.el (gud): Change to group `processes'.
+
+2007-08-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-buffer-name): Don't check
+	compilation-arguments.  It is superfluous, and the variable isn't
+	even set when this function is called.
+
+2007-08-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-reopen-application): New function.
+	(mac-apple-event-map): Bind "reopen application" Apple event to it.
+
+2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-unfontify-region): Fix to
+	take tex-font-script-display into account.
+	(tex-font-script-display, tex-font-lock-suscript): Change from a cons
+	cell to a list of 2 elements to simplify the unfontify code.
+
+2007-08-09  Edward O'Connor  <hober0@gmail.com> (tiny change)
+
+	* url/url-auth.el (url-basic-auth): When prompting for username
+	and password, default to the username and password in the URL.
+
+2007-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-default-fg, ps-default-bg): Docstring fix.
+	(ps-begin-job): Use ps-default-fg and ps-default-bg only when
+	ps-print-color-p is neither nil nor black-white.  Reported by Christian
+	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
+
+2007-08-08  Andreas Schwab  <schwab@suse.de>
+
+	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook): Check for
+	self-insert-command, not self-insert.
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/eldoc.el (eldoc-get-fnsym-args-string): Make second
+	argument optional, for backwards compatibility, and only highlight
+	args when present.  Fix symbol name typo (doc/args).
+
+	* help-mode.el (help-make-xrefs): Search for symbol constituents,
+	rather than just `-'.
+
+2007-08-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (calc-convert-temperature):
+	Use `/' to create fractions.
+
+2007-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-wrong-passwd-regexp): Make the regexp more
+	global matching.
+	(tramp-handle-shell-command): Handle OUTPUT-BUFFER and
+	ERROR-BUFFER more robust.  Display output.
+	(tramp-file-name-handler): Add a connection property when we found
+	a foreign file name handler.  This allows backends like ftp to
+	profit also from usr/host name completion based on connection
+	cache.
+	(tramp-send-command-and-read): Search for trash after the regexp
+	until eol only.  In XEmacs, there is a problem with \n.
+
+	* net/tramp-cache.el (top): Read persistent connection history
+	when cache is empty.
+
+2007-08-07  Nic Ferrier  <nferrier@tapsellferrier.co.uk>  (tiny change)
+
+	* net/tramp.el (tramp-handle-process-file): Fix bug inserting
+	resulting output.
+
+2007-08-07  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/compile.el (compilation-start): Pass nil as startfile
+	to comint-exec.
+
+2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-decoded): New variable.
+	(longlines-mode): Avoid encoding or decoding the buffer twice.
+
+2007-08-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* format.el (format-insert-file): Make sure that at most one undo
+	entry is recorded for the insertion.  Inhibit point-motion and
+	modification hooks around call to insert-file-contents.
+
+2007-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-annotate): Select temp-buffer before running vc-exec-after.
+	Select the buffer's window before moving point.
+
+2007-08-07  Richard Stallman  <rms@gnu.org>
+
+	* term.el (term): Remove parent group `unix'.
+
+	* simple.el (default-indent-new-line): New function.
+	It calls comment-line-break-function if there are comments.
+	(do-auto-fill): Use that.
+
+2007-08-07  Ivan Kanis  <apple@kanis.eu>
+
+	* time.el (display-time-world-mode, display-time-world-display)
+	(display-time-world, display-time-world-list)
+	(display-time-world-time-format, display-time-world-buffer-name)
+	(display-time-world-timer-enable)
+	(display-time-world-timer-second, display-time-world-mode-map): 
+	New.
+	
+2007-08-07  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* complete.el (PC-lisp-complete-symbol): Complete symbol around point.
+	(PC-do-completion): Add "acronym completion" for symbols and
+	filenames, so e.g. "mvbl" expands to "make-variable-buffer-local".
+
+2007-08-06  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-buffer-menu): Pass mode-name through
+	format-mode-line because it may be a list,
+	e.g., (sgml-xml-mode "XML" "SGML"), and not a string.
+
+2007-08-06  Vinicius Jose Latorre  <viniciusig@ig.com.br>
+
+	* printing.el (pr-update-menus): Docstring fix.
+
+2007-08-06  Jason Rumney  <jasonr@gnu.org>
+
+	* menu-bar.el (menu-bar-vc-filter): Use vc-call-backend.
+
+	* vc-hooks.el (vc-call): Add doc string.
+
+2007-08-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-hook-function): Catch also errors in
+	process-filter.
+
+2007-08-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el: Wrap (require 'help-mode) by
+	eval-when-compile.
+	(quail-help-init): New function.
+	(quail-help): Call quail-help-init.
+	(quail-store-decode-map-key): Change it to a function.
+
+2007-08-05  Jason Rumney  <jasonr@gnu.org>
+
+	* vc.el (vc-rollback): Add norevert argument back.
+	(vc-revert-buffer): Add back as obsolete alias.
+
+2007-08-05  Peter Povinec  <ppovinec@yahoo.com>  (tiny change)
+
+	* term.el: Honor term-default-fg-color and term-default-bg-color
+	settings when modifying term-current-face.
+	(term-default-fg-color, term-default-bg-color): Initialize from
+	default term-current-face.
+	(term-mode, term-reset-terminal): Set term-current-face with
+	term-default-fg-color and term-default-bg-color.
+	(term-handle-colors-array): term-current-face has term-default-fg-color
+	and term-default-bg-color after reset escape sequence.
+	(term-handle-colors-array): Set term-current-color with
+	term-default-fg/bg-color instead of ansi-term-color-vector when the
+	index (term-ansi-current-color or term-ansi-current-bg-color) is zero.
+
+2007-08-05  Jay Belanger  <belanger@localhost.localdomain>
+
+	* calc/calc-nlfit.el (math-nlfit-curve):
+	Remove unnecessary variables.
+	(math-nlfit-givens): Let bind free variables.
+
+2007-08-05  Vinicius Jose Latorre  <viniciusig@ig.com.br>
+
+	* printing.el: Require lpr and ps-print when loading printing package.
+	Reported by Glenn Morris <rgm@gnu.org>.
+
+2007-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (set-auto-mode): Handle also remote files wrt
+	`auto-mode-alist'.
+
+2007-08-04  Jay Belanger  <belanger@localhost.localdomain>
+
+	* calc/calcalg3.el (calc-curve-fit): Add support for nonlinear
+	curves and plotting.
+
+	* calc/calc-nlfit.el: New file.
+
+2007-08-04  Glenn Morris  <rgm@gnu.org>
+
+	* autorevert.el (auto-revert-tail-mode): auto-revert-tail-pos is
+	zero, not nil, when the library is first loaded.  Check for a file
+	that has been modified on disk.
+
+	* progmodes/cperl-mode.el (cperl-compilation-error-regexp-alist):
+	Remove duplicate defvar preventing initialization.
+	(cperl-mode): Fix compilation-error-regexp-alist-alist setting.
+
+2007-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-font-lock-keywords): Fix up false positives.
+	(diff-beginning-of-file): Adjust to the fact that diff-file-header-re
+	may match up to 4 lines.
+	(diff-beginning-of-file-and-junk): Rewrite.
+
+2007-08-03  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Evaluate require only during compilation.
+	(pr-version): New version 6.9.1.
+	(deactivate-mark): Replace (defvar VAR nil) by (defvar VAR).
+	(pr-global-menubar): Fix code.
+
+2007-08-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-erase-in-display): Fix case when point is not at
+	the beginning of the line.
+
+2007-08-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (math-get-value,math-get-sdev)
+	(math-contains-sdev): New functions.
+
+	* calc/calc-graph.el (calc-graph-format-data)
+	(calc-graph-add-curve): Check for error forms.
+	(calc-graph-set-styles): Add option for error forms.
+
+2007-08-03  Miles Bader  <miles@gnu.org>
+
+	* vc-hooks.el (vc-handled-backends): Change capitalization of VC
+	backend names for new backends to `Git', `Hg', and `Bzr'.
+	* vc-hg.el (vc-hg-dired-state-info): Use `Hg' as VC backend name,
+	not `HG'.
+	* vc-git.el (vc-git-dired-state-info): Use `Git' as VC backend
+	name, not `GIT'.
+	* vc-bzr.el (vc-bzr-dir-state, vc-bzr-dired-state-info)
+	(vc-bzr-unload-hook): Use `Bzr' as VC backend name, not `BZR'.
+
+2007-08-03  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailsum.el (rmail-make-summary-line): Find end of msg number
+	to update deleted flag.
+
+	* cus-edit.el (customize-apropos, customize-apropos-options)
+	(customize-apropos-faces, customize-apropos-groups): Improve prompt.
+
+	* menu-bar.el (menu-bar-help-menu): Add "About GNU" menu item.
+
+	* startup.el (fancy-splash-head, startup-echo-area-message):
+	Change message text.
+
+	* emulation/tpu-edt.el (next-line-internal): Setting deleted.
+	All callers use line-move.
+
+	* progmodes/compile.el (compilation-find-buffer): Return current
+	buffer immediately if suitable.
+	(compile, compilation-buffer-name, compilation-start): Doc fixes.
+
+2007-08-03  Daiki Ueno  <ueno@unixuser.org>
+
+	* faces.el (face-normalize-spec): New function.
+	(frame-set-background-mode): Normalize face-spec before calling
+	face-spec-match-p.
+
+2007-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-window): Add switch-to-buffer-other-frame option.
+
+2007-08-03  Glenn Morris  <rgm@gnu.org>
+
+	* cus-edit.el (customize-apropos): Make the error message indicate
+	what kind of thing the user was trying to customize.
+
+	* net/telnet.el (telnet-mode): Set comint-use-prompt-regexp to t.
+
+	* progmodes/fortran.el (fortran-font-lock-syntactic-keywords): Fix
+	off-by-one error in previous change.
+
+2007-08-03  Drew Adams  <drew.adams@oracle.com>
+
+	* emacs-lisp/pp.el (pp-eval-expression): Add progress message.
+	Make buffer writable.
+
+2007-08-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (math-sqrt-raw,math-sin-raw-2)
+	(math-cos-raw-2,math-arctan-raw,math-ln-raw):
+	Use native Emacs functions, when appropriate.
+
+2007-08-01  Dan Nicolaescu  <dann@ics.uci.edu>
+	    Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Document new VC operation `extra-menu'.
+
+	* vc-hooks.el (vc-default-extra-menu): New function.
+
+	* menu-bar.el (menu-bar-vc-filter): New function.
+	(menu-bar-tools-menu): Use it as a filter.
+
+2007-08-01  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* ibuf-ext.el (ibuffer-mark-old-buffers): Docstring fix.
+
+2007-08-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el: Remove leading `*' from all defcustom doc
+	strings.
+	(fortran-tab-mode-default): Remove needless autoload.
+	(fortran-tab-mode-string): Add help-echo and mouse properties, and
+	mark as risky.
+	(fortran-line-length): New buffer-local variable, safe if integer.
+	(fortran-if-start-re, fortran-end-prog-re1, fortran-end-prog-re):
+	Change from variables to constants.
+	(fortran-font-lock-syntactic-keywords): Delete as a variable,
+	replace with a new function definition.
+	(fortran-mode): Use fortran-line-length, and
+	fortran-font-lock-syntactic-keywords as a function.  Add a
+	hack-local-variables-hook function.
+	(fortran-line-length, fortran-hack-local-variables): New functions.
+	(fortran-window-create, fortran-strip-sequence-nos): Doc fix.
+	Use fortran-line-length rather than 72.
+	(fortran-window-create-momentarily): Doc fix.
+
+2007-07-31  Drew Adams  <drew.adams@oracle.com>  (tiny change)
+
+	* cus-edit.el (custom-group-value-create, custom-goto-parent):
+	Fix parent groups link.
+
+2007-07-31  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* progmodes/python.el (python-current-defun): Adjust to never fall
+	into infinite loop.
+
+2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-vc-command-advice): Handle the new fileset case.
+
 2007-07-29  Kimit Yada  <kimitto@gmail.com>  (tiny change)
 
 	* emacs-lisp/copyright.el (copyright-update-year, copyright-update)
@@ -40,21 +541,21 @@
 
 2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.el:
-	* tramp-uu.el:
-	* trampver.el: Use utf-8 encoding with coding cookie.
+	* net/tramp.el:
+	* net/tramp-uu.el:
+	* net/trampver.el: Use utf-8 encoding with coding cookie.
 
-	* tramp-cache.el:
-	* tramp-fish.el:
-	* tramp-ftp.el:
-	* tramp-gw.el:
-	* tramp-smb.el: Remove coding cookie.
+	* net/tramp-cache.el:
+	* net/tramp-fish.el:
+	* net/tramp-ftp.el:
+	* net/tramp-gw.el:
+	* net/tramp-smb.el: Remove coding cookie.
 
-	* tramp.el (tramp-handle-verify-visited-file-modtime):
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
 	Flush buffer file-name's file property.
 	(tramp-handle-file-remote-p): The first parameter is FILENAME.
 
-	* trampver.el: Update release number.
+	* net/trampver.el: Update release number.
 
 2007-07-29  Juri Linkov  <juri@jurta.org>
 
@@ -608,9 +1109,9 @@
 
 	Sync with Tramp 2.1.10.
 
-	* tramp.el (tramp-get-ls-command): Fyx typo.
+	* net/tramp.el (tramp-get-ls-command): Fyx typo.
 
-	* trampver.el: Update release number.
+	* net/trampver.el: Update release number.
 
 2007-07-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

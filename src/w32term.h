@@ -198,7 +198,7 @@ struct w32_display_info
   char *w32_id_name;
 
   /* The number of fonts actually stored in w32_font_table.
-     font_table[n] is used and valid iff 0 <= n < n_fonts. 0 <=
+     font_table[n] is used and valid if 0 <= n < n_fonts. 0 <=
      n_fonts <= font_table_size. and font_table[i].name != 0. */
   int n_fonts;
 

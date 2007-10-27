@@ -1078,7 +1078,7 @@ each calls the following function to set various variables:
 
   In Lisp and most programming languages, we want the paragraph
 commands to treat only blank lines as paragraph separators.  And the
-modes should undestand the Lisp conventions for comments.  The rest of
+modes should understand the Lisp conventions for comments.  The rest of
 @code{lisp-mode-variables} sets this up:
 
 @smallexample

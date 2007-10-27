@@ -6,11 +6,11 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.9
+;; Version: 6.9.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst pr-version "6.9"
-  "printing.el, v 6.9 <2007/02/11 vinicius>
+(defconst pr-version "6.9.1"
+  "printing.el, v 6.9.1 <2007/08/02 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1306,7 +1306,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
   (defalias 'pr-f-read-string        'read-string)
 
   ;; GNU Emacs
-  (defvar deactivate-mark nil)
+  (defvar deactivate-mark)
 
   ;; GNU Emacs
   (defun pr-keep-region-active ()
@@ -1326,7 +1326,6 @@ If SUFFIX is non-nil, add that at the end of the file name."
 
   ;; GNU Emacs
   ;; Menu binding
-  (require 'easymenu)
   ;; Replace existing "print" item by "Printing" item.
   ;; If you're changing this file, you'll load it a second,
   ;; third... time, but "print" item exists only in the first load.
@@ -1335,6 +1334,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
      ;; GNU Emacs 20
      ((< emacs-major-version 21)
       (defun pr-global-menubar (pr-menu-spec)
+	(require 'easymenu)
 	(easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
 	(when pr-menu-print-item
 	  (easy-menu-remove-item nil '("tools") pr-menu-print-item)
@@ -1345,6 +1345,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
      ;; GNU Emacs 21 & 22
      (t
       (defun pr-global-menubar (pr-menu-spec)
+	(require 'easymenu)
 	(let ((menu-file (if (= emacs-major-version 21)
 			     '("menu-bar" "files") ; GNU Emacs 21
 			   '("menu-bar" "file")))) ; GNU Emacs 22 or higher
@@ -5194,9 +5195,9 @@ See `pr-visible-entry-alist'.")
 
 If FORCE is non-nil, update menus doesn't matter if `pr-ps-printer-alist',
 `pr-txt-printer-alist' or `pr-ps-utility-alist' were modified or not;
-otherwise, update PostScript printer menu iff `pr-ps-printer-menu-modified' is
-non-nil, update text printer menu iff `pr-txt-printer-menu-modified' is
-non-nil, and update PostScript File menus iff `pr-ps-utility-menu-modified' is
+otherwise, update PostScript printer menu if `pr-ps-printer-menu-modified' is
+non-nil, update text printer menu if `pr-txt-printer-menu-modified' is
+non-nil, and update PostScript File menus if `pr-ps-utility-menu-modified' is
 non-nil.
 
 If menu binding was not done, calls `pr-menu-bind'."
@@ -6017,9 +6018,10 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 ;; Printing Interface (inspired on ps-print-interface.el)
 
 
-(require 'widget)
-(require 'wid-edit)
-(require 'cus-edit)
+(eval-when-compile
+  (require 'cus-edit)
+  (require 'wid-edit)
+  (require 'widget))
 
 
 (defvar pr-i-window-configuration nil)

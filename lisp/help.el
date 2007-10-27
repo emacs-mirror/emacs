@@ -958,14 +958,14 @@ This applies to `help', `apropos' and `completion' buffers, and some others."
     (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)))
 
 (defun resize-temp-buffer-window ()
-  "Resize the current window to fit its contents.
+  "Resize the selected window to fit its contents.
 Will not make it higher than `temp-buffer-max-height' nor smaller than
 `window-min-height'.  Do nothing if it is the only window on its frame, if it
 is not as wide as the frame or if some of the window's contents are scrolled
 out of view."
   (unless (or (one-window-p 'nomini)
               (not (pos-visible-in-window-p (point-min)))
-              (/=  (frame-width) (window-width)))
+              (not (window-full-width-p)))
     (fit-window-to-buffer
      (selected-window)
      (if (functionp temp-buffer-max-height)

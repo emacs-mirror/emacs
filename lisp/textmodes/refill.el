@@ -217,7 +217,7 @@ complex processing.")
 ;;;###autoload
 (define-minor-mode refill-mode
   "Toggle Refill minor mode.
-With prefix arg, turn Refill mode on iff arg is positive.
+With prefix arg, turn Refill mode on if arg is positive, otherwise turn it off.
 
 When Refill mode is on, the current paragraph will be formatted when
 changes are made within it.  Self-inserting characters only cause

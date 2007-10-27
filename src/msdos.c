@@ -3231,7 +3231,7 @@ dos_rawgetc ()
            `dos_get_modifiers', they might have already released the
            Alt key, and Emacs gets just `x', which is BAD.
            However, for keys with the `Map' property set, the ASCII
-           code returns zero iff Alt is pressed.  So, when we DON'T
+           code returns zero only if Alt is pressed.  So, when we DON'T
            have to support international_keyboard, we don't have to
            distinguish between the left and  right Alt keys, and we
            can set the META modifier for any keys with the `Map'

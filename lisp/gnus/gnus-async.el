@@ -320,7 +320,7 @@ It should return non-nil if the article is to be prefetched."
 	  (pop alist))))))
 
 (defun gnus-async-prefetched-article-entry (group article)
-  "Return the entry for ARTICLE in GROUP iff it has been prefetched."
+  "Return the entry for ARTICLE in GROUP if it has been prefetched."
   (let ((entry (save-excursion
 		 (gnus-async-set-buffer)
 		 (assq (intern (format "%s-%d" group article)

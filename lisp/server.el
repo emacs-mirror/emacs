@@ -164,6 +164,7 @@ Only programs can do so."
 			:match (lambda (widget value)
 				 (not (functionp value)))
 			nil)
+		 (function-item :tag "Display in new frame" switch-to-buffer-other-frame)
 		 (function-item :tag "Use pop-to-buffer" pop-to-buffer)
 		 (function :tag "Other function")))
 

@@ -42,7 +42,7 @@ Sun 1, 2 and 3 (-machine=sun1, -machine=sun2, -machine=sun3;
   problems caused by bugs in the "export" version of SunOS 4.
 NOTE-END  */
 
-/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */
 
 #define WORDS_BIG_ENDIAN

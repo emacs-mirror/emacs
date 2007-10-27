@@ -431,7 +431,7 @@ the current TeX document.
 
 With no argument, this command toggles
 `reftex-isearch-minor-mode'.  With a prefix argument ARG, turn
-`reftex-isearch-minor-mode' on iff ARG is positive."
+`reftex-isearch-minor-mode' on if ARG is positive, otherwise turn it off."
   (interactive "P")
   (let ((old-reftex-isearch-minor-mode reftex-isearch-minor-mode))
     (setq reftex-isearch-minor-mode 

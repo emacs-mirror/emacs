@@ -256,7 +256,7 @@
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 
-(define-derived-mode vc-hg-log-view-mode log-view-mode "HG-Log-View"
+(define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the faces add-log
   ;; Don't have file markers, so use impossible regexp.
   (set (make-local-variable 'log-view-file-re) "^File:[ \t]+\\(.+\\)")
@@ -399,7 +399,7 @@ COMMENT is ignored."
 ;;   (vc-hg-command nil nil file "remove"))
 
 (defun vc-hg-checkin (files rev comment)
-  "HG-specific version of `vc-backend-checkin'.
+  "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
   (vc-hg-command nil 0 files  "commit" "-m" comment))
 
@@ -436,7 +436,7 @@ REV is the revision to check out into WORKFILE."
 	(if (equal (vc-workfile-version file) "0")
 	    "(added)" "(modified)")
       ;; fall back to the default VC representation
-      (vc-default-dired-state-info 'HG file))))
+      (vc-default-dired-state-info 'Hg file))))
 
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)

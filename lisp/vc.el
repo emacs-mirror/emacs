@@ -387,7 +387,7 @@
 ;;
 ;;   Only required if `annotate-command' is defined for the backend,
 ;;   AND you'd like the current time considered to be anything besides
-;;   (vs-annotate-convert-time (current-time)) -- i.e. the current
+;;   (vc-annotate-convert-time (current-time)) -- i.e. the current
 ;;   time with hours, minutes, and seconds included.  Probably safe to
 ;;   ignore.  Return the current-time, in units of fractional days.
 ;;
@@ -480,11 +480,20 @@
 ;;
 ;;   Operation called in current buffer when opening a file.  This can
 ;;   be used by the backend to setup some local variables it might need.
-;
+;;
 ;; - find-file-not-found-hook ()
 ;;
 ;;   Operation called in current buffer when opening a non-existing file.
 ;;   By default, this asks the user if she wants to check out the file.
+;;
+;; - extra-menu ()
+;;
+;;   Return a menu keymap, the items in the keymap will appear at the
+;;   end of the Version Control menu.  The goal is to allow backends
+;;   to specify extra menu items that appear in the VC menu.  This way
+;;   you can provide menu entries for functionality that is specific
+;;   to your backend and which does not map to any of the VC generic
+;;   concepts.
 
 ;;; Code:
 
@@ -1136,7 +1145,7 @@ Used by `vc-restore-buffer-context' to later restore the context."
 	;; ;; We may want to reparse the compilation buffer after revert
 	;; (reparse (and (boundp 'compilation-error-list) ;compile loaded
 	;; 	      ;; Construct a list; each elt is nil or a buffer
-	;; 	      ;; iff that buffer is a compilation output buffer
+	;; 	      ;; if that buffer is a compilation output buffer
 	;; 	      ;; that contains markers into the current buffer.
 	;; 	      (save-current-buffer
 	;; 		(mapcar (lambda (buffer)
@@ -2627,6 +2636,9 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
     (message "Reverting %s...done" file)))
 
 ;;;###autoload
+(define-obsolete-function-alias 'vc-revert-buffer 'vc-revert "23.1")
+
+;;;###autoload
 (defun vc-update ()
   "Update the current buffer's file to the latest version on its branch.
 If the file contains no changes, and is not locked, then this simply replaces
@@ -2709,8 +2721,9 @@ return its name; otherwise return nil."
   (vc-resynch-buffer file t t))
 
 ;;;###autoload
-(defun vc-rollback ()
-  "Get rid of most recently checked in version of this file."
+(defun vc-rollback (&optional norevert)
+  "Get rid of most recently checked in version of this file.
+A prefix argument NOREVERT means do not revert the buffer afterwards."
   (interactive "P")
   (vc-ensure-vc-buffer)
   (let* ((file buffer-file-name)
@@ -3259,12 +3272,19 @@ colors. `vc-annotate-background' specifies the background color."
         (set (make-local-variable 'vc-annotate-parent-display-mode)
              display-mode)))
 
-    (vc-exec-after
-     `(progn
-        (when ,current-line
-          (goto-line ,current-line ,temp-buffer-name))
-        (unless (active-minibuffer-window)
-          (message "Annotating... done"))))))
+    (with-current-buffer temp-buffer-name
+      (vc-exec-after
+       `(progn
+          ;; Ideally, we'd rather not move point if the user has already
+          ;; moved it elsewhere, but really point here is not the position
+          ;; of the user's cursor :-(
+          (when ,current-line           ;(and (bobp))
+            (let ((win (get-buffer-window (current-buffer) 0)))
+              (when win
+                (with-selected-window win
+                  (goto-line ,current-line)))))
+          (unless (active-minibuffer-window)
+            (message "Annotating... done")))))))
 
 (defun vc-annotate-prev-version (prefix)
   "Visit the annotation of the version previous to this one.

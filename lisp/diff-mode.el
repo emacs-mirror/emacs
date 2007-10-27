@@ -349,8 +349,11 @@ when editing big diffs)."
     ("^--- .+ ----$"             . diff-hunk-header-face) ;context
     ("^[0-9,]+[acd][0-9,]+$"     . diff-hunk-header-face) ;normal
     ("^---$"                     . diff-hunk-header-face) ;normal
-    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\([^\t\n]+\\)\\(.*[^*-]\\)?\n"
-     (0 diff-header-face) (2 diff-file-header-face prepend))
+    ;; For file headers, accept files with spaces, but be careful to rule
+    ;; out false-positives when matching hunk headers.
+    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\([^\t\n]+?\\)\\(?:\t.*\\| \\(\\*\\*\\*\\*\\|----\\)\\)?\n"
+     (0 diff-header-face)
+     (2 (if (not (match-end 3)) diff-file-header-face) prepend))
     ("^\\([-<]\\)\\(.*\n\\)"
      (1 diff-indicator-removed-face) (2 diff-removed-face))
     ("^\\([+>]\\)\\(.*\n\\)"
@@ -425,10 +428,20 @@ but in the file header instead, in which case move forward to the first hunk."
 (defun diff-beginning-of-file ()
   (beginning-of-line)
   (unless (looking-at diff-file-header-re)
-    (forward-line 2)
-    (condition-case ()
-	(re-search-backward diff-file-header-re)
-      (error (error "Can't find the beginning of the file")))))
+    (let ((start (point))
+          res)
+      ;; diff-file-header-re may need to match up to 4 lines, so in case
+      ;; we're inside the header, we need to move up to 3 lines forward.
+      (forward-line 3)
+      (if (and (setq res (re-search-backward diff-file-header-re nil t))
+               ;; Maybe the 3 lines forward were too much and we matched
+               ;; a file header after our starting point :-(
+               (or (<= (point) start)
+                   (setq res (re-search-backward diff-file-header-re nil t))))
+          res
+        (goto-char start)
+        (error "Can't find the beginning of the file")))))
+        
 
 (defun diff-end-of-file ()
   (re-search-forward "^[-+#!<>0-9@* \\]" nil t)
@@ -481,26 +494,34 @@ If the prefix ARG is given, restrict the view to the current file instead."
   "Go to the beginning of file-related diff-info.
 This is like `diff-beginning-of-file' except it tries to skip back over leading
 data such as \"Index: ...\" and such."
-  (let ((start (point))
-        (file (condition-case err (progn (diff-beginning-of-file) (point))
-                (error err)))
-        ;; prevhunk is one of the limits.
-        (prevhunk (save-excursion (ignore-errors (diff-hunk-prev) (point))))
-        err)
-    (when (consp file)
-      ;; Presumably, we started before the file header, in the leading junk.
-      (setq err file)
-      (diff-file-next)
-      (setq file (point)))
-    (let ((index (save-excursion
-                   (re-search-backward "^Index: " prevhunk t))))
-      (when index (setq file index))
-      (if (<= file start)
-          (goto-char file)
-        ;; File starts *after* the starting point: we really weren't in
-        ;; a file diff but elsewhere.
-        (goto-char start)
-        (signal (car err) (cdr err))))))
+  (let* ((start (point))
+         (prevfile (condition-case err
+                       (save-excursion (diff-beginning-of-file) (point))
+                     (error err)))
+         (err (if (consp prevfile) prevfile))
+         (nextfile (ignore-errors
+                     (save-excursion
+                       (goto-char start) (diff-file-next) (point))))
+         ;; prevhunk is one of the limits.
+         (prevhunk (save-excursion
+                     (ignore-errors
+                       (if (numberp prevfile) (goto-char prevfile))
+                       (diff-hunk-prev) (point))))
+         (previndex (save-excursion
+                      (re-search-backward "^Index: " prevhunk t))))
+    ;; If we're in the junk, we should use nextfile instead of prevfile.
+    (if (and (numberp nextfile)
+             (or (not (numberp prevfile))
+                 (and previndex (> previndex prevfile))))
+        (setq prevfile nextfile))
+    (if (and previndex (numberp prevfile) (< previndex prevfile))
+        (setq prevfile previndex))
+    (if (and (numberp prevfile) (<= prevfile start))
+        (goto-char prevfile)
+      ;; File starts *after* the starting point: we really weren't in
+      ;; a file diff but elsewhere.
+      (goto-char start)
+      (signal (car err) (cdr err)))))
           
 (defun diff-file-kill ()
   "Kill current file's hunks."
@@ -703,7 +724,7 @@ PREFIX is only used internally: don't use it."
 (defun diff-unified->context (start end)
   "Convert unified diffs to context diffs.
 START and END are either taken from the region (if a prefix arg is given) or
-else cover the whole bufer."
+else cover the whole buffer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
@@ -886,7 +907,7 @@ With a prefix argument, convert unified format to context format."
 (defun diff-reverse-direction (start end)
   "Reverse the direction of the diffs.
 START and END are either taken from the region (if a prefix arg is given) or
-else cover the whole bufer."
+else cover the whole buffer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
@@ -948,7 +969,7 @@ else cover the whole bufer."
 (defun diff-fixup-modifs (start end)
   "Fixup the hunk headers (in case the buffer was modified).
 START and END are either taken from the region (if a prefix arg is given) or
-else cover the whole bufer."
+else cover the whole buffer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))

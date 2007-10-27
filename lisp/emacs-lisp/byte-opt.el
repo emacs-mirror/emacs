@@ -565,7 +565,7 @@
 	       (cons fn args)))))))
 
 (defun byte-optimize-all-constp (list)
-  "Non-nil iff all elements of LIST satisfy `byte-compile-constp'."
+  "Non-nil if all elements of LIST satisfy `byte-compile-constp'."
   (let ((constant t))
     (while (and list constant)
       (unless (byte-compile-constp (car list))

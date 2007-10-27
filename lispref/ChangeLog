@@ -1,3 +1,21 @@
+2007-08-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* modes.texi (Example Major Modes): Fix typo.
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* intro.texi (nil and t): Do not use `iff' in documentation.
+
+	* tips.texi (Documentation Tips): Recommend against `iff'.
+
+2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Image Cache): Document image-refresh.
+
+2007-08-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Size of Window): Document window-full-width-p.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* gpl.texi (GPL): Replace license with GPLv3.

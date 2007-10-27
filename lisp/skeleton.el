@@ -209,8 +209,8 @@ If ELEMENT is a string or a character it gets inserted (see also
 		interesting point set by _
 	>	indent line (or interregion if > _) according to major mode
 	@	add position to `skeleton-positions'
-	&	do next ELEMENT iff previous moved point
-	|	do next ELEMENT iff previous didn't move point
+	&	do next ELEMENT if previous moved point
+	|	do next ELEMENT if previous didn't move point
 	-num	delete num preceding characters (see `skeleton-untabify')
 	resume:	skipped, continue here if quit is signaled
 	nil	skipped

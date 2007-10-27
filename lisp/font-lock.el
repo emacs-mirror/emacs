@@ -355,7 +355,7 @@ Each element in a user-level keywords list should have one of these forms:
 
 where MATCHER can be either the regexp to search for, or the function name to
 call to make the search (called with one argument, the limit of the search;
-it should return non-nil, move point, and set `match-data' appropriately iff
+it should return non-nil, move point, and set `match-data' appropriately if
 it succeeds; like `re-search-forward' would).
 MATCHER regexps can be generated via the function `regexp-opt'.
 
@@ -1068,7 +1068,7 @@ that tries to find such elements and move the boundaries such that they do
 not fall in the middle of one.
 Each function is called with no argument; it is expected to adjust the
 dynamically bound variables `font-lock-beg' and `font-lock-end'; and return
-non-nil iff it did make such an adjustment.
+non-nil if it did make such an adjustment.
 These functions are run in turn repeatedly until they all return nil.
 Put first the functions more likely to cause a change and cheaper to compute.")
 ;; Mark it as a special hook which doesn't use any global setting
@@ -1746,7 +1746,7 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
   "Set fontification defaults appropriately for this mode.
 Sets various variables using `font-lock-defaults' (or, if nil, using
 `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
-  ;; Set fontification defaults iff not previously set for correct major mode.
+  ;; Set fontification defaults if not previously set for correct major mode.
   (unless (and font-lock-set-defaults
 	       (eq font-lock-mode-major-mode major-mode))
     (setq font-lock-mode-major-mode major-mode)

@@ -55,7 +55,7 @@
 
 ;;; Code:
 
-(require 'help-mode)
+(eval-when-compile (require 'help-mode))
 
 (defgroup quail nil
   "Quail: multilingual input method."
@@ -1942,7 +1942,7 @@ Remaining args are for FUNC."
       (overlay-put quail-overlay 'face 'highlight))))
 
 (defun quail-require-guidance-buf ()
-  "Return t iff the current Quail package requires showing guidance buffer."
+  "Return t if the current Quail package requires showing guidance buffer."
   (and input-method-verbose-flag
        (if (eq input-method-verbose-flag 'default)
 	   (not (and (eq (selected-window) (minibuffer-window))
@@ -2431,22 +2431,27 @@ should be made by `quail-build-decode-map' (which see)."
 	(insert ?\n))
       (insert ?\n))))
 
-(define-button-type 'quail-keyboard-layout-button
-  :supertype 'help-xref
-  'help-function '(lambda (layout)
-		    (help-setup-xref `(quail-keyboard-layout-button ,layout) nil)
-		    (quail-show-keyboard-layout layout))
-  'help-echo (purecopy "mouse-2, RET: show keyboard layout"))
+(defun quail-help-init ()
+  (unless (featurep 'help-mode)
+    (require 'help-mode)
+    (define-button-type 'quail-keyboard-layout-button
+      :supertype 'help-xref
+      'help-function '(lambda (layout)
+			(help-setup-xref `(quail-keyboard-layout-button ,layout)
+					 nil)
+			(quail-show-keyboard-layout layout))
+      'help-echo (purecopy "mouse-2, RET: show keyboard layout"))
 
-(define-button-type 'quail-keyboard-customize-button
-  :supertype 'help-customize-variable
-  'help-echo (purecopy "mouse-2, RET: customize keyboard layout"))
+    (define-button-type 'quail-keyboard-customize-button
+      :supertype 'help-customize-variable
+      'help-echo (purecopy "mouse-2, RET: customize keyboard layout"))))
 
 (defun quail-help (&optional package)
   "Show brief description of the current Quail package.
 Optional arg PACKAGE specifies the name of alternative Quail
 package to describe."
   (interactive)
+  (quail-help-init)
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
 	(default-enable-multibyte-characters enable-multibyte-characters)
 	(package-def
@@ -2629,7 +2634,7 @@ KEY BINDINGS FOR CONVERSION
 ;; it is not yet stored.  As a result, the element is a string or a
 ;; list of strings.
 
-(defsubst quail-store-decode-map-key (table char key)
+(defun quail-store-decode-map-key (table char key)
   (let ((elt (aref table char)))
     (if elt
 	(if (consp elt)

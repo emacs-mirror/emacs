@@ -4074,7 +4074,7 @@ don't alter it yourself.  */);
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes.
 Each element looks like (VARIABLE . KEYMAP); KEYMAP is used to read
-key sequences and look up bindings iff VARIABLE's value is non-nil.
+key sequences and look up bindings if VARIABLE's value is non-nil.
 If two active keymaps bind the same key, the keymap appearing earlier
 in the list takes precedence.  */);
   Vminor_mode_map_alist = Qnil;

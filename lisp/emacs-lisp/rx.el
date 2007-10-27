@@ -554,7 +554,7 @@ appended to R will apply to all of R.  For example, \"a\"
 
 This function may return false negatives, but it will not
 return false positives.  It is nevertheless useful in
-situations where an efficiency shortcut can be taken iff a
+situations where an efficiency shortcut can be taken only if a
 regexp is atomic.  The function can be improved to detect
 more cases of atomic regexps.  Presently, this function
 detects the following categories of atomic regexp;

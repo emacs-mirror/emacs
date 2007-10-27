@@ -429,13 +429,34 @@ a list (ABSOLUTE-FILE-NAME SIZE)."
 	  (fmt (format-read (format "Read file `%s' in format: "
 				    (file-name-nondirectory file)))))
      (list file fmt)))
-  (let (value size)
-    (let ((format-alist nil))
-      (setq value (insert-file-contents filename nil beg end))
-      (setq size (nth 1 value)))
-    (if format
-	(setq size (format-decode format size)
-	      value (list (car value) size)))
+  (let (value size old-undo)
+    ;; Record only one undo entry for the insertion.  Inhibit point-motion and
+    ;; modification hooks as with `insert-file-contents'.
+    (let ((inhibit-point-motion-hooks t)
+	  (inhibit-modification-hooks t))
+      ;; Don't bind `buffer-undo-list' to t here to assert that
+      ;; `insert-file-contents' may record whether the buffer was unmodified
+      ;; before.
+      (let ((format-alist nil))
+	(setq value (insert-file-contents filename nil beg end))
+	(setq size (nth 1 value)))
+      (when (consp buffer-undo-list)
+	(let ((head (car buffer-undo-list)))
+	  (when (and (consp head)
+		     (equal (car head) (point))
+		     (equal (cdr head) (+ (point) size)))
+	    ;; Remove first entry from `buffer-undo-list', we shall insert
+	    ;; another one below.
+	    (setq old-undo (cdr buffer-undo-list)))))
+      (when format
+	(let ((buffer-undo-list t))
+	  (setq size (format-decode format size)
+		value (list (car value) size)))
+	(unless (eq buffer-undo-list t)
+	  (setq buffer-undo-list
+		(cons (cons (point) (+ (point) size)) old-undo)))))
+    (unless inhibit-modification-hooks
+      (run-hook-with-args 'after-change-functions (point) (+ (point) size) 0))
     value))
 
 (defun format-read (&optional prompt)

@@ -1165,7 +1165,19 @@ mail status in mode line"))
 (define-key menu-bar-tools-menu [pcl-cvs]
   '(menu-item "PCL-CVS" cvs-global-menu))
 (define-key menu-bar-tools-menu [vc]
-  (list 'menu-item "Version Control" vc-menu-map))
+  (list 'menu-item "Version Control" vc-menu-map
+  :filter 'menu-bar-vc-filter))
+
+(defun menu-bar-vc-filter (orig-binding)
+  (let ((ext-binding
+   (if vc-mode (vc-call-backend (vc-backend buffer-file-name) 'extra-menu))))
+    ;; Give the VC backend a chance to add menu entries
+    ;; specific for that backend.
+    (if (null ext-binding)
+    orig-binding
+      (append orig-binding
+	      '((ext-menu-separator "---"))
+	            ext-binding))))
 
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
@@ -1352,6 +1364,9 @@ key, a click, or a menu-item"))
 (define-key menu-bar-help-menu [describe-copying]
   '(menu-item "Copying Conditions" describe-copying
 	      :help "Show the Emacs license (GPL)"))
+(define-key menu-bar-help-menu [describe-project]
+  '(menu-item "About GNU" describe-project
+	      :help "About the GNU System, GNU Project, and GNU/Linux"))
 (define-key menu-bar-help-menu [describe-distribution]
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))

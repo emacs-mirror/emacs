@@ -337,7 +337,7 @@ split_string (str, len, charset, c1, c2)
   return 0;
 }
 
-/* Return 1 iff character C has valid printable glyph.
+/* Return 1 if character C has valid printable glyph.
    Use the macro CHAR_PRINTABLE_P instead.  */
 int
 char_printable_p (c)
@@ -1102,8 +1102,8 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
   return CHARSET_SYMBOL (charset);
 }
 
-/* If GENERICP is nonzero, return nonzero iff C is a valid normal or
-   generic character.  If GENERICP is zero, return nonzero iff C is a
+/* If GENERICP is nonzero, return nonzero if C is a valid normal or
+   generic character.  If GENERICP is zero, return nonzero if C is a
    valid normal character.  Do not call this function directly,
    instead use macro CHAR_VALID_P.  */
 int

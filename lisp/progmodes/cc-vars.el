@@ -186,7 +186,7 @@ the value set here overrides the style system (there is a variable
 		    (bq-process type)))))))))
 
 (defun c-valid-offset (offset)
-  "Return non-nil iff OFFSET is a valid offset for a syntactic symbol.
+  "Return non-nil if OFFSET is a valid offset for a syntactic symbol.
 See `c-offsets-alist'."
   (or (eq offset '+)
       (eq offset '-)

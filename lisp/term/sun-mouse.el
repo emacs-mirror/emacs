@@ -230,7 +230,7 @@ Handles wrapped and horizontally scrolled lines correctly."
 
 
 (defun minibuffer-window-p (window)
-  "True iff this WINDOW is minibuffer."
+  "True if this WINDOW is minibuffer."
   (= (frame-height)
      (nth 3 (window-edges window))	; The bottom edge.
      ))

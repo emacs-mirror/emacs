@@ -792,10 +792,13 @@ Create the key map if necessary."
 	 (use-local-map tpu-buffer-local-map)))
   (local-set-key key func))
 
-(defun tpu-current-line nil
+(defun tpu-current-line ()
   "Return the vertical position of point in the selected window.
 Top line is 0.  Counts each text line only once, even if it wraps."
-  (+ (count-lines (window-start) (point)) (if (= (current-column) 0) 1 0) -1))
+  (or
+   (cdr (nth 6 (posn-at-point)))
+   (if (eq (window-start) (point)) 0
+     (1- (count-screen-lines (window-start) (point) 'count-final-newline)))))
 
 
 ;;;
@@ -1033,13 +1036,6 @@ This is useful for inserting control characters."
 ;; Real TPU error messages end in periods.
 ;; Define this to avoid openly flouting Emacs coding standards.
 (defalias 'tpu-error 'error)
-
-
-;; Around emacs version 18.57, function line-move was renamed to
-;; next-line-internal.  If we're running under an older emacs,
-;; make next-line-internal equivalent to line-move.
-
-(if (not (fboundp 'next-line-internal)) (fset 'next-line-internal 'line-move))
 
 
 ;;;
@@ -1992,14 +1988,14 @@ With argument, do this that many times."
   "Move to next line.
 Prefix argument serves as a repeat count."
   (interactive "p")
-  (next-line-internal num)
+  (line-move num)
   (setq this-command 'next-line))
 
 (defun tpu-previous-line (num)
   "Move to previous line.
 Prefix argument serves as a repeat count."
   (interactive "p")
-  (next-line-internal (- num))
+  (line-move (- num))
   (setq this-command 'previous-line))
 
 (defun tpu-next-beginning-of-line (num)
@@ -2122,7 +2118,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal (- lines))
+    (line-move (- lines))
     (if (> lines beg) (recenter 0))))
 
 (defun tpu-scroll-window-up (num)
@@ -2132,7 +2128,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal lines)
+    (line-move lines)
     (if (>= (+ lines beg) height) (recenter -1))))
 
 (defun tpu-pan-right (num)
@@ -2429,6 +2425,7 @@ If FILE is nil, try to load a default file.  The default file names are
         (if (eq tpu-global-map parent)
             (set-keymap-parent map (keymap-parent parent))
           (setq map parent)))))
+  (ad-disable-regexp "\\`tpu-")
   (setq tpu-edt-mode nil))
 
 (provide 'tpu-edt)

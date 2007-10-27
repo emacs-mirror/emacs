@@ -56,7 +56,7 @@ enum composition_method {
 /* Temporary variable used only in the following macros.  */
 extern Lisp_Object composition_temp;
 
-/* Return 1 iff the composition is already registered.  */
+/* Return 1 if the composition is already registered.  */
 #define COMPOSITION_REGISTERD_P(prop) INTEGERP (XCAR (prop))
 
 /* Return ID number of the already registered composition.  */
@@ -91,7 +91,7 @@ extern Lisp_Object composition_temp;
 	  ? COMPOSITION_WITH_ALTCHARS					\
 	  : COMPOSITION_WITH_RULE_ALTCHARS))))
 
-/* Return 1 iff the composition is valid.  It is valid if length of
+/* Return 1 if the composition is valid.  It is valid if length of
    the composition equals to (END - START).  */
 #define COMPOSITION_VALID_P(start, end, prop)			\
   (CONSP (prop)							\

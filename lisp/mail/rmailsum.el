@@ -288,12 +288,14 @@ nil for FUNCTION means all messages."
 		    (if (zerop (% rmail-new-summary-line-count 10))
 			(message "Computing summary lines...%d"
 				 rmail-new-summary-line-count))
-		    (rmail-make-summary-line-1 msg)))))
+		    (rmail-make-summary-line-1 msg))))
+	delpos)
     ;; Fix up the part of the summary that says "deleted" or "unseen".
-    (aset line 5
-	  (if (rmail-message-deleted-p msg) ?\D
+    (string-match "[0-9]+" line)
+    (aset line (match-end 0)
+	  (if (rmail-message-deleted-p msg) ?D
 	    (if (= ?0 (char-after (+ 3 (rmail-msgbeg msg))))
-		?\- ?\ )))
+		?- ?\s)))
     line))
 
 ;;;###autoload

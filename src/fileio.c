@@ -3690,27 +3690,25 @@ DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
        1, 5, 0,
        doc: /* Insert contents of file FILENAME after point.
 Returns list of absolute file name and number of characters inserted.
-If second argument VISIT is non-nil, the buffer's visited filename
-and last save file modtime are set, and it is marked unmodified.
-If visiting and the file does not exist, visiting is completed
-before the error is signaled.
-The optional third and fourth arguments BEG and END
-specify what portion of the file to insert.
-These arguments count bytes in the file, not characters in the buffer.
-If VISIT is non-nil, BEG and END must be nil.
+If second argument VISIT is non-nil, the buffer's visited filename and
+last save file modtime are set, and it is marked unmodified.  If
+visiting and the file does not exist, visiting is completed before the
+error is signaled.
 
-If optional fifth argument REPLACE is non-nil,
-it means replace the current buffer contents (in the accessible portion)
-with the file contents.  This is better than simply deleting and inserting
-the whole thing because (1) it preserves some marker positions
-and (2) it puts less data in the undo list.
-When REPLACE is non-nil, the value is the number of characters actually read,
-which is often less than the number of characters to be read.
+The optional third and fourth arguments BEG and END specify what portion
+of the file to insert.  These arguments count bytes in the file, not
+characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
 
-This does code conversion according to the value of
-`coding-system-for-read' or `file-coding-system-alist',
-and sets the variable `last-coding-system-used' to the coding system
-actually used.  */)
+If optional fifth argument REPLACE is non-nil, replace the current
+buffer contents (in the accessible portion) with the file contents.
+This is better than simply deleting and inserting the whole thing
+because (1) it preserves some marker positions and (2) it puts less data
+in the undo list.  When REPLACE is non-nil, the second return value is
+the number of characters that replace previous buffer contents.
+
+This function does code conversion according to the value of
+`coding-system-for-read' or `file-coding-system-alist', and sets the
+variable `last-coding-system-used' to the coding system actually used.  */)
      (filename, visit, beg, end, replace)
      Lisp_Object filename, visit, beg, end, replace;
 {
@@ -3720,8 +3718,8 @@ actually used.  */)
   register int how_much;
   register int unprocessed;
   int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-  Lisp_Object handler, val, insval, orig_filename;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  Lisp_Object handler, val, insval, orig_filename, old_undo;
   Lisp_Object p;
   int total = 0;
   int not_regular = 0;
@@ -3744,8 +3742,9 @@ actually used.  */)
   val = Qnil;
   p = Qnil;
   orig_filename = Qnil;
+  old_undo = Qnil;
 
-  GCPRO4 (filename, val, p, orig_filename);
+  GCPRO5 (filename, val, p, orig_filename, old_undo);
 
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
@@ -4704,24 +4703,103 @@ actually used.  */)
   /* Decode file format */
   if (inserted > 0)
     {
-      int empty_undo_list_p = 0;
+      /* Don't run point motion or modification hooks when decoding. */
+      int count = SPECPDL_INDEX ();
+      specbind (Qinhibit_point_motion_hooks, Qt);
+      specbind (Qinhibit_modification_hooks, Qt);
 
-      /* If we're anyway going to discard undo information, don't
-	 record it in the first place.  The buffer's undo list at this
-	 point is either nil or t when visiting a file.  */
-      if (!NILP (visit))
+      /* Save old undo list and don't record undo for decoding. */
+      old_undo = current_buffer->undo_list;
+      current_buffer->undo_list = Qt;
+
+      if (NILP (replace))
 	{
-	  empty_undo_list_p = NILP (current_buffer->undo_list);
-	  current_buffer->undo_list = Qt;
+	  insval = call3 (Qformat_decode,
+			  Qnil, make_number (inserted), visit);
+	  CHECK_NUMBER (insval);
+	  inserted = XFASTINT (insval);
+	}
+      else
+	{
+	  /* If REPLACE is non-nil and we succeeded in not replacing the
+	  beginning or end of the buffer text with the file's contents,
+	  call format-decode with `point' positioned at the beginning of
+	  the buffer and `inserted' equalling the number of characters
+	  in the buffer.  Otherwise, format-decode might fail to
+	  correctly analyze the beginning or end of the buffer.  Hence
+	  we temporarily save `point' and `inserted' here and restore
+	  `point' iff format-decode did not insert or delete any text.
+	  Otherwise we leave `point' at point-min. */
+	  int opoint = PT;
+	  int opoint_byte = PT_BYTE;
+	  int oinserted = ZV - BEGV;
+	  
+	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE); 
+	  insval = call3 (Qformat_decode,
+			  Qnil, make_number (oinserted), visit);
+	  CHECK_NUMBER (insval);
+	  if (XINT (insval) == oinserted)
+	    SET_PT_BOTH (opoint, opoint_byte);
+	  inserted = XFASTINT (insval);
 	}
 
-      insval = call3 (Qformat_decode,
-		      Qnil, make_number (inserted), visit);
-      CHECK_NUMBER (insval);
-      inserted = XFASTINT (insval);
+      /* For consistency with format-decode call these now iff inserted > 0
+	 (martin 2007-06-28) */
+      p = Vafter_insert_file_functions;
+      while (CONSP (p))
+	{
+	  if (NILP (replace))
+	    {
+	      insval = call1 (XCAR (p), make_number (inserted));
+	      if (!NILP (insval))
+		{
+		  CHECK_NUMBER (insval);
+		  inserted = XFASTINT (insval);
+		}
+	    }
+	  else
+	    {
+	      /* For the rationale of this see the comment on format-decode above. */
+	      int opoint = PT;
+	      int opoint_byte = PT_BYTE;
+	      int oinserted = ZV - BEGV;
 
-      if (!NILP (visit))
-	current_buffer->undo_list = empty_undo_list_p ? Qnil : Qt;
+	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
+	      insval = call1 (XCAR (p), make_number (oinserted));
+	      if (!NILP (insval))
+		{
+		  CHECK_NUMBER (insval);
+		  if (XINT (insval) == oinserted)
+		    SET_PT_BOTH (opoint, opoint_byte);
+		  inserted = XFASTINT (insval);
+		}
+	    }
+
+	  QUIT;
+	  p = XCDR (p);
+	}
+
+      if (NILP (visit))
+	{
+	  Lisp_Object lbeg, lend;
+	  XSETINT (lbeg, PT);
+	  XSETINT (lend, PT + inserted);
+	  if (CONSP (old_undo))
+	    {
+	      Lisp_Object tem = XCAR (old_undo);
+	      if (CONSP (tem) && INTEGERP (XCAR (tem)) &&
+		  INTEGERP (XCDR (tem)) && EQ (XCAR (tem), lbeg))
+		/* In the non-visiting case record only the final insertion. */
+		current_buffer->undo_list =
+		  Fcons (Fcons (lbeg, lend), Fcdr (old_undo));
+	    }
+	}
+      else
+	/* If undo_list was Qt before, keep it that way.
+	   Otherwise start with an empty undo_list. */
+	current_buffer->undo_list = EQ (old_undo, Qt) ? Qt : Qnil;
+
+      unbind_to (count, Qnil);
     }
 
   /* Call after-change hooks for the inserted text, aside from the case
@@ -4732,19 +4810,6 @@ actually used.  */)
     {
       signal_after_change (PT, 0, inserted);
       update_compositions (PT, PT, CHECK_BORDER);
-    }
-
-  p = Vafter_insert_file_functions;
-  while (CONSP (p))
-    {
-      insval = call1 (XCAR (p), make_number (inserted));
-      if (!NILP (insval))
-	{
-	  CHECK_NUMBER (insval);
-	  inserted = XFASTINT (insval);
-	}
-      QUIT;
-      p = XCDR (p);
     }
 
   if (!NILP (visit)
@@ -5191,7 +5256,7 @@ This does code conversion according to the value of
  * if we do writes that don't end with a carriage return. Furthermore
  * it cannot handle writes of more then 16K. The modified
  * version of "sys_write" in SYSDEP.C (see comment there) copes with
- * this EXCEPT for the last record (iff it doesn't end with a carriage
+ * this EXCEPT for the last record (if it doesn't end with a carriage
  * return). This implies that if your buffer doesn't end with a carriage
  * return, you get one free... tough. However it also means that if
  * we make two calls to sys_write (a la the following code) you can
@@ -5692,11 +5757,9 @@ file modification time, this function returns 0.
 See Info node `(elisp)Modification Time' for more details.  */)
      ()
 {
-  Lisp_Object tcons;
-  tcons = long_to_cons ((unsigned long) current_buffer->modtime);
-  if (CONSP (tcons))
-    return list2 (XCAR (tcons), XCDR (tcons));
-  return tcons;
+  if (! current_buffer->modtime)
+    return make_number (0);
+  return make_time ((time_t) current_buffer->modtime);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,

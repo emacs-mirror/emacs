@@ -381,7 +381,7 @@ If nil, the user will be asked for a match type."
 		 (const :tag "ask" nil)))
 
 (defcustom gnus-score-default-fold nil
-  "Use case folding for new score file entries iff not nil."
+  "Non-nil means use case folding for new score file entries."
   :group 'gnus-score-default
   :type 'boolean)
 

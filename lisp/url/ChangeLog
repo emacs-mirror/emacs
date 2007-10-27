@@ -1,3 +1,8 @@
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* url-auth.el, url-cache.el, url-dav.el, url-file.el, vc-dav.el:
+	Replace `iff' in doc-strings and comments.
+
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.

@@ -79,11 +79,13 @@ This is used when `longlines-show-hard-newlines' is on."
 (defvar longlines-wrap-end nil)
 (defvar longlines-wrap-point nil)
 (defvar longlines-showing nil)
+(defvar longlines-decoded nil)
 
 (make-variable-buffer-local 'longlines-wrap-beg)
 (make-variable-buffer-local 'longlines-wrap-end)
 (make-variable-buffer-local 'longlines-wrap-point)
 (make-variable-buffer-local 'longlines-showing)
+(make-variable-buffer-local 'longlines-decoded)
 
 ;; Mode
 
@@ -128,7 +130,9 @@ are indicated with a symbol."
           ;; longlines-wrap-lines that we'll never encounter from here
 	  (save-restriction
 	    (widen)
-	    (longlines-decode-buffer)
+	    (unless longlines-decoded
+	      (longlines-decode-buffer)
+	      (setq longlines-decoded t))
 	    (longlines-wrap-region (point-min) (point-max)))
           (set-buffer-modified-p mod))
         (when (and longlines-show-hard-newlines
@@ -161,9 +165,11 @@ are indicated with a symbol."
     (let ((buffer-undo-list t)
 	  (after-change-functions nil)
           (inhibit-read-only t))
-      (save-restriction
-	(widen)
-	(longlines-encode-region (point-min) (point-max))))
+      (if longlines-decoded
+	  (save-restriction
+	    (widen)
+	    (longlines-encode-region (point-min) (point-max))
+	    (setq longlines-decoded nil))))
     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
     (remove-hook 'after-change-functions 'longlines-after-change-function t)
     (remove-hook 'post-command-hook 'longlines-post-command-function t)

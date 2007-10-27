@@ -445,11 +445,11 @@ non-nil, it is used to sort CODINGS instead."
 		    (let ((base (coding-system-base x)))
 		      ;; We calculate the priority number 0..255 by
 		      ;; using the 8 bits PMMLCEII as this:
-		      ;; P: 1 iff most preferred.
-		      ;; MM: greater than 0 iff mime-charset.
-		      ;; L: 1 iff one of the current lang. env.'s codings.
-		      ;; C: 1 iff one of codings listed in the category list.
-		      ;; E: 1 iff not XXX-with-esc
+		      ;; P: 1 if most preferred.
+		      ;; MM: greater than 0 if mime-charset.
+		      ;; L: 1 if one of the current lang. env.'s codings.
+		      ;; C: 1 if one of codings listed in the category list.
+		      ;; E: 1 if not XXX-with-esc
 		      ;; II: if iso-2022 based, 0..3, else 1.
 		      (logior
 		       (lsh (if (eq base most-preferred) 1 0) 7)

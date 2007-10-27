@@ -161,7 +161,7 @@ displayed."
 (defun mh-showing-mode (&optional arg)
   "Change whether messages should be displayed.
 
-With ARG, display messages iff ARG is positive."
+With ARG, display messages if ARG is positive, otherwise don't display them."
   (setq mh-showing-mode
         (if (null arg)
             (not mh-showing-mode)

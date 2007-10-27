@@ -868,7 +868,7 @@ Control returns to the top level rep loop."
     (sleep-for 1)))
 
 (defun xscheme-process-running-p ()
-  "True iff there is a Scheme process whose status is `run'."
+  "True if there is a Scheme process whose status is `run'."
   (let ((process (get-process xscheme-process-name)))
     (and process
 	 (eq (process-status process) 'run))))
@@ -882,7 +882,7 @@ Control returns to the top level rep loop."
     (and buffer (get-buffer-window buffer))))
 
 (defun xscheme-process-buffer-current-p ()
-  "True iff the current buffer is the Scheme process buffer."
+  "True if the current buffer is the Scheme process buffer."
   (eq (xscheme-process-buffer) (current-buffer)))
 
 ;;;; Process Filter Operations

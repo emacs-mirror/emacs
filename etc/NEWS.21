@@ -2502,7 +2502,7 @@ value is returned.  If no window satisfies PREDICATE, DEFAULT is
 returned.
 
 Optional second arg MINIBUF t means count the minibuffer window even
-if not active.  MINIBUF nil or omitted means count the minibuffer iff
+if not active.  MINIBUF nil or omitted means count the minibuffer if
 it is active.  MINIBUF neither t nor nil means not to count the
 minibuffer even if it is active.
 

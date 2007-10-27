@@ -3372,12 +3372,15 @@ xg_tool_bar_callback (w, client_data)
 
   key = AREF (f->tool_bar_items, idx + TOOL_BAR_ITEM_KEY);
   XSETFRAME (frame, f);
+
+  /* We generate two events here.  The first one is to set the prefix
+     to `(tool_bar)', see keyboard.c.  */
   event.kind = TOOL_BAR_EVENT;
   event.frame_or_window = frame;
-  event.arg = frame;
-  kbd_buffer_store_event (&event);
-
-  event.kind = TOOL_BAR_EVENT;
+  event.arg = frame; 	 
+  kbd_buffer_store_event (&event); 	 
+  
+  event.kind = TOOL_BAR_EVENT; 	 
   event.frame_or_window = frame;
   event.arg = key;
   /* Convert between the modifier bits GDK uses and the modifier bits
@@ -3799,7 +3802,7 @@ update_frame_tool_bar (f)
               gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
               ti = gtk_tool_item_new ();
               gtk_container_add (GTK_CONTAINER (ti), weventbox);
-              gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, i);
+              gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, -1);
             }
           continue;
         }
@@ -3816,7 +3819,7 @@ update_frame_tool_bar (f)
           gtk_container_add (GTK_CONTAINER (weventbox), wbutton);
           ti = gtk_tool_item_new ();
           gtk_container_add (GTK_CONTAINER (ti), weventbox);
-          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, i);
+          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget), ti, -1);
 
 
           /* The EMACS_INT cast avoids a warning. */

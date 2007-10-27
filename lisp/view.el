@@ -375,7 +375,8 @@ Use this argument instead of explicitly setting `view-exit-action'."
   ;; bindings instead of using the \\[] construction.  The reason for this
   ;; is that most commands have more than one key binding.
   "Toggle View mode, a minor mode for viewing text but not editing it.
-With ARG, turn View mode on iff ARG is positive.
+With prefix argument ARG, turn View mode on if ARG is positive, otherwise
+turn it off.
 
 Emacs commands that do not change the buffer contents are available as usual.
 Kill commands insert text in kill buffers but do not delete.  Other commands

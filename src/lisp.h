@@ -1470,7 +1470,7 @@ typedef unsigned char UCHAR;
 #define GLYPH_CHAR(f, g) (FAST_GLYPH_CHAR (g))
 #define GLYPH_FACE(f, g) (FAST_GLYPH_FACE (g))
 
-/* Return 1 iff GLYPH contains valid character code.  */
+/* Return 1 if GLYPH contains valid character code.  */
 #define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (FAST_GLYPH_CHAR (glyph), 1)
 
 /* The ID of the mode line highlighting face.  */
@@ -1617,7 +1617,7 @@ typedef unsigned char UCHAR;
    "dead", which is what we want; this is an argument-checking macro, and
    the user should never get access to interior windows.
 
-   A window of any sort, leaf or interior, is dead iff the buffer,
+   A window of any sort, leaf or interior, is dead if the buffer,
    vchild, and hchild members are all nil.  */
 
 #define CHECK_LIVE_WINDOW(x) \

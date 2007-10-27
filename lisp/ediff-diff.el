@@ -867,7 +867,7 @@ one optional arguments, diff-number to refine.")
 	     (ediff-make-fine-diffs n 'noforce)
 	   (ediff-make-fine-diffs n 'skip)))
 
-	;; highlight iff fine diffs already exist
+	;; highlight if fine diffs already exist
 	((eq ediff-auto-refine 'off)
 	 (ediff-make-fine-diffs n 'skip))))
 
@@ -1459,7 +1459,7 @@ arguments to `skip-chars-forward'."
 
 
 (defun ediff-same-contents (d1 d2 &optional filter-re)
-  "Returns t iff D1 and D2 have the same content.
+  "Return t if D1 and D2 have the same content.
 D1 and D2 can either be both directories or both regular files.
 Symlinks and the likes are not handled.
 If FILTER-RE is non-nil, recursive checking in directories

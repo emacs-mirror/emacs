@@ -1662,7 +1662,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
    have nontrivial translation are the same aside from the last byte.
    This makes it possible to translate just the last byte of a
    character, and do so after just a simple test of the context.
-   CHARSET_BASE is nonzero iff there is such a non-ASCII character.
+   CHARSET_BASE is nonzero if there is such a non-ASCII character.
 
    If that criterion is not satisfied, do not call this function.  */
 

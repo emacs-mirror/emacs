@@ -1357,7 +1357,7 @@ If ALL is `groups', include only groups.
 If ALL is t (interactively, with prefix arg), include variables
 that are not customizable options, as well as faces and groups
 \(but we recommend using `apropos-variable' instead)."
-  (interactive "sCustomize regexp: \nP")
+  (interactive "sCustomize (regexp): \nP")
   (let ((found nil))
     (mapatoms (lambda (symbol)
 		(when (string-match regexp (symbol-name symbol))
@@ -1376,7 +1376,14 @@ that are not customizable options, as well as faces and groups
 				      (get symbol 'variable-documentation))))
 		    (push (list symbol 'custom-variable) found)))))
     (if (not found)
-	(error "No customizable items matching %s" regexp)
+	(error "No %s matching %s"
+               (if (eq all t)
+                   "items"
+                 (format "customizable %s"
+                         (if (memq all '(options faces groups))
+                             (symbol-name all)
+                           "items")))
+               regexp)
       (custom-buffer-create
        (custom-sort-items found t custom-buffer-order-groups)
        "*Customize Apropos*"))))
@@ -1386,19 +1393,19 @@ that are not customizable options, as well as faces and groups
   "Customize all loaded customizable options matching REGEXP.
 With prefix arg, include variables that are not customizable options
 \(but we recommend using `apropos-variable' instead)."
-  (interactive "sCustomize regexp: \nP")
+  (interactive "sCustomize options (regexp): \nP")
   (customize-apropos regexp (or arg 'options)))
 
 ;;;###autoload
 (defun customize-apropos-faces (regexp)
   "Customize all loaded faces matching REGEXP."
-  (interactive "sCustomize regexp: \n")
+  (interactive "sCustomize faces (regexp): \n")
   (customize-apropos regexp 'faces))
 
 ;;;###autoload
 (defun customize-apropos-groups (regexp)
   "Customize all loaded groups matching REGEXP."
-  (interactive "sCustomize regexp: \n")
+  (interactive "sCustomize groups (regexp): \n")
   (customize-apropos regexp 'groups))
 
 ;;; Buffer.
@@ -3878,7 +3885,7 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		    ;;; was made to display a group.
 	       (when (eq level 1)
 		 (if (custom-add-parent-links widget
-					      "Parent group:")
+					      "Parent groups:")
 		     (insert "\n"))))
 	   ;; Create level indicator.
 	   (insert-char ?\  (* custom-buffer-indent (1- level)))
@@ -4480,7 +4487,7 @@ If several parents are listed, go to the first of them."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (if (search-forward "\nGo to parent group: " nil t)
+    (if (search-forward "\nParent groups: " nil t)
 	(let* ((button (get-char-property (point) 'button))
 	       (parent (downcase (widget-get  button :tag))))
 	  (customize-group parent)))))

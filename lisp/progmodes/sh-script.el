@@ -212,7 +212,6 @@
 
 (defgroup sh nil
   "Shell programming utilities."
-  :group 'unix
   :group 'languages)
 
 (defgroup sh-script nil

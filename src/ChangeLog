@@ -1,3 +1,144 @@
+2007-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Use -1 as index
+	to gtk_toolbar_insert.
+
+2007-08-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Yet Another Int/Lisp_Object Mixup.
+
+	* insdel.c (reset_var_on_error): New fun.
+	(signal_before_change, signal_after_change):
+	Use it to reset (after|before)-change-functions to nil in case of error.
+	Bind inhibit-modification-hooks to t.
+	Don't bind (after|before)-change-functions to nil while they run.
+
+2007-08-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_draw_image_glyph_string): Adjust stipple origin when
+	filling pixmap with stippled background.
+
+2007-08-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [TARGET_API_MAC_CARBON] (mac_handle_window_event):
+	Don't use invisible frame as parent window for repositioning.
+
+2007-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* print.c (new_backquote_output): Rename from old_backquote_output.
+	(print): Inverse its logic (according to its name) so as to match the
+	behavior of new_backquote_flag in lread.c.
+
+2007-08-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* gmalloc.c (posix_memalign): New function.
+
+	* macterm.c (frame_highlight, frame_unhighlight): Don't call
+	ActivateControl/DeactivateControl here.
+	[USE_MAC_TOOLBAR] (free_frame_tool_bar): Suppress animation when
+	frame-notice-user-settings is non-nil.
+	[USE_MAC_FONT_PANEL] (mac_handle_font_event): Also record parameter
+	for kEventParamFMFontStyle.
+	[TARGET_API_MAC_CARBON] (mac_handle_keyboard_event): Don't check
+	mac_pass_command_to_system and mac_pass_control_to_system here.
+	(XTread_socket): Call ActivateControl/DeactivateControl here.
+	(XTread_socket) [TARGET_API_MAC_CARBON]:
+	Check mac_pass_command_to_system and mac_pass_control_to_system here.
+	(mac_handle_window_event) [USE_MAC_TOOLBAR]: Add further workaround
+	for window repositioning.
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* Replace `iff' in doc-strings and comments.
+
+2007-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (move_it_by_lines): Remove incorrect optimization.
+
+2007-08-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* fileio.c (Finsert_file_contents): Run format-decode and
+	after_insert_file_functions on entire buffer when REPLACE is
+	non-nil and inhibit modification_hooks and point_motion_hooks.
+	For consistency, run after_insert_file_functions iff something
+	got inserted.  Move signal_after_change and update_compositions
+	after code running after_insert_file_functions.  Make sure that
+	undo_list doesn't record intermediate steps of the decoding
+	process.
+
+2007-08-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main)
+	[HAVE_GTK_AND_PTHREAD && !SYSTEM_MALLOC && !DOUG_LEA_MALLOC]:
+	Call malloc_enable_thread on interactive startup.
+
+	* gmalloc.c (_malloc_thread_enabled_p) [USE_PTHREAD]: New variable.
+	(LOCK, UNLOCK, LOCK_ALIGNED_BLOCKS, UNLOCK_ALIGNED_BLOCKS)
+	[USE_PTHREAD]: Conditionalize with it.
+	(malloc_atfork_handler_prepare, malloc_atfork_handler_parent)
+	(malloc_atfork_handler_child, malloc_enable_thread) [USE_PTHREAD]:
+	New functions.
+
+2007-08-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): When restoring original buffer
+	position, make sure it is still valid.
+
+	* image.c (png_load): Ignore png-supplied background color.
+
+2007-08-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [TARGET_API_MAC_CARBON] (cfdate_to_lisp): Obtain microsec value.
+	Use kCFAbsoluteTimeIntervalSince1970.
+
+	* macmenu.c (quit_dialog_event_loop) [TARGET_API_MAC_CARBON]:
+	New variable.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Set it if dialog
+	event loop should be quit.
+	[TARGET_API_MAC_CARBON] (create_and_show_dialog) [!MAC_OSX]:
+	Quit dialog event loop if quit_dialog_event_loop is set.
+
+	* macselect.c [!TARGET_API_MAC_CARBON]: Include Scrap.h.
+	(Selection): New typedef.  Use instead of ScrapRef.
+	(mac_get_selection_from_symbol): Rename from get_scrap_from_symbol.
+	(mac_valid_selection_target_p): Rename from valid_scrap_target_type_p.
+	(mac_clear_selection): Rename from clear_scrap.
+	(get_flavor_type_from_symbol): New argument SEL and subsume function of
+	scrap_has_target_type.   All uses changed.
+	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
+	(mac_selection_has_target_p): New functions.
+	(mac_put_selection_value): Rename from put_scrap_string.
+	(mac_get_selection_value): Rename from get_scrap_string.
+	(mac_get_selection_target_list): Rename from get_scrap_target_type_list.
+	(put_scrap_private_timestamp, scrap_has_target_type)
+	(get_scrap_private_timestamp): Remove functions.
+	(SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP): Remove define.
+	(x_own_selection, x_get_local_selection):
+	Use mac_valid_selection_value_p.
+	(x_own_selection): Don't use put_scrap_private_timestamp.
+	Record OWNERSHIP-INFO into Vselection_alist instead.
+	(x_get_local_selection): Don't check type if request is local.
+	(Fx_selection_owner_p): Don't use get_scrap_private_timestamp.
+	Detect ownership change with OWNERSHIP-INFO in Vselection_alist instead.
+
+2007-08-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_callback): Generate two TOOL_BAR_EVENT:s,
+	add comment explaining why.
+
+2007-08-03  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (Fvisited_file_modtime): Use make_time.
+
+2007-08-01  Ryo Yoshitake  <ryo@shiftmode.net>  (tiny change)
+
+	* mac.c (init_mac_osx_environment): Adjust load-path on self-contained
+	build.
+
+2007-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gtkutil.c (xg_tool_bar_callback): Generate a single TOOL_BAR_EVENT.
+
 2007-07-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1130000.

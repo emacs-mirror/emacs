@@ -95,7 +95,7 @@ extern Lisp_Object Qevent_symbol_element_mask;
 extern Lisp_Object Qfile_exists_p;
 extern Lisp_Object Qinternal_interpreter_environment;
 
-/* non-zero iff inside `load' */
+/* non-zero if inside `load' */
 int load_in_progress;
 
 /* Directory in which the sources were found.  */
@@ -1254,7 +1254,7 @@ in which case file-name-handlers are ignored.  */)
    On success, returns a file descriptor.  On failure, returns -1.
 
    SUFFIXES is a list of strings containing possible suffixes.
-   The empty suffix is automatically added iff the list is empty.
+   The empty suffix is automatically added if the list is empty.
 
    PREDICATE non-nil means don't open the files,
    just look for one that satisfies the predicate.  In this case,
@@ -4238,7 +4238,7 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
   Vload_file_rep_suffixes = Fcons (empty_unibyte_string, Qnil);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
-	       doc: /* Non-nil iff inside of `load'.  */);
+	       doc: /* Non-nil if inside of `load'.  */);
 
   DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
 	       doc: /* An alist of expressions to be evalled when particular files are loaded.

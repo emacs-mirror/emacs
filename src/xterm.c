@@ -2525,9 +2525,11 @@ x_draw_image_glyph_string (s)
 	    {
 	      /* Fill background with a stipple pattern.  */
 	      XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
+	      XSetTSOrigin (s->display, s->gc, - s->x, - s->y);
 	      XFillRectangle (s->display, pixmap, s->gc,
 			      0, 0, s->background_width, s->height);
 	      XSetFillStyle (s->display, s->gc, FillSolid);
+	      XSetTSOrigin (s->display, s->gc, 0, 0);
 	    }
 	  else
 	    {
@@ -6698,7 +6700,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
                 /* Window will be selected only when it is not selected now and
                    last mouse movement event was not in it.  Minibuffer window
-                   will be selected iff it is active.  */
+                   will be selected only when it is active.  */
                 if (WINDOWP (window)
                     && !EQ (window, last_window)
                     && !EQ (window, selected_window))

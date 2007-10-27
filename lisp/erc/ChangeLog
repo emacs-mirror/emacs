@@ -1,3 +1,7 @@
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* erc-log.el, erc.el: Replace `iff' in doc-strings and comments.
+
 2007-07-30  Michael Olson  <mwolson@gnu.org>
 
 	* erc-nicklist.el: Remove from the Emacs source tree.  This file

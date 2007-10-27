@@ -116,7 +116,7 @@ character_width (c, dp)
     return 0;
 }
 
-/* Return true iff the display table DISPTAB specifies the same widths
+/* Return true if the display table DISPTAB specifies the same widths
    for characters as WIDTHTAB.  We use this to decide when to
    invalidate the buffer's width_run_cache.  */
 

@@ -1108,7 +1108,7 @@ Return the modified alist."
     `(setq ,alist (delq (,fun ,key ,alist) ,alist))))
 
 (defun gnus-globalify-regexp (re)
-  "Return a regexp that matches a whole line, iff RE matches a part of it."
+  "Return a regexp that matches a whole line, if RE matches a part of it."
   (concat (unless (string-match "^\\^" re) "^.*")
 	  re
 	  (unless (string-match "\\$$" re) ".*$")))

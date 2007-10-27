@@ -31,7 +31,7 @@
 
 ;;; Required functions for a vc backend
 (defun vc-dav-registered (url)
-  "Return t iff URL is registered with a DAV aware server."
+  "Return t if URL is registered with a DAV aware server."
   (url-dav-vc-registered url))
 
 (defun vc-dav-state (url)

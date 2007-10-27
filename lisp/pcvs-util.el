@@ -211,7 +211,8 @@ arguments.  If ARGS is not a list, no argument will be passed."
 (defconst cvs-qtypedesc-string1 (cvs-qtypedesc-create 'identity 'identity t))
 (defconst cvs-qtypedesc-string (cvs-qtypedesc-create 'identity 'identity))
 (defconst cvs-qtypedesc-strings
-  (cvs-qtypedesc-create 'string->strings 'strings->string nil))
+  (cvs-qtypedesc-create 'split-string-and-unquote
+			'combine-and-quote-strings nil))
 
 (defun cvs-query-read (default prompt qtypedesc &optional hist-sym)
   (let* ((qtypedesc (or qtypedesc cvs-qtypedesc-strings))

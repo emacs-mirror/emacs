@@ -567,24 +567,24 @@ including a reproducible test case and send the message."
   (describe-function major-mode))
 
 (defsubst octave-in-comment-p ()
-  "Returns t if point is inside an Octave comment, nil otherwise."
+  "Return t if point is inside an Octave comment."
   (interactive)
   (save-excursion
     (nth 4 (parse-partial-sexp (line-beginning-position) (point)))))
 
 (defsubst octave-in-string-p ()
-  "Returns t if point is inside an Octave string, nil otherwise."
+  "Return t if point is inside an Octave string."
   (interactive)
   (save-excursion
     (nth 3 (parse-partial-sexp (line-beginning-position) (point)))))
 
 (defsubst octave-not-in-string-or-comment-p ()
-  "Returns t iff point is not inside an Octave string or comment."
+  "Return t if point is not inside an Octave string or comment."
   (let ((pps (parse-partial-sexp (line-beginning-position) (point))))
     (not (or (nth 3 pps) (nth 4 pps)))))
 
 (defun octave-in-block-p ()
-  "Returns t if point is inside an Octave block, nil otherwise.
+  "Return t if point is inside an Octave block.
 The block is taken to start at the first letter of the begin keyword and
 to end after the end keyword."
   (let ((pos (point)))
@@ -599,7 +599,7 @@ to end after the end keyword."
       (< pos (point)))))
 
 (defun octave-in-defun-p ()
-  "Returns t iff point is inside an Octave function declaration.
+  "Return t if point is inside an Octave function declaration.
 The function is taken to start at the `f' of `function' and to end after
 the end keyword."
   (let ((pos (point)))
