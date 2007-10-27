@@ -1,3 +1,22 @@
+2007-10-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Pacify byte compiler, that is, no compiler warnings.
+	Move (again) some variable definitions before use, define some fun
+	aliases, no code change.
+	(pr-version): New version 6.9.2.
+	(pr-path-style, pr-auto-region, pr-menu-char-height)
+	(pr-menu-char-width, pr-menu-lock, pr-ps-printer-alist)
+	(pr-txt-printer-alist, pr-ps-utility-alist): Options declaration
+	via (defvar VAR).
+	(pr-menu-lookup, pr-menu-lock, pr-menu-alist, pr-even-or-odd-pages)
+	(pr-menu-get-item, pr-menu-set-item-name, pr-menu-set-utility-title)
+	(pr-menu-set-ps-title, pr-menu-set-txt-title, pr-region-active-p)
+	(pr-do-update-menus, pr-update-mode-line, pr-f-read-string)
+	(pr-f-set-keymap-parents, pr-keep-region-active): Fun aliases.
+	(defvar pr-menu-print-item, pr-ps-printer-menu-modified)
+	(pr-txt-printer-menu-modified, pr-ps-utility-menu-modified)
+	(pr-even-or-odd-alist): Vars definition moved.
+
 2007-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--track-window-changes): Don't refresh the whole list.
