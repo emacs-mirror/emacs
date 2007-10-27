@@ -3759,7 +3759,7 @@ The syntax of `defadvice' is as follows:
 
   \(defadvice FUNCTION (CLASS NAME [POSITION] [ARGLIST] FLAG...)
     [DOCSTRING] [INTERACTIVE-FORM]
-    BODY... )
+    BODY...)
 
 FUNCTION ::= Name of the function to be advised.
 CLASS ::= `before' | `around' | `after' | `activation' | `deactivation'.

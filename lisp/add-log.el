@@ -695,7 +695,8 @@ Runs `change-log-mode-hook'.
   (setq left-margin 8
 	fill-column 74
 	indent-tabs-mode t
-	tab-width 8)
+	tab-width 8
+	show-trailing-whitespace t)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
   (set (make-local-variable 'indent-line-function) 'change-log-indent)

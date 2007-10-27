@@ -29,7 +29,7 @@
 ;;; Commentary:
 
 ;; This library provides a minor mode to display a ruler in the header
-;; line.  It works only on Emacs 21.
+;; line.  It works from Emacs 21 onwards.
 ;;
 ;; You can use the mouse to change the `fill-column' `comment-column',
 ;; `goal-column', `window-margins' and `tab-stop-list' settings:
@@ -562,7 +562,8 @@ Call `ruler-mode-ruler-function' to compute the ruler value.")
       (progn
         ;; When `ruler-mode' is on save previous header line format
         ;; and install the ruler header line format.
-        (when (local-variable-p 'header-line-format)
+        (when (and (local-variable-p 'header-line-format)
+		   (not (local-variable-p 'ruler-mode-header-line-format-old)))
           (set (make-local-variable 'ruler-mode-header-line-format-old)
                header-line-format))
         (setq header-line-format ruler-mode-header-line-format)

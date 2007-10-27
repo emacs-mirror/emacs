@@ -3256,25 +3256,10 @@ Manual}) provides an example.
 @item composition
 @kindex composition @r{(text property)}
 This text property is used to display a sequence of characters as a
-single glyph composed from components.  For instance, in Thai a base
-consonant is composed with the following combining vowel as a single
-glyph.  The value should be a character or a sequence (vector, list,
-or string) of integers.
+single glyph composed from components.  But the value of the property
+itself is completely internal to Emacs and should not be manipulated
+directly by, for instance, @code{put-text-property}.
 
-@itemize @bullet
-@item
-If it is a character, it means to display that character instead of
-the text in the region.
-
-@item
-If it is a string, it means to display that string's contents instead
-of the text in the region.
-
-@item
-If it is a vector or list, the elements are characters interleaved
-with internal codes specifying how to compose the following character
-with the previous one.
-@end itemize
 @end table
 
 @node Format Properties

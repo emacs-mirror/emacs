@@ -26,9 +26,10 @@ Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and
+modify this GNU Manual, like GNU software.  Buying copies from GNU
+Press supports the FSF in developing GNU and promoting software
+freedom.''
 
 This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
@@ -900,6 +901,39 @@ is @code{Info-top-node}.
 @c If a menu appears at the end of this node, remove it.
 @c It is an accident of the menu updating command.
 
+@node Help-Q,  , Help-Int, Getting Started
+@comment  node-name,  next,  previous,  up
+@section Quitting Info
+
+@kindex q @r{(Info mode)}
+@findex Info-exit
+@cindex quitting Info mode
+  To get out of Info, back to what you were doing before, type @kbd{q}
+for @dfn{Quit}.  This runs @code{Info-exit} in Emacs.
+
+  This is the end of the basic course on using Info.  You have learned
+how to move in an Info document, and how to follow menus and cross
+references.  This makes you ready for reading manuals top to bottom,
+as new users should do when they learn a new package.
+
+  Another set of Info commands is useful when you need to find
+something quickly in a manual---that is, when you need to use a manual
+as a reference rather than as a tutorial.  We urge you to learn
+these search commands as well.  If you want to do that now, follow this
+cross reference to @ref{Advanced}.
+
+Yet another set of commands are meant for experienced users; you can
+find them by looking in the Directory node for documentation on Info.
+Finding them will be a good exercise in using Info in the usual
+manner.
+
+@format
+>> Type @kbd{d} to go to the Info directory node; then type
+   @kbd{mInfo} and Return, to get to the node about Info and
+   see what other help is available.
+@end format
+
+
 @node Advanced
 @chapter Advanced Info Commands
 
@@ -925,6 +959,7 @@ an actual @samp{?} character, the simplest way is to insert it using
 * Create Info buffer::   How to create a new Info buffer in Emacs.
 * Emacs Info Variables:: Variables modifying the behavior of Emacs Info.
 @end menu
+
 
 @node Search Text, Search Index,  , Advanced
 @comment  node-name,  next,  previous,  up
@@ -1389,39 +1424,6 @@ cannot expect this node to have a @samp{Next}, @samp{Previous} or
 @format
 >> Type @kbd{l} to return to the node where the cross reference was.
 @end format
-
-@node Help-Q,  , Help-Int, Getting Started
-@comment  node-name,  next,  previous,  up
-@section Quitting Info
-
-@kindex q @r{(Info mode)}
-@findex Info-exit
-@cindex quitting Info mode
-  To get out of Info, back to what you were doing before, type @kbd{q}
-for @dfn{Quit}.  This runs @code{Info-exit} in Emacs.
-
-  This is the end of the basic course on using Info.  You have learned
-how to move in an Info document, and how to follow menus and cross
-references.  This makes you ready for reading manuals top to bottom,
-as new users should do when they learn a new package.
-
-  Another set of Info commands is useful when you need to find
-something quickly in a manual---that is, when you need to use a manual
-as a reference rather than as a tutorial.  We urge you to learn
-these search commands as well.  If you want to do that now, follow this
-cross reference to @ref{Advanced}.
-
-Yet another set of commands are meant for experienced users; you can
-find them by looking in the Directory node for documentation on Info.
-Finding them will be a good exercise in using Info in the usual
-manner.
-
-@format
->> Type @kbd{d} to go to the Info directory node; then type
-   @kbd{mInfo} and Return, to get to the node about Info and
-   see what other help is available.
-@end format
-
 
 @node Tags, Checking, Cross-refs, Expert Info
 @comment  node-name,  next,  previous,  up

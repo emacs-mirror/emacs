@@ -690,7 +690,7 @@ If variable `temp-buffer-show-function' is non-nil, call it at the end
 to get the buffer displayed instead of just displaying the non-selected
 buffer and calling the hook.  It gets one argument, the buffer to display.
 
-usage: (with-output-to-temp-buffer BUFNAME BODY ...)  */)
+usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
      (args)
      Lisp_Object args;
 {

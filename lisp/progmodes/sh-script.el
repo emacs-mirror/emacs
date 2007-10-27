@@ -171,10 +171,6 @@
 ;; disadvantages:
 ;; 1. We need to scan the buffer to find which ")" symbols belong to a
 ;;    case alternative, to find any here documents, and handle "$#".
-;; 2. Setting the text property makes the buffer modified.  If the
-;;    buffer is read-only buffer we have to cheat and bypass the read-only
-;;    status.  This is for cases where the buffer started read-only buffer
-;;    but the user issued `toggle-read-only'.
 ;;
 ;; 	Bugs
 ;; 	----
@@ -182,6 +178,16 @@
 ;;   independently, rather than saving state information.
 ;;
 ;; - `sh-learn-buffer-indent' is extremely slow.
+;;
+;; - "case $x in y) echo ;; esac)" the last ) is mis-identified as being
+;;   part of a case-pattern.  You need to add a semi-colon after "esac" to
+;;   coerce sh-script into doing the right thing.
+;;
+;; - "echo $z in ps | head)" the last ) is mis-identified as being part of
+;;   a case-pattern.  You need to put the "in" between quotes to coerce
+;;   sh-script into doing the right thing.
+;;
+;; - A line starting with "}>foo" is not indented like "} >foo".
 ;;
 ;; Richard Sharman <rsharman@pobox.com>  June 1999.
 
@@ -980,7 +986,7 @@ Point is at the beginning of the next line."
   ;; This looks silly, but it's because `sh-here-doc-re' keeps changing.
   (re-search-forward sh-here-doc-re limit t))
 
-(defun sh-quoted-subshell (limit)
+(defun sh-font-lock-quoted-subshell (limit)
   "Search for a subshell embedded in a string.
 Find all the unescaped \" characters within said subshell, remembering that
 subshells can nest."
@@ -1012,6 +1018,7 @@ subshells can nest."
                  (t (push state states) (setq state 'backquote))))
           (?\$ (if (not (eq (char-after (1+ (point))) ?\())
                    nil
+                 (forward-char 1)
                  (case state
                    (t (push state states) (setq state 'code)))))
           (?\( (case state
@@ -1020,7 +1027,7 @@ subshells can nest."
           (?\) (case state
                  (double-quote nil)
                  (t (setq state (pop states)))))
-          (t (error "Internal error in sh-quoted-subshell")))
+          (t (error "Internal error in sh-font-lock-quoted-subshell")))
         (forward-char 1)))
     t))
             
@@ -1052,7 +1059,18 @@ subshells can nest."
             (backward-char 1))
 	  (when (eq (char-before) ?|)
 	    (backward-char 1) t)))
-    (when (save-excursion (backward-char 2) (looking-at ";;\\|in"))
+    ;; FIXME: ";; esac )" is a case that looks like a case-pattern but it's
+    ;; really just a close paren after a case statement.  I.e. if we skipped
+    ;; over `esac' just now, we're not looking at a case-pattern.
+    (when (progn (backward-char 2)
+                 (if (> start (line-end-position))
+                     (put-text-property (point) (1+ start)
+                                        'font-lock-multiline t))
+                 ;; FIXME: The `in' may just be a random argument to
+                 ;; a normal command rather than the real `in' keyword.
+                 ;; I.e. we should look back to try and find the
+                 ;; corresponding `case'.
+                 (looking-at ";;\\|in"))
       sh-st-punc)))
 
 (defun sh-font-lock-backslash-quote ()
@@ -1094,7 +1112,7 @@ subshells can nest."
     (")" 0 (sh-font-lock-paren (match-beginning 0)))
     ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
     ;; This should be at the very end because it uses syntax-ppss.
-    (sh-quoted-subshell)))
+    (sh-font-lock-quoted-subshell)))
 
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))

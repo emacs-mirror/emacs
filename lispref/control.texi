@@ -893,6 +893,12 @@ establishing an error handler, with the special form
 This deletes the file named @var{filename}, catching any error and
 returning @code{nil} if an error occurs.
 
+  The @code{condition-case} construct is often used to trap errors that
+are predictable, such as failure to open a file in a call to
+@code{insert-file-contents}.  It is also used to trap errors that are
+totally unpredictable, such as when the program evaluates an expression
+read from the user.
+
   The second argument of @code{condition-case} is called the
 @dfn{protected form}.  (In the example above, the protected form is a
 call to @code{delete-file}.)  The error handlers go into effect when
@@ -920,15 +926,33 @@ the two gets to handle it.
   If an error is handled by some @code{condition-case} form, this
 ordinarily prevents the debugger from being run, even if
 @code{debug-on-error} says this error should invoke the debugger.
-@xref{Error Debugging}.  If you want to be able to debug errors that are
-caught by a @code{condition-case}, set the variable
-@code{debug-on-signal} to a non-@code{nil} value.
 
-  When an error is handled, control returns to the handler.  Before this
-happens, Emacs unbinds all variable bindings made by binding constructs
-that are being exited and executes the cleanups of all
-@code{unwind-protect} forms that are exited.  Once control arrives at
-the handler, the body of the handler is executed.
+  If you want to be able to debug errors that are caught by a
+@code{condition-case}, set the variable @code{debug-on-signal} to a
+non-@code{nil} value.  You can also specify that a particular handler
+should let the debugger run first, by writing @code{debug} among the
+conditions, like this:
+
+@example
+@group
+(condition-case nil
+    (delete-file filename)
+  ((debug error) nil))
+@end group
+@end example
+
+@noindent
+The effect of @code{debug} here is only to prevent
+@code{condition-case} from suppressing the call to the debugger.  Any
+given error will invoke the debugger only if @code{debug-on-error} and
+the other usual filtering mechanisms say it should.  @xref{Error Debugging}.
+
+  Once Emacs decides that a certain handler handles the error, it
+returns control to that handler.  To do so, Emacs unbinds all variable
+bindings made by binding constructs that are being exited, and
+executes the cleanups of all @code{unwind-protect} forms that are
+being exited.  Once control arrives at the handler, the body of the
+handler executes normally.
 
   After execution of the handler body, execution returns from the
 @code{condition-case} form.  Because the protected form is exited
@@ -936,12 +960,6 @@ completely before execution of the handler, the handler cannot resume
 execution at the point of the error, nor can it examine variable
 bindings that were made within the protected form.  All it can do is
 clean up and proceed.
-
-  The @code{condition-case} construct is often used to trap errors that
-are predictable, such as failure to open a file in a call to
-@code{insert-file-contents}.  It is also used to trap errors that are
-totally unpredictable, such as when the program evaluates an expression
-read from the user.
 
   Error signaling and handling have some resemblance to @code{throw} and
 @code{catch} (@pxref{Catch and Throw}), but they are entirely separate
@@ -960,7 +978,8 @@ error occurs during @var{protected-form}.
 
 Each of the @var{handlers} is a list of the form @code{(@var{conditions}
 @var{body}@dots{})}.  Here @var{conditions} is an error condition name
-to be handled, or a list of condition names; @var{body} is one or more
+to be handled, or a list of condition names (which can include @code{debug}
+to allow the debugger to run before the handler); @var{body} is one or more
 Lisp expressions to be executed when this handler handles an error.
 Here are examples of handlers:
 

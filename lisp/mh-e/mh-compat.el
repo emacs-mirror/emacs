@@ -77,13 +77,17 @@ introduced in Emacs 22."
       'cancel-timer
     'delete-itimer))
 
-(defun-mh mh-display-color-cells display-color-cells (&optional display)
+(defun mh-display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.
-This function is used by XEmacs to return 2 when
-`device-color-cells' returns nil. This happens when compiling or
+This function is used by XEmacs to return 2 when `device-color-cells'
+or `display-color-cells' returns nil. This happens when compiling or
 running on a tty and causes errors since `display-color-cells' is
 expected to return an integer."
-  (or (device-color-cells display) 2))
+  (cond ((fboundp 'display-color-cells) ; GNU Emacs, XEmacs 21.5b28
+         (or (display-color-cells display) 2))
+        ((fboundp 'device-color-cells)  ; XEmacs 21.4
+         (or (device-color-cells display) 2))
+        (t 2)))
 
 (defmacro mh-display-completion-list (completions &optional common-substring)
   "Display the list of COMPLETIONS.

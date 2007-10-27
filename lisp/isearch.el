@@ -1069,6 +1069,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 
 	;; Reinvoke the pending search.
 	(isearch-search)
+	(isearch-push-state)
 	(isearch-update)
 	(if isearch-nonincremental
 	    (progn

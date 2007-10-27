@@ -559,7 +559,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	  (aset str pos ?\,)))
     (switch-to-buffer calc-original-buffer)
     (let ((vals (let ((calc-language nil)
-		      (math-expr-opers math-standard-opers))
+		      (math-expr-opers (math-standard-ops)))
 		  (and (string-match "[^\n\t ]" str)
 		       (math-read-exprs str)))))
       (when (eq (car-safe vals) 'error)

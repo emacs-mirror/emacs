@@ -120,7 +120,7 @@
     (|			. or)		; SRE
     (not-newline	. ".")
     (nonl		. not-newline)	; SRE
-    (anything		. ".\\|\n")
+    (anything		. "\\(?:.\\|\n\\)")
     (any		. (rx-any 1 nil rx-check-any)) ; inconsistent with SRE
     (in			. any)
     (char		. any)		; sregex

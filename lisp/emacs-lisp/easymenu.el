@@ -152,6 +152,21 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
      ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
 
+(defun easy-menu-binding (menu &optional item-name)
+  "Return a binding suitable to pass to `define-key'.
+This is expected to be bound to a mouse event."
+  ;; Under Emacs this is almost trivial, whereas under XEmacs this may
+  ;; involve defining a function that calls popup-menu.
+  (let ((props (if (symbolp menu)
+                   (prog1 (get menu 'menu-prop)
+                     (setq menu (symbol-function menu))))))
+    (cons 'menu-item
+          (cons (or item-name
+                    (if (keymapp menu)
+                        (keymap-prompt menu))
+                    "")
+                (cons menu props)))))
+
 ;;;###autoload
 (defun easy-menu-do-define (symbol maps doc menu)
   ;; We can't do anything that might differ between Emacs dialects in
@@ -173,15 +188,10 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
 				       'identity)
 				   (symbol-function ,symbol)))
 			     ,symbol)))))
-    (mapcar (lambda (map)
-	      (define-key map (vector 'menu-bar (easy-menu-intern (car menu)))
-		(cons 'menu-item
-		      (cons (car menu)
-			    (if (not (symbolp keymap))
-				(list keymap)
-			      (cons (symbol-function keymap)
-				    (get keymap 'menu-prop)))))))
-	    (if (keymapp maps) (list maps) maps))))
+    (dolist (map (if (keymapp maps) (list maps) maps))
+      (define-key map
+        (vector 'menu-bar (easy-menu-intern (car menu)))
+        (easy-menu-binding keymap (car menu))))))
 
 (defun easy-menu-filter-return (menu &optional name)
  "Convert MENU to the right thing to return from a menu filter.
@@ -249,10 +259,6 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
 (defvar easy-menu-button-prefix
   '((radio . :radio) (toggle . :toggle)))
 
-(defun easy-menu-do-add-item (menu item &optional before)
-  (setq item (easy-menu-convert-item item))
-  (easy-menu-define-key menu (easy-menu-intern (car item)) (cdr item) before))
-
 (defvar easy-menu-converted-items-table (make-hash-table :test 'equal))
 
 (defun easy-menu-convert-item (item)
@@ -269,7 +275,7 @@ would always fail because the key is `equal' but not `eq'."
 (defun easy-menu-convert-item-1 (item)
   "Parse an item description and convert it to a menu keymap element.
 ITEM defines an item as in `easy-menu-define'."
-  (let (name command label prop remove help)
+  (let (name command label prop remove)
     (cond
      ((stringp item)			; An item or separator.
       (setq label item))
@@ -536,7 +542,8 @@ earlier by `easy-menu-define' or `easy-menu-create-menu'."
 		 (setq item (symbol-value item))))
 	;; Item is a keymap, find the prompt string and use as item name.
 	(setq item (cons (keymap-prompt item) item)))
-    (easy-menu-do-add-item map item before)))
+    (setq item (easy-menu-convert-item item))
+    (easy-menu-define-key map (easy-menu-intern (car item)) (cdr item) before)))
 
 (defun easy-menu-item-present-p (map path name)
   "In submenu of MAP with path PATH, return non-nil iff item NAME is present.
@@ -615,7 +622,8 @@ In some cases we use that to select between the local and global maps."
 	(catch 'found
 	  (if (and map (symbolp map) (not (keymapp map)))
 	      (setq map (symbol-value map)))
-	  (let ((maps (if map (list map) (current-active-maps))))
+	  (let ((maps (if map (if (keymapp map) (list map) map)
+			(current-active-maps))))
 	    ;; Look for PATH in each map.
 	    (unless map (push 'menu-bar path))
 	    (dolist (name path)

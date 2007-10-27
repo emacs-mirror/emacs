@@ -5,7 +5,7 @@
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
-;; Maintainer: FSF
+;; Maintainer: FSF <emacs-devel@gnu.org>
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -26,11 +26,6 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-
-;; Please send me bug reports, bug fixes, and extensions, so that I can
-;; merge them into the master source.
-;;     - Olin Shivers (shivers@cs.cmu.edu)
-;;     - Simon Marshall (simon@gnu.org)
 
 ;; This file defines a shell-in-a-buffer package (shell mode) built on
 ;; top of comint mode.  This is actually cmushell with things renamed

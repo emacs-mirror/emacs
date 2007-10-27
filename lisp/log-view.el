@@ -105,6 +105,20 @@
   ;; or a minor-mode-map with lower precedence than the local map.
   :inherit (if (boundp 'cvs-mode-map) cvs-mode-map))
 
+(easy-menu-define log-view-mode-menu log-view-mode-map
+  "Log-View Display Menu"
+  `("Log-View"
+    ;; XXX Do we need menu entries for these?
+    ;; ["Quit"  quit-window]
+    ;; ["Kill This Buffer"  kill-this-buffer]
+    ["Mark Log Entry for Diff"  set-mark-command]
+    ["Diff Revisions"  log-view-diff]
+    ["Visit Version"  log-view-find-version]
+    ["Next Log Entry"  log-view-msg-next]
+    ["Previous Log Entry"  log-view-msg-prev]
+    ["Next File"  log-view-file-next]
+    ["Previous File"  log-view-file-prev]))
+
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
 
@@ -128,13 +142,15 @@
 (put 'log-view-message-face 'face-alias 'log-view-message)
 (defvar log-view-message-face 'log-view-message)
 
-(defconst log-view-file-re
+(defvar log-view-file-re
   (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
           ;; Subversion has no such thing??
           "\\|\\(?:SCCS/s\\.\\|Changes to \\)\\(?1:.+\\):" ;SCCS and Darcs.
-	  "\\)\n"))                   ;Include the \n for font-lock reasons.
+	  "\\)\n")                    ;Include the \n for font-lock reasons.
+  "Regexp matching the text identifying the file.
+The match group number 1 should match the file name itself.")
 
-(defconst log-view-message-re
+(defvar log-view-message-re
   (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
           "\\|r\\(?1:[0-9]+\\) | .* | .*"                ; Subversion.
           "\\|D \\(?1:[.0-9]+\\) .*"                     ; SCCS.
@@ -147,13 +163,17 @@
           (concat "\\|[^ \n].*[^0-9\n][0-9][0-9]:[0-9][0-9][^0-9\n].*[^ \n]"
                   ;;Email of user and finally Msg, used as revision name.
                   "  .*@.*\n\\(?:  \\* \\(?1:.*\\)\\)?")
-          "\\)$"))
+          "\\)$")
+  "Regexp matching the text identifying a revision.
+The match group number 1 should match the revision number itself.")
 
-(defconst log-view-font-lock-keywords
-  `((,log-view-file-re
-     (1 (if (boundp 'cvs-filename-face) cvs-filename-face))
-     (0 log-view-file-face append))
-    (,log-view-message-re . log-view-message-face)))
+(defvar log-view-font-lock-keywords
+  ;; We use `eval' so as to use the buffer-local value of log-view-file-re
+  ;; and log-view-message-re, if applicable.
+  '((eval . `(,log-view-file-re
+              (1 (if (boundp 'cvs-filename-face) cvs-filename-face))
+              (0 log-view-file-face append)))
+    (eval . `(,log-view-message-re . log-view-message-face))))
 (defconst log-view-font-lock-defaults
   '(log-view-font-lock-keywords t nil nil nil))
 

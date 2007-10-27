@@ -228,7 +228,7 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `get_current_dir_name' function. */
 #undef HAVE_GET_CURRENT_DIR_NAME
 
-/* Define to 1 if you have a gif library (default -lungif; otherwise specify
+/* Define to 1 if you have a gif library (default -lgif; otherwise specify
    with LIBGIF). */
 #undef HAVE_GIF
 
@@ -769,7 +769,7 @@ Boston, MA 02110-1301, USA.  */
    Solaris, for example). */
 #undef LD_SWITCH_X_SITE_AUX
 
-/* Compiler option to link with the gif library (if not -lungif). */
+/* Compiler option to link with the gif library (if not -lgif). */
 #undef LIBGIF
 
 /* Define to 1 if localtime caches TZ. */

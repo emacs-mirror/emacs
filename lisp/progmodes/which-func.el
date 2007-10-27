@@ -76,8 +76,8 @@
   :version "20.3")
 
 (defcustom which-func-modes
-  '(emacs-lisp-mode c-mode c++-mode perl-mode cperl-mode makefile-mode
-		    sh-mode fortran-mode f90-mode ada-mode)
+  '(emacs-lisp-mode c-mode c++-mode perl-mode cperl-mode python-mode
+		    makefile-mode sh-mode fortran-mode f90-mode ada-mode)
   "List of major modes for which Which Function mode should be used.
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."

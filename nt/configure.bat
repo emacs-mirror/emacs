@@ -118,11 +118,11 @@ echo.   --no-opt                disable optimization
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
-echo.   --without-png           do not use libpng even if it is installed
-echo.   --without-jpeg          do not use jpeg-6b even if it is installed
-echo.   --without-gif           do not use libungif even if it is installed
-echo.   --without-tiff          do not use libtiff even if it is installed
-echo.   --without-xpm           do not use libXpm even if it is installed
+echo.   --without-png           do not use libpng
+echo.   --without-jpeg          do not use jpeg-6b
+echo.   --without-gif           do not use giflib or libungif
+echo.   --without-tiff          do not use libtiff
+echo.   --without-xpm           do not use libXpm
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -533,6 +533,51 @@ copy subdirs.el ..\site-lisp\subdirs.el
 
 :dontUpdateSubdirs
 echo.
+
+rem check that we have all the libraries we need.
+set libsOK=1
+
+if not "(%HAVE_XPM%)" == "()" goto checkpng
+if (%xpmsupport%) == (N) goto checkpng
+ set libsOK=0
+ echo XPM support is missing. It is required for color icons in the toolbar.
+ echo   Install libXpm development files or use --without-xpm
+
+:checkpng
+if not "(%HAVE_PNG%)" == "()" goto checkjpeg
+if (%pngsupport%) == (N) goto checkjpeg
+ set libsOK=0
+ echo PNG support is missing.
+ echo   Install libpng development files or use --without-png
+
+:checkjpeg
+if not "(%HAVE_JPEG%)" == "()" goto checktiff
+if (%jpegsupport%) == (N) goto checktiff
+ set libsOK=0
+ echo JPEG support is missing.
+ echo   Install jpeg development files or use --without-jpeg
+
+:checktiff
+if not "(%HAVE_TIFF%)" == "()" goto checkgif
+if (%tiffsupport%) == (N) goto checkgif
+ set libsOK=0
+ echo TIFF support is missing.
+ echo   Install libtiff development files or use --without-tiff
+
+:checkgif
+if not "(%HAVE_GIF%)" == "()" goto donelibchecks
+if (%gifsupport%) == (N) goto donelibchecks
+ set libsOK=0
+ echo GIF support is missing.
+ echo   Install giflib or libungif development files or use --without-gif
+
+:donelibchecks
+if (%libsOK%) == (1) goto success
+echo.
+echo Important libraries are missing. Fix these issues before running make.
+goto end
+
+:success
 echo Emacs successfully configured.
 echo Emacs successfully configured. >>config.log
 echo Run `%MAKECMD%' to build, then run `%MAKECMD% install' to install.

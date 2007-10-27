@@ -2291,29 +2291,53 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       /* Quote any special characters within the menu item's text and
 	 key binding.  */
       nlen = orig_len = strlen (out_string);
-      for (p = out_string; *p; p = _mbsinc (p))
-	{
-	  if (_mbsnextc (p) == '&')
-	    nlen++;
-	}
+      if (unicode_append_menu)
+        {
+          /* With UTF-8, & cannot be part of a multibyte character.  */
+          for (p = out_string; *p; p++)
+            {
+              if (*p == '&')
+                nlen++;
+            }
+        }
+      else
+        {
+          /* If encoded with the system codepage, use multibyte string
+             functions in case of multibyte characters that contain '&'.  */
+          for (p = out_string; *p; p = _mbsinc (p))
+            {
+              if (_mbsnextc (p) == '&')
+                nlen++;
+            }
+        }
+
       if (nlen > orig_len)
-	{
-	  p = out_string;
-	  out_string = alloca (nlen + 1);
-	  q = out_string;
-	  while (*p)
-	    {
-	      if (_mbsnextc (p) == '&')
-		{
-		  _mbsncpy (q, p, 1);
-		  q = _mbsinc (q);
-		}
-	      _mbsncpy (q, p, 1);
-	      p = _mbsinc (p);
-	      q = _mbsinc (q);
-	    }
-	  *q = '\0';
-	}
+        {
+          p = out_string;
+          out_string = alloca (nlen + 1);
+          q = out_string;
+          while (*p)
+            {
+              if (unicode_append_menu)
+                {
+                  if (*p == '&')
+                    *q++ = *p;
+                  *q++ = *p++;
+                }
+              else
+                {
+                  if (_mbsnextc (p) == '&')
+                    {
+                      _mbsncpy (q, p, 1);
+                      q = _mbsinc (q);
+                    }
+                  _mbsncpy (q, p, 1);
+                  p = _mbsinc (p);
+                  q = _mbsinc (q);
+                }
+            }
+          *q = '\0';
+        }
 
       if (item != NULL)
 	fuFlags = MF_POPUP;

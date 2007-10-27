@@ -138,7 +138,7 @@ LIBS =  $(TLIB0)	\
 	$(TLIB1)	\
 	$(TLIBW32)	\
 	$(TLASTLIB)	\
-	$(WINMM)    \
+	$(WINMM)	\
 	$(ADVAPI32)	\
 	$(GDI32)	\
 	$(COMDLG32)	\
@@ -146,6 +146,7 @@ LIBS =  $(TLIB0)	\
 	$(MPR)		\
 	$(SHELL32)	\
 	$(WINSPOOL)	\
+	$(OLE32)	\
 	$(libc)
 
 #
@@ -246,8 +247,10 @@ install:        $(ALL)
 #
 # Maintenance
 #
+# We used to delete *~, s/*~, m/*~ here, but that might inadvertently
+# remove precious files if it happens to match their short 8+3 aliases.
 clean:
-	- $(DEL) *~ "s/*~" "m/*~"
+	- $(DEL) "s/*.h~" "m/*.h~"
 	- $(DEL) $(COMPILER_TEMP_FILES)
 	- $(DEL_TREE) $(OBJDIR)
 	- $(DEL) stamp_BLD

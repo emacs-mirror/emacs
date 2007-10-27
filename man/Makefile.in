@@ -217,7 +217,7 @@ sieve.dvi: sieve.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
 
 ../info/emacs-mime: emacs-mime.texi
-	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
+	cd $(srcdir); $(MAKEINFO) --enable-encoding emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 

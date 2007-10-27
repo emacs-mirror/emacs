@@ -582,18 +582,6 @@ can be produced by `dired-get-marked-files', for example."
   ;; Return nil for sake of nconc in dired-bunch-files.
   nil)
 
-;; In Emacs 19 this will return program's exit status.
-;; This is a separate function so that ange-ftp can redefine it.
-(defun dired-call-process (program discard &rest arguments)
-;  "Run PROGRAM with output to current buffer unless DISCARD is t.
-;Remaining arguments are strings passed as command arguments to PROGRAM."
-  ;; Look for a handler for default-directory in case it is a remote file name.
-  (let ((handler
-	 (find-file-name-handler (directory-file-name default-directory)
-				 'dired-call-process)))
-    (if handler (apply handler 'dired-call-process
-		       program discard arguments)
-      (apply 'call-process program nil (not discard) nil arguments))))
 
 (defun dired-check-process (msg program &rest arguments)
 ;  "Display MSG while running PROGRAM, and check for output.
@@ -610,8 +598,7 @@ can be produced by `dired-get-marked-files', for example."
       (set-buffer err-buffer)
       (erase-buffer)
       (setq default-directory dir	; caller's default-directory
-	    err (not (eq 0
-		 (apply (function dired-call-process) program nil arguments))))
+	    err (not (eq 0 (apply 'process-file program nil t nil arguments))))
       (if err
 	  (progn
 	    (dired-log (concat program " " (prin1-to-string arguments) "\n"))
@@ -1203,7 +1190,7 @@ Special value `always' suppresses confirmation."
 	      ;; It is a symlink
 	      (make-symbolic-link (car attrs) to ok-flag)
 	    (copy-file from to ok-flag dired-copy-preserve-time))
-	(file-date-error 
+	(file-date-error
 	 (push (dired-make-relative from)
 	       dired-create-files-failures)
 	 (dired-log "Can't set date on %s:\n%s\n" from err))))))

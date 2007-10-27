@@ -188,8 +188,7 @@ See \\[compile]."
       (when (featurep 'tramp)
 	(set (make-local-variable 'comint-file-name-prefix)
 	     (funcall (symbol-function 'tramp-make-tramp-file-name)
-	      nil ;; multi-method.  To be removed with Tramp 2.1.
-	      nil
+	      nil ;; method.
 	      remote-compile-user
 	      remote-compile-host
 	      ""))))))

@@ -149,14 +149,19 @@ You should set this to t when using a non-system shell.\n\n"))))
 	(if default-enable-multibyte-characters
 	    '(undecided-dos . undecided-unix)
 	  '(raw-text-dos . raw-text-unix)))
-  (or (w32-using-nt)
-      ;; On Windows 9x, make cmdproxy default to using DOS line endings
-      ;; for input, because command.com requires this.
-      (setq process-coding-system-alist
-	    `(("[cC][mM][dD][pP][rR][oO][xX][yY]"
-	       . ,(if default-enable-multibyte-characters
-		      '(undecided-dos . undecided-dos)
-		    '(raw-text-dos . raw-text-dos)))))))
+  ;; Make cmdproxy default to using DOS line endings for input,
+  ;; because some Windows programs (including command.com) require it.
+  (add-to-list 'process-coding-system-alist
+	       `("[cC][mM][dD][pP][rR][oO][xX][yY]"
+		 . ,(if default-enable-multibyte-characters
+			'(undecided-dos . undecided-dos)
+		      '(raw-text-dos . raw-text-dos))))
+  ;; plink needs DOS input when entering the password.
+  (add-to-list 'process-coding-system-alist
+	       `("[pP][lL][iI][nN][kK]"
+		 . ,(if default-enable-multibyte-characters
+			'(undecided-dos . undecided-dos)
+		      '(raw-text-dos . raw-text-dos)))))
 
 (add-hook 'before-init-hook 'set-default-process-coding-system)
 

@@ -3120,8 +3120,8 @@ static void convert_mono_to_color_image (f, img, foreground, background)
   release_frame_dc (f, hdc);
   old_prev = SelectObject (old_img_dc, img->pixmap);
   new_prev = SelectObject (new_img_dc, new_pixmap);
-  SetTextColor (new_img_dc, foreground);
-  SetBkColor (new_img_dc, background);
+  SetTextColor (new_img_dc, background);
+  SetBkColor (new_img_dc, foreground);
 
   BitBlt (new_img_dc, 0, 0, img->width, img->height, old_img_dc,
 	  0, 0, SRCCOPY);

@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 ;;
-;; This file contains a collection generic modes.
+;; This file contains a collection of generic modes.
 ;;
 ;; INSTALLATION:
 ;;
@@ -244,7 +244,7 @@ This hook will be installed if the variable
   (memq system-type '(windows-nt ms-dos))
   "*Non-nil means the modes in `generic-mswindows-modes' will be defined.
 This is a list of MS-Windows specific generic modes.  This variable
-only effects the default value of `generic-extras-enable-list'."
+only affects the default value of `generic-extras-enable-list'."
   :group 'generic-x
   :type 'boolean
   :version "22.1")
@@ -254,7 +254,7 @@ only effects the default value of `generic-extras-enable-list'."
   (not (memq system-type '(windows-nt ms-dos)))
   "*Non-nil means the modes in `generic-unix-modes' will be defined.
 This is a list of Unix specific generic modes.  This variable only
-effects the default value of `generic-extras-enable-list'."
+affects the default value of `generic-extras-enable-list'."
   :group 'generic-x
   :type 'boolean
   :version "22.1")
@@ -317,7 +317,7 @@ your changes into effect."
      (2 font-lock-variable-name-face)))
   '("access_log\\'")
   nil
-  "Mode for Apache log files"))
+  "Mode for Apache log files."))
 
 ;;; Samba
 (when (memq 'samba-generic-mode generic-extras-enable-list)
@@ -522,7 +522,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   "Syntax table in use in `bat-generic-mode' buffers.")
 
 (defvar bat-generic-mode-keymap (make-sparse-keymap)
-  "Keymap for bet-generic-mode.")
+  "Keymap for `bat-generic-mode'.")
 
 (defun bat-generic-mode-compile ()
   "Run the current BAT file in a compilation buffer."
@@ -784,7 +784,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-constant-face)))
   '("[mM][aA][nN][iI][fF][eE][sS][tT]\\.[mM][fF]\\'")
   nil
-  "Mode for Java Manifest files"))
+  "Mode for Java Manifest files."))
 
 ;; Java properties files
 (when (memq 'java-properties-generic-mode generic-extras-enable-list)
@@ -1776,7 +1776,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   nil ;; no auto-mode-alist
   ;; '(show-tabs-generic-mode-hook-fun)
   nil
-  "Generic mode to show tabs and trailing spaces"))
+  "Generic mode to show tabs and trailing spaces."))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; DNS modes

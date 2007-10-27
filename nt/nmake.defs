@@ -123,8 +123,9 @@ MPR		= mpr.lib
 SHELL32		= shell32.lib
 USER32		= user32.lib
 WSOCK32		= wsock32.lib
-WINMM     = winmm.lib
+WINMM		= winmm.lib
 WINSPOOL	= winspool.lib
+OLE32		= ole32.lib
 
 !ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG

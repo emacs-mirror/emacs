@@ -440,7 +440,7 @@ XFT_LIBS=@XFT_LIBS@
 
 #if HAVE_GIF
 #ifndef LIBGIF
-#define LIBGIF -lungif
+#define LIBGIF -lgif
 #endif /* not defined LIBGIF */
 #else /* not HAVE_GIF */
 #define LIBGIF

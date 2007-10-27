@@ -1340,7 +1340,7 @@
 	(shell-directory-tracker): Make regexp used for skipping to next
 	command correspond to one used for command itself.
 
-2003-06-13  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2003-06-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* textmodes/texinfmt.el (texinfo-format-scan):
 	Silence `whitespace-cleanup'.
@@ -11805,7 +11805,7 @@
 
 	* vc-hooks.el (vc-kill-buffer-hook): Add it to kill-buffer-hook again.
 
-2002-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+2002-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* frame.el (select-frame-by-name, select-frame-set-input-focus):
 	Always call x-focus-frame, if using x.

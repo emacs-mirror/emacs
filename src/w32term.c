@@ -218,10 +218,9 @@ extern int errno;
 extern EMACS_INT extra_keyboard_modifiers;
 
 static void x_update_window_end P_ ((struct window *, int, int));
-void w32_delete_display P_ ((struct w32_display_info *));
 static void w32_handle_tool_bar_click P_ ((struct frame *,
                                           struct input_event *));
-void w32_define_cursor P_ ((Window, Cursor));
+static void w32_define_cursor P_ ((Window, Cursor));
 
 void x_lower_frame P_ ((struct frame *));
 void x_scroll_bar_clear P_ ((struct frame *));
@@ -230,7 +229,7 @@ void x_raise_frame P_ ((struct frame *));
 void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-void w32_initialize P_ ((void));
+static void w32_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
@@ -3278,7 +3277,7 @@ redo_mouse_highlight ()
 			  HIWORD (last_mouse_motion_event.lParam));
 }
 
-void
+static void
 w32_define_cursor (window, cursor)
      Window window;
      Cursor cursor;
@@ -6345,7 +6344,7 @@ static struct redisplay_interface w32_redisplay_interface =
   w32_shift_glyphs_for_insert
 };
 
-void
+static void
 w32_initialize ()
 {
   rif = &w32_redisplay_interface;

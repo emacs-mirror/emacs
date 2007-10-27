@@ -947,8 +947,8 @@ Emacs for Heathens
 @chapter Starting Gnus
 @cindex starting up
 
-If you are haven't used Emacs much before using Gnus, read @ref{Emacs
-for Heathens} first.
+If you haven't used Emacs much before using Gnus, read @ref{Emacs for
+Heathens} first.
 
 @kindex M-x gnus
 @findex gnus
@@ -7173,12 +7173,12 @@ pre-fetch all the articles it can without bound.  If it is
 @code{nil}, no pre-fetching will be done.
 
 @vindex gnus-async-prefetch-article-p
-@findex gnus-async-read-p
+@findex gnus-async-unread-p
 There are probably some articles that you don't want to pre-fetch---read
 articles, for instance.  The @code{gnus-async-prefetch-article-p}
 variable controls whether an article is to be pre-fetched.  This
 function should return non-@code{nil} when the article in question is
-to be pre-fetched.  The default is @code{gnus-async-read-p}, which
+to be pre-fetched.  The default is @code{gnus-async-unread-p}, which
 returns @code{nil} on read articles.  The function is called with an
 article data structure as the only parameter.
 
@@ -11504,6 +11504,7 @@ region.
 
 @item gnus-single-article-buffer
 @vindex gnus-single-article-buffer
+@cindex article buffers, several
 If non-@code{nil}, use the same article buffer for all the groups.
 (This is the default.)  If @code{nil}, each group will have its own
 article buffer.
@@ -13509,14 +13510,18 @@ Header lines longer than the value of
 @code{nnmail-split-header-length-limit} are excluded from the split
 function.
 
-@vindex nnmail-mail-splitting-charset
 @vindex nnmail-mail-splitting-decodes
-By default, splitting @acronym{MIME}-decodes headers so you
-can match on non-@acronym{ASCII} strings.  The
-@code{nnmail-mail-splitting-charset} variable specifies the default
-charset for decoding.  The behavior can be turned off completely by
-binding @code{nnmail-mail-splitting-decodes} to @code{nil}, which is
-useful if you want to match articles based on the raw header data.
+@vindex nnmail-mail-splitting-charset
+By default, splitting does not decode headers, so you can not match on
+non-@acronym{ASCII} strings.  But it is useful if you want to match
+articles based on the raw header data.  To enable it, set the
+@code{nnmail-mail-splitting-decodes} variable to a non-@code{nil} value.
+In addition, the value of the @code{nnmail-mail-splitting-charset}
+variable is used for decoding non-@acronym{MIME} encoded string when
+@code{nnmail-mail-splitting-decodes} is non-@code{nil}.  The default
+value is @code{nil} which means not to decode non-@acronym{MIME} encoded
+string.  A suitable value for you will be @code{undecided} or be the
+charset used normally in mails you are interested in.
 
 @vindex nnmail-resplit-incoming
 By default, splitting is performed on all incoming messages.  If you

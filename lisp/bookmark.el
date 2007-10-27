@@ -240,12 +240,13 @@ functions have a binding in this keymap.")
 
 ;; Read the help on all of these functions for details...
 ;;;###autoload (define-key bookmark-map "x" 'bookmark-set)
-;;;###autoload (define-key bookmark-map "m" 'bookmark-set) ; "m" for "mark"
+;;;###autoload (define-key bookmark-map "m" 'bookmark-set) ;"m"ark
 ;;;###autoload (define-key bookmark-map "j" 'bookmark-jump)
-;;;###autoload (define-key bookmark-map "g" 'bookmark-jump) ; "g" for "go"
+;;;###autoload (define-key bookmark-map "g" 'bookmark-jump) ;"g"o
+;;;###autoload (define-key bookmark-map "o" 'bookmark-jump-other-window)
 ;;;###autoload (define-key bookmark-map "i" 'bookmark-insert)
 ;;;###autoload (define-key bookmark-map "e" 'edit-bookmarks)
-;;;###autoload (define-key bookmark-map "f" 'bookmark-insert-location) ; "f" for "find"
+;;;###autoload (define-key bookmark-map "f" 'bookmark-insert-location) ;"f"ind
 ;;;###autoload (define-key bookmark-map "r" 'bookmark-rename)
 ;;;###autoload (define-key bookmark-map "d" 'bookmark-delete)
 ;;;###autoload (define-key bookmark-map "l" 'bookmark-load)
@@ -1044,10 +1045,10 @@ For example, if this is a Info buffer, return the Info file's name."
   ;;Return the bookmark-alist for display.  If the bookmark-sort-flag
   ;;is non-nil, then return a sorted copy of the alist.
   (if bookmark-sort-flag
-      (setq bookmark-alist
-            (sort (copy-alist bookmark-alist)
-                  (function
-                   (lambda (x y) (string-lessp (car x) (car y))))))))
+      (sort (copy-alist bookmark-alist)
+            (function
+             (lambda (x y) (string-lessp (car x) (car y)))))
+    bookmark-alist))
 
 
 (defvar bookmark-after-jump-hook nil
@@ -1081,6 +1082,27 @@ of the old one in the permanent bookmark record."
              ;; if there is an annotation for this bookmark,
              ;; show it in a buffer.
              (bookmark-show-annotation bookmark)))))
+
+
+;;;###autoload
+(defun bookmark-jump-other-window (bookmark)
+  "Jump to BOOKMARK (a point in some file) in another window.
+See `bookmark-jump'."
+  (interactive
+   (let ((bkm (bookmark-completing-read "Jump to bookmark (in another window)"
+                                        bookmark-current-bookmark)))
+     (if (> emacs-major-version 21)
+         (list bkm) bkm)))
+  (when bookmark
+    (bookmark-maybe-historicize-string bookmark)
+    (let ((cell (bookmark-jump-noselect bookmark)))
+      (and cell
+           (switch-to-buffer-other-window (car cell))
+           (goto-char (cdr cell))
+           (if bookmark-automatically-show-annotations
+               ;; if there is an annotation for this bookmark,
+               ;; show it in a buffer.
+               (bookmark-show-annotation bookmark))))))
 
 
 (defun bookmark-file-or-variation-thereof (file)
@@ -1568,7 +1590,6 @@ deletion, or > if it is flagged for displaying."
     (insert "% Bookmark\n- --------\n")
     (add-text-properties (point-min) (point)
 			 '(font-lock-face bookmark-menu-heading))
-    (bookmark-maybe-sort-alist)
     (mapcar
      (lambda (full-record)
        ;; if a bookmark has an annotation, prepend a "*"
@@ -1591,7 +1612,7 @@ deletion, or > if it is flagged for displaying."
 		  help-echo "mouse-2: go to this bookmark in other window")))
 	   (insert "\n")
 	   )))
-     bookmark-alist))
+     (bookmark-maybe-sort-alist)))
   (goto-char (point-min))
   (forward-line 2)
   (bookmark-bmenu-mode)
@@ -1794,7 +1815,8 @@ if an annotation exists."
          (if (and ann (not (string-equal ann "")))
              ;; insert the annotation, indented by 4 spaces.
              (progn
-               (save-excursion (insert ann))
+               (save-excursion (insert ann) (unless (bolp)
+                                              (insert "\n")))
                (while (< (point) (point-max))
                  (beginning-of-line) ; paranoia
                  (insert "    ")

@@ -178,8 +178,13 @@ properly with all servers."
 
 (defconst gnus-level-unsubscribed 7
   "Groups with levels less than or equal to this variable are unsubscribed.
-Groups with levels less than `gnus-level-subscribed', which should be
-less than this variable, are subscribed.")
+
+Groups with levels less than `gnus-level-subscribed', which
+should be less than this variable, are subscribed.  Groups with
+levels from `gnus-level-subscribed' (exclusive) upto this
+variable (inclusive) are unsubscribed.  See also
+`gnus-level-zombie', `gnus-level-killed' and the Info node `Group
+Levels' for details.")
 
 (defconst gnus-level-zombie 8
   "Groups with this level are zombie groups.")

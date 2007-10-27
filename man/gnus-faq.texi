@@ -427,12 +427,11 @@ SET HOME=C:\myhome
 @end example
 @noindent
 
-in your autoexec.bat and reboot.  Under NT, 2000 and XP,
-hit Winkey+Pause/Break to enter system options (if it
-doesn't work, go to Control Panel -> System). There you'll
-find the possibility to set environment variables, create
-a new one with name HOME and value C:\myhome, a reboot is
-not necessary.
+in your autoexec.bat and reboot.  Under NT, 2000 and XP, hit
+Winkey+Pause/Break to enter system options (if it doesn't work, go to
+Control Panel -> System -> Advanced). There you'll find the possibility
+to set environment variables.  Create a new one with name HOME and value
+C:\myhome.  Rebooting is not necessary.
 
 Now to create ~/.gnus.el, say
 @samp{C-x C-f ~/.gnus.el RET C-x C-s}.

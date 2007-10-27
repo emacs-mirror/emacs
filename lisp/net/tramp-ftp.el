@@ -10,8 +10,8 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; the Free Software Foundation; either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,9 +19,8 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, see
+;; <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -110,10 +109,13 @@ present for backward compatibility."
 	     (list "" "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
 
 ;; Add completion function for FTP method.
-(unless (memq system-type '(windows-nt))
-  (tramp-set-completion-function
-   tramp-ftp-method
-   '((tramp-parse-netrc "~/.netrc"))))
+(tramp-set-completion-function
+ tramp-ftp-method
+ '((tramp-parse-netrc "~/.netrc")))
+
+;; If there is URL syntax, `substitute-in-file-name' needs special
+;; handling.
+(put 'substitute-in-file-name 'ange-ftp 'tramp-handle-substitute-in-file-name)
 
 (defun tramp-ftp-file-name-handler (operation &rest args)
   "Invoke the Ange-FTP handler for OPERATION.
@@ -152,13 +154,7 @@ pass to the OPERATION."
 (defun tramp-ftp-file-name-p (filename)
   "Check if it's a filename that should be forwarded to Ange-FTP."
   (let ((v (tramp-dissect-file-name filename)))
-    (string=
-     (tramp-find-method
-      (tramp-file-name-multi-method v)
-      (tramp-file-name-method v)
-      (tramp-file-name-user v)
-      (tramp-file-name-host v))
-     tramp-ftp-method)))
+    (string= (tramp-file-name-method v) tramp-ftp-method)))
 
 (add-to-list 'tramp-foreign-file-name-handler-alist
 	     (cons 'tramp-ftp-file-name-p 'tramp-ftp-file-name-handler))
@@ -172,8 +168,6 @@ pass to the OPERATION."
 ;;   pretended in `tramp-file-name-handler' otherwise.
 ;;   Furthermore, there are no backup files on FTP hosts.
 ;;   Worth further investigations.
-;; * Map /multi:ssh:out@gate:ftp:kai@real.host:/path/to.file
-;;   on Ange-FTP gateways.
 
 ;;; arch-tag: 759fb338-5c63-4b99-bd36-b4d59db91cff
 ;;; tramp-ftp.el ends here

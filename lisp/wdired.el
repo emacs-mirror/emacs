@@ -106,7 +106,6 @@
 (eval-when-compile (require 'cl))
 (require 'dired)
 (autoload 'dired-do-create-files-regexp "dired-aux")
-(autoload 'dired-call-process "dired-aux")
 
 (defgroup wdired nil
   "Mode to rename files by editing their names in dired buffers."
@@ -684,7 +683,7 @@ Like original function but it skips read-only words."
 	(new-bit "-")
 	(pos-prop (- (point) (- (current-column) wdired-col-perm))))
     (if (eq (char-after (point)) ?-)
-	(setq new-bit	
+	(setq new-bit
 	      (if (= (% (- (current-column) wdired-col-perm) 3) 0) "r"
 		(if (= (% (- (current-column) wdired-col-perm) 3) 1) "w"
 		  "x"))))
@@ -744,8 +743,8 @@ Like original function but it skips read-only words."
             (progn
               (setq perm-tmp
                     (int-to-string (wdired-perms-to-number perms-new)))
-              (unless (equal 0 (dired-call-process dired-chmod-program
-                                                   t perm-tmp filename))
+              (unless (equal 0 (process-file dired-chmod-program
+					     nil nil nil perm-tmp filename))
                 (setq errors (1+ errors))
                 (dired-log (concat dired-chmod-program " " perm-tmp
                                    " `" filename "' failed\n\n"))))

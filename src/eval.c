@@ -100,7 +100,7 @@ Lisp_Object Qdeclare;
 Lisp_Object Qcurry;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
-extern Lisp_Object Qkeymap;
+Lisp_Object Qdebug;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -233,7 +233,7 @@ init_eval_once ()
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
   max_specpdl_size = 1000;
-  max_lisp_eval_depth = 300;
+  max_lisp_eval_depth = 400;
 
   Vrun_hooks = Qnil;
 }
@@ -446,7 +446,7 @@ usage: (cond CLAUSES...)  */)
 
 DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
        doc: /* Eval BODY forms sequentially and return value of last one.
-usage: (progn BODY ...)  */)
+usage: (progn BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -1660,8 +1660,7 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
 
 
 static Lisp_Object find_handler_clause P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object,
-					    Lisp_Object *));
+					    Lisp_Object, Lisp_Object));
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
@@ -1687,7 +1686,6 @@ See also the function `condition-case'.  */)
   Lisp_Object conditions;
   extern int gc_in_progress;
   extern int waiting_for_input;
-  Lisp_Object debugger_value;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
   struct backtrace *bp;
@@ -1745,7 +1743,7 @@ See also the function `condition-case'.  */)
       register Lisp_Object clause;
 
       clause = find_handler_clause (handlerlist->handler, conditions,
-				    error_symbol, data, &debugger_value);
+				    error_symbol, data);
 
       if (EQ (clause, Qlambda))
 	{
@@ -1776,7 +1774,7 @@ See also the function `condition-case'.  */)
   handlerlist = allhandlers;
   /* If no handler is present now, try to run the debugger,
      and if that fails, throw to top level.  */
-  find_handler_clause (Qerror, conditions, error_symbol, data, &debugger_value);
+  find_handler_clause (Qerror, conditions, error_symbol, data);
   if (catchlist != 0)
     Fthrow (Qtop_level, Qt);
 
@@ -1928,75 +1926,54 @@ skip_debugger (conditions, data)
     = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
        This is for memory-full errors only.
 
-   Store value returned from debugger into *DEBUGGER_VALUE_PTR.
-
    We need to increase max_specpdl_size temporarily around
    anything we do that can push on the specpdl, so as not to get
    a second error here in case we're handling specpdl overflow.  */
 
 static Lisp_Object
-find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
+find_handler_clause (handlers, conditions, sig, data)
      Lisp_Object handlers, conditions, sig, data;
-     Lisp_Object *debugger_value_ptr;
 {
   register Lisp_Object h;
   register Lisp_Object tem;
+  int debugger_called = 0;
+  int debugger_considered = 0;
 
-  if (EQ (handlers, Qt))  /* t is used by handlers for all conditions, set up by C code.  */
+  /* t is used by handlers for all conditions, set up by C code.  */
+  if (EQ (handlers, Qt))
     return Qt;
+
+  /* Don't run the debugger for a memory-full error.
+     (There is no room in memory to do that!)  */
+  if (NILP (sig))
+    debugger_considered = 1;
+
   /* error is used similarly, but means print an error message
      and run the debugger if that is enabled.  */
   if (EQ (handlers, Qerror)
       || !NILP (Vdebug_on_signal)) /* This says call debugger even if
 				      there is a handler.  */
     {
-      int debugger_called = 0;
-      Lisp_Object sig_symbol, combined_data;
-      /* This is set to 1 if we are handling a memory-full error,
-	 because these must not run the debugger.
-	 (There is no room in memory to do that!)  */
-      int no_debugger = 0;
-
-      if (NILP (sig))
-	{
-	  combined_data = data;
-	  sig_symbol = Fcar (data);
-	  no_debugger = 1;
-	}
-      else
-	{
-	  combined_data = Fcons (sig, data);
-	  sig_symbol = sig;
-	}
-
-      if (wants_debugger (Vstack_trace_on_error, conditions))
+      if (!NILP (sig) && wants_debugger (Vstack_trace_on_error, conditions))
 	{
 	  max_specpdl_size++;
-#ifdef PROTOTYPES
+    #ifdef PROTOTYPES
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
 					       Qnil);
-#else
+    #else
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       Fbacktrace, Qnil);
-#endif
+    #endif
 	  max_specpdl_size--;
 	}
-      if (! no_debugger
-	  /* Don't try to run the debugger with interrupts blocked.
-	     The editing loop would return anyway.  */
-	  && ! INPUT_BLOCKED_P
-	  && (EQ (sig_symbol, Qquit)
-	      ? debug_on_quit
-	      : wants_debugger (Vdebug_on_error, conditions))
-	  && ! skip_debugger (conditions, combined_data)
-	  && when_entered_debugger < num_nonmacro_input_events)
+
+      if (!debugger_considered)
 	{
-	  *debugger_value_ptr
-	    = call_debugger (Fcons (Qerror,
-				    Fcons (combined_data, Qnil)));
-	  debugger_called = 1;
+	  debugger_considered = 1;
+	  debugger_called = maybe_call_debugger (conditions, sig, data);
 	}
+
       /* If there is no handler, return saying whether we ran the debugger.  */
       if (EQ (handlers, Qerror))
 	{
@@ -2005,6 +1982,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	  return Qt;
 	}
     }
+
   for (h = handlers; CONSP (h); h = Fcdr (h))
     {
       Lisp_Object handler, condit;
@@ -2023,16 +2001,53 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
       /* Handle a list of condition names in handler HANDLER.  */
       else if (CONSP (condit))
 	{
-	  while (CONSP (condit))
+	  Lisp_Object tail;
+	  for (tail = condit; CONSP (tail); tail = XCDR (tail))
 	    {
-	      tem = Fmemq (Fcar (condit), conditions);
+	      tem = Fmemq (Fcar (tail), conditions);
 	      if (!NILP (tem))
-		return handler;
-	      condit = XCDR (condit);
+		{
+		  /* This handler is going to apply.
+		     Does it allow the debugger to run first?  */
+		  if (! debugger_considered && !NILP (Fmemq (Qdebug, condit)))
+		    maybe_call_debugger (conditions, sig, data);
+		  return handler;
+		}
 	    }
 	}
     }
+
   return Qnil;
+}
+
+/* Call the debugger if calling it is currently enabled for CONDITIONS.
+   SIG and DATA describe the signal, as in find_handler_clause.  */
+
+int
+maybe_call_debugger (conditions, sig, data)
+     Lisp_Object conditions, sig, data;
+{
+  Lisp_Object combined_data;
+
+  combined_data = Fcons (sig, data);
+
+  if (
+      /* Don't try to run the debugger with interrupts blocked.
+	 The editing loop would return anyway.  */
+      ! INPUT_BLOCKED_P
+      /* Does user wants to enter debugger for this kind of error?  */
+      && (EQ (sig, Qquit)
+	  ? debug_on_quit
+	  : wants_debugger (Vdebug_on_error, conditions))
+      && ! skip_debugger (conditions, combined_data)
+      /* rms: what's this for? */
+      && when_entered_debugger < num_nonmacro_input_events)
+    {
+      call_debugger (Fcons (Qerror, Fcons (combined_data, Qnil)));
+      return 1;
+    }
+
+  return 0;
 }
 
 /* dump an error message; called like printf */
@@ -3887,6 +3902,9 @@ before making `inhibit-quit' nil.  */);
 
   Qcurry = intern ("curry");
   staticpro (&Qcurry);
+
+  Qdebug = intern ("debug");
+  staticpro (&Qdebug);
 
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
 	       doc: /* *Non-nil means errors display a backtrace buffer.

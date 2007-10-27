@@ -1031,6 +1031,9 @@ argument, a list of all arguments passed to
 @code{find-operation-coding-system}.  It must return a coding system
 or a cons cell containing two coding systems.  This value has the same
 meaning as described above.
+
+If @var{coding} (or what returned by the above function) is
+@code{undecided}, the normal code-detection is performed.
 @end defvar
 
 @defvar process-coding-system-alist

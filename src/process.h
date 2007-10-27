@@ -36,10 +36,6 @@ struct Lisp_Process
   {
     EMACS_INT size;
     struct Lisp_Vector *v_next;
-    /* Descriptor by which we read from this process */
-    Lisp_Object infd;
-    /* Descriptor by which we write to this process */
-    Lisp_Object outfd;
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;
     /* Name of this process */
@@ -64,61 +60,65 @@ struct Lisp_Process
     Lisp_Object plist;
     /* Marker set to end of last buffer-inserted output from this process */
     Lisp_Object mark;
-    /* Non-nil means kill silently if Emacs is exited.
-       This is the inverse of the `query-on-exit' flag.  */
-    Lisp_Object kill_without_query;
     /* Symbol indicating status of process.
        This may be a symbol: run, open, or closed.
        Or it may be a list, whose car is stop, exit or signal
        and whose cdr is a pair (EXIT_CODE . COREDUMP_FLAG)
        or (SIGNAL_NUMBER . COREDUMP_FLAG).  */
     Lisp_Object status;
-    /* Non-nil if communicating through a pty.  */
-    Lisp_Object pty_flag;
-    /* Event-count of last event in which this process changed status.  */
-    Lisp_Object tick;
-    /* Event-count of last such event reported.  */
-    Lisp_Object update_tick;
     /* Coding-system for decoding the input from this process.  */
     Lisp_Object decode_coding_system;
     /* Working buffer for decoding.  */
     Lisp_Object decoding_buf;
-    /* Size of carryover in decoding.  */
-    Lisp_Object decoding_carryover;
     /* Coding-system for encoding the output to this process.  */
     Lisp_Object encode_coding_system;
     /* Working buffer for encoding.  */
     Lisp_Object encoding_buf;
-    /* Size of carryover in encoding.  */
-    Lisp_Object encoding_carryover;
-    /* Flag to set coding-system of the process buffer from the
-       coding_system used to decode process output.  */
-    Lisp_Object inherit_coding_system_flag;
-    /* Flat to decide the multibyteness of a string given to the
-       filter (if any).  It is initialized to the value of
-       `default-enable-multibyte-characters' when the process is
-       generated, and can be changed by the function
-       `set-process-fileter-multibyte'. */
-    Lisp_Object filter_multibyte;
-    /* Should we delay reading output from this process.
-       Initialized from `Vprocess_adaptive_read_buffering'.  */
-    Lisp_Object adaptive_read_buffering;
-    /* Hysteresis to try to read process output in larger blocks.
-       On some systems, e.g. GNU/Linux, Emacs is seen as 
-       an interactive app also when reading process output, meaning
-       that process output can be read in as little as 1 byte at a
-       time.  Value is micro-seconds to delay reading output from
-       this process.  Range is 0 .. 50000.  */
-    Lisp_Object read_output_delay;
-    /* Skip reading this process on next read.  */
-    Lisp_Object read_output_skip;
 
     /* After this point, there are no Lisp_Objects any more.  */
+    /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
 
     /* Number of this process.
        allocate_process assumes this is the first non-Lisp_Object field.
        A value 0 is used for pseudo-processes such as network connections.  */
     pid_t pid;
+    /* Descriptor by which we read from this process */
+    int infd;
+    /* Descriptor by which we write to this process */
+    int outfd;
+    /* Event-count of last event in which this process changed status.  */
+    int tick;
+    /* Event-count of last such event reported.  */
+    int update_tick;
+    /* Size of carryover in decoding.  */
+    int decoding_carryover;
+    /* Hysteresis to try to read process output in larger blocks.
+       On some systems, e.g. GNU/Linux, Emacs is seen as
+       an interactive app also when reading process output, meaning
+       that process output can be read in as little as 1 byte at a
+       time.  Value is micro-seconds to delay reading output from
+       this process.  Range is 0 .. 50000.  */
+    int read_output_delay;
+    /* Should we delay reading output from this process.
+       Initialized from `Vprocess_adaptive_read_buffering'.
+       0 = nil, 1 = t, 2 = other.  */
+    int adaptive_read_buffering : 2;
+    /* Skip reading this process on next read.  */
+    int read_output_skip : 1;
+    /* Non-nil means kill silently if Emacs is exited.
+       This is the inverse of the `query-on-exit' flag.  */
+    int kill_without_query : 1;
+    /* Non-nil if communicating through a pty.  */
+    int pty_flag : 1;
+    /* Flag to set coding-system of the process buffer from the
+       coding_system used to decode process output.  */
+    int inherit_coding_system_flag : 1;
+    /* Flag to decide the multibyteness of a string given to the
+       filter (if any).  It is initialized to the value of
+       `default-enable-multibyte-characters' when the process is
+       generated, and can be changed by the function
+       `set-process-filter-multibyte'. */
+    int filter_multibyte : 1;
     /* Record the process status in the raw form in which it comes from `wait'.
        This is to avoid consing in a signal handler.  The `raw_status_new'
        flag indicates that `raw_status' contains a new status that still

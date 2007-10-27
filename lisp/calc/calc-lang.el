@@ -35,7 +35,7 @@
 ;;; Alternate entry/display languages.
 
 (defun calc-set-language (lang &optional option no-refresh)
-  (setq math-expr-opers (or (get lang 'math-oper-table) math-standard-opers)
+  (setq math-expr-opers (or (get lang 'math-oper-table) (math-standard-ops))
 	math-expr-function-mapping (get lang 'math-function-table)
 	math-expr-special-function-mapping (get lang 'math-special-function-table)
 	math-expr-variable-mapping (get lang 'math-variable-table)
@@ -1225,7 +1225,7 @@
 					 h (1+ v) (1+ h) math-rb-v2)
 					(string-match "<=\\|>=\\|\\+/-\\|!=\\|&&\\|||\\|:=\\|=>\\|." line h)
 					(assoc (math-match-substring line 0)
-					       math-standard-opers)))
+					       (math-standard-ops))))
 		      (and (>= (nth 2 widest) prec)
 			   (setq h (match-end 0)))
 		    (and (not (eq (string-match ",\\|;\\|\\.\\.\\|)\\|\\]\\|:" line h)

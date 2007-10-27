@@ -217,7 +217,7 @@ message.dvi: message.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/message.texi
 #
 $(infodir)/emacs-mime: emacs-mime.texi
-	$(MAKEINFO) emacs-mime.texi
+	$(MAKEINFO) --enable-encoding emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-mime.texi
 #

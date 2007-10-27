@@ -1437,7 +1437,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
 {
   Lisp_Object fontset;
   FRAME_PTR f;
-  Lisp_Object indices[3];
+  int indices[3];
   Lisp_Object val, tail, elt;
   Lisp_Object *realized;
   struct font_info *fontp = NULL;

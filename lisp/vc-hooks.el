@@ -62,35 +62,36 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS Arch MCVS)
-  ;; Arch and MCVS come last because they are per-tree rather than per-dir.
-  "*List of version control backends for which VC will be used.
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS BZR HG Arch MCVS)
+  ;; BZR, HG, Arch and MCVS come last because they are per-tree rather
+  ;; than per-dir.
+  "List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control.
 Removing an entry from the list prevents VC from being activated
 when visiting a file managed by that backend.
 An empty list disables VC altogether."
   :type '(repeat symbol)
-  :version "21.1"
+  :version "23.1"
   :group 'vc)
 
 (defcustom vc-path
   (if (file-directory-p "/usr/sccs")
       '("/usr/sccs")
     nil)
-  "*List of extra directories to search for version control commands."
+  "List of extra directories to search for version control commands."
   :type '(repeat directory)
   :group 'vc)
 
 (defcustom vc-make-backup-files nil
-  "*If non-nil, backups of registered files are made as with other files.
+  "If non-nil, backups of registered files are made as with other files.
 If nil (the default), files covered by version control don't get backups."
   :type 'boolean
   :group 'vc
   :group 'backup)
 
 (defcustom vc-follow-symlinks 'ask
-  "*What to do if visiting a symbolic link to a file under version control.
+  "What to do if visiting a symbolic link to a file under version control.
 Editing such a file through the link bypasses the version control system,
 which is dangerous and probably not what you want.
 
@@ -104,26 +105,26 @@ visited and a warning displayed."
   :group 'vc)
 
 (defcustom vc-display-status t
-  "*If non-nil, display revision number and lock status in modeline.
+  "If non-nil, display revision number and lock status in modeline.
 Otherwise, not displayed."
   :type 'boolean
   :group 'vc)
 
 
 (defcustom vc-consult-headers t
-  "*If non-nil, identify work files by searching for version headers."
+  "If non-nil, identify work files by searching for version headers."
   :type 'boolean
   :group 'vc)
 
 (defcustom vc-keep-workfiles t
-  "*If non-nil, don't delete working files after registering changes.
+  "If non-nil, don't delete working files after registering changes.
 If the back-end is CVS, workfiles are always kept, regardless of the
 value of this flag."
   :type 'boolean
   :group 'vc)
 
 (defcustom vc-mistrust-permissions nil
-  "*If non-nil, don't assume permissions/ownership track version-control status.
+  "If non-nil, don't assume permissions/ownership track version-control status.
 If nil, do rely on the permissions.
 See also variable `vc-consult-headers'."
   :type 'boolean
@@ -137,7 +138,7 @@ See also variable `vc-consult-headers'."
 		    (vc-backend-subdirectory-name file)))))
 
 (defcustom vc-stay-local t
-  "*Non-nil means use local operations when possible for remote repositories.
+  "Non-nil means use local operations when possible for remote repositories.
 This avoids slow queries over the network and instead uses heuristics
 and past information to determine the current status of a file.
 
@@ -742,17 +743,27 @@ Format:
 This function assumes that the file is registered."
   (setq backend (symbol-name backend))
   (let ((state   (vc-state file))
+	(state-echo nil)
 	(rev     (vc-workfile-version file)))
-    (cond ((or (eq state 'up-to-date)
-	       (eq state 'needs-patch))
-	   (concat backend "-" rev))
-          ((stringp state)
-	   (concat backend ":" state ":" rev))
-          (t
-           ;; Not just for the 'edited state, but also a fallback
-           ;; for all other states.  Think about different symbols
-           ;; for 'needs-patch and 'needs-merge.
-           (concat backend ":" rev)))))
+    (propertize
+     (cond ((or (eq state 'up-to-date)
+		(eq state 'needs-patch))
+	    (setq state-echo "Up to date file")
+	    (concat backend "-" rev))
+	   ((stringp state)
+	    (setq state-echo (concat "File locked by" state))
+	    (concat backend ":" state ":" rev))
+	   (t
+	    ;; Not just for the 'edited state, but also a fallback
+	    ;; for all other states.  Think about different symbols
+	    ;; for 'needs-patch and 'needs-merge.
+	    (setq state-echo "Edited file")
+	    (concat backend ":" rev)))
+     'mouse-face 'mode-line-highlight
+     'local-map (let ((map (make-sparse-keymap)))
+		  (define-key map [mode-line down-mouse-1] 'vc-menu-map) map)
+     'help-echo (concat state-echo " under the " backend 
+			" version control system\nmouse-1: VC Menu"))))
 
 (defun vc-follow-link ()
   "If current buffer visits a symbolic link, visit the real file.
@@ -783,7 +794,7 @@ current, and kill the buffer that visits the link."
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
     (cond
-     ((vc-backend buffer-file-name)
+     ((with-demoted-errors (vc-backend buffer-file-name))
       ;; Compute the state and put it in the modeline.
       (vc-mode-line buffer-file-name)
       (unless vc-make-backup-files

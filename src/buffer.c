@@ -5652,8 +5652,8 @@ Backing up is done before the first time the file is saved.  */);
   DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display,
 		     Qnil,
 		     doc: /* Non-nil enables selective display.
-An Integer N as value means display only lines
-that start with less than n columns of space.
+An integer N as value means display only lines
+that start with less than N columns of space.
 A value of t means that the character ^M makes itself and
 all the rest of the line invisible; also, when saving the buffer
 in a file, save the ^M as a newline.  */);

@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.77}
+\def\orgversionnumber{5.03}
 \def\versionyear{2007}          % latest update
 \def\year{2007}                 % latest copyright year
 
@@ -111,14 +111,17 @@ are preserved on all copies.
   \footline{\hss\folio}
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else				%2 or 3 columns uses prereduced size
-  \hsize 3.2in
   \if 1\the\letterpaper
+     \hsize 3.2in
      \vsize 7.95in
+     \hoffset -.75in
+     \voffset -.745in
   \else
+     \hsize 3.2in
      \vsize 7.65in
+     \hoffset -.25in
+     \voffset -.745in
   \fi
-  \hoffset -.75in
-  \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
   \font\headingfont=cmbx10 \scaledmag1
   \font\smallfont=cmr6
@@ -418,6 +421,7 @@ formula, \kbd{:=} a field formula.
 \key{toggle coordinate grid}{C-c \}}
 \key{toggle formula debugger}{C-c \{}
 
+\newcolumn
 {\it Formula Editor}
 
 \key{edit formulas in separate buffer}{C-c '}
@@ -540,6 +544,24 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{create sparse tree with matching tags}{C-c \\}
 \key{globally (agenda) match tags at cursor}{C-c C-o}
 
+\section{Properties and Column View}
+
+\key{special commands in property lines}{C-c C-c}
+\key{next/previous allowed value}{S-left/right}
+\key{turn on column view}{C-c C-x C-c}
+
+\key{quit column view}{q}
+\key{next/previous allowed value}{S-left/right}
+\key{next/previous allowed value}{n / p}
+\key{edit value}{e}
+\key{edit allowed values list}{a}
+\key{show value}{v}
+\key{make column wider/narrower}{> / <}
+\key{move column left/right}{M-left/right}
+\key{add new column}{M-S-right}
+\key{Delete current column}{M-S-left}
+
+
 \section{Timestamps}
 
 \key{prompt for date and insert timestamp}{C-c .}
@@ -562,6 +584,8 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 %\key{... forward/backward one month}{M-S-LEFT/RIGT}
 \key{Toggle custom format display for dates/times}{C-c C-x C-t}
 
+\newcolumn
+
 {\bf Clocking time}
 
 \key{start clock on current item}{C-c C-x C-i}
@@ -570,12 +594,6 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{display total subtree times}{C-c C-x C-d}
 \key{remove displayed times}{C-c C-c}
 \key{insert/update table with clock report}{C-c C-x C-r}
-
-\section{LaTeX and cdlatex-mode}
-
-\key{preview LaTeX fragment}{C-c C-x C-l}
-\key{Expand abbreviation (cdlatex-mode)}{TAB}
-\key{Insert/modify math symbol (cdlatex-mode)}{` / '}
 
 \section{Agenda Views}
 
@@ -617,7 +635,7 @@ To set categories, add lines like$^2$:
 {\bf Change display}
 
 \key{delete other windows}{o}
-\key{switch to daily / weekly view}{d / w}
+\key{switch to day/week/month/year view}{d w m y}
 \key{toggle inclusion of diary entries}{D}
 \key{toggle time grid for daily schedule}{g}
 \key{toggle display of logbook entries}{l}
@@ -644,6 +662,7 @@ To set categories, add lines like$^2$:
 \key{change timestamp to today}{>}
 \key{insert new entry into diary}{i}
 
+\newcolumn
 \key{start the clock on current item (clock-in)}{I}
 \key{stop the clock (clock-out)}{O}
 \key{cancel current clock}{X}
@@ -652,7 +671,6 @@ To set categories, add lines like$^2$:
 
 \key{Open link in current line}{C-c C-o}
 
-\newcolumn
 {\bf Calendar commands}
 
 \key{find agenda cursor date in calendar}{c}
@@ -674,6 +692,12 @@ Include Emacs diary entries into Org-mode agenda with:
 (setq org-agenda-include-diary t)
 \endexample
 
+\section{LaTeX and cdlatex-mode}
+
+\key{preview LaTeX fragment}{C-c C-x C-l}
+\key{Expand abbreviation (cdlatex-mode)}{TAB}
+\key{Insert/modify math symbol (cdlatex-mode)}{` / '}
+
 \section{Exporting and Publishing}
 
 Exporting creates files with extensions {\it .txt\/} and {\it .html\/}
@@ -686,17 +710,17 @@ some other place.
 \key{insert template of export options}{C-c C-x t}
 \key{toggle fixed width for entry or region}{C-c :}
 
-{\bf HTML formatting}
+%{\bf HTML formatting}
 
-\key{make words {\bf bold}}{*bold*}
-\key{make words {\it italic}}{/italic/}
-\key{make words \underbar{underlined}}{_underlined_}
-\key{sub- and superscripts}{x\^{}3, J_dust}
-\key{\TeX{}-like macros}{\\alpha, \\to}
-\key{typeset lines in fixed width font}{start with :}
-\key{tables are exported as HTML tables}{start with |}
-\key{links become HTML links}{http:... etc}
-\key{include html tags}{@<b>...@</b>}
+%\key{make words {\bf bold}}{*bold*}
+%\key{make words {\it italic}}{/italic/}
+%\key{make words \underbar{underlined}}{_underlined_}
+%\key{sub- and superscripts}{x\^{}3, J_dust}
+%\key{\TeX{}-like macros}{\\alpha, \\to}
+%\key{typeset lines in fixed width font}{start with :}
+%\key{tables are exported as HTML tables}{start with |}
+%\key{links become HTML links}{http:... etc}
+%\key{include html tags}{@<b>...@</b>}
 
 %{\bf Export options}
 %

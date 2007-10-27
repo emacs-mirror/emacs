@@ -1765,7 +1765,7 @@ static char *magick[] = {
 
 (defface breakpoint-enabled
   '((t
-     :foreground "red"
+     :foreground "red1"
      :weight bold))
   "Face for enabled breakpoint icon in fringe."
   :group 'gud)

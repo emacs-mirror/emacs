@@ -58,8 +58,8 @@
 (defvar cl-optimize-speed)
 
 
-;;; This kludge allows macros which use cl-transform-function-property
-;;; to be called at compile-time.
+;; This kludge allows macros which use cl-transform-function-property
+;; to be called at compile-time.
 
 (require
  (progn
@@ -75,6 +75,7 @@
 
 (defvar cl-old-bc-file-form nil)
 
+;;;###autoload
 (defun cl-compile-time-init ()
   (run-hooks 'cl-hack-bytecomp-hook))
 
@@ -165,6 +166,7 @@
 ;;; Symbols.
 
 (defvar *gensym-counter*)
+;;;###autoload
 (defun gensym (&optional prefix)
   "Generate a new uninterned symbol.
 The name is made by appending a number to PREFIX, default \"G\"."
@@ -174,6 +176,7 @@ The name is made by appending a number to PREFIX, default \"G\"."
 		 (setq *gensym-counter* (1+ *gensym-counter*))))))
     (make-symbol (format "%s%d" pfix num))))
 
+;;;###autoload
 (defun gentemp (&optional prefix)
   "Generate a new interned symbol with a unique name.
 The name is made by appending a number to PREFIX, default \"G\"."
@@ -186,6 +189,7 @@ The name is made by appending a number to PREFIX, default \"G\"."
 
 ;;; Program structure.
 
+;;;###autoload
 (defmacro defun* (name args &rest body)
   "Define NAME as a function.
 Like normal `defun', except ARGLIST allows full Common Lisp conventions,
@@ -196,6 +200,7 @@ and BODY is implicitly surrounded by (block NAME ...).
 	 (form (list* 'defun name (cdr res))))
     (if (car res) (list 'progn (car res) form) form)))
 
+;;;###autoload
 (defmacro defmacro* (name args &rest body)
   "Define NAME as a macro.
 Like normal `defmacro', except ARGLIST allows full Common Lisp conventions,
@@ -206,6 +211,7 @@ and BODY is implicitly surrounded by (block NAME ...).
 	 (form (list* 'defmacro name (cdr res))))
     (if (car res) (list 'progn (car res) form) form)))
 
+;;;###autoload
 (defmacro function* (func)
   "Introduce a function.
 Like normal `function', except that if argument is a lambda form,
@@ -422,6 +428,7 @@ its argument list allows full Common Lisp conventions."
 	    (setq res (nconc res (cl-arglist-args arg))))))
       (nconc res (and args (list args))))))
 
+;;;###autoload
 (defmacro destructuring-bind (args expr &rest body)
   (let* ((bind-lets nil) (bind-forms nil) (bind-inits nil)
 	 (bind-defs nil) (bind-block 'cl-none))
@@ -435,6 +442,7 @@ its argument list allows full Common Lisp conventions."
 
 (defvar cl-not-toplevel nil)
 
+;;;###autoload
 (defmacro eval-when (when &rest body)
   "Control when BODY is evaluated.
 If `compile' is in WHEN, BODY is evaluated when compiled at top-level.
@@ -466,6 +474,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 	     form)))
 	(t (eval form) form)))
 
+;;;###autoload
 (defmacro load-time-value (form &optional read-only)
   "Like `progn', but evaluates the body at load time.
 The result of the body appears to the compiler as a quoted constant."
@@ -488,6 +497,7 @@ The result of the body appears to the compiler as a quoted constant."
 
 ;;; Conditional control structures.
 
+;;;###autoload
 (defmacro case (expr &rest clauses)
   "Eval EXPR and choose among clauses on that value.
 Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and compared
@@ -522,12 +532,14 @@ Key values are compared by `eql'.
     (if (eq temp expr) body
       (list 'let (list (list temp expr)) body))))
 
+;;;###autoload
 (defmacro ecase (expr &rest clauses)
   "Like `case', but error if no case fits.
 `otherwise'-clauses are not allowed.
 \n(fn EXPR (KEYLIST BODY...)...)"
   (list* 'case expr (append clauses '((ecase-error-flag)))))
 
+;;;###autoload
 (defmacro typecase (expr &rest clauses)
   "Evals EXPR, chooses among clauses on that value.
 Each clause looks like (TYPE BODY...).  EXPR is evaluated and, if it
@@ -554,6 +566,7 @@ final clause, and matches if no other keys match.
     (if (eq temp expr) body
       (list 'let (list (list temp expr)) body))))
 
+;;;###autoload
 (defmacro etypecase (expr &rest clauses)
   "Like `typecase', but error if no case fits.
 `otherwise'-clauses are not allowed.
@@ -563,6 +576,7 @@ final clause, and matches if no other keys match.
 
 ;;; Blocks and exits.
 
+;;;###autoload
 (defmacro block (name &rest body)
   "Define a lexically-scoped block named NAME.
 NAME may be any symbol.  Code inside the BODY forms can call `return-from'
@@ -598,11 +612,13 @@ called from BODY."
     (if cl-found (setcdr cl-found t)))
   (byte-compile-normal-call (cons 'throw (cdr cl-form))))
 
+;;;###autoload
 (defmacro return (&optional result)
   "Return from the block named nil.
 This is equivalent to `(return-from nil RESULT)'."
   (list 'return-from nil result))
 
+;;;###autoload
 (defmacro return-from (name &optional result)
   "Return from the block named NAME.
 This jump out to the innermost enclosing `(block NAME ...)' form,
@@ -622,6 +638,7 @@ This is compatible with Common Lisp, but note that `defun' and
 (defvar loop-result) (defvar loop-result-explicit)
 (defvar loop-result-var) (defvar loop-steps) (defvar loop-symbol-macs)
 
+;;;###autoload
 (defmacro loop (&rest args)
   "The Common Lisp `loop' macro.
 Valid clauses are:
@@ -1181,12 +1198,14 @@ Valid clauses are:
 
 ;;; Other iteration control structures.
 
+;;;###autoload
 (defmacro do (steps endtest &rest body)
   "The Common Lisp `do' loop.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (cl-expand-do-loop steps endtest body nil))
 
+;;;###autoload
 (defmacro do* (steps endtest &rest body)
   "The Common Lisp `do*' loop.
 
@@ -1214,6 +1233,7 @@ Valid clauses are:
 						 (apply 'append sets)))))))
 	       (or (cdr endtest) '(nil)))))
 
+;;;###autoload
 (defmacro dolist (spec &rest body)
   "Loop over a list.
 Evaluate BODY with VAR bound to each `car' from LIST, in turn.
@@ -1230,6 +1250,7 @@ Then evaluate RESULT to get return value, default nil.
 		     (cons (list 'setq (car spec) nil) (cdr (cdr spec)))
 		   '(nil))))))
 
+;;;###autoload
 (defmacro dotimes (spec &rest body)
   "Loop a certain number of times.
 Evaluate BODY with VAR bound to successive integers from 0, inclusive,
@@ -1244,6 +1265,7 @@ nil.
 			(append body (list (list 'incf (car spec)))))
 		 (or (cdr (cdr spec)) '(nil))))))
 
+;;;###autoload
 (defmacro do-symbols (spec &rest body)
   "Loop over all symbols.
 Evaluate BODY with VAR bound to each interned symbol, or to each symbol
@@ -1258,12 +1280,14 @@ from OBARRAY.
 		     (and (cadr spec) (list (cadr spec))))
 	      (caddr spec))))
 
+;;;###autoload
 (defmacro do-all-symbols (spec &rest body)
   (list* 'do-symbols (list (car spec) nil (cadr spec)) body))
 
 
 ;;; Assignments.
 
+;;;###autoload
 (defmacro psetq (&rest args)
   "Set SYMs to the values VALs in parallel.
 This is like `setq', except that all VAL forms are evaluated (in order)
@@ -1275,6 +1299,7 @@ before assigning any symbols SYM to the corresponding values.
 
 ;;; Binding control structures.
 
+;;;###autoload
 (defmacro progv (symbols values &rest body)
   "Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
@@ -1288,6 +1313,7 @@ a `let' form, except that the list of symbols can be computed at run-time."
 	      '(cl-progv-after))))
 
 ;;; This should really have some way to shadow 'byte-compile properties, etc.
+;;;###autoload
 (defmacro flet (bindings &rest body)
   "Make temporary function definitions.
 This is an analogue of `let' that operates on the function cell of FUNC
@@ -1315,6 +1341,7 @@ go back to their previous definitions, or lack thereof).
 	  bindings)
 	 body))
 
+;;;###autoload
 (defmacro labels (bindings &rest body)
   "Make temporary function bindings.
 This is like `flet', except the bindings are lexical instead of dynamic.
@@ -1339,6 +1366,7 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 
 ;; The following ought to have a better definition for use with newer
 ;; byte compilers.
+;;;###autoload
 (defmacro macrolet (bindings &rest body)
   "Make temporary macro definitions.
 This is like `flet', but for macros instead of functions.
@@ -1355,6 +1383,7 @@ This is like `flet', but for macros instead of functions.
 			    (cons (list* name 'lambda (cdr res))
 				  cl-macro-environment))))))
 
+;;;###autoload
 (defmacro symbol-macrolet (bindings &rest body)
   "Make symbol macro definitions.
 Within the body FORMs, references to the variable NAME will be replaced
@@ -1371,6 +1400,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 				cl-macro-environment)))))
 
 (defvar cl-closure-vars nil)
+;;;###autoload
 (defmacro lexical-let (bindings &rest body)
   "Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
@@ -1414,6 +1444,7 @@ lexical closures as in Common Lisp.
 			   vars))
 	    ebody))))
 
+;;;###autoload
 (defmacro lexical-let* (bindings &rest body)
   "Like `let*', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
@@ -1434,6 +1465,7 @@ lexical closures as in Common Lisp.
 
 ;;; Multiple values.
 
+;;;###autoload
 (defmacro multiple-value-bind (vars form &rest body)
   "Collect multiple return values.
 FORM must return a list; the BODY is then executed with the first N elements
@@ -1451,6 +1483,7 @@ a synonym for (list A B C).
 			       vars))
 	   body)))
 
+;;;###autoload
 (defmacro multiple-value-setq (vars form)
   "Collect multiple return values.
 FORM must return a list; the first N elements of this list are stored in
@@ -1477,7 +1510,9 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
 ;;; Declarations.
 
+;;;###autoload
 (defmacro locally (&rest body) (cons 'progn body))
+;;;###autoload
 (defmacro the (type form) form)
 
 (defvar cl-proclaim-history t)    ; for future compilers
@@ -1532,6 +1567,7 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
   (while p (cl-do-proclaim (pop p) t))
   (setq cl-proclaims-deferred nil))
 
+;;;###autoload
 (defmacro declare (&rest specs)
   (if (cl-compiling-file)
       (while specs
@@ -1543,6 +1579,7 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
 ;;; Generalized variables.
 
+;;;###autoload
 (defmacro define-setf-method (func args &rest body)
   "Define a `setf' method.
 This method shows how to handle `setf's to places of the form (NAME ARGS...).
@@ -1561,8 +1598,9 @@ form.  See `defsetf' for a simpler way to define most setf-methods.
 		 func 'setf-method (cons args body)))))
 (defalias 'define-setf-expander 'define-setf-method)
 
+;;;###autoload
 (defmacro defsetf (func arg1 &rest args)
-  "(defsetf NAME FUNC): define a `setf' method.
+  "Define a `setf' method.
 This macro is an easy-to-use substitute for `define-setf-method' that works
 well for simple place forms.  In the simple `defsetf' form, `setf's of
 the form (setf (NAME ARGS...) VAL) are transformed to function or macro
@@ -1836,6 +1874,7 @@ Example:
 	  (list 'substring (nth 4 method) from-temp to-temp))))
 
 ;;; Getting and optimizing setf-methods.
+;;;###autoload
 (defun get-setf-method (place &optional env)
   "Return a list of five values describing the setf-method for PLACE.
 PLACE may be any Lisp form which can appear as the PLACE argument to
@@ -1903,6 +1942,7 @@ a macro like `setf' or `incf'."
        (not (eq (car-safe (symbol-function (car form))) 'macro))))
 
 ;;; The standard modify macros.
+;;;###autoload
 (defmacro setf (&rest args)
   "Set each PLACE to the value of its VAL.
 This is a generalized version of `setq'; the PLACEs may be symbolic
@@ -1921,6 +1961,7 @@ The return value is the last VAL in the list.
 	     (store (cl-setf-do-store (nth 1 method) (nth 1 args))))
 	(if (car method) (list 'let* (car method) store) store)))))
 
+;;;###autoload
 (defmacro psetf (&rest args)
   "Set PLACEs to the values VALs in parallel.
 This is like `setf', except that all VAL forms are evaluated (in order)
@@ -1944,6 +1985,7 @@ before assigning any PLACEs to the corresponding values.
 	  (setq expr (list 'setf (cadr args) (list 'prog1 (car args) expr))))
 	(list 'progn expr nil)))))
 
+;;;###autoload
 (defun cl-do-pop (place)
   (if (cl-simple-expr-p place)
       (list 'prog1 (list 'car place) (list 'setf place (list 'cdr place)))
@@ -1956,6 +1998,7 @@ before assigning any PLACEs to the corresponding values.
 		  (list 'car temp)
 		  (cl-setf-do-store (nth 1 method) (list 'cdr temp)))))))
 
+;;;###autoload
 (defmacro remf (place tag)
   "Remove TAG from property list PLACE.
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
@@ -1976,6 +2019,7 @@ The form returns true if TAG was found and removed, nil otherwise."
 		      t)
 		(list 'cl-do-remf tval ttag)))))
 
+;;;###autoload
 (defmacro shiftf (place &rest args)
   "Shift left among PLACEs.
 Example: (shiftf A B C) sets A to B, B to C, and returns the old A.
@@ -1991,6 +2035,7 @@ Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 	 (prog1 ,(nth 2 method)
 	   ,(cl-setf-do-store (nth 1 method) `(shiftf ,@args))))))))
 
+;;;###autoload
 (defmacro rotatef (&rest args)
   "Rotate left among PLACEs.
 Example: (rotatef A B C) sets A to B, B to C, and C to A.  It returns nil.
@@ -2016,6 +2061,7 @@ Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 	(list 'let* (append (car method) (list (list temp (nth 2 method))))
 	      (cl-setf-do-store (nth 1 method) form) nil)))))
 
+;;;###autoload
 (defmacro letf (bindings &rest body)
   "Temporarily bind to PLACEs.
 This is the analogue of `let', but with generalized variables (in the
@@ -2072,6 +2118,7 @@ the PLACE is not modified before executing BODY.
 		rev (cdr rev))))
       (list* 'let* lets body))))
 
+;;;###autoload
 (defmacro letf* (bindings &rest body)
   "Temporarily bind to PLACEs.
 This is the analogue of `let*', but with generalized variables (in the
@@ -2090,6 +2137,7 @@ the PLACE is not modified before executing BODY.
       (setq body (list (list* 'letf (list (pop bindings)) body))))
     (car body)))
 
+;;;###autoload
 (defmacro callf (func place &rest args)
   "Set PLACE to (FUNC PLACE ARGS...).
 FUNC should be an unquoted function name.  PLACE may be a symbol,
@@ -2104,6 +2152,7 @@ or any generalized variable allowed by `setf'.
 			      (list* 'funcall (list 'function func)
 				     rargs))))))
 
+;;;###autoload
 (defmacro callf2 (func arg1 place &rest args)
   "Set PLACE to (FUNC ARG1 PLACE ARGS...).
 Like `callf', but PLACE is the second argument of FUNC, not the first.
@@ -2120,6 +2169,7 @@ Like `callf', but PLACE is the second argument of FUNC, not the first.
 				(list* 'funcall (list 'function func)
 				       rargs)))))))
 
+;;;###autoload
 (defmacro define-modify-macro (name arglist func &optional doc)
   "Define a `setf'-like modify macro.
 If NAME is called, it combines its PLACE argument with the other arguments
@@ -2134,6 +2184,7 @@ from ARGLIST using FUNC: (define-modify-macro incf (&optional (n 1)) +)"
 
 ;;; Structures.
 
+;;;###autoload
 (defmacro defstruct (struct &rest descs)
   "Define a struct type.
 This macro defines a new Lisp data type called NAME, which contains data
@@ -2358,6 +2409,7 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 	     forms)
     (cons 'progn (nreverse (cons (list 'quote name) forms)))))
 
+;;;###autoload
 (defun cl-struct-setf-expander (x name accessor pred-form pos)
   (let* ((temp (make-symbol "--cl-x--")) (store (make-symbol "--cl-store--")))
     (list (list temp) (list x) (list store)
@@ -2426,11 +2478,13 @@ The type name can then be used in `typecase', `check-type', etc."
 	  ((eq (car type) 'satisfies) (list (cadr type) val))
 	  (t (error "Bad type spec: %s" type)))))
 
+;;;###autoload
 (defun typep (object type)   ; See compiler macro below.
   "Check that OBJECT is of type TYPE.
 TYPE is a Common Lisp-style type specifier."
   (eval (cl-make-type-test 'object type)))
 
+;;;###autoload
 (defmacro check-type (form type &optional string)
   "Verify that FORM is of type TYPE; signal an error if not.
 STRING is an optional description of the desired type."
@@ -2445,6 +2499,7 @@ STRING is an optional description of the desired type."
 	 (if (eq temp form) (list 'progn body nil)
 	   (list 'let (list (list temp form)) body nil)))))
 
+;;;###autoload
 (defmacro assert (form &optional show-args string &rest args)
   "Verify that FORM returns non-nil; signal an error if not.
 Second arg SHOW-ARGS means to include arguments of FORM in message.
@@ -2466,6 +2521,7 @@ omitted, a default message listing FORM itself is used."
 			     (list* 'list (list 'quote form) sargs))))
 	       nil))))
 
+;;;###autoload
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
 Otherwise, return result of last form in BODY."
@@ -2474,6 +2530,7 @@ Otherwise, return result of last form in BODY."
 
 ;;; Compiler macros.
 
+;;;###autoload
 (defmacro define-compiler-macro (func args &rest body)
   "Define a compiler-only macro.
 This is like `defmacro', but macro expansion occurs only if the call to
@@ -2497,6 +2554,7 @@ and then returning foo."
 	      (list 'put (list 'quote func) '(quote byte-compile)
 		    '(quote cl-byte-compile-compiler-macro)))))
 
+;;;###autoload
 (defun compiler-macroexpand (form)
   (while
       (let ((func (car-safe form)) (handler nil))
@@ -2552,9 +2610,9 @@ surrounded by (block NAME ...).
       (if lets (list 'let lets body) body))))
 
 
-;;; Compile-time optimizations for some functions defined in this package.
-;;; Note that cl.el arranges to force cl-macs to be loaded at compile-time,
-;;; mainly to make sure these macros will be present.
+;; Compile-time optimizations for some functions defined in this package.
+;; Note that cl.el arranges to force cl-macs to be loaded at compile-time,
+;; mainly to make sure these macros will be present.
 
 (put 'eql 'byte-compile nil)
 (define-compiler-macro eql (&whole form a b)
@@ -2665,9 +2723,10 @@ surrounded by (block NAME ...).
 
 (run-hooks 'cl-macs-load-hook)
 
-;;; Local variables:
-;;; byte-compile-warnings: (redefine callargs free-vars unresolved obsolete noruntime)
-;;; End:
+;; Local variables:
+;; byte-compile-warnings: (redefine callargs free-vars unresolved obsolete noruntime)
+;; generated-autoload-file: "cl-loaddefs.el"
+;; End:
 
 ;; arch-tag: afd947a6-b553-4df1-bba5-000be6388f46
 ;;; cl-macs.el ends here

@@ -172,12 +172,79 @@ overwrite a non-system abbreviation of the same name.  */)
   return name;
 }
 
+/* Check if the characters in ABBREV have word syntax in either the
+ * current (if global == 0) or standard syntax table. */
+static void
+abbrev_check_chars (abbrev, global)
+     Lisp_Object abbrev;
+     int global;
+{
+  int i, i_byte, len, nbad = 0;
+  int j, found, nuniq = 0;
+  char *badchars, *baduniq;
+
+  CHECK_STRING (abbrev);
+  len = SCHARS (abbrev);
+
+  badchars = (char *) alloca (len + 1);
+
+  for (i = 0, i_byte = 0; i < len; )
+    {
+      int c;
+
+      FETCH_STRING_CHAR_ADVANCE (c, abbrev, i, i_byte);
+
+      if (global)
+        {
+          /* Copied from SYNTAX in syntax.h, except using FOLLOW_PARENT. */
+          Lisp_Object syntax_temp
+            = SYNTAX_ENTRY_FOLLOW_PARENT (Vstandard_syntax_table, c);
+          if ( (CONSP (syntax_temp)
+                ? (enum syntaxcode) (XINT (XCAR (syntax_temp)) & 0xff)
+                : Swhitespace) != Sword ) badchars[nbad++] = c;
+        }
+      else if (SYNTAX (c) != Sword)
+        badchars[nbad++] = c;
+    }
+
+  if (nbad == 0) return;
+
+  baduniq = (char *) alloca (nbad + 1);
+
+  for (i = 0; i < nbad; i++)
+    {
+      found = 0;
+
+      for (j = 0; j < nuniq; j++)
+        {
+          if (badchars[i] == baduniq[j])
+            {
+              found = 1;
+              break;
+            }
+        }
+
+      if (found) continue ;
+
+      baduniq[nuniq++] = badchars[i];
+    }
+
+  baduniq[nuniq] = '\0';
+
+  error ("Some abbrev characters (%s) are not word constituents %s",
+         baduniq, global ? "in the standard syntax" : "in this mode" );
+}
+
 DEFUN ("define-global-abbrev", Fdefine_global_abbrev, Sdefine_global_abbrev, 2, 2,
        "sDefine global abbrev: \nsExpansion for %s: ",
-       doc: /* Define ABBREV as a global abbreviation for EXPANSION.  */)
+       doc: /* Define ABBREV as a global abbreviation for EXPANSION.
+The characters in ABBREV must all be word constituents in the standard
+syntax table.  */)
      (abbrev, expansion)
      Lisp_Object abbrev, expansion;
 {
+  abbrev_check_chars (abbrev, 1);
+
   Fdefine_abbrev (Vglobal_abbrev_table, Fdowncase (abbrev),
 		  expansion, Qnil, make_number (0), Qnil);
   return abbrev;
@@ -185,12 +252,15 @@ DEFUN ("define-global-abbrev", Fdefine_global_abbrev, Sdefine_global_abbrev, 2, 
 
 DEFUN ("define-mode-abbrev", Fdefine_mode_abbrev, Sdefine_mode_abbrev, 2, 2,
        "sDefine mode abbrev: \nsExpansion for %s: ",
-       doc: /* Define ABBREV as a mode-specific abbreviation for EXPANSION.  */)
+       doc: /* Define ABBREV as a mode-specific abbreviation for EXPANSION.
+The characters in ABBREV must all be word-constituents in the current mode.  */)
      (abbrev, expansion)
      Lisp_Object abbrev, expansion;
 {
   if (NILP (current_buffer->abbrev_table))
     error ("Major mode has no abbrev table");
+
+  abbrev_check_chars (abbrev, 0);
 
   Fdefine_abbrev (current_buffer->abbrev_table, Fdowncase (abbrev),
 		  expansion, Qnil, make_number (0), Qnil);

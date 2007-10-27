@@ -400,7 +400,37 @@
     ;; Do it!
     (xterm-register-default-colors)
     ;; This recomputes all the default faces given the colors we've just set up.
-    (tty-set-up-initial-frame-faces)))
+    (tty-set-up-initial-frame-faces)
+
+    ;; Try to turn on the modifyOtherKeys feature on modern xterms.
+    ;; When it is turned on much more key bindings work: things like
+    ;; C-. C-, etc.
+    ;; To do that we need to find out if the current terminal supports
+    ;; modifyOtherKeys. At this time only xterm does.
+    (let ((coding-system-for-read 'binary)
+	  (chr nil)
+	  (str nil))
+      ;; Try to find out the type of terminal by sending a "Secondary
+      ;; Device Attributes (DA)" query.
+      (send-string-to-terminal "\e[>0c")
+
+      ;; The reply should be of the form: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
+      (when (equal (read-event nil nil 0.1) ?\e)
+	(when (equal (read-event nil nil 0.1) ?\[)
+	  (while (not (equal (setq chr (read-event nil nil 0.1)) ?c))
+	    (setq str (concat str (string chr))))
+	  (when (string-match ">0;\\([0-9]+\\);0" str)
+	    ;; NUMBER2 is the xterm version number, look for something
+	    ;; greater than 216, the version when modifyOtherKeys was
+	    ;; introduced.
+	    (when (>= (string-to-number 
+		       (substring str (match-beginning 1) (match-end 1))) 216)
+	      ;; Make sure that the modifyOtherKeys state is restored when
+	      ;; suspending, resuming and exiting.
+	      (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
+	      (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
+	      (add-hook 'kill-emacs-hook 'xterm-turn-off-modify-other-keys)
+	      (xterm-turn-on-modify-other-keys))))))))
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors
@@ -517,6 +547,14 @@ versions of xterm."
     ;; Modifying color mappings means realized faces don't use the
     ;; right colors, so clear them.
     (clear-face-cache)))
+
+(defun xterm-turn-on-modify-other-keys ()
+  "Turn on the modifyOtherKeys feature of xterm."
+  (send-string-to-terminal "\e[>4;1m"))
+
+(defun xterm-turn-off-modify-other-keys ()
+  "Turn off the modifyOtherKeys feature of xterm."
+  (send-string-to-terminal "\e[>4m"))
 
 ;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here

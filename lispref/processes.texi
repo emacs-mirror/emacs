@@ -495,6 +495,23 @@ Process my-process finished
 @end smallexample
 @end defun
 
+@defun start-file-process name buffer-or-name program &rest args
+Like @code{start-process}, this function starts a new asynchronous
+subprocess running @var{program} in it.  The corresponding process
+object is returned.
+
+If @code{default-directory} corresponds to a file handler, that
+handler is invoked.  @var{program} runs then on a remote host which is
+identified by @code{default-directory}.  The local part of
+@code{default-directory} is the working directory of the subprocess.
+
+@var{program} and @var{program-args} might be file names.  They are not
+objects of file handler invocation.
+
+Some file handlers may not support @code{start-file-process} (for
+example @code{ange-ftp-hook-function}).  It returns then @code{nil}.
+@end defun
+
 @defun start-process-shell-command name buffer-or-name command &rest command-args
 This function is like @code{start-process} except that it uses a shell
 to execute the specified command.  The argument @var{command} is a shell
@@ -1309,7 +1326,7 @@ latter specifies one measured in milliseconds.  The two time periods
 thus specified are added together, and @code{accept-process-output}
 returns after that much time, whether or not there has been any
 subprocess output.
-  
+
 The argument @var{millisec} is semi-obsolete nowadays because
 @var{seconds} can be a floating point number to specify waiting a
 fractional number of seconds.  If @var{seconds} is 0, the function

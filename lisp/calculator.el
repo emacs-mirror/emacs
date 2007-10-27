@@ -278,7 +278,7 @@ Examples:
     ("IC" acos (D (acos X))    x  6)
     ("IT" atan (D (atan X))    x  6)
     ("Q"  sqrt sqrt            x  7)
-    ("^"  ^    expt            2  7)
+    ("^"  ^    calculator-expt 2  7)
     ("!"  !    calculator-fact x  7)
     (";"  1/   (/ 1 X)         1  7)
     ("_"  -    -               1  8)
@@ -596,7 +596,8 @@ specified, then it is fixed, otherwise it depends on this variable).
 `+' and `-' can be used as either binary operators or prefix unary
 operators.  Numbers can be entered with exponential notation using `e',
 except when using a non-decimal radix mode for input (in this case `e'
-will be the hexadecimal digit).
+will be the hexadecimal digit).  If the result of a calculation is too
+large (out of range for Emacs), the value of \"inf\" is returned.
 
 Here are the editing keys:
 * `RET' `='      evaluate the current expression
@@ -1779,13 +1780,57 @@ To use this, apply a binary operator (evaluate it), then call this."
        (car calculator-last-opXY) (nth 1 calculator-last-opXY) x))
     x))
 
+(defun calculator-integer-p (x)
+  "Non-nil if X is equal to an integer."
+  (condition-case nil
+      (= x (ftruncate x))
+    (error nil)))
+
+(defun calculator-expt (x y)
+  "Compute X^Y, dealing with errors appropriately."
+  (condition-case
+      nil
+      (expt x y)
+    (domain-error 0.0e+NaN)
+    (range-error
+     (cond
+      ((and (< x 1.0) (> x -1.0))
+       ;; For small x, the range error comes from large y.
+       0.0)
+      ((and (> x 0.0) (< y 0.0))
+       ;; For large positive x and negative y, the range error 
+       ;; comes from large negative y.
+       0.0)
+      ((and (> x 0.0) (> y 0.0))
+       ;; For large positive x and positive y, the range error 
+       ;; comes from large y.
+       1.0e+INF)
+      ;; For the rest, x must be large and negative.
+      ;; The range errors come from large integer y.
+      ((< y 0.0)
+       0.0)
+      ((oddp (truncate y))
+       ;; If y is odd
+       -1.0e+INF)
+      (t
+       ;; 
+       1.0e+INF)))
+    (error 0.0e+NaN)))
+
 (defun calculator-fact (x)
   "Simple factorial of X."
-  (let ((r (if (<= x 10) 1 1.0)))
-    (while (> x 0)
-      (setq r (* r (truncate x)))
-      (setq x (1- x)))
-    (+ 0.0 r)))
+  (if (and (>= x 0)
+           (calculator-integer-p x))
+      (if (= (calculator-expt (/ x 3.0) x) 1.0e+INF)
+          1.0e+INF
+        (let ((r (if (<= x 10) 1 1.0)))
+          (while (> x 0)
+            (setq r (* r (truncate x)))
+            (setq x (1- x)))
+          (+ 0.0 r)))
+    (if (= x 1.0e+INF)
+        x
+      0.0e+NaN)))
 
 (defun calculator-truncate (n)
   "Truncate N, return 0 in case of overflow."

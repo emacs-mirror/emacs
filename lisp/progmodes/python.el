@@ -996,7 +996,16 @@ don't move and return nil.  Otherwise return t."
 			  (throw 'done t)))))))
       (setq arg (1- arg)))
     (zerop arg)))
-
+
+(defvar python-which-func-length-limit 40
+  "Non-strict length limit for `python-which-func' output.")
+
+(defun python-which-func ()
+  (let ((function-name (python-current-defun python-which-func-length-limit)))
+    (set-text-properties 0 (length function-name) nil function-name)
+    function-name))
+
+ 
 ;;;; Imenu.
 
 (defvar python-recursing)
@@ -1814,22 +1823,30 @@ of current line."
   (1+ (/ (current-indentation) python-indent)))
 
 ;; Fixme: Consider top-level assignments, imports, &c.
-(defun python-current-defun ()
+(defun python-current-defun (&optional length-limit)
   "`add-log-current-defun-function' for Python."
   (save-excursion
     ;; Move up the tree of nested `class' and `def' blocks until we
     ;; get to zero indentation, accumulating the defined names.
     (let ((start t)
-	  accum)
-      (while (or start (> (current-indentation) 0))
+	  (accum)
+	  (length -1))
+      (while (and (or start (> (current-indentation) 0))
+		  (or (null length-limit)
+		      (null (cdr accum))
+		      (< length length-limit)))
 	(setq start nil)
 	(python-beginning-of-block)
 	(end-of-line)
 	(beginning-of-defun)
-	(if (looking-at (rx (0+ space) (or "def" "class") (1+ space)
-			    (group (1+ (or word (syntax symbol))))))
-	    (push (match-string 1) accum)))
-      (if accum (mapconcat 'identity accum ".")))))
+	(when (looking-at (rx (0+ space) (or "def" "class") (1+ space)
+			      (group (1+ (or word (syntax symbol))))))
+	  (push (match-string 1) accum)
+	  (setq length (+ length 1 (length (car accum))))))
+      (when accum
+	(when (and length-limit (> length length-limit))
+	  (setcar accum ".."))
+	(mapconcat 'identity accum ".")))))
 
 (defun python-mark-block ()
   "Mark the block around point.
@@ -2248,6 +2265,7 @@ with skeleton expansions for compound statement templates.
   (set (make-local-variable 'beginning-of-defun-function)
        'python-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 'python-end-of-defun)
+  (add-hook 'which-func-functions 'python-which-func nil t)
   (setq imenu-create-index-function #'python-imenu-create-index)
   (set (make-local-variable 'eldoc-documentation-function)
        #'python-eldoc-function)
