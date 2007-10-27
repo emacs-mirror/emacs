@@ -6,11 +6,11 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.9.1
+;; Version: 6.9.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst pr-version "6.9.1"
-  "printing.el, v 6.9.1 <2007/08/02 vinicius>
+(defconst pr-version "6.9.2"
+  "printing.el, v 6.9.2 <2007/10/26 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1093,39 +1093,544 @@ If SUFFIX is non-nil, add that at the end of the file name."
 	  (set-default-file-modes umask)))))
 
 
+(eval-when-compile
+  ;; User Interface --- declared here to avoid compiler warnings
+  (defvar pr-path-style)
+  (defvar pr-auto-region)
+  (defvar pr-menu-char-height)
+  (defvar pr-menu-char-width)
+  (defvar pr-menu-lock)
+  (defvar pr-ps-printer-alist)
+  (defvar pr-txt-printer-alist)
+  (defvar pr-ps-utility-alist)
+
+
+  ;; Internal fun alias to avoid compilation gripes
+  (defalias 'pr-menu-lookup            'ignore)
+  (defalias 'pr-menu-lock              'ignore)
+  (defalias 'pr-menu-alist             'ignore)
+  (defalias 'pr-even-or-odd-pages      'ignore)
+  (defalias 'pr-menu-get-item          'ignore)
+  (defalias 'pr-menu-set-item-name     'ignore)
+  (defalias 'pr-menu-set-utility-title 'ignore)
+  (defalias 'pr-menu-set-ps-title      'ignore)
+  (defalias 'pr-menu-set-txt-title     'ignore)
+  (defalias 'pr-region-active-p        'ignore)
+  (defalias 'pr-do-update-menus        'ignore)
+  (defalias 'pr-update-mode-line       'ignore)
+  (defalias 'pr-f-read-string          'ignore)
+  (defalias 'pr-f-set-keymap-parents   'ignore)
+  (defalias 'pr-keep-region-active     'ignore))
+
+
+;; Internal Vars --- defined here to avoid compiler warnings
+(defvar pr-menu-print-item "print"
+  "Non-nil means that menu binding was not done.
+
+Used by `pr-menu-bind' and `pr-update-menus'.")
+
+(defvar pr-ps-printer-menu-modified  t
+  "Non-nil means `pr-ps-printer-alist' was modified and we need to update menu.")
+
+(defvar pr-txt-printer-menu-modified t
+  "Non-nil means `pr-txt-printer-alist' was modified and we need to update menu.")
+
+(defvar pr-ps-utility-menu-modified t
+  "Non-nil means `pr-ps-utility-alist' was modified and we need to update menu.")
+
+(defconst pr-even-or-odd-alist
+  '((nil        . "Print All Pages")
+    (even-page  . "Print Even Pages")
+    (odd-page   . "Print Odd Pages")
+    (even-sheet . "Print Even Sheets")
+    (odd-sheet  . "Print Odd Sheets")))
+
 
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; XEmacs Definitions
+
+
+(cond
+ ((featurep 'xemacs)			; XEmacs
+  ;; XEmacs
+  (defalias 'pr-f-set-keymap-parents 'set-keymap-parents)
+  (defalias 'pr-f-set-keymap-name    'set-keymap-name)
+
+  ;; XEmacs
+  (defun pr-f-read-string (prompt initial history default)
+    (let ((str (read-string prompt initial)))
+      (if (and str (not (string= str "")))
+	  str
+	default)))
+
+  ;; XEmacs
+  (defvar zmacs-region-stays  nil)
+
+  ;; XEmacs
+  (defun pr-keep-region-active ()
+    (setq zmacs-region-stays t))
+
+  ;; XEmacs
+  (defun pr-region-active-p ()
+    (and pr-auto-region (not zmacs-region-stays) (ps-mark-active-p)))
+
+  ;; XEmacs
+  (defun pr-menu-char-height ()
+    (font-height (face-font 'default)))
+
+  ;; XEmacs
+  (defun pr-menu-char-width ()
+    (font-width (face-font 'default)))
+
+  ;; XEmacs
+  (defmacro pr-xemacs-global-menubar (&rest body)
+    `(save-excursion
+       (let ((temp (get-buffer-create (make-temp-name " *Temp"))))
+	 ;; be sure to access global menubar
+	 (set-buffer temp)
+	 ,@body
+	 (kill-buffer temp))))
+
+  ;; XEmacs
+  (defun pr-global-menubar (pr-menu-spec)
+    ;; Menu binding
+    (pr-xemacs-global-menubar
+     (add-submenu nil (cons "Printing" pr-menu-spec) "Apps"))
+    (setq pr-menu-print-item nil))
+
+  ;; XEmacs
+  (defvar current-mouse-event nil)
+  (defun pr-menu-position (entry index horizontal)
+    (make-event
+     'button-release
+     (list 'button 1
+	   'x (- (event-x-pixel current-mouse-event) ; X
+		 (* horizontal pr-menu-char-width))
+	   'y (- (event-y-pixel current-mouse-event) ; Y
+		 (* (pr-menu-index entry index) pr-menu-char-height)))))
+
+  (defvar pr-menu-position nil)
+  (defvar pr-menu-state nil)
+
+  ;; XEmacs
+  (defvar current-menubar nil)		; to avoid compilation gripes
+  (defun pr-menu-lookup (path)
+    (car (find-menu-item current-menubar (cons "Printing" path))))
+
+  ;; XEmacs
+  (defun pr-menu-lock (entry index horizontal state path)
+    (when pr-menu-lock
+      (or (and pr-menu-position (eq state pr-menu-state))
+	  (setq pr-menu-position (pr-menu-position entry index horizontal)
+		pr-menu-state    state))
+      (let* ((menu   (pr-menu-lookup path))
+	     (result (get-popup-menu-response menu pr-menu-position)))
+	(and (misc-user-event-p result)
+	     (funcall (event-function result)
+		      (event-object result))))
+      (setq pr-menu-position nil)))
+
+  ;; XEmacs
+  (defalias 'pr-update-mode-line 'set-menubar-dirty-flag)
+
+  ;; XEmacs
+  (defvar pr-ps-name-old     "PostScript Printers")
+  (defvar pr-txt-name-old    "Text Printers")
+  (defvar pr-ps-utility-old  "PostScript Utility")
+  (defvar pr-even-or-odd-old "Print All Pages")
+
+  ;; XEmacs
+  (defun pr-do-update-menus (&optional force)
+    (pr-menu-alist pr-ps-printer-alist
+		   'pr-ps-name
+		   'pr-menu-set-ps-title
+		   '("Printing")
+		   'pr-ps-printer-menu-modified
+		   force
+		   pr-ps-name-old
+		   'postscript 2)
+    (pr-menu-alist pr-txt-printer-alist
+		   'pr-txt-name
+		   'pr-menu-set-txt-title
+		   '("Printing")
+		   'pr-txt-printer-menu-modified
+		   force
+		   pr-txt-name-old
+		   'text 2)
+    (let ((save-var pr-ps-utility-menu-modified))
+      (pr-menu-alist pr-ps-utility-alist
+		     'pr-ps-utility
+		     'pr-menu-set-utility-title
+		     '("Printing" "PostScript Print" "File")
+		     'save-var
+		     force
+		     pr-ps-utility-old
+		     nil 1))
+    (pr-menu-alist pr-ps-utility-alist
+		   'pr-ps-utility
+		   'pr-menu-set-utility-title
+		   '("Printing" "PostScript Preview" "File")
+		   'pr-ps-utility-menu-modified
+		   force
+		   pr-ps-utility-old
+		   nil 1)
+    (pr-even-or-odd-pages ps-even-or-odd-pages force))
+
+  ;; XEmacs
+  (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
+			      entry index)
+    (when (and alist (or force (symbol-value modified-sym)))
+      (pr-xemacs-global-menubar
+       (add-submenu menu-path
+		    (pr-menu-create name alist var-sym
+				    fun entry index)))
+      (funcall fun (symbol-value var-sym))
+      (set modified-sym nil)))
+
+  ;; XEmacs
+  (defun pr-relabel-menu-item (newname var-sym)
+    (pr-xemacs-global-menubar
+     (relabel-menu-item
+      (list "Printing" (symbol-value var-sym))
+      newname)
+     (set var-sym newname)))
+
+  ;; XEmacs
+  (defun pr-menu-set-ps-title (value &optional item entry index)
+    (pr-relabel-menu-item (format "PostScript Printer: %s" value)
+			  'pr-ps-name-old)
+    (pr-ps-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
+
+  ;; XEmacs
+  (defun pr-menu-set-txt-title (value &optional item entry index)
+    (pr-relabel-menu-item (format "Text Printer: %s" value)
+			  'pr-txt-name-old)
+    (pr-txt-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
+
+  ;; XEmacs
+  (defun pr-menu-set-utility-title (value &optional item entry index)
+    (pr-xemacs-global-menubar
+     (let ((newname (format "%s" value)))
+       (relabel-menu-item
+	(list "Printing" "PostScript Print" "File" pr-ps-utility-old)
+	newname)
+       (relabel-menu-item
+	(list "Printing" "PostScript Preview" "File" pr-ps-utility-old)
+	newname)
+       (setq pr-ps-utility-old newname)))
+    (pr-ps-set-utility value)
+    (and index
+	 (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
+
+  ;; XEmacs
+  (defun pr-even-or-odd-pages (value &optional no-lock)
+    (pr-relabel-menu-item (cdr (assq value pr-even-or-odd-alist))
+			  'pr-even-or-odd-old)
+    (setq ps-even-or-odd-pages value)
+    (or no-lock
+	(pr-menu-lock 'postscript-options 8 12 'toggle nil)))
+
+  )
+ (t					; GNU Emacs
+  ;; Do nothing
+  ))					; end cond featurep
+
+
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; GNU Emacs Definitions
+
+
+(cond
+ ((featurep 'xemacs)			; XEmacs
+  ;; Do nothing
+  )
+ (t					; GNU Emacs
+  ;; GNU Emacs
+  (defalias 'pr-f-set-keymap-parents 'set-keymap-parent)
+  (defalias 'pr-f-set-keymap-name    'ignore)
+  (defalias 'pr-f-read-string        'read-string)
+
+  ;; GNU Emacs
+  (defvar deactivate-mark)
+
+  ;; GNU Emacs
+  (defun pr-keep-region-active ()
+    (setq deactivate-mark nil))
+
+  ;; GNU Emacs
+  (defun pr-region-active-p ()
+    (and pr-auto-region transient-mark-mode mark-active))
+
+  ;; GNU Emacs
+  (defun pr-menu-char-height ()
+    (frame-char-height))
+
+  ;; GNU Emacs
+  (defun pr-menu-char-width ()
+    (frame-char-width))
+
+  (defvar pr-menu-bar nil
+    "Specify Printing menu-bar entry.")
+
+  ;; GNU Emacs
+  ;; Menu binding
+  ;; Replace existing "print" item by "Printing" item.
+  ;; If you're changing this file, you'll load it a second,
+  ;; third... time, but "print" item exists only in the first load.
+  (eval-when-compile
+    (require 'easymenu))		; to avoid compilation gripes
+
+  (eval-and-compile
+    (cond
+     ;; GNU Emacs 20
+     ((< emacs-major-version 21)
+      (defun pr-global-menubar (pr-menu-spec)
+	(require 'easymenu)
+	(easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
+	(when pr-menu-print-item
+	  (easy-menu-remove-item nil '("tools") pr-menu-print-item)
+	  (setq pr-menu-print-item nil
+		pr-menu-bar (vector 'menu-bar 'tools
+				    (pr-get-symbol "Printing")))))
+      )
+     ;; GNU Emacs 21 & 22
+     (t
+      (defun pr-global-menubar (pr-menu-spec)
+	(require 'easymenu)
+	(let ((menu-file (if (= emacs-major-version 21)
+			     '("menu-bar" "files") ; GNU Emacs 21
+			   '("menu-bar" "file")))) ; GNU Emacs 22 or higher
+	  (cond
+	   (pr-menu-print-item
+	    (easy-menu-add-item global-map menu-file
+				(easy-menu-create-menu "Print" pr-menu-spec)
+				"print-buffer")
+	    (dolist (item '("print-buffer"          "print-region"
+			    "ps-print-buffer-faces" "ps-print-region-faces"
+			    "ps-print-buffer"       "ps-print-region"))
+	      (easy-menu-remove-item global-map menu-file item))
+	    (setq pr-menu-print-item nil
+		  pr-menu-bar (vector 'menu-bar
+				      (pr-get-symbol (nth 1 menu-file))
+				      (pr-get-symbol "Print"))))
+	   (t
+	    (easy-menu-add-item global-map menu-file
+				(easy-menu-create-menu "Print" pr-menu-spec)))
+	   )))
+      )))
+
+  (eval-and-compile
+    (cond
+     (ps-windows-system
+      ;; GNU Emacs for Windows 9x/NT
+      (defun pr-menu-position (entry index horizontal)
+	(let ((pos (cdr (mouse-pixel-position))))
+	  (list
+	   (list (or (car pos) 0)	; X
+		 (- (or (cdr pos) 0)	; Y
+		    (* (pr-menu-index entry index) pr-menu-char-height)))
+	   (selected-frame))))		; frame
+      )
+     (t
+      ;; GNU Emacs
+      (defun pr-menu-position (entry index horizontal)
+	(let ((pos (cdr (mouse-pixel-position))))
+	  (list
+	   (list (- (or (car pos) 0)	; X
+		    (* horizontal pr-menu-char-width))
+		 (- (or (cdr pos) 0)	; Y
+		    (* (pr-menu-index entry index) pr-menu-char-height)))
+	   (selected-frame))))		; frame
+      )))
+
+  (defvar pr-menu-position nil)
+  (defvar pr-menu-state nil)
+
+  ;; GNU Emacs
+  (defun pr-menu-lookup (path)
+    (lookup-key global-map
+		(if path
+		    (vconcat pr-menu-bar
+			     (mapcar 'pr-get-symbol
+				     (if (listp path)
+					 path
+				       (list path))))
+		  pr-menu-bar)))
+
+  ;; GNU Emacs
+  (defun pr-menu-lock (entry index horizontal state path)
+    (when pr-menu-lock
+      (or (and pr-menu-position (eq state pr-menu-state))
+	  (setq pr-menu-position (pr-menu-position entry index horizontal)
+		pr-menu-state    state))
+      (let* ((menu   (pr-menu-lookup path))
+	     (result (x-popup-menu pr-menu-position menu)))
+	(and result
+	     (let ((command (lookup-key menu (vconcat result))))
+	       (if (fboundp command)
+		   (funcall command)
+		 (eval command)))))
+      (setq pr-menu-position nil)))
+
+  ;; GNU Emacs
+  (defalias 'pr-update-mode-line 'force-mode-line-update)
+
+  ;; GNU Emacs
+  (defun pr-do-update-menus (&optional force)
+    (pr-menu-alist pr-ps-printer-alist
+		   'pr-ps-name
+		   'pr-menu-set-ps-title
+		   "PostScript Printers"
+		   'pr-ps-printer-menu-modified
+		   force
+		   "PostScript Printers"
+		   'postscript 2)
+    (pr-menu-alist pr-txt-printer-alist
+		   'pr-txt-name
+		   'pr-menu-set-txt-title
+		   "Text Printers"
+		   'pr-txt-printer-menu-modified
+		   force
+		   "Text Printers"
+		   'text 2)
+    (let ((save-var pr-ps-utility-menu-modified))
+      (pr-menu-alist pr-ps-utility-alist
+		     'pr-ps-utility
+		     'pr-menu-set-utility-title
+		     '("PostScript Print" "File" "PostScript Utility")
+		     'save-var
+		     force
+		     "PostScript Utility"
+		     nil 1))
+    (pr-menu-alist pr-ps-utility-alist
+		   'pr-ps-utility
+		   'pr-menu-set-utility-title
+		   '("PostScript Preview" "File" "PostScript Utility")
+		   'pr-ps-utility-menu-modified
+		   force
+		   "PostScript Utility"
+		   nil 1)
+    (pr-even-or-odd-pages ps-even-or-odd-pages force))
+
+  ;; GNU Emacs
+  (defun pr-menu-get-item (name-list)
+    ;; NAME-LIST is a string or a list of strings.
+    (or (listp name-list)
+	(setq name-list (list name-list)))
+    (and name-list
+	 (let* ((reversed (reverse name-list))
+		(name (pr-get-symbol (car reversed)))
+		(path (nreverse (cdr reversed)))
+		(menu (lookup-key
+		       global-map
+		       (vconcat pr-menu-bar
+				(mapcar 'pr-get-symbol path)))))
+	   (assq name (nthcdr 2 menu)))))
+
+  ;; GNU Emacs
+  (defvar pr-temp-menu nil)
+
+  ;; GNU Emacs
+  (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
+			      entry index)
+    (when (and alist (or force (symbol-value modified-sym)))
+      (easy-menu-define pr-temp-menu nil ""
+	(pr-menu-create name alist var-sym fun entry index))
+      (let ((item (pr-menu-get-item menu-path)))
+	(and item
+	     (let* ((binding     (nthcdr 3 item))
+		    (key-binding (cdr binding)))
+	       (setcar binding pr-temp-menu)
+	       (and key-binding (listp (car key-binding))
+		    (setcdr binding (cdr key-binding)))	; skip KEY-BINDING
+	       (funcall fun (symbol-value var-sym) item))))
+      (set modified-sym nil)))
+
+  ;; GNU Emacs
+  (defun pr-menu-set-item-name (item name)
+    (and item
+	 (setcar (nthcdr 2 item) name))) ; ITEM-NAME
+
+  ;; GNU Emacs
+  (defun pr-menu-set-ps-title (value &optional item entry index)
+    (pr-menu-set-item-name (or item
+			       (pr-menu-get-item "PostScript Printers"))
+			   (format "PostScript Printer: %s" value))
+    (pr-ps-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
+
+  ;; GNU Emacs
+  (defun pr-menu-set-txt-title (value &optional item entry index)
+    (pr-menu-set-item-name (or item
+			       (pr-menu-get-item "Text Printers"))
+			   (format "Text Printer: %s" value))
+    (pr-txt-set-printer value)
+    (and index
+	 (pr-menu-lock entry index 12 'toggle nil)))
+
+  ;; GNU Emacs
+  (defun pr-menu-set-utility-title (value &optional item entry index)
+    (let ((name (symbol-name value)))
+      (if item
+	  (pr-menu-set-item-name item name)
+	(pr-menu-set-item-name
+	 (pr-menu-get-item
+	  '("PostScript Print"   "File" "PostScript Utility"))
+	 name)
+	(pr-menu-set-item-name
+	 (pr-menu-get-item
+	  '("PostScript Preview" "File" "PostScript Utility"))
+	 name)))
+    (pr-ps-set-utility value)
+    (and index
+	 (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
+
+  ;; GNU Emacs
+  (defun pr-even-or-odd-pages (value &optional no-lock)
+    (pr-menu-set-item-name (pr-menu-get-item "Print All Pages")
+			   (cdr (assq value pr-even-or-odd-alist)))
+    (setq ps-even-or-odd-pages value)
+    (or no-lock
+	(pr-menu-lock 'postscript-options 8 12 'toggle nil)))
+
+  ))					; end cond featurep
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; User Interface (I)
+;; Internal Functions (I)
 
 
-(defgroup printing nil
-  "Printing Utilities group."
-  :tag "Printing Utilities"
-  :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
-  :prefix "pr-"
-  :version "20"
-  :group 'wp
-  :group 'postscript)
+(defun pr-dosify-file-name (path)
+  "Replace unix-style directory separator character with dos/windows one."
+  (interactive "sPath: ")
+  (if (eq pr-path-style 'windows)
+      (subst-char-in-string ?/ ?\\ path)
+    path))
 
 
-(defcustom pr-path-style
-  (if (and (not pr-cygwin-system)
-	   ps-windows-system)
-      'windows
-    'unix)
-  "*Specify which path style to use for external commands.
+(defun pr-unixify-file-name (path)
+  "Replace dos/windows-style directory separator character with unix one."
+  (interactive "sPath: ")
+  (if (eq pr-path-style 'windows)
+      (subst-char-in-string ?\\ ?/ path)
+    path))
 
-Valid values are:
 
-   windows	Windows 9x/NT style (\\)
-
-   unix		Unix style (/)"
-  :type '(choice :tag "Path style"
-		 (const :tag "Windows 9x/NT Style (\\)" :value windows)
-		 (const :tag "Unix Style (/)" :value unix))
-  :version "20"
-  :group 'printing)
-
+(defun pr-standard-file-name (path)
+  "Ensure the proper directory separator depending on the OS.
+That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
+separator; otherwise, ensure unix-style directory separator."
+  (if (or pr-cygwin-system ps-windows-system)
+      (subst-char-in-string ?/ ?\\ path)
+    (subst-char-in-string ?\\ ?/ path)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1161,36 +1666,36 @@ Valid values are:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Internal Functions (I)
+;; User Interface
 
 
-(defun pr-dosify-file-name (path)
-  "Replace unix-style directory separator character with dos/windows one."
-  (interactive "sPath: ")
-  (if (eq pr-path-style 'windows)
-      (subst-char-in-string ?/ ?\\ path)
-    path))
+(defgroup printing nil
+  "Printing Utilities group."
+  :tag "Printing Utilities"
+  :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
+  :prefix "pr-"
+  :version "20"
+  :group 'wp
+  :group 'postscript)
 
 
-(defun pr-unixify-file-name (path)
-  "Replace dos/windows-style directory separator character with unix one."
-  (interactive "sPath: ")
-  (if (eq pr-path-style 'windows)
-      (subst-char-in-string ?\\ ?/ path)
-    path))
+(defcustom pr-path-style
+  (if (and (not pr-cygwin-system)
+	   ps-windows-system)
+      'windows
+    'unix)
+  "*Specify which path style to use for external commands.
 
+Valid values are:
 
-(defun pr-standard-file-name (path)
-  "Ensure the proper directory separator depending on the OS.
-That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
-separator; otherwise, ensure unix-style directory separator."
-  (if (or pr-cygwin-system ps-windows-system)
-      (subst-char-in-string ?/ ?\\ path)
-    (subst-char-in-string ?\\ ?/ path)))
+   windows	Windows 9x/NT style (\\)
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; User Interface (II)
+   unix		Unix style (/)"
+  :type '(choice :tag "Path style"
+		 (const :tag "Windows 9x/NT Style (\\)" :value windows)
+		 (const :tag "Unix Style (/)" :value unix))
+  :version "20"
+  :group 'printing)
 
 
 (defcustom pr-path-alist
@@ -2412,6 +2917,30 @@ See also `pr-menu-char-height' and `pr-menu-char-width'."
   :group 'printing)
 
 
+(defcustom pr-menu-char-height (pr-menu-char-height)
+  "*Specify menu char height in pixels.
+
+This variable is used to guess which vertical position should be locked the
+menu, so don't forget to adjust it if menu position is not ok.
+
+See also `pr-menu-lock' and `pr-menu-char-width'."
+  :type 'integer
+  :version "20"
+  :group 'printing)
+
+
+(defcustom pr-menu-char-width (pr-menu-char-width)
+  "*Specify menu char width in pixels.
+
+This variable is used to guess which horizontal position should be locked the
+menu, so don't forget to adjust it if menu position is not ok.
+
+See also `pr-menu-lock' and `pr-menu-char-height'."
+  :type 'integer
+  :version "20"
+  :group 'printing)
+
+
 (defcustom pr-setting-database
   '((no-duplex				; setting symbol name
      nil nil nil			; inherits  local  kill-local
@@ -2640,13 +3169,6 @@ It's used by `pr-interface'."
   :version "20"
   :group 'printing)
 
-(defconst pr-even-or-odd-alist
-  '((nil        . "Print All Pages")
-    (even-page  . "Print Even Pages")
-    (odd-page   . "Print Odd Pages")
-    (even-sheet . "Print Even Sheets")
-    (odd-sheet  . "Print Odd Sheets")))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal Variables
@@ -2685,504 +3207,6 @@ See `pr-ps-printer-alist'.")
 (defvar pr-ps-printer nil
   "Specify PostScript printer name.
 See `pr-ps-printer-alist'.")
-
-
-(defvar pr-menu-bar nil
-  "Specify Printing menu-bar entry.")
-
-(defvar pr-menu-print-item "print"
-  "Non-nil means that menu binding was not done.
-
-Used by `pr-menu-bind' and `pr-update-menus'.")
-
-
-(defvar pr-ps-printer-menu-modified  t
-  "Non-nil means `pr-ps-printer-alist' was modified and we need to update menu.")
-(defvar pr-txt-printer-menu-modified t
-  "Non-nil means `pr-txt-printer-alist' was modified and we need to update menu.")
-(defvar pr-ps-utility-menu-modified t
-  "Non-nil means `pr-ps-utility-alist' was modified and we need to update menu.")
-
-(defvar pr-menu-char-width)   ;; Pacify the byte compiler.
-(defvar pr-menu-char-height)
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; XEmacs Definitions
-
-
-(cond
- ((featurep 'xemacs)			; XEmacs
-  ;; XEmacs
-  (defalias 'pr-f-set-keymap-parents 'set-keymap-parents)
-  (defalias 'pr-f-set-keymap-name    'set-keymap-name)
-
-  ;; XEmacs
-  (defun pr-f-read-string (prompt initial history default)
-    (let ((str (read-string prompt initial)))
-      (if (and str (not (string= str "")))
-	  str
-	default)))
-
-  ;; XEmacs
-  (defvar zmacs-region-stays  nil)
-
-  ;; XEmacs
-  (defun pr-keep-region-active ()
-    (setq zmacs-region-stays t))
-
-  ;; XEmacs
-  (defun pr-region-active-p ()
-    (and pr-auto-region (not zmacs-region-stays) (ps-mark-active-p)))
-
-  ;; XEmacs
-  (defun pr-menu-char-height ()
-    (font-height (face-font 'default)))
-
-  ;; XEmacs
-  (defun pr-menu-char-width ()
-    (font-width (face-font 'default)))
-
-  ;; XEmacs
-  (defmacro pr-xemacs-global-menubar (&rest body)
-    `(save-excursion
-       (let ((temp (get-buffer-create (make-temp-name " *Temp"))))
-	 ;; be sure to access global menubar
-	 (set-buffer temp)
-	 ,@body
-	 (kill-buffer temp))))
-
-  ;; XEmacs
-  (defun pr-global-menubar (pr-menu-spec)
-    ;; Menu binding
-    (pr-xemacs-global-menubar
-     (add-submenu nil (cons "Printing" pr-menu-spec) "Apps"))
-    (setq pr-menu-print-item nil))
-
-  ;; XEmacs
-  (defvar current-mouse-event nil)
-  (defun pr-menu-position (entry index horizontal)
-    (make-event
-     'button-release
-     (list 'button 1
-	   'x (- (event-x-pixel current-mouse-event) ; X
-		 (* horizontal pr-menu-char-width))
-	   'y (- (event-y-pixel current-mouse-event) ; Y
-		 (* (pr-menu-index entry index) pr-menu-char-height)))))
-
-  (defvar pr-menu-position nil)
-  (defvar pr-menu-state nil)
-
-  ;; XEmacs
-  (defvar current-menubar nil)		; to avoid compilation gripes
-  (defun pr-menu-lookup (path)
-    (car (find-menu-item current-menubar (cons "Printing" path))))
-
-  ;; XEmacs
-  (defun pr-menu-lock (entry index horizontal state path)
-    (when pr-menu-lock
-      (or (and pr-menu-position (eq state pr-menu-state))
-	  (setq pr-menu-position (pr-menu-position entry index horizontal)
-		pr-menu-state    state))
-      (let* ((menu   (pr-menu-lookup path))
-	     (result (get-popup-menu-response menu pr-menu-position)))
-	(and (misc-user-event-p result)
-	     (funcall (event-function result)
-		      (event-object result))))
-      (setq pr-menu-position nil)))
-
-  ;; XEmacs
-  (defalias 'pr-update-mode-line 'set-menubar-dirty-flag)
-
-  ;; XEmacs
-  (defvar pr-ps-name-old     "PostScript Printers")
-  (defvar pr-txt-name-old    "Text Printers")
-  (defvar pr-ps-utility-old  "PostScript Utility")
-  (defvar pr-even-or-odd-old "Print All Pages")
-
-  ;; XEmacs
-  (defun pr-do-update-menus (&optional force)
-    (pr-menu-alist pr-ps-printer-alist
-		   'pr-ps-name
-		   'pr-menu-set-ps-title
-		   '("Printing")
-		   'pr-ps-printer-menu-modified
-		   force
-		   pr-ps-name-old
-		   'postscript 2)
-    (pr-menu-alist pr-txt-printer-alist
-		   'pr-txt-name
-		   'pr-menu-set-txt-title
-		   '("Printing")
-		   'pr-txt-printer-menu-modified
-		   force
-		   pr-txt-name-old
-		   'text 2)
-    (let ((save-var pr-ps-utility-menu-modified))
-      (pr-menu-alist pr-ps-utility-alist
-		     'pr-ps-utility
-		     'pr-menu-set-utility-title
-		     '("Printing" "PostScript Print" "File")
-		     'save-var
-		     force
-		     pr-ps-utility-old
-		     nil 1))
-    (pr-menu-alist pr-ps-utility-alist
-		   'pr-ps-utility
-		   'pr-menu-set-utility-title
-		   '("Printing" "PostScript Preview" "File")
-		   'pr-ps-utility-menu-modified
-		   force
-		   pr-ps-utility-old
-		   nil 1)
-    (pr-even-or-odd-pages ps-even-or-odd-pages force))
-
-  ;; XEmacs
-  (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
-			      entry index)
-    (when (and alist (or force (symbol-value modified-sym)))
-      (pr-xemacs-global-menubar
-       (add-submenu menu-path
-		    (pr-menu-create name alist var-sym
-				    fun entry index)))
-      (funcall fun (symbol-value var-sym))
-      (set modified-sym nil)))
-
-  ;; XEmacs
-  (defun pr-relabel-menu-item (newname var-sym)
-    (pr-xemacs-global-menubar
-     (relabel-menu-item
-      (list "Printing" (symbol-value var-sym))
-      newname)
-     (set var-sym newname)))
-
-  ;; XEmacs
-  (defun pr-menu-set-ps-title (value &optional item entry index)
-    (pr-relabel-menu-item (format "PostScript Printer: %s" value)
-			  'pr-ps-name-old)
-    (pr-ps-set-printer value)
-    (and index
-	 (pr-menu-lock entry index 12 'toggle nil)))
-
-  ;; XEmacs
-  (defun pr-menu-set-txt-title (value &optional item entry index)
-    (pr-relabel-menu-item (format "Text Printer: %s" value)
-			  'pr-txt-name-old)
-    (pr-txt-set-printer value)
-    (and index
-	 (pr-menu-lock entry index 12 'toggle nil)))
-
-  ;; XEmacs
-  (defun pr-menu-set-utility-title (value &optional item entry index)
-    (pr-xemacs-global-menubar
-     (let ((newname (format "%s" value)))
-       (relabel-menu-item
-	(list "Printing" "PostScript Print" "File" pr-ps-utility-old)
-	newname)
-       (relabel-menu-item
-	(list "Printing" "PostScript Preview" "File" pr-ps-utility-old)
-	newname)
-       (setq pr-ps-utility-old newname)))
-    (pr-ps-set-utility value)
-    (and index
-	 (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
-
-  ;; XEmacs
-  (defun pr-even-or-odd-pages (value &optional no-lock)
-    (pr-relabel-menu-item (cdr (assq value pr-even-or-odd-alist))
-			  'pr-even-or-odd-old)
-    (setq ps-even-or-odd-pages value)
-    (or no-lock
-	(pr-menu-lock 'postscript-options 8 12 'toggle nil)))
-
-  )
- (t					; GNU Emacs
-  ;; Do nothing
-  ))					; end cond featurep
-
-
-
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; GNU Emacs Definitions
-
-
-(cond
- ((featurep 'xemacs)			; XEmacs
-  ;; Do nothing
-  )
- (t					; GNU Emacs
-  ;; GNU Emacs
-  (defalias 'pr-f-set-keymap-parents 'set-keymap-parent)
-  (defalias 'pr-f-set-keymap-name    'ignore)
-  (defalias 'pr-f-read-string        'read-string)
-
-  ;; GNU Emacs
-  (defvar deactivate-mark)
-
-  ;; GNU Emacs
-  (defun pr-keep-region-active ()
-    (setq deactivate-mark nil))
-
-  ;; GNU Emacs
-  (defun pr-region-active-p ()
-    (and pr-auto-region transient-mark-mode mark-active))
-
-  ;; GNU Emacs
-  (defun pr-menu-char-height ()
-    (frame-char-height))
-
-  ;; GNU Emacs
-  (defun pr-menu-char-width ()
-    (frame-char-width))
-
-  ;; GNU Emacs
-  ;; Menu binding
-  ;; Replace existing "print" item by "Printing" item.
-  ;; If you're changing this file, you'll load it a second,
-  ;; third... time, but "print" item exists only in the first load.
-  (eval-and-compile
-    (cond
-     ;; GNU Emacs 20
-     ((< emacs-major-version 21)
-      (defun pr-global-menubar (pr-menu-spec)
-	(require 'easymenu)
-	(easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
-	(when pr-menu-print-item
-	  (easy-menu-remove-item nil '("tools") pr-menu-print-item)
-	  (setq pr-menu-print-item nil
-		pr-menu-bar (vector 'menu-bar 'tools
-				    (pr-get-symbol "Printing")))))
-      )
-     ;; GNU Emacs 21 & 22
-     (t
-      (defun pr-global-menubar (pr-menu-spec)
-	(require 'easymenu)
-	(let ((menu-file (if (= emacs-major-version 21)
-			     '("menu-bar" "files") ; GNU Emacs 21
-			   '("menu-bar" "file")))) ; GNU Emacs 22 or higher
-	  (cond
-	   (pr-menu-print-item
-	    (easy-menu-add-item global-map menu-file
-				(easy-menu-create-menu "Print" pr-menu-spec)
-				"print-buffer")
-	    (dolist (item '("print-buffer"          "print-region"
-			    "ps-print-buffer-faces" "ps-print-region-faces"
-			    "ps-print-buffer"       "ps-print-region"))
-	      (easy-menu-remove-item global-map menu-file item))
-	    (setq pr-menu-print-item nil
-		  pr-menu-bar (vector 'menu-bar
-				      (pr-get-symbol (nth 1 menu-file))
-				      (pr-get-symbol "Print"))))
-	   (t
-	    (easy-menu-add-item global-map menu-file
-				(easy-menu-create-menu "Print" pr-menu-spec)))
-	   )))
-      )))
-
-  (eval-and-compile
-    (cond
-     (ps-windows-system
-      ;; GNU Emacs for Windows 9x/NT
-      (defun pr-menu-position (entry index horizontal)
-	(let ((pos (cdr (mouse-pixel-position))))
-	  (list
-	   (list (or (car pos) 0)	; X
-		 (- (or (cdr pos) 0)	; Y
-		    (* (pr-menu-index entry index) pr-menu-char-height)))
-	   (selected-frame))))		; frame
-      )
-     (t
-      ;; GNU Emacs
-      (defun pr-menu-position (entry index horizontal)
-	(let ((pos (cdr (mouse-pixel-position))))
-	  (list
-	   (list (- (or (car pos) 0)	; X
-		    (* horizontal pr-menu-char-width))
-		 (- (or (cdr pos) 0)	; Y
-		    (* (pr-menu-index entry index) pr-menu-char-height)))
-	   (selected-frame))))		; frame
-      )))
-
-  (defvar pr-menu-position nil)
-  (defvar pr-menu-state nil)
-
-  ;; GNU Emacs
-  (defun pr-menu-lookup (path)
-    (lookup-key global-map
-		(if path
-		    (vconcat pr-menu-bar
-			     (mapcar 'pr-get-symbol
-				     (if (listp path)
-					 path
-				       (list path))))
-		  pr-menu-bar)))
-
-  ;; GNU Emacs
-  (defun pr-menu-lock (entry index horizontal state path)
-    (when pr-menu-lock
-      (or (and pr-menu-position (eq state pr-menu-state))
-	  (setq pr-menu-position (pr-menu-position entry index horizontal)
-		pr-menu-state    state))
-      (let* ((menu   (pr-menu-lookup path))
-	     (result (x-popup-menu pr-menu-position menu)))
-	(and result
-	     (let ((command (lookup-key menu (vconcat result))))
-	       (if (fboundp command)
-		   (funcall command)
-		 (eval command)))))
-      (setq pr-menu-position nil)))
-
-  ;; GNU Emacs
-  (defalias 'pr-update-mode-line 'force-mode-line-update)
-
-  ;; GNU Emacs
-  (defun pr-do-update-menus (&optional force)
-    (pr-menu-alist pr-ps-printer-alist
-		   'pr-ps-name
-		   'pr-menu-set-ps-title
-		   "PostScript Printers"
-		   'pr-ps-printer-menu-modified
-		   force
-		   "PostScript Printers"
-		   'postscript 2)
-    (pr-menu-alist pr-txt-printer-alist
-		   'pr-txt-name
-		   'pr-menu-set-txt-title
-		   "Text Printers"
-		   'pr-txt-printer-menu-modified
-		   force
-		   "Text Printers"
-		   'text 2)
-    (let ((save-var pr-ps-utility-menu-modified))
-      (pr-menu-alist pr-ps-utility-alist
-		     'pr-ps-utility
-		     'pr-menu-set-utility-title
-		     '("PostScript Print" "File" "PostScript Utility")
-		     'save-var
-		     force
-		     "PostScript Utility"
-		     nil 1))
-    (pr-menu-alist pr-ps-utility-alist
-		   'pr-ps-utility
-		   'pr-menu-set-utility-title
-		   '("PostScript Preview" "File" "PostScript Utility")
-		   'pr-ps-utility-menu-modified
-		   force
-		   "PostScript Utility"
-		   nil 1)
-    (pr-even-or-odd-pages ps-even-or-odd-pages force))
-
-  ;; GNU Emacs
-  (defun pr-menu-get-item (name-list)
-    ;; NAME-LIST is a string or a list of strings.
-    (or (listp name-list)
-	(setq name-list (list name-list)))
-    (and name-list
-	 (let* ((reversed (reverse name-list))
-		(name (pr-get-symbol (car reversed)))
-		(path (nreverse (cdr reversed)))
-		(menu (lookup-key
-		       global-map
-		       (vconcat pr-menu-bar
-				(mapcar 'pr-get-symbol path)))))
-	   (assq name (nthcdr 2 menu)))))
-
-  ;; GNU Emacs
-  (defvar pr-temp-menu nil)
-
-  ;; GNU Emacs
-  (defun pr-menu-alist (alist var-sym fun menu-path modified-sym force name
-			      entry index)
-    (when (and alist (or force (symbol-value modified-sym)))
-      (easy-menu-define pr-temp-menu nil ""
-	(pr-menu-create name alist var-sym fun entry index))
-      (let ((item (pr-menu-get-item menu-path)))
-	(and item
-	     (let* ((binding     (nthcdr 3 item))
-		    (key-binding (cdr binding)))
-	       (setcar binding pr-temp-menu)
-	       (and key-binding (listp (car key-binding))
-		    (setcdr binding (cdr key-binding)))	; skip KEY-BINDING
-	       (funcall fun (symbol-value var-sym) item))))
-      (set modified-sym nil)))
-
-  ;; GNU Emacs
-  (defun pr-menu-set-item-name (item name)
-    (and item
-	 (setcar (nthcdr 2 item) name))) ; ITEM-NAME
-
-  ;; GNU Emacs
-  (defun pr-menu-set-ps-title (value &optional item entry index)
-    (pr-menu-set-item-name (or item
-			       (pr-menu-get-item "PostScript Printers"))
-			   (format "PostScript Printer: %s" value))
-    (pr-ps-set-printer value)
-    (and index
-	 (pr-menu-lock entry index 12 'toggle nil)))
-
-  ;; GNU Emacs
-  (defun pr-menu-set-txt-title (value &optional item entry index)
-    (pr-menu-set-item-name (or item
-			       (pr-menu-get-item "Text Printers"))
-			   (format "Text Printer: %s" value))
-    (pr-txt-set-printer value)
-    (and index
-	 (pr-menu-lock entry index 12 'toggle nil)))
-
-  ;; GNU Emacs
-  (defun pr-menu-set-utility-title (value &optional item entry index)
-    (let ((name (symbol-name value)))
-      (if item
-	  (pr-menu-set-item-name item name)
-	(pr-menu-set-item-name
-	 (pr-menu-get-item
-	  '("PostScript Print"   "File" "PostScript Utility"))
-	 name)
-	(pr-menu-set-item-name
-	 (pr-menu-get-item
-	  '("PostScript Preview" "File" "PostScript Utility"))
-	 name)))
-    (pr-ps-set-utility value)
-    (and index
-	 (pr-menu-lock entry index 5 nil '("PostScript Print" "File"))))
-
-  ;; GNU Emacs
-  (defun pr-even-or-odd-pages (value &optional no-lock)
-    (pr-menu-set-item-name (pr-menu-get-item "Print All Pages")
-			   (cdr (assq value pr-even-or-odd-alist)))
-    (setq ps-even-or-odd-pages value)
-    (or no-lock
-	(pr-menu-lock 'postscript-options 8 12 'toggle nil)))
-
-  ))					; end cond featurep
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; User Interface (III)
-
-(defcustom pr-menu-char-height (pr-menu-char-height)
-  "*Specify menu char height in pixels.
-
-This variable is used to guess which vertical position should be locked the
-menu, so don't forget to adjust it if menu position is not ok.
-
-See also `pr-menu-lock' and `pr-menu-char-width'."
-  :type 'integer
-  :version "20"
-  :group 'printing)
-
-
-(defcustom pr-menu-char-width (pr-menu-char-width)
-  "*Specify menu char width in pixels.
-
-This variable is used to guess which horizontal position should be locked the
-menu, so don't forget to adjust it if menu position is not ok.
-
-See also `pr-menu-lock' and `pr-menu-char-height'."
-  :type 'integer
-  :version "20"
-  :group 'printing)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
