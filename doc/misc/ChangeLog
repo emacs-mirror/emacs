@@ -1,3 +1,8 @@
+2007-10-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Formulas, Composition Basics): Lower the
+	precedence of negation.
+
 2007-10-25  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.texi (The Basics): Mention how to create a new spreadsheet.
