@@ -34,6 +34,7 @@
 ;; audio bell initialized.
 
 ;;; Code:
+(require 'w32-vars)
 
 (defvar explicit-shell-file-name)
 
@@ -80,6 +81,8 @@ That includes all Windows systems except for 9X/Me."
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))
 	   (w32-system-shell-p (getenv "COMSPEC")))))
+
+(defvar w32-quote-process-args)  ;; defined in w32proc.c
 
 (defun w32-check-shell-configuration ()
   "Check the configuration of shell variables on Windows NT/9X.

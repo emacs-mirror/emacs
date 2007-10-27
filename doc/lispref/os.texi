@@ -1561,10 +1561,10 @@ set up to repeat will subsequently run another time, one by one.
 
 @c Emacs 19 feature
 @defun current-idle-time
-This function returns the length of time Emacs has been idle, as a
-list of three integers: @code{(@var{high} @var{low} @var{microsec})}.
-The integers @var{high} and @var{low} combine to give the number of
-seconds of idleness, which is
+If Emacs is idle, this function returns the length of time Emacs has
+been idle, as a list of three integers: @code{(@var{high} @var{low}
+@var{microsec})}.  The integers @var{high} and @var{low} combine to
+give the number of seconds of idleness, which is
 @ifnottex
 @var{high} * 2**16 + @var{low}.
 @end ifnottex
@@ -1575,6 +1575,9 @@ $high*2^{16}+low$.
 The third element, @var{microsec}, gives the microseconds since the
 start of the current second (or 0 for systems that return time with
 the resolution of only one second).
+
+When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
+This is a convenient way to test whether Emacs is idle.
 
 The main use of this function is when an idle timer function wants to
 ``take a break'' for a while.  It can set up another idle timer to

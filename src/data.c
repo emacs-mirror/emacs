@@ -1521,7 +1521,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
   variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
-  if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
+  if (XSYMBOL (variable)->constant || KBOARD_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
   if (BUFFER_OBJFWDP (valcontents))
@@ -1578,7 +1578,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
-  if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
+  if (XSYMBOL (variable)->constant || KBOARD_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
   if ((BUFFER_LOCAL_VALUEP (valcontents)
@@ -1733,7 +1733,7 @@ Buffer-local bindings take precedence over frame-local bindings.  */)
   variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
-  if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents)
+  if (XSYMBOL (variable)->constant || KBOARD_OBJFWDP (valcontents)
       || BUFFER_OBJFWDP (valcontents))
     error ("Symbol %s may not be frame-local", SDATA (SYMBOL_NAME (variable)));
 

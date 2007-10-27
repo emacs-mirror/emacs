@@ -1,10 +1,46 @@
+2007-10-25  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.texi (The Basics): Mention how to create a new spreadsheet.
+	Mention the new three-letter column identifiers.
+	(More on cell printing): Calculate-cell and truncate-cell are now `c'
+	and `t' rather than `C-c C-c' and `C-c C-t'.  Mention the stupid error
+	message when using `c' on an empty default with default printer.
+	(Buffer-local variables in spreadsheets): `symbolic-formulas' was
+	renamed to `ses--symbolic-formulas' some time ago.
+
+2007-10-25  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Default Simplifications, Making Selections)
+	(Customizing Calc): Clarify associativity of multiplication.
+
+2007-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Traces and Profiles): Simplify loop over
+	`trace-function-background'.
+
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* dired-x.texi (Shell Command Guessing): Default values are now
+	available by typing M-n instead of M-p.
+
+2007-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Cleanup remote connections): New section.
+	(Password caching): Remove `tramp-clear-passwd'.
+	It's not a command anymore.
+	(Bug Reports): Add `tramp-bug' to function index.
+	(Function Index, Variable Index): New nodes.
+	(Remote shell setup): Describe `tramp-password-prompt-regexp'.
+
+	* trampver.texi: Update release number.
+
 2007-10-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (History and Acknowledgements):  Turn comment
+	* calc.texi (History and Acknowledgements): Turn comment
 	about integer size into past tense.
 	(Time Zones): Remove pointer to Calc author's address.
 	(Trigonometric and Hyperbolic Functions): Mention cotangent
-	and hyperbolic cotangent.
+	and hyperbolic cotangent.  Fix typo.
 
 2007-10-10  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -56,19 +92,18 @@
 
 2007-09-08  Michael Olson  <mwolson@gnu.org>
 
-	* erc.texi (Copying): New section included from gpl.texi.  This matches
-	the look of the upstream ERC manual.
+	* erc.texi (Copying): New section included from gpl.texi.
+	This matches the look of the upstream ERC manual.
 
 2007-09-07  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.texi (History and Acknowledgements): Adjust the
-	"thanks".
+	* calc.texi (History and Acknowledgements): Adjust the "thanks".
 	(Random Numbers): Clarify the distribution of `random'.
 
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* Move manual sources from man/ to subdirectories of doc/.
-        Split into the Emacs manual in emacs/, and other manuals in misc/.
+	Split into the Emacs manual in emacs/, and other manuals in misc/.
 	Change all setfilename commands to use ../../info.
 	* Makefile.in: Move the parts of the old man/Makefile.in that do not
 	refer to the Emacs manual here.
@@ -84,8 +119,8 @@
 	(../etc/GNU): Delete obsolete target.
 	(.SUFFIXES): Use $(TEXI2DVI) rather than texi2dvi.
 	(mostlyclean): Add *.op, *.ops.  Move *.aux *.cps *.fns *.kys *.pgs
-        *.vrs *.toc here...
-        (maintainer-clean): ...from here.
+	*.vrs *.toc here...
+	(maintainer-clean): ...from here.
 
 	* makefile.w32-in (../etc/GNU): Delete obsolete target.
 
@@ -98,7 +133,7 @@
 
 2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: Version 5.07
+	* org.texi: Version 5.07.
 
 2007-08-24  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
 

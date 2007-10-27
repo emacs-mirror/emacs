@@ -480,9 +480,14 @@
       (send-string-to-terminal "\e[>0c")
 
       ;; The reply should be of the form: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
-      (when (equal (read-event nil nil 0.1) ?\e)
-	(when (equal (read-event nil nil 0.1) ?\[)
-	  (while (not (equal (setq chr (read-event nil nil 0.1)) ?c))
+      ;; If the timeout is completely removed for read-event, this
+      ;; might hang for terminals that pretend to be xterm, but don't
+      ;; respond to this escape sequence.  RMS' opinion was to remove
+      ;; it completely.  That might be right, but let's first try to
+      ;; see if by using a longer timeout we get rid of most issues.
+      (when (equal (read-event nil nil 2) ?\e)
+	(when (equal (read-event nil nil 2) ?\[)
+	  (while (not (equal (setq chr (read-event nil nil 2)) ?c))
 	    (setq str (concat str (string chr))))
 	  (when (string-match ">0;\\([0-9]+\\);0" str)
 	    ;; NUMBER2 is the xterm version number, look for something

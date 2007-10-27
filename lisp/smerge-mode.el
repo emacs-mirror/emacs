@@ -81,6 +81,7 @@ Used in `smerge-diff-base-mine' and related functions."
 
 (defcustom smerge-auto-refine t
   "Automatically highlight changes in detail as the user visits conflicts."
+  :group 'smerge
   :type 'boolean)
 
 (defface smerge-mine

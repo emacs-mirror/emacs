@@ -36,13 +36,6 @@
 (defvar command-line-processed nil
   "Non-nil once command line has been processed.")
 
-(defvar window-system initial-window-system
-  "Name of window system the selected frame is displaying through.
-The value is a symbol--for instance, `x' for X windows.
-The value is nil if the selected frame is on a text-only-terminal.")
-
-(make-variable-frame-local 'window-system)
-
 (defgroup initialization nil
   "Emacs start-up procedure."
   :group 'environment)

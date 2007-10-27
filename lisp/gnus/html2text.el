@@ -352,7 +352,7 @@ formatting, and then moved afterward.")
 	(setq refill-start (point))
 	(goto-char p2)
 	(re-search-backward ".+[^<][^b][^r][^>]$" refill-start t)
-	(next-line 1)
+	(forward-line 1)
 	(end-of-line)
 	;; refill-stop should ideally be adjusted to
 	;; accomodate the "<br>" strings which are removed

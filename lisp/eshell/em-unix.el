@@ -175,7 +175,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   'info arg1'      => OTHERWISE goes to top info window and then menu item arg1
   'info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
   etc."
-  (require 'info)
+  (eval-and-compile (require 'info))
   (let ((file (cond
                 ((not (stringp (car args)))
                  nil)
@@ -974,6 +974,12 @@ Show wall-clock time elapsed during execution of COMMAND.")
   (if eshell-diff-window-config
       (set-window-configuration eshell-diff-window-config)))
 
+(defun nil-blank-string (string)
+  "Return STRING, or nil if STRING contains only non-blank characters."
+  (cond
+    ((string-match "[^[:blank:]]" string) string)
+    (nil)))
+
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
   (let ((orig-args (eshell-stringify-list (eshell-flatten-list args))))
@@ -995,7 +1001,8 @@ Show wall-clock time elapsed during execution of COMMAND.")
 	  (setcdr (last args 3) nil))
 	(with-current-buffer
 	    (condition-case err
-		(diff old new (eshell-flatten-and-stringify args))
+		(diff old new
+		      (nil-blank-string (eshell-flatten-and-stringify args)))
 	      (error
 	       (throw 'eshell-replace-command
 		      (eshell-parse-command "*diff" orig-args))))

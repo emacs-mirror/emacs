@@ -141,7 +141,7 @@ is the one for the terminal that the currently selected frame belongs
 to.  These variables include @code{default-minibuffer-frame},
 @code{defining-kbd-macro}, @code{last-kbd-macro}, and
 @code{system-key-alist}.  They are always terminal-local, and can never
-be buffer-local (@pxref{Buffer-Local Variables}) or frame-local.
+be buffer-local (@pxref{Buffer-Local Variables}).
 
   A single X server can handle more than one screen.  A display name
 @samp{@var{host}:@var{server}.@var{screen}} has three parts; the last

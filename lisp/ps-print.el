@@ -1451,7 +1451,7 @@ Please send all bug fixes and enhancements to
 
 
 (let ((case-fold-search t))
-  (cond ((string-match "XEmacs" emacs-version))
+  (cond ((featurep 'xemacs))
 	((string-match "Lucid" emacs-version)
 	 (error "`ps-print' doesn't support Lucid"))
 	((string-match "Epoch" emacs-version)

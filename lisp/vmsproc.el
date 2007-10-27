@@ -122,11 +122,11 @@ line to the last line for resubmission."
 		(send-command-to-subprocess 1 current-line)
 		(if command-prefix-string
 		    (progn (beginning-of-line) (insert command-prefix-string)))
-		(next-line 1))))
+		(forward-line 1))))
       ;; else -- if not at last line in buffer
       (goto-char (point-max))
       (backward-char)
-      (next-line 1)
+      (forward-line 1)
       (insert
        (if (compare-strings command-prefix-string nil nil
                             current-line 0 (length command-prefix-string))
@@ -140,6 +140,8 @@ line to the last line for resubmission."
   (kill-line))
 
 (define-key esc-map "$" 'subprocess-command)
+
+(provide 'vmsproc)
 
 ;; arch-tag: 600b2512-f903-4887-bcd2-e76b306f5b66
 ;;; vmsproc.el ends here

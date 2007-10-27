@@ -2830,8 +2830,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       f->param_alist = Fcons (XCAR (tem), f->param_alist);
 
-  store_frame_param (f, Qwindow_system, Qmac);
-  
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window

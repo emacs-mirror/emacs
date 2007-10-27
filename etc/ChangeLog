@@ -1,3 +1,12 @@
+2007-10-25  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses-example.ses: Get rid of silly life-universe-everything local
+	variable.  `symbolic-formulas' is now `ses--symbolic-formulas'.
+
+2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention desktop locking.
+
 2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* NEWS: Explain the VC fileset changes a bit better.

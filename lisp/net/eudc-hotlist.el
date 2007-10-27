@@ -190,11 +190,11 @@ These are the special commands of this mode:
     ["Save and Quit" eudc-hotlist-quit-edit t]
     ["Exit without Saving" kill-this-buffer t]))
 
-(if eudc-emacs-p
-    (easy-menu-define eudc-hotlist-emacs-menu
-		      eudc-hotlist-mode-map
-		      ""
-		      eudc-hotlist-menu))
+(when (not (featurep 'xemacs))
+  (easy-menu-define eudc-hotlist-emacs-menu
+    eudc-hotlist-mode-map
+    ""
+    eudc-hotlist-menu))
 
 ;;; arch-tag: 9b633ab3-6a6e-4b46-b12e-d96739a7e0e8
 ;;; eudc-hotlist.el ends here

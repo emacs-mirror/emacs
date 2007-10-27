@@ -1182,7 +1182,7 @@ generating a buffered list of errors."
     ;; Override some bindings
     (define-key map "\C-\M-x" 'checkdoc-eval-defun)
     (define-key map "\C-x`" 'checkdoc-continue)
-    (if (not (string-match "XEmacs" emacs-version))
+    (if (not (featurep 'xemacs))
 	(define-key map [menu-bar emacs-lisp eval-buffer]
 	  'checkdoc-eval-current-buffer))
     ;; Add some new bindings under C-c ?

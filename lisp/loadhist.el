@@ -133,35 +133,42 @@ from a file."
     write-region-annotate-functions)
   "A list of special hooks from Info node `(elisp)Standard Hooks'.
 
-These are symbols with hook-type values whose names don't end in
-`-hook' or `-hooks', from which `unload-feature' tries to remove
+These are symbols with hooklike values whose names don't end in
+`-hook' or `-hooks', from which `unload-feature' should try to remove
 pertinent symbols.")
 
-(defvar unload-function-features-list nil
-  "List of features of the package being unloaded.
+(defvar unload-function-defs-list nil
+  "List of defintions in the Lisp library being unloaded.
 
-This is meant to be used by FEATURE-unload-function, see the
+This is meant to be used by `FEATURE-unload-function'; see the
 documentation of `unload-feature' for details.")
 (define-obsolete-variable-alias 'unload-hook-features-list
-    'unload-function-features-list "22.2")
+    'unload-function-defs-list "22.2")
 
 ;;;###autoload
 (defun unload-feature (feature &optional force)
-  "Unload the library that provided FEATURE, restoring all its autoloads.
+  "Unload the library that provided FEATURE.
 If the feature is required by any other loaded code, and prefix arg FORCE
 is nil, raise an error.
 
-This function tries to undo any modifications that the package has
-made to hook values in Emacs.  Normally it does this using heuristics.
-The packages may define a hook `FEATURE-unload-hook'; if that exists,
-it is called instead of the normal heuristics.
+Standard unloading activities include restoring old autoloads for
+functions defined by the library, undoing any additions that the
+library has made to hook variables or to `auto-mode-alist', undoing
+ELP profiling of functions in that library, unproviding any features
+provided by the library, and canceling timers held in variables
+defined by the library.
 
-Such a hook should undo all the relevant global state changes that may
-have been made by loading the package or executing functions in it.
-It has access to the package's feature list (before anything is unbound)
-in the variable `unload-hook-features-list' and could remove features
-from it in the event that the package has done something strange,
-such as redefining an Emacs function."
+If a function `FEATURE-unload-function' is defined, this function
+calls it with no arguments, before doing anything else.  That function
+can do whatever is appropriate to undo the loading of the library.  If
+`FEATURE-unload-function' returns non-nil, that suppresses the
+standard unloading of the library.  Otherwise the standard unloading
+proceeds.
+
+`FEATURE-unload-function' has access to the package's list of
+definitions in the variable `unload-function-defs-list' and could
+remove symbols from it in the event that the package has done
+something strange, such as redefining an Emacs function."
   (interactive
    (list
     (read-feature "Unload feature: " t)
@@ -174,8 +181,8 @@ such as redefining an Emacs function."
       (when dependents
 	(error "Loaded libraries %s depend on %s"
 	       (prin1-to-string dependents) file))))
-  (let* ((unload-function-features-list (feature-symbols feature))
-         (file (pop unload-function-features-list))
+  (let* ((unload-function-defs-list (feature-symbols feature))
+         (file (pop unload-function-defs-list))
 	 ;; If non-nil, this is a symbol for which we should
 	 ;; restore a previous autoload if possible.
 	 restore-autoload
@@ -207,22 +214,22 @@ such as redefining an Emacs function."
 		      (or (and (consp (symbol-value x)) ; Random hooks.
 			       (string-match "-hooks?\\'" (symbol-name x)))
 			  (memq x unload-feature-special-hooks)))	; Known abnormal hooks etc.
-	     (dolist (y unload-function-features-list)
+	     (dolist (y unload-function-defs-list)
 	       (when (and (eq (car-safe y) 'defun)
 			  (not (get (cdr y) 'autoload)))
 		 (remove-hook x (cdr y)))))))
 	;; Remove any feature-symbols from auto-mode-alist as well.
-	(dolist (y unload-function-features-list)
+	(dolist (y unload-function-defs-list)
 	  (when (and (eq (car-safe y) 'defun)
 		     (not (get (cdr y) 'autoload)))
 	    (setq auto-mode-alist
 		  (rassq-delete-all (cdr y) auto-mode-alist)))))
       (when (fboundp 'elp-restore-function) ; remove ELP stuff first
-	(dolist (elt unload-function-features-list)
+	(dolist (elt unload-function-defs-list)
 	  (when (symbolp elt)
 	    (elp-restore-function elt))))
 
-      (dolist (x unload-function-features-list)
+      (dolist (x unload-function-defs-list)
 	(if (consp x)
 	    (case (car x)
 	      ;; Remove any feature names that this file provided.

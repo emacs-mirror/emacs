@@ -1347,7 +1347,7 @@ distributed work.  It differs in many ways from old well-known
 systems, such as CVS and RCS.  It supports different transports for
 interoperating between users, offline operations, and it has good
 branching and merging features.  It also supports atomic commits of
-fileset changes, and keeps a history of file renaming and moving.  VC
+filesets, and keeps a history of file renaming and moving.  VC
 does not support all operations provided by GNU Arch, so you must
 sometimes invoke it from the command line, or use a specialized
 module.
@@ -1355,7 +1355,7 @@ module.
 @cindex git
   git is a version-control system invented by Linus Torvalds to
 support Linux kernel development.  Like GNU Arch, it supports atomic
-commits of fileset changes, and keeps a history of file renaming and
+commits of filesets, and keeps a history of file renaming and
 moving.  One significant feature of git is that it largely abolishes
 the notion of a single centralized repository; instead, each working
 copy of a git project is its own repository and coordination is done
@@ -1637,6 +1637,11 @@ VC-Dired mode is more subtle.  Formerly it operated in parallel on all
 marked files, but did not pass them to the version-control backends as
 a group.  Now it does, which enables VC to drive changeset-based
 version-control systems.
+
+   Emacs uses the concept of named filesets elsewhere
+(@pxref{Filesets}) to allow you to view and visit files in functional
+groups. Unlike those, VC filesets are not named and don't persist
+across sessions.
 
 @node Doing The Right Thing
 @subsubsection Performing the next operation in the development cycle
@@ -3060,6 +3065,11 @@ files in a fileset, and @kbd{M-x filesets-close} to close them.  Use
 @kbd{M-x filesets-run-cmd} to run a shell command on all the files in
 a fileset.  These commands are also available from the @samp{Filesets}
 menu, where each existing fileset is represented by a submenu.
+
+   Emacs uses the concept of a fileset elsewhere @pxref{Version
+Control} to describe sets of files to be treated as a group for
+purposes of version-control operations.  Those filesets are 
+unnamed and do not persist across Emacs essions.
 
 @ignore
    arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250

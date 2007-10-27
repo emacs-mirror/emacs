@@ -1,3 +1,36 @@
+2007-10-26  Richard Stallman  <rms@gnu.org>
+
+	* objects.texi (Equality Predicates): Null strings are uniquified.
+
+	* minibuf.texi: Minor clarifications in previous change.
+
+2007-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* customize.texi (Variable Definitions): Add :risky and :safe keywords.
+
+2007-10-24  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Delete Frame-Local Variables from subnode menu.
+
+	* variables.texi (Frame-Local Variables): Node deleted.
+	(Variables): Delete Frame-Local Variables from menu.
+	(Local Variables, Buffer-Local Variables, Intro to Buffer-Local)
+	(Default Value): Don't mention frame-local vars.
+
+	* os.texi (Idle Timers): current-idle-time returns nil if not idle.
+
+	* loading.texi (Unloading): Document FEATURE-unload-function
+	instead of FEATURE-unload-hook.
+
+	* frames.texi (Multiple Displays): Don't mention frame-local vars.
+
+2007-10-22  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Text from Minibuffer, Minibuffer Completion)
+	(High-Level Completion): Document a list of default value strings
+	in the DEFAULT argument, for which minibuffer functions return the
+	first element.
+
 2007-10-17  Juri Linkov  <juri@jurta.org>
 
 	* text.texi (Filling): Update arguments of fill-paragraph.

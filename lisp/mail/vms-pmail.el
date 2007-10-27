@@ -110,7 +110,7 @@ First try the file indicated by environment variable MAIL$TRAILER.
 If that fails, try the file \"~/.signature\".
 If neither file exists, fails quietly."
   (interactive)
-  (end-of-buffer)
+  (goto-char (point-max))
   (newline)
   (if (vms-system-info "LOGICAL" "MAIL$TRAILER")
       (if (file-attributes (vms-system-info "LOGICAL" "MAIL$TRAILER"))

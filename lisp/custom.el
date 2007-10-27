@@ -168,6 +168,10 @@ set to nil, as the value is no longer rogue."
 		 (put symbol 'custom-get value))
 		((eq keyword :require)
 		 (push value requests))
+		((eq keyword :risky)
+		 (put symbol 'risky-local-variable value))
+		((eq keyword :safe)
+		 (put symbol 'safe-local-variable value))
 		((eq keyword :type)
 		 (put symbol 'custom-type (purecopy value)))
 		((eq keyword :options)
@@ -219,6 +223,8 @@ The following keywords are meaningful:
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
 	it does (require VALUE) first.
+:risky	Set SYMBOL's `risky-local-variable' property to VALUE.
+:safe	Set SYMBOL's `safe-local-variable' property to VALUE.
 
 The following common keywords are also meaningful.
 
@@ -572,6 +578,15 @@ This recursively follows aliases."
   (setq variable (indirect-variable variable))
   (or (get variable 'standard-value)
       (get variable 'custom-autoload)))
+
+(defun custom-note-var-changed (variable)
+  "Inform Custom that VARIABLE has been set (changed).
+VARIABLE is a symbol that names a user option.
+The result is that the change is treated as having been made through Custom."
+  (interactive "vVariable: ")
+  (put variable 'customized-value (list (custom-quote (eval variable)))))
+  
+  ;;; Custom Themes
 
 ;;; Loading files needed to customize a symbol.
 ;;; This is in custom.el because menu-bar.el needs it for toggle cmds.

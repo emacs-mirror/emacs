@@ -56,9 +56,10 @@ A large number or nil slows down menu responsiveness."
 (defvar menu-bar-tools-menu (make-sparse-keymap "Tools"))
 (define-key global-map [menu-bar tools] (cons "Tools" menu-bar-tools-menu))
 ;; This definition is just to show what this looks like.
-;; It gets overridden below when menu-bar-update-buffers is called.
+;; It gets modified in place when menu-bar-update-buffers is called.
+(defvar global-buffers-menu-map (make-sparse-keymap "Buffers"))
 (define-key global-map [menu-bar buffer]
-  (cons "Buffers" (make-sparse-keymap "Buffers")))
+  (cons "Buffers" global-buffers-menu-map))
 (defvar menu-bar-options-menu (make-sparse-keymap "Options"))
 (define-key global-map [menu-bar options]
   (cons "Options" menu-bar-options-menu))
@@ -1576,7 +1577,7 @@ Buffers menu is regenerated."
        (or force (frame-or-buffer-changed-p))
        (let ((buffers (buffer-list))
 	     (frames (frame-list))
-	     buffers-menu frames-menu)
+	     buffers-menu)
 	 ;; If requested, list only the N most recently selected buffers.
 	 (if (and (integerp buffers-menu-max-size)
 		  (> buffers-menu-max-size 1))
@@ -1677,10 +1678,10 @@ Buffers menu is regenerated."
 	 (setq buffers-menu
 	       (nconc buffers-menu menu-bar-buffers-menu-command-entries))
 
-	 (setq buffers-menu (cons 'keymap (cons "Select Buffer" buffers-menu)))
-	 (define-key (current-global-map) [menu-bar buffer]
-	   ;; Call copy-sequence so the string is not pure.
-	   (cons (copy-sequence "Buffers") buffers-menu)))))
+         ;; We used to "(define-key (current-global-map) [menu-bar buffer]"
+         ;; but that did not do the right thing when the [menu-bar buffer]
+         ;; entry above had been moved (e.g. to a parent keymap).
+	 (setcdr global-buffers-menu-map (cons "Select Buffer" buffers-menu)))))
 
 (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
 
@@ -1789,5 +1790,5 @@ If FRAME is nil or not given, use the selected frame."
 
 (provide 'menu-bar)
 
-;;; arch-tag: 6e6a3c22-4ec4-4d3d-8190-583f8ef94ced
+;; arch-tag: 6e6a3c22-4ec4-4d3d-8190-583f8ef94ced
 ;;; menu-bar.el ends here

@@ -914,7 +914,6 @@ w32_get_resource (key, lpdwtype)
   LPBYTE lpvalue;
   HKEY hrootkey = NULL;
   DWORD cbData;
-  BOOL ok = FALSE;
 
   /* Check both the current user and the local machine to see if
      we have any resources.  */
@@ -1149,6 +1148,7 @@ init_environment (char ** argv)
 		/* Also ignore empty environment variables.  */
 		|| *lpval == 0)
 	      {
+		if (lpval) xfree (lpval);
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
 		dont_free = 1;

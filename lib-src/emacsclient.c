@@ -86,6 +86,13 @@ Boston, MA 02110-1301, USA.  */
 char *getenv (), *getwd ();
 char *(getcwd) ();
 
+#ifdef WINDOWSNT
+char *w32_getenv ();
+#define egetenv(VAR) w32_getenv(VAR)
+#else
+#define egetenv(VAR) getenv(VAR)
+#endif
+
 #ifndef VERSION
 #define VERSION "unspecified"
 #endif
@@ -231,7 +238,7 @@ get_current_dir_name ()
   /* If PWD is accurate, use it instead of calling getwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
      parent directory is searchable but not readable.  */
-    if ((pwd = getenv ("PWD")) != 0
+    if ((pwd = egetenv ("PWD")) != 0
       && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
       && stat (pwd, &pwdstat) == 0
       && stat (".", &dotstat) == 0
@@ -294,6 +301,92 @@ get_current_dir_name ()
 /* Message functions. */
 
 #ifdef WINDOWSNT
+
+#define REG_ROOT "SOFTWARE\\GNU\\Emacs"
+
+/* Retrieve an environment variable from the Emacs subkeys of the registry.
+   Return NULL if the variable was not found, or it was empty.
+   This code is based on w32_get_resource (w32.c).  */
+char *
+w32_get_resource (predefined, key, type)
+     HKEY predefined;
+     char *key;
+     LPDWORD type;
+{
+  HKEY hrootkey = NULL;
+  char *result = NULL;
+  DWORD cbData;
+
+  if (RegOpenKeyEx (predefined, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS)
+	{
+	  result = (char *) xmalloc (cbData);
+
+	  if ((RegQueryValueEx (hrootkey, key, NULL, type, result, &cbData) != ERROR_SUCCESS) ||
+	      (*result == 0))
+	    {
+	      free (result);
+	      result = NULL;
+	    }
+	}
+
+      RegCloseKey (hrootkey);
+    }
+
+  return result;
+}
+
+/*
+  getenv wrapper for Windows
+
+  This is needed to duplicate Emacs's behavior, which is to look for enviroment
+  variables in the registry if they don't appear in the environment.
+*/
+char *
+w32_getenv (envvar)
+     char *envvar;
+{
+  char *value;
+  DWORD dwType;
+
+  if (value = getenv (envvar))
+    /* Found in the environment.  */
+    return value;
+
+  if (! (value = w32_get_resource (HKEY_CURRENT_USER, envvar, &dwType)) &&
+      ! (value = w32_get_resource (HKEY_LOCAL_MACHINE, envvar, &dwType)))
+    /* Not found in the registry.  */
+    return NULL;
+
+  if (dwType == REG_SZ)
+    /* Registry; no need to expand.  */
+    return value;
+
+  if (dwType == REG_EXPAND_SZ)
+    {
+      DWORD size;
+
+      if (size = ExpandEnvironmentStrings (value, NULL, 0))
+	{
+	  char *buffer = (char *) xmalloc (size);
+	  if (ExpandEnvironmentStrings (value, buffer, size))
+	    {
+	      /* Found and expanded.  */
+	      free (value);
+	      return buffer;
+	    }
+
+	  /* Error expanding.  */
+	  free (buffer);
+	}
+    }
+
+  /* Not the right type, or not correctly expanded.  */
+  free (value);
+  return NULL;
+}
+
 int
 w32_window_app ()
 {
@@ -383,8 +476,8 @@ decode_options (argc, argv)
      int argc;
      char **argv;
 {
-  alternate_editor = getenv ("ALTERNATE_EDITOR");
-  display = getenv ("DISPLAY");
+  alternate_editor = egetenv ("ALTERNATE_EDITOR");
+  display = egetenv ("DISPLAY");
   if (display && strlen (display) == 0)
     display = NULL;
 
@@ -572,6 +665,29 @@ char send_buffer[SEND_BUFFER_SIZE + 1];
 int sblen = 0;	/* Fill pointer for the send buffer.  */
 /* Socket used to communicate with the Emacs server process.  */
 HSOCKET emacs_socket = 0;
+
+/* On Windows, the socket library was historically separate from the standard
+   C library, so errors are handled differently.  */
+void
+sock_err_message (function_name)
+     char *function_name;
+{
+#ifdef WINDOWSNT
+  char* msg = NULL;
+
+  FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM
+                 | FORMAT_MESSAGE_ALLOCATE_BUFFER
+                 | FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                 NULL, WSAGetLastError (), 0, (LPTSTR)&msg, 0, NULL);
+
+  message (TRUE, "%s: %s: %s\n", progname, function_name, msg);
+
+  LocalFree (msg);
+#else
+  message (TRUE, "%s: %s: %s\n", progname, function_name, strerror (errno));
+#endif
+}
+
 
 /* Let's send the data to Emacs when either
    - the data ends in "\n", or
@@ -793,7 +909,7 @@ get_server_config (server, authentication)
     config = fopen (server_file, "rb");
   else
     {
-      char *home = getenv ("HOME");
+      char *home = egetenv ("HOME");
 
       if (home)
         {
@@ -802,7 +918,7 @@ get_server_config (server, authentication)
           config = fopen (path, "rb");
         }
 #ifdef WINDOWSNT
-      if (!config && (home = getenv ("APPDATA")))
+      if (!config && (home = egetenv ("APPDATA")))
         {
           char *path = alloca (32 + strlen (home) + strlen (server_file));
           sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
@@ -864,7 +980,7 @@ set_tcp_socket ()
    */
   if ((s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
-      message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
+      sock_err_message ("socket");
       return INVALID_SOCKET;
     }
 
@@ -873,7 +989,7 @@ set_tcp_socket ()
    */
   if (connect (s, (struct sockaddr *) &server, sizeof server) < 0)
     {
-      message (TRUE, "%s: connect: %s\n", progname, strerror (errno));
+      sock_err_message ("connect");
       return INVALID_SOCKET;
     }
 
@@ -1066,10 +1182,10 @@ set_local_socket ()
 	   associated with the name.  This is reminiscent of the logic
 	   that init_editfns uses to set the global Vuser_full_name.  */
 
-	char *user_name = (char *) getenv ("LOGNAME");
+	char *user_name = (char *) egetenv ("LOGNAME");
 
 	if (!user_name)
-	  user_name = (char *) getenv ("USER");
+	  user_name = (char *) egetenv ("USER");
 
 	if (user_name)
 	  {
@@ -1158,7 +1274,7 @@ set_socket ()
 
   /* Explicit --server-file arg or EMACS_SERVER_FILE variable.  */
   if (!server_file)
-    server_file = getenv ("EMACS_SERVER_FILE");
+    server_file = egetenv ("EMACS_SERVER_FILE");
 
   if (server_file)
     {
@@ -1331,7 +1447,7 @@ main (argc, argv)
 
   if (tty)
     {
-      char *type = getenv ("TERM");
+      char *type = egetenv ("TERM");
       char *tty_name = NULL;
 #ifndef WINDOWSNT
       tty_name = ttyname (fileno (stdin));

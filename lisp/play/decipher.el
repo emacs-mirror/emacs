@@ -352,7 +352,7 @@ The most useful commands are:
                (t
                 (error "Bad location")))))
           (let (goal-column)
-            (previous-line 1)))
+            (forward-line -1)))
       (let ((char-a (following-char))
             (char-b (decipher-last-command-char)))
         (or (and (not (= ?w (char-syntax char-a)))

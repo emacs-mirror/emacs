@@ -164,6 +164,8 @@ For the end user:
 * Usage::                       An overview of the operation of @value{tramp}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
+* Function Index::              @value{tramp} functions.
+* Variable Index::              User options and variables.
 * Concept Index::               An item for each concept.
 
 For the developer:
@@ -214,6 +216,7 @@ Using @value{tramp}
 * Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
 * Remote processes::            Integration with other @value{emacsname} packages.
+* Cleanup remote connections::  Cleanup remote connections.
 
 The inner workings of remote version control
 
@@ -1548,12 +1551,6 @@ variable @code{password-cache-expiry}.  The value is the number of
 seconds how long passwords are cached.  Setting it to @code{nil}
 disables the expiration.
 
-@findex tramp-clear-passwd
-A password is removed from the cache if a connection isn't established
-successfully.  You can remove a password from the cache also by
-executing @kbd{M-x tramp-clear-passwd} in a buffer containing a
-related remote file or directory.
-
 @vindex password-cache
 If you don't like this feature for security reasons, password caching
 can be disabled totally by customizing the variable
@@ -1654,7 +1651,6 @@ you must exit @value{emacsname}, remove your persistency file
 
 
 @node Remote shell setup
-@comment  node-name,  next,  previous,  up
 @section Remote shell setup hints
 @cindex remote shell setup
 @cindex @file{.profile} file
@@ -1718,6 +1714,39 @@ different user.  The default value of
 @code{tramp-shell-prompt-pattern} is the same as the default value of
 @code{shell-prompt-pattern}, which is reported to work well in many
 circumstances.
+
+@item @var{tramp-password-prompt-regexp}
+@vindex tramp-password-prompt-regexp
+@vindex tramp-wrong-passwd-regexp
+
+During login, @value{tramp} might be forced to enter a password or a
+passphrase.  The difference between both is that a password is
+requested from the shell on the remote host, while a passphrase is
+needed for accessing local authentication information, like your ssh
+key.
+
+@var{tramp-password-prompt-regexp} handles the detection of such
+requests for English environments.  When you use another localization
+of your (local or remote) host, you might need to adapt this. Example:
+
+@lisp
+(setq
+  tramp-password-prompt-regexp
+    (concat
+      "^.*"
+      (regexp-opt
+        '("passphrase" "Passphrase"
+          ;; English
+          "password" "Password"
+          ;; Deutsch
+          "passwort" "Passwort"
+          ;; Fran@,{c}ais
+          "mot de passe" "Mot de passe") t)
+      ".*: ? *"))
+@end lisp
+
+In parallel, it might also be necessary to adapt
+@var{tramp-wrong-passwd-regexp}.
 
 @item @command{tset} and other questions
 @cindex Unix command tset
@@ -2030,6 +2059,7 @@ minute you have already forgotten that you hit that key!
 * Alternative Syntax::          URL-like filename syntax.
 * Filename completion::         Filename completion.
 * Remote processes::            Integration with other @value{emacsname} packages.
+* Cleanup remote connections::  Cleanup remote connections.
 @end menu
 
 
@@ -2356,6 +2386,35 @@ means file names as arguments must be given as ordinary relative or
 absolute file names, without any remote specification.
 
 
+@node Cleanup remote connections
+@section Cleanup remote connections.
+@cindex cleanup
+
+Sometimes it is useful to cleanup remote connections.  The following
+commands support this.
+
+@deffn Command tramp-cleanup-connection vec
+This command flushes all connection related objects.  @option{vec} is
+the internal representation of a remote connection.  Called
+interactively, the command offers all active remote connections in the
+minibuffer as remote file name prefix like @file{@trampfn{method,
+user, host, }}.  The cleanup includes password cache (@pxref{Password
+caching}), file cache, connection cache (@pxref{Connection caching}),
+connection buffers.
+@end deffn
+
+@deffn Command tramp-cleanup-all-connections
+This command flushes objects for all active remote connections.  The
+same objects are removed as in @code{tramp-cleanup-connection}.
+@end deffn
+
+@deffn Command tramp-cleanup-all-buffers
+Like in @code{tramp-cleanup-all-connections}, all remote connections
+are cleaned up.  Additionally all buffers, which are related to a
+remote connection, are killed.
+@end deffn
+
+
 @node Bug Reports
 @chapter Reporting Bugs and Problems
 @cindex bug reports
@@ -2379,6 +2438,7 @@ Subscribing to the list is performed via
 @uref{http://lists.gnu.org/mailman/listinfo/tramp-devel/,
 the @value{tramp} Mail Subscription Page}.
 
+@findex tramp-bug
 To report a bug in @value{tramp}, you should execute @kbd{M-x
 tramp-bug}.  This will automatically generate a buffer with the details
 of your system and @value{tramp} version.
@@ -3228,9 +3288,8 @@ function call traces.  Such traces are enabled by the following code:
 @lisp
 (require 'tramp)
 (require 'trace)
-(mapcar 'trace-function-background
-        (mapcar 'intern
-                (all-completions "tramp-" obarray 'functionp)))
+(dolist (elt (all-completions "tramp-" obarray 'functionp))
+  (trace-function-background (intern elt)))
 (untrace-function 'tramp-read-passwd)
 (untrace-function 'tramp-gw-basic-authentication)
 @end lisp
@@ -3304,10 +3363,18 @@ for @value{emacsothername}.
 @appendix GNU Free Documentation License
 @include doclicense.texi
 
+@node Function Index
+@unnumbered Function Index
+@printindex fn
+
+@node Variable Index
+@unnumbered Variable Index
+@printindex vr
+
 @node Concept Index
-@comment node-name,    next,  previous,      up
 @unnumbered Concept Index
 @printindex cp
+
 @contents
 @c End of tramp.texi - the TRAMP User Manual
 @bye

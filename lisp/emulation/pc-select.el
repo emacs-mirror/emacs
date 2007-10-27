@@ -351,7 +351,7 @@ Then it does not try to move vertically.  This goal column is stored
 in `goal-column', which is nil when there is none."
   (interactive "p")
   (ensure-mark)
-  (next-line arg)
+  (with-no-warnings (next-line arg))
   (setq this-command 'next-line))
 
 (defun end-of-line-mark (&optional arg)
@@ -484,7 +484,7 @@ Then it does not try to move vertically.  This goal column is stored
 in `goal-column', which is nil when there is none."
   (interactive "p")
   (setq mark-active nil)
-  (next-line arg)
+  (with-no-warnings (next-line arg))
   (setq this-command 'next-line))
 
 (defun end-of-line-nomark (&optional arg)
@@ -609,7 +609,7 @@ If you are thinking of using this in a Lisp program, consider using
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
   (ensure-mark)
-  (previous-line arg)
+  (with-no-warnings (previous-line arg))
   (setq this-command 'previous-line))
 
 (defun beginning-of-line-mark (&optional arg)
@@ -707,7 +707,7 @@ a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically."
   (interactive "p")
   (setq mark-active nil)
-  (previous-line arg)
+  (with-no-warnings (previous-line arg))
   (setq this-command 'previous-line))
 
 (defun beginning-of-line-nomark (&optional arg)

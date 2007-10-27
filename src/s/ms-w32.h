@@ -241,6 +241,7 @@ Boston, MA 02110-1301, USA.  */
 #undef  HAVE_TERMIOS_H
 #define HAVE_LIMITS_H 1
 #define HAVE_STRING_H 1
+#define HAVE_STDLIB_H 1
 #define HAVE_PWD_H 1
 #define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME 1
@@ -399,10 +400,6 @@ typedef int pid_t;
 #if !defined (_MSC_VER) || (_MSC_VER < 1400)
 #define tzname    _tzname
 #define utime	  _utime
-#endif
-
-#ifdef HAVE_NTGUI
-#define abort	w32_abort
 #endif
 
 /* this is hacky, but is necessary to avoid warnings about macro

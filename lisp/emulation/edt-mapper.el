@@ -118,17 +118,11 @@
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
 ;;;
-(defconst edt-x-emacs-p (string-match "XEmacs" emacs-version)
-  "Non-nil if we are running XEmacs version 19, or higher.")
-
-(defconst edt-emacs-variant (if edt-x-emacs-p "xemacs" "gnu")
-  "Indicates Emacs variant:  GNU Emacs or XEmacs \(aka Lucid Emacs\).")
-
-(defconst edt-window-system (if edt-x-emacs-p (console-type) window-system)
+(defconst edt-window-system (if (featurep 'xemacs) (console-type) window-system)
   "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
 
 (defconst edt-xserver (if (eq edt-window-system 'x)
-			  (if edt-x-emacs-p
+			  (if (featurep 'xemacs)
 			      ;; The Cygwin window manager has a `/' in its
 			      ;; name, which breaks the generated file name of
 			      ;; the custom key map file.  Replace `/' with a
@@ -245,7 +239,7 @@
 ;;;  function-key-map.
 ;;;
 (cond
- (edt-x-emacs-p
+ ((featurep 'xemacs)
   (setq edt-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
   (setq edt-return (concat "[" (format "%s" (event-key (aref edt-return-seq 0))) "]")))
  (t
@@ -327,40 +321,37 @@
 ;;;
 ;;;  Key mapping functions
 ;;;
-(defun edt-lucid-map-key (ident descrip)
+(defun edt-map-key (ident descrip)
   (interactive)
-  (setq edt-key-seq (read-key-sequence (format "Press %s%s: " ident descrip)))
-  (setq edt-key (concat "[" (format "%s" (event-key (aref edt-key-seq 0))) "]"))
-  (cond ((not (equal edt-key edt-return))
-         (set-buffer "Keys")
-         (insert (format "    (\"%s\" . %s)\n" ident edt-key))
-         (set-buffer "Directions"))
-        ;; bogosity to get next prompt to come up, if the user hits <CR>!
-        ;; check periodically to see if this is still needed...
-        (t
-         (set-buffer "Keys")
-         (insert (format "    (\"%s\" . \"\" )\n" ident))
-         (set-buffer "Directions")))
+  (if (featurep 'xemacs)
+      (progn 
+	(setq edt-key-seq (read-key-sequence (format "Press %s%s: " ident descrip)))
+	(setq edt-key (concat "[" (format "%s" (event-key (aref edt-key-seq 0))) "]"))
+	(cond ((not (equal edt-key edt-return))
+	       (set-buffer "Keys")
+	       (insert (format "    (\"%s\" . %s)\n" ident edt-key))
+	       (set-buffer "Directions"))
+	      ;; bogosity to get next prompt to come up, if the user hits <CR>!
+	      ;; check periodically to see if this is still needed...
+	      (t
+	       (set-buffer "Keys")
+	       (insert (format "    (\"%s\" . \"\" )\n" ident))
+	       (set-buffer "Directions"))))
+    (setq edt-key (read-key-sequence (format "Press %s%s: " ident descrip)))
+    (cond ((not (equal edt-key edt-return))
+	   (set-buffer "Keys")
+	   (insert (if (vectorp edt-key)
+		       (format "    (\"%s\" . %s)\n" ident edt-key)
+		     (format "    (\"%s\" . \"%s\")\n" ident edt-key)))
+	   (set-buffer "Directions"))
+	  ;; bogosity to get next prompt to come up, if the user hits <CR>!
+	  ;; check periodically to see if this is still needed...
+	  (t
+	   (set-buffer "Keys")
+	   (insert (format "    (\"%s\" . \"\" )\n" ident))
+	   (set-buffer "Directions"))))
   edt-key)
 
-(defun edt-gnu-map-key (ident descrip)
-  (interactive)
-  (setq edt-key (read-key-sequence (format "Press %s%s: " ident descrip)))
-  (cond ((not (equal edt-key edt-return))
-         (set-buffer "Keys")
-         (insert (if (vectorp edt-key)
-                     (format "    (\"%s\" . %s)\n" ident edt-key)
-                   (format "    (\"%s\" . \"%s\")\n" ident edt-key)))
-         (set-buffer "Directions"))
-        ;; bogosity to get next prompt to come up, if the user hits <CR>!
-        ;; check periodically to see if this is still needed...
-        (t
-         (set-buffer "Keys")
-         (insert (format "    (\"%s\" . \"\" )\n" ident))
-         (set-buffer "Directions")))
-  edt-key)
-
-(fset 'edt-map-key (if edt-x-emacs-p 'edt-lucid-map-key 'edt-gnu-map-key))
 (set-buffer "Keys")
 (insert "
 ;;
@@ -494,7 +485,7 @@
 ;;;
 ;;;  Restore function-key-map.
 ;;;
-(if (and edt-window-system (not edt-x-emacs-p))
+(if (and edt-window-system (not (featurep 'xemacs)))
     (setq function-key-map edt-save-function-key-map))
 (setq EDT-key-name "")
 (while (not
@@ -517,7 +508,7 @@
 ;;;  Save the key mapping file
 ;;;
 (let ((file (concat
-	     "~/.edt-" edt-emacs-variant
+	     "~/.edt-" (if (featurep 'xemacs) "xemacs" "gnu")
 	     (if edt-term (concat "-" edt-term))
 	     (if edt-xserver (concat "-" edt-xserver))
 	     (if edt-window-system (concat "-" (upcase (symbol-name edt-window-system))))

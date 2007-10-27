@@ -50,7 +50,7 @@
   (message "Viper version is %s" viper-version))
 
 ;; Is it XEmacs?
-(defconst viper-xemacs-p (string-match "XEmacs" emacs-version))
+(defconst viper-xemacs-p (featurep 'xemacs))
 ;; Is it Emacs?
 (defconst viper-emacs-p (not viper-xemacs-p))
 ;; Tell whether we are running as a window application or on a TTY
@@ -61,7 +61,7 @@
 ;; compiler at hand.
 ;; Suggested by rms.
 (defmacro viper-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
-  (if (string-match "XEmacs" emacs-version)
+  (if (featurep 'xemacs)
       xemacs-form emacs-form))
 
 

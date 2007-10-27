@@ -3512,24 +3512,23 @@ that that variable is buffer-local to the summary buffers."
 						       (cadar servers)))))
 		  (pop servers))
 		(car servers))
-              ;; This could be some sort of foreign server that I
-              ;; simply haven't opened (yet).  Do a brute-force scan
-              ;; of the entire gnus-newsrc-alist for the server name
-              ;; of every method.  As a side-effect, loads the
-              ;; gnus-server-method-cache so this only happens once,
-              ;; if at all.
-              (let (match)
-                (mapcar
-                 (lambda (info)
-                   (let ((info-method (gnus-info-method info)))
-                     (unless (stringp info-method)
-                       (let ((info-server (gnus-method-to-server info-method)))
-                         (when (equal server info-server)
-                           (setq match info-method))))))
-                 (cdr gnus-newsrc-alist))
-                match))))
-        (when result
-          (push (cons server result) gnus-server-method-cache))
+	      ;; This could be some sort of foreign server that I
+	      ;; simply haven't opened (yet).  Do a brute-force scan
+	      ;; of the entire gnus-newsrc-alist for the server name
+	      ;; of every method.  As a side-effect, loads the
+	      ;; gnus-server-method-cache so this only happens once,
+	      ;; if at all.
+	      (let ((alist (cdr gnus-newsrc-alist))
+		    method match)
+		(while alist
+		  (setq method (gnus-info-method (pop alist)))
+		  (when (and (not (stringp method))
+			     (equal server (gnus-method-to-server method)))
+		    (setq match method
+			  alist nil)))
+		match))))
+	(when result
+	  (push (cons server result) gnus-server-method-cache))
 	result)))
 
 (defsubst gnus-server-get-method (group method)

@@ -656,11 +656,11 @@ on a file named @file{foo.tar} and you press @kbd{!}, Dired will guess
 you want to @samp{tar xvf} it and suggest that as the default shell
 command.
 
-The default is mentioned in brackets and you can type @kbd{M-p} to get
+The default is mentioned in brackets and you can type @kbd{M-n} to get
 the default into the minibuffer and then edit it, e.g., to change
 @samp{tar xvf} to @samp{tar tvf}.  If there are several commands for a given
 file, e.g., @samp{xtex} and @samp{dvips} for a @file{.dvi} file, you can type
-@kbd{M-p} several times to see each of the matching commands.
+@kbd{M-n} several times to see each of the matching commands.
 
 Dired only tries to guess a command for a single file, never for a list
 of marked files.

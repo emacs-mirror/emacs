@@ -1932,7 +1932,8 @@ FILE is typically the output DVI or PDF file."
 		  (not (file-symlink-p f)))
 	     (unless (string-match ignored-dirs-re f)
 	       (setq files (nconc
-			    (directory-files f t tex-input-files-re)
+                            (ignore-errors ;Not readable or something.
+                              (directory-files f t tex-input-files-re))
 			    files)))
 	   (when (file-newer-than-file-p f file)
 	     (setq uptodate nil)))))

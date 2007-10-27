@@ -3204,13 +3204,13 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  (set-default-file-modes ?\700)
 	  (when (condition-case nil
 		    ;; Try to overwrite old backup first.
-		    (copy-file from-name to-name t t)
+		    (copy-file from-name to-name t t t)
 		  (error t))
 	    (while (condition-case nil
 		       (progn
 			 (when (file-exists-p to-name)
 			   (delete-file to-name))
-			 (copy-file from-name to-name nil t)
+			 (copy-file from-name to-name nil t t)
 			 nil)
 		     (file-already-exists t))
 	      ;; The file was somehow created by someone else between
@@ -5286,9 +5286,8 @@ message to that effect instead of signaling an error."
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
 If any of these functions returns nil, killing Emacs is cancelled.
-`save-buffers-kill-emacs' (\\[save-buffers-kill-emacs]) calls these functions,
-but `kill-emacs', the low level primitive, does not.
-See also `kill-emacs-hook'.")
+`save-buffers-kill-emacs' calls these functions, but `kill-emacs',
+the low level primitive, does not.  See also `kill-emacs-hook'.")
 
 (defcustom confirm-kill-emacs nil
   "How to ask for confirmation when leaving Emacs.

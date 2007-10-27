@@ -408,7 +408,6 @@ If nil, the following are tried in turn, until success:
 
 (unless ps-mode-map
   (setq ps-mode-map (make-sparse-keymap))
-  (define-key ps-mode-map "\C-cv"    'ps-mode-show-version)
   (define-key ps-mode-map "\C-c\C-v" 'ps-run-boundingbox)
   (define-key ps-mode-map "\C-c\C-u" 'ps-mode-uncomment-region)
   (define-key ps-mode-map "\C-c\C-t" 'ps-mode-epsf-rich)
@@ -419,7 +418,7 @@ If nil, the following are tried in turn, until success:
   (define-key ps-mode-map "\C-c\C-o" 'ps-mode-comment-out-region)
   (define-key ps-mode-map "\C-c\C-k" 'ps-run-kill)
   (define-key ps-mode-map "\C-c\C-j" 'ps-mode-other-newline)
-  (define-key ps-mode-map "\C-c\C-c" 'ps-run-clear)
+  (define-key ps-mode-map "\C-c\C-l" 'ps-run-clear)
   (define-key ps-mode-map "\C-c\C-b" 'ps-run-buffer)
   (define-key ps-mode-map ">" 'ps-mode-r-gt)
   (define-key ps-mode-map "]" 'ps-mode-r-angle)

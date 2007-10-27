@@ -1172,56 +1172,28 @@ See `dired-guess-shell-alist-user'."
 
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."
-
   (let ((default (dired-guess-default files))
-        default-list old-history val (failed t))
-
+        default-list val)
     (if (null default)
         ;; Nothing to guess
         (read-from-minibuffer prompt nil nil nil 'dired-shell-command-history)
-
-      ;; Save current history list
-      (setq old-history dired-shell-command-history)
-
       (if (listp default)
-
           ;; More than one guess
           (setq default-list default
                 default (car default)
                 prompt (concat
                         prompt
                         (format "{%d guesses} " (length default-list))))
-
         ;; Just one guess
         (setq default-list (list default)))
-
-      ;; Push all guesses onto history so that they can be retrieved with M-p
-      ;; and put the first guess in the prompt but not in the initial value.
-      (setq dired-shell-command-history
-            (append default-list dired-shell-command-history)
-            prompt (concat prompt (format "[%s] " default)))
-
-      ;; The unwind-protect returns VAL, and we too.
-      (unwind-protect
-          ;; BODYFORM
-          (progn
-            (setq val (read-from-minibuffer prompt nil nil nil
-                                            'dired-shell-command-history)
-                  failed nil)
-            ;; If we got a return, then use default.
-            (if (equal val "")
-                (setq val default))
-            val)
-
-        ;; UNWINDFORMS
-        ;; Undo pushing onto the history list so that an aborted
-        ;; command doesn't get the default in the next command.
-        (setq dired-shell-command-history old-history)
-        (if (not failed)
-            (or (equal val (car-safe dired-shell-command-history))
-                (setq dired-shell-command-history
-                      (cons val dired-shell-command-history))))))))
-
+      ;; Put the first guess in the prompt but not in the initial value.
+      (setq prompt (concat prompt (format "[%s] " default)))
+      ;; All guesses can be retrieved with M-n
+      (setq val (read-from-minibuffer prompt nil nil nil
+                                      'dired-shell-command-history
+                                      default-list))
+      ;; If we got a return, then return default.
+      (if (equal val "") default val))))
 
 ;;; REDEFINE.
 ;;; Redefine dired-aux.el's version:

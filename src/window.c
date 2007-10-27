@@ -2690,9 +2690,8 @@ window_fixed_size_p (w, width_p, check_siblings_p)
 }
 
 /* Return the minimum size for leaf window W.  WIDTH_P non-zero means
-   take into account fringes and the scrollbar of W.  WIDTH_P zero
-   means take into account mode-line and header-line of W.  Return 1
-   for the minibuffer.  */
+   take into account fringes and the scrollbar of W.  WIDTH_P zero means
+   take into account mode-line of W.  Return 1 for the minibuffer.  */
 
 static int
 window_min_size_2 (w, width_p)
@@ -2711,8 +2710,11 @@ window_min_size_2 (w, width_p)
   else
     size = max (window_min_height,
 		(MIN_SAFE_WINDOW_HEIGHT
-		 + (WINDOW_WANTS_MODELINE_P (w) ? 1 : 0)
-		 + (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0 )));
+		 /* Don't count the header-line here.  It would break
+		    splitting a window with a header-line when the new
+		    window shall have a height of two (calculator does
+		    that). */
+		 + (WINDOW_WANTS_MODELINE_P (w) ? 1 : 0)));
 
   return size;
 }

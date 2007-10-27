@@ -258,7 +258,7 @@ the value of this variable and the variables `ediff-help-message-*' in
   (save-excursion
     (goto-char (point-min))
     (if ediff-use-long-help-message
-	(next-line 1))
+	(forward-line 1))
     (end-of-line)
     (current-column)))
 

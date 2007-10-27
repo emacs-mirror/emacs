@@ -309,10 +309,40 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	(insert ?\n)
 	(dolist (symbol savehist-minibuffer-history-variables)
 	  (when (boundp symbol)
-	    (let ((value (savehist-trim-history (symbol-value symbol))))
-	      (when value		; don't save empty histories
-		(prin1 `(setq ,symbol ',value) (current-buffer))
-		(insert ?\n))))))
+	    (let ((value (savehist-trim-history (symbol-value symbol)))
+		  excess-space)
+	      (when value		; Don't save empty histories.
+		(insert "(setq ")
+		(prin1 symbol (current-buffer))
+		(insert " '(")
+		;; We will print an extra space before the first element.
+		;; Record where that is.
+		(setq excess-space (point))
+		;; Print elements of VALUE one by one, carefully.
+		(dolist (elt value)
+		  (let ((start (point)))
+		    (insert " ")
+		    (prin1 elt (current-buffer))
+		    ;; Try to read the element we just printed.
+		    (condition-case nil
+			(save-excursion
+			  (goto-char start)
+			  (read (current-buffer)))
+		      (error
+		       ;; If reading it gets an error, comment it out.
+		       (goto-char start)
+		       (insert "\n")
+		       (while (not (eobp))
+			 (insert ";;; ")
+			 (forward-line 1))
+		       (insert "\n")))
+		    (goto-char (point-max))))
+		;; Delete the extra space before the first element.
+		(save-excursion
+		  (goto-char excess-space)
+		  (if (eq (following-char) ?\s)
+		      (delete-region (point) (1+ (point)))))
+		(insert "))\n"))))))
       ;; Save the additional variables.
       (dolist (symbol savehist-additional-variables)
 	(when (boundp symbol)

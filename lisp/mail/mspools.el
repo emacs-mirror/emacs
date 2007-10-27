@@ -272,9 +272,9 @@ Buffer is not displayed if SHOW is non-nil."
 			     (end-of-line)
 			     (point)))
 	      mspools-files-len)
-	  (next-line (- 1 mspools-files-len)) ;back to top of list
+	  (forward-line (- 1 mspools-files-len)) ;back to top of list
 	;; else just on to next line
-	(next-line 1))
+	(forward-line 1))
 
       ;; Choose whether to use VM or RMAIL for reading folder.
       (if mspools-using-vm

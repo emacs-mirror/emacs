@@ -125,13 +125,10 @@
 
 ;;; Code:
 
-;; XEmacs handling
-(defconst vhdl-xemacs (string-match "XEmacs" emacs-version)
-  "Non-nil if XEmacs is used.")
 ;; Emacs 21+ handling
-(defconst vhdl-emacs-21 (and (<= 21 emacs-major-version) (not vhdl-xemacs))
+(defconst vhdl-emacs-21 (and (<= 21 emacs-major-version) (not (featurep 'xemacs)))
   "Non-nil if GNU Emacs 21, 22, ... is used.")
-(defconst vhdl-emacs-22 (and (<= 22 emacs-major-version) (not vhdl-xemacs))
+(defconst vhdl-emacs-22 (and (<= 22 emacs-major-version) (not (featurep 'xemacs)))
   "Non-nil if GNU Emacs 22, ... is used.")
 
 (defvar compilation-file-regexp-alist)
@@ -1844,13 +1841,13 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 
 ;; add related general customizations
 (custom-add-to-group 'vhdl-related 'hideshow 'custom-group)
-(if vhdl-xemacs
+(if (featurep 'xemacs)
     (custom-add-to-group 'vhdl-related 'paren-mode 'custom-variable)
   (custom-add-to-group 'vhdl-related 'paren-showing 'custom-group))
 (custom-add-to-group 'vhdl-related 'ps-print 'custom-group)
 (custom-add-to-group 'vhdl-related 'speedbar 'custom-group)
 (custom-add-to-group 'vhdl-related 'line-number-mode 'custom-variable)
-(unless vhdl-xemacs
+(unless (featurep 'xemacs)
   (custom-add-to-group 'vhdl-related 'transient-mark-mode 'custom-variable))
 (custom-add-to-group 'vhdl-related 'user-full-name 'custom-variable)
 (custom-add-to-group 'vhdl-related 'mail-host-address 'custom-variable)
@@ -2093,7 +2090,7 @@ Ignore byte-compiler warnings you might see."
       newstr)))
 
 ;; `itimer.el': idle timer bug fix in version 1.09 (XEmacs 21.1.9)
-(when (and vhdl-xemacs (string< itimer-version "1.09")
+(when (and (featurep 'xemacs) (string< itimer-version "1.09")
 	   (not noninteractive))
   (load "itimer")
   (when (string< itimer-version "1.09")
@@ -2486,7 +2483,7 @@ conversion."
 (defun vhdl-show-messages ()
   "Get *Messages* buffer to show recent messages."
   (interactive)
-  (display-buffer (if vhdl-xemacs " *Message-Log*" "*Messages*")))
+  (display-buffer (if (featurep 'xemacs) " *Message-Log*" "*Messages*")))
 
 (defun vhdl-use-direct-instantiation ()
   "Return whether direct instantiation is used."
@@ -2686,7 +2683,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
   (define-key vhdl-mode-map "\M-\C-u"	   'vhdl-backward-up-list)
   (define-key vhdl-mode-map "\M-\C-a"	   'vhdl-backward-same-indent)
   (define-key vhdl-mode-map "\M-\C-e"	   'vhdl-forward-same-indent)
-  (unless vhdl-xemacs ; would override `M-backspace' in XEmacs
+  (unless (featurep 'xemacs) ; would override `M-backspace' in XEmacs
     (define-key vhdl-mode-map "\M-\C-h"	   'vhdl-mark-defun))
   (define-key vhdl-mode-map "\M-\C-q"	   'vhdl-indent-sexp)
   (define-key vhdl-mode-map "\M-^"	   'vhdl-delete-indentation)
@@ -2713,7 +2710,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
   (define-key vhdl-mode-map "\C-c\C-p\C-i" 'vhdl-port-paste-instance)
   (define-key vhdl-mode-map "\C-c\C-p\C-s" 'vhdl-port-paste-signals)
   (define-key vhdl-mode-map "\C-c\C-p\M-c" 'vhdl-port-paste-constants)
-  (if vhdl-xemacs ; `... C-g' not allowed in XEmacs
+  (if (featurep 'xemacs) ; `... C-g' not allowed in XEmacs
       (define-key vhdl-mode-map "\C-c\C-p\M-g" 'vhdl-port-paste-generic-map)
     (define-key vhdl-mode-map "\C-c\C-p\C-g" 'vhdl-port-paste-generic-map))
   (define-key vhdl-mode-map "\C-c\C-p\C-z" 'vhdl-port-paste-initializations)
@@ -5395,7 +5392,7 @@ negative, skip forward otherwise."
       (skip-chars-forward " \t\n"))))
 
 ;; XEmacs hack: work around buggy `forward-comment' in XEmacs 21.4+
-(unless (and vhdl-xemacs (string< "21.2" emacs-version))
+(unless (and (featurep 'xemacs) (string< "21.2" emacs-version))
   (defalias 'vhdl-forward-comment 'forward-comment))
 
 ;; This is the best we can do in Win-Emacs.
@@ -13013,7 +13010,7 @@ This does background highlighting of translate-off regions.")
 
 (defun vhdl-ps-print-init ()
   "Initialize postscript printing."
-  (if vhdl-xemacs
+  (if (featurep 'xemacs)
       (when (boundp 'ps-print-color-p)
 	(vhdl-ps-print-settings))
     (make-local-variable 'ps-print-hook)
@@ -14064,10 +14061,10 @@ if required."
 	  (save-excursion (beginning-of-line) (looking-at "[0-9]+:"))]
 	 ["Rescan Directory" vhdl-speedbar-rescan-hierarchy
 	  :active (save-excursion (beginning-of-line) (looking-at "[0-9]+:"))
-	  ,(if vhdl-xemacs :active :visible) (not vhdl-speedbar-show-projects)]
+	  ,(if (featurep 'xemacs) :active :visible) (not vhdl-speedbar-show-projects)]
 	 ["Rescan Project" vhdl-speedbar-rescan-hierarchy
 	  :active (save-excursion (beginning-of-line) (looking-at "[0-9]+:"))
-	  ,(if vhdl-xemacs :active :visible) vhdl-speedbar-show-projects]
+	  ,(if (featurep 'xemacs) :active :visible) vhdl-speedbar-show-projects]
 	 ["Save Caches" vhdl-save-caches vhdl-updated-project-list])))
     ;; hook-ups
     (speedbar-add-expansion-list
@@ -16189,7 +16186,7 @@ no project is defined."
 		    (assoc (car sublist) regexp-alist))
 	  (setq regexp-alist (cons (list (nth 0 sublist)
 					 (if (= 0 (nth 1 sublist))
-					     (if vhdl-xemacs 9 nil)
+					     (if (featurep 'xemacs) 9 nil)
 					   (nth 1 sublist))
 					 (nth 2 sublist) (nth 3 sublist))
 				   regexp-alist)))
@@ -16989,7 +16986,7 @@ to visually support naming conventions.")
 (defun vhdl-doc-variable (variable)
   "Display VARIABLE's documentation in *Help* buffer."
   (interactive)
-  (unless vhdl-xemacs
+  (unless (featurep 'xemacs)
     (help-setup-xref (list #'vhdl-doc-variable variable) (interactive-p)))
   (with-output-to-temp-buffer
       (if (fboundp 'help-buffer) (help-buffer) "*Help*")
@@ -17001,7 +16998,7 @@ to visually support naming conventions.")
 (defun vhdl-doc-mode ()
   "Display VHDL Mode documentation in *Help* buffer."
   (interactive)
-  (unless vhdl-xemacs
+  (unless (featurep 'xemacs)
     (help-setup-xref (list #'vhdl-doc-mode) (interactive-p)))
   (with-output-to-temp-buffer
       (if (fboundp 'help-buffer) (help-buffer) "*Help*")

@@ -63,6 +63,7 @@
 ;;; Code:
 
 (defvar msdos-color-values)
+(defvar w32-tty-standard-colors)
 
 ;; The following list is taken from rgb.txt distributed with X.
 ;;

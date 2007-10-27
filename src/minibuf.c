@@ -257,9 +257,13 @@ string_to_object (val, defalt)
 
   GCPRO2 (val, defalt);
 
-  if (STRINGP (val) && SCHARS (val) == 0
-      && STRINGP (defalt))
-    val = defalt;
+  if (STRINGP (val) && SCHARS (val) == 0)
+    {
+      if (STRINGP (defalt))
+	val = defalt;
+      else if (CONSP (defalt) && STRINGP (XCAR (defalt)))
+	val = XCAR (defalt);
+    }
 
   expr_and_pos = Fread_from_string (val, Qnil, Qnil);
   pos = XINT (Fcdr (expr_and_pos));
@@ -337,7 +341,7 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
 
   /* If Lisp form desired instead of string, parse it. */
   if (expflag)
-    val = string_to_object (val, defalt);
+    val = string_to_object (val, CONSP (defalt) ? XCAR (defalt) : defalt);
 
   return val;
 }
@@ -785,6 +789,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     histstring = val;
   else if (STRINGP (defalt))
     histstring = defalt;
+  else if (CONSP (defalt) && STRINGP (XCAR (defalt)))
+    histstring = XCAR (defalt);
   else
     histstring = Qnil;
 
@@ -1052,8 +1058,8 @@ DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
        doc: /* Return a Lisp object read using the minibuffer, unevaluated.
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.  Such
-arguments are used as in `read-from-minibuffer'.)  */)
+\(INITIAL-CONTENTS can also be a cons of a string and an integer.
+Such arguments are used as in `read-from-minibuffer'.)  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {
@@ -1067,8 +1073,8 @@ DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
        doc: /* Return value of Lisp expression read using the minibuffer.
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
-\(INITIAL-CONTENTS can also be a cons of a string and an integer.  Such
-arguments are used as in `read-from-minibuffer'.)  */)
+\(INITIAL-CONTENTS can also be a cons of a string and an integer.
+Such arguments are used as in `read-from-minibuffer'.)  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {
@@ -1102,7 +1108,7 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
 			       Qnil, history, default_value,
 			       inherit_input_method);
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (default_value))
-    val = default_value;
+    val = CONSP (default_value) ? XCAR (default_value) : default_value;
   return val;
 }
 
@@ -1225,7 +1231,7 @@ The argument PROMPT should be a string ending with a colon and a space.  */)
 
 	  args[0] = build_string ("%s (default %s): ");
 	  args[1] = prompt;
-	  args[2] = def;
+	  args[2] = CONSP (def) ? XCAR (def) : def;
 	  prompt = Fformat (3, args);
 	}
 
@@ -1835,7 +1841,7 @@ Completion ignores case if the ambient value of
 		      !NILP (inherit_input_method));
 
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (def))
-    val = def;
+    val = CONSP (def) ? XCAR (def) : def;
 
   RETURN_UNGCPRO (unbind_to (count, val));
 }

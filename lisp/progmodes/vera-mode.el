@@ -77,10 +77,6 @@
 
 ;;; Code:
 
-;; XEmacs handling
-(defconst vera-xemacs (string-match "XEmacs" emacs-version)
-  "Non-nil if XEmacs is used.")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -231,7 +227,7 @@ If nil, TAB always indents current line."
     (modify-syntax-entry ?\{ "(}"   syntax-table)
     (modify-syntax-entry ?\} "){"   syntax-table)
     ;; comment
-    (if vera-xemacs
+    (if (featurep 'xemacs)
 	(modify-syntax-entry ?\/ ". 1456" syntax-table) ; XEmacs
       (modify-syntax-entry ?\/ ". 124b" syntax-table)) ; Emacs
     (modify-syntax-entry ?\* ". 23" syntax-table)
@@ -600,7 +596,7 @@ Key bindings:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; XEmacs compatibility
-(when vera-xemacs
+(when (featurep 'xemacs)
   (require 'font-lock)
   (copy-face 'font-lock-reference-face 'font-lock-constant-face)
   (copy-face 'font-lock-preprocessor-face 'font-lock-builtin-face))

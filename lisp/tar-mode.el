@@ -1186,7 +1186,7 @@ to make your changes permanent."
 	    ;;
 	    (let ((position (- (length tar-parse-info) (length head))))
 	      (goto-char (point-min))
-	      (next-line position)
+	      (forward-line position)
 	      (beginning-of-line)
 	      (let ((p (point))
 		    after

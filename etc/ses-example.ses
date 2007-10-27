@@ -119,7 +119,7 @@ Sales summary - Acme fundraising
 
 (ses-cell A16 990904 990904 nil nil)
 (ses-cell B16 Eastern-area (quote Eastern-area) nil (D7 C7 D6 C6 D5 C5))
-(ses-cell C16 21 (/ life-universe-everything 2) nil (D7 C7 D6 C6 D5 C5))
+(ses-cell C16 21 (/ 42 2) nil (D7 C7 D6 C6 D5 C5))
 (ses-cell D16 nil nil nil nil)
 (ses-cell E16 nil nil nil nil)
 
@@ -202,8 +202,7 @@ Sales summary - Acme fundraising
 
 ;;; Local Variables:
 ;;; mode: ses
-;;; life-universe-everything: 42
-;;; symbolic-formulas: (("Eastern area") ("West-district") ("North&South") ("Other"))
+;;; ses--symbolic-formulas: (("Eastern area") ("West-district") ("North&South") ("Other"))
 ;;; End:
 
 ;;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
