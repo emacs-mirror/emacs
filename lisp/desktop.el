@@ -204,7 +204,7 @@ the normal hook `desktop-not-loaded-hook' is run."
     (const :tag "Don't load" nil)
     (const :tag "Ask the user" ask))
   :group 'desktop
-  :version "23.1")
+  :version "22.2")
 
 (defcustom desktop-base-file-name
   (convert-standard-filename ".emacs.desktop")
@@ -219,7 +219,7 @@ the normal hook `desktop-not-loaded-hook' is run."
   "Name of lock file for Emacs desktop, excluding the directory part."
   :type 'file
   :group 'desktop
-  :version "23.1")
+  :version "22.2")
 
 (defcustom desktop-path '("." "~")
   "List of directories to search for the desktop file.
@@ -253,7 +253,7 @@ May be used to deal with accidental multiple Emacs jobs."
   :type 'hook
   :group 'desktop
   :options '(desktop-save-mode-off save-buffers-kill-emacs)
-  :version "23.1")
+  :version "22.2")
 
 (defcustom desktop-after-read-hook nil
   "Normal hook run after a successful `desktop-read'.
