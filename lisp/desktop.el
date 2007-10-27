@@ -135,6 +135,8 @@
 
 ;;; Code:
 
+(defvar uniquify-managed)
+
 (defvar desktop-file-version "206"
   "Version number of desktop file format.
 Written into the desktop file and used at desktop read to provide
@@ -653,7 +655,9 @@ is nil, ask the user where to save the desktop."
   (list
    ;; basic information
    (desktop-file-name (buffer-file-name) desktop-dirname)
-   (buffer-name)
+   (if (bound-and-true-p uniquify-managed)
+       (uniquify-item-base (car uniquify-managed))
+     (buffer-name))
    major-mode
    ;; minor modes
    (let (ret)
@@ -1149,7 +1153,7 @@ directory DIRNAME."
           (setq desktop-first-buffer result))
         (set-buffer result)
         (unless (equal (buffer-name) desktop-buffer-name)
-          (rename-buffer desktop-buffer-name))
+          (rename-buffer desktop-buffer-name t))
         ;; minor modes
         (cond ((equal '(t) desktop-buffer-minor-modes) ; backwards compatible
                (auto-fill-mode 1))
