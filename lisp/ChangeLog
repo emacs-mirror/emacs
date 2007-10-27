@@ -1,3 +1,25 @@
+2007-10-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-wrong-passwd-regexp): Tune regexp.
+	(tramp-get-remote-tmpdir): New defun.
+	(tramp-make-tramp-temp-file): Use it.
+	(tramp-local-call-process): New defun.  Replace all calls of
+	`call-process' by this when appropriate.
+	(tramp-handle-write-region): Replace calls of `file-attributes' by
+	`tramp-compat-file-attributes'.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Make the first command a `tramp-send-command' call, with let-bind
+	of `tramp-end-of-output'.
+	(tramp-version, tramp-bug, tramp-reporter-dump-variable)
+	(tramp-load-report-modules, tramp-append-tramp-buffers): Move to
+	tramp-cmds.el.
+
+	* net/tramp-fish.el (tramp-fish-handle-copy-file)
+	(tramp-fish-do-copy-or-rename-file)
+	(tramp-fish-do-copy-or-rename-file-directly):
+	* net/tramp-smb.el (tramp-smb-handle-copy-file):
+	Add parameter PRESERVE-UID-GID.
+
 2007-10-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* time.el (zoneinfo-style-world-list, legacy-style-world-list):

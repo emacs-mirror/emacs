@@ -125,12 +125,270 @@ This includes password cache, file cache, connection cache, buffers."
   (dolist (name (tramp-list-remote-buffers))
     (when (bufferp (get-buffer name)) (kill-buffer name))))
 
+;; Tramp version is useful in a number of situations.
+
+(defun tramp-version (arg)
+  "Print version number of tramp.el in minibuffer or current buffer."
+  (interactive "P")
+  (if arg (insert tramp-version) (message tramp-version)))
+
+;; Make the `reporter` functionality available for making bug reports about
+;; the package. A most useful piece of code.
+
+(autoload 'reporter-submit-bug-report "reporter")
+
+(defun tramp-bug ()
+  "Submit a bug report to the Tramp developers."
+  (interactive)
+  (require 'reporter)
+  (catch 'dont-send
+    (let ((reporter-prompt-for-summary-p t))
+      (reporter-submit-bug-report
+       tramp-bug-report-address		; to-address
+       (format "tramp (%s)" tramp-version) ; package name and version
+       (delq nil
+	     `(;; Current state
+	       tramp-current-method
+	       tramp-current-user
+	       tramp-current-host
+
+	       ;; System defaults
+	       tramp-auto-save-directory        ; vars to dump
+	       tramp-default-method
+	       tramp-default-method-alist
+	       tramp-default-host
+	       tramp-default-proxies-alist
+	       tramp-default-user
+	       tramp-default-user-alist
+	       tramp-rsh-end-of-line
+	       tramp-default-password-end-of-line
+	       tramp-login-prompt-regexp
+	       ;; Mask non-7bit characters
+	       (tramp-password-prompt-regexp . tramp-reporter-dump-variable)
+	       tramp-wrong-passwd-regexp
+	       tramp-yesno-prompt-regexp
+	       tramp-yn-prompt-regexp
+	       tramp-terminal-prompt-regexp
+	       tramp-temp-name-prefix
+	       tramp-file-name-structure
+	       tramp-file-name-regexp
+	       tramp-methods
+	       tramp-end-of-output
+	       tramp-local-coding-commands
+	       tramp-remote-coding-commands
+	       tramp-actions-before-shell
+	       tramp-actions-copy-out-of-band
+	       tramp-terminal-type
+	       ;; Mask non-7bit characters
+	       (tramp-shell-prompt-pattern . tramp-reporter-dump-variable)
+	       ,(when (boundp 'tramp-backup-directory-alist)
+		  'tramp-backup-directory-alist)
+	       ,(when (boundp 'tramp-bkup-backup-directory-info)
+		  'tramp-bkup-backup-directory-info)
+	       ;; Dump cache.
+	       (tramp-cache-data . tramp-reporter-dump-variable)
+
+	       ;; Non-tramp variables of interest
+	       ;; Mask non-7bit characters
+	       (shell-prompt-pattern . tramp-reporter-dump-variable)
+	       backup-by-copying
+	       backup-by-copying-when-linked
+	       backup-by-copying-when-mismatch
+	       ,(when (boundp 'backup-by-copying-when-privileged-mismatch)
+		  'backup-by-copying-when-privileged-mismatch)
+	       ,(when (boundp 'password-cache)
+		  'password-cache)
+	       ,(when (boundp 'password-cache-expiry)
+		  'password-cache-expiry)
+	       ,(when (boundp 'backup-directory-alist)
+		  'backup-directory-alist)
+	       ,(when (boundp 'bkup-backup-directory-info)
+		  'bkup-backup-directory-info)
+	       file-name-handler-alist))
+
+       'tramp-load-report-modules	; pre-hook
+       'tramp-append-tramp-buffers	; post-hook
+       "\
+Enter your bug report in this message, including as much detail
+as you possibly can about the problem, what you did to cause it
+and what the local and remote machines are.
+
+If you can give a simple set of instructions to make this bug
+happen reliably, please include those.  Thank you for helping
+kill bugs in Tramp.
+
+Another useful thing to do is to put
+
+  (setq tramp-verbose 8)
+
+in the ~/.emacs file and to repeat the bug.  Then, include the
+contents of the *tramp/foo* buffer and the *debug tramp/foo*
+buffer in your bug report.
+
+--bug report follows this line--
+"))))
+
+(defun tramp-reporter-dump-variable (varsym mailbuf)
+  "Pretty-print the value of the variable in symbol VARSYM.
+Used for non-7bit chars in strings."
+  (let* ((reporter-eval-buffer (symbol-value 'reporter-eval-buffer))
+	 (val (with-current-buffer reporter-eval-buffer
+		(symbol-value varsym))))
+
+    (if (hash-table-p val)
+	;; Pretty print the cache.
+	(set varsym (read (format "(%s)" (tramp-cache-print val))))
+      ;; There are characters to be masked.
+      (when (and (boundp 'mm-7bit-chars)
+		 (string-match
+		  (concat "[^" (symbol-value 'mm-7bit-chars) "]") val))
+	(with-current-buffer reporter-eval-buffer
+	  (set varsym (format "(base64-decode-string \"%s\""
+			      (base64-encode-string val))))))
+
+    ;; Dump variable.
+    (funcall (symbol-function 'reporter-dump-variable) varsym mailbuf)
+
+    (unless (hash-table-p val)
+      ;; Remove string quotation.
+      (forward-line -1)
+      (when (looking-at
+	     (concat "\\(^.*\\)" "\""                       ;; \1 "
+		     "\\((base64-decode-string \\)" "\\\\"  ;; \2 \
+		     "\\(\".*\\)" "\\\\"                    ;; \3 \
+		     "\\(\")\\)" "\"$"))                    ;; \4 "
+	(replace-match "\\1\\2\\3\\4")
+	(beginning-of-line)
+	(insert " ;; variable encoded due to non-printable characters\n"))
+      (forward-line 1))
+
+    ;; Reset VARSYM to old value.
+    (with-current-buffer reporter-eval-buffer
+      (set varsym val))))
+
+(defun tramp-load-report-modules ()
+  "Load needed modules for reporting."
+
+  ;; We load message.el and mml.el from Gnus.
+  (if (featurep 'xemacs)
+      (progn
+	(load "message" 'noerror)
+	(load "mml" 'noerror))
+    (require 'message nil 'noerror)
+    (require 'mml nil 'noerror))
+  (when (functionp 'message-mode)
+    (funcall (symbol-function 'message-mode)))
+  (when (functionp 'mml-mode)
+    (funcall (symbol-function 'mml-mode) t)))
+
+(defun tramp-append-tramp-buffers ()
+  "Append Tramp buffers and buffer local variables into the bug report."
+
+  (goto-char (point-max))
+
+  ;; Dump buffer local variables.
+  (dolist (buffer
+	   (delq nil
+		 (mapcar
+		  '(lambda (b)
+		     (when (string-match "\\*tramp/" (buffer-name b)) b))
+		  (buffer-list))))
+    (let ((reporter-eval-buffer buffer)
+	  (buffer-name (buffer-name buffer))
+	  (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
+      (with-current-buffer elbuf
+	(emacs-lisp-mode)
+	(erase-buffer)
+	(insert "\n(setq\n")
+	(lisp-indent-line)
+	(funcall (symbol-function 'reporter-dump-variable)
+		 'buffer-name (current-buffer))
+	(dolist (varsym-or-cons-cell (buffer-local-variables buffer))
+	  (let ((varsym (or (car-safe varsym-or-cons-cell)
+			    varsym-or-cons-cell)))
+	    (when (string-match "tramp" (symbol-name varsym))
+	      (funcall
+	       (symbol-function 'reporter-dump-variable)
+	       varsym (current-buffer)))))
+	(lisp-indent-line)
+	(insert ")\n"))
+      (insert-buffer-substring elbuf)))
+
+  ;; Append buffers only when we are in message mode.
+  (when (and
+	 (eq major-mode 'message-mode)
+	 (boundp 'mml-mode)
+	 (symbol-value 'mml-mode))
+
+    (let ((tramp-buf-regexp "\\*\\(debug \\)?tramp/")
+	  (buffer-list (funcall (symbol-function 'tramp-list-tramp-buffers)))
+	  (curbuf (current-buffer)))
+
+      ;; There is at least one Tramp buffer.
+      (when buffer-list
+	(switch-to-buffer (list-buffers-noselect nil))
+	(delete-other-windows)
+	(setq buffer-read-only nil)
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (if (re-search-forward
+	       tramp-buf-regexp (tramp-compat-line-end-position) t)
+	      (forward-line 1)
+	    (forward-line 0)
+	    (let ((start (point)))
+	      (forward-line 1)
+	      (kill-region start (point)))))
+	(insert "
+The buffer(s) above will be appended to this message.  If you
+don't want to append a buffer because it contains sensitive data,
+or because the buffer is too large, you should delete the
+respective buffer.  The buffer(s) will contain user and host
+names.  Passwords will never be included there.")
+
+	(when (>= tramp-verbose 6)
+	  (insert "\n\n")
+	  (let ((start (point)))
+	    (insert "\
+Please note that you have set `tramp-verbose' to a value of at
+least 6.  Therefore, the contents of files might be included in
+the debug buffer(s).")
+	    (add-text-properties start (point) (list 'face 'italic))))
+
+	(set-buffer-modified-p nil)
+	(setq buffer-read-only t)
+	(goto-char (point-min))
+
+	(if (y-or-n-p "Do you want to append the buffer(s)? ")
+	    ;; OK, let's send.  First we delete the buffer list.
+	    (progn
+	      (kill-buffer nil)
+	      (switch-to-buffer curbuf)
+	      (goto-char (point-max))
+	      (insert "\n\
+This is a special notion of the `gnus/message' package.  If you
+use another mail agent (by copying the contents of this buffer)
+please ensure that the buffers are attached to your email.\n\n")
+	      (dolist (buffer buffer-list)
+		(funcall (symbol-function 'mml-insert-empty-tag)
+			 'part 'type "text/plain" 'encoding "base64"
+			 'disposition "attachment" 'buffer buffer
+			 'description buffer))
+	      (set-buffer-modified-p nil))
+
+	  ;; Don't send.  Delete the message buffer.
+	  (set-buffer curbuf)
+	  (set-buffer-modified-p nil)
+	  (kill-buffer nil)
+	  (throw 'dont-send nil))))))
+
+(defalias 'tramp-submit-bug 'tramp-bug)
+
 (provide 'tramp-cmds)
 
 ;;; TODO:
 
 ;; * Clean up unused *tramp/foo* buffers after a while.  (Pete Forman)
-;; * WIBNI there was an interactive command prompting for tramp
+;; * WIBNI there was an interactive command prompting for Tramp
 ;;   method, hostname, username and filename and translates the user
 ;;   input into the correct filename syntax (depending on the Emacs
 ;;   flavor) (Reiner Steib)

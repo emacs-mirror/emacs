@@ -205,9 +205,10 @@ pass to the OPERATION."
 ;; File name primitives
 
 (defun tramp-smb-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date)
+  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
   "Like `copy-file' for Tramp files.
-KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
+KEEP-DATE is not handled in case NEWNAME resides on an SMB server.
+PRESERVE-UID-GID is completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
 
@@ -574,7 +575,7 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
   (with-parsed-tramp-file-name filename nil
     (unless (eq append nil)
       (tramp-error
-	 v 'file-error "Cannot append to file using tramp (`%s')" filename))
+	 v 'file-error "Cannot append to file using Tramp (`%s')" filename))
     ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
     (when (and (not (featurep 'xemacs))
 	       confirm (file-exists-p filename))

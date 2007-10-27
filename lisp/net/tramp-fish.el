@@ -308,10 +308,10 @@ pass to the OPERATION."
 	 v1 'file-error "Error with add-name-to-file %s" newname)))))
 
 (defun tramp-fish-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date)
+  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
   "Like `copy-file' for Tramp files."
   (tramp-fish-do-copy-or-rename-file
-   'copy filename newname ok-if-already-exists keep-date))
+   'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))
 
 (defun tramp-fish-handle-delete-directory (directory)
   "Like `delete-directory' for Tramp files."
@@ -346,7 +346,7 @@ pass to the OPERATION."
   ;; Unless NAME is absolute, concat DIR and NAME.
   (unless (file-name-absolute-p name)
     (setq name (concat (file-name-as-directory dir) name)))
-  ;; If NAME is not a tramp file, run the real handler
+  ;; If NAME is not a Tramp file, run the real handler,
   (if (or (tramp-completion-mode-p) (not (tramp-tramp-file-p name)))
       (tramp-drop-volume-letter
        (tramp-run-real-handler 'expand-file-name (list name nil)))
@@ -835,7 +835,7 @@ target of the symlink differ."
 ;; Internal file name functions
 
 (defun tramp-fish-do-copy-or-rename-file
-  (op filename newname &optional ok-if-already-exists keep-date)
+  (op filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
   "Copy or rename a remote file.
 OP must be `copy' or `rename' and indicates the operation to
 perform.  FILENAME specifies the file to copy or rename, NEWNAME
@@ -869,7 +869,7 @@ file names."
 	   ;; directly.
 	   ((tramp-equal-remote filename newname)
 	    (tramp-fish-do-copy-or-rename-file-directly
-	     op filename newname keep-date))
+	     op filename newname keep-date preserve-uid-gid))
 	   ;; No shortcut was possible.  So we copy the
 	   ;; file first.  If the operation was `rename', we go
 	   ;; back and delete the original file (if the copy was
@@ -899,12 +899,13 @@ file names."
 	  (tramp-flush-file-property v (file-name-directory localname)))))))
 
 (defun tramp-fish-do-copy-or-rename-file-directly
-  (op filename newname keep-date)
+  (op filename newname keep-date preserve-uid-gid)
   "Invokes `COPY' or `RENAME' on the remote system.
 OP must be one of `copy' or `rename', indicating `cp' or `mv',
 respectively.  VEC specifies the connection.  LOCALNAME1 and
 LOCALNAME2 specify the two arguments of `cp' or `mv'.  If
-KEEP-DATE is non-nil, preserve the time stamp when copying."
+KEEP-DATE is non-nil, preserve the time stamp when copying.
+PRESERVE-UID-GID is completely ignored."
   (with-parsed-tramp-file-name filename v1
     (with-parsed-tramp-file-name newname v2
       (tramp-fish-send-command
