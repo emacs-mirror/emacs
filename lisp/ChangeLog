@@ -11,8 +11,8 @@
 	Make the first command a `tramp-send-command' call, with let-bind
 	of `tramp-end-of-output'.
 	(tramp-version, tramp-bug, tramp-reporter-dump-variable)
-	(tramp-load-report-modules, tramp-append-tramp-buffers): Move to
-	tramp-cmds.el.
+	(tramp-load-report-modules, tramp-append-tramp-buffers):
+	Move to tramp-cmds.el.
 
 	* net/tramp-fish.el (tramp-fish-handle-copy-file)
 	(tramp-fish-do-copy-or-rename-file)
@@ -52,17 +52,17 @@
 	(previous-line-mark, previous-line-nomark): Wrap with-no-warnings
 	around uses of previous-line and next-line.
 
-	* diff.el (diff-old-file, diff-new-file, diff-extra-args): New
-	defvars.
+	* diff.el (diff-old-file, diff-new-file, diff-extra-args):
+	New defvars.
 
 	* textmodes/css-mode.el (comment-continue):
 	* net/browse-url.el (url-handler-regexp):
-	* progmodes/idlw-help.el (idlwave-system-routines): Pacify
-	byte-compiler.
+	* progmodes/idlw-help.el (idlwave-system-routines):
+	Pacify byte-compiler.
 
 	* textmodes/fill.el (fill-nobreak-p): Replace obsolete alias
-	line-move-invisible-p it's former definition:
-	invisible-p. line-move-invisible-p was removed on 2007-08-29.
+	line-move-invisible-p with its former definition: invisible-p.
+	line-move-invisible-p was removed on 2007-08-29.
 
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
