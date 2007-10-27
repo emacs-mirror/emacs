@@ -1,3 +1,7 @@
+2007-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/cc-defs.el: Reorder conditions to avoid warnings.
+
 2007-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-load-locked-desktop, desktop-base-lock-name)

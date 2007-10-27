@@ -73,9 +73,9 @@
 
 ; (eval-after-load "font-lock"  ; 2006-07-09.  font-lock is now preloaded
 ;   '
-(if (and (not (featurep 'cc-fix)) ; only load the file once.
-	 (featurep 'xemacs)	; There is now (2005/12) code in GNU Emacs CVS
+(if (and (featurep 'xemacs)	; There is now (2005/12) code in GNU Emacs CVS
 				; to make the call to f-l-c-k throw an error.
+	 (not (featurep 'cc-fix)) ; only load the file once.
 	 (let (font-lock-keywords)
 	   (font-lock-compile-keywords '("\\<\\>"))
 	   font-lock-keywords))     ; did the previous call foul this up?
@@ -84,8 +84,8 @@
 ;; The above takes care of the delayed loading, but this is necessary
 ;; to ensure correct byte compilation.
 (eval-when-compile
-  (if (and (not (featurep 'cc-fix))
-	   (featurep 'xemacs)
+  (if (and (featurep 'xemacs)
+	   (not (featurep 'cc-fix))
 	   (progn
 	     (require 'font-lock)
 	     (let (font-lock-keywords)
