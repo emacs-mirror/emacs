@@ -19,7 +19,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -392,7 +392,11 @@ from the current buffer."
     (with-current-buffer buf
       (setq buffer-read-only nil)
       (setq default-directory dir)
-      (unless nosetup (erase-buffer))
+      (unless nosetup
+        ;; Disable undo before calling erase-buffer since it may generate
+        ;; a very large and unwanted undo record.
+        (buffer-disable-undo)
+        (erase-buffer))
       (set (make-local-variable 'cvs-buffer) cvs-buf)
       ;;(cvs-minor-mode 1)
       (let ((lbd list-buffers-directory))
@@ -400,7 +404,8 @@ from the current buffer."
 	(when lbd (set (make-local-variable 'list-buffers-directory) lbd)))
       (cvs-minor-mode 1)
       ;;(set (make-local-variable 'cvs-buffer) cvs-buf)
-      (unless normal
+      (if normal
+          (buffer-enable-undo)
 	(setq buffer-read-only t)
 	(buffer-disable-undo))
       buf)))

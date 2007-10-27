@@ -2451,7 +2451,7 @@ of the operations, or one could try to improve their performance.
 Use an external transfer method, like @option{scpc}.
 
 Use caching.  This is already enabled by default.  Information about
-the remote host as well as the remote files are cached for reuse.  Th
+the remote host as well as the remote files are cached for reuse.  The
 information about remote hosts is kept in the file specified in
 @code{tramp-persistency-file-name}.  Keep this file.
 
@@ -2632,7 +2632,11 @@ should put it into your @file{~/.emacs}:
      my-mode-line-buffer-identification)))
 @end lisp
 
-Since @value{emacsname} 23, the @code{:eval} clause can be simplified:
+Since @value{emacsname} 23.1, the mode line contains an indication if
+@code{default-directory} for the current buffer is on a remote host.
+The corresponding tooltip includes the name of that host.  If you
+still want the host name as part of the mode line, you can use the
+example above, but the @code{:eval} clause can be simplified:
 
 @lisp
    '(:eval

@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -2316,6 +2316,15 @@ Wildcards and redirection are handled as usual in the shell.
     (start-process name buffer shell-file-name shell-command-switch
 		   (mapconcat 'identity args " ")))))
 
+(defun start-file-process-shell-command (name buffer &rest args)
+  "Start a program in a subprocess.  Return the process object for it.
+Similar to `start-process-shell-command', but calls `start-file-process'."
+  (start-file-process
+   name buffer
+   (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
+   (if (file-remote-p default-directory) "-c" shell-command-switch)
+   (mapconcat 'identity args " ")))
+
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
   "Execute the shell command COMMAND synchronously in separate process.
@@ -2347,6 +2356,16 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
 		  infile buffer display
 		  shell-command-switch
 		  (mapconcat 'identity (cons command args) " ")))))
+
+(defun process-file-shell-command (command &optional infile buffer display
+					   &rest args)
+  "Process files synchronously in a separate process.
+Similar to `call-process-shell-command', but calls `process-file'."
+  (process-file
+   (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
+   infile buffer display
+   (if (file-remote-p default-directory) "-c" shell-command-switch)
+   (mapconcat 'identity (cons command args) " ")))
 
 ;;;; Lisp macros to do various things temporarily.
 

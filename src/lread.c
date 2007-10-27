@@ -7,7 +7,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1639,7 +1639,8 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 	}
 
       /* Ignore whitespace here, so we can detect eof.  */
-      if (c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r')
+      if (c == ' ' || c == '\t' || c == '\n' || c == '\f' || c == '\r'
+	  || c == 0x8a0)  /* NBSP */
 	goto read_next;
 
       if (!NILP (Vpurify_flag) && c == '(')
@@ -2828,7 +2829,9 @@ read1 (readcharfun, pch, first_in_list)
       }
     default:
     default_label:
-      if (c <= 040) goto retry;
+      if (c <= 040) goto retry;	
+      if (c == 0x8a0) /* NBSP */
+	goto retry;
       {
 	char *p = read_buffer;
 	int quoted = 0;
@@ -2837,6 +2840,7 @@ read1 (readcharfun, pch, first_in_list)
 	  char *end = read_buffer + read_buffer_size;
 
 	  while (c > 040
+		 && c != 0x8a0 /* NBSP */
 		 && (c >= 0200
 		     || (!index ("\"';()[]#", c)
 			 && !(!first_in_list && c == '`')

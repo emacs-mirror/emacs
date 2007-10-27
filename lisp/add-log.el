@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -1154,29 +1154,6 @@ old-style time formats for entries are supported."
 	    (with-current-buffer other-buf
 	      (goto-char (point-max)))
 	    (insert-buffer-substring other-buf start)))))))
-
-;;;###autoload
-(defun change-log-redate ()
-  "Fix any old-style date entries in the current log file to default format."
-  (interactive)
-  (require 'timezone)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward "^\\sw.........[0-9:+ ]*" nil t)
-      (unless (= 12 (- (match-end 0) (match-beginning 0)))
-	(let* ((date (save-match-data
-		       (timezone-fix-time (match-string 0) nil nil)))
-	       (zone (if (consp (aref date 6))
-			 (nth 1 (aref date 6)))))
-	  (replace-match (format-time-string
-			  "%Y-%m-%d  "
-			  (encode-time (aref date 5)
-				       (aref date 4)
-				       (aref date 3)
-				       (aref date 2)
-				       (aref date 1)
-				       (aref date 0)
-				       zone))))))))
 
 (provide 'add-log)
 

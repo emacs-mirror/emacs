@@ -561,7 +561,6 @@ register_heapinfo ()
 }
 
 #ifdef USE_PTHREAD
-static pthread_once_t malloc_init_once_control = PTHREAD_ONCE_INIT;
 pthread_mutex_t _malloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t _aligned_blocks_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
@@ -607,18 +606,16 @@ malloc_initialize_1 ()
   return;
 }
 
-/* Set everything up and remember that we have.  */
+/* Set everything up and remember that we have.
+   main will call malloc which calls this function.  That is before any threads
+   or signal handlers has been set up, so we don't need thread protection.  */
 int
 __malloc_initialize ()
 {
-#ifdef USE_PTHREAD
-  pthread_once (&malloc_init_once_control, malloc_initialize_1);
-#else
   if (__malloc_initialized)
     return 0;
 
   malloc_initialize_1 ();
-#endif
 
   return __malloc_initialized;
 }

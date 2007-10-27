@@ -7,7 +7,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -682,6 +682,60 @@ w32_draw_fringe_bitmap (w, row, p)
 
   hdc = get_frame_dc (f);
 
+  if (!p->overlay_p)
+    {
+      int bx = p->bx, by = p->by, nx = p->nx, ny = p->ny;
+
+      /* If the fringe is adjacent to the left (right) scroll bar of a
+	 leftmost (rightmost, respectively) window, then extend its
+	 background to the gap between the fringe and the bar.  */
+      if ((WINDOW_LEFTMOST_P (w)
+	   && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+	  || (WINDOW_RIGHTMOST_P (w)
+	      && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
+	{
+	  int sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+
+	  if (sb_width > 0)
+	    {
+	      int left = WINDOW_SCROLL_BAR_AREA_X (w);
+	      int width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+			   * FRAME_COLUMN_WIDTH (f));
+
+	      if (bx < 0)
+		{
+		  /* Bitmap fills the fringe.  */
+		  if (left + width == p->x)
+		    bx = left + sb_width;
+		  else if (p->x + p->wd == left)
+		    bx = left;
+		  if (bx >= 0)
+		    {
+		      int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+
+		      nx = width - sb_width;
+		      by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
+							    row->y));
+		      ny = row->visible_height;
+		    }
+		}
+	      else
+		{
+		  if (left + width == bx)
+		    {
+		      bx = left + sb_width;
+		      nx += width - sb_width;
+		    }
+		  else if (bx + nx == left)
+		    nx += width - sb_width;
+		}
+	    }
+	}
+
+      if (bx >= 0 && nx > 0)
+	w32_fill_area (f, hdc, face->background, bx, by, nx, ny);
+    }
+
   /* Must clip because of partially visible lines.  */
   rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
   if (p->y < rowY)
@@ -698,12 +752,6 @@ w32_draw_fringe_bitmap (w, row, p)
     }
   else
     w32_clip_to_row (w, row, -1, hdc);
-
-  if (p->bx >= 0 && !p->overlay_p)
-    {
-      w32_fill_area (f, hdc, face->background,
-		     p->bx, p->by, p->nx, p->ny);
-    }
 
   if (p->which && p->which < max_fringe_bmp)
     {
@@ -3637,6 +3685,7 @@ x_scroll_bar_create (w, top, left, width, height)
   XSETINT (bar->start, 0);
   XSETINT (bar->end, 0);
   bar->dragging = Qnil;
+  bar->fringe_extended_p = Qnil;
 
   /* Requires geometry to be set before call to create the real window */
 
@@ -3700,6 +3749,7 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
   struct scroll_bar *bar;
   int top, height, left, sb_left, width, sb_width;
   int window_y, window_height;
+  int fringe_extended_p;
 
   /* Get window dimensions.  */
   window_box (w, -1, 0, &window_y, 0, &window_height);
@@ -3719,9 +3769,20 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
 
   /* Compute the left edge of the scroll bar.  */
   if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
-    sb_left = left + width - sb_width - (width - sb_width) / 2;
+    sb_left = left + (WINDOW_RIGHTMOST_P (w) ? width - sb_width : 0);
   else
-    sb_left = left + (width - sb_width) / 2;
+    sb_left = left + (WINDOW_LEFTMOST_P (w) ? 0 : width - sb_width);
+
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+    fringe_extended_p = (WINDOW_LEFTMOST_P (w)
+			 && WINDOW_LEFT_FRINGE_WIDTH (w)
+			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+			     || WINDOW_LEFT_MARGIN_COLS (w) == 0));
+  else
+    fringe_extended_p = (WINDOW_RIGHTMOST_P (w)
+			 && WINDOW_RIGHT_FRINGE_WIDTH (w)
+			 && (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+			     || WINDOW_RIGHT_MARGIN_COLS (w) == 0));
 
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
@@ -3731,7 +3792,10 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
       if (width > 0 && height > 0)
 	{
 	  hdc = get_frame_dc (f);
-	  w32_clear_area (f, hdc, left, top, width, height);
+	  if (fringe_extended_p)
+	    w32_clear_area (f, hdc, sb_left, top, sb_width, height);
+	  else
+	    w32_clear_area (f, hdc, left, top, width, height);
 	  release_frame_dc (f, hdc);
 	}
       UNBLOCK_INPUT;
@@ -3750,7 +3814,8 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
       if ( XINT (bar->left) == sb_left
            && XINT (bar->top) == top
            && XINT (bar->width) ==  sb_width
-           && XINT (bar->height) == height )
+           && XINT (bar->height) == height
+	   && !NILP (bar->fringe_extended_p) == fringe_extended_p )
         {
           /* Redraw after clear_frame. */
           if (!my_show_window (f, hwnd, SW_NORMAL))
@@ -3767,11 +3832,10 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
 	      hdc = get_frame_dc (f);
 	      /* Since Windows scroll bars are smaller than the space reserved
 		 for them on the frame, we have to clear "under" them.  */
-	      w32_clear_area (f, hdc,
-			      left,
-			      top,
-			      width,
-			      height);
+	      if (fringe_extended_p)
+		w32_clear_area (f, hdc, sb_left, top, sb_width, height);
+	      else
+		w32_clear_area (f, hdc, left, top, width, height);
 	      release_frame_dc (f, hdc);
 	    }
           /* Make sure scroll bar is "visible" before moving, to ensure the
@@ -3801,6 +3865,8 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
           UNBLOCK_INPUT;
         }
     }
+  bar->fringe_extended_p = fringe_extended_p ? Qt : Qnil;
+
   w32_set_scroll_bar_thumb (bar, portion, position, whole);
 
   XSETVECTOR (w->vertical_scroll_bar, bar);

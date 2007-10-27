@@ -48,6 +48,11 @@ recenter the visited source file.  Its value can be a number (for example,
 
 ** The mode-line display a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
+** The new command balance-window-area balances windows both vertically
+and horizontally.
+
+** The new command close-display-connection can be used to close a connection
+to a remote display, e.g. because the display is about to become unreachable.
 
 * Startup Changes in Emacs 23.1
 
@@ -72,13 +77,7 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
-** css-mode to edit Cascading Style Sheets.
-
 ** bibtex-style-mode helps you write BibTeX's *.bst files.
-
-** vera-mode to edit Vera files.
-
-** socks.el (which had been part of W3) is now part of Emacs.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
@@ -93,10 +92,11 @@ Only copyright lines with holders matching copyright-names-regexp will be
 considered for update.
 
 ** VC
-*** VC backends can provide completion of revision names.
-*** VC has some support for Bazaar (bzr).
+*** Clicking on the VC mode-line entry now pops the VC menu.
 
-*** VC has some support for Mercurial (hg).
+*** The VC mode-line entry now has a tooltip.
+
+*** VC has some support for Bazaar (bzr).
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
@@ -143,6 +143,9 @@ file copy is checked via the file's checksum.
 If `default-directory' is a remote file name, subprocesses are started
 on the corresponding remote system.
 
+** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode,
+and C-x C-q in wdired-mode exits it with asking a question about
+saving changes.
 
 * Changes in Emacs 23.1 on non-free operating systems
 
@@ -161,6 +164,8 @@ supported on other platforms, but not on Windows due to using the winsock
 
 
 * Lisp Changes in Emacs 23.1
+
+** Non-breaking space now acts as whitespace.
 
 +++
 ** In `condition-case', a handler can specify "let the debugger run first".
@@ -189,7 +194,9 @@ with a given image specification.
 +++
 ** The new function `start-file-process is similar to `start-process',
 but obeys file handlers.  The file handler is chosen based on
-`default-directory'.
+`default-directory'.  The functions `start-file-process-shell-command'
+and `process-file-shell-command' are also new; they call internally
+`start-file-process and `process-file', respectively.
 
 +++
 ** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
@@ -200,6 +207,10 @@ remote connection has been established already.
 ** The two new functions `looking-at-p' and `string-match-p' can do
 the same matching as `looking-at' and `string-match' without changing
 the match data.
+
+** The interactive-form of a function can be added post-facto via the
+`interactive-form' symbol property.  Mostly useful to add complex interactive
+forms to subroutines.
 
 * New Packages for Lisp Programming in Emacs 23.1
 
@@ -209,7 +220,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,

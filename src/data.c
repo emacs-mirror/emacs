@@ -6,7 +6,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -761,7 +761,22 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
      (cmd)
      Lisp_Object cmd;
 {
-  Lisp_Object fun = indirect_function (cmd);
+  Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
+  
+  if (NILP (fun) || EQ (fun, Qunbound))
+    return Qnil;
+
+  /* Use an `interactive-form' property if present, analogous to the
+     function-documentation property. */
+  fun = cmd;
+  while (SYMBOLP (fun))
+    {
+      Lisp_Object tmp = Fget (fun, intern ("interactive-form"));
+      if (!NILP (tmp))
+	return tmp;
+      else
+	fun = Fsymbol_function (fun);
+    }
 
   if (SUBRP (fun))
     {

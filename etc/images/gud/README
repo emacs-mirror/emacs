@@ -3,7 +3,7 @@ COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 The following icons were created by Nick Roberts <nickrob@snap.net.nz>.
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
   Free Software Foundation, Inc.
-License: GNU General Public License version 2 or later (see COPYING)
+License: GNU General Public License version 3 or later (see COPYING)
   
   break.pbm, nexti.pbm, go.pbm, pp.pbm, print.pbm, pstar.pbm, remove.pbm
   break.xpm, nexti.xpm, go.xpm, pp.xpm, print.xpm, pstar.xpm, remove.xpm
@@ -33,7 +33,7 @@ set in src/gdb/gdbtk/library/images2.
 
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
   Free Software Foundation, Inc.
-License: GNU General Public License version 2 or later (see COPYING)
+License: GNU General Public License version 3 or later (see COPYING)
 
   cont.pbm and cont.xpm were converted from continue.gif
   down.pbm and down.xpm were converted from down.gif

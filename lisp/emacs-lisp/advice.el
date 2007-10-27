@@ -12,7 +12,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -2473,10 +2473,6 @@ will clear the cache."
       (setq definition (indirect-function definition)))
   (and (subrp definition) (eq (cdr (subr-arity definition)) 'unevalled)))
 
-(defmacro ad-interactive-p (definition)
-  ;;"non-nil if DEFINITION can be called interactively."
-  (list 'commandp definition))
-
 (defmacro ad-subr-p (definition)
   ;;"non-nil if DEFINITION is a subr."
   (list 'subrp definition))
@@ -2591,13 +2587,12 @@ that property, or otherwise use `(&rest ad-subr-args)'."
 	docstring)))
 
 (defun ad-interactive-form (definition)
-  "Return the interactive form of DEFINITION."
-  (cond ((ad-compiled-p definition)
-	 (and (commandp definition)
-	      (list 'interactive (aref (ad-compiled-code definition) 5))))
-	((or (ad-advice-p definition)
-	     (ad-lambda-p definition))
-	 (commandp (ad-lambda-expression definition)))))
+  "Return the interactive form of DEFINITION.
+Like `interactive-form', but also works on pieces of advice."
+  (interactive-form
+   (if (ad-advice-p definition)
+       (ad-lambda-expression definition)
+     definition)))
 
 (defun ad-body-forms (definition)
   "Return the list of body forms of DEFINITION."
@@ -3051,7 +3046,7 @@ in any of these classes."
 	   (ad-has-redefining-advice function))
       (let* ((origdef (ad-real-orig-definition function))
 	     (origname (ad-get-advice-info-field function 'origname))
-	     (orig-interactive-p (ad-interactive-p origdef))
+	     (orig-interactive-p (commandp origdef))
 	     (orig-subr-p (ad-subr-p origdef))
 	     (orig-special-form-p (ad-special-form-p origdef))
 	     (orig-macro-p (ad-macro-p origdef))
@@ -3063,15 +3058,11 @@ in any of these classes."
 	     (interactive-form
 	      (cond (orig-macro-p nil)
 		    (advised-interactive-form)
-		    ((ad-interactive-form origdef)
-		     (if (and (symbolp function) (get function 'elp-info))
-			 (interactive-form (aref (get function 'elp-info) 2))
-		       (ad-interactive-form origdef)))
-		    ;; Otherwise we must have a subr: make it interactive if
-		    ;; we have to and initialize required arguments in case
-		    ;; it is called interactively:
-		    (orig-interactive-p
-		     (interactive-form origdef))))
+		    ((interactive-form origdef)
+		     (interactive-form
+                      (if (and (symbolp function) (get function 'elp-info))
+                          (aref (get function 'elp-info) 2)
+                        origdef)))))
 	     (orig-form
 	      (cond ((or orig-special-form-p orig-macro-p)
 		     ;; Special forms and macros will be advised into macros.
@@ -3294,8 +3285,8 @@ advised definition from scratch."
 	      t
 	    (ad-arglist original-definition function))
 	  (if (eq (ad-definition-type original-definition) 'function)
-	      (equal (ad-interactive-form original-definition)
-		     (ad-interactive-form cached-definition))))))
+	      (equal (interactive-form original-definition)
+		     (interactive-form cached-definition))))))
 
 (defun ad-get-cache-class-id (function class)
   "Return the part of FUNCTION's cache id that identifies CLASS."
@@ -3342,8 +3333,8 @@ advised definition from scratch."
 		       (ad-arglist cached-definition))
 		(setq code 'interactive-form-mismatch)
 		(or (null (nth 5 cache-id))
-		    (equal (ad-interactive-form original-definition)
-			   (ad-interactive-form cached-definition)))
+		    (equal (interactive-form original-definition)
+			   (interactive-form cached-definition)))
 		(setq code 'verified))))
     code))
 

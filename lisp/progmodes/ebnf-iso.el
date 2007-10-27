@@ -1,18 +1,18 @@
 ;;; ebnf-iso.el --- parser for ISO EBNF
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-;; Free Software Foundation, Inc.
+;;   Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.8
+;; Version: 1.9
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -504,6 +504,12 @@ See documentation for variable `ebnf-iso-lex'."
    ;; close EPS file
    ((and ebnf-eps-executing (= (following-char) ?\]))
     (ebnf-eps-remove-context (ebnf-iso-eps-filename)))
+   ;; EPS header
+   ((and ebnf-eps-executing (= (following-char) ?H))
+    (ebnf-eps-header-comment (ebnf-iso-eps-filename)))
+   ;; EPS footer
+   ((and ebnf-eps-executing (= (following-char) ?F))
+    (ebnf-eps-footer-comment (ebnf-iso-eps-filename)))
    ;; any other action in comment
    (t
     (setq ebnf-action (aref ebnf-comment-table (following-char))))

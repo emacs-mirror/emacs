@@ -1643,9 +1643,9 @@
 	* emacs.c (main) [DJGPP v2]: Make standard streams use binary mode.
 	Call `tzset' instead of `init_gettimeofday'.
 
-	* fileio.c [MSDOS]: If DJGPP version 2, include fcntl.h and string.h.
+	* fileio.c [MSDOS]: If DJGPP version 3, include fcntl.h and string.h.
 
-	* lread.c [MSDOS]: If DJGPP version 2, include unistd.h.
+	* lread.c [MSDOS]: If DJGPP version 3, include unistd.h.
 	Include msdos.h somewhat earlier.  For X_OK.
 
 	* unexec.c [DJGPP v2]: Include fcntl.h.
@@ -1664,7 +1664,7 @@
 	(LIBS_SYSTEM, chdir, NO_MODE_T, TEXT_START, NO_MATHERR)
 	(LOCALTIME_CACHE, tzset): Don't define if DJGPP v2.
 
-	* msdos.c [MSDOS]: If DJGPP version 2, include fcntl.h.
+	* msdos.c [MSDOS]: If DJGPP version 3, include fcntl.h.
 	(_crt0_startup_flags): Initialize to work
 	correctly both with and without GNU `malloc' and `ralloc'.
 	(internal_terminal_init): Use only 3 bits when setting background
@@ -5361,7 +5361,7 @@ See ChangeLog.5 for earlier changes.
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,

@@ -1152,7 +1152,7 @@ and erases all flags and marks.
 @findex wdired-change-to-wdired-mode
   Wdired is a special mode that allows you to perform file operations
 by editing the Dired buffer directly (the ``W'' in ``Wdired'' stands
-for ``writable.'')  To enter Wdired mode, type @kbd{M-x
+for ``writable.'')  To enter Wdired mode, type @kbd{C-x C-q} or @kbd{M-x
 wdired-change-to-wdired-mode} while in a Dired buffer.  Alternatively,
 use @samp{Edit File Names} in the @samp{Immediate} menu bar menu.
 

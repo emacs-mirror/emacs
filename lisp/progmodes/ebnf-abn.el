@@ -6,13 +6,13 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 1.1
+;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -589,6 +589,12 @@ See documentation for variable `ebnf-abn-lex'."
    ;; close EPS file
    ((and ebnf-eps-executing (= (following-char) ?\]))
     (ebnf-eps-remove-context (ebnf-abn-eps-filename)))
+   ;; EPS header
+   ((and ebnf-eps-executing (= (following-char) ?H))
+    (ebnf-eps-header-comment (ebnf-abn-eps-filename)))
+   ;; EPS footer
+   ((and ebnf-eps-executing (= (following-char) ?F))
+    (ebnf-eps-footer-comment (ebnf-abn-eps-filename)))
    ;; any other action in comment
    (t
     (setq ebnf-action (aref ebnf-comment-table (following-char)))

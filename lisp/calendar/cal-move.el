@@ -12,7 +12,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -85,47 +85,51 @@ Movement is forward is ARG is negative."
   (interactive "p")
   (calendar-forward-month (* -12 arg)))
 
-(defun scroll-calendar-left (&optional arg)
+(defun calendar-scroll-left (&optional arg event)
   "Scroll the displayed calendar left by ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
   (unless arg (setq arg 1))
-  (calendar-cursor-to-nearest-date)
-  (let ((old-date (calendar-cursor-to-date))
-        (today (calendar-current-date)))
-    (if (/= arg 0)
-        (let ((month displayed-month)
-	      (year displayed-year))
-          (increment-calendar-month month year arg)
-	  (generate-calendar-window month year)
-          (calendar-cursor-to-visible-date
-           (cond
-            ((calendar-date-is-visible-p old-date) old-date)
-            ((calendar-date-is-visible-p today) today)
-            (t (list month 1 year)))))))
-  (run-hooks 'calendar-move-hook))
+  (save-selected-window
+    (select-window (posn-window (event-start event)))
+    (calendar-cursor-to-nearest-date)
+    (let ((old-date (calendar-cursor-to-date))
+          (today (calendar-current-date)))
+      (if (/= arg 0)
+          (let ((month displayed-month)
+                (year displayed-year))
+            (increment-calendar-month month year arg)
+            (generate-calendar-window month year)
+            (calendar-cursor-to-visible-date
+             (cond
+              ((calendar-date-is-visible-p old-date) old-date)
+              ((calendar-date-is-visible-p today) today)
+              (t (list month 1 year)))))))
+    (run-hooks 'calendar-move-hook)))
 
-(defun scroll-calendar-right (&optional arg)
+(defun calendar-scroll-right (&optional arg event)
   "Scroll the displayed calendar window right by ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
-  (interactive "p")
-  (scroll-calendar-left (- (or arg 1))))
+  (interactive (list (prefix-numeric-value current-prefix-arg)
+                     last-nonmenu-event))
+  (calendar-scroll-left (- (or arg 1)) event))
 
-(defun scroll-calendar-left-three-months (arg)
+(defun calendar-scroll-left-three-months (arg)
   "Scroll the displayed calendar window left by 3*ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
-  (scroll-calendar-left (* 3 arg)))
+  (calendar-scroll-left (* 3 arg)))
 
-(defun scroll-calendar-right-three-months (arg)
+(defun calendar-scroll-right-three-months (arg)
   "Scroll the displayed calendar window right by 3*ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
-  (scroll-calendar-left (* -3 arg)))
+  (calendar-scroll-left (* -3 arg)))
 
 (defun calendar-cursor-to-nearest-date ()
   "Move the cursor to the closest date.
@@ -345,7 +349,17 @@ Negative DAY counts backward from end of year."
       (+ 1 day (calendar-absolute-from-gregorian (list 12 31 year))))))
   (or noecho (calendar-print-day-of-year)))
 
+;; Backward compatibility.
+(define-obsolete-function-alias
+  'scroll-calendar-left 'calendar-scroll-left "23.1")
+(define-obsolete-function-alias
+  'scroll-calendar-right 'calendar-scroll-right "23.1")
+(define-obsolete-function-alias
+  'scroll-calendar-left-three-months 'calendar-scroll-left-three-months "23.1")
+(define-obsolete-function-alias
+  'scroll-calendar-right-three-months 'calendar-scroll-right-three-months "23.1")
+
 (provide 'cal-move)
 
-;;; arch-tag: d0883c46-7e16-4914-8ff8-8f67e699b781
+;; arch-tag: d0883c46-7e16-4914-8ff8-8f67e699b781
 ;;; cal-move.el ends here

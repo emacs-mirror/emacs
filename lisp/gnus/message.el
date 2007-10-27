@@ -10,7 +10,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -6697,7 +6697,7 @@ you."
 	(goto-char boundary)
 	(when (re-search-backward "^.?From .*\n" nil t)
 	  (delete-region (match-beginning 0) (match-end 0)))))
-    (mm-enable-multibyte)
+    (mime-to-mml)
     (save-restriction
       (message-narrow-to-head-1)
       (message-remove-header message-ignored-bounced-headers t)

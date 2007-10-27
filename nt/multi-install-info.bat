@@ -9,7 +9,7 @@ rem  This file is part of GNU Emacs.
 rem
 rem  GNU Emacs is free software; you can redistribute it and/or modify
 rem  it under the terms of the GNU General Public License as published by
-rem  the Free Software Foundation; either version 2, or (at your option)
+rem  the Free Software Foundation; either version 3, or (at your option)
 rem  any later version.
 rem
 rem  GNU Emacs is distributed in the hope that it will be useful,

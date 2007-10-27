@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -76,7 +76,7 @@
 ;; - comment-history (file)                    NOT NEEDED
 ;; - update-changelog (files)                  NOT NEEDED
 ;; * diff (files &optional rev1 rev2 buffer)   OK
-;; - revision-completion-table (file)          OK
+;; - revision-completion-table (file)          COMMENTED OUT AS A WORKAROUND FOR A BUG
 ;; - diff-tree (dir &optional rev1 rev2)       TEST IT
 ;; - annotate-command (file buf &optional rev) OK
 ;; - annotate-time ()                          OK
@@ -148,7 +148,7 @@
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
-    (vc-hg-state file)))            ; expensive
+    (vc-file-setprop file 'vc-state (vc-hg-state file)))) ; expensive
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."

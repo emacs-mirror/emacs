@@ -5170,7 +5170,7 @@ Function Interactive}.)  The expression reads as follows:
 
 @noindent
 This expression is not one with letters standing for parts, as
-described earlier.  Instead, it starts a list with thee parts.
+described earlier.  Instead, it starts a list with these parts:
 
 The first part of the list is an expression to read the name of a
 buffer and return it as a string.  That is @code{read-buffer}.  The

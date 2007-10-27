@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or (at
+;; published by the Free Software Foundation; either version 3, or (at
 ;; your option) any later version.
 
 ;; This program is distributed in the hope that it will be useful, but
@@ -175,6 +175,7 @@ program `dired-chmod-program', which must exist."
     (define-key map "\C-c\C-c" 'wdired-finish-edit)
     (define-key map "\C-c\C-k" 'wdired-abort-changes)
     (define-key map "\C-c\C-[" 'wdired-abort-changes)
+    (define-key map "\C-x\C-q" 'wdired-exit)
     (define-key map "\C-m"     'ignore)
     (define-key map "\C-j"     'ignore)
     (define-key map "\C-o"     'ignore)
@@ -422,6 +423,22 @@ non-nil means return old filename."
       (dired-log-summary (format "%d rename actions failed" errors) nil)))
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil))
+
+(defun wdired-exit ()
+  "Exit wdired and return to dired mode.
+Just return to dired mode if there are no changes.  Otherwise,
+ask a yes-or-no question whether to save or cancel changes,
+and proceed depending on the answer."
+  (interactive)
+  (if (buffer-modified-p)
+      (if (y-or-n-p (format "Buffer %s modified; save changes? "
+			    (current-buffer)))
+	  (wdired-finish-edit)
+	(wdired-abort-changes))
+    (wdired-change-to-dired-mode)
+    (set-buffer-modified-p nil)
+    (setq buffer-undo-list nil)
+    (message "(No changes need to be saved)")))
 
 ;; Rename a file, searching it in a modified dired buffer, in order
 ;; to be able to use `dired-do-create-files-regexp' and get its

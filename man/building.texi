@@ -832,7 +832,9 @@ session, or the custom variable @code{gud-gdb-command-name} for all
 future sessions.  You need to use text command mode to debug multiple
 programs within one Emacs session.  If you have customized
 @code{gud-gdb-command-name} in this way, you can use @kbd{M-x gdba} to
-invoke GDB in graphical mode.
+invoke GDB in graphical mode.  Moreover, this command succeeds where
+@kbd{M-x gdb} fails, such as when your @file{.gdbinit} file contains
+executable GDB commands.
 
 @menu
 * GDB-UI Layout::               Control the number of displayed buffers.

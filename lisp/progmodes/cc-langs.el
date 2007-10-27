@@ -18,7 +18,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -2875,6 +2875,14 @@ way."
 (defconst c-lang-variable-inits (cc-eval-when-compile c-lang-variable-inits))
 (defconst c-emacs-variable-inits (cc-eval-when-compile c-emacs-variable-inits))
 
+;; Make the `c-lang-setvar' variables buffer local in the current buffer.
+;; These are typically standard emacs variables such as `comment-start'.
+(defmacro c-make-emacs-variables-local ()
+  `(progn
+     ,@(mapcar (lambda (init)
+		 `(make-local-variable ',(car init)))
+	       (cdr c-emacs-variable-inits))))
+
 (defun c-make-init-lang-vars-fun (mode)
   "Create a function that initializes all the language dependent variables
 for the given mode.
@@ -2898,6 +2906,7 @@ accomplish that conveniently."
 	 ;; that could be in the result from `cl-macroexpand-all'.
 	 (let ((c-buffer-is-cc-mode ',mode)
 	       current-var source-eval)
+	   (c-make-emacs-variables-local)
 	   (condition-case err
 
 	       (if (eq c-version-sym ',c-version-sym)
@@ -2956,6 +2965,7 @@ accomplish that conveniently."
 	     (init (append (cdr c-emacs-variable-inits)
 			   (cdr c-lang-variable-inits)))
 	     current-var)
+	 (c-make-emacs-variables-local)
 	 (condition-case err
 
 	     (while init

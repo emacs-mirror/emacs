@@ -1,3 +1,16 @@
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* Relicense all FSF files to GPLv3 or later.
+
+2007-07-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-summary-supersede-article)
+	(gnus-summary-resend-message-edit): Add Gcc header.
+	(gnus-summary-resend-bounced-mail): Ditto; search whole body for parent
+	article's Message-ID; refer parent article in summary buffer.
+
+	* message.el (message-bounce): Call mime-to-mml.
+
 2007-07-21  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-uu.el (mm-uu-type-alist): Refer to mm-uu-configure-list in doc
@@ -196,7 +209,7 @@
 	* message.el (message-make-in-reply-to): Quote name containing
 	non-ASCII characters.  It will make the RFC2047 encoder cause an error
 	if there are special characters.  Reported by NAKAJI Hiroyuki
-	<nakaji@kankyo-u.ac.jp>.
+	<nakaji@jp.freebsd.org>.
 
 2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -4901,7 +4914,7 @@ See ChangeLog.2 for earlier changes.
 
   GNU Emacs is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2, or (at your option)
+  the Free Software Foundation; either version 3, or (at your option)
   any later version.
 
   GNU Emacs is distributed in the hope that it will be useful,

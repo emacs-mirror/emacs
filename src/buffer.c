@@ -7,7 +7,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -5501,12 +5501,12 @@ A string is printed verbatim in the mode line except for %-constructs:
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
   %n -- print Narrow if appropriate.
-  %R -- print R or hyphen.  R means that default-directory is on a
-        remote machine.
   %t -- visited file is text or binary (if OS supports this distinction).
   %z -- print mnemonics of keyboard, terminal, and buffer coding systems.
   %Z -- like %z, but including the end-of-line format.
   %e -- print error message about full memory.
+  %@ -- print @ or hyphen.  @ means that default-directory is on a
+        remote machine.
   %[ -- print one [ for each recursive editing level.  %] similar.
   %% -- print %.   %- -- print infinitely many dashes.
 Decimal digits after the % specify field width to which to pad.  */);

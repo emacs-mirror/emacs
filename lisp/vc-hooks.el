@@ -12,7 +12,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -62,9 +62,9 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS BZR HG Arch MCVS)
-  ;; BZR, HG, Arch and MCVS come last because they are per-tree rather
-  ;; than per-dir.
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS BZR GIT HG Arch MCVS)
+  ;; BZR, GIT, HG, Arch and MCVS come last because they are per-tree
+  ;; rather than per-dir.
   "List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control.

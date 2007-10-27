@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -40,10 +40,10 @@
 ;;  - check if more functions could use vc-git-command instead
 ;;     of start-process.
 ;;  - changelog generation
-;;  - working with revisions other than HEAD
 
 ;; Implement the rest of the vc interface. See the comment at the
 ;; beginning of vc.el. The current status is:
+;; ("??" means: "figure out what to do about it")
 ;;
 ;; FUNCTION NAME                                   STATUS
 ;; BACKEND PROPERTIES
@@ -51,71 +51,68 @@
 ;; STATE-QUERYING FUNCTIONS
 ;; * registered (file)				   OK
 ;; * state (file)				   OK
-;; - state-heuristic (file)			   ?? PROBABLY NOT NEEDED
+;; - state-heuristic (file)			   NOT NEEDED
 ;; - dir-state (dir)				   OK
 ;; * workfile-version (file)			   OK
-;; - latest-on-branch-p (file)			   ??
+;; - latest-on-branch-p (file)			   NOT NEEDED
 ;; * checkout-model (file)			   OK
-;; - workfile-unchanged-p (file)		   MAYBE CAN BE SIMPLIFIED
+;; - workfile-unchanged-p (file)		   OK
 ;; - mode-line-string (file)			   NOT NEEDED
 ;; - dired-state-info (file)			   OK
 ;; STATE-CHANGING FUNCTIONS
 ;; * create-repo ()				   OK
 ;; * register (files &optional rev comment)	   OK
-;; - init-version (file)			   ??
+;; - init-version (file)			   NOT NEEDED
 ;; - responsible-p (file)			   OK
-;; - could-register (file)			   NEEDED
-;; - receive-file (file rev)			   ??
+;; - could-register (file)			   NOT NEEDED, DEFAULT IS GOOD
+;; - receive-file (file rev)			   NOT NEEDED
 ;; - unregister (file)				   OK
 ;; * checkin (files rev comment)		   OK
 ;; * find-version (file rev buffer)		   OK
 ;; * checkout (file &optional editable rev)	   OK
 ;; * revert (file &optional contents-done)	   OK
-;; - rollback (files)				   ?? PROBABLY NOT NEEDED
-;; - merge (file rev1 rev2)			   NEEDED
-;; - merge-news (file)				   NEEDED
+;; - rollback (files)				   COULD BE SUPPORTED
+;; - merge (file rev1 rev2)			   It would be possible to merge changes into
+;;                                                 a single file, but when committing they
+;;                                                 wouldn't be identified as a merge by git,
+;;                                                 so it's probably not a good idea.
+;; - merge-news (file)				   see `merge'
 ;; - steal-lock (file &optional version)	   NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files &optional buffer)		   OK
 ;; - log-view-mode ()				   OK
 ;; - show-log-entry (version)			   NOT NEEDED, DEFAULT IS GOOD
-;; - wash-log (file)				   ??
-;; - logentry-check ()				   ??
+;; - wash-log (file)				   COULD BE SUPPORTED
+;; - logentry-check ()				   NOT NEEDED
 ;; - comment-history (file)			   ??
-;; - update-changelog (files)			   ??
-;; * diff (file &optional rev1 rev2 buffer)	   PORT TO NEW VC INTERFACE
+;; - update-changelog (files)			   COULD BE SUPPORTED
+;; * diff (file &optional rev1 rev2 buffer)	   OK
 ;; - revision-completion-table (file)		   NEEDED?
 ;; - diff-tree (dir &optional rev1 rev2)	   OK
 ;; - annotate-command (file buf &optional rev)	   OK
 ;; - annotate-time ()				   OK
-;; - annotate-current-time ()			   ?? NOT NEEDED
+;; - annotate-current-time ()			   NOT NEEDED
 ;; - annotate-extract-revision-at-line ()	   OK
 ;; SNAPSHOT SYSTEM
-;; - create-snapshot (dir name branchp)		   NEEDED
+;; - create-snapshot (dir name branchp)		   OK
 ;; - assign-name (file name)			   NOT NEEDED
-;; - retrieve-snapshot (dir name update)	   NEEDED
+;; - retrieve-snapshot (dir name update)	   OK, needs to update buffers
 ;; MISCELLANEOUS
-;; - make-version-backups-p (file)		   ??
-;; - repository-hostname (dirname)		   ??
-;; - previous-version (file rev)		   ??
-;; - next-version (file rev)			   ??
-;; - check-headers ()				   ??
-;; - clear-headers ()				   ??
+;; - make-version-backups-p (file)		   NOT NEEDED
+;; - repository-hostname (dirname)		   NOT NEEDED
+;; - previous-version (file rev)		   OK
+;; - next-version (file rev)			   OK
+;; - check-headers ()				   COULD BE SUPPORTED
+;; - clear-headers ()				   NOT NEEDED
 ;; - delete-file (file)				   OK
 ;; - rename-file (old new)			   OK
-;; - find-file-hook ()				   PROBABLY NOT NEEDED
-;; - find-file-not-found-hook ()                   PROBABLY NOT NEEDED
+;; - find-file-hook ()				   NOT NEEDED
+;; - find-file-not-found-hook ()                   NOT NEEDED
 
 (eval-when-compile (require 'cl) (require 'vc))
 
 (defvar git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
-
-;; XXX when this backend is considered sufficiently reliable this
-;; should be moved to vc-hooks.el
-(add-to-list 'vc-handled-backends 'GIT)
-(eval-after-load "vc"
-  '(add-to-list 'vc-directory-exclusion-list ".bzr" t))
 
 ;;; BACKEND PROPERTIES
 
@@ -143,7 +140,7 @@
 	     (let ((str (buffer-string)))
 	       (and (> (length str) (length name))
 		    (string= (substring str 0 (1+ (length name))) (concat name "\0")))))))))
-  
+
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
@@ -197,7 +194,7 @@
   ;; stat info, so if the file has been modified it will always show
   ;; up as modified in vc-git-state, even if the change has been
   ;; undone, until git-update-index --refresh is run.
-  
+
   ;; OTOH the vc-git-workfile-unchanged-p implementation checks the
   ;; actual content, so it will detect the case of a file reverted
   ;; back to its original state.
@@ -233,7 +230,7 @@
 
 (defun vc-git-unregister (file)
   (vc-git-command nil 0 file "rm" "-f" "--cached" "--"))
-  
+
 
 (defun vc-git-checkin (files rev comment)
   (let ((coding-system-for-write git-commits-coding-system))
@@ -243,15 +240,15 @@
   (let ((coding-system-for-read 'binary)
         (coding-system-for-write 'binary)
 	(fullname (substring
-		   (vc-git--run-command-string 
+		   (vc-git--run-command-string
 		    file "ls-files" "-z" "--full-name" "--")
 		   0 -1)))
-    (vc-git-command 
-     buffer 0 
+    (vc-git-command
+     buffer 0
      (concat (if rev rev "HEAD") ":" fullname) "cat-file" "blob")))
 
 (defun vc-git-checkout (file &optional editable rev)
-  (vc-git-command nil0 file "checkout" (or rev "HEAD")))
+  (vc-git-command nil 0 file "checkout" (or rev "HEAD")))
 
 (defun vc-git-revert (file &optional contents-done)
   "Revert FILE to the version stored in the git repository."
@@ -263,27 +260,28 @@
 
 (defun vc-git-print-log (files &optional buffer)
   "Get change log associated with FILES."
-  (let ((name (file-relative-name file))
-        (coding-system-for-read git-commits-coding-system))
-    ;; `log-view-mode' needs to have the file name in order to function
-    ;; correctly. "git log" does not print it, so we insert it here by
-    ;; hand.
-
+  (let ((coding-system-for-read git-commits-coding-system)
+	;; Support both the old print-log interface that passes a
+	;; single file, and the new one that passes a file list.
+	(flist (if (listp files) files (list files))))
     ;; `vc-do-command' creates the buffer, but we need it before running
     ;; the command.
     (vc-setup-buffer buffer)
     ;; If the buffer exists from a previous invocation it might be
     ;; read-only.
     (let ((inhibit-read-only t))
-      ;; XXX Here loop and call "git rev-list" on each file separately
-      ;; to make sure that each file gets a "File:" header before the
-      ;; corresponding log. Maybe there is a way to do this with one
-      ;; command...
-    (dolist (file files)
-      (with-current-buffer
-        buffer
-        (insert "File: " (file-name-nondirectory file) "\n")))
-    (vc-git-command buffer 'async name "rev-list" "--pretty" "HEAD" "--"))))
+      ;; XXX `log-view-mode' needs to have something to identify where
+      ;; the log for each individual file starts. It seems that by
+      ;; default git does not output this info. So loop here and call
+      ;; "git rev-list" on each file separately to make sure that each
+      ;; file gets a "File:" header before the corresponding
+      ;; log. Maybe there is a way to do this with one command...
+      (dolist (file flist)
+	(with-current-buffer
+	    buffer
+	  (insert "File: " (file-name-nondirectory file) "\n"))
+	(vc-git-command buffer 'async (file-relative-name file)
+			"rev-list" "--pretty" "HEAD" "--")))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -311,14 +309,27 @@
 	   ("^Date:   \\(.+\\)" (1 'change-log-date))
 	   ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
-(defun vc-git-diff (file &optional rev1 rev2 buffer)
-  (let ((name (file-relative-name file))
-        (buf (or buffer "*vc-diff*")))
+(defun vc-git-diff (files &optional rev1 rev2 buffer)
+  (let ((buf (or buffer "*vc-diff*")))
     (if (and rev1 rev2)
-        (vc-git-command buf 0 name "diff-tree" "-p" rev1 rev2 "--")
-      (vc-git-command buf 0 name "diff-index" "-p" (or rev1 "HEAD") "--"))
-    ;; git-diff-index doesn't set exit status like diff does
-    (if (vc-git-workfile-unchanged-p file) 0 1)))
+        (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p" rev1 rev2 "--")
+      (vc-git-command buf 1 files "diff-index" "--exit-code" "-p" (or rev1 "HEAD") "--"))))
+
+(defun vc-git-revision-table (file)
+  (let ((table (list "HEAD")))
+    (with-temp-buffer
+      (vc-git-command t nil nil "for-each-ref" "--format=%(refname)")
+      (goto-char (point-min))
+      (while (re-search-forward "^refs/\\(heads\\|tags\\)/\\(.*\\)$" nil t)
+        (push (match-string 2) table)))
+    table))
+
+(defun vc-git-revision-completion-table (file)
+  (lexical-let ((file file)
+                table)
+    (setq table (lazy-completion-table
+                 table (lambda () (vc-git-revision-table file))))
+    table))
 
 (defun vc-git-diff-tree (dir &optional rev1 rev2)
   (vc-git-diff dir rev1 rev2))
@@ -338,6 +349,22 @@
    (move-beginning-of-line 1)
    (and (looking-at "[0-9a-f]+")
         (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
+
+;;; SNAPSHOT SYSTEM
+
+(defun vc-git-create-snapshot (dir name branchp)
+  (let ((default-directory dir))
+    (and (vc-git-command nil 0 nil "update-index" "--refresh")
+         (if branchp
+             (vc-git-command nil 0 nil "checkout" "-b" name)
+           (vc-git-command nil 0 nil "tag" name)))))
+
+(defun vc-git-retrieve-snapshot (dir name update)
+  (let ((default-directory dir))
+    (vc-git-command nil 0 nil "checkout" name)
+    ;; FIXME: update buffers if `update' is true
+    ))
+
 
 ;;; MISCELLANEOUS
 
@@ -398,7 +425,7 @@
   (vc-git-command nil 0 (list old new) "mv" "-f" "--"))
 
 
-;; Internal commands
+;;; Internal commands
 
 (defun vc-git-root (file)
   (vc-find-root file ".git"))

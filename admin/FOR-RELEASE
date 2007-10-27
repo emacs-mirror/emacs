@@ -47,6 +47,12 @@ that branch.  Do not make manual changes to this file on the trunk.
 ** michael.ewe@arcor.de, Apr 24: 22.0.98  not starting on Solaris 10/I386
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg01113.html
 
+** davby@ida.liu.se, 6 July: Bug in pos-visible-in-window-p
+
+** dak@gnu.org, 30 May: Redraw problem with overlapping frames
+
+** dksw@eircom.net, 3 Jul: Telnet mode (rsh/ssh)
+
 * FIXES FOR EMACS 22.2
 
 Here we list small fixes that arrived too late for Emacs 22.1, but

@@ -1,4 +1,4 @@
-;;; -*- mode: Emacs-Lisp; coding: iso-2022-7bit; -*-
+;;; -*- mode: Emacs-Lisp; coding: utf-8; -*-
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -6,7 +6,7 @@
 
 ;; (copyright statements below in code to be updated with the above notice)
 
-;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
+;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 
@@ -14,8 +14,8 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3 of the License, or
-;; (at your option) any later version.
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -2448,6 +2448,7 @@ of."
 	t
       (let ((f (buffer-file-name)))
 	(with-parsed-tramp-file-name f nil
+	  (tramp-flush-file-property v localname)
 	  (let* ((attr (file-attributes f))
 		 (modtime (nth 5 attr))
 		 (mt (visited-file-modtime)))
@@ -3713,7 +3714,7 @@ beginning of local filename are not substituted."
       (run-hooks 'tramp-handle-file-local-copy-hook)
       tmpfil)))
 
-(defun tramp-handle-file-remote-p (file &optional identification connected)
+(defun tramp-handle-file-remote-p (filename &optional identification connected)
   "Like `file-remote-p' for Tramp files."
   (when (tramp-tramp-file-p filename)
     (with-parsed-tramp-file-name filename nil
@@ -7358,7 +7359,7 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   transfer method to use.  (Greg Stark)
 ;; * Remove unneeded parameters from methods.
 ;; * Invoke rsync once for copying a whole directory hierarchy.
-;;   (Francesco Potort,Al(B)
+;;   (Francesco Potortì)
 ;; * Make it work for different encodings, and for different file name
 ;;   encodings, too.  (Daniel Pittman)
 ;; * Clean up unused *tramp/foo* buffers after a while.  (Pete Forman)
