@@ -1470,17 +1470,22 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
   (overlay-put ses--curcell-overlay 'face 'underline))
 
 (defun ses-cleanup ()
-  "Cleanup when changing a buffer from SES mode to something else.  Delete
-overlay, remove special text properties."
+  "Cleanup when changing a buffer from SES mode to something else.
+Delete overlays, remove special text properties."
   (widen)
   (let ((inhibit-read-only t)
+        ;; When reverting, hide the buffer name, otherwise Emacs will ask
+        ;; the user "the file is modified, do you really want to make
+        ;; modifications to this buffer", where the "modifications" refer to
+        ;; the irrelevant set-text-properties below.
+        (buffer-file-name nil)
 	(was-modified      (buffer-modified-p)))
     ;;Delete read-only, keymap, and intangible properties
     (set-text-properties (point-min) (point-max) nil)
     ;;Delete overlay
     (mapc 'delete-overlay (overlays-in (point-min) (point-max)))
     (unless was-modified
-      (set-buffer-modified-p nil))))
+      (restore-buffer-modified-p nil))))
 
 ;;;###autoload
 (defun ses-mode ()

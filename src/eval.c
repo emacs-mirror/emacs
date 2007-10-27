@@ -342,7 +342,7 @@ DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields non-nil, then return that value.
 The remaining args are not evalled at all.
 If all args return nil, return nil.
-usage: (or CONDITIONS ...)  */)
+usage: (or CONDITIONS...)  */)
      (args)
      Lisp_Object args;
 {
@@ -367,7 +367,7 @@ DEFUN ("and", Fand, Sand, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields nil, then return nil.
 The remaining args are not evalled at all.
 If no arg yields nil, return the last arg's value.
-usage: (and CONDITIONS ...)  */)
+usage: (and CONDITIONS...)  */)
      (args)
      Lisp_Object args;
 {
@@ -543,7 +543,7 @@ Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.
 The second VAL is not computed until after the first SYM is set, and so on;
 each VAL can use the new value of variables set earlier in the `setq'.
 The return value of the `setq' form is the value of the last VAL.
-usage: (setq SYM VAL SYM VAL ...)  */)
+usage: (setq [SYM VAL]...)  */)
      (args)
      Lisp_Object args;
 {

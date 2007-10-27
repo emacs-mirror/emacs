@@ -4,12 +4,12 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@set trampver 2.1.10-pre
+@set trampver 2.1.10
 
 @c Other flags from configuration
 @set instprefix /usr/local
 @set lispdir /usr/local/share/emacs/site-lisp
-@set infodir /usr/local/info
+@set infodir /usr/local/share/info
 
 @c Formatting of the tramp program name consistent.
 @set tramp @sc{tramp}

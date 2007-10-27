@@ -197,7 +197,7 @@ more information.
   Normally, the mode line looks like this:
 
 @example
--@var{cs}:@var{ch}-@var{fr}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})------
+-@var{cs}:@var{ch}@var{R}-@var{fr}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})------
 @end example
 
 @noindent
@@ -210,6 +210,9 @@ currently looking.
 been edited (the buffer is ``modified''), or @samp{--} if the buffer has
 not been edited.  For a read-only buffer, it is @samp{%*} if the buffer
 is modified, and @samp{%%} otherwise.
+
+  @var{R} is @samp{@@} if the default-directory for the current buffer
+is on a remote machine, or a hyphen otherwise.
 
   @var{fr} gives the selected frame name (@pxref{Frames}).  It appears
 only on text-only terminals.  The initial frame's name is @samp{F1}.

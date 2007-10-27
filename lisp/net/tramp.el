@@ -1528,7 +1528,7 @@ else
 $uid = ($ARGV[1] eq \"integer\") ? $stat[4] : \"\\\"\" . getpwuid($stat[4]) . \"\\\"\";
 $gid = ($ARGV[1] eq \"integer\") ? $stat[5] : \"\\\"\" . getgrgid($stat[5]) . \"\\\"\";
 printf(
-    \"(%%s %%u %%s %%s (%%u %%u) (%%u %%u) (%%u %%u) %%u %%u t (%%u . %%u) -1)\\n\",
+    \"(%%s %%u %%s %%s (%%u %%u) (%%u %%u) (%%u %%u) %%u.0 %%u t (%%u . %%u) -1)\\n\",
     $type,
     $stat[3],
     $uid,
@@ -1577,7 +1577,7 @@ for($i = 0; $i < $n; $i++)
     $uid = ($ARGV[1] eq \"integer\") ? $stat[4] : \"\\\"\" . getpwuid($stat[4]) . \"\\\"\";
     $gid = ($ARGV[1] eq \"integer\") ? $stat[5] : \"\\\"\" . getgrgid($stat[5]) . \"\\\"\";
     printf(
-        \"(\\\"%%s\\\" %%s %%u %%s %%s (%%u %%u) (%%u %%u) (%%u %%u) %%u %%u t (%%u . %%u) (%%u %%u))\\n\",
+        \"(\\\"%%s\\\" %%s %%u %%s %%s (%%u %%u) (%%u %%u) (%%u %%u) %%u.0 %%u t (%%u . %%u) (%%u %%u))\\n\",
         $filename,
         $type,
         $stat[3],
@@ -2390,7 +2390,7 @@ target of the symlink differ."
   (tramp-send-command-and-read
    vec
    (format
-    "%s -c '((\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s \"%%A\" t %%i.0 -1)' %s"
+    "%s -c '((\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)' %s"
     (tramp-get-remote-stat vec)
     (if (eq id-format 'integer) "%u" "\"%U\"")
     (if (eq id-format 'integer) "%g" "\"%G\"")
@@ -2740,7 +2740,7 @@ of."
    (format
     (concat
      "cd %s; echo \"(\"; (%s -ab | xargs "
-     "%s -c '(\"%%n\" (\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s \"%%A\" t %%i.0 -1)'); "
+     "%s -c '(\"%%n\" (\"%%N\") %%h %s %s %%X.0 %%Y.0 %%Z.0 %%s.0 \"%%A\" t %%i.0 -1)'); "
      "echo \")\"")
     (tramp-shell-quote-argument localname)
     (tramp-get-ls-command vec)
@@ -6253,6 +6253,11 @@ Return ATTR."
     (setcar (nthcdr 6 attr)
 	    (list (floor (nth 6 attr) 65536)
 		  (floor (mod (nth 6 attr) 65536)))))
+  ;; Convert file size.
+  (when (< (nth 7 attr) 0)
+    (setcar (nthcdr 7 attr) -1))
+  (when (and (floatp (nth 7 attr)) (<= (nth 7 attr) most-positive-fixnum))
+    (setcar (nthcdr 7 attr) (round (nth 7 attr))))
   ;; Convert file mode bits to string.
   (unless (stringp (nth 8 attr))
     (setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr))))
@@ -6551,8 +6556,7 @@ necessary only.  This function will be used in file name completion."
 		   (and
 		    dl
 		    (not
-		     (string-equal
-		      result (expand-file-name-as-directory cmd (car dl)))))
+		     (string-equal result (expand-file-name cmd (car dl)))))
 		 (setq dl (cdr dl)))
 	       (setq dl (cdr dl))))))
        (tramp-error vec 'file-error "Couldn't find a proper `ls' command")))))

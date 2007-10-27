@@ -17994,6 +17994,16 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 #endif
       break;
 
+    case 'R':
+      {
+	Lisp_Object val;
+	val = call1 (intern ("file-remote-p"), current_buffer->directory);
+	if (NILP (val))
+	  return "-";
+	else
+	  return "@";
+      }
+
     case 't':			/* indicate TEXT or BINARY */
 #ifdef MODE_LINE_BINARY_TEXT
       return MODE_LINE_BINARY_TEXT (b);

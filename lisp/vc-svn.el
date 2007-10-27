@@ -96,6 +96,10 @@ If you want to force an empty list of arguments, use t."
 	(t ".svn"))
   "The name of the \".svn\" subdirectory or its equivalent.")
 
+;;; Properties of the backend
+
+(defun vc-svn-revision-granularity ()
+     'repository)
 ;;;
 ;;; State-querying functions
 ;;;
@@ -206,13 +210,19 @@ If you want to force an empty list of arguments, use t."
 ;;; State-changing functions
 ;;;
 
-(defun vc-svn-register (file &optional rev comment)
-  "Register FILE into the SVN version-control system.
-COMMENT can be used to provide an initial description of FILE.
+(defun vc-svn-create-repo ()
+  "Create a new SVN repository."
+  (vc-do-command nil 0 "svnadmin" '("create" "SVN"))
+  (vc-do-command nil 0 "svn" '(".") 
+		 "checkout" (concat "file://" default-directory "SVN")))
+
+(defun vc-svn-register (files &optional rev comment)
+  "Register FILES into the SVN version-control system.
+The COMMENT argument is ignored  This does an add but not a commit.
 
 `vc-register-switches' and `vc-svn-register-switches' are passed to
 the SVN command (in that order)."
-  (apply 'vc-svn-command nil 0 file "add" (vc-switches 'SVN 'register)))
+  (apply 'vc-svn-command nil 0 files "add" (vc-switches 'SVN 'register)))
 
 (defun vc-svn-responsible-p (file)
   "Return non-nil if SVN thinks it is responsible for FILE."
@@ -225,10 +235,11 @@ the SVN command (in that order)."
   "Return non-nil if FILE could be registered in SVN.
 This is only possible if SVN is responsible for FILE's directory.")
 
-(defun vc-svn-checkin (file rev comment)
+(defun vc-svn-checkin (files rev comment)
   "SVN-specific version of `vc-backend-checkin'."
+  (if rev (error "Committing to a specific revision is unsupported in SVN."))
   (let ((status (apply
-                 'vc-svn-command nil 1 file "ci"
+                 'vc-svn-command nil 1 files "ci"
                  (nconc (list "-m" comment) (vc-switches 'SVN 'checkin)))))
     (set-buffer "*vc*")
     (goto-char (point-min))
@@ -236,7 +247,8 @@ This is only possible if SVN is responsible for FILE's directory.")
       ;; Check checkin problem.
       (cond
        ((search-forward "Transaction is out of date" nil t)
-        (vc-file-setprop file 'vc-state 'needs-merge)
+        (mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
+	      files)
         (error (substitute-command-keys
                 (concat "Up-to-date check failed: "
                         "type \\[vc-next-action] to merge in changes"))))
@@ -252,6 +264,7 @@ This is only possible if SVN is responsible for FILE's directory.")
     ))
 
 (defun vc-svn-find-version (file rev buffer)
+  "SVN-specific retrieval of a specified version into a buffer."
   (apply 'vc-svn-command
 	 buffer 0 file
 	 "cat"
@@ -362,53 +375,41 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-svn-print-log (file &optional buffer)
-  "Get change log associated with FILE."
+(defun vc-svn-print-log (files &optional buffer)
+  "Get change log(s) associated with FILES."
   (save-current-buffer
     (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-min))
       ;; Add a line to tell log-view-mode what file this is.
-      (insert "Working file: " (file-relative-name file) "\n"))
+      (insert "Working file(s): " (vc-delistify (mapcar 'file-relative-name files)) "\n"))
     (vc-svn-command
      buffer
-     (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-     file "log"
+     (if (and (= (length files) 1) (vc-stay-local-p (car files)) (fboundp 'start-process)) 'async 0)
+     files "log"
      ;; By default Subversion only shows the log upto the working version,
      ;; whereas we also want the log of the subsequent commits.  At least
      ;; that's what the vc-cvs.el code does.
      "-rHEAD:0")))
 
-(defun vc-svn-diff (file &optional oldvers newvers buffer)
-  "Get a difference report using SVN between two versions of FILE."
-  (unless buffer (setq buffer "*vc-diff*"))
-  (if (and oldvers (equal oldvers (vc-workfile-version file)))
-      ;; Use nil rather than the current revision because svn handles it
-      ;; better (i.e. locally).
-      (setq oldvers nil))
-  (if (string= (vc-workfile-version file) "0")
-      ;; This file is added but not yet committed; there is no master file.
-      (if (or oldvers newvers)
-	  (error "No revisions of %s exist" file)
-	;; We regard this as "changed".
-	;; Diff it against /dev/null.
-	;; Note: this is NOT a "svn diff".
-	(apply 'vc-do-command buffer
-	       1 "diff" file
-	       (append (vc-switches nil 'diff) '("/dev/null")))
-	;; Even if it's empty, it's locally modified.
-	1)
-    (let* ((switches
+(defun vc-svn-wash-log ()
+  "Remove all non-comment information from log output."
+  ;; FIXME: not implemented for SVN
+  nil)
+
+(defun vc-svn-diff (files &optional oldvers newvers buffer)
+  "Get a difference report using SVN between two versions of fileset FILES."
+  (let* ((switches
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
 	      (list "-x" (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
-                       (vc-stay-local-p file)
+                       (vc-stay-local-p files)
 		       (or oldvers newvers) ; Svn diffs those locally.
 		       (fboundp 'start-process))))
       (apply 'vc-svn-command buffer
 	     (if async 'async 0)
-	     file "diff"
+	     files "diff"
 	     (append
 	      switches
 	      (when oldvers
@@ -417,7 +418,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
       (if async 1		      ; async diff => pessimistic assumption
 	;; For some reason `svn diff' does not return a useful
 	;; status w.r.t whether the diff was empty or not.
-	(buffer-size (get-buffer buffer))))))
+	(buffer-size (get-buffer buffer)))))
 
 (defun vc-svn-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
@@ -469,11 +470,11 @@ NAME is assumed to be a URL."
   :type 'string
   :group 'vc)
 
-(defun vc-svn-command (buffer okstatus file &rest flags)
+(defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
 and that it passes `vc-svn-global-switches' to it before FLAGS."
-  (apply 'vc-do-command buffer okstatus vc-svn-program file
+  (apply 'vc-do-command buffer okstatus vc-svn-program file-or-list
          (if (stringp vc-svn-global-switches)
              (cons vc-svn-global-switches flags)
            (append vc-svn-global-switches

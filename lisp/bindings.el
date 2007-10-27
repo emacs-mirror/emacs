@@ -248,6 +248,22 @@ Normally nil in most modes, since there is no process to display.")
 
 (make-variable-buffer-local 'mode-line-modified)
 
+(defvar mode-line-remote
+  (list (propertize
+	 "%1R"
+	 'help-echo (purecopy (lambda (window object point)
+ 				(format "%s"
+					(save-selected-window
+					  (select-window window)
+					  (concat 
+					  (if (file-remote-p default-directory)
+					      "Remote: "
+					    "Local: ")
+					  default-directory)))))))
+  "Mode-line flag to show if default-directory for current buffer is remote.")
+
+(make-variable-buffer-local 'mode-line-remote)
+
 ;; Actual initialization is below.
 (defvar mode-line-position nil
   "Mode-line control for displaying the position in the buffer.
@@ -287,6 +303,7 @@ Keymap to display on minor modes.")
 	 (propertize "-" 'help-echo help-echo)
 	 'mode-line-mule-info
 	 'mode-line-modified
+	 'mode-line-remote
 	 'mode-line-frame-identification
 	 'mode-line-buffer-identification
 	 (propertize "   " 'help-echo help-echo)

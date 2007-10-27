@@ -129,6 +129,9 @@
 			initial-frame-alist)
 		  x-invocation-args (cdr x-invocation-args)))))))
 
+(defun x-handle-no-bitmap-icon (switch)
+  (setq default-frame-alist (cons '(icon-type) default-frame-alist)))
+
 ;; Make -iconic apply only to the initial frame!
 (defun x-handle-iconic (switch)
   (setq initial-frame-alist

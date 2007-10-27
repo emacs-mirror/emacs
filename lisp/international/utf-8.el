@@ -991,16 +991,20 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 	    (set-buffer-multibyte nil)))
 
       (when (and utf-8-compose-scripts (> length 1))
-	;; These currently have definitions which cover the relevant
-	;; unicodes.  We could avoid loading thai-util &c by checking
-	;; whether the region contains any characters with the appropriate
-	;; categories.  There aren't yet Unicode-based rules for Tibetan.
-	(diacritic-compose-region (point-max) (point-min))
-	(thai-compose-region (point-max) (point-min))
-	(lao-compose-region (point-max) (point-min))
-	(devanagari-compose-region (point-max) (point-min))
-	(malayalam-compose-region (point-max) (point-min))
-	(tamil-compose-region (point-max) (point-min)))
+	;; This let-binding avoids recursive auto-loading.  And, we
+	;; anyway don't have to run the following code while
+	;; auto-loading.
+	(let ((utf-8-compose-scripts nil))
+	  ;; These currently have definitions which cover the relevant
+	  ;; unicodes.  We could avoid loading thai-util &c by checking
+	  ;; whether the region contains any characters with the appropriate
+	  ;; categories.  There aren't yet Unicode-based rules for Tibetan.
+	  (diacritic-compose-region (point-max) (point-min))
+	  (thai-compose-region (point-max) (point-min))
+	  (lao-compose-region (point-max) (point-min))
+	  (devanagari-compose-region (point-max) (point-min))
+	  (malayalam-compose-region (point-max) (point-min))
+	  (tamil-compose-region (point-max) (point-min))))
       (- (point-max) (point-min)))))
 
 (defun utf-8-pre-write-conversion (beg end)

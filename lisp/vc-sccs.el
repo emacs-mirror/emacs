@@ -27,6 +27,10 @@
 
 ;;; Commentary:
 
+;; TODO:
+;; - remove call to vc-expand-dirs by implementing our own (which can just
+;;   list the SCCS subdir instead).
+
 ;;; Code:
 
 (eval-when-compile
@@ -85,6 +89,11 @@ For a description of possible values, see `vc-check-master-templates'."
 (defconst vc-sccs-name-assoc-file "VC-names")
 
 
+;;; Properties of the backend
+
+(defun vc-sccs-revision-granularity ()
+     'file)
+
 ;;;
 ;;; State-querying functions
 ;;;
@@ -161,16 +170,22 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-changing functions
 ;;;
 
-(defun vc-sccs-register (file &optional rev comment)
-  "Register FILE into the SCCS version-control system.
+(defun vc-sccs-create-repo ()
+  "Create a new SCCS repository."
+  ;; SCCS is totally file-oriented, so all we have to do is make the directory
+  (make-directory "SCCS"))
+
+(defun vc-sccs-register (files &optional rev comment)
+  "Register FILES into the SCCS version-control system.
 REV is the optional revision number for the file.  COMMENT can be used
-to provide an initial description of FILE.
+to provide an initial description of FILES.
 
 `vc-register-switches' and `vc-sccs-register-switches' are passed to
 the SCCS command (in that order).
 
-Automatically retrieve a read-only version of the file with keywords
+Automatically retrieve a read-only version of the files with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
+  (dolist (file files)
     (let* ((dirname (or (file-name-directory file) ""))
 	   (basename (file-name-nondirectory file))
 	   (project-file (vc-sccs-search-project-dir dirname basename)))
@@ -178,14 +193,14 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 	     (or project-file
 		 (format (car vc-sccs-master-templates) dirname basename))))
 	(apply 'vc-do-command nil 0 "admin" vc-name
-	       (and rev (concat "-r" rev))
+	       (and rev (not (string= rev "")) (concat "-r" rev))
 	       "-fb"
 	       (concat "-i" (file-relative-name file))
 	       (and comment (concat "-y" comment))
 	       (vc-switches 'SCCS 'register)))
       (delete-file file)
       (if vc-keep-workfiles
-	  (vc-do-command nil 0 "get" (vc-name file)))))
+	  (vc-do-command nil 0 "get" (vc-name file))))))
 
 (defun vc-sccs-responsible-p (file)
   "Return non-nil if SCCS thinks it would be responsible for registering FILE."
@@ -194,14 +209,15 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
       (stringp (vc-sccs-search-project-dir (or (file-name-directory file) "")
 					   (file-name-nondirectory file)))))
 
-(defun vc-sccs-checkin (file rev comment)
+(defun vc-sccs-checkin (files rev comment)
   "SCCS-specific version of `vc-backend-checkin'."
-  (apply 'vc-do-command nil 0 "delta" (vc-name file)
-	 (if rev (concat "-r" rev))
-	 (concat "-y" comment)
-	 (vc-switches 'SCCS 'checkin))
-  (if vc-keep-workfiles
-      (vc-do-command nil 0 "get" (vc-name file))))
+  (dolist (file files)
+    (apply 'vc-do-command nil 0 "delta" (vc-name file)
+	   (if rev (concat "-r" rev))
+	   (concat "-y" comment)
+	   (vc-switches 'SCCS 'checkin))
+    (if vc-keep-workfiles
+	(vc-do-command nil 0 "get" (vc-name file)))))
 
 (defun vc-sccs-find-version (file rev buffer)
   (apply 'vc-do-command
@@ -242,6 +258,19 @@ locked.  REV is the revision to check out."
 		 switches))))
     (message "Checking out %s...done" file)))
 
+(defun vc-sccs-cancel-version (files)
+  "Roll back, undoing the most recent checkins of FILES."
+  (if (not files)
+      (error "SCCS backend doesn't support directory-level rollback."))
+  (dolist (file files)
+	  (let ((discard (vc-workfile-version file)))
+	    (if (null (yes-or-no-p (format "Remove version %s from %s history? " 
+					   discard file)))
+		(error "Aborted"))
+	    (message "Removing revision %s from %s..." discard file)
+	    (vc-do-command nil 0 "rmdel" (vc-name file) (concat "-r" discard))
+	    (vc-do-command nil 0 "get" (vc-name file) nil))))
+
 (defun vc-sccs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
   (vc-do-command nil 0 "unget" (vc-name file))
@@ -250,16 +279,6 @@ locked.  REV is the revision to check out."
   ;; We always "revert" to the latest version; therefore
   ;; vc-workfile-version is cleared here so that it gets recomputed.
   (vc-file-setprop file 'vc-workfile-version nil))
-
-(defun vc-sccs-cancel-version (file editable)
-  "Undo the most recent checkin of FILE.
-EDITABLE non-nil means previous version should be locked."
-  (vc-do-command nil 0 "rmdel"
-		 (vc-name file)
-		 (concat "-r" (vc-workfile-version file)))
-  (vc-do-command nil 0 "get"
-		 (vc-name file)
-		 (if editable "-e")))
 
 (defun vc-sccs-steal-lock (file &optional rev)
   "Steal the lock on the current workfile for FILE and revision REV."
@@ -271,9 +290,14 @@ EDITABLE non-nil means previous version should be locked."
 ;;; History functions
 ;;;
 
-(defun vc-sccs-print-log (file &optional buffer)
-  "Get change log associated with FILE."
-  (vc-do-command buffer 0 "prs" (vc-name file)))
+(defun vc-sccs-print-log (files &optional buffer)
+  "Get change log associated with FILES."
+  (vc-do-command buffer 0 "prs" (mapcar 'vc-name files)))
+
+(defun vc-sccs-wash-log ()
+  "Remove all non-comment information from log output."
+  ;; FIXME: not implemented for SCCS
+  nil)
 
 (defun vc-sccs-logentry-check ()
   "Check that the log entry in the current buffer is acceptable for SCCS."
@@ -281,11 +305,12 @@ EDITABLE non-nil means previous version should be locked."
     (goto-char 512)
     (error "Log must be less than 512 characters; point is now at pos 512")))
 
-(defun vc-sccs-diff (file &optional oldvers newvers buffer)
-  "Get a difference report using SCCS between two versions of FILE."
+(defun vc-sccs-diff (files &optional oldvers newvers buffer)
+  "Get a difference report using SCCS between two filesets."
   (setq oldvers (vc-sccs-lookup-triple file oldvers))
   (setq newvers (vc-sccs-lookup-triple file newvers))
-  (apply 'vc-do-command (or buffer "*vc-diff*") 1 "vcdiff" (vc-name file)
+  (apply 'vc-do-command (or buffer "*vc-diff*") 
+	 1 "vcdiff" (mapcar 'vc-name (vc-expand-dirs files))
          (append (list "-q"
                        (and oldvers (concat "-r" oldvers))
                        (and newvers (concat "-r" newvers)))

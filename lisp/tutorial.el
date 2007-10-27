@@ -431,11 +431,17 @@ where
 	       (def-fun (nth 0 kdf))
 	       (def-fun-txt (format "%s" def-fun))
 	       (rem-fun (command-remapping def-fun))
+	       ;; Handle prefix definitions specially
+	       ;; so that a mode that rebinds some subcommands
+	       ;; won't make it appear that the whole prefix is gone.
 	       (key-fun (if (eq def-fun 'ESC-prefix)
 			    (lookup-key global-map [27])
-			  (key-binding key)))
+			  (if (eq def-fun 'Control-X-prefix)
+			      (lookup-key global-map [24])
+			    (key-binding key))))
 	       (where (where-is-internal (if rem-fun rem-fun def-fun)))
 	       cwhere)
+
 	  (if where
 	      (progn
 		(setq cwhere (car where)

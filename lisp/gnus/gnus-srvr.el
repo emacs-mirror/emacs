@@ -215,11 +215,11 @@ If nil, a faster, but more primitive, buffer is used instead."
 (put 'gnus-server-offline-face 'face-alias 'gnus-server-offline)
 
 (defvar gnus-server-font-lock-keywords
-  '(("(\\(agent\\))" 1 gnus-server-agent)
-    ("(\\(opened\\))" 1 gnus-server-opened)
-    ("(\\(closed\\))" 1 gnus-server-closed)
-    ("(\\(offline\\))" 1 gnus-server-offline)
-    ("(\\(denied\\))" 1 gnus-server-denied)))
+  '(("(\\(agent\\))" 1 'gnus-server-agent)
+    ("(\\(opened\\))" 1 'gnus-server-opened)
+    ("(\\(closed\\))" 1 'gnus-server-closed)
+    ("(\\(offline\\))" 1 'gnus-server-offline)
+    ("(\\(denied\\))" 1 'gnus-server-denied)))
 
 (defun gnus-server-mode ()
   "Major mode for listing and editing servers.
