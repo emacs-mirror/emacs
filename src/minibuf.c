@@ -118,6 +118,7 @@ Lisp_Object Vread_buffer_function;
 /* Nonzero means completion ignores case.  */
 
 int completion_ignore_case;
+Lisp_Object Qcompletion_ignore_case;
 
 /* List of regexps that should restrict possible completions.  */
 
@@ -2109,10 +2110,10 @@ string rather than a cons cell whose car is a string.  */)
   if (SYMBOLP (key))
     key = Fsymbol_name (key);
 
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem, thiscar;
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       thiscar = CONSP (elt) ? XCAR (elt) : elt;
       if (SYMBOLP (thiscar))
 	thiscar = Fsymbol_name (thiscar);
@@ -2830,6 +2831,9 @@ syms_of_minibuf ()
 
   minibuf_save_list = Qnil;
   staticpro (&minibuf_save_list);
+
+  Qcompletion_ignore_case = intern ("completion-ignore-case");
+  staticpro (&Qcompletion_ignore_case);
 
   Qread_file_name_internal = intern ("read-file-name-internal");
   staticpro (&Qread_file_name_internal);

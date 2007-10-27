@@ -479,7 +479,7 @@ usage: (prog1 FIRST BODY...)  */)
   struct gcpro gcpro1, gcpro2;
   register int argnum = 0;
 
-  if (NILP(args))
+  if (NILP (args))
     return Qnil;
 
   args_left = args;
@@ -1104,10 +1104,10 @@ usage: (let VARLIST BODY...)  */)
   GCPRO2 (args, *temps);
   gcpro2.nvars = 0;
 
-  for (argnum = 0; !NILP (varlist); varlist = Fcdr (varlist))
+  for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
     {
       QUIT;
-      elt = Fcar (varlist);
+      elt = XCAR (varlist);
       if (SYMBOLP (elt))
 	temps [argnum++] = Qnil;
       else if (! NILP (Fcdr (Fcdr (elt))))
@@ -1121,7 +1121,7 @@ usage: (let VARLIST BODY...)  */)
   lexenv = Vinternal_interpreter_environment;
 
   varlist = Fcar (args);
-  for (argnum = 0; !NILP (varlist); varlist = Fcdr (varlist))
+  for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
     {
       Lisp_Object var;
 
@@ -3531,7 +3531,6 @@ specbind (symbol, value)
       valcontents = XSYMBOL (symbol)->value;
 
       if (BUFFER_LOCAL_VALUEP (valcontents)
-	  || SOME_BUFFER_LOCAL_VALUEP (valcontents)
 	  || BUFFER_OBJFWDP (valcontents))
 	{
 	  Lisp_Object where, current_buffer;
@@ -3542,7 +3541,7 @@ specbind (symbol, value)
 	     buffer's or frame's value we are saving.  */
 	  if (!NILP (Flocal_variable_p (symbol, Qnil)))
 	    where = current_buffer;
-	  else if (!BUFFER_OBJFWDP (valcontents)
+	  else if (BUFFER_LOCAL_VALUEP (valcontents)
 		   && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
 	    where = XBUFFER_LOCAL_VALUE (valcontents)->frame;
 	  else

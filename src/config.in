@@ -486,7 +486,7 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `rename' function. */
 #undef HAVE_RENAME
 
-/* Define to 1 if you have the `res_init' function. */
+/* Define to 1 if res_init is available. */
 #undef HAVE_RES_INIT
 
 /* Define to 1 if you have the `rindex' function. */

@@ -1873,24 +1873,17 @@ The meaning of REV1 and REV2 is the same as for `vc-revision-diff'."
 (make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
 
 (defun vc-diff-sentinel (verbose rev1-name rev2-name)
-  ;; Did changes get generated into the buffer?
-  (if (not (zerop (buffer-size (get-buffer "*vc-diff*"))))
-      (progn
-	(pop-to-buffer "*vc-diff*")
-	;; Gnus-5.8.5 sets up an autoload for diff-mode, even if it's
-	;; not available.  Work around that.
-	(if (require 'diff-mode nil t) (diff-mode))
-	(when verbose
-	  (let (buffer-read-only)
-	    (goto-char (point-max))
-	    (insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name))
-	    (goto-char (point-min))
-	    (insert (format "Diffs between %s and %s:\n\n" rev1-name rev2-name))))
-	(shrink-window-if-larger-than-buffer)
-	t)
-    (progn
-      (message "No changes between %s and %s" rev1-name rev2-name)
-      nil)))
+  ;; The empty sync output case has already been handled, so the only
+  ;; possibility of an empty output is for an async process, in which case
+  ;; it's important to insert the "diffs end here" message in the buffer
+  ;; since the user may miss a message in the echo area.
+  (when verbose
+    (let ((inhibit-read-only t))
+      (if (eq (buffer-size) 0)
+          (insert "No differences found.\n")
+        (insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name)))))
+  (goto-char (point-min))
+  (shrink-window-if-larger-than-buffer))
 
 (defun vc-diff-internal (backend async files rev1 rev2 &optional verbose)
   "Report diffs between two revisions of a fileset.
@@ -1927,12 +1920,20 @@ returns t if the buffer had changes, nil otherwise."
       (let ((vc-disable-async-diff (not async)))
 	(vc-call-backend backend 'diff filtered rev1 rev2 "*vc-diff*")))
     (set-buffer "*vc-diff*")
-    ;; This odd-looking code is because in the non-async case we 
-    ;; actually want to pass the return value from vc-diff-sentinel
-    ;; back to the caller.
-    (if async
-	(vc-exec-after `(vc-diff-sentinel ,verbose ,rev1-name ,rev2-name))
-     (vc-diff-sentinel verbose rev1-name rev2-name))))
+    (if (and (zerop (buffer-size))
+             (not (get-buffer-process (current-buffer))))
+        ;; Treat this case specially so as not to pop the buffer.
+        (progn
+          (message "No changes between %s and %s" rev1-name rev2-name)
+          nil)
+      (pop-to-buffer (current-buffer))
+      ;; Gnus-5.8.5 sets up an autoload for diff-mode, even if it's
+      ;; not available.  Work around that.
+      (if (require 'diff-mode nil t) (diff-mode))
+      (vc-exec-after `(vc-diff-sentinel ,verbose ,rev1-name ,rev2-name))
+      ;; In the async case, we return t even if there are no differences
+      ;; because we don't know that yet.
+      t)))
 
 ;;;###autoload
 (defun vc-history-diff (backend files rev1 rev2)
@@ -3031,10 +3032,7 @@ to provide the `find-revision' operation instead."
     (vc-register)))
 
 (defalias 'vc-default-logentry-check 'ignore)
-
-(defun vc-default-check-headers (backend)
-  "Default implementation of check-headers; always returns nil."
-  nil)
+(defalias 'vc-default-check-headers 'ignore)
 
 (defun vc-default-log-view-mode (backend) (log-view-mode))
 
@@ -3116,7 +3114,7 @@ to provide the `find-revision' operation instead."
               (and (not vc-make-backup-files) (delete-file backup-name))))))
       (message "Checking out %s...done" file))))
 
-(defun vc-default-revision-completion-table (backend file) nil)
+(defalias 'vc-default-revision-completion-table 'ignore)
 
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."

@@ -2505,7 +2505,7 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 
   @strong{Warning:} if you change the keyboard encoding, or change
 between multibyte and unibyte mode, or anything that would alter which
-code @kbd{C-q} would insert for that character, this keybinding may
+code @kbd{C-q} would insert for that character, this key binding may
 stop working.  It is therefore advisable to use one and only one
 coding system, for your init file as well as the files you edit.  For
 example, don't mix the @samp{latin-1} and @samp{latin-9} coding

@@ -989,9 +989,8 @@ events for today, for the immediate future, or for any specified
 date.
 
   The name of the diary file is specified by the variable
-@code{diary-file}; @file{~/diary} is the default.  A sample diary file
-is (note that the file format is essentially the same as that used by
-the external shell utility @samp{calendar}):
+@code{diary-file}; @file{~/diary} is the default.  Here's an example
+showing what that file looks like:
 
 @example
 12/22/1988  Twentieth wedding anniversary!!
@@ -1008,8 +1007,10 @@ April 15, 1989 Income tax due.
 @end example
 
 @noindent
-This example uses extra spaces to align the event descriptions of most
-of the entries.  Such formatting is purely a matter of taste.
+This format is essentially the same as the one used by the system's
+@command{calendar} utility.  This example uses extra spaces to align
+the event descriptions of most of the entries.  Such formatting is
+purely a matter of taste.
 
   Although you probably will start by creating a diary manually, Emacs
 provides a number of commands to let you view, add, and change diary

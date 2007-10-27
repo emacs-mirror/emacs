@@ -442,7 +442,7 @@ x_own_selection (selection_name, selection_value)
     if (!NILP (prev_value))
       {
 	Lisp_Object rest;	/* we know it's not the CAR, so it's easy.  */
-	for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
+	for (rest = Vselection_alist; CONSP (rest); rest = XCDR (rest))
 	  if (EQ (prev_value, Fcar (XCDR (rest))))
 	    {
 	      XSETCDR (rest, Fcdr (XCDR (rest)));
@@ -1072,7 +1072,7 @@ x_handle_selection_clear (event)
   else
     {
       Lisp_Object rest;
-      for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
+      for (rest = Vselection_alist; CONSP (rest); rest = XCDR (rest))
 	if (EQ (local_selection_data, Fcar (XCDR (rest))))
 	  {
 	    XSETCDR (rest, Fcdr (XCDR (rest)));
@@ -1153,7 +1153,7 @@ x_clear_frame_selections (f)
     }
 
   /* Delete elements after the beginning of Vselection_alist.  */
-  for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
+  for (rest = Vselection_alist; CONSP (rest); rest = XCDR (rest))
     if (EQ (frame, Fcar (Fcdr (Fcdr (Fcdr (Fcar (XCDR (rest))))))))
       {
 	/* Let random Lisp code notice that the selection has been stolen.  */

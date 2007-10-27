@@ -567,10 +567,10 @@ list_of_panes (menu)
 
   init_menu_items ();
 
-  for (tail = menu; !NILP (tail); tail = Fcdr (tail))
+  for (tail = menu; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt, pane_name, pane_data;
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       pane_name = Fcar (elt);
       CHECK_STRING (pane_name);
       push_menu_pane (pane_name, Qnil);
@@ -590,9 +590,9 @@ list_of_items (pane)
 {
   Lisp_Object tail, item, item1;
 
-  for (tail = pane; !NILP (tail); tail = Fcdr (tail))
+  for (tail = pane; CONSP (tail); tail = XCDR (tail))
     {
-      item = Fcar (tail);
+      item = XCAR (tail);
       if (STRINGP (item))
 	push_menu_item (item, Qnil, Qnil, Qt, Qnil, Qnil, Qnil, Qnil);
       else if (NILP (item))

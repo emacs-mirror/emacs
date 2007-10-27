@@ -2826,7 +2826,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* All remaining specified parameters, which have not been "used"
      by x_get_arg and friends, now go in the misc. alist of the frame.  */
-  for (tem = parameters; !NILP (tem); tem = XCDR (tem))
+  for (tem = parameters; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       f->param_alist = Fcons (XCAR (tem), f->param_alist);
 
@@ -3402,7 +3402,7 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
   Lisp_Object tail, result;
 
   result = Qnil;
-  for (tail = x_display_name_list; ! NILP (tail); tail = XCDR (tail))
+  for (tail = x_display_name_list; CONSP (tail); tail = XCDR (tail))
     result = Fcons (XCAR (XCAR (tail)), result);
 
   return result;

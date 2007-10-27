@@ -1,3 +1,103 @@
+2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence): Undo a change introduced by multi-tty
+	which caused key-translation-map to applied repeatedly (thus breaking
+	double-mode).
+
+2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xselect.c (x_own_selection, x_handle_selection_clear)
+	(x_clear_frame_selections):
+	* w32menu.c (list_of_panes, list_of_items):
+	* w32fns.c (w32_color_map_lookup, Fx_create_frame, Fx_display_list):
+	* textprop.c (validate_plist, interval_has_all_properties)
+	(interval_has_some_properties, interval_has_some_properties_list)
+	(add_properties, text_property_list):
+	* process.c (Fget_buffer_process, list_processes_1, status_notify):
+	* minibuf.c (Fassoc_string):
+	* macselect.c (x_own_selection, x_clear_frame_selections)
+	(Fx_disown_selection_internal):
+	* keymap.c (Fcommand_remapping, where_is_internal, describe_map_tree):
+	Use CONSP rather than !NILP and XC[AD]R rather than Fc[ad]r.
+
+2007-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c: Link to libs for calling res_init() if available.
+	(Fmake_network_process): Call res_init() before getaddrinfo or
+	gethostbyname, if possible.
+
+2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read1): Set pvectype for char_tables.
+
+	* lisp.h (XMISCANY, XMARKER, XINTFWD, XBOOLFWD, XOBJFWD, XOVERLAY)
+	(XBUFFER_OBJFWD, XBUFFER_LOCAL_VALUE, XKBOARD_OBJFWD, XSAVE_VALUE):
+	Add type checks.
+	(SOME_BUFFER_LOCAL_VALUEP, GC_SOME_BUFFER_LOCAL_VALUEP): Remove.
+
+	* alloc.c (free_misc): Use XMISCTYPE.
+	(live_misc_p, gc_sweep): Use Lisp_Misc_Any.
+
+2007-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* minibuf.c (Qcompletion_ignore_case): New Lisp_Object.
+	(syms_of_minibuf): Add Qcompletion_ignore_case.
+	* dired.c (Qcompletion_ignore_case): Change to external.
+	(syms_of_dired) [VMS]: Remove Qcompletion_ignore_case.
+	* fileio.c (Qcompletion_ignore_case): New external Lisp_Object.
+	(Fread_file_name): Use it rather than intern'ing.
+
+	* coding.c (Qcompletion_ignore_case): New external Lisp_Object.
+	(Fread_coding_system): Ignore case of user input.
+
+2007-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (handle_display_prop): Ignore display specs after
+	replacing one when string text is being replaced.
+	(handle_single_display_spec): Pretend as if characters with display
+	property haven't been consumed only when buffer text is being replaced.
+
+2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfns.c (Fx_create_frame, Fx_display_list):
+	* window.c (window_fixed_size_p, enlarge_window)
+	(shrink_window_lowest_first):
+	* macterm.c (init_font_name_table):
+	* macfns.c (Fx_create_frame, Fx_display_list):
+	* lread.c (close_load_descs):
+	* keyboard.c (read_char_x_menu_prompt):
+	* fns.c (Fmember, Fmemql, Fdelete, Fset_char_table_parent):
+	* coding.c (code_convert_region_unwind): Test the type of an object
+	rather than just !NILP before extracting data from it.
+
+	* alloc.c (Fpurecopy): Set the pvec tag on pseudo vectors.
+
+	* lisp.h (enum Lisp_Misc_Type): Del Lisp_Misc_Some_Buffer_Local_Value.
+	(XMISCANY): New macro.
+	(XMISCTYPE): Use it.
+	(struct Lisp_Misc_Any): New type.
+	(union Lisp_Misc): Use it.
+	(struct Lisp_Buffer_Local_Value): Add `local_if_set' bit.
+	* data.c (Fboundp, store_symval_forwarding, swap_in_global_binding)
+	(find_symbol_value, set_internal, default_value, Fset_default)
+	(Fmake_variable_buffer_local, Fmake_local_variable)
+	(Fkill_local_variable, Fmake_variable_frame_local, Flocal_variable_p)
+	(Flocal_variable_if_set_p, Fvariable_binding_locus):
+	The SOME_BUFFER_LOCAL_VALUEP distinction is replaced by local_if_set.
+	* alloc.c (allocate_buffer): Set the size and tag.
+	(allocate_misc, mark_maybe_object, mark_object, survives_gc_p):
+	Use XMISCANY.
+	(die): Follow the GNU convention for error messages.
+	* print.c (print_object): SOME_BUFFER_LOCAL_VALUEP -> local_if_set.
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Don't set the
+	tag any more.
+	(set_buffer_internal_1):
+	* frame.c (store_frame_param):
+	* eval.c (specbind):
+	* xdisp.c (select_frame_for_redisplay): Drop SOME_BUFFER_LOCAL_VALUEP.
+
+	* doc.c (Fsnarf_documentation): Simplify.
+
 2007-10-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32term.c (w32_font_is_double_byte, my_create_scrollbar): Make static.
@@ -67,6 +167,11 @@
 2007-10-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1170000.
+
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): After setting up an ellipsis,
+	return HANDLED_RETURN.
 
 2007-10-08  Martin Rudalics  <rudalics@gmx.at>
 

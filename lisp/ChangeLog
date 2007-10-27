@@ -1,3 +1,269 @@
+2007-10-18  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Save excursion.
+	Use `save-restriction' rather than `widen'.
+
+2007-10-18  Richard Stallman  <rms@gnu.org>
+
+	* time.el (display-time-world-time-format): Display day # not month #.
+
+2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el (auto-mode-alist): Don't use doc-view for PS and EPS.
+
+	* doc-view.el: Remove version keyword.
+	(doc-view-ghostscript-program, doc-view-dvipdfm-program)
+	(doc-view-ps2pdf-program): Use executable-find.  Simplify custom type.
+	(doc-view-ghostscript-options): Improve custom type.
+	(doc-view-cache-directory, doc-view-conversion-buffer)
+	(doc-view-conversion-refresh-interval): Simplify custom type.
+
+2007-10-18  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-dvi->pdf)
+	(doc-view-pdf/ps->png-sentinel, doc-view-pdf/ps->png)
+	(doc-view-pdf->txt-sentinel, doc-view-pdf->txt)
+	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf): Remove superfluous
+	messages.
+	(doc-view-mode-map): Use the image-mode scrolling commands.  Don't
+	rebind C-x k.
+
+2007-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* doc-view.el (doc-view-ghostscript-options, doc-view-ps->pdf):
+	Add comment about "-dSAFER".
+
+2007-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el: Don't require xt-mouse.
+	(terminal-init-xterm): Run terminal-init-xterm-hook rather than
+	calling turn-on-xterm-mouse-tracking-on-terminal directly.
+
+	* xt-mouse.el: Don't change the global function-key-map anny more.
+	(xterm-mouse-mode): Use terminal-init-xterm-hook.
+	Don't use after-make-frame-functions now that term/xterm.el calls
+	us directly.
+	(turn-on-xterm-mouse-tracking, turn-off-xterm-mouse-tracking):
+	Use turn-*-xterm-mouse-tracking-on-terminal.  Only once per terminal.
+	(turn-on-xterm-mouse-tracking-on-terminal): Make param optional.
+	Setup input-decode-map and remember that xterm-mouse-mode was
+	enabled in this terminal.
+	(turn-off-xterm-mouse-tracking-on-terminal): Only disable on those
+	terminals where it has been enabled.
+
+	* faces.el (tty-create-frame-with-faces): Make sure not only
+	tty-run-terminal-initialization but also set-locale-environment
+	are run only once per terminal.
+	(tty-run-terminal-initialization): Don't check if the terminal was
+	already initted.
+
+	* international/encoded-kb.el (encoded-kbd-setup-display): Be careful
+	not to remove keymaps that just happen to inherit from one of ours.
+	When setting up our keymap, make sure it won't be accidentally
+	modified by someone else.
+
+2007-10-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* textmodes/artist.el (artist-previous-line, artist-next-line):
+	* dired.el (dired-next-line, dired-previous-line):
+	* progmodes/delphi.el (delphi-newline):
+	* textmodes/org.el (org-columns-eval):
+	Use forward-line.
+
+	* emerge.el (emerge-setup): Use insert-buffer-substring.
+	(emerge-prepare-error-list, emerge-setup-with-ancestor): Likewise.
+
+2007-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/fill.el (fill-individual-paragraphs): Doc fix.
+	(adaptive-fill-function): Doc fix.  Remove * from docstring.
+
+2007-10-18  Tom Horsley  <tom.horsley@att.net>
+
+	* simple.el (interprogram-paste-function): Doc fix.
+	(current-kill): Accept list of strings as well
+	as single string from `interprogram-paste-function'.
+
+2007-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* ibuf-ext.el (ibuffer-saved-filter-groups): Doc fix.
+
+2007-10-18  Drew Adams  <drew.adams@oracle.com>
+
+	* bindings.el (mode-line-minor-mode-keymap):
+	Add mouse-minor-mode-menu on mouse-1.
+	(mode-line-modes): Add mouse-1 to help-echo text.
+	(mouse-minor-mode-menu, minor-mode-menu-from-indicator):
+	New functions.
+	(mode-line-minor-mode-help): Doc fix.
+
+2007-10-17  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/fill.el (fill-paragraph-or-region): Remove function
+	at the request of RMS.
+	(fill-paragraph): Change `arg' to optional `justify'.  Add interactive
+	arg `region'.  Fix docstring.  At the first `or' branch add call to
+	`fill-region' if it the region is active in transient-mark-mode.
+
+	* bindings.el (esc-map): Bind M-q to fill-paragraph
+	instead of fill-paragraph-or-region.
+
+	* tutorial.el (tutorial--default-keys): Replace fill-paragraph-or-region
+	with fill-paragraph.
+
+	* textmodes/ispell.el (ispell-word): Add interactive arg `region'.
+	Fix docstring.
+
+	* indent.el (indent-for-tab-command): Change interactive spec from
+	"P" to "p".  Add check for interactive arg before indenting the
+	active region.
+
+	* files.el (auto-mode-alist): Add \\. before PDF/PS/DVI extensions.
+	Regroup.
+
+2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/find-func.el: Don't require loadhist.
+
+	* loadhist.el (feature-symbols, file-provides, file-requires)
+	(file-set-intersect, file-dependents): Simplify.
+	(unload-feature-special-hooks): Update list of special hooks.
+
+2007-10-17  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* bindings.el (completion-ignored-extensions): Remove pdf and dvi
+	extensions since they can be viewed with doc-view.
+
+	* files.el (auto-mode-alist): Make doc-view-mode the default mode
+	for pdf, ps and dvi files.
+
+	* doc-view.el: Make doc-view-mode the standard mode for viewing
+	pdf, [e]ps and dvi files and add binding C-c C-c to toggle between
+	text and image display.  Add binding C-c C-e to switch to an
+	editing mode.
+	(doc-view-ghostscript-options, doc-view-ps->pdf): Add "-dSAFER" to
+	avoid security problems when rendering files from untrusted sources.
+
+2007-10-17  Aaron Hawley  <aaronh@garden.org>
+
+	* tutorial.el (tutorial--save-tutorial): Display message when tutorial
+	position is not saved.
+
+2007-10-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* doc-view.el: Mention xpdf.  Fix spelling of Ghostscript.
+	(doc-view-ghostscript-options): Fix typo in doc string.
+
+2007-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-next-error-function): Fix timestamp
+	handling, so compilation-fake-loc works again.
+
+	* server.el (server-select-display): Nop if we do not support m-f-o-d.
+	(server-process-filter): Revert last change.
+
+	* vc.el (vc-diff-sentinel, vc-diff-internal): Revert some change in the
+	behavior unrelated to filesets.
+
+2007-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-wrap-follows-window-size): Integer value
+	specifies wrapping margin.
+	(longlines-mode, longlines-window-change-function):
+	Set window-specific wrapping margin based on the above.
+
+2007-10-17  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-cmd.el (eshell-complex-commands): Add "ls".
+
+2007-10-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* server.el (server-process-filter): Only set display if X11 is
+	supported.
+
+2007-10-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression):
+	Tweak regexp to avoid stack overflow.
+
+2007-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (reindent-then-newline-and-indent): Don't assume that
+	indent-according-to-mode preserves point.
+
+2007-10-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--make-header-match-string, bs-show-in-buffer)
+	(bs--nth-wrapper): Simplify.
+	(bs-select, bs--insert-one-entry): Simplify.  Use `when'.
+	(bs-buffer-list): Simplify.  Use `when'.  Use `string-match-p'.
+	(bs-sort-buffer-interns-are-last): Use `string-match-p'.
+	(bs-attributes-list, bs-max-window-height, bs-must-always-show-regexp)
+	(bs-maximal-buffer-name-column, bs-minimal-buffer-name-column)
+	(bs-configurations, bs-default-configuration)
+	(bs-alternative-configuration, bs-cycle-configuration-name)
+	(bs-string-show-always, bs-string-show-never, bs-string-current)
+	(bs-string-current-marked, bs-string-marked, bs-string-show-normally)
+	(bs-sort-functions, bs-default-sort-name): Remove * in docstrings.
+	(bs--redisplay, bs--goto-current-buffer, bs--current-buffer, bs-delete)
+	(bs-apply-sort-faces, bs-next-config-aux): Use `when'.
+	(bs--window-config-coming-from): Revert 2006-11-09 change.
+	(bs--restore-window-config): Keep the selected frame.
+	(bs--track-window-changes, bs--remove-hooks): New functions.
+	(bs-mode): Use `define-derived-mode'.  Set hook to track window changes.
+	(bs--create-header): Remove.
+	(bs--create-header-line): New function, based on `bs--create-header'.
+	(bs--show-header): Use `bs--create-header-line'.
+	(bs--show-with-configuration): Revert 2006-11-09 change.
+	Don't reuse window unless it is visible on the selected frame.
+	Restore window configuration (possibly in a different frame)
+	before creating any window.
+
+2007-10-16  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (blink-matching-open): Don't report false errors with
+	the `$' syntax class.
+
+2007-10-16  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/advice.el (ad-get-advice-info): Change to a function.
+	(ad-get-advice-info-macro): New macro, like old ad-get-advice-info.
+	(ad-is-advised, ad-get-advice-info-field)
+	(ad-set-advice-info-field): Use ad-get-advice-info-macro.
+
+2007-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-workfile-version): Compatibility alias.
+	(vc-default-working-revision): Compatibility for backends.
+
+2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* filesets.el (filesets-alist-get): Use `let' rather than `let*'.
+	(filesets-ormap, filesets-sort-case-sensitive-flag)
+	(filesets-remake-shortcut, filesets-ingroup-collect-files):
+	Fix typos in docstrings.
+	(filesets-conditional-sort, filesets-find-or-display-file)
+	(filesets-data-get-name, filesets-data-get-data)
+	(filesets-data-set, filesets-cmd-query-replace-getargs)
+	(filesets-ingroup-collect): Doc fixes.
+
+2007-10-15  Sam Steingold  <sds@gnu.org>
+
+	* mail/sendmail.el (sendmail-error-reporting-interactive)
+	(sendmail-error-reporting-non-interactive): New variables for
+	sendmail error reporting options to simplify support for imperfect
+	sendmail emulators.
+	(sendmail-send-it): Use them instead of list literals.
+
+2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el: Revert previous change; it creates a
+	dependency loop between advice.el and help-fns.el.
+
+2007-10-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el: Require advice when compiling.
+
 2007-10-14  Drew Adams  <drew.adams@oracle.com>
 
 	* emacs-lisp/ring.el (ring-convert-sequence-to-ring)
@@ -99,8 +365,8 @@
 
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* frame.el (select-frame-set-input-focus): Fix typo
-	"max" -> "mac". Do not use a single clause cond.
+	* frame.el (select-frame-set-input-focus): Fix typo "max" -> "mac".
+	Do not use a single clause cond.
 
 	* cus-start.el (all): Use test that does not match the X11 version
 	for mac.
@@ -148,7 +414,7 @@
 	(idlwave-complete-in-buffer):
 	* textmodes/org.el (org-export-as-html, org-export-as-ascii)
 	(org-fast-tag-selection):
-	* textmodes/reftex-sel.el (reftex-select-item):  Use mapc rather
+	* textmodes/reftex-sel.el (reftex-select-item): Use mapc rather
 	than mapcar.
 
 2007-10-13  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -170,9 +436,8 @@
 	and some leftover logic regarding dedicated frames.  If showing
 	concise startup screen, fit window to buffer.
 	(command-line-1): If we will be using the splash screen, use
-	find-file instead of find-file-other-window to find additional
-	files.  Comment out unused code for coping with the old sit-for
-	behavior.
+	find-file instead of find-file-other-window to find additional files.
+	Comment out unused code for coping with the old sit-for behavior.
 
 2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 

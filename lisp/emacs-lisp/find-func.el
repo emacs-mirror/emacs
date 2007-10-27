@@ -46,8 +46,6 @@
 
 ;;; Code:
 
-(require 'loadhist)
-
 ;;; User variables:
 
 (defgroup find-function nil

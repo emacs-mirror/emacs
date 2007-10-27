@@ -2670,12 +2670,12 @@ window_fixed_size_p (w, width_p, check_siblings_p)
 	{
 	  Lisp_Object child;
 
-	  for (child = w->prev; !NILP (child); child = XWINDOW (child)->prev)
+	  for (child = w->prev; WINDOWP (child); child = XWINDOW (child)->prev)
 	    if (!window_fixed_size_p (XWINDOW (child), width_p, 0))
 	      break;
 
 	  if (NILP (child))
-	    for (child = w->next; !NILP (child); child = XWINDOW (child)->next)
+	    for (child = w->next; WINDOWP (child); child = XWINDOW (child)->next)
 	      if (!window_fixed_size_p (XWINDOW (child), width_p, 0))
 		break;
 
@@ -4291,10 +4291,10 @@ enlarge_window (window, delta, horiz_flag)
 
   /* Find the total we can get from other siblings without deleting them.  */
   maximum = 0;
-  for (next = p->next; ! NILP (next); next = XWINDOW (next)->next)
+  for (next = p->next; WINDOWP (next); next = XWINDOW (next)->next)
     maximum += (*sizefun) (next) - window_min_size (XWINDOW (next),
 						    horiz_flag, 0, 0);
-  for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
+  for (prev = p->prev; WINDOWP (prev); prev = XWINDOW (prev)->prev)
     maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
 						    horiz_flag, 0, 0);
 
@@ -4442,10 +4442,10 @@ enlarge_window (window, delta, horiz_flag)
 	  Lisp_Object s;
 	  int n = 1;
 
-	  for (s = w->next; !NILP (s); s = XWINDOW (s)->next)
+	  for (s = w->next; WINDOWP (s); s = XWINDOW (s)->next)
 	    if (!window_fixed_size_p (XWINDOW (s), horiz_flag, 0))
 	      ++n;
-	  for (s = w->prev; !NILP (s); s = XWINDOW (s)->prev)
+	  for (s = w->prev; WINDOWP (s); s = XWINDOW (s)->prev)
 	    if (!window_fixed_size_p (XWINDOW (s), horiz_flag, 0))
 	      ++n;
 
@@ -4701,7 +4701,7 @@ shrink_window_lowest_first (w, height)
       /* Find the last child.  We are taking space from lowest windows
 	 first, so we iterate over children from the last child
 	 backwards.  */
-      for (child = w->vchild; !NILP (child); child = XWINDOW (child)->next)
+      for (child = w->vchild; WINDOWP (child); child = XWINDOW (child)->next)
 	last_child = child;
 
       /* Assign new heights.  We leave only MIN_SAFE_WINDOW_HEIGHT.  */

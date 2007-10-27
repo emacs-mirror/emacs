@@ -289,6 +289,7 @@ Keymap to display on major mode.")
 
 (defvar mode-line-minor-mode-keymap
   (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] 'mouse-minor-mode-menu)
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
     (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
     (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
@@ -331,7 +332,7 @@ Keymap to display on minor modes.")
 	 '("" mode-line-process)
 	 `(:propertize ("" minor-mode-alist)
 		       mouse-face mode-line-highlight
-		       help-echo "mouse-2: minor mode help, mouse-3: toggle minor modes"
+		       help-echo "mouse-1: minor mode, mouse-2: minor mode help, mouse-3: toggle minor modes"
 		       local-map ,mode-line-minor-mode-keymap)
 	 (propertize "%n" 'help-echo "mouse-2: widen"
 		     'mouse-face 'mode-line-highlight
@@ -492,8 +493,28 @@ Menu of mode operations in the mode line.")
   (interactive "@e")
   (x-popup-menu event mode-line-mode-menu))
 
+(defun mouse-minor-mode-menu (event)
+  "Show minor-mode menu for EVENT on minor modes area of the mode line."
+  (interactive "@e")
+  (let ((indicator (car (nth 4 (car (cdr event))))))
+    (minor-mode-menu-from-indicator indicator)))
+
+(defun minor-mode-menu-from-indicator (indicator)
+  "Show menu, if any, for minor mode specified by INDICATOR.
+Interactively, INDICATOR is read using completion."
+  (interactive (list (completing-read "Minor mode indicator: "
+                                      (describe-minor-mode-completion-table-for-indicator))))
+  (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
+    (if minor-mode
+        (let* ((map (cdr-safe (assq minor-mode minor-mode-map-alist)))
+               (menu (and (keymapp map) (lookup-key map [menu-bar]))))
+          (if menu
+              (popup-menu menu)
+            (message "No menu for minor mode `%s'" minor-mode)))
+      (error "Cannot find minor mode for `%s'" indicator))))
+
 (defun mode-line-minor-mode-help (event)
-  "Describe minor mode for EVENT occurred on minor modes area of the mode line."
+  "Describe minor mode for EVENT on minor modes area of the mode line."
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (describe-minor-mode-from-indicator indicator)))
@@ -536,7 +557,7 @@ is okay.  See `mode-line-format'.")
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
 	 ;; TeX-related
-	 ".dvi" ".fmt" ".tfm" ".pdf"
+	 ".fmt" ".tfm"
 	 ;; Java compiled
 	 ".class"
 	 ;; CLISP
@@ -1041,7 +1062,7 @@ language you are using."
 (define-key ctl-x-map "rw" 'window-configuration-to-register)
 (define-key ctl-x-map "rf" 'frame-configuration-to-register)
 
-(define-key esc-map "q" 'fill-paragraph-or-region)
+(define-key esc-map "q" 'fill-paragraph)
 (define-key ctl-x-map "." 'set-fill-prefix)
 
 (define-key esc-map "{" 'backward-paragraph)

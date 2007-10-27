@@ -2092,12 +2092,13 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 			  (symbol-value 'rfn-eshadow-overlay))
 		 (funcall (symbol-function 'minibuffer-prompt-end)))))
     (when (file-remote-p (buffer-substring-no-properties end (point-max)))
-      (narrow-to-region
-       (1+ (or (string-match "/" (buffer-string) end) end)) (point-max))
-      (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
-	    (rfn-eshadow-update-overlay-hook nil))
-	(funcall (symbol-function 'rfn-eshadow-update-overlay)))
-      (widen))))
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region
+	   (1+ (or (string-match "/" (buffer-string) end) end)) (point-max))
+	  (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
+		(rfn-eshadow-update-overlay-hook nil))
+	    (funcall (symbol-function 'rfn-eshadow-update-overlay))))))))
 
 (when (boundp 'rfn-eshadow-update-overlay-hook)
   (add-hook 'rfn-eshadow-update-overlay-hook

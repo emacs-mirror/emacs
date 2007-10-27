@@ -129,7 +129,7 @@
 	 (progn
 	   (if pc-mode (partial-completion-mode -1))
 	   ,@body)
-       (if pc-mode (partial-completion-mode 1)))))  
+       (if pc-mode (partial-completion-mode 1)))))
 
 ;;; The custom variables
 
@@ -1399,7 +1399,7 @@ When this variable is nil, `C-c C-c' give you the prompts, and
 `C-u C-c C-c' trigger the fasttrack."
   :group 'org-remember
   :type 'boolean)
-  
+
 (defcustom org-remember-default-headline ""
   "The headline that should be the default location in the notes file.
 When filing remember notes, the cursor will start at that position.
@@ -2702,7 +2702,7 @@ directory where the exported Org-mode files lives."
 	  (repeat
 	   (cons
 	    (choice :tag "Type"
-		    (const :html) (const :LaTeX) 
+		    (const :html) (const :LaTeX)
 		    (const :ascii) (const :ical) (const :xoxo))
 	    (directory)))))
 
@@ -3516,7 +3516,7 @@ color of the frame."
   ;; Make sure that a fixed-width face is used when we have a column table.
   (set-face-attribute 'org-column nil
 		      :height (face-attribute 'default :height)
-		      :family (face-attribute 'default :family)))  
+		      :family (face-attribute 'default :family)))
 
 (defface org-warning
   (org-compatible-face
@@ -5544,7 +5544,7 @@ Works for outline headings and for plain lists alike."
   (cond
    ((org-on-heading-p) (org-do-demote))
    ((org-at-item-p) (org-indent-item 1))))
-  
+
 ;;; Promotion and Demotion
 
 (defun org-promote-subtree ()
@@ -6064,7 +6064,7 @@ If WITH-CASE is non-nil, the sorting will be case-sensitive."
 	      (if (string-match org-priority-regexp x)
 		  (string-to-char (match-string 2 x))
 		org-default-priority))
-	    comparefun (if (= dcst sorting-type) '< '>)))		  
+	    comparefun (if (= dcst sorting-type) '< '>)))
      (t (error "Invalid sorting type `%c'" sorting-type)))
 
     (sort (mapcar (lambda (x) (cons (funcall extractfun (car x)) (cdr x)))
@@ -6778,7 +6778,7 @@ off orgstruct-mode will *not* remove these additonal settings."
 		(orgstruct-make-binding 'org-cycle 102 [(tab)] "\C-i"))
     (org-defkey orgstruct-mode-map "\C-i"
 		(orgstruct-make-binding 'org-cycle 103 "\C-i" [(tab)]))
-    
+
     (org-defkey orgstruct-mode-map "\M-\C-m"
 		(orgstruct-make-binding 'org-insert-heading 105
 				     "\M-\C-m" [(meta return)]))
@@ -6789,10 +6789,10 @@ off orgstruct-mode will *not* remove these additonal settings."
     (org-defkey orgstruct-mode-map [(shift meta return)]
 		(orgstruct-make-binding 'org-insert-todo-heading 107
 				     [(meta return)] "\M-\C-m"))
-    
+
     (unless org-local-vars
       (setq org-local-vars (org-get-local-variables)))
-    
+
     t))
 
 (defun orgstruct-make-binding (fun n &rest keys)
@@ -6843,7 +6843,7 @@ Possible values in the list of contexts are `table', `headline', and `item'."
     (kill-buffer "*Org tmp*")
     (delq nil
 	  (mapcar
-	   (lambda (x) 
+	   (lambda (x)
 	     (setq x
 		   (if (symbolp x)
 		       (list x)
@@ -11258,12 +11258,12 @@ according to FMT (default from `org-email-link-description-format')."
 	  (if description (concat "[" description "]") "")
 	  "]"))
 
-(defconst org-link-escape-chars 
+(defconst org-link-escape-chars
   '((" " . "%20")
     ("[" . "%5B")
     ("]" . "%5d")
     ("\340" . "%E0")  ; `a
-    ("\342" . "%E2")  ; ^a  
+    ("\342" . "%E2")  ; ^a
     ("\347" . "%E7")  ; ,c
     ("\350" . "%E8")  ; `e
     ("\351" . "%E9")  ; 'e
@@ -11280,7 +11280,7 @@ according to FMT (default from `org-email-link-description-format')."
   "Association list of escapes for some characters problematic in links.
 This is the list that is used for internal purposes.")
 
-(defconst org-link-escape-chars-browser 
+(defconst org-link-escape-chars-browser
   '((" " . "%20"))
   "Association list of escapes for some characters problematic in links.
 This is the list that is used before handing over to the browser.")
@@ -11459,7 +11459,7 @@ With three \\[universal-argument] prefixes, negate the meaning of
 	  (setq org-stored-links (delq (assoc link org-stored-links)
 				       org-stored-links)))
       (setq desc (or desc (nth 1 entry)))))
-    
+
     (if (string-match org-plain-link-re link)
 	;; URL-like link, normalize the use of angular brackets.
 	(setq link (org-make-link (org-remove-angle-brackets link))))
@@ -12537,7 +12537,7 @@ to be run from that hook to fucntion properly."
 	      (when (string-match "\\S-" ins)
 		(or (equal (char-before) ?:) (insert ":"))
 		(insert ins)
-		(or (equal (char-after) ?:) (insert ":")))))		
+		(or (equal (char-after) ?:) (insert ":")))))
 	   (char
 	    (setq org-time-was-given (equal (upcase char) char))
 	    (setq time (org-read-date (equal (upcase char) "U") t nil
@@ -12710,7 +12710,7 @@ See also the variable `org-reverse-note-order'."
 		     (org-end-of-subtree t)
 		     (org-paste-subtree level txt))
 		    (t (error "This should not happen"))))
-		  
+
 		  ((and (bobp) (not reversed))
 		   ;; Put it at the end, one level below level 1
 		   (save-restriction
@@ -12718,7 +12718,7 @@ See also the variable `org-reverse-note-order'."
 		     (goto-char (point-max))
 		     (if (not (bolp)) (newline))
 		     (org-paste-subtree (org-get-legal-level 1 1) txt)))
-		  
+
 		  ((and (bobp) reversed)
 		   ;; Put it at the start, as level 1
 		   (save-restriction
@@ -13834,7 +13834,7 @@ also TODO lines."
       (setq match (completing-read
 		   "Match: " 'org-tags-completion-function nil nil nil
 		   'org-tags-history))))
-  
+
   ;; Parse the string and create a lisp form
   (let ((match0 match)
 	(re (org-re "^&?\\([-+:]\\)?\\({[^}]+}\\|LEVEL=\\([0-9]+\\)\\|\\([[:alnum:]]+\\)=\\({[^}]+}\\|\"[^\"]+\"\\)\\|[[:alnum:]_@]+\\)"))
@@ -13997,12 +13997,12 @@ With prefix ARG, realign all tags in headings in the current buffer."
 	(while (string-match "[-+&]+" tags)
 	  ;; No boolean logic, just a list
 	  (setq tags (replace-match ":" t t tags))))
-      
+
       (if (string-match "\\`[\t ]*\\'" tags)
           (setq tags "")
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
-      
+
       ;; Insert new tags at the correct column
       (beginning-of-line 1)
       (cond
@@ -14321,7 +14321,7 @@ Returns the new tags string, or nil to not change the current settings."
   (let (tags)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward 
+      (while (re-search-forward
 	      (org-re "[ \t]:\\([[:alnum:]_@:]+\\):[ \t\r\n]") nil t)
 	(when (equal (char-after (point-at-bol 0)) ?*)
 	  (mapc (lambda (x) (add-to-list 'tags x))
@@ -14469,7 +14469,7 @@ If WHICH is nil or `all', get all properties.  If WHICH is
 		(unless (member key excluded)
 		  (push (cons key (or value "")) props)))))
 	  (append sum-props (nreverse props)))))))
-  
+
 (defun org-entry-get (pom property &optional inherit)
   "Get value of PROPERTY for entry at point-or-marker POM.
 If INHERIT is non-nil and the entry does not have the property,
@@ -14636,7 +14636,7 @@ internally: ARCHIVE, CATEGORY, SUMMARY, DESCRIPTION, LOCATION, and LOGGING."
 (defun org-set-property (property value)
   "In the current entry, set PROPERTY to VALUE."
   (interactive
-   (let* ((prop	(completing-read "Property: " 
+   (let* ((prop	(completing-read "Property: "
 				 (mapcar 'list (org-buffer-property-keys))))
 	  (cur (org-entry-get nil prop))
 	  (allowed (org-property-get-allowed-values nil prop 'table))
@@ -14657,7 +14657,7 @@ internally: ARCHIVE, CATEGORY, SUMMARY, DESCRIPTION, LOCATION, and LOGGING."
    (let* ((prop (completing-read
 		 "Property: " (org-entry-properties nil 'standard))))
      (list prop)))
-  (message (concat "Property " property 
+  (message (concat "Property " property
 		   (if (org-entry-delete nil property)
 		       " deleted"
 		     " was not present in the entry"))))
@@ -14666,7 +14666,7 @@ internally: ARCHIVE, CATEGORY, SUMMARY, DESCRIPTION, LOCATION, and LOGGING."
   "Remove PROPERTY globally, from all entries."
   (interactive
    (let* ((prop (completing-read
-		 "Globally remove property: " 
+		 "Globally remove property: "
 		 (mapcar 'list (org-buffer-property-keys)))))
      (list prop)))
   (save-excursion
@@ -14703,7 +14703,7 @@ completion."
   (let (vals)
     (cond
      ((equal property "TODO")
-      (setq vals (org-with-point-at pom 
+      (setq vals (org-with-point-at pom
 		   (append org-todo-keywords-1 '("")))))
      ((equal property "PRIORITY")
       (let ((n org-lowest-priority))
@@ -14713,7 +14713,7 @@ completion."
      ((member property org-special-properties))
      (t
       (setq vals (org-entry-get pom (concat property "_ALL") 'inherit))
-	    
+
       (when (and vals (string-match "\\S-" vals))
 	(setq vals (car (read-from-string (concat "(" vals ")"))))
 	(setq vals (mapcar (lambda (x)
@@ -14843,7 +14843,7 @@ This is the compiled version of the format.")
 		       (beginning-of-line 1)
 		       (and (looking-at "\\(\\**\\)\\(\\* \\)")
 			    (org-get-level-face 2))))
-	 (color (list :foreground 
+	 (color (list :foreground
 		      (face-attribute (or level-face 'default) :foreground)))
 	 props pom property ass width f string ov column)
     ;; Check if the entry is in another buffer.
@@ -14988,7 +14988,7 @@ Where possible, use the standard interface for changing this line."
 	 nval eval allowed)
     (when (equal key "ITEM")
       (error "Cannot edit item headline from here"))
-    
+
     (cond
      ((equal key "TODO")
       (setq eval '(org-with-point-at pom
@@ -15021,7 +15021,7 @@ Where possible, use the standard interface for changing this line."
 	(remove-text-properties (1- bol) eol '(read-only t))
 	(unwind-protect
 	    (progn
-	      (setq org-columns-overlays 
+	      (setq org-columns-overlays
 		    (org-delete-all line-overlays org-columns-overlays))
 	      (mapc 'org-delete-overlay line-overlays)
 	      (org-columns-eval eval))
@@ -15040,7 +15040,7 @@ Where possible, use the standard interface for changing this line."
 	 (allowed (org-entry-get (point) key1 t))
 	 nval)
     (setq nval (read-string "Allowed: " allowed))
-    (org-entry-put 
+    (org-entry-put
      (cond ((marker-position org-entry-property-inherited-from)
 	    org-entry-property-inherited-from)
 	   ((marker-position org-columns-top-level-marker)
@@ -15050,8 +15050,7 @@ Where possible, use the standard interface for changing this line."
 (defun org-columns-eval (form)
   (let (hidep)
     (save-excursion
-      (beginning-of-line 1)
-      (next-line 1)
+      (forward-line 1)
       (setq hidep (org-on-heading-p 1)))
     (eval form)
     (and hidep (hide-entry))))
@@ -15099,7 +15098,7 @@ Where possible, use the standard interface for changing this line."
       (remove-text-properties (1- bol) eol '(read-only t))
       (unwind-protect
 	  (progn
-	    (setq org-columns-overlays 
+	    (setq org-columns-overlays
 		  (org-delete-all line-overlays org-columns-overlays))
 	    (mapc 'org-delete-overlay line-overlays)
 	    (org-columns-eval '(org-entry-put pom key nval)))
@@ -15250,7 +15249,7 @@ Where possible, use the standard interface for changing this line."
       (error "Cannot shift this column further to the left"))
     (backward-char 1)
     (org-columns-move-right)
-    (backward-char 1)))    
+    (backward-char 1)))
 
 (defun org-columns-store-format ()
   "Store the text version of the current columns format in appropriate place.
@@ -15348,7 +15347,7 @@ display, or in the #+COLUMNS line of the current buffer."
 		(setq pos (org-overlay-start ov))
 		(goto-char pos)
 		(when (setq val (cdr (assoc property
-					    (get-text-property 
+					    (get-text-property
 					     (point-at-bol) 'org-summaries))))
 		  (setq fmt (org-overlay-get ov 'org-columns-format))
 		  (org-overlay-put ov 'org-columns-value val)
@@ -15404,7 +15403,7 @@ display, or in the #+COLUMNS line of the current buffer."
 					      (if flag str val) format))))
 	    (aset lflag level t))
 	  ;; clear accumulators for deeper levels
-	  (loop for l from (1+ level) to (1- lmax) do 
+	  (loop for l from (1+ level) to (1- lmax) do
 		(aset lsum l 0)
 		(aset lflag l nil)))
 	 ((>= level last-level)
@@ -15720,7 +15719,7 @@ user."
 		  minute (if (match-end 3)
 			     (string-to-number (match-string 3 ans))
 			   0)
-		  pm (equal ?p 
+		  pm (equal ?p
 			    (string-to-char (downcase (match-string 4 ans)))))
 	    (if (and (= hour 12) (not pm))
 		(setq hour 0)
@@ -16354,7 +16353,7 @@ in the timestamp determines what will be changed."
 	(setq ng 6 new (car (rassoc (+ n (cdr (assoc (match-string 6 s) idx))) idx))))
        ((org-pos-in-match-range pos 5)
 	(setq ng 5 new (format "%d" (max 1 (+ n (string-to-number (match-string 5 s))))))))
-	
+
       (when ng
 	(setq s (concat
 		 (substring s 0 (match-beginning ng))
@@ -16421,28 +16420,28 @@ belonging to the category \"Work\"."
   (require 'org)
   (if (equal filter '(4))
       (setq filter (read-from-minibuffer "Regexp filter: ")))
-  (let* ((today (org-date-to-gregorian 
+  (let* ((today (org-date-to-gregorian
 		 (time-to-days (current-time))))
 	 (files org-agenda-files) entries file)
     (while (setq file (pop files))
       (setq entries (append entries (org-agenda-get-day-entries
 				     file today :timestamp))))
     (setq entries (delq nil entries))
-    (mapc 
+    (mapc
      (lambda(x)
        (let* ((evt (org-trim (get-text-property 1 'txt x)))
 	      (cat (get-text-property 1 'org-category x))
 	      (tod (get-text-property 1 'time-of-day x))
 	      (ok (or (and (stringp filter) (string-match filter evt))
 		      (and (not (null filter)) (listp filter)
-			   (or (string-match 
+			   (or (string-match
 				(cadr (assoc 'category filter)) cat)
-			       (string-match 
+			       (string-match
 				(cadr (assoc 'headline filter)) evt))))))
 	      ;; (setq evt (set-text-properties 0 (length event) nil evt))
 	 (when (and ok tod)
 	   (setq tod (number-to-string tod)
-		 tod (when (string-match 
+		 tod (when (string-match
 			    "\\([0-9]\\{1,2\\}\\)\\([0-9]\\{2\\}\\)" tod)
 		       (concat (match-string 1 tod) ":"
 			       (match-string 2 tod))))
@@ -16923,7 +16922,7 @@ the returned times will be formatted strings."
 	      (setq total-time (+ (or total-time 0)
 				  org-clock-file-total-minutes)))))))
       (goto-char pos)
-      
+
       (unless (eq scope 'agenda)
 	(org-clock-sum ts te)
 	(goto-char (point-min))
@@ -16968,7 +16967,7 @@ the returned times will be formatted strings."
 	(insert-before-markers
 	 "|-\n|"
 	 (if (eq scope 'agenda) "|" "")
-	 "|" 
+	 "|"
 	 "*Total time*| "
 	 (format "*%d:%02d*" h m)
 	 "|\n|-\n")
@@ -19766,7 +19765,7 @@ With prefix ARG, go forward that many times the current span."
 	   (list (car org-agenda-last-arguments) sd nd t)))
     (org-agenda-redo)
     (org-agenda-find-today-or-agenda))))
- 
+
 (defun org-agenda-earlier (arg)
   "Go backward in time by the current span.
 With prefix ARG, go backward that many times the current span."
@@ -20480,7 +20479,7 @@ be used to request time specification in the time stamp."
   (save-excursion
     (org-back-to-heading t)
     (if (looking-at
-	 (if no-tags 
+	 (if no-tags
 	     (org-re "\\*+[ \t]+\\([^\n\r]*?\\)\\([ \t]+:[[:alnum:]:_@]+:[ \t]*\\)?$")
 	   "\\*+[ \t]+\\([^\r\n]*\\)"))
 	(match-string 1) "")))
@@ -21530,7 +21529,7 @@ translations.  There is currently no way for users to extend this.")
 	  (setq fmt (pop formatters))
 	  (when (car fmt)
 	    (goto-char (point-min))
-	    (while (re-search-forward (concat "^#\\+" (cadr fmt) 
+	    (while (re-search-forward (concat "^#\\+" (cadr fmt)
 					      ":[ \t]*\\(.*\\)") nil t)
 	      (replace-match "\\1" t)
 	      (add-text-properties
@@ -21538,7 +21537,7 @@ translations.  There is currently no way for users to extend this.")
 	       '(org-protected t))))
 	  (goto-char (point-min))
 	  (while (re-search-forward
-		  (concat "^#\\+" 
+		  (concat "^#\\+"
 			  (caddr fmt) "\\>.*\\(\\(\n.*\\)*?\n\\)#\\+"
 			  (cadddr fmt) "\\>.*\n?") nil t)
 	    (if (car fmt)
@@ -21689,7 +21688,7 @@ translations.  There is currently no way for users to extend this.")
 	 (add-text-properties (point) (1+ (point-at-eol))
 			      (list :org-license-to-kill t)))))
     title))
-	 
+
 (defun org-solidify-link-text (s &optional alist)
   "Take link text and make a safe target out of it."
   (save-match-data
@@ -22778,7 +22777,7 @@ lang=\"%s\" xml:lang=\"%s\">
 	  (if (and (string-match org-todo-line-regexp line)
 		   (match-beginning 2))
 
-              (setq line 
+              (setq line
                     (concat (substring line 0 (match-beginning 2))
                             "<span class=\""
                             (if (member (match-string 2 line)
@@ -23112,14 +23111,14 @@ lang=\"%s\" xml:lang=\"%s\">
 	     (lambda (x)
 	       (setq gr (pop org-table-colgroup-info))
 	       (format "%s<COL align=\"%s\"></COL>%s"
-		       (if (memq gr '(:start :startend)) 
+		       (if (memq gr '(:start :startend))
 			   (prog1
 			       (if colgropen "</colgroup>\n<colgroup>" "<colgroup>")
 			     (setq colgropen t))
 			 "")
 		       (if (> (/ (float x) nlines) org-table-number-fraction)
 			   "right" "left")
-		       (if (memq gr '(:end :startend)) 
+		       (if (memq gr '(:end :startend))
 			   (progn (setq colgropen nil) "</colgroup>")
 			 "")))
 	     fnum "")

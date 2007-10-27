@@ -115,10 +115,10 @@ extern void filemodestring P_ ((struct stat *, char *));
 #endif
 
 extern int completion_ignore_case;
+extern Lisp_Object Qcompletion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
 
 Lisp_Object Vcompletion_ignored_extensions;
-Lisp_Object Qcompletion_ignore_case;
 Lisp_Object Qdirectory_files;
 Lisp_Object Qdirectory_files_and_attributes;
 Lisp_Object Qfile_name_completion;
@@ -1076,11 +1076,6 @@ syms_of_dired ()
   defsubr (&Sfile_name_all_completions);
   defsubr (&Sfile_attributes);
   defsubr (&Sfile_attributes_lessp);
-
-#ifdef VMS
-  Qcompletion_ignore_case = intern ("completion-ignore-case");
-  staticpro (&Qcompletion_ignore_case);
-#endif /* VMS */
 
   DEFVAR_LISP ("completion-ignored-extensions", &Vcompletion_ignored_extensions,
 	       doc: /* Completion ignores file names ending in any string in this list.

@@ -262,38 +262,63 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
     (when frame
       (with-selected-frame frame
 	;; Remove any previous encoded-kb keymap from input-decode-map.
-	(let ((m input-decode-map))
-	  (if (equal (keymap-prompt m) "encoded-kb")
-	      (setq input-decode-map (keymap-parent m))
-	    (while (keymap-parent m)
-	      (if (equal (keymap-prompt (keymap-parent m)) "encoded-kb")
-		  (set-keymap-parent m (keymap-parent (keymap-parent m))))
-	      (setq m (keymap-parent m)))))
+	(let ((m input-decode-map)
+              (child nil))
+          (while (keymapp m)
+            (if (not (equal (keymap-prompt m) "encoded-kb"))
+                (progn
+                  (setq child m)
+                  (setq m (keymap-parent m)))
+              ;; We've found an encoded-kb map, but maybe the prompt we get
+              ;; is really inherited from the encoded-kb map.
+              (let (mp)
+                (while (and (keymapp (setq mp (keymap-parent m)))
+                            (equal (keymap-prompt mp) "encoded-kb"))
+                  (setq child m)
+                  (setq m mp))
+                ;; (assert (equal (keymap-prompt m) "encoded-kb"))
+                ;; (assert (eq mp (keymap-parent m)))
+                ;; (assert (not (and (keymapp mp)
+                ;;                   (equal (keymap-prompt mp) "encoded-kb"))))
+                ;; (assert (eq m (if child
+                ;;                   (keymap-parent child) input-decode-map)))
+                ;; We can finally do the actual removal.
+                (if child
+                    (set-keymap-parent child mp)
+                  (setq input-decode-map mp))
+                (setq m mp))))))
 
-	(if (keyboard-coding-system)
-	    ;; We are turning on Encoded-kbd mode.
-	    (let ((coding (keyboard-coding-system))
-		  (keymap (make-sparse-keymap "encoded-kb"))
-		  (cim (current-input-mode))
-		  result)
-	      (set-keymap-parent keymap input-decode-map)
-	      (setq input-decode-map keymap)
-	      (unless (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
-		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode (nth 2 cim)))
-	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
-	      (if result
-		  (when (and (eq result 8)
-			     (memq (nth 2 cim) '(t nil)))
-		    (set-input-meta-mode 'use-8th-bit))
-		(set-terminal-parameter nil 'encoded-kbd-saved-input-meta-mode nil)
-		(error "Unsupported coding system in Encoded-kbd mode: %S"
-		       coding)))
-	  ;; We are turning off Encoded-kbd mode.
-	  (when (and (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
-		     (not (equal (nth 2 (current-input-mode))
-				 (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode))))
-	    (set-input-meta-mode (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)))
-	  (set-terminal-parameter nil 'saved-input-meta-mode nil))))))
+      (if (keyboard-coding-system)
+          ;; We are turning on Encoded-kbd mode.
+          (let ((coding (keyboard-coding-system))
+                (keymap (make-sparse-keymap "encoded-kb"))
+                (cim (current-input-mode))
+                result)
+            ;; Place `keymap' as the immediate parent of input-decode-map
+            ;; rather than on top, so that later `define-key' on
+            ;; input-decode-map don't end up accidentally changing our
+            ;; part of the keymap, which would lead to bugs when/if we later
+            ;; on remove that part.
+            (set-keymap-parent keymap (keymap-parent input-decode-map))
+            (set-keymap-parent input-decode-map keymap)
+            (unless (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
+              (set-terminal-parameter nil 'encoded-kbd-saved-input-mode
+                                      (nth 2 cim)))
+            (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
+            (if result
+                (when (and (eq result 8)
+                           (memq (nth 2 cim) '(t nil)))
+                  (set-input-meta-mode 'use-8th-bit))
+              (set-terminal-parameter
+               nil 'encoded-kbd-saved-input-meta-mode nil)
+              (error "Unsupported coding system in Encoded-kbd mode: %S"
+                     coding)))
+        ;; We are turning off Encoded-kbd mode.
+        (let ((old (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)))
+          (when (and old (not (equal (nth 2 (current-input-mode)) old)))
+            (set-input-meta-mode old))
+          (set-terminal-parameter
+           nil 'encoded-kbd-saved-input-meta-mode nil))))))
 
 (provide 'encoded-kb)
 

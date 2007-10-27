@@ -700,15 +700,17 @@ the same file name is found in the `doc-directory'.  */)
               if (fromfile[len-1] == 'c')
                 fromfile[len-1] = 'o';
 
-              if (EQ (Fmember (build_string (fromfile), Vbuild_files), Qnil))
-                skip_file = 1;
-              else
-                skip_file = 0;
+	      skip_file = NILP (Fmember (build_string (fromfile),
+					 Vbuild_files));
             }
 
 	  sym = oblookup (Vobarray, p + 2,
 			  multibyte_chars_in_text (p + 2, end - p - 2),
 			  end - p - 2);
+	  /* Check skip_file so that when a function is defined several
+	     times in different files (typically, once in xterm, once in
+	     w32term, ...), we only pay attention to the one that
+	     matters.  */
 	  if (! skip_file && SYMBOLP (sym))
 	    {
 	      /* Attach a docstring to a variable?  */

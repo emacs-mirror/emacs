@@ -2060,6 +2060,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
      ("\\.[eE]?[pP][sS]\\'" . ps-mode)
+     ("\\.\\(?:PDF\\|DVI\\|pdf\\|dvi\\)" . doc-view-mode)
      ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)

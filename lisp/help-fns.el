@@ -241,7 +241,7 @@ face (according to `face-differs-from-default-p')."
 				   ".elc"))
 				 load-path))
 	 (str (if (and elc-file (file-readable-p elc-file))
-		  (with-temp-buffer 
+		  (with-temp-buffer
 		    (insert-file-contents-literally elc-file nil 0 256)
 		    (buffer-string))))
 	 (src-file (and str

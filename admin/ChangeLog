@@ -1,3 +1,7 @@
+2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-emacs: Doc fix.
+
 2007-08-28  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el: Provide self.
@@ -167,7 +171,7 @@
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
 	* FOR-RELEASE (DOCUMENTATION): Removed lisp/toolbar from list
-	since it's gone. Also marked mh-e as done.
+	since it's gone.  Also marked mh-e as done.
 
 2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -213,11 +217,11 @@
 
 2005-03-30  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
-	* FOR-RELEASE (Documentation): Added check the Emacs Tutorial. The
-        first line of every tutorial must begin with a sentence saying
-        "Emacs Tutorial" in the respective language.  This should be
-        followed by "See end for copying conditions", likewise in the
-        respective language.
+	* FOR-RELEASE (Documentation): Added check the Emacs Tutorial.
+	The first line of every tutorial must begin with a sentence saying
+	"Emacs Tutorial" in the respective language.  This should be
+	followed by "See end for copying conditions", likewise in the
+	respective language.
 
 2005-03-29  Luc Teirlinck  <teirllm@auburn.edu>
 

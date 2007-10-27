@@ -1,3 +1,38 @@
+2007-10-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* trouble.texi (Quitting): Fix typo.
+
+2007-10-18  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Mode Line Mouse): Mention minor mode names.
+
+2007-10-17  Juri Linkov  <juri@jurta.org>
+
+	* text.texi (Fill Commands): Undocument fill-paragraph-or-region.
+	fill-paragraph operates on the active region in Transient Mark mode.
+	(Fill Prefix, Format Indentation): Replace fill-paragraph-or-region
+	with fill-paragraph.
+
+	* basic.texi (Arguments): Replace fill-paragraph-or-region with
+	fill-paragraph.
+
+	* fixit.texi (Spelling): ispell-word operates on the active region
+	in Transient Mark mode.
+
+2007-10-17  Aaron S. Hawley  <aaronh@garden.org>
+
+	* building.texi (Source Buffers):
+	* custom.texi (Init Non-ASCII):
+	* glossary.texi (Glossary): Use "key binding" consistently.
+
+2007-10-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar.texi (Diary): Fix directive.
+
+2007-10-16  Richard Stallman  <rms@gnu.org>
+
+	* calendar.texi (Diary): Clarify text about diary file example.
+
 2007-10-13  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* files.texi: Capitalize node names according to convention.
@@ -10,7 +45,7 @@
 
 	* emacs.texi:
 	* files.texi (Version Systems): Minor fixes to version-control material
-	suggseted by RMS and Robert J. Chassell.
+	suggested by RMS and Robert J. Chassell.
 
 2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -18,9 +53,9 @@
 	* vc-xtra.texi:
 	* vc1-xtra.texi:
 	* vc2-xtra.texi: Merge in changes for new VC with fileset-oriented
-	operations.  Change of terminology from 'version' to `revision'.
+	operations.  Change of terminology from `version' to `revision'.
 	Revise text for adequate description of VCSes with monotonic IDs.
-	* emacs.texi: Change of terminology from 'version' to `revision'.
+	* emacs.texi: Change of terminology from `version' to `revision'.
 
 2007-10-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -53,7 +88,7 @@
 2007-10-06  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* files.texi: Update the section on version control for 2007
-	conditions. None of these changes are new-VC-specific; that
+	conditions.  None of these changes are new-VC-specific; that
 	will come later.
 
 2007-09-15  Glenn Morris  <rgm@gnu.org>
@@ -173,7 +208,7 @@
 
 2007-06-24  Karl Berry  <karl@gnu.org>
 
-	* emacs.texi: new Back-Cover Text.
+	* emacs.texi: New Back-Cover Text.
 
 2007-06-07  Alan Mackenzie  <acm@muc.de>
 

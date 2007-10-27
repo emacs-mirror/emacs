@@ -6163,6 +6163,7 @@ then any auto-save counts as "recent".  */)
 
 /* Reading and completing file names */
 extern Lisp_Object Ffile_name_completion (), Ffile_name_all_completions ();
+extern Lisp_Object Qcompletion_ignore_case;
 
 /* In the string VAL, change each $ to $$ and return the result.  */
 
@@ -6468,7 +6469,7 @@ and `read-file-name-function'.  */)
     }
 
   count = SPECPDL_INDEX ();
-  specbind (intern ("completion-ignore-case"),
+  specbind (Qcompletion_ignore_case,
 	    read_file_name_completion_ignore_case ? Qt : Qnil);
   specbind (intern ("minibuffer-completing-file-name"), Qt);
   specbind (intern ("read-file-name-predicate"),

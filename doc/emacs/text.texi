@@ -486,11 +486,9 @@ The section on init files says how to arrange this permanently for yourself.
 
 @table @kbd
 @item M-q
-Fill current paragraph or active region (@code{fill-paragraph-or-region}).
+Fill current paragraph (@code{fill-paragraph}).
 @item C-x f
 Set the fill column (@code{set-fill-column}).
-@item M-x fill-paragraph
-Fill current paragraph (@code{fill-paragraph}).
 @item M-x fill-region
 Fill each paragraph in the region (@code{fill-region}).
 @item M-x fill-region-as-paragraph
@@ -499,39 +497,35 @@ Fill the region, considering it as one paragraph.
 Center a line.
 @end table
 
+@kindex M-q
 @findex fill-paragraph
-  To refill a paragraph, use @kbd{M-x fill-paragraph}.  This operates
-on the paragraph that point is inside, or the one after point if point
-is between paragraphs.  Refilling works by removing all the
-line-breaks, then inserting new ones where necessary.
+  To refill a paragraph, use the command @kbd{M-q}
+(@code{fill-paragraph}).  This operates on the paragraph that point is
+inside, or the one after point if point is between paragraphs.
+Refilling works by removing all the line-breaks, then inserting new ones
+where necessary.  When the mark is active in Transient Mark mode, this
+command operates on the active region like @code{fill-region}.
 
 @findex fill-region
   To refill many paragraphs, use @kbd{M-x fill-region}, which
 finds the paragraphs in the region and fills each of them.
 
-@kindex M-q
-@findex fill-paragraph-or-region
-  The command @kbd{M-q} (@code{fill-paragraph-or-region}), operates on
-the active region like @code{fill-region} when the mark is active in
-Transient Mark mode.  Otherwise, it operates on the current paragraph
-like @code{fill-paragraph}.
-
 @findex fill-region-as-paragraph
-  @kbd{M-q}, @code{fill-paragraph} and @code{fill-region} use the same
-criteria as @kbd{M-h} for finding paragraph boundaries (@pxref{Paragraphs}).
-For more control, you can use @kbd{M-x fill-region-as-paragraph},
-which refills everything between point and mark as a single paragraph.
-This command deletes any blank lines within the region, so separate
-blocks of text end up combined into one block.
+  @kbd{M-q} and @code{fill-region} use the same criteria as @kbd{M-h}
+for finding paragraph boundaries (@pxref{Paragraphs}).  For more
+control, you can use @kbd{M-x fill-region-as-paragraph}, which refills
+everything between point and mark as a single paragraph.  This command
+deletes any blank lines within the region, so separate blocks of text
+end up combined into one block.
 
 @cindex justification
   A numeric argument to @kbd{M-q} tells it to @dfn{justify} the text
 as well as filling it.  This means that extra spaces are inserted to
 make the right margin line up exactly at the fill column.  To remove
 the extra spaces, use @kbd{M-q} with no argument.  (Likewise for
-@code{fill-paragraph} and @code{fill-region}.)  Another way to control
-justification, and choose other styles of filling, is with the
-@code{justification} text property; see @ref{Format Justification}.
+@code{fill-region}.)  Another way to control justification, and choose
+other styles of filling, is with the @code{justification} text
+property; see @ref{Format Justification}.
 
 @kindex M-s @r{(Text mode)}
 @cindex centering
@@ -595,7 +589,7 @@ fill prefix automatically (@pxref{Adaptive Fill}).
 @item C-x .
 Set the fill prefix (@code{set-fill-prefix}).
 @item M-q
-Fill a paragraph using current fill prefix (@code{fill-paragraph-or-region}).
+Fill a paragraph using current fill prefix (@code{fill-paragraph}).
 @item M-x fill-individual-paragraphs
 Fill the region, considering each change of indentation as starting a
 new paragraph.
@@ -2256,7 +2250,7 @@ margin width either with a numeric argument or in the minibuffer.
 
   Sometimes, as a result of editing, the filling of a paragraph becomes
 messed up---parts of the paragraph may extend past the left or right
-margins.  When this happens, use @kbd{M-q} (@code{fill-paragraph-or-region}) to
+margins.  When this happens, use @kbd{M-q} (@code{fill-paragraph}) to
 refill the paragraph.
 
   The fill prefix, if any, works in addition to the specified paragraph

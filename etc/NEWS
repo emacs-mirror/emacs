@@ -83,6 +83,9 @@ recenter the visited source file.  Its value can be a number (for example,
 ** The mode-line displays a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
 
+** The mode-line displays a mode menu when mouse-1 is clicked on a minor mode,
+in the same way as it already did for major modes.
+
 ** The new command balance-windows-area balances windows both vertically
 and horizontally.
 
@@ -118,8 +121,9 @@ following arguments.
 +++
 ** M-q now fills the region if the region is active and
 `transient-mark-mode' is turned on.  Otherwise, it fills the current
-paragraph.  The new command bound to M-q is `fill-paragraph-or-region'.
+paragraph.
 
++++
 ** M-$ now checks spelling of the region if the region is active and
 `transient-mark-mode' is turned on.  Otherwise, it checks spelling of the
 word at point.
@@ -131,6 +135,10 @@ word at point.
 `save-buffers-kill-terminal'.
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
+
+** `interprogram-paste-function' can now return one string or a list
+of strings.  In the latter case, Emacs puts the second and following
+strings on the kill ring.
 
 ** Minibuffer changes:
 

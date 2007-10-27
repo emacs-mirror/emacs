@@ -595,8 +595,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
 
   valcontents = SYMBOL_VALUE (symbol);
 
-  if (BUFFER_LOCAL_VALUEP (valcontents)
-      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (BUFFER_LOCAL_VALUEP (valcontents))
     valcontents = swap_in_symval_forwarding (symbol, valcontents);
 
   return (EQ (valcontents, Qunbound) ? Qnil : Qt);
@@ -1009,8 +1008,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
     default:
     def:
       valcontents = SYMBOL_VALUE (symbol);
-      if (BUFFER_LOCAL_VALUEP (valcontents)
-	  || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+      if (BUFFER_LOCAL_VALUEP (valcontents))
 	XBUFFER_LOCAL_VALUE (valcontents)->realvalue = newval;
       else
 	SET_SYMBOL_VALUE (symbol, newval);
@@ -1027,8 +1025,7 @@ swap_in_global_binding (symbol)
   Lisp_Object valcontents, cdr;
 
   valcontents = SYMBOL_VALUE (symbol);
-  if (!BUFFER_LOCAL_VALUEP (valcontents)
-      && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (!BUFFER_LOCAL_VALUEP (valcontents))
     abort ();
   cdr = XBUFFER_LOCAL_VALUE (valcontents)->cdr;
 
@@ -1117,8 +1114,7 @@ find_symbol_value (symbol)
   CHECK_SYMBOL (symbol);
   valcontents = SYMBOL_VALUE (symbol);
 
-  if (BUFFER_LOCAL_VALUEP (valcontents)
-      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (BUFFER_LOCAL_VALUEP (valcontents))
     valcontents = swap_in_symval_forwarding (symbol, valcontents);
 
   if (MISCP (valcontents))
@@ -1236,8 +1232,7 @@ set_internal (symbol, newval, buf, bindflag)
 	  && !let_shadows_buffer_binding_p (symbol))
 	SET_PER_BUFFER_VALUE_P (buf, idx, 1);
     }
-  else if (BUFFER_LOCAL_VALUEP (valcontents)
-	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  else if (BUFFER_LOCAL_VALUEP (valcontents))
     {
       /* valcontents is a struct Lisp_Buffer_Local_Value.   */
       if (XSYMBOL (symbol)->indirect_variable)
@@ -1282,7 +1277,7 @@ set_internal (symbol, newval, buf, bindflag)
 		 indicating that we're seeing the default value.
 		 Likewise if the variable has been let-bound
 		 in the current buffer.  */
-	      if (bindflag || SOME_BUFFER_LOCAL_VALUEP (valcontents)
+	      if (bindflag || !XBUFFER_LOCAL_VALUE (valcontents)->local_if_set
 		  || let_shadows_buffer_binding_p (symbol))
 		{
 		  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
@@ -1310,8 +1305,7 @@ set_internal (symbol, newval, buf, bindflag)
 	    }
 
 	  /* Record which binding is now loaded.  */
-	  XSETCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr,
-		   tem1);
+	  XSETCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr, tem1);
 
 	  /* Set `buffer' and `frame' slots for the binding now loaded.  */
 	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, buf);
@@ -1330,8 +1324,7 @@ set_internal (symbol, newval, buf, bindflag)
   /* If we just set a variable whose current binding is frame-local,
      store the new value in the frame parameter too.  */
 
-  if (BUFFER_LOCAL_VALUEP (valcontents)
-      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (BUFFER_LOCAL_VALUEP (valcontents))
     {
       /* What binding is loaded right now?  */
       current_alist_element
@@ -1373,8 +1366,7 @@ default_value (symbol)
     }
 
   /* Handle user-created local variables.  */
-  if (BUFFER_LOCAL_VALUEP (valcontents)
-      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (BUFFER_LOCAL_VALUEP (valcontents))
     {
       /* If var is set up for a buffer that lacks a local value for it,
 	 the current value is nominally the default value.
@@ -1458,8 +1450,7 @@ for this variable.  */)
       return value;
     }
 
-  if (!BUFFER_LOCAL_VALUEP (valcontents)
-      && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (!BUFFER_LOCAL_VALUEP (valcontents))
     return Fset (symbol, value);
 
   /* Store new value into the DEFAULT-VALUE slot.  */
@@ -1544,27 +1535,28 @@ The function `default-value' gets the default value and `set-default' sets it.  
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
-  if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
+  if (BUFFER_OBJFWDP (valcontents))
     return variable;
-  if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  else if (BUFFER_LOCAL_VALUEP (valcontents))
+    newval = valcontents;
+  else
     {
-      XMISCTYPE (SYMBOL_VALUE (variable)) = Lisp_Misc_Buffer_Local_Value;
-      return variable;
+      if (EQ (valcontents, Qunbound))
+	SET_SYMBOL_VALUE (variable, Qnil);
+      tem = Fcons (Qnil, Fsymbol_value (variable));
+      XSETCAR (tem, tem);
+      newval = allocate_misc ();
+      XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
+      XBUFFER_LOCAL_VALUE (newval)->realvalue = SYMBOL_VALUE (variable);
+      XBUFFER_LOCAL_VALUE (newval)->buffer = Fcurrent_buffer ();
+      XBUFFER_LOCAL_VALUE (newval)->frame = Qnil;
+      XBUFFER_LOCAL_VALUE (newval)->found_for_buffer = 0;
+      XBUFFER_LOCAL_VALUE (newval)->found_for_frame = 0;
+      XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
+      XBUFFER_LOCAL_VALUE (newval)->cdr = tem;
+      SET_SYMBOL_VALUE (variable, newval);
     }
-  if (EQ (valcontents, Qunbound))
-    SET_SYMBOL_VALUE (variable, Qnil);
-  tem = Fcons (Qnil, Fsymbol_value (variable));
-  XSETCAR (tem, tem);
-  newval = allocate_misc ();
-  XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
-  XBUFFER_LOCAL_VALUE (newval)->realvalue = SYMBOL_VALUE (variable);
-  XBUFFER_LOCAL_VALUE (newval)->buffer = Fcurrent_buffer ();
-  XBUFFER_LOCAL_VALUE (newval)->frame = Qnil;
-  XBUFFER_LOCAL_VALUE (newval)->found_for_buffer = 0;
-  XBUFFER_LOCAL_VALUE (newval)->found_for_frame = 0;
-  XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
-  XBUFFER_LOCAL_VALUE (newval)->cdr = tem;
-  SET_SYMBOL_VALUE (variable, newval);
+  XBUFFER_LOCAL_VALUE (newval)->local_if_set = 1;
   return variable;
 }
 
@@ -1600,7 +1592,9 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
     error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
-  if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
+  if ((BUFFER_LOCAL_VALUEP (valcontents)
+       && XBUFFER_LOCAL_VALUE (valcontents)->local_if_set)
+      || BUFFER_OBJFWDP (valcontents))
     {
       tem = Fboundp (variable);
 
@@ -1610,16 +1604,17 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
       return variable;
     }
   /* Make sure symbol is set up to hold per-buffer values.  */
-  if (!SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (!BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object newval;
       tem = Fcons (Qnil, do_symval_forwarding (valcontents));
       XSETCAR (tem, tem);
       newval = allocate_misc ();
-      XMISCTYPE (newval) = Lisp_Misc_Some_Buffer_Local_Value;
+      XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
       XBUFFER_LOCAL_VALUE (newval)->realvalue = SYMBOL_VALUE (variable);
       XBUFFER_LOCAL_VALUE (newval)->buffer = Qnil;
       XBUFFER_LOCAL_VALUE (newval)->frame = Qnil;
+      XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
       XBUFFER_LOCAL_VALUE (newval)->found_for_buffer = 0;
       XBUFFER_LOCAL_VALUE (newval)->found_for_frame = 0;
       XBUFFER_LOCAL_VALUE (newval)->check_frame = 0;
@@ -1692,8 +1687,7 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
       return variable;
     }
 
-  if (!BUFFER_LOCAL_VALUEP (valcontents)
-      && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (!BUFFER_LOCAL_VALUEP (valcontents))
     return variable;
 
   /* Get rid of this buffer's alist element, if any.  */
@@ -1754,8 +1748,7 @@ Buffer-local bindings take precedence over frame-local bindings.  */)
       || BUFFER_OBJFWDP (valcontents))
     error ("Symbol %s may not be frame-local", SDATA (SYMBOL_NAME (variable)));
 
-  if (BUFFER_LOCAL_VALUEP (valcontents)
-      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (BUFFER_LOCAL_VALUEP (valcontents))
     {
       XBUFFER_LOCAL_VALUE (valcontents)->check_frame = 1;
       return variable;
@@ -1766,10 +1759,11 @@ Buffer-local bindings take precedence over frame-local bindings.  */)
   tem = Fcons (Qnil, Fsymbol_value (variable));
   XSETCAR (tem, tem);
   newval = allocate_misc ();
-  XMISCTYPE (newval) = Lisp_Misc_Some_Buffer_Local_Value;
+  XMISCTYPE (newval) = Lisp_Misc_Buffer_Local_Value;
   XBUFFER_LOCAL_VALUE (newval)->realvalue = SYMBOL_VALUE (variable);
   XBUFFER_LOCAL_VALUE (newval)->buffer = Qnil;
   XBUFFER_LOCAL_VALUE (newval)->frame = Qnil;
+  XBUFFER_LOCAL_VALUE (newval)->local_if_set = 0;
   XBUFFER_LOCAL_VALUE (newval)->found_for_buffer = 0;
   XBUFFER_LOCAL_VALUE (newval)->found_for_frame = 0;
   XBUFFER_LOCAL_VALUE (newval)->check_frame = 1;
@@ -1800,8 +1794,7 @@ BUFFER defaults to the current buffer.  */)
   variable = indirect_variable (variable);
 
   valcontents = SYMBOL_VALUE (variable);
-  if (BUFFER_LOCAL_VALUEP (valcontents)
-      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  if (BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object tail, elt;
 
@@ -1849,15 +1842,14 @@ BUFFER defaults to the current buffer.  */)
 
   valcontents = SYMBOL_VALUE (variable);
 
-  /* This means that make-variable-buffer-local was done.  */
-  if (BUFFER_LOCAL_VALUEP (valcontents))
-    return Qt;
-  /* All these slots become local if they are set.  */
   if (BUFFER_OBJFWDP (valcontents))
+    /* All these slots become local if they are set.  */
     return Qt;
-  if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
+  else if (BUFFER_LOCAL_VALUEP (valcontents))
     {
       Lisp_Object tail, elt;
+      if (XBUFFER_LOCAL_VALUE (valcontents)->local_if_set)
+	return Qt;
       for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	{
 	  elt = XCAR (tail);
@@ -1888,14 +1880,13 @@ If the current binding is global (the default), the value is nil.  */)
   valcontents = XSYMBOL (variable)->value;
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
-      || SOME_BUFFER_LOCAL_VALUEP (valcontents)
       || BUFFER_OBJFWDP (valcontents))
     {
       /* For a local variable, record both the symbol and which
 	 buffer's or frame's value we are saving.  */
       if (!NILP (Flocal_variable_p (variable, Qnil)))
 	return Fcurrent_buffer ();
-      else if (!BUFFER_OBJFWDP (valcontents)
+      else if (BUFFER_LOCAL_VALUEP (valcontents)
 	       && XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
 	return XBUFFER_LOCAL_VALUE (valcontents)->frame;
     }

@@ -45,9 +45,6 @@
 
 (defvar xterm-mouse-debug-buffer nil)
 
-;; XXX Perhaps this should be terminal-local instead. --lorentey
-(define-key function-key-map "\e[M" 'xterm-mouse-translate)
-
 (defvar xterm-mouse-last)
 
 ;; Mouse events symbols must have an 'event-kind property with
@@ -78,7 +75,7 @@
 	    (error "Unexpected escape sequence from XTerm")))
 
 	(let* ((click (if is-click down (xterm-mouse-event)))
-	       (click-command (nth 0 click))
+	       ;; (click-command (nth 0 click))
 	       (click-data (nth 1 click))
 	       (click-where (nth 1 click-data)))
 	  (if (memq down-binding '(nil ignore))
@@ -209,14 +206,15 @@ down the SHIFT key while pressing the mouse button."
       ;; Turn it on
       (progn
 	;; Frame creation and deletion.
-	(add-hook 'after-make-frame-functions 
-		  'turn-on-xterm-mouse-tracking-on-terminal)
+        (add-hook 'terminal-init-xterm-hook
+                  'turn-on-xterm-mouse-tracking-on-terminal)
+
 	(add-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
 	
 	;; Restore normal mouse behaviour outside Emacs.
         (add-hook 'suspend-tty-functions
 		  'turn-off-xterm-mouse-tracking-on-terminal)
-	(add-hook 'resume-tty-functions 
+	(add-hook 'resume-tty-functions
 		  'turn-on-xterm-mouse-tracking-on-terminal)
 	(add-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
 	(add-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
@@ -224,8 +222,6 @@ down the SHIFT key while pressing the mouse button."
 	(setq mouse-position-function #'xterm-mouse-position-function)
 	(turn-on-xterm-mouse-tracking))
     ;; Turn it off
-    (remove-hook 'after-make-frame-functions 
-		 'turn-on-xterm-mouse-tracking-on-terminal)
     (remove-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
     (remove-hook 'suspend-tty-functions 
 		 'turn-off-xterm-mouse-tracking-on-terminal)
@@ -239,28 +235,35 @@ down the SHIFT key while pressing the mouse button."
 
 (defun turn-on-xterm-mouse-tracking ()
   "Enable Emacs mouse tracking in xterm."
-  (dolist (f (frame-list))
-    (when (eq t (frame-live-p f))
-      (with-selected-frame f
-	(when xterm-mouse-mode
-	  (send-string-to-terminal "\e[?1000h"))))))
+  (dolist (terminal (delete-dups (mapcar 'frame-terminal (frame-list))))
+    (turn-on-xterm-mouse-tracking-on-terminal terminal)))
 
 (defun turn-off-xterm-mouse-tracking (&optional force)
   "Disable Emacs mouse tracking in xterm."
-  (dolist (f (frame-list))
-    (when (eq t (frame-live-p f))
-      (with-selected-frame f
-	(when (or force xterm-mouse-mode)
-	  (send-string-to-terminal "\e[?1000l"))))))
+  (dolist (terminal (delete-dups (mapcar 'frame-terminal (frame-list))))
+    (turn-off-xterm-mouse-tracking-on-terminal terminal)))
 
-(defun turn-on-xterm-mouse-tracking-on-terminal (terminal)
+(defun turn-on-xterm-mouse-tracking-on-terminal (&optional terminal)
   "Enable xterm mouse tracking on TERMINAL."
   (when (and xterm-mouse-mode (eq t (terminal-live-p terminal)))
+    (unless (terminal-parameter terminal 'xterm-mouse-mode)
+      ;; Simulate selecting a terminal by selecting one of its frames ;-(
+      (with-selected-frame (car (frames-on-display-list terminal))
+        (define-key input-decode-map "\e[M" 'xterm-mouse-translate))
+      (set-terminal-parameter terminal 'xterm-mouse-mode t))
     (send-string-to-terminal "\e[?1000h" terminal)))
 
 (defun turn-off-xterm-mouse-tracking-on-terminal (terminal)
   "Disable xterm mouse tracking on TERMINAL."
-  (when (and xterm-mouse-mode (eq t (terminal-live-p terminal)))
+  ;; Only send the disable command to those terminals to which we've already
+  ;; sent the enable command.
+  (when (and (terminal-parameter terminal 'xterm-mouse-mode)
+             (eq t (terminal-live-p terminal)))
+    ;; We could remove the key-binding and unset the `xterm-mouse-mode'
+    ;; terminal parameter, but it seems less harmful to send this escape
+    ;; command too many times (or to catch an unintended key sequence), than
+    ;; to send it too few times (or to fail to let xterm-mouse events
+    ;; pass by untranslated).
     (send-string-to-terminal "\e[?1000l" terminal)))
 
 (defun xterm-mouse-handle-delete-frame (frame)

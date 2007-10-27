@@ -361,8 +361,6 @@ The value is never nil.  */)
 
   b = (struct buffer *) allocate_buffer ();
 
-  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
-
   /* An ordinary buffer uses its own struct buffer_text.  */
   b->text = &b->own_text;
   b->base_buffer = 0;
@@ -416,10 +414,7 @@ The value is never nil.  */)
   STRING_SET_INTERVALS (name, NULL_INTERVAL);
   b->name = name;
 
-  if (SREF (name, 0) != ' ')
-    b->undo_list = Qnil;
-  else
-    b->undo_list = Qt;
+  b->undo_list = (SREF (name, 0) != ' ') ? Qnil : Qt;
 
   reset_buffer (b);
   reset_buffer_local_variables (b, 1);
@@ -429,7 +424,6 @@ The value is never nil.  */)
   b->name = name;
 
   /* Put this in the alist of all live buffers.  */
-  XSETPVECTYPE (b, PVEC_BUFFER);
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
@@ -567,13 +561,10 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
     error ("Empty string for buffer name is not allowed");
 
   b = (struct buffer *) allocate_buffer ();
-  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
-  XSETPVECTYPE (b, PVEC_BUFFER);
 
-  if (XBUFFER (base_buffer)->base_buffer)
-    b->base_buffer = XBUFFER (base_buffer)->base_buffer;
-  else
-    b->base_buffer = XBUFFER (base_buffer);
+  b->base_buffer = (XBUFFER (base_buffer)->base_buffer
+		    ? XBUFFER (base_buffer)->base_buffer
+		    : XBUFFER (base_buffer));
 
   /* Use the base buffer's text object.  */
   b->text = b->base_buffer->text;
@@ -1918,8 +1909,7 @@ set_buffer_internal_1 (b)
   for (tail = b->local_var_alist; CONSP (tail); tail = XCDR (tail))
     {
       valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
-      if ((BUFFER_LOCAL_VALUEP (valcontents)
-	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+      if ((BUFFER_LOCAL_VALUEP (valcontents))
 	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	/* Just reference the variable
@@ -1933,8 +1923,7 @@ set_buffer_internal_1 (b)
     for (tail = old_buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
       {
 	valcontents = SYMBOL_VALUE (XCAR (XCAR (tail)));
-	if ((BUFFER_LOCAL_VALUEP (valcontents)
-	     || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+	if ((BUFFER_LOCAL_VALUEP (valcontents))
 	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	  /* Just reference the variable
@@ -2493,7 +2482,7 @@ the normal hook `change-major-mode-hook'.  */)
   /* Any which are supposed to be permanent,
      make local again, with the same values they had.  */
 
-  for (alist = oalist; !NILP (alist); alist = XCDR (alist))
+  for (alist = oalist; CONSP (alist); alist = XCDR (alist))
     {
       sym = XCAR (XCAR (alist));
       tem = Fget (sym, Qpermanent_local);
@@ -2523,7 +2512,7 @@ swap_out_buffer_local_variables (b)
   XSETBUFFER (buffer, b);
   oalist = b->local_var_alist;
 
-  for (alist = oalist; !NILP (alist); alist = XCDR (alist))
+  for (alist = oalist; CONSP (alist); alist = XCDR (alist))
     {
       sym = XCAR (XCAR (alist));
 

@@ -1682,14 +1682,14 @@ Otherwise, for buffers inheriting from dired-mode, call `toggle-read-only'."
   "Move down lines then position at filename.
 Optional prefix ARG says how many lines to move; default is one line."
   (interactive "p")
-  (next-line arg)
+  (forward-line arg)
   (dired-move-to-filename))
 
 (defun dired-previous-line (arg)
   "Move up lines then position at filename.
 Optional prefix ARG says how many lines to move; default is one line."
   (interactive "p")
-  (previous-line arg)
+  (forward-line (- arg))
   (dired-move-to-filename))
 
 (defun dired-next-dirline (arg &optional opoint)

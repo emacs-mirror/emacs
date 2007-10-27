@@ -1,3 +1,7 @@
+2007-10-18  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (install): Install COPYING in top-level and bin dirs.
+
 2007-09-27  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs (COMCTL32): New system library.

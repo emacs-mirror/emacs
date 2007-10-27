@@ -1153,6 +1153,8 @@ allocate_buffer ()
   struct buffer *b
     = (struct buffer *) lisp_malloc (sizeof (struct buffer),
 				     MEM_TYPE_BUFFER);
+  b->size = sizeof (struct buffer) / sizeof (EMACS_INT);
+  XSETPVECTYPE (b, PVEC_BUFFER);
   return b;
 }
 
@@ -3413,7 +3415,7 @@ allocate_misc ()
   --total_free_markers;
   consing_since_gc += sizeof (union Lisp_Misc);
   misc_objects_consed++;
-  XMARKER (val)->gcmarkbit = 0;
+  XMISCANY (val)->gcmarkbit = 0;
   return val;
 }
 
@@ -3423,7 +3425,7 @@ void
 free_misc (misc)
      Lisp_Object misc;
 {
-  XMISC (misc)->u_marker.type = Lisp_Misc_Free;
+  XMISCTYPE (misc) = Lisp_Misc_Free;
   XMISC (misc)->u_free.chain = marker_free_list;
   marker_free_list = XMISC (misc);
 
@@ -4139,7 +4141,7 @@ live_misc_p (m, p)
 	      && offset < (MARKER_BLOCK_SIZE * sizeof b->markers[0])
 	      && (b != marker_block
 		  || offset / sizeof b->markers[0] < marker_block_index)
-	      && ((union Lisp_Misc *) p)->u_marker.type != Lisp_Misc_Free);
+	      && ((union Lisp_Misc *) p)->u_any.type != Lisp_Misc_Free);
     }
   else
     return 0;
@@ -4270,7 +4272,7 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Misc:
-	  mark_p = (live_misc_p (m, po) && !XMARKER (obj)->gcmarkbit);
+	  mark_p = (live_misc_p (m, po) && !XMISCANY (obj)->gcmarkbit);
 	  break;
 
 	case Lisp_Int:
@@ -5718,14 +5720,13 @@ mark_object (arg)
 
     case Lisp_Misc:
       CHECK_ALLOCATED_AND_LIVE (live_misc_p);
-      if (XMARKER (obj)->gcmarkbit)
+      if (XMISCANY (obj)->gcmarkbit)
 	break;
-      XMARKER (obj)->gcmarkbit = 1;
+      XMISCANY (obj)->gcmarkbit = 1;
 
       switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Buffer_Local_Value:
-	case Lisp_Misc_Some_Buffer_Local_Value:
 	  {
 	    register struct Lisp_Buffer_Local_Value *ptr
 	      = XBUFFER_LOCAL_VALUE (obj);
@@ -5911,7 +5912,7 @@ survives_gc_p (obj)
       break;
 
     case Lisp_Misc:
-      survives_p = XMARKER (obj)->gcmarkbit;
+      survives_p = XMISCANY (obj)->gcmarkbit;
       break;
 
     case Lisp_String:
@@ -6208,9 +6209,9 @@ gc_sweep ()
 
 	for (i = 0; i < lim; i++)
 	  {
-	    if (!mblk->markers[i].u_marker.gcmarkbit)
+	    if (!mblk->markers[i].u_any.gcmarkbit)
 	      {
-		if (mblk->markers[i].u_marker.type == Lisp_Misc_Marker)
+		if (mblk->markers[i].u_any.type == Lisp_Misc_Marker)
 		  unchain_marker (&mblk->markers[i].u_marker);
 		/* Set the type of the freed object to Lisp_Misc_Free.
 		   We could leave the type alone, since nobody checks it,
@@ -6223,7 +6224,7 @@ gc_sweep ()
 	    else
 	      {
 		num_used++;
-		mblk->markers[i].u_marker.gcmarkbit = 0;
+		mblk->markers[i].u_any.gcmarkbit = 0;
 	      }
 	  }
 	lim = MARKER_BLOCK_SIZE;
@@ -6361,7 +6362,7 @@ die (msg, file, line)
      const char *file;
      int line;
 {
-  fprintf (stderr, "\r\nEmacs fatal error: %s:%d: %s\r\n",
+  fprintf (stderr, "\r\n%s:%d: Emacs fatal error: %s\r\n",
 	   file, line, msg);
   abort ();
 }

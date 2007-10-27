@@ -324,7 +324,7 @@ need to quote the space with a C-q.  The underlying changes in the
 keymaps that are active in the minibuffer are described below under
 "New keymaps for typing file names".
 
-If you want the old behavior back, put these two key bindings to your
+If you want the old behavior back, add these two key bindings to your
 ~/.emacs init file:
 
   (define-key minibuffer-local-filename-completion-map

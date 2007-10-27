@@ -214,7 +214,6 @@ enum Lisp_Misc_Type
     Lisp_Misc_Objfwd,
     Lisp_Misc_Buffer_Objfwd,
     Lisp_Misc_Buffer_Local_Value,
-    Lisp_Misc_Some_Buffer_Local_Value,
     Lisp_Misc_Overlay,
     Lisp_Misc_Kboard_Objfwd,
     Lisp_Misc_Save_Value,
@@ -522,16 +521,20 @@ extern size_t pure_size;
 /* Misc types.  */
 
 #define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
-#define XMISCTYPE(a)   (XMARKER (a)->type)
-#define XMARKER(a) (&(XMISC(a)->u_marker))
-#define XINTFWD(a) (&(XMISC(a)->u_intfwd))
-#define XBOOLFWD(a) (&(XMISC(a)->u_boolfwd))
-#define XOBJFWD(a) (&(XMISC(a)->u_objfwd))
-#define XBUFFER_OBJFWD(a) (&(XMISC(a)->u_buffer_objfwd))
-#define XBUFFER_LOCAL_VALUE(a) (&(XMISC(a)->u_buffer_local_value))
-#define XOVERLAY(a) (&(XMISC(a)->u_overlay))
-#define XKBOARD_OBJFWD(a) (&(XMISC(a)->u_kboard_objfwd))
-#define XSAVE_VALUE(a) (&(XMISC(a)->u_save_value))
+#define XMISCANY(a)	(eassert (MISCP (a)), &(XMISC(a)->u_any))
+#define XMISCTYPE(a)   (XMISCANY (a)->type)
+#define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC(a)->u_marker))
+#define XINTFWD(a)	(eassert (INTFWDP (a)), &(XMISC(a)->u_intfwd))
+#define XBOOLFWD(a)	(eassert (BOOLFWDP (a)), &(XMISC(a)->u_boolfwd))
+#define XOBJFWD(a)	(eassert (OBJFWDP (a)), &(XMISC(a)->u_objfwd))
+#define XOVERLAY(a)	(eassert (OVERLAYP (a)), &(XMISC(a)->u_overlay))
+#define XSAVE_VALUE(a)	(eassert (SAVE_VALUEP (a)), &(XMISC(a)->u_save_value))
+#define XBUFFER_OBJFWD(a) \
+  (eassert (BUFFER_OBJFWDP (a)), &(XMISC(a)->u_buffer_objfwd))
+#define XBUFFER_LOCAL_VALUE(a) \
+  (eassert (BUFFER_LOCAL_VALUEP (a)), &(XMISC(a)->u_buffer_local_value))
+#define XKBOARD_OBJFWD(a) \
+  (eassert (KBOARD_OBJFWDP (a)), &(XMISC(a)->u_kboard_objfwd))
 
 /* Pseudovector types.  */
 
@@ -1131,6 +1134,13 @@ struct Lisp_Hash_Table
 
 /* These structures are used for various misc types.  */
 
+struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
+{
+  int type : 16;		/* = Lisp_Misc_Marker */
+  unsigned gcmarkbit : 1;
+  int spacer : 15;
+};
+
 struct Lisp_Marker
 {
   int type : 16;		/* = Lisp_Misc_Marker */
@@ -1231,19 +1241,19 @@ struct Lisp_Buffer_Objfwd
    binding into `realvalue' (or through it).  Also update
    LOADED-BINDING to point to the newly loaded binding.
 
-   Lisp_Misc_Buffer_Local_Value and Lisp_Misc_Some_Buffer_Local_Value
-   both use this kind of structure.  With the former, merely setting
-   the variable creates a local binding for the current buffer.  With
-   the latter, setting the variable does not do that; only
-   make-local-variable does that.  */
+   `local_if_set' indicates that merely setting the variable creates a local
+   binding for the current buffer.  Otherwise the latter, setting the
+   variable does not do that; only make-local-variable does that.  */
 
 struct Lisp_Buffer_Local_Value
   {
-    int type : 16;      /* = Lisp_Misc_Buffer_Local_Value
-			   or Lisp_Misc_Some_Buffer_Local_Value */
+    int type : 16;      /* = Lisp_Misc_Buffer_Local_Value  */
     unsigned gcmarkbit : 1;
-    int spacer : 12;
+    int spacer : 11;
 
+    /* 1 means that merely setting the variable creates a local
+       binding for the current buffer */
+    unsigned int local_if_set : 1;
     /* 1 means this variable is allowed to have frame-local bindings,
        so check for them when looking for the proper binding.  */
     unsigned int check_frame : 1;
@@ -1333,7 +1343,8 @@ struct Lisp_Free
 
 union Lisp_Misc
   {
-    struct Lisp_Free u_free;
+    struct Lisp_Misc_Any u_any;	   /* Supertype of all Misc types.  */
+    struct Lisp_Free u_free;	   /* Includes padding to force alignment.  */
     struct Lisp_Marker u_marker;
     struct Lisp_Intfwd u_intfwd;
     struct Lisp_Boolfwd u_boolfwd;
@@ -1512,10 +1523,9 @@ typedef unsigned char UCHAR;
 #define GC_BUFFER_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Objfwd)
 #define BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Local_Value)
 #define GC_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Local_Value)
-#define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
-#define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
 #define KBOARD_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
 #define GC_KBOARD_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
+#define SAVE_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Save_Value)
 
 
 /* True if object X is a pseudovector whose code is CODE.  */

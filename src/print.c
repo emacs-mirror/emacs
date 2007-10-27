@@ -2145,10 +2145,8 @@ print_object (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Buffer_Local_Value:
 	  strout ("#<buffer_local_value ", -1, -1, printcharfun, 0);
-	  goto do_buffer_local;
-	case Lisp_Misc_Some_Buffer_Local_Value:
-	  strout ("#<some_buffer_local_value ", -1, -1, printcharfun, 0);
-	do_buffer_local:
+	  if (XBUFFER_LOCAL_VALUE (obj)->local_if_set)
+	    strout ("[local-if-set] ", -1, -1, printcharfun, 0);
 	  strout ("[realvalue] ", -1, -1, printcharfun, 0);
 	  print_object (XBUFFER_LOCAL_VALUE (obj)->realvalue,
 			printcharfun, escapeflag);
