@@ -352,11 +352,11 @@ nil if it is not visible in the current calendar window."
              (list (calendar-gregorian-from-absolute (+ abs-r-h 20))
                    "Hoshanah Rabbah")))
             (output-list
-             (filter-visible-calendar-holidays mandatory)))
+             (holiday-filter-visible-calendar mandatory)))
       (if all-hebrew-calendar-holidays
           (setq output-list
                 (append
-                 (filter-visible-calendar-holidays optional)
+                 (holiday-filter-visible-calendar optional)
                  output-list)))
       output-list)))
 
@@ -372,7 +372,7 @@ nil if it is not visible in the current calendar window."
                           (calendar-absolute-from-gregorian
                            (list m (calendar-last-day-of-month m y) y)))))
                  (abs-h (calendar-absolute-from-hebrew (list 9 25 h-y))))
-            (filter-visible-calendar-holidays
+            (holiday-filter-visible-calendar
              (list
               (list (calendar-gregorian-from-absolute (1- abs-h))
                     "Erev Hanukkah")
@@ -469,11 +469,11 @@ nil if it is not visible in the current calendar window."
              (list (calendar-gregorian-from-absolute (+ abs-p 51))
                    "Shavuot (second day)")))
            (output-list
-             (filter-visible-calendar-holidays mandatory)))
+             (holiday-filter-visible-calendar mandatory)))
       (if all-hebrew-calendar-holidays
           (setq output-list
                 (append
-                 (filter-visible-calendar-holidays optional)
+                 (holiday-filter-visible-calendar optional)
                  output-list)))
       output-list)))
 
@@ -485,7 +485,7 @@ nil if it is not visible in the current calendar window."
     (let* ((abs-t-a (calendar-absolute-from-hebrew
                       (list 5 9 (+ displayed-year 3760)))))
 
-      (filter-visible-calendar-holidays
+      (holiday-filter-visible-calendar
        (list
         (list (calendar-gregorian-from-absolute
                (if (= (% abs-t-a 7) 6) (- abs-t-a 20) (- abs-t-a 21)))

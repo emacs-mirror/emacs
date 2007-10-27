@@ -1260,9 +1260,9 @@ Arguments become related buffers.  This function should normally be used in
 the `Local variables' section of a file."
   (setq viper-related-files-and-buffers-ring
 	(make-ring (1+ (length other-files-or-buffers))))
-  (mapcar '(lambda (elt)
-	     (viper-ring-insert viper-related-files-and-buffers-ring elt))
-	  other-files-or-buffers)
+  (mapc '(lambda (elt)
+	  (viper-ring-insert viper-related-files-and-buffers-ring elt))
+	other-files-or-buffers)
   (viper-ring-insert viper-related-files-and-buffers-ring (buffer-name))
   )
 

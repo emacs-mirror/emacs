@@ -130,11 +130,11 @@ Boston, MA 02110-1301, USA.  */
 #include "charset.h"
 #include "coding.h"
 #include "process.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "termopts.h"
 #include "commands.h"
 #include "keyboard.h"
-#include "frame.h"
 #include "blockinput.h"
 #include "dispextern.h"
 #include "composite.h"
@@ -2721,7 +2721,9 @@ host, and only clients connecting to that address will be accepted.
 
 :service SERVICE -- SERVICE is name of the service desired, or an
 integer specifying a port number to connect to.  If SERVICE is t,
-a random port number is selected for the server.
+a random port number is selected for the server.  (If Emacs was
+compiled with getaddrinfo, a port number can also be specified as a
+string, e.g. "80", as well as an integer.  This is not portable.)
 
 :type TYPE -- TYPE is the type of connection.  The default (nil) is a
 stream type connection, `datagram' creates a datagram type connection.
@@ -3157,6 +3159,10 @@ usage: (make-network-process &rest ARGS)  */)
 
  open_socket:
 
+#ifdef __ultrix__
+  /* Previously this was compiled unconditionally, but that seems
+     unnecessary on modern systems, and `unrequest_sigio' was a noop
+     under X anyway. --lorentey */
   /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
      when connect is interrupted.  So let's not let it get interrupted.
      Note we do not turn off polling, because polling is only used
@@ -3173,6 +3179,7 @@ usage: (make-network-process &rest ARGS)  */)
       record_unwind_protect (unwind_request_sigio, Qnil);
       unrequest_sigio ();
     }
+#endif
 
   /* Do this in case we never enter the for-loop below.  */
   count1 = SPECPDL_INDEX ();
@@ -6956,20 +6963,12 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
-/* The first time this is called, assume keyboard input comes from DESC
-   instead of from where we used to expect it.
-   Subsequent calls mean assume input keyboard can come from DESC
-   in addition to other places.  */
-
-static int add_keyboard_wait_descriptor_called_flag;
+/* Add DESC to the set of keyboard input descriptors.  */
 
 void
 add_keyboard_wait_descriptor (desc)
      int desc;
 {
-  if (! add_keyboard_wait_descriptor_called_flag)
-    FD_CLR (0, &input_wait_mask);
-  add_keyboard_wait_descriptor_called_flag = 1;
   FD_SET (desc, &input_wait_mask);
   FD_SET (desc, &non_process_wait_mask);
   if (desc > max_keyboard_desc)
@@ -7075,7 +7074,12 @@ init_process ()
   process_output_skip = 0;
 #endif
 
+  /* Don't do this, it caused infinite select loops.  The display
+     method should call add_keyboard_wait_descriptor on stdin if it
+     needs that.  */
+#if 0
   FD_SET (0, &input_wait_mask);
+#endif
 
   Vprocess_alist = Qnil;
 #ifdef SIGCHLD

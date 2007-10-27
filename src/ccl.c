@@ -2348,16 +2348,8 @@ Return index number of the registered CCL program.  */)
     }
 
   if (idx == len)
-    {
-      /* Extend the table.  */
-      Lisp_Object new_table;
-      int j;
-
-      new_table = Fmake_vector (make_number (len * 2), Qnil);
-      for (j = 0; j < len; j++)
-	ASET (new_table, j, AREF (Vccl_program_table, j));
-      Vccl_program_table = new_table;
-    }
+    /* Extend the table.  */
+    Vccl_program_table = larger_vector (Vccl_program_table, len * 2, Qnil);
 
   {
     Lisp_Object elt;
@@ -2416,15 +2408,8 @@ Return index number of the registered map.  */)
     }
 
   if (i == len)
-    {
-      Lisp_Object new_vector = Fmake_vector (make_number (len * 2), Qnil);
-      int j;
-
-      for (j = 0; j < len; j++)
-	AREF (new_vector, j)
-	  = AREF (Vcode_conversion_map_vector, j);
-      Vcode_conversion_map_vector = new_vector;
-    }
+    Vcode_conversion_map_vector = larger_vector (Vcode_conversion_map_vector,
+						 len * 2, Qnil);
 
   index = make_number (i);
   Fput (symbol, Qcode_conversion_map, map);

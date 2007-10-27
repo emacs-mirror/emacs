@@ -2231,15 +2231,19 @@ Patched to remove the most recent completion."
 
 (defun completion-separator-self-insert-command (arg)
   (interactive "p")
-  (use-completion-before-separator)
-  (self-insert-command arg))
+  (if (command-remapping 'self-insert-command)
+      (funcall (command-remapping 'self-insert-command) arg)
+    (use-completion-before-separator)
+    (self-insert-command arg)))
 
 (defun completion-separator-self-insert-autofilling (arg)
   (interactive "p")
-  (use-completion-before-separator)
-  (self-insert-command arg)
-  (and auto-fill-function
-       (funcall auto-fill-function)))
+  (if (command-remapping 'self-insert-command)
+      (funcall (command-remapping 'self-insert-command) arg)
+    (use-completion-before-separator)
+    (self-insert-command arg)
+    (and auto-fill-function
+	 (funcall auto-fill-function))))
 
 ;;-----------------------------------------------
 ;; Wrapping Macro

@@ -134,7 +134,7 @@ cvs-update: recompile autoloads finder-data custom-deps
 # Update the AUTHORS file.
 
 update-authors:
-	$(emacs) -l authors -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
+	$(emacs) -l authors -f batch-update-authors $(srcdir)/etc/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \

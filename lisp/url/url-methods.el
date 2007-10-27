@@ -89,19 +89,19 @@
      ;; First check if its something like hostname:port
      ((string-match "^\\([^:]+\\):\\([0-9]+\\)$" env-proxy)
       (setq urlobj (url-generic-parse-url nil)) ; Get a blank object
-      (url-set-type urlobj "http")
-      (url-set-host urlobj (match-string 1 env-proxy))
-      (url-set-port urlobj (string-to-number (match-string 2 env-proxy))))
+      (setf (url-type urlobj) "http")
+      (setf (url-host urlobj) (match-string 1 env-proxy))
+      (setf (url-port urlobj) (string-to-number (match-string 2 env-proxy))))
      ;; Then check if its a fully specified URL
      ((string-match url-nonrelative-link env-proxy)
       (setq urlobj (url-generic-parse-url env-proxy))
-      (url-set-type urlobj "http")
-      (url-set-target urlobj nil))
+      (setf (url-type urlobj) "http")
+      (setf (url-target urlobj) nil))
      ;; Finally, fall back on the assumption that its just a hostname
      (t
       (setq urlobj (url-generic-parse-url nil)) ; Get a blank object
-      (url-set-type urlobj "http")
-      (url-set-host urlobj env-proxy)))
+      (setf (url-type urlobj) "http")
+      (setf (url-host urlobj) env-proxy)))
 
      (if (and (not cur-proxy) urlobj)
 	 (progn

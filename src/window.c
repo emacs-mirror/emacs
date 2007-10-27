@@ -21,6 +21,8 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
+#include <stdio.h>
+
 #include "lisp.h"
 #include "buffer.h"
 #include "keyboard.h"
@@ -34,6 +36,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "blockinput.h"
 #include "intervals.h"
+#include "termhooks.h"		/* For FRAME_TERMINAL.  */
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -189,6 +192,10 @@ Lisp_Object Qtemp_buffer_show_hook;
    if that window is more than this high.  */
 
 EMACS_INT split_height_threshold;
+
+/* How to split windows (horizontally/vertically/hybrid).  */
+
+Lisp_Object Vsplit_window_preferred_function;
 
 /* Number of lines of continuity in scrolling by screenfuls.  */
 
@@ -792,7 +799,7 @@ coordinates_in_window (w, x, y)
       if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
 	  || WINDOW_RIGHTMOST_P (w))
 	{
-	  if (!WINDOW_LEFTMOST_P (w) && abs (*x - x0) < grabbable_width)
+	  if (!WINDOW_LEFTMOST_P (w) && eabs (*x - x0) < grabbable_width)
 	    {
 	      /* Convert X and Y to window relative coordinates.
 		 Vertical border is at the left edge of window.  */
@@ -803,7 +810,7 @@ coordinates_in_window (w, x, y)
 	}
       else
 	{
-	  if (abs (*x - x1) < grabbable_width)
+	  if (eabs (*x - x1) < grabbable_width)
 	    {
 	      /* Convert X and Y to window relative coordinates.
 		 Vertical border is at the right edge of window.  */
@@ -851,7 +858,7 @@ coordinates_in_window (w, x, y)
       if (!w->pseudo_window_p
 	  && !WINDOW_HAS_VERTICAL_SCROLL_BAR (w)
 	  && !WINDOW_RIGHTMOST_P (w)
-	  && (abs (*x - right_x) < grabbable_width))
+	  && (eabs (*x - right_x) < grabbable_width))
 	{
 	  /* Convert X and Y to window relative coordinates.
 	     Vertical border is at the right edge of window.  */
@@ -1788,12 +1795,28 @@ candidate_window_p (window, owindow, minibuf, all_frames)
   else if (EQ (all_frames, Qvisible))
     {
       FRAME_SAMPLE_VISIBILITY (f);
-      candidate_p = FRAME_VISIBLE_P (f);
+      candidate_p = FRAME_VISIBLE_P (f)
+	&& (FRAME_TERMINAL (XFRAME (w->frame))
+	    == FRAME_TERMINAL (XFRAME (selected_frame)));
+
     }
   else if (INTEGERP (all_frames) && XINT (all_frames) == 0)
     {
       FRAME_SAMPLE_VISIBILITY (f);
-      candidate_p = FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f);
+      candidate_p = (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f)
+#ifdef HAVE_X_WINDOWS
+		     /* Yuck!!  If we've just created the frame and the
+			window-manager requested the user to place it
+			manually, the window may still not be considered
+			`visible'.  I'd argue it should be at least
+			something like `iconified', but don't know how to do
+			that yet.  --Stef  */
+		     || (FRAME_X_P (f) && f->output_data.x->asked_for_visible
+			 && !f->output_data.x->has_been_visible)
+#endif
+		     )
+	&& (FRAME_TERMINAL (XFRAME (w->frame))
+	    == FRAME_TERMINAL (XFRAME (selected_frame)));
     }
   else if (WINDOWP (all_frames))
     candidate_p = (EQ (FRAME_MINIBUF_WINDOW (f), all_frames)
@@ -2162,8 +2185,10 @@ window_loop (type, obj, mini, frames)
 		if (NILP (best_window))
 		  best_window = window;
 		else if (EQ (window, selected_window))
-		  /* For compatibility with 20.x, prefer to return
-		     selected-window.  */
+		  /* Prefer to return selected-window.  */
+		  RETURN_UNGCPRO (window);
+		else if (EQ (Fwindow_frame (window), selected_frame))
+		  /* Prefer windows on the current frame.  */
 		  best_window = window;
 	      }
 	    break;
@@ -3445,6 +3470,22 @@ selects the buffer of the selected window before each command.  */)
   if (EQ (window, selected_window))
     return window;
 
+  sf = SELECTED_FRAME ();
+  if (XFRAME (WINDOW_FRAME (w)) != sf)
+    {
+      XFRAME (WINDOW_FRAME (w))->selected_window = window;
+      /* Use this rather than Fhandle_switch_frame
+	 so that FRAME_FOCUS_FRAME is moved appropriately as we
+	 move around in the state where a minibuffer in a separate
+	 frame is active.  */
+      Fselect_frame (WINDOW_FRAME (w));
+      /* Fselect_frame called us back so we've done all the work already.  */
+      eassert (EQ (window, selected_window));
+      return window;
+    }
+  else
+    sf->selected_window = window;
+
   /* Store the current buffer's actual point into the
      old selected window.  It belongs to that window,
      and when the window is not selected, must be in the window.  */
@@ -3458,18 +3499,6 @@ selects the buffer of the selected window before each command.  */)
     }
 
   selected_window = window;
-  sf = SELECTED_FRAME ();
-  if (XFRAME (WINDOW_FRAME (w)) != sf)
-    {
-      XFRAME (WINDOW_FRAME (w))->selected_window = window;
-      /* Use this rather than Fhandle_switch_frame
-	 so that FRAME_FOCUS_FRAME is moved appropriately as we
-	 move around in the state where a minibuffer in a separate
-	 frame is active.  */
-      Fselect_frame (WINDOW_FRAME (w));
-    }
-  else
-    sf->selected_window = window;
 
   if (NILP (norecord))
     record_buffer (w->buffer);
@@ -3649,7 +3678,7 @@ If `even-window-heights' is non-nil, window heights will be evened out
 if displaying the buffer causes two vertically adjacent windows to be
 displayed.  */)
      (buffer, not_this_window, frame)
-     register Lisp_Object buffer, not_this_window, frame;
+     Lisp_Object buffer, not_this_window, frame;
 {
   register Lisp_Object window, tem, swp;
   struct frame *f;
@@ -3721,6 +3750,8 @@ displayed.  */)
       || !NILP (XWINDOW (FRAME_ROOT_WINDOW (f))->dedicated))
     {
       Lisp_Object frames;
+      struct gcpro gcpro1;
+      GCPRO1 (buffer);
 
       frames = Qnil;
       if (FRAME_MINIBUF_ONLY_P (f))
@@ -3752,26 +3783,26 @@ displayed.  */)
       if (!NILP (window)
 	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
 	  && WINDOW_FULL_WIDTH_P (XWINDOW (window))
-	  && (window_height (window) >= split_height_threshold
-	      || (NILP (XWINDOW (window)->parent)))
+	       && (window_height (window) >= split_height_threshold
+		   || (NILP (XWINDOW (window)->parent)))
 	  && (window_height (window)
 	      >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	window = Fsplit_window (window, Qnil, Qnil);
+	window = call1 (Vsplit_window_preferred_function, window);
       else
 	{
 	  Lisp_Object upper, lower, other;
 
 	  window = Fget_lru_window (frames, Qt);
-	  /* If the LRU window is tall enough, and either eligible for splitting
-	  and selected or the only window, split it.  */
+	  /* If the LRU window is tall enough, and either eligible for
+	     splitting and selected or the only window, split it.  */
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	      && ((EQ (window, selected_window)
-		   && window_height (window) >= split_height_threshold)
-		  || (NILP (XWINDOW (window)->parent)))
-	      && (window_height (window)
-		  >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	    window = Fsplit_window (window, Qnil, Qnil);
+		   && ((EQ (window, selected_window)
+			&& window_height (window) >= split_height_threshold)
+		       || (NILP (XWINDOW (window)->parent)))
+		   && (window_height (window)
+		       >= (2 * window_min_size_2 (XWINDOW (window), 0))))
+	    window = call1 (Vsplit_window_preferred_function, window);
 	  else
 	    window = Fget_lru_window (frames, Qnil);
 	  /* If Fget_lru_window returned nil, try other approaches.  */
@@ -3817,6 +3848,7 @@ displayed.  */)
 			      0);
 	    }
 	}
+      UNGCPRO;
     }
   else
     window = Fget_lru_window (Qnil, Qnil);
@@ -5465,7 +5497,7 @@ scroll_command (n, direction)
 {
   int count = SPECPDL_INDEX ();
 
-  xassert (abs (direction) == 1);
+  xassert (eabs (direction) == 1);
 
   /* If selected window's buffer isn't current, make it current for
      the moment.  But don't screw up if window_scroll gets an error.  */
@@ -6017,7 +6049,7 @@ zero means top of window, negative means relative to bottom of window.  */)
 
 struct save_window_data
   {
-    EMACS_INT size_from_Lisp_Vector_struct;
+    EMACS_UINT size;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
     Lisp_Object frame_cols, frame_lines, frame_menu_bar_lines;
     Lisp_Object frame_tool_bar_lines;
@@ -6040,7 +6072,7 @@ struct save_window_data
 struct saved_window
 {
   /* these first two must agree with struct Lisp_Vector in lisp.h */
-  EMACS_INT size_from_Lisp_Vector_struct;
+  EMACS_UINT size;
   struct Lisp_Vector *next_from_Lisp_Vector_struct;
 
   Lisp_Object window;
@@ -6631,6 +6663,7 @@ redirection (see `redirect-frame-focus').  */)
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
   vec = allocate_other_vector (VECSIZE (struct save_window_data));
+  XSETPVECTYPE (vec, PVEC_WINDOW_CONFIGURATION);
   data = (struct save_window_data *)vec;
 
   XSETFASTINT (data->frame_cols, FRAME_COLS (f));
@@ -7102,11 +7135,12 @@ freeze_window_start (w, freeze_p)
      struct window *w;
      void *freeze_p;
 {
-  if (w == XWINDOW (selected_window)
-      || MINI_WINDOW_P (w)
-      || (MINI_WINDOW_P (XWINDOW (selected_window))
-	  && ! NILP (Vminibuf_scroll_window)
-	  && w == XWINDOW (Vminibuf_scroll_window)))
+  if (MINI_WINDOW_P (w)
+      || (WINDOWP (selected_window) /* Can be nil in corner cases.  */
+         && (w == XWINDOW (selected_window)
+             || (MINI_WINDOW_P (XWINDOW (selected_window))
+                 && ! NILP (Vminibuf_scroll_window)
+                 && w == XWINDOW (Vminibuf_scroll_window)))))
     freeze_p = NULL;
 
   w->frozen_window_start_p = freeze_p != NULL;
@@ -7269,7 +7303,7 @@ and scrolling positions.  */)
 void
 init_window_once ()
 {
-  struct frame *f = make_terminal_frame ();
+  struct frame *f = make_initial_frame ();
   XSETFRAME (selected_frame, f);
   Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;
@@ -7487,6 +7521,15 @@ See also `same-window-buffer-names'.  */);
 by `display-buffer'.  The value is in line units.
 If there is only one window, it is split regardless of this value.  */);
   split_height_threshold = 500;
+
+  DEFVAR_LISP ("split-window-preferred-function",
+	       &Vsplit_window_preferred_function,
+	       doc: /* Function to use to split a window.
+This is used by `display-buffer' to allow the user to choose whether
+to split windows horizontally or vertically or some mix of the two.
+It is called with a window as single argument and should split it in two
+and return the new window.  */);
+  Vsplit_window_preferred_function = intern ("split-window");
 
   DEFVAR_INT ("window-min-height", &window_min_height,
 	      doc: /* *Delete any window less than this tall (including its mode line).

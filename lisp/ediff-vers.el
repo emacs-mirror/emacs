@@ -84,12 +84,12 @@ comparison or merge operations are being performed."
 	(setq rev1 (ediff-vc-latest-version (buffer-file-name))))
     (save-window-excursion
       (save-excursion
-	(vc-version-other-window rev1)
+	(vc-revision-other-window rev1)
 	(setq rev1buf (current-buffer)
 	      file1 (buffer-file-name)))
       (save-excursion
 	(or (string= rev2 "") 		; use current buffer
-	    (vc-version-other-window rev2))
+	    (vc-revision-other-window rev2))
 	(setq rev2buf (current-buffer)
 	      file2 (buffer-file-name)))
       (setq startup-hooks
@@ -191,17 +191,17 @@ comparison or merge operations are being performed."
   (let (buf1 buf2 ancestor-buf)
     (save-window-excursion
       (save-excursion
-	(vc-version-other-window rev1)
+	(vc-revision-other-window rev1)
 	(setq buf1 (current-buffer)))
       (save-excursion
 	(or (string= rev2 "")
-	    (vc-version-other-window rev2))
+	    (vc-revision-other-window rev2))
 	(setq buf2 (current-buffer)))
       (if ancestor-rev
 	  (save-excursion
 	    (if (string= ancestor-rev "")
-		(setq ancestor-rev (vc-workfile-version buffer-file-name)))
-	    (vc-version-other-window ancestor-rev)
+		(setq ancestor-rev (vc-working-revision buffer-file-name)))
+	    (vc-revision-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer))))
       (setq startup-hooks
 	    (cons

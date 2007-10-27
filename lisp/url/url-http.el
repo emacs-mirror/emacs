@@ -429,7 +429,8 @@ should be shown to the user."
       (when (and connection
 		 (string= (downcase connection) "close"))
 	(delete-process url-http-process)))))
-  (let ((class nil)
+  (let ((buffer (current-buffer))
+	(class nil)
 	(success nil))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
@@ -447,7 +448,7 @@ should be shown to the user."
        ;; 100 = Continue with request
        ;; 101 = Switching protocols
        ;; 102 = Processing (Added by DAV)
-       (url-mark-buffer-as-dead (current-buffer))
+       (url-mark-buffer-as-dead buffer)
        (error "HTTP responses in class 1xx not supported (%d)" url-http-response-status))
       (2				; Success
        ;; 200 Ok
@@ -461,14 +462,14 @@ should be shown to the user."
        (case url-http-response-status
 	 ((204 205)
 	  ;; No new data, just stay at the same document
-	  (url-mark-buffer-as-dead (current-buffer))
+	  (url-mark-buffer-as-dead buffer)
 	  (setq success t))
 	 (otherwise
 	  ;; Generic success for all others.  Store in the cache, and
 	  ;; mark it as successful.
 	  (widen)
 	  (if (and url-automatic-caching (equal url-http-method "GET"))
-	      (url-store-in-cache (current-buffer)))
+	      (url-store-in-cache buffer))
 	  (setq success t))))
       (3				; Redirection
        ;; 300 Multiple choices
@@ -584,7 +585,7 @@ should be shown to the user."
 			(url-retrieve-internal
 			 redirect-uri url-callback-function
 			 url-callback-arguments))
-		   (url-mark-buffer-as-dead (current-buffer)))
+		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.
 	       (url-http-debug "Maximum redirections reached")
@@ -625,7 +626,7 @@ should be shown to the user."
 	  (url-http-handle-authentication nil))
 	 (402
 	  ;; This code is reserved for future use
-	  (url-mark-buffer-as-dead (current-buffer))
+	  (url-mark-buffer-as-dead buffer)
 	  (error "Somebody wants you to give them money"))
 	 (403
 	  ;; The server understood the request, but is refusing to
@@ -780,7 +781,7 @@ should be shown to the user."
        (error "Unknown class of HTTP response code: %d (%d)"
 	      class url-http-response-status)))
     (if (not success)
-	(url-mark-buffer-as-dead (current-buffer)))
+	(url-mark-buffer-as-dead buffer))
     (url-http-debug "Finished parsing HTTP headers: %S" success)
     (widen)
     success))

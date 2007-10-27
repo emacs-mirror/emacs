@@ -34,6 +34,7 @@ Boston, MA 02110-1301, USA.  */
 #include "termchar.h"
 #include "intervals.h"
 #include "blockinput.h"
+#include "termhooks.h"		/* For struct terminal.  */
 
 Lisp_Object Vstandard_output, Qstandard_output;
 
@@ -1024,11 +1025,7 @@ safe_debug_print (arg)
   else
     fprintf (stderr, "#<%s_LISP_OBJECT 0x%08lx>\r\n",
 	     !valid ? "INVALID" : "SOME",
-#ifdef NO_UNION_TYPE
-	     (unsigned long) arg
-#else
-	     (unsigned long) arg.i
-#endif
+	     (unsigned long) XHASH (arg)
 	     );
 }
 
@@ -1388,10 +1385,10 @@ print_preprocess (obj)
 	  for (i = 0; i < print_number_index; i++)
 	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
 	      {
-		/* OBJ appears more than once.  Let's remember that.  */
+		/* OBJ appears more than once.	Let's remember that.  */
 		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
                 print_depth--;
-                return;
+		return;
 	      }
 
 	  /* OBJ is not yet recorded.  Let's add to the table.  */
@@ -1965,6 +1962,19 @@ print_object (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('>');
 	}
+      else if (TERMINALP (obj))
+	{
+	  struct terminal *t = XTERMINAL (obj);
+	  strout ("#<terminal ", -1, -1, printcharfun, 0);
+	  sprintf (buf, "%d", t->id);
+	  strout (buf, -1, -1, printcharfun, 0);
+	  if (t->name)
+	    {
+	      strout (" on ", -1, -1, printcharfun, 0);
+	      strout (t->name, -1, -1, printcharfun, 0);
+	    }
+	  PRINTCHAR ('>');
+	}
       else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
@@ -1977,7 +1987,7 @@ print_object (obj, printcharfun, escapeflag)
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%ld/%ld", (long) XFASTINT (h->count),
+	      sprintf (buf, "%ld/%ld", (long) h->count,
 		       (long) XVECTOR (h->next)->size);
 	      strout (buf, -1, -1, printcharfun, 0);
 	    }

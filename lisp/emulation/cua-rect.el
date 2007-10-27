@@ -731,7 +731,7 @@ If command is repeated at same position, delete the rectangle."
 
 (defun cua--deactivate-rectangle ()
   ;; This is used to clean up after `cua--activate-rectangle'.
-  (mapcar (function delete-overlay) cua--rectangle-overlays)
+  (mapc (function delete-overlay) cua--rectangle-overlays)
   (setq cua--last-rectangle (cons (current-buffer)
                                   (cons (point) ;; cua-save-point
                                         cua--rectangle))
@@ -837,7 +837,7 @@ If command is repeated at same position, delete the rectangle."
 	     (overlay-put overlay 'window (selected-window))
 	     (setq new (cons overlay new))))))
     ;; Trim old trailing overlays.
-    (mapcar (function delete-overlay) old)
+    (mapc (function delete-overlay) old)
     (setq cua--rectangle-overlays (nreverse new))))
 
 (defun cua--indent-rectangle (&optional ch to-col clear)
@@ -1401,7 +1401,7 @@ With prefix arg, indent to that column."
         (cua--deactivate-rectangle))
     (when cua--rectangle-overlays
       ;; clean-up after revert-buffer
-      (mapcar (function delete-overlay) cua--rectangle-overlays)
+      (mapc (function delete-overlay) cua--rectangle-overlays)
       (setq cua--rectangle-overlays nil)
       (setq deactivate-mark t)))
   (when cua--rect-undo-set-point

@@ -36,24 +36,31 @@
 (defvar command-line-processed nil
   "Non-nil once command line has been processed.")
 
+(defvar window-system initial-window-system
+  "Name of window system the selected frame is displaying through.
+The value is a symbol--for instance, `x' for X windows.
+The value is nil if the selected frame is on a text-only-terminal.")
+
+(make-variable-frame-local 'window-system)
+
 (defgroup initialization nil
   "Emacs start-up procedure."
   :group 'environment)
 
 (defcustom initial-buffer-choice nil
   "Buffer to show after starting Emacs.
-If the value is nil and `inhibit-splash-screen' is nil, show the
+If the value is nil and `inhibit-startup-screen' is nil, show the
 startup screen.  If the value is string, visit the specified file or
 directory using `find-file'.  If t, open the `*scratch*' buffer."
   :type '(choice
-	  (const     :tag "Splash screen" nil)
+	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/file.txt")
 	  (const     :tag "Lisp scratch buffer" t))
   :version "23.1"
   :group 'initialization)
 
-(defcustom inhibit-splash-screen nil
+(defcustom inhibit-startup-screen nil
   "Non-nil inhibits the startup screen.
 It also inhibits display of the initial message in the `*scratch*' buffer.
 
@@ -62,7 +69,10 @@ you are familiar with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
-(defvaralias 'inhibit-startup-message 'inhibit-splash-screen)
+(defvaralias 'inhibit-splash-screen 'inhibit-startup-screen)
+(defvaralias 'inhibit-startup-message 'inhibit-startup-screen)
+
+(defvar startup-screen-inhibit-startup-screen nil)
 
 (defcustom inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
@@ -96,6 +106,12 @@ the remaining command-line args are in the variable `command-line-args-left'.")
 
 (defvar command-line-args-left nil
   "List of command-line args not yet processed.")
+
+(defvaralias 'argv 'command-line-args-left
+  "List of command-line args not yet processed.
+This is a convenience alias, so that one can write \(pop argv\)
+inside of --eval command line arguments in order to access
+following arguments.")
 
 (defvar command-line-functions nil    ;; lrs 7/31/89
   "List of functions to process unrecognized command-line arguments.
@@ -308,6 +324,10 @@ from being initialized."
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")
 
+(defvar pure-space-overflow-message "\
+Warning Warning!!!  Pure space overflow    !!!Warning Warning
+\(See the node Pure Storage in the Lisp manual for details.)\n")
+
 (defvar tutorial-directory nil
   "Directory containing the Emacs TUTORIAL files.")
 
@@ -458,36 +478,19 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; for instance due to a dense colormap.
 	(when (or frame-initial-frame
 		  ;; If frame-initial-frame has no meaning, do this anyway.
-		  (not (and window-system
+		  (not (and initial-window-system
 			    (not noninteractive)
-			    (not (eq window-system 'pc)))))
+			    (not (eq initial-window-system 'pc)))))
 	  ;; Modify the initial frame based on what .emacs puts into
 	  ;; ...-frame-alist.
 	  (if (fboundp 'frame-notice-user-settings)
 	      (frame-notice-user-settings))
+	  ;; Set the faces for the initial background mode even if
+	  ;; frame-notice-user-settings didn't (such as on a tty).
+	  ;; frame-set-background-mode is idempotent, so it won't
+	  ;; cause any harm if it's already been done.
 	  (if (fboundp 'frame-set-background-mode)
-	      ;; Set the faces for the initial background mode even if
-	      ;; frame-notice-user-settings didn't (such as on a tty).
-	      ;; frame-set-background-mode is idempotent, so it won't
-	      ;; cause any harm if it's already been done.
-	      (let ((frame (selected-frame))
-		    term)
-		(when (and (null window-system)
-			   ;; Don't override default set by files in lisp/term.
-			   (null default-frame-background-mode)
-			   (let ((bg (frame-parameter frame 'background-color)))
-			     (or (null bg)
-				 (member bg '(unspecified "unspecified-bg"
-							  "unspecified-fg")))))
-
-		  (setq term (getenv "TERM"))
-		  ;; Some files in lisp/term do a better job with the
-		  ;; background mode, but we leave this here anyway, in
-		  ;; case they remove those files.
-		  (if (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-				    term)
-		      (setq default-frame-background-mode 'light)))
-		(frame-set-background-mode (selected-frame)))))
+	      (frame-set-background-mode (selected-frame))))
 
 	;; Now we know the user's default font, so add it to the menu.
 	(if (fboundp 'font-menu-add-default)
@@ -496,7 +499,25 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (run-hooks 'window-setup-hook))
 	(or menubar-bindings-done
 	    (if (display-popup-menus-p)
-		(precompute-menubar-bindings)))))))
+		(precompute-menubar-bindings)))))
+    ;; Subprocesses of Emacs do not have direct access to the terminal, so
+    ;; unless told otherwise they should only assume a dumb terminal.
+    ;; We are careful to do it late (after term-setup-hook), although the
+    ;; new multi-tty code does not use $TERM any more there anyway.
+    (setenv "TERM" "dumb")
+    ;; Remove DISPLAY from the process-environment as well.  This allows
+    ;; `callproc.c' to give it a useful adaptive default which is either
+    ;; the value of the `display' frame-parameter or the DISPLAY value
+    ;; from initial-environment.
+    (let ((display (frame-parameter nil 'display)))
+      ;; Be careful which DISPLAY to remove from process-environment: follow
+      ;; the logic of `callproc.c'.
+      (if (stringp display) (setq display (concat "DISPLAY=" display))
+        (dolist (varval initial-environment)
+          (if (string-match "\\`DISPLAY=" varval)
+              (setq display varval))))
+      (when display
+        (delete display process-environment)))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 (defun precompute-menubar-bindings ()
@@ -527,6 +548,20 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 (defvar tool-bar-originally-present nil
   "Non-nil if tool-bars are present before user and site init files are read.")
+
+(defvar handle-args-function-alist '((nil . tty-handle-args))
+  "Functions for processing window-system dependent command-line arguments.
+Window system startup files should add their own function to this
+alist, which should parse the command line arguments.  Those
+pertaining to the window system should be processed and removed
+from the returned command line.")
+
+(defvar window-system-initialization-alist '((nil . ignore))
+  "Alist of window-system initialization functions.
+Window-system startup files should add their own initialization
+function to this list.  The function should take no arguments,
+and initialize the window system environment to prepare for
+opening the first frame (e.g. open a connection to an X server).")
 
 ;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
@@ -632,16 +667,22 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (setq eol-mnemonic-dos  "(DOS)"
           eol-mnemonic-mac  "(Mac)")))
 
-  ;; Read window system's init file if using a window system.
+  ;; Make sure window system's init file was loaded in loadup.el if using a window system.
   (condition-case error
-      (if (and window-system (not noninteractive))
-	  (load (concat term-file-prefix
-			(symbol-name window-system)
-			"-win")
-		;; Every window system should have a startup file;
-		;; barf if we can't find it.
-		nil t))
-    ;; If we can't read it, print the error message and exit.
+    (unless noninteractive
+      (if (and initial-window-system
+	       (not (featurep
+		     (intern (concat (symbol-name initial-window-system) "-win")))))
+	  (error "Unsupported window system `%s'" initial-window-system))
+      ;; Process window-system specific command line parameters.
+      (setq command-line-args
+	    (funcall (or (cdr (assq initial-window-system handle-args-function-alist))
+			 (error "Unsupported window system `%s'" initial-window-system))
+		     command-line-args))
+      ;; Initialize the window system. (Open connection, etc.)
+      (funcall (or (cdr (assq initial-window-system window-system-initialization-alist))
+		   (error "Unsupported window system `%s'" initial-window-system))))
+    ;; If there was an error, print the error message and exit.
     (error
      (princ
       (if (eq (car error) 'error)
@@ -657,12 +698,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
                              (cdr error) ", "))))
       'external-debugging-output)
      (terpri 'external-debugging-output)
-     (setq window-system nil)
+     (setq initial-window-system nil)
      (kill-emacs)))
-
-  ;; Windowed displays do this inside their *-win.el.
-  (unless (or (display-graphic-p) noninteractive)
-    (setq command-line-args (tty-handle-args command-line-args)))
 
   (set-locale-environment nil)
 
@@ -786,7 +823,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive
 	      emacs-basic-display
-              (and (memq window-system '(x w32))
+              (and (memq initial-window-system '(x w32))
                    (<= (frame-parameter nil 'menu-bar-lines) 0)))
     (menu-bar-mode 1))
 
@@ -800,7 +837,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; Can't do this init in defcustom because the relevant variables
   ;; are not set.
   (custom-reevaluate-setting 'blink-cursor-mode)
-  (custom-reevaluate-setting 'normal-erase-is-backspace)
   (custom-reevaluate-setting 'tooltip-mode)
   (custom-reevaluate-setting 'global-font-lock-mode)
   (custom-reevaluate-setting 'mouse-wheel-down-event)
@@ -809,13 +845,15 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'send-mail-function)
   (custom-reevaluate-setting 'focus-follows-mouse)
 
+  (normal-erase-is-backspace-setup-frame)
+
   ;; Register default TTY colors for the case the terminal hasn't a
-  ;; terminal init file.
-  (unless (memq window-system '(x w32 mac))
-    ;; We do this regardles of whether the terminal supports colors
-    ;; or not, since they can switch that support on or off in
-    ;; mid-session by setting the tty-color-mode frame parameter.
-    (tty-register-default-colors))
+  ;; terminal init file.  We do this regardles of whether the terminal
+  ;; supports colors or not and regardless the current display type,
+  ;; since users can connect to color-capable terminals and also
+  ;; switch color support on or off in mid-session by setting the
+  ;; tty-color-mode frame parameter.
+  (tty-register-default-colors)
 
   ;; Record whether the tool-bar is present before the user and site
   ;; init files are processed.  frame-notice-user-settings uses this
@@ -836,12 +874,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
+    ;; Note that user-init-file is nil at this point.  Code that might
+    ;; be loaded from site-run-file and wants to test if -q was given
+    ;; should check init-file-user instead, since that is already set.
+    ;; See cus-edit.el for an example.
     (if site-run-file
 	(load site-run-file t t))
 
     ;; Sites should not disable this.  Only individuals should disable
-    ;; the startup message.
-    (setq inhibit-startup-message nil)
+    ;; the startup screen.
+    (setq inhibit-startup-screen nil)
 
     ;; Warn for invalid user name.
     (when init-file-user
@@ -935,7 +977,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			    (setq user-init-file source))))
 
 		      (unless inhibit-default-init
-                        (let ((inhibit-startup-message nil))
+                        (let ((inhibit-startup-screen nil))
                           ;; Users are supposed to be told their rights.
                           ;; (Plus how to get help and how to undo.)
                           ;; Don't you dare turn this off for anyone
@@ -975,11 +1017,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	    (with-current-buffer (window-buffer)
 	      (deactivate-mark)))
 
-	;; If the user has a file of abbrevs, read it.
-        ;; FIXME: after the 22.0 release this should be changed so
-	;; that it does not read the abbrev file when -batch is used
-	;; on the command line.
-	(when (and (file-exists-p abbrev-file-name)
+	;; If the user has a file of abbrevs, read it (unless -batch).
+	(when (and (not noninteractive)
+		   (file-exists-p abbrev-file-name)
 		   (file-readable-p abbrev-file-name))
 	    (quietly-read-abbrev-file abbrev-file-name))
 
@@ -1000,11 +1040,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	;; buffers (probably *scratch*, *Messages*, *Minibuff-0*).
 	;; Arguably this should only be done if they're free of
 	;; multibyte characters.
-	(mapcar (lambda (buffer)
-		  (with-current-buffer buffer
-		    (if enable-multibyte-characters
-			(set-buffer-multibyte nil))))
-		(buffer-list))
+	(mapc (lambda (buffer)
+		(with-current-buffer buffer
+		  (if enable-multibyte-characters
+		      (set-buffer-multibyte nil))))
+	      (buffer-list))
 	;; Also re-set the language environment in case it was
 	;; originally done before unibyte was set and is sensitive to
 	;; unibyte (display table, terminal coding system &c).
@@ -1081,31 +1121,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (unless (or noninteractive
-              window-system
-              (null term-file-prefix))
-    (let* ((TERM (getenv "TERM"))
-           (term TERM)
-          hyphend)
-      (while (and term
-                  (not (load (concat term-file-prefix term) t t)))
-        ;; Strip off last hyphen and what follows, then try again
-        (setq term
-              (if (setq hyphend (string-match "[-_][^-_]+\\'" term))
-                  (substring term 0 hyphend)
-                nil)))
-      (setq term TERM)
-      ;; The terminal file has been loaded, now call the terminal specific
-      ;; initialization function.
-      (while term
-	(let ((term-init-func (intern-soft (concat "terminal-init-" term))))
-	  (if (not (fboundp term-init-func))
-              ;; Strip off last hyphen and what follows, then try again
-              (setq term
-                    (if (setq hyphend (string-match "[-_][^-_]+\\'" term))
-                        (substring term 0 hyphend)
-                      nil))
-            (setq term nil)
-	    (funcall term-init-func))))))
+              initial-window-system)
+    (tty-run-terminal-initialization (selected-frame)))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
@@ -1134,7 +1151,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 ")
   "Initial message displayed in *scratch* buffer at startup.
 If this is nil, no message will be displayed.
-If `inhibit-splash-screen' is non-nil, then no message is displayed,
+If `inhibit-startup-screen' is non-nil, then no message is displayed,
 regardless of the value of this variable."
   :type '(choice (text :tag "Message")
 		 (const :tag "none" nil))
@@ -1145,67 +1162,142 @@ regardless of the value of this variable."
 ;;; Fancy splash screen
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar fancy-splash-text
-  '((:face (variable-pitch :weight bold)
-	   "Important Help menu items:\n"
-	   :face variable-pitch
-	   :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
-	   "\tLearn how to use Emacs efficiently"
-           (lambda ()
-             (let* ((en "TUTORIAL")
-                    (tut (or (get-language-info current-language-environment
-                                                'tutorial)
-                             en))
-                    (title (with-temp-buffer
-                             (insert-file-contents
-                              (expand-file-name tut tutorial-directory)
-                              nil 0 256)
-                             (search-forward ".")
-                             (buffer-substring (point-min) (1- (point))))))
-               ;; If there is a specific tutorial for the current language
-               ;; environment and it is not English, append its title.
-               (if (string= en tut)
-                   ""
-                 (concat " (" title ")"))))
-	   "\n"
-	   :face variable-pitch
-	   :link ("Emacs FAQ" (lambda (button) (view-emacs-FAQ)))
-	   "\tFrequently asked questions and answers\n"
-	   :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
-	   "\tView the Emacs manual using Info\n"
-	   :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
-	   "\tGNU Emacs comes with "
-	   :face (variable-pitch :slant oblique)
-	   "ABSOLUTELY NO WARRANTY\n"
-	   :face variable-pitch
-	   :link ("Copying Conditions" (lambda (button) (describe-copying)))
-	   "\tConditions for redistributing and changing Emacs\n"
-	   :link ("Getting New Versions" (lambda (button) (describe-distribution)))
-	   "\tHow to obtain the latest version of Emacs\n"
-	   :link ("More Manuals / Ordering Manuals" (lambda (button) (view-order-manuals)))
-	   "  Buying printed manuals from the FSF\n")
-  (:face (variable-pitch :weight bold)
-	 "Useful tasks:\n"
-	 :face variable-pitch
-	 :link ("Visit New File"
-		(lambda (button) (call-interactively 'find-file)))
-	 "\tSpecify a new file's name, to edit the file\n"
-	 :link ("Open Home Directory"
-		(lambda (button) (dired "~")))
-	 "\tOpen your home directory, to operate on its files\n"
-	 :link ("Open *scratch* buffer"
-		(lambda (button) (switch-to-buffer (get-buffer-create "*scratch*"))))
-	 "\tOpen buffer for notes you don't want to save\n"
-	 :link ("Customize Startup"
-		(lambda (button) (customize-group 'initialization)))
-	 "\tChange initialization settings including this screen\n"
-
-	 "\nEmacs Guided Tour\tSee "
-	 :link ("http://www.gnu.org/software/emacs/tour/"
-		(lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/")))
-
-	 ))
+(defvar fancy-startup-text
+  '((:face (variable-pitch :foreground "red")
+     "Welcome to "
+     :link ("GNU Emacs"
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    "Browse http://www.gnu.org/software/emacs/")
+     ", one component of the "
+     :link
+     (lambda ()
+       (if (eq system-type 'gnu/linux)
+	   '("GNU/Linux"
+	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
+	 '("GNU" (lambda (button) (describe-project))
+	   "Display info on the GNU project")))
+     " operating system.\n"
+     :face variable-pitch "To quit a partially entered command, type "
+     :face default "Control-g"
+     :face variable-pitch ".\n\n"
+     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     "\tLearn basic keystroke commands"
+     (lambda ()
+       (let* ((en "TUTORIAL")
+	      (tut (or (get-language-info current-language-environment
+					  'tutorial)
+		       en))
+	      (title (with-temp-buffer
+		       (insert-file-contents
+			(expand-file-name tut tutorial-directory)
+			nil 0 256)
+		       (search-forward ".")
+		       (buffer-substring (point-min) (1- (point))))))
+	 ;; If there is a specific tutorial for the current language
+	 ;; environment and it is not English, append its title.
+	 (if (string= en tut)
+	     ""
+	   (concat " (" title ")"))))
+     "\n"
+     :face variable-pitch
+     :link ("Emacs Guided Tour"
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    "Browse http://www.gnu.org/software/emacs/tour/")
+     "\tOverview of Emacs features\n"
+     :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
+     "\tView the Emacs manual using Info\n"
+     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     "\tGNU Emacs comes with "
+     :face (variable-pitch :slant oblique)
+     "ABSOLUTELY NO WARRANTY\n"
+     :face variable-pitch
+     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     "\tConditions for redistributing and changing Emacs\n"
+     :link ("Ordering Manuals" (lambda (button) (view-order-manuals)))
+     "\tPurchasing printed copies of manuals\n"
+     "\n"))
   "A list of texts to show in the middle part of splash screens.
+Each element in the list should be a list of strings or pairs
+`:face FACE', like `fancy-splash-insert' accepts them.")
+
+(defvar fancy-about-text
+  '((:face (variable-pitch :foreground "red")
+     "This is "
+     :link ("GNU Emacs"
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    "Browse http://www.gnu.org/software/emacs/")
+     ", one component of the "
+     :link
+     (lambda ()
+       (if (eq system-type 'gnu/linux)
+	   '("GNU/Linux"
+	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
+	 '("GNU" (lambda (button) (describe-project))
+	   "Display info on the GNU project.")))
+     " operating system.\n"
+     :face (lambda ()
+	     (list 'variable-pitch :foreground
+		   (if (eq (frame-parameter nil 'background-mode) 'dark)
+		       "cyan" "darkblue")))
+     "\n"
+     (lambda () (emacs-version))
+     "\n"
+     :face (variable-pitch :height 0.5)
+     (lambda () emacs-copyright)
+     "\n\n"
+     :face variable-pitch
+     :link ("Authors"
+	    (lambda (button)
+	      (view-file (expand-file-name "AUTHORS" data-directory))
+	      (goto-char (point-min))))
+     "\tMany people have contributed code included in GNU Emacs\n"
+     :link ("Contributing"
+	    (lambda (button)
+	      (view-file (expand-file-name "CONTRIBUTE" data-directory))
+	      (goto-char (point-min))))
+     "\tHow to contribute improvements to Emacs\n"
+     "\n"
+     :link ("GNU and Freedom" (lambda (button) (describe-project)))
+     "\tWhy we developed GNU Emacs, and the GNU operating system\n"
+     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     "\tGNU Emacs comes with "
+     :face (variable-pitch :slant oblique)
+     "ABSOLUTELY NO WARRANTY\n"
+     :face variable-pitch
+     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     "\tConditions for redistributing and changing Emacs\n"
+     :link ("Getting New Versions" (lambda (button) (describe-distribution)))
+     "\tHow to obtain the latest version of Emacs\n"
+     :link ("Ordering Manuals" (lambda (button) (view-order-manuals)))
+     "\tBuying printed manuals from the FSF\n"
+     "\n"
+     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     "\tLearn basic Emacs keystroke commands"
+     (lambda ()
+       (let* ((en "TUTORIAL")
+	      (tut (or (get-language-info current-language-environment
+					  'tutorial)
+		       en))
+	      (title (with-temp-buffer
+		       (insert-file-contents
+			(expand-file-name tut tutorial-directory)
+			nil 0 256)
+		       (search-forward ".")
+		       (buffer-substring (point-min) (1- (point))))))
+	 ;; If there is a specific tutorial for the current language
+	 ;; environment and it is not English, append its title.
+	 (if (string= en tut)
+	     ""
+	   (concat " (" title ")"))))
+     "\n"
+     :link ("Emacs Guided Tour"
+	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    "Browse http://www.gnu.org/software/emacs/tour/")
+     "\tSee an overview of the many facilities of GNU Emacs"
+     ))
+  "A list of texts to show in the middle part of the About screen.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
@@ -1214,20 +1306,6 @@ Each element in the list should be a list of strings or pairs
   "Fancy splash screen when Emacs starts."
   :version "21.1"
   :group 'initialization)
-
-
-(defcustom fancy-splash-delay 7
-  "*Delay in seconds between splash screens."
-  :group 'fancy-splash-screen
-  :type 'integer)
-
-
-(defcustom fancy-splash-max-time 30
-  "*Show splash screens for at most this number of seconds.
-Values less than twice `fancy-splash-delay' are ignored."
-  :group 'fancy-splash-screen
-  :type 'integer)
-
 
 (defcustom fancy-splash-image nil
   "*The image to show in the splash screens, or nil for defaults."
@@ -1248,27 +1326,35 @@ Values less than twice `fancy-splash-delay' are ignored."
 
 ;; These are temporary storage areas for the splash screen display.
 
-(defvar fancy-current-text nil)
 (defvar fancy-splash-help-echo nil)
-(defvar fancy-splash-stop-time nil)
-(defvar fancy-splash-outer-buffer nil)
 
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
-Arguments from ARGS should be either strings, functions called
-with no args that return a string, or pairs `:face FACE',
-where FACE is a valid face specification, as it can be used with
-`put-text-property'."
+Arguments from ARGS should be either strings; functions called
+with no args that return a string; pairs `:face FACE', where FACE
+is a face specification usable with `put-text-property'; or pairs
+`:link LINK' where LINK is a list of arguments to pass to
+`insert-button', of the form (LABEL ACTION [HELP-ECHO]), which
+specifies the button's label, `action' property and help-echo string.
+FACE and LINK can also be functions, which are evaluated to obtain
+a face or button specification."
   (let ((current-face nil))
     (while args
       (cond ((eq (car args) :face)
-	     (setq args (cdr args) current-face (car args)))
+	     (setq args (cdr args) current-face (car args))
+	     (if (functionp current-face)
+		 (setq current-face (funcall current-face))))
 	    ((eq (car args) :link)
 	     (setq args (cdr args))
 	     (let ((spec (car args)))
+	       (if (functionp spec)
+		   (setq spec (funcall spec)))
 	       (insert-button (car spec)
 			      'face (list 'link current-face)
 			      'action (cadr spec)
+			      'help-echo (concat "mouse-2, RET: "
+						 (or (nth 2 spec)
+						     "Follow this link"))
 			      'follow-link t)))
 	    (t (insert (propertize (let ((it (car args)))
 				     (if (functionp it)
@@ -1308,46 +1394,38 @@ where FACE is a valid face specification, as it can be used with
 	;; Insert the image with a help-echo and a link.
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
-		     'help-echo "mouse-2: browse http://www.gnu.org/"
+		     'help-echo "mouse-2, RET: Browse http://www.gnu.org/"
 		     'action (lambda (button) (browse-url "http://www.gnu.org/"))
 		     'follow-link t)
-	(insert "\n"))))
-  (fancy-splash-insert
-   :face '(variable-pitch :foreground "red")
-   (if (eq system-type 'gnu/linux)
-       "GNU Emacs is one component of the GNU/Linux operating system."
-     "GNU Emacs is one component of the GNU operating system."))
-  (insert "\n")
-  (fancy-splash-insert
-   :face 'variable-pitch
-   "You can do basic editing with the menu bar and scroll bar \
-using the mouse.\n"
-   :face 'variable-pitch
-   "To quit a partially entered command, type "
-   :face 'default
-   "Control-g"
-   :face 'variable-pitch
-   "."
-   "\n\n")
-  (when fancy-splash-outer-buffer
-    (fancy-splash-insert
-     :face 'variable-pitch
-     "Type "
-     :face 'default
-     "`q'"
-     :face 'variable-pitch
-     " to exit from this screen.\n")))
+	(insert "\n\n")))))
 
-(defun fancy-splash-tail ()
+(defun fancy-startup-tail (&optional concise)
   "Insert the tail part of the splash screen into the current buffer."
   (let ((fg (if (eq (frame-parameter nil 'background-mode) 'dark)
 		"cyan" "darkblue")))
+    (unless concise
+      (fancy-splash-insert
+       :face 'variable-pitch
+       "\nTo start...     "
+       :link '("Open a File"
+	       (lambda (button) (call-interactively 'find-file))
+	       "Specify a new file's name, to edit the file")
+       "     "
+       :link '("Open Home Directory"
+	       (lambda (button) (dired "~"))
+	       "Open your home directory, to operate on its files")
+       "     "
+       :link '("Customize Startup"
+	       (lambda (button) (customize-group 'initialization))
+	       "Change initialization settings including this screen")
+       "\n"))
     (fancy-splash-insert :face `(variable-pitch :foreground ,fg)
 			 "\nThis is "
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 emacs-copyright)
+			 emacs-copyright
+			 "\n")
     (and auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files
@@ -1362,105 +1440,120 @@ using the mouse.\n"
 				 auto-save-list-file-prefix)))
 	  t)
 	 (fancy-splash-insert :face '(variable-pitch :foreground "red")
-			      "\n\nIf an Emacs session crashed recently, "
+			      "\nIf an Emacs session crashed recently, "
 			      "type "
 			      :face '(fixed-pitch :foreground "red")
 			      "Meta-x recover-session RET"
 			      :face '(variable-pitch :foreground "red")
 			      "\nto recover"
-			      " the files you were editing.\n"))))
+			      " the files you were editing."))
 
-(defun fancy-splash-screens-1 (buffer)
-  "Timer function displaying a splash screen."
-  (when (> (float-time) fancy-splash-stop-time)
-    (throw 'stop-splashing nil))
-  (unless fancy-current-text
-    (setq fancy-current-text fancy-splash-text))
-  (let ((text (car fancy-current-text))
-	(inhibit-read-only t))
-    (set-buffer buffer)
-    (erase-buffer)
-    (if pure-space-overflow
-	(insert "\
-Warning Warning!!!  Pure space overflow    !!!Warning Warning
-\(See the node Pure Storage in the Lisp manual for details.)\n"))
-    (fancy-splash-head)
-    (apply #'fancy-splash-insert text)
-    (fancy-splash-tail)
-    (unless (current-message)
-      (message fancy-splash-help-echo))
-    (set-buffer-modified-p nil)
-    (goto-char (point-min))
-    (force-mode-line-update)
-    (setq fancy-current-text (cdr fancy-current-text))))
+    (when concise
+      (fancy-splash-insert
+       :face 'variable-pitch "\n"
+       :link '("Dismiss this startup screen"
+	       (lambda (button)
+		 (when startup-screen-inhibit-startup-screen
+		   (customize-set-variable 'inhibit-startup-screen t)
+		   (customize-mark-to-save 'inhibit-startup-screen)
+		   (custom-save-all))
+		 (let ((w (get-buffer-window "*GNU Emacs*")))
+		   (and w (not (one-window-p)) (delete-window w)))
+		 (kill-buffer "*GNU Emacs*")))
+       "  ")
+      (when (or user-init-file custom-file)
+	(let ((checked (create-image "\300\300\141\143\067\076\034\030"
+				     'xbm t :width 8 :height 8 :background "grey75"
+				     :foreground "black" :relief -2 :ascent 'center))
+	      (unchecked (create-image (make-string 8 0)
+				       'xbm t :width 8 :height 8 :background "grey75"
+				       :foreground "black" :relief -2 :ascent 'center)))
+	  (insert-button
+	   " " :on-glyph checked :off-glyph unchecked 'checked nil
+	   'display unchecked 'follow-link t
+	   'action (lambda (button)
+		     (if (overlay-get button 'checked)
+			 (progn (overlay-put button 'checked nil)
+				(overlay-put button 'display (overlay-get button :off-glyph))
+				(setq startup-screen-inhibit-startup-screen nil))
+		       (overlay-put button 'checked t)
+		       (overlay-put button 'display (overlay-get button :on-glyph))
+		       (setq startup-screen-inhibit-startup-screen t)))))
+	(fancy-splash-insert :face '(variable-pitch :height 0.9)
+			     " Never show it again.")))))
 
 (defun exit-splash-screen ()
   "Stop displaying the splash screen buffer."
   (interactive)
-  (if fancy-splash-outer-buffer
-      (throw 'exit nil)
-    (quit-window t)))
+  (quit-window t))
 
-(defun fancy-splash-screens (&optional static)
-  "Display fancy splash screens when Emacs starts."
-  (if (not static)
-      (let ((old-hourglass display-hourglass)
-	    (fancy-splash-outer-buffer (current-buffer))
-	    splash-buffer
-	    (frame (fancy-splash-frame))
-	    timer)
-	(save-selected-window
-	  (select-frame frame)
-	  (switch-to-buffer "*About GNU Emacs*")
-	  (make-local-variable 'cursor-type)
-	  (setq splash-buffer (current-buffer))
-	  (catch 'stop-splashing
-	    (unwind-protect
-		(let ((cursor-type nil))
-		  (setq display-hourglass nil
-			buffer-undo-list t
-			mode-line-format (propertize "---- %b %-"
-						     'face 'mode-line-buffer-id)
-			fancy-splash-stop-time (+ (float-time)
-						  fancy-splash-max-time)
-			timer (run-with-timer 0 fancy-splash-delay
-					      #'fancy-splash-screens-1
-					      splash-buffer))
-		  (use-local-map splash-screen-keymap)
-		  (setq tab-width 22)
-		  (message "%s" (startup-echo-area-message))
-		  (setq buffer-read-only t)
-		  (recursive-edit))
-	      (cancel-timer timer)
-	      (setq display-hourglass old-hourglass)
-	      (kill-buffer splash-buffer)))))
-    ;; If static is non-nil, don't show fancy splash screen.
-    (if (or (window-minibuffer-p)
-	    (window-dedicated-p (selected-window)))
-	(pop-to-buffer (current-buffer))
-      (switch-to-buffer "*GNU Emacs*"))
-    (setq buffer-read-only nil)
-    (erase-buffer)
-    (if pure-space-overflow
-	(insert "\
-Warning Warning!!!  Pure space overflow    !!!Warning Warning
-\(See the node Pure Storage in the Lisp manual for details.)\n"))
-    (let (fancy-splash-outer-buffer)
-      (fancy-splash-head)
-      (dolist (text fancy-splash-text)
-	(apply #'fancy-splash-insert text)
-	(insert "\n"))
-      (skip-chars-backward "\n")
-      (delete-region (point) (point-max))
-      (insert "\n")
-      (fancy-splash-tail)
+(defun fancy-startup-screen (&optional concise)
+  "Display fancy startup screen.
+If CONCISE is non-nil, display a concise version of the
+splash screen in another window."
+  (let ((splash-buffer (get-buffer-create "*GNU Emacs*")))
+    (with-current-buffer splash-buffer
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(make-local-variable 'startup-screen-inhibit-startup-screen)
+	(if pure-space-overflow
+	    (insert pure-space-overflow-message))
+	(unless concise
+	  (fancy-splash-head))
+	(dolist (text fancy-startup-text)
+	  (apply #'fancy-splash-insert text)
+	  (insert "\n"))
+	(skip-chars-backward "\n")
+	(delete-region (point) (point-max))
+	(insert "\n")
+	(fancy-startup-tail concise))
       (use-local-map splash-screen-keymap)
-      (setq tab-width 22)
+      (setq tab-width 22
+	    buffer-read-only t)
       (set-buffer-modified-p nil)
-      (setq buffer-read-only t)
       (if (and view-read-only (not view-mode))
 	  (view-mode-enter nil 'kill-buffer))
-      (goto-char (point-min)))))
+      (goto-char (point-min))
+      (forward-line (if concise 2 4)))
+    (if concise
+	(progn
+	  (display-buffer splash-buffer)
+	  ;; If the splash screen is in a split window, fit it.
+	  (let ((window (get-buffer-window splash-buffer t)))
+	    (or (null window)
+		(eq window (selected-window))
+		(eq window (next-window window))
+		(fit-window-to-buffer window))))
+      (switch-to-buffer splash-buffer))))
+
+(defun fancy-about-screen ()
+  "Display fancy About screen."
+  (let ((frame (fancy-splash-frame)))
+    (save-selected-window
+      (select-frame frame)
+      (switch-to-buffer "*About GNU Emacs*")
+      (setq buffer-undo-list t
+	    mode-line-format (propertize "---- %b %-"
+					 'face 'mode-line-buffer-id))
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(if pure-space-overflow
+	    (insert pure-space-overflow-message))
+	(fancy-splash-head)
+	(dolist (text fancy-about-text)
+	  (apply #'fancy-splash-insert text)
+	  (insert "\n"))
+	(unless (current-message)
+	  (message fancy-splash-help-echo))
+	(set-buffer-modified-p nil)
+	(goto-char (point-min))
+	(force-mode-line-update))
+      (use-local-map splash-screen-keymap)
+      (setq tab-width 22)
+      (message "%s" (startup-echo-area-message))
+      (setq buffer-read-only t)
+      (goto-char (point-min))
+      (forward-line 3))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1494,356 +1587,376 @@ we put it on this frame."
 	  (> frame-height (+ image-height 19)))))))
 
 
-(defun normal-splash-screen (&optional static)
-  "Display splash screen when Emacs starts."
+(defun normal-splash-screen (&optional startup)
+  "Display non-graphic splash screen.
+If optional argument STARTUP is non-nil, display the startup screen
+after Emacs starts.  If STARTUP is nil, display the About screen."
   (let ((prev-buffer (current-buffer)))
-    (unwind-protect
-	(with-current-buffer (get-buffer-create "*About GNU Emacs*")
-	  (setq buffer-read-only nil)
-	  (erase-buffer)
-	  (set (make-local-variable 'tab-width) 8)
-	  (if (not static)
-	      (set (make-local-variable 'mode-line-format)
-		   (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
+    (with-current-buffer (get-buffer-create "*About GNU Emacs*")
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (set (make-local-variable 'tab-width) 8)
+      (if (not startup)
+	  (set (make-local-variable 'mode-line-format)
+	       (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
 
-          (if pure-space-overflow
-              (insert "\
-Warning Warning!!!  Pure space overflow    !!!Warning Warning
-\(See the node Pure Storage in the Lisp manual for details.)\n"))
+      (if pure-space-overflow
+	  (insert pure-space-overflow-message))
 
-          ;; The convention for this piece of code is that
-          ;; each piece of output starts with one or two newlines
-          ;; and does not end with any newlines.
-          (insert "Welcome to GNU Emacs")
-          (insert
-           (if (eq system-type 'gnu/linux)
-               ", one component of the GNU/Linux operating system.\n"
-             ", a part of the GNU operating system.\n"))
+      ;; The convention for this piece of code is that
+      ;; each piece of output starts with one or two newlines
+      ;; and does not end with any newlines.
+      (insert (if startup "Welcome to GNU Emacs" "This is GNU Emacs"))
+      (insert
+       (if (eq system-type 'gnu/linux)
+	   ", one component of the GNU/Linux operating system.\n"
+	 ", a part of the GNU operating system.\n"))
 
-	  (if (not static)
-	      (insert (substitute-command-keys
-		       (concat
-			"\nType \\[recenter] to quit from this screen.\n"))))
+      (if startup
+	  (if (display-mouse-p)
+	      ;; The user can use the mouse to activate menus
+	      ;; so give help in terms of menu items.
+	      (normal-mouse-startup-screen)
 
-          (if (display-mouse-p)
-              ;; The user can use the mouse to activate menus
-              ;; so give help in terms of menu items.
-              (progn
-                (insert "\
-You can do basic editing with the menu bar and scroll bar using the mouse.
+	    ;; No mouse menus, so give help using kbd commands.
+	    (normal-no-mouse-startup-screen))
+
+	(normal-about-screen))
+
+      ;; The rest of the startup screen is the same on all
+      ;; kinds of terminals.
+
+      ;; Give information on recovering, if there was a crash.
+      (and startup
+	   auto-save-list-file-prefix
+	   ;; Don't signal an error if the
+	   ;; directory for auto-save-list files
+	   ;; does not yet exist.
+	   (file-directory-p (file-name-directory
+			      auto-save-list-file-prefix))
+	   (directory-files
+	    (file-name-directory auto-save-list-file-prefix)
+	    nil
+	    (concat "\\`"
+		    (regexp-quote (file-name-nondirectory
+				   auto-save-list-file-prefix)))
+	    t)
+	   (insert "\n\nIf an Emacs session crashed recently, "
+		   "type Meta-x recover-session RET\nto recover"
+		   " the files you were editing.\n"))
+
+      (use-local-map splash-screen-keymap)
+
+      ;; Display the input that we set up in the buffer.
+      (set-buffer-modified-p nil)
+      (setq buffer-read-only t)
+      (if (and view-read-only (not view-mode))
+	  (view-mode-enter nil 'kill-buffer))
+      (switch-to-buffer "*About GNU Emacs*")
+      (if startup (rename-buffer "*GNU Emacs*" t))
+      (goto-char (point-min)))))
+
+(defun normal-mouse-startup-screen ()
+  ;; The user can use the mouse to activate menus
+  ;; so give help in terms of menu items.
+  (insert "\
+To follow a link, click Mouse-1 on it, or move to it and type RET.
 To quit a partially entered command, type Control-g.\n")
 
-		(insert "\nImportant Help menu items:\n")
-		(insert-button "Emacs Tutorial"
-			       'action (lambda (button) (help-with-tutorial))
-			       'follow-link t)
-		(insert "\t\tLearn how to use Emacs efficiently\n")
-		(insert-button "Emacs FAQ"
-			       'action (lambda (button) (view-emacs-FAQ))
-			       'follow-link t)
-		(insert "\t\tFrequently asked questions and answers\n")
-		(insert-button "Read the Emacs Manual"
-			       'action (lambda (button) (info-emacs-manual))
-			       'follow-link t)
-		(insert "\tView the Emacs manual using Info\n")
-		(insert-button "\(Non)Warranty"
-			       'action (lambda (button) (describe-no-warranty))
-			       'follow-link t)
-		(insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
-		(insert-button "Copying Conditions"
-			       'action (lambda (button) (describe-copying))
-			       'follow-link t)
-		(insert "\tConditions for redistributing and changing Emacs\n")
-		(insert-button "Getting New Versions"
-			       'action (lambda (button) (describe-distribution))
-			       'follow-link t)
-		(insert "\tHow to obtain the latest version of Emacs\n")
-		(insert-button "More Manuals / Ordering Manuals"
-			       'action (lambda (button) (view-order-manuals))
-			       'follow-link t)
-		(insert "  How to order printed manuals from the FSF\n")
+  (insert "\nImportant Help menu items:\n")
+  (insert-button "Emacs Tutorial"
+		 'action (lambda (button) (help-with-tutorial))
+		 'follow-link t)
+  (insert "\t\tLearn basic Emacs keystroke commands\n")
+  (insert-button "Read the Emacs Manual"
+		 'action (lambda (button) (info-emacs-manual))
+		 'follow-link t)
+  (insert "\tView the Emacs manual using Info\n")
+  (insert-button "\(Non)Warranty"
+		 'action (lambda (button) (describe-no-warranty))
+		 'follow-link t)
+  (insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
+  (insert-button "Copying Conditions"
+		 'action (lambda (button) (describe-copying))
+		 'follow-link t)
+  (insert "\tConditions for redistributing and changing Emacs\n")
+  (insert-button "More Manuals / Ordering Manuals"
+		 'action (lambda (button) (view-order-manuals))
+		 'follow-link t)
+  (insert "  How to order printed manuals from the FSF\n")
 
-		(insert "\nUseful tasks:\n")
-		(insert-button "Visit New File"
-			       'action (lambda (button) (call-interactively 'find-file))
-			       'follow-link t)
-		(insert "\t\tSpecify a new file's name, to edit the file\n")
-		(insert-button "Open Home Directory"
-			       'action (lambda (button) (dired "~"))
-			       'follow-link t)
-		(insert "\tOpen your home directory, to operate on its files\n")
-		(insert-button "Open *scratch* buffer"
-			       'action (lambda (button) (switch-to-buffer
-							 (get-buffer-create "*scratch*")))
-			       'follow-link t)
-		(insert "\tOpen buffer for notes you don't want to save\n")
-		(insert-button "Customize Startup"
-			       'action (lambda (button) (customize-group 'initialization))
-			       'follow-link t)
-		(insert "\tChange initialization settings including this screen\n")
+  (insert "\nUseful tasks:\n")
+  (insert-button "Visit New File"
+		 'action (lambda (button) (call-interactively 'find-file))
+		 'follow-link t)
+  (insert "\t\tSpecify a new file's name, to edit the file\n")
+  (insert-button "Open Home Directory"
+		 'action (lambda (button) (dired "~"))
+		 'follow-link t)
+  (insert "\tOpen your home directory, to operate on its files\n")
+  (insert-button "Customize Startup"
+		 'action (lambda (button) (customize-group 'initialization))
+		 'follow-link t)
+  (insert "\tChange initialization settings including this screen\n")
 
-                (insert "\n" (emacs-version)
-                        "\n" emacs-copyright))
+  (insert "\n" (emacs-version)
+	  "\n" emacs-copyright))
 
-            ;; No mouse menus, so give help using kbd commands.
+;; No mouse menus, so give help using kbd commands.
+(defun normal-no-mouse-startup-screen ()
 
-            ;; If keys have their default meanings,
-            ;; use precomputed string to save lots of time.
-            (if (and (eq (key-binding "\C-h") 'help-command)
-                     (eq (key-binding "\C-xu") 'advertised-undo)
-                     (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
-                     (eq (key-binding "\C-ht") 'help-with-tutorial)
-                     (eq (key-binding "\C-hi") 'info)
-                     (eq (key-binding "\C-hr") 'info-emacs-manual)
-                     (eq (key-binding "\C-h\C-n") 'view-emacs-news))
-                (progn
-		  (insert "
-Get help	   C-h  (Hold down CTRL and press h)
+  ;; If keys have their default meanings,
+  ;; use precomputed string to save lots of time.
+  (if (and (eq (key-binding "\C-h") 'help-command)
+	   (eq (key-binding "\C-xu") 'advertised-undo)
+	   (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
+	   (eq (key-binding "\C-ht") 'help-with-tutorial)
+	   (eq (key-binding "\C-hi") 'info)
+	   (eq (key-binding "\C-hr") 'info-emacs-manual)
+	   (eq (key-binding "\C-h\C-n") 'view-emacs-news))
+      (progn
+	(insert "
+Get help\t   C-h  (Hold down CTRL and press h)
 ")
-		  (insert-button "Emacs manual"
-				 'action (lambda (button) (info-emacs-manual))
-				 'follow-link t)
-		  (insert "	   C-h r\t")
-		  (insert-button "Browse manuals"
-				 'action (lambda (button) (Info-directory))
-				 'follow-link t)
-		  (insert "\t   C-h i
+	(insert-button "Emacs manual"
+		       'action (lambda (button) (info-emacs-manual))
+		       'follow-link t)
+	(insert "	   C-h r\t")
+	(insert-button "Browse manuals"
+		       'action (lambda (button) (Info-directory))
+		       'follow-link t)
+	(insert "\t   C-h i
 ")
-		  (insert-button "Emacs tutorial"
-				 'action (lambda (button) (help-with-tutorial))
-				 'follow-link t)
-		  (insert "	   C-h t\tUndo changes\t   C-x u
+	(insert-button "Emacs tutorial"
+		       'action (lambda (button) (help-with-tutorial))
+		       'follow-link t)
+	(insert "	   C-h t\tUndo changes\t   C-x u
 ")
-		  (insert-button "Buy manuals"
-				 'action (lambda (button) (view-order-manuals))
-				 'follow-link t)
-		  (insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
+	(insert-button "Buy manuals"
+		       'action (lambda (button) (view-order-manuals))
+		       'follow-link t)
+	(insert "\t   C-h C-m\tExit Emacs\t   C-x C-c"))
 
-	      (insert (format "
-Get help	   %s
+    (insert (format "
+Get help\t   %s
 "
-			      (let ((where (where-is-internal
-					    'help-command nil t)))
-				(if where
-				    (key-description where)
-				  "M-x help"))))
-	      (insert-button "Emacs manual"
-			     'action (lambda (button) (info-emacs-manual))
-			     'follow-link t)
-	      (insert (substitute-command-keys"	   \\[info-emacs-manual]\t"))
-	      (insert-button "Browse manuals"
-			     'action (lambda (button) (Info-directory))
-			     'follow-link t)
-	      (insert (substitute-command-keys "\t   \\[info]
+		    (let ((where (where-is-internal
+				  'help-command nil t)))
+		      (if where
+			  (key-description where)
+			"M-x help"))))
+    (insert-button "Emacs manual"
+		   'action (lambda (button) (info-emacs-manual))
+		   'follow-link t)
+    (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
+    (insert-button "Browse manuals"
+		   'action (lambda (button) (Info-directory))
+		   'follow-link t)
+    (insert (substitute-command-keys "\t   \\[info]
 "))
-	      (insert-button "Emacs tutorial"
-			     'action (lambda (button) (help-with-tutorial))
-			     'follow-link t)
-	      (insert (substitute-command-keys
-		       "	   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
+    (insert-button "Emacs tutorial"
+		   'action (lambda (button) (help-with-tutorial))
+		   'follow-link t)
+    (insert (substitute-command-keys
+	     "\t   \\[help-with-tutorial]\tUndo changes\t   \\[advertised-undo]
 "))
-	      (insert-button "Buy manuals"
-			     'action (lambda (button) (view-order-manuals))
-			     'follow-link t)
-	      (insert (substitute-command-keys
-		       "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-emacs]")))
+    (insert-button "Buy manuals"
+		   'action (lambda (button) (view-order-manuals))
+		   'follow-link t)
+    (insert (substitute-command-keys
+	     "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
 
-            ;; Say how to use the menu bar with the keyboard.
-	    (insert "\n")
-	    (insert-button "Activate menubar"
-			   'action (lambda (button) (tmm-menubar))
-			   'follow-link t)
-            (if (and (eq (key-binding "\M-`") 'tmm-menubar)
-                     (eq (key-binding [f10]) 'tmm-menubar))
-                (insert "   F10  or  ESC `  or   M-`")
-              (insert (substitute-command-keys "     \\[tmm-menubar]")))
+  ;; Say how to use the menu bar with the keyboard.
+  (insert "\n")
+  (insert-button "Activate menubar"
+		 'action (lambda (button) (tmm-menubar))
+		 'follow-link t)
+  (if (and (eq (key-binding "\M-`") 'tmm-menubar)
+	   (eq (key-binding [f10]) 'tmm-menubar))
+      (insert "   F10  or  ESC `  or   M-`")
+    (insert (substitute-command-keys "   \\[tmm-menubar]")))
 
-            ;; Many users seem to have problems with these.
-            (insert "
+  ;; Many users seem to have problems with these.
+  (insert "
 \(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
 If you have no Meta key, you may instead type ESC followed by the character.)")
 
-	    ;; Insert links to useful tasks
-	    (insert "\nUseful tasks:\n")
+  ;; Insert links to useful tasks
+  (insert "\nUseful tasks:\n")
 
-	    (insert-button "Visit New File"
-			   'action (lambda (button) (call-interactively 'find-file))
-			   'follow-link t)
-	    (insert "\t\t\t")
-	    (insert-button "Open Home Directory"
-			   'action (lambda (button) (dired "~"))
-			   'follow-link t)
-	    (insert "\n")
+  (insert-button "Visit New File"
+		 'action (lambda (button) (call-interactively 'find-file))
+		 'follow-link t)
+  (insert "\t\t\t")
+  (insert-button "Open Home Directory"
+		 'action (lambda (button) (dired "~"))
+		 'follow-link t)
+  (insert "\n")
 
-	    (insert-button "Customize Startup"
-			   'action (lambda (button) (customize-group 'initialization))
-			   'follow-link t)
-	    (insert "\t\t")
-	    (insert-button "Open *scratch* buffer"
-			   'action (lambda (button) (switch-to-buffer
-						     (get-buffer-create "*scratch*")))
-			   'follow-link t)
-	    (insert "\n")
+  (insert-button "Customize Startup"
+		 'action (lambda (button) (customize-group 'initialization))
+		 'follow-link t)
+  (insert "\t\t")
+  (insert-button "Open *scratch* buffer"
+		 'action (lambda (button) (switch-to-buffer
+					   (get-buffer-create "*scratch*")))
+		 'follow-link t)
+  (insert "\n")
+  (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
 
-            (insert "\n" (emacs-version)
-                    "\n" emacs-copyright)
-
-            (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-                     (eq (key-binding "\C-h\C-d") 'describe-distribution)
-                     (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-                (progn
-		  (insert
-		   "\n
+  (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
+	   (eq (key-binding "\C-h\C-d") 'describe-distribution)
+	   (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
+      (progn
+	(insert
+	 "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
-		  (insert-button "full details"
-				 'action (lambda (button) (describe-no-warranty))
-				 'follow-link t)
-		  (insert ".
+	(insert-button "full details"
+		       'action (lambda (button) (describe-no-warranty))
+		       'follow-link t)
+	(insert ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type C-h C-c to see ")
-		  (insert-button "the conditions"
-				 'action (lambda (button) (describe-copying))
-				 'follow-link t)
-		  (insert ".
+	(insert-button "the conditions"
+		       'action (lambda (button) (describe-copying))
+		       'follow-link t)
+	(insert ".
 Type C-h C-d for information on ")
-		  (insert-button "getting the latest version"
-				 'action (lambda (button) (describe-distribution))
-				 'follow-link t)
-		  (insert "."))
-              (insert (substitute-command-keys
-                       "\n
+	(insert-button "getting the latest version"
+		       'action (lambda (button) (describe-distribution))
+		       'follow-link t)
+	(insert "."))
+    (insert (substitute-command-keys
+	     "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
-	      (insert-button "full details"
-			     'action (lambda (button) (describe-no-warranty))
-			     'follow-link t)
-	      (insert (substitute-command-keys ".
+    (insert-button "full details"
+		   'action (lambda (button) (describe-no-warranty))
+		   'follow-link t)
+    (insert (substitute-command-keys ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type \\[describe-copying] to see "))
-	      (insert-button "the conditions"
-			     'action (lambda (button) (describe-copying))
-			     'follow-link t)
-	      (insert (substitute-command-keys".
+    (insert-button "the conditions"
+		   'action (lambda (button) (describe-copying))
+		   'follow-link t)
+    (insert (substitute-command-keys".
 Type \\[describe-distribution] for information on "))
-	      (insert-button "getting the latest version"
-			     'action (lambda (button) (describe-distribution))
-			     'follow-link t)
-	      (insert ".")))
+    (insert-button "getting the latest version"
+		   'action (lambda (button) (describe-distribution))
+		   'follow-link t)
+    (insert ".")))
 
-          ;; The rest of the startup screen is the same on all
-          ;; kinds of terminals.
+(defun normal-about-screen ()
+  (insert "\n" (emacs-version) "\n" emacs-copyright "\n\n")
 
-          ;; Give information on recovering, if there was a crash.
-          (and auto-save-list-file-prefix
-               ;; Don't signal an error if the
-               ;; directory for auto-save-list files
-               ;; does not yet exist.
-               (file-directory-p (file-name-directory
-                                  auto-save-list-file-prefix))
-               (directory-files
-                (file-name-directory auto-save-list-file-prefix)
-                nil
-                (concat "\\`"
-                        (regexp-quote (file-name-nondirectory
-                                       auto-save-list-file-prefix)))
-                t)
-               (insert "\n\nIf an Emacs session crashed recently, "
-                       "type Meta-x recover-session RET\nto recover"
-                       " the files you were editing.\n"))
+  (insert "To follow a link, click Mouse-1 on it, or move to it and type RET.\n\n")
 
-	  (use-local-map splash-screen-keymap)
+  (insert-button "Authors"
+		 'action
+		 (lambda (button)
+		   (view-file (expand-file-name "AUTHORS" data-directory))
+		   (goto-char (point-min)))
+		 'follow-link t)
+  (insert "\t\tMany people have contributed code included in GNU Emacs\n")
 
-          ;; Display the input that we set up in the buffer.
-          (set-buffer-modified-p nil)
-	  (setq buffer-read-only t)
-	  (if (and view-read-only (not view-mode))
-	      (view-mode-enter nil 'kill-buffer))
-          (goto-char (point-min))
-          (if (not static)
-              (if (or (window-minibuffer-p)
-                      (window-dedicated-p (selected-window)))
-                  ;; If static is nil, creating a new frame will
-                  ;; generate enough events that the subsequent `sit-for'
-                  ;; will immediately return anyway.
-                  nil ;; (pop-to-buffer (current-buffer))
-		(save-window-excursion
-                  (switch-to-buffer (current-buffer))
-		  (sit-for 120)))
-          (condition-case nil
-              (switch-to-buffer (current-buffer))
-            ;; In case the window is dedicated or something.
-            (error (pop-to-buffer (current-buffer))))))
-      ;; Unwind ... ensure splash buffer is killed
-      (if (not static)
-	  (kill-buffer "*About GNU Emacs*")
-	(switch-to-buffer "*About GNU Emacs*")
-	(rename-buffer "*GNU Emacs*" t)))))
+  (insert-button "Contributing"
+		 'action
+		 (lambda (button)
+		   (view-file (expand-file-name "CONTRIBUTE" data-directory))
+		   (goto-char (point-min)))
+		 'follow-link t)
+  (insert "\tHow to contribute improvements to Emacs\n\n")
 
+  (insert-button "GNU and Freedom"
+		 'action (lambda (button) (describe-project))
+		 'follow-link t)
+  (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
+
+  (insert-button "Absence of Warranty"
+		 'action (lambda (button) (describe-no-warranty))
+		 'follow-link t)
+  (insert "\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
+
+  (insert-button "Copying Conditions"
+		 'action (lambda (button) (describe-copying))
+		 'follow-link t)
+  (insert "\tConditions for redistributing and changing Emacs\n")
+
+  (insert-button "Getting New Versions"
+		 'action (lambda (button) (describe-distribution))
+		 'follow-link t)
+  (insert "\tHow to get the latest version of GNU Emacs\n")
+
+  (insert-button "More Manuals / Ordering Manuals"
+		 'action (lambda (button) (view-order-manuals))
+		 'follow-link t)
+  (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
   (if (eq (key-binding "\C-h\C-p") 'describe-project)
-      "For information about the GNU system and GNU/Linux, type C-h C-p."
+      "For information about GNU Emacs and the GNU system, type C-h C-a."
     (substitute-command-keys
-     "For information about the GNU system and GNU/Linux, type \
-\\[describe-project].")))
+     "For information about GNU Emacs and the GNU system, type \
+\\[about-emacs].")))
 
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
-    (message "%s" (startup-echo-area-message))))
+    (or noninteractive ;(input-pending-p) init-file-had-error
+	;; t if the init file says to inhibit the echo area startup message.
+	(and inhibit-startup-echo-area-message
+	     user-init-file
+	     (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
+		      (equal inhibit-startup-echo-area-message
+			     (if (equal init-file-user "")
+				 (user-login-name)
+			       init-file-user)))
+		 ;; Wasn't set with custom; see if .emacs has a setq.
+		 (let ((buffer (get-buffer-create " *temp*")))
+		   (prog1
+		       (condition-case nil
+			   (save-excursion
+			     (set-buffer buffer)
+			     (insert-file-contents user-init-file)
+			     (re-search-forward
+			      (concat
+			       "([ \t\n]*setq[ \t\n]+"
+			       "inhibit-startup-echo-area-message[ \t\n]+"
+			       (regexp-quote
+				(prin1-to-string
+				 (if (equal init-file-user "")
+				     (user-login-name)
+				   init-file-user)))
+			       "[ \t\n]*)")
+			      nil t))
+			 (error nil))
+		     (kill-buffer buffer)))))
+	(message "%s" (startup-echo-area-message)))))
 
+(defun display-startup-screen (&optional concise)
+  "Display startup screen according to display.
+A fancy display is used on graphic displays, normal otherwise.
 
-(defun display-splash-screen (&optional static)
-  "Display splash screen according to display.
-Fancy splash screens are used on graphic displays,
-normal otherwise.
-With a prefix argument, any user input hides the splash screen."
-  (interactive "P")
+If CONCISE is non-nil, display a concise version of the startup
+screen."
+  ;; Prevent recursive calls from server-process-filter.
+  (if (not (get-buffer "*GNU Emacs*"))
+      (if (use-fancy-splash-screens-p)
+      	  (fancy-startup-screen concise)
+      	(normal-splash-screen t))))
+
+(defun display-about-screen ()
+  "Display the *About GNU Emacs* buffer.
+A fancy display is used on graphic displays, normal otherwise."
+  (interactive)
   (if (use-fancy-splash-screens-p)
-      (fancy-splash-screens static)
-    (normal-splash-screen static)))
+      (fancy-about-screen)
+    (normal-splash-screen nil)))
 
-(defalias 'about-emacs 'display-splash-screen)
+(defalias 'about-emacs 'display-about-screen)
+(defalias 'display-splash-screen 'display-startup-screen)
 
 (defun command-line-1 (command-line-args-left)
-  (or noninteractive (input-pending-p) init-file-had-error
-      ;; t if the init file says to inhibit the echo area startup message.
-      (and inhibit-startup-echo-area-message
-	   user-init-file
-	   (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
-		    (equal inhibit-startup-echo-area-message
-			   (if (equal init-file-user "")
-			       (user-login-name)
-			     init-file-user)))
-	       ;; Wasn't set with custom; see if .emacs has a setq.
-	       (let ((buffer (get-buffer-create " *temp*")))
-		 (prog1
-		     (condition-case nil
-			 (save-excursion
-			   (set-buffer buffer)
-			   (insert-file-contents user-init-file)
-			   (re-search-forward
-			    (concat
-			     "([ \t\n]*setq[ \t\n]+"
-			     "inhibit-startup-echo-area-message[ \t\n]+"
-			     (regexp-quote
-			      (prin1-to-string
-			       (if (equal init-file-user "")
-				   (user-login-name)
-				 init-file-user)))
-			     "[ \t\n]*)")
-			    nil t))
-		       (error nil))
-		   (kill-buffer buffer)))))
-      ;; display-splash-screen at the end of command-line-1 calls
-      ;; use-fancy-splash-screens-p. This can cause image.el to be
-      ;; loaded, putting "Loading image... done" in the echo area.
-      ;; This hides startup-echo-area-message. So
-      ;; use-fancy-splash-screens-p is called here simply to get the
-      ;; loading of image.el (if needed) out of the way before
-      ;; display-startup-echo-area-message runs.
-      (progn
-        (use-fancy-splash-screens-p)
-        (display-startup-echo-area-message)))
+  (display-startup-echo-area-message)
 
   ;; Delay 2 seconds after an init file error message
   ;; was displayed, so user can read it.
@@ -1857,267 +1970,273 @@ With a prefix argument, any user input hides the splash screen."
      "Building Emacs overflowed pure space.  (See the node Pure Storage in the Lisp manual for details.)"
      :warning))
 
-  (when command-line-args-left
-    ;; We have command args; process them.
-    (let ((dir command-line-default-directory)
-          (file-count 0)
-          first-file-buffer
-          tem
-          ;; This approach loses for "-batch -L DIR --eval "(require foo)",
-          ;; if foo is intended to be found in DIR.
-          ;;
-          ;; ;; The directories listed in --directory/-L options will *appear*
-          ;; ;; at the front of `load-path' in the order they appear on the
-          ;; ;; command-line.  We cannot do this by *placing* them at the front
-          ;; ;; in the order they appear, so we need this variable to hold them,
-          ;; ;; temporarily.
-          ;; extra-load-path
-          ;;
-          ;; To DTRT we keep track of the splice point and modify `load-path'
-          ;; straight away upon any --directory/-L option.
-          splice
-          just-files ;; t if this follows the magic -- option.
-          ;; This includes our standard options' long versions
-          ;; and long versions of what's on command-switch-alist.
-          (longopts
-           (append '(("--funcall") ("--load") ("--insert") ("--kill")
-                     ("--directory") ("--eval") ("--execute") ("--no-splash")
-                     ("--find-file") ("--visit") ("--file") ("--no-desktop"))
-                   (mapcar (lambda (elt)
-                             (list (concat "-" (car elt))))
-                           command-switch-alist)))
-          (line 0)
-          (column 0))
+  (let ((file-count 0)
+	first-file-buffer)
+    (when command-line-args-left
+      ;; We have command args; process them.
+      (let ((dir command-line-default-directory)
+	    tem
+	    ;; This approach loses for "-batch -L DIR --eval "(require foo)",
+	    ;; if foo is intended to be found in DIR.
+	    ;;
+	    ;; ;; The directories listed in --directory/-L options will *appear*
+	    ;; ;; at the front of `load-path' in the order they appear on the
+	    ;; ;; command-line.  We cannot do this by *placing* them at the front
+	    ;; ;; in the order they appear, so we need this variable to hold them,
+	    ;; ;; temporarily.
+	    ;; extra-load-path
+	    ;;
+	    ;; To DTRT we keep track of the splice point and modify `load-path'
+	    ;; straight away upon any --directory/-L option.
+	    splice
+	    just-files ;; t if this follows the magic -- option.
+	    ;; This includes our standard options' long versions
+	    ;; and long versions of what's on command-switch-alist.
+	    (longopts
+	     (append '(("--funcall") ("--load") ("--insert") ("--kill")
+		       ("--directory") ("--eval") ("--execute") ("--no-splash")
+		       ("--find-file") ("--visit") ("--file") ("--no-desktop"))
+		     (mapcar (lambda (elt)
+			       (list (concat "-" (car elt))))
+			     command-switch-alist)))
+	    (line 0)
+	    (column 0))
 
-      ;; Add the long X options to longopts.
-      (dolist (tem command-line-x-option-alist)
-        (if (string-match "^--" (car tem))
-            (push (list (car tem)) longopts)))
+	;; Add the long X options to longopts.
+	(dolist (tem command-line-x-option-alist)
+	  (if (string-match "^--" (car tem))
+	      (push (list (car tem)) longopts)))
 
-      ;; Loop, processing options.
-      (while command-line-args-left
-        (let* ((argi (car command-line-args-left))
-               (orig-argi argi)
-               argval completion)
-          (setq command-line-args-left (cdr command-line-args-left))
+	;; Loop, processing options.
+	(while command-line-args-left
+	  (let* ((argi (car command-line-args-left))
+		 (orig-argi argi)
+		 argval completion)
+	    (setq command-line-args-left (cdr command-line-args-left))
 
-          ;; Do preliminary decoding of the option.
-          (if just-files
-              ;; After --, don't look for options; treat all args as files.
-              (setq argi "")
-            ;; Convert long options to ordinary options
-            ;; and separate out an attached option argument into argval.
-            (when (string-match "^\\(--[^=]*\\)=" argi)
-              (setq argval (substring argi (match-end 0))
-                    argi (match-string 1 argi)))
-            (if (equal argi "--")
-                (setq completion nil)
-              (setq completion (try-completion argi longopts)))
-            (if (eq completion t)
-                (setq argi (substring argi 1))
-              (if (stringp completion)
-                  (let ((elt (assoc completion longopts)))
-                    (or elt
-                        (error "Option `%s' is ambiguous" argi))
-                    (setq argi (substring (car elt) 1)))
-                (setq argval nil
-                      argi orig-argi))))
+	    ;; Do preliminary decoding of the option.
+	    (if just-files
+		;; After --, don't look for options; treat all args as files.
+		(setq argi "")
+	      ;; Convert long options to ordinary options
+	      ;; and separate out an attached option argument into argval.
+	      (when (string-match "^\\(--[^=]*\\)=" argi)
+		(setq argval (substring argi (match-end 0))
+		      argi (match-string 1 argi)))
+	      (if (equal argi "--")
+		  (setq completion nil)
+		(setq completion (try-completion argi longopts)))
+	      (if (eq completion t)
+		  (setq argi (substring argi 1))
+		(if (stringp completion)
+		    (let ((elt (assoc completion longopts)))
+		      (or elt
+			  (error "Option `%s' is ambiguous" argi))
+		      (setq argi (substring (car elt) 1)))
+		  (setq argval nil
+			argi orig-argi))))
 
-          ;; Execute the option.
-          (cond ((setq tem (assoc argi command-switch-alist))
-                 (if argval
-                     (let ((command-line-args-left
-                            (cons argval command-line-args-left)))
-                       (funcall (cdr tem) argi))
-                   (funcall (cdr tem) argi)))
+	    ;; Execute the option.
+	    (cond ((setq tem (assoc argi command-switch-alist))
+		   (if argval
+		       (let ((command-line-args-left
+			      (cons argval command-line-args-left)))
+			 (funcall (cdr tem) argi))
+		     (funcall (cdr tem) argi)))
 
-                ((equal argi "-no-splash")
-                 (setq inhibit-startup-message t))
+		  ((equal argi "-no-splash")
+		   (setq inhibit-startup-screen t))
 
-                ((member argi '("-f"	; what the manual claims
-                                "-funcall"
-                                "-e"))  ; what the source used to say
-                 (setq tem (intern (or argval (pop command-line-args-left))))
-                 (if (commandp tem)
-                     (command-execute tem)
-                   (funcall tem)))
+		  ((member argi '("-f"	; what the manual claims
+				  "-funcall"
+				  "-e"))  ; what the source used to say
+		   (setq inhibit-startup-screen t)
+		   (setq tem (intern (or argval (pop command-line-args-left))))
+		   (if (commandp tem)
+		       (command-execute tem)
+		     (funcall tem)))
 
-                ((member argi '("-eval" "-execute"))
-                 (eval (read (or argval (pop command-line-args-left)))))
+		  ((member argi '("-eval" "-execute"))
+		   (setq inhibit-startup-screen t)
+		   (eval (read (or argval (pop command-line-args-left)))))
 
-                ((member argi '("-L" "-directory"))
-                 (setq tem (expand-file-name
-                            (command-line-normalize-file-name
-                             (or argval (pop command-line-args-left)))))
-                 (cond (splice (setcdr splice (cons tem (cdr splice)))
-                               (setq splice (cdr splice)))
-                       (t (setq load-path (cons tem load-path)
-                                splice load-path))))
+		  ((member argi '("-L" "-directory"))
+		   (setq tem (expand-file-name
+			      (command-line-normalize-file-name
+			       (or argval (pop command-line-args-left)))))
+		   (cond (splice (setcdr splice (cons tem (cdr splice)))
+				 (setq splice (cdr splice)))
+			 (t (setq load-path (cons tem load-path)
+				  splice load-path))))
 
-                ((member argi '("-l" "-load"))
-                 (let* ((file (command-line-normalize-file-name
-                               (or argval (pop command-line-args-left))))
-                        ;; Take file from default dir if it exists there;
-                        ;; otherwise let `load' search for it.
-                        (file-ex (expand-file-name file)))
-                   (when (file-exists-p file-ex)
-                     (setq file file-ex))
-                   (load file nil t)))
+		  ((member argi '("-l" "-load"))
+		   (let* ((file (command-line-normalize-file-name
+				 (or argval (pop command-line-args-left))))
+			  ;; Take file from default dir if it exists there;
+			  ;; otherwise let `load' search for it.
+			  (file-ex (expand-file-name file)))
+		     (when (file-exists-p file-ex)
+		       (setq file file-ex))
+		     (load file nil t)))
 
-		;; This is used to handle -script.  It's not clear
-		;; we need to document it.
-                ((member argi '("-scriptload"))
-                 (let* ((file (command-line-normalize-file-name
-                               (or argval (pop command-line-args-left))))
-                        ;; Take file from default dir.
-                        (file-ex (expand-file-name file)))
-                   (load file-ex nil t t)))
+		  ;; This is used to handle -script.  It's not clear
+		  ;; we need to document it.
+		  ((member argi '("-scriptload"))
+		   (let* ((file (command-line-normalize-file-name
+				 (or argval (pop command-line-args-left))))
+			  ;; Take file from default dir.
+			  (file-ex (expand-file-name file)))
+		     (load file-ex nil t t)))
 
-                ((equal argi "-insert")
-                 (setq tem (or argval (pop command-line-args-left)))
-                 (or (stringp tem)
-                     (error "File name omitted from `-insert' option"))
-                 (insert-file-contents (command-line-normalize-file-name tem)))
+		  ((equal argi "-insert")
+		   (setq inhibit-startup-screen t)
+		   (setq tem (or argval (pop command-line-args-left)))
+		   (or (stringp tem)
+		       (error "File name omitted from `-insert' option"))
+		   (insert-file-contents (command-line-normalize-file-name tem)))
 
-                ((equal argi "-kill")
-                 (kill-emacs t))
+		  ((equal argi "-kill")
+		   (kill-emacs t))
 
-		;; This is for when they use --no-desktop with -q, or
-		;; don't load Desktop in their .emacs.  If desktop.el
-		;; _is_ loaded, it will handle this switch, and we
-		;; won't see it by the time we get here.
-		((equal argi "-no-desktop")
-		 (message "\"--no-desktop\" ignored because the Desktop package is not loaded"))
+		  ;; This is for when they use --no-desktop with -q, or
+		  ;; don't load Desktop in their .emacs.  If desktop.el
+		  ;; _is_ loaded, it will handle this switch, and we
+		  ;; won't see it by the time we get here.
+		  ((equal argi "-no-desktop")
+		   (message "\"--no-desktop\" ignored because the Desktop package is not loaded"))
 
-                ((string-match "^\\+[0-9]+\\'" argi)
-                 (setq line (string-to-number argi)))
+		  ((string-match "^\\+[0-9]+\\'" argi)
+		   (setq line (string-to-number argi)))
 
-                ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
-                 (setq line (string-to-number (match-string 1 argi))
-                       column (string-to-number (match-string 2 argi))))
+		  ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
+		   (setq line (string-to-number (match-string 1 argi))
+			 column (string-to-number (match-string 2 argi))))
 
-                ((setq tem (assoc argi command-line-x-option-alist))
-                 ;; Ignore X-windows options and their args if not using X.
-                 (setq command-line-args-left
-                       (nthcdr (nth 1 tem) command-line-args-left)))
+		  ((setq tem (assoc argi command-line-x-option-alist))
+		   ;; Ignore X-windows options and their args if not using X.
+		   (setq command-line-args-left
+			 (nthcdr (nth 1 tem) command-line-args-left)))
 
-                ((member argi '("-find-file" "-file" "-visit"))
-                 ;; An explicit option to specify visiting a file.
-                 (setq tem (or argval (pop command-line-args-left)))
-                 (unless (stringp tem)
-                   (error "File name omitted from `%s' option" argi))
-                 (setq file-count (1+ file-count))
-                 (let ((file (expand-file-name
-                              (command-line-normalize-file-name tem) dir)))
-                   (if (= file-count 1)
-                       (setq first-file-buffer (find-file file))
-                     (find-file-other-window file)))
-                 (or (zerop line)
-                     (goto-line line))
-                 (setq line 0)
-                 (unless (< column 1)
-                   (move-to-column (1- column)))
-                 (setq column 0))
+		  ((member argi '("-find-file" "-file" "-visit"))
+		   (setq inhibit-startup-screen t)
+		   ;; An explicit option to specify visiting a file.
+		   (setq tem (or argval (pop command-line-args-left)))
+		   (unless (stringp tem)
+		     (error "File name omitted from `%s' option" argi))
+		   (setq file-count (1+ file-count))
+		   (let ((file (expand-file-name
+				(command-line-normalize-file-name tem) dir)))
+		     (if (= file-count 1)
+			 (setq first-file-buffer (find-file file))
+		       (find-file-other-window file)))
+		   (or (zerop line)
+		       (goto-line line))
+		   (setq line 0)
+		   (unless (< column 1)
+		     (move-to-column (1- column)))
+		   (setq column 0))
 
-                ((equal argi "--")
-                 (setq just-files t))
-                (t
-                 ;; We have almost exhausted our options. See if the
-                 ;; user has made any other command-line options available
-                 (let ((hooks command-line-functions) ;; lrs 7/31/89
-                       (did-hook nil))
-                   (while (and hooks
-                               (not (setq did-hook (funcall (car hooks)))))
-                     (setq hooks (cdr hooks)))
-                   (if (not did-hook)
-                       ;; Presume that the argument is a file name.
-                       (progn
-                         (if (string-match "\\`-" argi)
-                             (error "Unknown option `%s'" argi))
-                         (setq file-count (1+ file-count))
-                         (let ((file
-                                (expand-file-name
-                                 (command-line-normalize-file-name orig-argi)
-                                 dir)))
-                           (if (= file-count 1)
-                               (setq first-file-buffer (find-file file))
-                             (find-file-other-window file)))
-                         (or (zerop line)
-                             (goto-line line))
-                         (setq line 0)
-                         (unless (< column 1)
-                           (move-to-column (1- column)))
-                         (setq column 0))))))
-	  ;; In unusual circumstances, the execution of Lisp code due
-	  ;; to command-line options can cause the last visible frame
-	  ;; to be deleted.  In this case, kill emacs to avoid an
-	  ;; abort later.
-	  (unless (frame-live-p (selected-frame)) (kill-emacs nil))))
+		  ((equal argi "--")
+		   (setq just-files t))
+		  (t
+		   ;; We have almost exhausted our options. See if the
+		   ;; user has made any other command-line options available
+		   (let ((hooks command-line-functions)
+			 (did-hook nil))
+		     (while (and hooks
+				 (not (setq did-hook (funcall (car hooks)))))
+		       (setq hooks (cdr hooks)))
+		     (if (not did-hook)
+			 ;; Presume that the argument is a file name.
+			 (progn
+			   (if (string-match "\\`-" argi)
+			       (error "Unknown option `%s'" argi))
+			   (unless initial-window-system
+			     (setq inhibit-startup-screen t))
+			   (setq file-count (1+ file-count))
+			   (let ((file
+				  (expand-file-name
+				   (command-line-normalize-file-name orig-argi)
+				   dir)))
+			     (cond ((= file-count 1)
+				    (setq first-file-buffer (find-file file)))
+				   (inhibit-startup-screen
+				    (find-file-other-window file))
+				   (t (find-file file))))
+			   (or (zerop line)
+			       (goto-line line))
+			   (setq line 0)
+			   (unless (< column 1)
+			     (move-to-column (1- column)))
+			   (setq column 0))))))
+	    ;; In unusual circumstances, the execution of Lisp code due
+	    ;; to command-line options can cause the last visible frame
+	    ;; to be deleted.  In this case, kill emacs to avoid an
+	    ;; abort later.
+	    (unless (frame-live-p (selected-frame)) (kill-emacs nil))))))
 
-      ;; If 3 or more files visited, and not all visible,
-      ;; show user what they all are.  But leave the last one current.
-      (and (> file-count 2)
-           (not noninteractive)
-           (not inhibit-startup-buffer-menu)
-           (or (get-buffer-window first-file-buffer)
-               (list-buffers)))))
+    (when initial-buffer-choice
+      (cond ((eq initial-buffer-choice t)
+	     (switch-to-buffer (get-buffer-create "*scratch*")))
+	    ((stringp initial-buffer-choice)
+	     (find-file initial-buffer-choice))))
 
-  (when initial-buffer-choice
-    (cond ((eq initial-buffer-choice t)
-	   (switch-to-buffer (get-buffer-create "*scratch*")))
-	  ((stringp initial-buffer-choice)
-	   (find-file initial-buffer-choice))))
+    (if (or inhibit-startup-screen
+	    initial-buffer-choice
+	    noninteractive
+	    emacs-quick-startup)
 
-  ;; Maybe display a startup screen.
-  (unless (or inhibit-startup-message
-	      initial-buffer-choice
-	      noninteractive
-	      emacs-quick-startup)
-    ;; Display a startup screen, after some preparations.
+	;; Not displaying a startup screen.  If 3 or more files
+	;; visited, and not all visible, show user what they all are.
+	(and (> file-count 2)
+	     (not noninteractive)
+	     (not inhibit-startup-buffer-menu)
+	     (or (get-buffer-window first-file-buffer)
+		 (list-buffers)))
 
-    ;; If there are no switches to process, we might as well
-    ;; run this hook now, and there may be some need to do it
-    ;; before doing any output.
-    (run-hooks 'emacs-startup-hook)
-    (and term-setup-hook
-	 (run-hooks 'term-setup-hook))
-    (setq inhibit-startup-hooks t)
+      ;; Display a startup screen, after some preparations.
 
-    ;; It's important to notice the user settings before we
-    ;; display the startup message; otherwise, the settings
-    ;; won't take effect until the user gives the first
-    ;; keystroke, and that's distracting.
-    (when (fboundp 'frame-notice-user-settings)
-      (frame-notice-user-settings))
+      ;; If there are no switches to process, we might as well
+      ;; run this hook now, and there may be some need to do it
+      ;; before doing any output.
+      (run-hooks 'emacs-startup-hook)
+      (and term-setup-hook
+	   (run-hooks 'term-setup-hook))
+      (setq inhibit-startup-hooks t)
 
-    ;; If there are no switches to process, we might as well
-    ;; run this hook now, and there may be some need to do it
-    ;; before doing any output.
-    (when window-setup-hook
-      (run-hooks 'window-setup-hook)
-      ;; Don't let the hook be run twice.
-      (setq window-setup-hook nil))
+      ;; It's important to notice the user settings before we
+      ;; display the startup message; otherwise, the settings
+      ;; won't take effect until the user gives the first
+      ;; keystroke, and that's distracting.
+      (when (fboundp 'frame-notice-user-settings)
+	(frame-notice-user-settings))
 
-    ;; Do this now to avoid an annoying delay if the user
-    ;; clicks the menu bar during the sit-for.
-    (when (display-popup-menus-p)
-      (precompute-menubar-bindings))
-    (with-no-warnings
-     (setq menubar-bindings-done t))
+      ;; If there are no switches to process, we might as well
+      ;; run this hook now, and there may be some need to do it
+      ;; before doing any output.
+      (when window-setup-hook
+	(run-hooks 'window-setup-hook)
+	;; Don't let the hook be run twice.
+	(setq window-setup-hook nil))
 
-    ;; If *scratch* exists and is empty, insert initial-scratch-message.
-    (and initial-scratch-message
-         (get-buffer "*scratch*")
-         (with-current-buffer "*scratch*"
-           (when (zerop (buffer-size))
-             (insert initial-scratch-message)
-             (set-buffer-modified-p nil))))
+      ;; ;; Do this now to avoid an annoying delay if the user
+      ;; ;; clicks the menu bar during the sit-for.
+      ;; (when (display-popup-menus-p)
+      ;; 	(precompute-menubar-bindings))
+      ;; (with-no-warnings
+      ;; 	(setq menubar-bindings-done t))
 
-    ;; If user typed input during all that work,
-    ;; abort the startup screen.  Otherwise, display it now.
-    (unless (input-pending-p)
-      (display-splash-screen t))))
+      ;; If *scratch* exists and is empty, insert initial-scratch-message.
+      (and initial-scratch-message
+	   (get-buffer "*scratch*")
+	   (with-current-buffer "*scratch*"
+	     (when (zerop (buffer-size))
+	       (insert initial-scratch-message)
+	       (set-buffer-modified-p nil))))
 
+      (if (> file-count 0)
+	  (display-startup-screen t)
+	(display-startup-screen nil)))))
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."

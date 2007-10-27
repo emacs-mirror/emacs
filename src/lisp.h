@@ -113,6 +113,57 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #define eassert(cond) CHECK(cond,"assertion failed")
 #endif
 #endif /* ENABLE_CHECKING */
+
+/***** Select the tagging scheme.  *****/
+/* There are basically two options that control the tagging scheme:
+   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
+     of a union.
+   - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
+     always 0, and we can thus use them to hold tag bits, without
+     restricting our addressing space.
+
+   If USE_LSB_TAG is not set, then we use the top 3 bits for tagging, thus
+   restricting our possible address range.  Currently USE_LSB_TAG is not
+   allowed together with a union.  This is not due to any fundamental
+   technical (or political ;-) problem: nobody wrote the code to do it yet.
+
+   USE_LSB_TAG not only requires the least 3 bits of pointers returned by
+   malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
+   on the few static Lisp_Objects used: all the defsubr as well
+   as the two special buffers buffer_defaults and buffer_local_symbols.  */
+
+/* First, try and define DECL_ALIGN(type,var) which declares a static
+   variable VAR of type TYPE with the added requirement that it be
+   TYPEBITS-aligned. */
+#ifndef NO_DECL_ALIGN
+# ifndef DECL_ALIGN
+/* What compiler directive should we use for non-gcc compilers?  -stef  */
+#  if defined (__GNUC__)
+#   define DECL_ALIGN(type, var) \
+     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
+#  endif
+# endif
+#endif
+
+/* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
+/* We also need to be able to specify mult-of-8 alignment on static vars.  */
+# if defined DECL_ALIGN
+/* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
+#  if defined NO_UNION_TYPE
+#   define USE_LSB_TAG
+#  endif
+# endif
+#endif
+
+/* If we cannot use 8-byte alignment, make DECL_ALIGN a no-op.  */
+#ifndef DECL_ALIGN
+# ifdef USE_LSB_TAG
+#  error "USE_LSB_TAG used without defining DECL_ALIGN"
+# endif
+# define DECL_ALIGN(type, var) type var
+#endif
+
 
 /* Define the fundamental Lisp data structures.  */
 
@@ -194,7 +245,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_INT i;
+    EMACS_UINT i;
 
     struct
       {
@@ -216,7 +267,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_INT i;
+    EMACS_UINT i;
 
     struct
       {
@@ -247,34 +298,29 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 #define LISP_MAKE_RVALUE(o) (o)
 #endif
 
-#endif /* NO_UNION_TYPE */
-
+#else /* NO_UNION_TYPE */
 
 /* If union type is not wanted, define Lisp_Object as just a number.  */
 
-#ifdef NO_UNION_TYPE
 typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
 
-/* Two flags that are set during GC.  On some machines, these flags
-   are defined differently by the m- file.  */
-
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
-#ifndef ARRAY_MARK_FLAG
-#define ARRAY_MARK_FLAG ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS - 1)))
-#endif /* no ARRAY_MARK_FLAG */
+#define ARRAY_MARK_FLAG ((EMACS_UINT) 1 << (BITS_PER_EMACS_INT - 1))
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
    some other vector-like object.  */
-#ifndef PSEUDOVECTOR_FLAG
-#define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1) & ~ARRAY_MARK_FLAG)
-#endif
+#define PSEUDOVECTOR_FLAG ((ARRAY_MARK_FLAG >> 1))
 
 /* In a pseudovector, the size field actually contains a word with one
    PSEUDOVECTOR_FLAG bit set, and exactly one of the following bits to
-   indicate the actual type.  */
+   indicate the actual type.
+   We use a bitset, even tho only one of the bits can be set at any
+   particular time just so as to be able to use micro-optimizations such as
+   testing membership of a particular subset of pseudovectors in Fequal.
+   It is not crucial, but there are plenty of bits here, so why not do it?  */
 enum pvec_type
 {
   PVEC_NORMAL_VECTOR = 0,
@@ -288,7 +334,8 @@ enum pvec_type
   PVEC_BOOL_VECTOR = 0x10000,
   PVEC_BUFFER = 0x20000,
   PVEC_HASH_TABLE = 0x40000,
-  PVEC_TYPE_MASK = 0x7fe00
+  PVEC_TERMINAL = 0x80000,
+  PVEC_TYPE_MASK = 0xffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
@@ -308,62 +355,14 @@ enum pvec_type
    of bool vectors.  This should not vary across implementations.  */
 #define BOOL_VECTOR_BITS_PER_CHAR 8
 
-/***** Select the tagging scheme.  *****/
-/* There are basically two options that control the tagging scheme:
-   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
-     of a union.
-   - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
-     always 0, and we can thus use them to hold tag bits, without
-     restricting our addressing space.
-
-   If USE_LSB_TAG is not set, then we use the top 3 bits for tagging, thus
-   restricting our possible address range.  Currently USE_LSB_TAG is not
-   allowed together with a union.  This is not due to any fundamental
-   technical (or political ;-) problem: nobody wrote the code to do it yet.
-
-   USE_LSB_TAG not only requires the least 3 bits of pointers returned by
-   malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
-   on the few static Lisp_Objects used: all the defsubr as well
-   as the two special buffers buffer_defaults and buffer_local_symbols.  */
-
-/* First, try and define DECL_ALIGN(type,var) which declares a static
-   variable VAR of type TYPE with the added requirement that it be
-   TYPEBITS-aligned. */
-#ifndef NO_DECL_ALIGN
-# ifndef DECL_ALIGN
-/* What compiler directive should we use for non-gcc compilers?  -stef  */
-#  if defined (__GNUC__)
-#   define DECL_ALIGN(type, var) \
-     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
-#  endif
-# endif
-#endif
-
-/* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
-#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
-/* We also need to be able to specify mult-of-8 alignment on static vars.  */
-# if defined DECL_ALIGN
-/* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
-#  if defined NO_UNION_TYPE
-#   define USE_LSB_TAG
-#  endif
-# endif
-#endif
-
-/* If we cannot use 8-byte alignment, make DECL_ALIGN a no-op.  */
-#ifndef DECL_ALIGN
-# ifdef USE_LSB_TAG
-#  error "USE_LSB_TAG used without defining DECL_ALIGN"
-# endif
-# define DECL_ALIGN(type, var) type var
-#endif
-
-
 /* These macros extract various sorts of values from a Lisp_Object.
  For example, if tem is a Lisp_Object whose type is Lisp_Cons,
  XCONS (tem) is the struct Lisp_Cons * pointing to the memory for that cons.  */
 
 #ifdef NO_UNION_TYPE
+
+/* Return a perfect hash of the Lisp_Object representation.  */
+#define XHASH(a) (a)
 
 #ifdef USE_LSB_TAG
 
@@ -426,9 +425,9 @@ enum pvec_type
 
 #endif /* not USE_LSB_TAG */
 
-#define EQ(x, y) ((x) == (y))
-
 #else /* not NO_UNION_TYPE */
+
+#define XHASH(a) ((a).i)
 
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
 
@@ -458,9 +457,9 @@ enum pvec_type
 extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
-#define EQ(x, y) ((x).i == (y).i)
-
 #endif /* NO_UNION_TYPE */
+
+#define EQ(x, y) (XHASH (x) == XHASH (y))
 
 /* During garbage collection, XGCTYPE must be used for extracting types
  so that the mark bit is ignored.  XMARKBIT accesses the markbit.
@@ -538,10 +537,11 @@ extern size_t pure_size;
 
 #define XPROCESS(a) (eassert (GC_PROCESSP(a)),(struct Lisp_Process *) XPNTR(a))
 #define XWINDOW(a) (eassert (GC_WINDOWP(a)),(struct window *) XPNTR(a))
+#define XTERMINAL(a) (eassert (GC_TERMINALP(a)),(struct terminal *) XPNTR(a))
 #define XSUBR(a) (eassert (GC_SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
 #define XBUFFER(a) (eassert (GC_BUFFERP(a)),(struct buffer *) XPNTR(a))
-#define XCHAR_TABLE(a) ((struct Lisp_Char_Table *) XPNTR(a))
-#define XBOOL_VECTOR(a) ((struct Lisp_Bool_Vector *) XPNTR(a))
+#define XCHAR_TABLE(a) (eassert (GC_CHAR_TABLE_P (a)), (struct Lisp_Char_Table *) XPNTR(a))
+#define XBOOL_VECTOR(a) (eassert (GC_BOOL_VECTOR_P (a)), (struct Lisp_Bool_Vector *) XPNTR(a))
 
 /* Construct a Lisp_Object from a value or address.  */
 
@@ -559,12 +559,16 @@ extern size_t pure_size;
 
 /* Pseudovector types.  */
 
+#define XSETPVECTYPE(v,code) ((v)->size |= PSEUDOVECTOR_FLAG | (code))
 #define XSETPSEUDOVECTOR(a, b, code) \
-  (XSETVECTOR (a, b), XVECTOR (a)->size |= PSEUDOVECTOR_FLAG | (code))
+  (XSETVECTOR (a, b),							\
+   eassert ((XVECTOR (a)->size & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))	\
+	    == (PSEUDOVECTOR_FLAG | (code))))
 #define XSETWINDOW_CONFIGURATION(a, b) \
   (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW_CONFIGURATION))
 #define XSETPROCESS(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_PROCESS))
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
+#define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
 #define XSETFUNVEC(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FUNVEC))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
@@ -582,9 +586,9 @@ extern size_t pure_size;
 
 /* Convenience macros for dealing with Lisp strings.  */
 
-#define SREF(string, index)	(XSTRING (string)->data[index] + 0)
-#define SSET(string, index, new) (XSTRING (string)->data[index] = (new))
 #define SDATA(string)		(XSTRING (string)->data + 0)
+#define SREF(string, index)	(SDATA (string)[index] + 0)
+#define SSET(string, index, new) (SDATA (string)[index] = (new))
 #define SCHARS(string)		(XSTRING (string)->size + 0)
 #define SBYTES(string)		(STRING_BYTES (XSTRING (string)) + 0)
 
@@ -592,7 +596,7 @@ extern size_t pure_size;
     (XSTRING (string)->size = (newsize))
 
 #define STRING_COPYIN(string, index, new, count) \
-    bcopy (new, XSTRING (string)->data + index, count)
+    bcopy (new, SDATA (string) + index, count)
 
 /* Type checking.  */
 
@@ -734,7 +738,7 @@ struct Lisp_String
 
 struct Lisp_Vector
   {
-    EMACS_INT size;
+    EMACS_UINT size;
     struct Lisp_Vector *next;
     Lisp_Object contents[1];
   };
@@ -841,7 +845,7 @@ struct Lisp_Char_Table
        pseudovector type information.  It holds the size, too.
        The size counts the top, defalt, purpose, and parent slots.
        The last three are not counted if this is a sub char table.  */
-    EMACS_INT size;
+    EMACS_UINT size;
     struct Lisp_Vector *next;
     /* This holds a flag to tell if this is a top level char table (t)
        or a sub char table (nil).  */
@@ -872,10 +876,10 @@ struct Lisp_Bool_Vector
   {
     /* This is the vector's size field.  It doesn't have the real size,
        just the subtype information.  */
-    EMACS_INT vector_size;
+    EMACS_UINT vector_size;
     struct Lisp_Vector *next;
     /* This is the size in bits.  */
-    EMACS_INT size;
+    EMACS_UINT size;
     /* This contains the actual bits, packed into bytes.  */
     unsigned char data[1];
   };
@@ -890,11 +894,11 @@ struct Lisp_Bool_Vector
 
 struct Lisp_Subr
   {
-    EMACS_INT size;
+    EMACS_UINT size;
     Lisp_Object (*function) ();
     short min_args, max_args;
     char *symbol_name;
-    char *prompt;
+    char *intspec;
     char *doc;
   };
 
@@ -1005,7 +1009,7 @@ struct Lisp_Symbol
 struct Lisp_Hash_Table
 {
   /* Vector fields.  The hash table code doesn't refer to these.  */
-  EMACS_INT size;
+  EMACS_UINT size;
   struct Lisp_Vector *vec_next;
 
   /* Function used to compare keys.  */
@@ -1023,13 +1027,6 @@ struct Lisp_Hash_Table
   /* Resize hash table when number of entries/ table size is >= this
      ratio, a float.  */
   Lisp_Object rehash_threshold;
-
-  /* Number of key/value entries in the table.  */
-  Lisp_Object count;
-
-  /* Vector of keys and values.  The key of item I is found at index
-     2 * I, the value is found at index 2 * I + 1.  */
-  Lisp_Object key_and_value;
 
   /* Vector of hash codes.. If hash[I] is nil, this means that that
      entry I is unused.  */
@@ -1053,6 +1050,18 @@ struct Lisp_Hash_Table
 
   /* User-supplied key comparison function, or nil.  */
   Lisp_Object user_cmp_function;
+
+  /* Only the fields above are traced normally by the GC.  The ones below
+     `count'.  are special and are either ignored by the GC or traced in
+     a special way (e.g. because of weakness).  */
+
+  /* Number of key/value entries in the table.  */
+  unsigned int count;
+
+  /* Vector of keys and values.  The key of item I is found at index
+     2 * I, the value is found at index 2 * I + 1.
+     This is gc_marked specially if the table is weak.  */
+  Lisp_Object key_and_value;
 
   /* Next weak hash table if this is a weak hash table.  The head
      of the list is in weak_hash_tables.  */
@@ -1130,8 +1139,16 @@ struct Lisp_Marker
   /* 1 means normal insertion at the marker's position
      leaves the marker after the inserted text.  */
   unsigned int insertion_type : 1;
-  /* This is the buffer that the marker points into,
-     or 0 if it points nowhere.  */
+  /* This is the buffer that the marker points into, or 0 if it points nowhere.
+     Note: a chain of markers can contain markers pointing into different
+     buffers (the chain is per buffer_text rather than per buffer, so it's
+     shared between indirect buffers).  */
+  /* This is used for (other than NULL-checking):
+     - Fmarker_buffer
+     - Fset_marker: check eq(oldbuf, newbuf) to avoid unchain+rechain.
+     - unchain_marker: to find the list from which to unchain.
+     - Fkill_buffer: to unchain the markers of current indirect buffer.
+     */
   struct buffer *buffer;
 
   /* The remaining fields are meaningless in a marker that
@@ -1139,6 +1156,8 @@ struct Lisp_Marker
 
   /* For markers that point somewhere,
      this is used to chain of all the markers in a given buffer.  */
+  /* We could remove it and use an array in buffer_text instead.
+     That would also allow to preserve it ordered.  */
   struct Lisp_Marker *next;
   /* This is the char position where the marker points.  */
   EMACS_INT charpos;
@@ -1236,6 +1255,10 @@ struct Lisp_Buffer_Local_Value
     unsigned int found_for_frame : 1;
     Lisp_Object realvalue;
     /* The buffer and frame for which the loaded binding was found.  */
+    /* Having both is only needed if we want to allow variables that are
+       both buffer local and frame local (in which case, we currently give
+       precedence to the buffer-local binding).  I don't think such
+       a combination is desirable.  --Stef  */
     Lisp_Object buffer, frame;
 
     /* A cons cell, (LOADED-BINDING . DEFAULT-VALUE).
@@ -1406,34 +1429,6 @@ typedef unsigned char UCHAR;
    We need one more byte for string terminator `\0'.  */
 #define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
 
-#ifdef USE_X_TOOLKIT
-#ifdef NO_UNION_TYPE
-/* Use this for turning a (void *) into a Lisp_Object, as when the
-   Lisp_Object is passed into a toolkit callback function.  */
-#define VOID_TO_LISP(larg,varg) \
-  do { ((larg) = ((Lisp_Object) (varg))); } while (0)
-#define CVOID_TO_LISP VOID_TO_LISP
-
-/* Use this for turning a Lisp_Object into a  (void *), as when the
-   Lisp_Object is passed into a toolkit callback function.  */
-#define LISP_TO_VOID(larg) ((void *) (larg))
-#define LISP_TO_CVOID(varg) ((const void *) (larg))
-
-#else /* not NO_UNION_TYPE */
-/* Use this for turning a (void *) into a Lisp_Object, as when the
-  Lisp_Object is passed into a toolkit callback function.  */
-#define VOID_TO_LISP(larg,varg) \
-  do { ((larg).v = (void *) (varg)); } while (0)
-#define CVOID_TO_LISP(larg,varg) \
-  do { ((larg).cv = (const void *) (varg)); } while (0)
-
-/* Use this for turning a Lisp_Object into a  (void *), as when the
-   Lisp_Object is passed into a toolkit callback function.  */
-#define LISP_TO_VOID(larg) ((larg).v)
-#define LISP_TO_CVOID(larg) ((larg).cv)
-#endif /* not NO_UNION_TYPE */
-#endif /* USE_X_TOOLKIT */
-
 
 /* The glyph datatype, used to represent characters on the display.  */
 
@@ -1543,6 +1538,8 @@ typedef unsigned char UCHAR;
 #define GC_PROCESSP(x) GC_PSEUDOVECTORP (x, PVEC_PROCESS)
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define GC_WINDOWP(x) GC_PSEUDOVECTORP (x, PVEC_WINDOW)
+#define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
+#define GC_TERMINALP(x) GC_PSEUDOVECTORP (x, PVEC_TERMINAL)
 #define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
 #define GC_SUBRP(x) GC_PSEUDOVECTORP (x, PVEC_SUBR)
 #define FUNVECP(x) PSEUDOVECTORP (x, PVEC_FUNVEC)
@@ -1695,30 +1692,33 @@ typedef unsigned char UCHAR;
 	 followed by the address of a vector of Lisp_Objects
 	 which contains the argument values.
     UNEVALLED means pass the list of unevaluated arguments
- `prompt' says how to read arguments for an interactive call.
-    See the doc string for `interactive'.
+ `intspec' says how interactive arguments are to be fetched.
+    If the string starts with a `(', `intspec' is evaluated and the resulting
+    list is the list of arguments.
+    If it's a string that doesn't start with `(', the value should follow
+    the one of the doc string for `interactive'.
     A null string means call interactively with no arguments.
  `doc' is documentation for the user.  */
 
 #if (!defined (__STDC__) && !defined (PROTOTYPES)) \
     || defined (USE_NONANSI_DEFUN)
 
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
   Lisp_Object fnname ();						\
   DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, prompt, 0};			\
+      fnname, minargs, maxargs, lname, intspec, 0};			\
   Lisp_Object fnname
 
 #else
 
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
-#define DEFUN(lname, fnname, sname, minargs, maxargs, prompt, doc)	\
+#define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, prompt, 0};			\
+      fnname, minargs, maxargs, lname, intspec, 0};			\
   Lisp_Object fnname
 
 /* Note that the weird token-substitution semantics of ANSI C makes
@@ -1759,7 +1759,6 @@ extern void defvar_lisp P_ ((char *, Lisp_Object *));
 extern void defvar_lisp_nopro P_ ((char *, Lisp_Object *));
 extern void defvar_bool P_ ((char *, int *));
 extern void defvar_int P_ ((char *, EMACS_INT *));
-extern void defvar_per_buffer P_ ((char *, Lisp_Object *, Lisp_Object, char *));
 extern void defvar_kboard P_ ((char *, int));
 
 /* Macros we use to define forwarded Lisp variables.
@@ -1769,15 +1768,6 @@ extern void defvar_kboard P_ ((char *, int));
 #define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
 #define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
 #define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
-
-/* TYPE is nil for a general Lisp variable.
-   An integer specifies a type; then only LIsp values
-   with that type code are allowed (except that nil is allowed too).
-   LNAME is the LIsp-level variable name.
-   VNAME is the name of the buffer slot.
-   DOC is a dummy where you write the doc string as a comment.  */
-#define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
- defvar_per_buffer (lname, vname, type, 0)
 
 #define DEFVAR_KBOARD(lname, vname, doc) \
  defvar_kboard (lname, \
@@ -2625,6 +2615,7 @@ extern struct Lisp_Hash_Table *allocate_hash_table P_ ((void));
 extern struct window *allocate_window P_ ((void));
 extern struct frame *allocate_frame P_ ((void));
 extern struct Lisp_Process *allocate_process P_ ((void));
+extern struct terminal *allocate_terminal P_ ((void));
 extern int gc_in_progress;
 extern int abort_on_gc;
 extern Lisp_Object make_float P_ ((double));
@@ -3020,6 +3011,10 @@ extern Lisp_Object Qvertical_scroll_bar;
 extern void discard_mouse_events P_ ((void));
 EXFUN (Fevent_convert_list, 1);
 EXFUN (Fread_key_sequence, 5);
+EXFUN (Fset_input_interrupt_mode, 1);
+EXFUN (Fset_output_flow_control, 2);
+EXFUN (Fset_input_meta_mode, 2);
+EXFUN (Fset_quit_char, 1);
 EXFUN (Fset_input_mode, 4);
 extern int detect_input_pending P_ ((void));
 extern int detect_input_pending_ignore_squeezables P_ ((void));
@@ -3033,6 +3028,7 @@ extern void init_keyboard P_ ((void));
 extern void syms_of_keyboard P_ ((void));
 extern void keys_of_keyboard P_ ((void));
 extern char *push_key_description P_ ((unsigned int, char *, int));
+extern void add_user_signal P_ ((int sig, const char *name));
 
 
 /* defined in indent.c */
@@ -3143,7 +3139,7 @@ EXFUN (Fcall_process, MANY);
 extern int child_setup P_ ((int, int, int, char **, int, Lisp_Object));
 extern void init_callproc_1 P_ ((void));
 extern void init_callproc P_ ((void));
-extern void set_process_environment P_ ((void));
+extern void set_initial_environment P_ ((void));
 extern void syms_of_callproc P_ ((void));
 
 /* defined in doc.c */
@@ -3207,28 +3203,31 @@ EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 3);
 extern void syms_of_xmenu P_ ((void));
 
+/* defined in termchar.h */
+struct tty_display_info;
+
+/* defined in termhooks.h */
+struct terminal;
+
 /* defined in sysdep.c */
 #ifndef HAVE_GET_CURRENT_DIR_NAME
 extern char *get_current_dir_name P_ ((void));
 #endif
 extern void stuff_char P_ ((char c));
 extern void init_sigio P_ ((int));
-extern void request_sigio P_ ((void));
-extern void unrequest_sigio P_ ((void));
-extern void reset_sys_modes P_ ((void));
 extern void sys_subshell P_ ((void));
 extern void sys_suspend P_ ((void));
 extern void discard_tty_input P_ ((void));
-extern void init_sys_modes P_ ((void));
-extern void get_frame_size P_ ((int *, int *));
+extern void init_sys_modes P_ ((struct tty_display_info *));
+extern void reset_sys_modes P_ ((struct tty_display_info *));
+extern void init_all_sys_modes P_ ((void));
+extern void reset_all_sys_modes P_ ((void));
 extern void wait_for_termination P_ ((int));
 extern void flush_pending_output P_ ((int));
 extern void child_setup_tty P_ ((int));
 extern void setup_pty P_ ((int));
 extern int set_window_size P_ ((int, int, int));
 extern void create_process P_ ((Lisp_Object, char **, Lisp_Object));
-extern int tabs_safe_p P_ ((void));
-extern void init_baud_rate P_ ((void));
 extern int emacs_open P_ ((const char *, int, int));
 extern int emacs_close P_ ((int));
 extern int emacs_read P_ ((int, char *, unsigned int));
@@ -3262,6 +3261,9 @@ extern void syms_of_dired P_ ((void));
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
 extern void fatal () NO_RETURN;
+
+/* Defined in terminal.c */
+extern void syms_of_terminal P_ ((void));
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Defined in fontset.c */
@@ -3406,6 +3408,13 @@ extern Lisp_Object Vdirectory_sep_char;
 #endif
 #define min(a, b)	((a) < (b) ? (a) : (b))
 #define max(a, b)	((a) > (b) ? (a) : (b))
+
+/* We used to use `abs', but that clashes with system headers on some
+   platforms, and using a name reserved by Standard C is a bad idea
+   anyway.  */
+#if !defined(eabs)
+#define eabs(x)         ((x) < 0 ? -(x) : (x))
+#endif
 
 /* Return a fixnum or float, depending on whether VAL fits in a Lisp
    fixnum.  */

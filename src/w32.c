@@ -904,18 +904,6 @@ alarm (int seconds)
   return 0;
 }
 
-void
-unrequest_sigio (void)
-{
-  return;
-}
-
-void
-request_sigio (void)
-{
-  return;
-}
-
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
@@ -939,6 +927,7 @@ w32_get_resource (key, lpdwtype)
 	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
+          RegCloseKey (hrootkey);
 	  return (lpvalue);
 	}
 
@@ -955,6 +944,7 @@ w32_get_resource (key, lpdwtype)
 	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
+          RegCloseKey (hrootkey);
 	  return (lpvalue);
 	}
 

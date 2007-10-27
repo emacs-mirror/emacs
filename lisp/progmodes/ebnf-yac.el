@@ -273,12 +273,12 @@
   ;; control character & 8-bit character are set to `error'
   (let ((table (make-vector 256 'error)))
     ;; upper & lower case letters:
-    (mapcar
+    (mapc
      #'(lambda (char)
 	 (aset table char 'non-terminal))
      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
     ;; printable characters:
-    (mapcar
+    (mapc
      #'(lambda (char)
 	 (aset table char 'character))
      "!#$&()*+-.0123456789=?@[\\]^_`~")

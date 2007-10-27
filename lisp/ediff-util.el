@@ -122,7 +122,7 @@ Commands:
   ;; modified by minor modes and such. So, run-mode-hooks doesn't do anything
   ;; useful here on top of what run-hooks does.
   ;; Second, changing run-hooks to run-mode-hooks would require an
-  ;; if-statement, since XEmacs doesn't have this. 
+  ;; if-statement, since XEmacs doesn't have this.
   (run-hooks 'ediff-mode-hook))
 
 
@@ -1317,10 +1317,10 @@ which see."
   ;; change default
   (setq-default ediff-window-setup-function window-setup-func)
   ;; change in all active ediff sessions
-  (mapcar (lambda(buf) (ediff-with-current-buffer buf
-			 (setq ediff-window-setup-function window-setup-func
-			       ediff-window-B nil)))
-	  ediff-session-registry)
+  (mapc (lambda(buf) (ediff-with-current-buffer buf
+		       (setq ediff-window-setup-function window-setup-func
+			     ediff-window-B nil)))
+	ediff-session-registry)
   (if (ediff-in-control-buffer-p)
       (ediff-recenter 'no-rehighlight))))
 
@@ -1341,12 +1341,12 @@ To change the default, set the variable `ediff-use-toolbar-p', which see."
 	;; do this only after killing the toolbar
 	(setq ediff-use-toolbar-p (not ediff-use-toolbar-p))
 
-	(mapcar (lambda(buf)
-		  (ediff-with-current-buffer buf
-		    ;; force redisplay
-		    (setq ediff-window-config-saved "")
-		    ))
-		ediff-session-registry)
+	(mapc (lambda(buf)
+		(ediff-with-current-buffer buf
+		  ;; force redisplay
+		  (setq ediff-window-config-saved "")
+		  ))
+	      ediff-session-registry)
 	(if (ediff-in-control-buffer-p)
 	    (ediff-recenter 'no-rehighlight)))))
 
@@ -2439,14 +2439,14 @@ temporarily reverses the meaning of this variable."
 
   ;; Apply selective display to narrow or widen
   (ediff-visible-region)
-  (mapcar (lambda (overl)
-	    (if (ediff-overlayp overl)
-		(ediff-delete-overlay overl)))
-	  ediff-wide-bounds)
-  (mapcar (lambda (overl)
-	    (if (ediff-overlayp overl)
-		(ediff-delete-overlay overl)))
-	  ediff-narrow-bounds)
+  (mapc (lambda (overl)
+	  (if (ediff-overlayp overl)
+	      (ediff-delete-overlay overl)))
+	ediff-wide-bounds)
+  (mapc (lambda (overl)
+	  (if (ediff-overlayp overl)
+	      (ediff-delete-overlay overl)))
+	ediff-narrow-bounds)
 
   ;; restore buffer mode line id's in buffer-A/B/C
   (let ((control-buffer ediff-control-buffer)
@@ -3747,13 +3747,13 @@ Ediff Control Panel to restore highlighting."
 ;; VEC is either a difference vector or a fine-diff vector
 (defun ediff-clear-diff-vector (vec-var &optional fine-diffs-also)
   (if (vectorp (symbol-value vec-var))
-      (mapcar (lambda (elt)
-		(ediff-delete-overlay
-		 (ediff-get-diff-overlay-from-diff-record elt))
-		(if fine-diffs-also
-		    (ediff-clear-fine-diff-vector elt))
-		)
-	      (symbol-value vec-var)))
+      (mapc (lambda (elt)
+	      (ediff-delete-overlay
+	       (ediff-get-diff-overlay-from-diff-record elt))
+	      (if fine-diffs-also
+		  (ediff-clear-fine-diff-vector elt))
+	      )
+	    (symbol-value vec-var)))
   ;; allow them to be garbage collected
   (set vec-var nil))
 

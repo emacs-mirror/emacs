@@ -14,6 +14,12 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** Make "emacs --daemon" start emacs without showing any frame. 
+Use emacsclient later to open frames.
+
+** Make it possible to reliably turn on minor modes using "mode:" in the local 
+variables section.
+
 ** "Options -> Save Options" should save the font set via "Set Font/Fontset"
 I.e. mouse-set-font should use customize-face.
 
@@ -98,6 +104,14 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00782.html
 
 ** Find a proper fix for rcirc multiline nick adding.
 http://lists.gnu.org/archive/html/emacs-devel/2007-04/msg00684.html
+
+** Implement `network-interface-list' and `network-interface-info'
+on MS-Windows.  Hint: the information is present in the Registry,
+under the keys
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Linkage\
+and
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\<device>\
+where <device> is the network device found under the first key.
 
 * Important features:
 
@@ -306,8 +320,15 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   the whole menu bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed: W3 (development version needs
-  significant work), PSGML.  Check the assignments file for other
-  packages which might go in and have been missed.
+  significant work), PSGML, nXML [Mark Hershberger is looking at this
+  http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01699.html],
+  _possibly_ Cedet and ECB.
+  http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01493.html
+  Check the assignments file for other packages which might go in and
+  have been missed.
+
+** Install ruby-mode (needs assignment)?
+   http://lists.gnu.org/archive/html/emacs-devel/2007-06/msg00051.html
 
 ** Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
@@ -326,9 +347,6 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
-
-** Support simultaneous tty and X frames.  [See the multi-tty branch of Emacs
-  at http://lorentey.hu/project/emacs.]
 
 ** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
   not now feasible, given Gnus maintenance decisions.  fx looked at
@@ -352,6 +370,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 ** Add a --pristine startup flag which does -q --no-site-file plus
   ignoring X resources (Doze equivalents?) and most of the
   environment.  What should not be ignored needs consideration.
+  [Do the existing -Q and -D cover this, or is more needed?]
 
 ** Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
@@ -366,11 +385,9 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 ** Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
 
-** Add support for SVG (Scalable Vector Graphics) rendering to
-  Emacs.
-
 ** Allow unknown image types to be rendered via an external program
-  converting them to, say, PBM (in the same way as PostScript?).
+  converting them to, say, PBM (in the same way as PostScript?). [does
+  doc-view.el do this, or could it be extended to do this?]
 
 ** Allow displaying an X window from an external program in a buffer,
   e.g. to render graphics from Java applets.  [gerd and/or wmperry
@@ -529,6 +546,18 @@ but which can also be used as a modifier).
 ** Possibly make cal-dst use the system timezone database directly.
    See thread
    <http://lists.gnu.org/archive/html/emacs-pretest-bug/2006-11/msg00060.html>
+
+** Possibly add a "close" button to the modeline.
+   The idea is to add an "X" of some kind, that when clicked deletes
+   the window associated with that modeline.
+   http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02416.html
+
+** When running isearch in a ChangeLog file, if the search fails,
+   then after another C-s try searching the previous ChangeLog, if
+   there is one. (e.g. go from ChangeLog to ChangeLog.12).
+   http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02237.html
+   Juri Linkov has a patch for this:
+   http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00265.html
 
 * Internal changes
 

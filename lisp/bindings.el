@@ -170,6 +170,12 @@ corresponding to the mode line clicked."
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
       desc)))
 
+(defvar mode-line-client
+  `(""
+    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
+		 help-echo "Emacsclient frame"))
+  "Mode-line control for identifying Emacsclient frames.")
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
@@ -209,7 +215,7 @@ mnemonics of the following coding systems:
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-frame-identification '("-%F  ")
+(defvar mode-line-frame-identification '(window-system "  " "-%F  ")
   "Mode-line control to describe the current frame.")
 
 (defvar mode-line-process nil "\
@@ -302,6 +308,7 @@ Keymap to display on minor modes.")
 	 "%e"
 	 (propertize "-" 'help-echo help-echo)
 	 'mode-line-mule-info
+	 'mode-line-client
 	 'mode-line-modified
 	 'mode-line-remote
 	 'mode-line-frame-identification
@@ -331,6 +338,7 @@ Keymap to display on minor modes.")
 		     'local-map (make-mode-line-mouse-map
 				 'mouse-2 #'mode-line-widen))
 	 (propertize ")%]--" 'help-echo help-echo)))
+
        (standard-mode-line-position
 	`((-3 ,(propertize "%p" 'help-echo help-echo))
 	  (size-indication-mode
@@ -648,6 +656,10 @@ language you are using."
 ;; Quitting
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
 (define-key global-map "\C-g" 'keyboard-quit)
+
+;; Used to be in termdev.el: when using several terminals, make C-z
+;; suspend only the relevant terminal.
+(substitute-key-definition 'suspend-emacs 'suspend-frame global-map)
 
 (define-key global-map "\C-j" 'newline-and-indent)
 (define-key global-map "\C-m" 'newline)
@@ -1029,8 +1041,7 @@ language you are using."
 (define-key ctl-x-map "rw" 'window-configuration-to-register)
 (define-key ctl-x-map "rf" 'frame-configuration-to-register)
 
-(define-key esc-map "q" 'fill-paragraph)
-;; (define-key esc-map "g" 'fill-region)
+(define-key esc-map "q" 'fill-paragraph-or-region)
 (define-key ctl-x-map "." 'set-fill-prefix)
 
 (define-key esc-map "{" 'backward-paragraph)

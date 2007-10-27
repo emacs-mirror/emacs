@@ -41,10 +41,10 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 
 #include "lisp.h"
-#include "termhooks.h"
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
+#include "termhooks.h"
 #include "window.h"
 #include "blockinput.h"
 #include "buffer.h"
@@ -354,15 +354,8 @@ save_menu_items ()
 static void
 grow_menu_items ()
 {
-  Lisp_Object old;
-  int old_size = menu_items_allocated;
-  old = menu_items;
-
   menu_items_allocated *= 2;
-
-  menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
-  bcopy (XVECTOR (old)->contents, XVECTOR (menu_items)->contents,
-	 old_size * sizeof (Lisp_Object));
+  menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }
 
 /* Begin a submenu.  */
@@ -745,6 +738,9 @@ mouse_position_for_popup (f, x, y)
   Window root, dummy_window;
   int dummy;
 
+  if (! FRAME_X_P (f))
+    abort ();
+
   BLOCK_INPUT;
 
   XQueryPointer (FRAME_X_DISPLAY (f),
@@ -940,6 +936,9 @@ no quit occurs and `x-popup-menu' returns nil.  */)
       xpos += XINT (x);
       ypos += XINT (y);
 
+      if (! FRAME_X_P (f))
+        error ("Can not put X menu on non-X terminal");
+
       XSETFRAME (Vmenu_updating_frame, f);
     }
   else
@@ -1128,6 +1127,9 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
+  if (! FRAME_X_P (f))
+    error ("Can not put X dialog on non-X terminal");
+
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* Display a menu with these alternatives
      in the middle of frame F.  */
@@ -1309,7 +1311,7 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
     }
 }
 
-DEFUN ("menu-bar-open", Fmenu_bar_open, Smenu_bar_open, 0, 1, "i",
+DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
        doc: /* Start key navigation of the menu bar in FRAME.
 This initially opens the first menu bar item and you can then navigate with the
 arrow keys, select a menu entry with the return key or cancel with the
@@ -1388,7 +1390,7 @@ If FRAME is nil or not given, use the selected frame.  */)
 
 
 #ifdef USE_GTK
-DEFUN ("menu-bar-open", Fmenu_bar_open, Smenu_bar_open, 0, 1, "i",
+DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
        doc: /* Start key navigation of the menu bar in FRAME.
 This initially opens the first menu bar item and you can then navigate with the
 arrow keys, select a menu entry with the return key or cancel with the
@@ -1464,6 +1466,9 @@ void
 x_activate_menubar (f)
      FRAME_PTR f;
 {
+  if (! FRAME_X_P (f))
+    abort ();
+
   if (!f->output_data.x->saved_menu_event->type)
     return;
 
@@ -2098,8 +2103,13 @@ update_frame_menubar (f)
 #ifdef USE_GTK
   return xg_update_frame_menubar (f);
 #else
-  struct x_output *x = f->output_data.x;
+  struct x_output *x;
   int columns, rows;
+
+  if (! FRAME_X_P (f))
+    abort ();
+
+  x = f->output_data.x;
 
   if (!x->menubar_widget || XtIsManaged (x->menubar_widget))
     return 0;
@@ -2146,7 +2156,7 @@ set_frame_menubar (f, first_time, deep_p)
      int first_time;
      int deep_p;
 {
-  xt_or_gtk_widget menubar_widget = f->output_data.x->menubar_widget;
+  xt_or_gtk_widget menubar_widget;
 #ifdef USE_X_TOOLKIT
   LWLIB_ID id;
 #endif
@@ -2156,6 +2166,10 @@ set_frame_menubar (f, first_time, deep_p)
   int *submenu_start, *submenu_end;
   int *submenu_top_level_items, *submenu_n_panes;
 
+  if (! FRAME_X_P (f))
+    abort ();
+
+  menubar_widget = f->output_data.x->menubar_widget;
 
   XSETFRAME (Vmenu_updating_frame, f);
 
@@ -2508,6 +2522,9 @@ free_frame_menubar (f)
 {
   Widget menubar_widget;
 
+  if (! FRAME_X_P (f))
+    abort ();
+
   menubar_widget = f->output_data.x->menubar_widget;
 
   f->output_data.x->menubar_height = 0;
@@ -2660,6 +2677,9 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   struct next_popup_x_y popup_x_y;
   int specpdl_count = SPECPDL_INDEX ();
 
+  if (! FRAME_X_P (f))
+    abort ();
+
   xg_crazy_callback_abort = 1;
   menu = xg_create_widget ("popup", first_wv->name, f, first_wv,
                            G_CALLBACK (popup_selection_callback),
@@ -2768,6 +2788,9 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   LWLIB_ID menu_id;
   Widget menu;
 
+  if (! FRAME_X_P (f))
+    abort ();
+
   menu_id = widget_id_tick++;
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
                            f->output_data.x->widget, 1, 0,
@@ -2843,6 +2866,9 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   int submenu_depth = 0;
 
   int first_pane;
+
+  if (! FRAME_X_P (f))
+    abort ();
 
   *error = NULL;
 
@@ -3126,6 +3152,9 @@ create_and_show_dialog (f, first_wv)
 {
   GtkWidget *menu;
 
+  if (! FRAME_X_P (f))
+    abort ();
+
   menu = xg_create_widget ("dialog", first_wv->name, f, first_wv,
                            G_CALLBACK (dialog_selection_callback),
                            G_CALLBACK (popup_deactivate_callback),
@@ -3174,6 +3203,9 @@ create_and_show_dialog (f, first_wv)
      widget_value *first_wv;
 {
   LWLIB_ID dialog_id;
+
+  if (!FRAME_X_P (f))
+    abort();
 
   dialog_id = widget_id_tick++;
   lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
@@ -3226,6 +3258,9 @@ xdialog_show (f, keymaps, title, header, error_name)
   int left_count = 0;
   /* 1 means we've seen the boundary between left-hand elts and right-hand.  */
   int boundary_seen = 0;
+
+  if (! FRAME_X_P (f))
+    abort ();
 
   *error_name = NULL;
 
@@ -3502,6 +3537,9 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   unsigned int dummy_uint;
   int specpdl_count = SPECPDL_INDEX ();
 
+  if (! FRAME_X_P (f))
+    abort ();
+
   *error = 0;
   if (menu_items_n_panes == 0)
     return Qnil;
@@ -3610,13 +3648,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  if (!NILP (descrip))
 	    {
 	      int gap = maxwidth - SBYTES (item_name);
-#ifdef C_ALLOCA
-	      Lisp_Object spacer;
-	      spacer = Fmake_string (make_number (gap), make_number (' '));
-	      item_name = concat2 (item_name, spacer);
-	      item_name = concat2 (item_name, descrip);
-	      item_data = SDATA (item_name);
-#else
 	      /* if alloca is fast, use that to make the space,
 		 to reduce gc needs.  */
 	      item_data
@@ -3629,7 +3660,6 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	      bcopy (SDATA (descrip), item_data + j,
 		     SBYTES (descrip));
 	      item_data[j + SBYTES (descrip)] = 0;
-#endif
 	    }
 	  else
 	    item_data = SDATA (item_name);
@@ -3806,8 +3836,9 @@ syms_of_xmenu ()
   defsubr (&Smenu_or_popup_active_p);
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
-  defsubr (&Smenu_bar_open);
-  Ffset (intern ("accelerate-menu"), intern (Smenu_bar_open.symbol_name));
+  defsubr (&Sx_menu_bar_open_internal);
+  Ffset (intern ("accelerate-menu"),
+	 intern (Sx_menu_bar_open_internal.symbol_name));
 #endif
 
 #ifdef HAVE_MENUS

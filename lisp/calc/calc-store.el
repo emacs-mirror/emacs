@@ -127,7 +127,7 @@
           (cond
            ((and (memq var '(var-e var-i var-pi var-phi var-gamma))
                  (eq (car-safe old) 'special-const))
-            (setq msg (format " (Note: Built-in definition of %s has been lost)" 
+            (setq msg (format " (Note: Built-in definition of %s has been lost)"
                               (calc-var-name var))))
            ((and (memq var '(var-inf var-uinf var-nan))
                  (null old))
@@ -172,28 +172,28 @@
     ()
   (setq calc-var-name-map (copy-keymap minibuffer-local-completion-map))
   (define-key calc-var-name-map " " 'self-insert-command)
-  (mapcar (function
-	   (lambda (x)
-	     (define-key calc-var-name-map (char-to-string x)
-	       'calcVar-digit)))
-	  "0123456789")
-  (mapcar (function
-	   (lambda (x)
-	     (define-key calc-var-name-map (char-to-string x)
-	       'calcVar-oper)))
-	  "+-*/^|"))
+  (mapc (function
+	 (lambda (x)
+	  (define-key calc-var-name-map (char-to-string x)
+	    'calcVar-digit)))
+	"0123456789")
+  (mapc (function
+	 (lambda (x)
+	  (define-key calc-var-name-map (char-to-string x)
+	    'calcVar-oper)))
+	"+-*/^|"))
 
 (defvar calc-store-opers)
 
 (defun calc-read-var-name (prompt &optional calc-store-opers)
   (setq calc-given-value nil
 	calc-aborted-prefix nil)
-  (let ((var (concat 
+  (let ((var (concat
               "var-"
               (let ((minibuffer-completion-table
-                     (mapcar (lambda (x) (substring x 4)) 
+                     (mapcar (lambda (x) (substring x 4))
                              (all-completions "var-" obarray)))
-                    (minibuffer-completion-predicate 
+                    (minibuffer-completion-predicate
                      (lambda (x) (boundp (intern (concat "var-" x)))))
                     (minibuffer-completion-confirm t))
                 (read-from-minibuffer prompt nil calc-var-name-map nil)))))
@@ -401,7 +401,7 @@
    (unless (string= sconst "")
      (let ((value (cdr (assoc sconst sc))))
        (or var (setq var (calc-read-var-name
-                            (format "Copy special constant %s, to: " 
+                            (format "Copy special constant %s, to: "
                                     sconst))))
        (if var
            (let ((msg (calc-store-value var value "")))
@@ -417,7 +417,7 @@
 	 (or value
 	     (error "No such variable: \"%s\"" (calc-var-name var1)))
 	 (or var2 (setq var2 (calc-read-var-name
-			      (format "Copy variable: %s, to: " 
+			      (format "Copy variable: %s, to: "
                                       (calc-var-name var1)))))
 	 (if var2
 	     (let ((msg (calc-store-value var2 value "")))

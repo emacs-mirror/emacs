@@ -509,9 +509,10 @@ if exist config.tmp del config.tmp
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
-copy /b config.settings+%MAKECMD%.defs+..\man\makefile.w32-in ..\man\makefile
-copy /b config.settings+%MAKECMD%.defs+..\lispref\makefile.w32-in ..\lispref\makefile
-copy /b config.settings+%MAKECMD%.defs+..\lispintro\makefile.w32-in ..\lispintro\makefile
+copy /b config.settings+%MAKECMD%.defs+..\doc\emacs\makefile.w32-in ..\doc\emacs\makefile
+copy /b config.settings+%MAKECMD%.defs+..\doc\misc\makefile.w32-in ..\doc\misc\makefile
+copy /b config.settings+%MAKECMD%.defs+..\doc\lispref\makefile.w32-in ..\doc\lispref\makefile
+copy /b config.settings+%MAKECMD%.defs+..\doc\lispintro\makefile.w32-in ..\doc\lispintro\makefile
 if exist ..\lisp\makefile rm -f ../lisp/[Mm]akefile
 copy /b config.settings+%MAKECMD%.defs+..\lisp\makefile.w32-in ..\lisp\makefile
 rem   Use the default (no-op) Makefile.in if the nt version is not present.

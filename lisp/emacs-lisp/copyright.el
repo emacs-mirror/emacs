@@ -57,7 +57,7 @@ The second \\( \\) construct must match the years."
 (defcustom copyright-names-regexp ""
   "Regexp matching the names which correspond to the user.
 Only copyright lines where the name matches this regexp will be updated.
-This allows you to avoid adding yars to a copyright notice belonging to
+This allows you to avoid adding years to a copyright notice belonging to
 someone else or to a group for which you do not work."
   :group 'copyright
   :type 'regexp)
@@ -186,10 +186,13 @@ interactively."
  either \\|; a\\^u eldono \\([0-9]+\\)a, ? a\\^u (la\\^u via	 \\)\
 version \\([0-9]+\\), or (at"
                 (copyright-limit) t)
-	       (not (string= (match-string 3) copyright-current-gpl-version))
+               ;; Don't update if the file is already using a more recent
+               ;; version than the "current" one.
+               (< (string-to-number (match-string 3))
+                  (string-to-number copyright-current-gpl-version))
 	       (or noquery
-		   (y-or-n-p (concat "Replace GPL version by "
-				     copyright-current-gpl-version "? ")))
+		   (y-or-n-p (format "Replace GPL version by %s? "
+				     copyright-current-gpl-version)))
 	       (progn
 		 (if (match-end 2)
 		     ;; Esperanto bilingual comment in two-column.el

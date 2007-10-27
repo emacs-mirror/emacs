@@ -1,3 +1,21 @@
+2007-09-27  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (COMCTL32): New system library.
+
+	* nmake.defs (COMCTL32): New system library.
+
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.bat:
+	* makefile.w32-in (info-nmake, info-gmake)
+	(clean-other-dirs-nmake): Change from ../man to ../doc/emacs and
+	../doc/misc; and from ../lispref, ../lispintro to ../doc/lispref,
+	../doc/lispintro.
+
+2007-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc: Increase version to 23.0.50.
+
 2007-08-14  Dhuvra Krishnamurthy <dhuvrakm@gmail.com> (tiny change)
 
 	* makefile.w32-in (bootstrap-nmake): Change directories once more.

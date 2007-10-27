@@ -54,7 +54,7 @@
     ( ft      "12 in"                "Foot" )
     ( yd      "3 ft"                 "Yard" )
     ( mi      "5280 ft"              "Mile" )
-    ( au      "149597870691. m"      "Astronomical Unit" ) 
+    ( au      "149597870691. m"      "Astronomical Unit" )
               ;; (approx) NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
     ( lyr     "c yr"                 "Light Year" )
     ( pc      "3.0856775854e16 m"    "Parsec" ) ;; (approx) ESUWM
@@ -91,7 +91,7 @@
     ( tbsp    "3 tsp"                "Tablespoon" )
     ;; ESUWM defines a US gallon as 231 in^3.
     ;; That gives the following exact value for tsp.
-    ( tsp     "492892159375*10^(-11) ml" "Teaspoon" ) 
+    ( tsp     "492892159375*10^(-11) ml" "Teaspoon" )
     ( vol     "tsp+tbsp+ozfl+cup+pt+qt+gal" "Gallons + ... + teaspoons" )
     ( galC    "galUK"                "Canadian Gallon" )
     ( galUK   "454609*10^(-5) L"     "UK Gallon" ) ;; NIST
@@ -342,13 +342,13 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 If EXPR is nil, return nil."
   (if expr
       (let ((cexpr (math-compose-expr expr 0)))
-        (replace-regexp-in-string 
+        (replace-regexp-in-string
          " / " "/"
          (if (stringp cexpr)
              cexpr
            (math-composition-to-string cexpr))))))
 
-(defvar math-default-units-table 
+(defvar math-default-units-table
   (make-hash-table :test 'equal)
   "A table storing previously converted units.")
 
@@ -356,7 +356,7 @@ If EXPR is nil, return nil."
   "Get default units to use when converting the units in EXPR."
   (let* ((units (math-get-units expr))
          (standard-units (math-get-standard-units expr))
-         (default-units (gethash 
+         (default-units (gethash
                          standard-units
                          math-default-units-table)))
     (if (equal units (car default-units))
@@ -403,7 +403,7 @@ If EXPR is nil, return nil."
 	 (setq expr (math-mul expr uold))))
      (unless new-units
        (setq defunits (math-get-default-units expr))
-       (setq new-units 
+       (setq new-units
              (read-string (concat
                            (if uoldname
                                (concat "Old units: "
@@ -412,11 +412,11 @@ If EXPR is nil, return nil."
                             "New units")
                            (if defunits
                                (concat
-                                " (default: "
+                                " (default "
                                 defunits
                                 "): ")
                              ": "))))
-                             
+
        (if (and
             (string= new-units "")
             defunits)
@@ -476,7 +476,7 @@ If EXPR is nil, return nil."
      (setq defunits (math-get-default-units expr))
      (setq unew (or new-units
 		    (math-read-expr
-		     (read-string 
+		     (read-string
                       (concat
                        (if uoldname
                            (concat "Old temperature units: "
@@ -484,7 +484,7 @@ If EXPR is nil, return nil."
                                    ", new units")
                          "New temperature units")
                        (if defunits
-                           (concat " (default: "
+                           (concat " (default "
                                    defunits
                                    "): ")
                          ": "))))))
@@ -507,7 +507,7 @@ If EXPR is nil, return nil."
    (calc-enter-result 1 "rmun" (math-simplify-units
 				(math-extract-units (calc-top-n 1))))))
 
-;; The variables calc-num-units and calc-den-units are local to 
+;; The variables calc-num-units and calc-den-units are local to
 ;; calc-explain-units, but are used by calc-explain-units-rec,
 ;; which is called by calc-explain-units.
 (defvar calc-num-units)
@@ -752,7 +752,7 @@ If EXPR is nil, return nil."
 					(list (cons (car x) 1))))))
 			  combined-units))
 	(let ((math-units-table tab))
-	  (mapcar 'math-find-base-units tab))
+	  (mapc 'math-find-base-units tab))
 	(message "Building units table...done")
 	(setq math-units-table tab))))
 
@@ -794,7 +794,7 @@ If EXPR is nil, return nil."
 		     (old (assq (car (car ulist)) math-fbu-base)))
 		 (if old
 		     (setcdr old (+ (cdr old) p))
-		   (setq math-fbu-base 
+		   (setq math-fbu-base
                          (cons (cons (car (car ulist)) p) math-fbu-base))))
 	       (setq ulist (cdr ulist)))))
 	  ((math-scalarp expr))
@@ -988,8 +988,8 @@ If EXPR is nil, return nil."
 	   (if (equal (nth 4 math-fcu-u) (nth 4 u2))
 	       (cons expr pow))))))
 
-;; The variables math-cu-new-units and math-cu-pure are local to 
-;; math-convert-units, but are used by math-convert-units-rec, 
+;; The variables math-cu-new-units and math-cu-pure are local to
+;; math-convert-units, but are used by math-convert-units-rec,
 ;; which is called by math-convert-units.
 (defvar math-cu-new-units)
 (defvar math-cu-pure)
@@ -1001,7 +1001,7 @@ If EXPR is nil, return nil."
         (if (eq (car-safe (nth 1 unew)) '+)
             (setq math-cu-new-units (nth 1 unew)))))
   (math-with-extra-prec 2
-    (let ((compat (and (not math-cu-pure) 
+    (let ((compat (and (not math-cu-pure)
                        (math-find-compatible-unit expr math-cu-new-units)))
 	  (math-cu-unit-list nil)
 	  (math-combining-units nil))
@@ -1028,7 +1028,7 @@ If EXPR is nil, return nil."
 
 (defun math-convert-units-rec (expr)
   (if (math-units-in-expr-p expr nil)
-      (math-apply-units (math-to-standard-units 
+      (math-apply-units (math-to-standard-units
                          (list '/ expr math-cu-new-units) nil)
 			math-cu-new-units math-cu-unit-list math-cu-pure)
     (if (Math-primp expr)
@@ -1093,7 +1093,7 @@ If EXPR is nil, return nil."
 	       (calc-record-why "*Inconsistent units" math-simplify-expr)
 	       math-simplify-expr)
 	   (list '* (math-add (math-remove-units (nth 1 math-simplify-expr))
-			      (if (eq (car math-simplify-expr) '-) 
+			      (if (eq (car math-simplify-expr) '-)
                                   (math-neg ratio) ratio))
 		 units)))))
 
@@ -1187,7 +1187,7 @@ If EXPR is nil, return nil."
 	 (math-simplify-units-divisor np (cdr (cdr math-simplify-expr)))
 	 (if (eq math-try-cancel-units 0)
 	     (let* ((math-simplifying-units nil)
-		    (base (math-simplify 
+		    (base (math-simplify
                            (math-to-standard-units math-simplify-expr nil))))
 	       (if (Math-numberp base)
 		   (setq math-simplify-expr base))))
@@ -1243,11 +1243,11 @@ If EXPR is nil, return nil."
        (math-realp (nth 2 math-simplify-expr))
        (if (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
 	   (list (car (nth 1 math-simplify-expr))
-		 (list '^ (nth 1 (nth 1 math-simplify-expr)) 
+		 (list '^ (nth 1 (nth 1 math-simplify-expr))
                        (nth 2 math-simplify-expr))
-		 (list '^ (nth 2 (nth 1 math-simplify-expr)) 
+		 (list '^ (nth 2 (nth 1 math-simplify-expr))
                        (nth 2 math-simplify-expr)))
-	 (math-simplify-units-pow (nth 1 math-simplify-expr) 
+	 (math-simplify-units-pow (nth 1 math-simplify-expr)
                                   (nth 2 math-simplify-expr)))))
 
 (math-defsimplify calcFunc-sqrt

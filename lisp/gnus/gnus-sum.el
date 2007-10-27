@@ -1029,6 +1029,17 @@ default charset will be used instead."
   :type '(repeat symbol)
   :group 'gnus-charset)
 
+(defcustom gnus-newsgroup-maximum-articles nil
+  "The maximum number of articles a newsgroup.
+If this is a number, old articles in a newsgroup exceeding this number
+are silently ignored.  If it is nil, no article is ignored.  Note that
+setting this variable to a number might prevent you from reading very
+old articles."
+  :group 'gnus-group-select
+  :version "22.2"
+  :type '(choice (const :tag "No limit" nil)
+		 integer))
+
 (gnus-define-group-parameter
  ignored-charsets
  :type list
@@ -5472,11 +5483,13 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	      ;; articles in the group, or (if that's nil), the
 	      ;; articles in the cache.
 	      (or
-	       (if gnus-maximum-newsgroup
+	       (if gnus-newsgroup-maximum-articles
 		   (let ((active (gnus-active group)))
 		     (gnus-uncompress-range
 		      (cons (max (car active)
-				 (- (cdr active) gnus-maximum-newsgroup -1))
+				 (- (cdr active)
+				    gnus-newsgroup-maximum-articles
+				    -1))
 			    (cdr active))))
 		 (gnus-uncompress-range (gnus-active group)))
 	       (gnus-cache-articles-in-group group))
@@ -6540,8 +6553,9 @@ displayed, no centering will be performed."
   (let* ((read (gnus-info-read (gnus-get-info group)))
 	 (active (or (gnus-active group) (gnus-activate-group group)))
 	 (last (cdr active))
-	 (bottom (if gnus-maximum-newsgroup
-		     (max (car active) (- last gnus-maximum-newsgroup -1))
+	 (bottom (if gnus-newsgroup-maximum-articles
+		     (max (car active)
+			  (- last gnus-newsgroup-maximum-articles -1))
 		   (car active)))
 	 first nlast unread)
     ;; If none are read, then all are unread.
@@ -6585,9 +6599,11 @@ displayed, no centering will be performed."
 	  (gnus-list-range-difference
 	   (gnus-sorted-complement
 	    (gnus-uncompress-range
-	     (if gnus-maximum-newsgroup
+	     (if gnus-newsgroup-maximum-articles
 		 (cons (max (car active)
-			    (- (cdr active) gnus-maximum-newsgroup -1))
+			    (- (cdr active)
+			       gnus-newsgroup-maximum-articles
+			       -1))
 		       (cdr active))
 	       active))
 	    (gnus-list-of-unread-articles group))
@@ -6601,8 +6617,9 @@ displayed, no centering will be performed."
   (let* ((read (gnus-info-read (gnus-get-info group)))
 	 (active (or (gnus-active group) (gnus-activate-group group)))
 	 (last (cdr active))
-	 (bottom (if gnus-maximum-newsgroup
-		     (max (car active) (- last gnus-maximum-newsgroup -1))
+	 (bottom (if gnus-newsgroup-maximum-articles
+		     (max (car active)
+			  (- last gnus-newsgroup-maximum-articles -1))
 		   (car active)))
 	 first nlast unread)
     ;; If none are read, then all are unread.

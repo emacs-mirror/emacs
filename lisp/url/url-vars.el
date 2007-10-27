@@ -62,12 +62,12 @@
 (defvar url-current-mime-headers nil
   "A parsed representation of the MIME headers for the current url.")
 
-(mapcar 'make-variable-buffer-local
-	'(
-	  url-current-object
-	  url-current-referer
-	  url-current-mime-headers
-	  ))
+(mapc 'make-variable-buffer-local
+      '(
+	url-current-object
+	url-current-referer
+	url-current-mime-headers
+	))
 
 (defcustom url-honor-refresh-requests t
   "*Whether to do automatic page reloads.

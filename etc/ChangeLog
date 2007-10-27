@@ -1,3 +1,72 @@
+2007-10-10  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* NEWS: Explain the VC fileset changes a bit better.
+
+2007-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Mention Tex superscript font issue.
+
+2007-09-25  Johannes Weiner  <hannes@saeurebad.de>
+
+	* NEWS: Fix typo.
+
+2007-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* CONTRIBUTE: Remove information on maintaining copyright years;
+	it does not belong here and is in admin/notes anyway.
+
+2007-09-24  Adam Hupp  <adam@hupp.org>
+
+	* emacs.py: Split for python 2 and python 3 compatibility.
+	* emacs2.py: New file, split off from emacs.py.
+	* emacs3.py: New file, python 3 version of emacs2.py.
+
+2007-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacstool.1: Remove file.
+	* emacs.bash: Adapt for removal of emacstool.
+	* emacs.csh: Remove emacstool-related code.
+
+2007-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* gfdl.1: Remove unused file.
+
+2007-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile (SOURCES, unlock, relock): Delete.
+
+2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+
+	* NEWS: Document the interactive specification for C functions.
+	Say that `set-file-modes' is now interactive.
+
+2007-09-10  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Improve description of erc-tls and erc-ssl change.
+
+2007-09-09  Juri Linkov  <juri@jurta.org>
+
+	* AUTHORS, CONTRIBUTE: New files, moved here from the root dir.
+
+2007-09-08  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for changes to the development version of ERC 5.3.
+
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* ctags.1, emacs.1, emacsclient.1, etags.1: Move from etc/ to
+	doc/man/.
+
+	* refcards/README: Also mention gnus-logo.pdf license.
+
+2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* NEWS.22 (Note): Lower-case for orgtbl-mode.
+
+2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: Say that Gtk+ build uses stock icons.
+
 2007-08-28  Werner LEMBERG  <wl@gnu.org>
 
 	* refcards/de-refcard.tex, refcards/de-refcard.pdf: Use `C-M-%'
@@ -60,13 +129,17 @@
 
 	* e/README: New file, with most information formerly in Makefile.
 
+2007-09-05  Jason Rumney  <jasonr@gnu.org>
+
+	* NEWS.22: Mention focus-follows-mouse change.
+
 2007-08-22  Karl Berry  <karl@gnu.org>
 
-	* refcard.tex: updates for printing.
-        (\versionyear): update to 2007.
-	(\copyrightnotice): modified or unmodified ok.
-	(Simple Customization): don't use goto-line, since now it's bound.
-^	Also, use now-preferred (kbd ...) syntax.
+	* refcard.tex: Updates for printing.
+	(\versionyear): Update to 2007.
+	(\copyrightnotice): Modified or unmodified ok.
+	(Simple Customization): Don't use goto-line, since now it's bound.
+	Also, use now-preferred (kbd ...) syntax.
 
 2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -87,7 +160,7 @@
 	* README: Move information about tex files from here...
 	* refcards/README: ...to here.
 
-	* tutorials/: New directory. Move TUTORIAL* here.
+	* tutorials/: New directory.  Move TUTORIAL* here.
 
 	* gnus.pbm, letter.pbm, letter.xpm:
 	* splash.pbm, splash.xpm, splash8.xpm: Move from etc/ to etc/images/.
@@ -109,7 +182,7 @@
 
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
-	*  Relicense all FSF files to GPLv3 or later.
+	* Relicense all FSF files to GPLv3 or later.
 
 	* COPYING: Switch to GPLv3.
 

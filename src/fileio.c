@@ -78,6 +78,8 @@ extern int errno;
 #include "coding.h"
 #include "window.h"
 #include "blockinput.h"
+#include "frame.h"
+#include "dispextern.h"
 
 #ifdef WINDOWSNT
 #define NOMINMAX 1
@@ -3433,7 +3435,9 @@ Return nil, if file does not exist or is not accessible.  */)
   return make_number (st.st_mode & 07777);
 }
 
-DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2, 0,
+DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
+       "(let ((file (read-file-name \"File: \")))			\
+	  (list file (read-file-modes nil file)))",
        doc: /* Set mode bits of file named FILENAME to MODE (an integer).
 Only the 12 low bits of MODE are used.  */)
   (filename, mode)
@@ -5355,8 +5359,10 @@ This does code conversion according to the value of
      it, and that means the fsync here is not crucial for autosave files.  */
   if (!auto_saving && !write_region_inhibit_fsync && fsync (desc) < 0)
     {
-      /* If fsync fails with EINTR, don't treat that as serious.  */
-      if (errno != EINTR)
+      /* If fsync fails with EINTR, don't treat that as serious.  Also
+	 ignore EINVAL which happens when fsync is not supported on this
+	 file.  */
+      if (errno != EINTR && errno != EINVAL)
 	failure = 1, save_errno = errno;
     }
 #endif
@@ -5825,7 +5831,7 @@ auto_save_error (error)
   char *msgbuf;
   USE_SAFE_ALLOCA;
 
-  ring_bell ();
+  ring_bell (XFRAME (selected_frame));
 
   args[0] = build_string ("Auto-saving %s: %s");
   args[1] = current_buffer->name;
@@ -6387,7 +6393,7 @@ and `read-file-name-function'.  */)
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
 #ifdef DOS_NT
-  /* homedir can be NULL in temacs, since Vprocess_environment is not
+  /* homedir can be NULL in temacs, since Vglobal_environment is not
      yet set up.  We shouldn't crash in that case.  */
   if (homedir != 0)
     {

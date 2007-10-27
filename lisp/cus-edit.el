@@ -1550,7 +1550,8 @@ possibly because you started Emacs with `-q'.")
     ;; Insert custom command buttons if the toolbar is not in use.
 
     (widget-insert "\n")
-    (when (not (and tool-bar-mode (display-graphic-p)))
+    ;; tool-bar is not dumped in builds without x.
+    (when (not (and (bound-and-true-p tool-bar-mode) (display-graphic-p)))
       (if custom-buffer-verbose-help
 	  (widget-insert "\n
  Operate on all settings in this buffer that are not marked HIDDEN:\n"))
@@ -2681,7 +2682,12 @@ try matching its doc string against `custom-guess-doc-alist'."
   `(("Set for Current Session" custom-variable-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
-    ,@(when (or custom-file user-init-file)
+    ;; Note that in all the backquoted code in this file, we test
+    ;; init-file-user rather than user-init-file.  This is in case
+    ;; cus-edit is loaded by something in site-start.el, because
+    ;; user-init-file is not set at that stage.
+    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00310.html
+    ,@(when (or custom-file init-file-user)
 	'(("Save for Future Sessions" custom-variable-save
 	   (lambda (widget)
 	     (memq (widget-get widget :custom-state)
@@ -2696,7 +2702,7 @@ try matching its doc string against `custom-guess-doc-alist'."
 		(get (widget-value widget) 'saved-variable-comment))
 	    (memq (widget-get widget :custom-state)
 		  '(modified set changed rogue)))))
-    ,@(when (or custom-file user-init-file)
+    ,@(when (or custom-file init-file-user)
 	'(("Erase Customization" custom-variable-reset-standard
 	   (lambda (widget)
 	     (and (get (widget-value widget) 'standard-value)
@@ -3010,7 +3016,7 @@ Also change :reverse-video to :inverse-video."
 		    (cons value (cons from (- (point) from))))))))
 
 (defun custom-face-edit-activate (widget)
-  "Make face widget WIDGET inactive for user modifications."
+  "Make face widget WIDGET active for user modifications."
   (let ((inactive (widget-get widget :inactive))
 	(inhibit-read-only t)
 	(inhibit-modification-hooks t))
@@ -3370,7 +3376,7 @@ SPEC must be a full face spec."
 
 (defvar custom-face-menu
   `(("Set for Current Session" custom-face-set)
-    ,@(when (or custom-file user-init-file)
+    ,@(when (or custom-file init-file-user)
 	'(("Save for Future Sessions" custom-face-save)))
     ("Undo Edits" custom-redraw
      (lambda (widget)
@@ -3379,7 +3385,7 @@ SPEC must be a full face spec."
      (lambda (widget)
        (or (get (widget-value widget) 'saved-face)
 	   (get (widget-value widget) 'saved-face-comment))))
-    ,@(when (or custom-file user-init-file)
+    ,@(when (or custom-file init-file-user)
 	'(("Erase Customization" custom-face-reset-standard
 	   (lambda (widget)
 	     (get (widget-value widget) 'face-defface-spec)))))
@@ -3977,7 +3983,7 @@ Creating group members... %2d%%"
   `(("Set for Current Session" custom-group-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
-    ,@(when (or custom-file user-init-file)
+    ,@(when (or custom-file init-file-user)
 	'(("Save for Future Sessions" custom-group-save
 	   (lambda (widget)
 	     (memq (widget-get widget :custom-state) '(modified set))))))
@@ -3987,7 +3993,7 @@ Creating group members... %2d%%"
     ("Reset to Saved" custom-group-reset-saved
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified set))))
-    ,@(when (or custom-file user-init-file)
+    ,@(when (or custom-file init-file-user)
 	'(("Erase Customization" custom-group-reset-standard
 	   (lambda (widget)
 	     (memq (widget-get widget :custom-state) '(modified set saved)))))))

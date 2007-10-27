@@ -27,10 +27,27 @@
 
 ;;; Code:
 
-(defvar frame-creation-function nil
-  "Window-system dependent function to call to create a new frame.
-The window system startup file should set this to its frame creation
-function, which should take an alist of parameters as its argument.")
+(defvar frame-creation-function-alist
+  (list (cons nil
+	      (if (fboundp 'tty-create-frame-with-faces)
+		  'tty-create-frame-with-faces
+                (lambda (parameters)
+                  (error "Can't create multiple frames without a window system")))))
+  "Alist of window-system dependent functions to call to create a new frame.
+The window system startup file should add its frame creation
+function to this list, which should take an alist of parameters
+as its argument.")
+
+(defvar window-system-default-frame-alist nil
+  "Alist of window-system dependent default frame parameters.
+You can set this in your `.emacs' file; for example,
+
+    ;; Disable menubar and toolbar on the console, but enable them under X.
+    (setq window-system-default-frame-alist
+          '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
+            (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
+
+Parameters specified here supersede the values given in `default-frame-alist'.")
 
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
@@ -189,7 +206,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 (defun frame-initialize ()
   "Create an initial frame if necessary."
   ;; Are we actually running under a window system at all?
-  (if (and window-system (not noninteractive) (not (eq window-system 'pc)))
+  (if (and initial-window-system
+	   (not noninteractive)
+	   (not (eq initial-window-system 'pc)))
       (progn
 	;; Turn on special-display processing only if there's a window system.
 	(setq special-display-function 'special-display-popup-frame)
@@ -206,6 +225,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 		  (setq frame-initial-frame-alist
 			(cons '(horizontal-scroll-bars . t)
 			      frame-initial-frame-alist)))
+	      (setq frame-initial-frame-alist
+		    (cons (cons 'window-system initial-window-system)
+			  frame-initial-frame-alist))
 	      (setq default-minibuffer-frame
 		    (setq frame-initial-frame
 			  (make-frame frame-initial-frame-alist)))
@@ -215,20 +237,13 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	      ;; because that would override explicit user resizing.
 	      (setq initial-frame-alist
 		    (frame-remove-geometry-params initial-frame-alist))))
+	;; Copy the environment of the Emacs process into the new frame.
+	(set-frame-parameter frame-initial-frame 'environment
+			     (frame-parameter terminal-frame 'environment))
 	;; At this point, we know that we have a frame open, so we
 	;; can delete the terminal frame.
 	(delete-frame terminal-frame)
-	(setq terminal-frame nil))
-
-    ;; No, we're not running a window system.  Use make-terminal-frame if
-    ;; we support that feature, otherwise arrange to cause errors.
-    (or (eq window-system 'pc)
-	(setq frame-creation-function
-	      (if (fboundp 'tty-create-frame-with-faces)
-		  'tty-create-frame-with-faces
-                (lambda (parameters)
-                  (error
-                   "Can't create multiple frames without a window system")))))))
+	(setq terminal-frame nil))))
 
 (defvar frame-notice-user-settings t
   "Non-nil means function `frame-notice-user-settings' wasn't run yet.")
@@ -238,7 +253,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 ;; information to which we must react; do what needs to be done.
 (defun frame-notice-user-settings ()
   "Act on user's init file settings of frame parameters.
-React to settings of `default-frame-alist', `initial-frame-alist' there."
+React to settings of `initial-frame-alist',
+`window-system-default-frame-alist' and `default-frame-alist'
+there (in decreasing order of priority)."
   ;; Make menu-bar-mode and default-frame-alist consistent.
   (when (boundp 'menu-bar-mode)
     (let ((default (assq 'menu-bar-lines default-frame-alist)))
@@ -253,20 +270,30 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
   ;; parameter in default-frame-alist in a dumped Emacs, which is not
   ;; what we want.
   (when (and (boundp 'tool-bar-mode)
-	     (not noninteractive))
+ 	     (not noninteractive))
     (let ((default (assq 'tool-bar-lines default-frame-alist)))
       (if default
-	  (setq tool-bar-mode (not (eq (cdr default) 0)))
-	(setq default-frame-alist
-	      (cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
-		    default-frame-alist)))))
+ 	  (setq tool-bar-mode (not (eq (cdr default) 0)))
+	;; If Emacs was started on a tty, changing default-frame-alist
+	;; would disable the toolbar on X frames created later.  We
+	;; want to keep the default of showing a toolbar under X even
+	;; in this case.
+	;;
+	;; If the user explicitly called `tool-bar-mode' in .emacs,
+	;; then default-frame-alist is already changed anyway.
+	(when initial-window-system
+	  (setq default-frame-alist
+		(cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
+		      default-frame-alist))))))
 
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
   ;; want to use save-excursion here, because that may also try to set
   ;; the buffer of the selected window, which fails when the selected
   ;; window is the minibuffer.
-  (let ((old-buffer (current-buffer)))
+  (let ((old-buffer (current-buffer))
+	(window-system-frame-alist (cdr (assq initial-window-system
+					      window-system-default-frame-alist))))
 
     (when (and frame-notice-user-settings
 	       (null frame-initial-frame))
@@ -278,8 +305,9 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	;; Can't modify the minibuffer parameter, so don't try.
 	(setq parms (delq (assq 'minibuffer parms) parms))
 	(modify-frame-parameters nil
-				 (if (null window-system)
+				 (if (null initial-window-system)
 				     (append initial-frame-alist
+					     window-system-frame-alist
 					     default-frame-alist
 					     parms
 					     nil)
@@ -287,7 +315,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 				   ;; default-frame-alist were already
 				   ;; applied in pc-win.el.
 				   parms))
-	(if (null window-system) ;; MS-DOS does this differently in pc-win.el
+	(if (null initial-window-system) ;; MS-DOS does this differently in pc-win.el
 	    (let ((newparms (frame-parameters))
 		  (frame (selected-frame)))
 	      (tty-handle-reverse-video frame newparms)
@@ -309,6 +337,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
       ;; switch `tool-bar-mode' off.
       (when (display-graphic-p)
 	(let ((tool-bar-lines (or (assq 'tool-bar-lines initial-frame-alist)
+				  (assq 'tool-bar-lines window-system-frame-alist)
 				  (assq 'tool-bar-lines default-frame-alist))))
 	  (when (and tool-bar-originally-present
                      (or (null tool-bar-lines)
@@ -369,6 +398,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
       ;; create here, so that its new value, gleaned from the user's
       ;; .emacs file, will be applied to the existing screen.
       (if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
+			    (assq 'minibuffer window-system-frame-alist)
 			    (assq 'minibuffer default-frame-alist)
 			    '(minibuffer . t)))
 		   t))
@@ -388,6 +418,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 		(setq parms (delq (assq 'name parms) parms)))
 
 	    (setq parms (append initial-frame-alist
+				window-system-frame-alist
 				default-frame-alist
 				parms
 				nil))
@@ -463,6 +494,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	;; the new parameters.
 	(let (newparms allparms tail)
 	  (setq allparms (append initial-frame-alist
+				 window-system-frame-alist
 				 default-frame-alist nil))
 	  (if (assq 'height frame-initial-geometry-arguments)
 	      (setq allparms (assq-delete-all 'height allparms)))
@@ -519,19 +551,25 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 (defun modify-all-frames-parameters (alist)
   "Modify all current and future frames' parameters according to ALIST.
 This changes `default-frame-alist' and possibly `initial-frame-alist'.
+Furthermore, this function removes all parameters in ALIST from
+`window-system-default-frame-alist'.
 See help of `modify-frame-parameters' for more information."
-  (let (element)			;; temp
-    (dolist (frame (frame-list))
-      (modify-frame-parameters frame alist))
+  (dolist (frame (frame-list))
+    (modify-frame-parameters frame alist))
 
-    (dolist (pair alist)		;; conses to add/replace
-      ;; initial-frame-alist needs setting only when
-      ;; frame-notice-user-settings is true
-      (and frame-notice-user-settings
-	   (setq element (assoc (car pair) initial-frame-alist))
-	   (setq initial-frame-alist (delq element initial-frame-alist)))
-      (and (setq element (assoc (car pair) default-frame-alist))
-	   (setq default-frame-alist (delq element default-frame-alist)))))
+  (dolist (pair alist) ;; conses to add/replace
+    ;; initial-frame-alist needs setting only when
+    ;; frame-notice-user-settings is true.
+    (and frame-notice-user-settings
+	 (setq initial-frame-alist
+	       (assq-delete-all (car pair) initial-frame-alist)))
+    (setq default-frame-alist
+	  (assq-delete-all (car pair) default-frame-alist))
+    ;; Remove any similar settings from the window-system specific
+    ;; parameters---they would override default-frame-alist.
+    (dolist (w window-system-default-frame-alist)
+      (setcdr w (assq-delete-all (car pair) (cdr w)))))
+
   (and frame-notice-user-settings
        (setq initial-frame-alist (append initial-frame-alist alist)))
   (setq default-frame-alist (append default-frame-alist alist)))
@@ -562,12 +600,28 @@ is not considered (see `next-frame')."
   (select-frame-set-input-focus (selected-frame)))
 
 (defun make-frame-on-display (display &optional parameters)
-  "Make a frame on display DISPLAY.
+  "Make a frame on X display DISPLAY.
 The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
   (or (string-match "\\`[^:]*:[0-9]+\\(\\.[0-9]+\\)?\\'" display)
       (error "Invalid display, not HOST:SERVER or HOST:SERVER.SCREEN"))
-  (make-frame (cons (cons 'display display) parameters)))
+  (when (and (boundp 'x-initialized) (not x-initialized))
+    (setq x-display-name display)
+    (x-initialize-window-system))
+  (make-frame `((window-system . x) (display . ,display) . ,parameters)))
+
+(defun make-frame-on-tty (tty type &optional parameters)
+  "Make a frame on terminal device TTY.
+TTY should be the file name of the tty device to use.  TYPE
+should be the terminal type string of TTY, for example \"xterm\"
+or \"vt100\".  The optional third argument PARAMETERS specifies
+additional frame parameters."
+  (interactive "fOpen frame on tty device: \nsTerminal type of %s: ")
+  (unless tty
+    (error "Invalid terminal device"))
+  (unless type
+    (error "Invalid terminal type"))
+  (make-frame `((window-system . nil) (tty . ,tty) (tty-type . ,type) . ,parameters)))
 
 (defun close-display-connection (display)
   "Close the connection to a display, deleting all its associated frames.
@@ -619,6 +673,10 @@ The functions are run with one arg, the newly created frame.")
 ;; Alias, kept temporarily.
 (define-obsolete-function-alias 'new-frame 'make-frame "22.1")
 
+(defvar frame-inherited-parameters '()
+  ;; FIXME: Shouldn't we add `font' here as well?
+  "Parameters `make-frame' copies from the `selected-frame' to the new frame.")
+
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
 Optional argument PARAMETERS is an alist of parameters for the new frame.
@@ -636,7 +694,12 @@ You cannot specify either `width' or `height', you must use neither or both.
  (minibuffer . only)	The frame should contain only a minibuffer.
  (minibuffer . WINDOW)	The frame should use WINDOW as its minibuffer window.
 
-Before the frame is created (via `frame-creation-function'), functions on the
+ (window-system . nil)	The frame should be displayed on a terminal device.
+ (window-system . x)	The frame should be displayed in an X window.
+
+ (terminal . ID)          The frame should use the terminal identified by ID.
+
+Before the frame is created (via `frame-creation-function-alist'), functions on the
 hook `before-make-frame-hook' are run.  After the frame is created, functions
 on `after-make-frame-functions' are run with one arg, the newly created frame.
 
@@ -646,8 +709,29 @@ window system may select the new frame for its own reasons, for
 instance if the frame appears under the mouse pointer and your
 setup is for focus to follow the pointer."
   (interactive)
-  (run-hooks 'before-make-frame-hook)
-  (let ((frame (funcall frame-creation-function parameters)))
+  (let* ((w (cond
+	     ((assq 'terminal parameters)
+	      (let ((type (terminal-live-p (cdr (assq 'terminal parameters)))))
+		(cond
+		 ((eq type t) nil)
+		 ((eq type nil) (error "Terminal %s does not exist" (cdr (assq 'terminal parameters))))
+		 (t type))))
+	     ((assq 'window-system parameters)
+	      (cdr (assq 'window-system parameters)))
+	     (t window-system)))
+	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
+	 (oldframe (selected-frame))
+	 frame)
+    (unless frame-creation-function
+      (error "Don't know how to create a frame on window system %s" w))
+    (run-hooks 'before-make-frame-hook)
+    (setq frame (funcall frame-creation-function (append parameters (cdr (assq w window-system-default-frame-alist)))))
+    (normal-erase-is-backspace-setup-frame frame)
+    ;; Inherit the original frame's parameters.
+    (dolist (param frame-inherited-parameters)
+      (unless (assq param parameters)   ;Overridden by explicit parameters.
+        (let ((val (frame-parameter oldframe param)))
+          (when val (set-frame-parameter frame param val)))))
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 
@@ -667,23 +751,48 @@ setup is for focus to follow the pointer."
    (lambda (frame)
      (eq frame (window-frame (minibuffer-window frame))))))
 
-(defun frames-on-display-list (&optional display)
-  "Return a list of all frames on DISPLAY.
-DISPLAY is a name of a display, a string of the form HOST:SERVER.SCREEN.
-If DISPLAY is omitted or nil, it defaults to the selected frame's display."
-  (let* ((display (or display (frame-parameter nil 'display)))
+;; Used to be called `terminal-id' in termdev.el.
+(defun get-device-terminal (device)
+  "Return the terminal corresponding to DEVICE.
+DEVICE can be a terminal, a frame, nil (meaning the selected frame's terminal),
+the name of an X display device (HOST.SERVER.SCREEN) or a tty device file."
+  (cond
+   ((or (null device) (framep device))
+    (frame-terminal device))
+   ((stringp device)
+    (let ((f (car (filtered-frame-list
+                   (lambda (frame)
+                     (or (equal (frame-parameter frame 'display) device)
+                         (equal (frame-parameter frame 'tty) device)))))))
+      (or f (error "Display %s does not exist" device))
+      (frame-terminal f)))
+   ((terminal-live-p device) device)
+   (t
+    (error "Invalid argument %s in `get-device-terminal'" device))))
+
+(defun frames-on-display-list (&optional device)
+  "Return a list of all frames on DEVICE.
+
+DEVICE should be a terminal, a frame,
+or a name of an X display or tty (a string of the form
+HOST:SERVER.SCREEN).
+
+If DEVICE is omitted or nil, it defaults to the selected
+frame's terminal device."
+  (let* ((terminal (get-device-terminal device))
 	 (func #'(lambda (frame)
-		   (equal (frame-parameter frame 'display) display))))
+		   (eq (frame-terminal frame) terminal))))
     (filtered-frame-list func)))
 
-(defun framep-on-display (&optional display)
-  "Return the type of frames on DISPLAY.
-DISPLAY may be a display name or a frame.  If it is a frame, its type is
-returned.
-If DISPLAY is omitted or nil, it defaults to the selected frame's display.
-All frames on a given display are of the same type."
-  (or (framep display)
-      (framep (car (frames-on-display-list display)))))
+(defun framep-on-display (&optional terminal)
+  "Return the type of frames on TERMINAL.
+TERMINAL may be a terminal id, a display name or a frame.  If it
+is a frame, its type is returned.  If TERMINAL is omitted or nil,
+it defaults to the selected frame's terminal device.  All frames
+on a given display are of the same type."
+  (or (terminal-live-p terminal)
+      (framep terminal)
+      (framep (car (frames-on-display-list terminal)))))
 
 (defun frame-remove-geometry-params (param-list)
   "Return the parameter list PARAM-LIST, but with geometry specs removed.
@@ -706,28 +815,15 @@ the user during startup."
 	(nreverse frame-initial-geometry-arguments))
   (cdr param-list))
 
-(defcustom focus-follows-mouse (not (eq window-system 'mac))
-  "*Non-nil if window system changes focus when you move the mouse.
-You should set this variable to tell Emacs how your window manager
-handles focus, since there is no way in general for Emacs to find out
-automatically.
-
-This variable does not have any effect on MS-Windows."
-  :type 'boolean
-  :group 'frames
-  :version "20.3")
-
 (defun select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((memq window-system '(x mac))
-	   (x-focus-frame frame))
-	  ((eq window-system 'w32)
-	   (w32-focus-frame frame)))
-    (cond (focus-follows-mouse
-	   (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
+    (when (memq (window-system frame) '(x mac w32))
+      (x-focus-frame frame))
+    (when focus-follows-mouse
+      (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
 
 (defun other-frame (arg)
   "Select the ARGth different visible frame on current display, and raise it.
@@ -760,6 +856,21 @@ Otherwise, that variable should be nil."
   (if (eq (cdr (assq 'visibility (frame-parameters))) t)
       (iconify-frame)
     (make-frame-visible)))
+
+(defun suspend-frame ()
+  "Do whatever is right to suspend the current frame.
+Calls `suspend-emacs' if invoked from the controlling tty device,
+`suspend-tty' from a secondary tty device, and
+`iconify-or-deiconify-frame' from an X frame."
+  (interactive)
+  (let ((type (framep (selected-frame))))
+    (cond
+     ((memq type '(x w32)) (iconify-or-deiconify-frame))
+     ((eq type t)
+      (if (controlling-tty-p)
+	  (suspend-emacs)
+	(suspend-tty)))
+     (t (suspend-emacs)))))
 
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
@@ -794,10 +905,8 @@ If there is no frame by that name, signal an error."
     (raise-frame frame)
     (select-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (cond ((memq window-system '(x mac))
-	   (x-focus-frame frame))
-	  ((eq window-system 'w32)
-	   (w32-focus-frame frame)))
+    (cond ((memq (window-system frame) '(x w32))
+	   (x-focus-frame frame)))
     (when focus-follows-mouse
       (set-mouse-position frame (1- (frame-width frame)) 0))))
 
@@ -841,8 +950,15 @@ is given and non-nil, the unwanted frames are iconified instead."
                ;; Since we can't set a frame's minibuffer status,
                ;; we might as well omit the parameter altogether.
                (let* ((parms (nth 1 parameters))
-                      (mini (assq 'minibuffer parms)))
-                 (if mini (setq parms (delq mini parms)))
+		      (mini (assq 'minibuffer parms))
+		      (name (assq 'name parms))
+		      (explicit-name (cdr (assq 'explicit-name parms))))
+		 (when mini (setq parms (delq mini parms)))
+		 ;; Leave name in iff it was set explicitly.
+		 ;; This should fix the behavior reported in
+		 ;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01632.html
+		 (when (and name (not explicit-name))
+		   (setq parms (delq name parms)))
                  parms))
               (set-window-configuration (nth 2 parameters)))
           (setq frames-to-delete (cons frame frames-to-delete)))))
@@ -1006,6 +1122,10 @@ bars (top, bottom, or nil)."
     (cons vert hor)))
 
 ;;;; Frame/display capabilities.
+(defun selected-terminal ()
+  "Return the terminal that is now selected."
+  (frame-terminal (selected-frame)))
+
 (defun display-mouse-p (&optional display)
   "Return non-nil if DISPLAY has a mouse available.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
@@ -1183,7 +1303,7 @@ the question is inapplicable to a certain kind of display."
      ((eq frame-type 'pc)
       16)
      (t
-      (tty-display-color-cells)))))
+      (tty-display-color-cells display)))))
 
 (defun display-visual-class (&optional display)
   "Returns the visual class of DISPLAY.
@@ -1377,6 +1497,9 @@ cursor shapes."
 (defcustom cursor-in-non-selected-windows t
   "*Non-nil means show a hollow box cursor in non-selected windows.
 If nil, don't show a cursor except in the selected window.
+If t, display a cursor related to the usual cursor type
+ \(a solid box becomes hollow, a bar becomes a narrower bar).
+You can also specify the cursor type as in the `cursor-type' variable.
 Use Custom to set this variable to get the display updated."
   :tag "Cursor In Non-selected Windows"
   :type 'boolean

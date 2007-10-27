@@ -58,8 +58,6 @@ Boston, MA 02110-1301, USA.  */
 #include "composite.h"
 #include "coding.h"
 
-#define abs(x)	((x) < 0 ? -(x) : (x))
-
 
 /* Fringe bitmaps.  */
 
@@ -234,9 +232,9 @@ static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void w32_frame_up_to_date P_ ((struct frame *));
-static void w32_set_terminal_modes P_ ((void));
-static void w32_reset_terminal_modes P_ ((void));
-static void x_clear_frame P_ ((void));
+static void w32_set_terminal_modes P_ ((struct terminal *));
+static void w32_reset_terminal_modes P_ ((struct terminal *));
+static void x_clear_frame P_ ((struct frame *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct w32_display_info *,
@@ -848,7 +846,7 @@ w32_destroy_fringe_bitmap (which)
    rarely happens).  */
 
 static void
-w32_set_terminal_modes (void)
+w32_set_terminal_modes (struct terminal *term)
 {
 }
 
@@ -856,7 +854,7 @@ w32_set_terminal_modes (void)
    the W32 windows go away, and suspending requires no action. */
 
 static void
-w32_reset_terminal_modes (void)
+w32_reset_terminal_modes (struct terminal *term)
 {
 }
 
@@ -1113,7 +1111,8 @@ w32_cache_char_metrics (font)
 
 
 /* Determine if a font is double byte. */
-int w32_font_is_double_byte (XFontStruct *font)
+static int
+w32_font_is_double_byte (XFontStruct *font)
 {
   return font->double_byte_p;
 }
@@ -1590,7 +1589,7 @@ x_draw_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
+    x = s->x + eabs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -1662,7 +1661,7 @@ x_draw_composite_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
+    x = s->x + eabs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -1992,7 +1991,7 @@ x_draw_glyph_string_box (s)
 		? s->first_glyph
 		: s->first_glyph + s->nchars - 1);
 
-  width = abs (s->face->box_line_width);
+  width = eabs (s->face->box_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
   right_x = ((s->row->full_width_p && s->extends_to_end_of_line_p
@@ -2038,7 +2037,7 @@ x_draw_image_foreground (s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2131,7 +2130,7 @@ x_draw_image_relief (s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2148,7 +2147,7 @@ x_draw_image_relief (s)
     }
   else
     {
-      thick = abs (s->img->relief);
+      thick = eabs (s->img->relief);
       raised_p = s->img->relief > 0;
     }
 
@@ -2185,7 +2184,7 @@ w32_draw_image_foreground_1 (s, pixmap)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2297,7 +2296,7 @@ x_draw_image_glyph_string (s)
      struct glyph_string *s;
 {
   int x, y;
-  int box_line_hwidth = abs (s->face->box_line_width);
+  int box_line_hwidth = eabs (s->face->box_line_width);
   int box_line_vwidth = max (s->face->box_line_width, 0);
   int height;
   HBITMAP pixmap = 0;
@@ -2594,10 +2593,10 @@ x_draw_glyph_string (s)
           unsigned long dy = 0, h = 1;
 
           if (s->face->overline_color_defaulted_p)
-        {
-          w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
+	    {
+	      w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
                          s->y + dy, s->background_width, h);
-        }
+	    }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->overline_color, s->x,
@@ -2619,7 +2618,7 @@ x_draw_glyph_string (s)
             }
           else
             {
-              w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
+              w32_fill_area (s->f, s->hdc, s->face->strike_through_color, s->x,
                              s->y + dy, s->width, h);
             }
         }
@@ -2655,16 +2654,10 @@ w32_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
    for X frames.  */
 
 static void
-x_delete_glyphs (n)
+x_delete_glyphs (f, n)
+     struct frame *f;
      register int n;
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   if (! FRAME_W32_P (f))
     return;
 
@@ -2676,15 +2669,8 @@ x_delete_glyphs (n)
    frame.  Otherwise clear the selected frame.  */
 
 static void
-x_clear_frame ()
+x_clear_frame (struct frame *f)
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   if (! FRAME_W32_P (f))
     return;
 
@@ -2711,18 +2697,14 @@ x_clear_frame ()
 /* Make audible bell.  */
 
 static void
-w32_ring_bell (void)
+w32_ring_bell (struct frame *f)
 {
-  struct frame *f;
-
-  f = SELECTED_FRAME ();
-
   BLOCK_INPUT;
 
   if (FRAME_W32_P (f) && visible_bell)
     {
       int i;
-      HWND hwnd = FRAME_W32_WINDOW (SELECTED_FRAME ());
+      HWND hwnd = FRAME_W32_WINDOW (f);
 
       for (i = 0; i < 5; i++)
 	{
@@ -2732,7 +2714,7 @@ w32_ring_bell (void)
       FlashWindow (hwnd, FALSE);
     }
   else
-      w32_sys_ring_bell ();
+      w32_sys_ring_bell (f);
 
   UNBLOCK_INPUT;
 }
@@ -2759,16 +2741,10 @@ w32_set_terminal_window (n)
    lines or deleting -N lines at vertical position VPOS.  */
 
 static void
-x_ins_del_lines (vpos, n)
+x_ins_del_lines (f, vpos, n)
+     struct frame *f;
      int vpos, n;
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   if (! FRAME_W32_P (f))
     return;
 
@@ -3173,7 +3149,8 @@ construct_mouse_wheel (result, msg, f)
   POINT p;
   int delta;
 
-  result->kind = WHEEL_EVENT;
+  result->kind = msg->msg.message == WM_MOUSEHWHEEL ? HORIZ_WHEEL_EVENT
+                                                    : WHEEL_EVENT;
   result->code = 0;
   result->timestamp = msg->msg.time;
 
@@ -3592,7 +3569,7 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
 			 Scroll bars, general
  ************************************************************************/
 
-HWND
+static HWND
 my_create_scrollbar (f, bar)
      struct frame * f;
      struct scroll_bar * bar;
@@ -4206,7 +4183,7 @@ static short temp_buffer[100];
 
    Some of these messages are reposted back to the message queue since the
    system calls the windows proc directly in a context where we cannot return
-   the data nor can we guarantee the state we are in.  So if we dispatch  them
+   the data nor can we guarantee the state we are in.  So if we dispatch them
    we will get into an infinite loop.  To prevent this from ever happening we
    will set a variable to indicate we are in the read_socket call and indicate
    which message we are processing since the windows proc gets called
@@ -4404,7 +4381,13 @@ w32_read_socket (sd, expected, hold_quit)
 		     only when it is active.  */
 		  if (WINDOWP(window)
 		      && !EQ (window, last_window)
-		      && !EQ (window, selected_window))
+		      && !EQ (window, selected_window)
+		      /* For click-to-focus window managers
+			 create event iff we don't leave the
+			 selected frame.  */
+		      && (focus_follows_mouse
+			  || (EQ (XWINDOW (window)->frame,
+				  XWINDOW (selected_window)->frame))))
 		    {
 		      inev.kind = SELECT_WINDOW_EVENT;
 		      inev.frame_or_window = window;
@@ -4509,6 +4492,7 @@ w32_read_socket (sd, expected, hold_quit)
 	  }
 
 	case WM_MOUSEWHEEL:
+        case WM_MOUSEHWHEEL:
 	  {
 	    if (dpyinfo->grabbed && last_mouse_frame
 		&& FRAME_LIVE_P (last_mouse_frame))
@@ -5580,7 +5564,22 @@ x_set_window_size (f, change_gravity, cols, rows)
 		       SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
   }
 
-  /* Now, strictly speaking, we can't be sure that this is accurate,
+#if 0
+  /* The following mirrors what is done in xterm.c. It appears to be
+     for informing lisp of the new size immediately, while the actual
+     resize will happen asynchronously. But on Windows, the menu bar
+     automatically wraps when the frame is too narrow to contain it,
+     and that causes any calculations made here to come out wrong. The
+     end is some nasty buggy behaviour, including the potential loss
+     of the minibuffer.
+
+     Disabling this code is either not sufficient to fix the problems
+     completely, or it causes fresh problems, but at least it removes
+     the most problematic symptom of the minibuffer becoming unusable.
+
+     -----------------------------------------------------------------
+
+     Now, strictly speaking, we can't be sure that this is accurate,
      but the window manager will get around to dealing with the size
      change request eventually, and we'll hear how it went when the
      ConfigureNotify event gets here.
@@ -5611,6 +5610,7 @@ x_set_window_size (f, change_gravity, cols, rows)
      Actually checking whether it is outside is a pain in the neck,
      so don't try--just let the highlighting be done afresh with new size.  */
   cancel_mouse_face (f);
+#endif
 
   UNBLOCK_INPUT;
 }
@@ -5935,8 +5935,8 @@ x_free_frame_resources (f)
 
   free_frame_menubar (f);
 
-  unload_color (f, f->output_data.x->foreground_pixel);
-  unload_color (f, f->output_data.x->background_pixel);
+  unload_color (f, FRAME_FOREGROUND_PIXEL (f));
+  unload_color (f, FRAME_BACKGROUND_PIXEL (f));
   unload_color (f, f->output_data.w32->cursor_pixel);
   unload_color (f, f->output_data.w32->cursor_foreground_pixel);
   unload_color (f, f->output_data.w32->border_pixel);
@@ -5975,14 +5975,13 @@ x_free_frame_resources (f)
 
 
 /* Destroy the window of frame F.  */
-
+void
 x_destroy_window (f)
      struct frame *f;
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 
   x_free_frame_resources (f);
-
   dpyinfo->reference_count--;
 }
 
@@ -6189,7 +6188,7 @@ w32_initialize_display_info (display_name)
 
 /* Create an xrdb-style database of resources to supercede registry settings.
    The database is just a concatenation of C strings, finished by an additional
-   \0.  The string are submitted to some basic normalization, so
+   \0.  The strings are submitted to some basic normalization, so
 
      [ *]option[ *]:[ *]value...
 
@@ -6242,6 +6241,132 @@ w32_make_rdb (xrm_option)
   return buffer;
 }
 
+void
+x_flush (struct frame * f)
+{ /* Nothing to do */ }
+
+
+extern frame_parm_handler w32_frame_parm_handlers[];
+
+static struct redisplay_interface w32_redisplay_interface =
+{
+  w32_frame_parm_handlers,
+  x_produce_glyphs,
+  x_write_glyphs,
+  x_insert_glyphs,
+  x_clear_end_of_line,
+  x_scroll_run,
+  x_after_update_window_line,
+  x_update_window_begin,
+  x_update_window_end,
+  x_cursor_to,
+  x_flush,
+  0,  /* flush_display_optional */
+  x_clear_window_mouse_face,
+  w32_get_glyph_overhangs,
+  x_fix_overlapping_area,
+  w32_draw_fringe_bitmap,
+  w32_define_fringe_bitmap,
+  w32_destroy_fringe_bitmap,
+  w32_per_char_metric,
+  w32_encode_char,
+  NULL, /* w32_compute_glyph_string_overhangs */
+  x_draw_glyph_string,
+  w32_define_frame_cursor,
+  w32_clear_frame_area,
+  w32_draw_window_cursor,
+  w32_draw_vertical_window_border,
+  w32_shift_glyphs_for_insert
+};
+
+static void x_delete_terminal (struct terminal *term);
+
+static struct terminal *
+w32_create_terminal (struct w32_display_info *dpyinfo)
+{
+  struct terminal *terminal;
+
+  terminal = create_terminal ();
+
+  terminal->type = output_w32;
+  terminal->display_info.w32 = dpyinfo;
+  dpyinfo->terminal = terminal;
+
+  /* MSVC does not type K&R functions with no arguments correctly, and
+     so we must explicitly cast them.  */
+  terminal->clear_frame_hook = x_clear_frame;
+  terminal->ins_del_lines_hook = x_ins_del_lines;
+  terminal->delete_glyphs_hook = x_delete_glyphs;
+  terminal->ring_bell_hook = w32_ring_bell;
+  terminal->reset_terminal_modes_hook = w32_reset_terminal_modes;
+  terminal->set_terminal_modes_hook = w32_set_terminal_modes;
+  terminal->update_begin_hook = x_update_begin;
+  terminal->update_end_hook = x_update_end;
+  terminal->set_terminal_window_hook = w32_set_terminal_window;
+  terminal->read_socket_hook = w32_read_socket;
+  terminal->frame_up_to_date_hook = w32_frame_up_to_date;
+  terminal->mouse_position_hook = w32_mouse_position;
+  terminal->frame_rehighlight_hook = w32_frame_rehighlight;
+  terminal->frame_raise_lower_hook = w32_frame_raise_lower;
+  //  terminal->fullscreen_hook = XTfullscreen_hook;
+  terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
+  terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
+  terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;
+  terminal->judge_scroll_bars_hook = w32_judge_scroll_bars;
+
+  terminal->delete_frame_hook = x_destroy_window;
+  terminal->delete_terminal_hook = x_delete_terminal;
+
+  terminal->rif = &w32_redisplay_interface;
+  terminal->scroll_region_ok = 1;    /* We'll scroll partial frames. */
+  terminal->char_ins_del_ok = 1;
+  terminal->line_ins_del_ok = 1;         /* We'll just blt 'em. */
+  terminal->fast_clear_end_of_line = 1;  /* X does this well. */
+  terminal->memory_below_frame = 0;   /* We don't remember what scrolls
+                                        off the bottom. */
+
+#ifdef MULTI_KBOARD
+  /* We don't yet support separate terminals on W32, so don't try to share
+     keyboards between virtual terminals that are on the same physical
+     terminal like X does.  */
+  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (terminal->kboard);
+  terminal->kboard->next_kboard = all_kboards;
+  all_kboards = terminal->kboard;
+  /* Don't let the initial kboard remain current longer than necessary.
+     That would cause problems if a file loaded on startup tries to
+     prompt in the mini-buffer.  */
+  if (current_kboard == initial_kboard)
+    current_kboard = terminal->kboard;
+  terminal->kboard->reference_count++;
+#endif
+
+  return terminal;
+}
+
+static void
+x_delete_terminal (struct terminal *terminal)
+{
+  struct w32_display_info *dpyinfo = terminal->display_info.w32;
+  int i;
+
+  /* Protect against recursive calls.  Fdelete_frame in
+     delete_terminal calls us back when it deletes our last frame.  */
+  if (!terminal->name)
+    return;
+
+  BLOCK_INPUT;
+  /* Free the fonts in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name)
+      {
+        DeleteObject (((XFontStruct*)(dpyinfo->font_table[i].font))->hfont);
+      }
+
+  x_delete_display (dpyinfo);
+  UNBLOCK_INPUT;
+}
+
 struct w32_display_info *
 w32_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -6249,6 +6374,7 @@ w32_term_init (display_name, xrm_option, resource_name)
      char *resource_name;
 {
   struct w32_display_info *dpyinfo;
+  struct terminal *terminal;
   HDC hdc;
 
   BLOCK_INPUT;
@@ -6262,6 +6388,12 @@ w32_term_init (display_name, xrm_option, resource_name)
   w32_initialize_display_info (display_name);
 
   dpyinfo = &one_w32_display_info;
+  terminal = w32_create_terminal (dpyinfo);
+
+  /* Set the name of the terminal. */
+  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
+  terminal->name[SBYTES (display_name)] = 0;
 
   dpyinfo->xrdb = xrm_option ? w32_make_rdb (xrm_option) : NULL;
 
@@ -6291,6 +6423,9 @@ w32_term_init (display_name, xrm_option, resource_name)
     w32_defined_color (0, "black", &color, 1);
   }
 
+  /* Add the default keyboard.  */
+  add_keyboard_wait_descriptor (0);
+
   /* Create Fringe Bitmaps and store them for later use.
 
      On W32, bitmaps are all unsigned short, as Windows requires
@@ -6298,7 +6433,7 @@ w32_term_init (display_name, xrm_option, resource_name)
      horizontally reflected compared to how they appear on X, so we
      need to bitswap and convert to unsigned shorts before creating
      the bitmaps.  */
-  w32_init_fringe ();
+  w32_init_fringe (terminal->rif);
 
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
@@ -6322,7 +6457,6 @@ w32_term_init (display_name, xrm_option, resource_name)
 }
 
 /* Get rid of display DPYINFO, assuming all frames are already gone.  */
-
 void
 x_delete_display (dpyinfo)
      struct w32_display_info *dpyinfo;
@@ -6373,73 +6507,9 @@ x_delete_display (dpyinfo)
 
 DWORD WINAPI w32_msg_worker (void * arg);
 
-void
-x_flush (struct frame * f)
-{ /* Nothing to do */ }
-
-extern frame_parm_handler w32_frame_parm_handlers[];
-
-static struct redisplay_interface w32_redisplay_interface =
-{
-  w32_frame_parm_handlers,
-  x_produce_glyphs,
-  x_write_glyphs,
-  x_insert_glyphs,
-  x_clear_end_of_line,
-  x_scroll_run,
-  x_after_update_window_line,
-  x_update_window_begin,
-  x_update_window_end,
-  x_cursor_to,
-  x_flush,
-  0,  /* flush_display_optional */
-  x_clear_window_mouse_face,
-  w32_get_glyph_overhangs,
-  x_fix_overlapping_area,
-  w32_draw_fringe_bitmap,
-  w32_define_fringe_bitmap,
-  w32_destroy_fringe_bitmap,
-  w32_per_char_metric,
-  w32_encode_char,
-  NULL, /* w32_compute_glyph_string_overhangs */
-  x_draw_glyph_string,
-  w32_define_frame_cursor,
-  w32_clear_frame_area,
-  w32_draw_window_cursor,
-  w32_draw_vertical_window_border,
-  w32_shift_glyphs_for_insert
-};
-
 static void
 w32_initialize ()
 {
-  rif = &w32_redisplay_interface;
-
-  /* MSVC does not type K&R functions with no arguments correctly, and
-     so we must explicitly cast them.  */
-  clear_frame_hook = (void (*)(void)) x_clear_frame;
-  ring_bell_hook = (void (*)(void)) w32_ring_bell;
-  update_begin_hook = x_update_begin;
-  update_end_hook = x_update_end;
-
-  read_socket_hook = w32_read_socket;
-
-  frame_up_to_date_hook = w32_frame_up_to_date;
-
-  mouse_position_hook = w32_mouse_position;
-  frame_rehighlight_hook = w32_frame_rehighlight;
-  frame_raise_lower_hook = w32_frame_raise_lower;
-  set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
-  condemn_scroll_bars_hook = w32_condemn_scroll_bars;
-  redeem_scroll_bar_hook = w32_redeem_scroll_bar;
-  judge_scroll_bars_hook = w32_judge_scroll_bars;
-
-  scroll_region_ok = 1;         /* we'll scroll partial frames */
-  char_ins_del_ok = 1;
-  line_ins_del_ok = 1;          /* we'll just blt 'em */
-  fast_clear_end_of_line = 1;   /* X does this well */
-  memory_below_frame = 0;       /* we don't remember what scrolls
-				   off the bottom */
   baud_rate = 19200;
 
   w32_system_caret_hwnd = NULL;
@@ -6582,7 +6652,7 @@ interpreted normally.  */);
 Unicode output may prevent some third party applications for displaying
 Far-East Languages on Windows 95/98 from working properly.
 NT uses Unicode internally anyway, so this flag will probably have no
-affect on NT machines.  */);
+effect on NT machines.  */);
   w32_enable_unicode_output = 1;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",

@@ -25,10 +25,16 @@
 
 ;;; Commentary:
 
-;; X-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
-;; that X windows are to be used.  Command line switches are parsed and those
-;; pertaining to X are processed and removed from the command line.  The
-;; X display is opened and hooks are set for popping up the initial window.
+;; X-win.el: this file defines functions to initialize the X window
+;; system and process X-specific command line parameters before
+;; creating the first X frame.
+
+;; Note that contrary to previous Emacs versions, the act of loading
+;; this file should not have the side effect of initializing the
+;; window system or processing command line arguments (this file is
+;; now loaded in loadup.el).  See the variables
+;; `handle-args-function-alist' and
+;; `window-system-initialization-alist' for more details.
 
 ;; startup.el will then examine startup files, and eventually call the hooks
 ;; which create the first window(s).
@@ -65,7 +71,7 @@
 ;; An alist of X options and the function which handles them.  See
 ;; ../startup.el.
 
-(if (not (eq window-system 'x))
+(if (not (fboundp 'x-create-frame))
     (error "%s: Loading x-win.el but not compiled for X" (invocation-name)))
 
 (require 'frame)
@@ -395,6 +401,7 @@ exists."
 (defconst x-pointer-ur-angle 148)
 (defconst x-pointer-watch 150)
 (defconst x-pointer-xterm 152)
+(defconst x-pointer-invisible 255)
 
 ;;
 ;; Available colors
@@ -1170,27 +1177,39 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
-(substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-			   global-map)
+(defvar x-alternatives-map
+  (let ((map (make-sparse-keymap)))
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (define-key map [backspace] [127])
+    (define-key map [delete] [127])
+    (define-key map [tab] [?\t])
+    (define-key map [linefeed] [?\n])
+    (define-key map [clear] [?\C-l])
+    (define-key map [return] [?\C-m])
+    (define-key map [escape] [?\e])
+    (define-key map [M-backspace] [?\M-\d])
+    (define-key map [M-delete] [?\M-\d])
+    (define-key map [M-tab] [?\M-\t])
+    (define-key map [M-linefeed] [?\M-\n])
+    (define-key map [M-clear] [?\M-\C-l])
+    (define-key map [M-return] [?\M-\C-m])
+    (define-key map [M-escape] [?\M-\e])
+    (define-key map [iso-lefttab] [backtab])
+    (define-key map [S-iso-lefttab] [backtab])
+    map)
+  "Keymap of possible alternative meanings for some keys.")
 
-;; Map certain keypad keys into ASCII characters
-;; that people usually expect.
-(define-key function-key-map [backspace] [127])
-(define-key function-key-map [delete] [127])
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [linefeed] [?\n])
-(define-key function-key-map [clear] [?\C-l])
-(define-key function-key-map [return] [?\C-m])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-backspace] [?\M-\d])
-(define-key function-key-map [M-delete] [?\M-\d])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [M-linefeed] [?\M-\n])
-(define-key function-key-map [M-clear] [?\M-\C-l])
-(define-key function-key-map [M-return] [?\M-\C-m])
-(define-key function-key-map [M-escape] [?\M-\e])
-(define-key function-key-map [iso-lefttab] [backtab])
-(define-key function-key-map [S-iso-lefttab] [backtab])
+(defun x-setup-function-keys (frame)
+  "Set up `function-key-map' on FRAME for the X window system."
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (with-selected-frame frame
+      (let ((map (copy-keymap x-alternatives-map)))
+        (set-keymap-parent map (keymap-parent local-function-key-map))
+        (set-keymap-parent local-function-key-map map)))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
@@ -2348,15 +2367,15 @@ order until succeed.")
 	    (cond;; check cut buffer
 	     ((or (not cut-text) (string= cut-text ""))
 	      (setq x-last-selected-text-cut nil))
-	     ;; This short cut doesn't work because x-get-cut-buffer 	 
-	     ;; always returns a newly created string. 	 
-	     ;; ((eq      cut-text x-last-selected-text-cut) nil) 	 
+	     ;; This short cut doesn't work because x-get-cut-buffer
+	     ;; always returns a newly created string.
+	     ;; ((eq      cut-text x-last-selected-text-cut) nil)
 	     ((and (string= cut-text x-last-selected-text-cut-encoded)
 		   (eq x-last-cut-buffer-coding next-coding))
-	      ;; See the comment above.  No need of this recording. 	 
-	      ;; Record the newer string, 	 
-	      ;; so subsequent calls can use the `eq' test. 	 
-	      ;; (setq x-last-selected-text-cut cut-text) 	 
+	      ;; See the comment above.  No need of this recording.
+	      ;; Record the newer string,
+	      ;; so subsequent calls can use the `eq' test.
+	      ;; (setq x-last-selected-text-cut cut-text)
 	      nil)
 	     (t
 	      (setq x-last-selected-text-cut-encoded cut-text
@@ -2364,7 +2383,7 @@ order until succeed.")
 		  x-last-selected-text-cut
 		  ;; ICCCM says cut buffer always contain ISO-Latin-1, but
 		  ;; use next-selection-coding-system if not nil.
-		  (decode-coding-string 
+		  (decode-coding-string
 		   cut-text next-coding))))))
 
     ;; As we have done one selection, clear this now.
@@ -2393,141 +2412,6 @@ order until succeed.")
     (or clip-text primary-text cut-text)
     ))
 
-
-;; Do the actual X Windows setup here; the above code just defines
-;; functions and variables that we use now.
-
-(setq command-line-args (x-handle-args command-line-args))
-
-;; Make sure we have a valid resource name.
-(or (stringp x-resource-name)
-    (let (i)
-      (setq x-resource-name (invocation-name))
-
-      ;; Change any . or * characters in x-resource-name to hyphens,
-      ;; so as not to choke when we use it in X resource queries.
-      (while (setq i (string-match "[.*]" x-resource-name))
-	(aset x-resource-name i ?-))))
-
-(x-open-connection (or x-display-name
-		       (setq x-display-name (getenv "DISPLAY")))
-		   x-command-line-resources
-		   ;; Exit Emacs with fatal error if this fails.
-		   t)
-
-(setq frame-creation-function 'x-create-frame-with-faces)
-
-(setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
-			    x-cut-buffer-max))
-
-;; Setup the default fontset.
-(setup-default-fontset)
-
-;; Create the standard fontset.
-(create-fontset-from-fontset-spec standard-fontset-spec t)
-
-;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
-(create-fontset-from-x-resource)
-
-;; Try to create a fontset from a font specification which comes
-;; from initial-frame-alist, default-frame-alist, or X resource.
-;; A font specification in command line argument (i.e. -fn XXXX)
-;; should be already in default-frame-alist as a `font'
-;; parameter.  However, any font specifications in site-start
-;; library, user's init file (.emacs), and default.el are not
-;; yet handled here.
-
-(let ((font (or (cdr (assq 'font initial-frame-alist))
-		(cdr (assq 'font default-frame-alist))
-		(x-get-resource "font" "Font")))
-      xlfd-fields resolved-name)
-  (if (and font
-	   (not (query-fontset font))
-	   (setq resolved-name (x-resolve-font-name font))
-	   (setq xlfd-fields (x-decompose-font-name font)))
-      (if (string= "fontset" (aref xlfd-fields xlfd-regexp-registry-subnum))
-	  (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
-	;; Create a fontset from FONT.  The fontset name is
-	;; generated from FONT.
-	(create-fontset-from-ascii-font font resolved-name "startup"))))
-
-;; Apply a geometry resource to the initial frame.  Put it at the end
-;; of the alist, so that anything specified on the command line takes
-;; precedence.
-(let* ((res-geometry (x-get-resource "geometry" "Geometry"))
-       parsed)
-  (if res-geometry
-      (progn
-	(setq parsed (x-parse-geometry res-geometry))
-	;; If the resource specifies a position,
-	;; call the position and size "user-specified".
-	(if (or (assq 'top parsed) (assq 'left parsed))
-	    (setq parsed (cons '(user-position . t)
-			       (cons '(user-size . t) parsed))))
-	;; All geometry parms apply to the initial frame.
-	(setq initial-frame-alist (append initial-frame-alist parsed))
-	;; The size parms apply to all frames.  Don't set it if there are
-	;; sizes there already (from command line).
-	(if (and (assq 'height parsed)
-		 (not (assq 'height default-frame-alist)))
-	    (setq default-frame-alist
-		  (cons (cons 'height (cdr (assq 'height parsed)))
-			default-frame-alist)))
-	(if (and (assq 'width parsed)
-		 (not (assq 'width default-frame-alist)))
-	    (setq default-frame-alist
-		  (cons (cons 'width (cdr (assq 'width parsed)))
-			default-frame-alist))))))
-
-;; Check the reverseVideo resource.
-(let ((case-fold-search t))
-  (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
-    (if (and rv
-	     (string-match "^\\(true\\|yes\\|on\\)$" rv))
-	(setq default-frame-alist
-	      (cons '(reverse . t) default-frame-alist)))))
-
-;; Set x-selection-timeout, measured in milliseconds.
-(let ((res-selection-timeout
-       (x-get-resource "selectionTimeout" "SelectionTimeout")))
-  (setq x-selection-timeout 20000)
-  (if res-selection-timeout
-      (setq x-selection-timeout (string-to-number res-selection-timeout))))
-
-;; Set scroll bar mode to right if set by X resources. Default is left.
-(if (equal (x-get-resource "verticalScrollBars" "ScrollBars") "right")
-    (customize-set-variable 'scroll-bar-mode 'right))
-
-(defun x-win-suspend-error ()
-  (error "Suspending an Emacs running under X makes no sense"))
-(add-hook 'suspend-hook 'x-win-suspend-error)
-
-;; Arrange for the kill and yank functions to set and check the clipboard.
-(setq interprogram-cut-function 'x-select-text)
-(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
-
-;; Turn off window-splitting optimization; X is usually fast enough
-;; that this is only annoying.
-(setq split-window-keep-point t)
-
-;; Don't show the frame name; that's redundant with X.
-(setq-default mode-line-frame-identification "  ")
-
-;; Motif direct handling of f10 wasn't working right,
-;; So temporarily we've turned it off in lwlib-Xm.c
-;; and turned the Emacs f10 back on.
-;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
-;; (if (featurep 'motif)
-;;     (global-set-key [f10] 'ignore))
-
-;; Turn on support for mouse wheels.
-(mouse-wheel-mode 1)
-
-
-;; Enable CLIPBOARD copy/paste through menu bar commands.
-(menu-bar-enable-clipboard)
-
-;; Override Paste so it looks at CLIPBOARD first.
 (defun x-clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
@@ -2537,60 +2421,319 @@ order until succeed.")
 	(kill-new clipboard-text))
     (yank)))
 
-(define-key menu-bar-edit-menu [paste]
-  '(menu-item "Paste" x-clipboard-yank
-	      :enable (not buffer-read-only)
-	      :help "Paste (yank) text most recently cut/copied"))
+(defun x-menu-bar-open (&optional frame)
+  "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
+  (interactive "i")
+  (if menu-bar-mode (accelerate-menu frame)
+    (tmm-menubar)))
+
+
+;;; Window system initialization.
+
+(defun x-win-suspend-error ()
+  (error "Suspending an Emacs running under X makes no sense"))
+
+(defvar x-initialized nil
+  "Non-nil if the X window system has been initialized.")
+
+(defun x-initialize-window-system ()
+  "Initialize Emacs for X frames and open the first connection to an X server."
+  ;; Make sure we have a valid resource name.
+  (or (stringp x-resource-name)
+      (let (i)
+	(setq x-resource-name (invocation-name))
+
+	;; Change any . or * characters in x-resource-name to hyphens,
+	;; so as not to choke when we use it in X resource queries.
+	(while (setq i (string-match "[.*]" x-resource-name))
+	  (aset x-resource-name i ?-))))
+
+  (x-open-connection (or x-display-name
+			 (setq x-display-name (or (getenv "DISPLAY" (selected-frame))
+						  (getenv "DISPLAY"))))
+		     x-command-line-resources
+		     ;; Exit Emacs with fatal error if this fails and we
+		     ;; are the initial display.
+		     (eq initial-window-system 'x))
+
+  (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
+			      x-cut-buffer-max))
+
+  ;; Setup the default fontset.
+  (setup-default-fontset)
+
+  ;; Create the standard fontset.
+  (create-fontset-from-fontset-spec standard-fontset-spec t)
+
+  ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
+  (create-fontset-from-x-resource)
+
+  ;; Try to create a fontset from a font specification which comes
+  ;; from initial-frame-alist, default-frame-alist, or X resource.
+  ;; A font specification in command line argument (i.e. -fn XXXX)
+  ;; should be already in default-frame-alist as a `font'
+  ;; parameter.  However, any font specifications in site-start
+  ;; library, user's init file (.emacs), and default.el are not
+  ;; yet handled here.
+
+  (let ((font (or (cdr (assq 'font initial-frame-alist))
+		  (cdr (assq 'font default-frame-alist))
+		  (x-get-resource "font" "Font")))
+	xlfd-fields resolved-name)
+    (if (and font
+	     (not (query-fontset font))
+	     (setq resolved-name (x-resolve-font-name font))
+	     (setq xlfd-fields (x-decompose-font-name font)))
+	(if (string= "fontset" (aref xlfd-fields xlfd-regexp-registry-subnum))
+	    (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
+	  ;; Create a fontset from FONT.  The fontset name is
+	  ;; generated from FONT.
+	  (create-fontset-from-ascii-font font resolved-name "startup"))))
+
+  ;; Set scroll bar mode to right if set by X resources. Default is left.
+  (if (equal (x-get-resource "verticalScrollBars" "ScrollBars") "right")
+      (customize-set-variable 'scroll-bar-mode 'right))
+
+  ;; Apply a geometry resource to the initial frame.  Put it at the end
+  ;; of the alist, so that anything specified on the command line takes
+  ;; precedence.
+  (let* ((res-geometry (x-get-resource "geometry" "Geometry"))
+	 parsed)
+    (if res-geometry
+	(progn
+	  (setq parsed (x-parse-geometry res-geometry))
+	  ;; If the resource specifies a position,
+	  ;; call the position and size "user-specified".
+	  (if (or (assq 'top parsed) (assq 'left parsed))
+	      (setq parsed (cons '(user-position . t)
+				 (cons '(user-size . t) parsed))))
+	  ;; All geometry parms apply to the initial frame.
+	  (setq initial-frame-alist (append initial-frame-alist parsed))
+	  ;; The size parms apply to all frames.  Don't set it if there are
+	  ;; sizes there already (from command line).
+	  (if (and (assq 'height parsed)
+		   (not (assq 'height default-frame-alist)))
+	      (setq default-frame-alist
+		    (cons (cons 'height (cdr (assq 'height parsed)))
+			  default-frame-alist)))
+	  (if (and (assq 'width parsed)
+		   (not (assq 'width default-frame-alist)))
+	      (setq default-frame-alist
+		    (cons (cons 'width (cdr (assq 'width parsed)))
+			  default-frame-alist))))))
+
+  ;; Check the reverseVideo resource.
+  (let ((case-fold-search t))
+    (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
+      (if (and rv
+	       (string-match "^\\(true\\|yes\\|on\\)$" rv))
+	  (setq default-frame-alist
+		(cons '(reverse . t) default-frame-alist)))))
+
+  ;; Set x-selection-timeout, measured in milliseconds.
+  (let ((res-selection-timeout
+	 (x-get-resource "selectionTimeout" "SelectionTimeout")))
+    (setq x-selection-timeout 20000)
+    (if res-selection-timeout
+	(setq x-selection-timeout (string-to-number res-selection-timeout))))
+
+  ;; Don't let Emacs suspend under X.
+  (add-hook 'suspend-hook 'x-win-suspend-error)
+
+  ;; Turn off window-splitting optimization; X is usually fast enough
+  ;; that this is only annoying.
+  (setq split-window-keep-point t)
+
+  ;; Motif direct handling of f10 wasn't working right,
+  ;; So temporarily we've turned it off in lwlib-Xm.c
+  ;; and turned the Emacs f10 back on.
+  ;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
+  ;; (if (featurep 'motif)
+  ;;     (global-set-key [f10] 'ignore))
+
+  ;; Turn on support for mouse wheels.
+  (mouse-wheel-mode 1)
+
+  ;; Enable CLIPBOARD copy/paste through menu bar commands.
+  (menu-bar-enable-clipboard)
+
+  ;; Override Paste so it looks at CLIPBOARD first.
+  (define-key menu-bar-edit-menu [paste]
+    (append '(menu-item "Paste" x-clipboard-yank
+			:enable (not buffer-read-only)
+			:help "Paste (yank) text most recently cut/copied")
+	    nil))
+
+  (setq x-initialized t))
+
+(add-to-list 'handle-args-function-alist '(x . x-handle-args))
+(add-to-list 'frame-creation-function-alist '(x . x-create-frame-with-faces))
+(add-to-list 'window-system-initialization-alist '(x . x-initialize-window-system))
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)
 (define-key special-event-map [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
-;; Let F10 do menu bar navigation.
-(defun x-menu-bar-open (&optional frame)
-  "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
-  (interactive "i")
-  (if menu-bar-mode (menu-bar-open frame)
-    (tmm-menubar)))
-		   
-(and (fboundp 'menu-bar-open)
-     (global-set-key [f10] 'x-menu-bar-open))
-
 (defcustom x-gtk-stock-map
   '(
-    ("new" . "gtk-new")
-    ("open" . "gtk-open")
-    ("diropen" . "gtk-directory")
-    ("close" . "gtk-close")
-    ("save" . "gtk-save")
-    ("saveas" . "gtk-save-as")
-    ("undo" . "gtk-undo")
-    ("cut" . "gtk-cut")
-    ("copy" . "gtk-copy")
-    ("paste" . "gtk-paste")
-    ("search" . "gtk-find")
-    ("print" . "gtk-print")
-    ("preferences" . "gtk-preferences")
-    ("help" . "gtk-help")
-    ("left-arrow" . "gtk-go-back")
-    ("right-arrow" . "gtk-go-forward")
-    ("home" . "gtk-home")
-    ("jump-to" . "gtk-jump-to")
-    ("index" . "gtk-index")
-    ("search" . "gtk-find")
-    ("exit" . "gtk-quit"))
+    ("etc/images/new" . "gtk-new")
+    ("etc/images/open" . "gtk-open")
+    ("etc/images/diropen" . "n:system-file-manager")
+    ("etc/images/close" . "gtk-close")
+    ("etc/images/save" . "gtk-save")
+    ("etc/images/saveas" . "gtk-save-as")
+    ("etc/images/undo" . "gtk-undo")
+    ("etc/images/cut" . "gtk-cut")
+    ("etc/images/copy" . "gtk-copy")
+    ("etc/images/paste" . "gtk-paste")
+    ("etc/images/search" . "gtk-find")
+    ("etc/images/print" . "gtk-print")
+    ("etc/images/preferences" . "gtk-preferences")
+    ("etc/images/help" . "gtk-help")
+    ("etc/images/left-arrow" . "gtk-go-back")
+    ("etc/images/right-arrow" . "gtk-go-forward")
+    ("etc/images/home" . "gtk-home")
+    ("etc/images/jump-to" . "gtk-jump-to")
+    ("etc/images/index" . "gtk-index")
+    ("etc/images/search" . "gtk-find")
+    ("etc/images/exit" . "gtk-quit")
+    ;; Used in Gnus and/or MH-E:
+    ("etc/images/attach.xpm" . "gtk-attach")
+    ("etc/images/connect.xpm" . "gtk-connect")
+    ("etc/images/contact.xpm" . "gtk-contact")
+    ("etc/images/delete.xpm" . "gtk-delete")
+    ("etc/images/describe.xpm" . "gtk-properties")
+    ("etc/images/disconnect.xpm" . "gtk-disconnect")
+    ;; ("etc/images/exit.xpm" . "gtk-exit")
+    ("etc/images/lock-broken.xpm" . "gtk-lock_broken")
+    ("etc/images/lock-ok.xpm" . "gtk-lock_ok")
+    ("etc/images/lock.xpm" . "gtk-lock")
+    ("etc/images/next-page.xpm" . "gtk-next-page")
+    ("etc/images/refresh.xpm" . "gtk-refresh")
+    ("etc/images/sort-ascending.xpm" . "gtk-sort-ascending")
+    ("etc/images/sort-column-ascending.xpm" . "gtk-sort-column-ascending")
+    ("etc/images/sort-criteria.xpm" . "gtk-sort-criteria")
+    ("etc/images/sort-descending.xpm" . "gtk-sort-descending")
+    ("etc/images/sort-row-ascending.xpm" . "gtk-sort-row-ascending")
+    ("images/gnus/toggle-subscription.xpm" . "gtk-task-recurring")
+    ("images/mail/compose.xpm" . "gtk-mail-compose")
+    ("images/mail/copy.xpm" . "gtk-mail-copy")
+    ("images/mail/forward.xpm" . "gtk-mail-forward")
+    ("images/mail/inbox.xpm" . "gtk-inbox")
+    ("images/mail/move.xpm" . "gtk-mail-move")
+    ("images/mail/not-spam.xpm" . "gtk-not-spam")
+    ("images/mail/outbox.xpm" . "gtk-outbox")
+    ("images/mail/reply-all.xpm" . "gtk-mail-reply-to-all")
+    ("images/mail/reply.xpm" . "gtk-mail-reply")
+    ("images/mail/save-draft.xpm" . "gtk-mail-handling")
+    ("images/mail/send.xpm" . "gtk-mail-send")
+    ("images/mail/spam.xpm" . "gtk-spam")
+    ;; No themed versions available:
+    ;; mail/preview.xpm (combining stock_mail and stock_zoom)
+    ;; mail/save.xpm    (combining stock_mail, stock_save and stock_convert)
+    )
   "How icons for tool bars are mapped to Gtk+ stock items.
-Emacs must be compiled with the Gtk+ toolkit for this to have any effect."
-  :version "23.0"
-  :type 'alist
+Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
+A value that begins with n: denotes a named icon instead of a stock icon."
+  :version "22.2"
+  :type '(choice (repeat (choice symbol
+				 (cons (string :tag "Emacs icon")
+				       (string :tag "Stock/named")))))
+  :group 'x)
+
+(defcustom icon-map-list '(x-gtk-stock-map)
+  "A list of alists that maps icon file names to stock/named icons.
+The alists are searched in the order they appear.  The first match is used.
+The keys in the alists are file names without extension and with two directory
+components.  For example, to map /usr/share/emacs/22.1.1/etc/images/open.xpm
+to stock item gtk-open, use:
+
+  (\"etc/images/open\" . \"gtk-open\")
+
+Themes also have named icons.  To map to one of those, use n: before the name:
+
+  (\"etc/images/diropen\" . \"n:system-file-manager\")
+
+The list elements are either the symbol name for the alist or the
+alist itself.
+
+If you don't want stock icons, set the variable to nil."
+  :version "22.2"
+  :type '(choice (const :tag "Don't use stock icons" nil)
+		 (repeat (choice symbol
+				 (cons (string :tag "Emacs icon")
+				       (string :tag "Stock/named")))))
   :group 'x)
 
 (defun x-gtk-map-stock (file)
   "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
-  (let ((value (and file
-		    (assoc-string (file-name-sans-extension 
-				   (file-name-nondirectory file))
-				  x-gtk-stock-map))))
+  (let* ((file-sans (file-name-sans-extension file))
+	 (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
+		   (match-string 1 file-sans)))
+	 (value))
+    (mapc (lambda (elem)
+	    (let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
+	      (or value (setq value (assoc-string (or key file-sans) assoc)))))
+	    icon-map-list)
+    (and value (cdr value))))
+
+(provide 'x-win)
+
+(defcustom x-gtk-stock-map
+  '(
+    ("etc/images/new" . "gtk-new")
+    ("etc/images/open" . "gtk-open")
+    ("etc/images/diropen" . "n:system-file-manager")
+    ("etc/images/close" . "gtk-close")
+    ("etc/images/save" . "gtk-save")
+    ("etc/images/saveas" . "gtk-save-as")
+    ("etc/images/undo" . "gtk-undo")
+    ("etc/images/cut" . "gtk-cut")
+    ("etc/images/copy" . "gtk-copy")
+    ("etc/images/paste" . "gtk-paste")
+    ("etc/images/search" . "gtk-find")
+    ("etc/images/print" . "gtk-print")
+    ("etc/images/preferences" . "gtk-preferences")
+    ("etc/images/help" . "gtk-help")
+    ("etc/images/left-arrow" . "gtk-go-back")
+    ("etc/images/right-arrow" . "gtk-go-forward")
+    ("etc/images/home" . "gtk-home")
+    ("etc/images/jump-to" . "gtk-jump-to")
+    ("etc/images/index" . "gtk-index")
+    ("etc/images/search" . "gtk-find")
+    ("etc/images/exit" . "gtk-quit"))
+  "How icons for tool bars are mapped to Gtk+ stock items.
+Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
+A value that begins with n: denotes a named icon instead of a stock icon."
+  :version "22.2"
+  :type 'alist
+  :group 'x)
+
+(defvar icon-map-list nil
+  "*A list of alists that maps icon file names to stock/named icons.
+The alists are searched in the order they appear.  The first match is used.
+The keys in the alists are file names without extension and with two directory
+components.  For example, to map /usr/share/emacs/22.1.1/etc/images/open.xpm
+to stock item gtk-open, use:
+
+  (\"etc/images/open\" . \"gtk-open\")
+
+Themes also have named icons.  To map to one of those, use n: before the name:
+
+  (\"etc/images/diropen\" . \"n:system-file-manager\")
+
+The list elements are either the symbol name for the alist or the alist itself.")
+
+(defun x-gtk-map-stock (file)
+  "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
+  (let* ((file-sans (file-name-sans-extension file))
+	 (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
+		   (match-string 1 file-sans)))
+	 (value))
+    (mapc (lambda (elem)
+ 	    (let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
+	      (or value (setq value (assoc-string (or key file-sans) assoc)))))
+	    icon-map-list)
     (and value (cdr value))))
 
 ;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78

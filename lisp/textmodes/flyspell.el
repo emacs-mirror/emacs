@@ -67,10 +67,20 @@ Non-nil means use highlight, nil means use minibuffer messages."
 
 (defcustom flyspell-mark-duplications-flag t
   "Non-nil means Flyspell reports a repeated word as an error.
+See `flyspell-mark-duplications-exceptions' to add exceptions to this rule.
 Detection of repeated words is not implemented in
 \"large\" regions; see `flyspell-large-region'."
   :group 'flyspell
   :type 'boolean)
+
+(defcustom flyspell-mark-duplications-exceptions
+  '(("francais" . ("nous" "vous")))
+  "A list of exceptions for duplicated words.
+It should be a list of (LANGUAGE . EXCEPTION-LIST).  LANGUAGE is matched
+against the current dictionary and EXCEPTION-LIST is a list of strings.
+The duplicated word is downcased before it is compared with the exceptions."
+  :group 'flyspell
+  :type '(alist :key-type string :value-type (repeat string)))
 
 (defcustom flyspell-sort-corrections nil
   "Non-nil means, sort the corrections alphabetically before popping them."
@@ -485,7 +495,10 @@ in your .emacs file.
   :keymap flyspell-mode-map
   :group 'flyspell
   (if flyspell-mode
-      (flyspell-mode-on)
+      (condition-case ()
+	  (flyspell-mode-on)
+	(error (message "Enabling Flyspell mode gave an error")
+	       (flyspell-mode -1)))
     (flyspell-mode-off)))
 
 ;;;###autoload
@@ -611,7 +624,7 @@ in your .emacs file.
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-delay-commands ()
   "Install the standard set of Flyspell delayed commands."
-  (mapcar 'flyspell-delay-command flyspell-default-delayed-commands)
+  (mapc 'flyspell-delay-command flyspell-default-delayed-commands)
   (mapcar 'flyspell-delay-command flyspell-delayed-commands))
 
 ;;*---------------------------------------------------------------------*/
@@ -630,7 +643,7 @@ It will be checked only after `flyspell-delay' seconds."
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-deplacement-commands ()
   "Install the standard set of Flyspell deplacement commands."
-  (mapcar 'flyspell-deplacement-command flyspell-default-deplacement-commands)
+  (mapc 'flyspell-deplacement-command flyspell-default-deplacement-commands)
   (mapcar 'flyspell-deplacement-command flyspell-deplacement-commands))
 
 ;;*---------------------------------------------------------------------*/
@@ -1022,6 +1035,13 @@ Mostly we check word delimiters."
 		     (and (> start (point-min))
 			  (not (memq (char-after (1- start)) '(?\} ?\\)))))
 		 flyspell-mark-duplications-flag
+		 (not (catch 'exception
+			(dolist (except flyspell-mark-duplications-exceptions)
+			  (and (string= (or ispell-local-dictionary
+					    ispell-dictionary)
+					(car except))
+			       (member (downcase word) (cdr except))
+			       (throw 'exception t)))))
 		 (save-excursion
 		   (goto-char start)
 		   (let* ((bound

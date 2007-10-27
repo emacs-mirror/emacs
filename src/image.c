@@ -532,7 +532,7 @@ x_create_bitmap_from_file (f, file)
 /* Free bitmap B.  */
 
 static void
-Free_Bitmap_Record (dpyinfo, bm)
+free_bitmap_record (dpyinfo, bm)
      Display_Info *dpyinfo;
      Bitmap_Record *bm;
 {
@@ -574,7 +574,7 @@ x_destroy_bitmap (f, id)
       if (--bm->refcount == 0)
 	{
 	  BLOCK_INPUT;
-	  Free_Bitmap_Record (dpyinfo, bm);
+	  free_bitmap_record (dpyinfo, bm);
 	  UNBLOCK_INPUT;
 	}
     }
@@ -591,7 +591,7 @@ x_destroy_all_bitmaps (dpyinfo)
 
   for (i = 0; i < dpyinfo->bitmaps_last; i++, bm++)
     if (bm->refcount > 0)
-      Free_Bitmap_Record (dpyinfo, bm);
+      free_bitmap_record (dpyinfo, bm);
 
   dpyinfo->bitmaps_last = 0;
 }
@@ -1710,9 +1710,9 @@ free_image_cache (f)
 /* Clear image cache of frame F.  FORCE_P non-zero means free all
    images.  FORCE_P zero means clear only images that haven't been
    displayed for some time.  Should be called from time to time to
-   reduce the number of loaded images.  If image-eviction-seconds is
-   non-nil, this frees images in the cache which weren't displayed for
-   at least that many seconds.  */
+   reduce the number of loaded images.  If image-cache-eviction-delay
+   is non-nil, this frees images in the cache which weren't displayed
+   for at least that many seconds.  */
 
 void
 clear_image_cache (f, force_p)
@@ -1905,6 +1905,7 @@ lookup_image (f, spec)
      struct frame *f;
      Lisp_Object spec;
 {
+  struct image_cache *c;
   struct image *img;
   unsigned hash;
   struct gcpro gcpro1;
@@ -1914,6 +1915,8 @@ lookup_image (f, spec)
      specification.  */
   xassert (FRAME_WINDOW_P (f));
   xassert (valid_image_p (spec));
+
+  c = FRAME_X_IMAGE_CACHE (f);
 
   GCPRO1 (spec);
 
@@ -1981,8 +1984,8 @@ lookup_image (f, spec)
 	  if (INTEGERP (relief))
 	    {
 	      img->relief = XINT (relief);
-	      img->hmargin += abs (img->relief);
-	      img->vmargin += abs (img->relief);
+	      img->hmargin += eabs (img->relief);
+	      img->vmargin += eabs (img->relief);
 	    }
 
 	  if (! img->background_valid)
@@ -2374,7 +2377,7 @@ x_find_image_file (file)
 		       Vx_bitmap_file_path);
   GCPRO2 (file_found, search_path);
 
-  /* Try to find FILE in data-directory, then x-bitmap-file-path.  */
+  /* Try to find FILE in data-directory/images, then x-bitmap-file-path.  */
   fd = openp (search_path, file, Qnil, &file_found, Qnil);
 
   if (fd == -1)
@@ -2883,7 +2886,7 @@ enum xbm_token
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
-   4. A string containing an in-memory XBM file.  WIDTH and HEIGHT
+   4. a string containing an in-memory XBM file.  WIDTH and HEIGHT
    may not be specified in this case because they are defined in the
    XBM file.
 
@@ -4280,7 +4283,7 @@ xpm_scan (s, end, beg, len)
   return XPM_TK_EOF;
 }
 
-/* Functions for color table lookup in XPM data.  A Key is a string
+/* Functions for color table lookup in XPM data.  A key is a string
    specifying the color of each pixel in XPM data.  A value is either
    an integer that specifies a pixel color, Qt that specifies
    transparency, or Qnil for the unspecified color.  If the length of
@@ -5162,7 +5165,7 @@ x_detect_edges (f, img, matrix, color_adjust)
   int x, y, i, sum;
 
   for (i = sum = 0; i < 9; ++i)
-    sum += abs (matrix[i]);
+    sum += eabs (matrix[i]);
 
 #define COLOR(A, X, Y) ((A) + (Y) * img->width + (X))
 
@@ -6343,7 +6346,7 @@ png_load (f, img)
      simple transparency, we prefer a clipping mask.  */
   if (!transparent_p)
     {
-      png_color_16 *image_bg;
+      /* png_color_16 *image_bg; */
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
 
@@ -6774,18 +6777,19 @@ our_common_term_source (cinfo)
    whenever more data is needed.  We read the whole image in one step,
    so this only adds a fake end of input marker at the end.  */
 
+static JOCTET our_memory_buffer[2];
+
 static boolean
 our_memory_fill_input_buffer (cinfo)
      j_decompress_ptr cinfo;
 {
   /* Insert a fake EOI marker.  */
   struct jpeg_source_mgr *src = cinfo->src;
-  static JOCTET buffer[2];
 
-  buffer[0] = (JOCTET) 0xFF;
-  buffer[1] = (JOCTET) JPEG_EOI;
+  our_memory_buffer[0] = (JOCTET) 0xFF;
+  our_memory_buffer[1] = (JOCTET) JPEG_EOI;
 
-  src->next_input_byte = buffer;
+  src->next_input_byte = our_memory_buffer;
   src->bytes_in_buffer = 2;
   return 1;
 }
@@ -7755,6 +7759,9 @@ gif_read_from_memory (file, buf, len)
 /* Load GIF image IMG for use on frame F.  Value is non-zero if
    successful.  */
 
+static int interlace_start[] = {0, 4, 2, 1};
+static int interlace_increment[] = {8, 8, 4, 2};
+
 static int
 gif_load (f, img)
      struct frame *f;
@@ -7883,13 +7890,14 @@ gif_load (f, img)
   init_color_table ();
   bzero (pixel_colors, sizeof pixel_colors);
 
-  for (i = 0; i < gif_color_map->ColorCount; ++i)
-    {
-      int r = gif_color_map->Colors[i].Red << 8;
-      int g = gif_color_map->Colors[i].Green << 8;
-      int b = gif_color_map->Colors[i].Blue << 8;
-      pixel_colors[i] = lookup_rgb_color (f, r, g, b);
-    }
+  if (gif_color_map)
+    for (i = 0; i < gif_color_map->ColorCount; ++i)
+      {
+        int r = gif_color_map->Colors[i].Red << 8;
+        int g = gif_color_map->Colors[i].Green << 8;
+        int b = gif_color_map->Colors[i].Blue << 8;
+        pixel_colors[i] = lookup_rgb_color (f, r, g, b);
+      }
 
 #ifdef COLOR_TABLE_SUPPORT
   img->colors = colors_in_color_table (&img->ncolors);
@@ -7924,8 +7932,6 @@ gif_load (f, img)
 
   if (gif->SavedImages[ino].ImageDesc.Interlace)
     {
-      static int interlace_start[] = {0, 4, 2, 1};
-      static int interlace_increment[] = {8, 8, 4, 2};
       int pass;
       int row = interlace_start[0];
 
@@ -8436,16 +8442,16 @@ svg_load (f, img)
   return success_p;
 }
 
-/* svg_load_image is a helper function for svg_load, which does the actual
- loading given contents and size, apart from frame and image
- structures, passed from svg_load.
+/* svg_load_image is a helper function for svg_load, which does the
+   actual loading given contents and size, apart from frame and image
+   structures, passed from svg_load.
 
- Uses librsvg to do most of the image processing.
+   Uses librsvg to do most of the image processing.
 
- Returns non-zero when sucessful.  */
+   Returns non-zero when successful.  */
 static int
 svg_load_image (f, img, contents, size)
-    /* Pointer to emacs frame sturcture.  */
+    /* Pointer to emacs frame structure.  */
      struct frame *f;
      /* Pointer to emacs image structure.  */
      struct image *img;
@@ -8555,8 +8561,8 @@ svg_load_image (f, img, contents, size)
 
   /* This loop handles opacity values, since Emacs assumes
      non-transparent images.  Each pixel must be "flattened" by
-     calculating he resulting color, given the transparency of the
-     pixel, and the image background color.   */
+     calculating the resulting color, given the transparency of the
+     pixel, and the image background color.  */
   for (y = 0; y < height; ++y)
     {
       for (x = 0; x < width; ++x)
@@ -9039,7 +9045,7 @@ syms_of_image ()
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", &Vimage_types,
     doc: /* List of potentially supported image types.
-Each element of the list is a symbol for a image type, like 'jpeg or 'png.
+Each element of the list is a symbol for an image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 

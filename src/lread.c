@@ -27,6 +27,7 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <errno.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -34,6 +35,7 @@ Boston, MA 02110-1301, USA.  */
 #include <epaths.h>
 #include "commands.h"
 #include "keyboard.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "coding.h"
 #include "blockinput.h"
@@ -452,8 +454,6 @@ static void substitute_in_interval P_ ((INTERVAL, Lisp_Object));
 
 /* Get a character from the tty.  */
 
-extern Lisp_Object read_char ();
-
 /* Read input events until we get one that's acceptable for our purposes.
 
    If NO_SWITCH_FRAME is non-zero, switch-frame events are stashed
@@ -505,10 +505,12 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
       EMACS_ADD_TIME (end_time, end_time, wait_time);
     }
 
-  /* Read until we get an acceptable event.  */
+/* Read until we get an acceptable event.  */
  retry:
-  val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
-		   NUMBERP (seconds) ? &end_time : NULL);
+  do
+    val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
+		     NUMBERP (seconds) ? &end_time : NULL);
+  while (INTEGERP (val) && XINT (val) == -2); /* wrong_kboard_jmpbuf */
 
   if (BUFFERP (val))
     goto retry;
@@ -760,7 +762,7 @@ lisp_file_lexically_bound_p (readcharfun)
 }
 
 
-/* Value is non-zero if the file asswociated with file descriptor FD
+/* Value is non-zero if the file associated with file descriptor FD
    is a compiled Lisp file that's safe to load.  Only files compiled
    with Emacs are safe to load.  Files compiled with XEmacs can lead
    to a crash in Fbyte_code because of an incompatible change in the
@@ -823,7 +825,7 @@ load_warn_old_style_backquotes (file)
   if (!NILP (Vold_style_backquotes))
     {
       Lisp_Object args[2];
-      args[0] = build_string ("!! File %s uses old-style backquotes !!");
+      args[0] = build_string ("Loading `%s': old-style backquotes detected!");
       args[1] = file;
       Fmessage (2, args);
     }
@@ -856,7 +858,7 @@ DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el',
 then try FILE unmodified (the exact suffixes in the exact order are
-determined by  `load-suffixes').  Environment variable references in
+determined by `load-suffixes').  Environment variable references in
 FILE are replaced with their values by calling `substitute-in-file-name'.
 This function searches the directories in `load-path'.
 
@@ -1033,7 +1035,7 @@ Return t if the file exists and loads successfully.  */)
                                    tmp))
                     : found) ;
 
-  /* Check fore the presence of old-style quotes and warn about them.  */
+  /* Check for the presence of old-style quotes and warn about them.  */
   specbind (Qold_style_backquotes, Qnil);
   record_unwind_protect (load_warn_old_style_backquotes, file);
 
@@ -2851,7 +2853,7 @@ read1 (readcharfun, pch, first_in_list)
       }
     default:
     default_label:
-      if (c <= 040) goto retry;	
+      if (c <= 040) goto retry;
       if (c == 0x8a0) /* NBSP */
 	goto retry;
       {
@@ -3826,6 +3828,7 @@ defsubr (sname)
 {
   Lisp_Object sym;
   sym = intern (sname->symbol_name);
+  XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (XSYMBOL (sym)->function, sname);
 }
 
@@ -3842,8 +3845,8 @@ defalias (sname, string)
 #endif /* NOTDEF */
 
 /* Define an "integer variable"; a symbol whose value is forwarded
-   to a C variable of type int.  Sample call: */
- /* DEFVAR_INT ("indent-tabs-mode", &indent_tabs_mode, "Documentation");  */
+   to a C variable of type int.  Sample call:
+   DEFVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
 defvar_int (namestring, address)
      char *namestring;
@@ -3859,7 +3862,7 @@ defvar_int (namestring, address)
 }
 
 /* Similar but define a variable whose value is t if address contains 1,
-   nil if address contains 0 */
+   nil if address contains 0.  */
 void
 defvar_bool (namestring, address)
      char *namestring;
@@ -4032,7 +4035,7 @@ init_lread ()
 		    Vload_path = Fcons (tem, Vload_path);
 		}
 
-	      /* Add site-list under the installation dir, if it exists.  */
+	      /* Add site-lisp under the installation dir, if it exists.  */
 	      tem = Fexpand_file_name (build_string ("site-lisp"),
 				       Vinstallation_directory);
 	      tem1 = Ffile_exists_p (tem);
@@ -4092,7 +4095,7 @@ init_lread ()
       /* NORMAL refers to the lisp dir in the source directory.  */
       /* We used to add ../lisp at the front here, but
 	 that caused trouble because it was copied from dump_path
-	 into Vload_path, aboe, when Vinstallation_directory was non-nil.
+	 into Vload_path, above, when Vinstallation_directory was non-nil.
 	 It should be unnecessary.  */
       Vload_path = decode_env_path (0, normal);
       dump_path = Vload_path;
@@ -4151,7 +4154,7 @@ init_lread ()
 }
 
 /* Print a warning, using format string FORMAT, that directory DIRNAME
-   does not exist.  Print it on stderr and put it in *Message*.  */
+   does not exist.  Print it on stderr and put it in *Messages*.  */
 
 void
 dir_warning (format, dirname)

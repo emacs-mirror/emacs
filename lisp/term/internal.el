@@ -29,20 +29,20 @@
 ;; ---------------------------------------------------------------------------
 ;; keyboard setup -- that's simple!
 (set-input-mode nil nil 0)
-(define-key function-key-map [backspace] "\177") ; Normal behaviour for BS
-(define-key function-key-map [delete] "\C-d")    ; ... and Delete
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [linefeed] [?\n])
-(define-key function-key-map [clear] [11])
-(define-key function-key-map [return] [13])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-backspace] [?\M-\d])
-(define-key function-key-map [M-delete] [?\M-d])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [M-linefeed] [?\M-\n])
-(define-key function-key-map [M-clear] [?\M-\013])
-(define-key function-key-map [M-return] [?\M-\015])
-(define-key function-key-map [M-escape] [?\M-\e])
+(define-key local-function-key-map [backspace] "\177") ; Normal behaviour for BS
+(define-key local-function-key-map [delete] "\C-d") ; ... and Delete
+(define-key local-function-key-map [tab] [?\t])
+(define-key local-function-key-map [linefeed] [?\n])
+(define-key local-function-key-map [clear] [11])
+(define-key local-function-key-map [return] [13])
+(define-key local-function-key-map [escape] [?\e])
+(define-key local-function-key-map [M-backspace] [?\M-\d])
+(define-key local-function-key-map [M-delete] [?\M-d])
+(define-key local-function-key-map [M-tab] [?\M-\t])
+(define-key local-function-key-map [M-linefeed] [?\M-\n])
+(define-key local-function-key-map [M-clear] [?\M-\013])
+(define-key local-function-key-map [M-return] [?\M-\015])
+(define-key local-function-key-map [M-escape] [?\M-\e]))
 (put 'backspace 'ascii-character 127)
 (put 'delete 'ascii-character 127)
 (put 'tab 'ascii-character ?\t)

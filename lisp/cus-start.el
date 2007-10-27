@@ -170,6 +170,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
+	     (focus-follows-mouse frames boolean "20.3")
 	     ;; frame.c
 	     (default-frame-alist frames
 	       (repeat (cons :format "%v"
@@ -342,6 +343,15 @@ since it could result in memory overflow and make Emacs crash."
 	     (even-window-heights windows boolean)
 	     (next-screen-context-lines windows integer)
 	     (split-height-threshold windows integer)
+             (split-window-preferred-function
+              windows
+              (choice (const :tag "vertically" split-window)
+                      ;; FIXME: Add `sensibly' which chooses between
+                      ;; vertical or horizontal splits depending on the size
+                      ;; and shape of the window.
+                      (const :tag "horizontally"
+                             (lambda (window)
+                               (split-window window nil 'horiz)))))
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
  	     (scroll-preserve-screen-position
@@ -422,14 +432,10 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'ms-dos))
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
-		      ((string-match "\\`mac-" (symbol-name symbol))
-		       (eq window-system 'mac))
+ 		      ((string-match "\\`mac-" (symbol-name symbol))
+ 		       (featurep 'mac-carbon))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
-		       (or (boundp 'gtk)
-			   (and window-system
-				(not (eq window-system 'pc))
-				(not (eq window-system 'mac))
-				(not (eq system-type 'windows-nt)))))
+		       (featurep 'gtk))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
 		      ((string-match "selection" (symbol-name symbol))
@@ -468,5 +474,5 @@ since it could result in memory overflow and make Emacs crash."
 (unless purify-flag
   (provide 'cus-start))
 
-;;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
+;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
 ;;; cus-start.el ends here

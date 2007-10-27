@@ -709,7 +709,9 @@ periodically for whitespace."
 If timer is not set, then set it to scan the files in
 `whitespace-all-buffer-files' periodically (defined by
 `whitespace-rescan-timer-time') for whitespace creep."
-  (if (and whitespace-rescan-timer-time (not whitespace-rescan-timer))
+  (if (and whitespace-rescan-timer-time
+	   (/= whitespace-rescan-timer-time 0)
+	   (not whitespace-rescan-timer))
       (setq whitespace-rescan-timer
 	    (add-timeout whitespace-rescan-timer-time
 			 'whitespace-rescan-files-in-buffers nil

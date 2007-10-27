@@ -3,8 +3,8 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-dnl  Free Software Foundation, Inc.
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003,
+dnl    2004, 2005, 2006, 2007  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -42,25 +42,33 @@ gamedir='${localstatedir}/games/emacs'
 
 gameuser=games
 
-AC_ARG_WITH(gcc,
-[  --without-gcc           don't use GCC to compile Emacs if GCC is found])
-AC_ARG_WITH(pop,
-[  --without-pop           don't support POP mail retrieval with movemail],
+dnl Autoconf is so much less fun under VMS, maybe
+dnl because everything is less fun under VMS. --ttn
+AC_DEFUN([EMACS_ARG_Y],[dnl
+AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[$3],[$4])dnl
+])dnl
+AC_DEFUN([EMACS_ARG_N],[dnl
+AC_ARG_WITH([$1],[AS_HELP_STRING([--without-$1],[$2])],[$3],[$4])dnl
+])dnl
+
+EMACS_ARG_N([gcc],[don't use GCC to compile Emacs if GCC is found])
+
+EMACS_ARG_N([pop],[don't support POP mail retrieval with movemail],
 [if test "$withval" = yes; then
    AC_DEFINE(MAIL_USE_POP)
 else :
 fi],
 AC_DEFINE(MAIL_USE_POP))
 AH_TEMPLATE(MAIL_USE_POP, [Define to support POP mail retrieval.])dnl
-AC_ARG_WITH(kerberos,
-[  --with-kerberos         support Kerberos-authenticated POP],
+
+EMACS_ARG_Y([kerberos],[support Kerberos-authenticated POP],
 [if test "$withval" = yes; then
    AC_DEFINE(KERBEROS)
 fi])
 AH_TEMPLATE(KERBEROS,
 	    [Define to support Kerberos-authenticated POP mail retrieval.])dnl
-AC_ARG_WITH(kerberos5,
-[  --with-kerberos5        support Kerberos version 5 authenticated POP],
+
+EMACS_ARG_Y([kerberos5],[support Kerberos version 5 authenticated POP],
 [if test "${with_kerberos5+set}" = set; then
   if test "${with_kerberos+set}" != set; then
     with_kerberos=yes
@@ -68,21 +76,19 @@ AC_ARG_WITH(kerberos5,
   fi
   AC_DEFINE(KERBEROS5, 1, [Define to use Kerberos 5 instead of Kerberos 4.])
 fi])
-AC_ARG_WITH(hesiod,
-[  --with-hesiod           support Hesiod to get the POP server host],
+
+EMACS_ARG_Y([hesiod],[support Hesiod to get the POP server host],
 [if test "$withval" = yes; then
   AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])
 fi])
 
-AC_ARG_WITH(sound,
-[  --without-sound         don't compile with sound support])
+EMACS_ARG_N([sound],[don't compile with sound support])
 
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
-AC_ARG_WITH(x-toolkit,
-[  --with-x-toolkit=KIT    use an X toolkit
-                              (KIT = yes/lucid/athena/motif/gtk/no)],
+AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
+ [use an X toolkit (KIT one of: yes, lucid, athena, motif, gtk, no)])],
 [	  case "${withval}" in
 	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
@@ -98,44 +104,36 @@ this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
 	  esac
 	  with_x_toolkit=$val
 ])
-AC_ARG_WITH(xpm,
-[  --with-xpm              use -lXpm for displaying XPM images])
-AC_ARG_WITH(jpeg,
-[  --with-jpeg             use -ljpeg for displaying JPEG images])
-AC_ARG_WITH(tiff,
-[  --with-tiff             use -ltiff for displaying TIFF images])
-AC_ARG_WITH(gif,
-[  --with-gif              use -lgif (or -lungif) for displaying GIF images])
-AC_ARG_WITH(png,
-[  --with-png              use -lpng for displaying PNG images])
-AC_ARG_WITH(gpm,
-[  --with-gpm              use -lgpm for mouse support on a GNU/Linux console])
-AC_ARG_WITH(rsvg,
-[  --with-rsvg             use -lrsvg-2 for displaying SVG images])
-AC_ARG_WITH(gtk,
-[  --with-gtk              use GTK (same as --with-x-toolkit=gtk)])
-AC_ARG_WITH(pkg-config-prog,
-[  --with-pkg-config-prog  Path to pkg-config to use for finding GTK and librsvg])
-AC_ARG_WITH(toolkit-scroll-bars,
-[  --without-toolkit-scroll-bars
-                          don't use Motif or Xaw3d scroll bars])
-AC_ARG_WITH(xim,
-[  --without-xim           don't use X11 XIM])
-AC_ARG_WITH(carbon,
-[  --without-carbon        don't use Carbon GUI on Mac OS X])
+
+EMACS_ARG_Y([xpm],[use -lXpm for displaying XPM images])
+EMACS_ARG_Y([jpeg],[use -ljpeg for displaying JPEG images])
+EMACS_ARG_Y([tiff],[use -ltiff for displaying TIFF images])
+EMACS_ARG_Y([gif],[use -lgif (or -lungif) for displaying GIF images])
+EMACS_ARG_Y([png],[use -lpng for displaying PNG images])
+EMACS_ARG_Y([gpm],[use -lgpm for mouse support on a GNU/Linux console])
+EMACS_ARG_Y([rsvg],[use -lrsvg-2 for displaying SVG images])
+EMACS_ARG_Y([gtk],[use GTK (same as --with-x-toolkit=gtk)])
+EMACS_ARG_Y([pkg-config-prog],[Path to pkg-config for finding GTK and librsvg])
+EMACS_ARG_N([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
+EMACS_ARG_N([xaw3d],[don't use Xaw3d])
+EMACS_ARG_N([xim],[don't use X11 XIM])
+EMACS_ARG_N([carbon],[don't use Carbon GUI on Mac OS X])
+
 AC_ARG_ENABLE(carbon-app,
-[[  --enable-carbon-app[=DIR]  [DIR=/Application]
-                          specify install directory for Emacs.app on Mac OS X]],
+[AS_HELP_STRING([--enable-carbon-app@<:@=DIR@:>@],
+                [specify install directory for Emacs.app on Mac OS X
+		 [DIR=/Application]])],
 [ carbon_appdir_x=${enableval}])
 
 AC_ARG_ENABLE(asserts,
-[  --enable-asserts        compile code with asserts enabled],
+[AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
       USE_XASSERTS=$enableval,
       USE_XASSERTS=no)
 
 AC_ARG_ENABLE(maintainer-mode,
-[  --enable-maintainer-mode enable make rules and dependencies not useful
-                          (and sometimes confusing) to the casual installer],
+[AS_HELP_STRING([--enable-maintainer-mode],
+                [enable make rules and dependencies not useful (and sometimes
+		 confusing) to the casual installer])],
       USE_MAINTAINER_MODE=$enableval,
       USE_MAINTAINER_MODE=no)
 if test $USE_MAINTAINER_MODE = yes; then
@@ -146,9 +144,9 @@ fi
 AC_SUBST(MAINT)
 
 AC_ARG_ENABLE(locallisppath,
-[  --enable-locallisppath=PATH
-                          directories Emacs should search for lisp files
-                          specific to this site],
+[AS_HELP_STRING([--enable-locallisppath=PATH],
+                [directories Emacs should search for lisp files specific
+		 to this site])],
 if test "${enableval}" = "no"; then
   locallisppath=
 elif test "${enableval}" != "yes"; then
@@ -1349,7 +1347,7 @@ AC_PATH_PROG(MAKEINFO, makeinfo, no)
 dnl By this stage, configure has already checked for egrep and set EGREP, 
 dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no" && \
-  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[5-9]]|4\.[[6-9]])'`" = x; then
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[6-9]]|4\.[[1-5]][[0-9]]+)'`" = x; then
    MAKEINFO=no    
 fi
 
@@ -2174,8 +2172,8 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
   if test "$USE_X_TOOLKIT" != "none" && test "$USE_X_TOOLKIT" != "maybe"; then
     AC_MSG_ERROR([Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}]);
   fi
-  GLIB_REQUIRED=2.4
-  GTK_REQUIRED=2.4
+  GLIB_REQUIRED=2.6
+  GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
   dnl Check if --with-pkg-config-prog has been given.
@@ -2229,6 +2227,7 @@ if test "${HAVE_GTK}" = "yes"; then
     AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
               [Define to 1 if GTK can handle more than one display.])
   fi
+
   dnl  Check if we have the old file selection dialog.
   dnl  If gdk_display_open exists, assume all others are there also.
   HAVE_GTK_FILE_SELECTION=no
@@ -2254,7 +2253,10 @@ if test "${HAVE_GTK}" = "yes"; then
       AC_CHECK_LIB(pthread, pthread_self, HAVE_GTK_AND_PTHREAD=yes)
     fi
     if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      GTK_LIBS="$GTK_LIBS -lpthread"
+      case "${canonical}" in
+        *-hpux*) ;;
+        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
+      esac
       AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
                [Define to 1 if you have GTK and pthread (-lpthread).])
     fi
@@ -2278,7 +2280,7 @@ if test "${HAVE_GTK}" = "yes"; then
     CFLAGS="$CFLAGS $XFT_CFLAGS"
     LIBS="$XFT_LIBS $LIBS"
     AC_CHECK_HEADER(X11/Xft/Xft.h,
-      AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
+      [AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS)])
 
     if test "${HAVE_XFT}" = "yes"; then
       AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
@@ -2299,14 +2301,18 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test x"${HAVE_X11R5}" != xyes; then
     USE_X_TOOLKIT=none
   else
-    AC_MSG_CHECKING(for xaw3d)
-    AC_CACHE_VAL(emacs_cv_xaw3d,
-    [AC_TRY_LINK([
+    if test "$with_xaw3d" != no; then
+      AC_MSG_CHECKING(for xaw3d)
+      AC_CACHE_VAL(emacs_cv_xaw3d,
+      [AC_TRY_LINK([
 #include <X11/Intrinsic.h>
 #include <X11/Xaw3d/Simple.h>],
-      [],
-      emacs_cv_xaw3d=yes,
-      emacs_cv_xaw3d=no)])
+        [],
+        emacs_cv_xaw3d=yes,
+        emacs_cv_xaw3d=no)])
+    else
+      emacs_cv_xaw3d=no
+    fi
     if test $emacs_cv_xaw3d = yes; then
       AC_MSG_RESULT([yes; using Lucid toolkit])
       USE_X_TOOLKIT=LUCID
@@ -2451,8 +2457,8 @@ AC_TRY_COMPILE([
 	  #include <X11/Xlib.h>
 	  #include <X11/Xresource.h>],
 	 [XIMProc  callback;],
-	 HAVE_XIM=yes
-	 AC_DEFINE(HAVE_XIM, 1, [Define to 1 if XIM is available]),
+	 [HAVE_XIM=yes
+	 AC_DEFINE(HAVE_XIM, 1, [Define to 1 if XIM is available])],
 	 HAVE_XIM=no)
 
 dnl `--with-xim' now controls only the initial value of use_xim at run time.
@@ -2502,7 +2508,7 @@ HAVE_XPM=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_xpm}" != "no"; then
     AC_CHECK_HEADER(X11/xpm.h,
-      AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
+      [AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11)])
     if test "${HAVE_XPM}" = "yes"; then
       AC_MSG_CHECKING(for XpmReturnAllocPixels preprocessor define)
       AC_EGREP_CPP(no_return_alloc_pixels,
@@ -2532,7 +2538,7 @@ if test "${HAVE_X11}" = "yes"; then
     dnl Checking for jpeglib.h can lose because of a redefinition of
     dnl  HAVE_STDLIB_H.
     AC_CHECK_HEADER(jerror.h,
-      AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes))
+      [AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes)])
   fi
 
   AH_TEMPLATE(HAVE_JPEG, [Define to 1 if you have the jpeg library (-ljpeg).])dnl
@@ -2542,7 +2548,7 @@ if test "${HAVE_X11}" = "yes"; then
         [#include <jpeglib.h>
 	 version=JPEG_LIB_VERSION
 ],
-        AC_DEFINE(HAVE_JPEG),
+        [AC_DEFINE(HAVE_JPEG)],
         [AC_MSG_WARN([libjpeg found, but not version 6b or later])
         HAVE_JPEG=no])
   fi
@@ -2570,10 +2576,10 @@ HAVE_TIFF=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_tiff}" != "no"; then
     AC_CHECK_HEADER(tiffio.h,
-      tifflibs="-lz -lm"
+      [tifflibs="-lz -lm"
       # At least one tiff package requires the jpeg library.
       if test "${HAVE_JPEG}" = yes; then tifflibs="-ljpeg $tifflibs"; fi
-      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , $tifflibs))
+      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , $tifflibs)])
   fi
 
   if test "${HAVE_TIFF}" = "yes"; then
@@ -2587,7 +2593,7 @@ if test "${HAVE_X11}" = "yes" && test "${with_gif}" != "no"; then
   AC_CHECK_HEADER(gif_lib.h,
 # EGifPutExtensionLast only exists from version libungif-4.1.0b1.
 # Earlier versions can crash Emacs.
-    AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes, try_libungif=yes))
+    [AC_CHECK_LIB(gif, EGifPutExtensionLast, HAVE_GIF=yes, try_libungif=yes)])
 
   if test "$HAVE_GIF" = yes; then
       ac_gif_lib_name="-lgif"
@@ -2637,7 +2643,7 @@ fi
 HAVE_GPM=no
 if test "${with_gpm}" != "no"; then
   AC_CHECK_HEADER(gpm.h,
-    AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes))
+    [AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes)])
 fi
 
 if test "${HAVE_GPM}" = "yes"; then
@@ -2645,7 +2651,7 @@ if test "${HAVE_GPM}" = "yes"; then
 fi
 
 dnl Check for malloc/malloc.h on darwin
-AC_CHECK_HEADER(malloc/malloc.h, AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.]))
+AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
 
 ### Use Mac OS X Carbon API to implement GUI.
 if test "${HAVE_CARBON}" = "yes"; then
@@ -2666,7 +2672,7 @@ fi
 HAVE_X_SM=no
 if test "${HAVE_X11}" = "yes"; then
   AC_CHECK_HEADER(X11/SM/SMlib.h,
-    AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, , -lICE))
+    [AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, , -lICE)])
 
   if test "${HAVE_X_SM}" = "yes"; then
     AC_DEFINE(HAVE_X_SM, 1, [Define to 1 if you have the SM library (-lSM).])
@@ -2688,6 +2694,13 @@ if test $emacs_cv_netdb_declares_h_errno = yes; then
 fi
 
 AC_FUNC_ALLOCA
+
+dnl src/alloca.c has been removed.  Could also check if $ALLOCA is set?
+dnl FIXME is there an autoconf test that does the right thing, without
+dnl needing to call A_M_E afterwards?
+if test x"$ac_cv_func_alloca_works" != xyes; then
+   AC_MSG_ERROR( [a system implementation of alloca is required] )
+fi
 
 # fmod, logb, and frexp are found in -lm on most systems.
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
@@ -2777,8 +2790,8 @@ if test "$with_hesiod" = yes ; then
     RESOLVLIB=
   fi
   AC_CHECK_FUNC(hes_getmailhost, , [AC_CHECK_LIB(hesiod, hes_getmailhost,
-	AC_DEFINE(HAVE_LIBHESIOD, 1,
-		  [Define to 1 if you have the hesiod library (-lhesiod).]),
+	[AC_DEFINE(HAVE_LIBHESIOD, 1,
+		  [Define to 1 if you have the hesiod library (-lhesiod).])],
 	:, $RESOLVLIB)])
 fi
 
@@ -2790,9 +2803,9 @@ if test "${with_kerberos+set}" = set; then
   AC_CHECK_LIB(krb5, krb5_init_context)
   if test "${with_kerberos5+set}" != set; then
     AC_CHECK_LIB(des425, des_cbc_encrypt,,
-		 AC_CHECK_LIB(des, des_cbc_encrypt))
+		 [AC_CHECK_LIB(des, des_cbc_encrypt)])
     AC_CHECK_LIB(krb4, krb_get_cred,,
-		 AC_CHECK_LIB(krb, krb_get_cred))
+		 [AC_CHECK_LIB(krb, krb_get_cred)])
   fi
 
   if test "${with_kerberos5+set}" = set; then
@@ -3111,6 +3124,13 @@ AH_BOTTOM([
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
 #define HAVE_MOUSE
+#endif
+
+/* Multi-tty support relies on MULTI_KBOARD.  It seems safe to turn it
+   on unconditionally.  Note that src/s/darwin.h disables this at
+   present.  */
+#ifndef MULTI_KBOARD
+#define MULTI_KBOARD
 #endif
 
 /* If we're using the Carbon API on Mac OS X, define a few more
@@ -3445,8 +3465,9 @@ AC_EGREP_CPP(yes..yes,
 	CPP_NEED_TRADITIONAL=yes)
 
 AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
-	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in \
-	lisp/Makefile lispref/Makefile lispintro/Makefile leim/Makefile, [
+	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
+	doc/lispref/Makefile src/Makefile.c:src/Makefile.in \
+	lwlib/Makefile lisp/Makefile leim/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in etc lisp ; do

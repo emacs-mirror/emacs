@@ -1,3 +1,100 @@
+2007-10-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Fix configuring `doc' due to changes in the
+	directory structure.
+
+2007-09-16  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
+
+	* configure.in: Don't use -lpthread on HP-UX.
+
+2007-09-16  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: File gfdl.1 has been removed.
+
+2007-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Fix makeinfo version regexp.
+
+2007-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_FUNC_ALLOCA): Throw an error if a system
+	implementation of alloca is not found.
+
+	* Makefile.in (SOURCES, unlock, relock): Delete.
+	(install-arch-indep): Do not exclude the etc/ Makefiles.
+
+2007-09-09  Juri Linkov  <juri@jurta.org>
+
+	* make-dist: Remove AUTHORS and CONTRIBUTE (moved to etc).
+
+	* README: Add doc/ to documentation directories.
+
+2007-09-08  Michael Olson  <mwolson@gnu.org>
+
+	* MAINTAINERS: Add myself for ERC and tq.el.
+	Update for new doc/ directory layout.
+
+2007-09-06  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Update for new doc/ directory layout.
+
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mansrcdir): New variable.
+	(SUBDIR_MAKEFILES): Update for new doc/ directory layout.
+	(man/Makefile, lispref/Makefile, lispintro/Makefile): Rename and
+	update these targets for new doc/ directory layout.
+	(doc/misc/Makefile): New target.
+	(install-arch-indep): Use mansrcdir for new location of manpages.
+	(mostlyclean, clean, distclean, maintainer-clean, unlock)
+	(relock, info, dvi): Update targets for new doc/ directory layout.
+
+	* configure.in (AC_OUTPUT): Update names of generated Makefiles
+	for new doc/ directory layout.
+
+2007-09-02  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Use AS_HELP_STRING throughout.
+	* configure: Regenerate.
+
+2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Require Gtk/Glib 2.6.
+
+2007-09-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* configure.in (EMACS_ARG_Y, EMACS_ARG_N): New AC_DEFUNs.
+	Use them throughout in place of AC_ARG_WITH calls.
+	* configure: Regenerate.
+
+2007-09-01  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Put quotes around nested macro calls.
+
+2007-08-31  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+
+	* configure.in: Fix typo.
+	* configure: Regenerate.
+
+2007-08-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AH_BOTTOM): Copy some manual changes made to
+	src/config.in here so they are not lost when it regenerates.
+
+	* README.multi-tty: Move to admin/notes/multi-tty, with some edits.
+
+2007-08-29  Karoly Lorentey  <karoly@lorentey.hu>
+
+	* README.multi-tty: New file.
+
+2007-08-29  Glenn Morris  <rgm@gnu.org>
+
+	* README: Increase version to 23.0.50.
+
+2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: New option: --without-xaw3d.
+
 2007-08-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Check for a suitably recent makeinfo.

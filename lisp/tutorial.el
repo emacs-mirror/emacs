@@ -210,14 +210,12 @@ LEFT and RIGHT are the elements to compare."
 (defconst tutorial--default-keys
   ;; On window system, `suspend-emacs' is replaced in the default
   ;; keymap
-  (let* ((suspend-emacs (if window-system
-                            'iconify-or-deiconify-frame
-                          'suspend-emacs))
+  (let* ((suspend-emacs 'suspend-frame)
          (default-keys
            `((ESC-prefix [27])
              (Control-X-prefix [?\C-x])
              (mode-specific-command-prefix [?\C-c])
-             (save-buffers-kill-emacs [?\C-x ?\C-c])
+             (save-buffers-kill-terminal [?\C-x ?\C-c])
 
              ;; * SUMMARY
              (scroll-up [?\C-v])
@@ -293,7 +291,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * MODE LINE
              (describe-mode [?\C-h ?m])
              (set-fill-column [?\C-x ?f])
-             (fill-paragraph [?\M-q])
+             (fill-paragraph-or-region [?\M-q])
 
              ;; * SEARCHING
              (isearch-forward [?\C-s])

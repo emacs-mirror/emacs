@@ -121,14 +121,15 @@ any protocol specific data.")
 
 (defun x-dnd-init-frame (&optional frame)
   "Setup drag and drop for FRAME (i.e. create appropriate properties)."
-  (x-register-dnd-atom "DndProtocol" frame)
-  (x-register-dnd-atom "_MOTIF_DRAG_AND_DROP_MESSAGE" frame)
-  (x-register-dnd-atom "XdndEnter" frame)
-  (x-register-dnd-atom "XdndPosition" frame)
-  (x-register-dnd-atom "XdndLeave" frame)
-  (x-register-dnd-atom "XdndDrop" frame)
-  (x-dnd-init-xdnd-for-frame frame)
-  (x-dnd-init-motif-for-frame frame))
+  (when (eq 'x (window-system frame))
+    (x-register-dnd-atom "DndProtocol" frame)
+    (x-register-dnd-atom "_MOTIF_DRAG_AND_DROP_MESSAGE" frame)
+    (x-register-dnd-atom "XdndEnter" frame)
+    (x-register-dnd-atom "XdndPosition" frame)
+    (x-register-dnd-atom "XdndLeave" frame)
+    (x-register-dnd-atom "XdndDrop" frame)
+    (x-dnd-init-xdnd-for-frame frame)
+    (x-dnd-init-motif-for-frame frame)))
 
 (defun x-dnd-get-state-cons-for-frame (frame-or-window)
   "Return the entry in x-dnd-current-state for a frame or window."

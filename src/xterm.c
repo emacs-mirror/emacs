@@ -54,7 +54,6 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/ioctl.h>
 #endif /* ! defined (BSD_SYSTEM) */
 
-#include "systty.h"
 #include "systime.h"
 
 #ifndef INCLUDED_FCNTL
@@ -154,8 +153,6 @@ extern void _XEditResCheckMessages ();
 #define XtNinitialState "initialState"
 #endif
 #endif
-
-#define abs(x)	((x) < 0 ? -(x) : (x))
 
 /* Default to using XIM if available.  */
 #ifdef USE_XIM
@@ -322,6 +319,10 @@ static Lisp_Object Qalt, Qhyper, Qmeta, Qsuper, Qmodifier_value;
 static Lisp_Object Qvendor_specific_keysyms;
 static Lisp_Object Qlatin_1;
 
+/* Used in x_flush.  */
+
+extern Lisp_Object Vinhibit_redisplay;
+
 extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 extern int x_bitmap_mask P_ ((FRAME_PTR, int));
 
@@ -331,13 +332,15 @@ static const XColor *x_color_cells P_ ((Display *, int *));
 static void x_update_window_end P_ ((struct window *, int, int));
 
 static int x_io_error_quitter P_ ((Display *));
+static struct terminal *x_create_terminal P_ ((struct x_display_info *));
+void x_delete_terminal P_ ((struct terminal *));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
-static void XTset_terminal_modes P_ ((void));
-static void XTreset_terminal_modes P_ ((void));
-static void x_clear_frame P_ ((void));
+static void XTset_terminal_modes P_ ((struct terminal *));
+static void XTreset_terminal_modes P_ ((struct terminal *));
+static void x_clear_frame P_ ((struct frame *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
@@ -377,12 +380,18 @@ static void
 x_flush (f)
      struct frame *f;
 {
+  /* Don't call XFlush when it is not safe to redisplay; the X
+     connection may be broken.  */
+  if (!NILP (Vinhibit_redisplay))
+    return;
+
   BLOCK_INPUT;
   if (f == NULL)
     {
       Lisp_Object rest, frame;
       FOR_EACH_FRAME (rest, frame)
-	x_flush (XFRAME (frame));
+        if (FRAME_X_P (XFRAME (frame)))
+          x_flush (XFRAME (frame));
     }
   else if (FRAME_X_P (f))
     XFlush (FRAME_X_DISPLAY (f));
@@ -843,7 +852,7 @@ x_draw_fringe_bitmap (w, row, p)
    rarely happens).  */
 
 static void
-XTset_terminal_modes ()
+XTset_terminal_modes (struct terminal *terminal)
 {
 }
 
@@ -851,7 +860,7 @@ XTset_terminal_modes ()
    the X-windows go away, and suspending requires no action.  */
 
 static void
-XTreset_terminal_modes ()
+XTreset_terminal_modes (struct terminal *terminal)
 {
 }
 
@@ -1313,7 +1322,7 @@ x_draw_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
+    x = s->x + eabs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -1395,7 +1404,7 @@ x_draw_composite_glyph_string_foreground (s)
      of S to the right of that box line.  */
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
+    x = s->x + eabs (s->face->box_line_width);
   else
     x = s->x;
 
@@ -1464,7 +1473,8 @@ x_frame_of_widget (widget)
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     if (GC_FRAMEP (XCAR (tail))
 	&& (f = XFRAME (XCAR (tail)),
-	    (f->output_data.nothing != 1
+	    (FRAME_X_P (f)
+             && f->output_data.nothing != 1
 	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
 	&& f->output_data.x->widget == widget)
       return f;
@@ -2190,7 +2200,7 @@ x_draw_glyph_string_box (s)
 		? s->first_glyph
 		: s->first_glyph + s->nchars - 1);
 
-  width = abs (s->face->box_line_width);
+  width = eabs (s->face->box_line_width);
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
   right_x = (s->row->full_width_p && s->extends_to_end_of_line_p
@@ -2236,7 +2246,7 @@ x_draw_image_foreground (s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2329,7 +2339,7 @@ x_draw_image_relief (s)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2346,7 +2356,7 @@ x_draw_image_relief (s)
     }
   else
     {
-      thick = abs (s->img->relief);
+      thick = eabs (s->img->relief);
       raised_p = s->img->relief > 0;
     }
 
@@ -2381,7 +2391,7 @@ x_draw_image_foreground_1 (s, pixmap)
   if (s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p
       && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
+    x += eabs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
@@ -2481,7 +2491,7 @@ static void
 x_draw_image_glyph_string (s)
      struct glyph_string *s;
 {
-  int box_line_hwidth = abs (s->face->box_line_width);
+  int box_line_hwidth = eabs (s->face->box_line_width);
   int box_line_vwidth = max (s->face->box_line_width, 0);
   int height;
   Pixmap pixmap = None;
@@ -2843,7 +2853,8 @@ x_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
    for X frames.  */
 
 static void
-x_delete_glyphs (n)
+x_delete_glyphs (f, n)
+     struct frame *f;
      register int n;
 {
   abort ();
@@ -2866,19 +2877,11 @@ x_clear_area (dpy, window, x, y, width, height, exposures)
 }
 
 
-/* Clear entire frame.  If updating_frame is non-null, clear that
-   frame.  Otherwise clear the selected frame.  */
+/* Clear an entire frame.  */
 
 static void
-x_clear_frame ()
+x_clear_frame (struct frame *f)
 {
-  struct frame *f;
-
-  if (updating_frame)
-    f = updating_frame;
-  else
-    f = SELECTED_FRAME ();
-
   /* Clearing the frame will erase any cursor, so mark them all as no
      longer visible.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -2957,8 +2960,8 @@ XTflash (f)
       XGCValues values;
 
       values.function = GXxor;
-      values.foreground = (f->output_data.x->foreground_pixel
-			   ^ f->output_data.x->background_pixel);
+      values.foreground = (FRAME_FOREGROUND_PIXEL (f)
+			   ^ FRAME_BACKGROUND_PIXEL (f));
 
       gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      GCFunction | GCForeground, &values);
@@ -3124,7 +3127,8 @@ XTset_terminal_window (n)
    lines or deleting -N lines at vertical position VPOS.  */
 
 static void
-x_ins_del_lines (vpos, n)
+x_ins_del_lines (f, vpos, n)
+     struct frame *f;
      int vpos, n;
 {
   abort ();
@@ -3761,7 +3765,8 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 
       /* Clear the mouse-moved flag for every frame on this display.  */
       FOR_EACH_FRAME (tail, frame)
-	if (FRAME_X_DISPLAY (XFRAME (frame)) == FRAME_X_DISPLAY (*fp))
+	if (FRAME_X_P (XFRAME (frame))
+            && FRAME_X_DISPLAY (XFRAME (frame)) == FRAME_X_DISPLAY (*fp))
 	  XFRAME (frame)->mouse_moved = 0;
 
       last_mouse_scroll_bar = Qnil;
@@ -3950,6 +3955,9 @@ x_window_to_scroll_bar (display, window_id)
       if (! GC_FRAMEP (frame))
 	abort ();
 
+      if (! FRAME_X_P (XFRAME (frame)))
+        continue;
+      
       /* Scan this frame's scroll bar list for a scroll bar with the
          right window ID.  */
       condemned = FRAME_CONDEMNED_SCROLL_BARS (XFRAME (frame));
@@ -3984,11 +3992,14 @@ x_window_to_menu_bar (window)
        XGCTYPE (tail) == Lisp_Cons;
        tail = XCDR (tail))
     {
-      Lisp_Object frame = XCAR (tail);
-      Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
+      if (FRAME_X_P (XFRAME (XCAR (tail))))
+        {
+          Lisp_Object frame = XCAR (tail);
+          Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
 
-      if (menu_bar && xlwmenu_window_p (menu_bar, window))
-	return menu_bar;
+          if (menu_bar && xlwmenu_window_p (menu_bar, window))
+            return menu_bar;
+        }
     }
 
   return NULL;
@@ -4374,7 +4385,7 @@ xaw_jump_callback (widget, client_data, call_data)
   whole = 10000000;
   portion = shown < 1 ? top * whole : 0;
 
-  if (shown < 1 && (abs (top + shown - 1) < 1.0/height))
+  if (shown < 1 && (eabs (top + shown - 1) < 1.0/height))
     /* Some derivatives of Xaw refuse to shrink the thumb when you reach
        the bottom, so we force the scrolling whenever we see that we're
        too close to the bottom (in x_set_toolkit_scroll_bar_thumb
@@ -4415,12 +4426,12 @@ xaw_scroll_callback (widget, client_data, call_data)
   XtVaGetValues (widget, XtNheight, &height, NULL);
   UNBLOCK_INPUT;
 
-  if (abs (position) >= height)
+  if (eabs (position) >= height)
     part = (position < 0) ? scroll_bar_above_handle : scroll_bar_below_handle;
 
   /* If Xaw3d was compiled with ARROW_SCROLLBAR,
      it maps line-movement to call_data = max(5, height/20).  */
-  else if (xaw3d_arrow_scroll && abs (position) <= max (5, height / 20))
+  else if (xaw3d_arrow_scroll && eabs (position) <= max (5, height / 20))
     part = (position < 0) ? scroll_bar_up_arrow : scroll_bar_down_arrow;
   else
     part = scroll_bar_move_ratio;
@@ -4796,7 +4807,7 @@ x_scroll_bar_create (w, top, left, width, height)
 
     a.background_pixel = f->output_data.x->scroll_bar_background_pixel;
     if (a.background_pixel == -1)
-      a.background_pixel = f->output_data.x->background_pixel;
+      a.background_pixel = FRAME_BACKGROUND_PIXEL (f);
 
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
@@ -4973,7 +4984,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     /* Restore the foreground color of the GC if we changed it above.  */
     if (f->output_data.x->scroll_bar_foreground_pixel != -1)
       XSetForeground (FRAME_X_DISPLAY (f), gc,
-		      f->output_data.x->foreground_pixel);
+		      FRAME_FOREGROUND_PIXEL (f));
 
     /* Draw the empty space below the handle.  Note that we can't
        clear zero-height areas; that means "clear to end of window." */
@@ -5375,7 +5386,7 @@ x_scroll_bar_expose (bar, event)
    /* Restore the foreground color of the GC if we changed it above.  */
    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
      XSetForeground (FRAME_X_DISPLAY (f), gc,
- 		    f->output_data.x->foreground_pixel);
+		     FRAME_FOREGROUND_PIXEL (f));
 
    UNBLOCK_INPUT;
 
@@ -5775,7 +5786,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
   int count = 0;
   int do_help = 0;
   int nbytes = 0;
-  struct frame *f;
+  struct frame *f = NULL;
   struct coding_system coding;
   XEvent event = *eventp;
 
@@ -6351,19 +6362,19 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           bzero (&compose_status, sizeof (compose_status));
           orig_keysym = keysym;
 
-	  /* Common for all keysym input events.  */
-	  XSETFRAME (inev.ie.frame_or_window, f);
-	  inev.ie.modifiers
-	    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f), modifiers);
-	  inev.ie.timestamp = event.xkey.time;
+ 	  /* Common for all keysym input events.  */
+ 	  XSETFRAME (inev.ie.frame_or_window, f);
+ 	  inev.ie.modifiers
+ 	    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f), modifiers);
+ 	  inev.ie.timestamp = event.xkey.time;
 
-	  /* First deal with keysyms which have defined
-	     translations to characters.  */
-	  if (keysym >= 32 && keysym < 128)
-	    /* Avoid explicitly decoding each ASCII character.  */
-	    {
-	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
-	      inev.ie.code = keysym;
+ 	  /* First deal with keysyms which have defined
+ 	     translations to characters.  */
+ 	  if (keysym >= 32 && keysym < 128)
+ 	    /* Avoid explicitly decoding each ASCII character.  */
+ 	    {
+ 	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+ 	      inev.ie.code = keysym;
 	      goto done_keysym;
 	    }
 
@@ -6408,18 +6419,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	  /* Now non-ASCII.  */
 	  if (HASH_TABLE_P (Vx_keysym_table)
 	      && (NATNUMP (c = Fgethash (make_number (keysym),
-					 Vx_keysym_table,
-					 Qnil))))
-	    {
-	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
-			      ? ASCII_KEYSTROKE_EVENT
-			      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-	      inev.ie.code = XFASTINT (c);
-	      goto done_keysym;
-	    }
-
-	  /* Random non-modifier sorts of keysyms.  */
-	  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
+ 					 Vx_keysym_table,
+ 					 Qnil))))
+ 	    {
+ 	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
+                              ? ASCII_KEYSTROKE_EVENT
+                              : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+ 	      inev.ie.code = XFASTINT (c);
+ 	      goto done_keysym;
+ 	    }
+ 
+ 	  /* Random non-modifier sorts of keysyms.  */
+ 	  if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
                         || keysym == XK_Delete
 #ifdef XK_ISO_Left_Tab
                         || (keysym >= XK_ISO_Left_Tab
@@ -6525,42 +6536,43 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	       gives us composition information.  */
 	    coding.composing = COMPOSITION_DISABLED;
 
-	    for (i = 0; i < nbytes; i++)
+	    if (nbytes > 0)
 	      {
-		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
-	      }
+		/* Decode the input data.  */
+		int require;
+		unsigned char *p;
 
-	    {
-	      /* Decode the input data.  */
-	      int require;
-	      unsigned char *p;
+		for (i = 0; i < nbytes; i++)
+		  {
+		    STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
+		  }
 
-	      require = decoding_buffer_size (&coding, nbytes);
-	      p = (unsigned char *) alloca (require);
-	      coding.mode |= CODING_MODE_LAST_BLOCK;
-	      /* We explicitly disable composition handling because
-		 key data should not contain any composition sequence.  */
-	      coding.composing = COMPOSITION_DISABLED;
-	      decode_coding (&coding, copy_bufptr, p, nbytes, require);
-	      nbytes = coding.produced;
-	      nchars = coding.produced_char;
-	      copy_bufptr = p;
-	    }
+		require = decoding_buffer_size (&coding, nbytes);
+		p = (unsigned char *) alloca (require);
+		coding.mode |= CODING_MODE_LAST_BLOCK;
+		/* We explicitly disable composition handling because
+		   key data should not contain any composition sequence.  */
+		coding.composing = COMPOSITION_DISABLED;
+		decode_coding (&coding, copy_bufptr, p, nbytes, require);
+		nbytes = coding.produced;
+		nchars = coding.produced_char;
+		copy_bufptr = p;
 
-	    /* Convert the input data to a sequence of
-	       character events.  */
-	    for (i = 0; i < nbytes; i += len)
-	      {
-		if (nchars == nbytes)
-		  c = copy_bufptr[i], len = 1;
-		else
-		  c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
-					      nbytes - i, len);
-		inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
-			      ? ASCII_KEYSTROKE_EVENT
-			      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-		inev.ie.code = c;
-		kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+		/* Convert the input data to a sequence of
+		   character events.  */
+		for (i = 0; i < nbytes; i += len)
+		  {
+		    if (nchars == nbytes)
+		      c = copy_bufptr[i], len = 1;
+		    else
+		      c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
+						  nbytes - i, len);
+		    inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
+				    ? ASCII_KEYSTROKE_EVENT
+				    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+		    inev.ie.code = c;
+		    kbd_buffer_store_event_hold (&inev.ie, hold_quit);
+		  }
 	      }
 
 	    /* Previous code updated count by nchars rather than nbytes,
@@ -6627,7 +6639,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       /* We may get an EnterNotify on the buttons in the toolbar.  In that
          case we moved out of any highlighted area and need to note this.  */
       if (!f && last_mouse_glyph_frame)
-        note_mouse_movement (last_mouse_glyph_frame, &event);
+        note_mouse_movement (last_mouse_glyph_frame, &event.xmotion);
 #endif
       goto OTHER;
 
@@ -6660,7 +6672,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #ifdef USE_GTK
       /* See comment in EnterNotify above */
       else if (last_mouse_glyph_frame)
-        note_mouse_movement (last_mouse_glyph_frame, &event);
+        note_mouse_movement (last_mouse_glyph_frame, &event.xmotion);
 #endif
       goto OTHER;
 
@@ -6703,7 +6715,13 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                    will be selected only when it is active.  */
                 if (WINDOWP (window)
                     && !EQ (window, last_window)
-                    && !EQ (window, selected_window))
+		    && !EQ (window, selected_window)
+		    /* For click-to-focus window managers
+		       create event iff we don't leave the
+		       selected frame.  */
+		    && (focus_follows_mouse
+			|| (EQ (XWINDOW (window)->frame,
+				XWINDOW (selected_window)->frame))))
                   {
                     inev.ie.kind = SELECT_WINDOW_EVENT;
                     inev.ie.frame_or_window = window;
@@ -7063,8 +7081,8 @@ x_dispatch_event (event, display)
    EXPECTED is nonzero if the caller knows input is available.  */
 
 static int
-XTread_socket (sd, expected, hold_quit)
-     register int sd;
+XTread_socket (terminal, expected, hold_quit)
+     struct terminal *terminal;
      int expected;
      struct input_event *hold_quit;
 {
@@ -7087,6 +7105,31 @@ XTread_socket (sd, expected, hold_quit)
 
   ++handling_signal;
 
+#ifdef HAVE_X_SM
+  /* Only check session manager input for the primary display. */
+  if (terminal->id == 1 && x_session_have_connection ())
+    {
+      struct input_event inev;
+      BLOCK_INPUT;
+      /* We don't need to EVENT_INIT (inev) here, as
+         x_session_check_input copies an entire input_event.  */
+      if (x_session_check_input (&inev))
+        {
+          kbd_buffer_store_event_hold (&inev, hold_quit);
+          count++;
+        }
+      UNBLOCK_INPUT;
+    }
+#endif
+
+  /* For debugging, this gives a way to fake an I/O error.  */
+  if (terminal->display_info.x == XTread_socket_fake_io_error)
+    {
+      XTread_socket_fake_io_error = 0;
+      x_io_error_quitter (dpyinfo->display);
+    }
+  
+#if 0 /* This loop is a noop now.  */
   /* Find the display we are supposed to read input for.
      It's the one communicating on descriptor SD.  */
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
@@ -7117,52 +7160,31 @@ XTread_socket (sd, expected, hold_quit)
 #endif /* HAVE_SELECT */
 #endif /* SIGIO */
 #endif
-
-      /* For debugging, this gives a way to fake an I/O error.  */
-      if (dpyinfo == XTread_socket_fake_io_error)
-	{
-	  XTread_socket_fake_io_error = 0;
-	  x_io_error_quitter (dpyinfo->display);
-	}
-
-#ifdef HAVE_X_SM
-      {
-	struct input_event inev;
-	BLOCK_INPUT;
-	/* We don't need to EVENT_INIT (inev) here, as
-	   x_session_check_input copies an entire input_event.  */
-	if (x_session_check_input (&inev))
-	  {
-	    kbd_buffer_store_event_hold (&inev, hold_quit);
-	    count++;
-	  }
-	UNBLOCK_INPUT;
-      }
+    }
 #endif
 
 #ifndef USE_GTK
-      while (XPending (dpyinfo->display))
-	{
-          int finish;
+  while (XPending (terminal->display_info.x->display))
+    {
+      int finish;
 
-	  XNextEvent (dpyinfo->display, &event);
+      XNextEvent (terminal->display_info.x->display, &event);
 
 #ifdef HAVE_X_I18N
-          /* Filter events for the current X input method.  */
-          if (x_filter_event (dpyinfo, &event))
-            break;
+      /* Filter events for the current X input method.  */
+      if (x_filter_event (terminal->display_info.x, &event))
+        break;
 #endif
-	  event_found = 1;
+      event_found = 1;
 
-          count += handle_one_xevent (dpyinfo, &event, &finish, hold_quit);
+      count += handle_one_xevent (terminal->display_info.x,
+                                  &event, &finish, hold_quit);
 
-          if (finish == X_EVENT_GOTO_OUT)
-            goto out;
-        }
-#endif /* not USE_GTK */
+      if (finish == X_EVENT_GOTO_OUT)
+        goto out;
     }
 
-#ifdef USE_GTK
+#else /* USE_GTK */
 
   /* For GTK we must use the GTK event loop.  But XEvents gets passed
      to our filter function above, and then to the big event switch.
@@ -7473,8 +7495,7 @@ x_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, activ
     }
 
 #ifndef XFlush
-  if (updating_frame != f)
-    XFlush (FRAME_X_DISPLAY (f));
+  XFlush (FRAME_X_DISPLAY (f));
 #endif
 }
 
@@ -7712,6 +7733,8 @@ x_clear_errors (dpy)
   x_error_message->string[0] = 0;
 }
 
+#if 0 /* See comment in unwind_to_catch why calling this is a bad
+       * idea.  --lorentey   */
 /* Close off all unclosed x_catch_errors calls.  */
 
 void
@@ -7720,6 +7743,7 @@ x_fully_uncatch_errors ()
   while (x_error_message)
     x_uncatch_errors ();
 }
+#endif
 
 /* Nonzero if x_catch_errors has been done and not yet canceled.  */
 
@@ -7785,6 +7809,7 @@ x_connection_closed (dpy, error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
+  int index = SPECPDL_INDEX ();
 
   error_msg = (char *) alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
@@ -7795,6 +7820,44 @@ x_connection_closed (dpy, error_message)
      display information'' in the recursive call instead of printing
      the original message here.  */
   x_catch_errors (dpy);
+
+  /* Inhibit redisplay while frames are being deleted. */
+  specbind (Qinhibit_redisplay, Qt);
+
+  if (dpyinfo)
+    {
+      /* Protect display from being closed when we delete the last
+         frame on it. */
+      dpyinfo->reference_count++;
+      dpyinfo->terminal->reference_count++;
+    }
+  
+  /* First delete frames whose mini-buffers are on frames
+     that are on the dead display.  */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      Lisp_Object minibuf_frame;
+      minibuf_frame
+	= WINDOW_FRAME (XWINDOW (FRAME_MINIBUF_WINDOW (XFRAME (frame))));
+      if (FRAME_X_P (XFRAME (frame))
+	  && FRAME_X_P (XFRAME (minibuf_frame))
+	  && ! EQ (frame, minibuf_frame)
+	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
+	Fdelete_frame (frame, Qt);
+    }
+
+  /* Now delete all remaining frames on the dead display.
+     We are now sure none of these is used as the mini-buffer
+     for another frame that we need to delete.  */
+  FOR_EACH_FRAME (tail, frame)
+    if (FRAME_X_P (XFRAME (frame))
+	&& FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+      {
+	/* Set this to t so that Fdelete_frame won't get confused
+	   trying to find a replacement.  */
+	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
+	Fdelete_frame (frame, Qt);
+      }
 
   /* We have to close the display to inform Xt that it doesn't
      exist anymore.  If we don't, Xt will continue to wait for
@@ -7828,43 +7891,23 @@ x_connection_closed (dpy, error_message)
     xg_display_close (dpyinfo->display);
 #endif
 
-  /* Indicate that this display is dead.  */
   if (dpyinfo)
-    dpyinfo->display = 0;
-
-  /* First delete frames whose mini-buffers are on frames
-     that are on the dead display.  */
-  FOR_EACH_FRAME (tail, frame)
     {
-      Lisp_Object minibuf_frame;
-      minibuf_frame
-	= WINDOW_FRAME (XWINDOW (FRAME_MINIBUF_WINDOW (XFRAME (frame))));
-      if (FRAME_X_P (XFRAME (frame))
-	  && FRAME_X_P (XFRAME (minibuf_frame))
-	  && ! EQ (frame, minibuf_frame)
-	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
-	Fdelete_frame (frame, Qt);
+      /* Indicate that this display is dead.  */
+      dpyinfo->display = 0;
+
+      dpyinfo->reference_count--;
+      dpyinfo->terminal->reference_count--;
+      if (dpyinfo->reference_count != 0)
+        /* We have just closed all frames on this display. */
+        abort ();
+
+      x_delete_display (dpyinfo);
     }
-
-  /* Now delete all remaining frames on the dead display.
-     We are now sure none of these is used as the mini-buffer
-     for another frame that we need to delete.  */
-  FOR_EACH_FRAME (tail, frame)
-    if (FRAME_X_P (XFRAME (frame))
-	&& FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
-      {
-	/* Set this to t so that Fdelete_frame won't get confused
-	   trying to find a replacement.  */
-	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
-	Fdelete_frame (frame, Qt);
-      }
-
-  if (dpyinfo)
-    x_delete_display (dpyinfo);
 
   x_uncatch_errors ();
 
-  if (x_display_list == 0)
+  if (terminal_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
       shut_down_emacs (0, 0, Qnil);
@@ -7878,6 +7921,7 @@ x_connection_closed (dpy, error_message)
   sigunblock (sigmask (SIGALRM));
   TOTALLY_UNBLOCK_INPUT;
 
+  unbind_to (index, Qnil);
   clear_waiting_for_input ();
   error ("%s", error_msg);
 }
@@ -8088,7 +8132,7 @@ xim_destroy_callback (xim, client_data, call_data)
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
-      if (FRAME_X_DISPLAY_INFO (f) == dpyinfo)
+      if (FRAME_X_P (f) && FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
 	  FRAME_XIC (f) = NULL;
           xic_free_xfontset (f);
@@ -8187,7 +8231,8 @@ xim_instantiate_callback (display, client_data, call_data)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_X_DISPLAY_INFO (f) == xim_inst->dpyinfo)
+	  if (FRAME_X_P (f)
+              && FRAME_X_DISPLAY_INFO (f) == xim_inst->dpyinfo)
 	    if (FRAME_XIC (f) == NULL)
 	      {
 		create_frame_xic (f);
@@ -8702,7 +8747,8 @@ x_sync_with_move (f, left, top, fuzzy)
           /* The left fuzz-factor is 10 pixels.  The top fuzz-factor is 40
              pixels.  */
 
-          if (abs (current_left - left) <= 10 && abs (current_top - top) <= 40)
+          if (eabs (current_left - left) <= 10
+	      && eabs (current_top - top) <= 40)
             return;
   }
       else if (current_left == left && current_top == top)
@@ -9402,8 +9448,8 @@ x_free_frame_resources (f)
 	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* !USE_X_TOOLKIT */
 
-      unload_color (f, f->output_data.x->foreground_pixel);
-      unload_color (f, f->output_data.x->background_pixel);
+      unload_color (f, FRAME_FOREGROUND_PIXEL (f));
+      unload_color (f, FRAME_BACKGROUND_PIXEL (f));
       unload_color (f, f->output_data.x->cursor_pixel);
       unload_color (f, f->output_data.x->cursor_foreground_pixel);
       unload_color (f, f->output_data.x->border_pixel);
@@ -10546,9 +10592,12 @@ get_bits_and_offset (mask, bits, offset)
   *bits = nr;
 }
 
+/* Return 1 if display DISPLAY is available for use, 0 otherwise.
+   But don't permanently open it, just test its availability.  */
+
 int
 x_display_ok (display)
-    const char * display;
+    const char *display;
 {
     int dpy_ok = 1;
     Display *dpy;
@@ -10561,6 +10610,10 @@ x_display_ok (display)
     return dpy_ok;
 }
 
+/* Open a connection to X display DISPLAY_NAME, and return
+   the structure that describes the open display.
+   If we cannot contact the display, return null.  */
+
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -10569,6 +10622,7 @@ x_term_init (display_name, xrm_option, resource_name)
 {
   int connection;
   Display *dpy;
+  struct terminal *terminal;
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
 
@@ -10580,6 +10634,9 @@ x_term_init (display_name, xrm_option, resource_name)
       ++x_initialized;
     }
 
+  if (! x_display_ok (SDATA (display_name)))
+    error ("Display %s can't be opened", SDATA (display_name));
+
 #ifdef USE_GTK
   {
 #define NUM_ARGV 10
@@ -10588,14 +10645,21 @@ x_term_init (display_name, xrm_option, resource_name)
     char **argv2 = argv;
     GdkAtom atom;
 
+#ifndef HAVE_GTK_MULTIDISPLAY
+    if (!EQ (Vinitial_window_system, intern ("x")))
+      error ("Sorry, you cannot connect to X servers with the GTK toolkit");
+#endif
+
     if (x_initialized++ > 1)
       {
+#ifdef HAVE_GTK_MULTIDISPLAY
         /* Opening another display.  If xg_display_open returns less
            than zero, we are probably on GTK 2.0, which can only handle
            one display.  GTK 2.2 or later can handle more than one.  */
         if (xg_display_open (SDATA (display_name), &dpy) < 0)
+#endif
           error ("Sorry, this version of GTK can only handle one display");
-     }
+      }
     else
       {
         for (argc = 0; argc < NUM_ARGV; ++argc)
@@ -10699,6 +10763,8 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
   bzero (dpyinfo, sizeof *dpyinfo);
 
+  terminal = x_create_terminal (dpyinfo);
+
 #ifdef MULTI_KBOARD
   {
     struct x_display_info *share;
@@ -10710,30 +10776,30 @@ x_term_init (display_name, xrm_option, resource_name)
 			 SDATA (display_name)))
 	break;
     if (share)
-      dpyinfo->kboard = share->kboard;
+      terminal->kboard = share->terminal->kboard;
     else
       {
-	dpyinfo->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-	init_kboard (dpyinfo->kboard);
+	terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+	init_kboard (terminal->kboard);
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
 	    UNBLOCK_INPUT;
-	    dpyinfo->kboard->Vsystem_key_alist
+	    terminal->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       vendor ? build_string (vendor) : empty_unibyte_string);
 	    BLOCK_INPUT;
 	  }
 
-	dpyinfo->kboard->next_kboard = all_kboards;
-	all_kboards = dpyinfo->kboard;
+	terminal->kboard->next_kboard = all_kboards;
+	all_kboards = terminal->kboard;
 	/* Don't let the initial kboard remain current longer than necessary.
 	   That would cause problems if a file loaded on startup tries to
 	   prompt in the mini-buffer.  */
 	if (current_kboard == initial_kboard)
-	  current_kboard = dpyinfo->kboard;
+	  current_kboard = terminal->kboard;
       }
-    dpyinfo->kboard->reference_count++;
+    terminal->kboard->reference_count++;
   }
 #endif
 
@@ -10748,6 +10814,11 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->display = dpy;
 
+  /* Set the name of the terminal. */
+  terminal->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  strncpy (terminal->name, SDATA (display_name), SBYTES (display_name));
+  terminal->name[SBYTES (display_name)] = 0;
+  
 #if 0
   XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
@@ -11043,8 +11114,10 @@ x_term_init (display_name, xrm_option, resource_name)
   }
 
 #ifdef HAVE_X_SM
-  /* Only do this for the first display.  */
-  if (!x_session_initialized++)
+  /* Only do this for the very first display in the Emacs session.
+     Ignore X session management when Emacs was first started on a
+     tty.  */
+  if (terminal->id == 1)
     x_session_initialize (dpyinfo);
 #endif
 
@@ -11053,7 +11126,7 @@ x_term_init (display_name, xrm_option, resource_name)
   return dpyinfo;
 }
 
-/* Get rid of display DPYINFO, assuming all frames are already gone,
+/* Get rid of display DPYINFO, deleting all frames on it,
    and without sending any more commands to the X server.  */
 
 void
@@ -11061,6 +11134,21 @@ x_delete_display (dpyinfo)
      struct x_display_info *dpyinfo;
 {
   int i;
+  struct terminal *t;
+
+  /* Close all frames and delete the generic struct terminal for this
+     X display.  */
+  for (t = terminal_list; t; t = t->next_terminal)
+    if (t->type == output_x_window && t->display_info.x == dpyinfo)
+      {
+#ifdef HAVE_X_SM
+        /* Close X session management when we close its display.  */
+        if (t->id == 1 && x_session_have_connection ())
+          x_session_close();
+#endif
+        delete_terminal (t);
+        break;
+      }
 
   delete_keyboard_wait_descriptor (dpyinfo->connection);
 
@@ -11103,10 +11191,6 @@ x_delete_display (dpyinfo)
 #ifndef AIX		/* On AIX, XCloseDisplay calls this.  */
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
-#endif
-#ifdef MULTI_KBOARD
-  if (--dpyinfo->kboard->reference_count == 0)
-    delete_kboard (dpyinfo->kboard);
 #endif
 #ifdef HAVE_X_I18N
   if (dpyinfo->xim)
@@ -11189,71 +11273,131 @@ x_activate_timeout_atimer ()
 extern frame_parm_handler x_frame_parm_handlers[];
 
 static struct redisplay_interface x_redisplay_interface =
-{
-  x_frame_parm_handlers,
-  x_produce_glyphs,
-  x_write_glyphs,
-  x_insert_glyphs,
-  x_clear_end_of_line,
-  x_scroll_run,
-  x_after_update_window_line,
-  x_update_window_begin,
-  x_update_window_end,
-  x_cursor_to,
-  x_flush,
+  {
+    x_frame_parm_handlers,
+    x_produce_glyphs,
+    x_write_glyphs,
+    x_insert_glyphs,
+    x_clear_end_of_line,
+    x_scroll_run,
+    x_after_update_window_line,
+    x_update_window_begin,
+    x_update_window_end,
+    x_cursor_to,
+    x_flush,
 #ifdef XFlush
-  x_flush,
+    x_flush,
 #else
-  0,  /* flush_display_optional */
+    0,  /* flush_display_optional */
 #endif
-  x_clear_window_mouse_face,
-  x_get_glyph_overhangs,
-  x_fix_overlapping_area,
-  x_draw_fringe_bitmap,
-  0, /* define_fringe_bitmap */
-  0, /* destroy_fringe_bitmap */
-  x_per_char_metric,
-  x_encode_char,
-  x_compute_glyph_string_overhangs,
-  x_draw_glyph_string,
-  x_define_frame_cursor,
-  x_clear_frame_area,
-  x_draw_window_cursor,
-  x_draw_vertical_window_border,
-  x_shift_glyphs_for_insert
-};
+    x_clear_window_mouse_face,
+    x_get_glyph_overhangs,
+    x_fix_overlapping_area,
+    x_draw_fringe_bitmap,
+    0, /* define_fringe_bitmap */
+    0, /* destroy_fringe_bitmap */
+    x_per_char_metric,
+    x_encode_char,
+    x_compute_glyph_string_overhangs,
+    x_draw_glyph_string,
+    x_define_frame_cursor,
+    x_clear_frame_area,
+    x_draw_window_cursor,
+    x_draw_vertical_window_border,
+    x_shift_glyphs_for_insert
+  };
+
+
+/* This function is called when the last frame on a display is deleted. */
+void
+x_delete_terminal (struct terminal *terminal)
+{
+  struct x_display_info *dpyinfo = terminal->display_info.x;
+  int i;
+
+  /* Protect against recursive calls.  Fdelete_frame in
+     delete_terminal calls us back when it deletes our last frame.  */
+  if (!terminal->name)
+    return;
+
+  BLOCK_INPUT;
+  /* Free the fonts in the font table.  */
+  for (i = 0; i < dpyinfo->n_fonts; i++)
+    if (dpyinfo->font_table[i].name)
+      {
+	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
+      }
+
+  x_destroy_all_bitmaps (dpyinfo);
+  XSetCloseDownMode (dpyinfo->display, DestroyAll);
+
+#ifdef USE_GTK
+  xg_display_close (dpyinfo->display);
+#else
+#ifdef USE_X_TOOLKIT
+  XtCloseDisplay (dpyinfo->display);
+#else
+  XCloseDisplay (dpyinfo->display);
+#endif
+#endif /* ! USE_GTK */
+
+  x_delete_display (dpyinfo);
+  UNBLOCK_INPUT;
+}
+
+/* Create a struct terminal, initialize it with the X11 specific
+   functions and make DISPLAY->TERMINAL point to it.  */
+
+static struct terminal *
+x_create_terminal (struct x_display_info *dpyinfo)
+{
+  struct terminal *terminal;
+  
+  terminal = create_terminal ();
+
+  terminal->type = output_x_window;
+  terminal->display_info.x = dpyinfo;
+  dpyinfo->terminal = terminal;
+
+  /* kboard is initialized in x_term_init. */
+  
+  terminal->clear_frame_hook = x_clear_frame;
+  terminal->ins_del_lines_hook = x_ins_del_lines;
+  terminal->delete_glyphs_hook = x_delete_glyphs;
+  terminal->ring_bell_hook = XTring_bell;
+  terminal->reset_terminal_modes_hook = XTreset_terminal_modes;
+  terminal->set_terminal_modes_hook = XTset_terminal_modes;
+  terminal->update_begin_hook = x_update_begin;
+  terminal->update_end_hook = x_update_end;
+  terminal->set_terminal_window_hook = XTset_terminal_window;
+  terminal->read_socket_hook = XTread_socket;
+  terminal->frame_up_to_date_hook = XTframe_up_to_date;
+  terminal->mouse_position_hook = XTmouse_position;
+  terminal->frame_rehighlight_hook = XTframe_rehighlight;
+  terminal->frame_raise_lower_hook = XTframe_raise_lower;
+  terminal->fullscreen_hook = XTfullscreen_hook;
+  terminal->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
+  terminal->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
+  terminal->redeem_scroll_bar_hook = XTredeem_scroll_bar;
+  terminal->judge_scroll_bars_hook = XTjudge_scroll_bars;
+
+  terminal->delete_frame_hook = x_destroy_window;
+  terminal->delete_terminal_hook = x_delete_terminal;
+  
+  terminal->rif = &x_redisplay_interface;
+  terminal->scroll_region_ok = 1;    /* We'll scroll partial frames. */
+  terminal->char_ins_del_ok = 1;
+  terminal->line_ins_del_ok = 1;         /* We'll just blt 'em. */
+  terminal->fast_clear_end_of_line = 1;  /* X does this well. */
+  terminal->memory_below_frame = 0;   /* We don't remember what scrolls
+                                        off the bottom. */
+
+  return terminal;
+}
 
 void
 x_initialize ()
 {
-  rif = &x_redisplay_interface;
-
-  clear_frame_hook = x_clear_frame;
-  ins_del_lines_hook = x_ins_del_lines;
-  delete_glyphs_hook = x_delete_glyphs;
-  ring_bell_hook = XTring_bell;
-  reset_terminal_modes_hook = XTreset_terminal_modes;
-  set_terminal_modes_hook = XTset_terminal_modes;
-  update_begin_hook = x_update_begin;
-  update_end_hook = x_update_end;
-  set_terminal_window_hook = XTset_terminal_window;
-  read_socket_hook = XTread_socket;
-  frame_up_to_date_hook = XTframe_up_to_date;
-  mouse_position_hook = XTmouse_position;
-  frame_rehighlight_hook = XTframe_rehighlight;
-  frame_raise_lower_hook = XTframe_raise_lower;
-  set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
-  condemn_scroll_bars_hook = XTcondemn_scroll_bars;
-  redeem_scroll_bar_hook = XTredeem_scroll_bar;
-  judge_scroll_bars_hook = XTjudge_scroll_bars;
-  fullscreen_hook = XTfullscreen_hook;
-
-  scroll_region_ok = 1;		/* we'll scroll partial frames */
-  char_ins_del_ok = 1;
-  line_ins_del_ok = 1;		/* we'll just blt 'em */
-  fast_clear_end_of_line = 1;	/* X does this well */
-  memory_below_frame = 0;	/* we don't remember what scrolls
-				   off the bottom */
   baud_rate = 19200;
 
   x_noop_count = 0;
@@ -11269,7 +11413,7 @@ x_initialize ()
 #endif
 
   /* Try to use interrupt input; if we can't, then start polling.  */
-  Fset_input_mode (Qt, Qnil, Qt, Qnil);
+  Fset_input_interrupt_mode (Qt);
 
 #ifdef USE_X_TOOLKIT
   XtToolkitInitialize ();
@@ -11300,9 +11444,11 @@ x_initialize ()
   XSetIOErrorHandler (x_io_error_quitter);
 
   /* Disable Window Change signals;  they are handled by X events.  */
+#if 0              /* Don't.  We may want to open tty frames later. */
 #ifdef SIGWINCH
   signal (SIGWINCH, SIG_DFL);
 #endif /* SIGWINCH */
+#endif
 
   signal (SIGPIPE, x_connection_signal);
 }

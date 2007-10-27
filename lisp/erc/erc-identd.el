@@ -74,7 +74,8 @@ This can be either a string or a number."
 		     (format "%s, %s : USERID : %s : %s\n"
 			     port-on-server port-on-client
 			     system-type (user-login-name)))
-	(process-send-eof erc-identd-process)))))
+	(stop-process erc-identd-process)
+	(delete-process proc)))))
 
 ;;;###autoload
 (defun erc-identd-start (&optional port)

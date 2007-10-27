@@ -46,6 +46,7 @@
     (define-key map "." 'display-local-help)
     (define-key map "?" 'help-for-help)
 
+    (define-key map "\C-a" 'about-emacs)
     (define-key map "\C-c" 'describe-copying)
     (define-key map "\C-d" 'describe-distribution)
     (define-key map "\C-e" 'view-emacs-problems)
@@ -225,6 +226,7 @@ w  where-is.  Type a command name; it displays which keystrokes
 .  display-local-help.  Display any available local help at point
         in the echo area.
 
+C-a Display information about Emacs.
 C-c Display Emacs copying permission (GNU General Public License).
 C-d Display Emacs ordering information.
 C-e Display info about Emacs problems.
@@ -332,7 +334,7 @@ With argument, display info only for the selected version."
   (when (consp version)
     (let* ((all-versions
 	    (let (res)
-	      (mapcar
+	      (mapc
 	       (lambda (file)
 		 (with-temp-buffer
 		   (insert-file-contents

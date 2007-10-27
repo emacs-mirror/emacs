@@ -536,6 +536,12 @@ This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
 
 ** Miscellaneous problems
 
+*** Emacs uses 100% of CPU time
+
+This is a known problem with some versions of the Semantic package.
+The solution is to upgrade Semantic to version 2.0pre4 (distributed
+with CEDET 1.0pre4) or later.
+
 *** Self-documentation messages are garbled.
 
 This means that the file `etc/DOC-...' doesn't properly correspond
@@ -857,6 +863,18 @@ gives the appearance of "double spacing".
 
 To prevent this, turn off the Exceed's "automatic font substitution"
 feature (in the font part of the configuration window).
+
+** Subscript/superscript text in TeX is hard to read.
+
+If `tex-fontify-script' is non-nil, tex-mode displays
+subscript/superscript text in the faces subscript/superscript, which
+are smaller than the normal font and lowered/raised.  With some fonts,
+nested superscripts (say) can be hard to read.  Switching to a
+different font, or changing your antialiasing setting (on an LCD
+screen), can both make the problem disappear.  Alternatively, customize
+the following variables: tex-font-script-display (how much to
+lower/raise); tex-suscript-height-ratio (how much smaller than
+normal); tex-suscript-height-minimum (minimum height).
 
 * Internationalization problems
 
@@ -2804,6 +2822,11 @@ to be to reduce the level of compiler optimization used during the
 build (from -O2 to -O1).  It is possible this is an OpenBSD
 GCC problem specific to the macppc architecture, possibly only
 occurring with older versions of GCC (e.g. 3.3.5).
+
+*** openSUSE 10.3: Segfault in bcopy during dumping.
+
+This is due to a bug in the bcopy implementation in openSUSE 10.3.
+It is/will be fixed in an openSUSE update.
 
 ** Installation
 

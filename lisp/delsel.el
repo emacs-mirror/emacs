@@ -93,6 +93,7 @@ any selection."
 		 ;; That would make yank a no-op.
 		 (when (and (string= (buffer-substring-no-properties (point) (mark))
 				     (car kill-ring))
+			    (fboundp 'mouse-region-match)
 			    (mouse-region-match))
 		   (current-kill 1))
 		 (delete-active-region))

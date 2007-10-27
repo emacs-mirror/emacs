@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo Please tell bug-autoconf@gnu.org about your system,
-  echo including any error possibly output before this message.
-  echo This can help us improve future autoconf versions.
-  echo Configuration will now proceed without shell functions.
+  echo No shell found that supports shell functions.
+  echo Please tell autoconf@gnu.org about your system,
+  echo including any error possibly output before this
+  echo message
 }
 
 
@@ -679,6 +679,7 @@ INSTALL_DATA
 RANLIB
 INSTALL_INFO
 GZIP_PROG
+MAKEINFO
 LIBSOUND
 PKG_CONFIG
 ALSA_CFLAGS
@@ -1316,11 +1317,13 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-carbon-app[=DIR]  [DIR=/Application]
+  --enable-carbon-app[=DIR]
                           specify install directory for Emacs.app on Mac OS X
+                          [DIR=/Application]
   --enable-asserts        compile code with asserts enabled
-  --enable-maintainer-mode enable make rules and dependencies not useful
-                          (and sometimes confusing) to the casual installer
+  --enable-maintainer-mode
+                          enable make rules and dependencies not useful (and
+                          sometimes confusing) to the casual installer
   --enable-locallisppath=PATH
                           directories Emacs should search for lisp files
                           specific to this site
@@ -1335,8 +1338,8 @@ Optional Packages:
   --with-kerberos5        support Kerberos version 5 authenticated POP
   --with-hesiod           support Hesiod to get the POP server host
   --without-sound         don't compile with sound support
-  --with-x-toolkit=KIT    use an X toolkit
-                              (KIT = yes/lucid/athena/motif/gtk/no)
+  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes, lucid, athena,
+                          motif, gtk, no)
   --with-xpm              use -lXpm for displaying XPM images
   --with-jpeg             use -ljpeg for displaying JPEG images
   --with-tiff             use -ltiff for displaying TIFF images
@@ -1345,9 +1348,10 @@ Optional Packages:
   --with-gpm              use -lgpm for mouse support on a GNU/Linux console
   --with-rsvg             use -lrsvg-2 for displaying SVG images
   --with-gtk              use GTK (same as --with-x-toolkit=gtk)
-  --with-pkg-config-prog  Path to pkg-config to use for finding GTK and librsvg
+  --with-pkg-config-prog  Path to pkg-config for finding GTK and librsvg
   --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars
+  --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
   --without-carbon        don't use Carbon GUI on Mac OS X
   --with-x                use the X Window System
@@ -1817,10 +1821,12 @@ gamedir='${localstatedir}/games/emacs'
 gameuser=games
 
 
+
 # Check whether --with-gcc was given.
 if test "${with_gcc+set}" = set; then
   withval=$with_gcc;
 fi
+
 
 
 # Check whether --with-pop was given.
@@ -1841,6 +1847,7 @@ fi
 
 
 
+
 # Check whether --with-kerberos was given.
 if test "${with_kerberos+set}" = set; then
   withval=$with_kerberos; if test "$withval" = yes; then
@@ -1850,6 +1857,7 @@ _ACEOF
 
 fi
 fi
+
 
 
 
@@ -1870,6 +1878,7 @@ _ACEOF
 
 fi
 fi
+
 
 
 # Check whether --with-hesiod was given.
@@ -1914,6 +1923,7 @@ this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`
 	  with_x_toolkit=$val
 
 fi
+
 
 
 # Check whether --with-xpm was given.
@@ -1976,6 +1986,12 @@ if test "${with_toolkit_scroll_bars+set}" = set; then
 fi
 
 
+# Check whether --with-xaw3d was given.
+if test "${with_xaw3d+set}" = set; then
+  withval=$with_xaw3d;
+fi
+
+
 # Check whether --with-xim was given.
 if test "${with_xim+set}" = set; then
   withval=$with_xim;
@@ -1986,6 +2002,7 @@ fi
 if test "${with_carbon+set}" = set; then
   withval=$with_carbon;
 fi
+
 
 # Check whether --enable-carbon-app was given.
 if test "${enable_carbon_app+set}" = set; then
@@ -5327,6 +5344,61 @@ else
 echo "${ECHO_T}no" >&6; }
 fi
 
+
+
+
+## Need makeinfo >= 4.6 (?) to build the manuals.
+# Extract the first word of "makeinfo", so it can be a program name with args.
+set dummy makeinfo; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_MAKEINFO+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $MAKEINFO in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_MAKEINFO="$MAKEINFO" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_MAKEINFO="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_MAKEINFO" && ac_cv_path_MAKEINFO="no"
+  ;;
+esac
+fi
+MAKEINFO=$ac_cv_path_MAKEINFO
+if test -n "$MAKEINFO"; then
+  { echo "$as_me:$LINENO: result: $MAKEINFO" >&5
+echo "${ECHO_T}$MAKEINFO" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+if test "$MAKEINFO" != "no" && \
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[^0-9]*([1-4][0-9]+|[5-9]|4\.[6-9]|4\.[1-5][0-9]+)'`" = x; then
+   MAKEINFO=no
+fi
+
+if test "$MAKEINFO" = "no"; then
+  { { echo "$as_me:$LINENO: error: makeinfo >= 4.6 is required " >&5
+echo "$as_me: error: makeinfo >= 4.6 is required " >&2;}
+   { (exit 1); exit 1; }; }
+fi
 
 
 
@@ -11212,8 +11284,8 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
 echo "$as_me: error: Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}" >&2;}
    { (exit 1); exit 1; }; };
   fi
-  GLIB_REQUIRED=2.4
-  GTK_REQUIRED=2.4
+  GLIB_REQUIRED=2.6
+  GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
     if test "X${with_pkg_config_prog}" != X; then
@@ -11552,6 +11624,7 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
   fi
+
       HAVE_GTK_FILE_SELECTION=no
 
 for ac_func in gtk_file_selection_new
@@ -11963,7 +12036,10 @@ fi
 
     fi
     if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      GTK_LIBS="$GTK_LIBS -lpthread"
+      case "${canonical}" in
+        *-hpux*) ;;
+        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
+      esac
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_GTK_AND_PTHREAD 1
@@ -12299,9 +12375,10 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
   if test x"${HAVE_X11R5}" != xyes; then
     USE_X_TOOLKIT=none
   else
-    { echo "$as_me:$LINENO: checking for xaw3d" >&5
+    if test "$with_xaw3d" != no; then
+      { echo "$as_me:$LINENO: checking for xaw3d" >&5
 echo $ECHO_N "checking for xaw3d... $ECHO_C" >&6; }
-    if test "${emacs_cv_xaw3d+set}" = set; then
+      if test "${emacs_cv_xaw3d+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   cat >conftest.$ac_ext <<_ACEOF
@@ -12351,6 +12428,9 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
       conftest$ac_exeext conftest.$ac_ext
 fi
 
+    else
+      emacs_cv_xaw3d=no
+    fi
     if test $emacs_cv_xaw3d = yes; then
       { echo "$as_me:$LINENO: result: yes; using Lucid toolkit" >&5
 echo "${ECHO_T}yes; using Lucid toolkit" >&6; }
@@ -14253,13 +14333,13 @@ if test "${HAVE_X11}" = "yes"; then
     MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
 
   if test "X${MISSING}" != X; then
-    { { echo "$as_me:$LINENO: error: The following required libraries was not found:
+    { { echo "$as_me:$LINENO: error: The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
 If you don't want to link with them give
     $WITH_NO
 as options to configure" >&5
-echo "$as_me: error: The following required libraries was not found:
+echo "$as_me: error: The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
 If you don't want to link with them give
@@ -15260,6 +15340,12 @@ _ACEOF
 
 fi
 
+
+if test x"$ac_cv_func_alloca_works" != xyes; then
+   { { echo "$as_me:$LINENO: error: a system implementation of alloca is required " >&5
+echo "$as_me: error: a system implementation of alloca is required " >&2;}
+   { (exit 1); exit 1; }; }
+fi
 
 # fmod, logb, and frexp are found in -lm on most systems.
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
@@ -23702,7 +23788,7 @@ fi
 rm -f conftest*
 
 
-ac_config_files="$ac_config_files Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in lisp/Makefile lispref/Makefile lispintro/Makefile leim/Makefile"
+ac_config_files="$ac_config_files Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile.c:src/Makefile.in lwlib/Makefile lisp/Makefile leim/Makefile"
 
 ac_config_commands="$ac_config_commands default"
 
@@ -24272,12 +24358,13 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib-src/Makefile.c") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile.c:lib-src/Makefile.in" ;;
     "oldXMenu/Makefile") CONFIG_FILES="$CONFIG_FILES oldXMenu/Makefile" ;;
-    "man/Makefile") CONFIG_FILES="$CONFIG_FILES man/Makefile" ;;
-    "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
+    "doc/emacs/Makefile") CONFIG_FILES="$CONFIG_FILES doc/emacs/Makefile" ;;
+    "doc/misc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/misc/Makefile" ;;
+    "doc/lispintro/Makefile") CONFIG_FILES="$CONFIG_FILES doc/lispintro/Makefile" ;;
+    "doc/lispref/Makefile") CONFIG_FILES="$CONFIG_FILES doc/lispref/Makefile" ;;
     "src/Makefile.c") CONFIG_FILES="$CONFIG_FILES src/Makefile.c:src/Makefile.in" ;;
+    "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
     "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
-    "lispref/Makefile") CONFIG_FILES="$CONFIG_FILES lispref/Makefile" ;;
-    "lispintro/Makefile") CONFIG_FILES="$CONFIG_FILES lispintro/Makefile" ;;
     "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
     "default") CONFIG_COMMANDS="$CONFIG_COMMANDS default" ;;
 
@@ -24405,6 +24492,7 @@ INSTALL_DATA!$INSTALL_DATA$ac_delim
 RANLIB!$RANLIB$ac_delim
 INSTALL_INFO!$INSTALL_INFO$ac_delim
 GZIP_PROG!$GZIP_PROG$ac_delim
+MAKEINFO!$MAKEINFO$ac_delim
 LIBSOUND!$LIBSOUND$ac_delim
 PKG_CONFIG!$PKG_CONFIG$ac_delim
 ALSA_CFLAGS!$ALSA_CFLAGS$ac_delim
@@ -24438,7 +24526,6 @@ x_default_search_path!$x_default_search_path$ac_delim
 etcdir!$etcdir$ac_delim
 archlibdir!$archlibdir$ac_delim
 bitmapdir!$bitmapdir$ac_delim
-gamedir!$gamedir$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -24480,6 +24567,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+gamedir!$gamedir$ac_delim
 gameuser!$gameuser$ac_delim
 c_switch_system!$c_switch_system$ac_delim
 c_switch_machine!$c_switch_machine$ac_delim
@@ -24493,7 +24581,7 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 11; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 12; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

@@ -23,13 +23,13 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
+#include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
-#include "lisp.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "macros.h"
 #include "keyboard.h"
-#include "frame.h"
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
@@ -59,7 +59,6 @@ Boston, MA 02110-1301, USA.  */
 #endif /* not MSDOS */
 
 #include "syssignal.h"
-#include "systty.h"
 
 #include <sys/types.h>
 #ifdef HAVE_UNISTD_H
@@ -97,9 +96,6 @@ volatile int interrupt_input_blocked;
 int interrupt_input_pending;
 
 
-/* File descriptor to use for input.  */
-extern int input_fd;
-
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
 #ifdef MAC_OS8
@@ -111,8 +107,6 @@ extern int input_fd;
 #else	/* No X-windows, character input */
 #define KBD_BUFFER_SIZE 4096
 #endif	/* No X-windows */
-
-#define abs(x)		((x) >= 0 ? (x) : -(x))
 
 /* Following definition copied from eval.c */
 
@@ -166,14 +160,7 @@ int raw_keybuf_count;
 
 #define GROW_RAW_KEYBUF							\
  if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
-  {									\
-    int newsize = 2 * XVECTOR (raw_keybuf)->size;			\
-    Lisp_Object new;							\
-    new = Fmake_vector (make_number (newsize), Qnil);			\
-    bcopy (XVECTOR (raw_keybuf)->contents, XVECTOR (new)->contents,	\
-	   raw_keybuf_count * sizeof (Lisp_Object));			\
-    raw_keybuf = new;							\
-  }
+   raw_keybuf = larger_vector (raw_keybuf, raw_keybuf_count * 2, Qnil)  \
 
 /* Number of elements of this_command_keys
    that precede this key sequence.  */
@@ -425,16 +412,6 @@ Lisp_Object Vecho_keystrokes;
 /* Form to evaluate (if non-nil) when Emacs is started.  */
 Lisp_Object Vtop_level;
 
-/* User-supplied table to translate input characters.  */
-Lisp_Object Vkeyboard_translate_table;
-
-/* Keymap mapping ASCII function key sequences onto their preferred forms.  */
-extern Lisp_Object Vfunction_key_map;
-
-/* Another keymap that maps key sequences into key sequences.
-   This one takes precedence over ordinary definitions.  */
-extern Lisp_Object Vkey_translation_map;
-
 /* If non-nil, this implements the current input method.  */
 Lisp_Object Vinput_method_function;
 Lisp_Object Qinput_method_function;
@@ -458,6 +435,12 @@ Lisp_Object Qpre_command_hook, Vpre_command_hook;
 Lisp_Object Qpost_command_hook, Vpost_command_hook;
 Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
 
+/* Parent keymap of terminal-local function-key-map instances.  */
+Lisp_Object Vfunction_key_map;
+
+/* Keymap of key translations that can override keymaps.  */
+Lisp_Object Vkey_translation_map;
+
 /* List of deferred actions to be performed at a later time.
    The precise format isn't relevant here; we just check whether it is nil.  */
 Lisp_Object Vdeferred_action_list;
@@ -474,11 +457,6 @@ FILE *dribble;
 
 /* Nonzero if input is available.  */
 int input_pending;
-
-/* 1 if should obey 0200 bit in input chars as "Meta", 2 if should
-   keep 0200 bit in input chars.  0 to ignore the 0200 bit.  */
-
-int meta_key;
 
 extern char *pending_malloc_warning;
 
@@ -609,9 +587,6 @@ int interrupt_input;
 /* Nonzero while interrupts are temporarily deferred during redisplay.  */
 int interrupts_deferred;
 
-/* Nonzero means use ^S/^Q for flow control.  */
-int flow_control;
-
 /* Allow m- file to inhibit use of FIONREAD.  */
 #ifdef BROKEN_FIONREAD
 #undef FIONREAD
@@ -694,8 +669,11 @@ static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
-static void any_kboard_state P_ ((void));
+#ifdef MULTI_KBOARD
+static Lisp_Object restore_kboard_configuration P_ ((Lisp_Object));
+#endif
 static SIGTYPE interrupt_signal P_ ((int signalnum));
+static void handle_interrupt P_ ((void));
 static void timer_start_idle P_ ((void));
 static void timer_stop_idle P_ ((void));
 static void timer_resume_idle P_ ((void));
@@ -1061,24 +1039,20 @@ This function is called by the editor initialization to begin editing.  */)
      like it is done in the splash screen display, we have to
      make sure that we restore single_kboard as command_loop_1
      would have done if it were left normally.  */
-  record_unwind_protect (recursive_edit_unwind,
-			 Fcons (buffer, single_kboard ? Qt : Qnil));
+  if (command_loop_level > 0)
+    temporarily_switch_to_single_kboard (SELECTED_FRAME ());
+  record_unwind_protect (recursive_edit_unwind, buffer);
 
   recursive_edit_1 ();
   return unbind_to (count, Qnil);
 }
 
 Lisp_Object
-recursive_edit_unwind (info)
-     Lisp_Object info;
+recursive_edit_unwind (buffer)
+     Lisp_Object buffer;
 {
-  if (BUFFERP (XCAR (info)))
-    Fset_buffer (XCAR (info));
-
-  if (NILP (XCDR (info)))
-    any_kboard_state ();
-  else
-    single_kboard_state ();
+  if (BUFFERP (buffer))
+    Fset_buffer (buffer);
 
   command_loop_level--;
   update_mode_lines = 1;
@@ -1086,6 +1060,8 @@ recursive_edit_unwind (info)
 }
 
 
+#if 0  /* These two functions are now replaced with
+          temporarily_switch_to_single_kboard. */
 static void
 any_kboard_state ()
 {
@@ -1116,6 +1092,7 @@ single_kboard_state ()
   single_kboard = 1;
 #endif
 }
+#endif
 
 /* If we're in single_kboard state for kboard KBOARD,
    get out of it.  */
@@ -1143,8 +1120,8 @@ struct kboard_stack
 static struct kboard_stack *kboard_stack;
 
 void
-push_frame_kboard (f)
-     FRAME_PTR f;
+push_kboard (k)
+     struct kboard *k;
 {
 #ifdef MULTI_KBOARD
   struct kboard_stack *p
@@ -1154,20 +1131,110 @@ push_frame_kboard (f)
   p->kboard = current_kboard;
   kboard_stack = p;
 
-  current_kboard = FRAME_KBOARD (f);
+  current_kboard = k;
 #endif
 }
 
 void
-pop_frame_kboard ()
+pop_kboard ()
 {
 #ifdef MULTI_KBOARD
+  struct terminal *t;
   struct kboard_stack *p = kboard_stack;
-  current_kboard = p->kboard;
+  int found = 0;
+  for (t = terminal_list; t; t = t->next_terminal)
+    {
+      if (t->kboard == p->kboard)
+        {
+          current_kboard = p->kboard;
+          found = 1;
+          break;
+        }
+    }
+  if (!found)
+    {
+      /* The terminal we remembered has been deleted.  */
+      current_kboard = FRAME_KBOARD (SELECTED_FRAME ());
+      single_kboard = 0;
+    }
   kboard_stack = p->next;
   xfree (p);
 #endif
 }
+
+/* Switch to single_kboard mode, making current_kboard the only KBOARD
+  from which further input is accepted.  If F is non-nil, set its
+  KBOARD as the current keyboard.
+
+  This function uses record_unwind_protect to return to the previous
+  state later.
+
+  If Emacs is already in single_kboard mode, and F's keyboard is
+  locked, then this function will throw an errow.  */
+
+void
+temporarily_switch_to_single_kboard (f)
+     struct frame *f;
+{
+#ifdef MULTI_KBOARD
+  int was_locked = single_kboard;
+  if (was_locked)
+    {
+      if (f != NULL && FRAME_KBOARD (f) != current_kboard)
+        /* We can not switch keyboards while in single_kboard mode.
+           In rare cases, Lisp code may call `recursive-edit' (or
+           `read-minibuffer' or `y-or-n-p') after it switched to a
+           locked frame.  For example, this is likely to happen
+           when server.el connects to a new terminal while Emacs is in
+           single_kboard mode.  It is best to throw an error instead
+           of presenting the user with a frozen screen.  */
+        error ("Terminal %d is locked, cannot read from it",
+               FRAME_TERMINAL (f)->id);
+      else
+        /* This call is unnecessary, but helps
+           `restore_kboard_configuration' discover if somebody changed
+           `current_kboard' behind our back.  */
+        push_kboard (current_kboard);
+    }
+  else if (f != NULL)
+    current_kboard = FRAME_KBOARD (f);
+  single_kboard = 1;
+  record_unwind_protect (restore_kboard_configuration,
+                         (was_locked ? Qt : Qnil));
+#endif
+}
+
+#if 0 /* This function is not needed anymore.  */
+void
+record_single_kboard_state ()
+{
+  if (single_kboard)
+    push_kboard (current_kboard);
+  record_unwind_protect (restore_kboard_configuration,
+                         (single_kboard ? Qt : Qnil));
+}
+#endif
+
+#ifdef MULTI_KBOARD
+static Lisp_Object
+restore_kboard_configuration (was_locked)
+     Lisp_Object was_locked;
+{
+  if (NILP (was_locked))
+    single_kboard = 0;
+  else
+    {
+      struct kboard *prev = current_kboard;
+      single_kboard = 1;
+      pop_kboard ();
+      /* The pop should not change the kboard.  */
+      if (single_kboard && current_kboard != prev)
+        abort ();
+    }
+  return Qnil;
+}
+#endif
+
 
 /* Handle errors that are not handled at inner levels
    by printing an error message and returning to the editor command loop.  */
@@ -1215,9 +1282,11 @@ cmd_error (data)
   Vquit_flag = Qnil;
 
   Vinhibit_quit = Qnil;
+#if 0 /* This shouldn't be necessary anymore. --lorentey */
 #ifdef MULTI_KBOARD
   if (command_loop_level == 0 && minibuf_level == 0)
     any_kboard_state ();
+#endif
 #endif
 
   return make_number (0);
@@ -1254,11 +1323,7 @@ cmd_error_internal (data, context)
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, write the message to stderr and exit.  */
   else if (!sf->glyphs_initialized_p
-	   /* This is the case of the frame dumped with Emacs, when we're
-	      running under a window system.  */
-	   || (!NILP (Vwindow_system)
-	       && !inhibit_window_system
-	       && FRAME_TERMCAP_P (sf))
+	   || FRAME_INITIAL_P (sf)
 	   || noninteractive)
     {
       print_error_message (data, Qexternal_debugging_output,
@@ -1301,10 +1366,12 @@ command_loop ()
     while (1)
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
-	/* Reset single_kboard in case top-level set it while
-	   evaluating an -f option, or we are stuck there for some
-	   other reason.  */
-	any_kboard_state ();
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
+        /* Reset single_kboard in case top-level set it while
+           evaluating an -f option, or we are stuck there for some
+           other reason. */
+        any_kboard_state ();
+#endif
 	internal_catch (Qtop_level, command_loop_2, Qnil);
 	executing_kbd_macro = Qnil;
 
@@ -1499,10 +1566,12 @@ command_loop_1 ()
   int no_direct;
   int prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
 #endif
-  int already_adjusted;
+#endif  
+  int already_adjusted = 0;
 
   current_kboard->Vprefix_arg = Qnil;
   current_kboard->Vlast_prefix_arg = Qnil;
@@ -1536,6 +1605,8 @@ command_loop_1 ()
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
   current_kboard->Vreal_last_command = real_this_command;
+  if (!CONSP (last_command_char))
+    current_kboard->Vlast_repeatable_command = real_this_command;
 
   while (1)
     {
@@ -1586,11 +1657,6 @@ command_loop_1 ()
 	      Vunread_command_events = Fcons (make_number (quit_char), Qnil);
 	    }
 	}
-
-#ifdef C_ALLOCA
-      alloca (0);		/* Cause a garbage collection now */
-				/* Since we can free the most stuff here.  */
-#endif /* C_ALLOCA */
 
 #if 0
       /* Select the frame that the last event came from.  Usually,
@@ -1916,6 +1982,8 @@ command_loop_1 ()
 	{
 	  current_kboard->Vlast_command = Vthis_command;
 	  current_kboard->Vreal_last_command = real_this_command;
+	  if (!CONSP (last_command_char))
+	    current_kboard->Vlast_repeatable_command = real_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_command_key_count_reset = 0;
@@ -1961,10 +2029,11 @@ command_loop_1 ()
       if (!NILP (current_kboard->defining_kbd_macro)
 	  && NILP (current_kboard->Vprefix_arg))
 	finalize_kbd_macro_chars ();
-
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
 #ifdef MULTI_KBOARD
       if (!was_locked)
-	any_kboard_state ();
+        any_kboard_state ();
+#endif
 #endif
     }
 }
@@ -2203,7 +2272,10 @@ void
 start_polling ()
 {
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook && !interrupt_input)
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  if (!interrupt_input)
     {
       /* Turn alarm handling on unconditionally.  It might have
 	 been turned off in process.c.  */
@@ -2237,7 +2309,10 @@ int
 input_polling_used ()
 {
 #ifdef POLL_FOR_INPUT
-  return read_socket_hook && !interrupt_input;
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  return !interrupt_input;
 #else
   return 0;
 #endif
@@ -2249,7 +2324,10 @@ void
 stop_polling ()
 {
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook && !interrupt_input)
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  if (!interrupt_input)
     ++poll_suppress_count;
 #endif
 }
@@ -2461,10 +2539,6 @@ read_char_help_form_unwind (arg)
   return Qnil;
 }
 
-#ifdef MULTI_KBOARD
-static jmp_buf wrong_kboard_jmpbuf;
-#endif
-
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
        polling_stopped_here = 1; } while (0)
@@ -2490,6 +2564,9 @@ do { if (polling_stopped_here) start_polling ();	\
    If USED_MOUSE_MENU is non-null, then we set *USED_MOUSE_MENU to 1
    if we used a mouse menu to read the input, or zero otherwise.  If
    USED_MOUSE_MENU is null, we don't dereference it.
+
+   Value is -2 when we find input on another keyboard.  A second call
+   to read_char will read it. 
 
    If END_TIME is non-null, it is a pointer to an EMACS_TIME
    specifying the maximum time to wait until.  If no input arrives by
@@ -2517,6 +2594,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
   volatile int reread;
   struct gcpro gcpro1, gcpro2;
   int polling_stopped_here = 0;
+  struct kboard *orig_kboard = current_kboard;
 
   also_record = Qnil;
 
@@ -2731,6 +2809,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       && !detect_input_pending_run_timers (0))
     {
       c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
+
+      if (INTEGERP (c) && XINT (c) == -2)
+        return c;               /* wrong_kboard_jmpbuf */
+
       if (! NILP (c))
 	{
 	  key_already_recorded = 1;
@@ -2747,6 +2829,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
   jmpcount = SPECPDL_INDEX ();
   if (_setjmp (local_getcjmp))
     {
+      /* Handle quits while reading the keyboard.  */
       /* We must have saved the outer value of getcjmp here,
 	 so restore it now.  */
       restore_getcjmp (save_jump);
@@ -2784,7 +2867,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	    /* This is going to exit from read_char
 	       so we had better get rid of this frame's stuff.  */
 	    UNGCPRO;
-	    longjmp (wrong_kboard_jmpbuf, 1);
+            return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
       }
 #endif
@@ -2921,6 +3004,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	}
     }
 
+  /* Notify the caller if an autosave hook, or a timer, sentinel or
+     filter in the sit_for calls above have changed the current
+     kboard.  This could happen if they use the minibuffer or start a
+     recursive edit, like the fancy splash screen in server.el's
+     filter.  If this longjmp wasn't here, read_key_sequence would
+     interpret the next key sequence using the wrong translation
+     tables and function keymaps.  */
+  if (NILP (c) && current_kboard != orig_kboard)
+    {
+      UNGCPRO;
+      return make_number (-2);  /* wrong_kboard_jmpbuf */
+    }
+
   /* If this has become non-nil here, it has been set by a timer
      or sentinel or filter.  */
   if (CONSP (Vunread_command_events))
@@ -2969,7 +3065,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	    /* This is going to exit from read_char
 	       so we had better get rid of this frame's stuff.  */
 	    UNGCPRO;
-	    longjmp (wrong_kboard_jmpbuf, 1);
+            return make_number (-2); /* wrong_kboard_jmpbuf */
 	  }
     }
 #endif
@@ -3025,7 +3121,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	  /* This is going to exit from read_char
 	     so we had better get rid of this frame's stuff.  */
 	  UNGCPRO;
-	  longjmp (wrong_kboard_jmpbuf, 1);
+          return make_number (-2);
 	}
 #endif
     }
@@ -3080,8 +3176,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
   if (!NILP (tem))
     {
+#if 0 /* This shouldn't be necessary anymore. --lorentey  */
       int was_locked = single_kboard;
-
+      int count = SPECPDL_INDEX ();
+      record_single_kboard_state ();
+#endif
+      
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
@@ -3092,9 +3192,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	   example banishing the mouse under mouse-avoidance-mode.  */
 	timer_resume_idle ();
 
+#if 0 /* This shouldn't be necessary anymore. --lorentey  */
       /* Resume allowing input from any kboard, if that was true before.  */
       if (!was_locked)
 	any_kboard_state ();
+      unbind_to (count, Qnil);
+#endif
 
       goto retry;
     }
@@ -3106,15 +3209,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       if (XINT (c) == -1)
 	goto exit;
 
-      if ((STRINGP (Vkeyboard_translate_table)
-	   && SCHARS (Vkeyboard_translate_table) > (unsigned) XFASTINT (c))
-	  || (VECTORP (Vkeyboard_translate_table)
-	      && XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
-	  || (CHAR_TABLE_P (Vkeyboard_translate_table)
+      if ((STRINGP (current_kboard->Vkeyboard_translate_table)
+	   && SCHARS (current_kboard->Vkeyboard_translate_table) > (unsigned) XFASTINT (c))
+	  || (VECTORP (current_kboard->Vkeyboard_translate_table)
+	      && XVECTOR (current_kboard->Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
+	  || (CHAR_TABLE_P (current_kboard->Vkeyboard_translate_table)
 	      && CHAR_VALID_P (XINT (c), 0)))
 	{
 	  Lisp_Object d;
-	  d = Faref (Vkeyboard_translate_table, c);
+	  d = Faref (current_kboard->Vkeyboard_translate_table, c);
 	  /* nil in keyboard-translate-table means no translation.  */
 	  if (!NILP (d))
 	    c = d;
@@ -3734,12 +3837,10 @@ kbd_buffer_store_event_hold (event, hold_quit)
       if (c == quit_char)
 	{
 #ifdef MULTI_KBOARD
-	  KBOARD *kb;
+	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->frame_or_window));
 	  struct input_event *sp;
 
-	  if (single_kboard
-	      && (kb = FRAME_KBOARD (XFRAME (event->frame_or_window)),
-		  kb != current_kboard))
+	  if (single_kboard && kb != current_kboard)
 	    {
 	      kb->kbd_queue
 		= Fcons (make_lispy_switch_frame (event->frame_or_window),
@@ -3782,7 +3883,7 @@ kbd_buffer_store_event_hold (event, hold_quit)
 	  }
 
 	  last_event_timestamp = event->timestamp;
-	  interrupt_signal (0 /* dummy */);
+	  handle_interrupt ();
 	  return;
 	}
 
@@ -3915,6 +4016,7 @@ discard_mouse_events ()
 
       if (sp->kind == MOUSE_CLICK_EVENT
 	  || sp->kind == WHEEL_EVENT
+          || sp->kind == HORIZ_WHEEL_EVENT
 #ifdef WINDOWSNT
 	  || sp->kind == W32_SCROLL_BAR_CLICK_EVENT
 #endif
@@ -3993,6 +4095,12 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
   /* Wait until there is input available.  */
   for (;;)
     {
+      /* Break loop if there's an unread command event.  Needed in
+	 moused window autoselection which uses a timer to insert such
+	 events.  */
+      if (CONSP (Vunread_command_events))
+	break;
+      
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
@@ -4264,11 +4372,15 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
       unsigned long time;
 
       *kbp = current_kboard;
-      /* Note that this uses F to determine which display to look at.
+      /* Note that this uses F to determine which terminal to look at.
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
       x = Qnil;
-      (*mouse_position_hook) (&f, 0, &bar_window, &part, &x, &y, &time);
+
+      /* XXX Can f or mouse_position_hook be NULL here? */
+      if (f && FRAME_TERMINAL (f)->mouse_position_hook)
+        (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, 0, &bar_window,
+                                                    &part, &x, &y, &time);
 
       obj = Qnil;
 
@@ -4565,10 +4677,14 @@ timer_check (do_it_now)
 	{
 	  if (NILP (vector[0]))
 	    {
-	      int was_locked = single_kboard;
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
 
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
+	      /* On unbind_to, resume allowing input from any kboard, if that
+                 was true before.  */
+              record_single_kboard_state ();
+#endif
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
 	      vector[0] = Qt;
@@ -4579,10 +4695,6 @@ timer_check (do_it_now)
 	      Vdeactivate_mark = old_deactivate_mark;
 	      timers_run++;
 	      unbind_to (count, Qnil);
-
-	      /* Resume allowing input from any kboard, if that was true before.  */
-	      if (!was_locked)
-		any_kboard_state ();
 
 	      /* Since we have handled the event,
 		 we don't need to tell the caller to wake up and do it.  */
@@ -5089,7 +5201,7 @@ Lisp_Object Vlispy_mouse_stem;
 
 static char *lispy_wheel_names[] =
 {
-  "wheel-up", "wheel-down"
+  "wheel-up", "wheel-down", "wheel-left", "wheel-right"
 };
 
 /* drag-n-drop events are generated when a set of selected files are
@@ -5595,8 +5707,8 @@ make_lispy_event (event)
 	    fuzz = double_click_fuzz / 8;
 
 	  is_double = (button == last_mouse_button
-		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
-		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
 			   || (INTEGERP (Vdouble_click_time)
@@ -5726,6 +5838,7 @@ make_lispy_event (event)
       }
 
     case WHEEL_EVENT:
+    case HORIZ_WHEEL_EVENT:
       {
 	Lisp_Object position;
 	Lisp_Object head;
@@ -5763,8 +5876,8 @@ make_lispy_event (event)
 	    fuzz = double_click_fuzz / 8;
 
 	  is_double = (last_mouse_button < 0
-		       && (abs (XINT (event->x) - last_mouse_x) <= fuzz)
-		       && (abs (XINT (event->y) - last_mouse_y) <= fuzz)
+		       && (eabs (XINT (event->x) - last_mouse_x) <= fuzz)
+		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
 			   || (INTEGERP (Vdouble_click_time)
@@ -5809,6 +5922,9 @@ make_lispy_event (event)
 	    /* Every wheel event should either have the down_modifier or
 	       the up_modifier set.  */
 	    abort ();
+
+          if (event->kind == HORIZ_WHEEL_EVENT)
+            symbol_num += 2;
 
 	  /* Get the symbol we should use for the wheel event.  */
 	  head = modify_event_symbol (symbol_num,
@@ -6544,8 +6660,8 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	{
 	  int len = SBYTES (name_alist_or_stem);
 	  char *buf = (char *) alloca (len + 50);
-	  sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
-		   (long) XINT (symbol_int) + 1);
+          sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
+                   (long) XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
@@ -6810,7 +6926,10 @@ gobble_input (expected)
     }
   else
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook && !interrupt_input && poll_suppress_count == 0)
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  if (!interrupt_input && poll_suppress_count == 0)
     {
       SIGMASKTYPE mask;
       mask = sigblock (sigmask (SIGALRM));
@@ -6887,170 +7006,241 @@ static int
 read_avail_input (expected)
      int expected;
 {
-  register int i;
   int nread = 0;
+  int err = 0;
+  struct terminal *t;
 
   /* Store pending user signal events, if any.  */
   if (store_user_signal_events ())
     expected = 0;
 
-  if (read_socket_hook)
+  /* Loop through the available terminals, and call their input hooks. */
+  t = terminal_list;
+  while (t)
     {
-      int nr;
+      struct terminal *next = t->next_terminal;
+
+      if (t->read_socket_hook)
+        {
+          int nr;
+          struct input_event hold_quit;
+
+          EVENT_INIT (hold_quit);
+          hold_quit.kind = NO_EVENT;
+
+          /* No need for FIONREAD or fcntl; just say don't wait.  */
+          while (nr = (*t->read_socket_hook) (t, expected, &hold_quit), nr > 0)
+            {
+              nread += nr;
+              expected = 0;
+            }
+          
+          if (nr == -1)          /* Not OK to read input now. */
+            {
+              err = 1;
+            }
+          else if (nr == -2)          /* Non-transient error. */
+            {
+              /* The terminal device terminated; it should be closed. */
+              
+              /* Kill Emacs if this was our last terminal. */
+              if (!terminal_list->next_terminal)
+                /* Formerly simply reported no input, but that
+                   sometimes led to a failure of Emacs to terminate.
+                   SIGHUP seems appropriate if we can't reach the
+                   terminal.  */
+                /* ??? Is it really right to send the signal just to
+                   this process rather than to the whole process
+                   group?  Perhaps on systems with FIONREAD Emacs is
+                   alone in its group.  */
+                kill (getpid (), SIGHUP);
+              
+              /* XXX Is calling delete_terminal safe here?  It calls Fdelete_frame. */
+              if (t->delete_terminal_hook)
+                (*t->delete_terminal_hook) (t);
+              else
+                delete_terminal (t);
+            }
+
+          if (hold_quit.kind != NO_EVENT)
+            kbd_buffer_store_event (&hold_quit);
+        }
+
+      t = next;
+    }
+
+  if (err && !nread)
+    nread = -1;
+
+  return nread;
+}
+
+/* This is the tty way of reading available input.
+
+   Note that each terminal device has its own `struct terminal' object,
+   and so this function is called once for each individual termcap
+   terminal.  The first parameter indicates which terminal to read from.  */
+
+int
+tty_read_avail_input (struct terminal *terminal,
+                      int expected,
+                      struct input_event *hold_quit)
+{
+  /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
+     the kbd_buffer can really hold.  That may prevent loss
+     of characters on some systems when input is stuffed at us.  */
+  unsigned char cbuf[KBD_BUFFER_SIZE - 1];
+  int n_to_read, i;
+  struct tty_display_info *tty = terminal->display_info.tty;
+  int nread = 0;
+
+  if (!terminal->name)		/* Don't read from a dead terminal. */
+    return;
+
+  if (terminal->type != output_termcap)
+    abort ();
+
+  /* XXX I think the following code should be moved to separate hook
+     functions in system-dependent files. */
+#ifdef WINDOWSNT
+  return 0;
+#else /* not WINDOWSNT */
+#ifdef MSDOS
+  n_to_read = dos_keysns ();
+  if (n_to_read == 0)
+    return 0;
+
+  cbuf[0] = dos_keyread ();
+  nread = 1;
+
+#else /* not MSDOS */
+
+  if (! tty->term_initted)      /* In case we get called during bootstrap. */
+    return 0;
+
+  if (! tty->input)
+    return 0;                   /* The terminal is suspended. */
+
+#ifdef HAVE_GPM
+  if (gpm_tty == tty)
+  {
+      Gpm_Event event;
       struct input_event hold_quit;
+      int gpm;
 
       EVENT_INIT (hold_quit);
       hold_quit.kind = NO_EVENT;
 
-      /* No need for FIONREAD or fcntl; just say don't wait.  */
-      while (nr = (*read_socket_hook) (input_fd, expected, &hold_quit), nr > 0)
-	{
-	  nread += nr;
-	  expected = 0;
-	}
+      while (gpm = Gpm_GetEvent (&event), gpm == 1) {
+	  nread += handle_one_term_event (tty, &event, &hold_quit);
+      }
       if (hold_quit.kind != NO_EVENT)
-	kbd_buffer_store_event (&hold_quit);
-    }
-  else
-    {
-      /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
-	 the kbd_buffer can really hold.  That may prevent loss
-	 of characters on some systems when input is stuffed at us.  */
-      unsigned char cbuf[KBD_BUFFER_SIZE - 1];
-      int n_to_read;
-
-      /* Determine how many characters we should *try* to read.  */
-#ifdef WINDOWSNT
-      return 0;
-#else /* not WINDOWSNT */
-#ifdef MSDOS
-      n_to_read = dos_keysns ();
-      if (n_to_read == 0)
-	return 0;
-#else /* not MSDOS */
-#ifdef HAVE_GPM
-      if (term_gpm)
-	{
-	  Gpm_Event event;
-	  struct input_event hold_quit;
-	  int gpm;
-
-	  EVENT_INIT (hold_quit);
-	  hold_quit.kind = NO_EVENT;
-
-	  while (gpm = Gpm_GetEvent (&event), gpm == 1) {
-	    nread += handle_one_term_event (&event, &hold_quit);
-	  }
-	  if (hold_quit.kind != NO_EVENT)
-	    kbd_buffer_store_event (&hold_quit);
-	  if (nread)
-	    return nread;
-	}
+	  kbd_buffer_store_event (&hold_quit);
+      if (nread)
+	  return nread;
+  }
 #endif /* HAVE_GPM */
-#ifdef FIONREAD
 
-     /* Find out how much input is available.  */
-      if (ioctl (input_fd, FIONREAD, &n_to_read) < 0)
-	/* Formerly simply reported no input, but that sometimes led to
-	   a failure of Emacs to terminate.
-	   SIGHUP seems appropriate if we can't reach the terminal.  */
-	/* ??? Is it really right to send the signal just to this process
-	   rather than to the whole process group?
-	   Perhaps on systems with FIONREAD Emacs is alone in its group.  */
-	{
-	  if (! noninteractive)
-	    kill (getpid (), SIGHUP);
-	  else
-	    n_to_read = 0;
-	}
-      if (n_to_read == 0)
-	return 0;
-      if (n_to_read > sizeof cbuf)
-	n_to_read = sizeof cbuf;
+/* Determine how many characters we should *try* to read.  */
+#ifdef FIONREAD
+  /* Find out how much input is available.  */
+  if (ioctl (fileno (tty->input), FIONREAD, &n_to_read) < 0)
+    {
+      if (! noninteractive)
+        return -2;          /* Close this terminal. */
+      else
+        n_to_read = 0;
+    }
+  if (n_to_read == 0)
+    return 0;
+  if (n_to_read > sizeof cbuf)
+    n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
 #if defined (USG) || defined (DGUX) || defined(CYGWIN)
-      /* Read some input if available, but don't wait.  */
-      n_to_read = sizeof cbuf;
-      fcntl (input_fd, F_SETFL, O_NDELAY);
+  /* Read some input if available, but don't wait.  */
+  n_to_read = sizeof cbuf;
+  fcntl (fileno (tty->input), F_SETFL, O_NDELAY);
 #else
-      you lose;
+  you lose;
 #endif
 #endif
-#endif /* not MSDOS */
-#endif /* not WINDOWSNT */
 
-      /* Now read; for one reason or another, this will not block.
-	 NREAD is set to the number of chars read.  */
-      do
-	{
-#ifdef MSDOS
-	  cbuf[0] = dos_keyread ();
-	  nread = 1;
-#else
-	  nread = emacs_read (input_fd, cbuf, n_to_read);
-#endif
-	  /* POSIX infers that processes which are not in the session leader's
-	     process group won't get SIGHUP's at logout time.  BSDI adheres to
-	     this part standard and returns -1 from read (0) with errno==EIO
-	     when the control tty is taken away.
-	     Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
-	  if (nread == -1 && errno == EIO)
-	    kill (0, SIGHUP);
+  /* Now read; for one reason or another, this will not block.
+     NREAD is set to the number of chars read.  */
+  do
+    {
+      nread = emacs_read (fileno (tty->input), cbuf, n_to_read);
+      /* POSIX infers that processes which are not in the session leader's
+         process group won't get SIGHUP's at logout time.  BSDI adheres to
+         this part standard and returns -1 from read (0) with errno==EIO
+         when the control tty is taken away.
+         Jeffrey Honig <jch@bsdi.com> says this is generally safe. */
+      if (nread == -1 && errno == EIO)
+        return -2;          /* Close this terminal. */
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
-	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
-	     This looks incorrect, but it isn't, because _BSD causes
-	     O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
-	     and that causes a value other than 0 when there is no input.  */
-	  if (nread == 0)
-	    kill (0, SIGHUP);
+      /* The kernel sometimes fails to deliver SIGHUP for ptys.
+         This looks incorrect, but it isn't, because _BSD causes
+         O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
+         and that causes a value other than 0 when there is no input.  */
+      if (nread == 0)
+        return -2;          /* Close this terminal. */
 #endif
-	}
-      while (
-	     /* We used to retry the read if it was interrupted.
-		But this does the wrong thing when O_NDELAY causes
-		an EAGAIN error.  Does anybody know of a situation
-		where a retry is actually needed?  */
+    }
+  while (
+         /* We used to retry the read if it was interrupted.
+            But this does the wrong thing when O_NDELAY causes
+            an EAGAIN error.  Does anybody know of a situation
+            where a retry is actually needed?  */
 #if 0
-	     nread < 0 && (errno == EAGAIN
+         nread < 0 && (errno == EAGAIN
 #ifdef EFAULT
-			   || errno == EFAULT
+                       || errno == EFAULT
 #endif
 #ifdef EBADSLT
-			   || errno == EBADSLT
+                       || errno == EBADSLT
 #endif
-			   )
+                       )
 #else
-	     0
+         0
 #endif
-	     );
+         );
 
 #ifndef FIONREAD
 #if defined (USG) || defined (DGUX) || defined (CYGWIN)
-      fcntl (input_fd, F_SETFL, 0);
+  fcntl (fileno (tty->input), F_SETFL, 0);
 #endif /* USG or DGUX or CYGWIN */
 #endif /* no FIONREAD */
-      for (i = 0; i < nread; i++)
-	{
-	  struct input_event buf;
-	  EVENT_INIT (buf);
-	  buf.kind = ASCII_KEYSTROKE_EVENT;
-	  buf.modifiers = 0;
-	  if (meta_key == 1 && (cbuf[i] & 0x80))
-	    buf.modifiers = meta_modifier;
-	  if (meta_key != 2)
-	    cbuf[i] &= ~0x80;
 
-	  buf.code = cbuf[i];
-	  buf.frame_or_window = selected_frame;
-	  buf.arg = Qnil;
+  if (nread <= 0)
+    return nread;
 
-	  kbd_buffer_store_event (&buf);
-	  /* Don't look at input that follows a C-g too closely.
-	     This reduces lossage due to autorepeat on C-g.  */
-	  if (buf.kind == ASCII_KEYSTROKE_EVENT
-	      && buf.code == quit_char)
-	    break;
-	}
+#endif /* not MSDOS */
+#endif /* not WINDOWSNT */
+
+  for (i = 0; i < nread; i++)
+    {
+      struct input_event buf;
+      EVENT_INIT (buf);
+      buf.kind = ASCII_KEYSTROKE_EVENT;
+      buf.modifiers = 0;
+      if (tty->meta_key == 1 && (cbuf[i] & 0x80))
+        buf.modifiers = meta_modifier;
+      if (tty->meta_key != 2)
+        cbuf[i] &= ~0x80;
+      
+      buf.code = cbuf[i];
+      /* Set the frame corresponding to the active tty.  Note that the
+         value of selected_frame is not reliable here, redisplay tends
+         to temporarily change it. */
+      buf.frame_or_window = tty->top_frame;
+      buf.arg = Qnil;
+      
+      kbd_buffer_store_event (&buf);
+      /* Don't look at input that follows a C-g too closely.
+         This reduces lossage due to autorepeat on C-g.  */
+      if (buf.kind == ASCII_KEYSTROKE_EVENT
+          && buf.code == quit_char)
+        break;
     }
 
   return nread;
@@ -7401,13 +7591,7 @@ menu_bar_items (old)
   /* Add nil, nil, nil, nil at the end.  */
   i = menu_bar_items_index;
   if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
-    {
-      Lisp_Object tem;
-      tem = Fmake_vector (make_number (2 * i), Qnil);
-      bcopy (XVECTOR (menu_bar_items_vector)->contents,
-	     XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
-      menu_bar_items_vector = tem;
-    }
+    menu_bar_items_vector = larger_vector (menu_bar_items_vector, 2 * i, Qnil);
   /* Add this item.  */
   XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
   XVECTOR (menu_bar_items_vector)->contents[i++] = Qnil;
@@ -7479,14 +7663,7 @@ menu_bar_item (key, item, dummy1, dummy2)
     {
       /* If vector is too small, get a bigger one.  */
       if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
-	{
-	  Lisp_Object tem;
-	  tem = Fmake_vector (make_number (2 * i), Qnil);
-	  bcopy (XVECTOR (menu_bar_items_vector)->contents,
-		 XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
-	  menu_bar_items_vector = tem;
-	}
-
+	menu_bar_items_vector = larger_vector (menu_bar_items_vector, 2 * i, Qnil);
       /* Add this item.  */
       XVECTOR (menu_bar_items_vector)->contents[i++] = key;
       XVECTOR (menu_bar_items_vector)->contents[i++]
@@ -8255,16 +8432,9 @@ append_tool_bar_item ()
   /* Enlarge tool_bar_items_vector if necessary.  */
   if (ntool_bar_items + TOOL_BAR_ITEM_NSLOTS
       >= XVECTOR (tool_bar_items_vector)->size)
-    {
-      Lisp_Object new_vector;
-      int old_size = XVECTOR (tool_bar_items_vector)->size;
-
-      new_vector = Fmake_vector (make_number (2 * old_size), Qnil);
-      bcopy (XVECTOR (tool_bar_items_vector)->contents,
-	     XVECTOR (new_vector)->contents,
-	     old_size * sizeof (Lisp_Object));
-      tool_bar_items_vector = new_vector;
-    }
+    tool_bar_items_vector
+      = larger_vector (tool_bar_items_vector,
+		       2 * XVECTOR (tool_bar_items_vector)->size, Qnil);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
@@ -8632,6 +8802,8 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 
       if (!INTEGERP (obj))
 	return obj;
+      else if (XINT (obj) == -2)
+        return obj;
       else
 	ch = XINT (obj);
 
@@ -8942,8 +9114,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      key's again in Vfunction_key_map.  */
   volatile keyremap fkey;
 
-  /* Likewise, for key_translation_map.  */
-  volatile keyremap keytran;
+  /* Likewise, for key_translation_map and input-decode-map.  */
+  volatile keyremap keytran, indec;
 
   /* If we receive a `switch-frame' or `select-window' event in the middle of
      a key sequence, we put it off for later.
@@ -8978,11 +9150,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  fkey.map = fkey.parent = Vfunction_key_map;
-  keytran.map = keytran.parent = Vkey_translation_map;
-  fkey.start = fkey.end = 0;
-  keytran.start = keytran.end = 0;
-
+  
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
@@ -9021,6 +9189,15 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      we need to rescan it starting from the beginning.  When we jump here,
      keybuf[0..mock_input] holds the sequence we should reread.  */
  replay_sequence:
+
+  /* We may switch keyboards between rescans, so we need to
+     reinitialize fkey and keytran before each replay.  */
+  indec.map = indec.parent = current_kboard->Vinput_decode_map;
+  fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
+  keytran.map = keytran.parent = Vkey_translation_map;
+  indec.start = indec.end = 0;
+  fkey.start = fkey.end = 0;
+  keytran.start = keytran.end = 0;
 
   starting_buffer = current_buffer;
   first_unbound = bufsize + 1;
@@ -9107,7 +9284,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    Thus, if ESC O a has a function-key-map translation
 	    and ESC o has a binding, don't return after ESC O,
 	    so that we can translate ESC O plus the next character.  */
-	 : (fkey.start < t || keytran.start < t))
+	 : (/* indec.start < t || fkey.start < t || */ keytran.start < t))
     {
       Lisp_Object key;
       int used_mouse_menu = 0;
@@ -9125,13 +9302,17 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 just one key.  */
       volatile int echo_local_start, keys_local_start, local_first_binding;
 
-      eassert (fkey.end == t || (fkey.end > t && fkey.end <= mock_input));
+      eassert (indec.end == t || (indec.end > t && indec.end <= mock_input));
+      eassert (indec.start <= indec.end);
       eassert (fkey.start <= fkey.end);
       eassert (keytran.start <= keytran.end);
-      /* key-translation-map is applied *after* function-key-map.  */
+      /* key-translation-map is applied *after* function-key-map
+	 which is itself applied *after* input-decode-map.  */
+      eassert (fkey.end <= indec.start);
       eassert (keytran.end <= fkey.start);
 
-      if (first_unbound < fkey.start && first_unbound < keytran.start)
+      if (/* first_unbound < indec.start && first_unbound < fkey.start && */
+	  first_unbound < keytran.start)
 	{ /* The prefix upto first_unbound has no binding and has
 	     no translation left to do either, so we know it's unbound.
 	     If we don't stop now, we risk staying here indefinitely
@@ -9141,6 +9322,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  for (i = first_unbound + 1; i < t; i++)
 	    keybuf[i - first_unbound - 1] = keybuf[i];
 	  mock_input = t - first_unbound - 1;
+	  indec.end = indec.start -= first_unbound + 1;
+	  indec.map = indec.parent;
 	  fkey.end = fkey.start -= first_unbound + 1;
 	  fkey.map = fkey.parent;
 	  keytran.end = keytran.start -= first_unbound + 1;
@@ -9186,8 +9369,28 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #ifdef MULTI_KBOARD
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    if (setjmp (wrong_kboard_jmpbuf))
+#endif
+	    key = read_char (NILP (prompt), nmaps,
+			     (Lisp_Object *) submaps, last_nonmenu_event,
+			     &used_mouse_menu, NULL);
+#ifdef MULTI_KBOARD
+	    if (INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 	      {
+		int found = 0;
+		struct kboard *k;
+
+		for (k = all_kboards; k; k = k->next_kboard)
+		  if (k == interrupted_kboard)
+		    found = 1;
+
+		if (!found)
+		  {
+		    /* Don't touch interrupted_kboard when it's been
+		       deleted. */
+		    delayed_switch_frame = Qnil;
+		    goto replay_sequence;
+		  }
+
 		if (!NILP (delayed_switch_frame))
 		  {
 		    interrupted_kboard->kbd_queue
@@ -9195,6 +9398,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			       interrupted_kboard->kbd_queue);
 		    delayed_switch_frame = Qnil;
 		  }
+
 		while (t > 0)
 		  interrupted_kboard->kbd_queue
 		    = Fcons (keybuf[--t], interrupted_kboard->kbd_queue);
@@ -9219,9 +9423,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		goto replay_sequence;
 	      }
 #endif
-	    key = read_char (NILP (prompt), nmaps,
-			     (Lisp_Object *) submaps, last_nonmenu_event,
-			     &used_mouse_menu, NULL);
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
@@ -9548,15 +9749,15 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	/* This is needed for the following scenario:
 	   event 0: a down-event that gets dropped by calling replay_key.
 	   event 1: some normal prefix like C-h.
-	   After event 0, first_unbound is 0, after event 1 fkey.start
-	   and keytran.start are both 1, so when we see that C-h is bound,
-	   we need to update first_unbound.  */
+	   After event 0, first_unbound is 0, after event 1 indec.start,
+	   fkey.start, and keytran.start are all 1, so when we see that
+	   C-h is bound, we need to update first_unbound.  */
 	first_unbound = max (t + 1, first_unbound);
       else
 	{
 	  Lisp_Object head;
 
-	  /* Remember the position to put an upper bound on fkey.start.  */
+	  /* Remember the position to put an upper bound on indec.start.  */
 	  first_unbound = min (t, first_unbound);
 
 	  head = EVENT_HEAD (key);
@@ -9641,21 +9842,27 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			  /* If mock_input > t + 1, the above simplification
 			     will actually end up dropping keys on the floor.
 			     This is probably OK for now, but even
-			     if mock_input <= t + 1, we need to adjust fkey
-			     and keytran.
+			     if mock_input <= t + 1, we need to adjust indec,
+			     fkey, and keytran.
 			     Typical case [header-line down-mouse-N]:
 			     mock_input = 2, t = 1, fkey.end = 1,
 			     last_real_key_start = 0.  */
-			  if (fkey.end > last_real_key_start)
+			  if (indec.end > last_real_key_start)
 			    {
-			      fkey.end = fkey.start
-				= min (last_real_key_start, fkey.start);
-			      fkey.map = fkey.parent;
-			      if (keytran.end > last_real_key_start)
+			      indec.end = indec.start
+				= min (last_real_key_start, indec.start);
+			      indec.map = indec.parent;
+			      if (fkey.end > last_real_key_start)
 				{
-				  keytran.end = keytran.start
-				    = min (last_real_key_start, keytran.start);
-				  keytran.map = keytran.parent;
+				  fkey.end = fkey.start
+				    = min (last_real_key_start, fkey.start);
+				  fkey.map = fkey.parent;
+				  if (keytran.end > last_real_key_start)
+				    {
+				      keytran.end = keytran.start
+					= min (last_real_key_start, keytran.start);
+				      keytran.map = keytran.parent;
+				    }
 				}
 			    }
 			  if (t == last_real_key_start)
@@ -9709,8 +9916,28 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       /* Record what part of this_command_keys is the current key sequence.  */
       this_single_command_key_start = this_command_key_count - t;
 
-      if (first_binding < nmaps && NILP (submaps[first_binding]))
+      /* Look for this sequence in input-decode-map.
+	 Scan from indec.end until we find a bound suffix.  */
+      while (indec.end < t)
+	{
+	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+	  int done, diff;
+
+	  GCPRO4 (indec.map, fkey.map, keytran.map, delayed_switch_frame);
+	  done = keyremap_step (keybuf, bufsize, &indec, max (t, mock_input),
+				1, &diff, prompt);
+	  UNGCPRO;
+	  if (done)
+	    {
+	      mock_input = diff + max (t, mock_input);
+	      goto replay_sequence;
+	    }
+	}
+
+      if (first_binding < nmaps && NILP (submaps[first_binding])
+	  && indec.start >= t)
 	/* There is a binding and it's not a prefix.
+	   (and it doesn't have any input-decode-map translation pending).
 	   There is thus no function-key in this sequence.
 	   Moving fkey.start is important in this case to allow keytran.start
 	   to go over the sequence before we return (since we keep the
@@ -9723,12 +9950,12 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	/* If the sequence is unbound, see if we can hang a function key
 	   off the end of it.  */
 	/* Continue scan from fkey.end until we find a bound suffix.  */
-	while (fkey.end < t)
+	while (fkey.end < indec.start)
 	  {
-	    struct gcpro gcpro1, gcpro2, gcpro3;
+	    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 	    int done, diff;
 
-	    GCPRO3 (fkey.map, keytran.map, delayed_switch_frame);
+	    GCPRO4 (indec.map, fkey.map, keytran.map, delayed_switch_frame);
 	    done = keyremap_step (keybuf, bufsize, &fkey,
 				  max (t, mock_input),
 				  /* If there's a binding (i.e.
@@ -9740,6 +9967,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    if (done)
 	      {
 		mock_input = diff + max (t, mock_input);
+		/* Adjust the input-decode-map counters.  */
+		indec.end += diff;
+		indec.start += diff;
+
 		goto replay_sequence;
 	      }
 	  }
@@ -9748,17 +9979,19 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 Scan from keytran.end until we find a bound suffix.  */
       while (keytran.end < fkey.start)
 	{
-	  struct gcpro gcpro1, gcpro2, gcpro3;
+	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 	  int done, diff;
 
-	  GCPRO3 (fkey.map, keytran.map, delayed_switch_frame);
+	  GCPRO4 (indec.map, fkey.map, keytran.map, delayed_switch_frame);
 	  done = keyremap_step (keybuf, bufsize, &keytran, max (t, mock_input),
 				1, &diff, prompt);
 	  UNGCPRO;
 	  if (done)
 	    {
 	      mock_input = diff + max (t, mock_input);
-	      /* Adjust the function-key-map counters.  */
+	      /* Adjust the function-key-map and input-decode-map counters.  */
+	      indec.end += diff;
+	      indec.start += diff;
 	      fkey.end += diff;
 	      fkey.start += diff;
 
@@ -9771,7 +10004,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 and is an upper case letter
 	 use the corresponding lower-case letter instead.  */
       if (first_binding >= nmaps
-	  && fkey.start >= t && keytran.start >= t
+	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
 	  && INTEGERP (key)
 	  && ((((XINT (key) & 0x3ffff)
 		< XCHAR_TABLE (current_buffer->downcase_table)->size)
@@ -9802,7 +10035,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 and is a shifted function key,
 	 use the corresponding unshifted function key instead.  */
       if (first_binding >= nmaps
-	  && fkey.start >= t && keytran.start >= t
+	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
 	  && SYMBOLP (key))
 	{
 	  Lisp_Object breakdown;
@@ -9823,9 +10056,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
-	      fkey.start = fkey.end = 0;
-	      keytran.start = keytran.end = 0;
-
 	      goto replay_sequence;
 	    }
 	}
@@ -10333,8 +10563,12 @@ detect_input_pending_run_timers (do_display)
 	 from an idle timer function.  The symptom of the bug is that
 	 the cursor sometimes doesn't become visible until the next X
 	 event is processed.  --gerd.  */
-      if (rif)
-	rif->flush_display (NULL);
+      {
+        Lisp_Object tail, frame;
+        FOR_EACH_FRAME (tail, frame)
+          if (FRAME_RIF (XFRAME (frame)))
+            FRAME_RIF (XFRAME (frame))->flush_display (XFRAME (frame));
+      }
     }
 
   return input_pending;
@@ -10586,6 +10820,9 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   int width, height;
   struct gcpro gcpro1;
 
+  if (tty_list && tty_list->next)
+    error ("There are other tty frames open; close them before suspending Emacs");
+
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring);
 
@@ -10594,11 +10831,11 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     call1 (Vrun_hooks, intern ("suspend-hook"));
 
   GCPRO1 (stuffstring);
-  get_frame_size (&old_width, &old_height);
-  reset_sys_modes ();
+  get_tty_size (fileno (CURTTY ()->input), &old_width, &old_height);
+  reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
-  record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_sys_modes,
+  record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_all_sys_modes,
 			 Qnil);
   stuff_buffered_input (stuffstring);
   if (cannot_suspend)
@@ -10610,7 +10847,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   /* Check if terminal/window size has changed.
      Note that this is not useful when we are running directly
      with a window system; but suspend should be disabled in that case.  */
-  get_frame_size (&width, &height);
+  get_tty_size (fileno (CURTTY ()->input), &width, &height);
   if (width != old_width || height != old_height)
     change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
 
@@ -10670,10 +10907,10 @@ set_waiting_for_input (time_to_clear)
 {
   input_available_clear_time = time_to_clear;
 
-  /* Tell interrupt_signal to throw back to read_char,  */
+  /* Tell handle_interrupt to throw back to read_char,  */
   waiting_for_input = 1;
 
-  /* If interrupt_signal was called before and buffered a C-g,
+  /* If handle_interrupt was called before and buffered a C-g,
      make it run again now, to avoid timing error. */
   if (!NILP (Vquit_flag))
     quit_throw_to_read_char ();
@@ -10682,48 +10919,82 @@ set_waiting_for_input (time_to_clear)
 void
 clear_waiting_for_input ()
 {
-  /* Tell interrupt_signal not to throw back to read_char,  */
+  /* Tell handle_interrupt not to throw back to read_char,  */
   waiting_for_input = 0;
   input_available_clear_time = 0;
 }
 
+/* The SIGINT handler.
+
+   If we have a frame on the controlling tty, we assume that the
+   SIGINT was generated by C-g, so we call handle_interrupt.
+   Otherwise, the handler kills Emacs.  */
+
+static SIGTYPE
+interrupt_signal (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
+{
+  /* Must preserve main program's value of errno.  */
+  int old_errno = errno;
+  struct terminal *terminal;
+
+#if defined (USG) && !defined (POSIX_SIGNALS)
+  /* USG systems forget handlers when they are used;
+     must reestablish each time */
+  signal (SIGINT, interrupt_signal);
+  signal (SIGQUIT, interrupt_signal);
+#endif /* USG */
+
+  SIGNAL_THREAD_CHECK (signalnum);
+
+  /* See if we have an active terminal on our controlling tty. */
+  terminal = get_named_tty ("/dev/tty");
+  if (!terminal)
+    {
+      /* If there are no frames there, let's pretend that we are a
+         well-behaving UN*X program and quit. */
+      Fkill_emacs (Qnil);
+    }
+  else
+    {
+      /* Otherwise, the SIGINT was probably generated by C-g.  */
+
+      /* Set internal_last_event_frame to the top frame of the
+         controlling tty, if we have a frame there.  We disable the
+         interrupt key on secondary ttys, so the SIGINT must have come
+         from the controlling tty.  */
+      internal_last_event_frame = terminal->display_info.tty->top_frame;
+
+      handle_interrupt ();
+    }
+
+  errno = old_errno;
+}
+
 /* This routine is called at interrupt level in response to C-g.
 
-   If interrupt_input, this is the handler for SIGINT.  Otherwise, it
-   is called from kbd_buffer_store_event, in handling SIGIO or
-   SIGTINT.
+   It is called from the SIGINT handler or kbd_buffer_store_event.
 
    If `waiting_for_input' is non zero, then unless `echoing' is
    nonzero, immediately throw back to read_char.
 
    Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
    eval to throw, when it gets a chance.  If quit-flag is already
-   non-nil, it stops the job right away.  */
+   non-nil, it stops the job right away. */
 
-static SIGTYPE
-interrupt_signal (signalnum)	/* If we don't have an argument, */
-     int signalnum;		/* some compilers complain in signal calls. */
+static void
+handle_interrupt ()
 {
   char c;
-  /* Must preserve main program's value of errno.  */
-  int old_errno = errno;
-  struct frame *sf = SELECTED_FRAME ();
 
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  if (!read_socket_hook && NILP (Vwindow_system))
-    {
-      /* USG systems forget handlers when they are used;
-	 must reestablish each time */
-      signal (SIGINT, interrupt_signal);
-      signal (SIGQUIT, interrupt_signal);
-    }
-#endif /* USG */
-
-  SIGNAL_THREAD_CHECK (signalnum);
   cancel_echoing ();
 
+  /* XXX This code needs to be revised for multi-tty support. */
   if (!NILP (Vquit_flag)
-      && (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf)))
+#ifndef MSDOS
+      && get_named_tty ("/dev/tty")
+#endif
+      )
     {
       /* If SIGINT isn't blocked, don't let us be interrupted by
 	 another SIGINT, it might be harmful due to non-reentrancy
@@ -10731,7 +11002,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
       sigblock (sigmask (SIGINT));
 
       fflush (stdout);
-      reset_sys_modes ();
+      reset_all_sys_modes ();
 
 #ifdef SIGTSTP			/* Support possible in later USG versions */
 /*
@@ -10810,7 +11081,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
       printf ("Continuing...\n");
 #endif /* not MSDOS */
       fflush (stdout);
-      init_sys_modes ();
+      init_all_sys_modes ();
       sigfree ();
     }
   else
@@ -10838,9 +11109,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
     }
 
   if (waiting_for_input && !echoing)
-    quit_throw_to_read_char ();
-
-  errno = old_errno;
+      quit_throw_to_read_char ();
 }
 
 /* Handle a C-g by making read_char return C-g.  */
@@ -10873,6 +11142,184 @@ quit_throw_to_read_char ()
   _longjmp (getcjmp, 1);
 }
 
+DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode, Sset_input_interrupt_mode, 1, 1, 0,
+       doc: /* Set interrupt mode of reading keyboard input.
+If INTERRUPT is non-nil, Emacs will use input interrupts;
+otherwise Emacs uses CBREAK mode.
+
+See also `current-input-mode'.  */)
+     (interrupt)
+     Lisp_Object interrupt;
+{
+  int new_interrupt_input;
+#ifdef SIGIO
+/* Note SIGIO has been undef'd if FIONREAD is missing.  */
+#ifdef HAVE_X_WINDOWS
+  if (x_display_list != NULL)
+    {
+      /* When using X, don't give the user a real choice,
+	 because we haven't implemented the mechanisms to support it.  */
+#ifdef NO_SOCK_SIGIO
+      new_interrupt_input = 0;
+#else /* not NO_SOCK_SIGIO */
+      new_interrupt_input = 1;
+#endif /* NO_SOCK_SIGIO */
+    }
+  else
+#endif
+    new_interrupt_input = !NILP (interrupt);
+#else /* not SIGIO */
+  new_interrupt_input = 0;
+#endif /* not SIGIO */
+
+/* Our VMS input only works by interrupts, as of now.  */
+#ifdef VMS
+  new_interrupt_input = 1;
+#endif
+
+  if (new_interrupt_input != interrupt_input) 
+    {
+#ifdef POLL_FOR_INPUT
+      stop_polling ();
+#endif
+#ifndef DOS_NT
+      /* this causes startup screen to be restored and messes with the mouse */
+      reset_all_sys_modes ();
+#endif
+      interrupt_input = new_interrupt_input;
+#ifndef DOS_NT
+      init_all_sys_modes ();
+#endif
+
+#ifdef POLL_FOR_INPUT
+      poll_suppress_count = 1;
+      start_polling ();
+#endif
+    }
+  return Qnil;
+}
+
+DEFUN ("set-output-flow-control", Fset_output_flow_control, Sset_output_flow_control, 1, 2, 0,
+       doc: /* Enable or disable ^S/^Q flow control for output to TERMINAL.
+If FLOW is non-nil, flow control is enabled and you cannot use C-s or
+C-q in key sequences.
+
+This setting only has an effect on tty terminals and only when
+Emacs reads input in CBREAK mode; see `set-input-interrupt-mode'.
+
+See also `current-input-mode'.  */)
+       (flow, terminal)
+       Lisp_Object flow, terminal;
+{
+  struct terminal *t = get_terminal (terminal, 1);
+  struct tty_display_info *tty;
+  if (t == NULL || t->type != output_termcap)
+    return Qnil;
+  tty = t->display_info.tty;
+
+  if (tty->flow_control != !NILP (flow))
+    {
+#ifndef DOS_NT
+      /* this causes startup screen to be restored and messes with the mouse */
+      reset_sys_modes (tty);
+#endif
+
+      tty->flow_control = !NILP (flow);
+
+#ifndef DOS_NT
+      init_sys_modes (tty);
+#endif
+    }
+  return Qnil;
+}
+
+DEFUN ("set-input-meta-mode", Fset_input_meta_mode, Sset_input_meta_mode, 1, 2, 0,
+       doc: /* Enable or disable 8-bit input on TERMINAL.
+If META is t, Emacs will accept 8-bit input, and interpret the 8th
+bit as the Meta modifier.
+
+If META is nil, Emacs will ignore the top bit, on the assumption it is
+parity.
+
+Otherwise, Emacs will accept and pass through 8-bit input without
+specially interpreting the top bit.
+
+This setting only has an effect on tty terminal devices.
+
+Optional parameter TERMINAL specifies the tty terminal device to use.
+It may be a terminal id, a frame, or nil for the terminal used by the
+currently selected frame.
+
+See also `current-input-mode'.  */)
+       (meta, terminal)
+       Lisp_Object meta, terminal;
+{
+  struct terminal *t = get_terminal (terminal, 1);
+  struct tty_display_info *tty;
+  int new_meta;
+  
+  if (t == NULL || t->type != output_termcap)
+    return Qnil;
+  tty = t->display_info.tty;
+
+  if (NILP (meta))
+    new_meta = 0;
+  else if (EQ (meta, Qt))
+    new_meta = 1;
+  else
+    new_meta = 2;
+
+  if (tty->meta_key != new_meta) 
+    {
+#ifndef DOS_NT
+      /* this causes startup screen to be restored and messes with the mouse */
+      reset_sys_modes (tty);
+#endif
+
+      tty->meta_key = new_meta;
+  
+#ifndef DOS_NT
+      init_sys_modes (tty);
+#endif
+    }
+  return Qnil;
+}
+
+DEFUN ("set-quit-char", Fset_quit_char, Sset_quit_char, 1, 1, 0,
+       doc: /* Specify character used for quitting.
+QUIT must be an ASCII character.
+
+This function only has an effect on the controlling tty of the Emacs
+process.
+
+See also `current-input-mode'.  */)
+       (quit)
+       Lisp_Object quit;
+{
+  struct terminal *t = get_named_tty ("/dev/tty");
+  struct tty_display_info *tty;
+  if (t == NULL || t->type != output_termcap)
+    return Qnil;
+  tty = t->display_info.tty;
+
+  if (NILP (quit) || !INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400)
+    error ("QUIT must be an ASCII character");
+
+#ifndef DOS_NT
+  /* this causes startup screen to be restored and messes with the mouse */
+  reset_sys_modes (tty);
+#endif
+  
+  /* Don't let this value be out of range.  */
+  quit_char = XINT (quit) & (tty->meta_key == 0 ? 0177 : 0377);
+
+#ifndef DOS_NT
+  init_sys_modes (tty);
+#endif
+
+  return Qnil;
+}
+       
 DEFUN ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
        doc: /* Set mode of reading keyboard input.
 First arg INTERRUPT non-nil means use input interrupts;
@@ -10887,61 +11334,11 @@ See also `current-input-mode'.  */)
      (interrupt, flow, meta, quit)
      Lisp_Object interrupt, flow, meta, quit;
 {
-  if (!NILP (quit)
-      && (!INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400))
-    error ("set-input-mode: QUIT must be an ASCII character");
-
-#ifdef POLL_FOR_INPUT
-  stop_polling ();
-#endif
-
-#ifndef DOS_NT
-  /* this causes startup screen to be restored and messes with the mouse */
-  reset_sys_modes ();
-#endif
-
-#ifdef SIGIO
-/* Note SIGIO has been undef'd if FIONREAD is missing.  */
-  if (read_socket_hook)
-    {
-      /* When using X, don't give the user a real choice,
-	 because we haven't implemented the mechanisms to support it.  */
-#ifdef NO_SOCK_SIGIO
-      interrupt_input = 0;
-#else /* not NO_SOCK_SIGIO */
-      interrupt_input = 1;
-#endif /* NO_SOCK_SIGIO */
-    }
-  else
-    interrupt_input = !NILP (interrupt);
-#else /* not SIGIO */
-  interrupt_input = 0;
-#endif /* not SIGIO */
-
-/* Our VMS input only works by interrupts, as of now.  */
-#ifdef VMS
-  interrupt_input = 1;
-#endif
-
-  flow_control = !NILP (flow);
-  if (NILP (meta))
-    meta_key = 0;
-  else if (EQ (meta, Qt))
-    meta_key = 1;
-  else
-    meta_key = 2;
+  Fset_input_interrupt_mode (interrupt);
+  Fset_output_flow_control (flow, Qnil);
+  Fset_input_meta_mode (meta, Qnil);
   if (!NILP (quit))
-    /* Don't let this value be out of range.  */
-    quit_char = XINT (quit) & (meta_key ? 0377 : 0177);
-
-#ifndef DOS_NT
-  init_sys_modes ();
-#endif
-
-#ifdef POLL_FOR_INPUT
-  poll_suppress_count = 1;
-  start_polling ();
-#endif
+    Fset_quit_char (quit);
   return Qnil;
 }
 
@@ -10962,10 +11359,21 @@ The elements of this list correspond to the arguments of
      ()
 {
   Lisp_Object val[4];
+  struct frame *sf = XFRAME (selected_frame);
 
   val[0] = interrupt_input ? Qt : Qnil;
-  val[1] = flow_control ? Qt : Qnil;
-  val[2] = meta_key == 2 ? make_number (0) : meta_key == 1 ? Qt : Qnil;
+  if (FRAME_TERMCAP_P (sf))
+    {
+      val[1] = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
+      val[2] = (FRAME_TTY (sf)->meta_key == 2
+                ? make_number (0)
+                : (CURTTY ()->meta_key == 1 ? Qt : Qnil));
+    }
+  else
+    {
+      val[1] = Qnil;
+      val[2] = Qt;
+    }
   XSETFASTINT (val[3], quit_char);
 
   return Flist (sizeof (val) / sizeof (val[0]), val);
@@ -11057,6 +11465,8 @@ init_kboard (kb)
   kb->Voverriding_terminal_local_map = Qnil;
   kb->Vlast_command = Qnil;
   kb->Vreal_last_command = Qnil;
+  kb->Vkeyboard_translate_table = Qnil;
+  kb->Vlast_repeatable_command = Qnil;
   kb->Vprefix_arg = Qnil;
   kb->Vlast_prefix_arg = Qnil;
   kb->kbd_queue = Qnil;
@@ -11071,6 +11481,9 @@ init_kboard (kb)
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
   kb->system_key_syms = Qnil;
+  kb->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
+  kb->Vlocal_function_key_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (kb->Vlocal_function_key_map, Vfunction_key_map);
   kb->Vdefault_minibuffer_frame = Qnil;
 }
 
@@ -11107,7 +11520,8 @@ delete_kboard (kb)
       && FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame)))
     {
-      current_kboard = XFRAME (selected_frame)->kboard;
+      current_kboard = FRAME_KBOARD (XFRAME (selected_frame));
+      single_kboard = 0;
       if (current_kboard == kb)
 	abort ();
     }
@@ -11150,8 +11564,14 @@ init_keyboard ()
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
 
-  if (!noninteractive && !read_socket_hook && NILP (Vwindow_system))
+  if (!noninteractive)
     {
+      /* Before multi-tty support, these handlers used to be installed
+         only if the current session was a tty session.  Now an Emacs
+         session may have multiple display types, so we always handle
+         SIGINT.  There is special code in interrupt_signal to exit
+         Emacs on SIGINT when there are no termcap frames on the
+         controlling terminal. */
       signal (SIGINT, interrupt_signal);
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
       /* For systems with SysV TERMIO, C-g is set up for both SIGINT and
@@ -11398,7 +11818,7 @@ syms_of_keyboard ()
   staticpro (&button_down_location);
   mouse_syms = Fmake_vector (make_number (1), Qnil);
   staticpro (&mouse_syms);
-  wheel_syms = Fmake_vector (make_number (2), Qnil);
+  wheel_syms = Fmake_vector (make_number (4), Qnil);
   staticpro (&wheel_syms);
 
   {
@@ -11476,6 +11896,10 @@ syms_of_keyboard ()
   defsubr (&Stop_level);
   defsubr (&Sdiscard_input);
   defsubr (&Sopen_dribble_file);
+  defsubr (&Sset_input_interrupt_mode);
+  defsubr (&Sset_output_flow_control);
+  defsubr (&Sset_input_meta_mode);
+  defsubr (&Sset_quit_char);
   defsubr (&Sset_input_mode);
   defsubr (&Scurrent_input_mode);
   defsubr (&Sexecute_extended_command);
@@ -11542,10 +11966,18 @@ In other words, the present command is the event that made the previous
 command exit.
 
 The value `kill-region' is special; it means that the previous command
-was a kill command.  */);
+was a kill command.
+
+`last-command' has a separate binding for each terminal device.
+See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
 		 doc: /* Same as `last-command', but never altered by Lisp code.  */);
+
+  DEFVAR_KBOARD ("last-repeatable-command", Vlast_repeatable_command,
+		 doc: /* Last command that may be repeated.
+The last command executed that was not bound to an input event.
+This is the command `repeat' will try to repeat.  */);
 
   DEFVAR_LISP ("this-command", &Vthis_command,
 	       doc: /* The command now being executed.
@@ -11654,8 +12086,8 @@ for that character after that prefix key.  */);
 Useful to set before you dump a modified Emacs.  */);
   Vtop_level = Qnil;
 
-  DEFVAR_LISP ("keyboard-translate-table", &Vkeyboard_translate_table,
-	       doc: /* Translate table for keyboard input, or nil.
+  DEFVAR_KBOARD ("keyboard-translate-table", Vkeyboard_translate_table,
+                 doc: /* Translate table for local keyboard input, or nil.
 If non-nil, the value should be a char-table.  Each character read
 from the keyboard is looked up in this char-table.  If the value found
 there is non-nil, then it is used instead of the actual input character.
@@ -11665,8 +12097,10 @@ If it is a string or vector of length N, character codes N and up are left
 untranslated.  In a vector, an element which is nil means "no translation".
 
 This is applied to the characters supplied to input methods, not their
-output.  See also `translation-table-for-input'.  */);
-  Vkeyboard_translate_table = Qnil;
+output.  See also `translation-table-for-input'.
+
+This variable has a separate binding for each terminal.  See Info node
+`(elisp)Multiple displays'.  */);
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
 	       doc: /* Non-nil means to always spawn a subshell instead of suspending.
@@ -11751,7 +12185,11 @@ buffer's local map, and the minor mode keymaps and text property keymaps.
 It also replaces `overriding-local-map'.
 
 This variable is intended to let commands such as `universal-argument'
-set up a different keymap for reading the next command.  */);
+set up a different keymap for reading the next command.
+
+`overriding-terminal-local-map' has a separate binding for each
+terminal device.
+See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
 	       doc: /* Keymap that overrides all other local keymaps.
@@ -11776,7 +12214,73 @@ and the minor mode maps regardless of `overriding-local-map'.  */);
 		 doc: /* Alist of system-specific X windows key symbols.
 Each element should have the form (N . SYMBOL) where N is the
 numeric keysym code (sans the \"system-specific\" bit 1<<28)
-and SYMBOL is its name.  */);
+and SYMBOL is its name.
+
+`system-key-alist' has a separate binding for each terminal device.
+See Info node `(elisp)Multiple displays'.  */);
+
+  DEFVAR_KBOARD ("local-function-key-map", Vlocal_function_key_map,
+                 doc: /* Keymap that translates key sequences to key sequences during input.
+This is used mainly for mapping key sequences into some preferred
+key events (symbols).
+
+The `read-key-sequence' function replaces any subsequence bound by
+`local-function-key-map' with its binding.  More precisely, when the
+active keymaps have no binding for the current key sequence but
+`local-function-key-map' binds a suffix of the sequence to a vector or
+string, `read-key-sequence' replaces the matching suffix with its
+binding, and continues with the new sequence.
+
+If the binding is a function, it is called with one argument (the prompt)
+and its return value (a key sequence) is used.
+
+The events that come from bindings in `local-function-key-map' are not
+themselves looked up in `local-function-key-map'.
+
+For example, suppose `local-function-key-map' binds `ESC O P' to [f1].
+Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
+`C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix key,
+typing `ESC O P x' would return [f1 x].
+
+`local-function-key-map' has a separate binding for each terminal
+device.  See Info node `(elisp)Multiple displays'.  If you need to
+define a binding on all terminals, change `function-key-map'
+instead.  Initially, `local-function-key-map' is an empty keymap that
+has `function-key-map' as its parent on all terminal devices.  */);
+
+  DEFVAR_KBOARD ("input-decode-map", Vinput_decode_map,
+		 doc: /* Keymap that decodes input escape sequences.
+This is used mainly for mapping ASCII function key sequences into
+real Emacs function key events (symbols).
+
+The `read-key-sequence' function replaces any subsequence bound by
+`local-function-key-map' with its binding.  Contrary to `function-key-map',
+this map applies its rebinding regardless of the presence of an ordinary
+binding.  So it is more like `key-translation-map' except that it applies
+before `function-key-map' rather than after.
+
+If the binding is a function, it is called with one argument (the prompt)
+and its return value (a key sequence) is used.
+
+The events that come from bindings in `input-decode-map' are not
+themselves looked up in `input-decode-map'.
+
+This variable is keyboard-local.  */);
+
+  DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
+               doc: /* The parent keymap of all `local-function-key-map' instances.
+Function key definitions that apply to all terminal devices should go
+here.  If a mapping is defined in both the current
+`local-function-key-map' binding and this variable, then the local
+definition will take precendence.  */);
+  Vfunction_key_map = Fmake_sparse_keymap (Qnil);
+                    
+  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
+               doc: /* Keymap of key translations that can override keymaps.
+This keymap works like `function-key-map', but comes after that,
+and its non-prefix bindings override ordinary bindings.
+Another difference is that it is global rather than keyboard-local.  */);
+  Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
 	       doc: /* List of deferred actions to be performed at a later time.
@@ -11945,6 +12449,8 @@ mark_kboards ()
       mark_object (kb->Voverriding_terminal_local_map);
       mark_object (kb->Vlast_command);
       mark_object (kb->Vreal_last_command);
+      mark_object (kb->Vkeyboard_translate_table);
+      mark_object (kb->Vlast_repeatable_command);
       mark_object (kb->Vprefix_arg);
       mark_object (kb->Vlast_prefix_arg);
       mark_object (kb->kbd_queue);
@@ -11952,6 +12458,8 @@ mark_kboards ()
       mark_object (kb->Vlast_kbd_macro);
       mark_object (kb->Vsystem_key_alist);
       mark_object (kb->system_key_syms);
+      mark_object (kb->Vinput_decode_map);
+      mark_object (kb->Vlocal_function_key_map);
       mark_object (kb->Vdefault_minibuffer_frame);
       mark_object (kb->echo_string);
     }

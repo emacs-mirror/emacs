@@ -195,11 +195,13 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdio.h>              /* This needs to be before termchar.h */
 
 #include "lisp.h"
 #include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
+#include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
@@ -242,6 +244,7 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "window.h"
 #include "intervals.h"
+#include "termchar.h"
 
 #ifdef HAVE_X_WINDOWS
 
@@ -263,8 +266,6 @@ Boston, MA 02110-1301, USA.  */
 #endif /* HAVE_X_WINDOWS */
 
 #include <ctype.h>
-
-#define abs(X)		((X) < 0 ? -(X) : (X))
 
 /* Number of pt per inch (from the TeXbook).  */
 
@@ -743,10 +744,9 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  BLOCK_INPUT;
+  eassert (interrupt_input_blocked);
   IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_X_DISPLAY (f), gc);
-  UNBLOCK_INPUT;
 }
 
 #endif /* HAVE_X_WINDOWS */
@@ -776,10 +776,8 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  BLOCK_INPUT;
   IF_DEBUG (xassert (--ngcs >= 0));
   xfree (gc);
-  UNBLOCK_INPUT;
 }
 
 #endif  /* WINDOWSNT */
@@ -806,10 +804,9 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
-  BLOCK_INPUT;
+  eassert (interrupt_input_blocked);
   IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_MAC_DISPLAY (f), gc);
-  UNBLOCK_INPUT;
 }
 
 #endif  /* MAC_OS */
@@ -1256,8 +1253,10 @@ load_face_font (f, face, c)
       face->overstrike = needs_overstrike;
       if (face->gc)
 	{
+	  BLOCK_INPUT;
 	  x_free_gc (f, face->gc);
 	  face->gc = 0;
+	  UNBLOCK_INPUT;
 	}
     }
   else
@@ -1489,11 +1488,11 @@ face_color_gray_p (f, color_name)
     gray_p = (/* Any color sufficiently close to black counts as grey.  */
 	      (color.red < 5000 && color.green < 5000 && color.blue < 5000)
 	      ||
-	      ((abs (color.red - color.green)
+	      ((eabs (color.red - color.green)
 		< max (color.red, color.green) / 20)
-	       && (abs (color.green - color.blue)
+	       && (eabs (color.green - color.blue)
 		   < max (color.green, color.blue) / 20)
-	       && (abs (color.blue - color.red)
+	       && (eabs (color.blue - color.red)
 		   < max (color.blue, color.red) / 20)));
   else
     gray_p = 0;
@@ -2715,7 +2714,7 @@ cmp_font_names (a, b)
 	  int resy = FRAME_X_DISPLAY_INFO (font_frame)->resy;
 	  int x_resy = x->numeric[XLFD_RESY];
 	  int y_resy = y->numeric[XLFD_RESY];
-	  cmp = abs (resy - x_resy) - abs (resy - y_resy);
+	  cmp = eabs (resy - x_resy) - eabs (resy - y_resy);
 	}
     }
 
@@ -3221,6 +3220,22 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 
 
 
+#if 0				/* Seems to be unused.  */
+static Lisp_Object
+internal_resolve_face_name (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  return Fget (args[0], args[1]);
+}
+
+static Lisp_Object
+resolve_face_name_error (ignore)
+     Lisp_Object ignore;
+{
+  return Qnil;
+}
+#endif
 
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symbol.  If FACE_NAME is an alias for another face,
@@ -5239,8 +5254,10 @@ free_realized_face (f, face)
 	    free_face_fontset (f, face);
 	  if (face->gc)
 	    {
+	      BLOCK_INPUT;
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
+	      UNBLOCK_INPUT;
 	    }
 
 	  free_face_colors (f, face);
@@ -5404,8 +5421,10 @@ clear_face_gcs (c)
 	  struct face *face = c->faces_by_id[i];
 	  if (face && face->gc)
 	    {
+	      BLOCK_INPUT;
 	      x_free_gc (c->f, face->gc);
 	      face->gc = 0;
+	      UNBLOCK_INPUT;
 	    }
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -5776,7 +5795,7 @@ smaller_face (f, face_id, steps)
 
   /* Try in increments of 1/2 pt.  */
   delta = steps < 0 ? 5 : -5;
-  steps = abs (steps);
+  steps = eabs (steps);
 
   face = FACE_FROM_ID (f, face_id);
   bcopy (face->lface, attrs, sizeof attrs);
@@ -5787,7 +5806,7 @@ smaller_face (f, face_id, steps)
   while (steps
 	 && pt + delta > 0
 	 /* Give up if we cannot find a font within 10pt.  */
-	 && abs (last_pt - pt) < 100)
+	 && eabs (last_pt - pt) < 100)
     {
       /* Look up a face for a slightly smaller/larger font.  */
       pt += delta;
@@ -6066,7 +6085,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   val = attrs[LFACE_INVERSE_INDEX];
   if (!UNSPECIFIEDP (val))
     {
-      if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
+      if (face_attr_equal_p (val, def_attrs[LFACE_INVERSE_INDEX]))
 	return 0;		/* same as default */
       else
 	test_caps |= TTY_CAP_INVERSE;
@@ -6109,7 +6128,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   bg = attrs[LFACE_BACKGROUND_INDEX];
   if (STRINGP (bg))
     {
-      Lisp_Object def_bg = def_attrs[LFACE_FOREGROUND_INDEX];
+      Lisp_Object def_bg = def_attrs[LFACE_BACKGROUND_INDEX];
 
       if (face_attr_equal_p (bg, def_bg))
 	return 0;		/* same as default */
@@ -6147,7 +6166,7 @@ tty_supports_face_attributes_p (f, attrs, def_face)
   /* See if the capabilities we selected above are supported, with the
      given colors.  */
   if (test_caps != 0 &&
-      ! tty_capable_p (f, test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
+      ! tty_capable_p (FRAME_TTY (f), test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
     return 0;
 
 
@@ -6395,17 +6414,17 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 
 	  if (xlfd_idx == XLFD_POINT_SIZE)
 	    {
-	      delta1 = abs (values[i] - (font1->numeric[xlfd_idx]
+	      delta1 = eabs (values[i] - (font1->numeric[xlfd_idx]
 					 / font1->rescale_ratio));
-	      delta2 = abs (values[i] - (font2->numeric[xlfd_idx]
+	      delta2 = eabs (values[i] - (font2->numeric[xlfd_idx]
 					 / font2->rescale_ratio));
-	      if (abs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
+	      if (eabs (delta1 - delta2) < FONT_POINT_SIZE_QUANTUM)
 		continue;
 	    }
 	  else
 	    {
-	      delta1 = abs (values[i] - font1->numeric[xlfd_idx]);
-	      delta2 = abs (values[i] - font2->numeric[xlfd_idx]);
+	      delta1 = eabs (values[i] - font1->numeric[xlfd_idx]);
+	      delta2 = eabs (values[i] - font2->numeric[xlfd_idx]);
 	    }
 
 	  if (delta1 > delta2)
@@ -6427,8 +6446,8 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 
   if (avgwidth)
     {
-      int delta1 = abs (avgwidth - font1->numeric[XLFD_AVGWIDTH]);
-      int delta2 = abs (avgwidth - font2->numeric[XLFD_AVGWIDTH]);
+      int delta1 = eabs (avgwidth - font1->numeric[XLFD_AVGWIDTH]);
+      int delta2 = eabs (avgwidth - font2->numeric[XLFD_AVGWIDTH]);
       if (delta1 > delta2)
 	return 0;
       else if (delta1 < delta2)
@@ -6951,7 +6970,8 @@ realize_basic_faces (f)
 	{
 	  FRAME_FACE_CACHE (f)->menu_face_changed_p = 0;
 #ifdef USE_X_TOOLKIT
-	  x_update_menu_appearance (f);
+          if (FRAME_WINDOW_P (f))
+            x_update_menu_appearance (f);
 #endif
 	}
 
@@ -7038,7 +7058,7 @@ realize_default_face (f)
 	LFACE_FOREGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_FOREGROUND (lface) = build_string (unspecified_fg);
       else
 	abort ();
@@ -7053,7 +7073,7 @@ realize_default_face (f)
 	LFACE_BACKGROUND (lface) = XCDR (color);
       else if (FRAME_WINDOW_P (f))
 	return 0;
-      else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      else if (FRAME_INITIAL_P (f) || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_BACKGROUND (lface) = build_string (unspecified_bg);
       else
 	abort ();
@@ -7070,17 +7090,17 @@ realize_default_face (f)
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
-  if (face->font != FRAME_FONT (f))
+  if (FRAME_X_P (f) && face->font != FRAME_FONT (f))
     {
       /* This can happen when making a frame on a display that does
-	 not support the default font.  */
+ 	 not support the default font.  */
       if (!face->font)
-	return 0;
-
+ 	return 0;
+ 
       /* Otherwise, the font specified for the frame was not
-	 acceptable as a font for the default face (perhaps because
-	 auto-scaled fonts are rejected), so we must adjust the frame
-	 font.  */
+ 	 acceptable as a font for the default face (perhaps because
+ 	 auto-scaled fonts are rejected), so we must adjust the frame
+ 	 font.  */
       x_set_font (f, build_string (face->font_name), Qnil);
     }
 #endif	/* HAVE_X_WINDOWS */
@@ -7160,6 +7180,11 @@ realize_face (cache, attrs, c, base_face, former_face_id)
     face = realize_x_face (cache, attrs, c, base_face);
   else if (FRAME_TERMCAP_P (cache->f) || FRAME_MSDOS_P (cache->f))
     face = realize_tty_face (cache, attrs, c);
+  else if (FRAME_INITIAL_P (cache->f))
+    {
+      /* Create a dummy face. */
+      face = make_realized_face (attrs);
+    }
   else
     abort ();
 

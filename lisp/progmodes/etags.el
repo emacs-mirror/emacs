@@ -1904,7 +1904,8 @@ The list of tags tables to select from is stored in `tags-table-set-list';
 see the doc of that variable if you want to add names to the list."
   (interactive)
   (pop-to-buffer "*Tags Table List*")
-  (setq buffer-read-only nil)
+  (setq buffer-read-only nil
+	buffer-undo-list t)
   (erase-buffer)
   (let ((set-list tags-table-set-list)
 	(desired-point nil)

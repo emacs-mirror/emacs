@@ -1130,17 +1130,17 @@ Built on top of optional BASE-MAP, or empty sparse map if none specified.
 See doc string for allout-keybindings-list for format of binding list."
   (let ((map (or base-map (make-sparse-keymap)))
 	(pref (list allout-command-prefix)))
-    (mapcar (function
-	     (lambda (cell)
-	       (let ((add-pref (null (cdr (cdr cell))))
-		     (key-suff (list (car cell))))
-		 (apply 'define-key
-			(list map
-			      (apply 'concat (if add-pref
-						 (append pref key-suff)
-					       key-suff))
-			      (car (cdr cell)))))))
-	    keymap-list)
+    (mapc (function
+	   (lambda (cell)
+	    (let ((add-pref (null (cdr (cdr cell))))
+		  (key-suff (list (car cell))))
+	      (apply 'define-key
+		     (list map
+			   (apply 'concat (if add-pref
+					      (append pref key-suff)
+					    key-suff))
+			   (car (cdr cell)))))))
+	  keymap-list)
     map))
 ;;;_  : Menu bar
 (defvar allout-mode-exposure-menu)
@@ -2191,7 +2191,7 @@ See allout-overlay-interior-modification-handler for details."
   (when (and (featurep 'xemacs) (allout-mode-p))
     ;; process all of the pending overlays:
     (save-excursion
-      (got-char beg)
+      (goto-char beg)
       (let ((overlay (allout-get-invisibility-overlay)))
 	(allout-overlay-interior-modification-handler
 	 overlay nil beg end nil)))))
@@ -5463,7 +5463,7 @@ Defaults:
 	  (progn (set-buffer frombuf)
 		 (allout-listify-exposed from to format))))
     (set-buffer tobuf)
-    (mapcar func listified)
+    (mapc func listified)
     (pop-to-buffer tobuf)))
 
 ;;;_  - Copy exposed

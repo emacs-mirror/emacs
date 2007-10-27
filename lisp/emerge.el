@@ -1886,13 +1886,13 @@ buffer after this will cause serious problems."
   (emerge-restore-buffer-characteristics)
   ;; null out the difference markers so they don't slow down future editing
   ;; operations
-  (mapcar (function (lambda (d)
-		      (set-marker (aref d 0) nil)
-		      (set-marker (aref d 1) nil)
-		      (set-marker (aref d 2) nil)
-		      (set-marker (aref d 3) nil)
-		      (set-marker (aref d 4) nil)
-		      (set-marker (aref d 5) nil)))
+  (mapc (function (lambda (d)
+		    (set-marker (aref d 0) nil)
+		    (set-marker (aref d 1) nil)
+		    (set-marker (aref d 2) nil)
+		    (set-marker (aref d 3) nil)
+		    (set-marker (aref d 4) nil)
+		    (set-marker (aref d 5) nil)))
 	  emerge-difference-list)
   ;; allow them to be garbage collected
   (setq emerge-difference-list nil)

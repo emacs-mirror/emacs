@@ -418,11 +418,11 @@ During a selection process, these are the local bindings.
           (set-buffer selection-buffer)
           (use-local-map nil)
           (remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
-          (remove-hook 'post-command-hook 
+          (remove-hook 'post-command-hook
                        'reftex-select-post-command-hook t))
         ;; Kill the mark overlays
-        (mapcar (lambda (c) (reftex-delete-overlay (nth 1 c)))
-                reftex-select-marked)))))
+        (mapc (lambda (c) (reftex-delete-overlay (nth 1 c)))
+              reftex-select-marked)))))
 
     (set (make-local-variable 'reftex-last-line)
          (+ (count-lines (point-min) (point)) (if (bolp) 1 0)))
@@ -643,12 +643,12 @@ Useful for large TOC's."
     (and ovl (reftex-delete-overlay ovl))
     (setq reftex-select-marked (delq cell reftex-select-marked))
     (setq cnt (1+ (length reftex-select-marked)))
-    (mapcar (lambda (c)
-              (setq sep (nth 2 c))
-              (reftex-overlay-put (nth 1 c) 'before-string
-                                  (if sep
-                                      (format "*%c%d* " sep (decf cnt))
-                                    (format "*%d*  " (decf cnt)))))
+    (mapc (lambda (c)
+            (setq sep (nth 2 c))
+            (reftex-overlay-put (nth 1 c) 'before-string
+                                (if sep
+                                    (format "*%c%d* " sep (decf cnt))
+                                  (format "*%d*  " (decf cnt)))))
             reftex-select-marked)
     (message "Entry no longer marked")))
 

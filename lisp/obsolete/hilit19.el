@@ -665,9 +665,9 @@ The optional 5th arg, PROP is a property to set instead of 'hilit."
   (or quietly hilit-quietly (message "Unhighlighting"))
   (let ((lstart 0))
     (while (and start (> start lstart) (< start end))
-      (mapcar (function (lambda (ovr)
-			  (and (overlay-get ovr 'hilit) (delete-overlay ovr))))
-	      (overlays-at start))
+      (mapc (function (lambda (ovr)
+			(and (overlay-get ovr 'hilit) (delete-overlay ovr))))
+	    (overlays-at start))
       (setq lstart start start (next-overlay-change start))))
   (or quietly hilit-quietly (message "Done unhighlighting")))
 
@@ -975,24 +975,24 @@ the entire buffer is forced."
 	(progn
 
 	  ;; BUFFER highlights...
-	  (mapcar (lambda (hook)
-		    (if hilit-mode
-			(add-hook hook 'hilit-rehighlight-buffer-quietly)
-		      (remove-hook hook 'hilit-rehighlight-buffer-quietly)))
-		  '(
-		    Info-selection-hook
+	  (mapc (lambda (hook)
+		  (if hilit-mode
+		      (add-hook hook 'hilit-rehighlight-buffer-quietly)
+		    (remove-hook hook 'hilit-rehighlight-buffer-quietly)))
+		'(
+		  Info-selection-hook
 
-		    ;; runs too early		     vm-summary-mode-hooks
-		    vm-summary-pointer-hook
-		    vm-preview-message-hook
-		    vm-show-message-hook
+		  ;; runs too early		     vm-summary-mode-hooks
+		  vm-summary-pointer-hook
+		  vm-preview-message-hook
+		  vm-show-message-hook
 
-		    rmail-show-message-hook
-		    mail-setup-hook
-		    mh-show-mode-hook
+		  rmail-show-message-hook
+		  mail-setup-hook
+		  mh-show-mode-hook
 
-		    dired-after-readin-hook
-		    ))
+		  dired-after-readin-hook
+		  ))
 	  )
       (error (message "Error loading highlight hooks: %s" c)
 	     (ding) (sit-for 1)))))
@@ -1023,11 +1023,11 @@ See the variable hilit-mode-enable-list.
 
 Takes optional arguments PARSE-FN and CASE-FOLD."
   ;; change pattern
-  (mapcar (function (lambda (p)
-		      (and (stringp (car p))
-			   (null (nth 1 p))
-			   (setcar (cdr p) 0))))
-	  patterns)
+  (mapc (function (lambda (p)
+		    (and (stringp (car p))
+			 (null (nth 1 p))
+			 (setcar (cdr p) 0))))
+	patterns)
   (setq patterns (cons case-fold patterns))
 
   (or (consp modelist) (setq modelist (list modelist)))

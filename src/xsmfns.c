@@ -48,6 +48,7 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 #include "systime.h"
 #include "sysselect.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "termopts.h"
 #include "xterm.h"
@@ -508,6 +509,14 @@ x_session_initialize (dpyinfo)
       create_client_leader_window (dpyinfo, client_id);
 #endif
     }
+}
+
+/* Ensure that the session manager is not contacted again. */
+
+void
+x_session_close ()
+{
+  ice_fd = -1;
 }
 
 

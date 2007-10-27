@@ -106,24 +106,24 @@ path components followed by `..' are removed, along with the `..' itself."
       (url-recreate-url urlobj)))))
 
 (defun url-identity-expander (urlobj defobj)
-  (url-set-type urlobj (or (url-type urlobj) (url-type defobj))))
+  (setf (url-type urlobj) (or (url-type urlobj) (url-type defobj))))
 
 (defun url-default-expander (urlobj defobj)
   ;; The default expansion routine - urlobj is modified by side effect!
   (if (url-type urlobj)
       ;; Well, they told us the scheme, let's just go with it.
       nil
-    (url-set-type urlobj (or (url-type urlobj) (url-type defobj)))
-    (url-set-port urlobj (or (url-port urlobj)
-			     (and (string= (url-type urlobj)
-					   (url-type defobj))
-				  (url-port defobj))))
+    (setf (url-type urlobj) (or (url-type urlobj) (url-type defobj)))
+    (setf (url-port urlobj) (or (url-port urlobj)
+                                (and (string= (url-type urlobj)
+                                              (url-type defobj))
+                                     (url-port defobj))))
     (if (not (string= "file" (url-type urlobj)))
-	(url-set-host urlobj (or (url-host urlobj) (url-host defobj))))
+	(setf (url-host urlobj) (or (url-host urlobj) (url-host defobj))))
     (if (string= "ftp"  (url-type urlobj))
-	(url-set-user urlobj (or (url-user urlobj) (url-user defobj))))
+	(setf (url-user urlobj) (or (url-user urlobj) (url-user defobj))))
     (if (string= (url-filename urlobj) "")
-	(url-set-filename urlobj "/"))
+	(setf (url-filename urlobj) "/"))
     (if (string-match "^/" (url-filename urlobj))
 	nil
       (let ((query nil)
@@ -135,10 +135,12 @@ path components followed by `..' are removed, along with the `..' itself."
 		  sepchar (substring (url-filename urlobj) (match-beginning 0) (match-end 0)))
 	  (setq file (url-filename urlobj)))
 	(setq file (url-expander-remove-relative-links
-		    (concat (url-basepath (url-filename defobj)) file)))
-	(url-set-filename urlobj (if query (concat file sepchar query) file))))))
+		    (expand-file-name file
+				      (url-file-directory (url-filename defobj)))))
+	(setf (url-filename urlobj)
+              (if query (concat file sepchar query) file))))))
 
 (provide 'url-expand)
 
-;;; arch-tag: 7b5f744b-b721-49da-be47-484631680a5a
+;; arch-tag: 7b5f744b-b721-49da-be47-484631680a5a
 ;;; url-expand.el ends here

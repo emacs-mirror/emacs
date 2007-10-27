@@ -265,7 +265,7 @@ Return non-nil if FILE is unchanged."
 	      ;; ID not found.
 	      (if (equal (file-name-nondirectory sigfile)
 			 (subst-char-in-string
-			  ?/ ?% (vc-arch-workfile-version file)))
+			  ?/ ?% (vc-arch-working-revision file)))
 		  'added
 		;; Might be `added' or `up-to-date' as well.
 		;; FIXME: Check in the patch logs to find out.
@@ -283,7 +283,7 @@ Return non-nil if FILE is unchanged."
 		    'up-to-date
 		  'edited)))))))))
 
-(defun vc-arch-workfile-version (file)
+(defun vc-arch-working-revision (file)
   (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
 	 (defbranch (vc-arch-default-version file)))
     (when (and defbranch (string-match "\\`\\(.+@[^/\n]+\\)/\\(\\(\\(.*?\\)\\(?:--.*\\)?\\)--.*\\)\\'" defbranch))
@@ -321,7 +321,7 @@ Return non-nil if FILE is unchanged."
 
 (defun vc-arch-mode-line-string (file)
   "Return string for placement in modeline by `vc-mode-line' for FILE."
-  (let ((rev (vc-workfile-version file)))
+  (let ((rev (vc-working-revision file)))
     (dolist (rule vc-arch-mode-line-rewrite)
       (if (string-match (car rule) rev)
 	  (setq rev (replace-match (cdr rule) t nil rev))))
@@ -370,7 +370,7 @@ Return non-nil if FILE is unchanged."
 (defun vc-arch-checkin (files rev comment)
   (if rev (error "Committing to a specific revision is unsupported"))
   ;; FIXME: This implementation probably only works for singleton filesets
-  (let ((summary (file-relative-name (car file) (vc-arch-root (car files)))))
+  (let ((summary (file-relative-name (car files) (vc-arch-root (car files)))))
     ;; Extract a summary from the comment.
     (when (or (string-match "\\`Summary:[ \t]*\\(.*[^ \t\n]\\)\\([ \t]*\n\\)*" comment)
 	      (string-match "\\`[ \t]*\\(.*[^ \t\n]\\)[ \t]*\\(\n?\\'\\|\n\\([ \t]*\n\\)+\\)" comment))
@@ -389,7 +389,7 @@ Return non-nil if FILE is unchanged."
   (let ((file (car files)))
     (if (and newvers
              (vc-up-to-date-p file)
-             (equal newvers (vc-workfile-version file)))
+             (equal newvers (vc-working-revision file)))
         ;; Newvers is the base revision and the current file is unchanged,
         ;; so we can diff with the current file.
         (setq newvers nil))
@@ -406,7 +406,7 @@ Return non-nil if FILE is unchanged."
                ;; Arch does not support the typical flags.
                ;; (vc-switches 'Arch 'diff)
                (file-relative-name file)
-               (if (equal oldvers (vc-workfile-version file))
+               (if (equal oldvers (vc-working-revision file))
                    nil
                  oldvers))))
         (if async 1 status)))))	       ; async diff, pessimistic assumption.
@@ -423,7 +423,7 @@ Return non-nil if FILE is unchanged."
   "A wrapper around `vc-do-command' for use in vc-arch.el."
   (apply 'vc-do-command buffer okstatus vc-arch-command file flags))
 
-(defun vc-arch-init-version () nil)
+(defun vc-arch-init-revision () nil)
 
 ;;; Completion of versions and revisions.
 
@@ -559,7 +559,7 @@ Return non-nil if FILE is unchanged."
 
 ;;; Less obvious implementations.
 
-(defun vc-arch-find-version (file rev buffer)
+(defun vc-arch-find-revision (file rev buffer)
   (let ((out (make-temp-file "vc-out")))
     (unwind-protect
         (progn

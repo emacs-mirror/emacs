@@ -103,6 +103,7 @@
 ;;						   not good to call from Lisp)
 ;;				`make-local' (dubious calls to
 ;;					      `make-variable-buffer-local')
+;;                              `mapcar'     (mapcar called for effect)
 ;; byte-compile-compatibility	Whether the compiler should
 ;;				generate .elc files which can be loaded into
 ;;				generic emacs 18.
@@ -351,7 +352,8 @@ If it is 'byte, then only byte-level optimizations will be logged."
 
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
-	     obsolete noruntime cl-functions interactive-only)
+	     obsolete noruntime cl-functions interactive-only
+	     make-local mapcar)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "*List of warnings that the byte-compiler should issue (t for all).
@@ -370,7 +372,8 @@ Elements of the list may be:
 		  distinguished from macros and aliases).
   interactive-only
 	      commands that normally shouldn't be called from Lisp code.
-  make-local  calls to make-variable-buffer-local that may be incorrect."
+  make-local  calls to make-variable-buffer-local that may be incorrect.
+  mapcar      mapcar called for effect."
   :group 'bytecomp
   :type `(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
@@ -378,7 +381,7 @@ Elements of the list may be:
 		      (const callargs) (const redefine)
 		      (const obsolete) (const noruntime)
 		      (const cl-functions) (const interactive-only)
-		      (const make-local))))
+		      (const make-local) (const mapcar))))
 (put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 ;;;###autoload
 (defun byte-compile-warnings-safe-p (x)
@@ -389,7 +392,8 @@ Elements of the list may be:
 		     (when (memq e '(free-vars unresolved
 				     callargs redefine
 				     obsolete noruntime
-				     cl-functions interactive-only make-local))
+				     cl-functions interactive-only
+				     make-local mapcar))
 		       e))
 		   x)
 		  x))))
@@ -1055,7 +1059,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (pos (if (and byte-compile-current-file
 		       (integerp byte-compile-read-position))
 		  (with-current-buffer byte-compile-current-buffer
-		    (format "%d:%d:" 
+		    (format "%d:%d:"
 			    (save-excursion
 			      (goto-char byte-compile-last-position)
 			      (1+ (count-lines (point-min) (point-at-bol))))
@@ -1117,8 +1121,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   (setq byte-compile-last-logged-file byte-compile-current-file
 		 byte-compile-last-warned-form nil)
 	   ;; Do this after setting default-directory.
-	   (unless (eq major-mode 'compilation-mode)
-	     (compilation-mode))
+	   (unless (derived-mode-p 'compilation-mode) (compilation-mode))
 	   (compilation-forget-errors)
 	   pt))))
 
@@ -1632,7 +1635,7 @@ recompile every `.el' file that already has a `.elc' file."
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
       (compilation-mode))
-    (let ((directories (list (expand-file-name directory)))
+    (let ((directories (list default-directory))
 	  (default-directory default-directory)
 	  (skip-count 0)
 	  (fail-count 0)
@@ -1739,7 +1742,7 @@ The value is non-nil if there were no errors, nil if errors."
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
-    (with-current-buffer 
+    (with-current-buffer
         (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (erase-buffer)
       (setq buffer-file-coding-system nil)
@@ -2994,6 +2997,11 @@ That command is designed for interactive use only" fn))
 (defun byte-compile-normal-call (form)
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
+  (when (and for-effect (eq (car form) 'mapcar)
+	     (memq 'mapcar byte-compile-warnings))
+    (byte-compile-set-symbol-position 'mapcar)
+    (byte-compile-warn
+     "`mapcar' called for effect; use `mapc' or `dolist' instead"))
   (byte-compile-push-constant (car form))
   (mapc 'byte-compile-form (cdr form))	; wasteful, but faster.
   (byte-compile-out 'byte-call (length (cdr form))))
@@ -4598,18 +4606,18 @@ and corresponding effects."
       (assq 'byte-code (symbol-function 'byte-compile-form))
       (let ((byte-optimize nil)		; do it fast
 	    (byte-compile-warnings nil))
-	(mapcar (lambda (x)
-		  (or noninteractive (message "compiling %s..." x))
-		  (byte-compile x)
-		  (or noninteractive (message "compiling %s...done" x)))
-		'(byte-compile-normal-call
-		  byte-compile-form
-		  byte-compile-body
-		  ;; Inserted some more than necessary, to speed it up.
-		  byte-compile-top-level
-		  byte-compile-out-toplevel
-		  byte-compile-constant
-		  byte-compile-variable-ref))))
+	(mapc (lambda (x)
+		(or noninteractive (message "compiling %s..." x))
+		(byte-compile x)
+		(or noninteractive (message "compiling %s...done" x)))
+	      '(byte-compile-normal-call
+		byte-compile-form
+		byte-compile-body
+		;; Inserted some more than necessary, to speed it up.
+		byte-compile-top-level
+		byte-compile-out-toplevel
+		byte-compile-constant
+		byte-compile-variable-ref))))
   nil)
 
 (run-hooks 'bytecomp-load-hook)

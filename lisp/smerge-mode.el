@@ -645,8 +645,12 @@ Point is moved to the end of the conflict."
         (error nil)))
     found))
 
-(defun smerge-refine-chopup-region (beg end file)
-  "Chopup the region into small elements, one per line."
+(defun smerge-refine-chopup-region (beg end file &optional preproc)
+  "Chopup the region into small elements, one per line.
+Save the result into FILE.
+If non-nil, PREPROC is called with no argument in a buffer that contains
+a copy of the text, just before chopping it up.  It can be used to replace
+chars to try and eliminate some spurious differences."
   ;; ediff chops up into words, where the definition of a word is
   ;; customizable.  Instead we here keep only one char per line.
   ;; The advantages are that there's nothing to configure, that we get very
@@ -661,14 +665,18 @@ Point is moved to the end of the conflict."
   (let ((buf (current-buffer)))
     (with-temp-buffer
       (insert-buffer-substring buf beg end)
+      (when preproc (goto-char (point-min)) (funcall preproc))
       (goto-char (point-min))
       (while (not (eobp))
         (forward-char 1)
+        ;; We add \n after each char except after \n, so we get one line per
+        ;; text char, where each line contains just one char, except for \n
+        ;; chars which are represented by the empty line.
         (unless (eq (char-before) ?\n) (insert ?\n)))
       (let ((coding-system-for-write 'emacs-mule))
         (write-region (point-min) (point-max) file nil 'nomessage)))))
 
-(defun smerge-refine-highlight-change (buf beg match-num1 match-num2)
+(defun smerge-refine-highlight-change (buf beg match-num1 match-num2 props)
   (let* ((startline (string-to-number (match-string match-num1)))
          (ol (make-overlay
               (+ beg startline -1)
@@ -676,30 +684,25 @@ Point is moved to the end of the conflict."
                          (string-to-number (match-string match-num2))
                        startline))
               buf
+              ;; Make them tend to shrink rather than spread when editing.
               'front-advance nil)))
-    (overlay-put ol 'smerge 'refine)
     (overlay-put ol 'evaporate t)
-    (overlay-put ol 'face 'smerge-refined-change)))
+    (dolist (x props)
+      (overlay-put ol (car x) (cdr x)))))
 
-
-(defun smerge-refine ()
-  "Highlight the parts of the conflict that are different."
-  (interactive)
-  ;; FIXME: make it work with 3-way conflicts.
-  (smerge-match-conflict)
-  (remove-overlays (match-beginning 0) (match-end 0) 'smerge 'refine)
-  (smerge-ensure-match 1)
-  (smerge-ensure-match 3)
-  (let ((buf (current-buffer))
-        ;; Read them before the match-data gets clobbered.
-	(beg1 (match-beginning 1)) (end1 (match-end 1))
-	(beg2 (match-beginning 3)) (end2 (match-end 3))
-	(file1 (make-temp-file "smerge1"))
-	(file2 (make-temp-file "smerge2")))
+(defun smerge-refine-subst (beg1 end1 beg2 end2 props &optional preproc)
+  "Show fine differences in the two regions BEG1..END1 and BEG2..END2.
+PROPS is an alist of properties to put (via overlays) on the changes.
+If non-nil, PREPROC is called with no argument in a buffer that contains
+a copy of a region, just before preparing it to for `diff'.  It can be used to
+replace chars to try and eliminate some spurious differences."
+  (let* ((buf (current-buffer))
+         (file1 (make-temp-file "diff1"))
+         (file2 (make-temp-file "diff2")))
 
     ;; Chop up regions into smaller elements and save into files.
-    (smerge-refine-chopup-region beg1 end1 file1)
-    (smerge-refine-chopup-region beg2 end2 file2)
+    (smerge-refine-chopup-region beg1 end1 file1 preproc)
+    (smerge-refine-chopup-region beg2 end2 file2 preproc)
 
     ;; Call diff on those files.
     (unwind-protect
@@ -716,14 +719,27 @@ Point is moved to the end of the conflict."
                        (buffer-substring (point) (line-end-position)))
               (let ((op (char-after (match-beginning 3))))
                 (when (memq op '(?d ?c))
-                  (smerge-refine-highlight-change buf beg1 1 2))
+                  (smerge-refine-highlight-change buf beg1 1 2 props))
                 (when (memq op '(?a ?c))
-                  (smerge-refine-highlight-change buf beg2 4 5)))
+                  (smerge-refine-highlight-change buf beg2 4 5 props)))
               (forward-line 1)                            ;Skip hunk header.
               (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
                    (goto-char (match-beginning 0))))))
       (delete-file file1)
       (delete-file file2))))
+
+(defun smerge-refine ()
+  "Highlight the parts of the conflict that are different."
+  (interactive)
+  ;; FIXME: make it work with 3-way conflicts.
+  (smerge-match-conflict)
+  (remove-overlays (match-beginning 0) (match-end 0) 'smerge 'refine)
+  (smerge-ensure-match 1)
+  (smerge-ensure-match 3)
+  (smerge-refine-subst (match-beginning 1) (match-end 1)
+                       (match-beginning 3) (match-end 3)
+                       '((smerge . refine)
+                         (face . smerge-refined-change))))
 
 (defun smerge-diff (n1 n2)
   (smerge-match-conflict)

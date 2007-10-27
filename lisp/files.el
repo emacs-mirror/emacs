@@ -59,8 +59,9 @@ FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
 *Every* FROM string should start with `^'.
 
-Do not use `~' in the TO strings.
-They should be ordinary absolute directory names.
+FROM and TO should be equivalent names, which refer to the
+same directory.  Do not use `~' in the TO strings;
+they should be ordinary absolute directory names.
 
 Use this feature when you have directories which you normally refer to
 via absolute symbolic links.  Make TO the name of the link, and FROM
@@ -554,7 +555,7 @@ See Info node `(elisp)Standard File Names' for more details."
 	    (start 0))
 	;; Replace invalid filename characters with !
 	(while (string-match "[?*:<>|\"\000-\037]" name start)
-	  (aset name (match-beginning 0) ?!)
+	       (aset name (match-beginning 0) ?!)
 	  (setq start (match-end 0)))
 	name)
     filename))
@@ -643,7 +644,7 @@ The path separator is colon in GNU and GNU-like systems."
 	(let ((trypath (parse-colon-path (getenv "CDPATH"))))
 	  (setq cd-path (or trypath (list "./")))))
     (if (not (catch 'found
-	       (mapcar
+	       (mapc
 		(function (lambda (x)
 			    (let ((f (expand-file-name (concat x dir))))
 			      (if (file-directory-p f)
@@ -1107,6 +1108,13 @@ Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
+You can visit files on remote machines by specifying something
+like /ssh:SOME_REMOTE_MACHINE:FILE for the file name.  You can
+also visit local files as a different user by specifying
+/sudo::FILE for the file name.
+See the Info node `(tramp)Filename Syntax' in the Tramp Info
+manual, for more about this.
+
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  You can
 suppress wildcard expansion by setting `find-file-wildcards' to nil.
@@ -1123,8 +1131,9 @@ automatically choosing a major mode, use \\[find-file-literally]."
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
-May create a new window, or reuse an existing one.
-See the function `display-buffer'.
+
+Like \\[find-file] (which see), but creates a new window or reuses
+an existing one.  See the function `display-buffer'.
 
 Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
@@ -1145,8 +1154,9 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-other-frame (filename &optional wildcards)
   "Edit file FILENAME, in another frame.
-May create a new frame, or reuse an existing one.
-See the function `display-buffer'.
+
+Like \\[find-file] (which see), but creates a new frame or reuses
+an existing one.  See the function `display-buffer'.
 
 Interactively, the default if you just type RET is the current directory,
 but the visited file name is available through the minibuffer history:
@@ -1167,7 +1177,7 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-existing (filename)
    "Edit the existing file FILENAME.
-Like \\[find-file] but only allow a file that exists, and do not allow
+Like \\[find-file], but only allow a file that exists, and do not allow
 file names with wildcards."
    (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
    (if (and (not (interactive-p)) (not (file-exists-p filename)))
@@ -1177,7 +1187,7 @@ file names with wildcards."
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
-Like \\[find-file] but marks buffer as read-only.
+Like \\[find-file], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
@@ -1194,7 +1204,7 @@ Use \\[toggle-read-only] to permit editing."
 
 (defun find-file-read-only-other-window (filename &optional wildcards)
   "Edit file FILENAME in another window but don't allow changes.
-Like \\[find-file-other-window] but marks buffer as read-only.
+Like \\[find-file-other-window], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
@@ -1211,7 +1221,7 @@ Use \\[toggle-read-only] to permit editing."
 
 (defun find-file-read-only-other-frame (filename &optional wildcards)
   "Edit file FILENAME in another frame but don't allow changes.
-Like \\[find-file-other-frame] but marks buffer as read-only.
+Like \\[find-file-other-frame], but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
@@ -1229,6 +1239,8 @@ Use \\[toggle-read-only] to permit editing."
 (defun find-alternate-file-other-window (filename &optional wildcards)
   "Find file FILENAME as a replacement for the file in the next window.
 This command does not select that window.
+
+See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files."
@@ -1254,6 +1266,8 @@ expand wildcards (if any) and replace the file with multiple files."
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
 \(presumably by mistake), use this command to visit the file you really want.
+
+See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
@@ -1319,11 +1333,14 @@ killed."
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
 FILENAME (sans directory) is used unchanged if that name is free;
-otherwise a string <2> or <3> or ... is appended to get an unused name."
+otherwise a string <2> or <3> or ... is appended to get an unused name.
+Spaces at the start of FILENAME (sans directory) are removed."
   (let ((lastname (file-name-nondirectory filename)))
     (if (string= lastname "")
 	(setq lastname filename))
-    (generate-new-buffer lastname)))
+    (save-match-data
+      (string-match "^ *\\(.*\\)" lastname)
+      (generate-new-buffer (match-string 1 lastname)))))
 
 (defun generate-new-buffer (name)
   "Create and return a buffer with a name based on NAME.
@@ -2010,8 +2027,9 @@ since only a single case-insensitive search through the alist is made."
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with
      ;; `auto-coding-alist' with `no-conversion' coding system.
-     ("\\.\\(arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . archive-mode)
+     ("\\.\\(\
+arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|\
+ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.\\(sx[dmicw]\\|odt\\)\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
@@ -2485,6 +2503,7 @@ asking you for confirmation."
 	minor-mode-overriding-map-alist
 	mode-line-buffer-identification
 	mode-line-format
+	mode-line-client
 	mode-line-modes
 	mode-line-modified
 	mode-line-mule-info
@@ -2537,7 +2556,11 @@ asking you for confirmation."
 
 (put 'c-set-style 'safe-local-eval-function t)
 
-(defun hack-local-variables-confirm (vars unsafe-vars risky-vars)
+(defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars)
+  "Get confirmation before setting up local variable values.
+ALL-VARS is the list of all variables to be set up.
+UNSAFE-VARS is the list of those that aren't marked as safe or risky.
+RISKY-VARS is the list of those that are marked as risky."
   (if noninteractive
       nil
     (let ((name (if buffer-file-name
@@ -2568,7 +2591,7 @@ n  -- to ignore the local variables list.")
 !  -- to apply the local variables list, and permanently mark these
       values (*) as safe (in the future, they will be set automatically.)\n\n")
 	    (insert "\n\n"))
-	  (dolist (elt vars)
+	  (dolist (elt all-vars)
 	    (cond ((member elt unsafe-vars)
 		   (insert "  * "))
 		  ((member elt risky-vars)
@@ -3178,18 +3201,22 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	  ;; loosen them later, whereas it's impossible to close the
 	  ;; time-window of loose permissions otherwise.
 	  (set-default-file-modes ?\700)
-	  (while (condition-case ()
-		     (progn
-		       (and (file-exists-p to-name)
-			    (delete-file to-name))
-		       (copy-file from-name to-name nil t)
-		       nil)
-		   (file-already-exists t))
-	    ;; The file was somehow created by someone else between
-	    ;; `delete-file' and `copy-file', so let's try again.
-	    ;; rms says "I think there is also a possible race
-	    ;; condition for making backup files" (emacs-devel 20070821).
-	    nil))
+	  (when (condition-case nil
+		    ;; Try to overwrite old backup first.
+		    (copy-file from-name to-name t t)
+		  (error t))
+	    (while (condition-case nil
+		       (progn
+			 (when (file-exists-p to-name)
+			   (delete-file to-name))
+			 (copy-file from-name to-name nil t)
+			 nil)
+		     (file-already-exists t))
+	      ;; The file was somehow created by someone else between
+	      ;; `delete-file' and `copy-file', so let's try again.
+	      ;; rms says "I think there is also a possible race
+	      ;; condition for making backup files" (emacs-devel 20070821).
+	      nil)))
       ;; Reset the umask.
       (set-default-file-modes umask)))
   (and modes
@@ -3218,7 +3245,7 @@ we do not remove backup version numbers, only true file version numbers."
 			 (length name))
 		   (if keep-backup-version
 		       (length name)
-		     (or (string-match "\\.~[0-9.]+~\\'" name)
+		     (or (string-match "\\.~[-[:alnum:]:#@^._]+~\\'" name)
 			 (string-match "~\\'" name)
 			 (length name))))))))
 
@@ -5299,6 +5326,22 @@ With prefix arg, silently save all file-visiting buffers, then kill."
        (or (null confirm-kill-emacs)
 	   (funcall confirm-kill-emacs "Really exit Emacs? "))
        (kill-emacs)))
+
+(defun save-buffers-kill-terminal (&optional arg)
+  "Offer to save each buffer, then kill the current connection.
+If the current frame has no client, kill Emacs itself.
+
+With prefix arg, silently save all file-visiting buffers, then kill.
+
+If emacsclient was started with a list of filenames to edit, then
+only these files will be asked to be saved."
+  (interactive "P")
+  (let ((proc (frame-parameter (selected-frame) 'client))
+	(frame (selected-frame)))
+    (if (null proc)
+	(save-buffers-kill-emacs)
+      (server-save-buffers-kill-terminal proc arg))))
+
 
 ;; We use /: as a prefix to "quote" a file name
 ;; so that magic file name handlers will not apply to it.
@@ -5387,6 +5430,98 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	  (t
 	   (apply operation arguments)))))
 
+;; Symbolic modes and read-file-modes.
+
+(defun file-modes-char-to-who (char)
+  "Convert CHAR to a who-mask from a symbolic mode notation.
+CHAR is in [ugoa] and represents the users on which rights are applied."
+  (cond ((= char ?u) #o4700)
+	((= char ?g) #o2070)
+	((= char ?o) #o1007)
+	((= char ?a) #o7777)
+	(t (error "%c: bad `who' character" char))))
+
+(defun file-modes-char-to-right (char &optional from)
+  "Convert CHAR to a right-mask from a symbolic mode notation.
+CHAR is in [rwxXstugo] and represents a right.
+If CHAR is in [Xugo], the value is extracted from FROM (or 0 if nil)."
+  (or from (setq from 0))
+  (cond ((= char ?r) #o0444)
+	((= char ?w) #o0222)
+	((= char ?x) #o0111)
+	((= char ?s) #o1000)
+	((= char ?t) #o6000)
+	;; Rights relative to the previous file modes.
+	((= char ?X) (if (= (logand from #o111) 0) 0 #o0111))
+	((= char ?u) (let ((uright (logand #o4700 from)))
+		       (+ uright (/ uright #o10) (/ uright #o100))))
+	((= char ?g) (let ((gright (logand #o2070 from)))
+		       (+ gright (/ gright #o10) (* gright #o10))))
+	((= char ?o) (let ((oright (logand #o1007 from)))
+		       (+ oright (* oright #o10) (* oright #o100))))
+	(t (error "%c: bad right character" char))))
+
+(defun file-modes-rights-to-number (rights who-mask &optional from)
+  "Convert a right string to a right-mask from a symbolic modes notation.
+RIGHTS is the right string, it should match \"([+=-][rwxXstugo]+)+\".
+WHO-MASK is the mask number of the users on which the rights are to be applied.
+FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+  (let* ((num-rights (or from 0))
+	 (list-rights (string-to-list rights))
+	 (op (pop list-rights)))
+    (while (memq op '(?+ ?- ?=))
+      (let ((num-right 0)
+	    char-right)
+	(while (memq (setq char-right (pop list-rights))
+		     '(?r ?w ?x ?X ?s ?t ?u ?g ?o))
+	  (setq num-right
+		(logior num-right
+			(file-modes-char-to-right char-right num-rights))))
+	(setq num-right (logand who-mask num-right)
+	      num-rights
+	      (cond ((= op ?+) (logior num-rights num-right))
+		    ((= op ?-) (logand num-rights (lognot num-right)))
+		    (t (logior (logand num-rights (lognot who-mask)) num-right)))
+	      op char-right)))
+    num-rights))
+
+(defun file-modes-symbolic-to-number (modes &optional from)
+  "Convert symbolic file modes to numeric file modes.
+MODES is the string to convert, it should match
+\"[ugoa]*([+-=][rwxXstugo]+)+,...\".
+See (info \"(coreutils)File permissions\") for more information on this
+notation.
+FROM (or 0 if nil) is the orginal modes of the file to be chmod'ed."
+  (save-match-data
+    (let ((case-fold-search nil)
+	  (num-modes (or from 0)))
+      (while (/= (string-to-char modes) 0)
+	(if (string-match "^\\([ugoa]*\\)\\([+=-][rwxXstugo]+\\)+\\(,\\|\\)" modes)
+	    (let ((num-who (apply 'logior 0
+				  (mapcar 'file-modes-char-to-who
+					  (match-string 1 modes)))))
+	      (when (= num-who 0)
+		(setq num-who (default-file-modes)))
+	      (setq num-modes
+		    (file-modes-rights-to-number (substring modes (match-end 1))
+						 num-who num-modes)
+		    modes (substring modes (match-end 3))))
+	  (error "Parse error in modes near `%s'" (substring modes 0))))
+      num-modes)))
+
+(defun read-file-modes (&optional prompt orig-file)
+  "Read file modes in octal or symbolic notation.
+PROMPT is used as the prompt, default to `File modes (octal or symbolic): '.
+ORIG-FILE is the original file of which modes will be change."
+  (let* ((modes (or (if orig-file (file-modes orig-file) 0)
+		    (error "File not found")))
+	 (value (read-string (or prompt "File modes (octal or symbolic): "))))
+    (save-match-data
+      (if (string-match "^[0-7]+" value)
+	  (string-to-number value 8)
+	(file-modes-symbolic-to-number value modes)))))
+
+
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)
 (define-key ctl-x-map "\C-v" 'find-alternate-file)
@@ -5396,7 +5531,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-map "i" 'insert-file)
 (define-key esc-map "~" 'not-modified)
 (define-key ctl-x-map "\C-d" 'list-directory)
-(define-key ctl-x-map "\C-c" 'save-buffers-kill-emacs)
+(define-key ctl-x-map "\C-c" 'save-buffers-kill-terminal)
 (define-key ctl-x-map "\C-q" 'toggle-read-only)
 
 (define-key ctl-x-4-map "f" 'find-file-other-window)

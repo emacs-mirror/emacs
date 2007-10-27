@@ -168,7 +168,7 @@ Strips out default port numbers, etc."
 	  type (url-type data))
     (if (member type '("www" "about" "mailto" "info"))
 	(setq retval url)
-      (url-set-target data nil)
+      (setf (url-target data) nil)
       (setq retval (url-recreate-url data)))
     retval))
 
@@ -190,7 +190,7 @@ Will not do anything if `url-show-status' is nil."
   (let* ((raw (if specified-time (current-time-string specified-time)
 		(current-time-string)))
 	 (gmt (timezone-make-date-arpa-standard raw
-						(nth 1 (current-time-zone))
+						(current-time-zone)
 						"GMT"))
 	 (parsed (timezone-parse-date gmt))
 	 (day (cdr-safe (assoc (substring raw 0 3) url-weekday-alist)))
@@ -259,16 +259,22 @@ Will not do anything if `url-show-status' is nil."
     (/ (* x 100) y)))
 
 ;;;###autoload
-(defun url-basepath (file &optional x)
-  "Return the base pathname of FILE, or the actual filename if X is true."
+(defun url-file-directory (file)
+  "Return the directory part of FILE, for a URL."
   (cond
    ((null file) "")
    ((string-match (eval-when-compile (regexp-quote "?")) file)
-    (if x
-	(file-name-nondirectory (substring file 0 (match-beginning 0)))
-      (file-name-directory (substring file 0 (match-beginning 0)))))
-   (x (file-name-nondirectory file))
+    (file-name-directory (substring file 0 (match-beginning 0))))
    (t (file-name-directory file))))
+
+;;;###autoload
+(defun url-file-nondirectory (file)
+  "Return the nondirectory part of FILE, for a URL."
+  (cond
+   ((null file) "")
+   ((string-match (eval-when-compile (regexp-quote "?")) file)
+    (file-name-nondirectory (substring file 0 (match-beginning 0))))
+   (t (file-name-nondirectory file))))
 
 ;;;###autoload
 (defun url-parse-query-string (query &optional downcase allow-newlines)
@@ -385,7 +391,7 @@ string: \"%\" followed by two lowercase hex digits."
 If optional variable X is t,
 then return the basename of the file with the extension stripped off."
   (if (and fname
-	   (setq fname (url-basepath fname t))
+	   (setq fname (url-file-nondirectory fname))
 	   (string-match "\\.[^./]+$" fname))
       (if x (substring fname 0 (match-beginning 0))
 	(substring fname (match-beginning 0) nil))
@@ -421,13 +427,13 @@ WIDTH defaults to the current frame width."
 		  (string-match "/" fname))
 	(setq fname (substring fname (match-end 0) nil)
 	      modified (1+ modified))
-	(url-set-filename urlobj fname)
+	(setf (url-filename urlobj) fname)
 	(setq url (url-recreate-url urlobj)
 	      str-width (length url)))
       (if (> modified 1)
 	  (setq fname (concat "/.../" fname))
 	(setq fname (concat "/" fname)))
-      (url-set-filename urlobj fname)
+      (setf (url-filename urlobj) fname)
       (setq url (url-recreate-url urlobj)))
     url))
 

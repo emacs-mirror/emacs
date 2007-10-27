@@ -24,11 +24,8 @@
 
 ;;; Commentary:
 
-;; This is preliminary support for Subversion (http://subversion.tigris.org/).
-;; It started as `sed s/cvs/svn/ vc.cvs.el' (from version 1.56)
-;; and hasn't been completely fixed since.
-
-;; Sync'd with Subversion's vc-svn.el as of revision 5801.
+;; Sync'd with Subversion's vc-svn.el as of revision 5801. but this version
+;; has been extensively modified since to handle filesets.
 
 ;;; Bugs:
 
@@ -163,13 +160,13 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 
-(defun vc-svn-workfile-version (file)
-  "SVN-specific version of `vc-workfile-version'."
+(defun vc-svn-working-revision (file)
+  "SVN-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under SVN, because we
   ;; get the workfile version for free when we recognize that a file
   ;; is registered in SVN.
   (vc-svn-registered file)
-  (vc-file-getprop file 'vc-workfile-version))
+  (vc-file-getprop file 'vc-working-revision))
 
 (defun vc-svn-checkout-model (file)
   "SVN-specific version of `vc-checkout-model'."
@@ -183,25 +180,25 @@ If you want to force an empty list of arguments, use t."
   "SVN-specific version of `vc-dired-state-info'."
   (let ((svn-state (vc-state file)))
     (cond ((eq svn-state 'edited)
-	   (if (equal (vc-workfile-version file) "0")
+	   (if (equal (vc-working-revision file) "0")
 	       "(added)" "(modified)"))
 	  ((eq svn-state 'needs-patch) "(patch)")
 	  ((eq svn-state 'needs-merge) "(merge)"))))
 
-(defun vc-svn-previous-version (file rev)
+(defun vc-svn-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (< 0 newrev)
       (number-to-string newrev))))
 
-(defun vc-svn-next-version (file rev)
+(defun vc-svn-next-revision (file rev)
   (let ((newrev (1+ (string-to-number rev))))
-    ;; The "workfile version" is an uneasy conceptual fit under Subversion;
+    ;; The "working revision" is an uneasy conceptual fit under Subversion;
     ;; we use it as the upper bound until a better idea comes along.  If the
     ;; workfile version W coincides with the tree's latest revision R, then
     ;; this check prevents a "no such revision: R+1" error.  Otherwise, it
     ;; inhibits showing of W+1 through R, which could be considered anywhere
     ;; from gracious to impolite.
-    (unless (< (string-to-number (vc-file-getprop file 'vc-workfile-version))
+    (unless (< (string-to-number (vc-file-getprop file 'vc-working-revision))
                newrev)
       (number-to-string newrev))))
 
@@ -259,11 +256,11 @@ This is only possible if SVN is responsible for FILE's directory.")
         (error "Check-in failed"))))
     ;; Update file properties
     ;; (vc-file-setprop
-    ;;  file 'vc-workfile-version
+    ;;  file 'vc-working-revision
     ;;  (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
     ))
 
-(defun vc-svn-find-version (file rev buffer)
+(defun vc-svn-find-revision (file rev buffer)
   "SVN-specific retrieval of a specified version into a buffer."
   (apply 'vc-svn-command
 	 buffer 0 file
@@ -284,7 +281,7 @@ This is only possible if SVN is responsible for FILE's directory.")
       ;; If no revision was specified, there's nothing to do.
       nil
     ;; Check out a particular version (or recreate the file).
-    (vc-file-setprop file 'vc-workfile-version nil)
+    (vc-file-setprop file 'vc-working-revision nil)
     (apply 'vc-svn-command nil 0 file
 	   "update"
 	   ;; default for verbose checkout: clear the sticky tag so
@@ -324,18 +321,18 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-svn-merge-news (file)
   "Merge in any new changes made to FILE."
   (message "Merging changes into %s..." file)
-  ;; (vc-file-setprop file 'vc-workfile-version nil)
+  ;; (vc-file-setprop file 'vc-working-revision nil)
   (vc-file-setprop file 'vc-checkout-time 0)
   (vc-svn-command nil 0 file "update")
   ;; Analyze the merge result reported by SVN, and set
   ;; file properties accordingly.
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
-    ;; get new workfile version
+    ;; get new working revision
     (if (re-search-forward
 	 "^\\(Updated to\\|At\\) revision \\([0-9]+\\)" nil t)
-	(vc-file-setprop file 'vc-workfile-version (match-string 2))
-      (vc-file-setprop file 'vc-workfile-version nil))
+	(vc-file-setprop file 'vc-working-revision (match-string 2))
+      (vc-file-setprop file 'vc-working-revision nil))
     ;; get file status
     (goto-char (point-min))
     (prog1
@@ -382,12 +379,21 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     (let ((inhibit-read-only t))
       (goto-char (point-min))
       ;; Add a line to tell log-view-mode what file this is.
-      (insert "Working file(s): " (vc-delistify (mapcar 'file-relative-name files)) "\n"))
+      ;; FIXME if there are multiple files, log-view-current-file
+      ;; breaks.  It's trivial to adapt log-view-file-re for the
+      ;; changed prefix, but less trivial to make
+      ;; log-view-current-file actually do the right thing in the
+      ;; multiple file case.
+      (insert (format "Working file%s: "
+		      (if (= (length files) 1)
+			  ""
+			"s"))
+		      (vc-delistify (mapcar 'file-relative-name files)) "\n"))
     (vc-svn-command
      buffer
      (if (and (= (length files) 1) (vc-stay-local-p (car files)) (fboundp 'start-process)) 'async 0)
      files "log"
-     ;; By default Subversion only shows the log upto the working version,
+     ;; By default Subversion only shows the log upto the working revision,
      ;; whereas we also want the log of the subsequent commits.  At least
      ;; that's what the vc-cvs.el code does.
      "-rHEAD:0")))
@@ -398,11 +404,11 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   nil)
 
 (defun vc-svn-diff (files &optional oldvers newvers buffer)
-  "Get a difference report using SVN between two versions of fileset FILES."
+  "Get a difference report using SVN between two revisions of fileset FILES."
   (and oldvers
        (catch 'no
 	 (dolist (f files)
-	   (or (equal oldvers (vc-workfile-version f))
+	   (or (equal oldvers (vc-working-revision f))
 	       (throw 'no nil)))
 	 t)
        ;; Use nil rather than the current revision because svn handles
@@ -433,14 +439,14 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 
 (defun vc-svn-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."
-  (vc-svn-diff (file-name-as-directory dir) rev1 rev2))
+  (vc-svn-diff (list (file-name-as-directory dir)) rev1 rev2))
 
 ;;;
 ;;; Snapshot system
 ;;;
 
 (defun vc-svn-create-snapshot (dir name branchp)
-  "Assign to DIR's current version a given NAME.
+  "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch).
 NAME is assumed to be a URL."
@@ -512,6 +518,33 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
       ;; behavior for different modules on the same server.
       (match-string 1))))
 
+(defun vc-svn-resolve-when-done ()
+  "Call \"svn resolved\" if the conflict markers have been removed."
+  (save-excursion
+    (goto-char (point-min))
+    (if (not (re-search-forward "^<<<<<<< " nil t))
+        (vc-svn-command nil 0 buffer-file-name "resolved"))))
+
+;; Inspired by vc-arch-find-file-hook.
+(defun vc-svn-find-file-hook ()
+  (when (eq ?C (vc-file-getprop buffer-file-name 'vc-svn-status))
+    ;; If the file is marked as "conflicted", then we should try and call
+    ;; "svn resolved" when applicable.
+    (if (save-excursion
+          (goto-char (point-min))
+          (re-search-forward "^<<<<<<< " nil t))
+        ;; There are conflict markers.
+        (progn
+          (smerge-mode 1)
+          (add-hook 'after-save-hook 'vc-svn-resolve-when-done nil t))
+      ;; There are no conflict markers.  This is problematic: maybe it means
+      ;; the conflict has been resolved and we should immediately call "svn
+      ;; resolved", or it means that the file's type does not allow Svn to
+      ;; use conflict markers in which case we don't really know what to do.
+      ;; So let's just punt for now.
+      nil)
+    (message "There are unresolved conflicts in this file")))
+
 (defun vc-svn-parse-status (&optional filename)
   "Parse output of \"svn status\" command in the current buffer.
 Set file properties accordingly.  Unless FILENAME is non-nil, parse only
@@ -533,7 +566,9 @@ information about FILENAME and return its status."
 	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
 	;; Use the last-modified revision, so that searching in vc-print-log
 	;; output works.
-	(vc-file-setprop file 'vc-workfile-version (match-string 3))
+	(vc-file-setprop file 'vc-working-revision (match-string 3))
+        ;; Remember Svn's own status.
+        (vc-file-setprop file 'vc-svn-status status)
 	(vc-file-setprop
 	 file 'vc-state
 	 (cond
@@ -545,7 +580,7 @@ information about FILENAME and return its status."
 	     'up-to-date))
 	  ((eq status ?A)
 	   ;; If the file was actually copied, (match-string 2) is "-".
-	   (vc-file-setprop file 'vc-workfile-version "0")
+	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
 	   'edited)
 	  ((memq status '(?M ?C))
@@ -567,8 +602,8 @@ information about FILENAME and return its status."
   (and (string-match "^[a-zA-Z]" tag)
        (not (string-match "[^a-z0-9A-Z-_]" tag))))
 
-(defun vc-svn-valid-version-number-p (tag)
-  "Return non-nil if TAG is a valid version number."
+(defun vc-svn-valid-revision-number-p (tag)
+  "Return non-nil if TAG is a valid revision number."
   (and (string-match "^[0-9]" tag)
        (not (string-match "[^0-9]" tag))))
 

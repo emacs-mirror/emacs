@@ -149,6 +149,19 @@ pass to the OPERATION."
 	    (with-parsed-tramp-file-name (car args) nil
 	      (tramp-set-connection-property v "started" t))
 	  nil))
+       ;; If the second argument of `copy-file' or `rename-file' is a
+       ;; remote file name but via FTP, ange-ftp doesn't check this.
+       ;; We must copy it locally first, because there is no place in
+       ;; ange-ftp for correct handling.
+       ((and (memq operation '(copy-file rename-file))
+	     (file-remote-p (cadr args))
+	     (not (tramp-ftp-file-name-p (cadr args))))
+	(let* ((filename (car args))
+	       (newname (cadr args))
+	       (tmpfile (tramp-compat-make-temp-file filename))
+	       (args (cddr args)))
+	  (apply operation filename tmpfile args)
+	  (rename-file tmpfile newname (car args))))
        ;; Normally, the handlers must be discarded.
        (t (let* ((inhibit-file-name-handlers
 		  (list 'tramp-file-name-handler

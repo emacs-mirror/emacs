@@ -37,6 +37,8 @@ s/\.h\.in/.h-in/
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^LIBSOUND *=/s/@LIBSOUND@//
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
+/^RSVG_LIBS *=/s/@RSVG_LIBS@//
+/^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
 /^EXEEXT *=/s/@EXEEXT@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!

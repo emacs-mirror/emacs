@@ -400,7 +400,7 @@ which a stone will be taken away) and target."
 	       (<= (current-column) solitaire-end-x)
 	       (>= (solitaire-current-line) solitaire-start-y)
 	       (<= (solitaire-current-line) solitaire-end-y)
-	       (mapcar
+	       (mapc
 		(lambda (movesymbol)
 		  (if (listp (solitaire-possible-move movesymbol))
 		      (setq count (1+ count))))
@@ -446,13 +446,13 @@ Seen in info on text lines."
 	;; right S-left
 	(solitaire-auto-eval nil))
     (solitaire-center-point)
-    (mapcar (lambda (op)
-	      (if (memq op '(S-left S-right S-up S-down))
-		  (sit-for 0.2))
-	      (execute-kbd-macro (vector op))
-	      (if (memq op '(S-left S-right S-up S-down))
-		  (sit-for 0.4)))
-	    allmoves))
+    (mapc (lambda (op)
+	    (if (memq op '(S-left S-right S-up S-down))
+		(sit-for 0.2))
+	    (execute-kbd-macro (vector op))
+	    (if (memq op '(S-left S-right S-up S-down))
+		(sit-for 0.4)))
+	  allmoves))
   (solitaire-do-check))
 
 (provide 'solitaire)

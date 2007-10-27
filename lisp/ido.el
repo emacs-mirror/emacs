@@ -3354,7 +3354,7 @@ for first matching file."
 
 (defun ido-to-end (items)
   ;; Move the elements from ITEMS to the end of `ido-temp-list'
-  (mapcar
+  (mapc
    (lambda (elem)
      (setq ido-temp-list (delq elem ido-temp-list)))
    items)
@@ -3603,7 +3603,7 @@ for first matching file."
 	 full-matches suffix-matches prefix-matches matches)
     (setq ido-incomplete-regexp nil)
     (condition-case error
-        (mapcar
+        (mapc
          (lambda (item)
            (let ((name (ido-name item)))
 	     (if (and (or non-prefix-dot
@@ -3648,7 +3648,7 @@ for first matching file."
       (setq re (mapconcat #'regexp-quote (split-string ido-text "") ".*"))
       (if ido-enable-prefix
 	  (setq re (concat "\\`" re)))
-      (mapcar
+      (mapc
        (lambda (item)
 	 (let ((name (ido-name item)))
 	   (if (string-match re name)

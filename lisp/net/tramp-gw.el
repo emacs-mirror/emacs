@@ -307,7 +307,7 @@ password in password cache.  This is done for the first try only."
        "%s:%s"
        socks-username
        (tramp-read-passwd
-	proc
+	nil
 	(format
 	 "Password for %s@[%s]: " socks-username (read (current-buffer)))))))))
 

@@ -27,64 +27,24 @@
 ;;; Code:
 
 (require 'url-vars)
+(eval-when-compile (require 'cl))
 
 (autoload 'url-scheme-get-property "url-methods")
 
-(defmacro url-type (urlobj)
-  `(aref ,urlobj 0))
+(defstruct (url
+            (:constructor nil)
+            (:constructor url-parse-make-urlobj
+                          (&optional type user password host portspec filename
+                                     target attributes fullness))
+            (:copier nil))
+  type user password host portspec filename target attributes fullness)
 
-(defmacro url-user (urlobj)
-  `(aref ,urlobj 1))
+(defsubst url-port (urlobj)
+  (or (url-portspec urlobj)
+      (if (url-fullness urlobj)
+          (url-scheme-get-property (url-type urlobj) 'default-port))))
 
-(defmacro url-password (urlobj)
-  `(aref ,urlobj 2))
-
-(defmacro url-host (urlobj)
-  `(aref ,urlobj 3))
-
-(defmacro url-port (urlobj)
-  `(or (aref ,urlobj 4)
-      (if (url-fullness ,urlobj)
-	  (url-scheme-get-property (url-type ,urlobj) 'default-port))))
-
-(defmacro url-filename (urlobj)
-  `(aref ,urlobj 5))
-
-(defmacro url-target (urlobj)
-  `(aref ,urlobj 6))
-
-(defmacro url-attributes (urlobj)
-  `(aref ,urlobj 7))
-
-(defmacro url-fullness (urlobj)
-  `(aref ,urlobj 8))
-
-(defmacro url-set-type (urlobj type)
-  `(aset ,urlobj 0 ,type))
-
-(defmacro url-set-user (urlobj user)
-  `(aset ,urlobj 1 ,user))
-
-(defmacro url-set-password (urlobj pass)
-  `(aset ,urlobj 2 ,pass))
-
-(defmacro url-set-host (urlobj host)
-  `(aset ,urlobj 3 ,host))
-
-(defmacro url-set-port (urlobj port)
-  `(aset ,urlobj 4 ,port))
-
-(defmacro url-set-filename (urlobj file)
-  `(aset ,urlobj 5 ,file))
-
-(defmacro url-set-target (urlobj targ)
-  `(aset ,urlobj 6 ,targ))
-
-(defmacro url-set-attributes (urlobj targ)
-  `(aset ,urlobj 7 ,targ))
-
-(defmacro url-set-full (urlobj val)
-  `(aset ,urlobj 8 ,val))
+(defsetf url-port (urlobj) (port) `(setf (url-portspec ,urlobj) ,port))
 
 ;;;###autoload
 (defun url-recreate-url (urlobj)
@@ -123,17 +83,14 @@ Format is:
   ;; See RFC 3986.
   (cond
    ((null url)
-    (make-vector 9 nil))
+    (url-parse-make-urlobj))
    ((or (not (string-match url-nonrelative-link url))
 	(= ?/ (string-to-char url)))
     ;; This isn't correct, as a relative URL can be a fragment link
     ;; (e.g. "#foo") and many other things (see section 4.2).
     ;; However, let's not fix something that isn't broken, especially
     ;; when close to a release.
-    (let ((retval (make-vector 9 nil)))
-      (url-set-filename retval url)
-      (url-set-full retval nil)
-      retval))
+    (url-parse-make-urlobj nil nil nil nil nil url))
    (t
     (with-temp-buffer
       (set-syntax-table url-parse-syntax-table)
@@ -214,7 +171,8 @@ Format is:
 	(setq file (buffer-substring save-pos (point)))
 	(if (and host (string-match "%[0-9][0-9]" host))
 	    (setq host (url-unhex-string host)))
-	(vector prot user pass host port file refs attr full))))))
+	(url-parse-make-urlobj
+         prot user pass host port file refs attr full))))))
 
 (provide 'url-parse)
 

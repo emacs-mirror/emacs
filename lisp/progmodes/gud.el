@@ -104,6 +104,8 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   "Non-nil if debugged program is running.
 Used to grey out relevant toolbar icons.")
 
+(defvar gdb-ready nil)
+
 ;; Use existing Info buffer, if possible.
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
@@ -592,8 +594,9 @@ required by the caller."
 ;; History of argument lists passed to gdb.
 (defvar gud-gdb-history nil)
 
-(defcustom gud-gdb-command-name "gdb --annotate=3"
-  "Default command to execute an executable under the GDB debugger."
+(defcustom gud-gud-gdb-command-name "gdb --fullname"
+  "Default command to run an executable under GDB in text command mode.
+The option \"--fullname\" must be included in this value."
    :type 'string
    :group 'gud)
 
@@ -638,14 +641,6 @@ required by the caller."
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
       (let ((match (match-string 1 gud-marker-acc)))
 
-	;; Pick up stopped annotation if attaching to process.
-	(if (string-equal match "stopped") (setq gdb-active-process t))
-
-	;; Using annotations, switch to gud-gdba-marker-filter.
-	(when (string-equal match "prompt")
-	  (require 'gdb-ui)
-	  (gdb-prompt nil))
-
 	(setq
 	 ;; Append any text before the marker to the output we're going
 	 ;; to return - we don't include the marker in this text.
@@ -654,13 +649,7 @@ required by the caller."
 
 	 ;; Set the accumulator to the remaining text.
 
-	 gud-marker-acc (substring gud-marker-acc (match-end 0)))
-
-	;; Pick up any errors that occur before first prompt annotation.
-	(if (string-equal match "error-begin")
-	    (put-text-property 0 (length gud-marker-acc)
-			       'face font-lock-warning-face
-			       gud-marker-acc))))
+	 gud-marker-acc (substring gud-marker-acc (match-end 0)))))
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
@@ -712,8 +701,9 @@ required by the caller."
 (defvar gud-filter-pending-text nil
   "Non-nil means this is text that has been saved for later in `gud-filter'.")
 
+;; The old gdb command.  The new one is in gdb-ui.el.
 ;;;###autoload
-(defun gdb (command-line)
+(defun gud-gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working
 directory and source-file directory for your debugger.  By
@@ -726,7 +716,9 @@ current Emacs session, or the custom variable
 `gud-gdb-command-name' for all future sessions.  You need to use
 text command mode to debug multiple programs within one Emacs
 session."
-  (interactive (list (gud-query-cmdline 'gdb)))
+  (interactive (list (gud-query-cmdline 'gud-gdb)))
+
+  (require 'gdb-ui)
 
   (when (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
@@ -736,8 +728,8 @@ session."
 	(error
 	 "Multiple debugging requires restarting in text command mode"))
 
-  (gud-common-init command-line nil 'gud-gdb-marker-filter)
-  (set (make-local-variable 'gud-minor-mode) 'gdb)
+  (gud-common-init command-line nil 'gud-gdba-marker-filter)
+  (set (make-local-variable 'gud-minor-mode) 'gdba)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
@@ -769,8 +761,10 @@ session."
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (setq gdb-first-prompt t)
+  (setq gud-running nil)
+  (setq gdb-ready nil)
   (setq gud-filter-pending-text nil)
-  (run-hooks 'gdb-mode-hook))
+  (run-hooks 'gud-gdb-mode-hook))
 
 ;; One of the nice features of GDB is its impressive support for
 ;; context-sensitive command completion.  We preserve that feature
@@ -1643,7 +1637,7 @@ and source-file directory for your debugger."
   (gud-common-init command-line nil 'gud-pdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'pdb)
 
-  (gud-def gud-break  "break %l"     "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step"         "\C-s" "Step one source line with display.")
   (gud-def gud-next   "next"         "\C-n" "Step one line (skip functions).")
@@ -2527,7 +2521,6 @@ comint mode, which see."
 	 (and file-word (file-name-nondirectory file))))
   (set (make-local-variable 'gud-marker-filter) marker-filter)
   (if find-file (set (make-local-variable 'gud-find-file) find-file))
-  (setq gud-running nil)
   (setq gud-last-last-frame nil)
 
   (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
@@ -2635,7 +2628,7 @@ It is saved for when this flag is not set.")
 	   ;;  process-buffer is current-buffer
 	   (unwind-protect
 	       (progn
-		 ;; Write something in *compilation* and hack its mode line,
+		 ;; Write something in the GUD buffer and hack its mode line,
 		 (set-buffer (process-buffer proc))
 		 ;; Fix the mode line.
 		 (setq mode-line-process
@@ -2691,11 +2684,14 @@ Obeying it means displaying in another window the specified file and line."
 	 (buffer
 	  (with-current-buffer gud-comint-buffer
 	    (gud-find-file true-file)))
-	 (window (and buffer (or (get-buffer-window buffer)
-				 (if (memq gud-minor-mode '(gdbmi gdba))
-				     (unless (gdb-display-source-buffer buffer)
-				       (gdb-display-buffer buffer nil)))
-				 (display-buffer buffer))))
+	 (window (and buffer
+		      (or (get-buffer-window buffer)
+			  (if (memq gud-minor-mode '(gdbmi gdba))
+			      (or (if (get-buffer-window buffer 0)
+				      (display-buffer buffer nil 0))
+				  (unless (gdb-display-source-buffer buffer)
+				    (gdb-display-buffer buffer nil))))
+			  (display-buffer buffer))))
 	 (pos))
     (if buffer
 	(progn

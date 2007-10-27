@@ -43,6 +43,9 @@
 
 ;;; History:
 
+;; 0.5 (2007-09-14)
+;;     - Minor bugfixes.
+
 ;; 0.4 (2007-08-27)
 ;;     - Allow for undoing last move.
 ;;     - Bonus for removing all bubbles.
@@ -78,7 +81,7 @@
 
 ;;; Code:
 
-(defconst bubbles-version "0.4" "Version number of bubbles.el.")
+(defconst bubbles-version "0.5" "Version number of bubbles.el.")
 
 (require 'gamegrid)
 (require 'cl)
@@ -824,89 +827,98 @@ static char * dot3d_xpm[] = {
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
-;; bubbles mode map
-(defvar bubbles-mode-map
-  (make-keymap 'bubbles-mode-map))
-(define-key bubbles-mode-map "q" 'bubbles-quit)
-(define-key bubbles-mode-map "\n" 'bubbles-plop)
-(define-key bubbles-mode-map " " 'bubbles-plop)
-(define-key bubbles-mode-map [double-down-mouse-1] 'bubbles-plop)
-(define-key bubbles-mode-map [mouse-2] 'bubbles-plop)
-(define-key bubbles-mode-map "\C-m" 'bubbles-plop)
-(define-key bubbles-mode-map "u" 'bubbles-undo)
-(define-key bubbles-mode-map "p" 'previous-line)
-(define-key bubbles-mode-map "n" 'next-line)
-(define-key bubbles-mode-map "f" 'forward-char)
-(define-key bubbles-mode-map "b" 'backward-char)
-
-
 ;; game theme menu
-(defvar bubbles-game-theme-menu (make-sparse-keymap "Game Theme"))
-(define-key bubbles-game-theme-menu [bubbles-set-game-userdefined]
-  (list 'menu-item "User defined" 'bubbles-set-game-userdefined
-        :button '(:radio . (eq bubbles-game-theme 'user-defined))))
-(define-key bubbles-game-theme-menu [bubbles-set-game-hard]
-  (list 'menu-item "Hard" 'bubbles-set-game-hard
-        :button '(:radio . (eq bubbles-game-theme 'hard))))
-(define-key bubbles-game-theme-menu [bubbles-set-game-difficult]
-  (list 'menu-item "Difficult" 'bubbles-set-game-difficult
-        :button '(:radio . (eq bubbles-game-theme 'difficult))))
-(define-key bubbles-game-theme-menu [bubbles-set-game-medium]
-  (list 'menu-item "Medium" 'bubbles-set-game-medium
-        :button '(:radio . (eq bubbles-game-theme 'medium))))
-(define-key bubbles-game-theme-menu [bubbles-set-game-easy]
-  (list 'menu-item "Easy" 'bubbles-set-game-easy
-        :button '(:radio . (eq bubbles-game-theme 'easy))))
+(defvar bubbles-game-theme-menu
+  (let ((menu (make-sparse-keymap "Game Theme")))
+    (define-key menu [bubbles-set-game-userdefined]
+      (list 'menu-item "User defined" 'bubbles-set-game-userdefined
+            :button '(:radio . (eq bubbles-game-theme 'user-defined))))
+    (define-key menu [bubbles-set-game-hard]
+      (list 'menu-item "Hard" 'bubbles-set-game-hard
+            :button '(:radio . (eq bubbles-game-theme 'hard))))
+    (define-key menu [bubbles-set-game-difficult]
+      (list 'menu-item "Difficult" 'bubbles-set-game-difficult
+            :button '(:radio . (eq bubbles-game-theme 'difficult))))
+    (define-key menu [bubbles-set-game-medium]
+      (list 'menu-item "Medium" 'bubbles-set-game-medium
+            :button '(:radio . (eq bubbles-game-theme 'medium))))
+    (define-key menu [bubbles-set-game-easy]
+      (list 'menu-item "Easy" 'bubbles-set-game-easy
+            :button '(:radio . (eq bubbles-game-theme 'easy))))
+    menu)
+  "Map for bubbles game theme menu.")
 
 ;; graphics theme menu
-(defvar bubbles-graphics-theme-menu (make-sparse-keymap "Graphics Theme"))
-(define-key bubbles-graphics-theme-menu [bubbles-set-graphics-theme-ascii]
-  (list 'menu-item "ASCII" 'bubbles-set-graphics-theme-ascii
-        :button '(:radio . (eq bubbles-graphics-theme 'ascii))))
-(define-key bubbles-graphics-theme-menu [bubbles-set-graphics-theme-emacs]
-  (list 'menu-item "Emacs" 'bubbles-set-graphics-theme-emacs
-        :button '(:radio . (eq bubbles-graphics-theme 'emacs))))
-(define-key bubbles-graphics-theme-menu [bubbles-set-graphics-theme-balls]
-  (list 'menu-item "Balls" 'bubbles-set-graphics-theme-balls
-        :button '(:radio . (eq bubbles-graphics-theme 'balls))))
-(define-key bubbles-graphics-theme-menu [bubbles-set-graphics-theme-diamonds]
-  (list 'menu-item "Diamonds" 'bubbles-set-graphics-theme-diamonds
-        :button '(:radio . (eq bubbles-graphics-theme 'diamonds))))
-(define-key bubbles-graphics-theme-menu [bubbles-set-graphics-theme-squares]
-  (list 'menu-item "Squares" 'bubbles-set-graphics-theme-squares
-        :button '(:radio . (eq bubbles-graphics-theme 'squares))))
-(define-key bubbles-graphics-theme-menu [bubbles-set-graphics-theme-circles]
-  (list 'menu-item "Circles" 'bubbles-set-graphics-theme-circles
-        :button '(:radio . (eq bubbles-graphics-theme 'circles))))
+(defvar bubbles-graphics-theme-menu
+  (let ((menu (make-sparse-keymap "Graphics Theme")))
+    (define-key menu [bubbles-set-graphics-theme-ascii]
+      (list 'menu-item "ASCII" 'bubbles-set-graphics-theme-ascii
+            :button '(:radio . (eq bubbles-graphics-theme 'ascii))))
+    (define-key menu [bubbles-set-graphics-theme-emacs]
+      (list 'menu-item "Emacs" 'bubbles-set-graphics-theme-emacs
+            :button '(:radio . (eq bubbles-graphics-theme 'emacs))))
+    (define-key menu [bubbles-set-graphics-theme-balls]
+      (list 'menu-item "Balls" 'bubbles-set-graphics-theme-balls
+            :button '(:radio . (eq bubbles-graphics-theme 'balls))))
+    (define-key menu [bubbles-set-graphics-theme-diamonds]
+      (list 'menu-item "Diamonds" 'bubbles-set-graphics-theme-diamonds
+            :button '(:radio . (eq bubbles-graphics-theme 'diamonds))))
+    (define-key menu [bubbles-set-graphics-theme-squares]
+      (list 'menu-item "Squares" 'bubbles-set-graphics-theme-squares
+            :button '(:radio . (eq bubbles-graphics-theme 'squares))))
+    (define-key menu [bubbles-set-graphics-theme-circles]
+      (list 'menu-item "Circles" 'bubbles-set-graphics-theme-circles
+            :button '(:radio . (eq bubbles-graphics-theme 'circles))))
+    menu)
+    "Map for bubbles graphics theme menu.")
 
 ;; menu
-(defvar bubbles-menu (make-sparse-keymap "Bubbles"))
-(define-key bubbles-menu [bubbles-quit]
-  (list 'menu-item "Quit" 'bubbles-quit))
-(define-key bubbles-menu [bubbles]
-  (list 'menu-item "New game" 'bubbles))
-(define-key bubbles-menu [bubbles-separator-1]
-  '("--"))
-(define-key bubbles-menu [bubbles-save-settings]
-  (list 'menu-item "Save all settings" 'bubbles-save-settings))
-(define-key bubbles-menu [bubbles-customize]
-  (list 'menu-item "Edit all settings" 'bubbles-customize))
-(define-key bubbles-menu [bubbles-game-theme-menu]
-  (list 'menu-item "Game Theme" bubbles-game-theme-menu))
-(define-key bubbles-menu [bubbles-graphics-theme-menu]
-  (list 'menu-item "Graphics Theme" bubbles-graphics-theme-menu
-        :enable 'bubbles--playing))
-(define-key bubbles-menu [bubbles-separator-2]
-  '("--"))
-(define-key bubbles-menu [bubbles-undo]
-  (list 'menu-item "Undo last move" 'bubbles-undo
-        :enable '(and bubbles--playing bubbles--save-data)))
+(defvar bubbles-menu
+  (let ((menu (make-sparse-keymap "Bubbles")))
+    (define-key menu [bubbles-quit]
+      (list 'menu-item "Quit" 'bubbles-quit))
+    (define-key menu [bubbles]
+      (list 'menu-item "New game" 'bubbles))
+    (define-key menu [bubbles-separator-1]
+      '("--"))
+    (define-key menu [bubbles-save-settings]
+      (list 'menu-item "Save all settings" 'bubbles-save-settings))
+    (define-key menu [bubbles-customize]
+      (list 'menu-item "Edit all settings" 'bubbles-customize))
+    (define-key menu [bubbles-game-theme-menu]
+      (list 'menu-item "Game Theme" bubbles-game-theme-menu))
+    (define-key menu [bubbles-graphics-theme-menu]
+      (list 'menu-item "Graphics Theme" bubbles-graphics-theme-menu
+            :enable 'bubbles--playing))
+    (define-key menu [bubbles-separator-2]
+      '("--"))
+    (define-key menu [bubbles-undo]
+      (list 'menu-item "Undo last move" 'bubbles-undo
+            :enable '(and bubbles--playing (listp buffer-undo-list))))
+    menu)
+  "Map for bubbles menu.")
 
-;; bind menu to mouse
-(define-key bubbles-mode-map [down-mouse-3] bubbles-menu)
-;; Put menu in menu-bar
-(define-key bubbles-mode-map [menu-bar Bubbles]
-  (cons "Bubbles" bubbles-menu))
+;; bubbles mode map
+(defvar bubbles-mode-map
+  (let ((map (make-sparse-keymap 'bubbles-mode-map)))
+;;    (suppress-keymap map t)
+    (define-key map "q" 'bubbles-quit)
+    (define-key map "\n" 'bubbles-plop)
+    (define-key map " " 'bubbles-plop)
+    (define-key map [double-down-mouse-1] 'bubbles-plop)
+    (define-key map [mouse-2] 'bubbles-plop)
+    (define-key map "\C-m" 'bubbles-plop)
+    (define-key map "u" 'bubbles-undo)
+    (define-key map "p" 'previous-line)
+    (define-key map "n" 'next-line)
+    (define-key map "f" 'forward-char)
+    (define-key map "b" 'backward-char)
+    ;; bind menu to mouse
+    (define-key map [down-mouse-3] bubbles-menu)
+    ;; Put menu in menu-bar
+    (define-key map [menu-bar Bubbles] (cons "Bubbles" bubbles-menu))
+    map)
+  "Mode map for bubbles.")
 
 (defun bubbles-mode ()
   "Major mode for playing bubbles.
@@ -916,7 +928,10 @@ static char * dot3d_xpm[] = {
   (setq major-mode 'bubbles-mode)
   (setq mode-name "Bubbles")
   (setq buffer-read-only t)
-  (buffer-enable-undo)
+  (buffer-disable-undo)
+  (setq buffer-undo-list t)
+  (force-mode-line-update)
+  (redisplay)
   (add-hook 'post-command-hook 'bubbles--mark-neighbourhood t t)
   (run-hooks 'bubbles-mode-hook))
 
@@ -1014,7 +1029,10 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
   (bubbles-mode)
   (bubbles--reset-score)
   (bubbles--update-faces-or-images)
-  (bubbles--goto 0 0))
+  (bubbles--goto 0 0)
+  (setq buffer-undo-list t)
+  (force-mode-line-update)
+  (redisplay))
 
 (defun bubbles--initialize-faces ()
   "Prepare faces for playing `bubbles'."
@@ -1196,7 +1214,6 @@ Use optional parameter POS instead of point if given."
   (when (and bubbles--playing
              (> bubbles--neighbourhood-score 0))
     (setq bubbles--save-data (list bubbles--score (buffer-string)))
-    (setq buffer-undo-list '(apply bubbles-undo . nil))
     (let ((inhibit-read-only t))
       ;; blank out current neighbourhood
       (let ((row (bubbles--row (point)))
@@ -1245,7 +1262,8 @@ Use optional parameter POS instead of point if given."
                    (dotimes (j (bubbles--grid-width))
                      (bubbles--goto i j)
                      (while (get-text-property (point) 'removed)
-                       (setq shifted (or (bubbles--shift 'right i j) shifted))))))
+                       (setq shifted (or (bubbles--shift 'right i j)
+                                         shifted))))))
                (bubbles--update-faces-or-images)
                (sleep-for 0.5))
               (t ;; default shift-mode
@@ -1259,7 +1277,8 @@ Use optional parameter POS instead of point if given."
                      (dotimes (k shifted-cols)
                        (let ((i (- (bubbles--grid-height) 2)))
                          (while (>= i 0)
-                           (setq shifted (or (bubbles--shift 'right i j) shifted))
+                           (setq shifted (or (bubbles--shift 'right i j)
+                                             shifted))
                            (setq i (1- i))))))))))
         (when shifted
           ;;(sleep-for 0.5)
@@ -1267,7 +1286,11 @@ Use optional parameter POS instead of point if given."
           (sit-for 0)))
       (put-text-property (point-min) (point-max) 'removed nil)
       (unless (bubbles--neighbourhood-available)
-        (bubbles--game-over)))))
+        (bubbles--game-over)))
+    ;; undo
+    (setq buffer-undo-list '((apply bubbles-undo . nil)))
+    (force-mode-line-update)
+    (redisplay)))
 
 (defun bubbles-undo ()
   "Undo last move."
@@ -1279,7 +1302,10 @@ Use optional parameter POS instead of point if given."
       (insert (cadr bubbles--save-data))
       (bubbles--update-faces-or-images)
       (setq bubbles--score (car bubbles--save-data))
-      (goto-char pos))))
+      (goto-char pos))
+    (setq buffer-undo-list t)
+    (force-mode-line-update)
+    (redisplay)))
 
 (defun bubbles--shift (from row col)
   "Move bubbles FROM one side to position ROW COL.
@@ -1323,7 +1349,7 @@ Return t if new char is non-empty."
       (setq bubbles--empty-image
             (create-image (replace-regexp-in-string
                            "^\"\\(.*\\)\t.*c .*\",$"
-                           "\"\\1\tc #FFFFFF\"," template)
+                           "\"\\1\tc None\"," template)
                           'xpm t
                           ;;:mask 'heuristic
                           :margin '(2 . 1)))
@@ -1408,7 +1434,7 @@ Return t if new char is non-empty."
           (dotimes (i (bubbles--grid-height))
             (dotimes (j (bubbles--grid-width))
               (forward-char 1)
-              (let ((index (get-text-property (point) 'index)))
+              (let ((index (or (get-text-property (point) 'index) -1)))
                 (let ((img bubbles--empty-image))
                   (if (>= index 0)
                       (setq img (nth index bubbles--images)))

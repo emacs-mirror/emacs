@@ -20,6 +20,8 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
+#include <stdio.h>
+
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
@@ -37,7 +39,7 @@ Boston, MA 02110-1301, USA.  */
 /* Indentation can insert tabs if this is non-zero;
    otherwise always uses spaces.  */
 
-int indent_tabs_mode;
+static int indent_tabs_mode;
 
 #define CR 015
 
@@ -47,15 +49,15 @@ int indent_tabs_mode;
    Some things in set last_known_column_point to -1
    to mark the memorized value as invalid.  */
 
-double last_known_column;
+static double last_known_column;
 
 /* Value of point when current_column was called.  */
 
-int last_known_column_point;
+EMACS_INT last_known_column_point;
 
 /* Value of MODIFF when current_column was called.  */
 
-int last_known_column_modified;
+static int last_known_column_modified;
 
 static double current_column_1 P_ ((void));
 static double position_indentation P_ ((int));
@@ -63,7 +65,7 @@ static double position_indentation P_ ((int));
 /* Cache of beginning of line found by the last call of
    current_column. */
 
-int current_column_bol_cache;
+static EMACS_INT current_column_bol_cache;
 
 /* Get the display table to use for the current buffer.  */
 
@@ -212,16 +214,17 @@ width_run_cache_on_off ()
    characters immediately following, then *NEXT_BOUNDARY_P
    will equal the return value.  */
 
-int
+EMACS_INT
 skip_invisible (pos, next_boundary_p, to, window)
-     int pos;
-     int *next_boundary_p;
-     int to;
+     EMACS_INT pos;
+     EMACS_INT *next_boundary_p;
+     EMACS_INT to;
      Lisp_Object window;
 {
   Lisp_Object prop, position, overlay_limit, proplimit;
   Lisp_Object buffer, tmp;
-  int end, inv_p;
+  EMACS_INT end;
+  int inv_p;
 
   XSETFASTINT (position, pos);
   XSETBUFFER (buffer, current_buffer);
@@ -508,16 +511,16 @@ current_column ()
 static double
 current_column_1 ()
 {
-  register int tab_width = XINT (current_buffer->tab_width);
+  register EMACS_INT tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   /* Start the scan at the beginning of this line with column number 0.  */
-  register int col = 0;
-  int scan, scan_byte;
-  int next_boundary;
-  int opoint = PT, opoint_byte = PT_BYTE;
+  register EMACS_INT col = 0;
+  EMACS_INT scan, scan_byte;
+  EMACS_INT next_boundary;
+  EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
 
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
   current_column_bol_cache = PT;
@@ -806,13 +809,13 @@ static double
 position_indentation (pos_byte)
      register int pos_byte;
 {
-  register int column = 0;
-  register int tab_width = XINT (current_buffer->tab_width);
+  register EMACS_INT column = 0;
+  register EMACS_INT tab_width = XINT (current_buffer->tab_width);
   register unsigned char *p;
   register unsigned char *stop;
   unsigned char *start;
-  int next_boundary_byte = pos_byte;
-  int ceiling = next_boundary_byte;
+  EMACS_INT next_boundary_byte = pos_byte;
+  EMACS_INT ceiling = next_boundary_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
@@ -827,7 +830,7 @@ position_indentation (pos_byte)
     {
       while (p == stop)
 	{
-	  int stop_pos_byte;
+	  EMACS_INT stop_pos_byte;
 
 	  /* If we have updated P, set POS_BYTE to match.
 	     The first time we enter the loop, POS_BYTE is already right.  */
@@ -838,8 +841,8 @@ position_indentation (pos_byte)
 	    return column;
 	  if (pos_byte == next_boundary_byte)
 	    {
-	      int next_boundary;
-	      int pos = BYTE_TO_CHAR (pos_byte);
+	      EMACS_INT next_boundary;
+	      EMACS_INT pos = BYTE_TO_CHAR (pos_byte);
 	      pos = skip_invisible (pos, &next_boundary, ZV, Qnil);
 	      pos_byte = CHAR_TO_BYTE (pos);
 	      next_boundary_byte = CHAR_TO_BYTE (next_boundary);
@@ -930,19 +933,19 @@ The return value is the current column.  */)
      (column, force)
      Lisp_Object column, force;
 {
-  register int pos;
-  register int col = current_column ();
-  register int goal;
-  register int end;
+  register EMACS_INT pos;
+  register EMACS_INT col = current_column ();
+  register EMACS_INT goal;
+  register EMACS_INT end;
   register int tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   Lisp_Object val;
-  int prev_col = 0;
+  EMACS_INT prev_col = 0;
   int c = 0;
-  int next_boundary, pos_byte;
+  EMACS_INT next_boundary, pos_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column);
@@ -968,7 +971,7 @@ The return value is the current column.  */)
     {
       while (pos == next_boundary)
 	{
-	  int prev = pos;
+	  EMACS_INT prev = pos;
 	  pos = skip_invisible (pos, &next_boundary, end, Qnil);
 	  if (pos != prev)
 	    pos_byte = CHAR_TO_BYTE (pos);
@@ -1088,7 +1091,7 @@ The return value is the current column.  */)
      and scan through it again.  */
   if (!NILP (force) && col > goal && c == '\t' && prev_col < goal)
     {
-      int goal_pt, goal_pt_byte;
+      EMACS_INT goal_pt, goal_pt_byte;
 
       /* Insert spaces in front of the tab to reach GOAL.  Do this
 	 first so that a marker at the end of the tab gets
@@ -1188,19 +1191,19 @@ struct position val_compute_motion;
 
 struct position *
 compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width, hscroll, tab_offset, win)
-     int from, fromvpos, fromhpos, to, tovpos, tohpos;
+     EMACS_INT from, fromvpos, fromhpos, to, tovpos, tohpos;
      int did_motion;
-     register int width;
-     int hscroll, tab_offset;
+     EMACS_INT width;
+     EMACS_INT hscroll, tab_offset;
      struct window *win;
 {
-  register int hpos = fromhpos;
-  register int vpos = fromvpos;
+  register EMACS_INT hpos = fromhpos;
+  register EMACS_INT vpos = fromvpos;
 
-  register int pos;
-  int pos_byte;
+  register EMACS_INT pos;
+  EMACS_INT pos_byte;
   register int c = 0;
-  register int tab_width = XFASTINT (current_buffer->tab_width);
+  register EMACS_INT tab_width = XFASTINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = window_display_table (win);
   int selective
@@ -1212,33 +1215,33 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
   /* The next location where the `invisible' property changes, or an
      overlay starts or ends.  */
-  int next_boundary = from;
+  EMACS_INT next_boundary = from;
 
   /* For computing runs of characters with similar widths.
      Invariant: width_run_width is zero, or all the characters
      from width_run_start to width_run_end have a fixed width of
      width_run_width.  */
-  int width_run_start = from;
-  int width_run_end   = from;
-  int width_run_width = 0;
+  EMACS_INT width_run_start = from;
+  EMACS_INT width_run_end   = from;
+  EMACS_INT width_run_width = 0;
   Lisp_Object *width_table;
   Lisp_Object buffer;
 
   /* The next buffer pos where we should consult the width run cache. */
-  int next_width_run = from;
+  EMACS_INT next_width_run = from;
   Lisp_Object window;
 
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   /* If previous char scanned was a wide character,
      this is the column where it ended.  Otherwise, this is 0.  */
-  int wide_column_end_hpos = 0;
-  int prev_pos;			/* Previous buffer position.  */
-  int prev_pos_byte;		/* Previous buffer position.  */
-  int prev_hpos = 0;
-  int prev_vpos = 0;
-  int contin_hpos;		/* HPOS of last column of continued line.  */
-  int prev_tab_offset;		/* Previous tab offset.  */
-  int continuation_glyph_width;
+  EMACS_INT wide_column_end_hpos = 0;
+  EMACS_INT prev_pos;		/* Previous buffer position.  */
+  EMACS_INT prev_pos_byte;	/* Previous buffer position.  */
+  EMACS_INT prev_hpos = 0;
+  EMACS_INT prev_vpos = 0;
+  EMACS_INT contin_hpos;	/* HPOS of last column of continued line.  */
+  EMACS_INT prev_tab_offset;	/* Previous tab offset.  */
+  EMACS_INT continuation_glyph_width;
 
   XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
@@ -1284,8 +1287,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
     {
       while (pos == next_boundary)
 	{
-	  int pos_here = pos;
-	  int newpos;
+	  EMACS_INT pos_here = pos;
+	  EMACS_INT newpos;
 
 	  /* Don't skip invisible if we are already at the margin.  */
 	  if (vpos > tovpos || (vpos == tovpos && hpos >= tohpos))
@@ -1883,23 +1886,23 @@ struct position val_vmotion;
 
 struct position *
 vmotion (from, vtarget, w)
-     register int from, vtarget;
+     register EMACS_INT from, vtarget;
      struct window *w;
 {
-  int hscroll = XINT (w->hscroll);
+  EMACS_INT hscroll = XINT (w->hscroll);
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
   register int vpos = 0;
-  int prevline;
-  register int first;
-  int from_byte;
-  int lmargin = hscroll > 0 ? 1 - hscroll : 0;
+  EMACS_INT prevline;
+  register EMACS_INT first;
+  EMACS_INT from_byte;
+  EMACS_INT lmargin = hscroll > 0 ? 1 - hscroll : 0;
   int selective
     = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
        : !NILP (current_buffer->selective_display) ? -1 : 0);
   Lisp_Object window;
-  int start_hpos = 0;
+  EMACS_INT start_hpos = 0;
   int did_motion;
   /* This is the object we use for fetching character properties.  */
   Lisp_Object text_prop_object;
@@ -2156,8 +2159,7 @@ void
 syms_of_indent ()
 {
   DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
-	       doc: /* *Indentation can insert tabs if this is non-nil.
-Setting this variable automatically makes it local to the current buffer.  */);
+	       doc: /* *Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
   defsubr (&Scurrent_indentation);

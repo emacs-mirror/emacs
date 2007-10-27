@@ -59,6 +59,17 @@ Windows XP introduced themed scrollbars, but applications have to take
 special steps to use them. Emacs now has the appropriate resources linked
 in to make it use the scrollbars from the system theme.
 
+** focus-follows-mouse defaults to nil on MS Windows
+Previously this variable was incorrectly documented as having no effect
+on MS Windows, and the default was inappropriate for the majority of
+Windows installations. Users of software which modifies the behaviour of
+Windows to cause focus to follow the mouse will now need to explicitly set
+this variable.
+
+** The command gdba has been removed as gdb works now for those cases where it
+was needed.  In text command mode, if you have problems before execution has
+started, use M-x gud-gdb.
+
 * New Modes and Packages in Emacs 22.2
 
 ** bibtex-style-mode helps you write BibTeX's *.bst files.
@@ -73,13 +84,21 @@ in to make it use the scrollbars from the system theme.
 
 *** VC backends can provide completion of revision names.
 
-*** VC has some support for Mercurial (hg).
+*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
+This can be used to add menu entries for backend specific functions.
+
+*** VC has some support for Mercurial (Hg).
+
+*** VC has some support for Monotone (Mtn).
 
 *** VC has some support for Bazaar (Bzr).
 
 *** VC has some support for Git.
 
 * Lisp Changes in Emacs 22.2.
+
+** The command `repeat' will no more attempt to repeat a command bound
+to an input event.
 
 ** The function invisible-p returns non-nil if the character
    after a specified position is invisible.
@@ -1649,7 +1668,7 @@ It also contains a plain-text table editor with spreadsheet-like
 capabilities.
 
 The Org mode table editor can be integrated into any major mode by
-activating the minor Orgtbl-mode.
+activating the minor mode, Orgtbl mode.
 
 The documentation for org-mode is in a separate manual; within Emacs,
 type "C-h i m org RET" to read that manual.  A reference card is

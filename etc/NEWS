@@ -31,8 +31,38 @@ so we will look at it and add it to the manual.
 ** configure now checks for libgif before libungif when searching for
 a GIF library.
 
+** Support for systems without alloca has been removed.
+
+** The `emacstool' utility has been removed.
+
 
 * Changes in Emacs 23.1
+
+** Emacs now supports using both X displays and ttys in one session.
+You can also use any number of different ttys.
+
+You can test for the presence of this feature in your Lisp code by
+testing for the `multi-tty' feature.
+
+** Emacs comes with a new set of icons for Mac OS X.
+OS-X-style icons (an application icon and a relevant document icon)
+were contributed by Kentaro Ohkouchi.
+Source files for these icons can be found in Emacs.app/Contents/Resources.
+
+** Built-in functions (subr) can now have an interactive specification
+that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
+starts with a `(', the string is evaluated as a Lisp form.
+
+** set-file-modes is now interactive and can take the mode value in
+symbolic notation thanks to auxiliary functions.
+
+** split-window-preferred-function specifies whether display-buffer should
+split windows vertically or horizontally.
+
+** Emacsclient has been extended to support opening a new terminal
+frame.  Its behavior has been changed to open a new Emacs frame by
+default.  Use the -c option to get the old behavior of opening files in
+the currently selected Emacs frame.
 
 ** The refcards are now shipped as PDF files.
 
@@ -50,10 +80,10 @@ highlighting, and help echoing in the minibuffer.
 recenter the visited source file.  Its value can be a number (for example,
 0 for top line, -1 for bottom line), or nil for no recentering.
 
-** The mode-line display a `@' if the default-directory for the current buffer
+** The mode-line displays a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
 
-** The new command balance-window-area balances windows both vertically
+** The new command balance-windows-area balances windows both vertically
 and horizontally.
 
 ** The new command close-display-connection can be used to close a connection
@@ -61,7 +91,7 @@ to a remote display, e.g. because the display is about to become unreachable.
 
 ** The command shell prompts for the default directory, when it is
 called with a prefix, and the default directory is a remote file name.
-This is because some file name handler (like ange-ftp) are not able to
+This is because some file name handlers (like ange-ftp) are not able to
 run processes remotely.
 
 ** The new command `display-time-world' starts an updating time display
@@ -73,11 +103,32 @@ using several time zones, in a buffer.
 after starting Emacs: startup screen, *scratch* buffer, visiting a
 file or directory.
 
+** New alias `argv' for `command-line-args-left'
+This is a convenience alias, so that one can write `(pop argv)'
+inside of --eval command line arguments in order to access
+following arguments.
+
+** The abbrev file is no longer read at startup in batch mode.
 
 * Incompatible Editing Changes in Emacs 23.1
 
 
 * Editing Changes in Emacs 23.1
+
++++
+** M-q now fills the region if the region is active and
+`transient-mark-mode' is turned on.  Otherwise, it fills the current
+paragraph.  The new command bound to M-q is `fill-paragraph-or-region'.
+
+** M-$ now checks spelling of the region if the region is active and
+`transient-mark-mode' is turned on.  Otherwise, it checks spelling of the
+word at point.
+
+** TAB now indents the region if the region is active and
+`transient-mark-mode' is turned on.
+
+** C-z now invokes `suspend-frame', C-x C-c now invokes
+`save-buffers-kill-terminal'.
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
 
@@ -94,12 +145,22 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
-** A new game called `bubble' has been added
+** The package doc-view.el has been added.  It supports viewing of PDF,
+PostScript and DVI documents inside an Emacs buffer by converting the
+document to a set of PNG images first.  One can also search for a
+regular expression in the document.  The commentary of the file explains
+its usage.
+
+** A new game called `bubbles' has been added.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
+
+** diff-fine-highlight highlights char-level details of changes in a diff hunk.
+** archive-mode has basic support to browse Rar archives.
+** talk.el has been extended for multiple tty support.
 
 ** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
@@ -114,12 +175,21 @@ with the face `eldoc-highlight-function-argument'.
 ** VC
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
-*** The VC mode-line entry now has a tooltip.
+*** The VC mode-line entry now has a tooltip that explains the VC file status.
 
-*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
-This can be used to add menu entries for backend specific functions.
+*** VC now supports applying VC operations to a set of files at a time.
+
+This enables VC to work much more effectively with changeset-oriented
+version-control systems such as Subversion, GNU Arch, Mercurial, and
+Bzr. VC will now pass a multiple-file commit to these systems
+as a single changeset.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
+
+** The appearance of superscript and subscript in TeX is more customizable.
+See the documentation of the variables: tex-fontify-script,
+tex-font-script-display, tex-suscript-height-ratio, and
+tex-suscript-height-minimum.
 
 ** BibTeX mode:
 
@@ -162,6 +232,9 @@ file copy is checked via the file's checksum.
 
 ** Miscellaneous programming mode changes
 
+*** The file etc/emacs.py now supports both Python 2 and 3, meaning
+that either version can be used as inferior Python by python.el.
+
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
 ** Miscellaneous
@@ -173,6 +246,8 @@ on the corresponding remote system.
 *** C-x C-q in dired-mode now runs the command wdired-change-to-wdired-mode,
 and C-x C-q in wdired-mode exits it with asking a question about
 saving changes.
+
+*** The new command `eshell/info' runs info in an eshell buffer.
 
 
 * Changes in Emacs 23.1 on non-free operating systems
@@ -193,9 +268,66 @@ supported on other platforms, but not on Windows due to using the winsock
 
 * Lisp Changes in Emacs 23.1
 
-** The function invisible-p returns non-nil if the character
-   after a specified position is invisible, or if its argument
-   as an `invisible' property would make a character invisible.
+** `frame-inherited-parameters' lets new frames inherit parameters from
+the selected frame.
+** New keymap `input-decode-map' overrides like key-translation-map, but
+applies before function-key-map.  Also it is terminal-local contrary to
+key-translation-map.  Terminal-specific key-sequences are generally added to
+this map rather than to function-key-map now.
+
+** Changes related to multiple tty support.
+
+*** $TERM is now set to `dumb' for subprocesses.  If you want to know the
+$TERM inherited by Emacs you will have to look inside initial-environment.
+
+*** $DISPLAY is now dynamically inherited from the frame's `display'.
+
+*** The `window-system' variable has been made frame-local. The new
+`initial-window-system' variable contains the `window-system' value
+for the first frame.
+
+*** You can specify a terminal device (`tty' parameter) and a terminal
+type (`tty-type' parameter) to `make-terminal-frame'.
+
+*** The new function `make-frame-on-tty' allows you to create a new
+frame on another tty device interactively.
+
+*** The function `make-frame-on-display' now works during a tty
+session, and `make-frame-on-tty' works during a graphical session.
+
+*** New functions: `delete-tty', `suspend-tty', `resume-tty'.
+
+*** A new data type for terminals with functions: `get-device-terminal',
+`terminal-parameters', `terminal-parameter', `set-terminal-parameter'.
+
+*** New hooks: `suspend-tty-functions' and `resume-tty-functions'
+are called after a tty frame has been suspended or resumed,
+respectively.  The functions are called with the terminal id of the frame
+being suspended/resumed as a parameter.
+
+*** New function: `environment'.
+
+*** New variable: `local-function-key-map'.
+This in addition to the global function-key-map variable that
+already existed.  The global variable is not used directly any more;
+instead, the local-function-key-map is initialized so as to inherit from
+function-key-map.
+
+*** `initial-environment' holds the environment inherited from Emacs's parent.
+
+*** The `keyboard-translate-table' variable and the terminal and
+keyboard coding systems have been made terminal-local.
+
+*** In addition to the global function-key-map, Emacs has terminal-local
+local-function-key-map variables, and uses them instead of the
+global keymaps to set up translations and function key sequences
+relevant to a specific terminal device.
+
+
+** You can now also pass the value of the `invisible' property to invisible-p
+to check whether it would cause the text to be invisible.  Convenient when
+checking invisibility of text which has no buffer position
+(e.g. in before/after-strings).
 
 ** Non-breaking space now acts as whitespace.
 

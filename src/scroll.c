@@ -23,12 +23,13 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #include <stdio.h>
 #include <string.h>
-#include "termchar.h"
 #include "lisp.h"
+#include "termchar.h"
 #include "dispextern.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
+#include "termhooks.h"
 
 /* All costs measured in characters.
    So no cost can exceed the area of a frame, measured in characters.
@@ -58,10 +59,12 @@ struct matrix_elt
     unsigned char writecount;
   };
 
-static void do_direct_scrolling P_ ((struct glyph_matrix *,
+static void do_direct_scrolling P_ ((struct frame *,
+                                     struct glyph_matrix *,
 				     struct matrix_elt *,
 				     int, int));
-static void do_scrolling P_ ((struct glyph_matrix *,
+static void do_scrolling P_ ((struct frame *,
+                              struct glyph_matrix *,
 			      struct matrix_elt *,
 			      int, int));
 
@@ -101,7 +104,8 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
   register struct matrix_elt *p, *p1;
   register int cost, cost1;
 
-  int lines_moved = window_size + (scroll_region_ok ? 0 : lines_below);
+  int lines_moved = window_size
+    + (FRAME_SCROLL_REGION_OK (frame) ? 0 : lines_below);
   /* first_insert_cost[I] is the cost of doing the first insert-line
      at the i'th line of the lines we are considering,
      where I is origin 1 (as it is below).  */
@@ -241,7 +245,8 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
    of lines.  */
 
 static void
-do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
+do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
+     struct frame *frame;
      struct glyph_matrix *current_matrix;
      struct matrix_elt *matrix;
      int window_size;
@@ -308,12 +313,12 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
 	  /* Set the terminal window, if not done already.  */
  	  if (! terminal_window_p)
 	    {
-	      set_terminal_window (window_size + unchanged_at_top);
+	      set_terminal_window (frame, window_size + unchanged_at_top);
 	      terminal_window_p = 1;
 	    }
 
 	  /* Delete lines on the terminal.  */
-	  ins_del_lines (j + unchanged_at_top, - p->deletecount);
+	  ins_del_lines (frame, j + unchanged_at_top, - p->deletecount);
 	}
       else
 	{
@@ -338,7 +343,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
       /* Set the terminal window if not yet done.  */
       if (!terminal_window_p)
 	{
-	  set_terminal_window (window_size + unchanged_at_top);
+	  set_terminal_window (frame, window_size + unchanged_at_top);
 	  terminal_window_p = 1;
 	}
 
@@ -347,7 +352,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
 	  --queue;
 
 	  /* Do the deletion on the terminal.  */
-	  ins_del_lines (queue->pos, queue->count);
+	  ins_del_lines (frame, queue->pos, queue->count);
 
 	  /* All lines in the range deleted become empty in the glyph
 	     matrix.  Assign to them glyph rows that are not retained.
@@ -380,7 +385,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
   CHECK_MATRIX (current_matrix);
 
   if (terminal_window_p)
-    set_terminal_window (0);
+    set_terminal_window (frame, 0);
 }
 
 
@@ -467,7 +472,8 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
   /* Overhead of setting the scroll window, plus the extra cost
      cost of scrolling by a distance of one.  The extra cost is
      added once for consistency with the cost vectors */
-  scroll_overhead = scroll_region_cost + extra_cost;
+  scroll_overhead
+    = FRAME_SCROLL_REGION_COST (frame) + extra_cost;
 
   /* initialize the top left corner of the matrix */
   matrix->writecost = 0;
@@ -650,8 +656,9 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
    the cost matrix for this approach is constructed. */
 
 static void
-do_direct_scrolling (current_matrix, cost_matrix, window_size,
-		     unchanged_at_top)
+do_direct_scrolling (frame, current_matrix, cost_matrix,
+                     window_size, unchanged_at_top)
+     struct frame *frame;
      struct glyph_matrix *current_matrix;
      struct matrix_elt *cost_matrix;
      int window_size;
@@ -742,9 +749,9 @@ do_direct_scrolling (current_matrix, cost_matrix, window_size,
 	  if (i > j)
 	    {
 	      /* Immediately insert lines */
-	      set_terminal_window (i + unchanged_at_top);
+	      set_terminal_window (frame, i + unchanged_at_top);
 	      terminal_window_p = 1;
-	      ins_del_lines (j - n_to_write + unchanged_at_top, i - j);
+	      ins_del_lines (frame, j - n_to_write + unchanged_at_top, i - j);
 	    }
 	  else if (i < j)
 	    {
@@ -774,9 +781,9 @@ do_direct_scrolling (current_matrix, cost_matrix, window_size,
 	  --queue;
 	  if (queue->count)
 	    {
-	      set_terminal_window (queue->window);
+	      set_terminal_window (frame, queue->window);
 	      terminal_window_p = 1;
-	      ins_del_lines (queue->pos, queue->count);
+	      ins_del_lines (frame, queue->pos, queue->count);
 	    }
 	  else
 	    {
@@ -799,7 +806,7 @@ do_direct_scrolling (current_matrix, cost_matrix, window_size,
 		       copy_from, retained_p);
 
   if (terminal_window_p)
-    set_terminal_window (0);
+    set_terminal_window (frame, 0);
 }
 
 
@@ -819,13 +826,13 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
   matrix = ((struct matrix_elt *)
 	    alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix));
 
-  if (scroll_region_ok)
+  if (FRAME_SCROLL_REGION_OK (frame))
     {
       calculate_direct_scrolling (frame, matrix, window_size,
 				  unchanged_at_bottom,
 				  draw_cost, old_draw_cost,
 				  old_hash, new_hash, free_at_end);
-      do_direct_scrolling (frame->current_matrix,
+      do_direct_scrolling (frame, frame->current_matrix,
 			   matrix, window_size, unchanged_at_top);
     }
   else
@@ -833,7 +840,8 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
       calculate_scrolling (frame, matrix, window_size, unchanged_at_bottom,
 			   draw_cost, old_hash, new_hash,
 			   free_at_end);
-      do_scrolling (frame->current_matrix, matrix, window_size,
+      do_scrolling (frame,
+                    frame->current_matrix, matrix, window_size,
 		    unchanged_at_top);
     }
 }
@@ -915,7 +923,7 @@ scroll_cost (frame, from, to, amount)
   if (amount == 0)
     return 0;
 
-  if (! scroll_region_ok)
+  if (! FRAME_SCROLL_REGION_OK (frame))
     limit = height;
   else if (amount > 0)
     limit += amount;

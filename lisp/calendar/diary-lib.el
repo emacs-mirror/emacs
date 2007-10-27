@@ -75,7 +75,7 @@ D-FILE specifies the file to use as the diary file."
   (let ((diary-file d-file))
     (diary-view-entries arg)))
 
-(autoload 'check-calendar-holidays "holidays"
+(autoload 'calendar-check-holidays "holidays"
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
 The holidays are those in the list `calendar-holidays'.")
@@ -117,13 +117,13 @@ The holidays are those in the list `calendar-holidays'.")
 (autoload 'diary-bahai-date "cal-bahai"
   "Baha'i calendar equivalent of date diary entry.")
 
-(autoload 'list-bahai-diary-entries "cal-bahai"
+(autoload 'diary-bahai-list-entries "cal-bahai"
   "Add any Baha'i date entries from the diary file to `diary-entries-list'.")
 
-(autoload 'mark-bahai-diary-entries "cal-bahai"
+(autoload 'diary-bahai-mark-entries "cal-bahai"
   "Mark days in the calendar window that have Baha'i date diary entries.")
 
-(autoload 'mark-bahai-calendar-date-pattern "cal-bahai"
+(autoload 'calendar-bahai-mark-date-pattern "cal-bahai"
    "Mark dates in calendar window that conform to Baha'i date MONTH/DAY/YEAR.")
 
 (autoload 'diary-hebrew-date "cal-hebrew"
@@ -598,7 +598,7 @@ changing the variable `diary-include-string'."
 (defun simple-diary-display ()
   "Display the diary buffer if there are any relevant entries or holidays."
   (let* ((holiday-list (if holidays-in-diary-buffer
-                           (check-calendar-holidays original-date)))
+                           (calendar-check-holidays original-date)))
          (hol-string (format "%s%s%s"
                              date-string
                              (if holiday-list ": " "")
@@ -676,7 +676,7 @@ This function is provided for optional use as the `diary-display-hook'."
           (and (not (cdr diary-entries-list))
                (string-equal (car (cdr (car diary-entries-list))) "")))
       (let* ((holiday-list (if holidays-in-diary-buffer
-                               (check-calendar-holidays original-date)))
+                               (calendar-check-holidays original-date)))
              (msg (format "No diary entries for %s %s"
                           (concat date-string (if holiday-list ":" ""))
                           (mapconcat 'identity holiday-list "; "))))

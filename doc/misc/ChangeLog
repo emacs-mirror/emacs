@@ -1,0 +1,3924 @@
+2007-10-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.11.
+
+	* trampver.texi: Update release number.
+
+2007-10-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External packages): New section.
+
+2007-09-29  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Help-Int): Document `L' (`Info-history').
+
+2007-09-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Change links to webpage and maintained email.
+	(Remember): Promote to Chapter, significant changes.
+	(Fast access to TODO states): New section.
+	(Faces for TODO keywords): New section.
+	(Export options): Example for #+DATE.
+	(Progress logging): Section moved.
+
+2007-09-26  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (HTML): Mention binding of S-mouse-2 to
+	browse-url-at-mouse.
+
+2007-09-20  Eduard Wiebe  <usenet@pusto.de>  (tiny change)
+
+	* flymake.texi (Customizable variables): Face names don't end in -face.
+	Fix flymake-err-line-patterns template.
+	(Example -- Configuring a tool called directly): Fix init-function.
+	(Highlighting erroneous lines): Face names don't end in -face.
+
+2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>  (tiny change)
+
+	* erc.texi (Special-Features): Fix small typo.
+
+2007-09-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename Syntax): Provide links to "Inline methods"
+	and "External transfer methods".
+
+2007-09-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Predefined Units): Add some history.
+
+2007-09-08  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Copying): New section included from gpl.texi.  This matches
+	the look of the upstream ERC manual.
+
+2007-09-07  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (History and Acknowledgements): Adjust the
+	"thanks".
+	(Random Numbers): Clarify the distribution of `random'.
+
+2007-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* Move manual sources from man/ to subdirectories of doc/.
+        Split into the Emacs manual in emacs/, and other manuals in misc/.
+	Change all setfilename commands to use ../../info.
+	* Makefile.in: Move the parts of the old man/Makefile.in that do not
+	refer to the Emacs manual here.
+	(infodir): New variable.
+	(INFO_TARGETS, info): Use infodir.  Also used by all info targets.
+	(cc-mode.texi, faq.texi): Update references to source file locations.
+	* makefile.w32-in: Move the parts of the old man/makefile.w32-in that
+	do not refer to the Emacs manual here.
+	(infodir, MULTI_INSTALL_INFO, ENVADD): Go up one more level.
+
+	* Makefile.in: Add `basename' versions of all info targets, for
+	convenience when rebuilding just one manual.
+	(../etc/GNU): Delete obsolete target.
+	(.SUFFIXES): Use $(TEXI2DVI) rather than texi2dvi.
+	(mostlyclean): Add *.op, *.ops.  Move *.aux *.cps *.fns *.kys *.pgs
+        *.vrs *.toc here...
+        (maintainer-clean): ...from here.
+
+	* makefile.w32-in (../etc/GNU): Delete obsolete target.
+
+2007-09-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Date Conversions): Clarify definition of
+	Julian day numbering.
+	(Date Forms): Clarify definition of Julian day numbering;
+	add some history.
+
+2007-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 5.07
+
+2007-08-24  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
+
+	* message.texi (MIME): Replace mml-attach with mml-attach-file.
+
+2007-08-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Adding hyperlink types): New section.
+	(Embedded LaTeX): Chapter updated because of LaTeX export.
+	(LaTeX export): New section.
+	(Using links out): New section.
+
+2007-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (Learning how to do something): Refcards now in
+	etc/refcards/ directory.
+
+2007-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote Programs): Persistency file must be cleared when
+	changing `tramp-remote-path'.
+	(Filename Syntax): Don't use @var{} constructs inside the @trampfn
+	macro.
+
+2007-08-17  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: Move contents to beginning of file.
+	(Algebraic Entry): Fix the formatting of an example.
+
+2007-08-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units): Mention exact versus
+	inexact conversions.
+
+2007-08-14  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Operations on Units): Mention default
+	values for new units.
+	(Quick Calculator Mode): Mention that binary format will
+	be displayed.
+
+2007-08-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Selecting a Group): Mention gnus-maximum-newsgroup.
+
+2007-08-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Mention nntp-xref-number-is-evil.
+
+2007-08-08  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi, sieve.texi: Replace `iff'.
+
+2007-08-03  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Graphics): Mention the graphing of error
+	forms.
+	(Graphics Options): Mention how `g s' handles error forms.
+	(Curve Fitting): Mention plotting the curves.
+	(Standard Nonlinear Models): Add additional models.
+	(Curve Fitting Details): Mention the Levenberg-Marquardt method.
+	(Linear Fits): Correct result.
+
+2007-08-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Mailing Lists and Bug Reports): Correct "-no-site-file"
+	to "--no-site-file".
+
+2007-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Point to mode line
+	extension in Emacs 23.1.
+
+	* trampver.texi: Update release number.
+
+2007-07-27  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Copying): Include license text from gpl.texi, rather than
+	in-line.
+
+2007-07-25  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Copying): Replace license with GPLv3.
+
+	* Relicense all FSF files to GPLv3 or later.
+
+2007-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.10.
+
+	* tramp.texi (trampfn): Expand macro implementation in order to handle
+	empty arguments.
+	(trampfnmhl, trampfnuhl, trampfnhl): Remove macros.  Replace all
+	occurencies by trampfn.
+	(Frequently Asked Questions): Extend example code for host
+	identification in the modeline. Add bbdb to approaches shortening Tramp
+	file names to be typed.
+
+	* trampver.texi: Update release number.
+
+2007-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Move @setfilename ../info/tramp up, outside the header
+	section.  Reported by <poti@potis.org>.
+	(Remote processes): Arguments of the program to be debugged are taken
+	literally.
+	(Frequently Asked Questions): Simplify recentf example.
+
+2007-07-14  Karl Berry  <karl@gnu.org>
+
+	* info.texi (@copying): New Back-Cover Text.
+
+	* info.texi (Quitting Info): Move to proper place in source.
+	(Reported by Benno Schulenberg.)
+
+2007-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/emacs-mime): Use --enable-encoding.
+
+	* makefile.w32-in ($(infodir)/emacs-mime): Ditto.
+
+	* emacs-mime.texi: Add @documentencoding directive.
+
+2007-07-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tramp.texi (Remote processes): Add an anchor to the subsection
+	"Running a debugger on a remote host".
+
+2007-07-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): Don't call it "experimental" any
+	longer.  Add subsection about running a debugger on a remote host.
+
+2007-07-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Properties and columns): Chapter rewritten.
+
+2007-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi:
+	* trampver.texi: Migrate to Tramp 2.1.
+
+2007-07-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Properties): New chapter.
+
+2007-07-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([3.2]): Fix locating of environment variables in the
+	Control Panel.
+
+	* gnus.texi (Misc Article): Add index entry for
+	gnus-single-article-buffer.
+
+2007-06-27  Andreas Seltenreich  <andreas@gate450.dyndns.org>
+
+	* gnus.texi (Starting Up): Fix typo.
+
+2007-06-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Asynchronous Fetching): Fix typo.
+
+2007-06-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi:Change ifinfo to ifnottex (as appropriate) throughout.
+	(About This Manual): Remove redundant information.
+	(Getting Started): Mention author.
+	(Basic Arithmetic, Customizing Calc): Make description of the
+	variable `calc-multiplication-has-precedence' match its new effect.
+
+2007-06-19  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic Arithmetic, Customizing Calc): Mention
+	the variable `calc-multiplication-has-precedence'.
+
+2007-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Tag): Section swapped with node Timestamps.
+	(Formula syntax for Lisp): Document new `L' flag.
+
+2007-06-06  Andreas Seltenreich  <andreas@gate450.dyndns.org>
+
+	* gnus.texi (Misc Group Stuff, Summary Buffer)
+	(Server Commands, Article Keymap): Fix typo.  s/function/command/.
+
+2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cc-mode.texi (Comment Commands, Getting Started, Style Variables):
+	* gnus.texi (Article Buttons, Mail Source Customization)
+	(Sending or Not Sending, Customizing NNDiary):
+	* message.texi (Message Headers):
+	* mh-e.texi (HTML): Fix typos.
+
+2007-06-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.56.
+
+	* tramp.texi (Frequently Asked Questions): Improve ~/.zshrc
+	settings.  Reported by Ted Zlatanov <tzz@lifelogs.com>.
+
+2007-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.1 released.
+
+2007-05-26  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Modules): Fix references to completion modules.
+
+2007-05-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Running NNDiary): Use ~/.gnus.el instead of gnusrc.
+
+2007-05-09  Didier Verna  <didier@xemacs.org>
+
+	* gnus.texi (Email Based Diary): New.  Proper documentation for the
+	nndiary back end and the gnus-diary library.
+
+2007-05-03  Karl Berry  <karl@gnu.org>
+
+	* .cvsignore (*.pdf): New entry.
+
+	* texinfo.tex: Update from current version for better pdf generation.
+
+2007-04-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Article Highlighting): Clarify gnus-cite-parse-max-size.
+
+2007-04-28  Glenn Morris  <rgm@gnu.org>
+
+	* faq.texi (New in Emacs 22): Restore mention of python.el pending
+	consideration of legal status.
+
+2007-04-27  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* idlwave.texi: Minor updates for IDLWAVE 6.1.
+
+2007-04-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (New in Emacs 22): python.el removed.
+
+2007-04-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Reporting bugs): Update maintainer's address.
+
+2007-04-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (New in Emacs 22): Rename "tumme" to "image-dired".
+
+2007-04-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Title page): Remove the date.
+	(Basic Arithmetic): Emphasize that / binds less strongly than *.
+	(The Standard Calc Interface): Change trail title.
+	(Floats): Mention that when non-decimal floats are entered, only
+	approximations are stored.
+	(Copying): Move to the appendices.
+	(GNU Free Documentation License): Add as an appendix.
+
+2007-04-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ada-mode.texi, autotype.texi, cc-mode.texi, cl.texi:
+	* dired-x.texi, ebrowse.texi, ediff.texi:
+	* emacs-mime.texi, erc.texi, eshell.texi:
+	* eudc.texi, flymake.texi, forms.texi, gnus.texi:
+	* idlwave.texi, message.texi, newsticker.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, rcirc.texi, reftex.texi, sc.texi:
+	* ses.texi, sieve.texi, smtpmail.texi, speedbar.texi:
+	* tramp.texi, url.texi, vip.texi, viper.texi, widget.texi:
+	* woman.texi: Include GFDL.
+
+	* doclicense.texi: Remove node heading, so that it can be included by
+	other files.
+
+	* dired-x.texi: Relicence under GFDL.  Remove date from title page.
+
+	* calc.texi (Algebraic Tutorial): Emphasize that / binds less strongly
+	than *.
+
+2007-04-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Formula syntax for Calc): Emphasize the operator precedence
+	in Calc.
+
+2007-04-09  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Mention improvements to the Windows and
+	Mac OS ports.  Make it clear that mouse-1 complements and doesn't
+	replace mouse-2.
+
+2007-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.texi (Word at point, Interface Options): woman-topic-at-point
+	renamed to woman-use-topic-at-point.  Document new behavior.
+
+2007-04-08  Richard Stallman  <rms@gnu.org>
+
+	* url.texi: Fix some indexing.
+	(Disk Caching): Drop discussion of old/other Emacs versions.
+
+2007-04-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url.texi (Disk Caching): Say Emacs 21 "and later".
+
+	* cc-mode.texi (Font Locking Preliminaries): Link to Emacs manual node
+	on Font locking which now mentions JIT lock.
+
+2007-04-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for the ERC 5.2 release.
+
+2007-03-31  David Kastrup  <dak@gnu.org>
+
+	* woman.texi (Topic, Interface Options): Explain changes semantics of
+	woman-manpath in order to consider MANPATH_MAP entries.
+
+2007-03-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-mime.texi (Non-MIME): Postscript -> PostScript.
+
+2007-03-26  Richard Stallman  <rms@gnu.org>
+
+	* pgg.texi (Caching passphrase): Clean up previous change.
+
+2007-03-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* gnus.texi (Setting Process Marks): Fix typo.
+
+2007-03-25  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Reorganize using an itemized list for
+	readability, and include various fixes by Daniel Brockman, Nick Roberts
+	and Dieter Wilhelm.
+
+2007-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* gnus.texi (Splitting Mail): Reword "splitting"-as-adj to be -as-noun.
+
+	* gnus.texi (Mail Source Specifiers): Fix typo.
+
+2007-03-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* reftex.texi (Imprint): Update maintainer information.
+
+2007-03-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Message Buffers): Update documentation for
+	message-generate-new-buffers.
+
+2007-03-15  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg.texi (Caching passphrase): Describe pgg-passphrase-coding-system.
+
+2007-03-21  Glenn Morris  <rgm@gnu.org>
+
+	* eshell.texi (Known problems): Emacs 22 comes with eshell 2.4.2.
+
+2007-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell.texi (Known problems): Emacs 21 -> 22.
+
+	* cc-mode.texi (Performance Issues): Update note about 21.3 to 22.1.
+
+2007-03-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Time Zones): Mention that the DST rules changed in 2007.
+
+2007-03-12  Glenn Morris  <rgm@gnu.org>
+
+	* calc.texi (Time Zones): Switch to new North America DST rule.
+
+	* calc.texi: Replace "daylight savings" with "daylight
+	saving" in text throughout.
+
+2007-03-11  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Mail and Post): Update documentation for gnus-user-agent.
+	The variable now uses a list of symbols instead of just a symbol.
+	Reported by Christoph Conrad <christoph.conrad@gmx.de>.
+
+2007-03-06  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Don't say "now" too much.  Add MH-E to
+	new packages, and mention Gnus update.
+
+2007-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Mention nntp-never-echoes-commands and
+	nntp-open-connection-functions-never-echo-commands.
+
+2007-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg.texi (Caching passphrase): Document gpg-agent usage, gpg-agent
+	problems on the console, and security risk in not using gpg-agent.
+
+2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (The spreadsheet): Renamed from "Table calculations".
+	Completely reorganized and rewritten.
+	(CamelCase links): Section removed.
+	(Repeating items): New section.
+	(Tracking TODO state changes): New section.
+	(Agenda views): Chapter reorganized and rewritten.
+	(HTML export): Section rewritten.
+	(Tables in arbitrary syntax): New section.
+	(Summary): Better feature summary.
+	(Activation): Document problem with cut-and-paste of Lisp code
+	from PDF files.
+	(Visibility cycling): Document indirect buffer use.
+	(Structure editing): Document sorting.
+	(Remember): Section rewritten.
+	(Time stamps): Better description of time stamp types.
+	(Tag searches): Document regular expression search for tags.
+	(Stuck projects): New section.
+	(In-buffer settings): New keywords.
+	(History and Acknowledgments): Updated description.
+
+2007-02-24  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Movement Commands): Insert two missing command names.
+	(Getting Started): Slight wording correction (use conditional).
+
+2007-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* widget.texi (User Interface, Basic Types): Document need to put some
+	text before the %v escape in :format string in editable-field widget.
+
+2007-02-18  Romain Francoise  <romain@orebokech.com>
+
+	* pcl-cvs.texi (Miscellaneous commands): q runs `cvs-bury-buffer', not
+	`cvs-mode-quit'.
+
+2007-02-10  Markus Triska  <markus.triska@gmx.at>
+
+	* widget.texi (Programming Example): Put constant strings in :format.
+
+2007-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faq.texi (Fullscreen mode on MS-Windows): New node.
+
+2007-02-04  David Kastrup  <dak@gnu.org>
+
+	* faq.texi (AUCTeX): Update version number.  Should probably be done
+	for other packages as well.
+
+2007-01-28  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Batching Agents): Fix example.  Reported by Tassilo Horn
+	<tassilo@member.fsf.org>.
+
+2007-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (ls in Lisp): Document ls-lisp-format-time-list and
+	ls-lisp-use-localized-time-format.
+
+2007-01-20  Markus Triska  <markus.triska@gmx.at>
+
+	* flymake.texi (Flymake mode): find-file-hook instead of ...-hooks.
+
+2007-01-13  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Modules): Mention capab-identify module.
+
+2007-01-05  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Getting Started): Update for /RECONNECT command.
+
+2007-01-04  Richard Stallman  <rms@gnu.org>
+
+	* ebrowse.texi: Change C-c b to C-c C-m.
+
+2007-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Customizing Articles): Use index entries for gnus-treat-*
+	variables only in info to avoid redundant entries in the printed
+	manual.
+
+2007-01-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* message.texi (Using PGP/MIME): Document gpg-agent usage.
+
+2007-01-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Security): Split into sub-nodes.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Limitations and Known Bugs"): Document problems with
+	eval-after-load in Emacs <=21 and a workaround.  Document that
+	trigraphs are not supported.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Filling and Breaking"): Amend the doc for
+	c-context-line-break.  When invoked within a string, preserve
+	whitespace.  Add a backslash only when also in a macro.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Choosing a Style"): Mention c-file-style.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Movement Commands", "Sample .emacs File"): C-M-[ae]
+	are now bound by default to c-\(beginning\|end\)-of-defun by default.
+
+2007-01-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi ("Other Commands"): Move c-set-style (C-c .) here from
+	"Choosing a Style".
+
+	* cc-mode.texi ("Styles"): Add @dfn{style}.
+
+2006-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.55.
+
+	* trampver.texi: Update release number.
+
+2006-12-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Customizing Articles): Add index entries for all
+	gnus-treat-* variables.
+
+2006-12-29  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+
+	* gnus.texi (IMAP): Fix incorrect explanation of
+	nnimap-search-uids-not-since-is-evil in documentation for
+	nnimap-expunge-search-string.
+
+2006-12-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (ifile spam filtering): Rename spam-ifile-database-path to
+	spam-ifile-database.
+
+2006-12-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Spam Package Configuration Examples): Don't encourage to
+	rebind C-s.
+
+2006-12-26  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+
+	* gnus.texi (Group Parameters, Group Maintenance, Topic Commands)
+	(Mail Group Commands, Expiring Mail, IMAP): Add index entries for
+	"expiring mail".
+	(IMAP): Document nnimap-search-uids-not-since-is-evil and
+	nnimap-nov-is-evil.
+
+2006-12-25  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (Sorting Sequences): In sort*, add a little cautionary note
+	about the key procedure being used heavily.
+
+2006-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pgg.texi (Caching passphrase): Default for pgg-gpg-use-agent changed
+	to t.
+	(Prerequisites): Add explanation about gpg-agent.
+
+2006-12-22  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (Sorting Sequences): Typo in sort*, example showed plain
+	"sort" instead of "sort*".
+
+2006-12-19  Richard Stallman  <rms@gnu.org>
+
+	* calc.texi (History and Acknowledgements): Recognize that Emacs
+	now does have floating point.
+
+2006-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External transfer methods): Describe new method `scpc'.
+
+2006-12-17  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg.texi: Added short note on gpg-agent to the introduction.
+
+2006-12-13  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Hiding Headers): Document that `long-to' and `many-to'
+	also applies to Cc.
+
+2006-12-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (X-Face): Clarify.  Say which programs are required
+	on Windows.
+
+2006-12-08  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Modules): Remove documentation for list module.
+
+2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* faq.texi (^M in the shell buffer): Ditto.
+
+2006-11-20  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Call this the 5.2 stable pre-release of ERC.
+
+2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Fix typos.
+	(Agenda commands): Document `C-k'.
+
+2006-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* url.texi (http/https): Fix a typo in the HTTP URL.
+
+2006-11-14  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* ada-mode.texi: Total rewrite.
+
+2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Minor typo fixes.
+
+2006-11-13  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.0.3.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.0.3.
+
+	* mh-e.texi (Incorporating Mail): Use output of "mhparam Path"
+	to set MAILDIR.
+	(Reading Mail): Document the customization of read-mail-command
+	for MH-E.
+	(Viewing Attachments): Document mm-discouraged-alternatives.
+	(Tool Bar): Fix Texinfo for mh-xemacs-use-tool-bar-flag.
+	(Junk): Add more information about the settings of mh-junk-background
+	in a program.  Add /usr/bin/mh to PATH in examples.
+
+2006-11-12  Richard Stallman  <rms@gnu.org>
+
+	* woman.texi: Update author address but say he no longer maintains it.
+
+2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (ARCHIVE tag): Document C-TAB for forcing cycling of
+	archived trees.
+	(Checkboxes): Section moved to chapter 5, and extended.
+	(The date/time prompt): New section.
+	(Link abbreviations): New section.
+	(Presentation and sorting): New section.
+	(Custom agenda views): Section completely rewritten.
+	(Summary): Compare with Planner.
+	(Feedback): More info about creating backtraces.
+	(Plain lists): Modified example.
+	(Breaking down tasks): New section.
+	(Custom time format): New section.
+	(Time stamps): Document inactive timestamps.
+	(Setting tags): More details about fast tag selection.
+	(Block agenda): New section.
+	(Custom agenda views): Section rewritten.
+	(Block agenda): New section.
+
+2006-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Configuration): scp is the default method.
+	(Default Method): Use ssh as example for another method.
+
+2006-10-27  Richard Stallman  <rms@gnu.org>
+
+	* woman.texi: Downcase nroff/troff/roff.
+	(Installation): Chapter deleted.  Some xrefs deleted.
+	(Background): woman doesn't advise man ;-).
+
+2006-10-26  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
+
+	* ada-mode.texi (Project files, Identifier completion)
+	(Automatic Casing, Debugging, Using non-standard file names)
+	(Working Remotely): Fix typos.
+
+2006-10-20  Masatake YAMATO  <jet@gyve.org>
+
+	* cc-mode.texi (Sample .emacs File): Added missing `)' in
+	sample code `my-c-initialization-hook'.
+
+2006-10-19  Stuart D. Herring  <herring@lanl.gov>
+
+	* widget.texi: Fix typos.
+
+2006-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Remove questions marked with
+	"???".  There have been no complaints for years, so the information
+	must be appropriate.
+
+2006-10-16  Richard Stallman  <rms@gnu.org>
+
+	* widget.texi: Use @var instead of capitalization.
+	Clarify many widget type descriptions.
+
+2006-10-13  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Other modes): Fix typo.  Add alternative index entry for
+	gnus-dired-attach.
+	(Selecting a Group): Fix typo.
+
+2006-10-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
+
+	* widget.texi: Fix typos.
+
+2006-10-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Image Enhancements): Update for Emacs 22.
+
+	* gnus-faq.texi ([1.3]): Update.
+
+2006-10-06  Richard Stallman  <rms@gnu.org>
+
+	* faq.texi (Displaying the current line or column):
+	Delete "As of Emacs 20".
+
+2006-10-06  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (VM): VM works with Emacs 22 too.
+
+2006-10-06  Richard Stallman  <rms@gnu.org>
+
+	* ebrowse.texi: Remove Emacs version "21" from title.
+
+2006-10-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Foreign Groups): Say where change of editing commands are
+	stored.  Add reference to `gnus-parameters'.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi, mh-e.texi (GNU GENERAL PUBLIC LICENSE):
+	Change "Library Public License" to "Lesser Public License"
+	throughout.  Use "yyyy" to represent year.
+
+2006-09-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Setting tags): Typo fix.
+
+2006-09-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Oort Gnus): Add @xref for `mm-fill-flowed'.
+
+2006-09-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* reftex.texi (Citations Outside LaTeX): Simplify lisp example.
+
+2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* faq.texi (Escape sequences in shell output): EMACS is now set
+	to Emacs's absolute file name, not to "t".
+	(^M in the shell buffer): Likewise.
+	* misc.texi (Interactive Shell): Likewise.
+
+2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Specifiers): Mention problem of duplicate
+	mails with pop3-leave-mail-on-server.  Fix wording.
+	(Limiting): Improve gnus-summary-limit-to-articles.
+	(X-Face): Fix typo.
+
+2006-09-11  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Explain TLS and SSL better, based on
+	suggested by Phillip Lord <phillip.lord@newcastle.ac.uk>.
+
+2006-09-06  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Mention SSL.
+
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* rcirc.texi (Internet Relay Chat, Useful IRC commands):
+	Don't use @indicateurl.
+
+	* cc-mode.texi (Subword Movement): Don't use @headitem.
+	(Custom Braces, Clean-ups): Don't use @tie.
+
+2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.54.
+
+	* tramp.texi (Bug Reports): The Tramp mailing list is moderated now.
+	Suggested by Adrian Phillips <a.phillips@met.no>.
+
+2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Installation, Activation): Split from Installation and
+	Activation.
+	(Clocking work time): Documented new features.
+
+2006-08-13  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi (Configuration): Use correct variable in rcirc-authinfo
+	example.
+
+2006-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (How to add fonts): New node.
+
+2006-08-05  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Expand.
+
+2006-08-03  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for ERC 5.1.4.
+
+2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Oort Gnus): Mention that the Lisp files are now installed
+	in .../site-lisp/gnus/ by default.
+	[ From gnus-news.texi in the trunk. ]
+
+2006-07-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (MIME Commands): Additions for yEnc.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi:
+	* faq.texi: Move periods and commas inside quotes.
+
+2006-07-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Error forms): Mention M-+ keybinding for `calc-plus-minus'.
+
+2006-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (Security risks with Emacs): Document Emacs 22
+	file-local-variable mechanism.
+
+2006-07-12  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for ERC 5.1.3.
+
+2006-07-12  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi: Fix typos.
+	(Getting started with rcirc): New calling convention for M-x irc.
+	Mention #rcirc.  Removed channel tracking.
+	(Configuration): Changed the names of all variables that got changed
+	recently, eg. rcirc-server to rcirc-default-server.  Added
+	documentation for rcirc-authinfo, some background for Bitlbee, and
+	rcirc-track-minor-mode.
+	(Scrolling conservatively): Fixed the xref from Auto Scrolling to just
+	Scrolling.
+	(Reconnecting after you have lost the connection): Fixed example code
+	to match code changes.
+
+2006-07-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* gnus.texi, message.texi: Fix typos.
+
+2006-07-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Exporting): Document `C-c C-e' as the prefix for exporting
+	commands.
+	(Global TODO list): Document the use of the variables
+	`org-agenda-todo-ignore-scheduled' and
+	`org-agenda-todo-list-sublevels'.
+
+2006-07-05  Richard Stallman  <rms@gnu.org>
+
+	* faq.texi (Scrolling only one line): Fix xref.
+
+2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* faq.texi (Evaluating Emacs Lisp code):
+	Throughout, replace eval-current-buffer with eval-buffer.
+
+2006-07-03  Richard Stallman  <rms@gnu.org>
+
+	* rcirc.texi (Scrolling conservatively): Fix xref.
+
+	* pcl-cvs.texi (Viewing differences): Usage fix.
+
+2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Agenda commands): Document `s' key to save all org-mode
+	buffers.
+
+2006-06-30  Ralf Angeli  <angeli@caeruleus.net>
+
+	* pcl-cvs.texi (Customizing Faces): Remove -face suffix from face
+	names.  Mention `cvs-msg' face.
+
+2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Checkboxes): New section.
+
+2006-06-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Embedded LaTeX): Fix typos and implement small improvements
+	throughout this chapter.
+
+2006-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.texi (Help-Small-Screen): Clarify placement of "All" and "Top"
+	text for standalone vs Emacs info.
+	(Help): Clarify header line description.  Use mouse-1 for clicks.
+	(Help-P): Use mouse-1 for clicks.
+	(Help-^L): "Top" and "All" not displayed with dashes in Emacs.
+	(Help-^L, Help-M, Help-Int, Search Index, Go to node)
+	(Choose menu subtopic): Remove gratuitous Emacs command names.
+	(Help-FOO): Put usual behavior first.
+	(Help-Xref): Clicking on xrefs works in Emacs.
+	(Search Text): Clarify what the default behavior is.
+	(Create Info buffer): Fix Emacs window/X window confusion.
+	(Emacs Info Variables): Fix for new Emacs init file behavior.
+
+2006-06-24  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Summary Buffer Lines): Fix typo.
+
+2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Embedded LaTeX): New chapter.
+	(Archiving): Section rewritten.
+	(Enhancing text): Some parts moved to the new chapter about LaTeX.
+
+2006-06-20  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.0.1.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.0.1.
+	(Preface): Depend on GNU mailutils 1.0 and higher.
+
+2006-06-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (News Headers): Update message-syntax-checks section.
+
+2006-06-19  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Advanced): Mention C-q, especially with ?.
+
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Publishing links): Document the `:link-validation-function'
+	property.
+	(Extensions and Hacking): New chapter, includes some sections of the
+	"Miscellaneous" chapter.
+
+2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Progress logging): New section.
+
+2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* viper.texi (Viper Specials):
+	* gnus.texi (Example Setup):
+	* faq.texi (Backspace invokes help):
+	* dired-x.texi (Optional Installation Dired Jump):
+	* calc.texi (Defining Simple Commands): Use ;; instead of ;;; to better
+	follow coding conventions.
+
+2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
+
+2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (ASCII export): Document indentation adaptation.
+	(Setting tags): Document mutually-exclusive tags.
+
+2006-06-05  Romain Francoise  <romain@orebokech.com>
+
+	* url.texi (irc): Mention new funs `url-irc-rcirc' and `url-irc-erc'.
+	Fix typo.
+
+	* gnus-faq.texi (Question 8.6): Update reference to the Gnus
+	channel (#gnus@irc.freenode.net).
+	Fix typos.  Update copyright notice.
+
+	* cc-mode.texi (Getting Started, Indentation Commands, Config Basics)
+	(Custom Filling and Breaking, Custom Braces, Syntactic Symbols)
+	(Line-Up Functions, Custom Macros):
+	* ediff.texi (Window and Frame Configuration)
+	(Highlighting Difference Regions, Highlighting Difference Regions):
+	* emacs-mime.texi (Display Customization):
+	* erc.texi (History):
+	* eshell.texi (Known problems):
+	* eudc.texi (Overview, BBDB):
+	* gnus.texi (NNTP, IMAP, Advanced Scoring Examples)
+	(The problem of spam, SpamOracle, Extending the Spam package)
+	(Conformity, Terminology):
+	* idlwave.texi (Routine Info, Routine Info)
+	(Class and Keyword Inheritance, Padding Operators)
+	(Breakpoints and Stepping, Electric Debug Mode)
+	(Examining Variables, Troubleshooting):
+	* org.texi (Creating timestamps):
+	* reftex.texi (Commands, Options, Changes):
+	* tramp.texi (Inline methods, Password caching)
+	(Auto-save and Backup, Issues):
+	* vip.texi (Files, Commands in Insert Mode):
+	* viper.texi (Emacs Preliminaries, States in Viper)
+	(Packages that Change Keymaps, Viper Specials, Groundwork):
+	Fix various typos.
+
+2006-05-31  Michael Ernst  <mernst@alum.mit.edu>
+
+	* ediff.texi: Fix typos.
+
+2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Small typo fixes.
+
+2006-05-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Disable zsh zle.
+
+2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* pcl-cvs.texi: Fix typos.
+	(Customization): Say "us".
+
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* org.texi: Remove bogus @setfilename.
+
+2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (ASCII export): Omit command name.
+	(HTML export): Add prefix to all lines in Local Variable example.
+	(Acknowledgments): Typeset names in italics.
+
+2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Plain lists): Add new item navigation commands.
+	(External links): Document elisp and info links.
+	(Custom searches): New section.
+	(Publishing): New chapter.
+	(HTML export): Include a list of supported CSS classes.
+	(Setting tags): Describe the fast-tag-setting interface.
+
+2006-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-x.texi: ifinfo -> ifnottex.
+
+2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
+
+2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Interface): Add tool bar customization.
+	(MIME): Index and text additions for mml-attach.
+	(MIME): Describe mml-dnd-protocol-alist and
+	mml-dnd-attach-options.
+
+	* gnus.texi (Oort Gnus): Reorder entries in sections.
+	Fix some entries.
+	(Starting Up): Add references to "Emacs for Heathens" and to
+	"Finding the News".  Add user-full-name and user-mail-address.
+	(Group Buffer Format): Add tool bar customization and update.
+	(Summary Buffer): Add tool bar customization.
+	(Posting Styles): Add message-alternative-emails.
+
+2006-05-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename completion): Improve wording.
+
+2006-05-07  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Using regular expressions): Fix typo.
+	(Packages that do not come with Emacs): Fix capitalization.
+	(Replacing text across multiple files): Expand node to explain how
+	to use `dired-do-query-replace-regexp' in more detail, based on
+	suggestion by Eric Hanchrow <offby1@blarg.net>.
+
+2006-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename completion): Completion of remote files'
+	method, user name and host name is active only in partial
+	completion mode.
+
+2006-05-06  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.0.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.0.
+
+2006-05-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (MH-BOOK-HOME): Change from
+	http://www.ics.uci.edu/~mh/book/mh to
+	http://rand-mh.sourceforge.net/book/mh.
+	Replace .htm suffix with .html for MH book files.
+	(Using This Manual): Update key binding for getting relevant
+	chapter in Info from command key.
+	(Ranges): Fix itemx.
+
+2006-05-05  Karl Berry  <karl@gnu.org>
+
+	* texinfo.tex (\definetextfonsizexi, \definetextfonsizex): New cmds.
+	(\fonttextsize): New user-level command to change text font size.
+
+2006-04-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg.texi (Caching passphrase): Fix markup and typos.  Simplify.
+
+2006-04-26  Sascha Wilde  <wilde@sha-bang.de>  (tiny change)
+
+	* pgg.texi (Caching passphrase): Add pgg-gpg-use-agent.
+
+2006-04-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Getting Started): Make it more explicit that you need
+	to install MH.  Add pointers to current MH implementations.
+
+2006-04-21  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 7.94.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 7.94.
+
+2006-04-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Many small fixes.
+	(Handling links): Rename from "Managing links".
+
+2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Spam Statistics Package): Fix typo in @pxref.
+	(Splitting mail using spam-stat): Fix @xref.
+
+2006-04-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus.texi (Spam Package): Major revision of the text.
+	Previouly this node was "Filtering Spam Using The Spam ELisp Package".
+
+2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Time stamps): Better explanation of the purpose of
+	different time stamps.
+	(Structure editing, Plain lists): More details on how new items
+	and headings are inserted.
+
+2006-04-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Formula syntax): Fix link to Calc Manual.
+
+2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Emacsen): Don't support Emacs 20.7 and XEmacs 21.1.
+
+2006-04-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Folders): Update mh-before-quit-hook and
+	mh-quit-hook example with code that removes the buffers rather
+	than just bury them.
+
+2006-04-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.53.
+
+2006-04-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Updating settings): New section.
+	(Visibility cycling): Better names for the startup folding
+	options.
+	(Exporting): Completely restructured.
+	(The very busy C-c C-c key): New section.
+	(Summary of in-buffer settings): New section.
+
+2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi, gnus-faq.texi, message.texi: Gnus v5.10.8 is released.
+
+2006-04-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Misc Group Stuff, Summary Buffer, Article Keymap)
+	(Server Commands): Key `v' is reserved for users.
+
+2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Link format): New section, emphasis on bracket links.
+	(External links): Document bracket links.
+	(FAQ): Expand to cover shell links and the new link format.
+
+2006-04-09  Kevin Ryde  <user42@zip.com.au>
+
+	* org.texi (Formula syntax): Typo in node name of calc-eval xref.
+
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Summary Buffer Lines): Add `*'.
+
+2006-04-07  Jochen K,A|(Bpper  <jochen@fhi-berlin.mpg.de>
+
+	* gnus.texi (Group Parameters):
+	Mention gnus-permanently-visible-groups.
+
+2006-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Face): Fix typo.
+
+2006-04-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (X-Face): Clarify.
+	(Face): Need Emacs with PNG support.
+
+2006-04-06  Richard Stallman  <rms@gnu.org>
+
+	* idlwave.texi: Delete the blocks "not suitable for inclusion with
+	Emacs".
+
+2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* idlwave.texi: Updated for IDLWAVE version 6.0, factoring out
+	blocks not suitable for inclusion with Emacs using variable
+	PARTOFEMACS.
+
+2006-04-04  Simon Josefsson  <jas@extundo.com>
+
+	* gnus.texi (Security): Improve.
+
+2006-04-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Getting Started, Junk, Bug Reports)
+	(MH FAQ and Support): Fix URLs.
+
+2006-03-31  Romain Francoise  <romain@orebokech.com>
+
+	* gnus.texi (Virtual Groups): `nnvirtual-always-rescan' defaults
+	to t, not nil (and has for the past eight years).
+
+2006-03-31  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi, gnus.texi: Bump version to 5.11.
+
+2006-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Top): Add comment about version line.
+
+	* message.texi (Top): Ditto.  Change to take named versions into
+	account.
+
+2006-03-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Posting Styles): Add x-face-file to example.
+	(X-Face): Refer to posting styles.
+
+	* gnus-faq.texi ([5.8]): Add x-face-file.
+	([8.4]): Add links to gmane.emacs.gnus.user and
+	gmane.emacs.gnus.general.
+
+2006-03-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi: Use .invalid.
+	([5.4]): Fix gnus-posting-styles example.
+
+2006-03-27  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Emacs/W3): Rename from `w3-mode'.  Mention that
+	Emacs/W3 needs a new maintainer.
+	(Ispell): Update author and version info.
+	(Mailcrypt): Mention PGG.
+	(New in Emacs 22): Add PGG to the list of new packages.
+	Include minor changes from "Ramprasad B" <ramprasad_i82@yahoo.com>
+	updating dead URLs.
+
+2006-03-25  Karl Berry  <karl@gnu.org>
+
+	* ada-mode.texi, autotype.texi, calc.texi, cc-mode.texi, cl.texi,
+	* dired-x.texi, ebrowse.texi, ediff.texi, emacs-mime.texi, erc.texi,
+	* eshell.texi, eudc.texi, faq.texi, forms.texi, gnus.texi, idlwave.texi,
+	* info.texi, message.texi, mh-e.texi, pcl-cvs.texi, pgg.texi,
+	* rcirc.texi, reftex.texi, sc.texi, ses.texi, sieve.texi,
+	* speedbar.texi, url.texi, vip.texi, viper.texi, widget.texi,
+	* woman.texi: (1) use @copyright{} instead of (C) in typeset text;
+	(2) do not indent copyright year list (or anything else).
+
+2006-03-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Folders): Various edits.
+
+2006-03-20  Romain Francoise  <romain@orebokech.com>
+
+	* gnus.texi (Mail Folders): Grammar fix.
+
+2006-03-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Replying): Document Mail-Followup-To.
+	Change manually-formatted table to multitable.  Add debugging info.
+	Move description of mh-reply-default-reply-to into paragraph
+	that describes its values.
+
+2006-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Use smallexample and smalllisp consistenly.
+	(Sending Mail Tour): Update method of entering
+	addresses and subject.
+	(Sending Mail Tour, Reading Mail Tour, Processing Mail Tour)
+	(Adding Attachments, Searching): Update screenshots for Emacs 22.
+
+2006-03-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number change only.
+
+2006-03-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Add index entries around each paragraph rather than
+	depend on entries from beginning of node.  Doing so ensures that
+	index entries are less likely to be forgotten if text is cut and
+	pasted, and are necessary anyway if the references are on a
+	separate page.  It seems that makeinfo is now (v. 4.8) only
+	producing one index entry per node, so there is no longer any
+	excuse not to.  Use subheading instead of heading.  The incorrect
+	use of heading produced very large fonts in Info--as large as the
+	main heading.
+	(From Bill Wohler): MH-E never did appear in Emacs 21--MH-E
+	versions 6 and 7 appeared *around* the time of these Emacs releases.
+
+2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Clean view): Document new startup options.
+
+2006-03-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Preface, More About MH-E, Options, HTML, Folders)
+	(Composing, Scan Line Formats): Fix @refs.
+	(Getting Started): Define MH profile and MH profile components.
+	(Incorporating Mail, Reading Mail, Viewing, Printing)
+	(Sending Mail, Forwarding, Editing Drafts, Inserting Letter)
+	(Signature, Aliases, Scan Line Formats): Use @code instead of @samp
+	for string constants.
+	(Tool Bar): Remove spurious quote.
+	(Junk): Use ``...'' instead of "...".
+	(Scan Line Formats): Replace @samp with @kbd.
+
+2006-03-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NoCeM): Mention gnus-use-nocem can also be a number.
+
+2006-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Fancy Mail Splitting): Improve sentences so as to be
+	easy to understand.
+
+2006-03-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi: Markup fix.
+	(Fancy Mail Splitting): Specify new feature.
+
+2006-03-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Fancy Mail Splitting): Improve descriptions about
+	partial-words matching.
+
+2006-03-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-mime.texi (Display Customization): Reword image/.* stuff.
+
+	* gnus.texi (Oort Gnus): Add note about `gnus-load'.
+	(MIME Commands): Fix mm-discouraged-alternatives.
+
+2006-03-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number change only.
+
+2006-03-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi: Move from SourceForge repository to Savannah.
+	This is version 7.93, which is a total rewrite from the previous
+	edition 1.3 for MH-E version 5.0.2, and corresponds to MH-E
+	version 7.93.
+
+2006-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Oort Gnus): Add `mm-fill-flowed'.
+
+2006-03-01  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Interaction): Add item about `org-mouse.el' by
+	Piotr Zielinski.
+	(Managing links): Document that also mouse-1 can be used to
+	activate a link.
+	(Headlines, FAQ): Add entry about hiding leading stars.
+	(Miscellaneous): Resort the sections in this chapter to a more
+	logical sequence.
+
+2006-02-27  Simon Josefsson  <jas@extundo.com>
+
+	* emacs-mime.texi (Flowed text): Add mm-fill-flowed.  (Sync
+	2004-01-27 from the trunk).
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Rename c-hungry-backspace to
+	c-hungry-delete-backwards, at the request of RMS.  Leave the old
+	name as an alias.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Correct the definition of c-beginning-of-defun, to
+	include the function header within the defun.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Correct two typos.
+
+2006-02-24  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi (Comment Commands): State that C-u M-; kills any
+	existing comment.
+	(Electric Keys): Add a justification for electric indentation.
+	(Hungry WS Deletion): Clear up the names and complications of the
+	BACKSPACE and DELETE keys.
+
+2006-02-23  Juri Linkov  <juri@jurta.org>
+
+	* faq.texi (Common requests): Move `Turning on auto-fill by
+	default' after `Wrapping words automatically'.  Move `Working with
+	unprintable characters' before `Searching for/replacing newlines'.
+	Move `Replacing highlighted text' after `Highlighting a region'.
+	Merge `Repeating commands' and `Repeating a command as many times
+	as possible' into the former.
+	(Packages that do not come with Emacs): Add refs to Gmane and
+	etc/MORE.STUFF.
+
+2006-02-23  Juri Linkov  <juri@jurta.org>
+
+	* faq.texi (Newsgroup archives): Update URLs of GNU mail archives.
+	(Reporting bugs): Suggest using `M-x report-emacs-bug'.
+	Add xref to `(emacs)Reporting Bugs'.
+	(Getting a printed manual): Add URL to other formats of the manual.
+	(Common requests): Fix menu.
+	(Highlighting a region): Remove ref to `Turning on syntax highlighting'.
+	(Horizontal scrolling): Mention `truncate-partial-width-windows'.
+	(Inserting text at the beginning of each line): Add pxref to
+	`Changing the included text prefix'.
+	(Forcing the cursor to remain in the same column): Mention `track-eol'
+	and `set-goal-column'.  Add pxref to `(emacs)Moving Point'.
+	(Replacing text across multiple files): Add keybinding `Q' for
+	`dired-do-query-replace'.
+
+2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* reftex.texi: Version number and date change only.
+
+	* org.texi (Internal Links): Rewrite to cover the modified
+	linking system.
+
+2006-02-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi: Remove the coding cookie, it's not needed anymore.
+
+2006-02-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* faq.texi (Colors on a TTY): Mention Mac OS port.
+
+2006-02-12  Karl Berry  <karl@gnu.org>
+
+	* faq.texi (Emacs for Atari ST): Use Sch@"auble instead of the
+	8-bit accented a.
+
+2006-02-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Gnus Versions): Add history beyond start of Oort.
+
+2006-02-08  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Top): Remove paragraph about the FAQ being a
+	transitional document, etc.
+	(Searching for/replacing newlines): New node.
+	(Yanking text in isearch): New node.
+	(Inserting text at the beginning of each line): Rename and make
+	more general, mention `M-;' in Message mode.
+
+2006-02-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* faq.texi (Meta key does not work in xterm)
+	(Emacs does not display 8-bit characters)
+	(Inputting eight-bit characters): Update xrefs.
+
+2006-02-06  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (VM): VM now at version 7.19.
+	Set myself as maintainer of this file.
+
+2006-02-04  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (History): Note that ERC is now included with Emacs.
+
+2006-01-31  Romain Francoise  <romain@orebokech.com>
+
+	* message.texi (Message Headers): Explain what
+	`message-alternative-emails' does in more detail.
+	Update copyright year.
+
+2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (clean): Add newsticker, sieve, pgg, erc and rcirc.
+
+2006-01-29  Richard M. Stallman  <rms@gnu.org>
+
+	* cc-mode.texi (Indentation Commands): Inserts newline, not "linefeed".
+
+2006-01-29  Michael Olson  <mwolson@gnu.org>
+
+	* makefile.w32-in ($(infodir)/erc, erc.dvi): New targets.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ERC.
+
+	* faq.texi (New in Emacs 22): Mention ERC.
+
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rcirc.texi: Capitalize dir entry for consistency with the entry
+	in info/dir and other entries in the Emacs category.
+	Fix typos.  Delete trailing whitespace.
+
+2006-01-28  Bj,Av(Brn Lindstr,Av(Bm  <bkhl@elektrubadur.se>
+
+	* rcirc.texi: Some @cindex changes, some changes from @kbd to @key.
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(infodir)/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
+	* Makefile.in (../info/rcirc, rcirc.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add rcirc.
+
+2006-01-27  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi: New file.
+
+2006-01-23  Juri Linkov  <juri@jurta.org>
+
+	* widget.texi (User Interface): Add S-TAB for widget-backward.
+
+2006-01-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.52.
+
+	* tramp.texi (Frequently Asked Questions): Remove Ange-FTP item.
+	Add Tramp disabling item.  New item for common connection problems.
+	(various): Apply "ftp" as method for the download URL.
+	(Bug Reports): Refer to FAQ for common problems.
+
+2006-01-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* widget.texi (User Interface): Use @key for TAB.
+
+	* ses.texi (Formulas, Printer functions): Use @key for TAB.
+
+	* ebrowse.texi (Switching to Tree, Symbol Completion): Use @key
+	for TAB.
+
+	* cc-mode.texi (Indentation Calculation): Use @key for TAB.
+
+2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi: Update copyright.
+
+2006-01-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Washing): Additions.
+
+2006-01-08  Alex Schroeder  <alex@gnu.org>
+
+	* pgg.texi (Caching passphrase): Rewording.
+
+2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Agenda commands): Document tags command.
+
+2006-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Document nnrss-wash-html-in-text-plain-parts.
+
+2006-01-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Addition.
+
+2005-12-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Summary Post Commands): Fix function bound to `S O p'.
+
+2005-12-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Display Customization): Add setting example to
+	mm-discouraged-alternatives.
+
+2006-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* flymake.texi (Obtaining Flymake): Remove chapter since Emacs's
+	version is the canonical version.
+
+2006-01-08  Alex Schroeder  <alex@gnu.org>
+
+	* pgg.texi (Caching passphrase): Rewording.
+
+2006-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* flymake.texi (Obtaining Flymake): Update Flymake's CVS
+	repository URL.
+
+2006-01-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Removed the accidentally re-added empty line in the
+	direntry.
+
+2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Agenda Views): Chapter reorganized.
+
+2005-12-29  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Using Customize): New node.
+
+2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* org.texi: Remove blank line in @direntry.  It is non-standard
+	and recursively produces blank lines all over the dir file (when
+	using Texinfo 4.8).
+
+2005-12-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* widget.texi (atoms): Delete obsolete remark about `file' widget.
+
+2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Tags): Boolean logic documented.
+	(Agenda Views): Document custom commands.
+
+2005-12-20  David Kastrup  <dak@gnu.org>
+
+	* faq.texi (AUCTeX): Update version and mailing list info.
+
+2005-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (MIME Commands): Mention addition of
+	multipart/alternative to gnus-buttonized-mime-types and add xref
+	to mm-discouraged-alternatives.
+
+	* emacs-mime.texi (Display Customization): Mention addition of
+	"image/.*" and add xref to gnus-buttonized-mime-types in the
+	mm-discouraged-alternatives section.
+
+2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Tags): New section.
+	(Agenda Views): Chapter reorganized.
+
+2005-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* org.texi (Internal Links): Add a missing comma after an @xref.
+
+2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (Filling paragraphs with a single space): No need to
+	change sentence-end now.
+
+2005-12-13  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Scrolling only one line): Use `scroll-conservatively'.
+
+2005-12-12  Jay Belanger  <belanger@truman.edu>
+
+	* faq.texi (Calc): Update version number.
+
+2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Progress Logging): New section.
+
+2005-12-10  Romain Francoise  <romain@orebokech.com>
+
+	Update the Emacs FAQ for the 22.1 release.
+
+	* faq.texi: Set VER to `22.1'.
+	(Basic editing): Explain how to use localized versions of the
+	Tutorial.  Mention that `C-h r' displays the manual.  Delete
+	obsolete WWW link to an Emacs 18 tutorial.
+	(Getting a printed manual): Point to the new locations of the
+	manuals on the GNU Web site.
+	(Emacs Lisp documentation): Explain that the Emacs Lisp manual is
+	available via Info (it was previously distributed separately).
+	(Installing Texinfo documentation): The latest version of Texinfo
+	is 4.8, not 4.0.
+	(Informational files for Emacs): COPYING is the GNU General Public
+	License, not the Emacs General Public License.
+	(Informational files for Emacs): Delete obsolete link to the
+	GNUinfo pages as they have been removed from the GNU Web site.
+	(New in Emacs 22): New node.
+	(Setting up a customization file): Say that most packages support
+	Customize nowadays.
+	(Colors on a TTY): Delete reference to instructions on how to
+	enable syntax highlighting, it is now enabled by default.
+	(Turning on abbrevs by default): Emacs now reads the abbrevs file
+	at startup automatically.
+	(Controlling case sensitivity): Mention `M-c' in isearch.
+	(Using an already running Emacs process): Emacs now creates the
+	socket in `/tmp/emacsUID'.  Fix typos.  Change default location of
+	gnuserv.  As emacsclient can now run Lisp code as well, delete a
+	sentence praising gnuserv for that.  Simplify description of how
+	the client/server operation works.
+	(Compiler error messages): Delete obsolete text (compile.el has
+	been rewritten).
+	(Indenting switch statements): Fix typo.
+	(Matching parentheses): Simplify setup instructions, mention the
+	menu bar item in the Options menu.
+	(Repeating a command as many times as possible): Mention `C-x e'.
+	(Going to a line by number): Mention new keymap and bindings
+	`M-g M-g', `M-g M-p' and `M-g M-n'.
+	(Turning on syntax highlighting): Now on by default.  Simplify.
+	(Replacing highlighted text): Use `1', not `t'.
+	(Problems with very large files): The maximum size is now 256MB on
+	32-bit machines.
+	(^M in the shell buffer): Mention `comint-process-echoes'.
+	(Emacs for Apple computers): Emacs 22 has native support for Mac
+	OS X.
+	(Translating names to IP addresses): Delete node.
+	(Binding keys to commands): Fix typo.
+	(SPC no longer completes file names): New node.
+	(MIME with Emacs mail packages): Delete section about the Emacs
+	MIME FAQ (it's not reachable anymore).
+
+2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: The manual has been extensively revised: the
+	information about using CC Mode has been separated from the larger
+	and more difficult chapters about configuration.  It has been
+	updated for CC Mode 5.31.
+
+2005-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pgg.texi (User Commands): Fix description of pgg-verify-region.
+	(Selecting an implementation): Fix descriptions.
+
+2005-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Various Message Variables): Addition.
+
+2005-11-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi: Fix default values.
+
+2005-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Header Commands): Clarify descriptions of
+	message-cross-post-followup-to, message-reduce-to-to-cc, and
+	message-insert-wide-reply.
+	(Various Commands): Fix kindex for message-kill-to-signature;
+	clarify description of message-tab.
+
+2005-11-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Mailing Lists): Fix description about MFT.
+
+	* gnus.texi (Emacs Lisp): Use ~/.gnus.el instead of ~/.emacs.
+
+2005-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Slow Terminal Connection): Replace old description
+	with new one.
+
+2005-11-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Oort Gnus): Use ~/.gnus.el instead of ~/.emacs;
+	replace X-Draft-Headers with X-Draft-From.
+
+2005-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Various Various): Fix the default value of
+	nnheader-max-head-length.
+	(Gnus Versions): Fix typo.
+
+2005-12-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Structure editing): Document new functionality of
+	M-RET.
+
+2005-12-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* org.texi (Internal Links): Fix Texinfo usage.
+
+2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (TODO basics): Document the global todo list.
+	(TODO items): Documents sparse tree for specific TODO
+	keywords.
+
+2005-11-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Plain Lists): Typos fixed.
+
+2005-11-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change references of `M-#' to `C-x *' prefix.
+
+2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Structure editing): New item moving commands added.
+	(Plain Lists): New section.
+
+2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (FAQ): Document `org-table-tab-jumps-over-hlines'.
+	(Agenda): Document commands `org-cycle-agenda-files' and
+	`org-agenda-file-to-front'
+	(Built-in table editor): Document `org-table-sort-lines'.
+	(HTML formatting): Export of hand-formatted lists.
+
+2005-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Fix description of gnus-use-toolbar; add
+	new variable gnus-toolbar-thickness.
+
+2005-11-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Revert description of gnus-use-toolbar.
+
+2005-11-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (X-Face): Fix description.
+	(XVarious): Remove gnus-xmas-logo-color-alist and
+	gnus-xmas-logo-color-style; fix description of gnus-use-toolbar.
+
+2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Group Parameters): Mention new variable
+	gnus-parameters-case-fold-search.
+	(Home Score File): Addition.
+
+2005-11-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.texi: VERSION changed to 1.9.  Updated UPDATED.
+	(Overview): List supported feed types.
+	(Installation): No installation necessary when using autoload.
+	(Configuration): Rename "RSS" to "news".
+
+2005-11-04  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg.texi (User Commands): Document additional passphrase
+	argument for pgg-encrypt-*, pgg-decrypt-*, and pgg-sign-* functions.
+	(Backend methods): Likewise for corresponding pgg-scheme-* functions.
+
+2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version number changed to 3.19.
+
+2005-10-29  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg.texi (How to use): Update the example to add autoload of
+	pgg-encrypt-symmetric-region.
+	(User Commands): Document pgg-encrypt-symmetric-region.
+	(Backend methods): Document pgg-scheme-encrypt-symmetric-region.
+
+2005-10-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Predefined Units): Fix the symbol for a TeX points,
+	mention other TeX-related units.
+
+2005-10-23  Lars Hansen  <larsh@soem.dk>
+
+	* dired-x.texi (Miscellaneous Commands): Replace
+	dired-do-relative-symlink by dired-do-relsymlink and
+	dired-do-relative-symlink-regexp by dired-do-relsymlink-regexp.
+
+2005-10-23  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Predefined Units): Use `alpha' for the fine structure
+	constant.
+
+2005-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* faq.texi (Bugs and problems): Replace
+	`dired-move-to-filename-regexp' by
+	`directory-listing-before-filename-regexp'.
+
+2005-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* newsticker.texi (UPDATED): Set value.
+
+2005-10-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Document Groups): Remove duplicate item.
+
+2005-10-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Summary): Mention iCalendar support.
+	(Exporting): Document iCalendar support.
+
+2005-10-18  Romain Francoise  <romain@orebokech.com>
+
+	* viper.texi (Viper Specials): Capitalize GNU.
+
+2005-10-17  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Getting Started, Search Index, Expert Info):
+	Fix wording.
+	(Search Text): Replace `echo area' with `mode line'.
+	(Search Index): Both `i' and `,' find all index entries.
+	Replace example `C-f' with `C-l' (which exists in index of Info
+	manual) and delete spaces in its keyboard input sequence.
+	Delete unnecessary explanations about literal characters.
+
+2005-10-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Document Server Internals): Addition.
+
+2005-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (A note on namespaces): Fix RFC reference.
+
+2005-10-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Fix key description.
+
+2005-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi: Emacs/w3 -> Emacs/W3.
+	(Browsing the Web): Fix description.
+	(Web Searches): Ditto.
+	(Customizing W3): Ditto.
+
+2005-10-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Maildir): Clarify expire-age and expire-group.
+
+2005-10-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Integration): Mention using `a i' to compute definite
+	integrals.
+
+2005-10-11  Juri Linkov  <juri@jurta.org>
+
+	* info.texi: Rearrange nodes.
+	(Top): Update menu.  Change ref `Info for Experts' to
+	`Advanced Info Commands'.
+	(Getting Started): Fix description of manual's parts.
+	(Help-Int): Change xref `Info Search' to `Search Index', and
+	`Expert Info' to `Advanced'.
+	(Advanced): Move node one level up.
+	(Search Text, Search Index): New nodes split out from `Info Search'.
+	(Go to node, Choose menu subtopic, Create Info buffer): New nodes
+	split out from `Advanced'.
+	(Advanced, Emacs Info Variables): De-document editing an Info file
+	in Info.
+	(Emacs Info Variables): Move node from `Expert Info' to `Advanced'.
+	(Creating an Info File): Delete node and move its text to
+	`Expert Info'.
+
+2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Workflow states): Documented that change in keywords
+	becomes active only after restart of Emacs.
+
+2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.51.
+
+2005-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.texi (Introduction): Describe new location of speedbar
+	on menubar.
+	(Basic Key Bindings): Remove descriptions of bindings that have
+	been removed.
+
+2005-10-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.texi (GDB): Describe use of watch expressions.
+
+2005-09-28  Simon Josefsson  <jas@extundo.com>
+
+	* message.texi (IDNA): Fix.
+
+2005-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Remove nntp-buggy-select, nntp-read-timeout,
+	nntp-server-hook, and nntp-warn-about-losing-connection; fix
+	description of nntp-open-connection-function.
+	(Common Variables): Fix descriptions.
+
+2005-09-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Server Buffer Format): Document the %a format spec.
+
+2005-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Mail): Fix gnus-confirm-mail-reply-to-news entry.
+
+2005-09-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi Version 3.16.
+
+2005-09-19  Miles Bader  <miles@gnu.org>
+
+	* newsticker.texi: Get rid of CVS keywords.
+
+2005-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Finding the Parent): Fix description of how Gnus
+	finds article.
+
+2005-09-14  Jari Aalto  <jari.aalto@cante.net>
+
+	* gnus.texi (Advanced Scoring Examples): New examples to teach how
+	to drop off non-answered articles.
+
+2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (newsticker.dvi): Use parentheses instead of curly
+	braces (which are unsupported by NMAKE) for macro `srcdir'.
+
+2005-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Add newsticker targets.
+	(../info/newsticker, newsticker.dvi): New targets.
+
+2005-09-17  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.texi: Replace @command with @code.  Replace @example
+	with @lisp.
+	(Top): Added explanations to menu items.
+	(GNU Free Documentation License): Removed.
+
+2005-09-16  Romain Francoise  <romain@orebokech.com>
+
+	Update all files to specify GFDL version 1.2.
+
+	* doclicense.texi (GNU Free Documentation License): Update to
+	version 1.2.
+
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* newsticker.texi: Fix @setfilename.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add newsticker targets.
+	(../info/newsticker, newsticker.dvi): New targets.
+
+2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.15.
+
+2005-08-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ses.texi: Combine all three indices into one.
+	Correct a few typos.
+
+2005-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (time-date): Fix description of safe-date-to-time.
+
+2005-08-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Handles): Remove duplicate item.
+	(Encoding Customization): Fix the default value for
+	mm-coding-system-priorities.
+	(Charset Translation): Emacs doesn't use mm-mime-mule-charset-alist.
+	(Basic Functions): Fix reference.
+
+2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Charsets): Fj hierarchy uses iso-2022-jp.
+
+2005-08-18  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi (Obtaining the FAQ): Delete refs to Lerner's email
+	and web site.
+
+	* faq.texi (Swapping keys): Xref for normal-erase-is-backspace-mode,
+	not keyboard-translate.
+
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi (Using regular expressions): Fix xref.
+
+2005-08-09  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Help-P): Replace `Prev' with `Previous'.
+	(Help-M, Help-Xref): Add S-TAB.
+	(Help-FOO): Update `u' command.
+	(Help-Xref): Move info about Mouse-2 from `Help-Int'.
+	Update info about visibility of xref parts.
+	(Help-Int): Fix `m' command.  Rename `Info-last' to
+	`Info-history-back'.  Add `Info-history-forward'.
+	(Advanced): Fix `g*' and `M-n' commands.
+	(Info Search): Add `index-apropos' in stand-alone browser.
+	Add isearch commands.
+	(Emacs Info Variables): Remove `Info-fontify'.
+	Add `Info-mode-hook'.  Update face names.
+	Add `Info-fontify-maximum-menu-size',
+	`Info-fontify-visited-nodes', `Info-isearch-search'.
+
+2005-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.50.
+
+	* tramp.texi: Use @option{} consequently for method names.
+	(Inline methods, External transfer methods): Remove references to
+	Cygwin.
+	(Issues with Cygwin ssh): Explain trouble with Cygwin's ssh
+	implementation.
+
+2005-07-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Startup Files): Fix name of gnus-site-init-file.
+	Mention that gnus-init-file is not read when Emacs is invoked with
+	--no-init-file or -q.
+
+2005-07-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.14.
+
+2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.13.
+
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* calc.texi (Time Zones, Logical Operations):
+	* cl.texi (Overview):
+	* org.texi (TODO types):
+	* sc.texi (Emacs 18 MUAs):
+	* speedbar.texi (Top):
+	* url.texi (History):
+	Delete duplicate duplicate words.
+
+2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+
+	* cl.texi (Type Predicates): Document `atom' type.
+
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+	* calc.texi (Copying):
+	* doclicense.texi (GNU Free Documentation License):
+	* faq.texi (Contacting the FSF):
+	* mh-e.texi (Copying): Update FSF's address.
+
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called directly):
+	Update name of flymake-build-relative-filename.
+
+2005-06-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NoCeM): gnus-nocem-verifyer defaults to pgg-verify.
+
+2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.12.
+
+2005-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Use --force.
+	(INFO_TARGETS, DVI_TARGETS): Make identical to the lists in
+	Makefile.in.
+	(gnus.dvi): Use "..." to quote Sed args, so that it works with
+	more shells.
+
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* speedbar.texi (Creating a display): Texinfo usage fixes.
+
+	* tramp.texi (Customizing Completion, Auto-save and Backup):
+	Texinfo usage fixes.
+
+2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired-x.texi (Miscellaneous Commands):
+	* ediff.texi (Miscellaneous):
+	* gnus.texi (MIME Commands, Fancy Mail Splitting, Agent Visuals)
+	(Agent Variables):
+	* info.texi (Help-Xref):
+	* message.texi (Message Headers):
+	* org.texi (Remember):
+	* reftex.texi (Options (Defining Label Environments)):
+	(Options (Index Support)):
+	(Options (Viewing Cross-References)):
+	(Options (Misc)):
+	(Changes):
+	* speedbar.texi (Creating a display):
+	* tramp.texi (Customizing Completion, Auto-save and Backup):
+	Texinfo usage fix.
+
+2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.11.
+
+2005-06-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Getting Started): Remove extra menu item.
+
+2005-05-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Notations Used in This Manual): Use @kbd for key
+	sequence.
+	(Demonstration of Calc): Mention another way of starting Calc.
+	(Starting Calc): Mention long name of M-#.
+	(Embedded Mode Overview): Remove unnecessary instruction.
+	(Other M-# commands): Rephrase `M-# 0' explanation.
+	(Basic Embedded Mode): Rewrite discussion of prefix arguments to
+	reflect current behavior.
+
+2005-05-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Hooks): Change description of calc-window-hook and
+	calc-trail-window-hook to match usage.
+	(Computational Functions): Add more constant-generating functions.
+	(Customizable Variables): Use defvar.
+
+2005-05-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Assignments in Embedded Mode): Fix variable name.
+	(Basic Embedded Mode): Explain behavior of arguments to
+	calc-embedded-mode.
+
+2005-05-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Queries in Keyboard Macros): Rewrite to reflect
+	current behavior.
+
+2005-05-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change Calc version number throughout.
+	(Keypad Mode): Change location in info output.
+	(Keypad mode overview): Move picture of keypad.
+
+2005-05-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Storing variables): Mention that only most variables
+	are void to begin with.
+
+2005-05-21  Kevin Ryde  <user42@zip.com.au>
+
+	* widget.texi (Basic Types): Update cross ref from "Enabling
+	Mouse-1 to Follow Links" to "Links and Mouse-1" per recent
+	lispref/text.texi change.
+
+2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.09.
+
+2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* reftex.texi: Version 4.28.
+
+2005-05-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Storing Variables): Mention `calc-copy-special-constant'.
+
+2005-05-14  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Default Simplifications): Insert missing ! (logical
+	not operator).
+
+2005-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.49.
+
+2005-05-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Default Simplifications): Mention that 0^0 simplifies
+	to 1.
+
+2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.08, structure reorganized.
+
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi: Delete info about lazy-lock.el and fast-lock.el.
+
+2005-04-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Update to version 3.06.
+
+2005-04-13  Lute Kamstra  <lute@gnu.org>
+
+	* cc-mode.texi: Prevent creating an unnecessary empty cc-mode.ss file.
+
+2005-04-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* cl.texi (Porting Common Lisp): Fix typo.
+
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Addition.
+
+2005-04-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change Calc version number.
+	(Customizable variables): Fix description of calc-language-alist.
+	(Copying): Put in version 2 of GPL.
+
+2005-04-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Troubleshooting Commands): Remove comment about
+	installation.
+	(Installation): Remove section.
+	(Customizable Variables): New section.
+	(Basic Embedded Mode, Customizing Embedded Mode, Graphics)
+	(Graphical Devices): Add references to Customizable Variables.
+
+2005-03-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Display Customization): Markup fixes.
+	(rfc2047): Update.
+
+2005-03-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi: Replaced with auto-generated version.
+
+2005-03-26  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
+
+	* dired-x.texi (Multiple Dired Directories): default-directory was
+	renamed to dired-default-directory.
+
+2005-03-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Simplifying Formulas, Rewrite Rules):
+	Change description of top and bottom of fraction.
+	(Modulo Forms): Move description of how to create modulo forms to
+	earlier in the section.
+	(Fraction Mode): Suggest using : to get a fraction by dividing.
+	(Basic Arithmetic): Adjust placement of command name.
+	(Truncating the Stack): Emphasize that "hidden" entries are still
+	visible.
+	(Installation): Move discussion of printing manual to "About This
+	Manual".
+	(About This Manual): Mention how to print the manual.
+	(Reporting Bugs): Remove first person.
+	(Building Vectors): Add algebraic version of append.
+	(Manipulating Vectors): Fix algebraic version of calc-reverse-vector.
+	(Grouping Digits): Fix typo.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc.texi, cl.texi, gnus.texi, idlwave.texi, reftex.texi:
+	Replace `legal' with `valid'.
+
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc.texi, reftex.texi: Replace `illegal' with `invalid'.
+
+2005-03-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (General Mode Commands)
+	(Mode Settings in Embedded Mode): Add some explanation of
+	recording mode settings.
+
+2005-03-24  Richard M. Stallman  <rms@gnu.org>
+
+	* calc.texi: Remove praise of non-free software.
+
+	* idlwave.texi: Don't say where to get IDL or its non-free manual.
+	(Installation): Node deleted.
+
+2005-03-23  Richard M. Stallman  <rms@gnu.org>
+
+	* url.texi (HTTP language/coding): Improve last change.
+
+2005-03-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Embedded Mode): Add new information on changing
+	modes.
+
+2005-03-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.48.
+
+	* trampver.texi.in: Replace "Emacs" by "GNU Emacs".
+
+	* tramp.texi: Replace "Emacs" by "GNU Emacs".  Replace "Linux" by
+	"GNU/Linux".  Change all addresses to .gnu.org.
+	(Default Method): Offer shortened syntax for "su" and "sudo"
+	methods.
+
+2005-03-07  Richard M. Stallman  <rms@gnu.org>
+
+	* url.texi: Fix usage of "e.g.".
+	(HTTP language/coding): Explain the rules for these strings.
+
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* woman.texi (Introduction): Minor cleanups.
+
+	* url.texi (HTTP language/coding): Get rid of "Emacs 21".
+
+	* pcl-cvs.texi (About PCL-CVS): Get rid of "Emacs 21".
+	(Installation): Node deleted.
+
+	* mh-e.texi (Preface): Get rid of "Emacs 21".
+
+	* eshell.texi (Installation): Delete node (for Emacs 20).
+
+2005-03-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* flymake.texi: Refill and tweak style in @lisp blocks.
+
+2005-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Slow/Expensive Connection): Don't abbreviate "very".
+
+2005-03-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Trigonometric and Hyperbolic Functions):
+	Mention additional functions.
+	(Algebraic Simplifications): Mention additional simplifications.
+
+2005-02-18  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.texi: Add concept/function/variable indices (this work was
+	donated by Brad Collins <brad@chenla.org>, copyright-assignment
+	papers on file at FSF).
+
+2005-02-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change @LaTeX to La@TeX throughout.
+	Redefine @expr as @math for TeX output.
+	Redefine @texline as a no-op for TeX output.
+	Define @tfn, replace @t by @tfn throughout.
+
+2005-02-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Add macro for LaTeX for info output.
+
+2005-02-08  Kim F. Storm  <storm@cua.dk>
+
+	* texinfo.tex (LaTex): Add def.
+
+2005-02-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (TeX Language Mode): Add mention of LaTeX mode, and
+	change name to "TeX and LaTeX Language Modes."  Mention LaTeX mode
+	throughout manual.
+
+2005-01-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Some edits based on comments from David Abrahams.
+
+2005-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Fix the keystroke.
+
+2005-01-24  David Kastrup  <dak@gnu.org>
+
+	* faq.texi: Update AUCTeX version info.
+
+2005-01-16  Xavier Maillard  <zedek@gnu-rox.org>  (tiny change)
+
+	* gnus-faq.texi ([4.1]): Typo.
+
+2005-01-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Keep Arguments): Mention that keeping arguments
+	doesn't work with keyboard macros.
+
+2005-01-16  Richard M. Stallman  <rms@gnu.org>
+
+	* autotype.texi (Autoinserting): Fix small error.
+
+2005-01-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.47.
+
+	* tramp.texi (Compilation): New section, describing compilation of
+	remote files.
+
+2005-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* widget.texi (Basic Types): Add :follow-link keyword.
+
+2005-01-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Basic Commands): Describe new behavior of calc-reset.
+
+2005-01-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change throughout to reflect new default value of
+	calc-settings-file.
+
+2005-01-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Reply): `message-reply-to-function' should return
+	a list.  Suggested by ARISAWA Akihiro <ari@mbf.ocn.co.jp>.
+
+2005-01-06  Hiroshi Fujishima  <pooh@nature.tsukuba.ac.jp>  (tiny change)
+
+	* faq.texi (Changing load-path): Fix typo.
+
+2005-01-05  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Programming Tutorial): Replace kbd command by
+	appropriate characters for a keyboard macro.
+
+2005-01-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Basic Tutorial, Programming Tutorial): Remove caveats
+	for Lucid Emacs.
+	(Programming Tutorial): Mention that the user needs to be in the
+	right mode to compute some functions.
+
+2005-01-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Rewrite rules): Remove an exercise (on 0^0) which is
+	no longer applicable.
+
+2005-01-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Programming Tutorial): Changed description of how to
+	edit keyboard macros to match current behavior.
+
+2004-12-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Mention C-cC-c as the way to finish editing throughout.
+
+2004-12-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Types Tutorial): Emphasize that you can't divide by
+	zero.
+
+2004-12-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cc-mode.texi (Text Filling and Line Breaking): Put period after
+	@xref.
+	(Font Locking): Avoid @strong{Note:}.
+
+2004-12-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.46.
+
+	* tramp.texi (bottom): Add arch-tag.  It was lost, somehow.
+
+2004-12-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* url.texi: Correct typos.
+	(Retrieving URLs): @var{nil}->@code{nil}.
+	(HTTP language/coding, mailto): Replace  "GNU Emacs Manual" with
+	the standard "The GNU Emacs Manual" in fifth argument of @xref's.
+	(Dealing with HTTP documents): @inforef->@xref.
+
+2004-12-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Consistently capitalized all mode names.
+	(Answers to Exercises): Mention that an answer can be a fraction
+	when in Fraction mode.
+
+2004-12-13  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Fix some TeX definitions.
+
+2004-12-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* reftex.texi (Imprint): Remove erroneous @value's.
+
+2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, $(infodir)/org)
+	(org.dvi, $(infodir)/url, url.dvi, clean): Add org and url manuals.
+
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Starting Calc): Remove comment about installation.
+	(Keypad Mode Overview): Remove comment about Emacs 19 support.
+
+2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* url.texi: Update @setfilename.
+	(Getting Started): No need to worry about Gnus versions.
+	(Dealing with HTTP documents): Use @inforef.
+
+	* org.texi: Fix @direntry file name.
+
+2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.texi: New file.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, ../info/url, url.dvi): Add it.
+
+2004-12-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Using Calc): Remove paragraph about installation.
+
+2004-12-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Use more Texinfo macros and less TeX defs.
+	Remove @refill's.
+
+2004-12-06  Richard M. Stallman  <rms@gnu.org>
+
+	* org.texi: New file.
+
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (org.dvi, ../info/org): New targets.
+	(INFO_TARGETS): Add ../info/org.
+	(DVI_TARGETS): Add org.dvi.
+	(maintainer-clean): Remove the info files in the info dir.
+
+2004-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* idlwave.texi: Fix the setfilename directive to put the produced
+	file in ../info.
+	(Continued Statement Indentation): Resurrect Jan D.'s change from
+	2004-11-03 that was lost when a newer version of idlwave.texi was
+	imported.
+
+2004-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([5.1]): Added missing bracket.
+
+	* gnus.texi (Filtering Spam Using The Spam ELisp Package): Index
+	`spam-initialize'.
+
+2004-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Various Message Variables): Mention that all mail
+	file variables are derived from `message-directory'.
+
+	* gnus.texi (Splitting Mail): Clarify bogus group.
+
+2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Encoding Customization): Fix
+	mm-coding-system-priorities entry.
+
+2004-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* idlwave.texi (Continued Statement Indentation):
+	* reftex.texi (Options (Index Support)):
+	(Displaying and Editing the Index, Table of Contents):
+	* speedbar.texi (Creating a display, Major Display Modes): Replace
+	non-nil with non-@code{nil}.
+
+2004-10-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Algebraic-Style Calculations): Removed a comment.
+
+2004-10-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* calc.texi (Reporting Bugs): Double up `@'.
+
+2004-10-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Reporting Bugs): Changed the address that bugs
+	should be sent to.
+
+2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (New Features): Add 5.11.
+
+	* message.texi (Resending): Remove wrong default value.
+
+	* gnus.texi (Mail Source Specifiers): Describe possible problems
+	of `pop3-leave-mail-on-server'.  Add `pop3-movemail' and
+	`pop3-leave-mail-on-server' to the index.
+
+2004-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Canceling News): Add how to set a password.
+
+2004-10-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Help Commands): Changed the descriptions of
+	calc-describe-function and calc-describe-variable to match their
+	current behavior.
+
+2004-10-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([5.9]): Improve code for reply-in-news.
+
+2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.45.
+
+	* tramp.texi (Frequently Asked Questions): Comment paragraph about
+	plink link.  The URL is outdated.  Originator contacted for
+	clarification.
+
+2004-10-10  Juri Linkov  <juri@jurta.org>
+
+	* gnus.texi (Top, Marking Articles): Join two menus in one node
+	because a node can have only one menu.
+
+2004-10-09  Juri Linkov  <juri@jurta.org>
+
+	* gnus.texi (Fancy Mail Splitting): Remove backslash in the
+	example of nnmail-split-fancy.
+
+2004-10-06  Karl Berry  <karl@gnu.org>
+
+	* info.texi (@kbd{1}--@kbd{9}): No space around --, for
+	consistency with other uses of dashes.
+
+2004-10-05  Karl Berry  <karl@gnu.org>
+
+	* info.texi: Consistently use --- throughout, periods at end of
+	menu descriptions, and a couple typos.
+
+2004-09-26  Jesper Harder  <harder@ifa.au.dk>
+
+	* sieve.texi (Manage Sieve API): nil -> @code{nil}.
+	* pgg.texi (User Commands, Backend methods): Do.
+	* gnus.texi: Markup fixes.
+	(Setting Process Marks): Fix `M P a' entry.
+	* emacs-mime.texi: Fixes.
+
+2004-09-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([5.12]): Fix code example for FQDN in Message-Ids
+	again.
+	Use 5.10 instead of 5.10.0.
+
+2004-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Summary Mail Commands): S D e.
+
+2004-09-20  Raymond Scholz  <ray-2004@zonix.de>  (tiny change)
+
+	* gnus.texi (Misc Article): Refer to `Summary Buffer Mode Line' in
+	the gnus-article-mode-line-format section.
+
+2004-09-20  Helmut Waitzmann  <Helmut.Waitzmann@web.de>  (tiny change)
+
+	* gnus.texi (Various Summary Stuff): Fix the documentation for
+	gnus-newsgroup-variables.
+
+2004-09-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (MIME Commands): Added
+	gnus-mime-display-multipart-as-mixed,
+	gnus-mime-display-multipart-alternative-as-mixed,
+	gnus-mime-display-multipart-related-as-mixed.
+	(Mail Source Customization): Clarify `mail-source-directory'.
+	(Splitting Mail): Mention gnus-group-find-new-groups.
+	(SpamOracle): Fixed typo.
+
+	* gnus-faq.texi: Untabify.
+	([6.3]): nnir.el is in contrib directory.
+
+	* message.texi (News Headers): Clarify how a unique ID is created.
+
+	* gnus.texi (Batching Agents): Fixed typo in example.  Reported
+	by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
+
+2004-09-20  Andre Srinivasan  <andre@e2open.com>
+
+	* gnus.texi (Group Parameters): Added more on hooks.  (Small
+	change.)
+
+2004-09-20  Florian Weimer  <fw@deneb.enyo.de>
+
+	* gnus.texi (Charsets): Point to relevant section in emacs-mime.
+
+2004-09-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Vectors as Lists): Added a warning that the tutorial
+	might be hidden during part of the session.
+
+2004-09-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Notations Used in This Manual): Put in an earlier
+	mention that DEL could be called Backspace.
+
+2004-09-10  Simon Josefsson  <jas@extundo.com>
+
+	* gnus.texi (IMAP): Add example.  Suggested and partially written
+	by Steinar Bang <sb@dod.no>.
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (IMAP): Add comments about imaps synonym to imap in
+	netrc syntax.
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam ELisp Package Sequence of Events): Some clarifications.
+	(Spam ELisp Package Global Variables): More clarifications.
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam ELisp Package Filtering of Incoming Mail):
+	Mention spam-split does not modify incoming mail.
+
+2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam ELisp Package Sequence of Events): Fix typo.
+
+2004-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/gnus, gnus.dvi): Depend on gnus-faq.texi.
+
+2004-09-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* makefile.w32-in (sieve, pgg): Use $(infodir).
+
+2004-09-08  Dhruva Krishnamurthy  <dhruva.krishnamurthy@gmail.com>  (tiny change)
+
+	* makefile.w32-in: Fix PGG and Sieve entries.
+
+2004-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (Emacs for MS-DOS): Update URLs for the MS-DOS port of
+	Emacs and related programs.
+
+2004-08-27  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi: Fix texinfo usage, esp. doublequotes.
+	(Difference between Emacs and XEmacs): Some clarification.
+
+	* faq.texi (Difference between Emacs and XEmacs):
+	Explain not to contrast XEmacs with GNU Emacs.
+
+2004-08-26  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi (Difference between Emacs and XEmacs): Rewrite.
+
+2004-08-22  David Kastrup  <dak@gnu.org>
+
+	* reftex.texi (AUCTeX): Update links, section name.
+
+	* faq.texi (Calc): Update availability (included in 22.1).
+	(AUCTeX): Update availability, information, versions, description.
+
+2004-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/tramp, tramp.dvi): Depend on trampver.texi.
+
+2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Various updates for CC Mode 5.30.9.
+
+2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.44.
+
+2004-08-05  Lars Hansen  <larsh@math.ku.dk>
+
+	* widget.texi (User Interface): Update how to separate the
+	editable field of an editable-field widget from other widgets.
+	(Programming Example): Add text after field.
+
+2004-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Encoding Customization): Add a note to the
+	mm-content-transfer-encoding-defaults entry.
+	(rfc2047): Update.
+
+	* gnus.texi (Article Highlighting): Add
+	gnus-cite-ignore-quoted-from.
+	(POP before SMTP): New node.
+	(Posting Styles): Addition.
+	(Splitting Mail): Add nnmail-split-lowercase-expanded.
+	(Fancy Mail Splitting): Ditto.
+	(X-Face): Add gnus-x-face.
+
+2004-08-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi,
+	* pgg.texi, sieve.texi: Use @copying and @insertcopying.
+
+2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Specifiers): Describe
+	`pop3-leave-mail-on-server'.
+
+2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* Makefile.in, makefile.w32-in: Added PGG and Sieve files.
+
+	* pgg.texi, sieve.texi: Import from the v5_10 branch of the Gnus
+	repository.  Change setfilename.
+
+	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi: Ditto.
+
+2004-07-02  Juri Linkov  <juri@jurta.org>
+
+	* pcl-cvs.texi (Viewing differences): Add `d r'.
+
+2004-06-29  Jesper Harder  <harder@ifa.au.dk>
+
+	* ses.texi, viper.texi, flymake.texi, faq.texi:
+	* eshell.texi, ediff.texi: Markup fixes.
+
+2004-06-21  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Top): Mention that only Emacs has mouse support.
+	(Getting Started): Mention this in a few other places.
+
+2004-06-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autotype.texi (Copyrights, Timestamps): Recommend
+	`before-save-hook' instead of `write-file-functions'.
+
+2004-06-13  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired-x.texi (dired-mark-omitted): Update keybinding.
+
+2004-06-10  Kim F. Storm  <storm@cua.dk>
+
+	* pcl-cvs.texi (Viewing differences): Add 'd y'.
+
+2004-06-05  Lars Hansen  <larsh@math.ku.dk>
+
+	* dired-x.texi (variable dired-omit-mode): Rename from
+	dired-omit-files-p.
+	(function dired-omit-mode): Rename from dired-omit-toggle.
+	Call dired-omit-mode rather than set dired-omit-files-p.
+	(dired-mark-omitted): Describe command.
+
+2004-05-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Version 2.0.41 of Tramp released.
+
+2004-05-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (../info/flymake, flymake.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add Flymake.
+
+2004-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* cl.texi (Top): Call this chapter `Introduction'.
+	(Overview): In TeX, no section heading here.
+
+	* cc-mode.texi: Put commas after i.e. and e.g.  Minor cleanups.
+
+2004-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/flymake, flymake.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add Flymake.
+
+2004-05-29  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* flymake.texi: New file.
+
+2004-05-28  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Improve STARTTLS discussion.
+
+2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
+
+	Version 2.0.40 of Tramp released.
+
+2004-04-25  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	Complete rework, based on review by Karl Berry <karl@gnu.org>.
+
+	* tramp.texi (Auto-save and Backup): Explain exploitation of new
+	variables `tramp-backup-directory-alist' and
+	`tramp-bkup-backup-directory-info'.
+	(Overview, Connection types)
+	(External transfer methods, Default Method)
+	(Windows setup hints): Remove restriction of password entering
+	with external methods.
+	(Auto-save and Backup): Make file name example
+	(X)Emacs neutral.  In case of XEmacs, `bkup-backup-directory-info'
+	and `auto-save-directory' must be used.
+	(Frequently Asked Questions): Use "MS Windows NT/2000/XP" (not
+	only "NT").  Remove doubled entry "What kinds of systems does
+	@tramp{} work on".
+	(tramp): Macro removed.
+	(Obtaining Tramp): Flag removed from title.
+	(all): "tramp-" and "-" removed from flag names.  Flags `tramp'
+	and `trampver' used properly.  Flag `tramp-inst' replaced by
+	`installchapter'.  Installation related text adapted.
+
+2004-04-28  Masatake YAMATO  <jet@gyve.org>
+
+	* widget.texi (Programming Example): Remove overlays.
+
+2004-04-27  Jesper Harder  <harder@ifa.au.dk>
+
+	* faq.texi, viper.texi, dired-x.texi, autotype.texi: lisp -> Lisp.
+
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-05  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.texi (Info Search): Add info-apropos.
+
+2004-03-22  Juri Linkov  <juri@jurta.org>
+
+	* faq.texi: Fix help key bindings.
+
+2004-03-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* info.texi (Advanced): Replace @unnumberedsubsec by @subheading
+	(as suggested by Karl Berry).  Update information about colored
+	stars in menus.  Add new subheading describing M-n.
+
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* cl.texi (Top): Rename top node's title.
+
+2004-03-08  Karl Berry  <karl@gnu.org>
+
+	* info.texi: \input texinfo.tex instead of just texinfo, to avoid
+	problems making the texinfo distribution.
+
+2004-02-29  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Changed the list of supported
+	authentication mechanisms from CRAM-MD5, PLAIN and LOGIN-MD5 to
+	CRAM-MD5 and LOGIN, tiny patch from Andreas Voegele
+	<voegelas@gmx.net>.
+
+2004-02-29  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (mostlyclean, clean, maintainer-clean):
+	Use $(DEL) instead of rm, and ignore exit code.
+
+2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
+
+	Tramp version 2.0.39 released.
+
+2004-02-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Customizing Completion): Explain new functions
+	`tramp-parse-shostkeys' and `tramp-parse-sknownhosts'.
+	(all): Savannah URLs unified to "http://savannah.nongnu.org".
+	(Top): Refer to Savannah mailing list as the major one.  Mention
+	older mailing lists in HTML mode only.
+	(Auto-save and Backup): Add auto-save.  Based on wording of Kai.
+	(Frequently Asked Questions): Remote hosts must not be Unix-like
+	for "smb" method.
+	(Password caching): New node.
+	(External transfer methods): Refer to password caching for "smb"
+	method.
+
+2004-02-17  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Help-Int): Mention the new line number feature.
+
+2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.texi (Advanced Features): New functionality for
+	ses-set-header-row (defaults to current row unless C-u used).
+	(Acknowledgements): Add Stefan Monnier.
+
+2003-12-29  Kevin Ryde  <user42@zip.com.au>
+
+	* viper.texi (Vi Macros): Fix reference to the Emacs manual.
+
+2003-11-30  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	Tramp version 2.0.38 released.
+
+	* tramp.texi (Remote shell setup): Warn of environment variables
+	FRUMPLE if user frumple exists.  Suggested by Sven Gabriel
+	<sven.gabriel@imk.fzk.de>.
+	(Configuration): Tramp now chooses base64/uuencode
+	automatically.  Update wording accordingly.
+	(Top): More description for the `Default Method' menu entry.
+	(Default Method): Use @code, not @var, for Lisp variables.
+	(Default Method): New subsection `Which method is the right one
+	for me?'  Suggested by Christian Kirsch.
+	(Configuration): Pointer to new subsection added.
+	(Default Method): Too many "use" in one sentence.
+	Rephrase.  Reported by Christian Kirsch.
+	(Filename Syntax): Old `su' example is probably a left-over from
+	the sm/su method naming.  Replace with `ssh', instead.
+	(External transfer methods, Auto-save and Backup):
+	Typo fixes.
+
+2003-11-02  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (all): Harmonize all occurences of @tramp{}.
+	(Top): Mention japanese manual only if flag `jamanual' is set.
+	Insert section `Japanese manual' in menu.
+
+2003-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* eshell.texi (Known Problems): Add doc item.
+
+2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Update for CC Mode 5.30.
+
+	Note: Please refrain from doing purely cosmetic changes like
+	removing trailing whitespace in this manual; it clobbers cvs
+	merging for no good reason.
+
+2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* man/ediff.texi, man/tramp.texi, man/vip.texi, man/viper.texi:
+	* man/widget.texi, man/woman.texi: Replace @sc{ascii} and ASCII with
+	@acronym{ASCII}.
+
+2003-10-26  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Info Search): Echo area, not echo are.  From Debian
+	diff.
+
+2003-10-26  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* widget.texi (Defining New Widgets): Document new beavior of
+	:buttons and :children keywords.
+
+2003-10-22  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (info): Move before $(top_srcdir)/info.
+
+2003-10-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* tramp.texi (Inline methods): Small grammar fix.
+	(External transfer methods): Likewise.
+
+2003-10-08  Nick Roberts  <nick@nick.uklinux.net>
+
+	* speedbar.texi: Remove paragraph for GUD that is no longer true.
+
+2003-10-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* texinfo.tex: Replace `%' in arch tagline by @ignore.
+
+2003-09-30  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-x.texi (Miscellaneous Commands): Delete M-g, w, T.
+
+	* widget.texi (User Interface): Fix typos.
+
+	* pcl-cvs.texi, cl.texi, woman.texi, ediff.texi: Fix @strong{Note:}.
+
+2003-09-29  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* pcl-cvs.texi (Selected Files): Fix typo.
+
+2003-09-21  Karl Berry  <karl@gnu.org>
+
+	* info.texi (] and [ commands): No period at end of section title.
+
+2003-09-04  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (top_srcdir): New variable.
+	($(top_srcdir)/info): New rule.
+	(info): Depend on it.
+
+2003-09-03  Peter Runestig  <peter@runestig.com>
+
+	* makefile.w32-in: New file.
+
+2003-08-26  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* widget.texi (User Interface): Explain the need of static text
+	around an editable field.
+
+2003-08-19  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* widget.texi (Basic Types): The argument to `:help-echo' can now
+	be a form that evaluates to a string.
+
+2003-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* calc.texi (Queries in Macros): Update xref to keyboard macro query.
+
+2003-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-x.texi (Shell Command Guessing): Explain *.
+
+2003-08-16  Chunyu Wang  <spr@db.cs.hit.edu.cn>  (tiny change)
+
+	* pcl-cvs.texi (Log Edit Mode): Fix key binding for
+	log-edit-insert-changelog.
+
+2003-08-03  Karl Berry  <karl@gnu.org>
+
+	* info.texi: Need @contents.
+
+2003-07-20  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	Tramp version 2.0.36 released.
+
+	* tramp.texi (Remote shell setup): Explain about problems with
+	non-Bourne commands in ~/.profile and ~/.shrc.
+
+2003-07-07  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.texi (Help-Inv, Help-M, Help-Xref): Update following
+	renaming of `vis-mode' to `visible-mode'.
+
+2003-07-04  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.texi (Top, Help-Small-Screen): Remove accidentally added
+	next, prev and up pointers.
+
+2003-07-02  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.texi (Help): Mention existence of Emacs and stand-alone
+	Info at the very beginning of the tutorial.
+	(Help-Inv): New node.
+	(Help-]): New node.
+	(Help-M): Systematically point out the differences between default
+	Emacs and stand-alone versions.  Delete second menu.
+	(Help-Xref): Systematically point out the differences between
+	default Emacs and stand-alone versions.
+	(Help-Int): Change `l' example.
+	(Expert Info): Fix typos.
+	(Emacs Info Variables): Mention `Info-hide-note-references' and
+	new default for `Info-scroll-prefer-subnodes'.
+
+2003-06-17  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	Version 2.0.35 of Tramp released.
+
+	* tramp.texi: From Michael Albinus <Michael.Albinus@alcatel.de>:
+	(Inline methods): Add methods `remsh' and `plink1'.
+	(External transfer methods): Add method `remcp'.
+	(Multi-hop Methods): Add method `remsh'.
+	Small patch from Adrian Aichner <adrian@xemacs.org>:
+	Fix minor typos.
+	(Concept Index): Added to make manual searchable via
+	`Info-index'.
+	(Version Control): Add cindex entry.
+
+2003-05-24  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* trampver.texi: Version 2.0.34 released.
+
+2003-05-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* faq.texi: Improve previous changes.
+
+2003-05-02  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* faq.texi: Update copyright and maintenance details.
+	Update some package URLs, versions, and maintainers.
+	Remove many references to the Emacs Lisp Archive.
+
+2003-04-23  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi: Fix license (the invariant sections mentioned has
+	never been part of the smtp manual).  Align info dir entry with
+	other emacs packages.
+
+2003-04-08  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi: Version 2.0.33 released.
+	Remove installation chapter.  Remove XEmacs specifics.
+
+2003-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* tramp.texi (Top): Undo the previous renaming.
+	(emacs-other-name, emacs-other-dir, emacs-other-file-name): Delete.
+
+2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* Makefile.in (../info/tramp): Compile Emacs, instead of XEmacs,
+	version of manual.
+
+	* tramp.texi (Auto-save and Backup): New node.
+
+2003-03-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Top): Include trampver.texi.  Rename "Emacs" to "GNU
+	Emacs" in order to have better differentiation to "XEmacs".
+	`emacs-other-name', `emacs-other-dir' and `emacs-other-file-name'
+	are new macros in order to point to the other Emacs flavor where
+	appropriate.  In info case, point to node `Installation' in order
+	to explain how to generate the other way.  In html case, make a
+	link to the other html file.
+	(Obtaining TRAMP): Added a paragraph saying to perform `autoconf'
+	after CVS checkout/update.
+	(Installation): Completely rewritten.
+	(Installation parameters, Load paths): New sections under
+	`Installation'.
+
+2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi: Version 2.0.30 released.
+	Replace word "path" with "localname" where used as a component of
+	a Tramp file name.
+
+2003-02-28  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Frequently Asked Questions): `tramp-chunksize'
+	introduced.
+	(Installation): Explain what to do if files from the tramp/contrib
+	directory are needed.
+
+2003-02-23  Alex Schroeder  <alex@emacswiki.org>
+
+	* smtpmail.texi (How Mail Works): New.
+
+2003-02-22  Alex Schroeder  <alex@emacswiki.org>
+
+	* smtpmail.texi: New file.
+
+	* Makefile.in: Build SMTP manual.
+
+2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi: Version 2.0.29 released.
+	(Installation): In Emacs, use M-x texinfo-format-buffer RET, not
+	M-x makeinfo-buffer RET.  Reported by gebser@ameritech.net.
+
+2003-02-01  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Frequently Asked Questions): Explain a workaround if
+	another package loads accidently Ange-FTP.
+
+2003-01-24  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Customizing Completion): Add function
+	`tramp-parse-sconfig'.  Change example of
+	`tramp-set-completion-function', because parsing of ssh config
+	files looks more natural.
+
+2003-01-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus.texi: Do not use `path' in several locations.
+
+2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi (External transfer methods): New method `smb'.  From
+	Michael Albinus.
+
+2002-11-05  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Info-fontify): Reorder face list to avoid bad line
+	breaks.
+
+2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* tramp.texi: Move @copying to standard place.  Use
+	@insertcopying.
+
+2002-10-02  Karl Berry  <karl@gnu.org>
+
+	* (ada-mode.texi autotype.texi calc.texi cc-mode.texi cl.texi
+	dired-x.texi ebrowse.texi ediff.texi emacs-mime.texi
+	eshell.texi eudc.texi faq.texi forms.texi idlwave.texi info.texi
+	message.texi mh-e.texi pcl-cvs.texi reftex.texi sc.texi ses.texi
+	speedbar.texi vip.texi viper.texi widget.texi woman.texi):
+	Per rms, update all manuals to use @copying instead of @ifinfo.
+	Also use @ifnottex instead of @ifinfo around the top node, where
+	needed for the sake of the HTML output.
+	(The Gnus manual is not fixed since it's not clear to me how it
+	works; and the Tramp manual already uses @copying, although in an
+	unusual way.  All others were changed.)
+
+2002-09-10  Jonathan Yavner  <jyavner@engineer.com>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add SES.
+	(../info/ses, ses.dvi): New targets.
+	* ses.texi: New file.
+
+2002-09-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+
+	* texinfo.tex: Update to texinfo 4.2.
+
+2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
+
+	* reftex.texi: Update to RefTeX 4.19.
+
+2002-06-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add Tramp.
+	(../info/tramp, tramp.dvi): New targets.
+
+2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (DVI_TARGETS): Add calc.dvi.
+	(calc.dvi): Uncomment.
+
+2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (INFO_TARGETS): Add ../info/calc.
+	(../info/calc): New target.
+
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* (Version 21.1 released.)
+
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Branch for 21.1.
+
+2001-04-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (../info/info): Use an explicit -o switch to
+	makeinfo.
+
+2001-03-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (mostlyclean, maintainer-clean): Delete more files.
+
+2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (../info/idlwave): Use --no-split.
+
+2000-12-14  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (mostlyclean): Remove gnustmp.*
+	(gnus.dvi): Change rule to remove @latex stuff.
+
+2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
+
+	* Makefile.in (Speedbar): Add build targets for speedbar.texi.
+
+2000-10-13  John Wiegley  <johnw@gnu.org>
+
+	* Makefile.in: Add build targets for eshell.texi.
+
+2000-09-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in: Remove/comment speedbar stuff.
+
+2000-09-22  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Add emacs-mime.
+
+2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (INFO_TARGETS): Add ../info/woman.
+	(DVI_TARGETS): Add woman.dvi.
+	(../info/woman, woman.dvi): New targets.
+
+2000-05-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* .cvsignore (*.tmp): New entry.  Seems to be used for @macro.
+
+	* pcl-cvs.texi: New file.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS: Add pcl-cvs.
+	(../info/pcl-cvs, pcl-cvs.dvi): New targets.
+
+2000-05-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (INFO_TARGETS): Add info/ebrowse.
+	(../info/ebrowse, ebrowse.dvi): New targets.
+
+2000-01-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (INFO_TARGETS): Add eudc.
+	(DVI_TARGETS): Add eudc.dvi.
+	(../info/eudc, eudc.dvi): New targets.
+
+2000-01-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (INFO_TARGETS): Rename emacs-faq to efaq (for
+	compatibility with 8+3 filesystems).
+	(../info/efaq): Rename from emacs-faq.
+
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add idlwave.
+	(../info/idlwave, idlwave.dvi): New targets.
+
+1999-10-23  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Use autotype.texi.
+
+1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile.in (faq): Use ../info/emacs-faq.info (as specified in the
+	faq.texi file) rather than ../info/faq.
+
+1999-10-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ada-mode.
+	(../info/ada-mode, ada-mode.dvi): New targets.
+
+1999-09-01  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Add faq.
+
+1999-07-12  Richard Stallman  <rms@gnu.org>
+
+	* Version 20.4 released.
+
+1998-08-19  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* Version 20.3 released.
+
+1998-04-06  Andreas Schwab  <schwab@gnu.org>
+
+	* Makefile.in (ENVADD): Enviroment vars to pass to texi2dvi.  Use
+	it in dvi targets.
+	(../etc/GNU): Change to $(srcdir) first.
+
+1998-03-11  Carsten Dominik  <cd@delysid.gnu.org>
+
+	* reftex.texi: Update for RefTeX version 3.22.
+
+1998-02-08  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile.in (reftex.dvi, ../info/reftex): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add the new targets.
+
+1997-09-23  Paul Eggert  <eggert@twinsun.com>
+
+	* Makefile.in: Merge changes mistakenly made to `Makefile'.
+	(../info/viper, viper.dvi): Remove dependency on viper-cmd.texi.
+
+1997-09-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.2 released.
+
+1997-09-15  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 20.1 released.
+
+1997-07-10  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Makefile (../info/viper, viper.dvi): Delete viper-cmd.texi dep.
+
+1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.33 released.
+
+1996-07-31  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.32 released.
+
+1996-06-27  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
+
+	* Makefile.in: Add rules for the Message manual.
+
+1996-06-26  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
+
+	* gnus.texi: New version.
+
+	* message.texi: New manual.
+
+1996-06-20  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Makefile.in (All info targets): cd $(srcdir) to do the work.
+
+1996-06-19  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Makefile.in (All info targets): Specify $(srcdir) in input files.
+	Specify -I option.
+	(All dvi targets): Set the TEXINPUTS variable.
+
+1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* Version 19.31 released.
+
+1996-01-07  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
+
+	* Makefile.in (../info/ccmode): Rename from ../info/cc-mode.
+	(INFO_TARGETS): Use new name.  This avoids name conflict on MSDOS.
+
+1995-11-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (../info/cc-mode, cc-mode.dvi): New targets.
+	(INFO_TARGETS): Add ../info/cc-mode.
+	(DVI_TARGETS): Add cc-mode.dvi.
+
+1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* Version 19.31 released.
+
+1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.30 released.
+
+1995-11-04  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
+
+	* gnus.texi: New file.
+
+1995-11-04  Erik Naggum  <erik@naggum.no>
+
+	* gnus.texi: File deleted.
+
+1995-11-02  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* mh-e.texi: "Function Index" -> "Command Index" to work with
+	Emacs 19.30 C-h C-k support of separately-documented commands.
+
+1995-06-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (../info/ediff, ediff.dvi): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add those new targets.
+
+1995-04-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add viper targets.
+	(../info/viper, viper.dvi): New targets.
+
+1995-04-20  Kevin Rodgers  <kevinr@ihs.com>
+
+	* dired-x.texi (Installation): Change the example to set
+	buffer-local variables like dired-omit-files-p in
+	dired-mode-hook.
+
+1995-04-17  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add mh-e targets.
+	(../info/mh-e, mh-e.dvi): New targets.
+
+1995-02-07  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
+
+	* Makefile.in (maintainer-clean): Rename from realclean.
+
+1994-11-23  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile.in: New file.
+	* Makefile: File deleted.
+
+1994-11-19  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile (TEXINDEX_OBJS): Variable deleted.
+	(texindex, texindex.o, getopt.o): Rules deleted.
+	All deps on texindex deleted.
+	(distclean): Don't delete texindex.
+	(mostlyclean): Don't delete *.o.
+	* texindex.c, getopt.c: Files deleted.
+
+1994-09-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Version 19.26 released.
+
+1994-05-30  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.25 released.
+
+1994-05-23  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.24 released.
+
+1994-05-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.23 released.
+
+1994-04-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile: Delete spurious tab.
+
+1994-02-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (.SUFFIXES): New rule.
+
+1994-01-15  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (dired-x.dvi, ../info/dired-x): New targets.
+	(INFO_TARGETS, DVI_TARGETS): Add the new targets.
+
+1994-01-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (../info/sc): Rename from sc.info.
+	(../info/cl): Likewise.
+	(INFO_TARGETS): Use new names.
+
+1993-12-04  Richard Stallman  (rms@srarc2)
+
+	* getopt.c: New file.
+	* Makefile (TEXINDEX_OBJS): Use getopt.o in this dir, not ../lib-src.
+	(getopt.o): New rule.
+	(dvi): Don't depend on texindex.
+	(cl.dvi, forms.dvi, vip.dvi, gnus.dvi, sc.dvi):
+	Depend on texindex.
+
+1993-12-03  Richard Stallman  (rms@srarc2)
+
+	* Makefile (../info/sc.info): Rename from ../info/sc.
+	(TEXI2DVI): New variable.
+	(cl.dvi forms.dvi, sc.dvi, vip.dvi, gnus.dvi, info.dvi):
+	Add explicit commands.
+	(TEXINDEX_OBJS): Delete duplicate getopt.o.
+
+1993-11-27  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.22 released.
+
+1993-11-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (TEXINDEX_OBJS): Delete spurious period.
+
+1993-11-16  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.21 released.
+
+1993-11-15  Paul Eggert  (eggert@twinsun.com)
+
+	* man/Makefile (../info/cl.info): Rename from ../info/cl.
+
+1993-11-15  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (../etc/GNU): New target.
+	(EMACSSOURCES): Add gnu1.texi.
+
+1993-11-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (realclean): Don't delete the Info files.
+
+1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
+
+	* forms.texi: Fix forms.texi so that it will format correctly.
+	Add missing `@end iftex', fix bad reference.
+
+	* info.texi, info-stn.texi: New files implement texinfo version of
+	`info' file.
+
+1993-10-20  Brian Fox  (bfox@ai.mit.edu)
+
+	* Makefile: Fix targets for texindex, new info.texi files.
+	* info-stnd.texi: New file implements info for standalone info
+	reader.
+	* info.texi: Update to include recent changes to "../info/info".
+	New source file for ../info/info; includes info-stnd.texi.
+
+	* texindex.c: Include "../src/config.h" if building in emacs.
+
+	* Makefile: Change all files to FILENAME.texi, force all targets
+	to be FILENAME, not FILENAME.info.  This changes sc.texinfo,
+	vip.texinfo, forms.texinfo, cl.texinfo.
+	Add target to build texindex.c, defining `emacs'.
+
+	* forms.texi: Install new file to match version 2.3 of forms.el.
+
+1993-08-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.19 released.
+
+1993-08-10  Simon Leinen  (simon@lia.di.epfl.ch)
+
+	* sc.texinfo: Fix info file name.
+
+	* Makefile (info): Add gnus and sc.
+	(dvi): Add gnus.dvi and sc.dvi.
+	(../info/sc, sc.dvi): New targets.
+
+1993-08-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.18 released.
+
+1993-07-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile: Fix source file names of the separate manuals.
+	(gnus.dvi, ../info/gnus): New targets.
+
+1993-07-18  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Version 19.17 released.
+
+1993-07-10  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* split-man: Fix typos in last change.
+
+1993-07-06  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.16 released.
+
+1993-06-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* version 19.15 released.
+
+1993-06-18  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Makefile (distclean): It's rm, not rf.
+
+1993-06-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.14 released.
+
+1993-06-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Makefile: New file.
+
+1993-06-08  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.13 released.
+
+1993-05-27  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.9 released.
+
+1993-05-25  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Version 19.8 released.
+
+1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
+
+	* Version 19.7 released.
+
+1990-08-30  David Lawrence  (tale@pogo.ai.mit.edu)
+
+	* gnus.texinfo: New file.  Removed installation instructions.
+
+1990-05-25  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
+
+	* texindex.tex: If USG, include sys/types.h and sys/fcntl.h.
+
+1989-01-17  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
+
+	* texinfo.tex: Change spelling of `\sc' font to `\smallcaps' and
+	then define `\sc' as the command for smallcaps in Texinfo.  This
+	means that the @sc command will produce small caps.  bfox has
+	made the corresponding change to makeinfo and texinfm.el.
+
+1988-08-16  Robert J. Chassell  (bob@frosted-flakes.ai.mit.edu)
+
+	* vip.texinfo: Remove menu entry Adding Lisp Code in node
+	Customization since the menu entry did not point to anything.
+	Also add an @finalout command to remove overfull hboxes from the
+	printed output.
+
+	* cl.texinfo: Add @bye, \input line and @settitle to file.
+	This file is clearly intended to be a chapter of some other work,
+	but the other work does not yet exist.
+
+1988-07-25  Robert J. Chassell  (bob@frosted-flakes.ai.mit.edu)
+
+	* texinfo.texinfo: Three typos corrected.
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; fill-column: 79
+;; add-log-time-zone-rule: t
+;; End:
+
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+      2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+
+  This file is part of GNU Emacs.
+
+  GNU Emacs is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3, or (at your option)
+  any later version.
+
+  GNU Emacs is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with GNU Emacs; see the file COPYING.  If not, write to the
+  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02110-1301, USA.
+
+;; arch-tag: 08b2903e-900c-4c72-a4a9-e76416a80803

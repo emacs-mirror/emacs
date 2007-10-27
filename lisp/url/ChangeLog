@@ -1,3 +1,69 @@
+2007-10-13  Richard Stallman  <rms@gnu.org>
+
+	* url-util.el (url-basepath): Function deleted.
+	(url-file-directory, url-file-nondirectory): New functions
+	replacing url-basepath.  Callers changed.
+
+	* url-expand.el (url-default-expander): Use `url-file-directory'.
+
+	* url-auth.el (url-digest-auth, url-basic-auth):
+	Rename `path' to `file'.  Use `url-file-directory'.
+
+2007-10-12  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-auth.el (url-basic-auth): Set path to "/" when URL has an
+        empty string filename.
+
+2007-10-09  Richard Stallman  <rms@gnu.org>
+
+	* url-parse.el (url-type, url-user, url-password, url-host)
+	(url-port, url-filename, url-target, url-attributes)
+	(url-fullness, url-set-type, url-set-user, url-set-password)
+	(url-set-host, url-set-port, url-set-filename, url-set-target)
+	(url-set-attributes, url-set-full): Change macros to defuns.
+
+2007-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-dav.el (top):
+	* url-vars.el (top): Use `mapc' rather than `mapcar'.
+
+2007-09-22  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-misc.el (url-generic-emulator-loader): Send the port as a
+        string to `url-do-terminal-emulator'.
+
+2007-09-21  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-news.el (url-news-fetch-newsgroup): Fix formatting of Gnus
+	method.
+
+	* url-util.el (url-get-normalized-date): Pass full timezone
+	information to timezone-make-date-arpa-standard, since zone name
+	may be unknown.
+
+2007-09-03  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-http.el (url-http-parse-headers): Bind the current buffer
+	rather than calling `url-mark-buffer-as-dead' with
+	`current-buffer', so that the correct buffer is killed if
+	`url-retrieve-synchronously' gets redirected to a new URL.
+
+2007-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-parse.el (url): Use defstruct rather than macros.
+	(url-generic-parse-url):
+	* url-util.el (url-normalize-url, url-truncate-url-for-viewing):
+	* url-methods.el (url-scheme-register-proxy):
+	* url-mailto.el (url-mailto):
+	* url-file.el (url-file-build-filename):
+	* url-expand.el (url-identity-expander, url-default-expander):
+	Update all callers.
+
+2007-08-09  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* url-auth.el (url-basic-auth): When prompting for username
+	and password, default to the username and password in the URL.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* url-auth.el, url-cache.el, url-dav.el, url-file.el, vc-dav.el:

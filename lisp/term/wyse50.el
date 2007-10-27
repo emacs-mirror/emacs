@@ -40,9 +40,9 @@
 
 (defun terminal-init-wyse50 ()
   "Terminal initialization function for wyse50."
-  (define-key function-key-map "\C-a" (make-keymap))
+  (define-key local-function-key-map "\C-a" (make-keymap))
   (mapcar (function (lambda (key-definition)
-		      (define-key function-key-map
+		      (define-key local-function-key-map
 			(car key-definition) (nth 1 key-definition))))
 	  '(
 	    ;; These might be set up by termcap and terminfo
@@ -100,11 +100,11 @@
 	    ("\eY"	[key-clear])		;; Not an X keysym
 
 	    ;; These are totally strange :-)
-	    ("\eW"	[?\C-?])	    ;; Not an X keysym
-	    ("\^a\^k\^m"	[funct-up]) ;; Not an X keysym
-	    ("\^a\^j\^m"	[funct-down])  ;; Not an X keysym
-	    ("\^a\^l\^m"	[funct-right]) ;; Not an X keysym
-	    ("\^a\^h\^m"	[funct-left])  ;; Not an X keysym
+	    ("\eW"	[?\C-?])		;; Not an X keysym
+	    ("\^a\^k\^m"	[funct-up])	;; Not an X keysym
+	    ("\^a\^j\^m"	[funct-down])	;; Not an X keysym
+	    ("\^a\^l\^m"	[funct-right])	;; Not an X keysym
+	    ("\^a\^h\^m"	[funct-left])	;; Not an X keysym
 	    ("\^a\^m\^m"	[funct-return])	;; Not an X keysym
 	    ("\^a\^i\^m"	[funct-tab])	;; Not an X keysym
 	    ))

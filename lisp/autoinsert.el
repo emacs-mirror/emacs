@@ -212,7 +212,88 @@ If this contains a %s, that will be replaced by the matching rule."
 \(provide '"
        (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
        ")
-\;;; " (file-name-nondirectory (buffer-file-name)) " ends here\n"))
+\;;; " (file-name-nondirectory (buffer-file-name)) " ends here\n")
+    (("\\.texi\\(nfo\\)?\\'" . "Texinfo file skeleton")
+     "Title: "
+     "\\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename "
+     (file-name-sans-extension
+      (file-name-nondirectory (buffer-file-name))) ".info\n"
+      "@settitle " str "
+@c %**end of header
+@copying\n"
+      (setq short-description (read-string "Short description: "))
+      ".\n\n"
+      "Copyright @copyright{} " (substring (current-time-string) -4) "  "
+      (getenv "ORGANIZATION") | (progn user-full-name) "
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, and no Cover Texts.  A copy of the license is
+included in the section entitled ``GNU Free Documentation License.''
+
+A copy of the license is also available from the Free Software
+Foundation Web site at @url{http://www.gnu.org/licenses/fdl.html}.
+
+@end quotation
+
+The document was typeset with
+@uref{http://www.texinfo.org/, GNU Texinfo}.
+
+@end copying
+
+@titlepage
+@title " str "
+@subtitle " short-description "
+@author " (getenv "ORGANIZATION") | (progn user-full-name)
+     " <" (progn user-mail-address) ">
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c Output the table of the contents at the beginning.
+@contents
+
+@ifnottex
+@node Top
+@top " str "
+
+@insertcopying
+@end ifnottex
+
+@c Generate the nodes for this menu with `C-c C-u C-m'.
+@menu
+@end menu
+
+@c Update all node entries with `C-c C-u C-n'.
+@c Insert new nodes with `C-c C-c n'.
+@node Chapter One
+@chapter Chapter One
+
+" _ "
+
+@node Copying This Manual
+@appendix Copying This Manual
+
+@menu
+* GNU Free Documentation License::  License for copying this manual.
+@end menu
+
+@c Get fdl.texi from http://www.gnu.org/licenses/fdl.html
+@include fdl.texi
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@bye
+
+@c " (file-name-nondirectory (buffer-file-name)) " ends here\n"))
   "A list specifying text to insert by default into a new file.
 Elements look like (CONDITION . ACTION) or ((CONDITION . DESCRIPTION) . ACTION).
 CONDITION may be a regexp that must match the new file's name, or it may be
@@ -272,7 +353,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 			  (eq this-command 'auto-insert))
 		      (y-or-n-p (format auto-insert-prompt desc)))
 		t)
-	      (mapcar
+	      (mapc
 	       (lambda (action)
 		 (if (stringp action)
 		     (if (file-readable-p

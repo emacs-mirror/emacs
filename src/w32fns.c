@@ -48,6 +48,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include "bitmaps/gray.xbm"
 
+#include <commctrl.h>
 #include <commdlg.h>
 #include <shellapi.h>
 #include <ctype.h>
@@ -1818,10 +1819,8 @@ x_set_tool_bar_lines (f, value, oldval)
      below the menu bar.  */
   if (FRAME_W32_WINDOW (f) && FRAME_TOOL_BAR_LINES (f) == 0)
     {
-      updating_frame = f;
-      clear_frame ();
+      clear_frame (f);
       clear_current_matrices (f);
-      updating_frame = NULL;
     }
 
   /* If the tool bar gets smaller, the internal border below it
@@ -1936,15 +1935,7 @@ x_implicitly_set_name (f, arg, oldval)
 }
 
 /* Change the title of frame F to NAME.
-   If NAME is nil, use the frame name as the title.
-
-   If EXPLICIT is non-zero, that indicates that lisp code is setting the
-       name; if NAME is a string, set F's name to NAME and set
-       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
-
-   If EXPLICIT is zero, that indicates that Emacs redisplay code is
-       suggesting a new name, which lisp code should override; if
-       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+   If NAME is nil, use the frame name as the title.  */
 
 void
 x_set_title (f, name, old_name)
@@ -3385,16 +3376,20 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       return 0;
 
     case WM_MOUSEWHEEL:
-      wmsg.dwModifiers = w32_get_modifiers ();
-      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-      signal_user_input ();
-      return 0;
-
     case WM_DROPFILES:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       signal_user_input ();
       return 0;
+
+    case WM_MOUSEHWHEEL:
+      wmsg.dwModifiers = w32_get_modifiers ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      signal_user_input ();
+      /* Non-zero must be returned when WM_MOUSEHWHEEL messages are
+         handled, to prevent the system trying to handle it by faking
+         scroll bar events.  */
+      return 1;
 
     case WM_TIMER:
       /* Flush out saved messages if necessary. */
@@ -4180,7 +4175,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     display = Qnil;
   dpyinfo = check_x_display_info (display);
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->terminal->kboard;
 #else
   kb = &the_only_kboard;
 #endif
@@ -4227,6 +4222,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* By default, make scrollbars the system standard width. */
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = GetSystemMetrics (SM_CXVSCROLL);
+
+  f->terminal = dpyinfo->terminal;
+  f->terminal->reference_count++;
 
   f->output_method = output_w32;
   f->output_data.w32 =
@@ -4442,6 +4440,22 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	/* Must have been Qnil.  */
 	;
     }
+
+  /* Initialize `default-minibuffer-frame' in case this is the first
+     frame on this terminal.  */
+  if (FRAME_HAS_MINIBUF_P (f)
+      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
+          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
+    kb->Vdefault_minibuffer_frame = frame;
+
+  /* All remaining specified parameters, which have not been "used"
+     by x_get_arg and friends, now go in the misc. alist of the frame.  */
+  for (tem = parameters; !NILP (tem); tem = XCDR (tem))
+    if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
+      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+
+  store_frame_param (f, Qwindow_system, Qw32);
+  
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
@@ -4467,7 +4481,7 @@ x_get_focus_frame (frame)
   return xfocus;
 }
 
-DEFUN ("w32-focus-frame", Fw32_focus_frame, Sw32_focus_frame, 1, 1, 0,
+DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Give FRAME input focus, raising to foreground if necessary.  */)
   (frame)
      Lisp_Object frame;
@@ -5348,9 +5362,9 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
 
   if (lplogfont->lfHeight)
     {
-      sprintf (height_pixels, "%u", abs (lplogfont->lfHeight));
+      sprintf (height_pixels, "%u", eabs (lplogfont->lfHeight));
       sprintf (height_dpi, "%u",
-	       abs (lplogfont->lfHeight) * 720 / display_resy);
+	       eabs (lplogfont->lfHeight) * 720 / display_resy);
     }
   else
     {
@@ -5572,7 +5586,7 @@ x_to_w32_font (lpxstr, lplogfont)
     }
 
   /* This makes TrueType fonts work better. */
-  lplogfont->lfHeight = - abs (lplogfont->lfHeight);
+  lplogfont->lfHeight = - eabs (lplogfont->lfHeight);
 
   return (TRUE);
 }
@@ -6716,8 +6730,10 @@ terminate Emacs if we can't open the connection.  */)
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string);
 
+#if 0
   if (! EQ (Vwindow_system, intern ("w32")))
     error ("Not using Microsoft Windows");
+#endif
 
   /* Allow color mapping to be defined externally; first look in user's
      HOME directory, then in Emacs etc dir for a file called rgb.txt. */
@@ -7219,7 +7235,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   Vx_resource_name = Vinvocation_name;
 
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->terminal->kboard;
 #else
   kb = &the_only_kboard;
 #endif
@@ -7257,6 +7273,8 @@ x_create_tip_frame (dpyinfo, parms, text)
      the frame is live, as per FRAME_LIVE_P.  If we get a signal
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
+  f->terminal = dpyinfo->terminal;
+  f->terminal->reference_count++;
   f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
@@ -7419,6 +7437,8 @@ x_create_tip_frame (dpyinfo, parms, text)
       Fmodify_frame_parameters (frame, Fcons (Fcons (Qbackground_color, bg),
 					      Qnil));
   }
+
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qw32), Qnil));
 
   f->no_split = 1;
 
@@ -8996,10 +9016,10 @@ versions of Windows) characters.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
+  defsubr (&Sx_focus_frame);
 
   /* W32 specific functions */
 
-  defsubr (&Sw32_focus_frame);
   defsubr (&Sw32_select_font);
   defsubr (&Sw32_define_rgb_color);
   defsubr (&Sw32_default_color_map);
@@ -9073,6 +9093,9 @@ void globals_of_w32fns ()
 	      &w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
   w32_ansi_code_page = GetACP ();
+
+  /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
+  InitCommonControls ();
 }
 
 #undef abort

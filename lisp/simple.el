@@ -85,34 +85,22 @@ If the optional third argument FRAME is non-nil, use that frame's
 buffer list instead of the selected frame's buffer list.
 If no other buffer exists, the buffer `*scratch*' is returned."
   (setq frame (or frame (selected-frame)))
-  (or (get-next-valid-buffer (frame-parameter frame 'buried-buffer-list)
-			     buffer visible-ok frame)
-      (get-next-valid-buffer (nreverse (buffer-list frame))
-			     buffer visible-ok frame)
+  (or (get-next-valid-buffer (nreverse (buffer-list frame))
+ 			     buffer visible-ok frame)
       (progn
 	(set-buffer-major-mode (get-buffer-create "*scratch*"))
 	(get-buffer "*scratch*"))))
-
 (defun next-buffer ()
   "Switch to the next buffer in cyclic order."
   (interactive)
-  (let ((buffer (current-buffer))
-	(bbl (frame-parameter nil 'buried-buffer-list)))
+  (let ((buffer (current-buffer)))
     (switch-to-buffer (other-buffer buffer t))
-    (bury-buffer buffer)
-    (set-frame-parameter nil 'buried-buffer-list
-			 (cons buffer (delq buffer bbl)))))
+    (bury-buffer buffer)))
 
 (defun previous-buffer ()
   "Switch to the previous buffer in cyclic order."
   (interactive)
-  (let ((buffer (last-buffer (current-buffer) t))
-	(bbl (frame-parameter nil 'buried-buffer-list)))
-    (switch-to-buffer buffer)
-    ;; Clean up buried-buffer-list up to and including the chosen buffer.
-    (while (and bbl (not (eq (car bbl) buffer)))
-      (setq bbl (cdr bbl)))
-    (set-frame-parameter nil 'buried-buffer-list bbl)))
+  (switch-to-buffer (last-buffer (current-buffer) t)))
 
 
 ;;; next-error support framework
@@ -469,7 +457,7 @@ than the value of `fill-column' and ARG is nil."
     ;; Mark the newline(s) `hard'.
     (if use-hard-newlines
 	(set-hard-newline-properties
-	 (- (point) (if arg (prefix-numeric-value arg) 1)) (point)))
+	 (- (point) (prefix-numeric-value arg)) (point)))
     ;; If the newline leaves the previous line blank,
     ;; and we have a left margin, delete that from the blank line.
     (or flag
@@ -1055,7 +1043,7 @@ display the result of expression evaluation."
                (if (boundp 'edebug-active) edebug-active)))
       (let ((char-string
              (if (or (if (boundp 'edebug-active) edebug-active)
-                     (memq this-command '(eval-last-sexp eval-print-last-sexp)))
+		     (memq this-command '(eval-last-sexp eval-print-last-sexp)))
                  (prin1-char value))))
         (if char-string
             (format " (#o%o, #x%x, %s)" value value char-string)
@@ -2557,6 +2545,8 @@ the text which should be made available.
 The second, optional, argument PUSH, has the same meaning as the
 similar argument to `x-set-cut-buffer', which see.")
 
+(make-variable-frame-local 'interprogram-cut-function)
+
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
 
@@ -2577,6 +2567,8 @@ most recent string, the function should return nil.  If it is
 difficult to tell whether Emacs or some other program provided the
 current string, it is probably good enough to return nil if the string
 is equal (according to `string=') to the last text Emacs provided.")
+
+(make-variable-frame-local 'interprogram-paste-function)
 
 
 
@@ -2753,7 +2745,9 @@ text.  See `insert-for-yank'."
   "Save the region as if killed, but don't kill it.
 In Transient Mark mode, deactivate the mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
-system cut and paste."
+system cut and paste.
+
+This command's old key binding has been given to `kill-ring-save'."
   (interactive "r")
   (if (eq last-command 'kill-region)
       (kill-append (filter-buffer-substring beg end) (< end beg))
@@ -2823,7 +2817,7 @@ The argument is used for internal purposes; do not supply one."
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
     yank-handler follow-link fontified)
-  "*Text properties to discard when yanking.
+  "Text properties to discard when yanking.
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
   :type '(choice (const :tag "All" t) (repeat symbol))
@@ -3631,7 +3625,7 @@ The beginning of a blank line does not count as the end of a line."
   "Current goal column for vertical motion.
 It is the column where point was
 at the start of current run of vertical motion commands.
-When the `track-eol' feature is doing its job, the value is 9999.")
+When the `track-eol' feature is doing its job, the value is `most-positive-fixnum'.")
 
 (defcustom line-move-ignore-invisible t
   "*Non-nil means \\[next-line] and \\[previous-line] ignore invisible lines.
@@ -3653,7 +3647,7 @@ Outline mode sets this."
 	   (vpos (nth 1 lh))
 	   (ypos (nth 2 lh))
 	   (rbot (nth 3 lh))
-	   ppos py vs)
+	   py vs)
       (when (or (null lh)
 		(>= rbot (frame-char-height))
 		(<= ypos (- (frame-char-height))))
@@ -3730,11 +3724,11 @@ Outline mode sets this."
 			     ;; Don't count beg of empty line as end of line
 			     ;; unless we just did explicit end-of-line.
 			     (or (not (bolp)) (eq last-command 'move-end-of-line)))
-			9999
+			most-positive-fixnum
 		      (current-column))))
 
-	  (if (and (not (integerp selective-display))
-		   (not line-move-ignore-invisible))
+	  (if (not (or (integerp selective-display)
+                       line-move-ignore-invisible))
 	      ;; Use just newline characters.
 	      ;; Set ARG to 0 if we move as many lines as requested.
 	      (or (if (> arg 0)
@@ -3973,7 +3967,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 		      (not (bobp))
 		      (progn
 			(while (and (not (bobp)) (invisible-p (1- (point))))
-			  (goto-char (previous-char-property-change (point))))
+			  (goto-char (previous-single-char-property-change
+                                      (point) 'invisible)))
 			(backward-char 1)))
 		 (point)))))
 	(goto-char newpos)
@@ -4000,7 +3995,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (or arg (setq arg 1))
 
   (let ((orig (point))
-	start first-vis first-vis-field-value)
+	first-vis first-vis-field-value)
 
     ;; Move by lines, if ARG is not 1 (the default).
     (if (/= arg 1)
@@ -4011,7 +4006,6 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (while (and (not (bobp)) (invisible-p (1- (point))))
       (goto-char (previous-char-property-change (point)))
       (skip-chars-backward "^\n"))
-    (setq start (point))
 
     ;; Now find first visible char in the line
     (while (and (not (eobp)) (invisible-p (point)))
@@ -4662,86 +4656,82 @@ it skips the contents of comments that end before point."
 				 (skip-syntax-backward "/\\")
 				 (point))))))
     (let* ((oldpos (point))
-	   blinkpos
-	   message-log-max  ; Don't log messages about paren matching.
-	   matching-paren
-	   open-paren-line-string)
-      (save-excursion
-	(save-restriction
-	  (if blink-matching-paren-distance
-	      (narrow-to-region (max (minibuffer-prompt-end)
-				     (- (point) blink-matching-paren-distance))
-				oldpos))
-	  (condition-case ()
-	      (let ((parse-sexp-ignore-comments
-		     (and parse-sexp-ignore-comments
-			  (not blink-matching-paren-dont-ignore-comments))))
-		(setq blinkpos (scan-sexps oldpos -1)))
-	    (error nil)))
-	(and blinkpos
-	     ;; Not syntax '$'.
-	     (not (eq (syntax-class (syntax-after blinkpos)) 8))
-	     (setq matching-paren
-		   (let ((syntax (syntax-after blinkpos)))
-		     (and (consp syntax)
-			  (eq (syntax-class syntax) 4)
-			  (cdr syntax)))))
-	(cond
-	 ((not (or (eq matching-paren (char-before oldpos))
-                   ;; The cdr might hold a new paren-class info rather than
-                   ;; a matching-char info, in which case the two CDRs
-                   ;; should match.
-                   (eq matching-paren (cdr (syntax-after (1- oldpos))))))
-	  (message "Mismatched parentheses"))
-	 ((not blinkpos)
-	  (if (not blink-matching-paren-distance)
-	      (message "Unmatched parenthesis")))
-	 ((pos-visible-in-window-p blinkpos)
-	  ;; Matching open within window, temporarily move to blinkpos but only
-	  ;; if `blink-matching-paren-on-screen' is non-nil.
-	  (and blink-matching-paren-on-screen
-	       (not show-paren-mode)
-	       (save-excursion
-		 (goto-char blinkpos)
-		 (sit-for blink-matching-delay))))
-	 (t
-	  (save-excursion
-	    (goto-char blinkpos)
-	    (setq open-paren-line-string
-		  ;; Show what precedes the open in its line, if anything.
-		  (if (save-excursion
-			(skip-chars-backward " \t")
-			(not (bolp)))
-		      (buffer-substring (line-beginning-position)
-					(1+ blinkpos))
-		    ;; Show what follows the open in its line, if anything.
-		    (if (save-excursion
-			  (forward-char 1)
-			  (skip-chars-forward " \t")
-			  (not (eolp)))
-			(buffer-substring blinkpos
-					  (line-end-position))
-		      ;; Otherwise show the previous nonblank line,
-		      ;; if there is one.
-		      (if (save-excursion
-			    (skip-chars-backward "\n \t")
-			    (not (bobp)))
-			  (concat
-			   (buffer-substring (progn
-					       (skip-chars-backward "\n \t")
-					       (line-beginning-position))
-					     (progn (end-of-line)
-						    (skip-chars-backward " \t")
-						    (point)))
-			   ;; Replace the newline and other whitespace with `...'.
-			   "..."
-			   (buffer-substring blinkpos (1+ blinkpos)))
-			;; There is nothing to show except the char itself.
-			(buffer-substring blinkpos (1+ blinkpos)))))))
-	  (message "Matches %s"
-		   (substring-no-properties open-paren-line-string))))))))
+	   (message-log-max nil)  ; Don't log messages about paren matching.
+	   (blinkpos
+            (save-excursion
+              (save-restriction
+                (if blink-matching-paren-distance
+                    (narrow-to-region
+                     (max (minibuffer-prompt-end) ;(point-min) unless minibuf.
+                          (- (point) blink-matching-paren-distance))
+                     oldpos))
+                (let ((parse-sexp-ignore-comments
+                       (and parse-sexp-ignore-comments
+                            (not blink-matching-paren-dont-ignore-comments))))
+                  (condition-case ()
+                      (scan-sexps oldpos -1)
+                    (error nil))))))
+	   (matching-paren
+            (and blinkpos
+                 ;; Not syntax '$'.
+                 (not (eq (syntax-class (syntax-after blinkpos)) 8))
+                 (let ((syntax (syntax-after blinkpos)))
+                   (and (consp syntax)
+                        (eq (syntax-class syntax) 4)
+                        (cdr syntax))))))
+      (cond
+       ((not (or (eq matching-paren (char-before oldpos))
+                 ;; The cdr might hold a new paren-class info rather than
+                 ;; a matching-char info, in which case the two CDRs
+                 ;; should match.
+                 (eq matching-paren (cdr (syntax-after (1- oldpos))))))
+        (message "Mismatched parentheses"))
+       ((not blinkpos)
+        (if (not blink-matching-paren-distance)
+            (message "Unmatched parenthesis")))
+       ((pos-visible-in-window-p blinkpos)
+        ;; Matching open within window, temporarily move to blinkpos but only
+        ;; if `blink-matching-paren-on-screen' is non-nil.
+        (and blink-matching-paren-on-screen
+             (not show-paren-mode)
+             (save-excursion
+               (goto-char blinkpos)
+               (sit-for blink-matching-delay))))
+       (t
+        (save-excursion
+          (goto-char blinkpos)
+          (let ((open-paren-line-string
+                 ;; Show what precedes the open in its line, if anything.
+                 (cond
+                  ((save-excursion (skip-chars-backward " \t") (not (bolp)))
+                   (buffer-substring (line-beginning-position)
+                                     (1+ blinkpos)))
+                  ;; Show what follows the open in its line, if anything.
+                  ((save-excursion
+                     (forward-char 1)
+                     (skip-chars-forward " \t")
+                     (not (eolp)))
+                   (buffer-substring blinkpos
+                                     (line-end-position)))
+                  ;; Otherwise show the previous nonblank line,
+                  ;; if there is one.
+                  ((save-excursion (skip-chars-backward "\n \t") (not (bobp)))
+                   (concat
+                    (buffer-substring (progn
+                                        (skip-chars-backward "\n \t")
+                                        (line-beginning-position))
+                                      (progn (end-of-line)
+                                             (skip-chars-backward " \t")
+                                             (point)))
+                    ;; Replace the newline and other whitespace with `...'.
+                    "..."
+                    (buffer-substring blinkpos (1+ blinkpos))))
+                  ;; There is nothing to show except the char itself.
+                  (t (buffer-substring blinkpos (1+ blinkpos))))))
+            (message "Matches %s"
+                     (substring-no-properties open-paren-line-string)))))))))
 
-;Turned off because it makes dbx bomb out.
+;; Turned off because it makes dbx bomb out.
 (setq blink-paren-function 'blink-matching-open)
 
 ;; This executes C-g typed while Emacs is waiting for a command.
@@ -5558,13 +5548,13 @@ after it has been set up properly in other respects."
       (funcall mode)
 
       ;; Set up other local variables.
-      (mapcar (lambda (v)
-		(condition-case ()	;in case var is read-only
-		    (if (symbolp v)
-			(makunbound v)
-		      (set (make-local-variable (car v)) (cdr v)))
-		  (error nil)))
-	      lvars)
+      (mapc (lambda (v)
+	      (condition-case ()	;in case var is read-only
+		  (if (symbolp v)
+		      (makunbound v)
+		    (set (make-local-variable (car v)) (cdr v)))
+		(error nil)))
+	    lvars)
 
       ;; Run any hooks (typically set up by the major mode
       ;; for cloning to work properly).
@@ -5626,36 +5616,33 @@ front of the list of recently selected ones."
 
 ;;; Handling of Backspace and Delete keys.
 
-(defcustom normal-erase-is-backspace
-  (and (not noninteractive)
-       (or (memq system-type '(ms-dos windows-nt))
-	   (eq window-system 'mac)
-	   (and (memq window-system '(x))
-		(fboundp 'x-backspace-delete-keys-p)
-		(x-backspace-delete-keys-p))
-	   ;; If the terminal Emacs is running on has erase char
-	   ;; set to ^H, use the Backspace key for deleting
-	   ;; backward and, and the Delete key for deleting forward.
-	   (and (null window-system)
-		(eq tty-erase-char ?\^H))))
-  "If non-nil, Delete key deletes forward and Backspace key deletes backward.
+(defcustom normal-erase-is-backspace 'maybe
+  "Set the default behaviour of the Delete and Backspace keys.
 
-On window systems, the default value of this option is chosen
-according to the keyboard used.  If the keyboard has both a Backspace
-key and a Delete key, and both are mapped to their usual meanings, the
-option's default value is set to t, so that Backspace can be used to
-delete backward, and Delete can be used to delete forward.
+If set to t, Delete key deletes forward and Backspace key deletes
+backward.
 
-If not running under a window system, customizing this option accomplishes
-a similar effect by mapping C-h, which is usually generated by the
-Backspace key, to DEL, and by mapping DEL to C-d via
-`keyboard-translate'.  The former functionality of C-h is available on
-the F1 key.  You should probably not use this setting if you don't
-have both Backspace, Delete and F1 keys.
+If set to nil, both Delete and Backspace keys delete backward.
+
+If set to 'maybe (which is the default), Emacs automatically
+selects a behaviour.  On window systems, the behaviour depends on
+the keyboard used.  If the keyboard has both a Backspace key and
+a Delete key, and both are mapped to their usual meanings, the
+option's default value is set to t, so that Backspace can be used
+to delete backward, and Delete can be used to delete forward.
+
+If not running under a window system, customizing this option
+accomplishes a similar effect by mapping C-h, which is usually
+generated by the Backspace key, to DEL, and by mapping DEL to C-d
+via `keyboard-translate'.  The former functionality of C-h is
+available on the F1 key.  You should probably not use this
+setting if you don't have both Backspace, Delete and F1 keys.
 
 Setting this variable with setq doesn't take effect.  Programmatically,
 call `normal-erase-is-backspace-mode' (which see) instead."
-  :type 'boolean
+  :type '(choice (const :tag "Off" nil)
+		 (const :tag "Maybe" maybe)
+		 (other :tag "On" t))
   :group 'editing-basics
   :version "21.1"
   :set (lambda (symbol value)
@@ -5665,17 +5652,37 @@ call `normal-erase-is-backspace-mode' (which see) instead."
 	     (normal-erase-is-backspace-mode (or value 0))
 	   (set-default symbol value))))
 
+(defun normal-erase-is-backspace-setup-frame (&optional frame)
+  "Set up `normal-erase-is-backspace-mode' on FRAME, if necessary."
+  (unless frame (setq frame (selected-frame)))
+  (with-selected-frame frame
+    (unless (terminal-parameter nil 'normal-erase-is-backspace)
+      (normal-erase-is-backspace-mode
+       (if (if (eq normal-erase-is-backspace 'maybe)
+               (and (not noninteractive)
+                    (or (memq system-type '(ms-dos windows-nt))
+                        (eq window-system 'mac)
+                        (and (memq window-system '(x))
+                             (fboundp 'x-backspace-delete-keys-p)
+                             (x-backspace-delete-keys-p))
+                        ;; If the terminal Emacs is running on has erase char
+                        ;; set to ^H, use the Backspace key for deleting
+                        ;; backward, and the Delete key for deleting forward.
+                        (and (null window-system)
+                             (eq tty-erase-char ?\^H))))
+             normal-erase-is-backspace)
+           1 0)))))
 
 (defun normal-erase-is-backspace-mode (&optional arg)
   "Toggle the Erase and Delete mode of the Backspace and Delete keys.
 
 With numeric arg, turn the mode on if and only if ARG is positive.
 
-On window systems, when this mode is on, Delete is mapped to C-d and
-Backspace is mapped to DEL; when this mode is off, both Delete and
-Backspace are mapped to DEL.  (The remapping goes via
-`function-key-map', so binding Delete or Backspace in the global or
-local keymap will override that.)
+On window systems, when this mode is on, Delete is mapped to C-d
+and Backspace is mapped to DEL; when this mode is off, both
+Delete and Backspace are mapped to DEL.  (The remapping goes via
+`local-function-key-map', so binding Delete or Backspace in the
+global or local keymap will override that.)
 
 In addition, on window systems, the bindings of C-Delete, M-Delete,
 C-M-Delete, C-Backspace, M-Backspace, and C-M-Backspace are changed in
@@ -5697,54 +5704,57 @@ have both Backspace, Delete and F1 keys.
 
 See also `normal-erase-is-backspace'."
   (interactive "P")
-  (setq normal-erase-is-backspace
-	(if arg
-	    (> (prefix-numeric-value arg) 0)
-	  (not normal-erase-is-backspace)))
+  (let ((enabled (or (and arg (> (prefix-numeric-value arg) 0))
+		     (and (not arg)
+			  (not (eq 1 (terminal-parameter
+				      nil 'normal-erase-is-backspace)))))))
+    (set-terminal-parameter nil 'normal-erase-is-backspace
+			    (if enabled 1 0))
 
-  (cond ((or (memq window-system '(x w32 mac pc))
-	     (memq system-type '(ms-dos windows-nt)))
-	 (let ((bindings
-		`(([C-delete] [C-backspace])
-		  ([M-delete] [M-backspace])
-		  ([C-M-delete] [C-M-backspace])
-		  (,esc-map
-		   [C-delete] [C-backspace])))
-	       (old-state (lookup-key function-key-map [delete])))
+    (cond ((or (memq window-system '(x w32 mac pc))
+	       (memq system-type '(ms-dos windows-nt)))
+	   (let* ((bindings
+		   `(([C-delete] [C-backspace])
+		     ([M-delete] [M-backspace])
+		     ([C-M-delete] [C-M-backspace])
+		     (,esc-map
+		      [C-delete] [C-backspace])))
+		  (old-state (lookup-key local-function-key-map [delete])))
 
-	   (if normal-erase-is-backspace
+	     (if enabled
+		 (progn
+		   (define-key local-function-key-map [delete] [?\C-d])
+		   (define-key local-function-key-map [kp-delete] [?\C-d])
+		   (define-key local-function-key-map [backspace] [?\C-?]))
+	       (define-key local-function-key-map [delete] [?\C-?])
+	       (define-key local-function-key-map [kp-delete] [?\C-?])
+	       (define-key local-function-key-map [backspace] [?\C-?]))
+
+	     ;; Maybe swap bindings of C-delete and C-backspace, etc.
+	     (unless (equal old-state (lookup-key local-function-key-map [delete]))
+	       (dolist (binding bindings)
+		 (let ((map global-map))
+		   (when (keymapp (car binding))
+		     (setq map (car binding) binding (cdr binding)))
+		   (let* ((key1 (nth 0 binding))
+			  (key2 (nth 1 binding))
+			  (binding1 (lookup-key map key1))
+			  (binding2 (lookup-key map key2)))
+		     (define-key map key1 binding2)
+		     (define-key map key2 binding1)))))))
+	  (t
+	   (if enabled
 	       (progn
-		 (define-key function-key-map [delete] [?\C-d])
-		 (define-key function-key-map [kp-delete] [?\C-d])
-		 (define-key function-key-map [backspace] [?\C-?]))
-	     (define-key function-key-map [delete] [?\C-?])
-	     (define-key function-key-map [kp-delete] [?\C-?])
-	     (define-key function-key-map [backspace] [?\C-?]))
+		 (keyboard-translate ?\C-h ?\C-?)
+		 (keyboard-translate ?\C-? ?\C-d))
+	     (keyboard-translate ?\C-h ?\C-h)
+	     (keyboard-translate ?\C-? ?\C-?))))
 
-	   ;; Maybe swap bindings of C-delete and C-backspace, etc.
-	   (unless (equal old-state (lookup-key function-key-map [delete]))
-	     (dolist (binding bindings)
-	       (let ((map global-map))
-		 (when (keymapp (car binding))
-		   (setq map (car binding) binding (cdr binding)))
-		 (let* ((key1 (nth 0 binding))
-			(key2 (nth 1 binding))
-			(binding1 (lookup-key map key1))
-			(binding2 (lookup-key map key2)))
-		   (define-key map key1 binding2)
-		   (define-key map key2 binding1)))))))
-	 (t
-	  (if normal-erase-is-backspace
-	      (progn
-		(keyboard-translate ?\C-h ?\C-?)
-		(keyboard-translate ?\C-? ?\C-d))
-	    (keyboard-translate ?\C-h ?\C-h)
-	    (keyboard-translate ?\C-? ?\C-?))))
-
-  (run-hooks 'normal-erase-is-backspace-hook)
-  (if (interactive-p)
-      (message "Delete key deletes %s"
-	       (if normal-erase-is-backspace "forward" "backward"))))
+    (run-hooks 'normal-erase-is-backspace-hook)
+    (if (interactive-p)
+	(message "Delete key deletes %s"
+		 (if (terminal-parameter nil 'normal-erase-is-backspace)
+		     "forward" "backward")))))
 
 (defvar vis-mode-saved-buffer-invisibility-spec nil
   "Saved value of `buffer-invisibility-spec' when Visible mode is on.")
@@ -5800,7 +5810,8 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
   ;; Definitely 2.0pre3, probably all 2.0pre's before this.
   '((semantic semantic-version "2\\.0pre[1-3]"
               "The version of `semantic' loaded does not work in Emacs 22.
-It can cause constant high CPU load.  Upgrade to at least 2.0pre4.")
+It can cause constant high CPU load.
+Upgrade to at least Semantic 2.0pre4 (distributed with CEDET 1.0pre4).")
     ;; CUA-mode does not work with GNU Emacs version 22.1 and newer.
     ;; Except for version 1.2, all of the 1.x and 2.x version of cua-mode
     ;; provided the `CUA-mode' feature.  Since this is no longer true,

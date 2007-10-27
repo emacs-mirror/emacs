@@ -427,7 +427,7 @@ balance_an_interval (i)
 	  /* Since the left child is longer, there must be one.  */
 	  new_diff = i->total_length - i->left->total_length
 	    + RIGHT_TOTAL_LENGTH (i->left) - LEFT_TOTAL_LENGTH (i->left);
-	  if (abs (new_diff) >= old_diff)
+	  if (eabs (new_diff) >= old_diff)
 	    break;
 	  i = rotate_right (i);
 	  balance_an_interval (i->right);
@@ -437,7 +437,7 @@ balance_an_interval (i)
 	  /* Since the right child is longer, there must be one.  */
 	  new_diff = i->total_length - i->right->total_length
 	    + LEFT_TOTAL_LENGTH (i->right) - RIGHT_TOTAL_LENGTH (i->right);
-	  if (abs (new_diff) >= -old_diff)
+	  if (eabs (new_diff) >= -old_diff)
 	    break;
 	  i = rotate_left (i);
 	  balance_an_interval (i->left);

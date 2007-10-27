@@ -229,13 +229,13 @@ See also variable `vc-cvs-sticky-date-format-string'."
 	    (goto-char (point-max))
 	    (widen)))))))
 
-(defun vc-cvs-workfile-version (file)
-  "CVS-specific version of `vc-workfile-version'."
+(defun vc-cvs-working-revision (file)
+  "CVS-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under CVS, because we
   ;; get the workfile version for free when we recognize that a file
   ;; is registered in CVS.
   (vc-cvs-registered file)
-  (vc-file-getprop file 'vc-workfile-version))
+  (vc-file-getprop file 'vc-working-revision))
 
 (defun vc-cvs-checkout-model (file)
   "CVS-specific version of `vc-checkout-model'."
@@ -261,7 +261,7 @@ committed and support display of sticky tags."
   (let* ((sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
 	 help-echo
 	 (string 
-	  (if (string= (vc-workfile-version file) "0")
+	  (if (string= (vc-working-revision file) "0")
 	      ;; A file that is added but not yet committed.
 	      (progn
 		(setq help-echo "Added file (needs commit) under CVS")
@@ -282,7 +282,7 @@ committed and support display of sticky tags."
   "CVS-specific version of `vc-dired-state-info'."
   (let ((cvs-state (vc-state file)))
     (cond ((eq cvs-state 'edited)
-	   (if (equal (vc-workfile-version file) "0")
+	   (if (equal (vc-working-revision file) "0")
 	       "(added)" "(modified)"))
 	  ((eq cvs-state 'needs-patch) "(patch)")
 	  ((eq cvs-state 'needs-merge) "(merge)"))))
@@ -330,7 +330,7 @@ its parents."
 
 (defun vc-cvs-checkin (files rev comment)
   "CVS-specific version of `vc-backend-checkin'."
-  (unless (or (not rev) (vc-cvs-valid-version-number-p rev))
+  (unless (or (not rev) (vc-cvs-valid-revision-number-p rev))
     (if (not (vc-cvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
       ;; If the input revison is a valid symbolic tag name, we create it
@@ -359,12 +359,12 @@ its parents."
         (goto-char (point-min))
         (shrink-window-if-larger-than-buffer)
         (error "Check-in failed"))))
-    ;; Single-file commit?  Then update the version by parsing the buffer.
+    ;; Single-file commit?  Then update the revision by parsing the buffer.
     ;; Otherwise we can't necessarily tell what goes with what; clear
     ;; its properties so they have to be refetched.
     (if (= (length files) 1)
 	(vc-file-setprop
-	 (car files) 'vc-workfile-version
+	 (car files) 'vc-working-revision
 	 (vc-parse-buffer "^\\(new\\|initial\\) revision: \\([0-9.]+\\)" 2))
       (mapc (lambda (file) (vc-file-clearprops file)) files))
     ;; Anyway, forget the checkout model of the file, because we might have
@@ -379,7 +379,7 @@ its parents."
     (if (and rev (not (vc-cvs-valid-symbolic-tag-name-p rev)))
 	(vc-cvs-command nil 0 files "update" "-A"))))
 
-(defun vc-cvs-find-version (file rev buffer)
+(defun vc-cvs-find-revision (file rev buffer)
   (apply 'vc-cvs-command
 	 buffer 0 file
 	 "-Q"				; suppress diagnostic output
@@ -404,8 +404,8 @@ REV is the revision to check out."
                  (vc-cvs-command nil 0 file "edit")
                (set-file-modes file (logior (file-modes file) 128))
                (if (equal file buffer-file-name) (toggle-read-only -1))))
-      ;; Check out a particular version (or recreate the file).
-      (vc-file-setprop file 'vc-workfile-version nil)
+      ;; Check out a particular revision (or recreate the file).
+      (vc-file-setprop file 'vc-working-revision nil)
       (apply 'vc-cvs-command nil 0 file
              (and editable "-w")
              "update"
@@ -426,7 +426,7 @@ REV is the revision to check out."
   (vc-cvs-command nil 0 file "commit" "-mRemoved."))
 
 (defun vc-cvs-revert (file &optional contents-done)
-  "Revert FILE to the version on which it was based."
+  "Revert FILE to the working revision on which it was based."
   (vc-default-revert 'CVS file contents-done)
   (unless (eq (vc-checkout-model file) 'implicit)
     (if vc-cvs-use-edit
@@ -434,13 +434,13 @@ REV is the revision to check out."
       ;; Make the file read-only by switching off all w-bits
       (set-file-modes file (logand (file-modes file) 3950)))))
 
-(defun vc-cvs-merge (file first-version &optional second-version)
+(defun vc-cvs-merge (file first-revision &optional second-revision)
   "Merge changes into current working copy of FILE.
-The changes are between FIRST-VERSION and SECOND-VERSION."
+The changes are between FIRST-REVISION and SECOND-REVISION."
   (vc-cvs-command nil 0 file
                  "update" "-kk"
-                 (concat "-j" first-version)
-                 (concat "-j" second-version))
+                 (concat "-j" first-revision)
+                 (concat "-j" second-revision))
   (vc-file-setprop file 'vc-state 'edited)
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
@@ -451,18 +451,18 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-cvs-merge-news (file)
   "Merge in any new changes made to FILE."
   (message "Merging changes into %s..." file)
-  ;; (vc-file-setprop file 'vc-workfile-version nil)
+  ;; (vc-file-setprop file 'vc-working-revision nil)
   (vc-file-setprop file 'vc-checkout-time 0)
   (vc-cvs-command nil 0 file "update")
   ;; Analyze the merge result reported by CVS, and set
   ;; file properties accordingly.
   (with-current-buffer (get-buffer "*vc*")
     (goto-char (point-min))
-    ;; get new workfile version
+    ;; get new working revision
     (if (re-search-forward
 	 "^Merging differences between [0-9.]* and \\([0-9.]*\\) into" nil t)
-	(vc-file-setprop file 'vc-workfile-version (match-string 1))
-      (vc-file-setprop file 'vc-workfile-version nil))
+	(vc-file-setprop file 'vc-working-revision (match-string 1))
+      (vc-file-setprop file 'vc-working-revision nil))
     ;; get file status
     (prog1
         (if (eq (buffer-size) 0)
@@ -512,7 +512,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   nil)
 
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
-  "Get a difference report using CVS between two versions of FILE."
+  "Get a difference report using CVS between two revisions of FILE."
     (let* ((async (and (not vc-disable-async-diff) 
 		       (vc-stay-local-p files)
 		       (fboundp 'start-process)))
@@ -559,14 +559,14 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
       (set-process-filter process vc-filter)
       (funcall vc-filter process (substring string (match-beginning 0))))))
 
-(defun vc-cvs-annotate-command (file buffer &optional version)
+(defun vc-cvs-annotate-command (file buffer &optional revision)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
-Optional arg VERSION is a version to annotate from."
+Optional arg REVISION is a revision to annotate from."
   (vc-cvs-command buffer
                   (if (and (vc-stay-local-p file) (fboundp 'start-process))
 		      'async 0)
                   file "annotate"
-                  (if version (concat "-r" version)))
+                  (if revision (concat "-r" revision)))
   ;; Strip the leading few lines.
   (let ((proc (get-buffer-process buffer)))
     (if proc
@@ -590,7 +590,8 @@ encoded as fractional days."
 systime, or nil if there is none."
   (let* ((bol (point))
          (cache (get-text-property bol 'vc-cvs-annotate-time))
-         buffer-read-only)
+         (inhibit-read-only t)
+         (inhibit-modification-hooks t))
     (cond
      (cache)
      ((looking-at
@@ -632,7 +633,7 @@ systime, or nil if there is none."
 ;;;
 
 (defun vc-cvs-create-snapshot (dir name branchp)
-  "Assign to DIR's current version a given NAME.
+  "Assign to DIR's current revision a given NAME.
 If BRANCHP is non-nil, the name is created as a branch (and the current
 workspace is immediately moved to that new branch)."
   (vc-cvs-command nil 0 dir "tag" "-c" (if branchp "-b") name)
@@ -662,13 +663,13 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 		   ((or (string= state "U")
 			(string= state "P"))
 		    (vc-file-setprop file 'vc-state 'up-to-date)
-		    (vc-file-setprop file 'vc-workfile-version nil)
+		    (vc-file-setprop file 'vc-working-revision nil)
 		    (vc-file-setprop file 'vc-checkout-time
 				     (nth 5 (file-attributes file))))
 		   ((or (string= state "M")
 			(string= state "C"))
 		    (vc-file-setprop file 'vc-state 'edited)
-		    (vc-file-setprop file 'vc-workfile-version nil)
+		    (vc-file-setprop file 'vc-working-revision nil)
 		    (vc-file-setprop file 'vc-checkout-time 0)))
 		  (vc-file-setprop file 'vc-cvs-sticky-tag sticky-tag)
 		  (vc-resynch-buffer file t t))))
@@ -799,7 +800,7 @@ essential information."
                     "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
 \[\t ]+\\([0-9.]+\\)"
                     nil t))
-              (vc-file-setprop file 'vc-latest-version (match-string 2)))
+              (vc-file-setprop file 'vc-latest-revision (match-string 2)))
           (vc-file-setprop
            file 'vc-state
            (cond
@@ -842,8 +843,8 @@ CVS/Entries should only be accessed through this function."
   (and (string-match "^[a-zA-Z]" tag)
        (not (string-match "[^a-z0-9A-Z-_]" tag))))
 
-(defun vc-cvs-valid-version-number-p (tag)
-  "Return non-nil if TAG is a valid version number."
+(defun vc-cvs-valid-revision-number-p (tag)
+  "Return non-nil if TAG is a valid revision number."
   (and (string-match "^[0-9]" tag)
        (not (string-match "[^0-9.]" tag))))
 
@@ -907,7 +908,7 @@ is non-nil."
    ;; entry for a "locally added" file (not yet committed)
    ((looking-at "/[^/]+/0/")
     (vc-file-setprop file 'vc-checkout-time 0)
-    (vc-file-setprop file 'vc-workfile-version "0")
+    (vc-file-setprop file 'vc-working-revision "0")
     (if set-state (vc-file-setprop file 'vc-state 'edited)))
    ;; normal entry
    ((looking-at
@@ -921,7 +922,7 @@ is non-nil."
 	     ;; sticky tag
 	     "\\(.\\|\\)" ;Sticky tag type (date or tag name, could be empty)
 	     "\\(.*\\)"))		;Sticky tag
-    (vc-file-setprop file 'vc-workfile-version (match-string 1))
+    (vc-file-setprop file 'vc-working-revision (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
 		     (vc-cvs-parse-sticky-tag (match-string 4)
                                               (match-string 5)))

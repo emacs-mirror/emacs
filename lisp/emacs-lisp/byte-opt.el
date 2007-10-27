@@ -2182,17 +2182,17 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
      (assq 'byte-code (symbol-function 'byte-optimize-form))
      (let ((byte-optimize nil)
 	   (byte-compile-warnings nil))
-       (mapcar (lambda (x)
-		 (or noninteractive (message "compiling %s..." x))
-		 (byte-compile x)
-		 (or noninteractive (message "compiling %s...done" x)))
-	       '(byte-optimize-form
-		 byte-optimize-body
-		 byte-optimize-predicate
-		 byte-optimize-binary-predicate
-		 ;; Inserted some more than necessary, to speed it up.
-		 byte-optimize-form-code-walker
-		 byte-optimize-lapcode))))
+       (mapc (lambda (x)
+	       (or noninteractive (message "compiling %s..." x))
+	       (byte-compile x)
+	       (or noninteractive (message "compiling %s...done" x)))
+	     '(byte-optimize-form
+	       byte-optimize-body
+	       byte-optimize-predicate
+	       byte-optimize-binary-predicate
+	       ;; Inserted some more than necessary, to speed it up.
+	       byte-optimize-form-code-walker
+	       byte-optimize-lapcode))))
  nil)
 
 ;; arch-tag: 0f14076b-737e-4bef-aae6-908826ec1ff1

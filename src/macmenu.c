@@ -26,10 +26,10 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 
 #include "lisp.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "keyboard.h"
 #include "keymap.h"
-#include "frame.h"
 #include "window.h"
 #include "blockinput.h"
 #include "buffer.h"
@@ -347,15 +347,8 @@ save_menu_items ()
 static void
 grow_menu_items ()
 {
-  Lisp_Object old;
-  int old_size = menu_items_allocated;
-  old = menu_items;
-
   menu_items_allocated *= 2;
-
-  menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
-  bcopy (XVECTOR (old)->contents, XVECTOR (menu_items)->contents,
-	 old_size * sizeof (Lisp_Object));
+  menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }
 
 /* Begin a submenu.  */
@@ -720,8 +713,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	  enum scroll_bar_part part;
 	  unsigned long time;
 
-	  if (mouse_position_hook)
-	    (*mouse_position_hook) (&new_f, 1, &bar_window,
+	  if (FRAME_TERMINAL (new_f)->mouse_position_hook)
+	    (*FRAME_TERMINAL (new_f)->mouse_position_hook) (&new_f, 1, &bar_window,
 				    &part, &x, &y, &time);
 	  if (new_f != 0)
 	    XSETFRAME (window, new_f);

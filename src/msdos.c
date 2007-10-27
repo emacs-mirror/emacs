@@ -508,8 +508,8 @@ ScreenVisualBell (void)
 {
   /* This creates an xor-mask that will swap the default fore- and
      background colors.  */
-  do_visible_bell (((the_only_x_display.foreground_pixel
-		     ^ the_only_x_display.background_pixel)
+  do_visible_bell (((FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ())
+		     ^ FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()))
 		    * 0x11) & 0x7f);
 }
 #endif
@@ -2531,8 +2531,8 @@ internal_terminal_init ()
   initial_screen_colors[0] = initial_screen_colors[1] = -1;
 
   bzero (&the_only_x_display, sizeof the_only_x_display);
-  the_only_x_display.background_pixel = 7; /* White */
-  the_only_x_display.foreground_pixel = 0; /* Black */
+  FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = 7; /* White */
+  FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ()) = 0; /* Black */
   bright_bg ();
   colors = getenv ("EMACSCOLORS");
   if (colors && strlen (colors) >= 2)
@@ -2543,13 +2543,13 @@ internal_terminal_init ()
       else if (isxdigit (colors[0]))
         colors[0] -= (isupper (colors[0]) ? 'A' : 'a') - 10;
       if (colors[0] >= 0 && colors[0] < 16)
-        the_only_x_display.foreground_pixel = colors[0];
+        FRAME_FOREGROUND_PIXEL (SELECTED_FRAME ()) = colors[0];
       if (isdigit (colors[1]))
         colors[1] -= '0';
       else if (isxdigit (colors[1]))
         colors[1] -= (isupper (colors[1]) ? 'A' : 'a') - 10;
       if (colors[1] >= 0 && colors[1] < 16)
-        the_only_x_display.background_pixel = colors[1];
+        FRAME_BACKGROUND_PIXEL (SELECTED_FRAME ()) = colors[1];
     }
   the_only_x_display.font = (XFontStruct *)1;   /* must *not* be zero */
   the_only_x_display.display_info.mouse_face_mouse_frame = NULL;
@@ -2583,7 +2583,7 @@ internal_terminal_init ()
   set_terminal_modes_hook = IT_set_terminal_modes;
   reset_terminal_modes_hook = IT_reset_terminal_modes;
   set_terminal_window_hook = IT_set_terminal_window;
-  char_ins_del_ok = 0;
+  TTY_CHAR_INS_DEL_OK (CURTTY ()) = 0;
 #endif
 }
 
@@ -4880,7 +4880,7 @@ croak (badfunc)
      char *badfunc;
 {
   fprintf (stderr, "%s not yet implemented\r\n", badfunc);
-  reset_sys_modes ();
+  reset_all_sys_modes ();
   exit (1);
 }
 

@@ -3675,44 +3675,6 @@ Return the result of the last expression."
 
 ;;; Printing
 
-;; Replace printing functions.
-
-;; obsolete names
-(define-obsolete-function-alias 'edebug-install-custom-print-funcs
-    'edebug-install-custom-print "22.1")
-(define-obsolete-function-alias 'edebug-reset-print-funcs
-    'edebug-uninstall-custom-print "22.1")
-(define-obsolete-function-alias 'edebug-uninstall-custom-print-funcs
-    'edebug-uninstall-custom-print "22.1")
-
-(defun edebug-install-custom-print ()
-  "Replace print functions used by Edebug with custom versions."
-  ;; Modifying the custom print functions, or changing print-length,
-  ;; print-level, print-circle, custom-print-list or custom-print-vector
-  ;; have immediate effect.
-  (interactive)
-  (require 'cust-print)
-  (defalias 'edebug-prin1 'custom-prin1)
-  (defalias 'edebug-print 'custom-print)
-  (defalias 'edebug-prin1-to-string 'custom-prin1-to-string)
-  (defalias 'edebug-format 'custom-format)
-  (defalias 'edebug-message 'custom-message)
-  "Installed")
-
-(eval-and-compile
-  (defun edebug-uninstall-custom-print ()
-    "Replace edebug custom print functions with internal versions."
-    (interactive)
-    (defalias 'edebug-prin1 'prin1)
-    (defalias 'edebug-print 'print)
-    (defalias 'edebug-prin1-to-string 'prin1-to-string)
-    (defalias 'edebug-format 'format)
-    (defalias 'edebug-message 'message)
-    "Uninstalled")
-
-  ;; Default print functions are the same as Emacs'.
-  (edebug-uninstall-custom-print))
-
 
 (defun edebug-report-error (edebug-value)
   ;; Print an error message like command level does.
@@ -3758,6 +3720,12 @@ Return the result of the last expression."
   (message "%s" edebug-previous-result))
 
 ;;; Read, Eval and Print
+
+(defalias 'edebug-prin1 'prin1)
+(defalias 'edebug-print 'print)
+(defalias 'edebug-prin1-to-string 'prin1-to-string)
+(defalias 'edebug-format 'format)
+(defalias 'edebug-message 'message)
 
 (defun edebug-eval-expression (edebug-expr)
   "Evaluate an expression in the outside environment.
@@ -4421,7 +4389,7 @@ With prefix argument, make it a temporary breakpoint."
 
   (defun byte-compile-resolve-functions (funcs)
     "Say it is OK for the named functions to be unresolved."
-    (mapcar
+    (mapc
      (function
       (lambda (func)
 	(setq byte-compile-unresolved-functions

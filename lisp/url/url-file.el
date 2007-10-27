@@ -127,10 +127,11 @@ to them."
     ;; straighten it out for us?
     ;; (if (and (file-directory-p filename)
     ;;          (not (string-match (format "%c$" directory-sep-char) filename)))
-    ;;     (url-set-filename url (format "%s%c" filename directory-sep-char)))
+    ;;     (setf (url-filename url)
+    ;;           (format "%s%c" filename directory-sep-char)))
     (if (and (file-directory-p filename)
 	     (not (string-match "/\\'" filename)))
-	(url-set-filename url (format "%s/" filename)))
+	(setf (url-filename url) (format "%s/" filename)))
 
 
     ;; If it is a directory, look for an index file first.

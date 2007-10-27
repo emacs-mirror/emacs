@@ -45,7 +45,7 @@
 ;; * state (file)                              OK
 ;; - state-heuristic (file)                    ?? PROBABLY NOT NEEDED
 ;; - dir-state (dir)                           OK
-;; * workfile-version (file)                   OK
+;; * working-revision (file)                   OK
 ;; - latest-on-branch-p (file)                 ??
 ;; * checkout-model (file)                     OK
 ;; - workfile-unchanged-p (file)               OK
@@ -54,23 +54,23 @@
 ;; STATE-CHANGING FUNCTIONS
 ;; * register (files &optional rev comment)    OK
 ;; * create-repo ()                            OK
-;; - init-version ()                           NOT NEEDED
+;; - init-revision ()                           NOT NEEDED
 ;; - responsible-p (file)                      OK
 ;; - could-register (file)                     OK
 ;; - receive-file (file rev)                   ?? PROBABLY NOT NEEDED
 ;; - unregister (file)                         COMMENTED OUT, MAY BE INCORRECT
 ;; * checkin (files rev comment)               OK
-;; * find-version (file rev buffer)            OK
+;; * find-revision (file rev buffer)            OK
 ;; * checkout (file &optional editable rev)    OK
 ;; * revert (file &optional contents-done)     OK
 ;; - rollback (files)                          ?? PROBABLY NOT NEEDED   
 ;; - merge (file rev1 rev2)                    NEEDED
 ;; - merge-news (file)                         NEEDED
-;; - steal-lock (file &optional version)       NOT NEEDED
+;; - steal-lock (file &optional revision)       NOT NEEDED
 ;; HISTORY FUNCTIONS
 ;; * print-log (files &optional buffer)        OK
 ;; - log-view-mode ()                          OK
-;; - show-log-entry (version)                  NOT NEEDED, DEFAULT IS GOOD
+;; - show-log-entry (revision)                  NOT NEEDED, DEFAULT IS GOOD
 ;; - wash-log (file)                           ??
 ;; - logentry-check ()                         NOT NEEDED
 ;; - comment-history (file)                    NOT NEEDED
@@ -89,8 +89,8 @@
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
 ;; - repository-hostname (dirname)             ?? 
-;; - previous-version (file rev)               OK
-;; - next-version (file rev)                   OK
+;; - previous-revision (file rev)               OK
+;; - next-revision (file rev)                   OK
 ;; - check-headers ()                          ??
 ;; - clear-headers ()                          ??
 ;; - delete-file (file)                        TEST IT
@@ -198,7 +198,7 @@
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
 	 ((eq status-char ?A)
-	  (vc-file-setprop file 'vc-workfile-version "0")
+	  (vc-file-setprop file 'vc-working-revision "0")
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?M)
 	  (vc-file-setprop file 'vc-state 'edited))
@@ -207,8 +207,8 @@
 	  (vc-file-setprop file 'vc-state 'nil)))
 	(forward-line)))))
 
-(defun vc-hg-workfile-version (file)
-  "Hg-specific version of `vc-workfile-version'."
+(defun vc-hg-working-revision (file)
+  "Hg-specific version of `vc-working-revision'."
   (let* 
       ((status nil)
        (out
@@ -257,8 +257,7 @@
 (defvar log-view-font-lock-keywords)
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
-  (require 'add-log) ;; we need the faces add-log
-  ;; Don't have file markers, so use impossible regexp.
+  (require 'add-log) ;; we need the add-log faces
   (set (make-local-variable 'log-view-file-re) "^File:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
        "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
@@ -278,8 +277,8 @@
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
-  "Get a difference report using hg between two versions of FILES."
-  (let ((working (vc-workfile-version (car files))))
+  "Get a difference report using hg between two revisions of FILES."
+  (let ((working (vc-working-revision (car files))))
     (if (and (equal oldvers working) (not newvers))
 	(setq oldvers nil))
     (if (and (not oldvers) newvers)
@@ -313,10 +312,10 @@
 (defun vc-hg-diff-tree (file &optional oldvers newvers buffer)
   (vc-hg-diff (list file) oldvers newvers buffer))
 
-(defun vc-hg-annotate-command (file buffer &optional version)
+(defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
-Optional arg VERSION is a version to annotate from."
-  (vc-hg-command buffer 0 file "annotate" "-d" "-n" (if version (concat "-r" version)))
+Optional arg REVISION is a revision to annotate from."
+  (vc-hg-command buffer 0 file "annotate" "-d" "-n" (if revision (concat "-r" revision)))
   (with-current-buffer buffer
     (goto-char (point-min))
     (re-search-forward "^[0-9]")
@@ -339,22 +338,22 @@ Optional arg VERSION is a version to annotate from."
     (beginning-of-line)
     (if (looking-at vc-hg-annotate-re) (match-string-no-properties 1))))
 
-(defun vc-hg-previous-version (file rev)
+(defun vc-hg-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (>= newrev 0)
       (number-to-string newrev))))
 
-(defun vc-hg-next-version (file rev)
+(defun vc-hg-next-revision (file rev)
   (let ((newrev (1+ (string-to-number rev)))
-	(tip-version 
+	(tip-revision 
 	 (with-temp-buffer
 	   (vc-hg-command t 0 nil "tip")
 	   (goto-char (point-min))
 	   (re-search-forward "^changeset:[ \t]*\\([0-9]+\\):")
 	   (string-to-number (match-string-no-properties 1)))))
-    ;; We don't want to exceed the maximum possible version number, ie
-    ;; the tip version.
-    (when (<= newrev tip-version)
+    ;; We don't want to exceed the maximum possible revision number, ie
+    ;; the tip revision.
+    (when (<= newrev tip-revision)
       (number-to-string newrev))))
 
 ;; Modelled after the similar function in vc-bzr.el
@@ -403,7 +402,7 @@ COMMENT is ignored."
 REV is ignored."
   (vc-hg-command nil 0 files  "commit" "-m" comment))
 
-(defun vc-hg-find-version (file rev buffer)
+(defun vc-hg-find-revision (file rev buffer)
   (let ((coding-system-for-read 'binary)
         (coding-system-for-write 'binary))
     (if rev
@@ -433,7 +432,7 @@ REV is the revision to check out into WORKFILE."
   "Hg-specific version of `vc-dired-state-info'."
   (let ((hg-state (vc-state file)))
     (if (eq hg-state 'edited)
-	(if (equal (vc-workfile-version file) "0")
+	(if (equal (vc-working-revision file) "0")
 	    "(added)" "(modified)")
       ;; fall back to the default VC representation
       (vc-default-dired-state-info 'Hg file))))
@@ -442,6 +441,71 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
     (with-temp-buffer (vc-hg-command t 0 file "revert"))))
+
+;;; Hg specific functionality.
+
+;;; XXX This functionality is experimental/work in progress. It might
+;;; change without notice.
+(defvar vc-hg-extra-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [incoming] '(menu-item "Show incoming" vc-hg-incoming))
+    (define-key map [outgoing] '(menu-item "Show outgoing" vc-hg-outgoing))
+    map))
+
+(defun vc-hg-extra-menu () vc-hg-extra-menu-map)
+
+(define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing")
+
+(define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
+
+;; XXX this adds another top level menu, instead figure out how to
+;; replace the Log-View menu.
+(easy-menu-define log-view-mode-menu vc-hg-outgoing-mode-map
+  "Hg-outgoing Display Menu"
+  `("Hg-outgoing"
+    ["Push selected"  vc-hg-push]))
+
+(easy-menu-define log-view-mode-menu vc-hg-incoming-mode-map
+  "Hg-incoming Display Menu"
+  `("Hg-incoming"
+    ["Pull selected"  vc-hg-pull]))
+
+(defun vc-hg-outgoing ()
+  (interactive)
+  (let ((bname "*Hg outgoing*"))
+    (vc-hg-command bname 0 nil "outgoing" "-n")
+    (pop-to-buffer bname)
+    (vc-hg-outgoing-mode)))
+
+(defun vc-hg-incoming ()
+  (interactive)
+  (let ((bname "*Hg incoming*"))
+    (vc-hg-command bname 0 nil "incoming" "-n")
+    (pop-to-buffer bname)
+    (vc-hg-incoming-mode)))
+
+;; XXX maybe also add key bindings for these functions.
+(defun vc-hg-push ()
+  (interactive)
+  (let ((marked-list (log-view-get-marked)))
+    (if marked-list
+	(vc-hg-command 
+	 nil 0 nil
+	 (cons "push"
+	       (apply 'nconc
+		      (mapcar (lambda (arg) (list "-r" arg)) marked-list))))
+	 (error "No log entries selected for push"))))
+
+(defun vc-hg-pull ()
+  (interactive)
+  (let ((marked-list (log-view-get-marked)))
+    (if marked-list
+	(vc-hg-command 
+	 nil 0 nil
+	 (cons "pull"
+	       (apply 'nconc
+		      (mapcar (lambda (arg) (list "-r" arg)) marked-list))))
+      (error "No log entries selected for pull"))))
 
 ;;; Internal functions
 

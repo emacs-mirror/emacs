@@ -76,7 +76,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
-(autoload 'vc-find-version "vc")
+(autoload 'vc-find-revision "vc")
 (autoload 'vc-version-diff "vc")
 
 (defvar cvs-minor-wrap-function)
@@ -92,9 +92,12 @@
     ("m" . log-view-toggle-mark-entry)
     ;; ("e" . cvs-mode-edit-log)
     ("d" . log-view-diff)
-    ("f" . log-view-find-version)
+    ("a" . log-view-annotate-version)
+    ("f" . log-view-find-revision)
     ("n" . log-view-msg-next)
     ("p" . log-view-msg-prev)
+    ("\t" . log-view-msg-next)
+    ([backtab] . log-view-msg-prev)
     ("N" . log-view-file-next)
     ("P" . log-view-file-prev)
     ("\M-n" . log-view-file-next)
@@ -113,7 +116,8 @@
     ;; ["Kill This Buffer"  kill-this-buffer]
     ["Mark Log Entry for Diff"  set-mark-command]
     ["Diff Revisions"  log-view-diff]
-    ["Visit Version"  log-view-find-version]
+    ["Visit Version"  log-view-find-revision]
+    ["Annotate Version"  log-view-annotate-version]
     ["Next Log Entry"  log-view-msg-next]
     ["Previous Log Entry"  log-view-msg-prev]
     ["Next File"  log-view-file-next]
@@ -187,6 +191,10 @@ The match group number 1 should match the revision number itself.")
   "Major mode for browsing CVS log output."
   (setq buffer-read-only t)
   (set (make-local-variable 'font-lock-defaults) log-view-font-lock-defaults)
+  (set (make-local-variable 'beginning-of-defun-function) 
+       'log-view-beginning-of-defun)
+  (set (make-local-variable 'end-of-defun-function) 
+       'log-view-end-of-defun)
   (set (make-local-variable 'cvs-minor-wrap-function) 'log-view-minor-wrap))
 
 ;;;;
@@ -214,7 +222,8 @@ The match group number 1 should match the revision number itself.")
   (save-excursion
     (forward-line 1)
     (or (re-search-backward log-view-file-re nil t)
-	(re-search-forward log-view-file-re))
+	(re-search-forward log-view-file-re nil t)
+	(error "Unable to determine the current file"))
     (let* ((file (match-string 1))
 	   (cvsdir (and (re-search-backward log-view-dir-re nil t)
 			(match-string 1)))
@@ -280,6 +289,51 @@ log entries."
 	  (setq pos (overlay-end ov))))
       marked-list)))
 
+(defun log-view-beginning-of-defun ()
+  ;; This assumes that a log entry starts with a line matching
+  ;; `log-view-message-re'.  Modes that derive from `log-view-mode'
+  ;; for which this assumption is not valid will have to provide
+  ;; another implementation of this function.  `log-view-msg-prev'
+  ;; does a similar job to this function, we can't use it here
+  ;; directly because it prints messages that are not appropriate in
+  ;; this context and it does not move to the beginning of the buffer
+  ;; when the point is before the first log entry.
+
+  ;; `log-view-beginning-of-defun' and `log-view-end-of-defun' have
+  ;; been checked to work with logs produced by RCS, CVS, git,
+  ;; mercurial and subversion.
+
+  (re-search-backward log-view-message-re nil 'move))
+
+(defun log-view-end-of-defun ()
+  ;; The idea in this function is to search for the beginning of the
+  ;; next log entry using `log-view-message-re' and then go back one
+  ;; line when finding it.  Modes that derive from `log-view-mode' for
+  ;; which this assumption is not valid will have to provide another
+  ;; implementation of this function.
+
+  ;; Look back and if there is no entry there it means we are before
+  ;; the first log entry, so go forward until finding one.
+  (unless (save-excursion (re-search-backward log-view-message-re nil t))
+    (re-search-forward log-view-message-re nil t))
+
+  ;; In case we are at the end of log entry going forward a line will
+  ;; make us find the next entry when searching. If we are inside of
+  ;; an entry going forward a line will still keep the point inside
+  ;; the same entry.
+  (forward-line 1)
+
+  ;; In case we are at the beginning of an entry, move past it.
+  (when (looking-at log-view-message-re)
+    (goto-char (match-end 0))
+    (forward-line 1))
+
+  ;; Search for the start of the next log entry.  Go to the end of the
+  ;; buffer if we could not find a next entry.
+  (when (re-search-forward log-view-message-re nil 'move)
+    (goto-char (match-beginning 0))
+    (forward-line -1)))
+
 (defvar cvs-minor-current-files)
 (defvar cvs-branch-prefix)
 (defvar cvs-secondary-branch-prefix)
@@ -311,13 +365,21 @@ log entries."
 	  (cvs-force-command "/F"))
       (funcall f))))
 
-(defun log-view-find-version (pos)
+(defun log-view-find-revision (pos)
   "Visit the version at point."
   (interactive "d")
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-find-version (log-view-current-file)
+    (switch-to-buffer (vc-find-revision (log-view-current-file)
                                        (log-view-current-tag)))))
+
+(defun log-view-annotate-version (pos)
+  "Annotate the version at point."
+  (interactive "d")
+  (save-excursion
+    (goto-char pos)
+    (switch-to-buffer (vc-annotate (log-view-current-file)
+				   (log-view-current-tag)))))
 
 ;;
 ;; diff

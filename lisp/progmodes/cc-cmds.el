@@ -2595,7 +2595,7 @@ sentence motion in or near comments and multiline strings."
 ;; set up electric character functions to work with pending-del,
 ;; (a.k.a. delsel) mode.  All symbols get the t value except
 ;; the functions which delete, which gets 'supersede.
-(mapcar
+(mapc
  (function
   (lambda (sym)
     (put sym 'delete-selection t)	; for delsel (Emacs)
@@ -3074,7 +3074,8 @@ non-nil."
 indent the current line syntactically."
   ;; Emacs has a variable called mark-active, XEmacs uses region-active-p
   (interactive)
-  (if (c-region-is-active-p)
+  (if (and transient-mark-mode mark-active
+	   (not (eq (region-beginning) (region-end))))
       (c-indent-region (region-beginning) (region-end))
     (c-indent-line)))
 

@@ -165,7 +165,8 @@ number, if the function `eshell-truncate-buffer' is on
   :group 'eshell-mode)
 
 (defcustom eshell-output-filter-functions
-  '(eshell-handle-control-codes
+  '(eshell-postoutput-scroll-to-bottom
+    eshell-handle-control-codes
     eshell-watch-for-password-prompt)
   "*Functions to call before output is displayed.
 These functions are only called for output that is displayed
@@ -879,9 +880,6 @@ This function should be in the list `eshell-output-filter-functions'."
 		  (select-window selected)))))
 	 nil t)
       (set-buffer current))))
-
-(custom-add-option 'eshell-output-filter-functions
-		   'eshell-postoutput-scroll-to-bottom)
 
 (defun eshell-beginning-of-input ()
   "Return the location of the start of the previous input."

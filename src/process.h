@@ -34,7 +34,7 @@ Boston, MA 02110-1301, USA.  */
 
 struct Lisp_Process
   {
-    EMACS_INT size;
+    EMACS_UINT size;
     struct Lisp_Vector *v_next;
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;

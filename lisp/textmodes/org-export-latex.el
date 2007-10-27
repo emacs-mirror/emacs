@@ -1,29 +1,36 @@
-;;; org-export-latex.el --- LaTeX exporter for Org-mode
+ ;;; org-export-latex.el --- LaTeX exporter for org-mode
+;;
 ;; Copyright (C) 2007 Free Software Foundation, Inc.
 ;;
+;; Emacs Lisp Archive Entry
+;; Filename: org-export-latex.el
+;; Version: 5.11
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
-;; Keywords: org organizer latex export convert
-;; X-URL: <http://www.cognition.ens.fr/~guerry/u/org-export-latex.el>
+;; Maintainer: Bastien Guerry <bzg AT altern DOT org>
+;; Keywords: org, wp, tex
+;; Description: Converts an org-mode buffer into LaTeX
+;; URL: http://www.cognition.ens.fr/~guerry/u/org-export-latex.el
 ;;
 ;; This file is part of GNU Emacs.
 ;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; GNU Emacs is free software; you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the
+;; Free Software Foundation; either version 3, or (at your option) any
+;; later version.
 ;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+;; more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
+;; You should have received a copy of the GNU General Public License along
+;; with GNU Emacs; see the file COPYING. If not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+;; 02110-1301, USA.
+;;
 ;;; Commentary:
-
-;; This library is a LaTeX exporter for org-mode.
+;;
+;; This library implements a LaTeX exporter for org-mode.
 ;; 
 ;; Put this file into your load-path and the following into your ~/.emacs:
 ;;   (require 'org-export-latex)
@@ -35,23 +42,23 @@
 ;; M-x `org-export-as-latex-to-buffer'
 ;; M-x `org-export-region-as-latex'
 ;; M-x `org-replace-region-by-latex'
-
-;;; History:
-;; 
-;; I started this piece of code in may 2007. Special thanks to Carsten
-;; Dominik for helping me on this.
-;; 
-
+;;
 ;;; Code:
 
-(require 'org)
-(require 'footnote)
+(eval-when-compile
+  (require 'cl))
 
+(require 'footnote)
+(require 'org)
+
+;;; Variables:
 (defvar org-latex-options-plist nil)
 (defvar org-latex-todo-keywords-1 nil)
 (defvar org-latex-all-targets-regexp nil)
 (defvar org-latex-add-level 0)
 (defvar org-latex-sectioning-depth 0)
+(defvar org-export-latex-list-beginning-re
+  "^\\([ \t]*\\)\\([-+]\\|[0-9]+\\(?:\\.\\|)\\)\\) *?")
 
 (defvar org-latex-special-string-regexps
   '(org-ts-regexp
@@ -60,6 +67,11 @@
     org-clock-string)
   "A list of regexps to convert as special keywords.")
 
+(defvar latexp)    ; dynamically scoped from org.el
+(defvar re-quote)  ; dynamically scoped from org.el
+(defvar commentsp) ; dynamically scoped from org.el
+
+;;; Custom variables:
 (defcustom org-export-latex-sectioning-alist
   '((1 "\\section{%s}" "\\section*{%s}")
     (2 "\\subsection{%s}" "\\subsection*{%s}")
@@ -76,12 +88,17 @@ The %s formatter will be replaced by the title of the section."
   :type 'alist)
 
 (defcustom org-export-latex-emphasis-alist
-  '(("*" "\\textbf{%s}")
-    ("/" "\\emph{%s}")
-    ("_" "\\underline{%s}")
-    ("+" "\\texttt{%s}")
-    ("=" "\\texttt{%s}"))
-  "Alist of LaTeX expressions to convert emphasis fontifiers."
+  '(("*" "\\textbf{%s}" nil)
+    ("/" "\\emph{%s}" nil)
+    ("_" "\\underline{%s}" nil)
+    ("+" "\\texttt{%s}" nil)
+    ("=" "\\texttt{%s}" nil))
+  "Alist of LaTeX expressions to convert emphasis fontifiers.
+Each element of the list is a list of three elements.
+The first element is the character used as a marker for fontification.
+The second element is a formatting string to wrap fontified text with.
+The third element decides whether to protect converted text from other
+conversions."
   :group 'org-export-latex
   :type 'alist)
 
@@ -94,10 +111,24 @@ The %s formatter will be replaced by the title of the section."
   :group 'org-export-latex
   :type 'string)
 
-(defcustom org-export-latex-date-format nil
+(defcustom org-export-latex-title-command "\\maketitle"
+  "The command used to insert the title just after \\begin{document}.
+If this string contains the formatting specification \"%s\" then
+it will be used as a formatting string, passing the title as an
+argument."
+  :group 'org-export-latex
+  :type 'string)
+
+(defcustom org-export-latex-date-format 
+  "%d %B %Y"
   "Format string for \\date{...}."
   :group 'org-export-latex
   :type 'string)
+
+(defcustom org-export-latex-tables-verbatim nil
+  "When non-nil, export tables as verbatim."
+  :group 'org-export-latex
+  :type 'boolean)
 
 (defcustom org-export-latex-packages-alist nil
   "Alist of packages to be inserted in the preamble.
@@ -111,17 +142,20 @@ For example:
   :type 'alist)
 
 (defcustom org-export-latex-low-levels 'description
-  "Choice for converting sections that are below the current
-admitted level of sectioning. This can be either nil (ignore the
-sections), 'description (convert them as description lists) or a
-string to be used instead of \\section{%s} (a %s for inserted the
-headline is mandatory)."
+  "How to convert sections below the current level of sectioning,
+as specified by `org-export-headline-levels' or the value of \"H:\"
+in Org's #+OPTION line.
+
+This can be either nil (skip the sections), 'description (convert
+the sections as descriptive lists) or a string to be used instead
+of \\section{%s}. In this latter case, the %s stands here for the
+inserted headline and is mandatory."
   :group 'org-export-latex
   :type '(choice (const :tag "Ignore" nil)
 		 (symbol :tag "Convert as descriptive list" description)
 		 (string :tag "Use a section string" :value "\\subparagraph{%s}")))
 
-(defcustom org-export-latex-remove-from-headines
+(defcustom org-export-latex-remove-from-headlines
   '(:todo t :priority t :tags t)
   "A plist of keywords to remove from headlines.
 Non-nil means remove this keyword type from the headline.
@@ -129,13 +163,6 @@ Non-nil means remove this keyword type from the headline.
 Don't remove the keys, just change their values."
   :type 'plist
   :group 'org-export-latex)
-
-(defcustom org-export-latex-quotation-marks-convention "en"
-  "Convention for conversion of the quotation marks.
-This value is overriden by any infile language setup."
-  :group 'org-export-latex
-  :type '(choice (string :tag "english" "en")
-		 (string :tag "french" "fr")))
 
 (defcustom org-export-latex-image-default-option "width=10em"
   "Default option for images."
@@ -150,6 +177,7 @@ This value is overriden by any infile language setup."
 ;; FIXME Do we want this one?
 ;; (defun org-export-as-latex-and-open (arg) ...)
 
+;;; Autoload functions:
 ;;;###autoload
 (defun org-export-as-latex-batch ()
   "Call `org-export-as-latex', may be used in batch processing as
@@ -241,7 +269,8 @@ in a window.  A non-interactive call will only retunr the buffer."
   (message "Exporting to LaTeX...")
   (org-update-radio-target-regexp)
   (org-export-latex-set-initial-vars ext-plist)
-  (let* ((opt-plist org-latex-options-plist)
+  (let* ((wcf (current-window-configuration))
+	 (opt-plist org-latex-options-plist)
 	 (filename (concat (file-name-as-directory
 			    (org-export-directory :LaTeX ext-plist))
 			   (file-name-sans-extension
@@ -273,19 +302,31 @@ in a window.  A non-interactive call will only retunr the buffer."
 		  (if region-p (region-beginning) (point-min))
 		  (if region-p (region-end) (point-max))))
 	 (string-for-export
-	  ;; FIXME Use org-cleaned-string-for-export instead, only when
-	  ;; everyone uses Org >5.04
-	  (org-latex-cleaned-string-for-export
-	   region :for-html nil
-		  :comments nil
+	  (org-cleaned-string-for-export
+	   region :emph-multiline t
 		  :for-LaTeX t
-		  :skip-before-1st-heading nil
+		  :comments nil
+		  :add-text (if (eq to-buffer 'string) nil text)
+		  :skip-before-1st-heading skip
 		  :LaTeX-fragments nil)))
-    (set-buffer buffer)
+
+    (set-buffer buffer) 
     (erase-buffer)
-    (unless body-only (insert preamble))
-    (when text (insert (org-export-latex-content text) "\n\n"))
-    (unless skip (insert first-lines))
+
+    (and (fboundp 'set-buffer-file-coding-system)
+	 (set-buffer-file-coding-system coding-system-for-write))
+
+    ;; insert the preamble and initial document commands
+    (unless (or (eq to-buffer 'string) body-only)
+      (insert preamble))
+
+    ;; insert text found in #+TEXT
+    (when (and text (not (eq to-buffer 'string)))
+      (insert (org-export-latex-content text) "\n\n"))
+
+    ;; insert lines before the first headline
+    (unless (or skip (eq to-buffer 'string))
+      (insert first-lines))
 
     ;; handle the case where the region does not begin with a section
     (when region-p
@@ -293,108 +334,32 @@ in a window.  A non-interactive call will only retunr the buffer."
 		(insert string-for-export)
 		(org-export-latex-first-lines))))
 
+    ;; export the content of headlines
     (org-export-latex-global
      (with-temp-buffer
        (insert string-for-export)
        (goto-char (point-min))
-       (re-search-forward "^\\(\\*+\\) " nil t)
-       (let* ((asters (length (match-string 1)))
-	      (level (if odd (- asters 2) (- asters 1))))
-	 (setq org-latex-add-level
-	       (if odd (1- (/ (1+ asters) 2)) (1- asters)))
-	 (org-export-latex-parse-global level odd))))
+       (when (re-search-forward "^\\(\\*+\\) " nil t)
+	 (let* ((asters (length (match-string 1)))
+		(level (if odd (- asters 2) (- asters 1))))
+	   (setq org-latex-add-level
+		 (if odd (1- (/ (1+ asters) 2)) (1- asters)))
+	   (org-export-latex-parse-global level odd)))))
 
+    ;; finalization
     (unless body-only (insert "\n\\end{document}"))
-    (or to-buffer (write-file filename))
+    (or to-buffer (save-buffer))
     (goto-char (point-min))
     (message "Exporting to LaTeX...done")
-    (if (eq to-buffer 'string)
-	(prog1 (buffer-substring (point-min) (point-max))
-	  (kill-buffer (current-buffer)))
-      (current-buffer))))
+    (prog1
+	(if (eq to-buffer 'string)
+	    (prog1 (buffer-substring (point-min) (point-max))
+	      (kill-buffer (current-buffer)))
+	  (current-buffer))
+      (set-window-configuration wcf))))
 
-(defun org-export-latex-set-initial-vars (ext-plist)
-  "Store org local variables required for LaTeX export.
-EXT-PLIST is an optional additional plist."
-  (setq org-latex-todo-keywords-1 org-todo-keywords-1
-	org-latex-all-targets-regexp
-	(org-make-target-link-regexp (org-all-targets))
-	org-latex-options-plist
-	(org-combine-plists (org-default-export-plist) ext-plist
-			    (org-infile-export-plist))
-	org-latex-sectioning-depth
-	(let ((hl-levels (plist-get org-latex-options-plist :headline-levels))
-	      (sec-depth (length org-export-latex-sectioning-alist)))
-	      ;; Fall back on org-export-latex-sectioning-alist length if
-	      ;; headline-levels goes beyond it
-	  (if (> hl-levels sec-depth) sec-depth hl-levels))))
 
-(defun org-export-latex-make-preamble (opt-plist)
-  "Make the LaTeX preamble and return it as a string.
-Argument OPT-PLIST is the options plist for current buffer."
-  (let ((toc (plist-get opt-plist :table-of-contents)))
-    (format (concat org-export-latex-preamble
-     "
-%s
-
-\\begin{document}
-
-\\title{%s}
-%s
-%s
-\\maketitle
-%s
-%s
-")
-	    (if org-export-latex-packages-alist
-		(mapconcat (lambda(p)
-			     (if (equal "" (car p))
-				 (format "\\usepackage{%s}" (cadr p))
-			       (format "\\usepackage[%s]{%s}"
-				       (car p) (cadr p))))
-			   org-export-latex-packages-alist "\n") "")
-	    (or (plist-get opt-plist :title)
-		(and (not
-		      (plist-get opt-plist :skip-before-1st-heading))
-		     (org-export-grab-title-from-buffer))
-		(and buffer-file-name
-		     (file-name-sans-extension
-		      (file-name-nondirectory buffer-file-name)))
-		"UNTITLED")
-	    (if (plist-get opt-plist :author-info)
-		(format "\\author{%s}" 
-			(or (plist-get opt-plist :author) user-full-name))
-	      (format "%%\\author{%s}"
-		      (or (plist-get opt-plist :author) user-full-name)))
-	    (if (plist-get opt-plist :timestamps)
-		(format "\\date{%s}"
-			(format-time-string (or org-export-latex-date-format
-						(car org-time-stamp-formats))))
-	      "%\\date{}")
-	    (if (and (plist-get opt-plist :section-numbers) toc)
-		(format "\\setcounter{tocdepth}{%s}"
-			(plist-get opt-plist :headline-levels)) "")
-	    (if (and (plist-get opt-plist :section-numbers) toc)
-		"\\tableofcontents" ""))))
-
-(defun org-export-latex-first-lines (&optional comments)
-  "Export the first lines before first headline.
-COMMENTS is either nil to replace them with the empty string or a
-formatting string like %%%%s if we want to comment them out."
-  (save-excursion
-    (goto-char (point-min))
-    (let* ((end (if (re-search-forward "^\\*" nil t)
-		    (goto-char (match-beginning 0))
-		  (goto-char (point-max)))))
-      (org-export-latex-content
-       (org-latex-cleaned-string-for-export
-	(buffer-substring (point-min) end)
-	:for-html nil
-	:for-LaTeX t
-	:comments nil
-	:skip-before-1st-heading nil
-	:LaTeX-fragments nil)))))
-
+;;; Parsing functions:
 (defun org-export-latex-parse-global (level odd)
   "Parse the current buffer recursively, starting at LEVEL.
 If ODD is non-nil, assume the buffer only contains odd sections.
@@ -444,6 +409,52 @@ Return A list reflecting the document structure."
 	  (widen)))
       (list output))))
 
+(defun org-export-latex-parse-list (&optional delete)
+  "Parse the list at point.
+Return a list containing first level items as strings and
+sublevels as list of strings."
+  (let ((start (point))
+	;; Find the end of the list
+	(end (save-excursion 
+	       (catch 'exit
+		 (while (or (looking-at org-export-latex-list-beginning-re)
+			    (looking-at "^[ \t]+\\|^$"))
+		   (if (eq (point) (point-max))
+		       (throw 'exit (point-max)))
+		   (forward-line 1))) (point)))
+	output itemsep)
+    (while (re-search-forward org-export-latex-list-beginning-re end t)
+      (setq itemsep (if (save-match-data
+			  (string-match "^[0-9]" (match-string 2)))
+			"[0-9]+\\(?:\\.\\|)\\)" "[-+]"))
+      (let* ((indent1 (match-string 1))
+	     (nextitem (save-excursion 
+			 (save-match-data
+			   (or (and (re-search-forward 
+				     (concat "^" indent1 itemsep " *?") end t)
+				    (match-beginning 0)) end))))
+	     (item (buffer-substring
+		    (point)
+		    (or (and (re-search-forward 
+			      org-export-latex-list-beginning-re end t)
+			     (goto-char (match-beginning 0)))
+			(goto-char end))))
+	     (nextindent (match-string 1))
+	     (item (org-trim item))
+	     (item (if (string-match "^\\[.+\\]" item)
+		       (replace-match "\\\\texttt{\\&}"
+				      t nil item) item)))
+	(push item output)
+	(when (> (length nextindent)
+		 (length indent1))
+	  (narrow-to-region (point) nextitem)
+	  (push (org-export-latex-parse-list) output)
+	  (widen))))
+    (when delete (delete-region start end))
+    (setq output (nreverse output))
+    (push (if (string-match "^\\[0" itemsep)
+	      'ordered 'unordered) output)))
+
 (defun org-export-latex-parse-content ()
   "Extract the content of a section."
   (let ((beg (point))
@@ -463,6 +474,7 @@ If ODD Is non-nil, assume subcontent only contains odd sections."
       nil ; subcontent is nil
     (org-export-latex-parse-global (+ (if odd 2 1) level) odd)))
 
+;;; Rendering functions:
 (defun org-export-latex-global (content)
   "Export CONTENT to LaTeX.
 CONTENT is an element of the list produced by
@@ -475,9 +487,10 @@ CONTENT is an element of the list produced by
   "Export the list SUBCONTENT to LaTeX.
 SUBCONTENT is an alist containing information about the headline
 and its content."
-  (mapc (lambda(x) (org-export-latex-subcontent x)) subcontent))
+  (let ((num (plist-get org-latex-options-plist :section-numbers)))
+    (mapc (lambda(x) (org-export-latex-subcontent x num)) subcontent)))
 
-(defun org-export-latex-subcontent (subcontent)
+(defun org-export-latex-subcontent (subcontent num)
   "Export each cell of SUBCONTENT to LaTeX."
   (let ((heading (org-export-latex-fontify-headline
 		  (cdr (assoc 'heading subcontent))))
@@ -485,8 +498,7 @@ and its content."
 		  org-latex-add-level))
 	(occur (number-to-string (cdr (assoc 'occur subcontent))))
 	(content (cdr (assoc 'content subcontent)))
-	(subcontent (cadr (assoc 'subcontent subcontent)))
-	(num (plist-get org-latex-options-plist :section-numbers)))
+	(subcontent (cadr (assoc 'subcontent subcontent))))
     (cond 
      ;; Normal conversion
      ((<= level org-latex-sectioning-depth)
@@ -509,7 +521,125 @@ and its content."
 	     (cond ((stringp subcontent) (insert subcontent))
 		   ((listp subcontent) (org-export-latex-sub subcontent)))))))))
 
-(defun org-export-latex-special-keywords-maybe (remove-list)
+
+;;; Exporting internals:
+(defun org-export-latex-protect-string (string)
+  "Prevent further conversion for STRING by adding the
+org-protect property."
+  (add-text-properties 
+   0 (length string) '(org-protected t) string) string)
+
+(defun org-export-latex-protect-char-in-string (char-list string)
+  "Add org-protected text-property to char from CHAR-LIST in STRING."
+  (with-temp-buffer
+    (save-match-data
+      (insert string)
+      (goto-char (point-min))
+      (while (re-search-forward (regexp-opt char-list) nil t)
+	(add-text-properties (match-beginning 0)
+			     (match-end 0) '(org-protected t)))
+      (buffer-string))))
+
+(defun org-export-latex-set-initial-vars (ext-plist)
+  "Store org local variables required for LaTeX export.
+EXT-PLIST is an optional additional plist."
+  (setq org-latex-todo-keywords-1 org-todo-keywords-1
+	org-latex-all-targets-regexp
+	(org-make-target-link-regexp (org-all-targets))
+	org-latex-options-plist
+	(org-combine-plists (org-default-export-plist) ext-plist
+			    (org-infile-export-plist))
+	org-latex-sectioning-depth
+	(let ((hl-levels (plist-get org-latex-options-plist :headline-levels))
+	      (sec-depth (length org-export-latex-sectioning-alist)))
+	      ;; Fall back on org-export-latex-sectioning-alist length if
+	      ;; headline-levels goes beyond it
+	  (if (> hl-levels sec-depth) sec-depth hl-levels))))
+
+(defun org-export-latex-make-preamble (opt-plist)
+  "Make the LaTeX preamble and return it as a string.
+Argument OPT-PLIST is the options plist for current buffer."
+  (let ((toc (plist-get opt-plist :table-of-contents)))
+    (concat 
+     (if (plist-get opt-plist :time-stamp-file)
+	 (format-time-string "% Created %Y-%m-%d %a %H:%M\n"))
+     
+     ;; insert LaTeX custom preamble
+     org-export-latex-preamble "\n"
+     
+     ;; insert information on LaTeX packages
+     (when org-export-latex-packages-alist
+       (mapconcat (lambda(p)
+		    (if (equal "" (car p))
+			(format "\\usepackage{%s}" (cadr p))
+		      (format "\\usepackage[%s]{%s}"
+			      (car p) (cadr p))))
+		  org-export-latex-packages-alist "\n"))
+     
+     ;; insert the title
+     (format 
+      "\\title{%s}\n"
+      (or (plist-get opt-plist :title)
+	  (and (not
+		(plist-get opt-plist :skip-before-1st-heading))
+	       (org-export-grab-title-from-buffer))
+	  (and buffer-file-name
+	       (file-name-sans-extension
+		(file-name-nondirectory buffer-file-name)))
+	  "UNTITLED"))
+     
+     ;; insert author info
+     (if (plist-get opt-plist :author-info)
+	 (format "\\author{%s}\n" 
+		 (or (plist-get opt-plist :author) user-full-name))
+       (format "%%\\author{%s}\n"
+	       (or (plist-get opt-plist :author) user-full-name)))
+     
+     ;; insert the date
+     (format "\\date{%s}\n"
+	     (format-time-string 
+	      (or (plist-get opt-plist :date)
+		  org-export-latex-date-format)))
+     
+     ;; beginning of the document
+     "\n\\begin{document}\n\n"
+     
+     ;; insert the title command
+     (if (string-match "%s" org-export-latex-title-command)
+	 (format org-export-latex-title-command
+		 (plist-get opt-plist :title))
+       org-export-latex-title-command)
+     "\n\n"
+     
+     ;; table of contents
+     (when (and org-export-with-toc 
+		(plist-get opt-plist :section-numbers))
+       (cond ((numberp toc)
+	      (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\n"
+		      (min toc (plist-get opt-plist :headline-levels))))
+	     (toc (format "\\setcounter{tocdepth}{%s}\n\\tableofcontents\n\n"
+			  (plist-get opt-plist :headline-levels))))))))
+
+(defun org-export-latex-first-lines (&optional comments)
+  "Export the first lines before first headline.
+COMMENTS is either nil to replace them with the empty string or a
+formatting string like %%%%s if we want to comment them out."
+  (save-excursion
+    (goto-char (point-min))
+    (let* ((end (if (re-search-forward "^\\*" nil t)
+		    (goto-char (match-beginning 0))
+		  (goto-char (point-max)))))
+      (org-export-latex-content
+       (org-cleaned-string-for-export
+	(buffer-substring (point-min) end)
+	:for-LaTeX t
+	:emph-multiline t
+	:add-text nil
+	:comments nil
+	:skip-before-1st-heading nil
+	:LaTeX-fragments nil)))))
+
+(defun org-export-latex-keywords-maybe (remove-list)
   "Maybe remove keywords depending on rules in REMOVE-LIST."
   (goto-char (point-min))
   (let ((re-todo (mapconcat 'identity org-latex-todo-keywords-1 "\\|")))
@@ -525,7 +655,8 @@ and its content."
 	(replace-match (format "\\texttt{%s}" (match-string 0)) t t)))
     ;; convert tags
     (when (re-search-forward "\\(:[a-zA-Z0-9]+\\)+:" nil t)
-      (if (plist-get remove-list :tags)
+      (if (or (not org-export-with-tags)
+	      (plist-get remove-list :tags))
 	  (replace-match "")
 	(replace-match (format "\\texttt{%s}" (match-string 0)) t t)))))
 
@@ -536,11 +667,12 @@ and its content."
     ;; the beginning of the buffer - inserting "\n" is safe here though.
     (insert "\n" headline)
     (goto-char (point-min))
-    (org-export-latex-fontify)
+    (when (plist-get org-latex-options-plist :emphasize)
+      (org-export-latex-fontify))
     (org-export-latex-special-chars
      (plist-get org-latex-options-plist :sub-superscript))
-    (org-export-latex-special-keywords-maybe
-     org-export-latex-remove-from-headines)
+    (org-export-latex-keywords-maybe
+     org-export-latex-remove-from-headlines)
     (org-export-latex-links)
     (org-trim (buffer-substring-no-properties (point-min) (point-max)))))
 
@@ -554,29 +686,22 @@ and its content."
    (org-export-latex-special-chars
     (plist-get org-latex-options-plist :sub-superscript))
    (org-export-latex-links)
-   (org-export-latex-special-keywords)
-   (org-export-latex-itemize)
-   (org-export-latex-enumerate)
+   (org-export-latex-keywords
+    (plist-get org-latex-options-plist :timestamps))
+   (org-export-latex-lists)
    (org-export-latex-tables
     (plist-get org-latex-options-plist :tables))
    (org-export-latex-fixed-width
     (plist-get org-latex-options-plist :fixed-width))
-   (org-export-fix-invisible-strings)
+   ;; return string
    (buffer-substring (point-min) (point-max))))
-
-(defun org-export-fix-invisible-strings ()
-  "Comment out (INVISIBLE) warnings."
-  (goto-char (point-min))
-  (while (re-search-forward "(INVISIBLE)" nil t)
-    (replace-match "%\\&")))
 
 (defun org-export-latex-quotation-marks ()
   "Export question marks depending on language conventions.
 Local definition of the language overrides
 `org-export-latex-quotation-marks-convention' which overrides
 `org-export-default-language'."
-  (let* ((lang (or (plist-get org-latex-options-plist :language)
-		    org-export-latex-quotation-marks-convention))
+  (let* ((lang (plist-get org-latex-options-plist :language))
 	 (quote-rpl (if (equal lang "fr")
 			'(("\\(\\s-\\)\"" "«~")
 			  ("\\(\\S-\\)\"" "~»")
@@ -587,14 +712,14 @@ Local definition of the language overrides
     (mapc (lambda(l) (goto-char (point-min))
 	    (while (re-search-forward (car l) nil t)
 	      (let ((rpl (concat (match-string 1) (cadr l))))
-		(org-latex-protect rpl)
+		(org-export-latex-protect-string rpl)
 		(org-if-unprotected
 		 (replace-match rpl t t))))) quote-rpl)))
 
 ;; | chars/string in Org   | normal environment    | math environment      |
 ;; |-----------------------+-----------------------+-----------------------|
 ;; | & # % $               | \& \# \% \$           | \& \# \% \$           |
-;; | { } _ ^ \             | \ { \ } \_ \^ \\      | {  }  _  ^ \          |
+;; | { } _ ^ \             | \{ \} \_ \^ \\        | {  }  _  ^ \          |
 ;; |-----------------------+-----------------------+-----------------------|
 ;; | a_b and a^b           | $a_b$ and $a^b$       | a_b and a^b           |
 ;; | a_abc and a_{abc}     | $a_a$bc and $a_{abc}$ | a_abc and a_{abc}     |
@@ -617,50 +742,54 @@ See the `org-export-latex.el' code for a complete conversion table."
 	    ;; Put the point where to check for org-protected
 	    (unless (get-text-property (match-beginning 2) 'org-protected)
 	      (cond ((member (match-string 2) '("\\$" "$"))
-		    (if (equal (match-string 2) "\\$")
-			(replace-match (concat (match-string 1) "$"
-					       (match-string 3)) t t)
-		      (replace-match (concat (match-string 1) "\\$"
-					     (match-string 3)) t t)))
-		   ((member (match-string 2) '("&" "#" "%"))
-		    (if (equal (match-string 1) "\\")
-			(replace-match (match-string 2) t t)
-		      (replace-match (concat (match-string 1) "\\"
-					     (match-string 2)) t t)))
-		   ((equal (match-string 2) "~")
-		    (unless (get-text-property 0 'org-protected (match-string 2))
-		      (if (equal (match-string 1) "\\") nil
-			(replace-match 
-			 (org-latex-protect
-			  (concat (match-string 1) "\\textasciitilde{}")) t t))))
-		   ((member (match-string 2) '("{" "}"))
-		    (unless (save-match-data (org-inside-LaTeX-fragment-p))
-		      (if (equal (match-string 1) "\\")
-			  (replace-match (match-string 2) t t)
-			(replace-match (concat (match-string 1) "\\"
-					       (match-string 2)) t t)))))
+		     (if (equal (match-string 2) "\\$")
+			 (replace-match (concat (match-string 1) "$"
+						(match-string 3)) t t)
+		       (replace-match (concat (match-string 1) "\\$"
+					      (match-string 3)) t t)))
+		    ((member (match-string 2) '("&" "%" "#"))
+		     (if (equal (match-string 1) "\\")
+			 (replace-match (match-string 2) t t)
+		       (replace-match (concat (match-string 1) "\\"
+					      (match-string 2)) t t)))
+		    ((equal (match-string 2) "~")
+		     (cond ((equal (match-string 1) "\\") nil)
+			   ((eq 'org-link (get-text-property 0 'face (match-string 2)))
+			    (replace-match (concat (match-string 1) "\\~") t t))
+			   (t (replace-match 
+			       (org-export-latex-protect-string
+				(concat (match-string 1) "\\~{}")) t t))))
+		    ((member (match-string 2) '("{" "}"))
+		     (unless (save-match-data (org-inside-LaTeX-fragment-p))
+		       (if (equal (match-string 1) "\\")
+			   (replace-match (match-string 2) t t)
+			 (replace-match (concat (match-string 1) "\\"
+						(match-string 2)) t t)))))
 	      (unless (save-match-data (org-inside-LaTeX-fragment-p))
-	       (cond ((equal (match-string 2) "\\")
-		      (replace-match (or (save-match-data
-					   (org-export-latex-treat-backslash-char
-					    (match-string 1)
-					    (match-string 3))) "") t t))
-		     ((member (match-string 2) '("_" "^"))
-		      (replace-match (or (save-match-data
-					   (org-export-latex-treat-sub-super-char
-					    sub-superscript
-					    (match-string 1)
-					    (match-string 2)
-					    (match-string 3))) "") t t)))))))
+		(cond ((equal (match-string 2) "\\")
+		       (replace-match (or (save-match-data
+					    (org-export-latex-treat-backslash-char
+					     (match-string 1)
+					     (match-string 3))) "") t t))
+		      ((member (match-string 2) '("_" "^"))
+		       (replace-match (or (save-match-data
+					    (org-export-latex-treat-sub-super-char
+					     sub-superscript
+					     (match-string 1)
+					     (match-string 2)
+					     (match-string 3))) "") t t)))))))
 	'("^\\([^\n$]*?\\|^\\)\\(\\\\?\\$\\)\\([^\n$]*\\)$"
- 	  "\\([a-za-z0-9]+\\|[ \t\n]\\|\\\\\\)\\(_\\|\\^\\)\\([a-za-z0-9]+\\|[ \t\n]\\|[:punct:]\\|{[a-za-z0-9]+}\\|([a-za-z0-9]+)\\)"
-	  "\\(.\\|^\\)\\(\\\\\\)\\([ \t\n]\\|[a-za-z&#%{}]+\\)"
+ 	  "\\([a-za-z0-9]+\\|[ \t\n]\\|\\b\\|\\\\\\)\\(_\\|\\^\\)\\([a-za-z0-9]+\\|[ \t\n]\\|[:punct:]\\|{[a-za-z0-9]+}\\|([a-za-z0-9]+)\\)"
+	  "\\(.\\|^\\)\\(\\\\\\)\\([ \t\n]\\|[a-zA-Z&#%{}\"]+\\)"
 	  "\\(.\\|^\\)\\(&\\)"
  	  "\\(.\\|^\\)\\(#\\)"
  	  "\\(.\\|^\\)\\(%\\)"
  	  "\\(.\\|^\\)\\({\\)"
 	  "\\(.\\|^\\)\\(}\\)"
-	  "\\(.\\|^\\)\\(~\\)")))
+	  "\\(.\\|^\\)\\(~\\)"
+	  ;; (?\< . "\\textless{}")
+	  ;; (?\> . "\\textgreater{}")
+	  )))
 
 (defun org-export-latex-treat-sub-super-char
   (subsup string-before char string-after)
@@ -672,7 +801,7 @@ Convert CHAR depending on STRING-BEFORE and STRING-AFTER."
 	;; this is part of a math formula
 	((and (string-match "\\S-+" string-before)
 	      (string-match "\\S-+" string-after))
-	 (cond ((get-text-property 0 'org-protected char)
+	 (cond ((eq 'org-link (get-text-property 0 'face char))
 		(concat string-before "\\" char string-after))
 	       ((save-match-data (org-inside-LaTeX-fragment-p))
 		(if subsup
@@ -681,14 +810,16 @@ Convert CHAR depending on STRING-BEFORE and STRING-AFTER."
 			  ((string-match "[({]?\\([^)}]+\\)[)}]?" string-after)
 			   (format "%s%s{%s}" string-before char 
 				   (match-string 1 string-after))))))
-	       ((and subsup 
+	       ((and subsup
 		     (> (length string-after) 1)
 		     (string-match "[({]?\\([^)}]+\\)[)}]?" string-after))
 		(format "$%s%s{%s}$" string-before char
 			(match-string 1 string-after)))
-	  (subsup (concat "$" string-before char string-after "$"))
-	  (t (concat string-before char string-after))))
-	(t (concat string-before "\\" char string-after))))
+	       (subsup (concat "$" string-before char string-after "$"))
+	       (t (org-export-latex-protect-string
+		   (concat string-before "\\" char "{}" string-after)))))
+	(t (org-export-latex-protect-string
+	    (concat string-before "\\" char "{}" string-after)))))
 
 (defun org-export-latex-treat-backslash-char (string-before string-after)
   "Convert the \"$\" special character to LaTeX.
@@ -699,23 +830,39 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 		 (or (cdar (member (list string-after) org-html-entities))
 		     string-after) "$"))
 	((and (not (string-match "^[ \n\t]" string-after))
-	      (not (string-match "[ \n\t]\\'" string-before)))
+	      (not (string-match "[ \t]\\'\\|^" string-before)))
 	 ;; backslash is inside a word
-	 (concat string-before "$\\backslash$" string-after))
+	 (org-export-latex-protect-string
+	  (concat string-before "\\textbackslash{}" string-after)))
 	((not (or (equal string-after "")
 		  (string-match "^[ \t\n]" string-after)))
 	 ;; backslash might escape a character (like \#) or a user TeX
 	 ;; macro (like \setcounter)
-	 (concat string-before "\\" string-after))
+	 (org-export-latex-protect-string 
+	  (concat string-before "\\" string-after)))
 	((and (string-match "^[ \t\n]" string-after)
 	      (string-match "[ \t\n]\\'" string-before))
 	 ;; backslash is alone, convert it to $\backslash$
-	 (concat string-before "$\\backslash$" string-after))
-	(t (concat string-before "$\\backslash$" string-after))))
+	 (org-export-latex-protect-string
+	  (concat string-before "\\textbackslash{}" string-after)))
+	(t (org-export-latex-protect-string
+	    (concat string-before "\\textbackslash{}" string-after)))))
 
+(defun org-export-latex-keywords (timestamps)
+  "Convert special keywords to LaTeX.
+Regexps are those from `org-latex-special-string-regexps'."
+  (let ((rg org-latex-special-string-regexps) r)
+    (while (setq r (pop rg))
+      (goto-char (point-min))
+      (while (re-search-forward (eval r) nil t)
+	(if (not timestamps)
+	    (replace-match (format "\\\\texttt{%s}" (match-string 0)) t)
+	  (replace-match ""))))))
+  
 (defun org-export-latex-fixed-width (opt)
   "When OPT is non-nil convert fixed-width sections to LaTeX."
   (goto-char (point-min))
+  ;; FIXME the search shouldn't be performed on already converted text
   (while (re-search-forward "^[ \t]*:" nil t)
     (if opt
 	(progn (goto-char (match-beginning 0))
@@ -731,114 +878,153 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 				      (match-string 2)) t t)
 	       (forward-line))))))
 
-(defun org-export-latex-tables (opt)
-  "When OPT is non-nil convert tables to LaTeX."
-  (goto-char (point-min))
-  (while (re-search-forward "^\\([ \t]*\\)|" nil t)
-    ;; Re-align the table to update org-table-last-alignment
-    (save-excursion (save-match-data (org-table-align)))
-    (let (tbl-list
-	  (beg (match-beginning 0))
-	  (end (save-excursion
-		 (re-search-forward
-		  (concat "^" (regexp-quote (match-string 1))
-			  "[^|]\\|\\'") nil t) (match-beginning 0))))
-      (beginning-of-line)
-      (while (not (eq end (point)))
-	(if (looking-at "[ \t]*|\\([^-|].+\\)|[ \t]*$")
-	    (push (split-string (org-trim (match-string 1)) "|") tbl-list)
-	  (push 'hline tbl-list))
-	(forward-line))
-      ;; comment region out instead of deleting it ?
-      (apply 'delete-region (list beg end))
-      (when opt (insert (orgtbl-to-latex (nreverse tbl-list) 
-					 nil) "\n\n")))))
-
-(defun org-export-latex-special-keywords ()
-  "Convert special keywords to LaTeX.
-Regexps are those from `org-latex-special-string-regexps'."
-  (let ((rg org-latex-special-string-regexps) r)
-    (while (setq r (pop rg))
-      (goto-char (point-min))
-      (while (re-search-forward (eval r) nil t)
-	(replace-match (format "\\\\texttt{%s}" (match-string 0)) t)))))
-
-;; FIXME - we need better implementation for nested lists
-(defun org-export-latex-list (srch0 srch1 srch2 rpl0 rpl1)
+(defun org-export-latex-lists ()
   "Convert lists to LaTeX."
   (goto-char (point-min))
-  (while (re-search-forward srch0 nil t)
-    (let* ((beg (match-beginning 0))
-	   (prefix (regexp-quote (match-string 1)))
-	   (end-string (when (re-search-forward srch1 nil t)
-			 (match-string 0))))
-      (goto-char beg) (insert rpl0)
-      (while (re-search-forward
-	      (concat "^" prefix srch2)
-	      (if (not end-string)
-		  (point-max)
-		(save-match-data
-		  (save-excursion
-		    (re-search-forward
-		     (regexp-quote end-string) nil t)))) t)
-	(replace-match 
-	 (concat "\\item " 
-		 (if (match-string 1) 
-		     (format "\\texttt{%s}" (match-string 1))))
-	 t t))
-      (goto-char (if end-string
-		     (progn (re-search-forward
-			     (regexp-quote end-string) nil t)
-			    (match-beginning 0))
-		   (point-max)))
-      (skip-chars-backward "\n") (forward-line 2)
-      (insert rpl1))))
+  (while (re-search-forward org-export-latex-list-beginning-re nil t)
+    (beginning-of-line)
+    (org-export-list-to-latex
+     (org-export-latex-parse-list t))))
 
-(defun org-export-latex-itemize ()
-  "Convert item list to LaTeX."
-  (org-export-latex-list
-   "^\\([ \t]*\\)-"
-   "^[^ \n\t-]+.*$"
-   "- ?\\(\\[.+\\]\\)?"
-   "\\begin{itemize}\n"
-   "\\end{itemize}\n"))
+(defun org-export-list-to-generic (list params)
+  "Convert a LIST parsed through `org-export-latex-parse-list' to other formats.
+  
+Valid parameters are
 
-(defun org-export-latex-enumerate ()
-  "Convert numeric list to LaTeX."
-  (org-export-latex-list
-   "^\\([ \t]*\\)[0-9]+[\.)] \\(\\[.+\\]\\)? ?"
-   "^[^ \n\t0-9]+.*$"
-   "[0-9]+[\.)] ?\\(\\[.+\\]\\)?"
-   "\\begin{enumerate}\n"
-   "\\end{enumerate}\n"))
+:ustart     String to start an unordered list
+:uend       String to end an unordered list
+
+:ostart     String to start an ordered list
+:oend       String to end an ordered list
+
+:splice     When set to t, return only list body lines, don't wrap
+            them into :[u/o]start and :[u/o]end.  Default is nil.
+
+:istart     String to start a list item
+:iend       String to end a list item
+:isep       String to separate items
+:lsep       String to separate sublists"
+  (interactive)
+  (let* ((p params) sublist
+	 (splicep (plist-get p :splice))
+	 (ostart  (plist-get p :ostart))
+	 (oend  (plist-get p :oend))
+	 (ustart  (plist-get p :ustart))
+	 (uend  (plist-get p :uend))
+	 (istart  (plist-get p :istart))
+	 (iend  (plist-get p :iend))
+	 (isep  (plist-get p :isep))
+	 (lsep  (plist-get p :lsep)))
+    (let ((wrapper
+	   (cond ((eq (car list) 'ordered)
+		  (concat ostart "\n%s" oend "\n"))
+		 ((eq (car list) 'unordered)
+		  (concat ustart "\n%s" uend "\n"))))
+	  rtn)
+      (while (setq sublist (pop list))
+	(cond ((symbolp sublist) nil)
+	      ((stringp sublist)
+	       (setq rtn (concat rtn istart sublist iend isep)))
+	      (t 
+	       (setq rtn (concat rtn   ;; previous list
+				 lsep  ;; list separator
+				 (org-export-list-to-generic sublist p)
+				 lsep  ;; list separator
+				 )))))
+      (format wrapper rtn))))
+
+(defun org-export-list-to-latex (list)
+  "Convert LIST into a LaTeX list."
+  (insert 
+   (org-export-list-to-generic
+    list '(:splicep nil :ostart "\\begin{enumerate}" :oend "\\end{enumerate}"
+	                :ustart "\\begin{itemize}" :uend "\\end{itemize}"
+                        :istart "\\item " :iend ""
+			:isep "\n" :lsep "\n"))
+   ;; Add a trailing \n after list conversion
+   "\n"))
+
+;; FIXME Use org-export-highlight-first-table-line ?
+(defun org-export-latex-tables (insert)
+  "Convert tables to LaTeX and INSERT it."
+  (goto-char (point-min))
+  (while (re-search-forward "^\\([ \t]*\\)|" nil t)
+    ;; FIXME really need to save-excursion?
+    (save-excursion (org-table-align))
+    (let* ((beg (org-table-begin))
+	   (end (org-table-end))
+	   (raw-table (buffer-substring-no-properties beg end))
+	   fnum line lines olines gr colgropen line-fmt alignment)
+      (if org-export-latex-tables-verbatim
+	  (let* ((tbl (concat "\\begin{verbatim}\n" raw-table
+			      "\\end{verbatim}\n")))
+	    (apply 'delete-region (list beg end))
+	    (insert tbl))
+	(progn
+	  (setq lines (split-string raw-table "\n" t))
+	  (apply 'delete-region (list beg end))
+ 	  (when org-export-table-remove-special-lines
+ 	    (setq lines (org-table-clean-before-export lines)))
+	  ;; make a formatting string to reflect aligment
+	  (setq olines lines)
+	  (while (and (not line-fmt) (setq line (pop olines)))
+	    (unless (string-match "^[ \t]*|-" line)
+	      (setq fields (org-split-string line "[ \t]*|[ \t]*"))
+	      (setq fnum (make-vector (length fields) 0))
+	      (setq line-fmt 
+		    (mapconcat
+		     (lambda (x)
+		       (setq gr (pop org-table-colgroup-info))
+		       (format "%s%%s%s"
+			       (cond ((eq gr ':start)
+				      (prog1 (if colgropen "|" "")
+					(setq colgropen t)))
+				     ((eq gr ':startend)
+				      (prog1 (if colgropen "|" "|")
+					(setq colgropen nil)))
+				     (t ""))
+			       (if (memq gr '(:end :startend))
+				   (progn (setq colgropen nil) "|")
+				 "")))
+		     fnum ""))))
+	  ;; maybe remove the first and last "|"
+	  (when (string-match "^\\(|\\)?\\(.+\\)|$" line-fmt)
+	    (setq line-fmt (match-string 2 line-fmt)))
+	  ;; format alignment
+	  (setq align (apply 'format 
+			     (cons line-fmt
+				   (mapcar (lambda (x) (if x "r" "l"))
+					   org-table-last-alignment))))
+	  ;; prepare the table to send to orgtbl-to-latex
+	  (setq lines
+		(mapcar
+		 (lambda(elem) 
+		   (or (and (string-match "[ \t]*|-+" elem) 'hline)
+		       (split-string (org-trim elem) "|" t)))
+		 lines))
+    	  (when insert
+	    (insert (orgtbl-to-latex
+		     lines `(:tstart ,(concat "\\begin{tabular}{" align "}")))
+		    "\n\n")))))))
 
 (defun org-export-latex-fontify ()
   "Convert fontification to LaTeX."
   (goto-char (point-min))
   (while (re-search-forward org-emph-re nil t)
     ;; The match goes one char after the *string*
-    (unless (get-text-property (1- (point)) 'org-protected)
-      (replace-match
-       (concat (match-string 1)
-	       (format
-		(org-export-latex-protect-char-in-string
-		 '("\\" "{" "}")
-		 (cadr (assoc (match-string 3)
-			      org-export-latex-emphasis-alist)))
-		(match-string 4))
-	       (match-string 5)) t t)
-      (backward-char))))
-
-(defun org-export-latex-protect-char-in-string (char-list string)
-  "Add org-protected text-property to char from CHAR-LIST in STRING."
-  (with-temp-buffer
-    (save-match-data
-      (insert string)
-      (goto-char (point-min))
-      (while (re-search-forward (regexp-opt char-list) nil t)
-	(add-text-properties (match-beginning 0)
-			     (match-end 0) '(org-protected t)))
-      (buffer-string))))
+    (let ((emph (assoc (match-string 3) 
+		       org-export-latex-emphasis-alist)) 
+	  rpl)
+      (unless (get-text-property (1- (point)) 'org-protected)
+	(setq rpl (concat (match-string 1)
+			  (format (org-export-latex-protect-char-in-string
+				   '("\\" "{" "}") (cadr emph))
+				  (match-string 4))
+			  (match-string 5)))
+	(if (caddr emph) 
+	    (setq rpl (org-export-latex-protect-string rpl)))
+	(replace-match rpl t t)))
+    (backward-char)))
 
 (defun org-export-latex-links ()
   ;; Make sure to use the LaTeX hyperref and graphicx package
@@ -887,251 +1073,51 @@ Regexps are those from `org-latex-special-string-regexps'."
 	     (path (insert (format "\\href{%s}{%s}" path desc)))
 	     (t (insert "\\texttt{" desc "}")))))))
 
-
-(defun org-latex-cleaned-string-for-export (string &rest parameters)
-  "Cleanup a buffer STRING so that links can be created safely."
-  (interactive)
-  (let* ((re-radio (and org-target-link-regexp
-			(concat "\\([^<]\\)\\(" org-target-link-regexp "\\)")))
-	 (re-plain-link (concat "\\([^[<]\\)" org-plain-link-re))
-	 (re-angle-link (concat "\\([^[]\\)" org-angle-link-re))
-	 (re-archive (concat ":" org-archive-tag ":"))
-	 (re-quote (concat "^\\*+[ \t]+" org-quote-string "\\>"))
-	 (htmlp (plist-get parameters :for-html))
-	 (latexp (plist-get parameters :for-LaTeX))
-	 (commentsp (plist-get parameters :comments))
-	 (inhibit-read-only t)
-	 (outline-regexp "\\*+ ")
-	 a b xx
-	 rtn p)
-    (save-excursion
-      (set-buffer (get-buffer-create " org-mode-tmp"))
-      (erase-buffer)
-      (insert string)
-      ;; Remove license-to-kill stuff
-      (while (setq p (text-property-any (point-min) (point-max)
-					:org-license-to-kill t))
-	(delete-region p (next-single-property-change p :org-license-to-kill)))
-
-      (let ((org-inhibit-startup t)) (org-mode))
-      (untabify (point-min) (point-max))
-
-      ;; Get the correct stuff before the first headline
-      (when (plist-get parameters :skip-before-1st-heading)
-	(goto-char (point-min))
-	(when (re-search-forward "^\\*+[ \t]" nil t)
-	  (delete-region (point-min) (match-beginning 0))
-	  (goto-char (point-min))
-	  (insert "\n")))
-      (when (plist-get parameters :add-text)
-	(goto-char (point-min))
-	(insert (plist-get parameters :add-text) "\n"))
-
-      ;; Get rid of archived trees
-      (when (not (eq org-export-with-archived-trees t))
-	(goto-char (point-min))
-	(while (re-search-forward re-archive nil t)
-	  (if (not (org-on-heading-p t))
-	      (org-end-of-subtree t)
-	    (beginning-of-line 1)
-	    (setq a (if org-export-with-archived-trees
-			(1+ (point-at-eol)) (point))
-		  b (org-end-of-subtree t))
-	    (if (> b a) (delete-region a b)))))
-
-      ;; Get rid of property drawers
-      (unless org-export-with-property-drawer
-	(goto-char (point-min))
-	(while (re-search-forward "^[ \t]*:PROPERTIES:[ \t]*\n\\([^@]*?\n\\)?[ \t]*:END:[ \t]*\n" nil t)
-	  (replace-match "")))
-
-      ;; Find targets in comments and move them out of comments,
-      ;; but mark them as targets that should be invisible
-      (goto-char (point-min))
-      (while (re-search-forward "^#.*?\\(<<<?[^>\r\n]+>>>?\\).*" nil t)
-	(replace-match "\\1(INVISIBLE)"))
-
-      ;; Specific LaTeX cleaning
-      (when latexp
-	(require 'org-export-latex nil t)
-	(org-export-latex-cleaned-string))
-
-      ;; Protect stuff from HTML processing
-      (goto-char (point-min))
-      (let ((formatters `((,htmlp "HTML" "BEGIN_HTML" "END_HTML"))) fmt)
-	(while (re-search-forward "^[ \t]*:.*\\(\n[ \t]*:.*\\)*" nil t)
-	  (add-text-properties (match-beginning 0) (match-end 0)
-			       '(org-protected t)))
-	(while formatters
-	  (setq fmt (pop formatters))
-	  (when (car fmt)
-	    (goto-char (point-min))
-	    (while (re-search-forward (concat "^#\\+" (cadr fmt) 
-					      ":[ \t]*\\(.*\\)") nil t)
-	      (replace-match "\\1" t)
-	      (add-text-properties
-	       (point-at-bol) (min (1+ (point-at-eol)) (point-max))
-	       '(org-protected t))))
-	  (goto-char (point-min))
-	  (while (re-search-forward
-		  (concat "^#\\+" 
-			  (caddr fmt) "\\>.*\\(\\(\n.*\\)*?\n\\)#\\+"
-			  (cadddr fmt) "\\>.*\n?") nil t)
-	    (if (car fmt)
-		(add-text-properties (match-beginning 1) (1+ (match-end 1))
-				     '(org-protected t))
-	      (delete-region (match-beginning 0) (match-end 0))))
-	  (goto-char (point-min))
-	  (while (re-search-forward re-quote nil t)
-	    (goto-char (match-beginning 0))
-	    (end-of-line 1)
-	    (add-text-properties (point) (org-end-of-subtree t)
-				 '(org-protected t)))))
-
-      ;; Remove or replace comments
-      ;; If :comments is set, use this char for commenting out comments and
-      ;; protect them. otherwise delete them
-      (goto-char (point-min))
-      (while (re-search-forward "^#\\(.*\n?\\)" nil t)
-	(if commentsp
-	    (progn (add-text-properties
-		    (match-beginning 0) (match-end 0) '(org-protected t))
-		   (replace-match (format commentsp (match-string 1)) t t))
-	  (replace-match "")))
-
-      ;; Find matches for radio targets and turn them into internal links
-      (goto-char (point-min))
-      (when re-radio
-	(while (re-search-forward re-radio nil t)
-	  (org-if-unprotected
-	   (replace-match "\\1[[\\2]]"))))
-
-      ;; Find all links that contain a newline and put them into a single line
-      (goto-char (point-min))
-      (while (re-search-forward "\\(\\(\\[\\|\\]\\)\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\(\\[\\|\\]\\)\\)" nil t)
-	(org-if-unprotected
-	 (replace-match "\\1 \\3")
-	 (goto-char (match-beginning 0))))
-
-      ;; Convert LaTeX fragments to images
-      (when (plist-get parameters :LaTeX-fragments)
-	(org-format-latex
-	 (concat "ltxpng/" (file-name-sans-extension
-			    (file-name-nondirectory
-			     org-current-export-file)))
-	 org-current-export-dir nil "Creating LaTeX image %s"))
-      (message "Exporting...")
-
-      ;; Normalize links: Convert angle and plain links into bracket links
-      ;; Expand link abbreviations
-      (goto-char (point-min))
-      (while (re-search-forward re-plain-link nil t)
-	(goto-char (1- (match-end 0)))
-	(org-if-unprotected
-	 (let* ((s (concat (match-string 1) "[[" (match-string 2)
-			   ":" (match-string 3) "]]")))
-	   ;; added 'org-protected property to links
-	   (add-text-properties 0 (length s) '(org-protected t) s)
-	   (replace-match s t t))))
-      (goto-char (point-min))
-      (while (re-search-forward re-angle-link nil t)
-	(goto-char (1- (match-end 0)))
-	(org-if-unprotected
-	 (let* ((s (concat (match-string 1) "[[" (match-string 2)
-			   ":" (match-string 3) "]]")))
-	   (add-text-properties 0 (length s) '(org-protected t) s)
-	   (replace-match s t t))))
-      (goto-char (point-min))
-      (while (re-search-forward org-bracket-link-regexp nil t)
-	(org-if-unprotected
-	 (let* ((s (concat "[[" (setq xx (save-match-data
-					   (org-link-expand-abbrev (match-string 1))))
-			   "]"
-			   (if (match-end 3)
-			       (match-string 2)
-			     (concat "[" xx "]"))
-			   "]")))
-	   (add-text-properties 0 (length s) '(org-protected t) s)
-	   (replace-match s t t))))
-
-      ;; Find multiline emphasis and put them into single line
-      (when (plist-get  parameters :emph-multiline)
-	(goto-char (point-min))
-	(while (re-search-forward org-emph-re nil t)
-	  (if (not (= (char-after (match-beginning 3))
-		      (char-after (match-beginning 4))))
-	      (org-if-unprotected
-	       (subst-char-in-region (match-beginning 0) (match-end 0)
-				     ?\n ?\  t)
-	       (goto-char (1- (match-end 0))))
-	    (goto-char (1+ (match-beginning 0))))))
-
-      (setq rtn (buffer-string)))
-    (kill-buffer " org-mode-tmp")
-    rtn))
-
-(defsubst org-latex-protect (string)
-  (add-text-properties 0 (length string) '(org-protected t) string)
-  string)
-
-(defun org-export-latex-cleaned-string ()
+(defun org-export-latex-cleaned-string 
+  ;; FIXME remove commentsp call in org.el and here
+  (&optional commentsp)
   "Clean stuff in the LaTeX export."
 
-  ;; preserve line breaks
+  ;; Preserve line breaks
   (goto-char (point-min))
   (while (re-search-forward "\\\\\\\\" nil t)
     (add-text-properties (match-beginning 0) (match-end 0)
 			 '(org-protected t)))
 
-  ;; convert LaTeX to @LaTeX{}
+  ;; Convert LaTeX to \LaTeX{}
   (goto-char (point-min))
   (let ((case-fold-search nil) rpl)
     (while (re-search-forward "\\([^+_]\\)LaTeX" nil t)
-    (replace-match (org-latex-protect 
+    (replace-match (org-export-latex-protect-string 
 		    (concat (match-string 1) "\\LaTeX{}")) t t)))
 
-  ;; convert horizontal rules
+  ;; Convert horizontal rules
   (goto-char (point-min))
   (while (re-search-forward "^----+.$" nil t)
-    (replace-match (org-latex-protect "\\hrule") t t))
+    (replace-match (org-export-latex-protect-string "\\hrule") t t))
 
-  ;; Remove COMMENT subtrees
-  ;; What about QUOTE subtrees?
+  ;; Protect LaTeX \commands{...}
   (goto-char (point-min))
-  (while (re-search-forward 
-	  (concat "^\\*+ \\(" org-comment-string "\\)") 
-	  nil t)
-    (beginning-of-line)
-    (org-cut-subtree))
-  
-  ;; protect LaTeX \commands{...}
-  (goto-char (point-min))
-  (while (re-search-forward "\\\\[a-z]+{.+}" nil t)
+  (while (re-search-forward "\\\\[a-zA-Z]+\\(?:\\[.*\\]\\)?{.*}" nil t)
     (add-text-properties (match-beginning 0) (match-end 0)
 			 '(org-protected t)))
-  
+
   ;; Replace radio links
   (goto-char (point-min))
-  (let ((search (concat "<<<?" org-latex-all-targets-regexp ">?>>")))
-    (while (re-search-forward search nil t)
-      (replace-match 
-       (org-latex-protect (format "\\label{%s}" (match-string 1))) t t)))
-  
-  ;; delete @<br /> cookies
+  (while (re-search-forward
+	  (concat "<<<?" org-latex-all-targets-regexp 
+		  ">>>?\\((INVISIBLE)\\)?") nil t)
+    (replace-match
+     (org-export-latex-protect-string 
+      (format "\\label{%s}%s"(match-string 1)
+	      (if (match-string 2) "" (match-string 1)))) t t))
+
+  ;; Delete @<...> constructs
   (goto-char (point-min))
-  (while (re-search-forward "@<[^<>\n]*>" nil t)
+  ;; Thanks to Daniel Clemente for this regexp
+  (while (re-search-forward "@<\\(?:[^\"\n]\\|\".*\"\\)*?>" nil t)
     (replace-match ""))
-  
-  ;; add #+BEGIN_LaTeX before any \begin{...}
-  (goto-char (point-min))
-  (while (re-search-forward "^ *\\\\begin{" nil t)
-    (replace-match "#+BEGIN_LaTeX:\n\\&" t))
-  
-  ;; add #+END_LaTeX after any \end{...}
-  (goto-char (point-min))
-  (while (re-search-forward "^ *\\\\end{.+}.*$" nil t)
-    (replace-match "\\&\n#+END_LaTeX" t))
-  
+
   ;; When converting to LaTeX, replace footnotes
   ;; FIXME: don't protect footnotes from conversion
   (when (plist-get org-latex-options-plist :footnotes)
@@ -1139,7 +1125,7 @@ Regexps are those from `org-latex-special-string-regexps'."
     (while (re-search-forward "\\[[0-9]+\\]" nil t)
       (when (save-match-data
 	      (save-excursion (beginning-of-line)
-			      (looking-at "[^:|]")))
+			      (looking-at "[^:|#]")))
 	(let ((foot-beg (match-beginning 0))
 	      (foot-end (match-end 0))
 	      (foot-prefix (match-string 0))
@@ -1149,18 +1135,18 @@ Regexps are those from `org-latex-special-string-regexps'."
 	    (let ((end (save-excursion
 			 (if (re-search-forward "^$\\|\\[[0-9]+\\]" nil t)
 			     (match-beginning 0) (point-max)))))
-	      (setq footnote (concat 
-			      (org-trim (buffer-substring (point) end)) 
-			      ;; FIXME stupid workaround for cases where 
-			      ;; `org-bracket-link-analytic-regexp' matches
-			      ;; }. as part of the link.
-			      " "))
+	      (setq footnote
+		    (concat 
+		     (org-trim (buffer-substring (point) end)) 
+		     ;; FIXME stupid workaround for cases where
+		     ;; `org-bracket-link-analytic-regexp' matches
+		     ;; }. as part of the link.
+		     " "))
 	      (delete-region (point) end)))
 	  (goto-char foot-beg)
 	  (delete-region foot-beg foot-end)
 	  (setq footnote-rpl (format "\\footnote{%s}" footnote))
-	  (add-text-properties 0 1 '(org-protected t) footnote-rpl)
-	  (add-text-properties 9 10 '(org-protected t) footnote-rpl)
+	  (add-text-properties 0 10 '(org-protected t) footnote-rpl)
 	  (add-text-properties (1- (length footnote-rpl))
 			       (length footnote-rpl)
 			       '(org-protected t) footnote-rpl)
@@ -1170,41 +1156,7 @@ Regexps are those from `org-latex-special-string-regexps'."
     (goto-char (point-min))
     (while (re-search-forward 
 	    (concat "^" footnote-section-tag-regexp) nil t)
-      (replace-match "")))
-  
-  ;; Protect stuff from LaTeX processing. 
-  ;; We will get rid on this once org.el integrate org-export-latex.el
-  ;; FIXME: #+LaTeX should be aware of the preceeding indentation in lists
-  (goto-char (point-min))
-  (let ((formatters `((,latexp "LaTeX" "BEGIN_LaTeX" "END_LaTeX"))) fmt)
-    (while (re-search-forward "^[ \t]*:.*\\(\n[ \t]*:.*\\)*" nil t)
-      (add-text-properties (match-beginning 0) (match-end 0)
-			   '(org-protected t)))
-    (while formatters
-      (setq fmt (pop formatters))
-      (when (car fmt)
-	(goto-char (point-min))
-	(while (re-search-forward (concat "^#\\+" (cadr fmt) 
-					  ":[ \t]*\\(.*\\)") nil t)
-	  (replace-match "\\1" t)
-	  (add-text-properties
-	   (point-at-bol) (min (1+ (point-at-eol)) (point-max))
-	   '(org-protected t))))
-      (goto-char (point-min))
-      (while (re-search-forward
-	      (concat "^#\\+" 
-		      (caddr fmt) "\\>.*\\(\\(\n.*\\)*?\n\\)#\\+"
-		      (cadddr fmt) "\\>.*\n?") nil t)
-	(if (car fmt)
-	    (add-text-properties (match-beginning 1) (1+ (match-end 1))
-				 '(org-protected t))
-	  (delete-region (match-beginning 0) (match-end 0))))
-      (goto-char (point-min))
-      (while (re-search-forward re-quote nil t)
-	(goto-char (match-beginning 0))
-	(end-of-line 1)
-	(add-text-properties (point) (org-end-of-subtree t)
-			     '(org-protected t))))))
+      (replace-match ""))))
 
 (provide 'org-export-latex)
 

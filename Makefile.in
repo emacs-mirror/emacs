@@ -158,6 +158,9 @@ bitmapdir=@bitmapdir@
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir=@srcdir@
 
+# Where the manpage source files are kept.
+mansrcdir=$(srcdir)/doc/man
+
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
@@ -250,7 +253,7 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 SUBDIR = lib-src src
 
 # The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -336,13 +339,16 @@ src/config.stamp: $(srcdir)/src/config.in config.status
 lib-src/Makefile: $(srcdir)/lib-src/Makefile.in config.status
 	./config.status
 
-man/Makefile: $(srcdir)/man/Makefile.in config.status
+doc/emacs/Makefile: $(srcdir)/doc/emacs/Makefile.in config.status
 	./config.status
 
-lispref/Makefile: $(srcdir)/lispref/Makefile.in config.status
+doc/misc/Makefile: $(srcdir)/doc/misc/Makefile.in config.status
 	./config.status
 
-lispintro/Makefile: $(srcdir)/lispintro/Makefile.in config.status
+doc/lispref/Makefile: $(srcdir)/doc/lispref/Makefile.in config.status
+	./config.status
+
+doc/lispintro/Makefile: $(srcdir)/doc/lispintro/Makefile.in config.status
 	./config.status
 
 oldXMenu/Makefile: $(srcdir)/oldXMenu/Makefile.in config.status
@@ -414,6 +420,9 @@ install-arch-dep: mkdir
 
 ## If people complain about the h flag in tar command, take that out.
 ## That flag is also used in leim/Makefile.in
+
+## Note that the Makefiles in the etc directory are potentially useful
+## in an installed Emacs, so should not be excluded.
 install-arch-indep: mkdir info
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
@@ -446,7 +455,8 @@ install-arch-indep: mkdir info
 		rm -f  $${subdir}/.\#* ; \
 		rm -f  $${subdir}/*~ ; \
 		rm -f  $${subdir}/*.orig ; \
-		rm -f  $${subdir}/[mM]akefile* ; \
+		[ "$${dir}" != "${srcdir}/etc" ] && \
+			rm -f  $${subdir}/[mM]akefile* ; \
 		rm -f  $${subdir}/ChangeLog* ; \
 		rm -f  $${subdir}/dired.todo ; \
 	      done) ; \
@@ -534,10 +544,10 @@ install-arch-indep: mkdir info
 	else true; fi
 	-chmod -R a+r $(DESTDIR)${datadir}/emacs/${version} $(DESTDIR)${datadir}/emacs/site-lisp ${COPYDESTS} $(DESTDIR)${infodir}
 	thisdir=`/bin/pwd`; \
-	cd ${srcdir}/etc; \
+	cd ${mansrcdir}; \
 	for page in emacs emacsclient etags ctags ; do \
 	  (cd $${thisdir}; \
-	   ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 $(DESTDIR)${man1dir}/$${page}${manext}; \
+	   ${INSTALL_DATA} ${mansrcdir}/$${page}.1 $(DESTDIR)${man1dir}/$${page}${manext}; \
 	   chmod a+r $(DESTDIR)${man1dir}/$${page}${manext}); \
 	done
 
@@ -620,9 +630,10 @@ mostlyclean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
-	-(cd man &&   $(MAKE) $(MFLAGS) mostlyclean)
-	-(cd lispref &&   $(MAKE) $(MFLAGS) mostlyclean)
-	-(cd lispintro &&   $(MAKE) $(MFLAGS) mostlyclean)
+	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) mostlyclean)
+	-(cd doc/misc &&   $(MAKE) $(MFLAGS) mostlyclean)
+	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) mostlyclean)
+	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) mostlyclean)
 	(cd leim;     $(MAKE) $(MFLAGS) mostlyclean)
 
 ### `clean'
@@ -638,9 +649,10 @@ clean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
-	-(cd man &&   $(MAKE) $(MFLAGS) clean)
-	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
-	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/misc &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
 ### `distclean'
@@ -658,9 +670,10 @@ distclean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
-	(cd man &&    $(MAKE) $(MFLAGS) distclean)
-	(cd lispref &&    $(MAKE) $(MFLAGS) distclean)
-	(cd lispintro &&    $(MAKE) $(MFLAGS) distclean)
+	(cd doc/emacs &&    $(MAKE) $(MFLAGS) distclean)
+	(cd doc/misc &&    $(MAKE) $(MFLAGS) distclean)
+	(cd doc/lispref &&    $(MAKE) $(MFLAGS) distclean)
+	(cd doc/lispintro &&    $(MAKE) $(MFLAGS) distclean)
 	(cd leim;     $(MAKE) $(MFLAGS) distclean)
 	(cd lisp;     $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
@@ -681,9 +694,10 @@ maintainer-clean: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) maintainer-clean)
-	-(cd man &&   $(MAKE) $(MFLAGS) maintainer-clean)
-	-(cd lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
-	-(cd lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/misc &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) maintainer-clean)
+	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd leim;     $(MAKE) $(MFLAGS) maintainer-clean)
 	(cd lisp;     $(MAKE) $(MFLAGS) maintainer-clean)
 	${top_distclean}
@@ -697,49 +711,6 @@ extraclean:
 	${top_distclean}
 	-rm -f config-tmp-*
 	-rm -f *~ \#*
-
-### Unlocking and relocking.  The idea of these productions is to reduce
-### hassles when installing an incremental tar of Emacs.  Do `make unlock'
-### before unlocking the file to take the write locks off all sources so
-### that tar xvof will overwrite them without fuss.  Then do `make relock'
-### afterward so that VC mode will know which files should be checked in
-### if you want to mung them.
-###
-### Note: it's no disaster if these productions miss a file or two; tar
-### and VC will swiftly let you know if this happens, and it is easily
-### corrected.
-SOURCES = ChangeLog FTP INSTALL Makefile.in \
-	README configure make-dist move-if-change
-
-.PHONY: unlock relock
-
-unlock:
-	chmod u+w $(SOURCES)
-	-(cd elisp; chmod u+w Makefile README *.texi)
-	(cd etc; $(MAKE) $(MFLAGS) unlock)
-	(cd lib-src; $(MAKE) $(MFLAGS) unlock)
-	(cd lisp; $(MAKE) $(MFLAGS) unlock)
-	(cd lisp/term; chmod u+w README *.el)
-	(cd man; chmod u+w *texi* ChangeLog split-man)
-	(cd lispref; chmod u+w *texi* ChangeLog)
-	(cd lispintro; chmod u+w *texi* ChangeLog)
-	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
-	(cd lwlib; chmod u+w *.[ch] Makefile README)
-	(cd src; $(MAKE) $(MFLAGS) unlock)
-
-relock:
-	chmod u-w $(SOURCES)
-	-(cd elisp; chmod u-w Makefile README *.texi)
-	(cd etc; $(MAKE) $(MFLAGS) relock)
-	(cd lib-src; $(MAKE) $(MFLAGS) relock)
-	(cd lisp; $(MAKE) $(MFLAGS) relock)
-	(cd lisp/term; chmod u+w README *.el)
-	(cd man; chmod u+w *texi* ChangeLog split-man)
-	(cd lispref; chmod u+w *texi* ChangeLog)
-	(cd lispintro; chmod u+w *texi* ChangeLog)
-	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
-	(cd lwlib; chmod u+w *.[ch] Makefile README)
-	(cd src; $(MAKE) $(MFLAGS) relock)
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
@@ -758,13 +729,15 @@ force-info:
 # put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
 info: force-info
-	-(cd man; $(MAKE) $(MFLAGS) info)
-	-(cd lispref; $(MAKE) $(MFLAGS) info)
-	-(cd lispintro; $(MAKE) $(MFLAGS) info)
+	-(cd doc/emacs; $(MAKE) $(MFLAGS) info)
+	-(cd doc/misc; $(MAKE) $(MFLAGS) info)
+	-(cd doc/lispref; $(MAKE) $(MFLAGS) info)
+	-(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
 dvi:
-	(cd man; $(MAKE) $(MFLAGS) dvi)
-	(cd lispref; $(MAKE) $(MFLAGS) elisp.dvi)
-	(cd lispintro; $(MAKE) $(MFLAGS) emacs-lisp-intro.dvi)
+	(cd doc/emacs; $(MAKE) $(MFLAGS) dvi)
+	(cd doc/misc; $(MAKE) $(MFLAGS) dvi)
+	(cd doc/lispref; $(MAKE) $(MFLAGS) elisp.dvi)
+	(cd doc/lispintro; $(MAKE) $(MFLAGS) emacs-lisp-intro.dvi)
 
 #### Bootstrapping.
 
@@ -813,7 +786,8 @@ bootstrap-clean-before-fast: FRC
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
 	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
-	-(cd man &&   $(MAKE) $(MFLAGS) clean)
-	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
-	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/emacs &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/misc &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
+	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)

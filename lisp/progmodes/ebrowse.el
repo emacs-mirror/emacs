@@ -1139,6 +1139,7 @@ Tree mode key bindings:
 
     (kill-all-local-variables)
     (use-local-map ebrowse-tree-mode-map)
+    (buffer-disable-undo)
 
     (unless (zerop (buffer-size))
       (goto-char (point-min))
@@ -1148,15 +1149,15 @@ Tree mode key bindings:
       (erase-buffer)
       (message nil))
 
-    (mapcar 'make-local-variable
-	    '(ebrowse--tags-file-name
-	      ebrowse--indentation
-	      ebrowse--tree
-	      ebrowse--header
-	      ebrowse--show-file-names-flag
-	      ebrowse--frozen-flag
-	      ebrowse--tree-obarray
-	      revert-buffer-function))
+    (mapc 'make-local-variable
+	  '(ebrowse--tags-file-name
+	    ebrowse--indentation
+	    ebrowse--tree
+	    ebrowse--header
+	    ebrowse--show-file-names-flag
+	    ebrowse--frozen-flag
+	    ebrowse--tree-obarray
+	    revert-buffer-function))
 
     (setf ebrowse--show-file-names-flag nil
 	  ebrowse--tree-obarray (make-vector 127 0)
@@ -1638,10 +1639,10 @@ and possibly kill the viewed buffer."
       (setq original-frame-configuration ebrowse--frame-configuration
 	    exit-action ebrowse--view-exit-action))
     ;; Delete the frame in which we viewed.
-    (mapcar 'delete-frame
-	    (loop for frame in (frame-list)
-		  when (not (assq frame original-frame-configuration))
-		  collect frame))
+    (mapc 'delete-frame
+	  (loop for frame in (frame-list)
+	     when (not (assq frame original-frame-configuration))
+	     collect frame))
     (when exit-action
       (funcall exit-action buffer))))
 
@@ -2004,7 +2005,7 @@ COLLAPSE non-nil means collapse the branch."
     (fillarray (car (cdr map)) 'ebrowse-electric-list-undefined)
     (fillarray (car (cdr submap)) 'ebrowse-electric-list-undefined)
     (define-key map "\e" submap)
-    (define-key map "\C-z" 'suspend-emacs)
+    (define-key map "\C-z" 'suspend-frame)
     (define-key map "\C-h" 'Helper-help)
     (define-key map "?" 'Helper-describe-bindings)
     (define-key map "\C-c" nil)
@@ -2256,28 +2257,28 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
   (kill-all-local-variables)
   (use-local-map ebrowse-member-mode-map)
   (setq major-mode 'ebrowse-member-mode)
-  (mapcar 'make-local-variable
-	  '(ebrowse--decl-column	;display column
-	    ebrowse--n-columns		;number of short columns
-	    ebrowse--column-width	;width of columns above
-	    ebrowse--show-inherited-flag ;include inherited members?
-	    ebrowse--filters		;public, protected, private
-	    ebrowse--accessor		;vars, functions, friends
-	    ebrowse--displayed-class	;class displayed
-	    ebrowse--long-display-flag	;display with regexps?
-	    ebrowse--source-regexp-flag	;show source regexp?
-	    ebrowse--attributes-flag	;show `virtual' and `inline'
-	    ebrowse--member-list	;list of members displayed
-	    ebrowse--tree		;the class tree
-	    ebrowse--member-mode-strings ;part of mode line
-	    ebrowse--tags-file-name	;
-	    ebrowse--header
-	    ebrowse--tree-obarray
-	    ebrowse--virtual-display-flag
-	    ebrowse--inline-display-flag
-	    ebrowse--const-display-flag
-	    ebrowse--pure-display-flag
-	    ebrowse--frozen-flag))	;buffer not automagically reused
+  (mapc 'make-local-variable
+	'(ebrowse--decl-column	        ;display column
+	  ebrowse--n-columns		;number of short columns
+	  ebrowse--column-width	        ;width of columns above
+	  ebrowse--show-inherited-flag  ;include inherited members?
+	  ebrowse--filters		;public, protected, private
+	  ebrowse--accessor		;vars, functions, friends
+	  ebrowse--displayed-class	;class displayed
+	  ebrowse--long-display-flag	;display with regexps?
+	  ebrowse--source-regexp-flag	;show source regexp?
+	  ebrowse--attributes-flag	;show `virtual' and `inline'
+	  ebrowse--member-list          ;list of members displayed
+	  ebrowse--tree		        ;the class tree
+	  ebrowse--member-mode-strings  ;part of mode line
+	  ebrowse--tags-file-name	;
+	  ebrowse--header
+	  ebrowse--tree-obarray
+	  ebrowse--virtual-display-flag
+	  ebrowse--inline-display-flag
+	  ebrowse--const-display-flag
+	  ebrowse--pure-display-flag
+	  ebrowse--frozen-flag))	;buffer not automagically reused
   (setq mode-name "Ebrowse-Members"
 	mode-line-buffer-identification
 	(propertized-buffer-identification "C++ Members")
@@ -3964,7 +3965,7 @@ Prefix arg ARG says how much."
     (fillarray (car (cdr map)) 'ebrowse-electric-position-undefined)
     (fillarray (car (cdr submap)) 'ebrowse-electric-position-undefined)
     (define-key map "\e" submap)
-    (define-key map "\C-z" 'suspend-emacs)
+    (define-key map "\C-z" 'suspend-frame)
     (define-key map "\C-h" 'Helper-help)
     (define-key map "?" 'Helper-describe-bindings)
     (define-key map "\C-c" nil)
@@ -4148,7 +4149,7 @@ Otherwise, FILE-NAME specifies the file to save the tree in."
 	  (erase-buffer)
 	  (setf (ebrowse-hs-member-table header) nil)
 	  (insert (prin1-to-string header) " ")
-	  (mapcar 'ebrowse-save-class tree)
+	  (mapc 'ebrowse-save-class tree)
 	  (write-file file-name)
 	  (message "Tree written to file `%s'" file-name))
       (kill-buffer temp-buffer)
@@ -4163,7 +4164,7 @@ Otherwise, FILE-NAME specifies the file to save the tree in."
   (insert "[ebrowse-ts ")
   (prin1 (ebrowse-ts-class class))	;class name
   (insert "(")				;list of subclasses
-  (mapcar 'ebrowse-save-class (ebrowse-ts-subclasses class))
+  (mapc 'ebrowse-save-class (ebrowse-ts-subclasses class))
   (insert ")")
   (dolist (func ebrowse-member-list-accessors)
     (prin1 (funcall func class))

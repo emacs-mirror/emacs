@@ -1,3 +1,64 @@
+2007-10-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sieve-manage.el (sieve-manage-interactive-login): Doc fix.
+	(sieve-manage-open): Use `mapc' instead of `mapcar'.
+
+2007-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-uu.el (gnus-uu-reginize-string, gnus-uu-expand-numbers):
+	Don't hardcode point-min==1.
+
+2007-09-30  David Kastrup  <dak@gnu.org>
+
+	* gnus-art.el (gnus-article-reply-with-original)
+	(gnus-article-followup-with-original): When `transient-mark-mode' is
+	off, refrain from active-region behavior for followups.
+
+2007-10-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-charset-synonym-alist): Alias gbk to cp936.
+
+2007-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+        * Relicense "GPLv2 or later" files to "GPLv3 or later".
+
+2007-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-newsgroup-maximum-articles): Move from gnus.el.
+	Suggested by Leo <sdl.web@gmail.com>.
+
+	* gnus.el: Do.
+
+2007-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-newsgroup-maximum-articles): Rename from
+	gnus-maximum-newsgroup.  Suggested by Leo <sdl.web@gmail.com>.
+
+	* gnus-agent.el (gnus-agent-fetch-headers): Do.
+
+	* gnus-sum.el (gnus-articles-to-read, gnus-list-of-unread-articles)
+	(gnus-list-of-read-articles, gnus-sequence-of-unread-articles): Do.
+
+2007-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmbox.el (nnmbox-request-article): Don't assume delim regexp matches
+	newline.
+	(nnmbox-request-accept-article): Don't change article in source buffer;
+	narrow to header to use message-fetch-field rather than
+	nnmail-fetch-field; use with-current-buffer instead of save-excursion.
+	(nnmbox-request-replace-article): Quote lines that'll be misidentified
+	as delimiters; make sure article ends with newline.
+	(nnmbox-delete-mail): Correct last position of article to be deleted;
+	ignore X-Gnus-Newsgroup header in article body.
+	(nnmbox-save-mail): Quote lines looking like delimiters at the right
+	positions; make sure article ends with newline.
+
+2007-09-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-cus.el (gnus-score-extra): New widget.
+	(gnus-score-extra-convert): New function.
+	(gnus-score-customize): Use it for Extra.
+
 2007-08-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml.el (mml-generate-mime): Make sure it uses multibyte temp buffer.

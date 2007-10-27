@@ -62,9 +62,10 @@ interpreted as hostnames."
   :type 'regexp
   :group 'vc)
 
-(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Arch MCVS)
-  ;; Bzr, Git, Hg, Arch and MCVS come last because they are per-tree
-  ;; rather than per-dir.
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS Bzr Git Hg Mtn Arch MCVS)
+  ;; RCS, CVS, SVN and SCCS come first because they are per-dir
+  ;; rather than per-tree.  RCS comes first because of the multibackend
+  ;; support intended to use RCS for local commits (with a remote CVS server).
   "List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control.
@@ -361,7 +362,8 @@ file was previously registered under a certain backend, then that
 backend is tried first."
   (let (handler)
     (cond
-     ((string-match vc-ignore-dir-regexp (file-name-directory file)) nil)
+     ((and (file-name-directory file) (string-match vc-ignore-dir-regexp (file-name-directory file)))
+      nil)
      ((and (boundp 'file-name-handler-alist)
           (setq handler (find-file-name-handler file 'vc-registered)))
       ;; handler should set vc-backend and return t if registered
@@ -491,7 +493,7 @@ For registered files, the value returned is one of:
                      prompt the user to do it)."
   ;; FIXME: New (sub)states needed (?):
   ;; - `added' (i.e. `edited' but with no base version yet,
-  ;;            typically represented by vc-workfile-version = "0")
+  ;;            typically represented by vc-working-revision = "0")
   ;; - `conflict' (i.e. `edited' with conflict markers)
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
@@ -547,13 +549,13 @@ Return non-nil if FILE is unchanged."
                 (signal (car err) (cdr err))
               (vc-call diff (list file)))))))
 
-(defun vc-workfile-version (file)
+(defun vc-working-revision (file)
   "Return the repository version from which FILE was checked out.
 If FILE is not registered, this function always returns nil."
-  (or (vc-file-getprop file 'vc-workfile-version)
+  (or (vc-file-getprop file 'vc-working-revision)
       (if (vc-backend file)
-          (vc-file-setprop file 'vc-workfile-version
-                           (vc-call workfile-version file)))))
+          (vc-file-setprop file 'vc-working-revision
+                           (vc-call working-revision file)))))
 
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
@@ -654,7 +656,7 @@ a regexp for matching all such backup files, regardless of the version."
               "\\.~.+" (unless manual "\\.") "~")
     (expand-file-name (concat (file-name-nondirectory file)
                               ".~" (subst-char-in-string
-                                    ?/ ?_ (or rev (vc-workfile-version file)))
+                                    ?/ ?_ (or rev (vc-working-revision file)))
                               (unless manual ".") "~")
                       (file-name-directory file))))
 
@@ -788,7 +790,7 @@ This function assumes that the file is registered."
   (setq backend (symbol-name backend))
   (let ((state   (vc-state file))
 	(state-echo nil)
-	(rev     (vc-workfile-version file)))
+	(rev     (vc-working-revision file)))
     (propertize
      (cond ((or (eq state 'up-to-date)
 		(eq state 'needs-patch))
@@ -923,7 +925,7 @@ Used in `find-file-not-found-functions'."
     (define-key map "v" 'vc-next-action)
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
-    (define-key map "~" 'vc-version-other-window)
+    (define-key map "~" 'vc-revision-other-window)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
@@ -940,8 +942,8 @@ Used in `find-file-not-found-functions'."
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate] '("Annotate" . vc-annotate))
     (define-key map [vc-rename-file] '("Rename File" . vc-rename-file))
-    (define-key map [vc-version-other-window]
-      '("Show Other Version" . vc-version-other-window))
+    (define-key map [vc-revision-other-window]
+      '("Show Other Version" . vc-revision-other-window))
     (define-key map [vc-diff] '("Compare with Base Version" . vc-diff))
     (define-key map [vc-update-change-log]
       '("Update ChangeLog" . vc-update-change-log))
@@ -983,7 +985,7 @@ Used in `find-file-not-found-functions'."
 
 ;;(put 'vc-rename-file 'menu-enable 'vc-mode)
 ;;(put 'vc-annotate 'menu-enable '(eq (vc-buffer-backend) 'CVS))
-;;(put 'vc-version-other-window 'menu-enable 'vc-mode)
+;;(put 'vc-revision-other-window 'menu-enable 'vc-mode)
 ;;(put 'vc-diff 'menu-enable 'vc-mode)
 ;;(put 'vc-update-change-log 'menu-enable
 ;;     '(member (vc-buffer-backend) '(RCS CVS)))

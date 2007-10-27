@@ -416,12 +416,16 @@ will use an up-to-date value of `auto-revert-interval'"
   "Revert current buffer, if appropriate.
 This is an internal function used by Auto-Revert Mode."
   (when (or auto-revert-tail-mode (not (buffer-modified-p)))
-    (let* ((buffer (current-buffer))
+    (let* ((buffer (current-buffer)) size
 	   (revert
 	    (or (and buffer-file-name
 		     (not (file-remote-p buffer-file-name))
 		     (file-readable-p buffer-file-name)
-		     (not (verify-visited-file-modtime buffer)))
+		     (if auto-revert-tail-mode
+			 (/= auto-revert-tail-pos
+			    (setq size
+				  (nth 7 (file-attributes buffer-file-name))))
+		       (not (verify-visited-file-modtime buffer))))
 		(and (or auto-revert-mode
 			 global-auto-revert-non-file-buffers)
 		     revert-buffer-function
@@ -445,7 +449,7 @@ This is an internal function used by Auto-Revert Mode."
 		    (push window eoblist)))
 	   'no-mini t))
 	(if auto-revert-tail-mode
-	    (auto-revert-tail-handler)
+	    (auto-revert-tail-handler size)
 	  ;; Bind buffer-read-only in case user has done C-x C-q,
 	  ;; so as not to forget that.  This gives undesirable results
 	  ;; when the file's mode changes, but that is less common.
@@ -460,20 +464,22 @@ This is an internal function used by Auto-Revert Mode."
       (when (or revert auto-revert-check-vc-info)
 	(vc-find-file-hook)))))
 
-(defun auto-revert-tail-handler ()
-  (let ((size (nth 7 (file-attributes buffer-file-name)))
-	(modified (buffer-modified-p))
+(defun auto-revert-tail-handler (size)  
+  (let ((modified (buffer-modified-p))
 	(inhibit-read-only t)		; Ignore.
 	(file buffer-file-name)
 	(buffer-file-name nil))		; Ignore that file has changed.
-    (when (> size auto-revert-tail-pos)
+    (when (/= auto-revert-tail-pos size)
       (run-hooks 'before-revert-hook)
       (undo-boundary)
       (save-restriction
 	(widen)
 	(save-excursion
 	  (goto-char (point-max))
-	  (insert-file-contents file nil auto-revert-tail-pos size)))
+	  (insert-file-contents file nil
+				(and (< auto-revert-tail-pos size)
+				     auto-revert-tail-pos)
+				size)))
       (run-hooks 'after-revert-hook)
       (undo-boundary)
       (setq auto-revert-tail-pos size)

@@ -455,7 +455,7 @@ struct buffer
 
      Check out mark_buffer (alloc.c) to see why.  */
 
-  EMACS_INT size;
+  EMACS_UINT size;
 
   /* Next buffer, in chain of all buffers including killed buffers.
      This chain is used only for garbage collection, in order to

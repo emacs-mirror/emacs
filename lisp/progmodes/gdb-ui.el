@@ -34,8 +34,7 @@
 ;; Emacs 21 such as the fringe/display margin for breakpoints, and the toolbar
 ;; (see the GDB Graphical Interface section in the Emacs info manual).
 
-;; By default, M-x gdb will start the debugger. However, if you have customised
-;; gud-gdb-command-name, then start it with M-x gdba.
+;; By default, M-x gdb will start the debugger.
 
 ;; This file has evolved from gdba.el that was included with GDB 5.0 and
 ;; written by Tom Lord and Jim Kingdon.  It uses GDB's annotation interface.
@@ -218,10 +217,11 @@ handlers.")
   "List of changed register numbers (strings).")
 
 ;;;###autoload
-(defun gdba (command-line)
+(defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
-The directory containing FILE becomes the initial working directory
-and source-file directory for your debugger.
+The directory containing FILE becomes the initial working
+directory and source-file directory for your debugger.
+
 
 If `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
@@ -266,13 +266,61 @@ detailed description of this mode.
 | RET      gdb-frames-select        | SPC    gdb-toggle-breakpoint     |
 |                                   | RET    gdb-goto-breakpoint       |
 |                                   | D      gdb-delete-breakpoint     |
-+-----------------------------------+----------------------------------+"
-  ;;
-  (interactive (list (gud-query-cmdline 'gdba)))
-  ;;
-  ;; Let's start with a basic gud-gdb buffer and then modify it a bit.
-  (gdb command-line)
-  (gdb-init-1))
++-----------------------------------+----------------------------------+
+
+To run GDB in text command mode, replace the GDB \"--annotate=3\"
+option with \"--fullname\" either in the minibuffer for the
+current Emacs session, or the custom variable
+`gud-gdb-command-name' for all future sessions.  You need to use
+text command mode to debug multiple programs within one Emacs
+session."
+  (interactive (list (gud-query-cmdline 'gdb)))
+
+  (when (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer)
+	   (get-buffer-process gud-comint-buffer)
+	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
+	(gdb-restore-windows)
+	(error
+	 "Multiple debugging requires restarting in text command mode"))
+
+  (gud-common-init command-line nil 'gud-gdba-marker-filter)
+  (set (make-local-variable 'gud-minor-mode) 'gdba)
+
+  (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
+  (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
+	   "Set temporary breakpoint at current line.")
+  (gud-def gud-remove "clear %f:%l" "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"     "\C-s" "Step one source line with display.")
+  (gud-def gud-stepi  "stepi %p"    "\C-i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"     "\C-n" "Step one line (skip functions).")
+  (gud-def gud-nexti  "nexti %p" nil   "Step one instruction (skip functions).")
+  (gud-def gud-cont   "cont"     "\C-r" "Continue with display.")
+  (gud-def gud-finish "finish"   "\C-f" "Finish executing current function.")
+  (gud-def gud-jump
+	   (progn (gud-call "tbreak %f:%l") (gud-call "jump %f:%l"))
+	   "\C-j" "Set execution address to current line.")
+
+  (gud-def gud-up     "up %p"     "<" "Up N stack frames (numeric arg).")
+  (gud-def gud-down   "down %p"   ">" "Down N stack frames (numeric arg).")
+  (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-pstar  "print* %e" nil
+	   "Evaluate C dereferenced pointer expression at point.")
+
+  ;; For debugging Emacs only.
+  (gud-def gud-pv "pv1 %e"      "\C-v" "Print the value of the lisp variable.")
+
+  (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
+  (gud-def gud-run    "run"	 nil    "Run the program.")
+
+  (local-set-key "\C-i" 'gud-gdb-complete-command)
+  (setq comint-prompt-regexp "^(.*gdb[+]?) *")
+  (setq paragraph-start comint-prompt-regexp)
+  (setq gdb-first-prompt t)
+  (setq gud-running nil)
+  (setq gdb-ready nil)
+  (setq gud-filter-pending-text nil)
+  (run-hooks 'gdb-mode-hook))
 
 (defcustom gdb-debug-log-max 128
   "Maximum size of `gdb-debug-log'.  If nil, size is unlimited."
@@ -465,9 +513,6 @@ otherwise do not."
       expr)))
 
 (defun gdb-init-1 ()
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
-  ;;
   (gud-def gud-break (if (not (string-match "Machine" mode-name))
 			 (gud-call "break %f:%l" arg)
 		       (save-excursion
@@ -599,7 +644,7 @@ otherwise do not."
   (gdb-enqueue-input (list "server list\n" 'ignore))
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
 
-  (run-hooks 'gdba-mode-hook))
+  (run-hooks 'gdb-mode-hook))
 
 (defun gdb-get-version ()
   (goto-char (point-min))
@@ -1124,20 +1169,21 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
-  (with-current-buffer gud-comint-buffer
-    (let ((inhibit-read-only t))
-      (remove-text-properties (point-min) (point-max) '(face))))
-    (if gud-running
-	(progn
-	  (let ((item (concat string "\n")))
-	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
-	    (process-send-string proc item)))
-      (if (string-match "\\\\\\'" string)
-	  (setq gdb-continuation (concat gdb-continuation string "\n"))
-	(let ((item (concat gdb-continuation string
-			 (if (not comint-input-sender-no-newline) "\n"))))
-	  (gdb-enqueue-input item)
-	  (setq gdb-continuation nil)))))
+  (when gdb-ready
+      (with-current-buffer gud-comint-buffer
+	(let ((inhibit-read-only t))
+	  (remove-text-properties (point-min) (point-max) '(face))))
+      (if gud-running
+	  (progn
+	    (let ((item (concat string "\n")))
+	      (if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
+	      (process-send-string proc item)))
+	(if (string-match "\\\\\\'" string)
+	    (setq gdb-continuation (concat gdb-continuation string "\n"))
+	  (let ((item (concat gdb-continuation string
+			      (if (not comint-input-sender-no-newline) "\n"))))
+	    (gdb-enqueue-input item)
+	    (setq gdb-continuation nil))))))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
@@ -1193,8 +1239,8 @@ This filter may simply queue input for a later time."
 ;; any newlines.
 ;;
 
-(defcustom gud-gdba-command-name "gdb -annotate=3"
-  "Default command to execute an executable under the GDB-UI debugger."
+(defcustom gud-gdb-command-name "gdb --annotate=3"
+  "Default command to execute an executable under the GDB debugger."
   :type 'string
   :group 'gud
   :version "22.1")
@@ -1506,6 +1552,10 @@ happens to be appropriate."
       (set-window-buffer source-window buffer))
     source-window))
 
+;; Derived from gud-gdb-marker-regexp
+(defvar gdb-fullname-regexp
+  (concat "\\(.:?[^" ":" "\n]*\\)" ":" "\\([0-9]*\\)" ":" ".*"))
+
 (defun gud-gdba-marker-filter (string)
   "A gud marker filter for gdb.  Handle a burst of output from GDB."
   (if gdb-flush-pending-output
@@ -1522,34 +1572,50 @@ happens to be appropriate."
       ;;
       ;; Process all the complete markers in this chunk.
       (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
-	(let ((annotation (match-string 1 gud-marker-acc)))
-	  ;;
-	  ;; Stuff prior to the match is just ordinary output.
-	  ;; It is either concatenated to OUTPUT or directed
-	  ;; elsewhere.
-	  (setq output
-		(gdb-concat-output
-		 output
-		 (substring gud-marker-acc 0 (match-beginning 0))))
-	  ;;
-	  ;; Take that stuff off the gud-marker-acc.
-	  (setq gud-marker-acc (substring gud-marker-acc (match-end 0)))
+	(let ((annotation (match-string 1 gud-marker-acc))
+	      (before (substring gud-marker-acc 0 (match-beginning 0)))
+	      (after (substring gud-marker-acc (match-end 0))))
 	  ;;
 	  ;; Parse the tag from the annotation, and maybe its arguments.
 	  (string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
 	  (let* ((annotation-type (match-string 1 annotation))
 		 (annotation-arguments (match-string 2 annotation))
 		 (annotation-rule (assoc annotation-type
-					 gdb-annotation-rules)))
+					 gdb-annotation-rules))
+		 (fullname (string-match gdb-fullname-regexp annotation-type)))
+
+	    ;; Stuff prior to the match is just ordinary output.
+	    ;; It is either concatenated to OUTPUT or directed
+	    ;; elsewhere.
+	    (setq output
+		  (gdb-concat-output output
+				     (concat before (if fullname "\n"))))
+
+	    ;; Take that stuff off the gud-marker-acc.
+	    (setq gud-marker-acc after)
+
 	    ;; Call the handler for this annotation.
 	    (if annotation-rule
 		(funcall (car (cdr annotation-rule))
 			 annotation-arguments)
-	      ;; Else the annotation is not recognized.  Ignore it silently,
-	      ;; so that GDB can add new annotations without causing
-	      ;; us to blow up.
-	      ))))
-      ;;
+
+	      ;; Switch to gud-gdb-marker-filter if appropriate.
+	      (when fullname
+
+		;; Extract the frame position from the marker.
+		(setq gud-last-frame (cons (match-string 1 annotation)
+					   (string-to-number
+					    (match-string 2 annotation))))
+
+		(set (make-local-variable 'gud-minor-mode) 'gdb)
+		(set (make-local-variable 'gud-marker-filter)
+		     'gud-gdb-marker-filter)))
+
+	    ;; Else the annotation is not recognized.  Ignore it silently,
+	    ;; so that GDB can add new annotations without causing
+	    ;; us to blow up.
+	    )))
+
       ;; Does the remaining text end in a partial line?
       ;; If it does, then keep part of the gud-marker-acc until we get more.
       (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
@@ -2054,62 +2120,72 @@ static char *magick[] = {
 
 (defun gdb-info-stack-custom ()
   (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
-    (save-excursion
-      (unless (eq gdb-look-up-stack 'delete)
-	(let ((buffer-read-only nil)
-	      bl el)
-	  (goto-char (point-min))
-	  (while (< (point) (point-max))
-	    (setq bl (line-beginning-position)
-		  el (line-end-position))
-	    (when (looking-at "#")
-	      (add-text-properties bl el
-				   '(mouse-face highlight
-				     help-echo "mouse-2, RET: Select frame")))
-	    (goto-char bl)
-	    (when (looking-at "^#\\([0-9]+\\)")
-	      (when (string-equal (match-string 1) gdb-frame-number)
-		(if (> (car (window-fringes)) 0)
-		    (progn
-		      (or gdb-stack-position
-			  (setq gdb-stack-position (make-marker)))
-		      (set-marker gdb-stack-position (point)))
-		  (put-text-property bl (+ bl 4)
-				     'face '(:inverse-video t))))
-	      (when (re-search-forward
-		     (concat
-		      (if (string-equal (match-string 1) "0") "" " in ")
-		      "\\([^ ]+\\) (") el t)
-		(put-text-property (match-beginning 1) (match-end 1)
-				   'face font-lock-function-name-face)
-		(setq bl (match-end 0))
-		(while (re-search-forward "<\\([^>]+\\)>" el t)
-		  (put-text-property (match-beginning 1) (match-end 1)
-				     'face font-lock-function-name-face))
-		(goto-char bl)
-		(while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
-		  (put-text-property (match-beginning 1) (match-end 1)
-				     'face font-lock-variable-name-face))))
-	    (forward-line 1))
-	  (forward-line -1)
-	  (when (looking-at "(More stack frames follow...)")
-	    (add-text-properties (match-beginning 0) (match-end 0)
-	     '(mouse-face highlight
-	       gdb-max-frames t
-	       help-echo
-               "mouse-2, RET: customize gdb-max-frames to see more frames")))))
-      (when gdb-look-up-stack
+    (let (move-to)
+      (save-excursion
+	(unless (eq gdb-look-up-stack 'delete)
+	  (let ((buffer-read-only nil)
+		bl el)
 	    (goto-char (point-min))
-	    (when (re-search-forward "\\(\\S-+?\\):\\([0-9]+\\)" nil t)
-	      (let ((start (line-beginning-position))
-		    (file (match-string 1))
-		    (line (match-string 2)))
-		(re-search-backward "^#*\\([0-9]+\\)" start t)
-		(gdb-enqueue-input
-		 (list (concat gdb-server-prefix "frame "
-			       (match-string 1) "\n") 'gdb-set-hollow))
-		(gdb-enqueue-input
-		 (list (concat gdb-server-prefix "frame 0\n") 'ignore)))))))
+	    (while (< (point) (point-max))
+	      (setq bl (line-beginning-position)
+		    el (line-end-position))
+	      (when (looking-at "#")
+		(add-text-properties bl el
+				     '(mouse-face highlight
+						  help-echo "mouse-2, RET: Select frame")))
+	      (goto-char bl)
+	      (when (looking-at "^#\\([0-9]+\\)")
+		(when (string-equal (match-string 1) gdb-frame-number)
+		  (if (> (car (window-fringes)) 0)
+		      (progn
+			(or gdb-stack-position
+			    (setq gdb-stack-position (make-marker)))
+			(set-marker gdb-stack-position (point))
+			(setq move-to gdb-stack-position))
+		    (put-text-property bl (+ bl 4)
+				       'face '(:inverse-video t))
+		    (setq move-to bl)))
+		(when (re-search-forward
+		       (concat
+			(if (string-equal (match-string 1) "0") "" " in ")
+			"\\([^ ]+\\) (") el t)
+		  (put-text-property (match-beginning 1) (match-end 1)
+				     'face font-lock-function-name-face)
+		  (setq bl (match-end 0))
+		  (while (re-search-forward "<\\([^>]+\\)>" el t)
+		    (put-text-property (match-beginning 1) (match-end 1)
+				       'face font-lock-function-name-face))
+		  (goto-char bl)
+		  (while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
+		    (put-text-property (match-beginning 1) (match-end 1)
+				       'face font-lock-variable-name-face))))
+	      (forward-line 1))
+	    (forward-line -1)
+	    (when (looking-at "(More stack frames follow...)")
+	      (add-text-properties (match-beginning 0) (match-end 0)
+				   '(mouse-face highlight
+						gdb-max-frames t
+						help-echo
+						"mouse-2, RET: customize gdb-max-frames to see more frames")))))
+	(when gdb-look-up-stack
+	  (goto-char (point-min))
+	  (when (re-search-forward "\\(\\S-+?\\):\\([0-9]+\\)" nil t)
+	    (let ((start (line-beginning-position))
+		  (file (match-string 1))
+		  (line (match-string 2)))
+	      (re-search-backward "^#*\\([0-9]+\\)" start t)
+	      (gdb-enqueue-input
+	       (list (concat gdb-server-prefix "frame "
+			     (match-string 1) "\n") 'gdb-set-hollow))
+	      (gdb-enqueue-input
+	       (list (concat gdb-server-prefix "frame 0\n") 'ignore))))))
+      (when move-to
+	(let ((window (get-buffer-window (current-buffer) 0)))
+	  (when window
+	    (with-selected-window window
+	      (goto-char move-to)
+	      (unless (pos-visible-in-window-p)
+		(recenter '(center)))))))))
   (if (eq gdb-look-up-stack 'delete)
       (kill-buffer (gdb-get-buffer 'gdb-stack-buffer)))
   (setq gdb-look-up-stack nil))
@@ -2801,7 +2877,7 @@ corresponding to the mode line clicked."
   (let ((answer (get-buffer-window buf 0))
 	(must-split nil))
     (if answer
-	(display-buffer buf nil 0)	;Raise the frame if necessary.
+	(display-buffer buf nil 0)	;Deiconify the frame if necessary.
       ;; The buffer is not yet displayed.
       (pop-to-buffer gud-comint-buffer)	;Select the right frame.
       (let ((window (get-lru-window)))
@@ -2996,7 +3072,8 @@ buffers."
    (gdb-get-buffer-create 'gdb-breakpoints-buffer)
    (if gdb-show-main
        (let ((pop-up-windows t))
-	 (display-buffer (gud-find-file gdb-main-file))))))
+	 (display-buffer (gud-find-file gdb-main-file)))))
+ (setq gdb-ready t))
 
 (defun gdb-get-location (bptno line flag)
   "Find the directory containing the relevant source file.

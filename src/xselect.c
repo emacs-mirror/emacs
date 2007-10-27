@@ -398,12 +398,19 @@ x_own_selection (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
   struct frame *sf = SELECTED_FRAME ();
-  Window selecting_window = FRAME_X_WINDOW (sf);
-  Display *display = FRAME_X_DISPLAY (sf);
+  Window selecting_window;
+  Display *display;
   Time time = last_event_timestamp;
   Atom selection_atom;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (sf);
+  struct x_display_info *dpyinfo;
 
+  if (! FRAME_X_P (sf))
+    return;
+
+  selecting_window = FRAME_X_WINDOW (sf);
+  display = FRAME_X_DISPLAY (sf);
+  dpyinfo = FRAME_X_DISPLAY_INFO (sf);
+  
   CHECK_SYMBOL (selection_name);
   selection_atom = symbol_to_x_atom (dpyinfo, display, selection_name);
 
@@ -671,7 +678,8 @@ some_frame_on_display (dpyinfo)
 
   FOR_EACH_FRAME (list, frame)
     {
-      if (FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+      if (FRAME_X_P (XFRAME (frame))
+          && FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
 	return frame;
     }
 
@@ -682,6 +690,10 @@ some_frame_on_display (dpyinfo)
    TYPE is the type of selection data requested.
    DATA and SIZE describe the data to send, already converted.
    FORMAT is the unit-size (in bits) of the data to be transmitted.  */
+
+#ifdef TRACE_SELECTION
+static int x_reply_selection_request_cnt;
+#endif  /* TRACE_SELECTION */
 
 static void
 x_reply_selection_request (event, format, data, size, type)
@@ -721,10 +733,9 @@ x_reply_selection_request (event, format, data, size, type)
 
 #ifdef TRACE_SELECTION
   {
-    static int cnt;
     char *sel = XGetAtomName (display, reply.selection);
     char *tgt = XGetAtomName (display, reply.target);
-    TRACE3 ("%s, target %s (%d)", sel, tgt, ++cnt);
+    TRACE3 ("%s, target %s (%d)", sel, tgt, ++x_reply_selection_request_cnt);
     if (sel) XFree (sel);
     if (tgt) XFree (tgt);
   }
@@ -1014,6 +1025,7 @@ x_handle_selection_clear (event)
 
   TRACE0 ("x_handle_selection_clear");
 
+#ifdef MULTI_KBOARD  
   /* If the new selection owner is also Emacs,
      don't clear the new selection.  */
   BLOCK_INPUT;
@@ -1021,7 +1033,7 @@ x_handle_selection_clear (event)
      to see if this Emacs job now owns the selection
      through that display.  */
   for (t_dpyinfo = x_display_list; t_dpyinfo; t_dpyinfo = t_dpyinfo->next)
-    if (t_dpyinfo->kboard == dpyinfo->kboard)
+    if (t_dpyinfo->terminal->kboard == dpyinfo->terminal->kboard)
       {
 	Window owner_window
 	  = XGetSelectionOwner (t_dpyinfo->display, selection);
@@ -1032,7 +1044,8 @@ x_handle_selection_clear (event)
 	  }
       }
   UNBLOCK_INPUT;
-
+#endif
+  
   selection_symbol = x_atom_to_symbol (display, selection);
 
   local_selection_data = assq_no_quit (selection_symbol, Vselection_alist);
@@ -1380,16 +1393,25 @@ x_get_foreign_selection (selection_symbol, target_type, time_stamp)
      Lisp_Object selection_symbol, target_type, time_stamp;
 {
   struct frame *sf = SELECTED_FRAME ();
-  Window requestor_window = FRAME_X_WINDOW (sf);
-  Display *display = FRAME_X_DISPLAY (sf);
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (sf);
+  Window requestor_window;
+  Display *display;
+  struct x_display_info *dpyinfo;
   Time requestor_time = last_event_timestamp;
-  Atom target_property = dpyinfo->Xatom_EMACS_TMP;
-  Atom selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
+  Atom target_property;
+  Atom selection_atom;
   Atom type_atom;
   int secs, usecs;
   int count = SPECPDL_INDEX ();
   Lisp_Object frame;
+
+  if (! FRAME_X_P (sf))
+    return Qnil;
+
+  requestor_window = FRAME_X_WINDOW (sf);
+  display = FRAME_X_DISPLAY (sf);
+  dpyinfo = FRAME_X_DISPLAY_INFO (sf);
+  target_property = dpyinfo->Xatom_EMACS_TMP;
+  selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
 
   if (CONSP (target_type))
     type_atom = symbol_to_x_atom (dpyinfo, display, XCAR (target_type));
@@ -2206,6 +2228,9 @@ Disowning it means there is no such selection.  */)
   struct frame *sf = SELECTED_FRAME ();
 
   check_x ();
+  if (! FRAME_X_P (sf))
+    return Qnil;
+
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   CHECK_SYMBOL (selection);
@@ -2367,6 +2392,10 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   struct frame *sf = SELECTED_FRAME ();
 
   check_x ();
+
+  if (! FRAME_X_P (sf))
+    return Qnil;
+
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
@@ -2407,6 +2436,10 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   struct frame *sf = SELECTED_FRAME ();
 
   check_x ();
+
+  if (! FRAME_X_P (sf))
+    return Qnil;
+
   display = FRAME_X_DISPLAY (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
 
@@ -2463,8 +2496,12 @@ Positive means shift the values forward, negative means backward.  */)
   Atom props[8];
   Display *display;
   struct frame *sf = SELECTED_FRAME ();
-
+  
   check_x ();
+
+  if (! FRAME_X_P (sf))
+    return Qnil;
+
   display = FRAME_X_DISPLAY (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   CHECK_NUMBER (n);

@@ -253,9 +253,20 @@ List has a form of (file-name full-file-name (attribute-list))"
 ;;;###autoload
 (defun dired-do-chmod (&optional arg)
   "Change the mode of the marked (or next ARG) files.
-This calls chmod, thus symbolic modes like `g+w' are allowed."
+Symbolic modes like `g+w' are allowed."
   (interactive "P")
-  (dired-do-chxxx "Mode" dired-chmod-program 'chmod arg))
+  (let* ((files (dired-get-marked-files t arg))
+	 (modes (dired-mark-read-string
+		 "Change mode of %s to: " nil
+		 'chmod arg files))
+	 (num-modes (if (string-match "^[0-7]+" modes)
+			(string-to-number modes 8))))
+    (dolist (file files)
+      (set-file-modes
+       file
+       (if num-modes num-modes
+	 (file-modes-symbolic-to-number modes (file-modes file)))))
+    (dired-do-redisplay arg)))
 
 ;;;###autoload
 (defun dired-do-chgrp (&optional arg)
@@ -1319,7 +1330,7 @@ Special value `always' suppresses confirmation."
 	skipped (success-count 0) (total (length fn-list)))
     (let (to overwrite-query
 	     overwrite-backup-query)	; for dired-handle-overwrite
-      (mapcar
+      (mapc
        (function
 	(lambda (from)
 	  (setq to (funcall name-constructor from))

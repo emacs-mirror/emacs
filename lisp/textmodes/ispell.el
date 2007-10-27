@@ -1594,8 +1594,12 @@ nil           word is correct or spelling is accepted.
 quit          spell session exited."
 
   (interactive (list ispell-following-word ispell-quietly current-prefix-arg))
-  (if continue
-      (ispell-continue)
+  (cond
+   ((and transient-mark-mode mark-active
+	 (not (eq (region-beginning) (region-end))))
+    (ispell-region (region-beginning) (region-end)))
+   (continue (ispell-continue))
+   (t
     (ispell-maybe-find-aspell-dictionaries)
     (ispell-accept-buffer-local-defs)	; use the correct dictionary
     (let ((cursor-location (point))	; retain cursor location
@@ -1690,7 +1694,7 @@ quit          spell session exited."
       ;; NB: Cancels ispell-quit incorrectly if called from ispell-region
       (if ispell-quit (setq ispell-quit nil replace 'quit))
       (goto-char cursor-location)	; return to original location
-      replace)))
+      replace))))
 
 
 (defun ispell-get-word (following &optional extra-otherchars)
@@ -2683,7 +2687,7 @@ Return nil if spell session is quit,
 	(rstart (make-marker)))
   (unwind-protect
       (save-excursion
-	(message "Spell checking %s using %s with %s dictionary..."
+	(message "Spell-checking %s using %s with %s dictionary..."
 		 (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 		     (buffer-name) "region")
 		 (file-name-nondirectory ispell-program-name)
@@ -2782,7 +2786,9 @@ Return nil if spell session is quit,
       (if (not recheckp) (set-marker ispell-region-end nil))
       ;; Only save if successful exit.
       (ispell-pdict-save ispell-silently-savep)
-      (message "Spell-checking using %s with %s dictionary done"
+      (message "Spell-checking %s using %s with %s dictionary done"
+	       (if (and (= reg-start (point-min)) (= reg-end (point-max)))
+		   (buffer-name) "region")
 	       (file-name-nondirectory ispell-program-name)
 	       (or ispell-current-dictionary "default"))))))
 

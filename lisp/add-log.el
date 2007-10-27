@@ -27,6 +27,15 @@
 
 ;; This facility is documented in the Emacs Manual.
 
+;; Todo:
+
+;; - Find/use/create _MTN/log if there's a _MTN directory.
+;; - Find/use/create ++log.* if there's an {arch} directory.
+;; - Use an open *VC-Log* or *cvs-commit* buffer if it's related to the
+;;   source file.
+;; - Don't add TAB indents (and username?) if inserting entries in those
+;;   special places.
+
 ;;; Code:
 
 (eval-when-compile
@@ -41,7 +50,7 @@
 
 
 (defcustom change-log-default-name nil
-  "*Name of a change log file for \\[add-change-log-entry]."
+  "Name of a change log file for \\[add-change-log-entry]."
   :type '(choice (const :tag "default" nil)
 		 string)
   :group 'change-log)
@@ -370,7 +379,7 @@ With a numeric prefix ARG, go back ARG comments."
 
 (defun change-log-version-number-search ()
   "Return version number of current buffer's file.
-This is the value returned by `vc-workfile-version' or, if that is
+This is the value returned by `vc-working-revision' or, if that is
 nil, by matching `change-log-version-number-regexp-list'."
   (let* ((size (buffer-size))
 	 (limit
@@ -381,7 +390,7 @@ nil, by matching `change-log-version-number-regexp-list'."
 	  ;; Apply percentage only if buffer size is bigger than
 	  ;; approx 100 lines.
 	  (if (> size (* 100 80)) (+ (point) (/ size 10)))))
-    (or (and buffer-file-name (vc-workfile-version buffer-file-name))
+    (or (and buffer-file-name (vc-working-revision buffer-file-name))
 	(save-restriction
 	  (widen)
 	  (let ((regexps change-log-version-number-regexp-list)
@@ -1007,7 +1016,7 @@ Has a preference of looking backwards."
 		((derived-mode-p 'texinfo-mode)
 		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
-		((derived-mode-p '(perl-mode cperl-mode))
+		((derived-mode-p 'perl-mode 'cperl-mode)
 		 (if (re-search-backward "^sub[ \t]+\\([^({ \t\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
 		;; Emacs's autoconf-mode installs its own

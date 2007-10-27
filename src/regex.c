@@ -1366,18 +1366,12 @@ static const char *re_error_msgid[] =
 /* Normally, this is fine.  */
 #define MATCH_MAY_ALLOCATE
 
-/* When using GNU C, we are not REALLY using the C alloca, no matter
-   what config.h may say.  So don't take precautions for it.  */
-#ifdef __GNUC__
-# undef C_ALLOCA
-#endif
-
 /* The match routines may not allocate if (1) they would do it with malloc
    and (2) it's not safe for them to use malloc.
    Note that if REL_ALLOC is defined, matching would not use malloc for the
    failure stack, but we would still use it for the register vectors;
    so REL_ALLOC should not affect this.  */
-#if (defined C_ALLOCA || defined REGEX_MALLOC) && defined emacs
+#if defined REGEX_MALLOC && defined emacs
 # undef MATCH_MAY_ALLOCATE
 #endif
 
@@ -4454,11 +4448,6 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 
       val = re_match_2_internal (bufp, string1, size1, string2, size2,
 				 startpos, regs, stop);
-#ifndef REGEX_MALLOC
-# ifdef C_ALLOCA
-      alloca (0);
-# endif
-#endif
 
       if (val >= 0)
 	return startpos;
@@ -4894,9 +4883,6 @@ re_match (bufp, string, size, pos, regs)
 {
   int result = re_match_2_internal (bufp, NULL, 0, (re_char*) string, size,
 				    pos, regs, size);
-# if defined C_ALLOCA && !defined REGEX_MALLOC
-  alloca (0);
-# endif
   return result;
 }
 WEAK_ALIAS (__re_match, re_match)
@@ -4942,9 +4928,6 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
   result = re_match_2_internal (bufp, (re_char*) string1, size1,
 				(re_char*) string2, size2,
 				pos, regs, stop);
-#if defined C_ALLOCA && !defined REGEX_MALLOC
-  alloca (0);
-#endif
   return result;
 }
 WEAK_ALIAS (__re_match_2, re_match_2)

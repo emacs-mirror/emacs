@@ -92,21 +92,8 @@ This is nil while loading `scroll-bar.el', and t afterward.")
   (setq scroll-bar-mode value)
 
   (when scroll-bar-mode-explicit
-    ;; Apply it to default-frame-alist.
-    (let ((parameter (assq 'vertical-scroll-bars default-frame-alist)))
-      (if (consp parameter)
-	  (setcdr parameter scroll-bar-mode)
-	(setq default-frame-alist
-	      (cons (cons 'vertical-scroll-bars scroll-bar-mode)
-		    default-frame-alist))))
-
-    ;; Apply it to existing frames.
-    (let ((frames (frame-list)))
-      (while frames
-	(modify-frame-parameters
-	 (car frames)
-	 (list (cons 'vertical-scroll-bars scroll-bar-mode)))
-	(setq frames (cdr frames))))))
+    (modify-all-frames-parameters (list (cons 'vertical-scroll-bars
+					      scroll-bar-mode)))))
 
 (defcustom scroll-bar-mode default-frame-scroll-bars
   "*Specify whether to have vertical scroll bars, and on which side.

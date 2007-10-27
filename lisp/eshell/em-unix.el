@@ -168,6 +168,35 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 
 (put 'eshell/man 'eshell-no-numeric-conversions t)
 
+(defun eshell/info (&rest args)
+  "Runs the info command in-frame with the same behaviour as command-line `info', ie:
+  'info'           => goes to top info window
+  'info arg1'      => IF arg1 is a file, then visits arg1
+  'info arg1'      => OTHERWISE goes to top info window and then menu item arg1
+  'info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
+  etc."
+  (require 'info)
+  (let ((file (cond
+                ((not (stringp (car args)))
+                 nil)
+                ((file-exists-p (expand-file-name (car args)))
+                 (expand-file-name (car args)))
+                ((file-exists-p (concat (expand-file-name (car args)) ".info"))
+                 (concat (expand-file-name (car args)) ".info")))))
+
+    ;; If the first arg is a file, then go to that file's Top node
+    ;; Otherwise, go to the global directory
+    (if file
+      (progn
+        (setq args (cdr args))
+        (Info-find-node file "Top"))
+      (Info-directory))
+
+    ;; Treat all remaining args as menu references
+    (while args
+      (Info-menu (car args))
+      (setq args (cdr args)))))
+
 (defun eshell-remove-entries (path files &optional top-level)
   "From PATH, remove all of the given FILES, perhaps interactively."
   (while files
@@ -930,7 +959,10 @@ Show wall-clock time elapsed during execution of COMMAND.")
      (add-hook 'eshell-post-command-hook 'eshell-show-elapsed-time nil t)
      ;; after setting
      (throw 'eshell-replace-command
-	    (eshell-parse-command (car time-args) (cdr time-args))))))
+	    (eshell-parse-command (car time-args)
+;;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-08/msg00205.html
+				  (eshell-stringify-list
+				   (eshell-flatten-list (cdr time-args))))))))
 
 (defalias 'eshell/whoami 'user-login-name)
 

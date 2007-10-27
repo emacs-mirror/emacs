@@ -51,6 +51,13 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_GTK_MULTIDISPLAY
 
+/* Gtk does not work well without any display open.  Emacs may close
+   all its displays.  In that case, keep a display around just for
+   the purpose of having one.  */
+
+static GdkDisplay *gdpy_def;
+
+
 /* Return the GdkDisplay that corresponds to the X display DPY.  */
 
 static GdkDisplay *
@@ -147,9 +154,15 @@ xg_display_close (Display *dpy)
             break;
           }
 
-      if (! new_dpy) return; /* Emacs will exit anyway.  */
+      if (new_dpy)
+        gdpy_new = gdk_x11_lookup_xdisplay (new_dpy);
+      else
+        {
+          if (!gdpy_def)
+            gdpy_def = gdk_display_open (gdk_display_get_name (gdpy));
+          gdpy_new = gdpy_def;
+        }
 
-      gdpy_new = gdk_x11_lookup_xdisplay (new_dpy);
       gdk_display_manager_set_default_display (gdk_display_manager_get (),
                                                gdpy_new);
     }
@@ -336,6 +349,8 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
   GdkPixmap *gpix;
   GdkPixmap *gmask;
   GdkDisplay *gdpy;
+  GdkColormap *cmap;
+  GdkPixbuf *icon_buf;
 
   /* If we have a file, let GTK do all the image handling.
      This seems to be the only way to make insensitive and activated icons
@@ -366,32 +381,24 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
   gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);
   gmask = img->mask ? gdk_pixmap_foreign_new_for_display (gdpy, img->mask) : 0;
 
-  if (x_screen_planes (f) > 8 || x_screen_planes (f) == 1)
-    {
-      if (! old_widget)
-        old_widget = GTK_IMAGE (gtk_image_new_from_pixmap (gpix, gmask));
-      else
-        gtk_image_set_from_pixmap (old_widget, gpix, gmask);
-    }
+  /* This is a workaround to make icons look good on pseudo color
+     displays.  Apparently GTK expects the images to have an alpha
+     channel.  If they don't, insensitive and activated icons will
+     look bad.  This workaround does not work on monochrome displays,
+     and is strictly not needed on true color/static color displays (i.e.
+     16 bits and higher).  But we do it anyway so we get a pixbuf that is
+     not associated with the img->pixmap.  The img->pixmap may be removed
+     by clearing the image cache and then the tool bar redraw fails, since
+     Gtk+ assumes the pixmap is always there.  */
+  cmap = gtk_widget_get_colormap (widget);
+  icon_buf = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap);
+
+  if (! old_widget)
+    old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
   else
-    {
+    gtk_image_set_from_pixbuf (old_widget, icon_buf);
 
-      /* This is a workaround to make icons look good on pseudo color
-         displays.  Apparently GTK expects the images to have an alpha
-         channel.  If they don't, insensitive and activated icons will
-         look bad.  This workaround does not work on monochrome displays,
-         and is not needed on true color/static color displays (i.e.
-         16 bits and higher).  */
-      GdkColormap *cmap = gtk_widget_get_colormap (widget);
-      GdkPixbuf *icon_buf = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap);
-
-      if (! old_widget)
-        old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
-      else
-        gtk_image_set_from_pixbuf (old_widget, icon_buf);
-
-      g_object_unref (G_OBJECT (icon_buf));
-    }
+  g_object_unref (G_OBJECT (icon_buf));
 
   g_object_unref (G_OBJECT (gpix));
   if (gmask) g_object_unref (G_OBJECT (gmask));
@@ -874,7 +881,7 @@ xg_create_frame_widgets (f)
 
   /* Since GTK clears its window by filling with the background color,
      we must keep X and GTK background in sync.  */
-  xg_pix_to_gcolor (wfixed, f->output_data.x->background_pixel, &bg);
+  xg_pix_to_gcolor (wfixed, FRAME_BACKGROUND_PIXEL (f), &bg);
   gtk_widget_modify_bg (wfixed, GTK_STATE_NORMAL, &bg);
 
   /* Also, do not let any background pixmap to be set, this looks very
@@ -1412,8 +1419,8 @@ xg_get_file_with_chooser (f, prompt, default_filename,
     {
       Lisp_Object file;
       struct gcpro gcpro1;
-      GCPRO1 (file);
       char *utf8_filename;
+      GCPRO1 (file);
 
       file = build_string (default_filename);
 
@@ -1780,19 +1787,19 @@ menu_destroy_callback (w, client_data)
    UNGRAB_P is TRUE if this is an ungrab, FALSE if it is a grab.
    CLIENT_DATA is NULL (not used).  */
 
+/* Keep track of total number of grabs.  */
+static int menu_grab_callback_cnt;
+
 static void
 menu_grab_callback (GtkWidget *widget,
                     gboolean ungrab_p,
                     gpointer client_data)
 {
-  /* Keep track of total number of grabs.  */
-  static int cnt;
+  if (ungrab_p) menu_grab_callback_cnt--;
+  else menu_grab_callback_cnt++;
 
-  if (ungrab_p) cnt--;
-  else cnt++;
-
-  if (cnt > 0 && ! xg_timer) xg_start_timer ();
-  else if (cnt == 0 && xg_timer) xg_stop_timer ();
+  if (menu_grab_callback_cnt > 0 && ! xg_timer) xg_start_timer ();
+  else if (menu_grab_callback_cnt == 0 && xg_timer) xg_stop_timer ();
 }
 
 /* Make a GTK widget that contains both UTF8_LABEL and UTF8_KEY (both
@@ -1890,6 +1897,24 @@ make_menu_item (utf8_label, utf8_key, item, group)
 /* Return non-zero if LABEL specifies a separator (GTK only has one
    separator type)  */
 
+static char* separator_names[] = {
+  "space",
+  "no-line",
+  "single-line",
+  "double-line",
+  "single-dashed-line",
+  "double-dashed-line",
+  "shadow-etched-in",
+  "shadow-etched-out",
+  "shadow-etched-in-dash",
+  "shadow-etched-out-dash",
+  "shadow-double-etched-in",
+  "shadow-double-etched-out",
+  "shadow-double-etched-in-dash",
+  "shadow-double-etched-out-dash",
+  0,
+};
+
 static int
 xg_separator_p (char *label)
 {
@@ -1898,24 +1923,6 @@ xg_separator_p (char *label)
 	   && strncmp (label, "--", 2) == 0
 	   && label[2] != '-')
     {
-      static char* separator_names[] = {
-        "space",
-	"no-line",
-	"single-line",
-	"double-line",
-	"single-dashed-line",
-	"double-dashed-line",
-	"shadow-etched-in",
-	"shadow-etched-out",
-	"shadow-etched-in-dash",
-	"shadow-etched-out-dash",
-	"shadow-double-etched-in",
-	"shadow-double-etched-out",
-	"shadow-double-etched-in-dash",
-	"shadow-double-etched-out-dash",
-        0,
-      };
-
       int i;
 
       label += 2;
@@ -2043,7 +2050,7 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   return w;
 }
 
-/* Callback called when keyboard traversal (started by menu-bar-open) ends.
+/* Callback called when keyboard traversal (started by x-menu-bar-open) ends.
    WMENU is the menu for which traversal has been done.  DATA points to the
    frame for WMENU.  We must release grabs, some bad interaction between GTK
    and Emacs makes the menus keep the grabs.  */
@@ -3346,6 +3353,10 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
    the GtkImage with a new image.  */
 #define XG_TOOL_BAR_STOCK_NAME "emacs-tool-bar-stock-name"
 
+/* As above, but this is used for named theme widgets, as opposed to
+   stock items.  */
+#define XG_TOOL_BAR_ICON_NAME "emacs-tool-bar-icon-name"
+
 /* Callback function invoked when a tool bar item is pressed.
    W is the button widget in the tool bar that got pressed,
    CLIENT_DATA is an integer that is the index of the button in the
@@ -3635,25 +3646,6 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
 
 #define PROP(IDX) AREF (f->tool_bar_items, i * TOOL_BAR_ITEM_NSLOTS + (IDX))
 
-/* This callback is called when a tool bar shall be redrawn.
-   We need to update the images in case the image cache
-   has deleted the pixmaps used in the tool bar.
-   W is the GtkToolbar to be redrawn.
-   EVENT is the expose event for W.
-   CLIENT_DATA is pointing to the frame for this tool bar.
-
-   Returns FALSE to tell GTK to keep processing this event.  */
-
-static gboolean
-xg_tool_bar_expose_callback (w, event, client_data)
-     GtkWidget *w;
-     GdkEventExpose *event;
-     gpointer client_data;
-{
-  FRAME_PTR f = (FRAME_PTR) client_data;
-  SET_FRAME_GARBAGED (f);
-  return FALSE;
-}
 
 /* Create a tool bar for frame F.  */
 
@@ -3695,10 +3687,6 @@ xg_create_tool_bar (f)
                     G_CALLBACK (xg_tool_bar_detach_callback), f);
   g_signal_connect (G_OBJECT (x->handlebox_widget), "child-attached",
                     G_CALLBACK (xg_tool_bar_attach_callback), f);
-  g_signal_connect (G_OBJECT (x->toolbar_widget),
-                    "expose-event",
-                    G_CALLBACK (xg_tool_bar_expose_callback),
-                    f);
 
   gtk_widget_show_all (x->handlebox_widget);
 
@@ -3809,8 +3797,9 @@ update_frame_tool_bar (f)
       Lisp_Object stock;
       GtkStockItem stock_item;
       char *stock_name = NULL;
+      char *icon_name = NULL;
       Lisp_Object rtl;
-      GtkWidget *wbutton;
+      GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
       Lisp_Object func = intern ("x-gtk-map-stock");
 
@@ -3834,13 +3823,33 @@ update_frame_tool_bar (f)
       if (EQ (Qt, Ffboundp (func))) 
         stock = call1 (func, file_for_image (image));
 
-      if (! NILP (stock) && STRINGP (stock)
-          && gtk_stock_lookup (SSDATA (stock), &stock_item))
+      if (! NILP (stock) && STRINGP (stock))
         {
           stock_name = SSDATA (stock);
-          icon_size = gtk_toolbar_get_icon_size (wtoolbar);
+          if (stock_name[0] == 'n' && stock_name[1] == ':')
+            {
+              GdkScreen *screen = gtk_widget_get_screen (GTK_WIDGET (wtoolbar));
+              GtkIconTheme *icon_theme = gtk_icon_theme_get_for_screen (screen);
+
+              icon_name = stock_name + 2;
+              stock_name = NULL;
+              stock = Qnil;
+
+              if (! gtk_icon_theme_has_icon (icon_theme, icon_name))
+                icon_name = NULL;
+              else
+                icon_size = gtk_toolbar_get_icon_size (wtoolbar);
+            }
+          else if (gtk_stock_lookup (SSDATA (stock), &stock_item))
+              icon_size = gtk_toolbar_get_icon_size (wtoolbar);
+          else 
+            {
+              stock = Qnil;
+              stock_name = NULL;
+            }
         }
-      else
+
+      if (stock_name == NULL && icon_name == NULL)
         {
           /* No stock image, or stock item not known.  Try regular image.  */
 
@@ -3903,6 +3912,13 @@ update_frame_tool_bar (f)
               w = gtk_image_new_from_stock (stock_name, icon_size);
               g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_STOCK_NAME,
                                       (gpointer) xstrdup (stock_name),
+                                      (GDestroyNotify) xfree);
+            }
+          else if (icon_name) 
+            {
+              w = gtk_image_new_from_icon_name (icon_name, icon_size);
+              g_object_set_data_full (G_OBJECT (w), XG_TOOL_BAR_ICON_NAME,
+                                      (gpointer) xstrdup (icon_name),
                                       (GDestroyNotify) xfree);
             }
           else
@@ -3980,6 +3996,8 @@ update_frame_tool_bar (f)
                                                       XG_TOOL_BAR_IMAGE_DATA);
           gpointer old_stock_name = g_object_get_data (G_OBJECT (wimage),
                                                        XG_TOOL_BAR_STOCK_NAME);
+          gpointer old_icon_name = g_object_get_data (G_OBJECT (wimage),
+                                                      XG_TOOL_BAR_ICON_NAME);
           if (stock_name &&
               (! old_stock_name || strcmp (old_stock_name, stock_name) != 0))
             {
@@ -3990,6 +4008,20 @@ update_frame_tool_bar (f)
                                       (GDestroyNotify) xfree);
               g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
                                  NULL);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME, NULL);
+            }
+          else if (icon_name &&
+                   (! old_icon_name || strcmp (old_icon_name, icon_name) != 0))
+            {
+              gtk_image_set_from_icon_name (GTK_IMAGE (wimage),
+                                            icon_name, icon_size);
+              g_object_set_data_full (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME,
+                                      (gpointer) xstrdup (icon_name),
+                                      (GDestroyNotify) xfree);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
+                                 NULL);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
+                                 NULL);
             }
           else if (img && old_img != img->pixmap)
             {
@@ -3999,6 +4031,7 @@ update_frame_tool_bar (f)
 
               g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_STOCK_NAME,
                                  NULL);
+              g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_ICON_NAME, NULL);
             }
 
           gtk_misc_set_padding (GTK_MISC (wimage), hmargin, vmargin);
@@ -4071,6 +4104,8 @@ xg_initialize ()
      we keep it permanently linked in.  */
   XftInit (0);
 #endif
+
+  gdpy_def = NULL;
   xg_ignore_gtk_scrollbar = 0;
   xg_detached_menus = 0;
   xg_menu_cb_list.prev = xg_menu_cb_list.next =

@@ -4372,12 +4372,18 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; Treat each name as its own truename.
 (put 'file-truename 'ange-ftp 'identity)
 
+;; We must return non-nil in order to mask our inability to do the job.
+;; Otherwise there are errors when applied to the target file during
+;; copying from a (localhost) Tramp file.
+(put 'set-file-modes 'ange-ftp 'ignore)
+(put 'set-file-times 'ange-ftp 'ignore)
+
 ;; Turn off RCS/SCCS processing to save time.
 ;; This returns nil for any file name as argument.
 (put 'vc-registered 'ange-ftp 'null)
 
 ;; We can handle process-file in a restricted way (just for chown).
-;; Nothing possible for start-file-process.
+;; Nothing possible for `start-file-process'.
 (put 'process-file 'ange-ftp 'ange-ftp-process-file)
 (put 'start-file-process 'ange-ftp 'ignore)
 (put 'shell-command 'ange-ftp 'ange-ftp-shell-command)
@@ -4574,7 +4580,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(rest (cdr args)))
     (if (equal "--" (car rest))
 	(setq rest (cdr rest)))
-    (mapcar
+    (mapc
      (lambda (file)
        (setq file (expand-file-name file))
        (let ((parsed (ange-ftp-ftp-name file)))
@@ -6049,8 +6055,8 @@ Other orders of $ and _ seem to all work just fine.")
     (puthash ".." t tbl)
     ;; add all additional pubsets, if not listing one of them
     (if (not (member pubset ange-ftp-bs2000-additional-pubsets))
-	(mapcar (lambda (pubset) (puthash pubset t tbl))
-		ange-ftp-bs2000-additional-pubsets))
+	(mapc (lambda (pubset) (puthash pubset t tbl))
+	      ange-ftp-bs2000-additional-pubsets))
     tbl))
 
 (add-to-list 'ange-ftp-parse-list-func-alist

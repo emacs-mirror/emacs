@@ -335,12 +335,23 @@ Subexpression 2 must end right before the \\n or \\r.")
   "Face name used for flagged files.")
 
 (defface dired-warning
-  '((t (:inherit font-lock-comment-face)))
+  ;; Inherit from font-lock-warning-face since with min-colors 8
+  ;; font-lock-comment-face is not colored any more.
+  '((t (:inherit font-lock-warning-face)))
   "Face used to highlight a part of a buffer that needs user attention."
   :group 'dired-faces
   :version "22.1")
 (defvar dired-warning-face 'dired-warning
   "Face name used for a part of a buffer that needs user attention.")
+
+(defface dired-warn-writable
+  '((((type w32 pc)) :inherit default)  ;; These default to rw-rw-rw.
+    (t (:inherit font-lock-warning-face)))
+  "Face used to highlight permissions of group- and world-writable files."
+  :group 'dired-faces
+  :version "22.2")
+(defvar dired-warn-writable-face 'dired-warn-writable
+  "Face name used for permissions of group- and world-writable files.")
 
 (defface dired-directory
   '((t (:inherit font-lock-function-name-face)))
@@ -403,10 +414,10 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; fields with keymaps to frob the permissions, somewhat a la XEmacs.
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d]....\\(w\\)....")	; group writable
-	 '(1 dired-warning-face))
+	 '(1 dired-warn-writable-face))
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d].......\\(w\\).")	; world writable
-	 '(1 dired-warning-face))
+	 '(1 dired-warn-writable-face))
    ;;
    ;; Subdirectories.
    (list dired-re-dir
@@ -3336,7 +3347,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
           (dired dired-dir)
           ;; The following elements of `desktop-buffer-misc' are the keys
           ;; from `dired-subdir-alist'.
-          (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
+          (mapc 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
           (current-buffer))
       (message "Desktop: Directory %s no longer exists." dir)
       (when desktop-missing-file-warning (sit-for 1))

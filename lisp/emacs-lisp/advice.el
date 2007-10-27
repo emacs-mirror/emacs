@@ -2603,17 +2603,13 @@ Like `interactive-form', but also works on pieces of advice."
 		    (if (ad-interactive-form definition) 1 0))
 		 (cdr (cdr (ad-lambda-expression definition)))))))
 
-;; Matches the docstring of an advised definition.
-;; The first group of the regexp matches the function name:
-(defvar ad-advised-definition-docstring-regexp "^\\$ad-doc: \\(.+\\)\\$$")
-
 (defun ad-make-advised-definition-docstring (function)
   "Make an identifying docstring for the advised definition of FUNCTION.
 Put function name into the documentation string so we can infer
 the name of the advised function from the docstring.  This is needed
 to generate a proper advised docstring even if we are just given a
-definition (also see the defadvice for `documentation')."
-  (format "$ad-doc: %s$" (prin1-to-string function)))
+definition (see the code for `documentation')."
+  (propertize "Advice doc string" 'ad-advice-info function))
 
 (defun ad-advised-definition-p (definition)
   "Return non-nil if DEFINITION was generated from advice information."
@@ -2622,8 +2618,7 @@ definition (also see the defadvice for `documentation')."
 	  (ad-compiled-p definition))
       (let ((docstring (ad-docstring definition)))
 	(and (stringp docstring)
-	     (string-match
-	      ad-advised-definition-docstring-regexp docstring)))))
+	     (get-text-property 0 'ad-advice-info docstring)))))
 
 (defun ad-definition-type (definition)
   "Return symbol that describes the type of DEFINITION."
@@ -2996,7 +2991,9 @@ in any of these classes."
     (setq usage (if (null usage) t (setq origdoc (cdr usage)) (car usage)))
     (if origdoc (setq paragraphs (list origdoc)))
     (unless (eq style 'plain)
-      (push (concat "This " origtype " is advised.") paragraphs))
+      (push (propertize (concat "This " origtype " is advised.")
+			'face 'font-lock-warning-face)
+	    paragraphs))
     (ad-dolist (class ad-advice-classes)
       (ad-dolist (advice (ad-get-enabled-advices function class))
 	(setq advice-docstring
@@ -3915,24 +3912,6 @@ undone on exit of this macro."
 ;; during bootstrapping.
 (ad-define-subr-args 'documentation '(function &optional raw))
 
-(defadvice documentation (after ad-advised-docstring first disable preact)
-  "Builds an advised docstring if FUNCTION is advised."
-  ;; Because we get the function name from the advised docstring
-  ;; this will work for function names as well as for definitions:
-  (if (and (stringp ad-return-value)
-	   (string-match
-	    ad-advised-definition-docstring-regexp ad-return-value))
-      (let ((function
-	     (car (read-from-string
-		   ad-return-value (match-beginning 1) (match-end 1)))))
-	(cond ((ad-is-advised function)
-	       (setq ad-return-value (ad-make-advised-docstring function))
-	       ;; Handle optional `raw' argument:
-	       (if (not (ad-get-arg 1))
-		   (setq ad-return-value
-			 (substitute-command-keys ad-return-value))))))))
-
-
 ;; @@ Starting, stopping and recovering from the advice package magic:
 ;; ===================================================================
 
@@ -3941,9 +3920,7 @@ undone on exit of this macro."
   (interactive)
   ;; Advising `ad-activate-internal' means death!!
   (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-safe-fset 'ad-activate-internal 'ad-activate)
-  (ad-enable-advice 'documentation 'after 'ad-advised-docstring)
-  (ad-activate 'documentation 'compile))
+  (ad-safe-fset 'ad-activate-internal 'ad-activate))
 
 (defun ad-stop-advice ()
   "Stop the automatic advice handling magic.
@@ -3951,8 +3928,6 @@ You should only need this in case of Advice-related emergencies."
   (interactive)
   ;; Advising `ad-activate-internal' means death!!
   (ad-set-advice-info 'ad-activate-internal nil)
-  (ad-disable-advice 'documentation 'after 'ad-advised-docstring)
-  (ad-update 'documentation)
   (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off))
 
 (defun ad-recover-normality ()

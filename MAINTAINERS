@@ -39,7 +39,7 @@ Eli Zaretskii
 	lisp/term/tty-colors.el
 	lisp/international/codepage.el
 
-	man/msdog.texi
+	doc/emacs/msdog.texi
 
 Kenichi Handa
 	Mule
@@ -69,7 +69,14 @@ Jay Belanger
         Calc
             lisp/calc/*
             etc/calccard.tex
-            man/calc.texi
+            doc/misc/calc.texi
+
+Michael Olson
+        ERC
+            lisp/erc/*
+            etc/ERC-NEWS
+            doc/misc/erc.texi
+        lisp/emacs-lisp/tq.el
 
 ==============================================================================
 2.
@@ -79,7 +86,7 @@ Steven Tamm
 	MacOS
 
 Eli Zaretskii
-    	man/*
+    	doc/*
 	lispref/*
 	info/dir
 
@@ -111,12 +118,6 @@ Miles Bader
 
 Thien-Thi Nguyen
 	VMS
-
-Juanma Barranquero
-       lisp/bs.el
-       lisp/server.el
-       lib-src/emacsclient.c
-       lib-src/grep-changelog
 
 ==============================================================================
 3.

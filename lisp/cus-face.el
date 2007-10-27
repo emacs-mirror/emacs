@@ -40,15 +40,18 @@
     (when (fboundp 'facep)
       (unless (facep face)
 	;; If the user has already created the face, respect that.
-	(let ((value (or (get face 'saved-face) spec)))
+	(let ((value (or (get face 'saved-face) spec))
+	      (have-window-system (memq initial-window-system '(x w32))))
 	  ;; Create global face.
 	  (make-empty-face face)
 	  ;; Create frame-local faces
 	  (dolist (frame (frame-list))
-	    (face-spec-set face value frame)))
-	;; When making a face after frames already exist
-	(if (memq window-system '(x w32 mac))
-	    (make-face-x-resource-internal face))))
+	    (face-spec-set face value frame)
+	    (when (memq (window-system frame) '(x w32 mac))
+	      (setq have-window-system t)))
+	  ;; When making a face after frames already exist
+	  (if have-window-system
+	      (make-face-x-resource-internal face)))))
     ;; Don't record SPEC until we see it causes no errors.
     (put face 'face-defface-spec spec)
     (push (cons 'defface face) current-load-list)
@@ -339,16 +342,16 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 		(unless (facep face)
 		  (make-empty-face face))
 		(put face 'face-comment comment)
-		(face-spec-set face spec))
-	    (setq args (cdr args)))
-	;; Old format, a plist of FACE SPEC pairs.
-	(let ((face (nth 0 args))
-	      (spec (nth 1 args)))
-	  (if (get face 'face-alias)
-		  (setq face (get face 'face-alias)))
-	  (put face 'saved-face spec)
-	  (custom-push-theme 'theme-face face theme 'set spec))
-	(setq args (cdr (cdr args))))))))
+		(face-spec-set face spec nil))
+	      (setq args (cdr args)))
+	  ;; Old format, a plist of FACE SPEC pairs.
+	  (let ((face (nth 0 args))
+		(spec (nth 1 args)))
+	    (if (get face 'face-alias)
+		(setq face (get face 'face-alias)))
+	    (put face 'saved-face spec)
+	    (custom-push-theme 'theme-face face theme 'set spec))
+	  (setq args (cdr (cdr args))))))))
 
 ;; XEmacs compability function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply

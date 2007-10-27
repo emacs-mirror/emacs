@@ -97,7 +97,7 @@ The determination as to which compression scheme, if any, to use is
 based on the filename itself and `jka-compr-compression-info-list'."
   (catch 'compression-info
     (let ((case-fold-search nil))
-      (mapcar
+      (mapc
        (function (lambda (x)
 		   (and (string-match (jka-compr-info-regexp x) filename)
 			(throw 'compression-info x))))
@@ -186,7 +186,8 @@ options through Custom does this automatically."
   ;; can-append strip-extension-flag file-magic-bytes]
   '(["\\.Z\\(~\\|\\.~[0-9]+~\\)?\\'"
      "compressing"    "compress"     ("-c")
-     "uncompressing"  "uncompress"   ("-c")
+     ;; gzip is more common than uncompress. It can only read, not write.
+     "uncompressing"  "gzip"   ("-c" "-q" "-d")
      nil t "\037\235"]
      ;; Formerly, these had an additional arg "-c", but that fails with
      ;; "Version 0.1pl2, 29-Aug-97." (RedHat 5.1 GNU/Linux) and

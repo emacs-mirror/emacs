@@ -218,7 +218,7 @@ This environment can be passed to `macroexpand'."
 					    (buffer-file-name)
 					  (buffer-name))))
   (elint-display-log)
-  (mapcar 'elint-top-form (elint-update-env))
+  (mapc 'elint-top-form (elint-update-env))
 
   ;; Tell the user we're finished. This is terribly klugy: we set
   ;; elint-top-form-logged so elint-log-message doesn't print the
@@ -542,11 +542,11 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 (defun elint-check-defun-form (form env)
   "Lint a defun/defmacro/lambda FORM in ENV."
   (setq form (if (eq (car form) 'lambda) (cdr form) (cdr (cdr form))))
-  (mapcar (function (lambda (p)
-		      (or (memq p '(&optional &rest))
-			  (setq env (elint-env-add-var env p)))
-		      ))
-	  (car form))
+  (mapc (function (lambda (p)
+		    (or (memq p '(&optional &rest))
+			(setq env (elint-env-add-var env p)))
+		    ))
+	(car form))
   (elint-forms (cdr form) env))
 
 (defun elint-check-let-form (form env)
@@ -566,21 +566,21 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 
       ;; Add variables to environment, and check the init values
       (let ((newenv env))
-	(mapcar (function (lambda (s)
-			    (cond
-			     ((symbolp s)
-			      (setq newenv (elint-env-add-var newenv s)))
-			     ((and (consp s) (<= (length s) 2))
-			      (elint-form (car (cdr s))
-					  (if (eq (car form) 'let)
-					      env
-					    newenv))
-			      (setq newenv
-				    (elint-env-add-var newenv (car s))))
-			     (t (elint-error
-				 "Malformed `let' declaration: %s" s))
-			     )))
-		varlist)
+	(mapc (function (lambda (s)
+			  (cond
+			   ((symbolp s)
+			    (setq newenv (elint-env-add-var newenv s)))
+			   ((and (consp s) (<= (length s) 2))
+			    (elint-form (car (cdr s))
+					(if (eq (car form) 'let)
+					    env
+					  newenv))
+			    (setq newenv
+				  (elint-env-add-var newenv (car s))))
+			   (t (elint-error
+			       "Malformed `let' declaration: %s" s))
+			   )))
+	      varlist)
 
 	;; Lint the body forms
 	(elint-forms (cdr (cdr form)) newenv)
@@ -665,18 +665,18 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 	    errlist)
 	(while errforms
 	  (setq errlist (car (car errforms)))
-	  (mapcar (function (lambda (s)
-			      (or (get s 'error-conditions)
-				  (get s 'error-message)
-				  (elint-warning
-				   "Not an error symbol in error handler: %s" s))))
-		  (cond
-		   ((symbolp errlist) (list errlist))
-		   ((listp errlist) errlist)
-		   (t (elint-error "Bad error list in error handler: %s"
-				   errlist)
-		      nil))
-		  )
+	  (mapc (function (lambda (s)
+			    (or (get s 'error-conditions)
+				(get s 'error-message)
+				(elint-warning
+				 "Not an error symbol in error handler: %s" s))))
+		(cond
+		  ((symbolp errlist) (list errlist))
+		  ((listp errlist) errlist)
+		  (t (elint-error "Bad error list in error handler: %s"
+				  errlist)
+		     nil))
+		)
 	  (elint-forms (cdr (car errforms)) newenv)
 	  (setq errforms (cdr errforms))
 	  )))
@@ -767,11 +767,11 @@ Insert HEADER followed by a blank line if non-nil."
 (defun elint-initialize ()
   "Initialize elint."
   (interactive)
-  (mapcar (function (lambda (x)
-		      (or (not (symbolp (car x)))
-			  (eq (cdr x) 'unknown)
-			  (put (car x) 'elint-args (cdr x)))))
-	  (elint-find-builtin-args))
+  (mapc (function (lambda (x)
+		    (or (not (symbolp (car x)))
+			(eq (cdr x) 'unknown)
+			(put (car x) 'elint-args (cdr x)))))
+	(elint-find-builtin-args))
   (mapcar (function (lambda (x)
 		      (put (car x) 'elint-args (cdr x))))
 	  elint-unknown-builtin-args))

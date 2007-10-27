@@ -506,7 +506,7 @@ See also `coding-category-list'."
 (defun coding-system-base (coding-system)
   "Return the base coding system of CODING-SYSTEM.
 A base coding system is what made by `make-coding-system'.
-Any alias nor subsidiary coding systems are not base coding system."
+Neither aliases nor subsidiary coding systems are base coding systems."
   (car (coding-system-get coding-system 'alias-coding-systems)))
 
 ;; Coding system also has a property `eol-type'.
@@ -1234,13 +1234,17 @@ see) to CODING-SYSTEM."
 This is normally set according to the selected language environment.
 See also the command `set-terminal-coding-system'.")
 
-(defun set-terminal-coding-system (coding-system)
-  "Set coding system of your terminal to CODING-SYSTEM.
-All text output to the terminal will be encoded
+(defun set-terminal-coding-system (coding-system &optional display)
+  "Set coding system of terminal output to CODING-SYSTEM.
+All text output to DISPLAY will be encoded
 with the specified coding system.
+
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
-or by the previous use of this command."
+or by the previous use of this command.
+
+DISPLAY may be a display id, a frame, or nil for the selected frame's display.
+The setting has no effect on graphical displays."
   (interactive
    (list (let ((default (if (and (not (terminal-coding-system))
 				 default-terminal-coding-system)
@@ -1254,7 +1258,7 @@ or by the previous use of this command."
       (setq coding-system default-terminal-coding-system))
   (if coding-system
       (setq default-terminal-coding-system coding-system))
-  (set-terminal-coding-system-internal coding-system)
+  (set-terminal-coding-system-internal coding-system display)
   (redraw-frame (selected-frame)))
 
 (defvar default-keyboard-coding-system nil
@@ -1262,14 +1266,17 @@ or by the previous use of this command."
 This is normally set according to the selected language environment.
 See also the command `set-keyboard-coding-system'.")
 
-(defun set-keyboard-coding-system (coding-system)
-  "Set coding system for keyboard input to CODING-SYSTEM.
-In addition, this command enables Encoded-kbd minor mode.
-\(If CODING-SYSTEM is nil, Encoded-kbd mode is turned off -- see
-`encoded-kbd-mode'.)
+(defun set-keyboard-coding-system (coding-system &optional display)
+  "Set coding system for keyboard input on DISPLAY to CODING-SYSTEM.
+In addition, this command calls `encoded-kbd-setup-display' to set up the
+translation of keyboard input events to the specified coding system.
+
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
-or by the previous use of this command."
+or by the previous use of this command.
+
+DISPLAY may be a display id, a frame, or nil for the selected frame's display.
+The setting has no effect on graphical displays."
   (interactive
    (list (let ((default (if (and (not (keyboard-coding-system))
 				 default-keyboard-coding-system)
@@ -1286,9 +1293,9 @@ or by the previous use of this command."
   (if (and coding-system
 	   (coding-system-get coding-system 'ascii-incompatible))
       (error "%s is not ASCII-compatible" coding-system))
-  (set-keyboard-coding-system-internal coding-system)
+  (set-keyboard-coding-system-internal coding-system display)
   (setq keyboard-coding-system coding-system)
-  (encoded-kbd-mode (if coding-system 1 0)))
+  (encoded-kbd-setup-display display))
 
 (defcustom keyboard-coding-system nil
   "Specify coding system for keyboard input.
@@ -1304,8 +1311,8 @@ use either \\[customize] or \\[set-keyboard-coding-system]."
   :link '(info-link "(emacs)Terminal Coding")
   :link '(info-link "(emacs)Unibyte Mode")
   :set (lambda (symbol value)
-	 ;; Don't load encoded-kbd-mode unnecessarily.
-	 (if (or value (boundp 'encoded-kbd-mode))
+	 ;; Don't load encoded-kb unnecessarily.
+	 (if (or value (boundp 'encoded-kbd-setup-display))
 	     (set-keyboard-coding-system value)
 	   (set-default 'keyboard-coding-system nil))) ; must initialize
   :version "22.1"
@@ -1582,8 +1589,9 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 (defcustom auto-coding-alist
   ;; .exe and .EXE are added to support archive-mode looking at DOS
   ;; self-extracting exe archives.
-  '(("\\.\\(arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|exe\\)\\'" . no-conversion)
-    ("\\.\\(ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|EXE\\)\\'" . no-conversion)
+  '(("\\.\\(\
+arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|exe\\|rar\\|\
+ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|EXE\\|RAR\\)\\'" . no-conversion)
     ("\\.\\(sx[dmicw]\\|odt\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
@@ -2303,25 +2311,26 @@ This function is intended to be added to `auto-coding-functions'."
 (defun sgml-html-meta-auto-coding-function (size)
   "If the buffer has an HTML meta tag, use it to determine encoding.
 This function is intended to be added to `auto-coding-functions'."
-  (setq size (min (+ (point) size)
-		  (save-excursion
-		    ;; Limit the search by the end of the HTML header.
-		    (or (search-forward "</head>" size t)
-			;; In case of no header, search only 10 lines.
-			(forward-line 10))
-		    (point))))
-  ;; Make sure that the buffer really contains an HTML document, by
-  ;; checking that it starts with a doctype or a <HTML> start tag
-  ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
-  ;; useful for Mozilla bookmark files.
-  (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
-	     (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t))
-    (let* ((match (match-string 1))
-	   (sym (intern (downcase match))))
-      (if (coding-system-p sym)
-	  sym
-	(message "Warning: unknown coding system \"%s\"" match)
-	nil))))
+  (let ((case-fold-search t))
+    (setq size (min (+ (point) size)
+		    (save-excursion
+		      ;; Limit the search by the end of the HTML header.
+		      (or (search-forward "</head>" size t)
+			  ;; In case of no header, search only 10 lines.
+			  (forward-line 10))
+		      (point))))
+    ;; Make sure that the buffer really contains an HTML document, by
+    ;; checking that it starts with a doctype or a <HTML> start tag
+    ;; (allowing for whitespace at bob).  Note: 'DOCTYPE NETSCAPE' is
+    ;; useful for Mozilla bookmark files.
+    (when (and (re-search-forward "\\`[[:space:]\n]*\\(<!doctype[[:space:]\n]+\\(html\\|netscape\\)\\|<html\\)" size t)
+	       (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t))
+      (let* ((match (match-string 1))
+	     (sym (intern (downcase match))))
+	(if (coding-system-p sym)
+	    sym
+	  (message "Warning: unknown coding system \"%s\"" match)
+	  nil)))))
 
 ;;;
 (provide 'mule)

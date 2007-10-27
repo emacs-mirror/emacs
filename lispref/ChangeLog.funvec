@@ -1,9 +1,0 @@
-2004-05-16  Miles Bader  <miles@gnu.org>
-
-	* objects.texi (Funvec Type): Renamed from `Byte-Code Type'.
-	Add description of general funvec objects.
-	* functions.texi (What Is a Function): Add entry for funvecs,
-	adjust byte-code function entry accordingly.
-	(Function Currying): New node.
-
-;; arch-tag: 042385eb-80a4-4aba-b436-d358156641a5

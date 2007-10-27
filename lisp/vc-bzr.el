@@ -5,7 +5,7 @@
 ;; Author: Dave Love <fx@gnu.org>, Riccardo Murri <riccardo.murri@gmail.com>
 ;; Keywords: tools
 ;; Created: Sept 2006
-;; Version: 2007-08-03
+;; Version: 2007-09-05
 ;; URL: http://launchpad.net/vc-bzr
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -105,6 +105,8 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
   (concat vc-bzr-admin-dirname "/branch/format"))
 (defconst vc-bzr-admin-revhistory
   (concat vc-bzr-admin-dirname "/branch/revision-history"))
+(defconst vc-bzr-admin-lastrev
+  (concat vc-bzr-admin-dirname "/branch/last-revision"))
 
 ;;;###autoload (defun vc-bzr-registered (file)
 ;;;###autoload   (if (vc-find-root file vc-bzr-admin-checkout-format-file)
@@ -162,7 +164,7 @@ running `vc-bzr-state'."
   (lexical-let*
       ((filename* (expand-file-name filename))
        (rootdir (vc-bzr-root (file-name-directory filename*))))
-    (and rootdir 
+    (when rootdir 
          (file-relative-name filename* rootdir))))
 
 ;; FIXME:  Also get this in a non-registered sub-directory.
@@ -198,13 +200,13 @@ If any error occurred in running `bzr status', then return nil."
                          (if (file-directory-p file) "/?" "")
                          "[ \t\n]*$")
                  nil t)
-            (let ((status (match-string 1)))
+            (lexical-let ((statusword (match-string 1)))
               ;; Erase the status text that matched.
               (delete-region (match-beginning 0) (match-end 0))
               (setq status
                     (and (equal ret 0) ; Seems redundant.  --Stef
                          (intern (replace-regexp-in-string " " ""
-                                                           status))))))
+                                                         statusword))))))
           (when status
             (goto-char (point-min))
             (skip-chars-forward " \n\t") ;Throw away spaces.
@@ -236,15 +238,15 @@ If any error occurred in running `bzr status', then return nil."
 (defun vc-bzr-workfile-unchanged-p (file)
   (eq 'unchanged (car (vc-bzr-status file))))
 
-(defun vc-bzr-workfile-version (file)
+(defun vc-bzr-working-revision (file)
   (lexical-let*
       ((rootdir (vc-bzr-root file))
-       (branch-format-file (concat rootdir "/" vc-bzr-admin-branch-format-file))
-       (revhistory-file (concat rootdir "/" vc-bzr-admin-revhistory))
-       (lastrev-file (concat rootdir "/" "branch/last-revision")))
-    ;; Count lines in .bzr/branch/revision-history to avoid forking a
-    ;; bzr process.  This looks at internal files.  May break if they
-    ;; change their format.
+       (branch-format-file (expand-file-name vc-bzr-admin-branch-format-file
+                                             rootdir))
+       (revhistory-file (expand-file-name vc-bzr-admin-revhistory rootdir))
+       (lastrev-file (expand-file-name vc-bzr-admin-lastrev rootdir)))
+    ;; This looks at internal files to avoid forking a bzr process.
+    ;; May break if they change their format.
     (if (file-exists-p branch-format-file)
         (with-temp-buffer
           (insert-file-contents branch-format-file) 
@@ -259,7 +261,6 @@ If any error occurred in running `bzr status', then return nil."
            ((looking-at "Bazaar Branch Format 6 (bzr 0.15)")
             ;; revno is the first number in .bzr/branch/last-revision
             (insert-file-contents lastrev-file) 
-            (goto-char (line-end-position))
             (if (re-search-forward "[0-9]+" nil t)
                 (buffer-substring (match-beginning 0) (match-end 0))))))
       ;; fallback to calling "bzr revno"
@@ -283,7 +284,7 @@ If any error occurred in running `bzr status', then return nil."
   "Register FILE under bzr.
 Signal an error unless REV is nil.
 COMMENT is ignored."
-  (if rev (error "Can't register explicit version with bzr"))
+  (if rev (error "Can't register explicit revision with bzr"))
   (vc-bzr-command "add" nil 0 files))
 
 ;; Could run `bzr status' in the directory and see if it succeeds, but
@@ -312,7 +313,7 @@ or a superior directory.")
 (defun vc-bzr-checkin (files rev comment)
   "Check FILE in to bzr with log message COMMENT.
 REV non-nil gets an error."
-  (if rev (error "Can't check in a specific version with bzr"))
+  (if rev (error "Can't check in a specific revision with bzr"))
   (vc-bzr-command "commit" nil 0 files "-m" comment))
 
 (defun vc-bzr-checkout (file &optional editable rev destfile)
@@ -364,11 +365,11 @@ EDITABLE is ignored."
   (unless (fboundp 'vc-default-log-view-mode)
     (add-hook 'log-view-mode-hook 'vc-bzr-log-view-mode)))
 
-(defun vc-bzr-show-log-entry (version)
-  "Find entry for patch name VERSION in bzr change log buffer."
+(defun vc-bzr-show-log-entry (revision)
+  "Find entry for patch name REVISION in bzr change log buffer."
   (goto-char (point-min))
   (let (case-fold-search)
-    (if (re-search-forward (concat "^-+\nrevno: " version "$") nil t)
+    (if (re-search-forward (concat "^-+\nrevno: " revision "$") nil t)
         (beginning-of-line 0)
       (goto-char (point-min)))))
 
@@ -376,7 +377,7 @@ EDITABLE is ignored."
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  (let ((working (vc-workfile-version (if (consp files) (car files) files))))
+  (let ((working (vc-working-revision (if (consp files) (car files) files))))
     (if (and (equal rev1 working) (not rev2))
         (setq rev1 nil))
     (if (and (not rev1) rev2)
@@ -393,8 +394,8 @@ EDITABLE is ignored."
 (defalias 'vc-bzr-diff-tree 'vc-bzr-diff)
 
 
-;; FIXME: vc-{next,previous}-version need fixing in vc.el to deal with
-;; straight integer versions.
+;; FIXME: vc-{next,previous}-revision need fixing in vc.el to deal with
+;; straight integer revisions.
 
 (defun vc-bzr-delete-file (file)
   "Delete FILE and delete it in the bzr repository."
@@ -411,18 +412,18 @@ EDITABLE is ignored."
   "Internal use.")
 (make-variable-buffer-local 'vc-bzr-annotation-table)
 
-(defun vc-bzr-annotate-command (file buffer &optional version)
+(defun vc-bzr-annotate-command (file buffer &optional revision)
   "Prepare BUFFER for `vc-annotate' on FILE.
 Each line is tagged with the revision number, which has a `help-echo'
 property containing author and date information."
-  (apply #'vc-bzr-command "annotate" buffer 0 file "-l" "--all"
-         (if version (list "-r" version)))
+  (apply #'vc-bzr-command "annotate" buffer 0 file "--long" "--all"
+         (if revision (list "-r" revision)))
   (with-current-buffer buffer
     ;; Store the tags for the annotated source lines in a hash table
     ;; to allow saving space by sharing the text properties.
     (setq vc-bzr-annotation-table (make-hash-table :test 'equal))
     (goto-char (point-min))
-    (while (re-search-forward "^\\( *[0-9]+\\) \\(.+\\) +\\([0-9]\\{8\\}\\) |"
+    (while (re-search-forward "^\\( *[0-9]+\\) +\\(.+\\) +\\([0-9]\\{8\\}\\) |"
                               nil t)
       (let* ((rev (match-string 1))
              (author (match-string 2))
@@ -430,9 +431,6 @@ property containing author and date information."
              (key (match-string 0))
              (tag (gethash key vc-bzr-annotation-table)))
         (unless tag
-          (save-match-data
-            (string-match " +\\'" author)
-            (setq author (substring author 0 (match-beginning 0))))
           (setq tag (propertize rev 'help-echo (concat "Author: " author
                                                        ", date: " date)
                                 'mouse-face 'highlight))
@@ -548,7 +546,7 @@ Optional argument LOCALP is always ignored."
               (vc-file-setprop file 'vc-state current-vc-state)
               (vc-file-setprop file 'vc-bzr-state current-bzr-state)
               (when (eq 'added current-bzr-state)
-                (vc-file-setprop file 'vc-workfile-version "0"))))
+                (vc-file-setprop file 'vc-working-revision "0"))))
           (when (eq 'not-versioned current-bzr-state)
             (let ((file (expand-file-name
                          (buffer-substring-no-properties
@@ -572,7 +570,6 @@ Optional argument LOCALP is always ignored."
 
 (eval-after-load "vc"
   '(add-to-list 'vc-directory-exclusion-list vc-bzr-admin-dirname t))
-
 
 (provide 'vc-bzr)
 ;; arch-tag: 8101bad8-4e92-4e7d-85ae-d8e08b4e7c06

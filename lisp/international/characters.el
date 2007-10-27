@@ -1353,9 +1353,9 @@
 (setq utf-translate-cjk-mode saved-utf-translate-cjk-mode)
 (makunbound 'saved-utf-translate-cjk-mode)
 
-;;; Local Variables:
-;;; coding: iso-2022-7bit
-;;; End:
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
 
-;;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
+;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
 ;;; characters.el ends here

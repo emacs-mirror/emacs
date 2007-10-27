@@ -8,7 +8,7 @@
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
@@ -426,7 +426,7 @@ nil if not found."
 (defun org-publish-get-plist-from-filename (filename)
   "Return publishing configuration plist for file FILENAME."
   (let ((found nil))
-    (mapcar
+    (mapc
      (lambda (plist)
        (let ((files (org-publish-get-base-files plist)))
  	 (if (member (expand-file-name filename) files)

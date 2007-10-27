@@ -66,7 +66,7 @@
   (if (url-user url)
       ;; malformed mailto URL (mailto://wmperry@gnu.org) instead of
       ;; mailto:wmperry@gnu.org
-      (url-set-filename url (concat (url-user url) "@" (url-filename url))))
+      (setf (url-filename url) (concat (url-user url) "@" (url-filename url))))
   (setq url (url-filename url))
   (let (to args source-url subject func headers-start)
     (if (string-match (regexp-quote "?") url)

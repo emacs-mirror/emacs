@@ -227,7 +227,7 @@
     (list* '("BASE") '("HEAD")
 	   (when marked
 	     (with-temp-buffer
-	       (call-process cvs-program
+	       (process-file cvs-program
 			     nil	;no input
 			     t		;output to current-buffer
 			     nil	;don't update display while running
@@ -564,7 +564,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	       (process
 		;; the process will be run in the selected dir
 		(let ((default-directory (cvs-expand-dir-name dir)))
-		  (apply 'start-process "cvs" procbuf cvs-program args))))
+		  (apply 'start-file-process "cvs" procbuf cvs-program args))))
 	  ;; setup the process.
 	  (process-put process 'cvs-buffer cvs-buffer)
 	  (with-current-buffer cvs-buffer (cvs-update-header msg 'add))
@@ -635,6 +635,9 @@ If non-nil, NEW means to create a new buffer no matter what."
           (if (not (string-match "." str)) (setq str "\n"))
           (setq str (concat "-- Running " cmd " ...\n" str)))
       (if (not (string-match
+                ;; FIXME:  If `cmd' is large, this will bump into the
+                ;; compiled-regexp size limit.  We could drop the "^" anchor
+                ;; and use search-forward to circumvent the problem.
 		(concat "^-- Running " (regexp-quote cmd) " \\.\\.\\.\n") str))
 	  (error "Internal PCL-CVS error while removing message")
 	(setq str (replace-match "" t t str))
@@ -1733,7 +1736,7 @@ Signal an error if there is no backup file."
 	  ;; problem when stdout and stderr are the same.
 	  (let ((res
                  (let ((coding-system-for-read 'binary))
-                   (apply 'call-process cvs-program nil '(t nil) nil
+                   (apply 'process-file cvs-program nil '(t nil) nil
                           "-q" "update" "-p"
                           ;; If `rev' is HEAD, don't pass it at all:
                           ;; the default behavior is to get the head
@@ -2003,7 +2006,7 @@ to hear about anymore."
 
 (defun cvs-find-modif (fi)
   (with-temp-buffer
-    (call-process cvs-program nil (current-buffer) nil
+    (process-file cvs-program nil (current-buffer) nil
 		  "-f" "diff" (cvs-fileinfo->file fi))
     (goto-char (point-min))
     (if (re-search-forward "^\\([0-9]+\\)" nil t)
@@ -2210,13 +2213,21 @@ With prefix argument, prompt for cvs flags."
 (defun-cvs-mode cvs-mode-add-change-log-entry-other-window ()
   "Add a ChangeLog entry in the ChangeLog of the current directory."
   (interactive)
+  ;; Require `add-log' explicitly, because if it gets autoloaded when we call
+  ;; add-change-log-entry-other-window below, the
+  ;; add-log-buffer-file-name-function ends up unbound when we leave the `let'.
+  (require 'add-log)
   (dolist (fi (cvs-mode-marked nil nil))
     (let* ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
-	   (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
-      (if (file-directory-p buffer-file-name)
-          ;; Be careful to use a directory name, otherwise add-log starts
-          ;; looking for a ChangeLog file in the parent dir.
-          (setq buffer-file-name (file-name-as-directory buffer-file-name)))
+	   (add-log-buffer-file-name-function
+            (lambda ()
+              (let ((file (expand-file-name (cvs-fileinfo->file fi))))
+                (if (file-directory-p file)
+                    ;; Be careful to use a directory name, otherwise add-log
+                    ;; starts looking for a ChangeLog file in the
+                    ;; parent dir.
+                    (file-name-as-directory file)
+                  file)))))
       (kill-local-variable 'change-log-default-name)
       (save-excursion (add-change-log-entry-other-window)))))
 
@@ -2257,7 +2268,7 @@ With prefix argument, prompt for cvs flags."
 			program (split-string-and-unquote args)))
 
 	;; FIXME: return the exit status?
-	(apply 'call-process program nil t t args)
+	(apply 'process-file program nil t t args)
 	(goto-char (point-max))))))
 
 ;; FIXME: make this run in the background ala cvs-run-process...
@@ -2400,7 +2411,7 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
   (let* ((file (expand-file-name buffer-file-name))
 	 (version (and (fboundp 'vc-backend)
 		       (eq (vc-backend file) 'CVS)
-		       (vc-workfile-version file))))
+		       (vc-working-revision file))))
     (when version
       (save-excursion
 	(dolist (cvs-buf (buffer-list))

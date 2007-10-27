@@ -154,10 +154,10 @@ echo Version numbers are $version and $shortversion
 
 if [ $update = yes ];
 then
-  if grep -s "@set EMACSVER  *${shortversion}" ./man/emacs.texi > /dev/null; then
+  if grep -s "@set EMACSVER  *${shortversion}" ./doc/emacs/emacs.texi > /dev/null; then
     true
   else
-    echo "You must update the version number in \`./man/emacs.texi'"
+    echo "You must update the version number in \`./doc/emacs/emacs.texi'"
     sleep 5
   fi
 fi
@@ -242,9 +242,10 @@ fi
 if [ $update = yes ];
 then
   echo "Updating Info files"
-  (cd man; make -f Makefile.in srcdir=. info)
-  (cd lispref; make -f Makefile.in srcdir=. info)
-  (cd lispintro; make -f Makefile.in SHELL=/bin/sh srcdir=. info VPATH=.)
+  (cd doc/emacs; make -f Makefile.in srcdir=. info)
+  (cd doc/misc; make -f Makefile.in srcdir=. info)
+  (cd doc/lispref; make -f Makefile.in srcdir=. info)
+  (cd doc/lispintro; make -f Makefile.in SHELL=/bin/sh srcdir=. info VPATH=.)
 
   echo "Updating finder, custom and autoload data"
   (cd lisp; make updates EMACS="$EMACS")
@@ -293,7 +294,7 @@ mkdir ${tempdir}
 ### tar file; this means that people can start reading the INSTALL and
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
-ln AUTHORS FTP INSTALL README BUGS CONTRIBUTE move-if-change ${tempdir}
+ln FTP INSTALL README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
@@ -312,7 +313,7 @@ echo "Updating version number in README"
 
 
 echo "Creating subdirectories"
-for subdir in lisp site-lisp lispref lispintro \
+for subdir in lisp site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
@@ -322,7 +323,8 @@ for subdir in lisp site-lisp lispref lispintro \
 	      etc/images/icons etc/images/low-color etc/images/mail \
 	      etc/images/smilies etc/images/tree-widget \
     	      etc/images/tree-widget/default etc/images/tree-widget/folder \
-	      etc/refcards etc/tutorials info man m4 msdos vms mac mac/inc \
+	      etc/refcards etc/tutorials info doc doc/emacs doc/misc doc/man \
+	      doc/lispref doc/lispintro m4 msdos vms mac mac/inc \
 	      mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
@@ -570,7 +572,6 @@ echo "Making links to \`lwlib'"
 echo "Making links to \`etc'"
 ### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
 ### tex litter.
-### Don't distribute gfdl.1, since no man page references it.
 (cd etc
  files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
         | grep -v '^images$' | grep -v '^refcards$' | grep -v '^tutorials$'`
@@ -592,7 +593,7 @@ echo "Making links to \`etc'"
    fi
  done
  cd ../${tempdir}/etc
- rm -f fns*.el gfdl.1
+ rm -f fns*.el
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
@@ -639,43 +640,58 @@ echo "Making links to \`info'"
  ln emacs dummy~ ; ln emacs \#dummy\#
  rm -f *~ \#*\# core)
 
-echo "Making links to \`man'"
-(cd man
- ln *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
- ln makefile.w32-in ../${tempdir}/man
- test -f README && ln README ../${tempdir}/man
- test -f Makefile.in && ln Makefile.in ../${tempdir}/man
- ln ChangeLog ../${tempdir}/man
- test -f split-man && ln split-man ../${tempdir}/man
- cp texinfo.tex ../${tempdir}/man
- cd ../${tempdir}/man
+echo "Making links to \`doc/emacs'"
+(cd doc/emacs
+ ln *.texi *.aux *.cps *.fns *.kys *.vrs ../../${tempdir}/doc/emacs
+ ln makefile.w32-in ../../${tempdir}/doc/emacs
+ test -f README && ln README ../../${tempdir}/doc/emacs
+ test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/emacs
+ ln ChangeLog ../../${tempdir}/doc/emacs
+ cp texinfo.tex ../../${tempdir}/doc/emacs
+ cd ../../${tempdir}/doc/emacs
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
 
-echo "Making links to \`lispref'"
-(cd lispref
- ln `ls -1 *.texi` ../${tempdir}/lispref
- ln *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/lispref
- ln *.txt *.el spellfile tindex.pl ../${tempdir}/lispref
- ln makefile.w32-in ../${tempdir}/lispref
- test -f README && ln README ../${tempdir}/lispref
- test -f Makefile.in && ln Makefile.in ../${tempdir}/lispref
- ln ChangeLog ../${tempdir}/lispref
- cd ../${tempdir}/lispref
+echo "Making links to \`doc/misc'"
+(cd doc/misc
+ ln *.texi *.aux *.cps *.fns *.kys *.vrs ../../${tempdir}/doc/misc
+ ln makefile.w32-in ../../${tempdir}/doc/misc
+ test -f README && ln README ../../${tempdir}/doc/misc
+ test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/misc
+ ln ChangeLog ../../${tempdir}/doc/misc
+ cp texinfo.tex ../../${tempdir}/doc/misc
+ cd ../../${tempdir}/doc/misc
+ rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
+ rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
+
+echo "Making links to \`doc/lispref'"
+(cd doc/lispref
+ ln `ls -1 *.texi` ../../${tempdir}/doc/lispref
+ ln *.aux *.cps *.fns *.kys *.vrs ../../${tempdir}/doc/lispref
+ ln *.txt *.el spellfile tindex.pl ../../${tempdir}/doc/lispref
+ ln makefile.w32-in ../../${tempdir}/doc/lispref
+ test -f README && ln README ../../${tempdir}/doc/lispref
+ test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/lispref
+ ln ChangeLog ../../${tempdir}/doc/lispref
+ cd ../../${tempdir}/doc/lispref
  rm -f \#*\# =* *~ core elisp-index* *.Z *.z xmail
  rm -f elisp.?? *.log *.toc *.dvi *.oaux)
 
-echo "Making links to \`lispintro'"
-(cd lispintro
- ln *.texi *.aux *.cps *.fns *.kys *.vrs *.eps ../${tempdir}/lispintro
- ln makefile.w32-in ../${tempdir}/lispintro
- test -f texinfo.tex && ln texinfo.tex ../${tempdir}/lispintro
- test -f README && ln README ../${tempdir}/lispintro
- test -f Makefile.in && ln Makefile.in ../${tempdir}/lispintro
- ln ChangeLog ../${tempdir}/lispintro
- cd ../${tempdir}/lispintro
+echo "Making links to \`doc/lispintro'"
+(cd doc/lispintro
+ ln *.texi *.aux *.cps *.fns *.kys *.vrs *.eps ../../${tempdir}/doc/lispintro
+ ln makefile.w32-in ../../${tempdir}/doc/lispintro
+ test -f texinfo.tex && ln texinfo.tex ../../${tempdir}/doc/lispintro
+ test -f README && ln README ../../${tempdir}/doc/lispintro
+ test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/lispintro
+ ln ChangeLog ../../${tempdir}/doc/lispintro
+ cd ../../${tempdir}/doc/lispintro
  rm -f \#*\# =* *~ core *.Z *.z xmail
  rm -f emacs-lisp-intro.?? *.log *.toc *.dvi *.oaux)
+
+echo "Making links to \`doc/man'"
+(cd doc/man
+ ln *.1 ../../${tempdir}/doc/man)
 
 echo "Making links to \`vms'"
 (cd vms

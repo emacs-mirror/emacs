@@ -56,7 +56,6 @@
 
 ;; silence compiler
 (defvar dabbrev-case-fold-search)
-(defvar font-lock-syntactic-keywords)
 (defvar gud-find-expr-function)
 (defvar imenu-case-fold-search)
 (defvar imenu-syntax-alist)
@@ -151,7 +150,7 @@ You might want to change this to \"*\", for instance."
 ;; filling and doesn't seem to be necessary.
 (defcustom fortran-comment-line-start-skip
   "^[CcDd*!]\\(\\([^ \t\n]\\)\\2+\\)?[ \t]*"
-  "*Regexp to match the start of a full-line comment."
+  "Regexp to match the start of a full-line comment."
   :version "21.1"
   :type    'regexp
   :group   'fortran-comment)
@@ -650,7 +649,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
 (let (abbrevs-changed)
   ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
   ;; Only use `apply' to quieten the byte-compiler.
-  (mapcar
+  (mapc
    (function (lambda (element)
                (condition-case nil
                    (apply 'define-abbrev fortran-mode-abbrev-table
@@ -827,9 +826,9 @@ with no args, if that value is non-nil."
           fortran-font-lock-keywords-3
           fortran-font-lock-keywords-4)
          nil t ((?/ . "$/") ("_$" . "w"))
-         fortran-beginning-of-subprogram))
-  (set (make-local-variable 'font-lock-syntactic-keywords)
-       (fortran-font-lock-syntactic-keywords))
+         fortran-beginning-of-subprogram
+         (font-lock-syntactic-keywords
+          . (fortran-font-lock-syntactic-keywords))))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
        fortran-imenu-generic-expression)
@@ -853,20 +852,20 @@ Fortran mode.  If the optional argument GLOBAL is non-nil, it
 affects all Fortran buffers, and also the default."
   (interactive "p")
   (let (new)
-    (mapcar (lambda (buff)
-              (with-current-buffer buff
-                (when (eq major-mode 'fortran-mode)
-                  (setq fortran-line-length nchars
-                        fill-column fortran-line-length
-                        new (fortran-font-lock-syntactic-keywords))
-                  ;; Refontify only if necessary.
-                  (unless (equal new font-lock-syntactic-keywords)
-                    (setq font-lock-syntactic-keywords
-                          (fortran-font-lock-syntactic-keywords))
-                    (if font-lock-mode (font-lock-mode 1))))))
-            (if global
-                (buffer-list)
-              (list (current-buffer))))
+    (mapc (lambda (buff)
+            (with-current-buffer buff
+              (when (eq major-mode 'fortran-mode)
+                (setq fortran-line-length nchars
+                      fill-column fortran-line-length
+                      new (fortran-font-lock-syntactic-keywords))
+                ;; Refontify only if necessary.
+                (unless (equal new font-lock-syntactic-keywords)
+                  (setq font-lock-syntactic-keywords
+                        (fortran-font-lock-syntactic-keywords))
+                  (if font-lock-mode (font-lock-mode 1))))))
+          (if global
+              (buffer-list)
+            (list (current-buffer))))
     (if global
         (setq-default fortran-line-length nchars))))
 

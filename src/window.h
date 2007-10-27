@@ -92,7 +92,7 @@ struct window
   {
     /* The first two fields are really the header of a vector */
     /* The window code does not refer to them.  */
-    EMACS_INT size;
+    EMACS_UINT size;
     struct Lisp_Vector *vec_next;
     /* The frame this window is on.  */
     Lisp_Object frame;
@@ -744,7 +744,7 @@ extern Lisp_Object Vminibuf_scroll_window;
 /* Nil or a symbol naming the window system under which emacs is
    running ('x is the only current possibility) */
 
-extern Lisp_Object Vwindow_system;
+extern Lisp_Object Vinitial_window_system;
 
 /* Version number of X windows: 10, 11 or nil.  */
 

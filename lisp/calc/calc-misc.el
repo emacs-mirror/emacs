@@ -145,9 +145,9 @@ Calc user interface as before (either C-x * C or C-x * K; initially C-x * C).
   "Create another, independent Calculator buffer."
   (interactive)
   (if (eq major-mode 'calc-mode)
-      (mapcar (function
-	       (lambda (v)
-		 (set-default v (symbol-value v)))) calc-local-var-list))
+      (mapc (function
+	     (lambda (v)
+	      (set-default v (symbol-value v)))) calc-local-var-list))
   (set-buffer (generate-new-buffer "*Calculator*"))
   (pop-to-buffer (current-buffer))
   (calc-mode))

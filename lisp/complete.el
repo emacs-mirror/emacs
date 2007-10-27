@@ -596,9 +596,10 @@ GOTO-END is non-nil, however, it instead replaces up to END."
           (setq poss (all-completions (if env-on basestr str)
 				      table
 				      pred))
-          (unless poss
+          (unless (or poss (string-equal str ""))
             ;; Try completion as an abbreviation, e.g. "mvb" ->
-            ;; "m-v-b" -> "multiple-value-bind"
+            ;; "m-v-b" -> "multiple-value-bind", but only for
+            ;; non-empty strings.
             (setq origstr str
                   abbreviated t)
             (if filename

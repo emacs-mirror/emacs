@@ -542,15 +542,16 @@ Otherwise, one argument `-i' is passed to the shell.
   (interactive
    (list
     (and current-prefix-arg
-	 (read-buffer "Shell buffer: "
-		      (generate-new-buffer-name "*shell*"))
-	 (file-remote-p default-directory)
-	 ;; It must be possible to declare a local default-directory.
-	 (setq default-directory
-	       (expand-file-name
-		(read-file-name
-		 "Default directory: " default-directory default-directory
-		 t nil 'file-directory-p))))))
+	 (prog1
+	     (read-buffer "Shell buffer: "
+			  (generate-new-buffer-name "*shell*"))
+	   (if (file-remote-p default-directory)
+	       ;; It must be possible to declare a local default-directory.
+	       (setq default-directory
+		     (expand-file-name
+		      (read-file-name
+		       "Default directory: " default-directory default-directory
+		       t nil 'file-directory-p))))))))
   (setq buffer (get-buffer-create (or buffer "*shell*")))
   ;; Pop to buffer, so that the buffer's window will be correctly set
   ;; when we call comint (so that comint sets the COLUMNS env var properly).
@@ -807,51 +808,54 @@ new directory stack -- you lose.  If this happens, just do the
 command again."
   (interactive)
   (let* ((proc (get-buffer-process (current-buffer)))
-	 (pmark (process-mark proc)))
-    (goto-char pmark)
-    ;; If the process echoes commands, don't insert a fake command in
-    ;; the buffer or it will appear twice.
-    (unless comint-process-echoes
-      (insert shell-dirstack-query) (insert "\n"))
-    (sit-for 0) ; force redisplay
-    (comint-send-string proc shell-dirstack-query)
-    (comint-send-string proc "\n")
-    (set-marker pmark (point))
-    (let ((pt (point))
-	  (regexp
-	   (concat
-	    (if comint-process-echoes
-		;; Skip command echo if the process echoes
-		(concat "\\(" (regexp-quote shell-dirstack-query) "\n\\)")
-	      "\\(\\)")
-	    "\\(.+\n\\)")))
-      ;; This extra newline prevents the user's pending input from spoofing us.
-      (insert "\n") (backward-char 1)
-      ;; Wait for one line.
-      (while (not (looking-at regexp))
-	(accept-process-output proc)
-	(goto-char pt)))
-    (goto-char pmark) (delete-char 1) ; remove the extra newline
-    ;; That's the dirlist. grab it & parse it.
-    (let* ((dl (buffer-substring (match-beginning 2) (1- (match-end 2))))
-	   (dl-len (length dl))
-	   (ds '())			; new dir stack
-	   (i 0))
-      (while (< i dl-len)
-	;; regexp = optional whitespace, (non-whitespace), optional whitespace
-	(string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
-	(setq ds (cons (concat comint-file-name-prefix
-			       (substring dl (match-beginning 1)
-					  (match-end 1)))
-		       ds))
-	(setq i (match-end 0)))
-      (let ((ds (nreverse ds)))
-	(condition-case nil
-	    (progn (shell-cd (car ds))
-		   (setq shell-dirstack (cdr ds)
-			 shell-last-dir (car shell-dirstack))
-		   (shell-dirstack-message))
-	  (error (message "Couldn't cd")))))))
+	 (pmark (process-mark proc))
+	 (started-at-pmark (= (point) (marker-position pmark))))
+    (save-excursion
+      (goto-char pmark)
+      ;; If the process echoes commands, don't insert a fake command in
+      ;; the buffer or it will appear twice.
+      (unless comint-process-echoes
+	(insert shell-dirstack-query) (insert "\n"))
+      (sit-for 0)			; force redisplay
+      (comint-send-string proc shell-dirstack-query)
+      (comint-send-string proc "\n")
+      (set-marker pmark (point))
+      (let ((pt (point))
+	    (regexp
+	     (concat
+	      (if comint-process-echoes
+		  ;; Skip command echo if the process echoes
+		  (concat "\\(" (regexp-quote shell-dirstack-query) "\n\\)")
+		"\\(\\)")
+	      "\\(.+\n\\)")))
+	;; This extra newline prevents the user's pending input from spoofing us.
+	(insert "\n") (backward-char 1)
+	;; Wait for one line.
+	(while (not (looking-at regexp))
+	  (accept-process-output proc)
+	  (goto-char pt)))
+      (goto-char pmark) (delete-char 1) ; remove the extra newline
+      ;; That's the dirlist. grab it & parse it.
+      (let* ((dl (buffer-substring (match-beginning 2) (1- (match-end 2))))
+	     (dl-len (length dl))
+	     (ds '())			; new dir stack
+	     (i 0))
+	(while (< i dl-len)
+	  ;; regexp = optional whitespace, (non-whitespace), optional whitespace
+	  (string-match "\\s *\\(\\S +\\)\\s *" dl i) ; pick off next dir
+	  (setq ds (cons (concat comint-file-name-prefix
+				 (substring dl (match-beginning 1)
+					    (match-end 1)))
+			 ds))
+	  (setq i (match-end 0)))
+	(let ((ds (nreverse ds)))
+	  (condition-case nil
+	      (progn (shell-cd (car ds))
+		     (setq shell-dirstack (cdr ds)
+			   shell-last-dir (car shell-dirstack))
+		     (shell-dirstack-message))
+	    (error (message "Couldn't cd"))))))
+    (if started-at-pmark (goto-char (marker-position pmark)))))
 
 ;; For your typing convenience:
 (defalias 'dirs 'shell-resync-dirs)

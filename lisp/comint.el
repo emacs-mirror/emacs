@@ -337,7 +337,7 @@ This variable is buffer-local."
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 (defcustom comint-password-prompt-regexp
   "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
-Kerberos \\|CVS \\|UNIX \\| SMB \\|^\\)\
+Kerberos \\|CVS \\|UNIX \\| SMB \\|LDAP \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
 pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
 \\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
@@ -643,9 +643,15 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-move-point-for-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
   (make-local-variable 'comint-stored-incomplete-input)
+  ;; Following disabled because it seems to break the case when
+  ;; comint-scroll-show-maximum-output is nil, and no-one can remember
+  ;; what the original problem was.  If there are problems with point
+  ;; not going to the end, consider re-enabling this.
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg00827.html
+  ;;
   ;; This makes it really work to keep point at the bottom.
-  (make-local-variable 'scroll-conservatively)
-  (setq scroll-conservatively 10000)
+;;;  (make-local-variable 'scroll-conservatively)
+;;;  (setq scroll-conservatively 10000)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom t t)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-process-echoes)

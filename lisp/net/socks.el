@@ -247,7 +247,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 (defun socks-build-auth-list ()
   (let ((num 0)
 	(retval ""))
-    (mapcar
+    (mapc
      (function
       (lambda (x)
 	(if (fboundp (cdr (cdr x)))
@@ -546,7 +546,9 @@ version.")
 			  atype
 			  host
 			  (if (stringp service)
-			      (socks-find-services-entry service)
+			      (or
+			       (socks-find-services-entry service)
+			       (error "Unknown service: %s" service))
 			    service))
       (puthash 'buffer buffer info)
       (puthash 'host host info)

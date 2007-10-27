@@ -183,7 +183,7 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
 (defun sieve-manage-interactive-login (buffer loginfunc)
   "Login to server in BUFFER.
 LOGINFUNC is passed a username and a password, it should return t if
-it where sucessful authenticating itself to the server, nil otherwise.
+it was successful authenticating itself to the server, nil otherwise.
 Returns t if login was successful, nil otherwise."
   (with-current-buffer buffer
     (make-local-variable 'sieve-manage-username)
@@ -372,7 +372,7 @@ Optional variable BUFFER is buffer (buffer, or string naming buffer)
 to work in."
   (setq buffer (or buffer (format " *sieve* %s:%d" server (or port 2000))))
   (with-current-buffer (get-buffer-create buffer)
-    (mapcar 'make-local-variable sieve-manage-local-variables)
+    (mapc 'make-local-variable sieve-manage-local-variables)
     (sieve-manage-disable-multibyte)
     (buffer-disable-undo)
     (setq sieve-manage-server (or server sieve-manage-server))

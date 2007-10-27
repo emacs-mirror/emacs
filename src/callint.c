@@ -263,7 +263,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
      Lisp_Object function, record_flag, keys;
 {
   Lisp_Object *args, *visargs;
-  Lisp_Object fun;
   Lisp_Object specs;
   Lisp_Object filter_specs;
   Lisp_Object teml;
@@ -317,8 +316,6 @@ invoke it.  If KEYS is omitted or nil, the return value of
   else
     enable = Qnil;
 
-  fun = indirect_function (function);
-
   specs = Qnil;
   string = 0;
   /* The idea of FILTER_SPECS is to provide away to
@@ -329,37 +326,19 @@ invoke it.  If KEYS is omitted or nil, the return value of
   /* If k or K discard an up-event, save it here so it can be retrieved with U */
   up_event = Qnil;
 
-  /* Decode the kind of function.  Either handle it and return,
-     or go to `lose' if not interactive, or set either STRING or SPECS.  */
+  /* Set SPECS to the interactive form, or barf if not interactive.  */
+  {
+    Lisp_Object form;
+    GCPRO2 (function, prefix_arg);
+    form = Finteractive_form (function);
+    UNGCPRO;
+    if (CONSP (form))
+      specs = filter_specs = Fcar (XCDR (form));
+    else
+      wrong_type_argument (Qcommandp, function);
+  }
 
-  if (SUBRP (fun))
-    {
-      string = (unsigned char *) XSUBR (fun)->prompt;
-      if (!string)
-	{
-	lose:
-	  wrong_type_argument (Qcommandp, function);
-	}
-    }
-  else if (COMPILEDP (fun))
-    {
-      if ((XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK) <= COMPILED_INTERACTIVE)
-	goto lose;
-      specs = XVECTOR (fun)->contents[COMPILED_INTERACTIVE];
-    }
-  else
-    {
-      Lisp_Object form;
-      GCPRO2 (function, prefix_arg);
-      form = Finteractive_form (function);
-      UNGCPRO;
-      if (CONSP (form))
-	specs = filter_specs = Fcar (XCDR (form));
-      else
-	goto lose;
-    }
-
-  /* If either SPECS or STRING is set to a string, use it.  */
+  /* If SPECS is set to a string, use it as an interactive prompt.  */
   if (STRINGP (specs))
     {
       /* Make a copy of string so that if a GC relocates specs,
@@ -368,7 +347,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       bcopy (SDATA (specs), string,
 	     SBYTES (specs) + 1);
     }
-  else if (string == 0)
+  else
     {
       Lisp_Object input;
       i = num_input_events;
@@ -402,8 +381,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
       real_this_command= save_real_this_command;
       current_kboard->Vlast_command = save_last_command;
 
-      single_kboard_state ();
-      return apply1 (function, specs);
+      temporarily_switch_to_single_kboard (NULL);
+      return unbind_to (speccount, apply1 (function, specs));
     }
 
   /* Here if function specifies a string to control parsing the defaults */
@@ -854,12 +833,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
   real_this_command= save_real_this_command;
   current_kboard->Vlast_command = save_last_command;
 
-  single_kboard_state ();
-
   {
     Lisp_Object val;
     specbind (Qcommand_debug_status, Qnil);
 
+    temporarily_switch_to_single_kboard (NULL);
     val = Ffuncall (count + 1, args);
     UNGCPRO;
     return unbind_to (speccount, val);

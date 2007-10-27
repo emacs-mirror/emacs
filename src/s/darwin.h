@@ -50,6 +50,12 @@ Boston, MA 02110-1301, USA.  */
 #ifdef MAC_OSX
 #ifdef HAVE_CARBON
 #define MAC_OS
+/* We need a little extra space, see ../../lisp/loadup.el. */
+#define SYSTEM_PURESIZE_EXTRA 30000
+
+/* XXX The MULTI_KBOARD support does not work yet on this platform. */
+#undef MULTI_KBOARD
+
 #endif
 #endif
 

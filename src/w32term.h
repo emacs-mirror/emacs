@@ -100,6 +100,9 @@ struct w32_display_info
   /* Chain of all w32_display_info structures.  */
   struct w32_display_info *next;
 
+  /* The generic display parameters corresponding to this w32 display.  */
+  struct terminal *terminal;
+
   /* This is a cons cell of the form (NAME . FONT-LIST-CACHE).
      The same cons cell also appears in x_display_name_list.  */
   Lisp_Object name_list_element;
@@ -272,8 +275,10 @@ extern void w32_find_ccl_program();
    diffs between X and w32 code.  */
 struct x_output
 {
+#if 0 /* These are also defined in struct frame.  Use that instead.  */
   PIX_TYPE background_pixel;
   PIX_TYPE foreground_pixel;
+#endif
 
   /* Keep track of focus.  May be EXPLICIT if we received a FocusIn for this
      frame, or IMPLICIT if we received an EnterNotify.
@@ -405,8 +410,6 @@ extern struct w32_output w32term_display;
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
 #define FRAME_X_WINDOW(f) ((f)->output_data.w32->window_desc)
 
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
 #define FRAME_FONT(f) ((f)->output_data.w32->font)
 #define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.w32->baseline_offset)
@@ -590,10 +593,10 @@ do { \
 } while (0)
 
 #define w32_clear_rect(f,hdc,lprect) \
-w32_fill_rect (f,hdc,f->output_data.x->background_pixel,lprect)
+  w32_fill_rect (f, hdc, FRAME_BACKGROUND_PIXEL (f), lprect)
 
 #define w32_clear_area(f,hdc,px,py,nx,ny) \
-w32_fill_area (f,hdc,f->output_data.x->background_pixel,px,py,nx,ny)
+  w32_fill_area (f, hdc, FRAME_BACKGROUND_PIXEL (f), px, py, nx, ny)
 
 extern struct font_info *w32_load_font ();
 extern void w32_unload_font ();
@@ -609,6 +612,9 @@ extern void w32_unload_font ();
 #define WM_XBUTTONDOWN                 (WM_MOUSEWHEEL + 1)
 #define WM_XBUTTONUP                   (WM_MOUSEWHEEL + 2)
 #endif /* WM_XBUTTONDOWN */
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL                 (WM_MOUSEWHEEL + 4)
+#endif /* WM_MOUSEHWHEEL  */
 
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0)
@@ -687,6 +693,9 @@ extern void complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result);
 extern void wait_for_sync ();
 
 extern BOOL parse_button ();
+
+extern void w32_sys_ring_bell (struct frame *f);
+extern void x_delete_display (struct w32_display_info *dpyinfo);
 
 /* Keypad command key support.  W32 doesn't have virtual keys defined
    for the function keys on the keypad (they are mapped to the standard

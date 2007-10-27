@@ -269,6 +269,7 @@ That buffer should be current already."
   (setq buffer-read-only nil)
   (erase-buffer)
   (set-buffer-multibyte nil)
+  (setq buffer-undo-list t)
   (let ((standard-output (current-buffer))
 	(print-escape-newlines t)
 	(print-level 8)

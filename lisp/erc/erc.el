@@ -66,7 +66,7 @@
 
 ;;; Code:
 
-(defconst erc-version-string "Version 5.2"
+(defconst erc-version-string "Version 5.3 (devel)"
   "ERC version.  This is used by function `erc-version'.")
 
 (eval-when-compile (require 'cl))
@@ -836,8 +836,9 @@ See `erc-server-flood-margin' for other flood-related parameters.")
 ;; Script parameters
 
 (defcustom erc-startup-file-list
-  '("~/.emacs.d/.ercrc.el" "~/.emacs.d/.ercrc"
-    "~/.ercrc.el" "~/.ercrc" ".ercrc.el" ".ercrc")
+  (list (concat erc-user-emacs-directory ".ercrc.el")
+	(concat erc-user-emacs-directory ".ercrc")
+	"~/.ercrc.el" "~/.ercrc" ".ercrc.el" ".ercrc")
   "List of files to try for a startup script.
 The first existent and readable one will get executed.
 
@@ -1460,7 +1461,7 @@ Turning on `erc-mode' runs the hook `erc-mode-hook'."
 (defconst erc-default-server "irc.freenode.net"
   "IRC server to use if it cannot be detected otherwise.")
 
-(defconst erc-default-port "6667"
+(defconst erc-default-port 6667
   "IRC port to use if it cannot be detected otherwise.")
 
 (defcustom erc-join-buffer 'buffer
@@ -1488,6 +1489,14 @@ A value of nil means to use `default-frame-alist'."
 (defcustom erc-frame-dedicated-flag nil
   "*Non-nil means the erc frames are dedicated to that buffer.
 This only has effect when `erc-join-buffer' is set to `frame'."
+  :group 'erc-buffers
+  :type 'boolean)
+
+(defcustom erc-reuse-frames t
+  "*Determines whether new frames are always created.
+Non-nil means that a new frame is not created to display an ERC
+buffer if there is already a window displaying it.  This only has
+effect when `erc-join-buffer' is set to `frame'."
   :group 'erc-buffers
   :type 'boolean)
 
@@ -1888,14 +1897,16 @@ removed from the list will be disabled."
 	((eq erc-join-buffer 'bury)
 	 nil)
 	((eq erc-join-buffer 'frame)
-	 (funcall '(lambda (frame)
+	 (when (or (not erc-reuse-frames)
+		   (not (get-buffer-window buffer t)))
+	   ((lambda (frame)
 		     (raise-frame frame)
 		     (select-frame frame))
 		  (make-frame (or erc-frame-alist
 				  default-frame-alist)))
 	 (switch-to-buffer buffer)
 	 (when erc-frame-dedicated-flag
-	   (set-window-dedicated-p (selected-window) t)))
+	   (set-window-dedicated-p (selected-window) t))))
 	(t
 	 (if (active-minibuffer-window)
 	     (display-buffer buffer)
@@ -2155,15 +2166,47 @@ Arguments are the same as for `erc'."
   "Open an SSL stream to an IRC server.
 The process will be given the name NAME, its target buffer will be
 BUFFER.  HOST and PORT specify the connection target."
-  (when (require 'tls)
-    (let ((proc (open-tls-stream name buffer host port)))
+  (when (condition-case nil
+	    (require 'ssl)
+	  (error (message "You don't have ssl.el.  %s"
+			  "Try using `erc-tls' instead.")
+		 nil))
+    (let ((proc (open-ssl-stream name buffer host port)))
       ;; Ugly hack, but it works for now. Problem is it is
       ;; very hard to detect when ssl is established, because s_client
       ;; doesn't give any CONNECTIONESTABLISHED kind of message, and
       ;; most IRC servers send nothing and wait for you to identify.
-      ;; Disabled when switching to tls.el -- jas
-      ;(sit-for 5)
+      (sit-for 5)
       proc)))
+
+(defun erc-tls (&rest r)
+  "Interactively select TLS connection parameters and run ERC.
+Arguments are the same as for `erc'."
+  (interactive (erc-select-read-args))
+  (let ((erc-server-connect-function 'erc-open-tls-stream))
+    (apply 'erc r)))
+
+(defun erc-open-tls-stream (name buffer host port)
+  "Open an TLS stream to an IRC server.
+The process will be given the name NAME, its target buffer will be
+BUFFER.  HOST and PORT specify the connection target."
+  (when (condition-case nil
+	    (require 'tls)
+	  (error (message "You don't have tls.el.  %s"
+			  "Try using `erc-ssl' instead.")
+		 nil))
+    (open-tls-stream name buffer host port)))
+
+;;; Displaying error messages
+
+(defun erc-error (&rest args)
+  "Pass ARGS to `format', and display the result as an error message.
+If `debug-on-error' is set to non-nil, then throw a real error with this
+message instead, to make debugging easier."
+  (if debug-on-error
+      (apply #'error args)
+    (apply #'message args)
+    (beep)))
 
 ;;; Debugging the protocol
 
@@ -2228,7 +2271,7 @@ If ARG is non-nil, show the *erc-protocol* buffer."
   (interactive "P")
   (let* ((buf (get-buffer-create "*erc-protocol*")))
     (with-current-buffer buf
-      (erc-view-mode-enter 1)
+      (erc-view-mode-enter)
       (when (null (current-local-map))
 	(let ((inhibit-read-only t))
 	  (insert (erc-make-notice "This buffer displays all IRC protocol traffic exchanged with each server.\n"))
@@ -2456,6 +2499,14 @@ See also `erc-server-send'."
 	(match-string 1 arglist)
       arglist)))
 
+(defun erc-command-no-process-p (str)
+  "Return non-nil if STR is an ERC command that can be run when the process
+is not alive, nil otherwise."
+  (let ((fun (erc-extract-command-from-line str)))
+    (and fun
+	 (symbolp (car fun))
+	 (get (car fun) 'process-not-needed))))
+
 (defun erc-command-name (cmd)
   "For CMD being the function name of a ERC command, something like
 erc-cmd-FOO, this returns a string /FOO."
@@ -2565,6 +2616,7 @@ VALUE is computed by evaluating the rest of LINE in Lisp."
 (defalias 'erc-cmd-VAR 'erc-cmd-SET)
 (defalias 'erc-cmd-VARIABLE 'erc-cmd-SET)
 (put 'erc-cmd-SET 'do-not-parse-args t)
+(put 'erc-cmd-SET 'process-not-needed t)
 
 (defun erc-cmd-default (line)
   "Fallback command.
@@ -2623,6 +2675,7 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
   "Clear the window content."
   (recenter 0)
   t)
+(put 'erc-cmd-CLEAR 'process-not-needed t)
 
 (defun erc-cmd-OPS ()
   "Show the ops in the current channel."
@@ -2656,6 +2709,7 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
       (erc-display-message
        nil 'notice 'active 'country-unknown ?d tld))
   t))
+(put 'erc-cmd-COUNTRY 'process-not-needed t)
 
 (defun erc-cmd-AWAY (line)
   "Mark the user as being away, the reason being indicated by LINE.
@@ -2736,6 +2790,7 @@ For a list of user commands (/join /part, ...):
     t))
 
 (defalias 'erc-cmd-H 'erc-cmd-HELP)
+(put 'erc-cmd-HELP 'process-not-needed t)
 
 (defun erc-cmd-JOIN (channel &optional key)
   "Join the channel given in CHANNEL, optionally with KEY.
@@ -2973,6 +3028,7 @@ the matching is case-sensitive."
   (occur line)
   t)
 (put 'erc-cmd-LASTLOG 'do-not-parse-args t)
+(put 'erc-cmd-LASTLOG 'process-not-needed t)
 
 (defun erc-send-message (line &optional force)
   "Send LINE to the current channel or user and display it.
@@ -3195,20 +3251,34 @@ the message given by REASON."
 (defalias 'erc-cmd-EXIT 'erc-cmd-QUIT)
 (defalias 'erc-cmd-SIGNOFF 'erc-cmd-QUIT)
 (put 'erc-cmd-QUIT 'do-not-parse-args t)
+(put 'erc-cmd-QUIT 'process-not-needed t)
 
 (defun erc-cmd-GQUIT (reason)
   "Disconnect from all servers at once with the same quit REASON."
   (erc-with-all-buffers-of-server nil #'erc-open-server-buffer-p
-				  (erc-cmd-QUIT reason)))
+				  (erc-cmd-QUIT reason))
+  (when erc-kill-queries-on-quit
+    ;; if the query buffers have not been killed within 4 seconds,
+    ;; kill them
+    (run-at-time
+     4 nil
+     (lambda ()
+       (dolist (buffer (erc-buffer-list (lambda (buf)
+					  (not (erc-server-buffer-p buf)))))
+	 (kill-buffer buffer)))))
+  t)
 
 (defalias 'erc-cmd-GQ 'erc-cmd-GQUIT)
 (put 'erc-cmd-GQUIT 'do-not-parse-args t)
+(put 'erc-cmd-GQUIT 'process-not-needed t)
 
 (defun erc-cmd-RECONNECT ()
   "Try to reconnect to the current IRC server."
-  (let ((buffer (or (erc-server-buffer) (current-buffer)))
+  (let ((buffer (erc-server-buffer))
 	(process nil))
-    (with-current-buffer (if (bufferp buffer) buffer (current-buffer))
+    (unless (buffer-live-p buffer)
+      (setq buffer (current-buffer)))
+    (with-current-buffer buffer
       (setq erc-server-quitting nil)
       (setq erc-server-reconnecting t)
       (setq erc-server-reconnect-count 0)
@@ -3218,6 +3288,7 @@ the message given by REASON."
 	(erc-server-reconnect))
       (setq erc-server-reconnecting nil)))
   t)
+(put 'erc-cmd-RECONNECT 'process-not-needed t)
 
 (defun erc-cmd-SERVER (server)
   "Connect to SERVER, leaving existing connection intact."
@@ -3225,9 +3296,9 @@ the message given by REASON."
   (condition-case nil
       (erc :server server :nick (erc-current-nick))
     (error
-     (message "Cannot find host %s." server)
-     (beep)))
+     (erc-error "Cannot find host %s." server)))
   t)
+(put 'erc-cmd-SERVER 'process-not-needed t)
 
 (eval-when-compile
   (defvar motif-version-string)
@@ -4411,33 +4482,65 @@ See also `erc-channel-begin-receiving-names'."
 	   erc-channel-users)
   (setq erc-channel-new-member-names nil))
 
+(defun erc-parse-prefix ()
+  "Return an alist of valid prefix character types and their representations.
+Example: (operator) o => @, (voiced) v => +."
+  (let ((str (or (cdr (assoc "PREFIX" (erc-with-server-buffer
+					erc-server-parameters)))
+		 ;; provide a sane default
+		 "(ov)@+"))
+	types chars)
+    (when (string-match "^(\\([^)]+\\))\\(.+\\)$" str)
+      (setq types (match-string 1 str)
+	    chars (match-string 2 str))
+      (let ((len (min (length types) (length chars)))
+	    (i 0)
+	    (alist nil))
+	(while (< i len)
+	  (setq alist (cons (cons (elt types i) (elt chars i))
+			    alist))
+	  (setq i (1+ i)))
+	alist))))
+
 (defun erc-channel-receive-names (names-string)
   "This function is for internal use only.
 
 Update `erc-channel-users' according to NAMES-STRING.
 NAMES-STRING is a string listing some of the names on the
 channel."
-  (let (names name op voice)
-      ;; We need to delete "" because in XEmacs, (split-string "a ")
-      ;; returns ("a" "").
-      (setq names (delete "" (split-string names-string)))
-      (let ((erc-channel-members-changed-hook nil))
-	(dolist (item names)
-	  (cond ((string-match "^@\\(.*\\)$" item)
-		 (setq name (match-string 1 item)
-		       op 'on
-		       voice 'off))
-		((string-match "^+\\(.*\\)$" item)
-		 (setq name (match-string 1 item)
-		       op 'off
-		       voice 'on))
-		(t (setq name item
-			 op 'off
-			 voice 'off)))
-	(puthash (erc-downcase name) t
-		 erc-channel-new-member-names)
-	(erc-update-current-channel-member
-	 name name t op voice)))
+  (let (prefix op-ch voice-ch names name op voice)
+    (setq prefix (erc-parse-prefix))
+    (setq op-ch (cdr (assq ?o prefix))
+	  voice-ch (cdr (assq ?v prefix)))
+    ;; We need to delete "" because in XEmacs, (split-string "a ")
+    ;; returns ("a" "").
+    (setq names (delete "" (split-string names-string)))
+    (let ((erc-channel-members-changed-hook nil))
+      (dolist (item names)
+	(let ((updatep t)
+	      ch)
+	  (if (rassq (elt item 0) prefix)
+	      (cond ((= (length item) 1)
+		     (setq updatep nil))
+		    ((eq (elt item 0) op-ch)
+		     (setq name (substring item 1)
+			   op 'on
+			   voice 'off))
+		    ((eq (elt item 0) voice-ch)
+		     (setq name (substring item 1)
+			   op 'off
+			   voice 'on))
+		    (t (setq name (substring item 1)
+			     op 'off
+			     voice 'off)))
+	    (setq name item
+		  op 'off
+		  voice 'off))
+	  (when updatep
+	    (puthash (erc-downcase name) t
+		     erc-channel-new-member-names)
+	    (erc-update-current-channel-member
+	     name name t op voice)))))
     (run-hooks 'erc-channel-members-changed-hook)))
 
 (defcustom erc-channel-members-changed-hook nil
@@ -4529,15 +4632,15 @@ See also: `erc-update-user' and `erc-update-channel-member'."
 	      (setq changed t)
 	    (setf (erc-channel-user-op cuser)
 		  (cond ((eq op 'on) t)
-				   ((eq op 'off) nil)
-				   (t op))))
+			((eq op 'off) nil)
+			(t op))))
 	  (when (and voice
 		     (not (eq (erc-channel-user-voice cuser) voice)))
 	      (setq changed t)
 	    (setf (erc-channel-user-voice cuser)
 		  (cond ((eq voice 'on) t)
-				      ((eq voice 'off) nil)
-				      (t voice))))
+			((eq voice 'off) nil)
+			(t voice))))
 	  (when update-message-time
 	    (setf (erc-channel-user-last-message-time cuser) (current-time)))
 	  (setq user-changed
@@ -4559,11 +4662,11 @@ See also: `erc-update-user' and `erc-update-channel-member'."
 		      (erc-server-user-buffers user))))
 	(setq cuser (make-erc-channel-user
 		     :op (cond ((eq op 'on) t)
-				       ((eq op 'off) nil)
-				       (t op))
+			       ((eq op 'off) nil)
+			       (t op))
 		     :voice (cond ((eq voice 'on) t)
-				       ((eq voice 'off) nil)
-				       (t voice))
+				  ((eq voice 'off) nil)
+				  (t voice))
 		     :last-message-time
 		     (if update-message-time (current-time))))
 	(puthash (erc-downcase nick) (cons user cuser)
@@ -4892,39 +4995,37 @@ Specifically, return the position of `erc-insert-marker'."
   (interactive)
   (save-restriction
     (widen)
-    (cond
-     ((< (point) (erc-beg-of-input-line))
-      (message "Point is not in the input area")
-      (beep))
-     ((not (erc-server-buffer-live-p))
-      (message "ERC: No process running")
-      (beep))
-     (t
-      (erc-set-active-buffer (current-buffer))
+    (if (< (point) (erc-beg-of-input-line))
+	(erc-error "Point is not in the input area")
       (let ((inhibit-read-only t)
 	    (str (erc-user-input))
 	    (old-buf (current-buffer)))
+	(if (and (not (erc-server-buffer-live-p))
+		 (not (erc-command-no-process-p str)))
+	    (erc-error "ERC: No process running")
+	  (erc-set-active-buffer (current-buffer))
 
-	;; Kill the input and the prompt
-	(delete-region (erc-beg-of-input-line)
-		       (erc-end-of-input-line))
+	  ;; Kill the input and the prompt
+	  (delete-region (erc-beg-of-input-line)
+			 (erc-end-of-input-line))
 
-	(unwind-protect
-	    (erc-send-input str)
-	  ;; Fix the buffer if the command didn't kill it
-	  (when (buffer-live-p old-buf)
-	    (with-current-buffer old-buf
-	      (save-restriction
-		(widen)
-		(goto-char (point-max))
-		(set-marker (process-mark erc-server-process) (point))
-		(set-marker erc-insert-marker (point))
-		(let ((buffer-modified (buffer-modified-p)))
-		  (erc-display-prompt)
-		  (set-buffer-modified-p buffer-modified))))))
+	  (unwind-protect
+	      (erc-send-input str)
+	    ;; Fix the buffer if the command didn't kill it
+	    (when (buffer-live-p old-buf)
+	      (with-current-buffer old-buf
+		(save-restriction
+		  (widen)
+		  (goto-char (point-max))
+		  (when (processp erc-server-process)
+		    (set-marker (process-mark erc-server-process) (point)))
+		  (set-marker erc-insert-marker (point))
+		  (let ((buffer-modified (buffer-modified-p)))
+		    (erc-display-prompt)
+		    (set-buffer-modified-p buffer-modified))))))
 
-	;; Only when last hook has been run...
-	(run-hook-with-args 'erc-send-completed-hook str))))))
+	  ;; Only when last hook has been run...
+	  (run-hook-with-args 'erc-send-completed-hook str))))))
 
 (defun erc-user-input ()
   "Return the input of the user in the current buffer."
@@ -4985,7 +5086,8 @@ This returns non-nil only if we actually send anything."
 	(erc-put-text-property beg (point)
 			       'face 'erc-command-indicator-face)
 	(insert "\n"))
-      (set-marker (process-mark erc-server-process) (point))
+      (when (processp erc-server-process)
+	(set-marker (process-mark erc-server-process) (point)))
       (set-marker erc-insert-marker (point))
       (save-excursion
 	(save-restriction
@@ -5004,7 +5106,8 @@ current position."
 	(erc-put-text-property beg (point)
 			       'face 'erc-input-face))
       (insert "\n")
-      (set-marker (process-mark erc-server-process) (point))
+      (when (processp erc-server-process)
+	(set-marker (process-mark erc-server-process) (point)))
       (set-marker erc-insert-marker (point))
       (save-excursion
 	(save-restriction

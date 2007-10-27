@@ -1061,7 +1061,7 @@ See also the descriptions of the variables
       (aset ethio-fidel-to-sera-map 359 "`?")
       (aset ethio-fidel-to-sera-map 463 "?"))
 
-    (mapcar
+    (mapc
      '(lambda (x)
 	(aset (aref ethio-fidel-to-sera-map x)
 	      2
