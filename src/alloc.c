@@ -3096,7 +3096,7 @@ make_funvec (kind, num_nil_slots, num_params, params)
   for (param_index = 0; param_index < num_params; param_index++)
     ASET (funvec, 1 + num_nil_slots + param_index, params[param_index]);
 
-  XSETPVECTYPE (funvec, PVEC_FUNVEC);
+  XSETPVECTYPE (XVECTOR (funvec), PVEC_FUNVEC);
   XSETFUNVEC (funvec, XVECTOR (funvec));
 
   return funvec;
