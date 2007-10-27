@@ -1,3 +1,10 @@
+2007-10-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* time.el (zoneinfo-style-world-list, legacy-style-world-list):
+	New defcustoms.
+	(display-time-world-list): Use them as appropriate for the current
+	value of `system-type'.
+
 2007-10-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Pacify byte compiler, that is, no compiler warnings.
