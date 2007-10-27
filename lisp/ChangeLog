@@ -1,3 +1,11 @@
+2007-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (uniquify-managed): Pacify byte compiler.
+	(desktop-buffer-info): If the buffer name is managed by uniquify,
+	save the base name, not the uniquified one.
+	(desktop-create-buffer): Allow `rename-buffer' to generate a new
+	name in case of conflict.
+
 2007-10-26  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Autoload the
