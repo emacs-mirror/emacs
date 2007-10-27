@@ -1,3 +1,8 @@
+2007-10-18  Miles Bader  <miles@gnu.org>
+
+	* eval.c (FletX): Test the type of VARLIST rather than just !NILP.
+	(Flet): Use XCAR instead of Fcar.
+
 2007-10-16  Miles Bader  <miles@gnu.org>
 
 	* alloc.c (make_funvec, Fpurecopy): Set the pseudo-vector type.

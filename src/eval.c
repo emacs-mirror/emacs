@@ -1039,11 +1039,11 @@ usage: (let* VARLIST BODY...)  */)
   lexenv = Vinternal_interpreter_environment;
 
   varlist = Fcar (args);
-  while (!NILP (varlist))
+  while (CONSP (varlist))
     {
       QUIT;
 
-      elt = Fcar (varlist);
+      elt = XCAR (varlist);
       if (SYMBOLP (elt))
 	{
 	  var = elt;
@@ -1067,7 +1067,7 @@ usage: (let* VARLIST BODY...)  */)
       else
 	specbind (var, val);
 
-      varlist = Fcdr (varlist);
+      varlist = XCDR (varlist);
     }
 
   UNGCPRO;
@@ -1125,7 +1125,7 @@ usage: (let VARLIST BODY...)  */)
     {
       Lisp_Object var;
 
-      elt = Fcar (varlist);
+      elt = XCAR (varlist);
       var = SYMBOLP (elt) ? elt : Fcar (elt);
       tem = temps[argnum++];
 
