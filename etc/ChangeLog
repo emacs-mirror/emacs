@@ -1,3 +1,7 @@
+2007-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add *.pyc.
+
 2007-10-25  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses-example.ses: Get rid of silly life-universe-everything local
