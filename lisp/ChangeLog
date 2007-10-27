@@ -1,3 +1,8 @@
+2007-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-load-locked-desktop, desktop-base-lock-name)
+	(desktop-not-loaded-hook): Fix :version tags.
+
 2007-10-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-wrong-passwd-regexp): Tune regexp.
