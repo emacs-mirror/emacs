@@ -1,3 +1,10 @@
+2007-10-27  Glenn Morris  <rgm@gnu.org>
+
+	* shell.el (shell-dirtrack-verbose, shell-directory-tracker): Doc fix.
+	(shell-dirtrack-toggle): Mark as obsolete.
+	(dirtrack-toggle, dirtrack-mode): No longer alias to
+	shell-dirtrack-mode.
+
 2007-10-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (math-standard-opers): Lower the precedence
