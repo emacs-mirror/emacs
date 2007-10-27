@@ -4,3 +4,4 @@ icons
 *.log
 *.dvi
 DOC DOC-*
+*.pyc
