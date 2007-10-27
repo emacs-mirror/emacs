@@ -88,7 +88,7 @@
 ;; m-c-f   shell-forward-command	Forward a shell command
 ;; m-c-b   shell-backward-command	Backward a shell command
 ;; 	   dirs				Resync the buffer's dir stack
-;; 	   dirtrack-mode		Turn dir tracking on/off
+;; 	   shell-dirtrack-mode		Turn dir tracking on/off
 ;;         comint-strip-ctrl-m		Remove trailing ^Ms from output
 ;;
 ;; The shell mode hook is shell-mode-hook
@@ -258,7 +258,8 @@ This mirrors the optional behavior of tcsh."
 
 (defcustom shell-dirtrack-verbose t
   "If non-nil, show the directory stack following directory change.
-This is effective only if directory tracking is enabled."
+This is effective only if directory tracking is enabled.
+The `dirtrack' package provides an alternative implementation of this feature."
   :type 'boolean
   :group 'shell-directories)
 
@@ -393,7 +394,9 @@ While directory tracking is enabled, the shell's working directory is displayed
 by \\[list-buffers] or \\[mouse-buffer-menu] in the `File' field.
 \\[dirs] queries the shell and resyncs Emacs' idea of what the current
     directory stack is.
-\\[dirtrack-mode] turns directory tracking on and off.
+\\[shell-dirtrack-mode] turns directory tracking on and off.
+\(The `dirtrack' package provides an alternative implementation of this
+feature.)
 
 \\{shell-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
@@ -621,7 +624,7 @@ This function is called on each input passed to the shell.
 It watches for cd, pushd and popd commands and sets the buffer's
 default directory to track these commands.
 
-You may toggle this tracking on and off with \\[dirtrack-mode].
+You may toggle this tracking on and off with \\[shell-dirtrack-mode].
 If Emacs gets confused, you can resync with the shell with \\[dirs].
 
 See variables `shell-cd-regexp', `shell-chdrive-regexp', `shell-pushd-regexp',
@@ -785,10 +788,8 @@ Environment variables are expanded, see function `substitute-in-file-name'."
       (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t)
     (remove-hook 'comint-input-filter-functions 'shell-directory-tracker t)))
 
-;; For your typing convenience:
-(defalias 'shell-dirtrack-toggle 'shell-dirtrack-mode) ;??Convenience??
-(defalias 'dirtrack-toggle 'shell-dirtrack-mode)
-(defalias 'dirtrack-mode 'shell-dirtrack-mode)
+(define-obsolete-function-alias 'shell-dirtrack-toggle 'shell-dirtrack-mode
+  "23.1")
 
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
