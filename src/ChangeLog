@@ -1,3 +1,8 @@
+2007-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (OBJ1): Remove abbrev.$(O).
+	($(BLD)/abbrev.$(O)): Remove.
+
 2007-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Rewrite abbrev.c in Elisp.
@@ -16,7 +21,7 @@
 2007-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.h (struct frame): Move all bit fields after the first bit
-	field to take advantage of the available space. Group all the
+	field to take advantage of the available space.  Group all the
 	chars together to reduce wasted space due to padding.
 
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
