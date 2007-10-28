@@ -1,3 +1,36 @@
+2007-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings): Document `not'.
+	(byte-compile-warnings-safe-p): Handle `not'.
+	(byte-compile-warning-enabled-p, byte-compile-disable-warning)
+	(byte-compile-enable-warning): New functions.
+	(byte-compile-eval-before-compile)
+	(byte-compile-file-form-require): Use byte-compile-disable-warning.
+	(byte-compile-close-variables): Locally bind byte-compile-warnings,
+	but do not modify it.
+	(byte-compile-eval, byte-compile-obsolete)
+	(byte-compile-warn-about-unresolved-functions)
+	(byte-compile-file-form-defvar)
+	(byte-compile-file-form-custom-declare-variable)
+	(byte-compile-file-form-require)
+	(byte-compile-file-form-defmumble, byte-compile-lambda)
+	(byte-compile-form, byte-compile-normal-call)
+	(byte-compile-variable-ref, byte-compile-defvar)
+	(byte-compile-make-variable-buffer-local):
+	Use byte-compile-warning-enabled-p.
+	* emacs-lisp/advice.el (ad-compile-function):
+	Use byte-compile-disable-warning.
+	* emacs-lisp/cl-compat.el: Add a local variables section, and set
+	byte-compile-warnings to `(not cl-functions)'.
+	* emacs-lisp/cl-macs.el: Unify local variable section, and set
+	byte-compile-warnings to `(not cl-functions)'.
+	(cl-do-proclaim): Use byte-compile-disable-warning and
+	byte-compile-enable-warning.
+	* emacs-lisp/cl-seq.el: Unify local variable section, and set
+	byte-compile-warnings to `(not cl-functions)'.
+	* progmodes/cc-bytecomp.el (cc-bytecomp-ignore-obsolete):
+	Use byte-compile-disable-warning.
+
 2007-10-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* cus-edit.el (custom-browse-insert-prefix):
