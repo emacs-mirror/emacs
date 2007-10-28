@@ -1713,7 +1713,7 @@ item in another window.\n\n"))
 (defun custom-browse-insert-prefix (prefix)
   "Insert PREFIX.  On XEmacs convert it to line graphics."
   ;; Fixme: do graphics.
-  (if nil ; (string-match "XEmacs" emacs-version)
+  (if nil ; (featurep 'xemacs)
       (progn
 	(insert "*")
 	(while (not (string-equal prefix ""))

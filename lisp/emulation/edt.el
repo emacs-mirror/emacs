@@ -325,7 +325,7 @@ This means that an edt-user.el file was found in the user's `load-path'.")
   "Non-nil if we are running GNU Emacs or XEmacs version 19, or higher.")
 
 (defconst edt-x-emacs19-p
-  (and edt-emacs19-p (string-match "XEmacs" emacs-version))
+  (and edt-emacs19-p (featurep 'xemacs))
   "Non-nil if we are running XEmacs version 19, or higher.")
 
 (defconst edt-gnu-emacs19-p (and edt-emacs19-p (not edt-x-emacs19-p))

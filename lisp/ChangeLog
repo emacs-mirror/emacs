@@ -1,3 +1,8 @@
+2007-10-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-edit.el (custom-browse-insert-prefix):
+	* emulation/edt.el (edt-x-emacs19-p): Use featurep 'xemacs.
+
 2007-10-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-process-filter): Fix typo in docstring.
