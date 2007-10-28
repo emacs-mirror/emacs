@@ -1,4 +1,4 @@
-;;; cl-seq.el --- Common Lisp features, part 3  -*-byte-compile-dynamic: t;-*-
+;;; cl-seq.el --- Common Lisp features, part 3
 
 ;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007 Free Software Foundation, Inc.
@@ -1020,6 +1020,8 @@ Atoms are compared by `eql'; cons cells are compared recursively.
 (run-hooks 'cl-seq-load-hook)
 
 ;; Local variables:
+;; byte-compile-dynamic: t
+;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
