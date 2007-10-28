@@ -362,7 +362,10 @@ Elements of the list may be:
   interactive-only
 	      commands that normally shouldn't be called from Lisp code.
   make-local  calls to make-variable-buffer-local that may be incorrect.
-  mapcar      mapcar called for effect."
+  mapcar      mapcar called for effect.
+
+If the list begins with `not', then the remaining elements specify warnings to
+suppress.  For example, (not mapcar) will suppress warnings about mapcar."
   :group 'bytecomp
   :type `(choice (const :tag "All" t)
 		 (set :menu-tag "Some"
@@ -377,6 +380,8 @@ Elements of the list may be:
 (defun byte-compile-warnings-safe-p (x)
   (or (booleanp x)
       (and (listp x)
+           (if (eq (car x) 'not) (setq x (cdr x))
+             t)
 	   (equal (mapcar
 		   (lambda (e)
 		     (when (memq e '(free-vars unresolved
@@ -387,6 +392,42 @@ Elements of the list may be:
 		       e))
 		   x)
 		  x))))
+
+(defun byte-compile-warning-enabled-p (warning)
+  "Return non-nil if WARNING is enabled, according to `byte-compile-warnings'."
+  (or (eq byte-compile-warnings t)
+      (if (eq (car byte-compile-warnings) 'not)
+          (not (memq warning byte-compile-warnings))
+        (memq warning byte-compile-warnings))))
+
+;;;###autoload
+(defun byte-compile-disable-warning (warning)
+  "Change `byte-compile-warnings' to disable WARNING.
+If `byte-compile-warnings' is t, set it to `(not WARNING)'.
+Otherwise, if the first element is `not', add WARNING, else remove it."
+  (setq byte-compile-warnings
+        (cond ((eq byte-compile-warnings t)
+               (list 'not warning))
+              ((eq (car byte-compile-warnings) 'not)
+               (if (memq warning byte-compile-warnings)
+                   byte-compile-warnings
+                 (append byte-compile-warnings (list warning))))
+              (t
+               (delq warning byte-compile-warnings)))))
+
+;;;###autoload
+(defun byte-compile-enable-warning (warning)
+  "Change `byte-compile-warnings' to enable WARNING.
+If `byte-compile-warnings' is `t', do nothing.  Otherwise, if the
+first element is `not', remove WARNING, else add it."
+  (or (eq byte-compile-warnings t)
+      (setq byte-compile-warnings
+            (cond ((eq (car byte-compile-warnings) 'not)
+                   (delq warning byte-compile-warnings))
+                  ((memq warning byte-compile-warnings)
+                   byte-compile-warnings)
+                  (t
+                   (append byte-compile-warnings (list warning)))))))
 
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
@@ -830,7 +871,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   (let ((hist-orig load-history)
 	(hist-nil-orig current-load-list))
     (prog1 (eval form)
-      (when (memq 'noruntime byte-compile-warnings)
+      (when (byte-compile-warning-enabled-p 'noruntime)
 	(let ((hist-new load-history)
 	      (hist-nil-new current-load-list))
 	  ;; Go through load-history, look for newly loaded files
@@ -858,7 +899,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		  (push s byte-compile-noruntime-functions))
 		(when (and (consp s) (eq t (car s)))
 		  (push (cdr s) old-autoloads)))))))
-      (when (memq 'cl-functions byte-compile-warnings)
+      (when (byte-compile-warning-enabled-p 'cl-functions)
 	(let ((hist-new load-history))
 	  ;; Go through load-history, look for newly loaded files
 	  ;; and mark all the functions defined therein.
@@ -876,8 +917,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
       (let ((tem current-load-list))
 	(while (not (eq tem hist-nil-orig))
 	  (when (equal (car tem) '(require . cl))
-	    (setq byte-compile-warnings
-		  (remq 'cl-functions byte-compile-warnings)))
+            (byte-compile-disable-warning 'cl-functions))
 	  (setq tem (cdr tem)))))))
 
 ;;; byte compiler messages
@@ -1075,7 +1115,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (handler (nth 1 new))
 	 (when (nth 2 new)))
     (byte-compile-set-symbol-position (car form))
-    (if (memq 'obsolete byte-compile-warnings)
+    (if (byte-compile-warning-enabled-p 'obsolete)
 	(byte-compile-warn "`%s' is an obsolete function%s; %s" (car form)
 			   (if when (concat " (as of Emacs " when ")") "")
 			   (if (stringp (car new))
@@ -1421,7 +1461,7 @@ extra args."
 ;; defined, issue a warning enumerating them.
 ;; `unresolved' in the list `byte-compile-warnings' disables this.
 (defun byte-compile-warn-about-unresolved-functions ()
-  (when (memq 'unresolved byte-compile-warnings)
+  (when (byte-compile-warning-enabled-p 'unresolved)
     (let ((byte-compile-current-form :end)
 	  (noruntime nil)
 	  (unresolved nil))
@@ -1484,9 +1524,7 @@ symbol itself."
 		 byte-compile-dynamic-docstrings)
 ;; 		(byte-compile-generate-emacs19-bytecodes
 ;; 		 byte-compile-generate-emacs19-bytecodes)
-		(byte-compile-warnings (if (eq byte-compile-warnings t)
-					   byte-compile-warning-types
-					 byte-compile-warnings))
+		(byte-compile-warnings byte-compile-warnings)
 		)
 	      body)))
 
@@ -1829,9 +1867,7 @@ With argument, insert value in current buffer after the form."
 	(read-with-symbol-positions inbuffer)
 	(read-symbol-positions-list nil)
 	;;	  #### This is bound in b-c-close-variables.
-	;;	  (byte-compile-warnings (if (eq byte-compile-warnings t)
-	;;				     byte-compile-warning-types
-	;;				   byte-compile-warnings))
+	;;	  (byte-compile-warnings byte-compile-warnings)
 	)
     (byte-compile-close-variables
      (with-current-buffer
@@ -2210,7 +2246,7 @@ list that represents a doc string reference.
       ;; Since there is no doc string, we can compile this as a normal form,
       ;; and not do a file-boundary.
       (byte-compile-keep-pending form)
-    (when (memq 'free-vars byte-compile-warnings)
+    (when (byte-compile-warning-enabled-p 'free-vars)
       (push (nth 1 form) byte-compile-bound-variables)
       (if (eq (car form) 'defconst)
 	  (push (nth 1 form) byte-compile-const-variables)))
@@ -2223,9 +2259,9 @@ list that represents a doc string reference.
 (put 'custom-declare-variable 'byte-hunk-handler
      'byte-compile-file-form-custom-declare-variable)
 (defun byte-compile-file-form-custom-declare-variable (form)
-  (when (memq 'callargs byte-compile-warnings)
+  (when (byte-compile-warning-enabled-p 'callargs)
     (byte-compile-nogroup-warn form))
-  (when (memq 'free-vars byte-compile-warnings)
+  (when (byte-compile-warning-enabled-p 'free-vars)
     (push (nth 1 (nth 1 form)) byte-compile-bound-variables))
   (let ((tail (nthcdr 4 form)))
     (while tail
@@ -2248,8 +2284,7 @@ list that represents a doc string reference.
     (apply 'require args)
     ;; Detect (require 'cl) in a way that works even if cl is already loaded.
     (if (member (car args) '("cl" cl))
-	(setq byte-compile-warnings
-	      (remq 'cl-functions byte-compile-warnings))))
+        (byte-compile-disable-warning 'cl-functions)))
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
 (put 'progn 'byte-hunk-handler 'byte-compile-file-form-progn)
@@ -2295,12 +2330,12 @@ list that represents a doc string reference.
 		  (cons (list name nil nil) byte-compile-call-tree))))
 
     (setq byte-compile-current-form name) ; for warnings
-    (if (memq 'redefine byte-compile-warnings)
+    (if (byte-compile-warning-enabled-p 'redefine)
 	(byte-compile-arglist-warn form macrop))
     (if byte-compile-verbose
 	(message "Compiling %s... (%s)" (or filename "") (nth 1 form)))
     (cond (that-one
-	   (if (and (memq 'redefine byte-compile-warnings)
+	   (if (and (byte-compile-warning-enabled-p 'redefine)
 		    ;; don't warn when compiling the stubs in byte-run...
 		    (not (assq (nth 1 form)
 			       byte-compile-initial-macro-environment)))
@@ -2309,7 +2344,7 @@ list that represents a doc string reference.
 		 (nth 1 form)))
 	   (setcdr that-one nil))
 	  (this-one
-	   (when (and (memq 'redefine byte-compile-warnings)
+	   (when (and (byte-compile-warning-enabled-p 'redefine)
 		    ;; hack: don't warn when compiling the magic internal
 		    ;; byte-compiler macros in byte-run.el...
 		    (not (assq (nth 1 form)
@@ -2320,7 +2355,7 @@ list that represents a doc string reference.
 	  ((and (fboundp name)
 		(eq (car-safe (symbol-function name))
 		    (if macrop 'lambda 'macro)))
-	   (when (memq 'redefine byte-compile-warnings)
+	   (when (byte-compile-warning-enabled-p 'redefine)
 	     (byte-compile-warn "%s `%s' being redefined as a %s"
 				(if macrop "function" "macro")
 				(nth 1 form)
@@ -2560,7 +2595,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (byte-compile-check-lambda-list (nth 1 fun))
   (let* ((arglist (nth 1 fun))
 	 (byte-compile-bound-variables
-	  (nconc (and (memq 'free-vars byte-compile-warnings)
+	  (nconc (and (byte-compile-warning-enabled-p 'free-vars)
 		      (delq '&rest (delq '&optional (copy-sequence arglist))))
 		 byte-compile-bound-variables))
 	 (body (cdr (cdr fun)))
@@ -2800,7 +2835,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		(handler (get fn 'byte-compile)))
 	   (when (byte-compile-const-symbol-p fn)
 	     (byte-compile-warn "`%s' called as a function" fn))
-	   (and (memq 'interactive-only byte-compile-warnings)
+	   (and (byte-compile-warning-enabled-p 'interactive-only)
 		(memq fn byte-compile-interactive-only-functions)
 		(byte-compile-warn "`%s' used from Lisp code\n\
 That command is designed for interactive use only" fn))
@@ -2815,12 +2850,12 @@ That command is designed for interactive use only" fn))
                                byte-compile-compatibility)
                               (get (get fn 'byte-opcode) 'emacs19-opcode))))
                (funcall handler form)
-	     (when (memq 'callargs byte-compile-warnings)
+	     (when (byte-compile-warning-enabled-p 'callargs)
 	       (if (memq fn '(custom-declare-group custom-declare-variable custom-declare-face))
 		   (byte-compile-nogroup-warn form))
 	       (byte-compile-callargs-warn form))
 	     (byte-compile-normal-call form))
-	   (if (memq 'cl-functions byte-compile-warnings)
+	   (if (byte-compile-warning-enabled-p 'cl-functions)
 	       (byte-compile-cl-warn form))))
 	((and (or (byte-code-function-p (car form))
 		  (eq (car-safe (car form)) 'lambda))
@@ -2837,7 +2872,7 @@ That command is designed for interactive use only" fn))
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
   (when (and for-effect (eq (car form) 'mapcar)
-	     (memq 'mapcar byte-compile-warnings))
+             (byte-compile-warning-enabled-p 'mapcar))
     (byte-compile-set-symbol-position 'mapcar)
     (byte-compile-warn
      "`mapcar' called for effect; use `mapc' or `dolist' instead"))
@@ -2857,7 +2892,7 @@ That command is designed for interactive use only" fn))
        (if (symbolp var) "constant" "nonvariable")
        (prin1-to-string var))
     (if (and (get var 'byte-obsolete-variable)
-	     (memq 'obsolete byte-compile-warnings)
+	     (byte-compile-warning-enabled-p 'obsolete)
 	     (not (eq var byte-compile-not-obsolete-var)))
 	(let* ((ob (get var 'byte-obsolete-variable))
 	       (when (cdr ob)))
@@ -2866,7 +2901,7 @@ That command is designed for interactive use only" fn))
 			     (if (stringp (car ob))
 				 (car ob)
 			       (format "use `%s' instead." (car ob))))))
-    (if (memq 'free-vars byte-compile-warnings)
+    (if (byte-compile-warning-enabled-p 'free-vars)
 	(if (eq base-op 'byte-varbind)
 	    (push var byte-compile-bound-variables)
 	  (or (boundp var)
@@ -3807,7 +3842,7 @@ that suppresses all warnings during execution of BODY."
 	 (if (= 1 ncall) "" "s")
 	 (if (< ncall 2) "requires" "accepts only")
 	 "2-3")))
-    (when (memq 'free-vars byte-compile-warnings)
+    (when (byte-compile-warning-enabled-p 'free-vars)
       (push var byte-compile-bound-variables)
       (if (eq fun 'defconst)
 	  (push var byte-compile-const-variables)))
@@ -3899,7 +3934,7 @@ that suppresses all warnings during execution of BODY."
 (byte-defop-compiler-1 make-variable-buffer-local byte-compile-make-variable-buffer-local)
 (defun byte-compile-make-variable-buffer-local (form)
   (if (and (eq (car-safe (car-safe (cdr-safe form))) 'quote)
-           (memq 'make-local byte-compile-warnings))
+           (byte-compile-warning-enabled-p 'make-local))
       (byte-compile-warn
        "`make-variable-buffer-local' should be called at toplevel"))
   (byte-compile-normal-call form))
