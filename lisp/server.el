@@ -239,7 +239,7 @@ ENV should be in the same format as `process-environment'."
        (progn ,@body))))
 
 (defun server-delete-client (proc &optional noframe)
-  "Delete CLIENT, including its buffers, terminals and frames.
+  "Delete PROC, including its buffers, terminals and frames.
 If NOFRAME is non-nil, let the frames live.  (To be used from
 `delete-frame-functions'.)"
   (server-log (concat "server-delete-client" (if noframe " noframe"))
@@ -294,8 +294,7 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 
 (defun server-log (string &optional client)
   "If a *server* buffer exists, write STRING to it for logging purposes.
-If CLIENT is non-nil, add a description of it to the logged
-message."
+If CLIENT is non-nil, add a description of it to the logged message."
   (when (get-buffer "*server*")
     (with-current-buffer "*server*"
       (goto-char (point-max))
@@ -572,7 +571,7 @@ Server mode runs a process that accepts commands from the
                "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
                "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
                "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
-               "TERMINFO_DIRS" "TERMPATH" 
+               "TERMINFO_DIRS" "TERMPATH"
                ;; rxvt wants these
                "COLORFGBG" "COLORTERM")
            (make-frame-on-tty tty type
@@ -590,7 +589,7 @@ Server mode runs a process that accepts commands from the
                                 ;; C functions `child_setup' and
                                 ;; `getenv_internal' accordingly.
                                 (environment . ,(process-get proc 'env)))))))
-  
+
     ;; ttys don't use the `display' parameter, but callproc.c does to set
     ;; the DISPLAY environment on subprocesses.
     (set-frame-parameter frame 'display
@@ -737,7 +736,7 @@ The following commands are accepted by the server:
   on this tty until it gets a -resume command.
 
 `-resume'
-  Resume this tty frame. The client sends this string when it
+  Resume this tty frame.  The client sends this string when it
   gets the SIGCONT signal and it is the foreground process on its
   controlling tty.
 
@@ -753,9 +752,8 @@ The following commands are accepted by the client:
   used to forward window change signals to it.
 
 `-window-system-unsupported'
-  Signals that the server does not
-  support creating X frames; the client must try again with a tty
-  frame.
+  Signals that the server does not support creating X frames;
+  the client must try again with a tty frame.
 
 `-print STRING'
   Print STRING on stdout.  Used to send values
@@ -765,8 +763,8 @@ The following commands are accepted by the client:
   Signal an error (but continue processing).
 
 `-suspend'
-  Suspend this terminal, i.e., stop the client process.  Sent
-  when the user presses C-z."
+  Suspend this terminal, i.e., stop the client process.
+  Sent when the user presses C-z."
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
@@ -793,7 +791,7 @@ The following commands are accepted by the client:
             ;; Save for later any partial line that remains.
             (when (> (length string) 0)
               (process-put proc 'previous-string string))
-            
+
           ;; In earlier versions of server.el (where we used an `emacsserver'
           ;; process), there could be multiple lines.  Nowadays this is not
           ;; supported any more.
@@ -931,7 +929,7 @@ The following commands are accepted by the client:
 
 		 ;; Unknown command.
 		 (t (error "Unknown command: %s" arg)))))
-            
+
             (setq frame
                   (case tty-name
                     ((nil) (if display (server-select-display display)))
@@ -967,7 +965,7 @@ The following commands are accepted by the client:
                   (run-hooks 'post-command-hook)))))
 
         (mapc 'funcall (nreverse commands))
-              
+
         ;; Delete the client if necessary.
         (cond
          (nowait
@@ -1008,8 +1006,8 @@ FILE-LINE-COL should be a three-element list as described in
 `server-visit-files'."
   (goto-line (nth 1 file-line-col))
   (let ((column-number (nth 2 file-line-col)))
-    (if (> column-number 0)
-	(move-to-column (1- column-number)))))
+    (when (> column-number 0)
+      (move-to-column (1- column-number)))))
 
 (defun server-visit-files (files proc &optional nowait)
   "Find FILES and return a list of buffers created.
@@ -1159,7 +1157,7 @@ specifically for the clients and did not exist before their request for it."
 			   (buffer-name (current-buffer))))))
 
 (defun server-kill-emacs-query-function ()
-  "Ask before exiting Emacs it has live clients."
+  "Ask before exiting Emacs if it has live clients."
   (or (not server-clients)
       (let (live-client)
 	(dolist (proc server-clients live-client)
