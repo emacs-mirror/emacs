@@ -1,3 +1,10 @@
+2007-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-process-filter): Fix typo in docstring.
+	(server-log): Reflow docstrings.
+	(server-delete-client, server-kill-emacs-query-function): Doc fixes.
+	(server-goto-line-column): Use `when'.
+
 2007-10-28  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-other-meta-char): Call `isearch-edit-string'
@@ -32,7 +39,7 @@
 2007-10-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Now detect if text foreground and background colors are
-	equals and replace the foreground color by another color, so the text
+	equal and replace the foreground color by another color, so the text
 	becomes visible.  Doc fix.
 	(ps-print-version): New version 6.8.
 	(ps-default-fg, ps-default-bg): Docstring fix.
