@@ -1,3 +1,8 @@
+2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi, gnus-faq.texi, message.texi: Bump version to
+	Gnus v5.13.
+
 2007-10-28  Miles Bader  <miles@gnu.org>
 
 	* gnus-news.texi, gnus-coding.texi, sasl.texi: New files.

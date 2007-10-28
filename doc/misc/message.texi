@@ -71,7 +71,7 @@ Message mode buffers.
 @c Adjust ../Makefile.in if you change the following lines:
 Message is distributed with Gnus.  The Gnus distribution
 @c
-corresponding to this manual is No Gnus v0.7.
+corresponding to this manual is Gnus v5.13
 
 
 @node Interface
