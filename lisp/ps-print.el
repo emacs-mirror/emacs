@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.2.5
+;; Version: 7.3
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.2.5"
-  "ps-print.el, v 7.2.5 <2007/10/10 vinicius>
+(defconst ps-print-version "7.3"
+  "ps-print.el, v 7.3 <2007/10/26 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1089,6 +1089,14 @@ Please send all bug fixes and enhancements to
 ;; You can also set `ps-print-color-p' to 'black-white to have a better looking
 ;; on black/white printers.  See also `ps-black-white-faces' for documentation.
 ;;
+;; ps-print also detects if the text foreground and background colors are
+;; equals when `ps-fg-validate-p' is non-nil.  In this case, if these colors
+;; are used, no text will appear.  You can use `ps-fg-list' to give a list of
+;; foreground colors to be used when text foreground and background colors are
+;; equals.  It'll be used the first foreground color in `ps-fg-list' which is
+;; different from the background color.  If `ps-fg-list' is nil, the default
+;; foreground color is used. 
+;;
 ;;
 ;; How Ps-Print Maps Faces
 ;; -----------------------
@@ -1212,85 +1220,88 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
-;;    20040229
+;;    2007-10-27
+;;	 `ps-fg-validate-p', `ps-fg-list'
+;;
+;;    2004-02-29
 ;;	 `ps-time-stamp-yyyy-mm-dd', `ps-time-stamp-iso8601'
 ;;
-;;    20010619
+;;    2001-06-19
 ;;	 `ps-time-stamp-locale-default'
 ;;
-;;    20010530
+;;    2001-05-30
 ;;	 Handle before-string and after-string overlay properties.
 ;;
-;;    20010407
+;;    2001-04-07
 ;;	 `ps-line-number-color', `ps-print-footer', `ps-footer-offset',
 ;;	 `ps-print-footer-frame', `ps-footer-font-family',
 ;;	 `ps-footer-font-size', `ps-footer-line-pad', `ps-footer-lines',
 ;;	 `ps-left-footer', `ps-right-footer', `ps-footer-frame-alist' and
 ;;	 `ps-header-frame-alist'.
 ;;
-;;    20010328
+;;    2001-03-28
 ;;	 `ps-line-spacing', `ps-paragraph-spacing', `ps-paragraph-regexp',
 ;;	 `ps-begin-cut-regexp' and `ps-end-cut-regexp'.
 ;;
-;;    20001122
+;;    2000-11-22
 ;;	 `ps-line-number-font', `ps-line-number-font-size' and
 ;;	 `ps-end-with-control-d'.
 ;;
-;;    20000821
+;;    2000-08-21
 ;;	 `ps-even-or-odd-pages'
 ;;
-;;    20000617
+;;    2000-06-17
 ;;	 `ps-manual-feed', `ps-warn-paper-type', `ps-print-upside-down',
 ;;	 `ps-selected-pages', `ps-last-selected-pages',
 ;;	 `ps-restore-selected-pages', `ps-switch-header',
 ;;	 `ps-line-number-step', `ps-line-number-start',
 ;;	 `ps-zebra-stripe-follow' and `ps-use-face-background'.
 ;;
-;;    20000310
+;;    2000-03-10
 ;;	 PostScript error handler.
 ;;	 `ps-user-defined-prologue' and `ps-error-handler-message'.
 ;;
-;;    19991211
+;;    1999-12-11
 ;;	 `ps-print-customize'.
 ;;
-;;    19990703
+;;    1999-07-03
 ;;	 Better customization.
 ;;	 `ps-banner-page-when-duplexing' and `ps-zebra-color'.
 ;;
-;;    19990513
+;;    1999-05-13
 ;;	 N-up printing.
 ;;	 Hook: `ps-print-begin-sheet-hook'.
 ;;
-;; [kenichi] 19990509 Ken'ichi Handa <handa@m17n.org>
+;; [kenichi] 1999-05-09 Ken'ichi Handa <handa@m17n.org>
 ;;
 ;;    `ps-print-region-function'
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
-;;    19990301
+;;    1999-03-01
 ;;	 PostScript tumble and setpagedevice.
 ;;
-;;    19980922
+;;    1998-09-22
 ;;	 PostScript prologue header comment insertion.
 ;;	 Skip invisible text better.
 ;;
-;; [kenichi] 19980819 Ken'ichi Handa <handa@m17n.org>
+;; [kenichi] 1998-08-19 Ken'ichi Handa <handa@m17n.org>
 ;;
 ;;    Multi-byte buffer handling.
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
-;;    19980306
+;;    1998-03-06
 ;;	 Skip invisible text.
 ;;
-;;    19971130
+;;    1997-11-30
 ;;	 Hooks: `ps-print-hook', `ps-print-begin-page-hook' and
 ;;	 `ps-print-begin-column-hook'.
 ;;	 Put one header per page over the columns.
 ;;	 Better database font management.
 ;;	 Better control characters handling.
 ;;
-;;    19971121
+;;    1997-11-21
 ;;	 Dynamic evaluation at print time of `ps-lpr-switches'.
 ;;	 Handle control characters.
 ;;	 Face remapping.
@@ -1299,12 +1310,12 @@ Please send all bug fixes and enhancements to
 ;;	 Zebra stripes.
 ;;	 Text and/or image on background.
 ;;
-;; [jack] 19960517 Jacques Duthen <duthen@cegelec-red.fr>
+;; [jack] 1996-05-17 Jacques Duthen <duthen@cegelec-red.fr>
 ;;
-;; Font family and float size for text and header.
-;; Landscape mode.
-;; Multiple columns.
-;; Tools for page setup.
+;;    Font family and float size for text and header.
+;;    Landscape mode.
+;;    Multiple columns.
+;;    Tools for page setup.
 ;;
 ;;
 ;; Known bugs and limitations of ps-print
@@ -1343,8 +1354,11 @@ Please send all bug fixes and enhancements to
 ;; ----------------
 ;;
 ;; Avoid page break inside a paragraph.
+;;
 ;; Add `ps-non-bold-faces' and `ps-non-italic-faces' (should be easy).
+;;
 ;; Improve the memory management for big files (hard?).
+;;
 ;; `ps-nb-pages-buffer' and `ps-nb-pages-region' should take care of folding
 ;; lines.
 ;;
@@ -1458,8 +1472,8 @@ Please send all bug fixes and enhancements to
 	 (error "`ps-print' doesn't support Epoch"))
 	(t
 	 (unless (and (boundp 'emacs-major-version)
-		      (>= emacs-major-version 22))
-	   (error "`ps-print' only supports Emacs 22 and higher")))))
+		      (>= emacs-major-version 23))
+	   (error "`ps-print' only supports Emacs 23 and higher")))))
 
 
 (defconst ps-windows-system
@@ -2950,7 +2964,7 @@ Valid values are:
    LIST		It's a list of RGB values, that is a list of three real values
 		of the form:
 
-		  (RED, GREEN, BLUE)
+		  (RED GREEN BLUE)
 
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
@@ -2994,7 +3008,7 @@ Valid values are:
    LIST		It's a list of RGB values, that is a list of three real values
 		of the form:
 
-		  (RED, GREEN, BLUE)
+		  (RED GREEN BLUE)
 
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
@@ -3016,6 +3030,58 @@ See also `ps-use-face-background'."
 		       (number :tag "Green")
 		       (number :tag "Blue")))
   :version "20"
+  :group 'ps-print-color)
+
+(defcustom ps-fg-list nil
+  "*Specify foreground color list.
+
+This list is used to chose a text foreground color which is different than the
+background color.  It'll be used the first foreground color in `ps-fg-list'
+which is different from the background color.
+
+If this list is nil, the default foreground color is used.  See
+`ps-default-fg'.
+
+The list element valid values are:
+
+   NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
+		indicate the gray color.
+
+   COLOR-NAME	It's a string which contains the color name.  For example:
+		\"yellow\".
+
+   LIST		It's a list of RGB values, that is a list of three real values
+		of the form:
+
+		  (RED GREEN BLUE)
+
+		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
+		1.0 (full color).
+
+Any other value is ignored and black color will be used.
+
+This variable is used only when `ps-fg-validate-p' (which see) is non-nil and
+when `ps-print-color-p' (which see) is neither nil nor black-white."
+  :type '(repeat
+	  (choice :menu-tag "Foreground Gray/Color"
+		  :tag "Foreground Gray/Color"
+		  (number :tag "Gray Scale" :value 0.0)
+		  (string :tag "Color Name" :value "black")
+		  (list :tag "RGB Color" :value (0.0 0.0 0.0)
+			(number :tag "Red")
+			(number :tag "Green")
+			(number :tag "Blue"))))
+  :version "22"
+  :group 'ps-print-color)
+
+(defcustom ps-fg-validate-p t
+  "*Non-nil means validate if foreground color is different than background.
+
+If text foreground and background colors are equals, no text will appear.
+
+See also `ps-fg-list'."
+  :type 'boolean
+  :version "22"
   :group 'ps-print-color)
 
 (defcustom ps-auto-font-detect t
@@ -3563,9 +3629,11 @@ The table depends on the current ps-print setup."
       '(23 . ps-line-number-step)
       '(23 . ps-line-number-start)
       nil
-      '(17 . ps-default-fg)
-      '(17 . ps-default-bg)
       '(17 . ps-razzle-dazzle)
+      '(17 . ps-default-bg)
+      '(17 . ps-default-fg)
+      '(17 . ps-fg-validate-p)
+      '(17 . ps-fg-list)
       nil
       '(23 . ps-use-face-background)
       nil
@@ -3645,9 +3713,9 @@ The table depends on the current ps-print setup."
       '(20 . ps-underlined-faces)
       '(20 . ps-black-white-faces)
       "      )\n
-;; The following customized variables have long lists and are seldom modified:
-;;    ps-page-dimensions-database
-;;    ps-font-info-database
+\;; The following customized variables have long lists and are seldom modified:
+\;;    ps-page-dimensions-database
+\;;    ps-font-info-database
 
 \;;; ps-print - end of settings\n")
      "\n")))
@@ -3854,6 +3922,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 (defvar ps-default-color nil)
 (defvar ps-current-color nil)
 (defvar ps-current-bg nil)
+(defvar ps-foreground-list nil)
 
 (defvar ps-zebra-stripe-full-p nil)
 (defvar ps-razchunk 0)
@@ -4658,8 +4727,8 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
    ;; Functions are called -- they should return strings; they will be inserted
    ;; as strings and the PS string delimiters added.
-   ((fboundp content)
-    (if (fboundp ps-encode-header-string-function)
+   ((functionp content)
+    (if (functionp ps-encode-header-string-function)
 	(dolist (l (funcall ps-encode-header-string-function
 			    (funcall content) fonttag))
 	  (ps-output-string l))
@@ -5744,13 +5813,21 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 ps-default-fg))
 			       "unspecified-fg"
 			       0.0)
+	ps-foreground-list    (mapcar
+			       #'(lambda (arg)
+				   (ps-rgb-color arg "unspecified-fg" 0.0))
+			       (append (and (not (member ps-print-color-p
+							 '(nil back-white)))
+					    ps-fg-list)
+				       (list ps-default-foreground
+					     "black")))
 	ps-default-color      (and (not (member ps-print-color-p
 						'(nil back-white)))
 				   ps-default-foreground)
 	ps-current-color      ps-default-color
-	;; Set up default functions.  They may be overridden by
-	;; ps-mule-begin-job.
-	ps-basic-plot-string-function 'ps-basic-plot-string
+	;; Set up default functions.
+	;; They may be overridden by ps-mule-begin-job.
+	ps-basic-plot-string-function    'ps-basic-plot-string
 	ps-encode-header-string-function nil)
   ;; initialize page dimensions
   (ps-get-page-dimensions)
@@ -5980,16 +6057,24 @@ to the equivalent Latin-1 characters.")
   (or (equal font ps-current-font)
       (ps-set-font font))
 
-  ;; Specify a foreground color only if one's specified and it's
-  ;; different than the current.
+  ;; Specify a foreground color only if:
+  ;;    one's specified,
+  ;;    it's different than the background (if `ps-fg-validate-p' is non-nil)
+  ;;    and it's different than the current.
   (let ((fg (or fg-color ps-default-foreground)))
+    (if ps-fg-validate-p
+	(let ((bg (or bg-color ps-default-background))
+	      (el ps-foreground-list))
+	  (while (and el (equal fg bg))
+	    (setq fg (car el)
+		  el (cdr el)))))
     (or (equal fg ps-current-color)
 	(ps-set-color fg)))
 
   (or (equal bg-color ps-current-bg)
       (ps-set-bg bg-color))
 
-  ;; Specify effects (underline, overline, box, etc)
+  ;; Specify effects (underline, overline, box, etc.)
   (cond
    ((not (integerp effects))
     (ps-output "0 EF\n")

@@ -1,3 +1,15 @@
+2007-10-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Now detect if text foreground and background colors are
+	equals and replace the foreground color by another color, so the text
+	becomes visible.  Doc fix.
+	(ps-print-version): New version 7.3.
+	(ps-default-fg, ps-default-bg): Docstring fix.
+	(ps-fg-list, ps-fg-validate-p): New options.
+	(ps-foreground-list): New var.
+	(ps-generate-header-line): Replace fboundp by functionp.
+	(ps-setup, ps-begin-job, ps-plot-region): Fix code.
+
 2007-10-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Pacify byte compiler, that is, no compiler warnings.
@@ -13,7 +25,7 @@
 	(pr-menu-set-ps-title, pr-menu-set-txt-title, pr-region-active-p)
 	(pr-do-update-menus, pr-update-mode-line, pr-f-read-string)
 	(pr-f-set-keymap-parents, pr-keep-region-active): Fun aliases.
-	(defvar pr-menu-print-item, pr-ps-printer-menu-modified)
+	(pr-menu-print-item, pr-ps-printer-menu-modified)
 	(pr-txt-printer-menu-modified, pr-ps-utility-menu-modified)
 	(pr-even-or-odd-alist): Vars definition moved.
 
