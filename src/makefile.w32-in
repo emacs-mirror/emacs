@@ -56,8 +56,7 @@ FULL_LINK_FLAGS      = $(LINK_FLAGS) $(TEMACS_EXTRA_LINK)
 #
 OBJ0 =  $(BLD)/emacs.$(O)
 
-OBJ1 =  $(BLD)/abbrev.$(O)			\
-	$(BLD)/alloc.$(O)			\
+OBJ1 =  $(BLD)/alloc.$(O)			\
 	$(BLD)/atimer.$(O)			\
 	$(BLD)/buffer.$(O)			\
 	$(BLD)/bytecode.$(O)			\
@@ -270,20 +269,6 @@ cleanall:	clean
 
 EMACS_ROOT	= ..
 SRC		= .
-
-$(BLD)/abbrev.$(O) : \
-	$(SRC)/abbrev.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/buffer.h \
-	$(SRC)/charset.h \
-	$(SRC)/commands.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/syntax.h \
-	$(SRC)/w32bdf.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
 
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
