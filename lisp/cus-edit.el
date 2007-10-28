@@ -374,11 +374,6 @@
   :prefix "custom-"
   :group 'customize)
 
-(defgroup abbrev-mode nil
-  "Word abbreviations mode."
-  :link '(custom-manual "(emacs)Abbrevs")
-  :group 'abbrev)
-
 (defgroup alloc nil
   "Storage allocation and gc for GNU Emacs Lisp interpreter."
   :tag "Storage Allocation"

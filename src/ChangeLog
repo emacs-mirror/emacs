@@ -1,3 +1,14 @@
+2007-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Rewrite abbrev.c in Elisp.
+	* image.c (Qcount): Don't declare as extern.
+	(syms_of_image): Initialize and staticpro `Qcount'.
+	* puresize.h (BASE_PURESIZE): Increase for the new abbrev.el functions.
+	* emacs.c (main): Don't call syms_of_abbrev.
+	* Makefile.in (obj): Remove abbrev.o.
+	(abbrev.o): Remove.
+	* abbrev.c: Remove.
+
 2007-10-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (window_min_size_2): Don't count header-line.

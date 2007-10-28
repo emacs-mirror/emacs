@@ -733,9 +733,9 @@ Lisp_Object Qxbm;
 /* Keywords.  */
 
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
-extern Lisp_Object QCdata, QCtype, Qcount;
+extern Lisp_Object QCdata, QCtype;
 extern Lisp_Object Qcenter;
-Lisp_Object QCascent, QCmargin, QCrelief;
+Lisp_Object QCascent, QCmargin, QCrelief, Qcount;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 
@@ -9088,6 +9088,9 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   define_image_type (&xbm_type, 1);
   define_image_type (&pbm_type, 1);
+
+  Qcount = intern ("count");
+  staticpro (&Qcount);
 
   QCascent = intern (":ascent");
   staticpro (&QCascent);

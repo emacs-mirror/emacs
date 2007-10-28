@@ -27,7 +27,19 @@
 
 ;; This facility is documented in the Emacs Manual.
 
+;; Todo:
+
+;; - Make abbrev-file-name obey user-emacs-directory.
+;; - Cleanup name space.
+
 ;;; Code:
+
+(eval-when-compile (require 'cl))
+
+(defgroup abbrev-mode nil
+  "Word abbreviations mode."
+  :link '(custom-manual "(emacs)Abbrevs")
+  :group 'abbrev)
 
 (defcustom only-global-abbrevs nil
   "Non-nil means user plans to use global abbrevs only.
@@ -362,6 +374,528 @@ A prefix argument means don't query; expand all abbrevs."
 		    pnt)))
 	    (if (or noquery (y-or-n-p (format "Expand `%s'? " string)))
 		(expand-abbrev)))))))
+
+;;; Abbrev properties.
+
+(defun abbrev-table-get (table prop)
+  "Get the PROP property of abbrev table TABLE."
+  (let ((sym (intern-soft "" table)))
+    (if sym (get sym prop))))
+
+(defun abbrev-table-put (table prop val)
+  "Set the PROP property of abbrev table TABLE to VAL."
+  (let ((sym (intern "" table)))
+    (set sym nil)	     ; Make sure it won't be confused for an abbrev.
+    (put sym prop val)))
+
+(defun abbrev-get (sym prop)
+  "Get the property PROP of abbrev SYM."
+  (let ((plist (symbol-plist sym)))
+    (if (listp plist)
+        (plist-get plist prop)
+      (if (eq 'count prop) plist))))
+
+(defun abbrev-put (sym prop val)
+  "Set the property PROP of abbrev SYM to value VAL.
+See `define-abbrev' for the effect of some special properties."
+  (let ((plist (symbol-plist sym)))
+    (if (consp plist)
+        (put sym prop val)
+      (setplist sym (if (eq 'count prop) val
+                      (list 'count plist prop val))))))
+
+(defmacro abbrev-with-wrapper-hook (var &rest body)
+  "Run BODY wrapped with the VAR hook.
+VAR is a special hook: its functions are called with one argument which
+is the \"original\" code (the BODY), so the hook function can wrap the
+original function, can call it several times, or even not call it at all.
+VAR is normally a symbol (a variable) in which case it is treated like a hook,
+with a buffer-local and a global part.  But it can also be an arbitrary expression.
+This is similar to an `around' advice."
+  (declare (indent 1) (debug t))
+  ;; We need those two gensyms because CL's lexical scoping is not available
+  ;; for function arguments :-(
+  (let ((funs (make-symbol "funs"))
+        (global (make-symbol "global")))
+    ;; Since the hook is a wrapper, the loop has to be done via
+    ;; recursion: a given hook function will call its parameter in order to
+    ;; continue looping.
+    `(labels ((runrestofhook (,funs ,global)
+                 ;; `funs' holds the functions left on the hook and `global'
+                 ;; holds the functions left on the global part of the hook
+                 ;; (in case the hook is local).
+                 (lexical-let ((funs ,funs)
+                               (global ,global))
+                   (if (consp funs)
+                       (if (eq t (car funs))
+                           (runrestofhook (append global (cdr funs)) nil)
+                         (funcall (car funs)
+                                  (lambda () (runrestofhook (cdr funs) global))))
+                     ;; Once there are no more functions on the hook, run
+                     ;; the original body.
+                     ,@body))))
+       (runrestofhook ,var
+                      ;; The global part of the hook, if any.
+                      ,(if (symbolp var)
+                           `(if (local-variable-p ',var)
+                                (default-value ',var)))))))
+         
+
+;;; Code that used to be implemented in src/abbrev.c
+
+(defvar abbrev-table-name-list '(fundamental-mode-abbrev-table
+				 global-abbrev-table)
+  "List of symbols whose values are abbrev tables.")
+
+(defun make-abbrev-table (&optional props)
+  "Create a new, empty abbrev table object.
+PROPS is a "
+  ;; The value 59 is an arbitrary prime number.
+  (let ((table (make-vector 59 0)))
+    ;; Each abbrev-table has a `modiff' counter which can be used to detect
+    ;; when an abbreviation was added.  An example of use would be to
+    ;; construct :regexp dynamically as the union of all abbrev names, so
+    ;; `modiff' can let us detect that an abbrev was added and hence :regexp
+    ;; needs to be refreshed.
+    ;; The presence of `modiff' entry is also used as a tag indicating this
+    ;; vector is really an abbrev-table.
+    (abbrev-table-put table :abbrev-table-modiff 0)
+    (while (consp props)
+      (abbrev-table-put table (pop props) (pop props)))
+    table))
+
+(defun abbrev-table-p (object)
+  (and (vectorp object)
+       (numberp (abbrev-table-get object :abbrev-table-modiff))))
+
+(defvar global-abbrev-table (make-abbrev-table)
+  "The abbrev table whose abbrevs affect all buffers.
+Each buffer may also have a local abbrev table.
+If it does, the local table overrides the global one
+for any particular abbrev defined in both.")
+
+(defvar abbrev-minor-mode-table-alist nil
+  "Alist of abbrev tables to use for minor modes.
+Each element looks like (VARIABLE . ABBREV-TABLE);
+ABBREV-TABLE is active whenever VARIABLE's value is non-nil.")
+
+(defvar fundamental-mode-abbrev-table
+  (let ((table (make-abbrev-table)))
+    ;; Set local-abbrev-table's default to be fundamental-mode-abbrev-table.
+    (setq-default local-abbrev-table table)
+    table)
+  "The abbrev table of mode-specific abbrevs for Fundamental Mode.")
+
+(defvar abbrevs-changed nil
+  "Set non-nil by defining or altering any word abbrevs.
+This causes `save-some-buffers' to offer to save the abbrevs.")
+
+(defcustom abbrev-all-caps nil
+  "Non-nil means expand multi-word abbrevs all caps if abbrev was so."
+  :type 'boolean
+  :group 'abbrev-mode)
+
+(defvar abbrev-start-location nil
+  "Buffer position for `expand-abbrev' to use as the start of the abbrev.
+When nil, use the word before point as the abbrev.
+Calling `expand-abbrev' sets this to nil.")
+
+(defvar abbrev-start-location-buffer nil
+  "Buffer that `abbrev-start-location' has been set for.
+Trying to expand an abbrev in any other buffer clears `abbrev-start-location'.")
+
+(defvar last-abbrev nil
+  "The abbrev-symbol of the last abbrev expanded.  See `abbrev-symbol'.")
+
+(defvar last-abbrev-text nil
+  "The exact text of the last abbrev expanded.
+nil if the abbrev has already been unexpanded.")
+
+(defvar last-abbrev-location 0
+  "The location of the start of the last abbrev expanded.")
+
+;; (defvar local-abbrev-table fundamental-mode-abbrev-table
+;;   "Local (mode-specific) abbrev table of current buffer.")
+;; (make-variable-buffer-local 'local-abbrev-table)
+
+(defcustom pre-abbrev-expand-hook nil
+  "Function or functions to be called before abbrev expansion is done.
+This is the first thing that `expand-abbrev' does, and so this may change
+the current abbrev table before abbrev lookup happens."
+  :type 'hook
+  :group 'abbrev-mode)
+(make-obsolete-variable 'pre-abbrev-expand-hook 'abbrev-expand-functions "23.1")
+
+(defun clear-abbrev-table (table)
+  "Undefine all abbrevs in abbrev table TABLE, leaving it empty."
+  (setq abbrevs-changed t)
+  (dotimes (i (length table))
+    (aset table i 0)))
+
+(defun define-abbrev (table name expansion &optional hook &rest props)
+  "Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.
+NAME must be a string, and should be lower-case.
+EXPANSION should usually be a string.
+To undefine an abbrev, define it with EXPANSION = nil.
+If HOOK is non-nil, it should be a function of no arguments;
+it is called after EXPANSION is inserted.
+If EXPANSION is not a string, the abbrev is a special one,
+ which does not expand in the usual way but only runs HOOK.
+
+PROPS is a property list.  The following properties are special:
+- `count': the value for the abbrev's usage-count, which is incremented each time
+  the abbrev is used (the default is zero).
+- `system-flag': if non-nil, says that this is a \"system\" abbreviation
+  which should not be saved in the user's abbreviation file.
+  Unless `system-flag' is `force', a system abbreviation will not
+  overwrite a non-system abbreviation of the same name.
+- `:case-fixed': non-nil means that abbreviations are looked up without
+  case-folding, and the expansion is not capitalized/upcased.
+- `:enable-function': a function of no argument which returns non-nil iff the
+  abbrev should be used for a particular call of `expand-abbrev'.
+
+An obsolete but still supported calling form is:
+
+\(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM-FLAG)."
+  (when (and (consp props) (or (null (car props)) (numberp (car props))))
+    ;; Old-style calling convention.
+    (setq props (list* 'count (car props)
+                       (if (cadr props) (list 'system-flag (cadr props))))))
+  (unless (plist-get props 'count)
+    (setq props (plist-put props 'count 0)))
+  (let ((system-flag (plist-get props 'system-flag))
+        (sym (intern name table)))
+    ;; Don't override a prior user-defined abbrev with a system abbrev,
+    ;; unless system-flag is `force'.
+    (unless (and (not (memq system-flag '(nil force)))
+                 (boundp sym) (symbol-value sym)
+                 (not (abbrev-get sym 'system-flag)))
+      (unless (or system-flag
+                  (and (boundp sym) (fboundp sym)
+                       ;; load-file-name
+                       (equal (symbol-value sym) expansion)
+                       (equal (symbol-function sym) hook)))
+        (setq abbrevs-changed t))
+      (set sym expansion)
+      (fset sym hook)
+      (setplist sym props)
+      (abbrev-table-put table :abbrev-table-modiff
+                        (1+ (abbrev-table-get table :abbrev-table-modiff))))
+    name))
+
+(defun abbrev--check-chars (abbrev global)
+  "Check if the characters in ABBREV have word syntax in either the
+current (if global is nil) or standard syntax table."
+  (with-syntax-table
+      (cond ((null global) (standard-syntax-table))
+            ;; ((syntax-table-p global) global)
+            (t (syntax-table)))
+    (when (string-match "\\W" abbrev)
+      (let ((badchars ())
+            (pos 0))
+        (while (string-match "\\W" abbrev pos)
+          (pushnew (aref abbrev (match-beginning 0)) badchars)
+          (setq pos (1+ pos)))
+        (error "Some abbrev characters (%s) are not word constituents %s"
+               (apply 'string (nreverse badchars))
+               (if global "in the standard syntax" "in this mode"))))))
+
+(defun define-global-abbrev (abbrev expansion)
+  "Define ABBREV as a global abbreviation for EXPANSION.
+The characters in ABBREV must all be word constituents in the standard
+syntax table."
+  (interactive "sDefine global abbrev: \nsExpansion for %s: ")
+  (abbrev--check-chars abbrev 'global)
+  (define-abbrev global-abbrev-table (downcase abbrev) expansion))
+
+(defun define-mode-abbrev (abbrev expansion)
+  "Define ABBREV as a mode-specific abbreviation for EXPANSION.
+The characters in ABBREV must all be word-constituents in the current mode."
+  (interactive "sDefine mode abbrev: \nsExpansion for %s: ")
+  (unless local-abbrev-table
+    (error "Major mode has no abbrev table"))
+  (abbrev--check-chars abbrev nil)
+  (define-abbrev local-abbrev-table (downcase abbrev) expansion))
+
+(defun abbrev--active-tables (&optional tables)
+  "Return the list of abbrev tables currently active.
+TABLES if non-nil overrides the usual rules.  It can hold
+either a single abbrev table or a list of abbrev tables."
+  ;; We could just remove the `tables' arg and let callers use
+  ;; (or table (abbrev--active-tables)) but then they'd have to be careful
+  ;; to treat the distinction between a single table and a list of tables.
+  (cond
+   ((consp tables) tables)
+   ((vectorp tables) (list tables))
+   (t
+    (let ((tables (if (listp local-abbrev-table)
+                      (append local-abbrev-table
+                              (list global-abbrev-table))
+                    (list local-abbrev-table global-abbrev-table))))
+      ;; Add the minor-mode abbrev tables.
+      (dolist (x abbrev-minor-mode-table-alist)
+        (when (and (symbolp (car x)) (boundp (car x)) (symbol-value (car x)))
+          (setq tables
+                (if (listp (cdr x))
+                    (append (cdr x) tables) (cons (cdr x) tables)))))
+      tables))))
+          
+
+(defun abbrev-symbol (abbrev &optional table)
+  "Return the symbol representing abbrev named ABBREV.
+This symbol's name is ABBREV, but it is not the canonical symbol of that name;
+it is interned in an abbrev-table rather than the normal obarray.
+The value is nil if that abbrev is not defined.
+Optional second arg TABLE is abbrev table to look it up in.
+The default is to try buffer's mode-specific abbrev table, then global table."
+  (let ((tables (abbrev--active-tables table))
+        sym)
+    (while (and tables (not (symbol-value sym)))
+      (let ((table (pop tables))
+            (case-fold (not (abbrev-table-get table :case-fixed))))
+        (setq tables (append (abbrev-table-get table :parents) tables))
+        ;; In case the table doesn't set :case-fixed but some of the
+        ;; abbrevs do, we have to be careful.
+        (setq sym
+              ;; First try without case-folding.
+              (or (intern-soft abbrev table)
+                  (when case-fold
+                    ;; We didn't find any abbrev, try case-folding.
+                    (let ((sym (intern-soft (downcase abbrev) table)))
+                      ;; Only use it if it doesn't require :case-fixed.
+                      (and sym (not (abbrev-get sym :case-fixed))
+                           sym)))))))
+    (if (symbol-value sym)
+        sym)))
+	       
+
+(defun abbrev-expansion (abbrev &optional table)
+  "Return the string that ABBREV expands into in the current buffer.
+Optionally specify an abbrev table as second arg;
+then ABBREV is looked up in that table only."
+  (symbol-value (abbrev-symbol abbrev table)))
+
+
+(defun abbrev--before-point ()
+  "Try and find an abbrev before point.  Return it if found, nil otherwise."
+  (unless (eq abbrev-start-location-buffer (current-buffer))
+    (setq abbrev-start-location nil))
+
+  (let ((tables (abbrev--active-tables))
+        (pos (point))
+        start end name res)
+
+    (if abbrev-start-location
+        (progn
+          (setq start abbrev-start-location)
+          (setq abbrev-start-location nil)
+          ;; Remove the hyphen inserted by `abbrev-prefix-mark'.
+          (if (and (< start (point-max))
+                   (eq (char-after start) ?-))
+              (delete-region start (1+ start)))
+          (skip-syntax-backward " ")
+          (setq end (point))
+          (setq name (buffer-substring start end))
+          (goto-char pos)               ; Restore point.
+          (list (abbrev-symbol name tables) name start end))
+        
+      (while (and tables (not (car res)))
+        (let* ((table (pop tables))
+               (enable-fun (abbrev-table-get table :enable-function)))
+          (setq tables (append (abbrev-table-get table :parents) tables))
+          (setq res
+                (and (or (not enable-fun) (funcall enable-fun))
+                     (looking-back (or (abbrev-table-get table :regexp)
+                                       "\\<\\(\\w+\\)\\W*")
+                                   (line-beginning-position))
+                     (setq start (match-beginning 1))
+                     (setq end   (match-end 1))
+                     (setq name (buffer-substring start end))
+                     ;; This will also look it up in parent tables.
+                     ;; This is not on purpose, but it seems harmless.
+                     (list (abbrev-symbol name table) name start end)))
+          ;; Restore point.
+          (goto-char pos)))
+      res)))
+
+(defvar abbrev-expand-functions nil
+  "Wrapper hook around `expand-abbrev'.
+The functions on this special hook are called with one argument:
+a function that performs the abbrev expansion.  It should return
+the abbrev symbol if expansion took place.")
+
+(defun expand-abbrev ()
+  "Expand the abbrev before point, if there is an abbrev there.
+Effective when explicitly called even when `abbrev-mode' is nil.
+Returns the abbrev symbol, if expansion took place."
+  (interactive)
+  (run-hooks 'pre-abbrev-expand-hook)
+  (abbrev-with-wrapper-hook abbrev-expand-functions
+    (destructuring-bind (&optional sym name wordstart wordend)
+        (abbrev--before-point)
+      (when sym
+        (let ((value sym))
+          (unless (or ;; executing-kbd-macro
+                   noninteractive
+                   (window-minibuffer-p (selected-window)))
+            ;; Add an undo boundary, in case we are doing this for
+            ;; a self-inserting command which has avoided making one so far.
+            (undo-boundary))
+          ;; Now sym is the abbrev symbol.
+          (setq last-abbrev-text name)
+          (setq last-abbrev sym)
+          (setq last-abbrev-location wordstart)
+          ;; Increment use count.
+          (abbrev-put sym 'count (1+ (abbrev-get sym 'count)))
+          ;; If this abbrev has an expansion, delete the abbrev
+          ;; and insert the expansion.
+          (when (stringp (symbol-value sym))
+            (goto-char wordend)
+            (insert (symbol-value sym))
+            (delete-region wordstart wordend)
+            (let ((case-fold-search nil))
+              ;; If the abbrev's name is different from the buffer text (the
+              ;; only difference should be capitalization), then we may want
+              ;; to adjust the capitalization of the expansion.
+              (when (and (not (equal name (symbol-name sym)))
+                         (string-match "[[:upper:]]" name))
+                (if (not (string-match "[[:lower:]]" name))
+                    ;; Abbrev was all caps.  If expansion is multiple words,
+                    ;; normally capitalize each word.
+                    (if (and (not abbrev-all-caps)
+                             (save-excursion
+                               (> (progn (backward-word 1) (point))
+                                  (progn (goto-char wordstart)
+                                         (forward-word 1) (point)))))
+                        (upcase-initials-region wordstart (point))
+                      (upcase-region wordstart (point)))
+                  ;; Abbrev included some caps.  Cap first initial of expansion.
+                  (let ((end (point)))
+                    ;; Find the initial.
+                    (goto-char wordstart)
+                    (skip-syntax-forward "^w" (1- end))
+                    ;; Change just that.
+                    (upcase-initials-region (point) (1+ (point))))))))
+          (when (symbol-function sym)
+            (let* ((hook (symbol-function sym))
+                   (expanded
+                    ;; If the abbrev has a hook function, run it.
+                    (funcall hook)))
+              ;; In addition, if the hook function is a symbol with
+              ;; a non-nil `no-self-insert' property, let the value it
+              ;; returned specify whether we consider that an expansion took
+              ;; place.  If it returns nil, no expansion has been done.
+              (if (and (symbolp hook)
+                       (null expanded)
+                       (get hook 'no-self-insert))
+                  (setq value nil))))
+          value)))))
+
+(defun unexpand-abbrev ()
+  "Undo the expansion of the last abbrev that expanded.
+This differs from ordinary undo in that other editing done since then
+is not undone."
+  (interactive)
+  (save-excursion
+    (unless (or (< last-abbrev-location (point-min))
+                (> last-abbrev-location (point-max)))
+      (goto-char last-abbrev-location)
+      (when (stringp last-abbrev-text)
+        ;; This isn't correct if last-abbrev's hook was used
+        ;; to do the expansion.
+        (let ((val (symbol-value last-abbrev)))
+          (unless (stringp val)
+            (error "value of abbrev-symbol must be a string"))
+          (delete-region (point) (+ (point) (length val)))
+          ;; Don't inherit properties here; just copy from old contents.
+          (insert last-abbrev-text)
+          (setq last-abbrev-text nil))))))
+
+(defun abbrev--write (sym)
+  "Write the abbrev in a `read'able form.
+Only writes the non-system abbrevs.
+Presumes that `standard-output' points to `current-buffer'."
+  (unless (or (null (symbol-value sym)) (abbrev-get sym 'system-flag))
+    (insert "    (")
+    (prin1 name)
+    (insert " ")
+    (prin1 (symbol-value sym))
+    (insert " ")
+    (prin1 (symbol-function sym))
+    (insert " ")
+    (prin1 (abbrev-get sym 'count))
+    (insert ")\n")))
+
+(defun abbrev--describe (sym)
+  (when (symbol-value sym)
+    (prin1 (symbol-name sym))
+    (if (null (abbrev-get sym 'system-flag))
+        (indent-to 15 1)
+      (insert " (sys)")
+      (indent-to 20 1))
+    (prin1 (abbrev-get sym 'count))
+    (indent-to 20 1)
+    (prin1 (symbol-value sym))
+    (when (symbol-function sym)
+      (indent-to 45 1)
+      (prin1 (symbol-function sym)))
+    (terpri)))
+
+(defun insert-abbrev-table-description (name &optional readable)
+  "Insert before point a full description of abbrev table named NAME.
+NAME is a symbol whose value is an abbrev table.
+If optional 2nd arg READABLE is non-nil, a human-readable description
+is inserted.  Otherwise the description is an expression,
+a call to `define-abbrev-table', which would
+define the abbrev table NAME exactly as it is currently defined.
+
+Abbrevs marked as \"system abbrevs\" are omitted."
+  (let ((table (symbol-value name))
+        (symbols ()))
+    (mapatoms (lambda (sym) (if (symbol-value sym) (push sym symbols))) table)
+    (setq symbols (sort symbols 'string-lessp))
+    (let ((standard-output (current-buffer)))
+      (if readable
+	  (progn
+	    (insert "(")
+	    (prin1 name)
+	    (insert ")\n\n")
+	    (mapc 'abbrev--describe symbols)
+	    (insert "\n\n"))
+	(insert "(define-abbrev-table '")
+	(prin1 name)
+	(insert " '(")
+	(mapc 'abbrev--write symbols)
+	(insert "    ))\n\n"))
+      nil)))
+
+(defun define-abbrev-table (tablename definitions
+                                      &optional docstring &rest props)
+  "Define TABLENAME (a symbol) as an abbrev table name.
+Define abbrevs in it according to DEFINITIONS, which is a list of elements
+of the form (ABBREVNAME EXPANSION HOOK USECOUNT SYSTEMFLAG).
+\(If the list is shorter than that, omitted elements default to nil).
+PROPS is a property list to apply to the table.
+Properties with special meaning:
+- `:parents' contains a list of abbrev tables from which this table inherits
+  abbreviations.
+- `:case-fixed' non-nil means that abbreviations are looked up without
+  case-folding, and the expansion is not capitalized/upcased.
+- `:regexp' describes the form of abbrevs.  It defaults to \\<\\(\\w+\\)\\W* which
+  means that an abbrev can only be a single word.  The submatch 1 is treated
+  as the potential name of an abbrev.
+- `:enable-function' can be set to a function of no argument which returns
+  non-nil iff the abbrevs in this table should be used for this instance
+  of `expand-abbrev'."
+  (let ((table (if (boundp tablename) (symbol-value tablename))))
+    (unless table
+      (setq table (make-abbrev-table props))
+      (set tablename table)
+      (push tablename abbrev-table-name-list))
+    (when (stringp docstring)
+      (put tablename 'variable-documentation docstring))
+    (dolist (elt definitions)
+      (apply 'define-abbrev table elt))))
 
 (provide 'abbrev)
 

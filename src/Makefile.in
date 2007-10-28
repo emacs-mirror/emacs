@@ -603,7 +603,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o print.o lread.o \
-	abbrev.o syntax.o UNEXEC bytecode.o \
+	syntax.o UNEXEC bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
@@ -1094,8 +1094,6 @@ stamp-oldxmenu:
    it is so often changed in ways that do not require any recompilation
    and so rarely changed in ways that do require any.  */
 
-abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h charset.h \
-	syntax.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h charset.h \
    $(config_h)
@@ -1279,7 +1277,7 @@ composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
 sunfns.o: sunfns.c buffer.h window.h dispextern.h termhooks.h $(config_h)
 
 #ifdef HAVE_CARBON
-abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
+buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
   scroll.o sysdep.o term.o terminal.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
   xterm.o xselect.o sound.o: macgui.h

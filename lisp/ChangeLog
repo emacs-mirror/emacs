@@ -1,3 +1,26 @@
+2007-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Rewrite abbrev.c in Elisp.
+	* abbrev.el (abbrev-mode): Move custom group from cus-edit.el.
+	(abbrev-table-get, abbrev-table-put, abbrev-get)
+	(abbrev-put, make-abbrev-table, abbrev-table-p, clear-abbrev-table)
+	(define-abbrev, abbrev--check-chars, define-global-abbrev)
+	(define-mode-abbrev, abbrev--active-tables, abbrev-symbol)
+	(abbrev-expansion, abbrev--before-point, expand-abbrev)
+	(unexpand-abbrev, abbrev--write, abbrev--describe)
+	(insert-abbrev-table-description, define-abbrev-table):
+	New funs, largely transcribed from abbrev.c.
+	(abbrev-with-wrapper-hook): New macro.
+	(abbrev-table-name-list, global-abbrev-table)
+	(abbrev-minor-mode-table-alist, fundamental-mode-abbrev-table)
+	(abbrevs-changed, abbrev-all-caps, abbrev-start-location)
+	(abbrev-start-location-buffer, last-abbrev, last-abbrev-text)
+	(last-abbrev-location, pre-abbrev-expand-hook, abbrev-expand-function):
+	New vars, largely transcribed from abbrev.c.
+	* cus-edit.el (abbrev-mode): Remove.  Move to abbrev.el.
+	* cus-start.el: Remove abbrev-all-caps and pre-abbrev-expand-hook.
+	* loadup.el: Load "abbrev.el" before "lisp-mode.el".
+
 2007-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* shell.el (shell-dirtrack-verbose, shell-directory-tracker): Doc fix.

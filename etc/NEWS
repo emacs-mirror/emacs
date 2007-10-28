@@ -166,6 +166,20 @@ its usage.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
+** abbrev was rewritten in Elisp and extended with more flexibility.
+*** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
+    abbrev-table-p.
+*** Special hook `abbrev-expand-functions' obsoletes `pre-abbrev-expand-hook'.
+*** `make-abbrev-table', `define-abbrev', `define-abbrev-table' all take
+    extra arguments for arbitrary properties.
+*** New variable `abbrev-minor-mode-table-alist'.
+*** `local-abbrev-table' can hold a list of abbrev-tables.
+*** Abbrevs have now the following special properties:
+    `count', `system-flag', `:enable-function', `:case-fixed'.
+*** Abbrev-tables have now the following special properties:
+    `:parents', `:case-fixed', `:enable-function', `:regexp',
+    `abbrev-table-modiff'.
+
 ** isearch can now search through multiple ChangeLog files.
 When running isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,

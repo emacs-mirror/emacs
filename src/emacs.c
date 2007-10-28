@@ -1543,7 +1543,6 @@ main (argc, argv
       syms_of_fns ();
       syms_of_floatfns ();
 
-      syms_of_abbrev ();
       syms_of_buffer ();
       syms_of_bytecode ();
       syms_of_callint ();
