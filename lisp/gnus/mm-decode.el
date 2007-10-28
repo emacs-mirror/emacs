@@ -33,7 +33,6 @@
 		   (require 'term))
 
 (eval-and-compile
-  (autoload 'executable-find "executable")
   (autoload 'mm-inline-partial "mm-partial")
   (autoload 'mm-inline-external-body "mm-extern")
   (autoload 'mm-extern-cache-contents "mm-extern")
@@ -231,6 +230,7 @@ before the external MIME handler is invoked."
        (fboundp 'diff-mode)))
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
+    ("text/dns" mm-display-dns-inline identity)
     ("text/html"
      mm-inline-text-html
      (lambda (handle)
@@ -299,9 +299,9 @@ when selecting a different article."
   :group 'mime-display)
 
 (defcustom mm-automatic-display
-  '("text/plain" "text/enriched" "text/richtext" "text/html"
+  '("text/plain" "text/enriched" "text/richtext" "text/html" "text/x-verbatim"
     "text/x-vcard" "image/.*" "message/delivery-status" "multipart/.*"
-    "message/rfc822" "text/x-patch" "application/pgp-signature"
+    "message/rfc822" "text/x-patch" "text/dns" "application/pgp-signature"
     "application/emacs-lisp" "application/x-emacs-lisp"
     "application/x-pkcs7-signature"
     "application/pkcs7-signature" "application/x-pkcs7-mime"
@@ -364,20 +364,34 @@ enables you to choose manually one of two types those mails include."
   :type 'boolean
   :group 'mime-display)
 
-(defvar mm-file-name-rewrite-functions
+(defcustom mm-file-name-rewrite-functions
   '(mm-file-name-delete-control mm-file-name-delete-gotchas)
-  "*List of functions used for rewriting file names of MIME parts.
+  "List of functions used for rewriting file names of MIME parts.
 Each function takes a file name as input and returns a file name.
 
-Ready-made functions include
-`mm-file-name-delete-control'
-`mm-file-name-delete-gotchas'
-`mm-file-name-delete-whitespace',
-`mm-file-name-trim-whitespace',
-`mm-file-name-collapse-whitespace',
-`mm-file-name-replace-whitespace',
-`capitalize', `downcase', `upcase', and
-`upcase-initials'.")
+Ready-made functions include `mm-file-name-delete-control',
+`mm-file-name-delete-gotchas' (you should not remove these two
+functions), `mm-file-name-delete-whitespace',
+`mm-file-name-trim-whitespace', `mm-file-name-collapse-whitespace',
+`mm-file-name-replace-whitespace', `capitalize', `downcase',
+`upcase', and `upcase-initials'."
+  :type '(list (set :inline t
+		    (const mm-file-name-delete-control)
+		    (const mm-file-name-delete-gotchas)
+		    (const mm-file-name-delete-whitespace)
+		    (const mm-file-name-trim-whitespace)
+		    (const mm-file-name-collapse-whitespace)
+		    (const mm-file-name-replace-whitespace)
+		    (const capitalize)
+		    (const downcase)
+		    (const upcase)
+		    (const upcase-initials)
+	       (repeat :inline t
+		       :tag "Function"
+		       function)))
+  :version "23.0" ;; No Gnus
+  :group 'mime-display)
+
 
 (defvar mm-path-name-rewrite-functions nil
   "*List of functions for rewriting the full file names of MIME parts.
@@ -436,7 +450,11 @@ If not set, `default-directory' will be used."
 (defcustom mm-verify-option 'never
   "Option of verifying signed parts.
 `never', not verify; `always', always verify;
-`known', only verify known protocols.  Otherwise, ask user."
+`known', only verify known protocols.  Otherwise, ask user.
+
+When set to `always' or `known', you should add
+\"multipart/signed\" to `gnus-buttonized-mime-types' to see
+result of the verification."
   :version "22.1"
   :type '(choice (item always)
 		 (item never)
@@ -548,15 +566,11 @@ Postpone undisplaying of viewers for types in
 	  ;; solution, avoids most of them.
 	  (if from
 	      (setq from (cadr (mail-extract-address-components from))))))
-      (when cte
-	(setq cte (mail-header-strip cte)))
       (if (or (not ctl)
 	      (not (string-match "/" (car ctl))))
 	  (mm-dissect-singlepart
 	   (list mm-dissect-default-type)
-	   (and cte (intern (downcase (mail-header-remove-whitespace
-				       (mail-header-remove-comments
-					cte)))))
+	   (and cte (intern (downcase (mail-header-strip cte))))
 	   no-strict-mime
 	   (and cd (mail-header-parse-content-disposition cd))
 	   description)
@@ -589,9 +603,7 @@ Postpone undisplaying of viewers for types in
 	   (mm-possibly-verify-or-decrypt
 	    (mm-dissect-singlepart
 	     ctl
-	     (and cte (intern (downcase (mail-header-remove-whitespace
-					 (mail-header-remove-comments
-					  cte)))))
+	     (and cte (intern (downcase (mail-header-strip cte))))
 	     no-strict-mime
 	     (and cd (mail-header-parse-content-disposition cd))
 	     description id)
@@ -922,16 +934,16 @@ external if displayed external."
 	    (string= total "'%s'")
 	    (string= total "\"%s\""))
 	(setq uses-stdin nil)
-	(push (mm-quote-arg
+	(push (shell-quote-argument
 	       (gnus-map-function mm-path-name-rewrite-functions file)) out))
        ((string= total "%t")
-	(push (mm-quote-arg (car type-list)) out))
+	(push (shell-quote-argument (car type-list)) out))
        (t
-	(push (mm-quote-arg (or (cdr (assq (intern sub) ctl)) "")) out))))
+	(push (shell-quote-argument (or (cdr (assq (intern sub) ctl)) "")) out))))
     (push (substring method beg (length method)) out)
     (when uses-stdin
       (push "<" out)
-      (push (mm-quote-arg
+      (push (shell-quote-argument
 	     (gnus-map-function mm-path-name-rewrite-functions file))
 	    out))
     (mapconcat 'identity (nreverse out) "")))
@@ -1136,16 +1148,26 @@ are ignored."
   "Insert the contents of HANDLE in the current buffer.
 If NO-CACHE is non-nil, cached contents of a message/external-body part
 are ignored."
-  (save-excursion
-    (insert
-     (cond ((eq (mail-content-type-get (mm-handle-type handle) 'charset)
-		'gnus-decoded)
-	    (with-current-buffer (mm-handle-buffer handle)
-	      (buffer-string)))
-	   ((mm-multibyte-p)
-	    (mm-string-to-multibyte (mm-get-part handle no-cache)))
-	   (t
-	    (mm-get-part handle no-cache))))))
+  (let ((text (cond ((eq (mail-content-type-get (mm-handle-type handle)
+						'charset)
+			 'gnus-decoded)
+		     (with-current-buffer (mm-handle-buffer handle)
+		       (buffer-string)))
+		    ((mm-multibyte-p)
+		     (mm-string-to-multibyte (mm-get-part handle no-cache)))
+		    (t
+		     (mm-get-part handle no-cache)))))
+    (save-restriction
+      (widen)
+      (goto-char
+       (prog1
+	   (point)
+	 (if (and (eq (get-char-property (max (point-min) (1- (point))) 'face)
+		      'mm-uu-extract)
+		  (eq (get-char-property 0 'face text) 'mm-uu-extract))
+	     ;; Separate the extracted parts that have the same faces.
+	     (insert "\n" text)
+	   (insert text)))))))
 
 (defun mm-file-name-delete-whitespace (file-name)
   "Remove all whitespace characters from FILE-NAME."
@@ -1185,8 +1207,9 @@ string if you do not like underscores."
   (setq filename (gnus-replace-in-string filename "[<>|]" ""))
   (gnus-replace-in-string filename "^[.-]+" ""))
 
-(defun mm-save-part (handle)
-  "Write HANDLE to a file."
+(defun mm-save-part (handle &optional prompt)
+  "Write HANDLE to a file.
+PROMPT overrides the default one used to ask user for a file name."
   (let ((filename (or (mail-content-type-get
 		       (mm-handle-disposition handle) 'filename)
 		      (mail-content-type-get
@@ -1197,7 +1220,7 @@ string if you do not like underscores."
 					(file-name-nondirectory filename))))
     (setq file
 	  (mm-with-multibyte
-	   (read-file-name "Save MIME part to: "
+	   (read-file-name (or prompt "Save MIME part to: ")
 			   (or mm-default-directory default-directory)
 			   nil nil (or filename ""))))
     (setq mm-default-directory (file-name-directory file))
@@ -1211,17 +1234,13 @@ string if you do not like underscores."
 (defun mm-save-part-to-file (handle file)
   (mm-with-unibyte-buffer
     (mm-insert-part handle)
-    (let ((coding-system-for-write 'binary)
-	  (current-file-modes (default-file-modes))
+    (let ((current-file-modes (default-file-modes)))
+      (set-default-file-modes mm-attachment-file-modes)
+      (unwind-protect
 	  ;; Don't re-compress .gz & al.  Arguably we should make
 	  ;; `file-name-handler-alist' nil, but that would chop
 	  ;; ange-ftp, which is reasonable to use here.
-	  (inhibit-file-name-operation 'write-region)
-	  (inhibit-file-name-handlers
-	   (cons 'jka-compr-handler inhibit-file-name-handlers)))
-      (set-default-file-modes mm-attachment-file-modes)
-      (unwind-protect
-	  (write-region (point-min) (point-max) file)
+	  (mm-write-region (point-min) (point-max) file nil nil nil 'binary t)
 	(set-default-file-modes current-file-modes)))))
 
 (defun mm-pipe-part (handle)
@@ -1517,7 +1536,7 @@ If RECURSIVE, search recursively."
 			   (format "protocol=%s" protocol))))))
 	(save-excursion
 	  (if func
-	      (funcall func parts ctl)
+	      (setq parts (funcall func parts ctl))
 	    (mm-set-handle-multipart-parameter
 	     mm-security-handle 'gnus-details
 	     (format "Unknown sign protocol (%s)" protocol))))))

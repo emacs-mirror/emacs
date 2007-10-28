@@ -241,7 +241,7 @@ expiry mechanism."
     (nndb-request-expire-articles-local articles group server force)))
 
 (deffoo nndb-request-move-article
-    (article group server accept-form &optional last)
+    (article group server accept-form &optional last move-is-internal)
   "Move ARTICLE (a number) from GROUP on SERVER.
 Evals ACCEPT-FORM in current buffer, where the article is.
 Optional LAST is ignored."

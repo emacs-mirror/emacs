@@ -71,14 +71,14 @@ Message mode buffers.
 @c Adjust ../Makefile.in if you change the following lines:
 Message is distributed with Gnus.  The Gnus distribution
 @c
-corresponding to this manual is Gnus v5.11.
+corresponding to this manual is No Gnus v0.7.
 
 
 @node Interface
 @chapter Interface
 
-When a program (or a person) wants to respond to a message -- reply,
-follow up, forward, cancel -- the program (or person) should just put
+When a program (or a person) wants to respond to a message---reply,
+follow up, forward, cancel---the program (or person) should just put
 point in the buffer where the message is and call the required command.
 @code{Message} will then pop up a new @code{message} mode buffer with
 appropriate headers filled out, and the user can edit the message before
@@ -179,7 +179,8 @@ but you can change the behavior to suit your needs by fiddling with the
 
 @vindex message-dont-reply-to-names
 Addresses that match the @code{message-dont-reply-to-names} regular
-expression will be removed from the @code{Cc} header.
+expression (or list of regular expressions) will be removed from the
+@code{Cc} header. A value of @code{nil} means exclude your name only.
 
 @vindex message-wide-reply-confirm-recipients
 If @code{message-wide-reply-confirm-recipients} is non-@code{nil} you
@@ -257,7 +258,7 @@ removed before popping up the new message buffer.  The default is@*
 ^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-Complaints-To:\\|@*
 Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|@*
 ^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|@*
-^X-Payment:}.
+^X-Payment:\\|^Approved:}.
 
 
 
@@ -797,14 +798,18 @@ Insert the message headers (@code{message-insert-headers}).
 @item C-c M-m
 @kindex C-c M-m
 @findex message-mark-inserted-region
-Mark some region in the current article with enclosing tags.
-See @code{message-mark-insert-begin} and @code{message-mark-insert-end}.
+Mark some region in the current article with enclosing tags.  See
+@code{message-mark-insert-begin} and @code{message-mark-insert-end}.
+When called with a prefix argument, use slrn style verbatim marks
+(@samp{#v+} and @samp{#v-}).
 
 @item C-c M-f
 @kindex C-c M-f
 @findex message-mark-insert-file
 Insert a file in the current article with enclosing tags.
 See @code{message-mark-insert-begin} and @code{message-mark-insert-end}.
+When called with a prefix argument, use slrn style verbatim marks
+(@samp{#v+} and @samp{#v-}).
 
 @end table
 
@@ -1159,6 +1164,11 @@ The text is killed and replaced with the contents of the variable
 @code{message-elide-ellipsis}.  The default value is to use an ellipsis
 (@samp{[...]}).
 
+@item C-c M-k
+@kindex C-c M-k
+@findex message-kill-address
+Kill the address under point.
+
 @item C-c C-z
 @kindex C-c C-z
 @findex message-kill-to-signature
@@ -1244,11 +1254,13 @@ Kill the message buffer and exit (@code{message-kill-buffer}).
 @section Mail Aliases
 @cindex mail aliases
 @cindex aliases
+@cindex completion
+@cindex ecomplete
 
 @vindex message-mail-alias-type
 The @code{message-mail-alias-type} variable controls what type of mail
-alias expansion to use.  Currently only one form is supported---Message
-uses @code{mailabbrev} to handle mail aliases.  If this variable is
+alias expansion to use.  Currently two forms are supported:
+@code{mailabbrev} and @code{ecomplete}.  If this variable is
 @code{nil}, no mail alias expansion will be performed.
 
 @code{mailabbrev} works by parsing the @file{/etc/mailrc} and
@@ -1266,6 +1278,14 @@ on) headers and press @kbd{SPC} to expand the alias.
 No expansion will be performed upon sending of the message---all
 expansions have to be done explicitly.
 
+If you're using @code{ecomplete}, all addresses from @code{To} and
+@code{Cc} headers will automatically be put into the
+@file{~/.ecompleterc} file.  When you enter text in the @code{To} and
+@code{Cc} headers, @code{ecomplete} will check out the values stored
+there and ``electrically'' say what completions are possible.  To
+choose one of these completions, use the @kbd{M-n} command to move
+down to the list.  Use @kbd{M-n} and @kbd{M-p} to move down and up the
+list, and @kbd{RET} to choose a completion.
 
 @node Spelling
 @section Spelling
@@ -1334,7 +1354,7 @@ installed.
 @section Message Headers
 
 Message is quite aggressive on the message generation front.  It has to
-be -- it's a combined news and mail agent.  To be able to send combined
+be---it's a combined news and mail agent.  To be able to send combined
 messages, it has to generate all headers itself (instead of letting the
 mail/news system do it) to ensure that mail and news copies of messages
 look sufficiently similar.
@@ -1373,7 +1393,7 @@ values:
 
 @table @code
 @item nil
-Just the address -- @samp{king@@grassland.com}.
+Just the address---@samp{king@@grassland.com}.
 
 @item parens
 @samp{king@@grassland.com (Elvis Parsley)}.
@@ -1494,6 +1514,9 @@ hidden when composing a message.
       '(not "From" "Subject" "To" "Cc" "Newsgroups"))
 @end lisp
 
+Headers are hidden using narrowing, you can use @kbd{M-x widen} to
+expose them in the buffer.
+
 @item message-header-synonyms
 @vindex message-header-synonyms
 A list of lists of header synonyms.  E.g., if this list contains a
@@ -1525,6 +1548,13 @@ Regexp of headers to be removed before mailing.  The default is@*
 This string is inserted at the end of the headers in all message
 buffers that are initialized as mail.
 
+@item message-generate-hashcash
+@vindex message-generate-hashcash
+Variable that indicates whether @samp{X-Hashcash} headers
+should be computed for the message.  @xref{Hashcash, ,Hashcash,gnus,
+The Gnus Manual}.  If @code{opportunistic}, only generate the headers
+when it doesn't lead to the user having to wait.
+
 @end table
 
 
@@ -1541,10 +1571,10 @@ buffers that are initialized as mail.
 @findex smtpmail-send-it
 @findex feedmail-send-it
 Function used to send the current buffer as mail.  The default is
-@code{message-send-mail-with-sendmail}.  Other valid values include
+@code{message-send-mail-with-sendmail}, or @code{smtpmail-send-it}
+according to the system.  Other valid values include
 @code{message-send-mail-with-mh}, @code{message-send-mail-with-qmail},
-@code{message-smtpmail-send-it}, @code{smtpmail-send-it} and
-@code{feedmail-send-it}.
+@code{message-smtpmail-send-it} and @code{feedmail-send-it}.
 
 @item message-mh-deletable-headers
 @vindex message-mh-deletable-headers
@@ -1859,6 +1889,9 @@ that look like:
 Hallvard B Furuseth <h.b.furuseth@@usit.uio.no> writes:
 @end example
 
+@c FIXME: Add `message-insert-formated-citation-line' and
+@c `message-citation-line-format'
+
 Point will be at the beginning of the body of the message when this
 function is called.
 
@@ -1873,21 +1906,29 @@ Article Highlighting, gnus, The Gnus Manual}, for details.
 @cindex yanking
 @cindex quoting
 When you are replying to or following up an article, you normally want
-to quote the person you are answering.  Inserting quoted text is done
-by @dfn{yanking}, and each line you yank will have
-@code{message-yank-prefix} prepended to it (except for quoted and
-empty lines which uses @code{message-yank-cited-prefix}).  The default
-is @samp{> }.
+to quote the person you are answering.  Inserting quoted text is done by
+@dfn{yanking}, and each line you yank will have
+@code{message-yank-prefix} prepended to it (except for quoted lines
+which use @code{message-yank-cited-prefix} and empty lines which use
+@code{message-yank-empty-prefix}).  The default is @samp{> }.
 
 @item message-yank-cited-prefix
 @vindex message-yank-cited-prefix
 @cindex yanking
 @cindex cited
 @cindex quoting
-When yanking text from an article which contains no text or already
-cited text, each line will be prefixed with the contents of this
-variable.  The default is @samp{>}.  See also
-@code{message-yank-prefix}.
+When yanking text from an article which contains already cited text,
+each line will be prefixed with the contents of this variable.  The
+default is @samp{>}.  See also @code{message-yank-prefix}.
+
+@item message-yank-empty-prefix
+@vindex message-yank-empty-prefix
+@cindex yanking
+@cindex quoting
+When yanking text from an article, each empty line will be prefixed with
+the contents of this variable.  The default is @samp{>}.  You can set
+this variable to an empty string to split the cited text into paragraphs
+automatically.  See also @code{message-yank-prefix}.
 
 @item message-indentation-spaces
 @vindex message-indentation-spaces
@@ -1932,7 +1973,17 @@ If this variable is @code{nil}, no signature will be inserted at all.
 @item message-signature-file
 @vindex message-signature-file
 File containing the signature to be inserted at the end of the buffer.
+If a path is specified, the value of
+@code{message-signature-directory} is ignored, even if set.
 The default is @file{~/.signature}.
+
+@item message-signature-directory
+@vindex message-signature-directory
+Name of directory containing signature files.  Comes in handy if you
+have many such files, handled via Gnus posting styles for instance.
+If @code{nil} (the default), @code{message-signature-file} is expected
+to specify the directory if needed.
+
 
 @item message-signature-insert-empty-line
 @vindex message-signature-insert-empty-line
@@ -1967,6 +2018,13 @@ which means ask the user.  (This variable is used only on non-@sc{mule}
 Emacsen.)  @xref{Charset Translation, , Charset Translation, emacs-mime,
 Emacs MIME Manual}, for details on the @sc{mule}-to-@acronym{MIME}
 translation process.
+
+@item message-fill-column
+@vindex message-fill-column
+@cindex auto-fill
+Local value for the column beyond which automatic line-wrapping should
+happen for message buffers.  If non-nil (the default), also turn on
+auto-fill in message buffers.
 
 @item message-signature-separator
 @vindex message-signature-separator
@@ -2057,6 +2115,12 @@ Hook run when canceling news articles.
 @vindex message-mode-syntax-table
 Syntax table used in message mode buffers.
 
+@item message-cite-articles-with-x-no-archive
+@vindex message-cite-articles-with-x-no-archive
+If non-@code{nil}, don't strip quoted text from articles that have
+@samp{X-No-Archive} set.  Even if this variable isn't set, you can
+undo the stripping by hitting the @code{undo} keystroke.
+
 @item message-strip-special-text-properties
 @vindex message-strip-special-text-properties
 Emacs has a number of special text properties which can break message
@@ -2089,7 +2153,7 @@ the buffer where the message is.
 
 @item function
 A function to be called if @var{predicate} returns non-@code{nil}.
-@var{function} is called with one parameter -- the prefix.
+@var{function} is called with one parameter---the prefix.
 @end table
 
 The default is:

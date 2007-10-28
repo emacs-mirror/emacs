@@ -129,11 +129,12 @@ valid issuer, which is much faster if you are selective about the issuers."
 
 (defun gnus-fill-real-hashtb ()
   "Fill up a hash table with the real-name mappings from the user's active file."
-  (setq gnus-nocem-real-group-hashtb (gnus-make-hashtable
-				      (length gnus-newsrc-alist)))
+  (if (hash-table-p gnus-nocem-real-group-hashtb)
+      (clrhash gnus-nocem-real-group-hashtb)
+    (setq gnus-nocem-real-group-hashtb (make-hash-table :test 'equal)))
   (mapcar (lambda (group)
 	    (setq group (gnus-group-real-name (car group)))
-	    (gnus-sethash group t gnus-nocem-real-group-hashtb))
+	    (puthash group t gnus-nocem-real-group-hashtb))
 	  gnus-newsrc-alist))
 
 ;;;###autoload
@@ -191,7 +192,7 @@ valid issuer, which is much faster if you are selective about the issuers."
 		       (and gnus-nocem-check-from
 			    (let ((case-fold-search t))
 			      (catch 'ok
-				(mapcar
+				(mapc
 				 (lambda (author)
 				   (if (consp author)
 				       (setq author (car author)))
@@ -237,11 +238,11 @@ valid issuer, which is much faster if you are selective about the issuers."
       (gnus-request-article-this-buffer (mail-header-number header) group)
       (goto-char (point-min))
       (when (re-search-forward
-	     "-----BEGIN PGP\\( SIGNED\\)? MESSAGE-----"
+	     "-----BEGIN PGP\\(?: SIGNED\\)? MESSAGE-----"
 	     nil t)
 	(delete-region (point-min) (match-beginning 0)))
       (when (re-search-forward
-	     "-----END PGP \\(MESSAGE\\|SIGNATURE\\)-----\n?"
+	     "-----END PGP \\(?:MESSAGE\\|SIGNATURE\\)-----\n?"
 	     nil t)
 	(delete-region (match-end 0) (point-max)))
       (goto-char (point-min))
@@ -304,34 +305,26 @@ valid issuer, which is much faster if you are selective about the issuers."
       (while (search-forward "\t" nil t)
 	(cond
 	 ((not (ignore-errors
-		 (setq group (let ((obarray gnus-nocem-real-group-hashtb))
-			       (read buf)))))
+		 (setq group (gnus-group-real-name (symbol-name (read buf))))
+		 (gethash group gnus-nocem-real-group-hashtb)))
 	  ;; An error.
 	  )
-	 ((not (symbolp group))
-	  ;; Ignore invalid entries.
-	  )
-	 ((not (boundp group))
-	  ;; Make sure all entries in the hashtb are bound.
-	  (set group nil))
 	 (t
-	  (when (gnus-gethash (gnus-group-real-name (symbol-name group))
-			      gnus-nocem-real-group-hashtb)
-	    ;; Valid group.
-	    (beginning-of-line)
-	    (while (eq (char-after) ?\t)
-	      (forward-line -1))
-	    (setq id (buffer-substring (point) (1- (search-forward "\t"))))
-	    (unless (if gnus-nocem-hashtb
-			(gnus-gethash id gnus-nocem-hashtb)
-		      (setq gnus-nocem-hashtb (gnus-make-hashtable))
-		      nil)
-	      ;; only store if not already present
-	      (gnus-sethash id t gnus-nocem-hashtb)
-	      (push id ncm))
-	    (forward-line 1)
-	    (while (eq (char-after) ?\t)
-	      (forward-line 1))))))
+	  ;; Valid group.
+	  (beginning-of-line)
+	  (while (eq (char-after) ?\t)
+	    (forward-line -1))
+	  (setq id (buffer-substring (point) (1- (search-forward "\t"))))
+	  (unless (if (hash-table-p gnus-nocem-hashtb)
+		      (gethash id gnus-nocem-hashtb)
+		    (setq gnus-nocem-hashtb (make-hash-table :test 'equal))
+		    nil)
+	    ;; only store if not already present
+	    (puthash id t gnus-nocem-hashtb)
+	    (push id ncm))
+	  (forward-line 1)
+	  (while (eq (char-after) ?\t)
+	    (forward-line 1)))))
       (when ncm
 	(setq gnus-nocem-touched-alist t)
 	(push (cons (let ((time (current-time))) (setcdr (cdr time) nil) time)
@@ -370,7 +363,9 @@ valid issuer, which is much faster if you are selective about the issuers."
 	 (prev pprev)
 	 (expiry (days-to-time gnus-nocem-expiry-wait))
 	 entry)
-    (setq gnus-nocem-hashtb (gnus-make-hashtable (* (length alist) 51)))
+    (if (hash-table-p gnus-nocem-hashtb)
+	(clrhash gnus-nocem-hashtb)
+      (setq gnus-nocem-hashtb (make-hash-table :test 'equal)))
     (while (setq entry (car alist))
       (if (not (time-less-p (time-since (car entry)) expiry))
 	  ;; This entry has expired, so we remove it.
@@ -379,7 +374,7 @@ valid issuer, which is much faster if you are selective about the issuers."
 	;; This is ok, so we enter it into the hashtable.
 	(setq entry (cdr entry))
 	(while entry
-	  (gnus-sethash (car entry) t gnus-nocem-hashtb)
+	  (puthash (car entry) t gnus-nocem-hashtb)
 	  (setq entry (cdr entry))))
       (setq alist (cdr alist)))))
 
@@ -397,7 +392,7 @@ valid issuer, which is much faster if you are selective about the issuers."
 (defun gnus-nocem-unwanted-article-p (id)
   "Say whether article ID in the current group is wanted."
   (and gnus-nocem-hashtb
-       (gnus-gethash id gnus-nocem-hashtb)))
+       (gethash id gnus-nocem-hashtb)))
 
 (provide 'gnus-nocem)
 

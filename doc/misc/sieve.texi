@@ -236,9 +236,9 @@ if address "sender" "owner-w3-beta@@xemacs.org" @{
 @}
 @end example
 
-A few mailing lists do not use the @samp{Sender:} header, but does
-contain some unique identifier in some other header.  The following is
-not a complete script, it assumes that @code{fileinto} has already been
+A few mailing lists do not use the @samp{Sender:} header, but has a
+unique identifier in some other header.  The following is not a
+complete script, it assumes that @code{fileinto} has already been
 required.
 
 @example

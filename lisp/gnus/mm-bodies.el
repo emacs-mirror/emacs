@@ -26,10 +26,6 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (or (fboundp  'base64-decode-region)
-      (require 'base64)))
-
 (eval-when-compile
   (defvar mm-uu-decode-function)
   (defvar mm-uu-binhex-decode-function))

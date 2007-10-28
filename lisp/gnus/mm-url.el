@@ -35,14 +35,6 @@
 (require 'mm-util)
 (require 'gnus)
 
-(eval-and-compile
-  (autoload 'executable-find "executable"))
-
-(eval-when-compile
-  (if (featurep 'xemacs)
-      (require 'timer-funcs)
-    (require 'timer)))
-
 (defvar url-current-object)
 (defvar url-package-name)
 (defvar url-package-version)

@@ -86,13 +86,14 @@ It is a slightly enhanced emacs-lisp-mode.
   (make-local-variable 'gnus-prev-winconf)
   (gnus-run-mode-hooks 'gnus-edit-form-mode-hook))
 
-(defun gnus-edit-form (form documentation exit-func)
+(defun gnus-edit-form (form documentation exit-func &optional layout)
   "Edit FORM in a new buffer.
 Call EXIT-FUNC on exit.  Display DOCUMENTATION in the beginning
-of the buffer."
+of the buffer.
+The optional LAYOUT overrides the `edit-form' window layout."
   (let ((winconf (current-window-configuration)))
     (set-buffer (gnus-get-buffer-create gnus-edit-form-buffer))
-    (gnus-configure-windows 'edit-form)
+    (gnus-configure-windows (or layout 'edit-form))
     (gnus-edit-form-mode)
     (setq gnus-prev-winconf winconf)
     (setq gnus-edit-form-done-function exit-func)

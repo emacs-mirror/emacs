@@ -246,13 +246,11 @@ there.")
 	;; Yes, completely empty spool directories *are* possible.
 	;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>
 	(when (setq dir (directory-files pathname nil "^[0-9]+$" t))
-	  (setq dir
-		(sort (mapcar (lambda (name) (string-to-number name)) dir) '<)))
+	  (setq dir (sort (mapcar 'string-to-number dir) '<)))
 	(if dir
 	    (nnheader-insert
 	     "211 %d %d %d %s\n" (length dir) (car dir)
-	     (progn (while (cdr dir) (setq dir (cdr dir))) (car dir))
-	     group)
+	     (car (last dir)) group)
 	  (nnheader-report 'nnspool "Empty group %s" group)
 	  (nnheader-insert "211 0 0 0 %s\n" group))))))
 
@@ -311,9 +309,8 @@ there.")
 			    groups)
 		      (zerop (forward-line -1))))
 	  (erase-buffer)
-	  (while groups
-	    (insert (car groups) " 0 0 y\n")
-	    (setq groups (cdr groups))))
+	  (dolist (group groups)
+	    (insert group " 0 0 y\n")))
 	t)
     nil))
 
@@ -400,8 +397,7 @@ there.")
 				(<= last (car arts)))
 		      (pop arts))
 		    ;; The articles in `arts' are missing from the buffer.
-		    (while arts
-		      (nnspool-insert-nov-head (pop arts)))
+		    (mapc 'nnspool-insert-nov-head arts)
 		    t))))))))))
 
 (defun nnspool-insert-nov-head (article)
@@ -421,8 +417,7 @@ there.")
 
 (defun nnspool-sift-nov-with-sed (articles file)
   (let ((first (car articles))
-	(last (progn (while (cdr articles) (setq articles (cdr articles)))
-		     (car articles))))
+	(last (car (last articles))))
     (call-process "awk" nil t nil
 		  (format "BEGIN {firstmsg=%d; lastmsg=%d;}\n $1 >= firstmsg && $1 <= lastmsg {print;}"
 			  (1- first) (1+ last))
@@ -431,16 +426,12 @@ there.")
 ;; Fixed by fdc@cliwe.ping.de (Frank D. Cringle).
 ;; Find out what group an article identified by a Message-ID is in.
 (defun nnspool-find-id (id)
-  (save-excursion
-    (set-buffer (get-buffer-create " *nnspool work*"))
-    (erase-buffer)
+  (with-temp-buffer
     (ignore-errors
       (call-process "grep" nil t nil (regexp-quote id) nnspool-history-file))
     (goto-char (point-min))
-    (prog1
-	(when (looking-at "<[^>]+>[ \t]+[-0-9~]+[ \t]+\\([^ /\t\n]+\\)/\\([0-9]+\\)[ \t\n]")
-	  (cons (match-string 1) (string-to-number (match-string 2))))
-      (kill-buffer (current-buffer)))))
+    (when (looking-at "<[^>]+>[ \t]+[-0-9~]+[ \t]+\\([^ /\t\n]+\\)/\\([0-9]+\\)[ \t\n]")
+      (cons (match-string 1) (string-to-number (match-string 2))))))
 
 (defun nnspool-find-file (file)
   "Insert FILE in server buffer safely."

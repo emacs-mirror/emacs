@@ -50,6 +50,19 @@ jabbering all the time."
   :group 'gmm)
 
 ;;;###autoload
+(defun gmm-regexp-concat (regexp)
+  "Potentially concat a list of regexps into a single one.
+The concatenation is done with logical ORs."
+  (cond ((null regexp)
+	 nil)
+	((stringp regexp)
+	 regexp)
+	((listp regexp)
+	 (mapconcat (lambda (elt) (concat "\\(" elt "\\)"))
+		    regexp
+		    "\\|"))))
+
+;;;###autoload
 (defun gmm-message (level &rest args)
   "If LEVEL is lower than `gmm-verbose' print ARGS using `message'.
 

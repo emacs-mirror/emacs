@@ -152,7 +152,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	   (message-send-hook (copy-sequence message-send-hook))
 	   articles
 	   article deadline)
-      (when (gnus-gethash group gnus-newsrc-hashtb)
+      (when (gnus-group-entry group)
 	(gnus-activate-group group)
 	(add-hook 'message-send-hook
 		  '(lambda ()

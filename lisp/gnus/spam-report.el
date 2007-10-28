@@ -2,8 +2,8 @@
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 
-;; Author: Teodor Zlatanov <tzz@lifelogs.com>
-;; Keywords: network
+;; Author: Ted Zlatanov <tzz@lifelogs.com>
+;; Keywords: network, spam, mail, gmane, report
 
 ;; This file is part of GNU Emacs.
 
@@ -80,26 +80,92 @@ The function must accept the arguments `host' and `report'."
   :type 'file
   :group 'spam-report)
 
+(defcustom spam-report-resend-to nil
+  "Email address that spam articles are resent to when reporting.
+If not set, the user will be prompted to enter a value which will be
+saved for future use."
+  :type 'string
+  :group 'spam-report)
+
 (defvar spam-report-url-ping-temp-agent-function nil
   "Internal variable for `spam-report-agentize' and `spam-report-deagentize'.
 This variable will store the value of `spam-report-url-ping-function' from
 before `spam-report-agentize' was run, so that `spam-report-deagentize' can
 undo that change.")
 
-(defun spam-report-gmane (&rest articles)
-  "Report an article as spam through Gmane"
+(defun spam-report-resend (articles &optional ham)
+  "Report an article as spam by resending via email.
+Reports is as ham when HAM is set."
   (dolist (article articles)
-    (when (and gnus-newsgroup-name
-	       (or (null spam-report-gmane-regex)
-		   (string-match spam-report-gmane-regex gnus-newsgroup-name)))
-      (gnus-message 6 "Reporting spam article %d to spam.gmane.org..." article)
-      (if spam-report-gmane-use-article-number
-	  (spam-report-url-ping
-	   "spam.gmane.org"
-	   (format "/%s:%d"
-		   (gnus-group-real-name gnus-newsgroup-name)
-		   article))
+    (gnus-message 6 
+		  "Reporting %s article %d to <%s>..."
+		  (if ham "ham" "spam")
+		  article spam-report-resend-to)
+    (unless spam-report-resend-to
+      (customize-set-variable 
+       spam-report-resend-to
+       (read-from-minibuffer "email address to resend SPAM/HAM to? ")))
+    ;; This is ganked from the `gnus-summary-resend-message' function.
+    ;; It involves rendering the SPAM, which is undesirable, but there does
+    ;; not seem to be a nicer way to achieve this.
+    ;; select this particular article
+    (gnus-summary-select-article nil nil nil article)
+    ;; resend it to the destination address
+    (save-excursion
+      (set-buffer gnus-original-article-buffer)
+      (message-resend spam-report-resend-to))))
+
+(defun spam-report-resend-ham (articles)
+  "Report an article as ham by resending via email."
+  (spam-report-resend articles t))
+
+(defun spam-report-gmane-ham (&rest articles)
+  "Report ARTICLES as ham (unregister) through Gmane."
+  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (dolist (article articles)
+    (spam-report-gmane-internal t article)))
+
+(defun spam-report-gmane-spam (&rest articles)
+  "Report ARTICLES as spam through Gmane."
+  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (dolist (article articles)
+    (spam-report-gmane-internal nil article)))
+
+;; `spam-report-gmane' was an interactive entry point, so we should provide an
+;; alias.
+(defalias 'spam-report-gmane 'spam-report-gmane-spam)
+
+(defun spam-report-gmane-internal (unspam article)
+  "Report ARTICLE as spam or not-spam through Gmane, depending on UNSPAM."
+  (when (and gnus-newsgroup-name
+	     (or (null spam-report-gmane-regex)
+		 (string-match spam-report-gmane-regex gnus-newsgroup-name)))
+    (let ((rpt-host (if unspam "unspam.gmane.org" "spam.gmane.org")))
+      (gnus-message 6 "Reporting article %d to %s..." article rpt-host)
+      (cond
+       ;; Special-case nnweb groups -- these have the URL to use in
+       ;; the Xref headers.
+       ((eq (car (gnus-find-method-for-group gnus-newsgroup-name)) 'nnweb)
+	(spam-report-url-ping
+	 rpt-host
+	 (concat
+	  "/"
+	  (gnus-replace-in-string
+	   (gnus-replace-in-string
+	    (gnus-replace-in-string
+	     (mail-header-xref (gnus-summary-article-header article))
+	     "/raw" ":silent")
+	    "^.*article.gmane.org/" "")
+	   "/" ":"))))
+       (spam-report-gmane-use-article-number
+	(spam-report-url-ping
+	 rpt-host
+	 (format "/%s:%d"
+		 (gnus-group-real-name gnus-newsgroup-name)
+		 article)))
+       (t
 	(with-current-buffer nntp-server-buffer
+	  (erase-buffer)
 	  (gnus-request-head article gnus-newsgroup-name)
 	  (let ((case-fold-search t)
 		field host report url)
@@ -111,25 +177,33 @@ undo that change.")
 	    ;; There might be more than one Archived-At header so we need to
 	    ;; find (and transform) the one related to Gmane.
 	    (setq field (or (gnus-fetch-field "X-Report-Spam")
+			    (gnus-fetch-field "X-Report-Unspam")
 			    (gnus-fetch-field "Archived-At")))
-	    (setq host (progn
-			 (string-match
-			  (concat "http://\\([a-z]+\\.gmane\\.org\\)"
-				  "\\(/[^:/]+[:/][0-9]+\\)")
-			  field)
-			 (match-string 1 field)))
-	    (setq report (match-string 2 field))
-	    (when (string-equal "permalink.gmane.org" host)
-	      (setq host "spam.gmane.org")
-	      (setq report (gnus-replace-in-string
-			    report "/\\([0-9]+\\)$" ":\\1")))
-	    (setq url (format "http://%s%s" host report))
+	    (if (not (stringp field))
+		(if (and (setq field (gnus-fetch-field "Xref"))
+			 (string-match "[^ ]+ +\\([^ ]+\\)" field))
+		    (setq report (concat "/" (match-string 1 field))
+			  host rpt-host))
+	      (setq host
+		    (progn
+		      (string-match
+		       (concat "http://\\([a-z]+\\.gmane\\.org\\)"
+			       "\\(/[^:/]+[:/][0-9]+\\)")
+		       field)
+		      (match-string 1 field)))
+	      (setq report (match-string 2 field)))
+	    (when host
+	      (when (string-equal "permalink.gmane.org" host)
+		(setq host rpt-host)
+		(setq report (gnus-replace-in-string
+			      report "/\\([0-9]+\\)$" ":\\1")))
+	      (setq url (format "http://%s%s" host report)))
 	    (if (not (and host report url))
 		(gnus-message
 		 3 "Could not find a spam report header in article %d..."
 		 article)
-	      (gnus-message 7 "Reporting spam through URL %s..." url)
-	      (spam-report-url-ping host report))))))))
+	      (gnus-message 7 "Reporting article through URL %s..." url)
+	      (spam-report-url-ping host report)))))))))
 
 (defun spam-report-url-ping (host report)
   "Ping a host through HTTP, addressing a specific GET resource using
@@ -138,6 +212,24 @@ the function specified by `spam-report-url-ping-function'."
   ;; host: "spam.gmane.org"
   ;; report: "/gmane.some.group:123456"
   (funcall spam-report-url-ping-function host report))
+
+(defcustom spam-report-user-mail-address
+  (and (stringp user-mail-address)
+       (gnus-replace-in-string user-mail-address "@" "<at>"))
+  "Mail address of this user used for spam reports to Gmane.
+This is initialized based on `user-mail-address'."
+  :type '(choice string
+		 (const :tag "Don't expose address" nil))
+  :version "23.0" ;; No Gnus
+  :group 'spam-report)
+
+(defvar spam-report-user-agent
+  (if spam-report-user-mail-address
+      (format "%s (%s) %s" "spam-report.el"
+	      spam-report-user-mail-address
+	      (gnus-extended-version))
+    (format "%s %s" "spam-report.el"
+	    (gnus-extended-version))))
 
 (defun spam-report-url-ping-plain (host report)
   "Ping a host through HTTP, addressing a specific GET resource."
@@ -153,8 +245,12 @@ the function specified by `spam-report-url-ping-function'."
       (set-marker (process-mark tcp-connection) (point-min))
       (process-send-string
        tcp-connection
-       (format "GET %s HTTP/1.1\nUser-Agent: %s (spam-report.el)\nHost: %s\n\n"
-	       report (gnus-extended-version) host)))))
+       (format "GET %s HTTP/1.1\nUser-Agent: %s\nHost: %s\n\n"
+	       report spam-report-user-agent host))
+      ;; Wait until we get something so we don't DOS the host. 
+      (while (and (memq (process-status tcp-connection) '(open run))
+		  (zerop (buffer-size)))
+	(accept-process-output tcp-connection)))))
 
 ;;;###autoload
 (defun spam-report-process-queue (&optional file keep)
@@ -183,7 +279,7 @@ symbol `ask', query before flushing the queue file."
     (goto-char (point-min))
     (while (and (not (eobp))
 		(re-search-forward
-		 "http://\\([^/]+\\)\\(/.*\\) *$" (gnus-point-at-eol) t))
+		 "http://\\([^/]+\\)\\(/.*\\) *$" (point-at-eol) t))
       (funcall spam-report-url-ping-function (match-string 1) (match-string 2))
       (forward-line 1))
     (if (or (eq keep nil)

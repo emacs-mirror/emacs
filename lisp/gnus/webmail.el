@@ -196,10 +196,9 @@
 (defun webmail-debug (str)
   (with-temp-buffer
     (insert "\n---------------- A bug at " str " ------------------\n")
-    (mapcar #'(lambda (sym)
-		(if (boundp sym)
-		    (gnus-pp `(setq ,sym ',(eval sym)))))
-	    '(webmail-type user))
+    (dolist (sym '(webmail-type user))
+      (if (boundp sym)
+	  (gnus-pp `(setq ,sym ',(eval sym)))))
     (insert "---------------- webmail buffer ------------------\n\n")
     (insert-buffer-substring webmail-buffer)
     (insert "\n---------------- end of buffer ------------------\n\n")

@@ -306,7 +306,7 @@ Note -- this function hasn't been implemented yet."
 If NOT-ALL, don't pack ticked articles."
   (let ((gnus-expert-user t)
 	(gnus-large-newsgroup nil)
-	(entry (gnus-gethash group gnus-newsrc-hashtb)))
+	(entry (gnus-group-entry group)))
     (when (or (null entry)
 	      (eq (car entry) t)
 	      (and (car entry)

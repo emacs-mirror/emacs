@@ -31,24 +31,7 @@
 
 (eval-when-compile
   (require 'cl)
-  (defvar message-posting-charset)
-  (unless (fboundp 'with-syntax-table)	; not in Emacs 20
-    (defmacro with-syntax-table (table &rest body)
-      "Evaluate BODY with syntax table of current buffer set to TABLE.
-The syntax table of the current buffer is saved, BODY is evaluated, and the
-saved table is restored, even in case of an abnormal exit.
-Value is what BODY returns."
-      (let ((old-table (make-symbol "table"))
-	    (old-buffer (make-symbol "buffer")))
-	`(let ((,old-table (syntax-table))
-	       (,old-buffer (current-buffer)))
-	   (unwind-protect
-	       (progn
-		 (set-syntax-table ,table)
-		 ,@body)
-	     (save-current-buffer
-	       (set-buffer ,old-buffer)
-	       (set-syntax-table ,old-table))))))))
+  (defvar message-posting-charset))
 
 (require 'qp)
 (require 'mm-util)
@@ -57,18 +40,6 @@ Value is what BODY returns."
 (require 'mail-prsvr)
 (require 'rfc2045) ;; rfc2045-encode-string
 (autoload 'mm-body-7-or-8 "mm-bodies")
-
-(eval-and-compile
-  ;; Avoid gnus-util for mm- code.
-  (defalias 'rfc2047-point-at-bol
-    (if (fboundp 'point-at-bol)
-	'point-at-bol
-      'line-beginning-position))
-
-  (defalias 'rfc2047-point-at-eol
-    (if (fboundp 'point-at-eol)
-	'point-at-eol
-      'line-end-position)))
 
 (defvar rfc2047-header-encoding-alist
   '(("Newsgroups" . nil)
@@ -159,7 +130,7 @@ This is either `base64' or `quoted-printable'."
    (progn
      (forward-line 1)
      (if (re-search-forward "^[^ \n\t]" nil t)
-	 (rfc2047-point-at-bol)
+	 (point-at-bol)
        (point-max))))
   (goto-char (point-min)))
 
@@ -175,37 +146,50 @@ This is either `base64' or `quoted-printable'."
 							   encodable-regexp)
   "Quote special characters with `\\'s in quoted strings.
 Quoting will not be done in a quoted string if it contains characters
-matching ENCODABLE-REGEXP."
+matching ENCODABLE-REGEXP or it is within parentheses."
   (goto-char (point-min))
   (let ((tspecials (concat "[" ietf-drums-tspecials "]"))
+	(start (point))
 	beg end)
     (with-syntax-table (standard-syntax-table)
-      (while (search-forward "\"" nil t)
-	(setq beg (match-beginning 0))
-	(unless (eq (char-before beg) ?\\)
-	  (goto-char beg)
-	  (setq beg (1+ beg))
-	  (condition-case nil
-	      (progn
-		(forward-sexp)
-		(setq end (1- (point)))
-		(goto-char beg)
-		(if (and encodable-regexp
-			 (re-search-forward encodable-regexp end t))
-		    (goto-char (1+ end))
-		  (save-restriction
-		    (narrow-to-region beg end)
-		    (while (re-search-forward tspecials nil 'move)
-		      (if (eq (char-before) ?\\)
-			  (if (looking-at tspecials) ;; Already quoted.
-			      (forward-char)
-			    (insert "\\"))
-			(goto-char (match-beginning 0))
-			(insert "\\")
-			(forward-char))))
-		  (forward-char)))
-	    (error
-	     (goto-char beg))))))))
+      (while (not (eobp))
+	(if (ignore-errors
+	      (forward-list 1)
+	      (eq (char-before) ?\)))
+	    (forward-list -1)
+	  (goto-char (point-max)))
+	(save-restriction
+	  (narrow-to-region start (point))
+	  (goto-char start)
+	  (while (search-forward "\"" nil t)
+	    (setq beg (match-beginning 0))
+	    (unless (eq (char-before beg) ?\\)
+	      (goto-char beg)
+	      (setq beg (1+ beg))
+	      (condition-case nil
+		  (progn
+		    (forward-sexp)
+		    (setq end (1- (point)))
+		    (goto-char beg)
+		    (if (and encodable-regexp
+			     (re-search-forward encodable-regexp end t))
+			(goto-char (1+ end))
+		      (save-restriction
+			(narrow-to-region beg end)
+			(while (re-search-forward tspecials nil 'move)
+			  (if (eq (char-before) ?\\)
+			      (if (looking-at tspecials) ;; Already quoted.
+				  (forward-char)
+				(insert "\\"))
+			    (goto-char (match-beginning 0))
+			    (insert "\\")
+			    (forward-char))))
+		      (forward-char)))
+		(error
+		 (goto-char beg)))))
+	  (goto-char (point-max)))
+	(forward-list 1)
+	(setq start (point))))))
 
 (defvar rfc2047-encoding-type 'address-mime
   "The type of encoding done by `rfc2047-encode-region'.
@@ -290,9 +274,10 @@ Should be called narrowed to the head of the message."
 ;;; 		  (rfc2047-encode-region (point-min) (point-max))
 ;;; 		(error "Cannot send unencoded text")))
 	     ((mm-coding-system-p method)
-	      (if (and (featurep 'mule)
-		       (if (boundp 'default-enable-multibyte-characters)
-			   default-enable-multibyte-characters))
+	      (if (or (and (featurep 'mule)
+			   (if (boundp 'default-enable-multibyte-characters)
+			       default-enable-multibyte-characters))
+		      (featurep 'file-coding))
 		  (mm-encode-coding-region (point) (point-max) method)))
 	     ;; Hm.
 	     (t)))
@@ -656,14 +641,14 @@ Point moves to the end of the region."
 	     (goto-char b)
 	     (setq b (point-marker)
 		   e (set-marker (make-marker) e))
-	     (rfc2047-fold-region (rfc2047-point-at-bol) b)
+	     (rfc2047-fold-region (point-at-bol) b)
 	     (goto-char b)
 	     (skip-chars-backward "^ \t\n")
 	     (unless (= 0 (skip-chars-backward " \t"))
 	       ;; `crest' may contain whitespace and an open parenthesis.
 	       (setq crest (buffer-substring-no-properties (point) b)))
 	     (setq eword (rfc2047-encode-1
-			  (- b (rfc2047-point-at-bol))
+			  (- b (point-at-bol))
 			  (mm-replace-in-string
 			   (buffer-substring-no-properties b e)
 			   "\n\\([ \t]?\\)" "\\1")
@@ -710,7 +695,7 @@ Point moves to the end of the region."
 	  (first t)
 	  (bol (save-restriction
 		 (widen)
-		 (rfc2047-point-at-bol))))
+		 (point-at-bol))))
       (while (not (eobp))
 	(when (and (or break qword-break)
 		   (> (- (point) bol) 76))
@@ -782,18 +767,18 @@ Point moves to the end of the region."
     (goto-char (point-min))
     (let ((bol (save-restriction
 		 (widen)
-		 (rfc2047-point-at-bol)))
-	  (eol (rfc2047-point-at-eol)))
+		 (point-at-bol)))
+	  (eol (point-at-eol)))
       (forward-line 1)
       (while (not (eobp))
 	(if (and (looking-at "[ \t]")
-		 (< (- (rfc2047-point-at-eol) bol) 76))
+		 (< (- (point-at-eol) bol) 76))
 	    (delete-region eol (progn
 				 (goto-char eol)
 				 (skip-chars-forward "\r\n")
 				 (point)))
-	  (setq bol (rfc2047-point-at-bol)))
-	(setq eol (rfc2047-point-at-eol))
+	  (setq bol (point-at-bol)))
+	(setq eol (point-at-eol))
 	(forward-line 1)))))
 
 (defun rfc2047-b-encode-string (string)
@@ -842,7 +827,7 @@ it, put the following line in your ~/.gnus.el file:
 
 (eval-and-compile
   (defconst rfc2047-encoded-word-regexp
-    "=\\?\\([^][\000-\040()<>@,\;:*\\\"/?.=]+\\)\\(\\*[^?]+\\)?\
+    "=\\?\\([^][\000-\040()<>@,\;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\
 \\?\\(B\\|Q\\)\\?\\([!->@-~ ]*\\)\\?="))
 
 (defvar rfc2047-quote-decoded-words-containing-tspecials nil
@@ -981,8 +966,8 @@ other than `\"' and `\\' in quoted strings."
 		words nil)
 	  (while match
 	    (push (list (match-string 2) ;; charset
-			(char-after (match-beginning 4)) ;; encoding
-			(match-string 5) ;; encoded-text
+			(char-after (match-beginning 3)) ;; encoding
+			(match-string 4) ;; encoded-text
 			(match-string 1)) ;; encoded-word
 		  words)
 	    ;; Look for the subsequent encoded-words.

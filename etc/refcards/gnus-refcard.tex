@@ -121,7 +121,12 @@
 \newcommand{\Copyright}{%
   \begin{center}
     Copyright \copyright\ 1995, 2000, 2002, 2003, 2004,
-       2005, 2006, 2007  Free Software Foundation, Inc.
+       2005, 2006, 2007  Free Software Foundation, Inc.\\*
+    Copyright \copyright\ 2001, 2002, 2003, 2004, 2005 \author.\\*
+    Created from the Gnus manual Copyright \copyright\ 1994 Lars Magne
+    Ingebrigtsen.\\*
+    and the Emacs Help Bindings feature (C-h b).\\*
+    Gnus logo copyright \copyright\ 1995 Luis Fernandes.\\*
   \end{center}
 
   Permission is granted to make and distribute copies of this reference
@@ -566,7 +571,7 @@
     {\esamepage
       \begin{keys}{C-c C-s C-a}
         C-c C-s C-a & Sort the summary-buffer by {\bf author}.\\
-        % C-c C-s C-t & Sort the summary-buffer by {\bf recipient}.\\ % No Gnus
+        C-c C-s C-t & Sort the summary-buffer by {\bf recipient}.\\
         C-c C-s C-d & Sort the summary-buffer by {\bf date}.\\
         C-c C-s C-i & Sort the summary-buffer by article score.\\
         C-c C-s C-l & Sort the summary-buffer by amount of {\bf lines}.\\
@@ -876,6 +881,7 @@
     \begin{keys}{/M}
       //   & (/s) Limit the summary-buffer to articles matching {\bf subject}.\\
       /a   & Limit the summary-buffer to articles matching {\bf author}.\\
+      /R   & Limit the summary-buffer to articles matching {\bf recipient}.\\
       /x   & Limit depending on ``extra'' headers.\\
       /u   & (x) Limit to {\bf unread} articles.
       [Prefix: also exclude ticked and dormant articles]\\
@@ -900,7 +906,7 @@
       /o   & Insert all {\bf old} articles. [Prefix: how many]\\
       /N   & Insert all {\bf new} articles.\\
       /p   & Limit to articles {\bf predicated} in the `display' group parameter.\\
-      % /r   & Limit to {\bf replied} articles. [Prefix: unreplied]\\ % No Gnus
+      /r   & Limit to {\bf replied} articles. [Prefix: unreplied]\\
     \end{keys}
     }
   }
