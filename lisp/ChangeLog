@@ -1,3 +1,11 @@
+2007-10-28  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-other-meta-char): Call `isearch-edit-string'
+	when mouse is clicked on the isearch message.
+	(isearch-resume): Call `isearch-update' at the end.
+	Rename argument `search' to `string' to conform to the
+	isearch terminology.
+
 2007-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Rewrite abbrev.c in Elisp.
