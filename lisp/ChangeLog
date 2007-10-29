@@ -1,3 +1,29 @@
+2007-10-29  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-server-alist): Use coloned symbols for
+	parameter names.
+	(rcirc-recent-quit-alist): New function.
+	(rcirc): Print a better message when there is only one connected server.
+	(rcirc-complete-nick): Do not update the nick table here.
+	(rcirc-mode-map): Add M-o.
+	(rcirc-current-line): Add variable.
+	(rcirc-mode): Setup variables for line based omit.
+	(rcirc-edit-multiline): Strip text properties.
+	(rcirc-omit-responses): Add NICK.
+	(rcirc-omit-threshold): Add variable.
+	(rcirc-last-quit-line, rcirc-last-line, rcirc-elapsed-lines):
+	Add functions.
+	(rcirc-print): Keep track of current line.  Do not fill text if
+	`rcirc-fill-flag' is null.  Only omit text if the last activity
+	from the sender is more than `rcirc-omit-threshold' lines ago.
+	(rcirc-put-nick-channel, rcirc-handler-PRIVMSG): Track line
+	numbers instead of time.
+	(rcirc-channel-nicks): Sort by line numbers instead of time.
+	(rcirc-omit-mode): Add `...' when omitting text and recenter.
+	(rcirc-handler-JOIN): Restore the joiners linestamp.
+	(rcirc-maybe-remember-nick-quit): Add function.
+	(rcirc-handler-QUIT): Record sender in table of recently quit nicks.
+
 2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* loadhist.el (unload-feature-special-hooks):
