@@ -1,7 +1,7 @@
 2007-10-29  Michael Olson  <mwolson@gnu.org>
 
 	* erc-ibuffer.el (erc-modified-channels-alist): Use
-	eval-when-compile, and explain why we are doing this..
+	eval-when-compile, and explain why we are doing this.
 
 	* erc-track.el: Make sure that the state of erc-track-minor-mode
 	is not preserved when using desktop.el.  Thanks to Levin for the
