@@ -1,3 +1,43 @@
+2007-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+        * allout.el (allout-command-prefix, allout-inhibit-auto-fill):
+	Relocate in file.
+        (allout-doublecheck-at-and-shallower): Increase to include
+	slightly greater depths, since yank interaction is now ok.  Also,
+	elaborate the docstring to explain the situation.
+        (produce-allout-mode-map, allout-hotspot-key-handler): Use vconcat
+	instead of concat, so we accommodate key sequences expressed as
+	vectors as well as strings and lists.
+        (allout-flag-region, allout-hide-by-annotation): Make the
+	hidden-text overlays 'front-advance.
+        (allout-overlay-insert-in-front-handler): Correct docstring's
+	grammar.
+        (allout-aberrant-container-p, allout-on-current-heading-p)
+        (allout-e-o-prefix-p, allout-next-heading)
+        (allout-previous-heading, allout-goto-prefix)
+        (allout-end-of-prefix, allout-next-sibling-leap)
+        (allout-next-visible-heading, allout-auto-fill)
+        (allout-rebullet-heading, allout-kill-line, allout-kill-topic)
+        (allout-yank-processing, allout-resolve-xref)
+        (allout-current-topic-collapsed-p, allout-hide-region-body)
+        (allout-latex-verbatim-quote-curr-line, allout-encrypt-string)
+        (allout-encrypted-topic-p, allout-next-topic-pending-encryption)
+        (count-trailing-whitespace-region): Preserve match data, so allout
+	outline navigation doesn't disrupt other emacs operations.
+        (allout-beginning-of-line): Retreat to the beginning of the hidden
+	text, so fields are respected (for submodes that care).
+        (allout-end-of-line): Preserve mark activation status when
+	jumping.
+        (allout-open-topic): Account for opening after a child that
+	contains a hidden trailing newline.  Preserve match data.  Run
+	allout-structure-added-hook
+        (allout-encrypt-decrypted): Preserve match data.
+        (allout-toggle-current-subtree-exposure): Add new interactive
+	function for toggle subtree exposure - suggested by tassilo.
+        (move-beginning-of-line, move-end-of-line): Don't use
+	line-move-invisible-p, it's obsolete - substitute the code,
+	instead.
+
 2007-10-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/flyspell.el (message-signature-separator):
