@@ -1,5 +1,8 @@
 2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/unsafep.el (unsafep, unsafep-function)
+	(unsafep-progn, unsafep-let): Fix typos in docstrings.
+
 	* uniquify.el (uniquify-maybe-rerationalize-w/o-cb): Define it
 	before use to avoid a warning in packages that require uniquify.
 	(uniquify-unload-function): New function and var.
