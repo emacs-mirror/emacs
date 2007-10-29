@@ -764,14 +764,18 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 
 (define-key ctl-x-map "#" 'server-edit)
 
-(defun server-unload-hook ()
+(defun server-unload-function ()
+  "Unload the server library."
   (server-mode -1)
-  (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
-  (remove-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
-  (remove-hook 'kill-buffer-hook 'server-kill-buffer))
+  (save-current-buffer
+   (dolist (buffer (buffer-list))
+     (set-buffer buffer)
+     (remove-hook 'kill-buffer-hook 'server-kill-buffer t)))
+  ;; continue standard unloading
+  nil)
 
 (add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
-(add-hook 'server-unload-hook 'server-unload-hook)
+(defvar server-unload-function 'server-unload-function)
 
 (provide 'server)
 
