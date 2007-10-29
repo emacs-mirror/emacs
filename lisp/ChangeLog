@@ -1,3 +1,9 @@
+2007-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/org-publish.el (org-publish-get-plist-from-filename):
+	Use mapc rather than mapcar (reinstall change deleted without log
+	entry 2007-10-22).
+
 2007-10-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* wdired.el (wdired-next-line, wdired-previous-line): Use
