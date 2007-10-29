@@ -473,6 +473,26 @@ For use on `kill-buffer-hook'."
 	 (file-name-nondirectory filename)
 	 (file-name-directory filename) ad-return-value))))
 
+;;; The End
+
+(defun uniquify-unload-function ()
+  (save-current-buffer
+    (let ((buffers nil))
+      (dolist (buf (buffer-list))
+	(set-buffer buf)
+	(when uniquify-managed
+	  (push (cons buf (uniquify-item-base (car uniquify-managed))) buffers)))
+      (dolist (fun '(rename-buffer create-file-buffer))
+	(ad-remove-advice fun 'after (intern (concat (symbol-name fun) "-uniquify")))
+	(ad-update fun))
+      (dolist (buf buffers)
+	(set-buffer (car buf))
+	(rename-buffer (cdr buf) t))))
+  ;; continue standard uploading
+  nil)
+
+(defvar uniquify-unload-function 'uniquify-unload-function)
+
 (provide 'uniquify)
 
 ;; arch-tag: e763faa3-56c9-4903-8eb8-26e1c45a0065
