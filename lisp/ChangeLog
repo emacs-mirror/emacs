@@ -2,6 +2,7 @@
 
 	* uniquify.el (uniquify-maybe-rerationalize-w/o-cb): Define it
 	before use to avoid a warning in packages that require uniquify.
+	(uniquify-unload-function): New function and var.
 
 2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
