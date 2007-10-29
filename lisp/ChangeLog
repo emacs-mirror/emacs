@@ -1,5 +1,10 @@
 2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* uniquify.el (uniquify-maybe-rerationalize-w/o-cb): Define it
+	before use to avoid a warning in packages that require uniquify.
+
+2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
 	* loadhist.el (unload-feature-special-hooks):
 	Add `delete-frame-functions'.
 
