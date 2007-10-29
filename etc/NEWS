@@ -322,7 +322,7 @@ checking/manipulating elements directly, use the new functions
 
 ** shell.el no longer defines the aliases `dirtrack-toggle' and
 `dirtrack-mode' for `shell-dirtrack-mode'.  These names were removed
-because they clash with command provided by dirtrack.el. Use
+because they clash with commands provided by dirtrack.el.  Use
 `shell-dirtrack-mode' instead.
 
 
