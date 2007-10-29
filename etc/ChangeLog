@@ -1,3 +1,7 @@
+2007-10-29  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for recent change.
+
 2007-10-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add *.pyc.

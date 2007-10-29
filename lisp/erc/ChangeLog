@@ -1,3 +1,12 @@
+2007-10-29  Michael Olson  <mwolson@gnu.org>
+
+	* erc-ibuffer.el (erc-modified-channels-alist): Use
+	eval-when-compile, and explain why we are doing this..
+
+	* erc-track.el: Make sure that the state of erc-track-minor-mode
+	is not preserved when using desktop.el.  Thanks to Levin for the
+	report.
+
 2007-10-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* erc-ibuffer.el (erc-modified-channels-alist): Pacify
@@ -8,7 +17,27 @@
 	* erc-track.el (erc-modified-channels-update): Use mapc rather
 	than mapcar.
 
-2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>  (tiny change)
+2007-10-12  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el (erc-join-channel): Prompt for channel key if C-u or
+	another prefix-arg was typed.
+
+	* NEWS: Noted this change.
+
+2007-10-07  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-cmd-ME'S): New command that handles the case where
+	someone types "/me's".  It concatenates the text " 's" to the
+	beginning of the input and then sends the result like a normal
+	"/me" command.
+	(erc-command-regexp): Permit single-quote character.
+
+2007-09-30  Aidan Kehoe  <kehoea@parhasard.net>  (tiny change)
+
+	* erc-log.el (erc-save-buffer-in-logs): Prevent spurious warnings
+	when looking at a log file and concurrently saving to it.
+
+2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gnu.org>  (tiny change)
 
 	* erc.texi (Special-Features): Fix small typo.
 
