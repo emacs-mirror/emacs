@@ -93,11 +93,11 @@ VALUE must be a list of strings describing which channels to join
 when connecting to this server.  If absent, no channels will be
 connected to automatically."
   :type '(alist :key-type string
-		:value-type (plist :options ((nick string)
-					     (port integer)
-					     (user-name string)
-					     (full-name string)
-					     (channels (repeat string)))))
+		:value-type (plist :options ((:nick string)
+					     (:port integer)
+					     (:user-name string)
+					     (:full-name string)
+					     (:channels (repeat string)))))
   :group 'rcirc)
 
 (defcustom rcirc-default-port 6667
@@ -323,6 +323,9 @@ and the cdr part is used for encoding."
 
 (defvar rcirc-nick-table nil)
 
+(defvar rcirc-recent-quit-alist nil
+  "Alist of nicks that have recently quit or parted the channel.")
+
 (defvar rcirc-nick-syntax-table
   (let ((table (make-syntax-table text-mode-syntax-table)))
     (mapc (lambda (c) (modify-syntax-entry c "w" table))
@@ -417,8 +420,11 @@ If ARG is non-nil, instead prompt for connection parameters."
 			      connected-servers))))))))
       (when connected-servers
 	(message "Already connected to %s"
-		 (concat (mapconcat 'identity (butlast connected-servers) ", ")
-			 ", and " (car (last connected-servers))))))))
+		 (if (cdr connected-servers)
+		     (concat (mapconcat 'identity (butlast connected-servers) ", ")
+			     ", and "
+			     (car (last connected-servers)))
+		   (car connected-servers)))))))
 
 ;;;###autoload
 (defalias 'irc 'rcirc)
@@ -763,7 +769,6 @@ If SILENT is non-nil, do not print the message in any irc buffer."
 					  rcirc-target))))))
   (let ((completion (car rcirc-nick-completions)))
     (when completion
-      (rcirc-put-nick-channel (rcirc-buffer-process) completion rcirc-target)
       (delete-region (+ rcirc-prompt-end-marker
 			rcirc-nick-completion-start-offset)
 		     (point))
@@ -799,6 +804,7 @@ If SILENT is non-nil, do not print the message in any irc buffer."
 (define-key rcirc-mode-map (kbd "C-c C-m") 'rcirc-cmd-msg)
 (define-key rcirc-mode-map (kbd "C-c C-r") 'rcirc-cmd-nick) ; rename
 (define-key rcirc-mode-map (kbd "C-c C-o") 'rcirc-omit-mode)
+(define-key rcirc-mode-map (kbd "M-o") 'rcirc-omit-mode)
 (define-key rcirc-mode-map (kbd "C-c C-p") 'rcirc-cmd-part)
 (define-key rcirc-mode-map (kbd "C-c C-q") 'rcirc-cmd-query)
 (define-key rcirc-mode-map (kbd "C-c C-t") 'rcirc-cmd-topic)
@@ -828,6 +834,10 @@ If SILENT is non-nil, do not print the message in any irc buffer."
   "Alist of lines to log to disk when `rcirc-log-flag' is non-nil.
 Each element looks like (FILENAME . TEXT).")
 
+(defvar rcirc-current-line 0
+  "The current number of responses printed in this channel.
+This number is independent of the number of lines in the buffer.")
+
 (defun rcirc-mode (process target)
   "Major mode for IRC channel buffers.
 
@@ -850,11 +860,23 @@ Each element looks like (FILENAME . TEXT).")
   (setq rcirc-last-post-time (current-time))
   (make-local-variable 'fill-paragraph-function)
   (setq fill-paragraph-function 'rcirc-fill-paragraph)
+  (make-local-variable 'rcirc-recent-quit-alist)
+  (setq rcirc-recent-quit-alist nil)
+  (make-local-variable 'rcirc-current-line)
+  (setq rcirc-current-line 0)
 
   (make-local-variable 'rcirc-short-buffer-name)
   (setq rcirc-short-buffer-name nil)
   (make-local-variable 'rcirc-urls)
   (setq use-hard-newlines t)
+
+  ;; setup for omitting responses
+  (setq buffer-invisibility-spec '())
+  (setq buffer-display-table (make-display-table))
+  (set-display-table-slot buffer-display-table 4
+			  (let ((glyph (make-glyph-code 
+					?. 'font-lock-keyword-face)))
+			    (make-vector 3 glyph)))
 
   (make-local-variable 'rcirc-decode-coding-system)
   (make-local-variable 'rcirc-encode-coding-system)
@@ -878,8 +900,6 @@ Each element looks like (FILENAME . TEXT).")
   (make-local-variable 'overlay-arrow-position)
   (setq overlay-arrow-position (make-marker))
   (set-marker overlay-arrow-position nil)
-
-  (setq buffer-invisibility-spec '(rcirc-ignored-user))
 
   ;; if the user changes the major mode or kills the buffer, there is
   ;; cleanup work to do
@@ -1005,8 +1025,9 @@ Create the buffer if it doesn't exist."
 	(let ((new-buffer (get-buffer-create
 			   (rcirc-generate-new-buffer-name process target))))
 	  (with-current-buffer new-buffer
-	    (rcirc-mode process target))
-	  (rcirc-put-nick-channel process (rcirc-nick process) target)
+	    (rcirc-mode process target)
+	    (rcirc-put-nick-channel process (rcirc-nick process) target 
+				    rcirc-current-line))
 	  new-buffer)))))
 
 (defun rcirc-send-input ()
@@ -1090,7 +1111,8 @@ Create the buffer if it doesn't exist."
   (interactive)
   (let ((pos (1+ (- (point) rcirc-prompt-end-marker))))
     (goto-char (point-max))
-    (let ((text (buffer-substring rcirc-prompt-end-marker (point)))
+    (let ((text (buffer-substring-no-properties rcirc-prompt-end-marker 
+						(point)))
           (parent (buffer-name)))
       (delete-region rcirc-prompt-end-marker (point))
       (setq rcirc-window-configuration (current-window-configuration))
@@ -1187,7 +1209,7 @@ the of the following escape sequences replaced by the described values:
   :group 'rcirc)
 
 (defcustom rcirc-omit-responses
-  '("JOIN" "PART" "QUIT")
+  '("JOIN" "PART" "QUIT" "NICK")
   "Responses which will be hidden when `rcirc-omit-mode' is enabled."
   :type '(repeat string)
   :group 'rcirc)
@@ -1281,6 +1303,38 @@ Logfiles are kept in `rcirc-log-directory'."
   :type 'boolean
   :group 'rcirc)
 
+(defcustom rcirc-omit-threshold 100
+  "Number of lines since last activity from a nick before `rcirc-omit-responses' are omitted."
+  :type 'integer
+  :group 'rcirc)
+
+(defun rcirc-last-quit-line (nick target)
+  "Return the line number where NICK left TARGET.
+Returns nil if the information is not recorded."
+  (let ((chanbuf (rcirc-get-buffer (rcirc-buffer-process) target)))
+    (when chanbuf
+      (cdr (assoc-string nick (with-current-buffer chanbuf
+				rcirc-recent-quit-alist))))))
+
+(defun rcirc-last-line (nick target)
+  "Return the line from the last activity from NICK in TARGET."
+  (let* ((chanbuf (rcirc-get-buffer (rcirc-buffer-process) target))
+	 (line (or (cdr (assoc-string target
+				      (gethash nick (with-rcirc-server-buffer
+						      rcirc-nick-table)) t))
+		   (rcirc-last-quit-line nick target))))
+    (if line
+	line
+      ;;(message "line is nil for %s in %s" nick target)
+      nil)))
+
+(defun rcirc-elapsed-lines (nick target)
+  "Return the number of lines since activity from NICK in TARGET."
+  (let ((last-activity-line (rcirc-last-line nick target)))
+    (when (and last-activity-line
+	       (> last-activity-line 0))
+      (- rcirc-current-line last-activity-line))))
+
 (defvar rcirc-markup-text-functions
   '(rcirc-markup-attributes
     rcirc-markup-my-nick
@@ -1305,7 +1359,8 @@ record activity."
 			     (when (string-match "^\\([^/]\\w*\\)[:,]" text)
 			       (match-string 1 text)))
 			   rcirc-ignore-list))
-	       (not (string= sender (rcirc-nick process))))
+	       ;; do not ignore if we sent the message
+ 	       (not (string= sender (rcirc-nick process))))    
     (let* ((buffer (rcirc-target-buffer process sender response target text))
 	   (inhibit-read-only t))
       (with-current-buffer buffer
@@ -1340,6 +1395,9 @@ record activity."
 							      'rcirc-text)
 				 rcirc-prompt-end-marker)))
 
+	    ;; increment the line count
+	    (setq rcirc-current-line (1+ rcirc-current-line))
+
 	    ;; run markup functions
  	    (save-excursion
  	      (save-restriction
@@ -1350,16 +1408,20 @@ record activity."
 		  (save-excursion (rcirc-markup-timestamp sender response))
 		  (dolist (fn rcirc-markup-text-functions)
 		    (save-excursion (funcall fn sender response)))
-		  (save-excursion (rcirc-markup-fill sender response)))
+		  (when rcirc-fill-flag
+		    (save-excursion (rcirc-markup-fill sender response))))
 
 		(when rcirc-read-only-flag
 		  (add-text-properties (point-min) (point-max)
 				       '(read-only t front-sticky t))))
 	      ;; make text omittable
-	      (when (and (member response rcirc-omit-responses)
-			 (> start (point-min)))
-		(put-text-property (1- start) (1- rcirc-prompt-start-marker)
-				   'invisible 'rcirc-omit))))
+	      (let ((last-activity-lines (rcirc-elapsed-lines sender target)))
+		(when (and (not (string= (rcirc-nick process) sender))
+			   (member response rcirc-omit-responses)
+			   (or (not last-activity-lines)
+			       (< rcirc-omit-threshold last-activity-lines)))
+		  (put-text-property (1- start) (1- rcirc-prompt-start-marker)
+				     'invisible 'rcirc-omit)))))
 
 	  (set-marker-insertion-type rcirc-prompt-start-marker nil)
 	  (set-marker-insertion-type rcirc-prompt-end-marker nil)
@@ -1470,15 +1532,20 @@ Log data is written to `rcirc-log-directory'."
     (mapcar (lambda (x) (car x))
 	    (gethash nick rcirc-nick-table))))
 
-(defun rcirc-put-nick-channel (process nick channel)
-  "Add CHANNEL to list associated with NICK."
+(defun rcirc-put-nick-channel (process nick channel &optional line)
+  "Add CHANNEL to list associated with NICK.
+Update the associated linestamp if LINE is non-nil.
+
+If the record doesn't exist, and LINE is nil, set the linestamp
+to zero."
+  ;;(message "rcirc-put-nick-channel: %S %S %S" nick channel line)
   (let ((nick (rcirc-user-nick nick)))
     (with-rcirc-process-buffer process
       (let* ((chans (gethash nick rcirc-nick-table))
 	     (record (assoc-string channel chans t)))
 	(if record
-	    (setcdr record (current-time))
-	  (puthash nick (cons (cons channel (current-time))
+	    (when line (setcdr record line))
+	  (puthash nick (cons (cons channel (or line 0))
 			      chans)
 		   rcirc-nick-table))))))
 
@@ -1514,7 +1581,10 @@ Log data is written to `rcirc-log-directory'."
 		     (setq nicks (cons (cons k (cdr record)) nicks)))))
 	     rcirc-nick-table)
 	    (mapcar (lambda (x) (car x))
-		    (sort nicks (lambda (x y) (time-less-p (cdr y) (cdr x)))))))
+		    (sort nicks (lambda (x y)
+				  (let ((lx (or (cdr x) 0))
+					(ly (or (cdr y) 0)))
+				    (< ly lx)))))))
       (list target))))
 
 (defun rcirc-ignore-update-automatic (nick)
@@ -1593,15 +1663,13 @@ Uninteresting lines are those whose responses are listed in
 `rcirc-omit-responses'."
   (interactive)
   (setq rcirc-omit-mode (not rcirc-omit-mode))
-  (let ((line (1- (count-screen-lines (point) (window-start)))))
-    (if rcirc-omit-mode
-	(progn
-	  (add-to-invisibility-spec 'rcirc-omit)
-	  (message "Rcirc-Omit mode enabled"))
-      (remove-from-invisibility-spec 'rcirc-omit)
-      (message "Rcirc-Omit mode disabled"))
-    (recenter line))
-  (force-mode-line-update))
+  (if rcirc-omit-mode
+      (progn
+	(add-to-invisibility-spec '(rcirc-omit . t))
+	(message "Rcirc-Omit mode enabled"))
+    (remove-from-invisibility-spec '(rcirc-omit . t))
+    (message "Rcirc-Omit mode disabled"))
+    (recenter (when (> (point) rcirc-prompt-start-marker) -1)))
 
 (defun rcirc-switch-to-server-buffer ()
   "Switch to the server buffer associated with current channel buffer."
@@ -1636,7 +1704,10 @@ With prefix ARG, go to the next low priority buffer with activity."
 	 (hipri (cdr pair)))
     (if (or (and (not arg) hipri)
 	    (and arg lopri))
-	(switch-to-buffer (car (if arg lopri hipri)) t)
+	(progn
+	  (switch-to-buffer (car (if arg lopri hipri)))
+	  (when (> (point) rcirc-prompt-start-marker)
+	    (recenter -1)))
       (if (eq major-mode 'rcirc-mode)
 	  (switch-to-buffer (rcirc-non-irc-buffer))
 	(message (concat
@@ -2201,9 +2272,9 @@ keywords when no KEYWORD is given."
     (if (string-match "^\C-a\\(.*\\)\C-a$" message)
         (rcirc-handler-CTCP process target sender (match-string 1 message))
       (rcirc-print process sender "PRIVMSG" target message t))
-    ;; update nick timestamp
-    (if (member target (rcirc-nick-channels process sender))
-        (rcirc-put-nick-channel process sender target))))
+    ;; update nick linestamp
+    (with-current-buffer (rcirc-get-buffer process target t)
+      (rcirc-put-nick-channel process sender target rcirc-current-line))))
 
 (defun rcirc-handler-NOTICE (process sender args text)
   (let ((target (car args))
@@ -2228,21 +2299,29 @@ keywords when no KEYWORD is given."
 
 (defun rcirc-handler-JOIN (process sender args text)
   (let ((channel (car args)))
-    (rcirc-get-buffer-create process channel)
+    (with-current-buffer (rcirc-get-buffer-create process channel)
+      ;; when recently rejoining, restore the linestamp
+      (rcirc-put-nick-channel process sender channel
+			      (let ((last-activity-lines
+				     (rcirc-elapsed-lines sender channel)))
+				(when (and last-activity-lines
+					   (< last-activity-lines rcirc-omit-threshold))
+				  (rcirc-last-line sender channel)))))
+
     (rcirc-print process sender "JOIN" channel "")
 
     ;; print in private chat buffer if it exists
     (when (rcirc-get-buffer (rcirc-buffer-process) sender)
-      (rcirc-print process sender "JOIN" sender channel))
-
-    (rcirc-put-nick-channel process sender channel)))
+      (rcirc-print process sender "JOIN" sender channel))))
 
 ;; PART and KICK are handled the same way
 (defun rcirc-handler-PART-or-KICK (process response channel sender nick args)
   (rcirc-ignore-update-automatic nick)
   (if (not (string= nick (rcirc-nick process)))
       ;; this is someone else leaving
-      (rcirc-remove-nick-channel process nick channel)
+      (progn
+	(rcirc-maybe-remember-nick-quit process nick channel)
+	(rcirc-remove-nick-channel process nick channel))
     ;; this is us leaving
     (mapc (lambda (n)
 	    (rcirc-remove-nick-channel process n channel))
@@ -2276,16 +2355,31 @@ keywords when no KEYWORD is given."
 
     (rcirc-handler-PART-or-KICK process "KICK" channel sender nick reason)))
 
+(defun rcirc-maybe-remember-nick-quit (process nick channel)
+  "Remember NICK as leaving CHANNEL if they recently spoke."
+  (let ((elapsed-lines (rcirc-elapsed-lines nick channel)))
+    (when (and elapsed-lines
+	       (< elapsed-lines rcirc-omit-threshold))
+      (let ((buffer (rcirc-get-buffer process channel)))
+	(when buffer
+	  (with-current-buffer buffer
+	    (let ((record (assoc-string nick rcirc-recent-quit-alist
+					t))
+		  (line (rcirc-last-line nick channel)))
+	      (if record
+		  (setcdr record line)
+		(setq rcirc-recent-quit-alist
+		      (cons (cons nick line)
+			    rcirc-recent-quit-alist))))))))))
+
 (defun rcirc-handler-QUIT (process sender args text)
   (rcirc-ignore-update-automatic sender)
   (mapc (lambda (channel)
-	  (rcirc-print process sender "QUIT" channel (apply 'concat args)))
+	  ;; broadcast quit message each channel
+	  (rcirc-print process sender "QUIT" channel (apply 'concat args))
+	  ;; record nick in quit table if they recently spoke
+	  (rcirc-maybe-remember-nick-quit process sender channel))
 	(rcirc-nick-channels process sender))
-
-  ;; print in private chat buffer if it exists
-  (when (rcirc-get-buffer (rcirc-buffer-process) sender)
-    (rcirc-print process sender "QUIT" sender (apply 'concat args)))
-
   (rcirc-nick-remove process sender))
 
 (defun rcirc-handler-NICK (process sender args text)
