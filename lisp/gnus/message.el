@@ -2877,6 +2877,8 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   ;; solution would be not to use `define-derived-mode', and run
   ;; `text-mode-hook' ourself at the end of the mode.
   ;; -- Per Abrahamsen <abraham@dina.kvl.dk> Date: 2001-10-19.
+  ;; This kludge is unneeded in Emacs>=21 since define-derived-mode is
+  ;; now careful to run parent hooks after the body.  --Stef
   (when auto-fill-function
     (setq auto-fill-function normal-auto-fill-function)))
 
@@ -4952,7 +4954,7 @@ Otherwise, generate and save a value for `canlock-password' first."
    ;; Check for control characters.
    (message-check 'control-chars
      (if (re-search-forward
-	  (mm-string-as-multibyte "[\000-\007\013\015-\032\034-\037\200-\237]")
+	  (mm-string-to-multibyte "[\000-\007\013\015-\032\034-\037\200-\237]")
 	  nil t)
 	 (y-or-n-p
 	  "The article contains control characters.  Really post? ")
@@ -7672,7 +7674,7 @@ From headers in the original article."
 		   message-hidden-headers))
 	(inhibit-point-motion-hooks t)
 	(after-change-functions nil)
-	(end-of-headers 0))
+	(end-of-headers (point-min)))
     (when regexps
       (save-excursion
 	(save-restriction
@@ -7687,11 +7689,11 @@ From headers in the original article."
 		(setq header (buffer-substring begin (point))
 		      header-len (- (point) begin))
 		(delete-region begin (point))
-		(goto-char (1+ end-of-headers))
+		(goto-char end-of-headers)
 		(insert header)
 		(setq end-of-headers
 		      (+ end-of-headers header-len))))))))
-    (narrow-to-region (1+ end-of-headers) (point-max))))
+    (narrow-to-region end-of-headers (point-max))))
 
 (defun message-hide-header-p (regexps)
   (let ((result nil)

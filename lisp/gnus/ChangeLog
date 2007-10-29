@@ -1,3 +1,8 @@
+2007-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-check-news-body-syntax): Avoid mm-string-as-multibyte.
+	(message-hide-headers): Don't assume (point-min)==1.
+
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el: Bump version to Gnus v5.13.
