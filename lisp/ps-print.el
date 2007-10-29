@@ -1481,32 +1481,7 @@ Please send all bug fixes and enhancements to
 
 ;; to avoid compilation gripes
 
-;; XEmacs
-(defalias 'ps-x-color-instance-p              'color-instance-p)
-(defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
-(defalias 'ps-x-color-name                    'color-name)
-(defalias 'ps-x-color-specifier-p             'color-specifier-p)
-(defalias 'ps-x-copy-coding-system            'copy-coding-system)
-(defalias 'ps-x-device-class                  'device-class)
-(defalias 'ps-x-extent-end-position           'extent-end-position)
-(defalias 'ps-x-extent-face                   'extent-face)
-(defalias 'ps-x-extent-priority               'extent-priority)
-(defalias 'ps-x-extent-start-position         'extent-start-position)
-(defalias 'ps-x-face-font-instance            'face-font-instance)
-(defalias 'ps-x-find-coding-system            'find-coding-system)
-(defalias 'ps-x-font-instance-properties      'font-instance-properties)
-(defalias 'ps-x-make-color-instance           'make-color-instance)
-(defalias 'ps-x-map-extents                   'map-extents)
-
 ;; GNU Emacs
-(defalias 'ps-e-face-bold-p         'face-bold-p)
-(defalias 'ps-e-face-italic-p       'face-italic-p)
-(defalias 'ps-e-next-overlay-change 'next-overlay-change)
-(defalias 'ps-e-overlays-at         'overlays-at)
-(defalias 'ps-e-overlay-get         'overlay-get)
-(defalias 'ps-e-overlay-end         'overlay-end)
-(defalias 'ps-e-x-color-values      'x-color-values)
-(defalias 'ps-e-color-values        'color-values)
 (defalias 'ps-e-find-composition (if (fboundp 'find-composition)
 				     'find-composition
 				   'ignore))
@@ -1519,9 +1494,10 @@ Please send all bug fixes and enhancements to
 
 
 (defun ps-xemacs-color-name (color)
-  (if (ps-x-color-specifier-p color)
-      (ps-x-color-name color)
-    color))
+  (when (featurep 'xemacs)
+    (if (color-specifier-p color)
+	(color-name color)
+      color)))
 
 (defalias 'ps-frame-parameter
   (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
@@ -1532,19 +1508,15 @@ Please send all bug fixes and enhancements to
     (defvar mark-active)		; To shup up XEmacs's byte compiler.
     (lambda () mark-active)))		; Emacs
 
-(cond ((featurep 'xemacs)		; XEmacs
-       (defun ps-face-foreground-name (face)
-	 (ps-xemacs-color-name (face-foreground face)))
-       (defun ps-face-background-name (face)
-	 (ps-xemacs-color-name (face-background face)))
-       )
-      (t				; Emacs 22 or higher
-       (defun ps-face-foreground-name (face)
-	 (face-foreground face nil t))
-       (defun ps-face-background-name (face)
-	 (face-background face nil t))
-       ))
+(defun ps-face-foreground-name (face)
+  (if (featurep 'xemacs)
+      (ps-xemacs-color-name (face-foreground face))
+    (face-foreground face nil t)))
 
+(defun ps-face-background-name (face)
+  (if (featurep 'xemacs)
+      (ps-xemacs-color-name (face-background face))
+    (face-background face nil t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -3925,90 +3897,84 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 		  (and (= emacs-major-version 19)
 		       (>= emacs-minor-version 12)))) ; XEmacs >= 19.12
 	 (lambda ()
-	   (eq (ps-x-device-class) 'color)))
+	   (eq (device-class) 'color)))
 
 	(t				; Emacs
 	 (lambda ()
 	   (if (fboundp 'color-values)
-	       (ps-e-color-values "Green")
+	       (color-values "Green")
 	     t)))))
 
 
-(defun ps-mapper (extent list)
-  (nconc list
-	 (list (list (ps-x-extent-start-position extent) 'push extent)
-	       (list (ps-x-extent-end-position extent) 'pull extent)))
+(defun ps-xemacs-mapper (extent list)
+  (when (featurep 'xemacs)
+    (nconc list
+	   (list (list (extent-start-position extent) 'push extent)
+		 (list (extent-end-position extent) 'pull extent))))
   nil)
 
-(defun ps-extent-sorter (a b)
-  (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
+(defun ps-xemacs-extent-sorter (a b)
+  (when (featurep 'xemacs)
+    (< (extent-priority a) (extent-priority b))))
 
 (defun ps-xemacs-face-kind-p (face kind kind-regex)
-  (let* ((frame-font (or (ps-x-face-font-instance face)
-			 (ps-x-face-font-instance 'default)))
-	 (kind-cons
-	  (and frame-font
-	       (assq kind
-		     (ps-x-font-instance-properties frame-font))))
-	 (kind-spec (cdr-safe kind-cons))
-	 (case-fold-search t))
-    (and kind-spec (string-match kind-regex kind-spec))))
+  (when (featurep 'xemacs)
+    (let* ((frame-font (or (face-font-instance face)
+			   (face-font-instance 'default)))
+	   (kind-cons
+	    (and frame-font
+		 (assq kind
+		       (font-instance-properties frame-font))))
+	   (kind-spec (cdr-safe kind-cons))
+	   (case-fold-search t))
+      (and kind-spec (string-match kind-regex kind-spec)))))
 
-(cond ((featurep 'xemacs)		; XEmacs
+(when (featurep 'xemacs)
+  ;; to avoid XEmacs compilation gripes
+  (defvar coding-system-for-write)
+  (defvar coding-system-for-read)
+  (defvar buffer-file-coding-system)
+  
+  (and (fboundp 'find-coding-system)
+       (or (find-coding-system 'raw-text-unix)
+	   (copy-coding-system 'no-conversion-unix 'raw-text-unix))))
 
-       ;; to avoid XEmacs compilation gripes
-       (defvar coding-system-for-write)
-       (defvar coding-system-for-read)
-       (defvar buffer-file-coding-system)
+(defun ps-color-values (x-color)
+  (if (featurep 'xemacs)
+      (let ((color (ps-xemacs-color-name x-color)))
+	(cond
+	 ((fboundp 'x-color-values)
+	  (x-color-values color))
+	 ((and (fboundp 'color-instance-rgb-components)
+	       (ps-color-device))
+	  (color-instance-rgb-components
+	   (if (color-instance-p x-color)
+	       x-color
+	     (make-color-instance color))))
+	 (t
+	  (error "No available function to determine X color values"))))
+    (cond
+     ((fboundp 'color-values)
+      (color-values x-color))
+     ((fboundp 'x-color-values)
+      (x-color-values x-color))
+     (t
+      (error "No available function to determine X color values")))))
 
-       (and (fboundp 'find-coding-system)
-	    (or (ps-x-find-coding-system 'raw-text-unix)
-		(ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix)))
+(defun ps-face-bold-p (face)
+  (if (featurep 'xemacs)
+      (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
+	  (memq face ps-bold-faces))	; Kludge-compatible
+    (or (face-bold-p face)
+	(memq face ps-bold-faces))))
 
-       (defun ps-color-values (x-color)
-	 (let ((color (ps-xemacs-color-name x-color)))
-	   (cond
-	    ((fboundp 'x-color-values)
-	     (ps-e-x-color-values color))
-	    ((and (fboundp 'color-instance-rgb-components)
-		  (ps-color-device))
-	     (ps-x-color-instance-rgb-components
-	      (if (ps-x-color-instance-p x-color)
-		  x-color
-		(ps-x-make-color-instance color))))
-	    (t
-	     (error "No available function to determine X color values")))))
-
-       (defun ps-face-bold-p (face)
-	 (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
-	     (memq face ps-bold-faces))) ; Kludge-compatible
-
-       (defun ps-face-italic-p (face)
-	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
-	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
-	     (memq face ps-italic-faces))) ; Kludge-compatible
-       )
-
-      (t				; Emacs
-
-       (defun ps-color-values (x-color)
-	 (cond
-	  ((fboundp 'color-values)
-	   (ps-e-color-values x-color))
-	  ((fboundp 'x-color-values)
-	   (ps-e-x-color-values x-color))
-	  (t
-	   (error "No available function to determine X color values"))))
-
-       (defun ps-face-bold-p (face)
-	 (or (ps-e-face-bold-p face)
-	     (memq face ps-bold-faces)))
-
-       (defun ps-face-italic-p (face)
-	 (or (ps-e-face-italic-p face)
-	     (memq face ps-italic-faces)))
-       ))
-
+(defun ps-face-italic-p (face)
+  (if (featurep 'xemacs)
+      (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
+	  (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
+	  (memq face ps-italic-faces))	; Kludge-compatible
+    (or (face-italic-p face)
+	(memq face ps-italic-faces))))
 
 (defvar ps-print-color-scale 1.0)
 
@@ -6636,7 +6602,7 @@ If FACE is not a valid face name, use default face."
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
-	  (ps-x-map-extents 'ps-mapper nil from to a)
+	  (map-extents 'ps-xemacs-mapper nil from to a)
 	  (setq a (sort (cdr a) 'car-less-than-car)
 		extent-list nil)
 
@@ -6662,16 +6628,16 @@ If FACE is not a valid face name, use default face."
 
 	    (cond
 	     ((eq type 'push)
-	      (and (ps-x-extent-face extent)
+	      (and (extent-face extent)
 		   (setq extent-list (sort (cons extent extent-list)
-					   'ps-extent-sorter))))
+					   'ps-xemacs-extent-sorter))))
 
 	     ((eq type 'pull)
 	      (setq extent-list (sort (delq extent extent-list)
-				      'ps-extent-sorter))))
+				      'ps-xemacs-extent-sorter))))
 
 	    (setq face (if extent-list
-			   (ps-x-extent-face (car extent-list))
+			   (extent-face (car extent-list))
 			 'default)
 		  from position
 		  a (cdr a)))))
@@ -6688,7 +6654,7 @@ If FACE is not a valid face name, use default face."
 		 (setq property-change (next-property-change from nil to)))
 	    (and (< overlay-change to)	; Don't search for overlay change
 					; unless previous search succeeded.
-		 (setq overlay-change (min (ps-e-next-overlay-change from)
+		 (setq overlay-change (min (next-overlay-change from)
 					   to)))
 	    (setq position (min property-change overlay-change)
 		  before-string nil
@@ -6709,22 +6675,22 @@ If FACE is not a valid face name, use default face."
 			 'emacs--invisible--face)
 			((get-text-property from 'face))
 			(t 'default)))
-	    (let ((overlays (ps-e-overlays-at from))
+	    (let ((overlays (overlays-at from))
 		  (face-priority -1))	; text-property
 	      (while (and overlays
 			  (not (eq face 'emacs--invisible--face)))
 		(let* ((overlay (car overlays))
 		       (overlay-invisible
-			(ps-e-overlay-get overlay 'invisible))
+			(overlay-get overlay 'invisible))
 		       (overlay-priority
-			(or (ps-e-overlay-get overlay 'priority) 0)))
+			(or (overlay-get overlay 'priority) 0)))
 		  (and (> overlay-priority face-priority)
 		       (setq before-string
-			     (or (ps-e-overlay-get overlay 'before-string)
+			     (or (overlay-get overlay 'before-string)
 				 before-string)
 			     after-string
-			     (or (and (<= (ps-e-overlay-end overlay) position)
-				      (ps-e-overlay-get overlay 'after-string))
+			     (or (and (<= (overlay-end overlay) position)
+				      (overlay-get overlay 'after-string))
 				 after-string)
 			     face-priority overlay-priority
 			     face
@@ -6736,7 +6702,7 @@ If FACE is not a valid face name, use default face."
 				     (assq overlay-invisible
 					   save-buffer-invisibility-spec)))
 			       'emacs--invisible--face)
-			      ((ps-e-overlay-get overlay 'face))
+			      ((overlay-get overlay 'face))
 			      (t face)
 			      ))))
 		(setq overlays (cdr overlays))))
