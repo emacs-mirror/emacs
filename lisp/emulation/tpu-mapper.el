@@ -78,13 +78,6 @@
 
 
 ;;;
-;;;  Decide whether we're running Lucid Emacs or Emacs itself.
-;;;
-(defconst tpu-lucid-emacs19-p (string-match "Lucid" emacs-version)
-  "Non-nil if we are running Lucid Emacs version 19.")
-
-
-;;;
 ;;;  Key variables
 ;;;
 (defvar tpu-kp4 nil)
@@ -100,7 +93,7 @@
 ;;;
 ;;;  Make sure the window is big enough to display the instructions
 ;;;
-(if tpu-lucid-emacs19-p (set-screen-size (selected-screen) 80 36)
+(if (featurep 'xemacs) (set-screen-size (selected-screen) 80 36)
   (set-frame-size (selected-frame) 80 36))
 
 
@@ -167,7 +160,7 @@
 ;;;  Save <CR> for future reference
 ;;;
 (cond
- (tpu-lucid-emacs19-p
+ ((featurep 'xemacs)
   (setq tpu-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
   (setq tpu-return (concat "[" (format "%s" (event-key (aref tpu-return-seq 0))) "]")))
  (t
@@ -179,41 +172,36 @@
 ;;;
 ;;;  Key mapping functions
 ;;;
-(defun tpu-lucid-map-key (ident descrip func gold-func)
+(defun tpu-map-key (ident descrip func gold-func)
   (interactive)
-  (setq tpu-key-seq (read-key-sequence (format "Press %s%s: " ident descrip)))
-  (setq tpu-key (concat "[" (format "%s" (event-key (aref tpu-key-seq 0))) "]"))
-  (cond ((not (equal tpu-key tpu-return))
-	 (set-buffer "Keys")
-	 (insert (format"(global-set-key %s %s)\n" tpu-key func))
-	 (set-buffer "Gold-Keys")
-	 (insert (format "(define-key GOLD-map %s %s)\n" tpu-key gold-func))
-	 (set-buffer "Directions"))
-	;; bogosity to get next prompt to come up, if the user hits <CR>!
-	;; check periodically to see if this is still needed...
-	(t
-	 (format "%s" tpu-key)))
-  tpu-key)
-
-(defun tpu-emacs-map-key (ident descrip func gold-func)
-  (interactive)
-  (message "Press %s%s: " ident descrip)
-  (setq tpu-key-seq (read-event))
-  (setq tpu-key (concat "[" (format "%s" tpu-key-seq) "]"))
-  (cond ((not (equal tpu-key tpu-return))
-	 (set-buffer "Keys")
-	 (insert (format"(define-key tpu-global-map %s %s)\n" tpu-key func))
-	 (set-buffer "Gold-Keys")
-	 (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func))
-	 (set-buffer "Directions"))
-	;; bogosity to get next prompt to come up, if the user hits <CR>!
-	;; check periodically to see if this is still needed...
-	(t
-	 (format "%s" tpu-key)))
-  tpu-key)
-
-(fset 'tpu-map-key (if tpu-lucid-emacs19-p 'tpu-lucid-map-key 'tpu-emacs-map-key))
-
+  (if (featurep 'xemacs)
+      (progn
+	(setq tpu-key-seq (read-key-sequence (format "Press %s%s: " ident descrip)))
+	(setq tpu-key (concat "[" (format "%s" (event-key (aref tpu-key-seq 0))) "]"))
+	(cond ((not (equal tpu-key tpu-return))
+	       (set-buffer "Keys")
+	       (insert (format"(global-set-key %s %s)\n" tpu-key func))
+	       (set-buffer "Gold-Keys")
+	       (insert (format "(define-key GOLD-map %s %s)\n" tpu-key gold-func))
+	       (set-buffer "Directions"))
+	      ;; bogosity to get next prompt to come up, if the user hits <CR>!
+	      ;; check periodically to see if this is still needed...
+	      (t
+	       (format "%s" tpu-key))))
+    (message "Press %s%s: " ident descrip)
+    (setq tpu-key-seq (read-event))
+    (setq tpu-key (concat "[" (format "%s" tpu-key-seq) "]"))
+    (cond ((not (equal tpu-key tpu-return))
+	   (set-buffer "Keys")
+	   (insert (format"(define-key tpu-global-map %s %s)\n" tpu-key func))
+	   (set-buffer "Gold-Keys")
+	   (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func))
+	   (set-buffer "Directions"))
+	  ;; bogosity to get next prompt to come up, if the user hits <CR>!
+	  ;; check periodically to see if this is still needed...
+	  (t
+	   (format "%s" tpu-key))))
+    tpu-key)
 
 (set-buffer "Keys")
 (insert "
@@ -350,7 +338,7 @@
 ;;
 ")
 
-(cond (tpu-lucid-emacs19-p
+(cond ((featurep 'xemacs)
        (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter-seq))
        (insert (format "(setq tpu-help-return \"%s\")\n" tpu-return-seq))
        (insert "(setq tpu-help-N \"[#<keypress-event N>]\")\n")
@@ -368,7 +356,7 @@
 ;;;
 (let ((file
        (convert-standard-filename
-	(if tpu-lucid-emacs19-p "~/.tpu-lucid-keys" "~/.tpu-keys"))))
+	(if (featurep 'xemacs) "~/.tpu-lucid-keys" "~/.tpu-keys"))))
   (set-visited-file-name
    (read-file-name (format "Save key mapping to file (default %s): " file) "" file)))
 (save-buffer)

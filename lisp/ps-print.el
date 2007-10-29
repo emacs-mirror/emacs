@@ -1464,10 +1464,6 @@ Please send all bug fixes and enhancements to
 
 (let ((case-fold-search t))
   (cond ((featurep 'xemacs))
-	((string-match "Lucid" emacs-version)
-	 (error "`ps-print' doesn't support Lucid"))
-	((string-match "Epoch" emacs-version)
-	 (error "`ps-print' doesn't support Epoch"))
 	(t
 	 (unless (and (boundp 'emacs-major-version)
 		      (>= emacs-major-version 22))

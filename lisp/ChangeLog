@@ -1,3 +1,27 @@
+2007-10-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* calc/calc.el (calc-emacs-type-lucid): Remove.
+	(calc-digit-map, calcDigit-start, calc-read-key)
+	(calc-clear-unread-commands):
+	* calc/calc-ext.el (calc-user-key-map): Replace uses of
+	calc-emacs-type-lucid with (featurep 'xemacs)
+
+	* emulation/tpu-mapper.el: Replace tpu-lucid-emacs19-p with
+	(featurep 'xemacs).
+	(tpu-lucid-emacs19-p): Remove.
+	(tpu-map-key): Make it a function instead of using fset.  Inline
+	tpu-emacs-map-key and tpu-lucid-map-key.  Use featurep 'xemacs.
+	(tpu-emacs-map-key, tpu-lucid-map-key): Remove.
+
+	* ielm.el: Use featurep 'xemacs.
+
+	* progmodes/cperl-mode.el (cperl-xemacs-p): Remove.
+	(condition-case, cperl-can-font-lock, cperl-singly-quote-face)
+	(cperl-define-key, cperl-mode-map, cperl-mode, cperl-init-faces)
+	(cperl-write-tags, cperl-tags-hier-init, cperl-perldoc): Replace
+	cperl-xemacs-p with (featurep 'xemacs).
+	(font-lock-cache-position): Pacify byte compiler.
+
 2007-10-29  Drew Adams  <drew.adams@oracle.com>
 
 	* faces.el (read-color): New function.

@@ -1782,8 +1782,8 @@ calc-kill calc-kill-region calc-yank))))
 ;;; User menu.
 
 (defun calc-user-key-map ()
-  (if calc-emacs-type-lucid
-      (error "User-defined keys are not supported in Lucid Emacs"))
+  (if (featurep 'xemacs)
+      (error "User-defined keys are not supported in XEmacs"))
   (let ((res (cdr (lookup-key calc-mode-map "z"))))
     (if (eq (car (car res)) 27)
 	(cdr res)
