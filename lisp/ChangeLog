@@ -1,5 +1,3 @@
-2007-10-29  Glenn Morris  <rgm@gnu.org>
-
 2007-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Document `not'.
