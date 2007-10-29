@@ -129,7 +129,7 @@ from a file."
   '(after-change-functions after-insert-file-functions
     after-make-frame-functions auto-fill-function before-change-functions
     blink-paren-function buffer-access-fontify-functions command-line-functions
-    comment-indent-function compilation-finish-functions
+    comment-indent-function compilation-finish-functions delete-frame-functions
     disabled-command-function find-file-not-found-functions
     font-lock-beginning-of-syntax-function font-lock-fontify-buffer-function
     font-lock-fontify-region-function font-lock-mark-block-function
