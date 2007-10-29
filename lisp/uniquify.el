@@ -419,6 +419,23 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 ;;; Hooks from the rest of Emacs
 
+;; Buffer deletion
+;; Rerationalize after a buffer is killed, to reduce coinciding buffer names.
+;; This mechanism uses `kill-buffer-hook', which runs *before* deletion, so
+;; it calls `uniquify-rerationalize-w/o-cb' to rerationalize the buffer list
+;; ignoring the current buffer (which is going to be deleted anyway).
+(defun uniquify-maybe-rerationalize-w/o-cb ()
+  "Re-rationalize buffer names, ignoring current buffer.
+For use on `kill-buffer-hook'."
+  (if (and (cdr uniquify-managed)
+	   uniquify-buffer-name-style
+	   uniquify-after-kill-buffer-p)
+      (uniquify-rerationalize-w/o-cb uniquify-managed)))
+
+;; Ideally we'd like to add it buffer-locally, but that doesn't work
+;; because kill-buffer-hook is not permanent-local :-(
+(add-hook 'kill-buffer-hook 'uniquify-maybe-rerationalize-w/o-cb)
+
 ;; The logical place to put all this code is in generate-new-buffer-name.
 ;; It's written in C, so we would add a generate-new-buffer-name-function
 ;; which, if non-nil, would be called instead of the C.  One problem with
@@ -455,23 +472,6 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	(uniquify-rationalize-file-buffer-names
 	 (file-name-nondirectory filename)
 	 (file-name-directory filename) ad-return-value))))
-
-;; Buffer deletion
-;; Rerationalize after a buffer is killed, to reduce coinciding buffer names.
-;; This mechanism uses `kill-buffer-hook', which runs *before* deletion, so
-;; it calls `uniquify-rerationalize-w/o-cb' to rerationalize the buffer list
-;; ignoring the current buffer (which is going to be deleted anyway).
-(defun uniquify-maybe-rerationalize-w/o-cb ()
-  "Re-rationalize buffer names, ignoring current buffer.
-For use on `kill-buffer-hook'."
-  (if (and (cdr uniquify-managed)
-	   uniquify-buffer-name-style
-	   uniquify-after-kill-buffer-p)
-      (uniquify-rerationalize-w/o-cb uniquify-managed)))
-
-;; Ideally we'd like to add it buffer-locally, but that doesn't work
-;; because kill-buffer-hook is not permanent-local :-(
-(add-hook 'kill-buffer-hook 'uniquify-maybe-rerationalize-w/o-cb)
 
 (provide 'uniquify)
 
