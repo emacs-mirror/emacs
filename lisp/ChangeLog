@@ -1,3 +1,19 @@
+2007-10-29  Drew Adams  <drew.adams@oracle.com>
+
+	* faces.el (read-color): New function.
+	(face-at-point, foreground-color-at-point)
+	(background-color-at-point): New functions.
+
+2007-10-28  Richard Stallman  <rms@gnu.org>
+
+	* net/browse-url.el (browse-url-text-xterm): Renamed from
+	browse-url-lynx-xterm and made generic.
+	(browse-url-text-emacs): Likewise.
+	(browse-url-text-browser): New variable.
+	(browse-url-text-emacs-args): Renamed from browse-url-lynx-emacs-args.
+	(browse-url-text-input-field, browse-url-text-input-attempts)
+	(browse-url-kde-program): Likewise.
+
 2007-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/org-publish.el (org-publish-get-plist-from-filename):
