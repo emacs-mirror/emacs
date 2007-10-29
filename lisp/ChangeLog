@@ -1,3 +1,15 @@
+2007-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* dirtrack.el (dirtrack-debug): Doc fix.
+	(dirtrack-mode, dirtrack-debug-mode): New names for
+	dirtrack-toggle and dirtrack-debug-toggle.  Use define-minor-mode.
+	(dirtrack-toggle, dirtrack-debug-toggle, dirtrackp, dirtrack-debug):
+	Make obsolete.
+	(dirtrack-debug-message): Only print message if
+	dirtrack-debug-mode is non-nil.  Use with-current-buffer.
+	(dirtrack): Doc fix.  Use dirtrack-mode rather than dirtrackp.
+	Remove dirtrack-debug checks now that dirtrack-debug-message does this.
+
 2007-10-28  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings): Document `not'.
