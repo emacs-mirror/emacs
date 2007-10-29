@@ -346,6 +346,8 @@ applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
 this map rather than to function-key-map now.
 
+** The new function `read-color' reads a color name using the minibuffer.
+
 ** Changes related to multiple tty support.
 
 *** $TERM is now set to `dumb' for subprocesses.  If you want to know the
