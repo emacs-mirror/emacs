@@ -1,3 +1,14 @@
+2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `delete-frame-functions' and `suspend-tty-functions'.
+
+	* server.el (server-unload-function): Rename from `server-unload-hook'
+	and adapt to new `unload-feature' functionality.  Remove hook from
+	`kill-buffer-hook' buffer-locally.
+	(server-unload-hook): Remove.
+	(server-unload-function): New var; replaces `server-unload-hook'.
+
 2007-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* dirtrack.el (dirtrack-debug): Doc fix.
