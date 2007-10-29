@@ -426,7 +426,7 @@ nil if not found."
 (defun org-publish-get-plist-from-filename (filename)
   "Return publishing configuration plist for file FILENAME."
   (let ((found nil))
-    (mapcar
+    (mapc
      (lambda (plist)
        (let ((files (org-publish-get-base-files plist)))
  	 (if (member (expand-file-name filename) files)
