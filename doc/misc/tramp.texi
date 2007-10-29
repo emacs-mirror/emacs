@@ -1594,6 +1594,20 @@ exiting @value{emacsname}.  You can simply remove this file if
 Using such persistent information can be disabled by setting
 @code{tramp-persistency-file-name} to @code{nil}.
 
+Once consequence of reusing connection related information is that
+@var{tramp} needs to distinguish hosts.  If you, for example, run a
+local @code{sshd} on port 3001, which tunnels @command{ssh} to another
+host, you could access both @file{@trampfn{ssh, , localhost,}} and
+@file{@trampfn{ssh, , localhost#3001,}}.  @var{tramp} would use the
+same host related information (like paths, Perl variants, etc) for
+both connections, although the information is valid only for one of
+them.
+
+In order to avoid trouble, you must use another host name for one of
+the connections, like introducing a @option{Host} section in
+@file{~/.ssh/config} (@pxref{Frequently Asked Questions}) or applying
+multiple hops (@pxref{Multi-hops}).
+
 
 @node Remote Programs
 @section How @value{tramp} finds and uses programs on the remote machine.
@@ -2800,7 +2814,7 @@ Host xy
 
 The file name left to type would be @kbd{C-x C-f @trampfn{ssh, , xy,
 /opt/news/etc}}.  Depending on files in your directories, it is even
-possible to complete the hostname with @kbd{C-x C-f
+possible to complete the host name with @kbd{C-x C-f
 @value{prefix}ssh@value{postfixhop}x @key{TAB}}.
 
 @item Use environment variables:
