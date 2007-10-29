@@ -84,6 +84,20 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 #ifdef ENABLE_CHECKING
 
+/* The suppress_checking variable is initialized to 0 in alloc.c.  Set
+   it to 1 using a debugger to temporarily disable aborting on
+   detected internal inconsistencies or error conditions.
+
+   Testing suppress_checking after the supplied condition ensures that
+   the side effects produced by CHECK will be consistent, independent
+   of whether ENABLE_CHECKING is defined, or whether the checks are
+   suppressed at run time.
+
+   In some cases, a good compiler may be able to optimize away the
+   CHECK macro altogether, e.g., if XSTRING (x) uses CHECK to test
+   STRINGP (x), but a particular use of XSTRING is invoked only after
+   testing that STRINGP (x) is true, making the test redundant.  */
+
 #define CHECK(check,msg) (((check) || suppress_checking		\
 			   ? (void) 0				\
 			   : die ((msg), __FILE__, __LINE__)),	\
