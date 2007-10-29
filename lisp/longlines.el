@@ -93,6 +93,8 @@ This is used when `longlines-show-hard-newlines' is on."
 
 ;; Mode
 
+(defvar message-indent-citation-function)
+
 ;;;###autoload
 (define-minor-mode longlines-mode
   "Toggle Long Lines mode.

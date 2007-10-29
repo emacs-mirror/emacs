@@ -1,5 +1,16 @@
 2007-10-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* textmodes/flyspell.el (message-signature-separator):
+	* longlines.el (message-indent-citation-function): Pacify byte
+	compiler.
+
+	* emacs-lisp/cl-loaddefs.el:
+	* ldefs-boot.el: Regenerate.
+
+	* Makefile.in (BYTE_COMPILE_EXTRA_FLAGS): New variable.
+	(.el.elc, compile, compile-always, compile-calc)
+	($(lisp)/progmodes/cc-mode.elc): Use it.
+
 	* ps-print.el (ps-xemacs-color-name, ps-xemacs-face-kind-p): Only
 	do work for XEmacs.
 	(ps-xemacs-mapper): Rename from ps-mapper, only work on XEmacs.
