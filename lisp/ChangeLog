@@ -6,13 +6,12 @@
 
 2007-10-29  Martin Rudalics  <rudalics@gmx.at>
 
-	* wdired.el (wdired-next-line, wdired-previous-line): Use
-	next-line and previous-line wrapped in with-no-warnings.
+	* wdired.el (wdired-next-line, wdired-previous-line):
+	Use next-line and previous-line wrapped in with-no-warnings.
 
 2007-10-29  Ryan Yeske  <rcyeske@gmail.com>
 
-	* net/rcirc.el (rcirc-server-alist): Use coloned symbols for
-	parameter names.
+	* net/rcirc.el (rcirc-server-alist): Use keywords for parameter names.
 	(rcirc-recent-quit-alist): New function.
 	(rcirc): Print a better message when there is only one connected server.
 	(rcirc-complete-nick): Do not update the nick table here.
