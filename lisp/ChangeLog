@@ -1,3 +1,11 @@
+2007-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-maybe-open-connection): Set $LC_ALL to "C".
+
+	* net/tramp-cache.el (tramp-flush-file-function): Check also
+	`default-directory' if `buffer-file-name' does not return a
+	string.  Added to `eshell-pre-command-hook'.
+
 2007-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-current-doc): Remove.

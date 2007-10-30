@@ -6066,6 +6066,7 @@ connection if a previous connection has died for some reason."
       (when (and p (processp p))
 	(delete-process p))
       (setenv "TERM" tramp-terminal-type)
+      (setenv "LC_ALL" "C")
       (setenv "PROMPT_COMMAND")
       (setenv "PS1" "$ ")
       (let* ((target-alist (tramp-compute-multi-hops vec))
