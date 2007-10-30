@@ -1,3 +1,7 @@
+2007-10-30  Richard Stallman  <rms@gnu.org>
+
+	* emacs.c (syms_of_emacs) <installation-directory>: Reflow docstring.
+
 2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (syms_of_emacs) <kill-emacs-hook>: Fix typo in docstring.
