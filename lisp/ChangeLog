@@ -1,3 +1,30 @@
+2007-10-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el: Remove cl-dependency.
+	(doc-view-buffer-message): Mention new binding K.
+	(doc-view-convert-current-doc): Use function d-v-current-cache-dir
+	instead of variable.
+	(doc-view-current-cache-dir): Better cache dir naming.
+	(doc-view-current-display): Remove variable.
+	(doc-view-edit-doc, doc-view-display-maybe): Remove functions.
+	(doc-view-kill-proc): Set converter process to nil.
+	(doc-view-minor-mode): New minor mode.
+	(doc-view-minor-mode-map): New keymap.
+	(doc-view-mode): Remove text/image switching code.  Use plain defun.
+	(doc-view-mode-map): New binding K kills converter process.
+	Remove C-c C-e binding.
+	(doc-view-mode-text-map): Remove keymap.
+	(doc-view-pdf/ps->png): Timer calls d-v-display instead of
+	d-v-display-maybe.
+	(doc-view-previous-major-mode): New variable.
+	(doc-view-ps->pdf): Resort args to make ps2pdf happy.
+	(doc-view-remove-if): New function.
+	(doc-view-search-next-match, doc-view-search-previous-match): Use it.
+	(doc-view-toggle-display): Toggle modes instead of display styles.
+	(doc-view-reconvert-doc): Adapt to new way of doing things.
+
+	* progmodes/ps-mode.el (ps-mode-map): Enable doc-view-minor-mode.
+
 2007-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-disable-warning)
