@@ -5,12 +5,31 @@
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* message.el (message-remove-blank-cited-lines): Fix if remove is
+	given.
+	(message-bogus-address-regexp): New variable.
+	(message-bogus-recipient-p): New function.
+	(message-check-recipients): New command.
+	(message-syntax-checks): Add `bogus-recipient'.
+	(message-fix-before-sending): Add `bogus-recipient'.
+
+	* gnus-art.el (gnus-button-mid-or-mail-heuristic-alist): Add "alpine".
+	(gnus-treat-emphasize, gnus-treat-body-boundary): Don't test
+	window-system.
+
+2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
 	* gnus.el: Bump version to Gnus v5.13.
 
 2007-10-28  Miles Bader  <miles@gnu.org>
 
 	* nnheader.el (nnheader-uniquify-message-id): Make sure this is defined
 	at compile-time too.
+
+2007-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-msg.el (gnus-message-setup-hook): Add
+	`message-remove-blank-cited-lines' to options.
 
 2007-10-26  Reiner Steib  <Reiner.Steib@gmx.de>
 

@@ -1116,10 +1116,7 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-buttonize-head 'highlight t)
 
-(defcustom gnus-treat-emphasize
-  (and (or window-system
-	   (featurep 'xemacs))
-       50000)
+(defcustom gnus-treat-emphasize 50000
   "Emphasize text.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
@@ -1518,11 +1515,12 @@ node `(gnus)Picons' for details."
 (put 'gnus-treat-newsgroups-picon 'highlight t)
 
 (defcustom gnus-treat-body-boundary
-  (if (and (eq window-system 'x)
-	   (or gnus-treat-newsgroups-picon
-	       gnus-treat-mail-picon
-	       gnus-treat-from-picon))
-      'head nil)
+  (if (or gnus-treat-newsgroups-picon
+	  gnus-treat-mail-picon
+	  gnus-treat-from-picon)
+      ;; If there's much decoration, the user might prefer a boundery.
+      'head
+    nil)
   "Draw a boundary at the end of the headers.
 Valid values are nil and `head'.
 See Info node `(gnus)Customizing Articles' for details."
@@ -6779,6 +6777,7 @@ must return `mid', `mail', `invalid' or `ask'."
     (-20.0 . "\\.fsf@")	;; Gnus
     (-20.0 . "^slrn")
     (-20.0 . "^Pine")
+    (-20.0 . "^alpine\\.")
     (-20.0 . "_-_") ;; Subject change in thread
     ;;
     (-20.0 . "\\.ln@") ;; leafnode

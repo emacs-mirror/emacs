@@ -188,8 +188,8 @@ To disable checking of long signatures, for instance, add
 
 Don't touch this variable unless you really know what you're doing.
 
-Checks include `approved', `continuation-headers', `control-chars',
-`empty', `existing-newsgroups', `from', `illegible-text',
+Checks include `approved', `bogus-recipient', `continuation-headers',
+`control-chars', `empty', `existing-newsgroups', `from', `illegible-text',
 `invisible-text', `long-header-lines', `long-lines', `message-id',
 `multiple-headers', `new-text', `newsgroups', `quoting-style',
 `repeated-newsgroups', `reply-to', `sender', `sendsys', `shoot',
@@ -3530,16 +3530,16 @@ To use this automatically, you may add this function to
   (let ((citexp
 	 (concat
 	  "^\\("
-	  (if (boundp 'message-yank-cited-prefix)
-	      (concat message-yank-cited-prefix "\\|"))
+	  (when (boundp 'message-yank-cited-prefix)
+	    (concat message-yank-cited-prefix "\\|"))
 	  message-yank-prefix
-	  "\\)+ *$"
-	  (if remove "\n" ""))))
+	  "\\)+ *\n"
+	  )))
     (gnus-message 8 "removing `%s'" citexp)
     (save-excursion
       (message-goto-body)
       (while (re-search-forward citexp nil t)
-	(replace-match "")))))
+	(replace-match (if remove "" "\n"))))))
 
 (defvar message-cite-reply-above nil
   "If non-nil, start own text above the quote.
@@ -4020,6 +4020,12 @@ not have PROP."
 	(setq start next)))
     (nreverse regions)))
 
+(defcustom message-bogus-address-regexp nil ;; "noreply\\|nospam\\|invalid"
+  "Regexp of potentially bogus mail addresses."
+  :version "23.0" ;; No Gnus
+  :group 'message-headers
+  :type 'regexp)
+
 (defun message-fix-before-sending ()
   "Do various things to make the message nice before sending it."
   ;; Make sure there's a newline at the end of the message.
@@ -4102,7 +4108,54 @@ not have PROP."
 	      (when (eq choice ?r)
 		(insert message-replacement-char))))
 	  (forward-char)
-	  (skip-chars-forward mm-7bit-chars))))))
+	  (skip-chars-forward mm-7bit-chars)))))
+  (message-check 'bogus-recipient
+    ;; Warn before composing or sending a mail to an invalid address.
+    (message-check-recipients)))
+
+(defun message-bogus-recipient-p (recipients)
+  "Check if a mail address in RECIPIENTS looks bogus.
+
+RECIPIENTS is a mail header.  Return a list of potentially bogus
+addresses.  If none is found, return nil.
+
+An addresses might be bogus if the domain part is not fully
+qualified, see `message-valid-fqdn-regexp', or if it matches
+`message-bogus-address-regexp'."
+  ;; FIXME: How about "foo@subdomain", when the MTA adds ".domain.tld"?
+  (let (found)
+    (mapc (lambda (address)
+	    (setq address (cadr address))
+	    (when
+		(or (not
+		     (or
+		      (not (string-match "@" address))
+		      (string-match
+		       (concat ".@.*\\("
+			       message-valid-fqdn-regexp "\\)\\'") address)))
+		    (and (stringp message-bogus-address-regexp)
+			 (string-match message-bogus-address-regexp address)))
+	      (push address found)))
+	  ;;
+	  (mail-extract-address-components recipients t))
+    found))
+
+(defun message-check-recipients ()
+  "Warn before composing or sending a mail to an invalid address.
+
+This function could be useful in `message-setup-hook'."
+  (interactive)
+  (save-restriction
+    (message-narrow-to-headers)
+    (dolist (hdr '("To" "Cc" "Bcc"))
+      (let ((addr (message-fetch-field hdr)))
+	(when (stringp addr)
+	  (dolist (bog (message-bogus-recipient-p addr))
+	    (and bog
+		 (not (y-or-n-p
+		       (format
+			"Address `%s' might be bogus.  Continue? " bog)))
+		 (error "Bogus address."))))))))
 
 (defun message-add-action (action &rest types)
   "Add ACTION to be performed when doing an exit of type TYPES."

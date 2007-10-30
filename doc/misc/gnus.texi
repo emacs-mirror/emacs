@@ -28424,7 +28424,7 @@ Gnus will work.
 @item
 Try doing an @kbd{M-x gnus-version}.  If you get something that looks
 like @c
-@samp{Gnus v5.10.8} @c Adjust ../Makefile.in if you change this line!
+@samp{Gnus v5.13} @c Adjust ../Makefile.in if you change this line!
 @c
 you have the right files loaded.  Otherwise you have some old @file{.el}
 files lying around.  Delete these.

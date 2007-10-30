@@ -109,6 +109,7 @@ the second with the current group name."
 (defcustom gnus-message-setup-hook nil
   "Hook run after setting up a message buffer."
   :group 'gnus-message
+  :options '(message-remove-blank-cited-lines)
   :type 'hook)
 
 (defcustom gnus-bug-create-help-buffer t
