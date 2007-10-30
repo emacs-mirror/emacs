@@ -261,17 +261,17 @@
     () ; if dumping, autoloads are set up in loaddefs.el
   ;; if the user decides to load this file, set up autoloads
   ;; compare files and buffers
-  (autoload 'ediff "ediff" "Compare two files" t)
-  (autoload 'ediff-files "ediff" "Compare two files" t)
-  (autoload 'ediff-buffers "ediff" "Compare two bufers" t)
-  (autoload 'ebuffers "ediff" "Compare two bufers" t)
-  (autoload 'ediff3  "ediff"  "Compare three files" t)
-  (autoload 'ediff-files3 "ediff" "Compare three files" t)
-  (autoload 'ediff-buffers3 "ediff" "Compare three bufers" t)
-  (autoload 'ebuffers3 "ediff" "Compare three bufers" t)
+  (autoload 'ediff "ediff" "Compare two files." t)
+  (autoload 'ediff-files "ediff" "Compare two files." t)
+  (autoload 'ediff-buffers "ediff" "Compare two buffers." t)
+  (autoload 'ebuffers "ediff" "Compare two buffers." t)
+  (autoload 'ediff3  "ediff"  "Compare three files." t)
+  (autoload 'ediff-files3 "ediff" "Compare three files." t)
+  (autoload 'ediff-buffers3 "ediff" "Compare three buffers." t)
+  (autoload 'ebuffers3 "ediff" "Compare three buffers." t)
 
-  (autoload 'erevision "ediff" "Compare versions of a file" t)
-  (autoload 'ediff-revision "ediff" "Compare versions of a file" t)
+  (autoload 'erevision "ediff" "Compare versions of a file." t)
+  (autoload 'ediff-revision "ediff" "Compare versions of a file." t)
 
   ;; compare regions and windows
   (autoload 'ediff-windows-wordwise
