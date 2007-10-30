@@ -1225,7 +1225,7 @@ John Wiegley: wrote align.el cal-bahai.el em-alias.el em-banner.el
   em-term.el em-unix.el em-xtra.el erc-identd.el esh-arg.el esh-cmd.el
   esh-ext.el esh-io.el esh-maint.el esh-mode.el esh-module.el esh-opt.el
   esh-proc.el esh-test.el esh-util.el esh-var.el eshell.el eudcb-mab.el
-  isearchb.el pcmpl-cvs.el pcomplete.el timeclock.el
+  isearchb.el pcmpl-cvs.el pcomplete.el remember.el timeclock.el
 and changed erc-chess.el erc.el iswitchb.el Makefile.in allout.el
   cal-menu.el calendar.el compile.el desktop.el diary-lib.el erc-bbdb.el
   erc-button.el erc-complete.el erc-fill.el erc-ibuffer.el erc-list.el
@@ -2295,8 +2295,8 @@ and changed ffap.el ispell.el rmailsum.el simple.el testcover.el
 
 Ryszard Kubiak: changed ogonek.el
 
-Sacha Chua: wrote erc-pcomplete.el
-and changed erc.el erc-button.el
+Sacha Chua: wrote erc-pcomplete.el remember-diary.el
+and changed erc.el erc-button.el remember.el
 
 Saito Takuya: changed compile.el mule.el
 
