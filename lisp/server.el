@@ -767,6 +767,7 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 (defun server-unload-function ()
   "Unload the server library."
   (server-mode -1)
+  (substitute-key-definition 'server-edit nil ctl-x-map)
   (save-current-buffer
    (dolist (buffer (buffer-list))
      (set-buffer buffer)
@@ -775,7 +776,6 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
   nil)
 
 (add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
-(defvar server-unload-function 'server-unload-function)
 
 (provide 'server)
 
