@@ -1286,7 +1286,7 @@ Otherwise, throw an error."
 	   (message "All version-controlled files below %s selected."
 		    default-directory)
 	   (list default-directory)))
-	((and allow-unregistered (not (vc-registered buffer-file-name))) 
+	((and allow-unregistered (not (vc-registered buffer-file-name)))
 	 (list buffer-file-name))
 	(t (error "No fileset is available here."))))
 
@@ -3324,7 +3324,7 @@ mode-specific menu.  `vc-annotate-color-map' and
           ;; of the user's cursor :-(
           (when ,current-line           ;(and (bobp))
             (goto-line ,current-line)
-            (setq vc-sentinel-movepoint))
+            (setq vc-sentinel-movepoint (point)))
           (unless (active-minibuffer-window)
             (message "Annotating... done")))))))
 
