@@ -1,6 +1,6 @@
 ;;; remember-diary --- extracting diary information from buffers
 
-;; Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2004, 2007 Free Software Foundation, Inc.
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
 ;; Created: 24 Mar 2004
