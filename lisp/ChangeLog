@@ -1,3 +1,23 @@
+2007-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el: Use expand-file-name rather than concat.
+	(doc-view-cache-directory): Add the UID so multiple users won't clash.
+	(doc-view-current-overlay, doc-view-pending-cache-flush): New vars.
+	(doc-view-goto-page, doc-view-insert-image, doc-view-buffer-message)
+	(doc-view-toggle-display): Use an overlay over the whole buffer so as
+	not to have to touch the buffer's content.
+	(doc-view-initiate-display): New function, extracted from doc-view-mode.
+	(doc-view-mode): Use it.  Don't mark as a special mode.
+	Put the page numbers in the modeline.
+	Set up the overlay.  Hide the cursor.  Run the mode hook.
+	Use after-revert-hook rather than revert-buffer-function.
+	(doc-view-search-internal): Fix typo.
+	(doc-view-convert-current-doc, doc-view-insert-image): Delay the
+	image-cache flush.
+	(doc-view-reconvert-doc): Don't reset the whole mode.
+	(doc-view-make-safe-dir): New function.
+	(doc-view-current-cache-dir): Use it.
+
 2007-10-30  Jason Rumney  <jasonr@gnu.org>
 
 	* time.el (display-time-world-list): Test for zoneinfo support.
