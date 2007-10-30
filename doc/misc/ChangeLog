@@ -1,5 +1,8 @@
 2007-10-30  Michael Olson  <mwolson@gnu.org>
 
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add remember.
+	($(infodir)/remember): New rule that builds the Remember Manual.
+
 	* remember.texi: New file containing the Remember Mode Manual.  Shuffle
 	chapters around after initial import.
 	(Function Reference): Split Keystrokes into separate chapter.
