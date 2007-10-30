@@ -470,4 +470,5 @@ indexing.  \\{remember-mode-map}"
         mode-name "Remember")
   (run-hooks 'remember-mode-hook))
 
+;; arch-tag: 59312a05-06c7-4da1-b6f7-5ea41c9d5577
 ;;; remember.el ends here

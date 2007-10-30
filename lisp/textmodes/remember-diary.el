@@ -90,4 +90,5 @@
 
 (provide 'remember-diary)
 
+;; arch-tag: bda8a3f8-9a9b-46aa-8493-d71d7f1e445d
 ;;; remember-diary.el ends here

@@ -400,3 +400,7 @@ consult @ref{Remember, , , org}.
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: 5b980db0-20cc-4167-b845-52dc11d53b9f
+@end ignore
