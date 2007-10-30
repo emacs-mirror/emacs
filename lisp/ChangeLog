@@ -1,3 +1,10 @@
+2007-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-forward-hscroll, image-next-line, image-eol)
+	(image-eob, image-mode, image-minor-mode, image-toggle-display-text)
+	(image-toggle-display): Take overlays into account and don't assume
+	point-min==1.
+
 2007-10-30  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-annotate): Fix omission bug:
@@ -76,8 +83,8 @@
 	Replace uses of edt-x-emacs19-p and edt-gnu-emacs19-p with feature
 	tests.
 
-	* textmodes/reftex-index.el (reftex-index-selection-or-word): Use
-	feature test instead of boundp test so it can be resolved at
+	* textmodes/reftex-index.el (reftex-index-selection-or-word):
+	Use feature test instead of boundp test so it can be resolved at
 	compile time.
 
 	* net/newsticker.el (replace-regexp-in-string): Only define for
@@ -103,41 +110,41 @@
 
 2007-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
 
-        * allout.el (allout-command-prefix, allout-inhibit-auto-fill):
+	* allout.el (allout-command-prefix, allout-inhibit-auto-fill):
 	Relocate in file.
-        (allout-doublecheck-at-and-shallower): Increase to include
+	(allout-doublecheck-at-and-shallower): Increase to include
 	slightly greater depths, since yank interaction is now ok.  Also,
 	elaborate the docstring to explain the situation.
-        (produce-allout-mode-map, allout-hotspot-key-handler): Use vconcat
+	(produce-allout-mode-map, allout-hotspot-key-handler): Use vconcat
 	instead of concat, so we accommodate key sequences expressed as
 	vectors as well as strings and lists.
-        (allout-flag-region, allout-hide-by-annotation): Make the
+	(allout-flag-region, allout-hide-by-annotation): Make the
 	hidden-text overlays 'front-advance.
-        (allout-overlay-insert-in-front-handler): Correct docstring's
+	(allout-overlay-insert-in-front-handler): Correct docstring's
 	grammar.
-        (allout-aberrant-container-p, allout-on-current-heading-p)
-        (allout-e-o-prefix-p, allout-next-heading)
-        (allout-previous-heading, allout-goto-prefix)
-        (allout-end-of-prefix, allout-next-sibling-leap)
-        (allout-next-visible-heading, allout-auto-fill)
-        (allout-rebullet-heading, allout-kill-line, allout-kill-topic)
-        (allout-yank-processing, allout-resolve-xref)
-        (allout-current-topic-collapsed-p, allout-hide-region-body)
-        (allout-latex-verbatim-quote-curr-line, allout-encrypt-string)
-        (allout-encrypted-topic-p, allout-next-topic-pending-encryption)
-        (count-trailing-whitespace-region): Preserve match data, so allout
+	(allout-aberrant-container-p, allout-on-current-heading-p)
+	(allout-e-o-prefix-p, allout-next-heading)
+	(allout-previous-heading, allout-goto-prefix)
+	(allout-end-of-prefix, allout-next-sibling-leap)
+	(allout-next-visible-heading, allout-auto-fill)
+	(allout-rebullet-heading, allout-kill-line, allout-kill-topic)
+	(allout-yank-processing, allout-resolve-xref)
+	(allout-current-topic-collapsed-p, allout-hide-region-body)
+	(allout-latex-verbatim-quote-curr-line, allout-encrypt-string)
+	(allout-encrypted-topic-p, allout-next-topic-pending-encryption)
+	(count-trailing-whitespace-region): Preserve match data, so allout
 	outline navigation doesn't disrupt other emacs operations.
-        (allout-beginning-of-line): Retreat to the beginning of the hidden
+	(allout-beginning-of-line): Retreat to the beginning of the hidden
 	text, so fields are respected (for submodes that care).
-        (allout-end-of-line): Preserve mark activation status when
+	(allout-end-of-line): Preserve mark activation status when
 	jumping.
-        (allout-open-topic): Account for opening after a child that
+	(allout-open-topic): Account for opening after a child that
 	contains a hidden trailing newline.  Preserve match data.  Run
 	allout-structure-added-hook
-        (allout-encrypt-decrypted): Preserve match data.
-        (allout-toggle-current-subtree-exposure): Add new interactive
+	(allout-encrypt-decrypted): Preserve match data.
+	(allout-toggle-current-subtree-exposure): Add new interactive
 	function for toggle subtree exposure - suggested by tassilo.
-        (move-beginning-of-line, move-end-of-line): Don't use
+	(move-beginning-of-line, move-end-of-line): Don't use
 	line-move-invisible-p, it's obsolete - substitute the code,
 	instead.
 
@@ -582,7 +589,7 @@
 
 	* savehist.el (savehist-save): Omit unreadable elements.
 
-	* loadhist.el (unload-function-defs-list): Renamed from
+	* loadhist.el (unload-function-defs-list): Rename from
 	unload-function-features-list.
 	(unload-feature-special-hooks, unload-feature): Doc fixes.
 
@@ -749,13 +756,13 @@
 2007-10-22  Bastien Guerry  <Bastien.Guerry@ens.fr>
 
 	* org-export-latex.el (org-export-latex-protect-string):
-        Renaming of `org-latex-protect'.
+	Renaming of `org-latex-protect'.
 	(org-export-latex-emphasis-alist): By default, don't protect
-        any emphasis formatter from further conversion.
-	(org-export-latex-tables): honor column grouping for tables.
+	any emphasis formatter from further conversion.
+	(org-export-latex-tables): Honor column grouping for tables.
 	(org-export-latex-title-command): New option.
-        (org-export-latex-treat-backslash-char): Use \textbackslash{} to
-        export backslash character.
+	(org-export-latex-treat-backslash-char): Use \textbackslash{} to
+	export backslash character.
 
 2007-10-22  Carsten Dominik  <dominik@science.uva.nl>
 
