@@ -2244,6 +2244,7 @@ This prevents `mouse-drag-region' from messing things up."
 ;;{{{ The end
 
 (defun follow-unload-function ()
+  "Unload Follow mode library."
   (follow-stop-intercept-process-output)
   (dolist (group '((before
 		    ;; XEmacs
@@ -2269,9 +2270,8 @@ This prevents `mouse-drag-region' from messing things up."
 				  (intern (concat "follow-" (symbol-name fun))))
 		(ad-update fun))
 	    (error nil))))))
+  ;; continue standard processing
   nil)
-
-(defvar follow-unload-function 'follow-unload-function)
 
 ;;
 ;; We're done!
