@@ -194,7 +194,11 @@ and ends with a forward slash."
 ;;;###autoload
 (define-minor-mode dirtrack-mode
   "Enable or disable Dirtrack directory tracking in a shell buffer.
-This provides an alternative to `shell-dirtrack-mode'."
+This method requires that your shell prompt contain the full
+current working directory at all times, and that `dirtrack-list'
+is set to match the prompt.  This is an alternative to
+`shell-dirtrack-mode', which works differently, by tracking `cd'
+and similar commands which change the shell working directory."
   nil nil nil
   (if dirtrack-mode
       (add-hook 'comint-preoutput-filter-functions 'dirtrack nil t)
