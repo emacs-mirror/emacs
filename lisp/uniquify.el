@@ -460,15 +460,9 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 ;; Buffer deletion
 ;; Rerationalize after a buffer is killed, to reduce coinciding buffer names.
-;; This mechanism uses `kill-buffer-hook', which runs *before* deletion.
-;; That means that the kill-buffer-hook function cannot just delete the
-;; buffer -- it has to set something to do the rationalization *later*.
-;; It actually puts another function on `post-command-hook'.  This other
-;; function runs the rationalization and then removes itself from the hook.
-;; Is there a better way to accomplish this?
-;; (This ought to set some global variables so the work is done only for
-;; buffers with names similar to the deleted buffer.  -MDE)
-
+;; This mechanism uses `kill-buffer-hook', which runs *before* deletion, so
+;; it calls `uniquify-rerationalize-w/o-cb' to rerationalize the buffer list
+;; ignoring the current buffer (which is going to be deleted anyway).
 (defun uniquify-maybe-rerationalize-w/o-cb ()
   "Re-rationalize buffer names, ignoring current buffer.
 For use on `kill-buffer-hook'."
