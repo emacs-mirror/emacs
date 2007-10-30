@@ -1,6 +1,9 @@
 2007-10-30  Michael Olson  <mwolson@gnu.org>
 
-	* remember.texi: New file containing the Remember Mode Manual.
+	* remember.texi: New file containing the Remember Mode Manual.  Shuffle
+	chapters around after initial import.
+	(Function Reference): Split Keystrokes into separate chapter.
+	(Keystrokes): Document C-c C-k.
 
 2007-10-29  Michael Albinus  <michael.albinus@gmx.de>
 

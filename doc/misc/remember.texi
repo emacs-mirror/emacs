@@ -55,8 +55,9 @@ Free Documentation License''.
 * Installation::                How to install Remember.
 * Implementation::              How Remember came into existence.
 * Quick Start::                 Get started using Remember.
-* Backends::                    Backends for saving notes.
 * Function Reference::          Interactive functions in remember.el.
+* Keystrokes::                  Keystrokes bound in Remember Mode.
+* Backends::                    Backends for saving notes.
 * Copying::                     The GNU General Public License gives you
                                   permission to redistribute Remember on
                                   certain terms; it also explains that
@@ -188,7 +189,7 @@ rather than requiring a billion keystrokes to reorganize your
 hierarchy.  Well, as the future arrives, hopefully experience and user
 feedback will help to make this as intuitive a tool as possible.
 
-@node Quick Start, Backends, Implementation, Top
+@node Quick Start, Function Reference, Implementation, Top
 @comment  node-name,  next,  previous,  up
 @chapter Quick Start
 
@@ -266,7 +267,61 @@ remember-annotation-functions. For example:
   (call-interactively 'remember)))
 @end lisp
 
-@node Backends, Function Reference, Quick Start, Top
+@node Function Reference, Keystrokes, Quick Start, Top
+@comment  node-name,  next,  previous,  up
+@chapter Function Reference
+
+@file{remember.el} defines the following interactive functions:
+
+@defun remember initial
+Remember an arbitrary piece of data. With a prefix, it will use the
+region as @var{initial}.
+@end defun
+
+@defun remember-region beg end
+If called from within the remember buffer, @var{beg} and @var{end} are
+ignored, and the entire buffer will be remembered.  If called from any
+other buffer, that region, plus any context information specific to
+that region, will be remembered.
+@end defun
+
+@defun remember-clipboard
+Remember the contents of the current clipboard.  This is most useful
+for remembering things from Netscape or other X Windows applications.
+@end defun
+
+@defun remember-buffer
+Remember the contents of the current buffer.
+@end defun
+
+@defun remember-mode
+This enters the major mode for output from @command{remember}.  This
+buffer is used to collect data that you want remember.  Just hit
+@kbd{C-c C-c} when you're done entering, and it will go ahead and file
+the data for latter retrieval, and possible indexing.
+@end defun
+
+@node Keystrokes, Backends, Function Reference, Top
+@comment  node-name,  next,  previous,  up
+@chapter Keystroke Reference
+
+@file{remember.el} defines the following keybindings by default:
+
+@table @kbd
+
+@item C-c C-c (`remember-buffer')
+Remember the contents of the current buffer.
+
+@item C-c C-k (`remember-destroy')
+Destroy the current *Remember* buffer.
+
+@item C-x C-s (`remember-buffer')
+Remember the contents of the current buffer.
+
+@end table
+
+@node Backends, Copying, Keystrokes, Top
+@comment  node-name,  next,  previous,  up
 @chapter Backends
 
 You can save remembered notes to a variety of backends.
@@ -399,55 +454,7 @@ Format of timestamp for remember entries.
 @file{remember-planner.el} does not define any interactive functions
 or keybindings.
 
-@node Function Reference, Copying, Backends, Top
-@comment  node-name,  next,  previous,  up
-@chapter Function Reference
-
-@subheading Interactive functions
-
-@file{remember.el} defines the following interactive functions:
-
-@defun remember initial
-Remember an arbitrary piece of data. With a prefix, it will use the
-region as @var{initial}.
-@end defun
-
-@defun remember-region beg end
-If called from within the remember buffer, @var{beg} and @var{end} are
-ignored, and the entire buffer will be remembered.  If called from any
-other buffer, that region, plus any context information specific to
-that region, will be remembered.
-@end defun
-
-@defun remember-clipboard
-Remember the contents of the current clipboard.  This is most useful
-for remembering things from Netscape or other X Windows applications.
-@end defun
-
-@defun remember-buffer
-Remember the contents of the current buffer.
-@end defun
-
-@defun remember-mode
-This enters the major mode for output from @command{remember}.  This
-buffer is used to collect data that you want remember.  Just hit
-@kbd{C-c C-c} when you're done entering, and it will go ahead and file
-the data for latter retrieval, and possible indexing.
-@end defun
-
-@subheading Keystrokes
-
-@file{remember.el} defines the following keybindings by default:
-
-@table @kbd
-
-@item C-x C-s (`remember-buffer')
-
-@item C-c C-c (`remember-buffer')
-
-@end table
-
-@node Copying, GNU Free Documentation License, Function Reference, Top
+@node Copying, GNU Free Documentation License, Backends, Top
 @comment  node-name,  next,  previous,  up
 @appendix GNU GENERAL PUBLIC LICENSE
 @include gpl.texi
