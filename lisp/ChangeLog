@@ -1,3 +1,8 @@
+2007-10-30  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-annotate): Fix omission bug:
+	Specify value for vc-sentinel-movepoint.
+
 2007-10-30  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el: Remove cl-dependency.
@@ -737,13 +742,13 @@
 
 2007-10-22  Bastien Guerry  <Bastien.Guerry@ens.fr>
 
-	* org-export-latex.el (org-export-latex-protect-string): 
+	* org-export-latex.el (org-export-latex-protect-string):
         Renaming of `org-latex-protect'.
-	(org-export-latex-emphasis-alist): By default, don't protect 
+	(org-export-latex-emphasis-alist): By default, don't protect
         any emphasis formatter from further conversion.
 	(org-export-latex-tables): honor column grouping for tables.
 	(org-export-latex-title-command): New option.
-        (org-export-latex-treat-backslash-char): Use \textbackslash{} to 
+        (org-export-latex-treat-backslash-char): Use \textbackslash{} to
         export backslash character.
 
 2007-10-22  Carsten Dominik  <dominik@science.uva.nl>
