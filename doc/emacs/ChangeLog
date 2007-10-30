@@ -1,3 +1,11 @@
+2007-10-27  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
+
+	* gnus-faq.texi ([5.12]): Remove reference to discontinued service.
+
+2007-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Troubleshooting): Adjust Gnus version number.
+
 2007-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Directory Tracking): Explain a bit more about
