@@ -560,8 +560,6 @@ module, otherwise the keybindings will not do anything useful."
   :global t
   :group 'erc-track)
 
-(add-to-list 'desktop-minor-mode-table '(erc-track-minor-mode nil))
-
 (defun erc-track-minor-mode-maybe ()
   "Enable `erc-track-minor-mode', depending on `erc-track-enable-keybindings'."
   (unless (or erc-track-minor-mode

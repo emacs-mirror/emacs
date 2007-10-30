@@ -1,3 +1,7 @@
+2007-10-30  Michael Olson  <mwolson@gnu.org>
+
+	* desktop.el (desktop-minor-mode-table): Add line for ERC.
+
 2007-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
 
         * allout.el (allout-command-prefix, allout-inhibit-auto-fill):
