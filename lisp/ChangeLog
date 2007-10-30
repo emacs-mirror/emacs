@@ -27,6 +27,10 @@
 
 2007-10-30  Glenn Morris  <rgm@gnu.org>
 
+	* dirtrack.el (dirtrack-mode): Doc fix.
+	* shell.el (shell-dirtrack-verbose, shell-mode)
+	(shell-directory-tracker, shell-dirtrack-mode): Doc fix.
+
 	* emacs-lisp/bytecomp.el (byte-compile-disable-warning)
 	(byte-compile-enable-warning): Doc fix.
 
