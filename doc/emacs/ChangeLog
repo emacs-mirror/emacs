@@ -1,3 +1,8 @@
+2007-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Directory Tracking): Explain a bit more about
+	dirtrack-mode.
+
 2007-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran): F90 mode handles F2003.
