@@ -7,6 +7,7 @@
 	chapters around after initial import.
 	(Function Reference): Split Keystrokes into separate chapter.
 	(Keystrokes): Document C-c C-k.
+	(Introduction): Fix typographical issue with "---".
 
 2007-10-29  Michael Albinus  <michael.albinus@gmx.de>
 

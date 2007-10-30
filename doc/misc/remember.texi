@@ -97,15 +97,14 @@ Todo lists, schedules, phone databases... everything we use databases
 for is really just a way to extend the power of our memory, to be able
 to remember what our conscious mind may not currently have access to.
 
-There are many different databases out there---and good ones---
-which this mode is not trying to replace.  Rather, it's how that
-data gets there that's the question.  Most of the time, we just
-want to say "Remember so-and-so's phone number, or that I have to
-buy dinner for the cats tonight."  That's the FACT.  How it's
-stored is really the computer's problem.  But at this point in
-time, it's most definitely also the user's problem, and sometimes
-so laboriously so that people just let data slip, rather than
-expend the effort to record it.
+There are many different databases out there---and good ones---which
+this mode is not trying to replace.  Rather, it's how that data gets
+there that's the question.  Most of the time, we just want to say
+"Remember so-and-so's phone number, or that I have to buy dinner for the
+cats tonight."  That's the FACT.  How it's stored is really the
+computer's problem.  But at this point in time, it's most definitely
+also the user's problem, and sometimes so laboriously so that people
+just let data slip, rather than expend the effort to record it.
 
 ``Remember'' is a mode for remembering data.  It uses whatever
 back-end is appropriate to record and correlate the data, but its main
