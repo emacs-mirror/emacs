@@ -1,3 +1,11 @@
+2007-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-disable-warning)
+	(byte-compile-enable-warning): Doc fix.
+
+	* emulation/tpu-mapper.el (tpu-map-key): Use with-no-warnings to
+	suppress byte-opt warning.
+
 2007-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emulation/edt.el (edt-emacs19-p, edt-x-emacs19-p)
