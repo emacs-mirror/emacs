@@ -27826,8 +27826,11 @@ Gnus will work.
 
 @item
 Try doing an @kbd{M-x gnus-version}.  If you get something that looks
-like @samp{Gnus v5.10.6} you have the right files loaded.  Otherwise
-you have some old @file{.el} files lying around.  Delete these.
+like @c
+@samp{Gnus v5.10.8} @c Adjust ../Makefile.in if you change this line!
+@c
+you have the right files loaded.  Otherwise you have some old @file{.el}
+files lying around.  Delete these.
 
 @item
 Read the help group (@kbd{G h} in the group buffer) for a

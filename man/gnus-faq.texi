@@ -1676,10 +1676,7 @@ you to use something like
 yourUserName.userfqdn.provider.net, or you can use
 somethingUnique.yourdomain.tld if you own the domain
 yourdomain.tld, or you can register at a service which
-gives private users a FQDN for free, e.g.  
-@uref{http://www.stura.tu-freiberg.de/~dlx/addfqdn.html}.
-(Sorry but this website is in German, if you know of an
-English one offering the same, drop me a note).
+gives private users a FQDN for free.
 
 Finally you can tell Gnus not to generate a Message-ID
 for News at all (and letting the server do the job) by saying
