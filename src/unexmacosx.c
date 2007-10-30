@@ -443,15 +443,13 @@ unexec_regions_recorder (task_t task, void *rr, unsigned type,
 
   while (num && num_unexec_regions < MAX_UNEXEC_REGIONS)
     {
-      /* Subtract the size of trailing null pages from filesize.  It
+      /* Subtract the size of trailing null bytes from filesize.  It
 	 can be smaller than vmsize in segment commands.  In such a
-	 case, trailing pages are initialized with zeros.  */
-      for (p = ranges->address + ranges->size; p > ranges->address;
-	   p -= sizeof (int))
-	if (*(((int *) p)-1))
-	  break;
-      filesize = ROUNDUP_TO_PAGE_BOUNDARY (p - ranges->address);
-      assert (filesize <= ranges->size);
+	 case, trailing bytes are initialized with zeros.  */
+      for (p = ranges->address + ranges->size; p > ranges->address; p--)
+      	if (*(((char *) p)-1))
+      	  break;
+      filesize = p - ranges->address;
 
       unexec_regions[num_unexec_regions].filesize = filesize;
       unexec_regions[num_unexec_regions++].range = *ranges;
@@ -503,11 +501,19 @@ unexec_regions_merge ()
 {
   int i, n;
   unexec_region_info r;
+  vm_size_t padsize;
 
   qsort (unexec_regions, num_unexec_regions, sizeof (unexec_regions[0]),
 	 &unexec_regions_sort_compare);
   n = 0;
   r = unexec_regions[0];
+  padsize = r.range.address & (pagesize - 1);
+  if (padsize)
+    {
+      r.range.address -= padsize;
+      r.range.size += padsize;
+      r.filesize += padsize;
+    }
   for (i = 1; i < num_unexec_regions; i++)
     {
       if (r.range.address + r.range.size == unexec_regions[i].range.address
@@ -520,6 +526,17 @@ unexec_regions_merge ()
 	{
 	  unexec_regions[n++] = r;
 	  r = unexec_regions[i];
+	  padsize = r.range.address & (pagesize - 1);
+	  if (padsize)
+	    {
+	      if ((unexec_regions[n-1].range.address
+		   + unexec_regions[n-1].range.size) == r.range.address)
+		unexec_regions[n-1].range.size -= padsize;
+
+	      r.range.address -= padsize;
+	      r.range.size += padsize;
+	      r.filesize += padsize;
+	    }
 	}
     }
   unexec_regions[n++] = r;
@@ -562,6 +579,11 @@ print_load_command_name (int lc)
     case LC_TWOLEVEL_HINTS:
       printf ("LC_TWOLEVEL_HINTS");
       break;
+#ifdef LC_UUID
+    case LC_UUID:
+      printf ("LC_UUID          ");
+      break;
+#endif
     default:
       printf ("unknown          ");
     }
