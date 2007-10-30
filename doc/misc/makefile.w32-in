@@ -42,7 +42,8 @@ INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/woman $(infodir)/eshell $(infodir)/org \
 		$(infodir)/url $(infodir)/speedbar $(infodir)/tramp \
 		$(infodir)/ses $(infodir)/smtpmail $(infodir)/flymake \
-		$(infodir)/newsticker $(infodir)/rcirc $(infodir)/erc
+		$(infodir)/newsticker $(infodir)/rcirc $(infodir)/erc \
+		$(infodir)/remember
 DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
                  gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
@@ -50,7 +51,7 @@ DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
-                 newsticker.dvi rcirc.dvi erc.dvi
+                 newsticker.dvi rcirc.dvi erc.dvi remember.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -171,6 +172,11 @@ $(infodir)/reftex: reftex.texi
 	$(MAKEINFO) reftex.texi
 reftex.dvi: reftex.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/reftex.texi
+
+$(infodir)/remember: remember.texi
+	$(MAKEINFO) remember.texi
+remember.dvi: remember.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/remember.texi
 
 $(infodir)/sc: sc.texi
 	$(MAKEINFO) sc.texi
@@ -297,7 +303,8 @@ clean: mostlyclean
 		 $(infodir)/url* $(infodir)/org* \
 		 $(infodir)/flymake* $(infodir)/newsticker* \
 		 $(infodir)/sieve* $(infodir)/pgg* \
-		 $(infodir)/erc* $(infodir)/rcirc*
+		 $(infodir)/erc* $(infodir)/rcirc* \
+		 $(infodir)/remember*
 
 distclean: clean
 
