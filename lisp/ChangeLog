@@ -1,5 +1,16 @@
 2007-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc-view.el (doc-view-current-doc): Remove.
+	Replace all uses by buffer-file-name.
+	(doc-view-menu): New menu.
+	(doc-view-reconvert-doc): Don't bind inhibit-read-only and remove
+	unused var `doc'.
+	(doc-view-sort): Simplify.
+	(doc-view-buffer-message): Don't change buffer-modified-p.
+	(doc-view-mode): Change it here instead.
+	Tighten scoping of prev-major-mode.  Don't re-insert the file's content.
+	Don't modify the global value of revert-buffer-function.
+
 	* image-mode.el (image-forward-hscroll, image-next-line, image-eol)
 	(image-eob, image-mode, image-minor-mode, image-toggle-display-text)
 	(image-toggle-display): Take overlays into account and don't assume
@@ -13,8 +24,8 @@
 2007-10-30  Michael Olson  <mwolson@gnu.org>
 
 	* textmodes/remember.el (remember-mode-hook)
-	(remember-handler-functions, remember-annotation-functions): Add
-	additional items as options, including some Org functions.
+	(remember-handler-functions, remember-annotation-functions):
+	Add additional items as options, including some Org functions.
 
 2007-10-30  Tassilo Horn  <tassilo@member.fsf.org>
 
