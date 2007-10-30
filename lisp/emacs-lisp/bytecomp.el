@@ -404,7 +404,9 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
 (defun byte-compile-disable-warning (warning)
   "Change `byte-compile-warnings' to disable WARNING.
 If `byte-compile-warnings' is t, set it to `(not WARNING)'.
-Otherwise, if the first element is `not', add WARNING, else remove it."
+Otherwise, if the first element is `not', add WARNING, else remove it.
+Normally you should let-bind `byte-compile-warnings' before calling this,
+else the global value will be modified."
   (setq byte-compile-warnings
         (cond ((eq byte-compile-warnings t)
                (list 'not warning))
@@ -419,7 +421,9 @@ Otherwise, if the first element is `not', add WARNING, else remove it."
 (defun byte-compile-enable-warning (warning)
   "Change `byte-compile-warnings' to enable WARNING.
 If `byte-compile-warnings' is `t', do nothing.  Otherwise, if the
-first element is `not', remove WARNING, else add it."
+first element is `not', remove WARNING, else add it.
+Normally you should let-bind `byte-compile-warnings' before calling this,
+else the global value will be modified."
   (or (eq byte-compile-warnings t)
       (setq byte-compile-warnings
             (cond ((eq (car byte-compile-warnings) 'not)
