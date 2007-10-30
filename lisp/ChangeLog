@@ -1,3 +1,11 @@
+2007-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el: Rename `count' and `system-flag' to :count and :system.
+	Update all users.
+	(abbrev-get, abbrev-put): Simplify.
+	(define-abbrev): Don't store the `force' value in the :system property.
+	(abbrev--before-point): Obey the :enable-function of the abbrev as well.
+
 2007-10-30  Michael Olson  <mwolson@gnu.org>
 
 	* desktop.el (desktop-minor-mode-table): Add line for ERC.

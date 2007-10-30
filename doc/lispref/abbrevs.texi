@@ -23,13 +23,10 @@ abbrev table.  Normally both are used.
 each abbreviation.  The symbol's name is the abbreviation; its value
 is the expansion; its function definition is the hook function to do
 the expansion (@pxref{Defining Abbrevs}); its property list cell
-typically contains the use count, the number of times the abbreviation
-has been expanded.  Alternatively, the use count is on the
-@code{count} property and the system-abbrev flag is on the
-@code{system-type} property.  Abbrevs with a non-@code{nil}
-@code{system-type} property are called ``system'' abbrevs.  They are
-usually defined by modes or packages, instead of by the user, and are
-treated specially in certain respects.
+typically contains various additional properties such as the use
+count, the number of times the abbreviation has been expanded, or
+whether the abbrev is a so-called ``system'' abbrev defined by a major
+mode rather than by the user (@pxref{Abbrev Properties}).
 
 Because the symbols used for abbrevs are not interned in the usual
 obarray, they will never appear as the result of reading a Lisp
@@ -82,7 +79,8 @@ This is the same as @code{(default-value 'abbrev-mode)}.
 @defun make-abbrev-table &rest props
 This function creates and returns a new, empty abbrev table---an obarray
 containing no symbols.  It is a vector filled with zeros.  @var{props}
-is a property list that is applied to the new table.
+is a property list that is applied to the new table
+(@pxref{Abbrev Table Properties}).
 @end defun
 
 @defun abbrev-table-p table
@@ -145,7 +143,7 @@ to add these to @var{name} separately.)
   @code{define-abbrev} is the low-level basic function for defining an
 abbrev in a specified abbrev table.  When major modes predefine standard
 abbrevs, they should call @code{define-abbrev} and specify a @code{t} for
-the @code{system-flag} property.
+the @code{:system} property.
 Be aware that any saved non-``system'' abbrevs are 
 restored at startup, i.e. before some major modes are loaded.  Major modes
 should therefore not assume that when they are first loaded their abbrev
@@ -155,6 +153,9 @@ tables are empty.
 This function defines an abbrev named @var{name}, in @var{table}, to
 expand to @var{expansion} and call @var{hook}, with properties
 @var{props} (@pxref{Abbrev Properties}).  The return value is @var{name}.
+The @code{:system} property in @var{props} is treated specially here:
+if it has the value @code{force}, then it will overwrite an existing
+definition even for a non-``system'' abbrev of the same name.
 
 The argument @var{name} should be a string.  The argument
 @var{expansion} is normally the desired expansion (a string), or
@@ -413,8 +414,8 @@ This is the local abbrev table used in Lisp mode and Emacs Lisp mode.
 @section Abbrev Properties
 
 Abbrevs have properties, some of which influence the way they work.
-They are usually set by providing the relevant arguments to
-@code{define-abbrev} and can be manipulated with the functions:
+You can provide them as arguments to @code{define-abbrev} and you can
+manipulate them with the functions:
 
 @defun abbrev-put abbrev prop val
 Set the property @var{prop} of abbrev @var{abbrev} to value @var{val}.
@@ -428,38 +429,34 @@ if the abbrev has no such property.
 The following properties have special meaning:
 
 @table @code
-@item count
+@item :count
 This property counts the number of times the abbrev has
 been expanded.  If not explicitly set, it is initialized to 0 by
 @code{define-abbrev}.
 
-@item system-flag
+@item :system
 If non-@code{nil}, this property marks the abbrev as a ``system''
 abbrev.  Such abbrevs will not be saved to @var{abbrev-file-name}.
-Also, unless @code{system-flag} has the value @code{force},
-a ``system'' abbrev will not overwrite an existing definition for
-a non-``system'' abbrev of the same name.
 
 @item :enable-function
-If non-@code{nil}, this property should be set to a function of no
+If non-@code{nil}, this property should be a function of no
 arguments which returns @code{nil} if the abbrev should not be used
 and @code{t} otherwise.
 
 @item :case-fixed
 If non-@code{nil}, this property indicates that the case of the
 abbrev's name is significant and should only match a text with the
-same capitalization.  It also disables the code that modifies the
-capitalization of the expansion.
-
+same pattern of capitalization.  It also disables the code that
+modifies the capitalization of the expansion.
 @end table
 
 @node Abbrev Table Properties,  , Abbrev Properties, Abbrevs
 @section Abbrev Table Properties
 
 Like abbrevs, abble tables have properties, some of which influence
-the way they work.  They are usually set by providing the relevant
-arguments to @code{define-abbrev-table} and can be manipulated with
-the functions:
+the way they work.  You can provide them as arguments to
+@code{define-abbrev-table} and you can manipulate them with the
+functions:
 
 @defun abbrev-table-put table prop val
 Set the property @var{prop} of abbrev table @var{table} to value @var{val}.
@@ -474,26 +471,21 @@ The following properties have special meaning:
 
 @table @code
 @item :enable-function
-If non-@code{nil}, this property should be set to a function of no
-arguments which returns @code{nil} if the abbrev table should not be
-used and @code{t} otherwise.  This is like the @code{:enable-function}
-abbrev property except that it applies to all abbrevs in the table and
-is used even before trying to find the abbrev before point.
+This is like the @code{:enable-function} abbrev property except that
+it applies to all abbrevs in the table and is used even before trying
+to find the abbrev before point so it can dynamically modify the
+abbrev table.
 
 @item :case-fixed
-If non-@code{nil}, this property indicates that the case of the names
-is significant for all abbrevs in the table and should only match
-a text with the same capitalization.  It also disables the code that
-modifies the capitalization of the expansion.  This is like the
-@code{:case-fixed} abbrev property except that it applies to all
-abbrevs in the table.
+This is like the @code{:case-fixed} abbrev property except that it
+applies to all abbrevs in the table.
 
 @item :regexp
 If non-@code{nil}, this property is a regular expression that
 indicates how to extract the name of the abbrev before point before
 looking it up in the table.  When the regular expression matches
 before point, the abbrev name is expected to be in submatch 1.
-If this property is nil, @code{expand-function} defaults to
+If this property is @code{nil}, @code{expand-function} defaults to
 @code{"\\<\\(\\w+\\)\\W"}.  This property allows the use of abbrevs
 whose name contains characters of non-word syntax.
 

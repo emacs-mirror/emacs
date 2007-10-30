@@ -180,7 +180,7 @@ consult the Remember Manual for usage details.
 *** New variable `abbrev-minor-mode-table-alist'.
 *** `local-abbrev-table' can hold a list of abbrev-tables.
 *** Abbrevs have now the following special properties:
-    `count', `system-flag', `:enable-function', `:case-fixed'.
+    `:count', `:system', `:enable-function', `:case-fixed'.
 *** Abbrev-tables have now the following special properties:
     `:parents', `:case-fixed', `:enable-function', `:regexp',
     `abbrev-table-modiff'.

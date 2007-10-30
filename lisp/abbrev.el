@@ -388,21 +388,16 @@ A prefix argument means don't query; expand all abbrevs."
     (set sym nil)	     ; Make sure it won't be confused for an abbrev.
     (put sym prop val)))
 
-(defun abbrev-get (sym prop)
-  "Get the property PROP of abbrev SYM."
-  (let ((plist (symbol-plist sym)))
-    (if (listp plist)
-        (plist-get plist prop)
-      (if (eq 'count prop) plist))))
+(defalias 'abbrev-get 'get
+  "Get the property PROP of abbrev ABBREV
 
-(defun abbrev-put (sym prop val)
-  "Set the property PROP of abbrev SYM to value VAL.
-See `define-abbrev' for the effect of some special properties."
-  (let ((plist (symbol-plist sym)))
-    (if (consp plist)
-        (put sym prop val)
-      (setplist sym (if (eq 'count prop) val
-                      (list 'count plist prop val))))))
+\(fn ABBREV PROP)")
+
+(defalias 'abbrev-put 'put
+  "Set the property PROP of abbrev ABREV to value VAL.
+See `define-abbrev' for the effect of some special properties.
+
+\(fn ABBREV PROP VAL)")
 
 (defmacro abbrev-with-wrapper-hook (var &rest body)
   "Run BODY wrapped with the VAR hook.
@@ -543,11 +538,11 @@ If EXPANSION is not a string, the abbrev is a special one,
  which does not expand in the usual way but only runs HOOK.
 
 PROPS is a property list.  The following properties are special:
-- `count': the value for the abbrev's usage-count, which is incremented each time
+- `:count': the value for the abbrev's usage-count, which is incremented each time
   the abbrev is used (the default is zero).
-- `system-flag': if non-nil, says that this is a \"system\" abbreviation
+- `:system': if non-nil, says that this is a \"system\" abbreviation
   which should not be saved in the user's abbreviation file.
-  Unless `system-flag' is `force', a system abbreviation will not
+  Unless `:system' is `force', a system abbreviation will not
   overwrite a non-system abbreviation of the same name.
 - `:case-fixed': non-nil means that abbreviations are looked up without
   case-folding, and the expansion is not capitalized/upcased.
@@ -556,20 +551,20 @@ PROPS is a property list.  The following properties are special:
 
 An obsolete but still supported calling form is:
 
-\(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM-FLAG)."
+\(define-abbrev TABLE NAME EXPANSION &optional HOOK COUNT SYSTEM)."
   (when (and (consp props) (or (null (car props)) (numberp (car props))))
     ;; Old-style calling convention.
-    (setq props (list* 'count (car props)
-                       (if (cadr props) (list 'system-flag (cadr props))))))
-  (unless (plist-get props 'count)
-    (setq props (plist-put props 'count 0)))
-  (let ((system-flag (plist-get props 'system-flag))
+    (setq props (list* :count (car props)
+                       (if (cadr props) (list :system (cadr props))))))
+  (unless (plist-get props :count)
+    (setq props (plist-put props :count 0)))
+  (let ((system-flag (plist-get props :system))
         (sym (intern name table)))
     ;; Don't override a prior user-defined abbrev with a system abbrev,
     ;; unless system-flag is `force'.
     (unless (and (not (memq system-flag '(nil force)))
                  (boundp sym) (symbol-value sym)
-                 (not (abbrev-get sym 'system-flag)))
+                 (not (abbrev-get sym :system)))
       (unless (or system-flag
                   (and (boundp sym) (fboundp sym)
                        ;; load-file-name
@@ -578,7 +573,10 @@ An obsolete but still supported calling form is:
         (setq abbrevs-changed t))
       (set sym expansion)
       (fset sym hook)
-      (setplist sym props)
+      (setplist sym
+                ;; Don't store the `force' value of `system-flag' into
+                ;; the :system property.
+                (if (eq 'force system-flag) (plist-put props :system t) props))
       (abbrev-table-put table :abbrev-table-modiff
                         (1+ (abbrev-table-get table :abbrev-table-modiff))))
     name))
@@ -710,10 +708,14 @@ then ABBREV is looked up in that table only."
                                    (line-beginning-position))
                      (setq start (match-beginning 1))
                      (setq end   (match-end 1))
-                     (setq name (buffer-substring start end))
-                     ;; This will also look it up in parent tables.
-                     ;; This is not on purpose, but it seems harmless.
-                     (list (abbrev-symbol name table) name start end)))
+                     (setq name  (buffer-substring start end))
+                     (let ((abbrev (abbrev-symbol name table)))
+                       (when abbrev
+                         (setq enable-fun (abbrev-get abbrev :enable-function))
+                         (and (or (not enable-fun) (funcall enable-fun))
+                              ;; This will also look it up in parent tables.
+                              ;; This is not on purpose, but it seems harmless.
+                              (list abbrev name start end))))))
           ;; Restore point.
           (goto-char pos)))
       res)))
@@ -746,7 +748,7 @@ Returns the abbrev symbol, if expansion took place."
           (setq last-abbrev sym)
           (setq last-abbrev-location wordstart)
           ;; Increment use count.
-          (abbrev-put sym 'count (1+ (abbrev-get sym 'count)))
+          (abbrev-put sym :count (1+ (abbrev-get sym :count)))
           ;; If this abbrev has an expansion, delete the abbrev
           ;; and insert the expansion.
           (when (stringp (symbol-value sym))
@@ -815,7 +817,7 @@ is not undone."
   "Write the abbrev in a `read'able form.
 Only writes the non-system abbrevs.
 Presumes that `standard-output' points to `current-buffer'."
-  (unless (or (null (symbol-value sym)) (abbrev-get sym 'system-flag))
+  (unless (or (null (symbol-value sym)) (abbrev-get sym :system))
     (insert "    (")
     (prin1 name)
     (insert " ")
@@ -823,17 +825,17 @@ Presumes that `standard-output' points to `current-buffer'."
     (insert " ")
     (prin1 (symbol-function sym))
     (insert " ")
-    (prin1 (abbrev-get sym 'count))
+    (prin1 (abbrev-get sym :count))
     (insert ")\n")))
 
 (defun abbrev--describe (sym)
   (when (symbol-value sym)
     (prin1 (symbol-name sym))
-    (if (null (abbrev-get sym 'system-flag))
+    (if (null (abbrev-get sym :system))
         (indent-to 15 1)
       (insert " (sys)")
       (indent-to 20 1))
-    (prin1 (abbrev-get sym 'count))
+    (prin1 (abbrev-get sym :count))
     (indent-to 20 1)
     (prin1 (symbol-value sym))
     (when (symbol-function sym)
