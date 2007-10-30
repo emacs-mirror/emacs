@@ -17368,7 +17368,9 @@ are the selected window and the window's buffer).  */)
     buffer = w->buffer;
   CHECK_BUFFER (buffer);
 
-  if (NILP (format))
+  /* Make formatting the modeline a non-op when noninteractive, otherwise
+     there will be problems later caused by a partially initialized frame.  */
+  if (NILP (format) || noninteractive)
     return build_string ("");
 
   if (no_props)
