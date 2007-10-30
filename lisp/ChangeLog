@@ -1,3 +1,7 @@
+2007-10-30  Jason Rumney  <jasonr@gnu.org>
+
+	* time.el (display-time-world-list): Test for zoneinfo support.
+
 2007-10-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-maybe-open-connection): Set $LC_ALL to "C".
