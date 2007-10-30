@@ -1,3 +1,7 @@
+2007-10-30  Michael Olson  <mwolson@gnu.org>
+
+	* Makefile.in (INFO_FILES): Alphabetize.  Add remember.
+
 2007-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Add new directories etc/images/smilies/grayscale,medium.
