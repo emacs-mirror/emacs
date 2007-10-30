@@ -1,3 +1,9 @@
+2007-10-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (unexec_regions_recorder, unexec_regions_merge):
+	Don't assume regions are aligned to page boundary.
+	(print_load_command_name): Add LC_UUID if defined.
+
 2007-10-30  Richard Stallman  <rms@gnu.org>
 
 	* emacs.c (syms_of_emacs) <installation-directory>: Reflow docstring.
