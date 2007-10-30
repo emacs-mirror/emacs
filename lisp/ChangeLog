@@ -1,3 +1,20 @@
+2007-10-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature): Remove erroneous check for the
+	FEATURE-unload-function variable; check the existence of the
+	function (that's what the docstring says, and it makes more sense).
+
+	* follow.el (follow-unload-function): Add docstring.
+	(follow-unload-function): Remove variable.
+
+	* server.el (server-unload-function): Unbind `server-edit' from `C-x #'.
+	(server-unload-function): Remove variable.
+
+	* uniquify.el (uniquify-unload-function): Add docstring.
+	(uniquify-unload-function): Remove variable.
+
+	* ses.el (ses-unload-function): New function.
+
 2007-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/unsafep.el (unsafep, unsafep-function)
