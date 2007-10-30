@@ -259,7 +259,8 @@ This mirrors the optional behavior of tcsh."
 (defcustom shell-dirtrack-verbose t
   "If non-nil, show the directory stack following directory change.
 This is effective only if directory tracking is enabled.
-The `dirtrack' package provides an alternative implementation of this feature."
+The `dirtrack' package provides an alternative implementation of this feature -
+see the function `dirtrack-mode'."
   :type 'boolean
   :group 'shell-directories)
 
@@ -396,7 +397,7 @@ by \\[list-buffers] or \\[mouse-buffer-menu] in the `File' field.
     directory stack is.
 \\[shell-dirtrack-mode] turns directory tracking on and off.
 \(The `dirtrack' package provides an alternative implementation of this
-feature.)
+feature - see the function `dirtrack-mode'.)
 
 \\{shell-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
@@ -626,6 +627,8 @@ default directory to track these commands.
 
 You may toggle this tracking on and off with \\[shell-dirtrack-mode].
 If Emacs gets confused, you can resync with the shell with \\[dirs].
+\(The `dirtrack' package provides an alternative implementation of this
+feature - see the function `dirtrack-mode'.)
 
 See variables `shell-cd-regexp', `shell-chdrive-regexp', `shell-pushd-regexp',
 and  `shell-popd-regexp', while `shell-pushd-tohome', `shell-pushd-dextract',
@@ -781,7 +784,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 
 (defvaralias 'shell-dirtrack-mode 'shell-dirtrackp)
 (define-minor-mode shell-dirtrack-mode
-  "Turn directory tracking on and off in a shell buffer."
+  "Turn directory tracking on and off in a shell buffer.
+The `dirtrack' package provides an alternative implementation of this
+feature - see the function `dirtrack-mode'."
   nil nil nil
   (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
   (if shell-dirtrack-mode
