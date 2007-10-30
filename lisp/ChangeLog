@@ -1,5 +1,9 @@
 2007-10-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ediff-hook.el (ediff, ediff-files, ediff-buffers, ebuffers, ediff3)
+	(ediff-files3, ediff-buffers3, ebuffers3, erevision, ediff-revision):
+	Fix typos in autoload docstrings.
+
 	* loadhist.el (unload-feature): Remove redundant check.
 
 2007-10-30  Richard Stallman  <rms@gnu.org>
