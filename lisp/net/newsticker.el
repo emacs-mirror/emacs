@@ -1199,10 +1199,11 @@ buffers *newsticker-wget-<feed>* will not be closed."
 (unless (fboundp 'match-string-no-properties)
   (defalias 'match-string-no-properties 'match-string))
 
-(unless (fboundp 'replace-regexp-in-string)
-  (defun replace-regexp-in-string (re rp st)
-    (save-match-data ;; apparently XEmacs needs save-match-data
-      (replace-in-string st re rp))))
+(when (featurep 'xemacs)
+  (unless (fboundp 'replace-regexp-in-string)
+    (defun replace-regexp-in-string (re rp st)
+      (save-match-data ;; apparently XEmacs needs save-match-data
+	(replace-in-string st re rp)))))
 
 ;; copied from subr.el
 (unless (fboundp 'add-to-invisibility-spec)

@@ -1,3 +1,38 @@
+2007-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emulation/edt.el (edt-emacs19-p, edt-x-emacs19-p)
+	(edt-gnu-emacs19-p): Remove.
+	(edt-emacs-variant, edt-window-system): Use feature 'emacs.
+	(edt-xserver, edt-page-backward, edt-beginning-of-line)
+	(edt-end-of-line-forward, edt-end-of-line-backward)
+	(edt-one-word-forward, edt-one-word-backward, edt-character)
+	(edt-line-forward, edt-next-line, edt-previous-line, edt-top)
+	(edt-find-forward, edt-find-backward, edt-find-next-forward)
+	(edt-find-next-backward, edt-reset, edt-advance, edt-backup)
+	(edt-define-key, edt-bottom-check, edt-sentence-forward)
+	(edt-sentence-backward, edt-paragraph-forward)
+	(edt-paragraph-backward, edt-restore-key, edt-window-top)
+	(edt-window-bottom, edt-scroll-window-forward-line)
+	(edt-scroll-window-backward-line, edt-line-to-bottom-of-window)
+	(edt-line-to-top-of-window, edt-paragraph-backward)
+	(edt-restore-key, edt-window-top, edt-window-bottom)
+	(edt-scroll-window-forward-line)
+	(edt-scroll-window-backward-line, edt-line-to-bottom-of-window)
+	(edt-line-to-middle-of-window, edt-goto-percentage)
+	(edt-display-the-time, edt-remember, edt-split-window)
+	(edt-emulation-on, edt-emulation-off)
+	(edt-default-emulation-setup, edt-user-emulation-setup)
+	(edt-select-default-global-map, edt-select-user-global-map):
+	Replace uses of edt-x-emacs19-p and edt-gnu-emacs19-p with feature
+	tests.
+
+	* textmodes/reftex-index.el (reftex-index-selection-or-word): Use
+	feature test instead of boundp test so it can be resolved at
+	compile time.
+
+	* net/newsticker.el (replace-regexp-in-string): Only define for
+	XEmacs.
+
 2007-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el: Rename `count' and `system-flag' to :count and :system.
