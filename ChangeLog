@@ -1,3 +1,7 @@
+2007-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add new directory etc/gnus.
+
 2007-10-30  Michael Olson  <mwolson@gnu.org>
 
 	* Makefile.in (INFO_FILES): Alphabetize.  Add remember.
