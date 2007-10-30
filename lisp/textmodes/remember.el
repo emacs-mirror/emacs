@@ -177,7 +177,7 @@
 (defcustom remember-mode-hook nil
   "Functions run upon entering `remember-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill)
+  :options '(flyspell-mode turn-on-auto-fill org-remember-apply-template)
   :group 'remember)
 
 (defcustom remember-in-new-frame nil
@@ -203,6 +203,10 @@ user wants remembered.
 If any function returns non-nil, the data is assumed to have been
 recorded somewhere by that function. "
   :type 'hook
+  :options '(remember-store-in-mailbox
+             remember-append-to-file
+             remember-diary-extract-entries
+             org-remember-handler)
   :group 'remember)
 
 (defcustom remember-all-handler-functions nil
@@ -234,6 +238,7 @@ called."
 If you have planner.el, it's nice to set this to
 `planner-annotation-functions'."
   :type 'hook
+  :options '(org-remember-annotation buffer-file-name)
   :group 'remember)
 
 (defvar remember-annotation nil
@@ -368,8 +373,6 @@ Subject: %s\n\n"
       (append-to-file (point-min) (point-max) remember-mailbox)
       t)))
 
-(custom-add-option 'remember-handler-functions 'remember-store-in-mailbox)
-
 ;; Remembering to plain files
 
 (defcustom remember-data-file "~/.notes"
@@ -399,8 +402,6 @@ Subject: %s\n\n"
               (insert remember-text)
               (when remember-save-after-remembering (save-buffer))))
         (append-to-file (point-min) (point-max) remember-data-file)))))
-
-(custom-add-option 'remember-handler-functions 'remember-append-to-file)
 
 ;;;###autoload
 (defun remember-region (&optional beg end)
