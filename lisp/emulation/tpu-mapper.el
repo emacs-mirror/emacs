@@ -187,7 +187,7 @@
 	      ;; bogosity to get next prompt to come up, if the user hits <CR>!
 	      ;; check periodically to see if this is still needed...
 	      (t
-	       (format "%s" tpu-key))))
+	       (with-no-warnings (format "%s" tpu-key)))))
     (message "Press %s%s: " ident descrip)
     (setq tpu-key-seq (read-event))
     (setq tpu-key (concat "[" (format "%s" tpu-key-seq) "]"))
@@ -199,8 +199,9 @@
 	   (set-buffer "Directions"))
 	  ;; bogosity to get next prompt to come up, if the user hits <CR>!
 	  ;; check periodically to see if this is still needed...
+	  ;; byte-opt warns that the return value is unused.
 	  (t
-	   (format "%s" tpu-key))))
+	   (with-no-warnings (format "%s" tpu-key)))))
     tpu-key)
 
 (set-buffer "Keys")
