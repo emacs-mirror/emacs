@@ -1,3 +1,7 @@
+2007-10-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature): Remove redundant check.
+
 2007-10-30  Richard Stallman  <rms@gnu.org>
 
 	* savehist.el (savehist-save): Obey savehist-ignored-variables.
@@ -16,8 +20,8 @@
 	* follow.el (follow-unload-function): Add docstring.
 	(follow-unload-function): Remove variable.
 
-	* server.el (server-unload-function): Unbind `server-edit' from `C-x #'.
-	(server-unload-function): Remove variable.
+	* server.el (server-unload-function): Remove variable.
+	(server-unload-function): Unbind `server-edit' from `C-x #'.
 
 	* uniquify.el (uniquify-unload-function): Add docstring.
 	(uniquify-unload-function): Remove variable.
