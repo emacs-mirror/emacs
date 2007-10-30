@@ -476,6 +476,7 @@ For use on `kill-buffer-hook'."
 ;;; The End
 
 (defun uniquify-unload-function ()
+  "Unload the uniquify library."
   (save-current-buffer
     (let ((buffers nil))
       (dolist (buf (buffer-list))
@@ -490,8 +491,6 @@ For use on `kill-buffer-hook'."
 	(rename-buffer (cdr buf) t))))
   ;; continue standard uploading
   nil)
-
-(defvar uniquify-unload-function 'uniquify-unload-function)
 
 (provide 'uniquify)
 
