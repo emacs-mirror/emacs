@@ -2,6 +2,12 @@
 
 	* desktop.el (desktop-minor-mode-table): Add line for ERC.
 
+	* textmodes/remember.el: New file that implements a mode for
+	quickly jotting down things to remember.
+
+	* textmodes/remember-diary.el: A backend for remember.el that
+	implements saving notes to a Diary file.
+
 2007-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
 
         * allout.el (allout-command-prefix, allout-inhibit-auto-fill):

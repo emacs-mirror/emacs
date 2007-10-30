@@ -1,3 +1,7 @@
+2007-10-30  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Add entry for Remember Mode.
+
 2007-10-29  Glenn Morris  <rgm@gnu.org>
 
 	* refcards/gnus-refcard.tex: Restore Feb 2007 copyright

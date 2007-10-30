@@ -1,0 +1,465 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename ../../info/remember
+@settitle Remember Manual
+@c %**end of header
+
+@dircategory Emacs
+@direntry
+* Remember: (remember). Simple information manager for Emacs
+@end direntry
+
+@syncodeindex fn cp
+
+@copying
+This manual is for Remember Mode, version 1.9
+
+Copyright @copyright{} 2001, 2004, 2005, 2007 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+Texts.  A copy of the license is included in the section entitled ``GNU
+Free Documentation License''.
+@end quotation
+@end copying
+
+@titlepage
+@title Guide to Remember Mode
+@subtitle a simple information manager
+@subtitle for Emacs and XEmacs
+
+@c The following two commands
+@c start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@c So the toc is printed at the start
+@contents
+
+@ifnottex
+@node Top, Preface, (dir), (dir)
+@comment  node-name,  next,  previous,  up
+@top Remember
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Preface::                     About the documentation.
+* Introduction::                What is Remember Mode?
+* Installation::                How to install Remember.
+* Implementation::              How Remember came into existence.
+* Quick Start::                 Get started using Remember.
+* Backends::                    Backends for saving notes.
+* Function Reference::          Interactive functions in remember.el.
+* Copying::                     The GNU General Public License gives you
+                                  permission to redistribute Remember on
+                                  certain terms; it also explains that
+                                  there is no warranty.
+* GNU Free Documentation License::  The license for this documentation.
+* Concept Index::               Search for terms.
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Backends
+
+* Text File::                   Saving to a text file.
+* Mailbox::                     Saving to a mailbox.
+* Bibliography::                Saving to a bibliography.
+* Planner Page::                Saving to a Planner page.
+
+@end detailmenu
+@end menu
+
+@node Preface, Introduction, Top, Top
+@comment  node-name,  next,  previous,  up
+@chapter Preface
+
+This document describes remember-el, which was written by John Wiegley,
+was once maintained by Sacha Chua, and is now maintained by the Emacs
+developers.
+
+This document is a work in progress, and your contribution will be
+greatly appreciated.
+
+@node Introduction, Installation, Preface, Top
+@comment  node-name,  next,  previous,  up
+@chapter Introduction
+
+Todo lists, schedules, phone databases... everything we use databases
+for is really just a way to extend the power of our memory, to be able
+to remember what our conscious mind may not currently have access to.
+
+There are many different databases out there---and good ones---
+which this mode is not trying to replace.  Rather, it's how that
+data gets there that's the question.  Most of the time, we just
+want to say "Remember so-and-so's phone number, or that I have to
+buy dinner for the cats tonight."  That's the FACT.  How it's
+stored is really the computer's problem.  But at this point in
+time, it's most definitely also the user's problem, and sometimes
+so laboriously so that people just let data slip, rather than
+expend the effort to record it.
+
+``Remember'' is a mode for remembering data.  It uses whatever
+back-end is appropriate to record and correlate the data, but its main
+intention is to allow you to express as @emph{little} structure as
+possible up front.  If you later want to express more powerful
+relationships between your data, or state assumptions that were at
+first too implicit to be recognized, you can ``study'' the data later
+and rearrange it.  But the initial ``just remember this'' impulse
+should be as close to simply throwing the data at Emacs as possible.
+
+Have you ever noticed that having a laptop to write on doesn't
+@emph{actually} increase the amount of quality material that you turn
+out, in the long run?  Perhaps it's because the time we save
+electronically in one way, we're losing electronically in another; the
+tool should never dominate one's focus.  As the mystic Faridu'd-Din
+`Attar wrote: ``Be occupied as little as possible with things of the
+outer world but much with things of the inner world; then right action
+will overcome inaction.''
+
+If Emacs could become a more intelligent data store, where brainstorming
+would focus on the @emph{ideas} involved---rather than the structuring
+and format of those ideas, or having to stop your current flow of work
+in order to record them---it would map much more closely to how the mind
+(well, at least mine) works, and hence would eliminate that very
+manual-ness which computers from the very beginning have been championed
+as being able to reduce.
+
+@node Installation, Implementation, Introduction, Top
+@comment  node-name,  next,  previous,  up
+@chapter Installation
+
+Installing Remember Mode is as simple as adding the following lines to
+your Emacs configuration file (usually @file{~/.emacs.d/init.el} or
+@file{~/.emacs}).
+
+@lisp
+(add-to-list 'load-path "/path/to/remember")
+(require 'remember)
+@end lisp
+
+@node Implementation, Quick Start, Installation, Top
+@comment  node-name,  next,  previous,  up
+@chapter Implementation
+
+Hyperbole, as a data presentation tool, always struck me as being very
+powerful, but it seemed to require a lot of ``front-end'' work before
+that data was really available.  The problem with BBDB, or keeping up
+a Bibl-mode file, is that you have to use different functions to
+record the data, and it always takes time to stop what you're doing,
+format the data in the manner expected by that particular data
+interface, and then resume your work.
+
+With ``remember'', you just hit @kbd{M-x remember} (you'd probably
+want to bind this to an easily accessible keystroke, like @kbd{C-x
+M-r}), slam in your text however you like, and then hit @kbd{C-c C-c}.
+It will file the data away for later retrieval, and possibly indexing.
+
+Indexing is to data what ``studying'' is in the real world.  What you
+do when you study (or lucubrate, for some of us) is to realize certain
+relationships implicit in the data, so that you can make use of those
+relationships.  Expressing that a certain quote you remembered was a
+religious quote, and that you want the ability to pull up all quotes
+of a religious nature, is what studying does.  This is a more labor
+intensive task than the original remembering of the data, and it's
+typical in real life to set aside a special period of time for doing
+this work.
+
+``Remember'' works in the same way.  When you enter data, either by
+typing it into a buffer, or using the contents of the selected region,
+it will store that data---unindexed, uninterpreted---in a data pool.
+It will also try to remember as much context information as possible
+(any text properties that were set, where you copied it from, when,
+how, etc).  Later, you can walk through your accumulated set of data
+(both organized, and unorganized) and easily begin moving things
+around, and making annotations that will express the full meaning of
+that data, as far as you know it.
+
+Obviously this latter stage is more user-interface intensive, and it
+would be nice if ``remember'' could do it as elegantly as possible,
+rather than requiring a billion keystrokes to reorganize your
+hierarchy.  Well, as the future arrives, hopefully experience and user
+feedback will help to make this as intuitive a tool as possible.
+
+@node Quick Start, Backends, Implementation, Top
+@comment  node-name,  next,  previous,  up
+@chapter Quick Start
+
+@itemize
+
+@item
+Load @file{remember.el}.
+
+@item
+Type @kbd{M-x remember}. The @samp{*Remember*} buffer should be
+displayed.
+
+@item
+Type in what you want to remember. The first line will be treated as
+the headline, and the rest of the buffer will contain the body of the
+note.
+
+@item
+Type @kbd{C-c C-c} (@code{remember-buffer}) to save the note and close
+the @samp{*Remember*} buffer.
+@end itemize
+
+By default, @code{remember-buffer} saves the note in @file{~/.notes}.
+You can edit it now to see the remembered and timestamped note. You
+can edit this file however you want. New entries will always be added
+to the end.
+
+To remember a region of text, use the universal prefix. @kbd{C-u M-x
+remember} displays a @samp{*Remember*} buffer with the region as the
+initial contents.
+
+As a simple beginning, you can start by using the Text File backend,
+keeping your @file{~/.notes} file in outline-mode format, with a final
+entry called @samp{* Raw data}. Remembered data will be added to the
+end of the file. Every so often, you can move the data that gets
+appended there into other files, or reorganize your document.
+
+You can also store remembered data in other backends.
+(@pxref{Backends})
+
+Here is one way to map the remember functions in your @file{.emacs} to
+very accessible keystrokes facilities using the mode:
+
+@lisp
+(autoload 'remember ``remember'' nil t)
+(autoload 'remember-region ``remember'' nil t)
+
+(define-key global-map (kbd "<f9> r") 'remember)
+(define-key global-map (kbd "<f9> R") 'remember-region)
+@end lisp
+
+Check out the Planner package
+(@uref{http://www.emacswiki.org/cgi-bin/wiki/PlannerMode}) for plenty
+of annotation functions you can use with Remember. If you use Planner,
+you can easily publish your remembered notes as HTML and RSS.
+(@pxref{Planner Page})
+
+By default, remember uses the first annotation returned by
+@code{remember-annotation-functions}. To include all of the annotations,
+set @code{remember-run-all-annotation-functions-flag} to non-nil.
+
+@defopt remember-run-all-annotation-functions-flag
+Non-nil means use all annotations returned by
+@code{remember-annotation-functions}.
+@end defopt
+
+You can write custom functions that use a different set of
+remember-annotation-functions. For example:
+
+@lisp
+(defun my/remember-with-filename ()
+ "Always use the filename."
+ (interactive)
+ (let ((remember-annotation-functions '(buffer-file-name)))
+  (call-interactively 'remember)))
+@end lisp
+
+@node Backends, Function Reference, Quick Start, Top
+@chapter Backends
+
+You can save remembered notes to a variety of backends.
+
+@menu
+* Text File::                   Saving to a text file.
+* Mailbox::                     Saving to a mailbox.
+* Bibliography::                Saving to a bibliography.
+* Planner Page::                Saving to a Planner page.
+@end menu
+
+@node Text File, Mailbox, Backends, Backends
+@section Saving to a Text File
+@cindex text file
+@cindex outline
+
+This backend comes with Emacs.
+
+@lisp
+(setq remember-handler-functions '(remember-append-to-file))
+@end lisp
+
+@defopt remember-data-file
+@end defopt
+
+@defopt remember-leader-text
+@end defopt
+
+@node Mailbox, Bibliography, Text File, Backends
+@section Saving to a Mailbox
+@cindex mailbox, saving to a
+
+@lisp
+(setq remember-handler-functions '(remember-store-in-mailbox))
+@end lisp
+
+@defopt remember-mailbox
+Name of mailbox to save messages to.
+@end defopt
+
+This backend does not come with Emacs.  To get it, download the latest
+version of Remember from @url{http://download.gna.org/remember-el/}.
+
+If you want to use BBDB to associate remembered snippets with entries
+in your contact database, use the following code snippet:
+
+@lisp
+(require 'remember-bbdb)
+(setq remember-handler-functions '(remember-bbdb-store-in-mailbox))
+@end lisp
+
+@node Bibliography, Planner Page, Mailbox, Backends
+@section Saving to a Bibliography
+
+This backend does not come with Emacs.  To get it, download the latest
+version of Remember from @url{http://download.gna.org/remember-el/}.
+
+Bibl-mode is a major mode for maintaining bibliography files. You can
+get bibl-mode from:
+@uref{http://ftp.azc.uam.mx/mirrors/gnu/emacs-lisp/bosullivan-packages/bibl-mode/}.
+
+@lisp
+(require 'remember-bibl)
+@end lisp
+
+@defun remember-url
+Remember a URL in @code{bibl-mode} that is being visited with w3.
+@end defun
+
+@defun remember-location
+Remember a bookmark location in `bibl-mode'.
+@end defun
+
+You can use this in addition to your normal remember backend.
+
+@node Planner Page,  , Bibliography, Backends
+@comment  node-name,  next,  previous,  up
+@section Saving to a Planner Page
+@cindex @file{remember-planner.el}, using
+@cindex remember-el, using with PlannerMode
+
+This backend does not come with Emacs.  To get it, download the latest
+version of Remember from @url{http://download.gna.org/remember-el/}.
+
+If you are using PlannerMode, depending on your configuration, notes
+made using remember-el may actually be saved to a project and/or day
+plan page.
+
+@file{remember-planner.el} makes the notes you save with remember have
+more context information associated with them, in the way that
+PlannerMode tasks do.
+
+To use remember-planner, place this in your @file{.emacs}:
+
+@lisp
+(require 'remember-planner)
+(setq remember-handler-functions '(remember-planner-append))
+@end lisp
+
+To take advantage of PlannerMode's annotation functions, add the
+following code as well:
+
+@lisp
+(setq remember-annotation-functions planner-annotation-functions)
+@end lisp
+
+Then, type @kbd{M-x remember} to remember new text, @kbd{M-x
+remember-region} to remember the current region, or @kbd{C-u M-x
+remember} to remember the current region but have an opportunity to
+edit it before it is saved.
+
+@defopt remember-planner-xref-p
+Non-nil means cross-reference new entries with plan pages. Plan pages
+are useful for gathering related information. If you don't want a note
+associated with a plan page, you can press RET to accept the default
+(just today's page) or specify nil at the prompt.
+@end defopt
+
+@defopt remember-planner-copy-on-xref-flag
+Non-nil means copy note text instead of moving it to the plan page. If
+nil, move the note body to the plan page, leaving a cross-reference
+link on the day page. This results in shorter day pages but may be
+harder for people to read.
+@end defopt
+
+@defopt remember-planner-timestamp-format
+Format of timestamp for remember entries.
+@end defopt
+
+@file{remember-planner.el} does not define any interactive functions
+or keybindings.
+
+@node Function Reference, Copying, Backends, Top
+@comment  node-name,  next,  previous,  up
+@chapter Function Reference
+
+@subheading Interactive functions
+
+@file{remember.el} defines the following interactive functions:
+
+@defun remember initial
+Remember an arbitrary piece of data. With a prefix, it will use the
+region as @var{initial}.
+@end defun
+
+@defun remember-region beg end
+If called from within the remember buffer, @var{beg} and @var{end} are
+ignored, and the entire buffer will be remembered.  If called from any
+other buffer, that region, plus any context information specific to
+that region, will be remembered.
+@end defun
+
+@defun remember-clipboard
+Remember the contents of the current clipboard.  This is most useful
+for remembering things from Netscape or other X Windows applications.
+@end defun
+
+@defun remember-buffer
+Remember the contents of the current buffer.
+@end defun
+
+@defun remember-mode
+This enters the major mode for output from @command{remember}.  This
+buffer is used to collect data that you want remember.  Just hit
+@kbd{C-c C-c} when you're done entering, and it will go ahead and file
+the data for latter retrieval, and possible indexing.
+@end defun
+
+@subheading Keystrokes
+
+@file{remember.el} defines the following keybindings by default:
+
+@table @kbd
+
+@item C-x C-s (`remember-buffer')
+
+@item C-c C-c (`remember-buffer')
+
+@end table
+
+@node Copying, GNU Free Documentation License, Function Reference, Top
+@comment  node-name,  next,  previous,  up
+@appendix GNU GENERAL PUBLIC LICENSE
+@include gpl.texi
+
+@node GNU Free Documentation License, Concept Index, Copying, Top
+@appendix GNU Free Documentation License
+@include doclicense.texi
+
+@node Concept Index,  , GNU Free Documentation License, Top
+@comment  node-name,  next,  previous,  up
+@unnumbered Index
+
+@printindex cp
+
+@bye

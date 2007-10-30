@@ -163,6 +163,11 @@ its usage.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
+** Remember Mode (remember.el) is now included with Emacs.  It is a
+mode for quickly jotting down things to remember.  Included with
+remember.el is a backend that can save notes to a Diary file.  Please
+consult the Remember Manual for usage details.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 

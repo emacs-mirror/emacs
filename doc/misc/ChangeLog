@@ -1,3 +1,7 @@
+2007-10-30  Michael Olson  <mwolson@gnu.org>
+
+	* remember.texi: New file containing the Remember Mode Manual.
+
 2007-10-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Connection caching): Host names must be different
