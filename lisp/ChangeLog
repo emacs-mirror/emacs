@@ -1,3 +1,8 @@
+2007-10-31  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-cache-directory): Fix bug where an integer
+	was given to concat.
+
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-mode-map): Bind doc-view-goto-page to the keys
