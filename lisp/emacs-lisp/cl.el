@@ -109,9 +109,11 @@ printer proceeds to the next function on the list.
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
 
-(add-hook 'cl-unload-hook 'cl-cannot-unload)
-(defun cl-cannot-unload ()
-  (error "Cannot unload the feature `cl'"))
+(defun cl-unload-function ()
+  "Stop unloading of the Common Lisp extensions."
+  (message "Cannot unload the feature `cl'")
+  ;; stop standard unloading!
+  t)
 
 ;;; Generalized variables.
 ;; These macros are defined here so that they
