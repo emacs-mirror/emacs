@@ -1,3 +1,14 @@
+2007-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/usg5-4.h:
+	* s/usg5-3.h:
+	* s/ptx.h:
+	* m/is386.h:
+	* m/ibmps2-aix.h:
+	* Makefile.in: Remove all mentions of X10
+
+	* dispnew.c (syms_of_display): Don't mention version 10.
+
 2007-10-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (OBJ1): Remove abbrev.$(O).

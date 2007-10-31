@@ -180,7 +180,6 @@ Boston, MA 02110-1301, USA.  */
    library, as opposed to a DLL.  Share libraries were used in SVR3, and are
    available only in order to allow SVR3 binaries to run.  They should not be
    linked in to new binaries. -- caraway!pinkas@caraway.intel.com.  */
-#undef LIBX10_SYSTEM
 #undef LIBX11_SYSTEM
 
 /* Tell x11term.c and keyboard.c we have the system V streams feature.  */
