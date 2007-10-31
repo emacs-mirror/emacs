@@ -649,8 +649,8 @@ The default is to try buffer's mode-specific abbrev table, then global table."
   (let ((tables (abbrev--active-tables table))
         sym)
     (while (and tables (not (symbol-value sym)))
-      (let ((table (pop tables))
-            (case-fold (not (abbrev-table-get table :case-fixed))))
+      (let* ((table (pop tables))
+             (case-fold (not (abbrev-table-get table :case-fixed))))
         (setq tables (append (abbrev-table-get table :parents) tables))
         ;; In case the table doesn't set :case-fixed but some of the
         ;; abbrevs do, we have to be careful.
@@ -693,9 +693,10 @@ then ABBREV is looked up in that table only."
               (delete-region start (1+ start)))
           (skip-syntax-backward " ")
           (setq end (point))
-          (setq name (buffer-substring start end))
-          (goto-char pos)               ; Restore point.
-          (list (abbrev-symbol name tables) name start end))
+          (when (> end start)
+            (setq name (buffer-substring start end))
+            (goto-char pos)               ; Restore point.
+            (list (abbrev-symbol name tables) name start end)))
         
       (while (and tables (not (car res)))
         (let* ((table (pop tables))

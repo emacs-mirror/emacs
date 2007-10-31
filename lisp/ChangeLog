@@ -1,3 +1,8 @@
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (abbrev-symbol): Correct let->let*.
+	(abbrev--before-point): Only use abbrev-start-location if before point.
+
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* strokes.el (strokes-alphabetic-lessp): Simplify.  Doc fix.
