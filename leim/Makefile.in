@@ -251,6 +251,7 @@ install: all
 	    done) \
 	else true; fi
 	-chmod -R a+r ${INSTALLDIR}
+	-find ${INSTALLDIR} -exec chown $${LOGNAME:-$$USERNAME} '{}' ';'
 
 clean mostlyclean:
 	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \
