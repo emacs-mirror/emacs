@@ -1370,7 +1370,7 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
     (goto-char (point-min))))
 
 (defun strokes-alphabetic-lessp (stroke1 stroke2)
-  "T if command name for STROKE1 is less than STROKE2's in lexicographic order."
+  "Return t if STROKE1's command name precedes STROKE2's in lexicographic order."
   (let ((command-name-1 (symbol-name (cdr stroke1)))
 	(command-name-2 (symbol-name (cdr stroke2))))
     (string-lessp command-name-1 command-name-2)))
