@@ -1,4 +1,4 @@
-2007-10-30  Juanma Barranquero  <lekktu@gmail.com>
+2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-at-pt.el (help-at-pt-unload-hook): Remove.
 	Timers are automatically canceled by `unload-feature'.
@@ -11,7 +11,7 @@
 	(msb-unload-function): New-style unload function, adapted from
 	`msb-unload-hook'.
 
-2007-10-27  Juanma Barranquero  <lekktu@gmail.com>
+2007-10-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (uniquify-managed): Pacify byte compiler.
 	(desktop-buffer-info): If the buffer name is managed by uniquify,
