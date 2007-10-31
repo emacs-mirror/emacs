@@ -1,5 +1,9 @@
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
+	* whitespace.el (whitespace-write-file-hook): Remove interactive spec.
+	(whitespace-unload-function): New-style unload function.
+	If run, stop old style `-hook' function from running.
+
 	* strokes.el (strokes-alphabetic-lessp): Doc fix.
 
 2007-10-31  Sean O'Rourke  <sorourke@cs.ucsd.edu>
