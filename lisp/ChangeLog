@@ -1,3 +1,11 @@
+2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* shadowfile.el (shadow-inhibit-overload, shadow-remove-from-todo)
+	(shadow-insert-var): Doc fixes.
+	(shadow-file-match, shadow-define-cluster, shadow-define-regexp-group):
+	Reflow docstrings.
+	(shadow-parse-fullname, shadow-read-files): Fix typos in docstrings.
+
 2007-10-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ediff-hook.el (ediff, ediff-files, ediff-buffers, ebuffers, ediff3)
