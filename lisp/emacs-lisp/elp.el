@@ -626,9 +626,11 @@ displayed."
     (and elp-reset-after-results
 	 (elp-reset-all))))
 
-(defun elp-unload-hook ()
-  (elp-restore-all))
-(add-hook 'elp-unload-hook 'elp-unload-hook)
+(defun elp-unload-function ()
+  "Unload the Emacs Lisp Profiler."
+  (elp-restore-all)
+  ;; continue standard unloading
+  nil)
 
 (provide 'elp)
 
