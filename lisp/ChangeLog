@@ -1,3 +1,13 @@
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/mailabbrev.el (mail-abbrevs-mode): Use define-minor-mode.
+	(mail-abbrevs-setup): Use abbrev-expand-functions.
+	(build-mail-abbrevs): Use with-temp-buffer.
+	(define-mail-abbrev): Simplify.
+	(mail-abbrev-expand-wrapper): Rename sendmail-pre-abbrev-expand-hook.
+	Change it for use on abbrev-expand-functions.
+	(mail-abbrev-complete-alias): Use with-syntax-table.
+
 2007-10-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-shell-command): Call `start-file-process'
