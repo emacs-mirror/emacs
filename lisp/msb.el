@@ -190,9 +190,6 @@
      3099
      "Other files (%d)")))
 
-;; msb--many-menus is obsolete
-(defvar msb--many-menus msb--very-many-menus)
-
 ;;;
 ;;; Customizable variables
 ;;;
@@ -235,12 +232,12 @@ A value of nil means don't display this menu.
 MENU-TITLE is really a format.  If you add %d in it, the %d is
 replaced with the number of items in that menu.
 
-ITEM-HANDLING-FN, is optional.  If it is supplied and is a function,
-than it is used for displaying the items in that particular buffer
+ITEM-HANDLING-FN is optional.  If it is supplied and is a function,
+then it is used for displaying the items in that particular buffer
 menu, otherwise the function pointed out by
 `msb-item-handling-function' is used.
 
-ITEM-SORT-FN, is also optional.
+ITEM-SORT-FN is also optional.
 If it is not supplied, the function pointed out by
 `msb-item-sort-function' is used.
 If it is nil, then no sort takes place and the buffers are presented
@@ -282,7 +279,7 @@ that differs by this value or more."
 (defcustom msb-max-menu-items 15
   "*The maximum number of items in a menu.
 If this variable is set to 15 for instance, then the submenu will be
-split up in minor parts, 15 items each.  nil means no limit."
+split up in minor parts, 15 items each.  A value of nil means no limit."
   :type '(choice integer (const nil))
   :set 'msb-custom-set
   :group 'msb)
@@ -336,7 +333,7 @@ names that starts with a space character."
   "*The appearance of a buffer menu.
 
 The default function to call for handling the appearance of a menu
-item.  It should take to arguments, BUFFER and MAX-BUFFER-NAME-LENGTH,
+item.  It should take two arguments, BUFFER and MAX-BUFFER-NAME-LENGTH,
 where the latter is the max length of all buffer names.
 
 The function should return the string to use in the menu.
@@ -664,7 +661,7 @@ If the argument is left out or nil, then the current buffer is considered."
 (defun msb--create-function-info (menu-cond-elt)
   "Create a vector from an element MENU-COND-ELT of `msb-menu-cond'.
 This takes the form:
-\]BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER)
+\[BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER]
 See `msb-menu-cond' for a description of its elements."
   (let* ((list-symbol (make-symbol "-msb-buffer-list"))
 	 (tmp-ih (and (> (length menu-cond-elt) 3)
@@ -727,7 +724,7 @@ See `msb-menu-cond' for a description of its elements."
 (defun msb--add-to-menu (buffer function-info max-buffer-name-length)
   "Add BUFFER to the menu depicted by FUNCTION-INFO.
 All side-effects.  Adds an element of form (BUFFER-TITLE . BUFFER)
-to the buffer-list variable in function-info."
+to the buffer-list variable in FUNCTION-INFO."
   (let ((list-symbol (aref function-info 0))) ;BUFFER-LIST-VARIABLE
     ;; Here comes the hairy side-effect!
     (set list-symbol
@@ -961,7 +958,7 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
       (msb--create-buffer-menu-2))))
 
 (defun msb--toggle-menu-type ()
-  "Multi purpose function for selecting a buffer with the mouse."
+  "Multi-purpose function for selecting a buffer with the mouse."
   (interactive)
   (setq msb-files-by-directory (not msb-files-by-directory))
   ;; This gets a warning, but it is correct,
