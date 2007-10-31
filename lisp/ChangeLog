@@ -1,5 +1,10 @@
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/elp.el (elp-report-limit, elp-restore-all)
+	(elp-unset-master, elp-results): Fix typos.
+	(elp-sort-by-function, elp-use-standard-output, elp-recycle-buffers-p):
+	Doc fixes.
+
 	* msb.el (msb--many-menus): Remove variable.
 	(msb-max-menu-items, msb--add-to-menu): Doc fixes.
 	(msb-menu-cond, msb-item-handling-function, msb--create-function-info)
