@@ -251,6 +251,11 @@ install: all
 	    done) \
 	else true; fi
 	-chmod -R a+r ${INSTALLDIR}
+	for installuser in $${LOGNAME} $${USERNAME} $${USER} \
+	  `id -un 2> /dev/null`; do \
+	  [ -n "$${installuser}" ] && break ; \
+	done ; \
+	find ${INSTALLDIR} -exec chown $${installuser} '{}' ';'
 
 clean mostlyclean:
 	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \
