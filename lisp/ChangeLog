@@ -1,6 +1,22 @@
+2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strokes.el (strokes-alphabetic-lessp): Simplify.  Doc fix.
+	(strokes-unload-hook): Remove function and variable.
+	(strokes-unload-function): New-style unload function, adapted
+	from `strokes-unload-hook'.
+
+	* emacs-lisp/cl.el (cl-cannot-unload): Remove function.
+	(cl-unload-hook): Remove variable.
+	(cl-unload-function): New-style unload function, adapted
+	from `cl-cannot-unload'.
+
+	* emacs-lisp/elp.el (elp-unload-hook): Remove function and variable.
+	(elp-unload-function): New-style unload function, adapted
+	from `elp-unload-hook'.
+
 2007-10-31  Sean O'Rourke  <sorourke@cs.ucsd.edu>
 
-	* emacs-lisp/find-func.el (find-library): use library at
+	* emacs-lisp/find-func.el (find-library): Use library at
 	point as default interactive argument.
 
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
