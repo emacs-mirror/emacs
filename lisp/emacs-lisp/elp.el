@@ -147,16 +147,16 @@ Results are displayed with the `elp-results' command."
   :group 'elp)
 
 (defcustom elp-sort-by-function 'elp-sort-by-total-time
-  "*Non-nil specifies elp results sorting function.
+  "*Non-nil specifies ELP results sorting function.
 These functions are currently available:
 
   elp-sort-by-call-count   -- sort by the highest call count
   elp-sort-by-total-time   -- sort by the highest total time
   elp-sort-by-average-time -- sort by the highest average times
 
-You can write you're own sort function. It should adhere to the
-interface specified by the PRED argument for the `sort' defun.  Each
-\"element of LIST\" is really a 4 element vector where element 0 is
+You can write your own sort function.  It should adhere to the
+interface specified by the PREDICATE argument for `sort'.
+Each \"element of LIST\" is really a 4 element vector where element 0 is
 the call count, element 1 is the total time spent in the function,
 element 2 is the average time spent in the function, and element 3 is
 the symbol's name string."
@@ -164,7 +164,7 @@ the symbol's name string."
   :group 'elp)
 
 (defcustom elp-report-limit 1
-  "*Prevents some functions from being displayed in the results buffer.
+  "*Prevent some functions from being displayed in the results buffer.
 If a number, no function that has been called fewer than that number
 of times will be displayed in the output buffer.  If nil, all
 functions will be displayed."
@@ -173,12 +173,12 @@ functions will be displayed."
   :group 'elp)
 
 (defcustom elp-use-standard-output nil
-  "*Non-nil says to output to `standard-output' instead of a buffer."
+  "*If non-nil, output to `standard-output' instead of a buffer."
   :type 'boolean
   :group 'elp)
 
 (defcustom elp-recycle-buffers-p t
-  "*nil says to not recycle the `elp-results-buffer'.
+  "*If nil, don't recycle the `elp-results-buffer'.
 In other words, a new unique buffer is create every time you run
 \\[elp-results]."
   :type 'boolean
@@ -372,7 +372,7 @@ Use optional LIST if provided instead."
     (mapcar 'elp-restore-function list)))
 
 (defun elp-restore-all ()
-  "Restores the original definitions of all functions being profiled."
+  "Restore the original definitions of all functions being profiled."
   (interactive)
   (elp-restore-list elp-all-instrumented-list))
 
@@ -412,7 +412,7 @@ Use optional LIST if provided instead."
       (elp-instrument-function funsym)))
 
 (defun elp-unset-master ()
-  "Unsets the master function."
+  "Unset the master function."
   (interactive)
   ;; when there's no master function, recording is turned on by default.
   (setq elp-master nil
@@ -558,7 +558,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 (defun elp-results ()
   "Display current profiling results.
 If `elp-reset-after-results' is non-nil, then current profiling
-information for all instrumented functions are reset after results are
+information for all instrumented functions is reset after results are
 displayed."
   (interactive)
   (let ((curbuf (current-buffer))
