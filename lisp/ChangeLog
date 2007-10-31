@@ -1,3 +1,12 @@
+2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* shadowfile.el (shadow-join): Remove.
+	(shadow-shadows): Use `mapconcat' instead of `shadow-join'.
+	(shadow-initialize): Use `write-file-functions', not `write-file-hooks'.
+	(shadowfile-unload-hook): Remove function and variable.
+	(shadowfile-unload-function): New-style unload function, adapted
+	from `shadowfile-unload-hook'.
+
 2007-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/mixal-mode.el (mixal-run, mixal-debug): Call mixvm
@@ -19,8 +28,8 @@
 	Wrap with-no-warnings around uses of next-line and previous-line.
 
 	* ediff.el (run-ediff-from-cvs-buffer):
-	* ediff-vers.el (cvs-run-ediff-on-file-descriptor): Remove
-	function not used by pcl-cvs anymore.
+	* ediff-vers.el (cvs-run-ediff-on-file-descriptor):
+	Remove function not used by pcl-cvs anymore.
 	(noninteractive, generic-sc-get-latest-rev)
 	(ediff-generic-sc-internal, ediff-generic-sc-merge-internal):
 	Delete support for long obsolete generic-sc.el.
