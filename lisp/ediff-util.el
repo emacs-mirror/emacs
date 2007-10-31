@@ -1141,7 +1141,7 @@ of the current buffer."
 	       (or (memq (vc-state file) '(edited needs-merge))
 		   (stringp (vc-state file)))
 	     ;; XEmacs has no vc-state
-	     (vc-locking-user file))
+	     (when (featurep 'xemacs) (vc-locking-user file)))
 	   )))
 
 (defun ediff-file-checked-in-p (file)
@@ -1153,7 +1153,7 @@ of the current buffer."
 	    (not (memq (vc-state file) '(edited needs-merge)))
 	    (not (stringp (vc-state file))))
 	 ;; XEmacs has no vc-state
-	 (not (vc-locking-user file)))
+	 (when (featurep 'xemacs) (not (vc-locking-user file))))
        ))
 
 (defun ediff-file-compressed-p (file)

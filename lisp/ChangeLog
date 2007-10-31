@@ -1,3 +1,8 @@
+2007-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff-util.el (ediff-file-checked-out-p)
+	(ediff-file-checked-in-p): Only call vc-locking-user for XEmacs.
+
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (abbrev-symbol): Correct let->let*.
