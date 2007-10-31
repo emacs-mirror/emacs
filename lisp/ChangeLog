@@ -1,3 +1,12 @@
+2007-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* cvs-status.el: No longer require pcvs when compiling.
+
+	* doc-view.el (doc-view-conversion-refresh-interval)
+	(doc-view-dvi->pdf, doc-view-pdf/ps->png, doc-view-pdf->txt)
+	(doc-view-reset-slice): Doc fixes.
+	(doc-view-menu): Remove deleted function doc-view-edit-doc.
+
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-at-pt.el (help-at-pt-unload-hook): Remove.
