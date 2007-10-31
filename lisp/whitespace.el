@@ -782,7 +782,6 @@ When this mode is active, `whitespace-buffer' is added to
 (defun whitespace-write-file-hook ()
   "Hook function to be called on the buffer when whitespace check is enabled.
 This is meant to be added buffer-locally to `write-file-functions'."
-  (interactive)
   (let ((werr nil))
     (if whitespace-auto-cleanup
 	(whitespace-cleanup-internal)
@@ -790,6 +789,18 @@ This is meant to be added buffer-locally to `write-file-functions'."
     (if (and whitespace-abort-on-error werr)
 	(error (concat "Abort write due to whitespaces in "
 		       buffer-file-name))))
+  nil)
+
+(defun whitespace-unload-function ()
+  "Unload the whitespace library."
+  (whitespace-global-mode -1)
+  (save-current-buffer
+    (dolist (buf (buffer-list))
+      (set-buffer buf)
+      (remove-hook 'write-file-functions 'whitespace-write-file-hook t)))
+  ;; new-style unloading, stop old style from running
+  (with-no-warnings (setq whitespace-unload-hook nil))
+  ;; continue standard unloading
   nil)
 
 (defun whitespace-unload-hook ()
