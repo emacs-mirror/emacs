@@ -1,5 +1,10 @@
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
+	* msb.el (msb--many-menus): Remove variable.
+	(msb-max-menu-items, msb--add-to-menu): Doc fixes.
+	(msb-menu-cond, msb-item-handling-function, msb--create-function-info)
+	(msb--toggle-menu-type): Fix typos in docstrings.
+
 	* shadowfile.el (shadow-inhibit-overload, shadow-remove-from-todo)
 	(shadow-insert-var): Doc fixes.
 	(shadow-file-match, shadow-define-cluster, shadow-define-regexp-group):
