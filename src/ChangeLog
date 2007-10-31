@@ -1,3 +1,10 @@
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (syms_of_keyboard): Initialize the initial_kboard.
+	(init_keyboard): Set current_kboard's window-system to nil.
+	(tty_read_avail_input): Typo.
+	* frame.c (make_initial_frame): Don't initialize the initial_kboard.
+
 2007-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/usg5-4.h:

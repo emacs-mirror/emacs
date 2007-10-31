@@ -7097,7 +7097,7 @@ tty_read_avail_input (struct terminal *terminal,
   int nread = 0;
 
   if (!terminal->name)		/* Don't read from a dead terminal. */
-    return;
+    return 0;
 
   if (terminal->type != output_termcap)
     abort ();
@@ -11572,9 +11572,12 @@ init_keyboard ()
 #ifdef MULTI_KBOARD
   current_kboard = initial_kboard;
 #endif
+  /* Re-initialize the keyboard again.  */
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
-  /* Leave Vwindow_system at its `t' default for now.  */
+  /* A value of nil for Vwindow_system normally means a tty, but we also use
+     it for the initial terminal since there is no window system there.  */
+  current_kboard->Vwindow_system = Qnil;
 
   if (!noninteractive)
     {
@@ -12400,6 +12403,15 @@ and the Lisp function within which the error was signaled.  */);
 Help functions bind this to allow help on disabled menu items
 and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
+
+#ifdef MULTI_KBOARD
+  /* Create the initial keyboard. */
+  initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (initial_kboard);
+  /* Vwindow_system is left at t for now.  */
+  initial_kboard->next_kboard = all_kboards;
+  all_kboards = initial_kboard;
+#endif  
 }
 
 void
