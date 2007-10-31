@@ -1,3 +1,8 @@
+2007-10-31  Sean O'Rourke  <sorourke@cs.ucsd.edu>
+
+	* emacs-lisp/find-func.el (find-library): use library at
+	point as default interactive argument.
+
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* shadowfile.el (shadow-join): Remove.

@@ -192,11 +192,21 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 (defun find-library (library)
   "Find the elisp source of LIBRARY."
   (interactive
-   (list
-    (completing-read "Library name: "
-		     'locate-file-completion
-		     (cons (or find-function-source-path load-path)
-			   (find-library-suffixes)))))
+   (let* ((path (cons (or find-function-source-path load-path)
+		      (find-library-suffixes)))
+	  (def (if (eq (function-called-at-point) 'require)
+		   (save-excursion
+		     (backward-up-list)
+		     (forward-char)
+		     (backward-sexp -2)
+		     (thing-at-point 'symbol))
+		 (thing-at-point 'symbol))))
+     (when def
+       (setq def (and (locate-file-completion def path 'test) def)))
+     (list
+      (completing-read (if def (format "Library name (default %s): " def)
+			 "Library name: ")
+		       'locate-file-completion path nil nil nil def))))
   (let ((buf (find-file-noselect (find-library-name library))))
     (condition-case nil (switch-to-buffer buf) (error (pop-to-buffer buf)))))
 
