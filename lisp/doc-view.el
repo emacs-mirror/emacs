@@ -226,7 +226,7 @@ has finished."
     (define-key map (kbd "DEL")       'doc-view-scroll-down-or-previous-page)
     (define-key map (kbd "M-<")       'doc-view-first-page)
     (define-key map (kbd "M->")       'doc-view-last-page)
-    (define-key map (kbd "g")         'doc-view-goto-page)
+    (define-key map [remap goto-line] 'doc-view-goto-page)
     ;; Killing/burying the buffer (and the process)
     (define-key map (kbd "q")         'bury-buffer)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
@@ -250,7 +250,8 @@ has finished."
     ;; Toggle between text and image display or editing
     (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
     ;; Reconvert the current document
-    (define-key map (kbd "g")         'doc-view-reconvert-doc)
+    (define-key map (kbd "g")         'revert-buffer)
+    (define-key map (kbd "r")         'revert-buffer)
     map)
   "Keymap used by `doc-view-mode' when displaying a doc as a set of images.")
 

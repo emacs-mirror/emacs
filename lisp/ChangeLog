@@ -1,5 +1,9 @@
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc-view.el (doc-view-mode-map): Bind doc-view-goto-page to the keys
+	used normally for goto-line.  Change `g' to revert the buffer.
+	Add redundant `r' binding for buffer-revert.
+
 	* mail/mailabbrev.el (mail-abbrevs-mode): Use define-minor-mode.
 	(mail-abbrevs-setup): Use abbrev-expand-functions.
 	(build-mail-abbrevs): Use with-temp-buffer.
