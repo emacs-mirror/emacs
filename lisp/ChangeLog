@@ -1,3 +1,12 @@
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-mode-abbrev-table): Use :regexp.
+	Merge defvar and define-abbrev-table.
+	(def-python-skeleton): Use :case-fixed and :enable-function.
+	(python-abbrev-pc-hook, python-abbrev-syntax-table, python-pea-hook):
+	Remove.
+	(python-mode): Don't modify pre-abbrev-expand-hook.
+
 2007-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ediff-util.el (ediff-file-checked-out-p)
