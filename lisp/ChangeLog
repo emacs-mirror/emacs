@@ -1,3 +1,30 @@
+2007-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/mixal-mode.el (mixal-run, mixal-debug): Call mixvm
+	only if it is bound.
+
+	* textmodes/reftex.el: Move autoloads for before all uses.
+	(reftex-make-overlay, reftex-overlay-put, reftex-move-overlay)
+	(reftex-delete-overlay): Move to the top level with the condition
+	in the body.
+
+	* progmodes/simula.el: Use when instead of if.
+
+	* iimage.el (iimage-locate-file): Define unconditionally.
+
+	* mail/mailabbrev.el (mail-abbrev-next-line):
+	* emulation/vip.el (vip-enlarge-region, vip-line)
+	(vip-next-line-at-bol, vip-previous-line)
+	(vip-previous-line-at-bol, vip-find-char, vip-put-back, ex-read):
+	Wrap with-no-warnings around uses of next-line and previous-line.
+
+	* ediff.el (run-ediff-from-cvs-buffer):
+	* ediff-vers.el (cvs-run-ediff-on-file-descriptor): Remove
+	function not used by pcl-cvs anymore.
+	(noninteractive, generic-sc-get-latest-rev)
+	(ediff-generic-sc-internal, ediff-generic-sc-merge-internal):
+	Delete support for long obsolete generic-sc.el.
+
 2007-10-31  Glenn Morris  <rgm@gnu.org>
 
 	* cvs-status.el: No longer require pcvs when compiling.

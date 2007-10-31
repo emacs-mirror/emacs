@@ -612,7 +612,7 @@ and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
   (if (looking-at "[ \t]*\n") (expand-abbrev))
   (setq this-command 'next-line)
-  (next-line arg))
+  (with-no-warnings (next-line arg)))
 
 (defun mail-abbrev-end-of-buffer (&optional arg)
   "Expand any mail abbrev, then move point to end of buffer.
