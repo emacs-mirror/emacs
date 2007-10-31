@@ -91,6 +91,9 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01753.html
 
 ** sdl.web@gmail.com, 28 Oct: window-system in face definition
 
+** add README files for etc/gnus, etc/images/smilies/medium,grayscale
+update etc/images README files with any new images
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
