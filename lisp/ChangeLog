@@ -1,3 +1,8 @@
+2007-10-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Call `start-file-process'
+	directly.  Fix bug in deleting temp file.
+
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-mode-abbrev-table): Use :regexp.

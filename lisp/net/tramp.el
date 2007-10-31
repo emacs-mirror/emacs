@@ -3777,19 +3777,14 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	    output-buffer)))
 
     (prog1
-	;; Run the process.  We cannot use `process-file' and
-	;; `start-file-process', because these functions might not
-	;; exist in older Emacsen.
+	;; Run the process.
 	(if (integerp asynchronous)
-	    (apply 'tramp-handle-start-file-process
-		   "*Async Shell*" buffer args)
-	  (apply 'process-file
-		 (car args) nil buffer nil (cdr args)))
+	    (apply 'start-file-process "*Async Shell*" buffer args)
+	  (apply 'process-file (car args) nil buffer nil (cdr args)))
       ;; Insert error messages if they were separated.
       (when (listp buffer)
-	(with-current-buffer error-buffer
-	  (insert-file-contents (cadr buffer)))
-	(delete-file (buffer-file-name (cadr buffer))))
+	(with-current-buffer error-buffer (insert-file-contents (cadr buffer)))
+	(delete-file (cadr buffer)))
       ;; There's some output, display it.
       (when (with-current-buffer output-buffer (> (point-max) (point-min)))
 	(if (functionp 'display-message-or-buffer)
