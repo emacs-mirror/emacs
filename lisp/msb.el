@@ -955,7 +955,7 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
 			     "*Files by directory*")
 			   'msb--toggle-menu-type)))))))
 
-(defun msb--create-buffer-menu  ()
+(defun msb--create-buffer-menu ()
   (save-match-data
     (save-excursion
       (msb--create-buffer-menu-2))))
@@ -1104,7 +1104,7 @@ variable `msb-menu-cond'."
 	       (f-title  (format "Frames (%d)" frame-length)))
 	  ;; List only the N most recently selected frames
 	  (when (and (integerp msb-max-menu-items)
-		     (>  msb-max-menu-items 1)
+		     (> msb-max-menu-items 1)
 		     (> frame-length msb-max-menu-items))
 	    (setcdr (nthcdr msb-max-menu-items frames) nil))
 	  (setq frames-menu
@@ -1149,9 +1149,11 @@ different buffer menu using the function `msb'."
     (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
     (menu-bar-update-buffers t)))
 
-(defun msb-unload-hook ()
-  (msb-mode 0))
-(add-hook 'msb-unload-hook 'msb-unload-hook)
+(defun msb-unload-function ()
+  "Unload the Msb library."
+  (msb-mode -1)
+  ;; continue standard unloading
+  nil)
 
 (provide 'msb)
 (eval-after-load "msb" '(run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
