@@ -42,8 +42,7 @@
 ;;
 ;; and the document will be converted and displayed, if your emacs supports png
 ;; images.  With `C-c C-c' you can toggle between the rendered images
-;; representation and the source text representation of the document.  With
-;; `C-c C-e' you can switch to an appropriate editing mode for the document.
+;; representation and the source text representation of the document.
 ;;
 ;; Since conversion may take some time all the PNG images are cached in a
 ;; subdirectory of `doc-view-cache-directory' and reused when you want to view
@@ -169,8 +168,8 @@ Needed for searching."
   :group 'doc-view)
 
 (defcustom doc-view-conversion-refresh-interval 3
-  "Every how much seconds the DocView buffer gets refreshed while conversion.
-After such an refresh newly converted pages will be available for
+  "Interval in seconds between refreshes of the DocView buffer while converting.
+After such a refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
 pages won't be displayed before conversion of the whole document
 has finished."
@@ -264,7 +263,6 @@ has finished."
     "---"
     ["Search"			doc-view-search]
     ["Toggle display"		doc-view-toggle-display]
-    ["Leave DocView"		doc-view-edit-doc]
     ))
 
 (defvar doc-view-minor-mode-map
@@ -447,7 +445,7 @@ Should be invoked when the cached images aren't up-to-date."
       (doc-view-pdf/ps->png pdf png))))
 
 (defun doc-view-dvi->pdf (dvi pdf)
-  "Convert DVI to PDF asynchrounously."
+  "Convert DVI to PDF asynchronously."
   (setq doc-view-current-converter-process
 	(start-process "dvi->pdf" doc-view-conversion-buffer
 		       doc-view-dvipdfm-program
@@ -472,7 +470,7 @@ Should be invoked when the cached images aren't up-to-date."
     (doc-view-display buffer-file-name)))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
-  "Convert PDF-PS to PNG asynchrounously."
+  "Convert PDF-PS to PNG asynchronously."
   (setq doc-view-current-converter-process
 	(apply 'start-process
 	       (append (list "pdf/ps->png" doc-view-conversion-buffer
@@ -505,7 +503,7 @@ Should be invoked when the cached images aren't up-to-date."
 	(doc-view-search)))))
 
 (defun doc-view-pdf->txt (pdf txt)
-  "Convert PDF to TXT asynchrounously."
+  "Convert PDF to TXT asynchronously."
   (setq doc-view-current-converter-process
 	(start-process "pdf->txt" doc-view-conversion-buffer
 		       doc-view-pdftotext-program "-raw"
@@ -606,8 +604,7 @@ dragging it to its bottom-right corner.  See also
 
 (defun doc-view-reset-slice ()
   "Reset the current slice.
-After calling this function the whole pages will be visible
-again."
+After calling this function whole pages will be visible again."
   (interactive)
   (setq doc-view-current-slice nil)
   ;; Redisplay
@@ -655,7 +652,7 @@ Predicate for sorting `doc-view-current-files'."
                  (concat (propertize "Welcome to DocView!" 'face 'bold)
                          "\n"
                          "
-If you see this buffer it means  that the document you want to view is being
+If you see this buffer it means that the document you want to view is being
 converted to PNG and the conversion of the first page hasn't finished yet or
 `doc-view-conversion-refresh-interval' is set to nil.
 
