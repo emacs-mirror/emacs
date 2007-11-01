@@ -12,9 +12,8 @@
 	(remember-destroy): Remove autoload cookie.
 	(remember-mode-map): Define and initialize in one step.
 	(remember-mode): Improve docstring.
-	(remember-annotation-functions): Default to just
-	'(buffer-file-name), and don't try to take the default value from
-	Planner.
+	(remember-annotation-functions): Default to just '(buffer-file-name),
+	and don't try to take the default value from Planner.
 
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 
@@ -58,8 +57,7 @@
 	(pr-ps-utility-alist, pr-menu-char-height, pr-menu-char-width)
 	(pr-setting-database, pr-visible-entry-list)
 	(pr-delete-temp-file, pr-list-directory, pr-buffer-name)
-	(pr-buffer-name-ignore, pr-buffer-verbose): Remove incorrect
-	:version.
+	(pr-buffer-name-ignore, pr-buffer-verbose): Remove incorrect :version.
 
 	* ediff-util.el (ediff-nuke-selective-display): Move definition to
 	top level, make it dependent on the emacs flavor.
@@ -71,8 +69,7 @@
 	* obsolete/sun-fns.el:
 	* obsolete/sun-curs.el: Remove files.
 
-	* term/sun.el (select-previous-complex-command): Remove
-	obsolete code.
+	* term/sun.el (select-previous-complex-command): Remove obsolete code.
 
 2007-10-31  Tassilo Horn  <tassilo@member.fsf.org>
 
@@ -3741,11 +3738,11 @@
 
 	* textmodes/org.el (org-re): Also replace the :alpha: class.
 	(org-todo-tag-alist): Variable removed.
-	(org-todo-key-alist, org-todo-key-trigger) New variables.
+	(org-todo-key-alist, org-todo-key-trigger): New variables.
 	(org-use-fast-todo-selection): New option.
 	(org-log-done): Docstring fixed.
 	(org-deadline-warning-days): New default value 14.
-	(org-edit-timestamp-down-means-later) New option.
+	(org-edit-timestamp-down-means-later): New option.
 	(org-tag-alist): Docstring fixed.
 	(org-fast-tag-selection-include-todo): New option.
 	(org-export-language-setup): New languages added.
