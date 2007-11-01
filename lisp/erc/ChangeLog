@@ -1,3 +1,17 @@
+2007-11-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc-compat.el (erc-set-write-file-functions): New compatibility
+	function to set the write hooks appropriately.
+
+	* erc-log.el (erc-log-setup-logging): Use
+	erc-set-write-file-functions.  This fixes a byte-compiler warning.
+
+	* erc-stamp.el: Silence byte-compiler warning about
+	erc-fill-column.
+
+	* erc.el (erc-with-all-buffers-of-server): Bind the result of
+	mapcar to a variable in order to silence a byte-compiler warning.
+
 2007-10-29  Michael Olson  <mwolson@gnu.org>
 
 	* erc-ibuffer.el (erc-modified-channels-alist): Use

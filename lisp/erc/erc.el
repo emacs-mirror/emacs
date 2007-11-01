@@ -1680,13 +1680,16 @@ nil."
   ;; Make the evaluation have the correct order
   (let ((pre (make-symbol "pre"))
 	(pro (make-symbol "pro")))
-    `(let ((,pro ,process)
-	   (,pre ,pred))
-       (mapcar (lambda (buffer)
-		 (with-current-buffer buffer
-		   ,@forms))
-	       (erc-buffer-list ,pre
-				,pro)))))
+    `(let* ((,pro ,process)
+	    (,pre ,pred)
+	    (res (mapcar (lambda (buffer)
+			   (with-current-buffer buffer
+			     ,@forms))
+			 (erc-buffer-list ,pre
+					  ,pro))))
+       ;; Silence the byte-compiler by binding the result of mapcar to
+       ;; a variable.
+       res)))
 (put 'erc-with-all-buffers-of-server 'lisp-indent-function 1)
 (put 'erc-with-all-buffers-of-server 'edebug-form-spec '(form form body))
 

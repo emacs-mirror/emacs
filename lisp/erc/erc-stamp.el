@@ -264,6 +264,10 @@ property to get to the POSth column."
 		       (list 'space ':align-to pos)))
   (insert string))
 
+;; Silence byte-compiler
+(eval-when-compile
+  (defvar erc-fill-column))
+
 (defun erc-insert-timestamp-right (string)
   "Insert timestamp on the right side of the screen.
 STRING is the timestamp to insert.  The function is a possible value
