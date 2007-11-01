@@ -7,6 +7,11 @@
 	(footnote-roman-lower-regexp, footnote-roman-upper-regexp):
 	Match multi-character footnotes.
 
+	* textmodes/nroff-mode.el (nroff-mode): Set indent-line-function.
+	(nroff-indent-line-function): New function.
+	(nroff-count-text-lines): Use nroff-forward-text-line rather than
+	obsolete alias.
+
 2007-11-01  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-last-quit-line, rcirc-last-line)
