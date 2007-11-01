@@ -17,6 +17,8 @@
 
 	* doc-view.el (doc-view-cache-directory): Remove superfluous concat.
 
+	* simple.el (bad-packages-alist): Add an entry for standalone vc-svn.
+
 	* emacs-lisp/authors.el (authors-scan-change-log)
 	(authors-scan-el): Don't enable local eval; enable only safe local
 	variables, without querying.
