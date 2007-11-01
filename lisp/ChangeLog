@@ -10,6 +10,7 @@
 	remember-buffer to emphasize that this does not have any
 	functional overlap with the `remember' function.
 	(remember-destroy): Remove autoload cookie.
+	(remember-mode-map): Define and initialize in one step.
 
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 

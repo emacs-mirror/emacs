@@ -452,13 +452,12 @@ application."
 
 ;;; Internal Functions:
 
-(defvar remember-mode-map ()
+(defvar remember-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-x\C-s" 'remember-finalize)
+    (define-key map "\C-c\C-c" 'remember-finalize)
+    (define-key map "\C-c\C-k" 'remember-destroy))
   "Keymap used in Remember mode.")
-(when (not remember-mode-map)
-  (setq remember-mode-map (make-sparse-keymap))
-  (define-key remember-mode-map "\C-x\C-s" 'remember-finalize)
-  (define-key remember-mode-map "\C-c\C-c" 'remember-finalize)
-  (define-key remember-mode-map "\C-c\C-k" 'remember-destroy))
 
 (defun remember-mode ()
   "Major mode for output from \\[remember].
