@@ -56,18 +56,6 @@ NOTE-END  */
 
 #define LIBS_TERMCAP -ltermcap
 
-/* Arrange to link with sun windows, if requested.  */
-/* For details on emacstool and sunfns, see etc/SUN-SUPPORT */
-/* These programs require Sun UNIX 4.2 Release 3.2 or greater */
-
-#ifdef HAVE_SUN_WINDOWS
-#define OTHER_FILES  ${etcdir}emacstool
-#define LIBS_MACHINE -lsuntool -lsunwindow -lpixrect
-#define OBJECTS_MACHINE sunfns.o
-#define SYMS_MACHINE syms_of_sunfns ()
-#define PURESIZE 132000
-#endif
-
 /* Roadrunner uses 'COFF' format */
 #define COFF
 

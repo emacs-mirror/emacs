@@ -47,14 +47,6 @@
   (setq this-command 'kill-region-and-unmark)
   (set-mark-command t))
 
-(defun select-previous-complex-command ()
-  "Select Previous-complex-command"
-  (interactive)
-  (if (zerop (minibuffer-depth))
-      (repeat-complex-command 1)
-    ;; FIXME: this function does not seem to exist.  -stef'01
-    (previous-complex-command 1)))
-
 (defun rerun-prev-command ()
   "Repeat Previous-complex-command."
   (interactive)

@@ -1,3 +1,7 @@
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cmdargs.texi (Misc Variables): Remove Sun windows info.
+
 2007-10-27  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
 
 	* gnus-faq.texi ([5.12]): Remove reference to discontinued service.

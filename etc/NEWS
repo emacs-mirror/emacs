@@ -33,6 +33,8 @@ a GIF library.
 
 ** Support for systems without alloca has been removed.
 
+** Support for Sun windows has been removed.
+
 ** The `emacstool' utility has been removed.
 
 
