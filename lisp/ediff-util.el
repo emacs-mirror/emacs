@@ -4071,28 +4071,25 @@ Mail anyway? (y or n) ")
      )
    ))
 
-(cond ((fboundp 'nuke-selective-display)
-       ;; XEmacs has nuke-selective-display
-       (defalias 'ediff-nuke-selective-display 'nuke-selective-display))
-      (t
-       (defun ediff-nuke-selective-display ()
-	 (save-excursion
-	   (save-restriction
-	     (widen)
-	     (goto-char (point-min))
-	     (let ((mod-p (buffer-modified-p))
-		   buffer-read-only end)
-	       (and (eq t selective-display)
-		    (while (search-forward "\^M" nil t)
-		      (end-of-line)
-		      (setq end (point))
-		      (beginning-of-line)
-		      (while (search-forward "\^M" end t)
-			(delete-char -1)
-			(insert "\^J"))))
-	       (set-buffer-modified-p mod-p)
-	       (setq selective-display nil)))))
-       ))
+(defun ediff-nuke-selective-display ()
+  (if (featurep 'xemacs)
+      (nuke-selective-display)
+    (save-excursion
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(let ((mod-p (buffer-modified-p))
+	      buffer-read-only end)
+	  (and (eq t selective-display)
+	       (while (search-forward "\^M" nil t)
+		 (end-of-line)
+		 (setq end (point))
+		 (beginning-of-line)
+		 (while (search-forward "\^M" end t)
+		   (delete-char -1)
+		   (insert "\^J"))))
+	  (set-buffer-modified-p mod-p)
+	  (setq selective-display nil))))))
 
 
 ;; The next two are modified versions from emerge.el.

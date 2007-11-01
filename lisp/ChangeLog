@@ -1,3 +1,18 @@
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff-util.el (ediff-nuke-selective-display): Move definition to
+	top level, make it dependent on the emacs flavor.
+
+	* play/gamegrid.el (gamegrid-kill-timer, gamegrid-start-timer):
+	Test for XEmacs not for itimer.
+
+	* term/sun-mouse.el:
+	* obsolete/sun-fns.el:
+	* obsolete/sun-curs.el: Remove files.
+
+	* term/sun.el (select-previous-complex-command): Remove
+	obsolete code.
+
 2007-10-31  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-cache-directory): Fix bug where an integer
