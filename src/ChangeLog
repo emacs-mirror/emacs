@@ -1,3 +1,9 @@
+2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):
+        Don't set s->stippled_p here, since it has already been set by
+	x_set_glyph_string_gc from x_draw_glyph_string.
+
 2007-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c [USE_ATSUI] (Fmac_atsu_font_face_attributes):
