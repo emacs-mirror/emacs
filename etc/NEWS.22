@@ -34,6 +34,8 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 ** Semantic (used by CEDET, ECB, JDEE): upgrade to latest version.
 
 ** cua.el, cua-mode.el: remove old versions.
+
+** vc-svn.el: remove old version.
 
 * Installation Changes in Emacs 22.2
 
