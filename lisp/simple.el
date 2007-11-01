@@ -5855,7 +5855,15 @@ so you can now enable CUA via the Options menu or by customizing `cua-mode'.
 
 You have loaded an older version of CUA-mode which does not work
 correctly with this version of Emacs.  You should remove the old
-version and use the one distributed with Emacs."))
+version and use the one distributed with Emacs.")
+    ;; vc-svn doesn't have a version variable (do we see the limitations
+    ;; of this approach now?), but the Emacs version uses `vc-svn-program',
+    ;; rather than `vc-svn-program-name', hence this hack should work.
+    (vc-svn-program-name t nil
+"`vc-svn' is now part of the standard GNU Emacs distribution.
+You have tried to load an older version which does not work as well with Emacs.
+You should remove the old version and use the one distributed with Emacs."))
+
   "Alist of packages known to cause problems in this version of Emacs.
 Each element has the form (PACKAGE SYMBOL REGEXP STRING).
 PACKAGE is either a regular expression to match file names, or a
