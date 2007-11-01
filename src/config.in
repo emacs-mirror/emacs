@@ -702,9 +702,6 @@ Boston, MA 02110-1301, USA.  */
    expects to use version 10. */
 #undef HAVE_X11
 
-/* Define to 1 if you have the X11R5 or newer version of Xlib. */
-#undef HAVE_X11R5
-
 /* Define to 1 if you have the X11R6 or newer version of Xlib. */
 #undef HAVE_X11R6
 
@@ -1135,7 +1132,7 @@ typedef unsigned size_t;
 
 #ifdef HAVE_X11R6
 #define HAVE_X_I18N
-#elif defined HAVE_X11R5 && !defined X11R5_INHIBIT_I18N
+#elif !defined X11R5_INHIBIT_I18N
 #define HAVE_X_I18N
 #endif
 
