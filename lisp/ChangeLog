@@ -1,5 +1,7 @@
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* doc-view.el (doc-view-cache-directory): Remove superfluous concat.
+
 	* mail/footnote.el (footnote-numeric-regexp)
 	(footnote-english-upper-regexp, footnote-english-lower-regexp)
 	(footnote-roman-lower-regexp, footnote-roman-upper-regexp):
