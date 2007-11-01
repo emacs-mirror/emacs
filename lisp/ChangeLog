@@ -1,3 +1,19 @@
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* printing.el (printing): Fix :version, printing.el was included
+	for in emacs-22.1.
+	(pr-path-style, pr-path-alist, pr-txt-name)
+	(pr-txt-printer-alist, pr-ps-name, pr-ps-printer-alist)
+	(pr-temp-dir, pr-ps-temp-file, pr-file-modes, pr-gv-command)
+	(pr-gs-command, pr-gs-switches, pr-gs-device, pr-gs-resolution)
+	(pr-print-using-ghostscript, pr-file-tumble, pr-auto-region)
+	(pr-auto-mode, pr-mode-alist, pr-ps-utility)
+	(pr-ps-utility-alist, pr-menu-char-height, pr-menu-char-width)
+	(pr-setting-database, pr-visible-entry-list)
+	(pr-delete-temp-file, pr-list-directory, pr-buffer-name)
+	(pr-buffer-name-ignore, pr-buffer-verbose): Remove incorrect
+	:version.
+
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* mail/footnote.el (footnote-numeric-regexp)
