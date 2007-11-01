@@ -245,8 +245,11 @@ If you have planner.el, it's nice to set this to
   "Current annotation.")
 (defvar remember-initial-contents nil
   "Initial contents to place into *Remember* buffer.")
-(defvar remember-before-remember-hook nil
-  "Functions run before switching to the *Remember* buffer.")
+
+(defcustom remember-before-remember-hook nil
+  "Functions run before switching to the *Remember* buffer."
+  :type 'hook
+  :group 'remember)
 
 (defcustom remember-run-all-annotation-functions-flag nil
   "Non-nil means use all annotations returned by
@@ -257,7 +260,10 @@ If you have planner.el, it's nice to set this to
 ;;;###autoload
 (defun remember (&optional initial)
   "Remember an arbitrary piece of data.
-With a prefix, uses the region as INITIAL."
+INITIAL is the text to initially place in the *Remember* buffer,
+or nil to bring up a blank *Remember* buffer.
+
+With a prefix, use the region as INITIAL."
   (interactive
    (list (when current-prefix-arg
            (buffer-substring (point) (mark)))))
@@ -403,15 +409,15 @@ Subject: %s\n\n"
               (when remember-save-after-remembering (save-buffer))))
         (append-to-file (point-min) (point-max) remember-data-file)))))
 
-;;;###autoload
 (defun remember-region (&optional beg end)
   "Remember the data from BEG to END.
-If called from within the remember buffer, BEG and END are ignored,
-and the entire buffer will be remembered.
+It is called from within the *Remember* buffer to save the text
+that was entered,
 
-This function is meant to be called from the *Remember* buffer.
+If BEG and END are nil, the entire buffer will be remembered.
+
 If you want to remember a region, supply a universal prefix to
-`remember' instead. For example: C-u M-x remember."
+`remember' instead.  For example: C-u M-x remember RET."
   ;; Sacha: I have no idea where remember.el gets this context information, but
   ;; you can just use remember-annotation-functions.
   (interactive)
@@ -432,13 +438,11 @@ application."
   (interactive)
   (remember (current-kill 0)))
 
-;;;###autoload
-(defun remember-buffer ()
+(defun remember-finalize ()
   "Remember the contents of the current buffer."
   (interactive)
   (remember-region (point-min) (point-max)))
 
-;;;###autoload
 (defun remember-destroy ()
   "Destroy the current *Remember* buffer."
   (interactive)
@@ -452,8 +456,8 @@ application."
   "Keymap used in Remember mode.")
 (when (not remember-mode-map)
   (setq remember-mode-map (make-sparse-keymap))
-  (define-key remember-mode-map "\C-x\C-s" 'remember-buffer)
-  (define-key remember-mode-map "\C-c\C-c" 'remember-buffer)
+  (define-key remember-mode-map "\C-x\C-s" 'remember-finalize)
+  (define-key remember-mode-map "\C-c\C-c" 'remember-finalize)
   (define-key remember-mode-map "\C-c\C-k" 'remember-destroy))
 
 (defun remember-mode ()

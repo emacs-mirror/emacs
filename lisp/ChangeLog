@@ -1,3 +1,16 @@
+2007-11-01  Michael Olson  <mwolson@gnu.org>
+
+	* textmodes/remember.el (remember-before-remember-hook): Turn into
+	a customizable option.
+	(remember): Document INITIAL argument.
+	(remember-region): Remove autoload cookie.  Improve docstring to
+	mention that it is called from the *Remember* buffer, and does not
+	have any functional overlap with the `remember' function.
+	(remember-finalize): Remove autoload cookie.  Rename from
+	remember-buffer to emphasize that this does not have any
+	functional overlap with the `remember' function.
+	(remember-destroy): Remove autoload cookie.
+
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 
 	* doc-view.el (doc-view-cache-directory): Remove superfluous concat.
