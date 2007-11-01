@@ -1,3 +1,8 @@
+2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c, xfns.c, xselect.c, xterm.h, s/msdos.h, s/sco4.h, s/sco5.h:
+	Remove HAVE_X11R5 and HAVE_X11R4.
+
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in: Remove references to sunfns.c and sunfns.o.
