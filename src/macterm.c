@@ -3789,7 +3789,6 @@ x_draw_stretch_glyph_string (s)
      struct glyph_string *s;
 {
   xassert (s->first_glyph->type == STRETCH_GLYPH);
-  s->stippled_p = s->face->stipple != 0;
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
