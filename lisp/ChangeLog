@@ -5,6 +5,15 @@
 	(footnote-roman-lower-regexp, footnote-roman-upper-regexp):
 	Match multi-character footnotes.
 
+2007-11-01  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-last-quit-line, rcirc-last-line)
+	(rcirc-elapsed-lines): New argument PROCESS.  Update callers.
+	(rcirc-print): Only update the line count when not marking the
+	line as omittable.
+	(rcirc-log-write): Specify coding system when writing logfile.
+	(rcirc-markup-fill): Make sure ellipsis does not cause line to wrap.
+
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ediff-util.el (ediff-nuke-selective-display): Move definition to
