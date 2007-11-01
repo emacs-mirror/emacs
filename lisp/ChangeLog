@@ -17,6 +17,10 @@
 
 	* doc-view.el (doc-view-cache-directory): Remove superfluous concat.
 
+	* emacs-lisp/authors.el (authors-scan-change-log)
+	(authors-scan-el): Don't enable local eval; enable only safe local
+	variables, without querying.
+
 	* mail/footnote.el (footnote-numeric-regexp)
 	(footnote-english-upper-regexp, footnote-english-lower-regexp)
 	(footnote-roman-lower-regexp, footnote-roman-upper-regexp):
