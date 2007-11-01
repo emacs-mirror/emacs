@@ -16,6 +16,8 @@
 
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (bad-packages-alist): Add an entry for standalone vc-svn.
+
 	* mail/footnote.el (footnote-numeric-regexp)
 	(footnote-english-upper-regexp, footnote-english-lower-regexp)
 	(footnote-roman-lower-regexp, footnote-roman-upper-regexp):
