@@ -157,7 +157,7 @@ Needed for searching."
   :group 'doc-view)
 
 (defcustom doc-view-cache-directory
-  (expand-file-name (concat "docview" (format "%d" (user-uid)))
+  (expand-file-name (format "docview%d" (user-uid))
 		    temporary-file-directory)
   "The base directory, where the PNG images will be saved."
   :type 'directory
