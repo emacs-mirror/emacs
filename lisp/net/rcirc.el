@@ -1308,29 +1308,29 @@ Logfiles are kept in `rcirc-log-directory'."
   :type 'integer
   :group 'rcirc)
 
-(defun rcirc-last-quit-line (nick target)
+(defun rcirc-last-quit-line (process nick target)
   "Return the line number where NICK left TARGET.
 Returns nil if the information is not recorded."
-  (let ((chanbuf (rcirc-get-buffer (rcirc-buffer-process) target)))
+  (let ((chanbuf (rcirc-get-buffer process target)))
     (when chanbuf
       (cdr (assoc-string nick (with-current-buffer chanbuf
 				rcirc-recent-quit-alist))))))
 
-(defun rcirc-last-line (nick target)
+(defun rcirc-last-line (process nick target)
   "Return the line from the last activity from NICK in TARGET."
-  (let* ((chanbuf (rcirc-get-buffer (rcirc-buffer-process) target))
+  (let* ((chanbuf (rcirc-get-buffer process target))
 	 (line (or (cdr (assoc-string target
 				      (gethash nick (with-rcirc-server-buffer
 						      rcirc-nick-table)) t))
-		   (rcirc-last-quit-line nick target))))
+		   (rcirc-last-quit-line process nick target))))
     (if line
 	line
       ;;(message "line is nil for %s in %s" nick target)
       nil)))
 
-(defun rcirc-elapsed-lines (nick target)
+(defun rcirc-elapsed-lines (process nick target)
   "Return the number of lines since activity from NICK in TARGET."
-  (let ((last-activity-line (rcirc-last-line nick target)))
+  (let ((last-activity-line (rcirc-last-line process nick target)))
     (when (and last-activity-line
 	       (> last-activity-line 0))
       (- rcirc-current-line last-activity-line))))
@@ -1340,14 +1340,13 @@ Returns nil if the information is not recorded."
     rcirc-markup-my-nick
     rcirc-markup-urls
     rcirc-markup-keywords
-    rcirc-markup-bright-nicks
-    rcirc-markup-fill)
+    rcirc-markup-bright-nicks)
 
   "List of functions used to manipulate text before it is printed.
 
-Each function takes two arguments, SENDER, RESPONSE.  The buffer
-is narrowed with the text to be printed and the point is at the
-beginning of the `rcirc-text' propertized text.")
+Each function takes two arguments, SENDER, and RESPONSE.  The
+buffer is narrowed with the text to be printed and the point is
+at the beginning of the `rcirc-text' propertized text.")
 
 (defun rcirc-print (process sender response target text &optional activity)
   "Print TEXT in the buffer associated with TARGET.
@@ -1395,9 +1394,6 @@ record activity."
 							      'rcirc-text)
 				 rcirc-prompt-end-marker)))
 
-	    ;; increment the line count
-	    (setq rcirc-current-line (1+ rcirc-current-line))
-
 	    ;; run markup functions
  	    (save-excursion
  	      (save-restriction
@@ -1415,13 +1411,15 @@ record activity."
 		  (add-text-properties (point-min) (point-max)
 				       '(read-only t front-sticky t))))
 	      ;; make text omittable
-	      (let ((last-activity-lines (rcirc-elapsed-lines sender target)))
-		(when (and (not (string= (rcirc-nick process) sender))
-			   (member response rcirc-omit-responses)
-			   (or (not last-activity-lines)
-			       (< rcirc-omit-threshold last-activity-lines)))
-		  (put-text-property (1- start) (1- rcirc-prompt-start-marker)
-				     'invisible 'rcirc-omit)))))
+	      (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
+		(if (and (not (string= (rcirc-nick process) sender))
+			 (member response rcirc-omit-responses)
+			 (or (not last-activity-lines)
+			     (< rcirc-omit-threshold last-activity-lines)))
+		    (put-text-property (1- start) (1- rcirc-prompt-start-marker)
+				       'invisible 'rcirc-omit)
+		  ;; otherwise increment the line count
+		  (setq rcirc-current-line (1+ rcirc-current-line))))))
 
 	  (set-marker-insertion-type rcirc-prompt-start-marker nil)
 	  (set-marker-insertion-type rcirc-prompt-end-marker nil)
@@ -1504,9 +1502,10 @@ Log data is written to `rcirc-log-directory'."
   (dolist (cell rcirc-log-alist)
     (with-temp-buffer
       (insert (cdr cell))
-      (write-region (point-min) (point-max)
-		    (concat rcirc-log-directory "/" (car cell))
-		    t 'quiet)))
+      (let ((coding-system-for-write 'utf-8))
+	(write-region (point-min) (point-max)
+		      (concat rcirc-log-directory "/" (car cell))
+		      t 'quiet))))
   (setq rcirc-log-alist nil))
 
 (defun rcirc-join-channels (process channels)
@@ -1538,7 +1537,6 @@ Update the associated linestamp if LINE is non-nil.
 
 If the record doesn't exist, and LINE is nil, set the linestamp
 to zero."
-  ;;(message "rcirc-put-nick-channel: %S %S %S" nick channel line)
   (let ((nick (rcirc-user-nick nick)))
     (with-rcirc-process-buffer process
       (let* ((chans (gethash nick rcirc-nick-table))
@@ -2240,11 +2238,13 @@ keywords when no KEYWORD is given."
     (let ((fill-prefix
 	   (or rcirc-fill-prefix
 	       (make-string (- (point) (line-beginning-position)) ?\s)))
-	  (fill-column (cond ((eq rcirc-fill-column 'frame-width)
-			      (1- (frame-width)))
-			     (rcirc-fill-column
-			      rcirc-fill-column)
-			     (t fill-column))))
+	  (fill-column (- (cond ((eq rcirc-fill-column 'frame-width)
+				 (1- (frame-width)))
+				(rcirc-fill-column
+				 rcirc-fill-column)
+				(t fill-column))
+			  ;; make sure ... doesn't cause line wrapping
+			  3)))		
       (fill-region (point) (point-max) nil t))))
 
 ;;; handlers
@@ -2254,7 +2254,6 @@ keywords when no KEYWORD is given."
 ;; verbatim
 (defun rcirc-handler-001 (process sender args text)
   (rcirc-handler-generic process "001" sender args text)
-  ;; set the real server name
   (with-rcirc-process-buffer process
     (setq rcirc-connecting nil)
     (rcirc-reschedule-timeout process)
@@ -2303,10 +2302,10 @@ keywords when no KEYWORD is given."
       ;; when recently rejoining, restore the linestamp
       (rcirc-put-nick-channel process sender channel
 			      (let ((last-activity-lines
-				     (rcirc-elapsed-lines sender channel)))
+				     (rcirc-elapsed-lines process sender channel)))
 				(when (and last-activity-lines
 					   (< last-activity-lines rcirc-omit-threshold))
-				  (rcirc-last-line sender channel)))))
+				  (rcirc-last-line process sender channel)))))
 
     (rcirc-print process sender "JOIN" channel "")
 
@@ -2357,15 +2356,14 @@ keywords when no KEYWORD is given."
 
 (defun rcirc-maybe-remember-nick-quit (process nick channel)
   "Remember NICK as leaving CHANNEL if they recently spoke."
-  (let ((elapsed-lines (rcirc-elapsed-lines nick channel)))
+  (let ((elapsed-lines (rcirc-elapsed-lines process nick channel)))
     (when (and elapsed-lines
 	       (< elapsed-lines rcirc-omit-threshold))
       (let ((buffer (rcirc-get-buffer process channel)))
 	(when buffer
 	  (with-current-buffer buffer
-	    (let ((record (assoc-string nick rcirc-recent-quit-alist
-					t))
-		  (line (rcirc-last-line nick channel)))
+	    (let ((record (assoc-string nick rcirc-recent-quit-alist t))
+		  (line (rcirc-last-line process nick channel)))
 	      (if record
 		  (setcdr record line)
 		(setq rcirc-recent-quit-alist
