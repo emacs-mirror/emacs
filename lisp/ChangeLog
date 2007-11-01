@@ -1,7 +1,7 @@
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* printing.el (printing): Fix :version, printing.el was included
-	for in emacs-22.1.
+	in emacs-22.1.
 	(pr-path-style, pr-path-alist, pr-txt-name)
 	(pr-txt-printer-alist, pr-ps-name, pr-ps-printer-alist)
 	(pr-temp-dir, pr-ps-temp-file, pr-file-modes, pr-gv-command)
