@@ -456,15 +456,19 @@ application."
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-x\C-s" 'remember-finalize)
     (define-key map "\C-c\C-c" 'remember-finalize)
-    (define-key map "\C-c\C-k" 'remember-destroy))
+    (define-key map "\C-c\C-k" 'remember-destroy)
+
+    map)
   "Keymap used in Remember mode.")
 
 (defun remember-mode ()
   "Major mode for output from \\[remember].
-\\<remember-mode-map>This buffer is used to collect data that you want
-remember.  Just hit \\[remember-region] when you're done entering, and
-it will go ahead and file the data for latter retrieval, and possible
-indexing.  \\{remember-mode-map}"
+This buffer is used to collect data that you want to remember.
+
+Just hit `C-c C-c' when you're done entering, and it will file
+the data away for latter retrieval, and possible indexing.
+
+\\{remember-mode-map}"
   (interactive)
   (kill-all-local-variables)
   (indented-text-mode)

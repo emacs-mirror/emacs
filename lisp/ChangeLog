@@ -11,6 +11,7 @@
 	functional overlap with the `remember' function.
 	(remember-destroy): Remove autoload cookie.
 	(remember-mode-map): Define and initialize in one step.
+	(remember-mode): Improve docstring.
 
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 
