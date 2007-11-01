@@ -1,3 +1,7 @@
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: Remove references to sunfns.c and sunfns.o.
+
 2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):

@@ -604,7 +604,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
-SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
+SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
   w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
@@ -1265,8 +1265,6 @@ composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
 /* System-specific programs to be made.
    OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
-
-sunfns.o: sunfns.c buffer.h window.h dispextern.h termhooks.h $(config_h)
 
 #ifdef HAVE_CARBON
 buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \

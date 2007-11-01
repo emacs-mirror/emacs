@@ -1,3 +1,7 @@
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* makefile.MPW (SOME_MACHINE_OBJECTS): Remove sunfns.o.
+
 2007-09-13  Seiji Zenitani  <zenitani@mac.com>
             Takanori Yamamoto  <takanori.yamamoto@gmail.com>
             Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
