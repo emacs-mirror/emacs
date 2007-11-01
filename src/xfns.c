@@ -138,11 +138,7 @@ static Lisp_Object Vgtk_version_string;
 
 #endif /* USE_GTK */
 
-#ifdef HAVE_X11R4
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
-#else
-#define MAXREQUEST(dpy) ((dpy)->max_request_size)
-#endif
 
 /* The gray bitmap `bitmaps/gray'.  This is done because xterm.c uses
    it, and including `bitmaps/gray' more than once is a problem when
@@ -1619,7 +1615,6 @@ x_set_name_internal (f, name)
   if (FRAME_X_WINDOW (f))
     {
       BLOCK_INPUT;
-#ifdef HAVE_X11R4
       {
 	XTextProperty text, icon;
 	int bytes, stringp;
@@ -1687,12 +1682,6 @@ x_set_name_internal (f, name)
 	if (do_free_text_value)
 	  xfree (text.value);
       }
-#else /* not HAVE_X11R4 */
-      XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    SDATA (name));
-      XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  SDATA (name));
-#endif /* not HAVE_X11R4 */
       UNBLOCK_INPUT;
     }
 }
@@ -1879,23 +1868,6 @@ x_default_scroll_bar_color_parameter (f, alist, prop, xprop, xclass,
 
 
 
-#if !defined (HAVE_X11R4) && !defined (HAVE_XSETWMPROTOCOLS)
-
-Status
-XSetWMProtocols (dpy, w, protocols, count)
-     Display *dpy;
-     Window w;
-     Atom *protocols;
-     int count;
-{
-  Atom prop;
-  prop = XInternAtom (dpy, "WM_PROTOCOLS", False);
-  if (prop == None) return False;
-  XChangeProperty (dpy, w, prop, XA_ATOM, 32, PropModeReplace,
-		   (unsigned char *) protocols, count);
-  return True;
-}
-#endif /* not HAVE_X11R4 && not HAVE_XSETWMPROTOCOLS */
 
 #ifdef USE_X_TOOLKIT
 
@@ -4013,11 +3985,7 @@ select_visual (dpyinfo)
 
       dpyinfo->visual = DefaultVisualOfScreen (screen);
 
-#ifdef HAVE_X11R4
       vinfo_template.visualid = XVisualIDFromVisual (dpyinfo->visual);
-#else
-      vinfo_template.visualid = dpyinfo->visual->visualid;
-#endif
       vinfo_template.screen = XScreenNumberOfScreen (screen);
       vinfo = XGetVisualInfo (dpy, VisualIDMask | VisualScreenMask,
 			      &vinfo_template, &n_visuals);
