@@ -28,7 +28,7 @@
 
 ;;; Commentary:
 
-;; The idea
+;; * The idea
 ;;
 ;; Todo lists, schedules, phone databases... everything we use
 ;; databases for is really just a way to extend the power of our
@@ -55,7 +55,7 @@
 ;; should be as close to simply throwing the data at Emacs as
 ;; possible.
 ;;
-;; Implementation
+;; * Implementation
 ;;
 ;; Hyperbole, as a data presentation tool, always struck me as being
 ;; very powerful, but it seemed to require a lot of "front-end" work
@@ -97,7 +97,7 @@
 ;; and user feedback will help to make this as intuitive a tool as
 ;; possible.
 ;;
-;; Future Goals
+;; * Future Goals
 ;;
 ;; This tool hopes to track (and by doing it with as little new code
 ;; as possible):
@@ -119,7 +119,7 @@
 ;;  - Storage of the data in a manner most appopriate to that data,
 ;;    such as keeping address-book type information in BBDB, etc.
 ;;
-;; Using "remember"
+;; * Using "remember"
 ;;
 ;; As a rough beginning, what I do is to keep my .notes file in
 ;; outline-mode format, with a final entry called "* Raw data".  Then,
@@ -128,19 +128,14 @@
 ;; mechanism for shuffling data off to its appropriate corner of the
 ;; universe.
 ;;
-;; Mapping the remember functions to very accessible keystrokes
-;; facilities using the mode:
+;; To map the primary remember function to the keystroke F8, do the
+;; following.
 ;;
-;;  (autoload 'remember "remember" nil t)
-;;  (autoload 'remember-region "remember" nil t)
+;;   (autoload 'remember "remember" nil t)
 ;;
-;;  (define-key global-map [f8] 'remember)
-;;  (define-key global-map [f9] 'remember-region)
+;;   (define-key global-map [f8] 'remember)
 ;;
-;; planner.el users should use `remember-to-planner' instead of `remember'
-;; to save more context information.
-;;
-;; Feedback
+;; * Feedback
 ;;
 ;; If Emacs could become a more intelligent data store, where
 ;; brainstorming would focus on the IDEAS involved -- rather than the
@@ -227,16 +222,8 @@ called."
 
 ;;; User Functions:
 
-;; People with planner.el can set this to planner-annotation-functions:
-;; (defvaralias 'remember-annotation-functions 'planner-annotation-functions)
-;; or (defalias 'remember-annotation-functions 'planner-annotation-functions)
-(defcustom remember-annotation-functions
-  (if (boundp 'planner-annotation-functions)
-      planner-annotation-functions
-    '(buffer-file-name))
-  "Hook that returns an annotation to be inserted into the remember buffer.
-If you have planner.el, it's nice to set this to
-`planner-annotation-functions'."
+(defcustom remember-annotation-functions '(buffer-file-name)
+  "Hook that returns an annotation to be inserted into the remember buffer."
   :type 'hook
   :options '(org-remember-annotation buffer-file-name)
   :group 'remember)

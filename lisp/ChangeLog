@@ -1,7 +1,7 @@
 2007-11-01  Michael Olson  <mwolson@gnu.org>
 
-	* textmodes/remember.el (remember-before-remember-hook): Turn into
-	a customizable option.
+	* textmodes/remember.el: Improve documentation in heading.
+	(remember-before-remember-hook): Turn into a customizable option.
 	(remember): Document INITIAL argument.
 	(remember-region): Remove autoload cookie.  Improve docstring to
 	mention that it is called from the *Remember* buffer, and does not
@@ -12,6 +12,9 @@
 	(remember-destroy): Remove autoload cookie.
 	(remember-mode-map): Define and initialize in one step.
 	(remember-mode): Improve docstring.
+	(remember-annotation-functions): Default to just
+	'(buffer-file-name), and don't try to take the default value from
+	Planner.
 
 2007-11-01  Glenn Morris  <rgm@gnu.org>
 
