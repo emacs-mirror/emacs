@@ -1,3 +1,7 @@
+2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* inc/config.h: Remove HAVE_X11R5.
+
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* makefile.MPW (SOME_MACHINE_OBJECTS): Remove sunfns.o.
