@@ -1464,16 +1464,11 @@ Please send all bug fixes and enhancements to
     (error "`ps-print' requires floating point support"))
 
 
-(let ((case-fold-search t))
-  (cond ((featurep 'xemacs))
-	((string-match "Lucid" emacs-version)
-	 (error "`ps-print' doesn't support Lucid"))
-	((string-match "Epoch" emacs-version)
-	 (error "`ps-print' doesn't support Epoch"))
-	(t
-	 (unless (and (boundp 'emacs-major-version)
-		      (>= emacs-major-version 23))
-	   (error "`ps-print' only supports Emacs 23 and higher")))))
+(if (featurep 'xemacs)
+    ()
+  (unless (and (boundp 'emacs-major-version)
+	       (>= emacs-major-version 23))
+    (error "`ps-print' only supports Emacs 23 and higher")))
 
 
 (defconst ps-windows-system

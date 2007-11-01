@@ -1,3 +1,8 @@
+2007-10-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Eliminate the check if ps-print was running on Lucid or
+	Epoch emacsen.
+
 2007-10-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Now detect if text foreground and background colors are
