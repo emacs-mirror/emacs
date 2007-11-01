@@ -1,3 +1,10 @@
+2007-11-01  Glenn Morris  <rgm@gnu.org>
+
+	* mail/footnote.el (footnote-numeric-regexp)
+	(footnote-english-upper-regexp, footnote-english-lower-regexp)
+	(footnote-roman-lower-regexp, footnote-roman-upper-regexp):
+	Match multi-character footnotes.
+
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ediff-util.el (ediff-nuke-selective-display): Move definition to
