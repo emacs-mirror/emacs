@@ -475,8 +475,8 @@ with the file and the number of each action.
 :wrote		means the author wrote the file
 :changed	means he changed the file COUNT times."
 
-  (let* ((enable-local-variables t)
-	 (enable-local-eval t)
+  (let* ((enable-local-variables :safe)
+	 (enable-local-eval nil)
 	 (existing-buffer (get-file-buffer log-file))
 	 (buffer (find-file-noselect log-file))
 	 author file pos)
@@ -521,8 +521,8 @@ with the file and the number of each action.
   "Scan Lisp file FILE for author information.
 TABLE is a hash table to add author information to."
   (let* ((existing-buffer (get-file-buffer file))
-	 (enable-local-variables t)
-	 (enable-local-eval t)
+	 (enable-local-variables :safe)
+	 (enable-local-eval nil)
 	 (buffer (find-file-noselect file)))
     (save-excursion
       (set-buffer buffer)
