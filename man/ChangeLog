@@ -1,3 +1,7 @@
+2007-11-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Remove obscure sentence.
+
 2007-10-27  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
 
 	* gnus-faq.texi ([5.12]): Remove reference to discontinued service.
