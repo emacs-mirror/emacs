@@ -1,27 +1,3 @@
-2007-11-02  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-ex.el (viper-ex): do not ignore the region.
-	
-	* viper-cmd.el (viper-prev-destructive-command)
-	(viper-insert-prev-from-insertion-ring): use ring-copy instead of
-	copy-sequence.
-
-	* ediff-util.el (ediff-make-current-diff-overlay): do not use face-name.
-	Got rid of ediff-copy-list.
-	
-	* ediff-diff.el (ediff-set-fine-diff-properties-in-one-buffer): do not
-	use face-name.
-	(ediff-test-utility,ediff-diff-mandatory-option)
-	(ediff-reset-diff-options): removed to simplify yhe mandatory option
-	handling on windows.
-	(ediff-set-diff-options): added.
-	(ediff-diff-options): changed.
-	
-	* ediff-vers.el (ediff-vc-internal): use ediff-vc-revision-other-window.
-	(ediff-vc-merge-internal): use ediff-vc-revision-other-window and
-	ediff-vc-working-revision.
-	Require vc-hooks.
-	
 2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Remove HAVE_X11R5 check.
