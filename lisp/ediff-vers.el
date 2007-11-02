@@ -60,7 +60,7 @@ comparison or merge operations are being performed."
 (defalias 'ediff-vc-working-revision
   (if (fboundp 'vc-working-revision)
       'vc-working-revision
-    vc-workfile-version))
+    'vc-workfile-version))
 
 ;; VC.el support
 

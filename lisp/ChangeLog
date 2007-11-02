@@ -1,3 +1,7 @@
+2007-11-02  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-vers (ediff-vc-working-revision): add a quote.
+	
 2007-11-02  Drake Wilson  <drake@begriffli.ch>  (tiny change)
 
 	* files.el (hack-local-variables): Fix membership tests to avoid
