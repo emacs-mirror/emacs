@@ -1,3 +1,9 @@
+2007-11-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/lselect.el: Move to obsolete/lselect.el.
+
+	* obsolete/lselect.el: Do not warn about unknown functions.
+
 2007-11-02  Michael Olson  <mwolson@gnu.org>
 
 	* textmodes/remember.el (remember-buffer): Make this an alias of

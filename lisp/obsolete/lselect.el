@@ -238,5 +238,10 @@ the kill ring or the Clipboard."
 
 (provide 'lselect)
 
+
+;; Local variables:
+;; byte-compile-warnings: (not unresolved)
+;; End:
+
 ;; arch-tag: 92fa54d4-c5d1-4e9b-ad58-cf1e13930556
 ;;; lselect.el ends here
