@@ -35,7 +35,6 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 ** cua.el, cua-mode.el: remove old versions.
 
-** vc-svn.el: remove old version.
 
 * Installation Changes in Emacs 22.2
 
