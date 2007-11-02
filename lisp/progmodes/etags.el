@@ -279,7 +279,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
   (interactive)
   (setq major-mode 'tags-table-mode
         mode-name "Tags Table"
-         buffer-undo-list t)
+        buffer-undo-list t)
   (initialize-new-tags-table))
 
 ;;;###autoload
