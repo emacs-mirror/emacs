@@ -1118,11 +1118,9 @@ scope less noticeable.  When a variable goes out of scope you can't
 edit its value.
 
 @vindex gdb-delete-out-of-scope
-  If the variable @code{gdb-delete-out-of-scope} is
-non-@code{nil} (the default value), Emacs automatically deletes watch
-expressions which go out of scope.  This is safest because GDB may
-think that a variable in a new frame is an old one that previously
-went of of scope.  Sometimes, when re-entering the same function,
+  If the variable @code{gdb-delete-out-of-scope} is non-@code{nil}
+(the default value), Emacs automatically deletes watch expressions
+which go out of scope.  Sometimes, when re-entering the same function,
 it may be useful to set this value to nil so that you don't need to
 recreate the watch expression.
 
