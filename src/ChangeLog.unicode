@@ -1,3 +1,8 @@
+2007-11-02  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* fileio.c (Fexpand_file_name): Adjust multibyteness of directory
+	and file names.
+
 2007-10-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (add_font_name_to_list): Avoid vertical fonts.
