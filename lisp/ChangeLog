@@ -1,3 +1,8 @@
+2007-11-02  Michael Olson  <mwolson@gnu.org>
+
+	* textmodes/remember.el (remember-buffer): Make this an alias of
+	remember-finalize, because Org uses it.
+
 2007-11-01  Michael Olson  <mwolson@gnu.org>
 
 	* textmodes/remember.el: Improve documentation in heading.
