@@ -3,6 +3,8 @@
 	* newcomment.el (comment-indent): Let comment-insert-comment-function,
 	if defined, do all the work of inserting a new comment.
 
+	* progmodes/etags.el (tags-table-mode): Disable undo.
+
 	* simple.el (bad-packages-alist): Revert previous change.
 
 2007-11-02  Dan Nicolaescu  <dann@ics.uci.edu>
