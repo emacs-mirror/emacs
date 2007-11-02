@@ -2821,8 +2821,8 @@ is specified, returning t if it is specified."
 		;; If caller wants only the safe variables,
 		;; install only them.
 		(dolist (elt result)
-		  (unless (or (memq (car elt) unsafe-vars)
-			      (memq (car elt) risky-vars))
+		  (unless (or (member elt unsafe-vars)
+			      (member elt risky-vars))
 		    (hack-one-local-variable (car elt) (cdr elt))))
 	      ;; Query, except in the case where all are known safe
 	      ;; if the user wants no quuery in that case.
