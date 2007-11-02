@@ -1145,8 +1145,19 @@ See also the function `substitute-in-file-name'.  */)
     }
 
   name = FILE_SYSTEM_CASE (name);
-  nm = SDATA (name);
   multibyte = STRING_MULTIBYTE (name);
+  if (multibyte != STRING_MULTIBYTE (default_directory))
+    {
+      if (multibyte)
+	default_directory = string_to_multibyte (default_directory);
+      else
+	{
+	  name = string_to_multibyte (name);
+	  multibyte = 1;
+	}
+    }
+
+  nm = SDATA (name);
 
 #ifdef DOS_NT
   /* We will force directory separators to be either all \ or /, so make
@@ -1455,7 +1466,6 @@ See also the function `substitute-in-file-name'.  */)
       && !newdir)
     {
       newdir = SDATA (default_directory);
-      multibyte |= STRING_MULTIBYTE (default_directory);
 #ifdef DOS_NT
       /* Note if special escape prefix is present, but remove for now.  */
       if (newdir[0] == '/' && newdir[1] == ':')
