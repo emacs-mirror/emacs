@@ -1,3 +1,7 @@
+2007-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* simple.el (bad-packages-alist): Revert previous change.
+
 2007-11-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/lselect.el: Move to obsolete/lselect.el.
