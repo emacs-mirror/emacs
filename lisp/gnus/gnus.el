@@ -1480,6 +1480,7 @@ When FORM is evaluated `name' is bound to the name of the group."
   :version "22.1"
   :group 'gnus-group-various
   :type '(repeat (cons (string :tag "Hierarchy") (sexp :tag "Form"))))
+(put 'gnus-group-charter-alist 'risky-local-variable t)
 
 (defcustom gnus-group-fetch-control-use-browse-url nil
   "*Non-nil means that control messages are displayed using `browse-url'.

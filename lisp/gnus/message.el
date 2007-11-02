@@ -5346,7 +5346,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	   (concat message-user-path "!" login-name))
 	  (t login-name))))
 
-(defun message-make-from (&optional name address )
+(defun message-make-from (&optional name address)
   "Make a From header."
   (let* ((style message-from-style)
 	 (login (or address (message-make-address)))

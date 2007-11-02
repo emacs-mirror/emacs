@@ -1,6 +1,34 @@
+2007-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-charset-eval-alist): Mark as risky local variable.
+
+	* gnus.el (gnus-group-charter-alist): Mark as risky local variable.
+
+	* gnus-art.el (gnus-button-alist, gnus-header-button-alist): Mark as
+	risky local variable.
+
+	* gnus-group.el (gnus-group-icon-list): Mark as risky local variable.
+
+2007-11-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* encrypt.el: Improve documentation to fix function name typo.
+	Reported by Daiki Ueno <ueno@unixuser.org>.
+
+2007-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page): Honor gnus-article-over-scroll
+	even if the point is not in the last page of an article.
+	(gnus-article-prev-page): Honor gnus-article-over-scroll when moving
+	back to the previous page.
+
+2007-10-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el (gnus-x-splash): Work even if there's no scroll bar.
+
 2007-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* message.el (message-check-news-body-syntax): Avoid mm-string-as-multibyte.
+	* message.el (message-check-news-body-syntax): Avoid
+	mm-string-as-multibyte.
 	(message-hide-headers): Don't assume (point-min)==1.
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -1319,6 +1347,7 @@
 
 	* message.el (message-cite-original-1): Call
 	gnus-article-highlight-citation if requested.
+	(message-make-from): Allow name and address as optional arguments.
 
 	* gnus-cite.el (gnus-article-highlight-citation): Add SAME-BUFFER arg.
 

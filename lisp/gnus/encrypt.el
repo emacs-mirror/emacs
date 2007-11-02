@@ -43,7 +43,7 @@
 ;;; C-x C-f ~/.authinfo
 
 ;;; 2) write the new authinfo.enc
-;;; M-x encrypt-file-contents ~/.authinfo.enc
+;;; M-x encrypt-write-file-contents RET ~/.authinfo.enc
 
 ;;; 3) verify the new authinfo is correct (this will show the contents in the minibuffer)
 ;;; M-: (encrypt-get-file-contents "~/.authinfo.enc")
