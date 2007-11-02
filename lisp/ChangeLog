@@ -1,7 +1,31 @@
 2007-11-02  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-vers (ediff-vc-working-revision): add a quote.
-	
+
+	* ediff-vers.el (ediff-vc-working-revision): Add a quote.
+
+2007-11-02  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* emulation/viper-ex.el (viper-ex): Do not ignore the region.
+
+	* emulation/viper-cmd.el (viper-prev-destructive-command)
+	(viper-insert-prev-from-insertion-ring): Use ring-copy instead of
+	copy-sequence.
+
+	* ediff-util.el (ediff-make-current-diff-overlay): Do not use face-name.
+	Got rid of ediff-copy-list.
+
+	* ediff-diff.el (ediff-set-fine-diff-properties-in-one-buffer): Do not
+	use face-name.
+	(ediff-test-utility,ediff-diff-mandatory-option)
+	(ediff-reset-diff-options): Remove to simplify the mandatory option
+	handling on Windows.
+	(ediff-set-diff-options): Add.
+	(ediff-diff-options): Changed.
+
+	* ediff-vers.el (ediff-vc-internal): Use ediff-vc-revision-other-window.
+	(ediff-vc-merge-internal): use ediff-vc-revision-other-window and
+	ediff-vc-working-revision.
+	Require vc-hooks.
+
 2007-11-02  Drake Wilson  <drake@begriffli.ch>  (tiny change)
 
 	* files.el (hack-local-variables): Fix membership tests to avoid
