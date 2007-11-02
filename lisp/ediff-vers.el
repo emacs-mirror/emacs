@@ -52,7 +52,21 @@ comparison or merge operations are being performed."
   :group 'ediff-vers
   )
 
+(defalias 'ediff-vc-revision-other-window
+      (if (fboundp 'vc-revision-other-window)
+	  'vc-revision-other-window
+	'vc-version-other-window))
+
+(defalias 'ediff-vc-working-revision
+  (if (fboundp 'vc-working-revision)
+      'vc-working-revision
+    vc-workfile-version))
+
 ;; VC.el support
+
+(eval-when-compile
+  (require 'vc-hooks)) ;; for vc-call macro
+
 
 (defun ediff-vc-latest-version (file)
   "Return the version level of the latest version of FILE in repository."
@@ -77,12 +91,12 @@ comparison or merge operations are being performed."
 	(setq rev1 (ediff-vc-latest-version (buffer-file-name))))
     (save-window-excursion
       (save-excursion
-	(vc-revision-other-window rev1)
+	(ediff-vc-revision-other-window rev1)
 	(setq rev1buf (current-buffer)
 	      file1 (buffer-file-name)))
       (save-excursion
 	(or (string= rev2 "") 		; use current buffer
-	    (vc-revision-other-window rev2))
+	    (ediff-vc-revision-other-window rev2))
 	(setq rev2buf (current-buffer)
 	      file2 (buffer-file-name)))
       (setq startup-hooks
@@ -158,17 +172,17 @@ comparison or merge operations are being performed."
   (let (buf1 buf2 ancestor-buf)
     (save-window-excursion
       (save-excursion
-	(vc-revision-other-window rev1)
+	(ediff-vc-revision-other-window rev1)
 	(setq buf1 (current-buffer)))
       (save-excursion
 	(or (string= rev2 "")
-	    (vc-revision-other-window rev2))
+	    (ediff-vc-revision-other-window rev2))
 	(setq buf2 (current-buffer)))
       (if ancestor-rev
 	  (save-excursion
 	    (if (string= ancestor-rev "")
-		(setq ancestor-rev (vc-working-revision buffer-file-name)))
-	    (vc-revision-other-window ancestor-rev)
+		(setq ancestor-rev (ediff-vc-working-revision buffer-file-name)))
+	    (ediff-vc-revision-other-window ancestor-rev)
 	    (setq ancestor-buf (current-buffer))))
       (setq startup-hooks
 	    (cons

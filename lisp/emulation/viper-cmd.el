@@ -1902,7 +1902,7 @@ With prefix argument, find next destructive command."
 	(setq viper-intermediate-command
 	      'repeating-display-destructive-command)
       ;; first search through command history--set temp ring
-      (setq viper-temp-command-ring (copy-sequence viper-command-ring)))
+      (setq viper-temp-command-ring (ring-copy viper-command-ring)))
     (setq cmd (if next
 		  (viper-special-ring-rotate1 viper-temp-command-ring 1)
 		(viper-special-ring-rotate1 viper-temp-command-ring -1)))
@@ -1936,7 +1936,7 @@ to in the global map, instead of cycling through the insertion ring."
 		 (length viper-last-inserted-string-from-insertion-ring))))
 	  )
       ;;first search through insertion history
-      (setq viper-temp-insertion-ring (copy-sequence viper-insertion-ring)))
+      (setq viper-temp-insertion-ring (ring-copy viper-insertion-ring)))
     (setq this-command 'viper-insert-from-insertion-ring)
     ;; so that things will be undone properly
     (setq buffer-undo-list (cons nil buffer-undo-list))
@@ -2790,6 +2790,7 @@ On reaching beginning of line, stop and signal error."
 
 (defun viper-next-line-carefully (arg)
   (condition-case nil
+      ;; do not use forward-line! need to keep column
       (next-line arg)
     (error nil)))
 
@@ -3089,6 +3090,7 @@ On reaching beginning of line, stop and signal error."
   (let ((val (viper-p-val arg))
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
+    ;; do not use forward-line! need to keep column
     (next-line val)
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))
@@ -3132,6 +3134,7 @@ If point is on a widget or a button, simulate clicking on that widget/button."
   (let ((val (viper-p-val arg))
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
+    ;; do not use forward-line! need to keep column
     (previous-line val)
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))

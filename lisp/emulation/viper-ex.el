@@ -651,17 +651,19 @@ reversed."
 	(setq initial-str (format "%d,%d" reg-beg-line reg-end-line)))
 
     (setq com-str
-	  (or string (viper-read-string-with-history
-		      ":"
-		      initial-str
-		      'viper-ex-history
-		      ;; no default when working on region
-		      (if initial-str
-			  nil
-			(car viper-ex-history))
-		      map
-		      (if initial-str
-			  " [Type command to execute on current region]"))))
+	  (if string
+	      (concat initial-str string)
+	    (viper-read-string-with-history
+	     ":"
+	     initial-str
+	     'viper-ex-history
+	     ;; no default when working on region
+	     (if initial-str
+		 nil
+	       (car viper-ex-history))
+	     map
+	     (if initial-str
+		 " [Type command to execute on current region]"))))
     (save-window-excursion
       ;; just a precaution
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))

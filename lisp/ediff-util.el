@@ -3802,9 +3802,8 @@ Ediff Control Panel to restore highlighting."
       (let ((overlay (ediff-get-symbol-from-alist
 		      type ediff-current-diff-overlay-alist))
 	    (buffer (ediff-get-buffer type))
-	    (face (face-name
-		   (ediff-get-symbol-from-alist
-		    type ediff-current-diff-face-alist))))
+	    (face (ediff-get-symbol-from-alist
+		    type ediff-current-diff-face-alist)))
 	(set overlay
 	     (ediff-make-bullet-proof-overlay (point-max) (point-max) buffer))
 	(ediff-set-overlay-face (symbol-value overlay) face)
@@ -4292,20 +4291,7 @@ Mail anyway? (y or n) ")
       (add-to-history history-var newelt)
     (set history-var (cons newelt (symbol-value history-var)))))
 
-(if (fboundp 'copy-sequence)
-    (defalias 'ediff-copy-list 'copy-sequence)
-  (defun ediff-copy-list (list)
-    (if (consp list)
-      ;;;(let ((res nil))
-      ;;;  (while (consp list) (push (pop list) res))
-      ;;;  (prog1 (nreverse res) (setcdr res list)))
-	(let (res elt)
-	  (while (consp list)
-	    (setq elt (car list)
-		  res (cons elt res)
-		  list (cdr list)))
-	  (nreverse res))
-      (car list))))
+(defalias 'ediff-copy-list 'copy-sequence)
 
 
 ;; don't report error if version control package wasn't found

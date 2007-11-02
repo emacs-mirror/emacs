@@ -48,7 +48,6 @@
   :prefix "ediff-"
   :group 'ediff)
 
-;; these two must be here to prevent ediff-test-utility from barking
 (defcustom ediff-diff-program "diff"
   "*Program to use for generating the differential of the two files."
   :type 'string
@@ -62,45 +61,7 @@ Must produce output compatible with Unix's diff3 program."
 
 ;; The following functions must precede all defcustom-defined variables.
 
-;; The following functions needed for setting diff/diff3 options
-;; test if diff supports the --binary option
-(defsubst ediff-test-utility (diff-util option &optional files)
-  (condition-case nil
-      (eq 0 (apply 'call-process
-		   (append (list diff-util nil nil nil option) files)))
-    (error (format "Cannot execute program %S." diff-util)))
-  )
-
-(defun ediff-diff-mandatory-option (diff-util)
-  (let ((file (if (boundp 'null-device) null-device "/dev/null")))
-    (cond  ((not (memq system-type '(ms-dos windows-nt windows-95)))
-	    "")
-	   ((and (string= diff-util ediff-diff-program)
-		 (ediff-test-utility
-		  ediff-diff-program "--binary" (list file file)))
-	    "--binary ")
-	   ((and (string= diff-util ediff-diff3-program)
-		 (ediff-test-utility
-		  ediff-diff3-program "--binary" (list file file file)))
-	    "--binary ")
-	   (t ""))))
-
-
-;; must be before ediff-reset-diff-options to avoid compiler errors
 (fset 'ediff-set-actual-diff-options '(lambda () nil))
-
-;; make sure that mandatory options are added even if the user changes
-;; ediff-diff-options or ediff-diff3-options in the customization widget
-(defun ediff-reset-diff-options (symb val)
-  (let* ((diff-program
-	  (if (eq symb 'ediff-diff-options)
-	      ediff-diff-program
-	    ediff-diff3-program))
-	 (mandatory-option (ediff-diff-mandatory-option diff-program)))
-    (set symb (concat mandatory-option val))
-    (ediff-set-actual-diff-options)
-    ))
-
 
 (defcustom ediff-shell
   (cond ((eq system-type 'emx) "cmd") ; OS/2
@@ -130,17 +91,25 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
   :type '(repeat string)
   :group 'ediff-diff)
 
-(defcustom ediff-diff-options ""
+(defun ediff-set-diff-options (symbol value)
+  (set symbol value)
+  (ediff-set-actual-diff-options))
+
+(defcustom ediff-diff-options
+  (if (memq system-type '(ms-dos windows-nt windows-95)) "--binary" "")
   "*Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program',
 then a useful option is `-w', to ignore space.
 Options `-c', `-u', and `-i' are not allowed. Case sensitivity can be
 toggled interactively using \\[ediff-toggle-ignore-case].
 
+Do not remove the default options. If you need to change this variable, add new
+options after the default ones.
+
 This variable is not for customizing the look of the differences produced by
 the command \\[ediff-show-diff-output]. Use the variable
 `ediff-custom-diff-options' for that."
-  :set 'ediff-reset-diff-options
+  :set 'ediff-set-diff-options
   :type 'string
   :group 'ediff-diff)
 
@@ -179,7 +148,7 @@ This output is not used by Ediff internally."
   "Pattern to match lines produced by diff3 that describe differences.")
 (defcustom ediff-diff3-options ""
   "*Options to pass to `ediff-diff3-program'."
-  :set 'ediff-reset-diff-options
+  :set 'ediff-set-diff-options
   :type 'string
   :group 'ediff-diff)
 
@@ -889,9 +858,9 @@ one optional arguments, diff-number to refine.")
   (let ((fine-diff-vector  (ediff-get-fine-diff-vector n buf-type))
 	(face (if default
 		  'default
-		(face-name
-		 (ediff-get-symbol-from-alist
-		  buf-type ediff-fine-diff-face-alist))))
+		(ediff-get-symbol-from-alist
+		 buf-type ediff-fine-diff-face-alist)
+		))
 	(priority (if default
 		      0
 		    (1+ (or (ediff-overlay-get
