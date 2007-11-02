@@ -1,3 +1,28 @@
+2007-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-charset-eval-alist): Mark as risky local variable.
+
+	* gnus.el (gnus-group-charter-alist): Mark as risky local variable.
+
+	* gnus-art.el (gnus-button-alist, gnus-header-button-alist): Mark as
+	risky local variable.
+
+	* gnus-group.el (gnus-group-icon-list): Mark as risky local variable.
+
+2007-11-01  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* message.el (message-use-alternative-email-as-from): Examine the
+	From header as well; use message-make-from in order to include a
+	user's full name.  [ Backported bug fix from No Gnus. ]
+
+2007-10-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* qp.el (quoted-printable-decode-string): Fix typo in doc string.
+
+2007-10-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el (gnus-x-splash): Work even if there's no scroll bar.
+
 2007-10-23  Richard Stallman  <rms@gnu.org>
 
 	* gnus-group.el (gnus-group-highlight): Mark as risky.

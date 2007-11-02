@@ -208,7 +208,9 @@
 	     (setq sbars
 		   (cons (/ (or (frame-parameter nil 'scroll-bar-width) 14)
 			    fcw)
-			 0))))
+			 0)))
+	    (t
+	     (setq sbars '(0 . 0))))
       (setq left (- (* (round (/ (1- (/ (+ (window-width)
 					   (car sbars) (cdr sbars)
 					   (/ (+ (or (car fringes) 0)

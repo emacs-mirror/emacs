@@ -416,6 +416,7 @@ score: The score of the group.
 ticked: The number of ticked articles."
   :group 'gnus-group-icons
   :type '(repeat (cons (sexp :tag "Form") file)))
+(put 'gnus-group-icon-list 'risky-local-variable t)
 
 (defcustom gnus-group-name-charset-method-alist nil
   "Alist of method and the charset for group names.

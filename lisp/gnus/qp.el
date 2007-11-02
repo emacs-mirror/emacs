@@ -82,7 +82,7 @@ them into characters should be done separately."
 
 (defun quoted-printable-decode-string (string &optional coding-system)
   "Decode the quoted-printable encoded STRING and return the result.
-If CODING-SYSTEM is non-nil, decode the region with coding-system.
+If CODING-SYSTEM is non-nil, decode the string with coding-system.
 Use of CODING-SYSTEM is deprecated; this function should deal with
 raw bytes, and coding conversion should be done separately."
   (mm-with-unibyte-buffer

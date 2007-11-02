@@ -7164,7 +7164,7 @@ regexp VARSTR."
 address in `message-alternative-emails', looking at To, Cc and
 From headers in the original article."
   (require 'mail-utils)
-  (let* ((fields '("To" "Cc"))
+  (let* ((fields '("To" "Cc" "From"))
 	 (emails
 	  (split-string
 	   (mail-strip-quoted-names
@@ -7179,7 +7179,8 @@ From headers in the original article."
     (unless (or (not email) (equal email user-mail-address))
       (message-remove-header "From")
       (goto-char (point-max))
-      (insert "From: " email "\n"))))
+      (insert "From: " (let ((user-mail-address email)) (message-make-from))
+	      "\n"))))
 
 (defun message-options-get (symbol)
   (cdr (assq symbol message-options)))

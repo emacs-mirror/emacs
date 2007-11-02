@@ -420,6 +420,7 @@ could use `autoload-coding-system' here."
 		       (cons (symbol :tag "charset")
 			     (symbol :tag "form"))))
   :group 'mime)
+(put 'mm-charset-eval-alist 'risky-local-variable t)
 
 (defvar mm-binary-coding-system
   (cond
