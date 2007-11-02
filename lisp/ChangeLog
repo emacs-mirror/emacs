@@ -1,5 +1,7 @@
 2007-11-02  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/etags.el (tags-table-mode): Disable undo.
+
 	* simple.el (bad-packages-alist): Revert previous change.
 
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
