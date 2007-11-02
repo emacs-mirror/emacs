@@ -19,12 +19,11 @@
 	(ediff-reset-diff-options): Remove to simplify the mandatory option
 	handling on Windows.
 	(ediff-set-diff-options): Add.
-	(ediff-diff-options): Changed.
+	(ediff-diff-options): Set "--binary" option as default in some cases.
 
 	* ediff-vers.el (ediff-vc-internal): Use ediff-vc-revision-other-window.
-	(ediff-vc-merge-internal): use ediff-vc-revision-other-window and
-	ediff-vc-working-revision.
-	Require vc-hooks.
+	(ediff-vc-merge-internal): Use ediff-vc-revision-other-window and
+	ediff-vc-working-revision.  Require vc-hooks.
 
 2007-11-02  Drake Wilson  <drake@begriffli.ch>  (tiny change)
 
