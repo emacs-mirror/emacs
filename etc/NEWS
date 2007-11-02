@@ -35,7 +35,6 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 ** cua.el, cua-mode.el: remove old versions.
 
-** vc-svn.el: remove old version.
 
 * Installation Changes in Emacs 22.2
 
@@ -107,7 +106,8 @@ This can be used to add menu entries for backend specific functions.
 * Lisp Changes in Emacs 22.2.
 
 ** Frame-local variables are deprecated and are slated for removal.
-   Use frame parameters instead.
+Use frame parameters instead.
+
 ** The function invisible-p returns non-nil if the character
 after a specified position is invisible.
 
