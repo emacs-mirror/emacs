@@ -1,3 +1,7 @@
+2007-11-03  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+
+	* simple.el (bad-packages-alist): Anchor semantic regexp.
+
 2007-11-02  Drake Wilson  <drake@begriffli.ch>  (tiny change)
 
 	* files.el (hack-local-variables): Fix membership tests to avoid
