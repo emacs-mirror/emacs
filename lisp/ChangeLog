@@ -48,7 +48,7 @@
 
 	* files.el (hack-local-variables): Fix membership tests to avoid
 	treating all variables as safe if `enable-local-variables' is
-	set to :safe.
+	set to :safe (CVE-2007-5795).
 
 2007-11-02  Glenn Morris  <rgm@gnu.org>
 
