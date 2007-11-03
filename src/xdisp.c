@@ -3367,16 +3367,31 @@ handle_face_prop (it)
       int base_face_id, bufpos;
 
       if (it->current.overlay_string_index >= 0)
-	bufpos = IT_CHARPOS (*it);
+	{
+	  bufpos = IT_CHARPOS (*it);
+	  /* For an overlay face, the base face depends
+	     only on text properties and ignores overlays.  */
+	  base_face_id
+	    = face_at_buffer_position_no_overlays (it->w,
+						   IT_CHARPOS (*it),
+						   it->region_beg_charpos,
+						   it->region_end_charpos,
+						   &next_stop,
+						   (IT_CHARPOS (*it)
+						    + TEXT_PROP_DISTANCE_LIMIT),
+						   0);
+	}
       else
-	bufpos = 0;
+	{
+	  bufpos = 0;
 
-      /* For strings from a buffer, i.e. overlay strings or strings
-	 from a `display' property, use the face at IT's current
-	 buffer position as the base face to merge with, so that
-	 overlay strings appear in the same face as surrounding
-	 text, unless they specify their own faces.  */
-      base_face_id = underlying_face_id (it);
+	  /* For strings from a `display' property, use the face at
+	     IT's current buffer position as the base face to merge
+	     with, so that overlay strings appear in the same face as
+	     surrounding text, unless they specify their own
+	     faces.  */
+	  base_face_id = underlying_face_id (it);
+	}
 
       new_face_id = face_at_string_position (it->w,
 					     it->string,
