@@ -1152,7 +1152,8 @@ is passed on to the respective function."
 If the region is active and `transient-mark-mode' is on, call
   `comment-region' (unless it only consists of comments, in which
   case it calls `uncomment-region').
-Else, if the current line is empty, insert a comment and indent it.
+Else, if the current line is empty, call `comment-insert-comment-function'
+if it is defined, otherwise insert a comment and indent it.
 Else if a prefix ARG is specified, call `comment-kill'.
 Else, call `comment-indent'.
 You can configure `comment-style' to change the way regions are commented."
@@ -1164,15 +1165,19 @@ You can configure `comment-style' to change the way regions are commented."
 	;; FIXME: If there's no comment to kill on this line and ARG is
 	;; specified, calling comment-kill is not very clever.
 	(if arg (comment-kill (and (integerp arg) arg)) (comment-indent))
-      (let ((add (comment-add arg)))
-        ;; Some modes insist on keeping column 0 comment in column 0
-	;; so we need to move away from it before inserting the comment.
-	(indent-according-to-mode)
-	(insert (comment-padright comment-start add))
-	(save-excursion
-	  (unless (string= "" comment-end)
-	    (insert (comment-padleft comment-end add)))
-	  (indent-according-to-mode))))))
+      ;; Inserting a comment on a blank line. comment-indent calls
+      ;; c-i-c-f if needed in the non-blank case.
+      (if comment-insert-comment-function
+          (funcall comment-insert-comment-function)
+        (let ((add (comment-add arg)))
+          ;; Some modes insist on keeping column 0 comment in column 0
+          ;; so we need to move away from it before inserting the comment.
+          (indent-according-to-mode)
+          (insert (comment-padright comment-start add))
+          (save-excursion
+            (unless (string= "" comment-end)
+              (insert (comment-padleft comment-end add)))
+            (indent-according-to-mode)))))))
 
 ;;;###autoload
 (defcustom comment-auto-fill-only-comments nil
