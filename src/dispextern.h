@@ -1808,6 +1808,9 @@ struct it_slice
   Lisp_Object height;
 };
 
+/* Input sources for fetching characters or data to display.
+   The input source is found in the `method' field.  */
+
 enum it_method {
   GET_FROM_BUFFER = 0,
   GET_FROM_DISPLAY_VECTOR,
@@ -2856,6 +2859,9 @@ void free_frame_faces P_ ((struct frame *));
 void recompute_basic_faces P_ ((struct frame *));
 int face_at_buffer_position P_ ((struct window *, int, int, int, int *,
 				 int, int));
+int face_at_buffer_position_no_overlays P_ ((struct window *, int, int,
+					     int, int *,
+					     int, int));
 int face_at_string_position P_ ((struct window *, Lisp_Object, int, int, int,
 				 int, int *, enum face_id, int));
 int merge_faces P_ ((struct frame *, Lisp_Object, int, int));
