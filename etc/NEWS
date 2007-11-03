@@ -288,6 +288,9 @@ that either version can be used as inferior Python by python.el.
 
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
+*** In Fortran mode, M-; is now bound to the standard comment-dwim,
+rather than fortran-indent-comment.
+
 +++
 *** (The increasingly misnamed) F90 mode supports Fortran 2003 syntax.
 
