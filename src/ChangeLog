@@ -1,5 +1,12 @@
 2007-11-03  Richard Stallman  <rms@gnu.org>
 
+	* xdisp.c (handle_face_prop): Use face_at_buffer_position_no_overlays
+	to get the base face for an overlay string.
+
+	* dispextern.h (face_at_buffer_position_no_overlays): Add decl.
+
+	* xfaces.c (face_at_buffer_position_no_overlays): New function.
+
 	* xdisp.c (handle_stop): Move some code out of loop.
 
 2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
