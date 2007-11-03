@@ -1,3 +1,8 @@
+2007-11-03  Michael Olson  <mwolson@gnu.org>
+
+	* remember.texi: Change mentions of remember-buffer to
+	remember-finalize throughout.
+
 2007-10-30  Michael Olson  <mwolson@gnu.org>
 
 	* remember.texi (Copying): Remove.

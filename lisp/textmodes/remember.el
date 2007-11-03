@@ -431,7 +431,7 @@ application."
   (remember-region (point-min) (point-max)))
 
 ;; Org needs this
-(defalias 'remember-buffer 'remember-finalize)
+(define-obsolete-function-alias 'remember-buffer 'remember-finalize)
 
 (defun remember-destroy ()
   "Destroy the current *Remember* buffer."

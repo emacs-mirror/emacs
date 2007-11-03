@@ -202,11 +202,11 @@ the headline, and the rest of the buffer will contain the body of the
 note.
 
 @item
-Type @kbd{C-c C-c} (@code{remember-buffer}) to save the note and close
+Type @kbd{C-c C-c} (@code{remember-finalize}) to save the note and close
 the @samp{*Remember*} buffer.
 @end itemize
 
-By default, @code{remember-buffer} saves the note in @file{~/.notes}.
+By default, @code{remember-finalize} saves the note in @file{~/.notes}.
 You can edit it now to see the remembered and timestamped note. You
 can edit this file however you want. New entries will always be added
 to the end.
@@ -278,7 +278,7 @@ Remember the contents of the current clipboard.  This is most useful
 for remembering things from Netscape or other X Windows applications.
 @end defun
 
-@defun remember-buffer
+@defun remember-finalize
 Remember the contents of the current buffer.
 @end defun
 
@@ -297,13 +297,13 @@ the data for latter retrieval, and possible indexing.
 
 @table @kbd
 
-@item C-c C-c (`remember-buffer')
+@item C-c C-c (`remember-finalize')
 Remember the contents of the current buffer.
 
 @item C-c C-k (`remember-destroy')
 Destroy the current *Remember* buffer.
 
-@item C-x C-s (`remember-buffer')
+@item C-x C-s (`remember-finalize')
 Remember the contents of the current buffer.
 
 @end table
