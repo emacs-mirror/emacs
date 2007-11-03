@@ -287,10 +287,12 @@ With prefix arg, delete as well.
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to append."
   (interactive "cAppend to register: \nr\nP")
-  (or (stringp (get-register register))
-      (error "Register does not contain text"))
-  (set-register register (concat (get-register register)
-			    (filter-buffer-substring start end)))
+  (let ((reg (get-register register))
+        (text (filter-buffer-substring start end)))
+    (set-register
+     register (cond ((not reg) text)
+                    ((stringp reg) (concat reg text))
+                    (t (error "Register does not contain text")))))
   (if delete-flag (delete-region start end)))
 
 (defun prepend-to-register (register start end &optional delete-flag)
@@ -299,10 +301,12 @@ With prefix arg, delete as well.
 Called from program, takes four args: REGISTER, START, END and DELETE-FLAG.
 START and END are buffer positions indicating what to prepend."
   (interactive "cPrepend to register: \nr\nP")
-  (or (stringp (get-register register))
-      (error "Register does not contain text"))
-  (set-register register (concat (filter-buffer-substring start end)
-			    (get-register register)))
+  (let ((reg (get-register register))
+        (text (filter-buffer-substring start end)))
+    (set-register
+     register (cond ((not reg) text)
+                    ((stringp reg) (concat text reg))
+                    (t (error "Register does not contain text")))))
   (if delete-flag (delete-region start end)))
 
 (defun copy-rectangle-to-register (register start end &optional delete-flag)
