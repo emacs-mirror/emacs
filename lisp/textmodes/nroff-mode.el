@@ -132,7 +132,8 @@ closing requests for requests that are used in matched pairs."
   (set (make-local-variable 'comment-start-skip) "\\\\[\"#][ \t]*")
   (set (make-local-variable 'comment-column) 24)
   (set (make-local-variable 'comment-indent-function) 'nroff-comment-indent)
-  (set (make-local-variable 'indent-line-function) 'nroff-indent-line-function)
+  (set (make-local-variable 'comment-insert-comment-function)
+       'nroff-insert-comment-function)
   (set (make-local-variable 'imenu-generic-expression) nroff-imenu-expression))
 
 (defun nroff-outline-level ()
@@ -152,6 +153,7 @@ Puts a full-stop before comments on a line by themselves."
 	  (skip-chars-backward " \t")
 	  (if (bolp)
 	      (progn
+		;; FIXME delete-horizontal-space?
 		(setq pt (1+ pt))
 		(insert ?.)
 		1)
@@ -164,18 +166,11 @@ Puts a full-stop before comments on a line by themselves."
 			      9) 8)))))) ; add 9 to ensure at least two blanks
       (goto-char pt))))
 
-;; All this does is insert a "." at the start of comment-lines,
-;; for the sake of comment-dwim adding a new comment on an empty line.
-;; Hack! The right fix probably involves ;; comment-insert-comment-function,
-;; but comment-dwim does not call that for the empty line case.
 ;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01869.html
-(defun nroff-indent-line-function ()
-  "Function for `indent-line-function' in `nroff-mode'."
-  (save-excursion
-    (forward-line 0)
-    (when (looking-at "[ \t]*\\\\\"[ \t]*") ; \# does not need this
-      (delete-horizontal-space)
-      (insert ?.))))
+(defun nroff-insert-comment-function ()
+  "Function for `comment-insert-comment-function' in `nroff-mode'."
+  (indent-to (nroff-comment-indent))
+  (insert comment-start))
 
 (defun nroff-count-text-lines (start end &optional print)
   "Count lines in region, except for nroff request lines.
