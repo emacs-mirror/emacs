@@ -1,3 +1,18 @@
+2007-11-03  Glenn Morris  <rgm@gnu.org>
+
+	* newcomment.el (comment-dwim): Call comment-insert-comment-function,
+	if defined, for blank lines.  Doc fix.
+
+	* progmodes/fortran.el (fortran-mode-map): Don't bind M-;.
+	(fortran-mode): Set values for comment-region-function,
+	uncomment-region-function and comment-insert-comment-function.
+	(fortran-uncomment-region): New function.
+
+	* textmodes/nroff-mode.el (nroff-mode): Set
+	comment-insert-comment-function rather than indent-line-function.
+	(nroff-indent-line-function): Remove.
+	(nroff-insert-comment-function): New function.
+
 2007-11-02  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* ediff-vers.el (ediff-vc-working-revision): Add a quote.
