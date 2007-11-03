@@ -1,3 +1,8 @@
+2007-11-03  Sean O'Rourke  <seano@cs.ucla.edu>
+
+	* register.el (append-to-register, prepend-to-register):
+	Don't signal error on empty register; use the text, instead.
+
 2007-11-03  Michael Olson  <mwolson@gnu.org>
 
 	* textmodes/remember.el (remember-buffer): Use
