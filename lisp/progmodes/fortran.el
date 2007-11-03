@@ -593,7 +593,8 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
   (let ((map (make-sparse-keymap)))
     (define-key map ";"        'fortran-abbrev-start)
     (define-key map "\C-c;"    'fortran-comment-region)
-    (define-key map "\M-;"     'fortran-indent-comment)
+    ;; The default comment-dwim does at least as much as this.
+;;;    (define-key map "\M-;"     'fortran-indent-comment)
     (define-key map "\M-\n"    'fortran-split-line)
     (define-key map "\M-\C-n"  'fortran-end-of-block)
     (define-key map "\M-\C-p"  'fortran-beginning-of-block)
@@ -841,6 +842,11 @@ with no args, if that value is non-nil."
        ;; (concat "\\(\\)\\(![ \t]*\\|" fortran-comment-line-start-skip "\\)")
        "\\(\\)\\(?:^[CcDd*]\\|!\\)\\(?:\\([^ \t\n]\\)\\2+\\)?[ \t]*")
   (set (make-local-variable 'comment-indent-function) 'fortran-comment-indent)
+  (set (make-local-variable 'comment-region-function) 'fortran-comment-region)
+  (set (make-local-variable 'uncomment-region-function)
+       'fortran-uncomment-region)
+  (set (make-local-variable 'comment-insert-comment-function)
+       'fortran-indent-comment)
   (set (make-local-variable 'abbrev-all-caps) t)
   (set (make-local-variable 'normal-auto-fill-function) 'fortran-auto-fill)
   (set (make-local-variable 'indent-tabs-mode) (fortran-analyze-file-format))
@@ -980,6 +986,11 @@ With non-nil ARG, uncomments the region."
     (goto-char save-point)
     (set-marker end-region-mark nil)
     (set-marker save-point nil)))
+
+;; uncomment-region calls this with 3 args.
+(defun fortran-uncomment-region (start end &optional ignored)
+  "Uncomment every line in the region."
+  (fortran-comment-region start end t))
 
 
 (defun fortran-abbrev-start ()
