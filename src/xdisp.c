@@ -3073,16 +3073,18 @@ handle_stop (it)
 	  if (it->method == GET_FROM_DISPLAY_VECTOR)
 	    handle_overlay_change_p = 0;
 
-	  /* Handle overlay changes.  */
+	  /* Handle overlay changes.
+	     This sets HANDLED to HANDLED_RECOMPUTE_PROPS
+	     if it finds overlays.  */
 	  if (handle_overlay_change_p)
 	    handled = handle_overlay_change (it);
-
-	  /* Determine where to stop next.  */
-	  if (handled == HANDLED_NORMALLY)
-	    compute_stop_pos (it);
 	}
     }
   while (handled == HANDLED_RECOMPUTE_PROPS);
+
+  /* Determine where to stop next.  */
+  if (handled == HANDLED_NORMALLY)
+    compute_stop_pos (it);
 }
 
 
