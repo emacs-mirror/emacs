@@ -1,3 +1,16 @@
+2007-11-04  Glenn Morris  <rgm@gnu.org>
+
+	* net/tls.el: Don't require rx when compiling.
+	(tls-end-of-info): Rewrite without using rx.
+	(open-tls-stream): Use with-current-buffer.
+
+2007-11-04  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* net/tls.el: Require rx when compiling.
+	(tls-end-of-info): New variable.
+	(open-tls-stream): Keep reading input until `tls-end-of-info' is
+	matched.
+
 2007-11-03  Sean O'Rourke  <seano@cs.ucla.edu>
 
 	* register.el (append-to-register, prepend-to-register):
