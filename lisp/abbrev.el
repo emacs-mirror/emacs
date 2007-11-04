@@ -434,7 +434,7 @@ This is similar to an `around' advice."
                       ,(if (symbolp var)
                            `(if (local-variable-p ',var)
                                 (default-value ',var)))))))
-         
+
 
 ;;; Code that used to be implemented in src/abbrev.c
 
@@ -637,7 +637,7 @@ either a single abbrev table or a list of abbrev tables."
                 (if (listp (cdr x))
                     (append (cdr x) tables) (cons (cdr x) tables)))))
       tables))))
-          
+
 
 (defun abbrev-symbol (abbrev &optional table)
   "Return the symbol representing abbrev named ABBREV.
@@ -665,7 +665,7 @@ The default is to try buffer's mode-specific abbrev table, then global table."
                            sym)))))))
     (if (symbol-value sym)
         sym)))
-	       
+
 
 (defun abbrev-expansion (abbrev &optional table)
   "Return the string that ABBREV expands into in the current buffer.
@@ -697,7 +697,7 @@ then ABBREV is looked up in that table only."
             (setq name (buffer-substring start end))
             (goto-char pos)               ; Restore point.
             (list (abbrev-symbol name tables) name start end)))
-        
+
       (while (and tables (not (car res)))
         (let* ((table (pop tables))
                (enable-fun (abbrev-table-get table :enable-function)))
@@ -889,7 +889,7 @@ Properties with special meaning:
   abbreviations.
 - `:case-fixed' non-nil means that abbreviations are looked up without
   case-folding, and the expansion is not capitalized/upcased.
-- `:regexp' describes the form of abbrevs.  It defaults to \\<\\(\\w+\\)\\W* which
+- `:regexp' describes the form of abbrevs.  It defaults to \\=\\<\\(\\w+\\)\\W* which
   means that an abbrev can only be a single word.  The submatch 1 is treated
   as the potential name of an abbrev.
 - `:enable-function' can be set to a function of no argument which returns
