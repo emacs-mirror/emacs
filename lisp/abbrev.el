@@ -753,9 +753,11 @@ Returns the abbrev symbol, if expansion took place."
           ;; If this abbrev has an expansion, delete the abbrev
           ;; and insert the expansion.
           (when (stringp (symbol-value sym))
-            (goto-char wordend)
+            (goto-char wordstart)
+            ;; Insert at beginning so that markers at the end (e.g. point)
+            ;; are preserved.
             (insert (symbol-value sym))
-            (delete-region wordstart wordend)
+            (delete-char (- wordend wordstart))
             (let ((case-fold-search nil))
               ;; If the abbrev's name is different from the buffer text (the
               ;; only difference should be capitalization), then we may want
@@ -778,7 +780,10 @@ Returns the abbrev symbol, if expansion took place."
                     (goto-char wordstart)
                     (skip-syntax-forward "^w" (1- end))
                     ;; Change just that.
-                    (upcase-initials-region (point) (1+ (point))))))))
+                    (upcase-initials-region (point) (1+ (point)))
+                    (goto-char end))))))
+          ;; Now point is at the end of the expansion and the beginning is
+          ;; in last-abbrev-location.
           (when (symbol-function sym)
             (let* ((hook (symbol-function sym))
                    (expanded

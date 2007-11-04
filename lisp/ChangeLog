@@ -1,3 +1,7 @@
+2007-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (expand-abbrev): Move point back to expansion's end.
+
 2007-11-04  Glenn Morris  <rgm@gnu.org>
 
 	* net/tls.el: Don't require rx when compiling.
@@ -18,8 +22,8 @@
 
 2007-11-03  Michael Olson  <mwolson@gnu.org>
 
-	* textmodes/remember.el (remember-buffer): Use
-	define-obsolete-function-alias rather than defalias.
+	* textmodes/remember.el (remember-buffer):
+	Use define-obsolete-function-alias rather than defalias.
 
 2007-11-03  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
@@ -35,8 +39,8 @@
 	uncomment-region-function and comment-insert-comment-function.
 	(fortran-uncomment-region): New function.
 
-	* textmodes/nroff-mode.el (nroff-mode): Set
-	comment-insert-comment-function rather than indent-line-function.
+	* textmodes/nroff-mode.el (nroff-mode):
+	Set comment-insert-comment-function rather than indent-line-function.
 	(nroff-indent-line-function): Remove.
 	(nroff-insert-comment-function): New function.
 
