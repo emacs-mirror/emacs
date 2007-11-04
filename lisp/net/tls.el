@@ -51,37 +51,25 @@
   (autoload 'format-spec "format-spec")
   (autoload 'format-spec-make "format-spec"))
 
-(eval-when-compile
-  (require 'rx))
-
 (defgroup tls nil
   "Transport Layer Security (TLS) parameters."
   :group 'comm)
 
 (defcustom tls-end-of-info
-  (rx
-   (or
-    ;; `openssl s_client` regexp
-    (sequence
-     ;; see ssl/ssl_txt.c lines 219--220
-     line-start
-     "    Verify return code: "
-     (one-or-more not-newline)
-     "\n"
-     ;; according to apps/s_client.c line 1515 this is always the last
-     ;; line that is printed by s_client before the real data
-     "---\n")
-    ;; `gnutls` regexp
-    (sequence
-     ;; see src/cli.c lines 721--
-     (sequence line-start "- Simple Client Mode:\n")
-     (zero-or-more
-      (or
-       "\n"                             ; ignore blank lines
-       ;; XXX: we have no way of knowing if the STARTTLS handshake
-       ;; sequence has completed successfully, because `gnutls` will
-       ;; only report failure.
-       (sequence line-start "\*\*\* Starting TLS handshake\n"))))))
+  (concat
+   "\\("
+   ;; `openssl s_client' regexp.  See ssl/ssl_txt.c lines 219-220.
+   ;; According to apps/s_client.c line 1515 `---' is always the last
+   ;; line that is printed by s_client before the real data.
+   "^    Verify return code: .+\n---\n\\|"
+   ;; `gnutls' regexp. See src/cli.c lines 721-.
+   "^- Simple Client Mode:\n"
+   "\\(\n\\|"                           ; ignore blank lines
+   ;; XXX: We have no way of knowing if the STARTTLS handshake sequence
+   ;; has completed successfully, because `gnutls' will only report
+   ;; failure.
+   "^\\*\\*\\* Starting TLS handshake\n\\)*"
+   "\\)")
   "Regexp matching end of TLS client informational messages.
 Client data stream begins after the last character matched by
 this.  The default matches `openssl s_client' (version 0.9.8c)
@@ -165,8 +153,7 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	process	cmd done)
     (if use-temp-buffer
 	(setq buffer (generate-new-buffer " TLS")))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (message "Opening TLS connection to `%s'..." host)
       (while (and (not done) (setq cmd (pop cmds)))
 	(message "Opening TLS connection with `%s'..." cmd)
