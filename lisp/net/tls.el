@@ -51,9 +51,44 @@
   (autoload 'format-spec "format-spec")
   (autoload 'format-spec-make "format-spec"))
 
+(eval-when-compile
+  (require 'rx))
+
 (defgroup tls nil
   "Transport Layer Security (TLS) parameters."
   :group 'comm)
+
+(defcustom tls-end-of-info
+  (rx
+   (or
+    ;; `openssl s_client` regexp
+    (sequence
+     ;; see ssl/ssl_txt.c lines 219--220
+     line-start
+     "    Verify return code: "
+     (one-or-more not-newline)
+     "\n"
+     ;; according to apps/s_client.c line 1515 this is always the last
+     ;; line that is printed by s_client before the real data
+     "---\n")
+    ;; `gnutls` regexp
+    (sequence
+     ;; see src/cli.c lines 721--
+     (sequence line-start "- Simple Client Mode:\n")
+     (zero-or-more
+      (or
+       "\n"                             ; ignore blank lines
+       ;; XXX: we have no way of knowing if the STARTTLS handshake
+       ;; sequence has completed successfully, because `gnutls` will
+       ;; only report failure.
+       (sequence line-start "\*\*\* Starting TLS handshake\n"))))))
+  "Regexp matching end of TLS client informational messages.
+Client data stream begins after the last character matched by
+this.  The default matches `openssl s_client' (version 0.9.8c)
+and `gnutls-cli' (version 2.0.1) output."
+  :version "22.2"
+  :type 'regexp
+  :group 'tls)
 
 (defcustom tls-program '("gnutls-cli -p %p %h"
 			 "gnutls-cli -p %p %h --protocols ssl3"
@@ -130,35 +165,52 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	process	cmd done)
     (if use-temp-buffer
 	(setq buffer (generate-new-buffer " TLS")))
-    (message "Opening TLS connection to `%s'..." host)
-    (while (and (not done) (setq cmd (pop cmds)))
-      (message "Opening TLS connection with `%s'..." cmd)
-      (let ((process-connection-type tls-process-connection-type)
-	    response)
-	(setq process (start-process
-		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?h host
-			 ?p (if (integerp port)
-				(int-to-string port)
-			      port)))))
-	(while (and process
-		    (memq (process-status process) '(open run))
-		    (save-excursion
-		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
-		      (goto-char (point-min))
-		      (not (setq done (re-search-forward tls-success nil t)))))
-	  (unless (accept-process-output process 1)
-            (sit-for 1)))
-	(message "Opening TLS connection with `%s'...%s" cmd
-		 (if done "done" "failed"))
-	(if done
-	    (setq done process)
-	  (delete-process process))))
-    (message "Opening TLS connection to `%s'...%s"
-	     host (if done "done" "failed"))
+    (save-excursion
+      (set-buffer buffer)
+      (message "Opening TLS connection to `%s'..." host)
+      (while (and (not done) (setq cmd (pop cmds)))
+	(message "Opening TLS connection with `%s'..." cmd)
+	(let ((process-connection-type tls-process-connection-type)
+	      response)
+	  (setq process (start-process
+			 name buffer shell-file-name shell-command-switch
+			 (format-spec
+			  cmd
+			  (format-spec-make
+			   ?h host
+			   ?p (if (integerp port)
+				  (int-to-string port)
+				port)))))
+	  (while (and process
+		      (memq (process-status process) '(open run))
+		      (progn
+			(goto-char (point-min))
+			(not (setq done (re-search-forward tls-success nil t)))))
+	    (unless (accept-process-output process 1)
+	      (sit-for 1)))
+	  (message "Opening TLS connection with `%s'...%s" cmd
+		   (if done "done" "failed"))
+	  (if (not done)
+	      (delete-process process)
+	    ;; advance point to after all informational messages that
+	    ;; `openssl s_client' and `gnutls' print
+	    (let ((start-of-data nil))
+	      (while
+		  (not (setq start-of-data
+			     ;; the string matching `tls-end-of-info'
+			     ;; might come in separate chunks from
+			     ;; `accept-process-output', so start the
+			     ;; search where `tls-success' ended
+			     (save-excursion
+			       (if (re-search-forward tls-end-of-info nil t)
+				   (match-end 0)))))
+		(accept-process-output process 1))
+	      (if start-of-data
+		  ;; move point to start of client data
+		  (goto-char start-of-data)))
+	    (setq done process))))
+      (message "Opening TLS connection to `%s'...%s"
+	       host (if done "done" "failed")))
     (when use-temp-buffer
       (if done (set-process-buffer process nil))
       (kill-buffer buffer))
