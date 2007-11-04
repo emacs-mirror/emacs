@@ -7706,19 +7706,22 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   return lookup_face (f, attrs, 0, NULL);
 }
 
-/* Return the face ID associated with buffer position POS for
-   displaying ASCII characters, but without overlays.
-   Like face_at_buffer_position except it ignores overlays.  */
+/* Return the face ID at buffer position POS for displaying ASCII
+   characters associated with overlay strings for overlay OVERLAY.
+
+   Like face_at_buffer_position except for OVERLAY.  Currently it
+   simply disregards the `face' properties of all overlays.  */
 
 int
-face_at_buffer_position_no_overlays (w, pos, region_beg, region_end,
-				     endptr, limit, mouse)
+face_for_overlay_string (w, pos, region_beg, region_end,
+			 endptr, limit, mouse, overlay)
      struct window *w;
      int pos;
      int region_beg, region_end;
      int *endptr;
      int limit;
      int mouse;
+     Lisp_Object overlay;
 {
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
