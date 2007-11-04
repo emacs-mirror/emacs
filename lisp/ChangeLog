@@ -1,3 +1,10 @@
+2007-11-04  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* net/tls.el: Require rx when compiling.
+	(tls-end-of-info): New variable.
+	(open-tls-stream): Keep reading input until `tls-end-of-info' is
+	matched.
+
 2007-11-03  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
 	* simple.el (bad-packages-alist): Anchor semantic regexp.
