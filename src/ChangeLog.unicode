@@ -1,3 +1,14 @@
+2007-11-05  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_prop_validate_symbol): The argument prop_index is
+	deleted.
+	(font_prop_validate_style, font_prop_validate_non_neg)
+	(font_prop_validate_spacing): Likewise.
+	(font_property_table): Arguments to validater changed.  Callers
+	changed.
+	(font_lispy_object): Deleted.
+	(font_at): Use font_find_object instead fo font_lispy_object.
+
 2007-11-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fileio.c (Fexpand_file_name): Adjust multibyteness of directory
