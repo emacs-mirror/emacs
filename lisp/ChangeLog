@@ -16,6 +16,7 @@
 
 	* info.el (Info-revert-buffer-function): New func.
 	(Info-mode): Arrange to use it for reverting.
+	(Info-copy-current-node-name): Add space between filename and nodename.
 
 2007-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
