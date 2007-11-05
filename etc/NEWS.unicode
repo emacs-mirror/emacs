@@ -1,7 +1,9 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
-          Free Software Foundation, Inc.
+Copyright (C) 2007 Free Software Foundation, Inc.
+Copyright (C) 2007
+  National Institute of Advanced Industrial Science and Technology (AIST)
+  Registration Number H14PRO021
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -9,10 +11,8 @@ If possible, use M-x report-emacs-bug.
 
 This file is about changes in the Emacs "unicode" branch.
 
-Fixme: The notes about Emacs 23 are quite incomplete.
-
 
-* Changes in Emacs 23.1
+* Changes in Emacs Unicode
 
 ** The Emacs character set is now a superset of Unicode.  
 (It has about four times the code space, which should be plenty).
@@ -22,10 +22,6 @@ Unicode-based and called `utf-8-emacs'.  utf-8-emacs is backwards
 compatible with the UTF-8 encoding of Unicode.  The `emacs-mule'
 coding system can still read and write data in the old internal
 encoding.
-
-There are still charsets which contain disjoint sets of characters
-where this is necessary or useful, especially for various Far Eastern
-sets which are problematic with Unicode.
 
 Since the internal encoding is also used by default for byte-compiled
 files -- i.e. the normal coding system for byte-compiled Lisp files is
@@ -47,44 +43,209 @@ as tables of unicodes.
 The dimension of a charset is now 0, 1, 2, or 3, and the size of each
 dimension is no longer limited to 94 or 96.
 
-Generic characters no longer exist.  
-
 A dynamic charset priority list is used to infer the charset of
-unicodes for display &c.
+characters for display.
+
+** New minor mode Auto Composition Mode composes characters automatically
+when they are displayed.  This mode is globally on by default.
+
+** Emacs now supports local fonts (fonts installed in the same machine
+as Emacs is running) by freetype and fontconfig libraries.  On X, they
+are drived via Xft library with antialias support.  Fontconfig-like
+font names (e.g. monospace-12) are also accepted.
+
+** New language environments Chinese-GBK, Chinese-GB18030, and
+TaiViet.
 
 ** The following facilities are obsolete:
 
 Minor modes: unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
 
 
-* Lisp changes in Emacs 23.1
+* Lisp changes in Emacs Unicode
 
-map-char-table's behaviour has changed.
+** Character code, representation, and charset changes.
 
-New functions: characterp, max-char, map-charset-chars,
-define-charset-alias, primary-charset, set-primary-charset,
-unify-charset, clear-charset-maps, charset-priority-list,
-set-charset-priority, define-coding-system,
-define-coding-system-alias, coding-system-aliases, langinfo,
-string-to-multibyte.
+Now character code space is 0x0..0x3FFFFF with no gap.  Among them,
+characters of code 0x0..0x10FFFF are Unicode characters of the same
+code points.  Characters of code 0x3FFF80..0x3FFFFF are raw 8-bit
+bytes.
 
-Changed functions: copy-sequence, decode-char, encode-char,
-set-fontset-font, new-fontset, modify-syntax-entry, define-charset,
-modify-category-entry
+Generic characters no longer exist.  
 
-Obsoleted: char-bytes, chars-in-region, set-coding-priority,
-char-valid-p
+In buffer and string, characters are represented by UTF-8 byte
+sequence in a multibyte buffer/string.
+
+The concept of charset is changed.  A single character may belong to
+multiple charset (e.g. a-grave (U+00E0) belongs to charsets unicode,
+iso-8859-1, iso-8859-3, and etc).
+
+*** The new function `characterp' returns t if and only if the argument
+is a character.
+
+*** The new function `max-char' returns the maximum character code
+(currently it is #x3FFFFF).
+
+*** The function `encode-char' and `decode-char' now accepts any
+character sets.
+
+*** The function `define-charset' now accepts completely different
+form of argments (old-style arguments still works).
+
+*** The new function `define-charset-alias' defines an alias of a
+charset.
+
+*** The value of the function `char-charset' depends of the current
+priorities of charsets.
+
+*** The new function `charset-priority-list' returns the list of
+charsets ordered by priority.
+
+*** The new function `set-charset-priority' sets pliorities of
+charsets.
+
+*** The new function `unibyte-charset' returns the current unibyte
+charset.  The unibyte charset determins how unibyte/multibyte
+conversion is done.
+
+*** The new function `set-unibyte-charset' sets the unibyte charset.
+
+*** The new function `unibyte-string' make a unibyte string from
+bytes.
+
+** Code conversion changes
+
+*** The new function `define-coding-system' should be used to define a
+coding system instead of `make-coding-system' (which is obsolete now).
+
+*** The functions `encode-coding-region' and `decode-coding-region'
+have the optional 4th argument to specify where the result of
+conversion should go.
+
+*** The functions `encode-coding-string' and `decode-coding-string'
+have the optional 4th argument specifying a buffer to store the result
+of conversion.
+
+*** The new fuction `with-coding-priority' executs the body part with
+the specified coding system priority order.
+
+*** The new function `check-coding-systems-region' checks if the text
+in the region is encodable by the specified coding systems.
+
+*** The new function `coding-system-aliases' returns a list of aliases
+of a coding system.
+
+*** The new function `coding-system-charset-list' returns a list of
+charsets supported by a coding system.
+
+*** The new funciton `coding-system-priority-list' returns a list of
+coding systems ordered by their priorities.
+
+*** Thew new function `set-coding-system-priority' sets priorities of
+coding systems.
+
+** Composition changes
+
+*** New functions and variables `auto-composition-mode' and
+`global-auto-composition-mode' toggles the new minor mode Auto
+Composition Mode locally and globally.
+
+*** New variable `auto-composition-function' is a function used in
+Auto Composition Mode to compose characters.  The default value is the
+function `auto-compose-chars'.
+
+*** New variable `auto-compose-current-font' is set to the current
+font-object while characters are being composed in Auto Composition
+Mode.
+
+** Font Backend changes.
+
+*** New frame parameter `font-backend' specifies a list of
+font-backends supported by the frame's graphic device.  On X, they are
+currently `x' and `xft'.
+
+*** New function `fontp' checks if the argument is a font-spec
+or font-entity.
+
+*** New function `font-spec' creates a new font-spec object.
+
+*** New function `font-get' returns a font property value.
+
+*** New function `font-put' sets a font property value.
+
+*** New function `list-fonts' returns a list of font-entities matching
+with the give specificaiton.
+
+*** New function `list-families' returns a list family names of
+available fonts.
+
+*** New function `font-font' returns a font-entity best matching with
+the given specification.
+
+*** New function `font-xlfd-name' returns an XLFD name of a give font
+(font-spec, font-entity, or font-object).
+
+*** New function `clear-font-cache' clears all font caches.
+
+** The function get-char-code-property now accepts many Unicode base
+character properties.  They are `name', `general-category',
+`canonical-combining-class', `bidi-class', `decomposition',
+`decimal-digit-value', `digit-value', `numeric-value', `mirrord',
+`old-name', `iso-10646-comment', `uppercase', `lowercase', and
+`titlecase'.
+
+** Thew new function `define-char-code-property' defines a character
+code property.
+
+** The new function `char-code-property-description' returns the
+description string of a cahracter code property.
+
+*** The new variable `find-word-boundary-function-table' is a
+char-table of functions to search for a word boundary.
+
+*** The new variable `char-script-table' is a char-table of script
+names.
+
+*** The new variable `char-width-table' is a char-table of character
+widths.
+
+*** The new variable `print-charset-text-property' controls how to
+handle `charset' text property on printing a string.
+
+*** Thew new variable `printable-chars' is a char-table defining if a
+character is printable or not.
+
+*** The new function `robin-define-package' defines a Robin package
+which is an input method system different from Quail.
+
+*** The new function `robin-modify-package' modifies an existing Robin
+package.
+
+*** The new function `robin-use-package' start using a Robin package
+as an input method.
+
+** The functions `modify-syntax-entry' and `modify-category-entry' now
+accepts a cons of characters as the first argument, and modify all
+entries in that range of characters.
+
+** The function `set-fontset-font' now accepts a script name as the
+second argument, and has the optional 5th argument to control how to
+set the font.
+
+** The functions `char-bytes', `chars-in-region', `set-coding-priority',
+, `make-coding-system', and `char-valid-p' are now obsolete.
 
 
 * Incompatible Lisp changes
 
-Deleted functions: make-coding-system, register-char-codings,
-coding-system-spec
+** The behavior of map-char-table has changed.  It may call the
+specified function with a cons (FROM . TO) as a key if characters in
+that range has the same value.
 
-** The character codes for characters from the
-eight-bit-control/eight-bit-graphic charsets aren't now in the range
-128-255.
+** The value of the function `charset-id' is now always 0.
 
+** The functions `register-char-codings' and `coding-system-spec' are
+deleted.
 
 
 ----------------------------------------------------------------------
