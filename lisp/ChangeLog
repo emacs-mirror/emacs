@@ -1,3 +1,8 @@
+2007-11-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-wait-for-output): Ignore escape sequences in
+	the prompt.
+
 2007-10-05  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* wdired.el (wdired-use-dired-vertical-movement): Doc fix.

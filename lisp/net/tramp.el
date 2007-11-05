@@ -6197,7 +6197,9 @@ function waits for output unless NOOUTPUT is set."
     (let ((found
 	   (tramp-wait-for-regexp
 	    proc timeout
-	    (format "^%s\r?$" (regexp-quote tramp-end-of-output)))))
+	    ;; Initially, `tramp-end-of-output' is "$ ".  There might
+	    ;; be leading escape sequences, which must be ignored.
+ 	    (format "^[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output)))))
       (if found
 	  (let (buffer-read-only)
 	    (goto-char (point-max))
