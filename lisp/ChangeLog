@@ -1,3 +1,7 @@
+2007-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (abbrev--write): Fix up typo.
+
 2007-11-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* abbrev.el (define-abbrev-table): Doc fix.
