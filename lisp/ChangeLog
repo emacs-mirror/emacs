@@ -1,3 +1,7 @@
+2007-11-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-gdb): Remove vestigial gdba doc and code.
+
 2007-11-04  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* net/tls.el: Require rx when compiling.
