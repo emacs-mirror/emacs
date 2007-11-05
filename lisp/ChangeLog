@@ -1,3 +1,9 @@
+2007-11-05  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/utf-7.el (utf-7-imap): New coding system.
+	(utf-7-imap-post-read-conversion): New function.
+	(utf-7-imap-pre-write-conversion): New function.
+
 2007-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (abbrev--write): Fix up typo.
