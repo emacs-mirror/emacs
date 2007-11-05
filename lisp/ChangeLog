@@ -1,3 +1,7 @@
+2007-11-05  Simon Josefsson  <simon@josefsson.org>
+
+	* net/tls.el (tls-end-of-info): Doc fix.
+
 2007-11-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/utf-7.el (utf-7-imap): New coding system.

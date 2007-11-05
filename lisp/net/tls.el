@@ -65,9 +65,9 @@
    ;; `gnutls' regexp. See src/cli.c lines 721-.
    "^- Simple Client Mode:\n"
    "\\(\n\\|"                           ; ignore blank lines
-   ;; XXX: We have no way of knowing if the STARTTLS handshake sequence
-   ;; has completed successfully, because `gnutls' will only report
-   ;; failure.
+   ;; According to src/cli.c lines 640-650 and 705-715 the handshake
+   ;; will start after this message.  If the handshake fails, the
+   ;; programs will abort.
    "^\\*\\*\\* Starting TLS handshake\n\\)*"
    "\\)")
   "Regexp matching end of TLS client informational messages.
