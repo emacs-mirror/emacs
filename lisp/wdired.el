@@ -130,8 +130,8 @@ is not nil."
   "If t, the \"up\" and \"down\" movement works as in Dired mode.
 That is, always move the point to the beginning of the filename at line.
 
-If `sometimes, only move to the beginning of filename if the point is
-before it, and `track-eol' is honored.  This behavior is very handy
+If `sometimes', only move to the beginning of filename if the point is
+before it, and `track-eol' is non-nil.  This behavior is very handy
 when editing several filenames.
 
 If nil, \"up\" and \"down\" movement is done as in any other buffer."
