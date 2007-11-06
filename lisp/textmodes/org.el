@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 5.13g
+;; Version: 5.13i
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -83,7 +83,7 @@
 
 ;;; Version
 
-(defconst org-version "5.13g"
+(defconst org-version "5.13i"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -9780,7 +9780,6 @@ With prefix arg ALL, do this for all lines in the table."
 
 (defun org-table-formula-substitute-names (f)
   "Replace $const with values in string F."
-  (message "form %s" f) (sit-for 1)
   (let ((start 0) a (f1 f) (pp (/= (string-to-char f) ?')))
     ;; First, check for column names
     (while (setq start (string-match org-table-column-name-regexp f start))
