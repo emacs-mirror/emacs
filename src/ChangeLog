@@ -1,3 +1,8 @@
+2007-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
+	abort with a message on unhandled store_type values.
+
 2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c, xfns.c, xselect.c, xterm.h, s/msdos.h, s/sco4.h, s/sco5.h:
