@@ -93,7 +93,6 @@
 (autoload 'tramp-set-file-property "tramp-cache")
 (autoload 'tramp-flush-file-property "tramp-cache")
 (autoload 'tramp-flush-directory-property "tramp-cache")
-(autoload 'tramp-cache-print "tramp-cache")
 (autoload 'tramp-get-connection-property "tramp-cache")
 (autoload 'tramp-set-connection-property "tramp-cache")
 (autoload 'tramp-flush-connection-property "tramp-cache")

@@ -61,12 +61,12 @@ When called interactively, a Tramp connection has to be selected."
     (let ((connections
 	   (mapcar
 	    (lambda (x)
-	      (with-current-buffer x (list (file-remote-p default-directory))))
-	    ;; We shall not count debug buffers, because their
-	    ;; default-directory is random.  It could be even a remote
-	    ;; one from another connection.
-	    (all-completions
-	     "*tramp" (mapcar 'list (tramp-list-tramp-buffers)))))
+	      (tramp-make-tramp-file-name
+	       (tramp-file-name-method x)
+	       (tramp-file-name-user x)
+	       (tramp-file-name-host x)
+	       (tramp-file-name-localname x)))
+	    (tramp-cache-list-connections)))
 	  name)
 
       (when connections

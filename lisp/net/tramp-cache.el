@@ -138,26 +138,6 @@ Remove also properties of all files in subdirectories."
 	  (remhash key tramp-cache-data)))
      tramp-cache-data)))
 
-(defun tramp-cache-print (table)
-  "Prints hash table TABLE."
-  (when (hash-table-p table)
-    (let (result)
-      (maphash
-       '(lambda (key value)
-	  (let ((tmp (format
-		      "(%s %s)"
-		      (if (processp key)
-			  (prin1-to-string (prin1-to-string key))
-			(prin1-to-string key))
-		      (if (hash-table-p value)
-			  (tramp-cache-print value)
-			(if (bufferp value)
-			    (prin1-to-string (prin1-to-string value))
-			  (prin1-to-string value))))))
-	    (setq result (if result (concat result " " tmp) tmp))))
-       table)
-      result)))
-
 ;; Reverting or killing a buffer should also flush file properties.
 ;; They could have been changed outside Tramp.  In eshell, "ls" would
 ;; not show proper directory contents when a file has been copied or
@@ -235,6 +215,36 @@ function is intended to run also as process sentinel."
     (aset key 3 nil))
 ;  (tramp-message key 7 "%s" event)
   (remhash key tramp-cache-data))
+
+(defun tramp-cache-print (table)
+  "Prints hash table TABLE."
+  (when (hash-table-p table)
+    (let (result)
+      (maphash
+       '(lambda (key value)
+	  (let ((tmp (format
+		      "(%s %s)"
+		      (if (processp key)
+			  (prin1-to-string (prin1-to-string key))
+			(prin1-to-string key))
+		      (if (hash-table-p value)
+			  (tramp-cache-print value)
+			(if (bufferp value)
+			    (prin1-to-string (prin1-to-string value))
+			  (prin1-to-string value))))))
+	    (setq result (if result (concat result " " tmp) tmp))))
+       table)
+      result)))
+
+(defun tramp-cache-list-connections ()
+  "Return a list of all known connection vectors."
+    (let (result)
+      (maphash
+       '(lambda (key value)
+	  (when (and (vectorp key) (null (aref key 3)))
+	    (add-to-list 'result key)))
+       tramp-cache-data)
+      result))
 
 (defun tramp-dump-connection-properties ()
 "Writes persistent connection properties into file
