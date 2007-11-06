@@ -1,7 +1,7 @@
 2007-11-06  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-table-formula-substitute-names): Removed
-	forgotten temporary debugging code.
+	* textmodes/org.el (org-table-formula-substitute-names):
+	Remove forgotten temporary debugging code.
 
 2007-11-05  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -429,6 +429,7 @@
 2007-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* dirtrack.el (dirtrack-mode): Doc fix.
+
 	* shell.el (shell-dirtrack-verbose, shell-mode)
 	(shell-directory-tracker, shell-dirtrack-mode): Doc fix.
 
@@ -542,8 +543,8 @@
 	(.el.elc, compile, compile-always, compile-calc)
 	($(lisp)/progmodes/cc-mode.elc): Use it.
 
-	* ps-print.el (ps-xemacs-color-name, ps-xemacs-face-kind-p): Only
-	do work for XEmacs.
+	* ps-print.el (ps-xemacs-color-name, ps-xemacs-face-kind-p):
+	Only do work for XEmacs.
 	(ps-xemacs-mapper): Rename from ps-mapper, only work on XEmacs.
 	(ps-xemacs-extent-sorter): Rename from ps-extent-sorter, only work
 	on XEmacs.
@@ -559,8 +560,8 @@
 	(ps-e-overlay-end, ps-e-x-color-values, ps-e-color-values):
 	(ps-generate-postscript-with-faces): Delete defaliases.
 	(ps-face-foreground-name, ps-face-background-name)
-	(ps-color-values, ps-face-bold-p, ps-face-italic-p): Move
-	definitions to top level, make the body conditional on the Emacs
+	(ps-color-values, ps-face-bold-p, ps-face-italic-p):
+	Move definitions to top level, make the body conditional on the Emacs
 	flavor.  Replace uses of deleted aliases and renamed functions.
 	(ps-generate-postscript-with-faces, ps-color-device): Replace uses
 	of deleted aliases and renamed functions.
@@ -595,11 +596,11 @@
 
 2007-10-28  Richard Stallman  <rms@gnu.org>
 
-	* net/browse-url.el (browse-url-text-xterm): Renamed from
+	* net/browse-url.el (browse-url-text-xterm): Rename from
 	browse-url-lynx-xterm and made generic.
 	(browse-url-text-emacs): Likewise.
 	(browse-url-text-browser): New variable.
-	(browse-url-text-emacs-args): Renamed from browse-url-lynx-emacs-args.
+	(browse-url-text-emacs-args): Rename from browse-url-lynx-emacs-args.
 	(browse-url-text-input-field, browse-url-text-input-attempts)
 	(browse-url-kde-program): Likewise.
 
