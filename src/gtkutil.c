@@ -3476,6 +3476,25 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
 
               wmenuimage = gtk_image_new_from_pixbuf (dest_pixbuf);
             }
+          else
+            {
+              fprintf (stderr, "internal error: GTK_IMAGE_PIXBUF failed\n");
+              abort ();
+            }
+        }
+      else if (store_type == GTK_IMAGE_ICON_NAME) 
+        {
+          const gchar *icon_name;
+          GtkIconSize icon_size;
+
+          gtk_image_get_icon_name (wimage, &icon_name, &icon_size);
+          wmenuimage = gtk_image_new_from_icon_name (icon_name,
+                                                     GTK_ICON_SIZE_MENU);
+        }
+      else
+        {
+          fprintf (stderr, "internal error: store_type is %d\n", store_type);
+          abort ();
         }
     }
   if (wmenuimage)
