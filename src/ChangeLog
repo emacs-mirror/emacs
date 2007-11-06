@@ -1,3 +1,8 @@
+2007-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
+	abort with a message on unhandled store_type values.
+
 2007-11-03  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (handle_face_prop): Use face_at_buffer_position_no_overlays
