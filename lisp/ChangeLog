@@ -1,3 +1,8 @@
+2007-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-save-history): Write the history file in the current
+	filename coding system, and add `coding' file-local variable.
+
 2007-11-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-table-formula-substitute-names):
