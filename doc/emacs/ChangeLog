@@ -1,3 +1,8 @@
+2007-11-06  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* mule.texi (Select Input Method): Describe how to activate an input
+	method in the text mode.
+
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* cmdargs.texi (Misc Variables): Remove Sun windows info.
