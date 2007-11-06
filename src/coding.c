@@ -8009,7 +8009,7 @@ When called from a program, takes four arguments:
 START and END are buffer positions.
 
 Optional 4th arguments DESTINATION specifies where the decoded text goes.
-If nil, the region between START and END is replace by the decoded text.
+If nil, the region between START and END is replaced by the decoded text.
 If buffer, the decoded text is inserted in the buffer.
 If t, the decoded text is returned.
 
