@@ -3,6 +3,26 @@
 	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
 	abort with a message on unhandled store_type values.
 
+2007-11-04  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_face_prop): Test for strings that came from overlays,
+	not just for after-strings and before-strings.
+	Call face_for_overlay_string and pass the overlay to it.
+	(handle_display_prop): Determine whether property came from an overlay.
+	Pass OVERLAY arg to handle_single_display_spec.
+	(handle_single_display_spec): New arg OVERLAY sets it->from_overlay.
+	(load_overlay_strings): Fill in it->string_overlays.
+	(get_overlay_strings_1, push_it, pop_it): Handle it->from_overlays.
+
+	* xfaces.c (face_for_overlay_string): Function renamed from
+	face_at_buffer_position_no_overlays, and add arg OVERLAY.
+
+	* dispextern.h (struct it): New elt string_overlays.
+	New elt from_overlay, also in stack.
+	Rearrange a few elements.
+	(face_for_overlay_string): Decl renamed from
+	face_at_buffer_position_no_overlays, and add argument.
+	
 2007-11-03  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (handle_face_prop): Use face_at_buffer_position_no_overlays
