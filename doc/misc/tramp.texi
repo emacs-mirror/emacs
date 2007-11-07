@@ -260,6 +260,9 @@ box, one of the more common uses of the package.  This allows
 relatively secure access to machines, especially if @command{ftp}
 access is disabled.
 
+Under Windows, @value{tramp} is integrated with the PuTTY package,
+using the @command{plink} program.
+
 The majority of activity carried out by @value{tramp} requires only that
 the remote login is possible and is carried out at the terminal.  In
 order to access remote files @value{tramp} needs to transfer their content
@@ -269,24 +272,15 @@ to the local machine temporarily.
 The details are easy to select, depending on your needs and the
 machines in question.
 
-The fastest transfer methods (for large files) rely on a remote file
-transfer package such as @command{rcp}, @command{scp} or
-@command{rsync}.
+The fastest transfer methods for large files rely on a remote file
+transfer package such as @command{rcp}, @command{scp}, @command{rsync}
+or (under Windows) @command{pscp}.
 
 If the remote copy methods are not suitable for you, @value{tramp} also
 supports the use of encoded transfers directly through the shell.
 This requires that the @command{mimencode} or @command{uuencode} tools
 are available on the remote machine.  These methods are generally
 faster for small files.
-
-Within these limitations, @value{tramp} is quite powerful.  It is worth
-noting that, as of the time of writing, it is far from a polished
-end-user product.  For a while yet you should expect to run into rough
-edges and problems with the code now and then.
-
-It is finished enough that the developers use it for day to day work but
-the installation and setup can be a little difficult to master, as can
-the terminology.
 
 @value{tramp} is still under active development and any problems you encounter,
 trivial or major, should be reported to the @value{tramp} developers.
@@ -2665,22 +2659,43 @@ remote host.
 @lisp
 (defadvice tramp-handle-write-region
   (after tramp-write-beep-advice activate)
- " make tramp beep after writing a file."
- (interactive)
- (beep))
+  "Make tramp beep after writing a file."
+  (interactive)
+  (beep))
 
 (defadvice tramp-handle-do-copy-or-rename-file
   (after tramp-copy-beep-advice activate)
- " make tramp beep after copying a file."
- (interactive)
- (beep))
+  "Make tramp beep after copying a file."
+  (interactive)
+  (beep))
 
 (defadvice tramp-handle-insert-file-contents
-  (after tramp-copy-beep-advice activate)
- " make tramp beep after copying a file."
- (interactive)
- (beep))
+  (after tramp-insert-beep-advice activate)
+  "Make tramp beep after inserting a file."
+  (interactive)
+  (beep))
 @end lisp
+
+
+@ifset emacs
+@item
+I'ld like to get a Visual Warning when working in a sudo:ed context
+
+When you are working with @samp{root} privileges, it might be useful
+to get an indication in the buffer's modeline.  The following code,
+tested with @value{emacsname} 22.1, does the job.  You should put it
+into your @file{~/.emacs}:
+
+@lisp
+(defun my-mode-line-function ()
+  (when (string-match "^/su\\(do\\)?:" default-directory)
+    (setq mode-line-format
+          (format-mode-line mode-line-format 'font-lock-warning-face))))
+
+(add-hook 'find-file-hooks 'my-mode-line-function)
+(add-hook 'dired-mode-hook 'my-mode-line-function)
+@end lisp
+@end ifset
 
 
 @ifset emacs

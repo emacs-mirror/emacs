@@ -1,3 +1,10 @@
+2007-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Overview): Mention also the PuTTY integration under
+	Win32.  Remove paragraphs about Tramp's experimental status.
+	(Frequently Asked Questions): Add code example for highlighting the
+	mode line.
+
 2007-11-03  Michael Olson  <mwolson@gnu.org>
 
 	* remember.texi: Change mentions of remember-buffer to
