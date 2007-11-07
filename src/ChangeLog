@@ -1,3 +1,10 @@
+2007-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct it): Don't define OVERLAY_STRING_CHUNK_SIZE
+	twice.
+
+	* xdisp.c (handle_face_prop): Fix last change.
+
 2007-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
