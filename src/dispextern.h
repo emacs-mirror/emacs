@@ -1922,7 +1922,6 @@ struct it
   Lisp_Object overlay_strings[OVERLAY_STRING_CHUNK_SIZE];
 
   /* For each overlay string, the overlay it came from.  */
-#define OVERLAY_STRING_CHUNK_SIZE 16
   Lisp_Object string_overlays[OVERLAY_STRING_CHUNK_SIZE];
 
   /* If non-nil, a Lisp string being processed.  If
