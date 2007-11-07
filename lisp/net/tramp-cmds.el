@@ -66,7 +66,7 @@ When called interactively, a Tramp connection has to be selected."
 	       (tramp-file-name-user x)
 	       (tramp-file-name-host x)
 	       (tramp-file-name-localname x)))
-	    (tramp-cache-list-connections)))
+	    (tramp-list-connections)))
 	  name)
 
       (when connections

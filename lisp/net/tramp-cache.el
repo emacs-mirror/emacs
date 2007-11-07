@@ -217,7 +217,7 @@ function is intended to run also as process sentinel."
   (remhash key tramp-cache-data))
 
 (defun tramp-cache-print (table)
-  "Prints hash table TABLE."
+  "Print hash table TABLE."
   (when (hash-table-p table)
     (let (result)
       (maphash
@@ -236,8 +236,8 @@ function is intended to run also as process sentinel."
        table)
       result)))
 
-(defun tramp-cache-list-connections ()
-  "Return a list of all known connection vectors."
+(defun tramp-list-connections ()
+  "Return a list of all known connection vectors according to `tramp-cache'."
     (let (result)
       (maphash
        '(lambda (key value)
@@ -247,8 +247,7 @@ function is intended to run also as process sentinel."
       result))
 
 (defun tramp-dump-connection-properties ()
-"Writes persistent connection properties into file
-`tramp-persistency-file-name'."
+  "Write persistent connection properties into file `tramp-persistency-file-name'."
   ;; We shouldn't fail, otherwise (X)Emacs might not be able to be closed.
   (condition-case nil
       (when (and (hash-table-p tramp-cache-data)

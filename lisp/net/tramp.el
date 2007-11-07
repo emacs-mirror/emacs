@@ -3561,8 +3561,8 @@ beginning of local filename are not substituted."
       ;; Ignore in LOCALNAME everything before "//" or "/~".
       (when (and (stringp localname) (string-match ".+?/\\(/\\|~\\)" localname))
 	(setq filename
-	      (tramp-make-tramp-file-name
-	       method user host (replace-match "\\1" nil nil localname)))
+	      (concat (file-remote-p filename)
+		      (replace-match "\\1" nil nil localname)))
 	;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
 	(when (string-match "~$" filename)
 	  (setq filename (concat filename "/"))))
@@ -5338,7 +5338,9 @@ file exists and nonzero exit status otherwise."
 	   vec 5 "Starting remote shell `%s' for tilde expansion..." shell)
 	  (let ((tramp-end-of-output "$ "))
 	    (tramp-send-command
-	     vec (format "PROMPT_COMMAND='' PS1='$ ' exec %s" shell) t))
+	     vec
+	     (format "PROMPT_COMMAND='' PS1='$ ' PS2='' PS3='' exec %s" shell)
+	     t))
 	  (tramp-message vec 5 "Setting remote shell prompt...")
 	  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we
 	  ;; must use "\n" here, not tramp-rsh-end-of-line.  Kai left the
@@ -5618,7 +5620,7 @@ process to set up.  VEC specifies the connection."
     (tramp-send-command
      vec
      (format
-      "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' %s"
+      "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' PS2='' PS3='' %s"
       (tramp-get-method-parameter
        (tramp-file-name-method vec) 'tramp-remote-sh))
      t))
@@ -5632,6 +5634,12 @@ process to set up.  VEC specifies the connection."
            tramp-end-of-output
 	   tramp-rsh-end-of-line)
    t)
+  ;; If the connection buffer is not empty, the remote shell is
+  ;; echoing, and the prompt has been detected through the echoed
+  ;; command.  We must reread for the real prompt.
+  (with-current-buffer (process-buffer proc)
+    (when (> (point-max) (point-min)) (tramp-wait-for-output proc)))
+  ;; Disable echo.
   (tramp-message vec 5 "Setting up remote shell environment")
   (tramp-send-command vec "stty -inlcr -echo kill '^U' erase '^H'" t)
   ;; Check whether the echo has really been disabled.  Some
