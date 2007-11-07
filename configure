@@ -23840,6 +23840,14 @@ if test "$USE_X_TOOLKIT" = GTK; then
 fi
 
 
+if test "$HAVE_CARBON" = "yes"; then
+   echo
+   echo "Warning: The Mac Carbon port is currently unsupported and has
+known problems.  It is not recommended for use by non-developers.
+Read the emacs-devel archives for more information."
+   echo
+fi
+
 
 # Remove any trailing slashes in these variables.
 test "${prefix}" != NONE &&
