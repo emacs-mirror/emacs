@@ -258,7 +258,7 @@ the form:
 	  (eshell-glob-entries (file-name-as-directory ".") paths))
       (if message-shown
 	  (message nil)))
-    (or (and matches (nreverse matches))
+    (or (and matches (sort matches #'string<))
 	(if eshell-error-if-no-glob
 	    (error "No matches found: %s" glob)
 	  glob))))
