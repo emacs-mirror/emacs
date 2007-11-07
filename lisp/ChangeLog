@@ -1,3 +1,9 @@
+2007-11-07  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* eshell/esh-mode.el (eshell-output-filter):
+	* eshell/esh-proc.el (eshell-insertion-filter, eshell-sentinel):
+	Use `with-current-buffer'.
+
 2007-11-07  Andreas Schwab  <schwab@suse.de>
 
 	* server.el (server-start): Only register cleanup after server was
