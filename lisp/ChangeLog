@@ -1,3 +1,9 @@
+2007-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/tpu-mapper.el (tpu-map-key): Use unless rather than cond.
+	Remove superfluous concats.  Move final set-buffer to
+	non-emacs-specific code.
+
 2007-11-07  Rob Riepel  <riepel@networking.stanford.edu>
 
 	* emulation/tpu-mapper.el (tpu-map-key): Remove un-needed cond branch.
