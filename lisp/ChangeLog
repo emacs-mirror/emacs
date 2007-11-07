@@ -1,3 +1,7 @@
+2007-11-07  David Hansen  <david.hansen@gmx.net>
+
+	* eshell/em-glob.el (eshell-extended-glob): Sort matches.
+
 2007-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/tpu-mapper.el (tpu-map-key): Use unless rather than cond.
