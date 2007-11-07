@@ -1,3 +1,7 @@
+2007-11-07  Rob Riepel  <riepel@networking.stanford.edu>
+
+	* emulation/tpu-mapper.el (tpu-map-key): Remove un-needed cond branch.
+
 2007-11-07  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* eshell/esh-mode.el (eshell-output-filter):
