@@ -50,11 +50,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** lekktu@gmail.com, Oct 11: frame-local variables weirdness
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00519.html
-I proposed a patch, which fixed this and seemed right, but the patch
-caused other problems.  They are being investigated now.
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
