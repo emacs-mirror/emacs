@@ -183,11 +183,7 @@
 	       (insert (format"(global-set-key %s %s)\n" tpu-key func))
 	       (set-buffer "Gold-Keys")
 	       (insert (format "(define-key GOLD-map %s %s)\n" tpu-key gold-func))
-	       (set-buffer "Directions"))
-	      ;; bogosity to get next prompt to come up, if the user hits <CR>!
-	      ;; check periodically to see if this is still needed...
-	      (t
-	       (with-no-warnings (format "%s" tpu-key)))))
+	       (set-buffer "Directions"))))
     (message "Press %s%s: " ident descrip)
     (setq tpu-key-seq (read-event))
     (setq tpu-key (concat "[" (format "%s" tpu-key-seq) "]"))
@@ -196,12 +192,7 @@
 	   (insert (format"(define-key tpu-global-map %s %s)\n" tpu-key func))
 	   (set-buffer "Gold-Keys")
 	   (insert (format "(define-key tpu-gold-map %s %s)\n" tpu-key gold-func))
-	   (set-buffer "Directions"))
-	  ;; bogosity to get next prompt to come up, if the user hits <CR>!
-	  ;; check periodically to see if this is still needed...
-	  ;; byte-opt warns that the return value is unused.
-	  (t
-	   (with-no-warnings (format "%s" tpu-key)))))
+	   (set-buffer "Directions"))))
     tpu-key)
 
 (set-buffer "Keys")
