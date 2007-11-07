@@ -483,6 +483,7 @@ kill any existing server communications subprocess."
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
 	  (add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
 	  (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
+	  (add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
 	  (setq server-process
 		(apply #'make-network-process
 		       :name server-name
@@ -1293,7 +1294,6 @@ only these files will be asked to be saved."
   ;; continue standard unloading
   nil)
 
-(add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
 (defvar server-unload-function 'server-unload-function)
 
 (provide 'server)
