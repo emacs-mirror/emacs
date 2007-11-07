@@ -3369,9 +3369,9 @@ handle_face_prop (it)
       Lisp_Object from_overlay
 	= (it->current.overlay_string_index >= 0
 	   ? it->string_overlays[it->current.overlay_string_index]
-	   : from_overlay);
+	   : Qnil);
 
-      /* See we got to this string directly or indirectly from
+      /* See if we got to this string directly or indirectly from
 	 an overlay property.  That includes the before-string or
 	 after-string of an overlay, strings in display properties
 	 provided by an overlay, their text properties, etc.
