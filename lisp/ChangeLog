@@ -1,3 +1,9 @@
+2007-11-07  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* eshell/esh-mode.el (eshell-output-filter):
+	* eshell/esh-proc.el (eshell-insertion-filter, eshell-sentinel):
+	Use `with-current-buffer'.
+
 2007-11-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-gdb): Remove vestigial gdba doc and code.
