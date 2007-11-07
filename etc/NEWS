@@ -28,6 +28,9 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
+** The Mac Carbon port is no longer supported.
+Instead, use... [what?]
+
 ** configure now checks for libgif before libungif when searching for
 a GIF library.
 
