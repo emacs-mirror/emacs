@@ -1,3 +1,7 @@
+2007-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Deprecate Mac Carbon port.
+
 2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Remove HAVE_X11R5 check.
