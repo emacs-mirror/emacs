@@ -1,3 +1,8 @@
+2007-11-08  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* eshell/em-dirs.el (eshell-expand-multiple-dots): Change regexp to
+	match dir like "a...b".
+
 2007-11-07  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* eshell/esh-mode.el (eshell-output-filter):
