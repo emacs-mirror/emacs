@@ -1,4 +1,4 @@
-2007-11-08  David Hansen  <david.hansen@gmx.net>
+2007-11-08  David Hansen  <david.hansen@gmx.net>  (tiny change)
 
 	* eshell/em-dirs.el (eshell-expand-multiple-dots): Change regexp to
 	match dir like "a...b".
