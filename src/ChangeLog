@@ -1,3 +1,7 @@
+2007-11-07  Jason Rumney  <jasonr@gnu.org>
+
+	* s/windows95.h: Remove.
+
 2007-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
