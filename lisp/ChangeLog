@@ -1,3 +1,8 @@
+2007-11-08  David Hansen  <david.hansen@gmx.net>
+
+	* eshell/em-dirs.el (eshell-expand-multiple-dots): Change regexp to
+	match dir like "a...b".
+
 2007-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-refine-subst): Pass "-d" to diff.
