@@ -1,14 +1,18 @@
+2007-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-refine-subst): Pass "-d" to diff.
+
 2007-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-substitute-in-file-name): Don't
-	expand the remote connection identification.
+	* net/tramp.el (tramp-handle-substitute-in-file-name):
+	Don't expand the remote connection identification.
 	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
 	Set also $PS2 and $PS3 when setting $PS1.  Check for shell echoing
 	before calling stty.
 
 	* net/tramp-cache.el (tramp-cache-print)
 	(tramp-dump-connection-properties): Fix docstring.
-	(tramp-list-connections): Renamed from
+	(tramp-list-connections): Rename from
 	`tramp-cache-list-connections'.
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Apply it.

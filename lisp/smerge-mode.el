@@ -790,12 +790,17 @@ replace chars to try and eliminate some spurious differences."
     (unwind-protect
         (with-temp-buffer
           (let ((coding-system-for-read 'emacs-mule))
-            ;; Don't forget -a to make sure diff treats it as a text file
-            ;; even if it contains \0 and such.
             (call-process diff-command nil t nil
                           (if (and smerge-refine-ignore-whitespace
                                    (not smerge-refine-weight-hack))
-                              "-aw" "-a")
+                              ;; Pass -a so diff treats it as a text file even
+                              ;; if it contains \0 and such.
+                              ;; Pass -d so as to get the smallest change, but
+                              ;; also and more importantly because otherwise it
+                              ;; may happen that diff doesn't behave like
+                              ;; smerge-refine-weight-hack expects it to.
+                              ;; See http://thread.gmane.org/gmane.emacs.devel/82685.
+                              "-awd" "-ad")
                           file1 file2))
           ;; Process diff's output.
           (goto-char (point-min))
