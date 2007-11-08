@@ -6020,7 +6020,8 @@ Gateway hops are already opened."
   "Maybe open a connection VEC.
 Does not do anything if a connection is already open, but re-opens the
 connection if a previous connection has died for some reason."
-  (let ((p (tramp-get-connection-process vec)))
+  (let ((p (tramp-get-connection-process vec))
+	(process-environment (copy-sequence process-environment)))
 
     ;; If too much time has passed since last command was sent, look
     ;; whether process is still alive.  If it isn't, kill it.  When
@@ -6072,7 +6073,6 @@ connection if a previous connection has died for some reason."
       (setenv "PROMPT_COMMAND")
       (setenv "PS1" "$ ")
       (let* ((target-alist (tramp-compute-multi-hops vec))
-	     (process-environment (copy-sequence process-environment))
 	     (process-connection-type tramp-process-connection-type)
 	     (process-adaptive-read-buffering nil)
 	     (coding-system-for-read nil)
