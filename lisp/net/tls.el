@@ -69,7 +69,7 @@
    "^- Simple Client Mode:\n"
    "\\(\n\\|"                           ; ignore blank lines
    ;; According to GnuTLS v2.1.5 src/cli.c lines 640-650 and 705-715
-   ;; in main() the handshake will start after this message.  If the
+   ;; in `main' the handshake will start after this message.  If the
    ;; handshake fails, the programs will abort.
    "^\\*\\*\\* Starting TLS handshake\n\\)*"
    "\\)")
