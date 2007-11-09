@@ -1,3 +1,7 @@
+2007-11-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi, gnus-faq.texi, message.texi: Bump version to 5.10.9.
+
 2007-11-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Remove obscure sentence.

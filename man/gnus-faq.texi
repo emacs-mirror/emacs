@@ -128,7 +128,7 @@ What is the latest version of Gnus?
 Jingle please: Gnus 5.10 is released, get it while it's
 hot! As well as the step in version number is rather
 small, Gnus 5.10 has tons of new features which you
-shouldn't miss. The current release (5.10.8) should be at
+shouldn't miss. The current release (5.10.9) should be at
 least as stable as the latest release of the 5.8 series.
 
 @node [1.2]
