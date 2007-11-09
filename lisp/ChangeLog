@@ -1,3 +1,9 @@
+2007-11-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-do-despool): If ps-lpr-switches is not a list, force
+	it to be one.
+	(ps-print-version): New version 6.8.1.
+
 2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* files.el (enable-local-variables): Doc fix.
@@ -6318,18 +6324,6 @@
 	* pcvs.el (cvs-temp-buffer): Undo last ill-conceived change.
 	Replace it with another one which disables undo before calling
 	erase-buffer and then turns it back on if needed.
-
-2007-07-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: Problem with foreground and background color when
-	printing a buffer with and without faces.  Reported by Christian
-	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
-	(ps-print-version): New version 6.7.5.
-	(ps-default-fg): Change default value to nil, so black color is used
-	when a face does not specify a foreground color.
-	(ps-default-bg): Change default value to nil, so white color is used
-	for background color.
-	(ps-begin-job): Fix code.
 
 2007-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
