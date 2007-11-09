@@ -51,6 +51,9 @@
   (autoload 'format-spec "format-spec")
   (autoload 'format-spec-make "format-spec"))
 
+(eval-when-compile
+  (require 'rx))
+
 (defgroup tls nil
   "Transport Layer Security (TLS) parameters."
   :group 'comm)

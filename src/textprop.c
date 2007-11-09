@@ -713,7 +713,7 @@ POSITION is at the end of OBJECT, both car and cdr are nil.  */)
   Lisp_Object overlay;
   Lisp_Object val
     = get_char_property_and_overlay (position, prop, object, &overlay);
-  return Fcons(val, overlay);
+  return Fcons (val, overlay);
 }
 
 

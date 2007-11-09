@@ -41,6 +41,18 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** raman@users.sf.net, sep 7: Emacs 23.0.50: Segfaults in alloc.c (batch process)
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg00690.html
 
+** undefined reference getopt_long
+Report by Daniel C. Bastos <dbast0s@yahoo.com.br> on bug-gnu-emacs
+from 2007-08-27.  Impossible to procede without more input from OP (as
+of 20070912, emails are bouncing) or someone else who can reproduce this.
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01497.html
+
+** emacs-22.1 with GTK problems (with patches)
+Only outstanding issue seems to be whether Solaris 2.6 GTK can be
+supported in the absence of recursive mutexes, via a change to
+alloc.c, or whether configure should abort.
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
+
 * BUGS
 
 ** Document the changes introduced by multi-tty

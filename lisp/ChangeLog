@@ -1,3 +1,78 @@
+2007-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-gdb): Remove vestigial gdba doc and code.
+
+2007-11-09  Sven Joachim  <svenjoac@gmx.de>
+
+	* dired-aux.el (dired-copy-file-recursive):
+	Preserve directory permissions.
+
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* whitespace.el (whitespace-write-file-hook): Remove interactive spec.
+	(whitespace-unload-function): New-style unload function.  When run,
+	unintern `whitespace-unload-hook' and call `unload-feature' recursively
+	to stop the old hook from messing with the unloading.
+
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/elp.el (elp-report-limit, elp-restore-all)
+	(elp-unset-master, elp-results): Fix typos.
+	(elp-sort-by-function, elp-use-standard-output, elp-recycle-buffers-p):
+	Doc fixes.
+
+	* msb.el (msb--many-menus): Remove variable.
+	(msb-max-menu-items, msb--add-to-menu): Doc fixes.
+	(msb-menu-cond, msb-item-handling-function, msb--create-function-info)
+	(msb--toggle-menu-type): Fix typos in docstrings.
+
+	* shadowfile.el (shadow-inhibit-overload, shadow-remove-from-todo)
+	(shadow-insert-var): Doc fixes.
+	(shadow-file-match, shadow-define-cluster, shadow-define-regexp-group):
+	Reflow docstrings.
+	(shadow-parse-fullname, shadow-read-files): Fix typos in docstrings.
+
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff-hook.el (ediff, ediff-files, ediff-buffers, ebuffers, ediff3)
+	(ediff-files3, ediff-buffers3, ebuffers3, erevision, ediff-revision):
+	Fix typos in autoload docstrings.
+
+2007-11-09  Richard Stallman  <rms@gnu.org>
+
+	* savehist.el (savehist-save): Obey savehist-ignored-variables.
+
+2007-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-delete-out-of-scope): New option.
+	(gdb-var-update-handler-1): Use it.
+
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature): Remove erroneous check for the
+	FEATURE-unload-function variable; check the existence of the
+	function (that's what the docstring says, and it makes more sense).
+
+	* follow.el (follow-unload-function): Add docstring.
+	(follow-unload-function): Remove variable.
+
+	* server.el (server-unload-function): Remove variable.
+	(server-unload-function): Unbind `server-edit' from `C-x #'.
+
+	* uniquify.el (uniquify-unload-function): Add docstring.
+	(uniquify-unload-function): Remove variable.
+
+	* ses.el (ses-unload-function): New function.
+
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/unsafep.el (unsafep, unsafep-function)
+	(unsafep-progn, unsafep-let): Fix typos in docstrings.
+
+	* uniquify.el (uniquify-maybe-rerationalize-w/o-cb): Define it
+	before use to avoid a warning in packages that require uniquify.
+	(uniquify-unload-function): New function and var.
+
 2007-11-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ediff-init.el (ediff-xemacs-p, ediff-emacs-p): Remove.

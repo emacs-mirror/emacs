@@ -947,6 +947,12 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :group 'gud
   :version "22.1")
 
+(defcustom gdb-delete-out-of-scope t
+  "If non-nil delete watch expressions automatically when they go out of scope."
+  :type 'boolean
+  :group 'gud
+  :version "22.2")
+
 (defun gdb-speedbar-expand-node (text token indent)
   "Expand the node the user clicked on.
 TEXT is the text of the button we clicked on, a + or - item.
@@ -3515,7 +3521,9 @@ in_scope=\"\\(.*?\\)\".*?}")
       (when var
 	(let ((match (match-string 3)))
 	  (cond ((string-equal match "false")
-		 (setcar (nthcdr 5 var) 'out-of-scope))
+		 (if gdb-delete-out-of-scope
+		     (gdb-var-delete-1 varnum)
+		   (setcar (nthcdr 5 var) 'out-of-scope)))
 		((string-equal match "true")
 		 (setcar (nthcdr 5 var) 'changed)
 		 (setcar (nthcdr 4 var)

@@ -4644,8 +4644,8 @@ ID is specified by either an integer or a float.  */)
   Lisp_Object result;
 
   check_mac ();
-  CHECK_NUMBER_OR_FLOAT(id);
-  font_id = NUMBERP (id) ? XINT (id) : (ATSUFontID) XFLOAT (id);
+  CHECK_NUMBER_OR_FLOAT (id);
+  font_id = INTEGERP (id) ? XINT (id) : XFLOAT_DATA (id);
   BLOCK_INPUT;
   result = mac_atsu_font_face_attributes (font_id);
   UNBLOCK_INPUT;

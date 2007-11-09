@@ -1080,6 +1080,7 @@ uncached:     Non-nil if the article is uncached."
   :group 'gnus-summary-visual
   :type '(repeat (cons (sexp :tag "Form" nil)
 		       face)))
+(put 'gnus-summary-highlight 'risky-local-variable t)
 
 (defcustom gnus-alter-header-function nil
   "Function called to allow alteration of article header structures.

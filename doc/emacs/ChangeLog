@@ -1,3 +1,11 @@
+2007-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi, gnus-faq.texi, message.texi: Bump version to 5.10.9.
+
+2007-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Remove obscure sentence.
+
 2007-11-06  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* mule.texi (Select Input Method): Describe how to activate an input
@@ -15,10 +23,19 @@
 
 	* gnus.texi (Troubleshooting): Adjust Gnus version number.
 
+2007-10-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Describe gdb-delete-out-of-scope.
+
 2007-10-30  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Directory Tracking): Explain a bit more about
 	dirtrack-mode.
+
+2007-10-29  Richard Stallman  <rms@gnu.org>
+
+	* widget.texi (Introduction): Delete discussion of implementation
+	internals.
 
 2007-10-25  Glenn Morris  <rgm@gnu.org>
 

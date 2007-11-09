@@ -42,15 +42,6 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 * Changes in Emacs 22.2
 
-** `browse-url-emacs' loads a URL into an Emacs buffer.  Handy for *.el URLs.
-
-** `bad-packages-alist' will warn about external packages that are known
-to cause problems in this version of Emacs.
-
-** The values of `dired-recursive-deletes' and `dired-recursive-copies'
-have been changed to `top'.  This means that the user is asked once,
-before deleting/copying the indicated directory recursively.
-
 ** In Image mode, whenever the displayed image is wider and/or higher
 than the window, the usual keys for moving the cursor cause the image
 to be scrolled horizontally or vertically instead.
@@ -66,6 +57,15 @@ on MS Windows, and the default was inappropriate for the majority of
 Windows installations. Users of software which modifies the behaviour of
 Windows to cause focus to follow the mouse will now need to explicitly set
 this variable.
+
+** `bad-packages-alist' will warn about external packages that are known
+to cause problems in this version of Emacs.
+
+** The values of `dired-recursive-deletes' and `dired-recursive-copies'
+have been changed to `top'.  This means that the user is asked once,
+before deleting/copying the indicated directory recursively.
+
+** `browse-url-emacs' loads a URL into an Emacs buffer.  Handy for *.el URLs.
 
 ** The command gdba has been removed as gdb works now for those cases where it
 was needed.  In text command mode, if you have problems before execution has
@@ -106,7 +106,8 @@ This can be used to add menu entries for backend specific functions.
 * Lisp Changes in Emacs 22.2.
 
 ** Frame-local variables are deprecated and are slated for removal.
-   Use frame parameters instead.
+Use frame parameters instead.
+
 ** The function invisible-p returns non-nil if the character
 after a specified position is invisible.
 
@@ -121,9 +122,16 @@ as its frame.
 ** The new function `image-refresh' refreshes all images associated
 with a given image specification.
 
-** The new function `split-string-and-unquote' does (what?)
+** The new function `combine-and-quote-strings' concatenates a list of strings
+using a specified separator.  If a string contains double quotes, they
+are escaped in the output.
 
-** The new function `combine-and-quote-strings' does (what?)
+** The new function `split-string-and-unquote' performs the inverse operation to
+`combine-and-quote-strings', i.e. splits a single string into a list
+of strings, undoing any quoting added by `combine-and-quote-strings'.
+(For some separator/string combinations, the original strings cannot
+be recovered.)
+
 
 * Installation Changes in Emacs 22.1
 

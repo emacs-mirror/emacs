@@ -255,7 +255,7 @@ install: all
 	  `id -un 2> /dev/null`; do \
 	  [ -n "$${installuser}" ] && break ; \
 	done ; \
-	find ${INSTALLDIR} -exec chown $${installuser} '{}' ';'
+	-find ${INSTALLDIR} -exec chown $${installuser} '{}' ';'
 
 clean mostlyclean:
 	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \

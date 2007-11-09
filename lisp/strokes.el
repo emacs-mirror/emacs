@@ -1371,7 +1371,9 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 
 (defun strokes-alphabetic-lessp (stroke1 stroke2)
   "Return t if STROKE1's command name precedes STROKE2's in lexicographic order."
-  (string-lessp (cdr stroke1) (cdr stroke2)))
+  (let ((command-name-1 (symbol-name (cdr stroke1)))
+	(command-name-2 (symbol-name (cdr stroke2))))
+    (string-lessp command-name-1 command-name-2)))
 
 (defvar strokes-mode-map
   (let ((map (make-sparse-keymap)))

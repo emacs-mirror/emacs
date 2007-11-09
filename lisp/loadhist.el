@@ -191,7 +191,7 @@ something strange, such as redefining an Emacs function."
 	 (unload-func (intern-soft (concat name "-unload-function"))))
     ;; If FEATURE-unload-function is defined and returns non-nil,
     ;; don't try to do anything more; otherwise proceed normally.
-    (unless (and (bound-and-true-p unload-func)
+    (unless (and (fboundp unload-func)
 		 (funcall unload-func))
       ;; Try to avoid losing badly when hooks installed in critical
       ;; places go away.  (Some packages install things on

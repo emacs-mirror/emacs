@@ -1,3 +1,60 @@
+2007-11-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct it): Don't define OVERLAY_STRING_CHUNK_SIZE
+	twice.
+
+	* xdisp.c (handle_face_prop): Fix last change.
+
+2007-11-09  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_face_prop): Test for strings that came from overlays,
+	not just for after-strings and before-strings.
+	Call face_for_overlay_string and pass the overlay to it.
+	(handle_display_prop): Determine whether property came from an overlay.
+	Pass OVERLAY arg to handle_single_display_spec.
+	(handle_single_display_spec): New arg OVERLAY sets it->from_overlay.
+	(load_overlay_strings): Fill in it->string_overlays.
+	(get_overlay_strings_1, push_it, pop_it): Handle it->from_overlays.
+
+	* xfaces.c (face_for_overlay_string): Function renamed from
+	face_at_buffer_position_no_overlays, and add arg OVERLAY.
+
+	* dispextern.h (struct it): New elt string_overlays.
+	New elt from_overlay, also in stack.
+	Rearrange a few elements.
+	(face_for_overlay_string): Decl renamed from
+	face_at_buffer_position_no_overlays, and add argument.
+
+2007-11-09  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_face_prop): Use face_at_buffer_position_no_overlays
+	to get the base face for an overlay string.
+
+	* dispextern.h (face_at_buffer_position_no_overlays): Add decl.
+
+	* xfaces.c (face_at_buffer_position_no_overlays): New function.
+
+	* xdisp.c (handle_stop): Move some code out of loop.
+
+2007-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c [USE_ATSUI] (Fmac_atsu_font_face_attributes):
+	Fix conversion from Lisp object to ATSUFontID.
+
+2007-11-09  Jason Rumney  <jasonr@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): Do nothing when noninteractive.
+
+2007-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (unexec_regions_recorder, unexec_regions_merge):
+	Don't assume regions are aligned to page boundary.
+	(print_load_command_name): Add LC_UUID if defined.
+
+2007-11-09  Richard Stallman  <rms@gnu.org>
+
+	* emacs.c (syms_of_emacs) <installation-directory>: Reflow docstring.
+
 2007-11-07  Jason Rumney  <jasonr@gnu.org>
 
 	* s/windows95.h: Remove.

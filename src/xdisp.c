@@ -954,8 +954,8 @@ static void compute_string_pos P_ ((struct text_pos *, struct text_pos,
 static int face_before_or_after_it_pos P_ ((struct it *, int));
 static int next_overlay_change P_ ((int));
 static int handle_single_display_spec P_ ((struct it *, Lisp_Object,
-					   Lisp_Object, struct text_pos *,
-					   int));
+					   Lisp_Object, Lisp_Object,
+					   struct text_pos *, int));
 static int underlying_face_id P_ ((struct it *));
 static int in_ellipses_for_invisible_text_p P_ ((struct display_pos *,
 						 struct window *));
@@ -3060,16 +3060,18 @@ handle_stop (it)
 	  if (it->method == GET_FROM_DISPLAY_VECTOR)
 	    handle_overlay_change_p = 0;
 
-	  /* Handle overlay changes.  */
+	  /* Handle overlay changes.
+	     This sets HANDLED to HANDLED_RECOMPUTE_PROPS
+	     if it finds overlays.  */
 	  if (handle_overlay_change_p)
 	    handled = handle_overlay_change (it);
-
-	  /* Determine where to stop next.  */
-	  if (handled == HANDLED_NORMALLY)
-	    compute_stop_pos (it);
 	}
     }
   while (handled == HANDLED_RECOMPUTE_PROPS);
+
+  /* Determine where to stop next.  */
+  if (handled == HANDLED_NORMALLY)
+    compute_stop_pos (it);
 }
 
 
@@ -3350,18 +3352,58 @@ handle_face_prop (it)
   else
     {
       int base_face_id, bufpos;
+      int i;
+      Lisp_Object from_overlay
+	= (it->current.overlay_string_index >= 0
+	   ? it->string_overlays[it->current.overlay_string_index]
+	   : Qnil);
 
-      if (it->current.overlay_string_index >= 0)
-	bufpos = IT_CHARPOS (*it);
+      /* See if we got to this string directly or indirectly from
+	 an overlay property.  That includes the before-string or
+	 after-string of an overlay, strings in display properties
+	 provided by an overlay, their text properties, etc.
+
+	 FROM_OVERLAY is the overlay that brought us here, or nil if none.  */
+      if (! NILP (from_overlay))
+	for (i = it->sp - 1; i >= 0; i--)
+	  {
+	    if (it->stack[i].current.overlay_string_index >= 0)
+	      from_overlay
+		= it->string_overlays[it->stack[i].current.overlay_string_index];
+	    else if (! NILP (it->stack[i].from_overlay))
+	      from_overlay = it->stack[i].from_overlay;
+
+	    if (!NILP (from_overlay))
+	      break;
+	  }
+
+      if (! NILP (from_overlay))
+	{
+	  bufpos = IT_CHARPOS (*it);
+	  /* For a string from an overlay, the base face depends
+	     only on text properties and ignores overlays.  */
+	  base_face_id
+	    = face_for_overlay_string (it->w,
+				       IT_CHARPOS (*it),
+				       it->region_beg_charpos,
+				       it->region_end_charpos,
+				       &next_stop,
+				       (IT_CHARPOS (*it)
+					+ TEXT_PROP_DISTANCE_LIMIT),
+				       0,
+				       from_overlay);
+	}
       else
-	bufpos = 0;
+	{
+	  bufpos = 0;
 
-      /* For strings from a buffer, i.e. overlay strings or strings
-	 from a `display' property, use the face at IT's current
-	 buffer position as the base face to merge with, so that
-	 overlay strings appear in the same face as surrounding
-	 text, unless they specify their own faces.  */
-      base_face_id = underlying_face_id (it);
+	  /* For strings from a `display' property, use the face at
+	     IT's current buffer position as the base face to merge
+	     with, so that overlay strings appear in the same face as
+	     surrounding text, unless they specify their own
+	     faces.  */
+	  base_face_id = underlying_face_id (it);
+	}
 
       new_face_id = face_at_string_position (it->w,
 					     it->string,
@@ -3772,7 +3814,7 @@ static enum prop_handled
 handle_display_prop (it)
      struct it *it;
 {
-  Lisp_Object prop, object;
+  Lisp_Object prop, object, overlay;
   struct text_pos *position;
   /* Nonzero if some property replaces the display of the text itself.  */
   int display_replaced_p = 0;
@@ -3800,10 +3842,12 @@ handle_display_prop (it)
   if (!it->string_from_display_prop_p)
     it->area = TEXT_AREA;
 
-  prop = Fget_char_property (make_number (position->charpos),
-			     Qdisplay, object);
+  prop = get_char_property_and_overlay (make_number (position->charpos),
+					Qdisplay, object, &overlay);
   if (NILP (prop))
     return HANDLED_NORMALLY;
+  /* Now OVERLAY is the overlay that gave us this property, or nil
+     if it was a text property.  */
 
   if (!STRINGP (it->string))
     object = it->w->buffer;
@@ -3825,7 +3869,7 @@ handle_display_prop (it)
     {
       for (; CONSP (prop); prop = XCDR (prop))
 	{
-	  if (handle_single_display_spec (it, XCAR (prop), object,
+	  if (handle_single_display_spec (it, XCAR (prop), object, overlay,
 					  position, display_replaced_p))
 	    {
 	      display_replaced_p = 1;
@@ -3840,7 +3884,7 @@ handle_display_prop (it)
     {
       int i;
       for (i = 0; i < ASIZE (prop); ++i)
-	if (handle_single_display_spec (it, AREF (prop, i), object,
+	if (handle_single_display_spec (it, AREF (prop, i), object, overlay,
 					position, display_replaced_p))
 	  {
 	    display_replaced_p = 1;
@@ -3852,7 +3896,8 @@ handle_display_prop (it)
     }
   else
     {
-      int ret = handle_single_display_spec (it, prop, object, position, 0);
+      int ret = handle_single_display_spec (it, prop, object, overlay,
+					    position, 0);
       if (ret < 0)  /* Replaced by "", i.e. nothing. */
 	return HANDLED_RECOMPUTE_PROPS;
       if (ret)
@@ -3894,6 +3939,9 @@ display_prop_end (it, object, start_pos)
    replaced text display with something else, for example an image;
    we ignore such properties after the first one has been processed.
 
+   OVERLAY is the overlay this `display' property came from,
+   or nil if it was a text property.
+
    If PROP is a `space' or `image' specification, and in some other
    cases too, set *POSITION to the position where the `display'
    property ends.
@@ -3903,11 +3951,12 @@ display_prop_end (it, object, start_pos)
    "something" is "nothing". */
 
 static int
-handle_single_display_spec (it, spec, object, position,
+handle_single_display_spec (it, spec, object, overlay, position,
 			    display_replaced_before_p)
      struct it *it;
      Lisp_Object spec;
      Lisp_Object object;
+     Lisp_Object overlay;
      struct text_pos *position;
      int display_replaced_before_p;
 {
@@ -4017,7 +4066,7 @@ handle_single_display_spec (it, spec, object, position,
       return 0;
     }
 
-  /* Handle `(space_width WIDTH)'.  */
+  /* Handle `(space-width WIDTH)'.  */
   if (CONSP (spec)
       && EQ (XCAR (spec), Qspace_width)
       && CONSP (XCDR (spec)))
@@ -4141,6 +4190,7 @@ handle_single_display_spec (it, spec, object, position,
       it->position = start_pos;
       it->object = NILP (object) ? it->w->buffer : object;
       it->method = GET_FROM_IMAGE;
+      it->from_overlay = Qnil;
       it->face_id = face_id;
 
       /* Say that we haven't consumed the characters with
@@ -4211,6 +4261,7 @@ handle_single_display_spec (it, spec, object, position,
       it->position = *position;
       push_it (it);
       it->position = save_pos;
+      it->from_overlay = overlay;
 
       if (NILP (location))
 	it->area = TEXT_AREA;
@@ -4854,7 +4905,10 @@ load_overlay_strings (it, charpos)
   i = 0;
   j = it->current.overlay_string_index;
   while (i < OVERLAY_STRING_CHUNK_SIZE && j < n)
-    it->overlay_strings[i++] = entries[j++].string;
+    {
+      it->overlay_strings[i++] = entries[j++].string;
+      it->string_overlays[i++] = entries[j++].overlay;
+    }
 
   CHECK_IT (it);
 }
@@ -4900,6 +4954,7 @@ get_overlay_strings_1 (it, charpos, compute_stop_p)
 	 string.  */
       IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = 0;
       it->string = it->overlay_strings[0];
+      it->from_overlay = Qnil;
       it->stop_charpos = 0;
       xassert (STRINGP (it->string));
       it->end_charpos = SCHARS (it->string);
@@ -4953,6 +5008,7 @@ push_it (it)
   p->face_id = it->face_id;
   p->string = it->string;
   p->method = it->method;
+  p->from_overlay = it->from_overlay;
   switch (p->method)
     {
     case GET_FROM_IMAGE:
@@ -5006,6 +5062,7 @@ pop_it (it)
   it->current = p->current;
   it->position = p->position;
   it->string = p->string;
+  it->from_overlay = p->from_overlay;
   if (NILP (it->string))
     SET_TEXT_POS (it->current.string_pos, -1, -1);
   it->method = p->method;
@@ -17388,7 +17445,9 @@ are the selected window and the window's buffer).  */)
     buffer = w->buffer;
   CHECK_BUFFER (buffer);
 
-  if (NILP (format))
+  /* Make formatting the modeline a non-op when noninteractive, otherwise
+     there will be problems later caused by a partially initialized frame.  */
+  if (NILP (format) || noninteractive)
     return empty_unibyte_string;
 
   if (no_props)

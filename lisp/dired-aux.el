@@ -1160,7 +1160,8 @@ Special value `always' suppresses confirmation."
 	     (or (eq recursive 'always)
 		 (yes-or-no-p (format "Recursive copies of %s? " from))))
 	;; This is a directory.
-	(let ((files
+	(let ((mode (file-modes from))
+	      (files
 	       (condition-case err
 		   (directory-files from nil dired-re-no-dot)
 		 (file-error
@@ -1174,7 +1175,9 @@ Special value `always' suppresses confirmation."
 	    (if (file-exists-p to)
 		(or top (dired-handle-overwrite to))
 	      (condition-case err
-		  (make-directory to)
+		  (progn
+		    (make-directory to)
+		    (set-file-modes to #o700))
 		(file-error
 		 (push (dired-make-relative from)
 		       dired-create-files-failures)
@@ -1193,7 +1196,9 @@ Special value `always' suppresses confirmation."
 		(file-error
 		 (push (dired-make-relative thisfrom)
 		       dired-create-files-failures)
-		 (dired-log "Copying error for %s:\n%s\n" thisfrom err))))))
+		 (dired-log "Copying error for %s:\n%s\n" thisfrom err)))))
+	  (when (file-directory-p to)
+	    (set-file-modes to mode)))
       ;; Not a directory.
       (or top (dired-handle-overwrite to))
       (condition-case err

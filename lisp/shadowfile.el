@@ -103,8 +103,8 @@ is no buffer currently visiting the file."
 
 (defcustom shadow-inhibit-overload nil
   "If non-nil, shadowfile won't redefine \\[save-buffers-kill-emacs].
-Normally it overloads the function `save-buffers-kill-emacs' to check
-for files have been changed and need to be copied to other systems."
+Normally it overloads the function `save-buffers-kill-emacs' to check for
+files that have been changed and need to be copied to other systems."
   :type 'boolean
   :group 'shadow)
 
@@ -299,7 +299,7 @@ be matched against the primary of SITE2."
 
 (defun shadow-parse-fullname (fullname)
   "Parse FULLNAME into \(site user path) list.
-Leave it alone if it already is one.  Returns nil if the argument is
+Leave it alone if it already is one.  Return nil if the argument is
 not a full ange-ftp pathname."
   (if (listp fullname)
       fullname
@@ -392,9 +392,9 @@ local filename."
  "Return t if PATTERN matches FILE.
 If REGEXP is supplied and non-nil, the file part of the pattern is a regular
 expression, otherwise it must match exactly.  The sites and usernames must
-match---see `shadow-same-site'.  The pattern must be in full ange-ftp format, but
-the file can be any valid filename.  This function does not do any filename
-expansion or contraction, you must do that yourself first."
+match---see `shadow-same-site'.  The pattern must be in full ange-ftp format,
+but the file can be any valid filename.  This function does not do any
+filename expansion or contraction, you must do that yourself first."
  (let* ((pattern-sup (shadow-parse-fullname pattern))
 	(file-sup (shadow-parse-name file)))
    (and (shadow-same-site pattern-sup file-sup)
@@ -412,8 +412,8 @@ expansion or contraction, you must do that yourself first."
 This is a group of hosts that share directories, so that copying to or from
 one of them is sufficient to update the file on all of them.  Clusters are
 defined by a name, the network address of a primary host \(the one we copy
-files to), and a regular expression that matches the hostnames of all the sites
-in the cluster."
+files to), and a regular expression that matches the hostnames of all the
+sites in the cluster."
   (interactive (list (completing-read "Cluster name: " shadow-clusters () ())))
   (let* ((old (shadow-get-cluster name))
 	 (primary (read-string "Primary host: "
@@ -469,8 +469,8 @@ specific hostnames, or names of clusters \(see `shadow-define-cluster')."
   "Make each of a group of files be shared between hosts.
 Prompts for regular expression; files matching this are shared between a list
 of sites, which are also prompted for.  The filenames must be identical on all
-hosts \(if they aren't, use `shadow-define-literal-group' instead of this function).
-Each site can be either a hostname or the name of a cluster \(see
+hosts \(if they aren't, use `shadow-define-literal-group' instead of this
+function).  Each site can be either a hostname or the name of a cluster \(see
 `shadow-define-cluster')."
   (interactive)
   (let ((regexp (read-string
@@ -639,7 +639,7 @@ Consider them as regular expressions if third arg REGEXP is true."
 
 (defun shadow-remove-from-todo (pair)
   "Remove PAIR from `shadow-files-to-copy'.
-PAIR must be (eq to) one of the elements of that list."
+PAIR must be `eq' to one of the elements of that list."
   (setq shadow-files-to-copy
 	(shadow-remove-if (function (lambda (s) (eq s pair)))
 			  shadow-files-to-copy)))
@@ -647,7 +647,7 @@ PAIR must be (eq to) one of the elements of that list."
 (defun shadow-read-files ()
   "Visit and load `shadow-info-file' and `shadow-todo-file'.
 Thus restores shadowfile's state from your last Emacs session.
-Returns t unless files were locked; then returns nil."
+Return t unless files were locked; then return nil."
   (interactive)
   (if (and (fboundp 'file-locked-p)
 	   (or (stringp (file-locked-p shadow-info-file))
@@ -723,8 +723,9 @@ With non-nil argument also saves the buffer."
   (setq shadow-hashtable (make-vector 37 0)))
 
 (defun shadow-insert-var (variable)
-  "Prettily insert a `setq' command for VARIABLE,
-which, when later evaluated, will restore it to its current setting.
+  "Build a `setq' to restore VARIABLE.
+Prettily insert a `setq' command which, when later evaluated,
+will restore VARIABLE to its current setting.
 VARIABLE must be the name of a variable whose value is a list."
   (let ((standard-output (current-buffer)))
     (insert (format "(setq %s" variable))
