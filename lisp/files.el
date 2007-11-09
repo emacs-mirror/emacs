@@ -450,7 +450,7 @@ use `before-save-hook'.")
 
 (defcustom enable-local-variables t
   "Control use of local variables in files you visit.
-The value can be t, nil, :safe, or something else.
+The value can be t, nil, :safe, :all, or something else.
 
 A value of t means file local variables specifications are obeyed
 if all the specified variable values are safe; if any values are
