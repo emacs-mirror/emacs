@@ -145,6 +145,9 @@ int w32_mouse_move_interval;
 /* Flag to indicate if XBUTTON events should be passed on to Windows.  */
 int w32_pass_extra_mouse_buttons_to_system;
 
+/* Flag to indicate if media keys should be passed on to Windows.  */
+int w32_pass_multimedia_buttons_to_system;
+
 /* Non nil if no window manager is in use.  */
 Lisp_Object Vx_no_window_manager;
 
@@ -3383,6 +3386,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       signal_user_input ();
       return 0;
 
+    case WM_APPCOMMAND:
+      if (w32_pass_multimedia_buttons_to_system)
+        goto dflt;
+      /* Otherwise, pass to lisp, the same way we do with mousehwheel.  */
     case WM_MOUSEHWHEEL:
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
@@ -8813,6 +8820,30 @@ drivers will allow you to map them to functions at the system level.
 If this variable is non-nil, Emacs will pass them on, allowing the
 system to handle them.  */);
   w32_pass_extra_mouse_buttons_to_system = 0;
+
+  DEFVAR_BOOL ("w32-pass-multimedia-buttons-to-system",
+               &w32_pass_multimedia_buttons_to_system,
+               doc: /* If non-nil, media buttons are passed to Windows.
+Some modern keyboards contain buttons for controlling media players, web
+browsers and other applications. Generally these buttons are handled on a
+system wide basis, but by setting this to nil they are made available
+to Emacs for binding.  Depending on your keyboard, additional keys that
+may be available are:
+
+browser-back, browser-forward, browser-refresh, browser-stop,
+browser-search, browser-favorites, browser-home,
+mail, mail-reply, mail-forward, mail-send,
+app-1, app-2,
+help, find, new, open, close, save, print, undo, redo, copy, cut, paste,
+spell-check, correction-list, toggle-dictate-command,
+media-next, media-previous, media-stop, media-play-pause, media-select,
+media-play, media-pause, media-record, media-fast-forward, media-rewind,
+media-channel-up, media-channel-down,
+volume-mute, volume-up, volume-down,
+mic-volume-mute, mic-volume-down, mic-volume-up, mic-toggle,
+bass-down, bass-boost, bass-up, treble-down, treble-up
+  */);
+  w32_pass_multimedia_buttons_to_system = 1;
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
 	       doc: /* The shape of the pointer when over text.
