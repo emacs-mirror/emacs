@@ -1,3 +1,30 @@
+2007-11-09  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.c (USE_TOOLKIT_SCROLL_BARS): Define.
+
+	* w32term.c (w32_scroll_bar_handle_click): Use SCROLL_BAR_CLICK_EVENT.
+
+	* keyboard.c (discard_mouse_events, make_lispy_event) [WINDOWSNT]:
+	Remove W32_SCROLL_BAR_CLICK_EVENT.
+
+	* termhooks.h (enum event_kind) [WINDOWSNT]: Likewise.
+	Add MULTIMEDIA_KEY_EVENT.
+
+	* keyboard.c (lispy_function_keys) [WINDOWSNT]: Add more keys.
+	(lispy_multimedia_keys) [WINDOWSNT]: New array.
+	(make_lispy_event) [WINDOWSNT]: Use it to translate
+	MULTIMEDIA_KEY_EVENT.
+
+	* w32term.h (WM_APPCOMMAND): Define if not already.
+	(GET_APPCOMMAND_LPARAM): Likewise.
+
+	* w32term.c (w32_read_socket): Generate MULTIMEDIA_KEY_EVENT from
+	WM_APPCOMMAND.
+
+	* w32fns.c (w32_pass_multimedia_buttons_to_system): New user option.
+	(syms_of_w32fns): Export and initialize it.
+	(w32_wnd_proc): Pass WM_APPCOMMAND on to w32_read_socket.
+
 2007-11-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispextern.h (struct it): Don't define OVERLAY_STRING_CHUNK_SIZE
