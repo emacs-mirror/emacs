@@ -1,3 +1,7 @@
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (enable-local-variables): Doc fix.
+
 2007-11-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-gdb): Remove vestigial gdba doc and code.
@@ -58,9 +62,6 @@
 
 	* server.el (server-unload-function): Remove variable.
 	(server-unload-function): Unbind `server-edit' from `C-x #'.
-
-	* uniquify.el (uniquify-unload-function): Add docstring.
-	(uniquify-unload-function): Remove variable.
 
 	* ses.el (ses-unload-function): New function.
 
@@ -131,8 +132,7 @@
 	* progmodes/fortran.el (comment-region-function)
 	(uncomment-region-function): Pacify byte compiler.
 
-	* vc.el (vc-diff-internal): Remove code for an old version of
-	gnus.
+	* vc.el (vc-diff-internal): Remove code for an old version of gnus.
 
 2007-11-08  Michael Albinus  <michael.albinus@gmx.de>
 
