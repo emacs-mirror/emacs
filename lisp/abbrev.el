@@ -895,13 +895,15 @@ Properties with special meaning:
 - `:enable-function' can be set to a function of no argument which returns
   non-nil iff the abbrevs in this table should be used for this instance
   of `expand-abbrev'."
+  ;; We used to manually add the docstring, but we also want to record this
+  ;; location as the definition of the variable (in load-history), so we may
+  ;; as well just use `defvar'.
+  (eval `(defvar ,tablename nil ,@(if (stringp docstring) (list docstring))))
   (let ((table (if (boundp tablename) (symbol-value tablename))))
     (unless table
       (setq table (make-abbrev-table props))
       (set tablename table)
       (push tablename abbrev-table-name-list))
-    (when (stringp docstring)
-      (put tablename 'variable-documentation docstring))
     (dolist (elt definitions)
       (apply 'define-abbrev table elt))))
 
