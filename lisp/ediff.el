@@ -1440,7 +1440,7 @@ With optional NODE, goes to that node."
     (condition-case nil
 	(progn
 	  (pop-to-buffer (get-buffer-create "*info*"))
-	  (info (if ediff-xemacs-p "ediff.info" "ediff"))
+	  (info (if (featurep 'xemacs) "ediff.info" "ediff"))
 	  (if node
 	      (Info-goto-node node)
 	    (message "Type `i' to search for a specific topic"))

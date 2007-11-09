@@ -1930,9 +1930,7 @@ returns t if the buffer had changes, nil otherwise."
           (message "No changes between %s and %s" rev1-name rev2-name)
           nil)
       (pop-to-buffer (current-buffer))
-      ;; Gnus-5.8.5 sets up an autoload for diff-mode, even if it's
-      ;; not available.  Work around that.
-      (if (require 'diff-mode nil t) (diff-mode))
+      (diff-mode)
       (vc-exec-after `(vc-diff-sentinel ,verbose ,rev1-name ,rev2-name))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.

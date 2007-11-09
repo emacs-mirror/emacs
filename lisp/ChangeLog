@@ -1,3 +1,64 @@
+2007-11-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff-init.el (ediff-xemacs-p, ediff-emacs-p): Remove.
+	(ediff-has-face-support-p, ediff-BAD-INFO, ediff-check-version)
+	(ediff-current-diff-A, ediff-current-diff-B)
+	(ediff-current-diff-C, ediff-fine-diff-C, ediff-fine-diff-A)
+	(ediff-fine-diff-B, ediff-fine-diff-Ancestor, ediff-even-diff-A)
+	(ediff-even-diff-B, ediff-even-diff-C, ediff-even-diff-Ancestor)
+	(ediff-odd-diff-A, ediff-odd-diff-B, ediff-odd-diff-C)
+	(ediff-odd-diff-Ancestor, ediff-reset-mouse):
+	* ediff-wind.el (ediff-narrow-control-frame-leftward-shift)
+	(ediff-setup-windows-plain-merge)
+	(ediff-setup-windows-plain-compare, ediff-setup-control-frame)
+	(ediff-refresh-control-frame, ediff-get-visible-buffer-window):
+	* ediff-util.el (ediff-setup-keymap, )
+	(ediff-toggle-wide-display, ediff-toggle-multiframe)
+	(ediff-toggle-use-toolbar, ediff-really-quit)
+	(ediff-good-frame-under-mouse)
+	(ediff-highlight-diff-in-one-buffer)
+	(ediff-remove-flags-from-buffer, ediff-place-flags-in-buffer1)
+	(ediff-make-bullet-proof-overlay):
+	* ediff-mult.el (ediff-setup-meta-map, ediff-emacs-p)
+	(ediff-set-meta-overlay):
+	* ediff-help.el (ediff-help-region-map, ediff-set-help-overlays):
+	* ediff.el (ediff-documentation): Replace ediff-xemacs-p and
+	ediff-emacs-p with their former definitions.
+
+	* emulation/viper-init.el (viper-xemacs-p, viper-emacs-p): Remove.
+	(viper-has-face-support-p, viper-inactivate-input-method)
+	(viper-activate-input-method)
+	(viper-use-replace-region-delimiters, viper-restore-cursor-type):
+	* emulation/viper-mous.el (viper-multiclick-timeout)
+	(viper-surrounding-word, viper-mouse-click-insert-word)
+	(viper-mouse-click-search-word, viper-parse-mouse-key):
+	* emulation/viper-macs.el (viper-char-array-to-macro):
+	* emulation/viper.el (viper-go-away, viper-set-hooks)
+	(viper-non-hook-settings):
+	* emulation/viper-util.el (viper-get-saved-cursor-color-in-replace-mode)
+	(viper-get-saved-cursor-color-in-insert-mode)
+	(viper-get-saved-cursor-color-in-emacs-mode)
+	(viper-check-version, viper-get-visible-buffer-window)
+	(viper-file-checked-in-p, viper-set-replace-overlay)
+	(viper-set-replace-overlay-glyphs, viper-set-minibuffer-overlay)
+	(viper-check-minibuffer-overlay, viper-read-key-sequence)
+	(viper-key-to-emacs-key): Replace viper-xemacs-p and viper-emacs-p
+	with their former definitions.
+	(viper-eventify-list-xemacs): Only do work for XEmacs.
+	(viper-set-unread-command-events): Only do work for Emacs.
+	(viper-overlay-p, viper-make-overlay, viper-overlay-live-p)
+	(viper-move-overlay, viper-overlay-start, viper-overlay-end)
+	(viper-overlay-get, viper-overlay-put, viper-read-event)
+	(viper-characterp, viper-int-to-char, viper-get-face)
+	(viper-color-defined-p, viper-iconify): New defaliases replacing
+	the old fsets.
+
+	* progmodes/fortran.el (comment-region-function)
+	(uncomment-region-function): Pacify byte compiler.
+
+	* vc.el (vc-diff-internal): Remove code for an old version of
+	gnus.
+
 2007-11-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-maybe-open-connection): Use a local copy of

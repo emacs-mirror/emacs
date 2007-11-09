@@ -79,7 +79,7 @@ or a tripple-click."
 ;; time interval in millisecond within which successive clicks are
 ;; considered related
 (defcustom viper-multiclick-timeout (if (viper-window-display-p)
-				      (if viper-xemacs-p
+				      (if (featurep 'xemacs)
 					  mouse-track-multi-click-time
 					double-click-time)
 				    500)
@@ -227,7 +227,7 @@ is ignored."
        ) ; if
      ;; XEmacs doesn't have set-text-properties, but there buffer-substring
      ;; doesn't return properties together with the string, so it's not needed.
-     (if viper-emacs-p
+     (if (featurep 'emacs)
 	 (set-text-properties 0 (length result) nil result))
      result
      ))
@@ -273,7 +273,7 @@ See `viper-surrounding-word' for the definition of a word in this case."
 		     'viper-mouse-catch-frame-switch))
 	    (not (eq (key-binding viper-mouse-up-insert-key-parsed)
 		     'viper-mouse-click-insert-word))
-	    (and viper-xemacs-p (not (event-over-text-area-p click)))))
+	    (and (featurep 'xemacs) (not (event-over-text-area-p click)))))
       () ; do nothing, if binding isn't right or not over text
     ;; turn arg into a number
     (cond ((integerp arg) nil)
@@ -364,7 +364,7 @@ this command."
 		     'viper-mouse-catch-frame-switch))
 	    (not (eq (key-binding viper-mouse-up-search-key-parsed)
 		     'viper-mouse-click-search-word))
-	    (and viper-xemacs-p (not (event-over-text-area-p click)))))
+	    (and (featurep 'xemacs) (not (event-over-text-area-p click)))))
       () ; do nothing, if binding isn't right or not over text
     (let ((previous-search-string viper-s-string)
 	  click-word click-count)
@@ -507,19 +507,19 @@ bindings in the Viper manual."
 	()
       (setq button-spec
 	    (cond ((memq 1 key)
-		   (if viper-emacs-p
+		   (if (featurep 'emacs)
 		       (if (eq 'up event-type)
 			   "mouse-1" "down-mouse-1")
 		     (if (eq 'up event-type)
 			 'button1up 'button1)))
 		  ((memq 2 key)
-		   (if viper-emacs-p
+		   (if (featurep 'emacs)
 		       (if (eq 'up event-type)
 			   "mouse-2" "down-mouse-2")
 		     (if (eq 'up event-type)
 			 'button2up 'button2)))
 		  ((memq 3 key)
-		   (if viper-emacs-p
+		   (if (featurep 'emacs)
 		       (if (eq 'up event-type)
 			   "mouse-3" "down-mouse-3")
 		     (if (eq 'up event-type)
@@ -528,18 +528,18 @@ bindings in the Viper manual."
 		      "%S: invalid button number, %S" key-var key)))
 	    meta-spec
 	    (if (memq 'meta key)
-		(if viper-emacs-p "M-" 'meta)
-	      (if viper-emacs-p "" nil))
+		(if (featurep 'emacs) "M-" 'meta)
+	      (if (featurep 'emacs) "" nil))
 	    shift-spec
 	    (if (memq 'shift key)
-		(if viper-emacs-p "S-" 'shift)
-	      (if viper-emacs-p "" nil))
+		(if (featurep 'emacs) "S-" 'shift)
+	      (if (featurep 'emacs) "" nil))
 	    control-spec
 	    (if (memq 'control key)
-		(if viper-emacs-p "C-" 'control)
-	      (if viper-emacs-p "" nil)))
+		(if (featurep 'emacs) "C-" 'control)
+	      (if (featurep 'emacs) "" nil)))
 
-      (setq key-spec (if viper-emacs-p
+      (setq key-spec (if (featurep 'emacs)
 			 (vector
 			  (intern
 			   (concat

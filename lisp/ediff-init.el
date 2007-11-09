@@ -43,11 +43,6 @@
 	 (load "ange-ftp" 'noerror)))
 ;; end pacifier
 
-;; Is it XEmacs?
-(defconst ediff-xemacs-p (featurep 'xemacs))
-;; Is it Emacs?
-(defconst ediff-emacs-p (not ediff-xemacs-p))
-
 ;; This is used to avoid compilation warnings. When emacs/xemacs forms can
 ;; generate compile time warnings, we use this macro.
 ;; In this case, the macro will expand into the form that is appropriate to the
@@ -78,8 +73,8 @@ that Ediff doesn't know about.")
   (cond ((ediff-window-display-p))
 	(ediff-force-faces)
 	((ediff-color-display-p))
-	(ediff-emacs-p (memq (ediff-device-type) '(pc)))
-	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))
+	((featurep 'emacs) (memq (ediff-device-type) '(pc)))
+	((featurep 'xemacs) (memq (ediff-device-type) '(tty pc)))
 	))
 
 ;; toolbar support for emacs hasn't been implemented in ediff
@@ -506,7 +501,7 @@ set local variables that determine how the display looks like."
 *** of %sEmacs, does not seem to be properly installed.
 ***
 *** Please contact your system administrator. "
-				 (if ediff-xemacs-p "X" "")))
+				 (if (featurep 'xemacs) "X" "")))
 
 ;; Selective browsing
 
@@ -785,8 +780,8 @@ to temp files when Ediff needs to find fine differences."
 ;; testing for sufficiently high Emacs versions.
 (defun ediff-check-version (op major minor &optional type-of-emacs)
   (if (and (boundp 'emacs-major-version) (boundp 'emacs-minor-version))
-      (and (cond ((eq type-of-emacs 'xemacs) ediff-xemacs-p)
-		 ((eq type-of-emacs 'emacs) ediff-emacs-p)
+      (and (cond ((eq type-of-emacs 'xemacs) (featurep 'xemacs))
+		 ((eq type-of-emacs 'emacs) (featurep 'emacs))
 		 (t t))
 	   (cond ((eq op '=) (and (= emacs-minor-version minor)
 				  (= emacs-major-version major)))
@@ -908,7 +903,7 @@ to temp files when Ediff needs to find fine differences."
 
 
 (defface ediff-current-diff-A
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "firebrick" :background "pale green"))
 	(((class color))
@@ -929,7 +924,7 @@ this variable represents.")
 (ediff-hide-face ediff-current-diff-face-A)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
-(if (and ediff-xemacs-p
+(if (and (featurep 'xemacs)
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
     (copy-face 'modeline ediff-current-diff-face-A))
@@ -937,7 +932,7 @@ this variable represents.")
 
 
 (defface ediff-current-diff-B
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "DarkOrchid" :background "Yellow"))
 	(((class color))
@@ -960,14 +955,14 @@ this variable represents.")
 (ediff-hide-face ediff-current-diff-face-B)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
-(if (and ediff-xemacs-p
+(if (and (featurep 'xemacs)
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
     (copy-face 'modeline ediff-current-diff-face-B))
 
 
 (defface ediff-current-diff-C
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "Navy" :background "Pink"))
 	(((class color))
@@ -988,14 +983,14 @@ this variable represents.")
 (ediff-hide-face ediff-current-diff-face-C)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
-(if (and ediff-xemacs-p
+(if (and (featurep 'xemacs)
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
     (copy-face 'modeline ediff-current-diff-face-C))
 
 
 (defface ediff-current-diff-Ancestor
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "Black" :background "VioletRed"))
 	(((class color))
@@ -1016,14 +1011,14 @@ this variable represents.")
 (ediff-hide-face ediff-current-diff-face-Ancestor)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
-(if (and ediff-xemacs-p
+(if (and (featurep 'xemacs)
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
     (copy-face 'modeline ediff-current-diff-face-Ancestor))
 
 
 (defface ediff-fine-diff-A
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "Navy" :background "sky blue"))
 	(((class color))
@@ -1044,7 +1039,7 @@ this variable represents.")
 (ediff-hide-face ediff-fine-diff-face-A)
 
 (defface ediff-fine-diff-B
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "Black" :background "cyan"))
 	(((class color))
@@ -1065,7 +1060,7 @@ this variable represents.")
 (ediff-hide-face ediff-fine-diff-face-B)
 
 (defface ediff-fine-diff-C
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((type pc))
 	 (:foreground "white" :background "Turquoise"))
 	(((class color) (min-colors 16))
@@ -1091,7 +1086,7 @@ this variable represents.")
 (ediff-hide-face ediff-fine-diff-face-C)
 
 (defface ediff-fine-diff-Ancestor
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "Black" :background "Green"))
 	(((class color))
@@ -1123,7 +1118,7 @@ this variable represents.")
 	(t "Stipple")))
 
 (defface ediff-even-diff-A
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       `((((type pc))
 	 (:foreground "green3" :background "light grey"))
 	(((class color) (min-colors 16))
@@ -1149,7 +1144,7 @@ this variable represents.")
 (ediff-hide-face ediff-even-diff-face-A)
 
 (defface ediff-even-diff-B
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       `((((class color) (min-colors 16))
 	 (:foreground "White" :background "Grey"))
 	(((class color))
@@ -1170,7 +1165,7 @@ this variable represents.")
 (ediff-hide-face ediff-even-diff-face-B)
 
 (defface ediff-even-diff-C
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       `((((type pc))
 	 (:foreground "yellow3" :background "light grey"))
 	(((class color) (min-colors 16))
@@ -1196,7 +1191,7 @@ this variable represents.")
 (ediff-hide-face ediff-even-diff-face-C)
 
 (defface ediff-even-diff-Ancestor
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       `((((type pc))
 	 (:foreground "cyan3" :background "light grey"))
 	(((class color) (min-colors 16))
@@ -1229,7 +1224,7 @@ this variable represents.")
     (Ancestor . ediff-even-diff-Ancestor)))
 
 (defface ediff-odd-diff-A
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((type pc))
 	 (:foreground "green3" :background "gray40"))
 	(((class color) (min-colors 16))
@@ -1254,7 +1249,7 @@ this variable represents.")
 
 
 (defface ediff-odd-diff-B
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((type pc))
 	 (:foreground "White" :background "gray40"))
 	(((class color) (min-colors 16))
@@ -1278,7 +1273,7 @@ this variable represents.")
 (ediff-hide-face ediff-odd-diff-face-B)
 
 (defface ediff-odd-diff-C
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((type pc))
 	 (:foreground "yellow3" :background "gray40"))
 	(((class color) (min-colors 16))
@@ -1302,7 +1297,7 @@ this variable represents.")
 (ediff-hide-face ediff-odd-diff-face-C)
 
 (defface ediff-odd-diff-Ancestor
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       '((((class color) (min-colors 16))
 	 (:foreground "cyan3" :background "gray40"))
 	(((class color))
@@ -1630,7 +1625,7 @@ This default should work without changes."
   (or frame (setq frame (selected-frame)))
   (if (ediff-window-display-p)
       (let ((frame-or-wind frame))
-	(if ediff-xemacs-p
+	(if (featurep 'xemacs)
 	    (setq frame-or-wind (frame-selected-window frame)))
 	(or do-not-grab-mouse
 	    ;; don't set mouse if the user said to never do this

@@ -59,7 +59,8 @@
 (defvar gud-find-expr-function)
 (defvar imenu-case-fold-search)
 (defvar imenu-syntax-alist)
-
+(defvar comment-region-function)
+(defvar uncomment-region-function)
 
 (defgroup fortran nil
   "Major mode for editing fixed format Fortran code."

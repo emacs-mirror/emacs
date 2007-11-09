@@ -165,7 +165,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 
 (define-key
   ediff-help-region-map
-  (if ediff-emacs-p [mouse-2] [button2])
+  (if (featurep 'emacs) [mouse-2] [button2])
   'ediff-help-for-quick-help)
 
 ;; runs in the control buffer
@@ -177,7 +177,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 	    end (match-end 0)
 	    cmd (buffer-substring (match-beginning 1) (match-end 1)))
       (setq overl (ediff-make-overlay beg end))
-      (if ediff-emacs-p
+      (if (featurep 'emacs)
 	  (ediff-overlay-put overl 'mouse-face 'highlight)
 	(ediff-overlay-put overl 'highlight t))
       (ediff-overlay-put overl 'ediff-help-info cmd))))
