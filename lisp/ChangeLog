@@ -1,3 +1,10 @@
+2007-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
+	Make them work in tty frames.
+	(interprogram-cut-function, interprogram-paste-function):
+	Set them globally.
+
 2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/iso-cvt.el (iso-spanish, iso-german, iso-iso2tex)
