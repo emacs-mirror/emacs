@@ -1,3 +1,9 @@
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/iso-cvt.el (iso-spanish, iso-german, iso-iso2tex)
+	(iso-tex2iso, iso-gtex2iso, iso-iso2gtex, iso-iso2duden): Doc fixes.
+	(iso-iso2duden-trans-tab): Add docstring.
+
 2007-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (define-abbrev-table): Record the variable definition.
