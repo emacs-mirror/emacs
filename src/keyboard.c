@@ -4017,9 +4017,6 @@ discard_mouse_events ()
       if (sp->kind == MOUSE_CLICK_EVENT
 	  || sp->kind == WHEEL_EVENT
           || sp->kind == HORIZ_WHEEL_EVENT
-#ifdef WINDOWSNT
-	  || sp->kind == W32_SCROLL_BAR_CLICK_EVENT
-#endif
 #ifdef HAVE_GPM
 	  || sp->kind == GPM_CLICK_EVENT
 #endif
@@ -4913,13 +4910,17 @@ char *lispy_function_keys[] =
     0,                /* VK_MENU           0x12 */
     "pause",          /* VK_PAUSE          0x13 */
     "capslock",       /* VK_CAPITAL        0x14 */
-
-    0, 0, 0, 0, 0, 0, /*    0x15 .. 0x1A        */
-
+    "kana",           /* VK_KANA/VK_HANGUL 0x15 */
+    0,                /*    0x16                */
+    "junja",          /* VK_JUNJA          0x17 */
+    "final",          /* VK_FINAL          0x18 */
+    "kanji",          /* VK_KANJI/VK_HANJA 0x19 */
+    0,                /*    0x1A                */
     "escape",         /* VK_ESCAPE         0x1B */
-
-    0, 0, 0, 0,       /*    0x1C .. 0x1F        */
-
+    "convert",        /* VK_CONVERT        0x1C */
+    "non-convert",    /* VK_NONCONVERT     0x1D */
+    "accept",         /* VK_ACCEPT         0x1E */
+    "mode-change",    /* VK_MODECHANGE     0x1F */
     0,                /* VK_SPACE          0x20 */
     "prior",          /* VK_PRIOR          0x21 */
     "next",           /* VK_NEXT           0x22 */
@@ -4952,9 +4953,8 @@ char *lispy_function_keys[] =
     "lwindow",       /* VK_LWIN           0x5B */
     "rwindow",       /* VK_RWIN           0x5C */
     "apps",          /* VK_APPS           0x5D */
-
-    0, 0,            /*    0x5E .. 0x5F        */
-
+    0,               /*    0x5E                */
+    "sleep",
     "kp-0",          /* VK_NUMPAD0        0x60 */
     "kp-1",          /* VK_NUMPAD1        0x61 */
     "kp-2",          /* VK_NUMPAD2        0x62 */
@@ -5001,7 +5001,9 @@ char *lispy_function_keys[] =
 
     "kp-numlock",    /* VK_NUMLOCK        0x90 */
     "scroll",        /* VK_SCROLL         0x91 */
-
+    /* Not sure where the following block comes from.
+       Windows headers have NEC and Fujitsu specific keys in
+       this block, but nothing generic.  */
     "kp-space",	     /* VK_NUMPAD_CLEAR   0x92 */
     "kp-enter",	     /* VK_NUMPAD_ENTER   0x93 */
     "kp-prior",	     /* VK_NUMPAD_PRIOR   0x94 */
@@ -5021,19 +5023,47 @@ char *lispy_function_keys[] =
      * VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
      * Used only as parameters to GetAsyncKeyState and GetKeyState.
      * No other API or message will distinguish left and right keys this way.
+     * 0xA0 .. 0xA5
      */
-    /* 0xA0 .. 0xEF */
-
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-
-    /* 0xF0 .. 0xF5 */
-
     0, 0, 0, 0, 0, 0,
 
+    /* Multimedia keys. These are handled as WM_APPCOMMAND, which allows us
+       to enable them selectively, and gives access to a few more functions.
+       See lispy_multimedia_keys below.  */
+    0, 0, 0, 0, 0, 0, 0, /* 0xA6 .. 0xAC        Browser */
+    0, 0, 0,             /* 0xAD .. 0xAF         Volume */
+    0, 0, 0, 0,          /* 0xB0 .. 0xB3          Media */
+    0, 0, 0, 0,          /* 0xB4 .. 0xB7           Apps */
+
+    /* 0xB8 .. 0xC0 "OEM" keys - all seem to be punctuation.  */
+    0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+    /* 0xC1 - 0xDA unallocated, 0xDB-0xDF more OEM keys */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+    0,               /* 0xE0                   */
+    "ax",            /* VK_OEM_AX         0xE1 */
+    0,               /* VK_OEM_102        0xE2 */
+    "ico-help",      /* VK_ICO_HELP       0xE3 */
+    "ico-00",        /* VK_ICO_00         0xE4 */
+    0,               /* VK_PROCESSKEY     0xE5 */
+    "ico-clear",     /* VK_ICO_CLEAR      0xE6 */
+    "packet",        /* VK_PACKET         0xE7 */
+    0,               /*                   0xE8 */
+    "reset",         /* VK_OEM_RESET      0xE9 */
+    "jump",          /* VK_OEM_JUMP       0xEA */
+    "oem-pa1",       /* VK_OEM_PA1        0xEB */
+    "oem-pa2",       /* VK_OEM_PA2        0xEC */
+    "oem-pa3",       /* VK_OEM_PA3        0xED */
+    "wsctrl",        /* VK_OEM_WSCTRL     0xEE */
+    "cusel",         /* VK_OEM_CUSEL      0xEF */
+    "oem-attn",      /* VK_OEM_ATTN       0xF0 */
+    "finish",        /* VK_OEM_FINISH     0xF1 */
+    "copy",          /* VK_OEM_COPY       0xF2 */
+    "auto",          /* VK_OEM_AUTO       0xF3 */
+    "enlw",          /* VK_OEM_ENLW       0xF4 */
+    "backtab",       /* VK_OEM_BACKTAB    0xF5 */
     "attn",          /* VK_ATTN           0xF6 */
     "crsel",         /* VK_CRSEL          0xF7 */
     "exsel",         /* VK_EXSEL          0xF8 */
@@ -5044,6 +5074,65 @@ char *lispy_function_keys[] =
     "pa1",           /* VK_PA1            0xFD */
     "oem_clear",     /* VK_OEM_CLEAR      0xFE */
     0 /* 0xFF */
+  };
+
+/* Some of these duplicate the "Media keys" on newer keyboards,
+   but they are delivered to the application in a different way.  */
+static char *lispy_multimedia_keys[] =
+  {
+    0,
+    "browser-back",
+    "browser-forward",
+    "browser-refresh",
+    "browser-stop",
+    "browser-search",
+    "browser-favorites",
+    "browser-home",
+    "volume-mute",
+    "volume-down",
+    "volume-up",
+    "media-next",
+    "media-previous",
+    "media-stop",
+    "media-play-pause",
+    "mail",
+    "media-select",
+    "app-1",
+    "app-2",
+    "bass-down",
+    "bass-boost",
+    "bass-up",
+    "treble-down",
+    "treble-up",
+    "mic-volume-mute",
+    "mic-volume-down",
+    "mic-volume-up",
+    "help",
+    "find",
+    "new",
+    "open",
+    "close",
+    "save",
+    "print",
+    "undo",
+    "redo",
+    "copy",
+    "cut",
+    "paste",
+    "mail-reply",
+    "mail-forward",
+    "mail-send",
+    "spell-check",
+    "toggle-dictate-command",
+    "mic-toggle",
+    "correction-list",
+    "media-play",
+    "media-pause",
+    "media-record",
+    "media-fast-forward",
+    "media-rewind",
+    "media-channel-up",
+    "media-channel-down"
   };
 
 #else /* not HAVE_NTGUI */
@@ -5563,6 +5652,21 @@ make_lispy_event (event)
 				  (sizeof (lispy_function_keys)
 				   / sizeof (lispy_function_keys[0])));
 
+#ifdef WINDOWSNT
+    case MULTIMEDIA_KEY_EVENT:
+      if (event->code < (sizeof (lispy_multimedia_keys)
+                         / sizeof (lispy_multimedia_keys[0]))
+          && event->code > 0 && lispy_multimedia_keys[event->code])
+        {
+          return modify_event_symbol (event->code, event->modifiers,
+                                      Qfunction_key, Qnil,
+                                      lispy_multimedia_keys, &func_key_syms,
+                                      (sizeof (lispy_multimedia_keys)
+                                       / sizeof (lispy_multimedia_keys[0])));
+        }
+      return Qnil;
+#endif
+
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
@@ -6002,52 +6106,6 @@ make_lispy_event (event)
       }
 
 #endif /* USE_TOOLKIT_SCROLL_BARS */
-
-#ifdef WINDOWSNT
-    case W32_SCROLL_BAR_CLICK_EVENT:
-      {
-	int button = event->code;
-	int is_double;
-	Lisp_Object position;
-	Lisp_Object *start_pos_ptr;
-	Lisp_Object start_pos;
-
-	{
-	  Lisp_Object window;
-	  Lisp_Object portion_whole;
-	  Lisp_Object part;
-
-	  window = event->frame_or_window;
-	  portion_whole = Fcons (event->x, event->y);
-	  part = *scroll_bar_parts[(int) event->part];
-
-	  position
-	    = Fcons (window,
-		     Fcons (Qvertical_scroll_bar,
-			    Fcons (portion_whole,
-				   Fcons (make_number (event->timestamp),
-					  Fcons (part, Qnil)))));
-	}
-
-	/* Always treat W32 scroll bar events as clicks. */
-	event->modifiers |= click_modifier;
-
-	{
-	  /* Get the symbol we should use for the mouse click.  */
-	  Lisp_Object head;
-
-	  head = modify_event_symbol (button,
-				      event->modifiers,
-				      Qmouse_click,
-				      Vlispy_mouse_stem,
-				      NULL, &mouse_syms,
-				      XVECTOR (mouse_syms)->size);
-	  return Fcons (head,
-			Fcons (position,
-			       Qnil));
-	}
-      }
-#endif /* WINDOWSNT */
 
     case DRAG_N_DROP_EVENT:
       {
