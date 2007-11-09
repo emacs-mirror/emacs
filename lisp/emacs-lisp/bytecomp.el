@@ -2260,6 +2260,13 @@ list that represents a doc string reference.
 		   (byte-compile-top-level (nth 2 form) nil 'file))))
     form))
 
+(put 'define-abbrev-table 'byte-hunk-handler 'byte-compile-file-form-define-abbrev-table)
+(defun byte-compile-file-form-define-abbrev-table (form)
+  (when (and (byte-compile-warning-enabled-p 'free-vars)
+             (eq 'quote (car-safe (car-safe (cdr form)))))
+    (push (car-safe (cdr (cadr form))) byte-compile-bound-variables))
+  (byte-compile-keep-pending form))
+
 (put 'custom-declare-variable 'byte-hunk-handler
      'byte-compile-file-form-custom-declare-variable)
 (defun byte-compile-file-form-custom-declare-variable (form)

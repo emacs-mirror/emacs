@@ -1,3 +1,8 @@
+2007-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-define-abbrev-table):
+	New function.
+
 2007-11-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Clean the code for checking suitable Emacs version.
