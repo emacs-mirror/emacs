@@ -3970,7 +3970,7 @@ w32_scroll_bar_handle_click (bar, msg, emacs_event)
   if (! GC_WINDOWP (bar->window))
     abort ();
 
-  emacs_event->kind = W32_SCROLL_BAR_CLICK_EVENT;
+  emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
   emacs_event->code = 0;
   /* not really meaningful to distinguish up/down */
   emacs_event->modifiers = msg->dwModifiers;
@@ -4337,6 +4337,29 @@ w32_read_socket (sd, expected, hold_quit)
 	    }
 	  break;
 
+        case WM_APPCOMMAND:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+
+	  if (f && !f->iconified)
+	    {
+	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+		  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
+		{
+		  clear_mouse_face (dpyinfo);
+		  dpyinfo->mouse_face_hidden = 1;
+		}
+
+	      if (temp_index == sizeof temp_buffer / sizeof (short))
+		temp_index = 0;
+	      temp_buffer[temp_index++] = msg.msg.wParam;
+	      inev.kind = MULTIMEDIA_KEY_EVENT;
+	      inev.code = GET_APPCOMMAND_LPARAM(msg.msg.lParam);
+	      inev.modifiers = msg.dwModifiers;
+	      XSETFRAME (inev.frame_or_window, f);
+	      inev.timestamp = msg.msg.time;
+	    }
+	  break;
+          
 	case WM_MOUSEMOVE:
 	  /* Ignore non-movement.  */
 	  {
