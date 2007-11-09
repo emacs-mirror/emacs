@@ -1,3 +1,7 @@
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* files.el (enable-local-variables): Doc fix.
+
 2007-11-08  David Hansen  <david.hansen@gmx.net>  (tiny change)
 
 	* eshell/em-dirs.el (eshell-expand-multiple-dots): Change regexp to
