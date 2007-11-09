@@ -1,7 +1,7 @@
 2007-11-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el (ps-do-despool): If ps-lpr-switches is not a list, force
-	it to be one.
+	* ps-print.el: Clean the code for checking suitable Emacs version.
+	(ps-do-despool): If ps-lpr-switches is not a list, force it to be one.
 	(ps-print-version): New version 6.8.1.
 
 2007-11-09  Juanma Barranquero  <lekktu@gmail.com>

@@ -1462,12 +1462,11 @@ Please send all bug fixes and enhancements to
 (or (featurep 'lisp-float-type)
     (error "`ps-print' requires floating point support"))
 
-(let ((case-fold-search t))
-  (cond ((featurep 'xemacs))
-	(t
-	 (unless (and (boundp 'emacs-major-version)
-		      (>= emacs-major-version 22))
-	   (error "`ps-print' only supports Emacs 22 and higher")))))
+(if (featurep 'xemacs)
+    ()
+  (unless (and (boundp 'emacs-major-version)
+	       (>= emacs-major-version 22))
+    (error "`ps-print' only supports Emacs 22 and higher")))
 
 
 ;; GNU Emacs
