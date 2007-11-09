@@ -615,6 +615,10 @@ extern void w32_unload_font ();
 #ifndef WM_MOUSEHWHEEL
 #define WM_MOUSEHWHEEL                 (WM_MOUSEWHEEL + 4)
 #endif /* WM_MOUSEHWHEEL  */
+#ifndef WM_APPCOMMAND
+#define WM_APPCOMMAND 0x319
+#define GET_APPCOMMAND_LPARAM(lParam)  (HIWORD(lParam) & 0x7fff)
+#endif
 
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0)
