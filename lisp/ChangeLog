@@ -1,5 +1,8 @@
 2007-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* faces.el (x-create-frame-with-faces, tty-create-frame-with-faces):
+	Don't set interprogram-(cut|paste)-function on each frame.
+
 	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
 	Make them work in tty frames.
 	(interprogram-cut-function, interprogram-paste-function):

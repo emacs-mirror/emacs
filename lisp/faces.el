@@ -1905,11 +1905,6 @@ Value is the new frame created."
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)
-	  ;; Arrange for the kill and yank functions to set and check the clipboard.
-	  (modify-frame-parameters
-	   frame '((interprogram-cut-function . x-select-text)))
-	  (modify-frame-parameters
-	   frame '((interprogram-paste-function . x-cut-buffer-or-selection-value)))
 	  ;; Make sure the tool-bar is ready to be enabled.  The
 	  ;; `tool-bar-lines' frame parameter will not take effect
 	  ;; without this call.
@@ -2011,10 +2006,6 @@ created."
     (unwind-protect
 	(with-selected-frame frame
 	  (tty-handle-reverse-video frame (frame-parameters frame))
-
-	  ;; Make sure the kill and yank functions do not touch the X clipboard.
-	  (modify-frame-parameters frame '((interprogram-cut-function . nil)))
-	  (modify-frame-parameters frame '((interprogram-paste-function . nil)))
 
           (unless (terminal-parameter frame 'terminal-initted)
             (set-terminal-parameter frame 'terminal-initted t)
