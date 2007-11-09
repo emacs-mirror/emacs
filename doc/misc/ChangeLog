@@ -1,3 +1,9 @@
+2007-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-news.texi: Fix spelling.
+	`message-insert-formatted-citation-line', not
+	`message-insert-formated-citation-line'.
+
 2007-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Overview): Mention also the PuTTY integration under

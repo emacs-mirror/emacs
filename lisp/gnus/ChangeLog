@@ -1,6 +1,22 @@
+2007-11-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-citation-line-function)
+	(message-insert-formatted-citation-line): Fix spelling of
+	`message-insert-formated-citation-line'.
+
 2007-11-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el (gnus-summary-highlight): Mark as risky local variable.
+
+2007-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnml.el (nnml-request-rename-group): Bind file-name-coding-system to
+	nnmail-pathname-coding-system.
+
+	* gnus-group.el (gnus-group-rename-group): Encode non-ASCII group name
+	that a user enters; decode group names in messages.
+
+	* gnus-msg.el (gnus-inews-do-gcc): Encode non-ASCII group names.
 
 2007-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
 

@@ -1633,8 +1633,11 @@ this is a reply."
 			(message-tokenize-header gcc " ,")))
 	  ;; Copy the article over to some group(s).
 	  (while (setq group (pop groups))
-	    (unless (gnus-check-server
-		     (setq method (gnus-inews-group-method group)))
+	    (setq method (gnus-inews-group-method group)
+		  group (mm-encode-coding-string
+			 group
+			 (gnus-group-name-charset method group)))
+	    (unless (gnus-check-server method)
 	      (error "Can't open server %s" (if (stringp method) method
 					      (car method))))
 	    (unless (gnus-request-group group nil method)

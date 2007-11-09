@@ -914,7 +914,7 @@ the signature is inserted."
   "*Function called to insert the \"Whomever writes:\" line.
 
 Predefined functions include `message-insert-citation-line' and
-`message-insert-formated-citation-line' (see the variable
+`message-insert-formatted-citation-line' (see the variable
 `message-citation-line-format').
 
 Note that Gnus provides a feature where the reader can click on
@@ -923,7 +923,7 @@ people who read your message will have to change their Gnus
 configuration.  See the variable `gnus-cite-attribution-suffix'."
   :type '(choice
 	  (function-item :tag "plain" message-insert-citation-line)
-	  (function-item :tag "formatted" message-insert-formated-citation-line)
+	  (function-item :tag "formatted" message-insert-formatted-citation-line)
 	  (function :tag "Other"))
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
@@ -3688,14 +3688,14 @@ This function uses `mail-citation-hook' if that is non-nil."
   "Cite function in the standard Message manner."
   (message-cite-original-1 nil))
 
-(defun message-insert-formated-citation-line (&optional from date)
-  "Function that inserts a formated citation line.
+(defun message-insert-formatted-citation-line (&optional from date)
+  "Function that inserts a formatted citation line.
 
 See `message-citation-line-format'."
   ;; The optional args are for testing/debugging.  They will disappear later.
   ;; Example:
   ;; (with-temp-buffer
-  ;;   (message-insert-formated-citation-line
+  ;;   (message-insert-formatted-citation-line
   ;;    "John Doe <john.doe@example.invalid>"
   ;;    (current-time))
   ;;   (buffer-string))

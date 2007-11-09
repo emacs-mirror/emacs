@@ -2613,14 +2613,19 @@ be removed from the server, even when it's empty."
 When used interactively, GROUP is the group under point
 and NEW-NAME will be prompted for."
   (interactive
-   (list
-    (gnus-group-group-name)
-    (progn
-      (unless (gnus-check-backend-function
-	       'request-rename-group (gnus-group-group-name))
-	(error "This back end does not support renaming groups"))
-      (gnus-read-group "Rename group to: "
-		       (gnus-group-real-name (gnus-group-group-name))))))
+   (let ((group (gnus-group-group-name))
+	 method new-name)
+     (unless (gnus-check-backend-function 'request-rename-group group)
+       (error "This back end does not support renaming groups"))
+     (setq new-name (gnus-read-group
+		     "Rename group to: "
+		     (gnus-group-real-name (gnus-group-decoded-name group)))
+	   method (gnus-info-method (gnus-get-info group)))
+     (list group (mm-encode-coding-string
+		  new-name
+		  (gnus-group-name-charset
+		   method
+		   (gnus-group-prefixed-name new-name method))))))
 
   (unless (gnus-check-backend-function 'request-rename-group group)
     (error "This back end does not support renaming groups"))
@@ -2639,29 +2644,34 @@ and NEW-NAME will be prompted for."
 	   (gnus-group-real-name new-name)
 	   (gnus-info-method (gnus-get-info group)))))
 
-  (when (gnus-active new-name)
-    (error "The group %s already exists" new-name))
+  (let ((decoded-group (gnus-group-decoded-name group))
+	(decoded-new-name (gnus-group-decoded-name new-name)))
+    (when (gnus-active new-name)
+      (error "The group %s already exists" decoded-new-name))
 
-  (gnus-message 6 "Renaming group %s to %s..." group new-name)
-  (prog1
-      (if (progn
-	    (gnus-group-goto-group group)
-	    (not (when (< (gnus-group-group-level) gnus-level-zombie)
-		   (gnus-request-rename-group group new-name))))
-	  (gnus-error 3 "Couldn't rename group %s to %s" group new-name)
-	;; We rename the group internally by killing it...
-	(gnus-group-kill-group)
-	;; ... changing its name ...
-	(setcar (cdar gnus-list-of-killed-groups) new-name)
-	;; ... and then yanking it.  Magic!
-	(gnus-group-yank-group)
-	(gnus-set-active new-name (gnus-active group))
-	(gnus-message 6 "Renaming group %s to %s...done" group new-name)
-	new-name)
-    (setq gnus-killed-list (delete group gnus-killed-list))
-    (gnus-set-active group nil)
-    (gnus-dribble-touch)
-    (gnus-group-position-point)))
+    (gnus-message 6 "Renaming group %s to %s..."
+		  decoded-group decoded-new-name)
+    (prog1
+	(if (progn
+	      (gnus-group-goto-group group)
+	      (not (when (< (gnus-group-group-level) gnus-level-zombie)
+		     (gnus-request-rename-group group new-name))))
+	    (gnus-error 3 "Couldn't rename group %s to %s"
+			decoded-group decoded-new-name)
+	  ;; We rename the group internally by killing it...
+	  (gnus-group-kill-group)
+	  ;; ... changing its name ...
+	  (setcar (cdar gnus-list-of-killed-groups) new-name)
+	  ;; ... and then yanking it.  Magic!
+	  (gnus-group-yank-group)
+	  (gnus-set-active new-name (gnus-active group))
+	  (gnus-message 6 "Renaming group %s to %s...done"
+			decoded-group decoded-new-name)
+	  new-name)
+      (setq gnus-killed-list (delete group gnus-killed-list))
+      (gnus-set-active group nil)
+      (gnus-dribble-touch)
+      (gnus-group-position-point))))
 
 (defun gnus-group-edit-group (group &optional part)
   "Edit the group on the current line."

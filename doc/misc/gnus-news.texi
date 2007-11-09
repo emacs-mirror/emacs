@@ -175,7 +175,7 @@ named @code{message-signature-directory}.
 @item The option @code{message-citation-line-format} controls the format
 of the "Whomever writes:" line.  You need to set
 @code{message-citation-line-function} to
-@code{message-insert-formated-citation-line} as well.
+@code{message-insert-formatted-citation-line} as well.
 @end itemize
 
 @item Changes in back ends
