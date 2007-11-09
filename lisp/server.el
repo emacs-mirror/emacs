@@ -1295,10 +1295,6 @@ only these files will be asked to be saved."
   ;; continue standard unloading
   nil)
 
-(add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
-
-(defvar server-unload-function 'server-unload-function)
-
 
 (provide 'server)
 
