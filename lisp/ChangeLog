@@ -1,3 +1,9 @@
+2007-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/iso-cvt.el (iso-spanish, iso-german, iso-iso2tex)
+	(iso-tex2iso, iso-gtex2iso, iso-iso2gtex, iso-iso2duden): Doc fixes.
+	(iso-iso2duden-trans-tab): Add docstring.
+
 2007-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* faces.el (face-normalize-spec): Remove function.
