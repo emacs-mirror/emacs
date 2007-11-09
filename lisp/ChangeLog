@@ -1,5 +1,8 @@
 2007-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (interprogram-cut-function, interprogram-paste-function):
+	Don't make them frame-local any more.
+
 	* faces.el (x-create-frame-with-faces, tty-create-frame-with-faces):
 	Don't set interprogram-(cut|paste)-function on each frame.
 

@@ -2561,8 +2561,6 @@ the text which should be made available.
 The second, optional, argument PUSH, has the same meaning as the
 similar argument to `x-set-cut-buffer', which see.")
 
-(make-variable-frame-local 'interprogram-cut-function)
-
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
 
@@ -2588,8 +2586,6 @@ most recent string, the function should return nil.  If it is
 difficult to tell whether Emacs or some other program provided the
 current string, it is probably good enough to return nil if the string
 is equal (according to `string=') to the last text Emacs provided.")
-
-(make-variable-frame-local 'interprogram-paste-function)
 
 
 
