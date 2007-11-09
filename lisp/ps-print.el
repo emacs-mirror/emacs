@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.3
+;; Version: 7.3.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.3"
-  "ps-print.el, v 7.3 <2007/10/26 vinicius>
+(defconst ps-print-version "7.3.1"
+  "ps-print.el, v 7.3.1 <2007/11/09 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -6510,7 +6510,9 @@ If FACE is not a valid face name, use default face."
 				    (and (boundp 'printer-name)
 					 (symbol-value 'printer-name))))
 	       (ps-lpr-switches
-		(append ps-lpr-switches
+		(append (if (listp ps-lpr-switches)
+			    ps-lpr-switches
+			  (list ps-lpr-switches))
 			(and (stringp ps-printer-name)
 			     (string< "" ps-printer-name)
 			     (list (concat
