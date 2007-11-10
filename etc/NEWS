@@ -190,6 +190,17 @@ consult the Remember Manual for usage details.
     `:parents', `:case-fixed', `:enable-function', `:regexp',
     `abbrev-table-modiff'.
 
+** Help mode.
+*** New macro `with-help-window' should set up help windows better
+than `with-output-to-temp-buffer' with `print-help-return-message'.
+*** New option `help-window-select' permits to customize whether help
+window shall be automatically selected when invoking help.
+*** New variable `help-window-point-marker' permits to specify new
+position of point in help window (for example in `view-lossage'). 
+
+** view-remove-frame-by-deleting is now by default t
+since users found iconification of view-mode frames distracting. 
+
 ** isearch can now search through multiple ChangeLog files.
 When running isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,
