@@ -71,14 +71,14 @@
 ;; You can also search within the document.  The command `doc-view-search'
 ;; (bound to `C-s') queries for a search regexp and initializes a list of all
 ;; matching pages and messages how many match-pages were found.  After that you
-;; can jump to the next page containing a match with
-;; `doc-view-search-next-match' (bound to `C-S-n') or to the previous matching
-;; page with `doc-view-search-previous-match' (bound to `C-S-p').  This works
-;; by searching a plain text representation of the document.  If that doesn't
-;; already exist the first invokation of `doc-view-search' starts the
-;; conversion.  When that finishes and you're still viewing the document
-;; (i.e. you didn't switch to another buffer) you're queried for the regexp
-;; then.
+;; can jump to the next page containing a match with an additional `C-s'.  With
+;; `C-r' you can do the same, but backwards.  To search for a new regexp give a
+;; prefix arg to one of the search functions, e.g. by typing `C-u C-s'.  The
+;; searching works by using a plain text representation of the document.  If
+;; that doesn't already exist the first invokation of `doc-view-search' (or
+;; `doc-view-search-backward') starts the conversion.  When that finishes and
+;; you're still viewing the document (i.e. you didn't switch to another buffer)
+;; you're queried for the regexp then.
 ;;
 ;; Dired users can simply hit `v' on a document file.  If it's a PS, PDF or DVI
 ;; it will be opened using `doc-view-mode'.
@@ -109,6 +109,7 @@
 
 (require 'dired)
 (require 'image-mode)
+(require 'jka-compr)
 
 ;;;; Customization Options
 
@@ -239,8 +240,7 @@ has finished."
     ;; Searching
     (define-key map (kbd "C-s")       'doc-view-search)
     (define-key map (kbd "<find>")    'doc-view-search)
-    (define-key map (kbd "C-S-n")     'doc-view-search-next-match)
-    (define-key map (kbd "C-S-p")     'doc-view-search-previous-match)
+    (define-key map (kbd "C-r")       'doc-view-search-backward)
     ;; Scrolling
     (define-key map [remap forward-char]  'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
@@ -264,6 +264,7 @@ has finished."
     ["Reset Slice"		doc-view-reset-slice]
     "---"
     ["Search"			doc-view-search]
+    ["Search Backwards"         doc-view-search-backward]
     ["Toggle display"		doc-view-toggle-display]
     ))
 
@@ -502,7 +503,7 @@ Should be invoked when the cached images aren't up-to-date."
       ;; If the user looks at the DocView buffer where the conversion was
       ;; performed, search anew.  This time it will be queried for a regexp.
       (when (eq current-buffer proc-buffer)
-	(doc-view-search)))))
+	(doc-view-search nil)))))
 
 (defun doc-view-pdf->txt (pdf txt)
   "Convert PDF to TXT asynchronously."
@@ -733,46 +734,57 @@ the pagenumber and CONTEXTS are all lines of text containing a match."
       (setq no (+ no (1- (length p)))))
     no))
 
-(defun doc-view-search ()
-  "Query for a regexp and search the current document.
+(defun doc-view-search-backward (new-query)
+  "Call `doc-view-search' for backward search.
+If prefix NEW-QUERY is given, ask for a new regexp."
+  (interactive "P")
+  (doc-view-search arg t))
+
+(defun doc-view-search (new-query &optional backward)
+  "Jump to the next match or initiate a new search if NEW-QUERY is given.
 If the current document hasn't been transformed to plain text
-till now do that first.  You should try searching anew when the
-conversion finished."
-  (interactive)
-  ;; New search, so forget the old results.
-  (setq doc-view-current-search-matches nil)
-  (let ((txt (expand-file-name "doc.txt"
-                               (doc-view-current-cache-dir))))
-    (if (file-readable-p txt)
-	(progn
-	  (setq doc-view-current-search-matches
-		(doc-view-search-internal
-		 (read-from-minibuffer "Regexp: ")
-		 txt))
-	  (message "DocView: search yielded %d matches."
-		   (doc-view-search-no-of-matches
-		    doc-view-current-search-matches)))
-      ;; We must convert to TXT first!
-      (if doc-view-current-converter-process
-	  (message "DocView: please wait till conversion finished.")
-	(let ((ext (file-name-extension buffer-file-name)))
-	  (cond
-	   ((string= ext "pdf")
-	    ;; Doc is a PDF, so convert it to TXT
-	    (doc-view-pdf->txt buffer-file-name txt))
-	   ((string= ext "ps")
-	    ;; Doc is a PS, so convert it to PDF (which will be converted to
-	    ;; TXT thereafter).
-	    (doc-view-ps->pdf buffer-file-name
-			      (expand-file-name "doc.pdf"
-                                                (doc-view-current-cache-dir))))
-	   ((string= ext "dvi")
-	    ;; Doc is a DVI.  This means that a doc.pdf already exists in its
-	    ;; cache subdirectory.
-	    (doc-view-pdf->txt (expand-file-name "doc.pdf"
-                                                 (doc-view-current-cache-dir))
-			       txt))
-	   (t (error "DocView doesn't know what to do"))))))))
+till now do that first.
+If BACKWARD is non-nil, jump to the previous match."
+  (interactive "P")
+  (if (and (not arg)
+	   doc-view-current-search-matches)
+      (if backward
+	  (doc-view-search-previous-match 1)
+	(doc-view-search-next-match 1))
+    ;; New search, so forget the old results.
+    (setq doc-view-current-search-matches nil)
+    (let ((txt (expand-file-name "doc.txt"
+				 (doc-view-current-cache-dir))))
+      (if (file-readable-p txt)
+	  (progn
+	    (setq doc-view-current-search-matches
+		  (doc-view-search-internal
+		   (read-from-minibuffer "Regexp: ")
+		   txt))
+	    (message "DocView: search yielded %d matches."
+		     (doc-view-search-no-of-matches
+		      doc-view-current-search-matches)))
+	;; We must convert to TXT first!
+	(if doc-view-current-converter-process
+	    (message "DocView: please wait till conversion finished.")
+	  (let ((ext (file-name-extension buffer-file-name)))
+	    (cond
+	     ((string= ext "pdf")
+	      ;; Doc is a PDF, so convert it to TXT
+	      (doc-view-pdf->txt buffer-file-name txt))
+	     ((string= ext "ps")
+	      ;; Doc is a PS, so convert it to PDF (which will be converted to
+	      ;; TXT thereafter).
+	      (doc-view-ps->pdf buffer-file-name
+				(expand-file-name "doc.pdf"
+						  (doc-view-current-cache-dir))))
+	     ((string= ext "dvi")
+	      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
+	      ;; cache subdirectory.
+	      (doc-view-pdf->txt (expand-file-name "doc.pdf"
+						   (doc-view-current-cache-dir))
+				 txt))
+	     (t (error "DocView doesn't know what to do")))))))))
 
 (defun doc-view-search-next-match (arg)
   "Go to the ARGth next matching page."
@@ -835,36 +847,47 @@ conversion finished."
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text."
   (interactive)
-  (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
-			      doc-view-previous-major-mode
-			    major-mode)))
-    (kill-all-local-variables)
-    (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
-  (make-local-variable 'doc-view-current-files)
-  (make-local-variable 'doc-view-current-image)
-  (make-local-variable 'doc-view-current-page)
-  (make-local-variable 'doc-view-current-converter-process)
-  (make-local-variable 'doc-view-current-timer)
-  (make-local-variable 'doc-view-current-slice)
-  (make-local-variable 'doc-view-current-cache-dir)
-  (make-local-variable 'doc-view-current-info)
-  (make-local-variable 'doc-view-current-search-matches)
-  (set (make-local-variable 'doc-view-current-overlay)
-       (make-overlay (point-min) (point-max) nil t))
-  (add-hook 'change-major-mode-hook
-            (lambda () (delete-overlay doc-view-current-overlay))
-            nil t)
-  (set (make-local-variable 'mode-line-position)
-       '(" P" (:eval (number-to-string doc-view-current-page))
-         "/" (:eval (number-to-string (length doc-view-current-files)))))
-  (set (make-local-variable 'cursor-type) nil)
-  (use-local-map doc-view-mode-map)
-  (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
-  (setq mode-name "DocView"
-	buffer-read-only t
-	major-mode 'doc-view-mode)
-  (doc-view-initiate-display)
-  (run-mode-hooks 'doc-view-mode-hook))
+  (if jka-compr-really-do-compress
+      ;; This is a compressed file uncompressed by auto-compression-mode.
+      (when (y-or-n-p (concat "DocView: Cannot convert compressed file.  "
+			      "Save it uncompressed first? "))
+	(let ((file (read-file-name
+		     "File: "
+		     (file-name-directory buffer-file-name))))
+	  (write-region (point-min) (point-max) file)
+	  (kill-buffer nil)
+	  (find-file file)
+	  (doc-view-mode)))
+    (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
+				doc-view-previous-major-mode
+			      major-mode)))
+      (kill-all-local-variables)
+      (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
+    (make-local-variable 'doc-view-current-files)
+    (make-local-variable 'doc-view-current-image)
+    (make-local-variable 'doc-view-current-page)
+    (make-local-variable 'doc-view-current-converter-process)
+    (make-local-variable 'doc-view-current-timer)
+    (make-local-variable 'doc-view-current-slice)
+    (make-local-variable 'doc-view-current-cache-dir)
+    (make-local-variable 'doc-view-current-info)
+    (make-local-variable 'doc-view-current-search-matches)
+    (set (make-local-variable 'doc-view-current-overlay)
+	 (make-overlay (point-min) (point-max) nil t))
+    (add-hook 'change-major-mode-hook
+	      (lambda () (delete-overlay doc-view-current-overlay))
+	      nil t)
+    (set (make-local-variable 'mode-line-position)
+	 '(" P" (:eval (number-to-string doc-view-current-page))
+	   "/" (:eval (number-to-string (length doc-view-current-files)))))
+    (set (make-local-variable 'cursor-type) nil)
+    (use-local-map doc-view-mode-map)
+    (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
+    (setq mode-name "DocView"
+	  buffer-read-only t
+	  major-mode 'doc-view-mode)
+    (doc-view-initiate-display)
+    (run-mode-hooks 'doc-view-mode-hook)))
 
 ;;;###autoload
 (define-minor-mode doc-view-minor-mode
