@@ -1,3 +1,10 @@
+2007-11-10  Juri Linkov  <juri@jurta.org>
+
+	* startup.el: Backport startup screen related changes from the trunk.
+	* loadup.el: Add `button'.  Move up `startup'.
+	* help.el (help-map, help-for-help-internal): Add `C-h C-a'.
+	* version.el (emacs-copyright): Add emacs-copyright.
+
 2007-11-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el: Sync charset names with setup-default-fontset.
