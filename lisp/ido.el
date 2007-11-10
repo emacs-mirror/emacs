@@ -1305,13 +1305,11 @@ Value is an integer which is number of chars to right of prompt.")
   (interactive)
   (when (and ido-last-directory-list ido-save-directory-list-file)
     (let ((buf (get-buffer-create " *ido session*"))
-	  (version-control 'never)
-	  (coding-system (or file-name-coding-system
-			     default-file-name-coding-system)))
+	  (version-control 'never))
       (unwind-protect
 	  (with-current-buffer buf
 	    (erase-buffer)
-	    (setq buffer-file-coding-system coding-system)
+	    (setq buffer-file-coding-system 'utf-8)
 	    (ido-pp 'ido-last-directory-list)
 	    (ido-pp 'ido-work-directory-list)
 	    (ido-pp 'ido-work-file-list)
@@ -1319,8 +1317,7 @@ Value is an integer which is number of chars to right of prompt.")
 	    (if (listp ido-unc-hosts-cache)
 		(ido-pp 'ido-unc-hosts-cache)
 	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
-	    (insert (format "\n;; Local Variables:\n;; coding: %s\n;; End:\n"
-			    coding-system))
+	    (insert "\n;; Local Variables:\n;; coding: utf-8\n;; End:\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
 
