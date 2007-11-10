@@ -1,3 +1,11 @@
+2007-11-10  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-end-hook, isearch-mode-end-hook-quit):
+	Fix docstring.  Reported by Leo <sdl.web@gmail.com>.
+
+	* custom.el (custom-note-var-changed): Remove the `interactive'
+	spec from this new non-interactive function.
+
 2007-11-10  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode-map, doc-view-menu)
