@@ -1,3 +1,8 @@
+2007-11-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* files.el (auto-mode-alist): Select org-mode for files with the
+	extension ".org".
+
 2007-11-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (help-window, help-window-point-marker): New variables.
