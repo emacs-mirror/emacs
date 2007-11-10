@@ -69,6 +69,12 @@ strings or patterns."
   :group 'matching
   :version "22.1")
 
+(defcustom query-replace-show-replacement t
+  "*Non-nil means to show what actual replacement text will be."
+  :type 'boolean
+  :group 'matching
+  :version "23.1")
+
 (defcustom query-replace-highlight t
   "*Non-nil means to highlight matches during query replacement."
   :type 'boolean
@@ -1570,10 +1576,17 @@ make, or the user didn't cancel the call."
 		   (or delimited-flag regexp-flag) case-fold-search)
 		  ;; Bind message-log-max so we don't fill up the message log
 		  ;; with a bunch of identical messages.
-		  (let ((message-log-max nil))
+		  (let ((message-log-max nil)
+			(replacement-presentation
+			 (if query-replace-show-replacement
+			     (save-match-data
+			       (set-match-data real-match-data)
+			       (match-substitute-replacement next-replacement
+							     nocasify literal))
+			   next-replacement)))
 		    (message message
                              (query-replace-descr from-string)
-                             (query-replace-descr next-replacement)))
+                             (query-replace-descr replacement-presentation)))
 		  (setq key (read-event))
 		  ;; Necessary in case something happens during read-event
 		  ;; that clobbers the match data.
