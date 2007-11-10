@@ -1,5 +1,14 @@
 2007-11-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Optimize
+	(featurep 'emacs) to t.
+
+	* emacs-lisp/bytecomp.el (byte-compile-find-bound-condition): New
+	function.
+	(byte-compile-maybe-guarded): Use it to also look for bound
+	symbols inside `and' forms.  Comment out non-working code that was
+	trying to avoid warnings for XEmacs code.
+
 	* vc.el (vc-diff-internal): Make the *vc-diff* buffer read only.
 
 	* vc-svn.el (vc-svn-print-log, vc-svn-diff):

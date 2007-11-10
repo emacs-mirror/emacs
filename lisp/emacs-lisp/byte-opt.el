@@ -1150,7 +1150,9 @@
   ;; can safely optimize away this test.
   (if (member (cdr-safe form) '(((quote xemacs)) ((quote sxemacs))))
       nil
-    form))
+    (if (member (cdr-safe form) '(((quote emacs))))
+	t
+      form)))
 
 (put 'set 'byte-optimizer 'byte-optimize-set)
 (defun byte-optimize-set (form)

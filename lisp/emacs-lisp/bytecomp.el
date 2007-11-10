@@ -3492,6 +3492,32 @@ That command is designed for interactive use only" fn))
       (if ,discard 'byte-goto-if-nil 'byte-goto-if-nil-else-pop))
     ,tag))
 
+;; Return the list of items in CONDITION-PARAM that match PRED-LIST.
+;; Only return items that are not in ONLY-IF-NOT-PRESENT.
+(defun byte-compile-find-bound-condition (condition-param 
+					  pred-list 
+					  &optional only-if-not-present)
+  (let ((result nil)
+	(nth-one nil)
+	(cond-list 
+	 (if (memq (car-safe condition-param) pred-list)
+	     ;; The condition appears by itself.
+	     (list condition-param)
+	   ;; If the condition is an `and', look for matches among the
+	   ;; `and' arguments.
+	   (when (eq 'and (car-safe condition-param))
+	     (cdr condition-param)))))
+    
+    (dolist (crt cond-list)
+      (when (and (memq (car-safe crt) pred-list)
+		 (eq 'quote (car-safe (setq nth-one (nth 1 crt))))
+		 ;; Ignore if the symbol is already on the unresolved
+		 ;; list.
+		 (not (assq (nth 1 nth-one) ; the relevant symbol
+			    only-if-not-present)))
+	(push (nth 1 (nth 1 crt)) result)))
+    result))
+
 (defmacro byte-compile-maybe-guarded (condition &rest body)
   "Execute forms in BODY, potentially guarded by CONDITION.
 CONDITION is a variable whose value is a test in an `if' or `cond'.
@@ -3503,35 +3529,34 @@ being undefined will be suppressed.
 If CONDITION's value is (not (featurep 'emacs)) or (featurep 'xemacs),
 that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
-  `(let* ((fbound
-	   (if (eq 'fboundp (car-safe ,condition))
-	       (and (eq 'quote (car-safe (nth 1 ,condition)))
-		    ;; Ignore if the symbol is already on the
-		    ;; unresolved list.
-		    (not (assq (nth 1 (nth 1 ,condition)) ; the relevant symbol
-			       byte-compile-unresolved-functions))
-		    (nth 1 (nth 1 ,condition)))))
-	  (bound (if (or (eq 'boundp (car-safe ,condition))
-			 (eq 'default-boundp (car-safe ,condition)))
-		     (and (eq 'quote (car-safe (nth 1 ,condition)))
-			  (nth 1 (nth 1 ,condition)))))
+  `(let* ((fbound-list (byte-compile-find-bound-condition 
+			,condition (list 'fboundp) 
+			byte-compile-unresolved-functions))
+	  (bound-list (byte-compile-find-bound-condition 
+		       ,condition (list 'boundp 'default-boundp)))
 	  ;; Maybe add to the bound list.
 	  (byte-compile-bound-variables
-	   (if bound
-	       (cons bound byte-compile-bound-variables)
+	   (if bound-list
+	       (append bound-list byte-compile-bound-variables)
 	     byte-compile-bound-variables))
 	  ;; Suppress all warnings, for code not used in Emacs.
-	  (byte-compile-warnings
-	   (if (member ,condition '((featurep 'xemacs)
-				    (not (featurep 'emacs))))
-	       nil byte-compile-warnings)))
+	  ;; FIXME: by the time this is executed the `featurep'
+	  ;; emacs/xemacs tests have been optimized away, so this is
+	  ;; not doing anything useful here, is should probably be
+	  ;; moved to a different place.
+	  ;; (byte-compile-warnings
+	  ;;  (if (member ,condition '((featurep 'xemacs)
+	  ;; 			    (not (featurep 'emacs))))
+	  ;;      nil byte-compile-warnings))
+	  )
      (unwind-protect
 	 (progn ,@body)
        ;; Maybe remove the function symbol from the unresolved list.
-       (if fbound
+       (dolist (fbound fbound-list)
+	 (when fbound
 	   (setq byte-compile-unresolved-functions
 		 (delq (assq fbound byte-compile-unresolved-functions)
-		       byte-compile-unresolved-functions))))))
+		       byte-compile-unresolved-functions)))))))
 
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
