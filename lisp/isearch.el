@@ -159,10 +159,10 @@ command history."
 (defvar isearch-mode-end-hook nil
   "Function(s) to call after terminating an incremental search.
 When these functions are called, `isearch-mode-end-hook-quit'
-is non-nil if the user quit the search.")
+is non-nil if the user quits the search.")
 
 (defvar isearch-mode-end-hook-quit nil
-  "Non-nil while running `isearch-mode-end-hook' if user quit the search.")
+  "Non-nil while running `isearch-mode-end-hook' if the user quits the search.")
 
 (defvar isearch-message-function nil
   "Function to call to display the search prompt.
