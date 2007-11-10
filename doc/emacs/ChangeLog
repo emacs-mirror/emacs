@@ -1,3 +1,8 @@
+2007-11-10  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* search.texi (Query Replace): Mention
+	`query-replace-show-replacement'.
+
 2007-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi, gnus-faq.texi, message.texi: Bump version to 5.10.9.
