@@ -124,6 +124,11 @@ following arguments.
 * Editing Changes in Emacs 23.1
 
 +++
+** C-M-% now shows replacement as it would look in the buffer, with
+`\N' and `\&' substituted according to the match.  Old behavior can be
+restored by customizing `query-replace-show-replacement'.
+
++++
 ** M-q now fills the region if the region is active and
 `transient-mark-mode' is turned on.  Otherwise, it fills the current
 paragraph.
@@ -363,6 +368,10 @@ because they clash with commands provided by dirtrack.el.  Use
 
 
 * Lisp Changes in Emacs 23.1
+
++++
+** New function `match-substitute-replacement' returns the result of
+`replace-match' without actually using it in the buffer.
 
 +++
 ** A list of default values can be specified for the DEFAULT argument of
