@@ -1,3 +1,14 @@
+2007-11-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-diff-internal): Make the *vc-diff* buffer read only.
+
+	* vc-svn.el (vc-svn-print-log, vc-svn-diff):
+	* vc-mcvs.el (vc-mcvs-print-log, vc-mcvs-annotate-command):
+	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff)
+	(vc-cvs-annotate-command):
+	* vc-arch.el (vc-arch-diff): Remove test to check if start-process
+	is bound, it always is.
+
 2007-11-10  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (w32-initialize-window-system): Move SJIS font
