@@ -72,6 +72,9 @@
 (load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
 
+(load "button")
+(load "startup")
+
 (message "Lists of integers (garbage collection statistics) are normal output")
 (message "while building Emacs; they do not indicate a problem.")
 (message "%s" (garbage-collect))
@@ -153,7 +156,6 @@
 (message "%s" (garbage-collect))
 (load "menu-bar")
 (load "paths.el")  ;Don't get confused if someone compiled paths by mistake.
-(load "startup")
 (load "emacs-lisp/lisp")
 (load "textmodes/page")
 (load "register")
