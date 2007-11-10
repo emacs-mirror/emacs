@@ -1083,12 +1083,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   (error "Suspending an Emacs running under W32 makes no sense"))
 
 
-;;; Enable Japanese fonts on Windows to be used by default.
-(set-fontset-font nil (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font nil (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font nil (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
-(set-fontset-font nil (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
-
 (defun mouse-set-font (&rest fonts)
   "Select an Emacs font from a list of known good fonts and fontsets.
 
@@ -1159,6 +1153,17 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
 
   ;; Setup the default fontset.
   (setup-default-fontset)
+
+  ;; Enable Japanese fonts on Windows to be used by default.
+  (set-fontset-font nil (make-char 'katakana-jisx0201)
+		    '("*" . "JISX0208-SJIS"))
+  (set-fontset-font nil (make-char 'latin-jisx0201)
+		    '("*" . "JISX0208-SJIS"))
+  (set-fontset-font nil (make-char 'japanese-jisx0208)
+		    '("*" . "JISX0208-SJIS"))
+  (set-fontset-font nil (make-char 'japanese-jisx0208-1978)
+		    '("*" . "JISX0208-SJIS"))
+
   ;; Create the standard fontset.
   (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
   ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
