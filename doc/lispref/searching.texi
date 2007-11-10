@@ -1260,6 +1260,16 @@ calling @code{replace-match} with 1 as @var{subexp} means to replace
 just the text that matched @samp{\(ba*r\)}.
 @end defun
 
+@defun match-substitute-replacement replacement &optional fixedcase literal string subexp
+This function returns the text that would be inserted into the buffer
+by @code{replace-match}, but without modifying the buffer.  It is
+useful if you want to present the user with actual replacement result,
+with constructs like @samp{\@var{n}} or @samp{\&} substituted with
+matched groups.  Arguments @var{replacement} and optional
+@var{fixedcase}, @var{literal}, @var{string} and @var{subexp} have the
+same meaning as for @code{replace-match}.
+@end defun
+
 @node Simple Match Data
 @subsection Simple Match Data Access
 
