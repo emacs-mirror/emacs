@@ -1194,7 +1194,7 @@ arg, prompt for a regular expression."
       (error "No faces matching \"%s\"" regexp))
     (setq max-length (1+ max-length)
 	  line-format (format "%%-%ds" max-length))
-    (with-output-to-temp-buffer "*Faces*"
+    (with-help-window "*Faces*"
       (save-excursion
 	(set-buffer standard-output)
 	(setq truncate-lines t)
@@ -1235,8 +1235,7 @@ arg, prompt for a regular expression."
 	    (while (not (eobp))
 	      (insert-char ?\s max-length)
 	      (forward-line 1))))
-	(goto-char (point-min)))
-      (print-help-return-message))
+	(goto-char (point-min))))
     ;; If the *Faces* buffer appears in a different frame,
     ;; copy all the face definitions from FRAME,
     ;; so that the display will reflect the frame that was selected.
@@ -1281,7 +1280,7 @@ If FRAME is omitted or nil, use the selected frame."
       (setq face 'default))
     (if (not (listp face))
 	(setq face (list face)))
-    (with-output-to-temp-buffer (help-buffer)
+    (with-help-window (help-buffer)
       (save-excursion
 	(set-buffer standard-output)
 	(dolist (f face)
@@ -1328,8 +1327,7 @@ If FRAME is omitted or nil, use the selected frame."
 			(re-search-backward ": \\([^:]+\\)" nil t)
 			(help-xref-button 1 'help-face attr)))
 		  (insert "\n")))))
-	  (terpri)))
-      (print-help-return-message))))
+	  (terpri))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
