@@ -1,3 +1,43 @@
+2007-11-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (help-window, help-window-point-marker): New variables.
+	(help-window-select): New option.
+	(with-help-window): New macro for displaying help windows.
+	(help-window-display-message, help-window-setup-finish)
+	(help-window-setup): New functions used for setting up help windows.
+	(print-help-return-message): Reset help-window to nil.
+	(view-lossage): Use with-help-window instead of
+	with-output-to-temp-buffer and move help-window-point-marker after
+	inserted text.
+	(describe-bindings, describe-key, describe-mode): Use
+	with-help-window instead of with-output-to-temp-buffer.
+
+	* help-mode.el (help-mode): Set view-exit-action to bury the
+	buffer instead of fiddling with windows.  Simplify code.
+	(help-mode-finish): When help-window eqs t set it to the selected
+	window and have with-help-window set up view-return-to-alist.
+	(help-buffer): Add autoload cookie.
+
+	* view.el (view-remove-frame-by-deleting): Change default value to t.
+	Add autoload cookie.
+	(view-exit-action, view-file, view-file-other-window)
+	(view-file-other-frame, view-buffer, view-buffer-other-window)
+	(view-buffer-other-frame): Rewrite doc strings.
+	(view-return-to-alist-update): New function to remove stale entries
+	from view-return-to-alist.
+	(view-mode-enter): Rewrite doc string and simplify code.
+	(view-mode-exit): Handle new case 'keep-frame.  Don't reset
+	view-exit-action to nil.  Simplify code and rewrite doc string.
+
+	* apropos.el (apropos-describe-plist):
+	* descr-text.el (describe-char):
+	* disp-table.el (describe-display-table):
+	* faces.el (list-faces-display, describe-face):
+	* facemenu.el (list-colors-display):
+	* help-fns.el (describe-function, describe-variable)
+	(describe-syntax, describe-categories):
+	Use with-help-window instead of with-output-to-temp-buffer.
+
 2007-11-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Optimize
