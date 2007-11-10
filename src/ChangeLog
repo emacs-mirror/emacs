@@ -1,3 +1,7 @@
+2007-11-10  Juri Linkov  <juri@jurta.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1130000.
+
 2007-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (load_overlay_strings): Fix copy&paste typo.
