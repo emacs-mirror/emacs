@@ -1,5 +1,8 @@
 2007-11-10  Jason Rumney  <jasonr@gnu.org>
 
+	* w32-fns.el: Sync charset names with setup-default-fontset.
+	Append "-1" where second part missing.
+
 	* term/w32-win.el: Enable SJIS fonts before creating any fontsets.
 
 2007-11-10  Juanma Barranquero  <lekktu@gmail.com>
