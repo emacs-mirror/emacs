@@ -1,3 +1,8 @@
+2007-11-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-save-history): Save the history file in UTF-8, not
+	the current filename coding system.
+
 2007-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (interprogram-cut-function, interprogram-paste-function):
