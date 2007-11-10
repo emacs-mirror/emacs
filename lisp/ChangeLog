@@ -1,3 +1,13 @@
+2007-11-10  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* replace.el (query-replace-show-replacement): New defcustom.
+	(perform-replace): Use `match-substitute-replacement' if
+	`query-replace-show-replacement' is non-nil.
+
+2007-11-10  David Kastrup  <dak@gnu.org>
+
+	* subr.el (match-substitute-replacement): New function.
+
 2007-11-10  Carsten Dominik  <dominik@science.uva.nl>
 
 	* files.el (auto-mode-alist): Select org-mode for files with the
