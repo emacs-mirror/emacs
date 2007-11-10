@@ -1,3 +1,8 @@
+2007-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-initialize-window-system): Move SJIS font
+	setup here from global scope.
+
 2007-11-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-save-history): Save the history file in UTF-8, not
