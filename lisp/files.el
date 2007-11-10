@@ -1964,6 +1964,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
+     ("\\.org\\'" . org-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
