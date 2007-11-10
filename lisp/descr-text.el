@@ -588,7 +588,7 @@ as well as widgets, buttons, overlays, and text properties."
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
     (help-setup-xref nil (interactive-p))
-    (with-output-to-temp-buffer (help-buffer)
+    (with-help-window (help-buffer)
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
@@ -685,8 +685,7 @@ as well as widgets, buttons, overlays, and text properties."
 
         (if text-props-desc (insert text-props-desc))
 	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))
-	(toggle-read-only 1)
-	(print-help-return-message)))))
+	(toggle-read-only 1)))))
 
 (defalias 'describe-char-after 'describe-char)
 (make-obsolete 'describe-char-after 'describe-char "22.1")
