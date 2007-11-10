@@ -1,3 +1,7 @@
+2007-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el: Enable SJIS fonts before creating any fontsets.
+
 2007-11-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-save-history): Write the history file in UTF-8,
