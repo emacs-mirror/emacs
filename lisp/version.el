@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+(defconst emacs-copyright "Copyright (C) 2007 Free Software Foundation, Inc."
+  "Short copyright string for this version of Emacs.")
+
 (defconst emacs-version "22.1.50" "\
 Version numbers of this version of Emacs.")
 
