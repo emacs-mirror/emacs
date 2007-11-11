@@ -1397,19 +1397,19 @@ nonmarking (with @samp{&}) when possible.
 specifies a regularly occurring event by offsets specified in days,
 weeks, and months.  It is comparable to a crontab entry interpreted by
 the @code{cron} utility.  Here is a nonmarking, floating diary entry
-that applies to the last Thursday in November:
+that applies to the fourth Thursday in November:
 
 @findex diary-float
 @example
-&%%(diary-float 11 4 -1) American Thanksgiving
+&%%(diary-float 11 4 4) American Thanksgiving
 @end example
 
 @noindent
 The 11 specifies November (the eleventh month), the 4 specifies Thursday
 (the fourth day of the week, where Sunday is numbered zero), and the
-@minus{}1 specifies ``last'' (1 would mean ``first,'' 2 would mean
-``second,'' @minus{}2 would mean ``second-to-last,'' and so on).  The
-month can be a single month or a list of months.  Thus you could change
+second 4 specifies the fourth Thursday (1 would mean ``first,'' 2 would
+mean ``second,'' @minus{}2 would mean ``second-to-last,'' and so on).
+The month can be a single month or a list of months.  Thus you could change
 the 11 above to @samp{'(1 2 3)} and have the entry apply to the last
 Thursday of January, February, and March.  If the month is @code{t}, the
 entry applies to all months of the year.@refill
