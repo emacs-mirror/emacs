@@ -128,7 +128,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
       ;; Set up the menu.
       (when (gnus-visual-p 'pick-menu 'menu)
 	(gnus-pick-make-menu-bar))
-      (gnus-add-minor-mode 'gnus-pick-mode " Pick" gnus-pick-mode-map)
+      (add-minor-mode 'gnus-pick-mode " Pick" gnus-pick-mode-map)
       (gnus-run-hooks 'gnus-pick-mode-hook))))
 
 (defun gnus-pick-setup-message ()
@@ -360,7 +360,7 @@ This must be bound to a button-down mouse event."
       ;; Set up the menu.
       (when (gnus-visual-p 'binary-menu 'menu)
 	(gnus-binary-make-menu-bar))
-      (gnus-add-minor-mode 'gnus-binary-mode " Binary" gnus-binary-mode-map)
+      (add-minor-mode 'gnus-binary-mode " Binary" gnus-binary-mode-map)
       (gnus-run-hooks 'gnus-binary-mode-hook))))
 
 (defun gnus-binary-display-article (article &optional all-header)
@@ -719,7 +719,7 @@ Two predefined functions are available:
 	(unless (zerop level)
 	  (gnus-tree-indent level)
 	  (insert (cadr gnus-tree-parent-child-edges))
-	  (setq col (- (setq beg (point)) (gnus-point-at-bol) 1))
+	  (setq col (- (setq beg (point)) (point-at-bol) 1))
 	  ;; Draw "|" lines upwards.
 	  (while (progn
 		   (forward-line -1)
@@ -743,7 +743,7 @@ Two predefined functions are available:
 
 (defsubst gnus-tree-indent-vertical ()
   (let ((len (- (* (1+ gnus-tree-node-length) gnus-tmp-indent)
-		(- (point) (gnus-point-at-bol)))))
+		(- (point) (point-at-bol)))))
     (when (> len 0)
       (insert (make-string len ? )))))
 
@@ -1016,11 +1016,11 @@ The following commands are available:
 	    (setq button (car buttons)
 		  buttons (cdr buttons))
 	    (if (stringp button)
-		(gnus-set-text-properties
+		(set-text-properties
 		 (point)
 		 (prog2 (insert button) (point) (insert " "))
 		 (list 'face gnus-carpal-header-face))
-	      (gnus-set-text-properties
+	      (set-text-properties
 	       (point)
 	       (prog2 (insert (car button)) (point) (insert " "))
 	       (list 'gnus-callback (cdr button)

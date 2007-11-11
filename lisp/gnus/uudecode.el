@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(autoload 'executable-find "executable")
-
 (eval-when-compile (require 'cl))
 
 (eval-and-compile

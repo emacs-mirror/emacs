@@ -109,11 +109,7 @@ Examples of image filename regexps:
   (interactive)
   (iimage-mode 0))
 
-;; Emacs21.3 or earlier does not heve locate-file.
-(if (fboundp 'locate-file)
-    (defalias 'iimage-locate-file 'locate-file)
-  (defun iimage-locate-file (filename path)
-    (locate-library filename t path)))
+(defalias 'iimage-locate-file 'locate-file)
 
 (defun iimage-mode-buffer (arg)
 "Display/undisplay images.

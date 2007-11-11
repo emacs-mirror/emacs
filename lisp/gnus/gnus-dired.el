@@ -72,7 +72,7 @@
 	 (if (null arg) (not gnus-dired-mode)
 	   (> (prefix-numeric-value arg) 0)))
     (when gnus-dired-mode
-      (gnus-add-minor-mode 'gnus-dired-mode "" gnus-dired-mode-map)
+      (add-minor-mode 'gnus-dired-mode "" gnus-dired-mode-map)
       (gnus-run-hooks 'gnus-dired-mode-hook))))
 
 ;;;###autoload

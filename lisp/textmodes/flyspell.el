@@ -296,6 +296,7 @@ property of the major mode name.")
 ;;*--- mail mode -------------------------------------------------------*/
 (put 'mail-mode 'flyspell-mode-predicate 'mail-mode-flyspell-verify)
 (put 'message-mode 'flyspell-mode-predicate 'mail-mode-flyspell-verify)
+(defvar message-signature-separator)
 (defun mail-mode-flyspell-verify ()
   "Function used for `flyspell-generic-check-word-predicate' in Mail mode."
   (let ((header-end (save-excursion

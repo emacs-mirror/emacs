@@ -49,7 +49,7 @@ the text that it generates."
 	       (spec (string-to-char (match-string 2)))
 	       (val (cdr (assq spec specification))))
 	  (unless val
-	    (error "Invalid format character: %s" spec))
+	    (error "Invalid format character: `%%%c'" spec))
 	  ;; Pad result to desired length.
           (let ((text (format (concat "%" num "s") val)))
 	    ;; Insert first, to preserve text properties.

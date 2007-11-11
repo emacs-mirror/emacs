@@ -939,7 +939,7 @@ dired."
 ;;;   string.  COMMAND may be a list of commands.
 ;;;
 ;;; * Return this command to `dired-guess-shell-command' which prompts user
-;;;   with it.  The list of commands is temporarily put into the history list.
+;;;   with it.  The list of commands is put into the list of default values.
 ;;;   If a command is used successfully then it is stored permanently in
 ;;;   `dired-shell-command-history'.
 

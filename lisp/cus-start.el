@@ -35,10 +35,7 @@
 
 ;;; Code:
 
-(let ((all '(;; abbrev.c
-	     (abbrev-all-caps abbrev-mode boolean)
-	     (pre-abbrev-expand-hook abbrev-mode hook)
-	     ;; alloc.c
+(let ((all '(;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c

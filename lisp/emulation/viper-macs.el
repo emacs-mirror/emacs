@@ -826,7 +826,7 @@ name from there."
 (defun viper-char-array-to-macro (array)
   (let ((vec (vconcat array))
 	macro)
-    (if viper-xemacs-p
+    (if (featurep 'xemacs)
 	(setq macro (mapcar 'character-to-event vec))
       (setq macro vec))
     (vconcat (mapcar 'viper-event-key macro))))

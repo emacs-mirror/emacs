@@ -1091,15 +1091,19 @@ EXECUTION-TIME holds info about the time it takes, number or string.")
 (defun mixal-run ()
   "Run mixal file in current buffer, assumes that file has been compiled."
   (interactive)
-  (mixvm (concat "mixvm -r -t -d "
-		 (file-name-sans-extension (buffer-file-name)))))
+  (if (fboundp 'mixvm)
+      (mixvm (concat "mixvm -r -t -d "
+		     (file-name-sans-extension (buffer-file-name))))
+    (error "mixvm.el needs to be loaded to run `mixvm'")))
 
 (defun mixal-debug ()
   "Start mixvm for debugging.
 Assumes that file has been compiled with debugging support."
   (interactive)
-  (mixvm (concat "mixvm "
-		 (file-name-sans-extension (buffer-file-name)))))
+  (if (fboundp 'mixvm)
+      (mixvm (concat "mixvm "
+		     (file-name-sans-extension (buffer-file-name))))
+    (error "mixvm.el needs to be loaded to run `mixvm'")))
 
 ;;;###autoload
 (define-derived-mode mixal-mode fundamental-mode "mixal"

@@ -402,7 +402,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-start-timer (period func)
   (setq gamegrid-timer
-	(if (featurep 'itimer)
+	(if (featurep 'xemacs)
 	    (start-itimer "Gamegrid"
 			  func
 			  period
@@ -427,7 +427,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-kill-timer ()
   (if gamegrid-timer
-      (if (featurep 'itimer)
+      (if (featurep 'xemacs)
           (delete-itimer gamegrid-timer)
         (cancel-timer gamegrid-timer)))
   (setq gamegrid-timer nil))

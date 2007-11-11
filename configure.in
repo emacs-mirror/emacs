@@ -2125,24 +2125,6 @@ fail;
   fi
 fi
 
-if test "${window_system}" = "x11"; then
-  AC_MSG_CHECKING(X11 version 5)
-  AC_CACHE_VAL(emacs_cv_x11_version_5,
-  [AC_TRY_LINK([#include <X11/Xlib.h>],
-[#if XlibSpecificationRelease < 5
-fail;
-#endif
-], emacs_cv_x11_version_5=yes, emacs_cv_x11_version_5=no)])
-  if test $emacs_cv_x11_version_5 = yes; then
-    AC_MSG_RESULT(5 or newer)
-    HAVE_X11R5=yes
-    AC_DEFINE(HAVE_X11R5, 1,
-	      [Define to 1 if you have the X11R5 or newer version of Xlib.])
-  else
-    HAVE_X11R5=no
-    AC_MSG_RESULT(before 5)
-  fi
-fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
@@ -2274,46 +2256,42 @@ dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
 if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
-  if test x"${HAVE_X11R5}" != xyes; then
-    USE_X_TOOLKIT=none
-  else
-    if test "$with_xaw3d" != no; then
-      AC_MSG_CHECKING(for xaw3d)
-      AC_CACHE_VAL(emacs_cv_xaw3d,
-      [AC_TRY_LINK([
+  if test "$with_xaw3d" != no; then
+    AC_MSG_CHECKING(for xaw3d)
+    AC_CACHE_VAL(emacs_cv_xaw3d,
+    [AC_TRY_LINK([
 #include <X11/Intrinsic.h>
 #include <X11/Xaw3d/Simple.h>],
-        [],
-        emacs_cv_xaw3d=yes,
-        emacs_cv_xaw3d=no)])
-    else
-      emacs_cv_xaw3d=no
-    fi
-    if test $emacs_cv_xaw3d = yes; then
-      AC_MSG_RESULT([yes; using Lucid toolkit])
-      USE_X_TOOLKIT=LUCID
-      HAVE_XAW3D=yes
-      AC_DEFINE(HAVE_XAW3D, 1,
-                [Define to 1 if you have the Xaw3d library (-lXaw3d).])
-    else
-      AC_MSG_RESULT(no)
-      AC_MSG_CHECKING(for libXaw)
-      AC_CACHE_VAL(emacs_cv_xaw,
-      [AC_TRY_LINK([
+      [],
+      emacs_cv_xaw3d=yes,
+      emacs_cv_xaw3d=no)])
+  else
+    emacs_cv_xaw3d=no
+  fi
+  if test $emacs_cv_xaw3d = yes; then
+    AC_MSG_RESULT([yes; using Lucid toolkit])
+    USE_X_TOOLKIT=LUCID
+    HAVE_XAW3D=yes
+    AC_DEFINE(HAVE_XAW3D, 1,
+              [Define to 1 if you have the Xaw3d library (-lXaw3d).])
+  else
+    AC_MSG_RESULT(no)
+    AC_MSG_CHECKING(for libXaw)
+    AC_CACHE_VAL(emacs_cv_xaw,
+    [AC_TRY_LINK([
 #include <X11/Intrinsic.h>
 #include <X11/Xaw/Simple.h>],
-        [],
-        emacs_cv_xaw=yes,
-        emacs_cv_xaw=no)])
-      if test $emacs_cv_xaw = yes; then
-        AC_MSG_RESULT([yes; using Lucid toolkit])
-        USE_X_TOOLKIT=LUCID
-      elif test x"${USE_X_TOOLKIT}" = xLUCID; then
-        AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
-      else
-        AC_MSG_RESULT([no; do not use toolkit by default])
-        USE_X_TOOLKIT=none
-      fi
+      [],
+      emacs_cv_xaw=yes,
+      emacs_cv_xaw=no)])
+    if test $emacs_cv_xaw = yes; then
+      AC_MSG_RESULT([yes; using Lucid toolkit])
+      USE_X_TOOLKIT=LUCID
+    elif test x"${USE_X_TOOLKIT}" = xLUCID; then
+      AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
+    else
+      AC_MSG_RESULT([no; do not use toolkit by default])
+      USE_X_TOOLKIT=none
     fi
   fi
 fi
@@ -3422,7 +3400,7 @@ typedef unsigned size_t;
 
 #ifdef HAVE_X11R6
 #define HAVE_X_I18N
-#elif defined HAVE_X11R5 && !defined X11R5_INHIBIT_I18N
+#elif !defined X11R5_INHIBIT_I18N
 #define HAVE_X_I18N
 #endif
 
@@ -3536,6 +3514,14 @@ if test "$USE_X_TOOLKIT" = GTK; then
   esac
 fi
 
+
+if test "$HAVE_CARBON" = "yes"; then
+   echo
+   echo "Warning: The Mac Carbon port is currently unsupported and has
+known problems.  It is not recommended for use by non-developers.
+Read the emacs-devel archives for more information."
+   echo
+fi 
 
 
 # Remove any trailing slashes in these variables.

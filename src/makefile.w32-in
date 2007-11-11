@@ -56,8 +56,7 @@ FULL_LINK_FLAGS      = $(LINK_FLAGS) $(TEMACS_EXTRA_LINK)
 #
 OBJ0 =  $(BLD)/emacs.$(O)
 
-OBJ1 =  $(BLD)/abbrev.$(O)			\
-	$(BLD)/alloc.$(O)			\
+OBJ1 =  $(BLD)/alloc.$(O)			\
 	$(BLD)/atimer.$(O)			\
 	$(BLD)/buffer.$(O)			\
 	$(BLD)/bytecode.$(O)			\

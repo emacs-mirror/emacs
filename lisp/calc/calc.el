@@ -821,9 +821,6 @@ If nil, selections displayed but ignored.")
 (defvar calc-embedded-mode-hook nil
   "Hook run when starting embedded mode.")
 
-;; Verify that Calc is running on the right kind of system.
-(defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))
-
 ;; Set up the autoloading linkage.
 (let ((name (and (fboundp 'calc-dispatch)
 		   (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
@@ -968,7 +965,7 @@ If nil, selections displayed but ignored.")
 
 (defvar calc-digit-map
   (let ((map (make-keymap)))
-    (if calc-emacs-type-lucid
+    (if (featurep 'xemacs)
 	(map-keymap (function
 		     (lambda (keys bind)
 		       (define-key map keys
@@ -999,7 +996,7 @@ If nil, selections displayed but ignored.")
 	      (define-key calc-mode-map x 'calc-pop)
 	      (define-key calc-mode-map
 		  (if (vectorp x)
-		      (if calc-emacs-type-lucid
+		      (if (featurep 'xemacs)
 			  (if (= (length x) 1)
 			      (vector (if (consp (aref x 0))
 					  (cons 'meta (aref x 0))
@@ -2109,13 +2106,13 @@ See calc-keypad for details."
 	    (calc-prev-char nil)
 	    (calc-prev-prev-char nil)
 	    (calc-buffer (current-buffer))
-	    (buf (if calc-emacs-type-lucid
+	    (buf (if (featurep 'xemacs)
 		     (catch 'calc-foo
 		       (catch 'execute-kbd-macro
 			 (throw 'calc-foo
 				(read-from-minibuffer
 				 "Calc: " "" calc-digit-map)))
-		       (error "Lucid Emacs requires RET after %s"
+		       (error "XEmacs requires RET after %s"
 			      "digit entry in kbd macro"))
 		   (let ((old-esc (lookup-key global-map "\e")))
 		     (unwind-protect
@@ -3531,8 +3528,6 @@ and all digits are kept, regardless of Calc's current precision."
 (defconst math-standard-opers
   '( ( "_"     calcFunc-subscr 1200 1201 )
      ( "%"     calcFunc-percent 1100 -1 )
-     ( "u+"    ident	     -1 1000 )
-     ( "u-"    neg	     -1 1000 197 )
      ( "u!"    calcFunc-lnot -1 1000 )
      ( "mod"   mod	     400 400 185 )
      ( "+/-"   sdev	     300 300 185 )
@@ -3540,6 +3535,8 @@ and all digits are kept, regardless of Calc's current precision."
      ( "!"     calcFunc-fact 210  -1 )
      ( "^"     ^             201 200 )
      ( "**"    ^             201 200 )
+     ( "u+"    ident	     -1  197 )
+     ( "u-"    neg	     -1  197 )
      ( "/"     /             190 191 )
      ( "%"     %             190 191 )
      ( "\\"    calcFunc-idiv 190 191 )
@@ -3646,7 +3643,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 ;;; Functions needed for Lucid Emacs support.
 
 (defun calc-read-key (&optional optkey)
-  (cond (calc-emacs-type-lucid
+  (cond ((featurep 'xemacs)
 	 (let ((event (next-command-event)))
 	   (let ((key (event-to-character event t t)))
 	     (or key optkey (error "Expected a plain keystroke"))
@@ -3664,7 +3661,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 (defun calc-clear-unread-commands ()
   (if (featurep 'xemacs)
-	(calc-emacs-type-lucid (setq unread-command-event nil))
+      (setq unread-command-event nil)
     (setq unread-command-events nil)))
 
 (when calc-always-load-extensions

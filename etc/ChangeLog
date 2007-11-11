@@ -1,3 +1,24 @@
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* MACHINES: Remove Sun windows info.
+
+2007-10-30  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Add entry for Remember Mode.
+
+2007-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* refcards/gnus-refcard.tex: Restore Feb 2007 copyright
+	clarifications lost in update to Gnus trunk.
+
+2007-10-29  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for recent change.
+
+2007-10-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add *.pyc.
+
 2007-10-25  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses-example.ses: Get rid of silly life-universe-everything local

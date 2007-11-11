@@ -32,8 +32,7 @@
 (defvar nnnil-status-string "")
 
 (defun nnnil-retrieve-headers (articles &optional group server fetch-old)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer))
   'nov)
 
@@ -69,8 +68,7 @@
   t)
 
 (defun nnnil-request-list (&optional server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer))
   t)
 

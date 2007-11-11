@@ -1480,6 +1480,10 @@ Please send all bug fixes and enhancements to
 ;; Load XEmacs/Emacs definitions
 (eval-and-compile (require 'ps-def))
 
+(defun ps-face-background-name (face)
+  (if (featurep 'xemacs)
+      (ps-xemacs-color-name (face-background face))
+    (face-background face nil t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:

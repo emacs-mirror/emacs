@@ -319,7 +319,7 @@ in the minibuffer:
     (before translate-multiple-dots
 	    (filename &optional directory) activate)
     (setq filename (eshell-expand-multiple-dots filename)))"
-  (while (string-match "\\.\\.\\(\\.+\\)" path)
+  (while (string-match "\\(?:^\\|/\\)\\.\\.\\(\\.+\\)\\(?:$\\|/\\)" path)
     (let* ((extra-dots (match-string 1 path))
 	   (len (length extra-dots))
 	   replace-text)

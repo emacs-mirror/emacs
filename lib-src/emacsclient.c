@@ -298,8 +298,6 @@ get_current_dir_name ()
 }
 #endif
 
-/* Message functions. */
-
 #ifdef WINDOWSNT
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
@@ -440,6 +438,8 @@ w32_execvp (path, argv)
 
 #endif /* WINDOWSNT */
 
+/* Display a normal or error message.
+   On Windows, use a message box if compiled as a Windows app.  */
 void
 message (int is_error, char *message, ...)
 {

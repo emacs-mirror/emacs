@@ -404,7 +404,7 @@ Toggled by ediff-toggle-verbose-help-meta-buffer" )
 	(define-key ediff-meta-buffer-map "=h" 'ediff-meta-mark-equal-files)))
   (if ediff-no-emacs-help-in-control-buffer
       (define-key ediff-meta-buffer-map  "\C-h"  'ediff-previous-meta-item))
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       (define-key ediff-meta-buffer-map [mouse-2] ediff-meta-action-function)
     (define-key ediff-meta-buffer-map [button2] ediff-meta-action-function))
 
@@ -448,7 +448,7 @@ Commands:
 (define-key ediff-dir-diffs-buffer-map "\C-?" 'previous-line)
 (define-key ediff-dir-diffs-buffer-map "p" 'previous-line)
 (define-key ediff-dir-diffs-buffer-map "C" 'ediff-dir-diff-copy-file)
-(if ediff-emacs-p
+(if (featurep 'emacs)
     (define-key ediff-dir-diffs-buffer-map [mouse-2] 'ediff-dir-diff-copy-file)
   (define-key ediff-dir-diffs-buffer-map [button2] 'ediff-dir-diff-copy-file))
 (define-key ediff-dir-diffs-buffer-map [delete] 'previous-line)
@@ -1493,7 +1493,7 @@ Useful commands:
 (defun ediff-set-meta-overlay (b e prop &optional session-number hidden)
   (let (overl)
     (setq overl (ediff-make-overlay b e))
-    (if ediff-emacs-p
+    (if (featurep 'emacs)
 	(ediff-overlay-put overl 'mouse-face 'highlight)
       (ediff-overlay-put overl 'highlight t))
     (ediff-overlay-put overl 'ediff-meta-info prop)

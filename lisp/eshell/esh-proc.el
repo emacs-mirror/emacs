@@ -335,39 +335,39 @@ Used only on systems which do not support async subprocesses.")
 PROC is the process for which we're inserting output.  STRING is the
 output."
   (when (buffer-live-p (process-buffer proc))
-    (set-buffer (process-buffer proc))
-    (let ((entry (assq proc eshell-process-list)))
-      (when entry
-	(setcar (nthcdr 3 entry)
-		(concat (nth 3 entry) string))
-	(unless (nth 4 entry)           ; already being handled?
-	  (while (nth 3 entry)
-	    (let ((data (nth 3 entry)))
-	      (setcar (nthcdr 3 entry) nil)
-	      (setcar (nthcdr 4 entry) t)
-	      (eshell-output-object data nil (cadr entry))
-	      (setcar (nthcdr 4 entry) nil))))))))
+    (with-current-buffer (process-buffer proc)
+      (let ((entry (assq proc eshell-process-list)))
+	(when entry
+	  (setcar (nthcdr 3 entry)
+		  (concat (nth 3 entry) string))
+	  (unless (nth 4 entry)		; already being handled?
+	    (while (nth 3 entry)
+	      (let ((data (nth 3 entry)))
+		(setcar (nthcdr 3 entry) nil)
+		(setcar (nthcdr 4 entry) t)
+		(eshell-output-object data nil (cadr entry))
+		(setcar (nthcdr 4 entry) nil)))))))))
 
 (defun eshell-sentinel (proc string)
   "Generic sentinel for command processes.  Reports only signals.
 PROC is the process that's exiting.  STRING is the exit message."
   (when (buffer-live-p (process-buffer proc))
-    (set-buffer (process-buffer proc))
-    (unwind-protect
-	(let* ((entry (assq proc eshell-process-list)))
-;	  (if (not entry)
-;	      (error "Sentinel called for unowned process `%s'"
-;		     (process-name proc))
-	  (when entry
-	    (unwind-protect
-		(progn
-		  (unless (string= string "run")
-		    (unless (string-match "^\\(finished\\|exited\\)" string)
-		      (eshell-insertion-filter proc string))
-		    (eshell-close-handles (process-exit-status proc) 'nil
-					  (cadr entry))))
-	      (eshell-remove-process-entry entry))))
-      (run-hook-with-args 'eshell-kill-hook proc string))))
+    (with-current-buffer (process-buffer proc)
+      (unwind-protect
+	  (let* ((entry (assq proc eshell-process-list)))
+;	    (if (not entry)
+;		(error "Sentinel called for unowned process `%s'"
+;		       (process-name proc))
+	    (when entry
+	      (unwind-protect
+		  (progn
+		    (unless (string= string "run")
+		      (unless (string-match "^\\(finished\\|exited\\)" string)
+			(eshell-insertion-filter proc string))
+		      (eshell-close-handles (process-exit-status proc) 'nil
+					    (cadr entry))))
+		(eshell-remove-process-entry entry))))
+	(run-hook-with-args 'eshell-kill-hook proc string)))))
 
 (defun eshell-process-interact (func &optional all query)
   "Interact with a process, using PROMPT if more than one, via FUNC.

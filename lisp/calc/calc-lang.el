@@ -84,10 +84,10 @@
    (message "`C' language mode")))
 
 (put 'c 'math-oper-table
-  '( ( "u+"    ident	     -1 1000 )
-     ( "u-"    neg	     -1 1000 )
-     ( "u!"    calcFunc-lnot -1 1000 )
+  '( ( "u!"    calcFunc-lnot -1 1000 )
      ( "~"     calcFunc-not  -1 1000 )
+     ( "u+"    ident	     -1  197 )
+     ( "u-"    neg	     -1  197 )
      ( "*"     *	     190 191 )
      ( "/"     /	     190 191 )
      ( "%"     %	     190 191 )
@@ -328,9 +328,7 @@
            "LaTeX language mode with \\func(\\text{var}) and multiline matrices")))))
 
 (put 'tex 'math-oper-table
-  '( ( "u+"       ident		   -1 1000 )
-     ( "u-"       neg		   -1 1000 )
-     ( "\\hat"    calcFunc-hat     -1  950 )
+  '( ( "\\hat"    calcFunc-hat     -1  950 )
      ( "\\check"  calcFunc-check   -1  950 )
      ( "\\tilde"  calcFunc-tilde   -1  950 )
      ( "\\acute"  calcFunc-acute   -1  950 )
@@ -351,6 +349,8 @@
      ( "!"        calcFunc-fact	   210  -1 )
      ( "^"	  ^		   201 200 )
      ( "_"	  calcFunc-subscr  201 200 )
+     ( "u+"       ident		   -1  197 )
+     ( "u-"       neg		   -1  197 )
      ( "\\times"  *		   191 190 )
      ( "*"        *		   191 190 )
      ( "2x"	  *		   191 190 )
@@ -575,9 +575,7 @@
    (message "Eqn language mode")))
 
 (put 'eqn 'math-oper-table
-  '( ( "u+"       ident		   -1 1000 )
-     ( "u-"       neg		   -1 1000 )
-     ( "prime"    (math-parse-eqn-prime) 950  -1 )
+  '( ( "prime"    (math-parse-eqn-prime) 950  -1 )
      ( "prime"    calcFunc-Prime   950  -1 )
      ( "dot"      calcFunc-dot     950  -1 )
      ( "dotdot"   calcFunc-dotdot  950  -1 )
@@ -599,6 +597,8 @@
      ( "right ceil"  closing        0   -1 )
      ( "+-"	  sdev		   300 300 )
      ( "!"        calcFunc-fact	   210  -1 )
+     ( "u+"       ident		   -1  197 )
+     ( "u-"       neg		   -1  197 )
      ( "times"    *		   191 190 )
      ( "*"        *		   191 190 )
      ( "2x"	  *		   191 190 )

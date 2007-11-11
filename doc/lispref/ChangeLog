@@ -1,3 +1,12 @@
+2007-11-10  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* searching.texi (Replacing Match): Describe new
+	`match-substitute-replacement'.
+
+2007-10-31  Richard Stallman  <rms@gnu.org>
+
+	* strings.texi (Creating Strings): Null strings from concat not unique.
+
 2007-10-26  Richard Stallman  <rms@gnu.org>
 
 	* objects.texi (Equality Predicates): Null strings are uniquified.

@@ -139,7 +139,7 @@ See also `footnote-section-tag'."
 
 ;;; Default styles
 ;;; NUMERIC
-(defconst footnote-numeric-regexp "[0-9]"
+(defconst footnote-numeric-regexp "[0-9]+"
   "Regexp for digits.")
 
 (defun Footnote-numeric (n)
@@ -151,7 +151,7 @@ Use Arabic numerals for footnoting."
 (defconst footnote-english-upper "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   "Upper case English alphabet.")
 
-(defconst footnote-english-upper-regexp "[A-Z]"
+(defconst footnote-english-upper-regexp "[A-Z]+"
   "Regexp for upper case English alphabet.")
 
 (defun Footnote-english-upper (n)
@@ -170,7 +170,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
 (defconst footnote-english-lower "abcdefghijklmnopqrstuvwxyz"
   "Lower case English alphabet.")
 
-(defconst footnote-english-lower-regexp "[a-z]"
+(defconst footnote-english-lower-regexp "[a-z]+"
   "Regexp of lower case English alphabet.")
 
 (defun Footnote-english-lower (n)
@@ -191,7 +191,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
     (50 . "l") (100 . "c") (500 . "d") (1000 . "m"))
   "List of roman numerals with their values.")
 
-(defconst footnote-roman-lower-regexp "[ivxlcdm]"
+(defconst footnote-roman-lower-regexp "[ivxlcdm]+"
   "Regexp of roman numerals.")
 
 (defun Footnote-roman-lower (n)
@@ -204,7 +204,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
     (50 . "L") (100 . "C") (500 . "D") (1000 . "M"))
   "List of roman numerals with their values.")
 
-(defconst footnote-roman-upper-regexp "[IVXLCDM]"
+(defconst footnote-roman-upper-regexp "[IVXLCDM]+"
   "Regexp of roman numerals.  Not complete")
 
 (defun Footnote-roman-upper (n)
@@ -270,6 +270,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
 (defconst footnote-latin-string "¹²³ºª§¶"
   "String of Latin-1 footnoting characters.")
 
+;; Note not [...]+, because this style cycles.
 (defconst footnote-latin-regexp (concat "[" footnote-latin-string "]")
   "Regexp for Latin-1 footnoting characters.")
 

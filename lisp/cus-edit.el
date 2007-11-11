@@ -374,11 +374,6 @@
   :prefix "custom-"
   :group 'customize)
 
-(defgroup abbrev-mode nil
-  "Word abbreviations mode."
-  :link '(custom-manual "(emacs)Abbrevs")
-  :group 'abbrev)
-
 (defgroup alloc nil
   "Storage allocation and gc for GNU Emacs Lisp interpreter."
   :tag "Storage Allocation"
@@ -1718,7 +1713,7 @@ item in another window.\n\n"))
 (defun custom-browse-insert-prefix (prefix)
   "Insert PREFIX.  On XEmacs convert it to line graphics."
   ;; Fixme: do graphics.
-  (if nil ; (string-match "XEmacs" emacs-version)
+  (if nil ; (featurep 'xemacs)
       (progn
 	(insert "*")
 	(while (not (string-equal prefix ""))

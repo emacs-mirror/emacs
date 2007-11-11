@@ -1,3 +1,28 @@
+2007-11-07  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Deprecate Mac Carbon port.
+
+2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Remove HAVE_X11R5 check.
+
+2007-10-31  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Fallback to $USER and `id -un'
+	when changing ownership of installed files.
+
+2007-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add new directory etc/gnus.
+
+2007-10-30  Michael Olson  <mwolson@gnu.org>
+
+	* Makefile.in (INFO_FILES): Alphabetize.  Add remember.
+
+2007-10-29  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add new directories etc/images/smilies/grayscale,medium.
+
 2007-10-23  Glenn Morris  <rgm@gnu.org>
 
 	* MAINTAINERS: Move to admin/.

@@ -980,7 +980,7 @@ articles in the thread.
             (deflt (if (,field defaults)
                        (concat " [" (gnus-trim-whitespace
                                      (gnus-pp-to-string (,field defaults)))
-			       "]")))
+                               "]")))
             symb)
 
        (if (eq (car type) 'radio)

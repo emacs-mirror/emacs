@@ -2754,7 +2754,6 @@ x_draw_stretch_glyph_string (s)
      struct glyph_string *s;
 {
   xassert (s->first_glyph->type == STRETCH_GLYPH);
-  s->stippled_p = s->face->stipple != 0;
 
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
@@ -3688,12 +3687,7 @@ x_find_modifier_meanings (dpyinfo)
   dpyinfo->super_mod_mask = 0;
   dpyinfo->hyper_mod_mask = 0;
 
-#ifdef HAVE_X11R4
   XDisplayKeycodes (dpyinfo->display, &min_code, &max_code);
-#else
-  min_code = dpyinfo->display->min_keycode;
-  max_code = dpyinfo->display->max_keycode;
-#endif
 
   syms = XGetKeyboardMapping (dpyinfo->display,
 			      min_code, max_code - min_code + 1,
@@ -6709,14 +6703,6 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                         || (orig_keysym & (1 << 28))
                         || (keysym != NoSymbol && nbytes == 0))
                        && ! (IsModifierKey (orig_keysym)
-#ifndef HAVE_X11R5
-#ifdef XK_Mode_switch
-                             || ((unsigned)(orig_keysym) == XK_Mode_switch)
-#endif
-#ifdef XK_Num_Lock
-                             || ((unsigned)(orig_keysym) == XK_Num_Lock)
-#endif
-#endif /* not HAVE_X11R5 */
                              /* The symbols from XK_ISO_Lock
                                 to XK_ISO_Last_Group_Lock
                                 don't have real modifiers but
@@ -7806,7 +7792,6 @@ x_text_icon (f, icon_name)
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
 
-#ifdef HAVE_X11R4
   {
     XTextProperty text;
     text.value = (unsigned char *) icon_name;
@@ -7815,9 +7800,6 @@ x_text_icon (f, icon_name)
     text.nitems = strlen (icon_name);
     XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
   }
-#else /* not HAVE_X11R4 */
-  XSetIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), icon_name);
-#endif /* not HAVE_X11R4 */
 
   if (f->output_data.x->icon_bitmap > 0)
     x_destroy_bitmap (f, f->output_data.x->icon_bitmap);
@@ -9505,7 +9487,6 @@ x_make_frame_invisible (f)
   else
 #endif
   {
-#ifdef HAVE_X11R4
 
   if (! XWithdrawWindow (FRAME_X_DISPLAY (f), window,
 			 DefaultScreen (FRAME_X_DISPLAY (f))))
@@ -9513,31 +9494,6 @@ x_make_frame_invisible (f)
       UNBLOCK_INPUT_RESIGNAL;
       error ("Can't notify window manager of window withdrawal");
     }
-#else /* ! defined (HAVE_X11R4) */
-
-  /*  Tell the window manager what we're going to do.  */
-  if (! EQ (Vx_no_window_manager, Qt))
-    {
-      XEvent unmap;
-
-      unmap.xunmap.type = UnmapNotify;
-      unmap.xunmap.window = window;
-      unmap.xunmap.event = DefaultRootWindow (FRAME_X_DISPLAY (f));
-      unmap.xunmap.from_configure = False;
-      if (! XSendEvent (FRAME_X_DISPLAY (f),
-			DefaultRootWindow (FRAME_X_DISPLAY (f)),
-			False,
-			SubstructureRedirectMaskSubstructureNotifyMask,
-			&unmap))
-	{
-	  UNBLOCK_INPUT_RESIGNAL;
-	  error ("Can't notify window manager of withdrawal");
-	}
-    }
-
-  /* Unmap the window ourselves.  Cheeky!  */
-  XUnmapWindow (FRAME_X_DISPLAY (f), window);
-#endif /* ! defined (HAVE_X11R4) */
   }
 
   /* We can't distinguish this from iconification
@@ -9903,16 +9859,11 @@ x_wm_set_size_hint (f, flags, user_position)
        them; otherwise, we set the min_width and min_height members
        to the size for a zero x zero frame.  */
 
-#ifdef HAVE_X11R4
     size_hints.flags |= PBaseSize;
     size_hints.base_width = base_width;
     size_hints.base_height = base_height;
     size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
     size_hints.min_height = base_height + min_rows * size_hints.height_inc;
-#else
-    size_hints.min_width = base_width;
-    size_hints.min_height = base_height;
-#endif
   }
 
   /* If we don't need the old flags, we don't need the old hint at all.  */
@@ -9928,12 +9879,8 @@ x_wm_set_size_hint (f, flags, user_position)
     long supplied_return;
     int value;
 
-#ifdef HAVE_X11R4
     value = XGetWMNormalHints (FRAME_X_DISPLAY (f), window, &hints,
 			       &supplied_return);
-#else
-    value = XGetNormalHints (FRAME_X_DISPLAY (f), window, &hints);
-#endif
 
 #ifdef USE_X_TOOLKIT
     size_hints.base_height = hints.base_height;
@@ -9974,11 +9921,7 @@ x_wm_set_size_hint (f, flags, user_position)
     }
 #endif /* PWinGravity */
 
-#ifdef HAVE_X11R4
   XSetWMNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
-#else
-  XSetNormalHints (FRAME_X_DISPLAY (f), window, &size_hints);
-#endif
 }
 #endif /* not USE_GTK */
 
@@ -11138,9 +11081,7 @@ x_term_init (display_name, xrm_option, resource_name)
         argv[argc++] = "--name";
         argv[argc++] = resource_name;
 
-#ifdef HAVE_X11R5
         XSetLocaleModifiers ("");
-#endif
 
         gtk_init (&argc, &argv2);
 
@@ -11205,9 +11146,7 @@ x_term_init (display_name, xrm_option, resource_name)
   }
 
 #else /* not USE_X_TOOLKIT */
-#ifdef HAVE_X11R5
   XSetLocaleModifiers ("");
-#endif
   dpy = XOpenDisplay (SDATA (display_name));
 #endif /* not USE_X_TOOLKIT */
 #endif /* not USE_GTK*/
@@ -11518,9 +11457,6 @@ x_term_init (display_name, xrm_option, resource_name)
 #endif /* ! defined (SIGIO) */
 
 #ifdef USE_LUCID
-#ifdef HAVE_X11R5 /* It seems X11R4 lacks XtCvtStringToFont, and XPointer.  */
-  /* Make sure that we have a valid font for dialog boxes
-     so that Xt does not crash.  */
   {
     Display *dpy = dpyinfo->display;
     XrmValue d, fr, to;
@@ -11539,7 +11475,6 @@ x_term_init (display_name, xrm_option, resource_name)
       XrmPutLineResource (&xrdb, "Emacs.dialog.*.font: 9x15");
     x_uncatch_errors ();
   }
-#endif
 #endif
 
   /* See if we should run in synchronous mode.  This is useful

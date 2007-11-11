@@ -280,16 +280,8 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcd
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
-#ifndef LIBX10_MACHINE
-#define LIBX10_MACHINE
-#endif
-
 #ifndef LIBX11_MACHINE
 #define LIBX11_MACHINE
-#endif
-
-#ifndef LIBX10_SYSTEM
-#define LIBX10_SYSTEM
 #endif
 
 #ifndef LIBX11_SYSTEM
@@ -447,7 +439,7 @@ XFT_LIBS=@XFT_LIBS@
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
 LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM $(XFT_LIBS)
 #else /* not HAVE_X11 */
-LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
+LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
 #else /* not HAVE_X_WINDOWS */
 #endif /* not HAVE_X_WINDOWS */
@@ -621,7 +613,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o print.o lread.o \
-	abbrev.o syntax.o UNEXEC bytecode.o \
+	syntax.o UNEXEC bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
@@ -630,7 +622,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
-SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
+SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
   w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
@@ -1311,10 +1303,8 @@ composite.o: composite.c buffer.h  character.h $(INTERVAL_SRC) $(config_h)
    OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
 
-sunfns.o: sunfns.c buffer.h window.h dispextern.h termhooks.h $(config_h)
-
 #ifdef HAVE_CARBON
-abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
+buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
   scroll.o sysdep.o term.o terminal.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
   xterm.o xselect.o sound.o: macgui.h

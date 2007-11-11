@@ -221,13 +221,22 @@ Commands:
   (use-local-map help-mode-map)
   (setq mode-name "Help")
   (setq major-mode 'help-mode)
+
   (view-mode)
-  (make-local-variable 'view-no-disable-on-exit)
-  (setq view-no-disable-on-exit t)
-  (setq view-exit-action (lambda (buffer)
-			   (or (window-minibuffer-p (selected-window))
-			       (one-window-p t)
-			       (delete-window))))
+  (set (make-local-variable 'view-no-disable-on-exit) t)
+  ;; With Emacs 22 `view-exit-action' could delete the selected window
+  ;; disregarding whether the help buffer was shown in that window at
+  ;; all.  Since `view-exit-action' is called with the help buffer as
+  ;; argument it seems more appropriate to have it work on the buffer
+  ;; only and leave it to `view-mode-exit' to delete any associated
+  ;; window(s).
+  (setq view-exit-action
+	(lambda (buffer)
+	  ;; Use `with-current-buffer' to make sure that `bury-buffer'
+	  ;; also removes BUFFER from the selected window.
+	  (with-current-buffer buffer
+	    (bury-buffer))))
+
   (run-mode-hooks 'help-mode-hook))
 
 ;;;###autoload
@@ -237,16 +246,23 @@ Commands:
 
 ;;;###autoload
 (defun help-mode-finish ()
-  (let ((entry (assq (selected-window) view-return-to-alist)))
-	(if entry
-	    ;; When entering Help mode from the Help window,
-	    ;; such as by following a link, preserve the same
-	    ;; meaning for the q command.
-	    ;; (setcdr entry (cons (selected-window) help-return-method))
-	    nil
-	  (setq view-return-to-alist
-		(cons (cons (selected-window) help-return-method)
-		      view-return-to-alist))))
+  (if (eq help-window t)
+      ;; If `help-window' is t, `view-return-to-alist' is handled by
+      ;; `with-help-window'.  In this case set `help-window' to the
+      ;; selected window since now is the only moment where we can
+      ;; unambiguously identify it.
+      (setq help-window (selected-window))
+    (let ((entry (assq (selected-window) view-return-to-alist)))
+      (if entry
+	  ;; When entering Help mode from the Help window,
+	  ;; such as by following a link, preserve the same
+	  ;; meaning for the q command.
+	  ;; (setcdr entry (cons (selected-window) help-return-method))
+	  nil
+	(setq view-return-to-alist
+	      (cons (cons (selected-window) help-return-method)
+		    view-return-to-alist)))))
+
   (when (eq major-mode 'help-mode)
     ;; View mode's read-only status of existing *Help* buffer is lost
     ;; by with-output-to-temp-buffer.
@@ -321,6 +337,7 @@ restore it properly when going back."
 (defvar help-xref-following nil
   "Non-nil when following a help cross-reference.")
 
+;;;###autoload
 (defun help-buffer ()
   (buffer-name				;for with-output-to-temp-buffer
    (if help-xref-following
@@ -668,14 +685,14 @@ help buffer."
       (if (get-buffer-window buffer)
 	  (set-window-point (get-buffer-window buffer) position)
 	(goto-char position)))))
- 
+
 (defun help-go-back ()
   "Go back to previous topic in this help buffer."
   (interactive)
   (if help-xref-stack
       (help-xref-go-back (current-buffer))
     (error "No previous help buffer")))
- 
+
 (defun help-go-forward ()
   "Go back to next topic in this help buffer."
   (interactive)

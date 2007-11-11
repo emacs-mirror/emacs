@@ -34,8 +34,7 @@
 (require 'mm-decode)
 
 (defun mm-partial-find-parts (id &optional art)
-  (let ((headers (save-excursion
-		   (set-buffer gnus-summary-buffer)
+  (let ((headers (with-current-buffer gnus-summary-buffer
 		   gnus-newsgroup-headers))
 	phandles header)
     (while (setq header (pop headers))

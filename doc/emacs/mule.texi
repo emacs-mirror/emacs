@@ -534,6 +534,18 @@ set-language-environment-hook}).  For example:
 This sets the default input method to be @code{chinese-tonepy}
 whenever you choose a Chinese-GB language environment.
 
+You can instruct Emacs to activate a certain input method
+automatically.  For example:
+
+@lisp
+(add-hook 'text-mode-hook
+  (lambda () (set-input-method "german-prefix")))
+@end lisp
+
+@noindent
+This activates the input emthod ``german-prefix'' automatically in the
+Text mode.
+
 @findex quail-set-keyboard-layout
   Some input methods for alphabetic scripts work by (in effect)
 remapping the keyboard to emulate various keyboard layouts commonly used

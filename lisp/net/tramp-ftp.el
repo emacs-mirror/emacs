@@ -143,10 +143,13 @@ pass to the OPERATION."
        ;; cannot disable the file-name-handler this case.  We set the
        ;; connection property "started" in order to put the remote
        ;; location into the cache, which is helpful for further
-       ;; completion.
+       ;; completion.  We don't use `with-parsed-tramp-file-name',
+       ;; because this returns another user but the one declared in
+       ;; "~/.netrc".
        ((memq operation '(file-directory-p file-exists-p))
 	(if (apply 'ange-ftp-hook-function operation args)
-	    (with-parsed-tramp-file-name (car args) nil
+	    (let ((v (tramp-dissect-file-name (car args) t)))
+	      (aset v 0 tramp-ftp-method)
 	      (tramp-set-connection-property v "started" t))
 	  nil))
        ;; If the second argument of `copy-file' or `rename-file' is a

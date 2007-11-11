@@ -68,9 +68,6 @@ decoder, such as hexbin."
 
 (defvar mm-uu-yenc-decode-function 'yenc-decode-region)
 
-(defvar mm-uu-pgp-beginning-signature
-     "^-----BEGIN PGP SIGNATURE-----")
-
 (defvar mm-uu-beginning-regexp nil)
 
 (defvar mm-dissect-disposition "inline"
@@ -90,19 +87,25 @@ This can be either \"inline\" or \"attachment\".")
   :type 'regexp
   :group 'gnus-article-mime)
 
+(defcustom mm-uu-tex-groups-regexp "\\.tex\\>"
+  "*Regexp matching TeX groups."
+  :version "23.0"
+  :type 'regexp
+  :group 'gnus-article-mime)
+
 (defvar mm-uu-type-alist
   '((postscript
      "^%!PS-"
      "^%%EOF$"
      mm-uu-postscript-extract
      nil)
-    (uu
+    (uu ;; Maybe we should have a more strict test here.
      "^begin[ \t]+0?[0-7][0-7][0-7][ \t]+"
      "^end[ \t]*$"
      mm-uu-uu-extract
      mm-uu-uu-filename)
     (binhex
-     "^:...............................................................$"
+     "^:.\\{63,63\\}$"
      ":$"
      mm-uu-binhex-extract
      nil
@@ -157,7 +160,35 @@ This can be either \"inline\" or \"attachment\".")
      nil
      mm-uu-diff-extract
      nil
-     mm-uu-diff-test))
+     mm-uu-diff-test)
+    (message-marks
+     ;; Text enclosed with tags similar to `message-mark-insert-begin' and
+     ;; `message-mark-insert-end'.  Don't use those variables to avoid
+     ;; dependency on `message.el'.
+     "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
+     "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
+     (lambda () (mm-uu-verbatim-marks-extract 0 -1 1 -1))
+     nil)
+    ;; Omitting [a-z8<] leads to false positives (bogus signature separators
+    ;; and mailing list banners).
+    (insert-marks
+     "^ *\\(-\\|_\\)\\{30,\\}.*[a-z8<].*\\(-\\|_\\)\\{30,\\} *$"
+     "^ *\\(-\\|_\\)\\{30,\\}.*[a-z8<].*\\(-\\|_\\)\\{30,\\} *$"
+     (lambda () (mm-uu-verbatim-marks-extract 0 0 1 -1))
+     nil)
+    (verbatim-marks
+     ;; slrn-style verbatim marks, see
+     ;; http://www.slrn.org/manual/slrn-manual-6.html#ss6.81
+     "^#v\\+"
+     "^#v\\-$"
+     (lambda () (mm-uu-verbatim-marks-extract 0 0))
+     nil)
+    (LaTeX
+     "^\\([\\\\%][^\n]+\n\\)*\\\\documentclass.*[[{%]"
+     "^\\\\end{document}"
+     mm-uu-latex-extract
+     nil
+     mm-uu-latex-test))
   "A list of specifications for non-MIME attachments.
 Each element consist of the following entries: label,
 start-regexp, end-regexp, extract-function, test-function.
@@ -201,9 +232,45 @@ To disable dissecting shar codes, for instance, add
 (defsubst mm-uu-function-2 (entry)
   (nth 5 entry))
 
-(defun mm-uu-copy-to-buffer (&optional from to)
+;; In Emacs 22, we could use `min-colors' in the face definition.  But Emacs
+;; 21 and XEmacs don't support it.
+(defcustom mm-uu-hide-markers
+  (< 16 (or (and (fboundp 'defined-colors)
+		 (length (defined-colors)))
+	    (and (fboundp 'device-color-cells)
+		 (device-color-cells))
+	    0))
+  "If non-nil, hide verbatim markers.
+The value should be nil on displays where the face
+`mm-uu-extract' isn't distinguishable to the face `default'."
+  :type '(choice (const :tag "Hide" t)
+		 (const :tag "Don't hide" nil))
+  :version "23.0" ;; No Gnus
+  :group 'gnus-article-mime)
+
+(defface mm-uu-extract '(;; Colors from `gnus-cite-3' plus background:
+			 (((class color)
+			   (background dark))
+			  (:foreground "light yellow"
+			   :background "dark green"))
+			 (((class color)
+			   (background light))
+			  (:foreground "dark green"
+			   :background "light yellow"))
+			 (t
+			  ()))
+  "Face for extracted buffers."
+  ;; See `mm-uu-verbatim-marks-extract'.
+  :version "23.0" ;; No Gnus
+  :group 'gnus-article-mime)
+
+(defun mm-uu-copy-to-buffer (&optional from to properties)
   "Copy the contents of the current buffer to a fresh buffer.
-Return that buffer."
+Return that buffer.
+
+If PROPERTIES is non-nil, PROPERTIES are applied to the buffer,
+see `set-text-properties'.  If PROPERTIES equals t, this means to
+apply the face `mm-uu-extract'."
   (let ((obuf (current-buffer))
         (coding-system
          ;; Might not exist in non-MULE XEmacs
@@ -212,6 +279,11 @@ Return that buffer."
     (with-current-buffer (generate-new-buffer " *mm-uu*")
       (setq buffer-file-coding-system coding-system)
       (insert-buffer-substring obuf from to)
+      (cond ((eq properties  t)
+	     (set-text-properties (point-min) (point-max)
+				  '(face mm-uu-extract)))
+	    (properties
+	     (set-text-properties (point-min) (point-max) properties)))
       (current-buffer))))
 
 (defun mm-uu-configure-p  (key val)
@@ -267,6 +339,35 @@ Return that buffer."
   (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
 		  '("application/postscript")))
 
+(defun mm-uu-verbatim-marks-extract (start-offset end-offset
+						  &optional
+						  start-hide
+						  end-hide)
+  (let ((start (or (and mm-uu-hide-markers
+			start-hide)
+		   start-offset
+		   1))
+	(end   (or (and mm-uu-hide-markers
+			end-hide)
+		   end-offset
+		   -1)))
+    (mm-make-handle
+     (mm-uu-copy-to-buffer
+      (progn (goto-char start-point)
+	     (forward-line start)
+	     (point))
+      (progn (goto-char end-point)
+	   (forward-line end)
+	   (point))
+      t)
+     '("text/x-verbatim" (charset . gnus-decoded)))))
+
+(defun mm-uu-latex-extract ()
+  (mm-make-handle
+   (mm-uu-copy-to-buffer start-point end-point t)
+   ;; application/x-tex?
+   '("text/x-verbatim" (charset . gnus-decoded))))
+
 (defun mm-uu-emacs-sources-extract ()
   (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
 		  '("application/emacs-lisp" (charset . gnus-decoded))
@@ -291,6 +392,11 @@ Return that buffer."
   (and gnus-newsgroup-name
        mm-uu-diff-groups-regexp
        (string-match mm-uu-diff-groups-regexp gnus-newsgroup-name)))
+
+(defun mm-uu-latex-test ()
+  (and gnus-newsgroup-name
+       mm-uu-tex-groups-regexp
+       (string-match mm-uu-tex-groups-regexp gnus-newsgroup-name)))
 
 (defun mm-uu-forward-extract ()
   (mm-make-handle (mm-uu-copy-to-buffer
@@ -369,30 +475,16 @@ Return that buffer."
 	  (progn
 	    (mml2015-clean-buffer)
 	    (let ((coding-system-for-write (or gnus-newsgroup-charset
-					       'iso-8859-1)))
+					       'iso-8859-1))
+		  (coding-system-for-read (or gnus-newsgroup-charset
+					      'iso-8859-1)))
 	      (funcall (mml2015-clear-verify-function))))
 	(when (and mml2015-use (null (mml2015-clear-verify-function)))
 	  (mm-set-handle-multipart-parameter
 	   mm-security-handle 'gnus-details
-	   (format "Clear verification not supported by `%s'.\n" mml2015-use))))
-      (goto-char (point-min))
-      (forward-line)
-      ;; We need to be careful not to strip beyond the armor headers.
-      ;; Previously, an attacker could replace the text inside our
-      ;; markup with trailing garbage by injecting whitespace into the
-      ;; message.
-      (while (looking-at "Hash:") ; The only header allowed in cleartext
-	(forward-line))		  ; signatures according to RFC2440.
-      (when (looking-at "[\t ]*$")
-	(forward-line))
-      (delete-region (point-min) (point))
-      (if (re-search-forward mm-uu-pgp-beginning-signature nil t)
-	  (delete-region (match-beginning 0) (point-max)))
-      (goto-char (point-min))
-      (while (re-search-forward "^- " nil t)
-	(replace-match "" t t)
-	(forward-line 1)))
-    (list (mm-make-handle buf mm-uu-text-plain-type))))
+	   (format "Clear verification not supported by `%s'.\n" mml2015-use)))
+	(mml2015-extract-cleartext-signature))
+      (list (mm-make-handle buf mm-uu-text-plain-type)))))
 
 (defun mm-uu-pgp-signed-extract ()
   (let ((mm-security-handle (list (format "multipart/signed"))))

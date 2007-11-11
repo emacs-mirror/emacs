@@ -75,17 +75,6 @@ RFC 2646 suggests 66 characters for readability."
 		 (sexp)
 		 (integer)))
 
-(eval-and-compile
-  (defalias 'fill-flowed-point-at-bol
-	(if (fboundp 'point-at-bol)
-	    'point-at-bol
-	  'line-beginning-position))
-
-   (defalias 'fill-flowed-point-at-eol
-	(if (fboundp 'point-at-eol)
-	    'point-at-eol
-	  'line-end-position)))
-
 ;;;###autoload
 (defun fill-flowed-encode (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -109,7 +98,7 @@ RFC 2646 suggests 66 characters for readability."
       t)))
 
 ;;;###autoload
-(defun fill-flowed (&optional buffer)
+(defun fill-flowed (&optional buffer delete-space)
   (save-excursion
     (set-buffer (or (current-buffer) buffer))
     (goto-char (point-min))
@@ -119,6 +108,8 @@ RFC 2646 suggests 66 characters for readability."
       (forward-line 1))
     (goto-char (point-min))
     (while (re-search-forward " $" nil t)
+      (when delete-space
+	(delete-char -1))
       (when (save-excursion
 	      (beginning-of-line)
 	      (looking-at "^\\(>*\\)\\( ?\\)"))
@@ -153,8 +144,8 @@ RFC 2646 suggests 66 characters for readability."
 		      (fill-column (eval fill-flowed-display-column))
 		      filladapt-mode
 		      adaptive-fill-mode)
-		  (fill-region (fill-flowed-point-at-bol)
-			       (min (1+ (fill-flowed-point-at-eol))
+		  (fill-region (point-at-bol)
+			       (min (1+ (point-at-eol))
 				    (point-max))
 			       'left 'nosqueeze))
 	      (error

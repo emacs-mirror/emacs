@@ -135,6 +135,8 @@
 
 ;;; Code:
 
+(defvar uniquify-managed)
+
 (defvar desktop-file-version "206"
   "Version number of desktop file format.
 Written into the desktop file and used at desktop read to provide
@@ -204,7 +206,7 @@ the normal hook `desktop-not-loaded-hook' is run."
     (const :tag "Don't load" nil)
     (const :tag "Ask the user" ask))
   :group 'desktop
-  :version "23.1")
+  :version "22.2")
 
 (defcustom desktop-base-file-name
   (convert-standard-filename ".emacs.desktop")
@@ -219,7 +221,7 @@ the normal hook `desktop-not-loaded-hook' is run."
   "Name of lock file for Emacs desktop, excluding the directory part."
   :type 'file
   :group 'desktop
-  :version "23.1")
+  :version "22.2")
 
 (defcustom desktop-path '("." "~")
   "List of directories to search for the desktop file.
@@ -253,7 +255,7 @@ May be used to deal with accidental multiple Emacs jobs."
   :type 'hook
   :group 'desktop
   :options '(desktop-save-mode-off save-buffers-kill-emacs)
-  :version "23.1")
+  :version "22.2")
 
 (defcustom desktop-after-read-hook nil
   "Normal hook run after a successful `desktop-read'.
@@ -454,7 +456,8 @@ Furthermore the major mode function must be autoloaded.")
 (defcustom desktop-minor-mode-table
   '((auto-fill-function auto-fill-mode)
     (vc-mode nil)
-    (vc-dired-mode nil))
+    (vc-dired-mode nil)
+    (erc-track-minor-mode nil))
   "Table mapping minor mode variables to minor mode functions.
 Each entry has the form (NAME RESTORE-FUNCTION).
 NAME is the name of the buffer-local variable indicating that the minor
@@ -653,7 +656,9 @@ is nil, ask the user where to save the desktop."
   (list
    ;; basic information
    (desktop-file-name (buffer-file-name) desktop-dirname)
-   (buffer-name)
+   (if (bound-and-true-p uniquify-managed)
+       (uniquify-item-base (car uniquify-managed))
+     (buffer-name))
    major-mode
    ;; minor modes
    (let (ret)
@@ -1150,7 +1155,7 @@ directory DIRNAME."
           (setq desktop-first-buffer result))
         (set-buffer result)
         (unless (equal (buffer-name) desktop-buffer-name)
-          (rename-buffer desktop-buffer-name))
+          (rename-buffer desktop-buffer-name t))
         ;; minor modes
         (cond ((equal '(t) desktop-buffer-minor-modes) ; backwards compatible
                (auto-fill-mode 1))

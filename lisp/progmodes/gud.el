@@ -709,24 +709,13 @@ The option \"--fullname\" must be included in this value."
 (defvar gud-filter-pending-text nil
   "Non-nil means this is text that has been saved for later in `gud-filter'.")
 
-;; The old gdb command.  The new one is in gdb-ui.el.
+;; The old gdb command (text command mode).  The new one is in gdb-ui.el.
 ;;;###autoload
 (defun gud-gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working
-directory and source-file directory for your debugger.  By
-default this command starts GDB using a graphical interface.  See
-`gdba' for more information.
-
-To run GDB in text command mode, replace the GDB \"--annotate=3\"
-option with \"--fullname\" either in the minibuffer for the
-current Emacs session, or the custom variable
-`gud-gdb-command-name' for all future sessions.  You need to use
-text command mode to debug multiple programs within one Emacs
-session."
+directory and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'gud-gdb)))
-
-  (require 'gdb-ui)
 
   (when (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
@@ -736,8 +725,8 @@ session."
 	(error
 	 "Multiple debugging requires restarting in text command mode"))
 
-  (gud-common-init command-line nil 'gud-gdba-marker-filter)
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
+  (gud-common-init command-line nil 'gud-gdb-marker-filter)
+  (set (make-local-variable 'gud-minor-mode) 'gdb)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"

@@ -635,9 +635,6 @@ Emacs switches the DOS display to a mode where all 16 colors can be used
 for the background, so all four bits of the background color are
 actually used.
 
-@item WINDOW_GFX
-Used when initializing the Sun windows system.
-
 @item PRELOAD_WINSOCK
 On MS-Windows, if you set this variable, Emacs will load and initialize
 the network library at startup, instead of waiting until the first

@@ -46,7 +46,7 @@
 ;; browse-url-cci                     XMosaic     2.5
 ;; browse-url-w3                      w3          0
 ;; browse-url-w3-gnudoit              w3 remotely
-;; browse-url-lynx-*	              Lynx	     0
+;; browse-url-text-*	              Any text browser     0
 ;; browse-url-generic                 arbitrary
 ;; browse-url-default-windows-browser MS-Windows browser
 ;; browse-url-default-macosx-browser  Mac OS X browser
@@ -246,10 +246,10 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
 	  (function-item :tag "Mosaic" :value  browse-url-mosaic)
 	  (function-item :tag "Mosaic using CCI" :value  browse-url-cci)
-	  (function-item :tag "Lynx in an xterm window"
-			 :value browse-url-lynx-xterm)
-	  (function-item :tag "Lynx in an Emacs window"
-			 :value browse-url-lynx-emacs)
+	  (function-item :tag "Text browser in an xterm window"
+			 :value browse-url-text-xterm)
+	  (function-item :tag "Text browser in an Emacs window"
+			 :value browse-url-text-emacs)
 	  (function-item :tag "KDE" :value browse-url-kde)
 	  (function-item :tag "Elinks" :value browse-url-elinks)
 	  (function-item :tag "Specified by `Browse Url Generic Program'"
@@ -502,9 +502,9 @@ enabled.  The port number should be set in `browse-url-CCI-port'."
 
 (defvar browse-url-temp-file-name nil)
 (make-variable-buffer-local 'browse-url-temp-file-name)
-
+  
 (defcustom browse-url-xterm-program "xterm"
-  "The name of the terminal emulator used by `browse-url-lynx-xterm'.
+  "The name of the terminal emulator used by `browse-url-text-xterm'.
 This might, for instance, be a separate color version of xterm."
   :type 'string
   :group 'browse-url)
@@ -513,17 +513,6 @@ This might, for instance, be a separate color version of xterm."
   "A list of strings defining options for `browse-url-xterm-program'.
 These might set its size, for instance."
   :type '(repeat (string :tag "Argument"))
-  :group 'browse-url)
-
-(defcustom browse-url-lynx-emacs-args (and (not window-system)
-                                           '("-show_cursor"))
-  "A list of strings defining options for Lynx in an Emacs buffer.
-
-The default is none in a window system, otherwise `-show_cursor' to
-indicate the position of the current link in the absence of
-highlighting, assuming the normal default for showing the cursor."
-  :type '(repeat (string :tag "Argument"))
-  :version "20.3"
   :group 'browse-url)
 
 (defcustom browse-url-gnudoit-program "gnudoit"
@@ -562,28 +551,47 @@ incompatibly at version 4."
   :type 'number
   :group 'browse-url)
 
-(defcustom browse-url-lynx-input-field 'avoid
-  "Action on selecting an existing Lynx buffer at an input field.
-What to do when sending a new URL to an existing Lynx buffer in Emacs
-if the Lynx cursor is on an input field (in which case the `g' command
+(defcustom browse-url-text-browser "lynx"
+  "The name of the text browser to invoke."
+  :type 'string
+  :group 'browse-url
+  :version "23.1")
+
+(defcustom browse-url-text-emacs-args (and (not window-system)
+					   '("-show_cursor"))
+  "A list of strings defining options for a text browser in an Emacs buffer.
+
+The default is none in a window system, otherwise `-show_cursor' to
+indicate the position of the current link in the absence of
+highlighting, assuming the normal default for showing the cursor."
+  :type '(repeat (string :tag "Argument"))
+  :version "23.1"
+  :group 'browse-url)
+
+(defcustom browse-url-text-input-field 'avoid
+  "Action on selecting an existing text browser buffer at an input field.
+What to do when sending a new URL to an existing text browser buffer in Emacs
+if the browser cursor is on an input field (in which case the `g' command
 would be entered as data).  Such fields are recognized by the
-underlines ____.  Allowed values: nil: disregard it, 'warn: warn the
-user and don't emit the URL, 'avoid: try to avoid the field by moving
+underlines ____.  Allowed values: nil: disregard it, `warn': warn the
+user and don't emit the URL, `avoid': try to avoid the field by moving
 down (this *won't* always work)."
   :type '(choice (const :tag "Move to try to avoid field" :value avoid)
                  (const :tag "Disregard" :value nil)
                  (const :tag "Warn, don't emit URL" :value warn))
-  :version "20.3"
+  :version "23.1"
   :group 'browse-url)
 
-(defcustom browse-url-lynx-input-attempts 10
-  "How many times to try to move down from a series of lynx input fields."
+(defcustom browse-url-text-input-attempts 10
+  "How many times to try to move down from a series of text browser input fields."
   :type 'integer
+  :version "23.1"
   :group 'browse-url)
 
-(defcustom browse-url-lynx-input-delay 0.2
-  "How many seconds to wait for lynx between moves down from an input field."
+(defcustom browse-url-text-input-delay 0.2
+  "Seconds to wait for a text browser between moves down from an input field."
   :type 'number
+  :version "23.1"
   :group 'browse-url)
 
 (defcustom browse-url-kde-program "kfmclient"
@@ -876,7 +884,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
     ((executable-find browse-url-kde-program) 'browse-url-kde)
     ((executable-find browse-url-netscape-program) 'browse-url-netscape)
     ((executable-find browse-url-mosaic-program) 'browse-url-mosaic)
-    ((executable-find browse-url-xterm-program) 'browse-url-lynx-xterm)
+    ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
     ((locate-library "w3") 'browse-url-w3)
     (t
      (lambda (&ignore args) (error "No usable browser found"))))
@@ -1308,38 +1316,41 @@ The `browse-url-gnudoit-program' program is used with options given by
 ;; --- Lynx in an xterm ---
 
 ;;;###autoload
-(defun browse-url-lynx-xterm (url &optional new-window)
+(defun browse-url-text-xterm (url &optional new-window)
   ;; new-window ignored
-  "Ask the Lynx WWW browser to load URL.
-Default to the URL around or before point.  A new Lynx process is run
+  "Ask a text browser to load URL.
+URL defaults to the URL around or before point. 
+This runs the text browser specified by `browse-url-text-browser'.
 in an Xterm window using the Xterm program named by `browse-url-xterm-program'
 with possible additional arguments `browse-url-xterm-args'."
-  (interactive (browse-url-interactive-arg "Lynx URL: "))
-  (apply #'start-process `(,(concat "lynx" url) nil ,browse-url-xterm-program
-			   ,@browse-url-xterm-args "-e" "lynx"
+  (interactive (browse-url-interactive-arg "Text browser URL: "))
+  (apply #'start-process `(,(concat browse-url-text-browser url)
+			   nil ,browse-url-xterm-program
+			   ,@browse-url-xterm-args "-e" browse-url-text-browser
 			   ,url)))
 
 ;; --- Lynx in an Emacs "term" window ---
 
 ;;;###autoload
-(defun browse-url-lynx-emacs (url &optional new-buffer)
-  "Ask the Lynx WWW browser to load URL.
-Default to the URL around or before point.  With a prefix argument, run
-a new Lynx process in a new buffer.
+(defun browse-url-text-emacs (url &optional new-buffer)
+  "Ask a text browser to load URL.
+URL defaults to the URL around or before point. 
+This runs the text browser specified by `browse-url-text-browser'.
+With a prefix argument, it runs a new browser process in a new buffer.
 
 When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new lynx in a new term window,
+non-nil, load the document in a new browser process in a new term window,
 otherwise use any existing one.  A non-nil interactive prefix argument
 reverses the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
-  (interactive (browse-url-interactive-arg "Lynx URL: "))
+  (interactive (browse-url-interactive-arg "Text browser URL: "))
   (let* ((system-uses-terminfo t)     ; Lynx uses terminfo
 	 ;; (term-term-name "vt100") ; ??
-	 (buf (get-buffer "*lynx*"))
+	 (buf (get-buffer "*text browser*"))
 	 (proc (and buf (get-buffer-process buf)))
-	 (n browse-url-lynx-input-attempts))
+	 (n browse-url-text-input-attempts))
     (if (and (browse-url-maybe-new-window new-buffer) buf)
 	;; Rename away the OLD buffer. This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
@@ -1350,11 +1361,13 @@ used instead of `browse-url-new-window-flag'."
 	    (not buf)
 	    (not proc)
 	    (not (memq (process-status proc) '(run stop))))
-	;; start a new lynx
+	;; start a new text browser
 	(progn
           (setq buf
                 (apply #'make-term
-                       `("lynx" "lynx" nil ,@browse-url-lynx-emacs-args
+                       `(,browse-url-text-browser
+			 ,browse-url-text-browser
+			 nil ,@browse-url-text-emacs-args
 			 ,url)))
           (switch-to-buffer buf)
           (term-char-mode)
@@ -1366,18 +1379,18 @@ used instead of `browse-url-new-window-flag'."
              (if (not (memq (process-status process) '(run stop)))
                  (let ((buf (process-buffer process)))
                    (if buf (kill-buffer buf)))))))
-      ;; send the url to lynx in the old buffer
+      ;; Send the url to the text browser in the old buffer
       (let ((win (get-buffer-window buf t)))
 	(if win
 	    (select-window win)
 	  (switch-to-buffer buf)))
       (if (eq (following-char) ?_)
-	  (cond ((eq browse-url-lynx-input-field 'warn)
+	  (cond ((eq browse-url-text-input-field 'warn)
 		 (error "Please move out of the input field first"))
-		((eq browse-url-lynx-input-field 'avoid)
+		((eq browse-url-text-input-field 'avoid)
 		 (while (and (eq (following-char) ?_) (> n 0))
 		   (term-send-down)	; down arrow
-		   (sit-for browse-url-lynx-input-delay))
+		   (sit-for browse-url-text-input-delay))
 		 (if (eq (following-char) ?_)
 		     (error "Cannot move out of the input field, sorry")))))
       (term-send-string proc (concat "g"    ; goto

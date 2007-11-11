@@ -2561,8 +2561,6 @@ the text which should be made available.
 The second, optional, argument PUSH, has the same meaning as the
 similar argument to `x-set-cut-buffer', which see.")
 
-(make-variable-frame-local 'interprogram-cut-function)
-
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
 
@@ -2588,8 +2586,6 @@ most recent string, the function should return nil.  If it is
 difficult to tell whether Emacs or some other program provided the
 current string, it is probably good enough to return nil if the string
 is equal (according to `string=') to the last text Emacs provided.")
-
-(make-variable-frame-local 'interprogram-paste-function)
 
 
 
@@ -5841,7 +5837,7 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 (defconst bad-packages-alist
   ;; Not sure exactly which semantic versions have problems.
   ;; Definitely 2.0pre3, probably all 2.0pre's before this.
-  '((semantic semantic-version "2\\.0pre[1-3]"
+  '((semantic semantic-version "\\`2\\.0pre[1-3]\\'"
               "The version of `semantic' loaded does not work in Emacs 22.
 It can cause constant high CPU load.
 Upgrade to at least Semantic 2.0pre4 (distributed with CEDET 1.0pre4).")

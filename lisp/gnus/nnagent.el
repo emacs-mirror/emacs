@@ -121,7 +121,7 @@
   (gnus-request-accept-article "nndraft:queue" nil t t))
 
 (deffoo nnagent-request-set-mark (group action server)
-  (with-temp-buffer
+  (mm-with-unibyte-buffer
     (insert "(gnus-agent-synchronize-group-flags \""
 	    group 
 	    "\" '")
@@ -130,7 +130,17 @@
 	    (gnus-method-to-server gnus-command-method)
 	    "\"")
     (insert ")\n")
-    (append-to-file (point-min) (point-max) (gnus-agent-lib-file "flags")))
+    (let ((coding-system-for-write nnheader-file-coding-system))
+      (write-region (point-min) (point-max) (gnus-agent-lib-file "flags")
+		    t 'silent)))
+  ;; Also set the marks for the original back end that keeps marks in
+  ;; the local system.
+  (let ((gnus-agent nil))
+    (when (and (memq (car gnus-command-method) '(nntp))
+	       (gnus-check-backend-function 'request-set-mark
+					    (car gnus-command-method)))
+      (funcall (gnus-get-function gnus-command-method 'request-set-mark)
+	       group action server)))
   nil)
 
 (deffoo nnagent-retrieve-headers (articles &optional group server fetch-old)
@@ -148,7 +158,8 @@
 	  (pop arts)))
       (set-buffer nntp-server-buffer)
       (erase-buffer)
-      (nnheader-insert-nov-file file (car articles))
+      (let ((file-name-coding-system nnmail-pathname-coding-system))
+	(nnheader-insert-nov-file file (car articles)))
       (goto-char (point-min))
       (gnus-parse-without-error
 	(while (and arts (not (eobp)))
@@ -214,10 +225,10 @@
 			(list (nnagent-server server))))
 
 (deffoo nnagent-request-move-article
-    (article group server accept-form &optional last)
+    (article group server accept-form &optional last move-is-internal)
   (nnoo-parent-function 'nnagent 'nnml-request-move-article
 			(list article group (nnagent-server server)
-			      accept-form last)))
+			      accept-form last move-is-internal)))
 
 (deffoo nnagent-request-rename-group (group new-name &optional server)
   (nnoo-parent-function 'nnagent 'nnml-request-rename-group

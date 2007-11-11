@@ -188,7 +188,6 @@ src/scroll.c
 src/search.c
 src/sound.c
 src/strftime.c
-src/sunfns.c
 src/sysdep.c
 src/termcap.c
 src/terminfo.c

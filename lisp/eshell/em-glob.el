@@ -258,7 +258,7 @@ the form:
 	  (eshell-glob-entries (file-name-as-directory ".") paths))
       (if message-shown
 	  (message nil)))
-    (or (and matches (nreverse matches))
+    (or (and matches (sort matches #'string<))
 	(if eshell-error-if-no-glob
 	    (error "No matches found: %s" glob)
 	  glob))))
@@ -267,6 +267,7 @@ the form:
   (defvar matches)
   (defvar message-shown))
 
+;; FIXME does this really need to abuse matches, message-shown?
 (defun eshell-glob-entries (path globs &optional recurse-p)
   "Glob the entries in PATHS, possibly recursing if RECURSE-P is non-nil."
   (let* ((entries (ignore-errors

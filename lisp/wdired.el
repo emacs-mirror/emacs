@@ -130,8 +130,8 @@ is not nil."
   "If t, the \"up\" and \"down\" movement works as in Dired mode.
 That is, always move the point to the beginning of the filename at line.
 
-If `sometimes, only move to the beginning of filename if the point is
-before it, and `track-eol' is honored.  This behavior is very handy
+If `sometimes', only move to the beginning of filename if the point is
+before it, and `track-eol' is non-nil.  This behavior is very handy
 when editing several filenames.
 
 If nil, \"up\" and \"down\" movement is done as in any other buffer."
@@ -499,7 +499,7 @@ Optional arguments are ignored."
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "p")
-  (forward-line arg)
+  (with-no-warnings (next-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
 	       (< (current-column)
@@ -512,7 +512,7 @@ says how many lines to move; default is one line."
 See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "p")
-  (forward-line (- arg))
+  (with-no-warnings (previous-line arg))
   (if (or (eq wdired-use-dired-vertical-movement t)
 	  (and wdired-use-dired-vertical-movement
 	       (< (current-column)

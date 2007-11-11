@@ -251,32 +251,32 @@ Optional prefix (or REVERSE argument) means sort in reverse order."
   ;; - a nice summary line format
   ;; - NNDiary specific sorting by schedule functions
   ;; In general, try not to mess with what the user might have modified.
-  (let ((posting-style (gnus-group-get-parameter group 'posting-style t)))
-    ;; Posting style:
-    (mapcar (lambda (elt)
-	      (let ((header (format "X-Diary-%s" (car elt))))
-		(unless (assoc header posting-style)
-		  (setq posting-style (append posting-style
-					      `((,header "*")))))
-		))
-	    nndiary-headers)
-    (gnus-group-set-parameter group 'posting-style posting-style)
-    ;; Summary line format:
-    (unless (gnus-group-get-parameter group 'gnus-summary-line-format t)
-      (gnus-group-set-parameter group 'gnus-summary-line-format
-				`(,gnus-diary-summary-line-format)))
-    ;; Sorting by schedule:
-    (unless (gnus-group-get-parameter group 'gnus-article-sort-functions)
-      (gnus-group-set-parameter group 'gnus-article-sort-functions
-				'((append gnus-article-sort-functions
-					  (list
-					   'gnus-article-sort-by-schedule)))))
-    (unless (gnus-group-get-parameter group 'gnus-thread-sort-functions)
-      (gnus-group-set-parameter group 'gnus-thread-sort-functions
-				'((append gnus-thread-sort-functions
-					  (list
-					   'gnus-thread-sort-by-schedule)))))
-    ))
+
+  ;; Posting style:
+  (let ((posting-style (gnus-group-get-parameter group 'posting-style t))
+	(headers nndiary-headers)
+	header)
+    (while headers
+      (setq header (format "X-Diary-%s" (caar headers))
+	    headers (cdr headers))
+      (unless (assoc header posting-style)
+	(setq posting-style (append posting-style (list (list header "*"))))))
+    (gnus-group-set-parameter group 'posting-style posting-style))
+  ;; Summary line format:
+  (unless (gnus-group-get-parameter group 'gnus-summary-line-format t)
+    (gnus-group-set-parameter group 'gnus-summary-line-format
+			      `(,gnus-diary-summary-line-format)))
+  ;; Sorting by schedule:
+  (unless (gnus-group-get-parameter group 'gnus-article-sort-functions)
+    (gnus-group-set-parameter group 'gnus-article-sort-functions
+			      '((append gnus-article-sort-functions
+					(list
+					 'gnus-article-sort-by-schedule)))))
+  (unless (gnus-group-get-parameter group 'gnus-thread-sort-functions)
+    (gnus-group-set-parameter group 'gnus-thread-sort-functions
+			      '((append gnus-thread-sort-functions
+					(list
+					 'gnus-thread-sort-by-schedule))))))
 
 ;; Called when a group is subscribed. This is needed because groups created
 ;; because of mail splitting are *not* created with the back end function.
@@ -347,7 +347,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 	   (when (re-search-forward (concat "^" header ":") nil t)
 	     (unless (eq (char-after) ? )
 	       (insert " "))
-	     (setq value (buffer-substring (point) (gnus-point-at-eol)))
+	     (setq value (buffer-substring (point) (point-at-eol)))
 	     (and (string-match "[ \t]*\\([^ \t]+\\)[ \t]*" value)
 		  (setq value (match-string 1 value)))
 	     (condition-case ()

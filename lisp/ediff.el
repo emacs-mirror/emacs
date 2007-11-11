@@ -1303,20 +1303,6 @@ buffer."
      (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
      rev1 rev2 ancestor-rev startup-hooks merge-buffer-file)))
 
-;; MK: Check. This function doesn't seem to be used any more by pcvs or pcl-cvs
-;;;###autoload
-(defun run-ediff-from-cvs-buffer (pos)
-  "Run Ediff-merge on appropriate revisions of the selected file.
-First run after `M-x cvs-update'.  Then place the cursor on a line describing a
-file and then run `run-ediff-from-cvs-buffer'."
-  (interactive "d")
-  (ediff-load-version-control)
-  (let ((tin (tin-locate cvs-cookie-handle pos)))
-    (if tin
-	(cvs-run-ediff-on-file-descriptor tin)
-      (error "There is no file to merge"))))
-
-
 ;;; Apply patch
 
 ;;;###autoload
@@ -1454,7 +1440,7 @@ With optional NODE, goes to that node."
     (condition-case nil
 	(progn
 	  (pop-to-buffer (get-buffer-create "*info*"))
-	  (info (if ediff-xemacs-p "ediff.info" "ediff"))
+	  (info (if (featurep 'xemacs) "ediff.info" "ediff"))
 	  (if node
 	      (Info-goto-node node)
 	    (message "Type `i' to search for a specific topic"))

@@ -2921,7 +2921,7 @@ TEST is evaluated."
 ;;----------------------------------------------------------------------------
 
 ;;These functions use the variables 'row' and 'col' that are
-;;dynamically bound by ses-print-cell.  We define these varables at
+;;dynamically bound by ses-print-cell.  We define these variables at
 ;;compile-time to make the compiler happy.
 (eval-when-compile
   (dolist (x '(row col))
@@ -2979,6 +2979,19 @@ current column and continues until the next nonblank column."
 ;;All standard printers are safe, including ses-unsafe!
 (dolist (x (cons 'ses-unsafe ses-standard-printer-functions))
   (put x 'side-effect-free t))
+
+(defun ses-unload-function ()
+  "Unload the Simple Emacs Spreadsheet."
+  (dolist (fun '(copy-region-as-kill yank))
+    (ad-remove-advice fun 'around (intern (concat "ses-" (symbol-name fun))))
+    (ad-update fun))
+  (save-current-buffer
+    (dolist (buf (buffer-list))
+      (set-buffer buf)
+      (when (eq major-mode 'ses-mode)
+	(funcall (or default-major-mode 'fundamental-mode)))))
+  ;; continue standard unloading
+  nil)
 
 (provide 'ses)
 

@@ -503,7 +503,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
   "Get change log associated with FILE."
   (vc-cvs-command
    buffer
-   (if (and (vc-stay-local-p files) (fboundp 'start-process)) 'async 0)
+   (if (vc-stay-local-p files) 'async 0)
    files "log"))
 
 (defun vc-cvs-wash-log ()
@@ -514,8 +514,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."
     (let* ((async (and (not vc-disable-async-diff) 
-		       (vc-stay-local-p files)
-		       (fboundp 'start-process)))
+		       (vc-stay-local-p files)))
 	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")
 			  (if async 'async 1)
 			  files "diff"
@@ -563,7 +562,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
   (vc-cvs-command buffer
-                  (if (and (vc-stay-local-p file) (fboundp 'start-process))
+                  (if (vc-stay-local-p file)
 		      'async 0)
                   file "annotate"
                   (if revision (concat "-r" revision)))

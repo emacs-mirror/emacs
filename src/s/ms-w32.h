@@ -292,6 +292,7 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_INET_SOCKETS 1
 
 #undef  HAVE_AIX_SMT_EXP
+#define USE_TOOLKIT_SCROLL_BARS 1
 
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */

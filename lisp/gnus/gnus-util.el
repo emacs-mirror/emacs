@@ -31,11 +31,10 @@
 ;; Gnus first.
 
 ;; [Unfortunately, it does depend on other parts of Gnus, e.g. the
-;; autoloads below...]
+;; autoloads and defvars below...]
 
 ;;; Code:
 
-(require 'custom)
 (eval-when-compile
   (require 'cl)
   ;; Fixme: this should be a gnus variable, not nnmail-.
@@ -67,7 +66,7 @@
    ;;   (replace-in-string "foo" "/*$" "/")
    ;;   (replace-in-string "xe" "\\(x\\)?" "")
    ((fboundp 'replace-regexp-in-string)
-    (defun gnus-replace-in-string (string regexp newtext &optional literal)
+    (defun gnus-replace-in-string  (string regexp newtext &optional literal)
       "Replace all matches for REGEXP with NEWTEXT in STRING.
 If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
 string containing the replacements.
@@ -75,25 +74,7 @@ string containing the replacements.
 This is a compatibility function for different Emacsen."
       (replace-regexp-in-string regexp newtext string nil literal)))
    ((fboundp 'replace-in-string)
-    (defalias 'gnus-replace-in-string 'replace-in-string))
-   (t
-    (defun gnus-replace-in-string (string regexp newtext &optional literal)
-      "Replace all matches for REGEXP with NEWTEXT in STRING.
-If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
-string containing the replacements.
-
-This is a compatibility function for different Emacsen."
-      (let ((start 0) tail)
-	(while (string-match regexp string start)
-	  (setq tail (- (length string) (match-end 0)))
-	  (setq string (replace-match newtext nil literal string))
-	  (setq start (- (length string) tail))))
-      string))))
-
-;;; bring in the netrc functions as aliases
-(defalias 'gnus-netrc-get 'netrc-get)
-(defalias 'gnus-netrc-machine 'netrc-machine)
-(defalias 'gnus-parse-netrc 'netrc-parse)
+    (defalias 'gnus-replace-in-string 'replace-in-string))))
 
 (defun gnus-boundp (variable)
   "Return non-nil if VARIABLE is bound and non-nil."
@@ -128,15 +109,6 @@ This is a compatibility function for different Emacsen."
 	 (set symbol nil))
      symbol))
 
-;; Added by Geoffrey T. Dairiki <dairiki@u.washington.edu>.  A safe way
-;; to limit the length of a string.  This function is necessary since
-;; `(substr "abc" 0 30)' pukes with "Args out of range".
-;; Fixme: Why not `truncate-string-to-width'?
-(defsubst gnus-limit-string (str width)
-  (if (> (length str) width)
-      (substring str 0 width)
-    str))
-
 (defsubst gnus-goto-char (point)
   (and point (goto-char point)))
 
@@ -145,16 +117,6 @@ This is a compatibility function for different Emacsen."
      (when buffer
        (funcall (if (stringp buffer) 'get-buffer 'buffer-name)
 		buffer))))
-
-(defalias 'gnus-point-at-bol
-  (if (fboundp 'point-at-bol)
-      'point-at-bol
-    'line-beginning-position))
-
-(defalias 'gnus-point-at-eol
-  (if (fboundp 'point-at-eol)
-      'point-at-eol
-    'line-end-position))
 
 ;; The LOCAL arg to `add-hook' is interpreted differently in Emacs and
 ;; XEmacs.  In Emacs we don't need to call `make-local-hook' first.
@@ -180,7 +142,7 @@ This is a compatibility function for different Emacsen."
 
 ;; Delete the current line (and the next N lines).
 (defmacro gnus-delete-line (&optional n)
-  `(delete-region (gnus-point-at-bol)
+  `(delete-region (point-at-bol)
 		  (progn (forward-line ,(or n 1)) (point))))
 
 (defun gnus-byte-code (func)
@@ -235,8 +197,7 @@ is slower."
   "Return the value of the header FIELD of current article."
   (save-excursion
     (save-restriction
-      (let ((case-fold-search t)
-	    (inhibit-point-motion-hooks t))
+      (let ((inhibit-point-motion-hooks t))
 	(nnheader-narrow-to-headers)
 	(message-fetch-field field)))))
 
@@ -248,7 +209,7 @@ is slower."
 
 (defun gnus-goto-colon ()
   (beginning-of-line)
-  (let ((eol (gnus-point-at-eol)))
+  (let ((eol (point-at-eol)))
     (goto-char (or (text-property-any (point) eol 'gnus-position t)
 		   (search-forward ":" eol t)
 		   (point)))))
@@ -263,12 +224,15 @@ is slower."
 
 (defun gnus-remove-text-with-property (prop)
   "Delete all text in the current buffer with text property PROP."
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (while (get-text-property (point) prop)
-	(delete-char 1))
-      (goto-char (next-single-property-change (point) prop nil (point-max))))))
+  (let ((start (point-min))
+	end)
+    (unless (get-text-property start prop)
+      (setq start (next-single-property-change start prop)))
+    (while start
+      (setq end (text-property-any start (point-max) prop nil))
+      (delete-region start (or end (point-max)))
+      (setq start (when end
+		    (next-single-property-change start prop))))))
 
 (defun gnus-newsgroup-directory-form (newsgroup)
   "Make hierarchical directory name from NEWSGROUP name."
@@ -501,6 +465,79 @@ jabbering all the time."
   :group 'gnus-start
   :type 'integer)
 
+(defcustom gnus-add-timestamp-to-message nil
+  "Non-nil means add timestamps to messages that Gnus issues.
+If it is `log', add timestamps to only the messages that go into the
+\"*Messages*\" buffer (in XEmacs, it is the \" *Message-Log*\" buffer).
+If it is neither nil nor `log', add timestamps not only to log messages
+but also to the ones displayed in the echo area."
+  :version "23.0" ;; No Gnus
+  :group  'gnus-various
+  :type '(choice :format "%{%t%}:\n %[Value Menu%] %v"
+		 (const :tag "Logged messages only" log)
+		 (sexp :tag "All messages"
+		       :match (lambda (widget value) value)
+		       :value t)
+		 (const :tag "No timestamp" nil)))
+
+(eval-when-compile
+  (defmacro gnus-message-with-timestamp-1 (format-string args)
+    (let ((timestamp '((format-time-string "%Y%m%dT%H%M%S" time)
+		       "." (format "%03d" (/ (nth 2 time) 1000)) "> ")))
+      (if (featurep 'xemacs)
+	  `(let (str time)
+	     (if (or (and (null ,format-string) (null ,args))
+		     (progn
+		       (setq str (apply 'format ,format-string ,args))
+		       (zerop (length str))))
+		 (prog1
+		     (and ,format-string str)
+		   (clear-message nil))
+	       (cond ((eq gnus-add-timestamp-to-message 'log)
+		      (setq time (current-time))
+		      (display-message 'no-log str)
+		      (log-message 'message (concat ,@timestamp str)))
+		     (gnus-add-timestamp-to-message
+		      (setq time (current-time))
+		      (display-message 'message (concat ,@timestamp str)))
+		     (t
+		      (display-message 'message str))))
+	     str)
+	`(let (str time)
+	   (cond ((eq gnus-add-timestamp-to-message 'log)
+		  (setq str (let (message-log-max)
+			      (apply 'message ,format-string ,args)))
+		  (when (and message-log-max
+			     (> message-log-max 0)
+			     (/= (length str) 0))
+		    (setq time (current-time))
+		    (with-current-buffer (get-buffer-create "*Messages*")
+		      (goto-char (point-max))
+		      (insert ,@timestamp str "\n")
+		      (forward-line (- message-log-max))
+		      (delete-region (point-min) (point))
+		      (goto-char (point-max))))
+		  str)
+		 (gnus-add-timestamp-to-message
+		  (if (or (and (null ,format-string) (null ,args))
+			  (progn
+			    (setq str (apply 'format ,format-string ,args))
+			    (zerop (length str))))
+		      (prog1
+			  (and ,format-string str)
+			(message nil))
+		    (setq time (current-time))
+		    (message "%s" (concat ,@timestamp str))
+		    str))
+		 (t
+		  (apply 'message ,format-string ,args))))))))
+
+(defun gnus-message-with-timestamp (format-string &rest args)
+  "Display message with timestamp.  Arguments are the same as `message'.
+The `gnus-add-timestamp-to-message' variable controls how to add
+timestamp to message."
+  (gnus-message-with-timestamp-1 format-string args))
+
 (defun gnus-message (level &rest args)
   "If LEVEL is lower than `gnus-verbose' print ARGS using `message'.
 
@@ -509,7 +546,9 @@ Guideline for numbers:
 that take a long time, 7 - not very important messages on stuff, 9 - messages
 inside loops."
   (if (<= level gnus-verbose)
-      (apply 'message args)
+      (if gnus-add-timestamp-to-message
+	  (apply 'gnus-message-with-timestamp args)
+	(apply 'message args))
     ;; We have to do this format thingy here even if the result isn't
     ;; shown - the return value has to be the same as the return value
     ;; from `message'.
@@ -530,11 +569,22 @@ ARGS are passed to `message'."
 (defun gnus-split-references (references)
   "Return a list of Message-IDs in REFERENCES."
   (let ((beg 0)
+	(references (or references ""))
 	ids)
     (while (string-match "<[^<]+[^< \t]" references beg)
       (push (substring references (match-beginning 0) (setq beg (match-end 0)))
 	    ids))
     (nreverse ids)))
+
+(defun gnus-extract-references (references)
+  "Return a list of Message-IDs in REFERENCES (in In-Reply-To
+  format), trimmed to only contain the Message-IDs."
+  (let ((ids (gnus-split-references references))
+	refs)
+    (dolist (id ids)
+      (when (string-match "<[^<>]+>" id)
+	(push (match-string 0 id) refs)))
+    refs))
 
 (defsubst gnus-parent-id (references &optional n)
   "Return the last Message-ID in REFERENCES.
@@ -709,11 +759,11 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
 `print-level' to nil.  See also `gnus-bind-print-variables'."
   (gnus-bind-print-variables (prin1-to-string form)))
 
-(defun gnus-pp (form)
+(defun gnus-pp (form &optional stream)
   "Use `pp' on FORM in the current buffer.
 Bind `print-quoted' and `print-readably' to t, and `print-length' and
 `print-level' to nil.  See also `gnus-bind-print-variables'."
-  (gnus-bind-print-variables (pp form (current-buffer))))
+  (gnus-bind-print-variables (pp form (or stream (current-buffer)))))
 
 (defun gnus-pp-to-string (form)
   "The same as `pp-to-string'.
@@ -732,9 +782,9 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
 
 (defun gnus-write-buffer (file)
   "Write the current buffer's contents to FILE."
-  ;; Make sure the directory exists.
-  (gnus-make-directory (file-name-directory file))
   (let ((file-name-coding-system nnmail-pathname-coding-system))
+    ;; Make sure the directory exists.
+    (gnus-make-directory (file-name-directory file))
     ;; Write the buffer.
     (write-region (point-min) (point-max) file nil 'quietly)))
 
@@ -1149,8 +1199,12 @@ Return the modified alist."
     t))
 
 (defun gnus-write-active-file (file hashtb &optional full-names)
+  ;; `coding-system-for-write' should be `raw-text' or equivalent.
   (let ((coding-system-for-write nnmail-active-file-coding-system))
     (with-temp-file file
+      ;; The buffer should be in the unibyte mode because group names
+      ;; are ASCII text or encoded non-ASCII text (i.e., unibyte).
+      (mm-disable-multibyte)
       (mapatoms
        (lambda (sym)
 	 (when (and sym
@@ -1235,6 +1289,13 @@ Return the modified alist."
     (if start
 	(remove-text-properties start end properties object))
     t))
+
+(defun gnus-string-remove-all-properties (string)
+  (condition-case ()
+      (let ((s string))
+	(set-text-properties 0 (length string) nil string)
+	s)
+    (error string)))
 
 ;; This might use `compare-strings' to reduce consing in the
 ;; case-insensitive case, but it has to cope with null args.
@@ -1350,32 +1411,12 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 	`(,(car spec) ,@(mapcar 'gnus-make-predicate-1 (cdr spec)))
       (error "Invalid predicate specifier: %s" spec)))))
 
-(defun gnus-local-map-property (map)
-  "Return a list suitable for a text property list specifying keymap MAP."
-  (cond
-   ((featurep 'xemacs)
-    (list 'keymap map))
-   ((>= emacs-major-version 21)
-    (list 'keymap map))
-   (t
-    (list 'local-map map))))
-
-(defmacro gnus-completing-read-maybe-default (prompt table &optional predicate
-					      require-match initial-contents
-					      history default)
-  "Like `completing-read', allowing for non-existent 7th arg in older XEmacsen."
-  `(completing-read ,prompt ,table ,predicate ,require-match
-                    ,initial-contents ,history
-                    ,@(if (and (featurep 'xemacs) (< emacs-minor-version 2))
-                          ()
-                        (list default))))
-
 (defun gnus-completing-read (prompt table &optional predicate require-match
 				    history)
   (when (and history
 	     (not (boundp history)))
     (set history nil))
-  (gnus-completing-read-maybe-default
+  (completing-read
    (if (symbol-value history)
        (concat prompt " (" (car (symbol-value history)) "): ")
      (concat prompt ": "))
@@ -1616,13 +1657,16 @@ predicate on the elements."
      ((or (featurep 'sxemacs) (featurep 'xemacs))
       ;; XEmacs or SXEmacs:
       (concat emacsname "/" emacs-program-version
-	      " ("
-	      (when (and (memq 'codename lst)
-			 codename)
-		(concat codename
-			(when system-v ", ")))
-	      (when system-v system-v)
-	      ")"))
+	      (let (plst)
+		(when (memq 'codename lst)
+		  (push codename plst))
+		(when system-v
+		  (push system-v plst))
+		(unless (featurep 'mule)
+		  (push "no MULE" plst))
+		(when (> (length plst) 0)
+		  (concat
+		   " (" (mapconcat 'identity (reverse plst) ", ") ")")))))
      (t emacs-version))))
 
 (defun gnus-rename-file (old-path new-path &optional trim)
@@ -1645,6 +1689,11 @@ empty directories from OLD-PATH."
 	  (setq old-dir (file-name-as-directory
 			 (file-truename
 			  (concat old-dir "..")))))))))
+
+(defun gnus-set-file-modes (filename mode)
+  "Wrapper for set-file-modes."
+  (ignore-errors
+    (set-file-modes filename mode)))
 
 (if (fboundp 'set-process-query-on-exit-flag)
     (defalias 'gnus-set-process-query-on-exit-flag

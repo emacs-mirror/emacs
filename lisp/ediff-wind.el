@@ -39,7 +39,6 @@
 (defvar top-gutter)
 (defvar frame-icon-title-format)
 (defvar ediff-diff-status)
-(defvar ediff-emacs-p)
 
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
@@ -50,7 +49,7 @@
     (or (featurep 'ediff-help)
 	(load "ediff-help.el" nil nil 'nosuffix))
     (or (featurep 'ediff-tbar)
-	ediff-emacs-p
+	(featurep 'emacs)
 	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
     ))
 ;; end pacifier
@@ -58,7 +57,7 @@
 (require 'ediff-init)
 
 ;; be careful with ediff-tbar
-(if ediff-xemacs-p
+(if (featurep 'xemacs)
     (condition-case nil
 	(require 'ediff-tbar)
       (error
@@ -213,7 +212,7 @@ customization of the default control frame positioning."
   :type 'integer
   :group 'ediff-window)
 
-(defcustom ediff-narrow-control-frame-leftward-shift (if ediff-xemacs-p 7 3)
+(defcustom ediff-narrow-control-frame-leftward-shift (if (featurep 'xemacs) 7 3)
   "*The leftward shift of control frame from the right edge of buf A's frame.
 Measured in characters.
 This is used by the default control frame positioning function,
@@ -380,7 +379,7 @@ into icons, regardless of the window manager."
     ;; XEmacs used to have a lot of trouble with display
     ;; It did't set things right unless we tell it to sit still
     ;; 19.12 seems ok.
-    ;;(if ediff-xemacs-p (sit-for 0))
+    ;;(if (featurep 'xemacs) (sit-for 0))
 
     (split-window-vertically (max 2 (- (window-height) merge-window-lines)))
     (if (eq (selected-window) wind-A)
@@ -443,7 +442,7 @@ into icons, regardless of the window manager."
     ;; XEmacs used to have a lot of trouble with display
     ;; It did't set things right unless we told it to sit still
     ;; 19.12 seems ok.
-    ;;(if ediff-xemacs-p (sit-for 0))
+    ;;(if (featurep 'xemacs) (sit-for 0))
 
     (funcall split-window-function wind-width-or-height)
 
@@ -1043,7 +1042,7 @@ into icons, regardless of the window manager."
 			   (or (eq this-command 'ediff-quit)
 			       (not (eq ediff-grab-mouse t)))))
 
-    (if ediff-xemacs-p
+    (if (featurep 'xemacs)
 	(ediff-with-current-buffer ctl-buffer
 	  (ediff-cond-compile-for-xemacs-or-emacs
 	   (make-local-hook 'select-frame-hook) ; xemacs
@@ -1238,7 +1237,7 @@ It assumes that it is called from within the control buffer."
 
 
 (defun ediff-refresh-control-frame ()
-  (if ediff-emacs-p
+  (if (featurep 'emacs)
       ;; set frame/icon titles for Emacs
       (modify-frame-parameters
        ediff-control-frame
@@ -1288,7 +1287,7 @@ It assumes that it is called from within the control buffer."
 ;; If buff is not live, return nil
 (defun ediff-get-visible-buffer-window (buff)
   (if (ediff-buffer-live-p buff)
-      (if ediff-xemacs-p
+      (if (featurep 'xemacs)
 	  (get-buffer-window buff t)
 	(get-buffer-window buff 'visible))))
 

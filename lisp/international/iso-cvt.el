@@ -84,7 +84,8 @@
 ;;;###autoload
 (defun iso-spanish (from to &optional buffer)
   "Translate net conventions for Spanish to ISO 8859-1.
-The region between FROM and TO is translated using the table TRANS-TAB.
+The region between FROM and TO is translated using
+the table `iso-spanish-trans-tab'.
 Optional arg BUFFER is ignored (for use in `format-alist')."
   (interactive "*r")
   (iso-translate-conventions from to iso-spanish-trans-tab))
@@ -125,7 +126,8 @@ little.")
 ;;;###autoload
 (defun iso-german (from to &optional buffer)
  "Translate net conventions for German to ISO 8859-1.
-The region between FROM and TO is translated using the table TRANS-TAB.
+The region between FROM and TO is translated using
+the table `iso-german-trans-tab'.
 Optional arg BUFFER is ignored (for use in `format-alist')."
  (interactive "*r")
  (iso-translate-conventions from to iso-german-trans-tab))
@@ -197,7 +199,8 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
 ;;;###autoload
 (defun iso-iso2tex (from to &optional buffer)
  "Translate ISO 8859-1 characters to TeX sequences.
-The region between FROM and TO is translated using the table TRANS-TAB.
+The region between FROM and TO is translated using
+the table `iso-iso2tex-trans-tab'.
 Optional arg BUFFER is ignored (for use in `format-alist')."
  (interactive "*r")
  (iso-translate-conventions from to iso-iso2tex-trans-tab))
@@ -389,7 +392,8 @@ contains commonly used sequences.")
 ;;;###autoload
 (defun iso-tex2iso (from to &optional buffer)
  "Translate TeX sequences to ISO 8859-1 characters.
-The region between FROM and TO is translated using the table TRANS-TAB.
+The region between FROM and TO is translated using
+the table `iso-tex2iso-trans-tab'.
 Optional arg BUFFER is ignored (for use in `format-alist')."
  (interactive "*r")
  (iso-translate-conventions from to iso-tex2iso-trans-tab))
@@ -647,7 +651,8 @@ contains commonly used sequences.")
 ;;;###autoload
 (defun iso-gtex2iso (from to &optional buffer)
  "Translate German TeX sequences to ISO 8859-1 characters.
-The region between FROM and TO is translated using the table TRANS-TAB.
+The region between FROM and TO is translated using
+the table `iso-gtex2iso-trans-tab'.
 Optional arg BUFFER is ignored (for use in `format-alist')."
  (interactive "*r")
  (iso-translate-conventions from to iso-gtex2iso-trans-tab))
@@ -655,7 +660,8 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
 ;;;###autoload
 (defun iso-iso2gtex (from to &optional buffer)
  "Translate ISO 8859-1 characters to German TeX sequences.
-The region between FROM and TO is translated using the table TRANS-TAB.
+The region between FROM and TO is translated using
+the table `iso-iso2gtex-trans-tab'.
 Optional arg BUFFER is ignored (for use in `format-alist')."
  (interactive "*r")
  (iso-translate-conventions from to iso-iso2gtex-trans-tab))
@@ -667,12 +673,14 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
     ("Ö" "Oe")
     ("ü" "ue")
     ("Ü" "Ue")
-    ("ß" "ss")))
+    ("ß" "ss"))
+    "Translation table for translating ISO 8859-1 characters to Duden sequences.")
 
 ;;;###autoload
 (defun iso-iso2duden (from to &optional buffer)
- "Translate ISO 8859-1 characters to German TeX sequences.
-The region between FROM and TO is translated using the table TRANS-TAB.
+ "Translate ISO 8859-1 characters to Duden sequences.
+The region between FROM and TO is translated using
+the table `iso-iso2duden-trans-tab'.
 Optional arg BUFFER is ignored (for use in `format-alist')."
  (interactive "*r")
  (iso-translate-conventions from to iso-iso2duden-trans-tab))
@@ -845,7 +853,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
 	(translate-to-menu-map (make-sparse-keymap "Translate to..."))
 	(translate-from-menu-map (make-sparse-keymap "Translate from..."))
 	(menu menu-bar-file-menu))
-	
+
     (define-key menu [load-as-separator] '("--"))
 
     (define-key menu [load-as] '("Load As..." . iso-cvt-load-as))

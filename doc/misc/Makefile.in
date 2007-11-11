@@ -64,6 +64,7 @@ INFO_TARGETS = \
 	$(infodir)/pcl-cvs \
 	$(infodir)/pgg \
 	$(infodir)/rcirc \
+	$(infodir)/remember \
 	$(infodir)/reftex \
 	$(infodir)/sc \
 	$(infodir)/ses \
@@ -104,6 +105,7 @@ DVI_TARGETS = \
 	pgg.dvi \
 	rcirc.dvi \
 	reftex.dvi \
+	remember.dvi \
 	sc.dvi \
 	ses.dvi \
 	sieve.dvi \
@@ -305,6 +307,12 @@ $(infodir)/reftex: reftex.texi
 	cd $(srcdir); $(MAKEINFO) reftex.texi
 reftex.dvi: reftex.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/reftex.texi
+
+remember : $(infodir)/remember
+$(infodir)/remember: remember.texi
+	cd $(srcdir); $(MAKEINFO) remember.texi
+remember.dvi: remember.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/remember.texi
 
 sc : $(infodir)/sc
 $(infodir)/sc: sc.texi

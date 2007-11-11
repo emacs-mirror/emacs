@@ -52,7 +52,7 @@ which is part of AUCTeX, the string is first processed with the
   (interactive "P")
   (let* ((use-default (not (equal arg '(16))))  ; check for double prefix
          ;; check if we have an active selection
-         (active (if (boundp 'zmacs-regions)
+         (active (if (featurep 'xemacs)
                      (and zmacs-regions (region-exists-p))  ; XEmacs
                    (and transient-mark-mode mark-active)))  ; Emacs
          (beg (if active 

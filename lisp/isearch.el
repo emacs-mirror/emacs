@@ -159,10 +159,10 @@ command history."
 (defvar isearch-mode-end-hook nil
   "Function(s) to call after terminating an incremental search.
 When these functions are called, `isearch-mode-end-hook-quit'
-is non-nil if the user quit the search.")
+is non-nil if the user quits the search.")
 
 (defvar isearch-mode-end-hook-quit nil
-  "Non-nil while running `isearch-mode-end-hook' if user quit the search.")
+  "Non-nil while running `isearch-mode-end-hook' if the user quits the search.")
 
 (defvar isearch-message-function nil
   "Function to call to display the search prompt.
@@ -1734,6 +1734,12 @@ Isearch mode."
                  (isearch-back-into-window (eq ab-bel 'above) isearch-point)
                (goto-char isearch-point)))
            (isearch-update))
+	  ;; A mouse click on the isearch message starts editing the search string
+	  ((and (eq (car-safe main-event) 'down-mouse-1)
+		(window-minibuffer-p (posn-window (event-start main-event))))
+	   ;; Swallow the up-event.
+	   (read-event)
+	   (isearch-edit-string))
 	  (search-exit-option
 	   (let (window)
              (isearch-unread-key-sequence keylist)
@@ -2495,19 +2501,20 @@ Attempt to do the search exactly the way the pending isearch would."
 		    (run-at-time lazy-highlight-interval nil
 				 'isearch-lazy-highlight-update)))))))))
 
-(defun isearch-resume (search regexp word forward message case-fold)
+(defun isearch-resume (string regexp word forward message case-fold)
   "Resume an incremental search.
-SEARCH is the string or regexp searched for.
+STRING is the string or regexp searched for.
 REGEXP non-nil means the resumed search was a regexp search.
 WORD non-nil means resume a word search.
 FORWARD non-nil means resume a forward search.
 MESSAGE is the echo-area message recorded for the search resumed.
 CASE-FOLD non-nil means the search was case-insensitive."
   (isearch-mode forward regexp nil nil word)
-  (setq isearch-string search
+  (setq isearch-string string
 	isearch-message message
 	isearch-case-fold-search case-fold)
-  (isearch-search))
+  (isearch-search)
+  (isearch-update))
 
 ;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
 ;;; isearch.el ends here

@@ -132,10 +132,6 @@ enum event_kind
 				   whose scroll bar was clicked in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-#ifdef WINDOWSNT
-  W32_SCROLL_BAR_CLICK_EVENT,	/* as for SCROLL_BAR_CLICK, but only generated
-				   by MS-Windows scroll bar controls. */
-#endif
   SELECTION_REQUEST_EVENT,	/* Another X client wants a selection from us.
 				   See `struct selection_input_event'.  */
   SELECTION_CLEAR_EVENT,	/* Another X client cleared our selection.  */
@@ -199,6 +195,21 @@ enum event_kind
 
 #ifdef HAVE_GPM
   , GPM_CLICK_EVENT
+#endif
+
+#ifdef WINDOWSNT
+  /* Generated when an APPCOMMAND event is received, in response to
+     Multimedia or Internet buttons on some keyboards.
+     Such keys are available as normal function keys on X through the
+     Xkeyboard extension.
+     On Windows, some of them get mapped to normal function key events,
+     but others need to be handled by APPCOMMAND. Handling them all as
+     APPCOMMAND events means they can be disabled
+     (w32-pass-multimedia-buttons-to-system), important on Windows since
+     the system never sees these keys if Emacs claims to handle them.
+     On X, the window manager seems to grab the keys it wants
+     first, so this is not a problem there.  */
+  , MULTIMEDIA_KEY_EVENT
 #endif
 };
 

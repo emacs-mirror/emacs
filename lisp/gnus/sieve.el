@@ -145,7 +145,7 @@ require \"fileinto\";
   (setq mode-name "SIEVE")
   (buffer-disable-undo (current-buffer))
   (setq truncate-lines t)
-  (easy-menu-add-item nil nil sieve-manage-mode-menu))
+  (easy-menu-add sieve-manage-mode-menu sieve-manage-mode-map))
 
 (put 'sieve-manage-mode 'mode-class 'special)
 

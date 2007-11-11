@@ -706,8 +706,8 @@ otherwise, that defaults to `Top'."
   (Info-find-node-2 nil nodename))
 
 ;; It's perhaps a bit nasty to kill the *info* buffer to force a re-read,
-;; but at least it keeps this routine (which is only for the benefit of
-;; makeinfo-buffer) out of the way of normal operations.
+;; but at least it keeps this routine (which is for makeinfo-buffer and
+;; Info-revert-buffer-function) out of the way of normal operations.
 ;;
 (defun Info-revert-find-node (filename nodename)
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
@@ -738,6 +738,11 @@ is preserved, if possible."
       ;; only add to the history when coming from a different file+node
       (if new-history
 	  (setq Info-history (cons new-history Info-history))))))
+
+(defun Info-revert-buffer-function (ignore-auto noconfirm)
+  (when (or noconfirm (y-or-n-p "Revert info buffer? "))
+    (Info-revert-find-node Info-current-file Info-current-node)
+    (message "Reverted %s" Info-current-file)))
 
 (defun Info-find-in-tag-table-1 (marker regexp case-fold)
   "Find a node in a tag table.
@@ -3353,7 +3358,7 @@ With a zero prefix arg, put the name inside a function call to `info'."
   (unless Info-current-node
     (error "No current Info node"))
   (let ((node (if (stringp Info-current-file)
-		  (concat "(" (file-name-nondirectory Info-current-file) ")"
+		  (concat "(" (file-name-nondirectory Info-current-file) ") "
 			  Info-current-node))))
     (if (zerop (prefix-numeric-value arg))
         (setq node (concat "(info \"" node "\")")))
@@ -3478,6 +3483,8 @@ Advanced commands:
        'Info-isearch-push-state)
   (set (make-local-variable 'search-whitespace-regexp)
        Info-search-whitespace-regexp)
+  (set (make-local-variable 'revert-buffer-function)
+       'Info-revert-buffer-function)
   (Info-set-mode-line)
   (run-mode-hooks 'Info-mode-hook))
 

@@ -690,7 +690,7 @@ It also can't undo some Viper settings."
   (setq default-major-mode
 	(viper-standard-value 'default-major-mode viper-saved-non-viper-variables))
 
-  (if viper-emacs-p
+  (if (featurep 'emacs)
       (setq-default
        mark-even-if-inactive
        (viper-standard-value
@@ -701,7 +701,7 @@ It also can't undo some Viper settings."
       (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
     (viper-delocalize-var 'minor-mode-map-alist))
   (viper-delocalize-var 'require-final-newline)
-  (if viper-xemacs-p (viper-delocalize-var 'bar-cursor))
+  (if (featurep 'xemacs) (viper-delocalize-var 'bar-cursor))
 
 
   ;; deactivate all advices done by Viper.
@@ -788,7 +788,7 @@ It also can't undo some Viper settings."
   ;; In emacs, we have to advice handle-switch-frame
   ;; This advice is undone earlier, when all advices matchine "viper-" are
   ;; deactivated.
-  (if viper-xemacs-p
+  (if (featurep 'xemacs)
       (remove-hook 'mouse-leave-frame-hook 'viper-remember-current-frame))
   ) ; end viper-go-away
 
@@ -981,7 +981,7 @@ It also can't undo some Viper settings."
 	)))
 
   ;; International input methods
-  (if viper-emacs-p
+  (if (featurep 'emacs)
       (eval-after-load "mule-cmds"
 	'(progn
 	   (defadvice inactivate-input-method (after viper-mule-advice activate)
@@ -1022,7 +1022,7 @@ It also can't undo some Viper settings."
 	require-final-newline t)
 
   ;; don't bark when mark is inactive
-  (if viper-emacs-p
+  (if (featurep 'emacs)
       (setq mark-even-if-inactive t))
 
   (setq scroll-step 1)
@@ -1094,12 +1094,12 @@ It also can't undo some Viper settings."
     "Use `read-file-name' for reading arguments."
     (interactive (cons (read-file-name "Find file: " nil default-directory)
 		       ;; XEmacs: if Mule & prefix arg, ask for coding system
-		       (cond ((and viper-xemacs-p (featurep 'mule))
+		       (cond ((and (featurep 'xemacs) (featurep 'mule))
 			      (list
 			       (and current-prefix-arg
 				    (read-coding-system "Coding-system: "))))
 			     ;; Emacs: do wildcards
-			     ((and viper-emacs-p (boundp 'find-file-wildcards))
+			     ((and (featurep 'emacs) (boundp 'find-file-wildcards))
 				   (list find-file-wildcards))))
 		 ))
 
@@ -1108,12 +1108,12 @@ It also can't undo some Viper settings."
     (interactive (cons (read-file-name "Find file in other window: "
 				       nil default-directory)
 		       ;; XEmacs: if Mule & prefix arg, ask for coding system
-		       (cond ((and viper-xemacs-p (featurep 'mule))
+		       (cond ((and (featurep 'xemacs) (featurep 'mule))
 			      (list
 			       (and current-prefix-arg
 				    (read-coding-system "Coding-system: "))))
 			     ;; Emacs: do wildcards
-			     ((and viper-emacs-p (boundp 'find-file-wildcards))
+			     ((and (featurep 'emacs) (boundp 'find-file-wildcards))
 			      (list find-file-wildcards))))
 		 ))
 
@@ -1123,12 +1123,12 @@ It also can't undo some Viper settings."
     (interactive (cons (read-file-name "Find file in other frame: "
 				       nil default-directory)
 		       ;; XEmacs: if Mule & prefix arg, ask for coding system
-		       (cond ((and viper-xemacs-p (featurep 'mule))
+		       (cond ((and (featurep 'xemacs) (featurep 'mule))
 			      (list
 			       (and current-prefix-arg
 				    (read-coding-system "Coding-system: "))))
 			     ;; Emacs: do wildcards
-			     ((and viper-emacs-p (boundp 'find-file-wildcards))
+			     ((and (featurep 'emacs) (boundp 'find-file-wildcards))
 			      (list find-file-wildcards))))
 		 ))
 
@@ -1159,7 +1159,7 @@ It also can't undo some Viper settings."
 
   ;; catch frame switching event
   (if (viper-window-display-p)
-      (if viper-xemacs-p
+      (if (featurep 'xemacs)
 	     (add-hook 'mouse-leave-frame-hook
 		       'viper-remember-current-frame)
 	   (defadvice handle-switch-frame (before viper-frame-advice activate)
@@ -1227,7 +1227,7 @@ These two lines must come in the order given.
 	   (cons 'mode-line-buffer-identification
 		 (list (default-value 'mode-line-buffer-identification)))
 	   (cons 'global-mode-string (list global-mode-string))
-	   (if viper-emacs-p
+	   (if (featurep 'emacs)
 	       (cons 'mark-even-if-inactive (list mark-even-if-inactive)))
 	   )))
 

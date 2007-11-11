@@ -35,7 +35,7 @@
 
 ;; Commands which will delete the selection need a 'delete-selection
 ;; property on their symbols; commands which insert text but don't
-;; have this property won't delete the selction.  It can be one of
+;; have this property won't delete the selection.  It can be one of
 ;; the values:
 ;;  'yank
 ;;      For commands which do a yank; ensures the region about to be
@@ -147,14 +147,19 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (define-key minibuffer-local-must-match-map "\C-g" 'minibuffer-keyboard-quit)
 (define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit)
 
-(defun delsel-unload-hook ()
+(defun delsel-unload-function ()
+  "Unload the Delete Selection library."
   (define-key minibuffer-local-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-ns-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit))
-
-(add-hook 'delsel-unload-hook 'delsel-unload-hook)
+  (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit)
+  (dolist (sym '(self-insert-command self-insert-iso yank clipboard-yank
+		 insert-register delete-backward-char backward-delete-char-untabify
+		 delete-char newline-and-indent newline open-line))
+    (remprop sym 'delete-selection))
+  ;; continue standard unloading
+  nil)
 
 (provide 'delsel)
 

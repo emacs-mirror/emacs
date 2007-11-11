@@ -450,7 +450,7 @@ use `before-save-hook'.")
 
 (defcustom enable-local-variables t
   "Control use of local variables in files you visit.
-The value can be t, nil, :safe, or something else.
+The value can be t, nil, :safe, :all, or something else.
 
 A value of t means file local variables specifications are obeyed
 if all the specified variable values are safe; if any values are
@@ -1964,6 +1964,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
+     ("\\.org\\'" . org-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
@@ -2821,8 +2822,8 @@ is specified, returning t if it is specified."
 		;; If caller wants only the safe variables,
 		;; install only them.
 		(dolist (elt result)
-		  (unless (or (memq (car elt) unsafe-vars)
-			      (memq (car elt) risky-vars))
+		  (unless (or (member elt unsafe-vars)
+			      (member elt risky-vars))
 		    (hack-one-local-variable (car elt) (cdr elt))))
 	      ;; Query, except in the case where all are known safe
 	      ;; if the user wants no quuery in that case.

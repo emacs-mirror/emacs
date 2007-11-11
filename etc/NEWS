@@ -28,10 +28,15 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
+** The Mac Carbon port is no longer supported.
+Instead, use... [what?]
+
 ** configure now checks for libgif before libungif when searching for
 a GIF library.
 
 ** Support for systems without alloca has been removed.
+
+** Support for Sun windows has been removed.
 
 ** The `emacstool' utility has been removed.
 
@@ -119,6 +124,11 @@ following arguments.
 * Editing Changes in Emacs 23.1
 
 +++
+** C-M-% now shows replacement as it would look in the buffer, with
+`\N' and `\&' substituted according to the match.  Old behavior can be
+restored by customizing `query-replace-show-replacement'.
+
++++
 ** M-q now fills the region if the region is active and
 `transient-mark-mode' is turned on.  Otherwise, it fills the current
 paragraph.
@@ -163,8 +173,38 @@ its usage.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
+** Remember Mode (remember.el) is now included with Emacs.  It is a
+mode for quickly jotting down things to remember.  Included with
+remember.el is a backend that can save notes to a Diary file.  Please
+consult the Remember Manual for usage details.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
+
+** abbrev was rewritten in Elisp and extended with more flexibility.
+*** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
+    abbrev-table-p.
+*** Special hook `abbrev-expand-functions' obsoletes `pre-abbrev-expand-hook'.
+*** `make-abbrev-table', `define-abbrev', `define-abbrev-table' all take
+    extra arguments for arbitrary properties.
+*** New variable `abbrev-minor-mode-table-alist'.
+*** `local-abbrev-table' can hold a list of abbrev-tables.
+*** Abbrevs have now the following special properties:
+    `:count', `:system', `:enable-function', `:case-fixed'.
+*** Abbrev-tables have now the following special properties:
+    `:parents', `:case-fixed', `:enable-function', `:regexp',
+    `abbrev-table-modiff'.
+
+** Help mode.
+*** New macro `with-help-window' should set up help windows better
+than `with-output-to-temp-buffer' with `print-help-return-message'.
+*** New option `help-window-select' permits to customize whether help
+window shall be automatically selected when invoking help.
+*** New variable `help-window-point-marker' permits to specify new
+position of point in help window (for example in `view-lossage'). 
+
+** view-remove-frame-by-deleting is now by default t
+since users found iconification of view-mode frames distracting. 
 
 ** isearch can now search through multiple ChangeLog files.
 When running isearch in a ChangeLog file, if the search fails,
@@ -267,6 +307,9 @@ that either version can be used as inferior Python by python.el.
 
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
+*** In Fortran mode, M-; is now bound to the standard comment-dwim,
+rather than fortran-indent-comment.
+
 +++
 *** (The increasingly misnamed) F90 mode supports Fortran 2003 syntax.
 
@@ -292,14 +335,43 @@ of Windows with third party IPv6 stacks installed. Previously IPv6 was
 supported on other platforms, but not on Windows due to using the winsock
 1.1 header file, even though Emacs was linking to the winsock 2 library.
 
+** More keys available on MS-Windows.
+Keys normally associated with IMEs, and some exotic keys not normally found
+on standard keyboards have been given names so they can be bound to functions
+inside Emacs.  If there are keys on your keyboard that have not been exposed
+to Emacs in the past, try C-h k to see if they are available now.
+
+Emacs can now bind functions to the extra buttons for media player and
+browser control present on some keyboards.  These buttons are disabled
+by default, since enabling them prevents their system-wide use when
+Emacs has focus.  To enable them, set the variable
+w32-pass-multimedia-buttons to nil. See the doc string of that variable
+for the list of extra keys that are available.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
 +++
 ** The function `dired-call-process' has been removed.
 
+** The variable `byte-compile-warnings' can now be a list starting with `not',
+meaning to disable the specified warnings. The meaning of this list
+may therefore be the reverse of what you expect (of course, this is
+only an issue if you make use of the new `not' syntax). Rather than
+checking/manipulating elements directly, use the new functions
+`byte-compile-warning-enabled-p', `byte-compile-disable-warning', and
+`byte-compile-enable-warning.'
+
+** shell.el no longer defines the aliases `dirtrack-toggle' and
+`dirtrack-mode' for `shell-dirtrack-mode'.  These names were removed
+because they clash with commands provided by dirtrack.el.  Use
+`shell-dirtrack-mode' instead.
+
 
 * Lisp Changes in Emacs 23.1
+
++++
+** New function `match-substitute-replacement' returns the result of
+`replace-match' without actually using it in the buffer.
 
 +++
 ** A list of default values can be specified for the DEFAULT argument of
@@ -318,6 +390,8 @@ the selected frame.
 applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
 this map rather than to function-key-map now.
+
+** The new function `read-color' reads a color name using the minibuffer.
 
 ** Changes related to multiple tty support.
 

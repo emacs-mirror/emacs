@@ -11579,8 +11579,7 @@ with their equivalent function names, are:
 
 postfix @samp{%} [@code{percent}] (as in @samp{25% = 0.25});
 
-prefix @samp{+} and @samp{-} [@code{neg}] (as in @samp{-x})
-and prefix @samp{!} [@code{lnot}] (logical ``not,'' as in @samp{!x});
+prefix @samp{!} [@code{lnot}] (logical ``not,'' as in @samp{!x});
 
 @samp{+/-} [@code{sdev}] (the standard deviation symbol) and
 @samp{mod} [@code{makemod}] (the symbol for modulo forms);
@@ -11589,6 +11588,8 @@ postfix @samp{!} [@code{fact}] (factorial, as in @samp{n!})
 and postfix @samp{!!} [@code{dfact}] (double factorial);
 
 @samp{^} [@code{pow}] (raised-to-the-power-of);
+
+prefix @samp{+} and @samp{-} [@code{neg}] (as in @samp{-x});
 
 @samp{*} [@code{mul}];
 
@@ -14610,15 +14611,15 @@ The operator table used by normal and Big language modes has the
 following precedences:
 
 @example
-_     1200   @r{(subscripts)}
-%     1100   @r{(as in n}%@r{)}
--     1000   @r{(as in }-@r{n)}
-!     1000   @r{(as in }!@r{n)}
+_     1200    @r{(subscripts)}
+%     1100    @r{(as in n}%@r{)}
+!     1000    @r{(as in }!@r{n)}
 mod    400
 +/-    300
 !!     210    @r{(as in n}!!@r{)}
 !      210    @r{(as in n}!@r{)}
 ^      200
+-      197    @r{(as in }-@r{n)}
 *      195    @r{(or implicit multiplication)}
 / % \  190
 + -    180    @r{(as in a}+@r{b)}

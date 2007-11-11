@@ -745,24 +745,24 @@ Not documented
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "c972a97c053d4e001ac1d1012c315b28")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "77bee7df392948b6ab0699e391e8abc1")
 ;;; Generated autoloads from cl-seq.el
 
-(autoload (quote reduce) "cl-seq" "\
+(autoload 'reduce "cl-seq" "\
 Reduce two-argument FUNCTION across SEQ.
 
 Keywords supported:  :start :end :from-end :initial-value :key
 
 \(fn FUNCTION SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote fill) "cl-seq" "\
+(autoload 'fill "cl-seq" "\
 Fill the elements of SEQ with ITEM.
 
 Keywords supported:  :start :end
 
 \(fn SEQ ITEM [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote replace) "cl-seq" "\
+(autoload 'replace "cl-seq" "\
 Replace the elements of SEQ1 with the elements of SEQ2.
 SEQ1 is destructively modified, then returned.
 
@@ -770,7 +770,7 @@ Keywords supported:  :start1 :end1 :start2 :end2
 
 \(fn SEQ1 SEQ2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote remove*) "cl-seq" "\
+(autoload 'remove* "cl-seq" "\
 Remove all occurrences of ITEM in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
@@ -779,7 +779,7 @@ Keywords supported:  :test :test-not :key :count :start :end :from-end
 
 \(fn ITEM SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote remove-if) "cl-seq" "\
+(autoload 'remove-if "cl-seq" "\
 Remove all items satisfying PREDICATE in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
@@ -788,7 +788,7 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote remove-if-not) "cl-seq" "\
+(autoload 'remove-if-not "cl-seq" "\
 Remove all items not satisfying PREDICATE in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
@@ -797,7 +797,7 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote delete*) "cl-seq" "\
+(autoload 'delete* "cl-seq" "\
 Remove all occurrences of ITEM in SEQ.
 This is a destructive function; it reuses the storage of SEQ whenever possible.
 
@@ -805,7 +805,7 @@ Keywords supported:  :test :test-not :key :count :start :end :from-end
 
 \(fn ITEM SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote delete-if) "cl-seq" "\
+(autoload 'delete-if "cl-seq" "\
 Remove all items satisfying PREDICATE in SEQ.
 This is a destructive function; it reuses the storage of SEQ whenever possible.
 
@@ -813,7 +813,7 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote delete-if-not) "cl-seq" "\
+(autoload 'delete-if-not "cl-seq" "\
 Remove all items not satisfying PREDICATE in SEQ.
 This is a destructive function; it reuses the storage of SEQ whenever possible.
 
@@ -821,21 +821,21 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote remove-duplicates) "cl-seq" "\
+(autoload 'remove-duplicates "cl-seq" "\
 Return a copy of SEQ with all duplicate elements removed.
 
 Keywords supported:  :test :test-not :key :start :end :from-end
 
 \(fn SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote delete-duplicates) "cl-seq" "\
+(autoload 'delete-duplicates "cl-seq" "\
 Remove all duplicate elements from SEQ (destructively).
 
 Keywords supported:  :test :test-not :key :start :end :from-end
 
 \(fn SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote substitute) "cl-seq" "\
+(autoload 'substitute "cl-seq" "\
 Substitute NEW for OLD in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
@@ -844,7 +844,7 @@ Keywords supported:  :test :test-not :key :count :start :end :from-end
 
 \(fn NEW OLD SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote substitute-if) "cl-seq" "\
+(autoload 'substitute-if "cl-seq" "\
 Substitute NEW for all items satisfying PREDICATE in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
@@ -853,7 +853,7 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote substitute-if-not) "cl-seq" "\
+(autoload 'substitute-if-not "cl-seq" "\
 Substitute NEW for all items not satisfying PREDICATE in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
@@ -862,7 +862,7 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nsubstitute) "cl-seq" "\
+(autoload 'nsubstitute "cl-seq" "\
 Substitute NEW for OLD in SEQ.
 This is a destructive function; it reuses the storage of SEQ whenever possible.
 
@@ -870,7 +870,7 @@ Keywords supported:  :test :test-not :key :count :start :end :from-end
 
 \(fn NEW OLD SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nsubstitute-if) "cl-seq" "\
+(autoload 'nsubstitute-if "cl-seq" "\
 Substitute NEW for all items satisfying PREDICATE in SEQ.
 This is a destructive function; it reuses the storage of SEQ whenever possible.
 
@@ -878,7 +878,7 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nsubstitute-if-not) "cl-seq" "\
+(autoload 'nsubstitute-if-not "cl-seq" "\
 Substitute NEW for all items not satisfying PREDICATE in SEQ.
 This is a destructive function; it reuses the storage of SEQ whenever possible.
 
@@ -886,7 +886,7 @@ Keywords supported:  :key :count :start :end :from-end
 
 \(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote find) "cl-seq" "\
+(autoload 'find "cl-seq" "\
 Find the first occurrence of ITEM in SEQ.
 Return the matching ITEM, or nil if not found.
 
@@ -894,7 +894,7 @@ Keywords supported:  :test :test-not :key :start :end :from-end
 
 \(fn ITEM SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote find-if) "cl-seq" "\
+(autoload 'find-if "cl-seq" "\
 Find the first item satisfying PREDICATE in SEQ.
 Return the matching item, or nil if not found.
 
@@ -902,7 +902,7 @@ Keywords supported:  :key :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote find-if-not) "cl-seq" "\
+(autoload 'find-if-not "cl-seq" "\
 Find the first item not satisfying PREDICATE in SEQ.
 Return the matching item, or nil if not found.
 
@@ -910,7 +910,7 @@ Keywords supported:  :key :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote position) "cl-seq" "\
+(autoload 'position "cl-seq" "\
 Find the first occurrence of ITEM in SEQ.
 Return the index of the matching item, or nil if not found.
 
@@ -918,7 +918,7 @@ Keywords supported:  :test :test-not :key :start :end :from-end
 
 \(fn ITEM SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote position-if) "cl-seq" "\
+(autoload 'position-if "cl-seq" "\
 Find the first item satisfying PREDICATE in SEQ.
 Return the index of the matching item, or nil if not found.
 
@@ -926,7 +926,7 @@ Keywords supported:  :key :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote position-if-not) "cl-seq" "\
+(autoload 'position-if-not "cl-seq" "\
 Find the first item not satisfying PREDICATE in SEQ.
 Return the index of the matching item, or nil if not found.
 
@@ -934,28 +934,28 @@ Keywords supported:  :key :start :end :from-end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote count) "cl-seq" "\
+(autoload 'count "cl-seq" "\
 Count the number of occurrences of ITEM in SEQ.
 
 Keywords supported:  :test :test-not :key :start :end
 
 \(fn ITEM SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote count-if) "cl-seq" "\
+(autoload 'count-if "cl-seq" "\
 Count the number of items satisfying PREDICATE in SEQ.
 
 Keywords supported:  :key :start :end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote count-if-not) "cl-seq" "\
+(autoload 'count-if-not "cl-seq" "\
 Count the number of items not satisfying PREDICATE in SEQ.
 
 Keywords supported:  :key :start :end
 
 \(fn PREDICATE SEQ [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote mismatch) "cl-seq" "\
+(autoload 'mismatch "cl-seq" "\
 Compare SEQ1 with SEQ2, return index of first mismatching element.
 Return nil if the sequences match.  If one sequence is a prefix of the
 other, the return value indicates the end of the shorter sequence.
@@ -964,7 +964,7 @@ Keywords supported:  :test :test-not :key :start1 :end1 :start2 :end2 :from-end
 
 \(fn SEQ1 SEQ2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote search) "cl-seq" "\
+(autoload 'search "cl-seq" "\
 Search for SEQ1 as a subsequence of SEQ2.
 Return the index of the leftmost element of the first match found;
 return nil if there are no matches.
@@ -973,7 +973,7 @@ Keywords supported:  :test :test-not :key :start1 :end1 :start2 :end2 :from-end
 
 \(fn SEQ1 SEQ2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote sort*) "cl-seq" "\
+(autoload 'sort* "cl-seq" "\
 Sort the argument SEQ according to PREDICATE.
 This is a destructive function; it reuses the storage of SEQ if possible.
 
@@ -981,7 +981,7 @@ Keywords supported:  :key
 
 \(fn SEQ PREDICATE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote stable-sort) "cl-seq" "\
+(autoload 'stable-sort "cl-seq" "\
 Sort the argument SEQ stably according to PREDICATE.
 This is a destructive function; it reuses the storage of SEQ if possible.
 
@@ -989,7 +989,7 @@ Keywords supported:  :key
 
 \(fn SEQ PREDICATE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote merge) "cl-seq" "\
+(autoload 'merge "cl-seq" "\
 Destructively merge the two sequences to produce a new sequence.
 TYPE is the sequence type to return, SEQ1 and SEQ2 are the two argument
 sequences, and PREDICATE is a `less-than' predicate on the elements.
@@ -998,7 +998,7 @@ Keywords supported:  :key
 
 \(fn TYPE SEQ1 SEQ2 PREDICATE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote member*) "cl-seq" "\
+(autoload 'member* "cl-seq" "\
 Find the first occurrence of ITEM in LIST.
 Return the sublist of LIST whose car is ITEM.
 
@@ -1006,7 +1006,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn ITEM LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote member-if) "cl-seq" "\
+(autoload 'member-if "cl-seq" "\
 Find the first item satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches.
 
@@ -1014,7 +1014,7 @@ Keywords supported:  :key
 
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote member-if-not) "cl-seq" "\
+(autoload 'member-if-not "cl-seq" "\
 Find the first item not satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches.
 
@@ -1022,54 +1022,54 @@ Keywords supported:  :key
 
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote cl-adjoin) "cl-seq" "\
+(autoload 'cl-adjoin "cl-seq" "\
 Not documented
 
 \(fn CL-ITEM CL-LIST &rest CL-KEYS)" nil nil)
 
-(autoload (quote assoc*) "cl-seq" "\
+(autoload 'assoc* "cl-seq" "\
 Find the first item whose car matches ITEM in LIST.
 
 Keywords supported:  :test :test-not :key
 
 \(fn ITEM LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote assoc-if) "cl-seq" "\
+(autoload 'assoc-if "cl-seq" "\
 Find the first item whose car satisfies PREDICATE in LIST.
 
 Keywords supported:  :key
 
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote assoc-if-not) "cl-seq" "\
+(autoload 'assoc-if-not "cl-seq" "\
 Find the first item whose car does not satisfy PREDICATE in LIST.
 
 Keywords supported:  :key
 
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote rassoc*) "cl-seq" "\
+(autoload 'rassoc* "cl-seq" "\
 Find the first item whose cdr matches ITEM in LIST.
 
 Keywords supported:  :test :test-not :key
 
 \(fn ITEM LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote rassoc-if) "cl-seq" "\
+(autoload 'rassoc-if "cl-seq" "\
 Find the first item whose cdr satisfies PREDICATE in LIST.
 
 Keywords supported:  :key
 
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote rassoc-if-not) "cl-seq" "\
+(autoload 'rassoc-if-not "cl-seq" "\
 Find the first item whose cdr does not satisfy PREDICATE in LIST.
 
 Keywords supported:  :key
 
 \(fn PREDICATE LIST [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote union) "cl-seq" "\
+(autoload 'union "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
 The result list contains all items that appear in either LIST1 or LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
@@ -1079,7 +1079,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nunion) "cl-seq" "\
+(autoload 'nunion "cl-seq" "\
 Combine LIST1 and LIST2 using a set-union operation.
 The result list contains all items that appear in either LIST1 or LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
@@ -1089,7 +1089,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote intersection) "cl-seq" "\
+(autoload 'intersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
 The result list contains all items that appear in both LIST1 and LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
@@ -1099,7 +1099,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nintersection) "cl-seq" "\
+(autoload 'nintersection "cl-seq" "\
 Combine LIST1 and LIST2 using a set-intersection operation.
 The result list contains all items that appear in both LIST1 and LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
@@ -1109,7 +1109,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote set-difference) "cl-seq" "\
+(autoload 'set-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
 The result list contains all items that appear in LIST1 but not LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
@@ -1119,7 +1119,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nset-difference) "cl-seq" "\
+(autoload 'nset-difference "cl-seq" "\
 Combine LIST1 and LIST2 using a set-difference operation.
 The result list contains all items that appear in LIST1 but not LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
@@ -1129,7 +1129,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote set-exclusive-or) "cl-seq" "\
+(autoload 'set-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
 The result list contains all items that appear in exactly one of LIST1, LIST2.
 This is a non-destructive function; it makes a copy of the data if necessary
@@ -1139,7 +1139,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nset-exclusive-or) "cl-seq" "\
+(autoload 'nset-exclusive-or "cl-seq" "\
 Combine LIST1 and LIST2 using a set-exclusive-or operation.
 The result list contains all items that appear in exactly one of LIST1, LIST2.
 This is a destructive function; it reuses the storage of LIST1 and LIST2
@@ -1149,7 +1149,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote subsetp) "cl-seq" "\
+(autoload 'subsetp "cl-seq" "\
 Return true if LIST1 is a subset of LIST2.
 I.e., if every element of LIST1 also appears in LIST2.
 
@@ -1157,7 +1157,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn LIST1 LIST2 [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote subst-if) "cl-seq" "\
+(autoload 'subst-if "cl-seq" "\
 Substitute NEW for elements matching PREDICATE in TREE (non-destructively).
 Return a copy of TREE with all matching elements replaced by NEW.
 
@@ -1165,7 +1165,7 @@ Keywords supported:  :key
 
 \(fn NEW PREDICATE TREE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote subst-if-not) "cl-seq" "\
+(autoload 'subst-if-not "cl-seq" "\
 Substitute NEW for elts not matching PREDICATE in TREE (non-destructively).
 Return a copy of TREE with all non-matching elements replaced by NEW.
 
@@ -1173,7 +1173,7 @@ Keywords supported:  :key
 
 \(fn NEW PREDICATE TREE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nsubst) "cl-seq" "\
+(autoload 'nsubst "cl-seq" "\
 Substitute NEW for OLD everywhere in TREE (destructively).
 Any element of TREE which is `eql' to OLD is changed to NEW (via a call
 to `setcar').
@@ -1182,7 +1182,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn NEW OLD TREE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nsubst-if) "cl-seq" "\
+(autoload 'nsubst-if "cl-seq" "\
 Substitute NEW for elements matching PREDICATE in TREE (destructively).
 Any element of TREE which matches is changed to NEW (via a call to `setcar').
 
@@ -1190,7 +1190,7 @@ Keywords supported:  :key
 
 \(fn NEW PREDICATE TREE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nsubst-if-not) "cl-seq" "\
+(autoload 'nsubst-if-not "cl-seq" "\
 Substitute NEW for elements not matching PREDICATE in TREE (destructively).
 Any element of TREE which matches is changed to NEW (via a call to `setcar').
 
@@ -1198,7 +1198,7 @@ Keywords supported:  :key
 
 \(fn NEW PREDICATE TREE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote sublis) "cl-seq" "\
+(autoload 'sublis "cl-seq" "\
 Perform substitutions indicated by ALIST in TREE (non-destructively).
 Return a copy of TREE with all matching elements replaced.
 
@@ -1206,7 +1206,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn ALIST TREE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote nsublis) "cl-seq" "\
+(autoload 'nsublis "cl-seq" "\
 Perform substitutions indicated by ALIST in TREE (destructively).
 Any matching element of TREE is changed via a call to `setcar'.
 
@@ -1214,7 +1214,7 @@ Keywords supported:  :test :test-not :key
 
 \(fn ALIST TREE [KEYWORD VALUE]...)" nil nil)
 
-(autoload (quote tree-equal) "cl-seq" "\
+(autoload 'tree-equal "cl-seq" "\
 Return t if trees TREE1 and TREE2 have `eql' leaves.
 Atoms are compared by `eql'; cons cells are compared recursively.
 

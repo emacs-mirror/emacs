@@ -1451,19 +1451,14 @@ Special commands:
 
 ;;;***
 
-;;;### (autoloads (auto-show-mode auto-show-mode) "auto-show" "obsolete/auto-show.el"
-;;;;;;  (17994 6715))
-;;; Generated autoloads from obsolete/auto-show.el
+;;;### (autoloads (assistant) "assistant" "gnus/assistant.el" (18212
+;;;;;;  21478))
+;;; Generated autoloads from gnus/assistant.el
 
-(defvar auto-show-mode nil "\
-Obsolete.")
+(autoload 'assistant "assistant" "\
+Assist setting up Emacs based on FILE.
 
-(custom-autoload (quote auto-show-mode) "auto-show" t)
-
-(autoload (quote auto-show-mode) "auto-show" "\
-This command is obsolete.
-
-\(fn ARG)" t nil)
+\(fn FILE)" t nil)
 
 ;;;***
 
@@ -2321,8 +2316,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'.
 
 The order attempted is gnome-moz-remote, Mozilla, Firefox,
-Galeon, Konqueror, Netscape, Mosaic, IXI Mosaic, Lynx in an
-xterm, MMM, and then W3.
+Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3.
 
 \(fn URL &rest ARGS)" nil nil)
 
@@ -2514,7 +2508,7 @@ Default to the URL around or before point.  With a prefix argument, run
 a new Lynx process in a new buffer.
 
 When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new lynx in a new term window,
+non-nil, load the document in a new browser process in a new term window,
 otherwise use any existing one.  A non-nil interactive prefix argument
 reverses the effect of `browse-url-new-window-flag'.
 
@@ -2737,6 +2731,7 @@ Also see `make-text-button'.
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
 (put 'byte-compile-dynamic-docstrings 'safe-local-variable 'booleanp)
+(put 'byte-compile-warnings 'safe-local-variable 'byte-compile-warnings-safe-p)
 
 (autoload 'byte-compile-warnings-safe-p "bytecomp" "\
 Not documented
@@ -5581,7 +5576,7 @@ or default values have changed since the previous major Emacs release.
 With argument SINCE-VERSION (a string), customize all settings
 that were added or redefined since that version.
 
-\(fn SINCE-VERSION)" t nil)
+\(fn &optional SINCE-VERSION)" t nil)
 
 (autoload 'customize-face "cus-edit" "\
 Customize FACE, which should be a face name or nil.
@@ -7346,13 +7341,10 @@ For absolute symlinks, use \\[dired-do-symlink].
 Determine the current directory by scanning the process output for a prompt.
 The prompt to look for is the first item in `dirtrack-list'.
 
-You can toggle directory tracking by using the function `dirtrack-toggle'.
+You can toggle directory tracking by using the function `dirtrack-mode'.
 
 If directory tracking does not seem to be working, you can use the
-function `dirtrack-debug-toggle' to turn on debugging output.
-
-You can enable directory tracking by adding this function to
-`comint-output-filter-functions'.
+function `dirtrack-debug-mode' to turn on debugging output.
 
 \(fn INPUT)" nil nil)
 
@@ -7583,7 +7575,7 @@ Switch to *doctor* buffer and start giving psychotherapy.
 ;;;;;;  (18190 35187))
 ;;; Generated autoloads from double.el
 
-(defvar double-mode nil "\
+(autoload 'double-mode "double" "\
 Toggle Double mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `double-mode'.")
@@ -7598,7 +7590,7 @@ turn it off.
 When Double mode is on, some keys will insert different strings
 when pressed twice.  See variable `double-map' for details.
 
-\(fn ARG)" t nil)
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -8331,6 +8323,17 @@ With prefix arg NOCONFIRM, execute current line as-is without editing.
 
 ;;;***
 
+;;;### (autoloads (ecomplete-setup) "ecomplete" "gnus/ecomplete.el"
+;;;;;;  (18212 21473))
+;;; Generated autoloads from gnus/ecomplete.el
+
+(autoload 'ecomplete-setup "ecomplete" "\
+Not documented
+
+\(fn)" nil nil)
+
+;;;***
+
 ;;;### (autoloads (edebug-all-forms edebug-all-defs edebug-eval-top-level-form
 ;;;;;;  edebug-basic-spec edebug-all-forms edebug-all-defs) "edebug"
 ;;;;;;  "emacs-lisp/edebug.el" (18190 35188))
@@ -8652,7 +8655,7 @@ Not documented
 ;;; Generated autoloads from ediff-hook.el
 
 (defvar ediff-window-setup-function)
- (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form) (if (string-match "XEmacs" emacs-version) xemacs-form emacs-form))
+ (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form) (if (featurep 'xemacs) xemacs-form emacs-form))
 
 (ediff-cond-compile-for-xemacs-or-emacs (defun ediff-xemacs-init-menus nil (if (featurep 'menubar) (progn (add-submenu '("Tools") ediff-menu "OO-Browser...") (add-submenu '("Tools") ediff-merge-menu "OO-Browser...") (add-submenu '("Tools") epatch-menu "OO-Browser...") (add-submenu '("Tools") ediff-misc-menu "OO-Browser...") (add-menu-button '("Tools") "-------" "OO-Browser...")))) nil)
 
@@ -9006,6 +9009,22 @@ Set up a `input-decode-map' for `keyboard-coding-system' on DISPLAY.
 DISPLAY may be a display id, a frame, or nil for the selected frame's display.
 
 \(fn DISPLAY)" nil nil)
+
+;;;***
+
+;;;### (autoloads (encrypt-insert-file-contents encrypt-find-model)
+;;;;;;  "encrypt" "gnus/encrypt.el" (18212 21482))
+;;; Generated autoloads from gnus/encrypt.el
+
+(autoload 'encrypt-find-model "encrypt" "\
+Given a filename, find a encrypt-file-alist entry
+
+\(fn FILENAME)" nil nil)
+
+(autoload 'encrypt-insert-file-contents "encrypt" "\
+Decrypt FILE into the current buffer.
+
+\(fn FILE &optional MODEL)" t nil)
 
 ;;;***
 
@@ -10329,9 +10348,9 @@ Variables controlling indentation style and extra features:
 `f90-do-indent'
   Extra indentation within do blocks (default 3).
 `f90-if-indent'
-  Extra indentation within if/select case/where/forall blocks (default 3).
+  Extra indentation within if/select/where/forall blocks (default 3).
 `f90-type-indent'
-  Extra indentation within type/interface/block-data blocks (default 3).
+  Extra indentation within type/enum/interface/block-data blocks (default 3).
 `f90-program-indent'
   Extra indentation within program/module/subroutine/function blocks
   (default 2).
@@ -11161,7 +11180,7 @@ Not documented
 (autoload 'fill-flowed "flow-fill" "\
 Not documented
 
-\(fn &optional BUFFER)" nil nil)
+\(fn &optional BUFFER DELETE-SPACE)" nil nil)
 
 ;;;***
 
@@ -11281,7 +11300,7 @@ of two major techniques:
 
 * The windows always displays adjacent sections of the buffer.
   This means that whenever one window is moved, all the
-  others will follow.  (Hence the name Follow Mode.)
+  others will follow.  (Hence the name Follow mode.)
 
 * Should the point (cursor) end up outside a window, another
   window displaying that point is selected, if possible.  This
@@ -11317,7 +11336,7 @@ Create two side by side windows and enter Follow Mode.
 Execute this command to display as much as possible of the text
 in the selected window.  All other windows, in the current
 frame, are deleted and the selected window is split in two
-side-by-side windows.  Follow Mode is activated, hence the
+side-by-side windows.  Follow mode is activated, hence the
 two windows always will display two successive pages.
 \(If one window is moved, the other one will follow.)
 
@@ -11431,7 +11450,7 @@ Variables controlling indentation style and extra features:
                 `fortran-minimum-statement-indent-tab' (TAB format),
               depending on the continuation format in use.
   relative  indent to `fortran-comment-line-extra-indent' beyond the
- 	      indentation for a line of code.
+              indentation for a line of code.
   (default 'fixed)
 `fortran-comment-indent-char'
   Single-character string to be inserted instead of space for
@@ -11892,6 +11911,30 @@ Play a sound FILE through the speaker.
 
 ;;;***
 
+;;;### (autoloads (gnus-bookmark-bmenu-list gnus-bookmark-jump gnus-bookmark-set)
+;;;;;;  "gnus-bookmark" "gnus/gnus-bookmark.el" (18212 21481))
+;;; Generated autoloads from gnus/gnus-bookmark.el
+
+(autoload 'gnus-bookmark-set "gnus-bookmark" "\
+Set a bookmark for this article.
+
+\(fn)" t nil)
+
+(autoload 'gnus-bookmark-jump "gnus-bookmark" "\
+Jump to a Gnus bookmark (BMK-NAME).
+
+\(fn &optional BMK-NAME)" t nil)
+
+(autoload 'gnus-bookmark-bmenu-list "gnus-bookmark" "\
+Display a list of existing Gnus bookmarks.
+The list is displayed in a buffer named `*Gnus Bookmark List*'.
+The leftmost column displays a D if the bookmark is flagged for
+deletion, or > if it is flagged for displaying.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (gnus-cache-delete-group gnus-cache-rename-group
 ;;;;;;  gnus-cache-generate-nov-databases gnus-cache-generate-active
 ;;;;;;  gnus-jog-cache) "gnus-cache" "gnus/gnus-cache.el" (18177
@@ -12029,10 +12072,16 @@ Insert a random X-Face header from `gnus-x-face-directory'.
 (autoload 'gnus-x-face-from-file "gnus-fun" "\
 Insert an X-Face header based on an image file.
 
+Depending on `gnus-convert-image-to-x-face-command' it may accept
+different input formats.
+
 \(fn FILE)" t nil)
 
 (autoload 'gnus-face-from-file "gnus-fun" "\
 Return a Face header based on an image file.
+
+Depending on `gnus-convert-image-to-face-command' it may accept
+different input formats.
 
 \(fn FILE)" t nil)
 
@@ -12057,6 +12106,7 @@ FILE should be a PNG file that's 48x48 and smaller than or equal to
 
 (autoload 'gnus-fetch-group "gnus-group" "\
 Start Gnus if necessary and enter GROUP.
+If ARTICLES, display those articles.
 Returns whether the fetching was successful or not.
 
 \(fn GROUP &optional ARTICLES)" t nil)
@@ -12120,14 +12170,14 @@ group parameters.
 
 If AUTO-UPDATE is non-nil (prefix argument accepted, if called
 interactively), it makes sure nnmail-split-fancy is re-computed before
-getting new mail, by adding gnus-group-split-update to
-nnmail-pre-get-new-mail-hook.
+getting new mail, by adding `gnus-group-split-update' to
+`nnmail-pre-get-new-mail-hook'.
 
 A non-nil CATCH-ALL replaces the current value of
-gnus-group-split-default-catch-all-group.  This variable is only used
+`gnus-group-split-default-catch-all-group'.  This variable is only used
 by gnus-group-split-update, and only when its CATCH-ALL argument is
 nil.  This argument may contain any fancy split, that will be added as
-the last split in a `|' split produced by gnus-group-split-fancy,
+the last split in a `|' split produced by `gnus-group-split-fancy',
 unless overridden by any group marked as a catch-all group.  Typical
 uses are as simple as the name of a default mail group, but more
 elaborate fancy splits may also be useful to split mail that doesn't
@@ -12141,8 +12191,8 @@ Computes nnmail-split-fancy from group params and CATCH-ALL.
 It does this by calling by calling (gnus-group-split-fancy nil
 nil CATCH-ALL).
 
-If CATCH-ALL is nil, gnus-group-split-default-catch-all-group is used
-instead.  This variable is set by gnus-group-split-setup.
+If CATCH-ALL is nil, `gnus-group-split-default-catch-all-group' is used
+instead.  This variable is set by `gnus-group-split-setup'.
 
 \(fn &optional CATCH-ALL)" t nil)
 
@@ -12150,7 +12200,7 @@ instead.  This variable is set by gnus-group-split-setup.
 Uses information from group parameters in order to split mail.
 See `gnus-group-split-fancy' for more information.
 
-gnus-group-split is a valid value for nnmail-split-methods.
+`gnus-group-split' is a valid value for `nnmail-split-methods'.
 
 \(fn)" nil nil)
 
@@ -12799,6 +12849,50 @@ current-time interface is made s2G-compliant, hanoi.el will need
 to be updated.
 
 \(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (mail-check-payment mail-add-payment-async mail-add-payment
+;;;;;;  hashcash-verify-payment hashcash-insert-payment-async hashcash-insert-payment)
+;;;;;;  "hashcash" "gnus/hashcash.el" (18212 21477))
+;;; Generated autoloads from gnus/hashcash.el
+
+(autoload 'hashcash-insert-payment "hashcash" "\
+Insert X-Payment and X-Hashcash headers with a payment for ARG
+
+\(fn ARG)" t nil)
+
+(autoload 'hashcash-insert-payment-async "hashcash" "\
+Insert X-Payment and X-Hashcash headers with a payment for ARG
+Only start calculation.  Results are inserted when ready.
+
+\(fn ARG)" t nil)
+
+(autoload 'hashcash-verify-payment "hashcash" "\
+Verify a hashcash payment
+
+\(fn TOKEN &optional RESOURCE AMOUNT)" nil nil)
+
+(autoload 'mail-add-payment "hashcash" "\
+Add X-Payment: and X-Hashcash: headers with a hashcash payment
+for each recipient address.  Prefix arg sets default payment temporarily.
+Set ASYNC to t to start asynchronous calculation.  (See
+`mail-add-payment-async').
+
+\(fn &optional ARG ASYNC)" t nil)
+
+(autoload 'mail-add-payment-async "hashcash" "\
+Add X-Payment: and X-Hashcash: headers with a hashcash payment
+for each recipient address.  Prefix arg sets default payment temporarily.
+Calculation is asynchronous.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'mail-check-payment "hashcash" "\
+Look for a valid X-Payment: or X-Hashcash: header.
+Prefix arg sets default accept amount temporarily.
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -13888,9 +13982,7 @@ They are removed from `ibuffer-saved-filter-groups'.
 
 (autoload 'ibuffer-switch-to-saved-filter-groups "ibuf-ext" "\
 Set this buffer's filter groups to saved version with NAME.
-The value from `ibuffer-saved-filters' is used.
-If prefix argument ADD is non-nil, then add the saved filters instead
-of replacing the current filters.
+The value from `ibuffer-saved-filter-groups' is used.
 
 \(fn NAME)" t nil)
 
@@ -13948,8 +14040,6 @@ Add saved filters from `ibuffer-saved-filters' to this buffer's filters.
 
 (autoload 'ibuffer-switch-to-saved-filters "ibuf-ext" "\
 Set this buffer's filters to filters with NAME from `ibuffer-saved-filters'.
-If prefix argument ADD is non-nil, then add the saved filters instead
-of replacing the current filters.
 
 \(fn NAME)" t nil)
  (autoload 'ibuffer-filter-by-mode "ibuf-ext")
@@ -15747,6 +15837,39 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\"
 
 ;;;***
 
+;;;### (autoloads (isearch-buffers-minor-mode) "isearch-multi" "isearch-multi.el"
+;;;;;;  (18210 13714))
+;;; Generated autoloads from isearch-multi.el
+
+(defvar isearch-buffers-current-buffer nil "\
+The buffer where the search is currently searching.
+The value is nil when the search still is in the initial buffer.")
+
+(defvar isearch-buffers-next-buffer-function nil "\
+Function to call to get the next buffer to search.
+
+When this variable is set to a function that returns a buffer, then
+after typing another C-s or C-r at a failing search, the search goes
+to the next buffer in the series and continues searching for the
+next occurrence.
+
+The first argument of this function is the current buffer where the
+search is currently searching.  It defines the base buffer relative to
+which this function should find the next buffer.  When the isearch
+direction is backward (when isearch-forward is nil), this function
+should return the previous buffer to search. If the second argument of
+this function WRAP is non-nil, then it should return the first buffer
+in the series; and for the backward search, it should return the last
+buffer in the series.")
+
+(autoload 'isearch-buffers-minor-mode "isearch-multi" "\
+Minor mode for using isearch to search through multiple buffers.
+With arg, turn isearch-buffers minor mode on if arg is positive, off otherwise.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
 ;;;### (autoloads (isearch-process-search-multibyte-characters isearch-toggle-input-method
 ;;;;;;  isearch-toggle-specified-input-method) "isearch-x" "international/isearch-x.el"
 ;;;;;;  (18177 864))
@@ -16055,6 +16178,9 @@ when called interactively, non-corrective messages are suppressed.
 With a prefix argument (or if CONTINUE is non-nil),
 resume interrupted spell-checking of a buffer or region.
 
+Interactively, in Transient Mark mode when the mark is active, call
+`ispell-region' to check the active region for spelling errors.
+
 Word syntax is controlled by the definition of the chosen dictionary,
 which is in `ispell-local-dictionary-alist' or `ispell-dictionary-alist'.
 
@@ -16068,7 +16194,7 @@ nil           word is correct or spelling is accepted.
 \(\"word\" arg)  word is hand entered.
 quit          spell session exited.
 
-\(fn &optional FOLLOWING QUIETLY CONTINUE)" t nil)
+\(fn &optional FOLLOWING QUIETLY CONTINUE REGION)" t nil)
 
 (autoload 'ispell-pdict-save "ispell" "\
 Check to see if the personal dictionary has been modified.
@@ -16875,15 +17001,24 @@ Unload the library that provided FEATURE, restoring all its autoloads.
 If the feature is required by any other loaded code, and prefix arg FORCE
 is nil, raise an error.
 
-This function tries to undo modifications made by the package to
-hooks.  Packages may define a hook FEATURE-unload-hook that is called
-instead of the normal heuristics for doing this.  Such a hook should
-undo all the relevant global state changes that may have been made by
-loading the package or executing functions in it.  It has access to
-the package's feature list (before anything is unbound) in the
-variable `unload-hook-features-list' and could remove features from it
-in the event that the package has done something normally-ill-advised,
-such as redefining an Emacs function.
+Standard unloading activities include restoring old autoloads for
+functions defined by the library, undoing any additions that the
+library has made to hook variables or to `auto-mode-alist', undoing
+ELP profiling of functions in that library, unproviding any features
+provided by the library, and canceling timers held in variables
+defined by the library.
+
+If a function `FEATURE-unload-function' is defined, this function
+calls it with no arguments, before doing anything else.  That function
+can do whatever is appropriate to undo the loading of the library.  If
+`FEATURE-unload-function' returns non-nil, that suppresses the
+standard unloading of the library.  Otherwise the standard unloading
+proceeds.
+
+`FEATURE-unload-function' has access to the package's list of
+definitions in the variable `unload-function-defs-list' and could
+remove symbols from it in the event that the package has done
+something strange, such as redefining an Emacs function.
 
 \(fn FEATURE &optional FORCE)" t nil)
 
@@ -17661,7 +17796,7 @@ turn on menu bars; otherwise, turn off menu bars.
 
 ;;;***
 
-;;;### (autoloads (unbold-region bold-region message-news-other-frame
+;;;### (autoloads (message-unbold-region message-bold-region message-news-other-frame
 ;;;;;;  message-news-other-window message-mail-other-frame message-mail-other-window
 ;;;;;;  message-bounce message-resend message-insinuate-rmail message-forward-rmail-make-body
 ;;;;;;  message-forward-make-body message-forward message-recover
@@ -17778,9 +17913,10 @@ C-c C-f  move to a header field (and create it if there isn't):
 	 C-c C-f C-w  move to Fcc	C-c C-f C-r  move to Reply-To
 	 C-c C-f C-u  move to Summary	C-c C-f C-n  move to Newsgroups
 	 C-c C-f C-k  move to Keywords	C-c C-f C-d  move to Distribution
-         C-c C-f C-o  move to From (\"Originator\")
+	 C-c C-f C-o  move to From (\"Originator\")
 	 C-c C-f C-f  move to Followup-To
 	 C-c C-f C-m  move to Mail-Followup-To
+	 C-c C-f C-e  move to Expires
 	 C-c C-f C-i  cycle through Importance values
 	 C-c C-f s    change subject and append \"(was: <Old Subject>)\"
 	 C-c C-f x    crossposting with FollowUp-To header and note in body
@@ -19622,7 +19758,7 @@ Call `remember'.  If this is already a remember buffer, re-apply template.
 If there is an active region, make sure remember uses it as initial content
 of the remember buffer.
 
-\(fn)" t nil)
+\(fn &optional ORG-FORCE-REMEMBER-TEMPLATE-CHAR)" t nil)
 
 (autoload 'org-remember-handler "org" "\
 Store stuff from remember.el into an org file.
@@ -19664,9 +19800,9 @@ See also the variable `org-reverse-note-order'.
 
 (autoload 'org-agenda "org" "\
 Dispatch agenda commands to collect entries to the agenda buffer.
-Prompts for a character to select a command.  Any prefix arg will be passed
+Prompts for a command to execute.  Any prefix arg will be passed
 on to the selected command.  The default selections are:
-g
+
 a     Call `org-agenda-list' to display the agenda for current day or week.
 t     Call `org-todo-list' to display the global todo list.
 T     Call `org-todo-list' to display the global todo list, select only
@@ -19682,10 +19818,12 @@ More commands can be added by configuring the variable
 searches can be pre-defined in this way.
 
 If the current buffer is in Org-mode and visiting a file, you can also
-first press `1' to indicate that the agenda should be temporarily (until the
-next use of \\[org-agenda]) restricted to the current file.
+first press `<' once to indicate that the agenda should be temporarily
+\(until the next use of \\[org-agenda]) restricted to the current file.
+Pressing `<' twice means to restrict to the current subtree or region
+\(if active).
 
-\(fn ARG)" t nil)
+\(fn ARG &optional KEYS RESTRICTION)" t nil)
 
 (autoload 'org-batch-agenda "org" "\
 Run an agenda command in batch mode and send the result to STDOUT.
@@ -19762,7 +19900,6 @@ on the days are also shown.  See the variable `org-log-done' for how
 to turn on logging.
 START-DAY defaults to TODAY, or to the most recent match for the weekday
 given in `org-agenda-start-on-weekday'.
-NDAYS defaults to `org-agenda-ndays'.
 
 \(fn &optional INCLUDE-ALL START-DAY NDAYS)" t nil)
 
@@ -19792,7 +19929,7 @@ items should be listed.  The following arguments are allowed:
 		 date range matching the selected date.  Deadlines will
 		 also be listed, on the expiration day.
 
-   :sexp         FIXME
+   :sexp         List entries resulting from diary-like sexps.
 
    :deadline     List any deadlines past due, or due within
 		 `org-deadline-warning-days'.  The listing occurs only
@@ -25059,7 +25196,7 @@ From a program takes two point or marker arguments, BEG and END.
 (autoload 'spam-initialize "spam" "\
 Install the spam.el hooks and do other initialization
 
-\(fn)" t nil)
+\(fn &rest SYMBOLS)" t nil)
 
 ;;;***
 
@@ -25731,20 +25868,20 @@ Read a complex stroke and insert its glyph into the current buffer.
 ;;;***
 
 ;;;### (autoloads (studlify-buffer studlify-word studlify-region)
-;;;;;;  "studly" "play/studly.el" (17994 6715))
+;;;;;;  "studly" "play/studly.el" (16268 23254))
 ;;; Generated autoloads from play/studly.el
 
-(autoload (quote studlify-region) "studly" "\
+(autoload 'studlify-region "studly" "\
 Studlify-case the region.
 
 \(fn BEGIN END)" t nil)
 
-(autoload (quote studlify-word) "studly" "\
+(autoload 'studlify-word "studly" "\
 Studlify-case the current word, or COUNT words if given an argument.
 
 \(fn COUNT)" t nil)
 
-(autoload (quote studlify-buffer) "studly" "\
+(autoload 'studlify-buffer "studly" "\
 Studlify-case the current buffer.
 
 \(fn)" t nil)
@@ -28029,8 +28166,8 @@ See `tramp-file-name-structure' for more explanations.")
 This regexp should match tramp file names but no other file names.
 \(When tramp.el is loaded, this regular expression is prepended to
 `file-name-handler-alist', and that is searched sequentially.  Thus,
-if the tramp entry appears rather early in the `file-name-handler-alist'
-and is a bit too general, then some files might be considered tramp
+if the Tramp entry appears rather early in the `file-name-handler-alist'
+and is a bit too general, then some files might be considered Tramp
 files which are not really Tramp files.
 
 Please note that the entry in `file-name-handler-alist' is made when
@@ -28083,16 +28220,16 @@ pass to the OPERATION." (let* ((inhibit-file-name-handlers (\` (tramp-completion
 
 (autoload 'tramp-file-name-handler "tramp" "\
 Invoke Tramp file name handler.
-Falls back to normal file name handler if no tramp file name handler exists.
+Falls back to normal file name handler if no Tramp file name handler exists.
 
 \(fn OPERATION &rest ARGS)" nil nil)
 
 (defun tramp-completion-file-name-handler (operation &rest args) "\
-Invoke tramp file name completion handler.
-Falls back to normal file name handler if no tramp file name handler exists." (let ((fn (assoc operation tramp-completion-file-name-handler-alist))) (if fn (save-match-data (apply (cdr fn) args)) (tramp-completion-run-real-handler operation args))))
+Invoke Tramp file name completion handler.
+Falls back to normal file name handler if no Tramp file name handler exists." (let ((fn (assoc operation tramp-completion-file-name-handler-alist))) (if fn (save-match-data (apply (cdr fn) args)) (tramp-completion-run-real-handler operation args))))
 
 (defsubst tramp-register-file-name-handler nil "\
-Add tramp file name handler to `file-name-handler-alist'." (let ((a1 (rassq (quote tramp-file-name-handler) file-name-handler-alist))) (setq file-name-handler-alist (delete a1 file-name-handler-alist))) (add-to-list (quote file-name-handler-alist) (cons tramp-file-name-regexp (quote tramp-file-name-handler))) (let ((jka (rassoc (quote jka-compr-handler) file-name-handler-alist))) (when jka (setq file-name-handler-alist (cons jka (delete jka file-name-handler-alist))))))
+Add Tramp file name handler to `file-name-handler-alist'." (let ((a1 (rassq (quote tramp-file-name-handler) file-name-handler-alist))) (setq file-name-handler-alist (delete a1 file-name-handler-alist))) (add-to-list (quote file-name-handler-alist) (cons tramp-file-name-regexp (quote tramp-file-name-handler))) (let ((jka (rassoc (quote jka-compr-handler) file-name-handler-alist))) (when jka (setq file-name-handler-alist (cons jka (delete jka file-name-handler-alist))))))
 (tramp-register-file-name-handler)
 
 (defsubst tramp-register-completion-file-name-handler nil "\
@@ -28998,7 +29135,10 @@ Not documented
 (autoload 'url-basepath "url-util" "\
 Return the base pathname of FILE, or the actual filename if X is true.
 
-\(fn FILE &optional X)" nil nil)
+\(fn FILE)" nil nil)
+
+(autoload 'url-file-nondirectory "url-util" "\
+Return the nondirectory part of FILE, for a URL.
 
 (autoload 'url-parse-query-string "url-util" "\
 Not documented
@@ -29117,9 +29257,9 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 
 ;;;***
 
-;;;### (autoloads (vc-annotate vc-update-change-log vc-rename-file
-;;;;;;  vc-transfer-file vc-switch-backend vc-rollback vc-update
-;;;;;;  vc-revert vc-print-log vc-retrieve-snapshot vc-create-snapshot
+;;;### (autoloads (vc-annotate vc-branch-part vc-trunk-p vc-update-change-log
+;;;;;;  vc-rename-file vc-transfer-file vc-switch-backend vc-update
+;;;;;;  vc-rollback vc-revert vc-print-log vc-retrieve-snapshot vc-create-snapshot
 ;;;;;;  vc-directory vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-register vc-next-action vc-do-command edit-vc-file
 ;;;;;;  with-vc-file vc-before-checkin-hook vc-checkin-hook vc-checkout-hook)
@@ -29171,7 +29311,7 @@ considered successful if its exit status does not exceed OKSTATUS (if
 OKSTATUS is nil, that means to ignore error status, if it is `async', that
 means not to wait for termination of the subprocess; if it is t it means to
 ignore all execution errors).  FILE-OR-LIST is the name of a working file;
-it may be a list of files or be nil (to execute commands that don't expect 
+it may be a list of files or be nil (to execute commands that don't expect
 a file name or set of files).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename.
 
@@ -29189,29 +29329,27 @@ each one.  The log message will be used as a comment for any register
 or checkin operations, but ignored when doing checkouts.  Attempted
 lock steals will raise an error.
 
-A prefix argument lets you specify the version number to use.
-
-For RCS and SCCS files:
-   If the file is not already registered, this registers it for version
+For locking systems:
+   If every file is not already registered, this registers each for version
 control.
-   If the file is registered and not locked by anyone, this checks out
-a writable and locked file ready for editing.
-   If the file is checked out and locked by the calling user, this
-first checks to see if the file has changed since checkout.  If not,
-it performs a revert.
-   If the file has been changed, this pops up a buffer for entry
+   If every file is registered and not locked by anyone, this checks out
+a writable and locked file of each ready for editing.
+   If every file is checked out and locked by the calling user, this
+first checks to see if each file has changed since checkout.  If not,
+it performs a revert on that file.
+   If every file has been changed, this pops up a buffer for entry
 of a log message; when the message has been entered, it checks in the
 resulting changes along with the log message as change commentary.  If
 the variable `vc-keep-workfiles' is non-nil (which is its default), a
-read-only copy of the changed file is left in place afterwards.
-   If the file is registered and locked by someone else, you are given
-the option to steal the lock.
+read-only copy of each changed file is left in place afterwards.
+   If the affected file is registered and locked by someone else, you are
+given the option to steal the lock(s).
 
-For CVS files:
-   If the file is not already registered, this registers it for version
-control.  This does a \"cvs add\", but no \"cvs commit\".
-   If the file is added but not committed, it is committed.
-   If your working file is changed, but the repository file is
+For merging systems:
+   If every file is not already registered, this registers each one for version
+control.  This does an add, but not a commit.
+   If every file is added but not committed, each one is committed.
+   If every working file is changed, but the corresponding repository file is
 unchanged, this pops up a buffer for entry of a log message; when the
 message has been entered, it checks in the resulting changes along
 with the logmessage as change commentary.  A writable file is retained.
@@ -29222,7 +29360,7 @@ merge in the changes into your working copy.
 
 (autoload 'vc-register "vc" "\
 Register the current file into a version control system.
-With prefix argument SET-VERSION, allow user to specify initial version
+With prefix argument SET-REVISION, allow user to specify initial revision
 level.  If COMMENT is present, use that as an initial comment.
 
 The version control system to use is found by cycling through the list
@@ -29232,7 +29370,12 @@ directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used.
 
-\(fn &optional SET-VERSION COMMENT)" t nil)
+\(fn &optional SET-REVISION COMMENT)" t nil)
+
+(autoload 'vc-version-diff "vc" "\
+Report diffs between revisions of the fileset in the repository history.
+
+\(fn FILES REV1 REV2)" t nil)
 
 (autoload 'vc-diff "vc" "\
 Display diffs between file versions.
@@ -29284,16 +29427,16 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (autoload 'vc-create-snapshot "vc" "\
 Descending recursively from DIR, make a snapshot called NAME.
-For each registered file, the version level of its latest version
-becomes part of the named configuration.  If the prefix argument
-BRANCHP is given, the snapshot is made as a new branch and the files
-are checked out in that new branch.
+For each registered file, the working revision becomes part of
+the named configuration.  If the prefix argument BRANCHP is
+given, the snapshot is made as a new branch and the files are
+checked out in that new branch.
 
 \(fn DIR NAME BRANCHP)" t nil)
 
 (autoload 'vc-retrieve-snapshot "vc" "\
 Descending recursively from DIR, retrieve the snapshot called NAME.
-If NAME is empty, it refers to the latest versions.
+If NAME is empty, it refers to the latest revisions.
 If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped).
@@ -29304,13 +29447,12 @@ allowed and simply skipped).
 List the change log of the current buffer in a window.
 If FOCUS-REV is non-nil, leave the point at that revision.
 
-\(fn &optional FOCUS-REV)" t nil)
+\(fn &optional WORKING-REVISION)" t nil)
 
 (autoload 'vc-revert "vc" "\
 Revert the current buffer's file to the version it was based on.
 This asks for confirmation if the buffer contents are not identical
-to that version.  This function does not automatically pick up newer
-changes found in the master file; use \\[universal-argument] \\[vc-next-action] to do so.
+to the working revision (except for keyword expansion).
 
 \(fn)" t nil)
 
@@ -29345,7 +29487,7 @@ To get a prompt, use a prefix argument.
 Transfer FILE to another version control system NEW-BACKEND.
 If NEW-BACKEND has a higher precedence than FILE's current backend
 \(i.e.  it comes earlier in `vc-handled-backends'), then register FILE in
-NEW-BACKEND, using the version number from the current backend as the
+NEW-BACKEND, using the revision number from the current backend as the
 base level.  If NEW-BACKEND has a lower precedence than the current
 backend, then commit all changes that were made under the current
 backend to NEW-BACKEND, and unregister FILE from the current backend.
@@ -29395,8 +29537,8 @@ default, the time scale stretches back one year into the past;
 everything that is older than that is shown in blue.
 
 With a prefix argument, this command asks two questions in the
-minibuffer.  First, you may enter a version number; then the buffer
-displays and annotates that version instead of the current version
+minibuffer.  First, you may enter a revision number; then the buffer
+displays and annotates that revision instead of the working revision
 \(type RET in the minibuffer to leave that default unchanged).  Then,
 you are prompted for the time span in days which the color range
 should cover.  For example, a time span of 20 days means that changes
@@ -29406,9 +29548,9 @@ age, and everything that is older than that is shown in blue.
 Customization variables:
 
 `vc-annotate-menu-elements' customizes the menu elements of the
-mode-specific menu. `vc-annotate-color-map' and
-`vc-annotate-very-old-color' defines the mapping of time to
-colors. `vc-annotate-background' specifies the background color.
+mode-specific menu.  `vc-annotate-color-map' and
+`vc-annotate-very-old-color' define the mapping of time to colors.
+`vc-annotate-background' specifies the background color.
 
 \(fn FILE REV &optional DISPLAY-MODE BUF)" t nil)
 
@@ -31190,18 +31332,19 @@ Zone out, completely.
 ;;;;;;  "gnus/dig.el" "gnus/dns.el" "gnus/format-spec.el" "gnus/gnus-async.el"
 ;;;;;;  "gnus/gnus-bcklg.el" "gnus/gnus-cite.el" "gnus/gnus-cus.el"
 ;;;;;;  "gnus/gnus-demon.el" "gnus/gnus-dup.el" "gnus/gnus-eform.el"
-;;;;;;  "gnus/gnus-ems.el" "gnus/gnus-gl.el" "gnus/gnus-int.el" "gnus/gnus-logic.el"
+;;;;;;  "gnus/gnus-ems.el" "gnus/gnus-int.el" "gnus/gnus-logic.el"
 ;;;;;;  "gnus/gnus-mh.el" "gnus/gnus-salt.el" "gnus/gnus-score.el"
 ;;;;;;  "gnus/gnus-setup.el" "gnus/gnus-srvr.el" "gnus/gnus-sum.el"
 ;;;;;;  "gnus/gnus-topic.el" "gnus/gnus-undo.el" "gnus/gnus-util.el"
-;;;;;;  "gnus/gnus-uu.el" "gnus/gnus-vm.el" "gnus/hex-util.el" "gnus/ietf-drums.el"
-;;;;;;  "gnus/imap.el" "gnus/legacy-gnus-agent.el" "gnus/mail-parse.el"
-;;;;;;  "gnus/mail-prsvr.el" "gnus/mail-source.el" "gnus/mailcap.el"
-;;;;;;  "gnus/messcompat.el" "gnus/mm-bodies.el" "gnus/mm-decode.el"
-;;;;;;  "gnus/mm-encode.el" "gnus/mm-util.el" "gnus/mm-view.el" "gnus/mml-sec.el"
-;;;;;;  "gnus/mml-smime.el" "gnus/mml.el" "gnus/nnagent.el" "gnus/nnbabyl.el"
-;;;;;;  "gnus/nndb.el" "gnus/nndir.el" "gnus/nndraft.el" "gnus/nneething.el"
-;;;;;;  "gnus/nngateway.el" "gnus/nnheader.el" "gnus/nnimap.el" "gnus/nnlistserv.el"
+;;;;;;  "gnus/gnus-uu.el" "gnus/gnus-vm.el" "gnus/hex-util.el" "gnus/hmac-def.el"
+;;;;;;  "gnus/hmac-md5.el" "gnus/ietf-drums.el" "gnus/imap.el" "gnus/legacy-gnus-agent.el"
+;;;;;;  "gnus/mail-parse.el" "gnus/mail-prsvr.el" "gnus/mail-source.el"
+;;;;;;  "gnus/mailcap.el" "gnus/md4.el" "gnus/messcompat.el" "gnus/mm-bodies.el"
+;;;;;;  "gnus/mm-decode.el" "gnus/mm-encode.el" "gnus/mm-util.el"
+;;;;;;  "gnus/mm-view.el" "gnus/mml-sec.el" "gnus/mml-smime.el" "gnus/mml.el"
+;;;;;;  "gnus/nnagent.el" "gnus/nnbabyl.el" "gnus/nndb.el" "gnus/nndir.el"
+;;;;;;  "gnus/nndraft.el" "gnus/nneething.el" "gnus/nngateway.el"
+;;;;;;  "gnus/nnheader.el" "gnus/nnimap.el" "gnus/nnlistserv.el"
 ;;;;;;  "gnus/nnmail.el" "gnus/nnmaildir.el" "gnus/nnmbox.el" "gnus/nnmh.el"
 ;;;;;;  "gnus/nnnil.el" "gnus/nnoo.el" "gnus/nnrss.el" "gnus/nnslashdot.el"
 ;;;;;;  "gnus/nnspool.el" "gnus/nntp.el" "gnus/nnultimate.el" "gnus/nnvirtual.el"

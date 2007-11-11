@@ -78,6 +78,8 @@ Summary of changes to "Calc"
 
 * Made unit conversions exact when possible.
 
+* Lower the precedence of negation.
+
 Version 2.1:
 
 * New matrix mode for square matrices.  Improved handling of

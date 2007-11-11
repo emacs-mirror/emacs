@@ -140,11 +140,7 @@ static Lisp_Object Qforeign_selection;
    incremental transfer stuff, but it might improve server performance.  */
 #define MAX_SELECTION_QUANTUM 0xFFFFFF
 
-#ifdef HAVE_X11R4
 #define SELECTION_QUANTUM(dpy) ((XMaxRequestSize(dpy) << 2) - 100)
-#else
-#define SELECTION_QUANTUM(dpy) (((dpy)->max_request_size << 2) - 100)
-#endif
 
 /* The timestamp of the last input event Emacs received from the X server.  */
 /* Defined in keyboard.c.  */

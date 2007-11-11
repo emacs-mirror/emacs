@@ -1,3 +1,157 @@
+2007-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (load_overlay_strings): Fix copy&paste typo.
+
+2007-11-09  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.c (USE_TOOLKIT_SCROLL_BARS): Define.
+
+	* w32term.c (w32_scroll_bar_handle_click): Use SCROLL_BAR_CLICK_EVENT.
+
+	* keyboard.c (discard_mouse_events, make_lispy_event) [WINDOWSNT]:
+	Remove W32_SCROLL_BAR_CLICK_EVENT.
+
+	* termhooks.h (enum event_kind) [WINDOWSNT]: Likewise.
+	Add MULTIMEDIA_KEY_EVENT.
+
+	* keyboard.c (lispy_function_keys) [WINDOWSNT]: Add more keys.
+	(lispy_multimedia_keys) [WINDOWSNT]: New array.
+	(make_lispy_event) [WINDOWSNT]: Use it to translate
+	MULTIMEDIA_KEY_EVENT.
+
+	* w32term.h (WM_APPCOMMAND): Define if not already.
+	(GET_APPCOMMAND_LPARAM): Likewise.
+
+	* w32term.c (w32_read_socket): Generate MULTIMEDIA_KEY_EVENT from
+	WM_APPCOMMAND.
+
+	* w32fns.c (w32_pass_multimedia_buttons_to_system): New user option.
+	(syms_of_w32fns): Export and initialize it.
+	(w32_wnd_proc): Pass WM_APPCOMMAND on to w32_read_socket.
+
+2007-11-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct it): Don't define OVERLAY_STRING_CHUNK_SIZE
+	twice.
+
+	* xdisp.c (handle_face_prop): Fix last change.
+
+2007-11-09  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_face_prop): Test for strings that came from overlays,
+	not just for after-strings and before-strings.
+	Call face_for_overlay_string and pass the overlay to it.
+	(handle_display_prop): Determine whether property came from an overlay.
+	Pass OVERLAY arg to handle_single_display_spec.
+	(handle_single_display_spec): New arg OVERLAY sets it->from_overlay.
+	(load_overlay_strings): Fill in it->string_overlays.
+	(get_overlay_strings_1, push_it, pop_it): Handle it->from_overlays.
+
+	* xfaces.c (face_for_overlay_string): Function renamed from
+	face_at_buffer_position_no_overlays, and add arg OVERLAY.
+
+	* dispextern.h (struct it): New elt string_overlays.
+	New elt from_overlay, also in stack.
+	Rearrange a few elements.
+	(face_for_overlay_string): Decl renamed from
+	face_at_buffer_position_no_overlays, and add argument.
+
+2007-11-09  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_face_prop): Use face_at_buffer_position_no_overlays
+	to get the base face for an overlay string.
+
+	* dispextern.h (face_at_buffer_position_no_overlays): Add decl.
+
+	* xfaces.c (face_at_buffer_position_no_overlays): New function.
+
+	* xdisp.c (handle_stop): Move some code out of loop.
+
+2007-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c [USE_ATSUI] (Fmac_atsu_font_face_attributes):
+	Fix conversion from Lisp object to ATSUFontID.
+
+2007-11-09  Jason Rumney  <jasonr@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): Do nothing when noninteractive.
+
+2007-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (unexec_regions_recorder, unexec_regions_merge):
+	Don't assume regions are aligned to page boundary.
+	(print_load_command_name): Add LC_UUID if defined.
+
+2007-11-09  Richard Stallman  <rms@gnu.org>
+
+	* emacs.c (syms_of_emacs) <installation-directory>: Reflow docstring.
+
+2007-11-07  Jason Rumney  <jasonr@gnu.org>
+
+	* s/windows95.h: Remove.
+
+2007-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
+	abort with a message on unhandled store_type values.
+
+2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c, xfns.c, xselect.c, xterm.h, s/msdos.h, s/sco4.h, s/sco5.h:
+	Remove HAVE_X11R5 and HAVE_X11R4.
+
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: Remove references to sunfns.c and sunfns.o.
+
+2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):
+        Don't set s->stippled_p here, since it has already been set by
+	x_set_glyph_string_gc from x_draw_glyph_string.
+
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sunfns.c: Remove file
+
+	* m/sun386.h:
+	* m/sun2.h:
+	* m/sparc.h: Remove Sun windows code.
+
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (syms_of_keyboard): Initialize the initial_kboard.
+	(init_keyboard): Set current_kboard's window-system to nil.
+	(tty_read_avail_input): Typo.
+	* frame.c (make_initial_frame): Don't initialize the initial_kboard.
+
+2007-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/usg5-4.h:
+	* s/usg5-3.h:
+	* s/ptx.h:
+	* m/is386.h:
+	* m/ibmps2-aix.h:
+	* Makefile.in: Remove all mentions of X10
+
+	* dispnew.c (syms_of_display): Don't mention version 10.
+
+2007-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (OBJ1): Remove abbrev.$(O).
+	($(BLD)/abbrev.$(O)): Remove.
+
+2007-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Rewrite abbrev.c in Elisp.
+	* image.c (Qcount): Don't declare as extern.
+	(syms_of_image): Initialize and staticpro `Qcount'.
+	* puresize.h (BASE_PURESIZE): Increase for the new abbrev.el functions.
+	* emacs.c (main): Don't call syms_of_abbrev.
+	* Makefile.in (obj): Remove abbrev.o.
+	(abbrev.o): Remove.
+	* abbrev.c: Remove.
+
 2007-10-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (window_min_size_2): Don't count header-line.
@@ -5,7 +159,7 @@
 2007-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.h (struct frame): Move all bit fields after the first bit
-	field to take advantage of the available space. Group all the
+	field to take advantage of the available space.  Group all the
 	chars together to reduce wasted space due to padding.
 
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>

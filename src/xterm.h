@@ -59,43 +59,6 @@ typedef GtkWidget *xt_or_gtk_widget;
 
 /* Bookkeeping to distinguish X versions.  */
 
-/* HAVE_X11R4 is defined if we have the features of X11R4.  It should
-   be defined when we're using X11R5, since X11R5 has the features of
-   X11R4.  If, in the future, we find we need more of these flags
-   (HAVE_X11R5, for example), code should always be written to test
-   the most recent flag first:
-
-      #ifdef HAVE_X11R5
-        ...
-      #elif HAVE_X11R4
-        ...
-      #elif HAVE_X11
-        ...
-      #endif
-
-   If you ever find yourself writing a "#ifdef HAVE_FOO" clause that
-   looks a lot like another one, consider moving the text into a macro
-   whose definition is configuration-dependent, but whose usage is
-   universal - like the stuff in systime.h.
-
-   It turns out that we can auto-detect whether we're being compiled
-   with X11R3 or X11R4 by looking for the flag macros for R4 structure
-   members that R3 doesn't have.  */
-#ifdef PBaseSize
-/* AIX 3.1's X is somewhere between X11R3 and X11R4.  It has
-   PBaseSize, but not XWithdrawWindow, XSetWMName, XSetWMNormalHints,
-   XSetWMIconName.
-   AIX 3.2 is at least X11R4.  */
-#if (!defined AIX) || (defined AIX3_2)
-#define HAVE_X11R4
-#endif
-#endif
-
-#ifdef HAVE_X11R5
-/* In case someone has X11R5 on AIX 3.1,
-   make sure HAVE_X11R4 is defined as well as HAVE_X11R5.  */
-#define HAVE_X11R4
-#endif
 
 #ifdef HAVE_X_I18N
 #include <X11/Xlocale.h>

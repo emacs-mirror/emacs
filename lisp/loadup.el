@@ -153,6 +153,7 @@
 (load "textmodes/page")
 (load "register")
 (load "textmodes/paragraphs")
+(load "abbrev")                      ;lisp-mode.el uses define-abbrev-table.
 (load "emacs-lisp/lisp-mode")
 (load "textmodes/text-mode")
 (load "textmodes/fill")
@@ -162,7 +163,6 @@
 (if (eq system-type 'vax-vms)
     (progn
       (load "vmsproc")))
-(load "abbrev")
 (load "buff-menu")
 
 (if (fboundp 'x-create-frame)

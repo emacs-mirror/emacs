@@ -318,11 +318,12 @@ for subdir in lisp site-lisp \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      etc etc/charsets etc/e \
+	      etc etc/charsets etc/e etc/gnus \
 	      etc/images etc/images/ezimage etc/images/gnus etc/images/gud \
 	      etc/images/icons etc/images/low-color etc/images/mail \
-	      etc/images/smilies etc/images/tree-widget \
-    	      etc/images/tree-widget/default etc/images/tree-widget/folder \
+	      etc/images/smilies etc/images/smilies/grayscale \
+	      etc/images/smilies/medium etc/images/tree-widget \
+	      etc/images/tree-widget/default etc/images/tree-widget/folder \
 	      etc/refcards etc/tutorials info doc doc/emacs doc/misc doc/man \
 	      doc/lispref doc/lispintro m4 msdos vms mac mac/inc \
 	      mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
@@ -597,7 +598,7 @@ echo "Making links to \`etc'"
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
-for dir in etc/charsets etc/e etc/tutorials etc/refcards ; do
+for dir in etc/charsets etc/e etc/gnus etc/tutorials etc/refcards ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
 	ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/${dir}
@@ -622,7 +623,8 @@ for dir in etc/images/ezimage etc/images/gnus etc/images/gud etc/images/icons \
      rm -f *~ \#*\# *,v =* core)
 done
 
-for dir in etc/images/tree-widget/default etc/images/tree-widget/folder ; do
+for dir in etc/images/tree-widget/default etc/images/tree-widget/folder \
+    etc/images/smilies/grayscale  etc/images/smilies/medium ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
      ln `ls -d * | grep -v CVS | grep -v RCS` ../../../../${tempdir}/${dir}

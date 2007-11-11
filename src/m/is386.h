@@ -21,7 +21,6 @@ Intel 386 (-machine=intel386 or -machine=is386.h)
   It may also be correct for Microport systems.
 NOTE-END  */
 
-#define LIBX10_MACHINE -lnsl_s
 #define LIBX11_MACHINE -lnsl_s
 
 #define LIBS_DEBUG -lg

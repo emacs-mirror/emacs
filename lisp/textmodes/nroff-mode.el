@@ -132,6 +132,8 @@ closing requests for requests that are used in matched pairs."
   (set (make-local-variable 'comment-start-skip) "\\\\[\"#][ \t]*")
   (set (make-local-variable 'comment-column) 24)
   (set (make-local-variable 'comment-indent-function) 'nroff-comment-indent)
+  (set (make-local-variable 'comment-insert-comment-function)
+       'nroff-insert-comment-function)
   (set (make-local-variable 'imenu-generic-expression) nroff-imenu-expression))
 
 (defun nroff-outline-level ()
@@ -151,6 +153,7 @@ Puts a full-stop before comments on a line by themselves."
 	  (skip-chars-backward " \t")
 	  (if (bolp)
 	      (progn
+		;; FIXME delete-horizontal-space?
 		(setq pt (1+ pt))
 		(insert ?.)
 		1)
@@ -162,6 +165,12 @@ Puts a full-stop before comments on a line by themselves."
 		   (* 8 (/ (+ (current-column)
 			      9) 8)))))) ; add 9 to ensure at least two blanks
       (goto-char pt))))
+
+;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01869.html
+(defun nroff-insert-comment-function ()
+  "Function for `comment-insert-comment-function' in `nroff-mode'."
+  (indent-to (nroff-comment-indent))
+  (insert comment-start))
 
 (defun nroff-count-text-lines (start end &optional print)
   "Count lines in region, except for nroff request lines.
@@ -175,7 +184,7 @@ Noninteractively, return number of non-request lines from START to END."
       (save-restriction
 	(narrow-to-region start end)
 	(goto-char (point-min))
-	(- (buffer-size) (forward-text-line (buffer-size)))))))
+	(- (buffer-size) (nroff-forward-text-line (buffer-size)))))))
 
 (defun nroff-forward-text-line (&optional cnt)
   "Go forward one nroff text line, skipping lines of nroff requests.

@@ -449,7 +449,7 @@ in merged file and directory lists."
 ;(setq ido-ignore-files '("^ " "\\.c$" "\\.h$"))
 
 (defcustom ido-default-file-method  'raise-frame
-    "*How to visit a new file when using `ido-find-file'.
+  "*How to visit a new file when using `ido-find-file'.
 Possible values:
 `selected-window' Show new file in selected window
 `other-window'	  Show new file in another window (same frame)
@@ -469,7 +469,7 @@ Possible values:
     :group 'ido)
 
 (defcustom ido-default-buffer-method  'raise-frame
-    "*How to switch to new buffer when using `ido-switch-buffer'.
+  "*How to switch to new buffer when using `ido-switch-buffer'.
 See `ido-default-file-method' for details."
     :type '(choice (const :tag "Show in selected window" selected-window)
 		   (const :tag "Show in other window" other-window)
@@ -1309,6 +1309,7 @@ Value is an integer which is number of chars to right of prompt.")
       (unwind-protect
 	  (with-current-buffer buf
 	    (erase-buffer)
+	    (setq buffer-file-coding-system 'utf-8)
 	    (ido-pp 'ido-last-directory-list)
 	    (ido-pp 'ido-work-directory-list)
 	    (ido-pp 'ido-work-file-list)
@@ -1316,7 +1317,7 @@ Value is an integer which is number of chars to right of prompt.")
 	    (if (listp ido-unc-hosts-cache)
 		(ido-pp 'ido-unc-hosts-cache)
 	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
-	    (insert "\n")
+	    (insert "\n;; Local Variables:\n;; coding: utf-8\n;; End:\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
 

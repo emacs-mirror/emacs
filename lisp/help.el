@@ -38,6 +38,26 @@
 (add-hook 'temp-buffer-setup-hook 'help-mode-setup)
 (add-hook 'temp-buffer-show-hook 'help-mode-finish)
 
+;; The variable `help-window' below is used by `help-mode-finish' to
+;; communicate the window displaying help (the "help window") to the
+;; macro `with-help-window'.  The latter sets `help-window' to t before
+;; invoking `with-output-to-temp-buffer'.  If and only if `help-window'
+;; is eq to t, `help-mode-finish' (called by `temp-buffer-setup-hook')
+;; sets `help-window' to the window selected by `display-buffer'.
+;; Exiting `with-help-window' and calling `print-help-return-message'
+;; reset `help-window' to nil.
+(defvar help-window nil
+  "Window chosen for displaying help.")
+
+;; `help-window-point-marker' is a marker you can move to a valid
+;; position of the buffer shown in the help window in order to override
+;; the standard positioning mechanism (`point-min') chosen by
+;; `with-output-to-temp-buffer'.  `with-help-window' has this point
+;; nowhere before exiting.  Currently used by `view-lossage' to assert
+;; that the last keystrokes are always visible.
+(defvar help-window-point-marker (make-marker) 
+  "Marker to override default `window-point' of `help-window'.")
+
 (defvar help-map
   (let ((map (make-sparse-keymap)))
     (define-key map (char-to-string help-char) 'help-for-help)
@@ -124,6 +144,8 @@ It computes a message, and applies the optional argument FUNCTION to it.
 If FUNCTION is nil, it applies `message', thus displaying the message.
 In addition, this function sets up `help-return-method', which see, that
 specifies what to do when the user exits the help buffer."
+  ;; Reset `help-window' here to avoid confusing `help-mode-finish'.
+  (setq help-window nil)
   (and (not (get-buffer-window standard-output))
        (let ((first-message
 	      (cond ((or
@@ -431,7 +453,7 @@ is specified by the variable `message-log-max'."
 To record all your input on a file, use `open-dribble-file'."
   (interactive)
   (help-setup-xref (list #'view-lossage) (interactive-p))
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (princ (mapconcat (lambda (key)
 			(if (or (integerp key) (symbolp key) (listp key))
 			    (single-key-description key)
@@ -443,8 +465,9 @@ To record all your input on a file, use `open-dribble-file'."
       (while (progn (move-to-column 50) (not (eobp)))
         (when (search-forward " " nil t)
           (delete-char -1))
-        (insert "\n")))
-    (print-help-return-message)))
+        (insert "\n"))
+      ;; jidanni wants to see the last keystrokes immediately.
+      (set-marker help-window-point-marker (point)))))
 
 
 ;; Key bindings
@@ -475,7 +498,7 @@ The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix."
   (interactive)
   (let ((buf (current-buffer)))
-    (with-output-to-temp-buffer "*Help*"
+    (with-help-window "*Help*"
       (with-current-buffer standard-output
 	(describe-buffer-bindings buf prefix menus)))))
 
@@ -719,7 +742,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	    (setq sequence (vector up-event))
 	    (aset sequence 0 'mouse-1)
 	    (setq defn-up-tricky (key-binding sequence nil nil (event-start up-event))))))
-      (with-output-to-temp-buffer (help-buffer)
+      (with-help-window (help-buffer)
 	(princ (help-key-description key untranslated))
 	(princ (format "\
 %s runs the command %S
@@ -755,8 +778,7 @@ runs the command %S
 			   ev-type mouse-msg
 			   mouse-1-click-follows-link
 			   defn-up-tricky))
-	    (describe-function-1 defn-up-tricky)))
-	(print-help-return-message)))))
+	    (describe-function-1 defn-up-tricky)))))))
 
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
@@ -773,7 +795,7 @@ whose documentation describes the minor mode."
 		   (interactive-p))
   ;; For the sake of help-do-xref and help-xref-go-back,
   ;; don't switch buffers before calling `help-buffer'.
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (with-current-buffer buffer
       (let (minor-modes)
 	;; Older packages do not register in minor-mode-list but only in
@@ -841,8 +863,7 @@ whose documentation describes the minor mode."
               (insert (format-mode-line mode))
               (add-text-properties start (point) '(face bold)))))
 	(princ " mode:\n")
-	(princ (documentation major-mode)))
-      (print-help-return-message))))
+	(princ (documentation major-mode))))))
 
 
 (defun describe-minor-mode (minor-mode)
@@ -974,6 +995,248 @@ out of view."
 	 (funcall temp-buffer-max-height (current-buffer))
        temp-buffer-max-height))))
 
+
+;;; help-window
+
+(defcustom help-window-select 'other
+    "Non-nil means select help window for viewing.
+Choices are:
+ never (nil) Select help window only if there is no other window
+             on its frame.
+ other       Select help window unless the selected window is the
+             only other window on its frame.
+ always (t)  Always select the help window.
+
+This option has effect if and only if the help window was created
+by `with-help-window'"
+  :type '(choice (const :tag "never (nil)" nil)
+		 (const :tag "other" other)
+		 (const :tag "always (t)" t))
+  :group 'help
+  :version "23.1")
+
+(defun help-window-display-message (quit-part window &optional other)
+  "Display message telling how to quit and scroll help window.
+QUIT-PART is a string telling how to quit the help window WINDOW.
+Optional argument OTHER non-nil means return text telling how to
+scroll the \"other\" window."
+  (let ((scroll-part
+	 (cond
+	  ((pos-visible-in-window-p
+	    (with-current-buffer (window-buffer window)
+	      (point-max)) window)
+	   ;; Buffer end is visible.
+	   ".")
+	  (other ", \\[scroll-other-window] to scroll help.")
+	  (t ", \\[scroll-up] to scroll help."))))
+    (message
+     (substitute-command-keys (concat quit-part scroll-part)))))
+
+(defun help-window-setup-finish (window &optional reuse keep-frame)
+  "Finish setting up help window WINDOW.
+Select WINDOW according to the value of `help-window-select'.
+Display message telling how to scroll and eventually quit WINDOW.
+
+Optional argument REUSE non-nil means WINDOW has been reused \(by
+`display-buffer'\) for displaying help.  Optional argument
+KEEP-FRAME non-nil means that quitting must no delete the frame
+of WINDOW."
+  (let ((number-of-windows
+	 (length (window-list (window-frame window) 'no-mini window))))
+    (cond
+     ((eq window (selected-window))
+      ;; The help window is the selected window, probably the
+      ;; `pop-up-windows' nil case.
+      (help-window-display-message
+       (if reuse
+	   "Type \"q\" to restore this window"
+	 ;; This should not be taken.
+	 "Type \"q\" to quit") window))
+     ((= number-of-windows 1)
+      ;; The help window is alone on a frame and not the selected
+      ;; window, could be the `pop-up-frames' t case.
+      (help-window-display-message
+       (cond
+	(keep-frame "Type \"q\" to delete this window")
+	(reuse "Type \"q\" to restore this window")
+	(view-remove-frame-by-deleting "Type \"q\" to delete this frame")
+	(t "Type \"q\" to iconify this frame"))
+       window))
+     ((and (= number-of-windows 2)
+	   (eq (window-frame window) (window-frame (selected-window))))
+      ;; There are two windows on the help window's frame and the other
+      ;; window is the selected one.
+      (if (memq help-window-select '(nil other))
+	  ;; Do not select the help window.
+	  (help-window-display-message
+	   (if reuse
+	       ;; Offer `display-buffer' for consistency with
+	       ;; `print-help-return-message'.  This is hardly TRT when
+	       ;; the other window and the selected window display the
+	       ;; same buffer but has been handled this way ever since.
+	       "Type \\[display-buffer] RET to restore the other window"
+	     ;; The classic "two windows" configuration.
+	     "Type \\[delete-other-windows] to delete the help window")
+	   window t)
+	;; Select help window and tell how to quit.
+	(select-window window)
+	(help-window-display-message
+	 (if reuse
+	     "Type \"q\" to restore this window"
+	   "Type \"q\" to delete this window") window)))
+     (help-window-select
+      ;; Issuing a message with 3 or more windows on the same frame
+      ;; without selecting the help window doesn't make any sense.
+      (select-window window)
+      (help-window-display-message
+       (if reuse
+	   "Type \"q\" to restore this window"
+	 "Type \"q\" to delete this window") window)))))
+
+(defun help-window-setup (list-of-frames list-of-window-tuples)
+  "Set up help window.
+LIST-OF-FRAMES and LIST-OF-WINDOW-TUPLES are the lists of frames
+and window quadruples built by `with-help-window'.  The help
+window itself is specified by the variable `help-window'."
+  (let* ((help-buffer (window-buffer help-window))
+	 ;; `help-buffer' now denotes the help window's buffer.
+	 (view-entry
+	  (assq help-window
+		(buffer-local-value 'view-return-to-alist help-buffer)))
+	 (help-entry (assq help-window list-of-window-tuples)))
+
+    ;; Handle `help-window-point-marker'.
+    (when (eq (marker-buffer help-window-point-marker) help-buffer)
+      (set-window-point help-window help-window-point-marker)
+      ;; Reset `help-window-point-marker'.
+      (set-marker help-window-point-marker nil))
+
+    (cond
+     (view-entry
+      ;; `view-return-to-alist' has an entry for the help window.
+      (cond
+       ((eq help-window (selected-window))
+	;; The help window is the selected window, probably because the
+	;; user followed a backward/forward button or a cross reference.
+	;; In this case just purge stale entries from
+	;; `view-return-to-alist' but leave the entry alone and don't
+	;; display a message.
+	(view-return-to-alist-update help-buffer))
+       ((and help-entry (eq (cadr help-entry) help-buffer))
+	;; The help window was not selected but displayed the help
+	;; buffer.  In this case reuse existing exit information but try
+	;; to get back to the selected window when quitting.  Don't
+	;; display a message since the user must have seen one before.
+	(view-return-to-alist-update
+	 help-buffer (cons help-window
+			   (cons (selected-window) (cddr view-entry)))))
+       (help-entry
+	;; The help window was not selected, did display the help buffer
+	;; earlier, but displayed another buffer when help was invoked.
+	;; Set up things so that quitting will show that buffer again.
+	(view-return-to-alist-update
+	 help-buffer (cons help-window
+			   (cons (selected-window) (cdr help-entry))))
+	(help-window-setup-finish help-window t))
+       (t
+	;; The help window is new but `view-return-to-alist' had an
+	;; entry for it.  This should never happen.
+	(view-return-to-alist-update
+	 help-buffer (cons help-window
+			   (cons (selected-window) 'quit-window)))
+	(help-window-setup-finish help-window t))))
+     (help-entry
+      ;; `view-return-to-alist' does not have an entry for help window
+      ;; but `list-of-window-tuples' does.  Hence `display-buffer' must
+      ;; have reused an existing window.
+      (if (eq (cadr help-entry) help-buffer)
+	  ;; The help window displayed `help-buffer' before but no
+	  ;; `view-return-to-alist' entry was found probably because the
+	  ;; user manually switched to the help buffer.  Set up things
+	  ;; for `quit-window' although `view-exit-action' should be
+	  ;; able to handle this case all by itself.
+	  (progn
+	    (view-return-to-alist-update
+	     help-buffer (cons help-window
+			       (cons (selected-window) 'quit-window)))
+	    (help-window-setup-finish help-window t))
+	;; The help window displayed another buffer before.  Set up
+	;; things in a way that quitting can orderly show that buffer
+	;; again.  The window-start and window-point information from
+	;; `list-of-window-tuples' provide the necessary information.
+	(view-return-to-alist-update
+	 help-buffer (cons help-window
+			   (cons (selected-window) (cdr help-entry))))
+	(help-window-setup-finish help-window t)))
+     ((memq (window-frame help-window) list-of-frames)
+      ;; The help window is a new window on an existing frame.  This
+      ;; case must be handled specially by `help-window-setup-finish'
+      ;; and `view-mode-exit' to ascertain that quitting does _not_
+      ;; inadvertently delete the frame.
+      (view-return-to-alist-update
+       help-buffer (cons help-window
+			 (cons (selected-window) 'keep-frame)))
+      (help-window-setup-finish help-window nil t))
+     (t
+      ;; The help window is shown on a new frame.  In this case quitting
+      ;; shall handle both, the help window _and_ its frame.  We changed
+      ;; the default of `view-remove-frame-by-deleting' to t in order to
+      ;; intuitively DTRT here.
+      (view-return-to-alist-update
+       help-buffer (cons help-window (cons (selected-window) t)))
+      (help-window-setup-finish help-window)))))
+
+;; `with-help-window' is a wrapper for `with-output-to-temp-buffer'
+;; providing the following additional twists:
+
+;; (1) Issue more accurate messages telling how to scroll and quit the
+;; help window.
+
+;; (2) Make `view-mode-exit' DTRT in more cases.
+
+;; (3) An option (customizable via `help-window-select') to select the
+;; help window automatically.
+
+;; (4) A marker (`help-window-point-marker') to move point in the help
+;; window to an arbitrary buffer position.
+
+;; Note: It's usually always wrong to use `print-help-return-message' in
+;; the body of `with-help-window'.
+(defmacro with-help-window (buffer-name &rest body)
+  "Display buffer BUFFER-NAME in a help window evaluating BODY.
+Select help window if the actual value of the user option
+`help-window-select' says so."
+  (declare (indent 1) (debug t))
+  ;; Bind list-of-frames to `frame-list' and list-of-window-tuples to a
+  ;; list of one <window window-buffer window-start window-point> tuple
+  ;; for each live window.
+  `(let ((list-of-frames (frame-list))
+	 (list-of-window-tuples
+	  (let (list)
+	    (walk-windows
+	     (lambda (window)
+	       (push (list window (window-buffer window)
+			   (window-start window) (window-point window))
+		     list))
+	     'no-mini t)
+	    list)))
+     ;; We set `help-window' to t in order to trigger `help-mode-finish'
+     ;; to set `help-window' to the actual help window.
+     (setq help-window t)
+     ;; Make `help-window-point-marker' point nowhere (the only place
+     ;; where this should be set to a buffer position is within BODY).
+     (set-marker help-window-point-marker nil)
+
+     (with-output-to-temp-buffer ,buffer-name
+       (progn ,@body))
+
+     (when (windowp help-window)
+       ;; Set up help window.
+       (help-window-setup list-of-frames list-of-window-tuples))
+
+     ;; Reset `help-window' to nil to avoid confusing future calls of
+     ;; `help-mode-finish' by "plain" `with-output-to-temp-buffer'.
+     (setq help-window nil)))
 
 (provide 'help)
 

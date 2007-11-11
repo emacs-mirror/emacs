@@ -443,14 +443,13 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
     ;; valid relative names.
     (vc-mcvs-command
      buffer
-     (if (and (vc-stay-local-p files) (fboundp 'start-process)) 'async 0)
+     (if (vc-stay-local-p files) 'async 0)
      files "log")))
 
 (defun vc-mcvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using Meta-CVS between two revisions of FILES."
     (let* ((async (and (not vc-disable-async-diff)
-                       (vc-stay-local-p files)
-                       (fboundp 'start-process)))
+                       (vc-stay-local-p files)))
 	   ;; Run the command from the root dir so that `mcvs filt' returns
 	   ;; valid relative names.
 	   (default-directory (vc-mcvs-root (car files)))
@@ -468,7 +467,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
 Optional arg REVISION is a revision to annotate from."
   (vc-mcvs-command
    buffer
-   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
+   (if (vc-stay-local-p file) 'async 0)
    file "annotate" (if revision (concat "-r" revision)))
   (with-current-buffer buffer
     (goto-char (point-min))

@@ -834,7 +834,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	    viper-emacs-kbd-minor-mode
 	    ch)
 	(cond ((and viper-special-input-method
-		    viper-emacs-p
+		    (featurep 'emacs)
 		    (fboundp 'quail-input-method))
 	       ;; (let ...) is used to restore unread-command-events to the
 	       ;; original state. We don't want anything left in there after
@@ -861,7 +861,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 				    (1- (length quail-current-str)))))
 		 ))
 	      ((and viper-special-input-method
-		    viper-xemacs-p
+		    (featurep 'xemacs)
 		    (fboundp 'quail-start-translation))
 	       ;; same as above but for XEmacs, which doesn't have
 	       ;; quail-input-method
@@ -893,7 +893,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	      (t
 	       ;;(setq ch (read-char-exclusive))
 	       (setq ch (aref (read-key-sequence nil) 0))
-	       (if viper-xemacs-p
+	       (if (featurep 'xemacs)
 		   (setq ch (event-to-character ch)))
 	       ;; replace ^M with the newline
 	       (if (eq ch ?\C-m) (setq ch ?\n))
@@ -902,13 +902,13 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		   (progn
 		     ;;(setq ch (read-char-exclusive))
 		     (setq ch (aref (read-key-sequence nil) 0))
-		     (if viper-xemacs-p
+		     (if (featurep 'xemacs)
 			 (setq ch (event-to-character ch))))
 		 )
 	       (insert ch))
 	      )
 	(setq last-command-event
-	      (viper-copy-event (if viper-xemacs-p
+	      (viper-copy-event (if (featurep 'xemacs)
 				    (character-to-event ch) ch)))
 	) ; let
     (error nil)
@@ -1080,10 +1080,10 @@ as a Meta key and any number of multiple escapes is allowed."
 			 ;; and return ESC as the key-sequence
 			 (viper-set-unread-command-events (viper-subseq keyseq 1))
 			 (setq last-input-event event
-			       keyseq (if viper-emacs-p
+			       keyseq (if (featurep 'emacs)
 					  "\e"
 					(vector (character-to-event ?\e)))))
-			((and viper-xemacs-p
+			((and (featurep 'xemacs)
 			      (key-press-event-p first-key)
 			      (equal '(meta) key-mod))
 			 (viper-set-unread-command-events
@@ -1320,7 +1320,7 @@ as a Meta key and any number of multiple escapes is allowed."
 	  (setq last-command-char char)
 	  (setq last-command-event
 		(viper-copy-event
-		 (if viper-xemacs-p (character-to-event char) char)))
+		 (if (featurep 'xemacs) (character-to-event char) char)))
 	  (condition-case err
 	      (funcall cmd-to-exec-at-end cmd-info)
 	    (error
@@ -1902,7 +1902,7 @@ With prefix argument, find next destructive command."
 	(setq viper-intermediate-command
 	      'repeating-display-destructive-command)
       ;; first search through command history--set temp ring
-      (setq viper-temp-command-ring (copy-sequence viper-command-ring)))
+      (setq viper-temp-command-ring (ring-copy viper-command-ring)))
     (setq cmd (if next
 		  (viper-special-ring-rotate1 viper-temp-command-ring 1)
 		(viper-special-ring-rotate1 viper-temp-command-ring -1)))
@@ -1936,7 +1936,7 @@ to in the global map, instead of cycling through the insertion ring."
 		 (length viper-last-inserted-string-from-insertion-ring))))
 	  )
       ;;first search through insertion history
-      (setq viper-temp-insertion-ring (copy-sequence viper-insertion-ring)))
+      (setq viper-temp-insertion-ring (ring-copy viper-insertion-ring)))
     (setq this-command 'viper-insert-from-insertion-ring)
     ;; so that things will be undone properly
     (setq buffer-undo-list (cons nil buffer-undo-list))
@@ -2790,7 +2790,8 @@ On reaching beginning of line, stop and signal error."
 
 (defun viper-next-line-carefully (arg)
   (condition-case nil
-      (next-line arg)
+      ;; do not use forward-line! need to keep column
+      (with-no-warnings (next-line arg))
     (error nil)))
 
 
@@ -3089,7 +3090,8 @@ On reaching beginning of line, stop and signal error."
   (let ((val (viper-p-val arg))
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
-    (next-line val)
+    ;; do not use forward-line! need to keep column
+    (with-no-warnings (next-line val))
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))
     (setq this-command 'next-line)
@@ -3132,7 +3134,8 @@ If point is on a widget or a button, simulate clicking on that widget/button."
   (let ((val (viper-p-val arg))
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
-    (previous-line val)
+    ;; do not use forward-line! need to keep column
+    (with-no-warnings (previous-line val))
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))
     (setq this-command 'previous-line)
