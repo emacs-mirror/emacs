@@ -1,3 +1,12 @@
+2007-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/iso-cvt.el (iso-translate-conventions): Doc fix.
+	(iso-aggressive-german-trans-tab, iso-conservative-german-trans-tab)
+	(iso-tex2iso-trans-tab, iso-gtex2iso-trans-tab): Reflow docstring.
+	(iso-spanish, iso-german, iso-iso2tex, iso-tex2iso, iso-gtex2iso)
+	(iso-iso2gtex, iso-iso2duden, iso-iso2sgml, iso-sgml2iso):
+	Rewrite in active voice.
+
 2007-11-10  Juri Linkov  <juri@jurta.org>
 
 	* startup.el: Backport startup screen related changes from the trunk.
