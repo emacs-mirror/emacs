@@ -1,3 +1,7 @@
+2007-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Special Diary Entries): Fix Thanksgiving example.
+
 2007-11-10  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* search.texi (Query Replace): Mention
