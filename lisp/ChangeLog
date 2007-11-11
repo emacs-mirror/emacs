@@ -1,12 +1,18 @@
-2007-11-10  Jason Rumney  <jasonr@gnu.org>
+2007-11-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* w32-fns.el: Sync charset names with setup-default-fontset.
-	Append "-1" where second part missing.
+	* ps-print.el (ps-do-despool): Do not force ps-lpr-switches to be a
+	list.
+	(ps-begin-job): Error if ps-lpr-switches is not a list.
 
 2007-11-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* faces.el (face-normalize-spec): Remove function.
 	(frame-set-background-mode): Undo last change.
+
+2007-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el: Sync charset names with setup-default-fontset.
+	Append "-1" where second part missing.
 
 2007-11-10  Juri Linkov  <juri@jurta.org>
 
