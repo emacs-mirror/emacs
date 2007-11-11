@@ -97,15 +97,39 @@
 ;;
 ;; and modify them to your needs.
 
-;;; Code:
+;;; Todo:
 
-;; Todo:
 ;; - better menu.
 ;; - don't use `find-file'.
 ;; - Bind slicing to a drag event.
 ;; - zoom (the whole document and/or just the region around the cursor).
 ;; - get rid of the silly arrow in the fringe.
 ;; - improve anti-aliasing (pdf-utils gets it better).
+
+;;;; About isearch support
+
+;; I tried implementing isearch by setting
+;; `isearch-search-fun-function' buffer-locally, but that didn't
+;; work too good.  The function doing the real search was called
+;; endlessly somehow.  But even if we'd get that working no real
+;; isearch feeling comes up due to the missing match highlighting.
+;; Currently I display all lines containing a match in a tooltip and
+;; each C-s or C-r jumps directly to the next/previous page with a
+;; match.  With isearch we could only display the current match.  So
+;; we had to decide if another C-s jumps to the next page with a
+;; match (thus only the first match in a page will be displayed in a
+;; tooltip) or to the next match, which would do nothing visible
+;; (except the tooltip) if the next match is on the same page.
+
+;; And it's much slower than the current search facility, because
+;; isearch really searches for each step forward or backward wheras
+;; the current approach searches once and then it knows to which
+;; pages to jump.
+
+;; Anyway, if someone with better isearch knowledge wants to give it a try,
+;; feel free to do it.  --Tassilo
+
+;;; Code:
 
 (require 'dired)
 (require 'image-mode)
