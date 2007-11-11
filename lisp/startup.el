@@ -1671,7 +1671,7 @@ To quit a partially entered command, type Control-g.\n")
   ;; use precomputed string to save lots of time.
   (if (and (eq (key-binding "\C-h") 'help-command)
 	   (eq (key-binding "\C-xu") 'advertised-undo)
-	   (eq (key-binding "\C-x\C-c") 'save-buffers-kill-terminal)
+	   (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
 	   (eq (key-binding "\C-ht") 'help-with-tutorial)
 	   (eq (key-binding "\C-hi") 'info)
 	   (eq (key-binding "\C-hr") 'info-emacs-manual)
@@ -1726,7 +1726,7 @@ Get help\t   %s
 		   'action (lambda (button) (view-order-manuals))
 		   'follow-link t)
     (insert (substitute-command-keys
-	     "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
+	     "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-emacs]")))
 
   ;; Say how to use the menu bar with the keyboard.
   (insert "\n")
