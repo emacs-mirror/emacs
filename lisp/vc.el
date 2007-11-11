@@ -1637,14 +1637,18 @@ empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  AFTER-HOOK specifies the local value
 for vc-log-operation-hook."
   (let ((parent
-	 (if (and files (equal (length files) 1))
-	     (get-file-buffer (car files))
-	   (current-buffer))))
-    (if vc-before-checkin-hook
-        (if files
-            (with-current-buffer parent
-              (run-hooks 'vc-before-checkin-hook))
-          (run-hooks 'vc-before-checkin-hook)))
+         (if (eq major-mode 'vc-dired-mode)
+             ;; If we are called from VC dired, the parent buffer is
+             ;; the current buffer.
+             (current-buffer)
+           (if (and files (equal (length files) 1))
+               (get-file-buffer (car files))
+             (current-buffer)))))
+    (when vc-before-checkin-hook
+      (if files
+	  (with-current-buffer parent
+	    (run-hooks 'vc-before-checkin-hook))
+	(run-hooks 'vc-before-checkin-hook)))
     (if (and comment (not initial-contents))
 	(set-buffer (get-buffer-create "*VC-log*"))
       (pop-to-buffer (get-buffer-create "*VC-log*")))
@@ -1654,8 +1658,8 @@ for vc-log-operation-hook."
     ;;(if file (vc-mode-line file))
     (vc-log-edit files)
     (make-local-variable 'vc-log-after-operation-hook)
-    (if after-hook
-	(setq vc-log-after-operation-hook after-hook))
+    (when after-hook
+      (setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
     (setq vc-log-revision rev)
     (when comment
