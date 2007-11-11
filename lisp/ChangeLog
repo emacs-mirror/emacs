@@ -1,3 +1,12 @@
+2007-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/iso-cvt.el (iso-translate-conventions): Doc fix.
+	(iso-aggressive-german-trans-tab, iso-conservative-german-trans-tab)
+	(iso-tex2iso-trans-tab, iso-gtex2iso-trans-tab): Reflow docstring.
+	(iso-spanish, iso-german, iso-iso2tex, iso-tex2iso, iso-gtex2iso)
+	(iso-iso2gtex, iso-iso2duden, iso-iso2sgml, iso-sgml2iso):
+	Rewrite in active voice.
+
 2007-11-11  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el: Add comments about isearch support.
@@ -5,13 +14,12 @@
 2007-11-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-start-entry): Fix setting the in the case the function
-	is called from vc-dired.  Use when instead of if where
-	appropriate.
+	is called from vc-dired.  Use when instead of if where appropriate.
 
 2007-11-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el (ps-do-despool): Do not force ps-lpr-switches to be a
-	list.
+	* ps-print.el (ps-do-despool): Do not force ps-lpr-switches
+	to be a list.
 	(ps-begin-job): Error if ps-lpr-switches is not a list.
 
 2007-11-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -99,11 +107,11 @@
 
 2007-11-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Optimize
-	(featurep 'emacs) to t.
+	* emacs-lisp/byte-opt.el (byte-optimize-featurep):
+	Optimize (featurep 'emacs) to t.
 
-	* emacs-lisp/bytecomp.el (byte-compile-find-bound-condition): New
-	function.
+	* emacs-lisp/bytecomp.el (byte-compile-find-bound-condition):
+	New function.
 	(byte-compile-maybe-guarded): Use it to also look for bound
 	symbols inside `and' forms.  Comment out non-working code that was
 	trying to avoid warnings for XEmacs code.
