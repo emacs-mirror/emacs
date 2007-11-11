@@ -1,9 +1,60 @@
 2007-11-10  Juri Linkov  <juri@jurta.org>
 
 	* startup.el: Backport startup screen related changes from the trunk.
+	(initialization): Change group to `environment'.
+	(inhibit-startup-screen): Rename from `inhibit-splash-screen'.
+	(inhibit-splash-screen): Make alias to `inhibit-startup-screen'.
+	(inhibit-startup-message): Change alias to `inhibit-startup-screen'.
+	(initial-scratch-message): Fix docstring.
+	(startup-screen-inhibit-startup-screen)
+	(pure-space-overflow-message): New variables.
+	(command-line): Rename `inhibit-startup-message' to
+	`inhibit-startup-screen'.
+	(initial-scratch-message): Doc fix.
+	(fancy-splash-text): Remove variable.
+	(fancy-startup-text, fancy-about-text, splash-screen-keymap):
+	New variables.
+	(fancy-splash-delay, fancy-splash-max-time)
+	(fancy-current-text, fancy-splash-stop-time)
+	(fancy-splash-outer-buffer, fancy-splash-last-input-event):
+	Remove variables.
+	(fancy-splash-insert): Use help-echo from the 3rd element of the
+	link specification list, or "Follow this link" if it's nil.  Doc fix.
+	Allow functions for face and link specs.
+	(fancy-splash-tail): Remove function.
+	(fancy-startup-tail): New function.
+	(fancy-splash-default-action, fancy-splash-special-event-action)
+	(fancy-splash-screens): Remove functions.
+	(fancy-about-screen): New function.
+	(normal-splash-screen): Rename argument `hide-on-input' to `startup'.
+	Fix docstring.  Use argument `startup' to conditionally display
+	different texts for Startup and About screens.  Don't display Help
+	commands on the About screen.  Remove `unwind-protect' `sit-for'
+	delay and `kill-buffer' after it.
+	(normal-mouse-startup-screen, normal-splash-screen)
+	(normal-no-mouse-startup-screen): New functions.
+	(startup-echo-area-message): Change text of the echo area.
+	(display-splash-screen): Remove function.
+	(display-startup-screen, display-about-screen): New functions.
+	(about-emacs): Make alias to `display-about-screen'.
+	(display-splash-screen): Make alias to `display-startup-screen'.
+	(command-line-1): Rename `inhibit-startup-message' to
+	`inhibit-startup-screen'.  Inhibit startup screen when Emacs is
+	started with command line options "-f", "-funcall", "-e", "-eval",
+	"-execute", "-insert", "-find-file", "-file", "-visit".
+	Inhibit startup screen when Emacs is started with a file name only
+	on tty (i.e. don't inhibit it when started with a file name like
+	"emacs FILE..." on a window system).
+	Comment out unused code for coping with the old sit-for behavior.
+	If file-count > 0, then display the concise version in another
+	window, otherwise display full version in the same window.
 	* loadup.el: Add `button'.  Move up `startup'.
 	* help.el (help-map, help-for-help-internal): Add `C-h C-a'.
 	* version.el (emacs-copyright): Add emacs-copyright.
+	* menu-bar.el (menu-bar-help-menu):
+	Move "About Emacs" and "About GNU" to the end of the Help menu.
+	Move "Emacs Psychotherapist" after "Send Bug Report...".
+	Move "External Packages" after "Find Emacs Packages".
 
 2007-11-10  Jason Rumney  <jasonr@gnu.org>
 
