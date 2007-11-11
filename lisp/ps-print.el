@@ -1480,10 +1480,6 @@ Please send all bug fixes and enhancements to
 ;; Load XEmacs/Emacs definitions
 (eval-and-compile (require 'ps-def))
 
-(defun ps-face-background-name (face)
-  (if (featurep 'xemacs)
-      (ps-xemacs-color-name (face-background face))
-    (face-background face nil t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -5831,6 +5827,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   ;; initialize page dimensions
   (ps-get-page-dimensions)
   ;; final check
+  (unless (listp ps-lpr-switches)
+    (error "`ps-lpr-switches' value should be a list."))
   (and ps-color-p
        (equal ps-default-background ps-default-foreground)
        (error
@@ -6514,9 +6512,7 @@ If FACE is not a valid face name, use default face."
 				    (and (boundp 'printer-name)
 					 (symbol-value 'printer-name))))
 	       (ps-lpr-switches
-		(append (if (listp ps-lpr-switches)
-			    ps-lpr-switches
-			  (list ps-lpr-switches))
+		(append ps-lpr-switches
 			(and (stringp ps-printer-name)
 			     (string< "" ps-printer-name)
 			     (list (concat
