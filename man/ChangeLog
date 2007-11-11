@@ -1,3 +1,7 @@
+2007-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Special Diary Entries): Fix Thanksgiving example.
+
 2007-11-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi, gnus-faq.texi, message.texi: Bump version to 5.10.9.
