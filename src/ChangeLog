@@ -1,3 +1,7 @@
+2007-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (load_overlay_strings): Fix copy&paste typo.
+
 2007-11-09  Jason Rumney  <jasonr@gnu.org>
 
 	* s/ms-w32.c (USE_TOOLKIT_SCROLL_BARS): Define.

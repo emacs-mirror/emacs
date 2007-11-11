@@ -4906,7 +4906,7 @@ load_overlay_strings (it, charpos)
   j = it->current.overlay_string_index;
   while (i < OVERLAY_STRING_CHUNK_SIZE && j < n)
     {
-      it->overlay_strings[i++] = entries[j++].string;
+      it->overlay_strings[i] = entries[j].string;
       it->string_overlays[i++] = entries[j++].overlay;
     }
 

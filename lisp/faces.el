@@ -1516,28 +1516,6 @@ If there is neither a user setting nor a default for FACE, return nil."
       (get face 'saved-face)
       (face-default-spec face)))
 
-(defsubst face-normalize-spec (spec)
-  "Return a normalized face-spec of SPEC."
-  (let (normalized-spec)
-    (while spec
-      (let ((attribute (car spec))
-	    (value (car (cdr spec))))
-	;; Support some old-style attribute names and values.
-	(case attribute
-	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
-	  (:italic (setq attribute :slant value (if value 'italic 'normal)))
-	  ((:foreground :background)
-	   ;; Compatibility with 20.x.  Some bogus face specs seem to
-	   ;; exist containing things like `:foreground nil'.
-	   (if (null value) (setq value 'unspecified)))
-	  (t (unless (assq attribute face-x-resources)
-	       (setq attribute nil))))
-	(when attribute
-	  (push attribute normalized-spec)
-	  (push value normalized-spec)))
-      (setq spec (cdr (cdr spec))))
-    (nreverse normalized-spec)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Frame-type independent color support.
@@ -1819,8 +1797,7 @@ according to the `background-mode' and `display-type' frame parameters."
 	;; be unmodified, so we can avoid consing in the common case.
 	(dolist (face (face-list))
 	  (when (not (face-spec-match-p face
-					(face-normalize-spec
-					 (face-user-default-spec face))
+					(face-user-default-spec face)
 					(selected-frame)))
 	    (push face locally-modified-faces)))
 	;; Now change to the new frame parameters

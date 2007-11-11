@@ -1,3 +1,13 @@
+2007-11-10  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el: Sync charset names with setup-default-fontset.
+	Append "-1" where second part missing.
+
+2007-11-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* faces.el (face-normalize-spec): Remove function.
+	(frame-set-background-mode): Undo last change.
+
 2007-11-10  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-end-hook, isearch-mode-end-hook-quit):
