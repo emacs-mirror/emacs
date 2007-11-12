@@ -8292,7 +8292,7 @@ face_for_overlay_string (w, pos, region_beg, region_end,
 
   /* Look up a realized face with the given face attributes,
      or realize a new one for ASCII characters.  */
-  return lookup_face (f, attrs, 0, NULL);
+  return lookup_face (f, attrs);
 }
 
 
