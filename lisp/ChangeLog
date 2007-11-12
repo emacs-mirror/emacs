@@ -1,3 +1,8 @@
+2007-11-12  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compilation-perl.el:
+	* progmodes/compilation-weblint.el: New files.
+
 2007-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/iso-cvt.el (iso-translate-conventions): Doc fix.
