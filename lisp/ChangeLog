@@ -1,3 +1,9 @@
+2007-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-diff): If backup files exist, diff them
+	instead of doing "cvs diff" in order to avoid accessing the
+	repository.
+
 2007-11-12  Kevin Ryde  <user42@zip.com.au>
 
 	* progmodes/compilation-perl.el:
