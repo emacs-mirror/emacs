@@ -1,3 +1,8 @@
+2007-11-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell): Check
+	whether the output of "uname -sr" has been changed.
+
 2007-11-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist): Insert

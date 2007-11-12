@@ -5624,6 +5624,7 @@ process to set up.  VEC specifies the connection."
       (tramp-get-method-parameter
        (tramp-file-name-method vec) 'tramp-remote-sh))
      t))
+
   (tramp-message vec 5 "Setting shell prompt")
   ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we must
   ;; use "\n" here, not tramp-rsh-end-of-line.
@@ -5639,6 +5640,7 @@ process to set up.  VEC specifies the connection."
   ;; command.  We must reread for the real prompt.
   (with-current-buffer (process-buffer proc)
     (when (> (point-max) (point-min)) (tramp-wait-for-output proc)))
+
   ;; Disable echo.
   (tramp-message vec 5 "Setting up remote shell environment")
   (tramp-send-command vec "stty -inlcr -echo kill '^U' erase '^H'" t)
@@ -5654,6 +5656,7 @@ process to set up.  VEC specifies the connection."
       ;; Make sure backspaces and their echo are enabled and no line
       ;; width magic interferes with them.
       (tramp-send-command vec "stty icanon erase ^H cols 32767" t)))
+
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
   (tramp-message vec 5 "Determining coding system")
@@ -5685,11 +5688,30 @@ process to set up.  VEC specifies the connection."
 	;; stty, instead.
 	(tramp-send-command vec "stty -onlcr" t))))
   (tramp-send-command vec "set +o vi +o emacs" t)
-  ;; Check whether the remote host suffers from buggy `send-process-string'.
-  ;; This is known for FreeBSD (see comment in `send_process', file process.c).
-  ;; I've tested sending 624 bytes successfully, sending 625 bytes failed.
-  ;; Emacs makes a hack when this host type is detected locally.  It cannot
-  ;; handle remote hosts, though.
+
+  ;; Check whether the output of "uname -sr" has been changed.  If
+  ;; yes, this is a strong indication that we must expire all
+  ;; connection properties.
+  (tramp-message vec 5 "Checking system information")
+  (let ((old-uname (tramp-get-connection-property vec "uname" nil))
+	(new-uname
+	 (tramp-set-connection-property
+	  vec "uname"
+	  (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\""))))
+    (when (and (stringp old-uname) (not (string-equal old-uname new-uname)))
+      (tramp-cleanup-connection vec)
+      (signal
+       'quit
+       (list (format
+	      "Connection reset, because remote host changed from `%s' to `%s'"
+	      old-uname new-uname)))))
+
+  ;; Check whether the remote host suffers from buggy
+  ;; `send-process-string'.  This is known for FreeBSD (see comment in
+  ;; `send_process', file process.c).  I've tested sending 624 bytes
+  ;; successfully, sending 625 bytes failed.  Emacs makes a hack when
+  ;; this host type is detected locally.  It cannot handle remote
+  ;; hosts, though.
   (with-connection-property proc "chunksize"
     (cond
      ((and (integerp tramp-chunksize) (> tramp-chunksize 0))
@@ -5698,12 +5720,12 @@ process to set up.  VEC specifies the connection."
       (tramp-message
        vec 5 "Checking remote host type for `send-process-string' bug")
       (if (string-match
-	   "^FreeBSD"
-	   (with-connection-property vec "uname"
-	     (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\"")))
+	   "^FreeBSD" (tramp-get-connection-property vec "uname" ""))
 	  500 0))))
+
   ;; Set remote PATH variable.
   (tramp-set-remote-path vec)
+
   ;; Search for a good shell before searching for a command which
   ;; checks if a file exists. This is done because Tramp wants to use
   ;; "test foo; echo $?" to check if various conditions hold, and
@@ -5713,8 +5735,10 @@ process to set up.  VEC specifies the connection."
   ;; with buggy /bin/sh implementations will have a working bash or
   ;; ksh.  Whee...
   (tramp-find-shell vec)
+
   ;; Disable unexpected output.
   (tramp-send-command vec "mesg n; biff n" t)
+
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
   (let ((env (copy-sequence tramp-remote-process-environment))
