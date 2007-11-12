@@ -108,4 +108,5 @@
 
 (provide 'compilation-weblint)
 
+;; arch-tag: c7e7f18f-71bd-4c43-b3d3-1d669036ef5d
 ;;; compilation-weblint.el ends here

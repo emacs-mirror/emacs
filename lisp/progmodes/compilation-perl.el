@@ -118,4 +118,5 @@
 
 (provide 'compilation-perl)
 
+;; arch-tag: 98818a96-69f4-4528-b9ea-4a357499a451
 ;;; compilation-perl.el ends here
