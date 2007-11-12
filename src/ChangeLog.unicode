@@ -1639,7 +1639,7 @@
 
 2005-07-29  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (QCascii_compatible_p): New variable. 
+	* coding.c (QCascii_compatible_p): New variable.
 	(syms_of_coding): Initialize it.
 	(ONE_MORE_BYTE): Decrement `src' before calling string_char.
 	(ONE_MORE_BYTE_NO_CHECK): Likewise.
@@ -2739,7 +2739,7 @@
 	* keyboard.c (adjust_point_for_property): Make beg and end
 	EMACS_INT.
 
-	* intervals.c (get_property_and_range)
+	* intervals.c (get_property_and_range):
 	* intervals.h (get_property_and_range): Make start and end EMACS_INT.
 
 	* unexalpha.c: Don't include varargs.h.
@@ -3277,8 +3277,8 @@
 	* coding.c (detect_coding): Fix previous change.
 	(detect_coding_charset): If only ASCII bytes are found, return 0.
 	(detect_coding_system): Fix previous change.
-	(Fdefine_coding_system_internal): Setup CODING_ATTR_ASCII_COMPAT
-	(attrs) correctly.
+	(Fdefine_coding_system_internal): Setup
+	CODING_ATTR_ASCII_COMPAT (attrs) correctly.
 
 2002-10-15  Dave Love  <fx@gnu.org>
 
@@ -3505,7 +3505,7 @@
 	here.
 	(re_compile_fastmap) [emacs]: Call analyse_first with the arg
 	multibyte always 1.
-	(re_search_2) In emacs, set the locale variable multibyte to 1,
+	(re_search_2): In emacs, set the locale variable multibyte to 1,
 	otherwise to 0.  New local variable target_multibyte.  Check it
 	to decide the multibyteness of STR1 and STR2.  If
 	target_multibyte is zero, convert unibyte chars to multibyte
