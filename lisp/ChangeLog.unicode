@@ -1,3 +1,8 @@
+2007-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (describe-language-environment):
+	Check if the specified input method exists or not.
+
 2007-11-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-do-despool): Do not force ps-lpr-switches to be a
@@ -1418,8 +1423,8 @@
 	(japanese-ucs-glibc-map): New translation tables.
 	(eucjp-ms): New coding system.
 
-	* international/mule.el (coding-system-put): Delete it
-	(implemented in C).
+	* international/mule.el (coding-system-put): Delete it.
+	It's implemented in C now.
 
 	* international/mule-conf.el (katakana-sjis): Fix :superset to
 	:subset.
@@ -2115,7 +2120,7 @@
 	(ucs-bengali-to-is13194-alist, ucs-assamese-to-is13194-alist)
 	(ucs-gurmukhi-to-is13194-alist, ucs-gujarati-to-is13194-alist)
 	(ucs-oriya-to-is13194-alist, ucs-tamil-to-is13194-alist)
-	(ucs-telugu-to-is13194-alist, ucs-malayalam-to-is13194-alist))):
+	(ucs-telugu-to-is13194-alist, ucs-malayalam-to-is13194-alist):
 	Remove declarations and let-bind them in re-written top-level loop
 	over scripts, including ucs-devanagari-to-is13194-alist.
 
@@ -2255,8 +2260,8 @@
 
 2002-08-01  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/characters.el: Call map-charset-chars on big5
-	(not chinese-big5-1/2) to set categories `c', `C', and `|'.
+	* international/characters.el: Call map-charset-chars on big5 (not
+	chinese-big5-1/2) to set categories `c', `C', and `|'.
 	(next-word-boundary-han): New function.  Register it in
 	next-word-boundary-function-table.
 	(next-word-boundary-kana): Likewise.
