@@ -1,3 +1,7 @@
+2007-11-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* ldefs-boot.el: Regenerate.
+
 2007-11-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* faces.el (face-normalize-spec): Remove function.
