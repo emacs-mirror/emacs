@@ -52,7 +52,7 @@
 
 ;;; Code:
 
-;;;###autoload (eval-after-load "compile" '(require 'compilation-weblint))
+;;;DISABLE ###autoload (eval-after-load "compile" '(require 'compilation-weblint))
 
 (eval-after-load "compile"
   '(progn

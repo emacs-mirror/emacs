@@ -55,7 +55,7 @@
 
 ;;; Code:
 
-;;;###autoload (eval-after-load "compile" '(require 'compilation-perl))
+;;;DISABLE ###autoload (eval-after-load "compile" '(require 'compilation-perl))
 
 (eval-after-load "compile"
   '(dolist

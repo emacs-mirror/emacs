@@ -1,5 +1,9 @@
 2007-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/compilation-perl.el:
+	* progmodes/compilation-weblint.el: Disable autoloads, they cause
+	a bootstrap failure.
+
 	* vc-cvs.el (vc-cvs-diff): If backup files exist, diff them
 	instead of doing "cvs diff" in order to avoid accessing the
 	repository.
