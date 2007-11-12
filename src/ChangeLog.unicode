@@ -1,3 +1,8 @@
+2007-11-12  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xfaces.c (face_for_overlay_string): Call lookup_face with
+	correct arguments (fix of synching with the trunk).
+
 2007-11-05  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_prop_validate_symbol): The argument prop_index is
@@ -389,7 +394,7 @@
 	* w32fns.c [USE_FONT_BACKEND]: Port font backend changes from xfns.c.
 	(x_to_w32_charset, w32_to_x_charset): Expose externally.
 
-	* w32font.c: New file for w32 font backend.	
+	* w32font.c: New file for w32 font backend.
 
 2007-05-28  Kenichi Handa  <handa@m17n.org>
 
@@ -534,7 +539,7 @@
 
 2007-02-20  Kenichi Handa  <handa@m17n.org>
 
-	* xterm.c (x_draw_composite_glyph_string_foreground): Fix 
+	* xterm.c (x_draw_composite_glyph_string_foreground): Fix
 	indexing into elements of s->cmp and s->char2b.
 
 2007-02-16  Juanma Barranquero  <lekktu@gmail.com>
@@ -821,7 +826,7 @@
 	font_otf_gpos.
 	(Ffont_otf_alternates): Check if the driver has otf_gsub function.
 	Call font->driver->otf_gsub instead of font_otf_gsub.
-	
+
 	* frame.c (x_set_font_backend): Do more works that were done in
 	font_update_drivers before.
 
@@ -1581,7 +1586,7 @@
 	(Fcoding_system_p): Check Qcoding_system_define_form.
 	(Fcheck_coding_system): Try to autoload the definition of
 	CODING-SYSTEM.
-	
+
 	* coding.h (CODING_SYSTEM_P): If ID is not available, call
 	Fcoding_system_p.
 	(CHECK_CODING_SYSTEM): If ID is not available, call
@@ -1695,7 +1700,7 @@
 	(setup_config, Fw32_get_clipboard_data): Use
 	validate_coding_system.
 	(Fx_selection_exists): Move call to setup_config to a place
-	were signals are allowed. 
+	were signals are allowed.
 
 	* lisp.h (Fcoding_system_base, Fcoding_system_eol_type)
 	(Fcheck_coding_system): Add declarations.
@@ -1890,7 +1895,7 @@
 	(detect_coding): Optimization for ISO-2022 when no 8-bit data is
 	found.
 	(detect_coding_system): Likewise.
-	
+
 2004-09-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_to_w32_font): Update to use new coding struct.
@@ -1903,7 +1908,7 @@
 2004-08-03  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (mac_encode_char): Add charset argument and update
-	to use encoding_type	
+	to use encoding_type.
 	(x_new_font,x_new_fontset): Merge in changes from xterm.c;
 	switch to pure fontset
 	(decode_mac_font_name): Temporarily remove decoding
@@ -2003,7 +2008,7 @@
 
 	* coding.c: Sync to HEAD.
 	(emacs_mule_char): Check invalid code more regidly.
-	
+
 	* coding.h: Sync to HEAD.
 
 	* charset.c: Sync to HEAD.
@@ -2123,7 +2128,7 @@
 	a specific size, don't change that size.
 	(try_font_list): Try a scalable font also in the case that a
 	pattern string is specified,
-	
+
 
 2004-03-03  Kenichi Handa  <handa@m17n.org>
 
@@ -2338,7 +2343,7 @@
 	(Qinvalid_source, Qinterrupted, Qinsufficient_memory): New
 	variables.
 	(Vlast_code_conversion_error): New variables.
-	(syms_of_coding): DEFSYM or DEFVAR_LISP them. 
+	(syms_of_coding): DEFSYM or DEFVAR_LISP them.
 	(ONE_MORE_BYTE): Record error if any instead of signaling an
 	error.  If non-ASCII multibyte char is found, return the negative
 	value of the code.  All callers changed to check it.
@@ -2789,7 +2794,7 @@
 	(raw_text_coding_system): Check NILP (coding_system).
 	(coding_inherit_eol_type): Check NILP (coding_system) and
 	NILP (parent).
-	(consume_chars): Fix for the case of raw-text. 
+	(consume_chars): Fix for the case of raw-text.
 
 	* process.c (read_process_output): Handle carryover correctly.
 
@@ -2829,7 +2834,7 @@
 	notsyntaxspec, categoryspec, notcategoryspec> Fetch a character
 	by GET_CHAR_AFTER.
 	(bcmp_translate):  Likewise.
-	
+
 	* search.c (compile_pattern): Check the member target_multibyte,
 	not the member multibyte of buf.
 
@@ -2935,7 +2940,7 @@
 	* lread.c (read_emacs_mule_char) [len==2]: Index
 	emacs_mule_charset correctly.
 
-2003-02-16  Dave Love  <fx@gnu.org>    	 	    	
+2003-02-16  Dave Love  <fx@gnu.org>
 
 	* coding.c (Qbig5, Vbig5_coding_system, CATEGORY_MASK_BIG5)
 	(detect_coding_big5, decode_coding_big5, encode_coding_big5)
@@ -3447,7 +3452,7 @@
 
 	* bytecode.c (Fbyte_code): Likewise.
 
-	* character.h (LEADING_CODE_LATIN_1_MIN) 
+	* character.h (LEADING_CODE_LATIN_1_MIN)
 	(LEADING_CODE_LATIN_1_MAX): New macros.
 	(unibyte_to_multibyte_table): Extern it.
 	(unibyte_char_to_multibyte): New macro.
@@ -3590,7 +3595,7 @@
 	* casetab.c (set_canon, set_identity, shuffle): Simplified.
 
 	* casefiddle.c (casify_object): Simplified.  Handle the case that
-	the case conversion change the byte length.  
+	the case conversion change the byte length.
 	(casify_region): Likewise
 
 	* character.h (MAKE_CHAR_UNIBYTE, MAKE_CHAR_MULTIBYTE): New
@@ -3809,7 +3814,7 @@
 	(lookup_face, lookup_named_face, lookup_derived_face): Prototype
 	fixed.
 	(generate_ascii_font_name): Renamed from generate_ascii_font.
-	
+
 	* fontset.h (get_font_repertory_func): New prototype.
 	(make_fontset_for_ascii_face, fs_load_font): Prototypes fixed.
 	(FS_LOAD_FONT): Call fs_load_font with the 3rd arg charset_ascii.
@@ -4023,7 +4028,7 @@
 
 	* dispextern.h (redraw_frame, redraw_garbaged_frames): Removed.
 
-	* fontset.c (fontset_ref, fontset_set, fs_load_font) 
+	* fontset.c (fontset_ref, fontset_set, fs_load_font)
 	(Ffontset_info): Convert Lisp types.
 
 	* syntax.h (SYNTAX_ENTRY_INT): Don't use make_number.
@@ -4132,7 +4137,7 @@
 
 	* config.in (HAVE_PTY_H, HAVE_SIZE_T, HAVE_LANGINFO_CODESET): New.
 	(size_t): Removed.
-	
+
 2002-06-06  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (chartab.o): Depend on charset.h
@@ -4285,7 +4290,7 @@
 	and alt&rule composition.
 	(decode_coding_iso_2022): Handle composition correctly.
 	(init_coding_once): Setup emacs_mule_bytes for private charsets.
-	
+
 	* charset.c (Fdefine_charset_internal): Fix bug for the case of
 	re-defining a charset.  If the charset has :emacs-mule-id, setup
 	emacs_mule_bytes.
@@ -4331,7 +4336,7 @@
 
 	* coding.c (Vchar_coding_system_table, Qchar_coding_system):
 	Removed.
-	(Fset_coding_system_priority, Fset_coding_system_priority) 
+	(Fset_coding_system_priority, Fset_coding_system_priority)
 	(Fdefine_coding_system_internal): Doc fix.
 
 2002-05-16  Dave Love  <fx@gnu.org>
@@ -4539,18 +4544,18 @@
 	* .gdbinit (xchartable): Adjusted for the change of char table
 	structure.
 	(xsubchartable, xcoding, xcharset, xcurbuf): New commands.
-	
+
 	* Makefile.in (obj): Add character.o and chartab.o.
 	(lisp, shortlisp): Remove utf-8.elc:
 	(*.o): For many files, change dependency on charset.h to
 	character.h, and add dependency on character.h.
 	(character.o, chartab.o): New targets.
-	
+
 	* abbrev.c, bytecode.c, casefiddle.c, cmds.c, dispnew.c, doc.c,
 	doprnt.c, dosfns.c, frame.c, marker.c, minibuf.c, msdos.c,
 	w16select.c, w32bdf.c, w32console.c: Include "character.h" instead
 	of "charset.h".
-	
+
 	* dired.c, filelock.c: Include "character.h".
 
 	* alloc.c: Include "character.h" instead of "charset.h".
@@ -4607,7 +4612,7 @@
 	(Qccl, Qcclp, Fccl_program_p): Extern them.
 	(CHECK_CCL_PROGRAM): New macro.
 
-	* character.c, character.h, chartab.c: New files. 
+	* character.c, character.h, chartab.c: New files.
 
 	* charset.c: Mostly re-written.  Character and multibyte sequence
 	handling codes are moved to character.c.
@@ -4634,7 +4639,7 @@
 
 	* disptab.h (DISP_CHAR_VECTOR): Adjusted for the change of char
 	table structure.
-	
+
 	* editfns.c: Include "character.h" instead of "charset.h".
 	(Fchar_to_string): Always call CHAR_STRING.
 
