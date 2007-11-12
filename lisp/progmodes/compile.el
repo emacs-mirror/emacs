@@ -339,6 +339,57 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      nil 2 nil 2 nil
      (0 'default t)
      (1 compilation-error-face prepend) (2 compilation-line-face prepend))
+
+    (compilation-perl--Pod::Checker
+     ;; podchecker error messages, per Pod::Checker.
+     ;; The style is from the Pod::Checker::poderror() function, eg.
+     ;; *** ERROR: Spurious text after =cut at line 193 in file foo.pm
+     ;;
+     ;; Plus end_pod() can give "at line EOF" instead of a
+     ;; number, so for that match "on line N" which is the
+     ;; originating spot, eg.
+     ;; *** ERROR: =over on line 37 without closing =back at line EOF in file bar.pm
+     ;;
+     ;; Plus command() can give both "on line N" and "at line N";
+     ;; the latter is desired and is matched because the .* is
+     ;; greedy.
+     ;; *** ERROR: =over on line 1 without closing =back (at head1) at line 3 in file x.pod
+     ;;
+     "^\\*\\*\\* \\(?:ERROR\\|\\(WARNING\\)\\).* \\(?:at\\|on\\) line \
+\\([0-9]+\\) \\(?:.* \\)?in file \\([^ \t\n]+\\)"
+     3 2 nil (1))
+    (compilation-perl--Test
+     ;; perl Test module error messages.
+     ;; Style per the ok() function "$context", eg.
+     ;; # Failed test 1 in foo.t at line 6
+     ;;
+     "^# Failed test [0-9]+ in \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
+     1 2)
+    (compilation-perl--Test::Harness
+     ;; perl Test::Harness output, eg.
+     ;; NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
+     ;;
+     ;; Test::Harness is slightly designed for tty output, since
+     ;; it prints CRs to overwrite progress messages, but if you
+     ;; run it in with M-x compile this pattern can at least step
+     ;; through the failures.
+     ;;
+     "^.*NOK.* \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
+     1 2)
+    (compilation-weblint
+     ;; The style comes from HTML::Lint::Error::as_string(), eg.
+     ;; index.html (13:1) Unknown element <fdjsk>
+     ;;
+     ;; The pattern only matches filenames without spaces, since that
+     ;; should be usual and should help reduce the chance of a false
+     ;; match of a message from some unrelated program.
+     ;;
+     ;; This message style is quite close to the "ibm" entry which is
+     ;; for IBM C, though that ibm bit doesn't put a space after the
+     ;; filename.
+     ;;
+     "^\\([^ \t\r\n(]+\\) (\\([0-9]+\\):\\([0-9]+\\)) "
+     1 2 3)
     )
   "Alist of values for `compilation-error-regexp-alist'.")
 

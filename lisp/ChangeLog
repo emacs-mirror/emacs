@@ -1,3 +1,8 @@
+2007-11-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): Insert
+	patterns from compilation-perl.el and compilation-weblint.el files.
+
 2007-11-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/compilation-perl.el:
