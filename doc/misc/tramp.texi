@@ -327,9 +327,10 @@ host, followed by a newline.
 @value{tramp} now waits for the shell prompt or for a message that the login
 failed.
 
-If @value{tramp} sees neither of them after a certain period of time (a minute,
-say), then it issues an error message saying that it couldn't find the
-remote shell prompt and shows you what the remote host has sent.
+If @value{tramp} sees neither of them after a certain period of time
+(a minute, say), then it issues an error message saying that it
+couldn't find the remote shell prompt and shows you what the remote
+host has sent.
 
 If @value{tramp} sees a @samp{login failed} message, it tells you so,
 aborts the login attempt and allows you to try again.
@@ -1601,6 +1602,19 @@ In order to avoid trouble, you must use another host name for one of
 the connections, like introducing a @option{Host} section in
 @file{~/.ssh/config} (@pxref{Frequently Asked Questions}) or applying
 multiple hops (@pxref{Multi-hops}).
+
+When @value{tramp} detects a changed operating system version on a
+remote host (via the command @command{uname -sr}), it flushes all
+connection related information for this host, quits the execution, and
+displays a message like this:
+
+@example
+Quit: "Connection reset, because remote host changed from `Linux
+2.6.22-13-generic' to `Linux 2.6.22-14-generic'"
+@end example
+
+@noindent
+You can simply open the remote file again in such a case.
 
 
 @node Remote Programs

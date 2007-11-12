@@ -1,3 +1,8 @@
+2007-11-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Connection caching): Tramp flushes connection
+	properties when remote operating system has been changed.
+
 2007-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-news.texi: Fix spelling.
