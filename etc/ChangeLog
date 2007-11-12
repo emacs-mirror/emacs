@@ -1,3 +1,9 @@
+2007-11-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* compilation.txt: Add new entries: compilation-perl--Pod::Checker,
+	compilation-perl--Test, compilation-perl--Test::Harness and
+	compilation-weblint.
+
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* MACHINES: Remove Sun windows info.
