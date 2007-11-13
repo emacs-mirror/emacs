@@ -1009,6 +1009,7 @@ If nil, selections displayed but ignored.")
       (if calc-scan-for-dels
 	  (append (where-is-internal 'delete-backward-char global-map)
 		  (where-is-internal 'backward-delete-char global-map)
+		  (where-is-internal 'backward-delete-char-untabify global-map)
 		  '("\C-d"))
 	'("\177" "\C-d")))
 
