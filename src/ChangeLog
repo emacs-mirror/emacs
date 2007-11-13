@@ -1,3 +1,8 @@
+2007-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_register_hot_key): Don't try to register hot key
+	if w32_parse_hot_key returned nil.
+
 2007-11-10  Juri Linkov  <juri@jurta.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1130000.
@@ -52,7 +57,7 @@
 2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):
-        Don't set s->stippled_p here, since it has already been set by
+	Don't set s->stippled_p here, since it has already been set by
 	x_set_glyph_string_gc from x_draw_glyph_string.
 
 2007-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -3748,7 +3753,7 @@
 	* w32.c: Fix high cpu load for server sockets.
 	(pfn_WSAEventSelect): New function ptr.
 	(init_winsock): Load it.
-	(sys_listen): Set FILE_LISTEN flag. Set event mask for socket's
+	(sys_listen): Set FILE_LISTEN flag.  Set event mask for socket's
 	char_avail event object to FD_ACCEPT.
 	(sys_accept): Check FILE_LISTEN flag.  Set event mask on new
 	socket's char_avail event object to FD_READ|FD_CLOSE.
