@@ -1,3 +1,8 @@
+2007-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_register_hot_key): Don't try to register hot key
+	if w32_parse_hot_key returned nil.
+
 2007-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (load_overlay_strings): Fix copy&paste typo.
@@ -107,7 +112,7 @@
 2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):
-        Don't set s->stippled_p here, since it has already been set by
+	Don't set s->stippled_p here, since it has already been set by
 	x_set_glyph_string_gc from x_draw_glyph_string.
 
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
