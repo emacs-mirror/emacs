@@ -1,3 +1,7 @@
+2007-11-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.texi (Help Functions): Document new macro `with-help-window'.
+
 2007-11-10  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* searching.texi (Replacing Match): Describe new
