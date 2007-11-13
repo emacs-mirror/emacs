@@ -1,3 +1,9 @@
+2007-11-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.texi (Help Summary, Apropos, Misc Help): Fix typos.
+	(Help Echo): Avoid mentioning the term "region" here and
+	consistently use the term "active text".
+
 2007-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Special Diary Entries): Fix Thanksgiving example.
