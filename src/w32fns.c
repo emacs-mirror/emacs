@@ -8263,7 +8263,7 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 {
   key = w32_parse_hot_key (key);
 
-  if (NILP (Fmemq (key, w32_grabbed_keys)))
+  if (!NILP (key) && NILP (Fmemq (key, w32_grabbed_keys)))
     {
       /* Reuse an empty slot if possible.  */
       Lisp_Object item = Fmemq (Qnil, w32_grabbed_keys);
