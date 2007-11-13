@@ -155,10 +155,10 @@ Display information on the character sets, coding systems, and input
 methods used in language environment @var{language-env}
 (@code{describe-language-environment}).
 @item C-h F @var{function} @key{RET}
-Enter Info and goes to the node that documents the Emacs function
+Enter Info and go to the node that documents the Emacs function
 @var{function} (@code{Info-goto-emacs-command-node}).
 @item C-h K @var{key}
-Enter Info and goes to the node that documents the key sequence
+Enter Info and go to the node that documents the key sequence
 @var{key} (@code{Info-goto-emacs-key-command-node}).
 @item C-h S @var{symbol} @key{RET}
 Display the Info documentation on symbol @var{symbol} according to the
@@ -296,8 +296,8 @@ be found by this command.
 Search for user-option variables whose names match @var{pattern}.
 
 @item M-x apropos-value @key{RET} @var{pattern} @key{RET}
-Search for functions whose definitions @var{pattern}, and variables
-whose values match @var{pattern}.
+Search for functions whose definitions match @var{pattern}, and
+variables whose values match @var{pattern}.
 
 @item C-h d @var{pattern} @key{RET}
 Search for functions and variables whose @strong{documentation
@@ -545,9 +545,9 @@ documentation of @var{function} or @var{key}.
 @findex info-lookup-symbol
   When editing a program, if you have an Info version of the manual
 for the programming language, you can use @kbd{C-h S}
-(@code{info-lookup-symbol}) to find symbol (keyword, function or
-variable) in the proper manual.  The details of how this command works
-depend on the major mode.
+(@code{info-lookup-symbol}) to find an entry for a symbol (keyword,
+function or variable) in the proper manual.  The details of how this
+command works depend on the major mode.
 
 @kindex C-h l
 @findex view-lossage
@@ -642,24 +642,23 @@ Emacs (@code{describe-no-warranty}).
 
 @cindex tooltips
 @cindex balloon help
-  When a region of text is ``active,'' so that you can select it with
-the mouse or a key like @kbd{RET}, it often has associated help text.
-For instance, most parts of the mode line have help text.  On
-graphical displays, the help text is displayed as a ``tooltip''
-(sometimes known as ``balloon help''), when you move the mouse over
-the active text.  @xref{Tooltips}.  On some systems, it is shown in
-the echo area.  On text-only terminals, if Emacs cannot follow the
-mouse, it cannot show the help text on mouse-over.
+  When text is ``active'', so that you can select it with the mouse or a
+key like @kbd{RET}, it often has associated help text.  For instance,
+most parts of the mode line have help text.  On graphical displays, the
+help text is displayed as a ``tooltip'' (sometimes known as ``balloon
+help'') when you move the mouse over the active text.  @xref{Tooltips}.
+On some systems, it is shown in the echo area.  On text-only terminals,
+if Emacs cannot follow the mouse, it cannot show the help text when the
+mouse is over active text.
 
 @kindex C-h .
 @findex display-local-help
 @vindex help-at-pt-display-when-idle
-  You can also access text region help info using the keyboard.  The
-command @kbd{C-h .} (@code{display-local-help}) displays any help text
-associated with the text at point, using the echo area.  If you want
-help text to be displayed automatically whenever it is available at
-point, set the variable @code{help-at-pt-display-when-idle} to
-@code{t}.
+  You can also access help text for active text using the keyboard.
+The command @kbd{C-h .} (@code{display-local-help}) displays any help
+text associated with the text at point, using the echo area.  If you
+want help text to be displayed automatically whenever it is available at
+point, set the variable @code{help-at-pt-display-when-idle} to @code{t}.
 
 @ignore
    arch-tag: 6f33ab62-bc75-4367-8057-fd67cc15c3a1
