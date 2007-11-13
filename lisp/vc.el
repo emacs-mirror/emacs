@@ -1535,8 +1535,9 @@ merge in the changes into your working copy."
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
-(defun vc-register (&optional set-revision comment)
-  "Register the current file into a version control system.
+(defun vc-register (&optional fname set-revision comment)
+  "Register into a version control system.
+If FNAME is given register that file, otherwise register the current file.
 With prefix argument SET-REVISION, allow user to specify initial revision
 level.  If COMMENT is present, use that as an initial comment.
 
@@ -1547,40 +1548,44 @@ directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used."
   (interactive "P")
-  (unless buffer-file-name (error "No visited file"))
-  (when (vc-backend buffer-file-name)
-    (if (vc-registered buffer-file-name)
-	(error "This file is already registered")
-      (unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
-	(error "Aborted"))))
-  ;; Watch out for new buffers of size 0: the corresponding file
-  ;; does not exist yet, even though buffer-modified-p is nil.
-  (if (and (not (buffer-modified-p))
-	   (zerop (buffer-size))
-	   (not (file-exists-p buffer-file-name)))
-      (set-buffer-modified-p t))
-  (vc-buffer-sync)
+  (when (and (null fname) (null buffer-file-name)) (error "No visited file"))
 
-  (vc-start-entry (list buffer-file-name)
-                  (if set-revision
-                      (read-string (format "Initial revision level for %s: "
-					   (buffer-name)))
-		    (vc-call-backend (vc-responsible-backend buffer-file-name)
-				     'init-revision))
-                  (or comment (not vc-initial-comment))
-		  nil
-                  "Enter initial comment."
-		  (lambda (files rev comment)
-		    (dolist (file files)
-		      (message "Registering %s... " file)
-		      (let ((backend (vc-responsible-backend file t)))
-			(vc-file-clearprops file)
-			(vc-call-backend backend 'register (list file) rev comment)
-			(vc-file-setprop file 'vc-backend backend)
-			(unless vc-make-backup-files
-			  (make-local-variable 'backup-inhibited)
-			  (setq backup-inhibited t)))
-		      (message "Registering %s... done" file)))))
+  (let ((bname (if fname (get-file-buffer fname) buffer-file-name)))
+    (unless fname (setq fname buffer-file-name))
+    (when (vc-backend fname)
+      (if (vc-registered fname)
+	  (error "This file is already registered")
+	(unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
+	  (error "Aborted"))))
+    ;; Watch out for new buffers of size 0: the corresponding file
+    ;; does not exist yet, even though buffer-modified-p is nil.
+    (when bname
+      (with-current-buffer bname
+	(if (and (not (buffer-modified-p))
+		 (zerop (buffer-size))
+		 (not (file-exists-p buffer-file-name)))
+	    (set-buffer-modified-p t))
+	(vc-buffer-sync)))
+    (vc-start-entry (list fname)
+		    (if set-revision
+			(read-string (format "Initial revision level for %s: "
+					     fname))
+		      (vc-call-backend (vc-responsible-backend fname)
+				       'init-revision))
+		    (or comment (not vc-initial-comment))
+		    nil
+		    "Enter initial comment."
+		    (lambda (files rev comment)
+		      (dolist (file files)
+			(message "Registering %s... " file)
+			(let ((backend (vc-responsible-backend file t)))
+			  (vc-file-clearprops file)
+			  (vc-call-backend backend 'register (list file) rev comment)
+			  (vc-file-setprop file 'vc-backend backend)
+			  (unless vc-make-backup-files
+			    (make-local-variable 'backup-inhibited)
+			    (setq backup-inhibited t)))
+			(message "Registering %s... done" file))))))
 
 (defun vc-register-with (backend)
   "Register the current file with a specified back end."
