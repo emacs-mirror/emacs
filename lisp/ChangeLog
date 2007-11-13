@@ -4,6 +4,7 @@
 	bindings to remap when `calc-scan-for-dels' is non-nil.
 
 2007-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* emacs-lisp/byte-opt.el (byte-compile-trueconstp): Handle more
 	constant forms.
 	(byte-compile-nilconstp): New function.
