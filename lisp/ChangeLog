@@ -1,3 +1,13 @@
+2007-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-compile-trueconstp): Handle more
+	constant forms.
+	(byte-compile-nilconstp): New function.
+	(byte-optimize-cond): Kill subsequent branches when a branch is
+	know to be taken or not taken.
+	(byte-optimize-if): Use byte-compile-nilconstp instead of hand
+	coding.
+
 2007-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-register): Allow registering a file passed as a

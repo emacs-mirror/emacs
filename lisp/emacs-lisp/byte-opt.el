@@ -185,6 +185,7 @@
 ;;; Code:
 
 (require 'bytecomp)
+(eval-when-compile (require 'cl))
 
 (defun byte-compile-log-lap-1 (format &rest args)
   (if (aref byte-code-vector 0)
@@ -626,12 +627,24 @@
 ;; It is now safe to optimize code such that it introduces new bindings.
 
 ;; I'd like this to be a defsubst, but let's not be self-referential...
-(defmacro byte-compile-trueconstp (form)
-  ;; Returns non-nil if FORM is a non-nil constant.
-  `(cond ((consp ,form) (eq (car ,form) 'quote))
-	 ((not (symbolp ,form)))
-	 ((eq ,form t))
-	 ((keywordp ,form))))
+(defsubst byte-compile-trueconstp (form)
+  "Return non-nil if FORM always evaluates to a non-nil value."
+  (cond ((consp form)
+         (case (car form)
+           (quote (cadr form))
+           (progn (byte-compile-trueconstp (car (last (cdr form)))))))
+        ((not (symbolp form)))
+        ((eq form t))
+        ((keywordp form))))
+
+(defsubst byte-compile-nilconstp (form)
+  "Return non-nil if FORM always evaluates to a nil value."
+  (cond ((consp form)
+         (case (car form)
+           (quote (null (cadr form)))
+           (progn (byte-compile-nilconstp (car (last (cdr form)))))))
+        ((not (symbolp form)) nil)
+        ((null form))))
 
 ;; If the function is being called with constant numeric args,
 ;; evaluate as much as possible at compile-time.  This optimizer
@@ -990,17 +1003,17 @@
     (setq rest form)
     (while (setq rest (cdr rest))
       (cond ((byte-compile-trueconstp (car-safe (car rest)))
-	     (cond ((eq rest (cdr form))
-		    (setq form
-			  (if (cdr (car rest))
-			      (if (cdr (cdr (car rest)))
-				  (cons 'progn (cdr (car rest)))
-				(nth 1 (car rest)))
-			    (car (car rest)))))
+             ;; This branch will always be taken: kill the subsequent ones.
+	     (cond ((eq rest (cdr form)) ;First branch of `cond'.
+		    (setq form `(progn ,@(car rest))))
 		   ((cdr rest)
 		    (setq form (copy-sequence form))
 		    (setcdr (memq (car rest) form) nil)))
-	     (setq rest nil)))))
+	     (setq rest nil))
+            ((and (consp (car rest))
+                  (byte-compile-nilconstp (caar rest)))
+             ;; This branch will never be taken: kill its body.
+             (setcdr (car rest) nil)))))
   ;;
   ;; Turn (cond (( <x> )) ... ) into (or <x> (cond ... ))
   (if (eq 'cond (car-safe form))
@@ -1031,11 +1044,9 @@
                      (byte-optimize-if
                       `(if ,(car (last clause)) ,@(nthcdr 2 form)))))))
           ((byte-compile-trueconstp clause)
-	   (nth 2 form))
-	  ((null clause)
-	   (if (nthcdr 4 form)
-	       (cons 'progn (nthcdr 3 form))
-	     (nth 3 form)))
+	   `(progn ,clause ,(nth 2 form)))
+	  ((byte-compile-nilconstp clause)
+           `(progn ,clause ,@(nthcdr 3 form)))
 	  ((nth 2 form)
 	   (if (equal '(nil) (nthcdr 3 form))
 	       (list 'if clause (nth 2 form))
