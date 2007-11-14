@@ -73,10 +73,6 @@ extern int quit_char;
 
 extern char *lispy_function_keys[];
 
-/* The gray bitmap `bitmaps/gray'.  This is done because w32term.c uses
-   it, and including `bitmaps/gray' more than once is a problem when
-   config.h defines `static' as an empty replacement string.  */
-
 /* The colormap for converting color names to RGB values */
 Lisp_Object Vw32_color_map;
 
