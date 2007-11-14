@@ -455,7 +455,7 @@ x_real_positions (f, xptr, yptr)
 DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color,
        Sw32_define_rgb_color, 4, 4, 0,
        doc: /* Convert RGB numbers to a windows color reference and associate with NAME.
-This adds or updates a named color to w32-color-map, making it
+This adds or updates a named color to `w32-color-map', making it
 available for use.  The original entry's RGB ref is returned, or nil
 if the entry is new.  */)
     (red, green, blue, name)
@@ -495,7 +495,7 @@ if the entry is new.  */)
 DEFUN ("w32-load-color-file", Fw32_load_color_file,
        Sw32_load_color_file, 1, 1, 0,
        doc: /* Create an alist of color entries from an external file.
-Assign this value to w32-color-map to replace the existing color map.
+Assign this value to `w32-color-map' to replace the existing color map.
 
 The file should define one named RGB color per line like so:
   R G B   name
@@ -6513,8 +6513,8 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
        doc: /* Returns the version numbers of the server of DISPLAY.
 The value is a list of three integers: the major and minor
-version numbers of the X Protocol in use, and the distributor-specific release
-number.  See also the function `x-server-vendor'.
+version numbers of the X Protocol in use, and the distributor-specific
+release number.  See also the function `x-server-vendor'.
 
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
@@ -6624,7 +6624,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Returns t if DISPLAY supports the save-under feature.
+       doc: /* Return t if DISPLAY supports the save-under feature.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -8113,13 +8113,13 @@ DOCUMENT is typically the name of a document file or a URL, but can
 also be a program executable to run, or a directory to open in the
 Windows Explorer.
 
-If DOCUMENT is a program executable, the optional arg PARAMETERS can
-be a string containing command line parameters that will be passed to
-the program; otherwise, PARAMETERS should be nil or unspecified.
+If DOCUMENT is a program executable, the optional third arg PARAMETERS
+can be a string containing command line parameters that will be passed
+to the program; otherwise, PARAMETERS should be nil or unspecified.
 
-Second optional argument SHOW-FLAG can be used to control how the
+Optional fourth argument SHOW-FLAG can be used to control how the
 application will be displayed when it is invoked.  If SHOW-FLAG is nil
-or unspceified, the application is displayed normally, otherwise it is
+or unspecified, the application is displayed normally, otherwise it is
 an integer representing a ShowWindow flag:
 
   0 - start hidden
@@ -8563,10 +8563,10 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
 	  /* a remote printer */
 	  if (*ppi2->pServerName == '\\')
 	    _snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
-		      ppi2->pShareName);
+		       ppi2->pShareName);
 	  else
 	    _snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
-		      ppi2->pShareName);
+		       ppi2->pShareName);
 	  pname_buf[sizeof (pname_buf) - 1] = '\0';
 	}
       else
@@ -9095,7 +9095,8 @@ versions of Windows) characters.  */);
 	variable initialized is 0 and directly from main when initialized
 	is non zero.
  */
-void globals_of_w32fns ()
+void
+globals_of_w32fns ()
 {
   HMODULE user32_lib = GetModuleHandle ("user32.dll");
   /*
