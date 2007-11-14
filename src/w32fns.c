@@ -4139,7 +4139,7 @@ unwind_create_frame (frame)
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new window, which is called a \"frame\" in Emacs terms.
-Returns an Emacs frame object.
+Return an Emacs frame object.
 PARAMETERS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
@@ -6415,7 +6415,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
        Sx_display_pixel_width, 0, 1, 0,
-       doc: /* Returns the width in pixels of DISPLAY.
+       doc: /* Return the width in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6429,7 +6429,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Returns the height in pixels of DISPLAY.
+       doc: /* Return the height in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6443,7 +6443,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Returns the number of bitplanes of DISPLAY.
+       doc: /* Return the number of bitplanes of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6457,7 +6457,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
-       doc: /* Returns the number of color cells of DISPLAY.
+       doc: /* Return the number of color cells of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6487,7 +6487,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
-       doc: /* Returns the maximum request size of the server of DISPLAY.
+       doc: /* Return the maximum request size of the server of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6500,7 +6500,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Returns the "vendor ID" string of the W32 system (Microsoft).
+       doc: /* Return the "vendor ID" string of the W32 system (Microsoft).
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6511,7 +6511,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Returns the version numbers of the server of DISPLAY.
+       doc: /* Return the version numbers of the server of DISPLAY.
 The value is a list of three integers: the major and minor
 version numbers of the X Protocol in use, and the distributor-specific
 release number.  See also the function `x-server-vendor'.
@@ -6528,7 +6528,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
-       doc: /* Returns the number of screens on the server of DISPLAY.
+       doc: /* Return the number of screens on the server of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6540,7 +6540,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height,
        Sx_display_mm_height, 0, 1, 0,
-       doc: /* Returns the height in millimeters of DISPLAY.
+       doc: /* Return the height in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6561,7 +6561,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-       doc: /* Returns the width in millimeters of DISPLAY.
+       doc: /* Return the width in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6584,7 +6584,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Returns an indication of whether DISPLAY does backing store.
+       doc: /* Return an indication of whether DISPLAY does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
@@ -6597,7 +6597,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
        Sx_display_visual_class, 0, 1, 0,
-       doc: /* Returns the visual class of DISPLAY.
+       doc: /* Return the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
@@ -8009,7 +8009,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 2, 0,
        doc: /* Select a font for the named FRAME using the W32 font dialog.
-Returns an X-style font string corresponding to the selection.
+Return an X-style font string corresponding to the selection.
 
 If FRAME is omitted or nil, it defaults to the selected frame.
 If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
