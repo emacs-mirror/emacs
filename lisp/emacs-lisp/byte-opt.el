@@ -626,7 +626,6 @@
 ;;
 ;; It is now safe to optimize code such that it introduces new bindings.
 
-;; I'd like this to be a defsubst, but let's not be self-referential...
 (defsubst byte-compile-trueconstp (form)
   "Return non-nil if FORM always evaluates to a non-nil value."
   (cond ((consp form)
