@@ -1,3 +1,14 @@
+2007-11-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-parent-bptno-enabled): New variable.
+	(gdb-breakpoint-regexp, gdb-mouse-toggle-breakpoint-margin)
+	(gdb-mouse-toggle-breakpoint-fringe, gdb-delete-breakpoint)
+	(gdb-goto-breakpoint): Generalise for breakpoints with multiple
+	locations.
+	(gdb-info-breakpoints-custom, gdb-assembler-custom)
+	(gdb-toggle-breakpoint): Update for new gdb-breakpoint-regexp.
+	(gdb-put-breakpoint-icon): Only display icon for parent breakpoint.
+
 2007-11-13  Noah Friedman  <friedman@splode.com>
 
 	* calc/calc.el: Add `backward-delete-char-untabify' to the list of
