@@ -1,3 +1,12 @@
+2007-11-14  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* lread.c (READCHAR): Call readchar with the 2nd arg NULL.
+	(READCHAR_REPORT_MULTIBYTE): New macro.
+	(readchar): New 2nd arg MULTIBYTE.
+	(read1): Use READCHAR_REPORT_MULTIBYTE for the first read.  Make
+	symbol's name multibyte according to the multibyteness of the
+	source.
+
 2007-11-12  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (face_for_overlay_string): Call lookup_face with
