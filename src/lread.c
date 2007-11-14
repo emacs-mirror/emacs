@@ -250,8 +250,11 @@ static int readbyte_from_string P_ ((int, Lisp_Object));
 
    These macros correctly read/unread multibyte characters.  */
 
-#define READCHAR readchar (readcharfun)
+#define READCHAR readchar (readcharfun, NULL)
 #define UNREAD(c) unreadchar (readcharfun, c)
+
+/* Same as READCHAR but set *MULTIBYTE to the multibyteness of the source.  */
+#define READCHAR_REPORT_MULTIBYTE(multibyte) readchar (readcharfun, multibyte)
 
 /* When READCHARFUN is Qget_file_char, Qget_emacs_mule_file_char,
    Qlambda, or a cons, we use this to keep an unread character because
@@ -260,8 +263,9 @@ static int readbyte_from_string P_ ((int, Lisp_Object));
 static int unread_char;
 
 static int
-readchar (readcharfun)
+readchar (readcharfun, multibyte)
      Lisp_Object readcharfun;
+     int *multibyte;
 {
   Lisp_Object tem;
   register int c;
@@ -269,6 +273,9 @@ readchar (readcharfun)
   unsigned char buf[MAX_MULTIBYTE_LENGTH];
   int i, len;
   int emacs_mule_encoding = 0;
+
+  if (multibyte)
+    *multibyte = 0;
 
   readchar_count++;
 
@@ -287,6 +294,8 @@ readchar (readcharfun)
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
 	  BUF_INC_POS (inbuffer, pt_byte);
 	  c = STRING_CHAR (p, pt_byte - orig_pt_byte);
+	  if (multibyte)
+	    *multibyte = 1;
 	}
       else
 	{
@@ -314,6 +323,8 @@ readchar (readcharfun)
 	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
 	  BUF_INC_POS (inbuffer, bytepos);
 	  c = STRING_CHAR (p, bytepos - orig_bytepos);
+	  if (multibyte)
+	    *multibyte = 1;
 	}
       else
 	{
@@ -345,11 +356,20 @@ readchar (readcharfun)
     {
       if (read_from_string_index >= read_from_string_limit)
 	c = -1;
+      else if (STRING_MULTIBYTE (readcharfun))
+	{
+	  if (multibyte)
+	    *multibyte = 1;
+	  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, readcharfun,
+					      read_from_string_index,
+					      read_from_string_index_byte);
+	}
       else
-	FETCH_STRING_CHAR_ADVANCE (c, readcharfun,
-				   read_from_string_index,
-				   read_from_string_index_byte);
-
+	{
+	  c = SREF (readcharfun, read_from_string_index_byte);
+	  read_from_string_index++;
+	  read_from_string_index_byte++;
+	}
       return c;
     }
 
@@ -387,7 +407,11 @@ readchar (readcharfun)
       return c;
     }
   c = (*readbyte) (-1, readcharfun);
-  if (c < 0 || ASCII_BYTE_P (c) || load_each_byte)
+  if (c < 0 || load_each_byte)
+    return c;
+  if (multibyte)
+    *multibyte = 1;
+  if (ASCII_BYTE_P (c))
     return c;
   if (emacs_mule_encoding)
     return read_emacs_mule_char (c, readbyte, readcharfun);
@@ -2288,13 +2312,14 @@ read1 (readcharfun, pch, first_in_list)
 {
   register int c;
   int uninterned_symbol = 0;
+  int multibyte;
 
   *pch = 0;
   load_each_byte = 0;
 
  retry:
 
-  c = READCHAR;
+  c = READCHAR_REPORT_MULTIBYTE (&multibyte);
   if (c < 0)
     end_of_file_error ();
 
@@ -2868,7 +2893,10 @@ read1 (readcharfun, pch, first_in_list)
 		  quoted = 1;
 		}
 
-	      p += CHAR_STRING (c, p);
+	      if (multibyte)
+		p += CHAR_STRING (c, p);
+	      else
+		*p++ = c;
 	      c = READCHAR;
 	    }
 
@@ -2964,8 +2992,12 @@ read1 (readcharfun, pch, first_in_list)
 	      }
 	  }
 	{
-	  Lisp_Object result = uninterned_symbol ? make_symbol (read_buffer)
-	    : intern (read_buffer);
+	  Lisp_Object name = make_specified_string (read_buffer, -1,
+						    p - read_buffer,
+						    multibyte);
+	  Lisp_Object result = (uninterned_symbol ? Fmake_symbol (name)
+				: Fintern (name, Qnil));
+
 	  if (EQ (Vread_with_symbol_positions, Qt)
 	      || EQ (Vread_with_symbol_positions, readcharfun))
 	    Vread_symbol_positions_list =
