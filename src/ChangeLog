@@ -9,8 +9,11 @@
 	(Vw32_charset_info_alist, w32_to_x_color, w32_init_class)
 	(w32_createscrollbar, w32_createwindow, my_post_msg, w32_get_modifiers)
 	(w32_grabbed_keys, cancel_all_deferred_msgs): Make static.
+	(Fw32_define_rgb_color, Fw32_load_color_file, Fx_display_save_under)
 	(syms_of_w32fns) <w32-pass-multimedia-buttons-to-system>:
-	Fix typos in docstring.
+	Fix typos in docstrings.
+	(Fx_server_version): Reflow docstring.
+	(Fw32_shell_execute): Doc fixes.
 
 2007-11-13  Juanma Barranquero  <lekktu@gmail.com>
 
