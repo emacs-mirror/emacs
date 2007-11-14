@@ -1,3 +1,13 @@
+2007-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_registered_hot_keys): Don't return the nil values
+	corresponding to deleted entries; they are an implementation detail.
+	(gray_bitmap_width, gray_bitmap_height, gray_bitmap_bits):
+	Remove variables.
+	(Fw32_define_rgb_color, Fw32_load_color_file): Fix typos in docstrings.
+	(Fx_server_version): Reflow docstring.
+	(Fw32_shell_execute): Doc fixes.
+
 2007-11-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fw32_register_hot_key): Don't try to register hot key
