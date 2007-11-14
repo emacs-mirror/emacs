@@ -1,3 +1,8 @@
+2007-11-14  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Set
+	default-file-name-coding-system from system defaults on Windows.
+
 2007-11-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-parent-bptno-enabled): New variable.
