@@ -9667,6 +9667,11 @@ is like @kbd{M-x} except that it enters the initial string @samp{calc-}
 for you.  For example, the following key sequences are equivalent:
 @kbd{S}, @kbd{M-x calc-sin @key{RET}}, @kbd{x sin @key{RET}}.
 
+Although Calc is designed to be used from the keyboard, some of
+Calc's more common commands are available from a menu.  In the menu, the
+arguments to the functions are given by referring to their stack level
+numbers.
+
 @cindex Extensions module
 @cindex @file{calc-ext} module
 The Calculator exists in many parts.  When you type @kbd{C-x * c}, the
