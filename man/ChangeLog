@@ -1,3 +1,16 @@
+2007-11-15  Richard Stallman  <rms@gnu.org>
+
+	* cl.texi (Equality Predicates): Delete `eql'.
+	(Predicates, Naming Conventions, Top): Delete `eql'.
+	(Common Lisp Compatibility): Delete `eql'.
+	(Porting Common Lisp): Delete obsolete backquote info.
+	Minor clarification about character constants.
+	(Sequence Basics): Minor clarification.
+
+2007-11-15  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* mule.texi (Communication Coding): Document x-select-request-type.
+
 2007-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Special Diary Entries): Fix Thanksgiving example.
