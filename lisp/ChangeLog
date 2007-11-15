@@ -1,3 +1,20 @@
+2007-11-15  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (esc-map): Bind C-M-l here; moved from reposition.el.
+
+	* reposition.el (reposition-window):
+	Binding C-M-l moved to bindings.el.
+
+	* bindings.el (ctl-x-4-map): Bind C-x 4 a here; moved from add-log.el.
+
+	* add-log.el (add-change-log-entry-other-window):
+	Key binding C-x 4 a moved to bindings.el.
+
+	* bindings.el (minibuffer-local-map): Bind C-tab here; moved
+	from filecache.el.
+
+	* filecache.el: Minibuffer map bindings moved to bindings.el.
+
 2007-11-14  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule-cmds.el (set-locale-environment): Set
