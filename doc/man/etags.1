@@ -59,9 +59,9 @@ table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
 Files specified with relative file names will be recorded in the tag
 table with file names relative to the directory where the tag table
-resides.  If the tag table is in /dev, however, the file names are made
-relative to the working directory.  Files specified with absolute file
-names will be recorded
+resides.  If the tag table is in /dev or is the standard output,
+however, the file names are made relative to the working directory.
+Files specified with absolute file names will be recorded
 with absolute file names.  Files generated from a source file\-\-like
 a C file generated from a source Cweb file\-\-will be recorded with
 the name of the source file.
@@ -149,8 +149,9 @@ May be used (only once) in place of a file name on the command line.
 as belonging to the file \fBFILE\fP.
 .TP
 \fB\-o\fP \fItagfile\fP, \fB\-\-output=\fItagfile\fP
-Explicit name of file for tag table; overrides default \fBTAGS\fP or
-\fBtags\fP.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
+Explicit name of file for tag table; for \fBetags\fP only, a file name
+of \- means standard output; overrides default \fBTAGS\fP or \fBtags\fP.
+(But ignored with \fB\-v\fP or \fB\-x\fP.)
 .TP
 \fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP
 
