@@ -6548,7 +6548,8 @@ parse_modifiers (symbol)
 DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,
        Sevent_symbol_parse_modifiers, 1, 1, 0,
        doc: /* Parse the event symbol.  For internal use.  */)
-  (symbol)
+     (symbol)
+     Lisp_Object symbol;
 {
   /* Fill the cache if needed.  */
   parse_modifiers (symbol);
