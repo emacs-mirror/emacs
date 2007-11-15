@@ -286,7 +286,7 @@ enabled."
   "*If non-nil, only highlight region if marked with S-<move>.
 When this is non-nil, CUA toggles `transient-mark-mode' on when the region
 is marked using shifted movement keys, and off when the mark is cleared.
-But when the mark was set using \\[cua-set-mark], transient-mark-mode
+But when the mark was set using \\[cua-set-mark], Transient Mark mode
 is not turned on."
   :type 'boolean
   :group 'cua)
@@ -406,8 +406,8 @@ and after the region marked by the rectangle to search."
   "Global key used to toggle the cua rectangle mark."
   :set #'(lambda (symbol value)
 	   (set symbol value)
-	   (when (and (boundp 'cua--keymaps-initalized)
-		      cua--keymaps-initalized)
+	   (when (and (boundp 'cua--keymaps-initialized)
+		      cua--keymaps-initialized)
 	     (define-key cua-global-keymap value
 	       'cua-set-rectangle-mark)
 	     (when (boundp 'cua--rectangle-keymap)
@@ -954,8 +954,8 @@ If global mark is active, copy from register or one character."
 
 (defun cua-paste-pop (arg)
   "Replace a just-pasted text or rectangle with a different text.
-See `yank-pop' for details about the default behaviour.  For an alternative
-behaviour, see `cua-paste-pop-rotate-temporarily'."
+See `yank-pop' for details about the default behavior.  For an alternative
+behavior, see `cua-paste-pop-rotate-temporarily'."
   (interactive "P")
   (cond
    ((eq last-command 'cua--paste-rectangle)
@@ -1330,8 +1330,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 (defvar cua--cua-keys-keymap (make-sparse-keymap))
 (defvar cua--prefix-override-keymap (make-sparse-keymap))
 (defvar cua--prefix-repeat-keymap (make-sparse-keymap))
-(defvar cua--global-mark-keymap (make-sparse-keymap)) ; Initalized when cua-gmrk.el is loaded
-(defvar cua--rectangle-keymap (make-sparse-keymap))   ; Initalized when cua-rect.el is loaded
+(defvar cua--global-mark-keymap (make-sparse-keymap)) ; Initialized when cua-gmrk.el is loaded
+(defvar cua--rectangle-keymap (make-sparse-keymap))   ; Initialized when cua-rect.el is loaded
 (defvar cua--region-keymap (make-sparse-keymap))
 
 (defvar cua--ena-cua-keys-keymap nil)
@@ -1374,7 +1374,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(and cua--global-mark-active
 	     (not (window-minibuffer-p)))))
 
-(defvar cua--keymaps-initalized nil)
+(defvar cua--keymaps-initialized nil)
 
 (defun cua--shift-control-prefix (prefix arg)
   ;; handle S-C-x and S-C-c by emulating the fast double prefix function.
@@ -1538,9 +1538,9 @@ shifted movement key, set `cua-highlight-region-shift-only'."
   (setq mark-even-if-inactive t)
   (setq highlight-nonselected-windows nil)
 
-  (unless cua--keymaps-initalized
+  (unless cua--keymaps-initialized
     (cua--init-keymaps)
-    (setq cua--keymaps-initalized t))
+    (setq cua--keymaps-initialized t))
 
   (if cua-mode
       (progn
