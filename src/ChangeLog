@@ -1,3 +1,7 @@
+2007-11-15  Andreas Schwab  <schwab@suse.de>
+
+	* keyboard.c (Fevent_symbol_parse_modifiers): Fix declaration.
+
 2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (Fevent_symbol_parse_modifiers): New function.
