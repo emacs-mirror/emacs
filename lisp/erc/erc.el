@@ -1924,7 +1924,7 @@ already connected and just create a separate buffer for the new
 target CHANNEL.
 
 Use PASSWD as user password on the server.  If TGT-LIST is
-non-nil, use it to initialise `erc-default-recipients'.
+non-nil, use it to initialize `erc-default-recipients'.
 
 Returns the buffer for the given server or channel."
   (let ((server-announced-name (when (and (boundp 'erc-session-server)
