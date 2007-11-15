@@ -1098,6 +1098,7 @@
   calc-mode-map
   "Menu for Calc."
   (list "Calc"
+        :visible '(eq major-mode 'calc-mode)
         calc-arithmetic-menu
         calc-scientific-function-menu
         calc-algebra-menu
