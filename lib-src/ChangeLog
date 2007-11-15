@@ -1,3 +1,8 @@
+2007-11-15  Masatake YAMATO  <jet@gyve.org>
+
+	* etags.c (C_entries): In case '}', set fvdef to fvnone
+	unconditioned to (!ignoreindent && lp == newlb.buffer + 1).
+
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c: Add a wrapper for getenv so it also checks the
