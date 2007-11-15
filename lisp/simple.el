@@ -5646,7 +5646,7 @@ front of the list of recently selected ones."
 ;;; Handling of Backspace and Delete keys.
 
 (defcustom normal-erase-is-backspace 'maybe
-  "Set the default behaviour of the Delete and Backspace keys.
+  "Set the default behavior of the Delete and Backspace keys.
 
 If set to t, Delete key deletes forward and Backspace key deletes
 backward.
@@ -5654,7 +5654,7 @@ backward.
 If set to nil, both Delete and Backspace keys delete backward.
 
 If set to 'maybe (which is the default), Emacs automatically
-selects a behaviour.  On window systems, the behaviour depends on
+selects a behavior.  On window systems, the behavior depends on
 the keyboard used.  If the keyboard has both a Backspace key and
 a Delete key, and both are mapped to their usual meanings, the
 option's default value is set to t, so that Backspace can be used
