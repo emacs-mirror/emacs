@@ -286,7 +286,7 @@ enabled."
   "*If non-nil, only highlight region if marked with S-<move>.
 When this is non-nil, CUA toggles `transient-mark-mode' on when the region
 is marked using shifted movement keys, and off when the mark is cleared.
-But when the mark was set using \\[cua-set-mark], transient-mark-mode
+But when the mark was set using \\[cua-set-mark], Transient Mark mode
 is not turned on."
   :type 'boolean
   :group 'cua)
@@ -951,8 +951,8 @@ If global mark is active, copy from register or one character."
 
 (defun cua-paste-pop (arg)
   "Replace a just-pasted text or rectangle with a different text.
-See `yank-pop' for details about the default behaviour.  For an alternative
-behaviour, see `cua-paste-pop-rotate-temporarily'."
+See `yank-pop' for details about the default behavior.  For an alternative
+behavior, see `cua-paste-pop-rotate-temporarily'."
   (interactive "P")
   (cond
    ((eq last-command 'cua--paste-rectangle)
