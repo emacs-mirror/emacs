@@ -1,3 +1,11 @@
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
+	Fix typo in docstring.
+
+	* emulation/cua-base.el (cua-paste-pop): Fix typo in docstring.
+	(cua-highlight-region-shift-only): Doc fix.
+
 2007-11-15  Richard Stallman  <rms@gnu.org>
 
 	* bindings.el (esc-map): Bind C-M-l here; moved from reposition.el.
