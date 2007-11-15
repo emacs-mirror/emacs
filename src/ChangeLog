@@ -1,5 +1,7 @@
 2007-11-15  Andreas Schwab  <schwab@suse.de>
 
+	* editfns.c (Fformat): Correctly format EMACS_INT values.
+
 	* keyboard.c (Fevent_symbol_parse_modifiers): Fix declaration.
 
 2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
