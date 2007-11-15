@@ -1,5 +1,9 @@
 2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emulation/cua-base.el (cua--pre-command-handler-1):
+	Use input-decode-map instead of function-key-map.
+	Use event-modifiers now that it works reliably.
+
 	* vc.el (vc-diff-internal): Pop-to-buffer later.
 
 	* subr.el (event-modifiers): Use internal-event-symbol-parse-modifiers.
