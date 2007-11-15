@@ -75,7 +75,7 @@
     ("\\.\\(tar\\|arj\\|zip\\|zoo\\|arc\\|gz\\|Z\\|lzh\\|ar\\|lha\\)$"
      "gnus-uu-archive"))
   "*Default actions to be taken when the user asks to view a file.
-To change the behaviour, you can either edit this variable or set
+To change the behavior, you can either edit this variable or set
 `gnus-uu-user-view-rules' to something useful.
 
 For example:
@@ -95,7 +95,7 @@ at that point in the command string.  If there's no \"%s\" in the
 command string, the file name will be appended to the command string
 before executing.
 
-There are several user variables to tailor the behaviour of gnus-uu to
+There are several user variables to tailor the behavior of gnus-uu to
 your needs.  First we have `gnus-uu-user-view-rules', which is the
 variable gnus-uu first consults when trying to decide how to view a
 file.  If this variable contains no matches, gnus-uu examines the
@@ -393,7 +393,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
    (list current-prefix-arg
 	 (read-file-name
 	  (if gnus-uu-save-separate-articles
-	      "Save articles is dir: "
+	      "Save articles in dir: "
 	    "Save articles in file: ")
 	  gnus-uu-default-dir
 	  gnus-uu-default-dir)))
