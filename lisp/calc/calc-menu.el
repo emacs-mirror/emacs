@@ -203,7 +203,7 @@
   "Menu for Calc's arithmetic functions.")
 
 (defvar calc-scientific-function-menu
-  (list "Scientific functions"
+  (list "Scientific Functions"
         (list "Constants"
               ["pi"
                (progn
@@ -231,7 +231,7 @@
                    (call-interactively 'calc-pi)))
                :keys "I P"
                :help "Euler's constant"])
-        (list "Logs and exps"
+        (list "Logs and Exps"
               ["ln(1:)" 
                (progn 
                  (require 'calc-math) 
@@ -264,7 +264,7 @@
               ["(2:) ^ (1:)"  
                calc-power 
                :keys "^"])
-        (list "Trig functions"
+        (list "Trigonometric Functions"
               ["sin(1:)"  
                (progn
                  (require 'calc-math)
@@ -300,7 +300,7 @@
                  (require 'calc-math)
                  (call-interactively 'calc-arctan2))
                :keys "f T"]
-              "--Angle measure--"
+              "--Angle Measure--"
               ["Radians"
                (progn
                  (require 'calc-math)
@@ -353,7 +353,7 @@
                  (require 'calc-math)
                  (call-interactively 'calc-arctanh))
                :keys "I H T"])
-        (list "Advanced math"
+        (list "Advanced Math Functions"
               ["Gamma(1:)" 
                (progn
                  (require 'calc-comb)
@@ -396,7 +396,7 @@
                  (call-interactively 'calc-bessel-Y))
                :keys "f y"
                :help "The Bessel function of the second kind (of order (2:))"])
-        (list "Combinatorial"
+        (list "Combinatorial Functions"
               ["gcd(2:,1:)" 
                (progn
                  (require 'calc-comb)
@@ -573,7 +573,7 @@
                  (require 'calcalg2)
                  (call-interactively 'calc-poly-roots))
                :keys "a P"])
-        (list "Curve fitting"
+        (list "Curve Fitting"
               ["Fit (1:)=[x values, y values] to a curve" 
                (progn
                  (require 'calcalg3)
@@ -592,7 +592,7 @@
            (require 'calc-graph)
            (call-interactively 'calc-graph-fast))
          :keys "g f"]
-        ["Graph 3D [(1:)= z values, (2:)= y values, (3:)= xvalues]" 
+        ["Graph 3D [(1:)= z values, (2:)= y values, (3:)= x values]" 
          (progn
            (require 'calc-graph)
            (call-interactively 'calc-graph-fast-3d))
@@ -687,7 +687,7 @@
                  (call-interactively 'calc-map))
                :keys "V M"
                :help "Apply a function to each element"])
-        (list "Vectors as sets"
+        (list "Vectors As Sets"
               ["Remove duplicates from (1:)" 
                (progn
                  (require 'calc-vec)
@@ -709,7 +709,7 @@
                  (call-interactively 'calc-set-difference))
                :keys "V -"
                :help "Set difference"])
-        (list "Statistics on vectors"
+        (list "Statistics On Vectors"
               ["length(1:)" 
                (progn
                  (require 'calc-stat)
@@ -959,7 +959,7 @@
          :keys "v ."
          :style toggle
          :selected (not calc-full-vectors)]
-        (list "Angle measure"
+        (list "Angle Measure"
               ["Radians"
                (progn
                  (require 'calc-math)
@@ -1022,7 +1022,7 @@
                            (= calc-number-radix 2)
                            (= calc-number-radix 8)
                            (= calc-number-radix 16)))])
-        (list "Float format"
+        (list "Float Format"
               ["Normal"
                (progn
                  (require 'calc-mode)
@@ -1052,7 +1052,7 @@
                :style radio
                :selected (eq (car-safe calc-float-format) 'eng)])
         (list "Algebraic"
-              ["Algebraic Mode"
+              ["Algebraic mode"
                (progn
                  (require 'calc-mode)
                  (call-interactively 'calc-algebraic-mode))
@@ -1060,7 +1060,7 @@
                :style radio
                :selected (eq calc-algebraic-mode t)
                :help "Keys which start numeric entry also start algebraic entry"]
-              ["Total Algebraic Mode"
+              ["Total algebraic mode"
                (progn
                  (require 'calc-mode)
                  (call-interactively 'calc-total-algebraic-mode))
