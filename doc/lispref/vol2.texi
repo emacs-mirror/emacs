@@ -440,7 +440,6 @@ Variables
 * Setting Variables::       Storing new values in variables.
 * Variable Scoping::        How Lisp chooses among local and global values.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
-* Frame-Local Variables::   Variable values in effect only in one frame.
 * Future Local Variables::  New kinds of local values we might add some day.
 * File Local Variables::    Handling local variable lists in files.
 * Variable Aliases::        Variables that are aliases for other variables.
