@@ -1,5 +1,6 @@
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
+	* nnimap.el (nnimap-split-download-body):
 	* gnus-demon.el (gnus-demon):
 	* gnus-uu.el (gnus-uu-default-view-rules): Fix typos in docstring.
 
