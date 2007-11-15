@@ -171,8 +171,6 @@ first comment line visible (if point is in a comment)."
 	   ;;(repos-debug-macro "4")
 	   ))))
 
-;;;###autoload (define-key esc-map "\C-l" 'reposition-window)
-
 ;;; Auxiliary functions
 
 ;; Return number of screen lines between START and END.
