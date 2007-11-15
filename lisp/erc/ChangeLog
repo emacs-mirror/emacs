@@ -1,3 +1,10 @@
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-open):
+	* erc-backend.el (define-erc-response-handler):
+	* erc-log.el (log):
+	* erc-match.el (erc-log-matches): Fix typos in docstrings.
+
 2007-11-01  Michael Olson  <mwolson@gnu.org>
 
 	* erc-compat.el (erc-set-write-file-functions): New compatibility
