@@ -1,3 +1,8 @@
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cc-mode.texi (Electric Keys, Electric Keys, Custom Macros):
+	* tramp.texi (Filename completion): Fix typos.
+
 2007-11-15  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Basic commands): Mention the menu.
