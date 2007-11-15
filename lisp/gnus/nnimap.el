@@ -208,7 +208,7 @@ This is generally not required, and will slow things down considerably.
 You may need it if you want to use an advanced splitting function that
 analyzes the body before splitting the article.
 If this variable is nil, bodies will not be downloaded; if this
-variable is the symbol `default' the default behaviour is
+variable is the symbol `default' the default behavior is
 used (which currently is nil, unless you use a statistical
 spam.el test); if this variable is another non-nil value bodies
 will be downloaded."
