@@ -1,3 +1,8 @@
+2007-11-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* vol1.texi (Top): Remove Frame-Local Variables from Node Listing.
+	* vol2.texi (Top): Remove Frame-Local Variables from Node Listing.
+
 2007-11-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.texi (Help Functions): Document new macro `with-help-window'.
