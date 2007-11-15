@@ -43,7 +43,7 @@
 (autoload 'parse-time-string "parse-time" nil nil)
 
 (defgroup gnus-demon nil
-  "Demonic behaviour."
+  "Demonic behavior."
   :group 'gnus)
 
 (defcustom gnus-demon-handlers nil
