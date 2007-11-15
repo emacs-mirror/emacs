@@ -1,3 +1,8 @@
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-demon.el (gnus-demon):
+	* gnus-uu.el (gnus-uu-default-view-rules): Fix typos in docstring.
+
 2007-11-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-citation-line-function)
@@ -265,7 +270,7 @@
 
 2007-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
-        * Relicense "GPLv2 or later" files to "GPLv3 or later".
+	* Relicense "GPLv2 or later" files to "GPLv3 or later".
 
 2007-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
