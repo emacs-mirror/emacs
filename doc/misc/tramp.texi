@@ -2277,7 +2277,7 @@ As example, @kbd{@trampfn{telnet, , melancholia, /usr/local/bin//etc}
 @file{@trampfn{telnet, , melancholia, /etc}}, whereas
 @kbd{@trampfn{telnet, , melancholia, //etc} @key{TAB}} reduces the
 minibuffer contents to @file{/etc}.  A triple-slash stands for the
-default behaviour,
+default behavior,
 i.e. @kbd{@trampfn{telnet, , melancholia, /usr/local/bin///etc}
 @key{TAB}} expands directly to @file{/etc}.
 @end ifset
