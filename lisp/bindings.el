@@ -1051,6 +1051,9 @@ language you are using."
 
 (define-key ctl-x-map "z" 'repeat)
 
+(define-key esc-map "\C-l" 'reposition-window)
+
+(define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 (define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
 
 ;; Signal handlers
