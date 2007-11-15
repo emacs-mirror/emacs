@@ -3541,8 +3541,10 @@ usage: (format STRING &rest OBJECTS)  */)
 	      precision[n+1] = 10 * precision[n+1] + *format - '0';
 	  }
 
-	if (format - this_format_start + 1 > longest_format)
-	  longest_format = format - this_format_start + 1;
+	/* Extra +1 for 'l' that we may need to insert into the
+	   format.  */
+	if (format - this_format_start + 2 > longest_format)
+	  longest_format = format - this_format_start + 2;
 
 	if (format == end)
 	  error ("Format string ends in middle of format specifier");
