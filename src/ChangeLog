@@ -1,3 +1,23 @@
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* macfns.c (Fx_create_frame, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_backing_store)
+	(Fx_display_visual_class, Fx_display_save_under):
+	* w32fns.c (Fx_create_frame, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fw32_select_font, Fx_display_save_under):
+	* xfns.c (Fx_create_frame, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_backing_store)
+	(Fx_display_save_under): Fix typos in docstrings.
+
 2007-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (Fw32_registered_hot_keys): Don't return the nil values
