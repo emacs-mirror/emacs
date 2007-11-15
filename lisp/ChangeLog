@@ -1,3 +1,8 @@
+2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-revert-if-needed): Ignore `unknown' files, since cvs
+	did not touch them.
+
 2007-11-15  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-menu.el: New file.
@@ -30,8 +35,7 @@
 	(byte-compile-nilconstp): New function.
 	(byte-optimize-cond): Kill subsequent branches when a branch is
 	know to be taken or not taken.
-	(byte-optimize-if): Use byte-compile-nilconstp instead of hand
-	coding.
+	(byte-optimize-if): Use byte-compile-nilconstp instead of hand coding.
 
 2007-11-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -40,8 +44,8 @@
 
 2007-11-12  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-open-connection-setup-interactive-shell): Check
-	whether the output of "uname -sr" has been changed.
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
+	Check whether the output of "uname -sr" has been changed.
 
 2007-11-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -55,8 +59,7 @@
 	a bootstrap failure.
 
 	* vc-cvs.el (vc-cvs-diff): If backup files exist, diff them
-	instead of doing "cvs diff" in order to avoid accessing the
-	repository.
+	instead of doing "cvs diff" in order to avoid accessing the repository.
 
 2007-11-12  Kevin Ryde  <user42@zip.com.au>
 
