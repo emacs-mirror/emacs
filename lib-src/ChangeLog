@@ -1,3 +1,13 @@
+2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c: Make prototypes for extern definitions, and add all
+	that are needed to quench warnings on 64-bit.
+	(main): Use the same defaults for ctags as for etags: find
+	typedefs, structure tags, macro constants, enum constants, struct
+	members and global variables.
+	(make_C_tag) [DEBUG]: Add debugging printout.
+	(C_entries): In case '}' decrement bracelev before testing it.
+
 2007-11-15  Masatake YAMATO  <jet@gyve.org>
 
 	* etags.c (C_entries): In case '}', set fvdef to fvnone
