@@ -1,3 +1,12 @@
+2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-ghostscript-options): Remove resolution arg.
+	(doc-view-resolution): New custom var.
+	(doc-view-pdf/ps->png): Use it.
+	(doc-view-shrink-factor): New var.
+	(doc-view-enlarge, doc-view-shrink): New commands.
+	(doc-view-mode-map): Use them.
+
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ediff-wind.el (ediff-window-setup-function):

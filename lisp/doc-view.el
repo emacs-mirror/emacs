@@ -102,7 +102,8 @@
 ;; - better menu.
 ;; - don't use `find-file'.
 ;; - Bind slicing to a drag event.
-;; - zoom (the whole document and/or just the region around the cursor).
+;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc.
+;; - zoom a the region around the cursor (like xdvi).
 ;; - get rid of the silly arrow in the fringe.
 ;; - improve anti-aliasing (pdf-utils gets it better).
 
@@ -154,10 +155,15 @@
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
 	      ;; sources.
     "-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
-    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET" "-r100")
+    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET")
   "A list of options to give to ghostscript."
   :type '(repeat string)
   :group 'doc-view)
+
+(defcustom doc-view-resolution 100
+  "Dots per inch resolution used to render the documents.
+Higher values result in larger images."
+  :type 'number)
 
 (defcustom doc-view-dvipdfm-program (executable-find "dvipdfm")
   "Program to convert DVI files to PDF.
@@ -253,6 +259,9 @@ has finished."
     (define-key map (kbd "M-<")       'doc-view-first-page)
     (define-key map (kbd "M->")       'doc-view-last-page)
     (define-key map [remap goto-line] 'doc-view-goto-page)
+    ;; Zoom in/out.
+    (define-key map "+"               'doc-view-enlarge)
+    (define-key map "-"               'doc-view-shrink)
     ;; Killing/burying the buffer (and the process)
     (define-key map (kbd "q")         'bury-buffer)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
@@ -448,6 +457,20 @@ It's a subdirectory of `doc-view-cache-directory'."
 
 ;;;; Conversion Functions
 
+(defvar doc-view-shrink-factor 1.125)
+
+(defun doc-view-enlarge (factor)
+  "Enlarge the document."
+  (interactive (list doc-view-shrink-factor))
+  (set (make-local-variable 'doc-view-resolution)
+       (* factor doc-view-resolution))
+  (doc-view-reconvert-doc))
+
+(defun doc-view-shrink (factor)
+  "Shrink the document."
+  (interactive (list doc-view-shrink-factor))
+  (doc-view-enlarge (/ 1.0 factor)))
+
 (defun doc-view-reconvert-doc ()
   "Reconvert the current document.
 Should be invoked when the cached images aren't up-to-date."
@@ -503,6 +526,7 @@ Should be invoked when the cached images aren't up-to-date."
 	       (append (list "pdf/ps->png" doc-view-conversion-buffer
 			     doc-view-ghostscript-program)
 		       doc-view-ghostscript-options
+                       (list (format "-r%d" (round doc-view-resolution)))
 		       (list (concat "-sOutputFile=" png))
 		       (list pdf-ps)))
 	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
