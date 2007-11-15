@@ -1018,13 +1018,13 @@ NAME is the response name as sent by the server (see the IRC RFC for
 meanings).
 
 This creates:
- - a hook variable `erc-server-NAME-functions' initialised to `erc-server-NAME'.
+ - a hook variable `erc-server-NAME-functions' initialized to `erc-server-NAME'.
  - a function `erc-server-NAME' with body FN-BODY.
 
 If ALIASES is non-nil, each alias in ALIASES is `defalias'ed to
 `erc-server-NAME'.
 Alias hook variables are created as `erc-server-ALIAS-functions' and
-initialised to the same default value as `erc-server-NAME-functions'.
+initialized to the same default value as `erc-server-NAME-functions'.
 
 FN-BODY is the body of `erc-server-NAME' it may refer to the two
 function arguments PROC and PARSED.
