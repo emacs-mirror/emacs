@@ -77,7 +77,7 @@ Ediff provides a choice of three functions: `ediff-setup-windows-plain', for
 doing everything in one frame, `ediff-setup-windows-multiframe', which sets
 the control panel in a separate frame, and
 `ediff-setup-windows-automatic' (the default), which chooses an appropriate
-behaviour based on the current window system.  If the multiframe function
+behavior based on the current window system.  If the multiframe function
 detects that one of the buffers A/B is seen in some other frame, it will try
 to keep that buffer in that frame.
 
