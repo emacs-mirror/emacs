@@ -1011,26 +1011,23 @@ void
 swap_in_global_binding (symbol)
      Lisp_Object symbol;
 {
-  Lisp_Object valcontents, cdr;
-
-  valcontents = SYMBOL_VALUE (symbol);
-  if (!BUFFER_LOCAL_VALUEP (valcontents))
-    abort ();
-  cdr = XBUFFER_LOCAL_VALUE (valcontents)->cdr;
+  Lisp_Object valcontents = SYMBOL_VALUE (symbol);
+  struct Lisp_Buffer_Local_Value *blv = XBUFFER_LOCAL_VALUE (valcontents);
+  Lisp_Object cdr = blv->cdr;
 
   /* Unload the previously loaded binding.  */
   Fsetcdr (XCAR (cdr),
-	   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+	   do_symval_forwarding (blv->realvalue));
 
   /* Select the global binding in the symbol.  */
   XSETCAR (cdr, cdr);
-  store_symval_forwarding (symbol, valcontents, XCDR (cdr), NULL);
+  store_symval_forwarding (symbol, blv->realvalue, XCDR (cdr), NULL);
 
   /* Indicate that the global binding is set up now.  */
-  XBUFFER_LOCAL_VALUE (valcontents)->frame = Qnil;
-  XBUFFER_LOCAL_VALUE (valcontents)->buffer = Qnil;
-  XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
-  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
+  blv->frame = Qnil;
+  blv->buffer = Qnil;
+  blv->found_for_frame = 0;
+  blv->found_for_buffer = 0;
 }
 
 /* Set up the buffer-local symbol SYMBOL for validity in the current buffer.

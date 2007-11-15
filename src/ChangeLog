@@ -1,3 +1,9 @@
+2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (swap_in_global_binding): Fix longstanding bug where
+	store_symval_forwarding was not called with the right second argument,
+	thus causing objfwd-ing from being dropped.
+
 2007-11-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* macfns.c (Fx_create_frame, Fx_display_pixel_width)
