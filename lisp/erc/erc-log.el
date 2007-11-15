@@ -195,7 +195,7 @@ format is defined through a formatting function on
 
 Since automatic logging is not always a Good Thing (especially if
 people say things in different coding systems), you can turn logging
-behaviour on and off with the variable `erc-enable-logging', which can
+behavior on and off with the variable `erc-enable-logging', which can
 also be a predicate function. To only log when you are not set away, use:
 
 \(setq erc-enable-logging
@@ -385,7 +385,7 @@ You can save every individual message by putting this function on
 	(with-current-buffer buffer
 	  (save-restriction
 	    (widen)
-	    ;; early on in the initalisation, don't try and write the log out
+	    ;; early on in the initialization, don't try and write the log out
 	    (when (and (markerp erc-last-saved-position)
 		       (> erc-insert-marker (1+ erc-last-saved-position)))
 	      (write-region (1+ (marker-position erc-last-saved-position))
