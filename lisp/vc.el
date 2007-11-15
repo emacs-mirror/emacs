@@ -1938,13 +1938,14 @@ returns t if the buffer had changes, nil otherwise."
         (progn
           (message "No changes between %s and %s" rev1-name rev2-name)
           nil)
-      (pop-to-buffer (current-buffer))
       (diff-mode)
       ;; Make the *vc-diff* buffer read only, the diff-mode key
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
       (setq buffer-read-only t)
       (vc-exec-after `(vc-diff-sentinel ,verbose ,rev1-name ,rev2-name))
+      ;; Display the buffer, but at the end because it can change point.
+      (pop-to-buffer (current-buffer))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))
