@@ -1,3 +1,7 @@
+2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: note that you can use "-" for stdout with -o.
+
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* ctags.1, emacs.1, emacsclient.1, etags.1: Move from etc/ to
