@@ -1,3 +1,16 @@
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff-wind.el (ediff-window-setup-function):
+	* simple.el (normal-erase-is-backspace):
+	* eshell/em-unix.el (eshell/info):
+	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
+	Fix typos in docstrings.
+
+	* emulation/cua-base.el (cua--keymaps-initialized):
+	Rename from `cua--keymaps-initalized'.  Callers changed.
+	(cua-highlight-region-shift-only): Doc fix.
+	(cua-paste-pop): Fix typo in docstring.
+
 2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emulation/cua-base.el (cua--pre-command-handler-1):
