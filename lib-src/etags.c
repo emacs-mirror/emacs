@@ -81,7 +81,7 @@ University of California, as described above. */
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.34";
+char pot_etags_version[] = "@(#) pot revision number is 17.38";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -160,14 +160,20 @@ char pot_etags_version[] = "@(#) pot revision number is 17.34";
 #  include <stdlib.h>
 #  include <string.h>
 # else /* no standard C headers */
-   extern char *getenv ();
-   extern char *strcpy ();
-   extern char *strncpy ();
-   extern char *strcat ();
-   extern char *strncat ();
-   extern unsigned long strlen ();
-   extern PTR malloc ();
-   extern PTR realloc ();
+   extern char *getenv __P((const char *));
+   extern char *strcpy __P((char *, const char *));
+   extern char *strncpy __P((char *, const char *, unsigned long));
+   extern char *strcat __P((char *, const char *));
+   extern char *strncat __P((char *, const char *, unsigned long));
+   extern int strcmp __P((const char *, const char *));
+   extern int strncmp __P((const char *, const char *, unsigned long));
+   extern int system __P((const char *));
+   extern unsigned long strlen __P((const char *));
+   extern void *malloc __P((unsigned long));
+   extern void *realloc __P((void *, unsigned long));
+   extern void exit __P((int));
+   extern void free __P((void *));
+   extern void *memmove __P((void *, const void *, unsigned long));
 #  ifdef VMS
 #   define EXIT_SUCCESS	1
 #   define EXIT_FAILURE	0
@@ -491,7 +497,7 @@ static char
   *midtk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789";
 
 static bool append_to_tagfile;	/* -a: append to tags */
-/* The next five default to TRUE for etags, but to FALSE for ctags.  */
+/* The next five default to TRUE in C and derived languages.  */
 static bool typedefs;		/* -t: create tags for C and Ada typedefs */
 static bool typedefs_or_cplusplus; /* -T: create tags for C typedefs, level */
 				/* 0 struct/enum/union decls, and C++ */
@@ -883,7 +889,7 @@ etags --help --lang=ada.");
 # define EMACS_NAME "standalone"
 #endif
 #ifndef VERSION
-# define VERSION "17.34"
+# define VERSION "17.38"
 #endif
 static void
 print_version ()
@@ -1239,15 +1245,12 @@ main (argc, argv)
   argbuffer = xnew (argc, argument);
 
   /*
-   * If etags, always find typedefs and structure tags.  Why not?
+   * Always find typedefs and structure tags.
    * Also default to find macro constants, enum constants, struct
-   * members and global variables.
+   * members and global variables.  Do it for both etags and ctags.
    */
-  if (!CTAGS)
-    {
-      typedefs = typedefs_or_cplusplus = constantypedefs = TRUE;
-      globals = members = TRUE;
-    }
+  typedefs = typedefs_or_cplusplus = constantypedefs = TRUE;
+  globals = members = TRUE;
 
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
@@ -1498,6 +1501,7 @@ main (argc, argv)
       exit (EXIT_SUCCESS);
     }
 
+  /* From here on, we are in (CTAGS && !cxref_style) */
   if (update)
     {
       char cmd[BUFSIZ];
@@ -3006,11 +3010,6 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
        return TRUE;
      }
 
-   /*
-    * This structdef business is NOT invoked when we are ctags and the
-    * file is plain C.  This is because a struct tag may have the same
-    * name as another tag, and this loses with ctags.
-    */
    switch (toktype)
      {
      case st_C_javastruct:
@@ -3246,16 +3245,16 @@ make_C_tag (isfun)
 {
   /* This function is never called when token.valid is FALSE, but
      we must protect against invalid input or internal errors. */
-  if (!DEBUG && !token.valid)
-    return;
-
   if (token.valid)
     make_tag (token_name.buffer, token_name.len, isfun, token.line,
 	      token.offset+token.length+1, token.lineno, token.linepos);
-  else				/* this case is optimised away if !DEBUG */
-    make_tag (concat ("INVALID TOKEN:-->", token_name.buffer, ""),
-	      token_name.len + 17, isfun, token.line,
-	      token.offset+token.length+1, token.lineno, token.linepos);
+  else if (DEBUG)
+    {				  /* this branch is optimised away if !DEBUG */
+      make_tag (concat ("INVALID TOKEN:-->", token_name.buffer, ""),
+		token_name.len + 17, isfun, token.line,
+		token.offset+token.length+1, token.lineno, token.linepos);
+      error ("INVALID TOKEN", NULL);
+    }
 
   token.valid = FALSE;
 }
@@ -3978,7 +3977,7 @@ C_entries (c_ext, inf)
 	      make_C_tag (FALSE);  /* a struct or enum */
 	      break;
 	    }
-	  bracelev++;
+	  bracelev += 1;
 	  break;
 	case '*':
 	  if (definedef != dnone)
@@ -3992,20 +3991,18 @@ C_entries (c_ext, inf)
 	case '}':
 	  if (definedef != dnone)
 	    break;
+	  bracelev -= 1;
 	  if (!ignoreindent && lp == newlb.buffer + 1)
 	    {
 	      if (bracelev != 0)
-		token.valid = FALSE;
+		token.valid = FALSE; /* unexpected value, token unreliable */
 	      bracelev = 0;	/* reset brace level if first column */
 	      parlev = 0;	/* also reset paren level, just in case... */
 	    }
-	  else
+	  else if (bracelev < 0)
 	    {
-	      if (--bracelev < 0)
-		{
-		  bracelev = 0;
-		  token.valid = FALSE; /* something gone amiss, token unreliable */
-		}
+	      token.valid = FALSE; /* something gone amiss, token unreliable */
+	      bracelev = 0;
 	    }
 	  if (bracelev == 0 && fvdef == vignore)
 	    fvdef = fvnone;		/* end of function */
