@@ -1,5 +1,8 @@
 2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (Fevent_symbol_parse_modifiers): New function.
+	(syms_of_keyboard): Defsubr it.
+
 	* data.c (swap_in_global_binding): Fix longstanding bug where
 	store_symval_forwarding was not called with the right second argument,
 	thus causing objfwd-ing from being dropped.

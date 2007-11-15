@@ -723,7 +723,9 @@ even when EVENT actually has modifiers."
     (if (listp type)
 	(setq type (car type)))
     (if (symbolp type)
-	(cdr (get type 'event-symbol-elements))
+        ;; Don't read event-symbol-elements directly since we're not
+        ;; sure the symbol has already been parsed.
+	(cdr (internal-event-symbol-parse-modifiers type))
       (let ((list nil)
 	    (char (logand type (lognot (logior ?\M-\^@ ?\C-\^@ ?\S-\^@
 					       ?\H-\^@ ?\s-\^@ ?\A-\^@)))))

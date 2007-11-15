@@ -6545,6 +6545,19 @@ parse_modifiers (symbol)
     }
 }
 
+DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,
+       Sevent_symbol_parse_modifiers, 1, 1, 0,
+       doc: /* Parse the event symbol.  For internal use.  */)
+  (symbol)
+{
+  /* Fill the cache if needed.  */
+  parse_modifiers (symbol);
+  /* Ignore the result (which is stored on Qevent_symbol_element_mask)
+     and use the Lispier representation stored on Qevent_symbol_elements
+     instead.  */
+  return Fget (symbol, Qevent_symbol_elements);
+}
+
 /* Apply the modifiers MODIFIERS to the symbol BASE.
    BASE must be unmodified.
 
@@ -11946,6 +11959,7 @@ syms_of_keyboard ()
   staticpro (&help_form_saved_window_configs);
 
   defsubr (&Scurrent_idle_time);
+  defsubr (&Sevent_symbol_parse_modifiers);
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);

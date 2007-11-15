@@ -1,5 +1,7 @@
 2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (event-modifiers): Use internal-event-symbol-parse-modifiers.
+
 	* pcvs.el (cvs-revert-if-needed): Ignore `unknown' files, since cvs
 	did not touch them.
 
