@@ -4006,9 +4006,9 @@ C_entries (c_ext, inf)
 		  bracelev = 0;
 		  token.valid = FALSE; /* something gone amiss, token unreliable */
 		}
-	      if (bracelev == 0 && fvdef == vignore)
-		fvdef = fvnone;		/* end of function */
 	    }
+	  if (bracelev == 0 && fvdef == vignore)
+	    fvdef = fvnone;		/* end of function */
 	  popclass_above (bracelev);
 	  structdef = snone;
 	  /* Only if typdef == tinbody is typdefbracelev significant. */
