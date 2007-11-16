@@ -2612,7 +2612,6 @@ extern struct Lisp_Vector *allocate_pseudovector P_ ((int memlen, int lisplen, E
   ((typ*)								\
    allocate_pseudovector						\
        (VECSIZE (typ), PSEUDOVECSIZE (typ, field), tag))
-extern struct Lisp_Vector *allocate_other_vector P_ ((EMACS_INT));
 extern struct Lisp_Hash_Table *allocate_hash_table P_ ((void));
 extern struct window *allocate_window P_ ((void));
 extern struct frame *allocate_frame P_ ((void));

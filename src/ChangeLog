@@ -1,5 +1,8 @@
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* alloc.c (allocate_other_vector):
+	* lisp.h (allocate_other_vector): Remove.
+
 	* window.c (struct save_window_data): Move non-lisp data to the end
 	and make it `int' rather than Lisp_Object.
 	(Fcurrent_window_configuration): Use ALLOCATE_PSEUDOVECTOR.
@@ -29,6 +32,7 @@
 
 	* alloc.c (ALLOCATE_PSEUDOVECTOR): Move to lisp.h.
 	(allocate_pseudovector): Make non-static.
+
 	* lisp.h (enum pvec_type): New tag PVEC_OTHER.
 	(allocate_pseudovector): Declare.
 	(ALLOCATE_PSEUDOVECTOR): Move from alloc.c

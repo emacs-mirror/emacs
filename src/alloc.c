@@ -3029,22 +3029,6 @@ allocate_process ()
 }
 
 
-/* Only used for PVEC_WINDOW_CONFIGURATION. */
-struct Lisp_Vector *
-allocate_other_vector (len)
-     EMACS_INT len;
-{
-  struct Lisp_Vector *v = allocate_vectorlike (len);
-  EMACS_INT i;
-
-  for (i = 0; i < len; ++i)
-    v->contents[i] = Qnil;
-  v->size = len;
-
-  return v;
-}
-
-
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
        doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
 See also the function `vector'.  */)
