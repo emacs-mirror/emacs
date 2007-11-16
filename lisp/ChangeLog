@@ -1,3 +1,10 @@
+2007-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-lang.el (math-oper-table): Fix typo.
+	Reduce precedence of "/" for TeX.
+
+	* calc/calc-menu.el (calc-modes-menu): Add Languages submenu.
+
 2007-11-16  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-read-shell-command-default): New function.
