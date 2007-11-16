@@ -879,6 +879,44 @@ and the buffer that is killed or buried is the one in that window."
     ;; Maybe get rid of the window.
     (and window (not window-handled) (not window-solitary)
 	 (delete-window window))))
+
+(defvar recenter-last-op nil
+  "Indicates the last recenter operation performed.
+Possible values: `top', `middle', `bottom'.")
+
+(defun recenter-top-bottom (&optional arg)
+  "Move current line to window center, top, and bottom, successively.
+With a prefix argument, this is the same as `recenter':
+ With numeric prefix ARG, move current line to window-line ARG.
+ With plain `C-u', move current line to window center.
+
+Otherwise move current line to window center on first call, and to
+top, middle, or bottom on successive calls.
+
+The starting position of the window determines the cycling order:
+ If initially in the top or middle third: top -> middle -> bottom.
+ If initially in the bottom third: bottom -> middle -> top.
+
+Top and bottom destinations are actually `scroll-conservatively' lines
+from true window top and bottom."
+  (interactive "P")
+  (cond
+   (arg (recenter arg))                 ; Always respect ARG.
+   ((not (eq this-command last-command))
+    ;; First time - save mode and recenter.
+    (let ((bottom (1+ (count-lines 1 (window-end))))
+          (current (1+ (count-lines 1 (point))))
+          (total (window-height)))
+      (setq recenter-last-op 'middle)
+      (recenter)))
+   (t ;; repeat: loop through various options.
+    (setq recenter-last-op
+          (ecase recenter-last-op
+            (middle (recenter scroll-conservatively)		'top)
+            (top    (recenter (1- (- scroll-conservatively)))	'bottom)
+            (bottom (recenter)					'middle))))))
+
+(define-key global-map [?\C-l] 'recenter-top-bottom)
 
 (defvar mouse-autoselect-window-timer nil
   "Timer used by delayed window autoselection.")

@@ -1,5 +1,9 @@
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (recenter-last-op): New var.
+	(recenter-top-bottom): New command.
+	(global-map): Bind it to C-l.
+
 	* abbrev.el (abbrev--write): Fix error in transcription from C.
 
 	* emulation/pc-select.el (pc-select-shifted-mark): Remove.
