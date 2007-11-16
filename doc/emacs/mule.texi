@@ -1086,6 +1086,15 @@ you override it by using the command again.  The command @kbd{C-x
 @key{RET} X} (@code{set-next-selection-coding-system}) specifies the
 coding system for the next selection made in Emacs or read by Emacs.
 
+@vindex x-select-request-type
+  The variable @code{x-select-request-type} specifies a data type of
+selection to request for receiving the text from the other
+applications.  The default value is nil, which means Emacs tries
+`COMPOUND_TEXT' and `UTF8_STRING', and use the more appropriate
+result.  You can explicitly specify the data type by setting the
+variable to one of the followings:
+  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
+
 @kindex C-x RET p
 @findex set-buffer-process-coding-system
   The command @kbd{C-x @key{RET} p} (@code{set-buffer-process-coding-system})
