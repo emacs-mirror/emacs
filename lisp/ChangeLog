@@ -1,3 +1,7 @@
+2007-11-16  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-extr.el (mail-extr-all-top-level-domains): Update domains.
+
 2007-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-lang.el (math-oper-table): Fix typo.
