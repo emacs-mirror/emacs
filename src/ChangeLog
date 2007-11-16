@@ -1,7 +1,15 @@
+2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (ALLOCATE_PSEUDOVECTOR): Move to lisp.h.
+	(allocate_pseudovector): Make non-static.
+	* lisp.h (enum pvec_type): New tag PVEC_OTHER.
+	(allocate_pseudovector): Declare.
+	(ALLOCATE_PSEUDOVECTOR): Move from alloc.c
+
 2007-11-15  Andreas Schwab  <schwab@suse.de>
 
-	* editfns.c (Fformat): Correctly format EMACS_INT values.  Also
-	take precision into account when formatting an integer.
+	* editfns.c (Fformat): Correctly format EMACS_INT values.
+	Also take precision into account when formatting an integer.
 
 	* keyboard.c (Fevent_symbol_parse_modifiers): Fix declaration.
 
