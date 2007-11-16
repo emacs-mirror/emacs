@@ -1,5 +1,25 @@
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xterm.h (struct scroll_bar): Only use Lisp_Object for lisp data.
+	Turn integer fields into `int'.  Merge x_window_low and x_window_high.
+	(SCROLL_BAR_PACK, SCROLL_BAR_UNPACK, SCROLL_BAR_X_WINDOW)
+	(SET_SCROLL_BAR_X_WINDOW): Remove.
+	(SCROLL_BAR_X_WIDGET, SET_SCROLL_BAR_X_WIDGET):
+	Access the new x_window field directly.
+	* xterm.c (x_scroll_bar_create): Use a pseudovector.
+	Don't wrap/unwrap integers into Lisp_Objects.
+	(XTset_vertical_scroll_bar, x_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion):
+	Don't wrap/unwrap integers into Lisp_Objects.
+	(x_term_init): Use SDATA.
+	(x_window_to_scroll_bar, x_create_toolkit_scroll_bar)
+	(x_scroll_bar_set_handle, x_scroll_bar_remove)
+	(XTset_vertical_scroll_bar, x_scroll_bar_expose)
+	(x_scroll_bar_report_motion, x_scroll_bar_clear):
+	* xfns.c (x_set_background_color):
+	* gtkutil.c (xg_create_scroll_bar, xg_set_toolkit_scroll_bar_thumb):
+	Access the new x_window field directly.
+
 	* alloc.c (ALLOCATE_PSEUDOVECTOR): Move to lisp.h.
 	(allocate_pseudovector): Make non-static.
 	* lisp.h (enum pvec_type): New tag PVEC_OTHER.

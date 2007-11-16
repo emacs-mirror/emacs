@@ -746,13 +746,14 @@ struct scroll_bar
   /* The next and previous in the chain of scroll bars in this frame.  */
   Lisp_Object next, prev;
 
-  /* The X window representing this scroll bar.  Since this is a full
-     32-bit quantity, we store it split into two 32-bit values.  */
-  Lisp_Object x_window_low, x_window_high;
+  /* Fields from `x_window' down will not be traced by the GC.  */
+
+  /* The X window representing this scroll bar.  */
+  Window x_window;
 
   /* The position and size of the scroll bar in pixels, relative to the
      frame.  */
-  Lisp_Object top, left, width, height;
+  int top, left, width, height;
 
   /* The starting and ending positions of the handle, relative to the
      handle area (i.e. zero is the top position, not
@@ -765,7 +766,7 @@ struct scroll_bar
      drawing handle bottoms VERTICAL_SCROLL_BAR_MIN_HANDLE pixels below
      where they would be normally; the bottom and top are in a
      different co-ordinate system.  */
-  Lisp_Object start, end;
+  int start, end;
 
   /* If the scroll bar handle is currently being dragged by the user,
      this is the number of pixels from the top of the handle to the
@@ -773,11 +774,9 @@ struct scroll_bar
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
 
-#ifdef USE_TOOLKIT_SCROLL_BARS
-  /* t if the background of the fringe that is adjacent to a scroll
+  /* 1 if the background of the fringe that is adjacent to a scroll
      bar is extended to the gap between the fringe and the bar.  */
-  Lisp_Object fringe_extended_p;
-#endif
+  unsigned int fringe_extended_p : 1;
 };
 
 /* The number of elements a vector holding a struct scroll_bar needs.  */
@@ -790,36 +789,19 @@ struct scroll_bar
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 
 
-/* Building a 32-bit C integer from two 16-bit lisp integers.  */
-#define SCROLL_BAR_PACK(low, high) (XINT (high) << 16 | XINT (low))
-
-/* Setting two lisp integers to the low and high words of a 32-bit C int.  */
-#define SCROLL_BAR_UNPACK(low, high, int32) \
-  (XSETINT ((low),   (int32)        & 0xffff), \
-   XSETINT ((high), ((int32) >> 16) & 0xffff))
-
-
-/* Extract the X window id of the scroll bar from a struct scroll_bar.  */
-#define SCROLL_BAR_X_WINDOW(ptr) \
-  ((Window) SCROLL_BAR_PACK ((ptr)->x_window_low, (ptr)->x_window_high))
-
-/* Store a window id in a struct scroll_bar.  */
-#define SET_SCROLL_BAR_X_WINDOW(ptr, id) \
-  (SCROLL_BAR_UNPACK ((ptr)->x_window_low, (ptr)->x_window_high, (int) id))
-
 /* Extract the X widget of the scroll bar from a struct scroll_bar.
    XtWindowToWidget should be fast enough since Xt uses a hash table
    to map windows to widgets.  */
 
 #define SCROLL_BAR_X_WIDGET(dpy, ptr) \
-  XtWindowToWidget (dpy, SCROLL_BAR_X_WINDOW (ptr))
+  XtWindowToWidget (dpy, ptr->x_window)
 
 /* Store a widget id in a struct scroll_bar.  */
 
 #define SET_SCROLL_BAR_X_WIDGET(ptr, w)		\
   do {						\
     Window window = XtWindow (w);		\
-    SET_SCROLL_BAR_X_WINDOW (ptr, window);	\
+    ptr->x_window = window;			\
 } while (0)
 
 

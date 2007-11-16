@@ -931,7 +931,7 @@ x_set_background_color (f, arg, oldval)
 	     !NILP (bar);
 	     bar = XSCROLL_BAR (bar)->next)
 	  {
-	    Window window = SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar));
+	    Window window = XSCROLL_BAR (bar)->x_window;
 	    XSetWindowBackground (dpy, window, bg);
 	  }
       }

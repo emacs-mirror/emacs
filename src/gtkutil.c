@@ -2970,10 +2970,9 @@ free_frame_menubar (f)
 
 int xg_ignore_gtk_scrollbar;
 
-/* SET_SCROLL_BAR_X_WINDOW assumes the second argument fits in
-   32 bits.  But we want to store pointers, and they may be larger
-   than 32 bits.  Keep a mapping from integer index to widget pointers
-   to get around the 32 bit limitation.  */
+/* Xlib's `Window' fits in 32 bits.  But we want to store pointers, and they
+   may be larger than 32 bits.  Keep a mapping from integer index to widget
+   pointers to get around the 32 bit limitation.  */
 
 static struct
 {
@@ -3183,7 +3182,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
   /* Set the cursor to an arrow.  */
   xg_set_cursor (webox, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
 
-  SET_SCROLL_BAR_X_WINDOW (bar, scroll_id);
+  bar->x_window = scroll_id;
 }
 
 /* Make the scroll bar represented by SCROLLBAR_ID visible.  */
@@ -3258,7 +3257,7 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      struct scroll_bar *bar;
      int portion, position, whole;
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (SCROLL_BAR_X_WINDOW (bar));
+  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
 
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
