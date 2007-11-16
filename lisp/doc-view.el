@@ -787,7 +787,7 @@ the pagenumber and CONTEXTS are all lines of text containing a match."
   "Call `doc-view-search' for backward search.
 If prefix NEW-QUERY is given, ask for a new regexp."
   (interactive "P")
-  (doc-view-search arg t))
+  (doc-view-search new-query t))
 
 (defun doc-view-search (new-query &optional backward)
   "Jump to the next match or initiate a new search if NEW-QUERY is given.
@@ -795,7 +795,7 @@ If the current document hasn't been transformed to plain text
 till now do that first.
 If BACKWARD is non-nil, jump to the previous match."
   (interactive "P")
-  (if (and (not arg)
+  (if (and (not new-query)
 	   doc-view-current-search-matches)
       (if backward
 	  (doc-view-search-previous-match 1)
