@@ -1068,6 +1068,72 @@
                :style radio
                :selected (eq calc-algebraic-mode 'total)
                :help "All regular letters and punctuation begin algebraic entry"])
+        (list "Language"
+              ["Normal"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-normal-language))
+               :keys "d N"
+               :style radio
+               :selected (eq calc-language nil)]
+              ["Big"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-big-language))
+               :keys "d B"
+               :style radio
+               :selected (eq calc-language 'big)
+               :help "Use textual approximations to various mathematical notations"]
+              ["Flat"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-flat-language))
+               :keys "d O"
+               :style radio
+               :selected (eq calc-language 'flat)
+               :help "Write matrices on a single line"]
+              ["C"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-c-language))
+               :keys "d C"
+               :style radio
+               :selected (eq calc-language 'c)]
+              ["Pascal"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-pascal-language))
+               :keys "d P"
+               :style radio
+               :selected (eq calc-language 'pascal)]
+              ["Fortran"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-fortran-language))
+               :keys "d F"
+               :style radio
+               :selected (eq calc-language 'fortran)]
+              ["TeX"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-tex-language))
+               :keys "d T"
+               :style radio
+               :selected (eq calc-language 'tex)]
+              ["LaTeX"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-latex-language))
+               :keys "d L"
+               :style radio
+               :selected (eq calc-language 'latex)]
+              ["Eqn"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-eqn-language))
+               :keys "d E"
+               :style radio
+               :selected (eq calc-language 'eqn)])
         "----"
         ["Save mode settings" calc-save-modes :keys "m m"]
         "----"
