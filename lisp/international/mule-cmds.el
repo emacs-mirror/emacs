@@ -2615,9 +2615,18 @@ See also `locale-charset-language-names', `locale-language-names',
       (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
 	(when (coding-system-p code-page-coding)
 	  (setq locale-coding-system code-page-coding)
-          (setq default-file-name-coding-system code-page-coding)
 	  (set-keyboard-coding-system code-page-coding)
-	  (set-terminal-coding-system code-page-coding))))
+	  (set-terminal-coding-system code-page-coding)
+	  ;; Set default-file-name-coding-system last, so that Emacs
+	  ;; doesn't try to use cpNNNN when it defines keyboard and
+	  ;; terminal encoding.  That's because the above two lines
+	  ;; will want to load code-pages.el, where cpNNNN are
+	  ;; defined; if default-file-name-coding-system were set to
+	  ;; cpNNNN while these two lines run, Emacs will want to use
+	  ;; it for encoding the file name it wants to load.  And that
+	  ;; will fail, since cpNNNN is not yet usable until
+	  ;; code-pages.el finishes loading.
+	  (setq default-file-name-coding-system code-page-coding))))
 
     (when (eq system-type 'darwin)
       ;; On Darwin, file names are always encoded in utf-8, no matter
