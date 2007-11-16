@@ -1,5 +1,8 @@
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* buffer.h (struct buffer): Move `undo_list' back to before `name'.
+	This undoes Richard's change of 14-Oct-2002.
+
 	* alloc.c (allocate_other_vector):
 	* lisp.h (allocate_other_vector): Remove.
 
