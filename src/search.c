@@ -2892,11 +2892,15 @@ Return value is undefined if the last search failed.  */)
   return reuse;
 }
 
-/* Internal usage only:
-   If RESEAT is `evaporate', put the markers back on the free list
-   immediately.  No other references to the markers must exist in this case,
-   so it is used only internally on the unwind stack and save-match-data from
-   Lisp.  */
+/* We used to have an internal use variant of `reseat' described as:
+
+      If RESEAT is `evaporate', put the markers back on the free list
+      immediately.  No other references to the markers must exist in this
+      case, so it is used only internally on the unwind stack and
+      save-match-data from Lisp.
+
+   But it was ill-conceived: those supposedly-internal markers get exposed via
+   the undo-list, so freeing them here is unsafe.  */
 
 DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 2, 0,
        doc: /* Set internal data on last search match from elements of LIST.
@@ -2981,10 +2985,7 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
 	    if (!NILP (reseat) && MARKERP (m))
 	      {
-		if (EQ (reseat, Qevaporate))
-		  free_marker (m);
-		else
-		  unchain_marker (XMARKER (m));
+		unchain_marker (XMARKER (m));
 		XSETCAR (list, Qnil);
 	      }
 
@@ -3002,10 +3003,7 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
 	    if (!NILP (reseat) && MARKERP (m))
 	      {
-		if (EQ (reseat, Qevaporate))
-		  free_marker (m);
-		else
-		  unchain_marker (XMARKER (m));
+		unchain_marker (XMARKER (m));
 		XSETCAR (list, Qnil);
 	      }
 	  }
@@ -3069,8 +3067,8 @@ static Lisp_Object
 unwind_set_match_data (list)
      Lisp_Object list;
 {
-  /* It is safe to free (evaporate) the markers immediately.  */
-  return Fset_match_data (list, Qevaporate);
+  /* It is NOT ALWAYS safe to free (evaporate) the markers immediately.  */
+  return Fset_match_data (list, Qt);
 }
 
 /* Called to unwind protect the match data.  */

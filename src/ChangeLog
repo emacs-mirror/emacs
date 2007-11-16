@@ -1,7 +1,12 @@
+2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* search.c (Fset_match_data): Remove the `evaporate' feature.
+	(unwind_set_match_data): Don't use the `evaporate' feature.
+
 2007-11-15  Andreas Schwab  <schwab@suse.de>
 
-	* editfns.c (Fformat): Correctly format EMACS_INT values.  Also
-	take precision into account when formatting an integer.
+	* editfns.c (Fformat): Correctly format EMACS_INT values.
+	Also take precision into account when formatting an integer.
 
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
