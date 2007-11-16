@@ -1,3 +1,8 @@
+2007-11-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-current-subject-regexp): Allow more than
+	one space after "Subject:".
+
 2007-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (make-variable-frame-local):
