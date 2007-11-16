@@ -1,3 +1,8 @@
+2007-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (make-variable-frame-local):
+	Fix typo in obsolescence declaration.
+
 2007-11-16  Werner Lemberg  <wl@gnu.org>
 
 	* files.el (set-auto-mode-1): Check second line for -*- if file
