@@ -30,8 +30,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (defvar message-posting-charset))
+  (require 'cl))
+(defvar message-posting-charset)
 
 (require 'qp)
 (require 'mm-util)
@@ -285,7 +285,6 @@ Should be called narrowed to the head of the message."
 
 ;; Fixme: This, and the require below may not be the Right Thing, but
 ;; should be safe just before release.  -- fx 2001-02-08
-(eval-when-compile (defvar message-posting-charset))
 
 (defun rfc2047-encodable-p ()
   "Return non-nil if any characters in current buffer need encoding in headers.

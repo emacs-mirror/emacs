@@ -53,6 +53,7 @@
 (defvar message-required-mail-headers)
 (defvar message-required-news-headers)
 (defvar dnd-protocol-alist)
+(defvar mml-dnd-protocol-alist)
 
 (defcustom mml-content-type-parameters
   '(name access-type expiration size permission format)
@@ -807,9 +808,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	 (mail-header-encode-parameter
 	  (symbol-name type) value))))))
 
-(eval-when-compile
-  (defvar ange-ftp-name-format)
-  (defvar efs-path-regexp))
+(defvar ange-ftp-name-format)
+(defvar efs-path-regexp)
+
 (defun mml-parse-file-name (path)
   (if (if (boundp 'efs-path-regexp)
 	  (string-match efs-path-regexp path)

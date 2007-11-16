@@ -1,3 +1,12 @@
+2007-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/reftex-dcr.el (reftex-start-itimer-once): Add check
+	for XEmacs.
+
+	* calc/calc-menu.el (calc-mode-map): Pacify byte compiler.
+
+	* doc-view.el (doc-view-resolution): Add missing :group.
+
 2007-11-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (make-variable-frame-local):

@@ -298,13 +298,13 @@ Whether the passphrase is cached at all is controlled by
 (defun mml-smime-openssl-verify-test (handle ctl)
   smime-openssl-program)
 
-(eval-and-compile
-  (autoload 'epg-make-context "epg"))
+(defvar epg-user-id-alist)
+(defvar epg-digest-algorithm-alist)
+(defvar inhibit-redisplay)
+(defvar password-cache-expiry)
 
 (eval-when-compile
-  (defvar epg-user-id-alist)
-  (defvar epg-digest-algorithm-alist)
-  (defvar inhibit-redisplay)
+  (autoload 'epg-make-context "epg")
   (autoload 'epg-context-set-armor "epg")
   (autoload 'epg-context-set-signers "epg")
   (autoload 'epg-context-result-for "epg")
@@ -319,10 +319,7 @@ Whether the passphrase is cached at all is controlled by
   (autoload 'epg-context-set-passphrase-callback "epg")
   (autoload 'epg-configuration "epg-config")
   (autoload 'epg-expand-group "epg-config")
-  (autoload 'epa-select-keys "epa"))
-
-(eval-when-compile
-  (defvar password-cache-expiry)
+  (autoload 'epa-select-keys "epa")
   (autoload 'password-read "password")
   (autoload 'password-cache-add "password")
   (autoload 'password-cache-remove "password"))

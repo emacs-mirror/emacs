@@ -28,8 +28,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (defvar tool-bar-mode))
+  (require 'cl))
+(defvar tool-bar-mode)
 
 (require 'gnus)
 (require 'gnus-start)
@@ -2875,8 +2875,8 @@ If SOLID (the prefix), create a solid group."
        (cons (current-buffer)
 	     (if (eq major-mode 'gnus-summary-mode) 'summary 'group))))))
 
+(defvar nnrss-group-alist)
 (eval-when-compile
-  (defvar nnrss-group-alist)
   (defun nnrss-discover-feed (arg))
   (defun nnrss-save-server-data (arg)))
 (defun gnus-group-make-rss-group (&optional url)

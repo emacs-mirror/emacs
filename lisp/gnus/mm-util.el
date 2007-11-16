@@ -36,6 +36,8 @@
 	(require 'timer))
     (require 'timer)))
 
+(defvar mm-mime-mule-charset-alist )
+
 (eval-and-compile
   (mapc
    (lambda (elem)
@@ -884,9 +886,10 @@ This affects whether coding conversion should be attempted generally."
   (autoload 'latin-unity-massage-name "latin-unity")
   (autoload 'latin-unity-maybe-remap "latin-unity")
   (autoload 'latin-unity-representations-feasible-region "latin-unity")
-  (autoload 'latin-unity-representations-present-region "latin-unity")
-  (defvar latin-unity-coding-systems)
-  (defvar latin-unity-ucs-list))
+  (autoload 'latin-unity-representations-present-region "latin-unity"))
+
+(defvar latin-unity-coding-systems)
+(defvar latin-unity-ucs-list)
 
 (defun mm-xemacs-find-mime-charset-1 (begin end)
   "Determine which MIME charset to use to send region as message.
@@ -1440,7 +1443,7 @@ gzip, bzip2, etc. are allowed."
 		    (funcall (symbol-value 'set-auto-coding-function)
 			     nil (- (point-max) (point-min)))
 		  (error nil)))))
-	   ((featurep 'file-coding) ;; XEmacs
+	   ((and (featurep 'xemacs) (featurep 'file-coding)) ;; XEmacs
 	    (let ((case-fold-search t)
 		  (end (point-at-eol))
 		  codesys start)

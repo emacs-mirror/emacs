@@ -1,3 +1,83 @@
+2007-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* smime.el (from):
+	* rfc2047.el (message-posting-charset):
+	* qp.el (mm-use-ultra-safe-encoding):
+	* pop3.el (parse-time-months):
+	* nnrss.el (mm-text-html-renderer, mm-text-html-washer-alist):
+	* nnml.el (files):
+	* nnheader.el (gnus-newsgroup-name, nnheader-file-coding-system)
+	(jka-compr-compression-info-list, ange-ftp-path-format)
+	(efs-path-regexp):
+	* nndiary.el (files):
+	* mml2015.el (mc-default-scheme, mc-schemes, pgg-default-user-id)
+	(pgg-errors-buffer, pgg-output-buffer, epg-user-id-alist)
+	(epg-digest-algorithm-alist, inhibit-redisplay)
+	(password-cache-expiry):
+	* mml1991.el (pgg-default-user-id, pgg-errors-buffer)
+	(pgg-output-buffer, password-cache-expiry):
+	* mml.el (mml-dnd-protocol-alist, ange-ftp-name-format)
+	(efs-path-regexp):
+	* mml-smime.el (epg-user-id-alist, epg-digest-algorithm-alist)
+	(inhibit-redisplay):
+	* mm-uu.el (file-name, start-point, end-point, entry)
+	(gnus-newsgroup-name, gnus-newsgroup-charset):
+	* mm-util.el (mm-mime-mule-charset-alist, latin-unity-coding-systems)
+	(latin-unity-ucs-list):
+	* mm-bodies.el (mm-uu-yenc-decode-function, mm-uu-decode-function)
+	(mm-uu-binhex-decode-function):
+	* message.el (gnus-message-group-art, gnus-list-identifiers, )
+	(rmail-enable-mime-composing, gnus-local-organization)
+	(gnus-post-method, gnus-select-method, gnus-active-hashtb)
+	(gnus-read-active-file, facemenu-add-face-function)
+	(facemenu-remove-face-function, gnus-article-decoded-p)
+	(tool-bar-mode):
+	* mail-source.el (display-time-mail-function):
+	* gnus-util.el (nnmail-pathname-coding-system)
+	(nnmail-active-file-coding-system, gnus-emphasize-whitespace-regexp)
+	(gnus-original-article-buffer, gnus-user-agent)
+	(rmail-default-rmail-file, mm-text-coding-system, tool-bar-mode)
+	(xemacs-codename, sxemacs-codename, emacs-program-version):
+	* gnus-sum.el (tool-bar-mode, gnus-tmp-header, number):
+	* gnus-start.el (gnus-agent-covered-methods)
+	(gnus-agent-file-loading-local, gnus-agent-file-loading-cache)
+	(gnus-current-headers, gnus-thread-indent-array, gnus-newsgroup-name)
+	(gnus-newsgroup-headers, gnus-group-list-mode)
+	(gnus-group-mark-positions, gnus-newsgroup-data)
+	(gnus-newsgroup-unreads, nnoo-state-alist)
+	(gnus-current-select-method, mail-sources)
+	(nnmail-scan-directory-mail-source-once, nnmail-split-history)
+	(nnmail-spool-file, gnus-cache-active-hashtb):
+	* gnus-mh.el (mh-lib-progs):
+	* gnus-ems.el (gnus-tmp-unread, gnus-tmp-replied)
+	(gnus-tmp-score-char, gnus-tmp-indentation, gnus-tmp-opening-bracket)
+	(gnus-tmp-lines, gnus-tmp-name, gnus-tmp-closing-bracket)
+	(gnus-tmp-subject-or-nil, gnus-check-before-posting, gnus-mouse-face)
+	(gnus-group-buffer):
+	* gnus-cite.el (font-lock-defaults-computed, font-lock-keywords)
+	(font-lock-set-defaults):
+	* gnus-art.el (tool-bar-map, w3m-minor-mode-map)
+	(gnus-face-properties-alist, charset, gnus-summary-article-menu)
+	(gnus-summary-post-menu, total-parts, type, condition, length):
+	* gnus-agent.el (gnus-agent-read-agentview):
+	* flow-fill.el (show-trailing-whitespace):
+	* gnus-group.el (tool-bar-mode, nnrss-group-alist): Remove unnecessary
+	eval-and-compile wrappers for byte compiler pacifiers.
+
+	* mm-view.el (mm-inline-image-xemacs): Only do something for XEmacs.
+	(mm-display-inline-fontify): Check for featurep 'xemacs not
+	extent-list.
+
+	* mm-decode.el (mm-display-external): Check for featurep 'xemacs not
+	itimer-list.
+	(mm-create-image-xemacs): Only do something for XEmacs.
+	(mm-image-fit-p): Check for featurep 'xemacs not glyph-width.
+
+	* mm-util.el (mm-find-buffer-file-coding-system): Add check for XEmacs.
+
+	* gnus-registry.el (gnus-adaptive-word-syntax-table):
+	* gnus-fun.el (gnus-face-properties-alist): Pacify byte compiler.
+
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nnimap.el (nnimap-split-download-body):

@@ -885,7 +885,7 @@ Unless no-active is non-nil, update the active file too."
 	  (unless no-active
 	    (nnmail-save-active nnml-group-alist nnml-active-file)))))))
 
-(eval-when-compile (defvar files))
+(defvar files)
 (defun nnml-generate-active-info (dir)
   ;; Update the active info for this group.
   (let ((group (directory-file-name dir))

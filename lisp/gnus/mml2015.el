@@ -173,9 +173,8 @@ Whether the passphrase is cached at all is controlled by
   (autoload 'mc-cleanup-recipient-headers "mc-toplev")
   (autoload 'mc-sign-generic "mc-toplev"))
 
-(eval-when-compile
-  (defvar mc-default-scheme)
-  (defvar mc-schemes))
+(defvar mc-default-scheme)
+(defvar mc-schemes)
 
 (defvar mml2015-decrypt-function 'mailcrypt-decrypt)
 (defvar mml2015-verify-function 'mailcrypt-verify)
@@ -707,10 +706,9 @@ Whether the passphrase is cached at all is controlled by
 
 ;;; pgg wrapper
 
-(eval-when-compile
-  (defvar pgg-default-user-id)
-  (defvar pgg-errors-buffer)
-  (defvar pgg-output-buffer))
+(defvar pgg-default-user-id)
+(defvar pgg-errors-buffer)
+(defvar pgg-output-buffer)
 
 (eval-and-compile
   (autoload 'pgg-decrypt-region "pgg")
@@ -945,13 +943,12 @@ Whether the passphrase is cached at all is controlled by
 
 ;;; epg wrapper
 
-(eval-and-compile
-  (autoload 'epg-make-context "epg"))
+(defvar epg-user-id-alist)
+(defvar epg-digest-algorithm-alist)
+(defvar inhibit-redisplay)
 
-(eval-when-compile
-  (defvar epg-user-id-alist)
-  (defvar epg-digest-algorithm-alist)
-  (defvar inhibit-redisplay)
+(eval-and-compile
+  (autoload 'epg-make-context "epg")
   (autoload 'epg-context-set-armor "epg")
   (autoload 'epg-context-set-textmode "epg")
   (autoload 'epg-context-set-signers "epg")
@@ -972,8 +969,9 @@ Whether the passphrase is cached at all is controlled by
   (autoload 'epg-expand-group "epg-config")
   (autoload 'epa-select-keys "epa"))
 
+(defvar password-cache-expiry)
+
 (eval-when-compile
-  (defvar password-cache-expiry)
   (autoload 'password-read "password")
   (autoload 'password-cache-add "password")
   (autoload 'password-cache-remove "password"))

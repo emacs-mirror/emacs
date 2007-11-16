@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'mail-utils)
+(defvar parse-time-months)
 
 (defgroup pop3 nil
   "Post Office Protocol."
@@ -326,8 +327,6 @@ Return the response string if optional second argument is non-nil."
       (replace-match "" t t)
       (forward-char)))
   (set-marker end nil))
-
-(eval-when-compile (defvar parse-time-months))
 
 ;; Copied from message-make-date.
 (defun pop3-make-date (&optional now)

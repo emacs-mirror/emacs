@@ -1159,6 +1159,8 @@
            (Info-goto-node "Help Commands"))])
   "Menu for Calc's help functions.")
 
+(defvar calc-mode-map)
+
 (easy-menu-define
   calc-menu
   calc-mode-map

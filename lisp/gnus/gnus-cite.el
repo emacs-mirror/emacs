@@ -1170,10 +1170,9 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 	   (setq count (1+ count)))))) ;;
   "Keywords for highlighting different levels of message citations.")
 
-(eval-when-compile
-  (defvar font-lock-defaults-computed)
-  (defvar font-lock-keywords)
-  (defvar font-lock-set-defaults))
+(defvar font-lock-defaults-computed)
+(defvar font-lock-keywords)
+(defvar font-lock-set-defaults)
 
 (eval-and-compile
   (unless (featurep 'xemacs)

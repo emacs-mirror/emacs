@@ -352,7 +352,7 @@ will display info in the echo area."
     (message "Automatic display of crossref information was turned on")))
 
 (defun reftex-start-itimer-once ()
-   (and reftex-mode
+   (and (featurep 'xemacs) reftex-mode
         (not (itimer-live-p reftex-auto-view-crossref-timer))
         (setq reftex-auto-view-crossref-timer
               (start-itimer "RefTeX Idle Timer"

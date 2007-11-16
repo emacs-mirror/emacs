@@ -32,9 +32,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (defvar gnus-message-group-art)
-  (defvar gnus-list-identifiers)) ; gnus-sum is required where necessary
+  (require 'cl))
+  
 (require 'hashcash)
 (require 'canlock)
 (require 'mailheader)
@@ -51,6 +50,9 @@
 (require 'rfc822)
 (require 'ecomplete)
 
+(defvar gnus-message-group-art)
+(defvar gnus-list-identifiers) ; gnus-sum is required where necessary
+(defvar rmail-enable-mime-composing)
 
 (defgroup message '((user-mail-address custom-variable)
 		    (user-full-name custom-variable))
@@ -474,8 +476,7 @@ This is used by `message-kill-buffer'."
   :group 'message-buffers
   :type 'boolean)
 
-(eval-when-compile
-  (defvar gnus-local-organization))
+(defvar gnus-local-organization)
 (defcustom message-user-organization
   (or (and (boundp 'gnus-local-organization)
 	   (stringp gnus-local-organization)
@@ -816,9 +817,8 @@ might set this variable to '(\"-f\" \"you@some.where\")."
   :type '(choice (function)
 		 (repeat string)))
 
-(eval-when-compile
-  (defvar gnus-post-method)
-  (defvar gnus-select-method))
+(defvar gnus-post-method)
+(defvar gnus-select-method)
 (defcustom message-post-method
   (cond ((and (boundp 'gnus-post-method)
 	      (listp gnus-post-method)
@@ -1640,9 +1640,8 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (defvar message-inserted-headers nil)
 
 ;; Byte-compiler warning
-(eval-when-compile
-  (defvar gnus-active-hashtb)
-  (defvar gnus-read-active-file))
+(defvar gnus-active-hashtb)
+(defvar gnus-read-active-file)
 
 ;;; Regexp matching the delimiter of messages in UNIX mail format
 ;;; (UNIX From lines), minus the initial ^.  It should be a copy
@@ -2662,9 +2661,8 @@ Prefixed with two \\[universal-argument]'s, display the PGG manual."
 
 (defvar message-tool-bar-map nil)
 
-(eval-when-compile
-  (defvar facemenu-add-face-function)
-  (defvar facemenu-remove-face-function))
+(defvar facemenu-add-face-function)
+(defvar facemenu-remove-face-function)
 
 ;;; Forbidden properties
 ;;
@@ -3619,8 +3617,6 @@ Really top post? ")))
 		   (null message-sent-message-via))
 	  (push (buffer-name buffer) buffers))))
     (nreverse buffers)))
-
-(eval-when-compile (defvar mail-citation-hook))	; Compiler directive
 
 (defun message-cite-original-1 (strip-signature)
   "Cite an original message.
@@ -6873,8 +6869,7 @@ the message."
 	    (setq subject (funcall func subject))))
 	subject))))
 
-(eval-when-compile
-  (defvar gnus-article-decoded-p))
+(defvar gnus-article-decoded-p)
 
 
 ;;;###autoload
@@ -7087,8 +7082,6 @@ is for the internal use."
     (if (rmail-msg-is-pruned)
 	(rmail-msg-restore-non-pruned-header)))
   (message-forward-make-body forward-buffer))
-
-(eval-when-compile (defvar rmail-enable-mime-composing))
 
 ;; Fixme: Should have defcustom.
 ;;;###autoload
@@ -7311,8 +7304,7 @@ which specify the range to operate on."
     (mapcar #'delete-overlay (overlays-in (point-min) (point-max)))))
 
 ;; Support for toolbar
-(eval-when-compile
-  (defvar tool-bar-mode))
+(defvar tool-bar-mode)
 
 ;; Note: The :set function in the `message-tool-bar*' variables will only
 ;; affect _new_ message buffers.  We might add a function that walks thru all

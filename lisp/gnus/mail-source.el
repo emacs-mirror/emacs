@@ -29,8 +29,7 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'imap)
-  (eval-when-compile (defvar display-time-mail-function)))
+  (require 'imap))
 (eval-and-compile
   (autoload 'pop3-movemail "pop3")
   (autoload 'pop3-get-message-count "pop3")
@@ -38,6 +37,9 @@
 (require 'format-spec)
 (require 'mm-util)
 (require 'message) ;; for `message-directory'
+
+(defvar display-time-mail-function)
+
 
 (defgroup mail-source nil
   "The mail-fetching library."

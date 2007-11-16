@@ -39,11 +39,11 @@
 (autoload 'gnus-agent-possibly-alter-active "gnus-agent")
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl))
 
-  (defvar gnus-agent-covered-methods nil)
-  (defvar gnus-agent-file-loading-local nil)
-  (defvar gnus-agent-file-loading-cache nil))
+(defvar gnus-agent-covered-methods)
+(defvar gnus-agent-file-loading-local)
+(defvar gnus-agent-file-loading-cache)
 
 (defcustom gnus-startup-file (nnheader-concat gnus-home-directory ".newsrc")
   "Your `.newsrc' file.
@@ -650,21 +650,20 @@ the first newsgroup."
 ;;; General various misc type functions.
 
 ;; Silence byte-compiler.
-(eval-when-compile
-  (defvar gnus-current-headers)
-  (defvar gnus-thread-indent-array)
-  (defvar gnus-newsgroup-name)
-  (defvar gnus-newsgroup-headers)
-  (defvar gnus-group-list-mode)
-  (defvar gnus-group-mark-positions)
-  (defvar gnus-newsgroup-data)
-  (defvar gnus-newsgroup-unreads)
-  (defvar nnoo-state-alist)
-  (defvar gnus-current-select-method)
-  (defvar mail-sources)
-  (defvar nnmail-scan-directory-mail-source-once)
-  (defvar nnmail-split-history)
-  (defvar nnmail-spool-file))
+(defvar gnus-current-headers)
+(defvar gnus-thread-indent-array)
+(defvar gnus-newsgroup-name)
+(defvar gnus-newsgroup-headers)
+(defvar gnus-group-list-mode)
+(defvar gnus-group-mark-positions)
+(defvar gnus-newsgroup-data)
+(defvar gnus-newsgroup-unreads)
+(defvar nnoo-state-alist)
+(defvar gnus-current-select-method)
+(defvar mail-sources)
+(defvar nnmail-scan-directory-mail-source-once)
+(defvar nnmail-split-history)
+(defvar nnmail-spool-file)
 
 (defun gnus-close-all-servers ()
   "Close all servers."
@@ -1512,8 +1511,8 @@ newsgroup."
       (setq killed (cdr killed)))))
 
 ;; We want to inline a function from gnus-cache, so we cheat here:
+(defvar gnus-cache-active-hashtb)
 (eval-when-compile
-  (defvar gnus-cache-active-hashtb)
   (defun gnus-cache-possibly-alter-active (group active)
     "Alter the ACTIVE info for GROUP to reflect the articles in the cache."
     (when gnus-cache-active-hashtb

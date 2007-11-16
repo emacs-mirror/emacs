@@ -895,7 +895,7 @@ external if displayed external."
 			  ;; a vector in Emacs but is a list in XEmacs)
 			  ;; requires that it is lexically scoped.
 			  (timer (run-at-time 2.0 nil 'ignore)))
-		       (if (boundp 'itimer-list)
+		       (if (featurep 'xemacs)
 			   (lambda (process state)
 			     (when (eq 'exit (process-status process))
 			       (if (memq timer itimer-list)
@@ -1364,34 +1364,35 @@ be determined."
 	    (mm-handle-set-cache handle spec))))))
 
 (defun mm-create-image-xemacs (type)
-  (cond
-   ((equal type "xbm")
-    ;; xbm images require special handling, since
-    ;; the only way to create glyphs from these
-    ;; (without a ton of work) is to write them
-    ;; out to a file, and then create a file
-    ;; specifier.
-    (let ((file (mm-make-temp-file
-		 (expand-file-name "emm" mm-tmp-directory)
-		 nil ".xbm")))
-      (unwind-protect
-	  (progn
-	    (write-region (point-min) (point-max) file)
-	    (make-glyph (list (cons 'x file))))
-	(ignore-errors
-	  (delete-file file)))))
-   (t
-    (make-glyph
-     (vector
-      (or (mm-image-type-from-buffer)
-	  (intern type))
-      :data (buffer-string))))))
+  (when (featurep 'xemacs)
+    (cond
+     ((equal type "xbm")
+      ;; xbm images require special handling, since
+      ;; the only way to create glyphs from these
+      ;; (without a ton of work) is to write them
+      ;; out to a file, and then create a file
+      ;; specifier.
+      (let ((file (mm-make-temp-file
+		   (expand-file-name "emm" mm-tmp-directory)
+		   nil ".xbm")))
+	(unwind-protect
+	    (progn
+	      (write-region (point-min) (point-max) file)
+	      (make-glyph (list (cons 'x file))))
+	  (ignore-errors
+	    (delete-file file)))))
+     (t
+      (make-glyph
+       (vector
+	(or (mm-image-type-from-buffer)
+	    (intern type))
+	:data (buffer-string)))))))
 
 (defun mm-image-fit-p (handle)
   "Say whether the image in HANDLE will fit the current window."
   (let ((image (mm-get-image handle)))
     (or (not image)
-	(if (fboundp 'glyph-width)
+	(if (featurep 'xemacs)
 	    ;; XEmacs' glyphs can actually tell us about their width, so
 	    ;; lets be nice and smart about them.
 	    (or mm-inline-large-images

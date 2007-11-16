@@ -2104,8 +2104,7 @@ doesn't exist, to valid the overview buffer."
 
 ;; Keeps the compiler from warning about the free variable in
 ;; gnus-agent-read-agentview.
-(eval-when-compile
-  (defvar gnus-agent-read-agentview))
+(defvar gnus-agent-read-agentview)
 
 (defun gnus-agent-load-alist (group)
   "Load the article-state alist for GROUP."

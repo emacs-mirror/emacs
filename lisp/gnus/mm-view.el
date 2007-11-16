@@ -97,19 +97,20 @@
 	  (delete-region b (+ b 2)))))))
 
 (defun mm-inline-image-xemacs (handle)
-  (insert "\n\n")
-  (forward-char -2)
-  (let ((annot (make-annotation (mm-get-image handle) nil 'text))
-	buffer-read-only)
-    (mm-handle-set-undisplayer
-     handle
-     `(lambda ()
-	(let ((b ,(point-marker))
-	      buffer-read-only)
-	  (delete-annotation ,annot)
-	  (delete-region (- b 2) b))))
-    (set-extent-property annot 'mm t)
-    (set-extent-property annot 'duplicable t)))
+  (when (featurep 'xemacs)
+    (insert "\n\n")
+    (forward-char -2)
+    (let ((annot (make-annotation (mm-get-image handle) nil 'text))
+	  buffer-read-only)
+      (mm-handle-set-undisplayer
+       handle
+       `(lambda ()
+	  (let ((b ,(point-marker))
+		buffer-read-only)
+	    (delete-annotation ,annot)
+	    (delete-region (- b 2) b))))
+      (set-extent-property annot 'mm t)
+      (set-extent-property annot 'duplicable t))))
 
 (eval-and-compile
   (if (featurep 'xemacs)
@@ -568,7 +569,7 @@
       ;; By default, XEmacs font-lock uses non-duplicable text
       ;; properties.  This code forces all the text properties
       ;; to be copied along with the text.
-      (when (fboundp 'extent-list)
+      (when (featurep 'xemacs)
 	(map-extents (lambda (ext ignored)
 		       (set-extent-property ext 'duplicable t)
 		       nil)

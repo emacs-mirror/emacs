@@ -63,6 +63,8 @@
 (require 'gnus-util)
 (require 'nnmail)
 
+(defvar gnus-adaptive-word-syntax-table)
+
 (defvar gnus-registry-dirty t
  "Boolean set to t when the registry is modified")
 

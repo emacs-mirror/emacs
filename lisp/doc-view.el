@@ -163,7 +163,8 @@
 (defcustom doc-view-resolution 100
   "Dots per inch resolution used to render the documents.
 Higher values result in larger images."
-  :type 'number)
+  :type 'number
+  :group 'doc-view)
 
 (defcustom doc-view-dvipdfm-program (executable-find "dvipdfm")
   "Program to convert DVI files to PDF.

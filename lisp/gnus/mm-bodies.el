@@ -26,13 +26,13 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (defvar mm-uu-decode-function)
-  (defvar mm-uu-binhex-decode-function))
-
 (require 'mm-util)
 (require 'rfc2047)
 (require 'mm-encode)
+
+(defvar mm-uu-yenc-decode-function)
+(defvar mm-uu-decode-function)
+(defvar mm-uu-binhex-decode-function)
 
 ;; 8bit treatment gets any char except: 0x32 - 0x7f, LF, TAB, BEL,
 ;; BS, vertical TAB, form feed, and ^_
@@ -170,8 +170,6 @@ If no encoding was done, nil is returned."
 ;;;
 ;;; Functions for decoding
 ;;;
-
-(eval-when-compile (defvar mm-uu-yenc-decode-function))
 
 (defun mm-decode-content-transfer-encoding (encoding &optional type)
   "Decodes buffer encoded with ENCODING, returning success status.
