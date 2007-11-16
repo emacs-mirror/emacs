@@ -1,3 +1,8 @@
+2007-11-16  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-heading-regexp): Add 0-9.
+	(Man-first-heading-regexp): Remove leading space [ \t]* before NAME.
+
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/cc-engine.el (c-crosses-statement-barrier-p):
