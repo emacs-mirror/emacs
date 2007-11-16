@@ -463,6 +463,50 @@ with a prefix argument."
 
 ;;; Shell commands
 
+(defun dired-read-shell-command-default (files)
+  "Return a list of default commands for `dired-read-shell-command'."
+  (require 'mailcap)
+  (mailcap-parse-mailcaps)
+  (mailcap-parse-mimetypes)
+  (let* ((all-mime-type
+	  ;; All unique MIME types from file extensions
+	  (delete-dups (mapcar (lambda (file)
+				 (mailcap-extension-to-mime
+				  (file-name-extension file t)))
+			       files)))
+	 (all-mime-info
+	  ;; All MIME info lists
+	  (delete-dups (mapcar (lambda (mime-type)
+				 (mailcap-mime-info mime-type 'all))
+			       all-mime-type)))
+	 (common-mime-info
+	  ;; Intersection of mime-infos from different mime-types;
+	  ;; or just the first MIME info for a single MIME type
+	  (if (cdr all-mime-info)
+	      (delq nil (mapcar (lambda (mi1)
+				  (unless (memq nil (mapcar
+						     (lambda (mi2)
+						       (member mi1 mi2))
+						     (cdr all-mime-info)))
+				    mi1))
+				(car all-mime-info)))
+	    (car all-mime-info)))
+	 (commands
+	  ;; Command strings from `viewer' field of the MIME info
+	  (delq nil (mapcar (lambda (mime-info)
+			      (let ((command (cdr (assoc 'viewer mime-info))))
+				(if (stringp command)
+				    (replace-regexp-in-string
+				     ;; Replace mailcap's `%s' placeholder
+				     ;; with dired's `?' placeholder
+				     "%s" "?"
+				     (replace-regexp-in-string
+				      ;; Remove the final filename placeholder
+				      "\s*\\('\\)?%s\\1?\s*\\'" "" command nil t)
+				     nil t))))
+			    common-mime-info))))
+    commands))
+
 (defun dired-read-shell-command (prompt arg files)
 ;;  "Read a dired shell command prompting with PROMPT (using read-string).
 ;;ARG is the prefix arg and may be used to indicate in the prompt which
@@ -472,7 +516,8 @@ with a prefix argument."
    nil 'shell files
    (function read-string)
    (format prompt (dired-mark-prompt arg files))
-   nil 'shell-command-history))
+   nil 'shell-command-history
+   (dired-read-shell-command-default files)))
 
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
