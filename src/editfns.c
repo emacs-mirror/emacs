@@ -3594,8 +3594,6 @@ usage: (format STRING &rest OBJECTS)  */)
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (INTEGERP (args[n]) && *format != 's')
 	  {
-	    thissize = 30;
-
 	    /* The following loop assumes the Lisp type indicates
 	       the proper way to pass the argument.
 	       So make sure we have a flonum if the argument should
@@ -3603,14 +3601,13 @@ usage: (format STRING &rest OBJECTS)  */)
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
 	      {
 		args[n] = Ffloat (args[n]);
-		if (precision[n] > 0)
-		  thissize += precision[n];
 	      }
 	    else
 	      if (*format != 'd' && *format != 'o' && *format != 'x'
 		  && *format != 'i' && *format != 'X' && *format != 'c')
 		error ("Invalid format operation %%%c", *format);
 
+	    thissize = 30 + (precision[n] > 0 ? precision[n] : 0);
 	    if (*format == 'c')
 	      {
 		if (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
