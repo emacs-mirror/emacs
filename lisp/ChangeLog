@@ -1,5 +1,7 @@
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* abbrev.el (abbrev--write): Fix error in transcription from C.
+
 	* emulation/pc-select.el (pc-select-shifted-mark): Remove.
 	(pc-select-ensure-mark): Set mark-active to a special value instead.
 	Rename from ensure-mark.  Update call callers.

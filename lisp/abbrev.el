@@ -825,7 +825,7 @@ Only writes the non-system abbrevs.
 Presumes that `standard-output' points to `current-buffer'."
   (unless (or (null (symbol-value sym)) (abbrev-get sym :system))
     (insert "    (")
-    (prin1 sym)
+    (prin1 (symbol-name sym))
     (insert " ")
     (prin1 (symbol-value sym))
     (insert " ")
