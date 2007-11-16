@@ -1,3 +1,9 @@
+2007-11-16  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* mule.texi (Communication Coding): Mention x-select-request-type.
+
+	* frames.texi (Cut/Paste Other App): Mention x-select-request-type.
+
 2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* maintaining.texi (TEXTAGS): note that you can use "-" for stdout with
