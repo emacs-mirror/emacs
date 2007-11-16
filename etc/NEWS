@@ -120,6 +120,11 @@ following arguments.
 
 * Incompatible Editing Changes in Emacs 23.1
 
++++
+** In Dired-x, all command guesses for ! are now added to the default
+list accessible by M-n instead of pushing all guesses temporarily into
+the history list.
+
 
 * Editing Changes in Emacs 23.1
 
@@ -151,6 +156,14 @@ of strings.  In the latter case, Emacs puts the second and following
 strings on the kill ring.
 
 ** Minibuffer changes:
+
+*** In Dired, a list of commands for ! extracted from mailcap according to
+file extensions are added to the default list accessible by M-n.
+
+*** A list of regexp default values is available via M-n for `occur',
+`keep-lines', `flush-lines' and `how-many'.  This list includes the active
+region in transient-mark-mode, the word under the cursor, the last isearch
+regexp, the last isearch string and the last replacement regexp.
 
 *** isearch started in the minibuffer searches in the minibuffer history.
 Reverse isearch commands (C-r, C-M-r) search in previous minibuffer
@@ -212,11 +225,6 @@ then another C-s tries searching the previous ChangeLog,
 if there is one (e.g. go from ChangeLog to ChangeLog.12).
 
 This is enabled if isearch-buffers-multi is non-nil.
-
-+++
-** In Dired-x, all command guesses for ! are now added to the default
-list accessible by M-n instead of pushing all guesses temporarily into
-the history list.
 
 ** smerge-refine highlights word-level details of changes in conflict.
 It's used automatically as you move through conflicts, see smerge-auto-refine.
