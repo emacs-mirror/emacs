@@ -1854,7 +1854,7 @@ place.  It affects how `mail-extract-address-components' works."
 ;; http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1-semic.txt
 ;; http://www.iana.org/domain-names.htm
 ;; http://www.iana.org/cctld/cctld-whois.htm
-;; Latest change: Mon Jul  8 14:21:59 CEST 2002
+;; Latest change: 2007/11/15
 
 (defconst mail-extr-all-top-level-domains
   (let ((ob (make-vector 739 0)))
@@ -1867,6 +1867,7 @@ place.  It affects how `mail-extract-address-components' works."
 	      (nth 1 x))))
      '(
        ;; ISO 3166 codes:
+       ("ac" "Ascension Island")
        ("ad" "Andorra")
        ("ae" "United Arab Emirates")
        ("af" "Afghanistan")
@@ -1882,6 +1883,7 @@ place.  It affects how `mail-extract-address-components' works."
        ("at" "Austria"		"The Republic of %s")
        ("au" "Australia")
        ("aw" "Aruba")
+       ("ax" "Aland Islands")
        ("az" "Azerbaijan")
        ("ba" "Bosnia-Herzegovina")
        ("bb" "Barbados")
@@ -1892,6 +1894,7 @@ place.  It affects how `mail-extract-address-components' works."
        ("bh" "Bahrain")
        ("bi" "Burundi")
        ("bj" "Benin")
+       ("bl" "Saint Barthelemy")
        ("bm" "Bermuda")
        ("bn" "Brunei Darussalam")
        ("bo" "Bolivia"		"Republic of %s")
@@ -1933,6 +1936,7 @@ place.  It affects how `mail-extract-address-components' works."
        ("er" "Eritrea")
        ("es" "Spain"		"The Kingdom of %s")
        ("et" "Ethiopia")
+       ("eu" "European Union")
        ("fi" "Finland"		"The Republic of %s")
        ("fj" "Fiji")
        ("fk" "Falkland Islands (Malvinas)")
@@ -1944,6 +1948,7 @@ place.  It affects how `mail-extract-address-components' works."
        ("gd" "Grenada")
        ("ge" "Georgia")
        ("gf" "French Guiana")
+       ("gg" "Guernsey")
        ("gh" "Ghana")
        ("gi" "Gibraltar")
        ("gl" "Greenland")
@@ -1973,6 +1978,7 @@ place.  It affects how `mail-extract-address-components' works."
        ("ir" "Iran"		"Islamic Republic of %s")
        ("is" "Iceland"		"The Republic of %s")
        ("it" "Italy"		"The Italian Republic")
+       ("je" "Jersey")
        ("jm" "Jamaica")
        ("jo" "Jordan")
        ("jp" "Japan")
@@ -2001,6 +2007,8 @@ place.  It affects how `mail-extract-address-components' works."
        ("ma" "Morocco")
        ("mc" "Monaco")
        ("md" "Moldova"		"The Republic of %s")
+       ("me" "Montenegro")
+       ("mf" "Saint Martin (French part)")
        ("mg" "Madagascar")
        ("mh" "Marshall Islands")
        ("mk" "Macedonia"	"The Former Yugoslav Republic of %s")
@@ -2049,6 +2057,7 @@ place.  It affects how `mail-extract-address-components' works."
        ("qa" "Qatar")
        ("re" "Reunion (Fr.)")		; In .fr domain
        ("ro" "Romania")
+       ("rs" "Serbia")
        ("ru" "Russia"		"Russian Federation")
        ("rw" "Rwanda")
        ("sa" "Saudi Arabia")
@@ -2112,15 +2121,21 @@ place.  It affects how `mail-extract-address-components' works."
        ("zw" "Zimbabwe"		"Republic of %s")
        ;; Generic Domains:
        ("aero" t                "Air Transport Industry")
+       ("asia" t                "Pan-Asia and Asia Pacific community")
        ("biz" t                 "Businesses")
+       ("cat" t                 "Catalan language and culture")
        ("com" t			"Commercial")
        ("coop" t                "Cooperative Associations")
        ("info" t                "Info")
+       ("jobs" t                "Employment")
+       ("mobi" t                "Mobile products")
        ("museum" t              "Museums")
        ("name" t                "Individuals")
        ("net" t			"Network")
        ("org" t			"Non-profit Organization")
-       ;;("pro" t                 "Credentialed professionals")
+       ("pro" t                 "Credentialed professionals")
+       ("tel" t                 "Contact data")
+       ("travel" t              "Travel industry")
        ;;("bitnet" t		"Because It's Time NET")
        ("gov" t			"United States Government")
        ("edu" t			"Educational")
