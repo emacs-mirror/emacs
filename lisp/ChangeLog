@@ -1,3 +1,9 @@
+2007-11-16  Werner Lemberg  <wl@gnu.org>
+
+	* files.el (set-auto-mode-1): Check second line for -*- if file
+	starts with '\" (which is used by man pages to identify needed
+	troff preprocessors).
+
 2007-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* mail/mail-extr.el (mail-extr-all-top-level-domains): Update domains.

@@ -2428,7 +2428,11 @@ Otherwise, return nil; point may be changed."
                             ;; put them in the first line of
                             ;; such a file without screwing up
                             ;; the interpreter invocation.
-                            (and (looking-at "^#!") 2)) t)
+                            ;; The same holds for
+                            ;;   '\"
+                            ;; in man pages (preprocessor
+                            ;; magic for the `man' program).
+                            (and (looking-at "^\\(#!\\|'\\\\\"\\)") 2)) t)
      (progn
        (skip-chars-forward " \t")
        (setq beg (point))
