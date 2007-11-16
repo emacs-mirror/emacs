@@ -1,3 +1,14 @@
+2007-11-16  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-read-shell-command-default): New function.
+	(dired-read-shell-command): Use its return value for DEFAULT arg.
+
+	* replace.el (keep-lines-read-args, occur-read-primary-args):
+	Use a list of default values for DEFAULT arg of read-from-minibuffer.
+
+	* man.el (Man-heading-regexp): Add 0-9.
+	(Man-first-heading-regexp): Remove leading space [ \t]* before NAME.
+
 2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-ghostscript-options): Remove resolution arg.
