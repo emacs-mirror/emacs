@@ -1752,7 +1752,7 @@
 	Explain string and vector representations of key sequences
 
 	* keymaps.texi (Changing Key Bindings):
-	* commands.texi (Interactive Codes, Interactive Codes):
+	* commands.texi (Interactive Codes):
 	* help.texi (Describing Characters): Refer to it.
 
 2006-05-23  Luc Teirlinck  <teirllm@auburn.edu>
@@ -3509,8 +3509,7 @@
 
 	* text.texi (Undo): Document extensible undo entries.
 
-	* searching.texi (String Search, Regexp Search, Regexp Search):
-	Cleanups.
+	* searching.texi (String Search, Regexp Search): Cleanups.
 
 	* nonascii.texi (Character Codes): Minor fix.
 
