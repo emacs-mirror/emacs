@@ -1,3 +1,8 @@
+2007-11-16  Werner Lemberg <wl@gnu.org>
+
+	* custom.texi (Specifying File Variables), major.texi (Choosing
+	Modes): Mention '\" in man pages.
+
 2007-11-16  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* mule.texi (Communication Coding): Mention x-select-request-type.

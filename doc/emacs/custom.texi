@@ -1099,10 +1099,14 @@ particular Lisp file.  @xref{Enabling Multibyte}.
 the first line as well.
 
 @cindex shell scripts, and local file variables
+@cindex man pages, and local file variables
   In shell scripts, the first line is used to identify the script
 interpreter, so you cannot put any local variables there.  To
 accommodate this, Emacs looks for local variable specifications in the
 @emph{second} line when the first line specifies an interpreter.
+The same is true for man pages which start with the magic string
+@samp{'\"} to specify a list of troff preprocessors (not all do,
+however).
 
   A @dfn{local variables list} goes near the end of the file, in the
 last page.  (It is often best to put it on a page by itself.)  The local
