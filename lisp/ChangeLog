@@ -1,5 +1,9 @@
 2007-11-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* international/mule-cmds.el (set-locale-environment): Set
+	default-file-name-coding-system _after_ keyboard and terminal
+	coding systems.  This fixes last change.
+
 	* mail/rmail.el (rmail-current-subject-regexp): Allow more than
 	one space after "Subject:".
 
