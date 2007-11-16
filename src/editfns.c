@@ -3601,11 +3601,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	       So make sure we have a flonum if the argument should
 	       be a double.  */
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
-	      {
-		args[n] = Ffloat (args[n]);
-		if (precision[n] > 0)
-		  thissize += precision[n];
-	      }
+	      args[n] = Ffloat (args[n]);
 	    else
 	      if (*format != 'd' && *format != 'o' && *format != 'x'
 		  && *format != 'i' && *format != 'X' && *format != 'c')
