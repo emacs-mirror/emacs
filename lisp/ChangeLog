@@ -1,7 +1,16 @@
+2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emulation/pc-select.el (pc-select-shifted-mark): Remove.
+	(pc-select-ensure-mark): Set mark-active to a special value instead.
+	Rename from ensure-mark.  Update call callers.
+	(pc-select-maybe-deactivate-mark): Rename from maybe-deactivate-mark.
+	Rewrite.  Update all callers.
+	(pc-selection-mode): Remove redundant var declaration.
+
 2007-11-16  Tassilo Horn  <tassilo@member.fsf.org>
 
-        * doc-view.el (doc-view-search-backward, doc-view-search): Fix
-	assignment to free variable bug.
+	* doc-view.el (doc-view-search-backward, doc-view-search):
+	Fix assignment to free variable bug.
 
 2007-11-16  Martin Pohlack  <mp26@os.inf.tu-dresden.de>  (tiny change)
 
