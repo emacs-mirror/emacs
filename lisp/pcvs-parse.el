@@ -235,7 +235,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	      ;; servers, this should not be necessary, because they return
 	      ;; a complete merge output.
 	      (with-temp-buffer
-		(insert-file-contents path)
+		(ignore-errors (insert-file-contents path))
 		(goto-char (point-min))
 		(if (re-search-forward "^<<<<<<< " nil t)
 		    'CONFLICT 'NEED-MERGE))))
@@ -272,8 +272,9 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	;; branches, or because it's been removed).
 	(if (ignore-errors
 	      (with-temp-buffer
-		(insert-file-contents (expand-file-name
-				       ".cvsignore" (file-name-directory dir)))
+                (ignore-errors
+                  (insert-file-contents
+                   (expand-file-name ".cvsignore" (file-name-directory dir))))
 		(goto-char (point-min))
 		(re-search-forward
 		 (concat "^" (regexp-quote (file-name-nondirectory dir)) "/$")

@@ -1,3 +1,8 @@
+2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-parse.el (cvs-parse-table): Ignore errors when looking up files
+	in order to determine if there's a conflict.
+
 2007-11-16  Juri Linkov  <juri@jurta.org>
 
 	* man.el (Man-heading-regexp): Add 0-9.
@@ -30,8 +35,8 @@
 
 2007-11-14  Jason Rumney  <jasonr@gnu.org>
 
-	* international/mule-cmds.el (set-locale-environment): Set
-	default-file-name-coding-system from system defaults on Windows.
+	* international/mule-cmds.el (set-locale-environment):
+	Set default-file-name-coding-system from system defaults on Windows.
 
 2007-11-14  Nick Roberts  <nickrob@snap.net.nz>
 
