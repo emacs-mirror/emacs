@@ -1,3 +1,9 @@
+2007-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-aent.el (calc-last-user-lang-parse-table): New variable.
+	(math-build-parse-table): Get parse information from
+	`math-parse-table'.
+
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (recenter-last-op): New var.
