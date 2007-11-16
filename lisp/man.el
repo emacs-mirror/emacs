@@ -264,14 +264,17 @@ the associated section number."
 	    "(\\(" Man-section-regexp "\\))\\).*\\1"))
   "Regular expression describing the heading of a page.")
 
-(defvar Man-heading-regexp "^\\([A-Z][A-Z /-]+\\)$"
+(defvar Man-heading-regexp "^\\([A-Z][A-Z0-9 /-]+\\)$"
   "Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
   "Regular expression for SEE ALSO heading (or your equivalent).
 This regexp should not start with a `^' character.")
 
-(defvar Man-first-heading-regexp "^[ \t]*NAME$\\|^[ \t]*No manual entry fo.*$"
+;; This used to have leading space [ \t]*, but was removed because it
+;; causes false page splits on an occasional NAME with leading space
+;; inside a manpage.  And `Man-heading-regexp' doesn't have [ \t]* anyway.
+(defvar Man-first-heading-regexp "^NAME$\\|^[ \t]*No manual entry fo.*$"
   "Regular expression describing first heading on a manpage.
 This regular expression should start with a `^' character.")
 
