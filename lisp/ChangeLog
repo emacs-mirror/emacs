@@ -1,3 +1,8 @@
+2007-11-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (make-variable-frame-local):
+	Fix typo in obsolescence declaration.
+
 2007-11-16  Glenn Morris  <rgm@gnu.org>
 
 	* mail/mail-extr.el (mail-extr-all-top-level-domains): Update domains.
