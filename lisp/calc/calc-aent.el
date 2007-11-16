@@ -603,6 +603,7 @@ in Calc algebraic input.")
 
 (defvar calc-user-parse-table nil)
 (defvar calc-last-main-parse-table nil)
+(defvar calc-last-user-lang-parse-table nil)
 (defvar calc-last-lang-parse-table nil)
 (defvar calc-user-tokens nil)
 (defvar calc-user-token-chars nil)
@@ -612,10 +613,12 @@ in Calc algebraic input.")
 
 (defun math-build-parse-table ()
   (let ((mtab (cdr (assq nil calc-user-parse-tables)))
-	(ltab (cdr (assq calc-language calc-user-parse-tables))))
+	(ltab (cdr (assq calc-language calc-user-parse-tables)))
+        (lltab (get calc-language 'math-parse-table)))
     (or (and (eq mtab calc-last-main-parse-table)
-	     (eq ltab calc-last-lang-parse-table))
-	(let ((p (append mtab ltab))
+	     (eq ltab calc-last-user-lang-parse-table)
+             (eq lltab calc-last-lang-parse-table))
+	(let ((p (append mtab ltab lltab))
 	      (math-toks nil))
 	  (setq calc-user-parse-table p)
 	  (setq calc-user-token-chars nil)
@@ -629,7 +632,8 @@ in Calc algebraic input.")
 								 (length y)))))
 					    "\\|")
 		calc-last-main-parse-table mtab
-		calc-last-lang-parse-table ltab)))))
+		calc-last-user-lang-parse-table ltab
+                calc-last-lang-parse-table lltab)))))
 
 (defun math-find-user-tokens (p)
   (while p
