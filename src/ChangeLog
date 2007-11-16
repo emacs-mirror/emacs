@@ -1,5 +1,12 @@
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.c (struct save_window_data): Move non-lisp data to the end
+	and make it `int' rather than Lisp_Object.
+	(Fcurrent_window_configuration): Use ALLOCATE_PSEUDOVECTOR.
+	Done wrap/unwrap integer values.
+	(Fset_window_configuration, compare_window_configurations):
+	Update use of fields to their new types.
+
 	* xterm.h (struct scroll_bar): Only use Lisp_Object for lisp data.
 	Turn integer fields into `int'.  Merge x_window_low and x_window_high.
 	(SCROLL_BAR_PACK, SCROLL_BAR_UNPACK, SCROLL_BAR_X_WINDOW)

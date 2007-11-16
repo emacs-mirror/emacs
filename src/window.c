@@ -6053,8 +6053,6 @@ struct save_window_data
   {
     EMACS_UINT size;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
-    Lisp_Object frame_cols, frame_lines, frame_menu_bar_lines;
-    Lisp_Object frame_tool_bar_lines;
     Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
@@ -6062,12 +6060,18 @@ struct save_window_data
     Lisp_Object minibuf_selected_window;
     Lisp_Object root_window;
     Lisp_Object focus_frame;
-    /* Record the values of window-min-width and window-min-height
-       so that window sizes remain consistent with them.  */
-    Lisp_Object min_width, min_height;
     /* A vector, each of whose elements is a struct saved_window
        for one window.  */
     Lisp_Object saved_windows;
+
+    /* All fields above are traced by the GC.
+       From `fame-cols' down, the fields are ignored by the GC.  */
+
+    int frame_cols, frame_lines, frame_menu_bar_lines;
+    int frame_tool_bar_lines;
+    /* Record the values of window-min-width and window-min-height
+       so that window sizes remain consistent with them.  */
+    int min_width, min_height;
   };
 
 /* This is saved as a Lisp_Vector  */
@@ -6207,18 +6211,20 @@ the return value is nil.  Otherwise the value is t.  */)
 	 if it runs during this.  */
       BLOCK_INPUT;
 
-      if (XFASTINT (data->frame_lines) != previous_frame_lines
-	  || XFASTINT (data->frame_cols) != previous_frame_cols)
-	change_frame_size (f, XFASTINT (data->frame_lines),
-			   XFASTINT (data->frame_cols), 0, 0, 0);
+      if (data->frame_lines != previous_frame_lines
+	  || data->frame_cols != previous_frame_cols)
+	change_frame_size (f, data->frame_lines,
+			   data->frame_cols, 0, 0, 0);
 #if defined (HAVE_WINDOW_SYSTEM) || defined (MSDOS)
-      if (XFASTINT (data->frame_menu_bar_lines)
+      if (data->frame_menu_bar_lines
 	  != previous_frame_menu_bar_lines)
-	x_set_menu_bar_lines (f, data->frame_menu_bar_lines, make_number (0));
+	x_set_menu_bar_lines (f, make_number (data->frame_menu_bar_lines),
+			      make_number (0));
 #ifdef HAVE_WINDOW_SYSTEM
-      if (XFASTINT (data->frame_tool_bar_lines)
+      if (data->frame_tool_bar_lines
 	  != previous_frame_tool_bar_lines)
-	x_set_tool_bar_lines (f, data->frame_tool_bar_lines, make_number (0));
+	x_set_tool_bar_lines (f, make_number (data->frame_tool_bar_lines),
+			      make_number (0));
 #endif
 #endif
 
@@ -6452,8 +6458,8 @@ the return value is nil.  Otherwise the value is t.  */)
     Fset_buffer (new_current_buffer);
 
   /* Restore the minimum heights recorded in the configuration.  */
-  window_min_height = XINT (data->min_height);
-  window_min_width = XINT (data->min_width);
+  window_min_height = data->min_height;
+  window_min_width = data->min_width;
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   minibuf_selected_window = data->minibuf_selected_window;
@@ -6654,7 +6660,6 @@ redirection (see `redirect-frame-focus').  */)
   register Lisp_Object tem;
   register int n_windows;
   register struct save_window_data *data;
-  register struct Lisp_Vector *vec;
   register int i;
   FRAME_PTR f;
 
@@ -6664,14 +6669,13 @@ redirection (see `redirect-frame-focus').  */)
   f = XFRAME (frame);
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
-  vec = allocate_other_vector (VECSIZE (struct save_window_data));
-  XSETPVECTYPE (vec, PVEC_WINDOW_CONFIGURATION);
-  data = (struct save_window_data *)vec;
+  data = ALLOCATE_PSEUDOVECTOR (struct save_window_data, frame_cols,
+			       PVEC_WINDOW_CONFIGURATION);
 
-  XSETFASTINT (data->frame_cols, FRAME_COLS (f));
-  XSETFASTINT (data->frame_lines, FRAME_LINES (f));
-  XSETFASTINT (data->frame_menu_bar_lines, FRAME_MENU_BAR_LINES (f));
-  XSETFASTINT (data->frame_tool_bar_lines, FRAME_TOOL_BAR_LINES (f));
+  data->frame_cols = FRAME_COLS (f);
+  data->frame_lines = FRAME_LINES (f);
+  data->frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
+  data->frame_tool_bar_lines = FRAME_TOOL_BAR_LINES (f);
   data->selected_frame = selected_frame;
   data->current_window = FRAME_SELECTED_WINDOW (f);
   XSETBUFFER (data->current_buffer, current_buffer);
@@ -6679,8 +6683,8 @@ redirection (see `redirect-frame-focus').  */)
   data->minibuf_selected_window = minibuf_level > 0 ? minibuf_selected_window : Qnil;
   data->root_window = FRAME_ROOT_WINDOW (f);
   data->focus_frame = FRAME_FOCUS_FRAME (f);
-  XSETINT (data->min_height, window_min_height);
-  XSETINT (data->min_width, window_min_width);
+  data->min_height = window_min_height;
+  data->min_width = window_min_width;
   tem = Fmake_vector (make_number (n_windows), Qnil);
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
@@ -7187,11 +7191,11 @@ compare_window_configurations (c1, c2, ignore_positions)
   sw1 = XVECTOR (d1->saved_windows);
   sw2 = XVECTOR (d2->saved_windows);
 
-  if (! EQ (d1->frame_cols, d2->frame_cols))
+  if (d1->frame_cols != d2->frame_cols)
     return 0;
-  if (! EQ (d1->frame_lines, d2->frame_lines))
+  if (d1->frame_lines != d2->frame_lines)
     return 0;
-  if (! EQ (d1->frame_menu_bar_lines, d2->frame_menu_bar_lines))
+  if (d1->frame_menu_bar_lines != d2->frame_menu_bar_lines)
     return 0;
   if (! EQ (d1->selected_frame, d2->selected_frame))
     return 0;
@@ -7213,9 +7217,9 @@ compare_window_configurations (c1, c2, ignore_positions)
      if everything else compares equal.  */
   if (! EQ (d1->focus_frame, d2->focus_frame))
     return 0;
-  if (! EQ (d1->min_width, d2->min_width))
+  if (d1->min_width != d2->min_width)
     return 0;
-  if (! EQ (d1->min_height, d2->min_height))
+  if (d1->min_height != d2->min_height)
     return 0;
 
   /* Verify that the two confis have the same number of windows.  */
