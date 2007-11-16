@@ -5,7 +5,7 @@
 
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
-	* cc-mode.texi (Electric Keys, Electric Keys, Custom Macros):
+	* cc-mode.texi (Electric Keys, Custom Macros):
 	* tramp.texi (Filename completion): Fix typos.
 
 2007-11-15  Jay Belanger  <jay.p.belanger@gmail.com>
@@ -1640,7 +1640,7 @@
 	(Custom Filling and Breaking, Custom Braces, Syntactic Symbols)
 	(Line-Up Functions, Custom Macros):
 	* ediff.texi (Window and Frame Configuration)
-	(Highlighting Difference Regions, Highlighting Difference Regions):
+	(Highlighting Difference Regions):
 	* emacs-mime.texi (Display Customization):
 	* erc.texi (History):
 	* eshell.texi (Known problems):
@@ -1648,7 +1648,7 @@
 	* gnus.texi (NNTP, IMAP, Advanced Scoring Examples)
 	(The problem of spam, SpamOracle, Extending the Spam package)
 	(Conformity, Terminology):
-	* idlwave.texi (Routine Info, Routine Info)
+	* idlwave.texi (Routine Info)
 	(Class and Keyword Inheritance, Padding Operators)
 	(Breakpoints and Stepping, Electric Debug Mode)
 	(Examining Variables, Troubleshooting):
