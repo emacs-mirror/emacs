@@ -196,7 +196,7 @@ Prefix argument serves as a repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
     (if tpu-cursor-free (or (eobp) (picture-move-down num))
-      (next-line-internal num))
+      (line-move num))
     (tpu-bottom-check beg num)
     (setq this-command 'next-line)))
 
@@ -205,7 +205,7 @@ Prefix argument serves as a repeat count."
 Prefix argument serves as a repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
-    (if tpu-cursor-free (picture-move-up num) (next-line-internal (- num)))
+    (if tpu-cursor-free (picture-move-up num) (line-move (- num)))
     (tpu-top-check beg num)
     (setq this-command 'previous-line)))
 
@@ -256,7 +256,7 @@ Accepts a prefix argument for the number of lines to move."
 Prefix argument serves as a repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
-    (next-line-internal num)
+    (line-move num)
     (tpu-bottom-check beg num)
     (beginning-of-line)))
 
@@ -266,7 +266,7 @@ Prefix argument serves as repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
     (or (bolp) (>= 0 num) (setq num (- num 1)))
-    (next-line-internal (- num))
+    (line-move (- num))
     (tpu-top-check beg num)
     (beginning-of-line)))
 
@@ -346,7 +346,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal (- lines))
+    (line-move (- lines))
     (tpu-top-check beg lines)))
 
 (defun tpu-scroll-window-up (num)
@@ -356,7 +356,7 @@ A repeat count means scroll that many sections."
   (let* ((beg (tpu-current-line))
 	 (height (1- (window-height)))
 	 (lines (* num (/ (* height tpu-percent-scroll) 100))))
-    (next-line-internal lines)
+    (line-move lines)
     (tpu-bottom-check beg lines)))
 
 

@@ -1,3 +1,9 @@
+2007-11-16  Rob Riepel  <riepel@Stanford.EDU>
+
+	* emulation/tpu-extras.el (tpu-next-line, tpu-previous-line)
+	(tpu-forward-line, tpu-backward-line, tpu-scroll-window-down)
+	(tpu-scroll-window-up): Replace next-line-internal -> line-move.
+
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs-parse.el (cvs-parse-table): Ignore errors when looking up files
