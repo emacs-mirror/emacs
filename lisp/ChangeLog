@@ -1,3 +1,10 @@
+2007-11-16  Martin Pohlack  <mp26@os.inf.tu-dresden.de>  (tiny change)
+
+	* emulation/pc-select.el (pc-select-shifted-mark): New var.
+	(ensure-mark): Set it.
+	(maybe-deactivate-mark): New fun.
+	Use it everywhere instead of (setq mark-active nil)
+
 2007-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/reftex-dcr.el (reftex-start-itimer-once): Add check

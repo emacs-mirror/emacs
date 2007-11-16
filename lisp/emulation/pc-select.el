@@ -135,8 +135,8 @@ restored to their original values when PC Selection mode is toggled off.")
 
 (unless pc-select-default-key-bindings
   (let ((lst
-	 ;; This is to avoid confusion with the delete-selection-mode
-	;; On simple displays you cant see that a region is active and
+	 ;; This is to avoid confusion with the delete-selection-mode.
+         ;; On simple displays you can't see that a region is active and
 	 ;; will be deleted on the next keypress IMHO especially for
 	 ;; copy-region-as-kill this is confusing.
 	 ;; The same goes for exchange-point-and-mark
@@ -182,7 +182,7 @@ restored to their original values when PC Selection mode is toggled off.")
 	   ([prior]     . scroll-down-nomark)
 
 	   ;; Next four lines are from Pete Forman.
-	   ([C-down]    . forward-paragraph-nomark) ; KNextPara     cDn
+	   ([C-down]    . forward-paragraph-nomark)  ; KNextPara     cDn
 	   ([C-up]      . backward-paragraph-nomark) ; KPrevPara     cUp
 	   ([S-C-down]  . forward-paragraph-mark)
 	   ([S-C-up]    . backward-paragraph-mark))))
@@ -254,6 +254,10 @@ This variable holds the value associated with [M-delete] in the
 `function-key-map' before PC Selection mode had changed that
 association.")
 
+(defvar pc-select-shifted-mark nil
+  "Holds whether we ourselves did activate the mark.  Only then
+  should we deactivate if later on.")
+
 ;;;;
 ;; misc
 ;;;;
@@ -284,7 +288,15 @@ and `transient-mark-mode'."
 (defun ensure-mark()
   ;; make sure mark is active
   ;; test if it is active, if it isn't, set it and activate it
-  (or mark-active (set-mark-command nil)))
+  (or mark-active (set-mark-command nil))
+  (setq pc-select-shifted-mark t))
+
+(defun maybe-deactivate-mark()
+  ;; maybe switch off mark (only if *we* switched it on)
+  (if pc-select-shifted-mark
+      (progn
+        (setq mark-active nil)
+        (setq pc-select-shifted-mark nil))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;; forward and mark
@@ -427,7 +439,7 @@ Don't use this command in Lisp programs!
   "Deactivate mark; move point right ARG characters \(left if ARG negative).
 On reaching end of buffer, stop and signal error."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (forward-char arg))
 
 (defun forward-word-nomark (&optional arg)
@@ -436,13 +448,13 @@ Normally returns t.
 If an edge of the buffer is reached, point is left there
 and nil is returned."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (forward-word arg))
 
 (defun forward-line-nomark (&optional arg)
   "Deactivate mark; move cursor vertically down ARG lines."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (forward-line arg)
   (setq this-command 'forward-line)
 )
@@ -452,7 +464,7 @@ and nil is returned."
 With argument, do it that many times.  Negative arg -N means
 move backward across N balanced expressions."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (forward-sexp arg))
 
 (defun forward-paragraph-nomark (&optional arg)
@@ -464,7 +476,7 @@ A line which `paragraph-start' matches either separates paragraphs
 A paragraph end is the beginning of a line which is not part of the paragraph
 to which the end of the previous line belongs, or the end of the buffer."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (forward-paragraph arg))
 
 (defun next-line-nomark (&optional arg)
@@ -483,7 +495,7 @@ a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically.  This goal column is stored
 in `goal-column', which is nil when there is none."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (with-no-warnings (next-line arg))
   (setq this-command 'next-line))
 
@@ -492,14 +504,14 @@ in `goal-column', which is nil when there is none."
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If scan reaches end of buffer, stop there without error."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (end-of-line arg)
   (setq this-command 'end-of-line))
 
 (defun backward-line-nomark (&optional arg)
   "Deactivate mark; move cursor vertically up ARG lines."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (if (null arg)
       (setq arg 1))
   (forward-line (- arg))
@@ -512,7 +524,7 @@ A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
 When calling from a program, supply a number as argument or nil."
   (interactive "P")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (cond (pc-select-override-scroll-error
 	 (condition-case nil (scroll-down arg)
 	   (beginning-of-buffer (goto-char (point-min)))))
@@ -528,7 +540,7 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (let ((size (- (point-max) (point-min))))
     (goto-char (if arg
 		   (- (point-max)
@@ -663,14 +675,14 @@ Don't use this command in Lisp programs!
   "Deactivate mark; move point left ARG characters (right if ARG negative).
 On attempt to pass beginning or end of buffer, stop and signal error."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (backward-char arg))
 
 (defun backward-word-nomark (&optional arg)
   "Deactivate mark; move backward until encountering the end of a word.
 With argument, do this that many times."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (backward-word arg))
 
 (defun backward-sexp-nomark (&optional arg)
@@ -678,7 +690,7 @@ With argument, do this that many times."
 With argument, do it that many times.  Negative arg -N means
 move forward across N balanced expressions."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (backward-sexp arg))
 
 (defun backward-paragraph-nomark (&optional arg)
@@ -693,7 +705,7 @@ blank line.
 
 See `forward-paragraph' for more information."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (backward-paragraph arg))
 
 (defun previous-line-nomark (&optional arg)
@@ -706,7 +718,7 @@ The command \\[set-goal-column] can be used to create
 a semipermanent goal column to which this command always moves.
 Then it does not try to move vertically."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (with-no-warnings (previous-line arg))
   (setq this-command 'previous-line))
 
@@ -715,7 +727,7 @@ Then it does not try to move vertically."
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If scan reaches end of buffer, stop there without error."
   (interactive "p")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (beginning-of-line arg))
 
 (defun scroll-up-nomark (&optional arg)
@@ -724,7 +736,7 @@ A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
 When calling from a program, supply a number as argument or nil."
   (interactive "P")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (cond (pc-select-override-scroll-error
 	 (condition-case nil (scroll-up arg)
 	   (end-of-buffer (goto-char (point-max)))))
@@ -740,7 +752,7 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
-  (setq mark-active nil)
+  (maybe-deactivate-mark)
   (let ((size (- (point-max) (point-min))))
     (goto-char (if arg
 		   (+ (point-min)
@@ -984,5 +996,5 @@ you must modify it using \\[customize] or \\[pc-selection-mode]."
   :group 'pc-select
   :require 'pc-select)
 
-;;; arch-tag: 10697b70-ae07-4f3e-ad23-7814a3f418c2
+;; arch-tag: 10697b70-ae07-4f3e-ad23-7814a3f418c2
 ;;; pc-select.el ends here
