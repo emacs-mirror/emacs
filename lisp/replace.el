@@ -533,9 +533,20 @@ which will run faster and will not set the mark or print anything."
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
 Value is a list, (REGEXP)."
-  (list (read-from-minibuffer prompt nil nil nil
-			      'regexp-history nil t)
-	nil nil t))
+  (let* ((default (list
+		   (regexp-quote
+		    (or (funcall (or find-tag-default-function
+				     (get major-mode 'find-tag-default-function)
+				     'find-tag-default))
+			""))
+		   (car regexp-search-ring)
+		   (regexp-quote (or (car search-ring) ""))
+		   (car (symbol-value
+			 query-replace-from-history-variable))))
+	 (default (delete-dups (delq nil (delete "" default)))))
+    (list (read-from-minibuffer prompt nil nil nil
+				'regexp-history default t)
+	  nil nil t)))
 
 (defun keep-lines (regexp &optional rstart rend interactive)
   "Delete all lines except those containing matches for REGEXP.
@@ -938,23 +949,29 @@ which means to discard all text properties."
       (nreverse result))))
 
 (defun occur-read-primary-args ()
-  (list (let* ((default (car regexp-history))
-	       (input
-		(read-from-minibuffer
-		 (if default
-		     (format "List lines matching regexp (default %s): "
-			     (query-replace-descr default))
-		   "List lines matching regexp: ")
-		 nil
-		 nil
-		 nil
-		 'regexp-history
-		 default)))
-	  (if (equal input "")
-	      default
-	    input))
-	(when current-prefix-arg
-	  (prefix-numeric-value current-prefix-arg))))
+  (let* ((default
+	   (list (and transient-mark-mode mark-active
+		      (regexp-quote
+		       (buffer-substring-no-properties
+			(region-beginning) (region-end))))
+		 (regexp-quote
+		  (or (funcall
+		       (or find-tag-default-function
+			   (get major-mode 'find-tag-default-function)
+			   'find-tag-default))
+		      ""))
+		 (car regexp-search-ring)
+		 (regexp-quote (or (car search-ring) ""))
+		 (car (symbol-value
+		       query-replace-from-history-variable))))
+	 (default (delete-dups (delq nil (delete "" default))))
+	 (input
+	  (read-from-minibuffer
+	   "List lines matching regexp: "
+	   nil nil nil 'regexp-history default)))
+    (list input
+	  (when current-prefix-arg
+	    (prefix-numeric-value current-prefix-arg)))))
 
 (defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
