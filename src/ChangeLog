@@ -1,7 +1,7 @@
 2007-11-15  Andreas Schwab  <schwab@suse.de>
 
-	* editfns.c (Fformat): Correctly format EMACS_INT values.
-	When formatting an integer as float take precision into account.
+	* editfns.c (Fformat): Correctly format EMACS_INT values.  Also
+	take precision into account when formatting an integer.
 
 	* keyboard.c (Fevent_symbol_parse_modifiers): Fix declaration.
 
