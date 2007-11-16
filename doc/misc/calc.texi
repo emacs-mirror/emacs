@@ -14006,7 +14006,7 @@ mode may display it differently.
 Formulas are entered and displayed in the appropriate notation;
 @texline @math{\sin(a/b)}
 @infoline @expr{sin(a/b)}
-will appear as @samp{\sin\left( a \over b \right)} in @TeX{} mode and
+will appear as @samp{\sin\left( @{a \over b@} \right)} in @TeX{} mode and
 @samp{\sin\left(\frac@{a@}@{b@}\right)} in La@TeX{} mode.
 Math formulas are often enclosed by @samp{$ $} signs in @TeX{} and
 La@TeX{}; these should be omitted when interfacing with Calc.  To Calc,
