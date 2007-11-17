@@ -276,3 +276,9 @@ maintainer-clean: distclean
 
 extraclean: maintainer-clean
 	-rm -f *~ \#* m/?*~ s/?*~
+
+.PHONY: check-declare
+
+check-declare:
+	$(RUN-EMACS) -l $(buildlisppath)/emacs-lisp/check-declare \
+	  --eval '(check-declare-directory "$(srcdir)")'
