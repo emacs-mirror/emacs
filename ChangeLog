@@ -1,3 +1,7 @@
+2007-11-17  Andreas Schwab  <schwab@suse.de>
+
+	* update-subdirs: Atomically update subdirs.el.
+
 2007-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (check-declare): New target.
