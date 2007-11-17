@@ -1,3 +1,8 @@
+2007-11-14  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-initialize-window-system): Use t, not nil
+	to signify default fontset.
+
 2007-06-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (describe-language-environment):
