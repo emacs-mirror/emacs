@@ -29,23 +29,6 @@
 
 ;;; Code:
 
-(defun process-lines (program &rest args)
-  "Execute PROGRAM with ARGS, returning its output as a list of lines.
-Signal an error if the program returns with a non-zero exit status."
-  (with-temp-buffer
-    (let ((status (apply 'call-process program nil (current-buffer) nil args)))
-      (unless (eq status 0)
-	(error "%s exited with status %s" program status))
-      (goto-char (point-min))
-      (let (lines)
-	(while (not (eobp))
-	  (setq lines (cons (buffer-substring-no-properties
-			     (line-beginning-position)
-			     (line-end-position))
-			    lines))
-	  (forward-line 1))
-	(nreverse lines)))))
-
 (defun add-release-logs (root version)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Root must be the root of an Emacs source tree."
