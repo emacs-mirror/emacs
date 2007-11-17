@@ -78,7 +78,7 @@ receiving side of a command pipeline."
   :type 'boolean
   :group 'eshell-unix)
 
-(defcustom eshell-plain-locate-behavior (eshell-under-xemacs-p)
+(defcustom eshell-plain-locate-behavior (featurep 'xemacs)
   "*If non-nil, standalone \"locate\" commands will behave normally.
 Standalone in this context means not redirected, and not on the
 receiving side of a command pipeline."

@@ -211,7 +211,7 @@ causing the user to wonder if anything's really going on..."
 	   (find-file-name-handler default-directory
 				   'shell-command))))
     (if (and handler
-	     (not (and (eshell-under-xemacs-p)
+	     (not (and (featurep 'xemacs)
 		       (eq handler 'dired-handler-fn))))
 	(eshell-remote-command handler command args))
     (let ((interp (eshell-find-interpreter command)))

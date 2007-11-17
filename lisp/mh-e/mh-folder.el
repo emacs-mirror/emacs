@@ -351,7 +351,7 @@ annotation.")
   "\M-\t"       mh-prev-button)
 
 (cond
- (mh-xemacs-flag
+ ((featurep 'xemacs)
   (define-key mh-folder-mode-map [button2] 'mh-show-mouse))
  (t
   (define-key mh-folder-mode-map [mouse-2] 'mh-show-mouse)))
@@ -513,7 +513,7 @@ font-lock is done highlighting.")
 
 (defmacro mh-remove-xemacs-horizontal-scrollbar ()
   "Get rid of the horizontal scrollbar that XEmacs insists on putting in."
-  (when mh-xemacs-flag
+  (when (featurep 'xemacs)
     `(if (and (featurep 'scrollbar)
               (fboundp 'set-specifier))
          (set-specifier horizontal-scrollbar-visible-p nil
@@ -656,7 +656,7 @@ perform the operation on all messages in that region.
   (easy-menu-add mh-folder-folder-menu)
   (mh-inc-spool-make)
   (mh-set-help mh-folder-mode-help-messages)
-  (if (and mh-xemacs-flag
+  (if (and (featurep 'xemacs)
            font-lock-auto-fontify)
       (turn-on-font-lock)))             ; Force font-lock in XEmacs.
 

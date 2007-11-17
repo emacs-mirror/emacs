@@ -36,7 +36,7 @@
 (autoload 'message-fetch-field "message")
 
 (defvar mh-show-xface-function
-  (cond ((and mh-xemacs-flag (locate-library "x-face") (not (featurep 'xface)))
+  (cond ((and (featurep 'xemacs) (locate-library "x-face") (not (featurep 'xface)))
          (load "x-face" t t)
          #'mh-face-display-function)
         ((>= emacs-major-version 21)

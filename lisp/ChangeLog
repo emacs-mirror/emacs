@@ -1,3 +1,22 @@
+2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* eshell/esh-util.el (eshell-under-xemacs-p): Remove.
+	* eshell/esh-mode.el (eshell-mode-syntax-table)
+	(command-running-p):
+	* eshell/esh-ext.el (eshell-external-command):
+	* eshell/esh-cmd.el (require):
+	* eshell/em-unix.el (eshell-plain-locate-behavior):
+	* eshell/em-cmpl.el (eshell-cmpl-initialize): Replace
+	eshell-under-xemacs-p with (featurep 'xemacs).
+	* eshell/esh-mode.el (characterp,char-int): Remove unused
+	conditional defaliases.
+
+	* pcomplete.el (pcomplete-event-matches-key-specifier-p): Rename
+	from event-matches-key-specifier-p, define unconditionally.
+	(event-basic-type): Remove unused defalias.
+	(pcomplete-show-completions):
+	Use pcomplete-event-matches-key-specifier-p.
+
 2007-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* eshell/esh-module.el (eshell-load-defgroups): Don't make backups

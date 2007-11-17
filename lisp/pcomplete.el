@@ -944,16 +944,15 @@ generate the completions list.  This means that the hook
 ;; Abstractions so that the code below will work for both Emacs 20 and
 ;; XEmacs 21
 
-(unless (fboundp 'event-matches-key-specifier-p)
-  (defalias 'event-matches-key-specifier-p 'eq))
+(defalias 'pcomplete-event-matches-key-specifier-p
+  (if (featurep 'xemacs)
+      'event-matches-key-specifier-p
+  'eq))
 
 (defun pcomplete-read-event (&optional prompt)
   (if (fboundp 'read-event)
       (read-event prompt)
     (aref (read-key-sequence prompt) 0)))
-
-(unless (fboundp 'event-basic-type)
-  (defalias 'event-basic-type 'event-key))
 
 (defun pcomplete-show-completions (completions)
   "List in help buffer sorted COMPLETIONS.
@@ -973,13 +972,13 @@ Typing SPC flushes the help buffer."
 	    (while (with-current-buffer (get-buffer "*Completions*")
 		     (setq event (pcomplete-read-event)))
 	      (cond
-	       ((event-matches-key-specifier-p event ?\s)
+	       ((pcomplete-event-matches-key-specifier-p event ?\s)
 		(set-window-configuration pcomplete-last-window-config)
 		(setq pcomplete-last-window-config nil)
 		(throw 'done nil))
-	       ((or (event-matches-key-specifier-p event 'tab)
+	       ((or (pcomplete-event-matches-key-specifier-p event 'tab)
                     ;; Needed on a terminal
-                    (event-matches-key-specifier-p event 9))
+                    (pcomplete-event-matches-key-specifier-p event 9))
                 (let ((win (or (get-buffer-window "*Completions*" 0)
                                (display-buffer "*Completions*"
                                                'not-this-window))))

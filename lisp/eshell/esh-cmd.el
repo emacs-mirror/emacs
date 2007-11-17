@@ -222,7 +222,7 @@ return non-nil if the command is complex."
 ;;; Code:
 
 (require 'esh-util)
-(unless (eshell-under-xemacs-p)
+(unless (featurep 'xemacs)
   (require 'eldoc))
 (require 'esh-arg)
 (require 'esh-proc)

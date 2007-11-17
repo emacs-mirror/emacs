@@ -872,7 +872,7 @@ See also `mh-folder-mode'.
     (mh-gnus-article-highlight-citation))
    (t
     (setq font-lock-defaults '(mh-show-font-lock-keywords t))))
-  (if (and mh-xemacs-flag
+  (if (and (featurep 'xemacs)
            font-lock-auto-fontify)
       (turn-on-font-lock))
   (when mh-decode-mime-flag

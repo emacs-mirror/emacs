@@ -139,10 +139,6 @@ function `string-to-number'."
 
 ;;; Functions:
 
-(defsubst eshell-under-xemacs-p ()
-  "Return non-nil if we are running under XEmacs."
-  (boundp 'xemacs-logo))
-
 (defsubst eshell-under-windows-p ()
   "Return non-nil if we are running under MS-DOS/Windows."
   (memq system-type '(ms-dos windows-nt)))

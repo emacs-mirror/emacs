@@ -1,3 +1,16 @@
+2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mh-e.el (mh-xemacs-flag): Remove.
+	(mh-min-colors-defined-flag):
+	* mh-xface.el (mh-show-xface-function):
+	* mh-utils.el (mh-colors-available-p):
+	* mh-show.el (mh-show-mode):
+	* mh-gnus.el (mh-gnus-local-map-property):
+	* mh-folder.el (mh-folder-mode-map)
+	(mh-remove-xemacs-horizontal-scrollbar, mh-folder-mode):
+	* mh-comp.el (mh-insert-x-mailer): Replace uses of mh-xemacs-flag
+	with (featurep 'xemacs).
+
 2007-09-11  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (Version, mh-version): Add +cvs to version.
