@@ -1539,6 +1539,23 @@ FILE should be the name of a library, with no directory name."
 
 ;;;; Process stuff.
 
+(defun process-lines (program &rest args)
+  "Execute PROGRAM with ARGS, returning its output as a list of lines.
+Signal an error if the program returns with a non-zero exit status."
+  (with-temp-buffer
+    (let ((status (apply 'call-process program nil (current-buffer) nil args)))
+      (unless (eq status 0)
+	(error "%s exited with status %s" program status))
+      (goto-char (point-min))
+      (let (lines)
+	(while (not (eobp))
+	  (setq lines (cons (buffer-substring-no-properties
+			     (line-beginning-position)
+			     (line-end-position))
+			    lines))
+	  (forward-line 1))
+	(nreverse lines)))))
+
 ;; open-network-stream is a wrapper around make-network-process.
 
 (when (featurep 'make-network-process)
