@@ -629,6 +629,12 @@ extern void w32_unload_font ();
 #define WM_APPCOMMAND 0x319
 #define GET_APPCOMMAND_LPARAM(lParam)  (HIWORD(lParam) & 0x7fff)
 #endif
+#ifndef WM_UNICHAR 
+#define WM_UNICHAR 0x109
+#endif
+#ifndef UNICODE_NOCHAR
+#define UNICODE_NOCHAR 0xFFFF
+#endif
 
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0)
