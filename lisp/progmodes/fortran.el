@@ -908,6 +908,8 @@ affects all Fortran buffers, and also the default."
   "Fortran mode adds this to `hack-local-variables-hook'."
   (fortran-line-length fortran-line-length))
 
+(declare-function gud-find-c-expr "gud.el" nil)
+
 (defun fortran-gud-find-expr ()
   ;; Consider \n as punctuation (end of expression).
   (with-syntax-table fortran-gud-syntax-table
