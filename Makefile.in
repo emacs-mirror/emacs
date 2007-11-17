@@ -811,3 +811,13 @@ bootstrap-clean-before-fast: FRC
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
+
+.PHONY: check-declare
+
+check-declare:
+	@if [ ! -e $(srcdir)/src/emacs ]; then \
+	  echo "You must build Emacs to use this command"; \
+	  exit 1; \
+	fi
+	(cd leim; $(MAKE) $(MFLAGS) $@)
+	(cd lisp; $(MAKE) $(MFLAGS) $@)
