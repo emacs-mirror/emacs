@@ -103,6 +103,25 @@ The return value of this function is not used."
      (eval-and-compile
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
+(defmacro declare-function (fn file &optional arglist)
+  "Tell the byte-compiler that function FN is defined, in FILE.
+Optional ARGLIST is the argument list used by the function.  The
+FILE argument is not used by the byte-compiler, but by the
+`check-declare' package, which checks that FILE contains a
+definition for FN.  FILE should be either absolute, or relative
+to the location of the file containing the declaration.  ARGLIST
+is used by both the byte-compiler and `check-declare' to check
+for consistency.
+
+Note that for the purposes of `check-declare', this statement
+must be the first non-whitespace on a line, and everything up to
+the end of FILE must be all on the same line.  For example:
+
+\(declare-function c-end-of-defun \"progmodes/cc-cmds.el\"
+                  \(&optional arg))"
+  ;; Does nothing - byte-compile-declare-function does the work.
+  )
+
 (defun make-obsolete (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
 The warning will say that CURRENT-NAME should be used instead.
