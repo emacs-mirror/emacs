@@ -1,3 +1,10 @@
+2007-11-17  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-create-directory): Allow creating
+	a directory of an arbitrary depth.  Add a loop to find the topmost
+	nonexistent parent dir `new', and call `dired-add-file' on it.
+	Set the `PARENTS' arg of `make-directory' to t.
+
 2007-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-aent.el (calc-last-user-lang-parse-table): New variable.
