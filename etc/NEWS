@@ -399,6 +399,11 @@ applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
 this map rather than to function-key-map now.
 
+** The new macro `declare-function' suppresses compiler warnings about
+undefined functions.  The new `check-declare' package verifies that such
+statements are accurate (i.e. the functions are actually defined in
+the specified files).
+
 ** The new function `read-color' reads a color name using the minibuffer.
 
 ** Changes related to multiple tty support.
@@ -493,6 +498,9 @@ but obeys file handlers.  The file handler is chosen based on
 `default-directory'.  The functions `start-file-process-shell-command'
 and `process-file-shell-command' are also new; they call internally
 `start-file-process' and `process-file', respectively.
+
+** The new function `process-lines' executes an external program and
+returns its output as a list of lines.
 
 +++
 ** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.
