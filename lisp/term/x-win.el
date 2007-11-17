@@ -2254,61 +2254,22 @@ order until succeed.")
 	      ctext)))))))
 
 ;; Get a selection value of type TYPE by calling x-get-selection with
-;; an appropiate DATA-TYPE argument decidd by `x-select-request-type'.
+;; an appropiate DATA-TYPE argument decided by `x-select-request-type'.
 ;; The return value is already decoded.  If x-get-selection causes an
 ;; error, this function return nil.
 
 (defun x-selection-value (type)
-  (let (text)
-    (cond ((null x-select-request-type)
-	   (let (utf8 ctext utf8-coding)
-	     ;; We try both UTF8_STRING and COMPOUND_TEXT, and choose
-	     ;; the more appropriate one.  If both fail, try STRING.
-
-	     ;; At first try UTF8_STRING.
-	     (setq utf8 (condition-case nil
-			    (x-get-selection type 'UTF8_STRING)
-			  (error nil))
-		   utf8-coding last-coding-system-used)
-	     (if utf8
-		 ;; If it is a local selection, or it contains only
-		 ;; ASCII characers, choose it.
-		 (if (or (not (get-text-property 0 'foreign-selection utf8))
-			 (= (length utf8) (string-bytes utf8)))
-		     (setq text utf8)))
-	     ;; If not yet decided, try COMPOUND_TEXT.
-	     (if (not text)
-		 (if (setq ctext (condition-case nil
-				     (x-get-selection type 'COMPOUND_TEXT)
-				   (error nil)))
-		     ;; If UTF8_STRING was also successful, choose the
-		     ;; more appropriate one from UTF8 and CTEXT.
-		     (if utf8
-			 (setq text (x-select-utf8-or-ctext utf8 ctext))
-		       ;; Othewise, choose CTEXT.
-		       (setq text ctext))
-		   (setq text utf8)))
-	     ;; If not yet decided, try STRING.
-	     (or text
-		 (setq text (condition-case nil
-				(x-get-selection type 'STRING)
-			      (error nil))))
-	     (if (eq text utf8)
-		 (setq last-coding-system-used utf8-coding))))
-
-	  ((consp x-select-request-type)
-	   (let ((tail x-select-request-type))
-	     (while (and tail (not text))
-	       (condition-case nil
-		   (setq text (x-get-selection type (car tail)))
-		 (error nil))
-	       (setq tail (cdr tail)))))
-
-	  (t
-	   (condition-case nil
-	       (setq text (x-get-selection type x-select-request-type))
-	     (error nil))))
-
+  (let ((request-type (or x-select-request-type '(UTF8_STRING COMPOUND_TEXT)))
+	text)
+    (if (consp request-type)
+	(while (and request-type (not text))
+	  (condition-case nil
+	      (setq text (x-get-selection type (car request-type)))
+	    (error nil))
+	  (setq request-type (cdr request-type)))
+      (condition-case nil
+	  (setq text (x-get-selection type request-type))
+	(error nil)))
     (if text
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
