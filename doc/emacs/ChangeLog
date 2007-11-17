@@ -1,3 +1,7 @@
+2007-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Communication Coding): Fix wording of last change.
+
 2007-11-16  Werner Lemberg <wl@gnu.org>
 
 	* custom.texi (Specifying File Variables), major.texi (Choosing
