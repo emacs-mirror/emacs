@@ -1,3 +1,7 @@
+2007-11-17  Richard Stallman  <rms@gnu.org>
+
+	* assistant.el: Remove file.
+
 2007-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* smime.el (from):
