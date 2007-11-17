@@ -1,3 +1,18 @@
+2007-11-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (WM_UNICHAR, UNICODE_NOCHAR): Define if not already.
+
+	* w32fns.c: Include imm.h.
+	(get_composition_string_fn, get_ime_context_fn): New optional
+	system functions.
+	(globals_of_w32fns): Load them from imm32.dll.
+	(ignore_ime_char): New flag.
+	(w32_wnd_proc): Handle WM_UNICHAR, WM_IME_CHAR and
+	WM_IME_ENDCOMPOSITION messages.
+
+	* w32term.c (w32_read_socket) [WM_UNICHAR]: Handle as
+	MULTIBYTE_CHAR_KEYSTROKE_EVENT.
+
 2007-11-14  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* lread.c (READCHAR): Call readchar with the 2nd arg NULL.
