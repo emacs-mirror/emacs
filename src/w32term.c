@@ -4768,6 +4768,7 @@ w32_read_socket (sd, expected, hold_quit)
 	    }
 	  break;
 
+        case WM_UNICHAR:
 	case WM_SYSCHAR:
 	case WM_CHAR:
 	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
@@ -4784,8 +4785,16 @@ w32_read_socket (sd, expected, hold_quit)
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
-	      inev.kind = ASCII_KEYSTROKE_EVENT;
-	      inev.code = msg.msg.wParam;
+              if (msg.msg.message == WM_UNICHAR)
+                {
+                  inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+                  inev.code = msg.msg.wParam;
+                }
+              else
+                {
+                  inev.kind = ASCII_KEYSTROKE_EVENT;
+                  inev.code = msg.msg.wParam;
+                }
 	      inev.modifiers = msg.dwModifiers;
 	      XSETFRAME (inev.frame_or_window, f);
 	      inev.timestamp = msg.msg.time;
