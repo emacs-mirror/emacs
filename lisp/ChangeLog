@@ -1,3 +1,8 @@
+2007-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* eshell/esh-module.el (eshell-load-defgroups): Don't make backups
+	when saving esh-groups.el.
+
 2007-11-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* wid-edit.el (widget-default-complete):
