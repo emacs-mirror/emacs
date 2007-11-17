@@ -1258,7 +1258,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		  (byte-compile-fdefinition (car form) t)))
 	 (sig (if (and def (not (eq def t)))
 		  (byte-compile-arglist-signature
-		   (if (eq 'lambda (car-safe def))
+		   (if (memq (car-safe def) '(declared lambda))
 		       (nth 1 def)
 		     (if (byte-code-function-p def)
 			 (aref def 0)
@@ -2817,6 +2817,16 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	 (cdr body))
 	(body
 	 (list body))))
+
+(put 'declare-function 'byte-hunk-handler 'byte-compile-declare-function)
+(defun byte-compile-declare-function (form)
+  (push (cons (nth 1 form)
+              (if (< (length form) 4)   ; arglist not specified
+                  t
+                (list 'declared (nth 3 form))))
+        byte-compile-function-environment)
+  nil)
+
 
 ;; This is the recursive entry point for compiling each subform of an
 ;; expression.
