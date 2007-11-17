@@ -1578,10 +1578,16 @@ Optional arg HOW-TO is used to set the value of the into-dir variable
   "Create a directory called DIRECTORY."
   (interactive
    (list (read-file-name "Create directory: " (dired-current-directory))))
-  (let ((expanded (directory-file-name (expand-file-name directory))))
-    (make-directory expanded)
-    (dired-add-file expanded)
-    (dired-move-to-filename)))
+  (let* ((expanded (directory-file-name (expand-file-name directory)))
+	 (try expanded) new)
+    ;; Find the topmost nonexistent parent dir (variable `new')
+    (while (and try (not (file-exists-p try)) (not (equal new try)))
+      (setq new try
+	    try (directory-file-name (file-name-directory try))))
+    (make-directory expanded t)
+    (when new
+      (dired-add-file new)
+      (dired-move-to-filename))))
 
 (defun dired-into-dir-with-symlinks (target)
   (and (file-directory-p target)
