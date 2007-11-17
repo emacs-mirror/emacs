@@ -313,4 +313,10 @@ bootstrap-after: finder-data custom-deps
 distclean:
 	-rm -f ./Makefile
 
+.PHONY: check-declare
+
+check-declare:
+	$(emacs) -l $(lisp)/emacs-lisp/check-declare \
+	  --eval '(check-declare-directory "$(lisp)")'
+
 # Makefile ends here.
