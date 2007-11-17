@@ -1,3 +1,9 @@
+2007-11-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* wid-edit.el (widget-default-complete):
+	* progmodes/flymake.el (flymake-goto-file-and-line):
+	Fix typo in (doc-)string.
+
 2007-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/byte-run.el (declare-function): New macro.
