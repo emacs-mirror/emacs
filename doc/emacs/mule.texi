@@ -1087,13 +1087,18 @@ you override it by using the command again.  The command @kbd{C-x
 coding system for the next selection made in Emacs or read by Emacs.
 
 @vindex x-select-request-type
-  The variable @code{x-select-request-type} specifies a data type of
-selection to request for receiving the text from the other
-applications.  The default value is nil, which means Emacs tries
-`COMPOUND_TEXT' and `UTF8_STRING', and use the more appropriate
-result.  You can explicitly specify the data type by setting the
-variable to one of the followings:
-  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
+  The variable @code{x-select-request-type} specifies the data type to
+request from the X Window System for receiving text selections from
+other applications.  If the value is @code{nil} (the default), Emacs
+tries @code{COMPOUND_TEXT} and @code{UTF8_STRING}, in this order, and
+uses various heuristics to choose the more appropriate of the two
+results; if none of these succeed, Emacs falls back on @code{STRING}.
+If the value of @code{x-select-request-type} is one of the symbols
+@code{COMPOUND_TEXT}, @code{UTF8_STRING}, @code{STRING}, or
+@code{TEXT}, Emacs uses only that request type.  If the value is a
+list of some of these symbols, Emacs tries only the request types in
+the list, in order, until one of them succeeds, or until the list is
+exhausted.
 
 @kindex C-x RET p
 @findex set-buffer-process-coding-system
