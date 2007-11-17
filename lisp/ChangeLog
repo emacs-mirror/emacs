@@ -1,3 +1,17 @@
+2007-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/byte-run.el (declare-function): New macro.
+	* emacs-lisp/bytecomp.el (byte-compile-declare-function):
+	New function, byte-hunk-handler for declare-function.
+	(byte-compile-callargs-warn): Handle declared functions.
+
+	* emacs-lisp/check-declare.el: New file.
+	* Makefile.in (check-declare): New target.
+
+	* subr.el (process-lines): Move here from ../admin/admin.el.
+	* emacs-lisp/authors.el (authors-process-lines): Remove.
+	(authors): Use process-lines rather than authors-process-lines.
+
 2007-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/backquote.el (backquote):
