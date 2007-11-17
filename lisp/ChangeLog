@@ -1,3 +1,20 @@
+2007-11-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/backquote.el (backquote):
+	Improve argument/docstring consistency.
+
+	* emacs-lisp/ring.el (ring-size, ring-p, ring-insert)
+	(ring-length, ring-empty-p): Use c[ad]dr.
+	(ring-plus1): Use `1+'.
+	(ring-minus1): Use `zerop'.
+	(ring-remove): Use c[ad]dr.  Use `when'.
+	(ring-copy): Use c[ad]dr.  Use `let', not `let*'.
+	(ring-ref): Use `let', not `let*'.
+	(ring-insert-at-beginning): Use c[ad]dr.  Doc fix.
+	(ring-insert+extend): Use c[ad]dr.  Fix typo in docstring.
+	(ring-member): Simplify.  Doc fix.
+	(ring-convert-sequence-to-ring): Simplify.
+
 2007-11-17  Juri Linkov  <juri@jurta.org>
 
 	* dired-aux.el (dired-create-directory): Allow creating
@@ -36,12 +53,12 @@
 	* emulation/pc-select.el (pc-select-shifted-mark): New var.
 	(ensure-mark): Set it.
 	(maybe-deactivate-mark): New fun.
-	Use it everywhere instead of (setq mark-active nil)
+	Use it everywhere instead of (setq mark-active nil).
 
 2007-11-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* textmodes/reftex-dcr.el (reftex-start-itimer-once): Add check
-	for XEmacs.
+	* textmodes/reftex-dcr.el (reftex-start-itimer-once):
+	Add check for XEmacs.
 
 	* calc/calc-menu.el (calc-mode-map): Pacify byte compiler.
 
