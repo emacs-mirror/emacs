@@ -51,8 +51,8 @@
 (defun ring-p (x)
   "Return t if X is a ring; nil otherwise."
   (and (consp x) (integerp (car x))
-       (consp (cdr x)) (integerp (car (cdr x)))
-       (vectorp (cdr (cdr x)))))
+       (consp (cdr x)) (integerp (cadr x))
+       (vectorp (cddr x))))
 
 ;;;###autoload
 (defun make-ring (size)
@@ -60,11 +60,11 @@
   (cons 0 (cons 0 (make-vector size nil))))
 
 (defun ring-insert-at-beginning (ring item)
-  "Add to RING the item ITEM.  Add it at the front, as the oldest item."
-  (let* ((vec (cdr (cdr ring)))
+  "Add to RING the item ITEM, at the front, as the oldest item."
+  (let* ((vec (cddr ring))
          (veclen (length vec))
          (hd (car ring))
-         (ln (car (cdr ring))))
+         (ln (cadr ring)))
     (setq ln (min veclen (1+ ln))
           hd (ring-minus1 hd veclen))
     (aset vec hd item)
@@ -73,16 +73,16 @@
 
 (defun ring-plus1 (index veclen)
   "Return INDEX+1, with wraparound."
-  (let ((new-index (+ index 1)))
+  (let ((new-index (1+ index)))
     (if (= new-index veclen) 0 new-index)))
 
 (defun ring-minus1 (index veclen)
   "Return INDEX-1, with wraparound."
-  (- (if (= 0 index) veclen index) 1))
+  (- (if (zerop index) veclen index) 1))
 
 (defun ring-length (ring)
   "Return the number of elements in the RING."
-  (car (cdr ring)))
+  (cadr ring))
 
 (defun ring-index (index head ringlen veclen)
   "Convert nominal ring index INDEX to an internal index.
@@ -95,26 +95,26 @@ VECLEN is the size of the vector in the ring."
 
 (defun ring-empty-p (ring)
   "Return t if RING is empty; nil otherwise."
-  (zerop (car (cdr ring))))
+  (zerop (cadr ring)))
 
 (defun ring-size (ring)
   "Return the size of RING, the maximum number of elements it can contain."
-  (length (cdr (cdr ring))))
+  (length (cddr ring)))
 
 (defun ring-copy (ring)
   "Return a copy of RING."
-  (let* ((vec (cdr (cdr ring)))
-	 (hd  (car ring))
-	 (ln  (car (cdr ring))))
+  (let ((vec (cddr ring))
+	(hd  (car ring))
+	(ln  (cadr ring)))
     (cons hd (cons ln (copy-sequence vec)))))
 
 (defun ring-insert (ring item)
   "Insert onto ring RING the item ITEM, as the newest (last) item.
 If the ring is full, dump the oldest item to make room."
-  (let* ((vec (cdr (cdr ring)))
+  (let* ((vec (cddr ring))
          (veclen (length vec))
          (hd (car ring))
-         (ln (car (cdr ring))))
+         (ln (cadr ring)))
     (prog1
         (aset vec (mod (+ hd ln) veclen) item)
       (if (= ln veclen)
@@ -128,13 +128,13 @@ numeric, remove the element indexed."
   (if (ring-empty-p ring)
       (error "Ring empty")
     (let* ((hd (car ring))
-           (ln (car (cdr ring)))
-           (vec (cdr (cdr ring)))
+           (ln (cadr ring))
+           (vec (cddr ring))
            (veclen (length vec))
            (tl (mod (1- (+ hd ln)) veclen))
            oldelt)
-      (if (null index)
-          (setq index (1- ln)))
+      (when (null index)
+	(setq index (1- ln)))
       (setq index (ring-index index hd ln veclen))
       (setq oldelt (aref vec index))
       (while (/= index tl)
@@ -152,7 +152,9 @@ INDEX need not be <= the ring length; the appropriate modulo operation
 will be performed."
   (if (ring-empty-p ring)
       (error "Accessing an empty ring")
-    (let* ((hd (car ring))  (ln (car (cdr ring)))  (vec (cdr (cdr ring))))
+    (let ((hd (car ring))
+	  (ln (cadr ring))
+	  (vec (cddr ring)))
       (aref vec (ring-index index hd ln (length vec))))))
 
 (defun ring-elements (ring)
@@ -165,15 +167,12 @@ will be performed."
       (push (aref vect (mod (+ start var) size)) lst))))
 
 (defun ring-member (ring item)
-  "Return index of ITEM if on RING, else nil.  Comparison via `equal'.
-The index is 0-based."
-  (let ((ind 0)
-        (len (1- (ring-length ring)))
-        (memberp nil))
-    (while (and (<= ind len)
-                (not (setq memberp (equal item (ring-ref ring ind)))))
-      (setq ind (1+ ind)))
-    (and memberp ind)))
+  "Return index of ITEM if on RING, else nil.
+Comparison is done via `equal'.  The index is 0-based."
+  (catch 'found
+    (dotimes (ind (ring-length ring) nil)
+      (when (equal item (ring-ref ring ind))
+	(throw 'found ind)))))
 
 (defun ring-next (ring item)
   "Return the next item in the RING, after ITEM.
@@ -190,12 +189,12 @@ Raise error if ITEM is not in the RING."
     (ring-ref ring (ring-minus1 curr-index (ring-length ring)))))
 
 (defun ring-insert+extend (ring item &optional grow-p)
-  "Like ring-insert, but if GROW-P is non-nil, then enlarge ring.
+  "Like `ring-insert', but if GROW-P is non-nil, then enlarge ring.
 Insert onto ring RING the item ITEM, as the newest (last) item.
 If the ring is full, behavior depends on GROW-P:
   If GROW-P is non-nil, enlarge the ring to accommodate the new item.
   If GROW-P is nil, dump the oldest item to make room for the new."
-  (let* ((vec (cdr (cdr ring)))
+  (let* ((vec (cddr ring))
 	 (veclen (length vec))
 	 (hd (car ring))
 	 (ringlen (ring-length ring)))
@@ -218,7 +217,8 @@ If the RING is full, behavior depends on GROW-P:
   If GROW-P is non-nil, enlarge the ring to accommodate the new ITEM.
   If GROW-P is nil, dump the oldest item to make room for the new."
   (let (ind)
-    (while (setq ind (ring-member ring item)) (ring-remove ring ind)))
+    (while (setq ind (ring-member ring item))
+      (ring-remove ring ind)))
   (ring-insert+extend ring item grow-p))
 
 (defun ring-convert-sequence-to-ring (seq)
@@ -227,13 +227,11 @@ If SEQ is already a ring, return it."
   (if (ring-p seq)
       seq
     (let* ((size (length seq))
-           (ring (make-ring size))
-           (count 0))
-      (while (< count size)
-        (if (or (ring-empty-p ring)
-                (not (equal (ring-ref ring 0) (elt seq count))))
-            (ring-insert-at-beginning ring (elt seq count)))
-        (setq count (1+ count)))
+           (ring (make-ring size)))
+      (dotimes (count size)
+        (when (or (ring-empty-p ring)
+		  (not (equal (ring-ref ring 0) (elt seq count))))
+	  (ring-insert-at-beginning ring (elt seq count))))
       ring)))
 
 ;;; provide ourself:
