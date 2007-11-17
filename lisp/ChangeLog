@@ -8,6 +8,8 @@
 	* emacs-lisp/check-declare.el: New file.
 	* Makefile.in (check-declare): New target.
 
+	* progmodes/fortran.el (gud-find-c-expr): Declare as a function.
+
 	* subr.el (process-lines): Move here from ../admin/admin.el.
 	* emacs-lisp/authors.el (authors-process-lines): Remove.
 	(authors): Use process-lines rather than authors-process-lines.
