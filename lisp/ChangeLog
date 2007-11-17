@@ -14,6 +14,9 @@
 	* emacs-lisp/authors.el (authors-process-lines): Remove.
 	(authors): Use process-lines rather than authors-process-lines.
 
+	* progmodes/compilation-perl.el, progmodes/compilation-weblint.el:
+	Remove these files.
+
 2007-11-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/backquote.el (backquote):
