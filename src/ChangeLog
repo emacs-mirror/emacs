@@ -1,3 +1,7 @@
+2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1190000.
+
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.h (struct buffer): Move `undo_list' back to before `name'.
