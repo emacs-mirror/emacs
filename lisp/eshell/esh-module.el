@@ -68,7 +68,9 @@ customizing the variable `eshell-modules-list'."
 	    (if defgroup
 		(insert defgroup "\n\n")))
 	  (setq files (cdr files))))
-      (save-buffer))))
+      ;; Don't make backups, to avoid prompting the user if there are
+      ;; excess backup versions.
+      (save-buffer 0))))
 
 ;; load the defgroup's for the standard extension modules, so that
 ;; documentation can be provided when the user customize's
