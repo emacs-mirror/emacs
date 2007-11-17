@@ -58,6 +58,7 @@ Boston, MA 02110-1301, USA.  */
 #include <objbase.h>
 
 #include <dlgs.h>
+#include <imm.h>
 #define FILE_NAME_TEXT_FIELD edt1
 
 #ifdef USE_FONT_BACKEND
@@ -269,10 +270,19 @@ static HWND track_mouse_window;
 
 typedef BOOL (WINAPI * TrackMouseEvent_Proc)
   (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
+typedef LONG (WINAPI * ImmGetCompositionString_Proc)
+  (IN HIMC context, IN DWORD index, OUT LPVOID buffer, IN DWORD bufLen);
+typedef HIMC (WINAPI * ImmGetContext_Proc) (IN HWND window);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ClipboardSequence_Proc clipboard_sequence_fn = NULL;
+ImmGetCompositionString_Proc get_composition_string_fn = NULL;
+ImmGetContext_Proc get_ime_context_fn = NULL;
+
 extern AppendMenuW_Proc unicode_append_menu;
+
+/* Flag to selectively ignore WM_IME_CHAR messages.  */
+static int ignore_ime_char = 0;
 
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;
@@ -3162,7 +3172,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       if (windows_translate)
 	{
 	  MSG windows_msg = { hwnd, msg, wParam, lParam, 0, {0,0} };
-
 	  windows_msg.time = GetMessageTime ();
 	  TranslateMessage (&windows_msg);
 	  goto dflt;
@@ -3175,6 +3184,64 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       post_character_message (hwnd, msg, wParam, lParam,
 			      w32_get_key_modifiers (wParam, lParam));
       break;
+
+    case WM_UNICHAR:
+      /* WM_UNICHAR looks promising from the docs, but the exact
+         circumstances in which TranslateMessage sends it is one of those
+         Microsoft secret API things that EU and US courts are supposed
+         to have put a stop to already. Spy++ shows it being sent to Notepad
+         and other MS apps, but never to Emacs.
+
+         Some third party IMEs send it in accordance with the official
+         documentation though, so handle it here.
+
+         UNICODE_NOCHAR is used to test for support for this message.
+         TRUE indicates that the message is supported.  */
+      if (wParam == UNICODE_NOCHAR)
+        return TRUE;
+
+      {
+        W32Msg wmsg;
+        wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+        signal_user_input ();
+        my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      }
+      break;
+
+    case WM_IME_CHAR:
+      /* If we can't get the IME result as unicode, use default processing,
+         which will at least allow characters decodable in the system locale
+         get through.  */
+      if (!get_composition_string_fn)
+        goto dflt;
+
+      else if (!ignore_ime_char)
+        {
+          wchar_t * buffer;
+          int size, i;
+          W32Msg wmsg;
+          HIMC context = get_ime_context_fn (hwnd);
+          wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+          /* Get buffer size.  */
+          size = get_composition_string_fn (context, GCS_RESULTSTR, buffer, 0);
+          buffer = alloca(size);
+          size = get_composition_string_fn (context, GCS_RESULTSTR,
+                                            buffer, size);
+          signal_user_input ();
+          for (i = 0; i < size / sizeof (wchar_t); i++)
+            {
+              my_post_msg (&wmsg, hwnd, WM_UNICHAR, (WPARAM) buffer[i],
+                           lParam);
+            }
+          /* We output the whole string above, so ignore following ones
+             until we are notified of the end of composition.  */
+          ignore_ime_char = 1;
+        }
+      break;
+
+    case WM_IME_ENDCOMPOSITION:
+      ignore_ime_char = 0;
+      goto dflt;
 
       /* Simulate middle mouse button events when left and right buttons
 	 are used together, but only if user has two button mouse. */
@@ -9227,7 +9294,13 @@ void globals_of_w32fns ()
   /* ditto for GetClipboardSequenceNumber.  */
   clipboard_sequence_fn = (ClipboardSequence_Proc)
     GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
-
+  {
+    HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
+    get_composition_string_fn = (ImmGetCompositionString_Proc)
+      GetProcAddress (imm32_lib, "ImmGetCompositionStringW");
+    get_ime_context_fn = (ImmGetContext_Proc)
+      GetProcAddress (imm32_lib, "ImmGetContext");
+  }
   DEFVAR_INT ("w32-ansi-code-page",
 	      &w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);
