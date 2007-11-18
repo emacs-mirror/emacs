@@ -97,6 +97,15 @@ be part of Gnus.  They should be moved to some other part of Emacs.
 ** add README files for etc/gnus, etc/images/smilies/medium,grayscale
 update etc/images README files with any new images
 
+** Gnus cannot send mail by default
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02082.html
+
+** Gnus archive groups are not shown at all if they are not at the default level. 
+http://thread.gmane.org/gmane.emacs.gnus.general/65622
+
+** Extra question asked when doing a reply in Gnus
+http://thread.gmane.org/gmane.emacs.gnus.general/65627
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
