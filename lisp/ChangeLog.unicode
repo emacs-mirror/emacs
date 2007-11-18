@@ -1,5 +1,10 @@
 2007-11-18  Kenichi Handa  <handa@m17n.org>
 
+	* term/x-win.el (x-selection-value): If x-select-request-type is
+	nil, try also STRING at last.
+	(x-select-request-type): Doc adjusted the change of
+	x-selection-value.
+
 	* select.el (selection-coding-system)
 	(next-selection-coding-system): Declaration moded from xselect.c.
 	(x-get-selection): Decode by selection-coding-system if it is
