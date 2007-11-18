@@ -1,3 +1,20 @@
+2007-11-18  Kenichi Handa  <handa@m17n.org>
+
+	* select.el (selection-coding-system)
+	(next-selection-coding-system): Declaration moded from xselect.c.
+	(x-get-selection): Decode by selection-coding-system if it is
+	non-nil.  If it is nil, decode by a proper coding system.  Handle
+	C_STRING.
+	(ccl-check-utf-8, string-utf-8-p): Delete them.
+	(xselect-convert-to-string): Fix determining data-type in the case
+	that TEXT is requested.  Don't use selection-coding-system if it's
+	not proper for the data-type.
+
+2007-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): If x-select-request-type is
+	nil, simply try UTF8_STRING and COMPOUND-TEXT in this order.
+
 2007-11-14  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (w32-initialize-window-system): Use t, not nil
