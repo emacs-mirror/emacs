@@ -1,3 +1,9 @@
+2007-11-18  Shigeru Fukaya  <shigeru.fukaya@gmail.com>  (tiny change)
+
+	* textmodes/texinfmt.el (texinfo-format-printindex): Collect
+	combined indexes using texinfo-short-index-format-cmds-alist.
+	Reported on <bug-texinfo@gnu.org>.
+
 2007-11-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-completion-reread-directory-timeout): New
