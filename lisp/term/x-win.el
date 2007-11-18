@@ -2203,55 +2203,18 @@ in the clipboard."
 
 (defvar x-select-request-type nil
   "*Data type request for X selection.
-The value is nil, one of the following data types, or a list of them:
+The value is one of the following data types, a list of them, or nil:
   `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
-
-If the value is nil, try `COMPOUND_TEXT' and `UTF8_STRING', and
-use the more appropriate result.  If both fail, try `STRING', and
-then `TEXT'.
 
 If the value is one of the above symbols, try only the specified
 type.
 
 If the value is a list of them, try each of them in the specified
-order until succeed.")
+order until succeed.
 
-;; Helper function for x-selection-value.  Select UTF8 or CTEXT
-;; whichever is more appropriate.  Here, we use this heurisitcs.
-;;
-;;   (1) If their lengthes are different, select the longer one.  This
-;;   is because an X client may just cut off unsupported characters.
-;;
-;;   (2) Otherwise, if they are different at Nth character, and that
-;;   of UTF8 is a Latin character and that of CTEXT belongs to a CJK
-;;   character set, select UTF8.  Also select UTF8 if the Nth
-;;   character of UTF8 is non-ASCII where as that of CTEXT is ASCII.
-;;   This is because an X client may replace unsupported characters
-;;   with some ASCII character (typically ` ' or `?') in CTEXT.
-;;
-;;   (3) Otherwise, select CTEXT.  This is because legacy charsets are
-;;   better for the current Emacs, especially when the selection owner
-;;   is also Emacs.
-
-(defun x-select-utf8-or-ctext (utf8 ctext)
-  (let ((len-utf8 (length utf8))
-	(len-ctext (length ctext))
-	(selected ctext)
-	(i 0)
-	char)
-    (if (/= len-utf8 len-ctext)
-	(if (> len-utf8 len-ctext) utf8 ctext)
-      (let ((result (compare-strings utf8 0 len-utf8 ctext 0 len-ctext)))
-	(if (eq result t)
-	    ctext
-	  (let ((utf8-char (aref utf8 (1- (abs result))))
-		(ctext-char (aref ctext (1- (abs result)))))
-	    (if (or (and (aref (char-category-set utf8-char) ?l)
-			 (aref (char-category-set ctext-char) ?C))
-		    (and (>= utf8-char 128)
-			 (< ctext-char  128)))
-		utf8
-	      ctext)))))))
+The value nil is the same as this list:
+  \(UTF8_STRING COMPOUND_TEXT STRING)
+")
 
 ;; Get a selection value of type TYPE by calling x-get-selection with
 ;; an appropiate DATA-TYPE argument decided by `x-select-request-type'.
@@ -2259,7 +2222,8 @@ order until succeed.")
 ;; error, this function return nil.
 
 (defun x-selection-value (type)
-  (let ((request-type (or x-select-request-type '(UTF8_STRING COMPOUND_TEXT)))
+  (let ((request-type (or x-select-request-type
+			  '(UTF8_STRING COMPOUND_TEXT STRING)))
 	text)
     (if (consp request-type)
 	(while (and request-type (not text))
