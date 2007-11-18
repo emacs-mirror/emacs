@@ -83,10 +83,8 @@ to enable or disable Abbrev mode in the current buffer."
 (defun kill-all-abbrevs ()
   "Undefine all defined abbrevs."
   (interactive)
-  (let ((tables abbrev-table-name-list))
-    (while tables
-      (clear-abbrev-table (symbol-value (car tables)))
-      (setq tables (cdr tables)))))
+  (dolist (tablesym abbrev-table-name-list)
+    (clear-abbrev-table (symbol-value tablesym))))
 
 (defun copy-abbrev-table (table)
   "Make a new abbrev-table with the same abbrevs as TABLE."
@@ -106,10 +104,8 @@ Mark is set after the inserted text."
   (interactive)
   (push-mark
    (save-excursion
-     (let ((tables abbrev-table-name-list))
-       (while tables
-	 (insert-abbrev-table-description (car tables) t)
-	 (setq tables (cdr tables))))
+     (dolist (tablesym abbrev-table-name-list)
+       (insert-abbrev-table-description tablesym t))
      (point))))
 
 (defun list-abbrevs (&optional local)
@@ -131,18 +127,17 @@ Otherwise display all abbrevs."
     found))
 
 (defun prepare-abbrev-list-buffer (&optional local)
-  (save-excursion
-    (let ((table local-abbrev-table))
-      (set-buffer (get-buffer-create "*Abbrevs*"))
-      (erase-buffer)
-      (if local
-	  (insert-abbrev-table-description (abbrev-table-name table) t)
-	(dolist (table abbrev-table-name-list)
-	  (insert-abbrev-table-description table t)))
-      (goto-char (point-min))
-      (set-buffer-modified-p nil)
-      (edit-abbrevs-mode)
-      (current-buffer))))
+  (with-current-buffer (get-buffer-create "*Abbrevs*")
+    (erase-buffer)
+    (if local
+        (insert-abbrev-table-description
+         (abbrev-table-name local-abbrev-table) t)
+      (dolist (table abbrev-table-name-list)
+        (insert-abbrev-table-description table t)))
+    (goto-char (point-min))
+    (set-buffer-modified-p nil)
+    (edit-abbrevs-mode)
+    (current-buffer)))
 
 (defun edit-abbrevs-mode ()
   "Major mode for editing the list of abbrev definitions.
@@ -524,8 +519,14 @@ the current abbrev table before abbrev lookup happens."
 (defun clear-abbrev-table (table)
   "Undefine all abbrevs in abbrev table TABLE, leaving it empty."
   (setq abbrevs-changed t)
-  (dotimes (i (length table))
-    (aset table i 0)))
+  (let* ((sym (intern-soft "" table)))
+    (dotimes (i (length table))
+      (aset table i 0))
+    ;; Preserve the table's properties.
+    (assert sym)
+    (intern sym table)
+    (abbrev-table-put table :abbrev-table-modiff
+                      (1+ (abbrev-table-get table :abbrev-table-modiff)))))
 
 (defun define-abbrev (table name expansion &optional hook &rest props)
   "Define an abbrev in TABLE named NAME, to expand to EXPANSION and call HOOK.

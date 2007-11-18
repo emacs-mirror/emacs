@@ -1,19 +1,24 @@
+2007-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (kill-all-abbrevs, insert-abbrevs)
+	(prepare-abbrev-list-buffer): Use dolist.
+	(clear-abbrev-table): Preserve properties.
+
 2007-11-18  Shigeru Fukaya  <shigeru.fukaya@gmail.com>  (tiny change)
 
-	* textmodes/texinfmt.el (texinfo-format-printindex): Collect
-	combined indexes using texinfo-short-index-format-cmds-alist.
+	* textmodes/texinfmt.el (texinfo-format-printindex):
+	Collect combined indexes using texinfo-short-index-format-cmds-alist.
 	Reported on <bug-texinfo@gnu.org>.
 
 2007-11-18  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-completion-reread-directory-timeout): New
-	defcustom.
+	* net/tramp.el (tramp-completion-reread-directory-timeout):
+	New defcustom.
 	(tramp-handle-file-name-all-completions): Flush directory contents
 	from cache regularly.
-	(tramp-set-auto-save-file-modes): Check also for
-	`buffer-modified-p'.
-	(tramp-open-connection-setup-interactive-shell): Call
-	`tramp-cleanup-connection' via funcall.
+	(tramp-set-auto-save-file-modes): Check also for `buffer-modified-p'.
+	(tramp-open-connection-setup-interactive-shell):
+	Call `tramp-cleanup-connection' via funcall.
 
 	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Temp file is already
 	created when copying.
@@ -21,18 +26,17 @@
 2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* eshell/esh-util.el (eshell-under-xemacs-p): Remove.
-	* eshell/esh-mode.el (eshell-mode-syntax-table)
-	(command-running-p):
+	* eshell/esh-mode.el (eshell-mode-syntax-table, command-running-p):
 	* eshell/esh-ext.el (eshell-external-command):
 	* eshell/esh-cmd.el (require):
 	* eshell/em-unix.el (eshell-plain-locate-behavior):
-	* eshell/em-cmpl.el (eshell-cmpl-initialize): Replace
-	eshell-under-xemacs-p with (featurep 'xemacs).
+	* eshell/em-cmpl.el (eshell-cmpl-initialize):
+	Replace eshell-under-xemacs-p with (featurep 'xemacs).
 	* eshell/esh-mode.el (characterp,char-int): Remove unused
 	conditional defaliases.
 
-	* pcomplete.el (pcomplete-event-matches-key-specifier-p): Rename
-	from event-matches-key-specifier-p, define unconditionally.
+	* pcomplete.el (pcomplete-event-matches-key-specifier-p):
+	Rename from event-matches-key-specifier-p, define unconditionally.
 	(event-basic-type): Remove unused defalias.
 	(pcomplete-show-completions):
 	Use pcomplete-event-matches-key-specifier-p.
