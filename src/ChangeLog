@@ -1,3 +1,9 @@
+2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_scroll_bar_set_handle, x_scroll_bar_handle_click)
+	(x_scroll_bar_note_movement): start, end, with, height in struct
+	scroll_bar are integers and not Lisp_Object, so remove XINT for them.
+
 2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1190000.
