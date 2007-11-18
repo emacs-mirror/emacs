@@ -4908,16 +4908,16 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
 
   /* If the display is already accurate, do nothing.  */
   if (! rebuild
-      && start == XINT (bar->start)
-      && end == XINT (bar->end))
+      && start == bar->start
+      && end == bar->end)
     return;
 
   BLOCK_INPUT;
 
   {
-    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, XINT (bar->width));
-    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, XINT (bar->height));
-    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, bar->width);
+    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
+    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
 
     /* Make sure the values are reasonable, and try to preserve
        the distance between start and end.  */
@@ -4937,8 +4937,8 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     }
 
     /* Store the adjusted setting in the scroll bar.  */
-    XSETINT (bar->start, start);
-    XSETINT (bar->end, end);
+    bar->start = start;
+    bar->end = end;
 
     /* Clip the end position, just for display.  */
     if (end > top_range)
@@ -5358,7 +5358,7 @@ x_scroll_bar_expose (bar, event)
 
   BLOCK_INPUT;
 
-  x_scroll_bar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
+  x_scroll_bar_set_handle (bar, bar->start, bar->end, 1);
 
   /* Switch to scroll bar foreground color.  */
   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -5370,8 +5370,8 @@ x_scroll_bar_expose (bar, event)
 
 		  /* x, y, width, height */
 		  0, 0,
-		  XINT (bar->width) - 1 - width_trim - width_trim,
-		  XINT (bar->height) - 1);
+		  bar->width - 1 - width_trim - width_trim,
+		  bar->height - 1);
 
    /* Restore the foreground color of the GC if we changed it above.  */
    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -5439,7 +5439,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
        holding it.  */
     if (event->type == ButtonPress
 	&& emacs_event->part == scroll_bar_handle)
-      XSETINT (bar->dragging, y - XINT (bar->start));
+      XSETINT (bar->dragging, y - bar->start);
 #endif
 
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -5448,7 +5448,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 	&& ! NILP (bar->dragging))
       {
 	int new_start = y - XINT (bar->dragging);
-	int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
+	int new_end = new_start + bar->end - bar->start;
 
 	x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	bar->dragging = Qnil;
@@ -5496,9 +5496,9 @@ x_scroll_bar_note_movement (bar, event)
       /* Where should the handle be now?  */
       int new_start = event->xmotion.y - XINT (bar->dragging);
 
-      if (new_start != XINT (bar->start))
+      if (new_start != bar->start)
 	{
-	  int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
+	  int new_end = new_start + bar->end - bar->start;
 
 	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	}
