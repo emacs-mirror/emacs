@@ -1,3 +1,10 @@
+2007-11-18  Kenichi Handa  <handa@m17n.org>
+
+	* xselect.c (Vselection_coding_system)
+	(Vnext_selection_coding_system): Delete them.
+	(syms_of_xselect): Don't declare selection-coding-system and
+	next-selection-coding-system.  They are declared in select.el.
+
 2007-11-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (WM_UNICHAR, UNICODE_NOCHAR): Define if not already.
