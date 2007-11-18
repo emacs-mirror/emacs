@@ -1,5 +1,7 @@
 2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* sysdep.c (init_system_name): Use getaddrinfo if available.
+
 	* xterm.c (x_scroll_bar_set_handle, x_scroll_bar_handle_click)
 	(x_scroll_bar_note_movement): start, end, with, height in struct
 	scroll_bar are integers and not Lisp_Object, so remove XINT for them.
