@@ -2267,27 +2267,49 @@ filename completion on the remote host.  This works pretty much like
 for files on the local host, with the exception that minibuffer
 killing via a double-slash works only on the filename part, except
 that filename part starts with @file{//}.
+@ifset emacs
+A triple-slash stands for the default behaviour.
+@end ifset
 @ifinfo
 @xref{Minibuffer File, , , @value{emacsdir}}.
 @end ifinfo
 
+@noindent
+Example:
+
+@example
 @ifset emacs
-As example, @kbd{@trampfn{telnet, , melancholia, /usr/local/bin//etc}
-@key{TAB}} would result in
-@file{@trampfn{telnet, , melancholia, /etc}}, whereas
-@kbd{@trampfn{telnet, , melancholia, //etc} @key{TAB}} reduces the
-minibuffer contents to @file{/etc}.  A triple-slash stands for the
-default behavior,
-i.e. @kbd{@trampfn{telnet, , melancholia, /usr/local/bin///etc}
-@key{TAB}} expands directly to @file{/etc}.
+@kbd{C-x C-f @trampfn{telnet, , melancholia, /usr/local/bin//etc} @key{TAB}}
+     @print{} @trampfn{telnet, , melancholia, /etc}
+
+@kbd{C-x C-f @trampfn{telnet, , melancholia, //etc} @key{TAB}}
+     @print{} /etc
+
+@kbd{C-x C-f @trampfn{telnet, , melancholia, /usr/local/bin///etc} @key{TAB}}
+     @print{} /etc
 @end ifset
 
 @ifset xemacs
-As example, @kbd{@trampfn{telnet, , melancholia, /usr/local/bin//}}
-would result in @file{@trampfn{telnet, , melancholia, /}}, whereas
-@kbd{@trampfn{telnet, , melancholia, //}} expands the minibuffer
-contents to @file{/}.
+@kbd{C-x C-f @trampfn{telnet, , melancholia, /usr/local/bin//}}
+     @print{} @trampfn{telnet, , melancholia, /}
+
+@kbd{C-x C-f @trampfn{telnet, , melancholia, //}}
+     @print{} /
 @end ifset
+@end example
+
+A remote directory might have changed its contents out of
+@value{emacsname} control, for example by creation or deletion of
+files by other processes.  Therefore, during filename completion the
+remote directory contents is reread regularly in order to detect such
+changes, which would be invisible otherwise (@pxref{Connection caching}).
+
+@defopt tramp-completion-reread-directory-timeout
+This variable defines the number of seconds since last remote command
+before rereading a directory contents.  A value of 0 would require an
+immediate reread during filename completion, @code{nil} means to use
+always cached values for the directory contents.
+@end defopt
 
 
 @node Remote processes
