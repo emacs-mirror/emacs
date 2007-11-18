@@ -152,6 +152,7 @@ pass to the OPERATION."
 	      (aset v 0 tramp-ftp-method)
 	      (tramp-set-connection-property v "started" t))
 	  nil))
+
        ;; If the second argument of `copy-file' or `rename-file' is a
        ;; remote file name but via FTP, ange-ftp doesn't check this.
        ;; We must copy it locally first, because there is no place in
@@ -163,8 +164,16 @@ pass to the OPERATION."
 	       (newname (cadr args))
 	       (tmpfile (tramp-compat-make-temp-file filename))
 	       (args (cddr args)))
-	  (apply operation filename tmpfile args)
-	  (rename-file tmpfile newname (car args))))
+	  ;; We must set `ok-if-already-exists' to t in the first
+	  ;; step, because the temp file has been created already.
+	  (if (eq operation 'copy-file)
+	      (apply operation filename tmpfile t (cdr args))
+	    (apply operation filename tmpfile t))
+	  (unwind-protect
+	      (rename-file tmpfile newname (car args))
+	    ;; Cleanup.
+	    (ignore-errors (delete-file tmpfile)))))
+
        ;; Normally, the handlers must be discarded.
        (t (let* ((inhibit-file-name-handlers
 		  (list 'tramp-file-name-handler

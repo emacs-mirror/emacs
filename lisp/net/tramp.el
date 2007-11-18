@@ -1425,6 +1425,18 @@ opening a connection to a remote host."
   :group 'tramp
   :type '(choice (const nil) (const t) (const pty)))
 
+(defcustom tramp-completion-reread-directory-timeout 10
+  "Defines seconds since last remote command before rereading a directory.
+A remote directory might have changed its contents.  In order to
+make it visible during file name completion in the minibuffer,
+Tramp flushes its cache and rereads the directory contents when
+more than `tramp-completion-reread-directory-timeout' seconds
+have been gone since last remote command execution.  A value of 0
+would require an immediate reread during filename completion, nil
+means to use always cached values for the directory contents."
+  :group 'tramp
+  :type '(choice (const nil) integer))
+
 ;;; Internal Variables:
 
 (defvar tramp-end-of-output
@@ -2807,6 +2819,16 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
   "Like `file-name-all-completions' for Tramp files."
   (unless (save-match-data (string-match "/" filename))
     (with-parsed-tramp-file-name (expand-file-name directory) nil
+      ;; Flush the directory cache.  There could be changed directory
+      ;; contents.
+      (when (and (integerp tramp-completion-reread-directory-timeout)
+		 (> (tramp-time-diff
+		     (current-time)
+		     (tramp-get-file-property
+		      v localname "last-completion" '(0 0 0)))
+		    tramp-completion-reread-directory-timeout))
+	(tramp-flush-file-property v localname))
+
       (all-completions
        filename
        (mapcar
@@ -2838,6 +2860,8 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 		      (point) (tramp-compat-line-end-position))
 		     result)))
 
+	   (tramp-set-file-property
+	    v localname "last-completion" (current-time))
 	   result)))))))
 
 ;; The following isn't needed for Emacs 20 but for 19.34?
@@ -4323,7 +4347,7 @@ ARGS are the arguments OPERATION has been called with."
    ; BUF
    ((member operation
 	    (list 'set-visited-file-modtime 'verify-visited-file-modtime
-                  ; Emacs 22 only
+                  ; since Emacs 22 only
 		  'make-auto-save-file-name
 	          ; XEmacs only
 		  'backup-buffer))
@@ -5699,7 +5723,7 @@ process to set up.  VEC specifies the connection."
 	  vec "uname"
 	  (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\""))))
     (when (and (stringp old-uname) (not (string-equal old-uname new-uname)))
-      (tramp-cleanup-connection vec)
+      (funcall (symbol-function 'tramp-cleanup-connection) vec)
       (signal
        'quit
        (list (format
@@ -6982,6 +7006,7 @@ If the `tramp-methods' entry does not exist, return NIL."
   (let ((bfn (buffer-file-name)))
     (when (and (stringp bfn)
 	       (tramp-tramp-file-p bfn)
+	       (buffer-modified-p)
 	       (stringp buffer-auto-save-file-name)
 	       (not (equal bfn buffer-auto-save-file-name)))
       (unless (file-exists-p buffer-auto-save-file-name)

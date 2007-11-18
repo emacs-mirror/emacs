@@ -1,3 +1,17 @@
+2007-11-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-reread-directory-timeout): New
+	defcustom.
+	(tramp-handle-file-name-all-completions): Flush directory contents
+	from cache regularly.
+	(tramp-set-auto-save-file-modes): Check also for
+	`buffer-modified-p'.
+	(tramp-open-connection-setup-interactive-shell): Call
+	`tramp-cleanup-connection' via funcall.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Temp file is already
+	created when copying.
+
 2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* eshell/esh-util.el (eshell-under-xemacs-p): Remove.
