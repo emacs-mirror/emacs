@@ -1,3 +1,7 @@
+2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* pop.c (socket_connection): Use getaddrinfo if available.
+
 2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c: Make prototypes for extern definitions, and add all
