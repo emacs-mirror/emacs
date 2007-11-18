@@ -2518,10 +2518,50 @@ init_system_name ()
 #endif /* not CANNOT_DUMP */
     if (! index (hostname, '.'))
       {
-	struct hostent *hp;
 	int count;
+#ifdef HAVE_GETADDRINFO
+        struct addrinfo *res;
+        struct addrinfo hints;
+        int ret;
+
+        memset (&hints, 0, sizeof(hints));
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_flags = AI_CANONNAME;
+
 	for (count = 0;; count++)
 	  {
+            if ((ret = getaddrinfo (hostname, NULL, &hints, &res)) == 0
+                || ret != EAI_AGAIN)
+              break;
+
+            if (count >= 5)
+	      break;
+	    Fsleep_for (make_number (1), Qnil);
+	  }
+
+        if (ret == 0)
+          {
+            struct addrinfo *it = res;
+            while (it)
+              {
+                char *fqdn = it->ai_canonname;
+                if (fqdn && index (fqdn, '.')
+                    && strcmp (fqdn, "localhost.localdomain") != 0)
+                  break;
+                it = it->ai_next;
+              }
+            if (it)
+              {
+                hostname = alloca (strlen (it->ai_canonname) + 1);
+                strcpy (hostname, it->ai_canonname);
+              }
+            freeaddrinfo (res);
+          }
+#else /* !HAVE_GETADDRINFO */
+        struct hostent *hp;
+	for (count = 0;; count++)
+	  {
+
 #ifdef TRY_AGAIN
 	    h_errno = 0;
 #endif
@@ -2529,11 +2569,14 @@ init_system_name ()
 #ifdef TRY_AGAIN
 	    if (! (hp == 0 && h_errno == TRY_AGAIN))
 #endif
+
 	      break;
+
 	    if (count >= 5)
 	      break;
 	    Fsleep_for (make_number (1), Qnil);
 	  }
+
 	if (hp)
 	  {
 	    char *fqdn = (char *) hp->h_name;
@@ -2567,6 +2610,7 @@ init_system_name ()
 	      }
 #endif
 	  }
+#endif /* !HAVE_GETADDRINFO */
       }
 #endif /* HAVE_SOCKETS */
   /* We used to try using getdomainname here,
