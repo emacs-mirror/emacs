@@ -92,9 +92,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01339.html
 ** rms: gnus-dired.el is a mistake.  Those features should not
 be part of Gnus.  They should be moved to some other part of Emacs.
 
-** C-x v v no longer works the way it used to
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00785.html
-
 ** sdl.web@gmail.com, 28 Oct: window-system in face definition
 
 ** add README files for etc/gnus, etc/images/smilies/medium,grayscale
