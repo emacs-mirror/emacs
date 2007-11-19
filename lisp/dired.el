@@ -3264,6 +3264,8 @@ Anything else means ask for each directory."
 	(dired-dnd-handle-local-file uri action)
       nil)))
 
+(declare-function dired-relist-entry "dired-aux" (file))
+
 (defun dired-dnd-handle-local-file (uri action)
   "Copy, move or link a file to the dired directory.
 URI is the file to handle, ACTION is one of copy, move, link or ask.
