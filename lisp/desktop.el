@@ -651,6 +651,9 @@ is nil, ask the user where to save the desktop."
       value)))
 
 ;; ----------------------------------------------------------------------------
+;; check-declare does not work for defstructs.
+;;;(declare-function uniquify-item-base "uniquify" (cl-x))
+
 (defun desktop-buffer-info (buffer)
   (set-buffer buffer)
   (list
