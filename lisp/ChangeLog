@@ -10,8 +10,7 @@
 	* informat.el (texinfo-format-refill):
 	* ido.el (tramp-tramp-file-p):
 	* ibuffer.el (ibuffer-mark-on-buffer, ibuffer-format-qualifier)
-	(ibuffer-generate-filter-groups)
-	(ibuffer-format-filter-group-data):
+	(ibuffer-generate-filter-groups, ibuffer-format-filter-group-data):
 	* add-log.el (c-beginning-of-defun, c-end-of-defun): Declare as
 	functions.
 
@@ -22,8 +21,7 @@
 	* ido.el (ido-file-internal): Move with-no-warnings to include the
 	ffap-string-at-point call.
 
-	* pcomplete.el (pcomplete-executables): Move defsubst before first
-	use.
+	* pcomplete.el (pcomplete-executables): Move defsubst before first use.
 
 	* vc-hg.el (vc-hg-revision-table): Fix last change.
 
@@ -42,8 +40,7 @@
 
 2007-11-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* net/tramp.el (tramp-terminal-type): Remove duplicated
-	definition.
+	* net/tramp.el (tramp-terminal-type): Remove duplicated definition.
 
 2007-11-19  Glenn Morris  <rgm@gnu.org>
 
@@ -90,7 +87,7 @@
 	* eshell/em-unix.el (eshell-plain-locate-behavior):
 	* eshell/em-cmpl.el (eshell-cmpl-initialize):
 	Replace eshell-under-xemacs-p with (featurep 'xemacs).
-	* eshell/esh-mode.el (characterp,char-int): Remove unused
+	* eshell/esh-mode.el (characterp, char-int): Remove unused
 	conditional defaliases.
 
 	* pcomplete.el (pcomplete-event-matches-key-specifier-p):
@@ -655,8 +652,7 @@
 
 	* net/tramp-cache.el (tramp-cache-print)
 	(tramp-dump-connection-properties): Fix docstring.
-	(tramp-list-connections): Rename from
-	`tramp-cache-list-connections'.
+	(tramp-list-connections): Rename from `tramp-cache-list-connections'.
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Apply it.
 
@@ -806,7 +802,7 @@
 
 	* ediff-diff.el (ediff-set-fine-diff-properties-in-one-buffer): Do not
 	use face-name.
-	(ediff-test-utility,ediff-diff-mandatory-option)
+	(ediff-test-utility, ediff-diff-mandatory-option)
 	(ediff-reset-diff-options): Remove to simplify the mandatory option
 	handling on Windows.
 	(ediff-set-diff-options): Add.
@@ -1178,8 +1174,7 @@
 	Use feature test instead of boundp test so it can be resolved at
 	compile time.
 
-	* net/newsticker.el (replace-regexp-in-string): Only define for
-	XEmacs.
+	* net/newsticker.el (replace-regexp-in-string): Only define for XEmacs.
 
 2007-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1234,8 +1229,7 @@
 	(allout-toggle-current-subtree-exposure): Add new interactive
 	function for toggle subtree exposure - suggested by tassilo.
 	(move-beginning-of-line, move-end-of-line): Don't use
-	line-move-invisible-p, it's obsolete - substitute the code,
-	instead.
+	line-move-invisible-p, it's obsolete - substitute the code, instead.
 
 2007-10-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
