@@ -372,11 +372,9 @@ using `search-forward-regexp' and `replace-match' is preferred." "22.1")
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
-The second argument TO-STRINGS contains the replacement strings,
-separated by spaces.  Third arg DELIMITED (prefix arg if interactive),
-if non-nil, means replace only matches surrounded by word boundaries.
-This command works like `query-replace-regexp' except that each
-successive replacement uses the next successive replacement string,
+The second argument TO-STRINGS contains the replacement strings, separated
+by spaces.  This command works like `query-replace-regexp' except that
+each successive replacement uses the next successive replacement string,
 wrapping around from the last such string to the first.
 
 In Transient Mark mode, if the mark is active, operate on the contents
