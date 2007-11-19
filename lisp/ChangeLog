@@ -1,3 +1,7 @@
+2007-11-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Update commentary.
+
 2007-11-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* net/tramp.el (tramp-terminal-type): Remove duplicated
@@ -3078,7 +3082,7 @@
 
 2007-10-08  Adam Hupp  <adam@hupp.org>  (tiny change)
 
-	* progmodes/gdb-ui.el (pdb): Specify file for gud-break.
+	* progmodes/gud.el (pdb): Specify file for gud-break.
 
 2007-10-08  Nick Roberts  <nickrob@snap.net.nz>
 
