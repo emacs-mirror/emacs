@@ -4126,6 +4126,9 @@ if only the first line of the docstring is shown."))
 	   (setq user-init-file default-init-file))
 	 user-init-file))))
 
+;; If recentf-mode is non-nil, this is defined.
+(declare-function recentf-expand-file-name "recentf" (name))
+
 ;;;###autoload
 (defun custom-save-all ()
   "Save all customizations in `custom-file'."
