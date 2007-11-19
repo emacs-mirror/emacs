@@ -30,6 +30,10 @@
 ;; checks that all such statements in a file or directory are accurate.
 ;; The entry points are `check-declare-file' and `check-declare-directory'.
 
+;;; TODO:
+
+;; 1. Handle defstructs (eg uniquify-item-base in desktop.el).
+
 ;;; Code:
 
 (defconst check-declare-warning-buffer "*Check Declarations Warnings*"
@@ -76,14 +80,17 @@ found to be true, otherwise a list of errors with elements of the form
   (let ((m (format "Checking %s..." fnfile))
         re fn sig siglist arglist type errlist)
     (message "%s" m)
+    (or (file-exists-p fnfile)
+        (setq fnfile (concat fnfile ".el")))
     (if (file-exists-p fnfile)
         (with-temp-buffer
           (insert-file-contents fnfile)
-          (setq re (format "^[ \t]*(defun[ \t]+%s\\>"
+          ;; defsubst's don't _have_ to be known at compile time.
+          (setq re (format "^[ \t]*(def\\(un\\|subst\\)[ \t]+%s\\>"
                            (regexp-opt (mapcar 'cadr fnlist) t)))
           (while (re-search-forward re nil t)
             (skip-chars-forward " \t\n")
-            (setq fn (match-string 1)
+            (setq fn (match-string 2)
                   sig (if (looking-at "\\((\\|nil\\)")
                           (byte-compile-arglist-signature
                            (read (current-buffer))))
