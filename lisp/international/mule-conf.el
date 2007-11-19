@@ -1419,6 +1419,14 @@ for decoding and encoding files, process I/O, etc."
   :pre-write-conversion 'utf-7-pre-write-conversion
   :post-read-conversion 'utf-7-post-read-conversion)
 
+(define-coding-system 'utf-7-imap
+  "UTF-7 encoding of Unicode, IMAP version (RFC 2060)"
+  :coding-type 'utf-8
+  :mnemonic ?u
+  :charset-list '(unicode)
+  :pre-write-conversion 'utf-7-imap-pre-write-conversion
+  :post-read-conversion 'utf-7-imap-post-read-conversion)
+
 ;; Use us-ascii for terminal output if some other coding system is not
 ;; specified explicitly.
 (set-safe-terminal-coding-system-internal 'us-ascii)
