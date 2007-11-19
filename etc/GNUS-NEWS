@@ -58,7 +58,7 @@ Articles::.
 
 ** International host names (IDNA) can now be decoded inside article bodies
 using `W i' (`gnus-summary-idna-message').  This requires that GNU Libidn
-(`http://www.gnu.org/software/libidn/') has been installed.
+(<http://www.gnu.org/software/libidn/>) has been installed.
 
 ** The non-ASCII group names handling has been much improved.  The back
 ends that fully support non-ASCII group names are now `nntp', `nnml',
@@ -106,7 +106,7 @@ From Newsgroups::.
 
 ** You can replace MIME parts with external bodies.  See
 `gnus-mime-replace-part' and `gnus-article-replace-part'.  *Note MIME
-Commands::, *note Using MIME::.
+Commands::, *Note Using MIME::.
 
 ** The option `mm-fill-flowed' can be used to disable treatment of
 format=flowed messages.  Also, flowed text is disabled when sending
@@ -146,7 +146,7 @@ Variables.
 ** The option `message-citation-line-format' controls the format of the
 "Whomever writes:" line.  You need to set
 `message-citation-line-function' to
-`message-insert-formated-citation-line' as well.
+`message-insert-formatted-citation-line' as well.
 
 
 * Changes in back ends

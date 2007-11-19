@@ -242,16 +242,23 @@ Returns the process associated with the connection."
 					      mailhost port)))
 		(when process
 		  ;; There's a load of info printed that needs deleting.
-		  (while (when (memq (process-status process) '(open run))
-			   (pop3-accept-process-output process)
-			   (goto-char (point-max))
-			   (forward-line -1)
-			   (if (looking-at "\\+OK")
-			       (progn
-				 (delete-region (point-min) (point))
-				 nil)
+		  (let ((again 't))
+		    ;; repeat until
+		    ;; - either we received the +OK line
+		    ;; - or accept-process-output timed out without getting
+		    ;;   anything
+		    (while (and again
+				(setq again (memq (process-status process)
+						  '(open run))))
+		      (setq again (pop3-accept-process-output process))
+		      (goto-char (point-max))
+		      (forward-line -1)
+		      (cond ((looking-at "\\+OK")
+			     (setq again nil)
+			     (delete-region (point-min) (point)))
+			    ((not again)
 			     (pop3-quit process)
-			     (error "POP SSL connexion failed"))))
+			     (error "POP SSL connexion failed")))))
 		  process)))
 	     ((eq pop3-stream-type 'starttls)
 	      ;; gnutls-cli, openssl don't accept service names

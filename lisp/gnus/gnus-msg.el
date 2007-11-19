@@ -265,7 +265,7 @@ This can also be a function receiving the group name as the only
 parameter, which should return non-nil if a confirmation is needed; or
 a regexp, in which case a confirmation is asked for if the group name
 matches the regexp."
-  :version "22.1"
+  :version "23.0" ;; No Gnus (default changed)
   :group 'gnus-message
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)

@@ -693,7 +693,7 @@ nn*-request-list should have been called before calling this function."
 	      (setq group (symbol-name group)))
 	    (if (and (numberp (setq max (read buffer)))
 		     (numberp (setq min (read buffer))))
-		(push (list group (cons min max))
+		(push (list (mm-string-as-unibyte group) (cons min max))
 		      group-assoc)))
 	(error nil))
       (widen)
@@ -708,6 +708,7 @@ nn*-request-list should have been called before calling this function."
   (let ((coding-system-for-write nnmail-active-file-coding-system))
     (when file-name
       (with-temp-file file-name
+	(mm-disable-multibyte)
 	(nnmail-generate-active group-assoc)))))
 
 (defun nnmail-generate-active (alist)

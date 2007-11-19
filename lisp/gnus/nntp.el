@@ -364,6 +364,32 @@ be restored and the command retried."
 
   (throw 'nntp-with-open-group-error t))
 
+(defmacro nntp-insert-buffer-substring (buffer &optional start end)
+  "Copy string from unibyte buffer to multibyte current buffer."
+  (if (featurep 'xemacs)
+      `(insert-buffer-substring ,buffer ,start ,end)
+    `(if enable-multibyte-characters
+	 (insert (with-current-buffer ,buffer
+		   (mm-string-to-multibyte
+		    ,(if (or start end)
+			 `(buffer-substring (or ,start (point-min))
+					    (or ,end (point-max)))
+		       '(buffer-string)))))
+       (insert-buffer-substring ,buffer ,start ,end))))
+
+(defmacro nntp-copy-to-buffer (buffer start end)
+  "Copy string from unibyte current buffer to multibyte buffer."
+  (if (featurep 'xemacs)
+      `(copy-to-buffer ,buffer ,start ,end)
+    `(let ((string (buffer-substring ,start ,end)))
+       (with-current-buffer ,buffer
+	 (erase-buffer)
+	 (insert (if enable-multibyte-characters
+		     (mm-string-to-multibyte string)
+		   string))
+	 (goto-char (point-min))
+	 nil))))
+
 (defsubst nntp-wait-for (process wait-for buffer &optional decode discard)
   "Wait for WAIT-FOR to arrive from PROCESS."
 
@@ -409,7 +435,7 @@ be restored and the command retried."
 	    (save-excursion
 	      (set-buffer buffer)
 	      (goto-char (point-max))
-	      (insert-buffer-substring (process-buffer process))
+	      (nntp-insert-buffer-substring (process-buffer process))
 	      ;; Nix out "nntp reading...." message.
 	      (when nntp-have-messaged
 		(setq nntp-have-messaged nil)
@@ -653,7 +679,7 @@ command whose response triggered the error."
 					      nntp-server-buffer))
 				    (buffer  (and process
 						  (process-buffer process))))
-				;; When I an able to identify the
+				;; When I am able to identify the
 				;; connection to the server AND I've
 				;; received NO reponse for
 				;; nntp-connection-timeout seconds.
@@ -738,7 +764,7 @@ command whose response triggered the error."
          (nnheader-fold-continuation-lines)
          ;; Remove all "\r"'s.
          (nnheader-strip-cr)
-         (copy-to-buffer nntp-server-buffer (point-min) (point-max))
+	 (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
          'headers)))))
 
 (deffoo nntp-retrieve-groups (groups &optional server)
@@ -820,7 +846,8 @@ command whose response triggered the error."
 
            (if (not nntp-server-list-active-group)
                (progn
-                 (copy-to-buffer nntp-server-buffer (point-min) (point-max))
+		 (nntp-copy-to-buffer nntp-server-buffer
+				      (point-min) (point-max))
                  'group)
              ;; We have read active entries, so we just delete the
              ;; superfluous gunk.
@@ -828,7 +855,7 @@ command whose response triggered the error."
              (while (re-search-forward "^[.2-5]" nil t)
                (delete-region (match-beginning 0)
                               (progn (forward-line 1) (point))))
-             (copy-to-buffer nntp-server-buffer (point-min) (point-max))
+	     (nntp-copy-to-buffer nntp-server-buffer (point-min) (point-max))
              'active)))))))
 
 (deffoo nntp-retrieve-articles (articles &optional group server)
@@ -893,7 +920,7 @@ command whose response triggered the error."
           (narrow-to-region
            (setq point (goto-char (point-max)))
            (progn
-             (insert-buffer-substring buf last-point (cdr entry))
+	     (nntp-insert-buffer-substring buf last-point (cdr entry))
              (point-max)))
           (setq last-point (cdr entry))
           (nntp-decode-text)
@@ -1206,7 +1233,7 @@ password contained in '~/.nntp-authinfo'."
       (format " *server %s %s %s*"
 	      nntp-address nntp-port-number
 	      (gnus-buffer-exists-p buffer))))
-    (mm-enable-multibyte)
+    (mm-disable-multibyte)
     (set (make-local-variable 'after-change-functions) nil)
     (set (make-local-variable 'nntp-process-wait-for) nil)
     (set (make-local-variable 'nntp-process-callback) nil)
@@ -1390,7 +1417,7 @@ password contained in '~/.nntp-authinfo'."
 		(goto-char (point-max))
 		(save-restriction
 		  (narrow-to-region (point) (point))
-		  (insert-buffer-substring buf start)
+		  (nntp-insert-buffer-substring buf start)
 		  (when decode
 		    (nntp-decode-text))))))
 	  ;; report it.
@@ -1619,7 +1646,7 @@ password contained in '~/.nntp-authinfo'."
 	(when in-process-buffer-p
 	  (set-buffer buf)
 	  (goto-char (point-max))
-	  (insert-buffer-substring process-buffer)
+	  (nntp-insert-buffer-substring process-buffer)
 	  (set-buffer process-buffer)
 	  (erase-buffer)
 	  (set-buffer buf))

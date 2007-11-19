@@ -258,7 +258,8 @@ non-nil.")
 	    (string-to-number (file-name-nondirectory path)))))))
 
 (deffoo nnml-request-group (group &optional server dont-check)
-  (let ((file-name-coding-system nnmail-pathname-coding-system))
+  (let ((file-name-coding-system nnmail-pathname-coding-system)
+	(decoded (nnml-decoded-group-name group server)))
     (cond
      ((not (nnml-possibly-change-directory group server))
       (nnheader-report 'nnml "Invalid group (no such directory)"))
@@ -268,15 +269,15 @@ non-nil.")
      ((not (file-directory-p nnml-current-directory))
       (nnheader-report 'nnml "%s is not a directory" nnml-current-directory))
      (dont-check
-      (nnheader-report 'nnml "Group %s selected" group)
+      (nnheader-report 'nnml "Group %s selected" decoded)
       t)
      (t
       (nnheader-re-read-dir nnml-current-directory)
       (nnmail-activate 'nnml)
       (let ((active (nth 1 (assoc group nnml-group-alist))))
 	(if (not active)
-	    (nnheader-report 'nnml "No such group: %s" group)
-	  (nnheader-report 'nnml "Selected group %s" group)
+	    (nnheader-report 'nnml "No such group: %s" decoded)
+	  (nnheader-report 'nnml "Selected group %s" decoded)
 	  (nnheader-insert "211 %d %d %d %s\n"
 			   (max (1+ (- (cdr active) (car active))) 0)
 			   (car active) (cdr active) group)))))))

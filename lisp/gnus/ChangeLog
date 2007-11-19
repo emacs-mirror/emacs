@@ -88,6 +88,41 @@
 	* gnus-demon.el (gnus-demon):
 	* gnus-uu.el (gnus-uu-default-view-rules): Fix typos in docstrings.
 
+2007-11-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-insert-buffer-substring, nntp-copy-to-buffer): New
+	macros.
+	(nntp-wait-for, nntp-retrieve-articles, nntp-async-trigger)
+	(nntp-retrieve-headers-with-xover): Use nntp-insert-buffer-substring to
+	copy data from unibyte buffer to multibyte current buffer.
+	(nntp-retrieve-headers, nntp-retrieve-groups); Use nntp-copy-to-buffer
+	to copy data from unibyte current buffer to multibyte buffer.
+	(nntp-make-process-buffer): Make process buffer unibyte.
+
+	* pop3.el (pop3-open-server): Fix typo in Lisp code.
+
+2007-11-14  Denys Duchier  <denys.duchier@univ-orleans.fr>  (tiny change)
+
+	* pop3.el (pop3-open-server): Accept and process data more robustly at
+	connexion start to avoid spurious "POP SSL connexion failed" errors.
+
+2007-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-active-to-gnus-format): Use unibyte buffer to
+	read group names.
+
+2007-11-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-msg.el (gnus-confirm-mail-reply-to-news): Adjust :version.
+
+2007-11-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-parse-active): Make group names unibyte.
+	(nnmail-save-active): Use a unibyte buffer when saving active file,
+	which may contain non-ASCII group names.
+
+	* nnml.el (nnml-request-group): Decode group names in messages.
+
 2007-11-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-citation-line-function)

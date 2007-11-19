@@ -2103,7 +2103,8 @@ If SCAN, request a scan of that group as well."
 			    (if (equal method gnus-select-method)
 				(gnus-make-hashtable
 				 (count-lines (point-min) (point-max)))
-			      (gnus-make-hashtable 4096)))))))
+			      (gnus-make-hashtable 4096))))))
+	group max min)
     ;; Delete unnecessary lines.
     (goto-char (point-min))
     (cond
@@ -2138,8 +2139,12 @@ If SCAN, request a scan of that group as well."
 		      (insert prefix)
 		      (zerop (forward-line 1)))))))
     ;; Store the active file in a hash table.
-    (goto-char (point-min))
-    (let (group max min)
+    ;; Use a unibyte buffer in order to make `read' read non-ASCII
+    ;; group names (which have been encoded) as unibyte strings.
+    (mm-with-unibyte-buffer
+      (insert-buffer-substring cur)
+      (setq cur (current-buffer))
+      (goto-char (point-min))
       (while (not (eobp))
 	(condition-case ()
 	    (progn
