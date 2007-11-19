@@ -1022,6 +1022,7 @@ socket_connection (host, flags)
   char found_port = 0;
   char *service;
   int sock;
+  char *realhost;
 #ifdef KERBEROS
 #ifdef KERBEROS5
   krb5_error_code rem;
@@ -1037,7 +1038,6 @@ socket_connection (host, flags)
   CREDENTIALS cred;
   Key_schedule schedule;
   int rem;
-  char *realhost;
 #endif /* KERBEROS5 */
 #endif /* KERBEROS */
 
@@ -1107,7 +1107,7 @@ socket_connection (host, flags)
 #ifdef HAVE_GETADDRINFO
   memset (&hints, 0, sizeof(hints));
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_ADDRCONFIG;
+  hints.ai_flags = AI_ADDRCONFIG | AI_CANONNAME;
   hints.ai_family = AF_INET;
   do
     {
@@ -1136,6 +1136,11 @@ socket_connection (host, flags)
           it = it->ai_next;
         }
       connect_ok = it != NULL;
+      if (connect_ok)
+        {
+          realhost = alloca (strlen (it->ai_canonname) + 1);
+          strcpy (realhost, it->ai_canonname);
+        }
       freeaddrinfo (res);
     }
 #else /* !HAVE_GETADDRINFO */
@@ -1159,6 +1164,12 @@ socket_connection (host, flags)
       hostent->h_addr_list++;
     }
   connect_ok = *hostent->h_addr_list != NULL;
+  if (! connect_ok)
+    {
+      realhost = alloca (strlen (hostent->h_name) + 1);
+      strcpy (realhost, hostent->h_name);
+    }
+
 #endif /* !HAVE_GETADDRINFO */
 
 #define CONNECT_ERROR "Could not connect to POP server: "
@@ -1174,9 +1185,6 @@ socket_connection (host, flags)
     }
 
 #ifdef KERBEROS
-
-  realhost = alloca (strlen (hostent->h_name) + 1);
-  strcpy (realhost, hostent->h_name);
 
 #define KRB_ERROR "Kerberos error connecting to POP server: "
   if (! (flags & POP_NO_KERBEROS))
