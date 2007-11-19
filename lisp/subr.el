@@ -2118,6 +2118,8 @@ a system-dependent default device name is used."
       (play-sound-internal sound)
     (error "This Emacs binary lacks sound support")))
 
+(declare-function w32-shell-dos-semantics "w32-fns" nil)
+
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
   (if (or (eq system-type 'ms-dos)
