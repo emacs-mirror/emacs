@@ -504,11 +504,14 @@ A large number or nil slows down menu responsiveness."
 ;; These are alternative definitions for the cut, paste and copy
 ;; menu items.  Use them if your system expects these to use the clipboard.
 
-(put 'clipboard-kill-region 'menu-enable 'mark-active)
+(put 'clipboard-kill-region 'menu-enable
+     '(and mark-active (not buffer-read-only)))
 (put 'clipboard-kill-ring-save 'menu-enable 'mark-active)
 (put 'clipboard-yank 'menu-enable
-     '(or (and (fboundp 'x-selection-exists-p) (x-selection-exists-p))
-	  (x-selection-exists-p 'CLIPBOARD)))
+     '(and (or (and (fboundp 'x-selection-exists-p)
+		    (x-selection-exists-p))
+	       (x-selection-exists-p 'CLIPBOARD))
+	   (not buffer-read-only)))
 
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
