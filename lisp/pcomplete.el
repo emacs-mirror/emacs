@@ -281,6 +281,10 @@ to all arguments, such as variable names after a $."
   :type 'hook
   :group 'pcomplete)
 
+(defsubst pcomplete-executables (&optional regexp)
+  "Complete amongst a list of directories and executables."
+  (pcomplete-entries regexp 'file-executable-p))
+
 (defcustom pcomplete-command-completion-function
   (function
    (lambda ()
@@ -599,6 +603,8 @@ this is `comint-dynamic-complete-functions'."
   "Setup shell-mode to use pcomplete."
   (pcomplete-comint-setup 'shell-dynamic-complete-functions))
 
+(declare-function comint-bol "comint" (&optional arg))
+
 (defun pcomplete-parse-comint-arguments ()
   "Parse whitespace separated arguments in the current region."
   (let ((begin (save-excursion (comint-bol nil) (point)))
@@ -779,10 +785,6 @@ component, `default-directory' is used as the basis for completion."
 (defsubst pcomplete-dirs (&optional regexp)
   "Complete amongst a list of directories."
   (pcomplete-entries regexp 'file-directory-p))
-
-(defsubst pcomplete-executables (&optional regexp)
-  "Complete amongst a list of directories and executables."
-  (pcomplete-entries regexp 'file-executable-p))
 
 ;; generation of completion lists
 

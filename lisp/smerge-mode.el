@@ -905,6 +905,7 @@ replace chars to try and eliminate some spurious differences."
 (defvar ediff-buffer-C)
 (defvar ediff-ancestor-buffer)
 (defvar ediff-quit-hook)
+(declare-function ediff-cleanup-mess "ediff-util" nil)
 
 ;;;###autoload
 (defun smerge-ediff (&optional name-mine name-other name-base)

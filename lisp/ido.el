@@ -2281,9 +2281,10 @@ If cursor is not at the end of the user input, move to end of input."
 		filename t))
 
 	 ((and ido-use-filename-at-point
-	       (setq fn (if (eq ido-use-filename-at-point 'guess)
-			    (with-no-warnings (ffap-guesser))
-			  (ffap-string-at-point)))
+	       (setq fn (with-no-warnings
+			  (if (eq ido-use-filename-at-point 'guess)
+			      (ffap-guesser)
+			    (ffap-string-at-point))))
 	       (not (string-match "^http:/" fn))
 	       (setq d (file-name-directory fn))
 	       (file-directory-p d))
@@ -3362,6 +3363,8 @@ for first matching file."
   (if ido-temp-list
       (nconc ido-temp-list items)
     (setq ido-temp-list items)))
+
+(declare-function tramp-tramp-file-p "net/tramp" (name))
 
 (defun ido-file-name-all-completions-1 (dir)
   (cond

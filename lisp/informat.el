@@ -32,6 +32,8 @@
 
 (require 'info)
 
+(declare-function texinfo-format-refill "textmodes/texinfmt" ())
+
 ;;;###autoload
 (defun Info-tagify (&optional input-buffer-name)
   "Create or update Info file tag table in current buffer or in a region."

@@ -112,6 +112,8 @@ If called interactively, display a list of matches."
 ;;
 ;; written by Kayvan Aghaiepour
 
+(declare-function doctor-ret-or-read "doctor" (arg))
+
 ;;;###autoload
 (defun psychoanalyze-pinhead ()
   "Zippy goes to the analyst."

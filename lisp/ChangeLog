@@ -1,3 +1,32 @@
+2007-11-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/octave-mod.el (inferior-octave-send-list-and-digest):
+	* play/yow.el (doctor-ret-or-read):
+	* vc-hooks.el (vc-dired-resynch-file):
+	* vc-hg.el (log-view-get-marked):
+	* smerge-mode.el (ediff-cleanup-mess):
+	* pcvs.el (vc-editable-p, vc-checkout):
+	* pcomplete.el (comint-bol):
+	* informat.el (texinfo-format-refill):
+	* ido.el (tramp-tramp-file-p):
+	* ibuffer.el (ibuffer-mark-on-buffer, ibuffer-format-qualifier)
+	(ibuffer-generate-filter-groups)
+	(ibuffer-format-filter-group-data):
+	* add-log.el (c-beginning-of-defun, c-end-of-defun): Declare as
+	functions.
+
+	* textmodes/ispell.el (ispell-int-char): Make it a defalias
+	instead of fset.
+	(ispell-message): Use with-no-warnings for sc-cite-regexp call.
+
+	* ido.el (ido-file-internal): Move with-no-warnings to include the
+	ffap-string-at-point call.
+
+	* pcomplete.el (pcomplete-executables): Move defsubst before first
+	use.
+
+	* vc-hg.el (vc-hg-revision-table): Fix last change.
+
 2007-11-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* menu-bar.el (top-level): Deactivate clipboard-kill-region and

@@ -55,6 +55,13 @@
 (defvar ibuffer-tmp-hide-regexps)
 (defvar ibuffer-tmp-show-regexps)
 
+(declare-function ibuffer-mark-on-buffer "ibuf-ext" 
+		  (func &optional ibuffer-mark-on-buffer-mark group))
+(declare-function ibuffer-format-qualifier "ibuf-ext" (qualifier))
+(declare-function ibuffer-generate-filter-groups "ibuf-ext" 
+		  (bmarklist &optional noempty nodefault))
+(declare-function ibuffer-format-filter-group-data "ibuf-ext" (filter))
+
 (defgroup ibuffer nil
   "An advanced replacement for `buffer-menu'.
 
