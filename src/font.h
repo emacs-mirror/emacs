@@ -197,6 +197,7 @@ struct font_metrics
 
 struct font_bitmap
 {
+  int bits_per_pixel;
   int rows;
   int width;
   int pitch;
@@ -407,15 +408,47 @@ struct font_driver
   int (*otf_drive) P_ ((struct font *font, Lisp_Object features,
 		       Lisp_Object gstring_in, int from, int to,
 		       Lisp_Object gstring_out, int idx, int alternate_subst));
+
+  /* Optional.
+     Make the font driver ready for frame F.  Usually this function
+     makes some data specific to F and store it in F by calling
+     font_put_frame_data ().  */
+  int (*start_for_frame) P_ ((FRAME_PTR f));
+  
+  /* Optional.
+     End using the driver for frame F.  Usually this function free
+     some data stored for F.  */
+  int (*end_for_frame) P_ ((FRAME_PTR f));
 };
 
 
+/* Chain of font drivers.  There's one global font driver list
+   (font_driver_list in font.c).  In addition, each frame has it's own
+   font driver list at FRAME_PTR->font_driver_list.  */
+
 struct font_driver_list
 {
-  /* 1 iff this driver is currently used.  */
+  /* 1 iff this driver is currently used.  It is igonred in the global
+     font driver list.*/
   int on;
+  /* Pointer to the font driver.  */
   struct font_driver *driver;
+  /* Pointer to the next element of the chain.  */
   struct font_driver_list *next;
+};
+
+
+/* Chain of arbitrary data specific to each font driver.  Each frame
+   has it's own font data list at FRAME_PTR->font_data_list.  */
+
+struct font_data_list
+{
+  /* Pointer to the font driver.  */
+  struct font_driver *driver;
+  /* Data specific to the font driver.  */
+  void *data;
+  /* Pointer to the next element of the chain.  */
+  struct font_data_list *next;
 };
 
 extern int enable_font_backend;
@@ -485,6 +518,13 @@ extern int font_drive_otf P_ ((struct font *font, Lisp_Object otf_features,
 			       Lisp_Object gstring_out, int idx,
 			       int alternate_subst));
 #endif	/* HAVE_LIBOTF */
+
+extern int font_put_frame_data P_ ((FRAME_PTR f,
+				    struct font_driver *driver,
+				    void *data));
+extern void *font_get_frame_data P_ ((FRAME_PTR f,
+				      struct font_driver *driver));
+
 
 #ifdef HAVE_FREETYPE
 extern struct font_driver ftfont_driver;
