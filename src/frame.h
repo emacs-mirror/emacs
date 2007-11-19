@@ -327,6 +327,9 @@ struct frame
 #ifdef USE_FONT_BACKEND
   /* List of font-drivers available on the frame. */
   struct font_driver_list *font_driver_list;
+  /* List of data specific to font-driver and frame, but common to
+     faces.  */
+  struct font_data_list *font_data_list;
 #endif	/* USE_FONT_BACKEND */
 
   /* Total width of fringes reserved for drawing truncation bitmaps,
