@@ -1,3 +1,10 @@
+2007-11-19  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/utf-7.el (utf-7-imap-post-read-conversion)
+	(utf-7-imap-pre-write-conversion): New functions.
+
+	* international/mule-conf.el (utf-7-imap): New coding system.
+
 2007-11-18  Kenichi Handa  <handa@m17n.org>
 
 	* term/x-win.el (x-selection-value): If x-select-request-type is
