@@ -1,3 +1,8 @@
+2007-11-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (map-query-replace-regexp): Doc fix (revert part of
+	revision 1.104, made on 2000-05-21 with no ChangeLog entry).
+
 2007-11-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/octave-mod.el (inferior-octave-send-list-and-digest):
