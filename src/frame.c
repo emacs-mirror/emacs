@@ -335,6 +335,7 @@ make_frame (mini_p)
   f->win_gravity = 0;
 #ifdef USE_FONT_BACKEND
   f->font_driver_list = NULL;
+  f->font_data_list = NULL;
 #endif	/* USE_FONT_BACKEND */
 
   root_window = make_window ();
@@ -1483,6 +1484,9 @@ The functions are run with one arg, the frame to be deleted.  */)
      frame is deleted because windows contain dynamically allocated
      memory. */
   free_glyphs (f);
+
+  /* Give chance to each font driver to free a frame specific data.  */
+  font_update_drivers (f, Qnil);
 
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
