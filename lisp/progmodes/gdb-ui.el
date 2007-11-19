@@ -43,12 +43,22 @@
 ;; section in the GDB info manual.
 
 ;; GDB developers plan to make the annotation interface obsolete.  A new
-;; interface called GDB/MI (machine interface) has been designed to replace
-;; it.  Some GDB/MI commands are used in this file through the CLI command
-;; 'interpreter mi <mi-command>'.  A file called gdb-mi.el is included with
-;; GDB (6.2 onwards) that uses GDB/MI as the primary interface to GDB.  It is
-;; still under development and is part of a process to migrate Emacs from
-;; annotations to GDB/MI.
+;; interface called GDB/MI (machine interface) has been designed to replace it.
+;; Some GDB/MI commands are used in this file through the CLI command
+;; 'interpreter mi <mi-command>'.  To help with the process of fully migrating
+;; Emacs from annotations to GDB/MI, there is an experimental package called
+;; gdb-mi in the Emacs Lisp Package Archive ("http://tromey.com/elpa/").  It
+;; comprises of modified gud.el and a file called gdb-mi.el which replaces
+;; gdb-ui.el.  When installed, this overrides the current files and invoking
+;; M-x gdb will use GDB/MI directly (starts with "gdb -i=mi").  When deleted
+;; ('d' followed by 'x' in Package Menu mode), the files are deleted and old
+;; functionality restored.  This provides a convenient way to review the
+;; current status/contribute to its improvement.  For someone who just wants to
+;; use GDB, however, the current mode in Emacs 22 is a much better option.
+;; There is also a file, also called gdb-mi.el, a version of which is included
+;; the GDB distribution.  This will probably only work with versions
+;; distributed with GDB 6.5 or later.  Unlike the version in ELPA it works on
+;; top of gdb-ui.el and you can only start it with M-x gdbmi.
 
 ;; This mode SHOULD WORK WITH GDB 5.0 or later but you will NEED AT LEAST
 ;; GDB 6.0 to use watch expressions.  It works best with GDB 6.4 or later
@@ -69,24 +79,12 @@
 
 ;;; Known Bugs:
 
-;; 1) Strings that are watched don't update in the speedbar when their
-;;    contents change unless the first character changes.
-;; 2) Cannot handle multiple debug sessions.
-;; 3) M-x gdb doesn't work with "run" command in .gdbinit, use M-x gdba instead.
-;; 4) M-x gdb doesn't work if the corefile is specified in the command in the
-;;    minibuffer, use M-x gdba instead (or specify the core in the GUD buffer).
-;; 5) If you wish to call procedures from your program in GDB
+;; 1) Cannot handle multiple debug sessions.
+;; 2) If you wish to call procedures from your program in GDB
 ;;    e.g "call myproc ()", "p mysquare (5)" then use level 2 annotations
 ;;    "gdb --annotate=2 myprog" to keep source buffer/selected frame fixed.
-;; 6) After detaching from a process, clicking on the "GO" icon on toolbar
+;; 3) After detaching from a process, clicking on the "GO" icon on toolbar
 ;;    (gud-go) sends "continue" to GDB (should be "run").
-
-;;; Problems with watch expressions, GDB/MI:
-
-;; 1) They go out of scope when the inferior is re-run.
-;; 2) -stack-list-locals has a type field but also prints type in values field.
-;; 3) VARNUM increments even when variable object is not created
-;;    (maybe trivial).
 
 ;;; TODO:
 
@@ -222,7 +220,6 @@ handlers.")
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working
 directory and source-file directory for your debugger.
-
 
 If `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
