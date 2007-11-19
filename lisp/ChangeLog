@@ -1,3 +1,14 @@
+2007-11-19  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/check-declare.el (check-declare-verify): If fnfile
+	does not exist, try adding `.el' extension.  Also search for defsubsts.
+
+	* cus-edit.el (recentf-expand-file-name):
+	* dired.el (dired-relist-entry):
+	* subr.el (w32-shell-dos-semantics):
+	* emacs-lisp/bytecomp.el (compilation-forget-errors):
+	Declare as functions.
+
 2007-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (kill-all-abbrevs, insert-abbrevs)
