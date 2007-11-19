@@ -1,3 +1,12 @@
+2007-11-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* menu-bar.el (top-level): Deactivate clipboard-kill-region and
+	clipboard-yank when the buffer is read-only.
+
+	* cus-edit.el (custom-field-keymap): Move to other Custom mode
+	keymaps such that it's before the definition of Custom-mode-menu.
+	(Custom-mode-menu): Show it for custom-field-keymap too.
+
 2007-11-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: Update commentary.
