@@ -913,6 +913,15 @@ ftfont_get_bitmap (font, code, bitmap, bits_per_pixel)
 
   if (FT_Load_Glyph (ft_face, code, load_flags) != 0)
     return -1;
+  bitmap->bits_per_pixel
+    = (ft_face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_MONO ? 1
+       : ft_face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_GRAY ? 8
+       : ft_face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_LCD ? 8
+       : ft_face->glyph->bitmap.pixel_mode == FT_PIXEL_MODE_LCD_V ? 8
+       : -1);
+  if (bitmap->bits_per_pixel < 0)
+    /* We don't suport that kind of pixel mode.  */
+    return -1;
   bitmap->rows = ft_face->glyph->bitmap.rows;
   bitmap->width = ft_face->glyph->bitmap.width;
   bitmap->pitch = ft_face->glyph->bitmap.pitch;
