@@ -4304,7 +4304,7 @@ detect_coding (coding, src, src_bytes)
   if (! mask)
     idx = CODING_CATEGORY_IDX_RAW_TEXT;
 
-  val = SYMBOL_VALUE (XVECTOR (Vcoding_category_table)->contents[idx]);
+  val = find_symbol_value (XVECTOR (Vcoding_category_table)->contents[idx]);
 
   if (coding->eol_type != CODING_EOL_UNDECIDED)
     {
@@ -7582,7 +7582,7 @@ call this function.  */)
     {
       Lisp_Object val;
 
-      val = SYMBOL_VALUE (XVECTOR (Vcoding_category_table)->contents[i]);
+      val = find_symbol_value (XVECTOR (Vcoding_category_table)->contents[i]);
       if (!NILP (val))
 	{
 	  if (! coding_system_table[i])

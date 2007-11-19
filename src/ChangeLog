@@ -1,3 +1,9 @@
+2007-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* coding.c (detect_coding, Fupdate_coding_systems_internal):
+	* fns.c (Fmd5): Use find_symbol_value rather than SYMBOL_VALUE
+	Since we do not want to see internal Lisp_*fwd objects here.
+
 2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* sysdep.c (init_system_name): Use getaddrinfo if available.
