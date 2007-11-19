@@ -491,6 +491,14 @@
     map)
   "Local keymap for links in `custom-mode'.")
 
+(defvar custom-field-keymap
+  (let ((map (copy-keymap widget-field-keymap)))
+    (define-key map "\C-c\C-c" 'Custom-set)
+    (define-key map "\C-x\C-s" 'Custom-save)
+    map)
+  "Keymap used inside editable fields in customization buffers.")
+
+(widget-put (get 'editable-field 'widget-type) :keymap custom-field-keymap)
 
 ;;; Utilities.
 
@@ -4438,7 +4446,7 @@ The format is suitable for use with `easy-menu-define'."
 ;;; Toolbar and menubar support
 
 (easy-menu-define
-  Custom-mode-menu custom-mode-map
+  Custom-mode-menu (list custom-mode-map custom-field-keymap)
   "Menu used in customization buffers."
   (nconc (list "Custom"
 	       (customize-menu-create 'customize))
@@ -4475,15 +4483,6 @@ The format is suitable for use with `easy-menu-define'."
     (if button
 	(widget-apply-action button event)
       (error "You can't edit this part of the Custom buffer"))))
-
-(defvar custom-field-keymap
-  (let ((map (copy-keymap widget-field-keymap)))
-    (define-key map "\C-c\C-c" 'Custom-set)
-    (define-key map "\C-x\C-s" 'Custom-save)
-    map)
-  "Keymap used inside editable fields in customization buffers.")
-
-(widget-put (get 'editable-field 'widget-type) :keymap custom-field-keymap)
 
 (defun Custom-goto-parent ()
   "Go to the parent group listed at the top of this buffer.
