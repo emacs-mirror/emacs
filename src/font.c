@@ -110,8 +110,8 @@ Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClanguage, QCscript;
 /* Symbols representing values of font spacing property.  */
 Lisp_Object Qc, Qm, Qp, Qd;
 
-/* List of all font drivers.  All font-backends (XXXfont.c) call
-   add_font_driver in syms_of_XXXfont to register the font-driver
+/* List of all font drivers.  Each font-backend (XXXfont.c) calls
+   register_font_driver in syms_of_XXXfont to register its font-driver
    here.  */
 static struct font_driver_list *font_driver_list;
 
@@ -2940,14 +2940,14 @@ free_font_driver_list (f)
 }
 
 
-/* Make the frame F use font backends listed in NEW_BACKENDS (list of
-   symbols).  If NEW_BACKENDS is nil, make F use all available font
-   drivers.  If no backend is available, dont't alter
-   f->font_driver_list.
+/* Make the frame F use font backends listed in NEW_DRIVERS (list of
+   symbols, e.g. xft, x).  If NEW_DRIVERS is nil, make F use all
+   available font drivers.  If no backend is available, dont't alter
+   F->font_driver_list.
 
    A caller must free all realized faces and clear all font caches if
    any in advance.  The return value is a list of font backends
-   actually made used for on F.  */
+   actually made used on F.  */
 
 Lisp_Object
 font_update_drivers (f, new_drivers)
@@ -2957,21 +2957,84 @@ font_update_drivers (f, new_drivers)
   Lisp_Object active_drivers = Qnil;
   struct font_driver_list *list;
 
-  /* At first check which font backends are available.  */
+  /* At first, finialize all font drivers for F.  */
+  for (list = f->font_driver_list; list; list = list->next)
+    if (list->on)
+      {
+	if (list->driver->end_for_frame)
+	  list->driver->end_for_frame (f);
+	list->on = 0;
+      }
+
+  /* Then start the requested drivers.  */
   for (list = f->font_driver_list; list; list = list->next)
     if (NILP (new_drivers)
 	|| ! NILP (Fmemq (list->driver->type, new_drivers)))
       {
-	list->on = 2;
-	active_drivers = nconc2 (active_drivers,
-				 Fcons (list->driver->type, Qnil));
+	if (! list->driver->start_for_frame
+	    || list->driver->start_for_frame (f) == 0);
+	{
+	  list->on = 1;
+	  active_drivers = nconc2 (active_drivers,
+				   Fcons (list->driver->type, Qnil));
+	}
       }
-  /* If at least one backend is available, update all list->on.  */
-  if (! NILP (active_drivers))
-    for (list = f->font_driver_list; list; list = list->next)
-      list->on = (list->on == 2);
 
   return active_drivers;
+}
+
+int
+font_put_frame_data (f, driver, data)
+     FRAME_PTR f;
+     struct font_driver *driver;
+     void *data;
+{
+  struct font_data_list *list, *prev;
+
+  for (prev = NULL, list = f->font_data_list; list;
+       prev = list, list = list->next)
+    if (list->driver == driver)
+      break;
+  if (! data)
+    {
+      if (list)
+	{
+	  if (prev)
+	    prev->next = list->next;
+	  else
+	    f->font_data_list = list->next;
+	  free (list);
+	}
+      return 0;
+    }
+
+  if (! list)
+    {
+      list = malloc (sizeof (struct font_data_list));
+      if (! list)
+	return -1;
+      list->driver = driver;
+      list->next = f->font_data_list;
+      f->font_data_list = list;
+    }
+  list->data = data;
+  return 0;
+}
+
+
+void *
+font_get_frame_data (f, driver)
+     FRAME_PTR f;
+     struct font_driver *driver;
+{
+  struct font_data_list *list;
+
+  for (list = f->font_data_list; list; list = list->next)
+    if (list->driver == driver)
+      break;
+  if (! list)
+    return NULL;
+  return list->data;
 }
 
 
@@ -3052,7 +3115,8 @@ encoding of a font, e.g. ``iso8859-1''.
 
 VALUE must be a non-negative integer or a floating point number
 specifying the font size.  It specifies the font size in 1/10 pixels
-(if VALUE is an integer), or in points (if VALUE is a float).  */)
+(if VALUE is an integer), or in points (if VALUE is a float).
+usage: (font-spec ARGS ...)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
