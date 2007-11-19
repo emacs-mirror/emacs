@@ -1960,6 +1960,8 @@ This command ignores files that are not flagged as `Unknown'."
     (setf (cvs-fileinfo->type fi) 'DEAD))
   (cvs-cleanup-collection cvs-cookies nil nil nil))
 
+(declare-function vc-editable-p "vc" (file))
+(declare-function vc-checkout "vc" (file &optional writable rev))
 
 (defun cvs-append-to-ignore (dir str &optional old-dir)
   "Add STR to the .cvsignore file in DIR.
