@@ -895,8 +895,7 @@ is the default binding of the variable. */)
   CHECK_BUFFER (buffer);
   buf = XBUFFER (buffer);
 
-  if (SYMBOLP (variable))
-    variable = indirect_variable (variable);
+  variable = indirect_variable (variable);
 
   /* Look in local_var_list */
   result = Fassoc (variable, buf->local_var_alist);
@@ -2518,26 +2517,11 @@ swap_out_buffer_local_variables (b)
 
       /* Need not do anything if some other buffer's binding is now encached.  */
       tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer;
-      if (BUFFERP (tem) && XBUFFER (tem) == current_buffer)
+      if (EQ (tem, buffer))
 	{
-	  /* Symbol is set up for this buffer's old local value.
-	     Set it up for the current buffer with the default value.  */
-
-	  tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->cdr;
-	  /* Store the symbol's current value into the alist entry
-	     it is currently set up for.  This is so that, if the
-	     local is marked permanent, and we make it local again
-	     later in Fkill_all_local_variables, we don't lose the value.  */
-	  XSETCDR (XCAR (tem),
-		   do_symval_forwarding (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue));
-	  /* Switch to the symbol's default-value alist entry.  */
-	  XSETCAR (tem, tem);
-	  /* Mark it as current for buffer B.  */
-	  XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer = buffer;
-	  /* Store the current value into any forwarding in the symbol.  */
-	  store_symval_forwarding (sym,
-				   XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue,
-				   XCDR (tem), NULL);
+	  /* Symbol is set up for this buffer's old local value:
+	     swap it out!  */
+	  swap_in_global_binding (sym);
 	}
     }
 }

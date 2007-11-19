@@ -1,5 +1,10 @@
 2007-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* buffer.c (Fbuffer_local_value): Remove redundant test.
+	(swap_out_buffer_local_variables): Swap out binding in `buffer' rather
+	than in `current-buffer' to match the comment.
+	Do the swap using swap_in_global_binding.
+
 	* data.c (store_symval_forwarding, set_internal):
 	* eval.c (specbind): Remove dead code.
 
