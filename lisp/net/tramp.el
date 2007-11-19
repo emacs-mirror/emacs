@@ -912,14 +912,6 @@ directories for POSIX compatible commands."
 		  (const :tag "Default Directories" tramp-default-remote-path)
 		  (string :tag "Directory"))))
 
-(defcustom tramp-terminal-type "dumb"
-  "*Value of TERM environment variable for logging in to remote host.
-Because Tramp wants to parse the output of the remote shell, it is easily
-confused by ANSI color escape sequences and suchlike.  Often, shell init
-files conditionalize this setup based on the TERM environment variable."
-  :group 'tramp
-  :type 'string)
-
 (defcustom tramp-remote-process-environment
   `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_TIME=C"
     ,(concat "TERM=" tramp-terminal-type)
