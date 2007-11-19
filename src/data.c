@@ -922,9 +922,11 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	case Lisp_Misc_Intfwd:
 	  CHECK_NUMBER (newval);
 	  *XINTFWD (valcontents)->intvar = XINT (newval);
-	  if (*XINTFWD (valcontents)->intvar != XINT (newval))
-	    error ("Value out of range for variable `%s'",
-		   SDATA (SYMBOL_NAME (symbol)));
+	  /* This can never happen since intvar points to an EMACS_INT
+	     which is at least large enough to hold a Lisp_Object.
+             if (*XINTFWD (valcontents)->intvar != XINT (newval))
+	       error ("Value out of range for variable `%s'",
+	   	   SDATA (SYMBOL_NAME (symbol))); */
 	  break;
 
 	case Lisp_Misc_Boolfwd:
@@ -1237,9 +1239,8 @@ set_internal (symbol, newval, buf, bindflag)
 	  || buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
 	  || (XBUFFER_LOCAL_VALUE (valcontents)->check_frame
 	      && !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
-	  || (BUFFER_LOCAL_VALUEP (valcontents)
-	      && EQ (XCAR (current_alist_element),
-		     current_alist_element)))
+	  || (EQ (XCAR (current_alist_element),
+		  current_alist_element)))
 	{
 	  /* The currently loaded binding is not necessarily valid.
 	     We need to unload it, and choose a new binding.  */
