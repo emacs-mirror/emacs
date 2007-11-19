@@ -58,7 +58,6 @@ struct xftface_info
 {
   XftColor xft_fg;		/* color for face->foreground */
   XftColor xft_bg;		/* color for face->background */
-  XftDraw *xft_draw;
 };
 
 static void xftfont_get_colors P_ ((FRAME_PTR, struct face *, GC gc,
@@ -171,6 +170,8 @@ static int xftfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
 
 static int xftfont_anchor_point P_ ((struct font *, unsigned, int,
 				     int *, int *));
+static int xftfont_start_for_frame P_ ((FRAME_PTR f));
+static int xftfont_end_for_frame P_ ((FRAME_PTR f));
 
 struct font_driver xftfont_driver;
 
@@ -409,10 +410,6 @@ xftfont_prepare_face (f, face)
     return -1;
 
   BLOCK_INPUT;
-  xftface_info->xft_draw = XftDrawCreate (FRAME_X_DISPLAY (f),
-					  FRAME_X_WINDOW (f),
-					  FRAME_X_VISUAL (f),
-					  FRAME_X_COLORMAP (f));
   xftfont_get_colors (f, face, face->gc, NULL,
 		      &xftface_info->xft_fg, &xftface_info->xft_bg);
   UNBLOCK_INPUT;
@@ -438,12 +435,9 @@ xftfont_done_face (f, face)
   xftface_info = (struct xftface_info *) face->extra;
   if (xftface_info)
     {
-      BLOCK_INPUT;
-      XftDrawDestroy (xftface_info->xft_draw);
-      UNBLOCK_INPUT;
       free (xftface_info);
+      face->extra = NULL;
     }
-  face->extra = NULL;
 }
 
 static unsigned
@@ -483,6 +477,27 @@ xftfont_text_extents (font, code, nglyphs, metrics)
   return extents.xOff;
 }
 
+static XftDraw *
+xftfont_get_xft_draw (f)
+     FRAME_PTR f;
+{
+  XftDraw *xft_draw = font_get_frame_data (f, &xftfont_driver);;
+
+  if (! xft_draw)
+    {
+      BLOCK_INPUT;
+      xft_draw= XftDrawCreate (FRAME_X_DISPLAY (f),
+			       FRAME_X_WINDOW (f),
+			       FRAME_X_VISUAL (f),
+			       FRAME_X_COLORMAP (f));
+      UNBLOCK_INPUT;
+      if (! xft_draw)
+	abort ();
+      font_put_frame_data (f, &xftfont_driver, xft_draw);
+    }
+  return xft_draw;
+}
+
 static int
 xftfont_draw (s, from, to, x, y, with_background)
      struct glyph_string *s;
@@ -492,7 +507,7 @@ xftfont_draw (s, from, to, x, y, with_background)
   struct face *face = s->face;
   struct xftfont_info *xftfont_info = (struct xftfont_info *) s->font_info;
   struct xftface_info *xftface_info = NULL;
-  XftDraw *xft_draw = NULL;
+  XftDraw *xft_draw = xftfont_get_xft_draw (f);
   FT_UInt *code;
   XftColor fg, bg;
   XRectangle r;
@@ -500,18 +515,10 @@ xftfont_draw (s, from, to, x, y, with_background)
   int i;
 
   if (s->font_info == face->font_info)
-    {
-      xftface_info = (struct xftface_info *) face->extra;
-      xft_draw = xftface_info->xft_draw;
-    }
+    xftface_info = (struct xftface_info *) face->extra;
   xftfont_get_colors (f, face, s->gc, xftface_info,
 		      &fg, with_background ? &bg : NULL);
   BLOCK_INPUT;
-  if (! xft_draw)
-    xft_draw = XftDrawCreate (FRAME_X_DISPLAY (f),
-			      FRAME_X_WINDOW (f),
-			      FRAME_X_VISUAL (f),
-			      FRAME_X_COLORMAP (f));
   if (s->num_clips > 0)
     XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
   else
@@ -531,8 +538,6 @@ xftfont_draw (s, from, to, x, y, with_background)
 
   XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
 		 x, y, code, len);
-  if (s->font_info != face->font_info)
-    XftDrawDestroy (xft_draw);
   UNBLOCK_INPUT;
 
   return len;
@@ -559,6 +564,21 @@ xftfont_anchor_point (font, code, index, x, y)
   return 0;
 }
 
+static int
+xftfont_end_for_frame (f)
+     FRAME_PTR f;
+{
+  XftDraw *xft_draw = font_get_frame_data (f, &xftfont_driver);
+
+  if (xft_draw)
+    {
+      BLOCK_INPUT;
+      XftDrawDestroy (xft_draw);
+      UNBLOCK_INPUT;
+      font_put_frame_data (f, &xftfont_driver, NULL);
+    }
+  return 0;
+}
 
 void
 syms_of_xftfont ()
@@ -578,6 +598,7 @@ syms_of_xftfont ()
   xftfont_driver.text_extents = xftfont_text_extents;
   xftfont_driver.draw = xftfont_draw;
   xftfont_driver.anchor_point = xftfont_anchor_point;
+  xftfont_driver.end_for_frame = xftfont_end_for_frame;
 
   register_font_driver (&xftfont_driver, NULL);
 }
