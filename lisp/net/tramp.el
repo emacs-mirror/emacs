@@ -5619,31 +5619,49 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "Set up an interactive shell.
 Mainly sets the prompt and the echo correctly.  PROC is the shell
 process to set up.  VEC specifies the connection."
-  ;; It is useful to set the prompt in the following command because
-  ;; some people have a setting for $PS1 which /bin/sh doesn't know
-  ;; about and thus /bin/sh will display a strange prompt.  For
-  ;; example, if $PS1 has "${CWD}" in the value, then ksh will display
-  ;; the current working directory but /bin/sh will display a dollar
-  ;; sign.  The following command line sets $PS1 to a sane value, and
-  ;; works under Bourne-ish shells as well as csh-like shells.  Daniel
-  ;; Pittman reports that the unusual positioning of the single quotes
-  ;; makes it work under `rc', too.  We also unset the variable $ENV
-  ;; because that is read by some sh implementations (eg, bash when
-  ;; called as sh) on startup; this way, we avoid the startup file
-  ;; clobbering $PS1.  $PROMP_COMMAND is another way to set the prompt
-  ;; in /bin/bash, it must be discarded as well.
   (let ((tramp-end-of-output "$ "))
+    ;; It is useful to set the prompt in the following command because
+    ;; some people have a setting for $PS1 which /bin/sh doesn't know
+    ;; about and thus /bin/sh will display a strange prompt.  For
+    ;; example, if $PS1 has "${CWD}" in the value, then ksh will
+    ;; display the current working directory but /bin/sh will display
+    ;; a dollar sign.  The following command line sets $PS1 to a sane
+    ;; value, and works under Bourne-ish shells as well as csh-like
+    ;; shells.  Daniel Pittman reports that the unusual positioning of
+    ;; the single quotes makes it work under `rc', too.  We also unset
+    ;; the variable $ENV because that is read by some sh
+    ;; implementations (eg, bash when called as sh) on startup; this
+    ;; way, we avoid the startup file clobbering $PS1.  $PROMP_COMMAND
+    ;; is another way to set the prompt in /bin/bash, it must be
+    ;; discarded as well.
     (tramp-send-command
      vec
      (format
       "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' PS2='' PS3='' %s"
       (tramp-get-method-parameter
        (tramp-file-name-method vec) 'tramp-remote-sh))
-     t))
+     t)
+
+    ;; Disable echo.
+    (tramp-message vec 5 "Setting up remote shell environment")
+    (tramp-send-command vec "stty -inlcr -echo kill '^U' erase '^H'" t)
+    ;; Check whether the echo has really been disabled.  Some
+    ;; implementations, like busybox of embedded GNU/Linux, don't
+    ;; support disabling.
+    (tramp-send-command vec "echo foo" t)
+    (with-current-buffer (process-buffer proc)
+      (goto-char (point-min))
+      (when (looking-at "echo foo")
+	(tramp-set-connection-property proc "remote-echo" t)
+	(tramp-message vec 5 "Remote echo still on. Ok.")
+	;; Make sure backspaces and their echo are enabled and no line
+	;; width magic interferes with them.
+	(tramp-send-command vec "stty icanon erase ^H cols 32767" t))))
 
   (tramp-message vec 5 "Setting shell prompt")
-  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we must
-  ;; use "\n" here, not tramp-rsh-end-of-line.
+  ;; We can set $PS1 to `tramp-end-of-output' only when the echo has
+  ;; been disabled.  Otherwise, the echo of the command would be
+  ;; regarded as prompt already.
   (tramp-send-command
    vec
    (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
@@ -5651,27 +5669,6 @@ process to set up.  VEC specifies the connection."
            tramp-end-of-output
 	   tramp-rsh-end-of-line)
    t)
-  ;; If the connection buffer is not empty, the remote shell is
-  ;; echoing, and the prompt has been detected through the echoed
-  ;; command.  We must reread for the real prompt.
-  (with-current-buffer (process-buffer proc)
-    (when (> (point-max) (point-min)) (tramp-wait-for-output proc)))
-
-  ;; Disable echo.
-  (tramp-message vec 5 "Setting up remote shell environment")
-  (tramp-send-command vec "stty -inlcr -echo kill '^U' erase '^H'" t)
-  ;; Check whether the echo has really been disabled.  Some
-  ;; implementations, like busybox of embedded GNU/Linux, don't
-  ;; support disabling.
-  (tramp-send-command vec "echo foo" t)
-  (with-current-buffer (process-buffer proc)
-    (goto-char (point-min))
-    (when (looking-at "echo foo")
-      (tramp-set-connection-property vec "remote-echo" t)
-      (tramp-message vec 5 "Remote echo still on. Ok.")
-      ;; Make sure backspaces and their echo are enabled and no line
-      ;; width magic interferes with them.
-      (tramp-send-command vec "stty icanon erase ^H cols 32767" t)))
 
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
@@ -6230,7 +6227,7 @@ is meant to be used from `tramp-maybe-open-connection' only.  The
 function waits for output unless NOOUTPUT is set."
   (unless neveropen (tramp-maybe-open-connection vec))
   (let ((p (tramp-get-connection-process vec)))
-    (when (tramp-get-connection-property vec "remote-echo" nil)
+    (when (tramp-get-connection-property p "remote-echo" nil)
       ;; We mark the command string that it can be erased in the output buffer.
       (tramp-set-connection-property p "check-remote-echo" t)
       (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))

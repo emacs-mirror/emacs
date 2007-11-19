@@ -1,3 +1,10 @@
+2007-11-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
+	Still some tuning in case of an echoing shell.
+	(tramp-send-command): Connection property "remote-echo" is not
+	persistent; cache key is the process therefore.
+
 2007-11-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* replace.el (map-query-replace-regexp): Doc fix (revert part of
