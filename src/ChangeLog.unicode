@@ -1,3 +1,40 @@
+2007-11-19  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* font.h (struct font_bitmap): New member bits_per_pixel.
+	(struct font_driver): New members start_for_frame and end_for_frame.
+	(struct font_data_list): New struct.
+	(font_put_frame_data, font_get_frame_data): Extern them.
+
+	* frame.h (struct frame): New member font_data_list.
+
+	* font.c (font_update_drivers): Call driver->start_for_frame and
+	driver->end_for_frame at proper timings.
+	(font_put_frame_data, font_get_frame_data): New functions.
+	(Ffont_spec): Add usage in the docstring.
+
+	* frame.c (make_frame): Initialize f->font_data_list to NULL.
+	(Fdelete_frame): Call font_update_drivers.
+
+	* xftfont.c (struct xftface_info): Delete the member xft_draw.
+	(xftfont_prepare_face): Adjusted for the above change.
+	(xftfont_done_face): Likewise.
+	(xftfont_get_xft_draw): New function.
+	(xftfont_draw): Get XftDraw by xftfont_get_xft_draw.
+	(xftfont_end_for_frame): New function.
+	(syms_of_xftfont): Set xftfont_driver.end_for_frame.
+
+	* ftxfont.c (ftxfont_get_gcs): Renamed from ftxfont_create_gcs.
+	Argument changed.  Cache GCs in the per-frame data.
+	(struct ftxfont_frame_data): New struct.
+	(ftxfont_draw_bitmap): New arg gc_fore and flush.
+	(ftxfont_prepare_face, ftxfont_done_face): Delete them.
+	(ftxfont_draw): Get GCs by ftxfont_get_gcs.  Reflect s->clip in
+	GCs.
+	(ftxfont_end_for_frame): New function.
+	(syms_of_ftxfont): Set ftxfont_driver.end_for_frame.
+
+	* ftfont.c (ftfont_get_bitmap): Set bitmap->bits_per_pixel.
+
 2007-11-18  Kenichi Handa  <handa@m17n.org>
 
 	* xselect.c (Vselection_coding_system)
