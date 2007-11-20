@@ -2756,15 +2756,19 @@ AC_CHECK_LIB(ncurses, tparm)
 # Do we have res_init, for detecting changes in /etc/resolv.conf?
 
 resolv=no
-AC_CHECK_FUNC(res_init, have_res_init=yes, have_res_init=no)
+AC_TRY_LINK([#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>],
+    [return res_init();],
+    have_res_init=yes, have_res_init=no)
 if test "$have_res_init" = no; then
   OLIBS="$LIBS"
   LIBS="$LIBS -lresolv"
   AC_MSG_CHECKING(for res_init with -lresolv)
   AC_TRY_LINK([#include <netinet/in.h>
 #include <arpa/nameser.h>
-#include <resolv.h> ],
-    [res_init();],
+#include <resolv.h>],
+    [return res_init();],
     have_res_init=yes, have_res_init=no)
   AC_MSG_RESULT($have_res_init)
   if test "$have_res_init" = yes ; then
