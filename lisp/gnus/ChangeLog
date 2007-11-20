@@ -1,3 +1,10 @@
+2007-11-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-send-mail-function): New function.
+	(message-send-mail-function): Set default using
+	message-send-mail-function.  Adjust doc string.
+	(message-send-mail-with-mailclient): New function.
+
 2007-11-17  Richard Stallman  <rms@gnu.org>
 
 	* assistant.el: Remove file.

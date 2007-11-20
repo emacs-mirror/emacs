@@ -50,6 +50,8 @@
 (require 'rfc822)
 (require 'ecomplete)
 
+(autoload 'mailclient-send-it "mailclient") ;; Emacs 22 or contrib/
+
 (defvar gnus-message-group-art)
 (defvar gnus-list-identifiers) ; gnus-sum is required where necessary
 (defvar rmail-enable-mime-composing)
@@ -619,28 +621,28 @@ Done before generating the new subject of a forward."
   :link '(custom-manual "(message)Canceling News")
   :type 'string)
 
+(defun message-send-mail-function ()
+  "Return suitable value for the variable `message-send-mail-function'."
+  (cond ((and sendmail-program
+	      (executable-find program))
+	 'message-send-mail-with-sendmail)
+	((and (locate-library "mailclient")
+	      (memq system-type '(darwin windows-nt)))
+	 'message-send-mail-with-mailclient)
+	(t
+	 'message-smtpmail-send-it)))
+
 ;; Useful to set in site-init.el
-(defcustom message-send-mail-function
-  (let ((program (if (boundp 'sendmail-program)
-		     ;; see paths.el
-		     sendmail-program)))
-    (cond
-     ((and program
-	   (string-match "/" program) ;; Skip path
-	   (file-executable-p program))
-      'message-send-mail-with-sendmail)
-     ((and program
-	   (executable-find program))
-      'message-send-mail-with-sendmail)
-     (t
-      'smtpmail-send-it)))
+(defcustom message-send-mail-function (message-send-mail-function)
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line whose contents match the
 variable `mail-header-separator'.
 
-Valid values include `message-send-mail-with-sendmail' (the default),
+Valid values include `message-send-mail-with-sendmail'
 `message-send-mail-with-mh', `message-send-mail-with-qmail',
-`message-smtpmail-send-it', `smtpmail-send-it' and `feedmail-send-it'.
+`message-smtpmail-send-it', `smtpmail-send-it',
+`feedmail-send-it' and `message-send-mail-with-mailclient'.  The
+default is system dependent.
 
 See also `send-mail-function'."
   :type '(radio (function-item message-send-mail-with-sendmail)
@@ -649,8 +651,12 @@ See also `send-mail-function'."
 		(function-item message-smtpmail-send-it)
 		(function-item smtpmail-send-it)
 		(function-item feedmail-send-it)
-		(function :tag "Other"))
+		(function :tag "Other")
+		(function-item message-send-mail-with-mailclient
+			       :tag "Use Mailclient package")
+ 		(function :tag "Other"))
   :group 'message-sending
+  :initialize 'custom-initialize-default
   :link '(custom-manual "(message)Mail Variables")
   :group 'message-mail)
 
@@ -4527,6 +4533,13 @@ if your ISP requires the POP-before-SMTP authentication.  See the Gnus
 manual for details."
   (run-hooks 'message-send-mail-hook)
   (smtpmail-send-it))
+
+(defun message-send-mail-with-mailclient ()
+  "Send the prepared message buffer with `mailclient-send-it'.
+This only differs from `smtpmail-send-it' that this command evaluates
+`message-send-mail-hook' just before sending a message."
+  (run-hooks 'message-send-mail-hook)
+  (mailclient-send-it))
 
 (defun message-canlock-generate ()
   "Return a string that is non-trivial to guess.
