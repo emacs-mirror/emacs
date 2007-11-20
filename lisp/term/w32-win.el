@@ -1057,14 +1057,17 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 (defun x-setup-function-keys (frame)
   "Setup Function Keys for w32."
-  (with-selected-frame frame
-     (define-key local-function-key-map [f10] 'menu-bar-open)
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode (maybe - this is copied from X).
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    (with-selected-frame frame
+      (define-key local-function-key-map [f10] 'menu-bar-open)
 
-     (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-                                local-function-key-map global-map)
+      (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+                                 local-function-key-map global-map)
 
-     (define-key local-function-key-map [S-tab] [backtab]))
-  (set-terminal-parameter frame 'x-setup-function-keys t))
+      (define-key local-function-key-map [S-tab] [backtab]))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 
 ;; W32 systems have different fonts than commonly found on X, so
