@@ -621,6 +621,8 @@ Done before generating the new subject of a forward."
   :link '(custom-manual "(message)Canceling News")
   :type 'string)
 
+(defvar smtpmail-default-smtp-server)
+
 (defun message-send-mail-function ()
   "Return suitable value for the variable `message-send-mail-function'."
   (cond ((and sendmail-program
