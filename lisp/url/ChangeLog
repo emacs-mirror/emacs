@@ -1,3 +1,12 @@
+2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* url-mailto.el (mail-send-and-exit):
+	* url-http.el (url-dav-file-attributes):
+	* url-file.el (ange-ftp-set-passwd, ange-ftp-copy-file-internal):
+	Declare as functions.
+	
+	* url-privacy.el (url-device-type): Define unconditionally.
+
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-vars.el (url-vars-unload-hook): Remove function and variable.

@@ -1375,6 +1375,8 @@ The following CHAR will be the name for the command or macro."
 	   (setq char (read-char))
 	   (vi-ask-for-info char))))
 
+(declare-function c-mark-function "../progmodes/cc-cmds" ())
+
 (defun vi-mark-region (arg region)
   "Mark region appropriately.  The next char REGION is d(efun),s(-exp),b(uffer),
 p(aragraph), P(age), f(unction in C/Pascal etc.), w(ord), e(nd of sentence),

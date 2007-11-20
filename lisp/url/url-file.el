@@ -86,6 +86,11 @@ to them."
 	    (error nil)))
       (apply func args))))
 
+(declare-function ange-ftp-set-passwd "../net/ange-ftp" (host user passwd))
+(declare-function ange-ftp-copy-file-internal "../net/ange-ftp"
+		  (filename newname ok-if-already-exists
+			    keep-date &optional msg cont nowait))
+
 (defun url-file-build-filename (url)
   (if (not (vectorp url))
       (setq url (url-generic-parse-url url)))

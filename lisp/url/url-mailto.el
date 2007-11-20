@@ -60,6 +60,8 @@
 	(save-excursion
 	  (insert "\n"))))))
 
+(declare-function mail-send-and-exit "../mail/sendmail")
+
 ;;;###autoload
 (defun url-mailto (url)
   "Handle the mailto: URL syntax."

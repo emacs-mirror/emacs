@@ -1,3 +1,23 @@
+2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/idlw-help.el: Require browse-url unconditionally, it
+	is available by default.
+	(idlwave-help-browse-url-available): Change default to t.
+
+	* emulation/edt.el (defgroup, defcustom): Remove definition.
+	(eval-when-compile): Remove.
+	(c-mark-function):
+	* textmodes/reftex-dcr.el (bibtex-beginning-of-entry):
+	* textmodes/fill.el (comment-search-forward)
+	(comment-string-strip):
+	* progmodes/prolog.el (comint-mode, comint-send-string)
+	(comint-send-region, comint-send-eof):
+	* progmodes/dcl-mode.el (imenu-default-create-index-function):
+	* emulation/viper-util.el (viper-forward-Word):
+	* emulation/vi.el (c-mark-function):
+	* emulation/edt-vt100.el (vt100-wide-mode):
+	* emacs-lisp/timer.el (diary-entry-time): Declare as functions.
+
 2007-11-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-open-connection-setup-interactive-shell):

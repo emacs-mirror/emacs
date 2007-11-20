@@ -831,6 +831,10 @@ in the active region."
 		   (fill-region-as-paragraph beg end justify))))))
      fill-pfx)))
 
+(declare-function comment-search-forward "../newcomment" (limit &optional noerror))
+(declare-function comment-string-strip "../newcomment" (str beforep afterp))
+
+
 (defun fill-comment-paragraph (&optional justify)
   "Fill current comment.
 If we're not in a comment, just return nil so that the caller

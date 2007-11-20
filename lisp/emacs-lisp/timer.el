@@ -356,6 +356,9 @@ This function is called, by name, directly by the C code."
   "Non-nil if EVENT is a timeout event."
   (and (listp event) (eq (car event) 'timer-event)))
 
+
+(declare-function diary-entry-time "../calendar/diary-lib" (s))
+
 ;;;###autoload
 (defun run-at-time (time repeat function &rest args)
   "Perform an action at time TIME.

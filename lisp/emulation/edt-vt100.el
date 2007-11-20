@@ -39,6 +39,8 @@
 ;; The following functions are called by the EDT screen width commands defined
 ;; in edt.el.
 
+(declare-function vt100-wide-mode "../term/vt100" (&optional arg))
+
 (defun edt-set-term-width-80 ()
   "Set terminal width to 80 columns."
   (vt100-wide-mode -1))

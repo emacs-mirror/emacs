@@ -359,6 +359,8 @@ will display info in the echo area."
                             'reftex-view-crossref-when-idle 
                             reftex-idle-time nil t))))
 
+(declare-function bibtex-beginning-of-entry "bibtex" ())
+
 (defun reftex-view-crossref-from-bibtex (&optional arg)
   "View location in a LaTeX document which cites the BibTeX entry at point.
 Since BibTeX files can be used by many LaTeX documents, this function

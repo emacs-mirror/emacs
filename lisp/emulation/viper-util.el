@@ -380,6 +380,8 @@
 
 
 
+(declare-function viper-forward-Word "viper-cmd" (arg))
+
 ;;; Support for :e, :r, :w file globbing
 
 ;; Glob the file spec.

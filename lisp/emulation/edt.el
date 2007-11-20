@@ -166,28 +166,23 @@
 ;;;; VARIABLES and CONSTANTS
 ;;;;
 
-;; For backward compatibility to Emacs 19.
-(or (fboundp 'defgroup)
-    (defmacro defgroup (&rest rest)))
-
 (defgroup edt nil
   "Emacs emulating EDT."
   :prefix "edt-"
   :group 'emulations)
 
 ;; To silence the byte-compiler
-(eval-when-compile
-  (defvar *EDT-keys*)
-  (defvar edt-default-global-map)
-  (defvar edt-last-copied-word)
-  (defvar edt-learn-macro-count)
-  (defvar edt-orig-page-delimiter)
-  (defvar edt-orig-transient-mark-mode)
-  (defvar edt-rect-start-point)
-  (defvar edt-user-global-map)
-  (defvar rect-start-point)
-  (defvar time-string)
-  (defvar zmacs-region-stays))
+(defvar *EDT-keys*)
+(defvar edt-default-global-map)
+(defvar edt-last-copied-word)
+(defvar edt-learn-macro-count)
+(defvar edt-orig-page-delimiter)
+(defvar edt-orig-transient-mark-mode)
+(defvar edt-rect-start-point)
+(defvar edt-user-global-map)
+(defvar rect-start-point)
+(defvar time-string)
+(defvar zmacs-region-stays)
 
 ;;;
 ;;;  Version Information
@@ -197,11 +192,6 @@
 ;;;
 ;;;  User Configurable Variables
 ;;;
-
-;; For backward compatibility to Emacs 19.
-(or (fboundp 'defcustom)
-    (defmacro defcustom (var value doc &rest ignore)
-      `(defvar ,var ,value ,doc)))
 
 (defcustom edt-keep-current-page-delimiter nil
   "*Emacs MUST be restarted for a change in value to take effect!
@@ -1628,6 +1618,8 @@ Argument NUM is the percentage into the buffer to move."
       (indent-region (point) (mark) nil)
     (fill-region (point) (mark))))
 
+
+(declare-function c-mark-function "../progmodes/cc-cmds" ())
 ;;;
 ;;; MARK SECTION WISELY
 ;;;

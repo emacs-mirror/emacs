@@ -240,6 +240,11 @@ rigidly along with this one (not yet)."
 (defvar inferior-prolog-mode-syntax-table prolog-mode-syntax-table)
 (defvar inferior-prolog-mode-abbrev-table prolog-mode-abbrev-table)
 
+(declare-function comint-mode "../comint")
+(declare-function comint-send-string "../comint" (process string))
+(declare-function comint-send-region "../comint" (process start end))
+(declare-function comint-send-eof "../comint" ())
+
 (define-derived-mode inferior-prolog-mode comint-mode "Inferior Prolog"
   "Major mode for interacting with an inferior Prolog process.
 

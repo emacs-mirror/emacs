@@ -27,9 +27,10 @@
 (eval-when-compile (require 'cl))
 (require 'url-vars)
 
-(if (fboundp 'device-type)
-    (defalias 'url-device-type 'device-type)
-  (defun url-device-type (&optional device) (or window-system 'tty)))
+(defun url-device-type (&optional device)
+  (if (fboundp 'device-type)
+      (url-device-type device)
+    (or window-system 'tty)))
 
 ;;;###autoload
 (defun url-setup-privacy-info ()
