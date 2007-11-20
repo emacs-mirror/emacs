@@ -1082,7 +1082,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
       (define-key local-function-key-map [M-escape] [?\M-\e])
       (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 				 local-function-key-map global-map))
-    (set-terminal-parameter frame 'x-setup-function-keys t))))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
