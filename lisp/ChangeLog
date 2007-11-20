@@ -1,3 +1,8 @@
+2007-11-20  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (x-setup-function-keys): Protect against
+	multiple calls on the same terminal.
+
 2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/mac-win.el (x-setup-function-keys): Only setup
