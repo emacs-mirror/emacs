@@ -2547,11 +2547,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   name = mac_get_arg (parameters, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
@@ -2615,9 +2611,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
-#ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
-#endif
 
   /* Specify the parent under which to make this window.  */
 
@@ -3809,11 +3803,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   parms = Fcopy_alist (parms);
 
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   /* Get the name of the frame to use for resource lookup.  */
   name = mac_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
@@ -3859,9 +3849,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
-#ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
-#endif
   f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
   f->output_data.mac->explicit_parent = 0;
 

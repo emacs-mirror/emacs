@@ -1,3 +1,10 @@
+2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/darwin.h (MULTI_KBOARD): Remove.
+
+	* macfns.c (x_create_tip_frame, Fx_create_frame)
+	(x_create_tip_frame): Don't deal with MULTI_KBOARD.
+
 2007-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Fbuffer_local_value): Remove redundant test.

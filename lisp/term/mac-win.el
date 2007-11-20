@@ -1058,28 +1058,31 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
-(substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-			   global-map)
-
 (defun x-setup-function-keys (frame)
   "Setup Function Keys for mac."
-;; Map certain keypad keys into ASCII characters
-;; that people usually expect.
-(define-key local-function-key-map [backspace] [?\d])
-(define-key local-function-key-map [delete] [?\d])
-(define-key local-function-key-map [tab] [?\t])
-(define-key local-function-key-map [linefeed] [?\n])
-(define-key local-function-key-map [clear] [?\C-l])
-(define-key local-function-key-map [return] [?\C-m])
-(define-key local-function-key-map [escape] [?\e])
-(define-key local-function-key-map [M-backspace] [?\M-\d])
-(define-key local-function-key-map [M-delete] [?\M-\d])
-(define-key local-function-key-map [M-tab] [?\M-\t])
-(define-key local-function-key-map [M-linefeed] [?\M-\n])
-(define-key local-function-key-map [M-clear] [?\M-\C-l])
-(define-key local-function-key-map [M-return] [?\M-\C-m])
-(define-key local-function-key-map [M-escape] [?\M-\e])
-)
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    (with-selected-frame frame
+      ;; Map certain keypad keys into ASCII characters
+      ;; that people usually expect.
+      (define-key local-function-key-map [backspace] [?\d])
+      (define-key local-function-key-map [delete] [?\d])
+      (define-key local-function-key-map [tab] [?\t])
+      (define-key local-function-key-map [linefeed] [?\n])
+      (define-key local-function-key-map [clear] [?\C-l])
+      (define-key local-function-key-map [return] [?\C-m])
+      (define-key local-function-key-map [escape] [?\e])
+      (define-key local-function-key-map [M-backspace] [?\M-\d])
+      (define-key local-function-key-map [M-delete] [?\M-\d])
+      (define-key local-function-key-map [M-tab] [?\M-\t])
+      (define-key local-function-key-map [M-linefeed] [?\M-\n])
+      (define-key local-function-key-map [M-clear] [?\M-\C-l])
+      (define-key local-function-key-map [M-return] [?\M-\C-m])
+      (define-key local-function-key-map [M-escape] [?\M-\e])
+      (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+				 local-function-key-map global-map))
+    (set-terminal-parameter frame 'x-setup-function-keys t))))
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
