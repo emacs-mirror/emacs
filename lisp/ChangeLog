@@ -1,3 +1,10 @@
+2007-11-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/grep.el (xargs-program): New variable.
+	(grep-compute-defaults): Use it.
+	(grep-default-command): Doc fix.
+	(grep, lgrep, rgrep): Reflow docstrings.
+
 2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-find-revision): Set the parent buffer.
@@ -14,8 +21,7 @@
 	* emacs-lisp/tcover-ses.el (ses-set-curcell, ses-update-cells)
 	(ses-load, ses-vector-delete, ses-create-header-string)
 	(ses-read-cell, ses-read-symbol, ses-command-hook, ses-jump):
-	* emacs-lisp/gulp.el (mail-subject, mail-send): Declare as
-	functions.
+	* emacs-lisp/gulp.el (mail-subject, mail-send): Declare as functions.
 
 2007-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
