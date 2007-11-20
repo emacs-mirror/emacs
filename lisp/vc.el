@@ -2069,11 +2069,16 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		      (with-current-buffer filebuf
 			(vc-call find-revision file revision outbuf))))
 		  (setq failed nil))
-	      (if (and failed (file-exists-p filename))
-		  (delete-file filename))))
+	      (when (and failed (file-exists-p filename))
+		(delete-file filename))))
 	  (vc-mode-line file))
 	(message "Checking out %s...done" filename)))
-    (find-file-noselect filename)))
+    (let ((result-buf (find-file-noselect filename)))
+      (with-current-buffer result-buf
+	;; Set the parent buffer so that things like 
+	;; C-x v g, C-x v l, ... etc work.
+	(setq vc-parent-buffer filebuf))
+      result-buf)))
 
 ;; Header-insertion code
 

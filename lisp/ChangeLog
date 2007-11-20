@@ -1,5 +1,8 @@
 2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-find-revision): Set the parent buffer.
+	Use when instead of if.
+
 	* progmodes/python.el (info-lookup-maybe-add-help):
 	* progmodes/ps-mode.el (doc-view-minor-mode):
 	* mail/emacsbug.el (Info-menu, Info-goto-node):
