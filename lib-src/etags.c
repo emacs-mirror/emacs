@@ -61,10 +61,10 @@ University of California, as described above. */
 
 /*
  * Authors:
- *	Ctags originally by Ken Arnold.
- *	Fortran added by Jim Kleckner.
- *	Ed Pelegri-Llopart added C typedefs.
- *	Gnu Emacs TAGS format and modifications by RMS?
+ * 1983	Ctags originally by Ken Arnold.
+ * 1984	Fortran added by Jim Kleckner.
+ * 1984	Ed Pelegri-Llopart added C typedefs.
+ * 1985	Emacs TAGS format by Richard Stallman.
  * 1989	Sam Kendall added C++.
  * 1992 Joseph B. Wells improved C and C++ parsing.
  * 1993	Francesco Potortì reorganised C and C++.
@@ -876,7 +876,7 @@ etags --help --lang=ada.");
 # define EMACS_NAME "standalone"
 #endif
 #ifndef VERSION
-# define VERSION "version"
+# define VERSION "17.26"
 #endif
 static void
 print_version ()
@@ -1468,6 +1468,7 @@ main (argc, argv)
       exit (EXIT_SUCCESS);
     }
 
+  /* From here on, we are in (CTAGS && !cxref_style) */
   if (update)
     {
       char cmd[BUFSIZ];
@@ -2976,11 +2977,6 @@ consider_token (str, len, c, c_extp, bracelev, parlev, is_func_or_var)
        return TRUE;
      }
 
-   /*
-    * This structdef business is NOT invoked when we are ctags and the
-    * file is plain C.  This is because a struct tag may have the same
-    * name as another tag, and this loses with ctags.
-    */
    switch (toktype)
      {
      case st_C_javastruct:
@@ -3398,16 +3394,14 @@ C_entries (c_ext, inf)
 	case '/':
 	  if (*lp == '*')
 	    {
-	      lp++;
 	      incomm = TRUE;
-	      continue;
+	      lp++;
+	      c = ' ';
 	    }
 	  else if (/* cplpl && */ *lp == '/')
 	    {
 	      c = '\0';
-	      break;
 	    }
-	  else
 	    break;
 	case '%':
 	  if ((c_ext & YACC) && *lp == '%')
@@ -3950,7 +3944,7 @@ C_entries (c_ext, inf)
 	      make_C_tag (FALSE);  /* a struct or enum */
 	      break;
 	    }
-	  bracelev++;
+	  bracelev += 1;
 	  break;
 	case '*':
 	  if (definedef != dnone)
@@ -3964,17 +3958,21 @@ C_entries (c_ext, inf)
 	case '}':
 	  if (definedef != dnone)
 	    break;
+	  bracelev -= 1;
 	  if (!ignoreindent && lp == newlb.buffer + 1)
 	    {
 	      if (bracelev != 0)
-		token.valid = FALSE;
+		token.valid = FALSE; /* unexpected value, token unreliable */
 	      bracelev = 0;	/* reset brace level if first column */
 	      parlev = 0;	/* also reset paren level, just in case... */
 	    }
-	  else if (bracelev > 0)
-	    bracelev--;
-	  else
+	  else if (bracelev < 0)
+	    {
 	    token.valid = FALSE; /* something gone amiss, token unreliable */
+	      bracelev = 0;
+	    }
+	  if (bracelev == 0 && fvdef == vignore)
+	    fvdef = fvnone;		/* end of function */
 	  popclass_above (bracelev);
 	  structdef = snone;
 	  /* Only if typdef == tinbody is typdefbracelev significant. */
