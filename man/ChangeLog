@@ -1,3 +1,8 @@
+2007-11-18  Richard Stallman  <rms@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called directly): 
+	Update example.
+
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cc-mode.texi (Electric Keys, Custom Macros): Fix typos.
