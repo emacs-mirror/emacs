@@ -12604,6 +12604,10 @@ mac_term_init (display_name, xrm_option, resource_name)
                                x_display_name_list);
   dpyinfo->name_list_element = XCAR (x_display_name_list);
 
+  /* FIXME: Untested.
+     Add the default keyboard. */
+  add_keyboard_wait_descriptor (0);
+
 #if USE_CG_DRAWING
   mac_init_fringe (terminal->rif);
 #endif

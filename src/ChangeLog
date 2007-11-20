@@ -1,5 +1,7 @@
 2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* macterm.c (mac_term_init): Call add_keyboard_wait_descriptor.
+
 	* s/darwin.h (MULTI_KBOARD): Remove.
 
 	* macfns.c (x_create_tip_frame, Fx_create_frame)
