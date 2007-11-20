@@ -1,5 +1,7 @@
 2007-11-20  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* message.el (message-send-mail-function): Check for smtpmail too.
+
 	* utf7.el (utf7-encode, utf7-decode): Use coding system
 	`utf-7'/`utf-7-imap' from utf-7.el' if available.
 

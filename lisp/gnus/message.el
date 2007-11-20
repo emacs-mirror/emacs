@@ -624,13 +624,17 @@ Done before generating the new subject of a forward."
 (defun message-send-mail-function ()
   "Return suitable value for the variable `message-send-mail-function'."
   (cond ((and sendmail-program
-	      (executable-find program))
+	      (executable-find sendmail-program))
 	 'message-send-mail-with-sendmail)
-	((and (locate-library "mailclient")
-	      (memq system-type '(darwin windows-nt)))
+	((and (locate-library "smtpmail")
+	      (require 'smtpmail)
+	      smtpmail-default-smtp-server)
+	 'message-smtpmail-send-it)
+	((locate-library "mailclient")
 	 'message-send-mail-with-mailclient)
 	(t
-	 'message-smtpmail-send-it)))
+	 (lambda ()
+	   (error "Don't know how to send mail.  Please customize `message-send-mail-function'.")))))
 
 ;; Useful to set in site-init.el
 (defcustom message-send-mail-function (message-send-mail-function)
