@@ -1,3 +1,19 @@
+2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/python.el (info-lookup-maybe-add-help):
+	* progmodes/ps-mode.el (doc-view-minor-mode):
+	* mail/emacsbug.el (Info-menu, Info-goto-node):
+	* emulation/viper-keym.el (viper-ex)
+	(viper-normalize-minor-mode-map-alist, viper-set-mode-vars-for):
+	* emulation/viper-cmd.el (widget-type, widget-button-press)
+	(viper-set-hooks):
+	* emacs-lisp/tcover-unsafep.el (unsafep-function):
+	* emacs-lisp/tcover-ses.el (ses-set-curcell, ses-update-cells)
+	(ses-load, ses-vector-delete, ses-create-header-string)
+	(ses-read-cell, ses-read-symbol, ses-command-hook, ses-jump):
+	* emacs-lisp/gulp.el (mail-subject, mail-send): Declare as
+	functions.
+
 2007-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-revert-if-needed): Fix copy&paste typo.

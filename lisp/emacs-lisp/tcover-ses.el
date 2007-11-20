@@ -26,6 +26,17 @@
 (defvar ses-initial-global-parameters)
 (defvar ses-mode-map)
 
+(declare-function ses-set-curcell "../ses")
+(declare-function ses-update-cells "../ses")
+(declare-function ses-load "../ses")
+(declare-function ses-vector-delete "../ses")
+(declare-function ses-create-header-string "../ses")
+(declare-function ses-read-cell "../ses")
+(declare-function ses-read-symbol "../ses")
+(declare-function ses-command-hook "../ses")
+(declare-function ses-jump "../ses")
+
+
 ;;;Here are some macros that exercise SES.  Set `pause' to t if you want the
 ;;;macros to pause after each step.
 (let* ((pause nil)

@@ -78,6 +78,9 @@ Thanks.")
   :type 'string
   :group 'gulp)
 
+(declare-function mail-subject "../mail/sendmail" ())
+(declare-function mail-send "../mail/sendmail" ())
+
 (defun gulp-send-requests (dir &optional time)
   "Send requests for updates to the authors of Lisp packages in directory DIR.
 For each maintainer, the message consists of `gulp-request-header',

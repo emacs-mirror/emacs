@@ -480,6 +480,9 @@ If nil, the following are tried in turn, until success:
       (setq i (1+ i)))))
 
 
+
+(declare-function doc-view-minor-mode "../doc-view")
+
 ;; PostScript mode.
 
 ;;;###autoload
