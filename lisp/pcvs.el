@@ -2293,7 +2293,7 @@ this file, or a list of arguments to send to the program."
 	   (buffer (find-buffer-visiting file)))
       ;; For a revert to happen the user must be editing the file...
       (unless (or (null buffer)
-		  (eq (cvs-fileinfo->type fileinfo) '(MESSAGE UNKNOWN))
+		  (memq (cvs-fileinfo->type fileinfo) '(MESSAGE UNKNOWN))
 		  ;; FIXME: check whether revert is really needed.
 		  ;; `(verify-visited-file-modtime buffer)' doesn't cut it
 		  ;; because it only looks at the time stamp (it ignores

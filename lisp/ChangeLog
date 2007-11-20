@@ -1,3 +1,7 @@
+2007-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-revert-if-needed): Fix copy&paste typo.
+
 2007-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/check-declare.el (check-declare-verify): Tweak regexp
