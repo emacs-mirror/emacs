@@ -333,6 +333,12 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;;;###autoload
+(defvar xargs-program "xargs"
+  "The default xargs program for `grep-find-command'.
+See `grep-find-use-xargs'.
+This variable's value takes effect when `grep-compute-defaults' is called.")
+
+;;;###autoload
 (defvar grep-find-use-xargs nil
   "Non-nil means that `grep-find' uses the `xargs' utility by default.
 If `exec', use `find -exec'.
@@ -475,15 +481,15 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		(cond
 		 ((and
 		   (grep-probe find-program `(nil nil nil ,null-device "-print0"))
-		   (grep-probe "xargs" `(nil nil nil "-0" "-e" "echo")))
+		   (grep-probe xargs-program `(nil nil nil "-0" "-e" "echo")))
 		  'gnu)
 		 (t
 		  'exec))))
 	(unless grep-find-command
 	  (setq grep-find-command
 		(cond ((eq grep-find-use-xargs 'gnu)
-		       (format "%s . -type f -print0 | xargs -0 -e %s"
-			       find-program grep-command))
+		       (format "%s . -type f -print0 | %s -0 -e %s"
+			       find-program xargs-program grep-command))
 		      ((eq grep-find-use-xargs 'exec)
 		       (let ((cmd0 (format "%s . -type f -exec %s"
 					   find-program grep-command)))
@@ -493,22 +499,22 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 				  (shell-quote-argument ";"))
 			  (1+ (length cmd0)))))
 		      (t
-		       (format "%s . -type f -print | xargs %s"
-			       find-program grep-command)))))
+		       (format "%s . -type f -print | %s %s"
+			       find-program xargs-program grep-command)))))
 	(unless grep-find-template
 	  (setq grep-find-template
 		(let ((gcmd (format "%s <C> %s <R>"
 				    grep-program grep-options)))
 		  (cond ((eq grep-find-use-xargs 'gnu)
-			 (format "%s . <X> -type f <F> -print0 | xargs -0 -e %s"
-				 find-program gcmd))
+			 (format "%s . <X> -type f <F> -print0 | %s -0 -e %s"
+				 find-program xargs-program gcmd))
 			((eq grep-find-use-xargs 'exec)
 			 (format "%s . <X> -type f <F> -exec %s {} %s %s"
 				 find-program gcmd null-device
 				 (shell-quote-argument ";")))
 			(t
-			 (format "%s . <X> -type f <F> -print | xargs %s"
-				 find-program gcmd))))))))
+			 (format "%s . <X> -type f <F> -print | %s %s"
+				 find-program xargs-program gcmd))))))))
     (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
       (setq grep-highlight-matches
 	    (with-temp-buffer
@@ -543,7 +549,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
       ""))
 
 (defun grep-default-command ()
-  "Compute the default grep command for C-u M-x grep to offer."
+  "Compute the default grep command for \\[universal-argument] \\[grep] to offer."
   (let ((tag-default (shell-quote-argument (grep-tag-default)))
 	;; This a regexp to match single shell arguments.
 	;; Could someone please add comments explaining it?
@@ -596,19 +602,19 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   "Run grep, with user-specified args, and collect output in a buffer.
 While grep runs asynchronously, you can use \\[next-error] (M-x next-error),
 or \\<grep-mode-map>\\[compile-goto-error] in the grep \
-output buffer, to go to the lines
-where grep found matches.
+output buffer, to go to the lines where grep
+found matches.
 
 For doing a recursive `grep', see the `rgrep' command.  For running
 `grep' in a specific directory, see `lgrep'.
 
-This command uses a special history list for its COMMAND-ARGS, so you can
-easily repeat a grep command.
+This command uses a special history list for its COMMAND-ARGS, so you
+can easily repeat a grep command.
 
 A prefix argument says to default the argument based upon the current
 tag the cursor is over, substituting it into the last grep command
-in the grep command history (or into `grep-command'
-if that history list is empty)."
+in the grep command history (or into `grep-command' if that history
+list is empty)."
   (interactive
    (progn
      (grep-compute-defaults)
@@ -736,8 +742,9 @@ before it is executed.
 With two \\[universal-argument] prefixes, directly edit and run `grep-command'.
 
 Collect output in a buffer.  While grep runs asynchronously, you
-can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
-in the grep output buffer, to go to the lines where grep found matches.
+can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
+in the grep output buffer,
+to go to the lines where grep found matches.
 
 This command shares argument histories with \\[rgrep] and \\[grep]."
   (interactive
@@ -797,8 +804,9 @@ before it is executed.
 With two \\[universal-argument] prefixes, directly edit and run `grep-find-command'.
 
 Collect output in a buffer.  While find runs asynchronously, you
-can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
-in the grep output buffer, to go to the lines where grep found matches.
+can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] \
+in the grep output buffer,
+to go to the lines where grep found matches.
 
 This command shares argument histories with \\[lgrep] and \\[grep-find]."
   (interactive
