@@ -103,6 +103,11 @@ The return value of this function is not used."
      (eval-and-compile
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
+(defalias 'declare-function 'ignore
+  "In Emacs 22, does nothing.  In 23, it will suppress byte-compiler warnings.
+This definition is so that packages may take advantage of the
+Emacs 23 feature and still remain compatible with Emacs 22.")
+
 (defun make-obsolete (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
 The warning will say that CURRENT-NAME should be used instead.
