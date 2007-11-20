@@ -1161,12 +1161,13 @@ The variable `ispell-library-directory' defines the library location."
 	      (delete-menu-item '("Edit" "Spell")) ; in case already defined
 	      (add-menu '("Edit") "Spell" ispell-menu-xemacs))))))
 
-;;; Allow incrementing characters as integers in XEmacs 20
-(if (and (featurep 'xemacs)
-	 (fboundp 'int-char))
-    (fset 'ispell-int-char 'int-char)
-  ;; Emacs and XEmacs 19 or earlier
-  (fset 'ispell-int-char 'identity))
+(defalias 'ispell-int-char
+  ;; Allow incrementing characters as integers in XEmacs 20
+  (if (and (featurep 'xemacs)
+	   (fboundp 'int-char))
+      'int-char
+    ;; Emacs and XEmacs 19 or earlier
+    'identity))
 
 
 ;;; **********************************************************************
@@ -3533,9 +3534,9 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	   (cite-regexp			;Prefix of quoted text
 	    (cond
 	     ((functionp 'sc-cite-regexp)	; sc 3.0
-	      (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
-		      (with-no-warnings
-		       (ispell-non-empty-string sc-reference-tag-string))))
+	      (with-no-warnings
+		(concat "\\(" (sc-cite-regexp) "\\)" "\\|"
+			(ispell-non-empty-string sc-reference-tag-string))))
 	     ((boundp 'sc-cite-regexp)		; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
 		      (with-no-warnings
