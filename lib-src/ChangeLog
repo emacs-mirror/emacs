@@ -1,7 +1,17 @@
+2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c: (C_entries): In case '}' decrement bracelev before testing it.
+
 2007-11-15  Masatake YAMATO  <jet@gyve.org>
 
 	* etags.c (C_entries): In case '}', set fvdef to fvnone
 	unconditioned to (!ignoreindent && lp == newlb.buffer + 1).
+
+2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c: (C_entries): Reset the fvdef machine when out of function.
+	(C_entries): Parse start of C comment as a space == end of token.
+	This is not necessary for C++ comment, already parsed as newline.
 
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
