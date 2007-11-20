@@ -86,14 +86,18 @@ found to be true, otherwise a list of errors with elements of the form
         (with-temp-buffer
           (insert-file-contents fnfile)
           ;; defsubst's don't _have_ to be known at compile time.
-          (setq re (format "^[ \t]*(def\\(un\\|subst\\)[ \t]+%s\\>"
+          (setq re (format "^[ \t]*(\\(def\\(?:un\\|subst\\|\
+ine-derived-mode\\)\\)\[ \t]+%s\\([ \t;]+\\|$\\)"
                            (regexp-opt (mapcar 'cadr fnlist) t)))
           (while (re-search-forward re nil t)
             (skip-chars-forward " \t\n")
             (setq fn (match-string 2)
-                  sig (if (looking-at "\\((\\|nil\\)")
-                          (byte-compile-arglist-signature
-                           (read (current-buffer))))
+                  sig (if (string-equal "define-derived-mode"
+                                        (match-string 1))
+                          '(0 . 0)
+                        (if (looking-at "\\((\\|nil\\)")
+                            (byte-compile-arglist-signature
+                             (read (current-buffer)))))
                   ;; alist of functions and arglist signatures.
                   siglist (cons (cons fn sig) siglist)))))
     (dolist (e fnlist)
