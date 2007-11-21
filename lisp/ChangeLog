@@ -1,3 +1,7 @@
+2007-11-21  Jason Rumney  <jasonr@gnu.org>
+
+	* emacs-lisp/byte-run.el (declare-function): Return nil.
+
 2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-mode): Set defun-prompt-regexp.
