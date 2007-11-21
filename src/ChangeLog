@@ -1,3 +1,9 @@
+2007-11-21  Jason Rumney  <jasonr@gnu.org>
+
+	* dispnew.c (init_display) [WINDOWSNT]: Hardcode terminal_type.
+
+	* w32console.c (w32con_write_glyphs): Remove unused variables.
+
 2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* macterm.c (mac_term_init): Call add_keyboard_wait_descriptor.
