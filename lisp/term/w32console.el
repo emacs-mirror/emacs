@@ -61,3 +61,5 @@
   (clear-face-cache)
   (tty-set-up-initial-frame-faces)
   (run-hooks 'terminal-init-w32-hook))
+
+;; arch-tag: 3195fd5e-ab86-4a46-b1dc-4f7a8c8deff3
