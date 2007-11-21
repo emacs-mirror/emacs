@@ -1,7 +1,18 @@
+2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Buffer_Objfwd): Add a `slottype' field.
+	* data.c (store_symval_forwarding): Get type from buffer_objfwd.
+	Update call to buffer_slot_type_mismatch.
+	* buffer.h (buffer_local_types, PER_BUFFER_TYPE): Remove.
+	(buffer_slot_type_mismatch): Update.
+	* buffer.c (buffer_local_types): Remove.
+	(buffer_slot_type_mismatch): Get the symbol and type as arguments.
+	(defvar_per_buffer): Set the type in the buffer_objfwd.
+
 2007-11-21  Jason Rumney  <jasonr@gnu.org>
 
-	* w32bdf.c (w32_init_bdf_font, w32_BDF_to_x_font): CreateFileMapping
-	returns NULL on failure.
+	* w32bdf.c (w32_init_bdf_font, w32_BDF_to_x_font):
+	CreateFileMapping returns NULL on failure.
 
 2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 

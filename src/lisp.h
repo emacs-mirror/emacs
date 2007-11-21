@@ -1226,6 +1226,7 @@ struct Lisp_Buffer_Objfwd
     int type : 16;	/* = Lisp_Misc_Buffer_Objfwd */
     unsigned gcmarkbit : 1;
     int spacer : 15;
+    Lisp_Object slottype; /* Qnil, Lisp_Int, Lisp_Symbol, or Lisp_String.  */
     int offset;
   };
 

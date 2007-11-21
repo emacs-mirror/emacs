@@ -99,17 +99,6 @@ DECL_ALIGN (struct buffer, buffer_local_symbols);
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;
 
-/* This structure holds the required types for the values in the
-   buffer-local slots.  If a slot contains Qnil, then the
-   corresponding buffer slot may contain a value of any type.  If a
-   slot contains an integer, then prospective values' tags must be
-   equal to that integer (except nil is always allowed).
-   When a tag does not match, the function
-   buffer_slot_type_mismatch will signal an error.
-
-   If a slot here contains -1, the corresponding variable is read-only.  */
-struct buffer buffer_local_types;
-
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
 static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
@@ -4402,13 +4391,13 @@ evaporate_overlays (pos)
    in the slot with offset OFFSET.  */
 
 void
-buffer_slot_type_mismatch (offset)
-     int offset;
+buffer_slot_type_mismatch (sym, type)
+     Lisp_Object sym;
+     int type;
 {
-  Lisp_Object sym;
   char *type_name;
 
-  switch (XINT (PER_BUFFER_TYPE (offset)))
+  switch (type)
     {
     case Lisp_Int:
       type_name = "integers";
@@ -4426,7 +4415,6 @@ buffer_slot_type_mismatch (offset)
       abort ();
     }
 
-  sym = PER_BUFFER_SYMBOL (offset);
   error ("Only %s should be stored in the buffer-local variable %s",
 	 type_name, SDATA (SYMBOL_NAME (sym)));
 }
@@ -5274,9 +5262,9 @@ defvar_per_buffer (namestring, address, type, doc)
 
   XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
   XBUFFER_OBJFWD (val)->offset = offset;
+  XBUFFER_OBJFWD (val)->slottype = type;
   SET_SYMBOL_VALUE (sym, val);
   PER_BUFFER_SYMBOL (offset) = sym;
-  PER_BUFFER_TYPE (offset) = type;
 
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding

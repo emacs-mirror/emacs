@@ -818,18 +818,6 @@ extern struct buffer buffer_local_flags;
    that don't have such names.  */
 
 extern struct buffer buffer_local_symbols;
-
-/* This structure holds the required types for the values in the
-   buffer-local slots.  If a slot contains Qnil, then the
-   corresponding buffer slot may contain a value of any type.  If a
-   slot contains an integer, then prospective values' tags must be
-   equal to that integer (except nil is always allowed).
-   When a tag does not match, the function
-   buffer_slot_type_mismatch will signal an error.
-
-   If a slot here contains -1, the corresponding variable is read-only.  */
-
-extern struct buffer buffer_local_types;
 
 extern void delete_all_overlays P_ ((struct buffer *));
 extern void reset_buffer P_ ((struct buffer *));
@@ -843,7 +831,7 @@ extern void set_buffer_internal P_ ((struct buffer *));
 extern void set_buffer_internal_1 P_ ((struct buffer *));
 extern void set_buffer_temp P_ ((struct buffer *));
 extern void record_buffer P_ ((Lisp_Object));
-extern void buffer_slot_type_mismatch P_ ((int)) NO_RETURN;
+extern void buffer_slot_type_mismatch P_ ((Lisp_Object, int)) NO_RETURN;
 extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
 
@@ -994,12 +982,6 @@ extern int last_per_buffer_idx;
 
 #define PER_BUFFER_SYMBOL(OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_symbols))
-
-/* Return the type of the per-buffer variable at offset OFFSET in the
-   buffer structure.  */
-
-#define PER_BUFFER_TYPE(OFFSET) \
-      (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_types))
 
 /* arch-tag: 679305dd-d41c-4a50-b170-3caf5c97b2d1
    (do not change this comment) */

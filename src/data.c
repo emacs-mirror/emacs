@@ -930,7 +930,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	  break;
 
 	case Lisp_Misc_Boolfwd:
-	  *XBOOLFWD (valcontents)->boolvar = NILP (newval) ? 0 : 1;
+	  *XBOOLFWD (valcontents)->boolvar = !NILP (newval);
 	  break;
 
 	case Lisp_Misc_Objfwd:
@@ -970,12 +970,11 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	case Lisp_Misc_Buffer_Objfwd:
 	  {
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
-	    Lisp_Object type;
+	    Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
 
-	    type = PER_BUFFER_TYPE (offset);
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
-	      buffer_slot_type_mismatch (offset);
+	      buffer_slot_type_mismatch (symbol, XINT (type));
 
 	    if (buf == NULL)
 	      buf = current_buffer;
