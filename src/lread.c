@@ -2992,11 +2992,19 @@ read1 (readcharfun, pch, first_in_list)
 	      }
 	  }
 	{
+#if 0
+	  /* Fixme: The fullowing code is currently commented out
+	     because it results in strange error in C-h f.  For the
+	     moment, I don't have a time to track down the
+	     problem.  -- Handa */
 	  Lisp_Object name = make_specified_string (read_buffer, -1,
 						    p - read_buffer,
 						    multibyte);
 	  Lisp_Object result = (uninterned_symbol ? Fmake_symbol (name)
 				: Fintern (name, Qnil));
+#endif
+	  Lisp_Object result = uninterned_symbol ? make_symbol (read_buffer)
+	    : intern (read_buffer);
 
 	  if (EQ (Vread_with_symbol_positions, Qt)
 	      || EQ (Vread_with_symbol_positions, readcharfun))
