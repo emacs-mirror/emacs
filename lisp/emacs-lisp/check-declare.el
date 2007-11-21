@@ -34,6 +34,8 @@
 
 ;; 1. Handle defstructs (eg uniquify-item-base in desktop.el).
 
+;; 2. Check C files (look in src/)?
+
 ;;; Code:
 
 (defconst check-declare-warning-buffer "*Check Declarations Warnings*"
@@ -80,43 +82,57 @@ found to be true, otherwise a list of errors with elements of the form
   (let ((m (format "Checking %s..." fnfile))
         re fn sig siglist arglist type errlist)
     (message "%s" m)
-    (or (file-exists-p fnfile)
-        (setq fnfile (concat fnfile ".el")))
-    (if (file-exists-p fnfile)
-        (with-temp-buffer
-          (insert-file-contents fnfile)
-          ;; defsubst's don't _have_ to be known at compile time.
-          (setq re (format "^[ \t]*(\\(def\\(?:un\\|subst\\|\
-ine-derived-mode\\)\\)\[ \t]+%s\\([ \t;]+\\|$\\)"
-                           (regexp-opt (mapcar 'cadr fnlist) t)))
-          (while (re-search-forward re nil t)
-            (skip-chars-forward " \t\n")
-            (setq fn (match-string 2)
-                  sig (if (string-equal "define-derived-mode"
-                                        (match-string 1))
-                          '(0 . 0)
-                        (if (looking-at "\\((\\|nil\\)")
-                            (byte-compile-arglist-signature
-                             (read (current-buffer)))))
-                  ;; alist of functions and arglist signatures.
-                  siglist (cons (cons fn sig) siglist)))))
-    (dolist (e fnlist)
-      (setq arglist (nth 2 e)
-            type
-            (if re                     ; re non-nil means found a file
-                (if (setq sig (assoc (cadr e) siglist))
-                    ;; Recall we use t to mean no arglist specified,
-                    ;; to distinguish from an empty arglist.
-                    (unless (eq arglist t)
-                      (unless (equal (byte-compile-arglist-signature arglist)
-                                     (cdr sig))
-                        "arglist mismatch"))
-                  "function not found")
-              "file not found"))
-      (when type
-        (setq errlist (cons (list (car e) (cadr e) type) errlist))))
-    (message "%s%s" m (if errlist "problems found" "OK"))
-    errlist))
+    (if (string-equal (file-name-extension fnfile) "c")
+        (progn
+          (message "%sskipping C file" m)
+          nil)
+      (or (file-exists-p fnfile)
+          (setq fnfile (concat fnfile ".el")))
+      (if (file-exists-p fnfile)
+          (with-temp-buffer
+            (insert-file-contents fnfile)
+            ;; defsubst's don't _have_ to be known at compile time.
+            (setq re (format "^[ \t]*(\\(def\\(?:un\\|subst\\|\
+ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
+\[ \t]*%s\\([ \t;]+\\|$\\)"
+                             (regexp-opt (mapcar 'cadr fnlist) t)))
+            (while (re-search-forward re nil t)
+              (skip-chars-forward " \t\n")
+              (setq fn (match-string 2)
+                    sig (cond ((string-equal (match-string 1)
+                                             "define-derived-mode")
+                               '(0 . 0))
+                              ((string-equal (match-string 1)
+                                             "define-minor-mode")
+                               '(0 . 1))
+                              ;; Can't easily check alias arguments.
+                              ((string-equal (match-string 1)
+                                             "defalias")
+                               t)
+                              (t
+                               (if (looking-at "\\((\\|nil\\)")
+                                   (byte-compile-arglist-signature
+                                    (read (current-buffer))))))
+                    ;; alist of functions and arglist signatures.
+                    siglist (cons (cons fn sig) siglist)))))
+      (dolist (e fnlist)
+        (setq arglist (nth 2 e)
+              type
+              (if re                   ; re non-nil means found a file
+                  (if (setq sig (assoc (cadr e) siglist))
+                      ;; Recall we use t to mean no arglist specified,
+                      ;; to distinguish from an empty arglist.
+                      (unless (or (eq arglist t)
+                                  (eq sig t))
+                        (unless (equal (byte-compile-arglist-signature arglist)
+                                       (cdr sig))
+                          "arglist mismatch"))
+                    "function not found")
+                "file not found"))
+        (when type
+          (setq errlist (cons (list (car e) (cadr e) type) errlist))))
+      (message "%s%s" m (if errlist "problems found" "OK"))
+      errlist)))
 
 (defun check-declare-sort (alist)
   "Sort a list with elements FILE (FNFILE ...).
