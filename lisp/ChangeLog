@@ -1,3 +1,7 @@
+2007-11-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-fns.el: Undo 2007-11-21 change by Dan Nicolaescu.
+
 2007-11-21  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/check-declare.el (check-declare-verify): Skip C files
