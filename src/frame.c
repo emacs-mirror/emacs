@@ -1485,8 +1485,10 @@ The functions are run with one arg, the frame to be deleted.  */)
      memory. */
   free_glyphs (f);
 
+#ifdef USE_FONT_BACKEND
   /* Give chance to each font driver to free a frame specific data.  */
   font_update_drivers (f, Qnil);
+#endif	/* USE_FONT_BACKEND */
 
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
