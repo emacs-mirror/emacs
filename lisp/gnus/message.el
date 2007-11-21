@@ -625,7 +625,9 @@ Done before generating the new subject of a forward."
 
 (defun message-send-mail-function ()
   "Return suitable value for the variable `message-send-mail-function'."
-  (cond ((and sendmail-program
+  (cond ((and (require 'sendmail)
+	      (boundp 'sendmail-program)
+	      sendmail-program
 	      (executable-find sendmail-program))
 	 'message-send-mail-with-sendmail)
 	((and (locate-library "smtpmail")

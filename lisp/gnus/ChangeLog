@@ -1,3 +1,7 @@
+2007-11-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-send-mail-function): Require sendmail.
+
 2007-11-20  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-send-mail-function): Check for smtpmail too.
