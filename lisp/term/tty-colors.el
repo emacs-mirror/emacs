@@ -63,7 +63,6 @@
 ;;; Code:
 
 (defvar msdos-color-values)
-(defvar w32-tty-standard-colors)
 
 ;; The following list is taken from rgb.txt distributed with X.
 ;;
@@ -816,8 +815,6 @@ Value is the modified color alist for FRAME."
   "Register the default set of colors for a character terminal."
   (let* ((colors (cond ((eq window-system 'pc)
 			msdos-color-values)
-		       ((eq system-type 'windows-nt)
-			w32-tty-standard-colors)
 		       (t tty-standard-colors)))
 	 (color (car colors)))
     (while colors
