@@ -1,3 +1,8 @@
+2007-11-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/paragraphs.el (forward-sentence): Doc fix.
+	Reported by Drew Adams <drew.adams@oracle.com>.
+
 2007-11-20  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (x-setup-function-keys): Protect against
@@ -7,7 +12,7 @@
 
 	* term/mac-win.el (x-setup-function-keys): Only setup
 	local-function-key-map if it has not been setup already for the
-	current frame. Move the suspend-emacs processing here.
+	current frame.  Move the suspend-emacs processing here.
 
 2007-11-20  Juanma Barranquero  <lekktu@gmail.com>
 
