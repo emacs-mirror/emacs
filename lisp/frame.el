@@ -292,8 +292,9 @@ there (in decreasing order of priority)."
   ;; the buffer of the selected window, which fails when the selected
   ;; window is the minibuffer.
   (let ((old-buffer (current-buffer))
-	(window-system-frame-alist (cdr (assq initial-window-system
-					      window-system-default-frame-alist))))
+	(window-system-frame-alist
+         (cdr (assq initial-window-system
+                    window-system-default-frame-alist))))
 
     (when (and frame-notice-user-settings
 	       (null frame-initial-frame))
@@ -714,7 +715,8 @@ setup is for focus to follow the pointer."
 	      (let ((type (terminal-live-p (cdr (assq 'terminal parameters)))))
 		(cond
 		 ((eq type t) nil)
-		 ((eq type nil) (error "Terminal %s does not exist" (cdr (assq 'terminal parameters))))
+		 ((eq type nil) (error "Terminal %s does not exist"
+                                       (cdr (assq 'terminal parameters))))
 		 (t type))))
 	     ((assq 'window-system parameters)
 	      (cdr (assq 'window-system parameters)))
@@ -725,7 +727,10 @@ setup is for focus to follow the pointer."
     (unless frame-creation-function
       (error "Don't know how to create a frame on window system %s" w))
     (run-hooks 'before-make-frame-hook)
-    (setq frame (funcall frame-creation-function (append parameters (cdr (assq w window-system-default-frame-alist)))))
+    (setq frame
+          (funcall frame-creation-function
+                   (append parameters
+                           (cdr (assq w window-system-default-frame-alist)))))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)
