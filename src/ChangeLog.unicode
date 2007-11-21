@@ -1,3 +1,7 @@
+2007-11-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* lread.c (read1): Undo the previous change.
+
 2007-11-21  CHENG Gao  <chenggao@gmail.com>  (tiny change)
 
 	* frame.c (Fdelete_frame): Call font_update_drivers only when
