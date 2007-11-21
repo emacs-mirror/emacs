@@ -1,3 +1,9 @@
+2007-11-21  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/check-declare.el (check-declare-verify): Skip C files
+	for now.  Handle define-minor-mode, and defalias (with no argument
+	checking).
+
 2007-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.el (msdos-mouse-p):
