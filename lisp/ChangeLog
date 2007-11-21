@@ -1,3 +1,7 @@
+2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-mode): Set defun-prompt-regexp.
+
 2007-11-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-lpr-switches): Docstring fix.
@@ -33,8 +37,8 @@
 
 2007-11-21  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/mule-cmds.el (set-locale-environment): Set
-	default-file-name-coding-system _after_ keyboard and terminal
+	* international/mule-cmds.el (set-locale-environment):
+	Set default-file-name-coding-system _after_ keyboard and terminal
 	coding systems.  This fixes last change.
 
 	* mail/rmail.el (rmail-current-subject-regexp): Allow more than
@@ -345,8 +349,7 @@
 2007-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-aent.el (calc-last-user-lang-parse-table): New variable.
-	(math-build-parse-table): Get parse information from
-	`math-parse-table'.
+	(math-build-parse-table): Get parse information from math-parse-table.
 
 2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
