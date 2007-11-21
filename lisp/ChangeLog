@@ -1,3 +1,16 @@
+2007-11-21  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32console.el: New term init file for w32 console.
+
+	* w32-fns.el (x-alternatives-map): Copy from term/x-win.el.
+	(x-setup-function-keys): Likewise, replacing top-level key definitions.
+	(w32-tty-standard-colors): Move to term/w32console.el.
+
+	* term/w32-win.el (x-setup-function-keys): Remove.
+
+	* term/tty-colors.el (tty-register-default-colors): Remove special
+	case for w32.
+
 2007-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* frame.el (msdos-mouse-p):
