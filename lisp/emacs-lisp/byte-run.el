@@ -120,7 +120,7 @@ the end of FILE must be all on the same line.  For example:
 \(declare-function c-end-of-defun \"progmodes/cc-cmds.el\"
                   \(&optional arg))"
   ;; Does nothing - byte-compile-declare-function does the work.
-  )
+  nil)
 
 (defun make-obsolete (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
