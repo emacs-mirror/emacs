@@ -74,12 +74,6 @@
         (set-keymap-parent local-function-key-map map)))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 
-(declare-function set-message-beep)          ;; Defined in C.
-(declare-function w32-get-clipboard-data)    ;; Defined in C.
-(declare-function w32-get-locale-info)	     ;; Defined in C.
-(declare-function w32-get-valid-locale-ids)  ;; Defined in C.
-(declare-function w32-set-clipboard-data)    ;; Defined in C.
-
 ;; Ignore case on file-name completion
 (setq completion-ignore-case t)
 
