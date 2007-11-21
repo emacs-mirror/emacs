@@ -290,7 +290,6 @@ static void
 w32con_write_glyphs (struct frame *f, register struct glyph *string,
                      register int len)
 {
-  int produced, consumed;
   DWORD r;
   WORD char_attr;
   unsigned char *conversion_buffer;
