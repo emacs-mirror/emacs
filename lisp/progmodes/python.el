@@ -1656,7 +1656,7 @@ instance.  Assumes an inferior Python is running."
 
 ;;;; Info-look functionality.
 
-(declare-function info-lookup-maybe-add-help "info-look" (&rest arg))
+(declare-function info-lookup-maybe-add-help "../info-look" (&rest arg))
 
 (defun python-after-info-look ()
   "Set up info-look for Python.

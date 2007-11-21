@@ -90,7 +90,7 @@ to them."
 (declare-function ange-ftp-copy-file-internal "../net/ange-ftp"
 		  (filename newname ok-if-already-exists
 			    keep-date &optional msg cont nowait))
-(declare-function url-generate-unique-filename "url-utile" (&optional fmt))
+(declare-function url-generate-unique-filename "url-util" (&optional fmt))
 
 (defun url-file-build-filename (url)
   (if (not (vectorp url))

@@ -38,6 +38,12 @@
 
 (defvar explicit-shell-file-name)
 
+(declare-function set-message-beep)          ;; Defined in C.
+(declare-function w32-get-clipboard-data)    ;; Defined in C.
+(declare-function w32-get-locale-info)	     ;; Defined in C.
+(declare-function w32-get-valid-locale-ids)  ;; Defined in C.
+(declare-function w32-set-clipboard-data)    ;; Defined in C.
+
 ;; Map delete and backspace
 (define-key function-key-map [backspace] "\177")
 (define-key function-key-map [delete] "\C-d")

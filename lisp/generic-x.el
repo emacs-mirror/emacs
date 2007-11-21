@@ -524,6 +524,8 @@ like an INI file.  You can add this hook to `find-file-hook'."
 (defvar bat-generic-mode-keymap (make-sparse-keymap)
   "Keymap for `bat-generic-mode'.")
 
+(declare-function w32-shell-name "w32-fns" ())
+
 (defun bat-generic-mode-compile ()
   "Run the current BAT file in a compilation buffer."
   (interactive)

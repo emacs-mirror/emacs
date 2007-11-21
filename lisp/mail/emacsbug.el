@@ -229,8 +229,8 @@ Type SPC to scroll through this section and its subsections."))))
       (setq report-emacs-bug-orig-text (buffer-substring (point-min) (point))))
     (goto-char user-point)))
 
-(declare-function Info-menu "info" (menu-item &optional fork))
-(declare-function Info-goto-node "info" (nodename &optional fork))
+(declare-function Info-menu "../info" (menu-item &optional fork))
+(declare-function Info-goto-node "../info" (nodename &optional fork))
 
 (defun report-emacs-bug-info ()
   "Go to the Info node on reporting Emacs bugs."

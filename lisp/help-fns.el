@@ -248,6 +248,8 @@ face (according to `face-differs-from-default-p')."
 	src-file
       file-name)))
 
+(declare-function ad-get-advice-info "emacs-lisp/advice" (function))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((advised (and (featurep 'advice) (ad-get-advice-info function)))

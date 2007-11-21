@@ -88,6 +88,10 @@
 (defvar xlfd-regexp-registry-subnum)
 (defvar w32-color-map) ;; defined in w32fns.c
 
+(declare-function w32-send-sys-command) ;; Defined in C.
+(declare-function w32-select-font)	;; Defined in C.
+(declare-function set-message-beep)     ;; Defined in C.
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))

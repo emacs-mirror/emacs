@@ -1,3 +1,31 @@
+2007-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.el (msdos-mouse-p):
+	* generic-x.el (w32-shell-name):
+	* files.el (msdos-long-file-names, w32-long-file-name)
+	(msdos-long-file-names, dired-get-filename, dired-unmark)
+	(dired-do-flagged-delete, dos-8+3-filename, vms-read-directory)
+	(view-mode-disable):
+	* term/mac-win.el (mac-code-convert-string, mac-coerce-ae-data)
+	(mac-resume-apple-event, mac-font-panel-mode)
+	(mac-atsu-font-face-attributes, mac-ae-set-reply-parameter)
+	(mac-clear-font-name-table):
+	* term/pc-win.el (msdos-remember-default-colors)
+	(w16-set-clipboard-data, w16-get-clipboard-data):
+	* term/w32-win.el (w32-send-sys-command, w32-select-font)
+	(set-message-beep):
+	* w32-fns.el (set-message-beep, w32-get-clipboard-data)
+	(w32-get-locale-info, w32-get-valid-locale-ids)
+	(w32-set-clipboard-data):
+	* help-fns.el (ad-get-advice-info):
+	* font-lock.el (fast-lock-after-fontify-buffer)
+	(fast-lock-after-unfontify-buffer, fast-lock-mode)
+	(lazy-lock-after-fontify-buffer)
+	(lazy-lock-after-unfontify-buffer, lazy-lock-mode):
+	* net/browse-url.el (w32-shell-execute):
+	* dos-fns.el (int86, msdos-long-file-names):
+	* dos-w32.el (default-printer-name): Declare as functions.
+
 2007-11-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/paragraphs.el (forward-sentence): Doc fix.
