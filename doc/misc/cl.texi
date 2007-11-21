@@ -62,14 +62,14 @@ does assume a basic familiarity with Emacs Lisp.
 @menu
 * Overview::             Installation, usage, etc.
 * Program Structure::    Arglists, `eval-when', `defalias'
-* Predicates::           `typep', `eql', and `equalp'
+* Predicates::           `typep' and `equalp'
 * Control Structure::    `setf', `do', `loop', etc.
 * Macros::               Destructuring, `define-compiler-macro'
 * Declarations::         `proclaim', `declare', etc.
 * Symbols::              Property lists, `gensym'
 * Numbers::              Predicates, functions, random numbers
 * Sequences::            Mapping, functions, searching, sorting
-* Lists::                `cadr', `sublis', `member*', `assoc*', etc.
+* Lists::                `caddr', `sublis', `member*', `assoc*', etc.
 * Structures::           `defstruct'
 * Assertions::           `check-type', `assert', `ignore-errors'.
 
@@ -287,7 +287,7 @@ The following simple functions and macros are defined in @file{cl.el};
 they do not cause other components like @file{cl-extra} to be loaded.
 
 @example
-eql           floatp-safe   endp
+floatp-safe   endp
 evenp         oddp          plusp         minusp
 caaar .. cddddr
 list*         ldiff         rest          first .. tenth
@@ -700,7 +700,7 @@ facts are true or false.
 
 @menu
 * Type Predicates::      `typep', `deftype', and `coerce'
-* Equality Predicates::  `eql' and `equalp'
+* Equality Predicates::  `equalp'
 @end menu
 
 @node Type Predicates, Equality Predicates, Predicates, Predicates
@@ -840,40 +840,7 @@ arguments to specify the type of sequence to return.  @xref{Sequences}.
 @section Equality Predicates
 
 @noindent
-This package defines two Common Lisp predicates, @code{eql} and
-@code{equalp}.
-
-@defun eql a b
-This function is almost the same as @code{eq}, except that if @var{a}
-and @var{b} are numbers of the same type, it compares them for numeric
-equality (as if by @code{equal} instead of @code{eq}).  This makes a
-difference only for versions of Emacs that are compiled with
-floating-point support.  Emacs floats are allocated
-objects just like cons cells, which means that @code{(eq 3.0 3.0)}
-will not necessarily be true---if the two @code{3.0}s were allocated
-separately, the pointers will be different even though the numbers are
-the same.  But @code{(eql 3.0 3.0)} will always be true.
-
-The types of the arguments must match, so @code{(eql 3 3.0)} is
-still false.
-
-Note that Emacs integers are ``direct'' rather than allocated, which
-basically means @code{(eq 3 3)} will always be true.  Thus @code{eq}
-and @code{eql} behave differently only if floating-point numbers are
-involved, and are indistinguishable on Emacs versions that don't
-support floats.
-
-There is a slight inconsistency with Common Lisp in the treatment of
-positive and negative zeros.  Some machines, notably those with IEEE
-standard arithmetic, represent @code{+0} and @code{-0} as distinct
-values.  Normally this doesn't matter because the standard specifies
-that @code{(= 0.0 -0.0)} should always be true, and this is indeed
-what Emacs Lisp and Common Lisp do.  But the Common Lisp standard
-states that @code{(eql 0.0 -0.0)} and @code{(equal 0.0 -0.0)} should
-be false on IEEE-like machines; Emacs Lisp does not do this, and in
-fact the only known way to distinguish between the two zeros in Emacs
-Lisp is to @code{format} them and check for a minus sign.
-@end defun
+This package defines the Common Lisp predicate @code{equalp}.
 
 @defun equalp a b
 This function is a more flexible version of @code{equal}.  In
@@ -3685,7 +3652,7 @@ the same sequence, in the same order as they appear in that sequence.)
 The @code{:test} argument specifies a function which must return
 true (non-@code{nil}) to indicate a match; instead, you may use
 @code{:test-not} to give a function which returns @emph{false} to
-indicate a match.  The default test function is @code{:test 'eql}.
+indicate a match.  The default test function is @code{eql}.
 
 Many functions which take @var{item} and @code{:test} or @code{:test-not}
 arguments also come in @code{-if} and @code{-if-not} varieties,
@@ -4998,7 +4965,7 @@ which understand full-featured argument lists.  The @code{&whole}
 keyword does not work in @code{defmacro} argument lists (except
 inside recursive argument lists).
 
-The @code{eql} and @code{equal} predicates do not distinguish
+The @code{equal} predicate does not distinguish
 between IEEE floating-point plus and minus zero.  The @code{equalp}
 predicate has several differences with Common Lisp; @pxref{Predicates}.
 
@@ -5218,12 +5185,6 @@ whereas Emacs Lisp's parser just treats quote as a special case.
 Some Lisp packages use reader macros to create special syntaxes
 for themselves, which the Emacs parser is incapable of reading.
 
-The lack of reader macros, incidentally, is the reason behind
-Emacs Lisp's unusual backquote syntax.  Since backquotes are
-implemented as a Lisp package and not built-in to the Emacs
-parser, they are forced to use a regular macro named @code{`}
-which is used with the standard function/macro call notation.
-
 @item
 Other syntactic features.  Common Lisp provides a number of
 notations beginning with @code{#} that the Emacs Lisp parser
@@ -5287,11 +5248,11 @@ matters, Emacs has its own @code{#(} notation for
 something entirely different---strings with properties.
 
 @item
-Characters are distinct from integers in Common Lisp.  The
-notation for character constants is also different:  @code{#\A}
-instead of @code{?A}.  Also, @code{string=} and @code{string-equal}
-are synonyms in Emacs Lisp whereas the latter is case-insensitive
-in Common Lisp.
+Characters are distinct from integers in Common Lisp.  The notation
+for character constants is also different: @code{#\A} in Common Lisp
+where Emacs Lisp uses @code{?A}.  Also, @code{string=} and
+@code{string-equal} are synonyms in Emacs Lisp, whereas the latter is
+case-insensitive in Common Lisp.
 
 @item
 Data types.  Some Common Lisp data types do not exist in Emacs

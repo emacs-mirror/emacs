@@ -277,6 +277,8 @@
 	      ;; Isn't it an error for `string' not to be unibyte??  --stef
 	      (if (fboundp 'string-as-unibyte)
 		  (setq string (string-as-unibyte string)))
+	      ;; `byte-compile-splice-in-already-compiled-code'
+	      ;; takes care of inlining the body.
 	      (cons `(lambda ,(aref fn 0)
 		       (byte-code ,string ,(aref fn 2) ,(aref fn 3)))
 		    (cdr form)))

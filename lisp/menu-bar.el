@@ -1343,10 +1343,10 @@ key, a click, or a menu-item"))
   '(menu-item "Introduction to Emacs Lisp" menu-bar-read-lispintro
 	      :help "Read the Introduction to Emacs Lisp Programming"))
 
-(define-key menu-bar-help-menu [describe-project]
+(define-key menu-bar-help-menu [about-gnu-project]
   '(menu-item "About GNU" describe-project
 	      :help "About the GNU System, GNU Project, and GNU/Linux"))
-(define-key menu-bar-help-menu [about]
+(define-key menu-bar-help-menu [about-emacs]
   '(menu-item "About Emacs" about-emacs
 	      :help "Display version number, copyright info, and basic help"))
 (define-key menu-bar-help-menu [sep4]
@@ -1357,7 +1357,7 @@ key, a click, or a menu-item"))
 (define-key menu-bar-help-menu [describe-copying]
   '(menu-item "Copying Conditions" describe-copying
 	      :help "Show the Emacs license (GPL)"))
-(define-key menu-bar-help-menu [describe-distribution]
+(define-key menu-bar-help-menu [getting-new-versions]
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))
 (defun menu-bar-help-extra-packages ()
@@ -1369,10 +1369,10 @@ key, a click, or a menu-item"))
     (goto-address)))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
-(define-key menu-bar-help-menu [more]
+(define-key menu-bar-help-menu [external-packages]
   '(menu-item "External Packages" menu-bar-help-extra-packages
 	      :help "Lisp packages distributed separately for use in Emacs"))
-(define-key menu-bar-help-menu [finder-by-keyword]
+(define-key menu-bar-help-menu [find-emacs-packages]
   '(menu-item "Find Emacs Packages" finder-by-keyword
 	      :help "Find packages and features by keyword"))
 (define-key menu-bar-help-menu [more-manuals]
@@ -1386,10 +1386,10 @@ key, a click, or a menu-item"))
   (list 'menu-item "Search Documentation" menu-bar-search-documentation-menu))
 (define-key menu-bar-help-menu [sep1]
   '("--"))
-(define-key menu-bar-help-menu [eliza]
+(define-key menu-bar-help-menu [emacs-psychotherapist]
   '(menu-item "Emacs Psychotherapist" doctor
 	      :help "Our doctor will help you feel better"))
-(define-key menu-bar-help-menu [report-emacs-bug]
+(define-key menu-bar-help-menu [send-emacs-bug-report]
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
 (define-key menu-bar-help-menu [emacs-known-problems]

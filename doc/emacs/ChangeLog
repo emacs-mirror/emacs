@@ -1,3 +1,8 @@
+2007-11-18  Richard Stallman  <rms@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called directly): 
+	Update example.
+
 2007-11-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Communication Coding): Fix wording of last change.
@@ -7,9 +12,18 @@
 	* custom.texi (Specifying File Variables), major.texi (Choosing
 	Modes): Mention '\" in man pages.
 
+2007-11-15  Richard Stallman  <rms@gnu.org>
+
+	* cl.texi (Equality Predicates): Delete `eql'.
+	(Predicates, Naming Conventions, Top): Delete `eql'.
+	(Common Lisp Compatibility): Delete `eql'.
+	(Porting Common Lisp): Delete obsolete backquote info.
+	Minor clarification about character constants.
+	(Sequence Basics): Minor clarification.
+
 2007-11-16  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* mule.texi (Communication Coding): Mention x-select-request-type.
+	* mule.texi (Communication Coding): Document x-select-request-type.
 
 	* frames.texi (Cut/Paste Other App): Mention x-select-request-type.
 

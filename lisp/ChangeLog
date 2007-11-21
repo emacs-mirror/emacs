@@ -1,3 +1,39 @@
+2007-11-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Set
+	default-file-name-coding-system _after_ keyboard and terminal
+	coding systems.  This fixes last change.
+
+	* mail/rmail.el (rmail-current-subject-regexp): Allow more than
+	one space after "Subject:".
+
+2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-parse.el (cvs-parse-table): Ignore errors when looking up files
+	in order to determine if there's a conflict.
+
+2007-11-21  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (esc-map): Bind C-M-l here; moved from reposition.el.
+
+	* reposition.el (reposition-window):
+	Binding C-M-l moved to bindings.el.
+
+	* bindings.el (ctl-x-4-map): Bind C-x 4 a here; moved from add-log.el.
+
+	* add-log.el (add-change-log-entry-other-window):
+	Key binding C-x 4 a moved to bindings.el.
+
+	* bindings.el (minibuffer-local-map): Bind C-tab here; moved
+	from filecache.el.
+
+	* filecache.el: Minibuffer map bindings moved to bindings.el.
+
+2007-11-21  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment):
+	Set default-file-name-coding-system from system defaults on Windows.
+
 2007-11-21  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32console.el: New term init file for w32 console.

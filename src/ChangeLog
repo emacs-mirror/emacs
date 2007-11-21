@@ -1,5 +1,15 @@
 2007-11-21  Jason Rumney  <jasonr@gnu.org>
 
+	* w32bdf.c (w32_init_bdf_font, w32_BDF_to_x_font): CreateFileMapping
+	returns NULL on failure.
+
+2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* search.c (Fset_match_data): Remove the `evaporate' feature.
+	(unwind_set_match_data): Don't use the `evaporate' feature.
+
+2007-11-21  Jason Rumney  <jasonr@gnu.org>
+
 	* dispnew.c (init_display) [WINDOWSNT]: Hardcode terminal_type.
 
 	* w32console.c (w32con_write_glyphs): Remove unused variables.

@@ -3282,7 +3282,9 @@ and more whitespace.  The returned regular expressions contains
     (setq subject (regexp-quote subject))
     (setq subject
 	  (replace-regexp-in-string "[ \t\n]+" "[ \t\n]+" subject t t))
-    (concat "^Subject: "
+    ;; Some mailers insert extra spaces after "Subject:", so allow any
+    ;; amount of them.
+    (concat "^Subject:[ \t]+"
 	    (if (string= "\\`" (substring rmail-reply-regexp 0 2))
 		(substring rmail-reply-regexp 2)
 	      rmail-reply-regexp)

@@ -1129,6 +1129,15 @@ specified by one of the environment variables @env{LC_ALL},
 specified above, whose value is nonempty is the one that determines
 the text representation.)
 
+@vindex x-select-request-type
+  The variable @code{x-select-request-type} specifies a selection data
+type of selection to request from the X server.  The default value is
+@code{nil}, which means Emacs tries @code{COMPOUND_TEXT} and
+@code{UTF8_STRING}, and uses whichever result seems more appropriate.
+You can explicitly specify the data type by setting the variable to
+one of the symbols @code{COMPOUND_TEXT}, @code{UTF8_STRING},
+@code{STRING} and @code{TEXT}.
+
 @node File Name Coding
 @section Coding Systems for File Names
 

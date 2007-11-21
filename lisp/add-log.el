@@ -664,7 +664,6 @@ the change log file in another window."
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
   (add-change-log-entry whoami file-name t))
-;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
 
 (defvar change-log-indent-text 0)
