@@ -85,14 +85,6 @@
 (defvar mac-ts-active-input-overlay)
 (defvar x-invocation-args)
 
-(declare-function mac-code-convert-string)        ;; Defined in C.  
-(declare-function mac-coerce-ae-data)		  ;; Defined in C.
-(declare-function mac-resume-apple-event)	  ;; Defined in C.
-(declare-function mac-font-panel-mode)		  ;; Defined in C.
-(declare-function mac-atsu-font-face-attributes)  ;; Defined in C.
-(declare-function mac-ae-set-reply-parameter)	  ;; Defined in C.
-(declare-function mac-clear-font-name-table)      ;; Defined in C.
-
 (defvar x-command-line-resources nil)
 
 ;; Handler for switches of the form "-switch value" or "-switch".

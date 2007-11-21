@@ -29,10 +29,6 @@
 
 (load "term/internal" nil t)
 
-(declare-function msdos-remember-default-colors) ;; Defined in C.
-(declare-function w16-set-clipboard-data)	 ;; Defined in C.
-(declare-function w16-get-clipboard-data)        ;; Defined in C. 
-
 ;;; This is copied from etc/rgb.txt, except that some values were changed
 ;;; a bit to make them consistent with DOS console colors, and the RGB
 ;;; values were scaled up to 16 bits, as `tty-define-color' requires.

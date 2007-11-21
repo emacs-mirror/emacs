@@ -825,7 +825,6 @@ to use."
 ;; --- Default MS-Windows browser ---
 
 (defvar dos-windows-version)
-(declare-function w32-shell-execute)    ;; Defined in C.
 
 (defun browse-url-default-windows-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))

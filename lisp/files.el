@@ -213,9 +213,6 @@ have fast storage with limited space, such as a RAM disk."
 ;; The system null device. (Should reference NULL_DEVICE from C.)
 (defvar null-device "/dev/null" "The system null device.")
 
-(declare-function msdos-long-file-names) ;; Defined in C.
-(declare-function w32-long-file-name) ;; Defined in C.
-(declare-function msdos-long-file-names) ;; Defined in C.
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 (declare-function dired-unmark "dired" (arg))
 (declare-function dired-do-flagged-delete "dired" (&optional nomessage))

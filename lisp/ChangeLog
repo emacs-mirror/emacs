@@ -1,3 +1,20 @@
+2007-11-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* frame.el (msdos-mouse-p):
+	* files.el (msdos-long-file-names, w32-long-file-name)
+	(msdos-long-file-names):
+	* term/mac-win.el (mac-code-convert-string, mac-coerce-ae-data)
+	(mac-resume-apple-event, mac-font-panel-mode)
+	(mac-atsu-font-face-attributes, mac-ae-set-reply-parameter)
+	(mac-clear-font-name-table):
+	* term/pc-win.el (msdos-remember-default-colors)
+	(w16-set-clipboard-data, w16-get-clipboard-data):
+	* term/w32-win.el (w32-send-sys-command, w32-select-font)
+	(set-message-beep):
+	* net/browse-url.el (w32-shell-execute):
+	* dos-fns.el (int86, msdos-long-file-names):
+	* dos-w32.el (default-printer-name): Undo previous change.
+
 2007-11-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule-cmds.el (set-locale-environment): Set

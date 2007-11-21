@@ -1126,8 +1126,6 @@ bars (top, bottom, or nil)."
   "Return the terminal that is now selected."
   (frame-terminal (selected-frame)))
 
-(declare-function msdos-mouse-p) ;; Defined in C only for on platform.
-
 (defun display-mouse-p (&optional display)
   "Return non-nil if DISPLAY has a mouse available.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
