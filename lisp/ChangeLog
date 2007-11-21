@@ -1,3 +1,9 @@
+2007-11-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-lpr-switches): Docstring fix.
+	(ps-string-list): New fun.
+	(ps-do-despool): Code fix.
+
 2007-11-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-fns.el: Undo 2007-11-21 change by Dan Nicolaescu.

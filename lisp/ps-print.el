@@ -14,7 +14,7 @@
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (defconst ps-print-version "6.8.1"
-  "ps-print.el, v 6.8.1 <2007/11/09 vinicius>
+  "ps-print.el, v 6.8.1 <2007/11/21 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1788,7 +1788,28 @@ an explicit filename is given as the last argument."
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-switches lpr-switches
-  "*A list of extra switches to pass to `ps-lpr-command'."
+  "*List of extra switches to pass to `ps-lpr-command'.
+
+The list element can be:
+
+   string	it should be an option for `ps-lpr-command' (which see).
+		For example: \"-o Duplex=DuplexNoTumble\"
+
+   symbol	it can be a function or variable symbol.  If it's a function
+		symbol, it should be a function with no argument.  The result
+		of the function or the variable value should be a string or a
+		list of strings.
+
+   list		the header should be a symbol function and the tail is the
+		arguments for this function.  This function should return a
+		string or a list of strings.
+
+Any other value is silently ignored.
+
+It is recommended to set `ps-printer-name' (which see) instead of including an
+explicit switch on this list.
+
+See `ps-lpr-command'."
   :type '(repeat :tag "PostScript lpr Switches"
 		 (choice :menu-tag "PostScript lpr Switch"
 			 :tag "PostScript lpr Switch"
@@ -6859,9 +6880,22 @@ If FACE is not a valid face name, use default face."
 		 (and (fboundp 'start-process) 0)
 		 nil
 		 (ps-flatten-list	; dynamic evaluation
-		  (mapcar 'ps-eval-switch ps-lpr-switches)))))
+		  (ps-string-list
+		   (mapcar 'ps-eval-switch ps-lpr-switches))))))
       (and ps-razzle-dazzle (message "Printing...done")))
     (kill-buffer ps-spool-buffer)))
+
+(defun ps-string-list (arg)
+  (let (lstr)
+    (dolist (elm arg)
+      (cond ((stringp elm)
+	     (setq lstr (cons elm lstr)))
+	    ((listp elm)
+	     (let ((s (ps-string-list elm)))
+	       (when s
+		 (setq lstr (cons s lstr)))))
+	    (t )))			; ignore any other value
+    (nreverse lstr)))
 
 ;; Dynamic evaluation
 (defun ps-eval-switch (arg)
