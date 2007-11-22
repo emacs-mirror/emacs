@@ -29,7 +29,7 @@
 
 ;;; Code:
 
-(declare-function int86 "msdos.c")
+(declare-function int86 "dosfns.c")
 (declare-function msdos-long-file-names "msdos.c")
 
 ;; This overrides a trivial definition in files.el.
