@@ -26,6 +26,12 @@
 	* refcards/gnus-refcard.tex: Restore Feb 2007 copyright
 	clarifications lost in update to Gnus trunk.
 
+2007-10-28  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>
+
+	* images/smilies/grayscale/*.xpm: New larger grayscale smileys.
+
+	* images/smilies/medium/*.xpm: New colorful smileys.
+
 2007-10-29  Michael Olson  <mwolson@gnu.org>
 
 	* ERC-NEWS: Update for recent change.
