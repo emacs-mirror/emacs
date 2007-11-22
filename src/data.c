@@ -2471,7 +2471,7 @@ NUMBER may be an integer or a floating point number.  */)
     }
 
   if (sizeof (int) == sizeof (EMACS_INT))
-    sprintf (buffer, "%d", XINT (number));
+    sprintf (buffer, "%d", (int) XINT (number));
   else if (sizeof (long) == sizeof (EMACS_INT))
     sprintf (buffer, "%ld", (long) XINT (number));
   else
