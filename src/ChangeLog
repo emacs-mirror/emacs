@@ -1,3 +1,10 @@
+2007-11-22  Andreas Schwab  <schwab@suse.de>
+
+	* data.c (Fnumber_to_string): Add cast when passing EMACS_INT
+	values to sprintf.
+	* keymap.c (Fsingle_key_description): Likewise.
+	* print.c (print_object): Likewise.
+
 2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Don't call x-gtk-map-stock if
