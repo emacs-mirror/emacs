@@ -108,10 +108,14 @@ The return value of this function is not used."
 Optional ARGLIST is the argument list used by the function.  The
 FILE argument is not used by the byte-compiler, but by the
 `check-declare' package, which checks that FILE contains a
-definition for FN.  FILE should be either absolute, or relative
-to the location of the file containing the declaration.  ARGLIST
-is used by both the byte-compiler and `check-declare' to check
-for consistency.
+definition for FN.  ARGLIST is used by both the byte-compiler and
+`check-declare' to check for consistency.
+
+FILE can be either a Lisp file (in which case the \".el\"
+extension is optional), or a C file.  FILE should be either
+absolute, or relative to the location of the file containing the
+declaration (for a Lisp file), or to the Emacs \"src/\" directory
+\(for a C file).
 
 Note that for the purposes of `check-declare', this statement
 must be the first non-whitespace on a line, and everything up to
