@@ -3261,7 +3261,7 @@ extern void syms_of_dired P_ ((void));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
-extern void fatal () NO_RETURN;
+extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 
 /* Defined in terminal.c */
 extern void syms_of_terminal P_ ((void));
