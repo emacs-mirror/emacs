@@ -4504,7 +4504,7 @@ If several parents are listed, go to the first of them."
   (if (eq (widget-get (widget-get widget :parent) :custom-state) 'modified)
       (message "To install your edits, invoke [State] and choose the Set operation")))
 
-(defun custom-mode ()
+(define-derived-mode custom-mode nil "Custom"
   "Major mode for editing customization buffers.
 
 The following commands are available:
@@ -4526,9 +4526,6 @@ Erase customizations; set options
 
 Entry to this mode calls the value of `custom-mode-hook'
 if that value is non-nil."
-  (kill-all-local-variables)
-  (setq major-mode 'custom-mode
-	mode-name "Custom")
   (use-local-map custom-mode-map)
   (easy-menu-add Custom-mode-menu)
   (set (make-local-variable 'tool-bar-map) custom-tool-bar-map)
@@ -4538,6 +4535,7 @@ if that value is non-nil."
   (setq widget-documentation-face 'custom-documentation)
   (make-local-variable 'widget-button-face)
   (setq widget-button-face custom-button)
+  (setq show-trailing-whitespace nil)
 
   ;; We need this because of the "More" button on docstrings.
   ;; Otherwise clicking on "More" can push point offscreen, which
@@ -4555,8 +4553,7 @@ if that value is non-nil."
     (set (make-local-variable 'widget-push-button-suffix) "")
     (set (make-local-variable 'widget-link-prefix) "")
     (set (make-local-variable 'widget-link-suffix) ""))
-  (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t)
-  (run-mode-hooks 'custom-mode-hook))
+  (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t))
 
 (put 'custom-mode 'mode-class 'special)
 
