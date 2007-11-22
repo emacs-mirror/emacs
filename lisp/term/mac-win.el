@@ -87,7 +87,8 @@
 (declare-function mac-code-convert-string "mac.c")
 (declare-function mac-coerce-ae-data "mac.c")
 (declare-function mac-resume-apple-event "macselect.c")
-(declare-function mac-font-panel-mode "macfns.c")
+;; Suppress warning when compiling on non-Mac.
+(declare-function mac-font-panel-mode "mac-win.el")
 (declare-function mac-atsu-font-face-attributes "macfns.c")
 (declare-function mac-ae-set-reply-parameter "macselect.c")
 (declare-function mac-clear-font-name-table "macfns.c")
