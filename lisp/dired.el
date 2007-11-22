@@ -3265,6 +3265,7 @@ Anything else means ask for each directory."
       nil)))
 
 (declare-function dired-relist-entry "dired-aux" (file))
+(declare-function make-symbolic-link "fileio.c")
 
 (defun dired-dnd-handle-local-file (uri action)
   "Copy, move or link a file to the dired directory.
