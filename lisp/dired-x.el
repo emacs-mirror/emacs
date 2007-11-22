@@ -746,7 +746,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   ;; decent subdir headerline:
   (goto-char (point-min))
   (or (looking-at dired-subdir-regexp)
-      (insert "  " 
+      (insert "  "
 	      (directory-file-name (file-name-directory default-directory))
 	      ":\n"))
   (dired-mode dirname (or switches dired-listing-switches))
@@ -1210,6 +1210,8 @@ This is an extra function so that you can redefine it."
 
 
 ;;; RELATIVE SYMBOLIC LINKS.
+
+(declare-function make-symbolic-link "fileio.c")
 
 (defvar dired-keep-marker-relsymlink ?S
   "See variable `dired-keep-marker-move'.")
