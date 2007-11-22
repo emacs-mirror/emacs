@@ -112,10 +112,11 @@ definition for FN.  ARGLIST is used by both the byte-compiler and
 `check-declare' to check for consistency.
 
 FILE can be either a Lisp file (in which case the \".el\"
-extension is optional), or a C file.  FILE should be either
-absolute, or relative to the location of the file containing the
-declaration (for a Lisp file), or to the Emacs \"src/\" directory
-\(for a C file).
+extension is optional), or a C file.  C files are expanded
+relative to the Emacs \"src/\" directory.  Lisp files are
+searched for using `locate-library', and if that fails they are
+expanded relative to the location of the file containing the
+declaration.
 
 Note that for the purposes of `check-declare', this statement
 must be the first non-whitespace on a line, and everything up to
