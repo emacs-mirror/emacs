@@ -1,3 +1,12 @@
+2007-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/check-declare.el (check-declare-locate): New function.
+	(check-declare-scan): Use check-declare-locate.
+	(check-declare-verify): No longer adjust fnfile, now
+	check-declare-locate does it.
+
+	* emacs-lisp/byte-run.el (declare-function): Doc fix.
+
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (posn-col-row): Make the `default-value' use explicit.
