@@ -32,11 +32,10 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
 [\|\-\-append\|] [\|\-\-backward\-search\|]
-[\|\-\-cxref\|] [\|\-\-defines\|] [\|\-\-forward\-search\|]
-[\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
-[\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
+[\|\-\-cxref\|] [\|\-\-no\-defines\|] [\|\-\-forward\-search\|]
+[\|\-\-no\-globals\|] [\|\-\-ignore\-indentation\|]
+[\|\-\-language=\fIlanguage\fP\|] [\|\-\-no\-members\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
-[\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
 [\|\-\-update\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
@@ -91,28 +90,14 @@ Only \fBctags\fP accepts this option.
 In C and derived languages, create tags for function declarations,
 and create tags for extern variables unless \-\-no\-globals is used.
 .TP
-.B \-d, \-\-defines
-Create tag entries for C preprocessor constant definitions
-and enum constants, too.  Since this is the default behavior of
-\fBetags\fP, only \fBctags\fP accepts this option.
-.TP
 .B \-D, \-\-no\-defines
 Do not create tag entries for C preprocessor constant definitions
 and enum constants.
 This may make the tags file much smaller if many header files are tagged.
-Since this is the default behavior of \fBctags\fP, only \fBetags\fP
-accepts this option.
-.TP
-.B \-\-globals
-Create tag entries for global variables in C, C++, Objective C, Java,
-and Perl.
-Since this is the default behavior of \fBetags\fP, only \fBctags\fP
-accepts this option.
 .TP
 .B \-\-no\-globals
 Do not tag global variables.  Typically this reduces the file size by
-one fourth.  Since this is the default behavior of \fBctags\fP, only
-\fBetags\fP accepts this option.
+one fourth.
 .TP
 \fB\-i\fP \fIfile\fP, \fB\-\-include=\fIfile\fP
 Include a note in the tag file indicating that, when searching for a
@@ -135,10 +120,10 @@ regexp matching is done in this case (see the \fB\-\-regex\fP option).
 .TP
 .B \-\-members
 Create tag entries for variables that are members of structure-like
-constructs in C++, Objective C, Java.  This is the default for etags.
+constructs in C++, Objective C, Java.  This is the default.
 .TP
 .B \-\-no\-members
-Do not tag member variables.  This is the default for ctags.
+Do not tag member variables.
 .TP
 .B \-\-packages\-only
 Only tag packages in Ada files.
@@ -241,15 +226,6 @@ reads the regexes contained in the file regex.file.
 .B \-R, \-\-no\-regex
 Don't do any more regexp matching on the following files.  May be
 freely intermixed with filenames and the \fB\-\-regex\fP option.
-.TP
-.B \-t, \-\-typedefs
-Record typedefs in C code as tags.  Since this is the default behavior
-of \fBetags\fP, only \fBctags\fP accepts this option.
-.TP
-.B \-T, \-\-typedefs\-and\-c++
-Generate tag entries for typedefs, struct, enum, and union tags, and
-C++ member functions.  Since this is the default behavior
-of \fBetags\fP, only \fBctags\fP accepts this option.
 .TP
 .B \-u, \-\-update
 Update tag entries for \fIfiles\fP specified on command line, leaving
