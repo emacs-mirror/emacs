@@ -1,5 +1,7 @@
 2007-11-22  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/cua-base.el (x-clipboard-yank): Fix declaration.
+
 	* emacs-lisp/check-declare.el (check-declare-locate): New function.
 	(check-declare-scan): Use check-declare-locate.
 	(check-declare-verify): No longer adjust fnfile, now
