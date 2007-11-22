@@ -1,3 +1,25 @@
+2007-11-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* international/titdic-cnv.el (dos-8+3-filename):
+	* obsolete/fast-lock.el (msdos-long-file-names):
+	* frame.el (msdos-mouse-p):
+	* files.el (msdos-long-file-names, w32-long-file-name)
+	(msdos-long-file-names):
+	* term/mac-win.el (mac-code-convert-string, mac-coerce-ae-data)
+	(mac-resume-apple-event, mac-font-panel-mode)
+	(mac-atsu-font-face-attributes, mac-ae-set-reply-parameter)
+	(mac-clear-font-name-table):
+	* term/pc-win.el (msdos-remember-default-colors)
+	(w16-set-clipboard-data, w16-get-clipboard-data):
+	* term/w32-win.el (w32-send-sys-command, w32-select-font)
+	(set-message-beep):
+	* net/browse-url.el (w32-shell-execute):
+	* w32-fns.el (set-message-beep, w32-get-clipboard-data)
+	(w32-get-locale-info, w32-get-valid-locale-ids)
+	(w32-set-clipboard-data):
+	* dos-fns.el (int86, msdos-long-file-names):
+	* dos-w32.el (default-printer-name): Declare as functions.
+
 2007-11-21  Jason Rumney  <jasonr@gnu.org>
 
 	* emacs-lisp/byte-run.el (declare-function): Return nil.

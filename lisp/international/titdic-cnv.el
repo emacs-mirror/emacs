@@ -1112,6 +1112,8 @@ To input symbols and punctuations, type `/' followed by one of `a' to
  Some infrequent characters are accessed by typing \\, followed by
  the Cantonese romanization of the respective radical ($(0?f5}(B)."))
 
+(declare-function dos-8+3-filename "../dos-fns.el" (filename))
+
 (defun miscdic-convert (filename &optional dirname)
   "Convert a dictionary file FILENAME into a Quail package.
 Optional argument DIRNAME if specified is the directory name under which

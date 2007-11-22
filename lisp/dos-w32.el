@@ -370,6 +370,8 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 (defvar printer-name)
 
+(declare-function default-printer-name "w32fns.c")
+
 (defun direct-print-region-function (start end
 					   &optional lpr-prog
 					   delete-text buf display

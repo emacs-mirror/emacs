@@ -183,6 +183,8 @@
 
 (require 'font-lock)
 
+(declare-function msdos-long-file-names "msdos.c")
+
 ;; Make sure fast-lock.el is supported.
 (if (and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
     (error "`fast-lock' was written for long file name systems"))

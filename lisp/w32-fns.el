@@ -74,6 +74,12 @@
         (set-keymap-parent local-function-key-map map)))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 
+(declare-function set-message-beep "w32console.c")
+(declare-function w32-get-clipboard-data "w32select.c")
+(declare-function w32-get-locale-info "w32proc.c")
+(declare-function w32-get-valid-locale-ids "w32proc.c")
+(declare-function w32-set-clipboard-data "w32select.c")
+
 ;; Ignore case on file-name completion
 (setq completion-ignore-case t)
 

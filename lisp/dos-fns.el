@@ -29,6 +29,9 @@
 
 ;;; Code:
 
+(declare-function int86 "msdos.c")
+(declare-function msdos-long-file-names "msdos.c")
+
 ;; This overrides a trivial definition in files.el.
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
