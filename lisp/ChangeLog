@@ -1,3 +1,7 @@
+2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-map-stock): Check if FILE is a string.
+
 2007-11-22  Glenn Morris  <rgm@gnu.org>
 
 	* dos-fns.el (int86):
