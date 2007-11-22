@@ -2469,7 +2469,7 @@ around function keys and event symbols.  */)
 	{
 	  char buf[256];
 
-	  sprintf (buf, "Invalid char code %ld", XINT (key));
+	  sprintf (buf, "Invalid char code %ld", (long) XINT (key));
 	  return build_string (buf);
 	}
       else if (charset
