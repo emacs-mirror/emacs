@@ -1,5 +1,8 @@
 2007-11-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* replace.el (occur-mode-map): Add a major mode menu with entries
+	for all occur operations.
+
 	* international/titdic-cnv.el (dos-8+3-filename):
 	* obsolete/fast-lock.el (msdos-long-file-names):
 	* frame.el (msdos-mouse-p):

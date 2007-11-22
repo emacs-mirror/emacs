@@ -734,6 +734,35 @@ a previously found match."
     (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-this-buffer)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
+    (define-key map [menu-bar] (make-sparse-keymap))
+    (define-key map [menu-bar occur]
+      (cons "Occur" map))
+    (define-key map [next-error-follow-minor-mode]
+      (menu-bar-make-mm-toggle next-error-follow-minor-mode
+			       "Auto Occurrence Display"
+			       "Display another occurrence when moving the cursor"))
+    (define-key map [separator-1] '("--"))
+    (define-key map [kill-this-buffer] 
+      '("Kill occur buffer" . kill-this-buffer))
+    (define-key map [quit-window] 
+      '("Quit occur window" . quit-window))
+    (define-key map [revert-buffer] 
+      '("Revert occur buffer" . revert-buffer))
+    (define-key map [clone-buffer] 
+      '("Clone occur buffer" . clone-buffer))
+    (define-key map [occur-rename-buffer] 
+      '("Rename occur buffer" . occur-rename-buffer))
+    (define-key map [separator-2] '("--"))
+    (define-key map [occur-mode-goto-occurrence-other-window]
+      '("Go To Occurrence Other Window" . occur-mode-goto-occurrence-other-window))
+    (define-key map [occur-mode-goto-occurrence]
+      '("Go To Occurrence" . occur-mode-goto-occurrence))
+    (define-key map [occur-mode-display-occurrence]
+      '("Display Occurrence" . occur-mode-display-occurrence))
+    (define-key map [occur-next] 
+      '("Move to next match" . occur-next))
+    (define-key map [occur-prev] 
+      '("Move to previous match" . occur-prev))
     map)
   "Keymap for `occur-mode'.")
 
