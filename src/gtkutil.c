@@ -3808,6 +3808,7 @@ update_frame_tool_bar (f)
       GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
       Lisp_Object func = intern ("x-gtk-map-stock");
+      Lisp_Object specified_file;
 
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (x->toolbar_widget), i);
 
@@ -3826,8 +3827,9 @@ update_frame_tool_bar (f)
           continue;
         }
 
-      if (EQ (Qt, Ffboundp (func))) 
-        stock = call1 (func, file_for_image (image));
+      specified_file = file_for_image (image);
+      if (!NILP (specified_file) && EQ (Qt, Ffboundp (func)))
+        stock = call1 (func, specified_file);
 
       if (! NILP (stock) && STRINGP (stock))
         {
