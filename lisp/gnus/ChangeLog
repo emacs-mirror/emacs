@@ -1,3 +1,18 @@
+2007-11-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* spam.el (spam-find-spam, spam-enter-list): Doc fixes.
+	(spam-split-symbolic-return-positive): Reflow docstring.
+	(spam-backends, spam-summary-exit-behavior)
+	(spam-mark-ham-unread-before-move-from-spam-group)
+	(spam-summary-score-preferred-header, spam-sa-learn-spam-switch)
+	(spam-sa-learn-ham-switch, spam-sa-learn-unregister-switch)
+	(spam-clear-cache, spam-backend-check, spam-install-backend)
+	(spam-install-statistical-backend, spam-list-of-processors)
+	(spam-group-processor-p, spam-split, spam-bogofilter-score)
+	(spam-bsfilter-score, spam-check-bsfilter, spam-crm114-score)
+	(spam-check-crm114, spam-initialize, spam-unload-hook):
+	Fix typos in docstrings.
+
 2007-11-21  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-send-mail-function): Require sendmail.
@@ -10491,7 +10506,7 @@
 	eval-when-compile, to define gnus-agent-set-cat-groups as the setf
 	method of gnus-agent-cat-groups even when the buffer has been
 	evaled.
-	(gnus-agent-save-active,gnus-agent-save-active-1): Merged to
+	(gnus-agent-save-active, gnus-agent-save-active-1): Merged to
 	delete gnus-agent-save-active-1.
 	(gnus-agent-save-groups): Deleted. Identical to
 	gnus-agent-save-active.
@@ -10502,12 +10517,12 @@
 	servers.  Add use of min/max range limits from server's local
 	file.
 	(gnus-agent-save-alist): Removed unused optional argument.
-	(gnus-agent-load-local,gnus-agent-read-and-cache-local),
-	(gnus-agent-read-local,gnus-agent-save-local,gnus-agent-get-local),
+	(gnus-agent-load-local, gnus-agent-read-and-cache-local),
+	(gnus-agent-read-local, gnus-agent-save-local, gnus-agent-get-local),
 	(gnus-agent-set-local): A per-server file that keeps min/max range
 	limits for articles known to the agent.  Provides a fast mechanism
 	for altering many active ranges.
-	(gnus-agent-expire-group,gnus-agent-expire): No longer save the
+	(gnus-agent-expire-group, gnus-agent-expire): No longer save the
 	active file (local makes it unnecessary).
 	(gnus-agent-regenerate-group): Fixed XEmacs compatibility.
 
