@@ -1,3 +1,7 @@
+2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* NEWS: etags: the --members option is now the default.
+
 2007-11-22  Glenn Morris  <rgm@gnu.org>
 
 	* images/smilies/grayscale/README, images/smilies/medium/README:
