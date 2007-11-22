@@ -1,3 +1,10 @@
+2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (default_C_help) [CTAGS]: differentiate the help string,
+	as the defaults in ctags are different from etags.
+	(default_C_help, Cplusplus_help, PHP_help, print_help): Remove
+	text saying --members is the default: not true in Emacs 22.
+
 2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c: (C_entries): In case '}' decrement bracelev before testing it.
