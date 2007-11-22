@@ -1,3 +1,14 @@
+2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-send-mail-function): Fix error convention.
+	(message-mailer-swallows-blank-line, message-send-mail-with-sendmail)
+	(message-widen-reply, message-send-mail, message-talkative-question)
+	(message-with-reply-buffer, message-generate-new-buffer-clone-locals)
+	(message-clone-locals, message-send-news): Use with-current-buffer.
+	(message-insert-or-toggle-importance): Remove unused var `valid'.
+	(message-make-references): Remove unused var `new-references'.
+	(message-make-mail-followup-to): Remove unused var `subscribed-lists'.
+
 2007-11-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* spam.el (spam-find-spam, spam-enter-list): Doc fixes.

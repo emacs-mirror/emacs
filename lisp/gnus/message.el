@@ -638,7 +638,7 @@ Done before generating the new subject of a forward."
 	 'message-send-mail-with-mailclient)
 	(t
 	 (lambda ()
-	   (error "Don't know how to send mail.  Please customize `message-send-mail-function'.")))))
+	   (error "Don't know how to send mail.  Please customize `message-send-mail-function'")))))
 
 ;; Useful to set in site-init.el
 (defcustom message-send-mail-function (message-send-mail-function)
@@ -1136,8 +1136,7 @@ these lines."
 	   (file-readable-p "/etc/sendmail.cf")
 	   (let ((buffer (get-buffer-create " *temp*")))
 	     (unwind-protect
-		 (save-excursion
-		   (set-buffer buffer)
+		 (with-current-buffer buffer
 		   (insert-file-contents "/etc/sendmail.cf")
 		   (goto-char (point-min))
 		   (let ((case-fold-search nil))
@@ -1219,7 +1218,7 @@ If nil, you might be asked to input the charset."
 (defcustom message-dont-reply-to-names
   (and (boundp 'rmail-dont-reply-to-names) rmail-dont-reply-to-names)
   "*Addresses to prune when doing wide replies.
-This can be a regexp or a list of regexps. Also, a value of nil means
+This can be a regexp or a list of regexps.  Also, a value of nil means
 exclude your own user name only."
   :version "21.1"
   :group 'message
@@ -1631,7 +1630,7 @@ functionality to work."
 
 (defcustom message-generate-hashcash (if (executable-find "hashcash") t)
   "*Whether to generate X-Hashcash: headers.
-If `t', always generate hashcash headers.  If `opportunistic',
+If t, always generate hashcash headers.  If `opportunistic',
 only generate hashcash headers if it can be done without the user
 waiting (i.e., only asynchronously).
 
@@ -1929,8 +1928,7 @@ see `message-narrow-to-headers-or-head'."
   "Evaluate FORMS in the reply buffer, if it exists."
   `(when (and message-reply-buffer
 	      (buffer-name message-reply-buffer))
-     (save-excursion
-       (set-buffer message-reply-buffer)
+     (with-current-buffer message-reply-buffer
        ,@forms)))
 
 (put 'message-with-reply-buffer 'lisp-indent-function 0)
@@ -3096,8 +3094,7 @@ or in the synonym headers, defined by `message-header-synonyms'."
   (let ((follow-to
 	 (and message-reply-buffer
 	      (buffer-name message-reply-buffer)
-	      (save-excursion
-		(set-buffer message-reply-buffer)
+	      (with-current-buffer message-reply-buffer
 		(message-get-reply-headers t)))))
     (save-excursion
       (save-restriction
@@ -3349,8 +3346,7 @@ The three allowed values according to RFC 1327 are `high', `normal'
 and `low'."
   (interactive)
   (save-excursion
-    (let ((valid '("high" "normal" "low"))
-	  (new "high")
+    (let ((new "high")
 	  cur)
       (save-restriction
 	(message-narrow-to-headers)
@@ -3624,7 +3620,7 @@ Really top post? ")))
 (defun message-buffers ()
   "Return a list of active message buffers."
   (let (buffers)
-    (save-excursion
+    (save-current-buffer
       (dolist (buffer (buffer-list t))
 	(set-buffer buffer)
 	(when (and (eq major-mode 'message-mode)
@@ -4314,8 +4310,7 @@ This function could be useful in `message-setup-hook'."
       ;; Let the user do all of the above.
       (run-hooks 'message-header-hook))
     (unwind-protect
-	(save-excursion
-	  (set-buffer tembuf)
+	(with-current-buffer tembuf
 	  (erase-buffer)
 	  ;; Avoid copying text props (except hard newlines).
 	  (insert (with-current-buffer mailbuf
@@ -4460,8 +4455,7 @@ If you always want Gnus to send messages in one piece, set
 	    (unless (or (null cpr) (and (numberp cpr) (zerop cpr)))
 	      (error "Sending...failed with exit value %d" cpr)))
 	  (when message-interactive
-	    (save-excursion
-	      (set-buffer errbuf)
+	    (with-current-buffer errbuf
 	      (goto-char (point-min))
 	      (while (re-search-forward "\n+ *" nil t)
 		(replace-match "; "))
@@ -4631,8 +4625,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 		 (message-check-news-syntax)))
 	  nil
 	(unwind-protect
-	    (save-excursion
-	      (set-buffer tembuf)
+	    (with-current-buffer tembuf
 	      (buffer-disable-undo)
 	      (erase-buffer)
 	      ;; Avoid copying text props (except hard newlines).
@@ -5295,8 +5288,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
   "Return the References header for this message."
   (when message-reply-headers
     (let ((message-id (mail-header-message-id message-reply-headers))
-	  (references (mail-header-references message-reply-headers))
-	  new-references)
+	  (references (mail-header-references message-reply-headers)))
       (if (or references message-id)
 	  (concat (or references "") (and references " ")
 		  (or message-id ""))
@@ -5544,8 +5536,7 @@ subscribed address (and not the additional To and Cc header contents)."
 			     (mapcar 'funcall
 				     message-subscribed-address-functions))))
     (save-match-data
-      (let ((subscribed-lists nil)
-	    (list
+      (let ((list
 	     (loop for recipient in recipients
 	       when (loop for regexp in mft-regexps
 		      when (string-match regexp recipient) return t)
@@ -7569,9 +7560,8 @@ The following arguments may contain lists of values."
   (if (and show
 	   (setq text (message-flatten-list text)))
       (save-window-excursion
-	(save-excursion
-	  (with-output-to-temp-buffer " *MESSAGE information message*"
-	    (set-buffer " *MESSAGE information message*")
+        (with-output-to-temp-buffer " *MESSAGE information message*"
+          (with-current-buffer " *MESSAGE information message*"
 	    (fundamental-mode)		; for Emacs 20.4+
 	    (mapc 'princ text)
 	    (goto-char (point-min))))
@@ -7594,16 +7584,13 @@ Then clone the local variables and values from the old buffer to the
 new one, cloning only the locals having a substring matching the
 regexp VARSTR."
   (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (set-buffer (generate-new-buffer name))
+    (with-current-buffer (generate-new-buffer name)
       (message-clone-locals oldbuf varstr)
       (current-buffer))))
 
 (defun message-clone-locals (buffer &optional varstr)
   "Clone the local variables from BUFFER to the current buffer."
-  (let ((locals (save-excursion
-		  (set-buffer buffer)
-		  (buffer-local-variables)))
+  (let ((locals (with-current-buffer buffer (buffer-local-variables)))
 	(regexp "^gnus\\|^nn\\|^message\\|^sendmail\\|^smtp\\|^user-mail-address"))
     (mapcar
      (lambda (local)
