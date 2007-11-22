@@ -26,8 +26,7 @@
 	* international/titdic-cnv.el (dos-8+3-filename):
 	* obsolete/fast-lock.el (msdos-long-file-names):
 	* frame.el (msdos-mouse-p):
-	* files.el (msdos-long-file-names, w32-long-file-name)
-	(msdos-long-file-names):
+	* files.el (msdos-long-file-names, w32-long-file-name):
 	* term/mac-win.el (mac-code-convert-string, mac-coerce-ae-data)
 	(mac-resume-apple-event, mac-font-panel-mode)
 	(mac-atsu-font-face-attributes, mac-ae-set-reply-parameter)
