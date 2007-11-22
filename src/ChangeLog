@@ -1,3 +1,8 @@
+2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Don't call x-gtk-map-stock if
+	file for image is nil.
+
 2007-11-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c: Include stdarg.h.
