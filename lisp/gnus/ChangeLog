@@ -1,5 +1,7 @@
 2007-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* smime-ldap.el: Remove.  Not used in Emacs 22 and up.
+
 	* smime.el (smime-cert-by-ldap-1): Use `ldap-search' instead of
 	`smime-ldap-search' for Emacs 22 and up.
 
