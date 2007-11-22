@@ -98,7 +98,8 @@
           (push (vector "For Year"
                         `(lambda ()
                            (interactive)
-                           (holiday-list (+ displayed-year ,(- i 5))))
+                           (holiday-list (+ displayed-year ,(- i 5))
+                                         (+ displayed-year ,(- i 5))))
                         :suffix `(number-to-string (+ displayed-year ,(- i 5))))
                 l))
         (nreverse l))
