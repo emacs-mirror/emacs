@@ -2672,15 +2672,18 @@ If you don't want stock icons, set the variable to nil."
 
 (defun x-gtk-map-stock (file)
   "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
-  (let* ((file-sans (file-name-sans-extension file))
-	 (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
-		   (match-string 1 file-sans)))
-	 (value))
-    (mapc (lambda (elem)
-	    (let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
-	      (or value (setq value (assoc-string (or key file-sans) assoc)))))
-	    icon-map-list)
-    (and value (cdr value))))
+  (if (stringp file)
+      (let* ((file-sans (file-name-sans-extension file))
+	     (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
+		       (match-string 1 file-sans)))
+	     (value))
+	(mapc (lambda (elem)
+		(let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
+		  (or value (setq value (assoc-string (or key file-sans)
+						      assoc)))))
+	      icon-map-list)
+	(and value (cdr value)))
+    nil))
 
 (provide 'x-win)
 
