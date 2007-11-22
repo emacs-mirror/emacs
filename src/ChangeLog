@@ -1,3 +1,8 @@
+2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (set_internal): Set the value in the `cons-cell' (for
+	Buffer_Local_values) not only for frame-local variables.
+
 2007-11-22  Andreas Schwab  <schwab@suse.de>
 
 	* data.c (Fnumber_to_string): Add cast when passing EMACS_INT
@@ -13,7 +18,7 @@
 2007-11-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c: Include stdarg.h.
-	(fatal): Implement using varargs. 
+	(fatal): Implement using varargs.
 	* lisp.h (fatal): Add argument types. (Restore 2005-09-30 change).
 
 2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>

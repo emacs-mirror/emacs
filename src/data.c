@@ -1238,6 +1238,7 @@ set_internal (symbol, newval, buf, bindflag)
 	  || buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
 	  || (XBUFFER_LOCAL_VALUE (valcontents)->check_frame
 	      && !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
+	  /* Also unload a global binding (if the var is local_if_set). */
 	  || (EQ (XCAR (current_alist_element),
 		  current_alist_element)))
 	{
@@ -1257,7 +1258,7 @@ set_internal (symbol, newval, buf, bindflag)
 	    {
 	      /* This buffer still sees the default value.  */
 
-	      /* If the variable is a Lisp_Some_Buffer_Local_Value,
+	      /* If the variable is not local_if_set,
 		 or if this is `let' rather than `set',
 		 make CURRENT-ALIST-ELEMENT point to itself,
 		 indicating that we're seeing the default value.
@@ -1298,6 +1299,9 @@ set_internal (symbol, newval, buf, bindflag)
 	  XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
 	}
       innercontents = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
+
+      /* Store the new value in the cons-cell.  */
+      XSETCDR (XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr), newval);
     }
 
   /* If storing void (making the symbol void), forward only through
@@ -1306,24 +1310,6 @@ set_internal (symbol, newval, buf, bindflag)
     store_symval_forwarding (symbol, Qnil, newval, buf);
   else
     store_symval_forwarding (symbol, innercontents, newval, buf);
-
-  /* If we just set a variable whose current binding is frame-local,
-     store the new value in the frame parameter too.  */
-
-  if (BUFFER_LOCAL_VALUEP (valcontents))
-    {
-      /* What binding is loaded right now?  */
-      current_alist_element
-	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
-
-      /* If the current buffer is not the buffer whose binding is
-	 loaded, or if there may be frame-local bindings and the frame
-	 isn't the right one, or if it's a Lisp_Buffer_Local_Value and
-	 the default binding is loaded, the loaded binding may be the
-	 wrong one.  */
-      if (XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
-	XSETCDR (current_alist_element, newval);
-    }
 
   return newval;
 }
