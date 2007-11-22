@@ -864,7 +864,6 @@ do_symval_forwarding (valcontents)
      register Lisp_Object valcontents;
 {
   register Lisp_Object val;
-  int offset;
   if (MISCP (valcontents))
     switch (XMISCTYPE (valcontents))
       {
@@ -879,11 +878,10 @@ do_symval_forwarding (valcontents)
 	return *XOBJFWD (valcontents)->objvar;
 
       case Lisp_Misc_Buffer_Objfwd:
-	offset = XBUFFER_OBJFWD (valcontents)->offset;
-	return PER_BUFFER_VALUE (current_buffer, offset);
+	return PER_BUFFER_VALUE (current_buffer,
+				 XBUFFER_OBJFWD (valcontents)->offset);
 
       case Lisp_Misc_Kboard_Objfwd:
-	offset = XKBOARD_OBJFWD (valcontents)->offset;
         /* We used to simply use current_kboard here, but from Lisp
            code, it's value is often unexpected.  It seems nicer to
            allow constructions like this to work as intuitively expected:
@@ -895,7 +893,8 @@ do_symval_forwarding (valcontents)
            last-command and real-last-command, and people may rely on
            that.  I took a quick look at the Lisp codebase, and I
            don't think anything will break.  --lorentey  */
-	return *(Lisp_Object *)(offset + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
+	return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
+				+ (char *)FRAME_KBOARD (SELECTED_FRAME ()));
       }
   return valcontents;
 }
@@ -1104,31 +1103,7 @@ find_symbol_value (symbol)
   if (BUFFER_LOCAL_VALUEP (valcontents))
     valcontents = swap_in_symval_forwarding (symbol, valcontents);
 
-  if (MISCP (valcontents))
-    {
-      switch (XMISCTYPE (valcontents))
-	{
-	case Lisp_Misc_Intfwd:
-	  XSETINT (val, *XINTFWD (valcontents)->intvar);
-	  return val;
-
-	case Lisp_Misc_Boolfwd:
-	  return (*XBOOLFWD (valcontents)->boolvar ? Qt : Qnil);
-
-	case Lisp_Misc_Objfwd:
-	  return *XOBJFWD (valcontents)->objvar;
-
-	case Lisp_Misc_Buffer_Objfwd:
-	  return PER_BUFFER_VALUE (current_buffer,
-				     XBUFFER_OBJFWD (valcontents)->offset);
-
-	case Lisp_Misc_Kboard_Objfwd:
-	  return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
-				  + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
-	}
-    }
-
-  return valcontents;
+  return do_symval_forwarding (valcontents);
 }
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,

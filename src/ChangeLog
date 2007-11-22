@@ -1,5 +1,8 @@
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* data.c (do_symval_forwarding): Use same code as in find_symbol_value.
+	(find_symbol_value): Use do_symval_forwarding.
+
 	* data.c (set_internal): Set the value in the `cons-cell' (for
 	Buffer_Local_values) not only for frame-local variables.
 
