@@ -501,7 +501,7 @@ static bool update;		/* -u: update tags */
 static bool vgrind_style;	/* -v: create vgrind style index output */
 static bool no_warnings;	/* -w: suppress warnings (undocumented) */
 static bool cxref_style;	/* -x: create cxref style output */
-static bool cplusplus;		/* .[hc] means C++, not C */
+static bool cplusplus;		/* .[hc] means C++, not C (undocumented) */
 static bool ignoreindent;	/* -I: ignore indentation in C */
 static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
@@ -608,20 +608,29 @@ followed by a colon, are tags.";
 
 
 /* Note that .c and .h can be considered C++, if the --c++ flag was
-   given, or if the `class' or `template' keyowrds are met inside the file.
+   given, or if the `class' or `template' keywords are met inside the file.
    That is why default_C_entries is called for these. */
 static char *default_C_suffixes [] =
   { "c", "h", NULL };
+#if CTAGS				/* C help for Ctags */
+static char default_C_help [] =
+"In C code, any C function is a tag.  Use -t to tag typedefs.\n\
+Use -T to tag definitions of `struct', `union' and `enum'.\n\
+Use -d to tag `#define' macro definitions and `enum' constants.\n\
+Use --globals to tag global variables.\n\
+You can tag function declarations and external variables by\n\
+using `--declarations', and struct members by using `--members'.";
+#else					/* C help for Etags */
 static char default_C_help [] =
 "In C code, any C function or typedef is a tag, and so are\n\
 definitions of `struct', `union' and `enum'.  `#define' macro\n\
 definitions and `enum' constants are tags unless you specify\n\
 `--no-defines'.  Global variables are tags unless you specify\n\
-`--no-globals' and so are struct members unless you specify\n\
-`--no-members'.  Use of `--no-globals', `--no-defines' and\n\
-`--no-members' can make the tags table file much smaller.\n\
+`--no-globals'.  Use of `--no-globals' and `--no-defines'\n\
+can make the tags table file much smaller.\n\
 You can tag function declarations and external variables by\n\
-using `--declarations'.";
+using `--declarations', and struct members by using `--members'.";
+#endif	/* C help for Ctags and Etags */
 
 static char *Cplusplus_suffixes [] =
   { "C", "c++", "cc", "cpp", "cxx", "H", "h++", "hh", "hpp", "hxx",
@@ -632,7 +641,7 @@ static char Cplusplus_help [] =
 "In C++ code, all the tag constructs of C code are tagged.  (Use\n\
 --help --lang=c --lang=c++ for full help.)\n\
 In addition to C tags, member functions are also recognized.  Member\n\
-variables are recognized unless you use the `--no-members' option.\n\
+variables are also recognized if you use the `--members' option.\n\
 Tags for variables and functions in classes are named `CLASS::VARIABLE'\n\
 and `CLASS::FUNCTION'.  `operator' definitions have tag names like\n\
 `operator+'.";
@@ -727,8 +736,8 @@ defined in the default package is `main::SUB'.";
 static char *PHP_suffixes [] =
   { "php", "php3", "php4", NULL };
 static char PHP_help [] =
-"In PHP code, tags are functions, classes and defines.  Unless you use\n\
-the `--no-members' option, vars are tags too.";
+"In PHP code, tags are functions, classes and defines.  When using\n\
+the `--members' option, vars are tags too.";
 
 static char *plain_C_suffixes [] =
   { "pc",			/* Pro*C file */
@@ -970,9 +979,8 @@ Relative ones are stored relative to the output file's directory.\n");
     puts ("--no-globals\n\
 	Do not create tag entries for global variables in some\n\
 	languages.  This makes the tags file smaller.");
-  puts ("--no-members\n\
-	Do not create tag entries for members of structures\n\
-	in some languages.");
+  puts ("--members\n\
+	Create tag entries for members of structures in some languages.");
 
   puts ("-r REGEXP, --regex=REGEXP or --regex=@regexfile\n\
         Make a tag for each line matching a regular expression pattern\n\
@@ -1210,8 +1218,8 @@ main (argc, argv)
 
   /*
    * If etags, always find typedefs and structure tags.  Why not?
-   * Also default to find macro constants, enum constants, struct
-   * members and global variables.
+   * Also default to find macro constants, enum constants and
+   * global variables.
    */
   if (!CTAGS)
     {
@@ -3402,7 +3410,7 @@ C_entries (c_ext, inf)
 	    {
 	      c = '\0';
 	    }
-	    break;
+	  break;
 	case '%':
 	  if ((c_ext & YACC) && *lp == '%')
 	    {
