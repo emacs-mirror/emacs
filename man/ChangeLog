@@ -1,6 +1,11 @@
+2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Tag Syntax): Revert this change: "Now --members is
+	the default for etags, not for ctags yet", as it is not in Emacs 22.
+
 2007-11-18  Richard Stallman  <rms@gnu.org>
 
-	* flymake.texi (Example -- Configuring a tool called directly): 
+	* flymake.texi (Example -- Configuring a tool called directly):
 	Update example.
 
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
