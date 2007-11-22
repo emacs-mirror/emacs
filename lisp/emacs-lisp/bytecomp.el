@@ -2277,18 +2277,17 @@ list that represents a doc string reference.
     (byte-compile-nogroup-warn form))
   (when (byte-compile-warning-enabled-p 'free-vars)
     (push (nth 1 (nth 1 form)) byte-compile-bound-variables))
+  ;; Don't compile the expression because it may be displayed to the user.
+  ;; (when (eq (car-safe (nth 2 form)) 'quote)
+  ;;   ;; (nth 2 form) is meant to evaluate to an expression, so if we have the
+  ;;   ;; final value already, we can byte-compile it.
+  ;;   (setcar (cdr (nth 2 form))
+  ;;           (byte-compile-top-level (cadr (nth 2 form)) nil 'file)))
   (let ((tail (nthcdr 4 form)))
     (while tail
-      ;; If there are any (function (lambda ...)) expressions, compile
-      ;; those functions.
-      (if (and (consp (car tail))
-	       (eq (car (car tail)) 'function)
-	       (consp (nth 1 (car tail))))
-	  (setcar tail (byte-compile-lambda (nth 1 (car tail))))
-	;; Likewise for a bare lambda.
-	(if (and (consp (car tail))
-		 (eq (car (car tail)) 'lambda))
-	    (setcar tail (byte-compile-lambda (car tail)))))
+      (unless (keywordp (car tail))      ;No point optimizing keywords.
+        ;; Compile the keyword arguments.
+        (setcar tail (byte-compile-top-level (car tail) nil 'file)))
       (setq tail (cdr tail))))
   form)
 

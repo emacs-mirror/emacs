@@ -1,3 +1,8 @@
+2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el
+	(byte-compile-file-form-custom-declare-variable): Simplify.
+
 2007-11-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cus-edit.el (custom-mode): Define with `define-derived-mode'.
