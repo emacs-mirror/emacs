@@ -1,3 +1,8 @@
+2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Don't call x-gtk-map-stock if
+        file for image is nil.
+
 2007-11-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32bdf.c (w32_init_bdf_font, w32_BDF_to_x_font): CreateFileMapping
