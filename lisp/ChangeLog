@@ -1,5 +1,10 @@
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.el (balance-windows): Remove unused var `counter'.
+	(bw-balance-sub): Remove unused var `lastchild'.
+	(split-window-vertically): Remove unused var `switch'.
+	(recenter-top-bottom): Remove unused vars `bottom', `current', `total'.
+
 	* emacs-lisp/bytecomp.el
 	(byte-compile-file-form-custom-declare-variable): Simplify.
 

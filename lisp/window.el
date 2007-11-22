@@ -215,8 +215,7 @@ to be counted) its minibuffer frame (if that's not the same frame).
 The optional arg MINIBUF non-nil means count the minibuffer
 even if it is inactive."
    (let ((count 0))
-     (walk-windows (function (lambda (w)
-			       (setq count (+ count 1))))
+     (walk-windows (lambda (w) (setq count (+ count 1)))
 		   minibuf)
      count))
 
@@ -379,8 +378,7 @@ subtree is balanced."
         (h)
         (tried-sizes)
         (last-sizes)
-        (windows (window-list nil 0))
-        (counter 0))
+        (windows (window-list nil 0)))
     (when wt
       (while (not (member last-sizes tried-sizes))
         (when last-sizes (setq tried-sizes (cons last-sizes tried-sizes)))
@@ -415,17 +413,16 @@ Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
         (when w
           (let ((dw (- w (- (bw-r wt) (bw-l wt)))))
             (when (/= 0 dw)
-                (bw-adjust-window wt dw t))))
+              (bw-adjust-window wt dw t))))
         (when h
           (let ((dh (- h (- (bw-b wt) (bw-t wt)))))
             (when (/= 0 dh)
               (bw-adjust-window wt dh nil)))))
     (let* ((childs (cdr (assq 'childs wt)))
-           (lastchild (car (last childs)))
            (cw (when w (/ w (if (bw-eqdir 'hor wt) (length childs) 1))))
            (ch (when h (/ h (if (bw-eqdir 'ver wt) (length childs) 1)))))
       (dolist (c childs)
-          (bw-balance-sub c cw ch)))))
+        (bw-balance-sub c cw ch)))))
 
 ;;; A different solution to balance-windows
 
@@ -561,7 +558,7 @@ window."
 	(old-point (point))
 	(size (and arg (prefix-numeric-value arg)))
         (window-full-p nil)
-	new-w bottom switch moved)
+	new-w bottom moved)
     (and size (< size 0) (setq size (+ (window-height) size)))
     (setq new-w (split-window nil size))
     (or split-window-keep-point
@@ -904,11 +901,8 @@ from true window top and bottom."
    (arg (recenter arg))                 ; Always respect ARG.
    ((not (eq this-command last-command))
     ;; First time - save mode and recenter.
-    (let ((bottom (1+ (count-lines 1 (window-end))))
-          (current (1+ (count-lines 1 (point))))
-          (total (window-height)))
-      (setq recenter-last-op 'middle)
-      (recenter)))
+    (setq recenter-last-op 'middle)
+    (recenter))
    (t ;; repeat: loop through various options.
     (setq recenter-last-op
           (ecase recenter-last-op
