@@ -463,6 +463,11 @@ with a prefix argument."
 
 ;;; Shell commands
 
+(declare-function mailcap-parse-mailcaps "gnus/mailcap" (&optional path force))
+(declare-function mailcap-parse-mimetypes "gnus/mailcap" (&optional path force))
+(declare-function mailcap-extension-to-mime "gnus/mailcap" (extn))
+(declare-function mailcap-mime-info "gnus/mailcap" (string &optional request))
+
 (defun dired-read-shell-command-default (files)
   "Return a list of default commands for `dired-read-shell-command'."
   (require 'mailcap)
@@ -1195,6 +1200,8 @@ Special value `always' suppresses confirmation."
   (dired-handle-overwrite to)
   (dired-copy-file-recursive from to ok-flag dired-copy-preserve-time t
 			     dired-recursive-copies))
+
+(declare-function make-symbolic-link "fileio.c")
 
 (defun dired-copy-file-recursive (from to ok-flag &optional
 				       preserve-time top recursive)
