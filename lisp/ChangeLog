@@ -1,3 +1,18 @@
+2007-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* dos-fns.el (int86):
+	* term/mac-win.el (mac-font-panel-mode): Fix declarations.
+
+	* calendar/cal-menu.el (cal-menu-holidays-menu): Fix holiday-list call.
+
+	* calendar/holidays.el (holiday-list): Add autoload cookie.
+
+	* emacs-lisp/check-declare.el (check-declare-scan): Expand .c
+	files relative to src/ directory.
+	(check-declare-verify): Handle .c files (without arg checking).
+
+	* emacs-lisp/byte-run.el (declare-function): Doc fix.
+
 2007-11-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* replace.el (occur-mode-map): Add a major mode menu with entries
