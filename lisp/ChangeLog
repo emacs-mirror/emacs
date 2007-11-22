@@ -1,5 +1,7 @@
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (posn-col-row): Make the `default-value' use explicit.
+
 	* window.el (balance-windows): Remove unused var `counter'.
 	(bw-balance-sub): Remove unused var `lastchild'.
 	(split-window-vertically): Remove unused var `switch'.

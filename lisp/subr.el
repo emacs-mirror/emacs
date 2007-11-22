@@ -860,7 +860,8 @@ and `event-end' functions."
 	     (x (/ (car pair) (frame-char-width frame)))
 	     (y (/ (cdr pair) (+ (frame-char-height frame)
 				 (or (frame-parameter frame 'line-spacing)
-				     default-line-spacing
+                                     ;; FIXME: Why the `default'?
+				     (default-value 'line-spacing)
 				     0)))))
 	(cons x y))))))
 
