@@ -1775,6 +1775,8 @@ See `menu-bar-mode' for more information."
       (menu-bar-mode (if (> (frame-parameter nil 'menu-bar-lines) 0) 0 1))
     (menu-bar-mode arg)))
 
+(declare-function x-menu-bar-open "term/x-win" (&optional frame))
+
 (defun menu-bar-open (&optional frame)
   "Start key navigation of the menu bar in FRAME.
 
