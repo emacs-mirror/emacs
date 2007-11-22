@@ -1,3 +1,7 @@
+2007-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mail/hashcash.el: Move from ../gnus.  Add hashcash payments to email.
+
 2007-11-22  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/cua-base.el (x-clipboard-yank): Fix declaration.
