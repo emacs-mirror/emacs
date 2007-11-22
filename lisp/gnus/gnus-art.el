@@ -2222,7 +2222,7 @@ unfolded."
 	(mail-header-fold-field)
 	(goto-char (point-max))))))
 
-(defcustom gnus-article-truncate-lines default-truncate-lines
+(defcustom gnus-article-truncate-lines (default-value 'truncate-lines)
   "Value of `truncate-lines' in Gnus Article buffer.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."

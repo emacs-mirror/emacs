@@ -1,5 +1,7 @@
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-art.el (gnus-article-truncate-lines): Use `truncate-lines'.
+
 	* message.el (message-send-mail-function): Fix error convention.
 	(message-mailer-swallows-blank-line, message-send-mail-with-sendmail)
 	(message-widen-reply, message-send-mail, message-talkative-question)
