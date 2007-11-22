@@ -122,7 +122,6 @@
 ;;; Code:
 
 (require 'dig)
-(require 'smime-ldap)
 (require 'password)
 (eval-when-compile (require 'cl))
 
@@ -589,8 +588,17 @@ A string or a list of strings is returned."
 
 (defun smime-cert-by-ldap-1 (mail host)
   "Get cetificate for MAIL from the ldap server at HOST."
-  (let ((ldapresult (smime-ldap-search (concat "mail=" mail)
-				       host '("userCertificate") nil))
+  (let ((ldapresult
+	 (funcall
+	  (if (or (featurep 'xemacs)
+		  ;; For Emacs >= 22 we don't need smime-ldap.el
+		  (< emacs-major-version 22))
+	      (progn
+		(require 'smime-ldap)
+		'smime-ldap-search)
+	    'ldap-search)
+	  (concat "mail=" mail)
+	  host '("userCertificate") nil))
 	(retbuf (generate-new-buffer (format "*certificate for %s*" mail)))
 	cert)
     (if (and (>= (length ldapresult) 1)

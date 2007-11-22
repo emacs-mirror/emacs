@@ -1,3 +1,8 @@
+2007-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* smime.el (smime-cert-by-ldap-1): Use `ldap-search' instead of
+	`smime-ldap-search' for Emacs 22 and up.
+
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el (gnus-article-truncate-lines): Use `truncate-lines'.
