@@ -1,5 +1,8 @@
 2007-11-22  Juanma Barranquero  <lekktu@gmail.com>
 
+	* cus-edit.el (custom-mode): Define with `define-derived-mode'.
+	Set `show-trailing-whitespace' to nil.
+
 	* dired.el (make-symbolic-link):
 	* dired-aux.el (mailcap-parse-mailcaps, mailcap-parse-mimetypes)
 	(mailcap-extension-to-mime, mailcap-mime-info, make-symbolic-link):
