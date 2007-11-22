@@ -108,17 +108,22 @@ ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
                   ;; (min . max) for a fixed number of arguments, or
                   ;; arglists with optional elements.
                   ;; (min) for arglists with &rest.
+                  ;; sig = 'err means we could not find an arglist.
                   sig (cond (cflag
-                             (re-search-forward "," nil t 3)
-                             (skip-chars-forward " \t\n")
-                             ;; Assuming minargs and maxargs on same line.
-                             (when (looking-at "\\([0-9]+\\)[ \t]*,[ \t]*\
+                             (or
+                              (when (re-search-forward "," nil t 3)
+                                (skip-chars-forward " \t\n")
+                                ;; Assuming minargs and maxargs on same line.
+                                (when (looking-at "\\([0-9]+\\)[ \t]*,[ \t]*\
 \\([0-9]+\\|MANY\\|UNEVALLED\\)")
-                               (setq minargs (string-to-number (match-string 1))
-                                     maxargs (match-string 2))
-                               (cons minargs (unless (string-match "[^0-9]"
-                                                                   maxargs)
-                                               (string-to-number maxargs)))))
+                                  (setq minargs (string-to-number
+                                                 (match-string 1))
+                                        maxargs (match-string 2))
+                                  (cons minargs (unless (string-match "[^0-9]"
+                                                                      maxargs)
+                                                 (string-to-number
+                                                  maxargs)))))
+                              'err))
                             ((string-equal (match-string 1)
                                            "define-derived-mode")
                              '(0 . 0))
@@ -129,24 +134,29 @@ ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
                             ((string-equal (match-string 1)
                                            "defalias")
                              t)
+                            ((looking-at "\\((\\|nil\\)")
+                             (byte-compile-arglist-signature
+                              (read (current-buffer))))
                             (t
-                             (if (looking-at "\\((\\|nil\\)")
-                                 (byte-compile-arglist-signature
-                                  (read (current-buffer))))))
+                             'err))
                   ;; alist of functions and arglist signatures.
                   siglist (cons (cons fn sig) siglist)))))
     (dolist (e fnlist)
       (setq arglist (nth 2 e)
             type
-            (if re                   ; re non-nil means found a file
-                (if (setq sig (assoc (cadr e) siglist))
+            (if re                     ; re non-nil means found a file
+                (if (setq sig (assoc (cadr e) siglist)) ; found function
                     ;; Recall we use t to mean no arglist specified,
                     ;; to distinguish from an empty arglist.
-                    (unless (or (eq arglist t)
-                                (eq sig t))
-                      (unless (equal (byte-compile-arglist-signature arglist)
-                                     (cdr sig))
-                        "arglist mismatch"))
+                    (unless (eq arglist t)
+                      (setq sig (cdr-safe sig))
+                      (cond ((eq sig t)) ; defalias, can't check
+                            ((eq sig 'err)
+                             "arglist not found") ; internal error
+                            ((not (equal (byte-compile-arglist-signature
+                                          arglist)
+                                         sig))
+                             "arglist mismatch")))
                   "function not found")
               "file not found"))
       (when type
