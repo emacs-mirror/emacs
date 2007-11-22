@@ -874,7 +874,7 @@ With numeric prefix arg, copy to register 0-9 instead."
   (if (fboundp 'cua--cancel-rectangle)
       (cua--cancel-rectangle)))
 
-(declare-function x-clipboard-yank "term/x-win" ())
+(declare-function x-clipboard-yank "../term/x-win" ())
 
 (defun cua-paste (arg)
   "Paste last cut or copied region or rectangle.
