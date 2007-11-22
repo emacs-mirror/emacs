@@ -1,3 +1,8 @@
+2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* NEWS: remove this entry for etags, because it was in fact not
+	installed in Emacs 22: "the --members option is now the default"
+
 2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Mention desktop locking.
