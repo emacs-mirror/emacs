@@ -383,6 +383,9 @@ because they clash with commands provided by dirtrack.el.  Use
 
 * Lisp Changes in Emacs 23.1
 
+** `beginning-of-defun-function' now takes one argument, the count
+   given to `beginning-of-defun'.
+
 +++
 ** New function `match-substitute-replacement' returns the result of
 `replace-match' without actually using it in the buffer.

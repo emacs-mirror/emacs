@@ -175,9 +175,10 @@ normal recipe (see `beginning-of-defun').  Major modes can define this
 if defining `defun-prompt-regexp' is not sufficient to handle the mode's
 needs.
 
-The function (of no args) should go to the line on which the current
-defun starts, and return non-nil, or should return nil if it can't
-find the beginning.")
+The function takes the same argument as `beginning-of-defun' and should
+behave similarly, returning non-nil if it found the beginning of a defun.
+Ideally it should move to a point right before an open-paren which encloses
+the body of the defun.")
 
 (defun beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -218,12 +219,22 @@ is called as a function to find the defun's beginning."
   (unless arg (setq arg 1))
   (cond
    (beginning-of-defun-function
-    (if (> arg 0)
-	(dotimes (i arg)
-	  (funcall beginning-of-defun-function))
-      ;; Better not call end-of-defun-function directly, in case
-      ;; it's not defined.
-      (end-of-defun (- arg))))
+    (condition-case nil
+        (funcall beginning-of-defun-function arg)
+      ;; We used to define beginning-of-defun-function as taking no argument
+      ;; but that makes it impossible to implement correct forward motion:
+      ;; we used to use end-of-defun for that, but it's not supposed to do
+      ;; the same thing (it moves to the end of a defun not to the beginning
+      ;; of the next).
+      ;; In case the beginning-of-defun-function uses the old calling
+      ;; convention, fallback on the old implementation.
+      (wrong-number-of-arguments
+       (if (> arg 0)
+           (dotimes (i arg)
+             (funcall beginning-of-defun-function))
+         ;; Better not call end-of-defun-function directly, in case
+         ;; it's not defined.
+         (end-of-defun (- arg))))))
 
    ((or defun-prompt-regexp open-paren-in-column-0-is-defun-start)
     (and (< arg 0) (not (eobp)) (forward-char 1))
