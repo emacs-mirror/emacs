@@ -1,3 +1,8 @@
+2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: Ctags and Etags now share the same defaults, so remove
+	--defines, --globals, --members, --typedefs, --typedefs-and-c++.
+
 2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.1: Note that you can use "-" for stdout with -o.
