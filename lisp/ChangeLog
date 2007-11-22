@@ -1,3 +1,18 @@
+2007-11-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.el (make-symbolic-link):
+	* dired-aux.el (mailcap-parse-mailcaps, mailcap-parse-mimetypes)
+	(mailcap-extension-to-mime, mailcap-mime-info, make-symbolic-link):
+	* dired-x.el (make-symbolic-link):
+	* frame.el (x-initialize-window-system):
+	* menu-bar.el (x-menu-bar-open):
+	* select.el (x-get-cut-buffer-internal, x-rotate-cut-buffers-internal)
+	(x-store-cut-buffer-internal):
+	* wdired.el (make-symbolic-link):
+	* x-dnd.el (x-register-dnd-atom, x-get-atom-name)
+	(x-send-client-message):
+	* emulation/cua-base.el (x-clipboard-yank): Declare as functions.
+
 2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-map-stock): Check if FILE is a string.
