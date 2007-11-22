@@ -9,7 +9,7 @@
 
 	* emacs-lisp/check-declare.el (check-declare-scan): Expand .c
 	files relative to src/ directory.
-	(check-declare-verify): Handle .c files (without arg checking).
+	(check-declare-verify): Handle .c files.
 
 	* emacs-lisp/byte-run.el (declare-function): Doc fix.
 
