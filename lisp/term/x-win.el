@@ -2603,15 +2603,18 @@ The list elements are either the symbol name for the alist or the alist itself."
 
 (defun x-gtk-map-stock (file)
   "Map icon with file name FILE to a Gtk+ stock name, using `x-gtk-stock-map'."
-  (let* ((file-sans (file-name-sans-extension file))
-	 (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
-		   (match-string 1 file-sans)))
-	 (value))
-    (mapc (lambda (elem)
- 	    (let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
-	      (or value (setq value (assoc-string (or key file-sans) assoc)))))
-	    icon-map-list)
-    (and value (cdr value))))
+  (if (stringp file)
+      (let* ((file-sans (file-name-sans-extension file))
+	     (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)" file-sans)
+		       (match-string 1 file-sans)))
+	     (value))
+	(mapc (lambda (elem)
+		(let ((assoc (if (symbolp elem) (symbol-value elem) elem)))
+		  (or value (setq value (assoc-string (or key file-sans)
+						      assoc)))))
+	      icon-map-list)
+	(and value (cdr value)))
+    nil))
 
 ;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here
