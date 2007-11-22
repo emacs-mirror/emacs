@@ -39,6 +39,23 @@
 (defconst check-declare-warning-buffer "*Check Declarations Warnings*"
   "Name of buffer used to display any `check-declare' warnings.")
 
+(defun check-declare-locate (file basefile)
+  "Return the full path of FILE.
+Expands files with a \".c\" extension relative to the Emacs
+\"src/\" directory.  Otherwise, `locate-library' searches for
+FILE.  If that fails, expands FILE relative to BASEFILE's
+directory part.  The returned file might not exist."
+  (if (string-equal "c" (file-name-extension file))
+      (expand-file-name file (expand-file-name "src" source-directory))
+    (let ((tfile (locate-library (file-name-nondirectory file))))
+      (if tfile
+          (replace-regexp-in-string "\\.elc\\'" ".el" tfile)
+        (setq tfile (expand-file-name file (file-name-directory basefile)))
+        (if (or (file-exists-p tfile)
+                (string-match "\\.el\\'" tfile))
+            tfile
+          (concat tfile ".el"))))))
+
 (defun check-declare-scan (file)
   "Scan FILE for `declare-function' calls.
 Return a list with elements of the form (FNFILE FN ARGLIST), where
@@ -52,18 +69,9 @@ ARGLIST may be absent.  This claims that FNFILE defines FN, with ARGLIST."
               "^[ \t]*(declare-function[ \t]+\\(\\S-+\\)[ \t]+\
 \"\\(\\S-+\\)\"" nil t)
         (setq fn (match-string 1)
-              fnfile (match-string 2))
-        (or (file-name-absolute-p fnfile)
-            (setq fnfile
-                  (expand-file-name fnfile
-                                    ;; .c files are assumed to be
-                                    ;; relative to the Emacs src/ directory.
-                                    (if (string-equal
-                                         "c" (file-name-extension fnfile))
-                                        (expand-file-name "src"
-                                                          source-directory)
-                                      (file-name-directory file)))))
-        (setq alist (cons
+              fnfile (match-string 2)
+              fnfile (check-declare-locate fnfile (expand-file-name file))
+              alist (cons
                      (list fnfile fn
                            (progn
                              (skip-chars-forward " \t\n")
@@ -89,9 +97,6 @@ found to be true, otherwise a list of errors with elements of the form
         (cflag (string-equal "c" (file-name-extension fnfile)))
         re fn sig siglist arglist type errlist minargs maxargs)
     (message "%s" m)
-    (or cflag
-        (file-exists-p fnfile)
-        (setq fnfile (concat fnfile ".el")))
     (if (file-exists-p fnfile)
         (with-temp-buffer
           (insert-file-contents fnfile)
