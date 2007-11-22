@@ -34,8 +34,6 @@
 
 ;; 1. Handle defstructs (eg uniquify-item-base in desktop.el).
 
-;; 2. Argument checking for functions defined in C.
-
 ;;; Code:
 
 (defconst check-declare-warning-buffer "*Check Declarations Warnings*"
@@ -89,7 +87,7 @@ found to be true, otherwise a list of errors with elements of the form
 \(FILE FN TYPE), where TYPE is a string giving details of the error."
   (let ((m (format "Checking %s..." fnfile))
         (cflag (string-equal "c" (file-name-extension fnfile)))
-        re fn sig siglist arglist type errlist)
+        re fn sig siglist arglist type errlist minargs maxargs)
     (message "%s" m)
     (or cflag
         (file-exists-p fnfile)
@@ -110,7 +108,18 @@ ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
                   ;; (min . max) for a fixed number of arguments, or
                   ;; arglists with optional elements.
                   ;; (min) for arglists with &rest.
-                  sig (cond ((string-equal (match-string 1)
+                  sig (cond (cflag
+                             (re-search-forward "," nil t 3)
+                             (skip-chars-forward " \t\n")
+                             ;; Assuming minargs and maxargs on same line.
+                             (when (looking-at "\\([0-9]+\\)[ \t]*,[ \t]*\
+\\([0-9]+\\|MANY\\|UNEVALLED\\)")
+                               (setq minargs (string-to-number (match-string 1))
+                                     maxargs (match-string 2))
+                               (cons minargs (unless (string-match "[^0-9]"
+                                                                   maxargs)
+                                               (string-to-number maxargs)))))
+                            ((string-equal (match-string 1)
                                            "define-derived-mode")
                              '(0 . 0))
                             ((string-equal (match-string 1)
@@ -133,9 +142,7 @@ ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
                 (if (setq sig (assoc (cadr e) siglist))
                     ;; Recall we use t to mean no arglist specified,
                     ;; to distinguish from an empty arglist.
-                    ;; FIXME c arg checking not yet implemented.
-                    (unless (or cflag
-                                (eq arglist t)
+                    (unless (or (eq arglist t)
                                 (eq sig t))
                       (unless (equal (byte-compile-arglist-signature arglist)
                                      (cdr sig))
