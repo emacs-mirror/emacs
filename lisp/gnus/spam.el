@@ -81,7 +81,7 @@
 ;;{{{ Main parameters.
 (defvar spam-backends nil
   "List of spam.el backends with all the pertinent data.
-Populated by spam-install-backend-super.")
+Populated by `spam-install-backend-super'.")
 
 (defgroup spam nil
   "Spam configuration."
@@ -91,13 +91,13 @@ Populated by spam-install-backend-super.")
 
 (defcustom spam-summary-exit-behavior 'default
   "Exit behavior at the time of summary exit.
-Note that setting the spam-use-move or spam-use-copy backends on
+Note that setting the `spam-use-move' or `spam-use-copy' backends on
 a group through group/topic parameters overrides this mechanism."
-  :type '(choice (const 'default :tag 
+  :type '(choice (const 'default :tag
 			"Move spam out of all groups.  Move ham out of spam groups.")
-		 (const 'move-all :tag 
+		 (const 'move-all :tag
 			"Move spam out of all groups.  Move ham out of all groups.")
-		 (const 'move-none :tag 
+		 (const 'move-none :tag
 			"Never move spam or ham out of any groups."))
   :group 'spam)
 
@@ -124,8 +124,7 @@ a group through group/topic parameters overrides this mechanism."
 
 (defcustom spam-split-symbolic-return-positive nil
   "Whether `spam-split' should ALWAYS work with symbols or group names.
-Do not set this if you use `spam-split' in a fancy split
-  method."
+Do not set this if you use `spam-split' in a fancy split method."
   :type 'boolean
   :group 'spam)
 
@@ -139,7 +138,7 @@ without losing it to the automatic spam-marking process."
 
 (defcustom spam-mark-ham-unread-before-move-from-spam-group nil
   "Whether ham should be marked unread before it's moved.
-The article is moved out of a spam group according to ham-process-destination.
+The article is moved out of a spam group according to `ham-process-destination'.
 This variable is an official entry in the international Longest Variable Name
 Competition."
   :type 'boolean
@@ -403,7 +402,7 @@ Only meaningful if you enable `spam-use-regex-body'."
   :group 'spam)
 
 (defcustom spam-summary-score-preferred-header nil
-  "Preferred header to use for spam-summary-score."
+  "Preferred header to use for `spam-summary-score'."
   :type '(choice :tag "Header name"
 	  (symbol :tag "SpamAssassin etc" X-Spam-Status)
 	  (symbol :tag "Bogofilter"       X-Bogosity)
@@ -621,17 +620,17 @@ order for SpamAssassin to recognize the new registered spam."
   :group 'spam-spamassassin)
 
 (defcustom spam-sa-learn-spam-switch "--spam"
-  "The switch that sa-learn uses to register spam messages"
+  "The switch that sa-learn uses to register spam messages."
   :type 'string
   :group 'spam-spamassassin)
 
 (defcustom spam-sa-learn-ham-switch "--ham"
-  "The switch that sa-learn uses to register ham messages"
+  "The switch that sa-learn uses to register ham messages."
   :type 'string
   :group 'spam-spamassassin)
 
 (defcustom spam-sa-learn-unregister-switch "--forget"
-  "The switch that sa-learn uses to unregister messages messages"
+  "The switch that sa-learn uses to unregister messages messages."
   :type 'string
   :group 'spam-spamassassin)
 
@@ -722,7 +721,7 @@ finds ham or spam.")
 ;;{{{ convenience functions
 
 (defun spam-clear-cache (symbol)
-  "Clear the spam-caches entry for a check."
+  "Clear the `spam-caches' entry for a check."
   (remhash symbol spam-caches))
 
 (defun spam-xor (a b)
@@ -730,7 +729,7 @@ finds ham or spam.")
   (and (or a b) (not (and a b))))
 
 (defun spam-set-difference (list1 list2)
-  "Return a set difference of LIST1 and LIST2.  
+  "Return a set difference of LIST1 and LIST2.
 When either list is nil, the other is returned."
   (if (and list1 list2)
       ;; we have two non-nil lists
@@ -837,15 +836,14 @@ Accepts incoming CHECK, ham registration function HRF, spam
 registration function SRF, ham unregistration function HUF, spam
 unregistration function SUF, and an indication whether the
 backend is STATISTICAL."
-
   (setq spam-backends (add-to-list 'spam-backends backend))
   (while properties
     (let ((property (pop properties))
 	  (value (pop properties)))
       (if (spam-backend-property-valid-p property)
 	  (put backend property value)
-	(gnus-error 
-	 5 
+	(gnus-error
+	 5
 	 "spam-install-backend-super got an invalid property %s"
 	 property)))))
 
@@ -875,7 +873,7 @@ The value nil means that the check does not yield a decision, and
 so, that further checks are needed.  The value t means that the
 message is definitely not spam, and that further spam checks
 should be inhibited.  Otherwise, a mailgroup name or the symbol
-'spam (depending on spam-split-symbolic-return) is returned where
+'spam (depending on `spam-split-symbolic-return') is returned where
 the mail should go, and further checks are also inhibited.  The
 usual mailgroup name is the value of `spam-split-group', meaning
 that the message is definitely a spam."
@@ -892,7 +890,7 @@ that the message is definitely a spam."
 	(setq info (format "Backend %s has the following properties:\n"
 			   backend))
 	(dolist (property (spam-backend-properties))
-	  (setq info (format "%s%s=%s\n" 
+	  (setq info (format "%s%s=%s\n"
 			     info
 			     property
 			     (get backend property))))
@@ -907,13 +905,13 @@ CLASSIFICATION is 'ham or 'spam."
   (if (and
        (spam-classification-valid-p classification)
        (spam-backend-function-type-valid-p type))
-      (let ((retrieval 
-	     (intern 
+      (let ((retrieval
+	     (intern
 	      (format "spam-backend-%s-%s-function"
 		      classification
 		      type))))
 	(funcall retrieval backend))
-    (gnus-error 
+    (gnus-error
      5
      "%s was passed invalid backend %s, classification %s, or type %s"
      "spam-backend-function"
@@ -921,21 +919,21 @@ CLASSIFICATION is 'ham or 'spam."
      classification
      type)))
 
-(defun spam-backend-article-list-property (classification 
+(defun spam-backend-article-list-property (classification
 					   &optional unregister)
   "Property name of article list with CLASSIFICATION and UNREGISTER."
   (let* ((r (if unregister "unregister" "register"))
 	 (prop (format "%s-%s" classification r)))
     prop))
 
-(defun spam-backend-get-article-todo-list (backend 
-					   classification 
+(defun spam-backend-get-article-todo-list (backend
+					   classification
 					   &optional unregister)
-  "Get the articles to be processed for BACKEND and CLASSIFICATION.  
+  "Get the articles to be processed for BACKEND and CLASSIFICATION.
 With UNREGISTER, get articles to be unregistered.
 This is a temporary storage function - nothing here persists."
   (get
-   backend 
+   backend
    (intern (spam-backend-article-list-property classification unregister))))
 
 (defun spam-backend-put-article-todo-list (backend classification list &optional unregister)
@@ -977,7 +975,7 @@ The previous backend settings for ALIAS are erased."
 
   ;; install alias with no properties at first
   (spam-install-backend-super alias)
-  
+
   (dolist (property (spam-backend-properties))
     (put alias property (get backend property))))
 
@@ -991,8 +989,8 @@ Accepts ham registration function HRF, spam registration function
 SRF, ham unregistration function HUF, spam unregistration
 function SUF.  The backend has no incoming check and can't be
 statistical."
-  (spam-install-backend-super 
-   backend 
+  (spam-install-backend-super
+   backend
    'hrf hrf 'srf srf 'huf huf 'suf suf 'mover t))
 
 (defun spam-install-nocheck-backend (backend hrf srf huf suf)
@@ -1001,7 +999,7 @@ Accepts ham registration function HRF, spam registration function
 SRF, ham unregistration function HUF, spam unregistration
 function SUF.  The backend has no incoming check and can't be
 statistical (it could be, but in practice that doesn't happen)."
-  (spam-install-backend-super 
+  (spam-install-backend-super
    backend
    'hrf hrf 'srf srf 'huf huf 'suf suf))
 
@@ -1010,8 +1008,8 @@ statistical (it could be, but in practice that doesn't happen)."
 Accepts incoming CHECK, ham registration function HRF, spam
 registration function SRF, ham unregistration function HUF, spam
 unregistration function SUF.  The backend won't be
-statistical (use spam-install-statistical-backend for that)."
-  (spam-install-backend-super 
+statistical (use `spam-install-statistical-backend' for that)."
+  (spam-install-backend-super
    backend
    'check check 'hrf hrf 'srf srf 'huf huf 'suf suf))
 
@@ -1020,15 +1018,15 @@ statistical (use spam-install-statistical-backend for that)."
 Accepts incoming CHECK, ham registration function HRF, spam
 registration function SRF, ham unregistration function HUF, spam
 unregistration function SUF.  The backend will be
-statistical (use spam-install-backend for non-statistical
+statistical (use `spam-install-backend' for non-statistical
 backends)."
-  (spam-install-backend-super 
+  (spam-install-backend-super
    backend
    'check check 'statistical t 'hrf hrf 'srf srf 'huf huf 'suf suf))
 
 (defun spam-install-statistical-checkonly-backend (backend check)
   "Install a statistical BACKEND than can only CHECK for spam."
-  (spam-install-backend-super 
+  (spam-install-backend-super
    backend
    'check check 'statistical t))
 
@@ -1084,7 +1082,7 @@ backends)."
 			      nil
 			      nil)
 
-(spam-install-backend 'spam-use-BBDB	 
+(spam-install-backend 'spam-use-BBDB
 		      'spam-check-BBDB
 		      'spam-BBDB-register-routine
 		      nil
@@ -1128,7 +1126,7 @@ backends)."
 				  'spam-stat-unregister-ham-routine
 				  'spam-stat-unregister-spam-routine)
 
-(spam-install-statistical-backend 'spam-use-spamassassin 
+(spam-install-statistical-backend 'spam-use-spamassassin
 				  'spam-check-spamassassin
 				  'spam-spamassassin-register-ham-routine
 				  'spam-spamassassin-register-spam-routine
@@ -1224,13 +1222,13 @@ Note this has to be fast."
 With SPECIFIC-HEADER, returns only that header's score.
 Will not return a nil score."
   (let (score)
-    (dolist (header 
+    (dolist (header
 	     (if specific-header
 		 (list specific-header)
 	       (spam-necessary-extra-headers)))
-      (setq score 
+      (setq score
 	    (spam-extra-header-to-number header headers))
-      (when score 
+      (when score
 	(return)))
     (or score 0)))
 
@@ -1258,7 +1256,7 @@ Will not return a nil score."
   (let (found)
     (dolist (backend (spam-backend-list))
       (when (and (spam-backend-statistical-p backend)
-		 (or (symbol-value backend) 
+		 (or (symbol-value backend)
 		     (memq backend force-symbols)))
 	(setq found backend)))
     found))
@@ -1287,14 +1285,14 @@ This list contains pairs associating the obsolete ham/spam exit
 processor variables with a classification and a spam-use-*
 variable.  When the processor variable is nil, just the
 classification and spam-use-* check variable are used.  This is
-superceded by the new spam backend code, so it's only consulted
+superseded by the new spam backend code, so it's only consulted
 for backwards compatibility.")
 
 (defun spam-group-processor-p (group backend &optional classification)
   "Checks if GROUP has a BACKEND with CLASSIFICATION registered.
 Also accepts the obsolete processors, which can be found in
 gnus.el and in spam-list-of-processors.  In the case of mover
-backends, checks the setting of spam-summary-exit-behavior in
+backends, checks the setting of `spam-summary-exit-behavior' in
 addition to the set values for the group."
   (if (and (stringp group)
 	   (symbolp backend))
@@ -1315,7 +1313,7 @@ addition to the set values for the group."
 	  ;; spam-summary-exit-behavior-logic for mover backends
 	  (unless found
 	    (when (spam-backend-mover-p backend)
-	      (setq 
+	      (setq
 	       found
 	       (cond
 		((eq spam-summary-exit-behavior 'move-all) t)
@@ -1325,7 +1323,7 @@ addition to the set values for the group."
 		     ;; move ham out of spam groups
 		     (and (eq classification 'ham)
 			  (spam-group-spam-contents-p group))))
-		(t (gnus-error 5 "Unknown spam-summary-exit-behavior: %s" 
+		(t (gnus-error 5 "Unknown spam-summary-exit-behavior: %s"
 			       spam-summary-exit-behavior))))))
 
 	  found))
@@ -1385,8 +1383,8 @@ addition to the set values for the group."
 	    ;; call spam-register-routine with specific articles to unregister,
 	    ;; when there are articles to unregister and the check is enabled
 	    (when (and unregister-list (symbol-value backend))
-	      (spam-backend-put-article-todo-list backend 
-						  classification 
+	      (spam-backend-put-article-todo-list backend
+						  classification
 						  unregister-list
 						  t))))))
 
@@ -1398,7 +1396,7 @@ addition to the set values for the group."
 		 gnus-newsgroup-name
 		 backend
 		 classification)
-	    (spam-backend-put-article-todo-list backend 
+	    (spam-backend-put-article-todo-list backend
 						classification
 						(spam-list-articles
 						 gnus-newsgroup-articles
@@ -1457,11 +1455,11 @@ addition to the set values for the group."
 			  article)
 	    (gnus-summary-mark-article article gnus-expirable-mark))
 	  (gnus-summary-set-process-mark article)
-	    
+
 	  (if respool		   ; respooling is with a "fake" group
 	      (let ((spam-split-disabled
 		     (or spam-split-disabled
-			 (and (eq classification 'ham) 
+			 (and (eq classification 'ham)
 			      spam-disable-spam-split-during-ham-respool))))
 		(gnus-message 9 "Respooling article %d with method %s"
 			      article respool-method)
@@ -1476,7 +1474,7 @@ addition to the set values for the group."
 	      (gnus-message 9 "Moving article %d to group %s"
 			    article group)
 	      (gnus-summary-move-article nil group)))))	; else move articles
-	
+
       ;; now delete the articles, unless a) copy is t, and there was a copy done
       ;;                                 b) a move was done to a single group
       ;;                                 c) backend-supports-deletions is nil
@@ -1488,33 +1486,33 @@ addition to the set values for the group."
 	  (when articles
 	    (let ((gnus-novice-user nil)) ; don't ask me if I'm sure
 	      (gnus-summary-delete-article nil)))))
-	
+
       (gnus-summary-yank-process-mark)
       (length articles))))
 
 (defun spam-copy-spam-routine (articles)
-  (spam-copy-or-move-routine 
-   t 
+  (spam-copy-or-move-routine
+   t
    (gnus-parameter-spam-process-destination gnus-newsgroup-name)
    articles
    'spam))
 
 (defun spam-move-spam-routine (articles)
-  (spam-copy-or-move-routine 
+  (spam-copy-or-move-routine
    nil
    (gnus-parameter-spam-process-destination gnus-newsgroup-name)
    articles
    'spam))
 
 (defun spam-copy-ham-routine (articles)
-  (spam-copy-or-move-routine 
-   t 
+  (spam-copy-or-move-routine
+   t
    (gnus-parameter-ham-process-destination gnus-newsgroup-name)
    articles
    'ham))
 
 (defun spam-move-ham-routine (articles)
-  (spam-copy-or-move-routine 
+  (spam-copy-or-move-routine
    nil
    (gnus-parameter-ham-process-destination gnus-newsgroup-name)
    articles
@@ -1570,9 +1568,9 @@ to find it out)."
 	 ((equal field 'extra)
 	  (mail-header-extra data-header))
 	 (t
-	  (gnus-error 
-	   5 
-	   "spam-fetch-field-fast: unknown field %s requested" 
+	  (gnus-error
+	   5
+	   "spam-fetch-field-fast: unknown field %s requested"
 	   field)
 	  nil))
 	(gnus-message 6 "Article %d has a nil data header" article)))))
@@ -1621,7 +1619,7 @@ to find it out)."
 This function can be used as an entry in the variable `nnmail-split-fancy',
 for example like this: (: spam-split).  It can take checks as
 parameters.  A string as a parameter will set the
-spam-split-group to that string.
+`spam-split-group' to that string.
 
 See the Info node `(gnus)Fancy Mail Splitting' for more details."
   (interactive)
@@ -1673,7 +1671,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		decision))))))))
 
 (defun spam-find-spam ()
-  "This function will detect spam in the current newsgroup using spam-split."
+  "Detect spam in the current newsgroup using `spam-split'."
   (interactive)
 
   (let* ((group gnus-newsgroup-name)
@@ -1685,7 +1683,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		     gnus-newsgroup-unseen))
 	 article-cannot-be-faked)
 
-    
+
     (dolist (backend methods)
       (when (spam-backend-statistical-p backend)
 	(setq article-cannot-be-faked t)
@@ -1702,10 +1700,10 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       (subject (spam-fetch-field-subject-fast article))
 	       (sender (spam-fetch-field-from-fast article))
 	       registry-lookup)
-	   
+
 	   (unless id
 	     (gnus-message 6 "Article %d has no message ID!" article))
-	 
+
 	   (when (and id spam-log-to-registry)
 	     (setq registry-lookup (spam-log-registration-type id 'incoming))
 	     (when registry-lookup
@@ -1732,12 +1730,12 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			   (apply 'spam-split methods))))))
 	     (if (equal split-return 'spam)
 		 (gnus-summary-mark-article article gnus-spam-mark))
-	   
+
 	     (when (and id split-return spam-log-to-registry)
 	       (when (zerop (gnus-registry-group-count id))
 		 (gnus-registry-add-group
 		  id group subject sender))
-	       
+
 	       (unless registry-lookup
 		 (spam-log-processing-to-registry
 		  id
@@ -1763,11 +1761,11 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	      (delcount 0))
 
 	  ;; clear the old lists right away
-	  (spam-backend-put-article-todo-list backend 
+	  (spam-backend-put-article-todo-list backend
 					      classification
 					      nil
 					      nil)
-	  (spam-backend-put-article-todo-list backend 
+	  (spam-backend-put-article-todo-list backend
 					      classification
 					      nil
 					      t)
@@ -1778,29 +1776,29 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	      (incf delcount)
 	      (setq rlist (delq article rlist))
 	      (setq ulist (delq article ulist))))
-	  
+
 	  (unless (zerop delcount)
-	    (gnus-message 
-	     9 
+	    (gnus-message
+	     9
 	     "%d messages were saved the trouble of unregistering and then registering"
 	     delcount))
-	  
+
 	  ;; unregister articles
 	  (unless (zerop (length ulist))
 	    (let ((num (spam-unregister-routine classification backend ulist)))
 	      (when (> num 0)
-		(gnus-message 
+		(gnus-message
 		 6
 		 "%d %s messages were unregistered by backend %s."
 		 num
 		 classification
 		 backend))))
-	    
+
 	    ;; register articles
 	    (unless (zerop (length rlist))
 	      (let ((num (spam-register-routine classification backend rlist)))
 		(when (> num 0)
-		  (gnus-message 
+		  (gnus-message
 		   6
 		   "%d %s messages were registered by backend %s."
 		   num
@@ -1808,12 +1806,12 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		   backend)))))))))
 
 (defun spam-unregister-routine (classification
-				backend 
+				backend
 				specific-articles)
   (spam-register-routine classification backend specific-articles t))
 
 (defun spam-register-routine (classification
-			      backend 
+			      backend
 			      specific-articles
 			      &optional unregister)
   (when (and (spam-classification-valid-p classification)
@@ -2134,7 +2132,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	      (save-excursion
 		(save-window-excursion
 		  (bbdb-records nil t)
-		  (mapatoms 
+		  (mapatoms
 		   (lambda (symbol)
 		     (intern (downcase (symbol-name symbol)) bbdb-cache))
 		   bbdb-hashtable))))
@@ -2311,8 +2309,8 @@ With a non-nil REMOVE, remove them."
 
 (defun spam-enter-list (addresses file &optional remove)
   "Enter ADDRESSES into the given FILE.
-Either the whitelist or the blacklist files can be used.  With
-REMOVE not nil, remove the ADDRESSES."
+Either the whitelist or the blacklist files can be used.
+With a non-nil REMOVE, remove the ADDRESSES."
   (if (stringp addresses)
       (spam-enter-list (list addresses) file remove)
     ;; else, we have a list of addresses here
@@ -2467,7 +2465,7 @@ REMOVE not nil, remove the ADDRESSES."
   (spam-report-resend-register-routine articles t))
 
 (defun spam-report-resend-register-routine (articles &optional ham)
-  (let* ((resend-to-gp 
+  (let* ((resend-to-gp
 	  (if ham
 	      (gnus-parameter-ham-resend-to gnus-newsgroup-name)
 	    (gnus-parameter-spam-resend-to gnus-newsgroup-name)))
@@ -2492,7 +2490,7 @@ REMOVE not nil, remove the ADDRESSES."
 
 ;; return something sensible if the score can't be determined
 (defun spam-bogofilter-score (&optional recheck)
-  "Get the Bogofilter spamicity score"
+  "Get the Bogofilter spamicity score."
   (interactive "P")
   (save-window-excursion
     (gnus-summary-show-article t)
@@ -2509,10 +2507,10 @@ REMOVE not nil, remove the ADDRESSES."
   (when (eq spam-bogofilter-valid 'unknown)
     (setq spam-bogofilter-valid
 	  (not (string-match "^bogofilter version 0\\.\\([0-9]\\|1[01]\\)\\."
-			     (shell-command-to-string 
+			     (shell-command-to-string
 			      (format "%s -V" spam-bogofilter-program))))))
   spam-bogofilter-valid)
-  
+
 (defun spam-check-bogofilter (&optional score)
   "Check the Bogofilter backend for the classification of this message."
   (if (spam-verify-bogofilter)
@@ -2550,7 +2548,7 @@ REMOVE not nil, remove the ADDRESSES."
 	  (when (stringp article-string)
 	    (with-temp-buffer
 	      (insert article-string)
-	      
+
 	      (apply 'call-process-region
 		     (point-min) (point-max)
 		     spam-bogofilter-program
@@ -2736,7 +2734,7 @@ REMOVE not nil, remove the ADDRESSES."
 
 ;; return something sensible if the score can't be determined
 (defun spam-bsfilter-score (&optional recheck)
-  "Get the Bsfilter spamicity score"
+  "Get the Bsfilter spamicity score."
   (interactive "P")
   (save-window-excursion
     (gnus-summary-show-article t)
@@ -2749,7 +2747,7 @@ REMOVE not nil, remove the ADDRESSES."
       (or score "0"))))
 
 (defun spam-check-bsfilter (&optional score)
-  "Check the Bsfilter backend for the classification of this message"
+  "Check the Bsfilter backend for the classification of this message."
   (let ((article-buffer-name (buffer-name))
 	(dir spam-bsfilter-database-directory)
 	return)
@@ -2823,7 +2821,7 @@ REMOVE not nil, remove the ADDRESSES."
 
 ;; return something sensible if the score can't be determined
 (defun spam-crm114-score ()
-  "Get the CRM114 Mailfilter pR"
+  "Get the CRM114 Mailfilter pR."
   (interactive)
   (save-window-excursion
     (gnus-summary-show-article t)
@@ -2835,7 +2833,7 @@ REMOVE not nil, remove the ADDRESSES."
       (or score "0"))))
 
 (defun spam-check-crm114 (&optional score)
-  "Check the CRM114 Mailfilter backend for the classification of this message"
+  "Check the CRM114 Mailfilter backend for the classification of this message."
   (let ((article-buffer-name (buffer-name))
 	(db spam-crm114-database-directory)
 	return)
@@ -2897,9 +2895,9 @@ REMOVE not nil, remove the ADDRESSES."
 (defun spam-initialize (&rest symbols)
   "Install the spam.el hooks and do other initialization.
 When SYMBOLS is given, set those variables to t.  This is so you
-can call spam-initialize before you set spam-use-* variables on
+can call `spam-initialize' before you set spam-use-* variables on
 explicitly, and matters only if you need the extra headers
-installed through spam-necessary-extra-headers."
+installed through `spam-necessary-extra-headers'."
   (interactive)
 
   (dolist (var symbols)
@@ -2923,7 +2921,7 @@ installed through spam-necessary-extra-headers."
   (add-hook 'gnus-summary-prepared-hook 'spam-find-spam))
 
 (defun spam-unload-hook ()
-  "Uninstall the spam.el hooks"
+  "Uninstall the spam.el hooks."
   (interactive)
   (remove-hook 'gnus-save-newsrc-hook 'spam-maybe-spam-stat-save)
   (remove-hook 'gnus-get-top-new-news-hook 'spam-maybe-spam-stat-load)
