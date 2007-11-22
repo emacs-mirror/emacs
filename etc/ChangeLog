@@ -1,7 +1,10 @@
 2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
 
+	* etags.1: Revert this change, not installed in Emacs 22:
+	"Now --members is the default for etags, not for ctags yet".
+	* etags.1: Note that you can use "-" for stdout with -o.
 	* NEWS: remove this entry for etags, because it was in fact not
-	installed in Emacs 22: "the --members option is now the default"
+	installed in Emacs 22: "the --members option is now the default".
 
 2007-10-24  Juanma Barranquero  <lekktu@gmail.com>
 
