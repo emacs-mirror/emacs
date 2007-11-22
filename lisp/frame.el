@@ -600,6 +600,8 @@ is not considered (see `next-frame')."
 				  0))
   (select-frame-set-input-focus (selected-frame)))
 
+(declare-function x-initialize-window-system "term/x-win" ())
+
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on X display DISPLAY.
 The optional second argument PARAMETERS specifies additional frame parameters."
