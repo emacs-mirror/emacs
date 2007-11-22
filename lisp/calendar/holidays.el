@@ -208,6 +208,7 @@ The optional LABEL is used to label the buffer created."
       (display-buffer holiday-buffer)
       (message "Computing holidays...done"))))
 
+;;;###autoload
 (defalias 'holiday-list 'list-holidays)
 
 (defun calendar-check-holidays (date)
