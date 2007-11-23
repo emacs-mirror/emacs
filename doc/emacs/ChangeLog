@@ -1,10 +1,15 @@
+2007-11-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* files.texi (Why Version Control?): Fix typo.
+	(VCS Concepts): Fix typos; small tense fix.
+
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
 	* nxml-mode.texi: Initial merge of nxml.
 
 2007-11-18  Richard Stallman  <rms@gnu.org>
 
-	* flymake.texi (Example -- Configuring a tool called directly): 
+	* flymake.texi (Example -- Configuring a tool called directly):
 	Update example.
 
 2007-11-17  Eli Zaretskii  <eliz@gnu.org>
