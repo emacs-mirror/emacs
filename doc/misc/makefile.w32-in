@@ -43,7 +43,7 @@ INFO_TARGETS = $(infodir)/ccmode \
 		$(infodir)/url $(infodir)/speedbar $(infodir)/tramp \
 		$(infodir)/ses $(infodir)/smtpmail $(infodir)/flymake \
 		$(infodir)/newsticker $(infodir)/rcirc $(infodir)/erc \
-		$(infodir)/remember
+		$(infodir)/remember $(infodir)/nxml-mode
 DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
                  gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
@@ -51,7 +51,7 @@ DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
-                 newsticker.dvi rcirc.dvi erc.dvi remember.dvi
+                 newsticker.dvi rcirc.dvi erc.dvi remember.dvi nxml-mode.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -271,6 +271,11 @@ $(infodir)/newsticker: newsticker.texi
 newsticker.dvi: newsticker.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/newsticker.texi
 
+$(infodir)/nxml-mode: nxml-mode.texi
+	$(MAKEINFO) nxml-mode.texi
+nxml-mod.dvi: nxml-mode.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/nxml-mode.texi
+
 $(infodir)/rcirc: rcirc.texi
 	$(MAKEINFO) rcirc.texi
 rcirc.dvi: rcirc.texi
@@ -304,7 +309,7 @@ clean: mostlyclean
 		 $(infodir)/flymake* $(infodir)/newsticker* \
 		 $(infodir)/sieve* $(infodir)/pgg* \
 		 $(infodir)/erc* $(infodir)/rcirc* \
-		 $(infodir)/remember*
+		 $(infodir)/remember* $(infodir)/nxml-mode*
 
 distclean: clean
 

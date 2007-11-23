@@ -1,5 +1,7 @@
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
+	* NXML-NEWS: New File.
+
 	* schema: Initial merge of nxml.
 
 2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>

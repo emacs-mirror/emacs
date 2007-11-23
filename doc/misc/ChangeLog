@@ -1,3 +1,14 @@
+2007-11-23  Mark A. Hershberger  <mah@everybody.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add nxml-mode.
+	($(infodir)/nxml-mode): New rule.
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Add nxml-mode.
+	($(infodir)/nxml-mode): New rule.
+	(clean): Add nxml-mode*.
+
+	* nxml-mode.texi: New file with nxml manual.
+
 2007-11-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename completion): Simplify explanation of

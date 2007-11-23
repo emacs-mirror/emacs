@@ -60,6 +60,7 @@ INFO_TARGETS = \
 	$(infodir)/message \
 	$(infodir)/mh-e \
 	$(infodir)/newsticker \
+	$(infodir)/nxml-mode \
 	$(infodir)/org \
 	$(infodir)/pcl-cvs \
 	$(infodir)/pgg \
@@ -100,6 +101,7 @@ DVI_TARGETS = \
 	message.dvi \
 	mh-e.dvi \
 	newsticker.dvi \
+	nxml-mode.dvi \
 	org.dvi \
 	pcl-cvs.dvi \
 	pgg.dvi \
@@ -277,6 +279,12 @@ $(infodir)/newsticker: newsticker.texi
 	cd $(srcdir); $(MAKEINFO) newsticker.texi
 newsticker.dvi: newsticker.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/newsticker.texi
+
+nxml-mode : $(infodir)/nxml-mode
+$(infodir)/nxml-mode: nxml-mode.texi
+	cd $(srcdir); $(MAKEINFO) nxml-mode.texi
+nxml-mode.dvi: nxml-mode.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/nxml-mode.texi
 
 org : $(infodir)/org
 $(infodir)/org: org.texi
