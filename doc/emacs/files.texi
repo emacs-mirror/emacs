@@ -1622,7 +1622,7 @@ your fileset is the marked files only.
 If they are not, VC mode will fail when you attempt to execute 
 a command on the fileset.
 
-   In VC, filesets, are, essentially, a way to pass multiple file
+   VC filesets are, essentially, a way to pass multiple file
 arguments as a group to underlying version-control commands.  For
 example, on Subversion a checkin with more than one file in its
 fileset will become a joint commit, as though you had typed
@@ -1640,7 +1640,7 @@ version-control systems.
 
    Emacs uses the concept of named filesets elsewhere
 (@pxref{Filesets}) to allow you to view and visit files in functional
-groups. Unlike those, VC filesets are not named and don't persist
+groups.  Unlike those, VC filesets are not named and don't persist
 across sessions.
 
 @node Doing The Right Thing
