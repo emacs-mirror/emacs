@@ -1270,7 +1270,7 @@ you want to use.
 @subsubsection Understanding the problems it addresses
 
   Version control systems provide you with three important capabilities: 
-@dfn{reversibility}. @dfn{concurrency}, and @dfn{history}.
+@dfn{reversibility}, @dfn{concurrency}, and @dfn{history}.
 
   The most basic capability you get from a version-control system is
 reversibility, the ability to back up to a saved, known-good state when
@@ -1298,7 +1298,7 @@ git, and Mercurial.
 @cindex SCCS
   SCCS was the first version-control system ever built, and was long ago
 superseded by later and more advanced ones; Emacs supports it only for
-backward compatibility and historical reasons. VC compensates for
+backward compatibility and historical reasons.  VC compensates for
 certain features missing in SCCS (snapshots, for example) by
 implementing them itself, but some other VC features, such as multiple
 branches, are not available with SCCS.  Since SCCS is non-free you
@@ -1439,7 +1439,7 @@ happen when you check in a change to a file that conflicts with a change
 checked in by someone else after your checkout.  Both kinds of conflict
 have to be resolved by human judgment and communication.
 
-  SCCS always uses locking. RCS is lock-based by default but can be
+  SCCS always uses locking.  RCS is lock-based by default but can be
 told to operate in a merging style.  CVS and Subversion are
 merge-based by default but can be told to operate in a locking mode.
 Most later version-control systems, such as GNU Arch, git, and
@@ -1463,7 +1463,7 @@ between them as much as possible.
 and other operations are @dfn{file-based}; each file has its own
 @dfn{master file} with its own comment and revision history separate
 from that of all other files in the system.  Later systems, beginning
-with Subversion, became @dfn{changeset-based}; a checkin under these
+with Subversion, are @dfn{changeset-based}; a checkin under these
 may include changes to several files and that change set is treated as
 a unit by the system.  Any comment associated with the change belongs
 to no single file, but is attached to the changeset itself.
@@ -1489,7 +1489,7 @@ systems and a bit archaic; nowadays those operations are usually called
   Early version-control systems were designed around a @dfn{centralized}
 model in which each project has only one repository used by all
 developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
-It has two important problems. One is that a single repository is a
+It has two important problems.  One is that a single repository is a
 single point of failure---if the repository server is down all work
 stops.  The other is that you need to be connected live to the server to
 do checkins and checkouts; if you're offline, you can't work.
