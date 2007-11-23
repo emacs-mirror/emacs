@@ -1,3 +1,7 @@
+2007-11-23  Mark A. Hershberger  <mah@everybody.org>
+
+	* nxml-mode.texi: Initial merge of nxml.
+
 2007-11-18  Richard Stallman  <rms@gnu.org>
 
 	* flymake.texi (Example -- Configuring a tool called directly): 
