@@ -1803,8 +1803,8 @@ are set around the entire contents of the buffer so that it is easy to
 kill the contents of the buffer with @kbd{C-w}.
 
 @findex log-edit-insert-changelog
-  If you work by writing entries in the @file{ChangeLog}
-(@pxref{Change Log}) and then commit the change under revision
+  If you work by first writing entries in the @file{ChangeLog}
+(@pxref{Change Log}) and afterwards committing the change under revision
 control, you can generate the Log Edit text from the ChangeLog using
 @kbd{C-c C-a} (@kbd{log-edit-insert-changelog}).  This looks for
 entries for the file(s) concerned in the top entry in the ChangeLog
@@ -1845,7 +1845,7 @@ time to complete the check-in.
 convenient to specify the same log entry for many of the files.  (This
 is the normal way to do things on a changeset-oriented system, where
 comments are attached to changesets rather than the history of
-individual files.) The most convenient way to do this is to mark all the
+individual files.)  The most convenient way to do this is to mark all the
 files in VC-Dired mode and check in from there; the log buffer will
 carry the fileset information with it and do a group commit when you
 confirm it with @kbd{C-c C-c}.
@@ -1952,15 +1952,15 @@ revisions are not, in general, present as files on your disk.)
 @kindex C-x v g
   For some back ends, you can display the file @dfn{annotated} with
 per-line revision information and using colors to enhance the visual
-appearance, with the command @kbd{M-x vc-annotate}.  It creates a new
+appearance, with the command @kbd{M-x vc-annotate}.  This creates a new
 buffer (the ``annotate buffer'') displaying the file's text, with each
 part colored to show how old it is.  Text colored red is new, blue means
 old, and intermediate colors indicate intermediate ages.  By default,
 the color is scaled over the full range of ages, such that the oldest
 changes are blue, and the newest changes are red.
 
-  When you give a prefix argument to this command, it uses the
-minibuffer to read two arguments: the ID of which revision to display and
+  When you give a prefix argument to this command, Emacs reads two
+arguments using the minibuffer: the ID of which revision to display and
 annotate (instead of the current file contents), and the time span in
 days the color range should cover.  
 
@@ -2006,7 +2006,7 @@ return to your working revision.
 @node Secondary VC Commands
 @subsection The Secondary Commands of VC
 
-  This section explains the secondary commands of VC; those that you might
+  This section explains the secondary commands of VC, those that you might
 use once a day.
 
 @menu
