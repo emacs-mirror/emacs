@@ -1,6 +1,6 @@
 2007-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* nxml/subdirs.el: Remove.
+	* nxml/subdirs.el, nxml/char-data/subdirs.el, nxml/rng-auto.el: Remove.
 
 2007-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
