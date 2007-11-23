@@ -1,3 +1,8 @@
+2007-11-23  Markus Triska  <markus.triska@gmx.at>
+
+	* emacs.c (main): Call init_editfns before init_process, since
+	init_process sets Vprocess_connection_type depending on OS release
+
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* data.c (do_symval_forwarding): Use same code as in find_symbol_value.

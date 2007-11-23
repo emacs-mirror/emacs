@@ -1666,6 +1666,7 @@ main (argc, argv
 #endif  /* HAVE_NTGUI */
     }
 
+  init_editfns (); /* init_process uses Voperating_system_release. */
   init_process (); /* init_display uses add_keyboard_wait_descriptor. */
 #ifndef MAC_OS8
   /* Called before init_window_once for Mac OS Classic.  */
@@ -1688,7 +1689,6 @@ main (argc, argv
   init_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
-  init_editfns ();
   init_floatfns ();
 #ifdef VMS
   init_vmsfns ();
