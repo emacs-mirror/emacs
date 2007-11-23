@@ -1,3 +1,8 @@
+2007-11-23  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Include nXML.  Don't try to copy FTP, it was removed on
+	2007/10/17.  Don't special-case alloca.c which is no longer in CVS.
+
 2007-11-20  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Always include <resolv.h> when checking for

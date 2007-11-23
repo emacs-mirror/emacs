@@ -294,7 +294,7 @@ mkdir ${tempdir}
 ### tar file; this means that people can start reading the INSTALL and
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
-ln FTP INSTALL README BUGS move-if-change ${tempdir}
+ln INSTALL README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
@@ -324,9 +324,9 @@ for subdir in lisp site-lisp \
 	      etc/images/smilies etc/images/smilies/grayscale \
 	      etc/images/smilies/medium etc/images/tree-widget \
 	      etc/images/tree-widget/default etc/images/tree-widget/folder \
-	      etc/refcards etc/tutorials info doc doc/emacs doc/misc doc/man \
-	      doc/lispref doc/lispintro m4 msdos vms mac mac/inc \
-	      mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
+	      etc/refcards etc/schema etc/tutorials info doc doc/emacs \
+	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos vms mac \
+	      mac/inc mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
 do
@@ -374,7 +374,7 @@ echo "Making links to \`lisp' and its subdirectories"
 
  for file in $subdirs; do
    echo "  lisp/$file"
-   mkdir ../${tempdir}/lisp/$file
+   mkdir -p ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.el ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.elc ../${tempdir}/lisp/$file
    for img in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.xbm $file/[a-zA-Z]*.pbm; do
@@ -575,7 +575,8 @@ echo "Making links to \`etc'"
 ### tex litter.
 (cd etc
  files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
-        | grep -v '^images$' | grep -v '^refcards$' | grep -v '^tutorials$'`
+        | grep -v '^images$' | grep -v '^refcards$' | grep -v '^tutorials$' \
+        | grep -v '^gnus$' | grep -v '^schema$'`
  ln $files ../${tempdir}/etc
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -598,7 +599,7 @@ echo "Making links to \`etc'"
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
-for dir in etc/e etc/gnus etc/tutorials etc/refcards ; do
+for dir in etc/e etc/gnus etc/tutorials etc/refcards etc/schema ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
 	ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/${dir}
@@ -708,21 +709,6 @@ for subdir in . etc info leim lib-src lisp lwlib mac msdos nt src; do
   rm -f ${tempdir}/${subdir}/COPYING
   cp COPYING ${tempdir}/${subdir}
 done
-
-#### Make sure that there aren't any hard links between files in the
-#### distribution; people with afs can't deal with that.  Okay,
-#### actually we just re-copy anything with a link count greater
-#### than two.  (Yes, strictly greater than 2 is correct; since we
-#### created these files by linking them in from the original tree,
-#### they'll have exactly two links normally.)
-####
-#### Commented out since it's not strictly necessary; it should suffice
-#### to just break the link on alloca.c.
-#echo "Breaking intra-tree links."
-#find ${tempdir} ! -type d -links +2 \
-#  -exec cp -p {} $$ \; -exec rm -f {} \; -exec mv $$ {} \;
-rm -f $tempdir/lib-src/alloca.c
-cp $tempdir/src/alloca.c $tempdir/lib-src/alloca.c
 
 if [ "${newer}" ]; then
   echo "Removing files older than $newer"
