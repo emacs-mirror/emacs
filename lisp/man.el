@@ -766,17 +766,16 @@ all sections related to a subject, put something appropriate into the
 	;;               minal (using an ioctl(2) if available, the value of
 	;;               $COLUMNS,  or falling back to 80 characters if nei-
 	;;               ther is available).
-	(if window-system
-	    (unless (or (getenv "MANWIDTH") (getenv "COLUMNS"))
-	      ;; This isn't strictly correct, since we don't know how
-	      ;; the page will actually be displayed, but it seems
-	      ;; reasonable.
-	      (setenv "COLUMNS" (number-to-string
-				 (cond
-				  ((and (integerp Man-width) (> Man-width 0))
-				   Man-width)
-				  (Man-width (frame-width))
-				  ((window-width)))))))
+	(unless (or (getenv "MANWIDTH") (getenv "COLUMNS"))
+	  ;; This isn't strictly correct, since we don't know how
+	  ;; the page will actually be displayed, but it seems
+	  ;; reasonable.
+	  (setenv "COLUMNS" (number-to-string
+			     (cond
+			      ((and (integerp Man-width) (> Man-width 0))
+			       Man-width)
+			      (Man-width (frame-width))
+			      ((window-width))))))
 	(setenv "GROFF_NO_SGR" "1")
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
