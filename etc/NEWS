@@ -157,6 +157,9 @@ strings on the kill ring.
 
 ** Minibuffer changes:
 
+*** In C-x d, if you type M-n you get the visited file name of the
+current buffer.
+
 *** In Dired, a list of commands for ! extracted from mailcap according to
 file extensions are added to the default list accessible by M-n.
 
