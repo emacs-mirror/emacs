@@ -50,8 +50,6 @@ Boston, MA 02110-1301, USA.  */
 
 int enable_font_backend;
 
-Lisp_Object Qfontp;
-
 Lisp_Object Qopentype;
 
 /* Important character set symbols.  */
@@ -107,6 +105,7 @@ extern Lisp_Object QCtype, QCfamily, QCweight, QCslant, QCwidth, QCsize, QCname;
 Lisp_Object QCfoundry, QCadstyle, QCregistry, QCextra;
 /* Symbols representing keys of font extra info.  */
 Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClanguage, QCscript;
+Lisp_Object QCantialias;
 /* Symbols representing values of font spacing property.  */
 Lisp_Object Qc, Qm, Qp, Qd;
 
@@ -355,7 +354,8 @@ struct
     { &QCdpi, font_prop_validate_non_neg },
     { &QCspacing, font_prop_validate_spacing },
     { &QCscalable, NULL },
-    { &QCotf, font_prop_validate_symbol }
+    { &QCotf, font_prop_validate_symbol },
+    { &QCantialias, font_prop_validate_symbol }
   };
 
 /* Size (number of elements) of the above table.  */
@@ -3929,7 +3929,6 @@ syms_of_font ()
   staticpro (&font_family_alist);
   font_family_alist = Qnil;
 
-  DEFSYM (Qfontp, "fontp");
   DEFSYM (Qopentype, "opentype");
 
   DEFSYM (Qiso8859_1, "iso8859-1");
@@ -3940,6 +3939,7 @@ syms_of_font ()
   DEFSYM (QCotf, ":otf");
   DEFSYM (QClanguage, ":language");
   DEFSYM (QCscript, ":script");
+  DEFSYM (QCantialias, ":antialias");
 
   DEFSYM (QCfoundry, ":foundry");
   DEFSYM (QCadstyle, ":adstyle");
