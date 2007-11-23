@@ -30,6 +30,17 @@ Boston, MA 02110-1301, USA.  */
 #include "fontset.h"
 #include "font.h"
 
+/* Cleartype available on Windows XP, cleartype_natural from XP SP1.
+   The latter does not try to fit cleartype smoothed fonts into the
+   same bounding box as the non-antialiased version of the font.
+ */
+#ifndef CLEARTYPE_QUALITY
+#define CLEARTYPE_QUALITY 5
+#endif
+#ifndef CLEARTYPE_NATURAL_QUALITY
+#define CLEARTYPE_NATURAL_QUALITY 6
+#endif
+
 /* The actual structure for a w32 font, that can be cast to struct font.  */
 struct w32font_info
 {
@@ -39,9 +50,15 @@ struct w32font_info
 
 extern struct font_driver w32font_driver;
 
-Lisp_Object Qgdi, QCfamily;
+Lisp_Object Qgdi;
+extern Lisp_Object QCfamily; /* reuse from xfaces.c  */
 static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
 static Lisp_Object Qscript, Qdecorative, Qraster, Qoutline, Qunknown;
+
+/* antialiasing  */
+extern Lisp_Object QCantialias; /* defined in font.c  */
+extern Lisp_Object Qnone; /* reuse from w32fns.c  */
+static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 
 /* scripts */
 static Lisp_Object Qlatin, Qgreek, Qcoptic, Qcyrillic, Qarmenian, Qhebrew;
@@ -60,6 +77,9 @@ extern Lisp_Object Qc, Qp, Qm;
 
 static void fill_in_logfont P_ ((FRAME_PTR f, LOGFONT *logfont,
                                  Lisp_Object font_spec));
+
+static BYTE w32_antialias_type P_ ((Lisp_Object type));
+static Lisp_Object lispy_antialias_type P_ ((BYTE type));
 
 static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE * sig));
 
@@ -133,7 +153,6 @@ static Lisp_Object
 w32font_list (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  Lisp_Object tem;
   struct font_callback_data match_data;
   HDC dc;
   FRAME_PTR f = XFRAME (frame);
@@ -655,11 +674,13 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
 
 /* Convert an enumerated Windows font to an Emacs font entity.  */
 static Lisp_Object
-w32_enumfont_pattern_entity (frame, logical_font, physical_font, font_type)
+w32_enumfont_pattern_entity (frame, logical_font, physical_font,
+                             font_type, requested_font)
      Lisp_Object frame;
      ENUMLOGFONTEX *logical_font;
      NEWTEXTMETRICEX *physical_font;
      DWORD font_type;
+     LOGFONT *requested_font;
 {
   Lisp_Object entity, tem;
   LOGFONT *lf = (LOGFONT*) logical_font;
@@ -703,12 +724,16 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font, font_type)
   if (! NILP (tem))
     font_put_extra (entity, QCfamily, tem);
 
-
   if (physical_font->ntmTm.tmPitchAndFamily & 0x01)
     font_put_extra (entity, QCspacing, make_number (FONT_SPACING_PROPORTIONAL));
   else
     font_put_extra (entity, QCspacing, make_number (FONT_SPACING_MONO));
 
+  if (requested_font->lfQuality != DEFAULT_QUALITY)
+    {
+      font_put_extra (entity, QCantialias,
+                      lispy_antialias_type (requested_font->lfQuality));
+    }
   ASET (entity, FONT_FAMILY_INDEX,
         intern_downcase (lf->lfFaceName, strlen (lf->lfFaceName)));
 
@@ -955,7 +980,8 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
     {
       Lisp_Object entity
         = w32_enumfont_pattern_entity (match_data->frame, logical_font,
-                                       physical_font, font_type);
+                                       physical_font, font_type,
+                                       &match_data->pattern);
       if (!NILP (entity))
         match_data->list = Fcons (entity, match_data->list);
     }
@@ -1069,9 +1095,10 @@ fill_in_logfont (f, logfont, font_spec)
     logfont->lfCharSet = registry_to_w32_charset (tmp);
 
   /* Out Precision  */
+
   /* Clip Precision  */
-  /* Quality  TODO: Allow different quality to be specified, so user
-     can enable/disable anti-aliasing for individual fonts.  */
+
+  /* Quality */
   logfont->lfQuality = DEFAULT_QUALITY;
 
   /* Generic Family and Face Name  */
@@ -1160,6 +1187,10 @@ fill_in_logfont (f, logfont, font_spec)
               else if (EQ (val, Qsymbol))
                 logfont->lfCharSet = SYMBOL_CHARSET;
             }
+          else if (EQ (key, QCantialias) && SYMBOLP (val))
+            {
+              logfont->lfQuality = w32_antialias_type (val);
+            }
         }
     }
 }
@@ -1197,6 +1228,50 @@ list_all_matching_fonts (match_data)
     }
 
   release_frame_dc (f, dc);
+}
+
+static Lisp_Object
+lispy_antialias_type (type)
+     BYTE type;
+{
+  Lisp_Object lispy;
+
+  switch (type)
+    {
+    case NONANTIALIASED_QUALITY:
+      lispy = Qnone;
+      break;
+    case ANTIALIASED_QUALITY:
+      lispy = Qstandard;
+      break;
+    case CLEARTYPE_QUALITY:
+      lispy = Qsubpixel;
+      break;
+    case CLEARTYPE_NATURAL_QUALITY:
+      lispy = Qnatural;
+      break;
+    default:
+      lispy = Qnil;
+      break;
+    }
+  return lispy;
+}
+
+/* Convert antialiasing symbols to lfQuality  */
+static BYTE
+w32_antialias_type (type)
+     Lisp_Object type;
+{
+  if (EQ (type, Qnone))
+    return NONANTIALIASED_QUALITY;
+  else if (EQ (type, Qstandard))
+    return ANTIALIASED_QUALITY;
+  else if (EQ (type, Qsubpixel))
+    return CLEARTYPE_QUALITY;
+  else if (EQ (type, Qnatural))
+    return CLEARTYPE_NATURAL_QUALITY;
+  else
+    return DEFAULT_QUALITY;
 }
 
 /* Return a list of all the scripts that the font supports.  */
@@ -1331,8 +1406,10 @@ syms_of_w32font ()
   DEFSYM (Qoutline, "outline");
   DEFSYM (Qunknown, "unknown");
 
-  /* Indexes for extra info.  */
-  DEFSYM (QCfamily, ":family");
+  /* Antialiasing.  */
+  DEFSYM (Qstandard, "standard");
+  DEFSYM (Qsubpixel, "subpixel");
+  DEFSYM (Qnatural, "natural");
 
   /* Scripts  */
   DEFSYM (Qlatin, "latin");
