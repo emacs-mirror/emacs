@@ -1,3 +1,18 @@
+2007-11-23  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-read-dir-and-switches): For C-x d, set the
+	value for M-n to the visited file name of the current buffer.
+	Use minibuffer-with-setup-hook to set minibuffer-default to
+	buffer-file-name inside read-file-name.
+
+	* man.el (Man-getpage-in-background): Don't disregard user option
+	`Man-width' on non-window systems.  Remove test for `window-system'
+	around setting envvar "COLUMNS" depending on the value of `Man-width'.
+
+	* progmodes/grep.el (grep-process-setup): Set envvar "TERM" to
+	"emacs-grep".  Set envvar "GREP_OPTIONS" to "--color=auto" instead
+	of "--color=always".
+
 2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (beginning-of-defun-raw): Pass `arg' down to
