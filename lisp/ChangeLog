@@ -1,3 +1,7 @@
+2007-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nxml/subdirs.el: Remove.
+
 2007-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-deduce-fileset): Also look for a fileset in the parent
