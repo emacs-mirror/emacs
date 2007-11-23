@@ -1,3 +1,8 @@
+2007-11-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-deduce-fileset): Also look for a fileset in the parent
+	buffer if the parent buffer is in vc-dired-mode.
+
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
 	* nxml: Initial merge of nxml.  Kept nxml/char-name subdir for

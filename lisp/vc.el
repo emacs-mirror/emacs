@@ -1267,7 +1267,9 @@ Otherwise, throw an error."
 	   marked))
 	((vc-backend buffer-file-name)
 	 (list buffer-file-name))
-	((and vc-parent-buffer (buffer-file-name vc-parent-buffer))
+	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+				   (with-current-buffer vc-parent-buffer
+				     vc-dired-mode)))
 	 (progn
 	   (set-buffer vc-parent-buffer)
 	   (vc-deduce-fileset)))
