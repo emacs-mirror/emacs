@@ -1,3 +1,20 @@
+2007-11-23  Jason Rumney  <jasonr@gnu.org>
+
+	* font.c (Qfontp): Remove unused symbol.
+	(QCantialias): New symbol.
+	(syms_of_font): Define it.
+	(font_property_table): Set a validator for QCantialias.
+
+	* w32font.c (CLEARTYPE_QUALITY, CLEARTYPE_NATURAL_QUALITY): Define
+	if not already.
+	(QCfamily): Share with xfaces.c.
+	(Qstandard, Qsubpixel, Qnatural): New symbols.
+	(syms_of_w32font): Define them. Don't define QCfamily here.
+	(w32_antialias_type, lispy_antialias_type): New functions.
+	(w32_enumfont_pattern_entity): New arg requested_font.
+	Set antialias parameter if non-default was requested.
+	(fill_in_logfont): Fill in lfQuality if :antialias specified.
+
 2007-11-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* lread.c (read1): Undo the previous change.
