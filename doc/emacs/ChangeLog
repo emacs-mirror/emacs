@@ -2,7 +2,9 @@
 
 	* files.texi (Why Version Control?): Fix typo.
 	(VCS Concepts): Fix typos; small tense fix.
-	(Selecting a Fileset): Fix typo; small rewording.
+	(Selecting a Fileset): Fix typos; small rewording.
+	(Log Buffer): Likewise.
+	(Old Revisions): Likewise.
 
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
