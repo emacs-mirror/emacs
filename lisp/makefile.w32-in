@@ -76,12 +76,12 @@ WINS_ALMOST=\
 	erc \
 	eshell \
 	gnus \
-	nxml \
 	international \
 	language \
 	mail \
 	mh-e \
 	net \
+	nxml \
 	play \
 	progmodes \
 	term \
