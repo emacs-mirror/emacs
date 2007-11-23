@@ -595,8 +595,12 @@ Don't use that together with FILTER."
 	    (if (next-read-file-uses-dialog-p)
 		(read-directory-name (format "Dired %s(directory): " str)
 				     nil default-directory nil)
-	      (read-file-name (format "Dired %s(directory): " str)
-			      nil default-directory nil)))))
+	      (let ((default (and buffer-file-name
+				  (abbreviate-file-name buffer-file-name))))
+		(minibuffer-with-setup-hook
+		    (lambda () (setq minibuffer-default default))
+		  (read-file-name (format "Dired %s(directory): " str)
+				  nil default-directory nil)))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
