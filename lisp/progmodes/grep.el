@@ -371,11 +371,16 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
     (grep-compute-defaults))
   (when (eq grep-highlight-matches t)
-    ;; Modify `process-environment' locally bound in `compilation-start'
-    (setenv "GREP_OPTIONS" (concat (getenv "GREP_OPTIONS") " --color=always"))
-    ;; for GNU grep 2.5.1
+    ;; `setenv' modifies `process-environment' let-bound in `compilation-start'
+    ;; Any TERM except "dumb" allows GNU grep to use `--color=auto'
+    (setenv "TERM" "emacs-grep")
+    ;; `--color=auto' emits escape sequences on a tty rather than on a pipe,
+    ;; thus allowing to use multiple grep filters on the command line
+    ;; and to output escape sequences only on the final grep output
+    (setenv "GREP_OPTIONS" (concat (getenv "GREP_OPTIONS") " --color=auto"))
+    ;; GREP_COLOR is used in GNU grep 2.5.1, but deprecated in later versions
     (setenv "GREP_COLOR" "01;31")
-    ;; for GNU grep 2.5.1-cvs
+    ;; GREP_COLORS is used in GNU grep 2.5.2 and later versions
     (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:ml=:cx=:ne"))
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
