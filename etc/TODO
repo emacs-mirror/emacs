@@ -29,10 +29,6 @@ I.e. mouse-set-font should use customize-face.
 the mouse is put to rest or after a delay or both, so that moving over
 a window doesn't select it.
 
-** In C-x d, the default if you type RET should be the directory name,
-but if you type M-n you should get the visited file name of the
-current buffer.
-
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
 
