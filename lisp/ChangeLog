@@ -5,8 +5,7 @@
 
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
-	* nxml: Initial merge of nxml.  Kept nxml/char-name subdir for
-	now.
+	* nxml: Initial merge of nxml.  Kept nxml/char-name subdir for now.
 
 2007-11-23  Juri Linkov  <juri@jurta.org>
 
