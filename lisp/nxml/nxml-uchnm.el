@@ -254,4 +254,5 @@ the variable `nxml-enabled-unicode-blocks'."
 
 (provide 'nxml-uchnm)
 
+;; arch-tag: 440248c3-b604-467c-8b50-e83662c659a3
 ;;; nxml-uchnm.el ends here

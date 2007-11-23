@@ -1922,4 +1922,5 @@ and `xmltok-namespace-attributes'."
 
 (provide 'xmltok)
 
+;; arch-tag: 747e5f3a-6fc3-4f8d-bd96-89f05aa99f5e
 ;;; xmltok.el ends here

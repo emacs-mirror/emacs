@@ -415,4 +415,5 @@ Return nil if the face cannot display a glyph for N."
 
 (provide 'nxml-glyph)
 
+;; arch-tag: 50985104-27c6-4241-8625-b11aa5685633
 ;;; nxml-glyph.el ends here

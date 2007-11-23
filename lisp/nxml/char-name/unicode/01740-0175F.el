@@ -20,3 +20,5 @@
     ("BUHID VOWEL SIGN I" #x1752)
     ("BUHID VOWEL SIGN U" #x1753)
     ))
+
+;; arch-tag: a30b6352-4c93-4908-a5df-0172b643ae23

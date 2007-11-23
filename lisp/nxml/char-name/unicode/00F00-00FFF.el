@@ -193,3 +193,5 @@
     ("TIBETAN SYMBOL NOR BU BZHI -KHYIL" #x0FCC)
     ("TIBETAN SIGN RDEL NAG GSUM" #x0FCF)
     ))
+
+;; arch-tag: 547e48c6-3ded-4dc7-be69-4ee324c604c3

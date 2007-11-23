@@ -104,3 +104,5 @@
     ("DEVANAGARI DIGIT NINE" #x096F)
     ("DEVANAGARI ABBREVIATION SIGN" #x0970)
     ))
+
+;; arch-tag: c9d655c5-2ec9-4b64-a13f-d4fafe0cbad7

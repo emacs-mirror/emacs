@@ -16,3 +16,5 @@
     ("KATAKANA LETTER SMALL RE" #x31FE)
     ("KATAKANA LETTER SMALL RO" #x31FF)
     ))
+
+;; arch-tag: 090acfb7-1a46-4b05-bebb-573bbc0d8a82

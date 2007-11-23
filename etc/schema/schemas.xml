@@ -34,3 +34,6 @@
   <typeId id="DocBook" uri="docbook.rnc"/>
   <typeId id="RDF" uri="rdfxml.rnc"/>
 </locatingRules>
+
+<!-- arch-tag: 1fde96fa-b401-4033-8514-c4990b1e18a5
+     (do not change this comment) -->

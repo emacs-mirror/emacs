@@ -78,3 +78,5 @@
     ("GUJARATI DIGIT EIGHT" #x0AEE)
     ("GUJARATI DIGIT NINE" #x0AEF)
     ))
+
+;; arch-tag: e11e63c9-1fd7-496b-be1b-4c2bb32bdec4

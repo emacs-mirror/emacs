@@ -80,3 +80,5 @@
     ("GEORGIAN LETTER ELIFI" #x10F8)
     ("GEORGIAN PARAGRAPH SEPARATOR" #x10FB)
     ))
+
+;; arch-tag: 8f5a9cec-8b71-48c9-af68-c8c51112e5b2

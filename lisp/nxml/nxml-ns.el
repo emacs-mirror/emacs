@@ -145,4 +145,5 @@ NS is a symbol or nil."
     
 (provide 'nxml-ns)
 
+;; arch-tag: 5968e4b7-fb37-46ce-8621-c65db9793028
 ;;; nxml-ns.el ends here

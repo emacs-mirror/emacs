@@ -82,3 +82,5 @@
     ("HEBREW PUNCTUATION GERESH" #x05F3)
     ("HEBREW PUNCTUATION GERSHAYIM" #x05F4)
     ))
+
+;; arch-tag: 262da37d-1065-4dfd-b6e4-a8259a780caf

@@ -832,3 +832,7 @@ full Unicode support, which should improve the situation here.
 @end itemize
 
 @bye
+
+@ignore
+   arch-tag: 3b6e8ac2-ae8d-4f38-bd43-ce9f80be04d6
+@end ignore

@@ -20,3 +20,5 @@
     ("TAGALOG VOWEL SIGN U" #x1713)
     ("TAGALOG SIGN VIRAMA" #x1714)
     ))
+
+;; arch-tag: f30d4825-3942-4534-8671-5fcd71df44ba

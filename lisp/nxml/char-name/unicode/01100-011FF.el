@@ -240,3 +240,5 @@
     ("HANGUL JONGSEONG HIEUH-PIEUP" #x11F8)
     ("HANGUL JONGSEONG YEORINHIEUH" #x11F9)
     ))
+
+;; arch-tag: e631a2ad-7d7e-4a86-89f0-e6e4f7db5f39

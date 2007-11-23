@@ -1464,4 +1464,5 @@ string between START and END."
 
 (provide 'rng-valid)
 
+;; arch-tag: 7dd846d3-519d-4a6d-8107-4ff0024a60ef
 ;;; rng-valid.el ends here

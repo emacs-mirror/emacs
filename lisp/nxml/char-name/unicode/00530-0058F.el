@@ -86,3 +86,5 @@
     ("ARMENIAN FULL STOP" #x0589)
     ("ARMENIAN HYPHEN" #x058A)
     ))
+
+;; arch-tag: 7b3d705a-d060-42de-a918-ff39dbe5d276

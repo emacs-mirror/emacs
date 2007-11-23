@@ -545,4 +545,5 @@ saved to the first writable file in `rng-schema-locating-files'."
 
 (provide 'rng-loc)
 
+;; arch-tag: 725cf968-37a2-418b-b47b-d5209871a9ab
 ;;; rng-loc.el ends here

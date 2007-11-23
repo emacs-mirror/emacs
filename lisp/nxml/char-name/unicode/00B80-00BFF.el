@@ -61,3 +61,5 @@
     ("TAMIL NUMBER ONE HUNDRED" #x0BF1)
     ("TAMIL NUMBER ONE THOUSAND" #x0BF2)
     ))
+
+;; arch-tag: a299bfdc-4543-4405-a4a8-202d178a578f

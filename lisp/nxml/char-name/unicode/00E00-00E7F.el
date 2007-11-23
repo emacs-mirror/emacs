@@ -87,3 +87,5 @@
     ("THAI CHARACTER ANGKHANKHU" #x0E5A)
     ("THAI CHARACTER KHOMUT" #x0E5B)
     ))
+
+;; arch-tag: cf6119b0-ae54-4871-a8a7-10621d74cba8

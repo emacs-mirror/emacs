@@ -95,3 +95,5 @@
     ("NATIONAL DIGIT SHAPES" #x206E)
     ("NOMINAL DIGIT SHAPES" #x206F)
     ))
+
+;; arch-tag: 9208787e-c528-416d-a9b1-7261c9cde84e

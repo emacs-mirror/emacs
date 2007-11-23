@@ -103,4 +103,5 @@
 
 (provide 'nxml-maint)
 
+;; arch-tag: 2cff6b55-12af-47db-90da-a91f782f435a
 ;;; nxml-maint.el ends here

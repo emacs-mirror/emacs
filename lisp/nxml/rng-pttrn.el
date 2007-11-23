@@ -186,4 +186,5 @@
 
 (provide 'rng-pttrn)
 
+;; arch-tag: 9418e269-ddd4-4037-861f-ff903f48f008
 ;;; rng-pttrn.el ends here

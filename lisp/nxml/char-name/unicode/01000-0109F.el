@@ -78,3 +78,5 @@
     ("MYANMAR VOWEL SIGN VOCALIC L" #x1058)
     ("MYANMAR VOWEL SIGN VOCALIC LL" #x1059)
     ))
+
+;; arch-tag: 030cc7f0-2667-4504-ae9c-39c00fe146ff

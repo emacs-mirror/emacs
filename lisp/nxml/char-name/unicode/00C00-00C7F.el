@@ -80,3 +80,5 @@
     ("TELUGU DIGIT EIGHT" #x0C6E)
     ("TELUGU DIGIT NINE" #x0C6F)
     ))
+
+;; arch-tag: 12e2c9a2-fa3a-400a-9adb-82a89e0a639b

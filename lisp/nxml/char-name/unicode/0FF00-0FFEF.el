@@ -225,3 +225,5 @@
     ("HALFWIDTH BLACK SQUARE" #xFFED)
     ("HALFWIDTH WHITE CIRCLE" #xFFEE)
     ))
+
+;; arch-tag: 8af7a95d-6e71-47da-9679-b516b6e2f01a

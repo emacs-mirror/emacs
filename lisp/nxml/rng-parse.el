@@ -101,4 +101,5 @@ be signaled in the same way as when it is not well-formed."
 
 (provide 'rng-parse)
 
+;; arch-tag: 8f14f533-b687-4dc0-9cd7-617ead856981
 ;;; rng-parse.el ends here

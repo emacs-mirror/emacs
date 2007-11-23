@@ -55,3 +55,5 @@
     ("YI RADICAL NBIE" #xA4C5)
     ("YI RADICAL KE" #xA4C6)
     ))
+
+;; arch-tag: 2c93cdf1-e6f2-4a91-a798-3e1d7c094cf4

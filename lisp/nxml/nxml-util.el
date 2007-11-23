@@ -97,4 +97,5 @@ modifications to the buffer."
 
 (provide 'nxml-util)
 
+;; arch-tag: 7d3b3af4-de2b-4410-bf67-94d64824324b
 ;;; nxml-util.el ends here

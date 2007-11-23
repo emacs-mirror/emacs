@@ -103,3 +103,5 @@
     ("KHMER DIGIT EIGHT" #x17E8)
     ("KHMER DIGIT NINE" #x17E9)
     ))
+
+;; arch-tag: 2d03b253-c5f2-4595-b346-36e3b87df51c

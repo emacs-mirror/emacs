@@ -169,4 +169,5 @@ HIST, if non-nil, specifies a history list as with `completing-read'."
 
 (provide 'rng-util)
 
+;; arch-tag: 2dc233e0-5e7a-488f-bfc4-5909512dbaf0
 ;;; rng-util.el ends here

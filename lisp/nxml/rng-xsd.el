@@ -855,4 +855,5 @@ MONTHS must be an integer >= 0."
 
 (provide 'rng-xsd)
 
+;; arch-tag: 6b05510e-a5bb-4b99-8618-4660d00d0abb
 ;;; rng-xsd.el ends here

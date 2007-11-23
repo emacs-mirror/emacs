@@ -76,3 +76,5 @@
     ("DESERET SMALL LETTER EN" #x1044C)
     ("DESERET SMALL LETTER ENG" #x1044D)
     ))
+
+;; arch-tag: 0fbf6586-41cf-41b2-88e9-d113db5d933e

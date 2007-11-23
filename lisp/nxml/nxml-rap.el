@@ -464,4 +464,5 @@ expected `%s'"
 
 (provide 'nxml-rap)
 
+;; arch-tag: cba241ec-4c59-4ef3-aa51-2cf92b3dd24f
 ;;; nxml-rap.el ends here

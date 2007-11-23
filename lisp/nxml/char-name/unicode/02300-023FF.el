@@ -207,3 +207,5 @@
     ("SQUARE FOOT" #x23CD)
     ("RETURN SYMBOL" #x23CE)
     ))
+
+;; arch-tag: ee70bee5-f22f-4c0e-bed6-2606b27d94cf

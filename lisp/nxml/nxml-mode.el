@@ -2662,4 +2662,5 @@ With a prefix argument, inserts the character directly."
 
 (provide 'nxml-mode)
 
+;; arch-tag: 8603bc5f-1ef9-4021-b223-322fb2ca708e
 ;;; nxml-mode.el ends here

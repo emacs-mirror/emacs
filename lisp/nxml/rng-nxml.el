@@ -588,4 +588,5 @@ set `xmltok-dtd'. Returns the position of the end of the token."
 
 (provide 'rng-nxml)
 
+;; arch-tag: bec0d6ed-6be1-4540-9c2c-6f56e8e55d8b
 ;;; rng-nxml.el ends here

@@ -18,3 +18,5 @@
     ("GERMAN PENNY SIGN" #x20B0)
     ("PESO SIGN" #x20B1)
     ))
+
+;; arch-tag: 2f9ece37-0ae6-4a82-b12e-dc10ac58e6ce

@@ -1736,4 +1736,5 @@ be exhaustive."
 
 (provide 'rng-match)
     
+;; arch-tag: c8c50733-edcf-49fb-85e2-0aac8749b7f8
 ;;; rng-match.el ends here

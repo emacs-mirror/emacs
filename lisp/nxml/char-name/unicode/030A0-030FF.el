@@ -96,3 +96,5 @@
     ("KATAKANA VOICED ITERATION MARK" #x30FE)
     ("KATAKANA DIGRAPH KOTO" #x30FF)
     ))
+
+;; arch-tag: 58c48b02-037a-43f3-b225-9e9bf37a7fbd

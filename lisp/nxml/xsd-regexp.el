@@ -2118,4 +2118,5 @@ Code is inserted into the current buffer."
 
 (provide 'xsd-regexp)
 
+;; arch-tag: bf990d61-a26c-4fd3-b578-56a5640729da
 ;;; xsd-regexp.el ends here

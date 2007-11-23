@@ -1037,4 +1037,5 @@ immediately after the section's start-tag."
 
 (provide 'nxml-outln)
 
+;; arch-tag: 1f1b7454-e573-4cd7-a505-d9dc64eef828
 ;;; nxml-outln.el ends here

@@ -115,3 +115,5 @@
     ("CJK RADICAL J-SIMPLIFIED TURTLE" #x2EF2)
     ("CJK RADICAL C-SIMPLIFIED TURTLE" #x2EF3)
     ))
+
+;; arch-tag: 59a2c3dd-63ee-4cba-b427-1e8eb782634f
