@@ -29,7 +29,7 @@
 
 (defun url-device-type (&optional device)
   (if (fboundp 'device-type)
-      (url-device-type device)
+      (device-type device)              ; XEmacs
     (or window-system 'tty)))
 
 ;;;###autoload
