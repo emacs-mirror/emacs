@@ -1,3 +1,7 @@
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* url-privacy.el (url-device-type): Fix typo.
+
 2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* url-mailto.el (mail-send-and-exit):
