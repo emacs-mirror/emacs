@@ -1,3 +1,9 @@
+2007-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (copy_data_segment): Also copy __gcc_except_tab and
+	__objc_* sections.
+	(unrelocate) [_LP64]: Set relocation base to address of data segment.
+
 2007-11-23  Andreas Schwab  <schwab@suse.de>
 
 	* editfns.c (Fformat): Handle %c specially since it requires the
