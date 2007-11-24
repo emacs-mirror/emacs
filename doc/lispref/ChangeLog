@@ -1,3 +1,9 @@
+2007-11-24  Richard Stallman  <rms@gnu.org>
+
+	* functions.texi (Declaring Functions): Clarify previous change.
+
+	* compile.texi (Compiler Errors): Clarify previous change.
+
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* functions.texi (Declaring Functions): New section.
