@@ -1,3 +1,7 @@
+2007-11-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/ucs-tables.el (ucs-8859-7-alist): Update the table.
+
 2007-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nxml/subdirs.el, nxml/char-data/subdirs.el, nxml/rng-auto.el: Remove.
