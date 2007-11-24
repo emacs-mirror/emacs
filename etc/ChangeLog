@@ -1,3 +1,7 @@
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* images/gnus/mail_send.xpm: Rename to mail-send.xpm.
+
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
 	* NXML-NEWS: New File.
