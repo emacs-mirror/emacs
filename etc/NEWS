@@ -271,6 +271,8 @@ version-control systems such as Subversion, GNU Arch, Mercurial, and
 Bzr. VC will now pass a multiple-file commit to these systems
 as a single changeset.
 
+*** In VC Annotate mode, you can type V to toggle the annotation visibility.
+
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 ** The appearance of superscript and subscript in TeX is more customizable.
