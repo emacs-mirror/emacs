@@ -1,3 +1,9 @@
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* functions.texi (Declaring Functions): New section.
+	* compile.texi (Compiler Errors): Mention declaring functions,
+	defvar with no initvalue, and byte-compile-warnings.
+
 2007-11-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* vol1.texi (Top): Remove Frame-Local Variables from Node Listing.
