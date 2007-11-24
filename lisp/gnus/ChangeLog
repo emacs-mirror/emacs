@@ -1,3 +1,8 @@
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-tool-bar-retro): Update for rename
+	mail_send.xpm->mail-send.xpm.
+
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* nnimap.el (nnimap-split-download-body):
