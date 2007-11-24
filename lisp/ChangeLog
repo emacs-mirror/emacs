@@ -1,3 +1,9 @@
+2007-11-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ido.el (ido-file-name-all-completions-1): Check for fboundp of
+	`tramp-completion-mode-p' as it is in Tramp 2.1.  Let-bind
+	`tramp-completion-mode'.
+
 2007-11-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc-git.el (vc-git-show-log-entry): New func.

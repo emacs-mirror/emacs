@@ -3373,24 +3373,25 @@ for first matching file."
    ;; Caller must have done that if necessary.
 
    ((and ido-enable-tramp-completion
-	 (or (fboundp 'tramp-completion-mode)
+	 (or (fboundp 'tramp-completion-mode-p)
 	     (require 'tramp nil t))
 	 (string-match "\\`/[^/]+[:@]\\'" dir))
     ;; Strip method:user@host: part of tramp completions.
     ;; Tramp completions do not include leading slash.
-    (let ((len (1- (length dir)))
-	  (compl
-	   (or (file-name-all-completions "" dir)
-	       ;; work around bug in ange-ftp.
-	       ;; /ftp:user@host: => nil
-	       ;; /ftp:user@host:./ => ok
-	       (and
-		(not (string= "/ftp:" dir))
-		(tramp-tramp-file-p dir)
-		(fboundp 'tramp-ftp-file-name-p)
-		(funcall 'tramp-ftp-file-name-p dir)
-		(string-match ":\\'" dir)
-		(file-name-all-completions "" (concat dir "./"))))))
+    (let* ((len (1- (length dir)))
+	   (tramp-completion-mode t)
+	   (compl
+	    (or (file-name-all-completions "" dir)
+		;; work around bug in ange-ftp.
+		;; /ftp:user@host: => nil
+		;; /ftp:user@host:./ => ok
+		(and
+		 (not (string= "/ftp:" dir))
+		 (tramp-tramp-file-p dir)
+		 (fboundp 'tramp-ftp-file-name-p)
+		 (funcall 'tramp-ftp-file-name-p dir)
+		 (string-match ":\\'" dir)
+		 (file-name-all-completions "" (concat dir "./"))))))
       (if (and compl
 	       (> (length (car compl)) len)
 	       (string= (substring (car compl) 0 len) (substring dir 1)))
