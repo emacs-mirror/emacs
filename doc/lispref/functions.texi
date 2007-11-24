@@ -1228,50 +1228,66 @@ following the definition, just like macros.
 @cindex function declaration
 @cindex declaring functions
 
-Byte-compiling a file often produces warnings about functions that are
-@samp{not known to be defined} (@pxref{Compiler Errors}).  The compiler
-is technically correct, but the code is usually such that when it
-actually runs, the function @emph{will} be defined.  For example,
-byte-compiling @file{fortran.el} used to warn:
+Byte-compiling a file often produces warnings about functions that the
+compiler doesn't know about (@pxref{Compiler Errors}).  Sometimes this
+indicates a real problem, but usually the functions in question are
+defined in other files which would be loaded if that code is run.  For
+example, byte-compiling @file{fortran.el} used to warn:
 
-@example
+@smallexample
 In end of data:
-fortran.el:2152:1:Warning: the function `gud-find-c-expr' is not known
-to be defined.
-@end example
+fortran.el:2152:1:Warning: the function `gud-find-c-expr' is not known to be defined.
+@end smallexample
 
-But @code{gud-find-c-expr} is only used in the function that Fortran
-mode uses for the local value of @code{gud-find-expr-function}.  This
-would only ever be called from gud, so the warning can safely be
-suppressed.  It's nice to do this, so that real warnings are more
-visible.
+In fact, @code{gud-find-c-expr} is only used in the function that
+Fortran mode uses for the local value of
+@code{gud-find-expr-function}, which is a callback from GUD; if it is
+called, the GUD functions will be loaded.  When you know that such a
+warning does not indicate a real problem, it is good to suppress the
+warning.  That makes new warnings which might mean real problems more
+visible.  You do that with @code{declare-function}.
 
 All you need to do is add a @code{declare-function} statement before the
 first use of the function in question:
 
-@example
+@smallexample
 (declare-function gud-find-c-expr "gud.el" nil)
-@end example
+@end smalllexample
 
 This says that @code{gud-find-c-expr} is defined in @file{gud.el} (the
-`.el' can be omitted).  The file is searched for using
-@code{locate-library}, and failing that it is expanded relative to the
-file containing the @code{declare-function} statement.  Functions
-defined in C can also be declared - @file{.c} files are expanded
-relative to the Emacs @file{src/} directory.
+@samp{.el} can be omitted).  The compiler takes for granted that that file
+really defines the function, and does not check.
+ 
+  The optional third argument specifies the argument list of
+@code{gud-find-c-expr}.  In this case, it takes no arguments
+(@code{nil} is different from not specifying a value).  In other
+cases, this might be something like @code{(file &optional overwrite)}.
+You don't have to specify the argument list, but if you do the
+byte compiler can check that the calls match the declaration.
 
-The optional third argument specifies the argument list of
-@code{gud-find-c-expr}.  In this case, it takes no arguments (@code{nil}
-is different from not specifying a value).  In other cases, this might
-be something like @code{(file &optional overwrite)}.  You don't have to
-specify the argument list, but if you do the byte-compiler will check
-that the calls match the declaration.
+@defmac declare-function function file arglist
+Tell the byte compiler to assume that @var{function} is defined, with
+arguments @var{arglist}, and that the definition should come from
+the file @var{file}.
+@end defmac
 
-The functions @code{check-declare-file} and
-@code{check-declare-directory} check that all the
-@code{declare-function} statements in a file or directory are true
-(i.e. that the functions @emph{are} defined in the specified files, and
-have matching argument lists, if these were specified).
+  To verify that these functions really are declared where
+@code{declare-function} says they are, use @code{check-declare-file}
+to check all @code{declare-function} calls in one source file, or use
+@code{check-declare-directory} check all the files in and under a
+certain directory.
+
+  These commands find the file that ought to contain a function's
+definition using @code{locate-library}; if that finds no file, they
+expand the definition file name relative to the directory of the file
+that contains the @code{declare-function} call.
+
+  You can also say that a function is defined by C code by specifying
+a file name ending in @samp{.c}.  @code{check-declare-file} looks for
+these files in the C source code directory.  This is useful only when
+you call a function that is defined only on certain systems.  Most
+of the primitive functions of Emacs are always defined so they will
+never give you a warning.
 
 @node Function Safety
 @section Determining whether a Function is Safe to Call
