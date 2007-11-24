@@ -82,7 +82,7 @@
 
 ;;;###autoload
 (defcustom appt-issue-message t
-  "*Non-nil means check for appointments in the diary buffer.
+  "Non-nil means check for appointments in the diary buffer.
 To be detected, the diary entry must have the format described in the
 documentation of the function `appt-check'."
   :type 'boolean
@@ -94,19 +94,19 @@ variable `appt-display-format' instead." "22.1")
 
 ;;;###autoload
 (defcustom appt-message-warning-time 12
-  "*Time in minutes before an appointment that the warning begins."
+  "Time in minutes before an appointment that the warning begins."
   :type 'integer
   :group 'appt)
 
 ;;;###autoload
 (defcustom appt-audible t
-  "*Non-nil means beep to indicate appointment."
+  "Non-nil means beep to indicate appointment."
   :type 'boolean
   :group 'appt)
 
 ;;;###autoload
 (defcustom appt-visible t
-  "*Non-nil means display appointment message in echo area.
+  "Non-nil means display appointment message in echo area.
 This variable is only relevant if `appt-msg-window' is nil."
   :type 'boolean
   :group 'appt)
@@ -115,7 +115,7 @@ This variable is only relevant if `appt-msg-window' is nil."
 
 ;;;###autoload
 (defcustom appt-msg-window t
-  "*Non-nil means display appointment message in another window.
+  "Non-nil means display appointment message in another window.
 If non-nil, this variable overrides `appt-visible'."
   :type 'boolean
   :group 'appt)
@@ -144,27 +144,27 @@ of the (obsolete) variables `appt-msg-window' and `appt-visible'."
 
 ;;;###autoload
 (defcustom appt-display-mode-line t
-  "*Non-nil means display minutes to appointment and time on the mode line.
+  "Non-nil means display minutes to appointment and time on the mode line.
 This is in addition to any other display of appointment messages."
   :type 'boolean
   :group 'appt)
 
 ;;;###autoload
 (defcustom appt-display-duration 10
-  "*The number of seconds an appointment message is displayed.
+  "The number of seconds an appointment message is displayed.
 Only relevant if reminders are to be displayed in their own window."
   :type 'integer
   :group 'appt)
 
 ;;;###autoload
 (defcustom appt-display-diary t
-  "*Non-nil displays the diary when the appointment list is first initialized.
+  "Non-nil displays the diary when the appointment list is first initialized.
 This will occur at midnight when the appointment list is updated."
   :type 'boolean
   :group 'appt)
 
 (defcustom appt-display-interval 3
-  "*Number of minutes to wait between checking the appointment list."
+  "Number of minutes to wait between checking the appointment list."
   :type 'integer
   :group 'appt)
 
@@ -436,20 +436,8 @@ displayed in a window:
   "Display appointment message APPT-MSG in a separate buffer.
 The appointment is due in MIN-TO-APP (a string) minutes.
 NEW-TIME is a string giving the date."
-  (require 'electric)
-
-  ;; Make sure we're not in the minibuffer
-  ;; before splitting the window.
-
-  (if (equal (selected-window) (minibuffer-window))
-      (if (other-window 1)
-	  (select-window (other-window 1))
-	(if (display-multi-frame-p)
-	    (select-frame (other-frame 1)))))
-
   (let ((this-window (selected-window))
         (appt-disp-buf (set-buffer (get-buffer-create appt-buffer-name))))
-
     (if (cdr (assq 'unsplittable (frame-parameters)))
 	;; In an unsplittable frame, use something somewhere else.
 	(display-buffer appt-disp-buf)
@@ -489,7 +477,7 @@ Usually just deletes the appointment buffer."
 		    (let ((next-bottom-edge (nth 3 (window-edges w))))
 		      (when (< bottom-edge next-bottom-edge)
 			(setq bottom-edge next-bottom-edge
-			      lowest-window w)))))
+			      lowest-window w)))) 'nomini)
     (select-window lowest-window)))
 
 (defconst appt-time-regexp
