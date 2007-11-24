@@ -505,6 +505,9 @@ The call to @var{func} must be in the @var{then-form} of the
 @code{if}, and @var{func} must appear quoted in the call to
 @code{fboundp}.  (This feature operates for @code{cond} as well.)
 
+  You can tell the compiler that a function is defined using a
+@code{declare-function} statement (@pxref{Declaring Functions}).
+
   Likewise, you can suppress a compiler warning for an unbound variable
 @var{variable} by conditionalizing its use on a @code{boundp} test,
 like this:
@@ -517,6 +520,9 @@ like this:
 The reference to @var{variable} must be in the @var{then-form} of the
 @code{if}, and @var{variable} must appear quoted in the call to
 @code{boundp}.
+
+  You can tell the compiler that a variable is defined using a
+@code{defvar} statement with no initial value.
 
   You can suppress any compiler warnings using the construct
 @code{with-no-warnings}:
@@ -532,6 +538,9 @@ inside @var{body}.
 We recommend that you use this construct around the smallest
 possible piece of code.
 @end defspec
+
+More precise control of warnings is possible by setting the variable
+@code{byte-compile-warnings}.
 
 @node Byte-Code Objects
 @section Byte-Code Function Objects
