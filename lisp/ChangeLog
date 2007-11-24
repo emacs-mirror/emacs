@@ -1,5 +1,10 @@
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el: Remove leading `*' from defcustom doc-strings.
+	(appt-disp-window): Don't require electric.  Remove
+	minibuffer-avoidance code, since appt-select-lowest-window does that.
+	(appt-select-lowest-window): Avoid minibuffer.
+
 	* eshell/eshell.el: Remove leading `*' from defcustom doc-strings.
 	(esh-mode): Require it.
 	(esh-util): Use require rather than featurep and load.
