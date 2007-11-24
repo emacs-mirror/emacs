@@ -123,7 +123,9 @@ must be the first non-whitespace on a line, and everything up to
 the end of FILE must be all on the same line.  For example:
 
 \(declare-function c-end-of-defun \"progmodes/cc-cmds.el\"
-                  \(&optional arg))"
+                  \(&optional arg))
+
+For more information, see Info node `elisp(Declaring Functions)'."
   ;; Does nothing - byte-compile-declare-function does the work.
   nil)
 
