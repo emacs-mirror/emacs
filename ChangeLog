@@ -1,3 +1,7 @@
+2007-11-24  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (INFO_FILES): Add nxml-mode.
+
 2007-11-23  Romain Francoise  <romain@orebokech.com>
 
 	* make-dist: Include nXML.  Don't try to copy FTP, it was removed on

@@ -140,9 +140,9 @@ man1dir=$(mandir)/man1
 infodir=@infodir@
 INFO_FILES=ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq	\
            eintr elisp emacs emacs-mime erc eshell eudc flymake forms	\
-           gnus idlwave info message mh-e newsticker org pcl-cvs pgg	\
-           rcirc reftex remember sc ses sieve speedbar tramp vip viper	\
-           widget woman smtpmail url
+           gnus idlwave info message mh-e newsticker nxml-mode org	\
+           pcl-cvs pgg rcirc reftex remember sc ses sieve speedbar	\
+           tramp vip viper widget woman smtpmail url
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
