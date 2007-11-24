@@ -318,9 +318,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   the whole menu bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed: W3 (development version needs
-  significant work), PSGML, nXML [Mark Hershberger is looking at this
-  http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01699.html],
-  _possibly_ Cedet and ECB.
+  significant work), PSGML, _possibly_ Cedet and ECB.
   http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01493.html
   Check the assignments file for other packages which might go in and
   have been missed.
