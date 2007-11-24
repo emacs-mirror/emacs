@@ -436,6 +436,11 @@ displayed in a window:
   "Display appointment message APPT-MSG in a separate buffer.
 The appointment is due in MIN-TO-APP (a string) minutes.
 NEW-TIME is a string giving the date."
+  ;; Make sure we're not in the minibuffer before splitting the window.
+  ;; FIXME this seems needlessly complicated?
+  (when (minibufferp)
+    (other-window 1)
+    (and (minibufferp) (display-multi-frame-p) (other-frame 1)))
   (let ((this-window (selected-window))
         (appt-disp-buf (set-buffer (get-buffer-create appt-buffer-name))))
     (if (cdr (assq 'unsplittable (frame-parameters)))
