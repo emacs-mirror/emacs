@@ -55,21 +55,10 @@ This function clears and redisplays frame @var{frame}.
 This function clears and redisplays all visible frames.
 @end deffn
 
-  This function calls for redisplay of certain windows, the next time
-redisplay is done, but does not clear them first.
-
-@defun force-window-update &optional object
-This function forces some or all windows to be updated on next redisplay.
-If @var{object} is a window, it forces redisplay of that window.  If
-@var{object} is a buffer or buffer name, it forces redisplay of all
-windows displaying that buffer.  If @var{object} is @code{nil} (or
-omitted), it forces redisplay of all windows.
-@end defun
-
-  Processing user input takes absolute priority over redisplay.  If you
-call these functions when input is available, they do nothing
-immediately, but a full redisplay does happen eventually---after all the
-input has been processed.
+  In Emacs, processing user input takes priority over redisplay.  If
+you call these functions when input is available, they don't redisplay
+immediately, but the requested redisplay does happen
+eventually---after all the input has been processed.
 
   Normally, suspending and resuming Emacs also refreshes the screen.
 Some terminal emulators record separate contents for display-oriented
@@ -89,10 +78,55 @@ to redraw, @code{nil} means redrawing is needed.  The default is @code{nil}.
 @section Forcing Redisplay
 @cindex forcing redisplay
 
+  Emacs normally tries to redisplay the screen whenever it waits for
+input.  With this function you can request an immediate attempt to
+redisplay, in the middle of Lisp code, without actually waiting for
+input.
+
+@defun redisplay &optional force
+This function tries immediately to redisplay, provided there are no
+pending input events.  It is equivalent to @code{(sit-for 0)}.
+
+If the optional argument @var{force} is non-@code{nil}, it does all
+pending redisplay work even if input is available, with no
+pre-emption.
+
+The function returns @code{t} if it actually tried to redisplay, and
+@code{nil} otherwise.  A value of @code{t} does not mean that
+redisplay proceeded to completion; it could have been pre-empted by
+newly arriving terminal input.
+@end defun
+
+  @code{redisplay} with no argument tries immediately to redisplay,
+but has no effect on the usual rules for what parts of the screen to
+redisplay.  By contrast, the following function adds certain windows
+to the pending redisplay work (as if their contents had completely
+changed), but doesn't immediately try to do any redisplay work.
+
+@defun force-window-update &optional object
+This function forces some or all windows to be updated on next
+redisplay.  If @var{object} is a window, it requires eventual
+redisplay of that window.  If @var{object} is a buffer or buffer name,
+it requires eventual redisplay of all windows displaying that buffer.
+If @var{object} is @code{nil} (or omitted), it requires eventual
+redisplay of all windows.
+@end defun
+
+  @code{force-window-update} does not do a redisplay immediately.
+(Emacs will do that when it waits for input.)  Rather, its effect is
+to put more work on the queue to be done by redisplay whenever there
+is a chance.
+
   Emacs redisplay normally stops if input arrives, and does not happen
 at all if input is available before it starts.  Most of the time, this
 is exactly what you want.  However, you can prevent preemption by
 binding @code{redisplay-dont-pause} to a non-@code{nil} value.
+
+@defvar redisplay-dont-pause
+If this variable is non-@code{nil}, pending input does not
+prevent or halt redisplay; redisplay occurs, and finishes,
+regardless of whether input is available.
+@end defvar
 
 @defvar redisplay-preemption-period
 This variable specifies how many seconds Emacs waits between checks
@@ -106,22 +140,6 @@ redisplay, and redisplay cannot be preempted by input.
 This variable is only obeyed on graphical terminals.  For
 text terminals, see @ref{Terminal Output}.
 @end defvar
-
-@defvar redisplay-dont-pause
-If this variable is non-@code{nil}, pending input does not
-prevent or halt redisplay; redisplay occurs, and finishes,
-regardless of whether input is available.
-@end defvar
-
-@defun redisplay &optional force
-This function performs an immediate redisplay provided there are no
-pending input events.  This is equivalent to @code{(sit-for 0)}.
-
-If the optional argument @var{force} is non-@code{nil}, it forces an
-immediate and complete redisplay even if input is available.
-
-Returns @code{t} if redisplay was performed, or @code{nil} otherwise.
-@end defun
 
 @node Truncation
 @section Truncation
