@@ -2077,7 +2077,7 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 	(message "Checking out %s...done" filename)))
     (let ((result-buf (find-file-noselect filename)))
       (with-current-buffer result-buf
-	;; Set the parent buffer so that things like 
+	;; Set the parent buffer so that things like
 	;; C-x v g, C-x v l, ... etc work.
 	(setq vc-parent-buffer filebuf))
       result-buf)))
