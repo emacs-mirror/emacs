@@ -6,7 +6,7 @@
 
 @dircategory Emacs
 @direntry
-* nXML Mode: (nxml-mode.info).       XML editing mode with RELAX NG support.
+* nXML Mode: (nxml-mode).       XML editing mode with RELAX NG support.
 @end direntry
 
 @node Top

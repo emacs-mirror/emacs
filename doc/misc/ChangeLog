@@ -1,6 +1,7 @@
 2007-11-24  Romain Francoise  <romain@orebokech.com>
 
 	* nxml-mode.texi: Add description in @direntry.
+	Fix file name to match @setfilename.
 
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
