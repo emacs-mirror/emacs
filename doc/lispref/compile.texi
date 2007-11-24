@@ -505,12 +505,14 @@ The call to @var{func} must be in the @var{then-form} of the
 @code{if}, and @var{func} must appear quoted in the call to
 @code{fboundp}.  (This feature operates for @code{cond} as well.)
 
-  You can tell the compiler that a function is defined using a
-@code{declare-function} statement (@pxref{Declaring Functions}).
+  You can tell the compiler that a function is defined using
+@code{declare-function} (@pxref{Declaring Functions}).  Likewise, you
+can tell the compiler that a variable is defined using @code{defvar}
+with no initial value.
 
-  Likewise, you can suppress a compiler warning for an unbound variable
-@var{variable} by conditionalizing its use on a @code{boundp} test,
-like this:
+  You can suppress the compiler warning for a specific use of an
+undefined variable @var{variable} by conditionalizing its use on a
+@code{boundp} test, like this:
 
 @example
 (if (boundp '@var{variable}) ...@var{variable}...)
@@ -521,11 +523,8 @@ The reference to @var{variable} must be in the @var{then-form} of the
 @code{if}, and @var{variable} must appear quoted in the call to
 @code{boundp}.
 
-  You can tell the compiler that a variable is defined using a
-@code{defvar} statement with no initial value.
-
-  You can suppress any compiler warnings using the construct
-@code{with-no-warnings}:
+  You can suppress any and all compiler warnings within a certain
+expression using the construct @code{with-no-warnings}:
 
 @c This is implemented with a defun, but conceptually it is
 @c a special form.
@@ -536,10 +535,11 @@ but the compiler does not issue warnings for anything that occurs
 inside @var{body}.
 
 We recommend that you use this construct around the smallest
-possible piece of code.
+possible piece of code, to avoid missing possible warnings other than one
+one you intend to suppress.
 @end defspec
 
-More precise control of warnings is possible by setting the variable
+  More precise control of warnings is possible by setting the variable
 @code{byte-compile-warnings}.
 
 @node Byte-Code Objects
