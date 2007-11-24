@@ -135,8 +135,7 @@
 	     (name (file-relative-name file dir)))
 	(and (ignore-errors
                (when dir (cd dir))
-               (eq 0 (call-process "git" nil '(t nil) nil "ls-files"
-                                   "-c" "-z" "--" name)))
+               (vc-git--out-ok "ls-files" "-c" "-z" "--" name))
 	     (let ((str (buffer-string)))
 	       (and (> (length str) (length name))
 		    (string= (substring str 0 (1+ (length name)))
@@ -144,7 +143,7 @@
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
-  (call-process "git" nil nil nil "add" "--refresh" "--" (file-relative-name file))
+  (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
     (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0"
                                 diff))
@@ -184,7 +183,7 @@
   "Git-specific version of `vc-working-revision'."
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
-                 (call-process "git" nil '(t nil) nil "symbolic-ref" "HEAD")))))
+                 (vc-git--out-ok "symbolic-ref" "HEAD")))))
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
         (match-string 2 str)
       str)))
@@ -397,9 +396,7 @@ or BRANCH^ (where \"^\" can be repeated)."
     (vc-git-symbolic-commit
      (with-temp-buffer
        (and
-	(zerop
-	 (call-process "git" nil '(t nil) nil "rev-list"
-		       "-2" rev "--" file))
+	(vc-git--out-ok "rev-list" "-2" rev "--" file)
 	(goto-char (point-max))
 	(bolp)
 	(zerop (forward-line -1))
@@ -416,9 +413,7 @@ or BRANCH^ (where \"^\" can be repeated)."
          (current-rev
           (with-temp-buffer
             (and
-             (zerop
-              (call-process "git" nil '(t nil) nil "rev-list"
-                            "-1" rev "--" file))
+             (vc-git--out-ok "rev-list" "-1" rev "--" file)
              (goto-char (point-max))
              (bolp)
              (zerop (forward-line -1))
@@ -430,9 +425,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 	 (vc-git-symbolic-commit
 	  (with-temp-buffer
 	    (and
-	     (zerop
-	      (call-process "git" nil '(t nil) nil "rev-list"
-			    "HEAD" "--" file))
+	     (vc-git--out-ok "rev-list" "HEAD" "--" file)
 	     (goto-char (point-min))
 	     (search-forward current-rev nil t)
 	     (zerop (forward-line -1))
@@ -457,14 +450,20 @@ or BRANCH^ (where \"^\" can be repeated)."
 The difference to vc-do-command is that this function always invokes `git'."
   (apply 'vc-do-command buffer okstatus "git" file-or-list flags))
 
+(defun vc-git--call (buffer command &rest args)
+  (apply 'call-process "git" nil buffer nil command args))
+
+(defun vc-git--out-ok (command &rest args)
+  (zerop (apply 'vc-git--call '(t nil) command args)))
+
 (defun vc-git--run-command-string (file &rest args)
   "Run a git command on FILE and return its output as string."
   (let* ((ok t)
          (str (with-output-to-string
                 (with-current-buffer standard-output
-                  (unless (eq 0 (apply #'call-process "git" nil '(t nil) nil
-                                       (append args (list (file-relative-name
-                                                           file)))))
+                  (unless (apply 'vc-git--out-ok
+                                 (append args (list (file-relative-name
+                                                     file))))
                     (setq ok nil))))))
     (and ok str)))
 
@@ -474,10 +473,7 @@ Returns nil if not possible."
   (and commit
        (with-temp-buffer
 	 (and
-	  (zerop
-	   (call-process "git" nil '(t nil) nil "name-rev"
-			 "--name-only" "--tags"
-			 commit))
+	  (vc-git--out-ok "name-rev" "--name-only" "--tags" commit)
 	  (goto-char (point-min))
 	  (= (forward-line 2) 1)
 	  (bolp)
