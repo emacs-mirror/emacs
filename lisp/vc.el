@@ -774,6 +774,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
     (define-key m "N" 'vc-annotate-next-revision)
     (define-key m "P" 'vc-annotate-prev-revision)
     (define-key m "W" 'vc-annotate-working-revision)
+    (define-key m "V" 'vc-annotate-toggle-annotation-visibility)
     m)
   "Local keymap used for VC-Annotate mode.")
 
@@ -3151,10 +3152,23 @@ to provide the `find-revision' operation instead."
 You can use the mode-specific menu to alter the time-span of the used
 colors.  See variable `vc-annotate-menu-elements' for customizing the
 menu items."
+  ;; Frob buffer-invisibility-spec so that if it is originally a naked t,
+  ;; it will become a list, to avoid initial annotations being invisible.
+  (add-to-invisibility-spec 'foo)
+  (remove-from-invisibility-spec 'foo)
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'font-lock-defaults)
        '(vc-annotate-font-lock-keywords t))
   (view-mode 1))
+
+(defun vc-annotate-toggle-annotation-visibility ()
+  "Toggle whether or not the annotation is visible."
+  (interactive)
+  (funcall (if (memq 'vc-annotate-annotation buffer-invisibility-spec)
+               'remove-from-invisibility-spec
+             'add-to-invisibility-spec)
+           'vc-annotate-annotation)
+  (force-window-update (current-buffer)))
 
 (defun vc-annotate-display-default (ratio)
   "Display the output of \\[vc-annotate] using the default color range.
@@ -3169,6 +3183,13 @@ The current time is used as the offset."
   "Return the oldest time in the COLOR-MAP."
   ;; Since entries should be sorted, we can just use the last one.
   (caar (last color-map)))
+
+(defun vc-annotate-get-time-set-line-props ()
+  (let ((bol (point))
+        (date (vc-call-backend vc-annotate-backend 'annotate-time))
+        (inhibit-read-only t))
+    (put-text-property bol (point) 'invisible 'vc-annotate-annotation)
+    date))
 
 (defun vc-annotate-display-autoscale (&optional full)
   "Highlight the output of \\[vc-annotate] using an autoscaled color map.
@@ -3185,7 +3206,7 @@ cover the range from the oldest annotation to the newest."
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
-        (when (setq date (vc-call-backend vc-annotate-backend 'annotate-time))
+        (when (setq date (vc-annotate-get-time-set-line-props))
           (if (> date newest)
               (setq newest date))
           (if (< date oldest)
@@ -3233,6 +3254,7 @@ cover the range from the oldest annotation to the newest."
      :style toggle :selected
      (eq vc-annotate-display-mode 'fullscale)]
     "--"
+    ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility]
     ["Annotate previous revision" vc-annotate-prev-revision]
     ["Annotate next revision" vc-annotate-next-revision]
     ["Annotate revision at line" vc-annotate-revision-at-line]
@@ -3497,7 +3519,7 @@ The argument TIME is a list as returned by `current-time' or
 This calls the backend function annotate-time, and returns the
 difference in days between the time returned and the current time,
 or OFFSET if present."
-   (let ((next-time (vc-call-backend vc-annotate-backend 'annotate-time)))
+   (let ((next-time (vc-annotate-get-time-set-line-props)))
      (if next-time
 	 (- (or offset
 		(vc-call-backend vc-annotate-backend 'annotate-current-time))
