@@ -30,6 +30,8 @@
 ;; checks that all such statements in a file or directory are accurate.
 ;; The entry points are `check-declare-file' and `check-declare-directory'.
 
+;; For more information, see Info node `elisp(Declaring Functions)'.
+
 ;;; TODO:
 
 ;; 1. Handle defstructs (eg uniquify-item-base in desktop.el).
