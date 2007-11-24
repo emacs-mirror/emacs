@@ -1,3 +1,8 @@
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-tool-bar-retro): Update for rename
+	mail_send.xpm->mail-send.xpm.
+
 2007-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* hashcash.el: Move to ../mail directory.
