@@ -17,6 +17,10 @@
 
 	* international/ucs-tables.el (ucs-8859-7-alist): Update the table.
 
+2007-11-23  David Kastrup  <dak@gnu.org>
+
+	* server.el (server-process-filter): Use `command-line-args-left'
+
 2007-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nxml/subdirs.el, nxml/char-data/subdirs.el, nxml/rng-auto.el: Remove.
@@ -3914,8 +3918,6 @@
 	Make the computation more robust.
 
 2007-09-30  David Kastrup  <dak@gnu.org>
-
-	* server.el (server-process-filter): Use `command-line-args-left'
 
 	* startup.el (argv): Alias for `command-line-args-left' to use as
 	`(pop argv)' inside of --eval command sequences.  Allows for
