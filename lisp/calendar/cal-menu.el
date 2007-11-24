@@ -95,13 +95,11 @@
     ,@(let ((l ()))
         ;; Show 11 years--5 before, 5 after year of middle month.
         (dotimes (i 11)
-          (push (vector "For Year"
-                        `(lambda ()
-                           (interactive)
-                           (holiday-list (+ displayed-year ,(- i 5))
-                                         (+ displayed-year ,(- i 5))))
-                        :suffix `(number-to-string (+ displayed-year ,(- i 5))))
-                l))
+	  (let ((y (+ 2007 -5 i)))
+	    (push (vector (format "For Year %s" y)
+			  (list (list 'lambda 'nil '(interactive)
+				      (list 'list-holidays y y))))
+                l)))
         (nreverse l))
     "--"
     ["Unmark Calendar" calendar-unmark]
