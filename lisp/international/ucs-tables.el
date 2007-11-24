@@ -611,10 +611,13 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	 (?\,F!(B . ?\x2018) ;; LEFT SINGLE QUOTATION MARK
 	 (?\,F"(B . ?\x2019) ;; RIGHT SINGLE QUOTATION MARK
 	 (?\,F#(B . ?\x00A3) ;; POUND SIGN
+	 (?\,F$(B . ?\x20AC) ;; EURO SIGN
+	 (?\,F%(B . ?\x20AF) ;; DRACHMA SIGN
 	 (?\,F&(B . ?\x00A6) ;; BROKEN BAR
 	 (?\,F'(B . ?\x00A7) ;; SECTION SIGN
 	 (?\,F((B . ?\x00A8) ;; DIAERESIS
 	 (?\,F)(B . ?\x00A9) ;; COPYRIGHT SIGN
+	 (?\,F*(B . ?\x037A) ;; GREEK YPOGEGRAMMENI
 	 (?\,F+(B . ?\x00AB) ;; LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
 	 (?\,F,(B . ?\x00AC) ;; NOT SIGN
 	 (?\,F-(B . ?\x00AD) ;; SOFT HYPHEN
