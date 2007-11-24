@@ -1,3 +1,15 @@
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/eshell.el: Remove leading `*' from defcustom doc-strings.
+	(esh-mode): Require it.
+	(esh-util): Use require rather than featurep and load.
+	(eshell): No need to test if eshell-mode is bound; remove obsolete
+	reference to eshell-auto.
+	(eshell-command, eshell-command-result): Don't require esh-mode
+	now that the file does.
+	(top-level): Move provide statement to the end of the
+	file.  Re-order and update commentary.
+
 2007-11-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-annotate-mode): Frob buffer invisibility spec.
