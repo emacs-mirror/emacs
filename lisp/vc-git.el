@@ -116,7 +116,7 @@
 ;;; BACKEND PROPERTIES
 
 (defun vc-git-revision-granularity ()
-     'repository)
+  'repository)
 
 ;;; STATE-QUERYING FUNCTIONS
 
@@ -134,17 +134,20 @@
       (let* ((dir (file-name-directory file))
 	     (name (file-relative-name file dir)))
 	(and (ignore-errors
-	      (when dir (cd dir))
-	      (eq 0 (call-process "git" nil '(t nil) nil "ls-files" "-c" "-z" "--" name)))
+               (when dir (cd dir))
+               (eq 0 (call-process "git" nil '(t nil) nil "ls-files"
+                                   "-c" "-z" "--" name)))
 	     (let ((str (buffer-string)))
 	       (and (> (length str) (length name))
-		    (string= (substring str 0 (1+ (length name))) (concat name "\0")))))))))
+		    (string= (substring str 0 (1+ (length name)))
+                             (concat name "\0")))))))))
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
   (call-process "git" nil nil nil "add" "--refresh" "--" (file-relative-name file))
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
-    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0" diff))
+    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0"
+                                diff))
         'edited
       'up-to-date)))
 
@@ -158,7 +161,8 @@
 	(setq status-char (char-after))
 	(setq file
 	      (expand-file-name
-	       (buffer-substring-no-properties (+ (point) 2) (line-end-position))))
+	       (buffer-substring-no-properties (+ (point) 2)
+                                               (line-end-position))))
 	(cond
 	 ;; The rest of the possible states in "git ls-files -t" output:
          ;;      R              removed/deleted
@@ -290,27 +294,27 @@
        "^commit *\\([0-9a-z]+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append
-       `((,log-view-message-re  (1 'change-log-acknowledgement))
-         (,log-view-file-re (1 'change-log-file-face)))
-         ;; Handle the case:
-         ;; user: foo@bar
-         '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-            (1 'change-log-email))
-	   ;; Handle the case:
-	   ;; user: FirstName LastName <foo@bar>
-	   ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-	    (1 'change-log-name)
-	    (2 'change-log-email))
-	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-	    (1 'change-log-name))
-	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-	    (1 'change-log-name)
-	    (2 'change-log-email))
-	   ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
-	    (1 'change-log-acknowledgement)
-	    (2 'change-log-acknowledgement))
-	   ("^Date:   \\(.+\\)" (1 'change-log-date))
-	   ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
+        `((,log-view-message-re  (1 'change-log-acknowledgement))
+          (,log-view-file-re (1 'change-log-file-face)))
+        ;; Handle the case:
+        ;; user: foo@bar
+        '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+           (1 'change-log-email))
+          ;; Handle the case:
+          ;; user: FirstName LastName <foo@bar>
+          ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+           (1 'change-log-name)
+           (2 'change-log-email))
+          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+           (1 'change-log-name))
+          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+           (1 'change-log-name)
+           (2 'change-log-email))
+          ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
+           (1 'change-log-acknowledgement)
+           (2 'change-log-acknowledgement))
+          ("^Date:   \\(.+\\)" (1 'change-log-date))
+          ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
 (defun vc-git-show-log-entry (revision)
   "Move to the log entry for REVISION.
@@ -328,8 +332,10 @@ or BRANCH^ (where \"^\" can be repeated)."
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   (let ((buf (or buffer "*vc-diff*")))
     (if (and rev1 rev2)
-        (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p" rev1 rev2 "--")
-      (vc-git-command buf 1 files "diff-index" "--exit-code" "-p" (or rev1 "HEAD") "--"))))
+        (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p"
+                        rev1 rev2 "--")
+      (vc-git-command buf 1 files "diff-index" "--exit-code" "-p"
+                      (or rev1 "HEAD") "--"))))
 
 (defun vc-git-revision-table (files)
   ;; What about `files'?!?  --Stef
@@ -356,13 +362,15 @@ or BRANCH^ (where \"^\" can be repeated)."
 (defun vc-git-annotate-time ()
   (and (re-search-forward "[0-9a-f]+ (.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+)" nil t)
        (vc-annotate-convert-time
-        (apply #'encode-time (mapcar (lambda (match) (string-to-number (match-string match))) '(6 5 4 3 2 1 7))))))
+        (apply #'encode-time (mapcar (lambda (match)
+                                       (string-to-number (match-string match)))
+                                     '(6 5 4 3 2 1 7))))))
 
 (defun vc-git-annotate-extract-revision-at-line ()
- (save-excursion
-   (move-beginning-of-line 1)
-   (and (looking-at "[0-9a-f]+")
-        (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
+  (save-excursion
+    (move-beginning-of-line 1)
+    (and (looking-at "[0-9a-f]+")
+         (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
 
 ;;; SNAPSHOT SYSTEM
 
@@ -397,27 +405,27 @@ or BRANCH^ (where \"^\" can be repeated)."
 	(zerop (forward-line -1))
 	(not (bobp))
 	(buffer-substring-no-properties
-	   (point)
-	   (1- (point-max))))))))
+         (point)
+         (1- (point-max))))))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
   (let* ((default-directory (file-name-directory
 			     (expand-file-name file)))
-	(file (file-name-nondirectory file))
-	(current-rev
-	 (with-temp-buffer
-	   (and
-	    (zerop
-	     (call-process "git" nil '(t nil) nil "rev-list"
-			   "-1" rev "--" file))
-	    (goto-char (point-max))
-	    (bolp)
-	    (zerop (forward-line -1))
-	    (bobp)
-	    (buffer-substring-no-properties
-	     (point)
-	     (1- (point-max)))))))
+         (file (file-name-nondirectory file))
+         (current-rev
+          (with-temp-buffer
+            (and
+             (zerop
+              (call-process "git" nil '(t nil) nil "rev-list"
+                            "-1" rev "--" file))
+             (goto-char (point-max))
+             (bolp)
+             (zerop (forward-line -1))
+             (bobp)
+             (buffer-substring-no-properties
+              (point)
+              (1- (point-max)))))))
     (and current-rev
 	 (vc-git-symbolic-commit
 	  (with-temp-buffer
@@ -455,7 +463,8 @@ The difference to vc-do-command is that this function always invokes `git'."
          (str (with-output-to-string
                 (with-current-buffer standard-output
                   (unless (eq 0 (apply #'call-process "git" nil '(t nil) nil
-                                       (append args (list (file-relative-name file)))))
+                                       (append args (list (file-relative-name
+                                                           file)))))
                     (setq ok nil))))))
     (and ok str)))
 
