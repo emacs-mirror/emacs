@@ -2,6 +2,13 @@
 
 	* vc-git.el (vc-git-show-log-entry): New func.
 
+	* vc-git.el (vc-git--call, vc-git--out-ok): New funcs.
+	(vc-git-state): Use vc-git--call.
+	(vc-git-registered, vc-git-working-revision)
+	(vc-git-previous-revision, vc-git-next-revision)
+	(vc-git--run-command-string, vc-git-symbolic-commit):
+	Use vc-git--out-ok.
+
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/byte-run.el (declare-function): Doc fix.
