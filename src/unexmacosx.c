@@ -819,7 +819,9 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__la_sym_ptr2", 16) == 0
 	       || strncmp (sectp->sectname, "__dyld", 16) == 0
 	       || strncmp (sectp->sectname, "__const", 16) == 0
-	       || strncmp (sectp->sectname, "__cfstring", 16) == 0)
+	       || strncmp (sectp->sectname, "__cfstring", 16) == 0
+	       || strncmp (sectp->sectname, "__gcc_except_tab", 16) == 0
+	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
 	    unexec_error ("cannot copy section %s", sectp->sectname);
@@ -904,6 +906,20 @@ unrelocate (const char *name, off_t reloff, int nrel)
   struct relocation_info reloc_info;
   struct scattered_relocation_info *sc_reloc_info
     = (struct scattered_relocation_info *) &reloc_info;
+  vm_address_t reloc_base, location;
+
+#ifdef _LP64
+#if __ppc64__
+  reloc_base = (data_segment_scp->vmaddr >= 0x100000000
+		? data_segment_scp->vmaddr : 0);
+#else
+  /* First writable segment address.  */
+  reloc_base = data_segment_scp->vmaddr;
+#endif
+#else
+  /* First segment address in the file (unless MH_SPLIT_SEGS set). */
+  reloc_base = 0;
+#endif
 
   for (unreloc_count = 0, i = 0; i < nrel; i++)
     {
@@ -917,14 +933,15 @@ unrelocate (const char *name, off_t reloff, int nrel)
 	switch (reloc_info.r_type)
 	  {
 	  case GENERIC_RELOC_VANILLA:
-	    if (reloc_info.r_address >= data_segment_scp->vmaddr
-		&& reloc_info.r_address < (data_segment_scp->vmaddr
-					   + data_segment_scp->vmsize))
+	    location = reloc_base + reloc_info.r_address;
+	    if (location >= data_segment_scp->vmaddr
+		&& location < (data_segment_scp->vmaddr
+			       + data_segment_scp->vmsize))
 	      {
 		off_t src_off = data_segment_old_fileoff
-		  + reloc_info.r_address - data_segment_scp->vmaddr;
+		  + (location - data_segment_scp->vmaddr);
 		off_t dst_off = data_segment_scp->fileoff
-		  + reloc_info.r_address - data_segment_scp->vmaddr;
+		  + (location - data_segment_scp->vmaddr);
 
 		if (!unexec_copy (dst_off, src_off, 1 << reloc_info.r_length))
 		  unexec_error ("unrelocate: %s:%d cannot copy original value",
