@@ -1,3 +1,7 @@
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* images/gnus/mail-send.xpm: Copy here from trunk.
+
 2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.1: Revert this change, not installed in Emacs 22:
