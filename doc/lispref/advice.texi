@@ -448,7 +448,7 @@ that results from activating advice for a function.
 A value of @code{always} specifies to compile unconditionally.
 A value of @code{never} specifies never compile the advice.
 
-A value of @code{maybe} specifies to compile if the byte-compiler is
+A value of @code{maybe} specifies to compile if the byte compiler is
 already loaded.  A value of @code{like-original} specifies to compile
 the advice if the original definition of the advised function is
 compiled or a built-in function.
@@ -545,11 +545,11 @@ work properly, because of a mismatch.
 Activation of the advised
 function takes longer than usual.
 @item
-The byte-compiler gets
+The byte compiler gets
 loaded while an advised function gets activated.
 @item
 @code{byte-compile} is included in the value of @code{features} even
-though you did not ever explicitly use the byte-compiler.
+though you did not ever explicitly use the byte compiler.
 @end itemize
 
 Compiled preactivated advice works properly even if the function itself
