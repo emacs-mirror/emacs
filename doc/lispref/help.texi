@@ -688,14 +688,15 @@ binding of @kbd{C-h C-h}.
 @end defmac
 
 @defmac with-help-window buffer-name body@dots{}
-This macro evaluates the @var{body} forms inserting any output they
-produce into a buffer named @var{buffer-name}.  @code{with-help-window}
-behaves like @code{with-output-to-temp-buffer} (@pxref{Temporary
-Displays}) but does more accurately restore the previous window
-configuration when quitting Help.  It also generates the message
-informing the user how to quit and scroll the help window by itself.
-Hence you will regret it if you use @code{print-help-return-message} in
-the body of this macro.
+This macro evaluates the @var{body} forms, inserting any output they
+produce into a buffer named @var{buffer-name} like
+@code{with-output-to-temp-buffer} (@pxref{Temporary Displays}).  It
+also puts that buffer in Help mode, displays a message telling the
+user how to quit and scroll the help window, and does various other
+things that make a help window work better.
+
+Don't use @code{print-help-return-message} in the body of this macro;
+it would cause bad results.
 @end defmac
 
 @defopt three-step-help
