@@ -217,6 +217,8 @@ These are mostly meant for headers that prevent delivery errors reporting."
   :type 'string
   :group 'uce)
 
+(declare-function mail-strip-quoted-names "mail-utils" (address))
+
 (defun uce-reply-to-uce (&optional ignored)
   "Send reply to UCE in Rmail.
 UCE stands for unsolicited commercial email.  Function will set up reply

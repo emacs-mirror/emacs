@@ -1,3 +1,27 @@
+2007-11-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mail/mspools.el (rmail-get-new-mail):
+	* mail/reporter.el (mail-position-on-field, mail-text):
+	* mail/rmail.el (mail-position-on-field, mail-text-start)
+	(rmail-update-summary):
+	* mail/rmailedit.el (rmail-summary-disable)
+	(rmail-summary-enable):
+	* mail/rmailmsc.el (rmail-parse-file-inboxes)
+	(rmail-show-message):
+	* mail/rmailout.el (rmail-update-summary):
+	* mail/rmailsort.el (rmail-update-summary):
+	* mail/sendmail.el (dired-move-to-filename, dired-get-filename)
+	(dired-view-file):
+	* mail/uce.el (mail-strip-quoted-names):
+	* mail/undigest.el (rmail-update-summary):
+	* mail/unrmail.el (mail-strip-quoted-names):
+	* ediff.el (diff-latest-backup-file): Declare as functions.
+
+	* obsolete/mlsupport.el (ml-previous-page): Fix typo.
+	(kill-to-end-of-line):
+	* obsolete/rnews.el (news-set-minor-modes): Remove non working
+	functions.
+
 2007-11-25  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/esh-maint.el (top-level): Use require with NOERROR for

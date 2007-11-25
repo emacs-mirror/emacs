@@ -153,6 +153,8 @@ See rmail-digest-methods."
       ;; Return the list of marker pairs
       (nreverse result))))
 
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
+
 ;;;###autoload
 (defun undigestify-rmail-message ()
   "Break up a digest message into its constituent messages.

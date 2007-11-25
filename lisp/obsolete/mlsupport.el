@@ -127,13 +127,6 @@
 
 (defun ml-message (&rest args) (message "%s" (apply 'concat args)))
 
-(defun kill-to-end-of-line ()
-  (ml-prefix-argument-loop
-    (if (eolp)
-	(kill-region (point) (1+ (point)))
-      (kill-region (point) (if (search-forward ?\n nil t)
-			       (1- (point)) (point-max))))))
-
 (defun set-auto-fill-hook (arg)
   (setq auto-fill-function (intern arg)))
 
@@ -351,7 +344,7 @@
       (setq count (1+ count)))))
 
 (defun ml-next-page ()
-  (previous-page (- (ml-prefix-argument))))
+  (ml-previous-page (- (ml-prefix-argument))))
 
 (defun page-next-window (&optional arg)
   (let ((count (or arg (ml-prefix-argument))))

@@ -184,6 +184,10 @@ please report it with \\[report-emacs-bug].")
     :group 'rmail-retrieve
     :type '(repeat (directory)))
 
+(declare-function mail-position-on-field "sendmail" (field &optional soft))
+(declare-function mail-text-start "sendmail" ())
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
+
 (defun rmail-probe (prog)
   "Determine what flavor of movemail PROG is.
 We do this by executing it with `--version' and analyzing its output."

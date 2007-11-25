@@ -1815,6 +1815,10 @@ The seventh argument ACTIONS is a list of actions to take
 	      (setq buffer-file-coding-system
 		    default-buffer-file-coding-system))))))))
 
+(declare-function dired-move-to-filename "dired" (&optional raise-error eol))
+(declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
+(declare-function dired-view-file "dired" ())
+
 (defun mail-recover ()
   "Recover interrupted mail composition from auto-save files.
 

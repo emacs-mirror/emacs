@@ -363,6 +363,7 @@
 		 (list (cons 'ediff-job-name job-name))
 		 merge-buffer-file)))
 
+(declare-function diff-latest-backup-file "diff" (fn))
 
 ;;;###autoload
 (defalias 'ediff 'ediff-files)

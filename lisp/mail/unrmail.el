@@ -48,6 +48,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
     (message "Done")
     (kill-emacs (if error 1 0))))
 
+(declare-function mail-strip-quoted-names "mail-utils" (address))
+
 ;;;###autoload
 (defun unrmail (file to-file)
   "Convert Rmail file FILE to system inbox format file TO-FILE."

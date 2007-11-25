@@ -152,6 +152,7 @@ KEYWORDS is a comma-separated list of labels."
 			      n))))))
 
 ;; Basic functions
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
 (defun rmail-sort-messages (reverse keyfun)
   "Sort messages of current Rmail file.

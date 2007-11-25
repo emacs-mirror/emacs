@@ -246,6 +246,8 @@ Buffer is not displayed if SHOW is non-nil."
   (mspools-mode)
   )
 
+(declare-function rmail-get-new-mail "rmail" (&optional file-name))
+
 (defun mspools-visit-spool ()
   "Visit the folder on the current line of the *spools* buffer."
   (interactive)
