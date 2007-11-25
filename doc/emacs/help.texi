@@ -642,23 +642,23 @@ Emacs (@code{describe-no-warranty}).
 
 @cindex tooltips
 @cindex balloon help
-  When text is ``active'', so that you can select it with the mouse or a
-key like @kbd{RET}, it often has associated help text.  For instance,
-most parts of the mode line have help text.  On graphical displays, the
-help text is displayed as a ``tooltip'' (sometimes known as ``balloon
-help'') when you move the mouse over the active text.  @xref{Tooltips}.
-On some systems, it is shown in the echo area.  On text-only terminals,
-if Emacs cannot follow the mouse, it cannot show the help text when the
-mouse is over active text.
+  When text on the screen is ``active'', so that it does something
+special in response to mouse clicks or @kbd{RET}, it often has associated
+help text.  For instance, most parts of the mode line have help text.  On
+terminals that support mouse tracking, Emacs displays the help text as a
+``tooltip'' (sometimes known as ``balloon help'') or in the echo area,
+whenever you leave the mouse stationary over the active text.
+@xref{Tooltips}.
 
 @kindex C-h .
 @findex display-local-help
 @vindex help-at-pt-display-when-idle
-  You can also access help text for active text using the keyboard.
-The command @kbd{C-h .} (@code{display-local-help}) displays any help
-text associated with the text at point, using the echo area.  If you
-want help text to be displayed automatically whenever it is available at
-point, set the variable @code{help-at-pt-display-when-idle} to @code{t}.
+  If your terminal doesn't support mouse-tracking, you can display the
+help text for active buffer text using the keyboard.  @kbd{C-h .}
+(@code{display-local-help}) displays any help text associated with the
+character after point, using the echo area.  To display help text
+automatically whenever it is available on the character after point, set
+the variable @code{help-at-pt-display-when-idle} to @code{t}.
 
 @ignore
    arch-tag: 6f33ab62-bc75-4367-8057-fd67cc15c3a1
