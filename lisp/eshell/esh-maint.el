@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(provide 'esh-maint)
-
 (and (fboundp 'font-lock-add-keywords)
      (font-lock-add-keywords
       'emacs-lisp-mode
@@ -35,11 +33,7 @@
 	("(eshell-deftest\\>"        . font-lock-keyword-face)
 	("(eshell-condition-case\\>" . font-lock-keyword-face))))
 
-(if (file-directory-p "../pcomplete")
-    (add-to-list 'load-path "../pcomplete"))
-
-(if (locate-library "pcomplete")
-    (require 'pcomplete))
+(require 'pcomplete nil t)              ; why?
 
 (eval-when-compile
   (require 'cl)
@@ -141,6 +135,8 @@
 ;;     (write-file "README"))
 ;;   (delete-file "README.texi")
 ;;   (kill-buffer "README.texi"))
+
+(provide 'esh-maint)
 
 ;;; arch-tag: 662089b6-78ec-48c5-b94f-d212279e8902
 ;;; esh-maint.el ends here
