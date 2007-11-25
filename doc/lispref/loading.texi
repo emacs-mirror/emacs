@@ -692,7 +692,7 @@ done.
   When @code{require} is used at top level in a file, it takes effect
 when you byte-compile that file (@pxref{Byte Compilation}) as well as
 when you load it.  This is in case the required package contains macros
-that the byte compiler must know about.  It also avoids byte-compiler
+that the byte compiler must know about.  It also avoids byte compiler
 warnings for functions and variables defined in the file loaded with
 @code{require}.
 
