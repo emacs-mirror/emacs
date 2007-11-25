@@ -1,3 +1,7 @@
+2007-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* doc-view.el (doc-view-mode-p): New function.
+
 2007-11-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mail/mspools.el (rmail-get-new-mail):

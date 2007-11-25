@@ -456,6 +456,24 @@ It's a subdirectory of `doc-view-cache-directory'."
       (when (not (funcall predicate item))
 	(setq new-list (cons item new-list))))))
 
+;;;###autoload
+(defun doc-view-mode-p (type)
+  "Return non-nil if image type TYPE is available for `doc-view'.
+Image types are symbols like `dvi', `postscript' or `pdf'."
+  (and (display-graphic-p)
+       (image-type-available-p 'png)
+       (cond
+	((eq type 'dvi)
+	 (and (doc-view-mode-p 'pdf)
+	      doc-view-dvipdfm-program
+	      (executable-find doc-view-dvipdfm-program)))
+	((or (eq type 'postscript) (eq type 'ps)
+	     (eq type 'pdf))
+	 (and doc-view-ghostscript-program
+	      (executable-find doc-view-ghostscript-program)))
+	(t ;; unknown image type
+	 nil))))
+
 ;;;; Conversion Functions
 
 (defvar doc-view-shrink-factor 1.125)
