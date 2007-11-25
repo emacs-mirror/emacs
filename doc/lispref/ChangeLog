@@ -1,3 +1,15 @@
+2007-11-25  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Help Functions): Clean up last change.
+
+	* advice.texi (Preactivation, Activation of Advice): Minor cleanup.
+
+	* loading.texi (Named Features): Minor cleanup.
+
+	* macros.texi (Eval During Expansion): Minor cleanup.
+
+	* variables.texi (Variable Aliases): Minor cleanup.
+
 2007-11-24  Richard Stallman  <rms@gnu.org>
 
 	* functions.texi (Declaring Functions): Clarify previous change.
