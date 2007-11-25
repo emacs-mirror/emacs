@@ -1701,7 +1701,7 @@ the old name is obsolete and therefore that it may be removed at some
 stage in the future.
 
 @defun make-obsolete-variable obsolete-name current-name &optional when
-This function makes the byte-compiler warn that the variable
+This function makes the byte compiler warn that the variable
 @var{obsolete-name} is obsolete.  If @var{current-name} is a symbol, it is
 the variable's new name; then the warning message says to use
 @var{current-name} instead of @var{obsolete-name}.  If @var{current-name}
