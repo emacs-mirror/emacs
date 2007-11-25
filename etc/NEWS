@@ -185,6 +185,9 @@ document to a set of PNG images first.  One can also search for a
 regular expression in the document.  The commentary of the file explains
 its usage.
 
+** The nXML package has been added.
+[FIXME someone who uses this, please write a brief description.]
+
 ** A new game called `bubbles' has been added.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
