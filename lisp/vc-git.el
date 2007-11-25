@@ -359,7 +359,7 @@ or BRANCH^ (where \"^\" can be repeated)."
     (vc-git-command buf 0 name "blame" (if rev (concat "-r" rev)))))
 
 (defun vc-git-annotate-time ()
-  (and (re-search-forward "[0-9a-f]+ (.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+)" nil t)
+  (and (re-search-forward "[0-9a-f]+[^()]+(.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+) " nil t)
        (vc-annotate-convert-time
         (apply #'encode-time (mapcar (lambda (match)
                                        (string-to-number (match-string match)))
