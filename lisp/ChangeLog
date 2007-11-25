@@ -1,3 +1,8 @@
+2007-11-25  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/eshell.el (eshell-report-bug-address): Remove.
+	(eshell-report-bug): Redefine as an alias for report-emacs-bug.
+
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el: Remove leading `*' from defcustom doc-strings.
