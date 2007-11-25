@@ -623,7 +623,7 @@ it.  Here is an example:
 
   Another problem with calling @code{eval} in a macro definition is that
 it probably won't do what you intend in a compiled program.  The
-byte-compiler runs macro definitions while compiling the program, when
+byte compiler runs macro definitions while compiling the program, when
 the program's own computations (which you might have wished to access
 with @code{eval}) don't occur and its local variable bindings don't
 exist.
