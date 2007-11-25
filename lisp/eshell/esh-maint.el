@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+;; FIXME this cannot be moved to the end of the file without causing a
+;; recursive require during bootstrap. What a mess.
+(provide 'esh-maint)
+
 (and (fboundp 'font-lock-add-keywords)
      (font-lock-add-keywords
       'emacs-lisp-mode
@@ -135,8 +139,6 @@
 ;;     (write-file "README"))
 ;;   (delete-file "README.texi")
 ;;   (kill-buffer "README.texi"))
-
-(provide 'esh-maint)
 
 ;;; arch-tag: 662089b6-78ec-48c5-b94f-d212279e8902
 ;;; esh-maint.el ends here
