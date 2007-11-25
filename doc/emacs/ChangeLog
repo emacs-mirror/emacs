@@ -1,3 +1,7 @@
+2007-11-26  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Help Echo): Cleanups.
+
 2007-11-23  Mark A. Hershberger  <mah@everybody.org>
 
 	* nxml-mode.texi: Move to ../misc.
