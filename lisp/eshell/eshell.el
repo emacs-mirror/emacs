@@ -453,40 +453,12 @@ corresponding to a successful execution."
 
 ;;;_* Reporting bugs
 ;;
-;; Since Eshell has not yet been in use by a wide audience, and since
-;; the number of possible configurations is quite large, it is certain
-;; that many bugs slipped past the rigors of testing it was put
-;; through.  If you do encounter a bug, on any system, please report
+;; If you do encounter a bug, on any system, please report
 ;; it -- in addition to any particular oddities in your configuration
 ;; -- so that the problem may be corrected for the benefit of others.
 
-(defconst eshell-report-bug-address "johnw@gnu.org"
-  "E-mail address to send Eshell bug reports to.")
-
 ;;;###autoload
-(defun eshell-report-bug (topic)
-  "Report a bug in Eshell.
-Prompts for the TOPIC.  Leaves you in a mail buffer.
-Please include any configuration details that might be involved."
-  (interactive "sBug Subject: ")
-  (compose-mail eshell-report-bug-address topic)
-  (goto-char (point-min))
-  (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
-  (forward-line 1)
-  (let ((signature (buffer-substring (point) (point-max))))
-    ;; Discourage users from writing non-English text.
-    (set-buffer-multibyte nil)
-    (delete-region (point) (point-max))
-    (insert signature)
-    (backward-char (length signature)))
-  (insert "emacs-version: " (emacs-version))
-  (insert "\n\nThere appears to be a bug in Eshell.\n\n"
-	  "Please describe exactly what actions "
-	  "triggered the bug and the precise\n"
-	  "symptoms of the bug:\n\n")
-  ;; This is so the user has to type something in order to send
-  ;; the report easily.
-  (use-local-map (nconc (make-sparse-keymap) (current-local-map))))
+(define-obsolete-function-alias 'eshell-report-bug 'report-emacs-bug)
 
 ;;; Code:
 
