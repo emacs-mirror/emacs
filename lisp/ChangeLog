@@ -25,6 +25,9 @@
 	(vc-annotate-display-autoscale)
 	(vc-annotate-display-difference): Use it.
 
+	* vc-git.el (vc-git-annotate-time): Handle optional field FILENAME.
+	Also, match one space at end of annotation text, after last paren.
+
 2007-11-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ido.el (ido-file-name-all-completions-1): Check for fboundp of
