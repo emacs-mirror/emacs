@@ -1,5 +1,9 @@
 2007-11-25  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/esh-maint.el (top-level): Move provide statement to the
+	end of the file.  Use require with NOERROR for pcomplete.  Don't
+	mess with load-path.
+
 	* eshell/eshell.el (eshell-report-bug-address): Remove.
 	(eshell-report-bug): Redefine as an alias for report-emacs-bug.
 
