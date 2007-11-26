@@ -1375,8 +1375,10 @@ list_processes_1 (query_only)
   if (w_tty)
     {
       XSETFASTINT (i_tty, XFASTINT (i_buffer) + w_buffer + 1);
-      XSETFASTINT (i_command, XFASTINT (i_buffer) + w_tty + 1);
-    } else {
+      XSETFASTINT (i_command, XFASTINT (i_tty) + w_tty + 1);
+    }
+  else
+    {
       i_tty = Qnil;
       XSETFASTINT (i_command, XFASTINT (i_buffer) + w_buffer + 1);
     }
