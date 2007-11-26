@@ -1,3 +1,9 @@
+2007-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (end-of-defun): Restructure so that
+	end-of-defun-function is called consistently, even for negative arguments.
+	(end-of-defun-function): Default to forward-sexp.
+
 2007-11-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory): Doc fix.

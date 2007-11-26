@@ -297,11 +297,11 @@ is called as a function to find the defun's beginning."
 	     (goto-char (if arg-+ve floor ceiling))
 	     nil))))))))
 
-(defvar end-of-defun-function nil
-  "If non-nil, function for function `end-of-defun' to call.
-This is used to find the end of the defun instead of using the normal
-recipe (see `end-of-defun').  Major modes can define this if the
-normal method is not appropriate.")
+(defvar end-of-defun-function #'forward-sexp
+  "Function for `end-of-defun' to call.
+This is used to find the end of the defun.
+It is called with no argument, right after calling `beginning-of-defun-raw'.
+So the function can assume that point is at the beginning of the defun body.")
 
 (defun buffer-end (arg)
   "Return the \"far end\" position of the buffer, in direction ARG.
@@ -326,45 +326,38 @@ is called as a function to find the defun's end."
       (and transient-mark-mode mark-active)
       (push-mark))
   (if (or (null arg) (= arg 0)) (setq arg 1))
-  (if end-of-defun-function
-      (if (> arg 0)
-	  (dotimes (i arg)
-	    (funcall end-of-defun-function))
-	;; Better not call beginning-of-defun-function
-	;; directly, in case it's not defined.
-	(beginning-of-defun (- arg)))
-    (let ((first t))
-      (while (and (> arg 0) (< (point) (point-max)))
-	(let ((pos (point)))
-	  (while (progn
-		   (if (and first
-			    (progn
-			      (end-of-line 1)
-			      (beginning-of-defun-raw 1)))
-		       nil
-		     (or (bobp) (forward-char -1))
-		     (beginning-of-defun-raw -1))
-		   (setq first nil)
-		   (forward-list 1)
-		   (skip-chars-forward " \t")
-		   (if (looking-at "\\s<\\|\n")
-		       (forward-line 1))
-		   (<= (point) pos))))
-	(setq arg (1- arg)))
-      (while (< arg 0)
-	(let ((pos (point)))
-	  (beginning-of-defun-raw 1)
-	  (forward-sexp 1)
-	  (forward-line 1)
-	  (if (>= (point) pos)
-	      (if (beginning-of-defun-raw 2)
-		  (progn
-		    (forward-list 1)
-		    (skip-chars-forward " \t")
-		    (if (looking-at "\\s<\\|\n")
-			(forward-line 1)))
-		(goto-char (point-min)))))
-	(setq arg (1+ arg))))))
+  (while (> arg 0)
+    (let ((pos (point)))
+      (end-of-line 1)
+      (beginning-of-defun-raw 1)
+      (while (unless (eobp)
+               (funcall end-of-defun-function)
+               (skip-chars-forward " \t")
+               (if (looking-at "\\s<\\|\n")
+                   (forward-line 1))
+               ;; If we started after the end of the previous function, then
+               ;; try again with the next one.
+               (when (<= (point) pos)
+                 (or (bobp) (forward-char -1))
+                 (beginning-of-defun-raw -1)
+                 'try-again))))
+    (setq arg (1- arg)))
+  (while (< arg 0)
+    (let ((pos (point)))
+      (while (unless (bobp)
+               (beginning-of-line 1)
+               (beginning-of-defun-raw 1)
+               (let ((beg (point)))
+                 (funcall end-of-defun-function)
+                 (skip-chars-forward " \t")
+                 (if (looking-at "\\s<\\|\n")
+                     (forward-line 1))
+                 ;; If we started from within the function just found, then
+                 ;; try again with the previous one.
+                 (when (>= (point) pos)
+                   (goto-char beg)
+                   'try-again)))))
+    (setq arg (1+ arg))))
 
 (defun mark-defun (&optional allow-extend)
   "Put mark at end of this defun, point at beginning.
@@ -573,12 +566,47 @@ character."
 		;; "Unbalanced parentheses", but those may not be so
 		;; accurate/helpful, e.g. quotes may actually be
 		;; mismatched.
-  		(error "Unmatched bracket or quote"))
-    (error (cond ((eq 'scan-error (car data))
-		  (goto-char (nth 2 data))
-		  (error "Unmatched bracket or quote"))
-		 (t (signal (car data) (cdr data)))))))
+  		(error "Unmatched bracket or quote"))))
 
+(defun field-complete (table &optional predicate)
+  (let* ((pattern (field-string-no-properties))
+         (completion (try-completion pattern table predicate)))
+    (cond ((eq completion t))
+          ((null completion)
+           (message "Can't find completion for \"%s\"" pattern)
+           (ding))
+          ((not (string= pattern completion))
+           (delete-region (field-beginning) (field-end))
+           (insert completion)
+           ;; Don't leave around a completions buffer that's out of date.
+           (let ((win (get-buffer-window "*Completions*" 0)))
+             (if win (with-selected-window win (bury-buffer)))))
+          (t
+           (let ((minibuf-is-in-use
+                  (eq (minibuffer-window) (selected-window))))
+             (unless minibuf-is-in-use
+               (message "Making completion list..."))
+             (let ((list (all-completions pattern table predicate)))
+               (setq list (sort list 'string<))
+               (or (eq predicate 'fboundp)
+                   (let (new)
+                     (while list
+                       (setq new (cons (if (fboundp (intern (car list)))
+                                           (list (car list) " <f>")
+                                         (car list))
+                                       new))
+                       (setq list (cdr list)))
+                     (setq list (nreverse new))))
+               (if (> (length list) 1)
+                   (with-output-to-temp-buffer "*Completions*"
+                     (display-completion-list list pattern))
+                 ;; Don't leave around a completions buffer that's
+                 ;; out of date.
+                 (let ((win (get-buffer-window "*Completions*" 0)))
+                   (if win (with-selected-window win (bury-buffer))))))
+             (unless minibuf-is-in-use
+               (message "Making completion list...%s" "done")))))))
+
 (defun lisp-complete-symbol (&optional predicate)
   "Perform completion on Lisp symbol preceding point.
 Compare that symbol against the known Lisp symbols.
