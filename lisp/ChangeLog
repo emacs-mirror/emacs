@@ -1,3 +1,7 @@
+2007-11-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory): Doc fix.
+
 2007-11-26  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-menu.el (cal-menu-holidays-menu): Use :label rather
