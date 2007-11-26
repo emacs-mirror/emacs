@@ -19,10 +19,8 @@
 	* mail/reporter.el (mail-position-on-field, mail-text):
 	* mail/rmail.el (mail-position-on-field, mail-text-start)
 	(rmail-update-summary):
-	* mail/rmailedit.el (rmail-summary-disable)
-	(rmail-summary-enable):
-	* mail/rmailmsc.el (rmail-parse-file-inboxes)
-	(rmail-show-message):
+	* mail/rmailedit.el (rmail-summary-disable, rmail-summary-enable):
+	* mail/rmailmsc.el (rmail-parse-file-inboxes, rmail-show-message):
 	* mail/rmailout.el (rmail-update-summary):
 	* mail/rmailsort.el (rmail-update-summary):
 	* mail/sendmail.el (dired-move-to-filename, dired-get-filename)
@@ -34,8 +32,8 @@
 
 	* obsolete/mlsupport.el (ml-previous-page): Fix typo.
 	(kill-to-end-of-line):
-	* obsolete/rnews.el (news-set-minor-modes): Remove non working
-	functions.
+	* obsolete/rnews.el (news-set-minor-modes):
+	Remove non working functions.
 
 2007-11-25  Glenn Morris  <rgm@gnu.org>
 
@@ -48,8 +46,8 @@
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el: Remove leading `*' from defcustom doc-strings.
-	(appt-disp-window): Don't require electric.  Simplify
-	minibuffer-avoidance code.
+	(appt-disp-window): Don't require electric.
+	Simplify minibuffer-avoidance code.
 	(appt-select-lowest-window): Avoid minibuffer.
 
 	* eshell/eshell.el: Remove leading `*' from defcustom doc-strings.
@@ -59,8 +57,8 @@
 	reference to eshell-auto.
 	(eshell-command, eshell-command-result): Don't require esh-mode
 	now that the file does.
-	(top-level): Move provide statement to the end of the
-	file.  Re-order and update commentary.
+	(top-level): Move provide statement to the end of the file.
+	Re-order and update commentary.
 
 2007-11-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
@@ -102,7 +100,7 @@
 
 2007-11-23  David Kastrup  <dak@gnu.org>
 
-	* server.el (server-process-filter): Use `command-line-args-left'
+	* server.el (server-process-filter): Use `command-line-args-left'.
 
 2007-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
