@@ -116,10 +116,15 @@ whenever this expression's value is non-nil.
 INCLUDE is an expression; this item is only visible if this
 expression has a non-nil value.  `:included' is an alias for `:visible'.
 
+   :label FORM
+
+FORM is an expression that will be dynamically evaluated and whose
+value will be used for the menu entry's text label (the default is NAME).
+
    :suffix FORM
 
 FORM is an expression that will be dynamically evaluated and whose
-value will be concatenated to the menu entry's NAME.
+value will be concatenated to the menu entry's label.
 
    :style STYLE
 
