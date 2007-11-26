@@ -1252,12 +1252,12 @@ first use of the function in question:
 
 @smallexample
 (declare-function gud-find-c-expr "gud.el" nil)
-@end smalllexample
+@end smallexample
 
 This says that @code{gud-find-c-expr} is defined in @file{gud.el} (the
 @samp{.el} can be omitted).  The compiler takes for granted that that file
 really defines the function, and does not check.
- 
+
   The optional third argument specifies the argument list of
 @code{gud-find-c-expr}.  In this case, it takes no arguments
 (@code{nil} is different from not specifying a value).  In other
