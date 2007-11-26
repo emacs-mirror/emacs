@@ -1,3 +1,7 @@
+2007-11-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* functions.texi (Declaring Functions): Fix directive.
+
 2007-11-25  Richard Stallman  <rms@gnu.org>
 
 	* help.texi (Help Functions): Clean up last change.
