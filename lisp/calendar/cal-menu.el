@@ -94,13 +94,15 @@
     "--"
     ,@(let ((l ()))
         ;; Show 11 years--5 before, 5 after year of middle month.
+        ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01813.html
         (dotimes (i 11)
-          (push (vector "For Year"
+          (push (vector (format "hol-year-%d" i)
                         `(lambda ()
                            (interactive)
                            (holiday-list (+ displayed-year ,(- i 5))
                                          (+ displayed-year ,(- i 5))))
-                        :suffix `(number-to-string (+ displayed-year ,(- i 5))))
+                        :label `(format "For Year %d"
+                                       (+ displayed-year ,(- i 5))))
                 l))
         (nreverse l))
     "--"
