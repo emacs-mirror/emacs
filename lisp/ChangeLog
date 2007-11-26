@@ -1,3 +1,7 @@
+2007-11-26  Simon Josefsson  <simon@josefsson.org>
+
+	* net/imap.el: Move from ../gnus.
+
 2007-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* doc-view.el (doc-view-mode-p): New function.

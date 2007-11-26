@@ -1,3 +1,7 @@
+2007-11-26  Simon Josefsson  <simon@josefsson.org>
+
+	* imap.el: Move to ../net directory.
+
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-tool-bar-retro): Update for rename
