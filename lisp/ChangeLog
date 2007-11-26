@@ -1,5 +1,8 @@
 2007-11-26  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-menu.el (cal-menu-holidays-menu): Use :label rather
+	than :suffix.
+
 	* emacs-lisp/easymenu.el (easy-menu-define): Doc fix.
 
 2007-11-26  Simon Josefsson  <simon@josefsson.org>
