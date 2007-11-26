@@ -3506,12 +3506,12 @@ That command is designed for interactive use only" fn))
 
 ;; Return the list of items in CONDITION-PARAM that match PRED-LIST.
 ;; Only return items that are not in ONLY-IF-NOT-PRESENT.
-(defun byte-compile-find-bound-condition (condition-param 
-					  pred-list 
+(defun byte-compile-find-bound-condition (condition-param
+					  pred-list
 					  &optional only-if-not-present)
   (let ((result nil)
 	(nth-one nil)
-	(cond-list 
+	(cond-list
 	 (if (memq (car-safe condition-param) pred-list)
 	     ;; The condition appears by itself.
 	     (list condition-param)
@@ -3519,7 +3519,7 @@ That command is designed for interactive use only" fn))
 	   ;; `and' arguments.
 	   (when (eq 'and (car-safe condition-param))
 	     (cdr condition-param)))))
-    
+
     (dolist (crt cond-list)
       (when (and (memq (car-safe crt) pred-list)
 		 (eq 'quote (car-safe (setq nth-one (nth 1 crt))))
@@ -3541,10 +3541,10 @@ being undefined will be suppressed.
 If CONDITION's value is (not (featurep 'emacs)) or (featurep 'xemacs),
 that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
-  `(let* ((fbound-list (byte-compile-find-bound-condition 
-			,condition (list 'fboundp) 
+  `(let* ((fbound-list (byte-compile-find-bound-condition
+			,condition (list 'fboundp)
 			byte-compile-unresolved-functions))
-	  (bound-list (byte-compile-find-bound-condition 
+	  (bound-list (byte-compile-find-bound-condition
 		       ,condition (list 'boundp 'default-boundp)))
 	  ;; Maybe add to the bound list.
 	  (byte-compile-bound-variables
@@ -4274,7 +4274,7 @@ Must be used only with `-batch', and kills Emacs on completion.
 For example, invoke `emacs -batch -f batch-byte-recompile-directory .'.
 
 Optional argument ARG is passed as second argument ARG to
-`batch-recompile-directory'; see there for its possible values
+`byte-recompile-directory'; see there for its possible values
 and corresponding effects."
   ;; command-line-args-left is what is left of the command line (startup.el)
   (defvar command-line-args-left)	;Avoid 'free variable' warning
