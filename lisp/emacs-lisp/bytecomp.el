@@ -974,7 +974,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (pos (if (and byte-compile-current-file
 		       (integerp byte-compile-read-position))
 		  (with-current-buffer byte-compile-current-buffer
-		    (format "%d:%d:" 
+		    (format "%d:%d:"
 			    (save-excursion
 			      (goto-char byte-compile-last-position)
 			      (1+ (count-lines (point-min) (point-at-bol))))
@@ -1657,7 +1657,7 @@ The value is non-nil if there were no errors, nil if errors."
 	byte-compile-dest-file)
     (setq target-file (byte-compile-dest-file filename))
     (setq byte-compile-dest-file target-file)
-    (with-current-buffer 
+    (with-current-buffer
         (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (erase-buffer)
       (setq buffer-file-coding-system nil)
@@ -4185,7 +4185,7 @@ Must be used only with `-batch', and kills Emacs on completion.
 For example, invoke `emacs -batch -f batch-byte-recompile-directory .'.
 
 Optional argument ARG is passed as second argument ARG to
-`batch-recompile-directory'; see there for its possible values
+`byte-recompile-directory'; see there for its possible values
 and corresponding effects."
   ;; command-line-args-left is what is left of the command line (startup.el)
   (defvar command-line-args-left)	;Avoid 'free variable' warning
