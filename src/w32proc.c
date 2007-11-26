@@ -781,7 +781,14 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
      variable in their environment.  */
   char ppid_env_var_buffer[64];
   char *extra_env[] = {ppid_env_var_buffer, NULL};
-  char *sepchars = " \t";
+  /* These are the characters that cause an argument to need quoting.
+     Arguments with whitespace characters need quoting to prevent the
+     argument being split into two or more. Arguments with wildcards
+     are also quoted, for consistency with posix platforms, where wildcards
+     are not expanded if we run the program directly without a shell.
+     Some extra whitespace characters need quoting in Cygwin programs,
+     so this list is conditionally modified below.  */
+  char *sepchars = " \t*?";
 
   /* We don't care about the other modes */
   if (mode != _P_NOWAIT)
