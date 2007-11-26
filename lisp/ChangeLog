@@ -1,3 +1,7 @@
+2007-11-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory): Doc fix.
+
 2007-11-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/ucs-tables.el (ucs-8859-7-alist): Update the table.
