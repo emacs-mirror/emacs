@@ -1,3 +1,8 @@
+2007-11-26  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (list_processes_1): Fix indentation level of the
+	command column.
+
 2007-11-23  Andreas Schwab  <schwab@suse.de>
 
 	* editfns.c (Fformat): Handle %c specially since it requires the
