@@ -1107,7 +1107,7 @@ socket_connection (host, flags)
 #ifdef HAVE_GETADDRINFO
   memset (&hints, 0, sizeof(hints));
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_ADDRCONFIG | AI_CANONNAME;
+  hints.ai_flags = AI_CANONNAME;
   hints.ai_family = AF_INET;
   do
     {
