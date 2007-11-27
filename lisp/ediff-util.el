@@ -41,27 +41,23 @@
 
 (defvar ediff-after-quit-hook-internal nil)
 
-(and noninteractive
-     (eval-when-compile
-	 (load "reporter" 'noerror)))
-
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (provide 'ediff-util) ; to break recursive load cycle
     (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil nil 'nosuffix))
+	(load "ediff-init.el" nil t 'nosuffix))
     (or (featurep 'ediff-help)
-	(load "ediff-help.el" nil nil 'nosuffix))
+	(load "ediff-help.el" nil t 'nosuffix))
     (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil nil 'nosuffix))
+	(load "ediff-mult.el" nil t 'nosuffix))
     (or (featurep 'ediff-wind)
-	(load "ediff-wind.el" nil nil 'nosuffix))
+	(load "ediff-wind.el" nil t 'nosuffix))
     (or (featurep 'ediff-diff)
-	(load "ediff-diff.el" nil nil 'nosuffix))
+	(load "ediff-diff.el" nil t 'nosuffix))
     (or (featurep 'ediff-merg)
-	(load "ediff-merg.el" nil nil 'nosuffix))
+	(load "ediff-merg.el" nil t 'nosuffix))
     (or (featurep 'ediff)
-	(load "ediff.el" nil nil 'nosuffix))
+	(load "ediff.el" nil t 'nosuffix))
     (or (featurep 'ediff-tbar)
 	(featurep 'emacs)
 	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
