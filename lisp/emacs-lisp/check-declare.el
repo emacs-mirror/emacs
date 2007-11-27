@@ -36,6 +36,8 @@
 
 ;; 1. Handle defstructs (eg uniquify-item-base in desktop.el).
 
+;; 2. Handle fset (eg dired-omit-old-add-entry in dired-x.el).
+
 ;;; Code:
 
 (defconst check-declare-warning-buffer "*Check Declarations Warnings*"
@@ -51,7 +53,12 @@ directory part.  The returned file might not exist."
       (expand-file-name file (expand-file-name "src" source-directory))
     (let ((tfile (locate-library (file-name-nondirectory file))))
       (if tfile
-          (replace-regexp-in-string "\\.elc\\'" ".el" tfile)
+          (progn
+            (setq tfile (replace-regexp-in-string "\\.elc\\'" ".el" tfile))
+            (if (and (not (file-exists-p tfile))
+                     (file-exists-p (concat tfile ".gz")))
+                (concat tfile ".gz")
+              tfile))
         (setq tfile (expand-file-name file (file-name-directory basefile)))
         (if (or (file-exists-p tfile)
                 (string-match "\\.el\\'" tfile))
@@ -106,12 +113,14 @@ found to be true, otherwise a list of errors with elements of the form
           (setq re (format (if cflag
                                "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
                              "^[ \t]*(\\(def\\(?:un\\|subst\\|\
-ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
+ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
+\\|\\(?:ine-obsolete-function-\\)?alias[ \t]+'\\)\\)\
 \[ \t]*%s\\([ \t;]+\\|$\\)")
                            (regexp-opt (mapcar 'cadr fnlist) t)))
           (while (re-search-forward re nil t)
             (skip-chars-forward " \t\n")
             (setq fn (match-string 2)
+                  type (match-string 1)
                   ;; (min . max) for a fixed number of arguments, or
                   ;; arglists with optional elements.
                   ;; (min) for arglists with &rest.
@@ -131,15 +140,21 @@ ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
                                                  (string-to-number
                                                   maxargs)))))
                               'err))
-                            ((string-equal (match-string 1)
-                                           "define-derived-mode")
+                            ((string-match
+                              "\\`define-\\(derived\\|generic\\)-mode\\'"
+                              type)
                              '(0 . 0))
-                            ((string-equal (match-string 1)
-                                           "define-minor-mode")
+                            ((string-match
+                              "\\`define\\(-global\\(ized\\)?\\)?-minor-mode\\'"
+                              type)
                              '(0 . 1))
+                            ;; Prompt to update.
+                            ((string-match
+                              "\\`define-obsolete-function-alias\\>"
+                              type)
+                             'obsolete)
                             ;; Can't easily check alias arguments.
-                            ((string-equal (match-string 1)
-                                           "defalias")
+                            ((string-match "\\`defalias\\>" type)
                              t)
                             ((looking-at "\\((\\|nil\\)")
                              (byte-compile-arglist-signature
@@ -151,21 +166,23 @@ ine-derived-mode\\|ine-minor-mode\\|alias[ \t]+'\\)\\)\
     (dolist (e fnlist)
       (setq arglist (nth 2 e)
             type
-            (if re                     ; re non-nil means found a file
-                (if (setq sig (assoc (cadr e) siglist)) ; found function
-                    ;; Recall we use t to mean no arglist specified,
-                    ;; to distinguish from an empty arglist.
-                    (unless (eq arglist t)
-                      (setq sig (cdr-safe sig))
-                      (cond ((eq sig t)) ; defalias, can't check
-                            ((eq sig 'err)
-                             "arglist not found") ; internal error
-                            ((not (equal (byte-compile-arglist-signature
-                                          arglist)
-                                         sig))
-                             "arglist mismatch")))
-                  "function not found")
-              "file not found"))
+            (if (not re)
+                "file not found"
+              (if (not (setq sig (assoc (cadr e) siglist)))
+                  "function not found"
+                (setq sig (cdr sig))
+                (cond ((eq sig 'obsolete) ; check even when no arglist specified
+                       "obsolete alias")
+                      ;; arglist t means no arglist specified, as
+                      ;; opposed to an empty arglist.
+                      ((eq arglist t) nil)
+                      ((eq sig t) nil)  ; defalias, can't check
+                      ((eq sig 'err)
+                       "arglist not found") ; internal error
+                      ((not (equal (byte-compile-arglist-signature
+                                    arglist)
+                                   sig))
+                       "arglist mismatch")))))
       (when type
         (setq errlist (cons (list (car e) (cadr e) type) errlist))))
     (message "%s%s" m (if errlist "problems found" "OK"))
