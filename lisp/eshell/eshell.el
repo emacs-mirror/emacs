@@ -458,7 +458,7 @@ corresponding to a successful execution."
 ;; -- so that the problem may be corrected for the benefit of others.
 
 ;;;###autoload
-(define-obsolete-function-alias 'eshell-report-bug 'report-emacs-bug)
+(define-obsolete-function-alias 'eshell-report-bug 'report-emacs-bug "23.1")
 
 ;;; Code:
 
