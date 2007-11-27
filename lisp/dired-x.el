@@ -652,6 +652,9 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
         (and fn (string-match regexp fn))))
      msg)))
 
+;; check-declare does not handle fset.
+;;;(declare-function dired-omit-old-add-entry "dired-x")
+
 ;;; REDEFINE.
 (defun dired-omit-new-add-entry (filename &optional marker-char relative)
   ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
@@ -1438,6 +1441,8 @@ See also variable `dired-vm-read-only-folders'."
 
 
 ;;; MISCELLANEOUS INTERNAL FUNCTIONS.
+
+;;;(declare-function dired-old-find-buffer-nocreate "dired-x")
 
 (or (fboundp 'dired-old-find-buffer-nocreate)
     (fset 'dired-old-find-buffer-nocreate
