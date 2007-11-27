@@ -43,11 +43,11 @@
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil nil 'nosuffix))
+	(load "ediff-init.el" nil t 'nosuffix))
     (or (featurep 'ediff-util)
-	(load "ediff-util.el" nil nil 'nosuffix))
+	(load "ediff-util.el" nil t 'nosuffix))
     (or (featurep 'ediff-help)
-	(load "ediff-help.el" nil nil 'nosuffix))
+	(load "ediff-help.el" nil t 'nosuffix))
     (or (featurep 'ediff-tbar)
 	(featurep 'emacs)
 	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
@@ -146,6 +146,10 @@ This variable has no effect when buffer-A/B/C are shown in different frames.
 In this case, Ediff will use those frames to display these buffers."
   :type 'function
   :group 'ediff-window)
+
+;; Definitions hidden from the compiler by compat wrappers.
+(declare-function ediff-display-pixel-width "ediff-init")
+(declare-function ediff-display-pixel-height "ediff-init")
 
 (defconst ediff-control-frame-parameters
   (list
