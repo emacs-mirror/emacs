@@ -240,7 +240,7 @@
 (declare-function math-read-radix-digit "calc-misc" (dig))
 (declare-function calc-digit-dots "calc-incom" ())
 (declare-function math-normalize-fancy "calc-ext" (a))
-(declare-function math-normalize-nonstandard "calc-alg" ())
+(declare-function math-normalize-nonstandard "calc-ext" ())
 (declare-function math-recompile-eval-rules "calc-alg" ())
 (declare-function math-apply-rewrites "calc-rewr" (expr rules &optional heads math-apply-rw-ruleset))
 (declare-function calc-record-why "calc-misc" (&rest stuff))
