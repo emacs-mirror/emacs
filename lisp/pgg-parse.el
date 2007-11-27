@@ -178,6 +178,8 @@
 	      (repeat))))
 	(repeat)))))
 
+  (defvar pgg-parse-crc24)
+
   (defun pgg-parse-crc24-string (string)
     (let ((h (vector nil 183 1230 nil nil nil nil nil nil)))
       (ccl-execute-on-string pgg-parse-crc24 h string)
@@ -462,6 +464,10 @@
 	    (cdr (assq (cdr field)
 		       pgg-parse-public-key-algorithm-alist)))
     result))
+
+;; p-d-p only calls this if it is defined, but the compiler does not
+;; recognize that.
+(declare-function pgg-parse-crc24-string "pgg-parse" (string))
 
 (defun pgg-decode-packets ()
   (if (re-search-forward "^=\\([A-Za-z0-9+/]\\{4\\}\\)$" nil t)
