@@ -1052,18 +1052,42 @@
                :style radio
                :selected (eq (car-safe calc-float-format) 'eng)])
         (list "Algebraic"
+              ["Normal"
+               (progn
+                 (require 'calc-mode)
+                 (cond
+                  (calc-incomplete-algebraic-mode
+                   (calc-algebraic-mode t))
+                  (calc-algebraic-mode
+                   (calc-algebraic-mode nil))))
+               :style radio
+               :selected (not calc-algebraic-mode)]
               ["Algebraic mode"
                (progn
                  (require 'calc-mode)
-                 (call-interactively 'calc-algebraic-mode))
+                 (if (or
+                      calc-incomplete-algebraic-mode
+                      (not calc-algebraic-mode))
+                     (calc-algebraic-mode nil)))
                :keys "m a"
                :style radio
-               :selected (eq calc-algebraic-mode t)
+               :selected (and calc-algebraic-mode
+                              (not calc-incomplete-algebraic-mode))
                :help "Keys which start numeric entry also start algebraic entry"]
+              ["Incomplete algebraic mode"
+               (progn
+                 (require 'calc-mode)
+                 (unless calc-incomplete-algebraic-mode
+                   (calc-algebraic-mode t)))
+               :keys "C-u m a"
+               :style radio
+               :selected calc-incomplete-algebraic-mode
+               :help "Only ( and [ begin algebraic entry"]
               ["Total algebraic mode"
                (progn
                  (require 'calc-mode)
-                 (call-interactively 'calc-total-algebraic-mode))
+                 (unless (eq calc-algebraic-mode 'total)
+                   (calc-total-algebraic-mode nil)))
                :keys "m t"
                :style radio
                :selected (eq calc-algebraic-mode 'total)
