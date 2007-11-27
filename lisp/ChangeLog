@@ -54,8 +54,110 @@
 
 2007-11-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-menu.el (calc-modes-menu): Add normal and incomplete
+	* calc/calc-menu.el (calc-modes-menu): Add normal and incomplete
 	algebraic modes.
+
+	* calc/calc-aent.el (calc-refresh-evaltos, calc-execute-kbd-macro)
+	(math-is-true, calc-explain-why, calc-alg-edit)
+	(math-composite-inequalities, math-flatten-lands)
+	(math-multi-subst, calcFunc-vmatches, math-simplify)
+	(math-known-matrixp, math-parse-fortran-subscr, math-to-radians-2)
+	(math-read-string, math-read-brackets, math-read-angle-brackets):
+	Declare as functions.
+
+	* calc/calcalg3.el (calc-fit-s-shaped-logistic-curve)
+	(calc-fit-bell-shaped-logistic-curve)
+	(calc-fit-hubbert-linear-curve, calc-graph-add-curve)
+	(calc-graph-lookup, calc-graph-set-styles, math-min-list)
+	(math-max-list): Declare as functions.
+	(math-map-binop): New function.
+	(calc-curve-fit): Replace `mapcar*' by `math-map-binop'.
+
+	* calc/calc.el (calc-set-language, calc-edit-finish)
+	(calc-edit-cancel, calc-do-quick-calc, calc-do-calc-eval)
+	(calc-do-keypad, calcFunc-unixtime, math-parse-date)
+	(math-lessp, calc-embedded-finish-command)
+	(calc-embedded-select-buffer, calc-embedded-mode-line-change)
+	(calc-push-list-in-macro, calc-replace-selections)
+	(calc-record-list, calc-normalize-fancy, calc-do-handle-whys)
+	(calc-top-selected, calc-sel-error, calc-pop-stack-in-macro)
+	(calc-embedded-stack-change, calc-refresh-evaltos)
+	(calc-do-refresh, calc-binary-op-fancy, calc-unary-op-fancy)
+	(calc-delete-selection, calc-alg-digit-entry, calc-alg-entry)
+	(calc-dots, calc-temp-minibuffer-message, math-read-radix-digit)
+	(calc-digit-dots, math-normalize-fancy, math-normalize-nonstandard)
+	(math-recompile-eval-rules, math-apply-rewrites, calc-record-why)
+	(math-dimension-error, calc-incomplete-error, math-float-fancy)
+	(math-neg-fancy, math-zerop, calc-add-fractions)
+	(math-add-objects-fancy, math-add-symb-fancy, math-mul-zero)
+	(calc-mul-fractions, math-mul-objects-fancy, math-mul-symb-fancy)
+	(math-reject-arg, math-div-by-zero, math-div-zero, math-make-frac)
+	(calc-div-fractions, math-div-objects-fancy, math-div-symb-fancy)
+	(math-compose-expr, math-comp-width, math-composition-to-string)
+	(math-stack-value-offset-fancy, math-format-flat-expr-fancy)
+	(math-adjust-fraction, math-format-binary, math-format-radix)
+	(math-group-float, math-mod, math-format-number-fancy)
+	(math-format-bignum-fancy, math-read-number-fancy)
+	(calc-do-grab-region, calc-do-grab-rectangle, calc-do-embedded)
+	(calc-do-embedded-activate, math-do-defmath)
+	(calc-load-everything): Declare as functions.
+
+	* calc/calc-ext.el (math-clip, math-round, math-simplify)
+	(math-simplify-extended, math-simplify-units, calc-set-language)
+	(calc-flush-caches, calc-save-modes, calc-embedded-modes-change)
+	(calc-embedded-var-change, math-mul-float, math-arctan-raw)
+	(math-sqrt-float, math-exp-minus-1-raw, math-normalize-polar)
+	(math-normalize-hms, math-normalize-mod, math-make-sdev)
+	(math-make-intv, math-normalize-logical-op, math-possible-signs)
+	(math-infinite-dir, math-calcFunc-to-var)
+	(calc-embedded-evaluate-expr, math-known-nonzerop)
+	(math-read-expr-level, math-read-big-rec, math-read-big-balance)
+	(math-format-date, math-vector-is-string, math-vector-to-string)
+	(math-format-radix-float, math-compose-expr, math-abs)
+	(math-format-bignum-binary, math-format-bignum-octal)
+	(math-format-bignum-hex, math-format-bignum-radix)
+	(math-compute-max-digits): Declare as functions.
+	(math-provably-realp): Fix typo.
+
+	* calc/calc-forms.el (calendar-current-time-zone)
+	(calendar-absolute-from-gregorian, dst-in-effect): Declare as
+	functions.
+
+	* calc/calc-help.el (Info-goto-node, Info-last): Declare as
+	functions.
+
+	* calc/calc-lang.el (math-read-factor, math-read-expr-level):
+	Declare as functions.
+
+	* calc/calc-macs.el (math-zerop, math-negp, math-looks-negp)
+	(math-posp, math-compare, math-bignum, math-compare-bignum):
+	Declare as functions.
+
+	* calc/calc-misc.el (calc-do-keypad, calc-inv-hyp-prefix-help)
+	(calc-inverse-prefix-help, calc-hyperbolic-prefix-help)
+	(calc-explain-why, calc-clear-command-flag)
+	(calc-roll-down-with-selections, calc-roll-up-with-selections)
+	(calc-last-args, calc-is-inverse, calc-do-prefix-help)
+	(math-objvecp, math-known-scalarp, math-vectorp, math-matrixp)
+	(math-trunc-special, math-trunc-fancy, math-floor-special)
+	(math-floor-fancy, math-square-matrixp, math-matrix-inv-raw)
+	(math-known-matrixp, math-mod-fancy, math-pow-of-zero)
+	(math-pow-zero, math-pow-fancy): Declare as functions.
+
+	* calc/calc-mode.el (calc-embedded-save-original-modes):
+	Declare as a function.
+
+	* calc/calc-nlfit.el (calc-get-fit-variables, math-map-binop):
+	Declare as functions.
+	(math-nlfit-make-matrix, math-nlfit-find-qmax, math-nlfit-fit)
+	(math-nlfit-fit-curve, calc-fit-hubbert-linear-curve):
+	Replace `mapcar*' by `math-map-binop'.
+	(math-nlfit-make-matrix): Replace `copy-list' with `copy-sequence'.
+
+	* calc/calc-prog.el (edmacro-format-keys,edmacro-parse-keys)
+	(math-read-expr-level): Declare as functions.
+
+	* calc/calc-vec.el (math-read-expr-level): Declare as a function.
 
 2007-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
