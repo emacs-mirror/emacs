@@ -32,6 +32,10 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function calc-embedded-save-original-modes "calc-embed" ())
+
+
 (defun calc-line-numbering (n)
   (interactive "P")
   (calc-wrapper
