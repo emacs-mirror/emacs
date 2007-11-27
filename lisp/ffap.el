@@ -1045,6 +1045,9 @@ Assumes the buffer has not changed."
       ;; Older: (apply 'copy-region-as-kill ffap-string-at-point-region)
       (message "Copied to kill ring: %s"  str))))
 
+;; External.
+;;;(declare-function w3-view-this-url "w3" (&optional no-show))
+
 (defun ffap-url-at-point nil
   "Return url from around point if it exists, or nil."
   ;; Could use w3's url-get-url-at-point instead.  Both handle "URL:",
@@ -1687,20 +1690,8 @@ Only intended for interactive use."
 
 ;;; Bug Reporter:
 
-(defun ffap-bug nil
-  "Submit a bug report for the ffap package."
-  ;; Important: keep the version string here in synch with that at top
-  ;; of file!  Could use lisp-mnt from Emacs 19, but that would depend
-  ;; on being able to find the ffap.el source file.
-  (interactive)
-  (require 'reporter)
-  (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report
-     "Michelangelo Grigni <mic@mathcs.emory.edu>"
-     "ffap"
-     (mapcar 'intern (all-completions "ffap-" obarray 'boundp)))))
-
-(fset 'ffap-submit-bug 'ffap-bug)	; another likely name
+(define-obsolete-function-alias 'ffap-bug 'report-emacs-bug "23.1")
+(define-obsolete-function-alias 'ffap-submit-bug 'report-emacs-bug "23.1")
 
 
 ;;; Hooks for Gnus, VM, Rmail:
@@ -1723,6 +1714,13 @@ Only intended for interactive use."
 
 (defvar gnus-summary-buffer)
 (defvar gnus-article-buffer)
+
+;; This code is called from gnus.
+(declare-function gnus-summary-select-article "gnus-sum"
+                  (&optional all-headers force pseudo article))
+
+(declare-function gnus-configure-windows "gnus-win"
+                  (setting &optional force))
 
 (defun ffap-gnus-wrapper (form)		; used by both commands below
   (and (eq (current-buffer) (get-buffer gnus-summary-buffer))
