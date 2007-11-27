@@ -27,6 +27,16 @@
 
 ;;; Code:
 
+;; Declare functions which are defined elsewhere.
+(declare-function math-zerop "calc-misc" (a))
+(declare-function math-negp "calc-misc" (a))
+(declare-function math-looks-negp "calc-misc" (a))
+(declare-function math-posp "calc-misc" (a))
+(declare-function math-compare "calc-ext" (a b))
+(declare-function math-bignum "calc" (a))
+(declare-function math-compare-bignum "calc-ext" (a b))
+
+
 (defmacro calc-wrapper (&rest body)
   `(calc-do (function (lambda ()
 			,@body))))
