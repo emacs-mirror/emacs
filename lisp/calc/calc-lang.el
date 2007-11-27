@@ -32,6 +32,11 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+
+;; Declare functions which are defined elsewhere.
+(declare-function math-read-factor "calc-aent" ())
+(declare-function math-read-expr-level "calc-aent" (exp-prec &optional exp-term))
+
 ;;; Alternate entry/display languages.
 
 (defun calc-set-language (lang &optional option no-refresh)
