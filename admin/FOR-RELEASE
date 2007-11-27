@@ -109,6 +109,10 @@ http://thread.gmane.org/gmane.emacs.gnus.general/65627
 
 ** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
 
+** Get rid of old-style backquotes in cc-vars.el.
+ttn has a patch:
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02052.html
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
