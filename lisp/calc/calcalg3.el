@@ -32,6 +32,17 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function calc-fit-s-shaped-logistic-curve "calc-nlfit" (arg))
+(declare-function calc-fit-bell-shaped-logistic-curve "calc-nlfit" (arg))
+(declare-function calc-fit-hubbert-linear-curve "calc-nlfit" (&optional sdv))
+(declare-function calc-graph-add-curve "calc-graph" (xdata ydata &optional zdata))
+(declare-function calc-graph-lookup "calc-graph" (thing))
+(declare-function calc-graph-set-styles "calc-graph" (lines points &optional yerr))
+(declare-function math-min-list "calc-arith" (a b))
+(declare-function math-max-list "calc-arith" (a b))
+
+
 (defun calc-find-root (var)
   (interactive "sVariable(s) to solve for: ")
   (calc-slow-wrapper
