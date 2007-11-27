@@ -55,15 +55,15 @@
     (eval-when-compile
       (let ((load-path (cons (expand-file-name ".") load-path)))
 	(or (featurep 'viper-util)
-	    (load "viper-util.el" nil nil 'nosuffix))
+	    (load "viper-util.el" nil t 'nosuffix))
 	(or (featurep 'viper-keym)
-	    (load "viper-keym.el" nil nil 'nosuffix))
+	    (load "viper-keym.el" nil t 'nosuffix))
 	(or (featurep 'viper-mous)
-	    (load "viper-mous.el" nil nil 'nosuffix))
+	    (load "viper-mous.el" nil t 'nosuffix))
 	(or (featurep 'viper-macs)
-	    (load "viper-macs.el" nil nil 'nosuffix))
+	    (load "viper-macs.el" nil t 'nosuffix))
 	(or (featurep 'viper-ex)
-	    (load "viper-ex.el" nil nil 'nosuffix))
+	    (load "viper-ex.el" nil t 'nosuffix))
 	)))
 ;; end pacifier
 
