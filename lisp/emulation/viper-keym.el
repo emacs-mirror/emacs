@@ -42,7 +42,7 @@
     (eval-when-compile
       (let ((load-path (cons (expand-file-name ".") load-path)))
 	(or (featurep 'viper-util)
-	    (load "viper-util.el" nil nil 'nosuffix))
+	    (load "viper-util.el" nil t 'nosuffix))
 	)))
 ;; end pacifier
 
