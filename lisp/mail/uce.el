@@ -218,6 +218,12 @@ These are mostly meant for headers that prevent delivery errors reporting."
   :group 'uce)
 
 (declare-function mail-strip-quoted-names "mail-utils" (address))
+(declare-function rmail-msg-is-pruned "rmail" ())
+(declare-function rmail-maybe-set-message-counters "rmail" ())
+(declare-function rmail-msgbeg "rmail" (n))
+(declare-function rmail-msgend "rmail" (n))
+(declare-function rmail-toggle-header "rmail" (&optional arg))
+
 
 (defun uce-reply-to-uce (&optional ignored)
   "Send reply to UCE in Rmail.

@@ -1519,6 +1519,15 @@ original copy."
 
 ;;;; *** Rmail input ***
 
+(declare-function rmail-spam-filter "rmail-spam-filter" (msg))
+(declare-function rmail-summary-goto-msg "rmailsum" (&optional n nowarn skip-rmail))
+(declare-function rmail-summary-mark-undeleted "rmailsum" (n))
+(declare-function rmail-summary-mark-deleted "rmailsum" (&optional n undel))
+(declare-function rfc822-addresses "rfc822" (header-text))
+(declare-function mail-abbrev-make-syntax-table "mailabbrev.el" ())
+(declare-function mail-sendmail-delimit-header "sendmail" ())
+(declare-function mail-header-end "sendmail" ())
+
 ;; RLK feature not added in this version:
 ;; argument specifies inbox file or files in various ways.
 

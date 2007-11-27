@@ -920,7 +920,7 @@ shortlisp= \
    for the sake of systems which can''t handle large ones.  */
 SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
-  ${dotdot}/lisp/vmsproc.elc ${dotdot}/lisp/vms-patch.elc \
+  VMS_SUPPORT \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
   ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
   ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \

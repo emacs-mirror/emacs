@@ -126,6 +126,11 @@ For example, you may want to set this to '(\"-Z2\") to reduce header length."
       (concat (match-string 1 addr) (match-string 2 addr))
     addr))
 
+(declare-function  message-narrow-to-headers-or-head "message" ())
+(declare-function  message-fetch-field "message" (header &optional not-all))
+(declare-function  message-goto-eoh "message" ())
+(declare-function  message-narrow-to-headers "message" ())
+
 (defun hashcash-token-substring ()
   (save-excursion
     (let ((token ""))

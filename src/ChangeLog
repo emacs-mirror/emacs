@@ -1,3 +1,8 @@
+2007-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (SOME_MACHINE_LISP): Remove VMS files, they are not
+	compiled anymore.
+
 2007-11-26  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (list_processes_1): Fix indentation level of the

@@ -1510,6 +1510,8 @@ the last)."
      2 3))
   "Alist that specifies how to match errors in perl output.")
 
+(defvar compilation-error-regexp-alist)
+
 ;;;###autoload
 (defun cperl-mode ()
   "Major mode for editing Perl code.
@@ -1790,9 +1792,11 @@ or as help on variables `cperl-tips', `cperl-problems',
   (set 'vc-sccs-header cperl-vc-sccs-header)
   ;; This one is obsolete...
   (make-local-variable 'vc-header-alist)
-  (set 'vc-header-alist (or cperl-vc-header-alist ; Avoid warning
-			    `((SCCS ,(car cperl-vc-sccs-header))
-                              (RCS ,(car cperl-vc-rcs-header)))))
+  (with-no-warnings
+   (set 'vc-header-alist (or cperl-vc-header-alist ; Avoid warning
+			     `((SCCS ,(car cperl-vc-sccs-header))
+			       (RCS ,(car cperl-vc-rcs-header)))))
+   )
   (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
 	 (make-local-variable 'compilation-error-regexp-alist-alist)
 	 (set 'compilation-error-regexp-alist-alist

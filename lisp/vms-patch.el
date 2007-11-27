@@ -1,3 +1,4 @@
+;; -*- no-byte-compile: t -*-
 ;;; vms-patch.el --- override parts of files.el for VMS
 
 ;; Copyright (C) 1986, 1992, 2001, 2002, 2003, 2004,

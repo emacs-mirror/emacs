@@ -1598,6 +1598,8 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
+(declare-function view-mode-exit "view" (&optional return-to-alist exit-action all-win))
+
 (defun vc-resynch-window (file &optional keep noquery)
   "If FILE is in the current buffer, either revert or unvisit it.
 The choice between revert (to see expanded keywords) and unvisit depends on

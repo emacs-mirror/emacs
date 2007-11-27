@@ -91,6 +91,8 @@
 
 (require 'idlwave)
 
+(declare-function idlwave-shell-buffer "idlw-shell")
+
 ;; Some variables to identify the previously used structure
 (defvar idlwave-current-tags-var nil)
 (defvar idlwave-current-tags-buffer nil)

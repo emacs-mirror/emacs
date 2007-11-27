@@ -1,3 +1,52 @@
+2007-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/cperl-mode.el (compilation-error-regexp-alist): Pacify
+	byte compiler.
+	(cperl-mode): Use with-no-warnings for setting vc-header-alist.
+
+	* progmodes/idlwave.el (idlwave-shell-get-path-info)
+	(idlwave-shell-temp-file, idlwave-shell-is-running)
+	(widget-value, comint-dynamic-complete-filename, Info-goto-node):
+	* progmodes/idlw-help.el (idlwave-prepare-structure-tag-completion)
+	(idlwave-all-method-classes, idlwave-all-method-keyword-classes)
+	(idlwave-beginning-of-statement, idlwave-best-rinfo-assoc)
+	(idlwave-class-found-in, idlwave-class-or-superclass-with-tag)
+	(idlwave-completing-read, idlwave-current-routine)
+	(idlwave-downcase-safe, idlwave-entry-find-keyword)
+	(idlwave-expand-keyword, idlwave-find-class-definition)
+	(idlwave-find-inherited-class, idlwave-find-struct-tag)
+	(idlwave-get-buffer-visiting, idlwave-in-quote)
+	(idlwave-make-full-name, idlwave-members-only)
+	(idlwave-popup-select, idlwave-routine-source-file)
+	(idlwave-routines, idlwave-sintern-class)
+	(idlwave-sintern-keyword, idlwave-sintern-method)
+	(idlwave-sintern-routine-or-method)
+	(idlwave-substitute-link-target, idlwave-sys-dir)
+	(idlwave-this-word, idlwave-what-module-find-class)
+	(idlwave-where):
+	* progmodes/idlw-complete-structtag.el (idlwave-shell-buffer):
+	* mail/uce.el (rmail-msg-is-pruned)
+	(rmail-maybe-set-message-counters, rmail-msgbeg, rmail-msgend)
+	(rmail-toggle-header):
+	* mail/sendmail.el (dired-view-file, dired-get-filename):
+	* mail/rmailkwd.el (rmail-maybe-set-message-counters)
+	(rmail-display-labels, rmail-msgbeg)
+	(rmail-set-message-deleted-p, rmail-message-labels-p)
+	(rmail-show-message, mail-comma-list-regexp)
+	(mail-parse-comma-list):
+	* mail/rmail.el (rmail-spam-filter, rmail-summary-goto-msg)
+	(rmail-summary-mark-undeleted, rmail-summary-mark-deleted)
+	(rfc822-addresses, mail-abbrev-make-syntax-table)
+	(mail-sendmail-delimit-header, mail-header-end):
+	* mail/hashcash.el (message-narrow-to-headers-or-head)
+	(message-fetch-field, message-goto-eoh)
+	(message-narrow-to-headers):
+	* vc.el (view-mode-exit): Declare as functions.
+
+	* mail/vms-pmail.el:
+	* vmsproc.el:
+	* vms-patch.el: Don't byte compile these files, they don't work.
+
 2007-11-27  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/eshell.el (eshell-report-bug): Add version number of

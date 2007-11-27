@@ -182,6 +182,13 @@
     (defmacro defcustom (var value doc &rest args)
       `(defvar ,var ,value ,doc))))
 
+(declare-function idlwave-shell-get-path-info "idlw-shell")
+(declare-function idlwave-shell-temp-file "idlw-shell")
+(declare-function idlwave-shell-is-running "idlw-shell")
+(declare-function widget-value "wid-edit" (widget))
+(declare-function comint-dynamic-complete-filename "comint" ())
+(declare-function Info-goto-node "info" (nodename &optional fork))
+
 (defgroup idlwave nil
   "Major mode for editing IDL .pro files."
   :tag "IDLWAVE"
