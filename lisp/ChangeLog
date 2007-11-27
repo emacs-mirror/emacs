@@ -1,3 +1,57 @@
+2007-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/eshell.el (eshell-report-bug): Add version number of
+	obsolescence.
+
+	* ediff-diff.el, ediff-help.el, ediff-merg.el, ediff-mult.el,
+	ediff-ptch.el, ediff-util.el, ediff-vers.el, ediff-wind.el, ediff.el:
+	Load ediff-*.el files silently.
+
+	* ediff.el: Load dired silently.  Don't load info, pcl-cvs when
+	compiling.
+	(Info-goto-node): Declare as a function.
+
+	* ediff-init.el: Don't load ange-ftp when compiling.
+	* ediff-util.el: Don't load reporter when compiling.
+
+	* ediff-wind.el (ediff-display-pixel-width)
+	(ediff-display-pixel-height):
+	* generic-x.el (ini-generic-mode):
+	* ps-print.el (ps-mule-encode-header-string, ps-mule-begin-page)
+	(ps-mule-prepare-ascii-font, ps-mule-set-ascii-font)
+	(ps-mule-initialize, ps-mule-begin-job):
+	* calendar/cal-bahai.el (add-to-diary-list, diary-name-pattern)
+	(mark-calendar-days-named):
+	* calendar/cal-hebrew.el (holiday-filter-visible-calendar)
+	(add-to-diary-list, diary-name-pattern)
+	(mark-calendar-days-named):
+	* calendar/cal-islam.el (add-to-diary-list, diary-name-pattern)
+	(mark-calendar-days-named):
+	* calendar/cal-x.el (make-fancy-diary-buffer):
+	* calendar/holidays.el (calendar-absolute-from-julian):
+	* calendar/todo-mode.el (calendar-current-date):
+	Declare as functions.
+
+	* calendar/calendar.el (nongregorian-diary-listing-hook): Doc fix.
+	(Info-find-emacs-command-nodes, Info-find-node): Declare as functions.
+
+	* ffap.el (ffap-bug, ffap-submit-bug): Redefine as obsolete
+	aliases for report-emacs-bug.
+	(gnus-summary-select-article, gnus-configure-windows): Declare as
+	functions.
+
+	* pgg-parse.el (pgg-parse-24, pgg-parse-crc24-string): Declare for
+	compiler.
+
+	* pgg.el (pgg-clear-string): Declare as a function.
+	(pgg-run-at-time-1): Wrap whole definition in (featurep 'xemacs) test.
+	(pgg-run-at-time, pgg-cancel-timer): Move definitions before use.
+
+	* emacs-lisp/check-declare.el (check-declare-locate):
+	Handle compressed files.
+	(check-declare-verify): Handle define-generic-mode,
+	define-global(ized)-minor-mode, define-obsolete-function-alias.
+
 2007-11-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc-menu.el (calc-modes-menu): Add normal and incomplete
@@ -6,7 +60,8 @@
 2007-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (end-of-defun): Restructure so that
-	end-of-defun-function is called consistently, even for negative arguments.
+	end-of-defun-function is called consistently, even for negative
+	arguments.
 	(end-of-defun-function): Default to forward-sexp.
 
 2007-11-26  Juanma Barranquero  <lekktu@gmail.com>
