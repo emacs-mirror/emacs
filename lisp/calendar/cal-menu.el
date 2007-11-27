@@ -33,6 +33,10 @@
 
 ;;; Code:
 
+;; The code in this file is only called from calendar.el, but can't
+;; require it (to supress undefined function warnings from compiler)
+;; without a recursive require.
+
 (defvar displayed-year)
 
 (defconst cal-menu-moon-menu
