@@ -4908,6 +4908,14 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 	     ps-rf-cache (ps-generate-string-list ps-right-footer)))
   (append ps-lh-cache ps-rh-cache ps-lf-cache ps-rf-cache))
 
+;; All autoloads.
+(declare-function ps-mule-encode-header-string "ps-mule")
+(declare-function ps-mule-begin-page           "ps-mule")
+(declare-function ps-mule-prepare-ascii-font   "ps-mule")
+(declare-function ps-mule-set-ascii-font       "ps-mule")
+(declare-function ps-mule-initialize           "ps-mule")
+(declare-function ps-mule-begin-job            "ps-mule")
+
 ;; These functions insert the arrays that define the contents of the headers.
 
 (defun ps-generate-header-line (fonttag &optional content)
