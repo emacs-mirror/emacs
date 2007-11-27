@@ -33,7 +33,7 @@
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil nil 'nosuffix))
+	(load "ediff-init.el" nil t 'nosuffix))
     ))
 ;; end pacifier
 
