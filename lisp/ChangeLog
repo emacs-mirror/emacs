@@ -83,6 +83,25 @@
 	* calendar/cal-x.el (make-fancy-diary-buffer):
 	* calendar/holidays.el (calendar-absolute-from-julian):
 	* calendar/todo-mode.el (calendar-current-date):
+	* calendar/cal-menu.el (calendar-increment-month)
+	(calendar-month-name, extract-calendar-year)
+	(calendar-cursor-to-date, holiday-list, calendar-sunrise-sunset)
+	(calendar-current-date, calendar-cursor-holidays)
+	(calendar-date-string, insert-diary-entry, calendar-set-mark)
+	(cal-tex-cursor-day, cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-cursor-week-monday)
+	(cal-tex-cursor-filofax-daily, cal-tex-cursor-filofax-2week)
+	(cal-tex-cursor-filofax-week, cal-tex-cursor-month)
+	(cal-tex-cursor-month-landscape, cal-tex-cursor-year)
+	(cal-tex-cursor-filofax-year, cal-tex-cursor-year-landscape)
+	(calendar-day-of-year-string, calendar-iso-date-string)
+	(calendar-julian-date-string, calendar-astro-date-string)
+	(calendar-absolute-from-gregorian, calendar-hebrew-date-string)
+	(calendar-persian-date-string, calendar-bahai-date-string)
+	(calendar-islamic-date-string, calendar-chinese-date-string)
+	(calendar-coptic-date-string, calendar-ethiopic-date-string)
+	(calendar-french-date-string, calendar-mayan-date-string)
+	(calendar-print-chinese-date, calendar-goto-date):
 	Declare as functions.
 
 	* calendar/calendar.el (nongregorian-diary-listing-hook): Doc fix.
