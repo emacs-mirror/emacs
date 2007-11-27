@@ -57,7 +57,7 @@
 (declare-function calc-embedded-evaluate-expr "calc-embed" (x))
 (declare-function math-known-nonzerop "calc-arith" (a))
 (declare-function math-read-expr-level "calc-aent" (exp-prec &optional exp-term))
-(declare-function math-read-big-rec "calc-lang" (math-rb-h1 math-rb-v1 math-rb-h2 math-rb-v2))
+(declare-function math-read-big-rec "calc-lang" (math-rb-h1 math-rb-v1 math-rb-h2 math-rb-v2 &optional baseline prec short))
 (declare-function math-read-big-balance "calc-lang" (h v what &optional commas))
 (declare-function math-format-date "calc-forms" (math-fd-date))
 (declare-function math-vector-is-string "calccomp" (a))
