@@ -71,7 +71,6 @@
 (declare-function math-format-bignum-radix "calc-bin" (a))
 (declare-function math-compute-max-digits "calc-bin" (w r))
 
-
 (defvar math-simplifying nil)
 (defvar math-living-dangerously nil)   ; true if unsafe simplifications are okay.
 (defvar math-integrating nil)
@@ -2132,7 +2131,7 @@ calc-kill calc-kill-region calc-yank))))
 ;;; True if A is a real or will evaluate to a real.  [P x] [Public]
 (defun math-provably-realp (a)
   (or (Math-realp a)
-      (math-provably-integer a)
+      (math-provably-integerp a)
       (memq (car-safe a) '(abs arg))))
 
 ;;; True if A is a non-real, complex number.  [P x] [Public]
