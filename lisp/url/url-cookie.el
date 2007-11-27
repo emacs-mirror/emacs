@@ -87,6 +87,9 @@ telling Microsoft that."
      ;; (message "Could not load cookie file %s" fname)
      )))
 
+;; check-declare does not handle defstruct.
+;;;(declare-function url-cookie-p "url-cookie")
+
 (defun url-cookie-clean-up (&optional secure)
   (let* (
 	 (var (if secure 'url-cookie-secure-storage 'url-cookie-storage))
