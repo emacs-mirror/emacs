@@ -32,6 +32,11 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function edmacro-format-keys "edmacro" (macro &optional verbose))
+(declare-function edmacro-parse-keys "edmacro" (string &optional need-vector))
+(declare-function math-read-expr-level "calc-aent" (exp-prec &optional exp-term))
+
 
 (defun calc-equal-to (arg)
   (interactive "P")
