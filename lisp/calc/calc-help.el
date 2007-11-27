@@ -32,6 +32,11 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function Info-goto-node "info" (nodename &optional fork))
+(declare-function Info-last "info" ())
+
+
 (defun calc-help-prefix (arg)
   "This key is the prefix for Calc help functions.  See calc-help-for-help."
   (interactive "P")
