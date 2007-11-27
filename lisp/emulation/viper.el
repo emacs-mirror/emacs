@@ -313,9 +313,9 @@
     (eval-when-compile
       (let ((load-path (cons (expand-file-name ".") load-path)))
 	(or (featurep 'viper-init)
-	    (load "viper-init.el" nil nil 'nosuffix))
+	    (load "viper-init.el" nil t 'nosuffix))
 	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil nil 'nosuffix))
+	    (load "viper-cmd.el" nil t 'nosuffix))
 	)))
 ;; end pacifier
 
