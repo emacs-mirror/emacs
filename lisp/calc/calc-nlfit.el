@@ -61,10 +61,11 @@
 ;;; Code:
 
 (require 'calc-arith)
+(require 'calcalg3)
 
 ;; Declare functions which are defined elsewhere.
 (declare-function calc-get-fit-variables "calcalg3" (nv nc &optional defv defc with-y homog))
-
+(declare-function math-map-binop "calclalg3" (binop args1 args2))
 
 (defun math-nlfit-least-squares (xdata ydata &optional sdata sigmas)
   "Return the parameters A and B for the best least squares fit y=a+bx."
@@ -192,7 +193,7 @@
 ;;; the maximum value of q.
 
 (defun math-nlfit-find-qmax (qdata pdata tdata)
-  (let* ((ratios (mapcar* 'math-div pdata qdata))
+  (let* ((ratios (math-map-binop 'math-div pdata qdata))
          (lsdata (math-nlfit-least-squares ratios tdata))
          (qmax (math-max-list (car qdata) (cdr qdata)))
          (a (math-neg (math-div (nth 1 lsdata) (nth 0 lsdata)))))
@@ -299,7 +300,7 @@
         (mat nil)
         (k 0))
     (while (< k i)
-      (setq mat (cons (copy-list row) mat))
+      (setq mat (cons (copy-sequence row) mat))
       (setq k (1+ k)))
     mat))
 
@@ -517,7 +518,7 @@
           (let* ((Ctilda (math-nlfit-make-Ctilda C lambda))
                  (dtilda (math-nlfit-make-dtilda d (length (car C))))
                  (zeta (math-nlfit-givens Ctilda dtilda))
-                 (newparms (mapcar* 'math-add (copy-tree parms) zeta))
+                 (newparms (math-map-binop 'math-add (copy-tree parms) zeta))
                  (newchisq (math-nlfit-chi-sq xlist ylist newparms fn slist)))
             (if (math-lessp newchisq chisq)
                 (progn
@@ -696,7 +697,8 @@
                (nth 0 sigmacovar)))
           (finalparms 
            (if sigmas
-               (mapcar* (lambda (x y) (list 'sdev x y)) finalparms sigmas)
+               (math-map-binop 
+                (lambda (x y) (list 'sdev x y)) finalparms sigmas)
              finalparms))
           (soln (funcall solnexpr finalparms var)))
      (let ((calc-fit-to-trail t)
@@ -756,7 +758,7 @@
                      (mapcar (lambda (x) (math-get-sdev x t)) pdata)
                    nil))
           (pdata (mapcar (lambda (x) (math-get-value x)) pdata))
-          (poverqdata (mapcar* 'math-div pdata qdata))
+          (poverqdata (math-map-binop 'math-div pdata qdata))
           (parmvals (math-nlfit-least-squares qdata poverqdata sdata sdevv))
           (finalparms (list (nth 0 parmvals)
                             (math-neg
