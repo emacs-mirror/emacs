@@ -56,6 +56,11 @@
 	* eshell/eshell.el (eshell-report-bug): Add version number of
 	obsolescence.
 
+	* emulation/viper.el, emulation/viper-util.el,
+	emulation/viper-macs.el, emulation/viper-keym.el,
+	emulation/viper-ex.el, emulation/viper-cmd.el:
+	Load viper-*.el files silently.
+
 	* ediff-diff.el, ediff-help.el, ediff-merg.el, ediff-mult.el,
 	ediff-ptch.el, ediff-util.el, ediff-vers.el, ediff-wind.el, ediff.el:
 	Load ediff-*.el files silently.
