@@ -32,6 +32,10 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function math-read-expr-level "calc-aent" (exp-prec &optional exp-term))
+
+
 (defun calc-display-strings (n)
   (interactive "P")
   (calc-wrapper
