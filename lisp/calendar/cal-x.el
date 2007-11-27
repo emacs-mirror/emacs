@@ -64,6 +64,9 @@ Location and color should be set in .Xdefaults.")
   "Hooks to be run just after setting up a calendar frame.
 Can be used to change frame parameters, such as font, color, location, etc.")
 
+;; calendar-basic-setup is called first, and will autoload diary-lib.
+(declare-function make-fancy-diary-buffer "diary-lib" nil)
+
 (defun calendar-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame together with the diary.
 This function requires a display capable of multiple frames, else
