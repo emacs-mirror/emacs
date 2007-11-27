@@ -383,6 +383,10 @@ your changes into effect."
   "Generic mode for HOSTS files."))
 
 ;;; Windows INF files
+
+;; If i-g-m-f-f-h is defined, then so is i-g-m.
+(declare-function ini-generic-mode "generic-x")
+
 (when (memq 'inf-generic-mode generic-extras-enable-list)
 
 (define-generic-mode inf-generic-mode
