@@ -109,6 +109,9 @@ and
 HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\<device>\
 where <device> is the network device found under the first key.
 
+** Check for any included packages that define obsolete bug-reporting commands.
+Change them to use report-emacs-bug.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
