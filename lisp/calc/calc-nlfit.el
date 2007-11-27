@@ -62,6 +62,10 @@
 
 (require 'calc-arith)
 
+;; Declare functions which are defined elsewhere.
+(declare-function calc-get-fit-variables "calcalg3" (nv nc &optional defv defc with-y homog))
+
+
 (defun math-nlfit-least-squares (xdata ydata &optional sdata sigmas)
   "Return the parameters A and B for the best least squares fit y=a+bx."
   (let* ((n (length xdata))
