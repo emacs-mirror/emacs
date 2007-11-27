@@ -1,3 +1,9 @@
+2007-11-27  Glenn Morris  <rgm@gnu.org>
+
+	* calc/calc-ext.el (math-read-big-rec):
+	* calc/calc-nlfit.el (math-map-binop):
+	* calc/calc.el (math-normalize-nonstandard): Fix declarations.
+
 2007-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/cperl-mode.el (compilation-error-regexp-alist): Pacify
