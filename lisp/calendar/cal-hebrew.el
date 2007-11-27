@@ -301,6 +301,9 @@ nil if it is not visible in the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
+;; h-r-h-e should be called from holidays code.
+(declare-function holiday-filter-visible-calendar "holidays" (l))
+
 (defun holiday-rosh-hashanah-etc ()
   "List of dates related to Rosh Hashanah, as visible in calendar window."
   (if (or (< displayed-month 8)
@@ -500,6 +503,10 @@ nil if it is not visible in the current calendar window."
                (calendar-dayname-on-or-before 6 (+ abs-t-a 7)))
               "Shabbat Nahamu"))))))
 
+;; l-h-d-e should be called from diary code.
+(declare-function add-to-diary-list "diary-lib"
+                  (date string specifier &optional marker globcolor literal))
+
 (defun list-hebrew-diary-entries ()
   "Add any Hebrew date entries from the diary file to `diary-entries-list'.
 Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
@@ -660,6 +667,12 @@ A value of 0 in any position is a wildcard."
                      (= year h-year))
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
+
+(declare-function diary-name-pattern "diary-lib"
+                  (string-array &optional abbrev-array paren))
+
+(declare-function mark-calendar-days-named "diary-lib"
+                  (dayname &optional color))
 
 (defun mark-hebrew-diary-entries ()
   "Mark days in the calendar window that have Hebrew date diary entries.
