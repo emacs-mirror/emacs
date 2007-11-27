@@ -32,6 +32,12 @@
 (require 'calc-ext)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function calendar-current-time-zone "cal-dst" ())
+(declare-function calendar-absolute-from-gregorian "calendar" (date))
+(declare-function dst-in-effect "cal-dst" (date))
+
+
 (defun calc-time ()
   (interactive)
   (calc-wrapper
