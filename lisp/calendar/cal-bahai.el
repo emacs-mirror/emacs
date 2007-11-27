@@ -204,6 +204,10 @@ nil if it is not visible in the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
+;; d-b-l-e should be called from diary code.
+(declare-function add-to-diary-list "diary-lib"
+                  (date string specifier &optional marker globcolor literal))
+
 (defun diary-bahai-list-entries ()
   "Add any Bahá'í date entries from the diary file to `diary-entries-list'.
 Bahá'í date diary entries must be prefaced by an
@@ -289,6 +293,12 @@ calendar.  This function is provided for use with the
                  (1+ (calendar-absolute-from-gregorian gdate)))))
         (set-buffer-modified-p diary-modified))
     (goto-char (point-min))))
+
+(declare-function diary-name-pattern "diary-lib"
+                  (string-array &optional abbrev-array paren))
+
+(declare-function mark-calendar-days-named "diary-lib"
+                  (dayname &optional color))
 
 (defun diary-bahai-mark-entries ()
   "Mark days in the calendar window that have Bahá'í date diary entries.
