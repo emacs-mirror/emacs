@@ -43,6 +43,13 @@
 (declare-function math-max-list "calc-arith" (a b))
 
 
+(defun math-map-binop (binop args1 args2)
+  "Apply BINOP to the elements of the lists ARGS1 and ARGS2"
+  (if args1
+      (cons
+       (funcall binop (car args1) (car args2))
+       (funcall 'math-map-binop binop (cdr args1) (cdr args2)))))
+
 (defun calc-find-root (var)
   (interactive "sVariable(s) to solve for: ")
   (calc-slow-wrapper
@@ -250,9 +257,9 @@
                               (nth 1 plot)
                               (cons
                                'vec
-                               (mapcar* 'calcFunc-div
-                                        (cdr (nth 2 plot))
-                                        (cdr (nth 1 plot)))))))
+                               (math-map-binop 'calcFunc-div
+                                               (cdr (nth 2 plot))
+                                               (cdr (nth 1 plot)))))))
               (calc-fit-hubbert-linear-curve func))
 	     ((memq key '(?e ?E))
 	      (calc-get-fit-variables calc-curve-nvars 
