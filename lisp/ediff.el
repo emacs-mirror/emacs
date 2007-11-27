@@ -113,22 +113,20 @@
 (defvar ediff-last-dir-patch)
 (defvar ediff-patch-default-directory)
 
-(and noninteractive
-     (eval-when-compile
-	 (load-library "dired")
-	 (load-library "info")
-	 (load "pcl-cvs" 'noerror)))
+
 (eval-when-compile
+  (and noninteractive
+       (load "dired" nil t))
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (provide 'ediff) ; to break recursive load cycle
     (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil nil 'nosuffix))
+	(load "ediff-init.el" nil t 'nosuffix))
     (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil nil 'nosuffix))
+	(load "ediff-mult.el" nil t 'nosuffix))
     (or (featurep 'ediff-ptch)
-	(load "ediff-ptch.el" nil nil 'nosuffix))
+	(load "ediff-ptch.el" nil t 'nosuffix))
     (or (featurep 'ediff-vers)
-	(load "ediff-vers.el" nil nil 'nosuffix))
+	(load "ediff-vers.el" nil t 'nosuffix))
     ))
 ;; end pacifier
 
@@ -1428,6 +1426,8 @@ When called interactively, displays the version."
       (message (ediff-version))
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
+;; info is run first, and will autoload info.el.
+(declare-function Info-goto-node "info" (nodename &optional fork))
 
 ;;;###autoload
 (defun ediff-documentation (&optional node)
