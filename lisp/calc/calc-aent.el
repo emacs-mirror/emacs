@@ -32,6 +32,25 @@
 (require 'calc)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function calc-refresh-evaltos "calc-ext" (&optional which-var))
+(declare-function calc-execute-kbd-macro "calc-prog" (mac arg &rest prefix))
+(declare-function math-is-true "calc-ext" (expr))
+(declare-function calc-explain-why "calc-stuff" (why &optional more))
+(declare-function calc-alg-edit "calc-yank" (str))
+(declare-function math-composite-inequalities "calc-prog" (x op))
+(declare-function math-flatten-lands "calc-rewr" (expr))
+(declare-function math-multi-subst "calc-map" (expr olds news))
+(declare-function calcFunc-vmatches "calc-rewr" (expr pat))
+(declare-function math-simplify "calc-alg" (top-expr))
+(declare-function math-known-matrixp "calc-arith" (a))
+(declare-function math-parse-fortran-subscr "calc-lang" (sym args))
+(declare-function math-to-radians-2 "calc-math" (a))
+(declare-function math-read-string "calc-ext" ())
+(declare-function math-read-brackets "calc-vec" (space-sep math-rb-close))
+(declare-function math-read-angle-brackets "calc-forms" ())
+
+
 (defvar calc-quick-calc-history nil
   "The history list for quick-calc.")
 
