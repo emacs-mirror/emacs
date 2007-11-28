@@ -46,9 +46,9 @@
 (defun check-declare-locate (file basefile)
   "Return the full path of FILE.
 Expands files with a \".c\" extension relative to the Emacs
-\"src/\" directory.  Otherwise, `locate-library' searches for
-FILE.  If that fails, expands FILE relative to BASEFILE's
-directory part.  The returned file might not exist."
+\"src/\" directory.  Otherwise, `locate-library' searches for FILE.
+If that fails, expands FILE relative to BASEFILE's directory part.
+The returned file might not exist."
   (if (string-equal "c" (file-name-extension file))
       (expand-file-name file (expand-file-name "src" source-directory))
     (let ((tfile (locate-library (file-name-nondirectory file))))
@@ -112,7 +112,7 @@ found to be true, otherwise a list of errors with elements of the form
           ;; defsubst's don't _have_ to be known at compile time.
           (setq re (format (if cflag
                                "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
-                             "^[ \t]*(\\(def\\(?:un\\|subst\\|\
+                             "^[ \t]*(\\(fset[ \t]+'\\|def\\(?:un\\|subst\\|\
 ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
 \\|\\(?:ine-obsolete-function-\\)?alias[ \t]+'\\)\\)\
 \[ \t]*%s\\([ \t;]+\\|$\\)")
@@ -153,8 +153,8 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
                               "\\`define-obsolete-function-alias\\>"
                               type)
                              'obsolete)
-                            ;; Can't easily check alias arguments.
-                            ((string-match "\\`defalias\\>" type)
+                            ;; Can't easily check arguments in these cases.
+                            ((string-match "\\`\\(defalias\\|fset\\)\\>" type)
                              t)
                             ((looking-at "\\((\\|nil\\)")
                              (byte-compile-arglist-signature
@@ -176,7 +176,7 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
                       ;; arglist t means no arglist specified, as
                       ;; opposed to an empty arglist.
                       ((eq arglist t) nil)
-                      ((eq sig t) nil)  ; defalias, can't check
+                      ((eq sig t) nil) ; eg defalias - can't check arguments
                       ((eq sig 'err)
                        "arglist not found") ; internal error
                       ((not (equal (byte-compile-arglist-signature
