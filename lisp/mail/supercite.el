@@ -6,10 +6,7 @@
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    Glenn Morris <rgm@gnu.org>
 ;; Created:       February 1993
-;; Last Modified: 1993/09/22 18:58:46
 ;; Keywords: mail, news
-
-;; supercite.el revision: 3.54
 
 ;; This file is part of GNU Emacs.
 
@@ -510,10 +507,7 @@ string."
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user configuration variables
 
-(defconst sc-version "3.1"
-  "Supercite version number.")
-(defconst sc-help-address "bug-supercite@gnu.org"
-  "Address accepting submissions of bug reports.")
+(define-obsolete-variable-alias 'sc-version 'emacs-version "23.1")
 
 (defvar sc-mail-info nil
   "Alist of mail header information gleaned from reply buffer.")
@@ -2023,48 +2017,7 @@ more information.  Info node `(SC)Top'."
   (interactive)
   (describe-function 'sc-describe))
 
-(defun sc-submit-bug-report ()
-  "Submit a bug report on Supercite via mail."
-  (interactive)
-  (require 'reporter)
-  (and
-   (y-or-n-p "Do you want to submit a report on Supercite? ")
-   (reporter-submit-bug-report
-    sc-help-address
-    (concat "Supercite version " sc-version)
-    (list
-     'sc-attrib-selection-list
-     'sc-auto-fill-region-p
-     'sc-blank-lines-after-headers
-     'sc-citation-leader
-     'sc-citation-delimiter
-     'sc-citation-separator
-     'sc-citation-leader-regexp
-     'sc-citation-root-regexp
-     'sc-citation-nonnested-root-regexp
-     'sc-citation-delimiter-regexp
-     'sc-citation-separator-regexp
-     'sc-cite-region-limit
-     'sc-confirm-always-p
-     'sc-default-attribution
-     'sc-default-author-name
-     'sc-downcase-p
-     'sc-electric-circular-p
-     'sc-electric-references-p
-     'sc-fixup-whitespace-p
-     'sc-mail-warn-if-non-rfc822-p
-     'sc-mumble
-     'sc-name-filter-alist
-     'sc-nested-citation-p
-     'sc-nuke-mail-headers
-     'sc-nuke-mail-header-list
-     'sc-preferred-attribution-list
-     'sc-preferred-header-style
-     'sc-reference-tag-string
-     'sc-rewrite-header-list
-     'sc-titlecue-regexp
-     'sc-use-only-preference-p
-     ))))
+(define-obsolete-function-alias 'sc-submit-bug-report 'report-emacs-bug "23.1")
 
 
 ;; useful stuff
