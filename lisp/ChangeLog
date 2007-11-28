@@ -7,6 +7,9 @@
 	* Makefile.in (maintainer-clean): Depend on bootstrap-clean to
 	delete .elc files.
 
+	* nxml/char-name/unicode: Move to etc/nxml/.
+	* nxml/nxml-uchnm.el (top-level): Adapt for moved unicode files.
+
 	* nxml/nxml-enc.el (xmltok-get-declared-encoding-position):
 	Declare as a function.
 
