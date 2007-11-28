@@ -6505,11 +6505,20 @@ lispy_modifier_list (modifiers)
    SYMBOL's Qevent_symbol_element_mask property, and maintains the
    Qevent_symbol_elements property.  */
 
+#define KEY_TO_CHAR(k) (XINT (k) & ((1 << CHARACTERBITS) - 1))
+
 Lisp_Object
 parse_modifiers (symbol)
      Lisp_Object symbol;
 {
   Lisp_Object elements;
+
+  if (INTEGERP (symbol))
+    return (Fcons (make_number (KEY_TO_CHAR (symbol)),
+		   Fcons (make_number (XINT (symbol) & CHAR_MODIFIER_MASK),
+			  Qnil)));
+  else if (!SYMBOLP (symbol))
+    return Qnil;
 
   elements = Fget (symbol, Qevent_symbol_element_mask);
   if (CONSP (elements))
@@ -6577,6 +6586,9 @@ apply_modifiers (modifiers, base)
 
   /* Mask out upper bits.  We don't know where this value's been.  */
   modifiers &= INTMASK;
+
+  if (INTEGERP (base))
+    return make_number (XINT (base) & modifiers);
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
@@ -10083,66 +10095,47 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
       /* If KEY is not defined in any of the keymaps,
 	 and cannot be part of a function key or translation,
-	 and is an upper case letter
-	 use the corresponding lower-case letter instead.  */
+	 and is an upper case letter or shifted key,
+	 use the corresponding lower-case/unshifted key instead.  */
       if (first_binding >= nmaps
-	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
-	  && INTEGERP (key)
-	  && ((((XINT (key) & 0x3ffff)
-		< XCHAR_TABLE (current_buffer->downcase_table)->size)
-	       && UPPERCASEP (XINT (key) & 0x3ffff))
-	      || (XINT (key) & shift_modifier)))
+	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t)
 	{
-	  Lisp_Object new_key;
+	  Lisp_Object breakdown = parse_modifiers (key);
+	  int modifiers
+	    = CONSP (breakdown) ? (XINT (XCAR (XCDR (breakdown)))) : 0;
 
-	  original_uppercase = key;
-	  original_uppercase_position = t - 1;
-
-	  if (XINT (key) & shift_modifier)
-	    XSETINT (new_key, XINT (key) & ~shift_modifier);
-	  else
-	    XSETINT (new_key, (DOWNCASE (XINT (key) & 0x3ffff)
-			       | (XINT (key) & ~0x3ffff)));
-
-	  /* We have to do this unconditionally, regardless of whether
-	     the lower-case char is defined in the keymaps, because they
-	     might get translated through function-key-map.  */
-	  keybuf[t - 1] = new_key;
-	  mock_input = max (t, mock_input);
-
-	  goto replay_sequence;
-	}
-      /* If KEY is not defined in any of the keymaps,
-	 and cannot be part of a function key or translation,
-	 and is a shifted function key,
-	 use the corresponding unshifted function key instead.  */
-      if (first_binding >= nmaps
-	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
-	  && SYMBOLP (key))
-	{
-	  Lisp_Object breakdown;
-	  int modifiers;
-
-	  breakdown = parse_modifiers (key);
-	  modifiers = XINT (XCAR (XCDR (breakdown)));
-	  if (modifiers & shift_modifier)
+	  if (modifiers & shift_modifier
+	      /* Treat uppercase keys as shifted.  */
+	      || (INTEGERP (key)
+		  & (KEY_TO_CHAR (key)
+		     < XCHAR_TABLE (current_buffer->downcase_table)->size)
+		  && UPPERCASEP (KEY_TO_CHAR (key))))
 	    {
-	      Lisp_Object new_key;
+	      Lisp_Object new_key
+		= (modifiers & shift_modifier
+		   ? apply_modifiers (modifiers & ~shift_modifier,
+				      XCAR (breakdown))
+		   : make_number (DOWNCASE (KEY_TO_CHAR (key)) | modifiers));
 
 	      original_uppercase = key;
 	      original_uppercase_position = t - 1;
 
-	      modifiers &= ~shift_modifier;
-	      new_key = apply_modifiers (modifiers,
-					 XCAR (breakdown));
-
+	      /* We have to do this unconditionally, regardless of whether
+		 the lower-case char is defined in the keymaps, because they
+		 might get translated through function-key-map.  */
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
+	      /* Reset fkey (and consequently keytran) to apply
+		 function-key-map on the result, so that S-backspace is
+		 correctly mapped to DEL (via backspace).  OTOH,
+		 input-decode-map doesn't need to go through it again.  */
+	      fkey.start = fkey.end = 0;
+	      keytran.start = keytran.end = 0;
+
 	      goto replay_sequence;
 	    }
 	}
     }
-
   if (!dummyflag)
     read_key_sequence_cmd = (first_binding < nmaps
 			     ? defs[first_binding]

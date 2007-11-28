@@ -1,3 +1,11 @@
+2007-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (KEY_TO_CHAR): New macro.
+	(parse_modifiers, apply_modifiers): Accept integer arguments.
+	(read_key_sequence): Use them to unify the "shift->unshift" mapping
+	for chars and symbol keys.
+	After doing such remapping, apply function-key-map again.
+
 2007-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (SOME_MACHINE_LISP): Remove VMS files, they are not
