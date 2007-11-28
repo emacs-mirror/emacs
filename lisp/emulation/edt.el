@@ -2229,7 +2229,10 @@ Optional argument USER-SETUP non-nil means  called from function
   ;; function edt-setup-extra-default-bindings.
   (define-prefix-command 'edt-user-gold-map)
   (fset 'edt-user-gold-map (copy-keymap 'edt-default-gold-map))
-  (edt-setup-user-bindings)
+  ;; This is a function that the user can define for custom bindings.
+  ;; See etc/edt-user.doc.
+  (if (fboundp 'edt-setup-user-bindings)
+      (edt-setup-user-bindings))
   (edt-select-user-global-map))
 
 (defun edt-select-default-global-map()
