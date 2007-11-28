@@ -348,7 +348,7 @@ The value is never nil.  */)
   if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
 
-  b = (struct buffer *) allocate_buffer ();
+  b = allocate_buffer ();
 
   /* An ordinary buffer uses its own struct buffer_text.  */
   b->text = &b->own_text;
@@ -549,7 +549,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
 
-  b = (struct buffer *) allocate_buffer ();
+  b = allocate_buffer ();
 
   b->base_buffer = (XBUFFER (base_buffer)->base_buffer
 		    ? XBUFFER (base_buffer)->base_buffer

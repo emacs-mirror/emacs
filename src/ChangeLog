@@ -1,5 +1,8 @@
 2007-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	Don't cast redundantly.
+
 	* keyboard.c (KEY_TO_CHAR): New macro.
 	(parse_modifiers, apply_modifiers): Accept integer arguments.
 	(read_key_sequence): Use them to unify the "shift->unshift" mapping
