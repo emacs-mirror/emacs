@@ -171,7 +171,7 @@ WINNT_SUPPORT = $(lispsource)ls-lisp.elc $(lispsource)disp-table.elc $(lispsourc
 
 # lisp files that are loaded up on other platforms
 MSDOS_SUPPORT = $(lispsource)dos-fns.elc $(lispsource)dos-vars.elc $(lispsource)international/ccl.elc $(lispsource)international/codepage.elc
-VMS_SUPPORT = $(lispsource)vmsproc.elc $(lispsource)vms-patch.elc
+VMS_SUPPORT = $(lispsource)vmsproc.el $(lispsource)vms-patch.el
 
 lisp1= \
 	$(lispsource)abbrev.elc \
