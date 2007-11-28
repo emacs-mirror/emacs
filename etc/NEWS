@@ -40,6 +40,8 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 ** Emacs is now licensed under the GNU GPL version 3 (or later).
 
+** Support for GNU/kFreeBSD (GNU userland and FreeBSD kernel) was added.
+
 * Changes in Emacs 22.2
 
 ** In Image mode, whenever the displayed image is wider and/or higher
