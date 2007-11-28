@@ -1,3 +1,9 @@
+2007-11-28  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-dired.el: Don't require w3-fetch and w3-open-local.
+	(url-dired-find-file): Use `find-file'.	 Doc fix.
+	(url-dired-find-file-mouse, url-dired-minor-mode): Doc fix.
+
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* url-privacy.el (url-device-type): Fix typo.
