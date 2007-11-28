@@ -1,24 +1,26 @@
 ;;; xsd-regexp.el --- translate W3C XML Schema regexps to Emacs regexps
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, regexp
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2 of
-;; the License, or (at your option) any later version.
+;; This file is part of GNU Emacs.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE.  See the GNU General Public License for more details.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -713,7 +715,7 @@ Code is inserted into the current buffer."
   (save-excursion
     (set-buffer (find-file-noselect file))
     (goto-char (point-min))
-    (mapcar (lambda (x) (put x 'xsdre-ranges nil)) xsdre-gen-categories)
+    (mapc (lambda (x) (put x 'xsdre-ranges nil)) xsdre-gen-categories)
     (while (re-search-forward "^\\([0-9A-Fa-f]*\\);[^;]*;\\([A-Z][a-z]\\);"
 			      nil
 			      t)
@@ -742,31 +744,31 @@ Code is inserted into the current buffer."
 			  (cdr ranges))))
 	      (t
 	       (put sym 'xsdre-ranges (cons code ranges))))))
-    (mapcar (lambda (x)
-	      (put x
-		   'xsdre-ranges
-		   (nreverse (get x 'xsdre-ranges)))
-	      nil)
-	    xsdre-gen-categories))
-  (mapcar (lambda (x)
-	    (let ((start (point)))
-	      (pp (list 'xsdre-def-primitive-category
-			(list 'quote x)
-			(list 'quote (get x 'xsdre-ranges)))
-		  (current-buffer))
-	      (save-excursion
-		(goto-char start)
-		(down-list 2)
-		(while (condition-case err
-			   (progn 
-			     (forward-sexp)
-			     t)
-			 (error nil))
-		  (when (and (< 70 (current-column))
-			     (not (looking-at ")")))
-		    (insert "\n")
-		    (lisp-indent-line))))))
-	  xsdre-gen-categories))
+    (mapc (lambda (x)
+            (put x
+                 'xsdre-ranges
+                 (nreverse (get x 'xsdre-ranges)))
+            nil)
+          xsdre-gen-categories))
+  (mapc (lambda (x)
+          (let ((start (point)))
+            (pp (list 'xsdre-def-primitive-category
+                      (list 'quote x)
+                      (list 'quote (get x 'xsdre-ranges)))
+                (current-buffer))
+            (save-excursion
+              (goto-char start)
+              (down-list 2)
+              (while (condition-case err
+                         (progn 
+                           (forward-sexp)
+                           t)
+                       (error nil))
+                (when (and (< 70 (current-column))
+                           (not (looking-at ")")))
+                  (insert "\n")
+                  (lisp-indent-line))))))
+        xsdre-gen-categories))
 
 (defun xsdre-def-primitive-category (sym ranges)
   (put sym 'xsdre-ranges ranges)
