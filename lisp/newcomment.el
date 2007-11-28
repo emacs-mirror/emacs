@@ -969,9 +969,11 @@ INDENT indicates to put CS and CCS at the current indentation of
 the region rather than at left margin."
   ;;(assert (< beg end))
   (let ((no-empty (not (or (eq comment-empty-lines t)
-			   (and comment-empty-lines (zerop (length ce)))))))
+			   (and comment-empty-lines (zerop (length ce))))))
+	ce-sanitized)
     ;; Sanitize CE and CCE.
     (if (and (stringp ce) (string= "" ce)) (setq ce nil))
+    (setq ce-sanitized ce)
     (if (and (stringp cce) (string= "" cce)) (setq cce nil))
     ;; If CE is empty, multiline cannot be used.
     (unless ce (setq ccs nil cce nil))
@@ -988,7 +990,7 @@ the region rather than at left margin."
       (goto-char end)
       ;; If the end is not at the end of a line and the comment-end
       ;; is implicit (i.e. a newline), explicitly insert a newline.
-      (unless (or ce (eolp)) (insert "\n") (indent-according-to-mode))
+      (unless (or ce-sanitized (eolp)) (insert "\n") (indent-according-to-mode))
       (comment-with-narrowing beg end
 	(let ((min-indent (point-max))
 	      (max-indent 0))
