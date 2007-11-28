@@ -1,24 +1,26 @@
 ;;; nxml-maint.el --- commands for maintainers of nxml-*.el
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2 of
-;; the License, or (at your option) any later version.
+;; This file is part of GNU Emacs.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE.  See the GNU General Public License for more details.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -31,17 +33,17 @@
 (defun nxml-create-unicode-char-name-sets (file)
   "Generate files containing char names from Unicode standard."
   (interactive "fUnicodeData file: ")
-  (mapcar (lambda (block)
-	    (let ((nameset (nxml-unicode-block-char-name-set (nth 0 block))))
-	      (save-excursion
-		(find-file (concat (get nameset 'nxml-char-name-set-file)
-				   ".el"))
-		(erase-buffer)
-		(insert "(nxml-define-char-name-set '")
-		(prin1 nameset (current-buffer))
-		(insert "\n  '())\n")
-		(goto-char (- (point) 3)))))
-	  nxml-unicode-blocks)
+  (mapc (lambda (block)
+          (let ((nameset (nxml-unicode-block-char-name-set (nth 0 block))))
+            (save-excursion
+              (find-file (concat (get nameset 'nxml-char-name-set-file)
+                                 ".el"))
+              (erase-buffer)
+              (insert "(nxml-define-char-name-set '")
+              (prin1 nameset (current-buffer))
+              (insert "\n  '())\n")
+              (goto-char (- (point) 3)))))
+        nxml-unicode-blocks)
   (save-excursion
     (find-file file)
     (goto-char (point-min))
