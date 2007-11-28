@@ -2004,7 +2004,7 @@ cited."
 If MESSAGE is non-nil (interactively, with no prefix argument),
 inserts the version string in the current buffer instead."
   (interactive (not current-prefix-arg))
-  (let ((verstr (format "Using Supercite.el %s" sc-version)))
+  (let ((verstr (format "Using Supercite.el %s" emacs-version)))
     (if message
 	(message verstr)
       (insert "`sc-version' says: " verstr))))
