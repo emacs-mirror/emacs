@@ -1,3 +1,7 @@
+2007-11-28  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (VMS_SUPPORT): No longer byte-compiled.
+
 2007-11-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* pop.c (socket_connection): Remove AI_ADDRCONFIG.
