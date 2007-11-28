@@ -1,3 +1,8 @@
+2007-11-28  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-ext.el (math-sqrt-raw, math-map-vec)
+	(math-make-frac): Declare as functions.
+
 2007-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/cperl-mode.el (compilation-error-regexp-alist): Pacify
