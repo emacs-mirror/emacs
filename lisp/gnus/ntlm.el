@@ -1,6 +1,7 @@
 ;;; ntlm.el --- NTLM (NT LanManager) authentication support
 
-;; Copyright (C) 2001 Taro Kawagishi
+;; Copyright (C) 2001, 2007  Free Software Foundation, Inc.
+
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: NTLM, SASL
 ;; Version: 1.00
