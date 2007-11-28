@@ -1,24 +1,26 @@
 ;;; nxml-outln.el --- outline support for nXML mode
 
-;; Copyright (C) 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2 of
-;; the License, or (at your option) any later version.
+;; This file is part of GNU Emacs.
 
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE.  See the GNU General Public License for more details.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
 
-;; You should have received a copy of the GNU General Public
-;; License along with this program; if not, write to the Free
-;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-;; MA 02111-1307 USA
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -410,6 +412,14 @@ customize which elements are recognized as sections and headings."
 
 ;; Display
 
+(defsubst nxml-token-start-tag-p ()
+  (or (eq xmltok-type 'start-tag)
+      (eq xmltok-type 'partial-start-tag)))
+
+(defsubst nxml-token-end-tag-p ()
+  (or (eq xmltok-type 'end-tag)
+      (eq xmltok-type 'partial-end-tag)))
+
 (defun nxml-refresh-outline () 
   "Refresh the outline to correspond to the current XML element structure."
   (interactive)
@@ -800,14 +810,6 @@ Do not move past the end of the line."
     (point)))
 
 ;;; Navigating section structure
-
-(defsubst nxml-token-start-tag-p ()
-  (or (eq xmltok-type 'start-tag)
-      (eq xmltok-type 'partial-start-tag)))
-
-(defsubst nxml-token-end-tag-p ()
-  (or (eq xmltok-type 'end-tag)
-      (eq xmltok-type 'partial-end-tag)))
 
 (defun nxml-token-starts-line-p ()
   (save-excursion
