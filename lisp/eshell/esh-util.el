@@ -632,7 +632,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (autoload 'parse-time-string "parse-time"))
 
 (eval-when-compile
-  (load "ange-ftp" t))
+  (require 'ange-ftp nil t))
 
 (defun eshell-parse-ange-ls (dir)
   (let (entry)
