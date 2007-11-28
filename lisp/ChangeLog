@@ -1,3 +1,7 @@
+2007-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-parse.el (cvs-parse-table): Adjust regexp for resurrections.
+
 2007-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/nxml-enc.el (xmltok-get-declared-encoding-position):
@@ -27,8 +31,8 @@
 	* emacs-lisp/check-declare.el (check-declare-locate): Reflow doc.
 	(check-declare-verify): Handle fset.
 
-	* emulation/edt.el (edt-user-emulation-setup): Test
-	edt-setup-user-bindings is bound before calling.
+	* emulation/edt.el (edt-user-emulation-setup):
+	Test edt-setup-user-bindings is bound before calling.
 
 	* emulation/tpu-edt.el: Don't require cl when compiling.
 	(tpu-emacs-search, tpu-emacs-rev-search): Declare as functions.
@@ -54,8 +58,8 @@
 
 2007-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* progmodes/cperl-mode.el (compilation-error-regexp-alist): Pacify
-	byte compiler.
+	* progmodes/cperl-mode.el (compilation-error-regexp-alist):
+	Pacify byte compiler.
 	(cperl-mode): Use with-no-warnings for setting vc-header-alist.
 
 	* progmodes/idlwave.el (idlwave-shell-get-path-info)
@@ -254,8 +258,7 @@
 	(calendar-absolute-from-gregorian, dst-in-effect): Declare as
 	functions.
 
-	* calc/calc-help.el (Info-goto-node, Info-last): Declare as
-	functions.
+	* calc/calc-help.el (Info-goto-node, Info-last): Declare as functions.
 
 	* calc/calc-lang.el (math-read-factor, math-read-expr-level):
 	Declare as functions.
