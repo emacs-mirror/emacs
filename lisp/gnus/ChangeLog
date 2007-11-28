@@ -1,3 +1,8 @@
+2007-11-28  Richard Stallman  <rms@gnu.org>
+
+	* md4.el: Move to ../.
+	* hmac-def.el, hmac-md5.el, ntlm.el: Move to ../net.
+
 2007-11-26  Simon Josefsson  <simon@josefsson.org>
 
 	* imap.el: Move to ../net directory.
