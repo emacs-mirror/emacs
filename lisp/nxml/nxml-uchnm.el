@@ -203,17 +203,15 @@ by a hyphen."
     mathematical-alphanumeric-symbols)
   "Default value for `nxml-enabled-unicode-blocks'.")
 
-(let ((dir (file-name-directory load-file-name)))
-  (mapc (lambda (block)
-          (let ((sym (nxml-unicode-block-char-name-set (car block))))
-            (nxml-autoload-char-name-set
-             sym
-             (expand-file-name
-              (format "char-name/unicode/%05X-%05X"
-                      (nth 1 block)
-                      (nth 2 block))
-              dir))))
-        nxml-unicode-blocks))
+(mapc (lambda (block)
+        (nxml-autoload-char-name-set
+         (nxml-unicode-block-char-name-set (car block))
+         (expand-file-name
+          (format "nxml/%05X-%05X"
+                  (nth 1 block)
+                  (nth 2 block))
+          data-directory)))
+      nxml-unicode-blocks)
 
 (defvar nxml-enable-unicode-char-name-sets-flag nil)
 
