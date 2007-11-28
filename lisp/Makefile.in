@@ -295,9 +295,12 @@ bootstrap-prepare:
 	  $(lisp)/ps-print.el			\
 	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
-maintainer-clean: distclean
-	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
+maintainer-clean: distclean bootstrap-clean
+	cd $(lisp); rm -f $(AUTOGENEL)
 
+## NB note that this rules assume only one level of subdirs below lisp/.
+## If nested subdirs are added, it's probably time to switch to:
+## find $(lisp) -name "*.elc" -exec rm -f '{}' ';'
 bootstrap-clean:
 	cd $(lisp); rm -f *.elc */*.elc
 
