@@ -1,3 +1,8 @@
+2007-11-28  Richard Stallman  <rms@gnu.org>
+
+	* md4.el, net/hmac-def.el, net/hmac-md5.el, net/ntlm.el:
+	Move here from gnus/.
+
 2007-11-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* newcomment.el (comment-region-internal): Fix newline insertion
