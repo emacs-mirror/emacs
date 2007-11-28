@@ -1,5 +1,6 @@
 ;;; encrypt.el --- file encryption routines
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+
+;; Copyright (C) 2002, 2003, 2004, 2005, 2007  Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Created: 2003/01/24
