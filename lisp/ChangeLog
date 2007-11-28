@@ -1,3 +1,52 @@
+2007-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/nxml-enc.el (xmltok-get-declared-encoding-position):
+	Declare as a function.
+
+	* nxml/nxml-maint.el (nxml-create-unicode-char-name-sets):
+	* nxml/nxml-mode.el (nxml-get-char-name, nxml-insert-named-char):
+	* nxml/xsd-regexp.el (xsdre-gen-categories): Use mapc rather than
+	mapcar.
+
+	* nxml/nxml-outln.el (nxml-token-start-tag-p)
+	(nxml-token-end-tag-p): Move definitions before use.
+
+	* nxml/nxml-rap.el (nxml-prolog-regions): Declare for compiler.
+
+	* nxml/nxml-uchnm.el (top-level)
+	(nxml-enable-unicode-char-name-sets-1): Use mapc rather than mapcar.
+	(nxml-enabled-unicode-blocks): Add custom group.
+
+	* nxml/xmltok.el (xmltok-scan-char-ref, xmltok-char-number):
+	Use string-to-number rather than string-to-int.
+
+	* dired-x.el (dired-omit-old-add-entry): Declare as function.
+	Move definition before use.
+	(dired-old-find-buffer-nocreate): Declare as function.
+
+	* emacs-lisp/check-declare.el (check-declare-locate): Reflow doc.
+	(check-declare-verify): Handle fset.
+
+	* emulation/edt.el (edt-user-emulation-setup): Test
+	edt-setup-user-bindings is bound before calling.
+
+	* emulation/tpu-edt.el: Don't require cl when compiling.
+	(tpu-emacs-search, tpu-emacs-rev-search): Declare as functions.
+	(tpu-edt-off): Use condition-case rather than ignore-errors.
+	Use with-no-warnings.
+
+	* eshell/esh-util.el (top-level): Use require rather than load for
+	ange-ftp.
+
+	* mail/supercite.el (sc-version): Redefine as an alias for
+	emacs-version.
+	(sc-help-address): Remove.
+	(sc-version): Use emacs-version rather than sc-version.
+	(sc-submit-bug-report): Redefine as an alias for report-emacs-bug.
+
+	* net/socks.el (socks-original-open-network-stream): Declare as
+	function.  Move definition before use.
+
 2007-11-28  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-ext.el (math-sqrt-raw, math-map-vec)
