@@ -4,6 +4,9 @@
 
 2007-11-28  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (maintainer-clean): Depend on bootstrap-clean to
+	delete .elc files.
+
 	* nxml/nxml-enc.el (xmltok-get-declared-encoding-position):
 	Declare as a function.
 
