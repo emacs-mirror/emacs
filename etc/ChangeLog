@@ -1,6 +1,7 @@
 2007-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/: New directory, moved here from lisp/nxml/char-name/unicode.
+	* nxml/README: New file.
 
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
