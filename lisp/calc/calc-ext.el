@@ -43,6 +43,7 @@
 (declare-function calc-embedded-var-change "calc-embed" (var &optional buf))
 (declare-function math-mul-float "calc-arith" (a b))
 (declare-function math-arctan-raw "calc-math" (x))
+(declare-function math-sqrt-raw "calc-math" (a &optional guess))
 (declare-function math-sqrt-float "calc-math" (a &optional guess))
 (declare-function math-exp-minus-1-raw "calc-math" (x))
 (declare-function math-normalize-polar "calc-cplx" (a))
@@ -70,6 +71,9 @@
 (declare-function math-format-bignum-hex "calc-bin" (a))
 (declare-function math-format-bignum-radix "calc-bin" (a))
 (declare-function math-compute-max-digits "calc-bin" (w r))
+(declare-function math-map-vec "calc-vec" (f a))
+(declare-function math-make-frac "calc-frac" (num den))
+
 
 (defvar math-simplifying nil)
 (defvar math-living-dangerously nil)   ; true if unsafe simplifications are okay.
