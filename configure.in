@@ -246,6 +246,19 @@ case "${canonical}" in
     esac
   ;;
 
+  ## FreeBSD kernel + glibc based userland
+  *-*-kfreebsd*gnu* )
+    opsys=gnu-kfreebsd
+    case "${canonical}" in
+      alpha*-*-kfreebsd*)	machine=alpha ;;
+      ia64-*-kfreebsd*)		machine=ia64 ;;
+      sparc64-*-kfreebsd*)	machine=sparc ;;
+      powerpc-*-kfreebsd*)	machine=macppc ;;
+      i[3456]86-*-kfreebsd*)	machine=intel386 ;;
+      amd64-*-kfreebsd*|x86_64-*-kfreebsd*) machine=amdx86-64 ;;
+    esac
+  ;;
+
   ## NetBSD ports
   *-*-netbsd* )
     opsys=netbsd
