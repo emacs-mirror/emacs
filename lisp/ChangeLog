@@ -1,3 +1,8 @@
+2007-11-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* newcomment.el (comment-region-internal): Fix newline insertion
+	in `block' case.
+
 2007-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs-parse.el (cvs-parse-table): Adjust regexp for resurrections.
