@@ -1,9 +1,25 @@
+2007-11-29  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* erc-backend.el, erc.el:
+	Parse 307 (nick has identified) responses.
+
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc.el (erc-open):
 	* erc-backend.el (define-erc-response-handler):
 	* erc-log.el (log):
 	* erc-match.el (erc-log-matches): Fix typos in docstrings.
+
+2007-11-11  Michael Olson  <mwolson@gnu.org>
+
+	* erc-autoaway.el (erc-autoaway-possibly-set-away):
+	* erc-netsplit.el (erc-netsplit-timer):
+	* erc-notify.el (erc-notify-timer):
+	* erc-track.el (erc-user-is-active): Only run if we have
+	successfully established a connection to the server and have
+	logged in.  I suspect that sending messages too soon may make some
+	IRC servers not respond well, particularly when the network
+	connection is iffy or subject to traffic-shaping.
 
 2007-11-01  Michael Olson  <mwolson@gnu.org>
 

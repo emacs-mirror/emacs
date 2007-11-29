@@ -6205,6 +6205,7 @@ All windows are opened in the current frame."
    (s303   . "Is online: %n")
    (s305   . "%m")
    (s306   . "%m")
+   (s307   . "%n %m")
    (s311   . "%n is %f (%u@%h)")
    (s312   . "%n is/was on server %s (%c)")
    (s313   . "%n is an IRC operator")

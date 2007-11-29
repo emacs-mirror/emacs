@@ -1564,6 +1564,16 @@ See `erc-display-server-message'." nil
   (erc-display-message parsed 'notice 'active
                        's306 ?m (erc-response.contents parsed)))
 
+(define-erc-response-handler (307)
+  "Display nick-identified message." nil
+  (multiple-value-bind (nick user message)
+      (cdr (erc-response.command-args parsed))
+    (erc-display-message
+     parsed 'notice 'active 's307
+     ?n nick
+     ?m (mapconcat 'identity (cddr (erc-response.command-args parsed))
+                   " "))))
+
 (define-erc-response-handler (311 314)
   "WHOIS/WHOWAS notices." nil
   (let ((fname (erc-response.contents parsed))
