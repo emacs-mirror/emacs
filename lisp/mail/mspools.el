@@ -248,6 +248,9 @@ Buffer is not displayed if SHOW is non-nil."
 
 (declare-function rmail-get-new-mail "rmail" (&optional file-name))
 
+;; External.
+(declare-function vm-visit-folder "ext:vm-startup" (folder &optional read-only))
+
 (defun mspools-visit-spool ()
   "Visit the folder on the current line of the *spools* buffer."
   (interactive)
