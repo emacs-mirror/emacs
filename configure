@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo No shell found that supports shell functions.
-  echo Please tell autoconf@gnu.org about your system,
-  echo including any error possibly output before this
-  echo message
+  echo Please tell bug-autoconf@gnu.org about your system,
+  echo including any error possibly output before this message.
+  echo This can help us improve future autoconf versions.
+  echo Configuration will now proceed without shell functions.
 }
 
 
@@ -2243,6 +2243,19 @@ case "${canonical}" in
       powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
       amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
+    esac
+  ;;
+
+  ## FreeBSD kernel + glibc based userland
+  *-*-kfreebsd*gnu* )
+    opsys=gnu-kfreebsd
+    case "${canonical}" in
+      alpha*-*-kfreebsd*)	machine=alpha ;;
+      ia64-*-kfreebsd*)		machine=ia64 ;;
+      sparc64-*-kfreebsd*)	machine=sparc ;;
+      powerpc-*-kfreebsd*)	machine=macppc ;;
+      i[3456]86-*-kfreebsd*)	machine=intel386 ;;
+      amd64-*-kfreebsd*|x86_64-*-kfreebsd*) machine=amdx86-64 ;;
     esac
   ;;
 
