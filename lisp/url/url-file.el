@@ -119,8 +119,9 @@ to them."
 	 (cond
 	  ((featurep 'ange-ftp)
 	   (ange-ftp-set-passwd host user pass))
-	  ((or (featurep 'efs) (featurep 'efs-auto))
-	   (efs-set-passwd host user pass))
+	  ((when (featurep 'xemacs)
+             (or (featurep 'efs) (featurep 'efs-auto)
+                 (efs-set-passwd host user pass))))
 	  (t
 	   nil)))
 
@@ -214,14 +215,15 @@ to them."
 						   new (current-buffer)
 						   callback cbargs)
 					     t)
-	      (autoload 'efs-copy-file-internal "efs")
-	      (efs-copy-file-internal filename (efs-ftp-path filename)
-				      new (efs-ftp-path new)
-				      t nil 0
-				      (list 'url-file-asynch-callback
-					    new (current-buffer)
-					    callback cbargs)
-				      0 nil))))))
+              (when (featurep 'xemacs)
+                (autoload 'efs-copy-file-internal "efs")
+                (efs-copy-file-internal filename (efs-ftp-path filename)
+                                        new (efs-ftp-path new)
+                                        t nil 0
+                                        (list 'url-file-asynch-callback
+                                              new (current-buffer)
+                                              callback cbargs)
+                                        0 nil)))))))
     buffer))
 
 (defmacro url-file-create-wrapper (method args)
