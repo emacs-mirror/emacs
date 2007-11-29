@@ -441,7 +441,7 @@ ftxfont_end_for_frame (f)
       struct ftxfont_frame_data *next = data->next;
       int i;
       
-      for (i = 0; i < 7; i++)
+      for (i = 0; i < 6; i++)
 	XFreeGC (FRAME_X_DISPLAY (f), data->gcs[i]);
       free (data);
       data = next;
