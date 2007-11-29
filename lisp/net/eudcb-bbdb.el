@@ -103,6 +103,20 @@
        eudc-bbdb-current-query)
       record)))
 
+;; External.
+(declare-function bbdb-phone-location   "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-phone-string     "ext:bbdb" (phone))
+(declare-function bbdb-record-phones    "ext:bbdb") ; via bbdb-defstruct
+;; FIXME: bbdb-address-street1/2/3 don't seem to exist in current
+;; bbdb, so this code is probably broken.
+(declare-function bbdb-address-city     "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-address-state    "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-address-zip      "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-address-location "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-record-addresses "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-records          "ext:bbdb"
+                  (&optional dont-check-disk already-in-db-buffer))
+
 (defun eudc-bbdb-extract-phones (record)
   (mapcar (function
 	   (lambda (phone)
@@ -130,7 +144,7 @@
 				   (if (and (> (length c) 0) (> (length s) 0))
 				       (concat c ", " s " ")
 				     (concat c " ")))
-				 (bbdb-address-zip-string address)))
+				 (bbdb-address-zip address)))
 	       (if eudc-bbdb-use-locations-as-attribute-names
 		   (cons (intern (bbdb-address-location address)) val)
 		 (cons 'addresses (concat (bbdb-address-location address) "\n" val)))))
