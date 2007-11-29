@@ -1,3 +1,7 @@
+2007-11-29  Richard Stallman  <rms@gnu.org>
+
+	* customize.texi (Composite Types): Document `group' type.
+
 2007-11-24  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Refresh Screen, Forcing Redisplay): 
