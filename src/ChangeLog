@@ -1,3 +1,7 @@
+2007-11-29  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (Fcurrent_local_map): Doc fix.
+
 2007-11-28  Petr Salinger  <Petr.Salinger@seznam.cz>  (tiny change)
 
 	* s/gnu-kfreebsd.h: New file.
