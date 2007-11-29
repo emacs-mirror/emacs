@@ -48,22 +48,31 @@
 Expands files with a \".c\" extension relative to the Emacs
 \"src/\" directory.  Otherwise, `locate-library' searches for FILE.
 If that fails, expands FILE relative to BASEFILE's directory part.
-The returned file might not exist."
-  (if (string-equal "c" (file-name-extension file))
-      (expand-file-name file (expand-file-name "src" source-directory))
-    (let ((tfile (locate-library (file-name-nondirectory file))))
-      (if tfile
-          (progn
-            (setq tfile (replace-regexp-in-string "\\.elc\\'" ".el" tfile))
-            (if (and (not (file-exists-p tfile))
-                     (file-exists-p (concat tfile ".gz")))
-                (concat tfile ".gz")
-              tfile))
-        (setq tfile (expand-file-name file (file-name-directory basefile)))
-        (if (or (file-exists-p tfile)
-                (string-match "\\.el\\'" tfile))
-            tfile
-          (concat tfile ".el"))))))
+The returned file might not exist.  If FILE has an \"ext:\" prefix, so does
+the result."
+  (let ((ext (string-match "^ext:" file))
+        tfile)
+    (if ext
+        (setq file (substring file 4)))
+    (setq file
+          (if (string-equal "c" (file-name-extension file))
+              (expand-file-name file (expand-file-name "src" source-directory))
+            (if (setq tfile (locate-library (file-name-nondirectory file)))
+                (progn
+                  (setq tfile
+                        (replace-regexp-in-string "\\.elc\\'" ".el" tfile))
+                  (if (and (not (file-exists-p tfile))
+                           (file-exists-p (concat tfile ".gz")))
+                      (concat tfile ".gz")
+                    tfile))
+              (setq tfile (expand-file-name file
+                                            (file-name-directory basefile)))
+              (if (or (file-exists-p tfile)
+                      (string-match "\\.el\\'" tfile))
+                  tfile
+                (concat tfile ".el")))))
+    (if ext (concat "ext:" file)
+      file)))
 
 (defun check-declare-scan (file)
   "Scan FILE for `declare-function' calls.
@@ -93,6 +102,19 @@ ARGLIST may be absent.  This claims that FNFILE defines FN, with ARGLIST."
     (message "%sdone" m)
     alist))
 
+(defun check-declare-errmsg (errlist &optional full)
+  "Return a string with the number of errors in ERRLIST, if any.
+Normally just counts the number of elements in ERRLIST.
+With optional argument FULL, sums the number of elements in each element."
+  (if errlist
+      (let ((l (length errlist)))
+        (when full
+          (setq l 0)
+          (dolist (e errlist)
+            (setq l (1+ l))))
+        (format "%d problem%s found" l (if (= l 1) "" "s")))
+    "OK"))
+
 (autoload 'byte-compile-arglist-signature "bytecomp")
 
 (defun check-declare-verify (fnfile fnlist)
@@ -104,8 +126,11 @@ found to be true, otherwise a list of errors with elements of the form
 \(FILE FN TYPE), where TYPE is a string giving details of the error."
   (let ((m (format "Checking %s..." fnfile))
         (cflag (string-equal "c" (file-name-extension fnfile)))
+        (ext (string-match "^ext:" fnfile))
         re fn sig siglist arglist type errlist minargs maxargs)
     (message "%s" m)
+    (if ext
+        (setq fnfile (substring fnfile 4)))
     (if (file-exists-p fnfile)
         (with-temp-buffer
           (insert-file-contents fnfile)
@@ -185,7 +210,12 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
                        "arglist mismatch")))))
       (when type
         (setq errlist (cons (list (car e) (cadr e) type) errlist))))
-    (message "%s%s" m (if errlist "problems found" "OK"))
+    (message "%s%s" m
+             (if (or re (not ext))
+                 (check-declare-errmsg errlist)
+               (prog1
+                   "skipping external file"
+                 (setq errlist nil))))
     errlist))
 
 (defun check-declare-sort (alist)
@@ -244,7 +274,7 @@ See `check-declare-directory' for more information."
         errlist)
     (message "%s" m)
     (setq errlist (check-declare-files file))
-    (message "%s%s" m (if errlist "problems found" "OK"))
+    (message "%s%s" m (check-declare-errmsg errlist))
     errlist))
 
 ;;;###autoload
@@ -267,7 +297,7 @@ described in the documentation of `declare-function'."
     (message "%s%d found" m2 (length files))
     (when files
       (setq errlist (apply 'check-declare-files files))
-      (message "%s%s" m (if errlist "problems found" "OK"))
+      (message "%s%s" m (check-declare-errmsg errlist t))
       errlist)))
 
 (provide 'check-declare)
