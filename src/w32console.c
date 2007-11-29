@@ -35,8 +35,6 @@ Boston, MA 02110-1301, USA.
 #include "charset.h"
 #include "coding.h"
 #include "disptab.h"
-/* Disable features in frame.h that require a Window System.  */
-#undef HAVE_WINDOW_SYSTEM
 #include "frame.h"
 #include "termhooks.h"
 #include "termchar.h"
@@ -75,6 +73,8 @@ static DWORD   prev_console_mode;
 #ifndef USE_SEPARATE_SCREEN
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
+
+extern Lisp_Object Vtty_defined_color_alist;
 
 /* Determine whether to make frame dimensions match the screen buffer,
    or the current window size.  The former is desirable when running
@@ -491,12 +491,10 @@ w32_face_attributes (f, face_id)
       && face->background != FACE_TTY_DEFAULT_COLOR)
     char_attr = (char_attr & 0xff0f) + ((face->background % 16) << 4);
 
-
-  /* NTEMACS_TODO: Faces defined during startup get both foreground
-     and background of 0. Need a better way around this - for now detect
-     the problem and invert one of the faces to make the text readable. */
-  if (((char_attr & 0x00f0) >> 4) == (char_attr & 0x000f))
-    char_attr ^= 0x0007;
+  /* Before the terminal is properly initialized, all colors map to 0.
+     If we get a face like this, use the normal terminal attributes.  */
+  if (NILP (Vtty_defined_color_alist))
+    char_attr = char_attr_normal;
 
   if (face->tty_reverse_p)
     char_attr = (char_attr & 0xff00) + ((char_attr & 0x000f) << 4)
@@ -505,10 +503,6 @@ w32_face_attributes (f, face_id)
   return char_attr;
 }
 
-
-/* Emulation of some X window features from xfns.c and xfaces.c.  */
-
-extern char unspecified_fg[], unspecified_bg[];
 
 
 /* Given a color index, return its standard name.  */
