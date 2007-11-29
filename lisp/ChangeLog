@@ -1,3 +1,33 @@
+2007-11-29  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/css-mode.el (prog-mode): Remove.
+	(css-mode): Derive from fundamental-mode rather than prog-mode.
+
+	* emacs-lisp/byte-run.el (declare-function): Doc fix.
+
+	* emacs-lisp/check-declare.el (check-declare-locate)
+	(check-declare-verify): Handle `external' files.
+	(check-declare-errmsg): New function.
+	(check-declare-verify, check-declare-file, check-declare-directory):
+	Use check-declare-errmsg to report the number of problems.
+
+	* ffap.el (w3-view-this-url)
+	* mail/mspools.el (vm-visit-folder)
+	* net/browse-url.el (w3-fetch-other-window, w3-fetch)
+	* net/eudcb-bbdb.el (bbdb-phone-location, bbdb-phone-string)
+	(bbdb-record-phones, bbdb-address-city, bbdb-address-state)
+	(bbdb-address-zip, bbdb-address-location, bbdb-record-addresses)
+	(bbdb-records)
+	* net/eudc-export.el (bbdb-parse-phone-number, bbdb-string-trim)
+	* net/imap.el (sasl-find-mechanism, sasl-mechanism-name)
+	(sasl-make-client, sasl-next-step, sasl-step-data)
+	(sasl-step-set-data)
+	* net/newsticker.el (w3m-toggle-inline-image, htmlr-reset)
+	(htmlr-step): Declare as functions.
+
+	* net/eudcb-bbdb.el (eudc-bbdb-extract-addresses): Use
+	bbdb-address-zip rather than bbdb-address-zip-string.
+
 2007-11-28  Richard Stallman  <rms@gnu.org>
 
 	* md4.el, net/hmac-def.el, net/hmac-md5.el, net/ntlm.el:
