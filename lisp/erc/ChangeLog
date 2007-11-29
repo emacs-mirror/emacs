@@ -1,4 +1,4 @@
-2007-11-29  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+2007-11-29  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* erc-backend.el, erc.el:
 	Parse 307 (nick has identified) responses.
