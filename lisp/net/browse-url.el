@@ -1284,6 +1284,10 @@ used instead of `browse-url-new-window-flag'."
 
 ;; --- W3 ---
 
+;; External.
+(declare-function w3-fetch-other-window "ext:w3m" (&optional url))
+(declare-function w3-fetch              "ext:w3m" (&optional url target))
+
 ;;;###autoload
 (defun browse-url-w3 (url &optional new-window)
   "Ask the w3 WWW browser to load URL.
