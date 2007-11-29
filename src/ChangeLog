@@ -1,3 +1,10 @@
+2007-11-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c: Leave HAVE_WINDOW_SYSTEM defined.
+	(w32_face_attributes): Use Vtty_defined_color_alist to determine
+	if the terminal colors are initialized.
+	(unspecified_fg, unspecified_bg): Remove unused declarations.
+
 2007-11-29  Andreas Schwab  <schwab@suse.de>
 
 	* keyboard.c (apply_modifiers): Fix typo.
