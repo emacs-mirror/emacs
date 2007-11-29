@@ -2014,7 +2014,8 @@ If KEYMAP is nil, that means no local keymap.  */)
 }
 
 DEFUN ("current-local-map", Fcurrent_local_map, Scurrent_local_map, 0, 0, 0,
-       doc: /* Return current buffer's local keymap, or nil if it has none.  */)
+       doc: /* Return current buffer's local keymap, or nil if it has none.
+Normally the local keymap is set by the major mode with `use-local-map'.  */)
      ()
 {
   return current_buffer->keymap;
