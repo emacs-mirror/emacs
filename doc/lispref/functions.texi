@@ -1227,6 +1227,7 @@ following the definition, just like macros.
 @section Telling the Compiler that a Function is Defined
 @cindex function declaration
 @cindex declaring functions
+@findex declare-function
 
 Byte-compiling a file often produces warnings about functions that the
 compiler doesn't know about (@pxref{Compiler Errors}).  Sometimes this
@@ -1288,6 +1289,11 @@ these files in the C source code directory.  This is useful only when
 you call a function that is defined only on certain systems.  Most
 of the primitive functions of Emacs are always defined so they will
 never give you a warning.
+
+  Sometimes a file will optionally use functions from an external package.
+If you prefix the filename in the @code{declare-function} statement with
+@samp{ext:}, then it will be checked if it is found, otherwise skipped
+without error.
 
 @node Function Safety
 @section Determining whether a Function is Safe to Call
