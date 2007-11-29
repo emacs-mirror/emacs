@@ -53,7 +53,7 @@ the symbols HIGH-SYMBOL, LOW-SYMBOL and MICRO-SYMBOL.
 
 The optional TYPE-SYMBOL is bound to the type of the time value.
 Type 0 is the cons cell (HIGH . LOW), type 1 is the list (HIGH
-LOW), and type 3 is the list (HIGH LOW MICRO)."
+LOW), and type 2 is the list (HIGH LOW MICRO)."
   (declare (indent 1)
 	   (debug ((&rest (symbolp symbolp symbolp &or [symbolp form] form))
 		   body)))
