@@ -86,7 +86,7 @@ LOW), and type 3 is the list (HIGH LOW MICRO)."
 (defun encode-time-value (high low micro type)
   "Encode HIGH, LOW, and MICRO into a time value of type TYPE.
 Type 0 is the cons cell (HIGH . LOW), type 1 is the list (HIGH LOW),
-and type 3 is the list (HIGH LOW MICRO)."
+and type 2 is the list (HIGH LOW MICRO)."
   (cond
    ((eq type 0) (cons high low))
    ((eq type 1) (list high low))
