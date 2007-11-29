@@ -1,3 +1,7 @@
+2007-11-29  Andreas Schwab  <schwab@suse.de>
+
+	* keyboard.c (apply_modifiers): Fix typo.
+
 2007-11-29  Richard Stallman  <rms@gnu.org>
 
 	* keymap.c (Fcurrent_local_map): Doc fix.
