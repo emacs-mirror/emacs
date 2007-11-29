@@ -116,7 +116,9 @@ extension is optional), or a C file.  C files are expanded
 relative to the Emacs \"src/\" directory.  Lisp files are
 searched for using `locate-library', and if that fails they are
 expanded relative to the location of the file containing the
-declaration.
+declaration.  A FILE with an \"ext:\" prefix is an external file.
+`check-declare' will check such files if they are found, and skip
+them without error if they are not.
 
 Note that for the purposes of `check-declare', this statement
 must be the first non-whitespace on a line, and everything up to
