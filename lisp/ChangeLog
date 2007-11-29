@@ -1,3 +1,11 @@
+2007-11-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/time-date.el (with-decoded-time-value): Doc fix.
+
+2007-11-29  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* calendar/time-date.el (encode-time-value): Doc fix.
+
 2007-11-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory): Doc fix.
