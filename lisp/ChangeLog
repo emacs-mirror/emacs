@@ -1,4 +1,10 @@
+2007-11-29  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* calendar/time-date.el (encode-time-value): Doc fix.
+
 2007-11-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/time-date.el (with-decoded-time-value): Doc fix.
 
 	* textmodes/css-mode.el (prog-mode): Remove.
 	(css-mode): Derive from fundamental-mode rather than prog-mode.
