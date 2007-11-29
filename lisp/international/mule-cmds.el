@@ -1492,6 +1492,9 @@ To deactivate it programmatically, use `inactivate-input-method'."
     (customize-mark-as-set 'default-input-method))
   default-input-method)
 
+(defvar toggle-input-method-active nil
+  "Non-nil inside `toggle-input-method'.")
+
 (defun toggle-input-method (&optional arg interactive)
   "Enable or disable multilingual text input method for the current buffer.
 Only one input method can be enabled at any time in a given buffer.
@@ -1511,9 +1514,12 @@ When called interactively, the optional arg INTERACTIVE is non-nil,
 which marks the variable `default-input-method' as set for Custom buffers."
 
   (interactive "P\np")
+  (if toggle-input-method-active
+      (error "Recursive use of `toggle-input-method'"))
   (if (and current-input-method (not arg))
       (inactivate-input-method)
-    (let ((default (or (car input-method-history) default-input-method)))
+    (let ((toggle-input-method-active t)
+	  (default (or (car input-method-history) default-input-method)))
       (if (and arg default (equal current-input-method default)
 	       (> (length input-method-history) 1))
 	  (setq default (nth 1 input-method-history)))
