@@ -1046,7 +1046,7 @@ Assumes the buffer has not changed."
       (message "Copied to kill ring: %s"  str))))
 
 ;; External.
-;;;(declare-function w3-view-this-url "w3" (&optional no-show))
+(declare-function w3-view-this-url "ext:w3" (&optional no-show))
 
 (defun ffap-url-at-point nil
   "Return url from around point if it exists, or nil."
