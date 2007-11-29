@@ -6588,7 +6588,7 @@ apply_modifiers (modifiers, base)
   modifiers &= INTMASK;
 
   if (INTEGERP (base))
-    return make_number (XINT (base) & modifiers);
+    return make_number (XINT (base) | modifiers);
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
