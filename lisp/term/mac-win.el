@@ -1772,6 +1772,9 @@ if possible.  If there's no such frame, a new frame is created."
       ;; Reaches here if the user has canceled the quit.
       (mac-resume-apple-event ae -128)))) ; userCanceledErr
 
+;; url-generic-parse-url is autoloaded from url-parse.
+;;;(declare-function url-type "url-parse") ; defstruct
+
 (defun mac-ae-get-url (event)
   "Open the URL specified by the Apple event EVENT.
 Currently the `mailto' scheme is supported."
