@@ -1,3 +1,9 @@
+2007-11-29  Richard Stallman  <rms@gnu.org>
+
+	* international/mule-cmds.el (toggle-input-method-active): New var.
+	(toggle-input-method): Bind toggle-input-method-active to t.
+	Error if it was already non-nil.
+
 2007-11-29  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/time-date.el (with-decoded-time-value): Doc fix.
