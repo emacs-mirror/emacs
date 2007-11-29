@@ -1,3 +1,7 @@
+2007-11-29  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-dir-state): Fix the git command arguments.
+
 2007-11-29  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
 
 	* calendar/time-date.el (encode-time-value): Doc fix.
