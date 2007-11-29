@@ -256,11 +256,9 @@
 (defvar css-font-lock-defaults
   '(css-font-lock-keywords nil t))
 
-(unless (fboundp 'prog-mode) (defalias 'prog-mode 'fundamental-mode))
-
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.css\\'" . css-mode))
 ;;;###autoload
-(define-derived-mode css-mode prog-mode "CSS"
+(define-derived-mode css-mode fundamental-mode "CSS"
   "Major mode to edit Cascading Style Sheets."
   (set (make-local-variable 'font-lock-defaults) css-font-lock-defaults)
   (set (make-local-variable 'comment-start) "/*")
