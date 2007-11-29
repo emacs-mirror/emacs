@@ -966,6 +966,13 @@ Returns t if login was successful, nil otherwise."
 	  (imap-capability nil buffer))
     mecs))
 
+(declare-function sasl-find-mechanism "sasl" (mechanism))
+(declare-function sasl-mechanism-name "sasl" (mechanism))
+(declare-function sasl-make-client    "sasl" (mechanism name service server))
+(declare-function sasl-next-step      "sasl" (client step))
+(declare-function sasl-step-data      "sasl" (step))
+(declare-function sasl-step-set-data  "sasl" (step data))
+
 (defun imap-sasl-auth-p (buffer)
   (and (condition-case ()
 	   (require 'sasl)
