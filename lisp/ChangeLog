@@ -1,3 +1,23 @@
+2007-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/byte-run.el (declare-function): Add optional fourth
+	argument and document it.
+
+	* emacs-lisp/bytecomp.el (byte-compile-declare-function):
+	Third argument to declare-function must be a list to specify arglist.
+
+	* emacs-lisp/check-declare.el (check-declare-scan): Doc fix.
+	Handle declare-function third argument `t' and fourth argument.
+	(check-declare-verify): Doc fix.  Handle `fileonly' case.
+	Use progn rather than prog1.
+
+	* desktop.el (uniquify-item-base): Declare as a function.
+
+	* net/eudcb-bbdb.el (bbdb-phone-location, bbdb-record-phones)
+	(bbdb-address-city, bbdb-address-state, bbdb-address-zip)
+	(bbdb-address-location, bbdb-record-addresses): Pass non-nil
+	fourth arg to declare-function.
+
 2007-11-29  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-dir-state): Fix the git command arguments.
