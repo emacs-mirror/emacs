@@ -1,3 +1,12 @@
+2007-11-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* longlines.el (longlines-show-hard-newlines): Remove handling of
+	buffer-undo-list and buffer-modified status.
+	(longlines-show-region, longlines-unshow-hard-newlines): Handle
+	buffer-undo-list, buffer-modified status, inhibit-read-only, and
+	inhibit-modification-hooks here to avoid that a buffer appears
+	modified when toggling visibility of hard newlines.
+
 2007-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/rng-maint.el (rng-do-some-validation): Fix declaration.
