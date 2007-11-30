@@ -1,3 +1,8 @@
+2007-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* functions.texi (Declaring Functions): Add optional fourth
+	argument of declare-function, and setting third argument to `t'.
+
 2007-11-29  Glenn Morris  <rgm@gnu.org>
 
 	* functions.texi (Declaring Functions): Add findex.  Mention
