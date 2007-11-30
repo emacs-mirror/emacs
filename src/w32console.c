@@ -164,6 +164,7 @@ w32con_ins_del_lines (struct frame *f, int vpos, int n)
 {
   int	     i, nb;
   SMALL_RECT scroll;
+  SMALL_RECT clip;
   COORD	     dest;
   CHAR_INFO  fill;
 
@@ -179,15 +180,16 @@ w32con_ins_del_lines (struct frame *f, int vpos, int n)
       scroll.Bottom = FRAME_LINES (f) - n;
       dest.Y = vpos + n;
     }
-  scroll.Left = 0;
-  scroll.Right = FRAME_COLS (f);
+  clip.Top = clip.Left = scroll.Left = 0;
+  clip.Right = scroll.Right = FRAME_COLS (f);
+  clip.Bottom = FRAME_LINES (f);
 
   dest.X = 0;
 
   fill.Char.AsciiChar = 0x20;
   fill.Attributes = char_attr_normal;
 
-  ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
+  ScrollConsoleScreenBuffer (cur_screen, &scroll, &clip, dest, &fill);
 
   /* Here we have to deal with a w32 console flake: If the scroll
      region looks like abc and we scroll c to a and fill with d we get
@@ -235,12 +237,13 @@ scroll_line (struct frame *f, int dist, int direction)
 {
   /* The idea here is to implement a horizontal scroll in one line to
      implement delete and half of insert.  */
-  SMALL_RECT scroll;
+  SMALL_RECT scroll, clip;
   COORD	     dest;
   CHAR_INFO  fill;
 
-  scroll.Top = cursor_coords.Y;
-  scroll.Bottom = cursor_coords.Y;
+  clip.Top = scroll.Top = clip.Bottom = scroll.Bottom = cursor_coords.Y;
+  clip.Left = 0;
+  clip.Right = FRAME_COLS (f);
 
   if (direction == LEFT)
     {
@@ -259,7 +262,7 @@ scroll_line (struct frame *f, int dist, int direction)
   fill.Char.AsciiChar = 0x20;
   fill.Attributes = char_attr_normal;
 
-  ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
+  ScrollConsoleScreenBuffer (cur_screen, &scroll, &clip, dest, &fill);
 }
 
 
@@ -417,11 +420,31 @@ SOUND is nil to use the normal beep.  */)
 static void
 w32con_reset_terminal_modes (struct terminal *t)
 {
+  COORD dest;
+  CONSOLE_SCREEN_BUFFER_INFO info;
+  int n;
+  DWORD r;
+
+  /* Clear the complete screen buffer.  This is required because Emacs
+     sets the cursor position to the top of the buffer, but there might
+     be other output below the bottom of the Emacs frame if the screen buffer
+     is larger than the window size.  */
+  GetConsoleScreenBufferInfo (cur_screen, &info);
+  dest.X = 0;
+  dest.Y = 0;
+  n = info.dwSize.X * info.dwSize.Y;
+
+  FillConsoleOutputAttribute (cur_screen, char_attr_normal, n, dest, &r);
+  FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
+  /* Now that the screen is clear, put the cursor at the top.  */
+  SetConsoleCursorPosition (cur_screen, dest);
+  
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
   SetConsoleCursorInfo (prev_screen, &prev_console_cursor);
 #endif
+
   SetConsoleMode (keyboard_handle, prev_console_mode);
 }
 
