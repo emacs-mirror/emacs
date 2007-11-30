@@ -103,6 +103,7 @@
 (defvar idlwave-sint-structtags nil)
 
 ;; Create the sintern type for structure talks
+(declare-function idlwave-sintern-structtag "idlwave" t t)
 (idlwave-new-sintern-type 'structtag)
 
 ;; Hook the plugin into idlwave
