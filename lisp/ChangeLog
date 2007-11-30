@@ -11,7 +11,8 @@
 	(check-declare-verify): Doc fix.  Handle `fileonly' case.
 	Use progn rather than prog1.
 
-	* desktop.el (uniquify-item-base): Declare as a function.
+	* desktop.el (uniquify-item-base):
+	* term/mac-win.el (url-type): Declare as functions.
 
 	* net/eudcb-bbdb.el (bbdb-phone-location, bbdb-record-phones)
 	(bbdb-address-city, bbdb-address-state, bbdb-address-zip)
