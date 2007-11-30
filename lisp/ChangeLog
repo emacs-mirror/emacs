@@ -1,3 +1,8 @@
+2007-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Don't match "sub { (...) ... }".
+
 2007-11-29  Richard Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el (toggle-input-method-active): New var.
@@ -45,8 +50,8 @@
 
 2007-11-16  Eli Zaretskii  <eliz@gnu.org>
 
-	* international/mule-cmds.el (set-locale-environment): Set
-	default-file-name-coding-system _after_ keyboard and terminal
+	* international/mule-cmds.el (set-locale-environment):
+	Set default-file-name-coding-system _after_ keyboard and terminal
 	coding systems.  This fixes last change.
 
 	* mail/rmail.el (rmail-current-subject-regexp): Allow more than
