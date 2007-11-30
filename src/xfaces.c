@@ -1463,10 +1463,6 @@ tty_color_name (f, idx)
   if (idx == FACE_TTY_DEFAULT_BG_COLOR)
     return build_string (unspecified_bg);
 
-#ifdef WINDOWSNT
-  return vga_stdcolor_name (idx);
-#endif
-
   return Qunspecified;
 }
 
@@ -7464,13 +7460,11 @@ map_tty_color (f, face, idx, defaulted)
     {
       pixel = load_color (f, face, color, idx);
 
-#if defined (MSDOS) || defined (WINDOWSNT)
+#ifdef MSDOS
       /* If the foreground of the default face is the default color,
 	 use the foreground color defined by the frame.  */
-#ifdef MSDOS
       if (FRAME_MSDOS_P (f))
 	{
-#endif /* MSDOS */
 	  if (pixel == default_pixel
 	      || pixel == FACE_TTY_DEFAULT_COLOR)
 	    {
@@ -7490,10 +7484,8 @@ map_tty_color (f, face, idx, defaulted)
 	      face->lface[idx] = tty_color_name (f, pixel);
 	      *defaulted = 1;
 	    }
-#ifdef MSDOS
-	}
-#endif
-#endif /* MSDOS or WINDOWSNT */
+        }
+#endif /* MSDOS */
     }
 
   if (foreground_p)
