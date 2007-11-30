@@ -52,9 +52,7 @@
 
 ;;; Code:
 
-;; autoload password
-(eval-and-compile
-  (autoload 'password-read "password"))
+(require 'password)
 
 (defgroup encrypt '((password-cache custom-variable)
 		    (password-cache-expiry custom-variable))
