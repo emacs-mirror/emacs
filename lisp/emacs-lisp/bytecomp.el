@@ -2823,7 +2823,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (put 'declare-function 'byte-hunk-handler 'byte-compile-declare-function)
 (defun byte-compile-declare-function (form)
   (push (cons (nth 1 form)
-              (if (< (length form) 4)   ; arglist not specified
+              (if (or (< (length form) 4)   ; arglist not specified
+                      (not (listp (nth 3 form))))
                   t
                 (list 'declared (nth 3 form))))
         byte-compile-function-environment)
