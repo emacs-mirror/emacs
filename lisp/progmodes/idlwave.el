@@ -7606,6 +7606,7 @@ property indicating the link is added."
 (defvar idlwave-current-class-tags nil)
 (defvar idlwave-current-native-class-tags nil)
 (defvar idlwave-sint-class-tags nil)
+(declare-function idlwave-sintern-class-tag "idlwave" t t)
 (idlwave-new-sintern-type 'class-tag)
 (add-to-list 'idlwave-complete-special 'idlwave-complete-class-structure-tag)
 (add-hook 'idlwave-update-rinfo-hook 'idlwave-class-tag-reset)
@@ -7664,6 +7665,8 @@ property indicating the link is added."
 
 (defvar idlwave-sint-sysvars nil)
 (defvar idlwave-sint-sysvartags nil)
+(declare-function idlwave-sintern-sysvar    "idlwave" t t)
+(declare-function idlwave-sintern-sysvartag "idlwave" t t)
 (idlwave-new-sintern-type 'sysvar)
 (idlwave-new-sintern-type 'sysvartag)
 (add-to-list 'idlwave-complete-special 'idlwave-complete-sysvar-or-tag)
