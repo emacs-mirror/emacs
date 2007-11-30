@@ -104,16 +104,16 @@
       record)))
 
 ;; External.
-(declare-function bbdb-phone-location   "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-phone-location   "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-phone-string     "ext:bbdb" (phone))
-(declare-function bbdb-record-phones    "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-record-phones    "ext:bbdb" t) ; via bbdb-defstruct
 ;; FIXME: bbdb-address-street1/2/3 don't seem to exist in current
 ;; bbdb, so this code is probably broken.
-(declare-function bbdb-address-city     "ext:bbdb") ; via bbdb-defstruct
-(declare-function bbdb-address-state    "ext:bbdb") ; via bbdb-defstruct
-(declare-function bbdb-address-zip      "ext:bbdb") ; via bbdb-defstruct
-(declare-function bbdb-address-location "ext:bbdb") ; via bbdb-defstruct
-(declare-function bbdb-record-addresses "ext:bbdb") ; via bbdb-defstruct
+(declare-function bbdb-address-city     "ext:bbdb" t) ; via bbdb-defstruct
+(declare-function bbdb-address-state    "ext:bbdb" t) ; via bbdb-defstruct
+(declare-function bbdb-address-zip      "ext:bbdb" t) ; via bbdb-defstruct
+(declare-function bbdb-address-location "ext:bbdb" t) ; via bbdb-defstruct
+(declare-function bbdb-record-addresses "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-records          "ext:bbdb"
                   (&optional dont-check-disk already-in-db-buffer))
 
