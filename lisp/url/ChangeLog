@@ -1,3 +1,7 @@
+2007-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el (url-cookie-p): Declare as a function.
+
 2007-11-29  Glenn Morris  <rgm@gnu.org>
 
 	* url-file.el (url-file-build-filename, url-file): Wrap uses of
