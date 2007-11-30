@@ -334,7 +334,8 @@
 (declare-function rng-clear-cached-state "rng-valid" (start end))
 (declare-function rng-clear-overlays "rng-valid" (beg end))
 (declare-function rng-clear-conditional-region "rng-valid" ())
-(declare-function rng-do-some-validation "rng-valid" ())
+(declare-function rng-do-some-validation "rng-valid"
+                  (&optional continue-p-function))
 
 (defun rng-validate-buffer ()
   (save-restriction
