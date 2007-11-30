@@ -39,6 +39,9 @@
 (defvar transient-mark-mode)
 (defvar TeX-master)
 ;; END remove for XEmacs release
+
+(declare-function texmathp "ext:texmathp" ())
+
 (defun reftex-index-selection-or-word (&optional arg phrase)
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index

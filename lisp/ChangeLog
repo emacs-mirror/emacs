@@ -1,3 +1,15 @@
+2007-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/reftex-index.el (texmathp):
+	* textmodes/reftex-auc.el (TeX-argument-insert)
+	(TeX-argument-prompt, multi-prompt, LaTeX-add-index-entries)
+	(LaTeX-add-labels, LaTeX-bibitem-list, LaTeX-index-entry-list)
+	(LaTeX-label-list):
+	* nxml/rng-maint.el (rng-clear-cached-state, rng-clear-overlays)
+	(rng-clear-conditional-region, rng-do-some-validation): Declare as
+	functions.
+	(rng-error-count, rng-validate-up-to-date-end): Pacify byte compiler.
+
 2007-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/byte-run.el (declare-function): Add optional fourth

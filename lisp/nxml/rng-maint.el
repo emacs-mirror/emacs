@@ -329,6 +329,13 @@
   (interactive)
   (rng-time-function 'rng-validate-buffer))
 
+(defvar rng-error-count)
+(defvar rng-validate-up-to-date-end)
+(declare-function rng-clear-cached-state "rng-valid" (start end))
+(declare-function rng-clear-overlays "rng-valid" (beg end))
+(declare-function rng-clear-conditional-region "rng-valid" ())
+(declare-function rng-do-some-validation "rng-valid" ())
+
 (defun rng-validate-buffer ()
   (save-restriction
     (widen)

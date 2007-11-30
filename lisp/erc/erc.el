@@ -2165,6 +2165,8 @@ Arguments are the same as for `erc'."
 
 (defalias 'erc-select-ssl 'erc-ssl)
 
+(declare-function open-ssl-stream "ext:ssl" (name buffer host service))
+
 (defun erc-open-ssl-stream (name buffer host port)
   "Open an SSL stream to an IRC server.
 The process will be given the name NAME, its target buffer will be
@@ -2188,6 +2190,8 @@ Arguments are the same as for `erc'."
   (interactive (erc-select-read-args))
   (let ((erc-server-connect-function 'erc-open-tls-stream))
     (apply 'erc r)))
+
+(declare-function open-tls-stream "tls" (name buffer host port))
 
 (defun erc-open-tls-stream (name buffer host port)
   "Open an TLS stream to an IRC server.
@@ -2224,6 +2228,8 @@ but you won't see it.
 
 WARNING: Do not set this variable directly!  Instead, use the
 function `erc-toggle-debug-irc-protocol' to toggle its value.")
+
+(declare-function erc-network-name "erc-networks" ())
 
 (defun erc-log-irc-protocol (string &optional outbound)
   "Append STRING to the buffer *erc-protocol*.
