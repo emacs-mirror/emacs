@@ -1,3 +1,7 @@
+2007-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* encrypt.el: Require password, rather than autoloading password-read.
+
 2007-11-28  Richard Stallman  <rms@gnu.org>
 
 	* md4.el: Move to ../.
