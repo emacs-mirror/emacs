@@ -1773,7 +1773,7 @@ if possible.  If there's no such frame, a new frame is created."
       (mac-resume-apple-event ae -128)))) ; userCanceledErr
 
 ;; url-generic-parse-url is autoloaded from url-parse.
-;;;(declare-function url-type "url-parse") ; defstruct
+(declare-function url-type "url-parse" t t) ; defstruct
 
 (defun mac-ae-get-url (event)
   "Open the URL specified by the Apple event EVENT.
