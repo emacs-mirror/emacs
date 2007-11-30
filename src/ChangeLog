@@ -1,3 +1,13 @@
+2007-11-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c (w32con_ins_del_lines, scroll_line): Clip to window.
+	(w32con_reset_terminal_modes): Clear screen buffer.
+
+	* xfaces.c (map_tty_color, tty_color_name): Remove special case for
+	WINDOWSNT.
+
+	* w32console.c, w32term.h (vga_stdcolor_name): Remove.
+
 2007-11-29  Jason Rumney  <jasonr@gnu.org>
 
 	* w32console.c: Leave HAVE_WINDOW_SYSTEM defined.
