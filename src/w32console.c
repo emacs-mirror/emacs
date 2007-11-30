@@ -506,22 +506,24 @@ w32_face_attributes (f, face_id)
 
   char_attr = char_attr_normal;
 
-  if (face->foreground != FACE_TTY_DEFAULT_FG_COLOR
-      && face->foreground != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (char_attr & 0xfff0) + (face->foreground % 16);
-
-  if (face->background != FACE_TTY_DEFAULT_BG_COLOR
-      && face->background != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (char_attr & 0xff0f) + ((face->background % 16) << 4);
-
-  /* Before the terminal is properly initialized, all colors map to 0.
-     If we get a face like this, use the normal terminal attributes.  */
-  if (NILP (Vtty_defined_color_alist))
-    char_attr = char_attr_normal;
-
+  /* Reverse the default color if requested. If background and
+     foreground are specified, then they have been reversed already.  */
   if (face->tty_reverse_p)
     char_attr = (char_attr & 0xff00) + ((char_attr & 0x000f) << 4)
       + ((char_attr & 0x00f0) >> 4);
+
+  /* Before the terminal is properly initialized, all colors map to 0.
+     Don't try to resolve them.  */
+  if (NILP (Vtty_defined_color_alist))
+    return char_attr;
+
+  if (face->foreground >= 0
+      && face->foreground < 16)
+    char_attr = (char_attr & 0xfff0) + face->foreground;
+
+  if (face->background >= 0
+      && face->background < 16)
+    char_attr = (char_attr & 0xff0f) + (face->background << 4);
 
   return char_attr;
 }
