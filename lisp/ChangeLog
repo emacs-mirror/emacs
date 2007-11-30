@@ -1,3 +1,7 @@
+2007-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/rng-maint.el (rng-do-some-validation): Fix declaration.
+
 2007-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/reftex-index.el (texmathp):
