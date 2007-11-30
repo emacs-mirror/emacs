@@ -752,7 +752,6 @@ struct face;
 
 XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
 struct frame * check_x_frame (Lisp_Object);
-Lisp_Object vga_stdcolor_name (int);
 
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
