@@ -31,6 +31,10 @@
 	(bbdb-address-location, bbdb-record-addresses): Pass non-nil
 	fourth arg to declare-function.
 
+	* play/dunnet.el: Don't require cl when compiling.
+	(byte-compile-warnings): Set via file local variables.
+	(dun-parse): Let-bind `beg' and `line'.
+
 2007-11-29  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-dir-state): Fix the git command arguments.
