@@ -34,10 +34,6 @@
 
 ;;; TODO:
 
-;; 1. Handle defstructs (eg uniquify-item-base in desktop.el).
-
-;; 2. Handle fset (eg dired-omit-old-add-entry in dired-x.el).
-
 ;;; Code:
 
 (defconst check-declare-warning-buffer "*Check Declarations Warnings*"
@@ -76,10 +72,13 @@ the result."
 
 (defun check-declare-scan (file)
   "Scan FILE for `declare-function' calls.
-Return a list with elements of the form (FNFILE FN ARGLIST), where
-ARGLIST may be absent.  This claims that FNFILE defines FN, with ARGLIST."
+Return a list with elements of the form (FNFILE FN ARGLIST FILEONLY),
+where only the first two elements need be present.  This claims that FNFILE
+defines FN, with ARGLIST.  FILEONLY non-nil means only check that FNFILE
+exists, not that it defines FN.  This is for function definitions that we
+don't know how to recognize (e.g. some macros)."
   (let ((m (format "Scanning %s..." file))
-        alist fnfile fn)
+        alist fnfile fn arglist fileonly)
     (message "%s" m)
     (with-temp-buffer
       (insert-file-contents file)
@@ -89,16 +88,18 @@ ARGLIST may be absent.  This claims that FNFILE defines FN, with ARGLIST."
         (setq fn (match-string 1)
               fnfile (match-string 2)
               fnfile (check-declare-locate fnfile (expand-file-name file))
-              alist (cons
-                     (list fnfile fn
-                           (progn
-                             (skip-chars-forward " \t\n")
-                             ;; Use `t' to distinguish no arglist
-                             ;; specified from an empty one.
-                             (if (looking-at "\\((\\|nil\\)")
-                                 (read (current-buffer))
-                               t)))
-                     alist))))
+              arglist (progn
+                        (skip-chars-forward " \t\n")
+                        ;; Use `t' to distinguish no arglist
+                        ;; specified from an empty one.
+                        (if (looking-at "\\((\\|nil\\|t\\)")
+                            (read (current-buffer))
+                          t))
+              fileonly (progn
+                        (skip-chars-forward " \t\n")
+                        (if (looking-at "\\(t\\|'\\sw+\\)")
+                            (match-string 1)))
+              alist (cons (list fnfile fn arglist fileonly) alist))))
     (message "%sdone" m)
     alist))
 
@@ -119,11 +120,14 @@ With optional argument FULL, sums the number of elements in each element."
 
 (defun check-declare-verify (fnfile fnlist)
   "Check that FNFILE contains function definitions matching FNLIST.
-Each element of FNLIST has the form (FILE FN ARGLIST), where
-ARGLIST is optional.  This means FILE claimed FN was defined in
-FNFILE with the specified ARGLIST.  Returns nil if all claims are
-found to be true, otherwise a list of errors with elements of the form
-\(FILE FN TYPE), where TYPE is a string giving details of the error."
+Each element of FNLIST has the form (FILE FN ARGLIST FILEONLY), where
+only the first two elements need be present.  This means FILE claimed FN
+was defined in FNFILE with the specified ARGLIST.  FILEONLY non-nil means
+to only check that FNFILE exists, not that it actually defines FN.
+
+Returns nil if all claims are found to be true, otherwise a list
+of errors with elements of the form \(FILE FN TYPE), where TYPE
+is a string giving details of the error."
   (let ((m (format "Checking %s..." fnfile))
         (cflag (string-equal "c" (file-name-extension fnfile)))
         (ext (string-match "^ext:" fnfile))
@@ -194,7 +198,8 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
             (if (not re)
                 "file not found"
               (if (not (setq sig (assoc (cadr e) siglist)))
-                  "function not found"
+                  (unless (nth 3 e)     ; fileonly
+                    "function not found")
                 (setq sig (cdr sig))
                 (cond ((eq sig 'obsolete) ; check even when no arglist specified
                        "obsolete alias")
@@ -213,9 +218,9 @@ ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
     (message "%s%s" m
              (if (or re (not ext))
                  (check-declare-errmsg errlist)
-               (prog1
-                   "skipping external file"
-                 (setq errlist nil))))
+               (progn
+                 (setq errlist nil)
+                 "skipping external file")))
     errlist))
 
 (defun check-declare-sort (alist)
