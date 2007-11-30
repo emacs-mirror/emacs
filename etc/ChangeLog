@@ -1,3 +1,10 @@
+2007-11-30  Kentaro Ohkouchi <nanasess@fsm.ne.jp>
+
+	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:
+	* images/icons/macemacs_32.png, images/icons/macemacs_48.png:
+	* images/icons/macemacs_256.png, images/icons/macemacs_512.png:
+	New files.
+
 2007-11-28  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/: New directory, moved here from lisp/nxml/char-name/unicode.
