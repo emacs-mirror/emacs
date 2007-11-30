@@ -1,3 +1,35 @@
+2007-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/org-export-latex.el (org-export-latex-cleaned-string):
+	Move args on defun line.
+
+	* textmodes/org.el (org-calendar-holiday): Use
+	calendar-check-holidays instead of the obsolete
+	check-calendar-holidays.
+	(add-to-diary-list, table--at-cell-p, Info-find-node, bbdb)
+	(bbdb-company, bbdb-current-record, bbdb-name)
+	(bbdb-record-getprop, bbdb-record-name)
+	(bibtex-beginning-of-entry, bibtex-generate-autokey)
+	(bibtex-parse-entry, bibtex-url, cdlatex-tab)
+	(dired-get-filename, gnus-article-show-summary, mh-display-msg)
+	(mh-find-path, mh-get-header-field, mh-get-msg-num)
+	(mh-header-display, mh-index-previous-folder)
+	(mh-normalize-folder-name, mh-search, mh-search-choose, mh-show)
+	(mh-show-buffer-message-number, mh-show-header-display)
+	(mh-show-msg, mh-show-show, mh-visit-folder)
+	(org-export-latex-cleaned-string, remember)
+	(remember-buffer-desc, rmail-narrow-to-non-pruned-header)
+	(rmail-what-message, elmo-folder-exists-p)
+	(elmo-message-entity-field, elmo-message-field)
+	(vm-beginning-of-message, vm-follow-summary-cursor)
+	(vm-get-header-contents, vm-isearch-narrow, vm-isearch-update)
+	(vm-select-folder-buffer, vm-su-message-id, vm-su-subject)
+	(vm-summarize, wl-folder-get-elmo-folder)
+	(wl-summary-goto-folder-subr)
+	(wl-summary-jump-to-msg-by-message-id, wl-summary-line-from)
+	(wl-summary-line-subject, wl-summary-message-number)
+	(wl-summary-redisplay): Declare as functions.
+
 2007-11-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* longlines.el (longlines-show-hard-newlines): Remove handling of
