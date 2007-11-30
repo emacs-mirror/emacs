@@ -2,6 +2,14 @@
 
 	* nxml/rng-maint.el (rng-do-some-validation): Fix declaration.
 
+	* progmodes/idlw-complete-structtag.el
+	(idlwave-sintern-structtag):
+	* progmodes/idlw-help.el (idlwave-sintern-sysvar)
+	(idlwave-sintern-sysvartag):
+	* progmodes/idlwave.el (idlwave-sintern-class-tag)
+	(idlwave-sintern-sysvar, idlwave-sintern-sysvartag): Declare as
+	functions.
+
 2007-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/reftex-index.el (texmathp):
