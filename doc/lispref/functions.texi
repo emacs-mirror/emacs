@@ -1266,10 +1266,11 @@ cases, this might be something like @code{(file &optional overwrite)}.
 You don't have to specify the argument list, but if you do the
 byte compiler can check that the calls match the declaration.
 
-@defmac declare-function function file arglist
+@defmac declare-function function file &optional arglist fileonly
 Tell the byte compiler to assume that @var{function} is defined, with
 arguments @var{arglist}, and that the definition should come from
-the file @var{file}.
+the file @var{file}.  @var{fileonly} non-nil means only check that
+@var{file} exists, not that it actually defines @var{function}.
 @end defmac
 
   To verify that these functions really are declared where
@@ -1294,6 +1295,14 @@ never give you a warning.
 If you prefix the filename in the @code{declare-function} statement with
 @samp{ext:}, then it will be checked if it is found, otherwise skipped
 without error.
+
+  There are some function definitions that @samp{check-declare} does not
+understand (e.g. @code{defstruct} and some other macros).  In such cases,
+you can pass a non-@code{nil} fourth argument to @code{declare-function},
+meaning to only check that the file exists, not that it actually defines
+the function.  Note that to do this without having to specify an
+argument list, you should set the third argument to @code{t} (because
+@code{nil} means an empty argument list, as opposed to an unspecified one).
 
 @node Function Safety
 @section Determining whether a Function is Safe to Call
