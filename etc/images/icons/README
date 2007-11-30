@@ -4,3 +4,9 @@ Files: emacs_16.png emacs_24.png emacs_32.png emacs_48.png
 Author: Andrew Zhilin <andrew_zhilin@yahoo.com>
 Copyright (C) 2005, 2006, 2007  Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
+
+Files: macemacs_16.png  macemacs_24.png  macemacs_32.png macemacs_48.png
+       macemacs_256.png macemacs_512.png
+Author: Kentaro Ohkouchi <nanasess@fsm.ne.jp>
+Copyright (C) 2007  Free Software Foundation, Inc.
+License: GNU General Public License version 3 or later (see COPYING)
