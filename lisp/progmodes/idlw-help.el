@@ -281,6 +281,8 @@ support."
 (declare-function idlwave-sintern-keyword "idlwave")
 (declare-function idlwave-sintern-method "idlwave")
 (declare-function idlwave-sintern-routine-or-method "idlwave")
+(declare-function idlwave-sintern-sysvar "idlwave" t t);idlwave-new-sintern-type
+(declare-function idlwave-sintern-sysvartag "idlwave" t t)
 (declare-function idlwave-substitute-link-target "idlwave")
 (declare-function idlwave-sys-dir "idlwave")
 (declare-function idlwave-this-word "idlwave")
