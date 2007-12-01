@@ -121,7 +121,8 @@ enum font_property_index
        can be opend on any frame.  */
     FONT_FRAME_INDEX = FONT_SPEC_MAX,
 
-    /* List of font-objects opened from the font-entity.  */
+    /* List of font-objects opened from the font-entity.  The value is
+       nil if no font can be opened for this font-entity.  */
     FONT_OBJLIST_INDEX,
 
     /* This value is the length of font-entity vector.  */
@@ -219,6 +220,12 @@ struct font_bitmap
 #define FONT_OBJECT_P(x)	\
   (XTYPE (x) == Lisp_Misc && XMISCTYPE (x) == Lisp_Misc_Save_Value)
 
+#define FONT_ENTITY_NOT_LOADABLE(entity)	\
+  EQ (AREF (entity, FONT_OBJLIST_INDEX), Qt)
+
+#define FONT_ENTITY_SET_NOT_LOADABLE(entity)	\
+  ASET (entity, FONT_OBJLIST_INDEX, Qt)
+
 
 /* Check macros for various font-related objects.  */
 
@@ -247,33 +254,48 @@ struct composition;
 
 /* Macros for lispy glyph-string.  */
 #define LGSTRING_FONT(lgs) AREF (AREF ((lgs), 0), 0)
-#define LGSTRING_LBEARING(lgs) AREF (AREF ((lgs), 0), 1)
-#define LGSTRING_RBEARING(lgs) AREF (AREF ((lgs), 0), 2)
-#define LGSTRING_WIDTH(lgs) AREF (AREF ((lgs), 0), 3)
-#define LGSTRING_ASCENT(lgs) AREF (AREF ((lgs), 0), 4)
-#define LGSTRING_DESCENT(lgs) AREF (AREF ((lgs), 0), 5)
-#define LGSTRING_SET_FONT(lgs, val) ASET (AREF ((lgs), 0), 0, (val))
-#define LGSTRING_SET_LBEARING(lgs, val) ASET (AREF ((lgs), 0), 1, (val))
-#define LGSTRING_SET_RBEARING(lgs, val)	ASET (AREF ((lgs), 0), 2, (val))
-#define LGSTRING_SET_WIDTH(lgs, val) ASET (AREF ((lgs), 0), 3, (val))
-#define LGSTRING_SET_ASCENT(lgs, val) ASET (AREF ((lgs), 0), 4, (val))
-#define LGSTRING_SET_DESCENT(lgs, val) ASET (AREF ((lgs), 0), 5, (val))
+#define LGSTRING_WIDTH(lgs) XINT (AREF (AREF ((lgs), 0), 1))
+#define LGSTRING_LBEARING(lgs) XINT (AREF (AREF ((lgs), 0), 2))
+#define LGSTRING_RBEARING(lgs) XINT (AREF (AREF ((lgs), 0), 3))
+#define LGSTRING_ASCENT(lgs) XINT (AREF (AREF ((lgs), 0), 4))
+#define LGSTRING_DESCENT(lgs) XINT (AREF (AREF ((lgs), 0), 5))
+#define LGSTRING_SET_FONT(lgs, val)	\
+  ASET (AREF ((lgs), 0), 0, (val))
+#define LGSTRING_SET_WIDTH(lgs, val)	\
+  ASET (AREF ((lgs), 0), 1, make_number (val))
+#define LGSTRING_SET_LBEARING(lgs, val) \
+  ASET (AREF ((lgs), 0), 2, make_number (val))
+#define LGSTRING_SET_RBEARING(lgs, val)	\
+  ASET (AREF ((lgs), 0), 3, make_number (val))
+#define LGSTRING_SET_ASCENT(lgs, val)	\
+  ASET (AREF ((lgs), 0), 4, make_number (val))
+#define LGSTRING_SET_DESCENT(lgs, val)	\
+  ASET (AREF ((lgs), 0), 5, make_number (val))
 
 #define LGSTRING_LENGTH(lgs) (ASIZE ((lgs)) - 1)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 1)
+#define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 1, (val))
 
-#define LGLYPH_FROM(g) AREF ((g), 0)
-#define LGLYPH_TO(g) AREF ((g), 1)
-#define LGLYPH_CHAR(g) AREF ((g), 2)
-#define LGLYPH_CODE(g) AREF ((g), 3)
-#define LGLYPH_WIDTH(g) AREF ((g), 4)
-#define LGLYPH_ADJUSTMENT(g) AREF ((g), 5)
-#define LGLYPH_SET_FROM(g, val) ASET ((g), 0, (val))
-#define LGLYPH_SET_TO(g, val) ASET ((g), 1, (val))
-#define LGLYPH_SET_CHAR(g, val) ASET ((g), 2, (val))
-#define LGLYPH_SET_CODE(g, val) ASET ((g), 3, (val))
-#define LGLYPH_SET_WIDTH(g, val) ASET ((g), 4, (val))
-#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), 5, (val))
+#define LGLYPH_FROM(g) XINT (AREF ((g), 0))
+#define LGLYPH_TO(g) XINT (AREF ((g), 1))
+#define LGLYPH_CHAR(g) XINT (AREF ((g), 2))
+#define LGLYPH_CODE(g) XINT (AREF ((g), 3))
+#define LGLYPH_WIDTH(g) XINT (AREF ((g), 4))
+#define LGLYPH_LBEARING(g) XINT (AREF ((g), 5))
+#define LGLYPH_RBEARING(g) XINT (AREF ((g), 6))
+#define LGLYPH_ASCENT(g) XINT (AREF ((g), 7))
+#define LGLYPH_DESCENT(g) XINT (AREF ((g), 8))
+#define LGLYPH_ADJUSTMENT(g) AREF ((g), 9)
+#define LGLYPH_SET_FROM(g, val) ASET ((g), 0, make_number (val))
+#define LGLYPH_SET_TO(g, val) ASET ((g), 1, make_number (val))
+#define LGLYPH_SET_CHAR(g, val) ASET ((g), 2, make_number (val))
+#define LGLYPH_SET_CODE(g, val) ASET ((g), 3, make_number (val))
+#define LGLYPH_SET_WIDTH(g, val) ASET ((g), 4, make_number (val))
+#define LGLYPH_SET_LBEARING(g, val) ASET ((g), 5, make_number (val))
+#define LGLYPH_SET_RBEARING(g, val) ASET ((g), 6, make_number (val))
+#define LGLYPH_SET_ASCENT(g, val) ASET ((g), 7, make_number (val))
+#define LGLYPH_SET_DESCENT(g, val) ASET ((g), 8, make_number (val))
+#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), 9, (val))
 
 #define LGLYPH_XOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
 			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 0)) : 0)
@@ -419,6 +441,10 @@ struct font_driver
      End using the driver for frame F.  Usually this function free
      some data stored for F.  */
   int (*end_for_frame) P_ ((FRAME_PTR f));
+
+  /* Optional.
+     Shape text in LGSTRING.  */
+  Lisp_Object (*shape) P_ ((Lisp_Object lgstring));
 };
 
 
@@ -454,10 +480,13 @@ struct font_data_list
 extern int enable_font_backend;
 
 EXFUN (Ffont_spec, MANY);
+EXFUN (Ffont_get, 2);
 EXFUN (Flist_fonts, 4);
 EXFUN (Fclear_font_cache, 0);
 EXFUN (Ffont_xlfd_name, 1);
 
+extern int font_registry_charsets P_ ((Lisp_Object, struct charset **,
+				       struct charset **));
 extern Lisp_Object font_symbolic_weight P_ ((Lisp_Object font));
 extern Lisp_Object font_symbolic_slant P_ ((Lisp_Object font));
 extern Lisp_Object font_symbolic_width P_ ((Lisp_Object font));
@@ -476,7 +505,7 @@ extern int font_set_lface_from_name P_ ((FRAME_PTR f,
 					 Lisp_Object fontname,
 					 int force_p, int may_fail_p));
 extern Lisp_Object font_find_for_lface P_ ((FRAME_PTR f, Lisp_Object *lface,
-					    Lisp_Object spec));
+					    Lisp_Object spec, int c));
 extern Lisp_Object font_open_for_lface P_ ((FRAME_PTR f, Lisp_Object entity,
 					    Lisp_Object *lface,
 					    Lisp_Object spec));
@@ -504,27 +533,17 @@ extern Lisp_Object font_update_drivers P_ ((FRAME_PTR f, Lisp_Object list));
 extern Lisp_Object font_at P_ ((int c, EMACS_INT pos, struct face *face,
 				struct window *w, Lisp_Object object));
 
-extern struct font *font_prepare_composition P_ ((struct composition *cmp));
+extern struct font *font_prepare_composition P_ ((struct composition *cmp,
+						  FRAME_PTR f));
 
 extern Lisp_Object font_put_extra P_ ((Lisp_Object font, Lisp_Object prop,
                                        Lisp_Object val));
-
-#ifdef HAVE_LIBOTF
-/* This can be used as `otf_capability' method of a font-driver.  */
-extern Lisp_Object font_otf_capability P_ ((struct font *font));
-/* This can be used as `otf_drive' method of a font-driver.  */
-extern int font_drive_otf P_ ((struct font *font, Lisp_Object otf_features,
-			       Lisp_Object gstring_in, int from, int to,
-			       Lisp_Object gstring_out, int idx,
-			       int alternate_subst));
-#endif	/* HAVE_LIBOTF */
 
 extern int font_put_frame_data P_ ((FRAME_PTR f,
 				    struct font_driver *driver,
 				    void *data));
 extern void *font_get_frame_data P_ ((FRAME_PTR f,
 				      struct font_driver *driver));
-
 
 #ifdef HAVE_FREETYPE
 extern struct font_driver ftfont_driver;
