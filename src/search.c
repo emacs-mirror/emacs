@@ -3239,9 +3239,10 @@ A value of nil (which is the normal value) means treat spaces literally.  */);
 
   DEFVAR_LISP ("inhibit-changing-match-data", &Vinhibit_changing_match_data,
       doc: /* Internal use only.
-If non-nil, the match data will not be changed during call to searching or
-matching functions, such as `looking-at', `string-match', `re-search-forward'
-etc.  */);
+If non-nil, the primitive searching and matching functions
+such as `looking-at', `string-match', `re-search-forward', etc.,
+do not set the match data.  The proper way to use this variable
+is to bind it with `let' around a small expression.  */);
   Vinhibit_changing_match_data = Qnil;
 
   defsubr (&Slooking_at);
