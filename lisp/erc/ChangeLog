@@ -3,8 +3,8 @@
 	* erc-backend.el (erc-server-send-ping): Move after definition of
 	erc-server-send.
 
-	* erc.el (iswitchb-temp-buflist, iswitchb-read-buffer): Declare
-	for compiler.
+	* erc.el (iswitchb-temp-buflist, iswitchb-read-buffer)
+	(erc-controls-strip): Declare for compiler.
 	(erc-iswitchb): Don't require iswitchb when compiling.  Test
 	iswitchb-mode is bound.
 
