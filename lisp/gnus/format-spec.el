@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defun format-spec (format specification)
   "Return a string based on FORMAT and SPECIFICATION.
 FORMAT is a string containing `format'-like specs like \"bash %u %k\",
