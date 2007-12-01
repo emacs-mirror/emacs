@@ -652,6 +652,12 @@ compose_text (start, end, components, modification_func, string)
 {
   Lisp_Object prop;
 
+#if 0
+  if (VECTORP (components) && ASIZE (components) > 1
+      && VECTORP (AREF (components, 0)))
+    prop = components;
+  else
+#endif	/* USE_FONT_BACKEND */
   prop = Fcons (Fcons (make_number (end - start), components),
 		modification_func);
   Fput_text_property  (make_number (start), make_number (end),
