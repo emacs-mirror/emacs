@@ -388,6 +388,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `lrand48' function. */
 #undef HAVE_LRAND48
 
+/* Define to 1 if you have m17n-flt library. */
+#undef HAVE_M17N_FLT
+
 /* Define to 1 if you have the <machine/soundcard.h> header file. */
 #undef HAVE_MACHINE_SOUNDCARD_H
 
@@ -722,9 +725,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you're using XFree386. */
 #undef HAVE_XFREE386
-
-/* Define to 1 if you have the Xft library. */
-#undef HAVE_XFT
 
 /* Define to 1 if you have the Xft library. */
 #undef HAVE_XFT
