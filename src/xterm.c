@@ -1542,7 +1542,7 @@ x_draw_composite_glyph_string_foreground (s)
 
 	      if (! VECTORP (adjustment))
 		{
-		  width += XINT (LGLYPH_WIDTH (g));
+		  width += LGLYPH_WIDTH (g);
 		  continue;
 		}
 	      if (from < i)
@@ -1555,7 +1555,7 @@ x_draw_composite_glyph_string_foreground (s)
 	      wadjust = XINT (AREF (adjustment, 2));
 
 	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
-	      x += XINT (LGLYPH_WIDTH (g)) + wadjust;
+	      x += wadjust;
 	      from = i + 1;
 	      width = 0;
 	    }
