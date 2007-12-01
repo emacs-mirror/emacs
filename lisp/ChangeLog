@@ -1,3 +1,12 @@
+2007-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/gdb-ui.el (gud-remove, gud-break):
+	* progmodes/gud.el (gdb-create-define-alist)
+	(gdb-restore-windows, gdb-reset, global-hl-line-highlight)
+	(hl-line-highlight, gdb-display-source-buffer)
+	(gdb-display-buffer, c-langelem-sym, c-langelem-pos)
+	(syntax-symbol, syntax-point, gdb-enqueue-input): Declare as functions.
+
 2007-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/org-export-latex.el (org-export-latex-cleaned-string):
