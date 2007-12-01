@@ -1377,7 +1377,10 @@ struct font_driver w32font_driver =
     NULL, /* free_outline */
     NULL, /* anchor_point */
     NULL, /* otf_capability */
-    NULL /* otf_drive */
+    NULL, /* otf_drive */
+    NULL, /* start_for_frame */
+    NULL, /* end_for_frame */
+    NULL  /* shape */
   };
 
 
