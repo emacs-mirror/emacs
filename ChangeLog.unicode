@@ -1,3 +1,7 @@
+2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* configure.in: Check the availability of m17n-flt library.
+
 2007-06-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add data and site-lisp.
