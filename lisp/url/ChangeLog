@@ -1,3 +1,8 @@
+2007-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* url-handlers.el (top-level): Always require url-parse, not just
+	when compiling.
+
 2007-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* url-cookie.el (url-cookie-p): Declare as a function.
