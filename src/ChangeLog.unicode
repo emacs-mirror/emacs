@@ -1,3 +1,7 @@
+2007-12-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_driver): Add new fields.
+
 2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* config.in: Re-generated.
@@ -70,7 +74,7 @@
 
 	* xdisp.c (handle_composition_prop): Adjusted for the change of
 	lispy gstring.  Call a function for auto-composition with the
-	third arg it->window.
+third arg it->window.
 	(fill_composite_glyph_string): Adjusted for the change of lispy
 	string.
 	(x_produce_glyphs): Adjusted for the change of
