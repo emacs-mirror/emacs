@@ -1,3 +1,8 @@
+2007-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* mail-source.el (top-level): Require format-spec before
+	eval-when-compile.
+
 2007-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* encrypt.el: Require password, rather than autoloading password-read.
