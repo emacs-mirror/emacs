@@ -15,7 +15,7 @@
 
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
-	* hex-util.el, sha1.el: Move here from gnus/.
+	* format-spec.el, hex-util.el, sha1.el: Move here from gnus/.
 
 	* net/dig.el: Move here from gnus/.
 	(dig-mode): Replace gnus-run-mode-hooks with equivalent expansion.
