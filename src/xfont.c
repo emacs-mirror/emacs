@@ -40,24 +40,6 @@ Boston, MA 02110-1301, USA.  */
 
 Lisp_Object Qx;
 
-/* Alist of font registry symbol and the corresponding charsets
-   information.  The information is retrieved from
-   Vfont_encoding_alist on demand.
-
-   Eash element has the form:
-	(REGISTRY . (ENCODING-CHARSET-ID . REPERTORY-CHARSET-ID))
-   or
-	(REGISTRY . nil)
-
-   In the former form, ENCODING-CHARSET-ID is an ID of a charset that
-   encodes a character code to a glyph code of a font, and
-   REPERTORY-CHARSET-ID is an ID of a charset that tells if a
-   character is supported by a font.
-
-   The latter form means that the information for REGISTRY couldn't be
-   retrieved.  */
-static Lisp_Object x_font_charset_alist;
-
 /* Prototypes of support functions.  */
 extern void x_clear_errors P_ ((Display *));
 
@@ -172,69 +154,6 @@ xfont_get_pcm (xfont, char2b)
   return ((pcm == NULL
 	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
 	  ? NULL : pcm);
-}
-
-extern Lisp_Object find_font_encoding P_ ((Lisp_Object));
-
-/* Return encoding charset and repertory charset for REGISTRY in
-   ENCODING and REPERTORY correspondingly.  If correct information for
-   REGISTRY is available, return 0.  Otherwise return -1.  */
-
-static int
-xfont_registry_charsets (registry, encoding, repertory)
-     Lisp_Object registry;
-     struct charset **encoding, **repertory;
-{
-  Lisp_Object val;
-  int encoding_id, repertory_id;
-
-  val = assq_no_quit (registry, x_font_charset_alist);
-  if (! NILP (val))
-    {
-      val = XCDR (val);
-      if (NILP (val))
-	return -1;
-      encoding_id = XINT (XCAR (val));
-      repertory_id = XINT (XCDR (val));
-    }
-  else
-    {
-      val = find_font_encoding (SYMBOL_NAME (registry));
-      if (SYMBOLP (val) && CHARSETP (val))
-	{
-	  encoding_id = repertory_id = XINT (CHARSET_SYMBOL_ID (val));
-	}
-      else if (CONSP (val))
-	{
-	  if (! CHARSETP (XCAR (val)))
-	    goto invalid_entry;
-	  encoding_id = XINT (CHARSET_SYMBOL_ID (XCAR (val)));
-	  if (NILP (XCDR (val)))
-	    repertory_id = -1;
-	  else
-	    {
-	      if (! CHARSETP (XCDR (val)))
-		goto invalid_entry;
-	      repertory_id = XINT (CHARSET_SYMBOL_ID (XCDR (val)));
-	    }
-	}      
-      else
-	goto invalid_entry;
-      val = Fcons (make_number (encoding_id), make_number (repertory_id));
-      x_font_charset_alist
-	= nconc2 (x_font_charset_alist, Fcons (Fcons (registry, val), Qnil));
-    }
-
-  if (encoding)
-    *encoding = CHARSET_FROM_ID (encoding_id);
-  if (repertory)
-    *repertory = repertory_id >= 0 ? CHARSET_FROM_ID (repertory_id) : NULL;
-  return 0;
-
- invalid_entry:
-  x_font_charset_alist
-    = nconc2 (x_font_charset_alist, Fcons (Fcons (registry, Qnil), Qnil));
-  return -1;
 }
 
 static Lisp_Object xfont_get_cache P_ ((Lisp_Object));
@@ -567,7 +486,7 @@ xfont_open (f, entity, pixel_size)
   /* At first, check if we know how to encode characters for this
      font.  */
   registry = AREF (entity, FONT_REGISTRY_INDEX);
-  if (xfont_registry_charsets (registry, &encoding, &repertory) < 0)
+  if (font_registry_charsets (registry, &encoding, &repertory) < 0)
     return NULL;
 
   if (XINT (AREF (entity, FONT_SIZE_INDEX)) != 0)
@@ -781,7 +700,7 @@ xfont_has_char (entity, c)
   Lisp_Object registry = AREF (entity, FONT_REGISTRY_INDEX);
   struct charset *repertory;
 
-  if (xfont_registry_charsets (registry, NULL, &repertory) < 0)
+  if (font_registry_charsets (registry, NULL, &repertory) < 0)
     return -1;
   if (! repertory)
     return -1;
@@ -903,9 +822,6 @@ xfont_draw (s, from, to, x, y, with_background)
 void
 syms_of_xfont ()
 {
-  staticpro (&x_font_charset_alist);
-  x_font_charset_alist = Qnil;
-
   DEFSYM (Qx, "x");
   xfont_driver.type = Qx;
   register_font_driver (&xfont_driver, NULL);
