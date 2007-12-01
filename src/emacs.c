@@ -1625,9 +1625,7 @@ main (argc, argv
       syms_of_window ();
       syms_of_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
-#ifdef USE_FONT_BACKEND
       syms_of_font ();
-#endif	/* USE_FONT_BACKEND */
       syms_of_fringe ();
       syms_of_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
