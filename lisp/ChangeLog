@@ -15,6 +15,17 @@
 
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
+	* hex-util.el, sha1.el: Move here from gnus/.
+
+	* net/dig.el: Move here from gnus/.
+	(dig-mode): Replace gnus-run-mode-hooks with equivalent expansion.
+
+	* net/dns.el: Move here from gnus/.
+	(top-level): Don't require mm-util, or cl when compiling.
+	(dns-write-name, dns-read, dns-read-type, query-dns):
+	Replace mm-with-unibyte-buffer with its expansion.
+	(query-dns): Replace decf and ignore-errors with non-cl equivalents.
+
 	* progmodes/gdb-ui.el (gud-remove, gud-break):
 	* progmodes/gud.el (gdb-create-define-alist)
 	(gdb-restore-windows, gdb-reset, global-hl-line-highlight)
