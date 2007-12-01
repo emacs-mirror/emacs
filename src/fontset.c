@@ -681,14 +681,48 @@ fontset_find_font (fontset, c, face, id, fallback)
 #ifdef USE_FONT_BACKEND
       if (enable_font_backend)
 	{
-	  /* ELT == [ FACE-ID FONT-INDEX FONT-DEF FONT-ENTITY FONT-OBJECT ] */
-	  Lisp_Object font_entity = AREF (elt, 3);
-	  Lisp_Object font_object = AREF (elt, 4);
-	  Lisp_Object font_spec = AREF (font_def, 0);
+	  /* ELT == [ FACE-ID FONT-INDEX FONT-DEF FONT-LIST ]
+	     where FONT-LIST is a list of font-entity or font-object.  */
+	  Lisp_Object font_list = AREF (elt, 3), prev = Qnil;
+	  Lisp_Object font_object;
 	  int has_char;
 
-	  if (NILP (font_entity))
+	  for (; CONSP (font_list);
+	       prev = font_list, font_list = XCDR (font_list))
 	    {
+	      font_object = XCAR (font_list);
+	      if (! (FONT_ENTITY_P (font_object)
+		     && FONT_ENTITY_NOT_LOADABLE (font_object))
+		  && (has_char = font_has_char (f, font_object, c)) != 0)
+		{
+		  if (has_char < 0)
+		    {
+		      Lisp_Object obj = font_open_for_lface (f, font_object,
+							     face->lface, Qnil);
+		      if (NILP (obj))
+			{
+			  FONT_ENTITY_SET_NOT_LOADABLE (font_object);
+			  continue;
+			}
+		      font_object = obj;
+		      XSETCAR (font_list, font_object);
+		      if (! font_has_char (f, font_object, c))
+			continue;
+		    }
+		  if (! NILP (prev))
+		    {
+		      /* Move this element to the head.  */
+		      XSETCDR (prev, XCDR (font_list));
+		      ASET (elt, 3, Fcons (XCAR (font_list), AREF (elt, 3)));
+		    }
+		  break;
+		}
+	    }
+	  if (NILP (font_list))
+	    {
+	      Lisp_Object font_spec = AREF (font_def, 0);
+	      Lisp_Object font_entity;
+
 	      if (! FONT_SPEC_P (font_spec))
 		{
 		  /* FONT_SPEC is FONT-NAME or (FAMILY . REGISTRY).  */
@@ -705,34 +739,25 @@ fontset_find_font (fontset, c, face, id, fallback)
 		    }
 		  ASET (font_def, 0, font_spec);
 		}
-	      font_entity = font_find_for_lface (f, face->lface, font_spec);
-	      ASET (elt, 3, font_entity);
+	      font_entity = font_find_for_lface (f, face->lface, font_spec, c);
 	      if (NILP (font_entity))
-		{
-		  ASET (elt, 1, make_number (-1));
-		  continue;
-		}
-	      font_object = Qnil;
+		continue;
+	      font_list = Fcons (font_entity, AREF (elt, 3));
+	      ASET (elt, 3, font_list);
 	    }
-	  has_char = font_has_char (f, font_entity, c);
-	  if (has_char == 0)
-	    continue;
-	  if (NILP (font_object))
+	  font_object = XCAR (font_list);
+	  if (FONT_ENTITY_P (font_object))
 	    {
-	      font_object = font_open_for_lface (f, font_entity,
-						 face->lface, font_spec);
-	      ASET (elt, 4, font_object);
+	      font_object = font_open_for_lface (f, font_object,
+						 face->lface, Qnil);
 	      if (NILP (font_object))
 		{
-		  ASET (elt, 1, make_number (-1));
+		  FONT_ENTITY_SET_NOT_LOADABLE (XCAR (font_list));
 		  continue;
 		}
+	      XSETCAR (font_list, font_object);
 	    }
 	  ASET (elt, 1, make_number (0));
-	  ASET (elt, 4, font_object);
-	  if (has_char < 0
-	      && font_encode_char (font_object, c) == FONT_INVALID_CODE)
-	    continue;
 	}
       else
 #endif	/* USE_FONT_BACKEND */
@@ -1020,7 +1045,7 @@ face_for_char (f, face, c, pos, object)
       if (enable_font_backend
 	  && NILP (AREF (rfont_def, 0)))
 	{
-	  struct font *font = XSAVE_VALUE (AREF (rfont_def, 4))->pointer;
+	  struct font *font = XSAVE_VALUE (XCAR (AREF (rfont_def, 3)))->pointer;
 
 	  face_id = face_for_font (f, font, face);
 	  ASET (rfont_def, 0, make_number (face_id));
@@ -1079,19 +1104,17 @@ make_fontset_for_ascii_face (f, base_fontset_id, face)
 
     elt = FONTSET_REF (base_fontset, 0);
     xassert (VECTORP (elt) && ASIZE (elt) > 0);
+    rfont_def = Fmake_vector (make_number (4), Qnil);
 #ifdef USE_FONT_BACKEND
-    rfont_def = Fmake_vector (make_number (5), Qnil);
     if (enable_font_backend && face->font_info)
       {
 	struct font *font = (struct font *) face->font_info;
 
-	ASET (rfont_def, 3, font->entity);
-	ASET (rfont_def, 4, font_find_object (font));
+	ASET (rfont_def, 3, Fcons (font->entity, Qnil));
       }
     else
 #endif  /* USE_FONT_BACKEND */
     {
-      rfont_def = Fmake_vector (make_number (4), Qnil);
       ASET (rfont_def, 3, build_string (face->font_name));
     }
     ASET (rfont_def, 1, make_number (face->font_info_id));
@@ -1544,6 +1567,7 @@ set_fontset_font (fontset, range)
   FONTSET_ADD (fontset, range, font_def_arg, add_arg);
 }
 
+extern Lisp_Object QCfamily, QCregistry;
 
 DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 5, 0,
        doc: /*
@@ -1593,27 +1617,41 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 
   if (VECTORP (font_spec))
     {
-      /* FONT_SPEC should have this form:
-		[ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ]
-	 This is a feature not yet documented because WEIGHT thru
-	 ADSTYLE are ignored for the moment.  */
-      int j;
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend && FONT_SPEC_P (font_spec))
+	{
+	  family = Ffont_get (font_spec, QCfamily);
+	  if (! NILP (family))
+	    family = SYMBOL_NAME (family);
+	  registry = Ffont_get (font_spec, QCregistry);
+	  if (! NILP (registry))
+	    registry = SYMBOL_NAME (registry);
+	}
+      else
+#endif
+	{
+	  /* FONT_SPEC should have this form:
+	     [ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ]
+	     This is a feature not yet documented because WEIGHT thru
+	     ADSTYLE are ignored for the moment.  */
+	  int j;
 
-      if (ASIZE (font_spec) != FONT_SPEC_MAX_INDEX)
-	args_out_of_range (make_number (FONT_SPEC_MAX_INDEX),
-			   make_number (ASIZE (font_spec)));
+	  if (ASIZE (font_spec) != FONT_SPEC_MAX_INDEX)
+	    args_out_of_range (make_number (FONT_SPEC_MAX_INDEX),
+			       make_number (ASIZE (font_spec)));
 
-      font_spec = Fcopy_sequence (font_spec);
-      for (j = 0; j < FONT_SPEC_MAX_INDEX - 1; j++)
-	if (! NILP (AREF (font_spec, j)))
-	  {
-	    CHECK_STRING (AREF (font_spec, j));
-	    ASET (font_spec, j, Fdowncase (AREF (font_spec, j)));
-	  }
-      family = AREF (font_spec, FONT_SPEC_FAMILY_INDEX);
-      /* REGISTRY should not be omitted.  */
-      CHECK_STRING (AREF (font_spec, FONT_SPEC_REGISTRY_INDEX));
-      registry = AREF (font_spec, FONT_SPEC_REGISTRY_INDEX);
+	  font_spec = Fcopy_sequence (font_spec);
+	  for (j = 0; j < FONT_SPEC_MAX_INDEX - 1; j++)
+	    if (! NILP (AREF (font_spec, j)))
+	      {
+		CHECK_STRING (AREF (font_spec, j));
+		ASET (font_spec, j, Fdowncase (AREF (font_spec, j)));
+	      }
+	  family = AREF (font_spec, FONT_SPEC_FAMILY_INDEX);
+	  /* REGISTRY should not be omitted.  */
+	  CHECK_STRING (AREF (font_spec, FONT_SPEC_REGISTRY_INDEX));
+	  registry = AREF (font_spec, FONT_SPEC_REGISTRY_INDEX);
+	}
     }
   else if (CONSP (font_spec))
     {
@@ -2104,9 +2142,9 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend)
     {
-      if (VECTORP (rfont_def) && ! NILP (AREF (rfont_def, 4)))
+      if (VECTORP (rfont_def) && ! NILP (AREF (rfont_def, 3)))
 	{
-	  Lisp_Object font_object = AREF (rfont_def, 4);
+	  Lisp_Object font_object = XCAR (AREF (rfont_def, 3));
 	  struct font *font = XSAVE_VALUE (font_object)->pointer;
 	  unsigned code = font->driver->encode_char (font, c);
 	  Lisp_Object fontname = font_get_name (font_object);
