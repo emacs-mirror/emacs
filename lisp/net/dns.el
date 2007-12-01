@@ -1,6 +1,7 @@
 ;;; dns.el --- Domain Name Service lookups
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -25,10 +26,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
-
-(require 'mm-util)
 
 (defvar dns-timeout 5
   "How many seconds to wait when doing DNS queries.")
@@ -105,10 +102,11 @@ If nil, /etc/resolv.conf will be consulted.")
   (dns-write-bytes 0))
 
 (defun dns-read-string-name (string buffer)
-  (mm-with-unibyte-buffer
-    (insert string)
-    (goto-char (point-min))
-    (dns-read-name buffer)))
+  (let (default-enable-multibyte-characters)
+    (with-temp-buffer
+      (insert string)
+      (goto-char (point-min))
+      (dns-read-name buffer))))
 
 (defun dns-read-name (&optional buffer)
   (let ((ended nil)
@@ -188,71 +186,72 @@ If TCP-P, the first two bytes of the package with be the length field."
     (buffer-string)))
 
 (defun dns-read (packet)
-  (mm-with-unibyte-buffer
-    (let ((spec nil)
-	  queries answers authorities additionals)
-      (insert packet)
-      (goto-char (point-min))
-      (push (list 'id (dns-read-bytes 2)) spec)
-      (let ((byte (dns-read-bytes 1)))
-	(push (list 'response-p (if (zerop (logand byte (lsh 1 7))) nil t))
-	      spec)
-	(let ((opcode (logand byte (lsh 7 3))))
-	  (push (list 'opcode
-		      (cond ((eq opcode 0) 'query)
-			    ((eq opcode 1) 'inverse-query)
-			    ((eq opcode 2) 'status)))
-		spec))
-	(push (list 'authoritative-p (if (zerop (logand byte (lsh 1 2)))
-					 nil t)) spec)
-	(push (list 'truncated-p (if (zerop (logand byte (lsh 1 2))) nil t))
-	      spec)
-	(push (list 'recursion-desired-p
-		    (if (zerop (logand byte (lsh 1 0))) nil t)) spec))
-      (let ((rc (logand (dns-read-bytes 1) 15)))
-	(push (list 'response-code
-		    (cond
-		     ((eq rc 0) 'no-error)
-		     ((eq rc 1) 'format-error)
-		     ((eq rc 2) 'server-failure)
-		     ((eq rc 3) 'name-error)
-		     ((eq rc 4) 'not-implemented)
-		     ((eq rc 5) 'refused)))
-	      spec))
-      (setq queries (dns-read-bytes 2))
-      (setq answers (dns-read-bytes 2))
-      (setq authorities (dns-read-bytes 2))
-      (setq additionals (dns-read-bytes 2))
-      (let ((qs nil))
-	(dotimes (i queries)
-	  (push (list (dns-read-name)
-		      (list 'type (dns-inverse-get (dns-read-bytes 2)
-						   dns-query-types))
-		      (list 'class (dns-inverse-get (dns-read-bytes 2)
-						    dns-classes)))
-		qs))
-	(push (list 'queries qs) spec))
-    (dolist (slot '(answers authorities additionals))
-      (let ((qs nil)
-	    type)
-	(dotimes (i (symbol-value slot))
-	  (push (list (dns-read-name)
-		      (list 'type
-			    (setq type (dns-inverse-get (dns-read-bytes 2)
-							dns-query-types)))
-		      (list 'class (dns-inverse-get (dns-read-bytes 2)
-						    dns-classes))
-		      (list 'ttl (dns-read-bytes 4))
-		      (let ((length (dns-read-bytes 2)))
-			(list 'data
-			      (dns-read-type
-			       (buffer-substring
-				(point)
-				(progn (forward-char length) (point)))
-			       type))))
-		qs))
-	(push (list slot qs) spec)))
-    (nreverse spec))))
+  (let (default-enable-multibyte-characters)
+    (with-temp-buffer
+      (let ((spec nil)
+            queries answers authorities additionals)
+        (insert packet)
+        (goto-char (point-min))
+        (push (list 'id (dns-read-bytes 2)) spec)
+        (let ((byte (dns-read-bytes 1)))
+          (push (list 'response-p (if (zerop (logand byte (lsh 1 7))) nil t))
+                spec)
+          (let ((opcode (logand byte (lsh 7 3))))
+            (push (list 'opcode
+                        (cond ((eq opcode 0) 'query)
+                              ((eq opcode 1) 'inverse-query)
+                              ((eq opcode 2) 'status)))
+                  spec))
+          (push (list 'authoritative-p (if (zerop (logand byte (lsh 1 2)))
+                                           nil t)) spec)
+          (push (list 'truncated-p (if (zerop (logand byte (lsh 1 2))) nil t))
+                spec)
+          (push (list 'recursion-desired-p
+                      (if (zerop (logand byte (lsh 1 0))) nil t)) spec))
+        (let ((rc (logand (dns-read-bytes 1) 15)))
+          (push (list 'response-code
+                      (cond
+                       ((eq rc 0) 'no-error)
+                       ((eq rc 1) 'format-error)
+                       ((eq rc 2) 'server-failure)
+                       ((eq rc 3) 'name-error)
+                       ((eq rc 4) 'not-implemented)
+                       ((eq rc 5) 'refused)))
+                spec))
+        (setq queries (dns-read-bytes 2))
+        (setq answers (dns-read-bytes 2))
+        (setq authorities (dns-read-bytes 2))
+        (setq additionals (dns-read-bytes 2))
+        (let ((qs nil))
+          (dotimes (i queries)
+            (push (list (dns-read-name)
+                        (list 'type (dns-inverse-get (dns-read-bytes 2)
+                                                     dns-query-types))
+                        (list 'class (dns-inverse-get (dns-read-bytes 2)
+                                                      dns-classes)))
+                  qs))
+          (push (list 'queries qs) spec))
+        (dolist (slot '(answers authorities additionals))
+          (let ((qs nil)
+                type)
+            (dotimes (i (symbol-value slot))
+              (push (list (dns-read-name)
+                          (list 'type
+                                (setq type (dns-inverse-get (dns-read-bytes 2)
+                                                            dns-query-types)))
+                          (list 'class (dns-inverse-get (dns-read-bytes 2)
+                                                        dns-classes))
+                          (list 'ttl (dns-read-bytes 4))
+                          (let ((length (dns-read-bytes 2)))
+                            (list 'data
+                                  (dns-read-type
+                                   (buffer-substring
+                                    (point)
+                                    (progn (forward-char length) (point)))
+                                   type))))
+                    qs))
+            (push (list slot qs) spec)))
+        (nreverse spec)))))
 
 (defun dns-read-int32 ()
   ;; Full 32 bit Integers can't be handled by Emacs.  If we use
@@ -264,38 +263,40 @@ If TCP-P, the first two bytes of the package with be the length field."
   (let ((buffer (current-buffer))
 	(point (point)))
     (prog1
-	(mm-with-unibyte-buffer
-	  (insert string)
-	  (goto-char (point-min))
-	  (cond
-	   ((eq type 'A)
-	    (let ((bytes nil))
-	      (dotimes (i 4)
-		(push (dns-read-bytes 1) bytes))
-	      (mapconcat 'number-to-string (nreverse bytes) ".")))
-	   ((eq type 'AAAA)
-	    (let (hextets)
-	      (dotimes (i 8)
-		(push (dns-read-bytes 2) hextets))
-	      (mapconcat (lambda (n) (format "%x" n)) (nreverse hextets) ":")))
-	   ((eq type 'SOA)
-	    (list (list 'mname (dns-read-name buffer))
-		  (list 'rname (dns-read-name buffer))
-		  (list 'serial (dns-read-int32))
-		  (list 'refresh (dns-read-int32))
-		  (list 'retry (dns-read-int32))
-		  (list 'expire (dns-read-int32))
-		  (list 'minimum (dns-read-int32))))
-	   ((eq type 'SRV)
-	    (list (list 'priority (dns-read-bytes 2))
-		  (list 'weight (dns-read-bytes 2))
-		  (list 'port (dns-read-bytes 2))
-		  (list 'target (dns-read-name buffer))))
-	   ((eq type 'MX)
-	    (cons (dns-read-bytes 2) (dns-read-name buffer)))
-	   ((or (eq type 'CNAME) (eq type 'NS) (eq type 'PTR))
-	    (dns-read-string-name string buffer))
-	   (t string)))
+        (let (default-enable-multibyte-characters)
+          (with-temp-buffer
+            (insert string)
+            (goto-char (point-min))
+            (cond
+             ((eq type 'A)
+              (let ((bytes nil))
+                (dotimes (i 4)
+                  (push (dns-read-bytes 1) bytes))
+                (mapconcat 'number-to-string (nreverse bytes) ".")))
+             ((eq type 'AAAA)
+              (let (hextets)
+                (dotimes (i 8)
+                  (push (dns-read-bytes 2) hextets))
+                (mapconcat (lambda (n) (format "%x" n))
+                           (nreverse hextets) ":")))
+             ((eq type 'SOA)
+              (list (list 'mname (dns-read-name buffer))
+                    (list 'rname (dns-read-name buffer))
+                    (list 'serial (dns-read-int32))
+                    (list 'refresh (dns-read-int32))
+                    (list 'retry (dns-read-int32))
+                    (list 'expire (dns-read-int32))
+                    (list 'minimum (dns-read-int32))))
+             ((eq type 'SRV)
+              (list (list 'priority (dns-read-bytes 2))
+                    (list 'weight (dns-read-bytes 2))
+                    (list 'port (dns-read-bytes 2))
+                    (list 'target (dns-read-name buffer))))
+             ((eq type 'MX)
+              (cons (dns-read-bytes 2) (dns-read-name buffer)))
+             ((or (eq type 'CNAME) (eq type 'NS) (eq type 'PTR))
+              (dns-read-string-name string buffer))
+             (t string))))
       (goto-char point))))
 
 (defun dns-parse-resolv-conf ()
@@ -377,48 +378,51 @@ If REVERSEP, look up an IP address."
 
   (if (not dns-servers)
       (message "No DNS server configuration found")
-    (mm-with-unibyte-buffer
-      (let ((process (condition-case ()
-			 (dns-make-network-process (car dns-servers))
-		       (error
-			(message "dns: Got an error while trying to talk to %s"
-				 (car dns-servers))
-			nil)))
-	    (tcp-p (and (not (fboundp 'make-network-process))
-			(not (featurep 'xemacs))))
-	    (step 100)
-	    (times (* dns-timeout 1000))
-	    (id (random 65000)))
-	(when process
-	  (process-send-string
-	   process
-	   (dns-write `((id ,id)
-			(opcode query)
-			(queries ((,name (type ,type))))
-			(recursion-desired-p t))
-		      tcp-p))
-	  (while (and (zerop (buffer-size))
-		      (> times 0))
-	    (sit-for (/ step 1000.0))
-	    (accept-process-output process 0 step)
-	    (decf times step))
-	  (ignore-errors
-	    (delete-process process))
-	  (when (and tcp-p
-		     (>= (buffer-size) 2))
-	    (goto-char (point-min))
-	    (delete-region (point) (+ (point) 2)))
-	  (when (and (>= (buffer-size) 2)
-		     ;; We had a time-out.
-		     (> times 0))
-	    (let ((result (dns-read (buffer-string))))
-	      (if fullp
-		  result
-		(let ((answer (car (dns-get 'answers result))))
-		  (when (eq type (dns-get 'type answer))
-		    (if (eq type 'TXT)
-			(dns-get-txt-answer (dns-get 'answers result))
-		      (dns-get 'data answer))))))))))))
+    (let (default-enable-multibyte-characters)
+      (with-temp-buffer
+        (let ((process (condition-case ()
+                           (dns-make-network-process (car dns-servers))
+                         (error
+                          (message
+                           "dns: Got an error while trying to talk to %s"
+                           (car dns-servers))
+                          nil)))
+              (tcp-p (and (not (fboundp 'make-network-process))
+                          (not (featurep 'xemacs))))
+              (step 100)
+              (times (* dns-timeout 1000))
+              (id (random 65000)))
+          (when process
+            (process-send-string
+             process
+             (dns-write `((id ,id)
+                          (opcode query)
+                          (queries ((,name (type ,type))))
+                          (recursion-desired-p t))
+                        tcp-p))
+            (while (and (zerop (buffer-size))
+                        (> times 0))
+              (sit-for (/ step 1000.0))
+              (accept-process-output process 0 step)
+              (setq times (- times step)))
+            (condition-case nil
+                (delete-process process)
+              (error nil))
+            (when (and tcp-p
+                       (>= (buffer-size) 2))
+              (goto-char (point-min))
+              (delete-region (point) (+ (point) 2)))
+            (when (and (>= (buffer-size) 2)
+                       ;; We had a time-out.
+                       (> times 0))
+              (let ((result (dns-read (buffer-string))))
+                (if fullp
+                    result
+                  (let ((answer (car (dns-get 'answers result))))
+                    (when (eq type (dns-get 'type answer))
+                      (if (eq type 'TXT)
+                          (dns-get-txt-answer (dns-get 'answers result))
+                        (dns-get 'data answer)))))))))))))
 
 (provide 'dns)
 
