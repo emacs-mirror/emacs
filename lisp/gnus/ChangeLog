@@ -1,5 +1,7 @@
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
+	* dig.el: Move to ../net.
+
 	* mail-source.el (top-level): Require format-spec before
 	eval-when-compile.
 
