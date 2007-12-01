@@ -277,6 +277,9 @@ as a single changeset.
 
 *** In VC Annotate mode, you can type V to toggle the annotation visibility.
 
+** log-edit now has a command bound to C-c C-d to show the diff for
+the files involved.
+
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
 ** The appearance of superscript and subscript in TeX is more customizable.

@@ -83,8 +83,8 @@
 ;; to be installed somewhere on Emacs's path for executables.
 ;;
 ;; If your site uses the ChangeLog convention supported by Emacs, the
-;; function log-edit-comment-to-change-log could prove a useful checkin hook,
-;; although you might prefer to use C-c C-a (i.e. log-edit-insert-changelog)
+;; function `log-edit-comment-to-change-log' could prove a useful checkin hook,
+;; although you might prefer to use C-c C-a (i.e. `log-edit-insert-changelog')
 ;; from the commit buffer instead or to set `log-edit-setup-invert'.
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
@@ -3577,7 +3577,10 @@ The annotations are relative to the current time, unless overridden by OFFSET."
   "Set up `log-edit' for use with VC on FILE."
   (setq default-directory
 	(with-current-buffer vc-parent-buffer default-directory))
-  (log-edit 'vc-finish-logentry nil `(lambda () ',fileset))
+  (log-edit 'vc-finish-logentry
+	    nil
+	    `((log-edit-listfun . (lambda () ',fileset))
+	      (log-edit-diff-function . (lambda () (vc-diff nil)))))
   (set (make-local-variable 'vc-log-fileset) fileset)
   (make-local-variable 'vc-log-revision)
   (set-buffer-modified-p nil)

@@ -1,3 +1,13 @@
+2007-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-edit.el (log-edit-show-diff): New function.
+	(log-edit-mode-map, log-edit-menu): Bind it.
+	(log-edit-diff-function): New variable.
+	(log-edit): Change the 3rd param to be an alist and accept a
+	function that computes a diff for the files involved.
+
+	* vc.el (vc-log-edit): Add a diff function parameter to log-edit.
+
 2007-12-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* play/blackbox.el (bb-up, bb-down): Revert 2007-10-21 change and

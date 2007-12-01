@@ -57,6 +57,7 @@
 (easy-mmode-defmap log-edit-mode-map
   `(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
+    ("\C-c\C-d" . log-edit-show-diff)
     ("\C-c\C-f" . log-edit-show-files)
     ("\M-n"	. log-edit-next-comment)
     ("\M-p"	. log-edit-previous-comment)
@@ -79,6 +80,8 @@
     ["Insert ChangeLog" log-edit-insert-changelog]
     ["Add to ChangeLog" log-edit-add-to-changelog]
     "--"
+    ["Show diff" log-edit-show-diff
+     :help "Show the diff for the files to be committed."]
     ["List files" log-edit-show-files
      :help "Show the list of relevant files."]
     "--"
@@ -170,6 +173,7 @@ when this variable is set to nil.")
 (defconst log-edit-files-buf "*log-edit-files*")
 (defvar log-edit-initial-files nil)
 (defvar log-edit-callback nil)
+(defvar log-edit-diff-function nil)
 (defvar log-edit-listfun nil)
 (defvar log-edit-parent-buffer nil)
 
@@ -301,7 +305,7 @@ automatically."
      (2 font-lock-function-name-face))))
 
 ;;;###autoload
-(defun log-edit (callback &optional setup listfun buffer &rest ignore)
+(defun log-edit (callback &optional setup params buffer &rest ignore)
   "Setup a buffer to enter a log message.
 \\<log-edit-mode-map>The buffer will be put in `log-edit-mode'.
 If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
@@ -309,8 +313,13 @@ Mark and point will be set around the entire contents of the
 buffer so that it is easy to kill the contents of the buffer with \\[kill-region].
 Once you're done editing the message, pressing \\[log-edit-done] will call
 `log-edit-done' which will end up calling CALLBACK to do the actual commit.
-LISTFUN if non-nil is a function of no arguments returning the list of files
-  that are concerned by the current operation (using relative names).
+PARAMS if non-nil is an alist. The keys for the alist can be:
+`log-edit-listfun' and `log-edit-diff-function'. The associated
+value for `log-edit-listfun' should be a function with not
+arguments that returns the list of files that are concerned by
+the current operation (using relative names). The associated
+value for `log-edit-diff-function' should be a function with no
+arguments that displays a diff of the files concerned by the current operation.
 If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
   log message and go back to the current buffer when done.  Otherwise, it
   uses the current buffer."
@@ -321,7 +330,13 @@ If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
     (when setup (erase-buffer))
     (log-edit-mode)
     (set (make-local-variable 'log-edit-callback) callback)
-    (set (make-local-variable 'log-edit-listfun) listfun)
+    (if (listp params)
+	(dolist (crt params)
+	  (set (make-local-variable (car crt)) (cdr crt)))
+      ;; For backward compatibility with log-edit up to version 22.2
+      ;; accept non-list PARAMS to mean `log-edit-list'.
+      (set (make-local-variable 'log-edit-listfun) params))
+
     (if buffer (set (make-local-variable 'log-edit-parent-buffer) parent))
     (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
     (when setup (run-hooks 'log-edit-hook))
@@ -416,6 +431,11 @@ If you want to abort the commit, simply delete the buffer."
         (forward-line 1))
       (indent-rigidly (point-min) (point-max)
 		      (- log-edit-common-indent common)))))
+
+(defun log-edit-show-diff ()
+  "Show the diff for the files to be committed."
+  (interactive)
+  (funcall log-edit-diff-function))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."
