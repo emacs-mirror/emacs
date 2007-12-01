@@ -1,3 +1,14 @@
+2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/tml-util.el (tamil-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* language/devan-util.el (devanagari-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* composite.el (auto-compose-chars): Argument font-object changed
+	to window.
+
 2007-11-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-lpr-switches): Docstring fix.
