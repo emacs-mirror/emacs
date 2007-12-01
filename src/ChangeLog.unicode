@@ -1,3 +1,7 @@
+2007-12-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_draw): Fill background manually.
+
 2007-11-23  Jason Rumney  <jasonr@gnu.org>
 
 	* font.c (Qfontp): Remove unused symbol.
