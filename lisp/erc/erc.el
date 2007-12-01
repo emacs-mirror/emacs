@@ -1693,7 +1693,7 @@ nil."
 (put 'erc-with-all-buffers-of-server 'lisp-indent-function 1)
 (put 'erc-with-all-buffers-of-server 'edebug-form-spec '(form form body))
 
-;; (iswitch-mode) will autoload iswitchb.el
+;; (iswitchb-mode) will autoload iswitchb.el
 (defvar iswitchb-temp-buflist)
 (declare-function iswitchb-read-buffer "iswitchb"
 		 (prompt &optional default require-match start matches-set))
