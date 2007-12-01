@@ -6,6 +6,8 @@
 
 	* w32console.c (w32con_ins_del_lines, scroll_line): Clip to window.
 	(w32con_reset_terminal_modes): Clear screen buffer.
+	(w32_face_attributes): Don't use color indexes that are out of range.
+	Only reverse the default colors.
 
 	* xfaces.c (map_tty_color, tty_color_name): Remove special case for
 	WINDOWSNT.
