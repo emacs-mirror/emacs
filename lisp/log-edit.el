@@ -435,7 +435,9 @@ If you want to abort the commit, simply delete the buffer."
 (defun log-edit-show-diff ()
   "Show the diff for the files to be committed."
   (interactive)
-  (funcall log-edit-diff-function))
+  (if (functionp log-edit-diff-function)
+      (funcall log-edit-diff-function)
+    (error "Diff functionality has not been setup")))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."
