@@ -1,3 +1,8 @@
+2007-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (erc-server-send-ping): Move after definition of
+	erc-server-send.
+
 2007-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* erc.el (open-ssl-stream, open-tls-stream, erc-network-name):
