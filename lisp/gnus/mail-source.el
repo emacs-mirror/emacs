@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(require 'format-spec)
 (eval-when-compile
   (require 'cl)
   (require 'imap))
@@ -34,7 +35,6 @@
   (autoload 'pop3-movemail "pop3")
   (autoload 'pop3-get-message-count "pop3")
   (autoload 'nnheader-cancel-timer "nnheader"))
-(require 'format-spec)
 (require 'mm-util)
 (require 'message) ;; for `message-directory'
 
