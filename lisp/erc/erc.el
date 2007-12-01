@@ -5964,6 +5964,9 @@ if `erc-away' is non-nil."
     (cond (lag (format "lag:%.0f" lag))
 	  (t ""))))
 
+;; erc-goodies is required at end of this file.
+(declare-function erc-controls-strip "erc-goodies" (str))
+
 (defun erc-update-mode-line-buffer (buffer)
   "Update the mode line in a single ERC buffer BUFFER."
   (with-current-buffer buffer
