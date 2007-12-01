@@ -4631,7 +4631,7 @@ handle_auto_composed_prop (it)
 
 		  it->c = FETCH_CHAR (pos_byte);
 		}
-	      args[3] = font_at (it->c, this_pos, face, it->w, it->string);
+	      args[3] = it->window;
 	    }
 	  else
 #endif	/* USE_FONT_BACKEND */
@@ -4734,7 +4734,7 @@ handle_composition_prop (it)
 					   ->key_and_value,
 					   cmp->hash_index * 2);
 
-	      it->c = XINT (LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 0)));
+	      it->c = LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 0));
 	    }
 	  else
 #endif /* USE_FONT_BACKEND */
@@ -19305,9 +19305,9 @@ fill_composite_glyph_string (s, base_face, overlaps)
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
 	  unsigned code;
           XChar2b * store_pos;
-	  if (NILP (LGLYPH_FROM (g)))
+	  if (NILP (g))
 	    break;
-	  code = XUINT (LGLYPH_CODE (g));
+	  code = LGLYPH_CODE (g);
           store_pos = s->char2b + i;
 	  STORE_XCHAR2B (store_pos, code >> 8, code & 0xFF);
 	}
@@ -21109,7 +21109,7 @@ x_produce_glyphs (it)
       if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
 	{
 	  if (! cmp->font || cmp->font != font)
-	    font_prepare_composition (cmp);
+	    font_prepare_composition (cmp, it->f);
 	}
       else
 #endif	/* USE_FONT_BACKEND */
