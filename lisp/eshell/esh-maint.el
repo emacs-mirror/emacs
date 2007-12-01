@@ -26,8 +26,8 @@
 
 ;;; Code:
 
-;; FIXME this cannot be moved to the end of the file without causing a
-;; recursive require during bootstrap. What a mess.
+;; This cannot be moved to the end of the file without causing a
+;; recursive require during bootstrap.
 (provide 'esh-maint)
 
 (and (fboundp 'font-lock-add-keywords)
