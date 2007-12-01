@@ -1,6 +1,6 @@
 /* xftfont.c -- XFT font driver.
    Copyright (C) 2006 Free Software Foundation, Inc.
-   Copyright (C) 2006
+   Copyright (C) 2006, 2007
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -35,6 +35,7 @@ Boston, MA 02110-1301, USA.  */
 #include "charset.h"
 #include "fontset.h"
 #include "font.h"
+#include "ftfont.h"
 
 /* Xft font driver.  */
 
@@ -49,7 +50,11 @@ struct xftfont_info
   Display *display;
   int screen;
   XftFont *xftfont;
-  FT_Face ft_face;		/* set to XftLockFace (xftfont) */
+  FT_Face ft_face;    /* Set to the value of XftLockFace (xftfont). */
+#ifdef HAVE_LIBOTF
+  int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
+  OTF *otf;
+#endif
 };
 
 /* Structure pointed by (struct face *)->extra  */
@@ -265,6 +270,10 @@ xftfont_open (f, entity, pixel_size)
   xftfont_info->screen = FRAME_X_SCREEN_NUMBER (f);
   xftfont_info->xftfont = xftfont;
   xftfont_info->ft_face = XftLockFace (xftfont);
+#ifdef HAVE_LIBOTF
+  xftfont_info->maybe_otf = xftfont_info->ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  xftfont_info->otf = NULL;
+#endif
 
   font = (struct font *) xftfont_info;
   font->format = ftfont_font_format (xftfont->pattern);
@@ -381,6 +390,10 @@ xftfont_close (f, font)
 {
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
 
+#ifdef HAVE_LIBOTF
+  if (xftfont_info->otf)
+    OTF_close (xftfont_info->otf);
+#endif
   XftUnlockFace (xftfont_info->xftfont);
   XftFontClose (xftfont_info->display, xftfont_info->xftfont);
   if (font->font.name)
@@ -580,6 +593,39 @@ xftfont_end_for_frame (f)
   return 0;
 }
 
+#ifdef HAVE_LIBOTF
+#ifdef HAVE_M17N_FLT
+static Lisp_Object
+xftfont_shape (lgstring)
+     Lisp_Object lgstring;
+{
+  struct font *font;
+  struct xftfont_info *xftfont_info;
+
+  CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
+  xftfont_info = (struct xftfont_info *) font;
+  if (! xftfont_info->maybe_otf)
+    return Qnil;
+  if (! xftfont_info->otf)
+    {
+      OTF *otf = OTF_open_ft_face (xftfont_info->ft_face);
+
+      if (! otf || OTF_get_table (otf, "head") < 0)
+	{
+	  if (otf)
+	    OTF_close (otf);
+	  xftfont_info->maybe_otf = 0;
+	  return 0;
+	}
+      xftfont_info->otf = otf;
+    }
+
+  return ftfont_shape_by_flt (lgstring, font, xftfont_info->ft_face,
+			      xftfont_info->otf);
+}
+#endif	/* HAVE_M17N_FLT */
+#endif	/* HAVE_LIBOTF */
+
 void
 syms_of_xftfont ()
 {
@@ -599,6 +645,11 @@ syms_of_xftfont ()
   xftfont_driver.draw = xftfont_draw;
   xftfont_driver.anchor_point = xftfont_anchor_point;
   xftfont_driver.end_for_frame = xftfont_end_for_frame;
+#ifdef HAVE_LIBOTF
+#ifdef HAVE_M17N_FLT
+  xftfont_driver.shape = xftfont_shape;
+#endif	/* HAVE_M17N_FLT */
+#endif	/* HAVE_LIBOTF */
 
   register_font_driver (&xftfont_driver, NULL);
 }
