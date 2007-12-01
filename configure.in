@@ -2542,6 +2542,23 @@ AC_SUBST(FONTCONFIG_LIBS)
 AC_SUBST(LIBOTF_CFLAGS)
 AC_SUBST(LIBOTF_LIBS)
 
+dnl Check if --with-pkg-config-prog has been given.
+if test "X${with_pkg_config_prog}" != X; then
+  PKG_CONFIG="${with_pkg_config_prog}"
+fi
+dnl Checks for libraries.
+PKG_CHECK_MODULES(M17N_FLT, m17n-flt, pkg_check_m17n_flt=yes, 
+		  pkg_check_m17n_flt=no)
+if test "$pkg_check_m17n_flt" = "yes"; then
+  AC_DEFINE(HAVE_M17N_FLT, 1,
+            [Define to 1 if you have m17n-flt library.])
+  AC_SUBST(M17N_FLT_CFLAGS)
+  AC_SUBST(M17N_FLT_LIBS)
+  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $M17N_FLT_CFLAGS"
+  CFLAGS="$CFLAGS $M17N_FLT_CFLAGS"
+  LIBS="$LIBS $M17N_FLT_LIBS"
+fi
+
 fi
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
