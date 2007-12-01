@@ -517,12 +517,15 @@ w32_face_attributes (f, face_id)
   if (NILP (Vtty_defined_color_alist))
     return char_attr;
 
-  if (face->foreground >= 0
-      && face->foreground < 16)
+  /* Colors should be in the range 0...15 unless they are one of
+     FACE_TTY_DEFAULT_COLOR, FACE_TTY_DEFAULT_FG_COLOR or
+     FACE_TTY_DEFAULT_BG_COLOR.  Other out of range colors are
+     invalid, so it is better to use the default color if they ever
+     get through to here.  */
+  if (face->foreground >= 0 && face->foreground < 16)
     char_attr = (char_attr & 0xfff0) + face->foreground;
 
-  if (face->background >= 0
-      && face->background < 16)
+  if (face->background >= 0 && face->background < 16)
     char_attr = (char_attr & 0xff0f) + (face->background << 4);
 
   return char_attr;
