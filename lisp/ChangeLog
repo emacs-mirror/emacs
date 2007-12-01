@@ -1,3 +1,7 @@
+2007-12-01  Richard Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-type): Doc fix.
+
 2007-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/byte-run.el (declare-function): Change to a macro.
