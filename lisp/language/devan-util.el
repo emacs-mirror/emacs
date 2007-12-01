@@ -115,12 +115,18 @@
 If STRING is not nil, it is a string, and POS is an index to the string.
 In this case, compose characters after POS of the string."
   (if string
-      ;; Not yet implemented.
-      nil
+      (if (eq (string-match devanagari-composable-pattern pos) pos)
+	  (if auto-compose-current-font
+	      (or (font-shape-text 0 (match-end 0) auto-compose-current-font
+				   string)
+		  pos)))
     (goto-char pos)
     (if (looking-at devanagari-composable-pattern)
-	(prog1 (match-end 0)
-	  (devanagari-compose-syllable-region pos (match-end 0))))))
+	(if auto-compose-current-font
+	    (or (font-shape-text pos (match-end 0) auto-compose-current-font)
+		pos)
+	  (prog1 (match-end 0)
+	    (devanagari-compose-syllable-region pos (match-end 0)))))))
 
 ;; Notes on conversion steps.
 
