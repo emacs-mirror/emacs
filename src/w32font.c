@@ -531,25 +531,23 @@ w32font_draw (s, from, to, x, y, with_background)
       DeleteObject (new_clip);
     }
 
+  /* Using OPAQUE background mode can clear more background than expected
+     when Cleartype is used.  Draw the background manually to avoid this.  */
+  SetBkMode (s->hdc, TRANSPARENT);
   if (with_background)
     {
-      SetBkColor (s->hdc, s->gc->background);
-      SetBkMode (s->hdc, OPAQUE);
-#if 0
       HBRUSH brush;
       RECT rect;
+      struct font *font = (struct font *) s->face->font_info;
 
       brush = CreateSolidBrush (s->gc->background);
       rect.left = x;
-      rect.top = y - ((struct font *) (s->font_info->font))->ascent;
+      rect.top = y - font->ascent;
       rect.right = x + s->width;
-      rect.bottom = y + ((struct font *) (s->font_info->font))->descent;
+      rect.bottom = y + font->descent;
       FillRect (s->hdc, &rect, brush);
       DeleteObject (brush);
-#endif
     }
-  else
-    SetBkMode (s->hdc, TRANSPARENT);
 
   ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
 
