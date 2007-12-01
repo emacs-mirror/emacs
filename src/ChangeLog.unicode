@@ -1,5 +1,7 @@
 2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* config.in: Re-generated.
+
 	* Makefile.in (ALL_CFLAGS): Add @M17N_FLT_CFLAGS@.
 	(FONTSRC, FONTOBJ) [HAVE_WINDOW_SYSTEM]: Set them unconditionally.
 	(LIBES): Add @M17N_FLT_CFLAGS@.
