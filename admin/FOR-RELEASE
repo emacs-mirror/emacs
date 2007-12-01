@@ -52,6 +52,11 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 ** Stephen.Berman@gmx.net: minibuffer and current-local-map
 
+** bojohan+news@dd.chalmers.se, 19 Nov: appointment display during isearch replaces buffer contents
+  with history element.
+
+** eric@openbsd.org, 24 Nov: c-mode syntactic analysis regression in emacs-22.1
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
