@@ -1,3 +1,7 @@
+2007-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* functions.texi (Declaring Functions): Improve previous change.
+
 2007-11-30  Glenn Morris  <rgm@gnu.org>
 
 	* functions.texi (Declaring Functions): Add optional fourth
