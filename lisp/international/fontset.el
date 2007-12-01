@@ -191,7 +191,7 @@
 	(knda . kannada)
 	(khar . kharoshthi)
 	(khmr . khmer)
-	(lao  . lao)
+	(lao\  . lao)
 	(latn . latin)
 	(limb . limbu)
 	(linb . linear_b)
@@ -200,7 +200,7 @@
 	(mong . mongolian)
 	(musc . musical-symbol)
 	(mymr . myanmar)
-	(nko  . nko)
+	(nko\  . nko)
 	(ogam . ogham)
 	(ital . old_italic)
 	(xpeo . old_persian)
@@ -223,7 +223,7 @@
 	(tibt . tibetan)
 	(tfng . tifinagh)
 	(ugar . ugaritic)
-	(yi   . yi)))
+	(yi\ \   . yi)))
 
 ;; Set standard fontname specification of characters in the default
 ;; fontset to find an appropriate font for each script/charset.  The
@@ -249,7 +249,7 @@
   "Setup the default fontset."
   (new-fontset
    "fontset-default"
-   '(;; for each script
+   `(;; for each script
      (latin (nil . "ISO8859-1")
 	    (nil . "ISO8859-2")
 	    (nil . "ISO8859-3")
@@ -264,7 +264,9 @@
      (thai (nil . "TIS620*")
 	   (nil . "ISO8859-11"))
 
-     (devanagari (nil . "iso10646.indian-1"))
+     (devanagari ,(font-spec :registry "iso10646-1" :otf '(deva nil (rphf)))
+		 (nil . "iso10646.indian-1"))
+     (tamil ,(font-spec :registry "iso10646-1" :otf '(taml nil (akhn))))
 
      (lao  (nil . "MuleLao-1"))
 
