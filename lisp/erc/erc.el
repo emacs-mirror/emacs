@@ -1693,6 +1693,11 @@ nil."
 (put 'erc-with-all-buffers-of-server 'lisp-indent-function 1)
 (put 'erc-with-all-buffers-of-server 'edebug-form-spec '(form form body))
 
+;; (iswitch-mode) will autoload iswitchb.el
+(defvar iswitchb-temp-buflist)
+(declare-function iswitchb-read-buffer "iswitchb"
+		 (prompt &optional default require-match start matches-set))
+
 (defun erc-iswitchb (&optional arg)
   "Use `iswitchb-read-buffer' to prompt for a ERC buffer to switch to.
 When invoked with prefix argument, use all erc buffers.  Without prefix
@@ -1703,9 +1708,7 @@ If `erc-track-mode' is in enabled, put the last element of
 Due to some yet unresolved reason, global function `iswitchb-mode'
 needs to be active for this function to work."
   (interactive "P")
-  (eval-when-compile
-    (require 'iswitchb))
-  (let ((enabled iswitchb-mode))
+  (let ((enabled (bound-and-true-p iswitchb-mode)))
     (or enabled (iswitchb-mode 1))
     (unwind-protect
 	(let ((iswitchb-make-buflist-hook
