@@ -461,27 +461,6 @@ Currently this is called by `erc-send-input'."
     (upcase-word 1)
     (buffer-string)))
 
-(defun erc-server-send-ping (buf)
-  "Send a ping to the IRC server buffer in BUF.
-Additionally, detect whether the IRC process has hung."
-  (if (buffer-live-p buf)
-      (with-current-buffer buf
-        (if (and erc-server-send-ping-timeout
-                 (>
-                  (erc-time-diff (erc-current-time)
-                                 erc-server-last-received-time)
-                  erc-server-send-ping-timeout))
-            (progn
-              ;; if the process is hung, kill it
-              (setq erc-server-timed-out t)
-              (delete-process erc-server-process))
-          (erc-server-send (format "PING %.0f" (erc-current-time)))))
-    ;; remove timer if the server buffer has been killed
-    (let ((timer (assq buf erc-server-ping-timer-alist)))
-      (when timer
-        (erc-cancel-timer (cdr timer))
-        (setcdr timer nil)))))
-
 (defun erc-server-setup-periodical-ping (buffer)
   "Set up a timer to periodically ping the current server.
 The current buffer is given by BUFFER."
@@ -774,6 +753,27 @@ protection algorithm."
           t)
       (message "ERC: No process running")
       nil)))
+
+(defun erc-server-send-ping (buf)
+  "Send a ping to the IRC server buffer in BUF.
+Additionally, detect whether the IRC process has hung."
+  (if (buffer-live-p buf)
+      (with-current-buffer buf
+        (if (and erc-server-send-ping-timeout
+                 (>
+                  (erc-time-diff (erc-current-time)
+                                 erc-server-last-received-time)
+                  erc-server-send-ping-timeout))
+            (progn
+              ;; if the process is hung, kill it
+              (setq erc-server-timed-out t)
+              (delete-process erc-server-process))
+          (erc-server-send (format "PING %.0f" (erc-current-time)))))
+    ;; remove timer if the server buffer has been killed
+    (let ((timer (assq buf erc-server-ping-timer-alist)))
+      (when timer
+        (erc-cancel-timer (cdr timer))
+        (setcdr timer nil)))))
 
 ;; From Circe
 (defun erc-server-send-queue (buffer)
