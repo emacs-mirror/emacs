@@ -1,3 +1,8 @@
+2007-12-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* play/blackbox.el (bb-up, bb-down): Revert 2007-10-21 change and
+	wrap next-/previous-line in with-no-warnings.
+
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/gdb-ui.el (gud-remove, gud-break):
