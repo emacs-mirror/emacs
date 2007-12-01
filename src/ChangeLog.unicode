@@ -1,3 +1,7 @@
+2007-11-29  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ftxfont.c (ftxfont_end_for_frame): Fix array indexing error.
+
 2007-12-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_draw): Fill background manually.
