@@ -1,5 +1,10 @@
 2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* international/fontset.el (otf-script-alist): Make all otf tags
+	4-letters.
+	(setup-default-fontset): Add OpenType fonts for devanagari and
+	tamil.
+
 	* language/tml-util.el (tamil-composition-function): Use
 	font-shape-text if auto-compose-current-font is non-nil.
 
