@@ -488,7 +488,7 @@ new value.")
 ;;; Widget Properties.
 
 (defsubst widget-type (widget)
-  "Return the type of WIDGET, a symbol."
+  "Return the type of WIDGET.  The type is a symbol."
   (car widget))
 
 ;;;###autoload
