@@ -1938,6 +1938,9 @@ static char *magick[] = {
 	  (end-of-line))))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
+(declare-function gud-remove "gdb-ui" t t) ; gud-def
+(declare-function gud-break  "gdb-ui" t t) ; gud-def
+
 (defun gdb-mouse-set-clear-breakpoint (event)
   "Set/clear breakpoint in left fringe/margin with mouse click."
   (interactive "e")
