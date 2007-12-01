@@ -395,6 +395,9 @@ because they clash with commands provided by dirtrack.el.  Use
 ** `beginning-of-defun-function' now takes one argument, the count
    given to `beginning-of-defun'.
 
+** The variable `inhibit-changing-match-data', if non-nil, prevents the
+search and match primitives from changing the match data.
+
 +++
 ** New function `match-substitute-replacement' returns the result of
 `replace-match' without actually using it in the buffer.
