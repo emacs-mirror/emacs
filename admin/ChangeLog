@@ -1,3 +1,9 @@
+2007-12-01  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* FOR-RELEASE: Remove Gnus send mail problem.  Other Gnus bugs
+	have been fixed in Gnus CVS but have not yet been synched to
+	Emacs.
+
 2007-11-17  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (process-lines): Move to ../lisp/subr.el.
