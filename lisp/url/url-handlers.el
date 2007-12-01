@@ -27,7 +27,7 @@
 ;;; Code:
 
 ;; (require 'url)
-(eval-when-compile (require 'url-parse))
+(require 'url-parse)
 ;; (require 'url-util)
 (eval-when-compile (require 'mm-decode))
 ;; (require 'mailcap)
