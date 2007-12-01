@@ -1,3 +1,7 @@
+2007-12-01  Richard Stallman  <rms@gnu.org>
+
+	* search.c (syms_of_search) <inhibit-changing-match-data>: Doc fix.
+
 2007-11-30  Jason Rumney  <jasonr@gnu.org>
 
 	* w32console.c (w32con_ins_del_lines, scroll_line): Clip to window.
