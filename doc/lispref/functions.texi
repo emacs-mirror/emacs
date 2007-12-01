@@ -1298,11 +1298,12 @@ without error.
 
   There are some function definitions that @samp{check-declare} does not
 understand (e.g. @code{defstruct} and some other macros).  In such cases,
-you can pass a non-@code{nil} fourth argument to @code{declare-function},
-meaning to only check that the file exists, not that it actually defines
-the function.  Note that to do this without having to specify an
-argument list, you should set the third argument to @code{t} (because
-@code{nil} means an empty argument list, as opposed to an unspecified one).
+you can pass a non-@code{nil} @var{fileonly} argument to
+@code{declare-function}, meaning to only check that the file exists, not
+that it actually defines the function.  Note that to do this without
+having to specify an argument list, you should set the @var{arglist}
+argument to @code{t} (because @code{nil} means an empty argument list, as
+opposed to an unspecified one).
 
 @node Function Safety
 @section Determining whether a Function is Safe to Call
