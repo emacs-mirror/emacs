@@ -1,3 +1,15 @@
+2007-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-large-region): Explicitly set
+	encoding for aspell process and for communication with it.
+	Only add "-d" option if not already present.
+	Use ispell-current-dictionary and ispell-current-personal-dictionary.
+	General reorganization.
+
+	* textmodes/ispell.el (ispell-aspell-find-dictionary): Do not set
+	encoding here.
+	(ispell-start-process): Explicitly set encoding here if using aspell.
+
 2007-12-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* pcvs.el (cvs-mode-commit, cvs-mode-edit-log): Also pass a diff
