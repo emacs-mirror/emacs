@@ -1,3 +1,51 @@
+2007-12-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-lang-slash-idiv, calc-lang-allow-underscores)
+	(calc-lang-c-type-hex, calc-lang-brackets-are-subscripts)
+	(calc-lang-parens-are-subscripts): New variables.
+	(math-expr-special-function-mapping): Remove variable.
+	(math-eqn-ignore-words, math-tex-ignore-words)
+	(math-latex-ignore-words): Move to calc-lang.el.
+
+	* calc/calc-lang.el (math-compose-vector, math-compose-var)
+	(math-tex-expr-is-flat): Declare as functions.
+	(calc-lang-slash-idiv, calc-lang-allow-underscores)
+	(math-comp-left-bracket, math-comp-right-bracket)
+	(math-comp-comma, math-comp-vector-prec): Declare as variables.
+	(math-var-formatter, math-matrix-formatter)
+	(math-lang-adjust-words, math-lang-read-symbol, math-land-read)
+	(math-punc-table, math-compose-subscr,math-dots)
+	(math-func-formatter): New property names to store language
+	specific information.
+	(math-compose-tex-var, math-compose-tex-intv)
+	(math-compose-maple-intv, math-compose-eqn-intv)
+	(math-compose-tex-sum, math-compose-tex-func)
+	(math-compose-tex-intv): New functions.
+	(math-eqn-ignore-words,math-tex-ignore-words)
+	(math-latex-ignore-words): Move from calc.el.
+	(math-special-function-table): Add entries for tex.
+	(calc-lang-slash-idiv, calc-lang-allows-underscores):
+	New variables.
+	(math-compose-latex-frac): Rename from `math-latex-print-frac'.
+	(math-compose-tex-matrix, math-compose-eqn-matrix)
+	(math-eqn-special-functions): Move from calccomp.el.
+
+	* calc/calccomp.el (math-compose-var): New function.
+	(math-compose-expr): Allow more special functions to be used.
+	Change test for formatting fractions.  Use variables and property
+	names to help with language specific formatting.
+	(math-compose-tex-matrix, math-compose-eqn-matrix)
+	(math-eqn-special-functions): Move to calc-lang.el.
+	(math-compose-rows): Use property names to help with language
+	specific formatting.
+
+	* calc/calc-aent.el (math-read-factor): Turn multiple subscripts
+	into nested subscripts.
+	(math-read-token): Use variables and property names to help with
+	language specific parsing.
+	(math-read-expression-level): Use variables to help with language
+	specific parsing.
+
 2007-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* arc-mode.el (archive-find-type): Add recognition of rar-exe format.
