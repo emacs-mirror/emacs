@@ -23,6 +23,8 @@
 	(netrc-parse): Don't use encrypt.
 	(netrc-find-service-name, netrc-find-service-number): Don't use caddr.
 
+	* progmodes/python.el (top-level): Don't require cl when compiling.
+
 2007-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Explicitly set
