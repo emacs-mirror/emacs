@@ -1,3 +1,8 @@
+2007-12-02  Andreas Schwab  <schwab@suse.de>
+
+	* xdisp.c (back_to_previous_visible_line_start): Fix type of beg
+	and end.
+
 2007-12-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_driver): Add new fields.
