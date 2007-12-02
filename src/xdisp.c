@@ -5408,7 +5408,7 @@ back_to_previous_visible_line_start (it)
       {
 	struct it it2;
 	int pos;
-	int beg, end;
+	EMACS_INT beg, end;
 	Lisp_Object val, overlay;
 
 	/* If newline is part of a composition, continue from start of composition */
