@@ -13,6 +13,9 @@
 
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-declare-function): Reverse
+	branches of if statement.
+
 	* emulation/viper-cmd.el (top-level): Don't require advice.
 	Don't load viper-util, viper-keym, viper-mous, viper-macs,
 	viper-ex when compiling.
@@ -36,6 +39,9 @@
 
 	* emulation/viper.el (top-level): Don't require ring.
 	Don't load viper-init, viper-cmd when compiling.
+
+	* net/sasl-cram.el, net/sasl-digest.el, net/sasl-ntlm.el, net/sasl.el:
+	Move here from gnus/.
 
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
