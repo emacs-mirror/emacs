@@ -1,3 +1,10 @@
+2007-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-find-type): Add recognition of rar-exe format.
+	(archive-rar-summarize): Allow the file name to be passed as argument.
+	Remove unused vars `header' and `footer'.
+	(archive-rar-exe-summarize, archive-rar-exe-extract): New functions.
+
 2007-12-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* log-edit.el (log-edit-show-diff): New function.
@@ -38,8 +45,8 @@
 	* textmodes/org-export-latex.el (org-export-latex-cleaned-string):
 	Move args on defun line.
 
-	* textmodes/org.el (org-calendar-holiday): Use
-	calendar-check-holidays instead of the obsolete
+	* textmodes/org.el (org-calendar-holiday):
+	Use calendar-check-holidays instead of the obsolete
 	check-calendar-holidays.
 	(add-to-diary-list, table--at-cell-p, Info-find-node, bbdb)
 	(bbdb-company, bbdb-current-record, bbdb-name)
@@ -69,8 +76,8 @@
 
 	* longlines.el (longlines-show-hard-newlines): Remove handling of
 	buffer-undo-list and buffer-modified status.
-	(longlines-show-region, longlines-unshow-hard-newlines): Handle
-	buffer-undo-list, buffer-modified status, inhibit-read-only, and
+	(longlines-show-region, longlines-unshow-hard-newlines):
+	Handle buffer-undo-list, buffer-modified status, inhibit-read-only, and
 	inhibit-modification-hooks here to avoid that a buffer appears
 	modified when toggling visibility of hard newlines.
 
@@ -160,8 +167,8 @@
 	* net/newsticker.el (w3m-toggle-inline-image, htmlr-reset)
 	(htmlr-step): Declare as functions.
 
-	* net/eudcb-bbdb.el (eudc-bbdb-extract-addresses): Use
-	bbdb-address-zip rather than bbdb-address-zip-string.
+	* net/eudcb-bbdb.el (eudc-bbdb-extract-addresses):
+	Use bbdb-address-zip rather than bbdb-address-zip-string.
 
 2007-11-28  Richard Stallman  <rms@gnu.org>
 
@@ -190,8 +197,7 @@
 
 	* nxml/nxml-maint.el (nxml-create-unicode-char-name-sets):
 	* nxml/nxml-mode.el (nxml-get-char-name, nxml-insert-named-char):
-	* nxml/xsd-regexp.el (xsdre-gen-categories): Use mapc rather than
-	mapcar.
+	* nxml/xsd-regexp.el (xsdre-gen-categories): Change mapcar -> mapc.
 
 	* nxml/nxml-outln.el (nxml-token-start-tag-p)
 	(nxml-token-end-tag-p): Move definitions before use.
