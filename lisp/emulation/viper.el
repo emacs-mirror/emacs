@@ -297,28 +297,15 @@
 
 ;;; Code:
 
-(require 'advice)
-(require 'ring)
-
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
 (defvar quail-mode)
 (defvar viper-expert-level)
 (defvar viper-mode-string)
 (defvar viper-major-mode-modifier-list)
-
-;; loading happens only in non-interactive compilation
-;; in order to spare non-viperized emacs from being viperized
-(if noninteractive
-    (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-init)
-	    (load "viper-init.el" nil t 'nosuffix))
-	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil t 'nosuffix))
-	)))
 ;; end pacifier
 
+(require 'advice)
 (require 'viper-init)
 (require 'viper-keym)
 
