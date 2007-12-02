@@ -1,5 +1,9 @@
 2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
+	* Makefile.in (INFO_TARGETS): Add dbus.
+	(DVI_TARGETS): Add dbus.dvi.
+	(dbus, dbus.dvi): New targets.
+
 	* dbus.texi: New file.
 
 2007-11-24  Romain Francoise  <romain@orebokech.com>

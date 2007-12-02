@@ -79,6 +79,10 @@ INFO_TARGETS = \
 	$(infodir)/widget \
 	$(infodir)/woman
 
+ifeq (@DBUS_INFO@, dbus)
+  INFO_TARGETS += $(infodir)/dbus
+endif
+
 DVI_TARGETS = \
 	ada-mode.dvi \
 	autotype.dvi \
@@ -119,6 +123,10 @@ DVI_TARGETS = \
 	viper.dvi \
 	widget.dvi \
 	woman.dvi
+
+ifeq (@DBUS_INFO@, dbus)
+  DVI_TARGETS += dbus.dvi
+endif
 
 
 TEXI2DVI = texi2dvi
@@ -174,6 +182,12 @@ $(infodir)/cl: cl.texi
 	cd $(srcdir); $(MAKEINFO) cl.texi
 cl.dvi: cl.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/cl.texi
+
+dbus : $(infodir)/dbus
+$(infodir)/dbus: dbus.texi
+	cd $(srcdir); $(MAKEINFO) dbus.texi
+dbus.dvi: dbus.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/dbus.texi
 
 dired-x : $(infodir)/dired-x
 $(infodir)/dired-x: dired-x.texi
