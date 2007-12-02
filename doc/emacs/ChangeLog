@@ -2,10 +2,6 @@
 
 	* help.texi (Help Echo): Cleanups.
 
-2007-11-23  Mark A. Hershberger  <mah@everybody.org>
-
-	* nxml-mode.texi: Move to ../misc.
-
 2007-11-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* files.texi (Why Version Control?): Fix typo.
@@ -13,15 +9,6 @@
 	(Selecting a Fileset): Fix typos; small rewording.
 	(Log Buffer): Likewise.
 	(Old Revisions): Likewise.
-
-2007-11-23  Mark A. Hershberger  <mah@everybody.org>
-
-	* nxml-mode.texi: Initial merge of nxml.
-
-2007-11-18  Richard Stallman  <rms@gnu.org>
-
-	* flymake.texi (Example -- Configuring a tool called directly):
-	Update example.
 
 2007-11-17  Eli Zaretskii  <eliz@gnu.org>
 
@@ -31,15 +18,6 @@
 
 	* custom.texi (Specifying File Variables), major.texi (Choosing
 	Modes): Mention '\" in man pages.
-
-2007-11-15  Richard Stallman  <rms@gnu.org>
-
-	* cl.texi (Equality Predicates): Delete `eql'.
-	(Predicates, Naming Conventions, Top): Delete `eql'.
-	(Common Lisp Compatibility): Delete `eql'.
-	(Porting Common Lisp): Delete obsolete backquote info.
-	Minor clarification about character constants.
-	(Sequence Basics): Minor clarification.
 
 2007-11-16  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -67,10 +45,6 @@
 	* search.texi (Query Replace): Mention
 	`query-replace-show-replacement'.
 
-2007-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* gnus.texi, gnus-faq.texi, message.texi: Bump version to 5.10.9.
-
 2007-11-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Remove obscure sentence.
@@ -84,14 +58,6 @@
 
 	* cmdargs.texi (Misc Variables): Remove Sun windows info.
 
-2007-10-27  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
-
-	* gnus-faq.texi ([5.12]): Remove reference to discontinued service.
-
-2007-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* gnus.texi (Troubleshooting): Adjust Gnus version number.
-
 2007-10-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Describe gdb-delete-out-of-scope.
@@ -100,11 +66,6 @@
 
 	* misc.texi (Directory Tracking): Explain a bit more about
 	dirtrack-mode.
-
-2007-10-29  Richard Stallman  <rms@gnu.org>
-
-	* widget.texi (Introduction): Delete discussion of implementation
-	internals.
 
 2007-10-25  Glenn Morris  <rgm@gnu.org>
 
