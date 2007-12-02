@@ -65,7 +65,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
   (require 'compile)
   (require 'comint)
   (require 'hippie-exp))
