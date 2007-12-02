@@ -6,6 +6,7 @@
 	(nntp-open-tls-stream, nntp-open-ssl-stream):
 	No need to define for compiler.
 	(url-snews): Use nntp-open-tls-stream unless ssl is requested.
+	Correct quoting of nntp-open-connection-function value.
 
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
