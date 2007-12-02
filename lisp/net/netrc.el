@@ -39,11 +39,6 @@
   (if (fboundp 'point-at-eol)
       'point-at-eol
     'line-end-position))
-;; autoload encrypt
-
-(eval-and-compile
-  (autoload 'encrypt-find-model "encrypt")
-  (autoload 'encrypt-insert-file-contents "encrypt"))
 
 (defgroup netrc nil
  "Netrc configuration."
@@ -60,13 +55,8 @@
       (let ((tokens '("machine" "default" "login"
 		      "password" "account" "macdef" "force"
 		      "port"))
-	    (encryption-model (encrypt-find-model file))
 	    alist elem result pair)
-
-	(if encryption-model
-	    (encrypt-insert-file-contents file encryption-model)
-	  (insert-file-contents file))
-
+	(insert-file-contents file)
 	(goto-char (point-min))
 	;; Go through the file, line by line.
 	(while (not (eobp))
@@ -190,8 +180,7 @@ MODE can be \"login\" or \"password\", suitable for passing to
     (setq type (or type 'tcp))
     (while (and (setq service (pop services))
 		(not (and (= number (cadr service))
-			  (eq type (caddr service)))))
-      )
+			  (eq type (car (cddr service)))))))
     (car service)))
 
 (defun netrc-find-service-number (name &optional type)
@@ -200,8 +189,7 @@ MODE can be \"login\" or \"password\", suitable for passing to
     (setq type (or type 'tcp))
     (while (and (setq service (pop services))
 		(not (and (string= name (car service))
-			  (eq type (caddr service)))))
-      )
+			  (eq type (car (cddr service)))))))
     (cadr service)))
 
 (provide 'netrc)
