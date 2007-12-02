@@ -1,5 +1,8 @@
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
+	* sasl-cram.el, sasl-digest.el, sasl-ntlm.el, sasl.el:
+	Move to ../net.
+
 	* binhex.el, uudecode.el: Move to ../mail.
 
 	* encrypt.el: Remove file.
