@@ -1,3 +1,7 @@
+2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: New file.
+
 2007-12-02  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-lang-slash-idiv, calc-lang-allow-underscores)
