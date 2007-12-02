@@ -238,6 +238,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
+/* Define to 1 if using D-BUS. */
+#undef HAVE_DBUS
+
 /* Define to 1 if using GTK. */
 #undef HAVE_GTK
 

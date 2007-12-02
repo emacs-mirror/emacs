@@ -1,3 +1,26 @@
+2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* config.in (HAVE_DBUS): Add.
+
+	* Makefile.in: (HAVE_DBUS): Add D-Bus definitions if defined.
+	(ALL_CFLAGS): Add ${DBUS_CFLAGS}.
+	(obj): Add $(DBUS_OBJ).
+	(LIBES): Add $(DBUS_LIBS).
+	(dbusbind.o): New target.
+
+	* dbusbind.c: New file.
+
+	* emacs.c (main): Call syms_of_dbusbind when HAVE_DBUS is defined.
+
+	* keyboard.c: All D-Bus related code is wrapped by "#ifdef HAVE_DBUS".
+	(Qdbus_event) New Lisp symbol.
+	(kbd_buffer_get_event, make_lispy_event): Handle DBUS_EVENT.
+	(gobble_input): Call xd_read_queued_messages, reading D-Bus
+	messages.
+	(keys_of_keyboard ): Define dbus-event.
+
+	* termhooks.h (event_kind): Add DBUS_EVENT when HAVE_DBUS is defined.
+
 2007-12-01  Richard Stallman  <rms@gnu.org>
 
 	* search.c (syms_of_search) <inhibit-changing-match-data>: Doc fix.

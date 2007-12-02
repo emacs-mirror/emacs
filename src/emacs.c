@@ -353,7 +353,7 @@ int fatal_error_in_progress;
 void (*fatal_error_signal_hook) P_ ((void));
 
 #ifdef HAVE_GTK_AND_PTHREAD
-/* When compiled with GTK and running under Gnome, multiple threads meay be
+/* When compiled with GTK and running under Gnome, multiple threads may be
    created.  Keep track of our main thread to make sure signals are delivered
    to it (see syssignal.h).  */
 
@@ -1638,6 +1638,10 @@ main (argc, argv
       syms_of_macselect ();
       syms_of_fontset ();
 #endif /* MAC_OSX && HAVE_CARBON */
+
+#ifdef HAVE_DBUS
+      syms_of_dbusbind ();
+#endif /* HAVE_DBUS */
 
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;

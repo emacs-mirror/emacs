@@ -514,7 +514,9 @@ Lisp_Object Qsave_session;
 #ifdef MAC_OS
 Lisp_Object Qmac_apple_event;
 #endif
-
+#ifdef HAVE_DBUS
+Lisp_Object Qdbus_event;
+#endif
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
@@ -1570,7 +1572,7 @@ command_loop_1 ()
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
 #endif
-#endif  
+#endif
   int already_adjusted = 0;
 
   current_kboard->Vprefix_arg = Qnil;
@@ -2566,7 +2568,7 @@ do { if (polling_stopped_here) start_polling ();	\
    USED_MOUSE_MENU is null, we don't dereference it.
 
    Value is -2 when we find input on another keyboard.  A second call
-   to read_char will read it. 
+   to read_char will read it.
 
    If END_TIME is non-null, it is a pointer to an EMACS_TIME
    specifying the maximum time to wait until.  If no input arrives by
@@ -3181,7 +3183,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       int count = SPECPDL_INDEX ();
       record_single_kboard_state ();
 #endif
-      
+
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
@@ -4097,7 +4099,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	 events.  */
       if (CONSP (Vunread_command_events))
 	break;
-      
+
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
@@ -4309,6 +4311,13 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  internal_last_event_frame = frame;
 	  kbd_fetch_ptr = event + 1;
 	}
+#ifdef HAVE_DBUS
+      else if (event->kind == DBUS_EVENT)
+	{
+	  obj = make_lispy_event (event);
+	  kbd_fetch_ptr = event + 1;
+	}
+#endif
       else
 	{
 	  /* If this event is on a different frame, return a switch-frame this
@@ -6187,6 +6196,13 @@ make_lispy_event (event)
       }
 #endif
 
+#ifdef HAVE_DBUS
+    case DBUS_EVENT:
+      {
+	return Fcons (Qdbus_event, event->arg);
+      }
+#endif /* HAVE_DBUS */
+
 #ifdef HAVE_GPM
     case GPM_CLICK_EVENT:
       {
@@ -7001,6 +7017,11 @@ void
 gobble_input (expected)
      int expected;
 {
+#ifdef HAVE_DBUS
+  /* Check whether a D-Bus message has arrived.  */
+  xd_read_queued_messages ();
+#endif /* HAVE_DBUS */
+
 #ifndef VMS
 #ifdef SIGIO
   if (interrupt_input)
@@ -7120,7 +7141,7 @@ read_avail_input (expected)
               nread += nr;
               expected = 0;
             }
-          
+
           if (nr == -1)          /* Not OK to read input now. */
             {
               err = 1;
@@ -7128,7 +7149,7 @@ read_avail_input (expected)
           else if (nr == -2)          /* Non-transient error. */
             {
               /* The terminal device terminated; it should be closed. */
-              
+
               /* Kill Emacs if this was our last terminal. */
               if (!terminal_list->next_terminal)
                 /* Formerly simply reported no input, but that
@@ -7140,7 +7161,7 @@ read_avail_input (expected)
                    group?  Perhaps on systems with FIONREAD Emacs is
                    alone in its group.  */
                 kill (getpid (), SIGHUP);
-              
+
               /* XXX Is calling delete_terminal safe here?  It calls Fdelete_frame. */
               if (t->delete_terminal_hook)
                 (*t->delete_terminal_hook) (t);
@@ -7313,14 +7334,14 @@ tty_read_avail_input (struct terminal *terminal,
         buf.modifiers = meta_modifier;
       if (tty->meta_key != 2)
         cbuf[i] &= ~0x80;
-      
+
       buf.code = cbuf[i];
       /* Set the frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
          to temporarily change it. */
       buf.frame_or_window = tty->top_frame;
       buf.arg = Qnil;
-      
+
       kbd_buffer_store_event (&buf);
       /* Don't look at input that follows a C-g too closely.
          This reduces lossage due to autorepeat on C-g.  */
@@ -9236,7 +9257,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  
+
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
@@ -11252,7 +11273,7 @@ See also `current-input-mode'.  */)
   new_interrupt_input = 1;
 #endif
 
-  if (new_interrupt_input != interrupt_input) 
+  if (new_interrupt_input != interrupt_input)
     {
 #ifdef POLL_FOR_INPUT
       stop_polling ();
@@ -11332,7 +11353,7 @@ See also `current-input-mode'.  */)
   struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
   int new_meta;
-  
+
   if (t == NULL || t->type != output_termcap)
     return Qnil;
   tty = t->display_info.tty;
@@ -11344,7 +11365,7 @@ See also `current-input-mode'.  */)
   else
     new_meta = 2;
 
-  if (tty->meta_key != new_meta) 
+  if (tty->meta_key != new_meta)
     {
 #ifndef DOS_NT
       /* this causes startup screen to be restored and messes with the mouse */
@@ -11352,7 +11373,7 @@ See also `current-input-mode'.  */)
 #endif
 
       tty->meta_key = new_meta;
-  
+
 #ifndef DOS_NT
       init_sys_modes (tty);
 #endif
@@ -11384,7 +11405,7 @@ See also `current-input-mode'.  */)
   /* this causes startup screen to be restored and messes with the mouse */
   reset_sys_modes (tty);
 #endif
-  
+
   /* Don't let this value be out of range.  */
   quit_char = XINT (quit) & (tty->meta_key == 0 ? 0177 : 0377);
 
@@ -11394,7 +11415,7 @@ See also `current-input-mode'.  */)
 
   return Qnil;
 }
-       
+
 DEFUN ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
        doc: /* Set mode of reading keyboard input.
 First arg INTERRUPT non-nil means use input interrupts;
@@ -11791,6 +11812,11 @@ syms_of_keyboard ()
 #ifdef MAC_OS
   Qmac_apple_event = intern ("mac-apple-event");
   staticpro (&Qmac_apple_event);
+#endif
+
+#ifdef HAVE_DBUS
+  Qdbus_event = intern ("dbus-event");
+  staticpro (&Qdbus_event);
 #endif
 
   Qmenu_enable = intern ("menu-enable");
@@ -12355,7 +12381,7 @@ here.  If a mapping is defined in both the current
 `local-function-key-map' binding and this variable, then the local
 definition will take precendence.  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
-                    
+
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
                doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
@@ -12477,7 +12503,7 @@ and tool-bar buttons.  */);
   /* Vwindow_system is left at t for now.  */
   initial_kboard->next_kboard = all_kboards;
   all_kboards = initial_kboard;
-#endif  
+#endif
 }
 
 void
@@ -12522,6 +12548,13 @@ keys_of_keyboard ()
    * 			    "handle-select-window"); */
   initial_define_lispy_key (Vspecial_event_map, "save-session",
 			    "handle-save-session");
+
+#ifdef HAVE_DBUS
+  /* Define a special event which is raised for dbus callback
+     functions.  */
+  initial_define_lispy_key (Vspecial_event_map, "dbus-event",
+			    "dbus-handle-event");
+#endif
 }
 
 /* Mark the pointers in the kboard objects.
