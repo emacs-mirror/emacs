@@ -981,7 +981,7 @@ Assumes that value contains no whitespace."
 		"[^[:alpha:]]"
 		(regexp-opt otherchars)
 		t			     ; We can't tell, so set this to t
-		(list "-d" dict-name "--encoding=utf-8")
+		(list "-d" dict-name)
 		nil				; aspell doesn't support this
 		;; Here we specify the encoding to use while communicating with
 		;; aspell.  This doesn't apply to command line arguments, so
@@ -2511,6 +2511,13 @@ Keeps argument list for future ispell invocations for no async support."
 	      (append args
 		      (list "-p"
 			    (expand-file-name ispell-current-personal-dictionary)))))
+    (if (and ispell-really-aspell
+	     ispell-aspell-supports-utf8)
+	(setq args
+	      (append args
+		      (list
+		       (concat "--encoding="
+			       (symbol-name (ispell-get-coding-system)))))))
     (setq args (append args ispell-extra-args))
 
     ;; Initially we don't know any buffer's local words.
