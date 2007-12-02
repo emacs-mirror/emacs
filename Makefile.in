@@ -142,7 +142,7 @@ INFO_FILES=ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq	\
            eintr elisp emacs emacs-mime erc eshell eudc flymake forms	\
            gnus idlwave info message mh-e newsticker nxml-mode org	\
            pcl-cvs pgg rcirc reftex remember sc ses sieve speedbar	\
-           tramp vip viper widget woman smtpmail url
+           tramp vip viper widget woman smtpmail url @DBUS_INFO@
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
@@ -424,7 +424,7 @@ install-arch-dep: mkdir
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
-## installuser: 
+## installuser:
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Nuisance because i) it needs to be the user running install, so
 ## configure can't set it; ii) can't (?) use the result of rule

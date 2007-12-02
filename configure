@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo Please tell bug-autoconf@gnu.org about your system,
-  echo including any error possibly output before this message.
-  echo This can help us improve future autoconf versions.
-  echo Configuration will now proceed without shell functions.
+  echo No shell found that supports shell functions.
+  echo Please tell autoconf@gnu.org about your system,
+  echo including any error possibly output before this
+  echo message
 }
 
 
@@ -692,6 +692,9 @@ RSVG_CFLAGS
 RSVG_LIBS
 GTK_CFLAGS
 GTK_LIBS
+DBUS_CFLAGS
+DBUS_LIBS
+DBUS_INFO
 XFT_CFLAGS
 XFT_LIBS
 ALLOCA
@@ -1354,6 +1357,7 @@ Optional Packages:
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
   --without-carbon        don't use Carbon GUI on Mac OS X
+  --without-dbus          don't use D-Bus
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -2001,6 +2005,12 @@ fi
 # Check whether --with-carbon was given.
 if test "${with_carbon+set}" = set; then
   withval=$with_carbon;
+fi
+
+
+# Check whether --with-dbus was given.
+if test "${with_dbus+set}" = set; then
+  withval=$with_dbus;
 fi
 
 
@@ -11993,6 +12003,88 @@ _ACEOF
   fi
 fi
 
+HAVE_DBUS=no
+if test "${with_dbus}" = "yes"; then
+   { echo "$as_me:$LINENO: checking for dbus_bus_get in -ldbus-1" >&5
+echo $ECHO_N "checking for dbus_bus_get in -ldbus-1... $ECHO_C" >&6; }
+if test "${ac_cv_lib_dbus_1_dbus_bus_get+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldbus-1  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dbus_bus_get ();
+int
+main ()
+{
+return dbus_bus_get ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_dbus_1_dbus_bus_get=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_dbus_1_dbus_bus_get=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_dbus_1_dbus_bus_get" >&5
+echo "${ECHO_T}$ac_cv_lib_dbus_1_dbus_bus_get" >&6; }
+if test $ac_cv_lib_dbus_1_dbus_bus_get = yes; then
+  HAVE_DBUS=yes
+fi
+
+   if test "$HAVE_DBUS" = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_DBUS 1
+_ACEOF
+
+      DBUS_CFLAGS="-I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include"
+
+      DBUS_LIBS="-ldbus-1"
+
+      DBUS_INFO="dbus"
+   fi
+fi
+
+
 ### Link with -lXft if available to work around a bug.
 HAVE_XFT=maybe
 if test "${HAVE_GTK}" = "yes"; then
@@ -18471,11 +18563,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18515,11 +18609,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -23819,6 +23915,11 @@ Read the emacs-devel archives for more information."
    echo
 fi
 
+if test "$HAVE_DBUS" = yes && test "${opsys}" != "gnu-linux"; then
+  echo "D-Bus integration has been tested for GNU/Linux only."
+  echo
+fi
+
 
 # Remove any trailing slashes in these variables.
 test "${prefix}" != NONE &&
@@ -24565,6 +24666,9 @@ RSVG_CFLAGS!$RSVG_CFLAGS$ac_delim
 RSVG_LIBS!$RSVG_LIBS$ac_delim
 GTK_CFLAGS!$GTK_CFLAGS$ac_delim
 GTK_LIBS!$GTK_LIBS$ac_delim
+DBUS_CFLAGS!$DBUS_CFLAGS$ac_delim
+DBUS_LIBS!$DBUS_LIBS$ac_delim
+DBUS_INFO!$DBUS_INFO$ac_delim
 XFT_CFLAGS!$XFT_CFLAGS$ac_delim
 XFT_LIBS!$XFT_LIBS$ac_delim
 ALLOCA!$ALLOCA$ac_delim
@@ -24583,9 +24687,6 @@ lispdir!$lispdir$ac_delim
 locallisppath!$locallisppath$ac_delim
 lisppath!$lisppath$ac_delim
 x_default_search_path!$x_default_search_path$ac_delim
-etcdir!$etcdir$ac_delim
-archlibdir!$archlibdir$ac_delim
-bitmapdir!$bitmapdir$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -24627,6 +24728,9 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+etcdir!$etcdir$ac_delim
+archlibdir!$archlibdir$ac_delim
+bitmapdir!$bitmapdir$ac_delim
 gamedir!$gamedir$ac_delim
 gameuser!$gameuser$ac_delim
 c_switch_system!$c_switch_system$ac_delim
@@ -24641,7 +24745,7 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 12; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 15; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

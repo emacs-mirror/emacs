@@ -1,3 +1,11 @@
+2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: Add D-Bus checks.  D-Bus is disabled by default.
+
+	* configure: Regenerate.
+
+	* Makefile.in (INFO_FILES): Add dbus.
+
 2007-12-02  Romain Francoise  <romain@orebokech.com>
 
 	* make-dist: Fix last change.

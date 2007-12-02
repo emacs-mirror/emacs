@@ -118,6 +118,7 @@ EMACS_ARG_N([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 EMACS_ARG_N([xaw3d],[don't use Xaw3d])
 EMACS_ARG_N([xim],[don't use X11 XIM])
 EMACS_ARG_N([carbon],[don't use Carbon GUI on Mac OS X])
+EMACS_ARG_N([dbus],[don't use D-Bus])
 
 AC_ARG_ENABLE(carbon-app,
 [AS_HELP_STRING([--enable-carbon-app@<:@=DIR@:>@],
@@ -1199,7 +1200,7 @@ dnl see the `changequote' comment above.
     machine=amdx86-64 opsys=gnu-linux
   ;;
 
-  ## Tensilica Xtensa Linux-based GNU system    
+  ## Tensilica Xtensa Linux-based GNU system
   xtensa-*-linux-gnu* )
     machine=xtensa opsys=gnu-linux
     ;;
@@ -1357,11 +1358,11 @@ AC_PATH_PROG(GZIP_PROG, gzip)
 
 ## Need makeinfo >= 4.6 (?) to build the manuals.
 AC_PATH_PROG(MAKEINFO, makeinfo, no)
-dnl By this stage, configure has already checked for egrep and set EGREP, 
+dnl By this stage, configure has already checked for egrep and set EGREP,
 dnl or exited with an error if no egrep was found.
 if test "$MAKEINFO" != "no" && \
   test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[[^0-9]]*([[1-4]][[0-9]]+|[[5-9]]|4\.[[6-9]]|4\.[[1-5]][[0-9]]+)'`" = x; then
-   MAKEINFO=no    
+   MAKEINFO=no
 fi
 
 if test "$MAKEINFO" = "no"; then
@@ -1553,7 +1554,7 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
-### The standard library on x86-64 GNU/Linux distributions can 
+### The standard library on x86-64 GNU/Linux distributions can
 ### be located in either /usr/lib64 or /usr/lib.
 case "${canonical}" in
   x86_64-*-linux-gnu* )
@@ -1904,7 +1905,7 @@ dnl USE_X_TOOLKIT is set.
       no ) USE_X_TOOLKIT=none ;;
 dnl If user did not say whether to use a toolkit, make this decision later:
 dnl use the toolkit if we have gtk, or X11R5 or newer.
-      * ) 
+      * )
           if test x"$with_gtk" = xyes; then
              USE_X_TOOLKIT=none
           else
@@ -1923,7 +1924,7 @@ esac
 if test "$window_system" = none && test "X$with_x" != "Xno"; then
    AC_CHECK_PROG(HAVE_XSERVER, X, true, false)
    if test "$HAVE_XSERVER" = true ||
-      test -n "$DISPLAY" || 
+      test -n "$DISPLAY" ||
       test "`echo /usr/lib/libX11.*`" != "/usr/lib/libX11.*"; then
         AC_MSG_ERROR([You seem to be running X, but no X development libraries
 were found.  You should install the relevant development files for X
@@ -2257,6 +2258,25 @@ if test "${HAVE_GTK}" = "yes"; then
     fi
   fi
 fi
+
+dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
+dnl other platforms.  Support for higher D-Bus versions but 1.0 is
+dnl also not configured.
+HAVE_DBUS=no
+if test "${with_dbus}" = "yes"; then
+   AC_CHECK_LIB(dbus-1, dbus_bus_get, HAVE_DBUS=yes)
+   if test "$HAVE_DBUS" = yes; then
+      AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
+      DBUS_CFLAGS="-I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include"
+      AC_SUBST(DBUS_CFLAGS)
+      DBUS_LIBS="-ldbus-1"
+      AC_SUBST(DBUS_LIBS)
+      DBUS_INFO="dbus"
+   fi
+fi
+dnl This must be substituted always, because the top level Makefile
+dnl cannot check for $HAVE_DBUS.
+AC_SUBST(DBUS_INFO)
 
 ### Link with -lXft if available to work around a bug.
 HAVE_XFT=maybe
@@ -3475,7 +3495,12 @@ if test "$HAVE_CARBON" = "yes"; then
 known problems.  It is not recommended for use by non-developers.
 Read the emacs-devel archives for more information."
    echo
-fi 
+fi
+
+if test "$HAVE_DBUS" = yes && test "${opsys}" != "gnu-linux"; then
+  echo "D-Bus integration has been tested for GNU/Linux only."
+  echo
+fi
 
 
 # Remove any trailing slashes in these variables.
