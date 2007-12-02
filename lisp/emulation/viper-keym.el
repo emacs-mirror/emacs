@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(provide 'viper-keym)
-
 ;; compiler pacifier
 (defvar viper-always)
 (defvar viper-current-state)
@@ -35,15 +33,6 @@
 (defvar viper-expert-level)
 (defvar viper-ex-style-editing)
 (defvar viper-ex-style-motion)
-
-;; loading happens only in non-interactive compilation
-;; in order to spare non-viperized emacs from being viperized
-(if noninteractive
-    (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-util)
-	    (load "viper-util.el" nil t 'nosuffix))
-	)))
 ;; end pacifier
 
 (require 'viper-util)
@@ -703,6 +692,9 @@ Arguments: (major-mode viper-state keymap)"
 form ((key . function) (key . function) ... )."
    (mapcar (lambda (p) (define-key map (eval (car p)) (cdr p)))
 	   alist))
+
+
+(provide 'viper-keym)
 
 
 ;;; Local Variables:
