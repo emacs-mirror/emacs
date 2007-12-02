@@ -40,6 +40,8 @@ a GIF library.
 
 ** The `emacstool' utility has been removed.
 
+** The new configuration option "--with-dbus" enables D-Bus language
+bindings for Emacs.
 
 * Changes in Emacs 23.1
 
@@ -198,6 +200,10 @@ mode for quickly jotting down things to remember.  Included with
 remember.el is a backend that can save notes to a Diary file.  Please
 consult the Remember Manual for usage details.
 
+** D-Bus language bindings for Elisp are provided by the package
+dbus.el and by extensions to the C modules of Emacs.  D-Bus is an
+inter-process communication mechanism for applications residing on the
+same host, based on messages.  See the manual for further details.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
