@@ -1,3 +1,7 @@
+2007-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* mh-mime.el (mail-strip-quoted-names): Autoload it.
+
 2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mh-e.el (mh-xemacs-flag): Remove.
