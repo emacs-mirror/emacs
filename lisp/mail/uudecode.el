@@ -35,23 +35,28 @@
 	'char-int
       'identity)))
 
+(defgroup uudecode nil
+  "Decoding of uuencoded data."
+  :group 'mail
+  :group 'news)
+
 (defcustom uudecode-decoder-program "uudecode"
   "*Non-nil value should be a string that names a uu decoder.
 The program should expect to read uu data on its standard
 input and write the converted data to its standard output."
   :type 'string
-  :group 'gnus-extract)
+  :group 'uudecode)
 
 (defcustom uudecode-decoder-switches nil
   "*List of command line flags passed to `uudecode-decoder-program'."
-  :group 'gnus-extract
+  :group 'uudecode
   :type '(repeat string))
 
 (defcustom uudecode-use-external
   (executable-find uudecode-decoder-program)
   "*Use external uudecode program."
   :version "22.1"
-  :group 'gnus-extract
+  :group 'uudecode
   :type 'boolean)
 
 (defconst uudecode-alphabet "\040-\140")
