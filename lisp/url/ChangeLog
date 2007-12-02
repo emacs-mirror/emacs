@@ -1,5 +1,16 @@
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
+	* url-about.el, url-handlers.el: Don't require cl when compiling.
+
+	* url-dav.el (url-dav-delete-directory): Fix message typo.
+
+	* url-history.el (top-level): Don't require cl when compiling.
+	(url-history-setup-save-timer, url-history-save-history):
+	Use condition-case rather than ignore-errors.
+
+	* url-imap.el (top-level): Don't require cl when compiling.
+	(url-imap): Use signal rather than check-type.
+
 	* url-news.el (top-level): Don't require cl when compiling.
 	(gnus-group-buffer): Define for compiler.
 	(url-news-fetch-message-id): Don't use `declare'.
