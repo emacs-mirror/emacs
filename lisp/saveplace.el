@@ -119,6 +119,10 @@ be checked, based on said regexp, and instead saved or forgotten based
 on this flag."
   :type 'boolean :group 'save-place)
 
+(defcustom save-place-quiet nil
+  "If non-nil, suppress messages about loading and saving `save-place-alist'."
+  :type 'boolean :group 'save-place)
+
 (defcustom save-place-skip-check-regexp
   ;; thanks to ange-ftp-name-format
   "\\`/\\(?:cdrom\\|floppy\\|mnt\\|\\(?:[^@/:]*@\\)?[^@/:]*[^@/:.]:\\)"
@@ -207,7 +211,8 @@ may have changed\) back to `save-place-alist'."
 (defun save-place-alist-to-file ()
   (let ((file (expand-file-name save-place-file)))
     (save-excursion
-      (message "Saving places to %s..." file)
+      (unless save-place-quiet
+        (message "Saving places to %s..." file))
       (set-buffer (get-buffer-create " *Saved Places*"))
       (delete-region (point-min) (point-max))
       (when save-place-forget-unreadable-files
@@ -227,7 +232,8 @@ may have changed\) back to `save-place-alist'."
 	    (write-region (point-min) (point-max) file)
 	  (file-error (message "Can't write %s" file)))
         (kill-buffer (current-buffer))
-        (message "Saving places to %s...done" file)))))
+        (unless save-place-quiet
+          (message "Saving places to %s...done" file))))))
 
 (defun load-save-place-alist-from-file ()
   (if (not save-place-loaded)
@@ -238,7 +244,8 @@ may have changed\) back to `save-place-alist'."
           ;; load it if it exists:
           (if (file-readable-p file)
               (save-excursion
-                (message "Loading places from %s..." file)
+                (unless save-place-quiet
+                  (message "Loading places from %s..." file))
                 ;; don't want to use find-file because we have been
                 ;; adding hooks to it.
                 (set-buffer (get-buffer-create " *Saved Places*"))
@@ -267,7 +274,8 @@ may have changed\) back to `save-place-alist'."
                           (setq s (cdr s))))))
 
                 (kill-buffer (current-buffer))
-                (message "Loading places from %s...done" file)))
+                (unless save-place-quiet
+                  (message "Loading places from %s...done" file))))
           nil))))
 
 (defun save-places-to-alist ()

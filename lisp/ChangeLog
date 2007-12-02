@@ -1,3 +1,12 @@
+2007-12-02  Karl Fogel  <kfogel@red-bean.com>
+
+	Offer option for saveplace to be quiet about loading and saving.
+	Suggested by: David Reitter <dreitter{_AT_}inf.ed.ac.uk>
+
+	* lisp/saveplace.el (save-place-quiet): New customizable boolean.
+	(save-place-alist-to-file, load-save-place-alist-from-file): Use it
+	to determine whether to print loading/saving messages.
+
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* mail/binhex.el: Move here from gnus/.
