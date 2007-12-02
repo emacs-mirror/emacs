@@ -41,9 +41,6 @@
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
 
-(eval-when-compile
-  (require 'cl))
-
 ;; Implementation status
 ;; ---------------------
 ;; Function				Status
