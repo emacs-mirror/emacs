@@ -1,3 +1,7 @@
+2007-12-02  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Fix last change.
+
 2007-11-28  Petr Salinger  <Petr.Salinger@seznam.cz>  (tiny change)
 
 	* configure.in: Add support for gnu-kfreebsd.

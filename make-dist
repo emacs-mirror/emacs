@@ -575,8 +575,8 @@ echo "Making links to \`etc'"
 ### tex litter.
 (cd etc
  files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
-        | grep -v '^images$' | grep -v '^refcards$' | grep -v '^tutorials$' \
-        | grep -v '^gnus$' | grep -v '^schema$'`
+        | grep -v '^gnus$' | grep -v '^images$' | grep -v '^nxml$' \
+        | grep -v '^refcards$' | grep -v '^tutorials$'| grep -v '^schema$'`
  ln $files ../${tempdir}/etc
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
