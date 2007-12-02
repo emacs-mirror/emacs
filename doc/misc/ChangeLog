@@ -22,6 +22,11 @@
 
 	* nxml-mode.texi: New file with nxml manual.
 
+2007-11-18  Richard Stallman  <rms@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called directly):
+	Update example.
+
 2007-11-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename completion): Simplify explanation of
@@ -31,6 +36,15 @@
 
 	* calc.texi (TeX and LaTeX Language Modes): Put in
 	missing braces.
+
+2007-11-15  Richard Stallman  <rms@gnu.org>
+
+	* cl.texi (Equality Predicates): Delete `eql'.
+	(Predicates, Naming Conventions, Top): Delete `eql'.
+	(Common Lisp Compatibility): Delete `eql'.
+	(Porting Common Lisp): Delete obsolete backquote info.
+	Minor clarification about character constants.
+	(Sequence Basics): Minor clarification.
 
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -51,6 +65,8 @@
 	* gnus-news.texi: Fix spelling.
 	`message-insert-formatted-citation-line', not
 	`message-insert-formated-citation-line'.
+
+	* gnus.texi, gnus-faq.texi, message.texi: Bump version to 5.10.9.
 
 2007-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -88,6 +104,11 @@
 	(Function Reference): Split Keystrokes into separate chapter.
 	(Keystrokes): Document C-c C-k.
 	(Introduction): Fix typographical issue with "---".
+
+2007-10-29  Richard Stallman  <rms@gnu.org>
+
+	* widget.texi (Introduction): Delete discussion of implementation
+	internals.
 
 2007-10-29  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -551,6 +572,14 @@
 2007-10-28  Simon Josefsson  <jas@extundo.com>
 
 	* gnus.texi (Top): Add SASL.
+
+2007-10-27  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
+
+	* gnus-faq.texi ([5.12]): Remove reference to discontinued service.
+
+2007-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Troubleshooting): Adjust Gnus version number.
 
 2007-10-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
