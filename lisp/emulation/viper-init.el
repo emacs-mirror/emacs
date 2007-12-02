@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(provide 'viper-init)
-
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
 (defvar quail-mode)
@@ -1023,6 +1021,9 @@ Should be set in `~/.viper' file."
   (if (featurep 'xemacs)
       (set (make-local-variable 'bar-cursor) 2)
     (setq cursor-type '(bar . 2))))
+
+
+(provide 'viper-init)
 
 
 ;; Local Variables:
