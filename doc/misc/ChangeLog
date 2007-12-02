@@ -1,3 +1,7 @@
+2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi: New file.
+
 2007-11-24  Romain Francoise  <romain@orebokech.com>
 
 	* nxml-mode.texi: Add description in @direntry.
