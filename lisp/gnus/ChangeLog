@@ -2,6 +2,8 @@
 
 	* binhex.el, uudecode.el: Move to ../mail.
 
+	* encrypt.el: Remove file.
+
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* dig.el, dns.el: Move to ../net.
