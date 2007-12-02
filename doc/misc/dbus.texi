@@ -78,7 +78,7 @@ and looks like @samp{:1.42}.
 
 Additionally, a client application can register itself to a so called
 @dfn{known name}, which is a series of identifiers separated by dots,
-like @samp{org.gnu.Emacs}.  If several applications register to the
+as in @samp{org.gnu.Emacs}.  If several applications register to the
 same known name, these registrations are queued, and only the first
 application which has registered for the known name is reachable via
 this name.  If this application disconnects from the bus, the next
