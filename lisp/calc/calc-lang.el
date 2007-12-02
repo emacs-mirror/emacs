@@ -35,7 +35,7 @@
 
 ;; Declare functions which are defined elsewhere.
 (declare-function math-compose-vector "calccomp" (a sep prec))
-(declare-function math-compose-var "calccomp" (a v))
+(declare-function math-compose-var "calccomp" (a))
 (declare-function math-tex-expr-is-flat "calccomp" (a))
 (declare-function math-read-factor "calc-aent" ())
 (declare-function math-read-expr-level "calc-aent" (exp-prec &optional exp-term))
@@ -685,7 +685,7 @@
         (math-compose-expr (nth 3 a) 0)
         (if (memq (nth 1 a) '(0 2)) ")" "]")))
 
-(defun math-compose-tex-var (a v prec)
+(defun math-compose-tex-var (a prec)
   (if (and calc-language-option
            (not (= calc-language-option 0))
            (string-match "\\`[a-zA-Z][a-zA-Z0-9]+\\'"
@@ -693,7 +693,7 @@
       (if (eq calc-language 'latex)
           (format "\\text{%s}" (symbol-name (nth 1 a)))
         (format "\\hbox{%s}" (symbol-name (nth 1 a))))
-    (math-compose-var a v)))
+    (math-compose-var a)))
 
 (defun math-compose-tex-func (func a)
   (let (left right)
@@ -986,26 +986,27 @@
 
 (put 'eqn 'math-var-formatter 
      (function
-      (lambda (a v prec)
-        (if (and math-compose-hash-args
-                 (let ((p calc-arg-values))
-                   (setq v 1)
-                   (while (and p (not (equal (car p) a)))
-                     (setq p (and (eq math-compose-hash-args t) (cdr p))
-                           v (1+ v)))
-                   p))
-            (if (eq math-compose-hash-args 1)
-                "#"
-              (format "#%d" v))
-          (if (string-match ".'\\'" (symbol-name (nth 2 a)))
-              (math-compose-expr
-               (list 'calcFunc-Prime
-                     (list
-                      'var
-                      (intern (substring (symbol-name (nth 1 a)) 0 -1))
-                      (intern (substring (symbol-name (nth 2 a)) 0 -1))))
-               prec)
-            (symbol-name (nth 1 a)))))))
+      (lambda (a prec)
+        (let (v)
+          (if (and math-compose-hash-args
+                   (let ((p calc-arg-values))
+                     (setq v 1)
+                     (while (and p (not (equal (car p) a)))
+                       (setq p (and (eq math-compose-hash-args t) (cdr p))
+                             v (1+ v)))
+                     p))
+              (if (eq math-compose-hash-args 1)
+                  "#"
+                (format "#%d" v))
+            (if (string-match ".'\\'" (symbol-name (nth 2 a)))
+                (math-compose-expr
+                 (list 'calcFunc-Prime
+                       (list
+                        'var
+                        (intern (substring (symbol-name (nth 1 a)) 0 -1))
+                        (intern (substring (symbol-name (nth 2 a)) 0 -1))))
+                 prec)
+              (symbol-name (nth 1 a))))))))
       
 (defconst math-eqn-special-funcs
   '( calcFunc-log
