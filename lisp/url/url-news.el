@@ -31,8 +31,6 @@
 (autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
 (eval-when-compile (require 'cl))
-(defvar nntp-open-tls-stream)
-(defvar nntp-open-ssl-stream)
 
 (defgroup url-news nil
   "News related options."
@@ -127,9 +125,9 @@
 
 ;;;###autoload
 (defun url-snews (url)
-  (let ((nntp-open-connection-function (if (eq 'tls url-gateway-method)
-					   nntp-open-tls-stream
-					 nntp-open-ssl-stream)))
+  (let ((nntp-open-connection-function (if (eq 'ssl url-gateway-method)
+					   'nntp-open-ssl-stream
+					 'nntp-open-tls-stream)))
     (url-news url)))
 
 (provide 'url-news)
