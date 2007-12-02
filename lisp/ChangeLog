@@ -1,3 +1,8 @@
+2007-12-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* pcvs.el (cvs-mode-commit, cvs-mode-edit-log): Also pass a diff
+	function to log-edit.
+
 2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el: New file.
