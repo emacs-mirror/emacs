@@ -1,3 +1,8 @@
+2007-12-02  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (xbm_load) [WINDOWSNT]: Shuffle the bits of directly
+	specified XBMs.
+
 2007-12-01  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (syms_of_xdisp) <scroll-conservatively>: Doc fix.
