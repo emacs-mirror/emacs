@@ -1,5 +1,11 @@
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
+	* saveplace.el (save-place-alist-to-file): Set
+	coding-system-for-write once and refer to it throughout.
+	Based on a patch by David Reitter <dreitter{_AT_}inf.ed.ac.uk>.
+
+2007-12-02  Karl Fogel  <kfogel@red-bean.com>
+
 	* saveplace.el (save-place-alist-to-file): Use `utf-8' coding
 	system when writing, and set it in the first-line file variables.
 	Based on a patch by David Reitter <dreitter{_AT_}inf.ed.ac.uk>
