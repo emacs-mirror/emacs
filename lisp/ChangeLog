@@ -10,6 +10,10 @@
 	(uudecode-decoder-program, uudecode-decoder-switches)
 	(uudecode-use-external): Move to the uudecode custom group.
 
+	* net/netrc.el (top-level): Don't load `encrypt' features.
+	(netrc-parse): Don't use encrypt.
+	(netrc-find-service-name, netrc-find-service-number): Don't use caddr.
+
 2007-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Explicitly set
