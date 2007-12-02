@@ -78,7 +78,7 @@ and looks like @samp{:1.42}.
 
 Additionally, a client application can register itself to a so called
 @dfn{known name}, which is a series of identifiers separated by dots,
-e.g. @samp{org.gnu.Emacs}.  If several applications register to the
+like @samp{org.gnu.Emacs}.  If several applications register to the
 same known name, these registrations are queued, and only the first
 application which has registered for the known name is reachable via
 this name.  If this application disconnects from the bus, the next
@@ -114,7 +114,6 @@ registered names.  Internally they use the basic interface
 @samp{org.freedesktop.DBus}, which is supported by all objects of a bus.
 
 @defun dbus-list-activatable-names
-
 This function returns the D-Bus service names, which can be activated.
 An activatable service is described in a service registration file.
 Under GNU/Linux, such files are located at
@@ -125,7 +124,6 @@ activatable service names at all.
 @end defun
 
 @defun dbus-list-names bus
-
 All service names, which are registered at D-Bus @var{bus}, are
 returned.  The result is a list of strings, which is @code{nil} when
 there are no registered service names at all.  Well known names are
@@ -137,7 +135,6 @@ strings like @samp{org.freedesktop.DBus}.  Names starting with
 @end defun
 
 @defun dbus-list-known-names bus
-
 Retrieves all services which correspond to a known name in @var{bus}.
 A service has a known name if it doesn't start with @samp{:}.  The
 result is a list of strings, which is @code{nil} when there are no
@@ -148,7 +145,6 @@ known names at all.
 @end defun
 
 @defun dbus-list-queued-owners bus service
-
 For a given service, registered at D-Bus @var{bus} under the name
 @var{service}, all queued unique names are returned.  The result is a
 list of strings, or @code{nil} when there are no queued names for
@@ -160,7 +156,6 @@ string.
 @end defun
 
 @defun dbus-get-name-owner bus service
-
 For a given service, registered at D-Bus @var{bus} under the name
 @var{service}, the unique name of the name owner is returned.  The result is a
 string, or @code{nil} when there exist no name owner of @var{service}.
@@ -171,7 +166,6 @@ string.
 @end defun
 
 @defun dbus-get-unique-name bus
-
 The unique name, under which Emacs is registered at D-Bus @var{bus},
 is returned as string.
 
@@ -180,7 +174,6 @@ is returned as string.
 @end defun
 
 @defun dbus-introspect bus service path
-
 Objects can publish there interfaces to the D-Bus.  This function
 returns all interfaces of @var{service}, registered at object path
 @var{path} at bus @var{bus}.
@@ -196,22 +189,22 @@ format. Example:
   :system "org.freedesktop.Hal"
   "/org/freedesktop/Hal/devices/computer")
 
-@result{} <!DOCTYPE node PUBLIC
-   "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
-   "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
-   <node>
-     <interface name="org.freedesktop.Hal.Device">
-       <method name="GetAllProperties">
-         <arg name="properties" direction="out" type="a@{sv@}"/>
-       </method>
-       ...
-       <signal name="PropertyModified">
-         <arg name="num_updates" type="i"/>
-         <arg name="updates" type="a(sbb)"/>
-       </signal>
-     </interface>
-     ...
-   </node>
+@result{} "<!DOCTYPE node PUBLIC
+    \"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN\"
+    \"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">
+    <node>
+      <interface name=\"org.freedesktop.Hal.Device\">
+        <method name=\"GetAllProperties\">
+          <arg name=\"properties\" direction=\"out\" type=\"a@{sv@}\"/>
+        </method>
+        ...
+        <signal name=\"PropertyModified\">
+          <arg name=\"num_updates\" type=\"i\"/>
+          <arg name=\"updates\" type=\"a(sbb)\"/>
+        </signal>
+      </interface>
+      ...
+    </node>"
 @end example
 
 This example informs us, that the service @code{org.freedesktop.Hal}
@@ -278,7 +271,7 @@ Other Lisp types, especially lists, are not supported (yet).
 
 Output parameters of D-Bus methods and signals are mapped to Lisp
 objects.  This mapping is more powerful than the one for input
-parameters, i.e. more types are supported by the current
+parameters, i.e., more D-Bus types are supported by the current
 implementation.
 
 @example
@@ -326,7 +319,6 @@ be called, and a reply message returning the resulting output
 parameters from the object.
 
 @defun dbus-call-method bus method service path interface &rest args
-
 This function calls @var{method} on the D-Bus @var{bus}.  @var{bus} is
 either the symbol @code{:system} or the symbol @code{:session}.
 
@@ -387,22 +379,22 @@ emulate the @code{lshal} command on GNU/Linux systems:
     (message "  %s = %S"
              (car properties) (or (caar (cdr properties)) ""))))
 
-@result{} udi = /org/freedesktop/Hal/devices/computer
-     info.addons = ("hald-addon-acpi")
-     info.bus = "unknown"
-     info.product = "Computer"
-     info.subsystem = "unknown"
-     info.udi = "/org/freedesktop/Hal/devices/computer"
-     linux.sysfs_path_device = "(none)"
-     power_management.acpi.linux.version = "20051216"
-     power_management.can_suspend_to_disk = t
-     power_management.can_suspend_to_ram = ""
-     power_management.type = "acpi"
-     smbios.bios.release_date = "11/07/2001"
-     system.chassis.manufacturer = "COMPAL"
-     system.chassis.type = "Notebook"
-     system.firmware.release_date = "03/19/2005"
-     ...
+@result{} "udi = /org/freedesktop/Hal/devices/computer
+      info.addons = (\"hald-addon-acpi\")
+      info.bus = \"unknown\"
+      info.product = \"Computer\"
+      info.subsystem = \"unknown\"
+      info.udi = \"/org/freedesktop/Hal/devices/computer\"
+      linux.sysfs_path_device = \"(none)\"
+      power_management.acpi.linux.version = \"20051216\"
+      power_management.can_suspend_to_disk = t
+      power_management.can_suspend_to_ram = \"\"
+      power_management.type = \"acpi\"
+      smbios.bios.release_date = \"11/07/2001\"
+      system.chassis.manufacturer = \"COMPAL\"
+      system.chassis.type = \"Notebook\"
+      system.firmware.release_date = \"03/19/2005\"
+      ..."
 @end example
 @end defun
 
@@ -415,7 +407,6 @@ Signals are broadcast messages.  They carry input parameters, which
 are received by all objects which have registered for such a signal.
 
 @defun dbus-send-signal bus signal service path interface &rest args
-
 This function is similar to @code{dbus-call-method}.  The difference
 is, that there are no returning output parameters.
 
@@ -440,7 +431,6 @@ Conversion}.  Example:
 @end defun
 
 @defun dbus-register-signal bus signal service path interface handler
-
 With this function, an application registers for @var{signal} on the
 D-Bus @var{bus}.
 
@@ -482,7 +472,6 @@ registration for @var{signal}.
 @end defun
 
 @defun dbus-unregister-signal object
-
 Unregister @var{object} from the the D-Bus.  @var{object} must be the
 result of a preceding @code{dbus-register-signal} call.
 @end defun
@@ -526,28 +515,23 @@ There exist convenience functions which could be called inside a
 callback function in order to retrieve the information from the event.
 
 @defun dbus-event-bus-name event
-
 Returns the bus name @var{event} is coming from.
 The result is either the symbol @code{:system} or the symbol @code{:session}.
 @end defun
 
 @defun dbus-event-service-name event
-
 Returns the unique name of the D-Bus object @var{event} is coming from.
 @end defun
 
 @defun dbus-event-path-name event
-
 Returns the object path of the D-Bus object @var{event} is coming from.
 @end defun
 
 @defun dbus-event-interface-name event
-
 Returns the interface name of of the D-Bus object @var{event} is coming from.
 @end defun
 
 @defun dbus-event-member-name event
-
 Returns the member name of of the D-Bus object @var{event} is coming
 from.  It is either a signal name or a method name.
 @end defun
