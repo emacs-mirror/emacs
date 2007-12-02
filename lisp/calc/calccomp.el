@@ -70,20 +70,21 @@
 (defvar math-comp-right-bracket)
 (defvar math-comp-comma)
 
-(defun math-compose-var (a v)
-  (if (and math-compose-hash-args
-           (let ((p calc-arg-values))
-             (setq v 1)
-             (while (and p (not (equal (car p) a)))
-               (setq p (and (eq math-compose-hash-args t) (cdr p))
-                     v (1+ v)))
-             p))
-      (if (eq math-compose-hash-args 1)
-          "#"
-        (format "#%d" v))
-    (if (memq calc-language calc-lang-allow-underscores)
-        (math-to-underscores (symbol-name (nth 1 a)))
-      (symbol-name (nth 1 a)))))
+(defun math-compose-var (a)
+  (let (v)
+    (if (and math-compose-hash-args
+             (let ((p calc-arg-values))
+               (setq v 1)
+               (while (and p (not (equal (car p) a)))
+                 (setq p (and (eq math-compose-hash-args t) (cdr p))
+                       v (1+ v)))
+               p))
+        (if (eq math-compose-hash-args 1)
+            "#"
+          (format "#%d" v))
+      (if (memq calc-language calc-lang-allow-underscores)
+          (math-to-underscores (symbol-name (nth 1 a)))
+        (symbol-name (nth 1 a))))))
 
 (defun math-compose-expr (a prec)
   (let ((math-compose-level (1+ math-compose-level))
@@ -332,8 +333,8 @@
 	(if v
 	    (symbol-name (car v))
           (if (setq spfn (get calc-language 'math-var-formatter))
-              (funcall spfn a v prec)
-            (math-compose-var a v)))))
+              (funcall spfn a prec)
+            (math-compose-var a)))))
      ((eq (car a) 'intv)
       (list 'horiz
             (if (memq (nth 1 a) '(0 1)) "(" "[")
