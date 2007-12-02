@@ -1,3 +1,29 @@
+2007-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/viper-cmd.el (top-level): Don't require advice.
+	Don't load viper-util, viper-keym, viper-mous, viper-macs,
+	viper-ex when compiling.
+
+	* emulation/viper-ex.el (top-level): Don't load viper-util,
+	viper-keym when compiling.
+
+	* emulation/viper-init.el (top-level): Move provide statement to end.
+
+	* emulation/viper-keym.el (top-level): Don't load viper-util when
+	compiling.  Move provide statement to end.
+
+	* emulation/viper-macs.el (top-level): Don't load viper-util,
+	viper-keym, viper-mous when compiling.
+
+	* emulation/viper-mous.el (top-level): Don't load viper-util when
+	compiling.
+
+	* emulation/viper-util.el (top-level): Don't load viper-init when
+	compiling.
+
+	* emulation/viper.el (top-level): Don't require ring.
+	Don't load viper-init, viper-cmd when compiling.
+
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
 	Offer option for saveplace to be quiet about loading and saving.
