@@ -1,3 +1,15 @@
+2007-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* mail/binhex.el: Move here from gnus/.
+	(binhex): New custom group.
+	(binhex-decoder-program, binhex-decoder-switches)
+	(binhex-use-external): Move to the binhex custom group.
+
+	* mail/uudecode.el: Move here from gnus/.
+	(uudecode): New custom group.
+	(uudecode-decoder-program, uudecode-decoder-switches)
+	(uudecode-use-external): Move to the uudecode custom group.
+
 2007-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Explicitly set
