@@ -35,7 +35,7 @@
 
 ;; Declare functions which are defined elsewhere.
 (declare-function math-compose-vector "calccomp" (a sep prec))
-(declare-function math-compose-var "calccomp" (a))
+(declare-function math-compose-var "calccomp" (a v))
 (declare-function math-tex-expr-is-flat "calccomp" (a))
 (declare-function math-read-factor "calc-aent" ())
 (declare-function math-read-expr-level "calc-aent" (exp-prec &optional exp-term))
@@ -693,7 +693,7 @@
       (if (eq calc-language 'latex)
           (format "\\text{%s}" (symbol-name (nth 1 a)))
         (format "\\hbox{%s}" (symbol-name (nth 1 a))))
-    (math-compose-var a)))
+    (math-compose-var a v)))
 
 (defun math-compose-tex-func (func a)
   (let (left right)
