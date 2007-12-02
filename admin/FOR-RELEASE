@@ -57,6 +57,8 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 ** eric@openbsd.org, 24 Nov: c-mode syntactic analysis regression in emacs-22.1
 
+** diff mode change for missing spaces in -u format.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
