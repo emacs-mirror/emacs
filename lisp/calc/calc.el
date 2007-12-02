@@ -967,6 +967,16 @@ If nil, selections displayed but ignored.")
   "Function through which to pass strings before parsing.")
 (defvar calc-radix-formatter nil
   "Formatting function used for non-decimal numbers.")
+(defvar calc-lang-slash-idiv nil
+  "A list of languages in which / might represent integer division.")
+(defvar calc-lang-allow-underscores nil
+  "A list of languages which allow underscores in variable names.")
+(defvar calc-lang-c-type-hex nil
+  "Languages in which octal and hex numbers are written with leading 0 and 0x,")
+(defvar calc-lang-brackets-are-subscripts nil
+  "Languages in which subscripts are indicated by brackets.")
+(defvar calc-lang-parens-are-subscripts nil
+  "Languages in which subscripts are indicated by parentheses.")
 
 (defvar calc-last-kill nil)		; Last number killed in calc-mode.
 (defvar calc-dollar-values nil)		; Values to be used for '$'.
@@ -989,7 +999,6 @@ If nil, selections displayed but ignored.")
 (defvar math-eval-rules-cache-tag t)
 (defvar math-radix-explicit-format t)
 (defvar math-expr-function-mapping nil)
-(defvar math-expr-special-function-mapping nil)
 (defvar math-expr-variable-mapping nil)
 (defvar math-read-expr-quotes nil)
 (defvar math-working-step nil)
@@ -3576,34 +3585,6 @@ and all digits are kept, regardless of Calc's current precision."
       (cons (string-to-number (substring s (- math-bignum-digit-length)))
 	    (math-read-bignum (substring s 0 (- math-bignum-digit-length))))
     (list (string-to-number s))))
-
-
-(defconst math-tex-ignore-words
-  '( ("\\hbox") ("\\mbox") ("\\text") ("\\left") ("\\right")
-     ("\\,") ("\\>") ("\\:") ("\\;") ("\\!") ("\\ ")
-     ("\\quad") ("\\qquad") ("\\hfil") ("\\hfill")
-     ("\\displaystyle") ("\\textstyle") ("\\dsize") ("\\tsize")
-     ("\\scriptstyle") ("\\scriptscriptstyle") ("\\ssize") ("\\sssize")
-     ("\\rm") ("\\bf") ("\\it") ("\\sl")
-     ("\\roman") ("\\bold") ("\\italic") ("\\slanted")
-     ("\\cal") ("\\mit") ("\\Cal") ("\\Bbb") ("\\frak") ("\\goth")
-     ("\\evalto")
-     ("\\matrix" mat) ("\\bmatrix" mat) ("\\pmatrix" mat)
-     ("\\begin" begenv)
-     ("\\cr" punc ";") ("\\\\" punc ";") ("\\*" punc "*")
-     ("\\{" punc "[") ("\\}" punc "]")))
-
-(defconst math-latex-ignore-words
-  (append math-tex-ignore-words
-          '(("\\begin" begenv))))
-
-(defconst math-eqn-ignore-words
-  '( ("roman") ("bold") ("italic") ("mark") ("lineup") ("evalto")
-     ("left" ("floor") ("ceil"))
-     ("right" ("floor") ("ceil"))
-     ("arc" ("sin") ("cos") ("tan") ("sinh") ("cosh") ("tanh"))
-     ("size" n) ("font" n) ("fwd" n) ("back" n) ("up" n) ("down" n)
-     ("above" punc ",")))
 
 (defconst math-standard-opers
   '( ( "_"     calcFunc-subscr 1200 1201 )
