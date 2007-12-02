@@ -1,3 +1,12 @@
+2007-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* url-news.el (top-level): Don't require cl when compiling.
+	(gnus-group-buffer): Define for compiler.
+	(url-news-fetch-message-id): Don't use `declare'.
+	(nntp-open-tls-stream, nntp-open-ssl-stream):
+	No need to define for compiler.
+	(url-snews): Use nntp-open-tls-stream unless ssl is requested.
+
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* url-handlers.el (top-level): Always require url-parse, not just
