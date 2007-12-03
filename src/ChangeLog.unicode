@@ -1,3 +1,8 @@
+2007-12-03  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ftfont.c (ftfont_open): Set members maybe_otf and otf of
+	ftfont_info only when HAVE_LIBOTF is defined.
+
 2007-12-02  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (back_to_previous_visible_line_start): Fix type of beg
