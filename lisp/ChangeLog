@@ -1,3 +1,7 @@
+2007-12-03  Richard Stallman  <rms@gnu.org>
+
+	* window.el (recenter-top-bottom): Don't use `ecase'.
+
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-alist-to-file): Set
