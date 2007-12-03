@@ -234,8 +234,12 @@ has finished."
 
 (defvar doc-view-current-image nil
   "Only used internally.")
-(defvar doc-view-current-overlay)
-(defvar doc-view-pending-cache-flush nil)
+
+(defvar doc-view-current-overlay nil
+  "Only used internally.")
+
+(defvar doc-view-pending-cache-flush nil
+  "Only used internally.")
 
 (defvar doc-view-current-info nil
   "Only used internally.")
@@ -887,8 +891,7 @@ If BACKWARD is non-nil, jump to the previous match."
 
 (defun doc-view-initiate-display ()
   ;; Switch to image display if possible
-  (if (and (display-images-p)
-	   (image-type-available-p 'png))
+  (if (doc-view-mode-p (intern (file-name-extension buffer-file-name)))
       (progn
 	(doc-view-buffer-message)
 	(setq doc-view-current-page (or doc-view-current-page 1))
@@ -905,8 +908,9 @@ If BACKWARD is non-nil, jump to the previous match."
     (message
      "%s"
      (substitute-command-keys
-      (concat "No image (png) support available.  Type \\[doc-view-toggle-display] "
-	      "to switch to an editing mode.")))))
+      (concat "No image (png) support available or some conversion utility for "
+	      (file-name-extension buffer-file-name)" files is missing.  "
+	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
 
 ;;;###autoload
 (defun doc-view-mode ()

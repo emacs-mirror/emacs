@@ -1,3 +1,9 @@
+2007-12-03  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-initiate-display): Use `doc-view-mode-p'.
+	(doc-view-current-overlay, doc-view-pending-cache-flush): Add doc
+	string.
+
 2007-12-03  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (declare-function): Moved from byte-run.el.
