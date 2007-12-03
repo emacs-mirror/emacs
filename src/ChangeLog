@@ -1,3 +1,7 @@
+2007-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c: Update URL to Window Manager Specification in comment.
+
 2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* config.in (HAVE_DBUS): Add.
