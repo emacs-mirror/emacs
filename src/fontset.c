@@ -57,9 +57,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 #include "termhooks.h"
 
-#ifdef USE_FONT_BACKEND
 #include "font.h"
-#endif	/* USE_FONT_BACKEND */
 
 #undef xassert
 #ifdef FONTSET_DEBUG
@@ -96,14 +94,11 @@ EXFUN (Fclear_face_cache, 1);
    An element of a base fontset is a vector of FONT-DEFs which itself
    is a vector [ FONT-SPEC ENCODING REPERTORY ].
 
-   FONT-SPEC is:
-	[ FAMILY WEIGHT SLANT SWIDTH ADSTYLE REGISTRY ]
+   FONT-SPEC is a font-spec created by `font-spec' or
+	( FAMILY . REGISTRY )
    or
 	FONT-NAME
-   where FAMILY, WEIGHT, SLANT, SWIDTH, ADSTYLE, REGISTRY, and
-   FONT-NAME are strings.
-
-   Note: Currently WEIGHT through ADSTYLE are ignored.
+   where FAMILY, REGISTRY, and FONT-NAME are strings.
 
    ENCODING is a charset ID that can convert characters to glyph codes
    of the corresponding font.
@@ -1505,24 +1500,26 @@ accumulate_script_ranges (arg, range, val)
 
 
 /* Return an ASCII font name generated from fontset name NAME and
-   ASCII font specification ASCII_SPEC.  NAME is a string conforming
-   to XLFD.  ASCII_SPEC is a vector:
-	[FAMILY WEIGHT SLANT SWIDTH ADSTYLE REGISTRY].  */
+   font-spec ASCII_SPEC.  NAME is a string conforming to XLFD.  */
 
 static INLINE Lisp_Object
 generate_ascii_font_name (name, ascii_spec)
      Lisp_Object name, ascii_spec;
 {
+  Lisp_Object font_spec = Ffont_spec (0, NULL);
   Lisp_Object vec;
   int i;
+  char xlfd[256];
 
-  vec = split_font_name_into_vector (name);
-  for (i = FONT_SPEC_FAMILY_INDEX; i <= FONT_SPEC_ADSTYLE_INDEX; i++)
+  if (font_parse_xlfd (SDATA (name), font_spec) < 0)
+    error ("Not an XLFD font name: %s", SDATA (name));
+  for (i = FONT_FOUNDRY_INDEX; i <= FONT_WIDTH_INDEX; i++)
     if (! NILP (AREF (ascii_spec, i)))
-      ASET (vec, 1 + i, AREF (ascii_spec, i));
-  if (! NILP (AREF (ascii_spec, FONT_SPEC_REGISTRY_INDEX)))
-    ASET (vec, 12, AREF (ascii_spec, FONT_SPEC_REGISTRY_INDEX));
-  return build_font_name_from_vector (vec);
+      ASET (font_spec, i, AREF (ascii_spec, i));
+  i = font_unparse_xlfd (font_spec, 0, xlfd, 256);
+  if (i < 0)
+    error ("Not an XLFD font name: %s", SDATA (name));
+  return make_unibyte_string (xlfd, i);
 }
 
 /* Variables referred in set_fontset_font.  They are set before
@@ -1617,57 +1614,33 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 
   if (VECTORP (font_spec))
     {
-#ifdef USE_FONT_BACKEND
-      if (enable_font_backend && FONT_SPEC_P (font_spec))
-	{
-	  family = Ffont_get (font_spec, QCfamily);
-	  if (! NILP (family))
-	    family = SYMBOL_NAME (family);
-	  registry = Ffont_get (font_spec, QCregistry);
-	  if (! NILP (registry))
-	    registry = SYMBOL_NAME (registry);
-	}
-      else
-#endif
-	{
-	  /* FONT_SPEC should have this form:
-	     [ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ]
-	     This is a feature not yet documented because WEIGHT thru
-	     ADSTYLE are ignored for the moment.  */
-	  int j;
-
-	  if (ASIZE (font_spec) != FONT_SPEC_MAX_INDEX)
-	    args_out_of_range (make_number (FONT_SPEC_MAX_INDEX),
-			       make_number (ASIZE (font_spec)));
-
-	  font_spec = Fcopy_sequence (font_spec);
-	  for (j = 0; j < FONT_SPEC_MAX_INDEX - 1; j++)
-	    if (! NILP (AREF (font_spec, j)))
-	      {
-		CHECK_STRING (AREF (font_spec, j));
-		ASET (font_spec, j, Fdowncase (AREF (font_spec, j)));
-	      }
-	  family = AREF (font_spec, FONT_SPEC_FAMILY_INDEX);
-	  /* REGISTRY should not be omitted.  */
-	  CHECK_STRING (AREF (font_spec, FONT_SPEC_REGISTRY_INDEX));
-	  registry = AREF (font_spec, FONT_SPEC_REGISTRY_INDEX);
-	}
+      if (! FONT_SPEC_P (font_spec))
+	Fsignal (Qfont, list2 (build_string ("invalid font-spec"), font_spec));
+      family = Ffont_get (font_spec, QCfamily);
+      if (! NILP (family) && SYMBOLP (family))
+	family = SYMBOL_NAME (family);
+      registry = Ffont_get (font_spec, QCregistry);
+      if (! NILP (registry) && SYMBOLP (registry))
+	registry = SYMBOL_NAME (registry);
     }
   else if (CONSP (font_spec))
     {
+      Lisp_Object args[4];
+      int i= 0;
+
       family = XCAR (font_spec);
       registry = XCDR (font_spec);
 
       if (! NILP (family))
 	{
 	  CHECK_STRING (family);
-	  family = Fdowncase (family);
+	  args[i++] = QCfamily;
+	  args[i++] = family;
 	}
       CHECK_STRING (registry);
-      registry = Fdowncase (registry);
-      font_spec = Fmake_vector (make_number (FONT_SPEC_MAX_INDEX), Qnil);
-      ASET (font_spec, FONT_SPEC_FAMILY_INDEX, family);
-      ASET (font_spec, FONT_SPEC_REGISTRY_INDEX, registry);
+      args[i++] = QCregistry;
+      args[i++] = registry;
+      font_spec = Ffont_spec (i, args);
     }
   else
     {
