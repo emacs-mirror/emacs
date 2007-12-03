@@ -1153,8 +1153,9 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
       i = XINT (val);
       if (i > 0)
 	len += sprintf (f[XLFD_PIXEL_INDEX], "%d-*", i) + 1;
-      else 			/* i == 0 */
+      else if (pixel_size > 0)
 	len += sprintf (f[XLFD_PIXEL_INDEX], "%d-*", pixel_size) + 1;
+      f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
     }
   else if (FLOATP (val))
     {
