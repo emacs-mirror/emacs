@@ -229,17 +229,17 @@
 ;; fontset to find an appropriate font for each script/charset.  The
 ;; specification has the form ((SCRIPT FONT-SPEC ...) ...), where
 ;; FONT-SPEC is:
-;;	a vector [ FAMILY WEIGHT SLANT ADSTYLE REGISTRY ],
-;;	or a cons (FAMILY . REGISTRY),
-;;	or a string FONT-NAME.
+;;	a cons (FAMILY . REGISTRY),
+;;	or a string FONT-NAME,
+;;	or an object created by `font-spec'.
 ;;
-;; FAMILY, WEIGHT, SLANT, and ADSTYLE may be nil, in which case, the
-;; the corresponding name of default face is used.  If REGISTRY
-;; contains a character `-', the string before that is embedded in
-;; `CHARSET_REGISTRY' field, and the string after that is embedded in
-;; `CHARSET_ENCODING' field.  If it does not contain `-', the whole
-;; string is embedded in `CHARSET_REGISTRY' field, and a wild card
-;; character `*' is embedded in `CHARSET_ENCODING' field.
+;; FAMILY may be nil, in which case, the the corresponding name of
+;; default face is used.  If REGISTRY contains a character `-', the
+;; string before that is embedded in `CHARSET_REGISTRY' field, and the
+;; string after that is embedded in `CHARSET_ENCODING' field.  If it
+;; does not contain `-', the whole string is embedded in
+;; `CHARSET_REGISTRY' field, and a wild card character `*' is embedded
+;; in `CHARSET_ENCODING' field.
 ;;
 ;; SCRIPT is a symbol that appears as an element of the char table
 ;; `char-script-table'.  SCRIPT may be a charset specifying the range
@@ -638,26 +638,53 @@ The font names are complemented as below.
 
 If a font name matches `xlfd-style-regexp', each field of wild card is
 replaced by the corresponding fields in XLFD-FIELDS."
-  (let ((default-spec (vector (aref xlfd-fields xlfd-regexp-family-subnum)
-			      (aref xlfd-fields xlfd-regexp-weight-subnum)
-			      (aref xlfd-fields xlfd-regexp-slant-subnum)
-			      (aref xlfd-fields xlfd-regexp-swidth-subnum)
-			      (aref xlfd-fields xlfd-regexp-adstyle-subnum)
-			      (aref xlfd-fields xlfd-regexp-registry-subnum))))
+  (let ((family (aref xlfd-fields xlfd-regexp-family-subnum))
+	(weight (aref xlfd-fields xlfd-regexp-weight-subnum))
+	(slant (aref xlfd-fields xlfd-regexp-slant-subnum))
+	(width (aref xlfd-fields xlfd-regexp-swidth-subnum))
+	(adstyle (aref xlfd-fields xlfd-regexp-adstyle-subnum))
+	(registry (aref xlfd-fields xlfd-regexp-registry-subnum)))
+    (if weight (setq weight (intern weight)))
+    (if slant (setq slant (intern slant)))
+    (if width (setq width (intern width)))
+    (if adstyle (setq adstyle (intern adstyle)))
     (dolist (elt fontlist)
       (let ((name (cadr elt))
-	    font-spec)
+	    args)
 	(when (or (string-match xlfd-style-regexp name)
 		  (and (setq name (car (x-list-fonts name nil nil 1)))
 		       (string-match xlfd-style-regexp name)))
-	  (setq font-spec (make-vector 6 nil))
-	  (dotimes (i 6)
-	    (aset font-spec i (match-string (1+ i) name)))
-	  (dotimes (i 5)
-	    (if (string-match "^[*-]+$" (aref font-spec i))
-		(aset font-spec i (aref default-spec i))))
-	  (setcar (cdr elt) font-spec))))
-
+	  (let ((fam (match-string (1+ xlfd-regexp-family-subnum) name))
+		(wei (match-string (1+ xlfd-regexp-weight-subnum) name))
+		(sla (match-string (1+ xlfd-regexp-slant-subnum) name))
+		(wid (match-string (1+ xlfd-regexp-swidth-subnum) name))
+		(ads (match-string (1+ xlfd-regexp-adstyle-subnum) name))
+		(reg (match-string (1+ xlfd-regexp-registry-subnum) name)))
+	    (if (or (and fam (setq fam (if (not (string-match "^[*?]*$" fam))
+					   fam)))
+		    family)
+		(setq args (list :family (or fam family))))
+	    (if (or (and wei (setq wei (if (not (string-match "^[*?]*$" wei))
+					   (intern wei))))
+		    weight)
+		(setq args (cons :weight (cons (or wei weight) args))))
+	    (if (or (and sla (setq sla (if (not (string-match "^[*?]*$" sla))
+					   (intern sla))))
+		    slant)
+		(setq args (cons :slant (cons (or sla slant) args))))
+	    (if (or (and wid (setq wid (if (not (string-match "^[*?]*$" wid))
+					   (intern wid))))
+		    width)
+		(setq args (cons :width (cons (or wid width) args))))
+	    (if (or (and ads (setq ads (if (not (string-match "^[*?]*$" ads))
+					   (intern ads))))
+		    adstyle)
+		(setq args (cons :adstyle (cons (or ads adstyle) args))))
+	    (if (or (and reg (setq reg (if (not (string-match "^[*?]*$" reg))
+					   reg)))
+		    registry)
+		(setq args (cons :registry (cons (or reg registry) args))))
+	    (setcar (cdr elt) (apply 'font-spec args))))))
     fontlist))
 
 (defun fontset-name-p (fontset)
