@@ -1,3 +1,10 @@
+2007-12-03  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el (save-place-quiet): Remove, reverting 1.39.
+	(save-place-alist-to-file, load-save-place-alist-from-file):
+	Don't print non-error messages at all, there's really no need.
+	Do print if there's a problem, and clarify message in that case.
+
 2007-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ediff-util.el (ediff-setup):

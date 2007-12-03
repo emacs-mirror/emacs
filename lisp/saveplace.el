@@ -119,10 +119,6 @@ be checked, based on said regexp, and instead saved or forgotten based
 on this flag."
   :type 'boolean :group 'save-place)
 
-(defcustom save-place-quiet nil
-  "If non-nil, suppress messages about loading and saving `save-place-alist'."
-  :type 'boolean :group 'save-place)
-
 (defcustom save-place-skip-check-regexp
   ;; thanks to ange-ftp-name-format
   "\\`/\\(?:cdrom\\|floppy\\|mnt\\|\\(?:[^@/:]*@\\)?[^@/:]*[^@/:.]:\\)"
@@ -212,8 +208,6 @@ may have changed\) back to `save-place-alist'."
   (let ((file (expand-file-name save-place-file))
         (coding-system-for-write 'utf-8))
     (save-excursion
-      (unless save-place-quiet
-        (message "Saving places to %s..." file))
       (set-buffer (get-buffer-create " *Saved Places*"))
       (delete-region (point-min) (point-max))
       (when save-place-forget-unreadable-files
@@ -233,10 +227,8 @@ may have changed\) back to `save-place-alist'."
 	(condition-case nil
 	    ;; Don't use write-file; we don't want this buffer to visit it.
             (write-region (point-min) (point-max) file)
-	  (file-error (message "Can't write %s" file)))
-        (kill-buffer (current-buffer))
-        (unless save-place-quiet
-          (message "Saving places to %s...done" file))))))
+	  (file-error (message "Saving places: can't write %s" file)))
+        (kill-buffer (current-buffer))))))
 
 (defun load-save-place-alist-from-file ()
   (if (not save-place-loaded)
@@ -247,8 +239,6 @@ may have changed\) back to `save-place-alist'."
           ;; load it if it exists:
           (if (file-readable-p file)
               (save-excursion
-                (unless save-place-quiet
-                  (message "Loading places from %s..." file))
                 ;; don't want to use find-file because we have been
                 ;; adding hooks to it.
                 (set-buffer (get-buffer-create " *Saved Places*"))
@@ -276,9 +266,7 @@ may have changed\) back to `save-place-alist'."
                             (setq count (1+ count)))
                           (setq s (cdr s))))))
 
-                (kill-buffer (current-buffer))
-                (unless save-place-quiet
-                  (message "Loading places from %s...done" file))))
+                (kill-buffer (current-buffer))))
           nil))))
 
 (defun save-places-to-alist ()
