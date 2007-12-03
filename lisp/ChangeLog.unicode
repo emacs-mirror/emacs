@@ -1,3 +1,8 @@
+2007-12-03  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (x-complement-fontset-spec): Use
+	font-spec.
+
 2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (otf-script-alist): Make all otf tags
