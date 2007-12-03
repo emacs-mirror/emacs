@@ -626,6 +626,7 @@ make_process (name)
   XSETFASTINT (p->tick, 0);
   XSETFASTINT (p->update_tick, 0);
   p->pid = 0;
+  p->pty_flag = 0;
   p->raw_status_new = 0;
   p->status = Qrun;
   p->mark = Fmake_marker ();
