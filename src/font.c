@@ -1868,63 +1868,6 @@ font_prepare_composition (cmp, f)
   return cmp->font;
 }
 
-int
-font_gstring_produce (old, from, to, new, idx, code, n)
-     Lisp_Object old;
-     int from, to;
-     Lisp_Object new;
-     int idx;
-     unsigned *code;
-     int n;
-{
-  Lisp_Object min_idx, max_idx;
-  int i;
-
-  if (idx + n > ASIZE (new))
-    return -1;
-  if (from == to)
-    {
-      if (from == 0)
-	{
-	  min_idx = make_number (0);
-	  max_idx = make_number (1);
-	}
-      else
-	{
-	  min_idx = AREF (AREF (old, from - 1), 0);
-	  max_idx = AREF (AREF (old, from - 1), 1);
-	}
-    }
-  else if (from + 1 == to)
-    {
-      min_idx = AREF (AREF (old, from), 0);
-      max_idx = AREF (AREF (old, from), 1);
-    }
-  else
-    {
-      int min_idx_i = XINT (AREF (AREF (old, from), 0));
-      int max_idx_i = XINT (AREF (AREF (old, from), 1));
-
-      for (i = from + 1; i < to; i++)
-	{
-	  if (min_idx_i > XINT (AREF (AREF (old, i), 0)))
-	    min_idx_i = XINT (AREF (AREF (old, i), 0));
-	  if (max_idx_i < XINT (AREF (AREF (old, i), 1)))
-	    max_idx_i = XINT (AREF (AREF (old, i), 1));
-	}
-      min_idx = make_number (min_idx_i);
-      max_idx = make_number (max_idx_i);
-    }
-
-  for (i = 0; i < n; i++)
-    {
-      ASET (AREF (new, idx + i), 0, min_idx);
-      ASET (AREF (new, idx + i), 1, max_idx);
-      ASET (AREF (new, idx + i), 2, make_number (code[i]));
-    }
-
-  return 0;
-}
 
 /* Font sorting */
 
