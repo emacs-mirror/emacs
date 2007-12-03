@@ -250,9 +250,7 @@ Boston, MA 02110-1301, USA.  */
 #include "termchar.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
-#ifdef USE_FONT_BACKEND
 #include "font.h"
-#endif	/* USE_FONT_BACKEND */
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 #ifdef HAVE_X_WINDOWS
@@ -7277,9 +7275,8 @@ face_fontset (attrs)
    (if specified).
 
    When we are choosing a font for ASCII characters, FONT-SPEC is
-   always nil.  Otherwise FONT-SPEC is a list
-	[ FAMILY WEIGHT SLANT SWIDTH ADSTYLE REGISTRY ]
-   or a string specifying a font name pattern.
+   always nil.  Otherwise FONT-SPEC is an object created by
+   `font-spec' or a string specifying a font name pattern.
 
    If NEEDS_OVERSTRIKE is not NULL, a boolean is returned in it to
    indicate whether the resulting font should be drawn using
@@ -7318,10 +7315,12 @@ choose_face_font (f, attrs, font_spec, needs_overstrike)
   if (VECTORP (font_spec))
     {
       pattern = Qnil;
-      if (STRINGP (AREF (font_spec, FONT_SPEC_FAMILY_INDEX)))
-	family = Fcons (AREF (font_spec, FONT_SPEC_FAMILY_INDEX), family);
-      adstyle = AREF (font_spec, FONT_SPEC_ADSTYLE_INDEX);
-      registry = Fcons (AREF (font_spec, FONT_SPEC_REGISTRY_INDEX), Qnil);
+      if (! NILP (AREF (font_spec, FONT_FAMILY_INDEX)))
+	family = Fcons (SYMBOL_NAME (AREF (font_spec, FONT_FAMILY_INDEX)),
+			family);
+      adstyle = AREF (font_spec, FONT_ADSTYLE_INDEX);
+      registry = Fcons (SYMBOL_NAME (AREF (font_spec, FONT_REGISTRY_INDEX)),
+			Qnil);
     }
   else if (STRINGP (font_spec))
     {
