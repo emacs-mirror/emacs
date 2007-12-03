@@ -157,8 +157,9 @@ string.
 
 @defun dbus-get-name-owner bus service
 For a given service, registered at D-Bus @var{bus} under the name
-@var{service}, the unique name of the name owner is returned.  The result is a
-string, or @code{nil} when there exist no name owner of @var{service}.
+@var{service}, the unique name of the name owner is returned.  The
+result is a string, or @code{nil} when there exist no name owner of
+@var{service}.
 
 @var{bus} must be either the symbol @code{:system} or the symbol
 @code{:session}.  @var{service} must be a known service name as
@@ -379,7 +380,7 @@ emulate the @code{lshal} command on GNU/Linux systems:
     (message "  %s = %S"
              (car properties) (or (caar (cdr properties)) ""))))
 
-@result{} "udi = /org/freedesktop/Hal/devices/computer
+@print{} "udi = /org/freedesktop/Hal/devices/computer
       info.addons = (\"hald-addon-acpi\")
       info.bus = \"unknown\"
       info.product = \"Computer\"

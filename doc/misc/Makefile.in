@@ -44,6 +44,7 @@ INFO_TARGETS = \
 	$(infodir)/calc \
 	$(infodir)/ccmode \
 	$(infodir)/cl \
+	$(infodir)/dbus \
 	$(infodir)/dired-x \
 	$(infodir)/ebrowse \
 	$(infodir)/ediff \
@@ -79,16 +80,13 @@ INFO_TARGETS = \
 	$(infodir)/widget \
 	$(infodir)/woman
 
-ifeq (@DBUS_INFO@, dbus)
-  INFO_TARGETS += $(infodir)/dbus
-endif
-
 DVI_TARGETS = \
 	ada-mode.dvi \
 	autotype.dvi \
 	calc.dvi \
 	cc-mode.dvi \
 	cl.dvi \
+	dbus.dvi \
 	dired-x.dvi \
 	ebrowse.dvi \
 	ediff.dvi \
@@ -123,10 +121,6 @@ DVI_TARGETS = \
 	viper.dvi \
 	widget.dvi \
 	woman.dvi
-
-ifeq (@DBUS_INFO@, dbus)
-  DVI_TARGETS += dbus.dvi
-endif
 
 
 TEXI2DVI = texi2dvi
