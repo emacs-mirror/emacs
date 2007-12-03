@@ -905,10 +905,15 @@ from true window top and bottom."
     (recenter))
    (t ;; repeat: loop through various options.
     (setq recenter-last-op
-          (ecase recenter-last-op
-            (middle (recenter scroll-conservatively)		'top)
-            (top    (recenter (1- (- scroll-conservatively)))	'bottom)
-            (bottom (recenter)					'middle))))))
+	  (cond ((eq recenter-last-op 'middle)
+		 (recenter scroll-conservatively)
+		 'top)
+		((eq recenter-last-op 'top)
+		 (recenter (1- (- scroll-conservatively)))
+		 'bottom)
+		((eq recenter-last-op 'bottom)
+		 (recenter)
+		 'middle))))))
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
 
