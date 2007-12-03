@@ -1221,13 +1221,11 @@ struct glyph_string
      *clip_tail, not including their overhangs.  */
   struct glyph_string *clip_head, *clip_tail;
 
-#ifdef USE_FONT_BACKEND
   /* The current clipping areas.  */
   NativeRectangle clip[2];
 
   /* Number of clipping areas. */
   int num_clips;
-#endif	/* USE_FONT_BACKEND */
 
   struct glyph_string *next, *prev;
 };
@@ -1485,9 +1483,7 @@ struct face
      reallocated.  */
   int font_info_id;
 
-#ifdef USE_FONT_BACKEND
   struct font_info *font_info;
-#endif	/* USE_FONT_BACKEND */
 
   /* Fontset ID if for this face's fontset.  Non-ASCII faces derived
      from the same ASCII face have the same fontset.  */
@@ -1572,10 +1568,8 @@ struct face
      attributes except the font.  */
   struct face *ascii_face;
 
-#ifdef USE_FONT_BACKEND
   /* Extra member that a font-driver uses privately.  */
   void *extra;
-#endif	/* USE_FONT_BACKEND */
 };
 
 
