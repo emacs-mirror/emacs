@@ -36,6 +36,42 @@ Each element of this list holds the arguments to one call to `defcustom'.")
   (setq custom-declare-variable-list
 	(cons arguments custom-declare-variable-list)))
 
+(defmacro declare-function (fn file &optional arglist fileonly)
+  "Tell the byte-compiler that function FN is defined, in FILE.
+Optional ARGLIST is the argument list used by the function.  The
+FILE argument is not used by the byte-compiler, but by the
+`check-declare' package, which checks that FILE contains a
+definition for FN.  ARGLIST is used by both the byte-compiler and
+`check-declare' to check for consistency.
+
+FILE can be either a Lisp file (in which case the \".el\"
+extension is optional), or a C file.  C files are expanded
+relative to the Emacs \"src/\" directory.  Lisp files are
+searched for using `locate-library', and if that fails they are
+expanded relative to the location of the file containing the
+declaration.  A FILE with an \"ext:\" prefix is an external file.
+`check-declare' will check such files if they are found, and skip
+them without error if they are not.
+
+FILEONLY non-nil means that `check-declare' will only check that
+FILE exists, not that it defines FN.  This is intended for
+function-definitions that `check-declare' does not recognize, e.g.
+`defstruct'.
+
+To specify a value for FILEONLY without passing an argument list,
+set ARGLIST to `t'.  This is necessary because `nil' means an
+empty argument list, rather than an unspecified one.
+
+Note that for the purposes of `check-declare', this statement
+must be the first non-whitespace on a line, and everything up to
+the end of FILE must be all on the same line.  For example:
+
+\(declare-function c-end-of-defun \"progmodes/cc-cmds.el\"
+                  \(&optional arg))
+
+For more information, see Info node `elisp(Declaring Functions)'."
+  ;; Does nothing - byte-compile-declare-function does the work.
+  nil)
 
 ;;;; Basic Lisp macros.
 
