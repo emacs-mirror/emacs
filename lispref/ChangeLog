@@ -1,3 +1,7 @@
+2007-12-03  Richard Stallman  <rms@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add link to Hooks for Loading.
+
 2007-11-29  Richard Stallman  <rms@gnu.org>
 
 	* customize.texi (Composite Types): Document `group' type.
