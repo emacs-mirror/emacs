@@ -1,5 +1,24 @@
 2007-12-03  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* xfaces.c [HAVE_WINDOW_SYSTEM]: Include "font.h" unconditionally.
+	(choose_face_font): Accept new form of font-spec.
+
+	* frame.h (font_driver_list): Declare it unconditionally.
+	(struct frame): Define members font_driver_list and font_data_list
+	unconditionally.
+
+	* fontset.c: Include "font.h" unconditionally.
+	(generate_ascii_font_name): Use font_parse_xlfd and
+	font_unparse_xlfd.
+	(Fset_fontset_font): Accept a font-spec object.
+
+	* font.c (font_unparse_xlfd): If pixel_size is zero, make the
+	PIXEL_SIZE part a wild card.
+
+	* dispextern.h (struct glyph_string): Define members clip and
+	num_clips unconditionally.
+	(struct face): Define members font_info and extra unconditionally.
+
 	* ftfont.c (ftfont_open): Set members maybe_otf and otf of
 	ftfont_info only when HAVE_LIBOTF is defined.
 
