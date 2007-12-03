@@ -92,9 +92,13 @@ extern Lisp_Object composition_temp;
    : (composition_temp = XCDR (XCAR (prop)),				\
       (NILP (composition_temp)						\
        ? COMPOSITION_RELATIVE						\
-       : ((INTEGERP (composition_temp) || STRINGP (composition_temp))	\
-	  ? COMPOSITION_WITH_ALTCHARS					\
-	  : COMPOSITION_WITH_RULE_ALTCHARS))))
+       : (INTEGERP (composition_temp) || STRINGP (composition_temp))	\
+       ? COMPOSITION_WITH_ALTCHARS					\
+       : (VECTORP (composition_temp)					\
+	  && ASIZE (composition_temp) >= 2				\
+	  && VECTORP (AREF (composition_temp, 0)))			\
+       ? COMPOSITION_WITH_GLYPH_STRING					\
+       : COMPOSITION_WITH_RULE_ALTCHARS)))
 
 /* Return 1 if the composition is valid.  It is valid if length of
    the composition equals to (END - START).  */
