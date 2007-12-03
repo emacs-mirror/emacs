@@ -2264,13 +2264,9 @@ dnl other platforms.  Support for higher D-Bus versions but 1.0 is
 dnl also not configured.
 HAVE_DBUS=no
 if test "${with_dbus}" = "yes"; then
-   AC_CHECK_LIB(dbus-1, dbus_bus_get, HAVE_DBUS=yes)
+   PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.0, HAVE_DBUS=yes, HAVE_DBUS=no)
    if test "$HAVE_DBUS" = yes; then
       AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
-      DBUS_CFLAGS="-I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include"
-      AC_SUBST(DBUS_CFLAGS)
-      DBUS_LIBS="-ldbus-1"
-      AC_SUBST(DBUS_LIBS)
    fi
 fi
 
