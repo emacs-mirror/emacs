@@ -1,3 +1,9 @@
+2007-12-03  Magnus Henoch  <mange@freemail.hu>
+
+	* configure.in: Use PKG_CHECK_MODULES to check for D-Bus.
+
+	* configure: Regenerate.
+
 2007-12-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* configure.in: No need for DBUS_INFO anymore.
