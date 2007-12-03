@@ -32,6 +32,7 @@
 ;;; Code:
 
 (require 'mh-e)
+(require 'mh-acros)
 
 (mh-require-cl)
 
