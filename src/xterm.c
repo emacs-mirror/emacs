@@ -8427,7 +8427,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
    on the root window for frame F contains ATOMNAME.
    This is how a WM check shall be done according to the Window Manager
    Specification/Extended Window Manager Hints at
-   http://freedesktop.org/wiki/Standards_2fwm_2dspec.  */
+   http://freedesktop.org/wiki/Specifications/wm-spec.  */
 
 static int
 wm_supports (f, atomname)
@@ -8960,7 +8960,7 @@ x_ewmh_activate_frame (f)
      FRAME_PTR f;
 {
   /* See Window Manager Specification/Extended Window Manager Hints at
-     http://freedesktop.org/wiki/Standards_2fwm_2dspec  */
+     http://freedesktop.org/wiki/Specifications/wm-spec  */
 
   const char *atom = "_NET_ACTIVE_WINDOW";
   if (f->async_visible && wm_supports (f, atom))
