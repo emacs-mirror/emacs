@@ -1,3 +1,9 @@
+2007-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ediff-util.el (ediff-setup):
+	* ediff-diff.el (ediff-prepare-error-list): Disable undo for
+	ediff-error-buffer.
+
 2007-12-03  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-initiate-display): Use `doc-view-mode-p'.

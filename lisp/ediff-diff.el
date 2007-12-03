@@ -343,6 +343,7 @@ one optional arguments, diff-number to refine.")
 	    (get-buffer-create (ediff-unique-buffer-name
 				"*ediff-errors" "*"))))
   (ediff-with-current-buffer ediff-error-buffer
+    (setq buffer-undo-list t)
     (erase-buffer)
     (insert (ediff-with-current-buffer diff-buff (buffer-string)))
     (goto-char (point-min))

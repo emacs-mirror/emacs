@@ -396,6 +396,9 @@ to invocation.")
       (setq ediff-error-buffer
 	    (get-buffer-create (ediff-unique-buffer-name "*ediff-errors" "*")))
 
+      (with-current-buffer ediff-error-buffer
+	(setq buffer-undo-list t))
+
       (ediff-with-current-buffer buffer-A (ediff-strip-mode-line-format))
       (ediff-with-current-buffer buffer-B (ediff-strip-mode-line-format))
       (if ediff-3way-job
