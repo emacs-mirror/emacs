@@ -1,3 +1,11 @@
+2007-12-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: No need for DBUS_INFO anymore.
+
+	* configure: Regenerate.
+
+	* Makefile.in (INFO_FILES): Use dbus unconditionally.
+
 2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* configure.in: Add D-Bus checks.  D-Bus is disabled by default.

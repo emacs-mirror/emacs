@@ -694,7 +694,6 @@ GTK_CFLAGS
 GTK_LIBS
 DBUS_CFLAGS
 DBUS_LIBS
-DBUS_INFO
 XFT_CFLAGS
 XFT_LIBS
 ALLOCA
@@ -12080,10 +12079,8 @@ _ACEOF
 
       DBUS_LIBS="-ldbus-1"
 
-      DBUS_INFO="dbus"
    fi
 fi
-
 
 ### Link with -lXft if available to work around a bug.
 HAVE_XFT=maybe
@@ -24668,7 +24665,6 @@ GTK_CFLAGS!$GTK_CFLAGS$ac_delim
 GTK_LIBS!$GTK_LIBS$ac_delim
 DBUS_CFLAGS!$DBUS_CFLAGS$ac_delim
 DBUS_LIBS!$DBUS_LIBS$ac_delim
-DBUS_INFO!$DBUS_INFO$ac_delim
 XFT_CFLAGS!$XFT_CFLAGS$ac_delim
 XFT_LIBS!$XFT_LIBS$ac_delim
 ALLOCA!$ALLOCA$ac_delim
@@ -24687,6 +24683,7 @@ lispdir!$lispdir$ac_delim
 locallisppath!$locallisppath$ac_delim
 lisppath!$lisppath$ac_delim
 x_default_search_path!$x_default_search_path$ac_delim
+etcdir!$etcdir$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -24728,7 +24725,6 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
-etcdir!$etcdir$ac_delim
 archlibdir!$archlibdir$ac_delim
 bitmapdir!$bitmapdir$ac_delim
 gamedir!$gamedir$ac_delim
@@ -24745,7 +24741,7 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 15; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 14; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

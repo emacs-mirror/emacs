@@ -2271,12 +2271,8 @@ if test "${with_dbus}" = "yes"; then
       AC_SUBST(DBUS_CFLAGS)
       DBUS_LIBS="-ldbus-1"
       AC_SUBST(DBUS_LIBS)
-      DBUS_INFO="dbus"
    fi
 fi
-dnl This must be substituted always, because the top level Makefile
-dnl cannot check for $HAVE_DBUS.
-AC_SUBST(DBUS_INFO)
 
 ### Link with -lXft if available to work around a bug.
 HAVE_XFT=maybe

@@ -138,11 +138,11 @@ man1dir=$(mandir)/man1
 # since there are now many packages documented with the texinfo
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=@infodir@
-INFO_FILES=ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq	\
-           eintr elisp emacs emacs-mime erc eshell eudc flymake forms	\
-           gnus idlwave info message mh-e newsticker nxml-mode org	\
-           pcl-cvs pgg rcirc reftex remember sc ses sieve speedbar	\
-           tramp vip viper widget woman smtpmail url @DBUS_INFO@
+INFO_FILES=ada-mode autotype calc ccmode cl dbus dired-x ebrowse ediff	\
+           efaq eintr elisp emacs emacs-mime erc eshell eudc flymake	\
+           forms gnus idlwave info message mh-e newsticker nxml-mode	\
+           org pcl-cvs pgg rcirc reftex remember sc ses sieve speedbar	\
+           tramp vip viper widget woman smtpmail url
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
