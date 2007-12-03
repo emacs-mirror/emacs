@@ -735,8 +735,10 @@ ftfont_open (f, entity, pixel_size)
   if (! ftfont_info)
     return NULL;
   ftfont_info->ft_size = ft_size;
+#ifdef HAVE_LIBOTF
   ftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
   ftfont_info->otf = NULL;
+#endif	/* HAVE_LIBOTF */
 
   font = (struct font *) ftfont_info;
   font->format = ftfont_font_format (pattern);
