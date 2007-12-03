@@ -54,7 +54,7 @@ struct xftfont_info
 #ifdef HAVE_LIBOTF
   int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
-#endif
+#endif	/* HAVE_LIBOTF */
 };
 
 /* Structure pointed by (struct face *)->extra  */
@@ -273,7 +273,7 @@ xftfont_open (f, entity, pixel_size)
 #ifdef HAVE_LIBOTF
   xftfont_info->maybe_otf = xftfont_info->ft_face->face_flags & FT_FACE_FLAG_SFNT;
   xftfont_info->otf = NULL;
-#endif
+#endif	/* HAVE_LIBOTF */
 
   font = (struct font *) xftfont_info;
   font->format = ftfont_font_format (xftfont->pattern);
