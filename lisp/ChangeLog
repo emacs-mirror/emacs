@@ -1,5 +1,9 @@
 2007-12-03  Richard Stallman  <rms@gnu.org>
 
+	* subr.el (declare-function): Moved from byte-run.el.
+
+	* emacs-lisp/byte-run.el (declare-function): Moved to subr.el
+
 	* window.el (recenter-top-bottom): Don't use `ecase'.
 
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
