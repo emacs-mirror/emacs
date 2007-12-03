@@ -1,3 +1,7 @@
+2007-12-02  Magnus Henoch  <mange@freemail.hu>
+
+	* process.c (make_process): Initialize pty_flag to 0.
+
 2007-12-02  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (xbm_load) [WINDOWSNT]: Shuffle the bits of directly
