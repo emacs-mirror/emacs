@@ -1,5 +1,9 @@
 2007-12-04  Glenn Morris  <rgm@gnu.org>
 
+	* password-cache.el: Move here from gnus/password.el.
+	(top-level): Don't require cl when compiling.
+	(password-read-and-add): Doc fix.  Make obsolete.
+
 	* emulation/cua-base.el (top-level): Move (provide 'cua-base) to end.
 	No longer provide 'cua.  Don't require cua-rect, cua-gmrk when
 	compiling.
