@@ -15,10 +15,6 @@
 	* mml-sec.el, sieve-manage.el, smime.el: Require password-cache or
 	password.
 
-2007-12-03  Sam Steingold  <sds@gnu.org>
-
-	* gnus-mh.el: Require mh-acros for mh-require-cl.
-
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* sasl-cram.el, sasl-digest.el, sasl-ntlm.el, sasl.el:

@@ -37,7 +37,6 @@
 
 (require 'gnus)
 (require 'mh-e)
-(require 'mh-acros)
 (require 'mh-comp)
 (require 'gnus-msg)
 (require 'gnus-sum)

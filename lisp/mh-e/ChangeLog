@@ -1,7 +1,3 @@
-2007-12-03  Sam Steingold  <sds@gnu.org>
-
-	* mh-alias.el: Require mh-acros for mh-require-cl.
-
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* mh-mime.el (mail-strip-quoted-names): Autoload it.
