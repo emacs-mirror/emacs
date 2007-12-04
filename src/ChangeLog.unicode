@@ -1,3 +1,8 @@
+2007-12-04  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* composite.h (enum composition_method): Define
+	COMPOSITION_WITH_GLYPH_STRING unconditionally.
+
 2007-12-03  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c [HAVE_WINDOW_SYSTEM]: Include "font.h" unconditionally.
