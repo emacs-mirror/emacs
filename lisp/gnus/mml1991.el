@@ -327,10 +327,7 @@ Whether the passphrase is cached at all is controlled by
   (autoload 'epg-sign-string "epg")
   (autoload 'epg-encrypt-string "epg")
   (autoload 'epg-configuration "epg-config")
-  (autoload 'epg-expand-group "epg-config")
-  (autoload 'password-read "password")
-  (autoload 'password-cache-add "password")
-  (autoload 'password-cache-remove "password"))
+  (autoload 'epg-expand-group "epg-config"))
 
 (defvar mml1991-epg-secret-key-id-list nil)
 
