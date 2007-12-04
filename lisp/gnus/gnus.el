@@ -43,6 +43,8 @@
 (defvar gnus-spam-autodetect-methods)
 (defvar gnus-spam-newsgroup-contents)
 (defvar gnus-spam-process-destinations)
+(defvar gnus-spam-resend-to)
+(defvar gnus-ham-resend-to)
 (defvar gnus-spam-process-newsgroups)
 
 
