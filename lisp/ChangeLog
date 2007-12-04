@@ -1,3 +1,8 @@
+2007-12-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-save-history): Set the `coding' local
+	variable in the first line of the file.
+
 2007-12-04  Glenn Morris  <rgm@gnu.org>
 
 	* password-cache.el: Move here from gnus/password.el.
@@ -27,8 +32,8 @@
 
 	* emulation/viper-init.el (viper-replace-overlay-cursor-color)
 	(viper-insert-state-cursor-color, viper-emacs-state-cursor-color)
-	(viper-vi-state-cursor-color): Consolidate
-	make-variable-frame-local calls.
+	(viper-vi-state-cursor-color):
+	Consolidate make-variable-frame-local calls.
 
 	* net/eudcb-bbdb.el (bbdb-address-streets): Declare as a function.
 	(eudc-bbdb-extract-addresses): Use bbdb-address-streets rather
@@ -46,15 +51,14 @@
 
 2007-12-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* ediff-util.el (ediff-setup):
-	* ediff-diff.el (ediff-prepare-error-list): Disable undo for
-	ediff-error-buffer.
+	* ediff-diff.el (ediff-prepare-error-list):
+	* ediff-util.el (ediff-setup): Disable undo for ediff-error-buffer.
 
 2007-12-03  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-initiate-display): Use `doc-view-mode-p'.
-	(doc-view-current-overlay, doc-view-pending-cache-flush): Add doc
-	string.
+	(doc-view-current-overlay, doc-view-pending-cache-flush):
+	Add doc string.
 
 2007-12-03  Richard Stallman  <rms@gnu.org>
 
@@ -79,8 +83,8 @@
 
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-declare-function): Reverse
-	branches of if statement.
+	* emacs-lisp/bytecomp.el (byte-compile-declare-function):
+	Reverse branches of if statement.
 
 	* emulation/viper-cmd.el (top-level): Don't require advice.
 	Don't load viper-util, viper-keym, viper-mous, viper-macs,
@@ -136,7 +140,7 @@
 
 	* progmodes/python.el (top-level): Don't require cl when compiling.
 
-2007-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
+2007-12-02  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Explicitly set
 	encoding for aspell process and for communication with it.
