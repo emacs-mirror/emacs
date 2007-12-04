@@ -117,6 +117,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have /usr/lib/crti.o. */
 #undef HAVE_CRTIN
 
+/* Define to 1 if using D-Bus. */
+#undef HAVE_DBUS
+
 /* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
    don't. */
 #undef HAVE_DECL_SYS_SIGLIST
@@ -237,9 +240,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
-
-/* Define to 1 if using D-BUS. */
-#undef HAVE_DBUS
 
 /* Define to 1 if using GTK. */
 #undef HAVE_GTK
