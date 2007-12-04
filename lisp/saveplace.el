@@ -205,13 +205,16 @@ may have changed\) back to `save-place-alist'."
       (setq save-place-alist (cdr save-place-alist)))))
 
 (defun save-place-alist-to-file ()
-  (let ((file (expand-file-name save-place-file)))
+  (let ((file (expand-file-name save-place-file))
+        (coding-system-for-write 'emacs-mule))
     (save-excursion
       (message "Saving places to %s..." file)
       (set-buffer (get-buffer-create " *Saved Places*"))
       (delete-region (point-min) (point-max))
       (when save-place-forget-unreadable-files
 	(save-place-forget-unreadable-files))
+      (insert (format ";;; -*- coding: %s -*-\n"
+                      (symbol-name coding-system-for-write)))
       (let ((print-length nil)
             (print-level nil))
         (print save-place-alist (current-buffer)))
@@ -224,7 +227,7 @@ may have changed\) back to `save-place-alist'."
                t))))
 	(condition-case nil
 	    ;; Don't use write-file; we don't want this buffer to visit it.
-	    (write-region (point-min) (point-max) file)
+            (write-region (point-min) (point-max) file)
 	  (file-error (message "Can't write %s" file)))
         (kill-buffer (current-buffer))
         (message "Saving places to %s...done" file)))))

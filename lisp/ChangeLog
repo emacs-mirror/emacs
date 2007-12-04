@@ -1,3 +1,10 @@
+2007-12-04  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el (save-place-alist-to-file): Save with 'emacs-mule'
+	coding system.  This ports revisions 1.40 and 1.41 over to the
+	EMACS_22_BASE branch, but with the right coding system for Emacs
+	22 to reliably record filenames.  Suggested by Eli Zaretskii.
+
 2007-12-01  Richard Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-type): Doc fix.
