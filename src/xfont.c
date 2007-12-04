@@ -38,8 +38,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* X core font driver.  */
 
-Lisp_Object Qx;
-
 /* Prototypes of support functions.  */
 extern void x_clear_errors P_ ((Display *));
 
@@ -822,7 +820,6 @@ xfont_draw (s, from, to, x, y, with_background)
 void
 syms_of_xfont ()
 {
-  DEFSYM (Qx, "x");
   xfont_driver.type = Qx;
   register_font_driver (&xfont_driver, NULL);
 }
