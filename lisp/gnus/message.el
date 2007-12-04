@@ -3694,6 +3694,8 @@ This function uses `mail-citation-hook' if that is non-nil."
   "Cite function in the standard Message manner."
   (message-cite-original-1 nil))
 
+(defvar gnus-extract-address-components)
+
 (defun message-insert-formatted-citation-line (&optional from date)
   "Function that inserts a formatted citation line.
 
