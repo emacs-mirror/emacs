@@ -182,6 +182,8 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
+** FIXME add details of new packages imported from lisp/gnus.
+
 ** The package doc-view.el has been added.  It supports viewing of PDF,
 PostScript and DVI documents inside an Emacs buffer by converting the
 document to a set of PNG images first.  One can also search for a
