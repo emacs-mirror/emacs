@@ -117,12 +117,14 @@ struct font_callback_data
 
 /* Handles the problem that EnumFontFamiliesEx will not return all
    style variations if the font name is not specified.  */
-static void list_all_matching_fonts P_ ((struct font_callback_data *match_data));
+static void list_all_matching_fonts P_ ((struct font_callback_data *match));
 
 
 /* MingW headers only define this when _WIN32_WINNT >= 0x0500, but we
    target older versions.  */
+#ifndef GGI_MARK_NONEXISTING_GLYPHS
 #define GGI_MARK_NONEXISTING_GLYPHS 1
+#endif
 
 static int
 memq_no_quit (elt, list)
@@ -503,7 +505,14 @@ w32font_text_extents (font, code, nglyphs, metrics)
    Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
    position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND
    is nonzero, fill the background in advance.  It is assured that
-   WITH_BACKGROUND is zero when (FROM > 0 || TO < S->nchars).  */
+   WITH_BACKGROUND is zero when (FROM > 0 || TO < S->nchars).
+
+   TODO: Currently this assumes that the colors and fonts are already
+   set in the DC. This seems to be true now, but maybe only due to
+   the old font code setting it up. It may be safer to resolve faces
+   and fonts in here and set them explicitly
+*/
+
 static int
 w32font_draw (s, from, to, x, y, with_background)
      struct glyph_string *s;
@@ -972,9 +981,11 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
       && font_matches_spec (font_type, physical_font,
                             match_data->orig_font_spec)
       /* Avoid Windows substitution so we can control substitution with
-         alternate-fontname-alist.  */
-      && !strnicmp (&logical_font->elfFullName,
-                    &match_data->pattern.lfFaceName, LF_FACESIZE))
+         alternate-fontname-alist.  Full name may have Bold and/or Italic
+         appended, so only compare the beginning of the name.  */
+      && !strnicmp ((char *)&logical_font->elfFullName,
+                    (char *)&match_data->pattern.lfFaceName,
+                    min (strlen(&match_data->pattern.lfFaceName), LF_FACESIZE)))
     {
       Lisp_Object entity
         = w32_enumfont_pattern_entity (match_data->frame, logical_font,
