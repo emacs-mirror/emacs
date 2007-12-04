@@ -40,10 +40,8 @@ enum composition_method {
   COMPOSITION_WITH_ALTCHARS,
   /* Compose by specified composition rules with alternate characters.  */
   COMPOSITION_WITH_RULE_ALTCHARS,
-#ifdef USE_FONT_BACKEND
   /* Compose by specified lispy glyph-string.  */
   COMPOSITION_WITH_GLYPH_STRING,
-#endif  /* USE_FONT_BACKEND */
   /* This is not a method.  */
   COMPOSITION_NO
 };
