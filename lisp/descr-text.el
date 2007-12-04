@@ -583,33 +583,39 @@ as well as widgets, buttons, overlays, and text properties."
 	    (if (cadr composition)
 		(insert " with the following character(s) \""
 			(cadr composition) "\"")))
-	  (insert " by the rule:\n\t("
-		  (mapconcat (lambda (x)
-			       (if (consp x) (format "%S" x)
-				 (if (= x ?\t)
-				     (single-key-description x)
-				   (string ?? x))))
-			     (nth 2 composition)
-			     " ")
-		  ")")
-	  (insert  "\nThe component character(s) are displayed by ")
-	  (if (display-graphic-p (selected-frame))
+	  (if (and (vectorp (nth 2 composition))
+		   (vectorp (aref (nth 2 composition) 0)))
 	      (progn
-		(insert "these fonts (glyph codes):")
-		(dolist (elt component-chars)
-		  (if (/= (car elt) ?\t)
-		      (insert "\n " (car elt) ?:
-			      (propertize " " 'display '(space :align-to 5))
-			      (if (cdr elt)
-				  (format "%s (#x%02X)" (cadr elt) (cddr elt))
-				"-- no font --")))))
-	    (insert "these terminal codes:")
-	    (dolist (elt component-chars)
-	      (insert "\n  " (car elt) ":"
-		      (propertize " " 'display '(space :align-to 4))
-		      (or (cdr elt) "-- not encodable --"))))
-	  (insert "\nSee the variable `reference-point-alist' for "
-		  "the meaning of the rule.\n"))
+		(insert " by these glyphs:\n")
+		(mapc (lambda (x) (insert (format "  %S\n" x)))
+		      (nth 2 composition)))
+	    (insert " by the rule:\n\t("
+		    (mapconcat (lambda (x)
+				 (if (consp x) (format "%S" x)
+				   (if (= x ?\t)
+				       (single-key-description x)
+				     (string ?? x))))
+			       (nth 2 composition)
+			       " ")
+		    ")")
+	    (insert  "\nThe component character(s) are displayed by ")
+	    (if (display-graphic-p (selected-frame))
+		(progn
+		  (insert "these fonts (glyph codes):")
+		  (dolist (elt component-chars)
+		    (if (/= (car elt) ?\t)
+			(insert "\n " (car elt) ?:
+				(propertize " " 'display '(space :align-to 5))
+				(if (cdr elt)
+				    (format "%s (#x%02X)" (cadr elt) (cddr elt))
+				  "-- no font --")))))
+	      (insert "these terminal codes:")
+	      (dolist (elt component-chars)
+		(insert "\n  " (car elt) ":"
+			(propertize " " 'display '(space :align-to 4))
+			(or (cdr elt) "-- not encodable --"))))
+	    (insert "\nSee the variable `reference-point-alist' for "
+		    "the meaning of the rule.\n")))
 
 	(if (not describe-char-unidata-list)
 	    (insert "\nCharacter code properties are not shown: ")
