@@ -1,3 +1,36 @@
+2007-12-04  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/cua-base.el (top-level): Move (provide 'cua-base) to end.
+	No longer provide 'cua.  Don't require cua-rect, cua-gmrk when
+	compiling.
+	(cua-set-rectangle-mark): Add doc string to autoload.
+	(cua--rectangle, cua--last-killed-rectangle)
+	(cua--global-mark-active): Always define for compiler.
+	(cua-copy-rectangle, cua-cut-rectangle, cua--rectangle-left)
+	(cua--delete-rectangle, cua--insert-rectangle)
+	(cua--rectangle-corner, cua--rectangle-assert)
+	(cua--insert-at-global-mark, cua--global-mark-post-command):
+	Declare as functions.
+
+	* emulation/cua-gmrk.el (top-level): Move provide to end.
+
+	* emulation/cua-rect.el (top-level): Move provide to end.
+	Don't require cua-gmrk when compiling.
+	(cua--cut-rectangle-to-global-mark)
+	(cua--copy-rectangle-to-global-mark): Declare as functions.
+
+	* emulation/viper-init.el (viper-replace-overlay-cursor-color)
+	(viper-insert-state-cursor-color, viper-emacs-state-cursor-color)
+	(viper-vi-state-cursor-color): Consolidate
+	make-variable-frame-local calls.
+
+	* net/eudcb-bbdb.el (bbdb-address-streets): Declare as a function.
+	(eudc-bbdb-extract-addresses): Use bbdb-address-streets rather
+	than bbdb-address-street1,2,3.
+
+	* textmodes/reftex-toc.el (reftex-make-separate-toc-frame):
+	Try x-focus-frame before focus-frame.  Only try focus-frame on XEmacs.
+
 2007-12-03  Karl Fogel  <kfogel@red-bean.com>
 
 	* saveplace.el (save-place-quiet): Remove, reverting 1.39.
