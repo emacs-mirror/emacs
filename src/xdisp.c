@@ -4554,50 +4554,87 @@ handle_auto_composed_prop (it)
   if (FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val;
-      EMACS_INT pos, this_pos;
+      EMACS_INT pos, pos_byte, this_pos, start, end;
+      int c;
 
       if (STRINGP (it->string))
-	pos = IT_STRING_CHARPOS (*it);
+	{
+	  const unsigned char *s;
+
+	  pos = IT_STRING_CHARPOS (*it);
+	  pos_byte = IT_STRING_BYTEPOS (*it);
+	  s = SDATA (it->string) + pos_byte;
+	  if (STRING_MULTIBYTE (it->string))
+	    c = STRING_CHAR (s, 0);
+	  else
+	    c = *s;
+	}
       else
-	pos = IT_CHARPOS (*it);
+	{
+	  pos = IT_CHARPOS (*it);
+	  pos_byte = IT_BYTEPOS (*it);
+	  c = FETCH_CHAR (pos_byte);
+	}
       this_pos = pos;
 
-      val =Fget_char_property (make_number (pos), Qauto_composed, it->string);
-      if (! NILP (val))
+      if (get_property_and_range (pos, Qauto_composed, &val, &start, &end,
+				  it->string))
 	{
-	  Lisp_Object limit = Qnil, next;
-	  
-	  /* As Fnext_single_char_property_change is very slow, we
-	     limit the search to the current line.  */
-	  if (STRINGP (it->string))
-	    limit = make_number (SCHARS (it->string));
-	  else
-	    limit = make_number (find_next_newline_no_quit (pos, 1));
+	  Lisp_Object cmp_prop;
+	  EMACS_INT cmp_start, cmp_end;
 
-	  next = (Fnext_single_property_change
-		  (make_number (pos), Qauto_composed, it->string, limit));
-	  if (XINT (next) < XINT (limit))
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend
+	      && get_property_and_range (pos, Qcomposition, &cmp_prop,
+					 &cmp_start, &cmp_end, it->string)
+	      && cmp_start == pos
+	      && COMPOSITION_METHOD (cmp_prop) == COMPOSITION_WITH_GLYPH_STRING)
 	    {
-	      /* The current point is auto-composed, but there exist
-		 characters not yet composed beyond the auto-composed
-		 region.  There's a possiblity that the last
-		 characters in the region may be newly composed.  */
-	      int charpos = XINT (next) - 1, bytepos, c;
+	      Lisp_Object gstring = COMPOSITION_COMPONENTS (cmp_prop);
+	      Lisp_Object font_object = LGSTRING_FONT (gstring);
 
+	      if (! EQ (font_object,
+			font_at (c, pos, FACE_FROM_ID (it->f, it->face_id),
+				 it->w, it->string)))
+		/* We must re-compute the composition.  */
+		val = Qnil;
+	    }
+#endif
+	  if (! NILP (val))
+	    {
+	      EMACS_INT limit;
+
+	      /* As Fnext_single_char_property_change is very slow, we
+		 limit the search to the current line.  */
 	      if (STRINGP (it->string))
-		{
-		  bytepos = string_char_to_byte (it->string, charpos);
-		  c = SDATA (it->string)[bytepos];
-		}
+		limit = SCHARS (it->string);
 	      else
+		limit = find_next_newline_no_quit (pos, 1);
+
+	      if (end < limit)
 		{
-		  bytepos = CHAR_TO_BYTE (charpos);
-		  c = FETCH_BYTE (bytepos);
+		  /* The current point is auto-composed, but there
+		     exist characters not yet composed beyond the
+		     auto-composed region.  There's a possiblity that
+		     the last characters in the region may be newly
+		     composed.  */
+		  int charpos = end - 1, bytepos, c;
+
+		  if (STRINGP (it->string))
+		    {
+		      bytepos = string_char_to_byte (it->string, charpos);
+		      c = SDATA (it->string)[bytepos];
+		    }
+		  else
+		    {
+		      bytepos = CHAR_TO_BYTE (charpos);
+		      c = FETCH_BYTE (bytepos);
+		    }
+		  if (c != '\n')
+		    /* If the last character is not newline, it may be
+		       composed with the following characters.  */
+		    val = Qnil, pos = charpos + 1;
 		}
-	      if (c != '\n')
-		/* If the last character is not newline, it may be
-		   composed with the following characters.  */
-		val = Qnil, pos = charpos + 1;
 	    }
 	}
       if (NILP (val))
@@ -4611,45 +4648,12 @@ handle_auto_composed_prop (it)
 	  args[2] = it->string;
 #ifdef USE_FONT_BACKEND
 	  if (enable_font_backend)
-	    {
-	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
-	      int c;
-
-	      if (STRINGP (it->string))
-		{
-		  EMACS_INT pos_byte = IT_STRING_BYTEPOS (*it);
-		  const unsigned char *s = SDATA (it->string) + pos_byte;
-
-		  if (STRING_MULTIBYTE (it->string))
-		    it->c = STRING_CHAR (s, 0);
-		  else
-		    it->c = *s;
-		}
-	      else
-		{
-		  EMACS_INT pos_byte = IT_BYTEPOS (*it);
-
-		  it->c = FETCH_CHAR (pos_byte);
-		}
-	      args[3] = it->window;
-	    }
+	    args[3] = it->window;
 	  else
 #endif	/* USE_FONT_BACKEND */
 	    args[3] = Qnil;
 	  safe_call (4, args);
 	  unbind_to (count, Qnil);
-
-	  if (this_pos == pos)
-	    {
-	      val = Fget_char_property (args[1], Qauto_composed, it->string);
-	      /* Return HANDLED_RECOMPUTE_PROPS only if function composed
-		 something.  This avoids an endless loop if they failed to
-		 fontify the text for which reason ever.  */
-	      if (! NILP (val))
-		handled = HANDLED_RECOMPUTE_PROPS;
-	    }
-	  else
-	    handled = HANDLED_RECOMPUTE_PROPS;
 	}
     }
 
