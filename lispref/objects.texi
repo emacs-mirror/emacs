@@ -525,7 +525,7 @@ bit values are 2**22 for alt, 2**23 for super and 2**24 for hyper.
 
   A @dfn{symbol} in GNU Emacs Lisp is an object with a name.  The
 symbol name serves as the printed representation of the symbol.  In
-ordinary Lisp use, with one single obarray (@pxref{Creating Symbols},
+ordinary Lisp use, with one single obarray (@pxref{Creating Symbols}),
 a symbol's name is unique---no two symbols have the same name.
 
   A symbol can serve as a variable, as a function name, or to hold a
