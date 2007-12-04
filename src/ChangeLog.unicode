@@ -1,3 +1,15 @@
+2007-12-04  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_auto_composed_prop): Simplify the code.  Never
+	return HANDLED_RECOMPUTE_PROPS.
+
+2007-12-03  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_gstring_produce): Delete it.
+
+	* composite.h (COMPOSITION_METHOD): Handle
+	COMPOSITION_WITH_GLYPH_STRING.
+
 2007-12-04  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* composite.h (enum composition_method): Define
