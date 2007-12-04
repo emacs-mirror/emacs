@@ -37,3 +37,6 @@ extern Lisp_Object ftfont_shape_by_flt P_ ((Lisp_Object, struct font *,
 #endif	/* HAVE_M17N_FLT */
 
 #endif	/* EMACS_FTFONT_H */
+
+/* arch-tag: cec13d1c-7156-4997-9ebd-e989040c3d78
+   (do not change this comment) */
