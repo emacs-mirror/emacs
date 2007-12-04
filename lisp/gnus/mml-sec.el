@@ -27,7 +27,9 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'password)
+(or (require 'password-cache nil t)
+    (require 'password))
+
 (autoload 'mml2015-sign "mml2015")
 (autoload 'mml2015-encrypt "mml2015")
 (autoload 'mml1991-sign "mml1991")
