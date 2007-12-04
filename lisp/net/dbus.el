@@ -278,4 +278,5 @@ the function returns nil."
 
 (provide 'dbus)
 
+;; arch-tag: a47caf84-9162-4811-90cc-5d388e37b9bd
 ;;; dbus.el ends here

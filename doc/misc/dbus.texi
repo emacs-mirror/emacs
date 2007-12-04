@@ -558,3 +558,7 @@ from.  It is either a signal name or a method name.
 @contents
 @c End of dbus.texi
 @bye
+
+@ignore
+   arch-tag: 2eeec19d-0caf-44e0-a193-329d7f9951d8
+@end ignore
