@@ -1,3 +1,20 @@
+2007-12-04  Glenn Morris  <rgm@gnu.org>
+
+	* password.el: Move to ../password-cache.el.
+
+	* mml1991.el (password-read, password-cache-add, password-cache-remove):
+	* mml2015.el (password-read, password-cache-add, password-cache-remove):
+	* mml-smime.el (password-read, password-cache-add)
+	(password-cache-remove):
+	No need to autoload, since mml-sec requires password.
+
+	* gnus.el (gnus-spam-resend-to, gnus-ham-resend-to):
+	* message.el (gnus-extract-address-components):
+	* mml-smime.el (gnus-extract-address-components): Define for compiler.
+
+	* mml-sec.el, sieve-manage.el, smime.el: Require password-cache or
+	password.
+
 2007-12-03  Sam Steingold  <sds@gnu.org>
 
 	* gnus-mh.el: Require mh-acros for mh-require-cl.
