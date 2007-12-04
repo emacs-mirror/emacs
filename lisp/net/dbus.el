@@ -46,36 +46,76 @@
 (defconst dbus-interface-introspectable "org.freedesktop.DBus.Introspectable"
   "The interface supported by introspectable objects.")
 
+
+;;; Hash table of registered functions.
+
+(defun dbus-hash-table= (x y)
+  "Compares keys X and Y in the hash table of registered functions for D-Bus.
+See `dbus-registered-functions-table' for a description of the hash table."
+  (and
+   (listp x) (listp y)
+   ;; Bus symbol, either :system or :session.
+   (symbolp (car x)) (symbolp (car y)) (equal  (car x) (car y))
+   ;; Interface.
+   (stringp (cadr x)) (stringp (cadr y)) (string-equal  (cadr x) (cadr y))
+   ;; Member.
+   (stringp (caddr x)) (stringp (caddr y)) (string-equal  (caddr x) (caddr y))))
+
+(define-hash-table-test 'dbus-hash-table-test
+  'dbus-hash-table= 'sxhash)
+
+(setq dbus-registered-functions-table
+      (make-hash-table :test 'dbus-hash-table-test))
+
+
+;;; D-Bus events.
+
 (defun dbus-check-event (event)
   "Checks whether EVENT is a well formed D-Bus event.
 EVENT is a list which starts with symbol `dbus-event':
 
-     (dbus-event SYMBOL SERVICE PATH &rest ARGS)
+     (dbus-event HANDLER BUS SERVICE PATH INTERFACE MEMBER &rest ARGS)
 
-SYMBOL is the interned Lisp symbol which has been generated
-during signal registration.  SERVICE and PATH are the unique name
-and the object path of the D-Bus object emitting the signal.
-ARGS are the arguments passed to the corresponding handler.
+HANDLER is the function which has been registered for this
+signal.  BUS identifies the D-Bus the signal is coming from.  It
+is either the symbol `:system' or the symbol `:session'.  SERVICE
+and PATH are the name and the object path of the D-Bus object
+emitting the signal.  INTERFACE and MEMBER denote the signal
+which has been sent.  ARGS are the arguments passed to HANDLER,
+when it is called during event handling in `dbus-handle-event'.
 
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (when dbus-debug (message "DBus-Event %s" event))
   (unless (and (listp event)
 	       (eq (car event) 'dbus-event)
-	       (symbolp (cadr event))
-	       (stringp (car (cddr event)))
-	       (stringp (cadr (cddr event))))
+	       ;; Handler.
+	       (functionp (nth 1 event))
+	       ;; Bus symbol.
+	       (symbolp (nth 2 event))
+	       ;; Service.
+	       (stringp (nth 3 event))
+	       ;; Object path.
+	       (stringp (nth 4 event))
+	       ;; Interface.
+	       (stringp (nth 5 event))
+	       ;; Member.
+	       (stringp (nth 6 event)))
     (signal 'dbus-error (list "Not a valid D-Bus event" event))))
 
 ;;;###autoload
 (defun dbus-handle-event (event)
   "Handle events from the D-Bus.
-EVENT is a D-Bus event, see `dbus-check-event'.  This function
-raises a `dbus-error' signal in case the event is not well
-formed."
+EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
+part of the event, is called with arguments ARGS."
   (interactive "e")
-  (dbus-check-event event)
-  (when (functionp (cadr event)) (apply (cadr event) (cddr (cddr event)))))
+  ;; We don't want to raise an error, because this function is called
+  ;; in the event handling loop.
+  (condition-case nil
+      (progn
+	(dbus-check-event event)
+	(apply (cadr event) (nthcdr 7 event)))
+    (dbus-error)))
 
 (defun dbus-event-bus-name (event)
   "Return the bus name the event is coming from.
@@ -84,16 +124,15 @@ EVENT is a D-Bus event, see `dbus-check-event'.  This function
 raises a `dbus-error' signal in case the event is not well
 formed."
   (dbus-check-event event)
-  (save-match-data
-    (intern (car (split-string (symbol-name (cadr event)) "\\.")))))
+  (nth 2 event))
 
 (defun dbus-event-service-name (event)
-  "Return the unique name of the D-Bus object the event is coming from.
+  "Return the name of the D-Bus object the event is coming from.
 The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (car (cddr event)))
+  (nth 3 event))
 
 (defun dbus-event-path-name (event)
   "Return the object path of the D-Bus object the event is coming from.
@@ -101,7 +140,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (cadr (cddr event)))
+  (nth 4 event))
 
 (defun dbus-event-interface-name (event)
   "Return the interface name of the D-Bus object the event is coming from.
@@ -109,9 +148,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (save-match-data
-    (string-match "^[^.]+\\.\\(.+\\)\\.[^.]+$" (symbol-name (cadr event)))
-    (match-string 1 (symbol-name (cadr event)))))
+  (nth 5 event))
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
@@ -120,8 +157,10 @@ string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
 function raises a `dbus-error' signal in case the event is not
 well formed."
   (dbus-check-event event)
-  (save-match-data
-    (car (nreverse (split-string (symbol-name (cadr event)) "\\.")))))
+  (nth 6 event))
+
+
+;;; D-Bus registered names.
 
 (defun dbus-list-activatable-names ()
   "Return the D-Bus service names which can be activated as list.

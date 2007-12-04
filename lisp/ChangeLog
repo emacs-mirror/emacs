@@ -1,3 +1,11 @@
+2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-hash-table=): New defun.
+	(dbus-hash-table-test) New hash table test function, used in
+	`dbus-registered-functions-table'.
+	(dbus-*-event, dbus-event-*): Rewritten, due to new structure of
+	`dbus-event'.
+
 2007-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-save-history): Set the `coding' local
