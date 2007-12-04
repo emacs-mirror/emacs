@@ -76,7 +76,8 @@
 
 ;;; Code:
 
-(require 'password)
+(or (require 'password-cache nil t)
+    (require 'password))
 (eval-when-compile
   (require 'sasl)
   (require 'starttls))
