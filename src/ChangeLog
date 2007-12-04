@@ -1,3 +1,14 @@
+2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_system_bus, QCdbus_session_bus): Renamed from
+	Qdbus_system_bus and Qdbus_session_bus, respectively.
+	(Vdbus_intern_symbols): Removed.
+	(Vdbus_registered_functions_table): New hash table.
+	(XD_SYMBOL_INTERN_SYMBOL): Removed.
+	(xd_read_message, Fdbus_register_signal, Fdbus_unregister_signal):
+	Rewritten in order to manage registered functions by hash table
+	Vdbus_registered_functions_table.
+
 2007-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c: Update URL to Window Manager Specification in comment.

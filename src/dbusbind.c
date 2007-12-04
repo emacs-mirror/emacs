@@ -40,10 +40,10 @@ Lisp_Object Qdbus_unregister_signal;
 Lisp_Object Qdbus_error;
 
 /* Lisp symbols of the system and session buses.  */
-Lisp_Object Qdbus_system_bus, Qdbus_session_bus;
+Lisp_Object QCdbus_system_bus, QCdbus_session_bus;
 
-/* Obarray which keeps interned symbols.  */
-Lisp_Object Vdbus_intern_symbols;
+/* Hash table which keeps function definitions.  */
+Lisp_Object Vdbus_registered_functions_table;
 
 /* Whether to debug D-Bus.  */
 Lisp_Object Vdbus_debug;
@@ -51,41 +51,6 @@ Lisp_Object Vdbus_debug;
 
 /* We use "xd_" and "XD_" as prefix for all internal symbols, because
    we don't want to poison other namespaces with "dbus_".  */
-
-/* Create a new interned symbol which represents a function handler.
-   bus is a Lisp symbol, either :system or :session.  interface and
-   member are both Lisp strings.
-
-   D-Bus sends messages, which are captured by Emacs in the main loop,
-   converted into an event then.  Emacs must identify a message from
-   D-Bus, in order to call the right Lisp function when the event is
-   handled in the event handler function of dbus.el.
-
-   A D-Bus message is determined at least by the D-Bus bus it is
-   raised from (system bus or session bus), the interface and the
-   method the message belongs to.  There could be even more properties
-   for determination, but that isn't implemented yet.
-
-   The approach is to create a new interned Lisp symbol once there is
-   a registration request for a given signal, which is a special D-Bus
-   message.  The symbol's name is a concatenation of the bus name,
-   interface name and method name of the signal; the function cell is
-   the Lisp function to be called when such a signal arrives.  Since
-   this code runs in the main loop, receiving input, it must be
-   performant.  */
-#define XD_SYMBOL_INTERN_SYMBOL(symbol, bus, interface, member)	\
-  {								\
-    XD_DEBUG_VALID_LISP_OBJECT_P (bus);				\
-    XD_DEBUG_VALID_LISP_OBJECT_P (interface);			\
-    XD_DEBUG_VALID_LISP_OBJECT_P (member);			\
-    char s[1024];						\
-    strcpy (s, SDATA (SYMBOL_NAME (bus)));			\
-    strcat (s, ".");						\
-    strcat (s, SDATA (interface));				\
-    strcat (s, ".");						\
-    strcat (s, SDATA (member));					\
-    symbol = Fintern (build_string (s), Vdbus_intern_symbols);	\
-  }
 
 /* Raise a Lisp error from a D-Bus error.  */
 #define XD_ERROR(error)							\
@@ -248,13 +213,13 @@ xd_initialize (bus)
 
   /* Parameter check.  */
   CHECK_SYMBOL (bus);
-  if (!((EQ (bus, Qdbus_system_bus)) ||	(EQ (bus, Qdbus_session_bus))))
+  if (!((EQ (bus, QCdbus_system_bus)) || (EQ (bus, QCdbus_session_bus))))
     xsignal2 (Qdbus_error, build_string ("Wrong bus name"), bus);
 
   /* Open a connection to the bus.  */
   dbus_error_init (&derror);
 
-  if (EQ (bus, Qdbus_system_bus))
+  if (EQ (bus, QCdbus_system_bus))
     connection = dbus_bus_get (DBUS_BUS_SYSTEM, &derror);
   else
     connection = dbus_bus_get (DBUS_BUS_SESSION, &derror);
@@ -577,14 +542,20 @@ void
 xd_read_message (bus)
      Lisp_Object bus;
 {
-  Lisp_Object symbol;
+  Lisp_Object key;
   struct gcpro gcpro1;
   static struct input_event event;
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
   uint dtype;
-  char s1[1024], s2[1024];
+  char service[1024], path[1024], interface[1024], member[1024];
+
+  /* Vdbus_registered_functions_table will be made as hash table in
+     dbus.el.  When it isn't loaded yet, it doesn't make sense to
+     handle D-Bus messages.  */
+  if (!HASH_TABLE_P (Vdbus_registered_functions_table))
+    return;
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
@@ -625,23 +596,32 @@ xd_read_message (bus)
   /* The arguments are stored in reverse order.  Reorder them.  */
   event.arg = Fnreverse (event.arg);
 
-  /* Add the object path of the sender of the message.  */
-  strcpy (s1, dbus_message_get_path (dmessage));
-  event.arg = Fcons ((s1 == NULL ? Qnil : build_string (s1)), event.arg);
+  /* Read service, object path interface and member from the
+     message.  */
+  strcpy (service,   dbus_message_get_sender (dmessage));
+  strcpy (path,      dbus_message_get_path (dmessage));
+  strcpy (interface, dbus_message_get_interface (dmessage));
+  strcpy (member,    dbus_message_get_member (dmessage));
 
-  /* Add the unique name of the sender of the message.  */
-  strcpy (s2, dbus_message_get_sender (dmessage));
-  event.arg = Fcons ((s2 == NULL ? Qnil : build_string (s2)), event.arg);
+  /* Add them to the event.  */
+  event.arg = Fcons ((member == NULL ? Qnil : build_string (member)),
+		     event.arg);
+  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
+		     event.arg);
+  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
+		     event.arg);
+  event.arg = Fcons ((service == NULL ? Qnil : build_string (service)),
+		     event.arg);
 
-  /* Add the interned symbol the message is raised from (signal) or
-     for (method).  */
-  strcpy (s1, dbus_message_get_interface (dmessage));
-  strcpy (s2, dbus_message_get_member (dmessage));
-  XD_SYMBOL_INTERN_SYMBOL
-    (symbol, bus,
-     (s1 == NULL ? Qnil : build_string (s1)),
-     (s2 == NULL ? Qnil : build_string (s2)));
-  event.arg = Fcons (symbol, event.arg);
+  /* Add the bus symbol to the event.  */
+  event.arg = Fcons (bus, event.arg);
+
+  /* Add the registered function of the message.  */
+  key = list3 (bus,
+	       (interface == NULL ? Qnil : build_string (interface)),
+	       (member == NULL ? Qnil : build_string (member)));
+  event.arg = Fcons (Fgethash (key, Vdbus_registered_functions_table, Qnil),
+		     event.arg);
 
   /* Store it into the input event queue.  */
   kbd_buffer_store_event (&event);
@@ -655,8 +635,8 @@ xd_read_message (bus)
 void
 xd_read_queued_messages ()
 {
-  xd_read_message (Qdbus_system_bus);
-  xd_read_message (Qdbus_session_bus);
+  xd_read_message (QCdbus_system_bus);
+  xd_read_message (QCdbus_session_bus);
 }
 
 DEFUN ("dbus-register-signal", Fdbus_register_signal, Sdbus_register_signal,
@@ -665,85 +645,81 @@ DEFUN ("dbus-register-signal", Fdbus_register_signal, Sdbus_register_signal,
 
 BUS is either the symbol `:system' or the symbol `:session'.
 
-SERVICE is the D-Bus service name to be used.  PATH is the D-Bus
-object path SERVICE is registered.  INTERFACE is an interface offered
-by SERVICE.  It must provide SIGNAL.
+SERVICE is the D-Bus service name used by the sending D-Bus object.
+It can be either a known name or the unique name of the D-Bus object
+sending the signal.  When SERVICE is nil, related signals from all
+D-Bus objects shall be accepted.
 
+PATH is the D-Bus object path SERVICE is registered.  It can also be
+nil if the path name of incoming signals shall not be checked.
+
+INTERFACE is an interface offered by SERVICE.  It must provide SIGNAL.
 HANDLER is a Lisp function to be called when the signal is received.
-It must accept as arguments the values SIGNAL is sending.
-
-Example:
+It must accept as arguments the values SIGNAL is sending.  INTERFACE,
+SIGNAL and HANDLER must not be nil.  Example:
 
 \(defun my-signal-handler (device)
   (message "Device %s added" device))
 
 \(dbus-register-signal
-  :system "DeviceAdded" "org.freedesktop.Hal"
+  :system "DeviceAdded"
+  (dbus-get-name-owner :system "org.freedesktop.Hal")
   "/org/freedesktop/Hal/Manager" "org.freedesktop.Hal.Manager"
   'my-signal-handler)
 
-  => org.freedesktop.Hal.Manager.DeviceAdded
+  => (:system "org.freedesktop.Hal.Manager" "DeviceAdded")
 
 `dbus-register-signal' returns an object, which can be used in
 `dbus-unregister-signal' for removing the registration.  */)
      (bus, signal, service, path, interface, handler)
      Lisp_Object bus, signal, service, path, interface, handler;
 {
-  Lisp_Object name_owner, result;
+  Lisp_Object key;
   DBusConnection *connection;
-  DBusError derror;
   char rule[1024];
+  DBusError derror;
 
   /* Check parameters.  */
   CHECK_SYMBOL (bus);
   CHECK_STRING (signal);
-  CHECK_STRING (service);
-  CHECK_STRING (path);
+  if (!NILP (service)) CHECK_STRING (service);
+  if (!NILP (path)) CHECK_STRING (path);
   CHECK_STRING (interface);
   CHECK_SYMBOL (handler);
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
 
-#if 0
-  /* TODO: Get name owner.  This is the sending service name.  */
-  name_owner = call2 (intern ("dbus-get-name-owner"), bus, service);
-#endif
-
-  /* Add a rule to the bus in order to receive related signals.  */
-  dbus_error_init (&derror);
+  /* Create a rule to receive related signals.  */
   sprintf (rule,
 	   "type='signal',interface='%s',member=%s%",
 	   SDATA (interface),
 	   SDATA (signal));
-#if 0
-  /* TODO: We need better checks when we want use sender and path.  */
-  sprintf (rule,
-	   "type='signal',sender='%s',path='%s',interface='%s',member=%s%",
-	   SDATA (name_owner),
-	   SDATA (path),
-	   SDATA (interface),
-	   SDATA (signal));
-#endif
-  dbus_bus_add_match (connection, rule, &derror);
 
+  /* Add service and path to the rule if they are non-nil.  */
+  if (!NILP (service))
+    sprintf (rule, "%s,sender='%s'%", rule, SDATA (service));
+
+  if (!NILP (path))
+    sprintf (rule, "%s,path='%s'", rule, SDATA (path));
+
+  /* Add the rule to the bus.  */
+  dbus_error_init (&derror);
+  dbus_bus_add_match (connection, rule, &derror);
   if (dbus_error_is_set (&derror))
     XD_ERROR (derror);
 
   XD_DEBUG_MESSAGE ("Matching rule \"%s\" created", rule);
 
-  /* Create a new protected symbol, which has the complete name of the
-     signal.  The function cell is taken from the handler.  */
-  result = Qnil;
-
-  XD_SYMBOL_INTERN_SYMBOL (result, bus, interface, signal);
-  Ffset (result, Fsymbol_function (handler));
+  /* Create a hash table entry.  */
+  key = list3 (bus, interface, signal);
+  Fputhash (key, handler, Vdbus_registered_functions_table);
   XD_DEBUG_MESSAGE ("\"%s\" registered with handler \"%s\"",
-		    SDATA (format2 ("%s", result, Qnil)),
-		    SDATA (format2 ("%s", Fsymbol_function (result), Qnil)));
+		    SDATA (format2 ("%s", key, Qnil)),
+		    SDATA (format2 ("%s", handler, Qnil)));
 
-  /* Return.  */
-  return result;
+  /* Return key.  */
+  return key;
 }
 
 DEFUN ("dbus-unregister-signal", Fdbus_unregister_signal, Sdbus_unregister_signal,
@@ -762,7 +738,7 @@ OBJECT must be the result of a preceding `dbus-register-signal' call.  */)
 		    SDATA (format2 ("%s", Fsymbol_function (object), Qnil)));
 
   /* Unintern the signal symbol.  */
-  Funintern (object, Vdbus_intern_symbols);
+  Fremhash (object, Vdbus_registered_functions_table);
 
   /* Return.  */
   return Qnil;
@@ -800,17 +776,27 @@ syms_of_dbusbind ()
   Fput (Qdbus_error, Qerror_message,
 	build_string ("D-Bus error"));
 
-  Qdbus_system_bus = intern (":system");
-  staticpro (&Qdbus_system_bus);
+  QCdbus_system_bus = intern (":system");
+  staticpro (&QCdbus_system_bus);
 
-  Qdbus_session_bus = intern (":session");
-  staticpro (&Qdbus_session_bus);
+  QCdbus_session_bus = intern (":session");
+  staticpro (&QCdbus_session_bus);
 
-  Vdbus_intern_symbols = Fmake_vector (make_number (64), 0);
-  staticpro (&Vdbus_intern_symbols);
+  DEFVAR_LISP ("dbus-registered-functions-table", &Vdbus_registered_functions_table,
+    doc: /* Hash table of registered functions for D-Bus.
+The key in the hash table is the list (BUS INTERFACE MEMBER).  BUS is
+either the symbol `:system' or the symbol `:session'.  INTERFACE is a
+string which denotes a D-Bus interface, and MEMBER, also a string, is
+either a method or a signal INTERFACE is offering.
+
+The value in the hash table a the function to be called when a D-Bus
+message, which matches the key criteria, arrives.  */);
+  /* We initialize Vdbus_registered_functions_table in dbus.el,
+     because we need to define a hash table function first.  */
+  Vdbus_registered_functions_table = Qnil;
 
   DEFVAR_LISP ("dbus-debug", &Vdbus_debug,
-	       doc: /* If non-nil, debug messages of D-Bus bindings are raised.  */);
+    doc: /* If non-nil, debug messages of D-Bus bindings are raised.  */);
 #ifdef DBUS_DEBUG
   Vdbus_debug = Qt;
 #else
