@@ -107,8 +107,7 @@
 (declare-function bbdb-phone-location   "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-phone-string     "ext:bbdb" (phone))
 (declare-function bbdb-record-phones    "ext:bbdb" t) ; via bbdb-defstruct
-;; FIXME: bbdb-address-street1/2/3 don't seem to exist in current
-;; bbdb, so this code is probably broken.
+(declare-function bbdb-address-streets  "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-address-city     "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-address-state    "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-address-zip      "ext:bbdb" t) ; via bbdb-defstruct
@@ -130,25 +129,24 @@
 
 (defun eudc-bbdb-extract-addresses (record)
   (let (s c val)
-    (mapcar (function
-	     (lambda (address)
-	       (setq val (concat (unless (= 0 (length (setq s (bbdb-address-street1 address))))
-				   (concat s "\n"))
-				 (unless (= 0 (length (setq s (bbdb-address-street2 address))))
-				   (concat s "\n"))
-				 (unless (= 0 (length (setq s (bbdb-address-street3 address))))
-				   (concat s "\n"))
-				 (progn
-				   (setq c (bbdb-address-city address))
-				   (setq s (bbdb-address-state address))
-				   (if (and (> (length c) 0) (> (length s) 0))
-				       (concat c ", " s " ")
-				     (concat c " ")))
-				 (bbdb-address-zip address)))
-	       (if eudc-bbdb-use-locations-as-attribute-names
-		   (cons (intern (bbdb-address-location address)) val)
-		 (cons 'addresses (concat (bbdb-address-location address) "\n" val)))))
-	    (bbdb-record-addresses record))))
+    (mapcar (lambda (address)
+              (setq c (bbdb-address-streets address))
+              (dotimes (n 3)
+                (unless (zerop (length (setq s (nth n c))))
+                  (setq val (concat val s "\n"))))
+              (setq c (bbdb-address-city address)
+                    s (bbdb-address-state address))
+              (setq val (concat val
+                                (if (and (> (length c) 0) (> (length s) 0))
+                                    (concat c ", " s)
+                                  c)
+                                " "
+                                (bbdb-address-zip address)))
+              (if eudc-bbdb-use-locations-as-attribute-names
+                  (cons (intern (bbdb-address-location address)) val)
+                (cons 'addresses (concat (bbdb-address-location address)
+                                         "\n" val))))
+            (bbdb-record-addresses record))))
 
 (defun eudc-bbdb-format-record-as-result (record)
   "Format the BBDB RECORD as a EUDC query result record.
