@@ -83,7 +83,8 @@
 ;; be mandatory
 (if (featurep 'xemacs)
     (load "password" 'noerror)
-  (require 'password nil 'noerror))     ;from No Gnus, also in tar ball
+  (or (require 'password-cache nil 'noerror)
+      (require 'password nil 'noerror))) ; from No Gnus, also in tar ball
 
 (require 'shell)
 (require 'advice)
