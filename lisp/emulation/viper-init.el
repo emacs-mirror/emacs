@@ -427,15 +427,11 @@ delete the text being replaced, as in standard Vi."
   "*Cursor color when Viper is in Replace state."
   :type 'string
   :group 'viper)
-(if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-replace-overlay-cursor-color))
 
 (defcustom viper-insert-state-cursor-color "Green"
   "Cursor color when Viper is in insert state."
   :type 'string
   :group 'viper)
-(if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-insert-state-cursor-color))
 
 ;; viper-emacs-state-cursor-color doesn't work well. Causes cursor colors to be
 ;; confused in some cases. So, this var is nulled for now.
@@ -444,13 +440,17 @@ delete the text being replaced, as in standard Vi."
   "Cursor color when Viper is in Emacs state."
   :type 'string
   :group 'viper)
-(if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-emacs-state-cursor-color))
 
 ;; internal var, used to remember the default cursor color of emacs frames
 (defvar viper-vi-state-cursor-color nil)
+
 (if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-vi-state-cursor-color))
+    (mapc 'make-variable-frame-local
+          '(viper-replace-overlay-cursor-color
+            viper-insert-state-cursor-color
+            viper-emacs-state-cursor-color
+            viper-vi-state-cursor-color)))
+
 
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
