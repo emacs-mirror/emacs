@@ -4,6 +4,8 @@
 	(top-level): Don't require cl when compiling.
 	(password-read-and-add): Doc fix.  Make obsolete.
 
+	* net/tramp.el: Require password-cache or password.
+
 	* emulation/cua-base.el (top-level): Move (provide 'cua-base) to end.
 	No longer provide 'cua.  Don't require cua-rect, cua-gmrk when
 	compiling.
