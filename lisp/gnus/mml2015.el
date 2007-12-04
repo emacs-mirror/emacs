@@ -971,11 +971,6 @@ Whether the passphrase is cached at all is controlled by
 
 (defvar password-cache-expiry)
 
-(eval-when-compile
-  (autoload 'password-read "password")
-  (autoload 'password-cache-add "password")
-  (autoload 'password-cache-remove "password"))
-
 (defvar mml2015-epg-secret-key-id-list nil)
 
 (defun mml2015-epg-passphrase-callback (context key-id ignore)
