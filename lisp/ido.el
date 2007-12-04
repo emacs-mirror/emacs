@@ -1309,6 +1309,7 @@ Value is an integer which is number of chars to right of prompt.")
       (unwind-protect
 	  (with-current-buffer buf
 	    (erase-buffer)
+	    (insert ";;; -*- coding: utf-8 -*-\n")
 	    (setq buffer-file-coding-system 'utf-8)
 	    (ido-pp 'ido-last-directory-list)
 	    (ido-pp 'ido-work-directory-list)
@@ -1317,7 +1318,7 @@ Value is an integer which is number of chars to right of prompt.")
 	    (if (listp ido-unc-hosts-cache)
 		(ido-pp 'ido-unc-hosts-cache)
 	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
-	    (insert "\n;; Local Variables:\n;; coding: utf-8\n;; End:\n")
+	    (insert "\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
 
