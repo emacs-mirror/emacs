@@ -33,12 +33,8 @@
 
 ;;; Code:
 
-(provide 'cua-rect)
-
 (eval-when-compile
-  (require 'cua-base)
-  (require 'cua-gmrk)
-)
+  (require 'cua-base))
 
 ;;; Rectangle support
 
@@ -1061,6 +1057,9 @@ The text previously in the rectangle is overwritten by the blanks."
         ;; (setq cua-save-point (point))
         ))))
 
+(declare-function cua--cut-rectangle-to-global-mark  "cua-gmrk" (as-text))
+(declare-function cua--copy-rectangle-to-global-mark "cua-gmrk" (as-text))
+
 (defun cua-copy-rectangle-as-text (&optional arg delete)
   "Copy rectangle, but store as normal text."
   (interactive "P")
@@ -1490,6 +1489,8 @@ With prefix arg, indent to that column."
   (cua--rect-M/H-key ?/	'cua-restrict-regexp-rectangle)
 
   (setq cua--rectangle-initialized t))
+
+(provide 'cua-rect)
 
 ;;; arch-tag: b730df53-17b9-4a89-bd63-4a71ec196731
 ;;; cua-rect.el ends here
