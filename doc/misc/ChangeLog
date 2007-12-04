@@ -1,3 +1,9 @@
+2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Signals): Precise `dbus-register-signal'.
+	(Errors and Events): Rework events part, the internal structure of
+	dbus-event has changed.
+
 2007-12-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add dbus.

@@ -157,9 +157,8 @@ string.
 
 @defun dbus-get-name-owner bus service
 For a given service, registered at D-Bus @var{bus} under the name
-@var{service}, the unique name of the name owner is returned.  The
-result is a string, or @code{nil} when there exist no name owner of
-@var{service}.
+@var{service}, the unique name of the name owner is returned.  The result is a
+string, or @code{nil} when there exist no name owner of @var{service}.
 
 @var{bus} must be either the symbol @code{:system} or the symbol
 @code{:session}.  @var{service} must be a known service name as
@@ -438,10 +437,21 @@ D-Bus @var{bus}.
 @var{bus} is either the symbol @code{:system} or the symbol
 @code{:session}.
 
-@var{service} is the D-Bus service name of the object the signal is
-emitted from.  @var{path} is the corresponding D-Bus object path,
-@var{service} is registered at.  @var{interface} is an interface
-offered by @var{service}.  It must provide @var{signal}.
+@var{service} is the D-Bus service name used by the sending D-Bus
+object.  It can be either a known name or the unique name of the D-Bus
+object sending the signal.  In case of a unique name, signals won't be
+received any longer once the object owning this unique name has
+disappeared, and a new queued object has replaced it.
+
+When @var{service} is @code{nil}, related signals from all D-Bus
+objects shall be accepted.
+
+@var{path} is the corresponding D-Bus object path, @var{service} is
+registered at.  It can also be @code{nil} if the path name of incoming
+signals shall not be checked.
+
+@var{interface} is an interface offered by @var{service}.  It must
+provide @var{signal}.
 
 @var{handler} is a Lisp function to be called when the @var{signal} is
 received.  It must accept as arguments the output parameters
@@ -452,11 +462,12 @@ received.  It must accept as arguments the output parameters
   (message "Device %s added" device))
 
 (dbus-register-signal
-  :system "DeviceAdded" "org.freedesktop.Hal"
+  :system "DeviceAdded"
+  (dbus-get-name-owner :system "org.freedesktop.Hal")
   "/org/freedesktop/Hal/Manager" "org.freedesktop.Hal.Manager"
   'my-dbus-signal-handler)
 
-@result{} :system.org.freedesktop.Hal.Manager.DeviceAdded
+@result{} (:system "org.freedesktop.Hal.Manager" "DeviceAdded")
 @end example
 
 As we know from the inspection data of interface
@@ -488,21 +499,23 @@ All errors raised by D-Bus are signaled with the error symbol
 @code{condition-case} form.  If possible, error messages from D-Bus
 are appended to the @code{dbus-error}.
 
-Incoming D-Bus messages are handled as Emacs event (see @pxref{Misc
+Incoming D-Bus messages are handled as Emacs events (see @pxref{Misc
 Events, , , elisp}).  The generated event has this form:
 
 @example
-(dbus-event @var{symbol} @var{service} @var{path} &rest @var{args})
+(dbus-event @var{handler} @var{bus} @var{service} @var{path} @var{interface} @var{member} &rest @var{args})
 @end example
 
-@var{symbol} is the interned Lisp symbol which has been generated
-during signal registration (see @pxref{Signals}).  Its function cell
-is the argument @var{handler}, the callback function which was
-provided by @code{dbus-register-signal}.  When a @code{dbus-event}
-event arrives, @var{handler} is called with @var{args} as arguments.
+@var{handler} is the callback function which has been registered for
+this signal (see @pxref{Signals}).  When a @code{dbus-event} event
+arrives, @var{handler} is called with @var{args} as arguments.
+
+@var{bus} identifies the D-Bus the signal is coming from.  It is
+either the symbol @code{:system} or the symbol @code{:session}.
 
 @var{service} and @var{path} are the unique name and the object path
-of the D-Bus object emitting the signal.
+of the D-Bus object emitting the signal.  @var{interface} and
+@var{member} denote the signal which has been sent.
 
 In order to inspect the @code{dbus-event} data, you could extend the
 definition of the callback function in @ref{Signals}:
