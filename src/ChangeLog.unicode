@@ -1,3 +1,8 @@
+2007-12-04  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (add_font_entity_to_list): Compare only the beginning
+	of full name.
+
 2007-12-04  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_auto_composed_prop): Simplify the code.  Never
@@ -39,6 +44,7 @@
 	* ftfont.c (ftfont_open): Set members maybe_otf and otf of
 	ftfont_info only when HAVE_LIBOTF is defined.
 
+>>>>>>> 1.1.2.202
 2007-12-02  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (back_to_previous_visible_line_start): Fix type of beg
