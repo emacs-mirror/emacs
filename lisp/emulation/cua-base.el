@@ -583,35 +583,37 @@ a cons (TYPE . COLOR), then both properties are affected."
 
 ;;; Rectangle support is in cua-rect.el
 
-(autoload 'cua-set-rectangle-mark "cua-rect" nil t nil)
+(autoload 'cua-set-rectangle-mark "cua-rect"
+  "Start rectangle at mouse click position." t nil)
 
 ;; Stub definitions until it is loaded
+(defvar cua--rectangle)
+(defvar cua--last-killed-rectangle)
+(unless (featurep 'cua-rect)
+  (setq cua--rectangle nil
+        cua--last-killed-rectangle nil))
 
-(when (not (featurep 'cua-rect))
-  (defvar cua--rectangle)
-  (setq cua--rectangle nil)
-  (defvar cua--last-killed-rectangle)
-  (setq cua--last-killed-rectangle nil))
-
-
+;; All behind cua--rectangle tests.
+(declare-function cua-copy-rectangle    "cua-rect" (arg))
+(declare-function cua-cut-rectangle     "cua-rect" (arg))
+(declare-function cua--rectangle-left   "cua-rect" (&optional val))
+(declare-function cua--delete-rectangle "cua-rect" ())
+(declare-function cua--insert-rectangle "cua-rect"
+                  (rect &optional below paste-column line-count))
+(declare-function cua--rectangle-corner "cua-rect" (&optional advance))
+(declare-function cua--rectangle-assert "cua-rect" ())
 
 ;;; Global Mark support is in cua-gmrk.el
 
 (autoload 'cua-toggle-global-mark "cua-gmrk" nil t nil)
 
 ;; Stub definitions until cua-gmrk.el is loaded
-
-(when (not (featurep 'cua-gmrk))
-  (defvar cua--global-mark-active)
+(defvar cua--global-mark-active)
+(unless (featurep 'cua-gmrk)
   (setq cua--global-mark-active nil))
 
-
-(provide 'cua-base)
-
-(eval-when-compile
-  (require 'cua-rect)
-  (require 'cua-gmrk)
-  )
+(declare-function cua--insert-at-global-mark    "cua-gmrk" (str &optional msg))
+(declare-function cua--global-mark-post-command "cua-gmrk" ())
 
 
 ;;; Low-level Interface
@@ -920,6 +922,7 @@ If global mark is active, copy from register or one character."
       (cond
        (regtxt
 	(cond
+	 ;; This being a cons implies cua-rect is loaded?
 	 ((consp regtxt) (cua--insert-rectangle regtxt))
 	 ((stringp regtxt) (insert-for-yank regtxt))
 	 (t (message "Unknown data in register %c" cua--register))))
@@ -1606,7 +1609,7 @@ shifted movement key, set `cua-highlight-region-shift-only'."
   (setq cua--debug (not cua--debug)))
 
 
-(provide 'cua)
+(provide 'cua-base)
 
 ;;; arch-tag: 21fb6289-ba25-4fee-bfdc-f9fb351acf05
 ;;; cua-base.el ends here
