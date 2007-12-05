@@ -22,18 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-cmd)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-cmd nil
-  "Executing an Eshell command is as simple as typing it in and
-pressing <RET>.  There are several different kinds of commands,
-however."
-  :tag "Command invocation"
-  ;; :link '(info-link "(eshell)Command invocation")
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;;;_* Invoking external commands
@@ -63,11 +51,6 @@ however."
 ;; function of the same name.  To change this behavior so that Lisp
 ;; functions always take precedence, set
 ;; `eshell-prefer-lisp-functions' to t.
-
-(defcustom eshell-prefer-lisp-functions nil
-  "*If non-nil, prefer Lisp functions to external commands."
-  :type 'boolean
-  :group 'eshell-cmd)
 
 ;;;_* Alias functions
 ;;
@@ -112,16 +95,43 @@ however."
 ;;
 ;; Lisp arguments are identified using the following regexp:
 
+;;;_* Command hooks
+;;
+;; There are several hooks involved with command execution, which can
+;; be used either to change or augment Eshell's behavior.
+
+
+;;; Code:
+
+(require 'esh-util)
+(unless (featurep 'xemacs)
+  (require 'eldoc))
+(require 'esh-arg)
+(require 'esh-proc)
+(require 'esh-ext)
+
+(eval-when-compile
+  (require 'pcomplete))
+
+
+(defgroup eshell-cmd nil
+  "Executing an Eshell command is as simple as typing it in and
+pressing <RET>.  There are several different kinds of commands,
+however."
+  :tag "Command invocation"
+  ;; :link '(info-link "(eshell)Command invocation")
+  :group 'eshell)
+
+(defcustom eshell-prefer-lisp-functions nil
+  "*If non-nil, prefer Lisp functions to external commands."
+  :type 'boolean
+  :group 'eshell-cmd)
+
 (defcustom eshell-lisp-regexp "\\([(`]\\|#'\\)"
   "*A regexp which, if matched at beginning of an argument, means Lisp.
 Such arguments will be passed to `read', and then evaluated."
   :type 'regexp
   :group 'eshell-cmd)
-
-;;;_* Command hooks
-;;
-;; There are several hooks involved with command execution, which can
-;; be used either to change or augment Eshell's behavior.
 
 (defcustom eshell-pre-command-hook nil
   "*A hook run before each interactive command is invoked."
@@ -218,15 +228,6 @@ return non-nil if the command is complex."
 		 (choice (string :tag "Name")
 			 (function :tag "Predicate")))
   :group 'eshell-cmd)
-
-;;; Code:
-
-(require 'esh-util)
-(unless (featurep 'xemacs)
-  (require 'eldoc))
-(require 'esh-arg)
-(require 'esh-proc)
-(require 'esh-ext)
 
 ;;; User Variables:
 
@@ -393,6 +394,18 @@ hooks should be run before and after the command."
     (if top-level
 	(list 'eshell-commands commands)
       commands)))
+
+(defun eshell-debug-command (tag subform)
+  "Output a debugging message to '*eshell last cmd*'."
+  (let ((buf (get-buffer-create "*eshell last cmd*"))
+	(text (eshell-stringify eshell-current-command)))
+    (save-excursion
+      (set-buffer buf)
+      (if (not tag)
+	  (erase-buffer)
+	(insert "\n\C-l\n" tag "\n\n" text
+		(if subform
+		    (concat "\n\n" (eshell-stringify subform)) ""))))))
 
 (defun eshell-debug-show-parsed-args (terms)
   "Display parsed arguments in the debug buffer."
@@ -956,18 +969,6 @@ at the moment are:
   "Completion for the `debug' command."
   (while (pcomplete-here '("errors" "commands"))))
 
-(defun eshell-debug-command (tag subform)
-  "Output a debugging message to '*eshell last cmd*'."
-  (let ((buf (get-buffer-create "*eshell last cmd*"))
-	(text (eshell-stringify eshell-current-command)))
-    (save-excursion
-      (set-buffer buf)
-      (if (not tag)
-	  (erase-buffer)
-	(insert "\n\C-l\n" tag "\n\n" text
-		(if subform
-		    (concat "\n\n" (eshell-stringify subform)) ""))))))
-
 (defun eshell-invoke-directly (command input)
   (let ((base (cadr (nth 2 (nth 2 (cadr command))))) name)
     (if (and (eq (car base) 'eshell-trap-errors)
@@ -1417,6 +1418,8 @@ messages, and errors."
       (eshell-close-handles 0 (list 'quote result)))))
 
 (defalias 'eshell-lisp-command* 'eshell-lisp-command)
+
+(provide 'esh-cmd)
 
 ;;; arch-tag: 8e4f3867-a0c5-441f-96ba-ddd142d94366
 ;;; esh-cmd.el ends here
