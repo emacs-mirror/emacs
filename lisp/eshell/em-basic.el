@@ -22,19 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-basic)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-basic nil
-  "The \"basic\" code provides a set of convenience functions which
-are traditionally considered shell builtins.  Since all of the
-functionality provided by them is accessible through Lisp, they are
-not really builtins at all, but offer a command-oriented way to do the
-same thing."
-  :tag "Basic shell commands"
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; There are very few basic Eshell commands -- so-called builtins.
@@ -48,14 +35,6 @@ same thing."
 ;; echo as an argument), or whether it should try to act like a normal
 ;; shell echo, and always result in a flat string being returned.
 
-(defcustom eshell-plain-echo-behavior nil
-  "*If non-nil, `echo' tries to behave like an ordinary shell echo.
-This comes at some detriment to Lisp functionality.  However, the Lisp
-equivalent of `echo' can always be achieved by using `identity'."
-  :type 'boolean
-  :group 'eshell-basic)
-
-;;;
 ;; An example of the difference is the following:
 ;;
 ;;   echo Hello world
@@ -83,7 +62,26 @@ equivalent of `echo' can always be achieved by using `identity'."
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'esh-util))
+
 (require 'esh-opt)
+
+(defgroup eshell-basic nil
+  "The \"basic\" code provides a set of convenience functions which
+are traditionally considered shell builtins.  Since all of the
+functionality provided by them is accessible through Lisp, they are
+not really builtins at all, but offer a command-oriented way to do the
+same thing."
+  :tag "Basic shell commands"
+  :group 'eshell-module)
+
+(defcustom eshell-plain-echo-behavior nil
+  "*If non-nil, `echo' tries to behave like an ordinary shell echo.
+This comes at some detriment to Lisp functionality.  However, the Lisp
+equivalent of `echo' can always be achieved by using `identity'."
+  :type 'boolean
+  :group 'eshell-basic)
 
 ;;; Functions:
 
@@ -180,8 +178,7 @@ or `eshell-printn' for display."
       "Warning: umask changed for all new files created by Emacs.\n"))
    nil))
 
-(eval-when-compile
-  (defvar print-func))
+(provide 'em-basic)
 
 ;;; arch-tag: 385a31b1-cb95-46f0-9829-9d352ee77db8
 ;;; em-basic.el ends here
