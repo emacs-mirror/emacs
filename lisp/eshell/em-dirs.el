@@ -22,20 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-dirs)
-
-(eval-when-compile (require 'esh-maint))
-(require 'eshell)
-
-(defgroup eshell-dirs nil
-  "Directory navigation involves changing directories, examining the
-current directory, maintaining a directory stack, and also keeping
-track of a history of the last directory locations the user was in.
-Emacs does provide standard Lisp definitions of `pwd' and `cd', but
-they lack somewhat in feel from the typical shell equivalents."
-  :tag "Directory navigation"
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; The only special feature that Eshell offers in the last-dir-ring.
@@ -57,8 +43,20 @@ they lack somewhat in feel from the typical shell equivalents."
 ;; Eshell sessions.  It is a separate mechanism from `pushd' and
 ;; `popd', and the two may be used at the same time.
 
+;;; Code:
+
+(require 'eshell)
 (require 'ring)
 (require 'esh-opt)
+
+(defgroup eshell-dirs nil
+  "Directory navigation involves changing directories, examining the
+current directory, maintaining a directory stack, and also keeping
+track of a history of the last directory locations the user was in.
+Emacs does provide standard Lisp definitions of `pwd' and `cd', but
+they lack somewhat in feel from the typical shell equivalents."
+  :tag "Directory navigation"
+  :group 'eshell-module)
 
 ;;; User Variables:
 
@@ -566,7 +564,7 @@ in the minibuffer:
 	   (write-region (point-min) (point-max) file nil
 			 'no-message))))))))
 
-;;; Code:
+(provide 'em-dirs)
 
 ;;; arch-tag: 1e9c5a95-f1bd-45f8-ad36-55aac706e787
 ;;; em-dirs.el ends here
