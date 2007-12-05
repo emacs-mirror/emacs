@@ -149,10 +149,14 @@ See the functions `find-function' and `find-variable'."
   ;; the same name.
   (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
       (setq library (replace-match "" t t library)))
-  (or (locate-file library
-		   (or find-function-source-path load-path)
-		   (append (find-library-suffixes) load-file-rep-suffixes))
-      (error "Can't find library %s" library)))
+  (or 
+   (locate-file library
+		(or find-function-source-path load-path)
+		(find-library-suffixes))
+   (locate-file library
+		(or find-function-source-path load-path)
+		load-file-rep-suffixes)
+   (error "Can't find library %s" library)))
 
 (defvar find-function-C-source-directory
   (let ((dir (expand-file-name "src" source-directory)))
