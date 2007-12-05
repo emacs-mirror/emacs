@@ -22,9 +22,9 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-script)
+;;; Commentary:
 
-(eval-when-compile (require 'esh-maint))
+;;; Code:
 
 (require 'eshell)
 
@@ -33,8 +33,6 @@
 commands, as a script file."
   :tag "Running script files."
   :group 'eshell-module)
-
-;;; Commentary:
 
 ;;; User Variables:
 
@@ -137,7 +135,7 @@ environment, binding ARGS to $1, $2, etc.")
 
 (put 'eshell/. 'eshell-no-numeric-conversions t)
 
-;;; Code:
+(provide 'em-script)
 
 ;;; arch-tag: a346439d-5ba8-4faf-ac2b-3aacfeaa4647
 ;;; em-script.el ends here
