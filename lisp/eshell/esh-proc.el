@@ -22,9 +22,13 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Commentary:
+
 (provide 'esh-proc)
 
-(eval-when-compile (require 'esh-maint))
+(eval-when-compile
+  (require 'eshell)
+  (require 'esh-util))
 
 (defgroup eshell-proc nil
   "When Eshell invokes external commands, it always does so
@@ -32,8 +36,6 @@ asynchronously, so that Emacs isn't tied up waiting for the process to
 finish."
   :tag "Process management"
   :group 'eshell)
-
-;;; Commentary:
 
 ;;; User Variables:
 
