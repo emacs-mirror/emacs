@@ -67,8 +67,10 @@
 	* net/dbus.el (dbus-hash-table=): New defun.
 	(dbus-hash-table-test) New hash table test function, used in
 	`dbus-registered-functions-table'.
-	(dbus-*-event, dbus-event-*): Rewritten, due to new structure of
-	`dbus-event'.
+	(dbus-check-event, dbus-handle-event, dbus-event-bus-name)
+	(dbus-event-service-name, dbus-event-path-name)
+	(dbus-event-interface-name, dbus-event-member-name): Rewritten,
+	due to new structure of `dbus-event'.
 
 2007-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
