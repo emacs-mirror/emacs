@@ -22,17 +22,17 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Commentary:
+
 (provide 'esh-opt)
 
-(eval-when-compile (require 'esh-maint))
+(eval-when-compile (require 'esh-ext))
 
 (defgroup eshell-opt nil
   "The options processing code handles command argument parsing for
 Eshell commands implemented in Lisp."
   :tag "Command options processing"
   :group 'eshell)
-
-;;; Commentary:
 
 ;;; User Functions:
 
