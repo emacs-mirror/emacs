@@ -22,9 +22,15 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Commentary:
+
+;; Parsing of arguments can be extended by adding functions to the
+;; hook `eshell-parse-argument-hook'.  For a good example of this, see
+;; `eshell-parse-drive-letter', defined in eshell-dirs.el.
+
 (provide 'esh-arg)
 
-(eval-when-compile (require 'esh-maint))
+(eval-when-compile (require 'eshell))
 
 (defgroup eshell-arg nil
   "Argument parsing involves transforming the arguments passed on the
@@ -32,12 +38,6 @@ command line into equivalent Lisp forms that, when evaluated, will
 yield the values intended."
   :tag "Argument parsing"
   :group 'eshell)
-
-;;; Commentary:
-
-;; Parsing of arguments can be extended by adding functions to the
-;; hook `eshell-parse-argument-hook'.  For a good example of this, see
-;; `eshell-parse-drive-letter', defined in eshell-dirs.el.
 
 (defcustom eshell-parse-argument-hook
   (list
