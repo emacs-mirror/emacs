@@ -2817,6 +2817,9 @@ up an appropriate window config."
    "To resume, type M-x eregistry and select the desired Ediff session"))
 
 
+;; ediff-barf-if-not-control-buffer ensures only called from ediff.
+(declare-function ediff-version "ediff" ())
+
 (defun ediff-status-info ()
   "Show the names of the buffers or files being operated on by Ediff.
 Hit \\[ediff-recenter] to reset the windows afterward."
