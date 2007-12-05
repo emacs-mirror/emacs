@@ -1223,6 +1223,9 @@ local value.")
     ;; (modify-syntax-entry ?\" "." st)
     st))
 
+;; Autoloaded.
+(declare-function compilation-shell-minor-mode "compile" (&optional arg))
+
 ;; Fixme: This should inherit some stuff from `python-mode', but I'm
 ;; not sure how much: at least some keybindings, like C-c C-f;
 ;; syntax?; font-locking, e.g. for triple-quoted strings?
