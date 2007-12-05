@@ -1,5 +1,38 @@
 2007-12-05  Glenn Morris  <rgm@gnu.org>
 
+	* eshell/em-alias.el (pcomplete-stub): Define for compiler.
+	(pcomplete-here): Autoload it.
+
+	* eshell/em-basic.el (print-func): No need to define for compiler.
+
+	* eshell/esh-cmd.el (eshell-debug-command):
+	* eshell/esh-io.el (eshell-print): Move definitions before use.
+
+	* eshell/esh-module.el (eshell-load-defgroups): Eval and compile.
+
+	* eshell/esh-util.el (top-level): Don't require pp.  Use
+	condition-case rather than ignore-errors.
+
+	* eshell/eshell.el (eshell-buffer-name): Define for compiler.
+
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el
+	* eshell/em-xtra.el, eshell/esh-cmd.el, eshell/esh-test.el
+	* eshell/esh-util.el, eshell/eshell.el: Require individual files
+	if needed when compiling, rather than esh-maint.  Collect any
+	require statements.  Move provide statement to end.  Move any
+	commentary to start.
+
+	* eshell/esh-arg.el, eshell/esh-ext.el, eshell/esh-io.el:
+	* eshell/esh-mode.el, eshell/esh-module.el, eshell/esh-opt.el:
+	* eshell/esh-proc.el, eshell/esh-var.el:
+	Require individual files if needed when compiling, rather than
+	esh-maint.  Collect any require statements.  Leave provide at start.
+	Move any commentary to start.
+
 	* emacs-lisp/bytecomp.el (byte-compile-declare-function): Remove
 	declared function from byte-compile-noruntime-functions.
 
