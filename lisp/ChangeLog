@@ -1,3 +1,16 @@
+2007-12-05  Michael Olson  <mwolson@gnu.org>
+
+	* textmodes/remember.el: Merge contents of remember-diary.el here,
+	updating header.  Add autoload cookie so that byte-compilation
+	works without warning.
+	(remember-diary-file): Default to nil, since diary might not yet
+	be loaded at this point, which would deny us access to diary-file.
+	(remember-diary-extract-entries): If remember-diary-file is nil,
+	then use diary-file instead.
+
+	* textmodes/remember-diary.el: Remove, due to the issue of needing
+	the first 8 characters of a filename to be unique.
+
 2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-hash-table=): New defun.

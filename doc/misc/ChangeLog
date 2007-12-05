@@ -1,3 +1,8 @@
+2007-12-05  Michael Olson  <mwolson@gnu.org>
+
+	* remember.texi (Diary): Remove "require" line for remember-diary.el.
+	Update documentation for `remember-diary-file'.
+
 2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Signals): Precise `dbus-register-signal'.
