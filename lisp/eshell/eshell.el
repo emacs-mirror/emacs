@@ -224,9 +224,11 @@
 ;; will only have to read in this one file, which will greatly speed
 ;; things up.
 
-(require 'esh-mode)
+(eval-when-compile
+  (require 'cl)
+  (require 'esh-util))
 (require 'esh-util)
-(eval-when-compile (require 'esh-maint))
+(require 'esh-mode)
 
 (defgroup eshell nil
   "Eshell is a command shell implemented entirely in Emacs Lisp.  It
@@ -243,6 +245,7 @@ the tasks accomplished by such tools."
 ;;;_* User Options
 ;;
 ;; The following user options modify the behavior of Eshell overall.
+(defvar eshell-buffer-name)
 
 (defsubst eshell-add-to-window-buffer-names ()
   "Add `eshell-buffer-name' to `same-window-buffer-names'."
