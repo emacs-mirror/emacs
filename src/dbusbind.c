@@ -538,7 +538,7 @@ usage: (dbus-send-signal BUS SIGNAL SERVICE PATH INTERFACE &rest ARGS)  */)
 
 /* Read queued incoming message of the D-Bus BUS.  BUS is a Lisp
    symbol, either :system or :session.  */
-void
+Lisp_Object
 xd_read_message (bus)
      Lisp_Object bus;
 {
@@ -550,12 +550,6 @@ xd_read_message (bus)
   DBusMessageIter iter;
   uint dtype;
   char service[1024], path[1024], interface[1024], member[1024];
-
-  /* Vdbus_registered_functions_table will be made as hash table in
-     dbus.el.  When it isn't loaded yet, it doesn't make sense to
-     handle D-Bus messages.  */
-  if (!HASH_TABLE_P (Vdbus_registered_functions_table))
-    return;
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
@@ -635,8 +629,18 @@ xd_read_message (bus)
 void
 xd_read_queued_messages ()
 {
-  xd_read_message (QCdbus_system_bus);
-  xd_read_message (QCdbus_session_bus);
+
+  /* Vdbus_registered_functions_table will be made as hash table in
+     dbus.el.  When it isn't loaded yet, it doesn't make sense to
+     handle D-Bus messages.  Furthermore, we ignore all Lisp errors
+     during the call.  */
+  if (HASH_TABLE_P (Vdbus_registered_functions_table))
+    {
+      internal_condition_case_1 (xd_read_message, QCdbus_system_bus,
+				 Qerror, Fidentity);
+      internal_condition_case_1 (xd_read_message, QCdbus_session_bus,
+				 Qerror, Fidentity);
+    }
 }
 
 DEFUN ("dbus-register-signal", Fdbus_register_signal, Sdbus_register_signal,

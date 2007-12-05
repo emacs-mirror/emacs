@@ -1,3 +1,11 @@
+2007-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_read_message): Return value is a Lisp_Object.
+	Move check for Vdbus_registered_functions_table to
+	xd_read_queued_messages.
+	(xd_read_queued_messages): Protect xd_read_message calls by
+	internal_condition_case_1.
+
 2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (QCdbus_system_bus, QCdbus_session_bus): Renamed from
