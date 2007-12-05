@@ -1,5 +1,10 @@
 2007-12-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* ftfont.c (struct OpenTypeSpec): New struct.
+	(OTF_SYM_TAG, OTF_TAG_STR): New macros.
+	(ftfont_get_open_type_spec): New function.
+	(ftfont_list) [HAVE_LIBOTF]: Check otf-spec property.
+
 	* lread.c (read1): Redo the previous change with checking
 	Vpurify_flag.
 
