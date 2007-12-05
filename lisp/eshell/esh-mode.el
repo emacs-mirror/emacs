@@ -22,15 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-mode)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-mode nil
-  "This module contains code for handling input from the user."
-  :tag "User interface"
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;; Basically, Eshell is used just like shell mode (<M-x shell>).  The
@@ -68,10 +59,18 @@
 ;;
 ;; @ <C-c C-b> will move backward a complete shell argument.
 
+(provide 'esh-mode)
+
+(eval-when-compile (require 'esh-util))
 (require 'esh-module)
 (require 'esh-cmd)
 (require 'esh-io)
 (require 'esh-var)
+
+(defgroup eshell-mode nil
+  "This module contains code for handling input from the user."
+  :tag "User interface"
+  :group 'eshell)
 
 ;;; User Variables:
 
