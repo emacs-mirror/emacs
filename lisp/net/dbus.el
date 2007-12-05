@@ -55,15 +55,24 @@ See `dbus-registered-functions-table' for a description of the hash table."
   (and
    (listp x) (listp y)
    ;; Bus symbol, either :system or :session.
-   (symbolp (car x)) (symbolp (car y)) (equal  (car x) (car y))
+   (symbolp (car x)) (symbolp (car y)) (equal (car x) (car y))
    ;; Interface.
-   (stringp (cadr x)) (stringp (cadr y)) (string-equal  (cadr x) (cadr y))
+   (or
+    (null (cadr x)) (null (cadr y)) ; wildcard
+    (and
+     (stringp (cadr x)) (stringp (cadr y)) (string-equal (cadr x) (cadr y))))
    ;; Member.
-   (stringp (caddr x)) (stringp (caddr y)) (string-equal  (caddr x) (caddr y))))
+   (or
+    (null (caddr x)) (null (caddr y)) ; wildcard
+    (and
+     (stringp (caddr x)) (stringp (caddr y))
+     (string-equal (caddr x) (caddr y))))))
 
-(define-hash-table-test 'dbus-hash-table-test
-  'dbus-hash-table= 'sxhash)
+(define-hash-table-test 'dbus-hash-table-test 'dbus-hash-table= 'sxhash)
 
+;; When we assume that interface and and member are always strings in
+;; the key, we could use `equal' as test function.  But we want to
+;; have also `nil' there, being a wildcard.
 (setq dbus-registered-functions-table
       (make-hash-table :test 'dbus-hash-table-test))
 
