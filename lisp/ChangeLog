@@ -1,3 +1,21 @@
+2007-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-declare-function): Remove
+	declared function from byte-compile-noruntime-functions.
+
+	* ediff-util.el (ediff-version):
+	* progmodes/python.el (compilation-shell-minor-mode):
+	* textmodes/org.el (Info-goto-node, calendar-astro-date-string)
+	(calendar-bahai-date-string, calendar-check-holidays)
+	(calendar-chinese-date-string, calendar-coptic-date-string)
+	(calendar-ethiopic-date-string, calendar-forward-day)
+	(calendar-french-date-string, calendar-goto-date)
+	(calendar-goto-today, calendar-hebrew-date-string)
+	(calendar-islamic-date-string, calendar-iso-date-string)
+	(calendar-julian-date-string, calendar-mayan-date-string)
+	(calendar-persian-date-string, gnus-summary-last-subject)
+	(parse-time-string, rmail-show-message): Declare as functions.
+
 2007-12-05  Michael Olson  <mwolson@gnu.org>
 
 	* textmodes/remember.el: Merge contents of remember-diary.el here,
