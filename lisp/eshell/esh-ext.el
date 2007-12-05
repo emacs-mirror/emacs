@@ -22,17 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-ext)
-
-(eval-when-compile (require 'esh-maint))
-(require 'esh-util)
-
-(defgroup eshell-ext nil
-  "External commands are invoked when operating system executables are
-loaded into memory, thus beginning a new process."
-  :tag "External commands"
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;; To force a command to invoked external, either provide an explicit
@@ -42,6 +31,18 @@ loaded into memory, thus beginning a new process."
 ;;   grep        ; make invoke `grep' Lisp function, or `eshell/grep'
 ;;   /bin/grep   ; will definitely invoke /bin/grep
 ;;   *grep        ; will also invoke /bin/grep
+
+(provide 'esh-ext)
+
+(eval-when-compile
+  (require 'esh-cmd))
+(require 'esh-util)
+
+(defgroup eshell-ext nil
+  "External commands are invoked when operating system executables are
+loaded into memory, thus beginning a new process."
+  :tag "External commands"
+  :group 'eshell)
 
 ;;; User Variables:
 
