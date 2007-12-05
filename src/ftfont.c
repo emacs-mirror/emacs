@@ -335,12 +335,12 @@ struct OpenTypeSpec
     tag = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];	\
   } while (0)
 
-#define OTF_TAG_STR(tag, str)			\
+#define OTF_TAG_STR(tag, p)			\
   do {						\
-    (str)[0] = (char) (tag >> 24);		\
-    (str)[1] = (char) ((tag >> 16) & 0xFF);	\
-    (str)[2] = (char) ((tag >> 8) & 0xFF);	\
-    (str)[3] = (char) (tag & 0xFF);		\
+    (p)[0] = (char) (tag >> 24);		\
+    (p)[1] = (char) ((tag >> 16) & 0xFF);	\
+    (p)[2] = (char) ((tag >> 8) & 0xFF);	\
+    (p)[3] = (char) (tag & 0xFF);		\
   } while (0)
 
 static struct OpenTypeSpec *
