@@ -2828,6 +2828,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                   (list 'declared (nth 3 form))
                 t))                     ; arglist not specified
         byte-compile-function-environment)
+  ;; We are stating that it _will_ be defined at runtime.
+  (setq byte-compile-noruntime-functions
+        (delq (nth 1 form) byte-compile-noruntime-functions))
   nil)
 
 
