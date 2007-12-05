@@ -22,18 +22,14 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-util)
+;;; Commentary:
 
-(eval-when-compile (require 'esh-maint))
+;;; Code:
 
 (defgroup eshell-util nil
   "This is general utility code, meant for use by Eshell itself."
   :tag "General utilities"
   :group 'eshell)
-
-;;; Commentary:
-
-(require 'pp)
 
 ;;; User Variables:
 
@@ -429,7 +425,9 @@ list."
   ;; "args out of range" error in `sit-for', if this function
   ;; runs while point is in the minibuffer and the users attempt
   ;; to use completion.  Don't ask me.
-  (ignore-errors (sit-for 0 0)))
+  (condition-case nil
+      (sit-for 0 0)
+    (error nil)))
 
 (defun eshell-read-passwd-file (file)
   "Return an alist correlating gids to group names in FILE."
@@ -781,7 +779,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 ;     (or result
 ;	(file-attributes filename))))
 
-;;; Code:
+(provide 'esh-util)
 
 ;;; arch-tag: 70159778-5c7a-480a-bae4-3ad332fca19d
 ;;; esh-util.el ends here
