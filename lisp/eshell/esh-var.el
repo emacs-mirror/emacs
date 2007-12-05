@@ -22,18 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-var)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-var nil
-  "Variable interpolation is introduced whenever the '$' character
-appears unquoted in any argument (except when that argument is
-surrounded by single quotes).  It may be used to interpolate a
-variable value, a subcommand, or even the result of a Lisp form."
-  :tag "Variable handling"
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;; These are the possible variable interpolation syntaxes.  Also keep
@@ -118,8 +106,24 @@ variable value, a subcommand, or even the result of a Lisp form."
 ;; contains the exit code of the last command (0 or 1 for Lisp
 ;; functions, based on successful completion).
 
+(provide 'esh-var)
+
+(eval-when-compile
+  (require 'pcomplete)
+  (require 'esh-test)
+  (require 'esh-util)
+  (require 'esh-opt)
+  (require 'esh-mode))
 (require 'env)
 (require 'ring)
+
+(defgroup eshell-var nil
+  "Variable interpolation is introduced whenever the '$' character
+appears unquoted in any argument (except when that argument is
+surrounded by single quotes).  It may be used to interpolate a
+variable value, a subcommand, or even the result of a Lisp form."
+  :tag "Variable handling"
+  :group 'eshell)
 
 ;;; User Variables:
 
