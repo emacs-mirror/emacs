@@ -322,6 +322,84 @@ ftfont_get_cache (frame)
   return freetype_font_cache;
 }
 
+struct OpenTypeSpec
+{
+  unsigned int script, langsys;
+  int nfeatures[2];
+  unsigned int *features[2];
+};
+
+#define OTF_SYM_TAG(sym, tag)					\
+  do {								\
+    unsigned char *p = SDATA (SYMBOL_NAME (val));		\
+    tag = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];	\
+  } while (0)
+
+#define OTF_TAG_STR(tag, str)			\
+  do {						\
+    (str)[0] = (char) (tag >> 24);		\
+    (str)[1] = (char) ((tag >> 16) & 0xFF);	\
+    (str)[2] = (char) ((tag >> 8) & 0xFF);	\
+    (str)[3] = (char) (tag & 0xFF);		\
+  } while (0)
+
+static struct OpenTypeSpec *
+ftfont_get_open_type_spec (Lisp_Object otf_spec)
+{
+  struct OpenTypeSpec *spec = malloc (sizeof (struct OpenTypeSpec));
+  Lisp_Object val;
+  int i, j, negative;
+
+  if (! spec)
+    return NULL;
+  val = XCAR (otf_spec);
+  if (! NILP (val))
+    OTF_SYM_TAG (val, spec->script);
+  else
+    spec->script = 0x44464C54; 	/* "DFLT" */
+  otf_spec = XCDR (otf_spec);
+  val = XCAR (otf_spec);
+  if (! NILP (val))
+    OTF_SYM_TAG (val, spec->langsys);
+  else
+    spec->langsys = 0;
+  spec->nfeatures[0] = spec->nfeatures[1] = 0;
+  for (i = 0; i < 2; i++)
+    {
+      Lisp_Object len;
+
+      otf_spec = XCDR (otf_spec);    
+      if (NILP (otf_spec))
+	break;
+      val = XCAR (otf_spec);
+      if (NILP (val))
+	continue;
+      len = Flength (val);
+      spec->features[i] = malloc (sizeof (int) * XINT (len));
+      if (! spec->features[i])
+	{
+	  if (i > 0 && spec->features[0])
+	    free (spec->features[0]);
+	  free (spec);
+	  return NULL;
+	}
+      for (j = 0, negative = 0; CONSP (val); val = XCDR (val))
+	{
+	  if (NILP (XCAR (val)))
+	    negative = 1;
+	  else
+	    {
+	      unsigned int tag;
+
+	      OTF_SYM_TAG (XCAR (val), tag);
+	      spec->features[i][j++] = negative ? tag & 0x80000000 : tag;
+	    }
+	}
+      spec->nfeatures[i] = j;
+    }
+  return spec;
+}
+
 static Lisp_Object
 ftfont_list (frame, spec)
      Lisp_Object frame, spec;
@@ -335,11 +413,12 @@ ftfont_list (frame, spec)
   FcObjectSet *objset = NULL;
   Lisp_Object script;
   Lisp_Object registry = Qunicode_bmp;
+  struct OpenTypeSpec *otspec= NULL;
   int weight = 0;
   double dpi = -1;
   int spacing = -1;
   int scalable = -1;
-  char otf_script[15];		/* For "otlayout\:XXXX" */
+  char otlayout[15];		/* For "otlayout:XXXX" */
   
   val = null_vector;
 
@@ -373,7 +452,7 @@ ftfont_list (frame, spec)
 	return val;
     }
 
-  otf_script[0] = '\0';
+  otlayout[0] = '\0';
   script = Qnil;
   for (extra = AREF (spec, FONT_EXTRA_INDEX);
        CONSP (extra); extra = XCDR (extra))
@@ -384,19 +463,11 @@ ftfont_list (frame, spec)
       key = XCAR (tmp), val = XCDR (tmp);
       if (EQ (key, QCotf))
 	{
-	  tmp = XCAR (val);
-	  if (NILP (tmp))
-	    strcpy (otf_script, "otlayout:DFLT");
-	  else
-	    {
-	      val = assq_no_quit (tmp, Votf_script_alist);
-	      if (CONSP (val) && SYMBOLP (XCDR (val)))
-		{
-		  sprintf (otf_script, "otlayout:%s",
-			   (char *) SDATA (SYMBOL_NAME (tmp)));
-		  script = XCDR (val);
-		}
-	    }
+	  otspec = ftfont_get_open_type_spec (val);
+	  if (otspec)
+	    return null_vector;
+	  strcat (otlayout, "otlayout:");
+	  OTF_TAG_STR (otspec->script, otlayout + 9);
 	}
       else if (EQ (key, QClanguage))
 	{
@@ -491,13 +562,13 @@ ftfont_list (frame, spec)
 			     NULL);
   if (! objset)
     goto err;
-  if (otf_script[0])
+  if (otlayout[0])
     {
-#ifndef FC_CAPABILITY
-      goto finish;
-#else  /* not FC_CAPABILITY */
+#ifdef FC_CAPABILITY
       if (! FcObjectSetAdd (objset, FC_CAPABILITY))
 	goto err;
+#else  /* not FC_CAPABILITY */
+      goto finish;
 #endif	/* not FC_CAPABILITY */
     }
 
@@ -541,16 +612,39 @@ ftfont_list (frame, spec)
 		continue;
 	    }
 #ifdef FC_CAPABILITY
-	  if (otf_script[0])
+	  if (otlayout[0])
 	    {
 	      FcChar8 *this;
 
 	      if (FcPatternGetString (fontset->fonts[i], FC_CAPABILITY, 0,
 				      &this) != FcResultMatch
-		  || ! strstr ((char *) this, otf_script))
+		  || ! strstr ((char *) this, otlayout))
 		continue;
 	    }
 #endif	/* FC_CAPABILITY */
+#ifdef HAVE_LIBOTF
+	  if (otspec)
+	    {
+	      FcChar8 *file;
+	      OTF *otf;
+
+	      if (FcPatternGetString (fontset->fonts[i], FC_FILE, 0, &file)
+		  != FcResultMatch)
+		continue;
+	      otf = OTF_open ((char *) file);
+	      if (! otf)
+		continue;
+	      if (OTF_check_features (otf, 0,
+				      otspec->script, otspec->langsys,
+				      otspec->features[0],
+				      otspec->nfeatures[0]) != 1
+		  || OTF_check_features (otf, 1,
+					 otspec->script, otspec->langsys,
+					 otspec->features[1],
+					 otspec->nfeatures[1]) != 1)
+		continue;
+	    }
+#endif	/* HAVE_LIBOTF */
 	  entity = ftfont_pattern_entity (fontset->fonts[i], frame, registry);
 	  if (! NILP (entity))
 	    val = Fcons (entity, val);
@@ -572,7 +666,14 @@ ftfont_list (frame, spec)
   if (fontset) FcFontSetDestroy (fontset);
   if (langset) FcLangSetDestroy (langset);
   if (pattern) FcPatternDestroy (pattern);
-
+  if (otspec)
+    {
+      if (otspec->nfeatures[0] > 0)
+	free (otspec->features[0]);
+      if (otspec->nfeatures[1] > 0)
+	free (otspec->features[1]);
+      free (otspec);
+    }
   return val;
 }
 
