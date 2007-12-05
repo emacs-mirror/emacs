@@ -1,3 +1,8 @@
+2007-12-05  D. Goel  <deego3@gmail.com>
+
+	* emacs-lisp/find-func.el (find-library-name): Prefer files with
+	".el" suffix over "".
+
 2007-12-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-hash-table=): Allow nil as wildcard in the
