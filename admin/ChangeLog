@@ -1,3 +1,8 @@
+2007-12-05  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): Handle configure.in.  Adapt for doc/
+	directory layout for manuals.
+
 2007-12-01  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* FOR-RELEASE: Remove Gnus send mail problem.  Other Gnus bugs
