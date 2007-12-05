@@ -22,18 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-cmpl)
-
-(eval-when-compile (require 'esh-maint))
-(require 'esh-util)
-
-(defgroup eshell-cmpl nil
-  "This module provides a programmable completion function bound to
-the TAB key, which allows for completing command names, file names,
-variable names, arguments, etc."
-  :tag "Argument completion"
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; Eshell, by using the pcomplete package, provides a full
@@ -81,6 +69,19 @@ variable names, arguments, etc."
 ;; Finally, context-related help can be accessed by pressing <C-c i>.
 ;; This only works well if the completion function has provided Eshell
 ;; with sufficient pointers to locate the relevant help text.
+
+;;; Code:
+
+(eval-when-compile
+  (require 'eshell))
+(require 'esh-util)
+
+(defgroup eshell-cmpl nil
+  "This module provides a programmable completion function bound to
+the TAB key, which allows for completing command names, file names,
+variable names, arguments, etc."
+  :tag "Argument completion"
+  :group 'eshell-module)
 
 ;;; User Variables:
 
@@ -448,7 +449,7 @@ to writing a completion function."
 			(all-completions filename obarray 'functionp))
 		   completions)))))))
 
-;;; Code:
+(provide 'em-cmpl)
 
 ;;; arch-tag: 0e914699-673a-45f8-8cbf-82e1dbc571bc
 ;;; em-cmpl.el ends here
