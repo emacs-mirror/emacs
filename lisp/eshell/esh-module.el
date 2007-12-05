@@ -23,11 +23,15 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
+;;; Code:
+
 (provide 'esh-module)
 
 (eval-when-compile
-  (require 'esh-maint)
-  (require 'cl))
+  (require 'cl)
+  (require 'esh-util))
+
+(require 'esh-util)
 
 (defgroup eshell-module nil
   "The `eshell-module' group is for Eshell extension modules, which
@@ -36,10 +40,7 @@ customizing the variable `eshell-modules-list'."
   :tag "Extension modules"
   :group 'eshell)
 
-;;; Commentary:
-
-(require 'esh-util)
-
+(eval-and-compile
 (defun eshell-load-defgroups (&optional directory)
   "Load `defgroup' statements from Eshell's module files."
   (let ((vc-handled-backends nil)) ; avoid VC fucking things up
@@ -70,7 +71,7 @@ customizing the variable `eshell-modules-list'."
 	  (setq files (cdr files))))
       ;; Don't make backups, to avoid prompting the user if there are
       ;; excess backup versions.
-      (save-buffer 0))))
+      (save-buffer 0)))))
 
 ;; load the defgroup's for the standard extension modules, so that
 ;; documentation can be provided when the user customize's
