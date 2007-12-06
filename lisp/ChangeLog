@@ -1,3 +1,21 @@
+2007-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/antlr-mode.el (antlr-keyword, antlr-syntax)
+	(antlr-ruledef, antlr-tokendef, antlr-ruleref-face)
+	(antlr-tokenref, antlr-literal): Inherit from standard font-lock
+	faces in non-light-background case.
+
+	* add-log.el, dired-aux.el, font-lock.el, help-fns.el, ido.el:
+	* informat.el, emacs-lisp/bytecomp.el, emacs-lisp/gulp.el:
+	* emacs-lisp/tcover-ses.el, emacs-lisp/timer.el, emulation/edt.el:
+	* emulation/vi.el, emulation/viper-cmd.el:
+	* international/titdic-cnv.el, mail/emacsbug.el, progmodes/dcl.el:
+	* progmodes/prolog.el, progmodes/ps-mode.el, progmodes/python.el:
+	* textmodes/fill.el: Remove directory part from filenames in
+	function declarations.
+
+	* dired-aux.el (mailcap-mime-info): Update declaration.
+
 2007-12-05  Richard Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-type): Doc fix.
