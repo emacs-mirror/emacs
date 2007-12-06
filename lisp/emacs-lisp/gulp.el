@@ -78,8 +78,8 @@ Thanks.")
   :type 'string
   :group 'gulp)
 
-(declare-function mail-subject "../mail/sendmail" ())
-(declare-function mail-send "../mail/sendmail" ())
+(declare-function mail-subject "sendmail" ())
+(declare-function mail-send "sendmail" ())
 
 (defun gulp-send-requests (dir &optional time)
   "Send requests for updates to the authors of Lisp packages in directory DIR.
