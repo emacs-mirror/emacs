@@ -463,10 +463,11 @@ with a prefix argument."
 
 ;;; Shell commands
 
-(declare-function mailcap-parse-mailcaps "gnus/mailcap" (&optional path force))
-(declare-function mailcap-parse-mimetypes "gnus/mailcap" (&optional path force))
-(declare-function mailcap-extension-to-mime "gnus/mailcap" (extn))
-(declare-function mailcap-mime-info "gnus/mailcap" (string &optional request))
+(declare-function mailcap-parse-mailcaps "mailcap" (&optional path force))
+(declare-function mailcap-parse-mimetypes "mailcap" (&optional path force))
+(declare-function mailcap-extension-to-mime "mailcap" (extn))
+(declare-function mailcap-mime-info "mailcap"
+                  (string &optional request no-decode))
 
 (defun dired-read-shell-command-default (files)
   "Return a list of default commands for `dired-read-shell-command'."
