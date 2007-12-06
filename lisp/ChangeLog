@@ -1,3 +1,18 @@
+2007-12-05  Richard Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-type): Doc fix.
+
+2007-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Don't match "sub { (...) ... }".
+
+2007-12-05  Richard Stallman  <rms@gnu.org>
+
+	* international/mule-cmds.el (toggle-input-method-active): New var.
+	(toggle-input-method): Bind toggle-input-method-active to t.
+	Error if it was already non-nil.
+
 2007-12-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* net/tls.el (tls-hostmismatch, open-tls-stream): Checkdoc cleanup.

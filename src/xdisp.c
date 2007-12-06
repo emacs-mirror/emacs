@@ -24160,8 +24160,12 @@ If you want scrolling to always be a line at a time, you should set
 
   DEFVAR_INT ("scroll-conservatively", &scroll_conservatively,
     doc: /* *Scroll up to this many lines, to bring point back on screen.
-A value of zero means to scroll the text to center point vertically
-in the window.  */);
+If point moves off-screen, redisplay will scroll by up to
+`scroll-conservatively' lines in order to bring point just barely
+onto the screen again.   If that cannot be done, then redisplay
+recenters point as usual.
+
+A value of zero means always recenter point if it moves off screen.  */);
   scroll_conservatively = 0;
 
   DEFVAR_INT ("scroll-margin", &scroll_margin,

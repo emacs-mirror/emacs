@@ -514,7 +514,7 @@ static bool update;		/* -u: update tags */
 static bool vgrind_style;	/* -v: create vgrind style index output */
 static bool no_warnings;	/* -w: suppress warnings (undocumented) */
 static bool cxref_style;	/* -x: create cxref style output */
-static bool cplusplus;		/* .[hc] means C++, not C */
+static bool cplusplus;		/* .[hc] means C++, not C (undocumented) */
 static bool ignoreindent;	/* -I: ignore indentation in C */
 static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
@@ -621,10 +621,19 @@ followed by a colon, are tags.";
 
 
 /* Note that .c and .h can be considered C++, if the --c++ flag was
-   given, or if the `class' or `template' keyowrds are met inside the file.
+   given, or if the `class' or `template' keywords are met inside the file.
    That is why default_C_entries is called for these. */
 static char *default_C_suffixes [] =
   { "c", "h", NULL };
+#if CTAGS				/* C help for Ctags */
+static char default_C_help [] =
+"In C code, any C function is a tag.  Use -t to tag typedefs.\n\
+Use -T to tag definitions of `struct', `union' and `enum'.\n\
+Use -d to tag `#define' macro definitions and `enum' constants.\n\
+Use --globals to tag global variables.\n\
+You can tag function declarations and external variables by\n\
+using `--declarations', and struct members by using `--members'.";
+#else					/* C help for Etags */
 static char default_C_help [] =
 "In C code, any C function or typedef is a tag, and so are\n\
 definitions of `struct', `union' and `enum'.  `#define' macro\n\
@@ -635,6 +644,7 @@ definitions and `enum' constants are tags unless you specify\n\
 `--no-members' can make the tags table file much smaller.\n\
 You can tag function declarations and external variables by\n\
 using `--declarations'.";
+#endif	/* C help for Ctags and Etags */
 
 static char *Cplusplus_suffixes [] =
   { "C", "c++", "cc", "cpp", "cxx", "H", "h++", "hh", "hpp", "hxx",

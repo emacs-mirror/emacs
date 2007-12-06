@@ -1,3 +1,11 @@
+2007-12-04  Richard Stallman  <rms@gnu.org>
+
+	* objects.texi (Symbol Type): Fix typo.
+
+2007-12-03  Richard Stallman  <rms@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add link to Hooks for Loading.
+
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* functions.texi (Declaring Functions): Improve previous change.
@@ -6,6 +14,10 @@
 
 	* functions.texi (Declaring Functions): Add optional fourth
 	argument of declare-function, and setting third argument to `t'.
+
+2007-11-29  Richard Stallman  <rms@gnu.org>
+
+	* customize.texi (Composite Types): Document `group' type.
 
 2007-11-29  Glenn Morris  <rgm@gnu.org>
 
@@ -33,6 +45,11 @@
 	* functions.texi (Declaring Functions): Clarify previous change.
 
 	* compile.texi (Compiler Errors): Clarify previous change.
+
+2007-11-24  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Refresh Screen, Forcing Redisplay):
+	Clarify the text and move items around.
 
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 

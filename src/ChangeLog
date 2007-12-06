@@ -1,3 +1,46 @@
+2007-12-05  Magnus Henoch  <mange@freemail.hu>
+
+	* process.c (make_process): Initialize pty_flag to 0.
+
+2007-12-05  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (xbm_load) [WINDOWSNT]: Shuffle the bits of directly
+	specified XBMs.
+
+2007-12-05  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <scroll-conservatively>: Doc fix.
+
+2007-12-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (cfsockets_for_select) [MAC_OSX && SELECT_USE_CFSOCKET]:
+	New variable.
+	(mac_try_close_socket) [MAC_OSX]: New function.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]:
+	Update cfsockets_for_select.  Replace invalid CFRunLoop source.
+
+	* sysdep.c (emacs_close) [MAC_OSX && HAVE_CARBON]:
+	Use mac_try_close_socket.
+
+2007-12-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (unrelocate): New argument BASE.  Use it instead of
+	reloc_base.
+	(copy_dysymtab): Compute relocation base here.
+	(rebase_reloc_address) [__ppc64__]: New function.
+	(copy_dysymtab) [__ppc64__]: Use it if relocation base needs to be
+	changed.
+
+2007-12-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32proc.c (sys_spawnve): Quote args with wildcards.
+
+2007-12-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (copy_data_segment): Also copy __gcc_except_tab and
+	__objc_* sections.
+	(unrelocate) [_LP64]: Set relocation base to address of data segment.
+
 2007-12-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_read_message): Return value is a Lisp_Object.
