@@ -1619,7 +1619,7 @@ Argument NUM is the percentage into the buffer to move."
     (fill-region (point) (mark))))
 
 
-(declare-function c-mark-function "../progmodes/cc-cmds" ())
+(declare-function c-mark-function "cc-cmds" ())
 ;;;
 ;;; MARK SECTION WISELY
 ;;;
