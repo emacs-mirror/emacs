@@ -1,3 +1,7 @@
+2007-12-06  D. Goel  <deego3@gmail.com>
+
+	* erc-match.el (erc-add-entry-to-list): Fix buggy call to `error'.
+
 2007-12-01  Glenn Morris  <rgm@gnu.org>
 
 	* erc-backend.el (erc-server-send-ping): Move after definition of
