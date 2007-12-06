@@ -60,7 +60,7 @@
 	(save-excursion
 	  (insert "\n"))))))
 
-(declare-function mail-send-and-exit "../mail/sendmail")
+(declare-function mail-send-and-exit "sendmail")
 
 ;;;###autoload
 (defun url-mailto (url)
