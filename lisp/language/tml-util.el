@@ -360,17 +360,18 @@
 If STRING is not nil, it is a string, and POS is an index to the string.
 In this case, compose characters after POS of the string."
   (if string
-      (if (eq (string-match tamil-composable-pattern pos) pos)
-	  (if auto-compose-current-font
+      (if auto-compose-current-font
+	  (if (eq (string-match "[$,1< (B-$,1=?(B]+" pos) pos)
 	      (or (font-shape-text 0 (match-end 0) auto-compose-current-font
 				   string)
 		  pos)))
     (goto-char pos)
-    (if (looking-at tamil-composable-pattern)
-	(if auto-compose-current-font
+    (if auto-compose-current-font
+	(if (looking-at "[$,1< (B-$,1=?(B]+")
 	    (or (font-shape-text pos (match-end 0) auto-compose-current-font))
-	  (prog1 (match-end 0)
-	    (tamil-compose-syllable-region pos (match-end 0)))))))
+	  (if (looking-at tamil-composable-pattern)
+	      (prog1 (match-end 0)
+		(tamil-compose-syllable-region pos (match-end 0))))))))
 
 (provide 'tml-util)
 
