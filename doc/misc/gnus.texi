@@ -14871,7 +14871,7 @@ body of the messages:
 The buffer is narrowed to the header of the message in question when
 @var{function} is run.  That's why @code{(widen)} needs to be called
 after @code{save-excursion} and @code{save-restriction} in the example
-above.  Also note that with the nnimap back end, message bodies will
+above.  Also note that with the nnimap backend, message bodies will
 not be downloaded by default.  You need to set
 @code{nnimap-split-download-body} to @code{t} to do that
 (@pxref{Splitting in IMAP}).
