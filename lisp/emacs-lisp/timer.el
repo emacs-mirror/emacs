@@ -357,7 +357,7 @@ This function is called, by name, directly by the C code."
   (and (listp event) (eq (car event) 'timer-event)))
 
 
-(declare-function diary-entry-time "../calendar/diary-lib" (s))
+(declare-function diary-entry-time "diary-lib" (s))
 
 ;;;###autoload
 (defun run-at-time (time repeat function &rest args)
