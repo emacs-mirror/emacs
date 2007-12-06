@@ -26,6 +26,7 @@ dnl  Boston, MA 02110-1301, USA.
 AC_PREREQ(2.61)dnl
 AC_INIT(emacs, 23.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
+AC_CONFIG_SRCDIR(src/lisp.h)
 
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
