@@ -544,7 +544,7 @@ of master file."
      (save-excursion
        (condition-case error-var
            (funcall parse env)
-         (error (format "HOOK ERROR: %s" (cdr error-var))))))
+         (error "HOOK ERROR: %s" (cdr error-var)))))
     (t
      "INVALID VALUE OF PARSE"))))
 
