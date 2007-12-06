@@ -1,3 +1,9 @@
+2007-12-06  D. Goel  <deego3@gmail.com>
+
+
+	* gnus-art.el (article-make-date-line): Fix buggy call to `error'.
+	* gnus-start.el (gnus-load): Ditto.
+
 2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-use-idna)
@@ -57,6 +63,7 @@
 	(rfc2047-encoded-word-regexp-loose): Move forward; add comments
 	explaining what regexp patterns are for.
 
+>>>>>>> 1.607
 2007-12-04  Glenn Morris  <rgm@gnu.org>
 
 	* password.el: Move to ../password-cache.el.
