@@ -2393,7 +2393,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	(error
 	 (unless (eq (car type) 'end-of-file)
 	   (let ((errmsg (format "Error in %s line %d" file
-				 (count-lines (point-min (point))))))
+				 (count-lines (point-min) (point)))))
 	     (ding)
 	     (unless (gnus-yes-or-no-p (concat errmsg "; continue? "))
 	       (error "%s" errmsg)))))))))
