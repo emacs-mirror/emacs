@@ -481,7 +481,7 @@ If nil, the following are tried in turn, until success:
 
 
 
-(declare-function doc-view-minor-mode "../doc-view")
+(declare-function doc-view-minor-mode "doc-view")
 
 ;; PostScript mode.
 
