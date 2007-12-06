@@ -1,3 +1,14 @@
+2007-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-dvi->pdf-sentinel)
+	(doc-view-pdf/ps->png-sentinel, doc-view-pdf->txt-sentinel)
+	(doc-view-ps->pdf-sentinel, doc-view-display): Don't change buffer
+	within a sentinel or timer.
+	(doc-view-display): Don't try to display before the requested page
+	is available, unless told to do so explicitly.
+	(doc-view-pdf/ps->png-sentinel, doc-view-initiate-display):
+	Force display even if the requested page is not available.
+
 2007-12-06  Richard Stallman  <rms@gnu.org>
 
 	* help-fns.el (describe-function-1): Call ad-get-advice-info
