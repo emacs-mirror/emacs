@@ -317,13 +317,17 @@ are decomposed into normal Tibetan character sequences."
 
 ;;;###autoload
 (defun tibetan-composition-function (pos &optional string)
-  (setq pos (1- pos))
   (if string
-      ;; Not yet implemented.
-      nil
-    (if (>= pos (point-min))
-	(save-excursion
-	  (goto-char pos)
+      (if auto-compose-current-font
+	  (if (eq (string-match "[$(7!0(B-$,1GQ(B]+" pos) pos)
+	      (or (font-shape-text 0 (match-end 0) auto-compose-current-font
+				   string)
+		  pos)))
+    (goto-char pos)
+    (if auto-compose-current-font
+	(if (looking-at "[$(7!0(B-$,1GQ(B]+")
+	    (or (font-shape-text pos (match-end 0) auto-compose-current-font)
+		pos)
 	  (if (looking-at tibetan-composable-pattern)
 	      (prog1 (match-end 0)
 		(tibetan-compose-region pos (match-end 0))))))))
