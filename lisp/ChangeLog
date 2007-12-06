@@ -1,3 +1,15 @@
+
+2007-12-06  D. Goel  <deego3@gmail.com>
+
+
+	* textmodes/org-publish.el (org-publish-file): Fix buggy call(s) to `error'.
+	(org-publish-current-project): Ditto.
+	* textmodes/reftex-parse.el (reftex-short-context): Ditto.
+	(reftex-short-context): Ditto.
+	* textmodes/texinfmt.el: Ditto.
+
+
+
 2007-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-dvi->pdf-sentinel)
@@ -58,6 +70,7 @@
 	event of a verification failure.
 
 2007-12-05  Reiner Steib  <Reiner.Steib@gmx.de>
+>>>>>>> 1.12380
 
 	* net/tls.el (tls-program): Provide more custom choices from
 	`tls-checktrust'.  Refer to `tls-checktrust' in doc string.
