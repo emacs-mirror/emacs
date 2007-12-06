@@ -604,15 +604,9 @@ This also matches some punctuation characters which need conversion.")
 (defvar tibetan-decomposed nil)
 (defvar tibetan-decomposed-temp nil)
 
-
 ;; For automatic composition.
-(dolist (range '((?$(7#!(B . ?$(7#J(B) "$(7#K#L#M"Q"R(B" (?$(7"S(B . ?$(7"^(B) "$(7"a"b"e"_"c"d(B" (?$(7"g(B . ?$(7"l(B) "$(7!I!e!g(B"))
-  (if (stringp range)
-      (dotimes (i (length range))
-	(aset composition-function-table (aref range i)
-	      'tibetan-composition-function))
-    (set-char-table-range composition-function-table range
-			  'tibetan-composition-function)))
+(set-char-table-range composition-function-table '(#xF00 . #xFD1)
+		      'tibetan-composition-function)
 
 (provide 'tibetan)
 
